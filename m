@@ -1,137 +1,50 @@
 From: akpm@osdl.org
-Subject: - arch-i386-kernel-remove-remaining-pc98-code.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:24:04 -0800
-Message-ID: <200612062224.kB6MO4nt018582@shell0.pdx.osdl.net>
+Subject: - include-asm-x86_64-cpufeatureh-isnt-a-userspace-header.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:24:16 -0800
+Message-ID: <200612062224.kB6MOGLs018604@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48629 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48648 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937740AbWLFW1S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:27:18 -0500
+	id S937743AbWLFW13 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:27:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/i386/kernel/: remove remaining pc98 code
+     include/asm-x86_64/cpufeature.h isn't a userspace header
 has been removed from the -mm tree.  Its filename was
-     arch-i386-kernel-remove-remaining-pc98-code.patch
+     include-asm-x86_64-cpufeatureh-isnt-a-userspace-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/i386/kernel/: remove remaining pc98 code
+Subject: include/asm-x86_64/cpufeature.h isn't a userspace header
 From: Adrian Bunk <bunk@stusta.de>
+
+Nothing in include/asm-x86_64/cpufeature.h is part of the userspace<->kernel
+interface.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/io_apic.c    |   23 ++---------------------
- arch/i386/kernel/mpparse.c    |    2 --
- include/asm-i386/mpspec_def.h |    2 --
- 3 files changed, 2 insertions(+), 25 deletions(-)
+ include/asm-x86_64/Kbuild |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN arch/i386/kernel/io_apic.c~arch-i386-kernel-remove-remaining-pc98-code arch/i386/kernel/io_apic.c
---- a/arch/i386/kernel/io_apic.c~arch-i386-kernel-remove-remaining-pc98-code
-+++ a/arch/i386/kernel/io_apic.c
-@@ -842,8 +842,7 @@ static int __init find_isa_irq_pin(int i
+diff -puN include/asm-x86_64/Kbuild~include-asm-x86_64-cpufeatureh-isnt-a-userspace-header include/asm-x86_64/Kbuild
+--- a/include/asm-x86_64/Kbuild~include-asm-x86_64-cpufeatureh-isnt-a-userspace-header
++++ a/include/asm-x86_64/Kbuild
+@@ -6,7 +6,6 @@ ALTARCHDEF := defined __i386__
  
- 		if ((mp_bus_id_to_type[lbus] == MP_BUS_ISA ||
- 		     mp_bus_id_to_type[lbus] == MP_BUS_EISA ||
--		     mp_bus_id_to_type[lbus] == MP_BUS_MCA ||
--		     mp_bus_id_to_type[lbus] == MP_BUS_NEC98
-+		     mp_bus_id_to_type[lbus] == MP_BUS_MCA
- 		    ) &&
- 		    (mp_irqs[i].mpc_irqtype == type) &&
- 		    (mp_irqs[i].mpc_srcbusirq == irq))
-@@ -862,8 +861,7 @@ static int __init find_isa_irq_apic(int 
- 
- 		if ((mp_bus_id_to_type[lbus] == MP_BUS_ISA ||
- 		     mp_bus_id_to_type[lbus] == MP_BUS_EISA ||
--		     mp_bus_id_to_type[lbus] == MP_BUS_MCA ||
--		     mp_bus_id_to_type[lbus] == MP_BUS_NEC98
-+		     mp_bus_id_to_type[lbus] == MP_BUS_MCA
- 		    ) &&
- 		    (mp_irqs[i].mpc_irqtype == type) &&
- 		    (mp_irqs[i].mpc_srcbusirq == irq))
-@@ -993,12 +991,6 @@ static int EISA_ELCR(unsigned int irq)
- #define default_MCA_trigger(idx)	(1)
- #define default_MCA_polarity(idx)	(0)
- 
--/* NEC98 interrupts are always polarity zero edge triggered,
-- * when listed as conforming in the MP table. */
--
--#define default_NEC98_trigger(idx)     (0)
--#define default_NEC98_polarity(idx)    (0)
--
- static int __init MPBIOS_polarity(int idx)
- {
- 	int bus = mp_irqs[idx].mpc_srcbus;
-@@ -1033,11 +1025,6 @@ static int __init MPBIOS_polarity(int id
- 					polarity = default_MCA_polarity(idx);
- 					break;
- 				}
--				case MP_BUS_NEC98: /* NEC 98 pin */
--				{
--					polarity = default_NEC98_polarity(idx);
--					break;
--				}
- 				default:
- 				{
- 					printk(KERN_WARNING "broken BIOS!!\n");
-@@ -1107,11 +1094,6 @@ static int MPBIOS_trigger(int idx)
- 					trigger = default_MCA_trigger(idx);
- 					break;
- 				}
--				case MP_BUS_NEC98: /* NEC 98 pin */
--				{
--					trigger = default_NEC98_trigger(idx);
--					break;
--				}
- 				default:
- 				{
- 					printk(KERN_WARNING "broken BIOS!!\n");
-@@ -1173,7 +1155,6 @@ static int pin_2_irq(int idx, int apic, 
- 		case MP_BUS_ISA: /* ISA pin */
- 		case MP_BUS_EISA:
- 		case MP_BUS_MCA:
--		case MP_BUS_NEC98:
- 		{
- 			irq = mp_irqs[idx].mpc_srcbusirq;
- 			break;
-diff -puN arch/i386/kernel/mpparse.c~arch-i386-kernel-remove-remaining-pc98-code arch/i386/kernel/mpparse.c
---- a/arch/i386/kernel/mpparse.c~arch-i386-kernel-remove-remaining-pc98-code
-+++ a/arch/i386/kernel/mpparse.c
-@@ -249,8 +249,6 @@ static void __init MP_bus_info (struct m
- 		mp_current_pci_id++;
- 	} else if (strncmp(str, BUSTYPE_MCA, sizeof(BUSTYPE_MCA)-1) == 0) {
- 		mp_bus_id_to_type[m->mpc_busid] = MP_BUS_MCA;
--	} else if (strncmp(str, BUSTYPE_NEC98, sizeof(BUSTYPE_NEC98)-1) == 0) {
--		mp_bus_id_to_type[m->mpc_busid] = MP_BUS_NEC98;
- 	} else {
- 		printk(KERN_WARNING "Unknown bustype %s - ignoring\n", str);
- 	}
-diff -puN include/asm-i386/mpspec_def.h~arch-i386-kernel-remove-remaining-pc98-code include/asm-i386/mpspec_def.h
---- a/include/asm-i386/mpspec_def.h~arch-i386-kernel-remove-remaining-pc98-code
-+++ a/include/asm-i386/mpspec_def.h
-@@ -97,7 +97,6 @@ struct mpc_config_bus
- #define BUSTYPE_TC	"TC"
- #define BUSTYPE_VME	"VME"
- #define BUSTYPE_XPRESS	"XPRESS"
--#define BUSTYPE_NEC98	"NEC98"
- 
- struct mpc_config_ioapic
- {
-@@ -182,7 +181,6 @@ enum mp_bustype {
- 	MP_BUS_EISA,
- 	MP_BUS_PCI,
- 	MP_BUS_MCA,
--	MP_BUS_NEC98
- };
- #endif
- 
+ header-y += boot.h
+ header-y += bootsetup.h
+-header-y += cpufeature.h
+ header-y += debugreg.h
+ header-y += ldt.h
+ header-y += msr.h
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
