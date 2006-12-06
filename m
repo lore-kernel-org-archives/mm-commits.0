@@ -1,189 +1,160 @@
 From: akpm@osdl.org
-Subject: - x86_64-check-vector-in-setup_ioapic_dest-to-verify-if-need-setup_io_apic_irq.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:24:13 -0800
-Message-ID: <200612062224.kB6MOD5n018598@shell0.pdx.osdl.net>
+Subject: - cleanup-arch-i386-kernel-smpbootcsmp_tune_scheduling.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:24:08 -0800
+Message-ID: <200612062224.kB6MO85t018590@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48695 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48870 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937751AbWLFW1w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:27:52 -0500
+	id S937747AbWLFW3N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:29:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai.lu@amd.com, ak@suse.de, ebiederm@xmission.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: check vector in setup_ioapic_dest to verify if need setup_IO_APIC_irq
+     cleanup arch/i386/kernel/smpboot.c:smp_tune_scheduling()
 has been removed from the -mm tree.  Its filename was
-     x86_64-check-vector-in-setup_ioapic_dest-to-verify-if-need-setup_io_apic_irq.patch
+     cleanup-arch-i386-kernel-smpbootcsmp_tune_scheduling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: check vector in setup_ioapic_dest to verify if need setup_IO_APIC_irq
-From: "Yinghai Lu" <yinghai.lu@amd.com>
+Subject: cleanup arch/i386/kernel/smpboot.c:smp_tune_scheduling()
+From: Adrian Bunk <bunk@stusta.de>
 
-setup_IO_APIC_irqs could fail to get vector for some device when you have too
-many devices, because at that time only boot cpu is online.  So check vector
-for irq in setup_ioapic_dest and call setup_IO_APIC_irq to make sure IO-APIC
-irq-routing table is initialized.
+- remove the write-only local variable "bandwidth"
+- don't set "max_cache_size" in the (cachesize < 0) case:
+  that's already handled in kernel/sched.c:measure_migration_cost()
 
-Also seperate setup_IO_APIC_irq from setup_IO_APIC_irqs.
-
-Signed-off-by: Yinghai Lu <yinghai.lu@amd.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |  104 +++++++++++++++++++--------------
- 1 files changed, 61 insertions(+), 43 deletions(-)
+ arch/i386/kernel/smpboot.c |   29 +++++------------------------
+ 1 files changed, 5 insertions(+), 24 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-check-vector-in-setup_ioapic_dest-to-verify-if-need-setup_io_apic_irq arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-check-vector-in-setup_ioapic_dest-to-verify-if-need-setup_io_apic_irq
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -789,27 +789,65 @@ static void ioapic_register_intr(int irq
- 					      handle_edge_irq, "edge");
+diff -puN arch/i386/kernel/smpboot.c~cleanup-arch-i386-kernel-smpbootcsmp_tune_scheduling arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~cleanup-arch-i386-kernel-smpbootcsmp_tune_scheduling
++++ a/arch/i386/kernel/smpboot.c
+@@ -1130,34 +1130,15 @@ exit:
+ }
+ #endif
+ 
+-static void smp_tune_scheduling (void)
++static void smp_tune_scheduling(void)
+ {
+ 	unsigned long cachesize;       /* kB   */
+-	unsigned long bandwidth = 350; /* MB/s */
+-	/*
+-	 * Rough estimation for SMP scheduling, this is the number of
+-	 * cycles it takes for a fully memory-limited process to flush
+-	 * the SMP-local cache.
+-	 *
+-	 * (For a P5 this pretty much means we will choose another idle
+-	 *  CPU almost always at wakeup time (this is due to the small
+-	 *  L1 cache), on PIIs it's around 50-100 usecs, depending on
+-	 *  the cache size)
+-	 */
+ 
+-	if (!cpu_khz) {
+-		/*
+-		 * this basically disables processor-affinity
+-		 * scheduling on SMP without a TSC.
+-		 */
+-		return;
+-	} else {
++	if (cpu_khz) {
+ 		cachesize = boot_cpu_data.x86_cache_size;
+-		if (cachesize == -1) {
+-			cachesize = 16; /* Pentiums, 2x8kB cache */
+-			bandwidth = 100;
+-		}
+-		max_cache_size = cachesize * 1024;
++
++		if (cachesize > 0)
++			max_cache_size = cachesize * 1024;
  	}
  }
--
--static void __init setup_IO_APIC_irqs(void)
-+static void __init setup_IO_APIC_irq(int apic, int pin, int idx, int irq)
- {
- 	struct IO_APIC_route_entry entry;
--	int apic, pin, idx, irq, first_notcon = 1, vector;
-+	int vector;
- 	unsigned long flags;
  
--	apic_printk(APIC_VERBOSE, KERN_DEBUG "init IO_APIC IRQs\n");
- 
--	for (apic = 0; apic < nr_ioapics; apic++) {
--	for (pin = 0; pin < nr_ioapic_registers[apic]; pin++) {
-+	/*
-+	 * add it to the IO-APIC irq-routing table:
-+	 */
-+	memset(&entry,0,sizeof(entry));
- 
--		/*
--		 * add it to the IO-APIC irq-routing table:
--		 */
--		memset(&entry,0,sizeof(entry));
-+	entry.delivery_mode = INT_DELIVERY_MODE;
-+	entry.dest_mode = INT_DEST_MODE;
-+	entry.mask = 0;				/* enable IRQ */
-+	entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+
-+	entry.trigger = irq_trigger(idx);
-+	entry.polarity = irq_polarity(idx);
- 
--		entry.delivery_mode = INT_DELIVERY_MODE;
--		entry.dest_mode = INT_DEST_MODE;
--		entry.mask = 0;				/* enable IRQ */
-+	if (irq_trigger(idx)) {
-+		entry.trigger = 1;
-+		entry.mask = 1;
- 		entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+	}
-+
-+	if (!apic && !IO_APIC_IRQ(irq))
-+		return;
-+
-+	if (IO_APIC_IRQ(irq)) {
-+		cpumask_t mask;
-+		vector = assign_irq_vector(irq, TARGET_CPUS, &mask);
-+		if (vector < 0)
-+			return;
-+
-+		entry.dest.logical.logical_dest = cpu_mask_to_apicid(mask);
-+		entry.vector = vector;
-+
-+		ioapic_register_intr(irq, vector, IOAPIC_AUTO);
-+		if (!apic && (irq < 16))
-+			disable_8259A_irq(irq);
-+	}
-+
-+	ioapic_write_entry(apic, pin, entry);
-+
-+	spin_lock_irqsave(&ioapic_lock, flags);
-+	set_native_irq_info(irq, TARGET_CPUS);
-+	spin_unlock_irqrestore(&ioapic_lock, flags);
-+
-+}
-+
-+static void __init setup_IO_APIC_irqs(void)
-+{
-+	int apic, pin, idx, irq, first_notcon = 1;
-+
-+	apic_printk(APIC_VERBOSE, KERN_DEBUG "init IO_APIC IRQs\n");
-+
-+	for (apic = 0; apic < nr_ioapics; apic++) {
-+	for (pin = 0; pin < nr_ioapic_registers[apic]; pin++) {
- 
- 		idx = find_irq_entry(apic,pin,mp_INT);
- 		if (idx == -1) {
-@@ -821,39 +859,11 @@ static void __init setup_IO_APIC_irqs(vo
- 			continue;
- 		}
- 
--		entry.trigger = irq_trigger(idx);
--		entry.polarity = irq_polarity(idx);
--
--		if (irq_trigger(idx)) {
--			entry.trigger = 1;
--			entry.mask = 1;
--			entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
--		}
--
- 		irq = pin_2_irq(idx, apic, pin);
- 		add_pin_to_irq(irq, apic, pin);
- 
--		if (!apic && !IO_APIC_IRQ(irq))
--			continue;
-+		setup_IO_APIC_irq(apic, pin, idx, irq);
- 
--		if (IO_APIC_IRQ(irq)) {
--			cpumask_t mask;
--			vector = assign_irq_vector(irq, TARGET_CPUS, &mask);
--			if (vector < 0)
--				continue;
--
--			entry.dest.logical.logical_dest = cpu_mask_to_apicid(mask);
--			entry.vector = vector;
--
--			ioapic_register_intr(irq, vector, IOAPIC_AUTO);
--			if (!apic && (irq < 16))
--				disable_8259A_irq(irq);
--		}
--		ioapic_write_entry(apic, pin, entry);
--
--		spin_lock_irqsave(&ioapic_lock, flags);
--		set_native_irq_info(irq, TARGET_CPUS);
--		spin_unlock_irqrestore(&ioapic_lock, flags);
- 	}
- 	}
- 
-@@ -2139,7 +2149,15 @@ void __init setup_ioapic_dest(void)
- 			if (irq_entry == -1)
- 				continue;
- 			irq = pin_2_irq(irq_entry, ioapic, pin);
--			set_ioapic_affinity_irq(irq, TARGET_CPUS);
-+
-+			/* setup_IO_APIC_irqs could fail to get vector for some device
-+			 * when you have too many devices, because at that time only boot
-+			 * cpu is online.
-+			 */
-+			if(!irq_vector[irq])
-+				setup_IO_APIC_irq(ioapic, pin, irq_entry, irq);
-+			else
-+				set_ioapic_affinity_irq(irq, TARGET_CPUS);
- 		}
- 
- 	}
 _
 
-Patches currently in -mm which might be from yinghai.lu@amd.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-pci-check-szhi-when-sz-is-0-when-64-bit-iomem-bigger-than-4g.patch
+origin.patch
+make-drivers-acpi-baycdrive_bays-static.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+git-alsa.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
+git-mtd.patch
+remove-mtd-jffs2-userh.patch
+git-net.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+make-mm-thrashcglobal_faults-static.patch
+acx1xx-wireless-driver.patch
+arch-frv-kernel-futexc-must-include-linux-uaccessh.patch
+fix-v850-compilation.patch
+drivers-edac-make-code-static.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+ext4_ext_split-remove-dead-code.patch
+the-scheduled-removal-of-some-oss-options.patch
+make-mm-shmemcshmem_xattr_security_handler-static.patch
+remove-kernel-lockdepclockdep_internal.patch
+make-kernel-signalckill_proc_info-static.patch
+make-ecryptfs_version_str_map-static.patch
+make-fs-jbd-transactionc__journal_temp_unlink_buffer-static.patch
+make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static.patch
+fs-lockd-hostc-make-2-functions-static.patch
+make-fs-proc-basecproc_pid_instantiate-static.patch
+better-config_w1_slave_ds2433_crc-handling.patch
+fs-sysv-doc-cleanup.patch
+proper-prototype-for-remove_inode_dquot_ref.patch
+remove-drivers-char-riscom8cbaud_table.patch
+arch-i386-kernel-rebootc-should-include-linux-rebooth.patch
+remove-export_unused_symboled-symbols.patch
+include-asm-cris-extern-inline-static-inline.patch
+include-asm-h8300-extern-inline-static-inline.patch
+remove-nfsd_optimize_space.patch
+maintainers-remove-the-non-existing-sun3-list.patch
+cleanup-include-asm-generic-atomich.patch
+cleanup-include-asm-generic-atomich-fix.patch
+paride-remove-parport-ifdefs.patch
+remove-drivers-block-paride-jumbo.patch
+cleanup-asm-setuph-userspace-visibility-v2.patch
+make-ext2_get_blocks-static.patch
+generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch
+fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh.patch
+i4l-remove-the-broken-hisax_amd7930-option.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+make-drivers-md-dm-snapcksnapd-static.patch
+gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
+gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch
+updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
+updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slab-cache-shrinker-statistics.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
