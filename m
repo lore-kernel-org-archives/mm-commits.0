@@ -1,304 +1,214 @@
 From: akpm@osdl.org
-Subject: + nozomi-fix-for-workqueue-changes.patch added to -mm tree
-Date: Wed, 06 Dec 2006 15:28:55 -0800
-Message-ID: <200612062330.kB6NU6wO020563@shell0.pdx.osdl.net>
+Subject: - fbdev-backlight-kconfig-fixes.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 15:39:51 -0800
+Message-ID: <200612062341.kB6Nf2Hc020985@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54096 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55274 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937783AbWLFXaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 18:30:09 -0500
+	id S937808AbWLFXlL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 18:41:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, greg@kroah.com
+To: jsimmons@infradead.org, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nozomi: fix for workqueue changes
-has been added to the -mm tree.  Its filename is
-     nozomi-fix-for-workqueue-changes.patch
+     fbdev: backlight Kconfig fixes
+has been removed from the -mm tree.  Its filename was
+     fbdev-backlight-kconfig-fixes.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: nozomi: fix for workqueue changes
-From: Andrew Morton <akpm@osdl.org>
+Subject: fbdev: backlight Kconfig fixes
+From: James Simmons <jsimmons@infradead.org>
 
-(what's a dc_t?)
+Place the backlight before the framebuffers.  You will now be able to
+select using the backlight with various framebuffer drivers.
 
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: James Simmons <jsimmons@infradead.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/nozomi.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/video/Kconfig |   63 +++++++++++++++++-----------------------
+ 1 files changed, 28 insertions(+), 35 deletions(-)
 
-diff -puN drivers/char/nozomi.c~nozomi-fix-for-workqueue-changes drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~nozomi-fix-for-workqueue-changes
-+++ a/drivers/char/nozomi.c
-@@ -471,7 +471,6 @@ struct buffer {
+diff -puN drivers/video/Kconfig~fbdev-backlight-kconfig-fixes drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-backlight-kconfig-fixes
++++ a/drivers/video/Kconfig
+@@ -4,20 +4,9 @@
  
- /*    Function declarations */
- static int ntty_tty_init(dc_t * dc);
--static void tty_flip_queue_function(void *tmp_dc);
+ menu "Graphics support"
  
- /*    Global variables */
- static struct pci_device_id nozomi_pci_tbl[] = {
-@@ -1440,9 +1439,9 @@ static void nozomi_setup_private_data(dc
- 	}
- }
+-config FIRMWARE_EDID
+-       bool "Enable firmware EDID"
+-       default y
+-       ---help---
+-         This enables access to the EDID transferred from the firmware.
+-	 On the i386, this is from the Video BIOS. Enable this if DDC/I2C
+-	 transfers do not work for your driver and if you are using
+-	 nvidiafb, i810fb or savagefb.
+-
+-	 In general, choosing Y for this option is safe.  If you
+-	 experience extremely long delays while booting before you get
+-	 something on your display, try setting this to N.  Matrox cards in
+-	 combination with certain motherboards and monitors are known to
+-	 suffer from this problem.
++if SYSFS
++	source "drivers/video/backlight/Kconfig"
++endif
  
--static void tty_flip_queue_function(void *tmp_dc)
-+static void tty_flip_queue_function(struct work_struct *work)
- {
--	dc_t *dc = (dc_t *) tmp_dc;
-+	dc_t *dc = container_of(work, dc_t, tty_flip_wq_struct);
- 	int i;
- 	unsigned long flags;
+ config FB
+ 	tristate "Support for frame buffer devices"
+@@ -53,6 +42,22 @@ config FB
+ 	  (e.g. an accelerated X server) and that are not frame buffer
+ 	  device-aware may cause unexpected results. If unsure, say N.
  
-@@ -1592,7 +1591,7 @@ static int __devinit nozomi_card_init(st
- 		BUG_ON(!dc->tty_flip_wq);
- 		return -ENOMEM;
- 	}
--	INIT_WORK(&dc->tty_flip_wq_struct, tty_flip_queue_function, dc);
-+	INIT_WORK(&dc->tty_flip_wq_struct, tty_flip_queue_function);
++config FIRMWARE_EDID
++       bool "Enable firmware EDID"
++       depends on FB
++       default n
++       ---help---
++         This enables access to the EDID transferred from the firmware.
++	 On the i386, this is from the Video BIOS. Enable this if DDC/I2C
++	 transfers do not work for your driver and if you are using
++	 nvidiafb, i810fb or savagefb.
++
++	 In general, choosing Y for this option is safe.  If you
++	 experience extremely long delays while booting before you get
++	 something on your display, try setting this to N.  Matrox cards in
++	 combination with certain motherboards and monitors are known to
++	 suffer from this problem.
++
+ config FB_DDC
+        tristate
+        depends on FB && I2C && I2C_ALGOBIT
+@@ -90,13 +95,6 @@ config FB_MACMODES
+        depends on FB
+        default n
  
- 	spin_lock_init(&dc->spin_mutex);
+-config FB_BACKLIGHT
+-	bool
+-	depends on FB
+-	select BACKLIGHT_LCD_SUPPORT
+-	select BACKLIGHT_CLASS_DEVICE
+-	default n
+-
+ config FB_MODE_HELPERS
+         bool "Enable Video Mode Handling Helpers"
+         depends on FB
+@@ -126,6 +124,9 @@ config FB_TILEBLITTING
+ 	 This is particularly important to one driver, matroxfb.  If
+ 	 unsure, say N.
+ 
++comment "Frambuffer hardware drivers"
++	depends on FB
++
+ config FB_CIRRUS
+ 	tristate "Cirrus Logic support"
+ 	depends on FB && (ZORRO || PCI)
+@@ -731,8 +732,7 @@ config FB_NVIDIA_I2C
+ 
+ config FB_NVIDIA_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_NVIDIA && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_NVIDIA && BACKLIGHT_CLASS_DEVICE
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -779,8 +779,7 @@ config FB_RIVA_DEBUG
+ 
+ config FB_RIVA_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_RIVA && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_RIVA && BACKLIGHT_CLASS_DEVICE
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -1053,8 +1052,7 @@ config FB_RADEON_I2C
+ 
+ config FB_RADEON_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_RADEON && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_RADEON && BACKLIGHT_CLASS_DEVICE
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -1085,8 +1083,7 @@ config FB_ATY128
+ 
+ config FB_ATY128_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_ATY128 && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_ATY128 && BACKLIGHT_CLASS_DEVICE
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -1135,8 +1132,7 @@ config FB_ATY_GX
+ 
+ config FB_ATY_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_ATY && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_ATY && BACKLIGHT_CLASS_DEVICE
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -1636,6 +1632,7 @@ config FB_VIRTUAL
+ 	  the vfb_enable=1 option.
+ 
+ 	  If unsure, say N.
++
+ if VT
+ 	source "drivers/video/console/Kconfig"
+ endif
+@@ -1644,9 +1641,5 @@ if FB || SGI_NEWPORT_CONSOLE
+ 	source "drivers/video/logo/Kconfig"
+ endif
+ 
+-if SYSFS
+-	source "drivers/video/backlight/Kconfig"
+-endif
+-
+ endmenu
  
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from jsimmons@infradead.org are
 
-origin.patch
-add-bottom_half.h.patch
-drm-sis-linkage-fix.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-make-the-dock-station-driver-a-platform-device-driver-fix.patch
-acpi-asus-s3-resume-fix.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-alsa-arm-fix.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-gfs2-nmw.patch
-git-ia64.patch
-git-ieee1394-fixup.patch
-git-input.patch
-git-input-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-fixup.patch
-libphy-dont-do-that.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-net.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-git-nfs-fixup.patch
-git-nfs-more-hacks.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-fix-gregkh-pci-pci-enable-disable-device-is-nestable.patch
-git-s390.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-pre-x86_64-mm-i386-reloc-abssym.patch
-post-x86_64-mm-i386-reloc-abssym.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
-touchkit-ps-2-touchscreen-driver.patch
-get-rid-of-zone_table.patch
-new-scheme-to-preempt-swap-token-tidy.patch
-balance_pdgat-cleanup.patch
-leak-tracking-for-kmalloc_node-fix.patch
-add-numa-node-information-to-struct-device-tidy.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-slab-deprecate-kmem_cache-t.patch
-mm-make-compound-page-destructor-handling-explicit-tidy.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-radix-tree-rcu-lockless-readside.patch
-acx1xx-wireless-driver.patch
-swsusp-add-resume_offset-command-line-parameter-rev-2.patch
-add-include-linux-freezerh-and-move-definitions-from-ueagle-fix.patch
-add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-convert-pm_sem-to-a-mutex-fix.patch
-cciss-set-sector_size-to-2048-for-performance-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-probe_kernel_address-needs-to-do-set_fs.patch
-slab-use-probe_kernel_address.patch
-exar-quad-port-serial-fix.patch
-vfs_getattr-remove-dead-code.patch
-ext3-uninline-large-functions.patch
-ext4-uninline-large-functions.patch
-sleep-profiling-fixes.patch
-sleep-profiling-fix.patch
-debug-workqueue-locking-sanity-fix.patch
-pcengines-wrap-led-support-fix.patch
-driver-base-memoryc-remove-warnings-of.patch
-remove-kernel-syscalls-x86_64-fix.patch
-protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch
-remove-hash_highmem.patch
-elf-fix-kcore-note-size-calculation-fix.patch
-reiserfs-add-missing-d-cache-flushing-tweak.patch
-up-smp_call_function_single-should-disable-interrupts.patch
-up-smp_call_function_single-should-disable-interrupts-fix.patch
-smp_call_function_single-check-that-local-interrupts-are-enabled.patch
-hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch
-add-return-value-checking-of-get_user-in-fix.patch
-handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
-dz-fixes-to-make-it-work-fix.patch
-ext4-balloc-fix-_with_rsv-freeze-fix.patch
-ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
-make-8250_pnp-serial-driver-work-after-tidy.patch
-gcc-4-1-0-is-bust.patch
-cleanup-include-asm-generic-atomich-fix.patch
-struct-seq_operations-and-struct-file_operations-constification-fix.patch
-struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-tty-signal-tty-locking-post-viro-trainwreck.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
-pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
-bug-test-1.patch
-net-use-bitrev8-tidy.patch
-fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
-ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
-add-process_session-helper-routine-deprecate-old-field-tidy.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
-mxser-session-warning-fix.patch
-tty-switch-to-ktermios-and-new-framework-warning-fix.patch
-tty-switch-to-ktermios-and-new-framework-irda-fix.patch
-tty-switch-to-ktermios-bluetooth-fix.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
-drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
-fault-injection-capabilities-infrastructure-tidy.patch
-fault-injection-capabilities-infrastructure-tweaks.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-fix-fbdev-drivers.patch
+add-return-value-checking-of-get_user-in.patch
+pmagb-b-fb-fix-a-default-clock.patch
 video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs-fix.patch
+s3c2410fb-add-support-for-stn-displays.patch
+fbcmapc-mark-structs-const-or.patch
+various-fbdev-files-mark-structs.patch
+annotate-some-variables-in-vesafb.patch
+au1100fb-fix-to-remove-flickering.patch
+mbxfb-fix-hscoeff3-register-address.patch
+mbxfb-add-more-registers-bits.patch
+mbxfb-add-more-registers-to-debugfs.patch
+mbxfb-add-yuv-video-overlay-support.patch
+mbxfb-document-the-new-ioctl.patch
+atyfb-remove-fixme.patch
+visws-sgivwfb-is-module-needs-exports.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
 backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+softcursorc-avoid-unaligned-accesses.patch
+backlight-do-not-power-off-backlight-when-unregistering-try-3.patch
+fb-get-the-geode-gx-frambuffer-size-from-the-bios.patch
+gxfb-fixups-for-the-amd-geode-gx.patch
 gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings.patch
 gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options.patch
 gxfb-support-command-line-options-tidy.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
-nozomi-fix-for-workqueue-changes.patch
+gxfb-fixup-flatpanel-detection.patch
+gxfb-turn-on-the-flatpanel-power-and-data.patch
+video-select-set-for-vesa-fb.patch
 
