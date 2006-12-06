@@ -1,59 +1,73 @@
 From: akpm@osdl.org
-Subject: + git-cpufreq-fixup.patch added to -mm tree
-Date: Wed, 06 Dec 2006 13:29:04 -0800
-Message-ID: <200612062129.kB6LT4Vw016822@shell0.pdx.osdl.net>
+Subject: + git-dvb-fixup.patch added to -mm tree
+Date: Wed, 06 Dec 2006 13:31:26 -0800
+Message-ID: <200612062131.kB6LVQ1m016986@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43142 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43370 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937666AbWLFV3G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 16:29:06 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB6LT4ID001121
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 13:29:04 -0800
+	id S937670AbWLFVbh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 16:31:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, mchehab@infradead.org
 
 
 The patch titled
-     git-cpufreq-fixup
+     git-dvb-fixup
 has been added to the -mm tree.  Its filename is
-     git-cpufreq-fixup.patch
+     git-dvb-fixup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-cpufreq-fixup
+Subject: git-dvb-fixup
 From: Andrew Morton <akpm@osdl.org>
 
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/cpufreq/cpufreq.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/media/video/cx88/cx88-input.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~git-cpufreq-fixup drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~git-cpufreq-fixup
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -42,14 +42,8 @@ static struct cpufreq_policy *cpufreq_cp
- static DEFINE_SPINLOCK(cpufreq_driver_lock);
+diff -puN drivers/media/video/cx88/cx88-input.c~git-dvb-fixup drivers/media/video/cx88/cx88-input.c
+--- a/drivers/media/video/cx88/cx88-input.c~git-dvb-fixup
++++ a/drivers/media/video/cx88/cx88-input.c
+@@ -158,7 +158,7 @@ static void cx88_ir_work(struct work_str
+ static void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
+ {
+ 	if (ir->polling) {
+-		INIT_WORK(&ir->work, cx88_ir_work, ir);
++		INIT_WORK(&ir->work, cx88_ir_work);
+ 		init_timer(&ir->timer);
+ 		ir->timer.function = ir_timer;
+ 		ir->timer.data = (unsigned long)ir;
+@@ -333,22 +333,7 @@ int cx88_ir_init(struct cx88_core *core,
+ 	ir->core = core;
+ 	core->ir = ir;
  
- /* internal prototypes */
--<<<<<<< HEAD/drivers/cpufreq/cpufreq.c
- static int __cpufreq_governor(struct cpufreq_policy *policy, unsigned int event);
- static void handle_update(struct work_struct *work);
+-<<<<<<< HEAD/drivers/media/video/cx88/cx88-input.c
+-	if (ir->polling) {
+-		INIT_WORK(&ir->work, cx88_ir_work);
+-		init_timer(&ir->timer);
+-		ir->timer.function = ir_timer;
+-		ir->timer.data = (unsigned long)ir;
+-		schedule_work(&ir->work);
+-	}
+-	if (ir->sampling) {
+-		core->pci_irqmask |= (1 << 18);	/* IR_SMP_INT */
+-		cx_write(MO_DDS_IO, 0xa80a80);	/* 4 kHz sample rate */
+-		cx_write(MO_DDSCFG_IO, 0x5);	/* enable */
+-	}
 -=======
--static int __cpufreq_governor(struct cpufreq_policy *policy,
--						unsigned int event);
--static void handle_update(void *data);
-->>>>>>> /drivers/cpufreq/cpufreq.c
+ 	cx88_ir_start(core, ir);
+->>>>>>> /drivers/media/video/cx88/cx88-input.c
  
- /**
-  * Two notifier lists: the "policy" list is involved in the
+ 	/* all done */
+ 	err = input_register_device(ir->input);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -276,4 +290,5 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-dvb-fixup.patch
 
