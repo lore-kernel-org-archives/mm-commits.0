@@ -1,59 +1,51 @@
 From: akpm@osdl.org
-Subject: - nf_conntrack_pptp-build-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:23:32 -0800
-Message-ID: <200612062223.kB6MNWbk018537@shell0.pdx.osdl.net>
+Subject: - scsi-target-repair-after-viro-depredations.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:23:46 -0800
+Message-ID: <200612062223.kB6MNkVj018557@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48216 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48236 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937716AbWLFWXl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:23:41 -0500
+	id S937725AbWLFWXu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:23:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
+To: akpm@osdl.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nf_conntrack_pptp build fix
+     scsi-target-repair-after-viro-depredations
 has been removed from the -mm tree.  Its filename was
-     nf_conntrack_pptp-build-fix.patch
+     scsi-target-repair-after-viro-depredations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nf_conntrack_pptp build fix
+Subject: scsi-target-repair-after-viro-depredations
 From: Andrew Morton <akpm@osdl.org>
 
-arm:
+drivers/scsi/scsi_tgt_if.c: In function 'tgt_uspace_send_event':
+drivers/scsi/scsi_tgt_if.c:88: warning: implicit declaration of function 'flush_dcache_page'
 
-In file included from include/net/netfilter/ipv4/nf_conntrack_ipv4.h:14,
-                 from include/net/netfilter/nf_conntrack_compat.h:69,
-                 from net/netfilter/xt_connmark.c:32:
-include/linux/netfilter/nf_conntrack_pptp.h:304: warning: parameter has incomplete type
-include/linux/netfilter/nf_conntrack_pptp.h:310: warning: parameter has incomplete type
-
-It needs a definition of `enum ip_conntrack_info'.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Patrick McHardy <kaber@trash.net>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/netfilter/nf_conntrack_pptp.h |    2 ++
+ drivers/scsi/scsi_tgt_if.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN include/linux/netfilter/nf_conntrack_pptp.h~nf_conntrack_pptp-build-fix include/linux/netfilter/nf_conntrack_pptp.h
---- a/include/linux/netfilter/nf_conntrack_pptp.h~nf_conntrack_pptp-build-fix
-+++ a/include/linux/netfilter/nf_conntrack_pptp.h
-@@ -2,6 +2,8 @@
- #ifndef _NF_CONNTRACK_PPTP_H
- #define _NF_CONNTRACK_PPTP_H
+diff -puN drivers/scsi/scsi_tgt_if.c~scsi-target-repair-after-viro-depredations drivers/scsi/scsi_tgt_if.c
+--- a/drivers/scsi/scsi_tgt_if.c~scsi-target-repair-after-viro-depredations
++++ a/drivers/scsi/scsi_tgt_if.c
+@@ -29,6 +29,8 @@
+ #include <scsi/scsi_tgt.h>
+ #include <scsi/scsi_tgt_if.h>
  
-+#include <linux/netfilter/nf_conntrack_common.h>
++#include <asm/cacheflush.h>
 +
- /* state of the control session */
- enum pptp_ctrlsess_state {
- 	PPTP_SESSION_NONE,			/* no session present */
+ #include "scsi_tgt_priv.h"
+ 
+ struct tgt_ring {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
