@@ -1,148 +1,267 @@
 From: akpm@osdl.org
-Subject: + git-ieee1394-fixup.patch added to -mm tree
-Date: Wed, 06 Dec 2006 13:44:10 -0800
-Message-ID: <200612062144.kB6LiA1X017394@shell0.pdx.osdl.net>
+Subject: + git-mmc-fixup.patch added to -mm tree
+Date: Wed, 06 Dec 2006 13:49:44 -0800
+Message-ID: <200612062149.kB6LniJk017540@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44334 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44907 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937675AbWLFVoT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 16:44:19 -0500
+	id S937682AbWLFVt6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 16:49:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, stefanr@s5r6.in-berlin.de
+Cc: akpm@osdl.org, drzeus@drzeus.cx
 
 
 The patch titled
-     git-ieee1394-fixup
+     git-mmc-fixup
 has been added to the -mm tree.  Its filename is
-     git-ieee1394-fixup.patch
+     git-mmc-fixup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ieee1394-fixup
+Subject: git-mmc-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-Probably wrong..
+Ghastly hacks to make it compile.  Broken.
 
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ieee1394/sbp2.c |   46 +++++---------------------------------
- drivers/ieee1394/sbp2.h |    6 ----
- 2 files changed, 7 insertions(+), 45 deletions(-)
+ drivers/mmc/tifm_sd.c |  166 ----------------------------------------
+ 1 file changed, 166 deletions(-)
 
-diff -puN drivers/ieee1394/sbp2.c~git-ieee1394-fixup drivers/ieee1394/sbp2.c
---- a/drivers/ieee1394/sbp2.c~git-ieee1394-fixup
-+++ a/drivers/ieee1394/sbp2.c
-@@ -458,27 +458,20 @@ static void sbp2util_notify_fetch_agent(
+diff -puN drivers/mmc/tifm_sd.c~git-mmc-fixup drivers/mmc/tifm_sd.c
+--- a/drivers/mmc/tifm_sd.c~git-mmc-fixup
++++ a/drivers/mmc/tifm_sd.c
+@@ -99,13 +99,9 @@ struct tifm_sd {
+ 	struct tasklet_struct finish_tasklet;
+ 	struct timer_list     timer;
+ 	struct mmc_request    *req;
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+ 	struct work_struct    cmd_handler;
+ 	struct delayed_work   abort_handler;
+-	wait_queue_head_t     can_eject;
+-=======
+ 	wait_queue_head_t     notify;
+->>>>>>> /drivers/mmc/tifm_sd.c
  
- static void sbp2util_write_orb_pointer(struct work_struct *work)
+ 	size_t                written_blocks;
+ 	size_t                buffer_size;
+@@ -523,17 +519,9 @@ err_out:
+ 	mmc_request_done(mmc, mrq);
+ }
+ 
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+ static void tifm_sd_end_cmd(struct work_struct *work)
+-=======
+-static void tifm_sd_end_cmd(unsigned long data)
+->>>>>>> /drivers/mmc/tifm_sd.c
  {
--	struct scsi_id_instance_data *scsi_id =
--		container_of(work, struct scsi_id_instance_data,
--			     protocol_work.work);
-+	struct sbp2_lu *scsi_id = container_of(work, struct sbp2_lu,
-+						protocol_work.work);
- 	quadlet_t data[2];
- 
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
- 	data[0] = ORB_SET_NODE_ID(scsi_id->hi->host->node_id);
- 	data[1] = scsi_id->last_orb_dma;
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+ 	struct tifm_sd *host = container_of(work, struct tifm_sd, cmd_handler);
 -=======
--	data[0] = ORB_SET_NODE_ID(((struct sbp2_lu *)p)->hi->host->node_id);
--	data[1] = ((struct sbp2_lu *)p)->last_orb_dma;
-->>>>>>> /drivers/ieee1394/sbp2.c
- 	sbp2util_cpu_to_be32_buffer(data, 8);
- 	sbp2util_notify_fetch_agent(scsi_id, SBP2_ORB_POINTER_OFFSET, data, 8);
+-	struct tifm_sd *host = (struct tifm_sd*)data;
+->>>>>>> /drivers/mmc/tifm_sd.c
+ 	struct tifm_dev *sock = host->dev;
+ 	struct mmc_host *mmc = tifm_get_drvdata(sock);
+ 	struct mmc_request *mrq;
+@@ -630,11 +618,7 @@ err_out:
+ 	mmc_request_done(mmc, mrq);
  }
  
- static void sbp2util_write_doorbell(struct work_struct *work)
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+ static void tifm_sd_end_cmd_nodma(struct work_struct *work)
+-=======
+-static void tifm_sd_end_cmd_nodma(unsigned long data)
+->>>>>>> /drivers/mmc/tifm_sd.c
  {
--	struct scsi_id_instance_data *scsi_id =
--		container_of(work, struct scsi_id_instance_data,
--			     protocol_work.work);
-+	struct sbp2_lu *scsi_id = container_of(work, struct sbp2_lu,
-+						protocol_work.work);
- 	sbp2util_notify_fetch_agent(scsi_id, SBP2_DOORBELL_OFFSET, NULL, 4);
+ 	struct tifm_sd *host = container_of(work, struct tifm_sd, cmd_handler);
+ 	struct tifm_dev *sock = host->dev;
+@@ -702,29 +686,15 @@ static void tifm_sd_terminate(struct tif
+ 	spin_unlock_irqrestore(&sock->lock, flags);
  }
  
-@@ -738,19 +731,6 @@ static struct sbp2_lu *sbp2_alloc_device
- 		goto failed_alloc;
- 	}
- 
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
--	scsi_id->ne = ud->ne;
--	scsi_id->ud = ud;
--	scsi_id->speed_code = IEEE1394_SPEED_100;
--	scsi_id->max_payload_size = sbp2_speedto_max_payload[IEEE1394_SPEED_100];
--	scsi_id->status_fifo_addr = CSR1212_INVALID_ADDR_SPACE;
--	INIT_LIST_HEAD(&scsi_id->sbp2_command_orb_inuse);
--	INIT_LIST_HEAD(&scsi_id->sbp2_command_orb_completed);
--	INIT_LIST_HEAD(&scsi_id->scsi_list);
--	spin_lock_init(&scsi_id->sbp2_command_orb_lock);
--	atomic_set(&scsi_id->state, SBP2LU_STATE_RUNNING);
--	INIT_DELAYED_WORK(&scsi_id->protocol_work, NULL);
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+ static void tifm_sd_abort(struct work_struct *work)
 -=======
- 	lu->ne = ud->ne;
- 	lu->ud = ud;
- 	lu->speed_code = IEEE1394_SPEED_100;
-@@ -761,8 +741,7 @@ static struct sbp2_lu *sbp2_alloc_device
- 	INIT_LIST_HEAD(&lu->lu_list);
- 	spin_lock_init(&lu->cmd_orb_lock);
- 	atomic_set(&lu->state, SBP2LU_STATE_RUNNING);
--	INIT_WORK(&lu->protocol_work, NULL, NULL);
-->>>>>>> /drivers/ieee1394/sbp2.c
-+	INIT_WORK(&lu->protocol_work.work, NULL);
+-static void tifm_sd_abort(unsigned long data)
+->>>>>>> /drivers/mmc/tifm_sd.c
+ {
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+ 	struct tifm_sd *host =
+ 		container_of(work, struct tifm_sd, abort_handler.work);
  
- 	ud->device.driver_data = lu;
- 
-@@ -1704,22 +1683,11 @@ static void sbp2_link_orb_command(struct
- 		 * the workqueue job will sleep to guaranteedly get a tlabel.
- 		 * We do not accept new commands until the job is over.
- 		 */
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
--		scsi_block_requests(scsi_id->scsi_host);
--		PREPARE_DELAYED_WORK(&scsi_id->protocol_work,
 -=======
- 		scsi_block_requests(lu->shost);
--		PREPARE_WORK(&lu->protocol_work,
-->>>>>>> /drivers/ieee1394/sbp2.c
-+		PREPARE_DELAYED_WORK(&lu->protocol_work,
- 			     last_orb ? sbp2util_write_doorbell:
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
- 					sbp2util_write_orb_pointer);
--		schedule_delayed_work(&scsi_id->protocol_work, 0);
--=======
--					sbp2util_write_orb_pointer,
--			     lu);
--		schedule_work(&lu->protocol_work);
-->>>>>>> /drivers/ieee1394/sbp2.c
-+		schedule_delayed_work(&lu->protocol_work, 0);
- 	}
- }
- 
-diff -puN drivers/ieee1394/sbp2.h~git-ieee1394-fixup drivers/ieee1394/sbp2.h
---- a/drivers/ieee1394/sbp2.h~git-ieee1394-fixup
-+++ a/drivers/ieee1394/sbp2.h
-@@ -326,13 +326,7 @@ struct sbp2_lu {
- 
- 	/* Connection state */
- 	atomic_t state;
--<<<<<<< HEAD/drivers/ieee1394/sbp2.h
- 	struct delayed_work protocol_work;
--=======
+-	struct tifm_sd *host = (struct tifm_sd*)data;
 -
--	/* For deferred requests to the fetch agent */
--	struct work_struct protocol_work;
-->>>>>>> /drivers/ieee1394/sbp2.h
+->>>>>>> /drivers/mmc/tifm_sd.c
+ 	printk(KERN_ERR DRIVER_NAME
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+-		": card failed to respond for a long period of time");
+-	tifm_eject(host->dev);
+-=======
+ 	       ": card failed to respond for a long period of time\n");
+ 	tifm_sd_terminate(host);
+ 	tifm_eject(host->dev);
+->>>>>>> /drivers/mmc/tifm_sd.c
+ }
+ 
+ static void tifm_sd_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+@@ -822,149 +792,13 @@ static struct mmc_host_ops tifm_sd_ops =
+ 	.get_ro  = tifm_sd_ro
  };
  
- /* For use in sbp2_lu.state */
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+ static void tifm_sd_register_host(struct work_struct *work)
+-=======
+-static int tifm_sd_initialize_host(struct tifm_sd *host)
+->>>>>>> /drivers/mmc/tifm_sd.c
+ {
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+-	struct tifm_sd *host = container_of(work, struct tifm_sd, cmd_handler);
+-=======
+-	int rc;
+-	unsigned int host_status = 0;
+->>>>>>> /drivers/mmc/tifm_sd.c
+-	struct tifm_dev *sock = host->dev;
+-
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+-	spin_lock_irqsave(&sock->lock, flags);
+-	host->flags |= HOST_REG;
+-	PREPARE_WORK(&host->cmd_handler,
+-			no_dma ? tifm_sd_end_cmd_nodma : tifm_sd_end_cmd);
+-	spin_unlock_irqrestore(&sock->lock, flags);
+-	dev_dbg(&sock->dev, "adding host\n");
+-	mmc_add_host(mmc);
+-=======
+-	writel(0, sock->addr + SOCK_MMCSD_INT_ENABLE);
+-	mmiowb();
+-	host->clk_div = 61;
+-	host->clk_freq = 20000000;
+-	writel(TIFM_MMCSD_RESET, sock->addr + SOCK_MMCSD_SYSTEM_CONTROL);
+-	writel(host->clk_div | TIFM_MMCSD_POWER,
+-	       sock->addr + SOCK_MMCSD_CONFIG);
+-
+-	/* wait up to 0.51 sec for reset */
+-	for (rc = 2; rc <= 256; rc <<= 1) {
+-		if (1 & readl(sock->addr + SOCK_MMCSD_SYSTEM_STATUS)) {
+-			rc = 0;
+-			break;
+-		}
+-		msleep(rc);
+-        }
+-
+-	if (rc) {
+-		printk(KERN_ERR DRIVER_NAME
+-		       ": controller failed to reset\n");
+-		return -ENODEV;
+-	}
+-
+-	writel(0, sock->addr + SOCK_MMCSD_NUM_BLOCKS);
+-	writel(host->clk_div | TIFM_MMCSD_POWER,
+-	       sock->addr + SOCK_MMCSD_CONFIG);
+-	writel(TIFM_MMCSD_RXDE, sock->addr + SOCK_MMCSD_BUFFER_CONFIG);
+-
+-	// command timeout fixed to 64 clocks for now
+-	writel(64, sock->addr + SOCK_MMCSD_COMMAND_TO);
+-	writel(TIFM_MMCSD_INAB, sock->addr + SOCK_MMCSD_COMMAND);
+-
+-	/* INAB should take much less than reset */
+-	for (rc = 1; rc <= 16; rc <<= 1) {
+-		host_status = readl(sock->addr + SOCK_MMCSD_STATUS);
+-		writel(host_status, sock->addr + SOCK_MMCSD_STATUS);
+-		if (!(host_status & TIFM_MMCSD_ERRMASK)
+-		    && (host_status & TIFM_MMCSD_EOC)) {
+-			rc = 0;
+-			break;
+-		}
+-		msleep(rc);
+-        }
+-
+-	if (rc) {
+-		printk(KERN_ERR DRIVER_NAME
+-		       ": card not ready - probe failed on initialization\n");
+-		return -ENODEV;
+-	}
+-
+-	writel(TIFM_MMCSD_DATAMASK | TIFM_MMCSD_ERRMASK,
+-	       sock->addr + SOCK_MMCSD_INT_ENABLE);
+-	mmiowb();
+-
+-	return 0;
+->>>>>>> /drivers/mmc/tifm_sd.c
+ }
+ 
+ static int tifm_sd_probe(struct tifm_dev *sock)
+ {
+-	struct mmc_host *mmc;
+-	struct tifm_sd *host;
+-	int rc = -EIO;
+-
+-	if (!(TIFM_SOCK_STATE_OCCUPIED
+-	      & readl(sock->addr + SOCK_PRESENT_STATE))) {
+-		printk(KERN_WARNING DRIVER_NAME ": card gone, unexpectedly\n");
+-		return rc;
+-	}
+-
+-	mmc = mmc_alloc_host(sizeof(struct tifm_sd), &sock->dev);
+-	if (!mmc)
+-		return -ENOMEM;
+-
+-	host = mmc_priv(mmc);
+-	tifm_set_drvdata(sock, mmc);
+-	host->dev = sock;
+-<<<<<<< HEAD/drivers/mmc/tifm_sd.c
+-	host->clk_div = 61;
+-	init_waitqueue_head(&host->can_eject);
+-	INIT_WORK(&host->cmd_handler, tifm_sd_register_host);
+-	INIT_DELAYED_WORK(&host->abort_handler, tifm_sd_abort);
+-=======
+-	host->timeout_jiffies = msecs_to_jiffies(1000);
+->>>>>>> /drivers/mmc/tifm_sd.c
+-
+-	init_waitqueue_head(&host->notify);
+-	tasklet_init(&host->finish_tasklet,
+-		     no_dma ? tifm_sd_end_cmd_nodma : tifm_sd_end_cmd,
+-		     (unsigned long)host);
+-	setup_timer(&host->timer, tifm_sd_abort, (unsigned long)host);
+-
+-	tifm_sd_ops.request = no_dma ? tifm_sd_request_nodma : tifm_sd_request;
+-	mmc->ops = &tifm_sd_ops;
+-	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
+-	mmc->caps = MMC_CAP_4_BIT_DATA | MMC_CAP_MULTIWRITE;
+-	mmc->f_min = 20000000 / 60;
+-	mmc->f_max = 24000000;
+-	mmc->max_hw_segs = 1;
+-	mmc->max_phys_segs = 1;
+-	// limited by DMA counter - it's safer to stick with
+-	// block counter has 11 bits though
+-	mmc->max_blk_count = 256;
+-	// 2k maximum hw block length
+-	mmc->max_blk_size = 2048;
+-	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
+-	mmc->max_seg_size = mmc->max_req_size;
+-
+-	sock->signal_irq = tifm_sd_signal_irq;
+-	rc = tifm_sd_initialize_host(host);
+-
+-	if (!rc)
+-		rc = mmc_add_host(mmc);
+-	if (rc)
+-		goto out_free_mmc;
+-
+ 	return 0;
+-out_free_mmc:
+-	mmc_free_host(mmc);
+-	return rc;
+ }
+ 
+ static void tifm_sd_remove(struct tifm_dev *sock)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -185,6 +304,7 @@ pata_sil680-suspend-resume-tidy.patch
 pata_via-suspend-resume-support-fix.patch
 pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
 git-lxdialog-fixup.patch
+git-mmc-fixup.patch
 git-mtd.patch
 git-mtd-ssfdc-build-fix.patch
 git-ubi.patch
