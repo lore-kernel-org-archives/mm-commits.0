@@ -1,135 +1,226 @@
 From: akpm@osdl.org
-Subject: - scsi-megaraid-fix-mmio-casts.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:23:48 -0800
-Message-ID: <200612062223.kB6MNmmn018560@shell0.pdx.osdl.net>
+Subject: - i386-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:24:06 -0800
+Message-ID: <200612062224.kB6MO6PI018586@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48258 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48292 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937727AbWLFWX6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:23:58 -0500
+	id S937734AbWLFWYK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:24:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, mm-commits@vger.kernel.org
+To: yan_952@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI/megaraid: fix MMIO casts
+     i386: replace kmalloc+memset with kzalloc
 has been removed from the -mm tree.  Its filename was
-     scsi-megaraid-fix-mmio-casts.patch
+     i386-replace-kmallocmemset-with-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SCSI/megaraid: fix MMIO casts
-From: Jeff Garzik <jeff@garzik.org>
+Subject: i386: replace kmalloc+memset with kzalloc
+From: "Burman Yan" <yan_952@hotmail.com>
 
-megaraid's MMIO RD*/WR* macros directly call readl() and writel() with an
-'unsigned long' argument.  This throws a warning, but is otherwise OK because
-the 'unsigned long' is really the result of ioremap().  This setup is also OK
-because the variable can hold an ioremap cookie /or/ a PCI I/O port (PIO).
 
-However, to fix the warning thrown when readl() and writel() are passed an
-unsigned long cookie, I introduce 'void __iomem *mmio_base', holding the same
-value as 'base'.  This will silence the warnings, and also cause an oops
-whenever these MMIO-only functions are ever accidentally passed an I/O
-address.
 
-Signed-off-by: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/megaraid.c |   13 ++++++++-----
- drivers/scsi/megaraid.h |    3 ++-
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ arch/i386/kernel/cpu/intel_cacheinfo.c |   11 +++--------
+ arch/i386/kernel/mca.c                 |   13 ++++---------
+ arch/i386/kernel/pci-dma.c             |    6 ++----
+ arch/i386/mach-voyager/voyager_cat.c   |    6 ++----
+ include/asm-i386/thread_info.h         |   10 +---------
+ include/linux/textsearch.h             |    3 +--
+ 6 files changed, 13 insertions(+), 36 deletions(-)
 
-diff -puN drivers/scsi/megaraid.c~scsi-megaraid-fix-mmio-casts drivers/scsi/megaraid.c
---- a/drivers/scsi/megaraid.c~scsi-megaraid-fix-mmio-casts
-+++ a/drivers/scsi/megaraid.c
-@@ -73,10 +73,10 @@ static unsigned short int max_mbox_busy_
- module_param(max_mbox_busy_wait, ushort, 0);
- MODULE_PARM_DESC(max_mbox_busy_wait, "Maximum wait for mailbox in microseconds if busy (default=MBOX_BUSY_WAIT=10)");
+diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~i386-replace-kmallocmemset-with-kzalloc arch/i386/kernel/cpu/intel_cacheinfo.c
+--- a/arch/i386/kernel/cpu/intel_cacheinfo.c~i386-replace-kmallocmemset-with-kzalloc
++++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
+@@ -480,12 +480,10 @@ static int __cpuinit detect_cache_attrib
+ 	if (num_cache_leaves == 0)
+ 		return -ENOENT;
  
--#define RDINDOOR(adapter)		readl((adapter)->base + 0x20)
--#define RDOUTDOOR(adapter)		readl((adapter)->base + 0x2C)
--#define WRINDOOR(adapter,value)		writel(value, (adapter)->base + 0x20)
--#define WROUTDOOR(adapter,value)	writel(value, (adapter)->base + 0x2C)
-+#define RDINDOOR(adapter)	readl((adapter)->mmio_base + 0x20)
-+#define RDOUTDOOR(adapter)	readl((adapter)->mmio_base + 0x2C)
-+#define WRINDOOR(adapter,value)	 writel(value, (adapter)->mmio_base + 0x20)
-+#define WROUTDOOR(adapter,value) writel(value, (adapter)->mmio_base + 0x2C)
+-	cpuid4_info[cpu] = kmalloc(
++	cpuid4_info[cpu] = kzalloc(
+ 	    sizeof(struct _cpuid4_info) * num_cache_leaves, GFP_KERNEL);
+ 	if (unlikely(cpuid4_info[cpu] == NULL))
+ 		return -ENOMEM;
+-	memset(cpuid4_info[cpu], 0,
+-	    sizeof(struct _cpuid4_info) * num_cache_leaves);
  
- /*
-  * Global variables
-@@ -1386,7 +1386,8 @@ megaraid_isr_memmapped(int irq, void *de
+ 	oldmask = current->cpus_allowed;
+ 	retval = set_cpus_allowed(current, cpumask_of_cpu(cpu));
+@@ -658,17 +656,14 @@ static int __cpuinit cpuid4_cache_sysfs_
+ 		return -ENOENT;
  
- 		handled = 1;
+ 	/* Allocate all required memory */
+-	cache_kobject[cpu] = kmalloc(sizeof(struct kobject), GFP_KERNEL);
++	cache_kobject[cpu] = kzalloc(sizeof(struct kobject), GFP_KERNEL);
+ 	if (unlikely(cache_kobject[cpu] == NULL))
+ 		goto err_out;
+-	memset(cache_kobject[cpu], 0, sizeof(struct kobject));
  
--		while( RDINDOOR(adapter) & 0x02 ) cpu_relax();
-+		while( RDINDOOR(adapter) & 0x02 )
-+			cpu_relax();
+-	index_kobject[cpu] = kmalloc(
++	index_kobject[cpu] = kzalloc(
+ 	    sizeof(struct _index_kobject ) * num_cache_leaves, GFP_KERNEL);
+ 	if (unlikely(index_kobject[cpu] == NULL))
+ 		goto err_out;
+-	memset(index_kobject[cpu], 0,
+-	    sizeof(struct _index_kobject) * num_cache_leaves);
  
- 		mega_cmd_done(adapter, completed, nstatus, status);
+ 	return 0;
  
-@@ -4672,6 +4673,8 @@ megaraid_probe_one(struct pci_dev *pdev,
- 		host->host_no, mega_baseport, irq);
+diff -puN arch/i386/kernel/mca.c~i386-replace-kmallocmemset-with-kzalloc arch/i386/kernel/mca.c
+--- a/arch/i386/kernel/mca.c~i386-replace-kmallocmemset-with-kzalloc
++++ a/arch/i386/kernel/mca.c
+@@ -283,10 +283,9 @@ static int __init mca_init(void)
+ 	bus->f.mca_transform_memory = mca_dummy_transform_memory;
  
- 	adapter->base = mega_baseport;
-+	if (flag & BOARD_MEMMAP)
-+		adapter->mmio_base = (void __iomem *) mega_baseport;
+ 	/* get the motherboard device */
+-	mca_dev = kmalloc(sizeof(struct mca_device), GFP_KERNEL);
++	mca_dev = kzalloc(sizeof(struct mca_device), GFP_KERNEL);
+ 	if(unlikely(!mca_dev))
+ 		goto out_nomem;
+-	memset(mca_dev, 0, sizeof(struct mca_device));
  
- 	INIT_LIST_HEAD(&adapter->free_list);
- 	INIT_LIST_HEAD(&adapter->pending_list);
-diff -puN drivers/scsi/megaraid.h~scsi-megaraid-fix-mmio-casts drivers/scsi/megaraid.h
---- a/drivers/scsi/megaraid.h~scsi-megaraid-fix-mmio-casts
-+++ a/drivers/scsi/megaraid.h
-@@ -801,7 +801,8 @@ typedef struct {
- 				   clustering is available */
- 	u32	flag;
+ 	/*
+ 	 * We do not expect many MCA interrupts during initialization,
+@@ -310,11 +309,9 @@ static int __init mca_init(void)
+ 	mca_dev->slot = MCA_MOTHERBOARD;
+ 	mca_register_device(MCA_PRIMARY_BUS, mca_dev);
  
--	unsigned long	base;
-+	unsigned long		base;
-+	void __iomem		*mmio_base;
+-	mca_dev = kmalloc(sizeof(struct mca_device), GFP_ATOMIC);
++	mca_dev = kzalloc(sizeof(struct mca_device), GFP_ATOMIC);
+ 	if(unlikely(!mca_dev))
+ 		goto out_unlock_nomem;
+-	memset(mca_dev, 0, sizeof(struct mca_device));
+-
  
- 	/* mbox64 with mbox not aligned on 16-byte boundry */
- 	mbox64_t	*una_mbox64;
+ 	/* Put motherboard into video setup mode, read integrated video
+ 	 * POS registers, and turn motherboard setup off.
+@@ -349,10 +346,9 @@ static int __init mca_init(void)
+ 	}
+ 	if(which_scsi) {
+ 		/* found a scsi card */
+-		mca_dev = kmalloc(sizeof(struct mca_device), GFP_ATOMIC);
++		mca_dev = kzalloc(sizeof(struct mca_device), GFP_ATOMIC);
+ 		if(unlikely(!mca_dev))
+ 			goto out_unlock_nomem;
+-		memset(mca_dev, 0, sizeof(struct mca_device));
+ 
+ 		for(j = 0; j < 8; j++)
+ 			mca_dev->pos[j] = pos[j];
+@@ -378,10 +374,9 @@ static int __init mca_init(void)
+ 		if(!mca_read_and_store_pos(pos))
+ 			continue;
+ 
+-		mca_dev = kmalloc(sizeof(struct mca_device), GFP_ATOMIC);
++		mca_dev = kzalloc(sizeof(struct mca_device), GFP_ATOMIC);
+ 		if(unlikely(!mca_dev))
+ 			goto out_unlock_nomem;
+-		memset(mca_dev, 0, sizeof(struct mca_device));
+ 
+ 		for(j=0; j<8; j++)
+ 			mca_dev->pos[j]=pos[j];
+diff -puN arch/i386/kernel/pci-dma.c~i386-replace-kmallocmemset-with-kzalloc arch/i386/kernel/pci-dma.c
+--- a/arch/i386/kernel/pci-dma.c~i386-replace-kmallocmemset-with-kzalloc
++++ a/arch/i386/kernel/pci-dma.c
+@@ -92,14 +92,12 @@ int dma_declare_coherent_memory(struct d
+ 	if (!mem_base)
+ 		goto out;
+ 
+-	dev->dma_mem = kmalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
++	dev->dma_mem = kzalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
+ 	if (!dev->dma_mem)
+ 		goto out;
+-	memset(dev->dma_mem, 0, sizeof(struct dma_coherent_mem));
+-	dev->dma_mem->bitmap = kmalloc(bitmap_size, GFP_KERNEL);
++	dev->dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+ 	if (!dev->dma_mem->bitmap)
+ 		goto free1_out;
+-	memset(dev->dma_mem->bitmap, 0, bitmap_size);
+ 
+ 	dev->dma_mem->virt_base = mem_base;
+ 	dev->dma_mem->device_base = device_addr;
+diff -puN arch/i386/mach-voyager/voyager_cat.c~i386-replace-kmallocmemset-with-kzalloc arch/i386/mach-voyager/voyager_cat.c
+--- a/arch/i386/mach-voyager/voyager_cat.c~i386-replace-kmallocmemset-with-kzalloc
++++ a/arch/i386/mach-voyager/voyager_cat.c
+@@ -776,7 +776,7 @@ voyager_cat_init(void)
+ 		for(asic=0; asic < (*modpp)->num_asics; asic++) {
+ 			int j;
+ 			voyager_asic_t *asicp = *asicpp 
+-				= kmalloc(sizeof(voyager_asic_t), GFP_KERNEL); /*&voyager_asic_storage[asic_count++];*/
++				= kzalloc(sizeof(voyager_asic_t), GFP_KERNEL); /*&voyager_asic_storage[asic_count++];*/
+ 			voyager_sp_table_t *sp_table;
+ 			voyager_at_t *asic_table;
+ 			voyager_jtt_t *jtag_table;
+@@ -785,7 +785,6 @@ voyager_cat_init(void)
+ 				printk("**WARNING** kmalloc failure in cat_init\n");
+ 				continue;
+ 			}
+-			memset(asicp, 0, sizeof(voyager_asic_t));
+ 			asicpp = &(asicp->next);
+ 			asicp->asic_location = asic;
+ 			sp_table = (voyager_sp_table_t *)(eprom_buf + sp_offset);
+@@ -851,8 +850,7 @@ voyager_cat_init(void)
+ #endif
+ 
+ 		{
+-			struct resource *res = kmalloc(sizeof(struct resource),GFP_KERNEL);
+-			memset(res, 0, sizeof(struct resource));
++			struct resource *res = kzalloc(sizeof(struct resource),GFP_KERNEL);
+ 			res->name = kmalloc(128, GFP_KERNEL);
+ 			sprintf((char *)res->name, "Voyager %s Quad CPI", cat_module_name(i));
+ 			res->start = qic_addr;
+diff -puN include/asm-i386/thread_info.h~i386-replace-kmallocmemset-with-kzalloc include/asm-i386/thread_info.h
+--- a/include/asm-i386/thread_info.h~i386-replace-kmallocmemset-with-kzalloc
++++ a/include/asm-i386/thread_info.h
+@@ -95,15 +95,7 @@ static inline struct thread_info *curren
+ 
+ /* thread information allocation */
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+-#define alloc_thread_info(tsk)					\
+-	({							\
+-		struct thread_info *ret;			\
+-								\
+-		ret = kmalloc(THREAD_SIZE, GFP_KERNEL);		\
+-		if (ret)					\
+-			memset(ret, 0, THREAD_SIZE);		\
+-		ret;						\
+-	})
++#define alloc_thread_info(tsk) kzalloc(THREAD_SIZE, GFP_KERNEL)
+ #else
+ #define alloc_thread_info(tsk) kmalloc(THREAD_SIZE, GFP_KERNEL)
+ #endif
+diff -puN include/linux/textsearch.h~i386-replace-kmallocmemset-with-kzalloc include/linux/textsearch.h
+--- a/include/linux/textsearch.h~i386-replace-kmallocmemset-with-kzalloc
++++ a/include/linux/textsearch.h
+@@ -164,11 +164,10 @@ static inline struct ts_config *alloc_ts
+ {
+ 	struct ts_config *conf;
+ 
+-	conf = kmalloc(TS_PRIV_ALIGN(sizeof(*conf)) + payload, gfp_mask);
++	conf = kzalloc(TS_PRIV_ALIGN(sizeof(*conf)) + payload, gfp_mask);
+ 	if (conf == NULL)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	memset(conf, 0, TS_PRIV_ALIGN(sizeof(*conf)) + payload);
+ 	return conf;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from yan_952@hotmail.com are
 
 origin.patch
-git-acpi.patch
-git-cpufreq.patch
-drm-handle-pci_enable_device-failure.patch
-git-input.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
-ata_piix-ide-mode-sata-patch-for-intel-ich9.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
+acpi-replace-kmallocmemset-with-kzalloc.patch
 git-mtd.patch
-git-netdev-all.patch
-libphy-dont-do-that.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-8139too-force-media-setting-fix.patch
-tulip-fix-shutdown-dma-irq-race.patch
-git-ioat.patch
-git-pciseg.patch
-pci-device-ensure-sysdata-initialised-v2.patch
-mpt-fusion-handle-pci-layer-error-on-resume.patch
-usb-fix-ohcih-over-use-warnings.patch
-i2o-more-error-checking.patch
-pnp-handle-sysfs-errors.patch
-rtc-handle-sysfs-errors.patch
-sound-oss-emu10k1-handle-userspace-copy-errors.patch
-spi-improve-sysfs-compiler-complaint-handling.patch
-via82cxxx-handle-error-condition-properly.patch
-isdn-fix-warnings.patch
-atyfb-rivafb-minor-fixes.patch
-md-conditionalize-some-code.patch
-user-of-the-jiffies-rounding-patch-ata-subsystem.patch
-e1000-printk-warning-fixes.patch
-git-gccbug.patch
+serial-replace-kmallocmemset-with-kzalloc.patch
+usb-auerswald-replace-kmallocmemset-with-kzalloc.patch
+kernel-core-replace-kmallocmemset-with-kzalloc.patch
+isdn-replace-kmallocmemset-with-kzalloc.patch
 
