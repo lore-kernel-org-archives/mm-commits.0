@@ -1,51 +1,98 @@
 From: akpm@osdl.org
-Subject: + make-the-dock-station-driver-a-platform-device-driver-fix.patch added to -mm tree
-Date: Wed, 06 Dec 2006 15:08:08 -0800
-Message-ID: <200612062309.kB6N9Jpt019945@shell0.pdx.osdl.net>
+Subject: + git-nfs-more-hacks.patch added to -mm tree
+Date: Wed, 06 Dec 2006 15:09:37 -0800
+Message-ID: <200612062310.kB6NAmE5019987@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52583 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52671 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937768AbWLFXJW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 18:09:22 -0500
+	id S937769AbWLFXKu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 18:10:50 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB6NAmID007046
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 15:10:48 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, kristen.c.accardi@intel.com
+Cc: akpm@osdl.org
 
 
 The patch titled
-     make-the-dock-station-driver-a-platform-device-driver-fix
+     git-nfs-more-hacks
 has been added to the -mm tree.  Its filename is
-     make-the-dock-station-driver-a-platform-device-driver-fix.patch
+     git-nfs-more-hacks.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make-the-dock-station-driver-a-platform-device-driver-fix
+Subject: git-nfs-more-hacks
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/dock.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtsock.c |   33 +++------------------------------
+ 1 file changed, 3 insertions(+), 30 deletions(-)
 
-diff -puN drivers/acpi/dock.c~make-the-dock-station-driver-a-platform-device-driver-fix drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~make-the-dock-station-driver-a-platform-device-driver-fix
-+++ a/drivers/acpi/dock.c
-@@ -686,7 +686,8 @@ static int dock_add(acpi_handle handle)
- 	dock_device.name = dock_device_name;
- 	ret = platform_device_register(&dock_device);
- 	if (ret) {
--		printk(KERN_ERR PREFIX "Error registering dock device\n", ret);
-+		printk(KERN_ERR PREFIX "Error %d registering dock device\n",
-+					ret);
- 		kfree(dock_station);
- 		return ret;
- 	}
+diff -puN net/sunrpc/xprtsock.c~git-nfs-more-hacks net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~git-nfs-more-hacks
++++ a/net/sunrpc/xprtsock.c
+@@ -1345,36 +1345,7 @@ static struct rpc_xprt_ops xs_tcp_ops = 
+ 
+ static struct rpc_xprt *xs_setup_xprt(struct sockaddr *addr, size_t addrlen, unsigned int slot_table_size)
+ {
+-	struct rpc_xprt *xprt;
+-	struct sock_xprt *new;
+-
+-	if (addrlen > sizeof(xprt->addr)) {
+-		dprintk("RPC:      xs_setup_xprt: address too large\n");
+-		return ERR_PTR(-EBADF);
+-	}
+-	xs_reclassify_socket(sock);
+-		xs_reclassify_socket(sock);
+-
+-	new = kzalloc(sizeof(*new), GFP_KERNEL);
+-	if (new == NULL) {
+-		dprintk("RPC:      xs_setup_xprt: couldn't allocate rpc_xprt\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+-	xprt = &new->xprt;
+-
+-	xprt->max_reqs = slot_table_size;
+-	xprt->slot = kcalloc(xprt->max_reqs, sizeof(struct rpc_rqst), GFP_KERNEL);
+-	if (xprt->slot == NULL) {
+-		kfree(xprt);
+-		dprintk("RPC:      xs_setup_xprt: couldn't allocate slot table\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+-
+-	memcpy(&xprt->addr, addr, addrlen);
+-	xprt->addrlen = addrlen;
+-	new->port = xs_get_random_port();
+-
+-	return xprt;
++	return NULL;
+ }
+ 
+ /**
+@@ -1386,6 +1357,7 @@ static struct rpc_xprt *xs_setup_xprt(st
+  */
+ struct rpc_xprt *xs_setup_udp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
+ {
++	return NULL;
+ }
+ 
+ /**
+@@ -1397,6 +1369,7 @@ struct rpc_xprt *xs_setup_udp(struct soc
+  */
+ struct rpc_xprt *xs_setup_tcp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
+ {
++	return NULL;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -64,6 +111,7 @@ git-acpi.patch
 acpi-dont-select-pm.patch
 implementation-of-acpi_video_get_next_level.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+make-the-dock-station-driver-a-platform-device-driver-fix.patch
 acpi-asus-s3-resume-fix.patch
 sony_apci-resume.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
@@ -277,5 +325,5 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-make-the-dock-station-driver-a-platform-device-driver-fix.patch
+git-nfs-more-hacks.patch
 
