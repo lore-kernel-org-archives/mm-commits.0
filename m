@@ -1,73 +1,148 @@
 From: akpm@osdl.org
-Subject: + git-dvb-fixup.patch added to -mm tree
-Date: Wed, 06 Dec 2006 13:31:26 -0800
-Message-ID: <200612062131.kB6LVQ1m016986@shell0.pdx.osdl.net>
+Subject: + git-ieee1394-fixup.patch added to -mm tree
+Date: Wed, 06 Dec 2006 13:44:10 -0800
+Message-ID: <200612062144.kB6LiA1X017394@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43370 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44334 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937670AbWLFVbh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 16:31:37 -0500
+	id S937675AbWLFVoT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 16:44:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mchehab@infradead.org
+Cc: akpm@osdl.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     git-dvb-fixup
+     git-ieee1394-fixup
 has been added to the -mm tree.  Its filename is
-     git-dvb-fixup.patch
+     git-ieee1394-fixup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-ieee1394-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Probably wrong..
+
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/video/cx88/cx88-input.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/ieee1394/sbp2.c |   46 +++++---------------------------------
+ drivers/ieee1394/sbp2.h |    6 ----
+ 2 files changed, 7 insertions(+), 45 deletions(-)
 
-diff -puN drivers/media/video/cx88/cx88-input.c~git-dvb-fixup drivers/media/video/cx88/cx88-input.c
---- a/drivers/media/video/cx88/cx88-input.c~git-dvb-fixup
-+++ a/drivers/media/video/cx88/cx88-input.c
-@@ -158,7 +158,7 @@ static void cx88_ir_work(struct work_str
- static void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
+diff -puN drivers/ieee1394/sbp2.c~git-ieee1394-fixup drivers/ieee1394/sbp2.c
+--- a/drivers/ieee1394/sbp2.c~git-ieee1394-fixup
++++ a/drivers/ieee1394/sbp2.c
+@@ -458,27 +458,20 @@ static void sbp2util_notify_fetch_agent(
+ 
+ static void sbp2util_write_orb_pointer(struct work_struct *work)
  {
- 	if (ir->polling) {
--		INIT_WORK(&ir->work, cx88_ir_work, ir);
-+		INIT_WORK(&ir->work, cx88_ir_work);
- 		init_timer(&ir->timer);
- 		ir->timer.function = ir_timer;
- 		ir->timer.data = (unsigned long)ir;
-@@ -333,22 +333,7 @@ int cx88_ir_init(struct cx88_core *core,
- 	ir->core = core;
- 	core->ir = ir;
+-	struct scsi_id_instance_data *scsi_id =
+-		container_of(work, struct scsi_id_instance_data,
+-			     protocol_work.work);
++	struct sbp2_lu *scsi_id = container_of(work, struct sbp2_lu,
++						protocol_work.work);
+ 	quadlet_t data[2];
  
--<<<<<<< HEAD/drivers/media/video/cx88/cx88-input.c
--	if (ir->polling) {
--		INIT_WORK(&ir->work, cx88_ir_work);
--		init_timer(&ir->timer);
--		ir->timer.function = ir_timer;
--		ir->timer.data = (unsigned long)ir;
--		schedule_work(&ir->work);
--	}
--	if (ir->sampling) {
--		core->pci_irqmask |= (1 << 18);	/* IR_SMP_INT */
--		cx_write(MO_DDS_IO, 0xa80a80);	/* 4 kHz sample rate */
--		cx_write(MO_DDSCFG_IO, 0x5);	/* enable */
--	}
+-<<<<<<< HEAD/drivers/ieee1394/sbp2.c
+ 	data[0] = ORB_SET_NODE_ID(scsi_id->hi->host->node_id);
+ 	data[1] = scsi_id->last_orb_dma;
 -=======
- 	cx88_ir_start(core, ir);
-->>>>>>> /drivers/media/video/cx88/cx88-input.c
+-	data[0] = ORB_SET_NODE_ID(((struct sbp2_lu *)p)->hi->host->node_id);
+-	data[1] = ((struct sbp2_lu *)p)->last_orb_dma;
+->>>>>>> /drivers/ieee1394/sbp2.c
+ 	sbp2util_cpu_to_be32_buffer(data, 8);
+ 	sbp2util_notify_fetch_agent(scsi_id, SBP2_ORB_POINTER_OFFSET, data, 8);
+ }
  
- 	/* all done */
- 	err = input_register_device(ir->input);
+ static void sbp2util_write_doorbell(struct work_struct *work)
+ {
+-	struct scsi_id_instance_data *scsi_id =
+-		container_of(work, struct scsi_id_instance_data,
+-			     protocol_work.work);
++	struct sbp2_lu *scsi_id = container_of(work, struct sbp2_lu,
++						protocol_work.work);
+ 	sbp2util_notify_fetch_agent(scsi_id, SBP2_DOORBELL_OFFSET, NULL, 4);
+ }
+ 
+@@ -738,19 +731,6 @@ static struct sbp2_lu *sbp2_alloc_device
+ 		goto failed_alloc;
+ 	}
+ 
+-<<<<<<< HEAD/drivers/ieee1394/sbp2.c
+-	scsi_id->ne = ud->ne;
+-	scsi_id->ud = ud;
+-	scsi_id->speed_code = IEEE1394_SPEED_100;
+-	scsi_id->max_payload_size = sbp2_speedto_max_payload[IEEE1394_SPEED_100];
+-	scsi_id->status_fifo_addr = CSR1212_INVALID_ADDR_SPACE;
+-	INIT_LIST_HEAD(&scsi_id->sbp2_command_orb_inuse);
+-	INIT_LIST_HEAD(&scsi_id->sbp2_command_orb_completed);
+-	INIT_LIST_HEAD(&scsi_id->scsi_list);
+-	spin_lock_init(&scsi_id->sbp2_command_orb_lock);
+-	atomic_set(&scsi_id->state, SBP2LU_STATE_RUNNING);
+-	INIT_DELAYED_WORK(&scsi_id->protocol_work, NULL);
+-=======
+ 	lu->ne = ud->ne;
+ 	lu->ud = ud;
+ 	lu->speed_code = IEEE1394_SPEED_100;
+@@ -761,8 +741,7 @@ static struct sbp2_lu *sbp2_alloc_device
+ 	INIT_LIST_HEAD(&lu->lu_list);
+ 	spin_lock_init(&lu->cmd_orb_lock);
+ 	atomic_set(&lu->state, SBP2LU_STATE_RUNNING);
+-	INIT_WORK(&lu->protocol_work, NULL, NULL);
+->>>>>>> /drivers/ieee1394/sbp2.c
++	INIT_WORK(&lu->protocol_work.work, NULL);
+ 
+ 	ud->device.driver_data = lu;
+ 
+@@ -1704,22 +1683,11 @@ static void sbp2_link_orb_command(struct
+ 		 * the workqueue job will sleep to guaranteedly get a tlabel.
+ 		 * We do not accept new commands until the job is over.
+ 		 */
+-<<<<<<< HEAD/drivers/ieee1394/sbp2.c
+-		scsi_block_requests(scsi_id->scsi_host);
+-		PREPARE_DELAYED_WORK(&scsi_id->protocol_work,
+-=======
+ 		scsi_block_requests(lu->shost);
+-		PREPARE_WORK(&lu->protocol_work,
+->>>>>>> /drivers/ieee1394/sbp2.c
++		PREPARE_DELAYED_WORK(&lu->protocol_work,
+ 			     last_orb ? sbp2util_write_doorbell:
+-<<<<<<< HEAD/drivers/ieee1394/sbp2.c
+ 					sbp2util_write_orb_pointer);
+-		schedule_delayed_work(&scsi_id->protocol_work, 0);
+-=======
+-					sbp2util_write_orb_pointer,
+-			     lu);
+-		schedule_work(&lu->protocol_work);
+->>>>>>> /drivers/ieee1394/sbp2.c
++		schedule_delayed_work(&lu->protocol_work, 0);
+ 	}
+ }
+ 
+diff -puN drivers/ieee1394/sbp2.h~git-ieee1394-fixup drivers/ieee1394/sbp2.h
+--- a/drivers/ieee1394/sbp2.h~git-ieee1394-fixup
++++ a/drivers/ieee1394/sbp2.h
+@@ -326,13 +326,7 @@ struct sbp2_lu {
+ 
+ 	/* Connection state */
+ 	atomic_t state;
+-<<<<<<< HEAD/drivers/ieee1394/sbp2.h
+ 	struct delayed_work protocol_work;
+-=======
+-
+-	/* For deferred requests to the fetch agent */
+-	struct work_struct protocol_work;
+->>>>>>> /drivers/ieee1394/sbp2.h
+ };
+ 
+ /* For use in sbp2_lu.state */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -97,8 +172,10 @@ git-cpufreq.patch
 git-cpufreq-fixup.patch
 platform_driver_probe-can-save-codespace-save-codespace.patch
 git-dvb.patch
+git-dvb-fixup.patch
 git-gfs2-nmw.patch
 git-ia64.patch
+git-ieee1394-fixup.patch
 git-input.patch
 git-input-fixup.patch
 git-input-vs-git-alsa.patch
@@ -290,5 +367,4 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-dvb-fixup.patch
 
