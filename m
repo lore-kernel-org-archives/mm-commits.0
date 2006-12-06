@@ -1,98 +1,72 @@
 From: akpm@osdl.org
-Subject: + git-nfs-more-hacks.patch added to -mm tree
-Date: Wed, 06 Dec 2006 15:09:37 -0800
-Message-ID: <200612062310.kB6NAmE5019987@shell0.pdx.osdl.net>
+Subject: + nozomi-fix-for-workqueue-changes.patch added to -mm tree
+Date: Wed, 06 Dec 2006 15:28:55 -0800
+Message-ID: <200612062330.kB6NU6wO020563@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52671 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54096 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937769AbWLFXKu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 18:10:50 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB6NAmID007046
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 15:10:48 -0800
+	id S937783AbWLFXaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 18:30:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, greg@kroah.com
 
 
 The patch titled
-     git-nfs-more-hacks
+     nozomi: fix for workqueue changes
 has been added to the -mm tree.  Its filename is
-     git-nfs-more-hacks.patch
+     nozomi-fix-for-workqueue-changes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfs-more-hacks
+Subject: nozomi: fix for workqueue changes
 From: Andrew Morton <akpm@osdl.org>
 
+(what's a dc_t?)
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/xprtsock.c |   33 +++------------------------------
- 1 file changed, 3 insertions(+), 30 deletions(-)
+ drivers/char/nozomi.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN net/sunrpc/xprtsock.c~git-nfs-more-hacks net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~git-nfs-more-hacks
-+++ a/net/sunrpc/xprtsock.c
-@@ -1345,36 +1345,7 @@ static struct rpc_xprt_ops xs_tcp_ops = 
+diff -puN drivers/char/nozomi.c~nozomi-fix-for-workqueue-changes drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~nozomi-fix-for-workqueue-changes
++++ a/drivers/char/nozomi.c
+@@ -471,7 +471,6 @@ struct buffer {
  
- static struct rpc_xprt *xs_setup_xprt(struct sockaddr *addr, size_t addrlen, unsigned int slot_table_size)
- {
--	struct rpc_xprt *xprt;
--	struct sock_xprt *new;
--
--	if (addrlen > sizeof(xprt->addr)) {
--		dprintk("RPC:      xs_setup_xprt: address too large\n");
--		return ERR_PTR(-EBADF);
--	}
--	xs_reclassify_socket(sock);
--		xs_reclassify_socket(sock);
--
--	new = kzalloc(sizeof(*new), GFP_KERNEL);
--	if (new == NULL) {
--		dprintk("RPC:      xs_setup_xprt: couldn't allocate rpc_xprt\n");
--		return ERR_PTR(-ENOMEM);
--	}
--	xprt = &new->xprt;
--
--	xprt->max_reqs = slot_table_size;
--	xprt->slot = kcalloc(xprt->max_reqs, sizeof(struct rpc_rqst), GFP_KERNEL);
--	if (xprt->slot == NULL) {
--		kfree(xprt);
--		dprintk("RPC:      xs_setup_xprt: couldn't allocate slot table\n");
--		return ERR_PTR(-ENOMEM);
--	}
--
--	memcpy(&xprt->addr, addr, addrlen);
--	xprt->addrlen = addrlen;
--	new->port = xs_get_random_port();
--
--	return xprt;
-+	return NULL;
+ /*    Function declarations */
+ static int ntty_tty_init(dc_t * dc);
+-static void tty_flip_queue_function(void *tmp_dc);
+ 
+ /*    Global variables */
+ static struct pci_device_id nozomi_pci_tbl[] = {
+@@ -1440,9 +1439,9 @@ static void nozomi_setup_private_data(dc
+ 	}
  }
  
- /**
-@@ -1386,6 +1357,7 @@ static struct rpc_xprt *xs_setup_xprt(st
-  */
- struct rpc_xprt *xs_setup_udp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
+-static void tty_flip_queue_function(void *tmp_dc)
++static void tty_flip_queue_function(struct work_struct *work)
  {
-+	return NULL;
- }
+-	dc_t *dc = (dc_t *) tmp_dc;
++	dc_t *dc = container_of(work, dc_t, tty_flip_wq_struct);
+ 	int i;
+ 	unsigned long flags;
  
- /**
-@@ -1397,6 +1369,7 @@ struct rpc_xprt *xs_setup_udp(struct soc
-  */
- struct rpc_xprt *xs_setup_tcp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
- {
-+	return NULL;
- }
+@@ -1592,7 +1591,7 @@ static int __devinit nozomi_card_init(st
+ 		BUG_ON(!dc->tty_flip_wq);
+ 		return -ENOMEM;
+ 	}
+-	INIT_WORK(&dc->tty_flip_wq_struct, tty_flip_queue_function, dc);
++	INIT_WORK(&dc->tty_flip_wq_struct, tty_flip_queue_function);
  
- /**
+ 	spin_lock_init(&dc->spin_mutex);
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -151,6 +125,7 @@ git-net.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
 git-nfs-fixup.patch
+git-nfs-more-hacks.patch
 pci-fix-multiple-problems-with-via-hardware.patch
 fix-gregkh-pci-pci-enable-disable-device-is-nestable.patch
 git-s390.patch
@@ -325,5 +300,5 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-nfs-more-hacks.patch
+nozomi-fix-for-workqueue-changes.patch
 
