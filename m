@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch added to -mm tree
-Date: Tue, 05 Dec 2006 22:23:10 -0800
-Message-ID: <200612060623.kB66NAZS025544@shell0.pdx.osdl.net>
+Subject: + x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch added to -mm tree
+Date: Tue, 05 Dec 2006 22:25:17 -0800
+Message-ID: <200612060625.kB66PHHa025576@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33260 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33396 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760234AbWLFGYV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 01:24:21 -0500
+	id S1760248AbWLFG02 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 01:26:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,18 +15,18 @@ Cc: akpm@osdl.org, ak@muc.de, kiran@scalex86.org, shai@scalex86.org, stable@kern
 
 
 The patch titled
-     x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code tidy
+     x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2
 has been added to the -mm tree.  Its filename is
-     x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+     x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code tidy
+Subject: x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2
 From: Andrew Morton <akpm@osdl.org>
 
-sigh.
+How much better can it get?!?!?
 
 Cc: Ravikiran Thirumalai <kiran@scalex86.org>
 Cc: Shai Fultheim <shai@scalex86.org>
@@ -35,21 +35,24 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/nmi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/nmi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy arch/x86_64/kernel/nmi.c
---- a/arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy
+diff -puN arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2 arch/x86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2
 +++ a/arch/x86_64/kernel/nmi.c
-@@ -213,7 +213,7 @@ static __init void nmi_cpu_busy(void *da
+@@ -213,10 +213,9 @@ static __init void nmi_cpu_busy(void *da
  }
  #endif
  
--static int endflag = 0;
-+static int endflag;
- 
+-static int endflag;
+-
  int __init check_nmi_watchdog (void)
  {
++	static int __initdata endflag;
+ 	int *counts;
+ 	int cpu;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -116,6 +119,7 @@ post-x86_64-mm-i386-reloc-abssym.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
 touchkit-ps-2-touchscreen-driver.patch
 get-rid-of-zone_table.patch
 new-scheme-to-preempt-swap-token-tidy.patch
