@@ -1,112 +1,103 @@
 From: akpm@osdl.org
-Subject: + cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch added to -mm tree
-Date: Tue, 05 Dec 2006 22:44:43 -0800
-Message-ID: <200612060644.kB66ihYx025965@shell0.pdx.osdl.net>
+Subject: + softmac-fixed-handling-of-deassociation-from-ap.patch added to -mm tree
+Date: Tue, 05 Dec 2006 23:18:24 -0800
+Message-ID: <200612060718.kB67IOwT026907@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35130 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37878 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760269AbWLFGpD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 01:45:03 -0500
+	id S1760278AbWLFHSo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 02:18:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: seto.hidetoshi@jp.fujitsu.com, arjan@infradead.org, mingo@elte.hu, tglx@linutronix.de
+Cc: kune@deine-taler.de, linville@tuxdriver.com
 
 
 The patch titled
-     CPEI gets warning at kernel/irq/migration.c:27/move_masked_irq()
+     softmac: Fixed handling of deassociation from AP
 has been added to the -mm tree.  Its filename is
-     cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
+     softmac-fixed-handling-of-deassociation-from-ap.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: CPEI gets warning at kernel/irq/migration.c:27/move_masked_irq()
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Subject: softmac: Fixed handling of deassociation from AP
+From: Ulrich Kunitz <kune@deine-taler.de>
 
-While running my MCA test (hardware error injection) on 2.6.19,
-I got some warning like following:
+In 2.6.19 a deauthentication from the AP doesn't start a reassociation by
+the softmac code.  It appears that mac->associnfo.associating must be set
+and the ieee80211softmac_assoc_work function must be scheduled.  This patch
+fixes that.
 
-> BUG: warning at kernel/irq/migration.c:27/move_masked_irq()
->
-> Call Trace:
->  [<a000000100013d20>] show_stack+0x40/0xa0
->                                 sp=e00000006b2578d0 bsp=e00000006b2510b0
->  [<a000000100013db0>] dump_stack+0x30/0x60
->                                 sp=e00000006b257aa0 bsp=e00000006b251098
->  [<a0000001000de430>] move_masked_irq+0xb0/0x240
->                                 sp=e00000006b257aa0 bsp=e00000006b251070
->  [<a0000001000de6a0>] move_native_irq+0xe0/0x180
->                                 sp=e00000006b257aa0 bsp=e00000006b251040
->  [<a00000010004ff50>] iosapic_end_level_irq+0x30/0xe0
->                                 sp=e00000006b257aa0 bsp=e00000006b251020
->  [<a0000001000d94d0>] __do_IRQ+0x170/0x400
->                                 sp=e00000006b257aa0 bsp=e00000006b250fd8
->  [<a0000001000116f0>] ia64_handle_irq+0x1b0/0x260
->                                 sp=e00000006b257aa0 bsp=e00000006b250fa8
->  [<a00000010000c3a0>] ia64_leave_kernel+0x0/0x280
->                                 sp=e00000006b257aa0 bsp=e00000006b250fa8
->  [<a000000100690cf0>] _spin_unlock_irqrestore+0x30/0x60
->                                 sp=e00000006b257c70 bsp=e00000006b250f90
-
-It comes from:
-
-[kernel/irq/migration.c]
-  26         if (CHECK_IRQ_PER_CPU(desc->status)) {
-  27                 WARN_ON(1);
-  28                 return;
-  29         }
-
-By putting some printk in kernel, I found that irqbalance is trying to
-move CPEI which is handled as PER_CPU irq. That's why.
-
-CPEI(Corrected Platform Error Interrupt) is ia64 specific irq, is
-allowed to pin to particular processor which selected by the platform, and
-even it is PER_CPU but it has set_affinity handler (=iosapic_set_affinity)
-as same as other IO-SAPIC-level interrupts. (I don't know why, but
-I guess that there would be typical situation where the handler for
-migration is needed, such as hotplug - the processor going to be
-offline/hot-removed.)
-
-To shut up this warning, there are 2 way at least:
- a) fix CPEI stuff
- b) prohibit setting affinity to PER_CPU irq
-
-I'm not sure what stuff of CPEI need to be fixed, but I think that
-returning error to attempting move PER_CPU irq is useful for all
-applications since it will never work.
-
-Following small patch takes b) style.
-It works, the warning disappeared and irqbalance still runs well.
-
-Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ulrich Kunitz <kune@deine-taler.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/irq/proc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/ieee80211/softmac/ieee80211softmac_assoc.c |   14 ++++++++++++--
+ net/ieee80211/softmac/ieee80211softmac_auth.c  |    2 ++
+ net/ieee80211/softmac/ieee80211softmac_priv.h  |    2 ++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN kernel/irq/proc.c~cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq kernel/irq/proc.c
---- a/kernel/irq/proc.c~cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq
-+++ a/kernel/irq/proc.c
-@@ -54,7 +54,8 @@ static int irq_affinity_write_proc(struc
- 	unsigned int irq = (int)(long)data, full_count = count, err;
- 	cpumask_t new_value, tmp;
+diff -puN net/ieee80211/softmac/ieee80211softmac_assoc.c~softmac-fixed-handling-of-deassociation-from-ap net/ieee80211/softmac/ieee80211softmac_assoc.c
+--- a/net/ieee80211/softmac/ieee80211softmac_assoc.c~softmac-fixed-handling-of-deassociation-from-ap
++++ a/net/ieee80211/softmac/ieee80211softmac_assoc.c
+@@ -427,6 +427,17 @@ ieee80211softmac_handle_assoc_response(s
+ 	return 0;
+ }
  
--	if (!irq_desc[irq].chip->set_affinity || no_irq_affinity)
-+	if (!irq_desc[irq].chip->set_affinity || no_irq_affinity ||
-+				CHECK_IRQ_PER_CPU(irq_desc[irq].status))
- 		return -EIO;
++void
++ieee80211softmac_try_reassoc(struct ieee80211softmac_device *mac)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&mac->lock, flags);
++	mac->associnfo.associating = 1;
++	schedule_work(&mac->associnfo.work);
++	spin_unlock_irqrestore(&mac->lock, flags);
++}
++
+ int
+ ieee80211softmac_handle_disassoc(struct net_device * dev,
+ 				 struct ieee80211_disassoc *disassoc)
+@@ -445,8 +456,7 @@ ieee80211softmac_handle_disassoc(struct 
+ 	dprintk(KERN_INFO PFX "got disassoc frame\n");
+ 	ieee80211softmac_disassoc(mac);
  
- 	err = cpumask_parse_user(buffer, count, new_value);
+-	/* try to reassociate */
+-	schedule_work(&mac->associnfo.work);
++	ieee80211softmac_try_reassoc(mac);
+ 
+ 	return 0;
+ }
+diff -puN net/ieee80211/softmac/ieee80211softmac_auth.c~softmac-fixed-handling-of-deassociation-from-ap net/ieee80211/softmac/ieee80211softmac_auth.c
+--- a/net/ieee80211/softmac/ieee80211softmac_auth.c~softmac-fixed-handling-of-deassociation-from-ap
++++ a/net/ieee80211/softmac/ieee80211softmac_auth.c
+@@ -334,6 +334,8 @@ ieee80211softmac_deauth_from_net(struct 
+ 	/* can't transmit data right now... */
+ 	netif_carrier_off(mac->dev);
+ 	spin_unlock_irqrestore(&mac->lock, flags);
++
++	ieee80211softmac_try_reassoc(mac);
+ }
+ 
+ /* 
+diff -puN net/ieee80211/softmac/ieee80211softmac_priv.h~softmac-fixed-handling-of-deassociation-from-ap net/ieee80211/softmac/ieee80211softmac_priv.h
+--- a/net/ieee80211/softmac/ieee80211softmac_priv.h~softmac-fixed-handling-of-deassociation-from-ap
++++ a/net/ieee80211/softmac/ieee80211softmac_priv.h
+@@ -238,4 +238,6 @@ void ieee80211softmac_call_events_locked
+ int ieee80211softmac_notify_internal(struct ieee80211softmac_device *mac,
+ 	int event, void *event_context, notify_function_ptr fun, void *context, gfp_t gfp_mask);
+ 
++void ieee80211softmac_try_reassoc(struct ieee80211softmac_device *mac);
++
+ #endif /* IEEE80211SOFTMAC_PRIV_H_ */
 _
 
-Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
+Patches currently in -mm which might be from kune@deine-taler.de are
 
-cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
+origin.patch
+softmac-fixed-handling-of-deassociation-from-ap.patch
 
