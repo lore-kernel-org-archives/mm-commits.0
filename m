@@ -1,132 +1,97 @@
 From: akpm@osdl.org
-Subject: + convert-pxaficp_irc-to-platform_driver.patch added to -mm tree
-Date: Tue, 05 Dec 2006 23:25:35 -0800
-Message-ID: <200612060725.kB67PZK2027035@shell0.pdx.osdl.net>
+Subject: + saa7134-add-support-for-the-encore-enl-tv.patch added to -mm tree
+Date: Tue, 05 Dec 2006 23:27:47 -0800
+Message-ID: <200612060727.kB67RlqB027088@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38506 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38565 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760283AbWLFH0S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 02:26:18 -0500
+	id S1760292AbWLFH14 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 02:27:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pmiscml@gmail.com, samuel@sortiz.org, stable@kernel.org
+Cc: stevenrwalter@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     Convert pxaficp_ir.c to platform_driver
+     saa7134: add support for the Encore ENL-TV
 has been added to the -mm tree.  Its filename is
-     convert-pxaficp_irc-to-platform_driver.patch
+     saa7134-add-support-for-the-encore-enl-tv.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Convert pxaficp_ir.c to platform_driver
-From: Paul Sokolovsky <pmiscml@gmail.com>
+Subject: saa7134: add support for the Encore ENL-TV
+From: "Steven Walter" <stevenrwalter@gmail.com>
 
-drivers/ner/irda/pxaficp_ir.c was not converted to platform_driver, which
-in 2.6.19 ( after commit
-http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=386415d88b1ae50304f9c61aa3e0db082fa90428;hp=bb84c89f94851161f387285d0a449b4a3f29f4df
-) leads to random memory corruption, resume problems, etc
+Add a board definition for the Encore ENL-TV card, and
+adds its PCI subdevice to the ID table.
 
-We specifically face issues with HP iPaq hx4700 device, which has
-nondeterministic resume problems depending on the changes to kernel config
-options (not directly related to pxaficp_ir).  More info on the issue:
-http://lkml.org/lkml/2006/10/25/73 .
-
-Signed-off-by: Paul Sokolovsky <pmiscml@gmail.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: <stable@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/irda/pxaficp_ir.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/media/video/saa7134/saa7134-cards.c |   24 ++++++++++++++++++
+ drivers/media/video/saa7134/saa7134.h       |    1 
+ 2 files changed, 25 insertions(+)
 
-diff -puN drivers/net/irda/pxaficp_ir.c~convert-pxaficp_irc-to-platform_driver drivers/net/irda/pxaficp_ir.c
---- a/drivers/net/irda/pxaficp_ir.c~convert-pxaficp_irc-to-platform_driver
-+++ a/drivers/net/irda/pxaficp_ir.c
-@@ -704,9 +704,9 @@ static int pxa_irda_stop(struct net_devi
- 	return 0;
- }
- 
--static int pxa_irda_suspend(struct device *_dev, pm_message_t state)
-+static int pxa_irda_suspend(struct platform_device *_dev, pm_message_t state)
- {
--	struct net_device *dev = dev_get_drvdata(_dev);
-+	struct net_device *dev = platform_get_drvdata(_dev);
- 	struct pxa_irda *si;
- 
- 	if (dev && netif_running(dev)) {
-@@ -718,9 +718,9 @@ static int pxa_irda_suspend(struct devic
- 	return 0;
- }
- 
--static int pxa_irda_resume(struct device *_dev)
-+static int pxa_irda_resume(struct platform_device *_dev)
- {
--	struct net_device *dev = dev_get_drvdata(_dev);
-+	struct net_device *dev = platform_get_drvdata(_dev);
- 	struct pxa_irda *si;
- 
- 	if (dev && netif_running(dev)) {
-@@ -746,9 +746,8 @@ static int pxa_irda_init_iobuf(iobuff_t 
- 	return io->head ? 0 : -ENOMEM;
- }
- 
--static int pxa_irda_probe(struct device *_dev)
-+static int pxa_irda_probe(struct platform_device *pdev)
- {
--	struct platform_device *pdev = to_platform_device(_dev);
- 	struct net_device *dev;
- 	struct pxa_irda *si;
- 	unsigned int baudrate_mask;
-@@ -822,9 +821,9 @@ err_mem_1:
- 	return err;
- }
- 
--static int pxa_irda_remove(struct device *_dev)
-+static int pxa_irda_remove(struct platform_device *_dev)
- {
--	struct net_device *dev = dev_get_drvdata(_dev);
-+	struct net_device *dev = platform_get_drvdata(_dev);
- 
- 	if (dev) {
- 		struct pxa_irda *si = netdev_priv(dev);
-@@ -840,9 +839,10 @@ static int pxa_irda_remove(struct device
- 	return 0;
- }
- 
--static struct device_driver pxa_ir_driver = {
--	.name		= "pxa2xx-ir",
--	.bus		= &platform_bus_type,
-+static struct platform_driver pxa_ir_driver = {
-+	.driver         = {
-+		.name   = "pxa2xx-ir",
+diff -puN drivers/media/video/saa7134/saa7134-cards.c~saa7134-add-support-for-the-encore-enl-tv drivers/media/video/saa7134/saa7134-cards.c
+--- a/drivers/media/video/saa7134/saa7134-cards.c~saa7134-add-support-for-the-encore-enl-tv
++++ a/drivers/media/video/saa7134/saa7134-cards.c
+@@ -3177,6 +3177,24 @@ struct saa7134_board saa7134_boards[] = 
+ 			.amux   = LINE1,
+ 		}},
+ 	},
++	[SAA7134_BOARD_ENCORE_ENLTV] = {
++		/* Steven Walter <stevenrwalter@gmail.com> */
++		.name           = "Encore ENLTV",
++		.tuner_type     = TUNER_TNF_5335MF,
++		.radio_type     = UNSET,
++		.tuner_addr	= ADDR_UNSET,
++		.radio_addr	= ADDR_UNSET,
++		.inputs         = {{
++		        .name = name_tv,
++		        .vmux = 1,
++		        .amux = LINE2,
++		        .tv   = 1,
++		},{
++		        .name = name_svideo,
++		        .vmux = 6,
++		        .amux = LINE1,
++		}},
 +	},
- 	.probe		= pxa_irda_probe,
- 	.remove		= pxa_irda_remove,
- 	.suspend	= pxa_irda_suspend,
-@@ -851,12 +851,12 @@ static struct device_driver pxa_ir_drive
+ };
  
- static int __init pxa_irda_init(void)
- {
--	return driver_register(&pxa_ir_driver);
-+	return platform_driver_register(&pxa_ir_driver);
- }
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -3816,6 +3834,12 @@ struct pci_device_id saa7134_pci_tbl[] =
+ 		.subdevice    = 0x1172,
+ 		.driver_data  = SAA7134_BOARD_CINERGY_HT_PCMCIA,
+ 	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = PCI_VENDOR_ID_PHILIPS,
++		.subdevice    = 0x2342,
++		.driver_data  = SAA7134_BOARD_ENCORE_ENLTV,
++	},{
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+diff -puN drivers/media/video/saa7134/saa7134.h~saa7134-add-support-for-the-encore-enl-tv drivers/media/video/saa7134/saa7134.h
+--- a/drivers/media/video/saa7134/saa7134.h~saa7134-add-support-for-the-encore-enl-tv
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -232,6 +232,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_VIDEOMATE_DVBT_200A  103
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1110    104
+ #define SAA7134_BOARD_CINERGY_HT_PCMCIA    105
++#define SAA7134_BOARD_ENCORE_ENLTV 106
  
- static void __exit pxa_irda_exit(void)
- {
--	driver_unregister(&pxa_ir_driver);
-+	platform_driver_unregister(&pxa_ir_driver);
- }
- 
- module_init(pxa_irda_init);
+ #define SAA7134_MAXBOARDS 8
+ #define SAA7134_INPUT_MAX 8
 _
 
-Patches currently in -mm which might be from pmiscml@gmail.com are
+Patches currently in -mm which might be from stevenrwalter@gmail.com are
 
-convert-pxaficp_irc-to-platform_driver.patch
+saa7134-add-support-for-the-encore-enl-tv.patch
 
