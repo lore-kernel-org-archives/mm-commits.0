@@ -1,62 +1,123 @@
 From: akpm@osdl.org
-Subject: + drivers-add-lcd-support-workqueue-fixups.patch added to -mm tree
-Date: Wed, 06 Dec 2006 14:48:36 -0800
-Message-ID: <200612062249.kB6MnmnX019356@shell0.pdx.osdl.net>
+Subject: + alsa-workqueue-fixes.patch added to -mm tree
+Date: Wed, 06 Dec 2006 15:06:31 -0800
+Message-ID: <200612062307.kB6N7g8P019913@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50973 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52487 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937758AbWLFWtv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:49:51 -0500
+	id S937771AbWLFXH7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 18:07:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, maxextreme@gmail.com
+Cc: akpm@osdl.org, dhowells@redhat.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     drivers-add-lcd-support-workqueue-fixups
+     alsa-workqueue-fixes
 has been added to the -mm tree.  Its filename is
-     drivers-add-lcd-support-workqueue-fixups.patch
+     alsa-workqueue-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-add-lcd-support-workqueue-fixups
+Subject: alsa-workqueue-fixes
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Miguel Ojeda Sandonis <maxextreme@gmail.com>
+Fix the soc code after dhowells workqueue changes.
+
+I converted the workqueues to per-device while I was there.  It seems strange
+to create a new kernel thread (on each CPU!) and to then only have a single
+global work to ever be queued upon it.
+
+Plus without this, I'd have to use the _NAR stuff, gawd help me.
+
+Does that workqueue really need to be per-cpu?
+
+Does that workqueue really need to exist?  Why not use keventd?
+
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/auxdisplay/cfag12864b.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/sound/soc.h  |    2 ++
+ sound/soc/soc-core.c |   12 ++++++------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/auxdisplay/cfag12864b.c~drivers-add-lcd-support-workqueue-fixups drivers/auxdisplay/cfag12864b.c
---- a/drivers/auxdisplay/cfag12864b.c~drivers-add-lcd-support-workqueue-fixups
-+++ a/drivers/auxdisplay/cfag12864b.c
-@@ -221,9 +221,9 @@ unsigned char *cfag12864b_buffer;
- static unsigned char *cfag12864b_cache;
- static DEFINE_MUTEX(cfag12864b_mutex);
- static unsigned char cfag12864b_updating;
--static void cfag12864b_update(void *arg);
-+static void cfag12864b_update(struct work_struct *delayed_work);
- static struct workqueue_struct *cfag12864b_workqueue;
--static DECLARE_WORK(cfag12864b_work, cfag12864b_update, NULL);
-+static DECLARE_DELAYED_WORK(cfag12864b_work, cfag12864b_update);
+diff -puN sound/soc/soc-core.c~alsa-workqueue-fixes sound/soc/soc-core.c
+--- a/sound/soc/soc-core.c~alsa-workqueue-fixes
++++ a/sound/soc/soc-core.c
+@@ -56,7 +56,6 @@
+ static DEFINE_MUTEX(pcm_mutex);
+ static DEFINE_MUTEX(io_mutex);
+ static struct workqueue_struct *soc_workq;
+-static struct work_struct soc_stream_work;
+ static DECLARE_WAIT_QUEUE_HEAD(soc_pm_waitq);
  
- static void cfag12864b_queue(void)
+ /* supported sample rates */
+@@ -728,9 +727,10 @@ out:
+  * This is to ensure there are no pops or clicks in between any music tracks
+  * due to DAPM power cycling.
+  */
+-static void close_delayed_work(void *data)
++static void close_delayed_work(struct work_struct *work)
  {
-@@ -267,7 +267,7 @@ unsigned char cfag12864b_isenabled(void)
- 	return cfag12864b_updating;
- }
+-	struct snd_soc_device *socdev = data;
++	struct snd_soc_device *socdev =
++		container_of(work, struct snd_soc_device, delayed_work.work);
+ 	struct snd_soc_codec *codec = socdev->codec;
+ 	struct snd_soc_codec_dai *codec_dai;
+ 	int i;
+@@ -805,7 +805,7 @@ static int soc_codec_close(struct snd_pc
+ 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 		/* start delayed pop wq here for playback streams */
+ 		rtd->codec_dai->pop_wait = 1;
+-		queue_delayed_work(soc_workq, &soc_stream_work,
++		queue_delayed_work(soc_workq, &socdev->delayed_work,
+ 			msecs_to_jiffies(pmdown_time));
+ 	} else {
+ 		/* capture streams can be powered down now */
+@@ -865,7 +865,7 @@ static int soc_pcm_prepare(struct snd_pc
+ 					SND_SOC_DAPM_STREAM_START);
+ 		else {
+ 			rtd->codec_dai->pop_wait = 0;
+-			cancel_delayed_work(&soc_stream_work);
++			cancel_delayed_work(&socdev->delayed_work);
+ 			if (rtd->codec_dai->digital_mute)
+ 				rtd->codec_dai->digital_mute(codec, rtd->codec_dai, 0);
+ 		}
+@@ -1225,7 +1225,7 @@ static int soc_probe(struct platform_dev
+ 	soc_workq = create_workqueue("kdapm");
+ 	if (soc_workq == NULL)
+ 		goto work_err;
+-	INIT_WORK(&soc_stream_work, close_delayed_work, socdev);
++	INIT_DELAYED_WORK(&socdev->delayed_work, close_delayed_work);
+ 	return 0;
  
--static void cfag12864b_update(void *arg)
-+static void cfag12864b_update(struct work_struct *work)
- {
- 	unsigned char c;
- 	unsigned short i, j, k, b;
+ work_err:
+diff -puN include/sound/soc.h~alsa-workqueue-fixes include/sound/soc.h
+--- a/include/sound/soc.h~alsa-workqueue-fixes
++++ a/include/sound/soc.h
+@@ -15,6 +15,7 @@
+ 
+ #include <linux/platform_device.h>
+ #include <linux/types.h>
++#include <linux/workqueue.h>
+ #include <sound/driver.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+@@ -454,6 +455,7 @@ struct snd_soc_device {
+ 	struct snd_soc_platform *platform;
+ 	struct snd_soc_codec *codec;
+ 	struct snd_soc_codec_device *codec_dev;
++	struct delayed_work delayed_work;
+ 	void *codec_data;
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -151,6 +212,7 @@ deprecate-smbfs-in-favour-of-cifs.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch
 drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
 probe_kernel_address-needs-to-do-set_fs.patch
 slab-use-probe_kernel_address.patch
 exar-quad-port-serial-fix.patch
@@ -286,5 +348,5 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-drivers-add-lcd-support-workqueue-fixups.patch
+alsa-workqueue-fixes.patch
 
