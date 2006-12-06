@@ -1,51 +1,50 @@
 From: akpm@osdl.org
-Subject: - scsi-target-repair-after-viro-depredations.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:23:46 -0800
-Message-ID: <200612062223.kB6MNkVj018557@shell0.pdx.osdl.net>
+Subject: - fix-jdelvare-i2c-i2c-versatile-new-arm-bus-driver.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:23:29 -0800
+Message-ID: <200612062223.kB6MNTjn018533@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48236 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48230 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937725AbWLFWXu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:23:50 -0500
+	id S937715AbWLFWXr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:23:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-target-repair-after-viro-depredations
+     fix jdelvare-i2c-i2c-versatile-new-arm-bus-driver
 has been removed from the -mm tree.  Its filename was
-     scsi-target-repair-after-viro-depredations.patch
+     fix-jdelvare-i2c-i2c-versatile-new-arm-bus-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi-target-repair-after-viro-depredations
+Subject: fix jdelvare-i2c-i2c-versatile-new-arm-bus-driver
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/scsi/scsi_tgt_if.c: In function 'tgt_uspace_send_event':
-drivers/scsi/scsi_tgt_if.c:88: warning: implicit declaration of function 'flush_dcache_page'
+drivers/i2c/busses/i2c-versatile.c:107:27: macro "platform_set_drvdata" requires 2 arguments, but only 1 given
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/scsi_tgt_if.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/i2c/busses/i2c-versatile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_tgt_if.c~scsi-target-repair-after-viro-depredations drivers/scsi/scsi_tgt_if.c
---- a/drivers/scsi/scsi_tgt_if.c~scsi-target-repair-after-viro-depredations
-+++ a/drivers/scsi/scsi_tgt_if.c
-@@ -29,6 +29,8 @@
- #include <scsi/scsi_tgt.h>
- #include <scsi/scsi_tgt_if.h>
+diff -puN drivers/i2c/busses/i2c-versatile.c~fix-jdelvare-i2c-i2c-versatile-new-arm-bus-driver drivers/i2c/busses/i2c-versatile.c
+--- a/drivers/i2c/busses/i2c-versatile.c~fix-jdelvare-i2c-i2c-versatile-new-arm-bus-driver
++++ a/drivers/i2c/busses/i2c-versatile.c
+@@ -104,7 +104,7 @@ static int i2c_versatile_probe(struct pl
  
-+#include <asm/cacheflush.h>
-+
- #include "scsi_tgt_priv.h"
+ 	ret = i2c_bit_add_bus(&i2c->adap);
+ 	if (ret >= 0) {
+-		platform_set_drvdata(i2c);
++		platform_set_drvdata(dev, i2c);
+ 		return 0;
+ 	}
  
- struct tgt_ring {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
