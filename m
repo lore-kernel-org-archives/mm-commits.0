@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + git-mmc-fixup.patch added to -mm tree
-Date: Wed, 06 Dec 2006 13:49:44 -0800
-Message-ID: <200612062149.kB6LniJk017540@shell0.pdx.osdl.net>
+Subject: + git-mmc-tifm_sd-warning-fix.patch added to -mm tree
+Date: Wed, 06 Dec 2006 13:51:05 -0800
+Message-ID: <200612062151.kB6Lp51Z017589@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44907 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44987 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937682AbWLFVt6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 16:49:58 -0500
+	id S937683AbWLFVvN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 16:51:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,253 +15,39 @@ Cc: akpm@osdl.org, drzeus@drzeus.cx
 
 
 The patch titled
-     git-mmc-fixup
+     git-mmc: tifm_sd warning fix
 has been added to the -mm tree.  Its filename is
-     git-mmc-fixup.patch
+     git-mmc-tifm_sd-warning-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mmc-fixup
+Subject: git-mmc: tifm_sd warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-Ghastly hacks to make it compile.  Broken.
+drivers/mmc/tifm_sd.c: In function 'tifm_sd_process_cmd':
+drivers/mmc/tifm_sd.c:294: warning: format '%ld' expects type 'long int', but argument 4 has type 'size_t'
 
 Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mmc/tifm_sd.c |  166 ----------------------------------------
- 1 file changed, 166 deletions(-)
+ drivers/mmc/tifm_sd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/tifm_sd.c~git-mmc-fixup drivers/mmc/tifm_sd.c
---- a/drivers/mmc/tifm_sd.c~git-mmc-fixup
+diff -puN drivers/mmc/tifm_sd.c~git-mmc-tifm_sd-warning-fix drivers/mmc/tifm_sd.c
+--- a/drivers/mmc/tifm_sd.c~git-mmc-tifm_sd-warning-fix
 +++ a/drivers/mmc/tifm_sd.c
-@@ -99,13 +99,9 @@ struct tifm_sd {
- 	struct tasklet_struct finish_tasklet;
- 	struct timer_list     timer;
- 	struct mmc_request    *req;
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
- 	struct work_struct    cmd_handler;
- 	struct delayed_work   abort_handler;
--	wait_queue_head_t     can_eject;
--=======
- 	wait_queue_head_t     notify;
-->>>>>>> /drivers/mmc/tifm_sd.c
- 
- 	size_t                written_blocks;
- 	size_t                buffer_size;
-@@ -523,17 +519,9 @@ err_out:
- 	mmc_request_done(mmc, mrq);
- }
- 
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
- static void tifm_sd_end_cmd(struct work_struct *work)
--=======
--static void tifm_sd_end_cmd(unsigned long data)
-->>>>>>> /drivers/mmc/tifm_sd.c
- {
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
- 	struct tifm_sd *host = container_of(work, struct tifm_sd, cmd_handler);
--=======
--	struct tifm_sd *host = (struct tifm_sd*)data;
-->>>>>>> /drivers/mmc/tifm_sd.c
- 	struct tifm_dev *sock = host->dev;
- 	struct mmc_host *mmc = tifm_get_drvdata(sock);
- 	struct mmc_request *mrq;
-@@ -630,11 +618,7 @@ err_out:
- 	mmc_request_done(mmc, mrq);
- }
- 
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
- static void tifm_sd_end_cmd_nodma(struct work_struct *work)
--=======
--static void tifm_sd_end_cmd_nodma(unsigned long data)
-->>>>>>> /drivers/mmc/tifm_sd.c
- {
- 	struct tifm_sd *host = container_of(work, struct tifm_sd, cmd_handler);
- 	struct tifm_dev *sock = host->dev;
-@@ -702,29 +686,15 @@ static void tifm_sd_terminate(struct tif
- 	spin_unlock_irqrestore(&sock->lock, flags);
- }
- 
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
- static void tifm_sd_abort(struct work_struct *work)
--=======
--static void tifm_sd_abort(unsigned long data)
-->>>>>>> /drivers/mmc/tifm_sd.c
- {
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
- 	struct tifm_sd *host =
- 		container_of(work, struct tifm_sd, abort_handler.work);
- 
--=======
--	struct tifm_sd *host = (struct tifm_sd*)data;
--
-->>>>>>> /drivers/mmc/tifm_sd.c
- 	printk(KERN_ERR DRIVER_NAME
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
--		": card failed to respond for a long period of time");
--	tifm_eject(host->dev);
--=======
- 	       ": card failed to respond for a long period of time\n");
- 	tifm_sd_terminate(host);
- 	tifm_eject(host->dev);
-->>>>>>> /drivers/mmc/tifm_sd.c
- }
- 
- static void tifm_sd_ios(struct mmc_host *mmc, struct mmc_ios *ios)
-@@ -822,149 +792,13 @@ static struct mmc_host_ops tifm_sd_ops =
- 	.get_ro  = tifm_sd_ro
- };
- 
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
- static void tifm_sd_register_host(struct work_struct *work)
--=======
--static int tifm_sd_initialize_host(struct tifm_sd *host)
-->>>>>>> /drivers/mmc/tifm_sd.c
- {
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
--	struct tifm_sd *host = container_of(work, struct tifm_sd, cmd_handler);
--=======
--	int rc;
--	unsigned int host_status = 0;
-->>>>>>> /drivers/mmc/tifm_sd.c
--	struct tifm_dev *sock = host->dev;
--
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
--	spin_lock_irqsave(&sock->lock, flags);
--	host->flags |= HOST_REG;
--	PREPARE_WORK(&host->cmd_handler,
--			no_dma ? tifm_sd_end_cmd_nodma : tifm_sd_end_cmd);
--	spin_unlock_irqrestore(&sock->lock, flags);
--	dev_dbg(&sock->dev, "adding host\n");
--	mmc_add_host(mmc);
--=======
--	writel(0, sock->addr + SOCK_MMCSD_INT_ENABLE);
--	mmiowb();
--	host->clk_div = 61;
--	host->clk_freq = 20000000;
--	writel(TIFM_MMCSD_RESET, sock->addr + SOCK_MMCSD_SYSTEM_CONTROL);
--	writel(host->clk_div | TIFM_MMCSD_POWER,
--	       sock->addr + SOCK_MMCSD_CONFIG);
--
--	/* wait up to 0.51 sec for reset */
--	for (rc = 2; rc <= 256; rc <<= 1) {
--		if (1 & readl(sock->addr + SOCK_MMCSD_SYSTEM_STATUS)) {
--			rc = 0;
--			break;
--		}
--		msleep(rc);
--        }
--
--	if (rc) {
--		printk(KERN_ERR DRIVER_NAME
--		       ": controller failed to reset\n");
--		return -ENODEV;
--	}
--
--	writel(0, sock->addr + SOCK_MMCSD_NUM_BLOCKS);
--	writel(host->clk_div | TIFM_MMCSD_POWER,
--	       sock->addr + SOCK_MMCSD_CONFIG);
--	writel(TIFM_MMCSD_RXDE, sock->addr + SOCK_MMCSD_BUFFER_CONFIG);
--
--	// command timeout fixed to 64 clocks for now
--	writel(64, sock->addr + SOCK_MMCSD_COMMAND_TO);
--	writel(TIFM_MMCSD_INAB, sock->addr + SOCK_MMCSD_COMMAND);
--
--	/* INAB should take much less than reset */
--	for (rc = 1; rc <= 16; rc <<= 1) {
--		host_status = readl(sock->addr + SOCK_MMCSD_STATUS);
--		writel(host_status, sock->addr + SOCK_MMCSD_STATUS);
--		if (!(host_status & TIFM_MMCSD_ERRMASK)
--		    && (host_status & TIFM_MMCSD_EOC)) {
--			rc = 0;
--			break;
--		}
--		msleep(rc);
--        }
--
--	if (rc) {
--		printk(KERN_ERR DRIVER_NAME
--		       ": card not ready - probe failed on initialization\n");
--		return -ENODEV;
--	}
--
--	writel(TIFM_MMCSD_DATAMASK | TIFM_MMCSD_ERRMASK,
--	       sock->addr + SOCK_MMCSD_INT_ENABLE);
--	mmiowb();
--
--	return 0;
-->>>>>>> /drivers/mmc/tifm_sd.c
- }
- 
- static int tifm_sd_probe(struct tifm_dev *sock)
- {
--	struct mmc_host *mmc;
--	struct tifm_sd *host;
--	int rc = -EIO;
--
--	if (!(TIFM_SOCK_STATE_OCCUPIED
--	      & readl(sock->addr + SOCK_PRESENT_STATE))) {
--		printk(KERN_WARNING DRIVER_NAME ": card gone, unexpectedly\n");
--		return rc;
--	}
--
--	mmc = mmc_alloc_host(sizeof(struct tifm_sd), &sock->dev);
--	if (!mmc)
--		return -ENOMEM;
--
--	host = mmc_priv(mmc);
--	tifm_set_drvdata(sock, mmc);
--	host->dev = sock;
--<<<<<<< HEAD/drivers/mmc/tifm_sd.c
--	host->clk_div = 61;
--	init_waitqueue_head(&host->can_eject);
--	INIT_WORK(&host->cmd_handler, tifm_sd_register_host);
--	INIT_DELAYED_WORK(&host->abort_handler, tifm_sd_abort);
--=======
--	host->timeout_jiffies = msecs_to_jiffies(1000);
-->>>>>>> /drivers/mmc/tifm_sd.c
--
--	init_waitqueue_head(&host->notify);
--	tasklet_init(&host->finish_tasklet,
--		     no_dma ? tifm_sd_end_cmd_nodma : tifm_sd_end_cmd,
--		     (unsigned long)host);
--	setup_timer(&host->timer, tifm_sd_abort, (unsigned long)host);
--
--	tifm_sd_ops.request = no_dma ? tifm_sd_request_nodma : tifm_sd_request;
--	mmc->ops = &tifm_sd_ops;
--	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
--	mmc->caps = MMC_CAP_4_BIT_DATA | MMC_CAP_MULTIWRITE;
--	mmc->f_min = 20000000 / 60;
--	mmc->f_max = 24000000;
--	mmc->max_hw_segs = 1;
--	mmc->max_phys_segs = 1;
--	// limited by DMA counter - it's safer to stick with
--	// block counter has 11 bits though
--	mmc->max_blk_count = 256;
--	// 2k maximum hw block length
--	mmc->max_blk_size = 2048;
--	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
--	mmc->max_seg_size = mmc->max_req_size;
--
--	sock->signal_irq = tifm_sd_signal_irq;
--	rc = tifm_sd_initialize_host(host);
--
--	if (!rc)
--		rc = mmc_add_host(mmc);
--	if (rc)
--		goto out_free_mmc;
--
- 	return 0;
--out_free_mmc:
--	mmc_free_host(mmc);
--	return rc;
- }
- 
- static void tifm_sd_remove(struct tifm_dev *sock)
+@@ -291,7 +291,7 @@ change_state:
+ 		}
+ 		break;
+ 	case CARD:
+-		dev_dbg(&sock->dev, "waiting for CARD, have %ld blocks\n",
++		dev_dbg(&sock->dev, "waiting for CARD, have %zd blocks\n",
+ 			host->written_blocks);
+ 		if (!(host->flags & CARD_BUSY)
+ 		    && (host->written_blocks == cmd->data->blocks)) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -305,6 +91,7 @@ pata_via-suspend-resume-support-fix.patch
 pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
 git-lxdialog-fixup.patch
 git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
 git-mtd.patch
 git-mtd-ssfdc-build-fix.patch
 git-ubi.patch
