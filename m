@@ -1,77 +1,97 @@
 From: akpm@osdl.org
-Subject: - mtrr-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:23:53 -0800
-Message-ID: <200612062223.kB6MNr6H018566@shell0.pdx.osdl.net>
+Subject: - fix-asm-constraints-in-i386-atomic_add_return.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:23:59 -0800
+Message-ID: <200612062223.kB6MNxVO018576@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48312 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937729AbWLFWYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:24:04 -0500
+	id S937733AbWLFWYQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:24:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yan_952@hotmail.com, ak@suse.de, mm-commits@vger.kernel.org
+To: baldrick@free.fr, ak@suse.de, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtrr: replace kmalloc+memset with kzalloc
+     fix asm constraints in i386 atomic_add_return
 has been removed from the -mm tree.  Its filename was
-     mtrr-replace-kmallocmemset-with-kzalloc.patch
+     fix-asm-constraints-in-i386-atomic_add_return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mtrr: replace kmalloc+memset with kzalloc
-From: "Burman Yan" <yan_952@hotmail.com>
+Subject: fix asm constraints in i386 atomic_add_return
+From: Duncan Sands <baldrick@free.fr>
 
+Since v->counter is both read and written, it should be an output as well
+as an input for the asm.  The current code only gets away with this because
+counter is volatile.  Also, according to Documents/atomic_ops.txt,
+atomic_add_return should provide a memory barrier, in particular a compiler
+barrier, so the asm should be marked as clobbering memory.
+
+Test case:
+
+#include <stdio.h>
+
+typedef struct { int counter; } atomic_t; /* NB: no "volatile" */
+
+#define ATOMIC_INIT(i)	{ (i) }
+
+#define atomic_read(v)		((v)->counter)
+
+static __inline__ int atomic_add_return(int i, atomic_t *v)
+{
+	int __i = i;
+
+	__asm__ __volatile__(
+		"lock; xaddl %0, %1;"
+		:"=r"(i)
+		:"m"(v->counter), "0"(i));
+/*	__asm__ __volatile__(
+		"lock; xaddl %0, %1"
+		:"+r" (i), "+m" (v->counter)
+		: : "memory"); */
+	return i + __i;
+}
+
+int main (void) {
+	atomic_t a = ATOMIC_INIT(0);
+	int x;
+
+	x = atomic_add_return (1, &a);
+	if ((x!=1) || (atomic_read(&a)!=1))
+		printf("fail: %i, %i\n", x, atomic_read(&a));
+}
+
+
+Signed-off-by: Duncan Sands <baldrick@free.fr>
 Cc: Andi Kleen <ak@suse.de>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/if.c   |    3 +--
- arch/i386/kernel/cpu/mtrr/main.c |    6 ++----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ include/asm-i386/atomic.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/if.c~mtrr-replace-kmallocmemset-with-kzalloc arch/i386/kernel/cpu/mtrr/if.c
---- a/arch/i386/kernel/cpu/mtrr/if.c~mtrr-replace-kmallocmemset-with-kzalloc
-+++ a/arch/i386/kernel/cpu/mtrr/if.c
-@@ -44,10 +44,9 @@ mtrr_file_add(unsigned long base, unsign
+diff -puN include/asm-i386/atomic.h~fix-asm-constraints-in-i386-atomic_add_return include/asm-i386/atomic.h
+--- a/include/asm-i386/atomic.h~fix-asm-constraints-in-i386-atomic_add_return
++++ a/include/asm-i386/atomic.h
+@@ -187,9 +187,9 @@ static __inline__ int atomic_add_return(
+ 	/* Modern 486+ processor */
+ 	__i = i;
+ 	__asm__ __volatile__(
+-		LOCK_PREFIX "xaddl %0, %1;"
+-		:"=r"(i)
+-		:"m"(v->counter), "0"(i));
++		LOCK_PREFIX "xaddl %0, %1"
++		:"+r" (i), "+m" (v->counter)
++		: : "memory");
+ 	return i + __i;
  
- 	max = num_var_ranges;
- 	if (fcount == NULL) {
--		fcount = kmalloc(max * sizeof *fcount, GFP_KERNEL);
-+		fcount = kzalloc(max * sizeof *fcount, GFP_KERNEL);
- 		if (!fcount)
- 			return -ENOMEM;
--		memset(fcount, 0, max * sizeof *fcount);
- 		FILE_FCOUNT(file) = fcount;
- 	}
- 	if (!page) {
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~mtrr-replace-kmallocmemset-with-kzalloc arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~mtrr-replace-kmallocmemset-with-kzalloc
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -596,10 +596,8 @@ static int mtrr_save(struct sys_device *
- 	int i;
- 	int size = num_var_ranges * sizeof(struct mtrr_value);
- 
--	mtrr_state = kmalloc(size,GFP_ATOMIC);
--	if (mtrr_state)
--		memset(mtrr_state,0,size);
--	else
-+	mtrr_state = kzalloc(size,GFP_ATOMIC);
-+	if (!mtrr_state)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < num_var_ranges; i++) {
+ #ifdef CONFIG_M386
 _
 
-Patches currently in -mm which might be from yan_952@hotmail.com are
+Patches currently in -mm which might be from baldrick@free.fr are
 
-origin.patch
-acpi-replace-kmallocmemset-with-kzalloc.patch
-git-mtd.patch
-serial-replace-kmallocmemset-with-kzalloc.patch
-usb-auerswald-replace-kmallocmemset-with-kzalloc.patch
-kernel-core-replace-kmallocmemset-with-kzalloc.patch
-isdn-replace-kmallocmemset-with-kzalloc.patch
 
