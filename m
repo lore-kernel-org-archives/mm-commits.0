@@ -1,127 +1,135 @@
 From: akpm@osdl.org
-Subject: - aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:23:51 -0800
-Message-ID: <200612062223.kB6MNph8018563@shell0.pdx.osdl.net>
+Subject: - scsi-megaraid-fix-mmio-casts.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:23:48 -0800
+Message-ID: <200612062223.kB6MNmmn018560@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48249 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48258 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937726AbWLFWXz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:23:55 -0500
+	id S937727AbWLFWX6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:23:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, mm-commits@vger.kernel.org
+To: jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aic94xx: Don't call pci_map_sg for already-mapped scatterlists
+     SCSI/megaraid: fix MMIO casts
 has been removed from the -mm tree.  Its filename was
-     aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists.patch
+     scsi-megaraid-fix-mmio-casts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: aic94xx: Don't call pci_map_sg for already-mapped scatterlists
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: SCSI/megaraid: fix MMIO casts
+From: Jeff Garzik <jeff@garzik.org>
 
-It turns out that libata has already dma_map_sg'd the scatterlist entries
-that go with an ata_queued_cmd by the time it calls sas_ata_qc_issue. 
-sas_ata_qc_issue passes this scatterlist to aic94xx.  Unfortunately,
-aic94xx assumes that any scatterlist passed to it needs to be
-pci_map_sg'd...  which blows away the mapping that libata created!  This
-causes (on a x260) Calgary IOMMU table leaks and duplicate frees when
-aic94xx and libata try to {pci,dma}_unmap_sg the scatterlist.
+megaraid's MMIO RD*/WR* macros directly call readl() and writel() with an
+'unsigned long' argument.  This throws a warning, but is otherwise OK because
+the 'unsigned long' is really the result of ioremap().  This setup is also OK
+because the variable can hold an ioremap cookie /or/ a PCI I/O port (PIO).
 
-Since dma_map_sg and pci_map_sg are fed the same struct device, I think
-it's safe to add a flag to sas_task that tells aic94xx that it need not map
-the scatterlist.  It didn't break anything on the x260, though I don't have
-any SATAPI devices to test with.  Is this the correct approach to fixing
-this problem?
+However, to fix the warning thrown when readl() and writel() are passed an
+unsigned long cookie, I introduce 'void __iomem *mmio_base', holding the same
+value as 'base'.  This will silence the warnings, and also cause an oops
+whenever these MMIO-only functions are ever accidentally passed an I/O
+address.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Signed-off-by: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/aic94xx/aic94xx_task.c |   17 +++++++++++------
- drivers/scsi/libsas/sas_ata.c       |    1 +
- include/scsi/libsas.h               |    3 +--
- 3 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/scsi/megaraid.c |   13 ++++++++-----
+ drivers/scsi/megaraid.h |    3 ++-
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/aic94xx/aic94xx_task.c~aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists drivers/scsi/aic94xx/aic94xx_task.c
---- a/drivers/scsi/aic94xx/aic94xx_task.c~aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists
-+++ a/drivers/scsi/aic94xx/aic94xx_task.c
-@@ -74,8 +74,11 @@ static inline int asd_map_scatterlist(st
- 		return 0;
- 	}
+diff -puN drivers/scsi/megaraid.c~scsi-megaraid-fix-mmio-casts drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~scsi-megaraid-fix-mmio-casts
++++ a/drivers/scsi/megaraid.c
+@@ -73,10 +73,10 @@ static unsigned short int max_mbox_busy_
+ module_param(max_mbox_busy_wait, ushort, 0);
+ MODULE_PARM_DESC(max_mbox_busy_wait, "Maximum wait for mailbox in microseconds if busy (default=MBOX_BUSY_WAIT=10)");
  
--	num_sg = pci_map_sg(asd_ha->pcidev, task->scatter, task->num_scatter,
--			    task->data_dir);
-+	if (task->external_sg)
-+		num_sg = task->num_scatter;
-+	else
-+		num_sg = pci_map_sg(asd_ha->pcidev, task->scatter,
-+				    task->num_scatter, task->data_dir);
- 	if (num_sg == 0)
- 		return -ENOMEM;
+-#define RDINDOOR(adapter)		readl((adapter)->base + 0x20)
+-#define RDOUTDOOR(adapter)		readl((adapter)->base + 0x2C)
+-#define WRINDOOR(adapter,value)		writel(value, (adapter)->base + 0x20)
+-#define WROUTDOOR(adapter,value)	writel(value, (adapter)->base + 0x2C)
++#define RDINDOOR(adapter)	readl((adapter)->mmio_base + 0x20)
++#define RDOUTDOOR(adapter)	readl((adapter)->mmio_base + 0x2C)
++#define WRINDOOR(adapter,value)	 writel(value, (adapter)->mmio_base + 0x20)
++#define WROUTDOOR(adapter,value) writel(value, (adapter)->mmio_base + 0x2C)
  
-@@ -120,8 +123,9 @@ static inline int asd_map_scatterlist(st
+ /*
+  * Global variables
+@@ -1386,7 +1386,8 @@ megaraid_isr_memmapped(int irq, void *de
  
- 	return 0;
- err_unmap:
--	pci_unmap_sg(asd_ha->pcidev, task->scatter, task->num_scatter,
--		     task->data_dir);
-+	if (!task->external_sg)
-+		pci_unmap_sg(asd_ha->pcidev, task->scatter, task->num_scatter,
-+			     task->data_dir);
- 	return res;
- }
+ 		handled = 1;
  
-@@ -142,8 +146,9 @@ static inline void asd_unmap_scatterlist
- 	}
+-		while( RDINDOOR(adapter) & 0x02 ) cpu_relax();
++		while( RDINDOOR(adapter) & 0x02 )
++			cpu_relax();
  
- 	asd_free_coherent(asd_ha, ascb->sg_arr);
--	pci_unmap_sg(asd_ha->pcidev, task->scatter, task->num_scatter,
--		     task->data_dir);
-+	if (!task->external_sg)
-+		pci_unmap_sg(asd_ha->pcidev, task->scatter, task->num_scatter,
-+			     task->data_dir);
- }
+ 		mega_cmd_done(adapter, completed, nstatus, status);
  
- /* ---------- Task complete tasklet ---------- */
-diff -puN drivers/scsi/libsas/sas_ata.c~aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists drivers/scsi/libsas/sas_ata.c
---- a/drivers/scsi/libsas/sas_ata.c~aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists
-+++ a/drivers/scsi/libsas/sas_ata.c
-@@ -158,6 +158,7 @@ static unsigned int sas_ata_qc_issue(str
- 		task->num_scatter = num;
- 	}
+@@ -4672,6 +4673,8 @@ megaraid_probe_one(struct pci_dev *pdev,
+ 		host->host_no, mega_baseport, irq);
  
-+	task->external_sg = 1;
- 	task->data_dir = qc->dma_dir;
- 	task->scatter = qc->__sg;
- 	task->ata_task.retry_count = 1;
-diff -puN include/scsi/libsas.h~aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists include/scsi/libsas.h
---- a/include/scsi/libsas.h~aic94xx-dont-call-pci_map_sg-for-already-mapped-scatterlists
-+++ a/include/scsi/libsas.h
-@@ -537,12 +537,11 @@ struct sas_task {
+ 	adapter->base = mega_baseport;
++	if (flag & BOARD_MEMMAP)
++		adapter->mmio_base = (void __iomem *) mega_baseport;
  
- 	void   *lldd_task;	  /* for use by LLDDs */
- 	void   *uldd_task;
-+	int    external_sg;
+ 	INIT_LIST_HEAD(&adapter->free_list);
+ 	INIT_LIST_HEAD(&adapter->pending_list);
+diff -puN drivers/scsi/megaraid.h~scsi-megaraid-fix-mmio-casts drivers/scsi/megaraid.h
+--- a/drivers/scsi/megaraid.h~scsi-megaraid-fix-mmio-casts
++++ a/drivers/scsi/megaraid.h
+@@ -801,7 +801,8 @@ typedef struct {
+ 				   clustering is available */
+ 	u32	flag;
  
- 	struct work_struct abort_work;
- };
+-	unsigned long	base;
++	unsigned long		base;
++	void __iomem		*mmio_base;
  
--
--
- #define SAS_TASK_STATE_PENDING      1
- #define SAS_TASK_STATE_DONE         2
- #define SAS_TASK_STATE_ABORTED      4
+ 	/* mbox64 with mbox not aligned on 16-byte boundry */
+ 	mbox64_t	*una_mbox64;
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
-libata-simulate-report-luns-for-atapi-devices.patch
-git-sas.patch
-git-sas-kconfig-fix.patch
+git-acpi.patch
+git-cpufreq.patch
+drm-handle-pci_enable_device-failure.patch
+git-input.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+initializer-entry-defined-twice-in-pata_rz1000.patch
+ata_piix-ide-mode-sata-patch-for-intel-ich9.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
+git-mtd.patch
+git-netdev-all.patch
+libphy-dont-do-that.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+8139too-force-media-setting-fix.patch
+tulip-fix-shutdown-dma-irq-race.patch
+git-ioat.patch
+git-pciseg.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+mpt-fusion-handle-pci-layer-error-on-resume.patch
+usb-fix-ohcih-over-use-warnings.patch
+i2o-more-error-checking.patch
+pnp-handle-sysfs-errors.patch
+rtc-handle-sysfs-errors.patch
+sound-oss-emu10k1-handle-userspace-copy-errors.patch
+spi-improve-sysfs-compiler-complaint-handling.patch
+via82cxxx-handle-error-condition-properly.patch
+isdn-fix-warnings.patch
+atyfb-rivafb-minor-fixes.patch
+md-conditionalize-some-code.patch
+user-of-the-jiffies-rounding-patch-ata-subsystem.patch
+e1000-printk-warning-fixes.patch
+git-gccbug.patch
 
