@@ -1,53 +1,91 @@
 From: akpm@osdl.org
-Subject: + git-mmc-tifm_sd-warning-fix.patch added to -mm tree
-Date: Wed, 06 Dec 2006 13:51:05 -0800
-Message-ID: <200612062151.kB6Lp51Z017589@shell0.pdx.osdl.net>
+Subject: + git-netdev-all-fixup.patch added to -mm tree
+Date: Wed, 06 Dec 2006 13:54:41 -0800
+Message-ID: <200612062154.kB6LsfHr017700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44987 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45233 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937683AbWLFVvN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 16:51:13 -0500
+	id S937689AbWLFVyo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 16:54:44 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB6LsgID002552
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 13:54:43 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, drzeus@drzeus.cx
+Cc: akpm@osdl.org
 
 
 The patch titled
-     git-mmc: tifm_sd warning fix
+     git-netdev-all-fixup
 has been added to the -mm tree.  Its filename is
-     git-mmc-tifm_sd-warning-fix.patch
+     git-netdev-all-fixup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mmc: tifm_sd warning fix
+Subject: git-netdev-all-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/mmc/tifm_sd.c: In function 'tifm_sd_process_cmd':
-drivers/mmc/tifm_sd.c:294: warning: format '%ld' expects type 'long int', but argument 4 has type 'size_t'
+Ghastly broken hacks to make it compile.
 
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mmc/tifm_sd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/netxen/netxen_nic.h      |    4 ----
+ drivers/net/netxen/netxen_nic_main.c |   12 ++++--------
+ 2 files changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN drivers/mmc/tifm_sd.c~git-mmc-tifm_sd-warning-fix drivers/mmc/tifm_sd.c
---- a/drivers/mmc/tifm_sd.c~git-mmc-tifm_sd-warning-fix
-+++ a/drivers/mmc/tifm_sd.c
-@@ -291,7 +291,7 @@ change_state:
+diff -puN drivers/net/netxen/netxen_nic.h~git-netdev-all-fixup drivers/net/netxen/netxen_nic.h
+--- a/drivers/net/netxen/netxen_nic.h~git-netdev-all-fixup
++++ a/drivers/net/netxen/netxen_nic.h
+@@ -852,12 +852,8 @@ struct netxen_adapter {
+ 	spinlock_t tx_lock;
+ 	spinlock_t lock;
+ 	struct work_struct watchdog_task;
+-<<<<<<< HEAD/drivers/net/netxen/netxen_nic.h
+-	struct work_struct tx_timeout_task;
+ 	struct net_device *netdev;
+-=======
+ 	struct work_struct tx_timeout_task[NETXEN_MAX_PORTS];
+->>>>>>> /drivers/net/netxen/netxen_nic.h
+ 	struct timer_list watchdog_timer;
+ 
+ 	u32 curr_window;
+diff -puN drivers/net/netxen/netxen_nic_main.c~git-netdev-all-fixup drivers/net/netxen/netxen_nic_main.c
+--- a/drivers/net/netxen/netxen_nic_main.c~git-netdev-all-fixup
++++ a/drivers/net/netxen/netxen_nic_main.c
+@@ -428,13 +428,10 @@ netxen_nic_probe(struct pci_dev *pdev, c
+ 							     netdev->dev_addr);
+ 			}
  		}
- 		break;
- 	case CARD:
--		dev_dbg(&sock->dev, "waiting for CARD, have %ld blocks\n",
-+		dev_dbg(&sock->dev, "waiting for CARD, have %zd blocks\n",
- 			host->written_blocks);
- 		if (!(host->flags & CARD_BUSY)
- 		    && (host->written_blocks == cmd->data->blocks)) {
+-<<<<<<< HEAD/drivers/net/netxen/netxen_nic_main.c
+ 		adapter->netdev = netdev;
+-		INIT_WORK(&adapter->tx_timeout_task, netxen_tx_timeout_task);
+-=======
+-		INIT_WORK(adapter->tx_timeout_task + i,
+-			  (void (*)(void *))netxen_tx_timeout_task, netdev);
+->>>>>>> /drivers/net/netxen/netxen_nic_main.c
++//		INIT_WORK(&adapter->tx_timeout_task, netxen_tx_timeout_task);
++//		INIT_WORK(adapter->tx_timeout_task + i,
++//			  (void (*)(void *))netxen_tx_timeout_task, netdev);
+ 		netif_carrier_off(netdev);
+ 		netif_stop_queue(netdev);
+ 
+@@ -979,8 +976,7 @@ static void netxen_tx_timeout(struct net
+ 
+ static void netxen_tx_timeout_task(struct work_struct *work)
+ {
+-	struct netxen_adapter *adapter =
+-		container_of(work, struct netxen_adapter, tx_timeout_task);
++	struct netxen_adapter *adapter = NULL;
+ 	struct net_device *netdev = adapter->netdev;
+ 	unsigned long flags;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -96,6 +134,7 @@ git-mtd.patch
 git-mtd-ssfdc-build-fix.patch
 git-ubi.patch
 git-netdev-all.patch
+git-netdev-all-fixup.patch
 libphy-dont-do-that.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
