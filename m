@@ -1,113 +1,92 @@
 From: akpm@osdl.org
-Subject: - s390-use-dev-groups-for-subchannel-attributes.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 14:23:42 -0800
-Message-ID: <200612062223.kB6MNg4t018551@shell0.pdx.osdl.net>
+Subject: - fix-numaq-build-error.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 14:24:23 -0800
+Message-ID: <200612062224.kB6MONaI018618@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48309 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48348 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937730AbWLFWYQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 17:24:16 -0500
+	id S937739AbWLFWY3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 17:24:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, greg@kroah.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390: use dev->groups for subchannel attributes
+     Fix numaq build error
 has been removed from the -mm tree.  Its filename was
-     s390-use-dev-groups-for-subchannel-attributes.patch
+     fix-numaq-build-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s390: use dev->groups for subchannel attributes
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: Fix numaq build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Use dev->groups for adding/removing the subchannel attribute group.
+  CC      arch/i386/boot/compressed/misc.o
+arch/i386/boot/compressed/misc.c:120: error: static declaration of 'xquad_portio' follows non-static declaration
+include/asm/io.h:275: error: previous declaration of 'xquad_portio' was here
+make[2]: *** [arch/i386/boot/compressed/misc.o] Error 1
 
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/s390/cio/css.c    |    5 +----
- drivers/s390/cio/css.h    |    1 +
- drivers/s390/cio/device.c |   16 +++++++++-------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ arch/i386/boot/compressed/misc.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/cio/css.c~s390-use-dev-groups-for-subchannel-attributes drivers/s390/cio/css.c
---- a/drivers/s390/cio/css.c~s390-use-dev-groups-for-subchannel-attributes
-+++ a/drivers/s390/cio/css.c
-@@ -137,6 +137,7 @@ css_register_subchannel(struct subchanne
- 	sch->dev.parent = &css[0]->device;
- 	sch->dev.bus = &css_bus_type;
- 	sch->dev.release = &css_subchannel_release;
-+	sch->dev.groups = subch_attr_groups;
+diff -puN arch/i386/boot/compressed/misc.c~fix-numaq-build-error arch/i386/boot/compressed/misc.c
+--- a/arch/i386/boot/compressed/misc.c~fix-numaq-build-error
++++ a/arch/i386/boot/compressed/misc.c
+@@ -196,7 +196,7 @@ static int vidport;
+ static int lines, cols;
  
- 	/* make it known to the system */
- 	ret = css_sch_device_register(sch);
-@@ -146,10 +147,6 @@ css_register_subchannel(struct subchanne
- 		return ret;
- 	}
- 	css_get_ssd_info(sch);
--	ret = subchannel_add_files(&sch->dev);
--	if (ret)
--		printk(KERN_WARNING "%s: could not add attributes to %s\n",
--		       __func__, sch->dev.bus_id);
- 	return ret;
- }
- 
-diff -puN drivers/s390/cio/css.h~s390-use-dev-groups-for-subchannel-attributes drivers/s390/cio/css.h
---- a/drivers/s390/cio/css.h~s390-use-dev-groups-for-subchannel-attributes
-+++ a/drivers/s390/cio/css.h
-@@ -193,4 +193,5 @@ extern struct workqueue_struct *slow_pat
- extern struct work_struct slow_path_work;
- 
- int subchannel_add_files (struct device *);
-+extern struct attribute_group *subch_attr_groups[];
+ #ifdef CONFIG_X86_NUMAQ
+-static void * xquad_portio = NULL;
++void *xquad_portio;
  #endif
-diff -puN drivers/s390/cio/device.c~s390-use-dev-groups-for-subchannel-attributes drivers/s390/cio/device.c
---- a/drivers/s390/cio/device.c~s390-use-dev-groups-for-subchannel-attributes
-+++ a/drivers/s390/cio/device.c
-@@ -235,9 +235,11 @@ chpids_show (struct device * dev, struct
- 	ssize_t ret = 0;
- 	int chp;
  
--	for (chp = 0; chp < 8; chp++)
--		ret += sprintf (buf+ret, "%02x ", ssd->chpid[chp]);
--
-+	if (ssd)
-+		for (chp = 0; chp < 8; chp++)
-+			ret += sprintf (buf+ret, "%02x ", ssd->chpid[chp]);
-+	else
-+		ret += sprintf (buf, "n/a");
- 	ret += sprintf (buf+ret, "\n");
- 	return min((ssize_t)PAGE_SIZE, ret);
- }
-@@ -529,10 +531,10 @@ static struct attribute_group subch_attr
- 	.attrs = subch_attrs,
- };
- 
--int subchannel_add_files (struct device *dev)
--{
--	return sysfs_create_group(&dev->kobj, &subch_attr_group);
--}
-+struct attribute_group *subch_attr_groups[] = {
-+	&subch_attr_group,
-+	NULL,
-+};
- 
- static struct attribute * ccwdev_attrs[] = {
- 	&dev_attr_devtype.attr,
+ #include "../../../../lib/inflate.c"
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-driver-core-per-subsystem-multithreaded-probing.patch
-driver-core-dont-fail-attaching-the-device-if-it.patch
-git-s390.patch
-tty-switch-to-ktermios-sclp-fix.patch
+git-acpi.patch
+git-alsa.patch
+alsa-add-struct-forward-declaration.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-mtd.patch
+mtd-esb2rom-uses-pci.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+fuse-fix-compile-without-config_block.patch
+tifm-fix-null-ptr-and-style.patch
+kconfig-printk_time-depends-on-printk.patch
+hpfs-fix-printk-format-warnings.patch
+declare-smp_call_function_single-in-generic-code.patch
+i2o-handle-__copy_from_user.patch
+i2o-fix-i2o_config-without-adaptec-extension.patch
+parport-section-mismatches-with-hotplug=n.patch
+agp-amd64-section-mismatches-with-hotplug=n.patch
+ciss-require-same-scsi-module-support.patch
+export-toshiba-smm-support-for-neofb-module.patch
+kernel-doc-add-fusion-and-i2o-to-kernel-api-book.patch
+kernel-doc-fix-fusion-and-i2o-docs.patch
+kernel-api-book-remove-videodev-chapter.patch
+kernel-doc-stricter-function-pointer-recognition.patch
+reporting-bugs-request-config-file.patch
+lib-functions-always-build-hweight-for-loadable-modules.patch
+ipmi-fix-proc_fs=n-warnings.patch
+generic-bug-implementation-handle-bug=n.patch
+reiser4-use-null-for-pointers.patch
+visws-sgivwfb-is-module-needs-exports.patch
+linux-fbdev-devel-is-subscribers-only.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+profile_likely-export-do_check_likely.patch
 
