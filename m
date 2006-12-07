@@ -1,114 +1,56 @@
 From: akpm@osdl.org
-Subject: - lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:21:07 -0800
-Message-ID: <200612070321.kB73L7Xv027127@shell0.pdx.osdl.net>
+Subject: - exar-quad-port-serial-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:24:57 -0800
+Message-ID: <200612070324.kB73OvmK027229@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41970 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42132 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967817AbWLGDVd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:21:33 -0500
+	id S967877AbWLGDZV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:25:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, SteveD@redhat.com, a.p.zijlstra@chello.nl, davem@davemloft.net, mingo@elte.hu, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@osdl.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, lsorense@csclub.uwaterloo.ca, pschroeder@uplogix.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
+     exar-quad-port-serial-fix
 has been removed from the -mm tree.  Its filename was
-     lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch
+     exar-quad-port-serial-fix.patch
 
-This patch was dropped because it was folded into lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
+This patch was dropped because it was folded into exar-quad-port-serial.patch
 
 ------------------------------------------------------
-Subject: lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
+Subject: exar-quad-port-serial-fix
 From: Andrew Morton <akpm@osdl.org>
 
-futz with whitespace.
+drivers/serial/8250_exar_st16c554.c:37: error: 'PLAT8250_DEV_EXAR' undeclared here (not in a function)
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-CC: Steven Dickson <SteveD@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+hm, how'd that happen?
+
+Cc:  Paul B Schroeder <pschroeder@uplogix.com>
+Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/svcsock.c  |   24 +++++++++++-------------
- net/sunrpc/xprtsock.c |   24 +++++++++++-------------
- 2 files changed, 22 insertions(+), 26 deletions(-)
+ drivers/serial/8250_exar_st16c554.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/svcsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
-+++ a/net/sunrpc/svcsock.c
-@@ -94,20 +94,18 @@ static inline void svc_reclassify_socket
- 	struct sock *sk = sock->sk;
- 	BUG_ON(sk->sk_lock.owner != NULL);
- 	switch (sk->sk_family) {
--		case AF_INET:
--			sock_lock_init_class_and_name(sk,
--				"slock-AF_INET-NFSD", &svc_slock_key[0],
--				"sk_lock-AF_INET-NFSD", &svc_key[0]);
--			break;
--
--		case AF_INET6:
--			sock_lock_init_class_and_name(sk,
--				"slock-AF_INET6-NFSD", &svc_slock_key[1],
--				"sk_lock-AF_INET6-NFSD", &svc_key[1]);
--			break;
-+	case AF_INET:
-+		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFSD",
-+		    &svc_slock_key[0], "sk_lock-AF_INET-NFSD", &svc_key[0]);
-+		break;
+diff -puN drivers/serial/8250_exar_st16c554.c~exar-quad-port-serial-fix drivers/serial/8250_exar_st16c554.c
+--- a/drivers/serial/8250_exar_st16c554.c~exar-quad-port-serial-fix
++++ a/drivers/serial/8250_exar_st16c554.c
+@@ -34,7 +34,7 @@ static struct plat_serial8250_port exar_
  
--		default:
--			BUG();
-+	case AF_INET6:
-+		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFSD",
-+		    &svc_slock_key[1], "sk_lock-AF_INET6-NFSD", &svc_key[1]);
-+		break;
-+
-+	default:
-+		BUG();
- 	}
- }
- #else
-diff -puN net/sunrpc/xprtsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
-+++ a/net/sunrpc/xprtsock.c
-@@ -1067,20 +1067,18 @@ static inline void xs_reclassify_socket(
- 	struct sock *sk = sock->sk;
- 	BUG_ON(sk->sk_lock.owner != NULL);
- 	switch (sk->sk_family) {
--		case AF_INET:
--			sock_lock_init_class_and_name(sk,
--				"slock-AF_INET-NFS", &xs_slock_key[0],
--				"sk_lock-AF_INET-NFS", &xs_key[0]);
--			break;
--
--		case AF_INET6:
--			sock_lock_init_class_and_name(sk,
--				"slock-AF_INET6-NFS", &xs_slock_key[1],
--				"sk_lock-AF_INET6-NFS", &xs_key[1]);
--			break;
-+	case AF_INET:
-+		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
-+			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
-+		break;
-+
-+	case AF_INET6:
-+		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFS",
-+			&xs_slock_key[1], "sk_lock-AF_INET6-NFS", &xs_key[1]);
-+		break;
- 
--		default:
--			BUG();
-+	default:
-+		BUG();
- 	}
- }
- #else
+ static struct platform_device exar_device = {
+ 	.name			= "serial8250",
+-	.id			= PLAT8250_DEV_EXAR,
++	.id			= PLAT8250_DEV_EXAR_ST16C554,
+ 	.dev			= {
+ 		.platform_data	= exar_data,
+ 	},
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -130,11 +72,9 @@ add-include-linux-freezerh-and-move-definitions-from.patch
 convert-pm_sem-to-a-mutex.patch
 cciss-set-sector_size-to-2048-for-performance.patch
 lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
-lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
 probe_kernel_address-needs-to-do-set_fs.patch
 slab-use-probe_kernel_address.patch
+exar-quad-port-serial.patch
 exar-quad-port-serial-fix.patch
 vfs_getattr-remove-dead-code.patch
 ext3-uninline-large-functions.patch
