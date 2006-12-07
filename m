@@ -1,148 +1,121 @@
 From: akpm@osdl.org
-Subject: - swsusp-add-resume_offset-command-line-parameter-rev-2.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:59:09 -0800
-Message-ID: <200612072259.kB7Mx9kB029460@shell0.pdx.osdl.net>
+Subject: - allow-null-pointers-in-percpu_free.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:57:20 -0800
+Message-ID: <200612072257.kB7MvKAm029274@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50957 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50931 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163661AbWLGW7e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:59:34 -0500
+	id S1163661AbWLGW7c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:59:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swsusp: add resume_offset command line parameter
+     Allow NULL pointers in percpu_free
 has been removed from the -mm tree.  Its filename was
-     swsusp-add-resume_offset-command-line-parameter-rev-2.patch
+     allow-null-pointers-in-percpu_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: swsusp: add resume_offset command line parameter
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Allow NULL pointers in percpu_free
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Add the kernel command line parameter "resume_offset=" allowing us to specify
-the offset, in <PAGE_SIZE> units, from the beginning of the partition pointed
-to by the "resume=" parameter at which the swap header is located.
+The patch (as824b) makes percpu_free() ignore NULL arguments, as one would
+expect for a deallocation routine.  (Note that free_percpu is #defined as
+percpu_free in include/linux/percpu.h.) A few callers are updated to remove
+now-unneeded tests for NULL.  A few other callers already seem to assume
+that passing a NULL pointer to percpu_free() is okay!
 
-This offset can be determined, for example, by an application using the FIBMAP
-ioctl to obtain the swap header's block number for given file.
+The patch also removes an unnecessary NULL check in percpu_depopulate().
 
-[akpm@osdl.org: we don't know what type sector_t is]
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/disk.c  |   15 +++++++++++++++
- kernel/power/power.h |    1 +
- kernel/power/swap.c  |   15 ++++++++++-----
- 3 files changed, 26 insertions(+), 5 deletions(-)
+ arch/i386/kernel/acpi/cstate.c |    6 ++----
+ block/blktrace.c               |    3 +--
+ mm/allocpercpu.c               |    9 +++++----
+ net/ipv6/af_inet6.c            |    6 ++----
+ 4 files changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN kernel/power/disk.c~swsusp-add-resume_offset-command-line-parameter-rev-2 kernel/power/disk.c
---- a/kernel/power/disk.c~swsusp-add-resume_offset-command-line-parameter-rev-2
-+++ a/kernel/power/disk.c
-@@ -27,6 +27,7 @@
- static int noresume = 0;
- char resume_file[256] = CONFIG_PM_STD_PARTITION;
- dev_t swsusp_resume_device;
-+sector_t swsusp_resume_block;
+diff -puN arch/i386/kernel/acpi/cstate.c~allow-null-pointers-in-percpu_free arch/i386/kernel/acpi/cstate.c
+--- a/arch/i386/kernel/acpi/cstate.c~allow-null-pointers-in-percpu_free
++++ a/arch/i386/kernel/acpi/cstate.c
+@@ -156,10 +156,8 @@ static int __init ffh_cstate_init(void)
  
- /**
-  *	power_down - Shut machine down for hibernate.
-@@ -423,6 +424,19 @@ static int __init resume_setup(char *str
- 	return 1;
+ static void __exit ffh_cstate_exit(void)
+ {
+-	if (cpu_cstate_entry) {
+-		free_percpu(cpu_cstate_entry);
+-		cpu_cstate_entry = NULL;
+-	}
++	free_percpu(cpu_cstate_entry);
++	cpu_cstate_entry = NULL;
  }
  
-+static int __init resume_offset_setup(char *str)
-+{
-+	unsigned long long offset;
-+
-+	if (noresume)
-+		return 1;
-+
-+	if (sscanf(str, "%llu", &offset) == 1)
-+		swsusp_resume_block = offset;
-+
-+	return 1;
-+}
-+
- static int __init noresume_setup(char *str)
+ arch_initcall(ffh_cstate_init);
+diff -puN block/blktrace.c~allow-null-pointers-in-percpu_free block/blktrace.c
+--- a/block/blktrace.c~allow-null-pointers-in-percpu_free
++++ a/block/blktrace.c
+@@ -394,8 +394,7 @@ err:
+ 	if (bt) {
+ 		if (bt->dropped_file)
+ 			debugfs_remove(bt->dropped_file);
+-		if (bt->sequence)
+-			free_percpu(bt->sequence);
++		free_percpu(bt->sequence);
+ 		if (bt->rchan)
+ 			relay_close(bt->rchan);
+ 		kfree(bt);
+diff -puN mm/allocpercpu.c~allow-null-pointers-in-percpu_free mm/allocpercpu.c
+--- a/mm/allocpercpu.c~allow-null-pointers-in-percpu_free
++++ a/mm/allocpercpu.c
+@@ -17,10 +17,9 @@
+ void percpu_depopulate(void *__pdata, int cpu)
  {
- 	noresume = 1;
-@@ -430,4 +444,5 @@ static int __init noresume_setup(char *s
+ 	struct percpu_data *pdata = __percpu_disguise(__pdata);
+-	if (pdata->ptrs[cpu]) {
+-		kfree(pdata->ptrs[cpu]);
+-		pdata->ptrs[cpu] = NULL;
+-	}
++
++	kfree(pdata->ptrs[cpu]);
++	pdata->ptrs[cpu] = NULL;
+ }
+ EXPORT_SYMBOL_GPL(percpu_depopulate);
+ 
+@@ -123,6 +122,8 @@ EXPORT_SYMBOL_GPL(__percpu_alloc_mask);
+  */
+ void percpu_free(void *__pdata)
+ {
++	if (unlikely(!__pdata))
++		return;
+ 	__percpu_depopulate_mask(__pdata, &cpu_possible_map);
+ 	kfree(__percpu_disguise(__pdata));
+ }
+diff -puN net/ipv6/af_inet6.c~allow-null-pointers-in-percpu_free net/ipv6/af_inet6.c
+--- a/net/ipv6/af_inet6.c~allow-null-pointers-in-percpu_free
++++ a/net/ipv6/af_inet6.c
+@@ -720,10 +720,8 @@ snmp6_mib_free(void *ptr[2])
+ {
+ 	if (ptr == NULL)
+ 		return;
+-	if (ptr[0])
+-		free_percpu(ptr[0]);
+-	if (ptr[1])
+-		free_percpu(ptr[1]);
++	free_percpu(ptr[0]);
++	free_percpu(ptr[1]);
+ 	ptr[0] = ptr[1] = NULL;
  }
  
- __setup("noresume", noresume_setup);
-+__setup("resume_offset=", resume_offset_setup);
- __setup("resume=", resume_setup);
-diff -puN kernel/power/power.h~swsusp-add-resume_offset-command-line-parameter-rev-2 kernel/power/power.h
---- a/kernel/power/power.h~swsusp-add-resume_offset-command-line-parameter-rev-2
-+++ a/kernel/power/power.h
-@@ -42,6 +42,7 @@ extern const void __nosave_begin, __nosa
- extern unsigned long image_size;
- extern int in_suspend;
- extern dev_t swsusp_resume_device;
-+extern sector_t swsusp_resume_block;
- 
- extern asmlinkage int swsusp_arch_suspend(void);
- extern asmlinkage int swsusp_arch_resume(void);
-diff -puN kernel/power/swap.c~swsusp-add-resume_offset-command-line-parameter-rev-2 kernel/power/swap.c
---- a/kernel/power/swap.c~swsusp-add-resume_offset-command-line-parameter-rev-2
-+++ a/kernel/power/swap.c
-@@ -161,13 +161,14 @@ static int mark_swapfiles(sector_t start
- {
- 	int error;
- 
--	bio_read_page(0, &swsusp_header, NULL);
-+	bio_read_page(swsusp_resume_block, &swsusp_header, NULL);
- 	if (!memcmp("SWAP-SPACE",swsusp_header.sig, 10) ||
- 	    !memcmp("SWAPSPACE2",swsusp_header.sig, 10)) {
- 		memcpy(swsusp_header.orig_sig,swsusp_header.sig, 10);
- 		memcpy(swsusp_header.sig,SWSUSP_SIG, 10);
- 		swsusp_header.image = start;
--		error = bio_write_page(0, &swsusp_header, NULL);
-+		error = bio_write_page(swsusp_resume_block,
-+					&swsusp_header, NULL);
- 	} else {
- 		printk(KERN_ERR "swsusp: Swap header not found!\n");
- 		error = -ENODEV;
-@@ -184,7 +185,7 @@ static int swsusp_swap_check(void) /* Th
- {
- 	int res;
- 
--	res = swap_type_of(swsusp_resume_device, 0);
-+	res = swap_type_of(swsusp_resume_device, swsusp_resume_block);
- 	if (res < 0)
- 		return res;
- 
-@@ -610,12 +611,16 @@ int swsusp_check(void)
- 	if (!IS_ERR(resume_bdev)) {
- 		set_blocksize(resume_bdev, PAGE_SIZE);
- 		memset(&swsusp_header, 0, sizeof(swsusp_header));
--		if ((error = bio_read_page(0, &swsusp_header, NULL)))
-+		error = bio_read_page(swsusp_resume_block,
-+					&swsusp_header, NULL);
-+		if (error)
- 			return error;
-+
- 		if (!memcmp(SWSUSP_SIG, swsusp_header.sig, 10)) {
- 			memcpy(swsusp_header.sig, swsusp_header.orig_sig, 10);
- 			/* Reset swap signature now */
--			error = bio_write_page(0, &swsusp_header, NULL);
-+			error = bio_write_page(swsusp_resume_block,
-+						&swsusp_header, NULL);
- 		} else {
- 			return -EINVAL;
- 		}
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
 origin.patch
-git-acpi.patch
-md-change-lifetime-rules-for-md-devices.patch
 
