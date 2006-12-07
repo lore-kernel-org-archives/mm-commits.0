@@ -1,51 +1,64 @@
 From: akpm@osdl.org
-Subject: - sleep-profiling-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:25:40 -0800
-Message-ID: <200612070325.kB73PeTo027243@shell0.pdx.osdl.net>
+Subject: - sleep-profiling-fixes.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:25:37 -0800
+Message-ID: <200612070325.kB73Pcu5027240@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42143 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42154 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967907AbWLGDZo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:25:44 -0500
+	id S967868AbWLGDZx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:25:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sleep-profiling-fix
+     sleep-profiling-fixes
 has been removed from the -mm tree.  Its filename was
-     sleep-profiling-fix.patch
+     sleep-profiling-fixes.patch
 
 This patch was dropped because it was folded into sleep-profiling.patch
 
 ------------------------------------------------------
-Subject: sleep-profiling-fix
+Subject: sleep-profiling-fixes
 From: Andrew Morton <akpm@osdl.org>
-
-arm:
-include/linux/profile.h:11: error: syntax error before "__read_mostly"
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/profile.h |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/kernel-parameters.txt |    1 +
+ kernel/sched.c                      |    6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/profile.h~sleep-profiling-fix include/linux/profile.h
---- a/include/linux/profile.h~sleep-profiling-fix
-+++ a/include/linux/profile.h
-@@ -6,6 +6,8 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/cpumask.h>
-+#include <linux/cache.h>
-+
- #include <asm/errno.h>
+diff -puN Documentation/kernel-parameters.txt~sleep-profiling-fixes Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~sleep-profiling-fixes
++++ a/Documentation/kernel-parameters.txt
+@@ -1302,6 +1302,7 @@ and is between 256 and 4096 characters. 
+ 			Param: "schedule" - profile schedule points.
+ 			Param: <number> - step/bucket size as a power of 2 for
+ 				statistical time based profiling.
++			Param: "sleep" - profile D-state sleeping (millisecs)
  
- extern int prof_on __read_mostly;
+ 	processor.max_cstate=	[HW,ACPI]
+ 			Limit processor to maximum C-state
+diff -puN kernel/sched.c~sleep-profiling-fixes kernel/sched.c
+--- a/kernel/sched.c~sleep-profiling-fixes
++++ a/kernel/sched.c
+@@ -949,9 +949,9 @@ static void activate_task(struct task_st
+ #endif
+ 
+ 	/*
+-	 * Sleep time is in units of nanosecs, so shift by 30
+-	 * to get a milliseconds-range estimation of the amount
+-	 * of time that the task spent sleeping:
++	 * Sleep time is in units of nanosecs, so shift by 20 to get a
++	 * milliseconds-range estimation of the amount of time that the task
++	 * spent sleeping:
+ 	 */
+ 	if (unlikely(prof_on == SLEEP_PROFILING)) {
+ 		if (p->state == TASK_UNINTERRUPTIBLE)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -74,6 +87,7 @@ vfs_getattr-remove-dead-code.patch
 ext3-uninline-large-functions.patch
 ext4-uninline-large-functions.patch
 sleep-profiling.patch
+sleep-profiling-fixes.patch
 sleep-profiling-fix.patch
 debug-workqueue-locking-sanity-fix.patch
 pcengines-wrap-led-support-fix.patch
