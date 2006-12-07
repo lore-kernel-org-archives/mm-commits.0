@@ -1,72 +1,270 @@
 From: akpm@osdl.org
-Subject: - serial-uartlite-initialize-port-parameters-in-console_setup.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:20:38 -0800
-Message-ID: <200612070320.kB73KcUx027099@shell0.pdx.osdl.net>
+Subject: - lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:21:07 -0800
+Message-ID: <200612070321.kB73L7Xv027127@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41969 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967817AbWLGDVb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:21:31 -0500
+	id S967817AbWLGDVd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:21:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jacmet@sunsite.dk, alan@lxorguk.ukuu.org.uk, olof@lixom.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@osdl.org, SteveD@redhat.com, a.p.zijlstra@chello.nl, davem@davemloft.net, mingo@elte.hu, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial-uartlite: Initialize port parameters in console_setup
+     lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
 has been removed from the -mm tree.  Its filename was
-     serial-uartlite-initialize-port-parameters-in-console_setup.patch
+     lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch
 
-This patch was dropped because it was folded into serial-uartlite-driver.patch
+This patch was dropped because it was folded into lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
 
 ------------------------------------------------------
-Subject: serial-uartlite: Initialize port parameters in console_setup
-From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-Initialize port parameters in console_setup so port timeout is set to
-something sensible even if user space never calls set_termios.
+futz with whitespace.
 
-Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+CC: Steven Dickson <SteveD@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/uartlite.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletion(-)
+ net/sunrpc/svcsock.c  |   24 +++++++++++-------------
+ net/sunrpc/xprtsock.c |   24 +++++++++++-------------
+ 2 files changed, 22 insertions(+), 26 deletions(-)
 
-diff -puN drivers/serial/uartlite.c~serial-uartlite-initialize-port-parameters-in-console_setup drivers/serial/uartlite.c
---- a/drivers/serial/uartlite.c~serial-uartlite-initialize-port-parameters-in-console_setup
-+++ a/drivers/serial/uartlite.c
-@@ -358,6 +358,10 @@ static void ulite_console_write(struct c
- static int __init ulite_console_setup(struct console *co, char *options)
- {
- 	struct uart_port *port;
-+	int baud = 9600;
-+	int bits = 8;
-+	int parity = 'n';
-+	int flow = 'n';
+diff -puN net/sunrpc/svcsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
++++ a/net/sunrpc/svcsock.c
+@@ -94,20 +94,18 @@ static inline void svc_reclassify_socket
+ 	struct sock *sk = sock->sk;
+ 	BUG_ON(sk->sk_lock.owner != NULL);
+ 	switch (sk->sk_family) {
+-		case AF_INET:
+-			sock_lock_init_class_and_name(sk,
+-				"slock-AF_INET-NFSD", &svc_slock_key[0],
+-				"sk_lock-AF_INET-NFSD", &svc_key[0]);
+-			break;
+-
+-		case AF_INET6:
+-			sock_lock_init_class_and_name(sk,
+-				"slock-AF_INET6-NFSD", &svc_slock_key[1],
+-				"sk_lock-AF_INET6-NFSD", &svc_key[1]);
+-			break;
++	case AF_INET:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFSD",
++		    &svc_slock_key[0], "sk_lock-AF_INET-NFSD", &svc_key[0]);
++		break;
  
- 	if (co->index < 0 || co->index >= ULITE_NR_UARTS)
- 		return -EINVAL;
-@@ -368,7 +372,10 @@ static int __init ulite_console_setup(st
- 	if (!port->membase)
- 		return -ENODEV;
- 
--	return 0;
-+	if (options)
-+		uart_parse_options(options, &baud, &parity, &bits, &flow);
+-		default:
+-			BUG();
++	case AF_INET6:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFSD",
++		    &svc_slock_key[1], "sk_lock-AF_INET6-NFSD", &svc_key[1]);
++		break;
 +
-+	return uart_set_options(port, co, baud, parity, bits, flow);
++	default:
++		BUG();
+ 	}
  }
+ #else
+diff -puN net/sunrpc/xprtsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy
++++ a/net/sunrpc/xprtsock.c
+@@ -1067,20 +1067,18 @@ static inline void xs_reclassify_socket(
+ 	struct sock *sk = sock->sk;
+ 	BUG_ON(sk->sk_lock.owner != NULL);
+ 	switch (sk->sk_family) {
+-		case AF_INET:
+-			sock_lock_init_class_and_name(sk,
+-				"slock-AF_INET-NFS", &xs_slock_key[0],
+-				"sk_lock-AF_INET-NFS", &xs_key[0]);
+-			break;
+-
+-		case AF_INET6:
+-			sock_lock_init_class_and_name(sk,
+-				"slock-AF_INET6-NFS", &xs_slock_key[1],
+-				"sk_lock-AF_INET6-NFS", &xs_key[1]);
+-			break;
++	case AF_INET:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
++			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
++		break;
++
++	case AF_INET6:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFS",
++			&xs_slock_key[1], "sk_lock-AF_INET6-NFS", &xs_key[1]);
++		break;
  
- static struct uart_driver ulite_uart_driver;
+-		default:
+-			BUG();
++	default:
++		BUG();
+ 	}
+ }
+ #else
 _
 
-Patches currently in -mm which might be from jacmet@sunsite.dk are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-serial-uartlite-driver.patch
-serial-uartlite-initialize-port-parameters-in-console_setup.patch
+origin.patch
+add-bottom_half.h.patch
+drm-sis-linkage-fix.patch
+uml-workqueue-build-fix.patch
+get-rid-of-zone_table.patch
+new-scheme-to-preempt-swap-token.patch
+balance_pdgat-cleanup.patch
+leak-tracking-for-kmalloc_node.patch
+add-numa-node-information-to-struct-device.patch
+slab-deprecate-kmem_cache-t.patch
+mm-make-compound-page-destructor-handling-explicit.patch
+radix-tree-rcu-lockless-readside.patch
+swsusp-add-resume_offset-command-line-parameter-rev-2.patch
+add-include-linux-freezerh-and-move-definitions-from.patch
+convert-pm_sem-to-a-mutex.patch
+cciss-set-sector_size-to-2048-for-performance.patch
+lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
+lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+probe_kernel_address-needs-to-do-set_fs.patch
+slab-use-probe_kernel_address.patch
+exar-quad-port-serial-fix.patch
+vfs_getattr-remove-dead-code.patch
+ext3-uninline-large-functions.patch
+ext4-uninline-large-functions.patch
+sleep-profiling-fixes.patch
+sleep-profiling-fix.patch
+debug-workqueue-locking-sanity-fix.patch
+pcengines-wrap-led-support-fix.patch
+driver-base-memoryc-remove-warnings-of.patch
+remove-kernel-syscalls-x86_64-fix.patch
+protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch
+remove-hash_highmem.patch
+elf-fix-kcore-note-size-calculation-fix.patch
+reiserfs-add-missing-d-cache-flushing-tweak.patch
+smp_call_function_single-check-that-local-interrupts-are-enabled.patch
+hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch
+add-return-value-checking-of-get_user-in-fix.patch
+handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
+dz-fixes-to-make-it-work-fix.patch
+ext4-balloc-fix-_with_rsv-freeze-fix.patch
+ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
+make-8250_pnp-serial-driver-work-after-tidy.patch
+gcc-4-1-0-is-bust.patch
+cleanup-include-asm-generic-atomich-fix.patch
+struct-seq_operations-and-struct-file_operations-constification-fix.patch
+struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+bug-test-1.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
