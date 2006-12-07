@@ -1,71 +1,59 @@
 From: akpm@osdl.org
-Subject: - ext4-balloc-fix-_with_rsv-freeze.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:14:51 -0800
-Message-ID: <200612072314.kB7NEpS0030661__38031.2642002993$1165533345$gmane$org@shell0.pdx.osdl.net>
+Subject: - amba-pl010-clear-error-flags-on-rx-error.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:15:49 -0800
+Message-ID: <200612072315.kB7NFnoI030752@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53509 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53563 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163916AbWLGXPH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:15:07 -0500
+	id S1163779AbWLGXPv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:15:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: buytenh@wantstofly.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4 balloc: fix _with_rsv freeze
+     amba-pl010: clear error flags on rx error
 has been removed from the -mm tree.  Its filename was
-     ext4-balloc-fix-_with_rsv-freeze.patch
+     amba-pl010-clear-error-flags-on-rx-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4 balloc: fix _with_rsv freeze
-From: Hugh Dickins <hugh@veritas.com>
+Subject: amba-pl010: clear error flags on rx error
+From: Lennert Buytenhek <buytenh@wantstofly.org>
 
-Port fix to the off-by-one in find_next_usable_block's memscan from ext2 to
-ext4; but it didn't cause a serious problem for ext4 because the additional
-ext4_test_allocatable check rescued it from the error.
+The pl010 primecell documentation specifies that an error indicated via RSR
+should be cleared by a write to ECR.  We didn't do this, which was causing
+errors to be re-reported on every call to pl010_rx_chars().
 
-[akpm@osdl.org: build fix]
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: <linux-ext4@vger.kernel.org>
+Doing a write to ECR once we detect an error appears to prevent the ep93xx
+console UART driver from going into a mode where it reports "ttyAM0: X
+input overrun(s)" every couple of keystrokes.
+
+Signed-off-by: Lennert Buytenhek <buytenh@wantstofly.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext4/balloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/amba-pl010.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ext4/balloc.c~ext4-balloc-fix-_with_rsv-freeze fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext4-balloc-fix-_with_rsv-freeze
-+++ a/fs/ext4/balloc.c
-@@ -747,7 +747,7 @@ find_next_usable_block(ext4_grpblk_t sta
- 		here = 0;
- 
- 	p = ((char *)bh->b_data) + (here >> 3);
--	r = memscan(p, 0, (maxblocks - here + 7) >> 3);
-+	r = memscan(p, 0, ((maxblocks + 7) >> 3) - (here >> 3));
- 	next = (r - ((char *)bh->b_data)) << 3;
- 
- 	if (next < maxblocks && next >= start && ext4_test_allocatable(next, bh))
+diff -puN drivers/serial/amba-pl010.c~amba-pl010-clear-error-flags-on-rx-error drivers/serial/amba-pl010.c
+--- a/drivers/serial/amba-pl010.c~amba-pl010-clear-error-flags-on-rx-error
++++ a/drivers/serial/amba-pl010.c
+@@ -129,6 +129,8 @@ static void pl010_rx_chars(struct uart_p
+ 		 */
+ 		rsr = readb(port->membase + UART01x_RSR) | UART_DUMMY_RSR_RX;
+ 		if (unlikely(rsr & UART01x_RSR_ANY)) {
++			writel(0, port->membase + UART01x_ECR);
++
+ 			if (rsr & UART01x_RSR_BE) {
+ 				rsr &= ~(UART01x_RSR_FE | UART01x_RSR_PE);
+ 				port->icount.brk++;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from buytenh@wantstofly.org are
 
 origin.patch
-ext2-reservations.patch
-ext2-balloc-fix-_with_rsv-freeze.patch
-ext2-balloc-reset-windowsz-when-full.patch
-ext2-balloc-fix-off-by-one-against-rsv_end.patch
-ext2-balloc-fix-off-by-one-against-grp_goal.patch
-ext2-balloc-say-rb_entry-not-list_entry.patch
-ext2-balloc-use-io_error-label.patch
-generic-bug-implementation.patch
-generic-bug-implementation-handle-bug=n.patch
-generic-bug-for-i386.patch
-generic-bug-for-x86-64.patch
-bug-test-1.patch
-tty-switch-to-ktermios-powerpc-fix.patch
 
