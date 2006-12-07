@@ -1,105 +1,90 @@
 From: akpm@osdl.org
-Subject: + spidernet-add-net_ratelimit-to-suppress-long-output.patch added to -mm tree
-Date: Wed, 06 Dec 2006 21:36:29 -0800
-Message-ID: <200612070536.kB75aTSH031645@shell0.pdx.osdl.net>
+Subject: + spidernet-remove-unused-variable.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:36:50 -0800
+Message-ID: <200612070536.kB75aovb031682@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50859 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50877 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030845AbWLGFjq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:39:46 -0500
+	id S1030873AbWLGFkO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:40:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jklewis@us.ibm.com, jlinas@austin.ibm.com
+Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
 
 
 The patch titled
-     spidernet: add net_ratelimit to suppress long output
+     spidernet: remove unused variable
 has been added to the -mm tree.  Its filename is
-     spidernet-add-net_ratelimit-to-suppress-long-output.patch
+     spidernet-remove-unused-variable.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spidernet: add net_ratelimit to suppress long output
-From: James K Lewis <jklewis@us.ibm.com>
+Subject: spidernet: remove unused variable
+From: Linas Vepstas <linas@austin.ibm.com>
 
-This patch adds net_ratelimit to many of the printks in order to limit
-extraneous warning messages This patch supercedes all previous ratelimit
-patches.  This has been tested, please apply.
+Remove unused variable; this makes code easier to read.  Tweak commentary.
 
-Signed-off-by: James K Lewis <jklewis@us.ibm.com>
-Signed-off-by: Linas Vepstas <jlinas@austin.ibm.com>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Cc: James K Lewis <jklewis@us.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  drivers/net/spider_net.c |   11 +++++------
- drivers/net/spider_net.h |    2 +-
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-add-net_ratelimit-to-suppress-long-output drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-add-net_ratelimit-to-suppress-long-output
+diff -puN drivers/net/spider_net.c~spidernet-remove-unused-variable drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-remove-unused-variable
 +++ a/drivers/net/spider_net.c
-@@ -1008,11 +1008,10 @@ spider_net_decode_one_descr(struct spide
+@@ -341,17 +341,16 @@ spider_net_free_rx_chain_contents(struct
+  * @card: card structure
+  * @descr: descriptor to re-init
+  *
+- * return 0 on succes, <0 on failure
++ * Return 0 on succes, <0 on failure.
+  *
+- * allocates a new rx skb, iommu-maps it and attaches it to the descriptor.
+- * Activate the descriptor state-wise
++ * Allocates a new rx skb, iommu-maps it and attaches it to the
++ * descriptor. Mark the descriptor as activated, ready-to-use.
+  */
+ static int
+ spider_net_prepare_rx_descr(struct spider_net_card *card,
+ 			    struct spider_net_descr *descr)
+ {
+ 	dma_addr_t buf;
+-	int error = 0;
+ 	int offset;
+ 	int bufsize;
  
- 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
- 	     (status != SPIDER_NET_DESCR_FRAME_END) ) {
--		if (netif_msg_rx_err(card)) {
-+		if (netif_msg_rx_err(card))
- 			pr_err("%s: RX descriptor with state %d\n",
- 			       card->netdev->name, status);
--			card->spider_stats.rx_desc_unk_state++;
--		}
-+		card->spider_stats.rx_desc_unk_state++;
- 		goto refill;
+@@ -379,7 +378,7 @@ spider_net_prepare_rx_descr(struct spide
+ 		(SPIDER_NET_RXBUF_ALIGN - 1);
+ 	if (offset)
+ 		skb_reserve(descr->skb, SPIDER_NET_RXBUF_ALIGN - offset);
+-	/* io-mmu-map the skb */
++	/* iommu-map the skb */
+ 	buf = pci_map_single(card->pdev, descr->skb->data,
+ 			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
+ 	descr->buf_addr = buf;
+@@ -394,7 +393,7 @@ spider_net_prepare_rx_descr(struct spide
+ 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
  	}
  
-@@ -1331,7 +1330,7 @@ spider_net_handle_error_irq(struct spide
- 	case SPIDER_NET_GRFAFLLINT: /* fallthrough */
- 	case SPIDER_NET_GRMFLLINT:
- 		if (netif_msg_intr(card) && net_ratelimit())
--			pr_debug("Spider RX RAM full, incoming packets "
-+			pr_err("Spider RX RAM full, incoming packets "
- 			       "might be discarded!\n");
- 		spider_net_rx_irq_off(card);
- 		tasklet_schedule(&card->rxram_full_tl);
-@@ -1349,7 +1348,7 @@ spider_net_handle_error_irq(struct spide
- 	case SPIDER_NET_GDCDCEINT: /* fallthrough */
- 	case SPIDER_NET_GDBDCEINT: /* fallthrough */
- 	case SPIDER_NET_GDADCEINT:
--		if (netif_msg_intr(card))
-+		if (netif_msg_intr(card) && net_ratelimit())
- 			pr_err("got descriptor chain end interrupt, "
- 			       "restarting DMAC %c.\n",
- 			       'D'-(i-SPIDER_NET_GDDDCEINT)/3);
-@@ -1420,7 +1419,7 @@ spider_net_handle_error_irq(struct spide
- 			break;
- 	}
+-	return error;
++	return 0;
+ }
  
--	if ((show_error) && (netif_msg_intr(card)))
-+	if ((show_error) && (netif_msg_intr(card)) && net_ratelimit())
- 		pr_err("Got error interrupt on %s, GHIINT0STS = 0x%08x, "
- 		       "GHIINT1STS = 0x%08x, GHIINT2STS = 0x%08x\n",
- 		       card->netdev->name,
-diff -puN drivers/net/spider_net.h~spidernet-add-net_ratelimit-to-suppress-long-output drivers/net/spider_net.h
---- a/drivers/net/spider_net.h~spidernet-add-net_ratelimit-to-suppress-long-output
-+++ a/drivers/net/spider_net.h
-@@ -24,7 +24,7 @@
- #ifndef _SPIDER_NET_H
- #define _SPIDER_NET_H
- 
--#define VERSION "1.6 A"
-+#define VERSION "1.6 B"
- 
- #include "sungem_phy.h"
- 
+ /**
 _
 
-Patches currently in -mm which might be from jklewis@us.ibm.com are
+Patches currently in -mm which might be from linas@austin.ibm.com are
 
 origin.patch
+hvcs-char-driver-janitoring-move-block-of-code.patch
 spidernet-dma-coalescing.patch
 spidernet-add-net_ratelimit-to-suppress-long-output.patch
 spidernet-rx-locking.patch
