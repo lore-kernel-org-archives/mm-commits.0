@@ -1,17 +1,17 @@
 From: akpm@osdl.org
-Subject: + zeromap_pte_range-debug.patch added to -mm tree
-Date: Wed, 06 Dec 2006 20:13:52 -0800
-Message-ID: <200612070413.kB74DqWa028341@shell0.pdx.osdl.net>
+Subject: + elfh-forward-declare-struct-file.patch added to -mm tree
+Date: Wed, 06 Dec 2006 20:26:44 -0800
+Message-ID: <200612070427.kB74Rvtd028648@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44733 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45760 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968706AbWLGENz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 23:13:55 -0500
+	id S968739AbWLGE17 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 23:27:59 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB74DqID022621
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB74RvID023224
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 20:13:53 -0800
+	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 20:27:58 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,38 +19,41 @@ Cc: akpm@osdl.org
 
 
 The patch titled
-     a
+     elf.h: forward declare struct file
 has been added to the -mm tree.  Its filename is
-     zeromap_pte_range-debug.patch
+     elfh-forward-declare-struct-file.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: a
+Subject: elf.h: forward declare struct file
 From: Andrew Morton <akpm@osdl.org>
+
+In file included from include/asm/patch.h:14,
+		 from arch/ia64/kernel/patch.c:10:
+include/linux/elf.h:375: warning: "struct file" declared inside parameter list
+include/linux/elf.h:375: warning: its scope is only this definition or declaration, which is probably not what you want
+
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/elf.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memory.c~zeromap_pte_range-debug mm/memory.c
---- a/mm/memory.c~zeromap_pte_range-debug
-+++ a/mm/memory.c
-@@ -1121,7 +1121,10 @@ static int zeromap_pte_range(struct mm_s
- 		page_cache_get(page);
- 		page_add_file_rmap(page);
- 		inc_mm_counter(mm, file_rss);
--		BUG_ON(!pte_none(*pte));
-+		if (!pte_none(*pte)) {
-+			printk("pte_val: %lx\n", pte_val(*pte));
-+			BUG();
-+		}
- 		set_pte_at(mm, addr, pte, zero_pte);
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
+diff -puN include/linux/elf.h~elfh-forward-declare-struct-file include/linux/elf.h
+--- a/include/linux/elf.h~elfh-forward-declare-struct-file
++++ a/include/linux/elf.h
+@@ -6,6 +6,8 @@
+ #include <linux/elf-em.h>
+ #include <asm/elf.h>
+ 
++struct file;
++
+ #ifndef elf_read_implies_exec
+   /* Executables for which elf_read_implies_exec() returns TRUE will
+      have the READ_IMPLIES_EXEC personality flag set automatically.
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -98,4 +101,5 @@ make-8250_pnp-serial-driver-work-after.patch
 gcc-4-1-0-is-bust.patch
 cleanup-include-asm-generic-atomich.patch
 struct-seq_operations-and-struct-file_operations-constification.patch
+elfh-forward-declare-struct-file.patch
 
