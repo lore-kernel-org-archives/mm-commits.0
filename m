@@ -1,51 +1,49 @@
 From: akpm@osdl.org
-Subject: - struct-seq_operations-and-struct-file_operations-constification-fix-2.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:40:08 -0800
-Message-ID: <200612070340.kB73e83K027630@shell0.pdx.osdl.net>
+Subject: - ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:36:56 -0800
+Message-ID: <200612070336.kB73auW3027555@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43296 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43305 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968180AbWLGDkQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:40:16 -0500
+	id S968189AbWLGDk0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:40:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, deller@gmx.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, B.Zolnierkiewicz@elka.pw.edu.pl, alan@redhat.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct-seq_operations-and-struct-file_operations-constification-fix-2
+     ide_scsi-allow-it-to-be-used-for-non-cd-only-fix
 has been removed from the -mm tree.  Its filename was
-     struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
+     ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
 
-This patch was dropped because it was folded into struct-seq_operations-and-struct-file_operations-constification.patch
+This patch was dropped because it was folded into ide_scsi-allow-it-to-be-used-for-non-cd-only.patch
 
 ------------------------------------------------------
-Subject: struct-seq_operations-and-struct-file_operations-constification-fix-2
+Subject: ide_scsi-allow-it-to-be-used-for-non-cd-only-fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/cpuset.c:2529: error:  conflicting type qualifiers for 'proc_cpuset_operations'
-include/linux/cpuset.h:49: error: previous declaration of 'proc_cpuset_operations' was here
-
-Cc: Helge Deller <deller@gmx.de>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/cpuset.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/ide-scsi.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/linux/cpuset.h~struct-seq_operations-and-struct-file_operations-constification-fix-2 include/linux/cpuset.h
---- a/include/linux/cpuset.h~struct-seq_operations-and-struct-file_operations-constification-fix-2
-+++ a/include/linux/cpuset.h
-@@ -46,7 +46,7 @@ extern int cpuset_excl_nodes_overlap(con
- extern int cpuset_memory_pressure_enabled;
- extern void __cpuset_memory_pressure_bump(void);
+diff -puN drivers/scsi/ide-scsi.c~ide_scsi-allow-it-to-be-used-for-non-cd-only-fix drivers/scsi/ide-scsi.c
+--- a/drivers/scsi/ide-scsi.c~ide_scsi-allow-it-to-be-used-for-non-cd-only-fix
++++ a/drivers/scsi/ide-scsi.c
+@@ -1192,6 +1192,7 @@ static void __exit exit_idescsi_module(v
+ }
  
--extern struct file_operations proc_cpuset_operations;
-+extern const struct file_operations proc_cpuset_operations;
- extern char *cpuset_task_status_allowed(struct task_struct *task, char *buffer);
- 
- extern void cpuset_lock(void);
+ module_param(idescsi_nocd, int, 0600);
++MODULE_PARM_DESC(idescsi_nocd, "Disable handling of CD-ROMs so they may be driven by ide-cd");
+ module_init(init_idescsi_module);
+ module_exit(exit_idescsi_module);
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -89,10 +87,11 @@ handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
 dz-fixes-to-make-it-work.patch
 ext4-balloc-fix-_with_rsv-freeze.patch
 ide_scsi-allow-it-to-be-used-for-non-cd-only.patch
-make-8250_pnp-serial-driver-work-after.patch
+ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
+make-8250_pnp-serial-driver-work-after-tidy.patch
 gcc-4-1-0-is-bust.patch
-cleanup-include-asm-generic-atomich.patch
-struct-seq_operations-and-struct-file_operations-constification.patch
+cleanup-include-asm-generic-atomich-fix.patch
+struct-seq_operations-and-struct-file_operations-constification-fix.patch
 struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
 touch_atime-cleanup.patch
 ocfs2-relative-atime-support-tweaks.patch
