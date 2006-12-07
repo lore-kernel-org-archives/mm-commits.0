@@ -1,75 +1,103 @@
 From: akpm@osdl.org
-Subject: - kill-install_file_ptes-pte_val.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:58:01 -0800
-Message-ID: <200612072258.kB7Mw1Sn029347@shell0.pdx.osdl.net>
+Subject: - slab-remove-slab_level_mask.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:58:05 -0800
+Message-ID: <200612072258.kB7Mw5Ce029355@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50695 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163597AbWLGW6G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:58:06 -0500
+	id S1163604AbWLGW6H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:58:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, dcb314@hotmail.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kill install_file_pte's pte_val
+     slab: remove SLAB_LEVEL_MASK
 has been removed from the -mm tree.  Its filename was
-     kill-install_file_ptes-pte_val.patch
+     slab-remove-slab_level_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kill install_file_pte's pte_val
-From: Hugh Dickins <hugh@veritas.com>
+Subject: slab: remove SLAB_LEVEL_MASK
+From: Christoph Lameter <clameter@sgi.com>
 
-David Binderman and his Intel C compiler rightly observe that
-install_file_pte no longer has any use for its pte_val.
+SLAB_LEVEL_MASK is only used internally to the slab and is
+and alias of GFP_LEVEL_MASK.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: d binderman <dcb314@hotmail.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/fremap.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/slab.h |    2 --
+ mm/slab.c            |    4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/fremap.c~kill-install_file_ptes-pte_val mm/fremap.c
---- a/mm/fremap.c~kill-install_file_ptes-pte_val
-+++ a/mm/fremap.c
-@@ -101,7 +101,6 @@ int install_file_pte(struct mm_struct *m
- {
- 	int err = -ENOMEM;
- 	pte_t *pte;
--	pte_t pte_val;
- 	spinlock_t *ptl;
+diff -puN include/linux/slab.h~slab-remove-slab_level_mask include/linux/slab.h
+--- a/include/linux/slab.h~slab-remove-slab_level_mask
++++ a/include/linux/slab.h
+@@ -26,8 +26,6 @@ typedef struct kmem_cache kmem_cache_t;
+ #define	SLAB_KERNEL		GFP_KERNEL
+ #define	SLAB_DMA		GFP_DMA
  
- 	pte = get_locked_pte(mm, addr, &ptl);
-@@ -114,7 +113,6 @@ int install_file_pte(struct mm_struct *m
- 	}
+-#define SLAB_LEVEL_MASK		GFP_LEVEL_MASK
+-
+ /* flags to pass to kmem_cache_create().
+  * The first 3 are only valid when the allocator as been build
+  * SLAB_DEBUG_SUPPORT.
+diff -puN mm/slab.c~slab-remove-slab_level_mask mm/slab.c
+--- a/mm/slab.c~slab-remove-slab_level_mask
++++ a/mm/slab.c
+@@ -2721,12 +2721,12 @@ static int cache_grow(struct kmem_cache 
+ 	 * Be lazy and only check for valid flags here,  keeping it out of the
+ 	 * critical path in kmem_cache_alloc().
+ 	 */
+-	BUG_ON(flags & ~(SLAB_DMA | SLAB_LEVEL_MASK | __GFP_NO_GROW));
++	BUG_ON(flags & ~(SLAB_DMA | GFP_LEVEL_MASK | __GFP_NO_GROW));
+ 	if (flags & __GFP_NO_GROW)
+ 		return 0;
  
- 	set_pte_at(mm, addr, pte, pgoff_to_pte(pgoff));
--	pte_val = *pte;
- 	/*
- 	 * We don't need to run update_mmu_cache() here because the "file pte"
- 	 * being installed by install_file_pte() is not a real pte - it's a
+ 	ctor_flags = SLAB_CTOR_CONSTRUCTOR;
+-	local_flags = (flags & SLAB_LEVEL_MASK);
++	local_flags = (flags & GFP_LEVEL_MASK);
+ 	if (!(local_flags & __GFP_WAIT))
+ 		/*
+ 		 * Not allowed to sleep.  Need to tell a constructor about
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-ext2-reservations.patch
-ext2-balloc-fix-_with_rsv-freeze.patch
-ext2-balloc-reset-windowsz-when-full.patch
-ext2-balloc-fix-off-by-one-against-rsv_end.patch
-ext2-balloc-fix-off-by-one-against-grp_goal.patch
-ext2-balloc-say-rb_entry-not-list_entry.patch
-ext2-balloc-use-io_error-label.patch
-generic-bug-implementation.patch
-generic-bug-implementation-handle-bug=n.patch
-generic-bug-for-i386.patch
-generic-bug-for-x86-64.patch
-bug-test-1.patch
-tty-switch-to-ktermios-powerpc-fix.patch
+workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
+ia64-resolve-name-clash-by-renaming-is_available_memory.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+sched-domain-move-sched-group-allocations-to-percpu-area.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
 
