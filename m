@@ -1,87 +1,99 @@
 From: akpm@osdl.org
-Subject: + m32r-fix-ace_handler-to-pass-full-32-bit-address.patch added to -mm tree
-Date: Wed, 06 Dec 2006 21:20:25 -0800
-Message-ID: <200612070520.kB75KPEQ031256@shell0.pdx.osdl.net>
+Subject: - mm-thrash-detect-process-thrashing-against-itself.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 21:21:07 -0800
+Message-ID: <200612070521.kB75L7Bt031278@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49861 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49878 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968803AbWLGFVB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:21:01 -0500
+	id S968805AbWLGFVU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:21:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: takata@linux-m32r.org
+To: riel@redhat.com, diegocg@gmail.com, jcipar@cs.umass.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: fix ace_handler to pass full 32-bit address
-has been added to the -mm tree.  Its filename is
-     m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
+     mm: thrash: detect process thrashing against itself
+has been removed from the -mm tree.  Its filename was
+     mm-thrash-detect-process-thrashing-against-itself.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: m32r: fix ace_handler to pass full 32-bit address
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: mm: thrash: detect process thrashing against itself
+From: Rik van Riel <riel@redhat.com>
 
-Don't mask the lower 12-bit of the page fault address.
 
-In the current m32r kernel implementation, we use an access exception
-to detect page faults.
+I guess the swap token hurts workloads where you have just one large
+process, since it does not sort the pages within that process by referenced
+bit...
 
-This patch fixes ace_handler (access exception handler) for m32r.  In order to
-check userspace address in do_page_fault, we have to pass full 32-bit address
-to do_page_fault.
+This means the swap token is helpful when processes are paging against each
+other, but hurts when you have just one process that is paging against
+itself.
 
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+The current swap token code does seem to help servers pull out of load
+spikes and not descend into thrashing like the VM used to do before, so I
+would rather not disable it by default.
+
+Instead, we can detect the situation where we have one process paging
+against itself, and then disable the swap token automatically.
+
+(Related to http://bugzilla.kernel.org/show_bug.cgi?id=6039)
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Diego Calleja <diegocg@gmail.com>
+Cc: Jim Cipar <jcipar@cs.umass.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/m32r/kernel/entry.S |    2 --
- arch/m32r/mm/fault.c     |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ mm/thrash.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/entry.S~m32r-fix-ace_handler-to-pass-full-32-bit-address arch/m32r/kernel/entry.S
---- a/arch/m32r/kernel/entry.S~m32r-fix-ace_handler-to-pass-full-32-bit-address
-+++ a/arch/m32r/kernel/entry.S
-@@ -596,8 +596,6 @@ ENTRY(ace_handler)
- 	beqz	r1, inst
- oprand:
- 	ld	r2, @(low(MDEVA_offset),r2)	; set address
--	srli	r2, #12
--	slli	r2, #12
- 	srli	r1, #1
- 	bra	1f
- inst:
-diff -puN arch/m32r/mm/fault.c~m32r-fix-ace_handler-to-pass-full-32-bit-address arch/m32r/mm/fault.c
---- a/arch/m32r/mm/fault.c~m32r-fix-ace_handler-to-pass-full-32-bit-address
-+++ a/arch/m32r/mm/fault.c
-@@ -173,7 +173,7 @@ asmlinkage void do_page_fault(struct pt_
- 		goto good_area;
- 	if (!(vma->vm_flags & VM_GROWSDOWN))
- 		goto bad_area;
--#if 0
-+
- 	if (error_code & ACE_USERMODE) {
- 		/*
- 		 * accessing the stack below "spu" is always a bug.
-@@ -184,7 +184,7 @@ asmlinkage void do_page_fault(struct pt_
- 		if (address + 4 < regs->spu)
- 			goto bad_area;
+diff -puN mm/thrash.c~mm-thrash-detect-process-thrashing-against-itself mm/thrash.c
+--- 25/mm/thrash.c~mm-thrash-detect-process-thrashing-against-itself	Fri Mar 24 16:06:04 2006
++++ 25-akpm/mm/thrash.c	Fri Mar 24 16:06:04 2006
+@@ -16,6 +16,7 @@
+ static DEFINE_SPINLOCK(swap_token_lock);
+ static unsigned long swap_token_timeout;
+ static unsigned long swap_token_check;
++static unsigned long somebody_wants_token;
+ struct mm_struct * swap_token_mm = &init_mm;
+ 
+ #define SWAP_TOKEN_CHECK_INTERVAL (HZ * 2)
+@@ -57,11 +58,18 @@ void grab_swap_token(void)
+ 	/* We have the token. Let others know we still need it. */
+ 	if (has_swap_token(current->mm)) {
+ 		current->mm->recent_pagein = 1;
+-		if (unlikely(!swap_token_default_timeout))
++		/* If nobody wants the token, we are paging against ourselves
++		   and should disable the token. */
++		if (unlikely(!swap_token_default_timeout ||
++				(!somebody_wants_token &&
++				time_after(jiffies, swap_token_check))))
+ 			disable_swap_token();
+ 		return;
  	}
--#endif
+ 
++	if (!somebody_wants_token)
++		somebody_wants_token = 1;
 +
- 	if (expand_stack(vma, address))
- 		goto bad_area;
- /*
+ 	if (time_after(jiffies, swap_token_check)) {
+ 
+ 		if (!swap_token_default_timeout) {
+@@ -87,6 +95,7 @@ void grab_swap_token(void)
+ 			mm->swap_token_time = eligible;
+ 			swap_token_timeout = jiffies + swap_token_default_timeout;
+ 			swap_token_mm = current->mm;
++			somebody_wants_token = 0;
+ 		}
+ 		spin_unlock(&swap_token_lock);
+ 	}
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-m32r-make-userspace-headers-platform-independent.patch
-m32r-support-a-synthesizable-m32700-core.patch
-m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
-m32r-bootloader-support-for-opsput-platform.patch
+grab-swap-token-reordered.patch
+new-scheme-to-preempt-swap-token.patch
 
