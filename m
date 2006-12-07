@@ -1,64 +1,57 @@
 From: akpm@osdl.org
-Subject: - ipw2200-replace-kmallocmemset-with-kcalloc.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:19:01 -0800
-Message-ID: <200612072319.kB7NJ14a031077@shell0.pdx.osdl.net>
+Subject: - create-driver-symlink-in-snd-aoa.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:18:39 -0800
+Message-ID: <200612072318.kB7NIde4031047@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54102 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54107 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163957AbWLGXTV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:19:21 -0500
+	id S1163964AbWLGXTY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:19:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: burman.yan@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, johannes@sipsolutions.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipw2200: replace kmalloc+memset with kcalloc
+     create driver symlink in snd-aoa
 has been removed from the -mm tree.  Its filename was
-     ipw2200-replace-kmallocmemset-with-kcalloc.patch
+     create-driver-symlink-in-snd-aoa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipw2200: replace kmalloc+memset with kcalloc
-From: Yan Burman <burman.yan@gmail.com>
+Subject: create driver symlink in snd-aoa
+From: Olaf Hering <olaf@aepfle.de>
 
-Replace kmalloc+memset with kcalloc
+create sysfs driver symlink for snd-aoa in /sys/bus/aoa-soundbus/devices/*/
 
-Signed-off-by: Yan Burman <burman.yan@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Acked-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/wireless/ipw2200.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ sound/aoa/fabrics/snd-aoa-fabric-layout.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/net/wireless/ipw2200.c~ipw2200-replace-kmallocmemset-with-kcalloc drivers/net/wireless/ipw2200.c
---- a/drivers/net/wireless/ipw2200.c~ipw2200-replace-kmallocmemset-with-kcalloc
-+++ a/drivers/net/wireless/ipw2200.c
-@@ -11129,14 +11129,13 @@ static int ipw_up(struct ipw_priv *priv)
- 		return -EIO;
+diff -puN sound/aoa/fabrics/snd-aoa-fabric-layout.c~create-driver-symlink-in-snd-aoa sound/aoa/fabrics/snd-aoa-fabric-layout.c
+--- a/sound/aoa/fabrics/snd-aoa-fabric-layout.c~create-driver-symlink-in-snd-aoa
++++ a/sound/aoa/fabrics/snd-aoa-fabric-layout.c
+@@ -1107,6 +1107,9 @@ static struct soundbus_driver aoa_soundb
+ 	.suspend = aoa_fabric_layout_suspend,
+ 	.resume = aoa_fabric_layout_resume,
+ #endif
++	.driver = {
++		.owner = THIS_MODULE,
++	}
+ };
  
- 	if (cmdlog && !priv->cmdlog) {
--		priv->cmdlog = kmalloc(sizeof(*priv->cmdlog) * cmdlog,
-+		priv->cmdlog = kcalloc(cmdlog, sizeof(*priv->cmdlog),
- 				       GFP_KERNEL);
- 		if (priv->cmdlog == NULL) {
- 			IPW_ERROR("Error allocating %d command log entries.\n",
- 				  cmdlog);
- 			return -ENOMEM;
- 		} else {
--			memset(priv->cmdlog, 0, sizeof(*priv->cmdlog) * cmdlog);
- 			priv->cmdlog_len = cmdlog;
- 		}
- 	}
+ static int __init aoa_fabric_layout_init(void)
 _
 
-Patches currently in -mm which might be from burman.yan@gmail.com are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
-ia64-replace-kmallocmemset-with-kzalloc.patch
-jffs2-replace-kmallocmemset-with-kzalloc.patch
-nfsd-replace-kmallocmemset-with-kcalloc.patch
+git-alsa.patch
+git-ieee1394.patch
 
