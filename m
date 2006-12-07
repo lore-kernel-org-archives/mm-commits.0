@@ -1,58 +1,52 @@
 From: akpm@osdl.org
-Subject: - pcengines-wrap-led-support-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:26:42 -0800
-Message-ID: <200612070326.kB73Qg6k027291@shell0.pdx.osdl.net>
+Subject: - remove-kernel-syscalls-x86_64-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:27:09 -0800
+Message-ID: <200612070327.kB73R9nc027298@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42230 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42250 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967922AbWLGD1B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:27:01 -0500
+	id S967930AbWLGD10 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:27:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, kris@krisk.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@osdl.org, ak@suse.de, arnd@arndb.de, dwmw2@infradead.org, gschafer@zip.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcengines-wrap-led-support-fix
+     remove-kernel-syscalls-x86_64-fix
 has been removed from the -mm tree.  Its filename was
-     pcengines-wrap-led-support-fix.patch
+     remove-kernel-syscalls-x86_64-fix.patch
 
-This patch was dropped because it was folded into pcengines-wrap-led-support.patch
+This patch was dropped because it was folded into remove-kernel-syscalls.patch
 
 ------------------------------------------------------
-Subject: pcengines-wrap-led-support-fix
+Subject: remove-kernel-syscalls-x86_64-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Kristian Kielhofner <kris@krisk.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+oops, arch/x86_64/kernel/vsyscall.c wants __syscall_clobber and we deleted it.
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg Schafer <gschafer@zip.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/leds/leds-wrap.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/vsyscall.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-wrap.c~pcengines-wrap-led-support-fix drivers/leds/leds-wrap.c
---- a/drivers/leds/leds-wrap.c~pcengines-wrap-led-support-fix
-+++ a/drivers/leds/leds-wrap.c
-@@ -74,8 +74,15 @@ static int wrap_led_resume(struct platfo
+diff -puN arch/x86_64/kernel/vsyscall.c~remove-kernel-syscalls-x86_64-fix arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~remove-kernel-syscalls-x86_64-fix
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -42,6 +42,7 @@
+ #include <asm/topology.h>
  
- static int wrap_led_probe(struct platform_device *pdev)
- {
--	led_classdev_register(&pdev->dev, &wrap_error_led);
--	return led_classdev_register(&pdev->dev, &wrap_extra_led);
-+	int ret;
-+
-+	ret = led_classdev_register(&pdev->dev, &wrap_error_led);
-+	if (ret == 0) {
-+		ret = led_classdev_register(&pdev->dev, &wrap_extra_led);
-+		if (ret < 0)
-+			led_classdev_unregister(&wrap_error_led);
-+	}
-+	return ret;
- }
+ #define __vsyscall(nr) __attribute__ ((unused,__section__(".vsyscall_" #nr)))
++#define __syscall_clobber "r11","rcx","memory"
  
- static int wrap_led_remove(struct platform_device *pdev)
+ int __sysctl_vsyscall __section_sysctl_vsyscall = 1;
+ seqlock_t __xtime_lock __section_xtime_lock = SEQLOCK_UNLOCKED;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -83,8 +77,8 @@ ext4-uninline-large-functions.patch
 sleep-profiling.patch
 debug-workqueue-locking-sanity.patch
 pcengines-wrap-led-support.patch
-pcengines-wrap-led-support-fix.patch
 driver-base-memoryc-remove-warnings-of.patch
+remove-kernel-syscalls.patch
 remove-kernel-syscalls-x86_64-fix.patch
 protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch
 remove-hash_highmem.patch
