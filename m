@@ -1,59 +1,51 @@
 From: akpm@osdl.org
-Subject: - hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:33:32 -0800
-Message-ID: <200612070333.kB73XWWH027471@shell0.pdx.osdl.net>
+Subject: - add-return-value-checking-of-get_user-in-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:34:11 -0800
+Message-ID: <200612070334.kB73YBBW027485@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42800 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42843 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968014AbWLGDdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:33:35 -0500
+	id S968015AbWLGDeO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:34:14 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB73XXID021024
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB73YCID021044
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 19:33:33 -0800
+	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 19:34:12 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value
+     add-return-value-checking-of-get_user-in-fix
 has been removed from the -mm tree.  Its filename was
-     hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch
+     add-return-value-checking-of-get_user-in-fix.patch
 
-This patch was dropped because it was folded into hotplug-cpu-clean-up-hotcpu_notifier-use.patch
+This patch was dropped because it was folded into add-return-value-checking-of-get_user-in.patch
 
 ------------------------------------------------------
-Subject: hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value
+Subject: add-return-value-checking-of-get_user-in-fix
 From: Andrew Morton <akpm@osdl.org>
-
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/base/topology.c |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/char/vt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/topology.c~hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value drivers/base/topology.c
---- a/drivers/base/topology.c~hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value
-+++ a/drivers/base/topology.c
-@@ -108,7 +108,6 @@ static int __cpuinit topology_add_dev(un
- 	return rc;
- }
+diff -puN drivers/char/vt.c~add-return-value-checking-of-get_user-in-fix drivers/char/vt.c
+--- a/drivers/char/vt.c~add-return-value-checking-of-get_user-in-fix
++++ a/drivers/char/vt.c
+@@ -3313,7 +3313,7 @@ postcore_initcall(vtconsole_class_init);
+  *	Screen blanking
+  */
  
--#ifdef CONFIG_HOTPLUG_CPU
- static void __cpuinit topology_remove_dev(unsigned int cpu)
+-static void set_vesa_blanking(char __user *p)
++static int set_vesa_blanking(char __user *p)
  {
- 	struct sys_device *sys_dev = get_cpu_sysdev(cpu);
-@@ -136,7 +135,6 @@ static int __cpuinit topology_cpu_callba
- 	}
- 	return rc ? NOTIFY_BAD : NOTIFY_OK;
- }
--#endif
+ 	unsigned int mode;
  
- static int __cpuinit topology_sysfs_init(void)
- {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -92,7 +84,7 @@ elf-fix-kcore-note-size-calculation.patch
 reiserfs-add-missing-d-cache-flushing.patch
 smp_call_function_single-check-that-local-interrupts-are-enabled.patch
 hotplug-cpu-clean-up-hotcpu_notifier-use.patch
-hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch
+add-return-value-checking-of-get_user-in.patch
 add-return-value-checking-of-get_user-in-fix.patch
 handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
 dz-fixes-to-make-it-work-fix.patch
