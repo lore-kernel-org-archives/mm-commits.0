@@ -1,64 +1,108 @@
 From: akpm@osdl.org
-Subject: - binfmt_elf-randomize-pie-binaries.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:02:35 -0800
-Message-ID: <200612072302.kB7N2ZLd029869@shell0.pdx.osdl.net>
+Subject: - handle-ext4-directory-corruption-better.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:02:40 -0800
+Message-ID: <200612072302.kB7N2e68029883@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51751 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51734 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163808AbWLGXCv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:02:51 -0500
+	id S1163695AbWLGXCs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:02:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: meissner@suse.de, arjan@linux.intel.com, davej@codemonkey.org.uk, mingo@elte.hu, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmt_elf: randomize PIE binaries (2nd try)
+     handle ext4 directory corruption better
 has been removed from the -mm tree.  Its filename was
-     binfmt_elf-randomize-pie-binaries.patch
+     handle-ext4-directory-corruption-better.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: binfmt_elf: randomize PIE binaries (2nd try)
-From: Marcus Meissner <meissner@suse.de>
+Subject: handle ext4 directory corruption better
+From: Eric Sandeen <sandeen@redhat.com>
 
-Randomizes -pie compiled binaries from 64k (0x10000) up to ELF_ET_DYN_BASE.
+I've been using Steve Grubb's purely evil "fsfuzzer" tool, at
+http://people.redhat.com/sgrubb/files/fsfuzzer-0.4.tar.gz
 
-0 -> 64k is excluded to allow NULL ptr accesses to fail.
+Basically it makes a filesystem, splats some random bits over it, then
+tries to mount it and do some simple filesystem actions.
 
-Signed-off-by: Marcus Meissner <meissner@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+At best, the filesystem catches the corruption gracefully.  At worst,
+things spin out of control.
+
+As you might guess, we found a couple places in ext4 where things spin out
+of control :)
+
+First, we had a corrupted directory that was never checked for
+consistency...  it was corrupt, and pointed to another bad "entry" of
+length 0.  The for() loop looped forever, since the length of
+ext4_next_entry(de) was 0, and we kept looking at the same pointer over and
+over and over and over...  I modeled this check and subsequent action on
+what is done for other directory types in ext4_readdir...
+
+(adding this check adds some computational expense; I am testing a followup
+patch to reduce the number of times we check and re-check these directory
+entries, in all cases.  Thanks for the idea, Andreas).
+
+Next we had a root directory inode which had a corrupted size, claimed to
+be > 200M on a 4M filesystem.  There was only really 1 block in the
+directory, but because the size was so large, readdir kept coming back for
+more, spewing thousands of printk's along the way.
+
+Per Andreas' suggestion, if we're in this read error condition and we're
+trying to read an offset which is greater than i_blocks worth of bytes,
+stop trying, and break out of the loop.
+
+With these two changes fsfuzz test survives quite well on ext4.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/binfmt_elf.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/ext4/dir.c   |    3 +++
+ fs/ext4/namei.c |    9 +++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-randomize-pie-binaries fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-randomize-pie-binaries
-+++ a/fs/binfmt_elf.c
-@@ -856,7 +856,13 @@ static int load_elf_binary(struct linux_
- 			 * default mmap base, as well as whatever program they
- 			 * might try to exec.  This is because the brk will
- 			 * follow the loader, and is not movable.  */
--			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
-+			if (current->flags & PF_RANDOMIZE)
-+				load_bias = randomize_range(0x10000,
-+							    ELF_ET_DYN_BASE,
-+							    0);
-+			else
-+				load_bias = ELF_ET_DYN_BASE;
-+			load_bias = ELF_PAGESTART(load_bias - vaddr);
+diff -puN fs/ext4/dir.c~handle-ext4-directory-corruption-better fs/ext4/dir.c
+--- a/fs/ext4/dir.c~handle-ext4-directory-corruption-better
++++ a/fs/ext4/dir.c
+@@ -153,6 +153,9 @@ static int ext4_readdir(struct file * fi
+ 			ext4_error (sb, "ext4_readdir",
+ 				"directory #%lu contains a hole at offset %lu",
+ 				inode->i_ino, (unsigned long)filp->f_pos);
++			/* corrupt size?  Maybe no more blocks to read */
++			if (filp->f_pos > inode->i_blocks << 9)
++				break;
+ 			filp->f_pos += sb->s_blocksize - offset;
+ 			continue;
  		}
- 
- 		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
+diff -puN fs/ext4/namei.c~handle-ext4-directory-corruption-better fs/ext4/namei.c
+--- a/fs/ext4/namei.c~handle-ext4-directory-corruption-better
++++ a/fs/ext4/namei.c
+@@ -552,6 +552,15 @@ static int htree_dirblock_to_tree(struct
+ 					   dir->i_sb->s_blocksize -
+ 					   EXT4_DIR_REC_LEN(0));
+ 	for (; de < top; de = ext4_next_entry(de)) {
++		if (!ext4_check_dir_entry("htree_dirblock_to_tree", dir, de, bh,
++					(block<<EXT4_BLOCK_SIZE_BITS(dir->i_sb))
++						+((char *)de - bh->b_data))) {
++			/* On error, skip the f_pos to the next block. */
++			dir_file->f_pos = (dir_file->f_pos |
++					(dir->i_sb->s_blocksize - 1)) + 1;
++			brelse (bh);
++			return count;
++		}
+ 		ext4fs_dirhash(de->name, de->name_len, hinfo);
+ 		if ((hinfo->hash < start_hash) ||
+ 		    ((hinfo->hash == start_hash) &&
 _
 
-Patches currently in -mm which might be from meissner@suse.de are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
+ext3-4-dont-do-orphan-processing-on-readonly-devices.patch
 
