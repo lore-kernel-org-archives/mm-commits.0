@@ -1,207 +1,214 @@
 From: akpm@osdl.org
-Subject: - fix-check_partition-routines.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:00:46 -0800
-Message-ID: <200612072300.kB7N0kgV029670@shell0.pdx.osdl.net>
+Subject: - lockdep-name-some-old-style-locks.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:04:23 -0800
+Message-ID: <200612072304.kB7N4N9I030041@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52039 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52068 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163839AbWLGXE1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:04:27 -0500
+	id S1163838AbWLGXEb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:04:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suzuki@in.ibm.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix check_partition routines
+     lockdep: name some old style locks
 has been removed from the -mm tree.  Its filename was
-     fix-check_partition-routines.patch
+     lockdep-name-some-old-style-locks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix check_partition routines
-From: Suzuki K P <suzuki@in.ibm.com>
+Subject: lockdep: name some old style locks
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-check_partition() stops its probe once it hits an I/O error from the
-partition checkers.  This would prevent the actual partition checker
-getting a chance to verify the partition.
+Name some of the remaning 'old_style_spin_init' locks
 
-So this patch lets check_partition() continue probing untill it hits a
-success while recording the I/O error which might have been reported by the
-checking routines.
-
-Also, it does some cleanup of the partition methods for ibm, atari and
-amiga to return -1 upon hitting an I/O error.
-
-Signed-off-by: Suzuki K P <suzuki@in.ibm.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/partitions/amiga.c |    2 ++
- fs/partitions/atari.c |    2 +-
- fs/partitions/check.c |   15 +++++++++++++--
- fs/partitions/ibm.c   |   29 +++++++++++++++++------------
- 4 files changed, 33 insertions(+), 15 deletions(-)
+ arch/i386/kernel/traps.c       |    2 +-
+ include/asm-i386/rwsem.h       |    4 ++--
+ include/linux/init_task.h      |    2 +-
+ include/linux/mutex.h          |    2 +-
+ include/linux/rtmutex.h        |    2 +-
+ include/linux/rwsem-spinlock.h |    3 ++-
+ include/linux/sunrpc/sched.h   |    4 ++--
+ kernel/acct.c                  |    3 ++-
+ kernel/irq/handle.c            |    2 +-
+ net/sunrpc/svcauth.c           |    3 ++-
+ security/keys/process_keys.c   |    2 +-
+ 11 files changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN fs/partitions/amiga.c~fix-check_partition-routines fs/partitions/amiga.c
---- a/fs/partitions/amiga.c~fix-check_partition-routines
-+++ a/fs/partitions/amiga.c
-@@ -43,6 +43,7 @@ amiga_partition(struct parsed_partitions
- 			if (warn_no_part)
- 				printk("Dev %s: unable to read RDB block %d\n",
- 				       bdevname(bdev, b), blk);
-+			res = -1;
- 			goto rdb_done;
- 		}
- 		if (*(__be32 *)data != cpu_to_be32(IDNAME_RIGIDDISK))
-@@ -79,6 +80,7 @@ amiga_partition(struct parsed_partitions
- 			if (warn_no_part)
- 				printk("Dev %s: unable to read partition block %d\n",
- 				       bdevname(bdev, b), blk);
-+			res = -1;
- 			goto rdb_done;
- 		}
- 		pb  = (struct PartitionBlock *)data;
-diff -puN fs/partitions/atari.c~fix-check_partition-routines fs/partitions/atari.c
---- a/fs/partitions/atari.c~fix-check_partition-routines
-+++ a/fs/partitions/atari.c
-@@ -88,7 +88,7 @@ int atari_partition(struct parsed_partit
- 			if (!xrs) {
- 				printk (" block %ld read failed\n", partsect);
- 				put_dev_sector(sect);
--				return 0;
-+				return -1;
- 			}
+diff -puN arch/i386/kernel/traps.c~lockdep-name-some-old-style-locks arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~lockdep-name-some-old-style-locks
++++ a/arch/i386/kernel/traps.c
+@@ -452,7 +452,7 @@ void die(const char * str, struct pt_reg
+ 		u32 lock_owner;
+ 		int lock_owner_depth;
+ 	} die = {
+-		.lock =			SPIN_LOCK_UNLOCKED,
++		.lock =			__SPIN_LOCK_UNLOCKED(die.lock),
+ 		.lock_owner =		-1,
+ 		.lock_owner_depth =	0
+ 	};
+diff -puN include/asm-i386/rwsem.h~lockdep-name-some-old-style-locks include/asm-i386/rwsem.h
+--- a/include/asm-i386/rwsem.h~lockdep-name-some-old-style-locks
++++ a/include/asm-i386/rwsem.h
+@@ -75,8 +75,8 @@ struct rw_semaphore {
  
- 			/* ++roman: sanity check: bit 0 of flg field must be set */
-diff -puN fs/partitions/check.c~fix-check_partition-routines fs/partitions/check.c
---- a/fs/partitions/check.c~fix-check_partition-routines
-+++ a/fs/partitions/check.c
-@@ -153,7 +153,7 @@ static struct parsed_partitions *
- check_partition(struct gendisk *hd, struct block_device *bdev)
- {
- 	struct parsed_partitions *state;
--	int i, res;
-+	int i, res, err;
  
- 	state = kmalloc(sizeof(struct parsed_partitions), GFP_KERNEL);
- 	if (!state)
-@@ -165,13 +165,24 @@ check_partition(struct gendisk *hd, stru
- 		sprintf(state->name, "p");
+ #define __RWSEM_INITIALIZER(name) \
+-{ RWSEM_UNLOCKED_VALUE, SPIN_LOCK_UNLOCKED, LIST_HEAD_INIT((name).wait_list) \
+-	__RWSEM_DEP_MAP_INIT(name) }
++{ RWSEM_UNLOCKED_VALUE, __SPIN_LOCK_UNLOCKED((name).wait_lock), \
++  LIST_HEAD_INIT((name).wait_list) __RWSEM_DEP_MAP_INIT(name) }
  
- 	state->limit = hd->minors;
--	i = res = 0;
-+	i = res = err = 0;
- 	while (!res && check_part[i]) {
- 		memset(&state->parts, 0, sizeof(state->parts));
- 		res = check_part[i++](state, bdev);
-+		if (res < 0) {
-+			/* We have hit an I/O error which we don't report now.
-+		 	* But record it, and let the others do their job.
-+		 	*/
-+			err = res;
-+			res = 0;
-+		}
-+
+ #define DECLARE_RWSEM(name) \
+ 	struct rw_semaphore name = __RWSEM_INITIALIZER(name)
+diff -puN include/linux/init_task.h~lockdep-name-some-old-style-locks include/linux/init_task.h
+--- a/include/linux/init_task.h~lockdep-name-some-old-style-locks
++++ a/include/linux/init_task.h
+@@ -73,7 +73,7 @@
+ extern struct nsproxy init_nsproxy;
+ #define INIT_NSPROXY(nsproxy) {						\
+ 	.count		= ATOMIC_INIT(1),				\
+-	.nslock		= SPIN_LOCK_UNLOCKED,				\
++	.nslock		= __SPIN_LOCK_UNLOCKED(nsproxy.nslock),		\
+ 	.uts_ns		= &init_uts_ns,					\
+ 	.namespace	= NULL,						\
+ 	INIT_IPC_NS(ipc_ns)						\
+diff -puN include/linux/mutex.h~lockdep-name-some-old-style-locks include/linux/mutex.h
+--- a/include/linux/mutex.h~lockdep-name-some-old-style-locks
++++ a/include/linux/mutex.h
+@@ -94,7 +94,7 @@ do {							\
+ 
+ #define __MUTEX_INITIALIZER(lockname) \
+ 		{ .count = ATOMIC_INIT(1) \
+-		, .wait_lock = SPIN_LOCK_UNLOCKED \
++		, .wait_lock = __SPIN_LOCK_UNLOCKED(lockname.wait_lock) \
+ 		, .wait_list = LIST_HEAD_INIT(lockname.wait_list) \
+ 		__DEBUG_MUTEX_INITIALIZER(lockname) \
+ 		__DEP_MAP_MUTEX_INITIALIZER(lockname) }
+diff -puN include/linux/rtmutex.h~lockdep-name-some-old-style-locks include/linux/rtmutex.h
+--- a/include/linux/rtmutex.h~lockdep-name-some-old-style-locks
++++ a/include/linux/rtmutex.h
+@@ -63,7 +63,7 @@ struct hrtimer_sleeper;
+ #endif
+ 
+ #define __RT_MUTEX_INITIALIZER(mutexname) \
+-	{ .wait_lock = SPIN_LOCK_UNLOCKED \
++	{ .wait_lock = __SPIN_LOCK_UNLOCKED(mutexname.wait_lock) \
+ 	, .wait_list = PLIST_HEAD_INIT(mutexname.wait_list, mutexname.wait_lock) \
+ 	, .owner = NULL \
+ 	__DEBUG_RT_MUTEX_INITIALIZER(mutexname)}
+diff -puN include/linux/rwsem-spinlock.h~lockdep-name-some-old-style-locks include/linux/rwsem-spinlock.h
+--- a/include/linux/rwsem-spinlock.h~lockdep-name-some-old-style-locks
++++ a/include/linux/rwsem-spinlock.h
+@@ -44,7 +44,8 @@ struct rw_semaphore {
+ #endif
+ 
+ #define __RWSEM_INITIALIZER(name) \
+-{ 0, SPIN_LOCK_UNLOCKED, LIST_HEAD_INIT((name).wait_list) __RWSEM_DEP_MAP_INIT(name) }
++{ 0, __SPIN_LOCK_UNLOCKED(name.wait_lock), LIST_HEAD_INIT((name).wait_list) \
++  __RWSEM_DEP_MAP_INIT(name) }
+ 
+ #define DECLARE_RWSEM(name) \
+ 	struct rw_semaphore name = __RWSEM_INITIALIZER(name)
+diff -puN include/linux/sunrpc/sched.h~lockdep-name-some-old-style-locks include/linux/sunrpc/sched.h
+--- a/include/linux/sunrpc/sched.h~lockdep-name-some-old-style-locks
++++ a/include/linux/sunrpc/sched.h
+@@ -222,7 +222,7 @@ struct rpc_wait_queue {
+ 
+ #ifndef RPC_DEBUG
+ # define RPC_WAITQ_INIT(var,qname) { \
+-		.lock = SPIN_LOCK_UNLOCKED, \
++		.lock = __SPIN_LOCK_UNLOCKED(var.lock), \
+ 		.tasks = { \
+ 			[0] = LIST_HEAD_INIT(var.tasks[0]), \
+ 			[1] = LIST_HEAD_INIT(var.tasks[1]), \
+@@ -231,7 +231,7 @@ struct rpc_wait_queue {
  	}
- 	if (res > 0)
- 		return state;
-+	if (!err)
-+	/* The partition is unrecognized. So report I/O errors if there were any */
-+		res = err;
- 	if (!res)
- 		printk(" unknown partition table\n");
- 	else if (warn_no_part)
-diff -puN fs/partitions/ibm.c~fix-check_partition-routines fs/partitions/ibm.c
---- a/fs/partitions/ibm.c~fix-check_partition-routines
-+++ a/fs/partitions/ibm.c
-@@ -43,7 +43,7 @@ cchhb2blk (struct vtoc_cchhb *ptr, struc
- int
- ibm_partition(struct parsed_partitions *state, struct block_device *bdev)
+ #else
+ # define RPC_WAITQ_INIT(var,qname) { \
+-		.lock = SPIN_LOCK_UNLOCKED, \
++		.lock = __SPIN_LOCK_UNLOCKED(var.lock), \
+ 		.tasks = { \
+ 			[0] = LIST_HEAD_INIT(var.tasks[0]), \
+ 			[1] = LIST_HEAD_INIT(var.tasks[1]), \
+diff -puN kernel/acct.c~lockdep-name-some-old-style-locks kernel/acct.c
+--- a/kernel/acct.c~lockdep-name-some-old-style-locks
++++ a/kernel/acct.c
+@@ -89,7 +89,8 @@ struct acct_glbs {
+ 	struct timer_list	timer;
+ };
+ 
+-static struct acct_glbs acct_globals __cacheline_aligned = {SPIN_LOCK_UNLOCKED};
++static struct acct_glbs acct_globals __cacheline_aligned =
++	{__SPIN_LOCK_UNLOCKED(acct_globals.lock)};
+ 
+ /*
+  * Called whenever the timer says to check the free space.
+diff -puN kernel/irq/handle.c~lockdep-name-some-old-style-locks kernel/irq/handle.c
+--- a/kernel/irq/handle.c~lockdep-name-some-old-style-locks
++++ a/kernel/irq/handle.c
+@@ -54,7 +54,7 @@ struct irq_desc irq_desc[NR_IRQS] __cach
+ 		.chip = &no_irq_chip,
+ 		.handle_irq = handle_bad_irq,
+ 		.depth = 1,
+-		.lock = SPIN_LOCK_UNLOCKED,
++		.lock = __SPIN_LOCK_UNLOCKED(irq_desc->lock),
+ #ifdef CONFIG_SMP
+ 		.affinity = CPU_MASK_ALL
+ #endif
+diff -puN net/sunrpc/svcauth.c~lockdep-name-some-old-style-locks net/sunrpc/svcauth.c
+--- a/net/sunrpc/svcauth.c~lockdep-name-some-old-style-locks
++++ a/net/sunrpc/svcauth.c
+@@ -119,7 +119,8 @@ EXPORT_SYMBOL(svc_auth_unregister);
+ #define	DN_HASHMASK	(DN_HASHMAX-1)
+ 
+ static struct hlist_head	auth_domain_table[DN_HASHMAX];
+-static spinlock_t	auth_domain_lock = SPIN_LOCK_UNLOCKED;
++static spinlock_t	auth_domain_lock =
++	__SPIN_LOCK_UNLOCKED(auth_domain_lock);
+ 
+ void auth_domain_put(struct auth_domain *dom)
  {
--	int blocksize, offset, size;
-+	int blocksize, offset, size,res;
- 	loff_t i_size;
- 	dasd_information_t *info;
- 	struct hd_geometry *geo;
-@@ -56,15 +56,16 @@ ibm_partition(struct parsed_partitions *
- 	unsigned char *data;
- 	Sector sect;
- 
-+	res = 0;
- 	blocksize = bdev_hardsect_size(bdev);
- 	if (blocksize <= 0)
--		return 0;
-+		goto out_exit;
- 	i_size = i_size_read(bdev->bd_inode);
- 	if (i_size == 0)
--		return 0;
-+		goto out_exit;
- 
- 	if ((info = kmalloc(sizeof(dasd_information_t), GFP_KERNEL)) == NULL)
--		goto out_noinfo;
-+		goto out_exit;
- 	if ((geo = kmalloc(sizeof(struct hd_geometry), GFP_KERNEL)) == NULL)
- 		goto out_nogeo;
- 	if ((label = kmalloc(sizeof(union label_t), GFP_KERNEL)) == NULL)
-@@ -72,7 +73,7 @@ ibm_partition(struct parsed_partitions *
- 
- 	if (ioctl_by_bdev(bdev, BIODASDINFO, (unsigned long)info) != 0 ||
- 	    ioctl_by_bdev(bdev, HDIO_GETGEO, (unsigned long)geo) != 0)
--		goto out_noioctl;
-+		goto out_freeall;
- 
- 	/*
- 	 * Get volume label, extract name and type.
-@@ -92,6 +93,8 @@ ibm_partition(struct parsed_partitions *
- 	EBCASC(type, 4);
- 	EBCASC(name, 6);
- 
-+	res = 1;
-+
- 	/*
- 	 * Three different types: CMS1, VOL1 and LNX1/unlabeled
- 	 */
-@@ -156,6 +159,9 @@ ibm_partition(struct parsed_partitions *
- 			counter++;
- 			blk++;
- 		}
-+		if (!data)
-+		/* Are we not supposed to report this ? */
-+			goto out_readerr;
- 	} else {
- 		/*
- 		 * Old style LNX1 or unlabeled disk
-@@ -171,18 +177,17 @@ ibm_partition(struct parsed_partitions *
- 	}
- 
- 	printk("\n");
--	kfree(label);
--	kfree(geo);
--	kfree(info);
--	return 1;
-+	goto out_freeall;
-+
- 
- out_readerr:
--out_noioctl:
-+	res = -1;
-+out_freeall:
- 	kfree(label);
- out_nolab:
- 	kfree(geo);
- out_nogeo:
- 	kfree(info);
--out_noinfo:
--	return 0;
-+out_exit:
-+	return res;
- }
+diff -puN security/keys/process_keys.c~lockdep-name-some-old-style-locks security/keys/process_keys.c
+--- a/security/keys/process_keys.c~lockdep-name-some-old-style-locks
++++ a/security/keys/process_keys.c
+@@ -27,7 +27,7 @@ static DEFINE_MUTEX(key_session_mutex);
+ struct key_user root_key_user = {
+ 	.usage		= ATOMIC_INIT(3),
+ 	.consq		= LIST_HEAD_INIT(root_key_user.consq),
+-	.lock		= SPIN_LOCK_UNLOCKED,
++	.lock		= __SPIN_LOCK_UNLOCKED(root_key_user.lock),
+ 	.nkeys		= ATOMIC_INIT(2),
+ 	.nikeys		= ATOMIC_INIT(2),
+ 	.uid		= 0,
 _
 
-Patches currently in -mm which might be from suzuki@in.ibm.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
+tty-signal-tty-locking.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+tty-signal-tty-locking-3270-fix.patch
+do_task_stat-dont-take-tty_mutex.patch
+do_acct_process-dont-take-tty_mutex.patch
+sys_unshare-remove-a-broken-clone_sighand-code.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+bdev-fix-bd_part_count-leak.patch
+lockdep-annotate-nfsd4-recover-code.patch
 
