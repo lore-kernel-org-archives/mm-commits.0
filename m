@@ -1,180 +1,251 @@
 From: akpm@osdl.org
-Subject: - save-some-bytes-in-struct-inode.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:15:43 -0800
-Message-ID: <200612072315.kB7NFhqw030745@shell0.pdx.osdl.net>
+Subject: - gcc-4-1-0-is-bust.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:15:52 -0800
+Message-ID: <200612072315.kB7NFqRu030760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53552 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53578 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163779AbWLGXPt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:15:49 -0500
+	id S1163815AbWLGXQA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:16:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: acme@mandriva.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, kaos@ocs.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Save some bytes in struct inode
+     gcc-4.1.0 is bust
 has been removed from the -mm tree.  Its filename was
-     save-some-bytes-in-struct-inode.patch
+     gcc-4-1-0-is-bust.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Save some bytes in struct inode
-From: Arnaldo Carvalho de Melo <acme@mandriva.com>
+Subject: gcc-4.1.0 is bust
+From: Andrew Morton <akpm@osdl.org>
 
-[acme@newtoy net-2.6.20]$ pahole --cacheline 64 fs/inode.o inode
-/* /pub/scm/linux/kernel/git/acme/net-2.6.20/include/linux/dcache.h:86 */
-struct inode {
-        struct hlist_node          i_hash;               /*     0     8 */
-        struct list_head           i_list;               /*     8     8 */
-        struct list_head           i_sb_list;            /*    16     8 */
-        struct list_head           i_dentry;             /*    24     8 */
-        long unsigned int          i_ino;                /*    32     4 */
-        atomic_t                   i_count;              /*    36     4 */
-        umode_t                    i_mode;               /*    40     2 */
+Keith says
 
-        /* XXX 2 bytes hole, try to pack */
+Compiling 2.6.19-rc6 with gcc version 4.1.0 (SUSE Linux), wait_hpet_tick is
+optimized away to a never ending loop and the kernel hangs on boot in timer
+setup.
 
-        unsigned int               i_nlink;              /*    44     4 */
-        uid_t                      i_uid;                /*    48     4 */
-        gid_t                      i_gid;                /*    52     4 */
-        dev_t                      i_rdev;               /*    56     4 */
-        loff_t                     i_size;               /*    60     8 */
-        struct timespec            i_atime;              /*    68     8 */
-        struct timespec            i_mtime;              /*    76     8 */
-        struct timespec            i_ctime;              /*    84     8 */
-        unsigned int               i_blkbits;            /*    92     4 */
-        long unsigned int          i_version;            /*    96     4 */
-        blkcnt_t                   i_blocks;             /*   100     4 */
-        short unsigned int         i_bytes;              /*   104     2 */
+0000001a <wait_hpet_tick>:
+  1a:   55                      push   %ebp
+  1b:   89 e5                   mov    %esp,%ebp
+  1d:   eb fe                   jmp    1d <wait_hpet_tick+0x3>
 
-        /* XXX 2 bytes hole, try to pack */
+This is not a problem with gcc 3.3.5.  Adding barrier() calls to
+wait_hpet_tick does not help, making the variables volatile does.
 
-        spinlock_t                 i_lock;               /*   108    40 */
-        struct mutex               i_mutex;              /*   148    76 */
-        struct rw_semaphore        i_alloc_sem;          /*   224    64 */
-        struct inode_operations *  i_op;                 /*   288     4 */
-        const struct file_operations  * i_fop;           /*   292     4 */
-        struct super_block *       i_sb;                 /*   296     4 */
-        struct file_lock *         i_flock;              /*   300     4 */
-        struct address_space *     i_mapping;            /*   304     4 */
-        struct address_space       i_data;               /*   308   188 */
-        struct list_head           i_devices;            /*   496     8 */
-        union                      ;                     /*   504     4 */
-        int                        i_cindex;             /*   508     4 */
-        __u32                      i_generation;         /*   512     4 */
-        /* ---------- cacheline 8 boundary ---------- */
-        long unsigned int          i_dnotify_mask;       /*   516     4 */
-        struct dnotify_struct *    i_dnotify;            /*   520     4 */
-        struct list_head           inotify_watches;      /*   524     8 */
-        struct mutex               inotify_mutex;        /*   532    76 */
-        long unsigned int          i_state;              /*   608     4 */
-        long unsigned int          dirtied_when;         /*   612     4 */
-        unsigned int               i_flags;              /*   616     4 */
-        atomic_t                   i_writecount;         /*   620     4 */
-        void *                     i_security;           /*   624     4 */
-        void *                     i_private;            /*   628     4 */
-}; /* size: 632, sum members: 628, holes: 2, sum holes: 4 */
+And the consensus is that gcc-4.1.0 is busted.  Suse went and shipped
+gcc-4.1.0 so we cannot ban it.  Add a warning.
 
-[acme@newtoy net-2.6.20]$
-
-So just moving i_mode to after i_bytes we save 4 bytes by nuking both holes:
-
-[acme@newtoy net-2.6.20]$ codiff -V /tmp/inode.o.before fs/inode.o
-/pub/scm/linux/kernel/git/acme/net-2.6.20/fs/inode.c:
-  struct inode |   -4
-    i_mode;
-     from: umode_t               /*    40(0)     2(0) */
-     to:   umode_t               /*   102(0)     2(0) */
- 1 struct changed
-[acme@newtoy net-2.6.20]$
-
-I've prunned all the other offset changes, only this one is of interest here.
-
-So now we have:
-
-[acme@newtoy net-2.6.20]$ pahole --cacheline 64 ../OUTPUT/qemu/net-2.6.20/fs/inode.o inode
-/* /pub/scm/linux/kernel/git/acme/net-2.6.20/include/linux/dcache.h:86 */
-struct inode {
-        struct hlist_node          i_hash;               /*     0     8 */
-        struct list_head           i_list;               /*     8     8 */
-        struct list_head           i_sb_list;            /*    16     8 */
-        struct list_head           i_dentry;             /*    24     8 */
-        long unsigned int          i_ino;                /*    32     4 */
-        atomic_t                   i_count;              /*    36     4 */
-        unsigned int               i_nlink;              /*    40     4 */
-        uid_t                      i_uid;                /*    44     4 */
-        gid_t                      i_gid;                /*    48     4 */
-        dev_t                      i_rdev;               /*    52     4 */
-        loff_t                     i_size;               /*    56     8 */
-        /* ---------- cacheline 1 boundary ---------- */
-        struct timespec            i_atime;              /*    64     8 */
-        struct timespec            i_mtime;              /*    72     8 */
-        struct timespec            i_ctime;              /*    80     8 */
-        unsigned int               i_blkbits;            /*    88     4 */
-        long unsigned int          i_version;            /*    92     4 */
-        blkcnt_t                   i_blocks;             /*    96     4 */
-        short unsigned int         i_bytes;              /*   100     2 */
-        umode_t                    i_mode;               /*   102     2 */
-        spinlock_t                 i_lock;               /*   104    40 */
-        struct mutex               i_mutex;              /*   144    76 */
-        struct rw_semaphore        i_alloc_sem;          /*   220    64 */
-        struct inode_operations *  i_op;                 /*   284     4 */
-        const struct file_operations  * i_fop;           /*   288     4 */
-        struct super_block *       i_sb;                 /*   292     4 */
-        struct file_lock *         i_flock;              /*   296     4 */
-        struct address_space *     i_mapping;            /*   300     4 */
-        struct address_space       i_data;               /*   304   188 */
-        struct list_head           i_devices;            /*   492     8 */
-        union                      ;                     /*   500     4 */
-        int                        i_cindex;             /*   504     4 */
-        __u32                      i_generation;         /*   508     4 */
-        /* ---------- cacheline 8 boundary ---------- */
-        long unsigned int          i_dnotify_mask;       /*   512     4 */
-        struct dnotify_struct *    i_dnotify;            /*   516     4 */
-        struct list_head           inotify_watches;      /*   520     8 */
-        struct mutex               inotify_mutex;        /*   528    76 */
-        long unsigned int          i_state;              /*   604     4 */
-        long unsigned int          dirtied_when;         /*   608     4 */
-        unsigned int               i_flags;              /*   612     4 */
-        atomic_t                   i_writecount;         /*   616     4 */
-        void *                     i_security;           /*   620     4 */
-        void *                     i_private;            /*   624     4 */
-}; /* size: 628 */
-
-[acme@newtoy net-2.6.20]$
-
-Signed-off-by: Arnaldo Carvalho de Melo <acme@mandriva.com>
+Cc: Keith Owens <kaos@ocs.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/fs.h~save-some-bytes-in-struct-inode include/linux/fs.h
---- a/include/linux/fs.h~save-some-bytes-in-struct-inode
-+++ a/include/linux/fs.h
-@@ -543,7 +543,6 @@ struct inode {
- 	struct list_head	i_dentry;
- 	unsigned long		i_ino;
- 	atomic_t		i_count;
--	umode_t			i_mode;
- 	unsigned int		i_nlink;
- 	uid_t			i_uid;
- 	gid_t			i_gid;
-@@ -559,6 +558,7 @@ struct inode {
- 	unsigned int		i_blkbits;
- 	blkcnt_t		i_blocks;
- 	unsigned short          i_bytes;
-+	umode_t			i_mode;
- 	spinlock_t		i_lock;	/* i_blocks, i_bytes, maybe i_size */
- 	struct mutex		i_mutex;
- 	struct rw_semaphore	i_alloc_sem;
+diff -puN init/main.c~gcc-4-1-0-is-bust init/main.c
+--- a/init/main.c~gcc-4-1-0-is-bust
++++ a/init/main.c
+@@ -73,6 +73,10 @@
+ #error Sorry, your GCC is too old. It builds incorrect kernels.
+ #endif
+ 
++#if __GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
++#warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
++#endif
++
+ static int init(void *);
+ 
+ extern void init_IRQ(void);
 _
 
-Patches currently in -mm which might be from acme@mandriva.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+bridge-avoid-using-noautorel-workqueues.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+acpi-asus-s3-resume-fix.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-ia64.patch
+git-ieee1394-fixup.patch
+git-input.patch
+git-input-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+bug-test-1.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
