@@ -1,71 +1,86 @@
 From: akpm@osdl.org
-Subject: - ext3-fsid-for-statvfs.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:01:13 -0800
-Message-ID: <200612072301.kB7N1DbV029717@shell0.pdx.osdl.net>
+Subject: - kernel-proc-kallsyms-reports-lower-case.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:01:17 -0800
+Message-ID: <200612072301.kB7N1HQo029738@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51511 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51506 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163678AbWLGXBZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:01:25 -0500
+	id S1163755AbWLGXBY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:01:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, adilger@clusterfs.com, sct@redhat.com, mm-commits@vger.kernel.org
+To: abj@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: fsid for statvfs
+     /proc/kallsyms reports lower-case types for some non-exported symbols
 has been removed from the -mm tree.  Its filename was
-     ext3-fsid-for-statvfs.patch
+     kernel-proc-kallsyms-reports-lower-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3: fsid for statvfs
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: /proc/kallsyms reports lower-case types for some non-exported symbols
+From: Adam B. Jerome <abj@novell.com>
 
-Update ext3_statfs to return an FSID that is a 64 bit XOR of the 128 bit
-filesystem UUID as suggested by Andreas Dilger.  See the following Bugzilla
-entry for details:
+This patch addresses incorrect symbol type information reported through
+/proc/kallsyms.  A lowercase character should designate the symbol as local
+(or non-exported).  An uppercase character should designate the symbol as
+global (or external).
 
-  http://bugzilla.kernel.org/show_bug.cgi?id=136
+Without this patch, some non-exported symbols are incorrectly assigned an
+upper-case designation in /proc/kallsyms.  This patch corrects this
+condition by converting non-exported symbols types to lower case when
+appropriate and eliminates the superfluous upcase_if_global function
 
-Cc: Andreas Dilger <adilger@clusterfs.com>
-Cc: Stephen Tweedie <sct@redhat.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Adam B. Jerome <abj@novell.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext3/super.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/kallsyms.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-fsid-for-statvfs fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-fsid-for-statvfs
-+++ a/fs/ext3/super.c
-@@ -2387,6 +2387,7 @@ static int ext3_statfs (struct dentry * 
- 	struct ext3_super_block *es = sbi->s_es;
- 	ext3_fsblk_t overhead;
- 	int i;
-+	u64 fsid;
+diff -puN kernel/kallsyms.c~kernel-proc-kallsyms-reports-lower-case kernel/kallsyms.c
+--- a/kernel/kallsyms.c~kernel-proc-kallsyms-reports-lower-case
++++ a/kernel/kallsyms.c
+@@ -20,6 +20,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/sched.h>	/* for cond_resched */
+ #include <linux/mm.h>
++#include <linux/ctype.h>
  
- 	if (test_opt (sb, MINIX_DF))
- 		overhead = 0;
-@@ -2433,6 +2434,10 @@ static int ext3_statfs (struct dentry * 
- 	buf->f_files = le32_to_cpu(es->s_inodes_count);
- 	buf->f_ffree = percpu_counter_sum(&sbi->s_freeinodes_counter);
- 	buf->f_namelen = EXT3_NAME_LEN;
-+	fsid = le64_to_cpup((void *)es->s_uuid) ^
-+	       le64_to_cpup((void *)es->s_uuid + sizeof(u64));
-+	buf->f_fsid.val[0] = fsid & 0xFFFFFFFFUL;
-+	buf->f_fsid.val[1] = (fsid >> 32) & 0xFFFFFFFFUL;
- 	return 0;
+ #include <asm/sections.h>
+ 
+@@ -301,13 +302,6 @@ struct kallsym_iter
+ 	char name[KSYM_NAME_LEN+1];
+ };
+ 
+-/* Only label it "global" if it is exported. */
+-static void upcase_if_global(struct kallsym_iter *iter)
+-{
+-	if (is_exported(iter->name, iter->owner))
+-		iter->type += 'A' - 'a';
+-}
+-
+ static int get_ksymbol_mod(struct kallsym_iter *iter)
+ {
+ 	iter->owner = module_get_kallsym(iter->pos - kallsyms_num_syms,
+@@ -316,7 +310,10 @@ static int get_ksymbol_mod(struct kallsy
+ 	if (iter->owner == NULL)
+ 		return 0;
+ 
+-	upcase_if_global(iter);
++	/* Label it "global" if it is exported, "local" if not exported. */
++	iter->type = is_exported(iter->name, iter->owner)
++		? toupper(iter->type) : tolower(iter->type);
++
+ 	return 1;
  }
  
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from abj@novell.com are
 
 origin.patch
-fault-injection-capability-for-kmalloc.patch
-slab-leaks3-default-y.patch
 
