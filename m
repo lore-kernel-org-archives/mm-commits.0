@@ -1,27 +1,27 @@
 From: akpm@osdl.org
-Subject: - include-asm-cris-extern-inline-static-inline.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:25 -0800
-Message-ID: <200612072316.kB7NGPLj030834@shell0.pdx.osdl.net>
+Subject: - include-asm-h8300-extern-inline-static-inline.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:16:28 -0800
+Message-ID: <200612072316.kB7NGS5I030837@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54127 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54132 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163967AbWLGXTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:19:42 -0500
+	id S1163973AbWLGXTp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:19:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, starvik@axis.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/asm-cris/: "extern inline" -> "static inline"
+     include/asm-h8300/: "extern inline" -> "static inline"
 has been removed from the -mm tree.  Its filename was
-     include-asm-cris-extern-inline-static-inline.patch
+     include-asm-h8300-extern-inline-static-inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: include/asm-cris/: "extern inline" -> "static inline"
+Subject: include/asm-h8300/: "extern inline" -> "static inline"
 From: Adrian Bunk <bunk@stusta.de>
 
 "extern inline" generates a warning with -Wmissing-prototypes and I'm
@@ -32,98 +32,94 @@ If there are places that really need a forced inline, __always_inline would be
 the correct solution.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Mikael Starvik <starvik@axis.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-cris/arch-v10/bitops.h  |   10 +++++-----
- include/asm-cris/semaphore-helper.h |    8 ++++----
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ include/asm-h8300/delay.h       |    4 ++--
+ include/asm-h8300/mmu_context.h |    4 ++--
+ include/asm-h8300/pci.h         |    4 ++--
+ include/asm-h8300/tlbflush.h    |    4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-cris/arch-v10/bitops.h~include-asm-cris-extern-inline-static-inline include/asm-cris/arch-v10/bitops.h
---- a/include/asm-cris/arch-v10/bitops.h~include-asm-cris-extern-inline-static-inline
-+++ a/include/asm-cris/arch-v10/bitops.h
-@@ -10,7 +10,7 @@
-  * number.  They differ in that the first function also inverts all bits
-  * in the input.
-  */
--extern inline unsigned long cris_swapnwbrlz(unsigned long w)
-+static inline unsigned long cris_swapnwbrlz(unsigned long w)
- {
- 	/* Let's just say we return the result in the same register as the
- 	   input.  Saying we clobber the input but can return the result
-@@ -26,7 +26,7 @@ extern inline unsigned long cris_swapnwb
- 	return res;
- }
- 
--extern inline unsigned long cris_swapwbrlz(unsigned long w)
-+static inline unsigned long cris_swapwbrlz(unsigned long w)
- {
- 	unsigned res;
- 	__asm__ ("swapwbr %0 \n\t"
-@@ -40,7 +40,7 @@ extern inline unsigned long cris_swapwbr
-  * ffz = Find First Zero in word. Undefined if no zero exists,
-  * so code should check against ~0UL first..
-  */
--extern inline unsigned long ffz(unsigned long w)
-+static inline unsigned long ffz(unsigned long w)
- {
- 	return cris_swapnwbrlz(w);
- }
-@@ -51,7 +51,7 @@ extern inline unsigned long ffz(unsigned
-  *
-  * Undefined if no bit exists, so code should check against 0 first.
-  */
--extern inline unsigned long __ffs(unsigned long word)
-+static inline unsigned long __ffs(unsigned long word)
- {
- 	return cris_swapnwbrlz(~word);
- }
-@@ -65,7 +65,7 @@ extern inline unsigned long __ffs(unsign
-  * differs in spirit from the above ffz (man ffs).
+diff -puN include/asm-h8300/delay.h~include-asm-h8300-extern-inline-static-inline include/asm-h8300/delay.h
+--- a/include/asm-h8300/delay.h~include-asm-h8300-extern-inline-static-inline
++++ a/include/asm-h8300/delay.h
+@@ -9,7 +9,7 @@
+  * Delay routines, using a pre-computed "loops_per_second" value.
   */
  
--extern inline unsigned long kernel_ffs(unsigned long w)
-+static inline unsigned long kernel_ffs(unsigned long w)
+-extern __inline__ void __delay(unsigned long loops)
++static inline void __delay(unsigned long loops)
  {
- 	return w ? cris_swapwbrlz (w) + 1 : 0;
- }
-diff -puN include/asm-cris/semaphore-helper.h~include-asm-cris-extern-inline-static-inline include/asm-cris/semaphore-helper.h
---- a/include/asm-cris/semaphore-helper.h~include-asm-cris-extern-inline-static-inline
-+++ a/include/asm-cris/semaphore-helper.h
-@@ -20,12 +20,12 @@
- /*
-  * These two _must_ execute atomically wrt each other.
-  */
--extern inline void wake_one_more(struct semaphore * sem)
-+static inline void wake_one_more(struct semaphore * sem)
+ 	__asm__ __volatile__ ("1:\n\t"
+ 			      "dec.l #1,%0\n\t"
+@@ -27,7 +27,7 @@ extern __inline__ void __delay(unsigned 
+ 
+ extern unsigned long loops_per_jiffy;
+ 
+-extern __inline__ void udelay(unsigned long usecs)
++static inline void udelay(unsigned long usecs)
  {
- 	atomic_inc(&sem->waking);
+ 	usecs *= 4295;		/* 2**32 / 1000000 */
+ 	usecs /= (loops_per_jiffy*HZ);
+diff -puN include/asm-h8300/mmu_context.h~include-asm-h8300-extern-inline-static-inline include/asm-h8300/mmu_context.h
+--- a/include/asm-h8300/mmu_context.h~include-asm-h8300-extern-inline-static-inline
++++ a/include/asm-h8300/mmu_context.h
+@@ -9,7 +9,7 @@ static inline void enter_lazy_tlb(struct
+ {
  }
  
--extern inline int waking_non_zero(struct semaphore *sem)
-+static inline int waking_non_zero(struct semaphore *sem)
+-extern inline int
++static inline int
+ init_new_context(struct task_struct *tsk, struct mm_struct *mm)
  {
- 	unsigned long flags;
- 	int ret = 0;
-@@ -40,7 +40,7 @@ extern inline int waking_non_zero(struct
- 	return ret;
+ 	// mm->context = virt_to_phys(mm->pgd);
+@@ -23,7 +23,7 @@ static inline void switch_mm(struct mm_s
+ {
  }
  
--extern inline int waking_non_zero_interruptible(struct semaphore *sem,
-+static inline int waking_non_zero_interruptible(struct semaphore *sem,
- 						struct task_struct *tsk)
+-extern inline void activate_mm(struct mm_struct *prev_mm,
++static inline void activate_mm(struct mm_struct *prev_mm,
+ 			       struct mm_struct *next_mm)
  {
- 	int ret = 0;
-@@ -59,7 +59,7 @@ extern inline int waking_non_zero_interr
- 	return ret;
+ }
+diff -puN include/asm-h8300/pci.h~include-asm-h8300-extern-inline-static-inline include/asm-h8300/pci.h
+--- a/include/asm-h8300/pci.h~include-asm-h8300-extern-inline-static-inline
++++ a/include/asm-h8300/pci.h
+@@ -10,12 +10,12 @@
+ #define pcibios_assign_all_busses()	0
+ #define pcibios_scan_all_fns(a, b)	0
+ 
+-extern inline void pcibios_set_master(struct pci_dev *dev)
++static inline void pcibios_set_master(struct pci_dev *dev)
+ {
+ 	/* No special bus mastering setup handling */
  }
  
--extern inline int waking_non_zero_trylock(struct semaphore *sem)
-+static inline int waking_non_zero_trylock(struct semaphore *sem)
+-extern inline void pcibios_penalize_isa_irq(int irq, int active)
++static inline void pcibios_penalize_isa_irq(int irq, int active)
  {
-         int ret = 1;
- 	unsigned long flags;
+ 	/* We don't do dynamic PCI IRQ allocation */
+ }
+diff -puN include/asm-h8300/tlbflush.h~include-asm-h8300-extern-inline-static-inline include/asm-h8300/tlbflush.h
+--- a/include/asm-h8300/tlbflush.h~include-asm-h8300-extern-inline-static-inline
++++ a/include/asm-h8300/tlbflush.h
+@@ -47,12 +47,12 @@ static inline void flush_tlb_range(struc
+ 	BUG();
+ }
+ 
+-extern inline void flush_tlb_kernel_page(unsigned long addr)
++static inline void flush_tlb_kernel_page(unsigned long addr)
+ {
+ 	BUG();
+ }
+ 
+-extern inline void flush_tlb_pgtables(struct mm_struct *mm,
++static inline void flush_tlb_pgtables(struct mm_struct *mm,
+ 				      unsigned long start, unsigned long end)
+ {
+ 	BUG();
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
