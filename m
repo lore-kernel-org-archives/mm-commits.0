@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + workqueue-tweaks.patch added to -mm tree
-Date: Wed, 06 Dec 2006 23:44:51 -0800
-Message-ID: <200612070744.kB77ipxV002600@shell0.pdx.osdl.net>
+Subject: + bridge-avoid-using-noautorel-workqueues.patch added to -mm tree
+Date: Wed, 06 Dec 2006 23:50:05 -0800
+Message-ID: <200612070750.kB77o5H2002736@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57630 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58083 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031808AbWLGHpG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 02:45:06 -0500
+	id S1031814AbWLGHuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 02:50:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,69 +15,70 @@ Cc: akpm@osdl.org, dhowells@redhat.com
 
 
 The patch titled
-     workqueue tweaks
+     bridge: avoid using noautorel workqueues
 has been added to the -mm tree.  Its filename is
-     workqueue-tweaks.patch
+     bridge-avoid-using-noautorel-workqueues.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue tweaks
+Subject: bridge: avoid using noautorel workqueues
 From: Andrew Morton <akpm@osdl.org>
 
-- set_wq_data() has three callsites and is too big to inline.
-
-- Make comment layout consistently use the usual style.
-
-- Use the nice helper in cancel_delayed_work()
+?
 
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/workqueue.h |    2 +-
- kernel/workqueue.c        |    9 +++++----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ net/bridge/br_if.c      |   14 ++++++--------
+ net/bridge/br_private.h |    1 +
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-tweaks kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-tweaks
-+++ a/kernel/workqueue.c
-@@ -85,12 +85,14 @@ static inline int is_single_threaded(str
- 	return list_empty(&wq->list);
- }
+diff -puN net/bridge/br_private.h~bridge-avoid-using-noautorel-workqueues net/bridge/br_private.h
+--- a/net/bridge/br_private.h~bridge-avoid-using-noautorel-workqueues
++++ a/net/bridge/br_private.h
+@@ -83,6 +83,7 @@ struct net_bridge_port
+ 	struct timer_list		message_age_timer;
+ 	struct kobject			kobj;
+ 	struct delayed_work		carrier_check;
++	struct net_device		*carrier_check_dev;
+ 	struct rcu_head			rcu;
+ };
  
--static inline void set_wq_data(struct work_struct *work, void *wq)
-+static void set_wq_data(struct work_struct *work, void *wq)
- {
- 	unsigned long new, old, res;
+diff -puN net/bridge/br_if.c~bridge-avoid-using-noautorel-workqueues net/bridge/br_if.c
+--- a/net/bridge/br_if.c~bridge-avoid-using-noautorel-workqueues
++++ a/net/bridge/br_if.c
+@@ -83,14 +83,11 @@ static void port_carrier_check(struct wo
+ 	struct net_device *dev;
+ 	struct net_bridge *br;
  
--	/* assume the pending flag is already set and that the task has already
--	 * been queued on this workqueue */
-+	/*
-+	 * Assume the pending flag is already set and that the task has already
-+	 * been queued on this workqueue
-+	 */
- 	new = (unsigned long) wq | (1UL << WORK_STRUCT_PENDING);
- 	res = work->management;
- 	if (res != new) {
-@@ -745,4 +747,3 @@ void init_workqueues(void)
- 	keventd_wq = create_workqueue("events");
- 	BUG_ON(!keventd_wq);
- }
+-	dev = container_of(work, struct net_bridge_port,
+-			   carrier_check.work)->dev;
+-	work_release(work);
 -
-diff -puN include/linux/workqueue.h~workqueue-tweaks include/linux/workqueue.h
---- a/include/linux/workqueue.h~workqueue-tweaks
-+++ a/include/linux/workqueue.h
-@@ -187,7 +187,7 @@ static inline int cancel_delayed_work(st
++	p = container_of(work, struct net_bridge_port, carrier_check.work);
++	dev = p->carrier_check_dev;
+ 	rtnl_lock();
+-	p = dev->br_port;
+-	if (!p)
+-		goto done;
++	if (!dev->br_port)
++		goto done;	/* Can this happen? */
+ 	br = p->br;
  
- 	ret = del_timer_sync(&work->timer);
- 	if (ret)
--		clear_bit(WORK_STRUCT_PENDING, &work->work.management);
-+		work_release(&work->work);
- 	return ret;
- }
+ 	if (netif_carrier_ok(dev))
+@@ -280,7 +277,8 @@ static struct net_bridge_port *new_nbp(s
+ 	p->port_no = index;
+ 	br_init_port(p);
+ 	p->state = BR_STATE_DISABLED;
+-	INIT_DELAYED_WORK_NAR(&p->carrier_check, port_carrier_check);
++	p->carrier_check_dev = dev;
++	INIT_DELAYED_WORK(&p->carrier_check, port_carrier_check);
+ 	br_stp_port_timer_init(p);
  
+ 	kobject_init(&p->kobj);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -127,6 +128,7 @@ cleanup-include-asm-generic-atomich.patch
 struct-seq_operations-and-struct-file_operations-constification.patch
 elfh-forward-declare-struct-file.patch
 workqueue-tweaks.patch
+bridge-avoid-using-noautorel-workqueues.patch
 revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
 revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
 generic_file_buffered_write-cleanup.patch
@@ -314,5 +316,4 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 zeromap_pte_range-debug.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-bridge-avoid-using-noautorel-workqueues.patch
 
