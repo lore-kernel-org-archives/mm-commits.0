@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + lockdep-improve-verbose-messages.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:32:21 -0800
-Message-ID: <200612072032.kB7KWLWd024665@shell0.pdx.osdl.net>
+Subject: + lockdep-use-chain-hash-on-config_debug_lockdep-too.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:32:27 -0800
+Message-ID: <200612072032.kB7KWRjr024674@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36498 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36509 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163303AbWLGUc2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:32:28 -0500
+	id S1163304AbWLGUcf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:32:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,63 +15,45 @@ Cc: mingo@elte.hu
 
 
 The patch titled
-     lockdep: improve verbose messages
+     lockdep: use chain hash on CONFIG_DEBUG_LOCKDEP too
 has been added to the -mm tree.  Its filename is
-     lockdep-improve-verbose-messages.patch
+     lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep: improve verbose messages
+Subject: lockdep: use chain hash on CONFIG_DEBUG_LOCKDEP too
 From: Ingo Molnar <mingo@elte.hu>
 
-Make verbose lockdep messages (off by default) more informative by printing
-out the hash chain key.  (this patch was what helped me catch the earlier
-lockdep hash-collision bug)
+CONFIG_DEBUG_LOCKDEP is unacceptably slow because it does not utilize
+the chain-hash. Turn the chain-hash back on in this case too.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/lockdep.c |    8 --------
+ 1 files changed, 8 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-improve-verbose-messages kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-improve-verbose-messages
+diff -puN kernel/lockdep.c~lockdep-use-chain-hash-on-config_debug_lockdep-too kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-use-chain-hash-on-config_debug_lockdep-too
 +++ a/kernel/lockdep.c
-@@ -1265,7 +1265,7 @@ out_unlock_set:
-  * add it and return 0 - in this case the new dependency chain is
-  * validated. If the key is already hashed, return 1.
-  */
--static inline int lookup_chain_cache(u64 chain_key)
-+static inline int lookup_chain_cache(u64 chain_key, struct lock_class *class)
- {
- 	struct list_head *hash_head = chainhashentry(chain_key);
- 	struct lock_chain *chain;
-@@ -1287,9 +1287,13 @@ cache_hit:
- 			__raw_spin_lock(&hash_lock);
- 			return 1;
- #endif
-+			if (very_verbose(class))
-+				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
+@@ -1277,14 +1277,6 @@ static inline int lookup_chain_cache(u64
+ 		if (chain->chain_key == chain_key) {
+ cache_hit:
+ 			debug_atomic_inc(&chain_lookup_hits);
+-			/*
+-			 * In the debugging case, force redundant checking
+-			 * by returning 1:
+-			 */
+-#ifdef CONFIG_DEBUG_LOCKDEP
+-			__raw_spin_lock(&hash_lock);
+-			return 1;
+-#endif
+ 			if (very_verbose(class))
+ 				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
  			return 0;
- 		}
- 	}
-+	if (very_verbose(class))
-+		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
- 	/*
- 	 * Allocate a new chain entry from the static array, and add
- 	 * it to the hash:
-@@ -2140,7 +2144,7 @@ out_calc_hash:
- 	 * (If lookup_chain_cache() returns with 1 it acquires
- 	 * hash_lock for us)
- 	 */
--	if (!trylock && (check == 2) && lookup_chain_cache(chain_key)) {
-+	if (!trylock && (check == 2) && lookup_chain_cache(chain_key, class)) {
- 		/*
- 		 * Check whether last held lock:
- 		 *
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
