@@ -1,95 +1,619 @@
 From: akpm@osdl.org
-Subject: - move-vm_area_cachep-to-include-mmh.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:57:36 -0800
-Message-ID: <200612072257.kB7MvaRD029303@shell0.pdx.osdl.net>
+Subject: - mm-pagefault_disableenable.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:56:47 -0800
+Message-ID: <200612072256.kB7MulLV029238@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50624 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50597 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163613AbWLGW5j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:57:39 -0500
+	id S1163607AbWLGW52 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:57:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, heiko.carstens@de.ibm.com, npiggin@suse.de, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Move vm_area_cachep to include/mm.h
+     mm: pagefault_{disable,enable}()
 has been removed from the -mm tree.  Its filename was
-     move-vm_area_cachep-to-include-mmh.patch
+     mm-pagefault_disableenable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Move vm_area_cachep to include/mm.h
-From: Christoph Lameter <clameter@sgi.com>
+Subject: mm: pagefault_{disable,enable}()
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-vm_area_cachep is used to store vm_area_structs. So move to mm.h.
+Introduce pagefault_{disable,enable}() and use these where previously we did
+manual preempt increments/decrements to make the pagefault handler do the
+atomic thing.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Currently they still rely on the increased preempt count, but do not rely on
+the disabled preemption, this might go away in the future.
+
+(NOTE: the extra barrier() in pagefault_disable might fix some holes on
+       machines which have too many registers for their own good)
+
+[heiko.carstens@de.ibm.com: s390 fix]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/mm.h   |    2 ++
- include/linux/slab.h |    1 -
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ arch/frv/kernel/futex.c     |    4 +--
+ arch/i386/mm/highmem.c      |   10 +++-----
+ arch/mips/mm/highmem.c      |   10 +++-----
+ arch/s390/lib/uaccess_std.c |    6 ++---
+ arch/sparc/mm/highmem.c     |    8 ++----
+ include/asm-frv/highmem.h   |    5 +---
+ include/asm-generic/futex.h |    4 +--
+ include/asm-i386/futex.h    |    4 +--
+ include/asm-ia64/futex.h    |    4 +--
+ include/asm-mips/futex.h    |    4 +--
+ include/asm-parisc/futex.h  |    4 +--
+ include/asm-powerpc/futex.h |    4 +--
+ include/asm-ppc/highmem.h   |    8 ++----
+ include/asm-sparc64/futex.h |    4 +--
+ include/asm-x86_64/futex.h  |    4 +--
+ include/linux/uaccess.h     |   39 ++++++++++++++++++++++++++++++++--
+ kernel/futex.c              |   28 ++++++++++++------------
+ 17 files changed, 88 insertions(+), 62 deletions(-)
 
-diff -puN include/linux/mm.h~move-vm_area_cachep-to-include-mmh include/linux/mm.h
---- a/include/linux/mm.h~move-vm_area_cachep-to-include-mmh
-+++ a/include/linux/mm.h
-@@ -114,6 +114,8 @@ struct vm_area_struct {
+diff -puN arch/frv/kernel/futex.c~mm-pagefault_disableenable arch/frv/kernel/futex.c
+--- a/arch/frv/kernel/futex.c~mm-pagefault_disableenable
++++ a/arch/frv/kernel/futex.c
+@@ -200,7 +200,7 @@ int futex_atomic_op_inuser(int encoded_o
+ 	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -223,7 +223,7 @@ int futex_atomic_op_inuser(int encoded_o
+ 		break;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN arch/i386/mm/highmem.c~mm-pagefault_disableenable arch/i386/mm/highmem.c
+--- a/arch/i386/mm/highmem.c~mm-pagefault_disableenable
++++ a/arch/i386/mm/highmem.c
+@@ -32,7 +32,7 @@ void *kmap_atomic(struct page *page, enu
+ 	unsigned long vaddr;
+ 
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+-	inc_preempt_count();
++	pagefault_disable();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
+@@ -52,8 +52,7 @@ void kunmap_atomic(void *kvaddr, enum km
+ 
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	if (vaddr >= PAGE_OFFSET && vaddr < (unsigned long)high_memory) {
+-		dec_preempt_count();
+-		preempt_check_resched();
++		pagefault_enable();
+ 		return;
+ 	}
+ 
+@@ -68,8 +67,7 @@ void kunmap_atomic(void *kvaddr, enum km
+ 	 */
+ 	kpte_clear_flush(kmap_pte-idx, vaddr);
+ 
+-	dec_preempt_count();
+-	preempt_check_resched();
++	pagefault_enable();
+ }
+ 
+ /* This is the same as kmap_atomic() but can map memory that doesn't
+@@ -80,7 +78,7 @@ void *kmap_atomic_pfn(unsigned long pfn,
+ 	enum fixed_addresses idx;
+ 	unsigned long vaddr;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+diff -puN arch/mips/mm/highmem.c~mm-pagefault_disableenable arch/mips/mm/highmem.c
+--- a/arch/mips/mm/highmem.c~mm-pagefault_disableenable
++++ a/arch/mips/mm/highmem.c
+@@ -39,7 +39,7 @@ void *__kmap_atomic(struct page *page, e
+ 	unsigned long vaddr;
+ 
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+-	inc_preempt_count();
++	pagefault_disable();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
+@@ -62,8 +62,7 @@ void __kunmap_atomic(void *kvaddr, enum 
+ 	enum fixed_addresses idx = type + KM_TYPE_NR*smp_processor_id();
+ 
+ 	if (vaddr < FIXADDR_START) { // FIXME
+-		dec_preempt_count();
+-		preempt_check_resched();
++		pagefault_enable();
+ 		return;
+ 	}
+ 
+@@ -78,8 +77,7 @@ void __kunmap_atomic(void *kvaddr, enum 
+ 	local_flush_tlb_one(vaddr);
  #endif
- };
  
-+extern struct kmem_cache *vm_area_cachep;
+-	dec_preempt_count();
+-	preempt_check_resched();
++	pagefault_enable();
+ }
+ 
+ #ifndef CONFIG_LIMITED_DMA
+@@ -92,7 +90,7 @@ void *kmap_atomic_pfn(unsigned long pfn,
+ 	enum fixed_addresses idx;
+ 	unsigned long vaddr;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+diff -puN arch/s390/lib/uaccess_std.c~mm-pagefault_disableenable arch/s390/lib/uaccess_std.c
+--- a/arch/s390/lib/uaccess_std.c~mm-pagefault_disableenable
++++ a/arch/s390/lib/uaccess_std.c
+@@ -11,7 +11,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/mm.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ #include <asm/futex.h>
+ 
+ #ifndef __s390x__
+@@ -258,7 +258,7 @@ int futex_atomic_op(int op, int __user *
+ {
+ 	int oldval = 0, newval, ret;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -284,7 +284,7 @@ int futex_atomic_op(int op, int __user *
+ 	default:
+ 		ret = -ENOSYS;
+ 	}
+-	dec_preempt_count();
++	pagefault_enable();
+ 	*old = oldval;
+ 	return ret;
+ }
+diff -puN arch/sparc/mm/highmem.c~mm-pagefault_disableenable arch/sparc/mm/highmem.c
+--- a/arch/sparc/mm/highmem.c~mm-pagefault_disableenable
++++ a/arch/sparc/mm/highmem.c
+@@ -35,7 +35,7 @@ void *kmap_atomic(struct page *page, enu
+ 	unsigned long vaddr;
+ 
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+-	inc_preempt_count();
++	pagefault_disable();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
+@@ -70,8 +70,7 @@ void kunmap_atomic(void *kvaddr, enum km
+ 	unsigned long idx = type + KM_TYPE_NR*smp_processor_id();
+ 
+ 	if (vaddr < FIXADDR_START) { // FIXME
+-		dec_preempt_count();
+-		preempt_check_resched();
++		pagefault_enable();
+ 		return;
+ 	}
+ 
+@@ -97,8 +96,7 @@ void kunmap_atomic(void *kvaddr, enum km
+ #endif
+ #endif
+ 
+-	dec_preempt_count();
+-	preempt_check_resched();
++	pagefault_enable();
+ }
+ 
+ /* We may be fed a pagetable here by ptep_to_xxx and others. */
+diff -puN include/asm-frv/highmem.h~mm-pagefault_disableenable include/asm-frv/highmem.h
+--- a/include/asm-frv/highmem.h~mm-pagefault_disableenable
++++ a/include/asm-frv/highmem.h
+@@ -115,7 +115,7 @@ static inline void *kmap_atomic(struct p
+ {
+ 	unsigned long paddr;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 	paddr = page_to_phys(page);
+ 
+ 	switch (type) {
+@@ -170,8 +170,7 @@ static inline void kunmap_atomic(void *k
+ 	default:
+ 		BUG();
+ 	}
+-	dec_preempt_count();
+-	preempt_check_resched();
++	pagefault_enable();
+ }
+ 
+ #endif /* !__ASSEMBLY__ */
+diff -puN include/asm-generic/futex.h~mm-pagefault_disableenable include/asm-generic/futex.h
+--- a/include/asm-generic/futex.h~mm-pagefault_disableenable
++++ a/include/asm-generic/futex.h
+@@ -21,7 +21,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 	if (! access_ok (VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -33,7 +33,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 		ret = -ENOSYS;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/asm-i386/futex.h~mm-pagefault_disableenable include/asm-i386/futex.h
+--- a/include/asm-i386/futex.h~mm-pagefault_disableenable
++++ a/include/asm-i386/futex.h
+@@ -56,7 +56,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 	if (! access_ok (VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	if (op == FUTEX_OP_SET)
+ 		__futex_atomic_op1("xchgl %0, %2", ret, oldval, uaddr, oparg);
+@@ -88,7 +88,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 		}
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/asm-ia64/futex.h~mm-pagefault_disableenable include/asm-ia64/futex.h
+--- a/include/asm-ia64/futex.h~mm-pagefault_disableenable
++++ a/include/asm-ia64/futex.h
+@@ -59,7 +59,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 	if (! access_ok (VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -83,7 +83,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 		ret = -ENOSYS;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/asm-mips/futex.h~mm-pagefault_disableenable include/asm-mips/futex.h
+--- a/include/asm-mips/futex.h~mm-pagefault_disableenable
++++ a/include/asm-mips/futex.h
+@@ -88,7 +88,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 	if (! access_ok (VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -115,7 +115,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 		ret = -ENOSYS;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/asm-parisc/futex.h~mm-pagefault_disableenable include/asm-parisc/futex.h
+--- a/include/asm-parisc/futex.h~mm-pagefault_disableenable
++++ a/include/asm-parisc/futex.h
+@@ -21,7 +21,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 	if (! access_ok (VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -33,7 +33,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 		ret = -ENOSYS;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/asm-powerpc/futex.h~mm-pagefault_disableenable include/asm-powerpc/futex.h
+--- a/include/asm-powerpc/futex.h~mm-pagefault_disableenable
++++ a/include/asm-powerpc/futex.h
+@@ -43,7 +43,7 @@ static inline int futex_atomic_op_inuser
+ 	if (! access_ok (VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -65,7 +65,7 @@ static inline int futex_atomic_op_inuser
+ 		ret = -ENOSYS;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/asm-ppc/highmem.h~mm-pagefault_disableenable include/asm-ppc/highmem.h
+--- a/include/asm-ppc/highmem.h~mm-pagefault_disableenable
++++ a/include/asm-ppc/highmem.h
+@@ -79,7 +79,7 @@ static inline void *kmap_atomic(struct p
+ 	unsigned long vaddr;
+ 
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+-	inc_preempt_count();
++	pagefault_disable();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
+@@ -101,8 +101,7 @@ static inline void kunmap_atomic(void *k
+ 	unsigned int idx = type + KM_TYPE_NR*smp_processor_id();
+ 
+ 	if (vaddr < KMAP_FIX_BEGIN) { // FIXME
+-		dec_preempt_count();
+-		preempt_check_resched();
++		pagefault_enable();
+ 		return;
+ 	}
+ 
+@@ -115,8 +114,7 @@ static inline void kunmap_atomic(void *k
+ 	pte_clear(&init_mm, vaddr, kmap_pte+idx);
+ 	flush_tlb_page(NULL, vaddr);
+ #endif
+-	dec_preempt_count();
+-	preempt_check_resched();
++	pagefault_enable();
+ }
+ 
+ static inline struct page *kmap_atomic_to_page(void *ptr)
+diff -puN include/asm-sparc64/futex.h~mm-pagefault_disableenable include/asm-sparc64/futex.h
+--- a/include/asm-sparc64/futex.h~mm-pagefault_disableenable
++++ a/include/asm-sparc64/futex.h
+@@ -45,7 +45,7 @@ static inline int futex_atomic_op_inuser
+ 	if (encoded_op & (FUTEX_OP_OPARG_SHIFT << 28))
+ 		oparg = 1 << oparg;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -67,7 +67,7 @@ static inline int futex_atomic_op_inuser
+ 		ret = -ENOSYS;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/asm-x86_64/futex.h~mm-pagefault_disableenable include/asm-x86_64/futex.h
+--- a/include/asm-x86_64/futex.h~mm-pagefault_disableenable
++++ a/include/asm-x86_64/futex.h
+@@ -55,7 +55,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 	if (! access_ok (VERIFY_WRITE, uaddr, sizeof(int)))
+ 		return -EFAULT;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 
+ 	switch (op) {
+ 	case FUTEX_OP_SET:
+@@ -78,7 +78,7 @@ futex_atomic_op_inuser (int encoded_op, 
+ 		ret = -ENOSYS;
+ 	}
+ 
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (!ret) {
+ 		switch (cmp) {
+diff -puN include/linux/uaccess.h~mm-pagefault_disableenable include/linux/uaccess.h
+--- a/include/linux/uaccess.h~mm-pagefault_disableenable
++++ a/include/linux/uaccess.h
+@@ -1,8 +1,43 @@
+ #ifndef __LINUX_UACCESS_H__
+ #define __LINUX_UACCESS_H__
+ 
++#include <linux/preempt.h>
+ #include <asm/uaccess.h>
+ 
++/*
++ * These routines enable/disable the pagefault handler in that
++ * it will not take any locks and go straight to the fixup table.
++ *
++ * They have great resemblance to the preempt_disable/enable calls
++ * and in fact they are identical; this is because currently there is
++ * no other way to make the pagefault handlers do this. So we do
++ * disable preemption but we don't necessarily care about that.
++ */
++static inline void pagefault_disable(void)
++{
++	inc_preempt_count();
++	/*
++	 * make sure to have issued the store before a pagefault
++	 * can hit.
++	 */
++	barrier();
++}
 +
- /*
-  * This struct defines the per-mm list of VMAs for uClinux. If CONFIG_MMU is
-  * disabled, then there's a single shared list of VMAs maintained by the
-diff -puN include/linux/slab.h~move-vm_area_cachep-to-include-mmh include/linux/slab.h
---- a/include/linux/slab.h~move-vm_area_cachep-to-include-mmh
-+++ a/include/linux/slab.h
-@@ -309,7 +309,6 @@ static inline void *kcalloc(size_t n, si
- #endif /* CONFIG_SLOB */
++static inline void pagefault_enable(void)
++{
++	/*
++	 * make sure to issue those last loads/stores before enabling
++	 * the pagefault handler again.
++	 */
++	barrier();
++	dec_preempt_count();
++	/*
++	 * make sure we do..
++	 */
++	barrier();
++	preempt_check_resched();
++}
++
+ #ifndef ARCH_HAS_NOCACHE_UACCESS
  
- /* System wide caches */
--extern kmem_cache_t	*vm_area_cachep;
- extern kmem_cache_t	*names_cachep;
- extern kmem_cache_t	*files_cachep;
- extern kmem_cache_t	*filp_cachep;
+ static inline unsigned long __copy_from_user_inatomic_nocache(void *to,
+@@ -35,9 +70,9 @@ static inline unsigned long __copy_from_
+ 	({						\
+ 		long ret;				\
+ 							\
+-		inc_preempt_count();			\
++		pagefault_disable();			\
+ 		ret = __get_user(retval, addr);		\
+-		dec_preempt_count();			\
++		pagefault_enable();			\
+ 		ret;					\
+ 	})
+ 
+diff -puN kernel/futex.c~mm-pagefault_disableenable kernel/futex.c
+--- a/kernel/futex.c~mm-pagefault_disableenable
++++ a/kernel/futex.c
+@@ -282,9 +282,9 @@ static inline int get_futex_value_locked
+ {
+ 	int ret;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 	ret = __copy_from_user_inatomic(dest, from, sizeof(u32));
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	return ret ? -EFAULT : 0;
+ }
+@@ -585,9 +585,9 @@ static int wake_futex_pi(u32 __user *uad
+ 	if (!(uval & FUTEX_OWNER_DIED)) {
+ 		newval = FUTEX_WAITERS | new_owner->pid;
+ 
+-		inc_preempt_count();
++		pagefault_disable();
+ 		curval = futex_atomic_cmpxchg_inatomic(uaddr, uval, newval);
+-		dec_preempt_count();
++		pagefault_enable();
+ 		if (curval == -EFAULT)
+ 			return -EFAULT;
+ 		if (curval != uval)
+@@ -618,9 +618,9 @@ static int unlock_futex_pi(u32 __user *u
+ 	 * There is no waiter, so we unlock the futex. The owner died
+ 	 * bit has not to be preserved here. We are the owner:
+ 	 */
+-	inc_preempt_count();
++	pagefault_disable();
+ 	oldval = futex_atomic_cmpxchg_inatomic(uaddr, uval, 0);
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (oldval == -EFAULT)
+ 		return oldval;
+@@ -1158,9 +1158,9 @@ static int futex_lock_pi(u32 __user *uad
+ 	 */
+ 	newval = current->pid;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 	curval = futex_atomic_cmpxchg_inatomic(uaddr, 0, newval);
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (unlikely(curval == -EFAULT))
+ 		goto uaddr_faulted;
+@@ -1183,9 +1183,9 @@ static int futex_lock_pi(u32 __user *uad
+ 	uval = curval;
+ 	newval = uval | FUTEX_WAITERS;
+ 
+-	inc_preempt_count();
++	pagefault_disable();
+ 	curval = futex_atomic_cmpxchg_inatomic(uaddr, uval, newval);
+-	dec_preempt_count();
++	pagefault_enable();
+ 
+ 	if (unlikely(curval == -EFAULT))
+ 		goto uaddr_faulted;
+@@ -1215,10 +1215,10 @@ static int futex_lock_pi(u32 __user *uad
+ 			newval = current->pid |
+ 				FUTEX_OWNER_DIED | FUTEX_WAITERS;
+ 
+-			inc_preempt_count();
++			pagefault_disable();
+ 			curval = futex_atomic_cmpxchg_inatomic(uaddr,
+ 							       uval, newval);
+-			dec_preempt_count();
++			pagefault_enable();
+ 
+ 			if (unlikely(curval == -EFAULT))
+ 				goto uaddr_faulted;
+@@ -1390,9 +1390,9 @@ retry_locked:
+ 	 * anyone else up:
+ 	 */
+ 	if (!(uval & FUTEX_OWNER_DIED)) {
+-		inc_preempt_count();
++		pagefault_disable();
+ 		uval = futex_atomic_cmpxchg_inatomic(uaddr, current->pid, 0);
+-		dec_preempt_count();
++		pagefault_enable();
+ 	}
+ 
+ 	if (unlikely(uval == -EFAULT))
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
-ia64-resolve-name-clash-by-renaming-is_available_memory.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
-optional-zone_dma-for-ia64.patch
-remove-zone_dma-remains-from-parisc.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-set-config_zone_dma-for-arches-with-generic_isa_dma.patch
-zoneid-fix-up-calculations-for-zoneid_pgshift.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-sched-domain-move-sched-group-allocations-to-percpu-area.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
+tty-signal-tty-locking.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+tty-signal-tty-locking-3270-fix.patch
+do_task_stat-dont-take-tty_mutex.patch
+do_acct_process-dont-take-tty_mutex.patch
+sys_unshare-remove-a-broken-clone_sighand-code.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+bdev-fix-bd_part_count-leak.patch
+lockdep-annotate-nfsd4-recover-code.patch
 
