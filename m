@@ -1,80 +1,61 @@
 From: akpm@osdl.org
-Subject: - remove-kernel-lockdepclockdep_internal.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:05:56 -0800
-Message-ID: <200612072305.kB7N5ubl030188@shell0.pdx.osdl.net>
+Subject: - make-kernel-signalckill_proc_info-static.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:00 -0800
+Message-ID: <200612072306.kB7N60xw030197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52956 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52955 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163972AbWLGXJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1163970AbWLGXJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 7 Dec 2006 18:09:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove kernel/lockdep.c:lockdep_internal
+     make kernel/signal.c:kill_proc_info() static
 has been removed from the -mm tree.  Its filename was
-     remove-kernel-lockdepclockdep_internal.patch
+     make-kernel-signalckill_proc_info-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove kernel/lockdep.c:lockdep_internal
+Subject: make kernel/signal.c:kill_proc_info() static
 From: Adrian Bunk <bunk@stusta.de>
 
-Remove the no longer used lockdep_internal().
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/lockdep.h |    6 ------
- kernel/lockdep.c        |    7 -------
- 2 files changed, 13 deletions(-)
+ include/linux/sched.h |    1 -
+ kernel/signal.c       |    3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/lockdep.h~remove-kernel-lockdepclockdep_internal include/linux/lockdep.h
---- a/include/linux/lockdep.h~remove-kernel-lockdepclockdep_internal
-+++ a/include/linux/lockdep.h
-@@ -193,7 +193,6 @@ extern void lockdep_free_key_range(void 
- 
- extern void lockdep_off(void);
- extern void lockdep_on(void);
--extern int lockdep_internal(void);
- 
- /*
-  * These methods are used by specific locking variants (spinlocks,
-@@ -255,11 +254,6 @@ static inline void lockdep_on(void)
- {
+diff -puN include/linux/sched.h~make-kernel-signalckill_proc_info-static include/linux/sched.h
+--- a/include/linux/sched.h~make-kernel-signalckill_proc_info-static
++++ a/include/linux/sched.h
+@@ -1305,7 +1305,6 @@ extern int kill_pgrp(struct pid *pid, in
+ extern int kill_pid(struct pid *pid, int sig, int priv);
+ extern int __kill_pg_info(int sig, struct siginfo *info, pid_t pgrp);
+ extern int kill_pg_info(int, struct siginfo *, pid_t);
+-extern int kill_proc_info(int, struct siginfo *, pid_t);
+ extern void do_notify_parent(struct task_struct *, int);
+ extern void force_sig(int, struct task_struct *);
+ extern void force_sig_specific(int, struct task_struct *);
+diff -puN kernel/signal.c~make-kernel-signalckill_proc_info-static kernel/signal.c
+--- a/kernel/signal.c~make-kernel-signalckill_proc_info-static
++++ a/kernel/signal.c
+@@ -1134,8 +1134,7 @@ int kill_pid_info(int sig, struct siginf
+ 	return error;
  }
  
--static inline int lockdep_internal(void)
--{
--	return 0;
--}
--
- # define lock_acquire(l, s, t, r, c, i)		do { } while (0)
- # define lock_release(l, n, i)			do { } while (0)
- # define lockdep_init()				do { } while (0)
-diff -puN kernel/lockdep.c~remove-kernel-lockdepclockdep_internal kernel/lockdep.c
---- a/kernel/lockdep.c~remove-kernel-lockdepclockdep_internal
-+++ a/kernel/lockdep.c
-@@ -140,13 +140,6 @@ void lockdep_on(void)
- 
- EXPORT_SYMBOL(lockdep_on);
- 
--int lockdep_internal(void)
--{
--	return current->lockdep_recursion != 0;
--}
--
--EXPORT_SYMBOL(lockdep_internal);
--
- /*
-  * Debugging switches:
-  */
+-int
+-kill_proc_info(int sig, struct siginfo *info, pid_t pid)
++static int kill_proc_info(int sig, struct siginfo *info, pid_t pid)
+ {
+ 	int error;
+ 	rcu_read_lock();
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
