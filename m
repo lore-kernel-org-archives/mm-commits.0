@@ -1,226 +1,171 @@
 From: akpm@osdl.org
-Subject: - rtc-rs5c372-change-register-reading-method.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:07:52 -0800
-Message-ID: <200612072307.kB7N7qe7030404@shell0.pdx.osdl.net>
+Subject: - fs-trivial-vsnprintf-conversion.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:03:41 -0800
+Message-ID: <200612072303.kB7N3foT029979@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52848 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52880 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163963AbWLGXIL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:08:11 -0500
+	id S1163965AbWLGXIX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:08:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riku.voipio@movial.fi, alessandro.zummo@towertech.it, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mark.fasheh@oracle.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-rs5c372: change register reading method
+     fs/*: trivial vsnprintf() conversion
 has been removed from the -mm tree.  Its filename was
-     rtc-rs5c372-change-register-reading-method.patch
+     fs-trivial-vsnprintf-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-rs5c372: change register reading method
-From: Riku Voipio <riku.voipio@movial.fi>
+Subject: fs/*: trivial vsnprintf() conversion
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-According to the datasheet rs5c372 supports three different methods for
-reading register values.  Change from method #1 to method #3, since method #3
-is the only one that works on Thecus N2100 board with this RTC.  
+It would very lame to get buffer overflow via one of the following.
 
-Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/rtc-rs5c372.c |   84 ++++++++++++++++++------------------
- 1 file changed, 44 insertions(+), 40 deletions(-)
+ fs/adfs/super.c    |    2 +-
+ fs/affs/amigaffs.c |    4 ++--
+ fs/jfs/super.c     |    2 +-
+ fs/ocfs2/super.c   |    4 ++--
+ fs/udf/super.c     |    4 ++--
+ fs/ufs/super.c     |    6 +++---
+ 6 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rs5c372-change-register-reading-method drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtc-rs5c372-change-register-reading-method
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -13,7 +13,7 @@
- #include <linux/rtc.h>
- #include <linux/bcd.h>
+diff -puN fs/adfs/super.c~fs-trivial-vsnprintf-conversion fs/adfs/super.c
+--- a/fs/adfs/super.c~fs-trivial-vsnprintf-conversion
++++ a/fs/adfs/super.c
+@@ -36,7 +36,7 @@ void __adfs_error(struct super_block *sb
+ 	va_list args;
  
--#define DRV_VERSION "0.2"
-+#define DRV_VERSION "0.3"
+ 	va_start(args, fmt);
+-	vsprintf(error_buf, fmt, args);
++	vsnprintf(error_buf, sizeof(error_buf), fmt, args);
+ 	va_end(args);
  
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { /* 0x32,*/ I2C_CLIENT_END };
-@@ -39,6 +39,14 @@ static int rs5c372_attach(struct i2c_ada
- static int rs5c372_detach(struct i2c_client *client);
- static int rs5c372_probe(struct i2c_adapter *adapter, int address, int kind);
+ 	printk(KERN_CRIT "ADFS-fs error (device %s)%s%s: %s\n",
+diff -puN fs/affs/amigaffs.c~fs-trivial-vsnprintf-conversion fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-trivial-vsnprintf-conversion
++++ a/fs/affs/amigaffs.c
+@@ -445,7 +445,7 @@ affs_error(struct super_block *sb, const
+ 	va_list	 args;
  
-+struct rs5c372 {
-+	u8 reg_addr;
-+	u8 regs[17];
-+	struct i2c_msg msg[1];
-+	struct i2c_client client;
-+	struct rtc_device *rtc;
-+};
-+
- static struct i2c_driver rs5c372_driver = {
- 	.driver		= {
- 		.name	= "rs5c372",
-@@ -49,18 +57,16 @@ static struct i2c_driver rs5c372_driver 
+ 	va_start(args,fmt);
+-	vsprintf(ErrorBuffer,fmt,args);
++	vsnprintf(ErrorBuffer,sizeof(ErrorBuffer),fmt,args);
+ 	va_end(args);
  
- static int rs5c372_get_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
--	unsigned char buf[7] = { RS5C372_REG_BASE };
+ 	printk(KERN_CRIT "AFFS error (device %s): %s(): %s\n", sb->s_id,
+@@ -461,7 +461,7 @@ affs_warning(struct super_block *sb, con
+ 	va_list	 args;
  
--	/* this implements the 1st reading method, according
--	 * to the datasheet. buf[0] is initialized with
--	 * address ptr and transmission format register.
-+	struct rs5c372 *rs5c372 = i2c_get_clientdata(client);
-+	u8 *buf = &(rs5c372->regs[1]);
-+
-+	/* this implements the 3rd reading method, according
-+	 * to the datasheet. rs5c372 defaults to internal
-+	 * address 0xF, so 0x0 is in regs[1]
- 	 */
--	struct i2c_msg msgs[] = {
--		{ client->addr, 0, 1, buf },
--		{ client->addr, I2C_M_RD, 7, buf },
--	};
+ 	va_start(args,fmt);
+-	vsprintf(ErrorBuffer,fmt,args);
++	vsnprintf(ErrorBuffer,sizeof(ErrorBuffer),fmt,args);
+ 	va_end(args);
  
--	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
-+	if ((i2c_transfer(client->adapter, rs5c372->msg, 1)) != 1) {
- 		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
- 		return -EIO;
+ 	printk(KERN_WARNING "AFFS warning (device %s): %s(): %s\n", sb->s_id,
+diff -puN fs/jfs/super.c~fs-trivial-vsnprintf-conversion fs/jfs/super.c
+--- a/fs/jfs/super.c~fs-trivial-vsnprintf-conversion
++++ a/fs/jfs/super.c
+@@ -93,7 +93,7 @@ void jfs_error(struct super_block *sb, c
+ 	va_list args;
+ 
+ 	va_start(args, function);
+-	vsprintf(error_buf, function, args);
++	vsnprintf(error_buf, sizeof(error_buf), function, args);
+ 	va_end(args);
+ 
+ 	printk(KERN_ERR "ERROR: (device %s): %s\n", sb->s_id, error_buf);
+diff -puN fs/ocfs2/super.c~fs-trivial-vsnprintf-conversion fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~fs-trivial-vsnprintf-conversion
++++ a/fs/ocfs2/super.c
+@@ -1674,7 +1674,7 @@ void __ocfs2_error(struct super_block *s
+ 	va_list args;
+ 
+ 	va_start(args, fmt);
+-	vsprintf(error_buf, fmt, args);
++	vsnprintf(error_buf, sizeof(error_buf), fmt, args);
+ 	va_end(args);
+ 
+ 	/* Not using mlog here because we want to show the actual
+@@ -1695,7 +1695,7 @@ void __ocfs2_abort(struct super_block* s
+ 	va_list args;
+ 
+ 	va_start(args, fmt);
+-	vsprintf(error_buf, fmt, args);
++	vsnprintf(error_buf, sizeof(error_buf), fmt, args);
+ 	va_end(args);
+ 
+ 	printk(KERN_CRIT "OCFS2: abort (device %s): %s: %s\n",
+diff -puN fs/udf/super.c~fs-trivial-vsnprintf-conversion fs/udf/super.c
+--- a/fs/udf/super.c~fs-trivial-vsnprintf-conversion
++++ a/fs/udf/super.c
+@@ -1709,7 +1709,7 @@ void udf_error(struct super_block *sb, c
+ 		sb->s_dirt = 1;
  	}
-@@ -114,23 +120,14 @@ static int rs5c372_set_datetime(struct i
+ 	va_start(args, fmt);
+-	vsprintf(error_buf, fmt, args);
++	vsnprintf(error_buf, sizeof(error_buf), fmt, args);
+ 	va_end(args);
+ 	printk (KERN_CRIT "UDF-fs error (device %s): %s: %s\n",
+ 		sb->s_id, function, error_buf);
+@@ -1721,7 +1721,7 @@ void udf_warning(struct super_block *sb,
+ 	va_list args;
  
- static int rs5c372_get_trim(struct i2c_client *client, int *osc, int *trim)
- {
--	unsigned char buf = RS5C372_REG_TRIM;
--
--	struct i2c_msg msgs[] = {
--		{ client->addr, 0, 1, &buf },
--		{ client->addr, I2C_M_RD, 1, &buf },
--	};
--
--	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
--		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
--		return -EIO;
--	}
-+	struct rs5c372 *rs5c372 = i2c_get_clientdata(client);
-+	u8 tmp = rs5c372->regs[RS5C372_REG_TRIM + 1];
- 
- 	if (osc)
--		*osc = (buf & RS5C372_TRIM_XSL) ? 32000 : 32768;
-+		*osc = (tmp & RS5C372_TRIM_XSL) ? 32000 : 32768;
- 
- 	if (trim) {
--		*trim = buf & RS5C372_TRIM_MASK;
-+		*trim = tmp & RS5C372_TRIM_MASK;
- 		dev_dbg(&client->dev, "%s: raw trim=%x\n", __FUNCTION__, *trim);
+ 	va_start (args, fmt);
+-	vsprintf(error_buf, fmt, args);
++	vsnprintf(error_buf, sizeof(error_buf), fmt, args);
+ 	va_end(args);
+ 	printk(KERN_WARNING "UDF-fs warning (device %s): %s: %s\n",
+ 		sb->s_id, function, error_buf);
+diff -puN fs/ufs/super.c~fs-trivial-vsnprintf-conversion fs/ufs/super.c
+--- a/fs/ufs/super.c~fs-trivial-vsnprintf-conversion
++++ a/fs/ufs/super.c
+@@ -224,7 +224,7 @@ void ufs_error (struct super_block * sb,
+ 		sb->s_flags |= MS_RDONLY;
  	}
- 
-@@ -201,7 +198,7 @@ static int rs5c372_probe(struct i2c_adap
- {
- 	int err = 0;
- 	struct i2c_client *client;
--	struct rtc_device *rtc;
-+	struct rs5c372 *rs5c372;
- 
- 	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
- 
-@@ -210,10 +207,11 @@ static int rs5c372_probe(struct i2c_adap
- 		goto exit;
+ 	va_start (args, fmt);
+-	vsprintf (error_buf, fmt, args);
++	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
+ 	va_end (args);
+ 	switch (UFS_SB(sb)->s_mount_opt & UFS_MOUNT_ONERROR) {
+ 	case UFS_MOUNT_ONERROR_PANIC:
+@@ -255,7 +255,7 @@ void ufs_panic (struct super_block * sb,
+ 		sb->s_dirt = 1;
  	}
+ 	va_start (args, fmt);
+-	vsprintf (error_buf, fmt, args);
++	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
+ 	va_end (args);
+ 	sb->s_flags |= MS_RDONLY;
+ 	printk (KERN_CRIT "UFS-fs panic (device %s): %s: %s\n",
+@@ -268,7 +268,7 @@ void ufs_warning (struct super_block * s
+ 	va_list args;
  
--	if (!(client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL))) {
-+	if (!(rs5c372 = kzalloc(sizeof(struct rs5c372), GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto exit;
- 	}
-+	client = &rs5c372->client;
- 
- 	/* I2C client */
- 	client->addr = address;
-@@ -222,26 +220,33 @@ static int rs5c372_probe(struct i2c_adap
- 
- 	strlcpy(client->name, rs5c372_driver.driver.name, I2C_NAME_SIZE);
- 
-+	i2c_set_clientdata(client, rs5c372);
-+
-+	rs5c372->msg[0].addr = address;
-+	rs5c372->msg[0].flags = I2C_M_RD;
-+	rs5c372->msg[0].len = sizeof(rs5c372->regs);
-+	rs5c372->msg[0].buf = rs5c372->regs;
-+
- 	/* Inform the i2c layer */
- 	if ((err = i2c_attach_client(client)))
- 		goto exit_kfree;
- 
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
- 
--	rtc = rtc_device_register(rs5c372_driver.driver.name, &client->dev,
--				&rs5c372_rtc_ops, THIS_MODULE);
-+	rs5c372->rtc = rtc_device_register(rs5c372_driver.driver.name,
-+				&client->dev, &rs5c372_rtc_ops, THIS_MODULE);
- 
--	if (IS_ERR(rtc)) {
--		err = PTR_ERR(rtc);
-+	if (IS_ERR(rs5c372->rtc)) {
-+		err = PTR_ERR(rs5c372->rtc);
- 		goto exit_detach;
- 	}
- 
--	i2c_set_clientdata(client, rtc);
--
- 	err = device_create_file(&client->dev, &dev_attr_trim);
--	if (err) goto exit_devreg;
-+	if (err)
-+		goto exit_devreg;
- 	err = device_create_file(&client->dev, &dev_attr_osc);
--	if (err) goto exit_trim;
-+	if (err)
-+		goto exit_trim;
- 
- 	return 0;
- 
-@@ -249,13 +254,13 @@ exit_trim:
- 	device_remove_file(&client->dev, &dev_attr_trim);
- 
- exit_devreg:
--	rtc_device_unregister(rtc);
-+	rtc_device_unregister(rs5c372->rtc);
- 
- exit_detach:
- 	i2c_detach_client(client);
- 
- exit_kfree:
--	kfree(client);
-+	kfree(rs5c372);
- 
- exit:
- 	return err;
-@@ -264,16 +269,15 @@ exit:
- static int rs5c372_detach(struct i2c_client *client)
- {
- 	int err;
--	struct rtc_device *rtc = i2c_get_clientdata(client);
-+	struct rs5c372 *rs5c372 = i2c_get_clientdata(client);
- 
--	if (rtc)
--		rtc_device_unregister(rtc);
-+	if (rs5c372->rtc)
-+		rtc_device_unregister(rs5c372->rtc);
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
- 
--	kfree(client);
--
-+	kfree(rs5c372);
- 	return 0;
- }
- 
+ 	va_start (args, fmt);
+-	vsprintf (error_buf, fmt, args);
++	vsnprintf (error_buf, sizeof(error_buf), fmt, args);
+ 	va_end (args);
+ 	printk (KERN_WARNING "UFS-fs warning (device %s): %s: %s\n",
+ 		sb->s_id, function, error_buf);
 _
 
-Patches currently in -mm which might be from riku.voipio@movial.fi are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+git-cpufreq.patch
+git-ieee1394.patch
+git-mtd.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-isdn-trivial-vsnprintf-conversion.patch
+drivers-video-use-kmemdup.patch
 
