@@ -1,71 +1,54 @@
 From: akpm@osdl.org
-Subject: + s390-workqueue-fixes.patch added to -mm tree
-Date: Wed, 06 Dec 2006 16:55:54 -0800
-Message-ID: <200612070057.kB70v5bv023442@shell0.pdx.osdl.net>
+Subject: + uml-workqueue-build-fix.patch added to -mm tree
+Date: Wed, 06 Dec 2006 17:20:15 -0800
+Message-ID: <200612070121.kB71LRbo024168@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60596 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34064 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937876AbWLGA5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 19:57:43 -0500
+	id S937901AbWLGBVm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 20:21:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dhowells@redhat.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@osdl.org, dhowells@redhat.com, jdike@addtoit.com
 
 
 The patch titled
-     s390 workqueue fixes
+     uml-workqueue-build-fix
 has been added to the -mm tree.  Its filename is
-     s390-workqueue-fixes.patch
+     uml-workqueue-build-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s390 workqueue fixes
+Subject: uml-workqueue-build-fix
 From: Andrew Morton <akpm@osdl.org>
 
+arch/um/drivers/chan_kern.c:643: error: conflicting types for 'chan_interrupt'
+arch/um/include/chan_kern.h:31: error: previous declaration of 'chan_interrupt' 
+
 Cc: David Howells <dhowells@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/s390/char/ctrlchar.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/um/include/chan_kern.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/char/ctrlchar.c~s390-workqueue-fixes drivers/s390/char/ctrlchar.c
---- a/drivers/s390/char/ctrlchar.c~s390-workqueue-fixes
-+++ a/drivers/s390/char/ctrlchar.c
-@@ -16,14 +16,15 @@
+diff -puN arch/um/include/chan_kern.h~uml-workqueue-build-fix arch/um/include/chan_kern.h
+--- a/arch/um/include/chan_kern.h~uml-workqueue-build-fix
++++ a/arch/um/include/chan_kern.h
+@@ -27,7 +27,7 @@ struct chan {
+ 	void *data;
+ };
  
- #ifdef CONFIG_MAGIC_SYSRQ
- static int ctrlchar_sysrq_key;
-+static struct tty_struct *sysrq_tty;
- 
- static void
--ctrlchar_handle_sysrq(void *tty)
-+ctrlchar_handle_sysrq(struct work_struct *work)
- {
--	handle_sysrq(ctrlchar_sysrq_key, (struct tty_struct *) tty);
-+	handle_sysrq(ctrlchar_sysrq_key, sysrq_tty);
- }
- 
--static DECLARE_WORK(ctrlchar_work, ctrlchar_handle_sysrq, NULL);
-+static DECLARE_WORK(ctrlchar_work, ctrlchar_handle_sysrq);
- #endif
- 
- 
-@@ -53,7 +54,7 @@ ctrlchar_handle(const unsigned char *buf
- 	/* racy */
- 	if (len == 3 && buf[1] == '-') {
- 		ctrlchar_sysrq_key = buf[2];
--		ctrlchar_work.data = tty;
-+		sysrq_tty = tty;
- 		schedule_work(&ctrlchar_work);
- 		return CTRLCHAR_SYSRQ;
- 	}
+-extern void chan_interrupt(struct list_head *chans, struct work_struct *task,
++extern void chan_interrupt(struct list_head *chans, struct delayed_work *task,
+ 			   struct tty_struct *tty, int irq);
+ extern int parse_chan_pair(char *str, struct line *line, int device,
+ 			   const struct chan_opts *opts);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -127,6 +110,7 @@ ioat-warning-fix.patch
 pci-fix-multiple-problems-with-via-hardware.patch
 fix-gregkh-pci-pci-enable-disable-device-is-nestable.patch
 git-s390.patch
+s390-workqueue-fixes.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-in2000-scsi_cmnd-convertion.patch
 aic79xx-wrong-max-memory-at-driver-init.patch
@@ -299,5 +283,5 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-s390-workqueue-fixes.patch
+uml-workqueue-build-fix.patch
 
