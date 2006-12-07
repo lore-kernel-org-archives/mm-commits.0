@@ -1,76 +1,123 @@
 From: akpm@osdl.org
-Subject: - gfp_thisnode-must-not-trigger-global-reclaim.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:58:26 -0800
-Message-ID: <200612072258.kB7MwQDY029398@shell0.pdx.osdl.net>
+Subject: - slab-fixup-two-issues-in-kmalloc_node--__cache_alloc_node.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:58:24 -0800
+Message-ID: <200612072258.kB7MwOvA029395@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50744 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50734 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163645AbWLGW63 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:58:29 -0500
+	id S1163646AbWLGW61 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:58:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GFP_THISNODE must not trigger global reclaim
+     slab: fix two issues in kmalloc_node / __cache_alloc_node
 has been removed from the -mm tree.  Its filename was
-     gfp_thisnode-must-not-trigger-global-reclaim.patch
+     slab-fixup-two-issues-in-kmalloc_node--__cache_alloc_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: GFP_THISNODE must not trigger global reclaim
+Subject: slab: fix two issues in kmalloc_node / __cache_alloc_node
 From: Christoph Lameter <clameter@sgi.com>
 
-The intent of GFP_THISNODE is to make sure that an allocation occurs on a
-particular node.  If this is not possible then NULL needs to be returned so
-that the caller can choose what to do next on its own (the slab allocator
-depends on that).
+This addresses two issues:
 
-However, GFP_THISNODE currently triggers reclaim before returning a failure
-(GFP_THISNODE means GFP_NORETRY is set).  If we have over allocated a node
-then we will currently do some reclaim before returning NULL.  The caller
-may want memory from other nodes before reclaim should be triggered.  (If
-the caller wants reclaim then he can directly use __GFP_THISNODE instead).
+1. Kmalloc_node() may intermittently return NULL if we are allocating
+   from the current node and are unable to obtain memory for the current
+   node from the page allocator.  This is because we call ___cache_alloc()
+   if nodeid == numa_node_id() and ____cache_alloc is not able to fallback
+   to other nodes.
 
-There is no flag to avoid reclaim in the page allocator and adding yet
-another GFP_xx flag would be difficult given that we are out of available
-flags.
+   This was introduced in the 2.6.19 development cycle.  <= 2.6.18 in
+   that case does not do a restricted allocation and blindly trusts the
+   page allocator to have given us memory from the indicated node.  It
+   inserts the page regardless of the node it came from into the queues for
+   the current node.
 
-So just compare and see if all bits for GFP_THISNODE (__GFP_THISNODE,
-__GFP_NORETRY and __GFP_NOWARN) are set.  If so then we return NULL before
-waking up kswapd.
+2. If kmalloc_node() is used on a node that has not been bootstrapped
+   yet then we may try to pass an invalid node number to
+   ____cache_alloc_node() triggering a BUG().
+
+   Change the function to call fallback_alloc() instead.  Only call
+   fallback_alloc() if we are allowed to fallback at all.  The need to
+   handle a node not bootstrapped yet also first surfaced in the 2.6.19
+   cycle.
+
+Update the comments since they were still describing the old kmalloc_node
+from 2.6.12.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/slab.c |   40 ++++++++++++++++++++++++++++------------
+ 1 file changed, 28 insertions(+), 12 deletions(-)
 
-diff -puN mm/page_alloc.c~gfp_thisnode-must-not-trigger-global-reclaim mm/page_alloc.c
---- a/mm/page_alloc.c~gfp_thisnode-must-not-trigger-global-reclaim
-+++ a/mm/page_alloc.c
-@@ -1151,6 +1151,17 @@ restart:
- 	if (page)
- 		goto got_pg;
+diff -puN mm/slab.c~slab-fixup-two-issues-in-kmalloc_node--__cache_alloc_node mm/slab.c
+--- a/mm/slab.c~slab-fixup-two-issues-in-kmalloc_node--__cache_alloc_node
++++ a/mm/slab.c
+@@ -3459,29 +3459,45 @@ out:
+  * @flags: See kmalloc().
+  * @nodeid: node number of the target node.
+  *
+- * Identical to kmem_cache_alloc, except that this function is slow
+- * and can sleep. And it will allocate memory on the given node, which
+- * can improve the performance for cpu bound structures.
+- * New and improved: it will now make sure that the object gets
+- * put on the correct node list so that there is no false sharing.
++ * Identical to kmem_cache_alloc but it will allocate memory on the given
++ * node, which can improve the performance for cpu bound structures.
++ *
++ * Fallback to other node is possible if __GFP_THISNODE is not set.
+  */
+ static __always_inline void *
+ __cache_alloc_node(struct kmem_cache *cachep, gfp_t flags,
+ 		int nodeid, void *caller)
+ {
+ 	unsigned long save_flags;
+-	void *ptr;
++	void *ptr = NULL;
  
-+	/*
-+	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
-+	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
-+	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
-+	 * using a larger set of nodes after it has established that the
-+	 * allowed per node queues are empty and that nodes are
-+	 * over allocated.
-+	 */
-+	if (NUMA_BUILD && (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
-+		goto nopage;
+ 	cache_alloc_debugcheck_before(cachep, flags);
+ 	local_irq_save(save_flags);
+ 
+-	if (nodeid == -1 || nodeid == numa_node_id() ||
+-			!cachep->nodelists[nodeid])
+-		ptr = ____cache_alloc(cachep, flags);
+-	else
+-		ptr = ____cache_alloc_node(cachep, flags, nodeid);
+-	local_irq_restore(save_flags);
++	if (unlikely(nodeid == -1))
++		nodeid = numa_node_id();
 +
- 	for (z = zonelist->zones; *z; z++)
- 		wakeup_kswapd(*z, order);
++	if (likely(cachep->nodelists[nodeid])) {
++		if (nodeid == numa_node_id()) {
++			/*
++			 * Use the locally cached objects if possible.
++			 * However ____cache_alloc does not allow fallback
++			 * to other nodes. It may fail while we still have
++			 * objects on other nodes available.
++			 */
++			ptr = ____cache_alloc(cachep, flags);
++		}
++		if (!ptr) {
++			/* ___cache_alloc_node can fall back to other nodes */
++			ptr = ____cache_alloc_node(cachep, flags, nodeid);
++		}
++	} else {
++		/* Node not bootstrapped yet */
++		if (!(flags & __GFP_THISNODE))
++			ptr = fallback_alloc(cachep, flags);
++	}
  
++	local_irq_restore(save_flags);
+ 	ptr = cache_alloc_debugcheck_after(cachep, flags, ptr, caller);
+ 
+ 	return ptr;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
