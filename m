@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + lockdep-filter-off-by-default.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:32:19 -0800
-Message-ID: <200612072032.kB7KWJJw024662@shell0.pdx.osdl.net>
+Subject: + lockdep-improve-lockdep_reset.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:32:23 -0800
+Message-ID: <200612072032.kB7KWN9n024668@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36491 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36502 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163300AbWLGUc0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:32:26 -0500
+	id S1163305AbWLGUc3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:32:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,40 +15,47 @@ Cc: mingo@elte.hu
 
 
 The patch titled
-     lockdep: filter off by default
+     lockdep: improve lockdep_reset()
 has been added to the -mm tree.  Its filename is
-     lockdep-filter-off-by-default.patch
+     lockdep-improve-lockdep_reset.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep: filter off by default
+Subject: lockdep: improve lockdep_reset()
 From: Ingo Molnar <mingo@elte.hu>
 
-Fix typo in the class_filter() function.  (filtering is not used by default so
-this only affects lockdep-internal debugging cases)
+Clear all the chains during lockdep_reset().  This fixes some locking-selftest
+false positives i saw on -rt.  (never saw those on mainline though, but it
+could happen.)
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/lockdep.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN kernel/lockdep.c~lockdep-filter-off-by-default kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-filter-off-by-default
+diff -puN kernel/lockdep.c~lockdep-improve-lockdep_reset kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-improve-lockdep_reset
 +++ a/kernel/lockdep.c
-@@ -172,8 +172,8 @@ static int class_filter(struct lock_clas
- 			!strcmp(class->name, "&struct->lockfield"))
- 		return 1;
- #endif
--	/* Allow everything else. 0 would be filter everything else */
--	return 1;
-+	/* Filter everything else. 1 would be to allow everything else */
-+	return 0;
+@@ -2438,6 +2438,7 @@ EXPORT_SYMBOL_GPL(lock_release);
+ void lockdep_reset(void)
+ {
+ 	unsigned long flags;
++	int i;
+ 
+ 	raw_local_irq_save(flags);
+ 	current->curr_chain_key = 0;
+@@ -2448,6 +2449,8 @@ void lockdep_reset(void)
+ 	nr_softirq_chains = 0;
+ 	nr_process_chains = 0;
+ 	debug_locks = 1;
++	for (i = 0; i < CHAINHASH_SIZE; i++)
++		INIT_LIST_HEAD(chainhash_table + i);
+ 	raw_local_irq_restore(flags);
  }
- #endif
  
 _
 
