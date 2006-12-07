@@ -1,84 +1,66 @@
 From: akpm@osdl.org
-Subject: + bridge-avoid-using-noautorel-workqueues.patch added to -mm tree
-Date: Wed, 06 Dec 2006 23:50:05 -0800
-Message-ID: <200612070750.kB77o5H2002736@shell0.pdx.osdl.net>
+Subject: - pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 08:58:27 -0800
+Message-ID: <200612071658.kB7GwRjk016611@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58083 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44030 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031814AbWLGHuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 02:50:16 -0500
+	id S1032414AbWLGQ6t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 11:58:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dhowells@redhat.com
+To: akpm@osdl.org, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bridge: avoid using noautorel workqueues
-has been added to the -mm tree.  Its filename is
-     bridge-avoid-using-noautorel-workqueues.patch
+     pata_it8213-add-new-driver-for-the-it8213-card-tidy
+has been removed from the -mm tree.  Its filename was
+     pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into pata_it8213-add-new-driver-for-the-it8213-card.patch
 
 ------------------------------------------------------
-Subject: bridge: avoid using noautorel workqueues
+Subject: pata_it8213-add-new-driver-for-the-it8213-card-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-?
-
-Cc: David Howells <dhowells@redhat.com>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/bridge/br_if.c      |   14 ++++++--------
- net/bridge/br_private.h |    1 +
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ drivers/ata/pata_it8213.c |    3 +--
+ include/linux/pci_ids.h   |    1 +
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/bridge/br_private.h~bridge-avoid-using-noautorel-workqueues net/bridge/br_private.h
---- a/net/bridge/br_private.h~bridge-avoid-using-noautorel-workqueues
-+++ a/net/bridge/br_private.h
-@@ -83,6 +83,7 @@ struct net_bridge_port
- 	struct timer_list		message_age_timer;
- 	struct kobject			kobj;
- 	struct delayed_work		carrier_check;
-+	struct net_device		*carrier_check_dev;
- 	struct rcu_head			rcu;
- };
- 
-diff -puN net/bridge/br_if.c~bridge-avoid-using-noautorel-workqueues net/bridge/br_if.c
---- a/net/bridge/br_if.c~bridge-avoid-using-noautorel-workqueues
-+++ a/net/bridge/br_if.c
-@@ -83,14 +83,11 @@ static void port_carrier_check(struct wo
- 	struct net_device *dev;
- 	struct net_bridge *br;
- 
--	dev = container_of(work, struct net_bridge_port,
--			   carrier_check.work)->dev;
--	work_release(work);
+diff -puN drivers/ata/pata_it8213.c~pata_it8213-add-new-driver-for-the-it8213-card-tidy drivers/ata/pata_it8213.c
+--- a/drivers/ata/pata_it8213.c~pata_it8213-add-new-driver-for-the-it8213-card-tidy
++++ a/drivers/ata/pata_it8213.c
+@@ -194,7 +194,7 @@ static void it8213_set_dmamode (struct a
+ 		unsigned int mwdma	= adev->dma_mode - XFER_MW_DMA_0;
+ 		unsigned int control;
+ 		u8 slave_data;
+-		const unsigned int needed_pio[3] = {
++		static const unsigned int needed_pio[3] = {
+ 			XFER_PIO_0, XFER_PIO_3, XFER_PIO_4
+ 		};
+ 		int pio = needed_pio[mwdma] - XFER_PIO_0;
+@@ -352,4 +352,3 @@ MODULE_DESCRIPTION("SCSI low-level drive
+ MODULE_LICENSE("GPL");
+ MODULE_DEVICE_TABLE(pci, it8213_pci_tbl);
+ MODULE_VERSION(DRV_VERSION);
 -
-+	p = container_of(work, struct net_bridge_port, carrier_check.work);
-+	dev = p->carrier_check_dev;
- 	rtnl_lock();
--	p = dev->br_port;
--	if (!p)
--		goto done;
-+	if (!dev->br_port)
-+		goto done;	/* Can this happen? */
- 	br = p->br;
+diff -puN include/linux/pci_ids.h~pata_it8213-add-new-driver-for-the-it8213-card-tidy include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~pata_it8213-add-new-driver-for-the-it8213-card-tidy
++++ a/include/linux/pci_ids.h
+@@ -1622,6 +1622,7 @@
+ #define PCI_VENDOR_ID_ITE		0x1283
+ #define PCI_DEVICE_ID_ITE_8211		0x8211
+ #define PCI_DEVICE_ID_ITE_8212		0x8212
++#define PCI_DEVICE_ID_ITE_8213		0x8213
+ #define PCI_DEVICE_ID_ITE_8872		0x8872
+ #define PCI_DEVICE_ID_ITE_IT8330G_0	0xe886
  
- 	if (netif_carrier_ok(dev))
-@@ -280,7 +277,8 @@ static struct net_bridge_port *new_nbp(s
- 	p->port_no = index;
- 	br_init_port(p);
- 	p->state = BR_STATE_DISABLED;
--	INIT_DELAYED_WORK_NAR(&p->carrier_check, port_carrier_check);
-+	p->carrier_check_dev = dev;
-+	INIT_DELAYED_WORK(&p->carrier_check, port_carrier_check);
- 	br_stp_port_timer_init(p);
- 
- 	kobject_init(&p->kobj);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -166,6 +148,7 @@ kbuild-fix-rr-is-now-default.patch
 pata_cs5530-suspend-resume-support-tweak.patch
 pata_sil680-suspend-resume-tidy.patch
 pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
 pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
 git-lxdialog-fixup.patch
 git-mmc-fixup.patch
