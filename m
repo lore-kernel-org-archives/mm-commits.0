@@ -1,51 +1,49 @@
 From: akpm@osdl.org
-Subject: - git-alsa-arm-fix.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:18:34 -0800
-Message-ID: <200612072318.kB7NIYwO031041@shell0.pdx.osdl.net>
+Subject: - make-the-dock-station-driver-a-platform-device-driver-fix.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:18:28 -0800
+Message-ID: <200612072318.kB7NISrx031027@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54008 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53993 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163913AbWLGXSm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:18:42 -0500
+	id S1163912AbWLGXSe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:18:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa arm fix
+     make-the-dock-station-driver-a-platform-device-driver-fix
 has been removed from the -mm tree.  Its filename was
-     git-alsa-arm-fix.patch
+     make-the-dock-station-driver-a-platform-device-driver-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-alsa arm fix
+Subject: make-the-dock-station-driver-a-platform-device-driver-fix
 From: Andrew Morton <akpm@osdl.org>
 
-grep?
-
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/arm/aaci.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/dock.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/arm/aaci.h~git-alsa-arm-fix sound/arm/aaci.h
---- a/sound/arm/aaci.h~git-alsa-arm-fix
-+++ a/sound/arm/aaci.h
-@@ -228,7 +228,7 @@ struct aaci {
- 
- 	/* AC'97 */
- 	struct mutex		ac97_sem;
--	ac97_bus_t		*ac97_bus;
-+	struct snd_ac97_bus	*ac97_bus;
- 
- 	u32			maincr;
- 	spinlock_t		lock;
+diff -puN drivers/acpi/dock.c~make-the-dock-station-driver-a-platform-device-driver-fix drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~make-the-dock-station-driver-a-platform-device-driver-fix
++++ a/drivers/acpi/dock.c
+@@ -686,7 +686,8 @@ static int dock_add(acpi_handle handle)
+ 	dock_device.name = dock_device_name;
+ 	ret = platform_device_register(&dock_device);
+ 	if (ret) {
+-		printk(KERN_ERR PREFIX "Error registering dock device\n", ret);
++		printk(KERN_ERR PREFIX "Error %d registering dock device\n",
++					ret);
+ 		kfree(dock_station);
+ 		return ret;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
