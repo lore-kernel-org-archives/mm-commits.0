@@ -1,54 +1,54 @@
 From: akpm@osdl.org
-Subject: - kernel-api-book-remove-videodev-chapter.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:06:48 -0800
-Message-ID: <200612072306.kB7N6m3f030305@shell0.pdx.osdl.net>
+Subject: - export-toshiba-smm-support-for-neofb-module.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:38 -0800
+Message-ID: <200612072306.kB7N6cqw030281@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52722 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52711 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163926AbWLGXHI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:07:08 -0500
+	id S1163810AbWLGXHC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:07:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-api book: remove videodev chapter
+     export toshiba SMM support for neofb module
 has been removed from the -mm tree.  Its filename was
-     kernel-api-book-remove-videodev-chapter.patch
+     export-toshiba-smm-support-for-neofb-module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-api book: remove videodev chapter
+Subject: export toshiba SMM support for neofb module
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Remove the videodev chapter from the kernel-api book.  It's done much better
-in the videobook kernel-doc.
+When CONFIG_TOSHIBA=y and CONFIG_FB_NEOMAGIC=m, tosh_smm() needs
+to be exported for neofb to use it.
+
+WARNING: "tosh_smm" [drivers/video/neofb.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/char/toshiba.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~kernel-api-book-remove-videodev-chapter Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~kernel-api-book-remove-videodev-chapter
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -418,11 +418,6 @@ X!Edrivers/pnp/system.c
- !Idrivers/parport/daisy.c
-   </chapter>
+diff -puN drivers/char/toshiba.c~export-toshiba-smm-support-for-neofb-module drivers/char/toshiba.c
+--- a/drivers/char/toshiba.c~export-toshiba-smm-support-for-neofb-module
++++ a/drivers/char/toshiba.c
+@@ -249,6 +249,7 @@ int tosh_smm(SMMRegisters *regs)
  
--  <chapter id="viddev">
--     <title>Video4Linux</title>
--!Edrivers/media/video/videodev.c
--  </chapter>
--
-   <chapter id="message_devices">
- 	<title>Message-based devices</title>
-      <sect1><title>Fusion message devices</title>
+ 	return eax;
+ }
++EXPORT_SYMBOL(tosh_smm);
+ 
+ 
+ static int tosh_ioctl(struct inode *ip, struct file *fp, unsigned int cmd,
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
