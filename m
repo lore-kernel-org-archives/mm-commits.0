@@ -1,83 +1,57 @@
 From: akpm@osdl.org
-Subject: - parport-section-mismatches-with-hotplug=n.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:06:23 -0800
-Message-ID: <200612072306.kB7N6NJ8030261@shell0.pdx.osdl.net>
+Subject: - i2o-handle-__copy_from_user.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:04 -0800
+Message-ID: <200612072306.kB7N64fS030209@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52658 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52659 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163768AbWLGXGi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1163794AbWLGXGi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 7 Dec 2006 18:06:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, Markus.Lidel@shadowconnect.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport: section mismatches with HOTPLUG=n
+     I2O: handle __copy_from_user
 has been removed from the -mm tree.  Its filename was
-     parport-section-mismatches-with-hotplug=n.patch
+     i2o-handle-__copy_from_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: parport: section mismatches with HOTPLUG=n
+Subject: I2O: handle __copy_from_user
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-When CONFIG_HOTPLUG=n, parport_pc calls some __devinit == __init code that
-could be discarded.  These calls are made from parport_irq_probe(), which is
-called from parport_pc_probe_port(), which is an exported symbol, so the calls
-could (possibly) happen after init time.
+Handle __copy_from_user() return value.
 
-WARNING: drivers/parport/parport_pc.o - Section mismatch: reference to .init.text: from .text between 'parport_irq_probe' (at offset 0x31d) and 'parport_pc_probe_port'
-WARNING: drivers/parport/parport_pc.o - Section mismatch: reference to .init.text: from .text between 'parport_irq_probe' (at offset 0x346) and 'parport_pc_probe_port'
+Noticed by inspection, not from build warning.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/parport/parport_pc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/message/i2o/i2o_config.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/parport/parport_pc.c~parport-section-mismatches-with-hotplug=n drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport-section-mismatches-with-hotplug=n
-+++ a/drivers/parport/parport_pc.c
-@@ -1975,7 +1975,7 @@ static int __devinit parport_ECPPS2_supp
- /* --- IRQ detection -------------------------------------- */
+diff -puN drivers/message/i2o/i2o_config.c~i2o-handle-__copy_from_user drivers/message/i2o/i2o_config.c
+--- a/drivers/message/i2o/i2o_config.c~i2o-handle-__copy_from_user
++++ a/drivers/message/i2o/i2o_config.c
+@@ -265,7 +265,11 @@ static int i2o_cfg_swdl(unsigned long ar
+ 		return -ENOMEM;
+ 	}
  
- /* Only if supports ECP mode */
--static int __devinit programmable_irq_support(struct parport *pb)
-+static int programmable_irq_support(struct parport *pb)
- {
- 	int irq, intrLine;
- 	unsigned char oecr = inb (ECONTROL (pb));
-@@ -1992,7 +1992,7 @@ static int __devinit programmable_irq_su
- 	return irq;
- }
+-	__copy_from_user(buffer.virt, kxfer.buf, fragsize);
++	if (__copy_from_user(buffer.virt, kxfer.buf, fragsize)) {
++		i2o_msg_nop(c, msg);
++		i2o_dma_free(&c->pdev->dev, &buffer);
++		return -EFAULT;
++	}
  
--static int __devinit irq_probe_ECP(struct parport *pb)
-+static int irq_probe_ECP(struct parport *pb)
- {
- 	int i;
- 	unsigned long irqs;
-@@ -2020,7 +2020,7 @@ static int __devinit irq_probe_ECP(struc
-  * This detection seems that only works in National Semiconductors
-  * This doesn't work in SMC, LGS, and Winbond 
-  */
--static int __devinit irq_probe_EPP(struct parport *pb)
-+static int irq_probe_EPP(struct parport *pb)
- {
- #ifndef ADVANCED_DETECT
- 	return PARPORT_IRQ_NONE;
-@@ -2059,7 +2059,7 @@ static int __devinit irq_probe_EPP(struc
- #endif /* Advanced detection */
- }
- 
--static int __devinit irq_probe_SPP(struct parport *pb)
-+static int irq_probe_SPP(struct parport *pb)
- {
- 	/* Don't even try to do this. */
- 	return PARPORT_IRQ_NONE;
+ 	msg->u.head[0] = cpu_to_le32(NINE_WORD_MSG_SIZE | SGL_OFFSET_7);
+ 	msg->u.head[1] =
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
