@@ -1,97 +1,160 @@
 From: akpm@osdl.org
-Subject: - dcache-avoid-rcu-for-never-hashed-dentries.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:06:58 -0800
-Message-ID: <200612072306.kB7N6wOV030324@shell0.pdx.osdl.net>
+Subject: - lockdep-more-chains.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:14:57 -0800
+Message-ID: <200612072314.kB7NEvtb030670@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53361 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53505 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163671AbWLGXNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:13:54 -0500
+	id S1163910AbWLGXPF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:15:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, davem@davemloft.net, dipankar@in.ibm.com, maneesh@in.ibm.com, paulmck@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dcache: avoid RCU for never-hashed dentries
+     lockdep: more chains
 has been removed from the -mm tree.  Its filename was
-     dcache-avoid-rcu-for-never-hashed-dentries.patch
+     lockdep-more-chains.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dcache: avoid RCU for never-hashed dentries
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: lockdep: more chains
+From: Ingo Molnar <mingo@elte.hu>
 
-Some dentries don't need to be globally visible in dentry hashtable. 
-(pipes & sockets)
+Some have reported a chain-table overflow - double its size.
 
-Such dentries dont need to wait for a RCU grace period at delete time. 
-Being able to free them permits a better CPU cache use (hot cache)
-
-This patch combined with (dont insert pipe dentries into dentry_hashtable)
-reduced time of { pipe(p); close(p[0]); close(p[1]);} on my UP machine (1.6
-GHz Pentium-M) from 3.23 us to 2.86 us (But this patch does not depend on
-other patches, only bench results)
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Maneesh Soni <maneesh@in.ibm.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Acked-by: David Miller <davem@davemloft.net>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/dcache.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ kernel/lockdep_internals.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dcache.c~dcache-avoid-rcu-for-never-hashed-dentries fs/dcache.c
---- a/fs/dcache.c~dcache-avoid-rcu-for-never-hashed-dentries
-+++ a/fs/dcache.c
-@@ -68,15 +68,19 @@ struct dentry_stat_t dentry_stat = {
- 	.age_limit = 45,
- };
+diff -puN kernel/lockdep_internals.h~lockdep-more-chains kernel/lockdep_internals.h
+--- a/kernel/lockdep_internals.h~lockdep-more-chains
++++ a/kernel/lockdep_internals.h
+@@ -20,7 +20,7 @@
+ #define MAX_LOCKDEP_KEYS_BITS	11
+ #define MAX_LOCKDEP_KEYS	(1UL << MAX_LOCKDEP_KEYS_BITS)
  
--static void d_callback(struct rcu_head *head)
-+static void __d_free(struct dentry *dentry)
- {
--	struct dentry * dentry = container_of(head, struct dentry, d_u.d_rcu);
--
- 	if (dname_external(dentry))
- 		kfree(dentry->d_name.name);
- 	kmem_cache_free(dentry_cache, dentry); 
- }
- 
-+static void d_callback(struct rcu_head *head)
-+{
-+	struct dentry * dentry = container_of(head, struct dentry, d_u.d_rcu);
-+	__d_free(dentry);
-+}
-+
- /*
-  * no dcache_lock, please.  The caller must decrement dentry_stat.nr_dentry
-  * inside dcache_lock.
-@@ -85,7 +89,11 @@ static void d_free(struct dentry *dentry
- {
- 	if (dentry->d_op && dentry->d_op->d_release)
- 		dentry->d_op->d_release(dentry);
-- 	call_rcu(&dentry->d_u.d_rcu, d_callback);
-+	/* if dentry was never inserted into hash, immediate free is OK */
-+	if (dentry->d_hash.pprev == NULL)
-+		__d_free(dentry);
-+	else
-+		call_rcu(&dentry->d_u.d_rcu, d_callback);
- }
+-#define MAX_LOCKDEP_CHAINS_BITS	13
++#define MAX_LOCKDEP_CHAINS_BITS	14
+ #define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
  
  /*
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 convert-i386-pda-code-to-use-%fs.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
+time-re-add-verify_pmtmr_rate.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+fix-generic-warn_on-message.patch
+schedc-correct-comment-for-this_rq_lock-routine.patch
+sched-fix-migration-cost-estimator.patch
+sched-domain-move-sched-group-allocations-to-percpu-area.patch
+move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
+sched-domain-increase-the-smt-busy-rebalance-interval.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+sched-improve-migration-accuracy.patch
+sched-improve-migration-accuracy-tidy.patch
+sched-decrease-number-of-load-balances.patch
+sched-remove-lb_stopbalance-counter.patch
+sched-optimize-activate_task-for-rt-task.patch
+kernel-schedc-whitespace-cleanups.patch
+kernel-schedc-whitespace-cleanups-more.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+time-uninline-jiffiesh.patch
+time-uninline-jiffiesh-fix.patch
+time-fix-msecs_to_jiffies-bug.patch
+time-fix-timeout-overflow.patch
+cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-acpi-include-apich.patch
+updated-acpi-keep-track-of-timer-broadcast.patch
+updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+updated-i386-cleanup-apic-code.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-high-res-timers-core.patch
+updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+high-res-timers-utilize-tsc-clocksource-again.patch
+high-res-timers-utilize-tsc-clocksource-again-fix.patch
+updated-dynticks-core-code.patch
+updated-dynticks-core-code-fix-resume-bug.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-dynticks-fix-nmi-watchdog.patch
+updated-high-res-timers-dynticks-enable-i386-support.patch
+updated-debugging-feature-timer-stats.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+round_jiffies-infrastructure.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
+clocksource-small-cleanup-2-fix.patch
+clocksource-small-acpi_pm-cleanup.patch
+kvm-amd-svm-implementation-more-i386-fixes.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
 
