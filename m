@@ -1,55 +1,56 @@
 From: akpm@osdl.org
-Subject: - cleanup-include-asm-generic-atomich-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:39:09 -0800
-Message-ID: <200612070339.kB73d9De027600@shell0.pdx.osdl.net>
+Subject: + zeromap_pte_range-debug.patch added to -mm tree
+Date: Wed, 06 Dec 2006 20:13:52 -0800
+Message-ID: <200612070413.kB74DqWa028341@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43350 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44733 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968367AbWLGDmZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:42:25 -0500
+	id S968706AbWLGENz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 23:13:55 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB74DqID022621
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 20:13:53 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, bunk@stusta.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org
 
 
 The patch titled
-     cleanup-include-asm-generic-atomich-fix
-has been removed from the -mm tree.  Its filename was
-     cleanup-include-asm-generic-atomich-fix.patch
+     a
+has been added to the -mm tree.  Its filename is
+     zeromap_pte_range-debug.patch
 
-This patch was dropped because it was folded into cleanup-include-asm-generic-atomich.patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: cleanup-include-asm-generic-atomich-fix
+Subject: a
 From: Andrew Morton <akpm@osdl.org>
 
-arm:
-
-include/asm-generic/atomic.h:19:5: warning: "BITS_PER_LONG" is not defined
-In file included from include/asm/atomic.h:209,
-                 from include/linux/crypto.h:20,
-                 from crypto/blkcipher.c:17:
-
-Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-generic/atomic.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-generic/atomic.h~cleanup-include-asm-generic-atomich-fix include/asm-generic/atomic.h
---- a/include/asm-generic/atomic.h~cleanup-include-asm-generic-atomich-fix
-+++ a/include/asm-generic/atomic.h
-@@ -8,6 +8,8 @@
-  * edit all arch specific atomic.h files.
-  */
- 
-+#include <asm/types.h>
-+
- /*
-  * Suppport for atomic_long_t
-  *
+diff -puN mm/memory.c~zeromap_pte_range-debug mm/memory.c
+--- a/mm/memory.c~zeromap_pte_range-debug
++++ a/mm/memory.c
+@@ -1121,7 +1121,10 @@ static int zeromap_pte_range(struct mm_s
+ 		page_cache_get(page);
+ 		page_add_file_rmap(page);
+ 		inc_mm_counter(mm, file_rss);
+-		BUG_ON(!pte_none(*pte));
++		if (!pte_none(*pte)) {
++			printk("pte_val: %lx\n", pte_val(*pte));
++			BUG();
++		}
+ 		set_pte_at(mm, addr, pte, zero_pte);
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ 	arch_leave_lazy_mmu_mode();
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -96,113 +97,5 @@ ide_scsi-allow-it-to-be-used-for-non-cd-only.patch
 make-8250_pnp-serial-driver-work-after.patch
 gcc-4-1-0-is-bust.patch
 cleanup-include-asm-generic-atomich.patch
-cleanup-include-asm-generic-atomich-fix.patch
-struct-seq_operations-and-struct-file_operations-constification-fix.patch
-struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-tty-signal-tty-locking-post-viro-trainwreck.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
-pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
-bug-test-1.patch
-net-use-bitrev8-tidy.patch
-fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
-ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
-add-process_session-helper-routine-deprecate-old-field-tidy.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
-mxser-session-warning-fix.patch
-mxser-workqueue-fixes.patch
-tty-switch-to-ktermios-and-new-framework-warning-fix.patch
-tty-switch-to-ktermios-and-new-framework-irda-fix.patch
-tty-switch-to-ktermios-bluetooth-fix.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
-drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
-fault-injection-capabilities-infrastructure-tidy.patch
-fault-injection-capabilities-infrastructure-tweaks.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs-fix.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
-gxfb-fixups-for-the-amd-geode-gx-tidy.patch
-gxfb-support-flat-panel-timings-tidy.patch
-gxfb-support-command-line-options-tidy.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+struct-seq_operations-and-struct-file_operations-constification.patch
 
