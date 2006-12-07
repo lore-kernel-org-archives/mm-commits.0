@@ -1,113 +1,200 @@
 From: akpm@osdl.org
-Subject: - remove-drivers-block-paride-jumbo.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:45 -0800
-Message-ID: <200612072316.kB7NGjwZ030868@shell0.pdx.osdl.net>
+Subject: - paride-remove-parport-ifdefs.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:16:43 -0800
+Message-ID: <200612072316.kB7NGhPO030860@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54165 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54162 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163979AbWLGXUE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:20:04 -0500
+	id S1163986AbWLGXUD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:20:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove drivers/block/paride/jumbo
+     paride: remove parport #ifdef's
 has been removed from the -mm tree.  Its filename was
-     remove-drivers-block-paride-jumbo.patch
+     paride-remove-parport-ifdefs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove drivers/block/paride/jumbo
+Subject: paride: remove parport #ifdef's
 From: Adrian Bunk <bunk@stusta.de>
 
-Let's remove this pre-historic paride building script.
+CONFIG_PARIDE depends on CONFIG_PARPORT_PC, so there's no reason for
+these #ifdef's.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/paride/jumbo |   70 -----------------------------------
- 1 file changed, 70 deletions(-)
+ drivers/block/paride/bpck6.c  |   13 ------------
+ drivers/block/paride/paride.c |   33 --------------------------------
+ 2 files changed, 46 deletions(-)
 
-diff -puN drivers/block/paride/jumbo~remove-drivers-block-paride-jumbo /dev/null
---- a/drivers/block/paride/jumbo
-+++ /dev/null
-@@ -1,70 +0,0 @@
--#!/bin/sh
--#
--# This script can be used to build "jumbo" modules that contain the
--# base PARIDE support, one protocol module and one high-level driver.
--#
--echo -n "High level driver [pcd] : "
--read X
--HLD=${X:-pcd}
--#
--echo -n "Protocol module [bpck] : "
--read X
--PROTO=${X:-bpck}
--#
--echo -n "Use MODVERSIONS [y] ? "
--read X
--UMODV=${X:-y}
--#
--echo -n "For SMP kernel [n] ? "
--read X
--USMP=${X:-n}
--#
--echo -n "Support PARPORT [n] ? "
--read X
--UPARP=${X:-n}
--#
--echo
--#
--case $USMP in
--	y* | Y* ) FSMP="-DCONFIG_SMP"
--		  ;;
--	*)	  FSMP=""
--		  ;;
--esac
--#
--MODI="-include ../../../include/linux/modversions.h"
--#
--case $UMODV in
--	y* | Y* ) FMODV="-DMODVERSIONS $MODI"
--		  ;;
--	*)	  FMODV=""
--		  ;;
--esac
--#
--case $UPARP in
--	y* | Y* ) FPARP="-DCONFIG_PARPORT"
--		  ;;
--	*)	  FPARP=""
--		  ;;
--esac
--#
--TARG=$HLD-$PROTO.o
--FPROTO=-DCONFIG_PARIDE_`echo "$PROTO" | tr [a-z] [A-Z]`
--FK="-D__KERNEL__ -I ../../../include"
--FLCH=-D_LINUX_CONFIG_H
--#
--echo cc $FK $FSMP $FLCH $FPARP $FPROTO $FMODV -Wall -O2 -o Jb.o -c paride.c
--cc $FK $FSMP $FLCH $FPARP $FPROTO $FMODV -Wall -O2 -o Jb.o -c paride.c
--#
--echo cc $FK $FSMP $FMODV -Wall -O2 -o Jp.o -c $PROTO.c
--cc $FK $FSMP $FMODV -Wall -O2 -o Jp.o -c $PROTO.c
--#
--echo cc $FK $FSMP $FMODV -DMODULE -DPARIDE_JUMBO -Wall -O2 -o Jd.o -c $HLD.c
--cc $FK $FSMP $FMODV -DMODULE -DPARIDE_JUMBO -Wall -O2 -o Jd.o -c $HLD.c
--#
--echo ld -r -o $TARG Jp.o Jb.o Jd.o
--ld -r -o $TARG Jp.o Jb.o Jd.o
--#
--#
--rm Jp.o Jb.o Jd.o
--#
+diff -puN drivers/block/paride/bpck6.c~paride-remove-parport-ifdefs drivers/block/paride/bpck6.c
+--- a/drivers/block/paride/bpck6.c~paride-remove-parport-ifdefs
++++ a/drivers/block/paride/bpck6.c
+@@ -31,10 +31,7 @@ static int verbose; /* set this to 1 to 
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <asm/io.h>
+-
+-#if defined(CONFIG_PARPORT_MODULE)||defined(CONFIG_PARPORT)
+ #include <linux/parport.h>
+-#endif
+ 
+ #include "ppc6lnx.c"
+ #include "paride.h"
+@@ -139,11 +136,6 @@ static int bpck6_test_port ( PIA *pi )  
+ 	PPCSTRUCT(pi)->ppc_id=pi->unit;
+ 	PPCSTRUCT(pi)->lpt_addr=pi->port;
+ 
+-#ifdef CONFIG_PARPORT_PC_MODULE
+-#define CONFIG_PARPORT_PC
+-#endif
+-
+-#ifdef CONFIG_PARPORT_PC
+ 	/* look at the parport device to see if what modes we can use */
+ 	if(((struct pardevice *)(pi->pardev))->port->modes & 
+ 		(PARPORT_MODE_EPP)
+@@ -161,11 +153,6 @@ static int bpck6_test_port ( PIA *pi )  
+ 	{
+ 		return 1;
+ 	}
+-#else
+-	/* there is no way of knowing what kind of port we have
+-	   default to the highest mode possible */
+-	return 5;
+-#endif
+ }
+ 
+ static int bpck6_probe_unit ( PIA *pi )
+diff -puN drivers/block/paride/paride.c~paride-remove-parport-ifdefs drivers/block/paride/paride.c
+--- a/drivers/block/paride/paride.c~paride-remove-parport-ifdefs
++++ a/drivers/block/paride/paride.c
+@@ -29,14 +29,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/wait.h>
+ #include <linux/sched.h>	/* TASK_* */
+-
+-#ifdef CONFIG_PARPORT_MODULE
+-#define CONFIG_PARPORT
+-#endif
+-
+-#ifdef CONFIG_PARPORT
+ #include <linux/parport.h>
+-#endif
+ 
+ #include "paride.h"
+ 
+@@ -76,8 +69,6 @@ void pi_read_block(PIA * pi, char *buf, 
+ 
+ EXPORT_SYMBOL(pi_read_block);
+ 
+-#ifdef CONFIG_PARPORT
+-
+ static void pi_wake_up(void *p)
+ {
+ 	PIA *pi = (PIA *) p;
+@@ -100,11 +91,8 @@ static void pi_wake_up(void *p)
+ 		cont();
+ }
+ 
+-#endif
+-
+ int pi_schedule_claimed(PIA * pi, void (*cont) (void))
+ {
+-#ifdef CONFIG_PARPORT
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&pi_spinlock, flags);
+@@ -115,7 +103,6 @@ int pi_schedule_claimed(PIA * pi, void (
+ 	}
+ 	pi->claimed = 1;
+ 	spin_unlock_irqrestore(&pi_spinlock, flags);
+-#endif
+ 	return 1;
+ }
+ EXPORT_SYMBOL(pi_schedule_claimed);
+@@ -133,20 +120,16 @@ static void pi_claim(PIA * pi)
+ 	if (pi->claimed)
+ 		return;
+ 	pi->claimed = 1;
+-#ifdef CONFIG_PARPORT
+ 	if (pi->pardev)
+ 		wait_event(pi->parq,
+ 			   !parport_claim((struct pardevice *) pi->pardev));
+-#endif
+ }
+ 
+ static void pi_unclaim(PIA * pi)
+ {
+ 	pi->claimed = 0;
+-#ifdef CONFIG_PARPORT
+ 	if (pi->pardev)
+ 		parport_release((struct pardevice *) (pi->pardev));
+-#endif
+ }
+ 
+ void pi_connect(PIA * pi)
+@@ -167,21 +150,15 @@ EXPORT_SYMBOL(pi_disconnect);
+ 
+ static void pi_unregister_parport(PIA * pi)
+ {
+-#ifdef CONFIG_PARPORT
+ 	if (pi->pardev) {
+ 		parport_unregister_device((struct pardevice *) (pi->pardev));
+ 		pi->pardev = NULL;
+ 	}
+-#endif
+ }
+ 
+ void pi_release(PIA * pi)
+ {
+ 	pi_unregister_parport(pi);
+-#ifndef CONFIG_PARPORT
+-	if (pi->reserved)
+-		release_region(pi->port, pi->reserved);
+-#endif				/* !CONFIG_PARPORT */
+ 	if (pi->proto->release_proto)
+ 		pi->proto->release_proto(pi);
+ 	module_put(pi->proto->owner);
+@@ -269,8 +246,6 @@ EXPORT_SYMBOL(paride_unregister);
+ 
+ static int pi_register_parport(PIA * pi, int verbose)
+ {
+-#ifdef CONFIG_PARPORT
+-
+ 	struct parport *port;
+ 
+ 	port = parport_find_base(pi->port);
+@@ -290,7 +265,6 @@ static int pi_register_parport(PIA * pi,
+ 		printk("%s: 0x%x is %s\n", pi->device, pi->port, port->name);
+ 
+ 	pi->parname = (char *) port->name;
+-#endif
+ 
+ 	return 1;
+ }
+@@ -447,13 +421,6 @@ int pi_init(PIA * pi, int autoprobe, int
+ 			printk("%s: Adapter not found\n", device);
+ 		return 0;
+ 	}
+-#ifndef CONFIG_PARPORT
+-	if (!request_region(pi->port, pi->reserved, pi->device)) {
+-		printk(KERN_WARNING "paride: Unable to request region 0x%x\n",
+-		       pi->port);
+-		return 0;
+-	}
+-#endif				/* !CONFIG_PARPORT */
+ 
+ 	if (pi->parname)
+ 		printk("%s: Sharing %s at 0x%x\n", pi->device,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
