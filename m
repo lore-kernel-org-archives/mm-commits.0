@@ -1,136 +1,97 @@
 From: akpm@osdl.org
-Subject: - reiserfs-do-not-add-save-links-for-o_direct-writes.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:07:46 -0800
-Message-ID: <200612072307.kB7N7kmO030396@shell0.pdx.osdl.net>
+Subject: - dcache-avoid-rcu-for-never-hashed-dentries.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:58 -0800
+Message-ID: <200612072306.kB7N6wOV030324@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53040 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53361 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1164197AbWLGXLP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:11:15 -0500
+	id S1163671AbWLGXNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:13:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vs@namesys.com, amitarora@in.ibm.com, jeffm@suse.com, mason@suse.com, suzuki@in.ibm.com, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, davem@davemloft.net, dipankar@in.ibm.com, maneesh@in.ibm.com, paulmck@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: do not add save links for O_DIRECT writes
+     dcache: avoid RCU for never-hashed dentries
 has been removed from the -mm tree.  Its filename was
-     reiserfs-do-not-add-save-links-for-o_direct-writes.patch
+     dcache-avoid-rcu-for-never-hashed-dentries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: do not add save links for O_DIRECT writes
-From: Vladimir V. Saveliev <vs@namesys.com>
+Subject: dcache: avoid RCU for never-hashed dentries
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-We add a save link for O_DIRECT writes to protect the i_size against the
-crashes before we actually finish the I/O.  If we hit an -ENOSPC in
-aops->prepare_write(), we would do a truncate() to release the blocks which
-might have got initialized.  Now the truncate would add another save link
-for the same inode causing a reiserfs panic for having multiple save links
-for the same inode.
+Some dentries don't need to be globally visible in dentry hashtable. 
+(pipes & sockets)
 
-Signed-off-by: Vladimir V. Saveliev <vs@namesys.com>
-Signed-off-by: Amit Arora <amitarora@in.ibm.com>
-Signed-off-by: Suzuki K P <suzuki@in.ibm.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <mason@suse.com>
+Such dentries dont need to wait for a RCU grace period at delete time. 
+Being able to free them permits a better CPU cache use (hot cache)
+
+This patch combined with (dont insert pipe dentries into dentry_hashtable)
+reduced time of { pipe(p); close(p[0]); close(p[1]);} on my UP machine (1.6
+GHz Pentium-M) from 3.23 us to 2.86 us (But this patch does not depend on
+other patches, only bench results)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Acked-by: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiserfs/file.c |   54 +++----------------------------------------
- 1 file changed, 4 insertions(+), 50 deletions(-)
+ fs/dcache.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiserfs/file.c~reiserfs-do-not-add-save-links-for-o_direct-writes fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~reiserfs-do-not-add-save-links-for-o_direct-writes
-+++ a/fs/reiserfs/file.c
-@@ -406,6 +406,8 @@ static int reiserfs_allocate_blocks_for_
- 				   we restart it. This will also free the path. */
- 				if (journal_transaction_should_end
- 				    (th, th->t_blocks_allocated)) {
-+					inode->i_size = cpu_key_k_offset(&key) +
-+						(to_paste << inode->i_blkbits);
- 					res =
- 					    restart_transaction(th, inode,
- 								&path);
-@@ -1310,56 +1312,8 @@ static ssize_t reiserfs_file_write(struc
- 			count = MAX_NON_LFS - (unsigned long)*ppos;
- 	}
+diff -puN fs/dcache.c~dcache-avoid-rcu-for-never-hashed-dentries fs/dcache.c
+--- a/fs/dcache.c~dcache-avoid-rcu-for-never-hashed-dentries
++++ a/fs/dcache.c
+@@ -68,15 +68,19 @@ struct dentry_stat_t dentry_stat = {
+ 	.age_limit = 45,
+ };
  
--	if (file->f_flags & O_DIRECT) {	// Direct IO needs treatment
--		ssize_t result, after_file_end = 0;
--		if ((*ppos + count >= inode->i_size)
--		    || (file->f_flags & O_APPEND)) {
--			/* If we are appending a file, we need to put this savelink in here.
--			   If we will crash while doing direct io, finish_unfinished will
--			   cut the garbage from the file end. */
--			reiserfs_write_lock(inode->i_sb);
--			err =
--			    journal_begin(&th, inode->i_sb,
--					  JOURNAL_PER_BALANCE_CNT);
--			if (err) {
--				reiserfs_write_unlock(inode->i_sb);
--				return err;
--			}
--			reiserfs_update_inode_transaction(inode);
--			add_save_link(&th, inode, 1 /* Truncate */ );
--			after_file_end = 1;
--			err =
--			    journal_end(&th, inode->i_sb,
--					JOURNAL_PER_BALANCE_CNT);
--			reiserfs_write_unlock(inode->i_sb);
--			if (err)
--				return err;
--		}
--		result = do_sync_write(file, buf, count, ppos);
+-static void d_callback(struct rcu_head *head)
++static void __d_free(struct dentry *dentry)
+ {
+-	struct dentry * dentry = container_of(head, struct dentry, d_u.d_rcu);
 -
--		if (after_file_end) {	/* Now update i_size and remove the savelink */
--			struct reiserfs_transaction_handle th;
--			reiserfs_write_lock(inode->i_sb);
--			err = journal_begin(&th, inode->i_sb, 1);
--			if (err) {
--				reiserfs_write_unlock(inode->i_sb);
--				return err;
--			}
--			reiserfs_update_inode_transaction(inode);
--			mark_inode_dirty(inode);
--			err = journal_end(&th, inode->i_sb, 1);
--			if (err) {
--				reiserfs_write_unlock(inode->i_sb);
--				return err;
--			}
--			err = remove_save_link(inode, 1 /* truncate */ );
--			reiserfs_write_unlock(inode->i_sb);
--			if (err)
--				return err;
--		}
--
--		return result;
--	}
-+	if (file->f_flags & O_DIRECT)
-+		return do_sync_write(file, buf, count, ppos);
+ 	if (dname_external(dentry))
+ 		kfree(dentry->d_name.name);
+ 	kmem_cache_free(dentry_cache, dentry); 
+ }
  
- 	if (unlikely((ssize_t) count < 0))
- 		return -EINVAL;
++static void d_callback(struct rcu_head *head)
++{
++	struct dentry * dentry = container_of(head, struct dentry, d_u.d_rcu);
++	__d_free(dentry);
++}
++
+ /*
+  * no dcache_lock, please.  The caller must decrement dentry_stat.nr_dentry
+  * inside dcache_lock.
+@@ -85,7 +89,11 @@ static void d_free(struct dentry *dentry
+ {
+ 	if (dentry->d_op && dentry->d_op->d_release)
+ 		dentry->d_op->d_release(dentry);
+- 	call_rcu(&dentry->d_u.d_rcu, d_callback);
++	/* if dentry was never inserted into hash, immediate free is OK */
++	if (dentry->d_hash.pprev == NULL)
++		__d_free(dentry);
++	else
++		call_rcu(&dentry->d_u.d_rcu, d_callback);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from vs@namesys.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-fix-trivial-tyops-which-were-hard-to-hit.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-bug-fixes.patch
-reiser4-fix-gcc-ws-compains.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-vs-streamline-generic_file_-interfaces-and-filemap.patch
-reiser4-rename-generic_sounding_globalspatch.patch
-reiser4-possible-cleanups-2.patch
-reiser4-temp-fix.patch
-fs-reiser4-more-possible-cleanups.patch
-reiser4-use-null-for-pointers.patch
+convert-i386-pda-code-to-use-%fs.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
 
