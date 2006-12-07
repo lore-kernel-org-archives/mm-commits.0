@@ -1,70 +1,110 @@
 From: akpm@osdl.org
-Subject: - protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:04:46 -0800
-Message-ID: <200612072304.kB7N4khW030079@shell0.pdx.osdl.net>
+Subject: - driver-base-memoryc-remove-warnings-of.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:04:39 -0800
+Message-ID: <200612072304.kB7N4dPH030073@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52192 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52181 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163751AbWLGXEs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:04:48 -0500
+	id S1163864AbWLGXEp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@osdl.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     protect ext2 ioctl modifying append_only immutable etc with i_mutex
+     driver/base/memory.c: handle errors properly
 has been removed from the -mm tree.  Its filename was
-     protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch
+     driver-base-memoryc-remove-warnings-of.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: protect ext2 ioctl modifying append_only immutable etc with i_mutex
+Subject: driver/base/memory.c: handle errors properly
 From: Andrew Morton <akpm@osdl.org>
 
-Port a090d9132c1e53e3517111123680c15afb25c0a4 into ext2:
+Do proper error-checking and propagation in drivers/base/memory.c, hence fix
+__must_check warnings.
 
-All modifications of ->i_flags in inodes that might be visible to somebody
-else must be under ->i_mutex.  That patch fixes ext2 ioctl() setting S_APPEND.
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext2/ioctl.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/base/memory.c |   34 +++++++++++++++++++++++-----------
+ 1 file changed, 23 insertions(+), 11 deletions(-)
 
-diff -puN fs/ext2/ioctl.c~protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex
-+++ a/fs/ext2/ioctl.c
-@@ -44,6 +44,7 @@ int ext2_ioctl (struct inode * inode, st
- 		if (!S_ISDIR(inode->i_mode))
- 			flags &= ~EXT2_DIRSYNC_FL;
+diff -puN drivers/base/memory.c~driver-base-memoryc-remove-warnings-of drivers/base/memory.c
+--- a/drivers/base/memory.c~driver-base-memoryc-remove-warnings-of
++++ a/drivers/base/memory.c
+@@ -290,9 +290,8 @@ static CLASS_ATTR(block_size_bytes, 0444
  
-+		mutex_lock(&inode->i_mutex);
- 		oldflags = ei->i_flags;
+ static int block_size_init(void)
+ {
+-	sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-		&class_attr_block_size_bytes.attr);
+-	return 0;
++	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
++				&class_attr_block_size_bytes.attr);
+ }
  
- 		/*
-@@ -53,13 +54,16 @@ int ext2_ioctl (struct inode * inode, st
- 		 * This test looks nicer. Thanks to Pauline Middelink
- 		 */
- 		if ((flags ^ oldflags) & (EXT2_APPEND_FL | EXT2_IMMUTABLE_FL)) {
--			if (!capable(CAP_LINUX_IMMUTABLE))
-+			if (!capable(CAP_LINUX_IMMUTABLE)) {
-+				mutex_unlock(&inode->i_mutex);
- 				return -EPERM;
-+			}
- 		}
+ /*
+@@ -323,12 +322,14 @@ static CLASS_ATTR(probe, 0700, NULL, mem
  
- 		flags = flags & EXT2_FL_USER_MODIFIABLE;
- 		flags |= oldflags & ~EXT2_FL_USER_MODIFIABLE;
- 		ei->i_flags = flags;
-+		mutex_unlock(&inode->i_mutex);
+ static int memory_probe_init(void)
+ {
+-	sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-		&class_attr_probe.attr);
+-	return 0;
++	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
++				&class_attr_probe.attr);
+ }
+ #else
+-#define memory_probe_init(...)	do {} while (0)
++static inline int memory_probe_init(void)
++{
++	return 0;
++}
+ #endif
  
- 		ext2_set_inode_flags(inode);
- 		inode->i_ctime = CURRENT_TIME_SEC;
+ /*
+@@ -431,9 +432,12 @@ int __init memory_dev_init(void)
+ {
+ 	unsigned int i;
+ 	int ret;
++	int err;
+ 
+ 	memory_sysdev_class.kset.uevent_ops = &memory_uevent_ops;
+ 	ret = sysdev_class_register(&memory_sysdev_class);
++	if (ret)
++		goto out;
+ 
+ 	/*
+ 	 * Create entries for memory sections that were found
+@@ -442,11 +446,19 @@ int __init memory_dev_init(void)
+ 	for (i = 0; i < NR_MEM_SECTIONS; i++) {
+ 		if (!valid_section_nr(i))
+ 			continue;
+-		add_memory_block(0, __nr_to_section(i), MEM_ONLINE, 0);
++		err = add_memory_block(0, __nr_to_section(i), MEM_ONLINE, 0);
++		if (!ret)
++			ret = err;
+ 	}
+ 
+-	memory_probe_init();
+-	block_size_init();
+-
++	err = memory_probe_init();
++	if (!ret)
++		ret = err;
++	err = block_size_init();
++	if (!ret)
++		ret = err;
++out:
++	if (ret)
++		printk(KERN_ERR "%s() failed: %d\n", __FUNCTION__, ret);
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
