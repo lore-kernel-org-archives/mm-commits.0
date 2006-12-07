@@ -1,64 +1,207 @@
 From: akpm@osdl.org
-Subject: - corrupted-cramfs-filesystems-cause-kernel-oops.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:04:17 -0800
-Message-ID: <200612072304.kB7N4Hnb030032@shell0.pdx.osdl.net>
+Subject: - fix-check_partition-routines.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:00:46 -0800
+Message-ID: <200612072300.kB7N0kgV029670@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52031 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52039 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163843AbWLGXEX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:04:23 -0500
+	id S1163839AbWLGXE1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:04:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: phillip@lougher.org.uk, mm-commits@vger.kernel.org
+To: suzuki@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     corrupted cramfs filesystems cause kernel oops
+     Fix check_partition routines
 has been removed from the -mm tree.  Its filename was
-     corrupted-cramfs-filesystems-cause-kernel-oops.patch
+     fix-check_partition-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: corrupted cramfs filesystems cause kernel oops
-From: Phillip Lougher <phillip@lougher.org.uk>
+Subject: Fix check_partition routines
+From: Suzuki K P <suzuki@in.ibm.com>
 
-Steve Grubb's fzfuzzer tool (http://people.redhat.com/sgrubb/files/
-fsfuzzer-0.6.tar.gz) generates corrupt Cramfs filesystems which cause
-Cramfs to kernel oops in cramfs_uncompress_block().  The cause of the oops
-is an unchecked corrupted block length field read by cramfs_readpage().
+check_partition() stops its probe once it hits an I/O error from the
+partition checkers.  This would prevent the actual partition checker
+getting a chance to verify the partition.
 
-This patch adds a sanity check to cramfs_readpage() which checks that the
-block length field is sensible.  The (PAGE_CACHE_SIZE << 1) size check is
-intentional, even though the uncompressed data is not going to be larger
-than PAGE_CACHE_SIZE, gzip sometimes generates compressed data larger than
-the original source data.  Mkcramfs checks that the compressed size is
-always less than or equal to PAGE_CACHE_SIZE << 1.  Of course Cramfs could
-use the original uncompressed data in this case, but it doesn't.
+So this patch lets check_partition() continue probing untill it hits a
+success while recording the I/O error which might have been reported by the
+checking routines.
 
-Signed-off-by: Phillip Lougher <phillip@lougher.org.uk>
+Also, it does some cleanup of the partition methods for ibm, atari and
+amiga to return -1 upon hitting an I/O error.
+
+Signed-off-by: Suzuki K P <suzuki@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/cramfs/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/partitions/amiga.c |    2 ++
+ fs/partitions/atari.c |    2 +-
+ fs/partitions/check.c |   15 +++++++++++++--
+ fs/partitions/ibm.c   |   29 +++++++++++++++++------------
+ 4 files changed, 33 insertions(+), 15 deletions(-)
 
-diff -puN fs/cramfs/inode.c~corrupted-cramfs-filesystems-cause-kernel-oops fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~corrupted-cramfs-filesystems-cause-kernel-oops
-+++ a/fs/cramfs/inode.c
-@@ -481,6 +481,8 @@ static int cramfs_readpage(struct file *
- 		pgdata = kmap(page);
- 		if (compr_len == 0)
- 			; /* hole */
-+		else if (compr_len > (PAGE_CACHE_SIZE << 1))
-+			printk(KERN_ERR "cramfs: bad compressed blocksize %u\n", compr_len);
- 		else {
- 			mutex_lock(&read_mutex);
- 			bytes_filled = cramfs_uncompress_block(pgdata,
+diff -puN fs/partitions/amiga.c~fix-check_partition-routines fs/partitions/amiga.c
+--- a/fs/partitions/amiga.c~fix-check_partition-routines
++++ a/fs/partitions/amiga.c
+@@ -43,6 +43,7 @@ amiga_partition(struct parsed_partitions
+ 			if (warn_no_part)
+ 				printk("Dev %s: unable to read RDB block %d\n",
+ 				       bdevname(bdev, b), blk);
++			res = -1;
+ 			goto rdb_done;
+ 		}
+ 		if (*(__be32 *)data != cpu_to_be32(IDNAME_RIGIDDISK))
+@@ -79,6 +80,7 @@ amiga_partition(struct parsed_partitions
+ 			if (warn_no_part)
+ 				printk("Dev %s: unable to read partition block %d\n",
+ 				       bdevname(bdev, b), blk);
++			res = -1;
+ 			goto rdb_done;
+ 		}
+ 		pb  = (struct PartitionBlock *)data;
+diff -puN fs/partitions/atari.c~fix-check_partition-routines fs/partitions/atari.c
+--- a/fs/partitions/atari.c~fix-check_partition-routines
++++ a/fs/partitions/atari.c
+@@ -88,7 +88,7 @@ int atari_partition(struct parsed_partit
+ 			if (!xrs) {
+ 				printk (" block %ld read failed\n", partsect);
+ 				put_dev_sector(sect);
+-				return 0;
++				return -1;
+ 			}
+ 
+ 			/* ++roman: sanity check: bit 0 of flg field must be set */
+diff -puN fs/partitions/check.c~fix-check_partition-routines fs/partitions/check.c
+--- a/fs/partitions/check.c~fix-check_partition-routines
++++ a/fs/partitions/check.c
+@@ -153,7 +153,7 @@ static struct parsed_partitions *
+ check_partition(struct gendisk *hd, struct block_device *bdev)
+ {
+ 	struct parsed_partitions *state;
+-	int i, res;
++	int i, res, err;
+ 
+ 	state = kmalloc(sizeof(struct parsed_partitions), GFP_KERNEL);
+ 	if (!state)
+@@ -165,13 +165,24 @@ check_partition(struct gendisk *hd, stru
+ 		sprintf(state->name, "p");
+ 
+ 	state->limit = hd->minors;
+-	i = res = 0;
++	i = res = err = 0;
+ 	while (!res && check_part[i]) {
+ 		memset(&state->parts, 0, sizeof(state->parts));
+ 		res = check_part[i++](state, bdev);
++		if (res < 0) {
++			/* We have hit an I/O error which we don't report now.
++		 	* But record it, and let the others do their job.
++		 	*/
++			err = res;
++			res = 0;
++		}
++
+ 	}
+ 	if (res > 0)
+ 		return state;
++	if (!err)
++	/* The partition is unrecognized. So report I/O errors if there were any */
++		res = err;
+ 	if (!res)
+ 		printk(" unknown partition table\n");
+ 	else if (warn_no_part)
+diff -puN fs/partitions/ibm.c~fix-check_partition-routines fs/partitions/ibm.c
+--- a/fs/partitions/ibm.c~fix-check_partition-routines
++++ a/fs/partitions/ibm.c
+@@ -43,7 +43,7 @@ cchhb2blk (struct vtoc_cchhb *ptr, struc
+ int
+ ibm_partition(struct parsed_partitions *state, struct block_device *bdev)
+ {
+-	int blocksize, offset, size;
++	int blocksize, offset, size,res;
+ 	loff_t i_size;
+ 	dasd_information_t *info;
+ 	struct hd_geometry *geo;
+@@ -56,15 +56,16 @@ ibm_partition(struct parsed_partitions *
+ 	unsigned char *data;
+ 	Sector sect;
+ 
++	res = 0;
+ 	blocksize = bdev_hardsect_size(bdev);
+ 	if (blocksize <= 0)
+-		return 0;
++		goto out_exit;
+ 	i_size = i_size_read(bdev->bd_inode);
+ 	if (i_size == 0)
+-		return 0;
++		goto out_exit;
+ 
+ 	if ((info = kmalloc(sizeof(dasd_information_t), GFP_KERNEL)) == NULL)
+-		goto out_noinfo;
++		goto out_exit;
+ 	if ((geo = kmalloc(sizeof(struct hd_geometry), GFP_KERNEL)) == NULL)
+ 		goto out_nogeo;
+ 	if ((label = kmalloc(sizeof(union label_t), GFP_KERNEL)) == NULL)
+@@ -72,7 +73,7 @@ ibm_partition(struct parsed_partitions *
+ 
+ 	if (ioctl_by_bdev(bdev, BIODASDINFO, (unsigned long)info) != 0 ||
+ 	    ioctl_by_bdev(bdev, HDIO_GETGEO, (unsigned long)geo) != 0)
+-		goto out_noioctl;
++		goto out_freeall;
+ 
+ 	/*
+ 	 * Get volume label, extract name and type.
+@@ -92,6 +93,8 @@ ibm_partition(struct parsed_partitions *
+ 	EBCASC(type, 4);
+ 	EBCASC(name, 6);
+ 
++	res = 1;
++
+ 	/*
+ 	 * Three different types: CMS1, VOL1 and LNX1/unlabeled
+ 	 */
+@@ -156,6 +159,9 @@ ibm_partition(struct parsed_partitions *
+ 			counter++;
+ 			blk++;
+ 		}
++		if (!data)
++		/* Are we not supposed to report this ? */
++			goto out_readerr;
+ 	} else {
+ 		/*
+ 		 * Old style LNX1 or unlabeled disk
+@@ -171,18 +177,17 @@ ibm_partition(struct parsed_partitions *
+ 	}
+ 
+ 	printk("\n");
+-	kfree(label);
+-	kfree(geo);
+-	kfree(info);
+-	return 1;
++	goto out_freeall;
++
+ 
+ out_readerr:
+-out_noioctl:
++	res = -1;
++out_freeall:
+ 	kfree(label);
+ out_nolab:
+ 	kfree(geo);
+ out_nogeo:
+ 	kfree(info);
+-out_noinfo:
+-	return 0;
++out_exit:
++	return res;
+ }
 _
 
-Patches currently in -mm which might be from phillip@lougher.org.uk are
+Patches currently in -mm which might be from suzuki@in.ibm.com are
 
 origin.patch
 
