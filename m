@@ -1,68 +1,64 @@
 From: akpm@osdl.org
-Subject: - add-numa-node-information-to-struct-device-tidy.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:13:53 -0800
-Message-ID: <200612070313.kB73Dr4a026942@shell0.pdx.osdl.net>
+Subject: - mm-make-compound-page-destructor-handling-explicit-tidy.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:16:27 -0800
+Message-ID: <200612070316.kB73GRTJ027006@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41482 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41682 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967789AbWLGDOG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:14:06 -0500
+	id S967798AbWLGDRC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:17:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, clameter@engr.sgi.com, greg@kroah.com, hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-numa-node-information-to-struct-device-tidy
+     mm-make-compound-page-destructor-handling-explicit tidy
 has been removed from the -mm tree.  Its filename was
-     add-numa-node-information-to-struct-device-tidy.patch
+     mm-make-compound-page-destructor-handling-explicit-tidy.patch
 
-This patch was dropped because it was folded into add-numa-node-information-to-struct-device.patch
+This patch was dropped because it was folded into mm-make-compound-page-destructor-handling-explicit.patch
 
 ------------------------------------------------------
-Subject: add-numa-node-information-to-struct-device-tidy
+Subject: mm-make-compound-page-destructor-handling-explicit tidy
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Greg KH <greg@kroah.com>
+- Don't need to declare free_compound_page(): the call to
+  set_compound_page() will check its type.
+
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/device.h |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ mm/hugetlb.c    |    2 --
+ mm/page_alloc.c |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN include/linux/device.h~add-numa-node-information-to-struct-device-tidy include/linux/device.h
---- a/include/linux/device.h~add-numa-node-information-to-struct-device-tidy
-+++ a/include/linux/device.h
-@@ -398,11 +398,22 @@ struct device {
- };
+diff -puN mm/hugetlb.c~mm-make-compound-page-destructor-handling-explicit-tidy mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-make-compound-page-destructor-handling-explicit-tidy
++++ a/mm/hugetlb.c
+@@ -88,8 +88,6 @@ static struct page *dequeue_huge_page(st
+ 	return page;
+ }
  
- #ifdef CONFIG_NUMA
--#define dev_to_node(dev)	((dev)->numa_node)
--#define set_dev_node(dev, node)	((dev)->numa_node = node)
-+static inline int dev_to_node(struct device *dev)
-+{
-+	return dev->numa_node;
-+}
-+static inline void set_dev_node(struct device *dev, int node)
-+{
-+	dev->numa_node = node;
-+}
- #else
--#define dev_to_node(dev)	(-1)
--#define set_dev_node(dev, node)	do { } while (0)
-+static inline int dev_to_node(struct device *dev)
-+{
-+	return -1;
-+}
-+static inline void set_dev_node(struct device *dev, int node)
-+{
-+}
- #endif
+-/* declare the destructor to catch a missmatch on definition. */
+-static compound_page_dtor free_huge_page;
+ static void free_huge_page(struct page *page)
+ {
+ 	BUG_ON(page_count(page));
+diff -puN mm/page_alloc.c~mm-make-compound-page-destructor-handling-explicit-tidy mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-make-compound-page-destructor-handling-explicit-tidy
++++ a/mm/page_alloc.c
+@@ -224,8 +224,6 @@ static void bad_page(struct page *page)
+  * This usage means that zero-order pages may not be compound.
+  */
  
- static inline void *
+-/* declare the destructor to catch a missmatch on definition. */
+-static compound_page_dtor free_compound_page;
+ static void free_compound_page(struct page *page)
+ {
+ 	__free_pages_ok(page, (unsigned long)page[1].lru.prev);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -76,9 +72,8 @@ new-scheme-to-preempt-swap-token.patch
 balance_pdgat-cleanup.patch
 leak-tracking-for-kmalloc_node.patch
 add-numa-node-information-to-struct-device.patch
-add-numa-node-information-to-struct-device-tidy.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
 slab-deprecate-kmem_cache-t.patch
+mm-make-compound-page-destructor-handling-explicit.patch
 mm-make-compound-page-destructor-handling-explicit-tidy.patch
 congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
 slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
