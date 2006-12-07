@@ -1,56 +1,51 @@
 From: akpm@osdl.org
-Subject: - exar-quad-port-serial-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:24:57 -0800
-Message-ID: <200612070324.kB73OvmK027229@shell0.pdx.osdl.net>
+Subject: - sleep-profiling-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:25:40 -0800
+Message-ID: <200612070325.kB73PeTo027243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42132 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42143 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967877AbWLGDZV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:25:21 -0500
+	id S967907AbWLGDZo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:25:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, lsorense@csclub.uwaterloo.ca, pschroeder@uplogix.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exar-quad-port-serial-fix
+     sleep-profiling-fix
 has been removed from the -mm tree.  Its filename was
-     exar-quad-port-serial-fix.patch
+     sleep-profiling-fix.patch
 
-This patch was dropped because it was folded into exar-quad-port-serial.patch
+This patch was dropped because it was folded into sleep-profiling.patch
 
 ------------------------------------------------------
-Subject: exar-quad-port-serial-fix
+Subject: sleep-profiling-fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/serial/8250_exar_st16c554.c:37: error: 'PLAT8250_DEV_EXAR' undeclared here (not in a function)
+arm:
+include/linux/profile.h:11: error: syntax error before "__read_mostly"
 
-hm, how'd that happen?
-
-Cc:  Paul B Schroeder <pschroeder@uplogix.com>
-Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/8250_exar_st16c554.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/profile.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/serial/8250_exar_st16c554.c~exar-quad-port-serial-fix drivers/serial/8250_exar_st16c554.c
---- a/drivers/serial/8250_exar_st16c554.c~exar-quad-port-serial-fix
-+++ a/drivers/serial/8250_exar_st16c554.c
-@@ -34,7 +34,7 @@ static struct plat_serial8250_port exar_
+diff -puN include/linux/profile.h~sleep-profiling-fix include/linux/profile.h
+--- a/include/linux/profile.h~sleep-profiling-fix
++++ a/include/linux/profile.h
+@@ -6,6 +6,8 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/cpumask.h>
++#include <linux/cache.h>
++
+ #include <asm/errno.h>
  
- static struct platform_device exar_device = {
- 	.name			= "serial8250",
--	.id			= PLAT8250_DEV_EXAR,
-+	.id			= PLAT8250_DEV_EXAR_ST16C554,
- 	.dev			= {
- 		.platform_data	= exar_data,
- 	},
+ extern int prof_on __read_mostly;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -75,11 +70,10 @@ lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
 probe_kernel_address-needs-to-do-set_fs.patch
 slab-use-probe_kernel_address.patch
 exar-quad-port-serial.patch
-exar-quad-port-serial-fix.patch
 vfs_getattr-remove-dead-code.patch
 ext3-uninline-large-functions.patch
 ext4-uninline-large-functions.patch
-sleep-profiling-fixes.patch
+sleep-profiling.patch
 sleep-profiling-fix.patch
 debug-workqueue-locking-sanity-fix.patch
 pcengines-wrap-led-support-fix.patch
