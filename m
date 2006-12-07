@@ -1,58 +1,73 @@
 From: akpm@osdl.org
-Subject: - pm-fix-swsusp-debug-mode-testproc.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:59:55 -0800
-Message-ID: <200612072259.kB7Mxto3029562@shell0.pdx.osdl.net>
+Subject: - uml-size-register-files-correctly.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:00:11 -0800
+Message-ID: <200612072300.kB7N0Bp0029616@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51240 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51186 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163621AbWLGXAc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:00:32 -0500
+	id S1163709AbWLGXAO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:00:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@ucw.cz, stable@kernel.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Fix swsusp debug mode testproc
+     uml: size register files correctly
 has been removed from the -mm tree.  Its filename was
-     pm-fix-swsusp-debug-mode-testproc.patch
+     uml-size-register-files-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Fix swsusp debug mode testproc
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: uml: size register files correctly
+From: Jeff Dike <jdike@addtoit.com>
 
-The 'testproc' swsusp debug mode thaws tasks twice in a row, which is _very_
-confusing.  Fix that.
+We were using the wrong symbol to size register files.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: <stable@kernel.org>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/disk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/include/sysdep-i386/ptrace.h   |    2 +-
+ arch/um/include/sysdep-x86_64/ptrace.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/disk.c~pm-fix-swsusp-debug-mode-testproc kernel/power/disk.c
---- a/kernel/power/disk.c~pm-fix-swsusp-debug-mode-testproc
-+++ a/kernel/power/disk.c
-@@ -151,7 +151,7 @@ int pm_suspend_disk(void)
- 		return error;
- 
- 	if (pm_disk_mode == PM_DISK_TESTPROC)
--		goto Thaw;
-+		return 0;
- 
- 	suspend_console();
- 	error = device_suspend(PMSG_FREEZE);
+diff -puN arch/um/include/sysdep-i386/ptrace.h~uml-size-register-files-correctly arch/um/include/sysdep-i386/ptrace.h
+--- a/arch/um/include/sysdep-i386/ptrace.h~uml-size-register-files-correctly
++++ a/arch/um/include/sysdep-i386/ptrace.h
+@@ -75,7 +75,7 @@ union uml_pt_regs {
+ #endif
+ #ifdef UML_CONFIG_MODE_SKAS
+ 	struct skas_regs {
+-		unsigned long regs[HOST_FRAME_SIZE];
++		unsigned long regs[MAX_REG_NR];
+ 		unsigned long fp[HOST_FP_SIZE];
+ 		unsigned long xfp[HOST_XFP_SIZE];
+                 struct faultinfo faultinfo;
+diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-size-register-files-correctly arch/um/include/sysdep-x86_64/ptrace.h
+--- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-size-register-files-correctly
++++ a/arch/um/include/sysdep-x86_64/ptrace.h
+@@ -108,7 +108,7 @@ union uml_pt_regs {
+ 		 * file size, while i386 uses FRAME_SIZE.  Therefore, we need
+ 		 * to use UM_FRAME_SIZE here instead of HOST_FRAME_SIZE.
+ 		 */
+-		unsigned long regs[UM_FRAME_SIZE];
++		unsigned long regs[MAX_REG_NR];
+ 		unsigned long fp[HOST_FP_SIZE];
+                 struct faultinfo faultinfo;
+ 		long syscall;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-acpi.patch
-md-change-lifetime-rules-for-md-devices.patch
+x86_64-i386-kernel-mode-faults-pollute-current-thead.patch
+uml-fix-prototypes.patch
+tty-signal-tty-locking.patch
+uml-add-generic-bug-support.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-fix.patch
+tty-switch-to-ktermios-uml-fix.patch
 
