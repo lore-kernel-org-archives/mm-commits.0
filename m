@@ -1,73 +1,84 @@
 From: akpm@osdl.org
-Subject: - aio-kill-pointless-ki_nbytes-assignment-in-aio_setup_single_vector.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:17:07 -0800
-Message-ID: <200612072317.kB7NH7OE030902@shell0.pdx.osdl.net>
+Subject: - ipmi-fix-request-events.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:17:37 -0800
+Message-ID: <200612072317.kB7NHb2k030947@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53874 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53869 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163875AbWLGXRm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:17:42 -0500
+	id S1163873AbWLGXRk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:17:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenneth.w.chen@intel.com, bcrl@kvack.org, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: kill pointless ki_nbytes assignment in aio_setup_single_vector
+     IPMI: fix request events
 has been removed from the -mm tree.  Its filename was
-     aio-kill-pointless-ki_nbytes-assignment-in-aio_setup_single_vector.patch
+     ipmi-fix-request-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: aio: kill pointless ki_nbytes assignment in aio_setup_single_vector
-From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Subject: IPMI: fix request events
+From: Corey Minyard <minyard@acm.org>
 
-io_submit_one assigns ki_left = ki_nbytes = iocb->aio_nbytes, then calls
-down to aio_setup_iocb, then to aio_setup_single_vector.  In there,
-ki_nbytes is reassigned to the same value it got two call stack above it. 
-There is no need to do so.
+When the IPMI message handler requested that the interface look for events,
+the ipmi_si driver would request flags, see if the event buffer full flag was
+set, then request events.  It's better to just send the request for events, as
+it cuts one message out of the transaction if there happens to be events, and
+it will fetch events even if the event buffer was not full.
 
-Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
-Acked-by: Zach Brown <zach.brown@oracle.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
+Signed-off-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN fs/aio.c~aio-kill-pointless-ki_nbytes-assignment-in-aio_setup_single_vector fs/aio.c
---- a/fs/aio.c~aio-kill-pointless-ki_nbytes-assignment-in-aio_setup_single_vector
-+++ a/fs/aio.c
-@@ -1413,7 +1413,6 @@ static ssize_t aio_setup_single_vector(s
- 	kiocb->ki_iovec->iov_len = kiocb->ki_left;
- 	kiocb->ki_nr_segs = 1;
- 	kiocb->ki_cur_seg = 0;
--	kiocb->ki_nbytes = kiocb->ki_left;
- 	return 0;
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-request-events drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-request-events
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -684,22 +684,24 @@ static enum si_sm_result smi_event_handl
+ 	{
+ 		/* We are idle and the upper layer requested that I fetch
+ 		   events, so do so. */
+-		unsigned char msg[2];
+-
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->flag_fetches++;
+-		spin_unlock(&smi_info->count_lock);
+-
+ 		atomic_set(&smi_info->req_events, 0);
+-		msg[0] = (IPMI_NETFN_APP_REQUEST << 2);
+-		msg[1] = IPMI_GET_MSG_FLAGS_CMD;
++
++		smi_info->curr_msg = ipmi_alloc_smi_msg();
++		if (!smi_info->curr_msg)
++			goto out;
++
++		smi_info->curr_msg->data[0] = (IPMI_NETFN_APP_REQUEST << 2);
++		smi_info->curr_msg->data[1] = IPMI_READ_EVENT_MSG_BUFFER_CMD;
++		smi_info->curr_msg->data_size = 2;
+ 
+ 		smi_info->handlers->start_transaction(
+-			smi_info->si_sm, msg, 2);
+-		smi_info->si_state = SI_GETTING_FLAGS;
++			smi_info->si_sm,
++			smi_info->curr_msg->data,
++			smi_info->curr_msg->data_size);
++		smi_info->si_state = SI_GETTING_EVENTS;
+ 		goto restart;
+ 	}
+-
++ out:
+ 	return si_sm_result;
  }
  
 _
 
-Patches currently in -mm which might be from kenneth.w.chen@intel.com are
+Patches currently in -mm which might be from minyard@acm.org are
 
 origin.patch
-optimize-o_direct-on-block-device-v3.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-sched-improve-migration-accuracy.patch
-sched-improve-migration-accuracy-tidy.patch
-sched-remove-lb_stopbalance-counter.patch
-sched-optimize-activate_task-for-rt-task.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
 
