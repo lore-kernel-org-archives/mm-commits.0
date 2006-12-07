@@ -1,49 +1,45 @@
 From: akpm@osdl.org
-Subject: - up-smp_call_function_single-should-disable-interrupts-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 17:32:31 -0800
-Message-ID: <200612070133.kB71Xh4J024585@shell0.pdx.osdl.net>
+Subject: - up-smp_call_function_single-should-disable-interrupts.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 17:33:15 -0800
+Message-ID: <200612070134.kB71YRtX024598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34996 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35026 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937923AbWLGBdz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 20:33:55 -0500
+	id S937926AbWLGBeh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 20:34:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, ak@suse.de, mingo@elte.hu, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     up-smp_call_function_single-should-disable-interrupts-fix
+     UP smp_call_function_single() should disable interrupts
 has been removed from the -mm tree.  Its filename was
-     up-smp_call_function_single-should-disable-interrupts-fix.patch
+     up-smp_call_function_single-should-disable-interrupts.patch
 
-This patch was dropped because it was folded into up-smp_call_function_single-should-disable-interrupts.patch
+This patch was dropped because the include hell defeated me
 
 ------------------------------------------------------
-Subject: up-smp_call_function_single-should-disable-interrupts-fix
+Subject: UP smp_call_function_single() should disable interrupts
 From: Andrew Morton <akpm@osdl.org>
 
-allnoconfig:
-
-In file included from arch/i386/kernel/cpu/common.c:4:
-include/linux/smp.h: In function 'smp_call_function_single':
-include/linux/smp.h:106: warning: implicit declaration of function 'local_irq_disable'
-include/linux/smp.h:108: warning: implicit declaration of function 'local_irq_enable'
+The SMP version of smp_call_function_single() calls the callback function with
+local interrupts disabled, so the UP version should also do this.
 
 Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/smp.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/smp.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/smp.h~up-smp_call_function_single-should-disable-interrupts-fix include/linux/smp.h
---- a/include/linux/smp.h~up-smp_call_function_single-should-disable-interrupts-fix
+diff -puN include/linux/smp.h~up-smp_call_function_single-should-disable-interrupts include/linux/smp.h
+--- a/include/linux/smp.h~up-smp_call_function_single-should-disable-interrupts
 +++ a/include/linux/smp.h
-@@ -9,13 +9,14 @@
+@@ -9,6 +9,8 @@
  
  extern void cpu_idle(void);
  
@@ -52,13 +48,17 @@ diff -puN include/linux/smp.h~up-smp_call_function_single-should-disable-interru
  #ifdef CONFIG_SMP
  
  #include <linux/preempt.h>
- #include <linux/kernel.h>
- #include <linux/compiler.h>
- #include <linux/thread_info.h>
--#include <linux/irqflags.h>
- #include <asm/smp.h>
+@@ -102,8 +104,9 @@ static inline void smp_send_reschedule(i
+ static inline int smp_call_function_single(int cpuid, void (*func) (void *info),
+ 				void *info, int retry, int wait)
+ {
+-	/* Disable interrupts here? */
++	local_irq_disable();	/* Match the SMP call environment */
+ 	func(info);
++	local_irq_enable();
+ 	return 0;
+ }
  
- /*
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -176,7 +176,6 @@ remove-hash_highmem.patch
 elf-fix-kcore-note-size-calculation-fix.patch
 reiserfs-add-missing-d-cache-flushing-tweak.patch
 up-smp_call_function_single-should-disable-interrupts.patch
-up-smp_call_function_single-should-disable-interrupts-fix.patch
 smp_call_function_single-check-that-local-interrupts-are-enabled.patch
 hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch
 add-return-value-checking-of-get_user-in-fix.patch
