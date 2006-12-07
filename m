@@ -1,53 +1,68 @@
 From: akpm@osdl.org
-Subject: - agp-amd64-section-mismatches-with-hotplug=n.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:06:25 -0800
-Message-ID: <200612072306.kB7N6PTv030264@shell0.pdx.osdl.net>
+Subject: - ciss-require-same-scsi-module-support.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:34 -0800
+Message-ID: <200612072306.kB7N6Yna030274@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52684 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52693 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163919AbWLGXGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:06:47 -0500
+	id S1163923AbWLGXGw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:06:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     agp-amd64: section mismatches with HOTPLUG=n
+     CISS: require same SCSI module support
 has been removed from the -mm tree.  Its filename was
-     agp-amd64-section-mismatches-with-hotplug=n.patch
+     ciss-require-same-scsi-module-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: agp-amd64: section mismatches with HOTPLUG=n
+Subject: CISS: require same SCSI module support
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-When CONFIG_HOTPLUG=n, agp_amd64_resume() calls nforce3_agp_init(), which is
-__devinit == __init, so has been discarded and is not usable for resume.
+Building CCISS SCSI tape support in-kernel when SCSI=m causes build errors,
+so require SCSI support to be =y or same as CCISS SCSI tape support.
 
-WARNING: drivers/char/agp/amd64-agp.o - Section mismatch: reference to .init.text: from .text between 'agp_amd64_resume' (at offset 0x249) and 'amd64_tlbflush'
+drivers/built-in.o: In function `cciss_remove_one':
+cciss.c:(.text+0x79d4c): undefined reference to `scsi_remove_host'
+cciss.c:(.text+0x79d55): undefined reference to `scsi_host_put'
+drivers/built-in.o: In function `cciss_update_non_disk_devices':
+cciss.c:(.text+0x7bb54): undefined reference to `scsi_device_type'
+cciss.c:(.text+0x7bcc8): undefined reference to `scsi_device_type'
+cciss.c:(.text+0x7be81): undefined reference to `scsi_device_type'
+cciss.c:(.text+0x7bf81): undefined reference to `scsi_device_type'
+drivers/built-in.o: In function `cciss_proc_write':
+cciss.c:(.text+0x7c175): undefined reference to `scsi_host_alloc'
+cciss.c:(.text+0x7c1ed): undefined reference to `scsi_add_host'
+cciss.c:(.text+0x7c1f9): undefined reference to `scsi_scan_host'
+cciss.c:(.text+0x7c206): undefined reference to `scsi_host_put'
+make: *** [.tmp_vmlinux1] Error 1
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/agp/amd64-agp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/amd64-agp.c~agp-amd64-section-mismatches-with-hotplug=n drivers/char/agp/amd64-agp.c
---- a/drivers/char/agp/amd64-agp.c~agp-amd64-section-mismatches-with-hotplug=n
-+++ a/drivers/char/agp/amd64-agp.c
-@@ -459,7 +459,7 @@ static const struct aper_size_info_32 nf
+diff -puN drivers/block/Kconfig~ciss-require-same-scsi-module-support drivers/block/Kconfig
+--- a/drivers/block/Kconfig~ciss-require-same-scsi-module-support
++++ a/drivers/block/Kconfig
+@@ -168,7 +168,8 @@ config BLK_CPQ_CISS_DA
  
- /* Handle shadow device of the Nvidia NForce3 */
- /* CHECK-ME original 2.4 version set up some IORRs. Check if that is needed. */
--static int __devinit nforce3_agp_init(struct pci_dev *pdev)
-+static int nforce3_agp_init(struct pci_dev *pdev)
- {
- 	u32 tmp, apbase, apbar, aplimit;
- 	struct pci_dev *dev1;
+ config CISS_SCSI_TAPE
+ 	bool "SCSI tape drive support for Smart Array 5xxx"
+-	depends on BLK_CPQ_CISS_DA && SCSI && PROC_FS
++	depends on BLK_CPQ_CISS_DA && PROC_FS
++	depends on SCSI=y || SCSI=BLK_CPQ_CISS_DA
+ 	help
+ 	  When enabled (Y), this option allows SCSI tape drives and SCSI medium
+ 	  changers (tape robots) to be accessed via a Compaq 5xxx array 
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
