@@ -1,191 +1,82 @@
 From: akpm@osdl.org
-Subject: - paride-return-proper-error-code.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:03:08 -0800
-Message-ID: <200612072303.kB7N38IP029938@shell0.pdx.osdl.net>
+Subject: - parport_pc-add-support-for-ox16pci952-parallel-port.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:03:00 -0800
+Message-ID: <200612072303.kB7N301f029926@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51852 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51836 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163594AbWLGXDP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:03:15 -0500
+	id S1163811AbWLGXDG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:03:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, tim@cyberelk.net, mm-commits@vger.kernel.org
+To: nemesis@icequake.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     paride: return proper error code
+     parport_pc: Add support for OX16PCI952 parallel port
 has been removed from the -mm tree.  Its filename was
-     paride-return-proper-error-code.patch
+     parport_pc-add-support-for-ox16pci952-parallel-port.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: paride: return proper error code
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: parport_pc: Add support for OX16PCI952 parallel port
+From: Ryan Underwood <nemesis@icequake.net>
 
-This patch makes module init return proper value instead of -1 (-EPERM).
+Add support for the parallel port (implemented as separate PCI function) on
+the Oxford Semiconductor OX16PCI952.
 
-Cc: Tim Waugh <tim@cyberelk.net>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Ryan Underwood <nemesis@icequake.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/paride/pcd.c |    8 ++++----
- drivers/block/paride/pf.c  |    8 ++++----
- drivers/block/paride/pg.c  |    4 ++--
- drivers/block/paride/pt.c  |    4 ++--
- 4 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/parport/parport_pc.c |    4 ++++
+ include/linux/pci_ids.h      |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN drivers/block/paride/pcd.c~paride-return-proper-error-code drivers/block/paride/pcd.c
---- a/drivers/block/paride/pcd.c~paride-return-proper-error-code
-+++ a/drivers/block/paride/pcd.c
-@@ -912,12 +912,12 @@ static int __init pcd_init(void)
- 	int unit;
+diff -puN drivers/parport/parport_pc.c~parport_pc-add-support-for-ox16pci952-parallel-port drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport_pc-add-support-for-ox16pci952-parallel-port
++++ a/drivers/parport/parport_pc.c
+@@ -2747,6 +2747,7 @@ enum parport_pc_pci_cards {
+ 	titan_1284p2,
+ 	avlab_1p,
+ 	avlab_2p,
++	oxsemi_952,
+ 	oxsemi_954,
+ 	oxsemi_840,
+ 	aks_0100,
+@@ -2822,6 +2823,7 @@ static struct parport_pc_pci {
+ 	/* avlab_2p		*/	{ 2, { { 0, 1}, { 2, 3 },} },
+ 	/* The Oxford Semi cards are unusual: 954 doesn't support ECP,
+ 	 * and 840 locks up if you write 1 to bit 2! */
++	/* oxsemi_952 */		{ 1, { { 0, 1 }, } },
+ 	/* oxsemi_954 */		{ 1, { { 0, -1 }, } },
+ 	/* oxsemi_840 */		{ 1, { { 0, -1 }, } },
+ 	/* aks_0100 */                  { 1, { { 0, -1 }, } },
+@@ -2895,6 +2897,8 @@ static const struct pci_device_id parpor
+ 	/* PCI_VENDOR_ID_AVLAB/Intek21 has another bunch of cards ...*/
+ 	{ 0x14db, 0x2120, PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1p}, /* AFAVLAB_TK9902 */
+ 	{ 0x14db, 0x2121, PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_2p},
++	{ PCI_VENDOR_ID_OXSEMI, PCI_DEVICE_ID_OXSEMI_16PCI952PP,
++	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, oxsemi_952 },
+ 	{ PCI_VENDOR_ID_OXSEMI, PCI_DEVICE_ID_OXSEMI_16PCI954PP,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, oxsemi_954 },
+ 	{ PCI_VENDOR_ID_OXSEMI, PCI_DEVICE_ID_OXSEMI_12PCI840,
+diff -puN include/linux/pci_ids.h~parport_pc-add-support-for-ox16pci952-parallel-port include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~parport_pc-add-support-for-ox16pci952-parallel-port
++++ a/include/linux/pci_ids.h
+@@ -1864,6 +1864,7 @@
+ #define PCI_DEVICE_ID_OXSEMI_16PCI95N	0x9511
+ #define PCI_DEVICE_ID_OXSEMI_16PCI954PP	0x9513
+ #define PCI_DEVICE_ID_OXSEMI_16PCI952	0x9521
++#define PCI_DEVICE_ID_OXSEMI_16PCI952PP	0x9523
  
- 	if (disable)
--		return -1;
-+		return -EINVAL;
- 
- 	pcd_init_units();
- 
- 	if (pcd_detect())
--		return -1;
-+		return -ENODEV;
- 
- 	/* get the atapi capabilities page */
- 	pcd_probe_capabilities();
-@@ -925,7 +925,7 @@ static int __init pcd_init(void)
- 	if (register_blkdev(major, name)) {
- 		for (unit = 0, cd = pcd; unit < PCD_UNITS; unit++, cd++)
- 			put_disk(cd->disk);
--		return -1;
-+		return -EBUSY;
- 	}
- 
- 	pcd_queue = blk_init_queue(do_pcd_request, &pcd_lock);
-@@ -933,7 +933,7 @@ static int __init pcd_init(void)
- 		unregister_blkdev(major, name);
- 		for (unit = 0, cd = pcd; unit < PCD_UNITS; unit++, cd++)
- 			put_disk(cd->disk);
--		return -1;
-+		return -ENOMEM;
- 	}
- 
- 	for (unit = 0, cd = pcd; unit < PCD_UNITS; unit++, cd++) {
-diff -puN drivers/block/paride/pf.c~paride-return-proper-error-code drivers/block/paride/pf.c
---- a/drivers/block/paride/pf.c~paride-return-proper-error-code
-+++ a/drivers/block/paride/pf.c
-@@ -933,25 +933,25 @@ static int __init pf_init(void)
- 	int unit;
- 
- 	if (disable)
--		return -1;
-+		return -EINVAL;
- 
- 	pf_init_units();
- 
- 	if (pf_detect())
--		return -1;
-+		return -ENODEV;
- 	pf_busy = 0;
- 
- 	if (register_blkdev(major, name)) {
- 		for (pf = units, unit = 0; unit < PF_UNITS; pf++, unit++)
- 			put_disk(pf->disk);
--		return -1;
-+		return -EBUSY;
- 	}
- 	pf_queue = blk_init_queue(do_pf_request, &pf_spin_lock);
- 	if (!pf_queue) {
- 		unregister_blkdev(major, name);
- 		for (pf = units, unit = 0; unit < PF_UNITS; pf++, unit++)
- 			put_disk(pf->disk);
--		return -1;
-+		return -ENOMEM;
- 	}
- 
- 	blk_queue_max_phys_segments(pf_queue, cluster);
-diff -puN drivers/block/paride/pg.c~paride-return-proper-error-code drivers/block/paride/pg.c
---- a/drivers/block/paride/pg.c~paride-return-proper-error-code
-+++ a/drivers/block/paride/pg.c
-@@ -646,14 +646,14 @@ static int __init pg_init(void)
- 	int err;
- 
- 	if (disable){
--		err = -1;
-+		err = -EINVAL;
- 		goto out;
- 	}
- 
- 	pg_init_units();
- 
- 	if (pg_detect()) {
--		err = -1;
-+		err = -ENODEV;
- 		goto out;
- 	}
- 
-diff -puN drivers/block/paride/pt.c~paride-return-proper-error-code drivers/block/paride/pt.c
---- a/drivers/block/paride/pt.c~paride-return-proper-error-code
-+++ a/drivers/block/paride/pt.c
-@@ -946,12 +946,12 @@ static int __init pt_init(void)
- 	int err;
- 
- 	if (disable) {
--		err = -1;
-+		err = -EINVAL;
- 		goto out;
- 	}
- 
- 	if (pt_detect()) {
--		err = -1;
-+		err = -ENODEV;
- 		goto out;
- 	}
+ #define PCI_VENDOR_ID_SAMSUNG		0x144d
  
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from nemesis@icequake.net are
 
 origin.patch
-acpi-fix-single-linked-list-manipulation.patch
-acpi-processor-prevent-loading-module-on-failures.patch
-git-alsa.patch
-audit-fix-kstrdup-error-check.patch
-drm-fix-return-value-check.patch
-git-input.patch
-ata-fix-platform_device_register_simple-error-check.patch
-git-mtd.patch
-gss_spkm3-fix-error-handling-in-module-init.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-iscsi-fix-crypto_alloc_hash-error-check.patch
-bit-revese-library.patch
-crc32-replace-bitreverse-by-bitrev32.patch
-video-use-bitrev8.patch
-net-use-bitrev8.patch
-net-use-bitrev8-tidy.patch
-isdn-hisax-use-bitrev8.patch
-atm-ambassador-use-bitrev8.patch
-isdn-gigaset-use-bitrev8.patch
-isdn-fix-missing-unregister_capi_driver.patch
-fault-injection-documentation-and-scripts.patch
-fault-injection-capabilities-infrastructure.patch
-fault-injection-capabilities-infrastructure-tidy.patch
-fault-injection-capabilities-infrastructure-tweaks.patch
-fault-injection-capability-for-kmalloc.patch
-fault-injection-capability-for-kmalloc-failslab-remove-__gfp_highmem-filtering.patch
-fault-injection-capability-for-alloc_pages.patch
-fault-injection-capability-for-disk-io.patch
-fault-injection-process-filtering-for-fault-injection-capabilities.patch
-fault-injection-stacktrace-filtering.patch
-fault-injection-stacktrace-filtering-reject-failure-if-any-caller-lies-within-specified-range.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-fault-injection-Kconfig-cleanup-config_fault_injection-help-text.patch
-fault-injection-correct-disambiguate-and.patch
-fault-injection-use-bool-true-false-throughout.patch
-fault-injection-clamp-debugfs-stacktrace-depth-to.patch
-fault-injection-optimize-and-simplify.patch
-fault-injection-defaults-likely-to-please-a-new.patch
 
