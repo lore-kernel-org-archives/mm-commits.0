@@ -1,60 +1,65 @@
 From: akpm@osdl.org
-Subject: - fs-reiserfs-add-missing-brackets.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:09 -0800
-Message-ID: <200612072316.kB7NG9DB030789@shell0.pdx.osdl.net>
+Subject: - sys-remove-unused-variable.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:16:19 -0800
+Message-ID: <200612072316.kB7NGJMM030819@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53601 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53626 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163808AbWLGXQN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:16:13 -0500
+	id S1163728AbWLGXQZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:16:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: rientjes@cs.washington.edu, dcb314@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: reiserfs add missing brackets
+     sys: remove unused variable
 has been removed from the -mm tree.  Its filename was
-     fs-reiserfs-add-missing-brackets.patch
+     sys-remove-unused-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: reiserfs add missing brackets
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: sys: remove unused variable
+From: David Rientjes <rientjes@cs.washington.edu>
 
+Remove unused 'new_ruid' variable.
 
+Reported by David Binderman <dcb314@hotmail.com>.
+
+Signed-off-by: David Rientjes <rientjes@cs.washington.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/reiserfs_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/reiserfs_fs.h~fs-reiserfs-add-missing-brackets include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~fs-reiserfs-add-missing-brackets
-+++ a/include/linux/reiserfs_fs.h
-@@ -739,7 +739,7 @@ struct block_head {
- #define PUT_B_FREE_SPACE(p_s_bh,val)  do { set_blkh_free_space(B_BLK_HEAD(p_s_bh),val); } while (0)
+diff -puN kernel/sys.c~sys-remove-unused-variable kernel/sys.c
+--- a/kernel/sys.c~sys-remove-unused-variable
++++ a/kernel/sys.c
+@@ -1102,14 +1102,14 @@ asmlinkage long sys_setreuid(uid_t ruid,
+ asmlinkage long sys_setuid(uid_t uid)
+ {
+ 	int old_euid = current->euid;
+-	int old_ruid, old_suid, new_ruid, new_suid;
++	int old_ruid, old_suid, new_suid;
+ 	int retval;
  
- /* Get right delimiting key. -- little endian */
--#define B_PRIGHT_DELIM_KEY(p_s_bh)   (&(blk_right_delim_key(B_BLK_HEAD(p_s_bh))
-+#define B_PRIGHT_DELIM_KEY(p_s_bh)   (&(blk_right_delim_key(B_BLK_HEAD(p_s_bh))))
+ 	retval = security_task_setuid(uid, (uid_t)-1, (uid_t)-1, LSM_SETID_ID);
+ 	if (retval)
+ 		return retval;
  
- /* Does the buffer contain a disk leaf. */
- #define B_IS_ITEMS_LEVEL(p_s_bh)     (B_LEVEL(p_s_bh) == DISK_LEAF_NODE_LEVEL)
+-	old_ruid = new_ruid = current->uid;
++	old_ruid = current->uid;
+ 	old_suid = current->suid;
+ 	new_suid = old_suid;
+ 	
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from rientjes@cs.washington.edu are
 
 origin.patch
-ppc-cs4218_tdm-remove-extra-brace.patch
-mips-dbg_io-stray-brackets-fix.patch
-git-mtd.patch
-scsi-sic7xxx-stray-bracket-fix.patch
-scsi-53c7xx-brackets-fix.patch
-sparc64-dma-remove-extra-brackets.patch
-video-cyberfb-broken-macro-removal.patch
-video-neofb-stray-bracket-fix.patch
-video-pm3fb-macros-fix.patch
+video-sis-remove-unnecessary-variables-in-sis_ddc2delay.patch
+hrtimers-clean-up-locking-fix.patch
 
