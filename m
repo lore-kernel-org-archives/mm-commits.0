@@ -1,51 +1,67 @@
 From: akpm@osdl.org
-Subject: - add-return-value-checking-of-get_user-in-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:34:11 -0800
-Message-ID: <200612070334.kB73YBBW027485@shell0.pdx.osdl.net>
+Subject: - handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:34:45 -0800
+Message-ID: <200612070334.kB73YjSd027493@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42843 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42953 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968015AbWLGDeO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:34:14 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB73YCID021044
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 6 Dec 2006 19:34:12 -0800
+	id S968016AbWLGDey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:34:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, ego@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-return-value-checking-of-get_user-in-fix
+     handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy
 has been removed from the -mm tree.  Its filename was
-     add-return-value-checking-of-get_user-in-fix.patch
+     handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
 
-This patch was dropped because it was folded into add-return-value-checking-of-get_user-in.patch
+This patch was dropped because it was folded into handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
 
 ------------------------------------------------------
-Subject: add-return-value-checking-of-get_user-in-fix
+Subject: handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy
 From: Andrew Morton <akpm@osdl.org>
 
+C functions are nicer - they do type checking.
+
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/vt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cpu.h |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/vt.c~add-return-value-checking-of-get_user-in-fix drivers/char/vt.c
---- a/drivers/char/vt.c~add-return-value-checking-of-get_user-in-fix
-+++ a/drivers/char/vt.c
-@@ -3313,7 +3313,7 @@ postcore_initcall(vtconsole_class_init);
-  *	Screen blanking
-  */
+diff -puN include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy include/linux/cpu.h
+--- a/include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy
++++ a/include/linux/cpu.h
+@@ -97,9 +97,13 @@ extern void unlock_cpu_hotplug(void);
+ #define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
+ int cpu_down(unsigned int cpu);
+ #define cpu_is_offline(cpu) unlikely(!cpu_online(cpu))
+-#else
+-#define cpuhotplug_mutex_lock(m)	do { (void)(m); } while (0)
+-#define cpuhotplug_mutex_unlock(m)	do { (void)(m); } while (0)
++
++#else		/* CONFIG_HOTPLUG_CPU */
++
++static inline void cpuhotplug_mutex_lock(struct mutex *cpu_hp_mutex)
++{ }
++static inline void cpuhotplug_mutex_unlock(struct mutex *cpu_hp_mutex)
++{ }
  
--static void set_vesa_blanking(char __user *p)
-+static int set_vesa_blanking(char __user *p)
- {
- 	unsigned int mode;
+ #define lock_cpu_hotplug()	do { } while (0)
+ #define unlock_cpu_hotplug()	do { } while (0)
+@@ -110,7 +114,7 @@ int cpu_down(unsigned int cpu);
  
+ /* CPUs don't go offline once they're online w/o CONFIG_HOTPLUG_CPU */
+ static inline int cpu_is_offline(int cpu) { return 0; }
+-#endif
++#endif		/* CONFIG_HOTPLUG_CPU */
+ 
+ #ifdef CONFIG_SUSPEND_SMP
+ extern int disable_nonboot_cpus(void);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -85,7 +101,7 @@ reiserfs-add-missing-d-cache-flushing.patch
 smp_call_function_single-check-that-local-interrupts-are-enabled.patch
 hotplug-cpu-clean-up-hotcpu_notifier-use.patch
 add-return-value-checking-of-get_user-in.patch
-add-return-value-checking-of-get_user-in-fix.patch
+handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
 handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
 dz-fixes-to-make-it-work-fix.patch
 ext4-balloc-fix-_with_rsv-freeze-fix.patch
