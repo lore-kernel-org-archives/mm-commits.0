@@ -1,113 +1,152 @@
 From: akpm@osdl.org
-Subject: - arch-frv-kernel-futexc-must-include-linux-uaccessh.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:58:48 -0800
-Message-ID: <200612072258.kB7MwmnV029432@shell0.pdx.osdl.net>
+Subject: - fuse-add-bmap-support.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:01:45 -0800
+Message-ID: <200612072301.kB7N1jhS029798@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51630 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51649 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163771AbWLGXCI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:02:08 -0500
+	id S1163775AbWLGXCO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:02:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/frv/kernel/futex.c must #include <linux/uaccess.h>
+     fuse: add bmap support
 has been removed from the -mm tree.  Its filename was
-     arch-frv-kernel-futexc-must-include-linux-uaccessh.patch
+     fuse-add-bmap-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/frv/kernel/futex.c must #include <linux/uaccess.h>
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fuse: add bmap support
+From: Miklos Szeredi <miklos@szeredi.hu>
 
-This patch fixes the following compile error with
--Werror-implicit-function-declaration
-(without -Werror-implicit-function-declaration it's a link error):
+Add support for the BMAP operation for block device based filesystems.  This
+is needed to support swap-files and lilo.
 
-<--  snip  -->
-
-...
-  CC      arch/frv/kernel/futex.o
-/home/bunk/linux/kernel-2.6/linux-2.6.19-rc6-mm2/arch/frv/kernel/futex.c:
-In function 'futex_atomic_op_inuser':
-/home/bunk/linux/kernel-2.6/linux-2.6.19-rc6-mm2/arch/frv/kernel/futex.c:203:
-error: implicit declaration of function 'pagefault_disable'
-/home/bunk/linux/kernel-2.6/linux-2.6.19-rc6-mm2/arch/frv/kernel/futex.c:226:
-error: implicit declaration of function 'pagefault_enable'
-make[2]: *** [arch/frv/kernel/futex.o] Error 1
-
-<--  snip  -->
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/frv/kernel/futex.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fuse/dir.c        |    2 ++
+ fs/fuse/file.c       |   37 +++++++++++++++++++++++++++++++++++++
+ fs/fuse/fuse_i.h     |    3 +++
+ include/linux/fuse.h |   11 +++++++++++
+ 4 files changed, 53 insertions(+)
 
-diff -puN arch/frv/kernel/futex.c~arch-frv-kernel-futexc-must-include-linux-uaccessh arch/frv/kernel/futex.c
---- a/arch/frv/kernel/futex.c~arch-frv-kernel-futexc-must-include-linux-uaccessh
-+++ a/arch/frv/kernel/futex.c
-@@ -10,9 +10,9 @@
-  */
+diff -puN fs/fuse/dir.c~fuse-add-bmap-support fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-bmap-support
++++ a/fs/fuse/dir.c
+@@ -1024,6 +1024,8 @@ static int fuse_setattr(struct dentry *e
+ 	if (attr->ia_valid & ATTR_SIZE) {
+ 		unsigned long limit;
+ 		is_truncate = 1;
++		if (IS_SWAPFILE(inode))
++			return -ETXTBSY;
+ 		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
+ 		if (limit != RLIM_INFINITY && attr->ia_size > (loff_t) limit) {
+ 			send_sig(SIGXFSZ, current, 0);
+diff -puN fs/fuse/file.c~fuse-add-bmap-support fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-add-bmap-support
++++ a/fs/fuse/file.c
+@@ -754,6 +754,42 @@ static int fuse_file_lock(struct file *f
+ 	return err;
+ }
  
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/futex.h>
- #include <asm/errno.h>
--#include <asm/uaccess.h>
++static sector_t fuse_bmap(struct address_space *mapping, sector_t block)
++{
++	struct inode *inode = mapping->host;
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_req *req;
++	struct fuse_bmap_in inarg;
++	struct fuse_bmap_out outarg;
++	int err;
++
++	if (!inode->i_sb->s_bdev || fc->no_bmap)
++		return 0;
++
++	req = fuse_get_req(fc);
++	if (IS_ERR(req))
++		return 0;
++
++	memset(&inarg, 0, sizeof(inarg));
++	inarg.block = block;
++	inarg.blocksize = inode->i_sb->s_blocksize;
++	req->in.h.opcode = FUSE_BMAP;
++	req->in.h.nodeid = get_node_id(inode);
++	req->in.numargs = 1;
++	req->in.args[0].size = sizeof(inarg);
++	req->in.args[0].value = &inarg;
++	req->out.numargs = 1;
++	req->out.args[0].size = sizeof(outarg);
++	req->out.args[0].value = &outarg;
++	request_send(fc, req);
++	err = req->out.h.error;
++	fuse_put_request(fc, req);
++	if (err == -ENOSYS)
++		fc->no_bmap = 1;
++
++	return err ? 0 : outarg.block;
++}
++
+ static const struct file_operations fuse_file_operations = {
+ 	.llseek		= generic_file_llseek,
+ 	.read		= do_sync_read,
+@@ -787,6 +823,7 @@ static const struct address_space_operat
+ 	.commit_write	= fuse_commit_write,
+ 	.readpages	= fuse_readpages,
+ 	.set_page_dirty	= fuse_set_page_dirty,
++	.bmap		= fuse_bmap,
+ };
  
- /*
-  * the various futex operations; MMU fault checking is ignored under no-MMU
+ void fuse_init_file_inode(struct inode *inode)
+diff -puN fs/fuse/fuse_i.h~fuse-add-bmap-support fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-bmap-support
++++ a/fs/fuse/fuse_i.h
+@@ -339,6 +339,9 @@ struct fuse_conn {
+ 	/** Is interrupt not implemented by fs? */
+ 	unsigned no_interrupt : 1;
+ 
++	/** Is bmap not implemented by fs? */
++	unsigned no_bmap : 1;
++
+ 	/** The number of requests waiting for completion */
+ 	atomic_t num_waiting;
+ 
+diff -puN include/linux/fuse.h~fuse-add-bmap-support include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-add-bmap-support
++++ a/include/linux/fuse.h
+@@ -132,6 +132,7 @@ enum fuse_opcode {
+ 	FUSE_ACCESS        = 34,
+ 	FUSE_CREATE        = 35,
+ 	FUSE_INTERRUPT     = 36,
++	FUSE_BMAP          = 37,
+ };
+ 
+ /* The read buffer is required to be at least 8k, but may be much larger */
+@@ -302,6 +303,16 @@ struct fuse_interrupt_in {
+ 	__u64	unique;
+ };
+ 
++struct fuse_bmap_in {
++	__u64	block;
++	__u32	blocksize;
++	__u32	padding;
++};
++
++struct fuse_bmap_out {
++	__u64	block;
++};
++
+ struct fuse_in_header {
+ 	__u32	len;
+ 	__u32	opcode;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from miklos@szeredi.hu are
 
 origin.patch
-make-drivers-acpi-eccec_ecdt-static.patch
-drivers-acpi-oslc-fix-a-null-check.patch
-git-alsa.patch
-git-dvb.patch
-fs-dlm-lowcomms-tcpc-remove-2-functions.patch
-git-mtd.patch
-remove-mtd-jffs2-userh.patch
-net-uninline-skb_put-fix.patch
-dont-export-device-ids-to-userspace.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-make-qla2x00_reg_remote_port-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-usb_rtl8150-must-select-mii.patch
-drivers-edac-make-code-static.patch
-remove-drivers-pci-searchcpci_find_device_reverse.patch
-make-ext2_get_blocks-static.patch
-generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch
-fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh.patch
-i4l-remove-the-broken-hisax_amd7930-option.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-make-drivers-md-dm-snapcksnapd-static.patch
-gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
-gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch
-updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
-updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slab-cache-shrinker-statistics.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
 
