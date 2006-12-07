@@ -1,53 +1,51 @@
 From: akpm@osdl.org
-Subject: - ext4-balloc-fix-_with_rsv-freeze-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:36:28 -0800
-Message-ID: <200612070336.kB73aSTf027538@shell0.pdx.osdl.net>
+Subject: - struct-seq_operations-and-struct-file_operations-constification-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:40:04 -0800
+Message-ID: <200612070340.kB73e46J027627@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43193 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43291 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968128AbWLGDiU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:38:20 -0500
+	id S968104AbWLGDkK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:40:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, cmm@us.ibm.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, deller@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4-balloc-fix-_with_rsv-freeze-fix
+     struct-seq_operations-and-struct-file_operations-constification-fix
 has been removed from the -mm tree.  Its filename was
-     ext4-balloc-fix-_with_rsv-freeze-fix.patch
+     struct-seq_operations-and-struct-file_operations-constification-fix.patch
 
-This patch was dropped because it was folded into ext4-balloc-fix-_with_rsv-freeze.patch
+This patch was dropped because it was folded into struct-seq_operations-and-struct-file_operations-constification.patch
 
 ------------------------------------------------------
-Subject: ext4-balloc-fix-_with_rsv-freeze-fix
+Subject: struct-seq_operations-and-struct-file_operations-constification-fix
 From: Andrew Morton <akpm@osdl.org>
 
-fs/ext4/balloc.c: In function 'find_next_usable_block':
-fs/ext4/balloc.c:750: warning: suggest parentheses around + or - inside shift
-fs/ext4/balloc.c:750: error: syntax error before ';' token
+kernel/sched.c:508: error:  conflicting type qualifiers for 'proc_schedstat_operations'
+include/linux/sched.h:576: error: previous declaration of 'proc_schedstat_operations' was here
 
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext4/balloc.c |    2 +-
+ include/linux/sched.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/balloc.c~ext4-balloc-fix-_with_rsv-freeze-fix fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext4-balloc-fix-_with_rsv-freeze-fix
-+++ a/fs/ext4/balloc.c
-@@ -747,7 +747,7 @@ find_next_usable_block(ext4_grpblk_t sta
- 		here = 0;
+diff -puN include/linux/sched.h~struct-seq_operations-and-struct-file_operations-constification-fix include/linux/sched.h
+--- a/include/linux/sched.h~struct-seq_operations-and-struct-file_operations-constification-fix
++++ a/include/linux/sched.h
+@@ -573,7 +573,7 @@ struct sched_info {
+ #endif /* defined(CONFIG_SCHEDSTATS) || defined(CONFIG_TASK_DELAY_ACCT) */
  
- 	p = ((char *)bh->b_data) + (here >> 3);
--	r = memscan(p, 0, ((maxblocks + 7) >> 3 - (here >> 3));
-+	r = memscan(p, 0, ((maxblocks + 7) >> 3) - (here >> 3));
- 	next = (r - ((char *)bh->b_data)) << 3;
+ #ifdef CONFIG_SCHEDSTATS
+-extern struct file_operations proc_schedstat_operations;
++extern const struct file_operations proc_schedstat_operations;
+ #endif /* CONFIG_SCHEDSTATS */
  
- 	if (next < maxblocks && next >= start && ext4_test_allocatable(next, bh))
+ #ifdef CONFIG_TASK_DELAY_ACCT
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -90,11 +88,11 @@ add-return-value-checking-of-get_user-in.patch
 handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
 dz-fixes-to-make-it-work.patch
 ext4-balloc-fix-_with_rsv-freeze.patch
-ext4-balloc-fix-_with_rsv-freeze-fix.patch
-ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
-make-8250_pnp-serial-driver-work-after-tidy.patch
+ide_scsi-allow-it-to-be-used-for-non-cd-only.patch
+make-8250_pnp-serial-driver-work-after.patch
 gcc-4-1-0-is-bust.patch
-cleanup-include-asm-generic-atomich-fix.patch
+cleanup-include-asm-generic-atomich.patch
+struct-seq_operations-and-struct-file_operations-constification.patch
 struct-seq_operations-and-struct-file_operations-constification-fix.patch
 struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
 touch_atime-cleanup.patch
