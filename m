@@ -1,86 +1,57 @@
 From: akpm@osdl.org
-Subject: - export-pm_suspend-for-the-shared-apm-emulation.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:01:58 -0800
-Message-ID: <200612072301.kB7N1wfU029823@shell0.pdx.osdl.net>
+Subject: - spi-set-kset-of-master-class-dev-explicitly.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:02:25 -0800
+Message-ID: <200612072302.kB7N2P6V029850@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51698 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51694 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163792AbWLGXCc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1163610AbWLGXCc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 7 Dec 2006 18:02:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, lethal@linux-sh.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: hcegtvedt@atmel.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Export pm_suspend for the shared APM emulation
+     spi: set kset of master class dev explicitly
 has been removed from the -mm tree.  Its filename was
-     export-pm_suspend-for-the-shared-apm-emulation.patch
+     spi-set-kset-of-master-class-dev-explicitly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Export pm_suspend for the shared APM emulation
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: spi: set kset of master class dev explicitly
+From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
 
-The new shared APM emulation just like its ARM and MIPS predecessors uses
-pm_suspend() which was only exported on SH.  Move export to close to it's
-definition where it really should be anyway.
+<quote Imre Deak from Thu, 12 Jan 2006 21:18:54 +0200>
+In order for spi_busnum_to_master to work spi master devices must be linked
+into the spi_master_class.subsys.kset list.  At the moment the default
+class_obj_subsys.kset is used and we can't enumerate the master devices.
+</quote>
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sh/kernel/sh_ksyms.c |    4 ----
- kernel/power/main.c       |    3 ++-
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/spi/spi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/sh/kernel/sh_ksyms.c~export-pm_suspend-for-the-shared-apm-emulation arch/sh/kernel/sh_ksyms.c
---- a/arch/sh/kernel/sh_ksyms.c~export-pm_suspend-for-the-shared-apm-emulation
-+++ a/arch/sh/kernel/sh_ksyms.c
-@@ -99,10 +99,6 @@ EXPORT_SYMBOL(__down_trylock);
- EXPORT_SYMBOL(synchronize_irq);
- #endif
+diff -puN drivers/spi/spi.c~spi-set-kset-of-master-class-dev-explicitly drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-set-kset-of-master-class-dev-explicitly
++++ a/drivers/spi/spi.c
+@@ -366,6 +366,7 @@ spi_alloc_master(struct device *dev, uns
  
--#ifdef CONFIG_PM
--EXPORT_SYMBOL(pm_suspend);
--#endif
--
- EXPORT_SYMBOL(csum_partial);
- #ifdef CONFIG_IPV6
- EXPORT_SYMBOL(csum_ipv6_magic);
-diff -puN kernel/power/main.c~export-pm_suspend-for-the-shared-apm-emulation kernel/power/main.c
---- a/kernel/power/main.c~export-pm_suspend-for-the-shared-apm-emulation
-+++ a/kernel/power/main.c
-@@ -8,6 +8,7 @@
-  *
-  */
- 
-+#include <linux/module.h>
- #include <linux/suspend.h>
- #include <linux/kobject.h>
- #include <linux/string.h>
-@@ -230,7 +231,7 @@ int pm_suspend(suspend_state_t state)
- 	return -EINVAL;
- }
- 
--
-+EXPORT_SYMBOL(pm_suspend);
- 
- decl_subsys(power,NULL,NULL);
+ 	class_device_initialize(&master->cdev);
+ 	master->cdev.class = &spi_master_class;
++	kobj_set_kset_s(&master->cdev, spi_master_class.subsys);
+ 	master->cdev.dev = get_device(dev);
+ 	spi_master_set_devdata(master, &master[1]);
  
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from hcegtvedt@atmel.com are
 
 origin.patch
-mips-dbg_io-stray-brackets-fix.patch
-mmc-fix-syntax-error.patch
-git-mtd.patch
-pci-legacy-resource-fix.patch
-pci-legacy-resource-fix-tidy.patch
-generic-ioremap_page_range-mips-conversion.patch
 
