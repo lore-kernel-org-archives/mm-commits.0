@@ -1,168 +1,175 @@
 From: akpm@osdl.org
-Subject: - swsusp-update-userland-interface-documentation.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:59:15 -0800
-Message-ID: <200612072259.kB7MxFGZ029485@shell0.pdx.osdl.net>
+Subject: - swsusp-use-partition-device-and-offset-to-identify-swap-areas.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:59:02 -0800
+Message-ID: <200612072259.kB7Mx2HM029450@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51018 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50959 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163661AbWLGW7h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:59:37 -0500
+	id S1163665AbWLGW7f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:59:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swsusp: update userland interface documentation
+     swsusp: use partition device and offset to identify swap areas
 has been removed from the -mm tree.  Its filename was
-     swsusp-update-userland-interface-documentation.patch
+     swsusp-use-partition-device-and-offset-to-identify-swap-areas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: swsusp: update userland interface documentation
+Subject: swsusp: use partition device and offset to identify swap areas
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-The swsusp userland interface has recently changed for a couple of times, but
-the changes have not been documented.  Fix this, and document the
-SNAPSHOT_SET_SWAP_AREA ioctl().
+The Linux kernel handles swap files almost in the same way as it handles swap
+partitions and there are only two differences between these two types of swap
+areas:
+
+(1) swap files need not be contiguous,
+
+(2) the header of a swap file is not in the first block of the partition
+    that holds it.  From the swsusp's point of view (1) is not a problem,
+    because it is already taken care of by the swap-handling code, but (2) has
+    to be taken into consideration.
+
+In principle the location of a swap file's header may be determined with the
+help of appropriate filesystem driver.  Unfortunately, however, it requires
+the filesystem holding the swap file to be mounted, and if this filesystem is
+journaled, it cannot be mounted during a resume from disk.  For this reason we
+need some other means by which swap areas can be identified.
+
+For example, to identify a swap area we can use the partition that holds the
+area and the offset from the beginning of this partition at which the swap
+header is located.
+
+The following patch allows swsusp to identify swap areas this way.  It changes
+swap_type_of() so that it takes an additional argument representing an offset
+of the swap header within the partition represented by its first argument.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/power/swsusp-and-swap-files.txt |   18 +++-
- Documentation/power/userland-swsusp.txt       |   64 ++++++++++++----
- 2 files changed, 63 insertions(+), 19 deletions(-)
+ include/linux/swap.h |    2 +-
+ kernel/power/swap.c  |    2 +-
+ kernel/power/user.c  |    5 +++--
+ mm/swapfile.c        |   38 ++++++++++++++++++++++++++------------
+ 4 files changed, 31 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/power/swsusp-and-swap-files.txt~swsusp-update-userland-interface-documentation Documentation/power/swsusp-and-swap-files.txt
---- a/Documentation/power/swsusp-and-swap-files.txt~swsusp-update-userland-interface-documentation
-+++ a/Documentation/power/swsusp-and-swap-files.txt
-@@ -38,15 +38,21 @@ resume=<swap_file_partition> resume_offs
+diff -puN include/linux/swap.h~swsusp-use-partition-device-and-offset-to-identify-swap-areas include/linux/swap.h
+--- a/include/linux/swap.h~swsusp-use-partition-device-and-offset-to-identify-swap-areas
++++ a/include/linux/swap.h
+@@ -247,7 +247,7 @@ extern int swap_duplicate(swp_entry_t);
+ extern int valid_swaphandles(swp_entry_t, unsigned long *);
+ extern void swap_free(swp_entry_t);
+ extern void free_swap_and_cache(swp_entry_t);
+-extern int swap_type_of(dev_t);
++extern int swap_type_of(dev_t, sector_t);
+ extern unsigned int count_swap_pages(int, int);
+ extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
+ extern struct swap_info_struct *get_swap_info_struct(unsigned);
+diff -puN kernel/power/swap.c~swsusp-use-partition-device-and-offset-to-identify-swap-areas kernel/power/swap.c
+--- a/kernel/power/swap.c~swsusp-use-partition-device-and-offset-to-identify-swap-areas
++++ a/kernel/power/swap.c
+@@ -74,7 +74,7 @@ static int mark_swapfiles(swp_entry_t st
  
- where <swap_file_partition> is the partition on which the swap file is located
- and <swap_file_offset> is the offset of the swap header determined by the
--application in 2).  [Of course, this step may be carried out automatically
-+application in 2) (of course, this step may be carried out automatically
- by the same application that determies the swap file's header offset using the
--FIBMAP ioctl.]
-+FIBMAP ioctl)
+ static int swsusp_swap_check(void) /* This is called before saving image */
+ {
+-	int res = swap_type_of(swsusp_resume_device);
++	int res = swap_type_of(swsusp_resume_device, 0);
+ 
+ 	if (res >= 0) {
+ 		root_swap = res;
+diff -puN kernel/power/user.c~swsusp-use-partition-device-and-offset-to-identify-swap-areas kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-use-partition-device-and-offset-to-identify-swap-areas
++++ a/kernel/power/user.c
+@@ -55,7 +55,8 @@ static int snapshot_open(struct inode *i
+ 	filp->private_data = data;
+ 	memset(&data->handle, 0, sizeof(struct snapshot_handle));
+ 	if ((filp->f_flags & O_ACCMODE) == O_RDONLY) {
+-		data->swap = swsusp_resume_device ? swap_type_of(swsusp_resume_device) : -1;
++		data->swap = swsusp_resume_device ?
++				swap_type_of(swsusp_resume_device, 0) : -1;
+ 		data->mode = O_RDONLY;
+ 	} else {
+ 		data->swap = -1;
+@@ -265,7 +266,7 @@ static int snapshot_ioctl(struct inode *
+ 			 * so we need to recode them
+ 			 */
+ 			if (old_decode_dev(arg)) {
+-				data->swap = swap_type_of(old_decode_dev(arg));
++				data->swap = swap_type_of(old_decode_dev(arg), 0);
+ 				if (data->swap < 0)
+ 					error = -ENODEV;
+ 			} else {
+diff -puN mm/swapfile.c~swsusp-use-partition-device-and-offset-to-identify-swap-areas mm/swapfile.c
+--- a/mm/swapfile.c~swsusp-use-partition-device-and-offset-to-identify-swap-areas
++++ a/mm/swapfile.c
+@@ -427,34 +427,48 @@ void free_swap_and_cache(swp_entry_t ent
+ 
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+ /*
+- * Find the swap type that corresponds to given device (if any)
++ * Find the swap type that corresponds to given device (if any).
+  *
+- * This is needed for software suspend and is done in such a way that inode
+- * aliasing is allowed.
++ * @offset - number of the PAGE_SIZE-sized block of the device, starting
++ * from 0, in which the swap header is expected to be located.
++ *
++ * This is needed for the suspend to disk (aka swsusp).
+  */
+-int swap_type_of(dev_t device)
++int swap_type_of(dev_t device, sector_t offset)
+ {
++	struct block_device *bdev = NULL;
+ 	int i;
+ 
++	if (device)
++		bdev = bdget(device);
 +
-+OR
+ 	spin_lock(&swap_lock);
+ 	for (i = 0; i < nr_swapfiles; i++) {
+-		struct inode *inode;
++		struct swap_info_struct *sis = swap_info + i;
+ 
+-		if (!(swap_info[i].flags & SWP_WRITEOK))
++		if (!(sis->flags & SWP_WRITEOK))
+ 			continue;
+ 
+-		if (!device) {
++		if (!bdev) {
+ 			spin_unlock(&swap_lock);
+ 			return i;
+ 		}
+-		inode = swap_info[i].swap_file->f_dentry->d_inode;
+-		if (S_ISBLK(inode->i_mode) &&
+-		    device == MKDEV(imajor(inode), iminor(inode))) {
+-			spin_unlock(&swap_lock);
+-			return i;
++		if (bdev == sis->bdev) {
++			struct swap_extent *se;
 +
-+Use a userland suspend application that will set the partition and offset
-+with the help of the SNAPSHOT_SET_SWAP_AREA ioctl described in
-+Documentation/power/userland-swsusp.txt (this is the only method to suspend
-+to a swap file allowing the resume to be initiated from an initrd or initramfs
-+image).
- 
- Now, swsusp will use the swap file in the same way in which it would use a swap
--partition.  [Of course this means that the resume from a swap file cannot be
--initiated from whithin an initrd of initramfs image.]  In particular, the
--swap file has to be active (ie. be present in /proc/swaps) so that it can be
--used for suspending.
-+partition.  In particular, the swap file has to be active (ie. be present in
-+/proc/swaps) so that it can be used for suspending.
- 
- Note that if the swap file used for suspending is deleted and recreated,
- the location of its header need not be the same as before.  Thus every time
-diff -puN Documentation/power/userland-swsusp.txt~swsusp-update-userland-interface-documentation Documentation/power/userland-swsusp.txt
---- a/Documentation/power/userland-swsusp.txt~swsusp-update-userland-interface-documentation
-+++ a/Documentation/power/userland-swsusp.txt
-@@ -9,9 +9,8 @@ done it already.
- Now, to use the userland interface for software suspend you need special
- utilities that will read/write the system memory snapshot from/to the
- kernel.  Such utilities are available, for example, from
--<http://www.sisk.pl/kernel/utilities/suspend>.  You may want to have
--a look at them if you are going to develop your own suspend/resume
--utilities.
-+<http://suspend.sourceforge.net>.  You may want to have a look at them if you
-+are going to develop your own suspend/resume utilities.
- 
- The interface consists of a character device providing the open(),
- release(), read(), and write() operations as well as several ioctl()
-@@ -21,9 +20,9 @@ be read from /sys/class/misc/snapshot/de
- 
- The device can be open either for reading or for writing.  If open for
- reading, it is considered to be in the suspend mode.  Otherwise it is
--assumed to be in the resume mode.  The device cannot be open for reading
--and writing.  It is also impossible to have the device open more than once
--at a time.
-+assumed to be in the resume mode.  The device cannot be open for simultaneous
-+reading and writing.  It is also impossible to have the device open more than
-+once at a time.
- 
- The ioctl() commands recognized by the device are:
- 
-@@ -69,9 +68,46 @@ SNAPSHOT_FREE_SWAP_PAGES - free all swap
- SNAPSHOT_SET_SWAP_FILE - set the resume partition (the last ioctl() argument
- 	should specify the device's major and minor numbers in the old
- 	two-byte format, as returned by the stat() function in the .st_rdev
--	member of the stat structure); it is recommended to always use this
--	call, because the code to set the resume partition could be removed from
--	future kernels
-+	member of the stat structure)
++			se = list_entry(sis->extent_list.next,
++					struct swap_extent, list);
++			if (se->start_block == offset) {
++				spin_unlock(&swap_lock);
++				bdput(bdev);
++				return i;
++			}
+ 		}
+ 	}
+ 	spin_unlock(&swap_lock);
++	if (bdev)
++		bdput(bdev);
 +
-+SNAPSHOT_SET_SWAP_AREA - set the resume partition and the offset (in <PAGE_SIZE>
-+	units) from the beginning of the partition at which the swap header is
-+	located (the last ioctl() argument should point to a struct
-+	resume_swap_area, as defined in kernel/power/power.h, containing the
-+	resume device specification, as for the SNAPSHOT_SET_SWAP_FILE ioctl(),
-+	and the offset); for swap partitions the offset is always 0, but it is
-+	different to zero for swap files (please see
-+	Documentation/swsusp-and-swap-files.txt for details).
-+	The SNAPSHOT_SET_SWAP_AREA ioctl() is considered as a replacement for
-+	SNAPSHOT_SET_SWAP_FILE which is regarded as obsolete.   It is
-+	recommended to always use this call, because the code to set the resume
-+	partition may be removed from future kernels
-+
-+SNAPSHOT_S2RAM - suspend to RAM; using this call causes the kernel to
-+	immediately enter the suspend-to-RAM state, so this call must always
-+	be preceded by the SNAPSHOT_FREEZE call and it is also necessary
-+	to use the SNAPSHOT_UNFREEZE call after the system wakes up.  This call
-+	is needed to implement the suspend-to-both mechanism in which the
-+	suspend image is first created, as though the system had been suspended
-+	to disk, and then the system is suspended to RAM (this makes it possible
-+	to resume the system from RAM if there's enough battery power or restore
-+	its state on the basis of the saved suspend image otherwise)
-+
-+SNAPSHOT_PMOPS - enable the usage of the pmops->prepare, pmops->enter and
-+	pmops->finish methods (the in-kernel swsusp knows these as the "platform
-+	method") which are needed on many machines to (among others) speed up
-+	the resume by letting the BIOS skip some steps or to let the system
-+	recognise the correct state of the hardware after the resume (in
-+	particular on many machines this ensures that unplugged AC
-+	adapters get correctly detected and that kacpid does not run wild after
-+	the resume).  The last ioctl() argument can take one of the three
-+	values, defined in kernel/power/power.h:
-+	PMOPS_PREPARE - make the kernel carry out the
-+		pm_ops->prepare(PM_SUSPEND_DISK) operation
-+	PMOPS_ENTER - make the kernel power off the system by calling
-+		pm_ops->enter(PM_SUSPEND_DISK)
-+	PMOPS_FINISH - make the kernel carry out the
-+		pm_ops->finish(PM_SUSPEND_DISK) operation
+ 	return -ENODEV;
+ }
  
- The device's read() operation can be used to transfer the snapshot image from
- the kernel.  It has the following limitations:
-@@ -91,10 +127,12 @@ unfreeze user space processes frozen by 
- still frozen when the device is being closed).
- 
- Currently it is assumed that the userland utilities reading/writing the
--snapshot image from/to the kernel will use a swap partition, called the resume
--partition, as storage space.  However, this is not really required, as they
--can use, for example, a special (blank) suspend partition or a file on a partition
--that is unmounted before SNAPSHOT_ATOMIC_SNAPSHOT and mounted afterwards.
-+snapshot image from/to the kernel will use a swap parition, called the resume
-+partition, or a swap file as storage space (if a swap file is used, the resume
-+partition is the partition that holds this file).  However, this is not really
-+required, as they can use, for example, a special (blank) suspend partition or
-+a file on a partition that is unmounted before SNAPSHOT_ATOMIC_SNAPSHOT and
-+mounted afterwards.
- 
- These utilities SHOULD NOT make any assumptions regarding the ordering of
- data within the snapshot image, except for the image header that MAY be
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
