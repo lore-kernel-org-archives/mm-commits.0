@@ -1,89 +1,71 @@
 From: akpm@osdl.org
-Subject: + fix-gregkh-usb-usb-serial-serqt_usb.patch added to -mm tree
-Date: Wed, 06 Dec 2006 16:02:17 -0800
-Message-ID: <200612070003.kB703STJ021823@shell0.pdx.osdl.net>
+Subject: + s390-workqueue-fixes.patch added to -mm tree
+Date: Wed, 06 Dec 2006 16:55:54 -0800
+Message-ID: <200612070057.kB70v5bv023442@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56972 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60596 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937822AbWLGADb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 19:03:31 -0500
+	id S937876AbWLGA5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 19:57:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, greg@kroah.com
+Cc: akpm@osdl.org, dhowells@redhat.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     fix gregkh-usb-usb-serial-serqt_usb
+     s390 workqueue fixes
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usb-serial-serqt_usb.patch
+     s390-workqueue-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix gregkh-usb-usb-serial-serqt_usb
+Subject: s390 workqueue fixes
 From: Andrew Morton <akpm@osdl.org>
 
-Fix after dhowells changes.
-
-This:
-
-    port_softint(&port->work);
-    schedule_work(&port->work);
-
-looks like a strange thing to do.
-
-Cc: Greg KH <greg@kroah.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/serial/serqt_usb.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/s390/char/ctrlchar.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/serial/serqt_usb.c~fix-gregkh-usb-usb-serial-serqt_usb drivers/usb/serial/serqt_usb.c
---- a/drivers/usb/serial/serqt_usb.c~fix-gregkh-usb-usb-serial-serqt_usb
-+++ a/drivers/usb/serial/serqt_usb.c
-@@ -313,7 +313,7 @@ static int BoxGetRegister(struct usb_ser
- static int BoxSetRegister(struct usb_serial *serial,  unsigned short Uart_Number, unsigned short Register_Num, unsigned short Value );
- static void qt_write_bulk_callback(struct urb *urb);
- static int qt_write (struct usb_serial_port *port, int from_user, const unsigned char *buf, int count);
--static void port_softint(void *private);
-+static void port_softint(struct work_struct *work);
- static int qt_write_room (struct usb_serial_port *port);
- static int qt_chars_in_buffer (struct usb_serial_port *port);
- static int qt_ioctl(struct usb_serial_port *port, struct file * file, unsigned int cmd, unsigned long arg);
-@@ -630,7 +630,7 @@ static int serqt_probe(struct usb_interf
-         port->number = i + serial->minor;
-         port->serial = serial;
+diff -puN drivers/s390/char/ctrlchar.c~s390-workqueue-fixes drivers/s390/char/ctrlchar.c
+--- a/drivers/s390/char/ctrlchar.c~s390-workqueue-fixes
++++ a/drivers/s390/char/ctrlchar.c
+@@ -16,14 +16,15 @@
  
--        INIT_WORK(&port->work, port_softint, port);
-+        INIT_WORK(&port->work, port_softint);
+ #ifdef CONFIG_MAGIC_SYSRQ
+ static int ctrlchar_sysrq_key;
++static struct tty_struct *sysrq_tty;
  
-         init_MUTEX (&port->sem);
- 
-@@ -1530,16 +1530,17 @@ static void qt_write_bulk_callback(struc
-         return;
-     }
-     //
--    port_softint((void *) port);
-+    port_softint(&port->work);
-     schedule_work(&port->work);
- 
-     return;
+ static void
+-ctrlchar_handle_sysrq(void *tty)
++ctrlchar_handle_sysrq(struct work_struct *work)
+ {
+-	handle_sysrq(ctrlchar_sysrq_key, (struct tty_struct *) tty);
++	handle_sysrq(ctrlchar_sysrq_key, sysrq_tty);
  }
  
+-static DECLARE_WORK(ctrlchar_work, ctrlchar_handle_sysrq, NULL);
++static DECLARE_WORK(ctrlchar_work, ctrlchar_handle_sysrq);
+ #endif
  
--static void port_softint(void *private)
-+static void port_softint(struct work_struct *work)
- {
--    struct usb_serial_port *port = (struct usb_serial_port *)private;
-+    struct usb_serial_port *port =
-+		container_of(work, struct usb_serial_port, work);
-     struct usb_serial *serial = get_usb_serial (port, __FUNCTION__);
-     struct tty_struct *tty;
  
+@@ -53,7 +54,7 @@ ctrlchar_handle(const unsigned char *buf
+ 	/* racy */
+ 	if (len == 3 && buf[1] == '-') {
+ 		ctrlchar_sysrq_key = buf[2];
+-		ctrlchar_work.data = tty;
++		sysrq_tty = tty;
+ 		schedule_work(&ctrlchar_work);
+ 		return CTRLCHAR_SYSRQ;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -150,6 +132,7 @@ scsi-in2000-scsi_cmnd-convertion.patch
 aic79xx-wrong-max-memory-at-driver-init.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
 git-qla3xxx-fixup.patch
+fix-gregkh-usb-usb-serial-serqt_usb.patch
 nokia-e70-is-an-unusual-device.patch
 pre-x86_64-mm-i386-reloc-abssym.patch
 post-x86_64-mm-i386-reloc-abssym.patch
@@ -316,5 +299,5 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-fix-gregkh-usb-usb-serial-serqt_usb.patch
+s390-workqueue-fixes.patch
 
