@@ -1,115 +1,174 @@
 From: akpm@osdl.org
-Subject: - fs-freeze_bdev-with-semaphore-not-mutex.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 21:27:18 -0800
-Message-ID: <200612070527.kB75RISL031406__39718.5803427876$1165469258$gmane$org@shell0.pdx.osdl.net>
+Subject: + workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:27:52 -0800
+Message-ID: <200612070527.kB75RqA0031419@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50315 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968812AbWLGF1d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:27:33 -0500
+	id S968818AbWLGF2V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:28:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srinivasa@in.ibm.com, agk@redhat.com, dm-devel@redhat.com, mingo@elte.hu, sandeen@sandeen.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com, clameter@sgi.com, rmk@arm.linux.org.uk, torvalds@osdl.org
 
 
 The patch titled
-     fs: freeze_bdev with semaphore not mutex
-has been removed from the -mm tree.  Its filename was
-     fs-freeze_bdev-with-semaphore-not-mutex.patch
+     WorkStruct: Implement generic UP cmpxchg() where an arch doesn't support it
+has been added to the -mm tree.  Its filename is
+     workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fs: freeze_bdev with semaphore not mutex
-From: Srinivasa Ds <srinivasa@in.ibm.com>
+Subject: WorkStruct: Implement generic UP cmpxchg() where an arch doesn't support it
+From: David Howells <dhowells@redhat.com>
 
-On debugging I found out that,"dmsetup suspend <device name>" calls
-"freeze_bdev()",which locks "bd_mount_mutex" to make sure that no new mounts
-happen on bdev until thaw_bdev() is called.  This "thaw_bdev()" is getting
-called when we resume the device through "dmsetup resume <device-name>". 
-Hence we have 2 processes,one of which locks "bd_mount_mutex"(dmsetup suspend)
-and another(dmsetup resume) unlocks it.
+Implement generic UP cmpxchg() where an arch doesn't otherwise support it. 
+This assuming that the arch doesn't have support SMP without providing its
+own cmpxchg() implementation.
 
-Signed-off-by: Srinivasa DS <srinivasa@in.ibm.com>
-Signed-off-by: Alasdair G Kergon <agk@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Eric Sandeen <sandeen@sandeen.net>
-Cc: <dm-devel@redhat.com>
+This is required because cmpxchg() is used by the reduced work queue
+patches to adjust the management data in a work_struct.
+
+Also provide ARMv6 with a cmpxchg() implementation using LDREX/STREXEQ. 
+Pre-v6 ARM doesn't support SMP according to ARM's atomic.h, so the generic
+IRQ-disablement based cmpxchg() is entirely adequate there (if it isn't,
+then atomic_cmpxchg() is also broken on ARM).
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c     |    2 +-
- fs/buffer.c        |    6 ++++--
- fs/super.c         |    4 ++--
- include/linux/fs.h |    2 +-
- 4 files changed, 8 insertions(+), 6 deletions(-)
+ include/asm-arm/system.h      |   40 +++++++++++++++++++++++++++
+ include/asm-generic/cmpxchg.h |   46 ++++++++++++++++++++++++++++++++
+ 2 files changed, 86 insertions(+)
 
-diff -puN fs/block_dev.c~fs-freeze_bdev-with-semaphore-not-mutex fs/block_dev.c
---- a/fs/block_dev.c~fs-freeze_bdev-with-semaphore-not-mutex
-+++ a/fs/block_dev.c
-@@ -263,7 +263,7 @@ static void init_once(void * foo, kmem_c
- 	{
- 		memset(bdev, 0, sizeof(*bdev));
- 		mutex_init(&bdev->bd_mutex);
--		mutex_init(&bdev->bd_mount_mutex);
-+		sema_init(&bdev->bd_mount_sem, 1);
- 		INIT_LIST_HEAD(&bdev->bd_inodes);
- 		INIT_LIST_HEAD(&bdev->bd_list);
- #ifdef CONFIG_SYSFS
-diff -puN fs/buffer.c~fs-freeze_bdev-with-semaphore-not-mutex fs/buffer.c
---- a/fs/buffer.c~fs-freeze_bdev-with-semaphore-not-mutex
-+++ a/fs/buffer.c
-@@ -188,7 +188,9 @@ struct super_block *freeze_bdev(struct b
- {
- 	struct super_block *sb;
+diff -puN include/asm-arm/system.h~workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it include/asm-arm/system.h
+--- a/include/asm-arm/system.h~workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it
++++ a/include/asm-arm/system.h
+@@ -325,6 +325,46 @@ static inline unsigned long __xchg(unsig
+ extern void disable_hlt(void);
+ extern void enable_hlt(void);
  
--	mutex_lock(&bdev->bd_mount_mutex);
-+	if (down_trylock(&bdev->bd_mount_sem))
-+		return -EBUSY;
++/*
++ * We only implement cmpxchg in ASM on ARMv6 where we have LDREX/STREX
++ * available, and we only implement it for word-sized exchanges
++ */
++#if __LINUX_ARM_ARCH__ >= 6
++extern void __bad_cmpxchg(volatile void *, int);
 +
- 	sb = get_super(bdev);
- 	if (sb && !(sb->s_flags & MS_RDONLY)) {
- 		sb->s_frozen = SB_FREEZE_WRITE;
-@@ -230,7 +232,7 @@ void thaw_bdev(struct block_device *bdev
- 		drop_super(sb);
- 	}
++#define cmpxchg(ptr, old, new)						\
++({									\
++	__typeof__ (ptr) ____p = (ptr);					\
++	__typeof__(*ptr) ____old = (old);				\
++	__typeof__(*ptr) ____new = (new);				\
++	__typeof__(*ptr) ____oldval;					\
++	__typeof__(*ptr) ____res;					\
++									\
++	switch (sizeof(____res)) {					\
++	case 4:								\
++		do {							\
++			__asm__ __volatile__("@ cmpxchg\n"		\
++			"ldrex	%1, [%2]\n"				\
++			"mov	%0, #0\n"				\
++			"teq	%1, %3\n"				\
++			"strexeq %0, %4, [%2]\n"			\
++			: "=&r" (____res), "=&r" (____oldval)		\
++			: "r" (____p), "Ir" (____old), "r" (____new)	\
++			: "cc");					\
++		} while(____res);					\
++		break;							\
++	default:							\
++		__bad_cmpxchg(____p, sizeof(____res));			\
++		____oldval = 0;						\
++		break;							\
++	}								\
++	____oldval;							\
++})
++
++#else
++#include <asm-generic/cmpxchg.h>
++#endif
++
+ #endif /* __ASSEMBLY__ */
  
--	mutex_unlock(&bdev->bd_mount_mutex);
-+	up(&bdev->bd_mount_sem);
- }
- EXPORT_SYMBOL(thaw_bdev);
- 
-diff -puN fs/super.c~fs-freeze_bdev-with-semaphore-not-mutex fs/super.c
---- a/fs/super.c~fs-freeze_bdev-with-semaphore-not-mutex
-+++ a/fs/super.c
-@@ -735,9 +735,9 @@ int get_sb_bdev(struct file_system_type 
- 	 * will protect the lockfs code from trying to start a snapshot
- 	 * while we are mounting
- 	 */
--	mutex_lock(&bdev->bd_mount_mutex);
-+	down(&bdev->bd_mount_sem);
- 	s = sget(fs_type, test_bdev_super, set_bdev_super, bdev);
--	mutex_unlock(&bdev->bd_mount_mutex);
-+	up(&bdev->bd_mount_sem);
- 	if (IS_ERR(s))
- 		goto error_s;
- 
-diff -puN include/linux/fs.h~fs-freeze_bdev-with-semaphore-not-mutex include/linux/fs.h
---- a/include/linux/fs.h~fs-freeze_bdev-with-semaphore-not-mutex
-+++ a/include/linux/fs.h
-@@ -456,7 +456,7 @@ struct block_device {
- 	struct inode *		bd_inode;	/* will die */
- 	int			bd_openers;
- 	struct mutex		bd_mutex;	/* open/close mutex */
--	struct mutex		bd_mount_mutex;	/* mount mutex */
-+	struct semaphore        bd_mount_sem;
- 	struct list_head	bd_inodes;
- 	void *			bd_holder;
- 	int			bd_holders;
+ #define arch_align_stack(x) (x)
+diff -puN /dev/null include/asm-generic/cmpxchg.h
+--- /dev/null
++++ a/include/asm-generic/cmpxchg.h
+@@ -0,0 +1,46 @@
++/* Generic cmpxchg for those arches that don't implement it themselves
++ *
++ * Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
++ * Written by David Howells (dhowells@redhat.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++
++#ifndef _ASM_GENERIC_CMPXCHG_H
++#define _ASM_GENERIC_CMPXCHG_H
++
++#if !defined(cmpxchg) && !defined(CONFIG_SMP)
++
++/**
++ * cmpxchg - Atomically conditionally exchange one value for another.
++ * @ptr - Pointer to the value to be altered.
++ * @old - The value to change from.
++ * @new - The value to change to.
++ *
++ * This function atomically compares the current value at the word pointed to
++ * by @ptr, and if it's the same as @old, changes it to @new.  If it's not the
++ * same then it's left unchanged.
++ *
++ * The value that was in the word pointed to by @ptr is returned, whether or
++ * not it was changed to @new.
++ */
++#define cmpxchg(ptr, old, new)			\
++({						\
++	unsigned long ____flags;		\
++	__typeof__ (ptr) ____p = (ptr);		\
++	__typeof__(*ptr) ____old = (old);	\
++	__typeof__(*ptr) ____new = (new);	\
++	__typeof__(*ptr) ____res;		\
++	raw_local_irq_save(____flags);		\
++	____res = *____p;			\
++	if (likely(____res == (____old)))	\
++		*____p = (____new);		\
++	raw_local_irq_restore(____flags);	\
++	____res;				\
++})
++
++#endif /* !cmpxchg && !SMP */
++#endif /* _ASM_GENERIC_CMPXCHG_H */
 _
 
-Patches currently in -mm which might be from srinivasa@in.ibm.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-git-gfs2-nmw.patch
+origin.patch
+uml-workqueue-build-fix.patch
+security-keys-user-kmemdup.patch
+arch-frv-kernel-futexc-must-include-linux-uaccessh.patch
+workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
+alsa-workqueue-fixes.patch
+nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch
+s390-workqueue-fixes.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+log2-alter-roundup_pow_of_two-so-that-it-can-use-a-ilog2-on-a-constant.patch
+log2-alter-get_order-so-that-it-can-make-use-of-ilog2-on-a-constant.patch
+log2-provide-ilog2-fallbacks-for-powerpc.patch
+reiser4-get_sb_dev-fix.patch
+mutex-subsystem-synchro-test-module.patch
 
