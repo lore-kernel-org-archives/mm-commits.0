@@ -1,91 +1,74 @@
 From: akpm@osdl.org
-Subject: - slab-debug-and-arch_slab_minalign-dont-get-along.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:56:37 -0800
-Message-ID: <200612072256.kB7MubnV029216@shell0.pdx.osdl.net>
+Subject: - allowing-user-processes-to-rise-their-oom_adj-value.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:56:55 -0800
+Message-ID: <200612072256.kB7Mut6l029248@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50535 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50544 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163602AbWLGW5A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:57:00 -0500
+	id S1163605AbWLGW5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:57:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khilman@mvista.com, clameter@engr.sgi.com, manfred@colorfullife.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: guillem.jover@nokia.com, andrea@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab debug and ARCH_SLAB_MINALIGN don't get along
+     Allow user processes to raise their oom_adj value
 has been removed from the -mm tree.  Its filename was
-     slab-debug-and-arch_slab_minalign-dont-get-along.patch
+     allowing-user-processes-to-rise-their-oom_adj-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab debug and ARCH_SLAB_MINALIGN don't get along
-From: Kevin Hilman <khilman@mvista.com>
+Subject: Allow user processes to raise their oom_adj value
+From: Guillem Jover <guillem.jover@nokia.com>
 
-When CONFIG_SLAB_DEBUG is used in combination with ARCH_SLAB_MINALIGN, some
-debug flags should be disabled which depend on BYTES_PER_WORD alignment.
+Currently a user process cannot rise its own oom_adj value (i.e. 
+unprotecting itself from the OOM killer).  As this value is stored in the
+task structure it gets inherited and the unprivileged childs will be unable
+to rise it.
 
-The disabling of these debug flags is not properly handled when
-BYTES_PER_WORD < ARCH_SLAB_MEMALIGN < cache_line_size()
+The EPERM will be handled by the generic proc fs layer, as only processes
+with the proper caps or the owner of the process will be able to write to
+the file.  So we allow only the processes with CAP_SYS_RESOURCE to lower
+the value, otherwise it will get an EACCES which seems more appropriate
+than EPERM.
 
-This patch fixes that and also adds an alignment check to
-cache_alloc_debugcheck_after() when ARCH_SLAB_MINALIGN is used.
-
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Guillem Jover <guillem.jover@nokia.com>
+Acked-by: Andrea Arcangeli <andrea@novell.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slab.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ fs/proc/base.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-debug-and-arch_slab_minalign-dont-get-along mm/slab.c
---- a/mm/slab.c~slab-debug-and-arch_slab_minalign-dont-get-along
-+++ a/mm/slab.c
-@@ -2197,18 +2197,17 @@ kmem_cache_create (const char *name, siz
- 	if (flags & SLAB_RED_ZONE || flags & SLAB_STORE_USER)
- 		ralign = BYTES_PER_WORD;
+diff -puN fs/proc/base.c~allowing-user-processes-to-rise-their-oom_adj-value fs/proc/base.c
+--- a/fs/proc/base.c~allowing-user-processes-to-rise-their-oom_adj-value
++++ a/fs/proc/base.c
+@@ -683,8 +683,6 @@ static ssize_t oom_adjust_write(struct f
+ 	char buffer[PROC_NUMBUF], *end;
+ 	int oom_adjust;
  
--	/* 2) arch mandated alignment: disables debug if necessary */
-+	/* 2) arch mandated alignment */
- 	if (ralign < ARCH_SLAB_MINALIGN) {
- 		ralign = ARCH_SLAB_MINALIGN;
--		if (ralign > BYTES_PER_WORD)
--			flags &= ~(SLAB_RED_ZONE | SLAB_STORE_USER);
- 	}
--	/* 3) caller mandated alignment: disables debug if necessary */
-+	/* 3) caller mandated alignment */
- 	if (ralign < align) {
- 		ralign = align;
--		if (ralign > BYTES_PER_WORD)
--			flags &= ~(SLAB_RED_ZONE | SLAB_STORE_USER);
- 	}
-+	/* disable debug if necessary */
-+	if (ralign > BYTES_PER_WORD)
-+		flags &= ~(SLAB_RED_ZONE | SLAB_STORE_USER);
- 	/*
- 	 * 4) Store it.
- 	 */
-@@ -3063,6 +3062,12 @@ static void *cache_alloc_debugcheck_afte
- 
- 		cachep->ctor(objp, cachep, ctor_flags);
- 	}
-+#if ARCH_SLAB_MINALIGN
-+	if ((u32)objp & (ARCH_SLAB_MINALIGN-1)) {
-+		printk(KERN_ERR "0x%p: not aligned to ARCH_SLAB_MINALIGN=%d\n",
-+		       objp, ARCH_SLAB_MINALIGN);
+-	if (!capable(CAP_SYS_RESOURCE))
+-		return -EPERM;
+ 	memset(buffer, 0, sizeof(buffer));
+ 	if (count > sizeof(buffer) - 1)
+ 		count = sizeof(buffer) - 1;
+@@ -699,6 +697,10 @@ static ssize_t oom_adjust_write(struct f
+ 	task = get_proc_task(file->f_dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
++	if (oom_adjust < task->oomkilladj && !capable(CAP_SYS_RESOURCE)) {
++		put_task_struct(task);
++		return -EACCES;
 +	}
-+#endif
- 	return objp;
- }
- #else
+ 	task->oomkilladj = oom_adjust;
+ 	put_task_struct(task);
+ 	if (end - buffer == 0)
 _
 
-Patches currently in -mm which might be from khilman@mvista.com are
+Patches currently in -mm which might be from guillem.jover@nokia.com are
 
 origin.patch
 
