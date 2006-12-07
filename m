@@ -1,143 +1,211 @@
 From: akpm@osdl.org
-Subject: - slab-remove-slab_dma.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:58:17 -0800
-Message-ID: <200612072258.kB7MwHo6029380@shell0.pdx.osdl.net>
+Subject: - slab-better-fallback-allocation-behavior.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:58:28 -0800
+Message-ID: <200612072258.kB7MwS73029409@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50719 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50749 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163640AbWLGW6U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:58:20 -0500
+	id S1163647AbWLGW6b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:58:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: remove SLAB_DMA
+     slab: better fallback allocation behavior
 has been removed from the -mm tree.  Its filename was
-     slab-remove-slab_dma.patch
+     slab-better-fallback-allocation-behavior.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab: remove SLAB_DMA
+Subject: slab: better fallback allocation behavior
 From: Christoph Lameter <clameter@sgi.com>
 
-SLAB_DMA is an alias of GFP_DMA. This is the last one so we
-remove the leftover comment too.
+Currently we simply attempt to allocate from all allowed nodes using
+GFP_THISNODE.  However, GFP_THISNODE does not do reclaim (it wont do any at
+all if the recent GFP_THISNODE patch is accepted).  If we truly run out of
+memory in the whole system then fallback_alloc may return NULL although
+memory may still be available if we would perform more thorough reclaim.
+
+This patch changes fallback_alloc() so that we first only inspect all the
+per node queues for available slabs.  If we find any then we allocate from
+those.  This avoids slab fragmentation by first getting rid of all partial
+allocated slabs on every node before allocating new memory.
+
+If we cannot satisfy the allocation from any per node queue then we extend
+a slab.  We now call into the page allocator without specifying
+GFP_THISNODE.  The page allocator will then implement its own fallback (in
+the given cpuset context), perform necessary reclaim (again considering not
+a single node but the whole set of allowed nodes) and then return pages for
+a new slab.
+
+We identify from which node the pages were allocated and then insert the
+pages into the corresponding per node structure.  In order to do so we need
+to modify cache_grow() to take a parameter that specifies the new slab. 
+kmem_getpages() can no longer set the GFP_THISNODE flag since we need to be
+able to use kmem_getpage to allocate from an arbitrary node.  GFP_THISNODE
+needs to be specified when calling cache_grow().
+
+One key advantage is that the decision from which node to allocate new
+memory is removed from slab fallback processing.  The patch allows to go
+back to use of the page allocators fallback/reclaim logic.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/atm/he.c               |    6 +++---
- drivers/s390/block/dasd_eckd.c |    2 +-
- drivers/s390/block/dasd_fba.c  |    2 +-
- drivers/usb/core/buffer.c      |    2 +-
- include/linux/slab.h           |    3 ---
- mm/slab.c                      |    4 ++--
- 6 files changed, 8 insertions(+), 11 deletions(-)
+ mm/slab.c |   79 +++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 57 insertions(+), 22 deletions(-)
 
-diff -puN drivers/atm/he.c~slab-remove-slab_dma drivers/atm/he.c
---- a/drivers/atm/he.c~slab-remove-slab_dma
-+++ a/drivers/atm/he.c
-@@ -820,7 +820,7 @@ he_init_group(struct he_dev *he_dev, int
- 		void *cpuaddr;
- 
- #ifdef USE_RBPS_POOL 
--		cpuaddr = pci_pool_alloc(he_dev->rbps_pool, GFP_KERNEL|SLAB_DMA, &dma_handle);
-+		cpuaddr = pci_pool_alloc(he_dev->rbps_pool, GFP_KERNEL|GFP_DMA, &dma_handle);
- 		if (cpuaddr == NULL)
- 			return -ENOMEM;
- #else
-@@ -884,7 +884,7 @@ he_init_group(struct he_dev *he_dev, int
- 		void *cpuaddr;
- 
- #ifdef USE_RBPL_POOL
--		cpuaddr = pci_pool_alloc(he_dev->rbpl_pool, GFP_KERNEL|SLAB_DMA, &dma_handle);
-+		cpuaddr = pci_pool_alloc(he_dev->rbpl_pool, GFP_KERNEL|GFP_DMA, &dma_handle);
- 		if (cpuaddr == NULL)
- 			return -ENOMEM;
- #else
-@@ -1724,7 +1724,7 @@ __alloc_tpd(struct he_dev *he_dev)
- 	struct he_tpd *tpd;
- 	dma_addr_t dma_handle; 
- 
--	tpd = pci_pool_alloc(he_dev->tpd_pool, GFP_ATOMIC|SLAB_DMA, &dma_handle);
-+	tpd = pci_pool_alloc(he_dev->tpd_pool, GFP_ATOMIC|GFP_DMA, &dma_handle);
- 	if (tpd == NULL)
- 		return NULL;
- 			
-diff -puN drivers/s390/block/dasd_eckd.c~slab-remove-slab_dma drivers/s390/block/dasd_eckd.c
---- a/drivers/s390/block/dasd_eckd.c~slab-remove-slab_dma
-+++ a/drivers/s390/block/dasd_eckd.c
-@@ -1215,7 +1215,7 @@ dasd_eckd_build_cp(struct dasd_device * 
- 		dst = page_address(bv->bv_page) + bv->bv_offset;
- 		if (dasd_page_cache) {
- 			char *copy = kmem_cache_alloc(dasd_page_cache,
--						      SLAB_DMA | __GFP_NOWARN);
-+						      GFP_DMA | __GFP_NOWARN);
- 			if (copy && rq_data_dir(req) == WRITE)
- 				memcpy(copy + bv->bv_offset, dst, bv->bv_len);
- 			if (copy)
-diff -puN drivers/s390/block/dasd_fba.c~slab-remove-slab_dma drivers/s390/block/dasd_fba.c
---- a/drivers/s390/block/dasd_fba.c~slab-remove-slab_dma
-+++ a/drivers/s390/block/dasd_fba.c
-@@ -308,7 +308,7 @@ dasd_fba_build_cp(struct dasd_device * d
- 		dst = page_address(bv->bv_page) + bv->bv_offset;
- 		if (dasd_page_cache) {
- 			char *copy = kmem_cache_alloc(dasd_page_cache,
--						      SLAB_DMA | __GFP_NOWARN);
-+						      GFP_DMA | __GFP_NOWARN);
- 			if (copy && rq_data_dir(req) == WRITE)
- 				memcpy(copy + bv->bv_offset, dst, bv->bv_len);
- 			if (copy)
-diff -puN drivers/usb/core/buffer.c~slab-remove-slab_dma drivers/usb/core/buffer.c
---- a/drivers/usb/core/buffer.c~slab-remove-slab_dma
-+++ a/drivers/usb/core/buffer.c
-@@ -93,7 +93,7 @@ void hcd_buffer_destroy (struct usb_hcd 
- }
- 
- 
--/* sometimes alloc/free could use kmalloc with SLAB_DMA, for
-+/* sometimes alloc/free could use kmalloc with GFP_DMA, for
-  * better sharing and to leverage mm/slab.c intelligence.
-  */
- 
-diff -puN include/linux/slab.h~slab-remove-slab_dma include/linux/slab.h
---- a/include/linux/slab.h~slab-remove-slab_dma
-+++ a/include/linux/slab.h
-@@ -18,9 +18,6 @@ typedef struct kmem_cache kmem_cache_t;
- #include	<asm/page.h>		/* kmalloc_sizes.h needs PAGE_SIZE */
- #include	<asm/cache.h>		/* kmalloc_sizes.h needs L1_CACHE_BYTES */
- 
--/* flags for kmem_cache_alloc() */
--#define	SLAB_DMA		GFP_DMA
--
- /* flags to pass to kmem_cache_create().
-  * The first 3 are only valid when the allocator as been build
-  * SLAB_DEBUG_SUPPORT.
-diff -puN mm/slab.c~slab-remove-slab_dma mm/slab.c
---- a/mm/slab.c~slab-remove-slab_dma
+diff -puN mm/slab.c~slab-better-fallback-allocation-behavior mm/slab.c
+--- a/mm/slab.c~slab-better-fallback-allocation-behavior
 +++ a/mm/slab.c
-@@ -2637,7 +2637,7 @@ static void cache_init_objs(struct kmem_
+@@ -1605,12 +1605,7 @@ static void *kmem_getpages(struct kmem_c
+ 	flags |= __GFP_COMP;
+ #endif
  
- static void kmem_flagcheck(struct kmem_cache *cachep, gfp_t flags)
+-	/*
+-	 * Under NUMA we want memory on the indicated node. We will handle
+-	 * the needed fallback ourselves since we want to serve from our
+-	 * per node object lists first for other nodes.
+-	 */
+-	flags |= cachep->gfpflags | GFP_THISNODE;
++	flags |= cachep->gfpflags;
+ 
+ 	page = alloc_pages_node(nodeid, flags, cachep->gfporder);
+ 	if (!page)
+@@ -2567,7 +2562,7 @@ static struct slab *alloc_slabmgmt(struc
+ 	if (OFF_SLAB(cachep)) {
+ 		/* Slab management obj is off-slab. */
+ 		slabp = kmem_cache_alloc_node(cachep->slabp_cache,
+-					      local_flags, nodeid);
++					      local_flags & ~GFP_THISNODE, nodeid);
+ 		if (!slabp)
+ 			return NULL;
+ 	} else {
+@@ -2708,10 +2703,10 @@ static void slab_map_pages(struct kmem_c
+  * Grow (by 1) the number of slabs within a cache.  This is called by
+  * kmem_cache_alloc() when there are no active objs left in a cache.
+  */
+-static int cache_grow(struct kmem_cache *cachep, gfp_t flags, int nodeid)
++static int cache_grow(struct kmem_cache *cachep,
++		gfp_t flags, int nodeid, void *objp)
  {
--	if (flags & SLAB_DMA)
-+	if (flags & GFP_DMA)
- 		BUG_ON(!(cachep->gfpflags & GFP_DMA));
- 	else
- 		BUG_ON(cachep->gfpflags & GFP_DMA);
-@@ -2721,7 +2721,7 @@ static int cache_grow(struct kmem_cache 
- 	 * Be lazy and only check for valid flags here,  keeping it out of the
- 	 * critical path in kmem_cache_alloc().
+ 	struct slab *slabp;
+-	void *objp;
+ 	size_t offset;
+ 	gfp_t local_flags;
+ 	unsigned long ctor_flags;
+@@ -2763,12 +2758,14 @@ static int cache_grow(struct kmem_cache 
+ 	 * Get mem for the objs.  Attempt to allocate a physical page from
+ 	 * 'nodeid'.
  	 */
--	BUG_ON(flags & ~(SLAB_DMA | GFP_LEVEL_MASK | __GFP_NO_GROW));
-+	BUG_ON(flags & ~(GFP_DMA | GFP_LEVEL_MASK | __GFP_NO_GROW));
- 	if (flags & __GFP_NO_GROW)
- 		return 0;
+-	objp = kmem_getpages(cachep, flags, nodeid);
++	if (!objp)
++		objp = kmem_getpages(cachep, flags, nodeid);
+ 	if (!objp)
+ 		goto failed;
+ 
+ 	/* Get slab management. */
+-	slabp = alloc_slabmgmt(cachep, objp, offset, local_flags, nodeid);
++	slabp = alloc_slabmgmt(cachep, objp, offset,
++			local_flags & ~GFP_THISNODE, nodeid);
+ 	if (!slabp)
+ 		goto opps1;
+ 
+@@ -3006,7 +3003,7 @@ alloc_done:
+ 
+ 	if (unlikely(!ac->avail)) {
+ 		int x;
+-		x = cache_grow(cachep, flags, node);
++		x = cache_grow(cachep, flags | GFP_THISNODE, node, NULL);
+ 
+ 		/* cache_grow can reenable interrupts, then ac could change. */
+ 		ac = cpu_cache_get(cachep);
+@@ -3166,9 +3163,11 @@ static void *alternate_node_alloc(struct
+ 
+ /*
+  * Fallback function if there was no memory available and no objects on a
+- * certain node and we are allowed to fall back. We mimick the behavior of
+- * the page allocator. We fall back according to a zonelist determined by
+- * the policy layer while obeying cpuset constraints.
++ * certain node and fall back is permitted. First we scan all the
++ * available nodelists for available objects. If that fails then we
++ * perform an allocation without specifying a node. This allows the page
++ * allocator to do its reclaim / fallback magic. We then insert the
++ * slab into the proper nodelist and then allocate from it.
+  */
+ void *fallback_alloc(struct kmem_cache *cache, gfp_t flags)
+ {
+@@ -3176,15 +3175,51 @@ void *fallback_alloc(struct kmem_cache *
+ 					->node_zonelists[gfp_zone(flags)];
+ 	struct zone **z;
+ 	void *obj = NULL;
++	int nid;
+ 
++retry:
++	/*
++	 * Look through allowed nodes for objects available
++	 * from existing per node queues.
++	 */
+ 	for (z = zonelist->zones; *z && !obj; z++) {
+-		int nid = zone_to_nid(*z);
++		nid = zone_to_nid(*z);
++
++		if (cpuset_zone_allowed(*z, flags) &&
++			cache->nodelists[nid] &&
++			cache->nodelists[nid]->free_objects)
++				obj = ____cache_alloc_node(cache,
++					flags | GFP_THISNODE, nid);
++	}
+ 
+-		if (zone_idx(*z) <= ZONE_NORMAL &&
+-				cpuset_zone_allowed(*z, flags) &&
+-				cache->nodelists[nid])
+-			obj = ____cache_alloc_node(cache,
+-					flags | __GFP_THISNODE, nid);
++	if (!obj) {
++		/*
++		 * This allocation will be performed within the constraints
++		 * of the current cpuset / memory policy requirements.
++		 * We may trigger various forms of reclaim on the allowed
++		 * set and go into memory reserves if necessary.
++		 */
++		obj = kmem_getpages(cache, flags, -1);
++		if (obj) {
++			/*
++			 * Insert into the appropriate per node queues
++			 */
++			nid = page_to_nid(virt_to_page(obj));
++			if (cache_grow(cache, flags, nid, obj)) {
++				obj = ____cache_alloc_node(cache,
++					flags | GFP_THISNODE, nid);
++				if (!obj)
++					/*
++					 * Another processor may allocate the
++					 * objects in the slab since we are
++					 * not holding any locks.
++					 */
++					goto retry;
++			} else {
++				kmem_freepages(cache, obj);
++				obj = NULL;
++			}
++		}
+ 	}
+ 	return obj;
+ }
+@@ -3241,7 +3276,7 @@ retry:
+ 
+ must_grow:
+ 	spin_unlock(&l3->list_lock);
+-	x = cache_grow(cachep, flags, nodeid);
++	x = cache_grow(cachep, flags | GFP_THISNODE, nodeid, NULL);
+ 	if (x)
+ 		goto retry;
  
 _
 
