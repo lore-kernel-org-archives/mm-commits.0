@@ -1,107 +1,89 @@
 From: akpm@osdl.org
-Subject: - aio-remove-ki_retried-debugging-member.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:17:11 -0800
-Message-ID: <200612072317.kB7NHBqW030905@shell0.pdx.osdl.net>
+Subject: - nbd-show-nbd-client-pid-in-sysfs.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:17:23 -0800
+Message-ID: <200612072317.kB7NHNMa030923@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53841 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53815 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163830AbWLGXRc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:17:32 -0500
+	id S1163830AbWLGXR1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:17:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcrl@kvack.org, kenneth.w.chen@intel.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: remove ki_retried debugging member
+     nbd: show nbd client pid in sysfs
 has been removed from the -mm tree.  Its filename was
-     aio-remove-ki_retried-debugging-member.patch
+     nbd-show-nbd-client-pid-in-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: aio: remove ki_retried debugging member
-From: Benjamin LaHaise <bcrl@kvack.org>
+Subject: nbd: show nbd client pid in sysfs
+From: Paul Clements <paul.clements@steeleye.com>
 
-Remove the ki_retried member from struct kiocb.  I think the idea was
-bounced around a while back, but Arnaldo pointed out another reason that we
-should dig it up when he pointed out that the last cacheline of struct
-kiocb only contains 4 bytes.  By removing the debugging member, we save
-more than the 8 byte on 64 bit machines.
+Allow nbd to expose the nbd-client daemon's PID in /sys/block/nbd<x>/pid. 
+This is helpful for tracking connection status of a device and for
+determining which nbd devices are currently in use.
 
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Acked-by: Ken Chen <kenneth.w.chen@intel.com>
-Acked-by: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c            |   15 ---------------
- include/linux/aio.h |    2 --
- 2 files changed, 17 deletions(-)
+ drivers/block/nbd.c |   16 ++++++++++++++++
+ include/linux/nbd.h |    1 +
+ 2 files changed, 17 insertions(+)
 
-diff -puN fs/aio.c~aio-remove-ki_retried-debugging-member fs/aio.c
---- a/fs/aio.c~aio-remove-ki_retried-debugging-member
-+++ a/fs/aio.c
-@@ -666,17 +666,6 @@ static ssize_t aio_run_iocb(struct kiocb
- 	ssize_t (*retry)(struct kiocb *);
- 	ssize_t ret;
+diff -puN drivers/block/nbd.c~nbd-show-nbd-client-pid-in-sysfs drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-show-nbd-client-pid-in-sysfs
++++ a/drivers/block/nbd.c
+@@ -355,14 +355,30 @@ harderror:
+ 	return NULL;
+ }
  
--	if (iocb->ki_retried++ > 1024*1024) {
--		printk("Maximal retry count.  Bytes done %Zd\n",
--			iocb->ki_nbytes - iocb->ki_left);
--		return -EAGAIN;
--	}
--
--	if (!(iocb->ki_retried & 0xff)) {
--		pr_debug("%ld retry: %zd of %zd\n", iocb->ki_retried,
--			iocb->ki_nbytes - iocb->ki_left, iocb->ki_nbytes);
--	}
--
- 	if (!(retry = iocb->ki_retry)) {
- 		printk("aio_run_iocb: iocb->ki_retry = NULL\n");
- 		return 0;
-@@ -1005,9 +994,6 @@ int fastcall aio_complete(struct kiocb *
- 	kunmap_atomic(ring, KM_IRQ1);
++static ssize_t pid_show(struct gendisk *disk, char *page)
++{
++	return sprintf(page, "%ld\n",
++		(long) ((struct nbd_device *)disk->private_data)->pid);
++}
++
++static struct disk_attribute pid_attr = {
++	.attr = { .name = "pid", .mode = S_IRUGO },
++	.show = pid_show,
++};
++
+ static void nbd_do_it(struct nbd_device *lo)
+ {
+ 	struct request *req;
  
- 	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
--
--	pr_debug("%ld retries: %zd of %zd\n", iocb->ki_retried,
--		iocb->ki_nbytes - iocb->ki_left, iocb->ki_nbytes);
- put_rq:
- 	/* everything turned out well, dispose of the aiocb. */
- 	ret = __aio_put_req(ctx, iocb);
-@@ -1590,7 +1576,6 @@ int fastcall io_submit_one(struct kioctx
- 	req->ki_opcode = iocb->aio_lio_opcode;
- 	init_waitqueue_func_entry(&req->ki_wait, aio_wake_function);
- 	INIT_LIST_HEAD(&req->ki_wait.task_list);
--	req->ki_retried = 0;
+ 	BUG_ON(lo->magic != LO_MAGIC);
  
- 	ret = aio_setup_iocb(req);
++	lo->pid = current->pid;
++	sysfs_create_file(&lo->disk->kobj, &pid_attr.attr);
++
+ 	while ((req = nbd_read_stat(lo)) != NULL)
+ 		nbd_end_request(req);
++
++	sysfs_remove_file(&lo->disk->kobj, &pid_attr.attr);
+ 	return;
+ }
  
-diff -puN include/linux/aio.h~aio-remove-ki_retried-debugging-member include/linux/aio.h
---- a/include/linux/aio.h~aio-remove-ki_retried-debugging-member
-+++ a/include/linux/aio.h
-@@ -111,7 +111,6 @@ struct kiocb {
- 	size_t			ki_nbytes; 	/* copy of iocb->aio_nbytes */
- 	char 			__user *ki_buf;	/* remaining iocb->aio_buf */
- 	size_t			ki_left; 	/* remaining bytes */
--	long			ki_retried; 	/* just for testing */
- 	struct iovec		ki_inline_vec;	/* inline vector */
-  	struct iovec		*ki_iovec;
-  	unsigned long		ki_nr_segs;
-@@ -238,7 +237,6 @@ do {									\
- } while (0)
+diff -puN include/linux/nbd.h~nbd-show-nbd-client-pid-in-sysfs include/linux/nbd.h
+--- a/include/linux/nbd.h~nbd-show-nbd-client-pid-in-sysfs
++++ a/include/linux/nbd.h
+@@ -64,6 +64,7 @@ struct nbd_device {
+ 	struct gendisk *disk;
+ 	int blksize;
+ 	u64 bytesize;
++	pid_t pid; /* pid of nbd-client, if attached */
+ };
  
- #define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
--#define is_retried_kiocb(iocb) ((iocb)->ki_retried > 1)
- 
- #include <linux/aio_abi.h>
- 
+ #endif
 _
 
-Patches currently in -mm which might be from bcrl@kvack.org are
+Patches currently in -mm which might be from paul.clements@steeleye.com are
 
 origin.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 
