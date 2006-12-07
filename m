@@ -1,95 +1,78 @@
 From: akpm@osdl.org
-Subject: - make-8250_pnp-serial-driver-work-after.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:15:04 -0800
-Message-ID: <200612072315.kB7NF4oN030706@shell0.pdx.osdl.net>
+Subject: - ext3-balloc-fix-off-by-one-against-grp_goal.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:18:00 -0800
+Message-ID: <200612072318.kB7NI0Ii030982@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54204 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54221 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163865AbWLGXU6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:20:58 -0500
+	id S1163867AbWLGXVO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:21:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: efault@gmx.de, ambx1@neo.rr.com, bjorn.helgaas@hp.com, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make 8250_pnp serial driver work after suspend to ram
+     ext3 balloc: fix off-by-one against grp_goal
 has been removed from the -mm tree.  Its filename was
-     make-8250_pnp-serial-driver-work-after.patch
+     ext3-balloc-fix-off-by-one-against-grp_goal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make 8250_pnp serial driver work after suspend to ram
-From: Mike Galbraith <efault@gmx.de>
+Subject: ext3 balloc: fix off-by-one against grp_goal
+From: Hugh Dickins <hugh@veritas.com>
 
-Add suspend/resume methods to drivers/serial/8250_pnp.c.  Tested on a
-P4/HT 16550A box, ttyS0 login survives across suspend to ram.
+grp_goal 0 is a genuine goal (unlike -1), so ext3_try_to_allocate_with_rsv
+should treat it as such.
 
-[akpm@osdl.org: cleanups]
-Signed-off-by: Mike Galbraith <efault@gmx.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/8250_pnp.c |   29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ fs/ext3/balloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250_pnp.c~make-8250_pnp-serial-driver-work-after drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~make-8250_pnp-serial-driver-work-after
-+++ a/drivers/serial/8250_pnp.c
-@@ -464,11 +464,38 @@ static void __devexit serial_pnp_remove(
- 		serial8250_unregister_port(line - 1);
- }
+diff -puN fs/ext3/balloc.c~ext3-balloc-fix-off-by-one-against-grp_goal fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext3-balloc-fix-off-by-one-against-grp_goal
++++ a/fs/ext3/balloc.c
+@@ -1271,7 +1271,7 @@ ext3_try_to_allocate_with_rsv(struct sup
+ 	}
+ 	/*
+ 	 * grp_goal is a group relative block number (if there is a goal)
+-	 * 0 < grp_goal < EXT3_BLOCKS_PER_GROUP(sb)
++	 * 0 <= grp_goal < EXT3_BLOCKS_PER_GROUP(sb)
+ 	 * first block is a filesystem wide block number
+ 	 * first block is the block number of the first block in this group
+ 	 */
+@@ -1307,7 +1307,7 @@ ext3_try_to_allocate_with_rsv(struct sup
+ 			if (!goal_in_my_reservation(&my_rsv->rsv_window,
+ 							grp_goal, group, sb))
+ 				grp_goal = -1;
+-		} else if (grp_goal > 0) {
++		} else if (grp_goal >= 0) {
+ 			int curr = my_rsv->rsv_end -
+ 					(grp_goal + group_first_block) + 1;
  
-+#ifdef CONFIG_PM
-+static int serial_pnp_suspend(struct pnp_dev *dev, pm_message_t state)
-+{
-+	long line = (long)pnp_get_drvdata(dev);
-+
-+	if (!line)
-+		return -ENODEV;
-+	serial8250_suspend_port(line - 1);
-+	return 0;
-+}
-+
-+static int serial_pnp_resume(struct pnp_dev *dev)
-+{
-+	long line = (long)pnp_get_drvdata(dev);
-+
-+	if (!line)
-+		return -ENODEV;
-+	serial8250_resume_port(line - 1);
-+	return 0;
-+}
-+#else
-+#define serial_pnp_suspend NULL
-+#define serial_pnp_resume NULL
-+#endif /* CONFIG_PM */
-+
- static struct pnp_driver serial_pnp_driver = {
- 	.name		= "serial",
--	.id_table	= pnp_dev_table,
- 	.probe		= serial_pnp_probe,
- 	.remove		= __devexit_p(serial_pnp_remove),
-+	.suspend	= serial_pnp_suspend,
-+	.resume		= serial_pnp_resume,
-+	.id_table	= pnp_dev_table,
- };
- 
- static int __init serial8250_pnp_init(void)
 _
 
-Patches currently in -mm which might be from efault@gmx.de are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-sched-improve-migration-accuracy.patch
-sched-improve-migration-accuracy-tidy.patch
-sched-improve-migration-accuracy-fix.patch
-readahead-call-scheme.patch
+ext2-reservations.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
+generic-bug-implementation.patch
+generic-bug-implementation-handle-bug=n.patch
+generic-bug-for-i386.patch
+generic-bug-for-x86-64.patch
+bug-test-1.patch
+tty-switch-to-ktermios-powerpc-fix.patch
 
