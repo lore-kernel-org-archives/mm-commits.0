@@ -1,64 +1,72 @@
 From: akpm@osdl.org
-Subject: - use-freezeable-workqueues-in-xfs.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:00:02 -0800
-Message-ID: <200612072300.kB7N02RE029604@shell0.pdx.osdl.net>
+Subject: - cciss-cleanup-cciss_interrupt-mode.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:00:40 -0800
+Message-ID: <200612072300.kB7N0ehr029664@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51180 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51290 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163598AbWLGXAO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:00:14 -0500
+	id S1163737AbWLGXAx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:00:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, dgc@sgi.com, nigel@suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: mike.miller@hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use freezeable workqueues in XFS
+     cciss: cleanup cciss_interrupt mode
 has been removed from the -mm tree.  Its filename was
-     use-freezeable-workqueues-in-xfs.patch
+     cciss-cleanup-cciss_interrupt-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use freezeable workqueues in XFS
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: cciss: cleanup cciss_interrupt mode
+From: Mike Miller <mike.miller@hp.com>
 
-Make the workqueues used by XFS freezeable, so their worker threads don't
-submit any I/O after the suspend image has been created.
+A pretty simple cleanup for cciss_interrupt_mode.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@suspend2.net>
-Cc: David Chinner <dgc@sgi.com>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/xfs/linux-2.6/xfs_buf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/cciss.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_buf.c~use-freezeable-workqueues-in-xfs fs/xfs/linux-2.6/xfs_buf.c
---- a/fs/xfs/linux-2.6/xfs_buf.c~use-freezeable-workqueues-in-xfs
-+++ a/fs/xfs/linux-2.6/xfs_buf.c
-@@ -1827,11 +1827,11 @@ xfs_buf_init(void)
- 	if (!xfs_buf_zone)
- 		goto out_free_trace_buf;
- 
--	xfslogd_workqueue = create_workqueue("xfslogd");
-+	xfslogd_workqueue = create_freezeable_workqueue("xfslogd");
- 	if (!xfslogd_workqueue)
- 		goto out_free_buf_zone;
- 
--	xfsdatad_workqueue = create_workqueue("xfsdatad");
-+	xfsdatad_workqueue = create_freezeable_workqueue("xfsdatad");
- 	if (!xfsdatad_workqueue)
- 		goto out_destroy_xfslogd_workqueue;
- 
+diff -puN drivers/block/cciss.c~cciss-cleanup-cciss_interrupt-mode drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-cleanup-cciss_interrupt-mode
++++ a/drivers/block/cciss.c
+@@ -2788,23 +2788,21 @@ static void __devinit cciss_interrupt_mo
+ 		if (err > 0) {
+ 			printk(KERN_WARNING "cciss: only %d MSI-X vectors "
+ 			       "available\n", err);
++			goto default_int_mode;
+ 		} else {
+ 			printk(KERN_WARNING "cciss: MSI-X init failed %d\n",
+ 			       err);
++			goto default_int_mode;
+ 		}
+ 	}
+ 	if (pci_find_capability(pdev, PCI_CAP_ID_MSI)) {
+ 		if (!pci_enable_msi(pdev)) {
+-			c->intr[SIMPLE_MODE_INT] = pdev->irq;
+ 			c->msi_vector = 1;
+-			return;
+ 		} else {
+ 			printk(KERN_WARNING "cciss: MSI init failed\n");
+-			c->intr[SIMPLE_MODE_INT] = pdev->irq;
+-			return;
+ 		}
+ 	}
+-      default_int_mode:
++default_int_mode:
+ #endif				/* CONFIG_PCI_MSI */
+ 	/* if we get here we're going to use the default interrupt mode */
+ 	c->intr[SIMPLE_MODE_INT] = pdev->irq;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
 origin.patch
-git-acpi.patch
-md-change-lifetime-rules-for-md-devices.patch
 
