@@ -1,121 +1,75 @@
 From: akpm@osdl.org
-Subject: - allow-null-pointers-in-percpu_free.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:57:20 -0800
-Message-ID: <200612072257.kB7MvKAm029274@shell0.pdx.osdl.net>
+Subject: - swsusp-use-__gfp_wait.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:59:20 -0800
+Message-ID: <200612072259.kB7MxKeL029498@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50931 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51008 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163661AbWLGW7c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:59:32 -0500
+	id S1163675AbWLGW7h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:59:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Allow NULL pointers in percpu_free
+     swsusp: use __GFP_WAIT
 has been removed from the -mm tree.  Its filename was
-     allow-null-pointers-in-percpu_free.patch
+     swsusp-use-__gfp_wait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Allow NULL pointers in percpu_free
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: swsusp: use __GFP_WAIT
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-The patch (as824b) makes percpu_free() ignore NULL arguments, as one would
-expect for a deallocation routine.  (Note that free_percpu is #defined as
-percpu_free in include/linux/percpu.h.) A few callers are updated to remove
-now-unneeded tests for NULL.  A few other callers already seem to assume
-that passing a NULL pointer to percpu_free() is okay!
+swsusp uses GFP_ATOMIC, but it can afford to use __GFP_WAIT, which will
+permit it to reclaim clean pagecache instead of emitting scary
+page-allocation-failure messages.
 
-The patch also removes an unnecessary NULL check in percpu_depopulate().
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/acpi/cstate.c |    6 ++----
- block/blktrace.c               |    3 +--
- mm/allocpercpu.c               |    9 +++++----
- net/ipv6/af_inet6.c            |    6 ++----
- 4 files changed, 10 insertions(+), 14 deletions(-)
+ kernel/power/swap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/cstate.c~allow-null-pointers-in-percpu_free arch/i386/kernel/acpi/cstate.c
---- a/arch/i386/kernel/acpi/cstate.c~allow-null-pointers-in-percpu_free
-+++ a/arch/i386/kernel/acpi/cstate.c
-@@ -156,10 +156,8 @@ static int __init ffh_cstate_init(void)
+diff -puN kernel/power/swap.c~swsusp-use-__gfp_wait kernel/power/swap.c
+--- a/kernel/power/swap.c~swsusp-use-__gfp_wait
++++ a/kernel/power/swap.c
+@@ -63,7 +63,7 @@ static int submit(int rw, pgoff_t page_o
+ {
+ 	struct bio *bio;
  
- static void __exit ffh_cstate_exit(void)
- {
--	if (cpu_cstate_entry) {
--		free_percpu(cpu_cstate_entry);
--		cpu_cstate_entry = NULL;
--	}
-+	free_percpu(cpu_cstate_entry);
-+	cpu_cstate_entry = NULL;
- }
+-	bio = bio_alloc(GFP_ATOMIC, 1);
++	bio = bio_alloc(__GFP_WAIT | __GFP_HIGH, 1);
+ 	if (!bio)
+ 		return -ENOMEM;
+ 	bio->bi_sector = page_off * (PAGE_SIZE >> 9);
+@@ -216,7 +216,7 @@ static int write_page(void *buf, sector_
+ 		return -ENOSPC;
  
- arch_initcall(ffh_cstate_init);
-diff -puN block/blktrace.c~allow-null-pointers-in-percpu_free block/blktrace.c
---- a/block/blktrace.c~allow-null-pointers-in-percpu_free
-+++ a/block/blktrace.c
-@@ -394,8 +394,7 @@ err:
- 	if (bt) {
- 		if (bt->dropped_file)
- 			debugfs_remove(bt->dropped_file);
--		if (bt->sequence)
--			free_percpu(bt->sequence);
-+		free_percpu(bt->sequence);
- 		if (bt->rchan)
- 			relay_close(bt->rchan);
- 		kfree(bt);
-diff -puN mm/allocpercpu.c~allow-null-pointers-in-percpu_free mm/allocpercpu.c
---- a/mm/allocpercpu.c~allow-null-pointers-in-percpu_free
-+++ a/mm/allocpercpu.c
-@@ -17,10 +17,9 @@
- void percpu_depopulate(void *__pdata, int cpu)
- {
- 	struct percpu_data *pdata = __percpu_disguise(__pdata);
--	if (pdata->ptrs[cpu]) {
--		kfree(pdata->ptrs[cpu]);
--		pdata->ptrs[cpu] = NULL;
--	}
-+
-+	kfree(pdata->ptrs[cpu]);
-+	pdata->ptrs[cpu] = NULL;
- }
- EXPORT_SYMBOL_GPL(percpu_depopulate);
+ 	if (bio_chain) {
+-		src = (void *)__get_free_page(GFP_ATOMIC);
++		src = (void *)__get_free_page(__GFP_WAIT | __GFP_HIGH);
+ 		if (src) {
+ 			memcpy(src, buf, PAGE_SIZE);
+ 		} else {
+@@ -473,7 +473,7 @@ static int get_swap_reader(struct swap_m
+ 	if (!start)
+ 		return -EINVAL;
  
-@@ -123,6 +122,8 @@ EXPORT_SYMBOL_GPL(__percpu_alloc_mask);
-  */
- void percpu_free(void *__pdata)
- {
-+	if (unlikely(!__pdata))
-+		return;
- 	__percpu_depopulate_mask(__pdata, &cpu_possible_map);
- 	kfree(__percpu_disguise(__pdata));
- }
-diff -puN net/ipv6/af_inet6.c~allow-null-pointers-in-percpu_free net/ipv6/af_inet6.c
---- a/net/ipv6/af_inet6.c~allow-null-pointers-in-percpu_free
-+++ a/net/ipv6/af_inet6.c
-@@ -720,10 +720,8 @@ snmp6_mib_free(void *ptr[2])
- {
- 	if (ptr == NULL)
- 		return;
--	if (ptr[0])
--		free_percpu(ptr[0]);
--	if (ptr[1])
--		free_percpu(ptr[1]);
-+	free_percpu(ptr[0]);
-+	free_percpu(ptr[1]);
- 	ptr[0] = ptr[1] = NULL;
- }
+-	handle->cur = (struct swap_map_page *)get_zeroed_page(GFP_ATOMIC);
++	handle->cur = (struct swap_map_page *)get_zeroed_page(__GFP_WAIT | __GFP_HIGH);
+ 	if (!handle->cur)
+ 		return -ENOMEM;
  
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
+git-acpi.patch
+md-change-lifetime-rules-for-md-devices.patch
 
