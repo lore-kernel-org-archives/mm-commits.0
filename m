@@ -1,65 +1,65 @@
 From: akpm@osdl.org
-Subject: - move-names_cachep-to-linux-fsh.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:57:45 -0800
-Message-ID: <200612072257.kB7MvjWO029319@shell0.pdx.osdl.net>
+Subject: - move-filep_cachep-to-include-fileh.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:57:41 -0800
+Message-ID: <200612072257.kB7Mvf0t029313@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50658 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50643 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163617AbWLGW5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:57:48 -0500
+	id S1163615AbWLGW5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:57:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Move names_cachep to linux/fs.h
+     Move filep_cachep to include/file.h
 has been removed from the -mm tree.  Its filename was
-     move-names_cachep-to-linux-fsh.patch
+     move-filep_cachep-to-include-fileh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Move names_cachep to linux/fs.h
+Subject: Move filep_cachep to include/file.h
 From: Christoph Lameter <clameter@sgi.com>
 
-The names_cachep is used for getname() and putname().  So lets put it into
-fs.h near those two definitions.
+filp_cachep is only used in fs/file_table.c and in fs/dcache.c where
+it is defined.
+
+Move it to related definitions in linux/file.h.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs.h   |    2 ++
- include/linux/slab.h |    3 ---
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/file.h |    2 ++
+ include/linux/slab.h |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~move-names_cachep-to-linux-fsh include/linux/fs.h
---- a/include/linux/fs.h~move-names_cachep-to-linux-fsh
-+++ a/include/linux/fs.h
-@@ -1481,6 +1481,8 @@ extern char * getname(const char __user 
- extern void __init vfs_caches_init_early(void);
- extern void __init vfs_caches_init(unsigned long);
+diff -puN include/linux/file.h~move-filep_cachep-to-include-fileh include/linux/file.h
+--- a/include/linux/file.h~move-filep_cachep-to-include-fileh
++++ a/include/linux/file.h
+@@ -64,6 +64,8 @@ struct files_struct {
  
-+extern struct kmem_cache *names_cachep;
+ #define files_fdtable(files) (rcu_dereference((files)->fdt))
+ 
++extern struct kmem_cache *filp_cachep;
 +
- #define __getname()	kmem_cache_alloc(names_cachep, SLAB_KERNEL)
- #define __putname(name) kmem_cache_free(names_cachep, (void *)(name))
- #ifndef CONFIG_AUDITSYSCALL
-diff -puN include/linux/slab.h~move-names_cachep-to-linux-fsh include/linux/slab.h
---- a/include/linux/slab.h~move-names_cachep-to-linux-fsh
+ extern void FASTCALL(__fput(struct file *));
+ extern void FASTCALL(fput(struct file *));
+ 
+diff -puN include/linux/slab.h~move-filep_cachep-to-include-fileh include/linux/slab.h
+--- a/include/linux/slab.h~move-filep_cachep-to-include-fileh
 +++ a/include/linux/slab.h
-@@ -308,9 +308,6 @@ static inline void *kcalloc(size_t n, si
+@@ -310,7 +310,6 @@ static inline void *kcalloc(size_t n, si
  
- #endif /* CONFIG_SLOB */
+ /* System wide caches */
+ extern kmem_cache_t	*names_cachep;
+-extern kmem_cache_t	*filp_cachep;
+ extern kmem_cache_t	*fs_cachep;
  
--/* System wide caches */
--extern kmem_cache_t	*names_cachep;
--
  #endif	/* __KERNEL__ */
- 
- #endif	/* _LINUX_SLAB_H */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
