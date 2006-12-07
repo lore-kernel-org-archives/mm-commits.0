@@ -1,286 +1,244 @@
 From: akpm@osdl.org
-Subject: - new-scheme-to-preempt-swap-token.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:56:26 -0800
-Message-ID: <200612072256.kB7MuQa6029199@shell0.pdx.osdl.net>
+Subject: - balance_pdgat-cleanup.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:56:31 -0800
+Message-ID: <200612072256.kB7MuVF7029205@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50424 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50390 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163596AbWLGW4j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:56:39 -0500
+	id S1163592AbWLGW4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:56:33 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB7MuVID022723
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 7 Dec 2006 14:56:31 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ashwin.chaugule@celunite.com, a.p.zijlstra@chello.nl, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     new scheme to preempt swap token
+     balance_pdgat() cleanup
 has been removed from the -mm tree.  Its filename was
-     new-scheme-to-preempt-swap-token.patch
+     balance_pdgat-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: new scheme to preempt swap token
-From: Ashwin Chaugule <ashwin.chaugule@celunite.com>
+Subject: balance_pdgat() cleanup
+From: Andrew Morton <akpm@osdl.org>
 
-The new swap token patches replace the current token traversal algo.  The old
-algo had a crude timeout parameter that was used to handover the token from
-one task to another.  This algo, transfers the token to the tasks that are in
-need of the token.  The urgency for the token is based on the number of times
-a task is required to swap-in pages.  Accordingly, the priority of a task is
-incremented if it has been badly affected due to swap-outs.  To ensure that
-the token doesnt bounce around rapidly, the token holders are given a priority
-boost.  The priority of tasks is also decremented, if their rate of swap-in's
-keeps reducing.  This way, the condition to check whether to pre-empt the swap
-token, is a matter of comparing two task's priority fields.
+Despaghettify balance_pdgat() a bit.
 
-[akpm@osdl.org: cleanups]
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@celunite.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h |   13 +++-
- include/linux/swap.h  |    1 
- kernel/fork.c         |    8 ++
- kernel/sysctl.c       |   11 ---
- mm/thrash.c           |  116 +++++++++++++++-------------------------
- 5 files changed, 63 insertions(+), 86 deletions(-)
+ mm/vmscan.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/sched.h~new-scheme-to-preempt-swap-token include/linux/sched.h
---- a/include/linux/sched.h~new-scheme-to-preempt-swap-token
-+++ a/include/linux/sched.h
-@@ -344,9 +344,16 @@ struct mm_struct {
- 	/* Architecture-specific MM context */
- 	mm_context_t context;
- 
--	/* Token based thrashing protection. */
--	unsigned long swap_token_time;
--	char recent_pagein;
-+	/* Swap token stuff */
-+	/*
-+	 * Last value of global fault stamp as seen by this process.
-+	 * In other words, this value gives an indication of how long
-+	 * it has been since this task got the token.
-+	 * Look at mm/thrash.c
-+	 */
-+	unsigned int faultstamp;
-+	unsigned int token_priority;
-+	unsigned int last_interval;
- 
- 	/* coredumping support */
- 	int core_waiters;
-diff -puN include/linux/swap.h~new-scheme-to-preempt-swap-token include/linux/swap.h
---- a/include/linux/swap.h~new-scheme-to-preempt-swap-token
-+++ a/include/linux/swap.h
-@@ -259,7 +259,6 @@ extern spinlock_t swap_lock;
- 
- /* linux/mm/thrash.c */
- extern struct mm_struct * swap_token_mm;
--extern unsigned long swap_token_default_timeout;
- extern void grab_swap_token(void);
- extern void __put_swap_token(struct mm_struct *);
- 
-diff -puN kernel/fork.c~new-scheme-to-preempt-swap-token kernel/fork.c
---- a/kernel/fork.c~new-scheme-to-preempt-swap-token
-+++ a/kernel/fork.c
-@@ -479,6 +479,10 @@ static struct mm_struct *dup_mm(struct t
- 
- 	memcpy(mm, oldmm, sizeof(*mm));
- 
-+	/* Initializing for Swap token stuff */
-+	mm->token_priority = 0;
-+	mm->last_interval = 0;
-+
- 	if (!mm_init(mm))
- 		goto fail_nomem;
- 
-@@ -542,6 +546,10 @@ static int copy_mm(unsigned long clone_f
- 		goto fail_nomem;
- 
- good_mm:
-+	/* Initializing for Swap token stuff */
-+	mm->token_priority = 0;
-+	mm->last_interval = 0;
-+
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
- 	return 0;
-diff -puN kernel/sysctl.c~new-scheme-to-preempt-swap-token kernel/sysctl.c
---- a/kernel/sysctl.c~new-scheme-to-preempt-swap-token
-+++ a/kernel/sysctl.c
-@@ -977,17 +977,6 @@ static ctl_table vm_table[] = {
- 		.extra1		= &zero,
- 	},
- #endif
--#ifdef CONFIG_SWAP
--	{
--		.ctl_name	= VM_SWAP_TOKEN_TIMEOUT,
--		.procname	= "swap_token_timeout",
--		.data		= &swap_token_default_timeout,
--		.maxlen		= sizeof(swap_token_default_timeout),
--		.mode		= 0644,
--		.proc_handler	= &proc_dointvec_jiffies,
--		.strategy	= &sysctl_jiffies,
--	},
--#endif
- #ifdef CONFIG_NUMA
- 	{
- 		.ctl_name	= VM_ZONE_RECLAIM_MODE,
-diff -puN mm/thrash.c~new-scheme-to-preempt-swap-token mm/thrash.c
---- a/mm/thrash.c~new-scheme-to-preempt-swap-token
-+++ a/mm/thrash.c
-@@ -7,100 +7,74 @@
-  *
-  * Simple token based thrashing protection, using the algorithm
-  * described in:  http://www.cs.wm.edu/~sjiang/token.pdf
-+ *
-+ * Sep 2006, Ashwin Chaugule <ashwin.chaugule@celunite.com>
-+ * Improved algorithm to pass token:
-+ * Each task has a priority which is incremented if it contended
-+ * for the token in an interval less than its previous attempt.
-+ * If the token is acquired, that task's priority is boosted to prevent
-+ * the token from bouncing around too often and to let the task make
-+ * some progress in its execution.
-  */
-+
- #include <linux/jiffies.h>
- #include <linux/mm.h>
- #include <linux/sched.h>
- #include <linux/swap.h>
- 
- static DEFINE_SPINLOCK(swap_token_lock);
--static unsigned long swap_token_timeout;
--static unsigned long swap_token_check;
--struct mm_struct * swap_token_mm = &init_mm;
--
--#define SWAP_TOKEN_CHECK_INTERVAL (HZ * 2)
--#define SWAP_TOKEN_TIMEOUT	(300 * HZ)
--/*
-- * Currently disabled; Needs further code to work at HZ * 300.
-- */
--unsigned long swap_token_default_timeout = SWAP_TOKEN_TIMEOUT;
--
--/*
-- * Take the token away if the process had no page faults
-- * in the last interval, or if it has held the token for
-- * too long.
-- */
--#define SWAP_TOKEN_ENOUGH_RSS 1
--#define SWAP_TOKEN_TIMED_OUT 2
--static int should_release_swap_token(struct mm_struct *mm)
--{
--	int ret = 0;
--	if (!mm->recent_pagein)
--		ret = SWAP_TOKEN_ENOUGH_RSS;
--	else if (time_after(jiffies, swap_token_timeout))
--		ret = SWAP_TOKEN_TIMED_OUT;
--	mm->recent_pagein = 0;
--	return ret;
--}
-+struct mm_struct *swap_token_mm;
-+unsigned int global_faults;
- 
--/*
-- * Try to grab the swapout protection token.  We only try to
-- * grab it once every TOKEN_CHECK_INTERVAL, both to prevent
-- * SMP lock contention and to check that the process that held
-- * the token before is no longer thrashing.
-- */
- void grab_swap_token(void)
- {
--	struct mm_struct *mm;
--	int reason;
-+	int current_interval;
- 
--	/* We have the token. Let others know we still need it. */
--	if (has_swap_token(current->mm)) {
--		current->mm->recent_pagein = 1;
--		if (unlikely(!swap_token_default_timeout))
--			disable_swap_token();
-+	global_faults++;
-+
-+	current_interval = global_faults - current->mm->faultstamp;
-+
-+	if (!spin_trylock(&swap_token_lock))
- 		return;
--	}
- 
--	if (time_after(jiffies, swap_token_check)) {
-+	/* First come first served */
-+	if (swap_token_mm == NULL) {
-+		current->mm->token_priority = current->mm->token_priority + 2;
-+		swap_token_mm = current->mm;
-+		goto out;
-+	}
- 
--		if (!swap_token_default_timeout) {
--			swap_token_check = jiffies + SWAP_TOKEN_CHECK_INTERVAL;
--			return;
-+	if (current->mm != swap_token_mm) {
-+		if (current_interval < current->mm->last_interval)
-+			current->mm->token_priority++;
-+		else {
-+			current->mm->token_priority--;
-+			if (unlikely(current->mm->token_priority < 0))
-+				current->mm->token_priority = 0;
+diff -puN mm/vmscan.c~balance_pdgat-cleanup mm/vmscan.c
+--- a/mm/vmscan.c~balance_pdgat-cleanup
++++ a/mm/vmscan.c
+@@ -1172,11 +1172,12 @@ loop_again:
+ 			if (!zone_watermark_ok(zone, order, zone->pages_high,
+ 					       0, 0)) {
+ 				end_zone = i;
+-				goto scan;
++				break;
+ 			}
  		}
--
--		/* ... or if we recently held the token. */
--		if (time_before(jiffies, current->mm->swap_token_time))
--			return;
--
--		if (!spin_trylock(&swap_token_lock))
--			return;
--
--		swap_token_check = jiffies + SWAP_TOKEN_CHECK_INTERVAL;
--
--		mm = swap_token_mm;
--		if ((reason = should_release_swap_token(mm))) {
--			unsigned long eligible = jiffies;
--			if (reason == SWAP_TOKEN_TIMED_OUT) {
--				eligible += swap_token_default_timeout;
--			}
--			mm->swap_token_time = eligible;
--			swap_token_timeout = jiffies + swap_token_default_timeout;
-+		/* Check if we deserve the token */
-+		if (current->mm->token_priority >
-+				swap_token_mm->token_priority) {
-+			current->mm->token_priority += 2;
- 			swap_token_mm = current->mm;
- 		}
--		spin_unlock(&swap_token_lock);
-+	} else {
-+		/* Token holder came in again! */
-+		current->mm->token_priority += 2;
- 	}
--	return;
+-		goto out;
+-scan:
++		if (i < 0)
++			goto out;
 +
-+out:
-+	current->mm->faultstamp = global_faults;
-+	current->mm->last_interval = current_interval;
-+	spin_unlock(&swap_token_lock);
-+return;
- }
+ 		for (i = 0; i <= end_zone; i++) {
+ 			struct zone *zone = pgdat->node_zones + i;
  
- /* Called on process exit. */
- void __put_swap_token(struct mm_struct *mm)
- {
- 	spin_lock(&swap_token_lock);
--	if (likely(mm == swap_token_mm)) {
--		mm->swap_token_time = jiffies + SWAP_TOKEN_CHECK_INTERVAL;
--		swap_token_mm = &init_mm;
--		swap_token_check = jiffies;
--	}
-+	if (likely(mm == swap_token_mm))
-+		swap_token_mm = NULL;
- 	spin_unlock(&swap_token_lock);
- }
 _
 
-Patches currently in -mm which might be from ashwin.chaugule@celunite.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+bridge-avoid-using-noautorel-workqueues.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+acpi-asus-s3-resume-fix.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-ia64.patch
+git-ieee1394-fixup.patch
+git-input.patch
+git-input-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+bug-test-1.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
