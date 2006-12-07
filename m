@@ -1,54 +1,81 @@
 From: akpm@osdl.org
-Subject: - elf-fix-kcore-note-size-calculation-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:31:18 -0800
-Message-ID: <200612070331.kB73VIMF027427@shell0.pdx.osdl.net>
+Subject: - reiserfs-add-missing-d-cache-flushing-tweak.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:31:58 -0800
+Message-ID: <200612070331.kB73VwFM027450@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42628 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42667 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968010AbWLGDbt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:31:49 -0500
+	id S968011AbWLGDcB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:32:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, drow@false.org, jakub@redhat.com, magnus@valinux.co.jp, roland@redhat.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, adobriyan@openvz.org, dmonakhov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     elf-fix-kcore-note-size-calculation-fix
+     reiserfs-add-missing-d-cache-flushing tweak
 has been removed from the -mm tree.  Its filename was
-     elf-fix-kcore-note-size-calculation-fix.patch
+     reiserfs-add-missing-d-cache-flushing-tweak.patch
 
-This patch was dropped because it was folded into elf-fix-kcore-note-size-calculation.patch
+This patch was dropped because it was folded into reiserfs-add-missing-d-cache-flushing.patch
 
 ------------------------------------------------------
-Subject: elf-fix-kcore-note-size-calculation-fix
+Subject: reiserfs-add-missing-d-cache-flushing tweak
 From: Andrew Morton <akpm@osdl.org>
 
-Roland sayeth "Use sizeof CORE_STR.  strlen on the constant will not
-necessarily be optimized away."
+There's no need to do this in the non-preemptible region.
 
-Cc: Magnus Damm <magnus@valinux.co.jp>
-Cc: Daniel Jacobowitz <drow@false.org>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Dmitriy Monakhov <dmonakhov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/kcore.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/file.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/kcore.c~elf-fix-kcore-note-size-calculation-fix fs/proc/kcore.c
---- a/fs/proc/kcore.c~elf-fix-kcore-note-size-calculation-fix
-+++ a/fs/proc/kcore.c
-@@ -84,7 +84,7 @@ static size_t get_kcore_size(int *nphdr,
- 	*elf_buflen =	sizeof(struct elfhdr) + 
- 			(*nphdr + 2)*sizeof(struct elf_phdr) + 
- 			3 * ((sizeof(struct elf_note)) +
--			     roundup(strlen(CORE_STR) + 1, 4)) +
-+			     roundup(sizeof(CORE_STR), 4)) +
- 			roundup(sizeof(struct elf_prstatus), 4) +
- 			roundup(sizeof(struct elf_prpsinfo), 4) +
- 			roundup(sizeof(struct task_struct), 4);
+diff -puN fs/reiserfs/file.c~reiserfs-add-missing-d-cache-flushing-tweak fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~reiserfs-add-missing-d-cache-flushing-tweak
++++ a/fs/reiserfs/file.c
+@@ -1073,16 +1073,16 @@ static int reiserfs_prepare_file_region_
+ 		if (from != 0) {	/* First page needs to be partially zeroed */
+ 			char *kaddr = kmap_atomic(prepared_pages[0], KM_USER0);
+ 			memset(kaddr, 0, from);
+-			flush_dcache_page(prepared_pages[0]);
+ 			kunmap_atomic(kaddr, KM_USER0);
++			flush_dcache_page(prepared_pages[0]);
+ 		}
+ 		if (to != PAGE_CACHE_SIZE) {	/* Last page needs to be partially zeroed */
+ 			char *kaddr =
+ 			    kmap_atomic(prepared_pages[num_pages - 1],
+ 					KM_USER0);
+ 			memset(kaddr + to, 0, PAGE_CACHE_SIZE - to);
+-			flush_dcache_page(prepared_pages[num_pages - 1]);
+ 			kunmap_atomic(kaddr, KM_USER0);
++			flush_dcache_page(prepared_pages[num_pages - 1]);
+ 		}
+ 
+ 		/* Since all blocks are new - use already calculated value */
+@@ -1215,8 +1215,8 @@ static int reiserfs_prepare_file_region_
+ 							KM_USER0);
+ 					memset(kaddr + block_start, 0,
+ 					       from - block_start);
+-					flush_dcache_page(prepared_pages[0]);
+ 					kunmap_atomic(kaddr, KM_USER0);
++					flush_dcache_page(prepared_pages[0]);
+ 					set_buffer_uptodate(bh);
+ 				}
+ 			}
+@@ -1253,8 +1253,8 @@ static int reiserfs_prepare_file_region_
+ 							[num_pages - 1],
+ 							KM_USER0);
+ 					memset(kaddr + to, 0, block_end - to);
+-					flush_dcache_page(prepared_pages[num_pages - 1]);
+ 					kunmap_atomic(kaddr, KM_USER0);
++					flush_dcache_page(prepared_pages[num_pages - 1]);
+ 					set_buffer_uptodate(bh);
+ 				}
+ 			}
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -84,7 +111,7 @@ remove-kernel-syscalls.patch
 protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch
 remove-hash_highmem.patch
 elf-fix-kcore-note-size-calculation.patch
-elf-fix-kcore-note-size-calculation-fix.patch
+reiserfs-add-missing-d-cache-flushing.patch
 reiserfs-add-missing-d-cache-flushing-tweak.patch
 smp_call_function_single-check-that-local-interrupts-are-enabled.patch
 hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch
