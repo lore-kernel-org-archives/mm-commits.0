@@ -1,144 +1,236 @@
 From: akpm@osdl.org
-Subject: + fbdev-update-after-backlight-argument-change.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:47:42 -0800
-Message-ID: <200612072047.kB7KlhPH025119@shell0.pdx.osdl.net>
+Subject: + proper-backlight-selection-for-fbdev-drivers.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:51:16 -0800
+Message-ID: <200612072051.kB7KpHI7025247@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38116 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163299AbWLGUsi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:48:38 -0500
+	id S1163329AbWLGUvv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:51:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jsimmons@infradead.org, Luming.yu@intel.com, adaplas@pol.net, greg@kroah.com, len.brown@intel.com
+Cc: jsimmons@infradead.org
 
 
 The patch titled
-     fbdev: update after backlight argument change
+     Proper backlight selection for fbdev drivers
 has been added to the -mm tree.  Its filename is
-     fbdev-update-after-backlight-argument-change.patch
+     proper-backlight-selection-for-fbdev-drivers.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: update after backlight argument change
+Subject: Proper backlight selection for fbdev drivers
 From: James Simmons <jsimmons@infradead.org>
 
-Update the frambuffer drivers to the backlight_device_registers changes.
-
 Signed-off-by: James Simmons <jsimmons@infradead.org>
-Cc: Luming Yu <Luming.yu@intel.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/aty/aty128fb.c         |    6 +++---
- drivers/video/aty/atyfb_base.c       |    6 +++---
- drivers/video/aty/radeon_backlight.c |    2 +-
- drivers/video/nvidia/nv_backlight.c  |    2 +-
- drivers/video/riva/fbdev.c           |    2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/video/Kconfig |   73 +++++++++++++++++++---------------------
+ 1 files changed, 36 insertions(+), 37 deletions(-)
 
-diff -puN drivers/video/aty/aty128fb.c~fbdev-update-after-backlight-argument-change drivers/video/aty/aty128fb.c
---- a/drivers/video/aty/aty128fb.c~fbdev-update-after-backlight-argument-change
-+++ a/drivers/video/aty/aty128fb.c
-@@ -1829,7 +1829,7 @@ static void aty128_bl_init(struct aty128
+diff -puN drivers/video/Kconfig~proper-backlight-selection-for-fbdev-drivers drivers/video/Kconfig
+--- a/drivers/video/Kconfig~proper-backlight-selection-for-fbdev-drivers
++++ a/drivers/video/Kconfig
+@@ -4,20 +4,9 @@
  
- 	snprintf(name, sizeof(name), "aty128bl%d", info->node);
+ menu "Graphics support"
  
--	bd = backlight_device_register(name, par, &aty128_bl_data);
-+	bd = backlight_device_register(name, info->dev, par, &aty128_bl_data);
- 	if (IS_ERR(bd)) {
- 		info->bl_dev = NULL;
- 		printk(KERN_WARNING "aty128: Backlight registration failed\n");
-@@ -2210,7 +2210,7 @@ static int aty128fb_blank(int blank, str
- 		return 0;
+-config FIRMWARE_EDID
+-       bool "Enable firmware EDID"
+-       default y
+-       ---help---
+-         This enables access to the EDID transferred from the firmware.
+-	 On the i386, this is from the Video BIOS. Enable this if DDC/I2C
+-	 transfers do not work for your driver and if you are using
+-	 nvidiafb, i810fb or savagefb.
+-
+-	 In general, choosing Y for this option is safe.  If you
+-	 experience extremely long delays while booting before you get
+-	 something on your display, try setting this to N.  Matrox cards in
+-	 combination with certain motherboards and monitors are known to
+-	 suffer from this problem.
++if SYSFS
++	source "drivers/video/backlight/Kconfig"
++endif
  
- #ifdef CONFIG_FB_ATY128_BACKLIGHT
--	if (machine_is(powermac) && blank)
-+	if (blank)
- 		aty128_bl_set_power(fb, FB_BLANK_POWERDOWN);
- #endif
+ config FB
+ 	tristate "Support for frame buffer devices"
+@@ -53,9 +42,27 @@ config FB
+ 	  (e.g. an accelerated X server) and that are not frame buffer
+ 	  device-aware may cause unexpected results. If unsure, say N.
  
-@@ -2229,7 +2229,7 @@ static int aty128fb_blank(int blank, str
- 	}
++config FIRMWARE_EDID
++       bool "Enable firmware EDID"
++       depends on FB
++       default n
++       ---help---
++         This enables access to the EDID transferred from the firmware.
++	 On the i386, this is from the Video BIOS. Enable this if DDC/I2C
++	 transfers do not work for your driver and if you are using
++	 nvidiafb, i810fb or savagefb.
++
++	 In general, choosing Y for this option is safe.  If you
++	 experience extremely long delays while booting before you get
++	 something on your display, try setting this to N.  Matrox cards in
++	 combination with certain motherboards and monitors are known to
++	 suffer from this problem.
++
+ config FB_DDC
+        tristate
+-       depends on FB && I2C && I2C_ALGOBIT
++       depends on FB
++       select I2C_ALGOBIT
++       select I2C
+        default n
  
- #ifdef CONFIG_FB_ATY128_BACKLIGHT
--	if (machine_is(powermac) && !blank)
-+	if (blank)
- 		aty128_bl_set_power(fb, FB_BLANK_UNBLANK);
- #endif
+ config FB_CFB_FILLRECT
+@@ -126,6 +133,9 @@ config FB_TILEBLITTING
+ 	 This is particularly important to one driver, matroxfb.  If
+ 	 unsure, say N.
  
-diff -puN drivers/video/aty/atyfb_base.c~fbdev-update-after-backlight-argument-change drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~fbdev-update-after-backlight-argument-change
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -2221,7 +2221,7 @@ static void aty_bl_init(struct atyfb_par
++comment "Frambuffer hardware drivers"
++	depends on FB
++
+ config FB_CIRRUS
+ 	tristate "Cirrus Logic support"
+ 	depends on FB && (ZORRO || PCI)
+@@ -702,6 +712,7 @@ config FB_NVIDIA
+ 	depends on FB && PCI
+ 	select I2C_ALGOBIT if FB_NVIDIA_I2C
+ 	select I2C if FB_NVIDIA_I2C
++	select FB_BACKLIGHT if FB_NVIDIA_BACKLIGHT
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+@@ -730,8 +741,7 @@ config FB_NVIDIA_I2C
  
- 	snprintf(name, sizeof(name), "atybl%d", info->node);
+ config FB_NVIDIA_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_NVIDIA && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_NVIDIA
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -739,9 +749,8 @@ config FB_NVIDIA_BACKLIGHT
+ config FB_RIVA
+ 	tristate "nVidia Riva support"
+ 	depends on FB && PCI
+-	select I2C_ALGOBIT if FB_RIVA_I2C
+-	select I2C if FB_RIVA_I2C
+ 	select FB_DDC if FB_RIVA_I2C
++	select FB_BACKLIGHT if FB_RIVA_BACKLIGHT
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+@@ -778,8 +787,7 @@ config FB_RIVA_DEBUG
  
--	bd = backlight_device_register(name, par, &aty_bl_data);
-+	bd = backlight_device_register(name, info->dev, par, &aty_bl_data);
- 	if (IS_ERR(bd)) {
- 		info->bl_dev = NULL;
- 		printk(KERN_WARNING "aty: Backlight registration failed\n");
-@@ -2814,7 +2814,7 @@ static int atyfb_blank(int blank, struct
- 		return 0;
+ config FB_RIVA_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_RIVA && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_RIVA
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -829,8 +837,6 @@ config FB_I810_GTF
+ config FB_I810_I2C
+ 	bool "Enable DDC Support"
+ 	depends on FB_I810 && FB_I810_GTF
+-	select I2C
+-	select I2C_ALGOBIT
+ 	select FB_DDC
+ 	help
  
- #ifdef CONFIG_FB_ATY_BACKLIGHT
--	if (machine_is(powermac) && blank > FB_BLANK_NORMAL)
-+	if (blank > FB_BLANK_NORMAL)
- 		aty_bl_set_power(info, FB_BLANK_POWERDOWN);
- #elif defined(CONFIG_FB_ATY_GENERIC_LCD)
- 	if (par->lcd_table && blank > FB_BLANK_NORMAL &&
-@@ -2846,7 +2846,7 @@ static int atyfb_blank(int blank, struct
- 	aty_st_le32(CRTC_GEN_CNTL, gen_cntl, par);
+@@ -1020,9 +1026,8 @@ config FB_MATROX_MULTIHEAD
+ config FB_RADEON
+ 	tristate "ATI Radeon display support"
+ 	depends on FB && PCI
+-	select I2C_ALGOBIT if FB_RADEON_I2C
+-	select I2C if FB_RADEON_I2C
+ 	select FB_DDC if FB_RADEON_I2C
++	select FB_BACKLIGHT if FB_RADEON_BACKLIGHT
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+@@ -1052,8 +1057,7 @@ config FB_RADEON_I2C
  
- #ifdef CONFIG_FB_ATY_BACKLIGHT
--	if (machine_is(powermac) && blank <= FB_BLANK_NORMAL)
-+	if (blank <= FB_BLANK_NORMAL)
- 		aty_bl_set_power(info, FB_BLANK_UNBLANK);
- #elif defined(CONFIG_FB_ATY_GENERIC_LCD)
- 	if (par->lcd_table && blank <= FB_BLANK_NORMAL &&
-diff -puN drivers/video/aty/radeon_backlight.c~fbdev-update-after-backlight-argument-change drivers/video/aty/radeon_backlight.c
---- a/drivers/video/aty/radeon_backlight.c~fbdev-update-after-backlight-argument-change
-+++ a/drivers/video/aty/radeon_backlight.c
-@@ -163,7 +163,7 @@ void radeonfb_bl_init(struct radeonfb_in
+ config FB_RADEON_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_RADEON && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_RADEON
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -1073,6 +1077,7 @@ config FB_ATY128
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select FB_BACKLIGHT if FB_ATY128_BACKLIGHT
+ 	select FB_MACMODES if PPC_PMAC
+ 	help
+ 	  This driver supports graphics boards with the ATI Rage128 chips.
+@@ -1084,8 +1089,7 @@ config FB_ATY128
  
- 	snprintf(name, sizeof(name), "radeonbl%d", rinfo->info->node);
+ config FB_ATY128_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_ATY128 && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_ATY128
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -1096,6 +1100,7 @@ config FB_ATY
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select FB_BACKLIGHT if FB_ATY_BACKLIGHT
+ 	select FB_MACMODES if PPC
+ 	help
+ 	  This driver supports graphics boards with the ATI Mach64 chips.
+@@ -1134,8 +1139,7 @@ config FB_ATY_GX
  
--	bd = backlight_device_register(name, pdata, &radeon_bl_data);
-+	bd = backlight_device_register(name, rinfo->info->dev, pdata, &radeon_bl_data);
- 	if (IS_ERR(bd)) {
- 		rinfo->info->bl_dev = NULL;
- 		printk("radeonfb: Backlight registration failed\n");
-diff -puN drivers/video/nvidia/nv_backlight.c~fbdev-update-after-backlight-argument-change drivers/video/nvidia/nv_backlight.c
---- a/drivers/video/nvidia/nv_backlight.c~fbdev-update-after-backlight-argument-change
-+++ a/drivers/video/nvidia/nv_backlight.c
-@@ -141,7 +141,7 @@ void nvidia_bl_init(struct nvidia_par *p
+ config FB_ATY_BACKLIGHT
+ 	bool "Support for backlight control"
+-	depends on FB_ATY && PMAC_BACKLIGHT
+-	select FB_BACKLIGHT
++	depends on FB_ATY
+ 	default y
+ 	help
+ 	  Say Y here if you want to control the backlight of your display.
+@@ -1149,8 +1153,6 @@ config FB_S3TRIO
+ config FB_SAVAGE
+ 	tristate "S3 Savage support"
+ 	depends on FB && PCI && EXPERIMENTAL
+-	select I2C_ALGOBIT if FB_SAVAGE_I2C
+-	select I2C if FB_SAVAGE_I2C
+ 	select FB_DDC if FB_SAVAGE_I2C
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+@@ -1635,6 +1637,7 @@ config FB_VIRTUAL
+ 	  the vfb_enable=1 option.
  
- 	snprintf(name, sizeof(name), "nvidiabl%d", info->node);
+ 	  If unsure, say N.
++
+ if VT
+ 	source "drivers/video/console/Kconfig"
+ endif
+@@ -1643,9 +1646,5 @@ if FB || SGI_NEWPORT_CONSOLE
+ 	source "drivers/video/logo/Kconfig"
+ endif
  
--	bd = backlight_device_register(name, par, &nvidia_bl_data);
-+	bd = backlight_device_register(name, info->dev, par, &nvidia_bl_data);
- 	if (IS_ERR(bd)) {
- 		info->bl_dev = NULL;
- 		printk(KERN_WARNING "nvidia: Backlight registration failed\n");
-diff -puN drivers/video/riva/fbdev.c~fbdev-update-after-backlight-argument-change drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~fbdev-update-after-backlight-argument-change
-+++ a/drivers/video/riva/fbdev.c
-@@ -383,7 +383,7 @@ static void riva_bl_init(struct riva_par
+-if SYSFS
+-	source "drivers/video/backlight/Kconfig"
+-endif
+-
+ endmenu
  
- 	snprintf(name, sizeof(name), "rivabl%d", info->node);
- 
--	bd = backlight_device_register(name, par, &riva_bl_data);
-+	bd = backlight_device_register(name, info->dev, par, &riva_bl_data);
- 	if (IS_ERR(bd)) {
- 		info->bl_dev = NULL;
- 		printk(KERN_WARNING "riva: Backlight registration failed\n");
 _
 
 Patches currently in -mm which might be from jsimmons@infradead.org are
@@ -163,6 +255,7 @@ backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
 backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
 softcursorc-avoid-unaligned-accesses.patch
 backlight-do-not-power-off-backlight-when-unregistering-try-3.patch
+proper-backlight-selection-for-fbdev-drivers.patch
 fb-get-the-geode-gx-frambuffer-size-from-the-bios.patch
 gxfb-fixups-for-the-amd-geode-gx.patch
 gxfb-fixups-for-the-amd-geode-gx-tidy.patch
