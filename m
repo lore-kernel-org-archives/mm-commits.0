@@ -1,79 +1,64 @@
 From: akpm@osdl.org
-Subject: + uml-workqueue-build-fix-2.patch added to -mm tree
-Date: Wed, 06 Dec 2006 17:24:04 -0800
-Message-ID: <200612070125.kB71PGpD024313@shell0.pdx.osdl.net>
+Subject: - up-smp_call_function_single-should-disable-interrupts-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 17:32:31 -0800
+Message-ID: <200612070133.kB71Xh4J024585@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34324 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34996 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937928AbWLGBZ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 20:25:26 -0500
+	id S937923AbWLGBdz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 20:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dhowells@redhat.com, jdike@addtoit.com
+To: akpm@osdl.org, ak@suse.de, mingo@elte.hu, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml-workqueue-build-fix-2
-has been added to the -mm tree.  Its filename is
-     uml-workqueue-build-fix-2.patch
+     up-smp_call_function_single-should-disable-interrupts-fix
+has been removed from the -mm tree.  Its filename was
+     up-smp_call_function_single-should-disable-interrupts-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into up-smp_call_function_single-should-disable-interrupts.patch
 
 ------------------------------------------------------
-Subject: uml-workqueue-build-fix-2
+Subject: up-smp_call_function_single-should-disable-interrupts-fix
 From: Andrew Morton <akpm@osdl.org>
 
-bah
+allnoconfig:
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+In file included from arch/i386/kernel/cpu/common.c:4:
+include/linux/smp.h: In function 'smp_call_function_single':
+include/linux/smp.h:106: warning: implicit declaration of function 'local_irq_disable'
+include/linux/smp.h:108: warning: implicit declaration of function 'local_irq_enable'
+
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/drivers/line.c |    6 +++---
- arch/um/include/line.h |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/smp.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/drivers/line.c~uml-workqueue-build-fix-2 arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-workqueue-build-fix-2
-+++ a/arch/um/drivers/line.c
-@@ -31,9 +31,9 @@ static irqreturn_t line_interrupt(int ir
- 	return IRQ_HANDLED;
- }
+diff -puN include/linux/smp.h~up-smp_call_function_single-should-disable-interrupts-fix include/linux/smp.h
+--- a/include/linux/smp.h~up-smp_call_function_single-should-disable-interrupts-fix
++++ a/include/linux/smp.h
+@@ -9,13 +9,14 @@
  
--static void line_timer_cb(void *arg)
-+static void line_timer_cb(struct work_struct *work)
- {
--	struct line *line = arg;
-+	struct line *line = container_of(work, struct line, task.work);
+ extern void cpu_idle(void);
  
- 	if(!line->throttled)
- 		chan_interrupt(&line->chan_list, &line->task, line->tty,
-@@ -443,7 +443,7 @@ int line_open(struct line *lines, struct
- 		 * is registered.
- 		 */
- 		enable_chan(line);
--		INIT_WORK(&line->task, line_timer_cb, line);
-+		INIT_DELAYED_WORK(&line->task, line_timer_cb);
++#include <linux/irqflags.h>
++
+ #ifdef CONFIG_SMP
  
- 		if(!line->sigio){
- 			chan_enable_winch(&line->chan_list, tty);
-diff -puN arch/um/include/chan_kern.h~uml-workqueue-build-fix-2 arch/um/include/chan_kern.h
-diff -puN arch/um/include/line.h~uml-workqueue-build-fix-2 arch/um/include/line.h
---- a/arch/um/include/line.h~uml-workqueue-build-fix-2
-+++ a/arch/um/include/line.h
-@@ -51,7 +51,7 @@ struct line {
- 	char *tail;
+ #include <linux/preempt.h>
+ #include <linux/kernel.h>
+ #include <linux/compiler.h>
+ #include <linux/thread_info.h>
+-#include <linux/irqflags.h>
+ #include <asm/smp.h>
  
- 	int sigio;
--	struct work_struct task;
-+	struct delayed_work task;
- 	const struct line_driver *driver;
- 	int have_irq;
- };
+ /*
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -82,6 +67,7 @@ origin.patch
 add-bottom_half.h.patch
 drm-sis-linkage-fix.patch
 uml-workqueue-build-fix.patch
+uml-workqueue-build-fix-2.patch
 revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
 revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
 generic_file_buffered_write-cleanup.patch
@@ -309,5 +295,4 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-uml-workqueue-build-fix-2.patch
 
