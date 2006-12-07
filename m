@@ -1,333 +1,290 @@
 From: akpm@osdl.org
-Subject: + optimize-o_direct-on-block-device-v3.patch added to -mm tree
-Date: Wed, 06 Dec 2006 22:13:23 -0800
-Message-ID: <200612070613.kB76DNU1032590@shell0.pdx.osdl.net>
+Subject: + optimize-o_direct-on-block-device-v3-tweak.patch added to -mm tree
+Date: Wed, 06 Dec 2006 22:13:27 -0800
+Message-ID: <200612070613.kB76DReU032595@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52396 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52397 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031640AbWLGGNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1031645AbWLGGNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 7 Dec 2006 01:13:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kenneth.w.chen@intel.com, hch@lst.de, zach.brown@oracle.com
+Cc: akpm@osdl.org, hch@lst.de, kenneth.w.chen@intel.com, zach.brown@oracle.com
 
 
 The patch titled
-     optimize o_direct on block devices
+     optimize-o_direct-on-block-device-v3 tweak
 has been added to the -mm tree.  Its filename is
-     optimize-o_direct-on-block-device-v3.patch
+     optimize-o_direct-on-block-device-v3-tweak.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: optimize o_direct on block devices
-From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Subject: optimize-o_direct-on-block-device-v3 tweak
+From: Andrew Morton <akpm@osdl.org>
 
-Implement block device specific .direct_IO method instead of going through
-generic direct_io_worker for block device.
+gcc generates crap code when you do this.  Saves seven bytes of text!
 
-direct_io_worker() is fairly complex because it needs to handle O_DIRECT on
-file system, where it needs to perform block allocation, hole detection,
-extents file on write, and tons of other corner cases.  The end result is
-that it takes tons of CPU time to submit an I/O.
-
-For block device, the block allocation is much simpler and a tight triple
-loop can be written to iterate each iovec and each page within the iovec in
-order to construct/prepare bio structure and then subsequently submit it to
-the block layer.  This significantly speeds up O_D on block device.
-
-Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
+Cc: Ken Chen <kenneth.w.chen@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/bio.c            |    2 
- fs/block_dev.c      |  197 ++++++++++++++++++++++++++++++++++++------
- include/linux/aio.h |    1 
- include/linux/bio.h |    1 
- 4 files changed, 174 insertions(+), 27 deletions(-)
+ fs/block_dev.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/bio.c~optimize-o_direct-on-block-device-v3 fs/bio.c
---- a/fs/bio.c~optimize-o_direct-on-block-device-v3
-+++ a/fs/bio.c
-@@ -916,7 +916,7 @@ void bio_set_pages_dirty(struct bio *bio
- 	}
- }
- 
--static void bio_release_pages(struct bio *bio)
-+void bio_release_pages(struct bio *bio)
- {
- 	struct bio_vec *bvec = bio->bi_io_vec;
- 	int i;
-diff -puN fs/block_dev.c~optimize-o_direct-on-block-device-v3 fs/block_dev.c
---- a/fs/block_dev.c~optimize-o_direct-on-block-device-v3
+diff -puN fs/block_dev.c~optimize-o_direct-on-block-device-v3-tweak fs/block_dev.c
+--- a/fs/block_dev.c~optimize-o_direct-on-block-device-v3-tweak
 +++ a/fs/block_dev.c
-@@ -129,43 +129,188 @@ blkdev_get_block(struct inode *inode, se
- 	return 0;
- }
+@@ -209,7 +209,10 @@ blkdev_direct_IO(int rw, struct kiocb *i
+ 	struct bio *bio;
+ 	atomic_t *bio_count = &iocb->ki_bio_count;
+ 	struct page *page;
+-	struct pvec pvec = { .nr = 0, .idx = 0, };
++	struct pvec pvec;
++
++	pvec.nr = 0;
++	pvec.idx = 0;
  
--static int
--blkdev_get_blocks(struct inode *inode, sector_t iblock,
--		struct buffer_head *bh, int create)
-+static int blk_end_aio(struct bio *bio, unsigned int bytes_done, int error)
- {
--	sector_t end_block = max_block(I_BDEV(inode));
--	unsigned long max_blocks = bh->b_size >> inode->i_blkbits;
-+	struct kiocb *iocb = bio->bi_private;
-+	atomic_t *bio_count = &iocb->ki_bio_count;
- 
--	if ((iblock + max_blocks) > end_block) {
--		max_blocks = end_block - iblock;
--		if ((long)max_blocks <= 0) {
--			if (create)
--				return -EIO;	/* write fully beyond EOF */
--			/*
--			 * It is a read which is fully beyond EOF.  We return
--			 * a !buffer_mapped buffer
--			 */
--			max_blocks = 0;
--		}
-+	if (bio_data_dir(bio) == READ)
-+		bio_check_pages_dirty(bio);
-+	else {
-+		bio_release_pages(bio);
-+		bio_put(bio);
-+	}
-+
-+	/* iocb->ki_nbytes stores error code from LLDD */
-+	if (error)
-+		iocb->ki_nbytes = -EIO;
-+
-+	if (atomic_dec_and_test(bio_count)) {
-+		if (iocb->ki_nbytes < 0)
-+			aio_complete(iocb, iocb->ki_nbytes, 0);
-+		else
-+			aio_complete(iocb, iocb->ki_left, 0);
- 	}
- 
--	bh->b_bdev = I_BDEV(inode);
--	bh->b_blocknr = iblock;
--	bh->b_size = max_blocks << inode->i_blkbits;
--	if (max_blocks)
--		set_buffer_mapped(bh);
- 	return 0;
- }
- 
-+#define VEC_SIZE	16
-+struct pvec {
-+	unsigned short nr;
-+	unsigned short idx;
-+	struct page *page[VEC_SIZE];
-+};
-+
-+#define PAGES_SPANNED(addr, len)	\
-+	(DIV_ROUND_UP((addr) + (len), PAGE_SIZE) - (addr) / PAGE_SIZE);
-+
-+/*
-+ * get page pointer for user addr, we internally cache struct page array for
-+ * (addr, count) range in pvec to avoid frequent call to get_user_pages.  If
-+ * internal page list is exhausted, a batch count of up to VEC_SIZE is used
-+ * to get next set of page struct.
-+ */
-+static struct page *blk_get_page(unsigned long addr, size_t count, int rw,
-+				 struct pvec *pvec)
-+{
-+	int ret, nr_pages;
-+	if (pvec->idx == pvec->nr) {
-+		nr_pages = PAGES_SPANNED(addr, count);
-+		nr_pages = min(nr_pages, VEC_SIZE);
-+		down_read(&current->mm->mmap_sem);
-+		ret = get_user_pages(current, current->mm, addr, nr_pages,
-+				     rw == READ, 0, pvec->page, NULL);
-+		up_read(&current->mm->mmap_sem);
-+		if (ret < 0)
-+			return ERR_PTR(ret);
-+		pvec->nr = ret;
-+		pvec->idx = 0;
-+	}
-+	return pvec->page[pvec->idx++];
-+}
-+
- static ssize_t
- blkdev_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
--			loff_t offset, unsigned long nr_segs)
-+		 loff_t pos, unsigned long nr_segs)
- {
--	struct file *file = iocb->ki_filp;
--	struct inode *inode = file->f_mapping->host;
-+	struct inode *inode = iocb->ki_filp->f_mapping->host;
-+	unsigned blkbits = blksize_bits(bdev_hardsect_size(I_BDEV(inode)));
-+	unsigned blocksize_mask = (1 << blkbits) - 1;
-+	unsigned long seg = 0;	/* iov segment iterator */
-+	unsigned long nvec;	/* number of bio vec needed */
-+	unsigned long cur_off;	/* offset into current page */
-+	unsigned long cur_len;	/* I/O len of current page, up to PAGE_SIZE */
-+
-+	unsigned long addr;	/* user iovec address */
-+	size_t count;		/* user iovec len */
-+	size_t nbytes = iocb->ki_nbytes = iocb->ki_left; /* total xfer size */
-+	loff_t size;		/* size of block device */
-+	struct bio *bio;
-+	atomic_t *bio_count = &iocb->ki_bio_count;
-+	struct page *page;
-+	struct pvec pvec = { .nr = 0, .idx = 0, };
-+
-+	if (pos & blocksize_mask)
-+		return -EINVAL;
-+
-+	size = i_size_read(inode);
-+	if (pos + nbytes > size) {
-+		nbytes = size - pos;
-+		iocb->ki_left = nbytes;
-+	}
-+
-+	/*
-+	 * check first non-zero iov alignment, the remaining
-+	 * iov alignment is checked inside bio loop below.
-+	 */
-+	do {
-+		addr = (unsigned long) iov[seg].iov_base;
-+		count = min(iov[seg].iov_len, nbytes);
-+		if (addr & blocksize_mask || count & blocksize_mask)
-+			return -EINVAL;
-+	} while (!count && ++seg < nr_segs);
-+	atomic_set(bio_count, 1);
-+
-+	while (nbytes) {
-+		/* roughly estimate number of bio vec needed */
-+		nvec = (nbytes + PAGE_SIZE - 1) / PAGE_SIZE;
-+		nvec = max(nvec, nr_segs - seg);
-+		nvec = min(nvec, (unsigned long) BIO_MAX_PAGES);
-+
-+		/* bio_alloc should not fail with GFP_KERNEL flag */
-+		bio = bio_alloc(GFP_KERNEL, nvec);
-+		bio->bi_bdev = I_BDEV(inode);
-+		bio->bi_end_io = blk_end_aio;
-+		bio->bi_private = iocb;
-+		bio->bi_sector = pos >> blkbits;
-+same_bio:
-+		cur_off = addr & ~PAGE_MASK;
-+		cur_len = PAGE_SIZE - cur_off;
-+		if (count < cur_len)
-+			cur_len = count;
-+
-+		page = blk_get_page(addr, count, rw, &pvec);
-+		if (unlikely(IS_ERR(page)))
-+			goto backout;
-+
-+		if (bio_add_page(bio, page, cur_len, cur_off)) {
-+			pos += cur_len;
-+			addr += cur_len;
-+			count -= cur_len;
-+			nbytes -= cur_len;
-+
-+			if (count)
-+				goto same_bio;
-+			while (++seg < nr_segs) {
-+				addr = (unsigned long) iov[seg].iov_base;
-+				count = iov[seg].iov_len;
-+				if (!count)
-+					continue;
-+				if (unlikely(addr & blocksize_mask ||
-+					     count & blocksize_mask)) {
-+					page = ERR_PTR(-EINVAL);
-+					goto backout;
-+				}
-+				count = min(count, nbytes);
-+				goto same_bio;
-+			}
-+		}
-+
-+		/* bio is ready, submit it */
-+		if (rw == READ)
-+			bio_set_pages_dirty(bio);
-+		atomic_inc(bio_count);
-+		submit_bio(rw, bio);
-+	}
-+
-+completion:
-+	iocb->ki_left -= nbytes;
-+	nbytes = iocb->ki_left;
-+	iocb->ki_pos += nbytes;
-+
-+	blk_run_address_space(inode->i_mapping);
-+	if (atomic_dec_and_test(bio_count))
-+		aio_complete(iocb, nbytes, 0);
- 
--	return blockdev_direct_IO_no_locking(rw, iocb, inode, I_BDEV(inode),
--				iov, offset, nr_segs, blkdev_get_blocks, NULL);
-+	return -EIOCBQUEUED;
-+
-+backout:
-+	/*
-+	 * back out nbytes count constructed so far for this bio,
-+	 * we will throw away current bio.
-+	 */
-+	nbytes += bio->bi_size;
-+	bio_release_pages(bio);
-+	bio_put(bio);
-+
-+	/*
-+	 * if no bio was submmitted, return the error code.
-+	 * otherwise, proceed with pending I/O completion.
-+	 */
-+	if (atomic_read(bio_count) == 1)
-+		return PTR_ERR(page);
-+	goto completion;
- }
- 
- static int blkdev_writepage(struct page *page, struct writeback_control *wbc)
-diff -puN include/linux/aio.h~optimize-o_direct-on-block-device-v3 include/linux/aio.h
---- a/include/linux/aio.h~optimize-o_direct-on-block-device-v3
-+++ a/include/linux/aio.h
-@@ -105,6 +105,7 @@ struct kiocb {
- 	wait_queue_t		ki_wait;
- 	loff_t			ki_pos;
- 
-+	atomic_t		ki_bio_count;	/* num bio used for this iocb */
- 	void			*private;
- 	/* State that we remember to be able to restart/retry  */
- 	unsigned short		ki_opcode;
-diff -puN include/linux/bio.h~optimize-o_direct-on-block-device-v3 include/linux/bio.h
---- a/include/linux/bio.h~optimize-o_direct-on-block-device-v3
-+++ a/include/linux/bio.h
-@@ -309,6 +309,7 @@ extern struct bio *bio_map_kern(struct r
- 				gfp_t);
- extern void bio_set_pages_dirty(struct bio *bio);
- extern void bio_check_pages_dirty(struct bio *bio);
-+extern void bio_release_pages(struct bio *bio);
- extern struct bio *bio_copy_user(struct request_queue *, unsigned long, unsigned int, int);
- extern int bio_uncopy_user(struct bio *);
- void zero_fill_bio(struct bio *bio);
+ 	if (pos & blocksize_mask)
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from kenneth.w.chen@intel.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-__unmap_hugepage_range-add-comment.patch
-shared-page-table-for-hugetlb-page-v4.patch
-htlb-forget-rss-with-pt-sharing.patch
-retries-in-ext3_prepare_write-violate-ordering-requirements.patch
-retries-in-ext4_prepare_write-violate-ordering-requirements.patch
-aio-kill-pointless-ki_nbytes-assignment-in-aio_setup_single_vector.patch
-aio-remove-ki_retried-debugging-member.patch
-optimize-o_direct-on-block-device-v3.patch
+origin.patch
+add-bottom_half.h.patch
+drm-sis-linkage-fix.patch
+uml-workqueue-build-fix.patch
+get-rid-of-zone_table.patch
+new-scheme-to-preempt-swap-token.patch
+balance_pdgat-cleanup.patch
+leak-tracking-for-kmalloc_node.patch
+add-numa-node-information-to-struct-device.patch
+slab-deprecate-kmem_cache-t.patch
+mm-make-compound-page-destructor-handling-explicit.patch
+radix-tree-rcu-lockless-readside.patch
+swsusp-add-resume_offset-command-line-parameter-rev-2.patch
+add-include-linux-freezerh-and-move-definitions-from.patch
+convert-pm_sem-to-a-mutex.patch
+cciss-set-sector_size-to-2048-for-performance.patch
+lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
+probe_kernel_address-needs-to-do-set_fs.patch
+slab-use-probe_kernel_address.patch
+exar-quad-port-serial.patch
+vfs_getattr-remove-dead-code.patch
+ext3-uninline-large-functions.patch
+ext4-uninline-large-functions.patch
+sleep-profiling.patch
+debug-workqueue-locking-sanity.patch
+pcengines-wrap-led-support.patch
+driver-base-memoryc-remove-warnings-of.patch
+remove-kernel-syscalls.patch
+protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch
+remove-hash_highmem.patch
+elf-fix-kcore-note-size-calculation.patch
+reiserfs-add-missing-d-cache-flushing.patch
+smp_call_function_single-check-that-local-interrupts-are-enabled.patch
+hotplug-cpu-clean-up-hotcpu_notifier-use.patch
+add-return-value-checking-of-get_user-in.patch
+handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
+dz-fixes-to-make-it-work.patch
+ext4-balloc-fix-_with_rsv-freeze.patch
+ide_scsi-allow-it-to-be-used-for-non-cd-only.patch
+make-8250_pnp-serial-driver-work-after.patch
+gcc-4-1-0-is-bust.patch
+cleanup-include-asm-generic-atomich.patch
+struct-seq_operations-and-struct-file_operations-constification.patch
+elfh-forward-declare-struct-file.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+make-the-dock-station-driver-a-platform-device-driver-fix.patch
+acpi-asus-s3-resume-fix.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-alsa-arm-fix.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+nozomi-fix-for-workqueue-changes.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-gfs2-nmw.patch
+git-ia64.patch
+git-ieee1394-fixup.patch
+git-input.patch
+git-input-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-fixup.patch
+libphy-dont-do-that.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-net.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+fix-gregkh-usb-usb-serial-serqt_usb.patch
+nokia-e70-is-an-unusual-device.patch
+pre-x86_64-mm-i386-reloc-abssym.patch
+post-x86_64-mm-i386-reloc-abssym.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+bug-test-1.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
 sched-add-option-to-serialize-load-balancing-fix.patch
-sched-improve-migration-accuracy.patch
-sched-improve-migration-accuracy-tidy.patch
-sched-remove-lb_stopbalance-counter.patch
-sched-optimize-activate_task-for-rt-task.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
