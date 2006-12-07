@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fault-injection-use-bool-true-false-throughout.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:23:08 -0800
-Message-ID: <200612072023.kB7KN8QC024368@shell0.pdx.osdl.net>
+Subject: + fault-injection-clamp-debugfs-stacktrace-depth-to.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:23:10 -0800
+Message-ID: <200612072023.kB7KNAkb024371@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35854 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35856 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163280AbWLGUXV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:23:21 -0500
+	id S1163282AbWLGUXW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:23:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,164 +15,93 @@ Cc: dwm@meer.net, akinobu.mita@gmail.com
 
 
 The patch titled
-     fault-injection: Use bool-true-false throughout
+     fault-injection: Clamp debugfs stacktrace-depth to MAX_STACK_TRACE_DEPTH
 has been added to the -mm tree.  Its filename is
-     fault-injection-use-bool-true-false-throughout.patch
+     fault-injection-clamp-debugfs-stacktrace-depth-to.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fault-injection: Use bool-true-false throughout
+Subject: fault-injection: Clamp debugfs stacktrace-depth to MAX_STACK_TRACE_DEPTH
 From: Don Mullis <dwm@meer.net>
 
-Use bool-true-false throughout.
+Clamp /debug/fail*/stacktrace-depth to MAX_STACK_TRACE_DEPTH.  Ensures that a
+read of /debug/fail*/stacktrace-depth always returns a truthful answer.
 
 Signed-off-by: Don Mullis <dwm@meer.net>
 Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fault-inject.h |    2 -
- lib/fault-inject.c           |   40 +++++++++++++++------------------
- 2 files changed, 20 insertions(+), 22 deletions(-)
+ lib/fault-inject.c |   27 +++++++++++++++++++++++----
+ 1 files changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/fault-inject.h~fault-injection-use-bool-true-false-throughout include/linux/fault-inject.h
---- a/include/linux/fault-inject.h~fault-injection-use-bool-true-false-throughout
-+++ a/include/linux/fault-inject.h
-@@ -57,7 +57,7 @@ struct fault_attr {
- #define DECLARE_FAULT_ATTR(name) struct fault_attr name = FAULT_ATTR_INITIALIZER
- int setup_fault_attr(struct fault_attr *attr, char *str);
- void should_fail_srandom(unsigned long entropy);
--int should_fail(struct fault_attr *attr, ssize_t size);
-+bool should_fail(struct fault_attr *attr, ssize_t size);
- 
- #ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
- 
-diff -puN lib/fault-inject.c~fault-injection-use-bool-true-false-throughout lib/fault-inject.c
---- a/lib/fault-inject.c~fault-injection-use-bool-true-false-throughout
+diff -puN lib/fault-inject.c~fault-injection-clamp-debugfs-stacktrace-depth-to lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-injection-clamp-debugfs-stacktrace-depth-to
 +++ a/lib/fault-inject.c
-@@ -48,7 +48,7 @@ static void fail_dump(struct fault_attr 
- 
- #define atomic_dec_not_zero(v)		atomic_add_unless((v), -1, 0)
- 
--static int fail_task(struct fault_attr *attr, struct task_struct *task)
-+static bool fail_task(struct fault_attr *attr, struct task_struct *task)
- {
+@@ -53,6 +53,8 @@ static bool fail_task(struct fault_attr 
  	return !in_interrupt() && task->make_it_fail;
  }
-@@ -68,15 +68,15 @@ static asmlinkage int fail_stacktrace_ca
- 			break;
- 		if (attr->reject_start <= UNW_PC(info) &&
- 			       UNW_PC(info) < attr->reject_end)
--			return 0;
-+			return false;
- 		if (attr->require_start <= UNW_PC(info) &&
- 			       UNW_PC(info) < attr->require_end)
--			found = 1;
-+			found = true;
- 	}
- 	return found;
+ 
++#define MAX_STACK_TRACE_DEPTH 32
++
+ #ifdef CONFIG_STACK_UNWIND
+ 
+ static asmlinkage int fail_stacktrace_callback(struct unwind_frame_info *info,
+@@ -98,8 +100,7 @@ static bool fail_stacktrace(struct fault
+ 
+ 	trace.nr_entries = 0;
+ 	trace.entries = entries;
+-	trace.max_entries = (depth < MAX_STACK_TRACE_DEPTH) ?
+-				depth : MAX_STACK_TRACE_DEPTH;
++	trace.max_entries = depth;
+ 	trace.skip = 1;
+ 	trace.all_contexts = 0;
+ 
+@@ -179,6 +180,13 @@ static void debugfs_ul_set(void *data, u
+ 	*(unsigned long *)data = val;
  }
  
--static int fail_stacktrace(struct fault_attr *attr)
-+static bool fail_stacktrace(struct fault_attr *attr)
++static void debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
++{
++	*(unsigned long *)data =
++		val < MAX_STACK_TRACE_DEPTH ?
++		val : MAX_STACK_TRACE_DEPTH;
++}
++
+ static u64 debugfs_ul_get(void *data)
  {
- 	struct unwind_frame_info info;
- 
-@@ -85,9 +85,7 @@ static int fail_stacktrace(struct fault_
- 
- #elif defined(CONFIG_STACKTRACE)
- 
--#define MAX_STACK_TRACE_DEPTH 32
--
--static int fail_stacktrace(struct fault_attr *attr)
-+static bool fail_stacktrace(struct fault_attr *attr)
- {
- 	struct stack_trace trace;
- 	int depth = attr->stacktrace_depth;
-@@ -109,26 +107,26 @@ static int fail_stacktrace(struct fault_
- 	for (n = 0; n < trace.nr_entries; n++) {
- 		if (attr->reject_start <= entries[n] &&
- 			       entries[n] < attr->reject_end)
--			return 0;
-+			return false;
- 		if (attr->require_start <= entries[n] &&
- 			       entries[n] < attr->require_end)
--			found = 1;
-+			found = true;
- 	}
- 	return found;
+ 	return *(unsigned long *)data;
+@@ -192,6 +200,17 @@ static struct dentry *debugfs_create_ul(
+ 	return debugfs_create_file(name, mode, parent, value, &fops_ul);
  }
  
- #else
- 
--static inline int fail_stacktrace(struct fault_attr *attr)
-+static inline bool fail_stacktrace(struct fault_attr *attr)
++DEFINE_SIMPLE_ATTRIBUTE(fops_ul_MAX_STACK_TRACE_DEPTH, debugfs_ul_get,
++			debugfs_ul_set_MAX_STACK_TRACE_DEPTH, "%llu\n");
++
++static struct dentry *debugfs_create_ul_MAX_STACK_TRACE_DEPTH(
++	const char *name, mode_t mode,
++	struct dentry *parent, unsigned long *value)
++{
++	return debugfs_create_file(name, mode, parent, value,
++				   &fops_ul_MAX_STACK_TRACE_DEPTH);
++}
++
+ static void debugfs_atomic_t_set(void *data, u64 val)
  {
--	static int firsttime = 1;
-+	static bool firsttime = true;
+ 	atomic_set((atomic_t *)data, val);
+@@ -284,8 +303,8 @@ int init_fault_attr_dentries(struct faul
+ 						mode, dir, &attr->task_filter);
  
- 	if (firsttime) {
- 		printk(KERN_WARNING
- 		"This architecture does not implement save_stack_trace()\n");
--		firsttime = 0;
-+		firsttime = false;
- 	}
--	return 0;
-+	return false;
- }
+ 	attr->dentries.stacktrace_depth_file =
+-		debugfs_create_ul("stacktrace-depth", mode, dir,
+-				  &attr->stacktrace_depth);
++		debugfs_create_ul_MAX_STACK_TRACE_DEPTH(
++			"stacktrace-depth", mode, dir, &attr->stacktrace_depth);
  
- #endif
-@@ -138,32 +136,32 @@ static inline int fail_stacktrace(struct
-  * http://www.nongnu.org/failmalloc/
-  */
- 
--int should_fail(struct fault_attr *attr, ssize_t size)
-+bool should_fail(struct fault_attr *attr, ssize_t size)
- {
- 	if (attr->task_filter && !fail_task(attr, current))
--		return 0;
-+		return false;
- 
- 	if (!fail_stacktrace(attr))
--		return 0;
-+		return false;
- 
- 	if (atomic_read(&attr->times) == 0)
--		return 0;
-+		return false;
- 
- 	if (atomic_read(&attr->space) > size) {
- 		atomic_sub(size, &attr->space);
--		return 0;
-+		return false;
- 	}
- 
- 	if (attr->interval > 1) {
- 		attr->count++;
- 		if (attr->count % attr->interval)
--			return 0;
-+			return false;
- 	}
- 
- 	if (attr->probability > random32() % 100)
- 		goto fail;
- 
--	return 0;
-+	return false;
- 
- fail:
- 	fail_dump(attr);
-@@ -171,7 +169,7 @@ fail:
- 	if (atomic_read(&attr->times) != -1)
- 		atomic_dec_not_zero(&attr->times);
- 
--	return 1;
-+	return true;
- }
- 
- #ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
+ 	attr->dentries.require_start_file =
+ 		debugfs_create_ul("require-start", mode, dir, &attr->require_start);
 _
 
 Patches currently in -mm which might be from dwm@meer.net are
