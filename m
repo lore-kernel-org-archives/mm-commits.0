@@ -1,160 +1,114 @@
 From: akpm@osdl.org
-Subject: - kernel-core-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:07:04 -0800
-Message-ID: <200612072307.kB7N74Zh030330@shell0.pdx.osdl.net>
+Subject: - dont-insert-pipe-dentries-into-dentry_hashtable.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:55 -0800
+Message-ID: <200612072306.kB7N6tvu030321@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52724 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52758 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163928AbWLGXHI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:07:08 -0500
+	id S1163939AbWLGXHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:07:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yan_952@hotmail.com, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel core: replace kmalloc+memset with kzalloc
+     don't insert pipe dentries into dentry_hashtable.
 has been removed from the -mm tree.  Its filename was
-     kernel-core-replace-kmallocmemset-with-kzalloc.patch
+     dont-insert-pipe-dentries-into-dentry_hashtable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel core: replace kmalloc+memset with kzalloc
-From: "Burman Yan" <yan_952@hotmail.com>
+Subject: don't insert pipe dentries into dentry_hashtable.
+From: Eric Dumazet <dada1@cosmosbay.com>
 
+We currently insert pipe dentries into the global dentry hashtable.  This
+is suboptimal because there is currently no way these entries can be used
+for a lookup().  (/proc/xxx/fd/xxx uses a different mechanism).  Inserting
+them in dentry hashtable slows dcache lookups.
 
+To let __dpath() still work correctly (ie not adding a " (deleted)") after
+dentry name, we do :
 
+- Right after d_alloc(), pretend they are hashed by clearing the
+  DCACHE_UNHASHED bit.
+
+- Call d_instantiate() instead of d_add() : dentry is not inserted in
+  hash table.
+
+__dpath() & friends work as intended during dentry lifetime.
+
+- At dismantle time, once dput() must clear the dentry, setting again
+  DCACHE_UNHASHED bit inside the custom d_delete() function provided by
+  pipe code, so that dput() can just kill_it.
+
+This patch, combined with (avoid RCU for never hashed dentries) reduced
+time of { pipe(p); close(p[0]); close(p[1]);} on my UP machine (1.6GHz
+Pentium-M) from 3.23 us to 2.86 us (But this patch does not depend on other
+patches, only bench results)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Acked-by: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- ipc/sem.c            |    3 +--
- kernel/auditfilter.c |    3 +--
- kernel/futex.c       |    3 +--
- kernel/kexec.c       |    3 +--
- lib/kobject.c        |    3 +--
- mm/nommu.c           |    6 ++----
- 6 files changed, 7 insertions(+), 14 deletions(-)
+ fs/pipe.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN ipc/sem.c~kernel-core-replace-kmallocmemset-with-kzalloc ipc/sem.c
---- a/ipc/sem.c~kernel-core-replace-kmallocmemset-with-kzalloc
-+++ a/ipc/sem.c
-@@ -1070,14 +1070,13 @@ static struct sem_undo *find_undo(struct
- 	ipc_rcu_getref(sma);
- 	sem_unlock(sma);
+diff -puN fs/pipe.c~dont-insert-pipe-dentries-into-dentry_hashtable fs/pipe.c
+--- a/fs/pipe.c~dont-insert-pipe-dentries-into-dentry_hashtable
++++ a/fs/pipe.c
+@@ -830,7 +830,14 @@ void free_pipe_info(struct inode *inode)
+ static struct vfsmount *pipe_mnt __read_mostly;
+ static int pipefs_delete_dentry(struct dentry *dentry)
+ {
+-	return 1;
++	/*
++	 * At creation time, we pretended this dentry was hashed
++	 * (by clearing DCACHE_UNHASHED bit in d_flags)
++	 * At delete time, we restore the truth : not hashed.
++	 * (so that dput() can proceed correctly)
++	 */
++	dentry->d_flags |= DCACHE_UNHASHED;
++	return 0;
+ }
  
--	new = (struct sem_undo *) kmalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
-+	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
- 	if (!new) {
- 		ipc_lock_by_ptr(&sma->sem_perm);
- 		ipc_rcu_putref(sma);
- 		sem_unlock(sma);
- 		return ERR_PTR(-ENOMEM);
- 	}
--	memset(new, 0, sizeof(struct sem_undo) + sizeof(short)*nsems);
- 	new->semadj = (short *) &new[1];
- 	new->semid = semid;
+ static struct dentry_operations pipefs_dentry_operations = {
+@@ -891,17 +898,22 @@ struct file *create_write_pipe(void)
+ 	if (!inode)
+ 		goto err_file;
  
-diff -puN kernel/auditfilter.c~kernel-core-replace-kmallocmemset-with-kzalloc kernel/auditfilter.c
---- a/kernel/auditfilter.c~kernel-core-replace-kmallocmemset-with-kzalloc
-+++ a/kernel/auditfilter.c
-@@ -636,10 +636,9 @@ static struct audit_rule *audit_krule_to
- 	struct audit_rule *rule;
- 	int i;
+-	sprintf(name, "[%lu]", inode->i_ino);
++	this.len = sprintf(name, "[%lu]", inode->i_ino);
+ 	this.name = name;
+-	this.len = strlen(name);
+-	this.hash = inode->i_ino; /* will go */
++	this.hash = 0;
+ 	err = -ENOMEM;
+ 	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &this);
+ 	if (!dentry)
+ 		goto err_inode;
  
--	rule = kmalloc(sizeof(*rule), GFP_KERNEL);
-+	rule = kzalloc(sizeof(*rule), GFP_KERNEL);
- 	if (unlikely(!rule))
- 		return NULL;
--	memset(rule, 0, sizeof(*rule));
- 
- 	rule->flags = krule->flags | krule->listnr;
- 	rule->action = krule->action;
-diff -puN kernel/futex.c~kernel-core-replace-kmallocmemset-with-kzalloc kernel/futex.c
---- a/kernel/futex.c~kernel-core-replace-kmallocmemset-with-kzalloc
-+++ a/kernel/futex.c
-@@ -324,12 +324,11 @@ static int refill_pi_state_cache(void)
- 	if (likely(current->pi_state_cache))
- 		return 0;
- 
--	pi_state = kmalloc(sizeof(*pi_state), GFP_KERNEL);
-+	pi_state = kzalloc(sizeof(*pi_state), GFP_KERNEL);
- 
- 	if (!pi_state)
- 		return -ENOMEM;
- 
--	memset(pi_state, 0, sizeof(*pi_state));
- 	INIT_LIST_HEAD(&pi_state->list);
- 	/* pi_mutex gets initialized later */
- 	pi_state->owner = NULL;
-diff -puN kernel/kexec.c~kernel-core-replace-kmallocmemset-with-kzalloc kernel/kexec.c
---- a/kernel/kexec.c~kernel-core-replace-kmallocmemset-with-kzalloc
-+++ a/kernel/kexec.c
-@@ -108,11 +108,10 @@ static int do_kimage_alloc(struct kimage
- 
- 	/* Allocate a controlling structure */
- 	result = -ENOMEM;
--	image = kmalloc(sizeof(*image), GFP_KERNEL);
-+	image = kzalloc(sizeof(*image), GFP_KERNEL);
- 	if (!image)
- 		goto out;
- 
--	memset(image, 0, sizeof(*image));
- 	image->head = 0;
- 	image->entry = &image->head;
- 	image->last_entry = &image->head;
-diff -puN lib/kobject.c~kernel-core-replace-kmallocmemset-with-kzalloc lib/kobject.c
---- a/lib/kobject.c~kernel-core-replace-kmallocmemset-with-kzalloc
-+++ a/lib/kobject.c
-@@ -111,10 +111,9 @@ char *kobject_get_path(struct kobject *k
- 	len = get_kobj_path_length(kobj);
- 	if (len == 0)
- 		return NULL;
--	path = kmalloc(len, gfp_mask);
-+	path = kzalloc(len, gfp_mask);
- 	if (!path)
- 		return NULL;
--	memset(path, 0x00, len);
- 	fill_kobj_path(kobj, path, len);
- 
- 	return path;
-diff -puN mm/nommu.c~kernel-core-replace-kmallocmemset-with-kzalloc mm/nommu.c
---- a/mm/nommu.c~kernel-core-replace-kmallocmemset-with-kzalloc
-+++ a/mm/nommu.c
-@@ -808,10 +808,9 @@ unsigned long do_mmap_pgoff(struct file 
- 	vm_flags = determine_vm_flags(file, prot, flags, capabilities);
- 
- 	/* we're going to need to record the mapping if it works */
--	vml = kmalloc(sizeof(struct vm_list_struct), GFP_KERNEL);
-+	vml = kzalloc(sizeof(struct vm_list_struct), GFP_KERNEL);
- 	if (!vml)
- 		goto error_getting_vml;
--	memset(vml, 0, sizeof(*vml));
- 
- 	down_write(&nommu_vma_sem);
- 
-@@ -887,11 +886,10 @@ unsigned long do_mmap_pgoff(struct file 
- 	}
- 
- 	/* we're going to need a VMA struct as well */
--	vma = kmalloc(sizeof(struct vm_area_struct), GFP_KERNEL);
-+	vma = kzalloc(sizeof(struct vm_area_struct), GFP_KERNEL);
- 	if (!vma)
- 		goto error_getting_vma;
- 
--	memset(vma, 0, sizeof(*vma));
- 	INIT_LIST_HEAD(&vma->anon_vma_node);
- 	atomic_set(&vma->vm_usage, 1);
- 	if (file)
+ 	dentry->d_op = &pipefs_dentry_operations;
+-	d_add(dentry, inode);
++	/*
++	 * We dont want to publish this dentry into global dentry hash table.
++	 * We pretend dentry is already hashed, by unsetting DCACHE_UNHASHED
++	 * This permits a working /proc/$pid/fd/XXX on pipes
++	 */
++	dentry->d_flags &= ~DCACHE_UNHASHED;
++	d_instantiate(dentry, inode);
+ 	f->f_vfsmnt = mntget(pipe_mnt);
+ 	f->f_dentry = dentry;
+ 	f->f_mapping = inode->i_mapping;
 _
 
-Patches currently in -mm which might be from yan_952@hotmail.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-acpi-replace-kmallocmemset-with-kzalloc.patch
-git-mtd.patch
-serial-replace-kmallocmemset-with-kzalloc.patch
-usb-auerswald-replace-kmallocmemset-with-kzalloc.patch
-isdn-replace-kmallocmemset-with-kzalloc.patch
+convert-i386-pda-code-to-use-%fs.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
 
