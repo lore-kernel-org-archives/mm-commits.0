@@ -1,111 +1,130 @@
 From: akpm@osdl.org
-Subject: - proper-prototype-for-remove_inode_dquot_ref.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:15:57 -0800
-Message-ID: <200612072315.kB7NFv94030766@shell0.pdx.osdl.net>
+Subject: - create-device-symlink-in-snd-aoa.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:18:42 -0800
+Message-ID: <200612072318.kB7NIgB3031050@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54089 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54103 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163961AbWLGXTO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:19:14 -0500
+	id S1163961AbWLGXTX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, jack@suse.cz, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, johannes@sipsolutions.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proper prototype for remove_inode_dquot_ref()
+     create device symlink in snd-aoa
 has been removed from the -mm tree.  Its filename was
-     proper-prototype-for-remove_inode_dquot_ref.patch
+     create-device-symlink-in-snd-aoa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proper prototype for remove_inode_dquot_ref()
-From: Adrian Bunk <bunk@stusta.de>
+Subject: create device symlink in snd-aoa
+From: Olaf Hering <olaf@aepfle.de>
 
-Add a proper prototype for remove_inode_dquot_ref() in
-include/linux/quotaops.h
+create sysfs device symlinks for snd-aoa in /sys/class/sound/controlC0 This
+allows hald to recognize the device as sound device.  Furthermore it allows
+the desktop user to actually access the sound device nodes.  hald and
+related packages will modify the acl attributes.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Jan Kara <jack@suse.cz>
+Fixes https://bugzilla.novell.com/show_bug.cgi?id=106294
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Acked-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/inode.c               |    3 ---
- include/linux/quotaops.h |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ sound/aoa/aoa.h                           |    2 +-
+ sound/aoa/core/snd-aoa-alsa.c             |    3 ++-
+ sound/aoa/core/snd-aoa-alsa.h             |    2 +-
+ sound/aoa/core/snd-aoa-core.c             |    4 ++--
+ sound/aoa/fabrics/snd-aoa-fabric-layout.c |    2 +-
+ 5 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN fs/inode.c~proper-prototype-for-remove_inode_dquot_ref fs/inode.c
---- a/fs/inode.c~proper-prototype-for-remove_inode_dquot_ref
-+++ a/fs/inode.c
-@@ -1242,9 +1242,6 @@ EXPORT_SYMBOL(inode_needs_sync);
-  */
- #ifdef CONFIG_QUOTA
+diff -puN sound/aoa/aoa.h~create-device-symlink-in-snd-aoa sound/aoa/aoa.h
+--- a/sound/aoa/aoa.h~create-device-symlink-in-snd-aoa
++++ a/sound/aoa/aoa.h
+@@ -99,7 +99,7 @@ struct aoa_fabric {
+  * that are not assigned yet are passed to the fabric
+  * again for reconsideration. */
+ extern int
+-aoa_fabric_register(struct aoa_fabric *fabric);
++aoa_fabric_register(struct aoa_fabric *fabric, struct device *dev);
  
--/* Function back in dquot.c */
--int remove_inode_dquot_ref(struct inode *, int, struct list_head *);
--
- void remove_dquot_ref(struct super_block *sb, int type,
- 			struct list_head *tofree_head)
+ /* it is vital to call this when the fabric exits!
+  * When calling, the remove_codec will be called
+diff -puN sound/aoa/core/snd-aoa-alsa.c~create-device-symlink-in-snd-aoa sound/aoa/core/snd-aoa-alsa.c
+--- a/sound/aoa/core/snd-aoa-alsa.c~create-device-symlink-in-snd-aoa
++++ a/sound/aoa/core/snd-aoa-alsa.c
+@@ -14,7 +14,7 @@ MODULE_PARM_DESC(index, "index for AOA s
+ 
+ static struct aoa_card *aoa_card;
+ 
+-int aoa_alsa_init(char *name, struct module *mod)
++int aoa_alsa_init(char *name, struct module *mod, struct device *dev)
  {
-diff -puN include/linux/quotaops.h~proper-prototype-for-remove_inode_dquot_ref include/linux/quotaops.h
---- a/include/linux/quotaops.h~proper-prototype-for-remove_inode_dquot_ref
-+++ a/include/linux/quotaops.h
-@@ -37,6 +37,9 @@ extern int dquot_release(struct dquot *d
- extern int dquot_commit_info(struct super_block *sb, int type);
- extern int dquot_mark_dquot_dirty(struct dquot *dquot);
+ 	struct snd_card *alsa_card;
+ 	int err;
+@@ -28,6 +28,7 @@ int aoa_alsa_init(char *name, struct mod
+ 		return -ENOMEM;
+ 	aoa_card = alsa_card->private_data;
+ 	aoa_card->alsa_card = alsa_card;
++	alsa_card->dev = dev;
+ 	strlcpy(alsa_card->driver, "AppleOnbdAudio", sizeof(alsa_card->driver));
+ 	strlcpy(alsa_card->shortname, name, sizeof(alsa_card->shortname));
+ 	strlcpy(alsa_card->longname, name, sizeof(alsa_card->longname));
+diff -puN sound/aoa/core/snd-aoa-alsa.h~create-device-symlink-in-snd-aoa sound/aoa/core/snd-aoa-alsa.h
+--- a/sound/aoa/core/snd-aoa-alsa.h~create-device-symlink-in-snd-aoa
++++ a/sound/aoa/core/snd-aoa-alsa.h
+@@ -10,7 +10,7 @@
+ #define __SND_AOA_ALSA_H
+ #include "../aoa.h"
  
-+int remove_inode_dquot_ref(struct inode *inode, int type,
-+			   struct list_head *tofree_head);
-+
- extern int vfs_quota_on(struct super_block *sb, int type, int format_id, char *path);
- extern int vfs_quota_on_mount(struct super_block *sb, char *qf_name,
- 		int format_id, int type);
+-extern int aoa_alsa_init(char *name, struct module *mod);
++extern int aoa_alsa_init(char *name, struct module *mod, struct device *dev);
+ extern void aoa_alsa_cleanup(void);
+ 
+ #endif /* __SND_AOA_ALSA_H */
+diff -puN sound/aoa/core/snd-aoa-core.c~create-device-symlink-in-snd-aoa sound/aoa/core/snd-aoa-core.c
+--- a/sound/aoa/core/snd-aoa-core.c~create-device-symlink-in-snd-aoa
++++ a/sound/aoa/core/snd-aoa-core.c
+@@ -82,7 +82,7 @@ void aoa_codec_unregister(struct aoa_cod
+ }
+ EXPORT_SYMBOL_GPL(aoa_codec_unregister);
+ 
+-int aoa_fabric_register(struct aoa_fabric *new_fabric)
++int aoa_fabric_register(struct aoa_fabric *new_fabric, struct device *dev)
+ {
+ 	struct aoa_codec *c;
+ 	int err;
+@@ -98,7 +98,7 @@ int aoa_fabric_register(struct aoa_fabri
+ 	if (!new_fabric)
+ 		return -EINVAL;
+ 
+-	err = aoa_alsa_init(new_fabric->name, new_fabric->owner);
++	err = aoa_alsa_init(new_fabric->name, new_fabric->owner, dev);
+ 	if (err)
+ 		return err;
+ 
+diff -puN sound/aoa/fabrics/snd-aoa-fabric-layout.c~create-device-symlink-in-snd-aoa sound/aoa/fabrics/snd-aoa-fabric-layout.c
+--- a/sound/aoa/fabrics/snd-aoa-fabric-layout.c~create-device-symlink-in-snd-aoa
++++ a/sound/aoa/fabrics/snd-aoa-fabric-layout.c
+@@ -1014,7 +1014,7 @@ static int aoa_fabric_layout_probe(struc
+ 
+ 	ldev->gpio.methods->init(&ldev->gpio);
+ 
+-	err = aoa_fabric_register(&layout_fabric);
++	err = aoa_fabric_register(&layout_fabric, &sdev->ofdev.dev);
+ 	if (err && err != -EALREADY) {
+ 		printk(KERN_INFO "snd-aoa-fabric-layout: can't use,"
+ 				 " another fabric is active!\n");
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
-make-drivers-acpi-eccec_ecdt-static.patch
-drivers-acpi-oslc-fix-a-null-check.patch
 git-alsa.patch
-git-dvb.patch
-fs-dlm-lowcomms-tcpc-remove-2-functions.patch
-git-mtd.patch
-remove-mtd-jffs2-userh.patch
-net-uninline-skb_put-fix.patch
-dont-export-device-ids-to-userspace.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-make-qla2x00_reg_remote_port-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-usb_rtl8150-must-select-mii.patch
-drivers-edac-make-code-static.patch
-remove-drivers-pci-searchcpci_find_device_reverse.patch
-make-ext2_get_blocks-static.patch
-generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch
-fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh.patch
-i4l-remove-the-broken-hisax_amd7930-option.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-make-drivers-md-dm-snapcksnapd-static.patch
-gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
-gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch
-updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
-updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slab-cache-shrinker-statistics.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+git-ieee1394.patch
 
