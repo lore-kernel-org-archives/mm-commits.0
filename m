@@ -1,50 +1,56 @@
 From: akpm@osdl.org
-Subject: - arch-i386-kernel-rebootc-should-include-linux-rebooth.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:01 -0800
-Message-ID: <200612072316.kB7NG1P7030772@shell0.pdx.osdl.net>
+Subject: - remove-drivers-char-riscom8cbaud_table.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:15:59 -0800
+Message-ID: <200612072315.kB7NFx6u030769@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54090 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54088 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163957AbWLGXTP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:19:15 -0500
+	id S1163915AbWLGXTM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:19:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/i386/kernel/reboot.c should #include <linux/reboot.h>
+     remove drivers/char/riscom8.c:baud_table[]
 has been removed from the -mm tree.  Its filename was
-     arch-i386-kernel-rebootc-should-include-linux-rebooth.patch
+     remove-drivers-char-riscom8cbaud_table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/i386/kernel/reboot.c should #include <linux/reboot.h>
+Subject: remove drivers/char/riscom8.c:baud_table[]
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should #include the headers containing the prototypes for
-its global functions.
+Commit c7bce3097c0f9bbed76ee6fd03742f2624031a45 removed all usages of
+baud_table[] but not the array itself.
+
+Spotted by the GNU C compiler.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/reboot.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/riscom8.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/i386/kernel/reboot.c~arch-i386-kernel-rebootc-should-include-linux-rebooth arch/i386/kernel/reboot.c
---- a/arch/i386/kernel/reboot.c~arch-i386-kernel-rebootc-should-include-linux-rebooth
-+++ a/arch/i386/kernel/reboot.c
-@@ -12,6 +12,7 @@
- #include <linux/dmi.h>
- #include <linux/ctype.h>
- #include <linux/pm.h>
-+#include <linux/reboot.h>
- #include <asm/uaccess.h>
- #include <asm/apic.h>
- #include <asm/desc.h>
+diff -puN drivers/char/riscom8.c~remove-drivers-char-riscom8cbaud_table drivers/char/riscom8.c
+--- a/drivers/char/riscom8.c~remove-drivers-char-riscom8cbaud_table
++++ a/drivers/char/riscom8.c
+@@ -82,11 +82,6 @@
+ static struct riscom_board * IRQ_to_board[16];
+ static struct tty_driver *riscom_driver;
+ 
+-static unsigned long baud_table[] =  {
+-	0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
+-	9600, 19200, 38400, 57600, 76800, 0, 
+-};
+-
+ static struct riscom_board rc_board[RC_NBOARD] =  {
+ 	{
+ 		.base	= RC_IOBASE1,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
