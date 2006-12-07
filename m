@@ -1,141 +1,52 @@
 From: akpm@osdl.org
-Subject: - fs-lockd-hostc-make-2-functions-static.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:06:18 -0800
-Message-ID: <200612072306.kB7N6IPc030243@shell0.pdx.osdl.net>
+Subject: - make-fs-proc-basecproc_pid_instantiate-static.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:20 -0800
+Message-ID: <200612072306.kB7N6KxL030257@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52974 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52976 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163857AbWLGXJe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:09:34 -0500
+	id S1163979AbWLGXJg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:09:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/lockd/host.c: make 2 functions static
+     make fs/proc/base.c:proc_pid_instantiate() static
 has been removed from the -mm tree.  Its filename was
-     fs-lockd-hostc-make-2-functions-static.patch
+     make-fs-proc-basecproc_pid_instantiate-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/lockd/host.c: make 2 functions static
+Subject: make fs/proc/base.c:proc_pid_instantiate() static
 From: Adrian Bunk <bunk@stusta.de>
 
-Make the following needlessly global functions static:
-
-- nlm_lookup_host()
-- nsm_find()
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/lockd/host.c             |   53 +++++++++++++++++-----------------
- include/linux/lockd/lockd.h |    2 -
- 2 files changed, 28 insertions(+), 27 deletions(-)
+ fs/proc/base.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/lockd/host.c~fs-lockd-hostc-make-2-functions-static fs/lockd/host.c
---- a/fs/lockd/host.c~fs-lockd-hostc-make-2-functions-static
-+++ a/fs/lockd/host.c
-@@ -36,34 +36,14 @@ static DEFINE_MUTEX(nlm_host_mutex);
- static void			nlm_gc_hosts(void);
- static struct nsm_handle *	__nsm_find(const struct sockaddr_in *,
- 					const char *, int, int);
--
--/*
-- * Find an NLM server handle in the cache. If there is none, create it.
-- */
--struct nlm_host *
--nlmclnt_lookup_host(const struct sockaddr_in *sin, int proto, int version,
--			const char *hostname, int hostname_len)
--{
--	return nlm_lookup_host(0, sin, proto, version,
--			       hostname, hostname_len);
--}
--
--/*
-- * Find an NLM client handle in the cache. If there is none, create it.
-- */
--struct nlm_host *
--nlmsvc_lookup_host(struct svc_rqst *rqstp,
--			const char *hostname, int hostname_len)
--{
--	return nlm_lookup_host(1, &rqstp->rq_addr,
--			       rqstp->rq_prot, rqstp->rq_vers,
--			       hostname, hostname_len);
--}
-+static struct nsm_handle *	nsm_find(const struct sockaddr_in *sin,
-+					 const char *hostname,
-+					 int hostname_len);
- 
- /*
-  * Common host lookup routine for server & client
-  */
--struct nlm_host *
-+static struct nlm_host *
- nlm_lookup_host(int server, const struct sockaddr_in *sin,
- 					int proto, int version,
- 					const char *hostname,
-@@ -195,6 +175,29 @@ nlm_destroy_host(struct nlm_host *host)
+diff -puN fs/proc/base.c~make-fs-proc-basecproc_pid_instantiate-static fs/proc/base.c
+--- a/fs/proc/base.c~make-fs-proc-basecproc_pid_instantiate-static
++++ a/fs/proc/base.c
+@@ -1885,8 +1885,9 @@ out:
+ 	return;
  }
  
- /*
-+ * Find an NLM server handle in the cache. If there is none, create it.
-+ */
-+struct nlm_host *
-+nlmclnt_lookup_host(const struct sockaddr_in *sin, int proto, int version,
-+			const char *hostname, int hostname_len)
-+{
-+	return nlm_lookup_host(0, sin, proto, version,
-+			       hostname, hostname_len);
-+}
-+
-+/*
-+ * Find an NLM client handle in the cache. If there is none, create it.
-+ */
-+struct nlm_host *
-+nlmsvc_lookup_host(struct svc_rqst *rqstp,
-+			const char *hostname, int hostname_len)
-+{
-+	return nlm_lookup_host(1, &rqstp->rq_addr,
-+			       rqstp->rq_prot, rqstp->rq_vers,
-+			       hostname, hostname_len);
-+}
-+
-+/*
-  * Create the NLM RPC client for an NLM peer
-  */
- struct rpc_clnt *
-@@ -495,7 +498,7 @@ out:
- 	return nsm;
- }
- 
--struct nsm_handle *
-+static struct nsm_handle *
- nsm_find(const struct sockaddr_in *sin, const char *hostname, int hostname_len)
+-struct dentry *proc_pid_instantiate(struct inode *dir,
+-	struct dentry * dentry, struct task_struct *task, void *ptr)
++static struct dentry *proc_pid_instantiate(struct inode *dir,
++					   struct dentry * dentry,
++					   struct task_struct *task, void *ptr)
  {
- 	return __nsm_find(sin, hostname, hostname_len, 1);
-diff -puN include/linux/lockd/lockd.h~fs-lockd-hostc-make-2-functions-static include/linux/lockd/lockd.h
---- a/include/linux/lockd/lockd.h~fs-lockd-hostc-make-2-functions-static
-+++ a/include/linux/lockd/lockd.h
-@@ -164,14 +164,12 @@ void		  nlmclnt_next_cookie(struct nlm_c
-  */
- struct nlm_host * nlmclnt_lookup_host(const struct sockaddr_in *, int, int, const char *, int);
- struct nlm_host * nlmsvc_lookup_host(struct svc_rqst *, const char *, int);
--struct nlm_host * nlm_lookup_host(int server, const struct sockaddr_in *, int, int, const char *, int);
- struct rpc_clnt * nlm_bind_host(struct nlm_host *);
- void		  nlm_rebind_host(struct nlm_host *);
- struct nlm_host * nlm_get_host(struct nlm_host *);
- void		  nlm_release_host(struct nlm_host *);
- void		  nlm_shutdown_hosts(void);
- extern void	  nlm_host_rebooted(const struct sockaddr_in *, const char *, int, u32);
--struct nsm_handle *nsm_find(const struct sockaddr_in *, const char *, int);
- void		  nsm_release(struct nsm_handle *);
- 
- 
+ 	struct dentry *error = ERR_PTR(-ENOENT);
+ 	struct inode *inode;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
