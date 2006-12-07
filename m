@@ -1,69 +1,64 @@
 From: akpm@osdl.org
-Subject: - kconfig-printk_time-depends-on-printk.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:02:58 -0800
-Message-ID: <200612072302.kB7N2wVi029917@shell0.pdx.osdl.net>
+Subject: - binfmt_elf-randomize-pie-binaries.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:02:35 -0800
+Message-ID: <200612072302.kB7N2ZLd029869@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51845 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51751 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163811AbWLGXDK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:03:10 -0500
+	id S1163808AbWLGXCv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:02:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: meissner@suse.de, arjan@linux.intel.com, davej@codemonkey.org.uk, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig: PRINTK_TIME depends on PRINTK
+     binfmt_elf: randomize PIE binaries (2nd try)
 has been removed from the -mm tree.  Its filename was
-     kconfig-printk_time-depends-on-printk.patch
+     binfmt_elf-randomize-pie-binaries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kconfig: PRINTK_TIME depends on PRINTK
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: binfmt_elf: randomize PIE binaries (2nd try)
+From: Marcus Meissner <meissner@suse.de>
 
-Make PRINTK_TIME depend on PRINTK.  Only display/offer it if PRINTK is
-enabled.
+Randomizes -pie compiled binaries from 64k (0x10000) up to ELF_ET_DYN_BASE.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+0 -> 64k is excluded to allow NULL ptr accesses to fail.
+
+Signed-off-by: Marcus Meissner <meissner@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ fs/binfmt_elf.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~kconfig-printk_time-depends-on-printk lib/Kconfig.debug
---- a/lib/Kconfig.debug~kconfig-printk_time-depends-on-printk
-+++ a/lib/Kconfig.debug
-@@ -1,6 +1,7 @@
+diff -puN fs/binfmt_elf.c~binfmt_elf-randomize-pie-binaries fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-randomize-pie-binaries
++++ a/fs/binfmt_elf.c
+@@ -856,7 +856,13 @@ static int load_elf_binary(struct linux_
+ 			 * default mmap base, as well as whatever program they
+ 			 * might try to exec.  This is because the brk will
+ 			 * follow the loader, and is not movable.  */
+-			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
++			if (current->flags & PF_RANDOMIZE)
++				load_bias = randomize_range(0x10000,
++							    ELF_ET_DYN_BASE,
++							    0);
++			else
++				load_bias = ELF_ET_DYN_BASE;
++			load_bias = ELF_PAGESTART(load_bias - vaddr);
+ 		}
  
- config PRINTK_TIME
- 	bool "Show timing information on printks"
-+	depends on PRINTK
- 	help
- 	  Selecting this option causes timing information to be
- 	  included in printk output.  This allows you to measure
+ 		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from meissner@suse.de are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-cpufreq-select-consistently-re-2619-rc5-mm1.patch
-git-ieee1394.patch
-git-input.patch
-git-mtd.patch
-mtd-esb2rom-uses-pci.patch
-parisc-fix-module_param-iommu-permission.patch
-scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
-generic-bug-implementation-handle-bug=n.patch
-reiser4-use-null-for-pointers.patch
-visws-sgivwfb-is-module-needs-exports.patch
-linux-fbdev-devel-is-subscribers-only.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-kvm-fix-null-and-c99-init-sparse-warnings.patch
-profile_likely-export-do_check_likely.patch
 
