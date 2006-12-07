@@ -1,50 +1,68 @@
 From: akpm@osdl.org
-Subject: - leak-tracking-for-kmalloc_node-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:13:29 -0800
-Message-ID: <200612070313.kB73DU4H026929@shell0.pdx.osdl.net>
+Subject: - add-numa-node-information-to-struct-device-tidy.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:13:53 -0800
+Message-ID: <200612070313.kB73Dr4a026942@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41468 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41482 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967788AbWLGDNo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:13:44 -0500
+	id S967789AbWLGDOG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:14:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@osdl.org, clameter@engr.sgi.com, greg@kroah.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leak-tracking-for-kmalloc_node-fix
+     add-numa-node-information-to-struct-device-tidy
 has been removed from the -mm tree.  Its filename was
-     leak-tracking-for-kmalloc_node-fix.patch
+     add-numa-node-information-to-struct-device-tidy.patch
 
-This patch was dropped because it was folded into leak-tracking-for-kmalloc_node.patch
+This patch was dropped because it was folded into add-numa-node-information-to-struct-device.patch
 
 ------------------------------------------------------
-Subject: leak-tracking-for-kmalloc_node-fix
+Subject: add-numa-node-information-to-struct-device-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-make modules happy.
-
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slab.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/device.h |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN mm/slab.c~leak-tracking-for-kmalloc_node-fix mm/slab.c
---- a/mm/slab.c~leak-tracking-for-kmalloc_node-fix
-+++ a/mm/slab.c
-@@ -3495,6 +3495,7 @@ void *kmem_cache_alloc_node(struct kmem_
- 	return __cache_alloc_node(cachep, flags, nodeid,
- 			__builtin_return_address(0));
- }
-+EXPORT_SYMBOL(kmem_cache_alloc_node);
+diff -puN include/linux/device.h~add-numa-node-information-to-struct-device-tidy include/linux/device.h
+--- a/include/linux/device.h~add-numa-node-information-to-struct-device-tidy
++++ a/include/linux/device.h
+@@ -398,11 +398,22 @@ struct device {
+ };
  
- static __always_inline void *
- __do_kmalloc_node(size_t size, gfp_t flags, int node, void *caller)
+ #ifdef CONFIG_NUMA
+-#define dev_to_node(dev)	((dev)->numa_node)
+-#define set_dev_node(dev, node)	((dev)->numa_node = node)
++static inline int dev_to_node(struct device *dev)
++{
++	return dev->numa_node;
++}
++static inline void set_dev_node(struct device *dev, int node)
++{
++	dev->numa_node = node;
++}
+ #else
+-#define dev_to_node(dev)	(-1)
+-#define set_dev_node(dev, node)	do { } while (0)
++static inline int dev_to_node(struct device *dev)
++{
++	return -1;
++}
++static inline void set_dev_node(struct device *dev, int node)
++{
++}
+ #endif
+ 
+ static inline void *
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -57,7 +75,7 @@ get-rid-of-zone_table.patch
 new-scheme-to-preempt-swap-token.patch
 balance_pdgat-cleanup.patch
 leak-tracking-for-kmalloc_node.patch
-leak-tracking-for-kmalloc_node-fix.patch
+add-numa-node-information-to-struct-device.patch
 add-numa-node-information-to-struct-device-tidy.patch
 node-aware-skb-allocation-fix-for-device-tree-changes.patch
 slab-deprecate-kmem_cache-t.patch
