@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + lockdep-improve-lockdep_reset.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:32:23 -0800
-Message-ID: <200612072032.kB7KWN9n024668@shell0.pdx.osdl.net>
+Subject: + lockdep-print-irq-trace-info-on-asserts.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:32:29 -0800
+Message-ID: <200612072032.kB7KWTbO024677@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36502 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36508 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163305AbWLGUc3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:32:29 -0500
+	id S1163298AbWLGUce (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:32:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,48 +15,108 @@ Cc: mingo@elte.hu
 
 
 The patch titled
-     lockdep: improve lockdep_reset()
+     lockdep: print irq-trace info on asserts
 has been added to the -mm tree.  Its filename is
-     lockdep-improve-lockdep_reset.patch
+     lockdep-print-irq-trace-info-on-asserts.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep: improve lockdep_reset()
+Subject: lockdep: print irq-trace info on asserts
 From: Ingo Molnar <mingo@elte.hu>
 
-Clear all the chains during lockdep_reset().  This fixes some locking-selftest
-false positives i saw on -rt.  (never saw those on mainline though, but it
-could happen.)
+When we print an assert due to scheduling-in-atomic bugs, and if lockdep
+is enabled, then the IRQ tracing information of lockdep can be printed
+to pinpoint the code location that disabled interrupts. This saved me
+quite a bit of debugging time in cases where the backtrace did not
+identify the irq-disabling site well enough.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    3 +++
- 1 files changed, 3 insertions(+)
+ include/linux/lockdep.h |   16 +++++++++++++---
+ kernel/lockdep.c        |    6 +-----
+ kernel/sched.c          |    4 ++++
+ 3 files changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-improve-lockdep_reset kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-improve-lockdep_reset
-+++ a/kernel/lockdep.c
-@@ -2438,6 +2438,7 @@ EXPORT_SYMBOL_GPL(lock_release);
- void lockdep_reset(void)
- {
- 	unsigned long flags;
-+	int i;
+diff -puN include/linux/lockdep.h~lockdep-print-irq-trace-info-on-asserts include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-print-irq-trace-info-on-asserts
++++ a/include/linux/lockdep.h
+@@ -281,15 +281,25 @@ struct lock_class_key { };
+ #if defined(CONFIG_TRACE_IRQFLAGS) && defined(CONFIG_GENERIC_HARDIRQS)
+ extern void early_init_irq_lock_class(void);
+ #else
+-# define early_init_irq_lock_class()		do { } while (0)
++static inline void early_init_irq_lock_class(void)
++{
++}
+ #endif
  
- 	raw_local_irq_save(flags);
- 	current->curr_chain_key = 0;
-@@ -2448,6 +2449,8 @@ void lockdep_reset(void)
- 	nr_softirq_chains = 0;
- 	nr_process_chains = 0;
- 	debug_locks = 1;
-+	for (i = 0; i < CHAINHASH_SIZE; i++)
-+		INIT_LIST_HEAD(chainhash_table + i);
- 	raw_local_irq_restore(flags);
+ #ifdef CONFIG_TRACE_IRQFLAGS
+ extern void early_boot_irqs_off(void);
+ extern void early_boot_irqs_on(void);
++extern void print_irqtrace_events(struct task_struct *curr);
+ #else
+-# define early_boot_irqs_off()			do { } while (0)
+-# define early_boot_irqs_on()			do { } while (0)
++static inline void early_boot_irqs_off(void)
++{
++}
++static inline void early_boot_irqs_on(void)
++{
++}
++static inline void print_irqtrace_events(struct task_struct *curr)
++{
++}
+ #endif
+ 
+ /*
+diff -puN kernel/lockdep.c~lockdep-print-irq-trace-info-on-asserts kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-print-irq-trace-info-on-asserts
++++ a/kernel/lockdep.c
+@@ -1448,7 +1448,7 @@ check_usage_backwards(struct task_struct
+ 	return print_irq_inversion_bug(curr, backwards_match, this, 0, irqclass);
  }
  
+-static inline void print_irqtrace_events(struct task_struct *curr)
++void print_irqtrace_events(struct task_struct *curr)
+ {
+ 	printk("irq event stamp: %u\n", curr->irq_events);
+ 	printk("hardirqs last  enabled at (%u): ", curr->hardirq_enable_event);
+@@ -1461,10 +1461,6 @@ static inline void print_irqtrace_events
+ 	print_ip_sym(curr->softirq_disable_ip);
+ }
+ 
+-#else
+-static inline void print_irqtrace_events(struct task_struct *curr)
+-{
+-}
+ #endif
+ 
+ static int
+diff -puN kernel/sched.c~lockdep-print-irq-trace-info-on-asserts kernel/sched.c
+--- a/kernel/sched.c~lockdep-print-irq-trace-info-on-asserts
++++ a/kernel/sched.c
+@@ -3345,6 +3345,8 @@ asmlinkage void __sched schedule(void)
+ 			"%s/0x%08x/%d\n",
+ 			current->comm, preempt_count(), current->pid);
+ 		debug_show_held_locks(current);
++		if (irqs_disabled())
++			print_irqtrace_events(current);
+ 		dump_stack();
+ 	}
+ 	profile_hit(SCHED_PROFILING, __builtin_return_address(0));
+@@ -6855,6 +6857,8 @@ void __might_sleep(char *file, int line)
+ 		printk("in_atomic():%d, irqs_disabled():%d\n",
+ 			in_atomic(), irqs_disabled());
+ 		debug_show_held_locks(current);
++		if (irqs_disabled())
++			print_irqtrace_events(current);
+ 		dump_stack();
+ 	}
+ #endif
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
