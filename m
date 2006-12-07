@@ -1,27 +1,27 @@
 From: akpm@osdl.org
-Subject: - ioremap-balanced-with-iounmap-for-drivers-char-moxac.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:00:54 -0800
-Message-ID: <200612072300.kB7N0s8q029681@shell0.pdx.osdl.net>
+Subject: - ioremap-balanced-with-iounmap-for-drivers-char-istallionc.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:00:56 -0800
+Message-ID: <200612072300.kB7N0usG029684@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51401 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51400 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163628AbWLGXBH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:01:07 -0500
+	id S1163748AbWLGXBF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:01:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: amol@verismonetworks.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ioremap balanced with iounmap for drivers/char/moxa.c
+     ioremap balanced with iounmap for drivers/char/istallion.c
 has been removed from the -mm tree.  Its filename was
-     ioremap-balanced-with-iounmap-for-drivers-char-moxac.patch
+     ioremap-balanced-with-iounmap-for-drivers-char-istallionc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ioremap balanced with iounmap for drivers/char/moxa.c
+Subject: ioremap balanced with iounmap for drivers/char/istallion.c
 From: Amol Lad <amol@verismonetworks.com>
 
 Signed-off-by: Amol Lad <amol@verismonetworks.com>
@@ -29,26 +29,30 @@ Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/moxa.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/istallion.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/char/moxa.c~ioremap-balanced-with-iounmap-for-drivers-char-moxac drivers/char/moxa.c
---- a/drivers/char/moxa.c~ioremap-balanced-with-iounmap-for-drivers-char-moxac
-+++ a/drivers/char/moxa.c
-@@ -498,9 +498,12 @@ static void __exit moxa_exit(void)
- 		printk("Couldn't unregister MOXA Intellio family serial driver\n");
- 	put_tty_driver(moxaDriver);
+diff -puN drivers/char/istallion.c~ioremap-balanced-with-iounmap-for-drivers-char-istallionc drivers/char/istallion.c
+--- a/drivers/char/istallion.c~ioremap-balanced-with-iounmap-for-drivers-char-istallionc
++++ a/drivers/char/istallion.c
+@@ -3476,6 +3476,8 @@ static int stli_initecp(stlibrd_t *brdp)
+ 	if (sig.magic != cpu_to_le32(ECP_MAGIC))
+ 	{
+ 		release_region(brdp->iobase, brdp->iosize);
++		iounmap(brdp->membase);
++		brdp->membase = NULL;
+ 		return -ENODEV;
+ 	}
  
--	for (i = 0; i < MAX_BOARDS; i++)
-+	for (i = 0; i < MAX_BOARDS; i++) {
-+		if (moxaBaseAddr[i])
-+			iounmap(moxaBaseAddr[i]);
- 		if (moxa_boards[i].busType == MOXA_BUS_TYPE_PCI)
- 			pci_dev_put(moxa_boards[i].pciInfo.pdev);
-+	}
+@@ -3632,6 +3634,8 @@ static int stli_initonb(stlibrd_t *brdp)
+ 	    sig.magic3 != cpu_to_le16(ONB_MAGIC3))
+ 	{
+ 		release_region(brdp->iobase, brdp->iosize);
++		iounmap(brdp->membase);
++		brdp->membase = NULL;
+ 		return -ENODEV;
+ 	}
  
- 	if (verbose)
- 		printk("Done\n");
 _
 
 Patches currently in -mm which might be from amol@verismonetworks.com are
