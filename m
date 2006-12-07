@@ -1,109 +1,102 @@
 From: akpm@osdl.org
-Subject: - handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:07:19 -0800
-Message-ID: <200612072307.kB7N7JKR030352@shell0.pdx.osdl.net>
+Subject: - reiser-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:07:26 -0800
+Message-ID: <200612072307.kB7N7QWI030363@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52772 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52779 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163817AbWLGXH3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:07:29 -0500
+	id S1163944AbWLGXHb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:07:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ego@in.ibm.com, mm-commits@vger.kernel.org
+To: burman.yan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Handle per-subsystem mutexes for CONFIG_HOTPLUG_CPU not set
+     reiser: replace kmalloc+memset with kzalloc
 has been removed from the -mm tree.  Its filename was
-     handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
+     reiser-replace-kmallocmemset-with-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Handle per-subsystem mutexes for CONFIG_HOTPLUG_CPU not set
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: reiser: replace kmalloc+memset with kzalloc
+From: Yan Burman <burman.yan@gmail.com>
 
-Provide a common interface for all the subsystems to lock and unlock their
-per-subsystem hotcpu mutexes.
+Replace kmalloc+memset with kzalloc
 
-When CONFIG_HOTPLUG_CPU is not set, these operations would be no-ops.
-
-[akpm@osdl.org: macros -> inlines]
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Yan Burman <burman.yan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/cpu.h |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ fs/reiserfs/file.c  |    3 +--
+ fs/reiserfs/inode.c |    7 ++-----
+ fs/reiserfs/super.c |    3 +--
+ 3 files changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set include/linux/cpu.h
---- a/include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set
-+++ a/include/linux/cpu.h
-@@ -24,6 +24,7 @@
- #include <linux/compiler.h>
- #include <linux/cpumask.h>
- #include <asm/semaphore.h>
-+#include <linux/mutex.h>
+diff -puN fs/reiserfs/file.c~reiser-replace-kmallocmemset-with-kzalloc fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~reiser-replace-kmallocmemset-with-kzalloc
++++ a/fs/reiserfs/file.c
+@@ -317,12 +317,11 @@ static int reiserfs_allocate_blocks_for_
+ 			/* area filled with zeroes, to supply as list of zero blocknumbers
+ 			   We allocate it outside of loop just in case loop would spin for
+ 			   several iterations. */
+-			char *zeros = kmalloc(to_paste * UNFM_P_SIZE, GFP_ATOMIC);	// We cannot insert more than MAX_ITEM_LEN bytes anyway.
++			char *zeros = kzalloc(to_paste * UNFM_P_SIZE, GFP_ATOMIC);	// We cannot insert more than MAX_ITEM_LEN bytes anyway.
+ 			if (!zeros) {
+ 				res = -ENOMEM;
+ 				goto error_exit_free_blocks;
+ 			}
+-			memset(zeros, 0, to_paste * UNFM_P_SIZE);
+ 			do {
+ 				to_paste =
+ 				    min_t(__u64, hole_size,
+diff -puN fs/reiserfs/inode.c~reiser-replace-kmallocmemset-with-kzalloc fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiser-replace-kmallocmemset-with-kzalloc
++++ a/fs/reiserfs/inode.c
+@@ -929,15 +929,12 @@ int reiserfs_get_block(struct inode *ino
+ 			if (blocks_needed == 1) {
+ 				un = &unf_single;
+ 			} else {
+-				un = kmalloc(min(blocks_needed, max_to_insert) * UNFM_P_SIZE, GFP_ATOMIC);	// We need to avoid scheduling.
++				un = kzalloc(min(blocks_needed, max_to_insert) * UNFM_P_SIZE, GFP_ATOMIC);	// We need to avoid scheduling.
+ 				if (!un) {
+ 					un = &unf_single;
+ 					blocks_needed = 1;
+ 					max_to_insert = 0;
+-				} else
+-					memset(un, 0,
+-					       UNFM_P_SIZE * min(blocks_needed,
+-								 max_to_insert));
++				}
+ 			}
+ 			if (blocks_needed <= max_to_insert) {
+ 				/* we are going to add target block to the file. Use allocated
+diff -puN fs/reiserfs/super.c~reiser-replace-kmallocmemset-with-kzalloc fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiser-replace-kmallocmemset-with-kzalloc
++++ a/fs/reiserfs/super.c
+@@ -1549,13 +1549,12 @@ static int reiserfs_fill_super(struct su
+ 	struct reiserfs_sb_info *sbi;
+ 	int errval = -EINVAL;
  
- struct cpu {
- 	int node_id;		/* The node which contains the CPU */
-@@ -74,6 +75,17 @@ extern struct sysdev_class cpu_sysdev_cl
- 
- #ifdef CONFIG_HOTPLUG_CPU
- /* Stop CPUs going up and down. */
-+
-+static inline void cpuhotplug_mutex_lock(struct mutex *cpu_hp_mutex)
-+{
-+	mutex_lock(cpu_hp_mutex);
-+}
-+
-+static inline void cpuhotplug_mutex_unlock(struct mutex *cpu_hp_mutex)
-+{
-+	mutex_unlock(cpu_hp_mutex);
-+}
-+
- extern void lock_cpu_hotplug(void);
- extern void unlock_cpu_hotplug(void);
- #define hotcpu_notifier(fn, pri) {				\
-@@ -85,7 +97,14 @@ extern void unlock_cpu_hotplug(void);
- #define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
- int cpu_down(unsigned int cpu);
- #define cpu_is_offline(cpu) unlikely(!cpu_online(cpu))
--#else
-+
-+#else		/* CONFIG_HOTPLUG_CPU */
-+
-+static inline void cpuhotplug_mutex_lock(struct mutex *cpu_hp_mutex)
-+{ }
-+static inline void cpuhotplug_mutex_unlock(struct mutex *cpu_hp_mutex)
-+{ }
-+
- #define lock_cpu_hotplug()	do { } while (0)
- #define unlock_cpu_hotplug()	do { } while (0)
- #define lock_cpu_hotplug_interruptible() 0
-@@ -95,7 +114,7 @@ int cpu_down(unsigned int cpu);
- 
- /* CPUs don't go offline once they're online w/o CONFIG_HOTPLUG_CPU */
- static inline int cpu_is_offline(int cpu) { return 0; }
--#endif
-+#endif		/* CONFIG_HOTPLUG_CPU */
- 
- #ifdef CONFIG_SUSPEND_SMP
- extern int disable_nonboot_cpus(void);
+-	sbi = kmalloc(sizeof(struct reiserfs_sb_info), GFP_KERNEL);
++	sbi = kzalloc(sizeof(struct reiserfs_sb_info), GFP_KERNEL);
+ 	if (!sbi) {
+ 		errval = -ENOMEM;
+ 		goto error;
+ 	}
+ 	s->s_fs_info = sbi;
+-	memset(sbi, 0, sizeof(struct reiserfs_sb_info));
+ 	/* Set default values for options: non-aggressive tails, RO on errors */
+ 	REISERFS_SB(s)->s_mount_opt |= (1 << REISERFS_SMALLTAIL);
+ 	REISERFS_SB(s)->s_mount_opt |= (1 << REISERFS_ERROR_RO);
 _
 
-Patches currently in -mm which might be from ego@in.ibm.com are
+Patches currently in -mm which might be from burman.yan@gmail.com are
 
 origin.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-git-cpufreq.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-handle-cpu_lock_acquire-and-cpu_lock_release-in-workqueue_cpu_callback.patch
+ia64-replace-kmallocmemset-with-kzalloc.patch
+jffs2-replace-kmallocmemset-with-kzalloc.patch
+nfsd-replace-kmallocmemset-with-kcalloc.patch
 
