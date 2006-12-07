@@ -1,64 +1,58 @@
 From: akpm@osdl.org
-Subject: - sleep-profiling-fixes.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:25:37 -0800
-Message-ID: <200612070325.kB73Pcu5027240@shell0.pdx.osdl.net>
+Subject: - debug-workqueue-locking-sanity-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:26:10 -0800
+Message-ID: <200612070326.kB73QA3N027263@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42154 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42172 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967868AbWLGDZx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:25:53 -0500
+	id S967886AbWLGD0T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:26:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@osdl.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sleep-profiling-fixes
+     debug-workqueue-locking-sanity-fix
 has been removed from the -mm tree.  Its filename was
-     sleep-profiling-fixes.patch
+     debug-workqueue-locking-sanity-fix.patch
 
-This patch was dropped because it was folded into sleep-profiling.patch
+This patch was dropped because it was folded into debug-workqueue-locking-sanity.patch
 
 ------------------------------------------------------
-Subject: sleep-profiling-fixes
+Subject: debug-workqueue-locking-sanity-fix
 From: Andrew Morton <akpm@osdl.org>
 
+kernel/workqueue.c: In function 'run_workqueue':
+kernel/workqueue.c:233: warning: implicit declaration of function 'debug_show_held_locks'
+
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/kernel-parameters.txt |    1 +
- kernel/sched.c                      |    6 +++---
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ kernel/workqueue.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~sleep-profiling-fixes Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~sleep-profiling-fixes
-+++ a/Documentation/kernel-parameters.txt
-@@ -1302,6 +1302,7 @@ and is between 256 and 4096 characters. 
- 			Param: "schedule" - profile schedule points.
- 			Param: <number> - step/bucket size as a power of 2 for
- 				statistical time based profiling.
-+			Param: "sleep" - profile D-state sleeping (millisecs)
+diff -puN kernel/workqueue.c~debug-workqueue-locking-sanity-fix kernel/workqueue.c
+--- a/kernel/workqueue.c~debug-workqueue-locking-sanity-fix
++++ a/kernel/workqueue.c
+@@ -25,12 +25,13 @@
+ #include <linux/workqueue.h>
+ #include <linux/slab.h>
+ #include <linux/cpu.h>
+-#include <linux/kallsyms.h>
+ #include <linux/notifier.h>
+ #include <linux/kthread.h>
+ #include <linux/hardirq.h>
+ #include <linux/mempolicy.h>
+ #include <linux/freezer.h>
++#include <linux/kallsyms.h>
++#include <linux/debug_locks.h>
  
- 	processor.max_cstate=	[HW,ACPI]
- 			Limit processor to maximum C-state
-diff -puN kernel/sched.c~sleep-profiling-fixes kernel/sched.c
---- a/kernel/sched.c~sleep-profiling-fixes
-+++ a/kernel/sched.c
-@@ -949,9 +949,9 @@ static void activate_task(struct task_st
- #endif
- 
- 	/*
--	 * Sleep time is in units of nanosecs, so shift by 30
--	 * to get a milliseconds-range estimation of the amount
--	 * of time that the task spent sleeping:
-+	 * Sleep time is in units of nanosecs, so shift by 20 to get a
-+	 * milliseconds-range estimation of the amount of time that the task
-+	 * spent sleeping:
- 	 */
- 	if (unlikely(prof_on == SLEEP_PROFILING)) {
- 		if (p->state == TASK_UNINTERRUPTIBLE)
+ /*
+  * The per-CPU workqueue (if single thread, we always use the first
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -87,8 +81,7 @@ vfs_getattr-remove-dead-code.patch
 ext3-uninline-large-functions.patch
 ext4-uninline-large-functions.patch
 sleep-profiling.patch
-sleep-profiling-fixes.patch
-sleep-profiling-fix.patch
+debug-workqueue-locking-sanity.patch
 debug-workqueue-locking-sanity-fix.patch
 pcengines-wrap-led-support-fix.patch
 driver-base-memoryc-remove-warnings-of.patch
