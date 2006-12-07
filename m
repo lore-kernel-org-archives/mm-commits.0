@@ -1,130 +1,64 @@
 From: akpm@osdl.org
-Subject: - create-device-symlink-in-snd-aoa.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:18:42 -0800
-Message-ID: <200612072318.kB7NIgB3031050@shell0.pdx.osdl.net>
+Subject: - ipw2200-replace-kmallocmemset-with-kcalloc.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:19:01 -0800
+Message-ID: <200612072319.kB7NJ14a031077@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54103 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54102 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163961AbWLGXTX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:19:23 -0500
+	id S1163957AbWLGXTV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:19:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, johannes@sipsolutions.net, mm-commits@vger.kernel.org
+To: burman.yan@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     create device symlink in snd-aoa
+     ipw2200: replace kmalloc+memset with kcalloc
 has been removed from the -mm tree.  Its filename was
-     create-device-symlink-in-snd-aoa.patch
+     ipw2200-replace-kmallocmemset-with-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: create device symlink in snd-aoa
-From: Olaf Hering <olaf@aepfle.de>
+Subject: ipw2200: replace kmalloc+memset with kcalloc
+From: Yan Burman <burman.yan@gmail.com>
 
-create sysfs device symlinks for snd-aoa in /sys/class/sound/controlC0 This
-allows hald to recognize the device as sound device.  Furthermore it allows
-the desktop user to actually access the sound device nodes.  hald and
-related packages will modify the acl attributes.
+Replace kmalloc+memset with kcalloc
 
-Fixes https://bugzilla.novell.com/show_bug.cgi?id=106294
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Yan Burman <burman.yan@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/aoa/aoa.h                           |    2 +-
- sound/aoa/core/snd-aoa-alsa.c             |    3 ++-
- sound/aoa/core/snd-aoa-alsa.h             |    2 +-
- sound/aoa/core/snd-aoa-core.c             |    4 ++--
- sound/aoa/fabrics/snd-aoa-fabric-layout.c |    2 +-
- 5 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/net/wireless/ipw2200.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN sound/aoa/aoa.h~create-device-symlink-in-snd-aoa sound/aoa/aoa.h
---- a/sound/aoa/aoa.h~create-device-symlink-in-snd-aoa
-+++ a/sound/aoa/aoa.h
-@@ -99,7 +99,7 @@ struct aoa_fabric {
-  * that are not assigned yet are passed to the fabric
-  * again for reconsideration. */
- extern int
--aoa_fabric_register(struct aoa_fabric *fabric);
-+aoa_fabric_register(struct aoa_fabric *fabric, struct device *dev);
+diff -puN drivers/net/wireless/ipw2200.c~ipw2200-replace-kmallocmemset-with-kcalloc drivers/net/wireless/ipw2200.c
+--- a/drivers/net/wireless/ipw2200.c~ipw2200-replace-kmallocmemset-with-kcalloc
++++ a/drivers/net/wireless/ipw2200.c
+@@ -11129,14 +11129,13 @@ static int ipw_up(struct ipw_priv *priv)
+ 		return -EIO;
  
- /* it is vital to call this when the fabric exits!
-  * When calling, the remove_codec will be called
-diff -puN sound/aoa/core/snd-aoa-alsa.c~create-device-symlink-in-snd-aoa sound/aoa/core/snd-aoa-alsa.c
---- a/sound/aoa/core/snd-aoa-alsa.c~create-device-symlink-in-snd-aoa
-+++ a/sound/aoa/core/snd-aoa-alsa.c
-@@ -14,7 +14,7 @@ MODULE_PARM_DESC(index, "index for AOA s
- 
- static struct aoa_card *aoa_card;
- 
--int aoa_alsa_init(char *name, struct module *mod)
-+int aoa_alsa_init(char *name, struct module *mod, struct device *dev)
- {
- 	struct snd_card *alsa_card;
- 	int err;
-@@ -28,6 +28,7 @@ int aoa_alsa_init(char *name, struct mod
- 		return -ENOMEM;
- 	aoa_card = alsa_card->private_data;
- 	aoa_card->alsa_card = alsa_card;
-+	alsa_card->dev = dev;
- 	strlcpy(alsa_card->driver, "AppleOnbdAudio", sizeof(alsa_card->driver));
- 	strlcpy(alsa_card->shortname, name, sizeof(alsa_card->shortname));
- 	strlcpy(alsa_card->longname, name, sizeof(alsa_card->longname));
-diff -puN sound/aoa/core/snd-aoa-alsa.h~create-device-symlink-in-snd-aoa sound/aoa/core/snd-aoa-alsa.h
---- a/sound/aoa/core/snd-aoa-alsa.h~create-device-symlink-in-snd-aoa
-+++ a/sound/aoa/core/snd-aoa-alsa.h
-@@ -10,7 +10,7 @@
- #define __SND_AOA_ALSA_H
- #include "../aoa.h"
- 
--extern int aoa_alsa_init(char *name, struct module *mod);
-+extern int aoa_alsa_init(char *name, struct module *mod, struct device *dev);
- extern void aoa_alsa_cleanup(void);
- 
- #endif /* __SND_AOA_ALSA_H */
-diff -puN sound/aoa/core/snd-aoa-core.c~create-device-symlink-in-snd-aoa sound/aoa/core/snd-aoa-core.c
---- a/sound/aoa/core/snd-aoa-core.c~create-device-symlink-in-snd-aoa
-+++ a/sound/aoa/core/snd-aoa-core.c
-@@ -82,7 +82,7 @@ void aoa_codec_unregister(struct aoa_cod
- }
- EXPORT_SYMBOL_GPL(aoa_codec_unregister);
- 
--int aoa_fabric_register(struct aoa_fabric *new_fabric)
-+int aoa_fabric_register(struct aoa_fabric *new_fabric, struct device *dev)
- {
- 	struct aoa_codec *c;
- 	int err;
-@@ -98,7 +98,7 @@ int aoa_fabric_register(struct aoa_fabri
- 	if (!new_fabric)
- 		return -EINVAL;
- 
--	err = aoa_alsa_init(new_fabric->name, new_fabric->owner);
-+	err = aoa_alsa_init(new_fabric->name, new_fabric->owner, dev);
- 	if (err)
- 		return err;
- 
-diff -puN sound/aoa/fabrics/snd-aoa-fabric-layout.c~create-device-symlink-in-snd-aoa sound/aoa/fabrics/snd-aoa-fabric-layout.c
---- a/sound/aoa/fabrics/snd-aoa-fabric-layout.c~create-device-symlink-in-snd-aoa
-+++ a/sound/aoa/fabrics/snd-aoa-fabric-layout.c
-@@ -1014,7 +1014,7 @@ static int aoa_fabric_layout_probe(struc
- 
- 	ldev->gpio.methods->init(&ldev->gpio);
- 
--	err = aoa_fabric_register(&layout_fabric);
-+	err = aoa_fabric_register(&layout_fabric, &sdev->ofdev.dev);
- 	if (err && err != -EALREADY) {
- 		printk(KERN_INFO "snd-aoa-fabric-layout: can't use,"
- 				 " another fabric is active!\n");
+ 	if (cmdlog && !priv->cmdlog) {
+-		priv->cmdlog = kmalloc(sizeof(*priv->cmdlog) * cmdlog,
++		priv->cmdlog = kcalloc(cmdlog, sizeof(*priv->cmdlog),
+ 				       GFP_KERNEL);
+ 		if (priv->cmdlog == NULL) {
+ 			IPW_ERROR("Error allocating %d command log entries.\n",
+ 				  cmdlog);
+ 			return -ENOMEM;
+ 		} else {
+-			memset(priv->cmdlog, 0, sizeof(*priv->cmdlog) * cmdlog);
+ 			priv->cmdlog_len = cmdlog;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from burman.yan@gmail.com are
 
 origin.patch
-git-alsa.patch
-git-ieee1394.patch
+ia64-replace-kmallocmemset-with-kzalloc.patch
+jffs2-replace-kmallocmemset-with-kzalloc.patch
+nfsd-replace-kmallocmemset-with-kcalloc.patch
 
