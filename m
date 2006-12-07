@@ -1,96 +1,53 @@
 From: akpm@osdl.org
-Subject: - add-bottom_half.h.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:55:42 -0800
-Message-ID: <200612072255.kB7MtgRC029136@shell0.pdx.osdl.net>
+Subject: - drm-sis-linkage-fix.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:55:46 -0800
+Message-ID: <200612072255.kB7MtkgT029142@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50309 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50322 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163586AbWLGW40 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:56:26 -0500
+	id S1163588AbWLGW43 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:56:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ak@suse.de, mingo@elte.hu, rdunlap@xenotime.net, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, airlied@linux.ie, daniel-silveira@gee.inatel.br, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add bottom_half.h
+     drm-sis linkage fix
 has been removed from the -mm tree.  Its filename was
-     add-bottom_half.h.patch
+     drm-sis-linkage-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add bottom_half.h
+Subject: drm-sis linkage fix
 From: Andrew Morton <akpm@osdl.org>
 
-With CONFIG_SMP=n:
+Fix http://bugzilla.kernel.org/show_bug.cgi?id=7606
 
-drivers/input/ff-memless.c:384: warning: implicit declaration of function 'local_bh_disable'
-drivers/input/ff-memless.c:393: warning: implicit declaration of function 'local_bh_enable'
+WARNING: "drm_sman_set_manager" [drivers/char/drm/sis.ko] undefined!
 
-Really linux/spinlock.h should include linux/interrupt.h.  But interrupt.h
-includes sched.h which will need spinlock.h.
-
-So the patch breaks the _bh declarations out into a separate header and
-includes it in bothj interrupt.h and spinlock.h.
-
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Andi Kleen <ak@suse.de>
+Cc: <daniel-silveira@gee.inatel.br>
+Cc: Dave Airlie <airlied@linux.ie>
 Cc: <stable@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/bottom_half.h |    5 +++++
- include/linux/interrupt.h   |    7 +------
- include/linux/spinlock.h    |    1 +
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/char/drm/drm_sman.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN /dev/null include/linux/bottom_half.h
---- /dev/null
-+++ a/include/linux/bottom_half.h
-@@ -0,0 +1,5 @@
-+extern void local_bh_disable(void);
-+extern void __local_bh_enable(void);
-+extern void _local_bh_enable(void);
-+extern void local_bh_enable(void);
-+extern void local_bh_enable_ip(unsigned long ip);
-diff -puN include/linux/interrupt.h~add-bottom_half.h include/linux/interrupt.h
---- a/include/linux/interrupt.h~add-bottom_half.h
-+++ a/include/linux/interrupt.h
-@@ -11,6 +11,7 @@
- #include <linux/hardirq.h>
- #include <linux/sched.h>
- #include <linux/irqflags.h>
-+#include <linux/bottom_half.h>
- #include <asm/atomic.h>
- #include <asm/ptrace.h>
- #include <asm/system.h>
-@@ -217,12 +218,6 @@ static inline void __deprecated save_and
- #define save_and_cli(x)	save_and_cli(&x)
- #endif /* CONFIG_SMP */
+diff -puN drivers/char/drm/drm_sman.c~drm-sis-linkage-fix drivers/char/drm/drm_sman.c
+--- a/drivers/char/drm/drm_sman.c~drm-sis-linkage-fix
++++ a/drivers/char/drm/drm_sman.c
+@@ -162,6 +162,7 @@ drm_sman_set_manager(drm_sman_t * sman, 
  
--extern void local_bh_disable(void);
--extern void __local_bh_enable(void);
--extern void _local_bh_enable(void);
--extern void local_bh_enable(void);
--extern void local_bh_enable_ip(unsigned long ip);
--
- /* PLEASE, avoid to allocate new softirqs, if you need not _really_ high
-    frequency threaded job scheduling. For almost all the purposes
-    tasklets are more than enough. F.e. all serial device BHs et
-diff -puN include/linux/spinlock.h~add-bottom_half.h include/linux/spinlock.h
---- a/include/linux/spinlock.h~add-bottom_half.h
-+++ a/include/linux/spinlock.h
-@@ -52,6 +52,7 @@
- #include <linux/thread_info.h>
- #include <linux/kernel.h>
- #include <linux/stringify.h>
-+#include <linux/bottom_half.h>
+ 	return 0;
+ }
++EXPORT_SYMBOL(drm_sman_set_manager);
  
- #include <asm/system.h>
- 
+ static drm_owner_item_t *drm_sman_get_owner_item(drm_sman_t * sman,
+ 						 unsigned long owner)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
