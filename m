@@ -1,53 +1,48 @@
 From: akpm@osdl.org
-Subject: - char-ip2-remove-broken-macro.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:15:31 -0800
-Message-ID: <200612072315.kB7NFVE7030734@shell0.pdx.osdl.net>
+Subject: - fs-reiserfs-add-missing-brackets.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:16:09 -0800
+Message-ID: <200612072316.kB7NG9DB030789@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53542 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53601 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163886AbWLGXPi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:15:38 -0500
+	id S1163808AbWLGXQN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:16:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char: ip2 remove broken macro
+     fs: reiserfs add missing brackets
 has been removed from the -mm tree.  Its filename was
-     char-ip2-remove-broken-macro.patch
+     fs-reiserfs-add-missing-brackets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: char: ip2 remove broken macro
+Subject: fs: reiserfs add missing brackets
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-This macro is broken and unused so why not remove it.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ip2/i2cmd.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/reiserfs_fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ip2/i2cmd.h~char-ip2-remove-broken-macro drivers/char/ip2/i2cmd.h
---- a/drivers/char/ip2/i2cmd.h~char-ip2-remove-broken-macro
-+++ a/drivers/char/ip2/i2cmd.h
-@@ -367,11 +367,6 @@ static UCHAR cc02[];
- #define CSE_NULL  3  // Replace with a null
- #define CSE_MARK  4  // Replace with a 3-character sequence (as Unix)
+diff -puN include/linux/reiserfs_fs.h~fs-reiserfs-add-missing-brackets include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~fs-reiserfs-add-missing-brackets
++++ a/include/linux/reiserfs_fs.h
+@@ -739,7 +739,7 @@ struct block_head {
+ #define PUT_B_FREE_SPACE(p_s_bh,val)  do { set_blkh_free_space(B_BLK_HEAD(p_s_bh),val); } while (0)
  
--#define  CMD_SET_REPLACEMENT(arg,ch)   \
--			(((cmdSyntaxPtr)(ct36a))->cmd[1] = (arg), \
--			(((cmdSyntaxPtr)(ct36a))->cmd[2] = (ch),  \
--			(cmdSyntaxPtr)(ct36a))
--
- #define CSE_REPLACE  0x8	// Replace the errored character with the
- 							// replacement character defined here
+ /* Get right delimiting key. -- little endian */
+-#define B_PRIGHT_DELIM_KEY(p_s_bh)   (&(blk_right_delim_key(B_BLK_HEAD(p_s_bh))
++#define B_PRIGHT_DELIM_KEY(p_s_bh)   (&(blk_right_delim_key(B_BLK_HEAD(p_s_bh))))
  
+ /* Does the buffer contain a disk leaf. */
+ #define B_IS_ITEMS_LEVEL(p_s_bh)     (B_LEVEL(p_s_bh) == DISK_LEAF_NODE_LEVEL)
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
