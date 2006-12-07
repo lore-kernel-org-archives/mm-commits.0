@@ -1,106 +1,109 @@
 From: akpm@osdl.org
-Subject: - net-dont-insert-socket-dentries-into-dentry_hashtable.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:07:01 -0800
-Message-ID: <200612072307.kB7N71Wc030327@shell0.pdx.osdl.net>
+Subject: - handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:07:19 -0800
+Message-ID: <200612072307.kB7N7JKR030352@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52775 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52772 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163939AbWLGXH3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1163817AbWLGXH3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 7 Dec 2006 18:07:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, davem@davemloft.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ego@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: don't insert socket dentries into dentry_hashtable
+     Handle per-subsystem mutexes for CONFIG_HOTPLUG_CPU not set
 has been removed from the -mm tree.  Its filename was
-     net-dont-insert-socket-dentries-into-dentry_hashtable.patch
+     handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net: don't insert socket dentries into dentry_hashtable
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Handle per-subsystem mutexes for CONFIG_HOTPLUG_CPU not set
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-We currently insert socket dentries into the global dentry hashtable.  This
-is suboptimal because there is currently no way these entries can be used
-for a lookup().  (/proc/xxx/fd/xxx uses a different mechanism).  Inserting
-them in dentry hashtable slows dcache lookups.
+Provide a common interface for all the subsystems to lock and unlock their
+per-subsystem hotcpu mutexes.
 
-To let __dpath() still work correctly (ie not adding a " (deleted)") after
-dentry name, we do :
+When CONFIG_HOTPLUG_CPU is not set, these operations would be no-ops.
 
-- Right after d_alloc(), pretend they are hashed by clearing the
-  DCACHE_UNHASHED bit.
-
-- Call d_instantiate() instead of d_add() : dentry is not inserted in
-  hash table.
-
-  __dpath() & friends work as intended during dentry lifetime.
-
-- At dismantle time, once dput() must clear the dentry, setting again
-  DCACHE_UNHASHED bit inside the custom d_delete() function provided by
-  socket code, so that dput() can just kill_it.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Acked-by: "David S. Miller" <davem@davemloft.net>
+[akpm@osdl.org: macros -> inlines]
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/socket.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ include/linux/cpu.h |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN net/socket.c~net-dont-insert-socket-dentries-into-dentry_hashtable net/socket.c
---- a/net/socket.c~net-dont-insert-socket-dentries-into-dentry_hashtable
-+++ a/net/socket.c
-@@ -305,7 +305,14 @@ static struct file_system_type sock_fs_t
+diff -puN include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set include/linux/cpu.h
+--- a/include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set
++++ a/include/linux/cpu.h
+@@ -24,6 +24,7 @@
+ #include <linux/compiler.h>
+ #include <linux/cpumask.h>
+ #include <asm/semaphore.h>
++#include <linux/mutex.h>
  
- static int sockfs_delete_dentry(struct dentry *dentry)
- {
--	return 1;
-+	/*
-+	 * At creation time, we pretended this dentry was hashed
-+	 * (by clearing DCACHE_UNHASHED bit in d_flags)
-+	 * At delete time, we restore the truth : not hashed.
-+	 * (so that dput() can proceed correctly)
-+	 */
-+	dentry->d_flags |= DCACHE_UNHASHED;
-+	return 0;
- }
- static struct dentry_operations sockfs_dentry_operations = {
- 	.d_delete = sockfs_delete_dentry,
-@@ -353,14 +360,20 @@ static int sock_attach_fd(struct socket 
+ struct cpu {
+ 	int node_id;		/* The node which contains the CPU */
+@@ -74,6 +75,17 @@ extern struct sysdev_class cpu_sysdev_cl
  
- 	this.len = sprintf(name, "[%lu]", SOCK_INODE(sock)->i_ino);
- 	this.name = name;
--	this.hash = SOCK_INODE(sock)->i_ino;
-+	this.hash = 0;
+ #ifdef CONFIG_HOTPLUG_CPU
+ /* Stop CPUs going up and down. */
++
++static inline void cpuhotplug_mutex_lock(struct mutex *cpu_hp_mutex)
++{
++	mutex_lock(cpu_hp_mutex);
++}
++
++static inline void cpuhotplug_mutex_unlock(struct mutex *cpu_hp_mutex)
++{
++	mutex_unlock(cpu_hp_mutex);
++}
++
+ extern void lock_cpu_hotplug(void);
+ extern void unlock_cpu_hotplug(void);
+ #define hotcpu_notifier(fn, pri) {				\
+@@ -85,7 +97,14 @@ extern void unlock_cpu_hotplug(void);
+ #define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
+ int cpu_down(unsigned int cpu);
+ #define cpu_is_offline(cpu) unlikely(!cpu_online(cpu))
+-#else
++
++#else		/* CONFIG_HOTPLUG_CPU */
++
++static inline void cpuhotplug_mutex_lock(struct mutex *cpu_hp_mutex)
++{ }
++static inline void cpuhotplug_mutex_unlock(struct mutex *cpu_hp_mutex)
++{ }
++
+ #define lock_cpu_hotplug()	do { } while (0)
+ #define unlock_cpu_hotplug()	do { } while (0)
+ #define lock_cpu_hotplug_interruptible() 0
+@@ -95,7 +114,7 @@ int cpu_down(unsigned int cpu);
  
- 	file->f_dentry = d_alloc(sock_mnt->mnt_sb->s_root, &this);
- 	if (unlikely(!file->f_dentry))
- 		return -ENOMEM;
+ /* CPUs don't go offline once they're online w/o CONFIG_HOTPLUG_CPU */
+ static inline int cpu_is_offline(int cpu) { return 0; }
+-#endif
++#endif		/* CONFIG_HOTPLUG_CPU */
  
- 	file->f_dentry->d_op = &sockfs_dentry_operations;
--	d_add(file->f_dentry, SOCK_INODE(sock));
-+	/*
-+	 * We dont want to push this dentry into global dentry hash table.
-+	 * We pretend dentry is already hashed, by unsetting DCACHE_UNHASHED
-+	 * This permits a working /proc/$pid/fd/XXX on sockets
-+	 */
-+	file->f_dentry->d_flags &= ~DCACHE_UNHASHED;
-+	d_instantiate(file->f_dentry, SOCK_INODE(sock));
- 	file->f_vfsmnt = mntget(sock_mnt);
- 	file->f_mapping = file->f_dentry->d_inode->i_mapping;
- 
+ #ifdef CONFIG_SUSPEND_SMP
+ extern int disable_nonboot_cpus(void);
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
 origin.patch
-convert-i386-pda-code-to-use-%fs.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+git-cpufreq.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+handle-cpu_lock_acquire-and-cpu_lock_release-in-workqueue_cpu_callback.patch
 
