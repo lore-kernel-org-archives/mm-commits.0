@@ -1,78 +1,94 @@
 From: akpm@osdl.org
-Subject: - drivers-cdrom-trivial-vsnprintf-conversion.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:03:49 -0800
-Message-ID: <200612072303.kB7N3nC9029994@shell0.pdx.osdl.net>
+Subject: - taskstats_exit_alloc-optimize-simplify.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:03:12 -0800
+Message-ID: <200612072303.kB7N3CZx029944@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51956 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52015 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163663AbWLGXDx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:03:53 -0500
+	id S1163837AbWLGXER (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:04:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, axboe@suse.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, balbir@in.ibm.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/cdrom/*: trivial vsnprintf() conversion
+     taskstats_exit_alloc: optimize/simplify
 has been removed from the -mm tree.  Its filename was
-     drivers-cdrom-trivial-vsnprintf-conversion.patch
+     taskstats_exit_alloc-optimize-simplify.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/cdrom/*: trivial vsnprintf() conversion
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: taskstats_exit_alloc: optimize/simplify
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Fixing sbpcd.c baroque error printing in process.
+If there are no listeners, every task does unneeded kmem_cache alloc/free on
+exit. We don't need listeners->sem for 'if (!list_empty())' check. Yes, we may
+have a false positive, but this doesn't differ from the case when the listener
+is unregistered after we drop the semaphore. So we don't need to do allocation
+beforehand.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jens Axboe <axboe@suse.de>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Acked-by: Shailabh Nagar <nagar@watson.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/cdrom/optcd.c |    2 +-
- drivers/cdrom/sbpcd.c |    5 ++---
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ kernel/taskstats.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN drivers/cdrom/optcd.c~drivers-cdrom-trivial-vsnprintf-conversion drivers/cdrom/optcd.c
---- a/drivers/cdrom/optcd.c~drivers-cdrom-trivial-vsnprintf-conversion
-+++ a/drivers/cdrom/optcd.c
-@@ -101,7 +101,7 @@ static void debug(int debug_this, const 
- 		return;
+diff -puN kernel/taskstats.c~taskstats_exit_alloc-optimize-simplify kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats_exit_alloc-optimize-simplify
++++ a/kernel/taskstats.c
+@@ -416,7 +416,6 @@ err:
+ void taskstats_exit_alloc(struct taskstats **ptidstats, unsigned int *mycpu)
+ {
+ 	struct listener_list *listeners;
+-	struct taskstats *tmp;
+ 	/*
+ 	 * This is the cpu on which the task is exiting currently and will
+ 	 * be the one for which the exit event is sent, even if the cpu
+@@ -424,19 +423,11 @@ void taskstats_exit_alloc(struct tasksta
+ 	 */
+ 	*mycpu = raw_smp_processor_id();
  
- 	va_start(args, fmt);
--	vsprintf(s, fmt, args);
-+	vsnprintf(s, sizeof(s), fmt, args);
- 	printk(KERN_DEBUG "optcd: %s\n", s);
- 	va_end(args);
+-	*ptidstats = NULL;
+-	tmp = kmem_cache_zalloc(taskstats_cache, GFP_KERNEL);
+-	if (!tmp)
+-		return;
+-
+ 	listeners = &per_cpu(listener_array, *mycpu);
+-	down_read(&listeners->sem);
+-	if (!list_empty(&listeners->list)) {
+-		*ptidstats = tmp;
+-		tmp = NULL;
+-	}
+-	up_read(&listeners->sem);
+-	kfree(tmp);
++
++	*ptidstats = NULL;
++	if (!list_empty(&listeners->list))
++		*ptidstats = kmem_cache_zalloc(taskstats_cache, GFP_KERNEL);
  }
-diff -puN drivers/cdrom/sbpcd.c~drivers-cdrom-trivial-vsnprintf-conversion drivers/cdrom/sbpcd.c
---- a/drivers/cdrom/sbpcd.c~drivers-cdrom-trivial-vsnprintf-conversion
-+++ a/drivers/cdrom/sbpcd.c
-@@ -770,11 +770,10 @@ static void msg(int level, const char *f
- 	
- 	msgnum++;
- 	if (msgnum>99) msgnum=0;
--	sprintf(buf, MSG_LEVEL "%s-%d [%02d]:  ", major_name, current_drive - D_S, msgnum);
- 	va_start(args, fmt);
--	vsprintf(&buf[18], fmt, args);
-+	vsnprintf(buf, sizeof(buf), fmt, args);
- 	va_end(args);
--	printk(buf);
-+	printk(MSG_LEVEL "%s-%d [%02d]:  %s", major_name, current_drive - D_S, msgnum, buf);
- #if KLOGD_PAUSE
- 	sbp_sleep(KLOGD_PAUSE); /* else messages get lost */
- #endif /* KLOGD_PAUSE */ 
+ 
+ /* Send pid data out on exit */
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-cpufreq.patch
-git-ieee1394.patch
-git-mtd.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-isdn-trivial-vsnprintf-conversion.patch
-drivers-video-use-kmemdup.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+tty-signal-tty-locking.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+do_task_stat-dont-take-tty_mutex.patch
+do_acct_process-dont-take-tty_mutex.patch
+trivial-make-set_special_pids-static.patch
+sys_unshare-remove-a-broken-clone_sighand-code.patch
+sys_setpgid-eliminate-unnecessary-do_each_task_pidpidtype_pgid.patch
+session_of_pgrp-kill-unnecessary-do_each_task_pidpidtype_pgid.patch
+pidhash-temporary-debug-checks.patch
 
