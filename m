@@ -1,53 +1,83 @@
 From: akpm@osdl.org
-Subject: + add-retain_initrd-boot-option-tweak.patch added to -mm tree
-Date: Wed, 06 Dec 2006 23:18:14 -0800
-Message-ID: <200612070718.kB77IEax002042@shell0.pdx.osdl.net>
+Subject: + workqueue-tweaks.patch added to -mm tree
+Date: Wed, 06 Dec 2006 23:44:51 -0800
+Message-ID: <200612070744.kB77ipxV002600@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56146 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57630 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031762AbWLGHSU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 02:18:20 -0500
+	id S1031808AbWLGHpG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 02:45:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mikey@neuling.org, rdunlap@xenotime.net
+Cc: akpm@osdl.org, dhowells@redhat.com
 
 
 The patch titled
-     add-retain_initrd-boot-option-tweak
+     workqueue tweaks
 has been added to the -mm tree.  Its filename is
-     add-retain_initrd-boot-option-tweak.patch
+     workqueue-tweaks.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-retain_initrd-boot-option-tweak
+Subject: workqueue tweaks
 From: Andrew Morton <akpm@osdl.org>
 
-Use _initdata.
+- set_wq_data() has three callsites and is too big to inline.
 
-Cc: Michael Neuling <mikey@neuling.org>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+- Make comment layout consistently use the usual style.
+
+- Use the nice helper in cancel_delayed_work()
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- init/initramfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/workqueue.h |    2 +-
+ kernel/workqueue.c        |    9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN init/initramfs.c~add-retain_initrd-boot-option-tweak init/initramfs.c
---- a/init/initramfs.c~add-retain_initrd-boot-option-tweak
-+++ a/init/initramfs.c
-@@ -491,7 +491,7 @@ static char * __init unpack_to_rootfs(ch
- 	return message;
+diff -puN kernel/workqueue.c~workqueue-tweaks kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-tweaks
++++ a/kernel/workqueue.c
+@@ -85,12 +85,14 @@ static inline int is_single_threaded(str
+ 	return list_empty(&wq->list);
  }
  
--static int do_retain_initrd;
-+static int __initdata do_retain_initrd;
- 
- static int __init retain_initrd_param(char *str)
+-static inline void set_wq_data(struct work_struct *work, void *wq)
++static void set_wq_data(struct work_struct *work, void *wq)
  {
+ 	unsigned long new, old, res;
+ 
+-	/* assume the pending flag is already set and that the task has already
+-	 * been queued on this workqueue */
++	/*
++	 * Assume the pending flag is already set and that the task has already
++	 * been queued on this workqueue
++	 */
+ 	new = (unsigned long) wq | (1UL << WORK_STRUCT_PENDING);
+ 	res = work->management;
+ 	if (res != new) {
+@@ -745,4 +747,3 @@ void init_workqueues(void)
+ 	keventd_wq = create_workqueue("events");
+ 	BUG_ON(!keventd_wq);
+ }
+-
+diff -puN include/linux/workqueue.h~workqueue-tweaks include/linux/workqueue.h
+--- a/include/linux/workqueue.h~workqueue-tweaks
++++ a/include/linux/workqueue.h
+@@ -187,7 +187,7 @@ static inline int cancel_delayed_work(st
+ 
+ 	ret = del_timer_sync(&work->timer);
+ 	if (ret)
+-		clear_bit(WORK_STRUCT_PENDING, &work->work.management);
++		work_release(&work->work);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -284,4 +314,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 zeromap_pte_range-debug.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+bridge-avoid-using-noautorel-workqueues.patch
 
