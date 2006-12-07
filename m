@@ -1,195 +1,107 @@
 From: akpm@osdl.org
-Subject: - add-ignore_loglevel-boot-option.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:17:21 -0800
-Message-ID: <200612072317.kB7NHLuZ030917@shell0.pdx.osdl.net>
+Subject: - aio-remove-ki_retried-debugging-member.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:17:11 -0800
+Message-ID: <200612072317.kB7NHBqW030905@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53829 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53841 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163860AbWLGXRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:17:30 -0500
+	id S1163830AbWLGXRc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:17:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: bcrl@kvack.org, kenneth.w.chen@intel.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add ignore_loglevel boot option
+     aio: remove ki_retried debugging member
 has been removed from the -mm tree.  Its filename was
-     add-ignore_loglevel-boot-option.patch
+     aio-remove-ki_retried-debugging-member.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add ignore_loglevel boot option
-From: Ingo Molnar <mingo@elte.hu>
+Subject: aio: remove ki_retried debugging member
+From: Benjamin LaHaise <bcrl@kvack.org>
 
-Sometimes the kernel prints something interesting while userspace bootup
-keeps messages turned off via loglevel.  Enable the printing of /all/
-kernel messages via the "ignore_loglevel" boot option.  Off by default.
+Remove the ki_retried member from struct kiocb.  I think the idea was
+bounced around a while back, but Arnaldo pointed out another reason that we
+should dig it up when he pointed out that the last cacheline of struct
+kiocb only contains 4 bytes.  By removing the debugging member, we save
+more than the 8 byte on 64 bit machines.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
+Acked-by: Ken Chen <kenneth.w.chen@intel.com>
+Acked-by: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/kernel-parameters.txt |    4 ++++
- kernel/printk.c                     |   14 +++++++++++++-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ fs/aio.c            |   15 ---------------
+ include/linux/aio.h |    2 --
+ 2 files changed, 17 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~add-ignore_loglevel-boot-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~add-ignore_loglevel-boot-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -650,6 +650,10 @@ and is between 256 and 4096 characters. 
- 	idle=		[HW]
- 			Format: idle=poll or idle=halt
+diff -puN fs/aio.c~aio-remove-ki_retried-debugging-member fs/aio.c
+--- a/fs/aio.c~aio-remove-ki_retried-debugging-member
++++ a/fs/aio.c
+@@ -666,17 +666,6 @@ static ssize_t aio_run_iocb(struct kiocb
+ 	ssize_t (*retry)(struct kiocb *);
+ 	ssize_t ret;
  
-+	ignore_loglevel	[KNL]
-+			Ignore loglevel setting - this will print /all/
-+			kernel messages to the console. Useful for debugging.
-+
- 	ihash_entries=	[KNL]
- 			Set number of hash buckets for inode cache.
+-	if (iocb->ki_retried++ > 1024*1024) {
+-		printk("Maximal retry count.  Bytes done %Zd\n",
+-			iocb->ki_nbytes - iocb->ki_left);
+-		return -EAGAIN;
+-	}
+-
+-	if (!(iocb->ki_retried & 0xff)) {
+-		pr_debug("%ld retry: %zd of %zd\n", iocb->ki_retried,
+-			iocb->ki_nbytes - iocb->ki_left, iocb->ki_nbytes);
+-	}
+-
+ 	if (!(retry = iocb->ki_retry)) {
+ 		printk("aio_run_iocb: iocb->ki_retry = NULL\n");
+ 		return 0;
+@@ -1005,9 +994,6 @@ int fastcall aio_complete(struct kiocb *
+ 	kunmap_atomic(ring, KM_IRQ1);
  
-diff -puN kernel/printk.c~add-ignore_loglevel-boot-option kernel/printk.c
---- a/kernel/printk.c~add-ignore_loglevel-boot-option
-+++ a/kernel/printk.c
-@@ -333,13 +333,25 @@ static void __call_console_drivers(unsig
- 	}
- }
+ 	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
+-
+-	pr_debug("%ld retries: %zd of %zd\n", iocb->ki_retried,
+-		iocb->ki_nbytes - iocb->ki_left, iocb->ki_nbytes);
+ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	ret = __aio_put_req(ctx, iocb);
+@@ -1590,7 +1576,6 @@ int fastcall io_submit_one(struct kioctx
+ 	req->ki_opcode = iocb->aio_lio_opcode;
+ 	init_waitqueue_func_entry(&req->ki_wait, aio_wake_function);
+ 	INIT_LIST_HEAD(&req->ki_wait.task_list);
+-	req->ki_retried = 0;
  
-+static int __read_mostly ignore_loglevel;
-+
-+int __init ignore_loglevel_setup(char *str)
-+{
-+	ignore_loglevel = 1;
-+	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
-+
-+	return 1;
-+}
-+
-+__setup("ignore_loglevel", ignore_loglevel_setup);
-+
- /*
-  * Write out chars from start to end - 1 inclusive
-  */
- static void _call_console_drivers(unsigned long start,
- 				unsigned long end, int msg_log_level)
- {
--	if (msg_log_level < console_loglevel &&
-+	if ((msg_log_level < console_loglevel || ignore_loglevel) &&
- 			console_drivers && start != end) {
- 		if ((start & LOG_BUF_MASK) > (end & LOG_BUF_MASK)) {
- 			/* wrapped write */
+ 	ret = aio_setup_iocb(req);
+ 
+diff -puN include/linux/aio.h~aio-remove-ki_retried-debugging-member include/linux/aio.h
+--- a/include/linux/aio.h~aio-remove-ki_retried-debugging-member
++++ a/include/linux/aio.h
+@@ -111,7 +111,6 @@ struct kiocb {
+ 	size_t			ki_nbytes; 	/* copy of iocb->aio_nbytes */
+ 	char 			__user *ki_buf;	/* remaining iocb->aio_buf */
+ 	size_t			ki_left; 	/* remaining bytes */
+-	long			ki_retried; 	/* just for testing */
+ 	struct iovec		ki_inline_vec;	/* inline vector */
+  	struct iovec		*ki_iovec;
+  	unsigned long		ki_nr_segs;
+@@ -238,7 +237,6 @@ do {									\
+ } while (0)
+ 
+ #define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
+-#define is_retried_kiocb(iocb) ((iocb)->ki_retried > 1)
+ 
+ #include <linux/aio_abi.h>
+ 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from bcrl@kvack.org are
 
 origin.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
-time-re-add-verify_pmtmr_rate.patch
-debug-add-sysrq_always_enabled-boot-option.patch
-lockdep-filter-off-by-default.patch
-lockdep-improve-verbose-messages.patch
-lockdep-improve-lockdep_reset.patch
-lockdep-clean-up-very_verbose-define.patch
-lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
-lockdep-print-irq-trace-info-on-asserts.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-remove-the-old-bd_mutex-lockdep-annotation.patch
-new-bd_mutex-lockdep-annotation.patch
-remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
-simplify-some-aspects-of-bd_mutex-nesting.patch
-use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
-avoid-lockdep-warning-in-md.patch
-fix-generic-warn_on-message.patch
-schedc-correct-comment-for-this_rq_lock-routine.patch
-sched-fix-migration-cost-estimator.patch
-sched-domain-move-sched-group-allocations-to-percpu-area.patch
-move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
-sched-domain-increase-the-smt-busy-rebalance-interval.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-sched-improve-migration-accuracy.patch
-sched-improve-migration-accuracy-tidy.patch
-sched-decrease-number-of-load-balances.patch
-sched-remove-lb_stopbalance-counter.patch
-sched-optimize-activate_task-for-rt-task.patch
-kernel-schedc-whitespace-cleanups.patch
-kernel-schedc-whitespace-cleanups-more.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-time-uninline-jiffiesh.patch
-time-uninline-jiffiesh-fix.patch
-time-fix-msecs_to_jiffies-bug.patch
-time-fix-timeout-overflow.patch
-cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-hrtimers-clean-up-callback-tracking.patch
-updated-hrtimers-move-and-add-documentation.patch
-updated-add-a-framework-to-manage-clock-event-devices.patch
-updated-acpi-include-apich.patch
-updated-acpi-keep-track-of-timer-broadcast.patch
-updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-updated-i386-cleanup-apic-code.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
-updated-i386-rework-local-apic-calibration.patch
-updated-high-res-timers-core.patch
-updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-high-res-timers-utilize-tsc-clocksource-again.patch
-high-res-timers-utilize-tsc-clocksource-again-fix.patch
-updated-dynticks-core-code.patch
-updated-dynticks-core-code-fix-resume-bug.patch
-updated-dyntick-add-nohz-stats-to-proc-stat.patch
-updated-dynticks-i386-arch-code.patch
-updated-dynticks-fix-nmi-watchdog.patch
-updated-high-res-timers-dynticks-enable-i386-support.patch
-updated-debugging-feature-timer-stats.patch
-clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
-round_jiffies-infrastructure.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-add-usage-of-config_sysfs.patch
-clocksource-small-cleanup-2.patch
-clocksource-small-cleanup-2-fix.patch
-clocksource-small-acpi_pm-cleanup.patch
-kvm-amd-svm-implementation-more-i386-fixes.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 
