@@ -1,163 +1,323 @@
 From: akpm@osdl.org
-Subject: - retries-in-ext4_prepare_write-violate-ordering-requirements.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:04:52 -0800
-Message-ID: <200612072304.kB7N4qX3030092__46509.1902566657$1165532767$gmane$org@shell0.pdx.osdl.net>
+Subject: - kprobes-enable-booster-on-the-preemptible-kernel.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:05:24 -0800
+Message-ID: <200612072305.kB7N5OSW030153@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52435 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52553 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163674AbWLGXFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:05:34 -0500
+	id S1163777AbWLGXFs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:05:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: saw@sw.ru, dev@openvz.org, kenneth.w.chen@intel.com, linux-ext4@vger.kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: masami.hiramatsu.pt@hitachi.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, bibo.mao@intel.com, haoki@redhat.com, mingo@elte.hu, prasanna@in.ibm.com, soshima@redhat.com, yumiko.sugita.yf@hitachi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     retries in ext4_prepare_write() violate ordering requirements
+     kprobes: enable booster on the preemptible kernel
 has been removed from the -mm tree.  Its filename was
-     retries-in-ext4_prepare_write-violate-ordering-requirements.patch
+     kprobes-enable-booster-on-the-preemptible-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: retries in ext4_prepare_write() violate ordering requirements
-From: Andrey Savochkin <saw@sw.ru>
+Subject: kprobes: enable booster on the preemptible kernel
+From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
 
-In journal=ordered or journal=data mode retry in ext4_prepare_write()
-breaks the requirements of journaling of data with respect to metadata. 
-The fix is to call commit_write to commit allocated zero blocks before
-retry.
+When we are unregistering a kprobe-booster, we can't release its
+instruction buffer immediately on the preemptive kernel, because some
+processes might be preempted on the buffer.  The freeze_processes() and
+thaw_processes() functions can clean most of processes up from the buffer. 
+There are still some non-frozen threads who have the PF_NOFREEZE flag.  If
+those threads are sleeping (not preempted) at the known place outside the
+buffer, we can ensure safety of freeing.
 
-Signed-off-by: Kirill Korotaev <dev@openvz.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ken Chen <kenneth.w.chen@intel.com>
-Cc: <linux-ext4@vger.kernel.org>
+However, the processing of this check routine takes a long time.  So, this
+patch introduces the garbage collection mechanism of insn_slot.  It also
+introduces the "dirty" flag to free_insn_slot because of efficiency.
+
+The "clean" instruction slots (dirty flag is cleared) are released
+immediately.  But the "dirty" slots which are used by boosted kprobes, are
+marked as garbages.  collect_garbage_slots() will be invoked to release
+"dirty" slots if there are more than INSNS_PER_PAGE garbage slots or if
+there are no unused slots.
+
+Cc: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: "bibo,mao" <bibo.mao@intel.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Yumiko Sugita <yumiko.sugita.yf@hitachi.com>
+Cc: Satoshi Oshima <soshima@redhat.com>
+Cc: Hideo Aoki <haoki@redhat.com>
+Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext4/inode.c |   85 ++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 75 insertions(+), 10 deletions(-)
+ arch/i386/kernel/kprobes.c    |    4 -
+ arch/ia64/kernel/kprobes.c    |    2 
+ arch/powerpc/kernel/kprobes.c |    2 
+ arch/s390/kernel/kprobes.c    |    2 
+ arch/x86_64/kernel/kprobes.c  |    2 
+ include/linux/kprobes.h       |    2 
+ kernel/kprobes.c              |  117 ++++++++++++++++++++++++++------
+ 7 files changed, 103 insertions(+), 28 deletions(-)
 
-diff -puN fs/ext4/inode.c~retries-in-ext4_prepare_write-violate-ordering-requirements fs/ext4/inode.c
---- a/fs/ext4/inode.c~retries-in-ext4_prepare_write-violate-ordering-requirements
-+++ a/fs/ext4/inode.c
-@@ -1147,37 +1147,102 @@ static int do_journal_get_write_access(h
- 	return ext4_journal_get_write_access(handle, bh);
+diff -puN arch/i386/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/i386/kernel/kprobes.c
+--- a/arch/i386/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
++++ a/arch/i386/kernel/kprobes.c
+@@ -184,7 +184,7 @@ void __kprobes arch_disarm_kprobe(struct
+ void __kprobes arch_remove_kprobe(struct kprobe *p)
+ {
+ 	mutex_lock(&kprobe_mutex);
+-	free_insn_slot(p->ainsn.insn);
++	free_insn_slot(p->ainsn.insn, (p->ainsn.boostable == 1));
+ 	mutex_unlock(&kprobe_mutex);
  }
  
-+/*
-+ * The idea of this helper function is following:
-+ * if prepare_write has allocated some blocks, but not all of them, the
-+ * transaction must include the content of the newly allocated blocks.
-+ * This content is expected to be set to zeroes by block_prepare_write().
-+ * 2006/10/14  SAW
-+ */
-+static int ext4_prepare_failure(struct file *file, struct page *page,
-+				unsigned from, unsigned to)
+@@ -333,7 +333,7 @@ static int __kprobes kprobe_handler(stru
+ 		return 1;
+ 
+ ss_probe:
+-#ifndef CONFIG_PREEMPT
++#if !defined(CONFIG_PREEMPT) || defined(CONFIG_PM)
+ 	if (p->ainsn.boostable == 1 && !p->post_handler){
+ 		/* Boost up -- we can execute copied instructions directly */
+ 		reset_current_kprobe();
+diff -puN arch/ia64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
++++ a/arch/ia64/kernel/kprobes.c
+@@ -481,7 +481,7 @@ void __kprobes arch_disarm_kprobe(struct
+ void __kprobes arch_remove_kprobe(struct kprobe *p)
+ {
+ 	mutex_lock(&kprobe_mutex);
+-	free_insn_slot(p->ainsn.insn);
++	free_insn_slot(p->ainsn.insn, 0);
+ 	mutex_unlock(&kprobe_mutex);
+ }
+ /*
+diff -puN arch/powerpc/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
++++ a/arch/powerpc/kernel/kprobes.c
+@@ -85,7 +85,7 @@ void __kprobes arch_disarm_kprobe(struct
+ void __kprobes arch_remove_kprobe(struct kprobe *p)
+ {
+ 	mutex_lock(&kprobe_mutex);
+-	free_insn_slot(p->ainsn.insn);
++	free_insn_slot(p->ainsn.insn, 0);
+ 	mutex_unlock(&kprobe_mutex);
+ }
+ 
+diff -puN arch/s390/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/s390/kernel/kprobes.c
+--- a/arch/s390/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
++++ a/arch/s390/kernel/kprobes.c
+@@ -200,7 +200,7 @@ void __kprobes arch_disarm_kprobe(struct
+ void __kprobes arch_remove_kprobe(struct kprobe *p)
+ {
+ 	mutex_lock(&kprobe_mutex);
+-	free_insn_slot(p->ainsn.insn);
++	free_insn_slot(p->ainsn.insn, 0);
+ 	mutex_unlock(&kprobe_mutex);
+ }
+ 
+diff -puN arch/x86_64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/x86_64/kernel/kprobes.c
+--- a/arch/x86_64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
++++ a/arch/x86_64/kernel/kprobes.c
+@@ -224,7 +224,7 @@ void __kprobes arch_disarm_kprobe(struct
+ void __kprobes arch_remove_kprobe(struct kprobe *p)
+ {
+ 	mutex_lock(&kprobe_mutex);
+-	free_insn_slot(p->ainsn.insn);
++	free_insn_slot(p->ainsn.insn, 0);
+ 	mutex_unlock(&kprobe_mutex);
+ }
+ 
+diff -puN include/linux/kprobes.h~kprobes-enable-booster-on-the-preemptible-kernel include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-enable-booster-on-the-preemptible-kernel
++++ a/include/linux/kprobes.h
+@@ -165,7 +165,7 @@ extern void arch_disarm_kprobe(struct kp
+ extern int arch_init_kprobes(void);
+ extern void show_registers(struct pt_regs *regs);
+ extern kprobe_opcode_t *get_insn_slot(void);
+-extern void free_insn_slot(kprobe_opcode_t *slot);
++extern void free_insn_slot(kprobe_opcode_t *slot, int dirty);
+ extern void kprobes_inc_nmissed_count(struct kprobe *p);
+ 
+ /* Get the kprobe at this addr (if any) - called with preemption disabled */
+diff -puN kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
++++ a/kernel/kprobes.c
+@@ -38,6 +38,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleloader.h>
+ #include <linux/kallsyms.h>
++#include <linux/freezer.h>
+ #include <asm-generic/sections.h>
+ #include <asm/cacheflush.h>
+ #include <asm/errno.h>
+@@ -83,9 +84,36 @@ struct kprobe_insn_page {
+ 	kprobe_opcode_t *insns;		/* Page of instruction slots */
+ 	char slot_used[INSNS_PER_PAGE];
+ 	int nused;
++	int ngarbage;
+ };
+ 
+ static struct hlist_head kprobe_insn_pages;
++static int kprobe_garbage_slots;
++static int collect_garbage_slots(void);
++
++static int __kprobes check_safety(void)
 +{
-+	struct address_space *mapping;
-+	struct buffer_head *bh, *head, *next;
-+	unsigned block_start, block_end;
-+	unsigned blocksize;
-+	int ret;
-+	handle_t *handle = ext4_journal_current_handle();
-+
-+	mapping = page->mapping;
-+	if (ext4_should_writeback_data(mapping->host)) {
-+		/* optimization: no constraints about data */
-+skip:
-+		return ext4_journal_stop(handle);
-+	}
-+
-+	head = page_buffers(page);
-+	blocksize = head->b_size;
-+	for (	bh = head, block_start = 0;
-+		bh != head || !block_start;
-+	    	block_start = block_end, bh = next)
-+	{
-+		next = bh->b_this_page;
-+		block_end = block_start + blocksize;
-+		if (block_end <= from)
-+			continue;
-+		if (block_start >= to) {
-+			block_start = to;
-+			break;
-+		}
-+		if (!buffer_mapped(bh))
-+		/* prepare_write failed on this bh */
-+			break;
-+		if (ext4_should_journal_data(mapping->host)) {
-+			ret = do_journal_get_write_access(handle, bh);
-+			if (ret) {
-+				ext4_journal_stop(handle);
-+				return ret;
++	int ret = 0;
++#if defined(CONFIG_PREEMPT) && defined(CONFIG_PM)
++	ret = freeze_processes();
++	if (ret == 0) {
++		struct task_struct *p, *q;
++		do_each_thread(p, q) {
++			if (p != current && p->state == TASK_RUNNING &&
++			    p->pid != 0) {
++				printk("Check failed: %s is running\n",p->comm);
++				ret = -1;
++				goto loop_end;
 +			}
-+		}
-+	/*
-+	 * block_start here becomes the first block where the current iteration
-+	 * of prepare_write failed.
-+	 */
++		} while_each_thread(p, q);
 +	}
-+	if (block_start <= from)
-+		goto skip;
-+
-+	/* commit allocated and zeroed buffers */
-+	return mapping->a_ops->commit_write(file, page, from, block_start);
++loop_end:
++	thaw_processes();
++#else
++	synchronize_sched();
++#endif
++	return ret;
++}
+ 
+ /**
+  * get_insn_slot() - Find a slot on an executable page for an instruction.
+@@ -96,6 +124,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
+ 	struct kprobe_insn_page *kip;
+ 	struct hlist_node *pos;
+ 
++      retry:
+ 	hlist_for_each(pos, &kprobe_insn_pages) {
+ 		kip = hlist_entry(pos, struct kprobe_insn_page, hlist);
+ 		if (kip->nused < INSNS_PER_PAGE) {
+@@ -112,7 +141,11 @@ kprobe_opcode_t __kprobes *get_insn_slot
+ 		}
+ 	}
+ 
+-	/* All out of space.  Need to allocate a new page. Use slot 0.*/
++	/* If there are any garbage slots, collect it and try again. */
++	if (kprobe_garbage_slots && collect_garbage_slots() == 0) {
++		goto retry;
++	}
++	/* All out of space.  Need to allocate a new page. Use slot 0. */
+ 	kip = kmalloc(sizeof(struct kprobe_insn_page), GFP_KERNEL);
+ 	if (!kip) {
+ 		return NULL;
+@@ -133,10 +166,62 @@ kprobe_opcode_t __kprobes *get_insn_slot
+ 	memset(kip->slot_used, 0, INSNS_PER_PAGE);
+ 	kip->slot_used[0] = 1;
+ 	kip->nused = 1;
++	kip->ngarbage = 0;
+ 	return kip->insns;
+ }
+ 
+-void __kprobes free_insn_slot(kprobe_opcode_t *slot)
++/* Return 1 if all garbages are collected, otherwise 0. */
++static int __kprobes collect_one_slot(struct kprobe_insn_page *kip, int idx)
++{
++	kip->slot_used[idx] = 0;
++	kip->nused--;
++	if (kip->nused == 0) {
++		/*
++		 * Page is no longer in use.  Free it unless
++		 * it's the last one.  We keep the last one
++		 * so as not to have to set it up again the
++		 * next time somebody inserts a probe.
++		 */
++		hlist_del(&kip->hlist);
++		if (hlist_empty(&kprobe_insn_pages)) {
++			INIT_HLIST_NODE(&kip->hlist);
++			hlist_add_head(&kip->hlist,
++				       &kprobe_insn_pages);
++		} else {
++			module_free(NULL, kip->insns);
++			kfree(kip);
++		}
++		return 1;
++	}
++	return 0;
 +}
 +
- static int ext4_prepare_write(struct file *file, struct page *page,
- 			      unsigned from, unsigned to)
- {
- 	struct inode *inode = page->mapping->host;
--	int ret, needed_blocks = ext4_writepage_trans_blocks(inode);
-+	int ret, ret2;
-+	int needed_blocks = ext4_writepage_trans_blocks(inode);
- 	handle_t *handle;
- 	int retries = 0;
- 
- retry:
- 	handle = ext4_journal_start(inode, needed_blocks);
--	if (IS_ERR(handle)) {
--		ret = PTR_ERR(handle);
--		goto out;
--	}
-+	if (IS_ERR(handle))
-+		return PTR_ERR(handle);
- 	if (test_opt(inode->i_sb, NOBH) && ext4_should_writeback_data(inode))
- 		ret = nobh_prepare_write(page, from, to, ext4_get_block);
- 	else
- 		ret = block_prepare_write(page, from, to, ext4_get_block);
- 	if (ret)
--		goto prepare_write_failed;
-+		goto failure;
- 
- 	if (ext4_should_journal_data(inode)) {
- 		ret = walk_page_buffers(handle, page_buffers(page),
- 				from, to, NULL, do_journal_get_write_access);
-+		if (ret)
-+			/* fatal error, just put the handle and return */
-+			journal_stop(handle);
- 	}
--prepare_write_failed:
--	if (ret)
--		ext4_journal_stop(handle);
-+	return ret;
++static int __kprobes collect_garbage_slots(void)
++{
++	struct kprobe_insn_page *kip;
++	struct hlist_node *pos, *next;
 +
-+failure:
-+	ret2 = ext4_prepare_failure(file, page, from, to);
-+	if (ret2 < 0)
-+		return ret2;
- 	if (ret == -ENOSPC && ext4_should_retry_alloc(inode->i_sb, &retries))
- 		goto retry;
--out:
-+	/* retry number exceeded, or other error like -EDQUOT */
- 	return ret;
++	/* Ensure no-one is preepmted on the garbages */
++	if (check_safety() != 0)
++		return -EAGAIN;
++
++	hlist_for_each_safe(pos, next, &kprobe_insn_pages) {
++		int i;
++		kip = hlist_entry(pos, struct kprobe_insn_page, hlist);
++		if (kip->ngarbage == 0)
++			continue;
++		kip->ngarbage = 0;	/* we will collect all garbages */
++		for (i = 0; i < INSNS_PER_PAGE; i++) {
++			if (kip->slot_used[i] == -1 &&
++			    collect_one_slot(kip, i))
++				break;
++		}
++	}
++	kprobe_garbage_slots = 0;
++	return 0;
++}
++
++void __kprobes free_insn_slot(kprobe_opcode_t * slot, int dirty)
+ {
+ 	struct kprobe_insn_page *kip;
+ 	struct hlist_node *pos;
+@@ -146,28 +231,18 @@ void __kprobes free_insn_slot(kprobe_opc
+ 		if (kip->insns <= slot &&
+ 		    slot < kip->insns + (INSNS_PER_PAGE * MAX_INSN_SIZE)) {
+ 			int i = (slot - kip->insns) / MAX_INSN_SIZE;
+-			kip->slot_used[i] = 0;
+-			kip->nused--;
+-			if (kip->nused == 0) {
+-				/*
+-				 * Page is no longer in use.  Free it unless
+-				 * it's the last one.  We keep the last one
+-				 * so as not to have to set it up again the
+-				 * next time somebody inserts a probe.
+-				 */
+-				hlist_del(&kip->hlist);
+-				if (hlist_empty(&kprobe_insn_pages)) {
+-					INIT_HLIST_NODE(&kip->hlist);
+-					hlist_add_head(&kip->hlist,
+-						&kprobe_insn_pages);
+-				} else {
+-					module_free(NULL, kip->insns);
+-					kfree(kip);
+-				}
++			if (dirty) {
++				kip->slot_used[i] = -1;
++				kip->ngarbage++;
++			} else {
++				collect_one_slot(kip, i);
+ 			}
+-			return;
++			break;
+ 		}
+ 	}
++	if (dirty && (++kprobe_garbage_slots > INSNS_PER_PAGE)) {
++		collect_garbage_slots();
++	}
  }
+ #endif
  
 _
 
-Patches currently in -mm which might be from saw@sw.ru are
+Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
 
 origin.patch
 
