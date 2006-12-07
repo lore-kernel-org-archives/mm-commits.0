@@ -1,65 +1,53 @@
 From: akpm@osdl.org
-Subject: - make-8250_pnp-serial-driver-work-after-tidy.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:37:28 -0800
-Message-ID: <200612070337.kB73bTNY027570@shell0.pdx.osdl.net>
+Subject: - ext4-balloc-fix-_with_rsv-freeze-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:36:28 -0800
+Message-ID: <200612070336.kB73aSTf027538@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43177 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43193 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968059AbWLGDiI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:38:08 -0500
+	id S968128AbWLGDiU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:38:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, efault@gmx.de, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@osdl.org, cmm@us.ibm.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-8250_pnp-serial-driver-work-after-tidy
+     ext4-balloc-fix-_with_rsv-freeze-fix
 has been removed from the -mm tree.  Its filename was
-     make-8250_pnp-serial-driver-work-after-tidy.patch
+     ext4-balloc-fix-_with_rsv-freeze-fix.patch
 
-This patch was dropped because it was folded into make-8250_pnp-serial-driver-work-after.patch
+This patch was dropped because it was folded into ext4-balloc-fix-_with_rsv-freeze.patch
 
 ------------------------------------------------------
-Subject: make-8250_pnp-serial-driver-work-after-tidy
+Subject: ext4-balloc-fix-_with_rsv-freeze-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Mike Galbraith <efault@gmx.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+fs/ext4/balloc.c: In function 'find_next_usable_block':
+fs/ext4/balloc.c:750: warning: suggest parentheses around + or - inside shift
+fs/ext4/balloc.c:750: error: syntax error before ';' token
+
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/8250_pnp.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ fs/ext4/balloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pnp.c~make-8250_pnp-serial-driver-work-after-tidy drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~make-8250_pnp-serial-driver-work-after-tidy
-+++ a/drivers/serial/8250_pnp.c
-@@ -484,17 +484,17 @@ static int serial_pnp_resume(struct pnp_
- 	serial8250_resume_port(line - 1);
- 	return 0;
- }
--
-+#else
-+#define serial_pnp_suspend NULL
-+#define serial_pnp_resume NULL
- #endif /* CONFIG_PM */
+diff -puN fs/ext4/balloc.c~ext4-balloc-fix-_with_rsv-freeze-fix fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-balloc-fix-_with_rsv-freeze-fix
++++ a/fs/ext4/balloc.c
+@@ -747,7 +747,7 @@ find_next_usable_block(ext4_grpblk_t sta
+ 		here = 0;
  
- static struct pnp_driver serial_pnp_driver = {
- 	.name		= "serial",
- 	.probe		= serial_pnp_probe,
- 	.remove		= __devexit_p(serial_pnp_remove),
--#ifdef CONFIG_PM
- 	.suspend	= serial_pnp_suspend,
- 	.resume		= serial_pnp_resume,
--#endif
- 	.id_table	= pnp_dev_table,
- };
+ 	p = ((char *)bh->b_data) + (here >> 3);
+-	r = memscan(p, 0, ((maxblocks + 7) >> 3 - (here >> 3));
++	r = memscan(p, 0, ((maxblocks + 7) >> 3) - (here >> 3));
+ 	next = (r - ((char *)bh->b_data)) << 3;
  
+ 	if (next < maxblocks && next >= start && ext4_test_allocatable(next, bh))
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -102,8 +90,8 @@ add-return-value-checking-of-get_user-in.patch
 handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
 dz-fixes-to-make-it-work.patch
 ext4-balloc-fix-_with_rsv-freeze.patch
-ide_scsi-allow-it-to-be-used-for-non-cd-only.patch
-make-8250_pnp-serial-driver-work-after.patch
+ext4-balloc-fix-_with_rsv-freeze-fix.patch
+ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
 make-8250_pnp-serial-driver-work-after-tidy.patch
 gcc-4-1-0-is-bust.patch
 cleanup-include-asm-generic-atomich-fix.patch
