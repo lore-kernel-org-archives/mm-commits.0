@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fault-injection-correct-disambiguate-and.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:23:06 -0800
-Message-ID: <200612072023.kB7KN6RZ024365@shell0.pdx.osdl.net>
+Subject: + fault-injection-optimize-and-simplify.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:23:12 -0800
+Message-ID: <200612072023.kB7KNCIM024374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35863 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35865 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163283AbWLGUX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:23:28 -0500
+	id S1163285AbWLGUX3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:23:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,197 +15,60 @@ Cc: dwm@meer.net, akinobu.mita@gmail.com
 
 
 The patch titled
-     fault-injection: Correct, disambiguate, and reformat documentation
+     fault-injection: optimize and simplify should_fail()
 has been added to the -mm tree.  Its filename is
-     fault-injection-correct-disambiguate-and.patch
+     fault-injection-optimize-and-simplify.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fault-injection: Correct, disambiguate, and reformat documentation
+Subject: fault-injection: optimize and simplify should_fail()
 From: Don Mullis <dwm@meer.net>
 
-Correct, disambiguate, and reformat documentation.
+Trivial optimization and simplification of should_fail().
+
+Do cheaper disqualification tests first (performance gain not quantified). 
+Simplify logic; eliminate goto.
 
 Signed-off-by: Don Mullis <dwm@meer.net>
 Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/fault-injection/failmodule.sh       |    4 
- Documentation/fault-injection/fault-injection.txt |   70 ++++++------
- 2 files changed, 37 insertions(+), 37 deletions(-)
+ lib/fault-inject.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/fault-injection/failmodule.sh~fault-injection-correct-disambiguate-and Documentation/fault-injection/failmodule.sh
---- a/Documentation/fault-injection/failmodule.sh~fault-injection-correct-disambiguate-and
-+++ a/Documentation/fault-injection/failmodule.sh
-@@ -26,6 +26,6 @@ fi
- # Disable any fault injection
- echo 0 > /debug/$1/stacktrace-depth
+diff -puN lib/fault-inject.c~fault-injection-optimize-and-simplify lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-injection-optimize-and-simplify
++++ a/lib/fault-inject.c
+@@ -142,9 +142,6 @@ bool should_fail(struct fault_attr *attr
+ 	if (attr->task_filter && !fail_task(attr, current))
+ 		return false;
  
--echo `cat /sys/module/$2/sections/.text` > /debug/$1/address-start
--echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/address-end
-+echo `cat /sys/module/$2/sections/.text` > /debug/$1/require-start
-+echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/require-end
- echo $STACKTRACE_DEPTH > /debug/$1/stacktrace-depth
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-correct-disambiguate-and Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-correct-disambiguate-and
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -17,7 +17,7 @@ o fail_page_alloc
+-	if (!fail_stacktrace(attr))
+-		return false;
+-
+ 	if (atomic_read(&attr->times) == 0)
+ 		return false;
  
- o fail_make_request
+@@ -159,12 +156,12 @@ bool should_fail(struct fault_attr *attr
+ 			return false;
+ 	}
  
--  injects disk IO errors on permitted devices by
-+  injects disk IO errors on devices permitted by setting
-   /sys/block/<device>/make-it-fail or
-   /sys/block/<device>/<partition>/make-it-fail. (generic_make_request())
+-	if (attr->probability > random32() % 100)
+-		goto fail;
++	if (attr->probability <= random32() % 100)
++		return false;
  
-@@ -29,16 +29,16 @@ o debugfs entries
- fault-inject-debugfs kernel module provides some debugfs entries for runtime
- configuration of fault-injection capabilities.
+-	return false;
++	if (!fail_stacktrace(attr))
++		return false;
  
--- /debug/*/probability:
-+- /debug/fail*/probability:
+-fail:
+ 	fail_dump(attr);
  
- 	likelihood of failure injection, in percent.
- 	Format: <percent>
- 
--	Note that one-failure-per-handred is a very high error rate
--	for some testcases. Please set probably=100 and configure
--	/debug/*/interval for such testcases.
-+	Note that one-failure-per-hundred is a very high error rate
-+	for some testcases.  Consider setting probability=100 and configure
-+	/debug/fail*/interval for such testcases.
- 
--- /debug/*/interval:
-+- /debug/fail*/interval:
- 
- 	specifies the interval between failures, for calls to
- 	should_fail() that pass all the other tests.
-@@ -46,37 +46,36 @@ configuration of fault-injection capabil
- 	Note that if you enable this, by setting interval>1, you will
- 	probably want to set probability=100.
- 
--- /debug/*/times:
-+- /debug/fail*/times:
- 
- 	specifies how many times failures may happen at most.
- 	A value of -1 means "no limit".
- 
--- /debug/*/space:
-+- /debug/fail*/space:
- 
- 	specifies an initial resource "budget", decremented by "size"
- 	on each call to should_fail(,size).  Failure injection is
- 	suppressed until "space" reaches zero.
- 
--- /debug/*/verbose
-+- /debug/fail*/verbose
- 
- 	Format: { 0 | 1 | 2 }
--	specifies the verbosity of the messages when failure is injected.
--	We default to 0 (no extra messages), setting it to '1' will
--	print only to tell failure happened, '2' will print call trace too -
--	it is useful to debug the problems revealed by fault injection
--	capabilities.
-+	specifies the verbosity of the messages when failure is
-+	injected.  '0' means no messages; '1' will print only a single
-+	log line per failure; '2' will print a call trace too -- useful
-+	to debug the problems revealed by fault injection.
- 
--- /debug/*/task-filter:
-+- /debug/fail*/task-filter:
- 
--	Format: { 0 | 1 }
--	A value of '0' disables filtering by process (default).
-+	Format: { 'Y' | 'N' }
-+	A value of 'N' disables filtering by process (default).
- 	Any positive value limits failures to only processes indicated by
- 	/proc/<pid>/make-it-fail==1.
- 
--- /debug/*/require-start:
--- /debug/*/require-end:
--- /debug/*/reject-start:
--- /debug/*/reject-end:
-+- /debug/fail*/require-start:
-+- /debug/fail*/require-end:
-+- /debug/fail*/reject-start:
-+- /debug/fail*/reject-end:
- 
- 	specifies the range of virtual addresses tested during
- 	stacktrace walking.  Failure is injected only if some caller
-@@ -85,22 +84,23 @@ configuration of fault-injection capabil
- 	Default required range is [0,ULONG_MAX) (whole of virtual address space).
- 	Default rejected range is [0,0).
- 
--- /debug/*/stacktrace-depth:
-+- /debug/fail*/stacktrace-depth:
- 
- 	specifies the maximum stacktrace depth walked during search
--	for a caller within [address-start,address-end).
-+	for a caller within [require-start,require-end) OR
-+	[reject-start,reject-end).
- 
- - /debug/fail_page_alloc/ignore-gfp-highmem:
- 
--	Format: { 0 | 1 }
--	default is 0, setting it to '1' won't inject failures into
-+	Format: { 'Y' | 'N' }
-+	default is 'N', setting it to 'Y' won't inject failures into
- 	highmem/user allocations.
- 
- - /debug/failslab/ignore-gfp-wait:
- - /debug/fail_page_alloc/ignore-gfp-wait:
- 
--	Format: { 0 | 1 }
--	default is 0, setting it to '1' will inject failures
-+	Format: { 'Y' | 'N' }
-+	default is 'N', setting it to 'Y' will inject failures
- 	only into non-sleep allocations (GFP_ATOMIC allocations).
- 
- o Boot option
-@@ -124,22 +124,22 @@ o define the fault attributes
-   Please see the definition of struct fault_attr in fault-inject.h
-   for details.
- 
--o provide the way to configure fault attributes
-+o provide a way to configure fault attributes
- 
- - boot option
- 
-   If you need to enable the fault injection capability from boot time, you can
--  provide boot option to configure it. There is a helper function for it.
-+  provide boot option to configure it. There is a helper function for it:
- 
--  setup_fault_attr(attr, str);
-+	setup_fault_attr(attr, str);
- 
- - debugfs entries
- 
-   failslab, fail_page_alloc, and fail_make_request use this way.
--  There is a helper function for it.
-+  Helper functions:
- 
--  init_fault_attr_entries(entries, attr, name);
--  void cleanup_fault_attr_entries(entries);
-+	init_fault_attr_entries(entries, attr, name);
-+	void cleanup_fault_attr_entries(entries);
- 
- - module parameters
- 
-@@ -149,9 +149,9 @@ o provide the way to configure fault att
- 
- o add a hook to insert failures
- 
--  should_fail() returns 1 when failures should happen.
-+  Upon should_fail() returning true, client code should inject a failure.
- 
--	should_fail(attr,size);
-+	should_fail(attr, size);
- 
- Application Examples
- --------------------
+ 	if (atomic_read(&attr->times) != -1)
 _
 
 Patches currently in -mm which might be from dwm@meer.net are
