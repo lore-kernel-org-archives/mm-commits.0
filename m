@@ -1,93 +1,208 @@
 From: akpm@osdl.org
-Subject: - swsusp-improve-handling-of-highmem-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:17:21 -0800
-Message-ID: <200612070317.kB73HLK3027035@shell0.pdx.osdl.net>
+Subject: - add-include-linux-freezerh-and-move-definitions-from-ueagle-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:17:43 -0800
+Message-ID: <200612070317.kB73HhXJ027041@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41700 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41718 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967799AbWLGDR3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:17:29 -0500
+	id S967801AbWLGDR4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:17:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: akpm@osdl.org, nigel@suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swsusp-improve-handling-of-highmem fix
+     add-include-linux-freezerh-and-move-definitions-from-ueagle-fix
 has been removed from the -mm tree.  Its filename was
-     swsusp-improve-handling-of-highmem-fix.patch
+     add-include-linux-freezerh-and-move-definitions-from-ueagle-fix.patch
 
-This patch was dropped because it was folded into swsusp-improve-handling-of-highmem.patch
+This patch was dropped because it was folded into add-include-linux-freezerh-and-move-definitions-from.patch
 
 ------------------------------------------------------
-Subject: swsusp-improve-handling-of-highmem fix
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: add-include-linux-freezerh-and-move-definitions-from-ueagle-fix
+From: Andrew Morton <akpm@osdl.org>
 
-Fix swsusp to use image_size as documented on systems with lots of highmem.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Nigel Cunningham <nigel@suspend2.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/swsusp.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/atm/ueagle-atm.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/power/swsusp.c~swsusp-improve-handling-of-highmem-fix kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~swsusp-improve-handling-of-highmem-fix
-+++ a/kernel/power/swsusp.c
-@@ -195,6 +195,7 @@ int swsusp_shrink_memory(void)
- 		highmem_size = count_highmem_pages();
- 		size = count_data_pages() + PAGES_FOR_IO;
- 		tmp = size;
-+		size += highmem_size;
- 		for_each_zone (zone)
- 			if (populated_zone(zone)) {
- 				if (is_highmem(zone)) {
-@@ -209,7 +210,6 @@ int swsusp_shrink_memory(void)
- 		if (highmem_size < 0)
- 			highmem_size = 0;
+diff -puN drivers/usb/atm/ueagle-atm.c~add-include-linux-freezerh-and-move-definitions-from-ueagle-fix drivers/usb/atm/ueagle-atm.c
+--- a/drivers/usb/atm/ueagle-atm.c~add-include-linux-freezerh-and-move-definitions-from-ueagle-fix
++++ a/drivers/usb/atm/ueagle-atm.c
+@@ -64,6 +64,8 @@
+ #include <linux/kthread.h>
+ #include <linux/version.h>
+ #include <linux/mutex.h>
++#include <linux/freezer.h>
++
+ #include <asm/unaligned.h>
  
--		size += highmem_size;
- 		tmp += highmem_size;
- 		if (tmp > 0) {
- 			tmp = __shrink_memory(tmp);
+ #include "usbatm.h"
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-uswsusp-add-pmops-prepareenterfinish-support-aka-platform-mode.patch
-swsusp-use-partition-device-and-offset-to-identify-swap-areas.patch
-swsusp-rearrange-swap-handling-code.patch
-swsusp-use-block-device-offsets-to-identify-swap-locations-rev-2.patch
+origin.patch
+add-bottom_half.h.patch
+drm-sis-linkage-fix.patch
+uml-workqueue-build-fix.patch
+get-rid-of-zone_table.patch
+new-scheme-to-preempt-swap-token.patch
+balance_pdgat-cleanup.patch
+leak-tracking-for-kmalloc_node.patch
+add-numa-node-information-to-struct-device.patch
+slab-deprecate-kmem_cache-t.patch
+mm-make-compound-page-destructor-handling-explicit.patch
+radix-tree-rcu-lockless-readside.patch
 swsusp-add-resume_offset-command-line-parameter-rev-2.patch
-swsusp-document-support-for-swap-files-rev-2.patch
-swsusp-add-ioctl-for-swap-files-support.patch
-swsusp-update-userland-interface-documentation.patch
-swsusp-improve-handling-of-highmem.patch
-swsusp-improve-handling-of-highmem-fix.patch
-swsusp-use-__gfp_wait.patch
-swsusp-fix-platform-mode.patch
 add-include-linux-freezerh-and-move-definitions-from.patch
 add-include-linux-freezerh-and-move-definitions-from-ueagle-fix.patch
-quieten-freezer-if-config_pm_debug.patch
-swsusp-cleanup-whitespace-in-freezer-output.patch
-swsusp-thaw-userspace-and-kernel-space-separately.patch
-swsusp-support-i386-systems-with-pae-or-without-pse.patch
-suspend-dont-change-cpus_allowed-for-task-initiating-the-suspend.patch
-swsusp-measure-memory-shrinking-time.patch
-suspend-to-disk-fails-if-gdb-is-suspended-with-a-traced-child.patch
-convert-pm_sem-to-a-mutex.patch
 convert-pm_sem-to-a-mutex-fix.patch
-swsusp-untangle-thaw_processes.patch
-swsusp-untangle-freeze_processes.patch
-swsusp-fix-coding-style-in-suspendc.patch
-swsusp-fix-labels.patch
-pm-fix-swsusp-debug-mode-testproc.patch
-support-for-freezeable-workqueues.patch
-use-freezeable-workqueues-in-xfs.patch
-make-8250_pnp-serial-driver-work-after.patch
+cciss-set-sector_size-to-2048-for-performance-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+lockdep-annotate-nfs-nfsd-in-kernel-sockets-tidy.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+probe_kernel_address-needs-to-do-set_fs.patch
+slab-use-probe_kernel_address.patch
+exar-quad-port-serial-fix.patch
+vfs_getattr-remove-dead-code.patch
+ext3-uninline-large-functions.patch
+ext4-uninline-large-functions.patch
+sleep-profiling-fixes.patch
+sleep-profiling-fix.patch
+debug-workqueue-locking-sanity-fix.patch
+pcengines-wrap-led-support-fix.patch
+driver-base-memoryc-remove-warnings-of.patch
+remove-kernel-syscalls-x86_64-fix.patch
+protect-ext2-ioctl-modifying-append_only-immutable-etc-with-i_mutex.patch
+remove-hash_highmem.patch
+elf-fix-kcore-note-size-calculation-fix.patch
+reiserfs-add-missing-d-cache-flushing-tweak.patch
+smp_call_function_single-check-that-local-interrupts-are-enabled.patch
+hotplug-cpu-clean-up-hotcpu_notifier-use-vs-gregkh-driver-cpu-topology-consider-sysfs_create_group-return-value.patch
+add-return-value-checking-of-get_user-in-fix.patch
+handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
+dz-fixes-to-make-it-work-fix.patch
+ext4-balloc-fix-_with_rsv-freeze-fix.patch
+ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
 make-8250_pnp-serial-driver-work-after-tidy.patch
-md-change-lifetime-rules-for-md-devices.patch
+gcc-4-1-0-is-bust.patch
+cleanup-include-asm-generic-atomich-fix.patch
+struct-seq_operations-and-struct-file_operations-constification-fix.patch
+struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+bug-test-1.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
