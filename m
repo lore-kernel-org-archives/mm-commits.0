@@ -1,441 +1,98 @@
 From: akpm@osdl.org
-Subject: - ipmi-remove-interface-number-limits.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:17:29 -0800
-Message-ID: <200612072317.kB7NHTHG030930@shell0.pdx.osdl.net>
+Subject: - ipmi-fix-proc_fs=n-warnings.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:17:54 -0800
+Message-ID: <200612072317.kB7NHsaC030976@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53938 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53950 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163887AbWLGXSF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:18:05 -0500
+	id S1163886AbWLGXSL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:18:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minyard@acm.org, cah@us.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: remove interface number limits
+     IPMI: fix PROC_FS=n warnings
 has been removed from the -mm tree.  Its filename was
-     ipmi-remove-interface-number-limits.patch
+     ipmi-fix-proc_fs=n-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPMI: remove interface number limits
-From: Corey Minyard <minyard@acm.org>
+Subject: IPMI: fix PROC_FS=n warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Remove the arbitrary limit of number of IPMI interfaces.  This has been tested
-with 8 interfaces.
+Fix build warnings for PROC_FS=n.
 
-Signed-off-by: Corey Minyard <minyard@acm.org>
-Cc: Carol Hebert <cah@us.ibm.com>
+drivers/char/ipmi/ipmi_poweroff.c:707: warning: label 'out_err' defined but not used
+
+drivers/char/ipmi/ipmi_msghandler.c:1774: warning: 'ipmb_file_read_proc' defined but not used
+drivers/char/ipmi/ipmi_msghandler.c:1790: warning: 'version_file_read_proc' defined but not used
+drivers/char/ipmi/ipmi_msghandler.c:1801: warning: 'stat_file_read_proc' defined but not used
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |  210 ++++++++++++--------------
- 1 file changed, 97 insertions(+), 113 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |    2 ++
+ drivers/char/ipmi/ipmi_poweroff.c   |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-remove-interface-number-limits drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-remove-interface-number-limits
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-proc_fs=n-warnings drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-proc_fs=n-warnings
 +++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -193,6 +193,9 @@ struct ipmi_smi
- 
- 	struct kref refcount;
- 
-+	/* Used for a list of interfaces. */
-+	struct list_head link;
-+
- 	/* The list of upper layers that are using me.  seq_lock
- 	 * protects this. */
- 	struct list_head users;
-@@ -338,13 +341,6 @@ struct ipmi_smi
- };
- #define to_si_intf_from_dev(device) container_of(device, struct ipmi_smi, dev)
- 
--/* Used to mark an interface entry that cannot be used but is not a
-- * free entry, either, primarily used at creation and deletion time so
-- * a slot doesn't get reused too quickly. */
--#define IPMI_INVALID_INTERFACE_ENTRY ((ipmi_smi_t) ((long) 1))
--#define IPMI_INVALID_INTERFACE(i) (((i) == NULL) \
--				   || (i == IPMI_INVALID_INTERFACE_ENTRY))
--
- /**
-  * The driver model view of the IPMI messaging driver.
-  */
-@@ -354,11 +350,8 @@ static struct device_driver ipmidriver =
- };
- static DEFINE_MUTEX(ipmidriver_mutex);
- 
--#define MAX_IPMI_INTERFACES 4
--static ipmi_smi_t ipmi_interfaces[MAX_IPMI_INTERFACES];
--
--/* Directly protects the ipmi_interfaces data structure. */
--static DEFINE_SPINLOCK(interfaces_lock);
-+static struct list_head ipmi_interfaces = LIST_HEAD_INIT(ipmi_interfaces);
-+static DEFINE_MUTEX(ipmi_interfaces_mutex);
- 
- /* List of watchers that want to know when smi's are added and
-    deleted. */
-@@ -423,25 +416,50 @@ static void intf_free(struct kref *ref)
- 	kfree(intf);
+@@ -1769,6 +1769,7 @@ int ipmi_request_supply_msgs(ipmi_user_t
+ 			      -1, 0);
  }
  
-+struct watcher_entry {
-+	struct list_head link;
-+	int intf_num;
-+};
-+
- int ipmi_smi_watcher_register(struct ipmi_smi_watcher *watcher)
++#ifdef CONFIG_PROC_FS
+ static int ipmb_file_read_proc(char *page, char **start, off_t off,
+ 			       int count, int *eof, void *data)
  {
--	int           i;
--	unsigned long flags;
-+	ipmi_smi_t intf;
-+	struct list_head to_deliver = LIST_HEAD_INIT(to_deliver);
-+	struct watcher_entry *e, *e2;
-+
-+	mutex_lock(&ipmi_interfaces_mutex);
-+
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
-+		if (intf->intf_num == -1)
-+			continue;
-+		e = kmalloc(sizeof(*e), GFP_KERNEL);
-+		if (!e)
-+			goto out_err;
-+		e->intf_num = intf->intf_num;
-+		list_add_tail(&e->link, &to_deliver);
-+	}
+@@ -1857,6 +1858,7 @@ static int stat_file_read_proc(char *pag
  
- 	down_write(&smi_watchers_sem);
- 	list_add(&(watcher->link), &smi_watchers);
- 	up_write(&smi_watchers_sem);
--	spin_lock_irqsave(&interfaces_lock, flags);
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
--		ipmi_smi_t intf = ipmi_interfaces[i];
--		if (IPMI_INVALID_INTERFACE(intf))
--			continue;
--		spin_unlock_irqrestore(&interfaces_lock, flags);
--		watcher->new_smi(i, intf->si_dev);
--		spin_lock_irqsave(&interfaces_lock, flags);
-+
-+	mutex_unlock(&ipmi_interfaces_mutex);
-+
-+	list_for_each_entry_safe(e, e2, &to_deliver, link) {
-+		list_del(&e->link);
-+		watcher->new_smi(e->intf_num, intf->si_dev);
-+		kfree(e);
+ 	return (out - ((char *) page));
+ }
++#endif /* CONFIG_PROC_FS */
+ 
+ int ipmi_smi_add_proc_entry(ipmi_smi_t smi, char *name,
+ 			    read_proc_t *read_proc, write_proc_t *write_proc,
+diff -puN drivers/char/ipmi/ipmi_poweroff.c~ipmi-fix-proc_fs=n-warnings drivers/char/ipmi/ipmi_poweroff.c
+--- a/drivers/char/ipmi/ipmi_poweroff.c~ipmi-fix-proc_fs=n-warnings
++++ a/drivers/char/ipmi/ipmi_poweroff.c
+@@ -702,9 +702,9 @@ static int ipmi_poweroff_init (void)
+ 		printk(KERN_ERR PFX "Unable to register SMI watcher: %d\n", rv);
+ 		goto out_err;
  	}
--	spin_unlock_irqrestore(&interfaces_lock, flags);
-+
-+
- 	return 0;
-+
-+ out_err:
-+	list_for_each_entry_safe(e, e2, &to_deliver, link) {
-+		list_del(&e->link);
-+		kfree(e);
-+	}
-+	return -ENOMEM;
+-#endif
+ 
+  out_err:
++#endif
+ 	return rv;
  }
  
- int ipmi_smi_watcher_unregister(struct ipmi_smi_watcher *watcher)
-@@ -776,17 +794,19 @@ int ipmi_create_user(unsigned int       
- 	if (!new_user)
- 		return -ENOMEM;
- 
--	spin_lock_irqsave(&interfaces_lock, flags);
--	intf = ipmi_interfaces[if_num];
--	if ((if_num >= MAX_IPMI_INTERFACES) || IPMI_INVALID_INTERFACE(intf)) {
--		spin_unlock_irqrestore(&interfaces_lock, flags);
--		rv = -EINVAL;
--		goto out_kfree;
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
-+		if (intf->intf_num == if_num)
-+			goto found;
- 	}
-+	rcu_read_unlock();
-+	rv = -EINVAL;
-+	goto out_kfree;
- 
-+ found:
- 	/* Note that each existing user holds a refcount to the interface. */
- 	kref_get(&intf->refcount);
--	spin_unlock_irqrestore(&interfaces_lock, flags);
-+	rcu_read_unlock();
- 
- 	kref_init(&new_user->refcount);
- 	new_user->handler = handler;
-@@ -2449,9 +2469,10 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	int              i, j;
- 	int              rv;
- 	ipmi_smi_t       intf;
--	unsigned long    flags;
-+	ipmi_smi_t       tintf;
- 	int              version_major;
- 	int              version_minor;
-+	struct list_head *link;
- 
- 	version_major = ipmi_version_major(device_id);
- 	version_minor = ipmi_version_minor(device_id);
-@@ -2477,7 +2498,7 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 		kfree(intf);
- 		return -ENOMEM;
- 	}
--	intf->intf_num = -1;
-+	intf->intf_num = -1; /* Mark it invalid for now. */
- 	kref_init(&intf->refcount);
- 	intf->bmc->id = *device_id;
- 	intf->si_dev = si_dev;
-@@ -2511,20 +2532,22 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	spin_lock_init(&intf->counter_lock);
- 	intf->proc_dir = NULL;
- 
--	rv = -ENOMEM;
--	spin_lock_irqsave(&interfaces_lock, flags);
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
--		if (ipmi_interfaces[i] == NULL) {
--			intf->intf_num = i;
--			/* Reserve the entry till we are done. */
--			ipmi_interfaces[i] = IPMI_INVALID_INTERFACE_ENTRY;
--			rv = 0;
-+	mutex_lock(&ipmi_interfaces_mutex);
-+	/* Look for a hole in the numbers. */
-+	i = 0;
-+	link = &ipmi_interfaces;
-+	list_for_each_entry_rcu(tintf, &ipmi_interfaces, link) {
-+		if (tintf->intf_num != i) {
-+			link = &tintf->link;
- 			break;
- 		}
-+		i++;
- 	}
--	spin_unlock_irqrestore(&interfaces_lock, flags);
--	if (rv)
--		goto out;
-+	/* Add the new interface in numeric order. */
-+	if (i == 0)
-+		list_add_rcu(&intf->link, &ipmi_interfaces);
-+	else
-+		list_add_tail_rcu(&intf->link, link);
- 
- 	rv = handlers->start_processing(send_info, intf);
- 	if (rv)
-@@ -2562,16 +2585,14 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	if (rv) {
- 		if (intf->proc_dir)
- 			remove_proc_entries(intf);
-+		list_del_rcu(&intf->link);
-+		mutex_unlock(&ipmi_interfaces_mutex);
-+		synchronize_rcu();
- 		kref_put(&intf->refcount, intf_free);
--		if (i < MAX_IPMI_INTERFACES) {
--			spin_lock_irqsave(&interfaces_lock, flags);
--			ipmi_interfaces[i] = NULL;
--			spin_unlock_irqrestore(&interfaces_lock, flags);
--		}
- 	} else {
--		spin_lock_irqsave(&interfaces_lock, flags);
--		ipmi_interfaces[i] = intf;
--		spin_unlock_irqrestore(&interfaces_lock, flags);
-+		/* After this point the interface is legal to use. */
-+		intf->intf_num = i;
-+		mutex_unlock(&ipmi_interfaces_mutex);
- 		call_smi_watchers(i, intf->si_dev);
- 	}
- 
-@@ -2580,26 +2601,14 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 
- int ipmi_unregister_smi(ipmi_smi_t intf)
- {
--	int                     i;
- 	struct ipmi_smi_watcher *w;
--	unsigned long           flags;
- 
- 	ipmi_bmc_unregister(intf);
- 
--	spin_lock_irqsave(&interfaces_lock, flags);
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
--		if (ipmi_interfaces[i] == intf) {
--			/* Set the interface number reserved until we
--			 * are done. */
--			ipmi_interfaces[i] = IPMI_INVALID_INTERFACE_ENTRY;
--			intf->intf_num = -1;
--			break;
--		}
--	}
--	spin_unlock_irqrestore(&interfaces_lock,flags);
--
--	if (i == MAX_IPMI_INTERFACES)
--		return -ENODEV;
-+	mutex_lock(&ipmi_interfaces_mutex);
-+	list_del_rcu(&intf->link);
-+	mutex_unlock(&ipmi_interfaces_mutex);
-+	synchronize_rcu();
- 
- 	remove_proc_entries(intf);
- 
-@@ -2607,14 +2616,9 @@ int ipmi_unregister_smi(ipmi_smi_t intf)
- 	   an interface is gone. */
- 	down_read(&smi_watchers_sem);
- 	list_for_each_entry(w, &smi_watchers, link)
--		w->smi_gone(i);
-+		w->smi_gone(intf->intf_num);
- 	up_read(&smi_watchers_sem);
- 
--	/* Allow the entry to be reused now. */
--	spin_lock_irqsave(&interfaces_lock, flags);
--	ipmi_interfaces[i] = NULL;
--	spin_unlock_irqrestore(&interfaces_lock,flags);
--
- 	kref_put(&intf->refcount, intf_free);
- 	return 0;
- }
-@@ -3446,18 +3450,12 @@ static void ipmi_timeout_handler(long ti
- 	struct ipmi_recv_msg *msg, *msg2;
- 	struct ipmi_smi_msg  *smi_msg, *smi_msg2;
- 	unsigned long        flags;
--	int                  i, j;
-+	int                  i;
- 
- 	INIT_LIST_HEAD(&timeouts);
- 
--	spin_lock(&interfaces_lock);
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
--		intf = ipmi_interfaces[i];
--		if (IPMI_INVALID_INTERFACE(intf))
--			continue;
--		kref_get(&intf->refcount);
--		spin_unlock(&interfaces_lock);
--
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
- 		/* See if any waiting messages need to be processed. */
- 		spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
- 		list_for_each_entry_safe(smi_msg, smi_msg2,
-@@ -3477,35 +3475,26 @@ static void ipmi_timeout_handler(long ti
- 		   have timed out, putting them in the timeouts
- 		   list. */
- 		spin_lock_irqsave(&intf->seq_lock, flags);
--		for (j = 0; j < IPMI_IPMB_NUM_SEQ; j++)
--			check_msg_timeout(intf, &(intf->seq_table[j]),
--					  &timeouts, timeout_period, j,
-+		for (i = 0; i < IPMI_IPMB_NUM_SEQ; i++)
-+			check_msg_timeout(intf, &(intf->seq_table[i]),
-+					  &timeouts, timeout_period, i,
- 					  &flags);
- 		spin_unlock_irqrestore(&intf->seq_lock, flags);
- 
- 		list_for_each_entry_safe(msg, msg2, &timeouts, link)
- 			handle_msg_timeout(msg);
--
--		kref_put(&intf->refcount, intf_free);
--		spin_lock(&interfaces_lock);
- 	}
--	spin_unlock(&interfaces_lock);
-+	rcu_read_unlock();
- }
- 
- static void ipmi_request_event(void)
- {
- 	ipmi_smi_t intf;
--	int        i;
--
--	spin_lock(&interfaces_lock);
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
--		intf = ipmi_interfaces[i];
--		if (IPMI_INVALID_INTERFACE(intf))
--			continue;
- 
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link)
- 		intf->handlers->request_events(intf->send_info);
--	}
--	spin_unlock(&interfaces_lock);
-+	rcu_read_unlock();
- }
- 
- static struct timer_list ipmi_timer;
-@@ -3634,7 +3623,6 @@ static void send_panic_events(char *str)
- 	struct kernel_ipmi_msg            msg;
- 	ipmi_smi_t                        intf;
- 	unsigned char                     data[16];
--	int                               i;
- 	struct ipmi_system_interface_addr *si;
- 	struct ipmi_addr                  addr;
- 	struct ipmi_smi_msg               smi_msg;
-@@ -3668,9 +3656,9 @@ static void send_panic_events(char *str)
- 	recv_msg.done = dummy_recv_done_handler;
- 
- 	/* For every registered interface, send the event. */
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
--		intf = ipmi_interfaces[i];
--		if (IPMI_INVALID_INTERFACE(intf))
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
-+		if (intf->intf_num == -1)
-+			/* Interface was not ready yet. */
- 			continue;
- 
- 		/* Send the event announcing the panic. */
-@@ -3695,13 +3683,14 @@ static void send_panic_events(char *str)
- 	if (!str) 
- 		return;
- 
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
-+	/* For every registered interface, send the event. */
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
- 		char                  *p = str;
- 		struct ipmi_ipmb_addr *ipmb;
- 		int                   j;
- 
--		intf = ipmi_interfaces[i];
--		if (IPMI_INVALID_INTERFACE(intf))
-+		if (intf->intf_num == -1)
-+			/* Interface was not ready yet. */
- 			continue;
- 
- 		/* First job here is to figure out where to send the
-@@ -3827,7 +3816,6 @@ static int panic_event(struct notifier_b
- 		       unsigned long         event,
-                        void                  *ptr)
- {
--	int        i;
- 	ipmi_smi_t intf;
- 
- 	if (has_panicked)
-@@ -3835,9 +3823,9 @@ static int panic_event(struct notifier_b
- 	has_panicked = 1;
- 
- 	/* For every registered interface, set it to run to completion. */
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++) {
--		intf = ipmi_interfaces[i];
--		if (IPMI_INVALID_INTERFACE(intf))
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
-+		if (intf->intf_num == -1)
-+			/* Interface was not ready yet. */
- 			continue;
- 
- 		intf->handlers->set_run_to_completion(intf->send_info, 1);
-@@ -3858,7 +3846,6 @@ static struct notifier_block panic_block
- 
- static int ipmi_init_msghandler(void)
- {
--	int i;
- 	int rv;
- 
- 	if (initialized)
-@@ -3873,9 +3860,6 @@ static int ipmi_init_msghandler(void)
- 	printk(KERN_INFO "ipmi message handler version "
- 	       IPMI_DRIVER_VERSION "\n");
- 
--	for (i = 0; i < MAX_IPMI_INTERFACES; i++)
--		ipmi_interfaces[i] = NULL;
--
- #ifdef CONFIG_PROC_FS
- 	proc_ipmi_root = proc_mkdir("ipmi", NULL);
- 	if (!proc_ipmi_root) {
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-ieee1394.patch
+git-input.patch
+git-mtd.patch
+mtd-esb2rom-uses-pci.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+generic-bug-implementation-handle-bug=n.patch
+reiser4-use-null-for-pointers.patch
+visws-sgivwfb-is-module-needs-exports.patch
+linux-fbdev-devel-is-subscribers-only.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+profile_likely-export-do_check_likely.patch
 
