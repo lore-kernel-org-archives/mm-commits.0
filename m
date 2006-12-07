@@ -1,140 +1,154 @@
 From: akpm@osdl.org
-Subject: - taskstats-cleanup-signal-stats-allocation.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:03:22 -0800
-Message-ID: <200612072303.kB7N3Mkn029956@shell0.pdx.osdl.net>
+Subject: - taskstats-factor-out-reply-assembling.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:03:25 -0800
+Message-ID: <200612072303.kB7N3PP2029959@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51926 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51923 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163727AbWLGXDk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:03:40 -0500
+	id S1163824AbWLGXDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:03:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, balbir@in.ibm.com, jlan@engr.sgi.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, balbir@in.ibm.com, jlan@sgi.com, nagar@watson.ibm.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     taskstats: cleanup ->signal->stats allocation
+     taskstats: factor out reply assembling
 has been removed from the -mm tree.  Its filename was
-     taskstats-cleanup-signal-stats-allocation.patch
+     taskstats-factor-out-reply-assembling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: taskstats: cleanup ->signal->stats allocation
+Subject: taskstats: factor out reply assembling
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Allocate ->signal->stats on demand in taskstats_exit(), this allows us to
-remove taskstats_tgid_alloc() (the last non-trivial inline) from taskstat's
-public interface.
+Introduce mk_reply() helper which does all nla_put()s on reply.
+
+Saves 453 bytes and a preparation for the next patch.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Shailabh Nagar <nagar@watson.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Jay Lan <jlan@sgi.com>
+Cc: Thomas Graf <tgraf@suug.ch>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/taskstats_kern.h |   24 ------------------------
- kernel/fork.c                  |    1 -
- kernel/taskstats.c             |   26 +++++++++++++++++++++++++-
- 3 files changed, 25 insertions(+), 26 deletions(-)
+ kernel/taskstats.c |   55 +++++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/taskstats_kern.h~taskstats-cleanup-signal-stats-allocation include/linux/taskstats_kern.h
---- a/include/linux/taskstats_kern.h~taskstats-cleanup-signal-stats-allocation
-+++ a/include/linux/taskstats_kern.h
-@@ -20,28 +20,6 @@ static inline void taskstats_tgid_init(s
- 	sig->stats = NULL;
- }
- 
--static inline void taskstats_tgid_alloc(struct task_struct *tsk)
--{
--	struct signal_struct *sig = tsk->signal;
--	struct taskstats *stats;
--
--	if (sig->stats != NULL)
--		return;
--
--	/* No problem if kmem_cache_zalloc() fails */
--	stats = kmem_cache_zalloc(taskstats_cache, GFP_KERNEL);
--
--	spin_lock_irq(&tsk->sighand->siglock);
--	if (!sig->stats) {
--		sig->stats = stats;
--		stats = NULL;
--	}
--	spin_unlock_irq(&tsk->sighand->siglock);
--
--	if (stats)
--		kmem_cache_free(taskstats_cache, stats);
--}
--
- static inline void taskstats_tgid_free(struct signal_struct *sig)
- {
- 	if (sig->stats)
-@@ -55,8 +33,6 @@ static inline void taskstats_exit(struct
- {}
- static inline void taskstats_tgid_init(struct signal_struct *sig)
- {}
--static inline void taskstats_tgid_alloc(struct task_struct *tsk)
--{}
- static inline void taskstats_tgid_free(struct signal_struct *sig)
- {}
- static inline void taskstats_init_early(void)
-diff -puN kernel/fork.c~taskstats-cleanup-signal-stats-allocation kernel/fork.c
---- a/kernel/fork.c~taskstats-cleanup-signal-stats-allocation
-+++ a/kernel/fork.c
-@@ -847,7 +847,6 @@ static inline int copy_signal(unsigned l
- 	if (clone_flags & CLONE_THREAD) {
- 		atomic_inc(&current->signal->count);
- 		atomic_inc(&current->signal->live);
--		taskstats_tgid_alloc(current);
- 		return 0;
- 	}
- 	sig = kmem_cache_alloc(signal_cachep, GFP_KERNEL);
-diff -puN kernel/taskstats.c~taskstats-cleanup-signal-stats-allocation kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-cleanup-signal-stats-allocation
+diff -puN kernel/taskstats.c~taskstats-factor-out-reply-assembling kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-factor-out-reply-assembling
 +++ a/kernel/taskstats.c
-@@ -412,6 +412,30 @@ err:
- 	return rc;
+@@ -343,6 +343,25 @@ static int parse(struct nlattr *na, cpum
+ 	return ret;
  }
  
-+static struct taskstats *taskstats_tgid_alloc(struct task_struct *tsk)
++static int mk_reply(struct sk_buff *skb, int type, u32 pid, struct taskstats *stats)
 +{
-+	struct signal_struct *sig = tsk->signal;
-+	struct taskstats *stats;
++	struct nlattr *na;
++	int aggr;
 +
-+	if (sig->stats || thread_group_empty(tsk))
-+		goto ret;
++	aggr = TASKSTATS_TYPE_AGGR_TGID;
++	if (type == TASKSTATS_TYPE_PID)
++		aggr = TASKSTATS_TYPE_AGGR_PID;
 +
-+	/* No problem if kmem_cache_zalloc() fails */
-+	stats = kmem_cache_zalloc(taskstats_cache, GFP_KERNEL);
++	na = nla_nest_start(skb, aggr);
++	NLA_PUT_U32(skb, type, pid);
++	NLA_PUT_TYPE(skb, struct taskstats, TASKSTATS_TYPE_STATS, *stats);
++	nla_nest_end(skb, na);
 +
-+	spin_lock_irq(&tsk->sighand->siglock);
-+	if (!sig->stats) {
-+		sig->stats = stats;
-+		stats = NULL;
-+	}
-+	spin_unlock_irq(&tsk->sighand->siglock);
-+
-+	if (stats)
-+		kmem_cache_free(taskstats_cache, stats);
-+ret:
-+	return sig->stats;
++	return 0;
++nla_put_failure:
++	return -1;
 +}
 +
- /* Send pid data out on exit */
- void taskstats_exit(struct task_struct *tsk, int group_dead)
+ static int taskstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
  {
-@@ -433,7 +457,7 @@ void taskstats_exit(struct task_struct *
- 	size = nla_total_size(sizeof(u32)) +
- 		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
+ 	int rc = 0;
+@@ -350,7 +369,6 @@ static int taskstats_user_cmd(struct sk_
+ 	struct taskstats stats;
+ 	void *reply;
+ 	size_t size;
+-	struct nlattr *na;
+ 	cpumask_t mask;
  
--	is_thread_group = (tsk->signal->stats != NULL);
-+	is_thread_group = !!taskstats_tgid_alloc(tsk);
- 	if (is_thread_group) {
- 		/* PID + STATS + TGID + STATS */
- 		size = 2 * size;
+ 	rc = parse(info->attrs[TASKSTATS_CMD_ATTR_REGISTER_CPUMASK], &mask);
+@@ -382,27 +400,21 @@ static int taskstats_user_cmd(struct sk_
+ 		if (rc < 0)
+ 			goto err;
+ 
+-		na = nla_nest_start(rep_skb, TASKSTATS_TYPE_AGGR_PID);
+-		NLA_PUT_U32(rep_skb, TASKSTATS_TYPE_PID, pid);
+-		NLA_PUT_TYPE(rep_skb, struct taskstats, TASKSTATS_TYPE_STATS,
+-				stats);
++		if (mk_reply(rep_skb, TASKSTATS_TYPE_PID, pid, &stats))
++			goto nla_put_failure;
+ 	} else if (info->attrs[TASKSTATS_CMD_ATTR_TGID]) {
+ 		u32 tgid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_TGID]);
+ 		rc = fill_tgid(tgid, NULL, &stats);
+ 		if (rc < 0)
+ 			goto err;
+ 
+-		na = nla_nest_start(rep_skb, TASKSTATS_TYPE_AGGR_TGID);
+-		NLA_PUT_U32(rep_skb, TASKSTATS_TYPE_TGID, tgid);
+-		NLA_PUT_TYPE(rep_skb, struct taskstats, TASKSTATS_TYPE_STATS,
+-				stats);
++		if (mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tgid, &stats))
++			goto nla_put_failure;
+ 	} else {
+ 		rc = -EINVAL;
+ 		goto err;
+ 	}
+ 
+-	nla_nest_end(rep_skb, na);
+-
+ 	return send_reply(rep_skb, info->snd_pid);
+ 
+ nla_put_failure:
+@@ -446,7 +458,6 @@ void taskstats_exit(struct task_struct *
+ 	void *reply;
+ 	size_t size;
+ 	int is_thread_group;
+-	struct nlattr *na;
+ 
+ 	if (!family_registered)
+ 		return;
+@@ -481,27 +492,17 @@ void taskstats_exit(struct task_struct *
+ 	if (rc < 0)
+ 		goto err_skb;
+ 
+-	na = nla_nest_start(rep_skb, TASKSTATS_TYPE_AGGR_PID);
+-	NLA_PUT_U32(rep_skb, TASKSTATS_TYPE_PID, (u32)tsk->pid);
+-	NLA_PUT_TYPE(rep_skb, struct taskstats, TASKSTATS_TYPE_STATS,
+-			*tidstats);
+-	nla_nest_end(rep_skb, na);
+-
+-	if (!is_thread_group)
+-		goto send;
++	if (mk_reply(rep_skb, TASKSTATS_TYPE_PID, tsk->pid, tidstats))
++		goto nla_put_failure;
+ 
+ 	/*
+ 	 * Doesn't matter if tsk is the leader or the last group member leaving
+ 	 */
+-	if (!group_dead)
++	if (!is_thread_group || !group_dead)
+ 		goto send;
+ 
+-	na = nla_nest_start(rep_skb, TASKSTATS_TYPE_AGGR_TGID);
+-	NLA_PUT_U32(rep_skb, TASKSTATS_TYPE_TGID, (u32)tsk->tgid);
+-	/* No locking needed for tsk->signal->stats since group is dead */
+-	NLA_PUT_TYPE(rep_skb, struct taskstats, TASKSTATS_TYPE_STATS,
+-			*tsk->signal->stats);
+-	nla_nest_end(rep_skb, na);
++	if (mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tsk->tgid, tsk->signal->stats))
++		goto nla_put_failure;
+ 
+ send:
+ 	send_cpu_listeners(rep_skb, listeners);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
