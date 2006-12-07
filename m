@@ -1,62 +1,65 @@
 From: akpm@osdl.org
-Subject: - slab-remove-slab_noio.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:58:07 -0800
-Message-ID: <200612072258.kB7Mw7wg029358@shell0.pdx.osdl.net>
+Subject: - slab-remove-slab_no_grow.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:58:03 -0800
+Message-ID: <200612072258.kB7Mw3EM029350@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50700 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50693 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163574AbWLGW6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:58:09 -0500
+	id S1163596AbWLGW6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: remove SLAB_NOIO
+     slab: remove SLAB_NO_GROW
 has been removed from the -mm tree.  Its filename was
-     slab-remove-slab_noio.patch
+     slab-remove-slab_no_grow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab: remove SLAB_NOIO
+Subject: slab: remove SLAB_NO_GROW
 From: Christoph Lameter <clameter@sgi.com>
 
-SLAB_NOIO is an alias of GFP_NOIO with a single instance of use.
+It is only used internally in the slab.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/storage/transport.c |    2 +-
- include/linux/slab.h            |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/slab.h |    2 --
+ mm/slab.c            |    4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/storage/transport.c~slab-remove-slab_noio drivers/usb/storage/transport.c
---- a/drivers/usb/storage/transport.c~slab-remove-slab_noio
-+++ a/drivers/usb/storage/transport.c
-@@ -427,7 +427,7 @@ static int usb_stor_bulk_transfer_sglist
- 	US_DEBUGP("%s: xfer %u bytes, %d entries\n", __FUNCTION__,
- 			length, num_sg);
- 	result = usb_sg_init(&us->current_sg, us->pusb_dev, pipe, 0,
--			sg, num_sg, length, SLAB_NOIO);
-+			sg, num_sg, length, GFP_NOIO);
- 	if (result) {
- 		US_DEBUGP("usb_sg_init returned %d\n", result);
- 		return USB_STOR_XFER_ERROR;
-diff -puN include/linux/slab.h~slab-remove-slab_noio include/linux/slab.h
---- a/include/linux/slab.h~slab-remove-slab_noio
+diff -puN include/linux/slab.h~slab-remove-slab_no_grow include/linux/slab.h
+--- a/include/linux/slab.h~slab-remove-slab_no_grow
 +++ a/include/linux/slab.h
-@@ -20,7 +20,6 @@ typedef struct kmem_cache kmem_cache_t;
+@@ -28,8 +28,6 @@ typedef struct kmem_cache kmem_cache_t;
  
- /* flags for kmem_cache_alloc() */
- #define	SLAB_NOFS		GFP_NOFS
--#define	SLAB_NOIO		GFP_NOIO
- #define	SLAB_ATOMIC		GFP_ATOMIC
- #define	SLAB_USER		GFP_USER
- #define	SLAB_KERNEL		GFP_KERNEL
+ #define SLAB_LEVEL_MASK		GFP_LEVEL_MASK
+ 
+-#define	SLAB_NO_GROW		__GFP_NO_GROW	/* don't grow a cache */
+-
+ /* flags to pass to kmem_cache_create().
+  * The first 3 are only valid when the allocator as been build
+  * SLAB_DEBUG_SUPPORT.
+diff -puN mm/slab.c~slab-remove-slab_no_grow mm/slab.c
+--- a/mm/slab.c~slab-remove-slab_no_grow
++++ a/mm/slab.c
+@@ -2721,8 +2721,8 @@ static int cache_grow(struct kmem_cache 
+ 	 * Be lazy and only check for valid flags here,  keeping it out of the
+ 	 * critical path in kmem_cache_alloc().
+ 	 */
+-	BUG_ON(flags & ~(SLAB_DMA | SLAB_LEVEL_MASK | SLAB_NO_GROW));
+-	if (flags & SLAB_NO_GROW)
++	BUG_ON(flags & ~(SLAB_DMA | SLAB_LEVEL_MASK | __GFP_NO_GROW));
++	if (flags & __GFP_NO_GROW)
+ 		return 0;
+ 
+ 	ctor_flags = SLAB_CTOR_CONSTRUCTOR;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
