@@ -1,27 +1,27 @@
 From: akpm@osdl.org
-Subject: - ioremap-balanced-with-iounmap-for-drivers-char-istallionc.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:00:56 -0800
-Message-ID: <200612072300.kB7N0usG029684@shell0.pdx.osdl.net>
+Subject: - ioremap-balanced-with-iounmap-for-drivers-char-rio-rio_linuxc.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:00:51 -0800
+Message-ID: <200612072300.kB7N0pkj029678@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51400 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51415 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163748AbWLGXBF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:01:05 -0500
+	id S1163748AbWLGXBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: amol@verismonetworks.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ioremap balanced with iounmap for drivers/char/istallion.c
+     ioremap balanced with iounmap for drivers/char/rio/rio_linux.c
 has been removed from the -mm tree.  Its filename was
-     ioremap-balanced-with-iounmap-for-drivers-char-istallionc.patch
+     ioremap-balanced-with-iounmap-for-drivers-char-rio-rio_linuxc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ioremap balanced with iounmap for drivers/char/istallion.c
+Subject: ioremap balanced with iounmap for drivers/char/rio/rio_linux.c
 From: Amol Lad <amol@verismonetworks.com>
 
 Signed-off-by: Amol Lad <amol@verismonetworks.com>
@@ -29,30 +29,49 @@ Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/istallion.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/char/rio/rio_linux.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/istallion.c~ioremap-balanced-with-iounmap-for-drivers-char-istallionc drivers/char/istallion.c
---- a/drivers/char/istallion.c~ioremap-balanced-with-iounmap-for-drivers-char-istallionc
-+++ a/drivers/char/istallion.c
-@@ -3476,6 +3476,8 @@ static int stli_initecp(stlibrd_t *brdp)
- 	if (sig.magic != cpu_to_le32(ECP_MAGIC))
- 	{
- 		release_region(brdp->iobase, brdp->iosize);
-+		iounmap(brdp->membase);
-+		brdp->membase = NULL;
- 		return -ENODEV;
+diff -puN drivers/char/rio/rio_linux.c~ioremap-balanced-with-iounmap-for-drivers-char-rio-rio_linuxc drivers/char/rio/rio_linux.c
+--- a/drivers/char/rio/rio_linux.c~ioremap-balanced-with-iounmap-for-drivers-char-rio-rio_linuxc
++++ a/drivers/char/rio/rio_linux.c
+@@ -1026,6 +1026,7 @@ static int __init rio_init(void)
+ 			found++;
+ 		} else {
+ 			iounmap(p->RIOHosts[p->RIONumHosts].Caddr);
++			p->RIOHosts[p->RIONumHosts].Caddr = NULL;
+ 		}
  	}
  
-@@ -3632,6 +3634,8 @@ static int stli_initonb(stlibrd_t *brdp)
- 	    sig.magic3 != cpu_to_le16(ONB_MAGIC3))
- 	{
- 		release_region(brdp->iobase, brdp->iosize);
-+		iounmap(brdp->membase);
-+		brdp->membase = NULL;
- 		return -ENODEV;
+@@ -1078,6 +1079,7 @@ static int __init rio_init(void)
+ 			found++;
+ 		} else {
+ 			iounmap(p->RIOHosts[p->RIONumHosts].Caddr);
++			p->RIOHosts[p->RIONumHosts].Caddr = NULL;
+ 		}
+ #else
+ 		printk(KERN_ERR "Found an older RIO PCI card, but the driver is not " "compiled to support it.\n");
+@@ -1117,8 +1119,10 @@ static int __init rio_init(void)
+ 				}
+ 			}
+ 
+-			if (!okboard)
++			if (!okboard) {
+ 				iounmap(hp->Caddr);
++				hp->Caddr = NULL;
++			}
+ 		}
  	}
  
+@@ -1188,6 +1192,8 @@ static void __exit rio_exit(void)
+ 		}
+ 		/* It is safe/allowed to del_timer a non-active timer */
+ 		del_timer(&hp->timer);
++		if (hp->Caddr)
++			iounmap(hp->Caddr);
+ 		if (hp->Type == RIO_PCI)
+ 			pci_dev_put(hp->pdev);
+ 	}
 _
 
 Patches currently in -mm which might be from amol@verismonetworks.com are
