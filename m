@@ -1,161 +1,75 @@
 From: akpm@osdl.org
-Subject: - autofs-fix-error-code-path-in-autofs_fill_sb.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:15:11 -0800
-Message-ID: <200612072315.kB7NFBf7030712@shell0.pdx.osdl.net>
+Subject: - softirq-remove-bug_ons-which-can-incorrectly-trigger.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:15:18 -0800
+Message-ID: <200612072315.kB7NFINQ030715@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53608 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53598 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163817AbWLGXQP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:16:15 -0500
+	id S1163751AbWLGXQL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:16:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, raven@themaw.net, stable@kernel.org, mm-commits@vger.kernel.org
+To: zach@vmware.com, caglar@pardus.org.tr, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs: fix error code path in autofs_fill_sb()
+     softirq: remove BUG_ONs which can incorrectly trigger
 has been removed from the -mm tree.  Its filename was
-     autofs-fix-error-code-path-in-autofs_fill_sb.patch
+     softirq-remove-bug_ons-which-can-incorrectly-trigger.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: autofs: fix error code path in autofs_fill_sb()
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: softirq: remove BUG_ONs which can incorrectly trigger
+From: Zachary Amsden <zach@vmware.com>
 
-When kernel is compiled with old version of autofs (CONFIG_AUTOFS_FS), and
-new (observed at least with 5.x.x) automount deamon is started, kernel
-correctly reports incompatible version of kernel and userland daemon, but
-then screws things up instead of correct handling of the error:
+It is possible to have tasklets get scheduled before softirqd has had a chance
+to spawn on all CPUs.  This is totally harmless; after success during action
+CPU_UP_PREPARE, action CPU_ONLINE will be called, which immediately wakes
+softirqd on the appropriate CPU to process the already pending tasklets.  So
+there is no danger of having a missed wakeup for any tasklets that were
+already pending.
 
- autofs: kernel does not match daemon version
- =====================================
- [ BUG: bad unlock balance detected! ]
- -------------------------------------
- automount/4199 is trying to release lock (&type->s_umount_key) at:
- [<c0163b9e>] get_sb_nodev+0x76/0xa4
- but there are no more locks to release!
+In particular, i386 is affected by this during startup, and is visible when
+using a very large initrd; during the time it takes for the initrd to be
+decompressed, a timer IRQ can come in and schedule RCU callbacks.  It is also
+possible that resending of a hardware IRQ via a softirq triggers the same bug.
 
- other info that might help us debug this:
- no locks held by automount/4199.
+Because of different timing conditions, this shows up in all emulators and
+virtual machines tested, including Xen, VMware, Virtual PC, and Qemu.  It is
+also possible to trigger on native hardware with a large enough initrd,
+although I don't have a reliable case demonstrating that.
 
- stack backtrace:
-  [<c0103b15>] dump_trace+0x68/0x1b2
-  [<c0103c77>] show_trace_log_lvl+0x18/0x2c
-  [<c01041db>] show_trace+0xf/0x11
-  [<c010424d>] dump_stack+0x12/0x14
-  [<c012e02c>] print_unlock_inbalance_bug+0xe7/0xf3
-  [<c012fd4f>] lock_release+0x8d/0x164
-  [<c012b452>] up_write+0x14/0x27
-  [<c0163b9e>] get_sb_nodev+0x76/0xa4
-  [<c0163689>] vfs_kern_mount+0x83/0xf6
-  [<c016373e>] do_kern_mount+0x2d/0x3e
-  [<c017513f>] do_mount+0x607/0x67a
-  [<c0175224>] sys_mount+0x72/0xa4
-  [<c0102b96>] sysenter_past_esp+0x5f/0x99
- DWARF2 unwinder stuck at sysenter_past_esp+0x5f/0x99
- Leftover inexact backtrace:
-  =======================
-
-and then deadlock comes.
-
-The problem: autofs_fill_super() returns EINVAL to get_sb_nodev(), but
-before that, it calls kill_anon_super() to destroy the superblock which
-won't be needed.  This is however way too soon to call kill_anon_super(),
-because get_sb_nodev() has to perform its own cleanup of the superblock
-first (deactivate_super(), etc.).  The correct time to call
-kill_anon_super() is in the autofs_kill_sb() callback, which is called by
-deactivate_super() at proper time, when the superblock is ready to be
-killed.
-
-I can see the same faulty codepath also in autofs4.  This patch solves
-issues in both filesystems in a same way - it postpones the
-kill_anon_super() until the proper time is signalized by deactivate_super()
-calling the kill_sb() callback.
-
-[raven@themaw.net: update comment]
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Acked-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: <caglar@pardus.org.tr>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: <stable@kernel.org>
-Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/autofs/inode.c  |    7 ++++---
- fs/autofs4/inode.c |    7 ++++---
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ kernel/softirq.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/autofs/inode.c~autofs-fix-error-code-path-in-autofs_fill_sb fs/autofs/inode.c
---- a/fs/autofs/inode.c~autofs-fix-error-code-path-in-autofs_fill_sb
-+++ a/fs/autofs/inode.c
-@@ -28,10 +28,11 @@ void autofs_kill_sb(struct super_block *
- 	/*
- 	 * In the event of a failure in get_sb_nodev the superblock
- 	 * info is not present so nothing else has been setup, so
--	 * just exit when we are called from deactivate_super.
-+	 * just call kill_anon_super when we are called from
-+	 * deactivate_super.
- 	 */
- 	if (!sbi)
--		return;
-+		goto out_kill_sb;
+diff -puN kernel/softirq.c~softirq-remove-bug_ons-which-can-incorrectly-trigger kernel/softirq.c
+--- a/kernel/softirq.c~softirq-remove-bug_ons-which-can-incorrectly-trigger
++++ a/kernel/softirq.c
+@@ -574,8 +574,6 @@ static int __cpuinit cpu_callback(struct
  
- 	if ( !sbi->catatonic )
- 		autofs_catatonic_mode(sbi); /* Free wait queues, close pipe */
-@@ -44,6 +45,7 @@ void autofs_kill_sb(struct super_block *
- 
- 	kfree(sb->s_fs_info);
- 
-+out_kill_sb:
- 	DPRINTK(("autofs: shutting down\n"));
- 	kill_anon_super(sb);
- }
-@@ -209,7 +211,6 @@ fail_iput:
- fail_free:
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
--	kill_anon_super(s);
- fail_unlock:
- 	return -EINVAL;
- }
-diff -puN fs/autofs4/inode.c~autofs-fix-error-code-path-in-autofs_fill_sb fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs-fix-error-code-path-in-autofs_fill_sb
-+++ a/fs/autofs4/inode.c
-@@ -152,10 +152,11 @@ void autofs4_kill_sb(struct super_block 
- 	/*
- 	 * In the event of a failure in get_sb_nodev the superblock
- 	 * info is not present so nothing else has been setup, so
--	 * just exit when we are called from deactivate_super.
-+	 * just call kill_anon_super when we are called from
-+	 * deactivate_super.
- 	 */
- 	if (!sbi)
--		return;
-+		goto out_kill_sb;
- 
- 	sb->s_fs_info = NULL;
- 
-@@ -167,6 +168,7 @@ void autofs4_kill_sb(struct super_block 
- 
- 	kfree(sbi);
- 
-+out_kill_sb:
- 	DPRINTK("shutting down");
- 	kill_anon_super(sb);
- }
-@@ -426,7 +428,6 @@ fail_ino:
- fail_free:
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
--	kill_anon_super(s);
- fail_unlock:
- 	return -EINVAL;
- }
+ 	switch (action) {
+ 	case CPU_UP_PREPARE:
+-		BUG_ON(per_cpu(tasklet_vec, hotcpu).list);
+-		BUG_ON(per_cpu(tasklet_hi_vec, hotcpu).list);
+ 		p = kthread_create(ksoftirqd, hcpu, "ksoftirqd/%d", hotcpu);
+ 		if (IS_ERR(p)) {
+ 			printk("ksoftirqd for %i failed\n", hotcpu);
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from zach@vmware.com are
 
 origin.patch
-let-warn_on-output-the-condition.patch
+convert-i386-pda-code-to-use-%fs.patch
+updated-i386-cleanup-apic-code.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-dynticks-fix-nmi-watchdog.patch
 
