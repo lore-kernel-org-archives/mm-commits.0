@@ -1,174 +1,115 @@
 From: akpm@osdl.org
-Subject: + workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch added to -mm tree
-Date: Wed, 06 Dec 2006 21:27:52 -0800
-Message-ID: <200612070527.kB75RqA0031419@shell0.pdx.osdl.net>
+Subject: + fix-linux-banner-utsname-information.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:28:38 -0800
+Message-ID: <200612070528.kB75ScgK031434@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50315 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50327 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968818AbWLGF2V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:28:21 -0500
+	id S968811AbWLGF2u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:28:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, clameter@sgi.com, rmk@arm.linux.org.uk, torvalds@osdl.org
+Cc: herbert@13thfloor.at, ebiederm@xmission.com
 
 
 The patch titled
-     WorkStruct: Implement generic UP cmpxchg() where an arch doesn't support it
+     Fix linux banner utsname information
 has been added to the -mm tree.  Its filename is
-     workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
+     fix-linux-banner-utsname-information.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: WorkStruct: Implement generic UP cmpxchg() where an arch doesn't support it
-From: David Howells <dhowells@redhat.com>
+Subject: Fix linux banner utsname information
+From: Herbert Poetzl <herbert@13thfloor.at>
 
-Implement generic UP cmpxchg() where an arch doesn't otherwise support it. 
-This assuming that the arch doesn't have support SMP without providing its
-own cmpxchg() implementation.
+utsname information is shown in the linux banner, which also is used for
+/proc/version (which can have different utsname values inside a uts
+namespaces).  this patch makes the varying data arguments and changes the
+string to a format string, using those arguments.
 
-This is required because cmpxchg() is used by the reduced work queue
-patches to adjust the management data in a work_struct.
-
-Also provide ARMv6 with a cmpxchg() implementation using LDREX/STREXEQ. 
-Pre-v6 ARM doesn't support SMP according to ARM's atomic.h, so the generic
-IRQ-disablement based cmpxchg() is entirely adequate there (if it isn't,
-then atomic_cmpxchg() is also broken on ARM).
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Linus Torvalds <torvalds@osdl.org>
+Signed-off-by: Herbert Poetzl <herbert@13thfloor.at>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-arm/system.h      |   40 +++++++++++++++++++++++++++
- include/asm-generic/cmpxchg.h |   46 ++++++++++++++++++++++++++++++++
- 2 files changed, 86 insertions(+)
+ fs/proc/proc_misc.c |    4 ++--
+ init/Makefile       |    1 +
+ init/main.c         |    4 +++-
+ init/version.c      |    5 +++--
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-arm/system.h~workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it include/asm-arm/system.h
---- a/include/asm-arm/system.h~workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it
-+++ a/include/asm-arm/system.h
-@@ -325,6 +325,46 @@ static inline unsigned long __xchg(unsig
- extern void disable_hlt(void);
- extern void enable_hlt(void);
+diff -puN fs/proc/proc_misc.c~fix-linux-banner-utsname-information fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~fix-linux-banner-utsname-information
++++ a/fs/proc/proc_misc.c
+@@ -252,8 +252,8 @@ static int version_read_proc(char *page,
+ {
+ 	int len;
  
-+/*
-+ * We only implement cmpxchg in ASM on ARMv6 where we have LDREX/STREX
-+ * available, and we only implement it for word-sized exchanges
-+ */
-+#if __LINUX_ARM_ARCH__ >= 6
-+extern void __bad_cmpxchg(volatile void *, int);
-+
-+#define cmpxchg(ptr, old, new)						\
-+({									\
-+	__typeof__ (ptr) ____p = (ptr);					\
-+	__typeof__(*ptr) ____old = (old);				\
-+	__typeof__(*ptr) ____new = (new);				\
-+	__typeof__(*ptr) ____oldval;					\
-+	__typeof__(*ptr) ____res;					\
-+									\
-+	switch (sizeof(____res)) {					\
-+	case 4:								\
-+		do {							\
-+			__asm__ __volatile__("@ cmpxchg\n"		\
-+			"ldrex	%1, [%2]\n"				\
-+			"mov	%0, #0\n"				\
-+			"teq	%1, %3\n"				\
-+			"strexeq %0, %4, [%2]\n"			\
-+			: "=&r" (____res), "=&r" (____oldval)		\
-+			: "r" (____p), "Ir" (____old), "r" (____new)	\
-+			: "cc");					\
-+		} while(____res);					\
-+		break;							\
-+	default:							\
-+		__bad_cmpxchg(____p, sizeof(____res));			\
-+		____oldval = 0;						\
-+		break;							\
-+	}								\
-+	____oldval;							\
-+})
-+
-+#else
-+#include <asm-generic/cmpxchg.h>
-+#endif
-+
- #endif /* __ASSEMBLY__ */
+-	strcpy(page, linux_banner);
+-	len = strlen(page);
++	len = sprintf(page, linux_banner,
++		utsname()->release, utsname()->version);
+ 	return proc_calc_metrics(page, start, off, count, eof, len);
+ }
  
- #define arch_align_stack(x) (x)
-diff -puN /dev/null include/asm-generic/cmpxchg.h
---- /dev/null
-+++ a/include/asm-generic/cmpxchg.h
-@@ -0,0 +1,46 @@
-+/* Generic cmpxchg for those arches that don't implement it themselves
-+ *
-+ * Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
+diff -puN init/main.c~fix-linux-banner-utsname-information init/main.c
+--- a/init/main.c~fix-linux-banner-utsname-information
++++ a/init/main.c
+@@ -50,6 +50,8 @@
+ #include <linux/buffer_head.h>
+ #include <linux/debug_locks.h>
+ #include <linux/lockdep.h>
++#include <linux/utsrelease.h>
++#include <linux/compile.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -506,7 +508,7 @@ asmlinkage void __init start_kernel(void
+ 	boot_cpu_init();
+ 	page_address_init();
+ 	printk(KERN_NOTICE);
+-	printk(linux_banner);
++	printk(linux_banner, UTS_RELEASE, UTS_VERSION);
+ 	setup_arch(&command_line);
+ 	unwind_setup();
+ 	setup_per_cpu_areas();
+diff -puN init/Makefile~fix-linux-banner-utsname-information init/Makefile
+--- a/init/Makefile~fix-linux-banner-utsname-information
++++ a/init/Makefile
+@@ -15,6 +15,7 @@ clean-files := ../include/linux/compile.
+ 
+ # dependencies on generated files need to be listed explicitly
+ 
++$(obj)/main.o: include/linux/compile.h
+ $(obj)/version.o: include/linux/compile.h
+ 
+ # compile.h changes depending on hostname, generation number, etc,
+diff -puN init/version.c~fix-linux-banner-utsname-information init/version.c
+--- a/init/version.c~fix-linux-banner-utsname-information
++++ a/init/version.c
+@@ -35,5 +35,6 @@ struct uts_namespace init_uts_ns = {
+ EXPORT_SYMBOL_GPL(init_uts_ns);
+ 
+ const char linux_banner[] =
+-	"Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY "@"
+-	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") " UTS_VERSION "\n";
++	"Linux version %s (" LINUX_COMPILE_BY "@"
++	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") %s\n";
 +
-+#ifndef _ASM_GENERIC_CMPXCHG_H
-+#define _ASM_GENERIC_CMPXCHG_H
-+
-+#if !defined(cmpxchg) && !defined(CONFIG_SMP)
-+
-+/**
-+ * cmpxchg - Atomically conditionally exchange one value for another.
-+ * @ptr - Pointer to the value to be altered.
-+ * @old - The value to change from.
-+ * @new - The value to change to.
-+ *
-+ * This function atomically compares the current value at the word pointed to
-+ * by @ptr, and if it's the same as @old, changes it to @new.  If it's not the
-+ * same then it's left unchanged.
-+ *
-+ * The value that was in the word pointed to by @ptr is returned, whether or
-+ * not it was changed to @new.
-+ */
-+#define cmpxchg(ptr, old, new)			\
-+({						\
-+	unsigned long ____flags;		\
-+	__typeof__ (ptr) ____p = (ptr);		\
-+	__typeof__(*ptr) ____old = (old);	\
-+	__typeof__(*ptr) ____new = (new);	\
-+	__typeof__(*ptr) ____res;		\
-+	raw_local_irq_save(____flags);		\
-+	____res = *____p;			\
-+	if (likely(____res == (____old)))	\
-+		*____p = (____new);		\
-+	raw_local_irq_restore(____flags);	\
-+	____res;				\
-+})
-+
-+#endif /* !cmpxchg && !SMP */
-+#endif /* _ASM_GENERIC_CMPXCHG_H */
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from herbert@13thfloor.at are
 
-origin.patch
-uml-workqueue-build-fix.patch
-security-keys-user-kmemdup.patch
-arch-frv-kernel-futexc-must-include-linux-uaccessh.patch
-workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
-alsa-workqueue-fixes.patch
-nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch
-s390-workqueue-fixes.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
-log2-alter-roundup_pow_of_two-so-that-it-can-use-a-ilog2-on-a-constant.patch
-log2-alter-get_order-so-that-it-can-make-use-of-ilog2-on-a-constant.patch
-log2-provide-ilog2-fallbacks-for-powerpc.patch
-reiser4-get_sb_dev-fix.patch
-mutex-subsystem-synchro-test-module.patch
+fix-linux-banner-utsname-information.patch
+add-process_session-helper-routine.patch
+rename-struct-namespace-to-struct-mnt_namespace.patch
+add-an-identifier-to-nsproxy.patch
+rename-struct-pspace-to-struct-pid_namespace.patch
+add-pid_namespace-to-nsproxy.patch
+use-current-nsproxy-pid_ns.patch
+add-child-reaper-to-pid_namespace.patch
 
