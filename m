@@ -1,323 +1,85 @@
 From: akpm@osdl.org
-Subject: - kprobes-enable-booster-on-the-preemptible-kernel.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:05:24 -0800
-Message-ID: <200612072305.kB7N5OSW030153@shell0.pdx.osdl.net>
+Subject: - ext4-fix-reservation-extension.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:05:44 -0800
+Message-ID: <200612072305.kB7N5isF030173@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52553 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52569 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163777AbWLGXFs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:05:48 -0500
+	id S1163911AbWLGXFy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:05:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: masami.hiramatsu.pt@hitachi.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, bibo.mao@intel.com, haoki@redhat.com, mingo@elte.hu, prasanna@in.ibm.com, soshima@redhat.com, yumiko.sugita.yf@hitachi.com, mm-commits@vger.kernel.org
+To: cmm@us.ibm.com, hugh@veritas.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: enable booster on the preemptible kernel
+     ext4: fix reservation extension
 has been removed from the -mm tree.  Its filename was
-     kprobes-enable-booster-on-the-preemptible-kernel.patch
+     ext4-fix-reservation-extension.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kprobes: enable booster on the preemptible kernel
-From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Subject: ext4: fix reservation extension
+From: Mingming Cao <cmm@us.ibm.com>
 
-When we are unregistering a kprobe-booster, we can't release its
-instruction buffer immediately on the preemptive kernel, because some
-processes might be preempted on the buffer.  The freeze_processes() and
-thaw_processes() functions can clean most of processes up from the buffer. 
-There are still some non-frozen threads who have the PF_NOFREEZE flag.  If
-those threads are sleeping (not preempted) at the known place outside the
-buffer, we can ensure safety of freeing.
+Hugh Dickins wrote:
+> Not found anything relevant, but I keep noticing these lines
+> in ext2_try_to_allocate_with_rsv(), ext3 and ext4 similar:
+>
+> 		} else if (grp_goal > 0 &&
+> 				(my_rsv->rsv_end - grp_goal + 1) < *count)
+> 			try_to_extend_reservation(my_rsv, sb,
+> 					*count-my_rsv->rsv_end + grp_goal - 1);
+>
+> They're wrong, a no-op in most groups, aren't they?  rsv_end is an
+> absolute block number, whereas grp_goal is group-relative, so the
+> calculation ought to bring in group_first_block?  Or I'm confused.
+>
 
-However, the processing of this check routine takes a long time.  So, this
-patch introduces the garbage collection mechanism of insn_slot.  It also
-introduces the "dirty" flag to free_insn_slot because of efficiency.
-
-The "clean" instruction slots (dirty flag is cleared) are released
-immediately.  But the "dirty" slots which are used by boosted kprobes, are
-marked as garbages.  collect_garbage_slots() will be invoked to release
-"dirty" slots if there are more than INSNS_PER_PAGE garbage slots or if
-there are no unused slots.
-
-Cc: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: "bibo,mao" <bibo.mao@intel.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Yumiko Sugita <yumiko.sugita.yf@hitachi.com>
-Cc: Satoshi Oshima <soshima@redhat.com>
-Cc: Hideo Aoki <haoki@redhat.com>
-Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Cc: "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/kprobes.c    |    4 -
- arch/ia64/kernel/kprobes.c    |    2 
- arch/powerpc/kernel/kprobes.c |    2 
- arch/s390/kernel/kprobes.c    |    2 
- arch/x86_64/kernel/kprobes.c  |    2 
- include/linux/kprobes.h       |    2 
- kernel/kprobes.c              |  117 ++++++++++++++++++++++++++------
- 7 files changed, 103 insertions(+), 28 deletions(-)
+ fs/ext4/balloc.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/i386/kernel/kprobes.c
---- a/arch/i386/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
-+++ a/arch/i386/kernel/kprobes.c
-@@ -184,7 +184,7 @@ void __kprobes arch_disarm_kprobe(struct
- void __kprobes arch_remove_kprobe(struct kprobe *p)
- {
- 	mutex_lock(&kprobe_mutex);
--	free_insn_slot(p->ainsn.insn);
-+	free_insn_slot(p->ainsn.insn, (p->ainsn.boostable == 1));
- 	mutex_unlock(&kprobe_mutex);
- }
- 
-@@ -333,7 +333,7 @@ static int __kprobes kprobe_handler(stru
- 		return 1;
- 
- ss_probe:
--#ifndef CONFIG_PREEMPT
-+#if !defined(CONFIG_PREEMPT) || defined(CONFIG_PM)
- 	if (p->ainsn.boostable == 1 && !p->post_handler){
- 		/* Boost up -- we can execute copied instructions directly */
- 		reset_current_kprobe();
-diff -puN arch/ia64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -481,7 +481,7 @@ void __kprobes arch_disarm_kprobe(struct
- void __kprobes arch_remove_kprobe(struct kprobe *p)
- {
- 	mutex_lock(&kprobe_mutex);
--	free_insn_slot(p->ainsn.insn);
-+	free_insn_slot(p->ainsn.insn, 0);
- 	mutex_unlock(&kprobe_mutex);
- }
- /*
-diff -puN arch/powerpc/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/powerpc/kernel/kprobes.c
---- a/arch/powerpc/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
-+++ a/arch/powerpc/kernel/kprobes.c
-@@ -85,7 +85,7 @@ void __kprobes arch_disarm_kprobe(struct
- void __kprobes arch_remove_kprobe(struct kprobe *p)
- {
- 	mutex_lock(&kprobe_mutex);
--	free_insn_slot(p->ainsn.insn);
-+	free_insn_slot(p->ainsn.insn, 0);
- 	mutex_unlock(&kprobe_mutex);
- }
- 
-diff -puN arch/s390/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/s390/kernel/kprobes.c
---- a/arch/s390/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
-+++ a/arch/s390/kernel/kprobes.c
-@@ -200,7 +200,7 @@ void __kprobes arch_disarm_kprobe(struct
- void __kprobes arch_remove_kprobe(struct kprobe *p)
- {
- 	mutex_lock(&kprobe_mutex);
--	free_insn_slot(p->ainsn.insn);
-+	free_insn_slot(p->ainsn.insn, 0);
- 	mutex_unlock(&kprobe_mutex);
- }
- 
-diff -puN arch/x86_64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel arch/x86_64/kernel/kprobes.c
---- a/arch/x86_64/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
-+++ a/arch/x86_64/kernel/kprobes.c
-@@ -224,7 +224,7 @@ void __kprobes arch_disarm_kprobe(struct
- void __kprobes arch_remove_kprobe(struct kprobe *p)
- {
- 	mutex_lock(&kprobe_mutex);
--	free_insn_slot(p->ainsn.insn);
-+	free_insn_slot(p->ainsn.insn, 0);
- 	mutex_unlock(&kprobe_mutex);
- }
- 
-diff -puN include/linux/kprobes.h~kprobes-enable-booster-on-the-preemptible-kernel include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-enable-booster-on-the-preemptible-kernel
-+++ a/include/linux/kprobes.h
-@@ -165,7 +165,7 @@ extern void arch_disarm_kprobe(struct kp
- extern int arch_init_kprobes(void);
- extern void show_registers(struct pt_regs *regs);
- extern kprobe_opcode_t *get_insn_slot(void);
--extern void free_insn_slot(kprobe_opcode_t *slot);
-+extern void free_insn_slot(kprobe_opcode_t *slot, int dirty);
- extern void kprobes_inc_nmissed_count(struct kprobe *p);
- 
- /* Get the kprobe at this addr (if any) - called with preemption disabled */
-diff -puN kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-enable-booster-on-the-preemptible-kernel
-+++ a/kernel/kprobes.c
-@@ -38,6 +38,7 @@
- #include <linux/module.h>
- #include <linux/moduleloader.h>
- #include <linux/kallsyms.h>
-+#include <linux/freezer.h>
- #include <asm-generic/sections.h>
- #include <asm/cacheflush.h>
- #include <asm/errno.h>
-@@ -83,9 +84,36 @@ struct kprobe_insn_page {
- 	kprobe_opcode_t *insns;		/* Page of instruction slots */
- 	char slot_used[INSNS_PER_PAGE];
- 	int nused;
-+	int ngarbage;
- };
- 
- static struct hlist_head kprobe_insn_pages;
-+static int kprobe_garbage_slots;
-+static int collect_garbage_slots(void);
+diff -puN fs/ext4/balloc.c~ext4-fix-reservation-extension fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-fix-reservation-extension
++++ a/fs/ext4/balloc.c
+@@ -1324,10 +1324,14 @@ ext4_try_to_allocate_with_rsv(struct sup
+ 			if (!goal_in_my_reservation(&my_rsv->rsv_window,
+ 							grp_goal, group, sb))
+ 				grp_goal = -1;
+-		} else if (grp_goal > 0 &&
+-			  (my_rsv->rsv_end-grp_goal+1) < *count)
+-			try_to_extend_reservation(my_rsv, sb,
+-					*count-my_rsv->rsv_end + grp_goal - 1);
++		} else if (grp_goal > 0) {
++			int curr = my_rsv->rsv_end -
++					(grp_goal + group_first_block) + 1;
 +
-+static int __kprobes check_safety(void)
-+{
-+	int ret = 0;
-+#if defined(CONFIG_PREEMPT) && defined(CONFIG_PM)
-+	ret = freeze_processes();
-+	if (ret == 0) {
-+		struct task_struct *p, *q;
-+		do_each_thread(p, q) {
-+			if (p != current && p->state == TASK_RUNNING &&
-+			    p->pid != 0) {
-+				printk("Check failed: %s is running\n",p->comm);
-+				ret = -1;
-+				goto loop_end;
-+			}
-+		} while_each_thread(p, q);
-+	}
-+loop_end:
-+	thaw_processes();
-+#else
-+	synchronize_sched();
-+#endif
-+	return ret;
-+}
- 
- /**
-  * get_insn_slot() - Find a slot on an executable page for an instruction.
-@@ -96,6 +124,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 	struct kprobe_insn_page *kip;
- 	struct hlist_node *pos;
- 
-+      retry:
- 	hlist_for_each(pos, &kprobe_insn_pages) {
- 		kip = hlist_entry(pos, struct kprobe_insn_page, hlist);
- 		if (kip->nused < INSNS_PER_PAGE) {
-@@ -112,7 +141,11 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 		}
- 	}
- 
--	/* All out of space.  Need to allocate a new page. Use slot 0.*/
-+	/* If there are any garbage slots, collect it and try again. */
-+	if (kprobe_garbage_slots && collect_garbage_slots() == 0) {
-+		goto retry;
-+	}
-+	/* All out of space.  Need to allocate a new page. Use slot 0. */
- 	kip = kmalloc(sizeof(struct kprobe_insn_page), GFP_KERNEL);
- 	if (!kip) {
- 		return NULL;
-@@ -133,10 +166,62 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 	memset(kip->slot_used, 0, INSNS_PER_PAGE);
- 	kip->slot_used[0] = 1;
- 	kip->nused = 1;
-+	kip->ngarbage = 0;
- 	return kip->insns;
- }
- 
--void __kprobes free_insn_slot(kprobe_opcode_t *slot)
-+/* Return 1 if all garbages are collected, otherwise 0. */
-+static int __kprobes collect_one_slot(struct kprobe_insn_page *kip, int idx)
-+{
-+	kip->slot_used[idx] = 0;
-+	kip->nused--;
-+	if (kip->nused == 0) {
-+		/*
-+		 * Page is no longer in use.  Free it unless
-+		 * it's the last one.  We keep the last one
-+		 * so as not to have to set it up again the
-+		 * next time somebody inserts a probe.
-+		 */
-+		hlist_del(&kip->hlist);
-+		if (hlist_empty(&kprobe_insn_pages)) {
-+			INIT_HLIST_NODE(&kip->hlist);
-+			hlist_add_head(&kip->hlist,
-+				       &kprobe_insn_pages);
-+		} else {
-+			module_free(NULL, kip->insns);
-+			kfree(kip);
++			if (curr < *count)
++				try_to_extend_reservation(my_rsv, sb,
++							*count - curr);
 +		}
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+static int __kprobes collect_garbage_slots(void)
-+{
-+	struct kprobe_insn_page *kip;
-+	struct hlist_node *pos, *next;
-+
-+	/* Ensure no-one is preepmted on the garbages */
-+	if (check_safety() != 0)
-+		return -EAGAIN;
-+
-+	hlist_for_each_safe(pos, next, &kprobe_insn_pages) {
-+		int i;
-+		kip = hlist_entry(pos, struct kprobe_insn_page, hlist);
-+		if (kip->ngarbage == 0)
-+			continue;
-+		kip->ngarbage = 0;	/* we will collect all garbages */
-+		for (i = 0; i < INSNS_PER_PAGE; i++) {
-+			if (kip->slot_used[i] == -1 &&
-+			    collect_one_slot(kip, i))
-+				break;
-+		}
-+	}
-+	kprobe_garbage_slots = 0;
-+	return 0;
-+}
-+
-+void __kprobes free_insn_slot(kprobe_opcode_t * slot, int dirty)
- {
- 	struct kprobe_insn_page *kip;
- 	struct hlist_node *pos;
-@@ -146,28 +231,18 @@ void __kprobes free_insn_slot(kprobe_opc
- 		if (kip->insns <= slot &&
- 		    slot < kip->insns + (INSNS_PER_PAGE * MAX_INSN_SIZE)) {
- 			int i = (slot - kip->insns) / MAX_INSN_SIZE;
--			kip->slot_used[i] = 0;
--			kip->nused--;
--			if (kip->nused == 0) {
--				/*
--				 * Page is no longer in use.  Free it unless
--				 * it's the last one.  We keep the last one
--				 * so as not to have to set it up again the
--				 * next time somebody inserts a probe.
--				 */
--				hlist_del(&kip->hlist);
--				if (hlist_empty(&kprobe_insn_pages)) {
--					INIT_HLIST_NODE(&kip->hlist);
--					hlist_add_head(&kip->hlist,
--						&kprobe_insn_pages);
--				} else {
--					module_free(NULL, kip->insns);
--					kfree(kip);
--				}
-+			if (dirty) {
-+				kip->slot_used[i] = -1;
-+				kip->ngarbage++;
-+			} else {
-+				collect_one_slot(kip, i);
- 			}
--			return;
-+			break;
- 		}
- 	}
-+	if (dirty && (++kprobe_garbage_slots > INSNS_PER_PAGE)) {
-+		collect_garbage_slots();
-+	}
- }
- #endif
  
+ 		if ((my_rsv->rsv_start > group_last_block) ||
+ 				(my_rsv->rsv_end < group_first_block)) {
 _
 
-Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
+Patches currently in -mm which might be from cmm@us.ibm.com are
 
 origin.patch
+ext2-reservations.patch
+ext2-fix-reservation-extension.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
 
