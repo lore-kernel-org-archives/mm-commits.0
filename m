@@ -1,180 +1,204 @@
 From: akpm@osdl.org
-Subject: - correct-misc_register-return-code-handling-in-several-drivers.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:03:53 -0800
-Message-ID: <200612072303.kB7N3rQj030000@shell0.pdx.osdl.net>
+Subject: - taskstats-cleanup-reply-assembling.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:03:31 -0800
+Message-ID: <200612072303.kB7N3VrK029967@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52070 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52088 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163848AbWLGXEb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:04:31 -0500
+	id S1163628AbWLGXEf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:04:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nhorman@tuxdriver.com, benh@kernel.crashing.org, bjorn.helgaas@hp.com, dtor@mail.ru, kjhall@us.ibm.com, olh@suse.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, balbir@in.ibm.com, jlan@sgi.com, nagar@watson.ibm.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Correct misc_register return code handling in several drivers
+     taskstats: cleanup reply assembling
 has been removed from the -mm tree.  Its filename was
-     correct-misc_register-return-code-handling-in-several-drivers.patch
+     taskstats-cleanup-reply-assembling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Correct misc_register return code handling in several drivers
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: taskstats: cleanup reply assembling
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Clean up several code points in which the return code from misc_register is
-not handled properly.
+Thomas Graf wrote:
+>
+> nla_nest_start() may return NULL, either rely on prepare_reply() to be
+> correct and BUG() on failure or do proper error handling for all
+> functions.
 
-Several modules failed to deregister various hooks when misc_register fails,
-and this patch cleans them up.  Also there are a few modules that legitimately
-don't care about the failure status of misc register.  These drivers however
-unilaterally call misc_deregister on module unload.
+nla_put() in taskstat.c can fail only if the 'size' argument of alloc_skb()
+was not right. This is a kernel bug, we should not hide it. So add 'BUG()'
+on error path and check for 'na == NULL'.
 
-Since misc_register doesn't initialize the list_head in the init_routine if it
-fails, the deregister operation is at risk for oopsing when list_del is
-called.  The initial solution was to manually init the list in the miscdev
-structure in each of those modules, but the consensus in this thread was to
-consolodate and do that universally inside misc_register.
+> genlmsg_cancel() is only required in error paths for dumping
+> procedures.
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Kylene Jo Hall <kjhall@us.ibm.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Olaf Hering <olh@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+So we can remove 'genlmsg_cancel()' calls and 'void *reply' (saves 227 bytes).
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Thomas Graf <tgraf@suug.ch>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Jay Lan <jlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/misc.c             |    2 ++
- drivers/char/mmtimer.c          |   23 ++++++++++++++++++-----
- drivers/char/tpm/tpm.c          |    1 +
- drivers/input/misc/hp_sdc_rtc.c |    4 +++-
- drivers/macintosh/apm_emu.c     |    3 ++-
- 5 files changed, 26 insertions(+), 7 deletions(-)
+ kernel/taskstats.c |   38 ++++++++++++++++----------------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
 
-diff -puN drivers/char/misc.c~correct-misc_register-return-code-handling-in-several-drivers drivers/char/misc.c
---- a/drivers/char/misc.c~correct-misc_register-return-code-handling-in-several-drivers
-+++ a/drivers/char/misc.c
-@@ -199,6 +199,8 @@ int misc_register(struct miscdevice * mi
- 	dev_t dev;
- 	int err = 0;
+diff -puN kernel/taskstats.c~taskstats-cleanup-reply-assembling kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-cleanup-reply-assembling
++++ a/kernel/taskstats.c
+@@ -69,7 +69,7 @@ enum actions {
+ };
  
-+	INIT_LIST_HEAD(&misc->list);
-+
- 	down(&misc_sem);
- 	list_for_each_entry(c, &misc_list, list) {
- 		if (c->minor == misc->minor) {
-diff -puN drivers/char/mmtimer.c~correct-misc_register-return-code-handling-in-several-drivers drivers/char/mmtimer.c
---- a/drivers/char/mmtimer.c~correct-misc_register-return-code-handling-in-several-drivers
-+++ a/drivers/char/mmtimer.c
-@@ -680,7 +680,7 @@ static int __init mmtimer_init(void)
- 	if (sn_rtc_cycles_per_second < 100000) {
- 		printk(KERN_ERR "%s: unable to determine clock frequency\n",
- 		       MMTIMER_NAME);
--		return -1;
-+		goto out1;
+ static int prepare_reply(struct genl_info *info, u8 cmd, struct sk_buff **skbp,
+-			void **replyp, size_t size)
++				size_t size)
+ {
+ 	struct sk_buff *skb;
+ 	void *reply;
+@@ -94,7 +94,6 @@ static int prepare_reply(struct genl_inf
  	}
  
- 	mmtimer_femtoperiod = ((unsigned long)1E15 + sn_rtc_cycles_per_second /
-@@ -689,13 +689,13 @@ static int __init mmtimer_init(void)
- 	if (request_irq(SGI_MMTIMER_VECTOR, mmtimer_interrupt, IRQF_PERCPU, MMTIMER_NAME, NULL)) {
- 		printk(KERN_WARNING "%s: unable to allocate interrupt.",
- 			MMTIMER_NAME);
--		return -1;
-+		goto out1;
- 	}
- 
- 	if (misc_register(&mmtimer_miscdev)) {
- 		printk(KERN_ERR "%s: failed to register device\n",
- 		       MMTIMER_NAME);
--		return -1;
-+		goto out2;
- 	}
- 
- 	/* Get max numbered node, calculate slots needed */
-@@ -709,16 +709,18 @@ static int __init mmtimer_init(void)
- 	if (timers == NULL) {
- 		printk(KERN_ERR "%s: failed to allocate memory for device\n",
- 				MMTIMER_NAME);
--		return -1;
-+		goto out3;
- 	}
- 
-+	memset(timers,0,(sizeof(mmtimer_t *)*maxn));
-+
- 	/* Allocate mmtimer_t's for each online node */
- 	for_each_online_node(node) {
- 		timers[node] = kmalloc_node(sizeof(mmtimer_t)*NUM_COMPARATORS, GFP_KERNEL, node);
- 		if (timers[node] == NULL) {
- 			printk(KERN_ERR "%s: failed to allocate memory for device\n",
- 				MMTIMER_NAME);
--			return -1;
-+			goto out4;
- 		}
- 		for (i=0; i< NUM_COMPARATORS; i++) {
- 			mmtimer_t * base = timers[node] + i;
-@@ -739,6 +741,17 @@ static int __init mmtimer_init(void)
- 	       sn_rtc_cycles_per_second/(unsigned long)1E6);
- 
+ 	*skbp = skb;
+-	*replyp = reply;
  	return 0;
-+
-+out4:
-+	for_each_online_node(node) {
-+		kfree(timers[node]);
-+	}
-+out3:
-+	misc_deregister(&mmtimer_miscdev);
-+out2:
-+	free_irq(SGI_MMTIMER_VECTOR, NULL);
-+out1:
-+	return -1;
  }
  
- module_init(mmtimer_init);
-diff -puN drivers/char/tpm/tpm.c~correct-misc_register-return-code-handling-in-several-drivers drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~correct-misc_register-return-code-handling-in-several-drivers
-+++ a/drivers/char/tpm/tpm.c
-@@ -1155,6 +1155,7 @@ struct tpm_chip *tpm_register_hardware(s
+@@ -351,11 +350,13 @@ static struct taskstats *mk_reply(struct
+ 	struct nlattr *na, *ret;
+ 	int aggr;
  
- 	if (sysfs_create_group(&dev->kobj, chip->vendor.attr_group)) {
- 		list_del(&chip->list);
-+		misc_deregister(&chip->vendor.miscdev);
- 		put_device(dev);
- 		clear_bit(chip->dev_num, dev_mask);
- 		kfree(chip);
-diff -puN drivers/input/misc/hp_sdc_rtc.c~correct-misc_register-return-code-handling-in-several-drivers drivers/input/misc/hp_sdc_rtc.c
---- a/drivers/input/misc/hp_sdc_rtc.c~correct-misc_register-return-code-handling-in-several-drivers
-+++ a/drivers/input/misc/hp_sdc_rtc.c
-@@ -695,7 +695,9 @@ static int __init hp_sdc_rtc_init(void)
+-	aggr = TASKSTATS_TYPE_AGGR_TGID;
+-	if (type == TASKSTATS_TYPE_PID)
+-		aggr = TASKSTATS_TYPE_AGGR_PID;
++	aggr = (type == TASKSTATS_TYPE_PID)
++			? TASKSTATS_TYPE_AGGR_PID
++			: TASKSTATS_TYPE_AGGR_TGID;
  
- 	if ((ret = hp_sdc_request_timer_irq(&hp_sdc_rtc_isr)))
- 		return ret;
--	misc_register(&hp_sdc_rtc_dev);
-+	if (misc_register(&hp_sdc_rtc_dev) != 0)
-+		printk(KERN_INFO "Could not register misc. dev for i8042 rtc\n");
-+
-         create_proc_read_entry ("driver/rtc", 0, NULL,
- 				hp_sdc_rtc_read_proc, NULL);
+ 	na = nla_nest_start(skb, aggr);
++	if (!na)
++		goto err;
+ 	if (nla_put(skb, type, sizeof(pid), &pid) < 0)
+ 		goto err;
+ 	ret = nla_reserve(skb, TASKSTATS_TYPE_STATS, sizeof(struct taskstats));
+@@ -373,7 +374,6 @@ static int taskstats_user_cmd(struct sk_
+ 	int rc = 0;
+ 	struct sk_buff *rep_skb;
+ 	struct taskstats *stats;
+-	void *reply;
+ 	size_t size;
+ 	cpumask_t mask;
  
-diff -puN drivers/macintosh/apm_emu.c~correct-misc_register-return-code-handling-in-several-drivers drivers/macintosh/apm_emu.c
---- a/drivers/macintosh/apm_emu.c~correct-misc_register-return-code-handling-in-several-drivers
-+++ a/drivers/macintosh/apm_emu.c
-@@ -529,7 +529,8 @@ static int __init apm_emu_init(void)
- 	if (apm_proc)
- 		apm_proc->owner = THIS_MODULE;
+@@ -395,7 +395,7 @@ static int taskstats_user_cmd(struct sk_
+ 	size = nla_total_size(sizeof(u32)) +
+ 		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
  
--	misc_register(&apm_device);
-+	if (misc_register(&apm_device) != 0)
-+		printk(KERN_INFO "Could not create misc. device for apm\n");
+-	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, &reply, size);
++	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, size);
+ 	if (rc < 0)
+ 		return rc;
  
- 	pmu_register_sleep_notifier(&apm_sleep_notifier);
+@@ -404,27 +404,24 @@ static int taskstats_user_cmd(struct sk_
+ 		u32 pid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_PID]);
+ 		stats = mk_reply(rep_skb, TASKSTATS_TYPE_PID, pid);
+ 		if (!stats)
+-			goto nla_err;
++			goto err;
+ 
+ 		rc = fill_pid(pid, NULL, stats);
+ 		if (rc < 0)
+-			goto nla_err;
++			goto err;
+ 	} else if (info->attrs[TASKSTATS_CMD_ATTR_TGID]) {
+ 		u32 tgid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_TGID]);
+ 		stats = mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tgid);
+ 		if (!stats)
+-			goto nla_err;
++			goto err;
+ 
+ 		rc = fill_tgid(tgid, NULL, stats);
+ 		if (rc < 0)
+-			goto nla_err;
++			goto err;
+ 	} else
+ 		goto err;
+ 
+ 	return send_reply(rep_skb, info->snd_pid);
+-
+-nla_err:
+-	genlmsg_cancel(rep_skb, reply);
+ err:
+ 	nlmsg_free(rep_skb);
+ 	return rc;
+@@ -461,7 +458,6 @@ void taskstats_exit(struct task_struct *
+ 	struct listener_list *listeners;
+ 	struct taskstats *stats;
+ 	struct sk_buff *rep_skb;
+-	void *reply;
+ 	size_t size;
+ 	int is_thread_group;
+ 
+@@ -486,17 +482,17 @@ void taskstats_exit(struct task_struct *
+ 	if (list_empty(&listeners->list))
+ 		return;
+ 
+-	rc = prepare_reply(NULL, TASKSTATS_CMD_NEW, &rep_skb, &reply, size);
++	rc = prepare_reply(NULL, TASKSTATS_CMD_NEW, &rep_skb, size);
+ 	if (rc < 0)
+ 		return;
+ 
+ 	stats = mk_reply(rep_skb, TASKSTATS_TYPE_PID, tsk->pid);
+ 	if (!stats)
+-		goto nla_err;
++		goto err;
+ 
+ 	rc = fill_pid(tsk->pid, tsk, stats);
+ 	if (rc < 0)
+-		goto nla_err;
++		goto err;
+ 
+ 	/*
+ 	 * Doesn't matter if tsk is the leader or the last group member leaving
+@@ -506,16 +502,14 @@ void taskstats_exit(struct task_struct *
+ 
+ 	stats = mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tsk->tgid);
+ 	if (!stats)
+-		goto nla_err;
++		goto err;
+ 
+ 	memcpy(stats, tsk->signal->stats, sizeof(*stats));
+ 
+ send:
+ 	send_cpu_listeners(rep_skb, listeners);
+ 	return;
+-
+-nla_err:
+-	genlmsg_cancel(rep_skb, reply);
++err:
+ 	nlmsg_free(rep_skb);
+ }
  
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+tty-signal-tty-locking.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+do_task_stat-dont-take-tty_mutex.patch
+do_acct_process-dont-take-tty_mutex.patch
+trivial-make-set_special_pids-static.patch
+sys_unshare-remove-a-broken-clone_sighand-code.patch
+sys_setpgid-eliminate-unnecessary-do_each_task_pidpidtype_pgid.patch
+session_of_pgrp-kill-unnecessary-do_each_task_pidpidtype_pgid.patch
+pidhash-temporary-debug-checks.patch
 
