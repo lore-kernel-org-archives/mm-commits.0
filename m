@@ -1,48 +1,80 @@
 From: akpm@osdl.org
-Subject: - make-mm-shmemcshmem_xattr_security_handler-static.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:05:53 -0800
-Message-ID: <200612072305.kB7N5rPF030185@shell0.pdx.osdl.net>
+Subject: - remove-kernel-lockdepclockdep_internal.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:05:56 -0800
+Message-ID: <200612072305.kB7N5ubl030188@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52945 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52956 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163839AbWLGXJK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:09:10 -0500
+	id S1163972AbWLGXJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:09:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make mm/shmem.c:shmem_xattr_security_handler static
+     remove kernel/lockdep.c:lockdep_internal
 has been removed from the -mm tree.  Its filename was
-     make-mm-shmemcshmem_xattr_security_handler-static.patch
+     remove-kernel-lockdepclockdep_internal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make mm/shmem.c:shmem_xattr_security_handler static
+Subject: remove kernel/lockdep.c:lockdep_internal
 From: Adrian Bunk <bunk@stusta.de>
 
+Remove the no longer used lockdep_internal().
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/lockdep.h |    6 ------
+ kernel/lockdep.c        |    7 -------
+ 2 files changed, 13 deletions(-)
 
-diff -puN mm/shmem.c~make-mm-shmemcshmem_xattr_security_handler-static mm/shmem.c
---- a/mm/shmem.c~make-mm-shmemcshmem_xattr_security_handler-static
-+++ a/mm/shmem.c
-@@ -1943,7 +1943,7 @@ static int shmem_xattr_security_set(stru
- 	return security_inode_setsecurity(inode, name, value, size, flags);
+diff -puN include/linux/lockdep.h~remove-kernel-lockdepclockdep_internal include/linux/lockdep.h
+--- a/include/linux/lockdep.h~remove-kernel-lockdepclockdep_internal
++++ a/include/linux/lockdep.h
+@@ -193,7 +193,6 @@ extern void lockdep_free_key_range(void 
+ 
+ extern void lockdep_off(void);
+ extern void lockdep_on(void);
+-extern int lockdep_internal(void);
+ 
+ /*
+  * These methods are used by specific locking variants (spinlocks,
+@@ -255,11 +254,6 @@ static inline void lockdep_on(void)
+ {
  }
  
--struct xattr_handler shmem_xattr_security_handler = {
-+static struct xattr_handler shmem_xattr_security_handler = {
- 	.prefix = XATTR_SECURITY_PREFIX,
- 	.list   = shmem_xattr_security_list,
- 	.get    = shmem_xattr_security_get,
+-static inline int lockdep_internal(void)
+-{
+-	return 0;
+-}
+-
+ # define lock_acquire(l, s, t, r, c, i)		do { } while (0)
+ # define lock_release(l, n, i)			do { } while (0)
+ # define lockdep_init()				do { } while (0)
+diff -puN kernel/lockdep.c~remove-kernel-lockdepclockdep_internal kernel/lockdep.c
+--- a/kernel/lockdep.c~remove-kernel-lockdepclockdep_internal
++++ a/kernel/lockdep.c
+@@ -140,13 +140,6 @@ void lockdep_on(void)
+ 
+ EXPORT_SYMBOL(lockdep_on);
+ 
+-int lockdep_internal(void)
+-{
+-	return current->lockdep_recursion != 0;
+-}
+-
+-EXPORT_SYMBOL(lockdep_internal);
+-
+ /*
+  * Debugging switches:
+  */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
