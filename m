@@ -1,64 +1,49 @@
 From: akpm@osdl.org
-Subject: - drain_node_page-drain-pages-in-batch-units.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:57:50 -0800
-Message-ID: <200612072257.kB7MvoJa029325@shell0.pdx.osdl.net>
+Subject: - remove-bio_cachep-from-slabh.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:57:31 -0800
+Message-ID: <200612072257.kB7MvVKC029289@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50667 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50615 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163625AbWLGW5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:57:52 -0500
+	id S1163589AbWLGW5d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:57:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drain_node_page(): Drain pages in batch units
+     Remove bio_cachep from slab.h
 has been removed from the -mm tree.  Its filename was
-     drain_node_page-drain-pages-in-batch-units.patch
+     remove-bio_cachep-from-slabh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drain_node_page(): Drain pages in batch units
+Subject: Remove bio_cachep from slab.h
 From: Christoph Lameter <clameter@sgi.com>
 
-drain_node_pages() currently drains the complete pageset of all pages.  If
-there are a large number of pages in the queues then we may hold off
-interrupts for too long.
-
-Duplicate the method used in free_hot_cold_page.  Only drain pcp->batch
-pages at one time.
+Remove bio_cachep from slab.h - it no longer exists.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/linux/slab.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/page_alloc.c~drain_node_page-drain-pages-in-batch-units mm/page_alloc.c
---- a/mm/page_alloc.c~drain_node_page-drain-pages-in-batch-units
-+++ a/mm/page_alloc.c
-@@ -685,9 +685,15 @@ void drain_node_pages(int nodeid)
+diff -puN include/linux/slab.h~remove-bio_cachep-from-slabh include/linux/slab.h
+--- a/include/linux/slab.h~remove-bio_cachep-from-slabh
++++ a/include/linux/slab.h
+@@ -315,7 +315,6 @@ extern kmem_cache_t	*files_cachep;
+ extern kmem_cache_t	*filp_cachep;
+ extern kmem_cache_t	*fs_cachep;
+ extern kmem_cache_t	*sighand_cachep;
+-extern kmem_cache_t	*bio_cachep;
  
- 			pcp = &pset->pcp[i];
- 			if (pcp->count) {
-+				int to_drain;
-+
- 				local_irq_save(flags);
--				free_pages_bulk(zone, pcp->count, &pcp->list, 0);
--				pcp->count = 0;
-+				if (pcp->count >= pcp->batch)
-+					to_drain = pcp->batch;
-+				else
-+					to_drain = pcp->count;
-+				free_pages_bulk(zone, to_drain, &pcp->list, 0);
-+				pcp->count -= to_drain;
- 				local_irq_restore(flags);
- 			}
- 		}
+ #endif	/* __KERNEL__ */
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
