@@ -1,122 +1,440 @@
 From: akpm@osdl.org
-Subject: + lockdep-print-irq-trace-info-on-asserts.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:32:29 -0800
-Message-ID: <200612072032.kB7KWTbO024677@shell0.pdx.osdl.net>
+Subject: + lockdep-fix-possible-races-while-disabling-lock-debugging.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:42:04 -0800
+Message-ID: <200612072042.kB7Kg5xZ024958@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36508 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37097 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163298AbWLGUce (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:32:34 -0500
+	id S1163317AbWLGUmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:42:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+Cc: mingo@elte.hu, jarkao2@o2.pl
 
 
 The patch titled
-     lockdep: print irq-trace info on asserts
+     lockdep: fix possible races while disabling lock-debugging
 has been added to the -mm tree.  Its filename is
-     lockdep-print-irq-trace-info-on-asserts.patch
+     lockdep-fix-possible-races-while-disabling-lock-debugging.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep: print irq-trace info on asserts
+Subject: lockdep: fix possible races while disabling lock-debugging
 From: Ingo Molnar <mingo@elte.hu>
 
-When we print an assert due to scheduling-in-atomic bugs, and if lockdep
-is enabled, then the IRQ tracing information of lockdep can be printed
-to pinpoint the code location that disabled interrupts. This saved me
-quite a bit of debugging time in cases where the backtrace did not
-identify the irq-disabling site well enough.
+Jarek Poplawski noticed that lockdep global state could be accessed in a
+racy way if one CPU did a lockdep assert (shutting lockdep down), while the
+other CPU would try to do something that changes its global state.
+
+This patch fixes those races and cleans up lockdep's internal locking by
+adding a graph_lock()/graph_unlock()/debug_locks_off_graph_unlock helpers.
+
+(Also note that as we all know the Linux kernel is, by definition, bug-free
+and perfect, so this code never triggers, so these fixes are highly
+theoretical.  I wrote this patch for aesthetic reasons alone.)
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/lockdep.h |   16 +++++++++++++---
- kernel/lockdep.c        |    6 +-----
- kernel/sched.c          |    4 ++++
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ kernel/lockdep.c |  164 +++++++++++++++++++++++++++------------------
+ 1 files changed, 101 insertions(+), 63 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockdep-print-irq-trace-info-on-asserts include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-print-irq-trace-info-on-asserts
-+++ a/include/linux/lockdep.h
-@@ -281,15 +281,25 @@ struct lock_class_key { };
- #if defined(CONFIG_TRACE_IRQFLAGS) && defined(CONFIG_GENERIC_HARDIRQS)
- extern void early_init_irq_lock_class(void);
- #else
--# define early_init_irq_lock_class()		do { } while (0)
-+static inline void early_init_irq_lock_class(void)
-+{
-+}
- #endif
- 
- #ifdef CONFIG_TRACE_IRQFLAGS
- extern void early_boot_irqs_off(void);
- extern void early_boot_irqs_on(void);
-+extern void print_irqtrace_events(struct task_struct *curr);
- #else
--# define early_boot_irqs_off()			do { } while (0)
--# define early_boot_irqs_on()			do { } while (0)
-+static inline void early_boot_irqs_off(void)
-+{
-+}
-+static inline void early_boot_irqs_on(void)
-+{
-+}
-+static inline void print_irqtrace_events(struct task_struct *curr)
-+{
-+}
- #endif
+diff -puN kernel/lockdep.c~lockdep-fix-possible-races-while-disabling-lock-debugging kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-fix-possible-races-while-disabling-lock-debugging
++++ a/kernel/lockdep.c
+@@ -43,13 +43,49 @@
+ #include "lockdep_internals.h"
  
  /*
-diff -puN kernel/lockdep.c~lockdep-print-irq-trace-info-on-asserts kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-print-irq-trace-info-on-asserts
-+++ a/kernel/lockdep.c
-@@ -1448,7 +1448,7 @@ check_usage_backwards(struct task_struct
- 	return print_irq_inversion_bug(curr, backwards_match, this, 0, irqclass);
- }
+- * hash_lock: protects the lockdep hashes and class/list/hash allocators.
++ * lockdep_lock: protects the lockdep graph, the hashes and the
++ *               class/list/hash allocators.
+  *
+  * This is one of the rare exceptions where it's justified
+  * to use a raw spinlock - we really dont want the spinlock
+- * code to recurse back into the lockdep code.
++ * code to recurse back into the lockdep code...
+  */
+-static raw_spinlock_t hash_lock = (raw_spinlock_t)__RAW_SPIN_LOCK_UNLOCKED;
++static raw_spinlock_t lockdep_lock = (raw_spinlock_t)__RAW_SPIN_LOCK_UNLOCKED;
++
++static int graph_lock(void)
++{
++	__raw_spin_lock(&lockdep_lock);
++	/*
++	 * Make sure that if another CPU detected a bug while
++	 * walking the graph we dont change it (while the other
++	 * CPU is busy printing out stuff with the graph lock
++	 * dropped already)
++	 */
++	if (!debug_locks) {
++		__raw_spin_unlock(&lockdep_lock);
++		return 0;
++	}
++	return 1;
++}
++
++static inline int graph_unlock(void)
++{
++	__raw_spin_unlock(&lockdep_lock);
++	return 0;
++}
++
++/*
++ * Turn lock debugging off and return with 0 if it was off already,
++ * and also release the graph lock:
++ */
++static inline int debug_locks_off_graph_unlock(void)
++{
++	int ret = debug_locks_off();
++
++	__raw_spin_unlock(&lockdep_lock);
++
++	return ret;
++}
  
--static inline void print_irqtrace_events(struct task_struct *curr)
-+void print_irqtrace_events(struct task_struct *curr)
+ static int lockdep_initialized;
+ 
+@@ -57,14 +93,15 @@ unsigned long nr_list_entries;
+ static struct lock_list list_entries[MAX_LOCKDEP_ENTRIES];
+ 
+ /*
+- * Allocate a lockdep entry. (assumes hash_lock held, returns
++ * Allocate a lockdep entry. (assumes the graph_lock held, returns
+  * with NULL on failure)
+  */
+ static struct lock_list *alloc_list_entry(void)
  {
- 	printk("irq event stamp: %u\n", curr->irq_events);
- 	printk("hardirqs last  enabled at (%u): ", curr->hardirq_enable_event);
-@@ -1461,10 +1461,6 @@ static inline void print_irqtrace_events
- 	print_ip_sym(curr->softirq_disable_ip);
+ 	if (nr_list_entries >= MAX_LOCKDEP_ENTRIES) {
+-		__raw_spin_unlock(&hash_lock);
+-		debug_locks_off();
++		if (!debug_locks_off_graph_unlock())
++			return NULL;
++
+ 		printk("BUG: MAX_LOCKDEP_ENTRIES too low!\n");
+ 		printk("turning off the locking correctness validator.\n");
+ 		return NULL;
+@@ -205,7 +242,7 @@ static int softirq_verbose(struct lock_c
+ 
+ /*
+  * Stack-trace: tightly packed array of stack backtrace
+- * addresses. Protected by the hash_lock.
++ * addresses. Protected by the graph_lock.
+  */
+ unsigned long nr_stack_trace_entries;
+ static unsigned long stack_trace[MAX_STACK_TRACE_ENTRIES];
+@@ -224,18 +261,15 @@ static int save_trace(struct stack_trace
+ 	trace->max_entries = trace->nr_entries;
+ 
+ 	nr_stack_trace_entries += trace->nr_entries;
+-	if (DEBUG_LOCKS_WARN_ON(nr_stack_trace_entries > MAX_STACK_TRACE_ENTRIES)) {
+-		__raw_spin_unlock(&hash_lock);
+-		return 0;
+-	}
+ 
+ 	if (nr_stack_trace_entries == MAX_STACK_TRACE_ENTRIES) {
+-		__raw_spin_unlock(&hash_lock);
+-		if (debug_locks_off()) {
+-			printk("BUG: MAX_STACK_TRACE_ENTRIES too low!\n");
+-			printk("turning off the locking correctness validator.\n");
+-			dump_stack();
+-		}
++		if (!debug_locks_off_graph_unlock())
++			return 0;
++
++		printk("BUG: MAX_STACK_TRACE_ENTRIES too low!\n");
++		printk("turning off the locking correctness validator.\n");
++		dump_stack();
++
+ 		return 0;
+ 	}
+ 
+@@ -524,9 +558,7 @@ print_circular_bug_header(struct lock_li
+ {
+ 	struct task_struct *curr = current;
+ 
+-	__raw_spin_unlock(&hash_lock);
+-	debug_locks_off();
+-	if (debug_locks_silent)
++	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
+ 		return 0;
+ 
+ 	printk("\n=======================================================\n");
+@@ -554,12 +586,10 @@ static noinline int print_circular_bug_t
+ 	if (debug_locks_silent)
+ 		return 0;
+ 
+-	/* hash_lock unlocked by the header */
+-	__raw_spin_lock(&hash_lock);
+ 	this.class = check_source->class;
+ 	if (!save_trace(&this.trace))
+ 		return 0;
+-	__raw_spin_unlock(&hash_lock);
++
+ 	print_circular_bug_entry(&this, 0);
+ 
+ 	printk("\nother info that might help us debug this:\n\n");
+@@ -575,8 +605,10 @@ static noinline int print_circular_bug_t
+ 
+ static int noinline print_infinite_recursion_bug(void)
+ {
+-	__raw_spin_unlock(&hash_lock);
+-	DEBUG_LOCKS_WARN_ON(1);
++	if (!debug_locks_off_graph_unlock())
++		return 0;
++
++	WARN_ON(1);
+ 
+ 	return 0;
+ }
+@@ -711,9 +743,7 @@ print_bad_irq_dependency(struct task_str
+ 			 enum lock_usage_bit bit2,
+ 			 const char *irqclass)
+ {
+-	__raw_spin_unlock(&hash_lock);
+-	debug_locks_off();
+-	if (debug_locks_silent)
++	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
+ 		return 0;
+ 
+ 	printk("\n======================================================\n");
+@@ -794,9 +824,7 @@ static int
+ print_deadlock_bug(struct task_struct *curr, struct held_lock *prev,
+ 		   struct held_lock *next)
+ {
+-	debug_locks_off();
+-	__raw_spin_unlock(&hash_lock);
+-	if (debug_locks_silent)
++	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
+ 		return 0;
+ 
+ 	printk("\n=============================================\n");
+@@ -973,14 +1001,14 @@ check_prev_add(struct task_struct *curr,
+ 	 * Debugging printouts:
+ 	 */
+ 	if (verbose(prev->class) || verbose(next->class)) {
+-		__raw_spin_unlock(&hash_lock);
++		graph_unlock();
+ 		printk("\n new dependency: ");
+ 		print_lock_name(prev->class);
+ 		printk(" => ");
+ 		print_lock_name(next->class);
+ 		printk("\n");
+ 		dump_stack();
+-		__raw_spin_lock(&hash_lock);
++		return graph_lock();
+ 	}
+ 	return 1;
+ }
+@@ -1045,8 +1073,10 @@ check_prevs_add(struct task_struct *curr
+ 	}
+ 	return 1;
+ out_bug:
+-	__raw_spin_unlock(&hash_lock);
+-	DEBUG_LOCKS_WARN_ON(1);
++	if (!debug_locks_off_graph_unlock())
++		return 0;
++
++	WARN_ON(1);
+ 
+ 	return 0;
+ }
+@@ -1200,7 +1230,8 @@ register_lock_class(struct lockdep_map *
+ 	hash_head = classhashentry(key);
+ 
+ 	raw_local_irq_save(flags);
+-	__raw_spin_lock(&hash_lock);
++	if (!graph_lock())
++		return NULL;
+ 	/*
+ 	 * We have to do the hash-walk again, to avoid races
+ 	 * with another CPU:
+@@ -1213,9 +1244,12 @@ register_lock_class(struct lockdep_map *
+ 	 * the hash:
+ 	 */
+ 	if (nr_lock_classes >= MAX_LOCKDEP_KEYS) {
+-		__raw_spin_unlock(&hash_lock);
++		if (!debug_locks_off_graph_unlock()) {
++			raw_local_irq_restore(flags);
++			return NULL;
++		}
+ 		raw_local_irq_restore(flags);
+-		debug_locks_off();
++
+ 		printk("BUG: MAX_LOCKDEP_KEYS too low!\n");
+ 		printk("turning off the locking correctness validator.\n");
+ 		return NULL;
+@@ -1236,18 +1270,23 @@ register_lock_class(struct lockdep_map *
+ 	list_add_tail_rcu(&class->hash_entry, hash_head);
+ 
+ 	if (verbose(class)) {
+-		__raw_spin_unlock(&hash_lock);
++		graph_unlock();
+ 		raw_local_irq_restore(flags);
++
+ 		printk("\nnew class %p: %s", class->key, class->name);
+ 		if (class->name_version > 1)
+ 			printk("#%d", class->name_version);
+ 		printk("\n");
+ 		dump_stack();
++
+ 		raw_local_irq_save(flags);
+-		__raw_spin_lock(&hash_lock);
++		if (!graph_lock()) {
++			raw_local_irq_restore(flags);
++			return NULL;
++		}
+ 	}
+ out_unlock_set:
+-	__raw_spin_unlock(&hash_lock);
++	graph_unlock();
+ 	raw_local_irq_restore(flags);
+ 
+ 	if (!subclass || force)
+@@ -1288,19 +1327,21 @@ cache_hit:
+ 	 * Allocate a new chain entry from the static array, and add
+ 	 * it to the hash:
+ 	 */
+-	__raw_spin_lock(&hash_lock);
++	if (!graph_lock())
++		return 0;
+ 	/*
+ 	 * We have to walk the chain again locked - to avoid duplicates:
+ 	 */
+ 	list_for_each_entry(chain, hash_head, entry) {
+ 		if (chain->chain_key == chain_key) {
+-			__raw_spin_unlock(&hash_lock);
++			graph_unlock();
+ 			goto cache_hit;
+ 		}
+ 	}
+ 	if (unlikely(nr_lock_chains >= MAX_LOCKDEP_CHAINS)) {
+-		__raw_spin_unlock(&hash_lock);
+-		debug_locks_off();
++		if (!debug_locks_off_graph_unlock())
++			return 0;
++
+ 		printk("BUG: MAX_LOCKDEP_CHAINS too low!\n");
+ 		printk("turning off the locking correctness validator.\n");
+ 		return 0;
+@@ -1376,9 +1417,7 @@ print_irq_inversion_bug(struct task_stru
+ 			struct held_lock *this, int forwards,
+ 			const char *irqclass)
+ {
+-	__raw_spin_unlock(&hash_lock);
+-	debug_locks_off();
+-	if (debug_locks_silent)
++	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
+ 		return 0;
+ 
+ 	printk("\n=========================================================\n");
+@@ -1467,9 +1506,7 @@ static int
+ print_usage_bug(struct task_struct *curr, struct held_lock *this,
+ 		enum lock_usage_bit prev_bit, enum lock_usage_bit new_bit)
+ {
+-	__raw_spin_unlock(&hash_lock);
+-	debug_locks_off();
+-	if (debug_locks_silent)
++	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
+ 		return 0;
+ 
+ 	printk("\n=================================\n");
+@@ -1530,12 +1567,13 @@ static int mark_lock(struct task_struct 
+ 	if (likely(this->class->usage_mask & new_mask))
+ 		return 1;
+ 
+-	__raw_spin_lock(&hash_lock);
++	if (!graph_lock())
++		return 0;
+ 	/*
+ 	 * Make sure we didnt race:
+ 	 */
+ 	if (unlikely(this->class->usage_mask & new_mask)) {
+-		__raw_spin_unlock(&hash_lock);
++		graph_unlock();
+ 		return 1;
+ 	}
+ 
+@@ -1727,10 +1765,10 @@ static int mark_lock(struct task_struct 
+ 		return 0;
+ 	}
+ 
+-	__raw_spin_unlock(&hash_lock);
++	graph_unlock();
+ 
+ 	/*
+-	 * We must printk outside of the hash_lock:
++	 * We must printk outside of the graph_lock:
+ 	 */
+ 	if (ret == 2) {
+ 		printk("\nmarked lock as {%s}:\n", usage_str[new_bit]);
+@@ -2128,7 +2166,7 @@ out_calc_hash:
+ 	 * We look up the chain_key and do the O(N^2) check and update of
+ 	 * the dependencies only if this is a new dependency chain.
+ 	 * (If lookup_chain_cache() returns with 1 it acquires
+-	 * hash_lock for us)
++	 * graph_lock for us)
+ 	 */
+ 	if (!trylock && (check == 2) && lookup_chain_cache(chain_key, class)) {
+ 		/*
+@@ -2161,7 +2199,7 @@ out_calc_hash:
+ 		if (!chain_head && ret != 2)
+ 			if (!check_prevs_add(curr, hlock))
+ 				return 0;
+-		__raw_spin_unlock(&hash_lock);
++		graph_unlock();
+ 	}
+ 	curr->lockdep_depth++;
+ 	check_chain_key(curr);
+@@ -2473,7 +2511,7 @@ void lockdep_free_key_range(void *start,
+ 	int i;
+ 
+ 	raw_local_irq_save(flags);
+-	__raw_spin_lock(&hash_lock);
++	graph_lock();
+ 
+ 	/*
+ 	 * Unhash all classes that were created by this module:
+@@ -2487,7 +2525,7 @@ void lockdep_free_key_range(void *start,
+ 				zap_class(class);
+ 	}
+ 
+-	__raw_spin_unlock(&hash_lock);
++	graph_unlock();
+ 	raw_local_irq_restore(flags);
  }
  
--#else
--static inline void print_irqtrace_events(struct task_struct *curr)
--{
--}
- #endif
+@@ -2515,20 +2553,20 @@ void lockdep_reset_lock(struct lockdep_m
+ 	 * Debug check: in the end all mapped classes should
+ 	 * be gone.
+ 	 */
+-	__raw_spin_lock(&hash_lock);
++	graph_lock();
+ 	for (i = 0; i < CLASSHASH_SIZE; i++) {
+ 		head = classhash_table + i;
+ 		if (list_empty(head))
+ 			continue;
+ 		list_for_each_entry_safe(class, next, head, hash_entry) {
+ 			if (unlikely(class == lock->class_cache)) {
+-				__raw_spin_unlock(&hash_lock);
+-				DEBUG_LOCKS_WARN_ON(1);
++				if (debug_locks_off_graph_unlock())
++					WARN_ON(1);
+ 				goto out_restore;
+ 			}
+ 		}
+ 	}
+-	__raw_spin_unlock(&hash_lock);
++	graph_unlock();
  
- static int
-diff -puN kernel/sched.c~lockdep-print-irq-trace-info-on-asserts kernel/sched.c
---- a/kernel/sched.c~lockdep-print-irq-trace-info-on-asserts
-+++ a/kernel/sched.c
-@@ -3345,6 +3345,8 @@ asmlinkage void __sched schedule(void)
- 			"%s/0x%08x/%d\n",
- 			current->comm, preempt_count(), current->pid);
- 		debug_show_held_locks(current);
-+		if (irqs_disabled())
-+			print_irqtrace_events(current);
- 		dump_stack();
- 	}
- 	profile_hit(SCHED_PROFILING, __builtin_return_address(0));
-@@ -6855,6 +6857,8 @@ void __might_sleep(char *file, int line)
- 		printk("in_atomic():%d, irqs_disabled():%d\n",
- 			in_atomic(), irqs_disabled());
- 		debug_show_held_locks(current);
-+		if (irqs_disabled())
-+			print_irqtrace_events(current);
- 		dump_stack();
- 	}
- #endif
+ out_restore:
+ 	raw_local_irq_restore(flags);
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
@@ -169,6 +487,7 @@ lockdep-improve-lockdep_reset.patch
 lockdep-clean-up-very_verbose-define.patch
 lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
 lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
 remove-the-old-bd_mutex-lockdep-annotation.patch
 new-bd_mutex-lockdep-annotation.patch
 remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
