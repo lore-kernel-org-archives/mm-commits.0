@@ -1,131 +1,114 @@
 From: akpm@osdl.org
-Subject: + time-re-add-verify_pmtmr_rate.patch added to -mm tree
-Date: Wed, 06 Dec 2006 21:31:09 -0800
-Message-ID: <200612070531.kB75V9It031522@shell0.pdx.osdl.net>
+Subject: + spidernet-rx-locking.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:36:31 -0800
+Message-ID: <200612070536.kB75aVQr031650@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50585 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50741 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968821AbWLGFd4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:33:56 -0500
+	id S1030645AbWLGFgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:36:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, ak@suse.de, ijc@hellion.org.uk, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
 
 
 The patch titled
-     time: re-add verify_pmtmr_rate
+     spidernet: RX Locking
 has been added to the -mm tree.  Its filename is
-     time-re-add-verify_pmtmr_rate.patch
+     spidernet-rx-locking.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time: re-add verify_pmtmr_rate
-From: john stultz <johnstul@us.ibm.com>
+Subject: spidernet: RX Locking
+From: Linas Vepstas <linas@austin.ibm.com>
 
-This patch re-adds the verify_pmtmr_rate functionality from 2.6.17 that
-I dropped 2.6.18.
+The RX packet handling can be called from several places, yet does not protect
+the rx ring structure.  This patch places the ring buffer pointers under a
+lock.
 
-This resolves problems seen on older K6 ASUS boards where the ACPI PM
-timer runs too fast.
-
-See:
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=211902
-http://bugme.osdl.org/show_bug.cgi?id=2375
-
-Thanks to Ian Campbell for re-reporting this and testing the fix!
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ian Campbell <ijc@hellion.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Cc: James K Lewis <jklewis@us.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/clocksource/acpi_pm.c |   36 ++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ drivers/net/spider_net.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/clocksource/acpi_pm.c~time-re-add-verify_pmtmr_rate drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~time-re-add-verify_pmtmr_rate
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -142,6 +142,39 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SE
- 			acpi_pm_check_graylist);
- #endif
- 
-+#ifndef CONFIG_X86_64
-+#include "mach_timer.h"
-+#define PMTMR_EXPECTED_RATE \
-+  ((CALIBRATE_LATCH * (PMTMR_TICKS_PER_SEC >> 10)) / (CLOCK_TICK_RATE>>10))
-+/*
-+ * Some boards have the PMTMR running way too fast. We check
-+ * the PMTMR rate against PIT channel 2 to catch these cases.
-+ */
-+static int verify_pmtmr_rate(void)
-+{
-+	u32 value1, value2;
-+	unsigned long count, delta;
-+
-+	mach_prepare_counter();
-+	value1 = read_pmtmr();
-+	mach_countup(&count);
-+	value2 = read_pmtmr();
-+	delta = (value2 - value1) & ACPI_PM_MASK;
-+
-+	/* Check that the PMTMR delta is within 5% of what we expect */
-+	if (delta < (PMTMR_EXPECTED_RATE * 19) / 20 ||
-+	    delta > (PMTMR_EXPECTED_RATE * 21) / 20) {
-+		printk(KERN_INFO "PM-Timer running at invalid rate: %lu%% "
-+			"of normal - aborting.\n",
-+			100UL * delta / PMTMR_EXPECTED_RATE);
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+#else
-+#define verify_pmtmr_rate() (0)
-+#endif
- 
- static int __init init_acpi_pm_clocksource(void)
+diff -puN drivers/net/spider_net.c~spidernet-rx-locking drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-rx-locking
++++ a/drivers/net/spider_net.c
+@@ -969,28 +969,33 @@ static int
+ spider_net_decode_one_descr(struct spider_net_card *card, int napi)
  {
-@@ -173,6 +206,9 @@ static int __init init_acpi_pm_clocksour
- 	return -ENODEV;
- 
- pm_good:
-+	if (verify_pmtmr_rate() != 0)
-+		return -ENODEV;
+ 	struct spider_net_descr_chain *chain = &card->rx_chain;
+-	struct spider_net_descr *descr = chain->tail;
++	struct spider_net_descr *descr;
+ 	int status;
+ 	int result;
++	unsigned long flags;
 +
- 	return clocksource_register(&clocksource_acpi_pm);
++	spin_lock_irqsave(&chain->lock, flags);
++	descr = chain->tail;
+ 
+ 	status = spider_net_get_descr_status(descr);
+ 
+ 	if (status == SPIDER_NET_DESCR_CARDOWNED) {
+ 		/* nothing in the descriptor yet */
+-		result=0;
+-		goto out;
++		spin_unlock_irqrestore(&chain->lock, flags);
++		return 0;
+ 	}
+ 
+ 	if (status == SPIDER_NET_DESCR_NOT_IN_USE) {
+ 		/* not initialized yet, the ring must be empty */
++		spin_unlock_irqrestore(&chain->lock, flags);
+ 		spider_net_refill_rx_chain(card);
+ 		spider_net_enable_rxdmac(card);
+-		result=0;
+-		goto out;
++		return 0;
+ 	}
+ 
+ 	/* descriptor definitively used -- move on tail */
+ 	chain->tail = descr->next;
++	spin_unlock_irqrestore(&chain->lock, flags);
+ 
+ 	result = 0;
+ 	if ( (status == SPIDER_NET_DESCR_RESPONSE_ERROR) ||
+@@ -1022,7 +1027,6 @@ refill:
+ 	/* change the descriptor state: */
+ 	if (!napi)
+ 		spider_net_refill_rx_chain(card);
+-out:
+ 	return result;
  }
  
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from linas@austin.ibm.com are
 
-time-re-add-verify_pmtmr_rate.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-updated-hrtimers-state-tracking.patch
-updated-hrtimers-clean-up-callback-tracking.patch
-updated-hrtimers-move-and-add-documentation.patch
-updated-add-a-framework-to-manage-clock-event-devices.patch
-updated-acpi-include-apich.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
-updated-high-res-timers-core.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-updated-dynticks-core-code.patch
-updated-dyntick-add-nohz-stats-to-proc-stat.patch
-updated-dynticks-i386-arch-code.patch
-updated-debugging-feature-timer-stats.patch
-clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
-clocksource-add-usage-of-config_sysfs.patch
-clocksource-small-cleanup-2.patch
-clocksource-small-cleanup-2-fix.patch
-clocksource-small-acpi_pm-cleanup.patch
+origin.patch
+hvcs-char-driver-janitoring-move-block-of-code.patch
+spidernet-dma-coalescing.patch
+spidernet-add-net_ratelimit-to-suppress-long-output.patch
+spidernet-rx-locking.patch
+spidernet-refactor-rx-refill.patch
+spidernet-rx-skb-mem-leak.patch
+spidernet-another-skb-mem-leak.patch
+spidernet-cleanup-return-codes.patch
+spidernet-rx-refill.patch
+spidernet-merge-error-branches.patch
+spidernet-remove-unused-variable.patch
+spidernet-rx-chain-tail.patch
+spidernet-turn-rx-irq-back-on.patch
+spidernet-memory-barrier.patch
+spidernet-avoid-possible-rx-chain-corruption.patch
+spidernet-rx-debugging-printout.patch
+spidernet-rework-rx-linked-list.patch
 
