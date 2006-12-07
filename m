@@ -1,61 +1,51 @@
 From: akpm@osdl.org
-Subject: - futex-init-error-check.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:07:29 -0800
-Message-ID: <200612072307.kB7N7THn030366@shell0.pdx.osdl.net>
+Subject: - spi-check-platform_device_register_simple-error.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:07:34 -0800
+Message-ID: <200612072307.kB7N7YVd030370@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52805 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52809 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163941AbWLGXHl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:07:41 -0500
+	id S1163941AbWLGXHn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:07:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: init error check
+     spi: check platform_device_register_simple() error
 has been removed from the -mm tree.  Its filename was
-     futex-init-error-check.patch
+     spi-check-platform_device_register_simple-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: futex: init error check
+Subject: spi: check platform_device_register_simple() error
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Check register_filesystem() and kern_mount() return values.
+Check the return value of platform_device_register_simple().
 
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/futex.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/spi/spi_butterfly.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/futex.c~futex-init-error-check kernel/futex.c
---- a/kernel/futex.c~futex-init-error-check
-+++ a/kernel/futex.c
-@@ -1857,10 +1857,16 @@ static struct file_system_type futex_fs_
+diff -puN drivers/spi/spi_butterfly.c~spi-check-platform_device_register_simple-error drivers/spi/spi_butterfly.c
+--- a/drivers/spi/spi_butterfly.c~spi-check-platform_device_register_simple-error
++++ a/drivers/spi/spi_butterfly.c
+@@ -251,6 +251,8 @@ static void butterfly_attach(struct parp
+ 	 * setting up a platform device like this is an ugly kluge...
+ 	 */
+ 	pdev = platform_device_register_simple("butterfly", -1, NULL, 0);
++	if (IS_ERR(pdev))
++		return;
  
- static int __init init(void)
- {
--	unsigned int i;
-+	int i = register_filesystem(&futex_fs_type);
-+
-+	if (i)
-+		return i;
- 
--	register_filesystem(&futex_fs_type);
- 	futex_mnt = kern_mount(&futex_fs_type);
-+	if (IS_ERR(futex_mnt)) {
-+		unregister_filesystem(&futex_fs_type);
-+		return PTR_ERR(futex_mnt);
-+	}
- 
- 	for (i = 0; i < ARRAY_SIZE(futex_queues); i++) {
- 		INIT_LIST_HEAD(&futex_queues[i].chain);
+ 	master = spi_alloc_master(&pdev->dev, sizeof *pp);
+ 	if (!master) {
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
