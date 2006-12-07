@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + ecryptfs-public-key-packet-management.patch added to -mm tree
-Date: Wed, 06 Dec 2006 21:57:58 -0800
-Message-ID: <200612070557.kB75vwfn032202@shell0.pdx.osdl.net>
+Subject: + ecryptfs-public-key-transport-mechanism.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:57:56 -0800
+Message-ID: <200612070557.kB75vuWT032199@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51741 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51847 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031556AbWLGF6L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:58:11 -0500
+	id S1031533AbWLGGBS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 01:01:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,1312 +15,988 @@ Cc: mhalcrow@us.ibm.com, dhowells@redhat.com
 
 
 The patch titled
-     eCryptfs: Public key; packet management
+     eCryptfs: Public key transport mechanism
 has been added to the -mm tree.  Its filename is
-     ecryptfs-public-key-packet-management.patch
+     ecryptfs-public-key-transport-mechanism.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: Public key; packet management
+Subject: eCryptfs: Public key transport mechanism
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Public key support code.  This reads and writes packets in the header that
-contain public key encrypted file keys.  It calls the messaging code in the
-previous patch to send and receive encryption and decryption request
-packets from the userspace daemon.
+This is the transport code for public key functionality in eCryptfs.  It
+manages encryption/decryption request queues with a transport mechanism. 
+Currently, netlink is the only implemented transport.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ecryptfs/Makefile          |    2 
- fs/ecryptfs/ecryptfs_kernel.h |    7 
- fs/ecryptfs/keystore.c        |  784 +++++++++++++++++++++++++++++---
- fs/ecryptfs/main.c            |   49 +-
- fs/ecryptfs/messaging.c       |   10 
- fs/ecryptfs/mmap.c            |   91 ---
- fs/ecryptfs/netlink.c         |    4 
- 7 files changed, 777 insertions(+), 170 deletions(-)
+ fs/ecryptfs/ecryptfs_kernel.h |  101 ++++++
+ fs/ecryptfs/messaging.c       |  505 ++++++++++++++++++++++++++++++++
+ fs/ecryptfs/netlink.c         |  255 ++++++++++++++++
+ include/linux/netlink.h       |    1 
+ 4 files changed, 859 insertions(+), 3 deletions(-)
 
-diff -puN fs/ecryptfs/Makefile~ecryptfs-public-key-packet-management fs/ecryptfs/Makefile
---- a/fs/ecryptfs/Makefile~ecryptfs-public-key-packet-management
-+++ a/fs/ecryptfs/Makefile
-@@ -4,4 +4,4 @@
- 
- obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
- 
--ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o crypto.o keystore.o debug.o
-+ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o crypto.o keystore.o messaging.o netlink.o debug.o
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-public-key-packet-management fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-public-key-packet-management
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-public-key-transport-mechanism fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-public-key-transport-mechanism
 +++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -31,6 +31,7 @@
- #include <keys/user-type.h>
- #include <linux/fs.h>
- #include <linux/scatterlist.h>
-+#include <linux/hash.h>
- 
- /* Version verification for shared data structures w/ userspace */
- #define ECRYPTFS_VERSION_MAJOR 0x00
-@@ -45,7 +46,8 @@
- #define ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH 0x00000004
- #define ECRYPTFS_VERSIONING_POLICY 0x00000008
- #define ECRYPTFS_VERSIONING_MASK (ECRYPTFS_VERSIONING_PASSPHRASE \
--                                  | ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH)
-+                                  | ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH \
-+                                  | ECRYPTFS_VERSIONING_PUBKEY)
- 
- #define ECRYPTFS_MAX_PASSWORD_LENGTH 64
- #define ECRYPTFS_MAX_PASSPHRASE_BYTES ECRYPTFS_MAX_PASSWORD_LENGTH
-@@ -561,7 +563,8 @@ int ecryptfs_close_lower_file(struct fil
- 
- int ecryptfs_process_helo(unsigned int transport, uid_t uid, pid_t pid);
- int ecryptfs_process_quit(uid_t uid, pid_t pid);
--int ecryptfs_process_response(struct ecryptfs_message *msg, pid_t pid, u32 seq);
-+int ecryptfs_process_response(struct ecryptfs_message *msg, uid_t uid,
-+			      pid_t pid, u32 seq);
- int ecryptfs_send_message(unsigned int transport, char *data, int data_len,
- 			  struct ecryptfs_msg_ctx **msg_ctx);
- int ecryptfs_wait_for_response(struct ecryptfs_msg_ctx *msg_ctx,
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-public-key-packet-management fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-public-key-packet-management
-+++ a/fs/ecryptfs/keystore.c
-@@ -7,6 +7,7 @@
-  * Copyright (C) 2004-2006 International Business Machines Corp.
-  *   Author(s): Michael A. Halcrow <mhalcrow@us.ibm.com>
-  *              Michael C. Thompson <mcthomps@us.ibm.com>
-+ *              Trevor S. Highland <trevor.highland@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-@@ -64,26 +65,6 @@ int process_request_key_err(long err_cod
- 	return rc;
- }
- 
--static void wipe_auth_tok_list(struct list_head *auth_tok_list_head)
--{
--	struct list_head *walker;
--	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
--
--	walker = auth_tok_list_head->next;
--	while (walker != auth_tok_list_head) {
--		auth_tok_list_item =
--		    list_entry(walker, struct ecryptfs_auth_tok_list_item,
--			       list);
--		walker = auth_tok_list_item->list.next;
--		memset(auth_tok_list_item, 0,
--		       sizeof(struct ecryptfs_auth_tok_list_item));
--		kmem_cache_free(ecryptfs_auth_tok_list_item_cache,
--				auth_tok_list_item);
--	}
--}
--
--struct kmem_cache *ecryptfs_auth_tok_list_item_cache;
--
- /**
-  * parse_packet_length
-  * @data: Pointer to memory containing length at offset
-@@ -102,12 +83,12 @@ static int parse_packet_length(unsigned 
- 	(*size) = 0;
- 	if (data[0] < 192) {
- 		/* One-byte length */
--		(*size) = data[0];
-+		(*size) = (unsigned char)data[0];
- 		(*length_size) = 1;
- 	} else if (data[0] < 224) {
- 		/* Two-byte length */
--		(*size) = ((data[0] - 192) * 256);
--		(*size) += (data[1] + 192);
-+		(*size) = (((unsigned char)(data[0]) - 192) * 256);
-+		(*size) += ((unsigned char)(data[1]) + 192);
- 		(*length_size) = 2;
- 	} else if (data[0] == 255) {
- 		/* Five-byte length; we're not supposed to see this */
-@@ -154,6 +135,499 @@ static int write_packet_length(char *des
- 	return rc;
- }
- 
-+static int
-+write_tag_64_packet(char *signature, struct ecryptfs_session_key *session_key,
-+		    char **packet, size_t *packet_len)
-+{
-+	size_t i = 0;
-+	size_t data_len;
-+	size_t packet_size_len;
-+	char *message;
-+	int rc;
-+
-+	/*
-+	 *              ***** TAG 64 Packet Format *****
-+	 *    | Content Type                       | 1 byte       |
-+	 *    | Key Identifier Size                | 1 or 2 bytes |
-+	 *    | Key Identifier                     | arbitrary    |
-+	 *    | Encrypted File Encryption Key Size | 1 or 2 bytes |
-+	 *    | Encrypted File Encryption Key      | arbitrary    |
-+	 */
-+	data_len = (5 + ECRYPTFS_SIG_SIZE_HEX
-+		    + session_key->encrypted_key_size);
-+	*packet = kmalloc(data_len, GFP_KERNEL);
-+	message = *packet;
-+	if (!message) {
-+		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	message[i++] = ECRYPTFS_TAG_64_PACKET_TYPE;
-+	rc = write_packet_length(&message[i], ECRYPTFS_SIG_SIZE_HEX,
-+				 &packet_size_len);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error generating tag 64 packet "
-+				"header; cannot generate packet length\n");
-+		goto out;
-+	}
-+	i += packet_size_len;
-+	memcpy(&message[i], signature, ECRYPTFS_SIG_SIZE_HEX);
-+	i += ECRYPTFS_SIG_SIZE_HEX;
-+	rc = write_packet_length(&message[i], session_key->encrypted_key_size,
-+				 &packet_size_len);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error generating tag 64 packet "
-+				"header; cannot generate packet length\n");
-+		goto out;
-+	}
-+	i += packet_size_len;
-+	memcpy(&message[i], session_key->encrypted_key,
-+	       session_key->encrypted_key_size);
-+	i += session_key->encrypted_key_size;
-+	*packet_len = i;
-+out:
-+	return rc;
-+}
-+
-+static int
-+parse_tag_65_packet(struct ecryptfs_session_key *session_key, u16 *cipher_code,
-+		    struct ecryptfs_message *msg)
-+{
-+	size_t i = 0;
-+	char *data;
-+	size_t data_len;
-+	size_t m_size;
-+	size_t message_len;
-+	u16 checksum = 0;
-+	u16 expected_checksum = 0;
-+	int rc;
-+
-+	/*
-+	 *              ***** TAG 65 Packet Format *****
-+	 *         | Content Type             | 1 byte       |
-+	 *         | Status Indicator         | 1 byte       |
-+	 *         | File Encryption Key Size | 1 or 2 bytes |
-+	 *         | File Encryption Key      | arbitrary    |
-+	 */
-+	message_len = msg->data_len;
-+	data = msg->data;
-+	if (message_len < 4) {
-+		rc = -EIO;
-+		goto out;
-+	}
-+	if (data[i++] != ECRYPTFS_TAG_65_PACKET_TYPE) {
-+		ecryptfs_printk(KERN_ERR, "Type should be ECRYPTFS_TAG_65\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+	if (data[i++]) {
-+		ecryptfs_printk(KERN_ERR, "Status indicator has non-zero value "
-+				"[%d]\n", data[i-1]);
-+		rc = -EIO;
-+		goto out;
-+	}
-+	rc = parse_packet_length(&data[i], &m_size, &data_len);
-+	if (rc) {
-+		ecryptfs_printk(KERN_WARNING, "Error parsing packet length; "
-+				"rc = [%d]\n", rc);
-+		goto out;
-+	}
-+	i += data_len;
-+	if (message_len < (i + m_size)) {
-+		ecryptfs_printk(KERN_ERR, "The received netlink message is "
-+				"shorter than expected\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+	if (m_size < 3) {
-+		ecryptfs_printk(KERN_ERR,
-+				"The decrypted key is not long enough to "
-+				"include a cipher code and checksum\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+	*cipher_code = data[i++];
-+	/* The decrypted key includes 1 byte cipher code and 2 byte checksum */
-+	session_key->decrypted_key_size = m_size - 3;
-+	if (session_key->decrypted_key_size > ECRYPTFS_MAX_KEY_BYTES) {
-+		ecryptfs_printk(KERN_ERR, "key_size [%d] larger than "
-+				"the maximum key size [%d]\n",
-+				session_key->decrypted_key_size,
-+				ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES);
-+		rc = -EIO;
-+		goto out;
-+	}
-+	memcpy(session_key->decrypted_key, &data[i],
-+	       session_key->decrypted_key_size);
-+	i += session_key->decrypted_key_size;
-+	expected_checksum += (unsigned char)(data[i++]) << 8;
-+	expected_checksum += (unsigned char)(data[i++]);
-+	for (i = 0; i < session_key->decrypted_key_size; i++)
-+		checksum += session_key->decrypted_key[i];
-+	if (expected_checksum != checksum) {
-+		ecryptfs_printk(KERN_ERR, "Invalid checksum for file "
-+				"encryption  key; expected [%x]; calculated "
-+				"[%x]\n", expected_checksum, checksum);
-+		rc = -EIO;
-+	}
-+out:
-+	return rc;
-+}
-+
-+
-+static int
-+write_tag_66_packet(char *signature, size_t cipher_code,
-+		    struct ecryptfs_crypt_stat *crypt_stat, char **packet,
-+		    size_t *packet_len)
-+{
-+	size_t i = 0;
-+	size_t j;
-+	size_t data_len;
-+	size_t checksum = 0;
-+	size_t packet_size_len;
-+	char *message;
-+	int rc;
-+
-+	/*
-+	 *              ***** TAG 66 Packet Format *****
-+	 *         | Content Type             | 1 byte       |
-+	 *         | Key Identifier Size      | 1 or 2 bytes |
-+	 *         | Key Identifier           | arbitrary    |
-+	 *         | File Encryption Key Size | 1 or 2 bytes |
-+	 *         | File Encryption Key      | arbitrary    |
-+	 */
-+	data_len = (5 + ECRYPTFS_SIG_SIZE_HEX + crypt_stat->key_size);
-+	*packet = kmalloc(data_len, GFP_KERNEL);
-+	message = *packet;
-+	if (!message) {
-+		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	message[i++] = ECRYPTFS_TAG_66_PACKET_TYPE;
-+	rc = write_packet_length(&message[i], ECRYPTFS_SIG_SIZE_HEX,
-+				 &packet_size_len);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error generating tag 66 packet "
-+				"header; cannot generate packet length\n");
-+		goto out;
-+	}
-+	i += packet_size_len;
-+	memcpy(&message[i], signature, ECRYPTFS_SIG_SIZE_HEX);
-+	i += ECRYPTFS_SIG_SIZE_HEX;
-+	/* The encrypted key includes 1 byte cipher code and 2 byte checksum */
-+	rc = write_packet_length(&message[i], crypt_stat->key_size + 3,
-+				 &packet_size_len);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error generating tag 66 packet "
-+				"header; cannot generate packet length\n");
-+		goto out;
-+	}
-+	i += packet_size_len;
-+	message[i++] = cipher_code;
-+	memcpy(&message[i], crypt_stat->key, crypt_stat->key_size);
-+	i += crypt_stat->key_size;
-+	for (j = 0; j < crypt_stat->key_size; j++)
-+		checksum += crypt_stat->key[j];
-+	message[i++] = (checksum / 256) % 256;
-+	message[i++] = (checksum % 256);
-+	*packet_len = i;
-+out:
-+	return rc;
-+}
-+
-+static int
-+parse_tag_67_packet(struct ecryptfs_key_record *key_rec,
-+		    struct ecryptfs_message *msg)
-+{
-+	size_t i = 0;
-+	char *data;
-+	size_t data_len;
-+	size_t message_len;
-+	int rc;
-+
-+	/*
-+	 *              ***** TAG 65 Packet Format *****
-+	 *    | Content Type                       | 1 byte       |
-+	 *    | Status Indicator                   | 1 byte       |
-+	 *    | Encrypted File Encryption Key Size | 1 or 2 bytes |
-+	 *    | Encrypted File Encryption Key      | arbitrary    |
-+	 */
-+	message_len = msg->data_len;
-+	data = msg->data;
-+	/* verify that everything through the encrypted FEK size is present */
-+	if (message_len < 4) {
-+		rc = -EIO;
-+		goto out;
-+	}
-+	if (data[i++] != ECRYPTFS_TAG_67_PACKET_TYPE) {
-+		ecryptfs_printk(KERN_ERR, "Type should be ECRYPTFS_TAG_67\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+	if (data[i++]) {
-+		ecryptfs_printk(KERN_ERR, "Status indicator has non zero value"
-+				" [%d]\n", data[i-1]);
-+		rc = -EIO;
-+		goto out;
-+	}
-+	rc = parse_packet_length(&data[i], &key_rec->enc_key_size, &data_len);
-+	if (rc) {
-+		ecryptfs_printk(KERN_WARNING, "Error parsing packet length; "
-+				"rc = [%d]\n", rc);
-+		goto out;
-+	}
-+	i += data_len;
-+	if (message_len < (i + key_rec->enc_key_size)) {
-+		ecryptfs_printk(KERN_ERR, "message_len [%d]; max len is [%d]\n",
-+				message_len, (i + key_rec->enc_key_size));
-+		rc = -EIO;
-+		goto out;
-+	}
-+	if (key_rec->enc_key_size > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
-+		ecryptfs_printk(KERN_ERR, "Encrypted key_size [%d] larger than "
-+				"the maximum key size [%d]\n",
-+				key_rec->enc_key_size,
-+				ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES);
-+		rc = -EIO;
-+		goto out;
-+	}
-+	memcpy(key_rec->enc_key, &data[i], key_rec->enc_key_size);
-+out:
-+	return rc;
-+}
-+
-+/**
-+ * decrypt_pki_encrypted_session_key - Decrypt the session key with
-+ * the given auth_tok.
-+ *
-+ * Returns Zero on success; non-zero error otherwise.
-+ */
-+static int decrypt_pki_encrypted_session_key(
-+	struct ecryptfs_mount_crypt_stat *mount_crypt_stat,
-+	struct ecryptfs_auth_tok *auth_tok,
-+	struct ecryptfs_crypt_stat *crypt_stat)
-+{
-+	u16 cipher_code = 0;
-+	struct ecryptfs_msg_ctx *msg_ctx;
-+	struct ecryptfs_message *msg = NULL;
-+	char *netlink_message;
-+	size_t netlink_message_length;
-+	int rc;
-+
-+	rc = write_tag_64_packet(mount_crypt_stat->global_auth_tok_sig,
-+				 &(auth_tok->session_key),
-+				 &netlink_message, &netlink_message_length);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Failed to write tag 64 packet");
-+		goto out;
-+	}
-+	rc = ecryptfs_send_message(ecryptfs_transport, netlink_message,
-+				   netlink_message_length, &msg_ctx);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error sending netlink message\n");
-+		goto out;
-+	}
-+	rc = ecryptfs_wait_for_response(msg_ctx, &msg);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Failed to receive tag 65 packet "
-+				"from the user space daemon\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+	rc = parse_tag_65_packet(&(auth_tok->session_key),
-+				 &cipher_code, msg);
-+	if (rc) {
-+		printk(KERN_ERR "Failed to parse tag 65 packet; rc = [%d]\n",
-+		       rc);
-+		goto out;
-+	}
-+	auth_tok->session_key.flags |= ECRYPTFS_CONTAINS_DECRYPTED_KEY;
-+	memcpy(crypt_stat->key, auth_tok->session_key.decrypted_key,
-+	       auth_tok->session_key.decrypted_key_size);
-+	crypt_stat->key_size = auth_tok->session_key.decrypted_key_size;
-+	rc = ecryptfs_cipher_code_to_string(crypt_stat->cipher, cipher_code);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Cipher code [%d] is invalid\n",
-+				cipher_code)
-+		goto out;
-+	}
-+	crypt_stat->flags |= ECRYPTFS_KEY_VALID;
-+	if (ecryptfs_verbosity > 0) {
-+		ecryptfs_printk(KERN_DEBUG, "Decrypted session key:\n");
-+		ecryptfs_dump_hex(crypt_stat->key,
-+				  crypt_stat->key_size);
-+	}
-+out:
-+	if (msg)
-+		kfree(msg);
-+	return rc;
-+}
-+
-+static void wipe_auth_tok_list(struct list_head *auth_tok_list_head)
-+{
-+	struct list_head *walker;
-+	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
-+
-+	walker = auth_tok_list_head->next;
-+	while (walker != auth_tok_list_head) {
-+		auth_tok_list_item =
-+		    list_entry(walker, struct ecryptfs_auth_tok_list_item,
-+			       list);
-+		walker = auth_tok_list_item->list.next;
-+		memset(auth_tok_list_item, 0,
-+		       sizeof(struct ecryptfs_auth_tok_list_item));
-+		kmem_cache_free(ecryptfs_auth_tok_list_item_cache,
-+				auth_tok_list_item);
-+	}
-+	auth_tok_list_head->next = NULL;
-+}
-+
-+struct kmem_cache *ecryptfs_auth_tok_list_item_cache;
-+
-+
-+/**
-+ * parse_tag_1_packet
-+ * @crypt_stat: The cryptographic context to modify based on packet
-+ *              contents.
-+ * @data: The raw bytes of the packet.
-+ * @auth_tok_list: eCryptfs parses packets into authentication tokens;
-+ *                 a new authentication token will be placed at the end
-+ *                 of this list for this packet.
-+ * @new_auth_tok: Pointer to a pointer to memory that this function
-+ *                allocates; sets the memory address of the pointer to
-+ *                NULL on error. This object is added to the
-+ *                auth_tok_list.
-+ * @packet_size: This function writes the size of the parsed packet
-+ *               into this memory location; zero on error.
-+ *
-+ * Returns zero on success; non-zero on error.
-+ */
-+static int
-+parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
-+		   unsigned char *data, struct list_head *auth_tok_list,
-+		   struct ecryptfs_auth_tok **new_auth_tok,
-+		   size_t *packet_size, size_t max_packet_size)
-+{
-+	size_t body_size;
-+	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
-+	size_t length_size;
-+	int rc = 0;
-+
-+	(*packet_size) = 0;
-+	(*new_auth_tok) = NULL;
-+
-+	/* we check that:
-+	 *   one byte for the Tag 1 ID flag
-+	 *   two bytes for the body size
-+	 * do not exceed the maximum_packet_size
-+	 */
-+	if (unlikely((*packet_size) + 3 > max_packet_size)) {
-+		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+	/* check for Tag 1 identifier - one byte */
-+	if (data[(*packet_size)++] != ECRYPTFS_TAG_1_PACKET_TYPE) {
-+		ecryptfs_printk(KERN_ERR, "Enter w/ first byte != 0x%.2x\n",
-+				ECRYPTFS_TAG_1_PACKET_TYPE);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+	/* Released: wipe_auth_tok_list called in ecryptfs_parse_packet_set or
-+	 * at end of function upon failure */
-+	auth_tok_list_item =
-+		kmem_cache_alloc(ecryptfs_auth_tok_list_item_cache,
-+				 SLAB_KERNEL);
-+	if (!auth_tok_list_item) {
-+		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	memset(auth_tok_list_item, 0,
-+	       sizeof(struct ecryptfs_auth_tok_list_item));
-+	(*new_auth_tok) = &auth_tok_list_item->auth_tok;
-+	/* check for body size - one to two bytes
-+	 *
-+	 *              ***** TAG 1 Packet Format *****
-+	 *    | version number                     | 1 byte       |
-+	 *    | key ID                             | 8 bytes      |
-+	 *    | public key algorithm               | 1 byte       |
-+	 *    | encrypted session key              | arbitrary    |
-+	 */
-+	rc = parse_packet_length(&data[(*packet_size)], &body_size,
-+				 &length_size);
-+	if (rc) {
-+		ecryptfs_printk(KERN_WARNING, "Error parsing packet length; "
-+				"rc = [%d]\n", rc);
-+		goto out_free;
-+	}
-+	if (unlikely(body_size < (0x02 + ECRYPTFS_SIG_SIZE))) {
-+		ecryptfs_printk(KERN_WARNING, "Invalid body size ([%d])\n",
-+				body_size);
-+		rc = -EINVAL;
-+		goto out_free;
-+	}
-+	(*packet_size) += length_size;
-+	if (unlikely((*packet_size) + body_size > max_packet_size)) {
-+		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+		rc = -EINVAL;
-+		goto out_free;
-+	}
-+	/* Version 3 (from RFC2440) - one byte */
-+	if (unlikely(data[(*packet_size)++] != 0x03)) {
-+		ecryptfs_printk(KERN_DEBUG, "Unknown version number "
-+				"[%d]\n", data[(*packet_size) - 1]);
-+		rc = -EINVAL;
-+		goto out_free;
-+	}
-+	/* Read Signature */
-+	ecryptfs_to_hex((*new_auth_tok)->token.private_key.signature,
-+			&data[(*packet_size)], ECRYPTFS_SIG_SIZE);
-+	*packet_size += ECRYPTFS_SIG_SIZE;
-+	/* This byte is skipped because the kernel does not need to
-+	 * know which public key encryption algorithm was used */
-+	(*packet_size)++;
-+	(*new_auth_tok)->session_key.encrypted_key_size =
-+		body_size - (0x02 + ECRYPTFS_SIG_SIZE);
-+	if ((*new_auth_tok)->session_key.encrypted_key_size
-+	    > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
-+		ecryptfs_printk(KERN_ERR, "Tag 1 packet contains key larger "
-+				"than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+	ecryptfs_printk(KERN_DEBUG, "Encrypted key size = [%d]\n",
-+			(*new_auth_tok)->session_key.encrypted_key_size);
-+	memcpy((*new_auth_tok)->session_key.encrypted_key,
-+	       &data[(*packet_size)], (body_size - 0x02 - ECRYPTFS_SIG_SIZE));
-+	(*packet_size) += (*new_auth_tok)->session_key.encrypted_key_size;
-+	(*new_auth_tok)->session_key.flags &=
-+		~ECRYPTFS_CONTAINS_DECRYPTED_KEY;
-+	(*new_auth_tok)->session_key.flags |=
-+		ECRYPTFS_CONTAINS_ENCRYPTED_KEY;
-+	(*new_auth_tok)->token_type = ECRYPTFS_PRIVATE_KEY;
-+	ECRYPTFS_SET_FLAG((*new_auth_tok)->flags, ECRYPTFS_PRIVATE_KEY);
-+	/* TODO: Why are we setting this flag here? Don't we want the
-+	 * userspace to decrypt the session key? */
-+	ECRYPTFS_CLEAR_FLAG((*new_auth_tok)->session_key.flags,
-+			    ECRYPTFS_USERSPACE_SHOULD_TRY_TO_DECRYPT);
-+	ECRYPTFS_CLEAR_FLAG((*new_auth_tok)->session_key.flags,
-+			    ECRYPTFS_USERSPACE_SHOULD_TRY_TO_ENCRYPT);
-+	list_add(&auth_tok_list_item->list, auth_tok_list);
-+	goto out;
-+out_free:
-+	(*new_auth_tok) = NULL;
-+	memset(auth_tok_list_item, 0,
-+	       sizeof(struct ecryptfs_auth_tok_list_item));
-+	kmem_cache_free(ecryptfs_auth_tok_list_item_cache,
-+			auth_tok_list_item);
-+out:
-+	if (rc)
-+		(*packet_size) = 0;
-+	return rc;
-+}
-+
- /**
-  * parse_tag_3_packet
-  * @crypt_stat: The cryptographic context to modify based on packet
-@@ -178,10 +652,10 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 		   struct ecryptfs_auth_tok **new_auth_tok,
- 		   size_t *packet_size, size_t max_packet_size)
- {
--	int rc = 0;
- 	size_t body_size;
- 	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
- 	size_t length_size;
-+	int rc = 0;
- 
- 	(*packet_size) = 0;
- 	(*new_auth_tok) = NULL;
-@@ -360,9 +834,9 @@ parse_tag_11_packet(unsigned char *data,
- 		    size_t max_contents_bytes, size_t *tag_11_contents_size,
- 		    size_t *packet_size, size_t max_packet_size)
- {
--	int rc = 0;
- 	size_t body_size;
- 	size_t length_size;
-+	int rc = 0;
- 
- 	(*packet_size) = 0;
- 	(*tag_11_contents_size) = 0;
-@@ -461,7 +935,6 @@ static int decrypt_session_key(struct ec
- 	struct ecryptfs_password *password_s_ptr;
- 	struct scatterlist src_sg[2], dst_sg[2];
- 	struct mutex *tfm_mutex = NULL;
--	/* TODO: Use virt_to_scatterlist for these */
- 	char *encrypted_session_key;
- 	char *session_key;
- 	struct blkcipher_desc desc = {
-@@ -589,7 +1062,6 @@ int ecryptfs_parse_packet_set(struct ecr
- 			      struct dentry *ecryptfs_dentry)
- {
- 	size_t i = 0;
--	int rc = 0;
- 	size_t found_auth_tok = 0;
- 	size_t next_packet_is_auth_tok_packet;
- 	char sig[ECRYPTFS_SIG_SIZE_HEX];
-@@ -605,6 +1077,7 @@ int ecryptfs_parse_packet_set(struct ecr
- 	unsigned char sig_tmp_space[ECRYPTFS_SIG_SIZE];
- 	size_t tag_11_contents_size;
- 	size_t tag_11_packet_size;
-+	int rc = 0;
- 
- 	INIT_LIST_HEAD(&auth_tok_list);
- 	/* Parse the header to find as many packets as we can, these will be
-@@ -659,6 +1132,21 @@ int ecryptfs_parse_packet_set(struct ecr
- 			ECRYPTFS_SET_FLAG(crypt_stat->flags,
- 					  ECRYPTFS_ENCRYPTED);
- 			break;
-+		case ECRYPTFS_TAG_1_PACKET_TYPE:
-+			rc = parse_tag_1_packet(crypt_stat,
-+						(unsigned char *)&src[i],
-+						&auth_tok_list, &new_auth_tok,
-+						&packet_size, max_packet_size);
-+			if (rc) {
-+				ecryptfs_printk(KERN_ERR, "Error parsing "
-+						"tag 1 packet\n");
-+				rc = -EIO;
-+				goto out_wipe_list;
-+			}
-+			i += packet_size;
-+			ECRYPTFS_SET_FLAG(crypt_stat->flags,
-+					  ECRYPTFS_ENCRYPTED);
-+			break;
- 		case ECRYPTFS_TAG_11_PACKET_TYPE:
- 			ecryptfs_printk(KERN_WARNING, "Invalid packet set "
- 					"(Tag 11 not allowed by itself)\n");
-@@ -706,31 +1194,47 @@ int ecryptfs_parse_packet_set(struct ecr
- 			goto leave_list;
- 			/* TODO: Transfer the common salt into the
- 			 * crypt_stat salt */
-+		} else if ((candidate_auth_tok->token_type
-+			    == ECRYPTFS_PRIVATE_KEY)
-+			   && !strncmp(candidate_auth_tok->token.private_key.signature,
-+				     sig, ECRYPTFS_SIG_SIZE_HEX)) {
-+			found_auth_tok = 1;
-+			goto leave_list;
- 		}
- 	}
--leave_list:
- 	if (!found_auth_tok) {
- 		ecryptfs_printk(KERN_ERR, "Could not find authentication "
- 				"token on temporary list for sig [%.*s]\n",
- 				ECRYPTFS_SIG_SIZE_HEX, sig);
- 		rc = -EIO;
- 		goto out_wipe_list;
--	} else {
-+	}
-+leave_list:
-+	rc = -ENOTSUPP;
-+	if ((ECRYPTFS_CHECK_FLAG(candidate_auth_tok->flags,
-+			         ECRYPTFS_PRIVATE_KEY))) {
-+		memcpy(&(candidate_auth_tok->token.private_key),
-+		       &(chosen_auth_tok->token.private_key),
-+		       sizeof(struct ecryptfs_private_key));
-+		rc = decrypt_pki_encrypted_session_key(mount_crypt_stat,
-+						       candidate_auth_tok,
-+						       crypt_stat);
-+	} else if (candidate_auth_tok->token_type == ECRYPTFS_PASSWORD) {
- 		memcpy(&(candidate_auth_tok->token.password),
- 		       &(chosen_auth_tok->token.password),
- 		       sizeof(struct ecryptfs_password));
- 		rc = decrypt_session_key(candidate_auth_tok, crypt_stat);
--		if (rc) {
--			ecryptfs_printk(KERN_ERR, "Error decrypting the "
--					"session key\n");
--			goto out_wipe_list;
--		}
--		rc = ecryptfs_compute_root_iv(crypt_stat);
--		if (rc) {
--			ecryptfs_printk(KERN_ERR, "Error computing "
--					"the root IV\n");
--			goto out_wipe_list;
--		}
-+	}
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error decrypting the "
-+				"session key; rc = [%d]\n", rc);
-+		goto out_wipe_list;
-+	}
-+	rc = ecryptfs_compute_root_iv(crypt_stat);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error computing "
-+				"the root IV\n");
-+		goto out_wipe_list;
- 	}
- 	rc = ecryptfs_init_crypt_ctx(crypt_stat);
- 	if (rc) {
-@@ -743,6 +1247,145 @@ out_wipe_list:
- out:
- 	return rc;
- }
-+static int
-+pki_encrypt_session_key(struct ecryptfs_auth_tok *auth_tok,
-+			struct ecryptfs_crypt_stat *crypt_stat,
-+			struct ecryptfs_key_record *key_rec)
-+{
-+	struct ecryptfs_msg_ctx *msg_ctx = NULL;
-+	char *netlink_payload;
-+	size_t netlink_payload_length;
-+	struct ecryptfs_message *msg;
-+	int rc;
-+
-+	rc = write_tag_66_packet(auth_tok->token.private_key.signature,
-+				 ecryptfs_code_for_cipher_string(crypt_stat),
-+				 crypt_stat, &netlink_payload,
-+				 &netlink_payload_length);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error generating tag 66 packet\n");
-+		goto out;
-+	}
-+	rc = ecryptfs_send_message(ecryptfs_transport, netlink_payload,
-+				   netlink_payload_length, &msg_ctx);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error sending netlink message\n");
-+		goto out;
-+	}
-+	rc = ecryptfs_wait_for_response(msg_ctx, &msg);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Failed to receive tag 67 packet "
-+				"from the user space daemon\n");
-+		rc = -EIO;
-+		goto out;
-+	}
-+	rc = parse_tag_67_packet(key_rec, msg);
-+	if (rc)
-+		ecryptfs_printk(KERN_ERR, "Error parsing tag 67 packet\n");
-+	kfree(msg);
-+out:
-+	if (netlink_payload)
-+		kfree(netlink_payload);
-+	return rc;
-+}
-+/**
-+ * write_tag_1_packet - Write an RFC2440-compatible tag 1 (public key) packet
-+ * @dest: Buffer into which to write the packet
-+ * @max: Maximum number of bytes that can be writtn
-+ * @packet_size: This function will write the number of bytes that end
-+ *               up constituting the packet; set to zero on error
-+ *
-+ * Returns zero on success; non-zero on error.
-+ */
-+static int
-+write_tag_1_packet(char *dest, size_t max, struct ecryptfs_auth_tok *auth_tok,
-+		   struct ecryptfs_crypt_stat *crypt_stat,
-+		   struct ecryptfs_mount_crypt_stat *mount_crypt_stat,
-+		   struct ecryptfs_key_record *key_rec, size_t *packet_size)
-+{
-+	size_t i;
-+	size_t encrypted_session_key_valid = 0;
-+	size_t key_rec_size;
-+	size_t packet_size_length;
-+	int rc = 0;
-+
-+	(*packet_size) = 0;
-+	ecryptfs_from_hex(key_rec->sig, auth_tok->token.private_key.signature,
-+			  ECRYPTFS_SIG_SIZE);
-+	encrypted_session_key_valid = 0;
-+	for (i = 0; i < crypt_stat->key_size; i++)
-+		encrypted_session_key_valid |=
-+			auth_tok->session_key.encrypted_key[i];
-+	if (encrypted_session_key_valid) {
-+		memcpy(key_rec->enc_key,
-+		       auth_tok->session_key.encrypted_key,
-+		       auth_tok->session_key.encrypted_key_size);
-+		goto encrypted_session_key_set;
-+	}
-+	if (auth_tok->session_key.encrypted_key_size == 0)
-+		auth_tok->session_key.encrypted_key_size =
-+			auth_tok->token.private_key.key_size;
-+	rc = pki_encrypt_session_key(auth_tok, crypt_stat, key_rec);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Failed to encrypt session key "
-+				"via a pki");
-+		goto out;
-+	}
-+	if (ecryptfs_verbosity > 0) {
-+		ecryptfs_printk(KERN_DEBUG, "Encrypted key:\n");
-+		ecryptfs_dump_hex(key_rec->enc_key, key_rec->enc_key_size);
-+	}
-+encrypted_session_key_set:
-+	/* Now we have a valid key_rec.  Append it to the
-+	 * key_rec set. */
-+	key_rec_size = (sizeof(struct ecryptfs_key_record)
-+			- ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES
-+			+ (key_rec->enc_key_size));
-+	/* TODO: Include a packet size limit as a parameter to this
-+	 * function once we have multi-packet headers (for versions
-+	 * later than 0.1 */
-+	if (key_rec_size >= ECRYPTFS_MAX_KEYSET_SIZE) {
-+		ecryptfs_printk(KERN_ERR, "Keyset too large\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+	/*              ***** TAG 1 Packet Format *****
-+	 *    | version number                     | 1 byte       |
-+	 *    | key ID                             | 8 bytes      |
-+	 *    | public key algorithm               | 1 byte       |
-+	 *    | encrypted session key              | arbitrary    |
-+	 */
-+	if ((0x02 + ECRYPTFS_SIG_SIZE + key_rec->enc_key_size) >= max) {
-+		ecryptfs_printk(KERN_ERR,
-+				"Authentication token is too large\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+	dest[(*packet_size)++] = ECRYPTFS_TAG_1_PACKET_TYPE;
-+	/* This format is inspired by OpenPGP; see RFC 2440
-+	 * packet tag 1 */
-+	rc = write_packet_length(&dest[(*packet_size)],
-+				 (0x02 + ECRYPTFS_SIG_SIZE +
-+				 key_rec->enc_key_size),
-+				 &packet_size_length);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Error generating tag 1 packet "
-+				"header; cannot generate packet length\n");
-+		goto out;
-+	}
-+	(*packet_size) += packet_size_length;
-+	dest[(*packet_size)++] = 0x03; /* version 3 */
-+	memcpy(&dest[(*packet_size)], key_rec->sig, ECRYPTFS_SIG_SIZE);
-+	(*packet_size) += ECRYPTFS_SIG_SIZE;
-+	dest[(*packet_size)++] = RFC2440_CIPHER_RSA;
-+	memcpy(&dest[(*packet_size)], key_rec->enc_key,
-+	       key_rec->enc_key_size);
-+	(*packet_size) += key_rec->enc_key_size;
-+out:
-+	if (rc)
-+		(*packet_size) = 0;
-+	return rc;
-+}
- 
- /**
-  * write_tag_11_packet
-@@ -758,8 +1401,8 @@ static int
- write_tag_11_packet(char *dest, int max, char *contents, size_t contents_length,
- 		    size_t *packet_length)
- {
--	int rc = 0;
- 	size_t packet_size_length;
-+	int rc = 0;
- 
- 	(*packet_length) = 0;
- 	if ((13 + contents_length) > max) {
-@@ -817,7 +1460,6 @@ write_tag_3_packet(char *dest, size_t ma
- 		   struct ecryptfs_key_record *key_rec, size_t *packet_size)
- {
- 	size_t i;
--	size_t signature_is_valid = 0;
- 	size_t encrypted_session_key_valid = 0;
- 	char session_key_encryption_key[ECRYPTFS_MAX_KEY_BYTES];
- 	struct scatterlist dest_sg[2];
-@@ -833,19 +1475,14 @@ write_tag_3_packet(char *dest, size_t ma
- 	int rc = 0;
- 
- 	(*packet_size) = 0;
--	/* Check for a valid signature on the auth_tok */
--	for (i = 0; i < ECRYPTFS_SIG_SIZE_HEX; i++)
--		signature_is_valid |= auth_tok->token.password.signature[i];
--	if (!signature_is_valid)
--		BUG();
--	ecryptfs_from_hex((*key_rec).sig, auth_tok->token.password.signature,
-+	ecryptfs_from_hex(key_rec->sig, auth_tok->token.password.signature,
- 			  ECRYPTFS_SIG_SIZE);
- 	encrypted_session_key_valid = 0;
- 	for (i = 0; i < crypt_stat->key_size; i++)
- 		encrypted_session_key_valid |=
- 			auth_tok->session_key.encrypted_key[i];
- 	if (encrypted_session_key_valid) {
--		memcpy((*key_rec).enc_key,
-+		memcpy(key_rec->enc_key,
- 		       auth_tok->session_key.encrypted_key,
- 		       auth_tok->session_key.encrypted_key_size);
- 		goto encrypted_session_key_set;
-@@ -858,10 +1495,10 @@ write_tag_3_packet(char *dest, size_t ma
- 		memset((crypt_stat->key + 24), 0, 8);
- 		auth_tok->session_key.encrypted_key_size = 32;
- 	}
--	(*key_rec).enc_key_size =
-+	key_rec->enc_key_size =
- 		auth_tok->session_key.encrypted_key_size;
--	if (ECRYPTFS_CHECK_FLAG(auth_tok->token.password.flags,
--				ECRYPTFS_SESSION_KEY_ENCRYPTION_KEY_SET)) {
-+	if (auth_tok->token.password.flags &
-+	    ECRYPTFS_SESSION_KEY_ENCRYPTION_KEY_SET) {
- 		ecryptfs_printk(KERN_DEBUG, "Using previously generated "
- 				"session key encryption key of size [%d]\n",
- 				auth_tok->token.password.
-@@ -879,15 +1516,15 @@ write_tag_3_packet(char *dest, size_t ma
- 		ecryptfs_dump_hex(session_key_encryption_key, 16);
- 	}
- 	rc = virt_to_scatterlist(crypt_stat->key,
--				 (*key_rec).enc_key_size, src_sg, 2);
-+				 key_rec->enc_key_size, src_sg, 2);
- 	if (!rc) {
- 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
- 				"for crypt_stat session key\n");
- 		rc = -ENOMEM;
- 		goto out;
- 	}
--	rc = virt_to_scatterlist((*key_rec).enc_key,
--				 (*key_rec).enc_key_size, dest_sg, 2);
-+	rc = virt_to_scatterlist(key_rec->enc_key,
-+				 key_rec->enc_key_size, dest_sg, 2);
- 	if (!rc) {
- 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
- 				"for crypt_stat encrypted session key\n");
-@@ -943,14 +1580,14 @@ write_tag_3_packet(char *dest, size_t ma
- 		mutex_unlock(tfm_mutex);
- 	ecryptfs_printk(KERN_DEBUG, "This should be the encrypted key:\n");
- 	if (ecryptfs_verbosity > 0)
--		ecryptfs_dump_hex((*key_rec).enc_key,
--				  (*key_rec).enc_key_size);
-+		ecryptfs_dump_hex(key_rec->enc_key,
-+				  key_rec->enc_key_size);
- encrypted_session_key_set:
- 	/* Now we have a valid key_rec.  Append it to the
- 	 * key_rec set. */
- 	key_rec_size = (sizeof(struct ecryptfs_key_record)
- 			- ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES
--			+ ((*key_rec).enc_key_size));
-+			+ (key_rec->enc_key_size));
- 	/* TODO: Include a packet size limit as a parameter to this
- 	 * function once we have multi-packet headers (for versions
- 	 * later than 0.1 */
-@@ -962,7 +1599,7 @@ encrypted_session_key_set:
- 	/* TODO: Packet size limit */
- 	/* We have 5 bytes of surrounding packet data */
- 	if ((0x05 + ECRYPTFS_SALT_SIZE
--	     + (*key_rec).enc_key_size) >= max) {
-+	     + key_rec->enc_key_size) >= max) {
- 		ecryptfs_printk(KERN_ERR, "Authentication token is too "
- 				"large\n");
- 		rc = -EINVAL;
-@@ -974,7 +1611,7 @@ encrypted_session_key_set:
- 	/* ver+cipher+s2k+hash+salt+iter+enc_key */
- 	rc = write_packet_length(&dest[(*packet_size)],
- 				 (0x05 + ECRYPTFS_SALT_SIZE
--				  + (*key_rec).enc_key_size),
-+				  + key_rec->enc_key_size),
- 				 &packet_size_length);
- 	if (rc) {
- 		ecryptfs_printk(KERN_ERR, "Error generating tag 3 packet "
-@@ -997,9 +1634,9 @@ encrypted_session_key_set:
- 	       ECRYPTFS_SALT_SIZE);
- 	(*packet_size) += ECRYPTFS_SALT_SIZE;	/* salt */
- 	dest[(*packet_size)++] = 0x60;	/* hash iterations (65536) */
--	memcpy(&dest[(*packet_size)], (*key_rec).enc_key,
--	       (*key_rec).enc_key_size);
--	(*packet_size) += (*key_rec).enc_key_size;
-+	memcpy(&dest[(*packet_size)], key_rec->enc_key,
-+	       key_rec->enc_key_size);
-+	(*packet_size) += key_rec->enc_key_size;
- out:
- 	if (desc.tfm && !tfm_mutex)
- 		crypto_free_blkcipher(desc.tfm);
-@@ -1029,13 +1666,13 @@ ecryptfs_generate_key_packet_set(char *d
- 				 struct dentry *ecryptfs_dentry, size_t *len,
- 				 size_t max)
- {
--	int rc = 0;
- 	struct ecryptfs_auth_tok *auth_tok;
- 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
- 		&ecryptfs_superblock_to_private(
- 			ecryptfs_dentry->d_sb)->mount_crypt_stat;
- 	size_t written;
- 	struct ecryptfs_key_record key_rec;
-+	int rc = 0;
- 
- 	(*len) = 0;
- 	if (mount_crypt_stat->global_auth_tok) {
-@@ -1062,20 +1699,23 @@ ecryptfs_generate_key_packet_set(char *d
- 				goto out;
- 			}
- 			(*len) += written;
-+		} else if (auth_tok->token_type == ECRYPTFS_PRIVATE_KEY) {
-+			rc = write_tag_1_packet(dest_base + (*len),
-+						max, auth_tok,
-+						crypt_stat,mount_crypt_stat,
-+						&key_rec, &written);
-+			if (rc) {
-+				ecryptfs_printk(KERN_WARNING, "Error "
-+						"writing tag 1 packet\n");
-+				goto out;
-+			}
-+			(*len) += written;
- 		} else {
- 			ecryptfs_printk(KERN_WARNING, "Unsupported "
- 					"authentication token type\n");
- 			rc = -EINVAL;
- 			goto out;
- 		}
--		if (rc) {
--			ecryptfs_printk(KERN_WARNING, "Error writing "
--					"authentication token packet with sig "
--					"= [%s]\n",
--					mount_crypt_stat->global_auth_tok_sig);
--			rc = -EIO;
--			goto out;
--		}
- 	} else
- 		BUG();
- 	if (likely((max - (*len)) > 0)) {
-diff -puN fs/ecryptfs/main.c~ecryptfs-public-key-packet-management fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-public-key-packet-management
-+++ a/fs/ecryptfs/main.c
-@@ -6,6 +6,7 @@
+@@ -6,6 +6,8 @@
+  * Copyright (C) 2001-2003 Stony Brook University
   * Copyright (C) 2004-2006 International Business Machines Corp.
   *   Author(s): Michael A. Halcrow <mahalcro@us.ibm.com>
-  *              Michael C. Thompson <mcthomps@us.ibm.com>
++ *              Trevor S. Highland <trevor.highland@gmail.com>
 + *              Tyler Hicks <tyhicks@ou.edu>
   *
   * This program is free software; you can redistribute it and/or
   * modify it under the terms of the GNU General Public License as
-@@ -47,6 +48,43 @@ MODULE_PARM_DESC(ecryptfs_verbosity,
- 		 "Initial verbosity level (0 or 1; defaults to "
- 		 "0, which is Quiet)");
+@@ -33,7 +35,7 @@
+ /* Version verification for shared data structures w/ userspace */
+ #define ECRYPTFS_VERSION_MAJOR 0x00
+ #define ECRYPTFS_VERSION_MINOR 0x04
+-#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x01
++#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x02
+ /* These flags indicate which features are supported by the kernel
+  * module; userspace tools such as the mount helper read
+  * ECRYPTFS_VERSIONING_MASK from a sysfs handle in order to determine
+@@ -58,10 +60,24 @@
+ #define ECRYPTFS_MAX_KEY_BYTES 64
+ #define ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES 512
+ #define ECRYPTFS_DEFAULT_IV_BYTES 16
+-#define ECRYPTFS_FILE_VERSION 0x01
++#define ECRYPTFS_FILE_VERSION 0x02
+ #define ECRYPTFS_DEFAULT_HEADER_EXTENT_SIZE 8192
+ #define ECRYPTFS_DEFAULT_EXTENT_SIZE 4096
+ #define ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE 8192
++#define ECRYPTFS_DEFAULT_MSG_CTX_ELEMS 32
++#define ECRYPTFS_DEFAULT_SEND_TIMEOUT HZ
++#define ECRYPTFS_MAX_MSG_CTX_TTL (HZ*3)
++#define ECRYPTFS_NLMSG_HELO 100
++#define ECRYPTFS_NLMSG_QUIT 101
++#define ECRYPTFS_NLMSG_REQUEST 102
++#define ECRYPTFS_NLMSG_RESPONSE 103
++#define ECRYPTFS_MAX_PKI_NAME_BYTES 16
++#define ECRYPTFS_DEFAULT_NUM_USERS 4
++#define ECRYPTFS_MAX_NUM_USERS 32768
++#define ECRYPTFS_TRANSPORT_NETLINK 0
++#define ECRYPTFS_TRANSPORT_CONNECTOR 1
++#define ECRYPTFS_TRANSPORT_RELAYFS 2
++#define ECRYPTFS_DEFAULT_TRANSPORT ECRYPTFS_TRANSPORT_NETLINK
  
-+/**
-+ * Module parameter that defines the number of netlink message buffer
-+ * elements
-+ */
-+unsigned int ecryptfs_message_buf_len = ECRYPTFS_DEFAULT_MSG_CTX_ELEMS;
+ #define RFC2440_CIPHER_DES3_EDE 0x02
+ #define RFC2440_CIPHER_CAST_5 0x03
+@@ -75,6 +91,7 @@
+ #define ECRYPTFS_SET_FLAG(flag_bit_vector, flag) (flag_bit_vector |= (flag))
+ #define ECRYPTFS_CLEAR_FLAG(flag_bit_vector, flag) (flag_bit_vector &= ~(flag))
+ #define ECRYPTFS_CHECK_FLAG(flag_bit_vector, flag) (flag_bit_vector & (flag))
++#define RFC2440_CIPHER_RSA 0x01
+ 
+ /**
+  * For convenience, we may need to pass around the encrypted session
+@@ -112,6 +129,14 @@ struct ecryptfs_password {
+ 
+ enum ecryptfs_token_types {ECRYPTFS_PASSWORD, ECRYPTFS_PRIVATE_KEY};
+ 
++struct ecryptfs_private_key {
++	u32 key_size;
++	u32 data_len;
++	u8 signature[ECRYPTFS_PASSWORD_SIG_SIZE + 1];
++	char pki_type[ECRYPTFS_MAX_PKI_NAME_BYTES + 1];
++	u8 data[];
++};
 +
-+module_param(ecryptfs_message_buf_len, uint, 0);
-+MODULE_PARM_DESC(ecryptfs_message_buf_len,
-+		 "Number of message buffer elements");
+ /* May be a password or a private key */
+ struct ecryptfs_auth_tok {
+ 	u16 version; /* 8-bit major and 8-bit minor */
+@@ -121,7 +146,7 @@ struct ecryptfs_auth_tok {
+ 	u8 reserved[32];
+ 	union {
+ 		struct ecryptfs_password password;
+-		/* Private key is in future eCryptfs releases */
++		struct ecryptfs_private_key private_key;
+ 	} token;
+ } __attribute__ ((packed));
+ 
+@@ -176,8 +201,13 @@ ecryptfs_get_key_payload_data(struct key
+ #define ECRYPTFS_DEFAULT_KEY_BYTES 16
+ #define ECRYPTFS_DEFAULT_CHAINING_MODE CRYPTO_TFM_MODE_CBC
+ #define ECRYPTFS_DEFAULT_HASH "md5"
++#define ECRYPTFS_TAG_1_PACKET_TYPE 0x01
+ #define ECRYPTFS_TAG_3_PACKET_TYPE 0x8C
+ #define ECRYPTFS_TAG_11_PACKET_TYPE 0xED
++#define ECRYPTFS_TAG_64_PACKET_TYPE 0x40
++#define ECRYPTFS_TAG_65_PACKET_TYPE 0x41
++#define ECRYPTFS_TAG_66_PACKET_TYPE 0x42
++#define ECRYPTFS_TAG_67_PACKET_TYPE 0x43
+ #define MD5_DIGEST_SIZE 16
+ 
+ /**
+@@ -271,6 +301,45 @@ struct ecryptfs_auth_tok_list_item {
+ 	struct ecryptfs_auth_tok auth_tok;
+ };
+ 
++struct ecryptfs_message {
++	u32 index;
++	u32 data_len;
++	u8 data[];
++};
 +
-+/**
-+ * Module parameter that defines the maximum guaranteed amount of time to wait
-+ * for a response through netlink.  The actual sleep time will be, more than
-+ * likely, a small amount greater than this specified value, but only less if
-+ * the netlink message successfully arrives.
-+ */
-+signed long ecryptfs_message_wait_timeout = ECRYPTFS_MAX_MSG_CTX_TTL / HZ;
++struct ecryptfs_msg_ctx {
++#define ECRYPTFS_MSG_CTX_STATE_FREE      0x0001
++#define ECRYPTFS_MSG_CTX_STATE_PENDING   0x0002
++#define ECRYPTFS_MSG_CTX_STATE_DONE      0x0003
++	u32 state;
++	unsigned int index;
++	unsigned int counter;
++	struct ecryptfs_message *msg;
++	struct task_struct *task;
++	struct list_head node;
++	struct mutex mux;
++};
 +
-+module_param(ecryptfs_message_wait_timeout, long, 0);
-+MODULE_PARM_DESC(ecryptfs_message_wait_timeout,
-+		 "Maximum number of seconds that an operation will "
-+		 "sleep while waiting for a message response from "
-+		 "userspace");
++extern struct list_head ecryptfs_msg_ctx_free_list;
++extern struct list_head ecryptfs_msg_ctx_alloc_list;
++extern struct mutex ecryptfs_msg_ctx_lists_mux;
 +
-+/**
-+ * Module parameter that is an estimate of the maximum number of users
-+ * that will be concurrently using eCryptfs. Set this to the right
-+ * value to balance performance and memory use.
-+ */
-+unsigned int ecryptfs_number_of_users = ECRYPTFS_DEFAULT_NUM_USERS;
++#define ecryptfs_uid_hash(uid) \
++        hash_long((unsigned long)uid, ecryptfs_hash_buckets)
++extern struct hlist_head *ecryptfs_daemon_id_hash;
++extern struct mutex ecryptfs_daemon_id_hash_mux;
++extern int ecryptfs_hash_buckets;
 +
-+module_param(ecryptfs_number_of_users, uint, 0);
-+MODULE_PARM_DESC(ecryptfs_number_of_users, "An estimate of the number of "
-+		 "concurrent users of eCryptfs");
++extern unsigned int ecryptfs_msg_counter;
++extern struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
++extern unsigned int ecryptfs_transport;
 +
-+unsigned int ecryptfs_transport = ECRYPTFS_DEFAULT_TRANSPORT;
++struct ecryptfs_daemon_id {
++	pid_t pid;
++	uid_t uid;
++	struct hlist_node id_chain;
++};
 +
- void __ecryptfs_printk(const char *fmt, ...)
+ static inline struct ecryptfs_file_info *
+ ecryptfs_file_to_private(struct file *file)
  {
- 	va_list args;
-@@ -346,9 +384,10 @@ static int ecryptfs_parse_options(struct
- 		rc = -EINVAL;
- 		goto out;
- 	}
--	if (auth_tok->token_type != ECRYPTFS_PASSWORD) {
-+	if (auth_tok->token_type != ECRYPTFS_PASSWORD
-+	    && auth_tok->token_type != ECRYPTFS_PRIVATE_KEY) {
- 		ecryptfs_printk(KERN_ERR, "Invalid auth_tok structure "
--				"returned from key\n");
-+				"returned from key query\n");
- 		rc = -EINVAL;
- 		goto out;
- 	}
-@@ -797,6 +836,11 @@ static int __init ecryptfs_init(void)
- 		ecryptfs_free_kmem_caches();
- 		goto out;
- 	}
-+	rc = ecryptfs_init_messaging(ecryptfs_transport);
-+	if (rc) {
-+		ecryptfs_printk(KERN_ERR, "Failure occured while attempting to "
-+				"initialize the eCryptfs netlink socket\n");
-+	}
- out:
- 	return rc;
- }
-@@ -808,6 +852,7 @@ static void __exit ecryptfs_exit(void)
- 	sysfs_remove_file(&ecryptfs_subsys.kset.kobj,
- 			  &sysfs_attr_version_str.attr);
- 	subsystem_unregister(&ecryptfs_subsys);
-+	ecryptfs_release_messaging(ecryptfs_transport);
- 	unregister_filesystem(&ecryptfs_fs_type);
- 	ecryptfs_free_kmem_caches();
- }
-diff -puN fs/ecryptfs/messaging.c~ecryptfs-public-key-packet-management fs/ecryptfs/messaging.c
---- a/fs/ecryptfs/messaging.c~ecryptfs-public-key-packet-management
+@@ -391,6 +460,9 @@ extern struct super_operations ecryptfs_
+ extern struct dentry_operations ecryptfs_dops;
+ extern struct address_space_operations ecryptfs_aops;
+ extern int ecryptfs_verbosity;
++extern unsigned int ecryptfs_message_buf_len;
++extern signed long ecryptfs_message_wait_timeout;
++extern unsigned int ecryptfs_number_of_users;
+ 
+ extern struct kmem_cache *ecryptfs_auth_tok_list_item_cache;
+ extern struct kmem_cache *ecryptfs_file_info_cache;
+@@ -487,4 +559,27 @@ int ecryptfs_open_lower_file(struct file
+ 			     struct vfsmount *lower_mnt, int flags);
+ int ecryptfs_close_lower_file(struct file *lower_file);
+ 
++int ecryptfs_process_helo(unsigned int transport, uid_t uid, pid_t pid);
++int ecryptfs_process_quit(uid_t uid, pid_t pid);
++int ecryptfs_process_response(struct ecryptfs_message *msg, pid_t pid, u32 seq);
++int ecryptfs_send_message(unsigned int transport, char *data, int data_len,
++			  struct ecryptfs_msg_ctx **msg_ctx);
++int ecryptfs_wait_for_response(struct ecryptfs_msg_ctx *msg_ctx,
++			       struct ecryptfs_message **emsg);
++int ecryptfs_init_messaging(unsigned int transport);
++void ecryptfs_release_messaging(unsigned int transport);
++
++int ecryptfs_send_netlink(char *data, int data_len,
++			  struct ecryptfs_msg_ctx *msg_ctx, u16 msg_type,
++			  u16 msg_flags, pid_t daemon_pid);
++int ecryptfs_init_netlink(void);
++void ecryptfs_release_netlink(void);
++
++int ecryptfs_send_connector(char *data, int data_len,
++			    struct ecryptfs_msg_ctx *msg_ctx, u16 msg_type,
++			    u16 msg_flags, pid_t daemon_pid);
++int ecryptfs_init_connector(void);
++void ecryptfs_release_connector(void);
++
++
+ #endif /* #ifndef ECRYPTFS_KERNEL_H */
+diff -puN /dev/null fs/ecryptfs/messaging.c
+--- /dev/null
 +++ a/fs/ecryptfs/messaging.c
-@@ -243,7 +243,8 @@ unlock:
-  * userspace. Returns zero upon delivery to desired context element;
-  * non-zero upon delivery failure or error.
-  */
--int ecryptfs_process_response(struct ecryptfs_message *msg, pid_t pid, u32 seq)
-+int ecryptfs_process_response(struct ecryptfs_message *msg, uid_t uid,
-+			      pid_t pid, u32 seq)
- {
- 	struct ecryptfs_daemon_id *id;
- 	struct ecryptfs_msg_ctx *msg_ctx;
-@@ -268,6 +269,13 @@ int ecryptfs_process_response(struct ecr
- 				msg_ctx->task->euid, pid);
- 		goto wake_up;
- 	}
-+	if (msg_ctx->task->euid != uid) {
-+		rc = -EBADMSG;
-+		ecryptfs_printk(KERN_WARNING, "Received message from user "
-+				"[%d]; expected message from user [%d]\n",
-+				uid, msg_ctx->task->euid);
+@@ -0,0 +1,505 @@
++/**
++ * eCryptfs: Linux filesystem encryption layer
++ *
++ * Copyright (C) 2004-2006 International Business Machines Corp.
++ *   Author(s): Michael A. Halcrow <mhalcrow@us.ibm.com>
++ *		Tyler Hicks <tyhicks@ou.edu>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
++ * 02111-1307, USA.
++ */
++
++#include "ecryptfs_kernel.h"
++
++LIST_HEAD(ecryptfs_msg_ctx_free_list);
++LIST_HEAD(ecryptfs_msg_ctx_alloc_list);
++struct mutex ecryptfs_msg_ctx_lists_mux;
++
++struct hlist_head *ecryptfs_daemon_id_hash;
++struct mutex ecryptfs_daemon_id_hash_mux;
++int ecryptfs_hash_buckets;
++
++unsigned int ecryptfs_msg_counter;
++struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
++
++/**
++ * ecryptfs_acquire_free_msg_ctx
++ * @msg_ctx: The context that was acquired from the free list
++ *
++ * Acquires a context element from the free list and locks the mutex
++ * on the context.  Returns zero on success; non-zero on error or upon
++ * failure to acquire a free context element.  Be sure to lock the
++ * list mutex before calling.
++ */
++static int ecryptfs_acquire_free_msg_ctx(struct ecryptfs_msg_ctx **msg_ctx)
++{
++	struct list_head *p;
++	int rc;
++
++	if (list_empty(&ecryptfs_msg_ctx_free_list)) {
++		ecryptfs_printk(KERN_WARNING, "The eCryptfs free "
++				"context list is empty.  It may be helpful to "
++				"specify the ecryptfs_message_buf_len "
++				"parameter to be greater than the current "
++				"value of [%d]\n", ecryptfs_message_buf_len);
++		rc = -ENOMEM;
++		goto out;
++	}
++	list_for_each(p, &ecryptfs_msg_ctx_free_list) {
++		*msg_ctx = list_entry(p, struct ecryptfs_msg_ctx, node);
++		if (mutex_trylock(&(*msg_ctx)->mux)) {
++			(*msg_ctx)->task = current;
++			rc = 0;
++			goto out;
++		}
++	}
++	rc = -ENOMEM;
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_msg_ctx_free_to_alloc
++ * @msg_ctx: The context to move from the free list to the alloc list
++ *
++ * Be sure to lock the list mutex and the context mutex before
++ * calling.
++ */
++static void ecryptfs_msg_ctx_free_to_alloc(struct ecryptfs_msg_ctx *msg_ctx)
++{
++	list_move(&msg_ctx->node, &ecryptfs_msg_ctx_alloc_list);
++	msg_ctx->state = ECRYPTFS_MSG_CTX_STATE_PENDING;
++	msg_ctx->counter = ++ecryptfs_msg_counter;
++}
++
++/**
++ * ecryptfs_msg_ctx_alloc_to_free
++ * @msg_ctx: The context to move from the alloc list to the free list
++ *
++ * Be sure to lock the list mutex and the context mutex before
++ * calling.
++ */
++static void ecryptfs_msg_ctx_alloc_to_free(struct ecryptfs_msg_ctx *msg_ctx)
++{
++	list_move(&(msg_ctx->node), &ecryptfs_msg_ctx_free_list);
++	if (msg_ctx->msg)
++		kfree(msg_ctx->msg);
++	msg_ctx->state = ECRYPTFS_MSG_CTX_STATE_FREE;
++}
++
++/**
++ * ecryptfs_find_daemon_id
++ * @uid: The user id which maps to the desired daemon id
++ * @id: If return value is zero, points to the desired daemon id
++ *      pointer
++ *
++ * Search the hash list for the given user id.  Returns zero if the
++ * user id exists in the list; non-zero otherwise.  The daemon id hash
++ * mutex should be held before calling this function.
++ */
++static int ecryptfs_find_daemon_id(uid_t uid, struct ecryptfs_daemon_id **id)
++{
++	struct hlist_node *elem;
++	int rc;
++
++	hlist_for_each_entry(*id, elem,
++			     &ecryptfs_daemon_id_hash[ecryptfs_uid_hash(uid)],
++			     id_chain) {
++		if ((*id)->uid == uid) {
++			rc = 0;
++			goto out;
++		}
++	}
++	rc = -EINVAL;
++out:
++	return rc;
++}
++
++static int ecryptfs_send_raw_message(unsigned int transport, u16 msg_type,
++				     pid_t pid)
++{
++	int rc;
++
++	switch(transport) {
++	case ECRYPTFS_TRANSPORT_NETLINK:
++		rc = ecryptfs_send_netlink(NULL, 0, NULL, msg_type, 0, pid);
++		break;
++	case ECRYPTFS_TRANSPORT_CONNECTOR:
++	case ECRYPTFS_TRANSPORT_RELAYFS:
++	default:
++		rc = -ENOSYS;
++	}
++	return rc;
++}
++
++/**
++ * ecryptfs_process_helo
++ * @transport: The underlying transport (netlink, etc.)
++ * @uid: The user ID owner of the message
++ * @pid: The process ID for the userspace program that sent the
++ *       message
++ *
++ * Adds the uid and pid values to the daemon id hash.  If a uid
++ * already has a daemon pid registered, the daemon will be
++ * unregistered before the new daemon id is put into the hash list.
++ * Returns zero after adding a new daemon id to the hash list;
++ * non-zero otherwise.
++ */
++int ecryptfs_process_helo(unsigned int transport, uid_t uid, pid_t pid)
++{
++	struct ecryptfs_daemon_id *new_id;
++	struct ecryptfs_daemon_id *old_id;
++	int rc;
++
++	mutex_lock(&ecryptfs_daemon_id_hash_mux);
++	new_id = kmalloc(sizeof(*new_id), GFP_KERNEL);
++	if (!new_id) {
++		rc = -ENOMEM;
++		ecryptfs_printk(KERN_ERR, "Failed to allocate memory; unable "
++				"to register daemon [%d] for user\n", pid, uid);
 +		goto unlock;
 +	}
- 	if (id->pid != pid) {
- 		rc = -EBADMSG;
- 		ecryptfs_printk(KERN_ERR, "User [%d] received a "
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-public-key-packet-management fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-public-key-packet-management
-+++ a/fs/ecryptfs/mmap.c
-@@ -524,90 +524,6 @@ out:
- 	return rc;
- }
- 
--static int
--process_new_file(struct ecryptfs_crypt_stat *crypt_stat,
--		 struct file *file, struct inode *inode)
--{
--	struct page *header_page;
--	const struct address_space_operations *lower_a_ops;
--	struct inode *lower_inode;
--	struct file *lower_file;
--	char *header_virt;
--	int rc = 0;
--	int current_header_page = 0;
--	int header_pages;
--	int more_header_data_to_be_written = 1;
--
--	lower_inode = ecryptfs_inode_to_lower(inode);
--	lower_file = ecryptfs_file_to_lower(file);
--	lower_a_ops = lower_inode->i_mapping->a_ops;
--	header_pages = ((crypt_stat->header_extent_size
--			 * crypt_stat->num_header_extents_at_front)
--			/ PAGE_CACHE_SIZE);
--	BUG_ON(header_pages < 1);
--	while (current_header_page < header_pages) {
--		rc = ecryptfs_grab_and_map_lower_page(&header_page,
--						      &header_virt,
--						      lower_inode,
--						      current_header_page);
--		if (rc) {
--			ecryptfs_printk(KERN_ERR, "grab_cache_page for "
--					"header page [%d] failed; rc = [%d]\n",
--					current_header_page, rc);
--			goto out;
--		}
--		rc = lower_a_ops->prepare_write(lower_file, header_page, 0,
--						PAGE_CACHE_SIZE);
--		if (rc) {
--			ecryptfs_printk(KERN_ERR, "Error preparing to write "
--					"header page out; rc = [%d]\n", rc);
--			goto out;
--		}
--		memset(header_virt, 0, PAGE_CACHE_SIZE);
--		if (more_header_data_to_be_written) {
--			rc = ecryptfs_write_headers_virt(header_virt,
--							 crypt_stat,
--							 file->f_dentry);
--			if (rc) {
--				ecryptfs_printk(KERN_WARNING, "Error "
--						"generating header; rc = "
--						"[%d]\n", rc);
--				rc = -EIO;
--				memset(header_virt, 0, PAGE_CACHE_SIZE);
--				ecryptfs_unmap_and_release_lower_page(
--					header_page);
--				goto out;
--			}
--			if (current_header_page == 0)
--				memset(header_virt, 0, 8);
--			more_header_data_to_be_written = 0;
--		}
--		rc = lower_a_ops->commit_write(lower_file, header_page, 0,
--					       PAGE_CACHE_SIZE);
--		ecryptfs_unmap_and_release_lower_page(header_page);
--		if (rc < 0) {
--			ecryptfs_printk(KERN_ERR,
--					"Error commiting header page write; "
--					"rc = [%d]\n", rc);
--			break;
--		}
--		current_header_page++;
--	}
--	if (rc >= 0) {
--		rc = 0;
--		ecryptfs_printk(KERN_DEBUG, "lower_inode->i_blocks = "
--				"[0x%.16x]\n", lower_inode->i_blocks);
--		i_size_write(inode, 0);
--		lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
--		mark_inode_dirty_sync(inode);
--	}
--	ecryptfs_printk(KERN_DEBUG, "Clearing ECRYPTFS_NEW_FILE flag in "
--			"crypt_stat at memory location [%p]\n", crypt_stat);
--	ECRYPTFS_CLEAR_FLAG(crypt_stat->flags, ECRYPTFS_NEW_FILE);
--out:
--	return rc;
--}
--
- /**
-  * ecryptfs_commit_write
-  * @file: The eCryptfs file object
-@@ -642,12 +558,7 @@ static int ecryptfs_commit_write(struct 
- 	if (ECRYPTFS_CHECK_FLAG(crypt_stat->flags, ECRYPTFS_NEW_FILE)) {
- 		ecryptfs_printk(KERN_DEBUG, "ECRYPTFS_NEW_FILE flag set in "
- 			"crypt_stat at memory location [%p]\n", crypt_stat);
--		rc = process_new_file(crypt_stat, file, inode);
--		if (rc) {
--			ecryptfs_printk(KERN_ERR, "Error processing new "
--					"file; rc = [%d]\n", rc);
--			goto out;
--		}
-+		ECRYPTFS_CLEAR_FLAG(crypt_stat->flags, ECRYPTFS_NEW_FILE);
- 	} else
- 		ecryptfs_printk(KERN_DEBUG, "Not a new file\n");
- 	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_page"
-diff -puN fs/ecryptfs/netlink.c~ecryptfs-public-key-packet-management fs/ecryptfs/netlink.c
---- a/fs/ecryptfs/netlink.c~ecryptfs-public-key-packet-management
++	if (!ecryptfs_find_daemon_id(uid, &old_id)) {
++		printk(KERN_WARNING "Received request from user [%d] "
++		       "to register daemon [%d]; unregistering daemon "
++		       "[%d]\n", uid, pid, old_id->pid);
++		hlist_del(&old_id->id_chain);
++		rc = ecryptfs_send_raw_message(transport, ECRYPTFS_NLMSG_QUIT,
++					       old_id->pid);
++		if (rc)
++			printk(KERN_WARNING "Failed to send QUIT "
++			       "message to daemon [%d]; rc = [%d]\n",
++			       old_id->pid, rc);
++		kfree(old_id);
++	}
++	new_id->uid = uid;
++	new_id->pid = pid;
++	hlist_add_head(&new_id->id_chain,
++		       &ecryptfs_daemon_id_hash[ecryptfs_uid_hash(uid)]);
++	rc = 0;
++unlock:
++	mutex_unlock(&ecryptfs_daemon_id_hash_mux);
++	return rc;
++}
++
++/**
++ * ecryptfs_process_quit
++ * @uid: The user ID owner of the message
++ * @pid: The process ID for the userspace program that sent the
++ *       message
++ *
++ * Deletes the corresponding daemon id for the given uid and pid, if
++ * it is the registered that is requesting the deletion. Returns zero
++ * after deleting the desired daemon id; non-zero otherwise.
++ */
++int ecryptfs_process_quit(uid_t uid, pid_t pid)
++{
++	struct ecryptfs_daemon_id *id;
++	int rc;
++
++	mutex_lock(&ecryptfs_daemon_id_hash_mux);
++	if (ecryptfs_find_daemon_id(uid, &id)) {
++		rc = -EINVAL;
++		ecryptfs_printk(KERN_ERR, "Received request from user [%d] to "
++				"unregister unrecognized daemon [%d]\n", uid,
++				pid);
++		goto unlock;
++	}
++	if (id->pid != pid) {
++		rc = -EINVAL;
++		ecryptfs_printk(KERN_WARNING, "Received request from user [%d] "
++				"with pid [%d] to unregister daemon [%d]\n",
++				uid, pid, id->pid);
++		goto unlock;
++	}
++	hlist_del(&id->id_chain);
++	kfree(id);
++	rc = 0;
++unlock:
++	mutex_unlock(&ecryptfs_daemon_id_hash_mux);
++	return rc;
++}
++
++/**
++ * ecryptfs_process_reponse
++ * @msg: The ecryptfs message received; the caller should sanity check
++ *       msg->data_len
++ * @pid: The process ID of the userspace application that sent the
++ *       message
++ * @seq: The sequence number of the message
++ *
++ * Processes a response message after sending a operation request to
++ * userspace. Returns zero upon delivery to desired context element;
++ * non-zero upon delivery failure or error.
++ */
++int ecryptfs_process_response(struct ecryptfs_message *msg, pid_t pid, u32 seq)
++{
++	struct ecryptfs_daemon_id *id;
++	struct ecryptfs_msg_ctx *msg_ctx;
++	int msg_size;
++	int rc;
++
++	if (msg->index >= ecryptfs_message_buf_len) {
++		rc = -EINVAL;
++		ecryptfs_printk(KERN_ERR, "Attempt to reference "
++				"context buffer at index [%d]; maximum "
++				"allowable is [%d]\n", msg->index,
++				(ecryptfs_message_buf_len - 1));
++		goto out;
++	}
++	msg_ctx = &ecryptfs_msg_ctx_arr[msg->index];
++	mutex_lock(&msg_ctx->mux);
++	if (ecryptfs_find_daemon_id(msg_ctx->task->euid, &id)) {
++		rc = -EBADMSG;
++		ecryptfs_printk(KERN_WARNING, "User [%d] received a "
++				"message response from process [%d] but does "
++				"not have a registered daemon\n",
++				msg_ctx->task->euid, pid);
++		goto wake_up;
++	}
++	if (id->pid != pid) {
++		rc = -EBADMSG;
++		ecryptfs_printk(KERN_ERR, "User [%d] received a "
++				"message response from an unrecognized "
++				"process [%d]\n", msg_ctx->task->euid, pid);
++		goto unlock;
++	}
++	if (msg_ctx->state != ECRYPTFS_MSG_CTX_STATE_PENDING) {
++		rc = -EINVAL;
++		ecryptfs_printk(KERN_WARNING, "Desired context element is not "
++				"pending a response\n");
++		goto unlock;
++	} else if (msg_ctx->counter != seq) {
++		rc = -EINVAL;
++		ecryptfs_printk(KERN_WARNING, "Invalid message sequence; "
++				"expected [%d]; received [%d]\n",
++				msg_ctx->counter, seq);
++		goto unlock;
++	}
++	msg_size = sizeof(*msg) + msg->data_len;
++	msg_ctx->msg = kmalloc(msg_size, GFP_KERNEL);
++	if (!msg_ctx->msg) {
++		rc = -ENOMEM;
++		ecryptfs_printk(KERN_ERR, "Failed to allocate memory\n");
++		goto unlock;
++	}
++	memcpy(msg_ctx->msg, msg, msg_size);
++	msg_ctx->state = ECRYPTFS_MSG_CTX_STATE_DONE;
++	rc = 0;
++wake_up:
++	wake_up_process(msg_ctx->task);
++unlock:
++	mutex_unlock(&msg_ctx->mux);
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_send_message
++ * @transport: The transport over which to send the message (i.e.,
++ *             netlink)
++ * @data: The data to send
++ * @data_len: The length of data
++ * @msg_ctx: The message context allocated for the send
++ */
++int ecryptfs_send_message(unsigned int transport, char *data, int data_len,
++			  struct ecryptfs_msg_ctx **msg_ctx)
++{
++	struct ecryptfs_daemon_id *id;
++	int rc;
++
++	mutex_lock(&ecryptfs_daemon_id_hash_mux);
++	if (ecryptfs_find_daemon_id(current->euid, &id)) {
++		mutex_unlock(&ecryptfs_daemon_id_hash_mux);
++		rc = -ENOTCONN;
++		ecryptfs_printk(KERN_ERR, "User [%d] does not have a daemon "
++				"registered\n", current->euid);
++		goto out;
++	}
++	mutex_unlock(&ecryptfs_daemon_id_hash_mux);
++	mutex_lock(&ecryptfs_msg_ctx_lists_mux);
++	rc = ecryptfs_acquire_free_msg_ctx(msg_ctx);
++	if (rc) {
++		mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
++		ecryptfs_printk(KERN_WARNING, "Could not claim a free "
++				"context element\n");
++		goto out;
++	}
++	ecryptfs_msg_ctx_free_to_alloc(*msg_ctx);
++	mutex_unlock(&(*msg_ctx)->mux);
++	mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
++	switch (transport) {
++	case ECRYPTFS_TRANSPORT_NETLINK:
++		rc = ecryptfs_send_netlink(data, data_len, *msg_ctx,
++					   ECRYPTFS_NLMSG_REQUEST, 0, id->pid);
++		break;
++	case ECRYPTFS_TRANSPORT_CONNECTOR:
++	case ECRYPTFS_TRANSPORT_RELAYFS:
++	default:
++		rc = -ENOSYS;
++	}
++	if (rc) {
++		printk(KERN_ERR "Error attempting to send message to userspace "
++		       "daemon; rc = [%d]\n", rc);
++	}
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_wait_for_response
++ * @msg_ctx: The context that was assigned when sending a message
++ * @msg: The incoming message from userspace; not set if rc != 0
++ *
++ * Sleeps until awaken by ecryptfs_receive_message or until the amount
++ * of time exceeds ecryptfs_message_wait_timeout.  If zero is
++ * returned, msg will point to a valid message from userspace; a
++ * non-zero value is returned upon failure to receive a message or an
++ * error occurs.
++ */
++int ecryptfs_wait_for_response(struct ecryptfs_msg_ctx *msg_ctx,
++			       struct ecryptfs_message **msg)
++{
++	signed long timeout = ecryptfs_message_wait_timeout * HZ;
++	int rc = 0;
++
++sleep:
++	timeout = schedule_timeout_interruptible(timeout);
++	mutex_lock(&ecryptfs_msg_ctx_lists_mux);
++	mutex_lock(&msg_ctx->mux);
++	if (msg_ctx->state != ECRYPTFS_MSG_CTX_STATE_DONE) {
++		if (timeout) {
++			mutex_unlock(&msg_ctx->mux);
++			mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
++			goto sleep;
++		}
++		rc = -ENOMSG;
++	} else {
++		*msg = msg_ctx->msg;
++		msg_ctx->msg = NULL;
++	}
++	ecryptfs_msg_ctx_alloc_to_free(msg_ctx);
++	mutex_unlock(&msg_ctx->mux);
++	mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
++	return rc;
++}
++
++int ecryptfs_init_messaging(unsigned int transport)
++{
++	int i;
++	int rc = 0;
++
++	if (ecryptfs_number_of_users > ECRYPTFS_MAX_NUM_USERS) {
++		ecryptfs_number_of_users = ECRYPTFS_MAX_NUM_USERS;
++		ecryptfs_printk(KERN_WARNING, "Specified number of users is "
++				"too large, defaulting to [%d] users\n",
++				ecryptfs_number_of_users);
++	}
++	mutex_init(&ecryptfs_daemon_id_hash_mux);
++	mutex_lock(&ecryptfs_daemon_id_hash_mux);
++	ecryptfs_hash_buckets = 0;
++	while (ecryptfs_number_of_users >> ++ecryptfs_hash_buckets);
++	ecryptfs_daemon_id_hash = kmalloc(sizeof(struct hlist_head)
++					  * ecryptfs_hash_buckets, GFP_KERNEL);
++	if (!ecryptfs_daemon_id_hash) {
++		rc = -ENOMEM;
++		ecryptfs_printk(KERN_ERR, "Failed to allocate memory\n");
++		goto out;
++	}
++	for (i = 0; i < ecryptfs_hash_buckets; i++)
++		INIT_HLIST_HEAD(&ecryptfs_daemon_id_hash[i]);
++	mutex_unlock(&ecryptfs_daemon_id_hash_mux);
++
++	ecryptfs_msg_ctx_arr = kmalloc((sizeof(struct ecryptfs_msg_ctx)
++				      * ecryptfs_message_buf_len), GFP_KERNEL);
++	if (!ecryptfs_msg_ctx_arr) {
++		rc = -ENOMEM;
++		ecryptfs_printk(KERN_ERR, "Failed to allocate memory\n");
++		goto out;
++	}
++	mutex_init(&ecryptfs_msg_ctx_lists_mux);
++	mutex_lock(&ecryptfs_msg_ctx_lists_mux);
++	ecryptfs_msg_counter = 0;
++	for (i = 0; i < ecryptfs_message_buf_len; i++) {
++		INIT_LIST_HEAD(&ecryptfs_msg_ctx_arr[i].node);
++		mutex_init(&ecryptfs_msg_ctx_arr[i].mux);
++		mutex_lock(&ecryptfs_msg_ctx_arr[i].mux);
++		ecryptfs_msg_ctx_arr[i].index = i;
++		ecryptfs_msg_ctx_arr[i].state = ECRYPTFS_MSG_CTX_STATE_FREE;
++		ecryptfs_msg_ctx_arr[i].counter = 0;
++		ecryptfs_msg_ctx_arr[i].task = NULL;
++		ecryptfs_msg_ctx_arr[i].msg = NULL;
++		list_add_tail(&ecryptfs_msg_ctx_arr[i].node,
++			      &ecryptfs_msg_ctx_free_list);
++		mutex_unlock(&ecryptfs_msg_ctx_arr[i].mux);
++	}
++	mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
++	switch(transport) {
++	case ECRYPTFS_TRANSPORT_NETLINK:
++		rc = ecryptfs_init_netlink();
++		if (rc)
++			ecryptfs_release_messaging(transport);
++		break;
++	case ECRYPTFS_TRANSPORT_CONNECTOR:
++	case ECRYPTFS_TRANSPORT_RELAYFS:
++	default:
++		rc = -ENOSYS;
++	}
++out:
++	return rc;
++}
++
++void ecryptfs_release_messaging(unsigned int transport)
++{
++	if (ecryptfs_msg_ctx_arr) {
++		int i;
++
++		mutex_lock(&ecryptfs_msg_ctx_lists_mux);
++		for (i = 0; i < ecryptfs_message_buf_len; i++) {
++			mutex_lock(&ecryptfs_msg_ctx_arr[i].mux);
++			if (ecryptfs_msg_ctx_arr[i].msg)
++				kfree(ecryptfs_msg_ctx_arr[i].msg);
++			mutex_unlock(&ecryptfs_msg_ctx_arr[i].mux);
++		}
++		kfree(ecryptfs_msg_ctx_arr);
++		mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
++	}
++	if (ecryptfs_daemon_id_hash) {
++		struct hlist_node *elem;
++		struct ecryptfs_daemon_id *id;
++		int i;
++
++		mutex_lock(&ecryptfs_daemon_id_hash_mux);
++		for (i = 0; i < ecryptfs_hash_buckets; i++) {
++			hlist_for_each_entry(id, elem,
++					     &ecryptfs_daemon_id_hash[i],
++					     id_chain) {
++				hlist_del(elem);
++				kfree(id);
++			}
++		}
++		kfree(ecryptfs_daemon_id_hash);
++		mutex_unlock(&ecryptfs_daemon_id_hash_mux);
++	}
++	switch(transport) {
++	case ECRYPTFS_TRANSPORT_NETLINK:
++		ecryptfs_release_netlink();
++		break;
++	case ECRYPTFS_TRANSPORT_CONNECTOR:
++	case ECRYPTFS_TRANSPORT_RELAYFS:
++	default:
++		break;
++	}
++	return;
++}
+diff -puN /dev/null fs/ecryptfs/netlink.c
+--- /dev/null
 +++ a/fs/ecryptfs/netlink.c
-@@ -107,8 +107,8 @@ static int ecryptfs_process_nl_response(
- 				"incorrectly specified data length\n");
- 		goto out;
- 	}
--	rc = ecryptfs_process_response(msg, NETLINK_CREDS(skb)->pid,
--				       nlh->nlmsg_seq);
-+	rc = ecryptfs_process_response(msg, NETLINK_CREDS(skb)->uid,
-+				       NETLINK_CREDS(skb)->pid, nlh->nlmsg_seq);
- 	if (rc)
- 		printk(KERN_ERR
- 		       "Error processing response message; rc = [%d]\n", rc);
+@@ -0,0 +1,255 @@
++/**
++ * eCryptfs: Linux filesystem encryption layer
++ *
++ * Copyright (C) 2004-2006 International Business Machines Corp.
++ *   Author(s): Michael A. Halcrow <mhalcrow@us.ibm.com>
++ *		Tyler Hicks <tyhicks@ou.edu>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
++ * 02111-1307, USA.
++ */
++
++#include <net/sock.h>
++#include <linux/hash.h>
++#include <linux/random.h>
++#include "ecryptfs_kernel.h"
++
++static struct sock *ecryptfs_nl_sock;
++
++/**
++ * ecryptfs_send_netlink
++ * @data: The data to include as the payload
++ * @data_len: The byte count of the data
++ * @msg_ctx: The netlink context that will be used to handle the
++ *          response message
++ * @msg_type: The type of netlink message to send
++ * @msg_flags: The flags to include in the netlink header
++ * @daemon_pid: The process id of the daemon to send the message to
++ *
++ * Sends the data to the specified daemon pid and uses the netlink
++ * context element to store the data needed for validation upon
++ * receiving the response.  The data and the netlink context can be
++ * null if just sending a netlink header is sufficient.  Returns zero
++ * upon sending the message; non-zero upon error.
++ */
++int ecryptfs_send_netlink(char *data, int data_len,
++			  struct ecryptfs_msg_ctx *msg_ctx, u16 msg_type,
++			  u16 msg_flags, pid_t daemon_pid)
++{
++	struct sk_buff *skb;
++	struct nlmsghdr *nlh;
++	struct ecryptfs_message *msg;
++	size_t payload_len;
++	int rc;
++
++	payload_len = ((data && data_len) ? (sizeof(*msg) + data_len) : 0);
++	skb = alloc_skb(NLMSG_SPACE(payload_len), GFP_KERNEL);
++	if (!skb) {
++		rc = -ENOMEM;
++		ecryptfs_printk(KERN_ERR, "Failed to allocate socket buffer\n");
++		goto out;
++	}
++	nlh = NLMSG_PUT(skb, daemon_pid, msg_ctx ? msg_ctx->counter : 0,
++			msg_type, payload_len);
++	nlh->nlmsg_flags = msg_flags;
++	if (msg_ctx && payload_len) {
++		msg = (struct ecryptfs_message *)NLMSG_DATA(nlh);
++		msg->index = msg_ctx->index;
++		msg->data_len = data_len;
++		memcpy(msg->data, data, data_len);
++	}
++	rc = netlink_unicast(ecryptfs_nl_sock, skb, daemon_pid, 0);
++	if (rc < 0) {
++		ecryptfs_printk(KERN_ERR, "Failed to send eCryptfs netlink "
++				"message; rc = [%d]\n", rc);
++		goto out;
++	}
++	rc = 0;
++	goto out;
++nlmsg_failure:
++	rc = -EMSGSIZE;
++	kfree_skb(skb);
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_process_nl_reponse
++ * @skb: The socket buffer containing the netlink message of state
++ *       RESPONSE
++ *
++ * Processes a response message after sending a operation request to
++ * userspace.  Attempts to assign the msg to a netlink context element
++ * at the index specified in the msg.  The sk_buff and nlmsghdr must
++ * be validated before this function. Returns zero upon delivery to
++ * desired context element; non-zero upon delivery failure or error.
++ */
++static int ecryptfs_process_nl_response(struct sk_buff *skb)
++{
++	struct nlmsghdr *nlh = (struct nlmsghdr*)skb->data;
++	struct ecryptfs_message *msg = NLMSG_DATA(nlh);
++	int rc;
++
++	if (skb->len - NLMSG_HDRLEN - sizeof(*msg) != msg->data_len) {
++		rc = -EINVAL;
++		ecryptfs_printk(KERN_ERR, "Received netlink message with "
++				"incorrectly specified data length\n");
++		goto out;
++	}
++	rc = ecryptfs_process_response(msg, NETLINK_CREDS(skb)->pid,
++				       nlh->nlmsg_seq);
++	if (rc)
++		printk(KERN_ERR
++		       "Error processing response message; rc = [%d]\n", rc);
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_process_nl_helo
++ * @skb: The socket buffer containing the nlmsghdr in HELO state
++ *
++ * Gets uid and pid of the skb and adds the values to the daemon id
++ * hash. Returns zero after adding a new daemon id to the hash list;
++ * non-zero otherwise.
++ */
++static int ecryptfs_process_nl_helo(struct sk_buff *skb)
++{
++	int rc;
++
++	rc = ecryptfs_process_helo(ECRYPTFS_TRANSPORT_NETLINK,
++				   NETLINK_CREDS(skb)->uid,
++				   NETLINK_CREDS(skb)->pid);
++	if (rc)
++		printk(KERN_WARNING "Error processing HELO; rc = [%d]\n", rc);
++	return rc;
++}
++
++/**
++ * ecryptfs_process_nl_quit
++ * @skb: The socket buffer containing the nlmsghdr in QUIT state
++ *
++ * Gets uid and pid of the skb and deletes the corresponding daemon
++ * id, if it is the registered that is requesting the
++ * deletion. Returns zero after deleting the desired daemon id;
++ * non-zero otherwise.
++ */
++static int ecryptfs_process_nl_quit(struct sk_buff *skb)
++{
++	int rc;
++
++	rc = ecryptfs_process_quit(NETLINK_CREDS(skb)->uid,
++				   NETLINK_CREDS(skb)->pid);
++	if (rc)
++		printk(KERN_WARNING
++		       "Error processing QUIT message; rc = [%d]\n", rc);
++	return rc;
++}
++
++/**
++ * ecryptfs_receive_nl_message
++ *
++ * Callback function called by netlink system when a message arrives.
++ * If the message looks to be valid, then an attempt is made to assign
++ * it to its desired netlink context element and wake up the process
++ * that is waiting for a response.
++ */
++static void ecryptfs_receive_nl_message(struct sock *sk, int len)
++{
++	struct sk_buff *skb;
++	struct nlmsghdr *nlh;
++	int rc = 0;	/* skb_recv_datagram requires this */
++
++receive:
++	skb = skb_recv_datagram(sk, 0, 0, &rc);
++	if (rc == -EINTR)
++		goto receive;
++	else if (rc < 0) {
++		ecryptfs_printk(KERN_ERR, "Error occurred while "
++				"receiving eCryptfs netlink message; "
++				"rc = [%d]\n", rc);
++		return;
++	}
++	nlh = (struct nlmsghdr *)skb->data;
++	if (!NLMSG_OK(nlh, skb->len)) {
++		ecryptfs_printk(KERN_ERR, "Received corrupt netlink "
++				"message\n");
++		goto free;
++	}
++	switch (nlh->nlmsg_type) {
++		case ECRYPTFS_NLMSG_RESPONSE:
++			if (ecryptfs_process_nl_response(skb)) {
++				ecryptfs_printk(KERN_WARNING, "Failed to "
++						"deliver netlink response to "
++						"requesting operation\n");
++			}
++			break;
++		case ECRYPTFS_NLMSG_HELO:
++			if (ecryptfs_process_nl_helo(skb)) {
++				ecryptfs_printk(KERN_WARNING, "Failed to "
++						"fulfill HELO request\n");
++			}
++			break;
++		case ECRYPTFS_NLMSG_QUIT:
++			if (ecryptfs_process_nl_quit(skb)) {
++				ecryptfs_printk(KERN_WARNING, "Failed to "
++						"fulfill QUIT request\n");
++			}
++			break;
++		default:
++			ecryptfs_printk(KERN_WARNING, "Dropping netlink "
++					"message of unrecognized type [%d]\n",
++					nlh->nlmsg_type);
++			break;
++	}
++free:
++	kfree_skb(skb);
++}
++
++/**
++ * ecryptfs_init_netlink
++ *
++ * Initializes the daemon id hash list, netlink context array, and
++ * necessary locks.  Returns zero upon success; non-zero upon error.
++ */
++int ecryptfs_init_netlink(void)
++{
++	int rc;
++
++	ecryptfs_nl_sock = netlink_kernel_create(NETLINK_ECRYPTFS, 0,
++						 ecryptfs_receive_nl_message,
++						 THIS_MODULE);
++	if (!ecryptfs_nl_sock) {
++		rc = -EIO;
++		ecryptfs_printk(KERN_ERR, "Failed to create netlink socket\n");
++		goto out;
++	}
++	ecryptfs_nl_sock->sk_sndtimeo = ECRYPTFS_DEFAULT_SEND_TIMEOUT;
++	rc = 0;
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_release_netlink
++ *
++ * Frees all memory used by the netlink context array and releases the
++ * netlink socket.
++ */
++void ecryptfs_release_netlink(void)
++{
++	if (ecryptfs_nl_sock && ecryptfs_nl_sock->sk_socket)
++		sock_release(ecryptfs_nl_sock->sk_socket);
++	ecryptfs_nl_sock = NULL;
++}
+diff -puN include/linux/netlink.h~ecryptfs-public-key-transport-mechanism include/linux/netlink.h
+--- a/include/linux/netlink.h~ecryptfs-public-key-transport-mechanism
++++ a/include/linux/netlink.h
+@@ -23,6 +23,7 @@
+ #define NETLINK_GENERIC		16
+ /* leave room for NETLINK_DM (DM Events) */
+ #define NETLINK_SCSITRANSPORT	18	/* SCSI Transports */
++#define NETLINK_ECRYPTFS	19
+ 
+ #define MAX_LINKS 32		
+ 
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
