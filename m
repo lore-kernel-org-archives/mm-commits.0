@@ -1,50 +1,68 @@
 From: akpm@osdl.org
-Subject: - add-include-linux-freezerh-and-move-definitions-from-ueagle-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:17:43 -0800
-Message-ID: <200612070317.kB73HhXJ027041@shell0.pdx.osdl.net>
+Subject: - convert-pm_sem-to-a-mutex-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:18:19 -0800
+Message-ID: <200612070318.kB73IJuE027051@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41718 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41742 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967801AbWLGDR4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:17:56 -0500
+	id S967802AbWLGDSc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:18:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, nigel@suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, shemminger@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-include-linux-freezerh-and-move-definitions-from-ueagle-fix
+     convert-pm_sem-to-a-mutex-fix
 has been removed from the -mm tree.  Its filename was
-     add-include-linux-freezerh-and-move-definitions-from-ueagle-fix.patch
+     convert-pm_sem-to-a-mutex-fix.patch
 
-This patch was dropped because it was folded into add-include-linux-freezerh-and-move-definitions-from.patch
+This patch was dropped because it was folded into convert-pm_sem-to-a-mutex.patch
 
 ------------------------------------------------------
-Subject: add-include-linux-freezerh-and-move-definitions-from-ueagle-fix
+Subject: convert-pm_sem-to-a-mutex-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Nigel Cunningham <nigel@suspend2.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+I am not here to fix rudimentary bugs in other people's untested code.
+
+(and a poke in the eye to the people who acked this as well)
+
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/atm/ueagle-atm.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/power/main.c |    2 +-
+ kernel/power/user.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/atm/ueagle-atm.c~add-include-linux-freezerh-and-move-definitions-from-ueagle-fix drivers/usb/atm/ueagle-atm.c
---- a/drivers/usb/atm/ueagle-atm.c~add-include-linux-freezerh-and-move-definitions-from-ueagle-fix
-+++ a/drivers/usb/atm/ueagle-atm.c
-@@ -64,6 +64,8 @@
- #include <linux/kthread.h>
- #include <linux/version.h>
- #include <linux/mutex.h>
-+#include <linux/freezer.h>
-+
- #include <asm/unaligned.h>
+diff -puN kernel/power/main.c~convert-pm_sem-to-a-mutex-fix kernel/power/main.c
+--- a/kernel/power/main.c~convert-pm_sem-to-a-mutex-fix
++++ a/kernel/power/main.c
+@@ -183,7 +183,7 @@ static int enter_state(suspend_state_t s
  
- #include "usbatm.h"
+ 	if (!valid_state(state))
+ 		return -ENODEV;
+-	if (mutex_trylock(&pm_mutex))
++	if (!mutex_trylock(&pm_mutex))
+ 		return -EBUSY;
+ 
+ 	if (state == PM_SUSPEND_DISK) {
+diff -puN kernel/power/user.c~convert-pm_sem-to-a-mutex-fix kernel/power/user.c
+--- a/kernel/power/user.c~convert-pm_sem-to-a-mutex-fix
++++ a/kernel/power/user.c
+@@ -286,7 +286,7 @@ static int snapshot_ioctl(struct inode *
+ 			break;
+ 		}
+ 
+-		if (mutex_trylock(&pm_mutex)) {
++		if (!mutex_trylock(&pm_mutex)) {
+ 			error = -EBUSY;
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -63,7 +81,7 @@ mm-make-compound-page-destructor-handling-explicit.patch
 radix-tree-rcu-lockless-readside.patch
 swsusp-add-resume_offset-command-line-parameter-rev-2.patch
 add-include-linux-freezerh-and-move-definitions-from.patch
-add-include-linux-freezerh-and-move-definitions-from-ueagle-fix.patch
+convert-pm_sem-to-a-mutex.patch
 convert-pm_sem-to-a-mutex-fix.patch
 cciss-set-sector_size-to-2048-for-performance-tidy.patch
 deprecate-smbfs-in-favour-of-cifs.patch
