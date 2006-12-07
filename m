@@ -1,102 +1,103 @@
 From: akpm@osdl.org
-Subject: - reiser-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:07:26 -0800
-Message-ID: <200612072307.kB7N7QWI030363@shell0.pdx.osdl.net>
+Subject: - futex-init-error-check.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:07:29 -0800
+Message-ID: <200612072307.kB7N7THn030366@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52779 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52805 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163944AbWLGXHb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:07:31 -0500
+	id S1163941AbWLGXHl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:07:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: burman.yan@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser: replace kmalloc+memset with kzalloc
+     futex: init error check
 has been removed from the -mm tree.  Its filename was
-     reiser-replace-kmallocmemset-with-kzalloc.patch
+     futex-init-error-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiser: replace kmalloc+memset with kzalloc
-From: Yan Burman <burman.yan@gmail.com>
+Subject: futex: init error check
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Replace kmalloc+memset with kzalloc
+Check register_filesystem() and kern_mount() return values.
 
-Signed-off-by: Yan Burman <burman.yan@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiserfs/file.c  |    3 +--
- fs/reiserfs/inode.c |    7 ++-----
- fs/reiserfs/super.c |    3 +--
- 3 files changed, 4 insertions(+), 9 deletions(-)
+ kernel/futex.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/file.c~reiser-replace-kmallocmemset-with-kzalloc fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~reiser-replace-kmallocmemset-with-kzalloc
-+++ a/fs/reiserfs/file.c
-@@ -317,12 +317,11 @@ static int reiserfs_allocate_blocks_for_
- 			/* area filled with zeroes, to supply as list of zero blocknumbers
- 			   We allocate it outside of loop just in case loop would spin for
- 			   several iterations. */
--			char *zeros = kmalloc(to_paste * UNFM_P_SIZE, GFP_ATOMIC);	// We cannot insert more than MAX_ITEM_LEN bytes anyway.
-+			char *zeros = kzalloc(to_paste * UNFM_P_SIZE, GFP_ATOMIC);	// We cannot insert more than MAX_ITEM_LEN bytes anyway.
- 			if (!zeros) {
- 				res = -ENOMEM;
- 				goto error_exit_free_blocks;
- 			}
--			memset(zeros, 0, to_paste * UNFM_P_SIZE);
- 			do {
- 				to_paste =
- 				    min_t(__u64, hole_size,
-diff -puN fs/reiserfs/inode.c~reiser-replace-kmallocmemset-with-kzalloc fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiser-replace-kmallocmemset-with-kzalloc
-+++ a/fs/reiserfs/inode.c
-@@ -929,15 +929,12 @@ int reiserfs_get_block(struct inode *ino
- 			if (blocks_needed == 1) {
- 				un = &unf_single;
- 			} else {
--				un = kmalloc(min(blocks_needed, max_to_insert) * UNFM_P_SIZE, GFP_ATOMIC);	// We need to avoid scheduling.
-+				un = kzalloc(min(blocks_needed, max_to_insert) * UNFM_P_SIZE, GFP_ATOMIC);	// We need to avoid scheduling.
- 				if (!un) {
- 					un = &unf_single;
- 					blocks_needed = 1;
- 					max_to_insert = 0;
--				} else
--					memset(un, 0,
--					       UNFM_P_SIZE * min(blocks_needed,
--								 max_to_insert));
-+				}
- 			}
- 			if (blocks_needed <= max_to_insert) {
- 				/* we are going to add target block to the file. Use allocated
-diff -puN fs/reiserfs/super.c~reiser-replace-kmallocmemset-with-kzalloc fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiser-replace-kmallocmemset-with-kzalloc
-+++ a/fs/reiserfs/super.c
-@@ -1549,13 +1549,12 @@ static int reiserfs_fill_super(struct su
- 	struct reiserfs_sb_info *sbi;
- 	int errval = -EINVAL;
+diff -puN kernel/futex.c~futex-init-error-check kernel/futex.c
+--- a/kernel/futex.c~futex-init-error-check
++++ a/kernel/futex.c
+@@ -1857,10 +1857,16 @@ static struct file_system_type futex_fs_
  
--	sbi = kmalloc(sizeof(struct reiserfs_sb_info), GFP_KERNEL);
-+	sbi = kzalloc(sizeof(struct reiserfs_sb_info), GFP_KERNEL);
- 	if (!sbi) {
- 		errval = -ENOMEM;
- 		goto error;
- 	}
- 	s->s_fs_info = sbi;
--	memset(sbi, 0, sizeof(struct reiserfs_sb_info));
- 	/* Set default values for options: non-aggressive tails, RO on errors */
- 	REISERFS_SB(s)->s_mount_opt |= (1 << REISERFS_SMALLTAIL);
- 	REISERFS_SB(s)->s_mount_opt |= (1 << REISERFS_ERROR_RO);
+ static int __init init(void)
+ {
+-	unsigned int i;
++	int i = register_filesystem(&futex_fs_type);
++
++	if (i)
++		return i;
+ 
+-	register_filesystem(&futex_fs_type);
+ 	futex_mnt = kern_mount(&futex_fs_type);
++	if (IS_ERR(futex_mnt)) {
++		unregister_filesystem(&futex_fs_type);
++		return PTR_ERR(futex_mnt);
++	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(futex_queues); i++) {
+ 		INIT_LIST_HEAD(&futex_queues[i].chain);
 _
 
-Patches currently in -mm which might be from burman.yan@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-ia64-replace-kmallocmemset-with-kzalloc.patch
-jffs2-replace-kmallocmemset-with-kzalloc.patch
-nfsd-replace-kmallocmemset-with-kcalloc.patch
+acpi-fix-single-linked-list-manipulation.patch
+acpi-processor-prevent-loading-module-on-failures.patch
+git-alsa.patch
+audit-fix-kstrdup-error-check.patch
+drm-fix-return-value-check.patch
+git-input.patch
+ata-fix-platform_device_register_simple-error-check.patch
+git-mtd.patch
+gss_spkm3-fix-error-handling-in-module-init.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+iscsi-fix-crypto_alloc_hash-error-check.patch
+bit-revese-library.patch
+crc32-replace-bitreverse-by-bitrev32.patch
+video-use-bitrev8.patch
+net-use-bitrev8.patch
+net-use-bitrev8-tidy.patch
+isdn-hisax-use-bitrev8.patch
+atm-ambassador-use-bitrev8.patch
+isdn-gigaset-use-bitrev8.patch
+isdn-fix-missing-unregister_capi_driver.patch
+fault-injection-documentation-and-scripts.patch
+fault-injection-capabilities-infrastructure.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-capability-for-kmalloc.patch
+fault-injection-capability-for-kmalloc-failslab-remove-__gfp_highmem-filtering.patch
+fault-injection-capability-for-alloc_pages.patch
+fault-injection-capability-for-disk-io.patch
+fault-injection-process-filtering-for-fault-injection-capabilities.patch
+fault-injection-stacktrace-filtering.patch
+fault-injection-stacktrace-filtering-reject-failure-if-any-caller-lies-within-specified-range.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+fault-injection-Kconfig-cleanup-config_fault_injection-help-text.patch
+fault-injection-correct-disambiguate-and.patch
+fault-injection-use-bool-true-false-throughout.patch
+fault-injection-clamp-debugfs-stacktrace-depth-to.patch
+fault-injection-optimize-and-simplify.patch
+fault-injection-defaults-likely-to-please-a-new.patch
 
