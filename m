@@ -1,49 +1,113 @@
 From: akpm@osdl.org
-Subject: - maintainers-remove-the-non-existing-sun3-list.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:35 -0800
-Message-ID: <200612072316.kB7NGZBH030849@shell0.pdx.osdl.net>
+Subject: - remove-drivers-block-paride-jumbo.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:16:45 -0800
+Message-ID: <200612072316.kB7NGjwZ030868@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54141 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54165 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163977AbWLGXTs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:19:48 -0500
+	id S1163979AbWLGXUE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:20:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: remove the non-existing sun3 list
+     remove drivers/block/paride/jumbo
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-the-non-existing-sun3-list.patch
+     remove-drivers-block-paride-jumbo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove the non-existing sun3 list
+Subject: remove drivers/block/paride/jumbo
 From: Adrian Bunk <bunk@stusta.de>
 
-sun3-list@redhat.com does no longer exist.
+Let's remove this pre-historic paride building script.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/block/paride/jumbo |   70 -----------------------------------
+ 1 file changed, 70 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-the-non-existing-sun3-list MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-the-non-existing-sun3-list
-+++ a/MAINTAINERS
-@@ -2913,7 +2913,6 @@ S:	Maintained
- SUN3/3X
- P:	Sam Creasey
- M:	sammy@sammy.net
--L:	sun3-list@redhat.com
- W:	http://sammy.net/sun3/
- S:	Maintained
- 
+diff -puN drivers/block/paride/jumbo~remove-drivers-block-paride-jumbo /dev/null
+--- a/drivers/block/paride/jumbo
++++ /dev/null
+@@ -1,70 +0,0 @@
+-#!/bin/sh
+-#
+-# This script can be used to build "jumbo" modules that contain the
+-# base PARIDE support, one protocol module and one high-level driver.
+-#
+-echo -n "High level driver [pcd] : "
+-read X
+-HLD=${X:-pcd}
+-#
+-echo -n "Protocol module [bpck] : "
+-read X
+-PROTO=${X:-bpck}
+-#
+-echo -n "Use MODVERSIONS [y] ? "
+-read X
+-UMODV=${X:-y}
+-#
+-echo -n "For SMP kernel [n] ? "
+-read X
+-USMP=${X:-n}
+-#
+-echo -n "Support PARPORT [n] ? "
+-read X
+-UPARP=${X:-n}
+-#
+-echo
+-#
+-case $USMP in
+-	y* | Y* ) FSMP="-DCONFIG_SMP"
+-		  ;;
+-	*)	  FSMP=""
+-		  ;;
+-esac
+-#
+-MODI="-include ../../../include/linux/modversions.h"
+-#
+-case $UMODV in
+-	y* | Y* ) FMODV="-DMODVERSIONS $MODI"
+-		  ;;
+-	*)	  FMODV=""
+-		  ;;
+-esac
+-#
+-case $UPARP in
+-	y* | Y* ) FPARP="-DCONFIG_PARPORT"
+-		  ;;
+-	*)	  FPARP=""
+-		  ;;
+-esac
+-#
+-TARG=$HLD-$PROTO.o
+-FPROTO=-DCONFIG_PARIDE_`echo "$PROTO" | tr [a-z] [A-Z]`
+-FK="-D__KERNEL__ -I ../../../include"
+-FLCH=-D_LINUX_CONFIG_H
+-#
+-echo cc $FK $FSMP $FLCH $FPARP $FPROTO $FMODV -Wall -O2 -o Jb.o -c paride.c
+-cc $FK $FSMP $FLCH $FPARP $FPROTO $FMODV -Wall -O2 -o Jb.o -c paride.c
+-#
+-echo cc $FK $FSMP $FMODV -Wall -O2 -o Jp.o -c $PROTO.c
+-cc $FK $FSMP $FMODV -Wall -O2 -o Jp.o -c $PROTO.c
+-#
+-echo cc $FK $FSMP $FMODV -DMODULE -DPARIDE_JUMBO -Wall -O2 -o Jd.o -c $HLD.c
+-cc $FK $FSMP $FMODV -DMODULE -DPARIDE_JUMBO -Wall -O2 -o Jd.o -c $HLD.c
+-#
+-echo ld -r -o $TARG Jp.o Jb.o Jd.o
+-ld -r -o $TARG Jp.o Jb.o Jd.o
+-#
+-#
+-rm Jp.o Jb.o Jd.o
+-#
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
