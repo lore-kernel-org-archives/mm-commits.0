@@ -1,166 +1,195 @@
 From: akpm@osdl.org
-Subject: - ipmi-pass-sysfs-name-from-lower-level-driver.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:17:31 -0800
-Message-ID: <200612072317.kB7NHVBZ030934@shell0.pdx.osdl.net>
+Subject: - add-ignore_loglevel-boot-option.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:17:21 -0800
+Message-ID: <200612072317.kB7NHLuZ030917@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53855 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53829 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163860AbWLGXRe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:17:34 -0500
+	id S1163860AbWLGXRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:17:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minyard@acm.org, mm-commits@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: pass sysfs name from lower level driver
+     add ignore_loglevel boot option
 has been removed from the -mm tree.  Its filename was
-     ipmi-pass-sysfs-name-from-lower-level-driver.patch
+     add-ignore_loglevel-boot-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPMI: pass sysfs name from lower level driver
-From: Corey Minyard <minyard@acm.org>
+Subject: add ignore_loglevel boot option
+From: Ingo Molnar <mingo@elte.hu>
 
-Pass in the sysfs name from the lower-level IPMI driver, as the coming IPMI
-serial driver will need that to link properly from the serial device sysfs
-directory.
+Sometimes the kernel prints something interesting while userspace bootup
+keeps messages turned off via loglevel.  Enable the printing of /all/
+kernel messages via the "ignore_loglevel" boot option.  Off by default.
 
-Signed-off-by: Corey Minyard <minyard@acm.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |   34 +++++++++++++++++++++-----
- drivers/char/ipmi/ipmi_si_intf.c    |    1 
- include/linux/ipmi_smi.h            |    1 
- 3 files changed, 30 insertions(+), 6 deletions(-)
+ Documentation/kernel-parameters.txt |    4 ++++
+ kernel/printk.c                     |   14 +++++++++++++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-pass-sysfs-name-from-lower-level-driver drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-pass-sysfs-name-from-lower-level-driver
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -205,6 +205,7 @@ struct ipmi_smi
+diff -puN Documentation/kernel-parameters.txt~add-ignore_loglevel-boot-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~add-ignore_loglevel-boot-option
++++ a/Documentation/kernel-parameters.txt
+@@ -650,6 +650,10 @@ and is between 256 and 4096 characters. 
+ 	idle=		[HW]
+ 			Format: idle=poll or idle=halt
  
- 	struct bmc_device *bmc;
- 	char *my_dev_name;
-+	char *sysfs_name;
++	ignore_loglevel	[KNL]
++			Ignore loglevel setting - this will print /all/
++			kernel messages to the console. Useful for debugging.
++
+ 	ihash_entries=	[KNL]
+ 			Set number of hash buckets for inode cache.
  
- 	/* This is the lower-layer's sender routine. */
- 	struct ipmi_smi_handlers *handlers;
-@@ -2004,7 +2005,11 @@ static void ipmi_bmc_unregister(ipmi_smi
- {
- 	struct bmc_device *bmc = intf->bmc;
- 
--	sysfs_remove_link(&intf->si_dev->kobj, "bmc");
-+	if (intf->sysfs_name) {
-+		sysfs_remove_link(&intf->si_dev->kobj, intf->sysfs_name);
-+		kfree(intf->sysfs_name);
-+		intf->sysfs_name = NULL;
-+	}
- 	if (intf->my_dev_name) {
- 		sysfs_remove_link(&bmc->dev->dev.kobj, intf->my_dev_name);
- 		kfree(intf->my_dev_name);
-@@ -2140,7 +2145,8 @@ out:
- 	return err;
+diff -puN kernel/printk.c~add-ignore_loglevel-boot-option kernel/printk.c
+--- a/kernel/printk.c~add-ignore_loglevel-boot-option
++++ a/kernel/printk.c
+@@ -333,13 +333,25 @@ static void __call_console_drivers(unsig
+ 	}
  }
  
--static int ipmi_bmc_register(ipmi_smi_t intf)
-+static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
-+			     const char *sysfs_name)
- {
- 	int               rv;
- 	struct bmc_device *bmc = intf->bmc;
-@@ -2257,29 +2263,44 @@ static int ipmi_bmc_register(ipmi_smi_t 
- 	 * create symlink from system interface device to bmc device
- 	 * and back.
- 	 */
-+	intf->sysfs_name = kstrdup(sysfs_name, GFP_KERNEL);
-+	if (!intf->sysfs_name) {
-+		rv = -ENOMEM;
-+		printk(KERN_ERR
-+		       "ipmi_msghandler: allocate link to BMC: %d\n",
-+		       rv);
-+		goto out_err;
-+	}
++static int __read_mostly ignore_loglevel;
 +
- 	rv = sysfs_create_link(&intf->si_dev->kobj,
--			       &bmc->dev->dev.kobj, "bmc");
-+			       &bmc->dev->dev.kobj, intf->sysfs_name);
- 	if (rv) {
-+		kfree(intf->sysfs_name);
-+		intf->sysfs_name = NULL;
- 		printk(KERN_ERR
- 		       "ipmi_msghandler: Unable to create bmc symlink: %d\n",
- 		       rv);
- 		goto out_err;
- 	}
- 
--	size = snprintf(dummy, 0, "ipmi%d", intf->intf_num);
-+	size = snprintf(dummy, 0, "ipmi%d", ifnum);
- 	intf->my_dev_name = kmalloc(size+1, GFP_KERNEL);
- 	if (!intf->my_dev_name) {
-+		kfree(intf->sysfs_name);
-+		intf->sysfs_name = NULL;
- 		rv = -ENOMEM;
- 		printk(KERN_ERR
- 		       "ipmi_msghandler: allocate link from BMC: %d\n",
- 		       rv);
- 		goto out_err;
- 	}
--	snprintf(intf->my_dev_name, size+1, "ipmi%d", intf->intf_num);
-+	snprintf(intf->my_dev_name, size+1, "ipmi%d", ifnum);
- 
- 	rv = sysfs_create_link(&bmc->dev->dev.kobj, &intf->si_dev->kobj,
- 			       intf->my_dev_name);
- 	if (rv) {
-+		kfree(intf->sysfs_name);
-+		intf->sysfs_name = NULL;
- 		kfree(intf->my_dev_name);
- 		intf->my_dev_name = NULL;
- 		printk(KERN_ERR
-@@ -2464,6 +2485,7 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 		      void		       *send_info,
- 		      struct ipmi_device_id    *device_id,
- 		      struct device            *si_dev,
-+		      const char               *sysfs_name,
- 		      unsigned char            slave_addr)
- {
- 	int              i, j;
-@@ -2579,7 +2601,7 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	if (rv == 0)
- 		rv = add_proc_entries(intf, i);
- 
--	rv = ipmi_bmc_register(intf);
-+	rv = ipmi_bmc_register(intf, i, sysfs_name);
- 
-  out:
- 	if (rv) {
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-pass-sysfs-name-from-lower-level-driver drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-pass-sysfs-name-from-lower-level-driver
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2362,6 +2362,7 @@ static int try_smi_init(struct smi_info 
- 			       new_smi,
- 			       &new_smi->device_id,
- 			       new_smi->dev,
-+			       "bmc",
- 			       new_smi->slave_addr);
- 	if (rv) {
- 		printk(KERN_ERR
-diff -puN include/linux/ipmi_smi.h~ipmi-pass-sysfs-name-from-lower-level-driver include/linux/ipmi_smi.h
---- a/include/linux/ipmi_smi.h~ipmi-pass-sysfs-name-from-lower-level-driver
-+++ a/include/linux/ipmi_smi.h
-@@ -173,6 +173,7 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 		      void                     *send_info,
- 		      struct ipmi_device_id    *device_id,
- 		      struct device            *dev,
-+		      const char               *sysfs_name,
- 		      unsigned char            slave_addr);
- 
++int __init ignore_loglevel_setup(char *str)
++{
++	ignore_loglevel = 1;
++	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
++
++	return 1;
++}
++
++__setup("ignore_loglevel", ignore_loglevel_setup);
++
  /*
+  * Write out chars from start to end - 1 inclusive
+  */
+ static void _call_console_drivers(unsigned long start,
+ 				unsigned long end, int msg_log_level)
+ {
+-	if (msg_log_level < console_loglevel &&
++	if ((msg_log_level < console_loglevel || ignore_loglevel) &&
+ 			console_drivers && start != end) {
+ 		if ((start & LOG_BUF_MASK) > (end & LOG_BUF_MASK)) {
+ 			/* wrapped write */
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
+time-re-add-verify_pmtmr_rate.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+fix-generic-warn_on-message.patch
+schedc-correct-comment-for-this_rq_lock-routine.patch
+sched-fix-migration-cost-estimator.patch
+sched-domain-move-sched-group-allocations-to-percpu-area.patch
+move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
+sched-domain-increase-the-smt-busy-rebalance-interval.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+sched-improve-migration-accuracy.patch
+sched-improve-migration-accuracy-tidy.patch
+sched-decrease-number-of-load-balances.patch
+sched-remove-lb_stopbalance-counter.patch
+sched-optimize-activate_task-for-rt-task.patch
+kernel-schedc-whitespace-cleanups.patch
+kernel-schedc-whitespace-cleanups-more.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+time-uninline-jiffiesh.patch
+time-uninline-jiffiesh-fix.patch
+time-fix-msecs_to_jiffies-bug.patch
+time-fix-timeout-overflow.patch
+cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-acpi-include-apich.patch
+updated-acpi-keep-track-of-timer-broadcast.patch
+updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+updated-i386-cleanup-apic-code.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-high-res-timers-core.patch
+updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+high-res-timers-utilize-tsc-clocksource-again.patch
+high-res-timers-utilize-tsc-clocksource-again-fix.patch
+updated-dynticks-core-code.patch
+updated-dynticks-core-code-fix-resume-bug.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-dynticks-fix-nmi-watchdog.patch
+updated-high-res-timers-dynticks-enable-i386-support.patch
+updated-debugging-feature-timer-stats.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+round_jiffies-infrastructure.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
+clocksource-small-cleanup-2-fix.patch
+clocksource-small-acpi_pm-cleanup.patch
+kvm-amd-svm-implementation-more-i386-fixes.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
 
