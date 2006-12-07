@@ -1,216 +1,72 @@
 From: akpm@osdl.org
-Subject: + m32r-make-userspace-headers-platform-independent.patch added to -mm tree
-Date: Wed, 06 Dec 2006 21:20:19 -0800
-Message-ID: <200612070520.kB75KJeL031249@shell0.pdx.osdl.net>
+Subject: + mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:22:58 -0800
+Message-ID: <200612070523.kB75Mw2B031314@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49891 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49967 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968810AbWLGFVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:21:34 -0500
+	id S968804AbWLGFXK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:23:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takata@linux-m32r.org, stable@kernel.org
+Cc: pj@sgi.com, menage@google.com
 
 
 The patch titled
-     m32r: make userspace headers platform-independent
+     mm: fallback_alloc cpuset_zone_allowed irq fix
 has been added to the -mm tree.  Its filename is
-     m32r-make-userspace-headers-platform-independent.patch
+     mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r: make userspace headers platform-independent
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: mm: fallback_alloc cpuset_zone_allowed irq fix
+From: Paul Jackson <pj@sgi.com>
 
-The m32r kernel 2.6.18-rc1 or after cause build errors of "unknown isa
-configuration" for userspace application programs, such as glibc, gdb, etc.
+fallback_alloc() could end up calling cpuset_zone_allowed() with interrupts
+disabled (by code in kmem_cache_alloc_node()), but without __GFP_HARDWALL
+set, leading to a possible call of a sleeping function with interrupts
+disabled.
 
-This is because the recent kernel do not include linux/config.h not to expose
-kernel headers for userspace.
+This results in the BUG report:
 
-To fix the above compile errors, this patch fixes two headers ptrace.h and
-sigcontext.h for m32r and makes them platform-independent.
+  BUG: sleeping function called from invalid context at kernel/cpuset.c:1520
+in_atomic():0, irqs_disabled():1
 
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
-Cc: <stable@kernel.org>
+Thanks to Paul Menage for catching this one.
+
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/m32r/kernel/entry.S      |   65 ++++++++++++++------------------
- include/asm-m32r/ptrace.h     |   28 +------------
- include/asm-m32r/sigcontext.h |   13 ------
- 3 files changed, 35 insertions(+), 71 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent arch/m32r/kernel/entry.S
---- a/arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent
-+++ a/arch/m32r/kernel/entry.S
-@@ -23,35 +23,35 @@
-  *	updated in fork.c:copy_thread, signal.c:do_signal,
-  *	ptrace.c and ptrace.h
-  *
-- * M32Rx/M32R2				M32R
-- *       @(sp)      - r4		ditto
-- *       @(0x04,sp) - r5		ditto
-- *       @(0x08,sp) - r6		ditto
-- *       @(0x0c,sp) - *pt_regs		ditto
-- *       @(0x10,sp) - r0		ditto
-- *       @(0x14,sp) - r1		ditto
-- *       @(0x18,sp) - r2		ditto
-- *       @(0x1c,sp) - r3		ditto
-- *       @(0x20,sp) - r7		ditto
-- *       @(0x24,sp) - r8		ditto
-- *       @(0x28,sp) - r9		ditto
-- *       @(0x2c,sp) - r10		ditto
-- *       @(0x30,sp) - r11		ditto
-- *       @(0x34,sp) - r12		ditto
-- *       @(0x38,sp) - syscall_nr	ditto
-- *       @(0x3c,sp) - acc0h		@(0x3c,sp) - acch
-- *       @(0x40,sp) - acc0l		@(0x40,sp) - accl
-- *       @(0x44,sp) - acc1h		@(0x44,sp) - dummy_acc1h
-- *       @(0x48,sp) - acc1l		@(0x48,sp) - dummy_acc1l
-- *       @(0x4c,sp) - psw		ditto
-- *       @(0x50,sp) - bpc		ditto
-- *       @(0x54,sp) - bbpsw		ditto
-- *       @(0x58,sp) - bbpc		ditto
-- *       @(0x5c,sp) - spu (cr3)		ditto
-- *       @(0x60,sp) - fp (r13)		ditto
-- *       @(0x64,sp) - lr (r14)		ditto
-- *       @(0x68,sp) - spi (cr2)		ditto
-- *       @(0x6c,sp) - orig_r0		ditto
-+ * M32R/M32Rx/M32R2
-+ *       @(sp)      - r4
-+ *       @(0x04,sp) - r5
-+ *       @(0x08,sp) - r6
-+ *       @(0x0c,sp) - *pt_regs
-+ *       @(0x10,sp) - r0
-+ *       @(0x14,sp) - r1
-+ *       @(0x18,sp) - r2
-+ *       @(0x1c,sp) - r3
-+ *       @(0x20,sp) - r7
-+ *       @(0x24,sp) - r8
-+ *       @(0x28,sp) - r9
-+ *       @(0x2c,sp) - r10
-+ *       @(0x30,sp) - r11
-+ *       @(0x34,sp) - r12
-+ *       @(0x38,sp) - syscall_nr
-+ *       @(0x3c,sp) - acc0h
-+ *       @(0x40,sp) - acc0l
-+ *       @(0x44,sp) - acc1h		; ISA_DSP_LEVEL2 only
-+ *       @(0x48,sp) - acc1l		; ISA_DSP_LEVEL2 only
-+ *       @(0x4c,sp) - psw
-+ *       @(0x50,sp) - bpc
-+ *       @(0x54,sp) - bbpsw
-+ *       @(0x58,sp) - bbpc
-+ *       @(0x5c,sp) - spu (cr3)
-+ *       @(0x60,sp) - fp (r13)
-+ *       @(0x64,sp) - lr (r14)
-+ *       @(0x68,sp) - spi (cr2)
-+ *       @(0x6c,sp) - orig_r0
-  */
+diff -puN mm/slab.c~mm-fallback_alloc-cpuset_zone_allowed-irq-fix mm/slab.c
+--- a/mm/slab.c~mm-fallback_alloc-cpuset_zone_allowed-irq-fix
++++ a/mm/slab.c
+@@ -3182,7 +3182,7 @@ retry:
+ 	for (z = zonelist->zones; *z && !obj; z++) {
+ 		nid = zone_to_nid(*z);
  
- #include <linux/linkage.h>
-@@ -95,17 +95,10 @@
- #define R11(reg)		@(0x30,reg)
- #define R12(reg)		@(0x34,reg)
- #define SYSCALL_NR(reg)		@(0x38,reg)
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- #define ACC0H(reg)		@(0x3C,reg)
- #define ACC0L(reg)		@(0x40,reg)
- #define ACC1H(reg)		@(0x44,reg)
- #define ACC1L(reg)		@(0x48,reg)
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--#define ACCH(reg)		@(0x3C,reg)
--#define ACCL(reg)		@(0x40,reg)
--#else
--#error unknown isa configuration
--#endif
- #define PSW(reg)		@(0x4C,reg)
- #define BPC(reg)		@(0x50,reg)
- #define BBPSW(reg)		@(0x54,reg)
-diff -puN include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/ptrace.h
---- a/include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent
-+++ a/include/asm-m32r/ptrace.h
-@@ -33,21 +33,10 @@
- #define PT_R15		PT_SP
- 
- /* processor status and miscellaneous context registers.  */
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- #define PT_ACC0H	15
- #define PT_ACC0L	16
--#define PT_ACC1H	17
--#define PT_ACC1L	18
--#define PT_ACCH		PT_ACC0H
--#define PT_ACCL		PT_ACC0L
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--#define PT_ACCH		15
--#define PT_ACCL		16
--#define PT_DUMMY_ACC1H	17
--#define PT_DUMMY_ACC1L	18
--#else
--#error unknown isa conifiguration
--#endif
-+#define PT_ACC1H	17	/* ISA_DSP_LEVEL2 only */
-+#define PT_ACC1L	18	/* ISA_DSP_LEVEL2 only */
- #define PT_PSW		19
- #define PT_BPC		20
- #define PT_BBPSW	21
-@@ -103,19 +92,10 @@ struct pt_regs {
- 	long syscall_nr;
- 
- 	/* Saved main processor status and miscellaneous context registers. */
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	unsigned long acc0h;
- 	unsigned long acc0l;
--	unsigned long acc1h;
--	unsigned long acc1l;
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	unsigned long acch;
--	unsigned long accl;
--	unsigned long dummy_acc1h;
--	unsigned long dummy_acc1l;
--#else
--#error unknown isa configuration
--#endif
-+	unsigned long acc1h;	/* ISA_DSP_LEVEL2 only */
-+	unsigned long acc1l;	/* ISA_DSP_LEVEL2 only */
- 	unsigned long psw;
- 	unsigned long bpc;		/* saved PC for TRAP syscalls */
- 	unsigned long bbpsw;
-diff -puN include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/sigcontext.h
---- a/include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent
-+++ a/include/asm-m32r/sigcontext.h
-@@ -23,19 +23,10 @@ struct sigcontext {
- 	unsigned long sc_r12;
- 
- 	/* Saved main processor status and miscellaneous context registers. */
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	unsigned long sc_acc0h;
- 	unsigned long sc_acc0l;
--	unsigned long sc_acc1h;
--	unsigned long sc_acc1l;
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	unsigned long sc_acch;
--	unsigned long sc_accl;
--	unsigned long sc_dummy_acc1h;
--	unsigned long sc_dummy_acc1l;
--#else
--#error unknown isa configuration
--#endif
-+	unsigned long sc_acc1h;	/* ISA_DSP_LEVEL2 only */
-+	unsigned long sc_acc1l;	/* ISA_DSP_LEVEL2 only */
- 	unsigned long sc_psw;
- 	unsigned long sc_bpc;		/* saved PC for TRAP syscalls */
- 	unsigned long sc_bbpsw;
+-		if (cpuset_zone_allowed(*z, flags) &&
++		if (cpuset_zone_allowed(*z, flags | __GFP_HARDWALL) &&
+ 			cache->nodelists[nid] &&
+ 			cache->nodelists[nid]->free_objects)
+ 				obj = ____cache_alloc_node(cache,
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from pj@sgi.com are
 
-m32r-make-userspace-headers-platform-independent.patch
-m32r-support-a-synthesizable-m32700-core.patch
-m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
-m32r-bootloader-support-for-opsput-platform.patch
+memory-page-alloc-minor-cleanups.patch
+memory-page_alloc-zonelist-caching-speedup.patch
+memory-page_alloc-zonelist-caching-reorder-structure.patch
+cpuset-minor-code-refinements.patch
+cpuset-allow-a-larger-buffer-for-writes-to-cpuset-files.patch
+mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
 
