@@ -1,64 +1,64 @@
 From: akpm@osdl.org
-Subject: - move-fs_cachep-to-linux-fs_structh.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:57:43 -0800
-Message-ID: <200612072257.kB7MvhIb029316@shell0.pdx.osdl.net>
+Subject: - drain_node_page-drain-pages-in-batch-units.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:57:50 -0800
+Message-ID: <200612072257.kB7MvoJa029325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50649 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50667 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163619AbWLGW5p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:57:45 -0500
+	id S1163625AbWLGW5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:57:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Move fs_cachep to linux/fs_struct.h
+     drain_node_page(): Drain pages in batch units
 has been removed from the -mm tree.  Its filename was
-     move-fs_cachep-to-linux-fs_structh.patch
+     drain_node_page-drain-pages-in-batch-units.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Move fs_cachep to linux/fs_struct.h
+Subject: drain_node_page(): Drain pages in batch units
 From: Christoph Lameter <clameter@sgi.com>
 
-fs_cachep is only used in kernel/exit.c and in kernel/fork.c.
+drain_node_pages() currently drains the complete pageset of all pages.  If
+there are a large number of pages in the queues then we may hold off
+interrupts for too long.
 
-It is used to store fs_struct items so it should be placed in linux/fs_struct.h
+Duplicate the method used in free_hot_cold_page.  Only drain pcp->batch
+pages at one time.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs_struct.h |    2 ++
- include/linux/slab.h      |    1 -
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/fs_struct.h~move-fs_cachep-to-linux-fs_structh include/linux/fs_struct.h
---- a/include/linux/fs_struct.h~move-fs_cachep-to-linux-fs_structh
-+++ a/include/linux/fs_struct.h
-@@ -18,6 +18,8 @@ struct fs_struct {
- 	.umask		= 0022, \
- }
+diff -puN mm/page_alloc.c~drain_node_page-drain-pages-in-batch-units mm/page_alloc.c
+--- a/mm/page_alloc.c~drain_node_page-drain-pages-in-batch-units
++++ a/mm/page_alloc.c
+@@ -685,9 +685,15 @@ void drain_node_pages(int nodeid)
  
-+extern struct kmem_cache *fs_cachep;
+ 			pcp = &pset->pcp[i];
+ 			if (pcp->count) {
++				int to_drain;
 +
- extern void exit_fs(struct task_struct *);
- extern void set_fs_altroot(void);
- extern void set_fs_root(struct fs_struct *, struct vfsmount *, struct dentry *);
-diff -puN include/linux/slab.h~move-fs_cachep-to-linux-fs_structh include/linux/slab.h
---- a/include/linux/slab.h~move-fs_cachep-to-linux-fs_structh
-+++ a/include/linux/slab.h
-@@ -310,7 +310,6 @@ static inline void *kcalloc(size_t n, si
- 
- /* System wide caches */
- extern kmem_cache_t	*names_cachep;
--extern kmem_cache_t	*fs_cachep;
- 
- #endif	/* __KERNEL__ */
- 
+ 				local_irq_save(flags);
+-				free_pages_bulk(zone, pcp->count, &pcp->list, 0);
+-				pcp->count = 0;
++				if (pcp->count >= pcp->batch)
++					to_drain = pcp->batch;
++				else
++					to_drain = pcp->count;
++				free_pages_bulk(zone, to_drain, &pcp->list, 0);
++				pcp->count -= to_drain;
+ 				local_irq_restore(flags);
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
