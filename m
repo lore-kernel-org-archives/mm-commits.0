@@ -1,84 +1,69 @@
 From: akpm@osdl.org
-Subject: - lib-functions-always-build-hweight-for-loadable-modules.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:08:48 -0800
-Message-ID: <200612072308.kB7N8m96030438@shell0.pdx.osdl.net>
+Subject: - ext4-balloc-reset-windowsz-when-full.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:09:05 -0800
+Message-ID: <200612072309.kB7N95fi030456__10405.688887886$1165532980$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52944 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52957 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163841AbWLGXJJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:09:09 -0500
+	id S1163740AbWLGXJT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:09:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib functions: always build hweight for loadable modules
+     ext4 balloc: reset windowsz when full
 has been removed from the -mm tree.  Its filename was
-     lib-functions-always-build-hweight-for-loadable-modules.patch
+     ext4-balloc-reset-windowsz-when-full.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lib functions: always build hweight for loadable modules
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ext4 balloc: reset windowsz when full
+From: Hugh Dickins <hugh@veritas.com>
 
-Always build hweight8/16/32/64() functions into the kernel so that loadable
-modules may use them.
+ext4_new_blocks should reset the reservation window size to 0 when squeezing
+the last blocks out of an almost full filesystem, so the retry doesn't skip
+any groups with less than half that free, reporting ENOSPC too soon.
 
-I didn't remove GENERIC_HWEIGHT since ALPHA_EV67, ia64, and some variants
-of UltraSparc(64) provide their own hweight functions.
-
-Fixes config/build problems with NTFS=m and JOYSTICK_ANALOG=m.
-
-Kernel: arch/x86_64/boot/bzImage is ready  (#19)
-  Building modules, stage 2.
-  MODPOST 94 modules
-WARNING: "hweight32" [fs/ntfs/ntfs.ko] undefined!
-WARNING: "hweight16" [drivers/input/joystick/analog.ko] undefined!
-WARNING: "hweight8" [drivers/input/joystick/analog.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/balloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/Makefile~lib-functions-always-build-hweight-for-loadable-modules lib/Makefile
---- a/lib/Makefile~lib-functions-always-build-hweight-for-loadable-modules
-+++ a/lib/Makefile
-@@ -25,7 +25,7 @@ lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += 
- lib-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem.o
- lib-$(CONFIG_SEMAPHORE_SLEEPERS) += semaphore-sleepers.o
- lib-$(CONFIG_GENERIC_FIND_NEXT_BIT) += find_next_bit.o
--lib-$(CONFIG_GENERIC_HWEIGHT) += hweight.o
-+obj-$(CONFIG_GENERIC_HWEIGHT) += hweight.o
- obj-$(CONFIG_LOCK_KERNEL) += kernel_lock.o
- obj-$(CONFIG_PLIST) += plist.o
- obj-$(CONFIG_DEBUG_PREEMPT) += smp_processor_id.o
+diff -puN fs/ext4/balloc.c~ext4-balloc-reset-windowsz-when-full fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-balloc-reset-windowsz-when-full
++++ a/fs/ext4/balloc.c
+@@ -1566,6 +1566,7 @@ retry_alloc:
+ 	 */
+ 	if (my_rsv) {
+ 		my_rsv = NULL;
++		windowsz = 0;
+ 		group_no = goal_group;
+ 		goto retry_alloc;
+ 	}
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-cpufreq-select-consistently-re-2619-rc5-mm1.patch
-git-ieee1394.patch
-git-input.patch
-git-mtd.patch
-mtd-esb2rom-uses-pci.patch
-parisc-fix-module_param-iommu-permission.patch
-scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+ext2-reservations.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
+generic-bug-implementation.patch
 generic-bug-implementation-handle-bug=n.patch
-reiser4-use-null-for-pointers.patch
-visws-sgivwfb-is-module-needs-exports.patch
-linux-fbdev-devel-is-subscribers-only.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-kvm-fix-null-and-c99-init-sparse-warnings.patch
-profile_likely-export-do_check_likely.patch
+generic-bug-for-i386.patch
+generic-bug-for-x86-64.patch
+bug-test-1.patch
+tty-switch-to-ktermios-powerpc-fix.patch
 
