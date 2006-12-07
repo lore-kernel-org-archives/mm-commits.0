@@ -1,99 +1,216 @@
 From: akpm@osdl.org
-Subject: - mm-thrash-detect-process-thrashing-against-itself.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 21:21:07 -0800
-Message-ID: <200612070521.kB75L7Bt031278@shell0.pdx.osdl.net>
+Subject: + m32r-make-userspace-headers-platform-independent.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:20:19 -0800
+Message-ID: <200612070520.kB75KJeL031249@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49878 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49891 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968805AbWLGFVU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:21:20 -0500
+	id S968810AbWLGFVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:21:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, diegocg@gmail.com, jcipar@cs.umass.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: takata@linux-m32r.org, stable@kernel.org
 
 
 The patch titled
-     mm: thrash: detect process thrashing against itself
-has been removed from the -mm tree.  Its filename was
-     mm-thrash-detect-process-thrashing-against-itself.patch
+     m32r: make userspace headers platform-independent
+has been added to the -mm tree.  Its filename is
+     m32r-make-userspace-headers-platform-independent.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mm: thrash: detect process thrashing against itself
-From: Rik van Riel <riel@redhat.com>
+Subject: m32r: make userspace headers platform-independent
+From: Hirokazu Takata <takata@linux-m32r.org>
 
+The m32r kernel 2.6.18-rc1 or after cause build errors of "unknown isa
+configuration" for userspace application programs, such as glibc, gdb, etc.
 
-I guess the swap token hurts workloads where you have just one large
-process, since it does not sort the pages within that process by referenced
-bit...
+This is because the recent kernel do not include linux/config.h not to expose
+kernel headers for userspace.
 
-This means the swap token is helpful when processes are paging against each
-other, but hurts when you have just one process that is paging against
-itself.
+To fix the above compile errors, this patch fixes two headers ptrace.h and
+sigcontext.h for m32r and makes them platform-independent.
 
-The current swap token code does seem to help servers pull out of load
-spikes and not descend into thrashing like the VM used to do before, so I
-would rather not disable it by default.
-
-Instead, we can detect the situation where we have one process paging
-against itself, and then disable the swap token automatically.
-
-(Related to http://bugzilla.kernel.org/show_bug.cgi?id=6039)
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Diego Calleja <diegocg@gmail.com>
-Cc: Jim Cipar <jcipar@cs.umass.edu>
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/thrash.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletion(-)
+ arch/m32r/kernel/entry.S      |   65 ++++++++++++++------------------
+ include/asm-m32r/ptrace.h     |   28 +------------
+ include/asm-m32r/sigcontext.h |   13 ------
+ 3 files changed, 35 insertions(+), 71 deletions(-)
 
-diff -puN mm/thrash.c~mm-thrash-detect-process-thrashing-against-itself mm/thrash.c
---- 25/mm/thrash.c~mm-thrash-detect-process-thrashing-against-itself	Fri Mar 24 16:06:04 2006
-+++ 25-akpm/mm/thrash.c	Fri Mar 24 16:06:04 2006
-@@ -16,6 +16,7 @@
- static DEFINE_SPINLOCK(swap_token_lock);
- static unsigned long swap_token_timeout;
- static unsigned long swap_token_check;
-+static unsigned long somebody_wants_token;
- struct mm_struct * swap_token_mm = &init_mm;
+diff -puN arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent arch/m32r/kernel/entry.S
+--- a/arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent
++++ a/arch/m32r/kernel/entry.S
+@@ -23,35 +23,35 @@
+  *	updated in fork.c:copy_thread, signal.c:do_signal,
+  *	ptrace.c and ptrace.h
+  *
+- * M32Rx/M32R2				M32R
+- *       @(sp)      - r4		ditto
+- *       @(0x04,sp) - r5		ditto
+- *       @(0x08,sp) - r6		ditto
+- *       @(0x0c,sp) - *pt_regs		ditto
+- *       @(0x10,sp) - r0		ditto
+- *       @(0x14,sp) - r1		ditto
+- *       @(0x18,sp) - r2		ditto
+- *       @(0x1c,sp) - r3		ditto
+- *       @(0x20,sp) - r7		ditto
+- *       @(0x24,sp) - r8		ditto
+- *       @(0x28,sp) - r9		ditto
+- *       @(0x2c,sp) - r10		ditto
+- *       @(0x30,sp) - r11		ditto
+- *       @(0x34,sp) - r12		ditto
+- *       @(0x38,sp) - syscall_nr	ditto
+- *       @(0x3c,sp) - acc0h		@(0x3c,sp) - acch
+- *       @(0x40,sp) - acc0l		@(0x40,sp) - accl
+- *       @(0x44,sp) - acc1h		@(0x44,sp) - dummy_acc1h
+- *       @(0x48,sp) - acc1l		@(0x48,sp) - dummy_acc1l
+- *       @(0x4c,sp) - psw		ditto
+- *       @(0x50,sp) - bpc		ditto
+- *       @(0x54,sp) - bbpsw		ditto
+- *       @(0x58,sp) - bbpc		ditto
+- *       @(0x5c,sp) - spu (cr3)		ditto
+- *       @(0x60,sp) - fp (r13)		ditto
+- *       @(0x64,sp) - lr (r14)		ditto
+- *       @(0x68,sp) - spi (cr2)		ditto
+- *       @(0x6c,sp) - orig_r0		ditto
++ * M32R/M32Rx/M32R2
++ *       @(sp)      - r4
++ *       @(0x04,sp) - r5
++ *       @(0x08,sp) - r6
++ *       @(0x0c,sp) - *pt_regs
++ *       @(0x10,sp) - r0
++ *       @(0x14,sp) - r1
++ *       @(0x18,sp) - r2
++ *       @(0x1c,sp) - r3
++ *       @(0x20,sp) - r7
++ *       @(0x24,sp) - r8
++ *       @(0x28,sp) - r9
++ *       @(0x2c,sp) - r10
++ *       @(0x30,sp) - r11
++ *       @(0x34,sp) - r12
++ *       @(0x38,sp) - syscall_nr
++ *       @(0x3c,sp) - acc0h
++ *       @(0x40,sp) - acc0l
++ *       @(0x44,sp) - acc1h		; ISA_DSP_LEVEL2 only
++ *       @(0x48,sp) - acc1l		; ISA_DSP_LEVEL2 only
++ *       @(0x4c,sp) - psw
++ *       @(0x50,sp) - bpc
++ *       @(0x54,sp) - bbpsw
++ *       @(0x58,sp) - bbpc
++ *       @(0x5c,sp) - spu (cr3)
++ *       @(0x60,sp) - fp (r13)
++ *       @(0x64,sp) - lr (r14)
++ *       @(0x68,sp) - spi (cr2)
++ *       @(0x6c,sp) - orig_r0
+  */
  
- #define SWAP_TOKEN_CHECK_INTERVAL (HZ * 2)
-@@ -57,11 +58,18 @@ void grab_swap_token(void)
- 	/* We have the token. Let others know we still need it. */
- 	if (has_swap_token(current->mm)) {
- 		current->mm->recent_pagein = 1;
--		if (unlikely(!swap_token_default_timeout))
-+		/* If nobody wants the token, we are paging against ourselves
-+		   and should disable the token. */
-+		if (unlikely(!swap_token_default_timeout ||
-+				(!somebody_wants_token &&
-+				time_after(jiffies, swap_token_check))))
- 			disable_swap_token();
- 		return;
- 	}
+ #include <linux/linkage.h>
+@@ -95,17 +95,10 @@
+ #define R11(reg)		@(0x30,reg)
+ #define R12(reg)		@(0x34,reg)
+ #define SYSCALL_NR(reg)		@(0x38,reg)
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ #define ACC0H(reg)		@(0x3C,reg)
+ #define ACC0L(reg)		@(0x40,reg)
+ #define ACC1H(reg)		@(0x44,reg)
+ #define ACC1L(reg)		@(0x48,reg)
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-#define ACCH(reg)		@(0x3C,reg)
+-#define ACCL(reg)		@(0x40,reg)
+-#else
+-#error unknown isa configuration
+-#endif
+ #define PSW(reg)		@(0x4C,reg)
+ #define BPC(reg)		@(0x50,reg)
+ #define BBPSW(reg)		@(0x54,reg)
+diff -puN include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/ptrace.h
+--- a/include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent
++++ a/include/asm-m32r/ptrace.h
+@@ -33,21 +33,10 @@
+ #define PT_R15		PT_SP
  
-+	if (!somebody_wants_token)
-+		somebody_wants_token = 1;
-+
- 	if (time_after(jiffies, swap_token_check)) {
+ /* processor status and miscellaneous context registers.  */
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ #define PT_ACC0H	15
+ #define PT_ACC0L	16
+-#define PT_ACC1H	17
+-#define PT_ACC1L	18
+-#define PT_ACCH		PT_ACC0H
+-#define PT_ACCL		PT_ACC0L
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-#define PT_ACCH		15
+-#define PT_ACCL		16
+-#define PT_DUMMY_ACC1H	17
+-#define PT_DUMMY_ACC1L	18
+-#else
+-#error unknown isa conifiguration
+-#endif
++#define PT_ACC1H	17	/* ISA_DSP_LEVEL2 only */
++#define PT_ACC1L	18	/* ISA_DSP_LEVEL2 only */
+ #define PT_PSW		19
+ #define PT_BPC		20
+ #define PT_BBPSW	21
+@@ -103,19 +92,10 @@ struct pt_regs {
+ 	long syscall_nr;
  
- 		if (!swap_token_default_timeout) {
-@@ -87,6 +95,7 @@ void grab_swap_token(void)
- 			mm->swap_token_time = eligible;
- 			swap_token_timeout = jiffies + swap_token_default_timeout;
- 			swap_token_mm = current->mm;
-+			somebody_wants_token = 0;
- 		}
- 		spin_unlock(&swap_token_lock);
- 	}
+ 	/* Saved main processor status and miscellaneous context registers. */
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ 	unsigned long acc0h;
+ 	unsigned long acc0l;
+-	unsigned long acc1h;
+-	unsigned long acc1l;
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-	unsigned long acch;
+-	unsigned long accl;
+-	unsigned long dummy_acc1h;
+-	unsigned long dummy_acc1l;
+-#else
+-#error unknown isa configuration
+-#endif
++	unsigned long acc1h;	/* ISA_DSP_LEVEL2 only */
++	unsigned long acc1l;	/* ISA_DSP_LEVEL2 only */
+ 	unsigned long psw;
+ 	unsigned long bpc;		/* saved PC for TRAP syscalls */
+ 	unsigned long bbpsw;
+diff -puN include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/sigcontext.h
+--- a/include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent
++++ a/include/asm-m32r/sigcontext.h
+@@ -23,19 +23,10 @@ struct sigcontext {
+ 	unsigned long sc_r12;
+ 
+ 	/* Saved main processor status and miscellaneous context registers. */
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ 	unsigned long sc_acc0h;
+ 	unsigned long sc_acc0l;
+-	unsigned long sc_acc1h;
+-	unsigned long sc_acc1l;
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-	unsigned long sc_acch;
+-	unsigned long sc_accl;
+-	unsigned long sc_dummy_acc1h;
+-	unsigned long sc_dummy_acc1l;
+-#else
+-#error unknown isa configuration
+-#endif
++	unsigned long sc_acc1h;	/* ISA_DSP_LEVEL2 only */
++	unsigned long sc_acc1l;	/* ISA_DSP_LEVEL2 only */
+ 	unsigned long sc_psw;
+ 	unsigned long sc_bpc;		/* saved PC for TRAP syscalls */
+ 	unsigned long sc_bbpsw;
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from takata@linux-m32r.org are
 
-grab-swap-token-reordered.patch
-new-scheme-to-preempt-swap-token.patch
+m32r-make-userspace-headers-platform-independent.patch
+m32r-support-a-synthesizable-m32700-core.patch
+m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
+m32r-bootloader-support-for-opsput-platform.patch
 
