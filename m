@@ -1,139 +1,141 @@
 From: akpm@osdl.org
-Subject: - fuse-add-destroy-operation.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:01:47 -0800
-Message-ID: <200612072301.kB7N1lgN029802@shell0.pdx.osdl.net>
+Subject: - lockdep-fix-ide-proc-interaction.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:02:13 -0800
+Message-ID: <200612072302.kB7N2Daq029832@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51653 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51662 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163778AbWLGXCQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:02:16 -0500
+	id S1163780AbWLGXCT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:02:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miklos@szeredi.hu, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: add DESTROY operation
+     lockdep: fix ide/proc interaction
 has been removed from the -mm tree.  Its filename was
-     fuse-add-destroy-operation.patch
+     lockdep-fix-ide-proc-interaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: add DESTROY operation
-From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: lockdep: fix ide/proc interaction
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Add a DESTROY operation for block device based filesystems.  With the help of
-this operation, such a filesystem can flush dirty data to the device
-synchronously before the umount returns.
+rmmod/3080 [HC0[0]:SC0[0]:HE0:SE1] is trying to acquire:
+ (proc_subdir_lock){--..}, at: [<c04a33b0>] remove_proc_entry+0x40/0x191
 
-This is needed in situations where the filesystem is assumed to be clean
-immediately after unmount (e.g.  ejecting removable media).
+and this task is already holding:
+ (ide_lock){++..}, at: [<c05651a2>] ide_unregister_subdriver+0x39/0xc8
+which would create a new lock dependency:
+ (ide_lock){++..} -> (proc_subdir_lock){--..}
 
-Signed-off-by: Miklos Szeredi <miklos@szeredi.hu>
+but this new dependency connects a hard-irq-safe lock:
+ (ide_lock){++..}
+... which became hard-irq-safe at:
+  [<c043c458>] lock_acquire+0x4b/0x6b
+  [<c06129d7>] _spin_lock_irqsave+0x22/0x32
+  [<c0567870>] ide_intr+0x17/0x1a9
+  [<c044eb31>] handle_IRQ_event+0x20/0x4d
+  [<c044ebf2>] __do_IRQ+0x94/0xef
+  [<c0406771>] do_IRQ+0x9e/0xbd
+
+to a hard-irq-unsafe lock:
+ (proc_subdir_lock){--..}
+... which became hard-irq-unsafe at:
+...  [<c043c458>] lock_acquire+0x4b/0x6b
+  [<c06126ab>] _spin_lock+0x19/0x28
+  [<c04a32f2>] xlate_proc_name+0x1b/0x99
+  [<c04a3547>] proc_create+0x46/0xdf
+  [<c04a3642>] create_proc_entry+0x62/0xa5
+  [<c07c1972>] proc_misc_init+0x1c/0x1d2
+  [<c07c1844>] proc_root_init+0x4c/0xe9
+  [<c07ad703>] start_kernel+0x294/0x3b3
+  [<00000000>] 0x0
+
+Move ide_remove_proc_entries() out from under ide_lock; there is nothing
+that indicates that this is needed.
+
+In specific, the call to ide_add_proc_entries() is unprotected, and there
+is nothing else in the file using the respective ->proc fields. Also the
+lock order around destroy_proc_ide_interface() suggests this.
+
+Alan sayeth:
+
+  proc_ide_write_settings walks the setting list under ide_setting_sem, read
+  ditto.  remove_proc_entry is doing proc side housekeeping.
+
+  Looks fine to me, although that old code is such a mess anything could be
+  going on.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/fuse/fuse_i.h     |    6 ++++++
- fs/fuse/inode.c      |   22 ++++++++++++++++++++++
- include/linux/fuse.h |    1 +
- 3 files changed, 29 insertions(+)
+ drivers/ide/ide.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN fs/fuse/fuse_i.h~fuse-add-destroy-operation fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-add-destroy-operation
-+++ a/fs/fuse/fuse_i.h
-@@ -298,6 +298,9 @@ struct fuse_conn {
- 	    reply, before any other request, and never cleared */
- 	unsigned conn_error : 1;
- 
-+	/** Connection successful.  Only set in INIT */
-+	unsigned conn_init : 1;
-+
- 	/** Do readpages asynchronously?  Only set in INIT */
- 	unsigned async_read : 1;
- 
-@@ -368,6 +371,9 @@ struct fuse_conn {
- 
- 	/** Key for lock owner ID scrambling */
- 	u32 scramble_key[4];
-+
-+	/** Reserved request for the DESTROY message */
-+	struct fuse_req *destroy_req;
- };
- 
- static inline struct fuse_conn *get_fuse_conn_super(struct super_block *sb)
-diff -puN fs/fuse/inode.c~fuse-add-destroy-operation fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-add-destroy-operation
-+++ a/fs/fuse/inode.c
-@@ -206,10 +206,23 @@ static void fuse_umount_begin(struct vfs
- 		fuse_abort_conn(get_fuse_conn_super(vfsmnt->mnt_sb));
- }
- 
-+static void fuse_send_destroy(struct fuse_conn *fc)
-+{
-+	struct fuse_req *req = fc->destroy_req;
-+	if (req && fc->conn_init) {
-+		fc->destroy_req = NULL;
-+		req->in.h.opcode = FUSE_DESTROY;
-+		req->force = 1;
-+		request_send(fc, req);
-+		fuse_put_request(fc, req);
-+	}
-+}
-+
- static void fuse_put_super(struct super_block *sb)
+diff -puN drivers/ide/ide.c~lockdep-fix-ide-proc-interaction drivers/ide/ide.c
+--- a/drivers/ide/ide.c~lockdep-fix-ide-proc-interaction
++++ a/drivers/ide/ide.c
+@@ -973,8 +973,8 @@ ide_settings_t *ide_find_setting_by_name
+  *	@drive: drive
+  *
+  *	Automatically remove all the driver specific settings for this
+- *	drive. This function may sleep and must not be called from IRQ
+- *	context. The caller must hold ide_setting_sem.
++ *	drive. This function may not be called from IRQ context. The
++ *	caller must hold ide_setting_sem.
+  */
+  
+ static void auto_remove_settings (ide_drive_t *drive)
+@@ -1874,11 +1874,22 @@ void ide_unregister_subdriver(ide_drive_
  {
- 	struct fuse_conn *fc = get_fuse_conn_super(sb);
- 
-+	fuse_send_destroy(fc);
- 	spin_lock(&fc->lock);
- 	fc->connected = 0;
- 	fc->blocked = 0;
-@@ -410,6 +423,8 @@ static struct fuse_conn *new_conn(void)
- void fuse_conn_put(struct fuse_conn *fc)
- {
- 	if (atomic_dec_and_test(&fc->count)) {
-+		if (fc->destroy_req)
-+			fuse_request_free(fc->destroy_req);
- 		mutex_destroy(&fc->inst_mutex);
- 		kfree(fc);
- 	}
-@@ -466,6 +481,7 @@ static void process_init_reply(struct fu
- 		fc->bdi.ra_pages = min(fc->bdi.ra_pages, ra_pages);
- 		fc->minor = arg->minor;
- 		fc->max_write = arg->minor < 5 ? 4096 : arg->max_write;
-+		fc->conn_init = 1;
- 	}
- 	fuse_put_request(fc, req);
- 	fc->blocked = 0;
-@@ -563,6 +579,12 @@ static int fuse_fill_super(struct super_
- 	if (!init_req)
- 		goto err_put_root;
- 
-+	if (is_bdev) {
-+		fc->destroy_req = fuse_request_alloc();
-+		if (!fc->destroy_req)
-+			goto err_put_root;
-+	}
-+
- 	mutex_lock(&fuse_mutex);
- 	err = -EINVAL;
- 	if (file->private_data)
-diff -puN include/linux/fuse.h~fuse-add-destroy-operation include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-add-destroy-operation
-+++ a/include/linux/fuse.h
-@@ -133,6 +133,7 @@ enum fuse_opcode {
- 	FUSE_CREATE        = 35,
- 	FUSE_INTERRUPT     = 36,
- 	FUSE_BMAP          = 37,
-+	FUSE_DESTROY       = 38,
- };
- 
- /* The read buffer is required to be at least 8k, but may be much larger */
+ 	unsigned long flags;
+ 	
+-	down(&ide_setting_sem);
+-	spin_lock_irqsave(&ide_lock, flags);
+ #ifdef CONFIG_PROC_FS
+ 	ide_remove_proc_entries(drive->proc, driver->proc);
+ #endif
++	down(&ide_setting_sem);
++	spin_lock_irqsave(&ide_lock, flags);
++	/*
++	 * ide_setting_sem protects the settings list
++	 * ide_lock protects the use of settings
++	 *
++	 * so we need to hold both, ide_settings_sem because we want to
++	 * modify the settings list, and ide_lock because we cannot take
++	 * a setting out that is being used.
++	 *
++	 * OTOH both ide_{read,write}_setting are only ever used under
++	 * ide_setting_sem.
++	 */
+ 	auto_remove_settings(drive);
+ 	spin_unlock_irqrestore(&ide_lock, flags);
+ 	up(&ide_setting_sem);
 _
 
-Patches currently in -mm which might be from miklos@szeredi.hu are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
+tty-signal-tty-locking.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+tty-signal-tty-locking-3270-fix.patch
+do_task_stat-dont-take-tty_mutex.patch
+do_acct_process-dont-take-tty_mutex.patch
+sys_unshare-remove-a-broken-clone_sighand-code.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+bdev-fix-bd_part_count-leak.patch
+lockdep-annotate-nfsd4-recover-code.patch
 
