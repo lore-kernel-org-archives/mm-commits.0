@@ -1,141 +1,134 @@
 From: akpm@osdl.org
-Subject: - rtc-handle-sysfs-errors.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:01:25 -0800
-Message-ID: <200612072301.kB7N1PmQ029760@shell0.pdx.osdl.net>
+Subject: - i2o-more-error-checking.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:01:19 -0800
+Message-ID: <200612072301.kB7N1J1k029750@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51538 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51541 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163753AbWLGXBh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:01:37 -0500
+	id S1163758AbWLGXBi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:01:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: jeff@garzik.org, Markus.Lidel@shadowconnect.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTC: handle sysfs errors
+     I2O: more error checking
 has been removed from the -mm tree.  Its filename was
-     rtc-handle-sysfs-errors.patch
+     i2o-more-error-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTC: handle sysfs errors
+Subject: I2O: more error checking
 From: Jeff Garzik <jeff@garzik.org>
 
+i2o_scsi: handle sysfs failure
+
+i2o_device:
+* convert i2o_device_add() to return integer error code
+  rather than pointer.  Fortunately -nobody- checks the return code of
+  this function, so changing has nil impact.
+* handle errors thrown by device_register()
+
+More work in i2o_device remains.
+
 Signed-off-by: Jeff Garzik <jeff@garzik.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/rtc-ds1672.c  |    9 +++++++--
- drivers/rtc/rtc-rs5c372.c |   12 ++++++++++--
- drivers/rtc/rtc-test.c    |    9 ++++++++-
- drivers/rtc/rtc-x1205.c   |   12 ++++++++++--
- 4 files changed, 35 insertions(+), 7 deletions(-)
+ drivers/message/i2o/device.c   |   19 ++++++++++++-------
+ drivers/message/i2o/i2o_scsi.c |   12 +++++++++---
+ 2 files changed, 21 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1672.c~rtc-handle-sysfs-errors drivers/rtc/rtc-ds1672.c
---- a/drivers/rtc/rtc-ds1672.c~rtc-handle-sysfs-errors
-+++ a/drivers/rtc/rtc-ds1672.c
-@@ -237,17 +237,22 @@ static int ds1672_probe(struct i2c_adapt
- 	/* read control register */
- 	err = ds1672_get_control(client, &control);
- 	if (err)
--		goto exit_detach;
-+		goto exit_devreg;
+diff -puN drivers/message/i2o/device.c~i2o-more-error-checking drivers/message/i2o/device.c
+--- a/drivers/message/i2o/device.c~i2o-more-error-checking
++++ a/drivers/message/i2o/device.c
+@@ -214,18 +214,17 @@ static struct i2o_device *i2o_device_all
+  *	Allocate a new I2O device and initialize it with the LCT entry. The
+  *	device is appended to the device list of the controller.
+  *
+- *	Returns a pointer to the I2O device on success or negative error code
+- *	on failure.
++ *	Returns zero on success, or a -ve errno.
+  */
+-static struct i2o_device *i2o_device_add(struct i2o_controller *c,
+-					 i2o_lct_entry * entry)
++static int i2o_device_add(struct i2o_controller *c, i2o_lct_entry *entry)
+ {
+ 	struct i2o_device *i2o_dev, *tmp;
++	int rc;
  
- 	if (control & DS1672_REG_CONTROL_EOSC)
- 		dev_warn(&client->dev, "Oscillator not enabled. "
- 					"Set time to enable.\n");
- 
- 	/* Register sysfs hooks */
--	device_create_file(&client->dev, &dev_attr_control);
-+	err = device_create_file(&client->dev, &dev_attr_control);
-+	if (err)
-+		goto exit_devreg;
- 
- 	return 0;
- 
-+exit_devreg:
-+	rtc_device_unregister(rtc);
-+
- exit_detach:
- 	i2c_detach_client(client);
- 
-diff -puN drivers/rtc/rtc-rs5c372.c~rtc-handle-sysfs-errors drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtc-handle-sysfs-errors
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -238,11 +238,19 @@ static int rs5c372_probe(struct i2c_adap
- 
- 	i2c_set_clientdata(client, rtc);
- 
--	device_create_file(&client->dev, &dev_attr_trim);
--	device_create_file(&client->dev, &dev_attr_osc);
-+	err = device_create_file(&client->dev, &dev_attr_trim);
-+	if (err) goto exit_devreg;
-+	err = device_create_file(&client->dev, &dev_attr_osc);
-+	if (err) goto exit_trim;
- 
- 	return 0;
- 
-+exit_trim:
-+	device_remove_file(&client->dev, &dev_attr_trim);
-+
-+exit_devreg:
-+	rtc_device_unregister(rtc);
-+
- exit_detach:
- 	i2c_detach_client(client);
- 
-diff -puN drivers/rtc/rtc-test.c~rtc-handle-sysfs-errors drivers/rtc/rtc-test.c
---- a/drivers/rtc/rtc-test.c~rtc-handle-sysfs-errors
-+++ a/drivers/rtc/rtc-test.c
-@@ -123,11 +123,18 @@ static int test_probe(struct platform_de
- 		err = PTR_ERR(rtc);
- 		return err;
+ 	i2o_dev = i2o_device_alloc();
+ 	if (IS_ERR(i2o_dev)) {
+ 		printk(KERN_ERR "i2o: unable to allocate i2o device\n");
+-		return i2o_dev;
++		return PTR_ERR(i2o_dev);
  	}
--	device_create_file(&plat_dev->dev, &dev_attr_irq);
-+
-+	err = device_create_file(&plat_dev->dev, &dev_attr_irq);
-+	if (err)
+ 
+ 	i2o_dev->lct_data = *entry;
+@@ -236,7 +235,9 @@ static struct i2o_device *i2o_device_add
+ 	i2o_dev->iop = c;
+ 	i2o_dev->device.parent = &c->device;
+ 
+-	device_register(&i2o_dev->device);
++	rc = device_register(&i2o_dev->device);
++	if (rc)
 +		goto err;
  
- 	platform_set_drvdata(plat_dev, rtc);
+ 	list_add_tail(&i2o_dev->list, &c->devices);
+ 
+@@ -270,7 +271,11 @@ static struct i2o_device *i2o_device_add
+ 
+ 	pr_debug("i2o: device %s added\n", i2o_dev->device.bus_id);
+ 
+-	return i2o_dev;
++	return 0;
++
++err:
++	kfree(i2o_dev);
++	return rc;
+ }
+ 
+ /**
+diff -puN drivers/message/i2o/i2o_scsi.c~i2o-more-error-checking drivers/message/i2o/i2o_scsi.c
+--- a/drivers/message/i2o/i2o_scsi.c~i2o-more-error-checking
++++ a/drivers/message/i2o/i2o_scsi.c
+@@ -220,7 +220,7 @@ static int i2o_scsi_probe(struct device 
+ 	u32 id = -1;
+ 	u64 lun = -1;
+ 	int channel = -1;
+-	int i;
++	int i, rc;
+ 
+ 	i2o_shost = i2o_scsi_get_host(c);
+ 	if (!i2o_shost)
+@@ -304,14 +304,20 @@ static int i2o_scsi_probe(struct device 
+ 		return PTR_ERR(scsi_dev);
+ 	}
+ 
+-	sysfs_create_link(&i2o_dev->device.kobj, &scsi_dev->sdev_gendev.kobj,
+-			  "scsi");
++	rc = sysfs_create_link(&i2o_dev->device.kobj,
++			       &scsi_dev->sdev_gendev.kobj, "scsi");
++	if (rc)
++		goto err;
+ 
+ 	osm_info("device added (TID: %03x) channel: %d, id: %d, lun: %ld\n",
+ 		 i2o_dev->lct_data.tid, channel, le32_to_cpu(id),
+ 		 (long unsigned int)le64_to_cpu(lun));
  
  	return 0;
 +
 +err:
-+	rtc_device_unregister(rtc);
-+	return err;
- }
++	scsi_remove_device(scsi_dev);
++	return rc;
+ };
  
- static int __devexit test_remove(struct platform_device *plat_dev)
-diff -puN drivers/rtc/rtc-x1205.c~rtc-handle-sysfs-errors drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtc-handle-sysfs-errors
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -562,11 +562,19 @@ static int x1205_probe(struct i2c_adapte
- 	else
- 		dev_err(&client->dev, "couldn't read status\n");
- 
--	device_create_file(&client->dev, &dev_attr_atrim);
--	device_create_file(&client->dev, &dev_attr_dtrim);
-+	err = device_create_file(&client->dev, &dev_attr_atrim);
-+	if (err) goto exit_devreg;
-+	err = device_create_file(&client->dev, &dev_attr_dtrim);
-+	if (err) goto exit_atrim;
- 
- 	return 0;
- 
-+exit_atrim:
-+	device_remove_file(&client->dev, &dev_attr_atrim);
-+
-+exit_devreg:
-+	rtc_device_unregister(rtc);
-+
- exit_detach:
- 	i2c_detach_client(client);
- 
+ static const char *i2o_scsi_info(struct Scsi_Host *SChost)
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
