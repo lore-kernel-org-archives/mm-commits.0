@@ -1,72 +1,71 @@
 From: akpm@osdl.org
-Subject: - cciss-cleanup-cciss_interrupt-mode.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:00:40 -0800
-Message-ID: <200612072300.kB7N0ehr029664@shell0.pdx.osdl.net>
+Subject: - ext3-fsid-for-statvfs.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:01:13 -0800
+Message-ID: <200612072301.kB7N1DbV029717@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51290 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51511 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163737AbWLGXAx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:00:53 -0500
+	id S1163678AbWLGXBZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:01:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, adilger@clusterfs.com, sct@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: cleanup cciss_interrupt mode
+     ext3: fsid for statvfs
 has been removed from the -mm tree.  Its filename was
-     cciss-cleanup-cciss_interrupt-mode.patch
+     ext3-fsid-for-statvfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cciss: cleanup cciss_interrupt mode
-From: Mike Miller <mike.miller@hp.com>
+Subject: ext3: fsid for statvfs
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-A pretty simple cleanup for cciss_interrupt_mode.
+Update ext3_statfs to return an FSID that is a 64 bit XOR of the 128 bit
+filesystem UUID as suggested by Andreas Dilger.  See the following Bugzilla
+entry for details:
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+  http://bugzilla.kernel.org/show_bug.cgi?id=136
+
+Cc: Andreas Dilger <adilger@clusterfs.com>
+Cc: Stephen Tweedie <sct@redhat.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/cciss.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/ext3/super.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/block/cciss.c~cciss-cleanup-cciss_interrupt-mode drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-cleanup-cciss_interrupt-mode
-+++ a/drivers/block/cciss.c
-@@ -2788,23 +2788,21 @@ static void __devinit cciss_interrupt_mo
- 		if (err > 0) {
- 			printk(KERN_WARNING "cciss: only %d MSI-X vectors "
- 			       "available\n", err);
-+			goto default_int_mode;
- 		} else {
- 			printk(KERN_WARNING "cciss: MSI-X init failed %d\n",
- 			       err);
-+			goto default_int_mode;
- 		}
- 	}
- 	if (pci_find_capability(pdev, PCI_CAP_ID_MSI)) {
- 		if (!pci_enable_msi(pdev)) {
--			c->intr[SIMPLE_MODE_INT] = pdev->irq;
- 			c->msi_vector = 1;
--			return;
- 		} else {
- 			printk(KERN_WARNING "cciss: MSI init failed\n");
--			c->intr[SIMPLE_MODE_INT] = pdev->irq;
--			return;
- 		}
- 	}
--      default_int_mode:
-+default_int_mode:
- #endif				/* CONFIG_PCI_MSI */
- 	/* if we get here we're going to use the default interrupt mode */
- 	c->intr[SIMPLE_MODE_INT] = pdev->irq;
+diff -puN fs/ext3/super.c~ext3-fsid-for-statvfs fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-fsid-for-statvfs
++++ a/fs/ext3/super.c
+@@ -2387,6 +2387,7 @@ static int ext3_statfs (struct dentry * 
+ 	struct ext3_super_block *es = sbi->s_es;
+ 	ext3_fsblk_t overhead;
+ 	int i;
++	u64 fsid;
+ 
+ 	if (test_opt (sb, MINIX_DF))
+ 		overhead = 0;
+@@ -2433,6 +2434,10 @@ static int ext3_statfs (struct dentry * 
+ 	buf->f_files = le32_to_cpu(es->s_inodes_count);
+ 	buf->f_ffree = percpu_counter_sum(&sbi->s_freeinodes_counter);
+ 	buf->f_namelen = EXT3_NAME_LEN;
++	fsid = le64_to_cpup((void *)es->s_uuid) ^
++	       le64_to_cpup((void *)es->s_uuid + sizeof(u64));
++	buf->f_fsid.val[0] = fsid & 0xFFFFFFFFUL;
++	buf->f_fsid.val[1] = (fsid >> 32) & 0xFFFFFFFFUL;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
+fault-injection-capability-for-kmalloc.patch
+slab-leaks3-default-y.patch
 
