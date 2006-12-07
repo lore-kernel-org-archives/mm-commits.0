@@ -1,249 +1,893 @@
 From: akpm@osdl.org
-Subject: - slab-deprecate-kmem_cache-t.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:58:22 -0800
-Message-ID: <200612072258.kB7MwMSH029389@shell0.pdx.osdl.net>
+Subject: - radix-tree-rcu-lockless-readside.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:58:43 -0800
+Message-ID: <200612072258.kB7MwhiY029423@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50726 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50828 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163644AbWLGW6Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:58:25 -0500
+	id S1163654AbWLGW64 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:58:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, clameter@engr.sgi.com, lee.schermerhorn@hp.com, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: deprecate kmem_cache_t
+     radix-tree: RCU lockless readside
 has been removed from the -mm tree.  Its filename was
-     slab-deprecate-kmem_cache-t.patch
+     radix-tree-rcu-lockless-readside.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab: deprecate kmem_cache_t
-From: Andrew Morton <akpm@osdl.org>
+Subject: radix-tree: RCU lockless readside
+From: Nick Piggin <npiggin@suse.de>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+Make radix tree lookups safe to be performed without locks.  Readers are
+protected against nodes being deleted by using RCU based freeing.  Readers
+are protected against new node insertion by using memory barriers to ensure
+the node itself will be properly written before it is visible in the radix
+tree.
+
+Each radix tree node keeps a record of their height (above leaf nodes). 
+This height does not change after insertion -- when the radix tree is
+extended, higher nodes are only inserted in the top.  So a lookup can take
+the pointer to what is *now* the root node, and traverse down it even if
+the tree is concurrently extended and this node becomes a subtree of a new
+root.
+
+"Direct" pointers (tree height of 0, where root->rnode points directly to
+the data item) are handled by using the low bit of the pointer to signal
+whether rnode is a direct pointer or a pointer to a radix tree node.
+
+When a reader wants to traverse the next branch, they will take a copy of
+the pointer.  This pointer will be either NULL (and the branch is empty) or
+non-NULL (and will point to a valid node).
+
+[akpm@osdl.org: cleanups]
+[Lee.Schermerhorn@hp.com: bugfixes, comments, simplifications]
+[clameter@sgi.com: build fix]
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/slab.h |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ include/linux/radix-tree.h |  101 ++++++++++
+ lib/radix-tree.c           |  327 ++++++++++++++++++++++++-----------
+ mm/migrate.c               |   19 +-
+ 3 files changed, 340 insertions(+), 107 deletions(-)
 
-diff -puN include/linux/slab.h~slab-deprecate-kmem_cache-t include/linux/slab.h
---- a/include/linux/slab.h~slab-deprecate-kmem_cache-t
-+++ a/include/linux/slab.h
-@@ -7,16 +7,17 @@
- #ifndef _LINUX_SLAB_H
- #define	_LINUX_SLAB_H
+diff -puN include/linux/radix-tree.h~radix-tree-rcu-lockless-readside include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-rcu-lockless-readside
++++ a/include/linux/radix-tree.h
+@@ -1,6 +1,7 @@
+ /*
+  * Copyright (C) 2001 Momchil Velikov
+  * Portions Copyright (C) 2001 Christoph Hellwig
++ * Copyright (C) 2006 Nick Piggin
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+@@ -21,6 +22,35 @@
  
--#if	defined(__KERNEL__)
-+#ifdef __KERNEL__
+ #include <linux/preempt.h>
+ #include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/rcupdate.h>
++
++/*
++ * A direct pointer (root->rnode pointing directly to a data item,
++ * rather than another radix_tree_node) is signalled by the low bit
++ * set in the root->rnode pointer.
++ *
++ * In this case root->height is also NULL, but the direct pointer tests are
++ * needed for RCU lookups when root->height is unreliable.
++ */
++#define RADIX_TREE_DIRECT_PTR	1
++
++static inline void *radix_tree_ptr_to_direct(void *ptr)
++{
++	return (void *)((unsigned long)ptr | RADIX_TREE_DIRECT_PTR);
++}
++
++static inline void *radix_tree_direct_to_ptr(void *ptr)
++{
++	return (void *)((unsigned long)ptr & ~RADIX_TREE_DIRECT_PTR);
++}
++
++static inline int radix_tree_is_direct_ptr(void *ptr)
++{
++	return (int)((unsigned long)ptr & RADIX_TREE_DIRECT_PTR);
++}
++
++/*** radix-tree API starts here ***/
  
--/* kmem_cache_t exists for legacy reasons and is not used by code in mm */
--typedef struct kmem_cache kmem_cache_t;
-+#include <linux/gfp.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <asm/page.h>		/* kmalloc_sizes.h needs PAGE_SIZE */
-+#include <asm/cache.h>		/* kmalloc_sizes.h needs L1_CACHE_BYTES */
-+#include <linux/compiler.h>
+ #define RADIX_TREE_MAX_TAGS 2
  
--#include	<linux/gfp.h>
--#include	<linux/init.h>
--#include	<linux/types.h>
--#include	<asm/page.h>		/* kmalloc_sizes.h needs PAGE_SIZE */
--#include	<asm/cache.h>		/* kmalloc_sizes.h needs L1_CACHE_BYTES */
-+/* kmem_cache_t exists for legacy reasons and is not used by code in mm */
-+typedef struct kmem_cache kmem_cache_t __deprecated;
+@@ -47,6 +77,77 @@ do {									\
+ 	(root)->rnode = NULL;						\
+ } while (0)
  
- /* flags to pass to kmem_cache_create().
-  * The first 3 are only valid when the allocator as been build
++/**
++ * Radix-tree synchronization
++ *
++ * The radix-tree API requires that users provide all synchronisation (with
++ * specific exceptions, noted below).
++ *
++ * Synchronization of access to the data items being stored in the tree, and
++ * management of their lifetimes must be completely managed by API users.
++ *
++ * For API usage, in general,
++ * - any function _modifying_ the the tree or tags (inserting or deleting
++ *   items, setting or clearing tags must exclude other modifications, and
++ *   exclude any functions reading the tree.
++ * - any function _reading_ the the tree or tags (looking up items or tags,
++ *   gang lookups) must exclude modifications to the tree, but may occur
++ *   concurrently with other readers.
++ *
++ * The notable exceptions to this rule are the following functions:
++ * radix_tree_lookup
++ * radix_tree_tag_get
++ * radix_tree_gang_lookup
++ * radix_tree_gang_lookup_tag
++ * radix_tree_tagged
++ *
++ * The first 4 functions are able to be called locklessly, using RCU. The
++ * caller must ensure calls to these functions are made within rcu_read_lock()
++ * regions. Other readers (lock-free or otherwise) and modifications may be
++ * running concurrently.
++ *
++ * It is still required that the caller manage the synchronization and lifetimes
++ * of the items. So if RCU lock-free lookups are used, typically this would mean
++ * that the items have their own locks, or are amenable to lock-free access; and
++ * that the items are freed by RCU (or only freed after having been deleted from
++ * the radix tree *and* a synchronize_rcu() grace period).
++ *
++ * (Note, rcu_assign_pointer and rcu_dereference are not needed to control
++ * access to data items when inserting into or looking up from the radix tree)
++ *
++ * radix_tree_tagged is able to be called without locking or RCU.
++ */
++
++/**
++ * radix_tree_deref_slot	- dereference a slot
++ * @pslot:	pointer to slot, returned by radix_tree_lookup_slot
++ * Returns:	item that was stored in that slot with any direct pointer flag
++ *		removed.
++ *
++ * For use with radix_tree_lookup_slot().  Caller must hold tree at least read
++ * locked across slot lookup and dereference.  More likely, will be used with
++ * radix_tree_replace_slot(), as well, so caller will hold tree write locked.
++ */
++static inline void *radix_tree_deref_slot(void **pslot)
++{
++	return radix_tree_direct_to_ptr(*pslot);
++}
++/**
++ * radix_tree_replace_slot	- replace item in a slot
++ * @pslot:	pointer to slot, returned by radix_tree_lookup_slot
++ * @item:	new item to store in the slot.
++ *
++ * For use with radix_tree_lookup_slot().  Caller must hold tree write locked
++ * across slot lookup and replacement.
++ */
++static inline void radix_tree_replace_slot(void **pslot, void *item)
++{
++	BUG_ON(radix_tree_is_direct_ptr(item));
++	rcu_assign_pointer(*pslot,
++		(void *)((unsigned long)item |
++			((unsigned long)*pslot & RADIX_TREE_DIRECT_PTR)));
++}
++
+ int radix_tree_insert(struct radix_tree_root *, unsigned long, void *);
+ void *radix_tree_lookup(struct radix_tree_root *, unsigned long);
+ void **radix_tree_lookup_slot(struct radix_tree_root *, unsigned long);
+diff -puN lib/radix-tree.c~radix-tree-rcu-lockless-readside lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rcu-lockless-readside
++++ a/lib/radix-tree.c
+@@ -2,6 +2,7 @@
+  * Copyright (C) 2001 Momchil Velikov
+  * Portions Copyright (C) 2001 Christoph Hellwig
+  * Copyright (C) 2005 SGI, Christoph Lameter <clameter@sgi.com>
++ * Copyright (C) 2006 Nick Piggin
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+@@ -30,6 +31,7 @@
+ #include <linux/gfp.h>
+ #include <linux/string.h>
+ #include <linux/bitops.h>
++#include <linux/rcupdate.h>
+ 
+ 
+ #ifdef __KERNEL__
+@@ -45,7 +47,9 @@
+ 	((RADIX_TREE_MAP_SIZE + BITS_PER_LONG - 1) / BITS_PER_LONG)
+ 
+ struct radix_tree_node {
++	unsigned int	height;		/* Height from the bottom */
+ 	unsigned int	count;
++	struct rcu_head	rcu_head;
+ 	void		*slots[RADIX_TREE_MAP_SIZE];
+ 	unsigned long	tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS];
+ };
+@@ -100,13 +104,21 @@ radix_tree_node_alloc(struct radix_tree_
+ 			rtp->nr--;
+ 		}
+ 	}
++	BUG_ON(radix_tree_is_direct_ptr(ret));
+ 	return ret;
+ }
+ 
++static void radix_tree_node_rcu_free(struct rcu_head *head)
++{
++	struct radix_tree_node *node =
++			container_of(head, struct radix_tree_node, rcu_head);
++	kmem_cache_free(radix_tree_node_cachep, node);
++}
++
+ static inline void
+ radix_tree_node_free(struct radix_tree_node *node)
+ {
+-	kmem_cache_free(radix_tree_node_cachep, node);
++	call_rcu(&node->rcu_head, radix_tree_node_rcu_free);
+ }
+ 
+ /*
+@@ -222,11 +234,12 @@ static int radix_tree_extend(struct radi
+ 	}
+ 
+ 	do {
++		unsigned int newheight;
+ 		if (!(node = radix_tree_node_alloc(root)))
+ 			return -ENOMEM;
+ 
+ 		/* Increase the height.  */
+-		node->slots[0] = root->rnode;
++		node->slots[0] = radix_tree_direct_to_ptr(root->rnode);
+ 
+ 		/* Propagate the aggregated tag info into the new root */
+ 		for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
+@@ -234,9 +247,11 @@ static int radix_tree_extend(struct radi
+ 				tag_set(node, tag, 0);
+ 		}
+ 
++		newheight = root->height+1;
++		node->height = newheight;
+ 		node->count = 1;
+-		root->rnode = node;
+-		root->height++;
++		rcu_assign_pointer(root->rnode, node);
++		root->height = newheight;
+ 	} while (height > root->height);
+ out:
+ 	return 0;
+@@ -258,6 +273,8 @@ int radix_tree_insert(struct radix_tree_
+ 	int offset;
+ 	int error;
+ 
++	BUG_ON(radix_tree_is_direct_ptr(item));
++
+ 	/* Make sure the tree is high enough.  */
+ 	if (index > radix_tree_maxindex(root->height)) {
+ 		error = radix_tree_extend(root, index);
+@@ -275,11 +292,12 @@ int radix_tree_insert(struct radix_tree_
+ 			/* Have to add a child node.  */
+ 			if (!(slot = radix_tree_node_alloc(root)))
+ 				return -ENOMEM;
++			slot->height = height;
+ 			if (node) {
+-				node->slots[offset] = slot;
++				rcu_assign_pointer(node->slots[offset], slot);
+ 				node->count++;
+ 			} else
+-				root->rnode = slot;
++				rcu_assign_pointer(root->rnode, slot);
+ 		}
+ 
+ 		/* Go a level down */
+@@ -295,11 +313,11 @@ int radix_tree_insert(struct radix_tree_
+ 
+ 	if (node) {
+ 		node->count++;
+-		node->slots[offset] = item;
++		rcu_assign_pointer(node->slots[offset], item);
+ 		BUG_ON(tag_get(node, 0, offset));
+ 		BUG_ON(tag_get(node, 1, offset));
+ 	} else {
+-		root->rnode = item;
++		rcu_assign_pointer(root->rnode, radix_tree_ptr_to_direct(item));
+ 		BUG_ON(root_tag_get(root, 0));
+ 		BUG_ON(root_tag_get(root, 1));
+ 	}
+@@ -308,49 +326,54 @@ int radix_tree_insert(struct radix_tree_
+ }
+ EXPORT_SYMBOL(radix_tree_insert);
+ 
+-static inline void **__lookup_slot(struct radix_tree_root *root,
+-				   unsigned long index)
++/**
++ *	radix_tree_lookup_slot    -    lookup a slot in a radix tree
++ *	@root:		radix tree root
++ *	@index:		index key
++ *
++ *	Returns:  the slot corresponding to the position @index in the
++ *	radix tree @root. This is useful for update-if-exists operations.
++ *
++ *	This function cannot be called under rcu_read_lock, it must be
++ *	excluded from writers, as must the returned slot for subsequent
++ *	use by radix_tree_deref_slot() and radix_tree_replace slot.
++ *	Caller must hold tree write locked across slot lookup and
++ *	replace.
++ */
++void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
+ {
+ 	unsigned int height, shift;
+-	struct radix_tree_node **slot;
+-
+-	height = root->height;
++	struct radix_tree_node *node, **slot;
+ 
+-	if (index > radix_tree_maxindex(height))
++	node = root->rnode;
++	if (node == NULL)
+ 		return NULL;
+ 
+-	if (height == 0 && root->rnode)
++	if (radix_tree_is_direct_ptr(node)) {
++		if (index > 0)
++			return NULL;
+ 		return (void **)&root->rnode;
++	}
++
++	height = node->height;
++	if (index > radix_tree_maxindex(height))
++		return NULL;
+ 
+ 	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+-	slot = &root->rnode;
+ 
+-	while (height > 0) {
+-		if (*slot == NULL)
++	do {
++		slot = (struct radix_tree_node **)
++			(node->slots + ((index>>shift) & RADIX_TREE_MAP_MASK));
++		node = *slot;
++		if (node == NULL)
+ 			return NULL;
+ 
+-		slot = (struct radix_tree_node **)
+-			((*slot)->slots +
+-				((index >> shift) & RADIX_TREE_MAP_MASK));
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+ 		height--;
+-	}
++	} while (height > 0);
+ 
+ 	return (void **)slot;
+ }
+-
+-/**
+- *	radix_tree_lookup_slot    -    lookup a slot in a radix tree
+- *	@root:		radix tree root
+- *	@index:		index key
+- *
+- *	Lookup the slot corresponding to the position @index in the radix tree
+- *	@root. This is useful for update-if-exists operations.
+- */
+-void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
+-{
+-	return __lookup_slot(root, index);
+-}
+ EXPORT_SYMBOL(radix_tree_lookup_slot);
+ 
+ /**
+@@ -359,13 +382,45 @@ EXPORT_SYMBOL(radix_tree_lookup_slot);
+  *	@index:		index key
+  *
+  *	Lookup the item at the position @index in the radix tree @root.
++ *
++ *	This function can be called under rcu_read_lock, however the caller
++ *	must manage lifetimes of leaf nodes (eg. RCU may also be used to free
++ *	them safely). No RCU barriers are required to access or modify the
++ *	returned item, however.
+  */
+ void *radix_tree_lookup(struct radix_tree_root *root, unsigned long index)
+ {
+-	void **slot;
++	unsigned int height, shift;
++	struct radix_tree_node *node, **slot;
++
++	node = rcu_dereference(root->rnode);
++	if (node == NULL)
++		return NULL;
++
++	if (radix_tree_is_direct_ptr(node)) {
++		if (index > 0)
++			return NULL;
++		return radix_tree_direct_to_ptr(node);
++	}
++
++	height = node->height;
++	if (index > radix_tree_maxindex(height))
++		return NULL;
++
++	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+ 
+-	slot = __lookup_slot(root, index);
+-	return slot != NULL ? *slot : NULL;
++	do {
++		slot = (struct radix_tree_node **)
++			(node->slots + ((index>>shift) & RADIX_TREE_MAP_MASK));
++		node = rcu_dereference(*slot);
++		if (node == NULL)
++			return NULL;
++
++		shift -= RADIX_TREE_MAP_SHIFT;
++		height--;
++	} while (height > 0);
++
++	return node;
+ }
+ EXPORT_SYMBOL(radix_tree_lookup);
+ 
+@@ -495,27 +550,30 @@ int radix_tree_tag_get(struct radix_tree
+ 			unsigned long index, unsigned int tag)
+ {
+ 	unsigned int height, shift;
+-	struct radix_tree_node *slot;
++	struct radix_tree_node *node;
+ 	int saw_unset_tag = 0;
+ 
+-	height = root->height;
+-	if (index > radix_tree_maxindex(height))
+-		return 0;
+-
+ 	/* check the root's tag bit */
+ 	if (!root_tag_get(root, tag))
+ 		return 0;
+ 
+-	if (height == 0)
+-		return 1;
++	node = rcu_dereference(root->rnode);
++	if (node == NULL)
++		return 0;
++
++	if (radix_tree_is_direct_ptr(node))
++		return (index == 0);
++
++	height = node->height;
++	if (index > radix_tree_maxindex(height))
++		return 0;
+ 
+ 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+-	slot = root->rnode;
+ 
+ 	for ( ; ; ) {
+ 		int offset;
+ 
+-		if (slot == NULL)
++		if (node == NULL)
+ 			return 0;
+ 
+ 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+@@ -524,15 +582,15 @@ int radix_tree_tag_get(struct radix_tree
+ 		 * This is just a debug check.  Later, we can bale as soon as
+ 		 * we see an unset tag.
+ 		 */
+-		if (!tag_get(slot, tag, offset))
++		if (!tag_get(node, tag, offset))
+ 			saw_unset_tag = 1;
+ 		if (height == 1) {
+-			int ret = tag_get(slot, tag, offset);
++			int ret = tag_get(node, tag, offset);
+ 
+ 			BUG_ON(ret && saw_unset_tag);
+ 			return !!ret;
+ 		}
+-		slot = slot->slots[offset];
++		node = rcu_dereference(node->slots[offset]);
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+ 		height--;
+ 	}
+@@ -541,47 +599,45 @@ EXPORT_SYMBOL(radix_tree_tag_get);
+ #endif
+ 
+ static unsigned int
+-__lookup(struct radix_tree_root *root, void **results, unsigned long index,
++__lookup(struct radix_tree_node *slot, void **results, unsigned long index,
+ 	unsigned int max_items, unsigned long *next_index)
+ {
+ 	unsigned int nr_found = 0;
+ 	unsigned int shift, height;
+-	struct radix_tree_node *slot;
+ 	unsigned long i;
+ 
+-	height = root->height;
+-	if (height == 0) {
+-		if (root->rnode && index == 0)
+-			results[nr_found++] = root->rnode;
++	height = slot->height;
++	if (height == 0)
+ 		goto out;
+-	}
+-
+ 	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+-	slot = root->rnode;
+ 
+ 	for ( ; height > 1; height--) {
+-
+-		for (i = (index >> shift) & RADIX_TREE_MAP_MASK ;
+-				i < RADIX_TREE_MAP_SIZE; i++) {
++		i = (index >> shift) & RADIX_TREE_MAP_MASK;
++		for (;;) {
+ 			if (slot->slots[i] != NULL)
+ 				break;
+ 			index &= ~((1UL << shift) - 1);
+ 			index += 1UL << shift;
+ 			if (index == 0)
+ 				goto out;	/* 32-bit wraparound */
++			i++;
++			if (i == RADIX_TREE_MAP_SIZE)
++				goto out;
+ 		}
+-		if (i == RADIX_TREE_MAP_SIZE)
+-			goto out;
+ 
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+-		slot = slot->slots[i];
++		slot = rcu_dereference(slot->slots[i]);
++		if (slot == NULL)
++			goto out;
+ 	}
+ 
+ 	/* Bottom level: grab some items */
+ 	for (i = index & RADIX_TREE_MAP_MASK; i < RADIX_TREE_MAP_SIZE; i++) {
++		struct radix_tree_node *node;
+ 		index++;
+-		if (slot->slots[i]) {
+-			results[nr_found++] = slot->slots[i];
++		node = slot->slots[i];
++		if (node) {
++			results[nr_found++] = rcu_dereference(node);
+ 			if (nr_found == max_items)
+ 				goto out;
+ 		}
+@@ -603,28 +659,51 @@ out:
+  *	*@results.
+  *
+  *	The implementation is naive.
++ *
++ *	Like radix_tree_lookup, radix_tree_gang_lookup may be called under
++ *	rcu_read_lock. In this case, rather than the returned results being
++ *	an atomic snapshot of the tree at a single point in time, the semantics
++ *	of an RCU protected gang lookup are as though multiple radix_tree_lookups
++ *	have been issued in individual locks, and results stored in 'results'.
+  */
+ unsigned int
+ radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
+ 			unsigned long first_index, unsigned int max_items)
+ {
+-	const unsigned long max_index = radix_tree_maxindex(root->height);
++	unsigned long max_index;
++	struct radix_tree_node *node;
+ 	unsigned long cur_index = first_index;
+-	unsigned int ret = 0;
++	unsigned int ret;
++
++	node = rcu_dereference(root->rnode);
++	if (!node)
++		return 0;
+ 
++	if (radix_tree_is_direct_ptr(node)) {
++		if (first_index > 0)
++			return 0;
++		node = radix_tree_direct_to_ptr(node);
++		results[0] = rcu_dereference(node);
++		return 1;
++	}
++
++	max_index = radix_tree_maxindex(node->height);
++
++	ret = 0;
+ 	while (ret < max_items) {
+ 		unsigned int nr_found;
+ 		unsigned long next_index;	/* Index of next search */
+ 
+ 		if (cur_index > max_index)
+ 			break;
+-		nr_found = __lookup(root, results + ret, cur_index,
++		nr_found = __lookup(node, results + ret, cur_index,
+ 					max_items - ret, &next_index);
+ 		ret += nr_found;
+ 		if (next_index == 0)
+ 			break;
+ 		cur_index = next_index;
+ 	}
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(radix_tree_gang_lookup);
+@@ -634,55 +713,64 @@ EXPORT_SYMBOL(radix_tree_gang_lookup);
+  * open-coding the search.
+  */
+ static unsigned int
+-__lookup_tag(struct radix_tree_root *root, void **results, unsigned long index,
++__lookup_tag(struct radix_tree_node *slot, void **results, unsigned long index,
+ 	unsigned int max_items, unsigned long *next_index, unsigned int tag)
+ {
+ 	unsigned int nr_found = 0;
+-	unsigned int shift;
+-	unsigned int height = root->height;
+-	struct radix_tree_node *slot;
++	unsigned int shift, height;
+ 
+-	if (height == 0) {
+-		if (root->rnode && index == 0)
+-			results[nr_found++] = root->rnode;
++	height = slot->height;
++	if (height == 0)
+ 		goto out;
+-	}
+-
+-	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+-	slot = root->rnode;
++	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+ 
+-	do {
+-		unsigned long i = (index >> shift) & RADIX_TREE_MAP_MASK;
++	while (height > 0) {
++		unsigned long i = (index >> shift) & RADIX_TREE_MAP_MASK ;
+ 
+-		for ( ; i < RADIX_TREE_MAP_SIZE; i++) {
+-			if (tag_get(slot, tag, i)) {
+-				BUG_ON(slot->slots[i] == NULL);
++		for (;;) {
++			if (tag_get(slot, tag, i))
+ 				break;
+-			}
+ 			index &= ~((1UL << shift) - 1);
+ 			index += 1UL << shift;
+ 			if (index == 0)
+ 				goto out;	/* 32-bit wraparound */
++			i++;
++			if (i == RADIX_TREE_MAP_SIZE)
++				goto out;
+ 		}
+-		if (i == RADIX_TREE_MAP_SIZE)
+-			goto out;
+ 		height--;
+ 		if (height == 0) {	/* Bottom level: grab some items */
+ 			unsigned long j = index & RADIX_TREE_MAP_MASK;
+ 
+ 			for ( ; j < RADIX_TREE_MAP_SIZE; j++) {
++				struct radix_tree_node *node;
+ 				index++;
+-				if (tag_get(slot, tag, j)) {
+-					BUG_ON(slot->slots[j] == NULL);
+-					results[nr_found++] = slot->slots[j];
++				if (!tag_get(slot, tag, j))
++					continue;
++				node = slot->slots[j];
++				/*
++				 * Even though the tag was found set, we need to
++				 * recheck that we have a non-NULL node, because
++				 * if this lookup is lockless, it may have been
++				 * subsequently deleted.
++				 *
++				 * Similar care must be taken in any place that
++				 * lookup ->slots[x] without a lock (ie. can't
++				 * rely on its value remaining the same).
++				 */
++				if (node) {
++					node = rcu_dereference(node);
++					results[nr_found++] = node;
+ 					if (nr_found == max_items)
+ 						goto out;
+ 				}
+ 			}
+ 		}
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+-		slot = slot->slots[i];
+-	} while (height > 0);
++		slot = rcu_dereference(slot->slots[i]);
++		if (slot == NULL)
++			break;
++	}
+ out:
+ 	*next_index = index;
+ 	return nr_found;
+@@ -706,27 +794,44 @@ radix_tree_gang_lookup_tag(struct radix_
+ 		unsigned long first_index, unsigned int max_items,
+ 		unsigned int tag)
+ {
+-	const unsigned long max_index = radix_tree_maxindex(root->height);
++	struct radix_tree_node *node;
++	unsigned long max_index;
+ 	unsigned long cur_index = first_index;
+-	unsigned int ret = 0;
++	unsigned int ret;
+ 
+ 	/* check the root's tag bit */
+ 	if (!root_tag_get(root, tag))
+ 		return 0;
+ 
++	node = rcu_dereference(root->rnode);
++	if (!node)
++		return 0;
++
++	if (radix_tree_is_direct_ptr(node)) {
++		if (first_index > 0)
++			return 0;
++		node = radix_tree_direct_to_ptr(node);
++		results[0] = rcu_dereference(node);
++		return 1;
++	}
++
++	max_index = radix_tree_maxindex(node->height);
++
++	ret = 0;
+ 	while (ret < max_items) {
+ 		unsigned int nr_found;
+ 		unsigned long next_index;	/* Index of next search */
+ 
+ 		if (cur_index > max_index)
+ 			break;
+-		nr_found = __lookup_tag(root, results + ret, cur_index,
++		nr_found = __lookup_tag(node, results + ret, cur_index,
+ 					max_items - ret, &next_index, tag);
+ 		ret += nr_found;
+ 		if (next_index == 0)
+ 			break;
+ 		cur_index = next_index;
+ 	}
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(radix_tree_gang_lookup_tag);
+@@ -742,8 +847,19 @@ static inline void radix_tree_shrink(str
+ 			root->rnode->count == 1 &&
+ 			root->rnode->slots[0]) {
+ 		struct radix_tree_node *to_free = root->rnode;
++		void *newptr;
+ 
+-		root->rnode = to_free->slots[0];
++		/*
++		 * We don't need rcu_assign_pointer(), since we are simply
++		 * moving the node from one part of the tree to another. If
++		 * it was safe to dereference the old pointer to it
++		 * (to_free->slots[0]), it will be safe to dereference the new
++		 * one (root->rnode).
++		 */
++		newptr = to_free->slots[0];
++		if (root->height == 1)
++			newptr = radix_tree_ptr_to_direct(newptr);
++		root->rnode = newptr;
+ 		root->height--;
+ 		/* must only free zeroed nodes into the slab */
+ 		tag_clear(to_free, 0, 0);
+@@ -767,6 +883,7 @@ void *radix_tree_delete(struct radix_tre
+ {
+ 	struct radix_tree_path path[RADIX_TREE_MAX_PATH], *pathp = path;
+ 	struct radix_tree_node *slot = NULL;
++	struct radix_tree_node *to_free;
+ 	unsigned int height, shift;
+ 	int tag;
+ 	int offset;
+@@ -777,6 +894,7 @@ void *radix_tree_delete(struct radix_tre
+ 
+ 	slot = root->rnode;
+ 	if (height == 0 && root->rnode) {
++		slot = radix_tree_direct_to_ptr(slot);
+ 		root_tag_clear_all(root);
+ 		root->rnode = NULL;
+ 		goto out;
+@@ -809,10 +927,17 @@ void *radix_tree_delete(struct radix_tre
+ 			radix_tree_tag_clear(root, index, tag);
+ 	}
+ 
++	to_free = NULL;
+ 	/* Now free the nodes we do not need anymore */
+ 	while (pathp->node) {
+ 		pathp->node->slots[pathp->offset] = NULL;
+ 		pathp->node->count--;
++		/*
++		 * Queue the node for deferred freeing after the
++		 * last reference to it disappears (set NULL, above).
++		 */
++		if (to_free)
++			radix_tree_node_free(to_free);
+ 
+ 		if (pathp->node->count) {
+ 			if (pathp->node == root->rnode)
+@@ -821,13 +946,15 @@ void *radix_tree_delete(struct radix_tre
+ 		}
+ 
+ 		/* Node with zero slots in use so free it */
+-		radix_tree_node_free(pathp->node);
+-
++		to_free = pathp->node;
+ 		pathp--;
++
+ 	}
+ 	root_tag_clear_all(root);
+ 	root->height = 0;
+ 	root->rnode = NULL;
++	if (to_free)
++		radix_tree_node_free(to_free);
+ 
+ out:
+ 	return slot;
+diff -puN mm/migrate.c~radix-tree-rcu-lockless-readside mm/migrate.c
+--- a/mm/migrate.c~radix-tree-rcu-lockless-readside
++++ a/mm/migrate.c
+@@ -294,7 +294,7 @@ out:
+ static int migrate_page_move_mapping(struct address_space *mapping,
+ 		struct page *newpage, struct page *page)
+ {
+-	struct page **radix_pointer;
++	void **pslot;
+ 
+ 	if (!mapping) {
+ 		/* Anonymous page */
+@@ -305,12 +305,11 @@ static int migrate_page_move_mapping(str
+ 
+ 	write_lock_irq(&mapping->tree_lock);
+ 
+-	radix_pointer = (struct page **)radix_tree_lookup_slot(
+-						&mapping->page_tree,
+-						page_index(page));
++	pslot = radix_tree_lookup_slot(&mapping->page_tree,
++ 					page_index(page));
+ 
+ 	if (page_count(page) != 2 + !!PagePrivate(page) ||
+-			*radix_pointer != page) {
++			(struct page *)radix_tree_deref_slot(pslot) != page) {
+ 		write_unlock_irq(&mapping->tree_lock);
+ 		return -EAGAIN;
+ 	}
+@@ -318,7 +317,7 @@ static int migrate_page_move_mapping(str
+ 	/*
+ 	 * Now we know that no one else is looking at the page.
+ 	 */
+-	get_page(newpage);
++	get_page(newpage);	/* add cache reference */
+ #ifdef CONFIG_SWAP
+ 	if (PageSwapCache(page)) {
+ 		SetPageSwapCache(newpage);
+@@ -326,8 +325,14 @@ static int migrate_page_move_mapping(str
+ 	}
+ #endif
+ 
+-	*radix_pointer = newpage;
++	radix_tree_replace_slot(pslot, newpage);
++
++	/*
++	 * Drop cache reference from old page.
++	 * We know this isn't the last reference.
++	 */
+ 	__put_page(page);
++
+ 	write_unlock_irq(&mapping->tree_lock);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-bridge-avoid-using-noautorel-workqueues.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
+mm-only-mm-debug-write-deadlocks.patch
 mm-fix-pagecache-write-deadlocks.patch
+mm-fix-pagecache-write-deadlocks-comment.patch
+mm-fix-pagecache-write-deadlocks-mm-pagecache-write-deadlocks-efault-fix.patch
+mm-fix-pagecache-write-deadlocks-zerolength-fix.patch
+mm-fix-pagecache-write-deadlocks-stale-holes-fix.patch
+fs-prepare_write-fixes.patch
 fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-jffs-fix.patch
 fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-acpi-asus-s3-resume-fix.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-ia64.patch
-git-ieee1394-fixup.patch
-git-input.patch
-git-input-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-s390-workqueue-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-tty-signal-tty-locking-post-viro-trainwreck.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
-pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
-bug-test-1.patch
-net-use-bitrev8-tidy.patch
-fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
-ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
-add-process_session-helper-routine-deprecate-old-field-tidy.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
-mxser-session-warning-fix.patch
-mxser-workqueue-fixes.patch
-tty-switch-to-ktermios-and-new-framework-warning-fix.patch
-tty-switch-to-ktermios-and-new-framework-irda-fix.patch
-tty-switch-to-ktermios-bluetooth-fix.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
-drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
-fault-injection-capabilities-infrastructure-tidy.patch
-fault-injection-capabilities-infrastructure-tweaks.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs-fix.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
-gxfb-fixups-for-the-amd-geode-gx-tidy.patch
-gxfb-support-flat-panel-timings-tidy.patch
-gxfb-support-command-line-options-tidy.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+fs-fix-cont-vs-deadlock-patches.patch
 
