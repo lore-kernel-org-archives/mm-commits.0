@@ -1,69 +1,60 @@
 From: akpm@osdl.org
-Subject: - make-fs-jbd-transactionc__journal_temp_unlink_buffer-static.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:06:14 -0800
-Message-ID: <200612072306.kB7N6E9M030231@shell0.pdx.osdl.net>
+Subject: - make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:16 -0800
+Message-ID: <200612072306.kB7N6GBU030238@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52969 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52971 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163856AbWLGXJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:09:29 -0500
+	id S1163975AbWLGXJd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:09:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make fs/jbd/transaction.c:__journal_temp_unlink_buffer() static
+     make fs/jbd2/transaction.c:__kbd2_journal_temp_unlink_buffer() static
 has been removed from the -mm tree.  Its filename was
-     make-fs-jbd-transactionc__journal_temp_unlink_buffer-static.patch
+     make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make fs/jbd/transaction.c:__journal_temp_unlink_buffer() static
+Subject: make fs/jbd2/transaction.c:__kbd2_journal_temp_unlink_buffer() static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/jbd/transaction.c |    4 +++-
- include/linux/jbd.h  |    1 -
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/jbd2/transaction.c |    2 ++
+ include/linux/jbd2.h  |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/jbd/transaction.c~make-fs-jbd-transactionc__journal_temp_unlink_buffer-static fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~make-fs-jbd-transactionc__journal_temp_unlink_buffer-static
-+++ a/fs/jbd/transaction.c
+diff -puN fs/jbd2/transaction.c~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static fs/jbd2/transaction.c
+--- a/fs/jbd2/transaction.c~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static
++++ a/fs/jbd2/transaction.c
 @@ -27,6 +27,8 @@
  #include <linux/mm.h>
  #include <linux/highmem.h>
  
-+static void __journal_temp_unlink_buffer(struct journal_head *jh);
++static void __jbd2_journal_temp_unlink_buffer(struct journal_head *jh);
 +
  /*
-  * get_transaction: obtain a new transaction_t object.
+  * jbd2_get_transaction: obtain a new transaction_t object.
   *
-@@ -1499,7 +1501,7 @@ __blist_del_buffer(struct journal_head *
-  *
-  * Called under j_list_lock.  The journal may not be locked.
-  */
--void __journal_temp_unlink_buffer(struct journal_head *jh)
-+static void __journal_temp_unlink_buffer(struct journal_head *jh)
- {
- 	struct journal_head **list = NULL;
- 	transaction_t *transaction;
-diff -puN include/linux/jbd.h~make-fs-jbd-transactionc__journal_temp_unlink_buffer-static include/linux/jbd.h
---- a/include/linux/jbd.h~make-fs-jbd-transactionc__journal_temp_unlink_buffer-static
-+++ a/include/linux/jbd.h
-@@ -839,7 +839,6 @@ struct journal_s
+diff -puN include/linux/jbd2.h~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static include/linux/jbd2.h
+--- a/include/linux/jbd2.h~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static
++++ a/include/linux/jbd2.h
+@@ -848,7 +848,6 @@ struct journal_s
   */
  
  /* Filing buffers */
--extern void __journal_temp_unlink_buffer(struct journal_head *jh);
- extern void journal_unfile_buffer(journal_t *, struct journal_head *);
- extern void __journal_unfile_buffer(struct journal_head *);
- extern void __journal_refile_buffer(struct journal_head *);
+-extern void __jbd2_journal_temp_unlink_buffer(struct journal_head *jh);
+ extern void jbd2_journal_unfile_buffer(journal_t *, struct journal_head *);
+ extern void __jbd2_journal_unfile_buffer(struct journal_head *);
+ extern void __jbd2_journal_refile_buffer(struct journal_head *);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
