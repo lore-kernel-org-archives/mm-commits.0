@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + spidernet-memory-barrier.patch added to -mm tree
-Date: Wed, 06 Dec 2006 21:37:02 -0800
-Message-ID: <200612070537.kB75b2TB031695@shell0.pdx.osdl.net>
+Subject: + spidernet-turn-rx-irq-back-on.patch added to -mm tree
+Date: Wed, 06 Dec 2006 21:36:58 -0800
+Message-ID: <200612070536.kB75awU7031692@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51072 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51146 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031113AbWLGFpZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 00:45:25 -0500
+	id S1031335AbWLGFrb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 00:47:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,19 @@ Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
 
 
 The patch titled
-     spidernet: memory barrier
+     spidernet: turn RX irq back on
 has been added to the -mm tree.  Its filename is
-     spidernet-memory-barrier.patch
+     spidernet-turn-rx-irq-back-on.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spidernet: memory barrier
+Subject: spidernet: turn RX irq back on
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Add memory barrier to make sure that the rest of the RX descriptor state is
-flushed to memory before we tell the hardware that its ready to go.
+Re-enable irq's after emptying the RX ring; these had been previously turned
+off on reception of the rxram_full interrupt.  More punctuation cleanup.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -35,20 +35,36 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/spider_net.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-memory-barrier drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-memory-barrier
+diff -puN drivers/net/spider_net.c~spidernet-turn-rx-irq-back-on drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-turn-rx-irq-back-on
 +++ a/drivers/net/spider_net.c
-@@ -389,6 +389,7 @@ spider_net_prepare_rx_descr(struct spide
- 		card->spider_stats.rx_iommu_map_error++;
- 		descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
- 	} else {
-+		wmb();
- 		descr->dmac_cmd_status = SPIDER_NET_DESCR_CARDOWNED |
- 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
- 	}
+@@ -1182,12 +1182,11 @@ spider_net_set_mac(struct net_device *ne
+ }
+ 
+ /**
+- * spider_net_handle_rxram_full - cleans up RX ring upon RX RAM full interrupt
++ * spider_net_handle_rxram_full - Clean RX ring on RX RAM full interrupt
+  * @card: card structure
+  *
+- * spider_net_handle_rxram_full empties the RX ring so that spider can put
+- * more packets in it and empty its RX RAM. This is called in bottom half
+- * context
++ * Empty the RX ring so that the hardware can put more packets
++ * in it and empty its RX RAM. This is called in bottom half context.
+  */
+ static void
+ spider_net_handle_rxram_full(struct spider_net_card *card)
+@@ -1198,6 +1197,7 @@ spider_net_handle_rxram_full(struct spid
+ 	spider_net_enable_rxchtails(card);
+ 	spider_net_enable_rxdmac(card);
+ 	netif_rx_schedule(card->netdev);
++	spider_net_rx_irq_on(card);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
