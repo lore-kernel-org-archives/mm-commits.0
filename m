@@ -1,57 +1,83 @@
 From: akpm@osdl.org
-Subject: + optimize-o_direct-on-block-device-v3-tweak.patch added to -mm tree
-Date: Wed, 06 Dec 2006 22:13:27 -0800
-Message-ID: <200612070613.kB76DReU032595@shell0.pdx.osdl.net>
+Subject: + workqueue-tweaks.patch added to -mm tree
+Date: Wed, 06 Dec 2006 22:42:38 -0800
+Message-ID: <200612070642.kB76gcGK000830@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52397 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54022 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031645AbWLGGNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 01:13:43 -0500
+	id S1031722AbWLGGmw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 01:42:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, hch@lst.de, kenneth.w.chen@intel.com, zach.brown@oracle.com
+Cc: akpm@osdl.org, dhowells@redhat.com
 
 
 The patch titled
-     optimize-o_direct-on-block-device-v3 tweak
+     workqueue tweaks
 has been added to the -mm tree.  Its filename is
-     optimize-o_direct-on-block-device-v3-tweak.patch
+     workqueue-tweaks.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: optimize-o_direct-on-block-device-v3 tweak
+Subject: workqueue tweaks
 From: Andrew Morton <akpm@osdl.org>
 
-gcc generates crap code when you do this.  Saves seven bytes of text!
+- set_wq_data() has three callsites and is too big to inline.
 
-Cc: Ken Chen <kenneth.w.chen@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Zach Brown <zach.brown@oracle.com>
+- Make comment layout consistently use the usual style.
+
+- Use the nice helper in cancel_delayed_work()
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/workqueue.h |    2 +-
+ kernel/workqueue.c        |    9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/block_dev.c~optimize-o_direct-on-block-device-v3-tweak fs/block_dev.c
---- a/fs/block_dev.c~optimize-o_direct-on-block-device-v3-tweak
-+++ a/fs/block_dev.c
-@@ -209,7 +209,10 @@ blkdev_direct_IO(int rw, struct kiocb *i
- 	struct bio *bio;
- 	atomic_t *bio_count = &iocb->ki_bio_count;
- 	struct page *page;
--	struct pvec pvec = { .nr = 0, .idx = 0, };
-+	struct pvec pvec;
-+
-+	pvec.nr = 0;
-+	pvec.idx = 0;
+diff -puN kernel/workqueue.c~workqueue-tweaks kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-tweaks
++++ a/kernel/workqueue.c
+@@ -85,12 +85,14 @@ static inline int is_single_threaded(str
+ 	return list_empty(&wq->list);
+ }
  
- 	if (pos & blocksize_mask)
- 		return -EINVAL;
+-static inline void set_wq_data(struct work_struct *work, void *wq)
++static void set_wq_data(struct work_struct *work, void *wq)
+ {
+ 	unsigned long new, old, res;
+ 
+-	/* assume the pending flag is already set and that the task has already
+-	 * been queued on this workqueue */
++	/*
++	 * Assume the pending flag is already set and that the task has already
++	 * been queued on this workqueue
++	 */
+ 	new = (unsigned long) wq | (1UL << WORK_STRUCT_PENDING);
+ 	res = work->management;
+ 	if (res != new) {
+@@ -745,4 +747,3 @@ void init_workqueues(void)
+ 	keventd_wq = create_workqueue("events");
+ 	BUG_ON(!keventd_wq);
+ }
+-
+diff -puN include/linux/workqueue.h~workqueue-tweaks include/linux/workqueue.h
+--- a/include/linux/workqueue.h~workqueue-tweaks
++++ a/include/linux/workqueue.h
+@@ -187,7 +187,7 @@ static inline int cancel_delayed_work(st
+ 
+ 	ret = del_timer_sync(&work->timer);
+ 	if (ret)
+-		clear_bit(WORK_STRUCT_PENDING, &work->work.management);
++		work_release(work);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -100,6 +126,7 @@ gcc-4-1-0-is-bust.patch
 cleanup-include-asm-generic-atomich.patch
 struct-seq_operations-and-struct-file_operations-constification.patch
 elfh-forward-declare-struct-file.patch
+workqueue-tweaks.patch
 revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
 revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
 generic_file_buffered_write-cleanup.patch
@@ -146,7 +173,6 @@ git-mtd-ssfdc-build-fix.patch
 git-ubi.patch
 git-netdev-all.patch
 git-netdev-all-fixup.patch
-libphy-dont-do-that.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 git-net.patch
