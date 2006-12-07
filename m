@@ -1,67 +1,49 @@
 From: akpm@osdl.org
-Subject: - handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:34:45 -0800
-Message-ID: <200612070334.kB73YjSd027493@shell0.pdx.osdl.net>
+Subject: - dz-fixes-to-make-it-work-fix.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:35:14 -0800
+Message-ID: <200612070335.kB73ZEMH027504@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42953 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43002 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968016AbWLGDey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:34:54 -0500
+	id S968017AbWLGDf3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:35:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ego@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, macro@linux-mips.org, ths@networkno.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy
+     dz-fixes-to-make-it-work-fix
 has been removed from the -mm tree.  Its filename was
-     handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
+     dz-fixes-to-make-it-work-fix.patch
 
-This patch was dropped because it was folded into handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
+This patch was dropped because it was folded into dz-fixes-to-make-it-work.patch
 
 ------------------------------------------------------
-Subject: handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy
+Subject: dz-fixes-to-make-it-work-fix
 From: Andrew Morton <akpm@osdl.org>
 
-C functions are nicer - they do type checking.
-
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Thiemo Seufer <ths@networkno.de>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/cpu.h |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/char/decserial.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy include/linux/cpu.h
---- a/include/linux/cpu.h~handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy
-+++ a/include/linux/cpu.h
-@@ -97,9 +97,13 @@ extern void unlock_cpu_hotplug(void);
- #define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
- int cpu_down(unsigned int cpu);
- #define cpu_is_offline(cpu) unlikely(!cpu_online(cpu))
--#else
--#define cpuhotplug_mutex_lock(m)	do { (void)(m); } while (0)
--#define cpuhotplug_mutex_unlock(m)	do { (void)(m); } while (0)
-+
-+#else		/* CONFIG_HOTPLUG_CPU */
-+
-+static inline void cpuhotplug_mutex_lock(struct mutex *cpu_hp_mutex)
-+{ }
-+static inline void cpuhotplug_mutex_unlock(struct mutex *cpu_hp_mutex)
-+{ }
+diff -puN drivers/char/decserial.c~dz-fixes-to-make-it-work-fix drivers/char/decserial.c
+--- a/drivers/char/decserial.c~dz-fixes-to-make-it-work-fix
++++ a/drivers/char/decserial.c
+@@ -38,7 +38,7 @@ extern void zs_serial_console_init(void)
  
- #define lock_cpu_hotplug()	do { } while (0)
- #define unlock_cpu_hotplug()	do { } while (0)
-@@ -110,7 +114,7 @@ int cpu_down(unsigned int cpu);
- 
- /* CPUs don't go offline once they're online w/o CONFIG_HOTPLUG_CPU */
- static inline int cpu_is_offline(int cpu) { return 0; }
--#endif
-+#endif		/* CONFIG_HOTPLUG_CPU */
- 
- #ifdef CONFIG_SUSPEND_SMP
- extern int disable_nonboot_cpus(void);
+ int __init rs_init(void)
+ {
+-#ifdef ONFIG_ZS
++#ifdef CONFIG_ZS
+     if (IOASIC)
+ 	return zs_init();
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -102,7 +84,7 @@ smp_call_function_single-check-that-local-interrupts-are-enabled.patch
 hotplug-cpu-clean-up-hotcpu_notifier-use.patch
 add-return-value-checking-of-get_user-in.patch
 handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set.patch
-handle-per-subsystem-mutexes-for-config_hotplug_cpu-not-set-tidy.patch
+dz-fixes-to-make-it-work.patch
 dz-fixes-to-make-it-work-fix.patch
 ext4-balloc-fix-_with_rsv-freeze-fix.patch
 ide_scsi-allow-it-to-be-used-for-non-cd-only-fix.patch
