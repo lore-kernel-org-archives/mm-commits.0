@@ -1,89 +1,81 @@
 From: akpm@osdl.org
-Subject: - git-netdev-all-fixup.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:15:16 -0800
-Message-ID: <200612072215.kB7MFGpp027778@shell0.pdx.osdl.net>
+Subject: + git-acpi-fixup.patch added to -mm tree
+Date: Thu, 07 Dec 2006 14:49:25 -0800
+Message-ID: <200612072249.kB7MnPYQ028936@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47016 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49635 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163497AbWLGWPT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:15:19 -0500
+	id S1163534AbWLGWt1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:49:27 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB7MFHID020796
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB7MnPID022348
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 7 Dec 2006 14:15:17 -0800
+	for <mm-commits@vger.kernel.org>; Thu, 7 Dec 2006 14:49:25 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org
 
 
 The patch titled
-     git-netdev-all-fixup
-has been removed from the -mm tree.  Its filename was
-     git-netdev-all-fixup.patch
+     git-acpi-fixup
+has been added to the -mm tree.  Its filename is
+     git-acpi-fixup.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-netdev-all-fixup
-From: Andrew Morton <akpm@osdl.org>
-
-Ghastly broken hacks to make it compile.
-
+Subject: git-acpi-fixup
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/netxen/netxen_nic.h      |    4 ----
- drivers/net/netxen/netxen_nic_main.c |   12 ++++--------
- 2 files changed, 4 insertions(+), 12 deletions(-)
+ drivers/acpi/osl.c  |    6 ------
+ kernel/power/disk.c |    8 +-------
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/net/netxen/netxen_nic.h~git-netdev-all-fixup drivers/net/netxen/netxen_nic.h
---- a/drivers/net/netxen/netxen_nic.h~git-netdev-all-fixup
-+++ a/drivers/net/netxen/netxen_nic.h
-@@ -852,12 +852,8 @@ struct netxen_adapter {
- 	spinlock_t tx_lock;
- 	spinlock_t lock;
- 	struct work_struct watchdog_task;
--<<<<<<< HEAD/drivers/net/netxen/netxen_nic.h
--	struct work_struct tx_timeout_task;
- 	struct net_device *netdev;
--=======
- 	struct work_struct tx_timeout_task[NETXEN_MAX_PORTS];
-->>>>>>> /drivers/net/netxen/netxen_nic.h
- 	struct timer_list watchdog_timer;
+diff -puN drivers/acpi/osl.c~git-acpi-fixup drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~git-acpi-fixup
++++ a/drivers/acpi/osl.c
+@@ -567,14 +567,8 @@ void acpi_os_derive_pci_id(acpi_handle r
  
- 	u32 curr_window;
-diff -puN drivers/net/netxen/netxen_nic_main.c~git-netdev-all-fixup drivers/net/netxen/netxen_nic_main.c
---- a/drivers/net/netxen/netxen_nic_main.c~git-netdev-all-fixup
-+++ a/drivers/net/netxen/netxen_nic_main.c
-@@ -428,13 +428,10 @@ netxen_nic_probe(struct pci_dev *pdev, c
- 							     netdev->dev_addr);
- 			}
- 		}
--<<<<<<< HEAD/drivers/net/netxen/netxen_nic_main.c
- 		adapter->netdev = netdev;
--		INIT_WORK(&adapter->tx_timeout_task, netxen_tx_timeout_task);
--=======
--		INIT_WORK(adapter->tx_timeout_task + i,
--			  (void (*)(void *))netxen_tx_timeout_task, netdev);
-->>>>>>> /drivers/net/netxen/netxen_nic_main.c
-+//		INIT_WORK(&adapter->tx_timeout_task, netxen_tx_timeout_task);
-+//		INIT_WORK(adapter->tx_timeout_task + i,
-+//			  (void (*)(void *))netxen_tx_timeout_task, netdev);
- 		netif_carrier_off(netdev);
- 		netif_stop_queue(netdev);
- 
-@@ -979,8 +976,7 @@ static void netxen_tx_timeout(struct net
- 
- static void netxen_tx_timeout_task(struct work_struct *work)
+ static void acpi_os_execute_deferred(struct work_struct *work)
  {
--	struct netxen_adapter *adapter =
--		container_of(work, struct netxen_adapter, tx_timeout_task);
-+	struct netxen_adapter *adapter = NULL;
- 	struct net_device *netdev = adapter->netdev;
- 	unsigned long flags;
+-<<<<<<< HEAD/drivers/acpi/osl.c
+ 	struct acpi_os_dpc *dpc = container_of(work, struct acpi_os_dpc, work);
+-=======
+-	struct acpi_os_dpc *dpc = NULL;
  
+-
+-	dpc = context;
+->>>>>>> /drivers/acpi/osl.c
+ 	if (!dpc) {
+ 		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
+ 		return;
+diff -puN kernel/power/disk.c~git-acpi-fixup kernel/power/disk.c
+--- a/kernel/power/disk.c~git-acpi-fixup
++++ a/kernel/power/disk.c
+@@ -60,17 +60,11 @@ static void power_down(suspend_disk_meth
+ {
+ 	switch(mode) {
+ 	case PM_DISK_PLATFORM:
+-<<<<<<< HEAD/kernel/power/disk.c
+-		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+-		pm_ops->enter(PM_SUSPEND_DISK);
+-		break;
+-=======
+ 		if (pm_ops && pm_ops->enter) {
+ 			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+-			error = pm_ops->enter(PM_SUSPEND_DISK);
++			pm_ops->enter(PM_SUSPEND_DISK);
+ 			break;
+ 		}
+->>>>>>> /kernel/power/disk.c
+ 	case PM_DISK_SHUTDOWN:
+ 		kernel_power_off();
+ 		break;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -100,6 +92,7 @@ fs-prepare_write-fixes-fuse-fix.patch
 fs-prepare_write-fixes-fat-fix.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
+git-acpi-fixup.patch
 acpi-dont-select-pm.patch
 implementation-of-acpi_video_get_next_level.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
@@ -132,7 +125,6 @@ git-mmc-tifm_sd-warning-fix.patch
 git-mtd.patch
 git-mtd-ssfdc-build-fix.patch
 git-ubi.patch
-git-netdev-all-fixup.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 net-uninline-skb_put.patch
@@ -146,10 +138,7 @@ scsi-in2000-scsi_cmnd-convertion.patch
 aic79xx-wrong-max-memory-at-driver-init.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
 git-qla3xxx-fixup.patch
-fix-gregkh-usb-usb-serial-serqt_usb.patch
 nokia-e70-is-an-unusual-device.patch
-pre-x86_64-mm-i386-reloc-abssym.patch
-post-x86_64-mm-i386-reloc-abssym.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
