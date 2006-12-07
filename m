@@ -1,96 +1,286 @@
 From: akpm@osdl.org
-Subject: - skip-data-conversion-in-compat_sys_mount-when-data_page-is-null.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:55:49 -0800
-Message-ID: <200612072255.kB7MtnLr029145@shell0.pdx.osdl.net>
+Subject: - new-scheme-to-preempt-swap-token.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:56:26 -0800
+Message-ID: <200612072256.kB7MuQa6029199@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50296 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50424 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163582AbWLGW4Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:56:24 -0500
+	id S1163596AbWLGW4j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:56:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amirkin@openvz.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: ashwin.chaugule@celunite.com, a.p.zijlstra@chello.nl, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     skip data conversion in compat_sys_mount when data_page is NULL
+     new scheme to preempt swap token
 has been removed from the -mm tree.  Its filename was
-     skip-data-conversion-in-compat_sys_mount-when-data_page-is-null.patch
+     new-scheme-to-preempt-swap-token.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: skip data conversion in compat_sys_mount when data_page is NULL
-From: Andrey Mirkin <amirkin@openvz.org>
+Subject: new scheme to preempt swap token
+From: Ashwin Chaugule <ashwin.chaugule@celunite.com>
 
-OpenVZ Linux kernel team has found a problem with mounting in compat mode.
+The new swap token patches replace the current token traversal algo.  The old
+algo had a crude timeout parameter that was used to handover the token from
+one task to another.  This algo, transfers the token to the tasks that are in
+need of the token.  The urgency for the token is based on the number of times
+a task is required to swap-in pages.  Accordingly, the priority of a task is
+incremented if it has been badly affected due to swap-outs.  To ensure that
+the token doesnt bounce around rapidly, the token holders are given a priority
+boost.  The priority of tasks is also decremented, if their rate of swap-in's
+keeps reducing.  This way, the condition to check whether to pre-empt the swap
+token, is a matter of comparing two task's priority fields.
 
-Simple command "mount -t smbfs ..." on Fedora Core 5 distro in 32-bit mode
-leads to oops:
-
-Unable to handle kernel NULL pointer dereference at 0000000000000000 RIP:
-[<ffffffff802bc7c6>] compat_sys_mount+0xd6/0x290
-PGD 34d48067 PUD 34d03067 PMD 0
-Oops: 0000 [1] SMP
-CPU: 0
-Modules linked in: iptable_nat simfs smbfs ip_nat ip_conntrack vzdquota
-parport_pc lp parport 8021q bridge llc vznetdev vzmon nfs lockd sunrpc vzdev
-iptable_filter af_packet xt_length ipt_ttl xt_tcpmss ipt_TCPMSS
-iptable_mangle xt_limit ipt_tos ipt_REJECT ip_tables x_tables thermal
-processor fan button battery asus_acpi ac uhci_hcd ehci_hcd usbcore i2c_i801
-i2c_core e100 mii floppy ide_cd cdrom
-Pid: 14656, comm: mount
-RIP: 0060:[<ffffffff802bc7c6>]  [<ffffffff802bc7c6>]
-compat_sys_mount+0xd6/0x290
-RSP: 0000:ffff810034d31f38  EFLAGS: 00010292
-RAX: 000000000000002c RBX: 0000000000000000 RCX: 0000000000000000
-RDX: ffff810034c86bc0 RSI: 0000000000000096 RDI: ffffffff8061fc90
-RBP: ffff810034d31f78 R08: 0000000000000000 R09: 000000000000000d
-R10: ffff810034d31e58 R11: 0000000000000001 R12: ffff810039dc3000
-R13: 000000000805ea48 R14: 0000000000000000 R15: 00000000c0ed0000
-FS:  0000000000000000(0000) GS:ffffffff80749000(0033) knlGS:00000000b7d556b0
-CS:  0060 DS: 007b ES: 007b CR0: 000000008005003b
-CR2: 0000000000000000 CR3: 0000000034d43000 CR4: 00000000000006e0
-Process mount (pid: 14656, veid=300, threadinfo ffff810034d30000, task
-ffff810034c86bc0)
-Stack:  0000000000000000 ffff810034dd0000 ffff810034e4a000 000000000805ea48
- 0000000000000000 0000000000000000 0000000000000000 0000000000000000
- 000000000805ea48 ffffffff8021e64e 0000000000000000 0000000000000000
-Call Trace:
- [<ffffffff8021e64e>] ia32_sysret+0x0/0xa
-
-Code: 83 3b 06 0f 85 41 01 00 00 0f b7 43 0c 89 43 14 0f b7 43 0a
-RIP  [<ffffffff802bc7c6>] compat_sys_mount+0xd6/0x290
- RSP <ffff810034d31f38>
-CR2: 0000000000000000
-
-The problem is that data_page pointer can be NULL, so we should skip data
-conversion in this case.
-
-Signed-off-by: Andrey Mirkin <amirkin@openvz.org>
-Cc: <stable@kernel.org>
+[akpm@osdl.org: cleanups]
+Signed-off-by: Ashwin Chaugule <ashwin.chaugule@celunite.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/compat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |   13 +++-
+ include/linux/swap.h  |    1 
+ kernel/fork.c         |    8 ++
+ kernel/sysctl.c       |   11 ---
+ mm/thrash.c           |  116 +++++++++++++++-------------------------
+ 5 files changed, 63 insertions(+), 86 deletions(-)
 
-diff -puN fs/compat.c~skip-data-conversion-in-compat_sys_mount-when-data_page-is-null fs/compat.c
---- a/fs/compat.c~skip-data-conversion-in-compat_sys_mount-when-data_page-is-null
-+++ a/fs/compat.c
-@@ -871,7 +871,7 @@ asmlinkage long compat_sys_mount(char __
+diff -puN include/linux/sched.h~new-scheme-to-preempt-swap-token include/linux/sched.h
+--- a/include/linux/sched.h~new-scheme-to-preempt-swap-token
++++ a/include/linux/sched.h
+@@ -344,9 +344,16 @@ struct mm_struct {
+ 	/* Architecture-specific MM context */
+ 	mm_context_t context;
  
- 	retval = -EINVAL;
+-	/* Token based thrashing protection. */
+-	unsigned long swap_token_time;
+-	char recent_pagein;
++	/* Swap token stuff */
++	/*
++	 * Last value of global fault stamp as seen by this process.
++	 * In other words, this value gives an indication of how long
++	 * it has been since this task got the token.
++	 * Look at mm/thrash.c
++	 */
++	unsigned int faultstamp;
++	unsigned int token_priority;
++	unsigned int last_interval;
  
--	if (type_page) {
-+	if (type_page && data_page) {
- 		if (!strcmp((char *)type_page, SMBFS_NAME)) {
- 			do_smb_super_data_conv((void *)data_page);
- 		} else if (!strcmp((char *)type_page, NCPFS_NAME)) {
+ 	/* coredumping support */
+ 	int core_waiters;
+diff -puN include/linux/swap.h~new-scheme-to-preempt-swap-token include/linux/swap.h
+--- a/include/linux/swap.h~new-scheme-to-preempt-swap-token
++++ a/include/linux/swap.h
+@@ -259,7 +259,6 @@ extern spinlock_t swap_lock;
+ 
+ /* linux/mm/thrash.c */
+ extern struct mm_struct * swap_token_mm;
+-extern unsigned long swap_token_default_timeout;
+ extern void grab_swap_token(void);
+ extern void __put_swap_token(struct mm_struct *);
+ 
+diff -puN kernel/fork.c~new-scheme-to-preempt-swap-token kernel/fork.c
+--- a/kernel/fork.c~new-scheme-to-preempt-swap-token
++++ a/kernel/fork.c
+@@ -479,6 +479,10 @@ static struct mm_struct *dup_mm(struct t
+ 
+ 	memcpy(mm, oldmm, sizeof(*mm));
+ 
++	/* Initializing for Swap token stuff */
++	mm->token_priority = 0;
++	mm->last_interval = 0;
++
+ 	if (!mm_init(mm))
+ 		goto fail_nomem;
+ 
+@@ -542,6 +546,10 @@ static int copy_mm(unsigned long clone_f
+ 		goto fail_nomem;
+ 
+ good_mm:
++	/* Initializing for Swap token stuff */
++	mm->token_priority = 0;
++	mm->last_interval = 0;
++
+ 	tsk->mm = mm;
+ 	tsk->active_mm = mm;
+ 	return 0;
+diff -puN kernel/sysctl.c~new-scheme-to-preempt-swap-token kernel/sysctl.c
+--- a/kernel/sysctl.c~new-scheme-to-preempt-swap-token
++++ a/kernel/sysctl.c
+@@ -977,17 +977,6 @@ static ctl_table vm_table[] = {
+ 		.extra1		= &zero,
+ 	},
+ #endif
+-#ifdef CONFIG_SWAP
+-	{
+-		.ctl_name	= VM_SWAP_TOKEN_TIMEOUT,
+-		.procname	= "swap_token_timeout",
+-		.data		= &swap_token_default_timeout,
+-		.maxlen		= sizeof(swap_token_default_timeout),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec_jiffies,
+-		.strategy	= &sysctl_jiffies,
+-	},
+-#endif
+ #ifdef CONFIG_NUMA
+ 	{
+ 		.ctl_name	= VM_ZONE_RECLAIM_MODE,
+diff -puN mm/thrash.c~new-scheme-to-preempt-swap-token mm/thrash.c
+--- a/mm/thrash.c~new-scheme-to-preempt-swap-token
++++ a/mm/thrash.c
+@@ -7,100 +7,74 @@
+  *
+  * Simple token based thrashing protection, using the algorithm
+  * described in:  http://www.cs.wm.edu/~sjiang/token.pdf
++ *
++ * Sep 2006, Ashwin Chaugule <ashwin.chaugule@celunite.com>
++ * Improved algorithm to pass token:
++ * Each task has a priority which is incremented if it contended
++ * for the token in an interval less than its previous attempt.
++ * If the token is acquired, that task's priority is boosted to prevent
++ * the token from bouncing around too often and to let the task make
++ * some progress in its execution.
+  */
++
+ #include <linux/jiffies.h>
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/swap.h>
+ 
+ static DEFINE_SPINLOCK(swap_token_lock);
+-static unsigned long swap_token_timeout;
+-static unsigned long swap_token_check;
+-struct mm_struct * swap_token_mm = &init_mm;
+-
+-#define SWAP_TOKEN_CHECK_INTERVAL (HZ * 2)
+-#define SWAP_TOKEN_TIMEOUT	(300 * HZ)
+-/*
+- * Currently disabled; Needs further code to work at HZ * 300.
+- */
+-unsigned long swap_token_default_timeout = SWAP_TOKEN_TIMEOUT;
+-
+-/*
+- * Take the token away if the process had no page faults
+- * in the last interval, or if it has held the token for
+- * too long.
+- */
+-#define SWAP_TOKEN_ENOUGH_RSS 1
+-#define SWAP_TOKEN_TIMED_OUT 2
+-static int should_release_swap_token(struct mm_struct *mm)
+-{
+-	int ret = 0;
+-	if (!mm->recent_pagein)
+-		ret = SWAP_TOKEN_ENOUGH_RSS;
+-	else if (time_after(jiffies, swap_token_timeout))
+-		ret = SWAP_TOKEN_TIMED_OUT;
+-	mm->recent_pagein = 0;
+-	return ret;
+-}
++struct mm_struct *swap_token_mm;
++unsigned int global_faults;
+ 
+-/*
+- * Try to grab the swapout protection token.  We only try to
+- * grab it once every TOKEN_CHECK_INTERVAL, both to prevent
+- * SMP lock contention and to check that the process that held
+- * the token before is no longer thrashing.
+- */
+ void grab_swap_token(void)
+ {
+-	struct mm_struct *mm;
+-	int reason;
++	int current_interval;
+ 
+-	/* We have the token. Let others know we still need it. */
+-	if (has_swap_token(current->mm)) {
+-		current->mm->recent_pagein = 1;
+-		if (unlikely(!swap_token_default_timeout))
+-			disable_swap_token();
++	global_faults++;
++
++	current_interval = global_faults - current->mm->faultstamp;
++
++	if (!spin_trylock(&swap_token_lock))
+ 		return;
+-	}
+ 
+-	if (time_after(jiffies, swap_token_check)) {
++	/* First come first served */
++	if (swap_token_mm == NULL) {
++		current->mm->token_priority = current->mm->token_priority + 2;
++		swap_token_mm = current->mm;
++		goto out;
++	}
+ 
+-		if (!swap_token_default_timeout) {
+-			swap_token_check = jiffies + SWAP_TOKEN_CHECK_INTERVAL;
+-			return;
++	if (current->mm != swap_token_mm) {
++		if (current_interval < current->mm->last_interval)
++			current->mm->token_priority++;
++		else {
++			current->mm->token_priority--;
++			if (unlikely(current->mm->token_priority < 0))
++				current->mm->token_priority = 0;
+ 		}
+-
+-		/* ... or if we recently held the token. */
+-		if (time_before(jiffies, current->mm->swap_token_time))
+-			return;
+-
+-		if (!spin_trylock(&swap_token_lock))
+-			return;
+-
+-		swap_token_check = jiffies + SWAP_TOKEN_CHECK_INTERVAL;
+-
+-		mm = swap_token_mm;
+-		if ((reason = should_release_swap_token(mm))) {
+-			unsigned long eligible = jiffies;
+-			if (reason == SWAP_TOKEN_TIMED_OUT) {
+-				eligible += swap_token_default_timeout;
+-			}
+-			mm->swap_token_time = eligible;
+-			swap_token_timeout = jiffies + swap_token_default_timeout;
++		/* Check if we deserve the token */
++		if (current->mm->token_priority >
++				swap_token_mm->token_priority) {
++			current->mm->token_priority += 2;
+ 			swap_token_mm = current->mm;
+ 		}
+-		spin_unlock(&swap_token_lock);
++	} else {
++		/* Token holder came in again! */
++		current->mm->token_priority += 2;
+ 	}
+-	return;
++
++out:
++	current->mm->faultstamp = global_faults;
++	current->mm->last_interval = current_interval;
++	spin_unlock(&swap_token_lock);
++return;
+ }
+ 
+ /* Called on process exit. */
+ void __put_swap_token(struct mm_struct *mm)
+ {
+ 	spin_lock(&swap_token_lock);
+-	if (likely(mm == swap_token_mm)) {
+-		mm->swap_token_time = jiffies + SWAP_TOKEN_CHECK_INTERVAL;
+-		swap_token_mm = &init_mm;
+-		swap_token_check = jiffies;
+-	}
++	if (likely(mm == swap_token_mm))
++		swap_token_mm = NULL;
+ 	spin_unlock(&swap_token_lock);
+ }
 _
 
-Patches currently in -mm which might be from amirkin@openvz.org are
+Patches currently in -mm which might be from ashwin.chaugule@celunite.com are
 
 origin.patch
 
