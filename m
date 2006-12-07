@@ -1,76 +1,69 @@
 From: akpm@osdl.org
-Subject: - remove-useless-carta_random32h.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:08:28 -0800
-Message-ID: <200612072308.kB7N8Uji030420@shell0.pdx.osdl.net>
+Subject: - ext4-balloc-fix-off-by-one-against-rsv_end.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:14:43 -0800
+Message-ID: <200612072314.kB7NEhY9030650__33677.9683050283$1165533320$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53498 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53493 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163885AbWLGXO7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:14:59 -0500
+	id S1163734AbWLGXOx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:14:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eranian@hpl.hp.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove useless carta_random32.h
+     ext4 balloc: fix off-by-one against rsv_end
 has been removed from the -mm tree.  Its filename was
-     remove-useless-carta_random32h.patch
+     ext4-balloc-fix-off-by-one-against-rsv_end.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove useless carta_random32.h
-From: Stephane Eranian <eranian@hpl.hp.com>
+Subject: ext4 balloc: fix off-by-one against rsv_end
+From: Hugh Dickins <hugh@veritas.com>
 
-Remove the carta_random32.h header file.  The carta_random32() function was
-was put in and removed in favor of random32().  In the removal process, the
-header file was forgotten.
+rsv_end is the last block within the reservation, so alloc_new_reservation
+should accept start_block == rsv_end as success.
 
-Signed-off-by: Stephane Eranian <eranian@hpl.hp.com>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/carta_random32.h |   29 -----------------------------
- 1 file changed, 29 deletions(-)
+ fs/ext4/balloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/carta_random32.h~remove-useless-carta_random32h /dev/null
---- a/include/linux/carta_random32.h
-+++ /dev/null
-@@ -1,29 +0,0 @@
--/*
-- * Fast, simple, yet decent quality random number generator based on
-- * a paper by David G. Carta ("Two Fast Implementations of the
-- * `Minimal Standard' Random Number Generator," Communications of the
-- * ACM, January, 1990).
-- *
-- * Copyright (c) 2002-2006 Hewlett-Packard Development Company, L.P.
-- *	Contributed by Stephane Eranian <eranian@hpl.hp.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of version 2 of the GNU General Public
-- * License as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-- * 02111-1307 USA
-- */
--#ifndef _LINUX_CARTA_RANDOM32_H_
--#define _LINUX_CARTA_RANDOM32_H_
--
--u64 carta_random32(u64 seed);
--
--#endif /* _LINUX_CARTA_RANDOM32_H_ */
+diff -puN fs/ext4/balloc.c~ext4-balloc-fix-off-by-one-against-rsv_end fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-balloc-fix-off-by-one-against-rsv_end
++++ a/fs/ext4/balloc.c
+@@ -1165,7 +1165,7 @@ retry:
+ 	 * check if the first free block is within the
+ 	 * free space we just reserved
+ 	 */
+-	if (start_block >= my_rsv->rsv_start && start_block < my_rsv->rsv_end)
++	if (start_block >= my_rsv->rsv_start && start_block <= my_rsv->rsv_end)
+ 		return 0;		/* success */
+ 	/*
+ 	 * if the first free bit we found is out of the reservable space
 _
 
-Patches currently in -mm which might be from eranian@hpl.hp.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
+ext2-reservations.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
+generic-bug-implementation.patch
+generic-bug-implementation-handle-bug=n.patch
+generic-bug-for-i386.patch
+generic-bug-for-x86-64.patch
+bug-test-1.patch
+tty-switch-to-ktermios-powerpc-fix.patch
 
