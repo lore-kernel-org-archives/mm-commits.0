@@ -1,215 +1,302 @@
 From: akpm@osdl.org
-Subject: - alpha-switch-to-pci_get-api.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:58:55 -0800
-Message-ID: <200612072258.kB7MwtqO029441@shell0.pdx.osdl.net>
+Subject: - swsusp-rearrange-swap-handling-code.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:59:05 -0800
+Message-ID: <200612072259.kB7Mx53e029453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50884 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50960 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163665AbWLGW7O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:59:14 -0500
+	id S1163668AbWLGW7f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:59:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: switch to pci_get API
+     swsusp: rearrange swap-handling code
 has been removed from the -mm tree.  Its filename was
-     alpha-switch-to-pci_get-api.patch
+     swsusp-rearrange-swap-handling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: switch to pci_get API
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: swsusp: rearrange swap-handling code
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Now that we have pci_get_bus_and_slot we can do the job correctly.  Note that
-some of these calls intentionally leak a device - this is because the device
-in question is always needed from boot to reboot.
+Rearrange the code in kernel/power/swap.c so that the next patch is more
+readable.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+[This patch only moves the existing code.]
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/alpha/kernel/pci.c          |    3 ++-
- arch/alpha/kernel/sys_miata.c    |   10 +++++++---
- arch/alpha/kernel/sys_nautilus.c |    2 +-
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ kernel/power/swap.c |  221 +++++++++++++++++++++---------------------
+ 1 file changed, 112 insertions(+), 109 deletions(-)
 
-diff -puN arch/alpha/kernel/pci.c~alpha-switch-to-pci_get-api arch/alpha/kernel/pci.c
---- a/arch/alpha/kernel/pci.c~alpha-switch-to-pci_get-api
-+++ a/arch/alpha/kernel/pci.c
-@@ -516,10 +516,11 @@ sys_pciconfig_iobase(long which, unsigne
- 		if (bus == 0 && dfn == 0) {
- 			hose = pci_isa_hose;
- 		} else {
--			dev = pci_find_slot(bus, dfn);
-+			dev = pci_get_bus_and_slot(bus, dfn);
- 			if (!dev)
- 				return -ENODEV;
- 			hose = dev->sysdata;
-+			pci_dev_put(dev);
- 		}
- 	}
+diff -puN kernel/power/swap.c~swsusp-rearrange-swap-handling-code kernel/power/swap.c
+--- a/kernel/power/swap.c~swsusp-rearrange-swap-handling-code
++++ a/kernel/power/swap.c
+@@ -41,10 +41,121 @@ static struct swsusp_header {
+ } __attribute__((packed, aligned(PAGE_SIZE))) swsusp_header;
  
-diff -puN arch/alpha/kernel/sys_miata.c~alpha-switch-to-pci_get-api arch/alpha/kernel/sys_miata.c
---- a/arch/alpha/kernel/sys_miata.c~alpha-switch-to-pci_get-api
-+++ a/arch/alpha/kernel/sys_miata.c
-@@ -183,11 +183,15 @@ miata_map_irq(struct pci_dev *dev, u8 sl
+ /*
+- * Saving part...
++ * General things
+  */
  
- 	if((slot == 7) && (PCI_FUNC(dev->devfn) == 3)) {
- 		u8 irq=0;
+ static unsigned short root_swap = 0xffff;
++static struct block_device *resume_bdev;
++
++/**
++ *	submit - submit BIO request.
++ *	@rw:	READ or WRITE.
++ *	@off	physical offset of page.
++ *	@page:	page we're reading or writing.
++ *	@bio_chain: list of pending biod (for async reading)
++ *
++ *	Straight from the textbook - allocate and initialize the bio.
++ *	If we're reading, make sure the page is marked as dirty.
++ *	Then submit it and, if @bio_chain == NULL, wait.
++ */
++static int submit(int rw, pgoff_t page_off, struct page *page,
++			struct bio **bio_chain)
++{
++	struct bio *bio;
++
++	bio = bio_alloc(GFP_ATOMIC, 1);
++	if (!bio)
++		return -ENOMEM;
++	bio->bi_sector = page_off * (PAGE_SIZE >> 9);
++	bio->bi_bdev = resume_bdev;
++	bio->bi_end_io = end_swap_bio_read;
++
++	if (bio_add_page(bio, page, PAGE_SIZE, 0) < PAGE_SIZE) {
++		printk("swsusp: ERROR: adding page to bio at %ld\n", page_off);
++		bio_put(bio);
++		return -EFAULT;
++	}
++
++	lock_page(page);
++	bio_get(bio);
++
++	if (bio_chain == NULL) {
++		submit_bio(rw | (1 << BIO_RW_SYNC), bio);
++		wait_on_page_locked(page);
++		if (rw == READ)
++			bio_set_pages_dirty(bio);
++		bio_put(bio);
++	} else {
++		if (rw == READ)
++			get_page(page);	/* These pages are freed later */
++		bio->bi_private = *bio_chain;
++		*bio_chain = bio;
++		submit_bio(rw | (1 << BIO_RW_SYNC), bio);
++	}
++	return 0;
++}
++
++static int bio_read_page(pgoff_t page_off, void *addr, struct bio **bio_chain)
++{
++	return submit(READ, page_off, virt_to_page(addr), bio_chain);
++}
++
++static int bio_write_page(pgoff_t page_off, void *addr)
++{
++	return submit(WRITE, page_off, virt_to_page(addr), NULL);
++}
++
++static int wait_on_bio_chain(struct bio **bio_chain)
++{
++	struct bio *bio;
++	struct bio *next_bio;
++	int ret = 0;
++
++	if (bio_chain == NULL)
++		return 0;
++
++	bio = *bio_chain;
++	if (bio == NULL)
++		return 0;
++	while (bio) {
++		struct page *page;
++
++		next_bio = bio->bi_private;
++		page = bio->bi_io_vec[0].bv_page;
++		wait_on_page_locked(page);
++		if (!PageUptodate(page) || PageError(page))
++			ret = -EIO;
++		put_page(page);
++		bio_put(bio);
++		bio = next_bio;
++	}
++	*bio_chain = NULL;
++	return ret;
++}
++
++static void show_speed(struct timeval *start, struct timeval *stop,
++			unsigned nr_pages, char *msg)
++{
++	s64 elapsed_centisecs64;
++	int centisecs;
++	int k;
++	int kps;
++
++	elapsed_centisecs64 = timeval_to_ns(stop) - timeval_to_ns(start);
++	do_div(elapsed_centisecs64, NSEC_PER_SEC / 100);
++	centisecs = elapsed_centisecs64;
++	if (centisecs == 0)
++		centisecs = 1;	/* avoid div-by-zero */
++	k = nr_pages * (PAGE_SIZE / 1024);
++	kps = (k * 100) / centisecs;
++	printk("%s %d kbytes in %d.%02d seconds (%d.%02d MB/s)\n", msg, k,
++			centisecs / 100, centisecs % 100,
++			kps / 1000, (kps % 1000) / 10);
++}
++
++/*
++ * Saving part
++ */
+ 
+ static int mark_swapfiles(swp_entry_t start)
+ {
+@@ -166,26 +277,6 @@ static void release_swap_writer(struct s
+ 	handle->bitmap = NULL;
+ }
+ 
+-static void show_speed(struct timeval *start, struct timeval *stop,
+-			unsigned nr_pages, char *msg)
+-{
+-	s64 elapsed_centisecs64;
+-	int centisecs;
+-	int k;
+-	int kps;
 -
--		if(pci_read_config_byte(pci_find_slot(dev->bus->number, dev->devfn & ~(7)), 0x40,&irq)!=PCIBIOS_SUCCESSFUL)
-+		struct pci_dev *pdev = pci_get_slot(dev->bus, dev->devfn & ~7);
-+		if(pdev == NULL || pci_read_config_byte(pdev, 0x40,&irq) != PCIBIOS_SUCCESSFUL) {
-+			pci_dev_put(pdev);
- 			return -1;
--		else	
-+		}
-+		else	{
-+			pci_dev_put(pdev);
- 			return irq;
-+		}
- 	}
+-	elapsed_centisecs64 = timeval_to_ns(stop) - timeval_to_ns(start);
+-	do_div(elapsed_centisecs64, NSEC_PER_SEC / 100);
+-	centisecs = elapsed_centisecs64;
+-	if (centisecs == 0)
+-		centisecs = 1;	/* avoid div-by-zero */
+-	k = nr_pages * (PAGE_SIZE / 1024);
+-	kps = (k * 100) / centisecs;
+-	printk("%s %d kbytes in %d.%02d seconds (%d.%02d MB/s)\n", msg, k,
+-			centisecs / 100, centisecs % 100,
+-			kps / 1000, (kps % 1000) / 10);
+-}
+-
+ static int get_swap_writer(struct swap_map_handle *handle)
+ {
+ 	handle->cur = (struct swap_map_page *)get_zeroed_page(GFP_KERNEL);
+@@ -205,34 +296,6 @@ static int get_swap_writer(struct swap_m
+ 	return 0;
+ }
  
- 	return COMMON_TABLE_LOOKUP;
-diff -puN arch/alpha/kernel/sys_nautilus.c~alpha-switch-to-pci_get-api arch/alpha/kernel/sys_nautilus.c
---- a/arch/alpha/kernel/sys_nautilus.c~alpha-switch-to-pci_get-api
-+++ a/arch/alpha/kernel/sys_nautilus.c
-@@ -200,7 +200,7 @@ nautilus_init_pci(void)
- 	bus = pci_scan_bus(0, alpha_mv.pci_ops, hose);
- 	hose->bus = bus;
+-static int wait_on_bio_chain(struct bio **bio_chain)
+-{
+-	struct bio *bio;
+-	struct bio *next_bio;
+-	int ret = 0;
+-
+-	if (bio_chain == NULL)
+-		return 0;
+-
+-	bio = *bio_chain;
+-	if (bio == NULL)
+-		return 0;
+-	while (bio) {
+-		struct page *page;
+-
+-		next_bio = bio->bi_private;
+-		page = bio->bi_io_vec[0].bv_page;
+-		wait_on_page_locked(page);
+-		if (!PageUptodate(page) || PageError(page))
+-			ret = -EIO;
+-		put_page(page);
+-		bio_put(bio);
+-		bio = next_bio;
+-	}
+-	*bio_chain = NULL;
+-	return ret;
+-}
+-
+ static int swap_write_page(struct swap_map_handle *handle, void *buf,
+ 				struct bio **bio_chain)
+ {
+@@ -384,66 +447,6 @@ int swsusp_write(void)
+ 	return error;
+ }
  
--	irongate = pci_find_slot(0, 0);
-+	irongate = pci_get_bus_and_slot(0, 0);
- 	bus->self = irongate;
- 	bus->resource[1] = &irongate_mem;
- 
+-static struct block_device *resume_bdev;
+-
+-/**
+- *	submit - submit BIO request.
+- *	@rw:	READ or WRITE.
+- *	@off	physical offset of page.
+- *	@page:	page we're reading or writing.
+- *	@bio_chain: list of pending biod (for async reading)
+- *
+- *	Straight from the textbook - allocate and initialize the bio.
+- *	If we're reading, make sure the page is marked as dirty.
+- *	Then submit it and, if @bio_chain == NULL, wait.
+- */
+-static int submit(int rw, pgoff_t page_off, struct page *page,
+-			struct bio **bio_chain)
+-{
+-	struct bio *bio;
+-
+-	bio = bio_alloc(GFP_ATOMIC, 1);
+-	if (!bio)
+-		return -ENOMEM;
+-	bio->bi_sector = page_off * (PAGE_SIZE >> 9);
+-	bio->bi_bdev = resume_bdev;
+-	bio->bi_end_io = end_swap_bio_read;
+-
+-	if (bio_add_page(bio, page, PAGE_SIZE, 0) < PAGE_SIZE) {
+-		printk("swsusp: ERROR: adding page to bio at %ld\n", page_off);
+-		bio_put(bio);
+-		return -EFAULT;
+-	}
+-
+-	lock_page(page);
+-	bio_get(bio);
+-
+-	if (bio_chain == NULL) {
+-		submit_bio(rw | (1 << BIO_RW_SYNC), bio);
+-		wait_on_page_locked(page);
+-		if (rw == READ)
+-			bio_set_pages_dirty(bio);
+-		bio_put(bio);
+-	} else {
+-		if (rw == READ)
+-			get_page(page);	/* These pages are freed later */
+-		bio->bi_private = *bio_chain;
+-		*bio_chain = bio;
+-		submit_bio(rw | (1 << BIO_RW_SYNC), bio);
+-	}
+-	return 0;
+-}
+-
+-static int bio_read_page(pgoff_t page_off, void *addr, struct bio **bio_chain)
+-{
+-	return submit(READ, page_off, virt_to_page(addr), bio_chain);
+-}
+-
+-static int bio_write_page(pgoff_t page_off, void *addr)
+-{
+-	return submit(WRITE, page_off, virt_to_page(addr), NULL);
+-}
+-
+ /**
+  *	The following functions allow us to read data using a swap map
+  *	in a file-alike way
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-ata-fix-platform_device_register_simple-error-check.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pci-quirks-fix-the-festering-mess-that-claims-to-handle-ide-quirks-ide-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-via-sb600-sata-quirk.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-ide-complete-switch-to-pci_get.patch
-do_task_stat-dont-take-tty_mutex.patch
-mxser-correct-tty-driver-name.patch
-pci-mxser-pci-refcounts.patch
-mxser-make-an-experimental-clone.patch
-char-mxser_new-correct-include-file.patch
-char-mxser_new-upgrade-to-191.patch
-char-mxser_new-rework-to-allow-dynamic-structs.patch
-char-mxser_new-eliminate-tty-ldisc-deref.patch
-char-mxser_new-testbit-for-bit-testing.patch
-char-mxser_new-correct-fail-paths.patch
-char-mxser_new-dont-check-tty_unregister-retval.patch
-char-mxser_new-compress-isa-finding.patch
-char-mxser_new-register-tty-devices-on-the-fly.patch
-char-mxser_new-compact-structures-round2.patch
-char-mxser_new-reverse-if-else-paths-patch.patch
-char-mxser_new-comments-cleanup.patch
-char-mxser_new-correct-intr-handler-proto.patch
-char-mxser_new-delete-ttys-and-termios.patch
-char-mxser_new-pci-probing.patch
-mxser_new-correct-tty-driver-name.patch
-char-stallion-use-pr_debug-macro.patch
-char-stallion-remove-unneeded-casts.patch
-char-stallion-kill-typedefs.patch
-char-stallion-move-init-deinit.patch
-char-stallion-uninline-functions.patch
-char-stallion-mark-functions-as-init.patch
-char-stallion-remove-many-prototypes.patch
-tty-preparatory-structures-for-termios-revamp.patch
-tty-preparatory-structures-for-termios-revamp-strip-fix.patch
-tty-switch-to-ktermios-and-new-framework.patch
-tty-switch-to-ktermios.patch
-tty-switch-to-ktermios-nozomi-fix.patch
-tty-switch-to-ktermios-bluetooth-fix.patch
-tty-switch-to-ktermios-3270-fix.patch
-tty-switch-to-ktermios-uml-fix.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-update.patch
-termios-enable-new-style-termios-ioctls-on-x86-64.patch
-char-isicom-use-completion.patch
-char-isicom-simplify-timer.patch
-char-isicom-remove-cvs-stuff.patch
-char-isicom-fix-tty-index-check.patch
-char-sx-convert-to-pci-probing.patch
-char-sx-use-kcalloc.patch
-char-sx-mark-functions-as-devinit.patch
-char-sx-use-eisa-probing.patch
-char-sx-ifdef-isa-code.patch
-char-sx-lock-boards-struct.patch
-char-sx-remove-duplicite-code.patch
-char-sx-whitespace-cleanup.patch
-char-sx-simplify-timer-logic.patch
-char-sx-fix-return-in-module-init.patch
-char-sx-use-pci_iomap.patch
-char-sx-request-regions.patch
-char-stallion-convert-to-pci-probing.patch
-char-stallion-prints-cleanup.patch
-char-stallion-implement-fail-paths.patch
-char-stallion-correct-__init-macros.patch
-char-stallion-functions-cleanup.patch
-char-stallion-fix-fail-paths.patch
-char-stallion-brd-struct-locking.patch
-char-stallion-remove-syntactic-sugar.patch
-char-stallion-variables-cleanup.patch
-char-stallion-use-dynamic-dev.patch
-char-istallion-convert-to-pci-probing.patch
-char-istallion-remove-the-mess.patch
-char-istallion-eliminate-typedefs.patch
-char-istallion-variables-cleanup.patch
-char-istallion-ifdef-eisa-code.patch
-char-istallion-brdnr-locking.patch
-char-istallion-free-only-isa.patch
-char-istallion-correct-fail-paths.patch
-char-istallion-fix-enabling.patch
-char-istallion-move-init-and-exit-code.patch
-char-istallion-change-init-sequence.patch
-char-istallion-dynamic-tty-device.patch
-char-istallion-use-mod_timer.patch
-char-cyclades-save-indent-levels.patch
-char-cyclades-lindent-the-code.patch
-char-cyclades-cleanup.patch
-char-cyclades-fix-warnings.patch
-ide-hpt3xxn-clocking-fixes.patch
-ide-fix-hpt37x-timing-tables.patch
-ide-optimize-hpt37x-timing-tables.patch
-ide-fix-hpt3xx-hotswap-support.patch
-ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch
-ide-hpt3xx-fix-pci-clock-detection.patch
-ide-hpt3xx-fix-pci-clock-detection-fix-2.patch
-piix-fix-82371mx-enablebits.patch
-piix-remove-check-for-broken-mw-dma-mode-0.patch
-piix-slc90e66-pio-mode-fallback-fix.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-ide-more-conversion-to-pci_get-apis.patch
-pdc202xx_new-fix-pio-mode-setup.patch
-ide-cd-handle-strange-interrupt-on-the-intel-esb2.patch
-sl82c105-straighten-up-ide-control-status-register-caching.patch
-igafb-switch-to-pci_get-api.patch
+git-acpi.patch
+md-change-lifetime-rules-for-md-devices.patch
 
