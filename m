@@ -1,62 +1,213 @@
 From: akpm@osdl.org
-Subject: + watchdog-omap_wdt-build-fix.patch added to -mm tree
-Date: Thu, 07 Dec 2006 12:28:40 -0800
-Message-ID: <200612072028.kB7KSeJa024516@shell0.pdx.osdl.net>
+Subject: + lockdep-improve-verbose-messages.patch added to -mm tree
+Date: Thu, 07 Dec 2006 12:32:21 -0800
+Message-ID: <200612072032.kB7KWLWd024665@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36340 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36498 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163293AbWLGU25 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 15:28:57 -0500
+	id S1163303AbWLGUc2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 15:32:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: mingo@elte.hu
 
 
 The patch titled
-     watchdog: omap_wdt build fix
+     lockdep: improve verbose messages
 has been added to the -mm tree.  Its filename is
-     watchdog-omap_wdt-build-fix.patch
+     lockdep-improve-verbose-messages.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: watchdog: omap_wdt build fix
-From: David Brownell <david-b@pacbell.net>
+Subject: lockdep: improve verbose messages
+From: Ingo Molnar <mingo@elte.hu>
 
-Recent driver model changes affected "miscdev" and broke
-the build for the OMAP watchdog timer; fixed by this patch.
+Make verbose lockdep messages (off by default) more informative by printing
+out the hash chain key.  (this patch was what helped me catch the earlier
+lockdep hash-collision bug)
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/watchdog/omap_wdt.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/lockdep.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/watchdog/omap_wdt.c~watchdog-omap_wdt-build-fix drivers/char/watchdog/omap_wdt.c
---- a/drivers/char/watchdog/omap_wdt.c~watchdog-omap_wdt-build-fix
-+++ a/drivers/char/watchdog/omap_wdt.c
-@@ -290,7 +290,7 @@ static int __init omap_wdt_probe(struct 
- 	omap_wdt_disable();
- 	omap_wdt_adjust_timeout(timer_margin);
- 
--	omap_wdt_miscdev.dev = &pdev->dev;
-+	omap_wdt_miscdev.parent = &pdev->dev;
- 	ret = misc_register(&omap_wdt_miscdev);
- 	if (ret)
- 		goto fail;
+diff -puN kernel/lockdep.c~lockdep-improve-verbose-messages kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-improve-verbose-messages
++++ a/kernel/lockdep.c
+@@ -1265,7 +1265,7 @@ out_unlock_set:
+  * add it and return 0 - in this case the new dependency chain is
+  * validated. If the key is already hashed, return 1.
+  */
+-static inline int lookup_chain_cache(u64 chain_key)
++static inline int lookup_chain_cache(u64 chain_key, struct lock_class *class)
+ {
+ 	struct list_head *hash_head = chainhashentry(chain_key);
+ 	struct lock_chain *chain;
+@@ -1287,9 +1287,13 @@ cache_hit:
+ 			__raw_spin_lock(&hash_lock);
+ 			return 1;
+ #endif
++			if (very_verbose(class))
++				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
+ 			return 0;
+ 		}
+ 	}
++	if (very_verbose(class))
++		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
+ 	/*
+ 	 * Allocate a new chain entry from the static array, and add
+ 	 * it to the hash:
+@@ -2140,7 +2144,7 @@ out_calc_hash:
+ 	 * (If lookup_chain_cache() returns with 1 it acquires
+ 	 * hash_lock for us)
+ 	 */
+-	if (!trylock && (check == 2) && lookup_chain_cache(chain_key)) {
++	if (!trylock && (check == 2) && lookup_chain_cache(chain_key, class)) {
+ 		/*
+ 		 * Check whether last held lock:
+ 		 *
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-spi-improve-sysfs-compiler-complaint-handling.patch
-correct-bus_num-and-buffer-bug-in-spi-core.patch
-spi-set-kset-of-master-class-dev-explicitly.patch
-add-rtc-omap-driver.patch
-mmc-fix-syntax-error.patch
-watchdog-omap_wdt-build-fix.patch
+add-bottom_half.h.patch
+convert-pm_sem-to-a-mutex.patch
+lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
+sysrq-x-show-blocked-tasks.patch
+lockdep-internal-locking-fixes.patch
+lockdep-misc-fixes-in-lockdepc.patch
+binfmt_elf-randomize-pie-binaries.patch
+disable-clone_child_cleartid-for-abnormal-exit.patch
+lockdep-annotate-bcsp-driver.patch
+lockdep-print-current-locks-on-in_atomic-warnings.patch
+lockdep-name-some-old-style-locks.patch
+sleep-profiling.patch
+debug-workqueue-locking-sanity.patch
+retries-in-ext3_prepare_write-violate-ordering-requirements.patch
+retries-in-ext4_prepare_write-violate-ordering-requirements.patch
+ktime-fix-signed--unsigned-mismatch-in-ktime_to_ns.patch
+kprobes-enable-booster-on-the-preemptible-kernel.patch
+declare-smp_call_function_single-in-generic-code.patch
+smp_call_function_single-check-that-local-interrupts-are-enabled.patch
+hotplug-cpu-clean-up-hotcpu_notifier-use.patch
+remove-kernel-lockdepclockdep_internal.patch
+lockdep-more-chains.patch
+lockdep-show-more-details-about-self-test-failures.patch
+softirq-remove-bug_ons-which-can-incorrectly-trigger.patch
+futex-remove-unneeded-barrier.patch
+lockdep-register_lock_class-fix.patch
+add-ignore_loglevel-boot-option.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
+time-re-add-verify_pmtmr_rate.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+fix-generic-warn_on-message.patch
+schedc-correct-comment-for-this_rq_lock-routine.patch
+sched-fix-migration-cost-estimator.patch
+sched-domain-move-sched-group-allocations-to-percpu-area.patch
+move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
+sched-domain-increase-the-smt-busy-rebalance-interval.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+sched-improve-migration-accuracy.patch
+sched-improve-migration-accuracy-tidy.patch
+sched-decrease-number-of-load-balances.patch
+sched-remove-lb_stopbalance-counter.patch
+sched-optimize-activate_task-for-rt-task.patch
+kernel-schedc-whitespace-cleanups.patch
+kernel-schedc-whitespace-cleanups-more.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+time-uninline-jiffiesh.patch
+time-uninline-jiffiesh-fix.patch
+time-fix-msecs_to_jiffies-bug.patch
+time-fix-timeout-overflow.patch
+cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-acpi-include-apich.patch
+updated-acpi-keep-track-of-timer-broadcast.patch
+updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+updated-i386-cleanup-apic-code.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-high-res-timers-core.patch
+updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+high-res-timers-utilize-tsc-clocksource-again.patch
+high-res-timers-utilize-tsc-clocksource-again-fix.patch
+updated-dynticks-core-code.patch
+updated-dynticks-core-code-fix-resume-bug.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-dynticks-fix-nmi-watchdog.patch
+updated-high-res-timers-dynticks-enable-i386-support.patch
+updated-debugging-feature-timer-stats.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+round_jiffies-infrastructure.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
+clocksource-small-cleanup-2-fix.patch
+clocksource-small-acpi_pm-cleanup.patch
+kvm-amd-svm-implementation-more-i386-fixes.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
 
