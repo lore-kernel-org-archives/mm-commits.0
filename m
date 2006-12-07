@@ -1,75 +1,87 @@
 From: akpm@osdl.org
-Subject: - softirq-remove-bug_ons-which-can-incorrectly-trigger.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:15:18 -0800
-Message-ID: <200612072315.kB7NFINQ030715@shell0.pdx.osdl.net>
+Subject: - ext4-balloc-say-rb_entry-not-list_entry.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:14:46 -0800
+Message-ID: <200612072314.kB7NEkIs030653__3685.49533091045$1165533395$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53598 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53627 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163751AbWLGXQL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:16:11 -0500
+	id S1163796AbWLGXQZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:16:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach@vmware.com, caglar@pardus.org.tr, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     softirq: remove BUG_ONs which can incorrectly trigger
+     ext4 balloc: say rb_entry not list_entry
 has been removed from the -mm tree.  Its filename was
-     softirq-remove-bug_ons-which-can-incorrectly-trigger.patch
+     ext4-balloc-say-rb_entry-not-list_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: softirq: remove BUG_ONs which can incorrectly trigger
-From: Zachary Amsden <zach@vmware.com>
+Subject: ext4 balloc: say rb_entry not list_entry
+From: Hugh Dickins <hugh@veritas.com>
 
-It is possible to have tasklets get scheduled before softirqd has had a chance
-to spawn on all CPUs.  This is totally harmless; after success during action
-CPU_UP_PREPARE, action CPU_ONLINE will be called, which immediately wakes
-softirqd on the appropriate CPU to process the already pending tasklets.  So
-there is no danger of having a missed wakeup for any tasklets that were
-already pending.
+The reservations tree is an rb_tree not a list, so it's less confusing to use
+rb_entry() than list_entry() - though they're both just container_of().
 
-In particular, i386 is affected by this during startup, and is visible when
-using a very large initrd; during the time it takes for the initrd to be
-decompressed, a timer IRQ can come in and schedule RCU callbacks.  It is also
-possible that resending of a hardware IRQ via a softirq triggers the same bug.
-
-Because of different timing conditions, this shows up in all emulators and
-virtual machines tested, including Xen, VMware, Virtual PC, and Qemu.  It is
-also possible to trigger on native hardware with a large enough initrd,
-although I don't have a reliable case demonstrating that.
-
-Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: <caglar@pardus.org.tr>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/softirq.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ext4/balloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/softirq.c~softirq-remove-bug_ons-which-can-incorrectly-trigger kernel/softirq.c
---- a/kernel/softirq.c~softirq-remove-bug_ons-which-can-incorrectly-trigger
-+++ a/kernel/softirq.c
-@@ -574,8 +574,6 @@ static int __cpuinit cpu_callback(struct
+diff -puN fs/ext4/balloc.c~ext4-balloc-say-rb_entry-not-list_entry fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-balloc-say-rb_entry-not-list_entry
++++ a/fs/ext4/balloc.c
+@@ -165,7 +165,7 @@ restart:
  
- 	switch (action) {
- 	case CPU_UP_PREPARE:
--		BUG_ON(per_cpu(tasklet_vec, hotcpu).list);
--		BUG_ON(per_cpu(tasklet_hi_vec, hotcpu).list);
- 		p = kthread_create(ksoftirqd, hcpu, "ksoftirqd/%d", hotcpu);
- 		if (IS_ERR(p)) {
- 			printk("ksoftirqd for %i failed\n", hotcpu);
+ 	printk("Block Allocation Reservation Windows Map (%s):\n", fn);
+ 	while (n) {
+-		rsv = list_entry(n, struct ext4_reserve_window_node, rsv_node);
++		rsv = rb_entry(n, struct ext4_reserve_window_node, rsv_node);
+ 		if (verbose)
+ 			printk("reservation window 0x%p "
+ 			       "start:  %llu, end:  %llu\n",
+@@ -966,7 +966,7 @@ static int find_next_reservable_window(
+ 
+ 		prev = rsv;
+ 		next = rb_next(&rsv->rsv_node);
+-		rsv = list_entry(next,struct ext4_reserve_window_node,rsv_node);
++		rsv = rb_entry(next,struct ext4_reserve_window_node,rsv_node);
+ 
+ 		/*
+ 		 * Reached the last reservation, we can just append to the
+@@ -1210,7 +1210,7 @@ static void try_to_extend_reservation(st
+ 	if (!next)
+ 		my_rsv->rsv_end += size;
+ 	else {
+-		next_rsv = list_entry(next, struct ext4_reserve_window_node, rsv_node);
++		next_rsv = rb_entry(next, struct ext4_reserve_window_node, rsv_node);
+ 
+ 		if ((next_rsv->rsv_start - my_rsv->rsv_end - 1) >= size)
+ 			my_rsv->rsv_end += size;
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-convert-i386-pda-code-to-use-%fs.patch
-updated-i386-cleanup-apic-code.patch
-updated-i386-rework-local-apic-calibration.patch
-updated-dynticks-fix-nmi-watchdog.patch
+ext2-reservations.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
+generic-bug-implementation.patch
+generic-bug-implementation-handle-bug=n.patch
+generic-bug-for-i386.patch
+generic-bug-for-x86-64.patch
+bug-test-1.patch
+tty-switch-to-ktermios-powerpc-fix.patch
 
