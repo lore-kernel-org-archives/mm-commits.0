@@ -1,91 +1,99 @@
 From: akpm@osdl.org
-Subject: - fix-kunmap_atomics-use-of-kpte_clear_flush.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 14:56:52 -0800
-Message-ID: <200612072256.kB7MuqwI029244@shell0.pdx.osdl.net>
+Subject: - always-print-out-the-header-line-in-proc-swaps.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 14:57:07 -0800
+Message-ID: <200612072257.kB7Mv7mJ029259@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50537 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50592 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163603AbWLGW5A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:57:00 -0500
+	id S1163584AbWLGW50 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:57:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
+To: ssouhlal@FreeBSD.org, hugh@veritas.com, suleiman@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix kunmap_atomic's use of kpte_clear_flush()
+     Always print out the header line in /proc/swaps
 has been removed from the -mm tree.  Its filename was
-     fix-kunmap_atomics-use-of-kpte_clear_flush.patch
+     always-print-out-the-header-line-in-proc-swaps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix kunmap_atomic's use of kpte_clear_flush()
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Always print out the header line in /proc/swaps
+From: Suleiman Souhlal <ssouhlal@FreeBSD.org>
 
-kunmap_atomic() will call kpte_clear_flush with vaddr/ptep arguments which
-don't correspond if the vaddr is just a normal lowmem address (ie, not in
-the KMAP area).  This patch makes sure that the pte is only cleared if kmap
-area was actually used for the mapping.
+It would be possible for /proc/swaps to not always print out the header:
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Zachary Amsden <zach@vmware.com>
+swapon /dev/hdc2
+swapon /dev/hde2
+swapoff /dev/hdc2
+
+At this point /proc/swaps would not have a header.
+
+Signed-off-by: Suleiman Souhlal <suleiman@google.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/mm/highmem.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ mm/swapfile.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/mm/highmem.c~fix-kunmap_atomics-use-of-kpte_clear_flush arch/i386/mm/highmem.c
---- a/arch/i386/mm/highmem.c~fix-kunmap_atomics-use-of-kpte_clear_flush
-+++ a/arch/i386/mm/highmem.c
-@@ -50,22 +50,20 @@ void kunmap_atomic(void *kvaddr, enum km
- 	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
- 	enum fixed_addresses idx = type + KM_TYPE_NR*smp_processor_id();
+diff -puN mm/swapfile.c~always-print-out-the-header-line-in-proc-swaps mm/swapfile.c
+--- a/mm/swapfile.c~always-print-out-the-header-line-in-proc-swaps
++++ a/mm/swapfile.c
+@@ -1274,10 +1274,13 @@ static void *swap_start(struct seq_file 
  
--#ifdef CONFIG_DEBUG_HIGHMEM
--	if (vaddr >= PAGE_OFFSET && vaddr < (unsigned long)high_memory) {
--		pagefault_enable();
--		return;
--	}
--
--	if (vaddr != __fix_to_virt(FIX_KMAP_BEGIN+idx))
--		BUG();
--#endif
- 	/*
- 	 * Force other mappings to Oops if they'll try to access this pte
- 	 * without first remap it.  Keeping stale mappings around is a bad idea
- 	 * also, in case the page changes cacheability attributes or becomes
- 	 * a protected page in a hypervisor.
- 	 */
--	kpte_clear_flush(kmap_pte-idx, vaddr);
-+	if (vaddr == __fix_to_virt(FIX_KMAP_BEGIN+idx))
-+		kpte_clear_flush(kmap_pte-idx, vaddr);
+ 	mutex_lock(&swapon_mutex);
+ 
++	if (!l)
++		return SEQ_START_TOKEN;
++
+ 	for (i = 0; i < nr_swapfiles; i++, ptr++) {
+ 		if (!(ptr->flags & SWP_USED) || !ptr->swap_map)
+ 			continue;
+-		if (!l--)
++		if (!--l)
+ 			return ptr;
+ 	}
+ 
+@@ -1286,10 +1289,17 @@ static void *swap_start(struct seq_file 
+ 
+ static void *swap_next(struct seq_file *swap, void *v, loff_t *pos)
+ {
+-	struct swap_info_struct *ptr = v;
++	struct swap_info_struct *ptr;
+ 	struct swap_info_struct *endptr = swap_info + nr_swapfiles;
+ 
+-	for (++ptr; ptr < endptr; ptr++) {
++	if (v == SEQ_START_TOKEN)
++		ptr = swap_info;
 +	else {
-+#ifdef CONFIG_DEBUG_HIGHMEM
-+		BUG_ON(vaddr < PAGE_OFFSET);
-+		BUG_ON(vaddr >= (unsigned long)high_memory);
-+#endif
++		ptr = v;
++		ptr++;
++	}
++
++	for (; ptr < endptr; ptr++) {
+ 		if (!(ptr->flags & SWP_USED) || !ptr->swap_map)
+ 			continue;
+ 		++*pos;
+@@ -1310,8 +1320,10 @@ static int swap_show(struct seq_file *sw
+ 	struct file *file;
+ 	int len;
+ 
+-	if (v == swap_info)
+-		seq_puts(swap, "Filename\t\t\t\tType\t\tSize\tUsed\tPriority\n");
++	if (ptr == SEQ_START_TOKEN) {
++		seq_puts(swap,"Filename\t\t\t\tType\t\tSize\tUsed\tPriority\n");
++		return 0;
 +	}
  
- 	pagefault_enable();
- }
+ 	file = ptr->swap_file;
+ 	len = seq_path(swap, file->f_vfsmnt, file->f_dentry, " \t\n\\");
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from ssouhlal@FreeBSD.org are
 
 origin.patch
-convert-i386-pda-code-to-use-%fs.patch
-generic-bug-implementation.patch
-generic-bug-implementation-handle-bug=n.patch
-generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch
-generic-bug-for-i386.patch
-generic-bug-for-x86-64.patch
-uml-add-generic-bug-support.patch
-use-generic-bug-for-ppc.patch
-bug-test-1.patch
-fix-generic-warn_on-message.patch
-time-uninline-jiffiesh-fix.patch
 
