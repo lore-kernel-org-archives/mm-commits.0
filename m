@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-workqueue-build-fix.patch added to -mm tree
-Date: Wed, 06 Dec 2006 17:20:15 -0800
-Message-ID: <200612070121.kB71LRbo024168@shell0.pdx.osdl.net>
+Subject: + uml-workqueue-build-fix-2.patch added to -mm tree
+Date: Wed, 06 Dec 2006 17:24:04 -0800
+Message-ID: <200612070125.kB71PGpD024313@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34064 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34324 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937901AbWLGBVm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 20:21:42 -0500
+	id S937928AbWLGBZ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 20:25:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,40 +15,65 @@ Cc: akpm@osdl.org, dhowells@redhat.com, jdike@addtoit.com
 
 
 The patch titled
-     uml-workqueue-build-fix
+     uml-workqueue-build-fix-2
 has been added to the -mm tree.  Its filename is
-     uml-workqueue-build-fix.patch
+     uml-workqueue-build-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml-workqueue-build-fix
+Subject: uml-workqueue-build-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-arch/um/drivers/chan_kern.c:643: error: conflicting types for 'chan_interrupt'
-arch/um/include/chan_kern.h:31: error: previous declaration of 'chan_interrupt' 
+bah
 
 Cc: David Howells <dhowells@redhat.com>
 Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/include/chan_kern.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/drivers/line.c |    6 +++---
+ arch/um/include/line.h |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/include/chan_kern.h~uml-workqueue-build-fix arch/um/include/chan_kern.h
---- a/arch/um/include/chan_kern.h~uml-workqueue-build-fix
-+++ a/arch/um/include/chan_kern.h
-@@ -27,7 +27,7 @@ struct chan {
- 	void *data;
- };
+diff -puN arch/um/drivers/line.c~uml-workqueue-build-fix-2 arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-workqueue-build-fix-2
++++ a/arch/um/drivers/line.c
+@@ -31,9 +31,9 @@ static irqreturn_t line_interrupt(int ir
+ 	return IRQ_HANDLED;
+ }
  
--extern void chan_interrupt(struct list_head *chans, struct work_struct *task,
-+extern void chan_interrupt(struct list_head *chans, struct delayed_work *task,
- 			   struct tty_struct *tty, int irq);
- extern int parse_chan_pair(char *str, struct line *line, int device,
- 			   const struct chan_opts *opts);
+-static void line_timer_cb(void *arg)
++static void line_timer_cb(struct work_struct *work)
+ {
+-	struct line *line = arg;
++	struct line *line = container_of(work, struct line, task.work);
+ 
+ 	if(!line->throttled)
+ 		chan_interrupt(&line->chan_list, &line->task, line->tty,
+@@ -443,7 +443,7 @@ int line_open(struct line *lines, struct
+ 		 * is registered.
+ 		 */
+ 		enable_chan(line);
+-		INIT_WORK(&line->task, line_timer_cb, line);
++		INIT_DELAYED_WORK(&line->task, line_timer_cb);
+ 
+ 		if(!line->sigio){
+ 			chan_enable_winch(&line->chan_list, tty);
+diff -puN arch/um/include/chan_kern.h~uml-workqueue-build-fix-2 arch/um/include/chan_kern.h
+diff -puN arch/um/include/line.h~uml-workqueue-build-fix-2 arch/um/include/line.h
+--- a/arch/um/include/line.h~uml-workqueue-build-fix-2
++++ a/arch/um/include/line.h
+@@ -51,7 +51,7 @@ struct line {
+ 	char *tail;
+ 
+ 	int sigio;
+-	struct work_struct task;
++	struct delayed_work task;
+ 	const struct line_driver *driver;
+ 	int have_irq;
+ };
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -56,6 +81,7 @@ Patches currently in -mm which might be from akpm@osdl.org are
 origin.patch
 add-bottom_half.h.patch
 drm-sis-linkage-fix.patch
+uml-workqueue-build-fix.patch
 revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
 revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
 generic_file_buffered_write-cleanup.patch
@@ -283,5 +309,5 @@ acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-uml-workqueue-build-fix.patch
+uml-workqueue-build-fix-2.patch
 
