@@ -1,73 +1,49 @@
 From: akpm@osdl.org
-Subject: - cleanup-include-asm-generic-atomich.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:40 -0800
-Message-ID: <200612072316.kB7NGeLI030857@shell0.pdx.osdl.net>
+Subject: - maintainers-remove-the-non-existing-sun3-list.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:16:35 -0800
+Message-ID: <200612072316.kB7NGZBH030849@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54148 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54141 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163983AbWLGXTy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:19:54 -0500
+	id S1163977AbWLGXTs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:19:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup include/asm-generic/atomic.h
+     MAINTAINERS: remove the non-existing sun3 list
 has been removed from the -mm tree.  Its filename was
-     cleanup-include-asm-generic-atomich.patch
+     maintainers-remove-the-non-existing-sun3-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cleanup include/asm-generic/atomic.h
+Subject: MAINTAINERS: remove the non-existing sun3 list
 From: Adrian Bunk <bunk@stusta.de>
 
-cleanup asm-generic/atomic.h
+sun3-list@redhat.com does no longer exist.
 
-- no longer a userspace header
-- remove the unneeded #include <asm/types.h>
-- #else/#endif comments
-
-[akpm@osdl.org: fix arm build]
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-generic/Kbuild   |    1 -
- include/asm-generic/atomic.h |    7 ++++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/asm-generic/Kbuild~cleanup-include-asm-generic-atomich include/asm-generic/Kbuild
---- a/include/asm-generic/Kbuild~cleanup-include-asm-generic-atomich
-+++ a/include/asm-generic/Kbuild
-@@ -1,4 +1,3 @@
--header-y += atomic.h
- header-y += errno-base.h
- header-y += errno.h
- header-y += fcntl.h
-diff -puN include/asm-generic/atomic.h~cleanup-include-asm-generic-atomich include/asm-generic/atomic.h
---- a/include/asm-generic/atomic.h~cleanup-include-asm-generic-atomich
-+++ a/include/asm-generic/atomic.h
-@@ -66,7 +66,7 @@ static inline void atomic_long_sub(long 
- 	atomic64_sub(i, v);
- }
+diff -puN MAINTAINERS~maintainers-remove-the-non-existing-sun3-list MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-the-non-existing-sun3-list
++++ a/MAINTAINERS
+@@ -2913,7 +2913,6 @@ S:	Maintained
+ SUN3/3X
+ P:	Sam Creasey
+ M:	sammy@sammy.net
+-L:	sun3-list@redhat.com
+ W:	http://sammy.net/sun3/
+ S:	Maintained
  
--#else
-+#else  /*  BITS_PER_LONG == 64  */
- 
- typedef atomic_t atomic_long_t;
- 
-@@ -113,5 +113,6 @@ static inline void atomic_long_sub(long 
- 	atomic_sub(i, v);
- }
- 
--#endif
--#endif
-+#endif  /*  BITS_PER_LONG == 64  */
-+
-+#endif  /*  _ASM_GENERIC_ATOMIC_H  */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
