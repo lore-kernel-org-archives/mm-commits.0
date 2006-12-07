@@ -1,977 +1,524 @@
 From: akpm@osdl.org
-Subject: - ipmi-allow-hot-system-interface-remove.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:17:33 -0800
-Message-ID: <200612072317.kB7NHXmB030939@shell0.pdx.osdl.net>
+Subject: - ipmi-system-interface-hotplug.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:17:42 -0800
+Message-ID: <200612072317.kB7NHgbU030954@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53863 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53884 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163847AbWLGXRj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:17:39 -0500
+	id S1163875AbWLGXRq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:17:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: Allow hot system interface remove
+     IPMI: system interface hotplug
 has been removed from the -mm tree.  Its filename was
-     ipmi-allow-hot-system-interface-remove.patch
+     ipmi-system-interface-hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPMI: Allow hot system interface remove
+Subject: IPMI: system interface hotplug
 From: Corey Minyard <minyard@acm.org>
 
-This modifies the IPMI driver so that a lower-level interface can be
-dynamically removed while in use so it can support hot-removal of hardware.
-
-It also adds the ability to specify and dynamically change the IPMI interface
-the watchdog timer and the poweroff code use.
+Add the ability to hot add and remove interfaces in the ipmi_si driver.  Any
+users who have the device open will get errors if they try to send a message.
 
 Signed-off-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/IPMI.txt              |    9 
- drivers/char/ipmi/ipmi_msghandler.c |  246 +++++++++++++++++---------
- drivers/char/ipmi/ipmi_poweroff.c   |   60 +++++-
- drivers/char/ipmi/ipmi_watchdog.c   |  121 ++++++++----
- 4 files changed, 304 insertions(+), 132 deletions(-)
+ Documentation/IPMI.txt           |   25 ++
+ drivers/char/ipmi/ipmi_si_intf.c |  320 ++++++++++++++++++++++++++---
+ 2 files changed, 322 insertions(+), 23 deletions(-)
 
-diff -puN Documentation/IPMI.txt~ipmi-allow-hot-system-interface-remove Documentation/IPMI.txt
---- a/Documentation/IPMI.txt~ipmi-allow-hot-system-interface-remove
+diff -puN Documentation/IPMI.txt~ipmi-system-interface-hotplug Documentation/IPMI.txt
+--- a/Documentation/IPMI.txt~ipmi-system-interface-hotplug
 +++ a/Documentation/IPMI.txt
-@@ -502,7 +502,10 @@ used to control it:
+@@ -365,6 +365,7 @@ You can change this at module load time 
+        regshifts=<shift1>,<shift2>,...
+        slave_addrs=<addr1>,<addr2>,...
+        force_kipmid=<enable1>,<enable2>,...
++       unload_when_empty=[0|1]
  
-   modprobe ipmi_watchdog timeout=<t> pretimeout=<t> action=<action type>
-       preaction=<preaction type> preop=<preop type> start_now=x
--      nowayout=x
-+      nowayout=x ifnum_to_use=n
+ Each of these except si_trydefaults is a list, the first item for the
+ first interface, second item for the second interface, etc.
+@@ -416,6 +417,11 @@ by the driver, but systems with broken i
+ or users that don't want the daemon (don't need the performance, don't
+ want the CPU hit) can disable it.
+ 
++If unload_when_empty is set to 1, the driver will be unloaded if it
++doesn't find any interfaces or all the interfaces fail to work.  The
++default is one.  Setting to 0 is useful with the hotmod, but is
++obviously only useful for modules.
 +
-+ifnum_to_use specifies which interface the watchdog timer should use.
-+The default is -1, which means to pick the first one registered.
+ When compiled into the kernel, the parameters can be specified on the
+ kernel command line as:
  
- The timeout is the number of seconds to the action, and the pretimeout
- is the amount of seconds before the reset that the pre-timeout panic will
-@@ -624,5 +627,9 @@ command line.  The parameter is also ava
- in /proc/sys/dev/ipmi/poweroff_powercycle.  Note that if the system
- does not support power cycling, it will always do the power off.
+@@ -441,6 +447,25 @@ have high-res timers enabled in the kern
+ interrupts enabled, the driver will run VERY slowly.  Don't blame me,
+ these interfaces suck.
  
-+The "ifnum_to_use" parameter specifies which interface the poweroff
-+code should use.  The default is -1, which means to pick the first one
-+registered.
++The driver supports a hot add and remove of interfaces.  This way,
++interfaces can be added or removed after the kernel is up and running.
++This is done using /sys/modules/ipmi_si/hotmod, which is a write-only
++parameter.  You write a string to this interface.  The string has the
++format:
++   <op1>[:op2[:op3...]]
++The "op"s are:
++   add|remove,kcs|bt|smic,mem|i/o,<address>[,<opt1>[,<opt2>[,...]]]
++You can specify more than one interface on the line.  The "opt"s are:
++   rsp=<regspacing>
++   rsi=<regsize>
++   rsh=<regshift>
++   irq=<irq>
++   ipmb=<ipmb slave addr>
++and these have the same meanings as discussed above.  Note that you
++can also use this on the kernel command line for a more compact format
++for specifying an interface.  Note that when removing an interface,
++only the first three parameters (si type, address type, and address)
++are used for the comparison.  Any options are ignored for removing.
+ 
+ The SMBus Driver
+ ----------------
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-system-interface-hotplug drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-system-interface-hotplug
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -61,6 +61,10 @@
+ #include "ipmi_si_sm.h"
+ #include <linux/init.h>
+ #include <linux/dmi.h>
++#include <linux/string.h>
++#include <linux/ctype.h>
 +
- Note that if you have ACPI enabled, the system will prefer using ACPI to
- power off.
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-allow-hot-system-interface-remove drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-allow-hot-system-interface-remove
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -200,6 +200,10 @@ struct ipmi_smi
- 	 * protects this. */
- 	struct list_head users;
++#define PFX "ipmi_si: "
  
-+	/* Information to supply to users. */
-+	unsigned char ipmi_version_major;
-+	unsigned char ipmi_version_minor;
+ /* Measure times between events in the driver. */
+ #undef DEBUG_TIMING
+@@ -92,7 +96,7 @@ enum si_intf_state {
+ enum si_type {
+     SI_KCS, SI_SMIC, SI_BT
+ };
+-static char *si_to_str[] = { "KCS", "SMIC", "BT" };
++static char *si_to_str[] = { "kcs", "smic", "bt" };
+ 
+ #define DEVICE_NAME "ipmi_si"
+ 
+@@ -222,7 +226,10 @@ struct smi_info
+ static int force_kipmid[SI_MAX_PARMS];
+ static int num_force_kipmid;
+ 
++static int unload_when_empty = 1;
 +
- 	/* Used for wake ups at startup. */
- 	wait_queue_head_t waitq;
+ static int try_smi_init(struct smi_info *smi);
++static void cleanup_one_si(struct smi_info *to_clean);
  
-@@ -207,7 +211,10 @@ struct ipmi_smi
- 	char *my_dev_name;
- 	char *sysfs_name;
+ static ATOMIC_NOTIFIER_HEAD(xaction_notifier_list);
+ static int register_xaction_notifier(struct notifier_block * nb)
+@@ -247,7 +254,7 @@ static void return_hosed_msg(struct smi_
+ 	/* Make it a reponse */
+ 	msg->rsp[0] = msg->data[0] | 4;
+ 	msg->rsp[1] = msg->data[1];
+-	msg->rsp[2] = 0xFF; /* Unknown error. */
++	msg->rsp[2] = IPMI_ERR_UNSPECIFIED;
+ 	msg->rsp_size = 3;
  
--	/* This is the lower-layer's sender routine. */
-+	/* This is the lower-layer's sender routine.  Note that you
-+	 * must either be holding the ipmi_interfaces_mutex or be in
-+	 * an umpreemptible region to use this.  You must fetch the
-+	 * value into a local variable and make sure it is not NULL. */
- 	struct ipmi_smi_handlers *handlers;
- 	void                     *send_info;
+ 	smi_info->curr_msg = NULL;
+@@ -716,6 +723,15 @@ static void sender(void                *
+ 	struct timeval    t;
+ #endif
  
-@@ -246,6 +253,7 @@ struct ipmi_smi
- 	spinlock_t       events_lock; /* For dealing with event stuff. */
- 	struct list_head waiting_events;
- 	unsigned int     waiting_events_count; /* How many events in queue? */
-+	int              delivering_events;
++	if (atomic_read(&smi_info->stop_operation)) {
++		msg->rsp[0] = msg->data[0] | 4;
++		msg->rsp[1] = msg->data[1];
++		msg->rsp[2] = IPMI_ERR_UNSPECIFIED;
++		msg->rsp_size = 3;
++		deliver_recv_msg(smi_info, msg);
++		return;
++	}
++
+ 	spin_lock_irqsave(&(smi_info->msg_lock), flags);
+ #ifdef DEBUG_TIMING
+ 	do_gettimeofday(&t);
+@@ -819,6 +835,9 @@ static void request_events(void *send_in
+ {
+ 	struct smi_info *smi_info = send_info;
  
- 	/* The event receiver for my BMC, only really used at panic
- 	   shutdown as a place to store this. */
-@@ -357,7 +365,7 @@ static DEFINE_MUTEX(ipmi_interfaces_mute
- /* List of watchers that want to know when smi's are added and
-    deleted. */
- static struct list_head smi_watchers = LIST_HEAD_INIT(smi_watchers);
--static DECLARE_RWSEM(smi_watchers_sem);
-+static DEFINE_MUTEX(smi_watchers_mutex);
- 
- 
- static void free_recv_msg_list(struct list_head *q)
-@@ -418,8 +426,9 @@ static void intf_free(struct kref *ref)
++	if (atomic_read(&smi_info->stop_operation))
++		return;
++
+ 	atomic_set(&smi_info->req_events, 1);
  }
  
- struct watcher_entry {
-+	int              intf_num;
-+	ipmi_smi_t       intf;
- 	struct list_head link;
--	int intf_num;
- };
+@@ -1003,6 +1022,16 @@ static int num_regshifts = 0;
+ static int slave_addrs[SI_MAX_PARMS];
+ static int num_slave_addrs = 0;
  
- int ipmi_smi_watcher_register(struct ipmi_smi_watcher *watcher)
-@@ -428,36 +437,45 @@ int ipmi_smi_watcher_register(struct ipm
- 	struct list_head to_deliver = LIST_HEAD_INIT(to_deliver);
- 	struct watcher_entry *e, *e2;
- 
-+	mutex_lock(&smi_watchers_mutex);
++#define IPMI_IO_ADDR_SPACE  0
++#define IPMI_MEM_ADDR_SPACE 1
++static char *addr_space_to_str[] = { "I/O", "mem" };
 +
- 	mutex_lock(&ipmi_interfaces_mutex);
++static int hotmod_handler(const char *val, struct kernel_param *kp);
++
++module_param_call(hotmod, hotmod_handler, NULL, NULL, 0200);
++MODULE_PARM_DESC(hotmod, "Add and remove interfaces.  See"
++		 " Documentation/IPMI.txt in the kernel sources for the"
++		 " gory details.");
  
-+	/* Build a list of things to deliver. */
- 	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
- 		if (intf->intf_num == -1)
- 			continue;
- 		e = kmalloc(sizeof(*e), GFP_KERNEL);
- 		if (!e)
- 			goto out_err;
-+		kref_get(&intf->refcount);
-+		e->intf = intf;
- 		e->intf_num = intf->intf_num;
- 		list_add_tail(&e->link, &to_deliver);
- 	}
+ module_param_named(trydefaults, si_trydefaults, bool, 0);
+ MODULE_PARM_DESC(trydefaults, "Setting this to 'false' will disable the"
+@@ -1054,12 +1083,12 @@ module_param_array(force_kipmid, int, &n
+ MODULE_PARM_DESC(force_kipmid, "Force the kipmi daemon to be enabled (1) or"
+ 		 " disabled(0).  Normally the IPMI driver auto-detects"
+ 		 " this, but the value may be overridden by this parm.");
++module_param(unload_when_empty, int, 0);
++MODULE_PARM_DESC(unload_when_empty, "Unload the module if no interfaces are"
++		 " specified or found, default is 1.  Setting to 0"
++		 " is useful for hot add of devices using hotmod.");
  
--	down_write(&smi_watchers_sem);
--	list_add(&(watcher->link), &smi_watchers);
--	up_write(&smi_watchers_sem);
-+	/* We will succeed, so add it to the list. */
-+	list_add(&watcher->link, &smi_watchers);
  
- 	mutex_unlock(&ipmi_interfaces_mutex);
- 
- 	list_for_each_entry_safe(e, e2, &to_deliver, link) {
- 		list_del(&e->link);
--		watcher->new_smi(e->intf_num, intf->si_dev);
-+		watcher->new_smi(e->intf_num, e->intf->si_dev);
-+		kref_put(&e->intf->refcount, intf_free);
- 		kfree(e);
- 	}
- 
-+	mutex_unlock(&smi_watchers_mutex);
- 
- 	return 0;
- 
-  out_err:
-+	mutex_unlock(&ipmi_interfaces_mutex);
-+	mutex_unlock(&smi_watchers_mutex);
- 	list_for_each_entry_safe(e, e2, &to_deliver, link) {
- 		list_del(&e->link);
-+		kref_put(&e->intf->refcount, intf_free);
- 		kfree(e);
- 	}
- 	return -ENOMEM;
-@@ -465,25 +483,26 @@ int ipmi_smi_watcher_register(struct ipm
- 
- int ipmi_smi_watcher_unregister(struct ipmi_smi_watcher *watcher)
+-#define IPMI_IO_ADDR_SPACE  0
+-#define IPMI_MEM_ADDR_SPACE 1
+-static char *addr_space_to_str[] = { "I/O", "memory" };
+-
+ static void std_irq_cleanup(struct smi_info *info)
  {
--	down_write(&smi_watchers_sem);
-+	mutex_lock(&smi_watchers_mutex);
- 	list_del(&(watcher->link));
--	up_write(&smi_watchers_sem);
-+	mutex_unlock(&smi_watchers_mutex);
+ 	if (info->si_type == SI_BT)
+@@ -1333,6 +1362,234 @@ static int mem_setup(struct smi_info *in
  	return 0;
  }
  
 +/*
-+ * Must be called with smi_watchers_mutex held.
++ * Parms come in as <op1>[:op2[:op3...]].  ops are:
++ *   add|remove,kcs|bt|smic,mem|i/o,<address>[,<opt1>[,<opt2>[,...]]]
++ * Options are:
++ *   rsp=<regspacing>
++ *   rsi=<regsize>
++ *   rsh=<regshift>
++ *   irq=<irq>
++ *   ipmb=<ipmb addr>
 + */
- static void
- call_smi_watchers(int i, struct device *dev)
- {
- 	struct ipmi_smi_watcher *w;
- 
--	down_read(&smi_watchers_sem);
- 	list_for_each_entry(w, &smi_watchers, link) {
- 		if (try_module_get(w->owner)) {
- 			w->new_smi(i, dev);
- 			module_put(w->owner);
- 		}
- 	}
--	up_read(&smi_watchers_sem);
- }
- 
- static int
-@@ -609,6 +628,17 @@ static void deliver_response(struct ipmi
- 	}
- }
- 
-+static void
-+deliver_err_response(struct ipmi_recv_msg *msg, int err)
++enum hotmod_op { HM_ADD, HM_REMOVE };
++struct hotmod_vals {
++	char *name;
++	int  val;
++};
++static struct hotmod_vals hotmod_ops[] = {
++	{ "add",	HM_ADD },
++	{ "remove",	HM_REMOVE },
++	{ NULL }
++};
++static struct hotmod_vals hotmod_si[] = {
++	{ "kcs",	SI_KCS },
++	{ "smic",	SI_SMIC },
++	{ "bt",		SI_BT },
++	{ NULL }
++};
++static struct hotmod_vals hotmod_as[] = {
++	{ "mem",	IPMI_MEM_ADDR_SPACE },
++	{ "i/o",	IPMI_IO_ADDR_SPACE },
++	{ NULL }
++};
++static int ipmi_strcasecmp(const char *s1, const char *s2)
 +{
-+	msg->recv_type = IPMI_RESPONSE_RECV_TYPE;
-+	msg->msg_data[0] = err;
-+	msg->msg.netfn |= 1; /* Convert to a response. */
-+	msg->msg.data_len = 1;
-+	msg->msg.data = msg->msg_data;
-+	deliver_response(msg);
++	while (*s1 || *s2) {
++		if (!*s1)
++			return -1;
++		if (!*s2)
++			return 1;
++		if (*s1 != *s2)
++			return *s1 - *s2;
++		s1++;
++		s2++;
++	}
++	return 0;
++}
++static int parse_str(struct hotmod_vals *v, int *val, char *name, char **curr)
++{
++	char *s;
++	int  i;
++
++	s = strchr(*curr, ',');
++	if (!s) {
++		printk(KERN_WARNING PFX "No hotmod %s given.\n", name);
++		return -EINVAL;
++	}
++	*s = '\0';
++	s++;
++	for (i = 0; hotmod_ops[i].name; i++) {
++		if (ipmi_strcasecmp(*curr, v[i].name) == 0) {
++			*val = v[i].val;
++			*curr = s;
++			return 0;
++		}
++	}
++
++	printk(KERN_WARNING PFX "Invalid hotmod %s '%s'\n", name, *curr);
++	return -EINVAL;
 +}
 +
- /* Find the next sequence number not being used and add the given
-    message with the given timeout to the sequence table.  This must be
-    called with the interface's seq_lock held. */
-@@ -746,14 +776,8 @@ static int intf_err_seq(ipmi_smi_t   int
- 	}
- 	spin_unlock_irqrestore(&(intf->seq_lock), flags);
- 
--	if (msg) {
--		msg->recv_type = IPMI_RESPONSE_RECV_TYPE;
--		msg->msg_data[0] = err;
--		msg->msg.netfn |= 1; /* Convert to a response. */
--		msg->msg.data_len = 1;
--		msg->msg.data = msg->msg_data;
--		deliver_response(msg);
--	}
-+	if (msg)
-+		deliver_err_response(msg, err);
- 
- 	return rv;
- }
-@@ -795,19 +819,18 @@ int ipmi_create_user(unsigned int       
- 	if (!new_user)
- 		return -ENOMEM;
- 
--	rcu_read_lock();
-+	mutex_lock(&ipmi_interfaces_mutex);
- 	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
- 		if (intf->intf_num == if_num)
- 			goto found;
- 	}
--	rcu_read_unlock();
-+	/* Not found, return an error */
- 	rv = -EINVAL;
- 	goto out_kfree;
- 
-  found:
- 	/* Note that each existing user holds a refcount to the interface. */
- 	kref_get(&intf->refcount);
--	rcu_read_unlock();
- 
- 	kref_init(&new_user->refcount);
- 	new_user->handler = handler;
-@@ -828,6 +851,10 @@ int ipmi_create_user(unsigned int       
- 		}
- 	}
- 
-+	/* Hold the lock so intf->handlers is guaranteed to be good
-+	 * until now */
-+	mutex_unlock(&ipmi_interfaces_mutex);
++static int hotmod_handler(const char *val, struct kernel_param *kp)
++{
++	char *str = kstrdup(val, GFP_KERNEL);
++	int  rv = -EINVAL;
++	char *next, *curr, *s, *n, *o;
++	enum hotmod_op op;
++	enum si_type si_type;
++	int  addr_space;
++	unsigned long addr;
++	int regspacing;
++	int regsize;
++	int regshift;
++	int irq;
++	int ipmb;
++	int ival;
++	struct smi_info *info;
 +
- 	new_user->valid = 1;
- 	spin_lock_irqsave(&intf->seq_lock, flags);
- 	list_add_rcu(&new_user->link, &intf->users);
-@@ -838,6 +865,7 @@ int ipmi_create_user(unsigned int       
- out_kref:
- 	kref_put(&intf->refcount, intf_free);
- out_kfree:
-+	mutex_unlock(&ipmi_interfaces_mutex);
- 	kfree(new_user);
- 	return rv;
- }
-@@ -867,6 +895,7 @@ int ipmi_destroy_user(ipmi_user_t user)
- 		    && (intf->seq_table[i].recv_msg->user == user))
- 		{
- 			intf->seq_table[i].inuse = 0;
-+			ipmi_free_recv_msg(intf->seq_table[i].recv_msg);
- 		}
- 	}
- 	spin_unlock_irqrestore(&intf->seq_lock, flags);
-@@ -893,9 +922,13 @@ int ipmi_destroy_user(ipmi_user_t user)
- 		kfree(rcvr);
- 	}
- 
--	module_put(intf->handlers->owner);
--	if (intf->handlers->dec_usecount)
--		intf->handlers->dec_usecount(intf->send_info);
-+	mutex_lock(&ipmi_interfaces_mutex);
-+	if (intf->handlers) {
-+		module_put(intf->handlers->owner);
-+		if (intf->handlers->dec_usecount)
-+			intf->handlers->dec_usecount(intf->send_info);
++	if (!str)
++		return -ENOMEM;
++
++	/* Kill any trailing spaces, as we can get a "\n" from echo. */
++	ival = strlen(str) - 1;
++	while ((ival >= 0) && isspace(str[ival])) {
++		str[ival] = '\0';
++		ival--;
 +	}
-+	mutex_unlock(&ipmi_interfaces_mutex);
- 
- 	kref_put(&intf->refcount, intf_free);
- 
-@@ -908,8 +941,8 @@ void ipmi_get_version(ipmi_user_t   user
- 		      unsigned char *major,
- 		      unsigned char *minor)
- {
--	*major = ipmi_version_major(&user->intf->bmc->id);
--	*minor = ipmi_version_minor(&user->intf->bmc->id);
-+	*major = user->intf->ipmi_version_major;
-+	*minor = user->intf->ipmi_version_minor;
- }
- 
- int ipmi_set_my_address(ipmi_user_t   user,
-@@ -964,20 +997,33 @@ int ipmi_set_gets_events(ipmi_user_t use
- 	spin_lock_irqsave(&intf->events_lock, flags);
- 	user->gets_events = val;
- 
--	if (val) {
--		/* Deliver any queued events. */
-+	if (intf->delivering_events)
-+		/*
-+		 * Another thread is delivering events for this, so
-+		 * let it handle any new events.
-+		 */
-+		goto out;
 +
-+	/* Deliver any queued events. */
-+	while (user->gets_events && !list_empty(&intf->waiting_events)) {
- 		list_for_each_entry_safe(msg, msg2, &intf->waiting_events, link)
- 			list_move_tail(&msg->link, &msgs);
- 		intf->waiting_events_count = 0;
--	}
- 
--	/* Hold the events lock while doing this to preserve order. */
--	list_for_each_entry_safe(msg, msg2, &msgs, link) {
--		msg->user = user;
--		kref_get(&user->refcount);
--		deliver_response(msg);
-+		intf->delivering_events = 1;
-+		spin_unlock_irqrestore(&intf->events_lock, flags);
++	for (curr = str; curr; curr = next) {
++		regspacing = 1;
++		regsize = 1;
++		regshift = 0;
++		irq = 0;
++		ipmb = 0x20;
 +
-+		list_for_each_entry_safe(msg, msg2, &msgs, link) {
-+			msg->user = user;
-+			kref_get(&user->refcount);
-+			deliver_response(msg);
++		next = strchr(curr, ':');
++		if (next) {
++			*next = '\0';
++			next++;
 +		}
 +
-+		spin_lock_irqsave(&intf->events_lock, flags);
-+		intf->delivering_events = 0;
- 	}
- 
++		rv = parse_str(hotmod_ops, &ival, "operation", &curr);
++		if (rv)
++			break;
++		op = ival;
++
++		rv = parse_str(hotmod_si, &ival, "interface type", &curr);
++		if (rv)
++			break;
++		si_type = ival;
++
++		rv = parse_str(hotmod_as, &addr_space, "address space", &curr);
++		if (rv)
++			break;
++
++		s = strchr(curr, ',');
++		if (s) {
++			*s = '\0';
++			s++;
++		}
++		addr = simple_strtoul(curr, &n, 0);
++		if ((*n != '\0') || (*curr == '\0')) {
++			printk(KERN_WARNING PFX "Invalid hotmod address"
++			       " '%s'\n", curr);
++			break;
++		}
++
++		while (s) {
++			curr = s;
++			s = strchr(curr, ',');
++			if (s) {
++				*s = '\0';
++				s++;
++			}
++			o = strchr(curr, '=');
++			if (o) {
++				*o = '\0';
++				o++;
++			}
++#define HOTMOD_INT_OPT(name, val) \
++			if (ipmi_strcasecmp(curr, name) == 0) {		\
++				if (!o) {				\
++					printk(KERN_WARNING PFX		\
++					       "No option given for '%s'\n", \
++						curr);			\
++					goto out;			\
++				}					\
++				val = simple_strtoul(o, &n, 0);		\
++				if ((*n != '\0') || (*o == '\0')) {	\
++					printk(KERN_WARNING PFX		\
++					       "Bad option given for '%s'\n", \
++					       curr);			\
++					goto out;			\
++				}					\
++			}
++
++			HOTMOD_INT_OPT("rsp", regspacing)
++			else HOTMOD_INT_OPT("rsi", regsize)
++			else HOTMOD_INT_OPT("rsh", regshift)
++			else HOTMOD_INT_OPT("irq", irq)
++			else HOTMOD_INT_OPT("ipmb", ipmb)
++			else {
++				printk(KERN_WARNING PFX
++				       "Invalid hotmod option '%s'\n",
++				       curr);
++				goto out;
++			}
++#undef HOTMOD_INT_OPT
++		}
++
++		if (op == HM_ADD) {
++			info = kzalloc(sizeof(*info), GFP_KERNEL);
++			if (!info) {
++				rv = -ENOMEM;
++				goto out;
++			}
++
++			info->addr_source = "hotmod";
++			info->si_type = si_type;
++			info->io.addr_data = addr;
++			info->io.addr_type = addr_space;
++			if (addr_space == IPMI_MEM_ADDR_SPACE)
++				info->io_setup = mem_setup;
++			else
++				info->io_setup = port_setup;
++
++			info->io.addr = NULL;
++			info->io.regspacing = regspacing;
++			if (!info->io.regspacing)
++				info->io.regspacing = DEFAULT_REGSPACING;
++			info->io.regsize = regsize;
++			if (!info->io.regsize)
++				info->io.regsize = DEFAULT_REGSPACING;
++			info->io.regshift = regshift;
++			info->irq = irq;
++			if (info->irq)
++				info->irq_setup = std_irq_setup;
++			info->slave_addr = ipmb;
++
++			try_smi_init(info);
++		} else {
++			/* remove */
++			struct smi_info *e, *tmp_e;
++
++			mutex_lock(&smi_infos_lock);
++			list_for_each_entry_safe(e, tmp_e, &smi_infos, link) {
++				if (e->io.addr_type != addr_space)
++					continue;
++				if (e->si_type != si_type)
++					continue;
++				if (e->io.addr_data == addr)
++					cleanup_one_si(e);
++			}
++			mutex_unlock(&smi_infos_lock);
++		}
++	}
 + out:
- 	spin_unlock_irqrestore(&intf->events_lock, flags);
++	kfree(str);
++	return rv;
++}
  
- 	return 0;
-@@ -1088,7 +1134,8 @@ int ipmi_unregister_for_cmd(ipmi_user_t 
- void ipmi_user_set_run_to_completion(ipmi_user_t user, int val)
+ static __devinit void hardcode_find_bmc(void)
  {
- 	ipmi_smi_t intf = user->intf;
--	intf->handlers->set_run_to_completion(intf->send_info, val);
-+	if (intf->handlers)
-+		intf->handlers->set_run_to_completion(intf->send_info, val);
+@@ -1349,11 +1606,11 @@ static __devinit void hardcode_find_bmc(
+ 
+ 		info->addr_source = "hardcoded";
+ 
+-		if (!si_type[i] || strcmp(si_type[i], "kcs") == 0) {
++		if (!si_type[i] || ipmi_strcasecmp(si_type[i], "kcs") == 0) {
+ 			info->si_type = SI_KCS;
+-		} else if (strcmp(si_type[i], "smic") == 0) {
++		} else if (ipmi_strcasecmp(si_type[i], "smic") == 0) {
+ 			info->si_type = SI_SMIC;
+-		} else if (strcmp(si_type[i], "bt") == 0) {
++		} else if (ipmi_strcasecmp(si_type[i], "bt") == 0) {
+ 			info->si_type = SI_BT;
+ 		} else {
+ 			printk(KERN_WARNING
+@@ -1968,19 +2225,9 @@ static int try_get_dev_id(struct smi_inf
+ static int type_file_read_proc(char *page, char **start, off_t off,
+ 			       int count, int *eof, void *data)
+ {
+-	char            *out = (char *) page;
+ 	struct smi_info *smi = data;
+ 
+-	switch (smi->si_type) {
+-	    case SI_KCS:
+-		return sprintf(out, "kcs\n");
+-	    case SI_SMIC:
+-		return sprintf(out, "smic\n");
+-	    case SI_BT:
+-		return sprintf(out, "bt\n");
+-	    default:
+-		return 0;
+-	}
++	return sprintf(page, "%s\n", si_to_str[smi->si_type]);
  }
  
- static unsigned char
-@@ -1199,10 +1246,11 @@ static int i_ipmi_request(ipmi_user_t   
- 			  int                  retries,
- 			  unsigned int         retry_time_ms)
- {
--	int                  rv = 0;
--	struct ipmi_smi_msg  *smi_msg;
--	struct ipmi_recv_msg *recv_msg;
--	unsigned long        flags;
-+	int                      rv = 0;
-+	struct ipmi_smi_msg      *smi_msg;
-+	struct ipmi_recv_msg     *recv_msg;
-+	unsigned long            flags;
-+	struct ipmi_smi_handlers *handlers;
+ static int stat_file_read_proc(char *page, char **start, off_t off,
+@@ -2016,7 +2263,24 @@ static int stat_file_read_proc(char *pag
+ 	out += sprintf(out, "incoming_messages:     %ld\n",
+ 		       smi->incoming_messages);
  
- 
- 	if (supplied_recv) {
-@@ -1225,6 +1273,13 @@ static int i_ipmi_request(ipmi_user_t   
- 		}
- 	}
- 
-+	rcu_read_lock();
-+	handlers = intf->handlers;
-+	if (!handlers) {
-+		rv = -ENODEV;
-+		goto out_err;
-+	}
-+
- 	recv_msg->user = user;
- 	if (user)
- 		kref_get(&user->refcount);
-@@ -1541,11 +1596,14 @@ static int i_ipmi_request(ipmi_user_t   
- 		printk("\n");
- 	}
- #endif
--	intf->handlers->sender(intf->send_info, smi_msg, priority);
-+
-+	handlers->sender(intf->send_info, smi_msg, priority);
-+	rcu_read_unlock();
- 
- 	return 0;
- 
-  out_err:
-+	rcu_read_unlock();
- 	ipmi_free_smi_msg(smi_msg);
- 	ipmi_free_recv_msg(recv_msg);
- 	return rv;
-@@ -2492,13 +2550,8 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	int              rv;
- 	ipmi_smi_t       intf;
- 	ipmi_smi_t       tintf;
--	int              version_major;
--	int              version_minor;
- 	struct list_head *link;
- 
--	version_major = ipmi_version_major(device_id);
--	version_minor = ipmi_version_minor(device_id);
--
- 	/* Make sure the driver is actually initialized, this handles
- 	   problems with initialization order. */
- 	if (!initialized) {
-@@ -2515,6 +2568,10 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	if (!intf)
- 		return -ENOMEM;
- 	memset(intf, 0, sizeof(*intf));
-+
-+	intf->ipmi_version_major = ipmi_version_major(device_id);
-+	intf->ipmi_version_minor = ipmi_version_minor(device_id);
-+
- 	intf->bmc = kzalloc(sizeof(*intf->bmc), GFP_KERNEL);
- 	if (!intf->bmc) {
- 		kfree(intf);
-@@ -2554,6 +2611,7 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	spin_lock_init(&intf->counter_lock);
- 	intf->proc_dir = NULL;
- 
-+	mutex_lock(&smi_watchers_mutex);
- 	mutex_lock(&ipmi_interfaces_mutex);
- 	/* Look for a hole in the numbers. */
- 	i = 0;
-@@ -2577,8 +2635,9 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 
- 	get_guid(intf);
- 
--	if ((version_major > 1)
--	    || ((version_major == 1) && (version_minor >= 5)))
-+	if ((intf->ipmi_version_major > 1)
-+	    || ((intf->ipmi_version_major == 1)
-+		&& (intf->ipmi_version_minor >= 5)))
- 	{
- 		/* Start scanning the channels to see what is
- 		   available. */
-@@ -2607,8 +2666,10 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 	if (rv) {
- 		if (intf->proc_dir)
- 			remove_proc_entries(intf);
-+		intf->handlers = NULL;
- 		list_del_rcu(&intf->link);
- 		mutex_unlock(&ipmi_interfaces_mutex);
-+		mutex_unlock(&smi_watchers_mutex);
- 		synchronize_rcu();
- 		kref_put(&intf->refcount, intf_free);
- 	} else {
-@@ -2616,30 +2677,50 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 		intf->intf_num = i;
- 		mutex_unlock(&ipmi_interfaces_mutex);
- 		call_smi_watchers(i, intf->si_dev);
-+		mutex_unlock(&smi_watchers_mutex);
- 	}
- 
- 	return rv;
- }
- 
-+static void cleanup_smi_msgs(ipmi_smi_t intf)
-+{
-+	int              i;
-+	struct seq_table *ent;
-+
-+	/* No need for locks, the interface is down. */
-+	for (i = 0; i < IPMI_IPMB_NUM_SEQ; i++) {
-+		ent = &(intf->seq_table[i]);
-+		if (!ent->inuse)
-+			continue;
-+		deliver_err_response(ent->recv_msg, IPMI_ERR_UNSPECIFIED);
-+	}
+-	return (out - ((char *) page));
++	return out - page;
 +}
 +
- int ipmi_unregister_smi(ipmi_smi_t intf)
- {
- 	struct ipmi_smi_watcher *w;
-+	int    intf_num = intf->intf_num;
- 
- 	ipmi_bmc_unregister(intf);
- 
-+	mutex_lock(&smi_watchers_mutex);
- 	mutex_lock(&ipmi_interfaces_mutex);
-+	intf->intf_num = -1;
-+	intf->handlers = NULL;
- 	list_del_rcu(&intf->link);
- 	mutex_unlock(&ipmi_interfaces_mutex);
- 	synchronize_rcu();
- 
-+	cleanup_smi_msgs(intf);
-+
- 	remove_proc_entries(intf);
- 
- 	/* Call all the watcher interfaces to tell them that
- 	   an interface is gone. */
--	down_read(&smi_watchers_sem);
- 	list_for_each_entry(w, &smi_watchers, link)
--		w->smi_gone(intf->intf_num);
--	up_read(&smi_watchers_sem);
-+		w->smi_gone(intf_num);
-+	mutex_unlock(&smi_watchers_mutex);
- 
- 	kref_put(&intf->refcount, intf_free);
- 	return 0;
-@@ -2721,6 +2802,7 @@ static int handle_ipmb_get_msg_cmd(ipmi_
- 	struct ipmi_ipmb_addr    *ipmb_addr;
- 	struct ipmi_recv_msg     *recv_msg;
- 	unsigned long            flags;
-+	struct ipmi_smi_handlers *handlers;
- 
- 	if (msg->rsp_size < 10) {
- 		/* Message not big enough, just ignore it. */
-@@ -2777,10 +2859,16 @@ static int handle_ipmb_get_msg_cmd(ipmi_
- 		printk("\n");
- 	}
- #endif
--		intf->handlers->sender(intf->send_info, msg, 0);
--
--		rv = -1; /* We used the message, so return the value that
--			    causes it to not be freed or queued. */
-+		rcu_read_lock();
-+		handlers = intf->handlers;
-+		if (handlers) {
-+			handlers->sender(intf->send_info, msg, 0);
-+			/* We used the message, so return the value
-+			   that causes it to not be freed or
-+			   queued. */
-+			rv = -1;
-+		}
-+		rcu_read_unlock();
- 	} else {
- 		/* Deliver the message to the user. */
- 		spin_lock_irqsave(&intf->counter_lock, flags);
-@@ -3370,16 +3458,6 @@ void ipmi_smi_watchdog_pretimeout(ipmi_s
- 	rcu_read_unlock();
- }
- 
--static void
--handle_msg_timeout(struct ipmi_recv_msg *msg)
--{
--	msg->recv_type = IPMI_RESPONSE_RECV_TYPE;
--	msg->msg_data[0] = IPMI_TIMEOUT_COMPLETION_CODE;
--	msg->msg.netfn |= 1; /* Convert to a response. */
--	msg->msg.data_len = 1;
--	msg->msg.data = msg->msg_data;
--	deliver_response(msg);
--}
- 
- static struct ipmi_smi_msg *
- smi_from_recv_msg(ipmi_smi_t intf, struct ipmi_recv_msg *recv_msg,
-@@ -3411,7 +3489,11 @@ static void check_msg_timeout(ipmi_smi_t
- 			      struct list_head *timeouts, long timeout_period,
- 			      int slot, unsigned long *flags)
- {
--	struct ipmi_recv_msg *msg;
-+	struct ipmi_recv_msg     *msg;
-+	struct ipmi_smi_handlers *handlers;
-+
-+	if (intf->intf_num == -1)
-+		return;
- 
- 	if (!ent->inuse)
- 		return;
-@@ -3454,13 +3536,19 @@ static void check_msg_timeout(ipmi_smi_t
- 			return;
- 
- 		spin_unlock_irqrestore(&intf->seq_lock, *flags);
-+
- 		/* Send the new message.  We send with a zero
- 		 * priority.  It timed out, I doubt time is
- 		 * that critical now, and high priority
- 		 * messages are really only for messages to the
- 		 * local MC, which don't get resent. */
--		intf->handlers->sender(intf->send_info,
--				       smi_msg, 0);
-+		handlers = intf->handlers;
-+		if (handlers)
-+			intf->handlers->sender(intf->send_info,
-+					       smi_msg, 0);
-+		else
-+			ipmi_free_smi_msg(smi_msg);
-+
- 		spin_lock_irqsave(&intf->seq_lock, *flags);
- 	}
- }
-@@ -3504,18 +3592,24 @@ static void ipmi_timeout_handler(long ti
- 		spin_unlock_irqrestore(&intf->seq_lock, flags);
- 
- 		list_for_each_entry_safe(msg, msg2, &timeouts, link)
--			handle_msg_timeout(msg);
-+			deliver_err_response(msg, IPMI_TIMEOUT_COMPLETION_CODE);
- 	}
- 	rcu_read_unlock();
- }
- 
- static void ipmi_request_event(void)
- {
--	ipmi_smi_t intf;
-+	ipmi_smi_t               intf;
-+	struct ipmi_smi_handlers *handlers;
- 
- 	rcu_read_lock();
--	list_for_each_entry_rcu(intf, &ipmi_interfaces, link)
--		intf->handlers->request_events(intf->send_info);
-+	/* Called from the timer, no need to check if handlers is
-+	 * valid. */
-+	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
-+		handlers = intf->handlers;
-+		if (handlers)
-+			handlers->request_events(intf->send_info);
-+	}
- 	rcu_read_unlock();
- }
- 
-@@ -3679,8 +3773,8 @@ static void send_panic_events(char *str)
- 
- 	/* For every registered interface, send the event. */
- 	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
--		if (intf->intf_num == -1)
--			/* Interface was not ready yet. */
-+		if (!intf->handlers)
-+			/* Interface is not ready. */
- 			continue;
- 
- 		/* Send the event announcing the panic. */
-@@ -3846,8 +3940,8 @@ static int panic_event(struct notifier_b
- 
- 	/* For every registered interface, set it to run to completion. */
- 	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
--		if (intf->intf_num == -1)
--			/* Interface was not ready yet. */
-+		if (!intf->handlers)
-+			/* Interface is not ready. */
- 			continue;
- 
- 		intf->handlers->set_run_to_completion(intf->send_info, 1);
-diff -puN drivers/char/ipmi/ipmi_poweroff.c~ipmi-allow-hot-system-interface-remove drivers/char/ipmi/ipmi_poweroff.c
---- a/drivers/char/ipmi/ipmi_poweroff.c~ipmi-allow-hot-system-interface-remove
-+++ a/drivers/char/ipmi/ipmi_poweroff.c
-@@ -43,6 +43,9 @@
- 
- #define PFX "IPMI poweroff: "
- 
-+static void ipmi_po_smi_gone(int if_num);
-+static void ipmi_po_new_smi(int if_num, struct device *device);
-+
- /* Definitions for controlling power off (if the system supports it).  It
-  * conveniently matches the IPMI chassis control values. */
- #define IPMI_CHASSIS_POWER_DOWN		0	/* power down, the default. */
-@@ -51,6 +54,37 @@
- /* the IPMI data command */
- static int poweroff_powercycle;
- 
-+/* Which interface to use, -1 means the first we see. */
-+static int ifnum_to_use = -1;
-+
-+/* Our local state. */
-+static int ready = 0;
-+static ipmi_user_t ipmi_user;
-+static int ipmi_ifnum;
-+static void (*specific_poweroff_func)(ipmi_user_t user) = NULL;
-+
-+/* Holds the old poweroff function so we can restore it on removal. */
-+static void (*old_poweroff_func)(void);
-+
-+static int set_param_ifnum(const char *val, struct kernel_param *kp)
++static int param_read_proc(char *page, char **start, off_t off,
++			   int count, int *eof, void *data)
 +{
-+	int rv = param_set_int(val, kp);
-+	if (rv)
-+		return rv;
-+	if ((ifnum_to_use < 0) || (ifnum_to_use == ipmi_ifnum))
-+		return 0;
++	struct smi_info *smi = data;
 +
-+	ipmi_po_smi_gone(ipmi_ifnum);
-+	ipmi_po_new_smi(ifnum_to_use, NULL);
-+	return 0;
-+}
-+
-+module_param_call(ifnum_to_use, set_param_ifnum, param_get_int,
-+		  &ifnum_to_use, 0644);
-+MODULE_PARM_DESC(ifnum_to_use, "The interface number to use for the watchdog "
-+		 "timer.  Setting to -1 defaults to the first registered "
-+		 "interface");
-+
- /* parameter definition to allow user to flag power cycle */
- module_param(poweroff_powercycle, int, 0644);
- MODULE_PARM_DESC(poweroff_powercycle, " Set to non-zero to enable power cycle instead of power down. Power cycle is contingent on hardware support, otherwise it defaults back to power down.");
-@@ -440,15 +474,6 @@ static struct poweroff_function poweroff
- 		      / sizeof(struct poweroff_function))
++	return sprintf(page,
++		       "%s,%s,0x%lx,rsp=%d,rsi=%d,rsh=%d,irq=%d,ipmb=%d\n",
++		       si_to_str[smi->si_type],
++		       addr_space_to_str[smi->io.addr_type],
++		       smi->io.addr_data,
++		       smi->io.regspacing,
++		       smi->io.regsize,
++		       smi->io.regshift,
++		       smi->irq,
++		       smi->slave_addr);
+ }
  
- 
--/* Our local state. */
--static int ready = 0;
--static ipmi_user_t ipmi_user;
--static void (*specific_poweroff_func)(ipmi_user_t user) = NULL;
--
--/* Holds the old poweroff function so we can restore it on removal. */
--static void (*old_poweroff_func)(void);
--
--
- /* Called on a powerdown request. */
- static void ipmi_poweroff_function (void)
- {
-@@ -473,6 +498,9 @@ static void ipmi_po_new_smi(int if_num, 
- 	if (ready)
- 		return;
- 
-+	if ((ifnum_to_use >= 0) && (ifnum_to_use != if_num))
-+		return;
-+
- 	rv = ipmi_create_user(if_num, &ipmi_poweroff_handler, NULL,
- 			      &ipmi_user);
- 	if (rv) {
-@@ -481,6 +509,8 @@ static void ipmi_po_new_smi(int if_num, 
- 		return;
+ /*
+@@ -2407,6 +2671,16 @@ static int try_smi_init(struct smi_info 
+ 		goto out_err_stop_timer;
  	}
  
-+	ipmi_ifnum = if_num;
-+
-         /*
-          * Do a get device ide and store some results, since this is
- 	 * used by several functions.
-@@ -541,9 +571,15 @@ static void ipmi_po_new_smi(int if_num, 
- 
- static void ipmi_po_smi_gone(int if_num)
- {
--	/* This can never be called, because once poweroff driver is
--	   registered, the interface can't go away until the power
--	   driver is unregistered. */
-+	if (!ready)
-+		return;
-+
-+	if (ipmi_ifnum != if_num)
-+		return;
-+
-+	ready = 0;
-+	ipmi_destroy_user(ipmi_user);
-+	pm_power_off = old_poweroff_func;
- }
- 
- static struct ipmi_smi_watcher smi_watcher =
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi-allow-hot-system-interface-remove drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi-allow-hot-system-interface-remove
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -135,6 +135,7 @@
- static int nowayout = WATCHDOG_NOWAYOUT;
- 
- static ipmi_user_t watchdog_user = NULL;
-+static int watchdog_ifnum;
- 
- /* Default the timeout to 10 seconds. */
- static int timeout = 10;
-@@ -161,6 +162,8 @@ static struct fasync_struct *fasync_q = 
- static char pretimeout_since_last_heartbeat = 0;
- static char expect_close;
- 
-+static int ifnum_to_use = -1;
-+
- static DECLARE_RWSEM(register_sem);
- 
- /* Parameters to ipmi_set_timeout */
-@@ -169,6 +172,8 @@ static DECLARE_RWSEM(register_sem);
- #define IPMI_SET_TIMEOUT_FORCE_HB		2
- 
- static int ipmi_set_timeout(int do_heartbeat);
-+static void ipmi_register_watchdog(int ipmi_intf);
-+static void ipmi_unregister_watchdog(int ipmi_intf);
- 
- /* If true, the driver will start running as soon as it is configured
-    and ready. */
-@@ -245,6 +250,26 @@ static int get_param_str(char *buffer, s
- 	return strlen(buffer);
- }
- 
-+
-+static int set_param_wdog_ifnum(const char *val, struct kernel_param *kp)
-+{
-+	int rv = param_set_int(val, kp);
-+	if (rv)
-+		return rv;
-+	if ((ifnum_to_use < 0) || (ifnum_to_use == watchdog_ifnum))
-+		return 0;
-+
-+	ipmi_unregister_watchdog(watchdog_ifnum);
-+	ipmi_register_watchdog(ifnum_to_use);
-+	return 0;
-+}
-+
-+module_param_call(ifnum_to_use, set_param_wdog_ifnum, get_param_int,
-+		  &ifnum_to_use, 0644);
-+MODULE_PARM_DESC(ifnum_to_use, "The interface number to use for the watchdog "
-+		 "timer.  Setting to -1 defaults to the first registered "
-+		 "interface");
-+
- module_param_call(timeout, set_param_int, get_param_int, &timeout, 0644);
- MODULE_PARM_DESC(timeout, "Timeout value in seconds.");
- 
-@@ -263,12 +288,13 @@ module_param_call(preop, set_param_str, 
- MODULE_PARM_DESC(preop, "Pretimeout driver operation.  One of: "
- 		 "preop_none, preop_panic, preop_give_data.");
- 
--module_param(start_now, int, 0);
-+module_param(start_now, int, 0444);
- MODULE_PARM_DESC(start_now, "Set to 1 to start the watchdog as"
- 		 "soon as the driver is loaded.");
- 
- module_param(nowayout, int, 0644);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=CONFIG_WATCHDOG_NOWAYOUT)");
-+MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
-+		 "(default=CONFIG_WATCHDOG_NOWAYOUT)");
- 
- /* Default state of the timer. */
- static unsigned char ipmi_watchdog_state = WDOG_TIMEOUT_NONE;
-@@ -872,6 +898,11 @@ static void ipmi_register_watchdog(int i
- 	if (watchdog_user)
- 		goto out;
- 
-+	if ((ifnum_to_use >= 0) && (ifnum_to_use != ipmi_intf))
-+		goto out;
-+
-+	watchdog_ifnum = ipmi_intf;
-+
- 	rv = ipmi_create_user(ipmi_intf, &ipmi_hndlrs, NULL, &watchdog_user);
- 	if (rv < 0) {
- 		printk(KERN_CRIT PFX "Unable to register with ipmi\n");
-@@ -901,6 +932,39 @@ static void ipmi_register_watchdog(int i
- 	}
- }
- 
-+static void ipmi_unregister_watchdog(int ipmi_intf)
-+{
-+	int rv;
-+
-+	down_write(&register_sem);
-+
-+	if (!watchdog_user)
-+		goto out;
-+
-+	if (watchdog_ifnum != ipmi_intf)
-+		goto out;
-+
-+	/* Make sure no one can call us any more. */
-+	misc_deregister(&ipmi_wdog_miscdev);
-+
-+	/* Wait to make sure the message makes it out.  The lower layer has
-+	   pointers to our buffers, we want to make sure they are done before
-+	   we release our memory. */
-+	while (atomic_read(&set_timeout_tofree))
-+		schedule_timeout_uninterruptible(1);
-+
-+	/* Disconnect from IPMI. */
-+	rv = ipmi_destroy_user(watchdog_user);
++	rv = ipmi_smi_add_proc_entry(new_smi->intf, "params",
++				     param_read_proc, NULL,
++				     new_smi, THIS_MODULE);
 +	if (rv) {
-+		printk(KERN_WARNING PFX "error unlinking from IPMI: %d\n",
++		printk(KERN_ERR
++		       "ipmi_si: Unable to create proc entry: %d\n",
 +		       rv);
++		goto out_err_stop_timer;
 +	}
-+	watchdog_user = NULL;
 +
-+ out:
-+	up_write(&register_sem);
-+}
-+
- #ifdef HAVE_NMI_HANDLER
- static int
- ipmi_nmi(void *dev_id, int cpu, int handled)
-@@ -1004,9 +1068,7 @@ static void ipmi_new_smi(int if_num, str
+ 	list_add_tail(&new_smi->link, &smi_infos);
  
- static void ipmi_smi_gone(int if_num)
- {
--	/* This can never be called, because once the watchdog is
--	   registered, the interface can't go away until the watchdog
--	   is unregistered. */
-+	ipmi_unregister_watchdog(if_num);
- }
- 
- static struct ipmi_smi_watcher smi_watcher =
-@@ -1148,30 +1210,32 @@ static int __init ipmi_wdog_init(void)
- 
- 	check_parms();
- 
-+	register_reboot_notifier(&wdog_reboot_notifier);
-+	atomic_notifier_chain_register(&panic_notifier_list,
-+			&wdog_panic_notifier);
-+
- 	rv = ipmi_smi_watcher_register(&smi_watcher);
- 	if (rv) {
- #ifdef HAVE_NMI_HANDLER
- 		if (preaction_val == WDOG_PRETIMEOUT_NMI)
- 			release_nmi(&ipmi_nmi_handler);
- #endif
-+		atomic_notifier_chain_unregister(&panic_notifier_list,
-+						 &wdog_panic_notifier);
-+		unregister_reboot_notifier(&wdog_reboot_notifier);
- 		printk(KERN_WARNING PFX "can't register smi watcher\n");
- 		return rv;
+ 	mutex_unlock(&smi_infos_lock);
+@@ -2515,7 +2789,7 @@ static __devinit int init_ipmi_si(void)
  	}
  
--	register_reboot_notifier(&wdog_reboot_notifier);
--	atomic_notifier_chain_register(&panic_notifier_list,
--			&wdog_panic_notifier);
--
- 	printk(KERN_INFO PFX "driver initialized\n");
- 
- 	return 0;
+ 	mutex_lock(&smi_infos_lock);
+-	if (list_empty(&smi_infos)) {
++	if (unload_when_empty && list_empty(&smi_infos)) {
+ 		mutex_unlock(&smi_infos_lock);
+ #ifdef CONFIG_PCI
+ 		pci_unregister_driver(&ipmi_pci_driver);
+@@ -2530,7 +2804,7 @@ static __devinit int init_ipmi_si(void)
  }
+ module_init(init_ipmi_si);
  
--static __exit void ipmi_unregister_watchdog(void)
-+static void __exit ipmi_wdog_exit(void)
+-static void __devexit cleanup_one_si(struct smi_info *to_clean)
++static void cleanup_one_si(struct smi_info *to_clean)
  {
--	int rv;
--
--	down_write(&register_sem);
-+	ipmi_smi_watcher_unregister(&smi_watcher);
-+	ipmi_unregister_watchdog(watchdog_ifnum);
- 
- #ifdef HAVE_NMI_HANDLER
- 	if (nmi_handler_registered)
-@@ -1179,37 +1243,8 @@ static __exit void ipmi_unregister_watch
- #endif
- 
- 	atomic_notifier_chain_unregister(&panic_notifier_list,
--			&wdog_panic_notifier);
-+					 &wdog_panic_notifier);
- 	unregister_reboot_notifier(&wdog_reboot_notifier);
--
--	if (! watchdog_user)
--		goto out;
--
--	/* Make sure no one can call us any more. */
--	misc_deregister(&ipmi_wdog_miscdev);
--
--	/* Wait to make sure the message makes it out.  The lower layer has
--	   pointers to our buffers, we want to make sure they are done before
--	   we release our memory. */
--	while (atomic_read(&set_timeout_tofree))
--		schedule_timeout_uninterruptible(1);
--
--	/* Disconnect from IPMI. */
--	rv = ipmi_destroy_user(watchdog_user);
--	if (rv) {
--		printk(KERN_WARNING PFX "error unlinking from IPMI: %d\n",
--		       rv);
--	}
--	watchdog_user = NULL;
--
-- out:
--	up_write(&register_sem);
--}
--
--static void __exit ipmi_wdog_exit(void)
--{
--	ipmi_smi_watcher_unregister(&smi_watcher);
--	ipmi_unregister_watchdog();
- }
- module_exit(ipmi_wdog_exit);
- module_init(ipmi_wdog_init);
+ 	int           rv;
+ 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from minyard@acm.org are
