@@ -1,559 +1,642 @@
 From: akpm@osdl.org
-Subject: - new-updated-devicestxt-lanana.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:23 -0800
-Message-ID: <200612072316.kB7NGNj3030828@shell0.pdx.osdl.net>
+Subject: - fs-sysv-doc-cleanup.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:15:55 -0800
+Message-ID: <200612072315.kB7NFt9X030763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53643 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53647 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163796AbWLGXQb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:16:31 -0500
+	id S1163767AbWLGXQd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:16:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torben.mathiasen@hp.com, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     New updated devices.txt - LANANA
+     fs/sysv/: doc cleanup
 has been removed from the -mm tree.  Its filename was
-     new-updated-devicestxt-lanana.patch
+     fs-sysv-doc-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: New updated devices.txt - LANANA
-From: Torben Mathiasen <torben.mathiasen@hp.com>
+Subject: fs/sysv/: doc cleanup
+From: Adrian Bunk <bunk@stusta.de>
 
-[jengelh@linux01.gwdg.de: cleanups]
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Acked-by: Torben Mathiasen <torben.mathiasen@hp.com>
+Remove two different changelog files from fs/sysv/ and merges the INTRO
+file into Documentation/filesystems/sysv-fs.txt
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/devices.txt |  102 ++++++++++++++++++++++--------------
- 1 file changed, 64 insertions(+), 38 deletions(-)
+ Documentation/filesystems/sysv-fs.txt |  177 ++++++++++++++++++++++-
+ fs/sysv/CHANGES                       |   60 -------
+ fs/sysv/ChangeLog                     |  106 -------------
+ fs/sysv/INTRO                         |  182 ------------------------
+ 4 files changed, 168 insertions(+), 357 deletions(-)
 
-diff -puN Documentation/devices.txt~new-updated-devicestxt-lanana Documentation/devices.txt
---- a/Documentation/devices.txt~new-updated-devicestxt-lanana
-+++ a/Documentation/devices.txt
-@@ -3,7 +3,7 @@
+diff -puN Documentation/filesystems/sysv-fs.txt~fs-sysv-doc-cleanup Documentation/filesystems/sysv-fs.txt
+--- a/Documentation/filesystems/sysv-fs.txt~fs-sysv-doc-cleanup
++++ a/Documentation/filesystems/sysv-fs.txt
+@@ -1,11 +1,8 @@
+-This is the implementation of the SystemV/Coherent filesystem for Linux.
+ It implements all of
+   - Xenix FS,
+   - SystemV/386 FS,
+   - Coherent FS.
  
- 	     Maintained by Torben Mathiasen <device@lanana.org>
- 
--		      Last revised: 15 May 2006
-+		      Last revised: 29 November 2006
- 
- This list is the Linux Device List, the official registry of allocated
- device numbers and /dev directory nodes for the Linux operating
-@@ -94,6 +94,7 @@ Your cooperation is appreciated.
- 		  9 = /dev/urandom	Faster, less secure random number gen.
- 		 10 = /dev/aio		Asynchronous I/O notification interface
- 		 11 = /dev/kmsg		Writes to this come out as printk's
-+
-   1 block	RAM disk
- 		  0 = /dev/ram0		First RAM disk
- 		  1 = /dev/ram1		Second RAM disk
-@@ -122,7 +123,7 @@ Your cooperation is appreciated.
- 		devices are on major 128 and above and use the PTY
- 		master multiplex (/dev/ptmx) to acquire a PTY on
- 		demand.
--  
-+
-   2 block	Floppy disks
- 		  0 = /dev/fd0		Controller 0, drive 0, autodetect
- 		  1 = /dev/fd1		Controller 0, drive 1, autodetect
-@@ -257,7 +258,7 @@ Your cooperation is appreciated.
- 		129 = /dev/vcsa1	tty1 text/attribute contents
- 		    ...
- 		191 = /dev/vcsa63	tty63 text/attribute contents
--	
-+
- 		NOTE: These devices permit both read and write access.
- 
-   7 block	Loopback devices
-@@ -411,7 +412,7 @@ Your cooperation is appreciated.
- 		207 = /dev/video/em8300_sp	EM8300 DVD decoder subpicture
- 		208 = /dev/compaq/cpqphpc	Compaq PCI Hot Plug Controller
- 		209 = /dev/compaq/cpqrid	Compaq Remote Insight Driver
--		210 = /dev/impi/bt	IMPI coprocessor block transfer	
-+		210 = /dev/impi/bt	IMPI coprocessor block transfer
- 		211 = /dev/impi/smic	IMPI coprocessor stream interface
- 		212 = /dev/watchdogs/0	First watchdog device
- 		213 = /dev/watchdogs/1	Second watchdog device
-@@ -506,6 +507,7 @@ Your cooperation is appreciated.
- 		 33 = /dev/patmgr1	Sequencer patch manager
- 		 34 = /dev/midi02	Third MIDI port
- 		 50 = /dev/midi03	Fourth MIDI port
-+
-  14 block	BIOS harddrive callback support {2.6}
- 		  0 = /dev/dos_hda	First BIOS harddrive whole disk
- 		 64 = /dev/dos_hdb	Second BIOS harddrive whole disk
-@@ -527,6 +529,7 @@ Your cooperation is appreciated.
- 
-  16 char	Non-SCSI scanners
- 		  0 = /dev/gs4500	Genius 4500 handheld scanner
-+
-  16 block	GoldStar CD-ROM
- 		  0 = /dev/gscd		GoldStar CD-ROM
- 
-@@ -548,6 +551,7 @@ Your cooperation is appreciated.
- 		  0 = /dev/ttyC0	First Cyclades port
- 		    ...
- 		 31 = /dev/ttyC31	32nd Cyclades port
-+
-  19 block	"Double" compressed disk
- 		  0 = /dev/double0	First compressed disk
- 		    ...
-@@ -563,6 +567,7 @@ Your cooperation is appreciated.
- 		  0 = /dev/cub0		Callout device for ttyC0
- 		    ...
- 		 31 = /dev/cub31	Callout device for ttyC31
-+
-  20 block	Hitachi CD-ROM (under development)
- 		  0 = /dev/hitcd	Hitachi CD-ROM
- 
-@@ -582,7 +587,7 @@ Your cooperation is appreciated.
- 
- 		This device is used on the ARM-based Acorn RiscPC.
- 		Partitions are handled the same way as for IDE disks
--		(see major number 3). 
-+		(see major number 3).
- 
-  22 char	Digiboard serial card
- 		  0 = /dev/ttyD0	First Digiboard port
-@@ -591,7 +596,7 @@ Your cooperation is appreciated.
-  22 block	Second IDE hard disk/CD-ROM interface
- 		  0 = /dev/hdc		Master: whole disk (or CD-ROM)
- 		 64 = /dev/hdd		Slave: whole disk (or CD-ROM)
--		
-+
- 		Partitions are handled the same way as for the first
- 		interface (see major number 3).
- 
-@@ -639,6 +644,7 @@ Your cooperation is appreciated.
- 
-  26 char	Quanta WinVision frame grabber {2.6}
- 		  0 = /dev/wvisfgrab	Quanta WinVision frame grabber
-+
-  26 block	Second Matsushita (Panasonic/SoundBlaster) CD-ROM
- 		  0 = /dev/sbpcd4	Panasonic CD-ROM controller 1 unit 0
- 		  1 = /dev/sbpcd5	Panasonic CD-ROM controller 1 unit 1
-@@ -670,6 +676,7 @@ Your cooperation is appreciated.
- 		 37 = /dev/nrawqft1	Unit 1, no rewind-on-close, no file marks
- 		 38 = /dev/nrawqft2	Unit 2, no rewind-on-close, no file marks
- 		 39 = /dev/nrawqft3	Unit 3, no rewind-on-close, no file marks
-+
-  27 block	Third Matsushita (Panasonic/SoundBlaster) CD-ROM
- 		  0 = /dev/sbpcd8	Panasonic CD-ROM controller 2 unit 0
- 		  1 = /dev/sbpcd9	Panasonic CD-ROM controller 2 unit 1
-@@ -681,6 +688,7 @@ Your cooperation is appreciated.
- 		  1 = /dev/staliomem1	Second Stallion card I/O memory
- 		  2 = /dev/staliomem2	Third Stallion card I/O memory
- 		  3 = /dev/staliomem3	Fourth Stallion card I/O memory
-+
-  28 char	Atari SLM ACSI laser printer (68k/Atari)
- 		  0 = /dev/slm0		First SLM laser printer
- 		  1 = /dev/slm1		Second SLM laser printer
-@@ -690,6 +698,7 @@ Your cooperation is appreciated.
- 		  1 = /dev/sbpcd13	Panasonic CD-ROM controller 3 unit 1
- 		  2 = /dev/sbpcd14	Panasonic CD-ROM controller 3 unit 2
- 		  3 = /dev/sbpcd15	Panasonic CD-ROM controller 3 unit 3
-+
-  28 block	ACSI disk (68k/Atari)
- 		  0 = /dev/ada		First ACSI disk whole disk
- 		 16 = /dev/adb		Second ACSI disk whole disk
-@@ -750,6 +759,7 @@ Your cooperation is appreciated.
-  31 char	MPU-401 MIDI
- 		  0 = /dev/mpu401data	MPU-401 data port
- 		  1 = /dev/mpu401stat	MPU-401 status port
-+
-  31 block	ROM/flash memory card
- 		  0 = /dev/rom0		First ROM card (rw)
- 		      ...
-@@ -801,7 +811,7 @@ Your cooperation is appreciated.
-  34 block	Fourth IDE hard disk/CD-ROM interface
- 		  0 = /dev/hdg		Master: whole disk (or CD-ROM)
- 		 64 = /dev/hdh		Slave: whole disk (or CD-ROM)
--		
-+
- 		Partitions are handled the same way as for the first
- 		interface (see major number 3).
- 
-@@ -818,6 +828,7 @@ Your cooperation is appreciated.
- 		129 = /dev/smpte1	Second MIDI port, SMPTE timed
- 		130 = /dev/smpte2	Third MIDI port, SMPTE timed
- 		131 = /dev/smpte3	Fourth MIDI port, SMPTE timed
-+
-  35 block	Slow memory ramdisk
- 		  0 = /dev/slram	Slow memory ramdisk
- 
-@@ -828,6 +839,7 @@ Your cooperation is appreciated.
- 		 16 = /dev/tap0		First Ethertap device
- 		    ...
- 		 31 = /dev/tap15	16th Ethertap device
-+
-  36 block	MCA ESDI hard disk
- 		  0 = /dev/eda		First ESDI disk whole disk
- 		 64 = /dev/edb		Second ESDI disk whole disk
-@@ -882,6 +894,7 @@ Your cooperation is appreciated.
- 
-  40 char	Matrox Meteor frame grabber {2.6}
- 		  0 = /dev/mmetfgrab	Matrox Meteor frame grabber
-+
-  40 block	Syquest EZ135 parallel port removable drive
- 		  0 = /dev/eza		Parallel EZ135 drive, whole disk
- 
-@@ -893,6 +906,7 @@ Your cooperation is appreciated.
- 
-  41 char	Yet Another Micro Monitor
- 		  0 = /dev/yamm		Yet Another Micro Monitor
-+
-  41 block	MicroSolutions BackPack parallel port CD-ROM
- 		  0 = /dev/bpcd		BackPack CD-ROM
- 
-@@ -901,6 +915,7 @@ Your cooperation is appreciated.
- 		the parallel port ATAPI CD-ROM driver at major number 46.
- 
-  42 char	Demo/sample use
-+
-  42 block	Demo/sample use
- 
- 		This number is intended for use in sample code, as
-@@ -918,6 +933,7 @@ Your cooperation is appreciated.
- 		  0 = /dev/ttyI0	First virtual modem
- 		    ...
- 		 63 = /dev/ttyI63	64th virtual modem
-+
-  43 block	Network block devices
- 		  0 = /dev/nb0		First network block device
- 		  1 = /dev/nb1		Second network block device
-@@ -934,12 +950,13 @@ Your cooperation is appreciated.
- 		  0 = /dev/cui0		Callout device for ttyI0
- 		    ...
- 		 63 = /dev/cui63	Callout device for ttyI63
-+
-  44 block	Flash Translation Layer (FTL) filesystems
- 		  0 = /dev/ftla		FTL on first Memory Technology Device
- 		 16 = /dev/ftlb		FTL on second Memory Technology Device
- 		 32 = /dev/ftlc		FTL on third Memory Technology Device
- 		    ...
--		240 = /dev/ftlp		FTL on 16th Memory Technology Device 
-+		240 = /dev/ftlp		FTL on 16th Memory Technology Device
- 
- 		Partitions are handled in the same way as for IDE
- 		disks (see major number 3) except that the partition
-@@ -958,6 +975,7 @@ Your cooperation is appreciated.
- 		191 = /dev/ippp63	64th SyncPPP device
- 
- 		255 = /dev/isdninfo	ISDN monitor interface
-+
-  45 block	Parallel port IDE disk devices
- 		  0 = /dev/pda		First parallel port IDE disk
- 		 16 = /dev/pdb		Second parallel port IDE disk
-@@ -1044,6 +1062,7 @@ Your cooperation is appreciated.
- 		  1 = /dev/dcbri1	Second DataComm card
- 		  2 = /dev/dcbri2	Third DataComm card
- 		  3 = /dev/dcbri3	Fourth DataComm card
-+
-  52 block	Mylex DAC960 PCI RAID controller; fifth controller
- 		  0 = /dev/rd/c4d0	First disk, whole disk
- 		  8 = /dev/rd/c4d1	Second disk, whole disk
-@@ -1093,6 +1112,7 @@ Your cooperation is appreciated.
- 
-  55 char	DSP56001 digital signal processor
- 		  0 = /dev/dsp56k	First DSP56001
-+
-  55 block	Mylex DAC960 PCI RAID controller; eighth controller
- 		  0 = /dev/rd/c7d0	First disk, whole disk
- 		  8 = /dev/rd/c7d1	Second disk, whole disk
-@@ -1130,6 +1150,7 @@ Your cooperation is appreciated.
- 		  0 = /dev/cup0		Callout device for ttyP0
- 		  1 = /dev/cup1		Callout device for ttyP1
- 		    ...
-+
-  58 block	Reserved for logical volume manager
- 
-  59 char	sf firewall package
-@@ -1149,6 +1170,7 @@ Your cooperation is appreciated.
- 		NAMING CONFLICT -- PROPOSED REVISED NAME /dev/rpda0 etc
- 
-  60-63 char	LOCAL/EXPERIMENTAL USE
-+
-  60-63 block	LOCAL/EXPERIMENTAL USE
- 		Allocated for local/experimental use.  For devices not
- 		assigned official numbers, these ranges should be
-@@ -1434,7 +1456,6 @@ Your cooperation is appreciated.
- 		DAC960 (see major number 48) except that the limit on
- 		partitions is 15.
- 
+-This is version beta 4.
 -
-  78 char	PAM Software's multimodem boards
- 		  0 = /dev/ttyM0	First PAM modem
- 		  1 = /dev/ttyM1	Second PAM modem
-@@ -1450,7 +1471,6 @@ Your cooperation is appreciated.
- 		DAC960 (see major number 48) except that the limit on
- 		partitions is 15.
+ To install:
+ * Answer the 'System V and Coherent filesystem support' question with 'y'
+   when configuring the kernel.
+@@ -28,11 +25,173 @@ Bugs in the present implementation:
+   for this FS on hard disk yet.
  
--
-  79 char	PAM Software's multimodem boards - alternate devices
- 		  0 = /dev/cum0		Callout device for ttyM0
- 		  1 = /dev/cum1		Callout device for ttyM1
-@@ -1466,7 +1486,6 @@ Your cooperation is appreciated.
- 		DAC960 (see major number 48) except that the limit on
- 		partitions is 15.
  
--
-  80 char	Photometrics AT200 CCD camera
- 		  0 = /dev/at200	Photometrics AT200 CCD camera
- 
-@@ -1679,7 +1698,7 @@ Your cooperation is appreciated.
- 		  1 = /dev/dcxx1	Second capture card
- 		    ...
- 
-- 94 block IBM S/390 DASD block storage
-+ 94 block	IBM S/390 DASD block storage
-     		  0 = /dev/dasda First DASD device, major
-     		  1 = /dev/dasda1 First DASD device, block 1
- 	    	  2 = /dev/dasda2 First DASD device, block 2
-@@ -1695,7 +1714,7 @@ Your cooperation is appreciated.
- 		  1 = /dev/ipnat	NAT control device/log file
- 		  2 = /dev/ipstate	State information log file
- 		  3 = /dev/ipauth	Authentication control device/log file
--		    ...		
-+		    ...
- 
-  96 char	Parallel port ATAPI tape devices
- 		  0 = /dev/pt0		First parallel port ATAPI tape
-@@ -1705,7 +1724,7 @@ Your cooperation is appreciated.
- 		129 = /dev/npt1		Second p.p. ATAPI tape, no rewind
- 		    ...
- 
-- 96 block Inverse NAND Flash Translation Layer
-+ 96 block	Inverse NAND Flash Translation Layer
- 		  0 = /dev/inftla First INFTL layer
- 		 16 = /dev/inftlb Second INFTL layer
- 		    ...
-@@ -1937,7 +1956,6 @@ Your cooperation is appreciated.
- 		    ...
- 
- 113 block	IBM iSeries virtual CD-ROM
--
- 		  0 = /dev/iseries/vcda	First virtual CD-ROM
- 		  1 = /dev/iseries/vcdb	Second virtual CD-ROM
- 		    ...
-@@ -2059,11 +2077,12 @@ Your cooperation is appreciated.
- 		    ...
- 
- 119 char	VMware virtual network control
--		  0 = /dev/vnet0	1st virtual network
--		  1 = /dev/vnet1	2nd virtual network
-+		  0 = /dev/vmnet0	1st virtual network
-+		  1 = /dev/vmnet1	2nd virtual network
- 		    ...
- 
- 120-127 char	LOCAL/EXPERIMENTAL USE
+-Please report any bugs and suggestions to
+-  Bruno Haible <haible@ma2s2.mathematik.uni-karlsruhe.de>
+-  Pascal Haible <haible@izfm.uni-stuttgart.de>
+-  Krzysztof G. Baranowski <kgb@manjak.knm.org.pl>
++These filesystems are rather similar. Here is a comparison with Minix FS:
 +
- 120-127 block	LOCAL/EXPERIMENTAL USE
- 		Allocated for local/experimental use.  For devices not
- 		assigned official numbers, these ranges should be
-@@ -2075,7 +2094,6 @@ Your cooperation is appreciated.
- 		nodes; instead they should be accessed through the
- 		/dev/ptmx cloning interface.
- 
--
- 128 block       SCSI disk devices (128-143)
-                   0 = /dev/sddy         129th SCSI disk whole disk
-                  16 = /dev/sddz         130th SCSI disk whole disk
-@@ -2087,7 +2105,6 @@ Your cooperation is appreciated.
- 		disks (see major number 3) except that the limit on
- 		partitions is 15.
- 
--
- 129 block       SCSI disk devices (144-159)
-                   0 = /dev/sdeo         145th SCSI disk whole disk
-                  16 = /dev/sdep         146th SCSI disk whole disk
-@@ -2123,7 +2140,6 @@ Your cooperation is appreciated.
- 		disks (see major number 3) except that the limit on
- 		partitions is 15.
- 
--
- 132 block       SCSI disk devices (192-207)
-                   0 = /dev/sdgk         193rd SCSI disk whole disk
-                  16 = /dev/sdgl         194th SCSI disk whole disk
-@@ -2135,7 +2151,6 @@ Your cooperation is appreciated.
- 		disks (see major number 3) except that the limit on
- 		partitions is 15.
- 
--
- 133 block       SCSI disk devices (208-223)
-                   0 = /dev/sdha         209th SCSI disk whole disk
-                  16 = /dev/sdhb         210th SCSI disk whole disk
-@@ -2147,7 +2162,6 @@ Your cooperation is appreciated.
- 		disks (see major number 3) except that the limit on
- 		partitions is 15.
- 
--
- 134 block       SCSI disk devices (224-239)
-                   0 = /dev/sdhq         225th SCSI disk whole disk
-                  16 = /dev/sdhr         226th SCSI disk whole disk
-@@ -2159,7 +2173,6 @@ Your cooperation is appreciated.
- 		disks (see major number 3) except that the limit on
- 		partitions is 15.
- 
--
- 135 block       SCSI disk devices (240-255)
-                   0 = /dev/sdig         241st SCSI disk whole disk
-                  16 = /dev/sdih         242nd SCSI disk whole disk
-@@ -2171,7 +2184,6 @@ Your cooperation is appreciated.
- 		disks (see major number 3) except that the limit on
- 		partitions is 15.
- 
--
- 136-143 char	Unix98 PTY slaves
- 		  0 = /dev/pts/0	First Unix98 pseudo-TTY
- 		  1 = /dev/pts/1	Second Unix98 pesudo-TTY
-@@ -2384,6 +2396,7 @@ Your cooperation is appreciated.
- 		    ...
- 
- 159 char	RESERVED
++* Linux fdisk reports on partitions
++  - Minix FS     0x81 Linux/Minix
++  - Xenix FS     ??
++  - SystemV FS   ??
++  - Coherent FS  0x08 AIX bootable
 +
- 159 block	RESERVED
- 
- 160 char	General Purpose Instrument Bus (GPIB)
-@@ -2427,7 +2440,7 @@ Your cooperation is appreciated.
- 
- 		Partitions are handled in the same way as for IDE
- 		disks (see major number 3) except that the limit on
--		partitions is 31. 
-+		partitions is 31.
- 
- 162 char	Raw block device interface
- 		  0 = /dev/rawctl	Raw I/O control device
-@@ -2483,7 +2496,6 @@ Your cooperation is appreciated.
- 
- 171 char	Reserved for IEEE 1394 (Firewire)
- 
--
- 172 char	Moxa Intellio serial card
- 		  0 = /dev/ttyMX0	First Moxa port
- 		  1 = /dev/ttyMX1	Second Moxa port
-@@ -2543,9 +2555,6 @@ Your cooperation is appreciated.
- 		 64 = /dev/usb/rio500	Diamond Rio 500
- 		 65 = /dev/usb/usblcd	USBLCD Interface (info@usblcd.de)
- 		 66 = /dev/usb/cpad0	Synaptics cPad (mouse/LCD)
--		 67 = /dev/usb/adutux0	1st Ontrak ADU device
--		    ...
--		 76 = /dev/usb/adutux10	10th Ontrak ADU device
- 		 96 = /dev/usb/hiddev0	1st USB HID device
- 		    ...
- 		111 = /dev/usb/hiddev15	16th USB HID device
-@@ -2558,7 +2567,7 @@ Your cooperation is appreciated.
- 		132 = /dev/usb/idmouse	ID Mouse (fingerprint scanner) device
- 		133 = /dev/usb/sisusbvga1	First SiSUSB VGA device
- 		    ...
--		140 = /dev/usb/sisusbvga8	Eigth SISUSB VGA device
-+		140 = /dev/usb/sisusbvga8	Eighth SISUSB VGA device
- 		144 = /dev/usb/lcd	USB LCD device
- 		160 = /dev/usb/legousbtower0	1st USB Legotower device
- 		    ...
-@@ -2571,7 +2580,7 @@ Your cooperation is appreciated.
- 		  0 = /dev/uba		First USB block device
- 		  8 = /dev/ubb		Second USB block device
- 		 16 = /dev/ubc		Third USB block device
--		    ...
-+ 		    ...
- 
- 181 char	Conrad Electronic parallel port radio clocks
- 		  0 = /dev/pcfclock0	First Conrad radio clock
-@@ -2657,7 +2666,7 @@ Your cooperation is appreciated.
- 		 32 = /dev/mvideo/status2	Third device
- 		    ...
- 		    ...
--		240 = /dev/mvideo/status15	16th device 
-+		240 = /dev/mvideo/status15	16th device
- 		    ...
- 
- 195 char	Nvidia graphics devices
-@@ -2795,6 +2804,10 @@ Your cooperation is appreciated.
- 		    ...
- 		 185 = /dev/ttyNX15		Hilscher netX serial port 15
- 		 186 = /dev/ttyJ0		JTAG1 DCC protocol based serial port emulation
-+		 187 = /dev/ttyUL0		Xilinx uartlite - port 0
-+		    ...
-+		 190 = /dev/ttyUL3		Xilinx uartlite - port 3
-+		 191 = /dev/xvc0		Xen virtual console - port 0
- 
- 205 char	Low-density serial ports (alternate device)
- 		  0 = /dev/culu0		Callout device for ttyLU0
-@@ -2832,7 +2845,6 @@ Your cooperation is appreciated.
- 		 82 = /dev/cuvr0		Callout device for ttyVR0
- 		 83 = /dev/cuvr1		Callout device for ttyVR1
- 
--
- 206 char	OnStream SC-x0 tape devices
- 		  0 = /dev/osst0		First OnStream SCSI tape, mode 0
- 		  1 = /dev/osst1		Second OnStream SCSI tape, mode 0
-@@ -2922,7 +2934,6 @@ Your cooperation is appreciated.
- 		    ...
- 
- 212 char	LinuxTV.org DVB driver subsystem
--
- 		  0 = /dev/dvb/adapter0/video0    first video decoder of first card
- 		  1 = /dev/dvb/adapter0/audio0    first audio decoder of first card
- 		  2 = /dev/dvb/adapter0/sec0      (obsolete/unused)
-@@ -3008,9 +3019,9 @@ Your cooperation is appreciated.
- 		  2 = /dev/3270/tub2		Second 3270 terminal
- 		    ...
- 
--229 char	IBM iSeries virtual console
--		  0 = /dev/iseries/vtty0	First console port
--		  1 = /dev/iseries/vtty1	Second console port
-+229 char	IBM iSeries/pSeries virtual console
-+		  0 = /dev/hvc0			First console port
-+		  1 = /dev/hvc1			Second console port
- 		    ...
- 
- 230 char	IBM iSeries virtual tape
-@@ -3083,12 +3094,14 @@ Your cooperation is appreciated.
- 234-239		UNASSIGNED
- 
- 240-254 char	LOCAL/EXPERIMENTAL USE
++* Size of a block or zone (data allocation unit on disk)
++  - Minix FS     1024
++  - Xenix FS     1024 (also 512 ??)
++  - SystemV FS   1024 (also 512 and 2048)
++  - Coherent FS   512
 +
- 240-254 block	LOCAL/EXPERIMENTAL USE
- 		Allocated for local/experimental use.  For devices not
- 		assigned official numbers, these ranges should be
- 		used in order to avoid conflicting with future assignments.
- 
- 255 char	RESERVED
++* General layout: all have one boot block, one super block and
++  separate areas for inodes and for directories/data.
++  On SystemV Release 2 FS (e.g. Microport) the first track is reserved and
++  all the block numbers (including the super block) are offset by one track.
 +
- 255 block	RESERVED
++* Byte ordering of "short" (16 bit entities) on disk:
++  - Minix FS     little endian  0 1
++  - Xenix FS     little endian  0 1
++  - SystemV FS   little endian  0 1
++  - Coherent FS  little endian  0 1
++  Of course, this affects only the file system, not the data of files on it!
++
++* Byte ordering of "long" (32 bit entities) on disk:
++  - Minix FS     little endian  0 1 2 3
++  - Xenix FS     little endian  0 1 2 3
++  - SystemV FS   little endian  0 1 2 3
++  - Coherent FS  PDP-11         2 3 0 1
++  Of course, this affects only the file system, not the data of files on it!
++
++* Inode on disk: "short", 0 means non-existent, the root dir ino is:
++  - Minix FS                            1
++  - Xenix FS, SystemV FS, Coherent FS   2
++
++* Maximum number of hard links to a file:
++  - Minix FS     250
++  - Xenix FS     ??
++  - SystemV FS   ??
++  - Coherent FS  >=10000
++
++* Free inode management:
++  - Minix FS                             a bitmap
++  - Xenix FS, SystemV FS, Coherent FS
++      There is a cache of a certain number of free inodes in the super-block.
++      When it is exhausted, new free inodes are found using a linear search.
++
++* Free block management:
++  - Minix FS                             a bitmap
++  - Xenix FS, SystemV FS, Coherent FS
++      Free blocks are organized in a "free list". Maybe a misleading term,
++      since it is not true that every free block contains a pointer to
++      the next free block. Rather, the free blocks are organized in chunks
++      of limited size, and every now and then a free block contains pointers
++      to the free blocks pertaining to the next chunk; the first of these
++      contains pointers and so on. The list terminates with a "block number"
++      0 on Xenix FS and SystemV FS, with a block zeroed out on Coherent FS.
++
++* Super-block location:
++  - Minix FS     block 1 = bytes 1024..2047
++  - Xenix FS     block 1 = bytes 1024..2047
++  - SystemV FS   bytes 512..1023
++  - Coherent FS  block 1 = bytes 512..1023
++
++* Super-block layout:
++  - Minix FS
++                    unsigned short s_ninodes;
++                    unsigned short s_nzones;
++                    unsigned short s_imap_blocks;
++                    unsigned short s_zmap_blocks;
++                    unsigned short s_firstdatazone;
++                    unsigned short s_log_zone_size;
++                    unsigned long s_max_size;
++                    unsigned short s_magic;
++  - Xenix FS, SystemV FS, Coherent FS
++                    unsigned short s_firstdatazone;
++                    unsigned long  s_nzones;
++                    unsigned short s_fzone_count;
++                    unsigned long  s_fzones[NICFREE];
++                    unsigned short s_finode_count;
++                    unsigned short s_finodes[NICINOD];
++                    char           s_flock;
++                    char           s_ilock;
++                    char           s_modified;
++                    char           s_rdonly;
++                    unsigned long  s_time;
++                    short          s_dinfo[4]; -- SystemV FS only
++                    unsigned long  s_free_zones;
++                    unsigned short s_free_inodes;
++                    short          s_dinfo[4]; -- Xenix FS only
++                    unsigned short s_interleave_m,s_interleave_n; -- Coherent FS only
++                    char           s_fname[6];
++                    char           s_fpack[6];
++    then they differ considerably:
++        Xenix FS
++                    char           s_clean;
++                    char           s_fill[371];
++                    long           s_magic;
++                    long           s_type;
++        SystemV FS
++                    long           s_fill[12 or 14];
++                    long           s_state;
++                    long           s_magic;
++                    long           s_type;
++        Coherent FS
++                    unsigned long  s_unique;
++    Note that Coherent FS has no magic.
++
++* Inode layout:
++  - Minix FS
++                    unsigned short i_mode;
++                    unsigned short i_uid;
++                    unsigned long  i_size;
++                    unsigned long  i_time;
++                    unsigned char  i_gid;
++                    unsigned char  i_nlinks;
++                    unsigned short i_zone[7+1+1];
++  - Xenix FS, SystemV FS, Coherent FS
++                    unsigned short i_mode;
++                    unsigned short i_nlink;
++                    unsigned short i_uid;
++                    unsigned short i_gid;
++                    unsigned long  i_size;
++                    unsigned char  i_zone[3*(10+1+1+1)];
++                    unsigned long  i_atime;
++                    unsigned long  i_mtime;
++                    unsigned long  i_ctime;
++
++* Regular file data blocks are organized as
++  - Minix FS
++               7 direct blocks
++               1 indirect block (pointers to blocks)
++               1 double-indirect block (pointer to pointers to blocks)
++  - Xenix FS, SystemV FS, Coherent FS
++              10 direct blocks
++               1 indirect block (pointers to blocks)
++               1 double-indirect block (pointer to pointers to blocks)
++               1 triple-indirect block (pointer to pointers to pointers to blocks)
++
++* Inode size, inodes per block
++  - Minix FS        32   32
++  - Xenix FS        64   16
++  - SystemV FS      64   16
++  - Coherent FS     64    8
++
++* Directory entry on disk
++  - Minix FS
++                    unsigned short inode;
++                    char name[14/30];
++  - Xenix FS, SystemV FS, Coherent FS
++                    unsigned short inode;
++                    char name[14];
++
++* Dir entry size, dir entries per block
++  - Minix FS     16/32    64/32
++  - Xenix FS     16       64
++  - SystemV FS   16       64
++  - Coherent FS  16       32
++
++* How to implement symbolic links such that the host fsck doesn't scream:
++  - Minix FS     normal
++  - Xenix FS     kludge: as regular files with  chmod 1000
++  - SystemV FS   ??
++  - Coherent FS  kludge: as regular files with  chmod 1000
  
- 		This major is reserved to assist the expansion to a
-@@ -3115,7 +3128,20 @@ Your cooperation is appreciated.
- 257 char	Phoenix Technologies Cryptographic Services Driver
- 		  0 = /dev/ptlsec	Crypto Services Driver
+-Bruno Haible
+-<haible@ma2s2.mathematik.uni-karlsruhe.de>
  
++Notation: We often speak of a "block" but mean a zone (the allocation unit)
++and not the disk driver's notion of "block".
+diff -puN fs/sysv/CHANGES~fs-sysv-doc-cleanup /dev/null
+--- a/fs/sysv/CHANGES
++++ /dev/null
+@@ -1,60 +0,0 @@
+-Mon, 15 Dec 1997	  Krzysztof G. Baranowski <kgb@manjak.knm.org.pl>
+-	*    namei.c: struct sysv_dir_inode_operations updated to use dentries.
 -
-+257 block	SSFDC Flash Translation Layer filesystem
-+		  0 = /dev/ssfdca	First SSFDC layer
-+		  8 = /dev/ssfdcb	Second SSFDC layer
-+		 16 = /dev/ssfdcc	Third SSFDC layer
-+		 24 = /dev/ssfdcd	4th SSFDC layer
-+		 32 = /dev/ssfdce	5th SSFDC layer
-+		 40 = /dev/ssfdcf	6th SSFDC layer
-+		 48 = /dev/ssfdcg	7th SSFDC layer
-+		 56 = /dev/ssfdch	8th SSFDC layer
-+
-+258 block	ROM/Flash read-only translation layer
-+		  0 = /dev/blockrom0	First ROM card's translation layer interface
-+		  1 = /dev/blockrom1	Second ROM card's translation layer interface
-+		  ...
- 
-  ****	ADDITIONAL /dev DIRECTORY ENTRIES
- 
+-Fri, 23 Jan 1998   Krzysztof G. Baranowski <kgb@manjak.knm.org.pl>
+-	*    inode.c: corrected 1 track offset setting (in sb->sv_block_base).
+-		      Originally it was overridden (by setting to zero)
+-		      in detected_[xenix,sysv4,sysv2,coherent]. Thanks
+-		      to Andrzej Krzysztofowicz <ankry@mif.pg.gda.pl>
+-		      for identifying the problem.
+-
+-Tue, 27 Jan 1998   Krzysztof G. Baranowski <kgb@manjak.knm.org.pl>
+-        *    inode.c: added 2048-byte block support to SystemV FS.
+-		      Merged detected_bs[512,1024,2048]() into one function:
+-		      void detected_bs (u_char type, struct super_block *sb).
+-		      Thanks to Andrzej Krzysztofowicz <ankry@mif.pg.gda.pl>
+-		      for the patch.
+-
+-Wed, 4 Feb 1998   Krzysztof G. Baranowski <kgb@manjak.knm.org.pl>
+-	*    namei.c: removed static subdir(); is_subdir() from dcache.c
+-		      is used instead. Cosmetic changes.
+-
+-Thu, 3 Dec 1998   Al Viro (viro@parcelfarce.linux.theplanet.co.uk)
+-	*    namei.c (sysv_rmdir):
+-		      Bugectomy: old check for victim being busy
+-		      (inode->i_count) wasn't replaced (with checking
+-		      dentry->d_count) and escaped Linus in the last round
+-		      of changes. Shot and buried.
+-
+-Wed, 9 Dec 1998   AV
+-	*    namei.c (do_sysv_rename):
+-		       Fixed incorrect check for other owners + race.
+-		       Removed checks that went to VFS.
+-	*    namei.c (sysv_unlink):
+-		       Removed checks that went to VFS.
+-
+-Thu, 10 Dec 1998   AV
+-	*    namei.c (do_mknod):
+-			Removed dead code - mknod is never asked to
+-			create a symlink or directory. Incidentially,
+-			it wouldn't do it right if it would be called.
+-
+-Sat, 26 Dec 1998   KGB
+-	*    inode.c (detect_sysv4):
+-			Added detection of expanded s_type field (0x10,
+-			0x20 and 0x30).  Forced read-only access in this case.
+-
+-Sun, 21 Mar 1999   AV
+-	*    namei.c (sysv_link):
+-			Fixed i_count usage that resulted in dcache corruption.
+-	*    inode.c:
+-			Filled ->delete_inode() method with sysv_delete_inode().
+-			sysv_put_inode() is gone, as it tried to do ->delete_
+-			_inode()'s job.
+-	*    ialloc.c: (sysv_free_inode):
+-			Fixed race.
+-
+-Sun, 30 Apr 1999   AV
+-	*    namei.c (sysv_mknod):
+-			Removed dead code (S_IFREG case is now passed to
+-			->create() by VFS).
+diff -puN fs/sysv/ChangeLog~fs-sysv-doc-cleanup /dev/null
+--- a/fs/sysv/ChangeLog
++++ /dev/null
+@@ -1,106 +0,0 @@
+-Thu Feb 14 2002  Andrew Morton  <akpm@zip.com.au>
+-
+-	* dir_commit_chunk(): call writeout_one_page() as well as
+-	  waitfor_one_page() for IS_SYNC directories, so that we
+-	  actually do sync the directory. (forward-port from 2.4).
+-
+-Thu Feb  7 2002  Alexander Viro  <viro@parcelfarce.linux.theplanet.co.uk>
+-
+-	* super.c: switched to ->get_sb()
+-	* ChangeLog: fixed dates ;-)
+-
+-2002-01-24  David S. Miller  <davem@redhat.com>
+-
+-	* inode.c: Include linux/init.h
+-
+-Mon Jan 21 2002  Alexander Viro  <viro@parcelfarce.linux.theplanet.co.uk>
+-	* ialloc.c (sysv_new_inode): zero SYSV_I(inode)->i_data out.
+-	* i_vnode renamed to vfs_inode.  Sorry, but let's keep that
+-	  consistent.
+-
+-Sat Jan 19 2002  Christoph Hellwig  <hch@infradead.org>
+-
+-	* include/linux/sysv_fs.h (SYSV_I): Get fs-private inode data using
+-		list_entry() instead of inode->u.
+-	* include/linux/sysv_fs_i.h: Add 'struct inode  i_vnode' field to
+-		sysv_inode_info structure.
+-	* inode.c: Include <linux/slab.h>, implement alloc_inode/destroy_inode
+-		sop methods, add infrastructure for per-fs inode slab cache.
+-	* super.c (init_sysv_fs): Initialize inode cache, recover properly
+-		in the case of failed register_filesystem for V7.
+-	(exit_sysv_fs): Destroy inode cache.
+-
+-Sat Jan 19 2002  Christoph Hellwig  <hch@infradead.org>
+-
+-	* include/linux/sysv_fs.h: Include <linux/sysv_fs_i.h>, declare SYSV_I().
+-	* dir.c (sysv_find_entry): Use SYSV_I() instead of ->u.sysv_i to
+-		access fs-private inode data.
+-	* ialloc.c (sysv_new_inode): Likewise.
+-	* inode.c (sysv_read_inode): Likewise.
+-	(sysv_update_inode): Likewise.
+-	* itree.c (get_branch): Likewise.
+-	(sysv_truncate): Likewise.
+-	* symlink.c (sysv_readlink): Likewise.
+-	(sysv_follow_link): Likewise.
+-
+-Fri Jan  4 2002  Alexander Viro  <viro@parcelfarce.linux.theplanet.co.uk>
+-
+-	* ialloc.c (sysv_free_inode): Use sb->s_id instead of bdevname().
+-	* inode.c (sysv_read_inode): Likewise.
+-	  (sysv_update_inode): Likewise.
+-	  (sysv_sync_inode): Likewise.
+-	* super.c (detect_sysv): Likewise.
+-	  (complete_read_super): Likewise.
+-	  (sysv_read_super): Likewise.
+-	  (v7_read_super): Likewise.
+-
+-Sun Dec 30 2001  Manfred Spraul  <manfred@colorfullife.com>
+-
+-	* dir.c (dir_commit_chunk): Do not set dir->i_version.
+-	(sysv_readdir): Likewise.
+-
+-Thu Dec 27 2001  Alexander Viro  <viro@parcelfarce.linux.theplanet.co.uk>
+-
+-	* itree.c (get_block): Use map_bh() to fill out bh_result.
+-
+-Tue Dec 25 2001  Alexander Viro  <viro@parcelfarce.linux.theplanet.co.uk>
+-
+-	* super.c (sysv_read_super): Use sb_set_blocksize() to set blocksize.
+-	  (v7_read_super): Likewise.
+-
+-Tue Nov 27 2001  Alexander Viro  <viro@parcelfarce.linux.theplanet.co.uk>
+-
+-	* itree.c (get_block): Change type for iblock argument to sector_t.
+-	* super.c (sysv_read_super): Set s_blocksize early.
+-	  (v7_read_super): Likewise.
+-	* balloc.c (sysv_new_block): Use sb_bread(). instead of bread().
+-	  (sysv_count_free_blocks): Likewise.
+-	* ialloc.c (sysv_raw_inode): Likewise.
+-	* itree.c (get_branch): Likewise.
+-	  (free_branches): Likewise.
+-	* super.c (sysv_read_super): Likewise.
+-	  (v7_read_super): Likewise.
+-
+-Sat Dec 15 2001  Christoph Hellwig  <hch@infradead.org>
+-
+-	* inode.c (sysv_read_inode): Mark inode as bad in case of failure.
+-	* super.c (complete_read_super): Check for bad root inode.
+-
+-Wed Nov 21 2001  Andrew Morton  <andrewm@uow.edu.au>
+-
+-	* file.c (sysv_sync_file): Call fsync_inode_data_buffers.
+-
+-Fri Oct 26 2001  Christoph Hellwig  <hch@infradead.org>
+-
+-	* dir.c, ialloc.c, namei.c, include/linux/sysv_fs_i.h:
+-	Implement per-Inode lookup offset cache.
+-	Modelled after Ted's ext2 patch.
+-
+-Fri Oct 26 2001  Christoph Hellwig  <hch@infradead.org>
+-
+-	* inode.c, super.c, include/linux/sysv_fs.h,
+-	  include/linux/sysv_fs_sb.h:
+-	Remove symlink faking.	Noone really wants to use these as
+-	linux filesystems and native OSes don't support it anyway.
+-
+-
+diff -puN fs/sysv/INTRO~fs-sysv-doc-cleanup /dev/null
+--- a/fs/sysv/INTRO
++++ /dev/null
+@@ -1,182 +0,0 @@
+-This is the implementation of the SystemV/Coherent filesystem for Linux.
+-It grew out of separate filesystem implementations
+-
+-    Xenix FS      Doug Evans <dje@cygnus.com>  June 1992
+-    SystemV FS    Paul B. Monday <pmonday@eecs.wsu.edu> March-June 1993
+-    Coherent FS   B. Haible <haible@ma2s2.mathematik.uni-karlsruhe.de> June 1993
+-
+-and was merged together in July 1993.
+-
+-These filesystems are rather similar. Here is a comparison with Minix FS:
+-
+-* Linux fdisk reports on partitions
+-  - Minix FS     0x81 Linux/Minix
+-  - Xenix FS     ??
+-  - SystemV FS   ??
+-  - Coherent FS  0x08 AIX bootable
+-
+-* Size of a block or zone (data allocation unit on disk)
+-  - Minix FS     1024
+-  - Xenix FS     1024 (also 512 ??)
+-  - SystemV FS   1024 (also 512 and 2048)
+-  - Coherent FS   512
+-
+-* General layout: all have one boot block, one super block and
+-  separate areas for inodes and for directories/data.
+-  On SystemV Release 2 FS (e.g. Microport) the first track is reserved and
+-  all the block numbers (including the super block) are offset by one track.
+-
+-* Byte ordering of "short" (16 bit entities) on disk:
+-  - Minix FS     little endian  0 1
+-  - Xenix FS     little endian  0 1
+-  - SystemV FS   little endian  0 1
+-  - Coherent FS  little endian  0 1
+-  Of course, this affects only the file system, not the data of files on it!
+-
+-* Byte ordering of "long" (32 bit entities) on disk:
+-  - Minix FS     little endian  0 1 2 3
+-  - Xenix FS     little endian  0 1 2 3
+-  - SystemV FS   little endian  0 1 2 3
+-  - Coherent FS  PDP-11         2 3 0 1
+-  Of course, this affects only the file system, not the data of files on it!
+-
+-* Inode on disk: "short", 0 means non-existent, the root dir ino is:
+-  - Minix FS                            1
+-  - Xenix FS, SystemV FS, Coherent FS   2
+-
+-* Maximum number of hard links to a file:
+-  - Minix FS     250
+-  - Xenix FS     ??
+-  - SystemV FS   ??
+-  - Coherent FS  >=10000
+-
+-* Free inode management:
+-  - Minix FS                             a bitmap
+-  - Xenix FS, SystemV FS, Coherent FS
+-      There is a cache of a certain number of free inodes in the super-block.
+-      When it is exhausted, new free inodes are found using a linear search.
+-
+-* Free block management:
+-  - Minix FS                             a bitmap
+-  - Xenix FS, SystemV FS, Coherent FS
+-      Free blocks are organized in a "free list". Maybe a misleading term,
+-      since it is not true that every free block contains a pointer to
+-      the next free block. Rather, the free blocks are organized in chunks
+-      of limited size, and every now and then a free block contains pointers
+-      to the free blocks pertaining to the next chunk; the first of these
+-      contains pointers and so on. The list terminates with a "block number"
+-      0 on Xenix FS and SystemV FS, with a block zeroed out on Coherent FS.
+-
+-* Super-block location:
+-  - Minix FS     block 1 = bytes 1024..2047
+-  - Xenix FS     block 1 = bytes 1024..2047
+-  - SystemV FS   bytes 512..1023
+-  - Coherent FS  block 1 = bytes 512..1023
+-
+-* Super-block layout:
+-  - Minix FS
+-                    unsigned short s_ninodes;
+-                    unsigned short s_nzones;
+-                    unsigned short s_imap_blocks;
+-                    unsigned short s_zmap_blocks;
+-                    unsigned short s_firstdatazone;
+-                    unsigned short s_log_zone_size;
+-                    unsigned long s_max_size;
+-                    unsigned short s_magic;
+-  - Xenix FS, SystemV FS, Coherent FS
+-                    unsigned short s_firstdatazone;
+-                    unsigned long  s_nzones;
+-                    unsigned short s_fzone_count;
+-                    unsigned long  s_fzones[NICFREE];
+-                    unsigned short s_finode_count;
+-                    unsigned short s_finodes[NICINOD];
+-                    char           s_flock;
+-                    char           s_ilock;
+-                    char           s_modified;
+-                    char           s_rdonly;
+-                    unsigned long  s_time;
+-                    short          s_dinfo[4]; -- SystemV FS only
+-                    unsigned long  s_free_zones;
+-                    unsigned short s_free_inodes;
+-                    short          s_dinfo[4]; -- Xenix FS only
+-                    unsigned short s_interleave_m,s_interleave_n; -- Coherent FS only
+-                    char           s_fname[6];
+-                    char           s_fpack[6];
+-    then they differ considerably:
+-        Xenix FS
+-                    char           s_clean;
+-                    char           s_fill[371];
+-                    long           s_magic;
+-                    long           s_type;
+-        SystemV FS
+-                    long           s_fill[12 or 14];
+-                    long           s_state;
+-                    long           s_magic;
+-                    long           s_type;
+-        Coherent FS
+-                    unsigned long  s_unique;
+-    Note that Coherent FS has no magic.
+-
+-* Inode layout:
+-  - Minix FS
+-                    unsigned short i_mode;
+-                    unsigned short i_uid;
+-                    unsigned long  i_size;
+-                    unsigned long  i_time;
+-                    unsigned char  i_gid;
+-                    unsigned char  i_nlinks;
+-                    unsigned short i_zone[7+1+1];
+-  - Xenix FS, SystemV FS, Coherent FS
+-                    unsigned short i_mode;
+-                    unsigned short i_nlink;
+-                    unsigned short i_uid;
+-                    unsigned short i_gid;
+-                    unsigned long  i_size;
+-                    unsigned char  i_zone[3*(10+1+1+1)];
+-                    unsigned long  i_atime;
+-                    unsigned long  i_mtime;
+-                    unsigned long  i_ctime;
+-
+-* Regular file data blocks are organized as
+-  - Minix FS
+-               7 direct blocks
+-               1 indirect block (pointers to blocks)
+-               1 double-indirect block (pointer to pointers to blocks)
+-  - Xenix FS, SystemV FS, Coherent FS
+-              10 direct blocks
+-               1 indirect block (pointers to blocks)
+-               1 double-indirect block (pointer to pointers to blocks)
+-               1 triple-indirect block (pointer to pointers to pointers to blocks)
+-
+-* Inode size, inodes per block
+-  - Minix FS        32   32
+-  - Xenix FS        64   16
+-  - SystemV FS      64   16
+-  - Coherent FS     64    8
+-
+-* Directory entry on disk
+-  - Minix FS
+-                    unsigned short inode;
+-                    char name[14/30];
+-  - Xenix FS, SystemV FS, Coherent FS
+-                    unsigned short inode;
+-                    char name[14];
+-
+-* Dir entry size, dir entries per block
+-  - Minix FS     16/32    64/32
+-  - Xenix FS     16       64
+-  - SystemV FS   16       64
+-  - Coherent FS  16       32
+-
+-* How to implement symbolic links such that the host fsck doesn't scream:
+-  - Minix FS     normal
+-  - Xenix FS     kludge: as regular files with  chmod 1000
+-  - SystemV FS   ??
+-  - Coherent FS  kludge: as regular files with  chmod 1000
+-
+-
+-Notation: We often speak of a "block" but mean a zone (the allocation unit)
+-and not the disk driver's notion of "block".
+-
+-
+-Bruno Haible  <haible@ma2s2.mathematik.uni-karlsruhe.de>
 _
 
-Patches currently in -mm which might be from torben.mathiasen@hp.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+git-alsa.patch
+git-dvb.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
+git-mtd.patch
+remove-mtd-jffs2-userh.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+drivers-edac-make-code-static.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+make-ext2_get_blocks-static.patch
+generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch
+fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh.patch
+i4l-remove-the-broken-hisax_amd7930-option.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+make-drivers-md-dm-snapcksnapd-static.patch
+gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
+gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch
+updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
+updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slab-cache-shrinker-statistics.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
