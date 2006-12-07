@@ -1,163 +1,238 @@
 From: akpm@osdl.org
-Subject: - i2o-more-error-checking.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:01:19 -0800
-Message-ID: <200612072301.kB7N1J1k029750@shell0.pdx.osdl.net>
+Subject: - lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:01:00 -0800
+Message-ID: <200612072301.kB7N109X029691@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51541 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51546 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163758AbWLGXBi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:01:38 -0500
+	id S1163761AbWLGXBk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:01:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, Markus.Lidel@shadowconnect.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, SteveD@redhat.com, davem@davemloft.net, mingo@elte.hu, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     I2O: more error checking
+     lockdep: annotate nfs/nfsd in-kernel sockets
 has been removed from the -mm tree.  Its filename was
-     i2o-more-error-checking.patch
+     lockdep-annotate-nfs-nfsd-in-kernel-sockets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: I2O: more error checking
-From: Jeff Garzik <jeff@garzik.org>
+Subject: lockdep: annotate nfs/nfsd in-kernel sockets
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-i2o_scsi: handle sysfs failure
+Stick NFS sockets in their own class to avoid some lockdep warnings.  NFS
+sockets are never exposed to user-space, and will hence not trigger certain
+code paths that would otherwise pose deadlock scenarios.
 
-i2o_device:
-* convert i2o_device_add() to return integer error code
-  rather than pointer.  Fortunately -nobody- checks the return code of
-  this function, so changing has nil impact.
-* handle errors thrown by device_register()
-
-More work in i2o_device remains.
-
-Signed-off-by: Jeff Garzik <jeff@garzik.org>
-Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+[akpm@osdl.org: cleanups]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Steven Dickson <SteveD@redhat.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Acked-by: Neil Brown <neilb@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/message/i2o/device.c   |   19 ++++++++++++-------
- drivers/message/i2o/i2o_scsi.c |   12 +++++++++---
- 2 files changed, 21 insertions(+), 10 deletions(-)
+ include/net/sock.h    |   19 +++++++++++++++++++
+ kernel/lockdep.c      |    1 +
+ net/core/sock.c       |   23 +++++------------------
+ net/sunrpc/svcsock.c  |   31 +++++++++++++++++++++++++++++++
+ net/sunrpc/xprtsock.c |   31 +++++++++++++++++++++++++++++++
+ 5 files changed, 87 insertions(+), 18 deletions(-)
 
-diff -puN drivers/message/i2o/device.c~i2o-more-error-checking drivers/message/i2o/device.c
---- a/drivers/message/i2o/device.c~i2o-more-error-checking
-+++ a/drivers/message/i2o/device.c
-@@ -214,18 +214,17 @@ static struct i2o_device *i2o_device_all
-  *	Allocate a new I2O device and initialize it with the LCT entry. The
-  *	device is appended to the device list of the controller.
-  *
-- *	Returns a pointer to the I2O device on success or negative error code
-- *	on failure.
-+ *	Returns zero on success, or a -ve errno.
+diff -puN include/net/sock.h~lockdep-annotate-nfs-nfsd-in-kernel-sockets include/net/sock.h
+--- a/include/net/sock.h~lockdep-annotate-nfs-nfsd-in-kernel-sockets
++++ a/include/net/sock.h
+@@ -746,6 +746,25 @@ static inline int sk_stream_wmem_schedul
   */
--static struct i2o_device *i2o_device_add(struct i2o_controller *c,
--					 i2o_lct_entry * entry)
-+static int i2o_device_add(struct i2o_controller *c, i2o_lct_entry *entry)
- {
- 	struct i2o_device *i2o_dev, *tmp;
-+	int rc;
+ #define sock_owned_by_user(sk)	((sk)->sk_lock.owner)
  
- 	i2o_dev = i2o_device_alloc();
- 	if (IS_ERR(i2o_dev)) {
- 		printk(KERN_ERR "i2o: unable to allocate i2o device\n");
--		return i2o_dev;
-+		return PTR_ERR(i2o_dev);
- 	}
- 
- 	i2o_dev->lct_data = *entry;
-@@ -236,7 +235,9 @@ static struct i2o_device *i2o_device_add
- 	i2o_dev->iop = c;
- 	i2o_dev->device.parent = &c->device;
- 
--	device_register(&i2o_dev->device);
-+	rc = device_register(&i2o_dev->device);
-+	if (rc)
-+		goto err;
- 
- 	list_add_tail(&i2o_dev->list, &c->devices);
- 
-@@ -270,7 +271,11 @@ static struct i2o_device *i2o_device_add
- 
- 	pr_debug("i2o: device %s added\n", i2o_dev->device.bus_id);
- 
--	return i2o_dev;
-+	return 0;
++/*
++ * Macro so as to not evaluate some arguments when
++ * lockdep is not enabled.
++ *
++ * Mark both the sk_lock and the sk_lock.slock as a
++ * per-address-family lock class.
++ */
++#define sock_lock_init_class_and_name(sk, sname, skey, name, key) 	\
++do {									\
++	sk->sk_lock.owner = NULL;					\
++	init_waitqueue_head(&sk->sk_lock.wq);				\
++	spin_lock_init(&(sk)->sk_lock.slock);				\
++	debug_check_no_locks_freed((void *)&(sk)->sk_lock,		\
++			sizeof((sk)->sk_lock));				\
++	lockdep_set_class_and_name(&(sk)->sk_lock.slock,		\
++		       	(skey), (sname));				\
++	lockdep_init_map(&(sk)->sk_lock.dep_map, (name), (key), 0);	\
++} while (0)
 +
-+err:
-+	kfree(i2o_dev);
-+	return rc;
+ extern void FASTCALL(lock_sock_nested(struct sock *sk, int subclass));
+ 
+ static inline void lock_sock(struct sock *sk)
+diff -puN kernel/lockdep.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets
++++ a/kernel/lockdep.c
+@@ -2645,6 +2645,7 @@ void debug_check_no_locks_freed(const vo
+ 	}
+ 	local_irq_restore(flags);
+ }
++EXPORT_SYMBOL_GPL(debug_check_no_locks_freed);
+ 
+ static void print_held_locks_bug(struct task_struct *curr)
+ {
+diff -puN net/core/sock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets net/core/sock.c
+--- a/net/core/sock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets
++++ a/net/core/sock.c
+@@ -810,24 +810,11 @@ lenout:
+  */
+ static void inline sock_lock_init(struct sock *sk)
+ {
+-	spin_lock_init(&sk->sk_lock.slock);
+-	sk->sk_lock.owner = NULL;
+-	init_waitqueue_head(&sk->sk_lock.wq);
+-	/*
+-	 * Make sure we are not reinitializing a held lock:
+-	 */
+-	debug_check_no_locks_freed((void *)&sk->sk_lock, sizeof(sk->sk_lock));
+-
+-	/*
+-	 * Mark both the sk_lock and the sk_lock.slock as a
+-	 * per-address-family lock class:
+-	 */
+-	lockdep_set_class_and_name(&sk->sk_lock.slock,
+-				   af_family_slock_keys + sk->sk_family,
+-				   af_family_slock_key_strings[sk->sk_family]);
+-	lockdep_init_map(&sk->sk_lock.dep_map,
+-			 af_family_key_strings[sk->sk_family],
+-			 af_family_keys + sk->sk_family, 0);
++	sock_lock_init_class_and_name(sk,
++			af_family_slock_key_strings[sk->sk_family],
++			af_family_slock_keys + sk->sk_family,
++			af_family_key_strings[sk->sk_family],
++			af_family_keys + sk->sk_family);
  }
  
  /**
-diff -puN drivers/message/i2o/i2o_scsi.c~i2o-more-error-checking drivers/message/i2o/i2o_scsi.c
---- a/drivers/message/i2o/i2o_scsi.c~i2o-more-error-checking
-+++ a/drivers/message/i2o/i2o_scsi.c
-@@ -220,7 +220,7 @@ static int i2o_scsi_probe(struct device 
- 	u32 id = -1;
- 	u64 lun = -1;
- 	int channel = -1;
--	int i;
-+	int i, rc;
+diff -puN net/sunrpc/svcsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets
++++ a/net/sunrpc/svcsock.c
+@@ -85,6 +85,35 @@ static struct cache_deferred_req *svc_de
+  */
+ static int svc_conn_age_period = 6*60;
  
- 	i2o_shost = i2o_scsi_get_host(c);
- 	if (!i2o_shost)
-@@ -304,14 +304,20 @@ static int i2o_scsi_probe(struct device 
- 		return PTR_ERR(scsi_dev);
- 	}
- 
--	sysfs_create_link(&i2o_dev->device.kobj, &scsi_dev->sdev_gendev.kobj,
--			  "scsi");
-+	rc = sysfs_create_link(&i2o_dev->device.kobj,
-+			       &scsi_dev->sdev_gendev.kobj, "scsi");
-+	if (rc)
-+		goto err;
- 
- 	osm_info("device added (TID: %03x) channel: %d, id: %d, lun: %ld\n",
- 		 i2o_dev->lct_data.tid, channel, le32_to_cpu(id),
- 		 (long unsigned int)le64_to_cpu(lun));
- 
- 	return 0;
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++static struct lock_class_key svc_key[2];
++static struct lock_class_key svc_slock_key[2];
 +
-+err:
-+	scsi_remove_device(scsi_dev);
-+	return rc;
- };
++static inline void svc_reclassify_socket(struct socket *sock)
++{
++	struct sock *sk = sock->sk;
++	BUG_ON(sk->sk_lock.owner != NULL);
++	switch (sk->sk_family) {
++	case AF_INET:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFSD",
++		    &svc_slock_key[0], "sk_lock-AF_INET-NFSD", &svc_key[0]);
++		break;
++
++	case AF_INET6:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFSD",
++		    &svc_slock_key[1], "sk_lock-AF_INET6-NFSD", &svc_key[1]);
++		break;
++
++	default:
++		BUG();
++	}
++}
++#else
++static inline void svc_reclassify_socket(struct socket *sock)
++{
++}
++#endif
++
+ /*
+  * Queue up an idle server thread.  Must have pool->sp_lock held.
+  * Note: this is really a stack rather than a queue, so that we only
+@@ -1557,6 +1586,8 @@ svc_create_socket(struct svc_serv *serv,
+ 	if ((error = sock_create_kern(PF_INET, type, protocol, &sock)) < 0)
+ 		return error;
  
- static const char *i2o_scsi_info(struct Scsi_Host *SChost)
++	svc_reclassify_socket(sock);
++
+ 	if (type == SOCK_STREAM)
+ 		sock->sk->sk_reuse = 1; /* allow address reuse */
+ 	error = kernel_bind(sock, (struct sockaddr *) sin,
+diff -puN net/sunrpc/xprtsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~lockdep-annotate-nfs-nfsd-in-kernel-sockets
++++ a/net/sunrpc/xprtsock.c
+@@ -1058,6 +1058,35 @@ static int xs_bindresvport(struct rpc_xp
+ 	return err;
+ }
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++static struct lock_class_key xs_key[2];
++static struct lock_class_key xs_slock_key[2];
++
++static inline void xs_reclassify_socket(struct socket *sock)
++{
++	struct sock *sk = sock->sk;
++	BUG_ON(sk->sk_lock.owner != NULL);
++	switch (sk->sk_family) {
++	case AF_INET:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
++			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
++		break;
++
++	case AF_INET6:
++		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFS",
++			&xs_slock_key[1], "sk_lock-AF_INET6-NFS", &xs_key[1]);
++		break;
++
++	default:
++		BUG();
++	}
++}
++#else
++static inline void xs_reclassify_socket(struct socket *sock)
++{
++}
++#endif
++
+ /**
+  * xs_udp_connect_worker - set up a UDP socket
+  * @work: RPC transport to connect
+@@ -1205,6 +1234,8 @@ static void xs_tcp_connect_worker(struct
+ 
+ 		write_unlock_bh(&sk->sk_callback_lock);
+ 	}
++	xs_reclassify_socket(sock);
++		xs_reclassify_socket(sock);
+ 
+ 	/* Tell the socket layer to start connecting... */
+ 	xprt->stat.connect_count++;
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-acpi.patch
-git-cpufreq.patch
-drm-handle-pci_enable_device-failure.patch
-git-input.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
-ata_piix-ide-mode-sata-patch-for-intel-ich9.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-mtd.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-8139too-force-media-setting-fix.patch
-tulip-fix-shutdown-dma-irq-race.patch
-git-ioat.patch
-via-sb600-sata-quirk.patch
-git-pciseg.patch
-pci-device-ensure-sysdata-initialised-v2.patch
-mpt-fusion-handle-pci-layer-error-on-resume.patch
-usb-fix-ohcih-over-use-warnings.patch
-isdn-fix-warnings.patch
-atyfb-rivafb-minor-fixes.patch
-md-conditionalize-some-code.patch
-user-of-the-jiffies-rounding-patch-ata-subsystem.patch
-e1000-printk-warning-fixes.patch
-git-gccbug.patch
+tty-signal-tty-locking.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+tty-signal-tty-locking-3270-fix.patch
+do_task_stat-dont-take-tty_mutex.patch
+do_acct_process-dont-take-tty_mutex.patch
+sys_unshare-remove-a-broken-clone_sighand-code.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+bdev-fix-bd_part_count-leak.patch
+lockdep-annotate-nfsd4-recover-code.patch
 
