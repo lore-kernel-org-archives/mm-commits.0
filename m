@@ -1,77 +1,59 @@
 From: akpm@osdl.org
-Subject: - m68k-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:00:05 -0800
-Message-ID: <200612072300.kB7N054g029607@shell0.pdx.osdl.net>
+Subject: - uml-include-asm-pageh-in-order-to-get-page_shift.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:00:09 -0800
+Message-ID: <200612072300.kB7N09gD029613@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51198 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51176 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163645AbWLGXAS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:00:18 -0500
+	id S1163704AbWLGXAM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:00:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: burman.yan@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: replace kmalloc+memset with kzalloc
+     uml: include asm/page.h in order to get PAGE_SHIFT
 has been removed from the -mm tree.  Its filename was
-     m68k-replace-kmallocmemset-with-kzalloc.patch
+     uml-include-asm-pageh-in-order-to-get-page_shift.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68k: replace kmalloc+memset with kzalloc
-From: Yan Burman <burman.yan@gmail.com>
+Subject: uml: include asm/page.h in order to get PAGE_SHIFT
+From: Jeff Dike <jdike@addtoit.com>
 
-Replace kmalloc+memset with kzalloc
+Include the proper header to get a definition of PAGE_SHIFT.
 
-Signed-off-by: Yan Burman <burman.yan@gmail.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/m68k/amiga/chipram.c   |    3 +--
- arch/m68k/atari/hades-pci.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/um/include/sysdep-i386/stub.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/m68k/amiga/chipram.c~m68k-replace-kmallocmemset-with-kzalloc arch/m68k/amiga/chipram.c
---- a/arch/m68k/amiga/chipram.c~m68k-replace-kmallocmemset-with-kzalloc
-+++ a/arch/m68k/amiga/chipram.c
-@@ -52,10 +52,9 @@ void *amiga_chip_alloc(unsigned long siz
- #ifdef DEBUG
-     printk("amiga_chip_alloc: allocate %ld bytes\n", size);
- #endif
--    res = kmalloc(sizeof(struct resource), GFP_KERNEL);
-+    res = kzalloc(sizeof(struct resource), GFP_KERNEL);
-     if (!res)
- 	return NULL;
--    memset(res, 0, sizeof(struct resource));
-     res->name = name;
- 
-     if (allocate_resource(&chipram_res, res, size, 0, UINT_MAX, PAGE_SIZE, NULL, NULL) < 0) {
-diff -puN arch/m68k/atari/hades-pci.c~m68k-replace-kmallocmemset-with-kzalloc arch/m68k/atari/hades-pci.c
---- a/arch/m68k/atari/hades-pci.c~m68k-replace-kmallocmemset-with-kzalloc
-+++ a/arch/m68k/atari/hades-pci.c
-@@ -375,10 +375,9 @@ struct pci_bus_info * __init init_hades_
- 	 * Allocate memory for bus info structure.
- 	 */
- 
--	bus = kmalloc(sizeof(struct pci_bus_info), GFP_KERNEL);
-+	bus = kzalloc(sizeof(struct pci_bus_info), GFP_KERNEL);
- 	if (!bus)
- 		return NULL;
--	memset(bus, 0, sizeof(struct pci_bus_info));
- 
- 	/*
- 	 * Claim resources. The m68k has no separate I/O space, both
+diff -puN arch/um/include/sysdep-i386/stub.h~uml-include-asm-pageh-in-order-to-get-page_shift arch/um/include/sysdep-i386/stub.h
+--- a/arch/um/include/sysdep-i386/stub.h~uml-include-asm-pageh-in-order-to-get-page_shift
++++ a/arch/um/include/sysdep-i386/stub.h
+@@ -9,6 +9,7 @@
+ #include <sys/mman.h>
+ #include <asm/ptrace.h>
+ #include <asm/unistd.h>
++#include <asm/page.h>
+ #include "stub-data.h"
+ #include "kern_constants.h"
+ #include "uml-config.h"
 _
 
-Patches currently in -mm which might be from burman.yan@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-ia64-replace-kmallocmemset-with-kzalloc.patch
-jffs2-replace-kmallocmemset-with-kzalloc.patch
-nfsd-replace-kmallocmemset-with-kcalloc.patch
+x86_64-i386-kernel-mode-faults-pollute-current-thead.patch
+uml-fix-prototypes.patch
+tty-signal-tty-locking.patch
+uml-add-generic-bug-support.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-fix.patch
+tty-switch-to-ktermios-uml-fix.patch
 
