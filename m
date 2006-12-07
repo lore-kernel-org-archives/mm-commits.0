@@ -1,63 +1,107 @@
 From: akpm@osdl.org
-Subject: + sha384-hmac-is-broken.patch added to -mm tree
-Date: Wed, 06 Dec 2006 23:06:14 -0800
-Message-ID: <200612070706.kB776Evx001411@shell0.pdx.osdl.net>
+Subject: + add-retain_initrd-boot-option.patch added to -mm tree
+Date: Wed, 06 Dec 2006 23:18:09 -0800
+Message-ID: <200612070718.kB77I96p002039@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55509 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56136 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031756AbWLGHH3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 02:07:29 -0500
+	id S1031761AbWLGHSR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 02:18:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linuxbugzilla@kriptik.org, herbert@gondor.apana.org.au, stable@kernel.org
+Cc: mikey@neuling.org, rdunlap@xenotime.net
 
 
 The patch titled
-     SHA384 HMAC is broken
+     Add retain_initrd boot option
 has been added to the -mm tree.  Its filename is
-     sha384-hmac-is-broken.patch
+     add-retain_initrd-boot-option.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SHA384 HMAC is broken
-From: Andrew Donofrio <linuxbugzilla@kriptik.org>
+Subject: Add retain_initrd boot option
+From: Michael Neuling <mikey@neuling.org>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7646
+Add retain_initrd option to control freeing of initrd memory after
+extraction.  By default, free memory as previously.
 
-SHA384 and SHA512 share everything but the initial values and truncation of
-the output, so their block sizes are the same.  In the file
-crypto/sha512.c, the SHA384_HMAC_BLOCK_SIZE is incorrectly #defined as 96,
-when it should just be SHA512_HMAC_BLOCK_SIZE (i.e., 128).  As it is now,
-the kernel's SHA384 HMAC routine does not actually return "real" SHA384
-HMACs.
+The first boot will need to hold a copy of the in memory fs for the second
+boot.  This image can be large (much larger than the kernel), hence we can
+save time when the memory loader is slow.  Also, it reduces the memory
+footprint while extracting the first boot since you don't need another copy
+of the fs.
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: <stable@kernel.org>
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- crypto/sha512.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    2 ++
+ init/initramfs.c                    |   17 ++++++++++++++++-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN crypto/sha512.c~sha384-hmac-is-broken crypto/sha512.c
---- a/crypto/sha512.c~sha384-hmac-is-broken
-+++ a/crypto/sha512.c
-@@ -24,7 +24,7 @@
+diff -puN Documentation/kernel-parameters.txt~add-retain_initrd-boot-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~add-retain_initrd-boot-option
++++ a/Documentation/kernel-parameters.txt
+@@ -1394,6 +1394,8 @@ and is between 256 and 4096 characters. 
+ 			in <PAGE_SIZE> units (needed only for swap files).
+ 			See  Documentation/power/swsusp-and-swap-files.txt
  
- #define SHA384_DIGEST_SIZE 48
- #define SHA512_DIGEST_SIZE 64
--#define SHA384_HMAC_BLOCK_SIZE  96
-+#define SHA384_HMAC_BLOCK_SIZE SHA512_HMAC_BLOCK_SIZE 
- #define SHA512_HMAC_BLOCK_SIZE 128
++	retain_initrd	[RAM] Keep initrd memory after extraction
++
+ 	rhash_entries=	[KNL,NET]
+ 			Set number of hash buckets for route cache
  
- struct sha512_ctx {
+diff -puN init/initramfs.c~add-retain_initrd-boot-option init/initramfs.c
+--- a/init/initramfs.c~add-retain_initrd-boot-option
++++ a/init/initramfs.c
+@@ -491,6 +491,17 @@ static char * __init unpack_to_rootfs(ch
+ 	return message;
+ }
+ 
++static int do_retain_initrd;
++
++static int __init retain_initrd_param(char *str)
++{
++	if (*str)
++		return 0;
++	do_retain_initrd = 1;
++	return 1;
++}
++__setup("retain_initrd", retain_initrd_param);
++
+ extern char __initramfs_start[], __initramfs_end[];
+ #ifdef CONFIG_BLK_DEV_INITRD
+ #include <linux/initrd.h>
+@@ -501,7 +512,11 @@ static void __init free_initrd(void)
+ #ifdef CONFIG_KEXEC
+ 	unsigned long crashk_start = (unsigned long)__va(crashk_res.start);
+ 	unsigned long crashk_end   = (unsigned long)__va(crashk_res.end);
++#endif
++	if (do_retain_initrd)
++		goto skip;
+ 
++#ifdef CONFIG_KEXEC
+ 	/*
+ 	 * If the initrd region is overlapped with crashkernel reserved region,
+ 	 * free only memory that is not part of crashkernel region.
+@@ -519,7 +534,7 @@ static void __init free_initrd(void)
+ 	} else
+ #endif
+ 		free_initrd_mem(initrd_start, initrd_end);
+-
++skip:
+ 	initrd_start = 0;
+ 	initrd_end = 0;
+ }
 _
 
-Patches currently in -mm which might be from linuxbugzilla@kriptik.org are
+Patches currently in -mm which might be from mikey@neuling.org are
 
-sha384-hmac-is-broken.patch
+add-retain_initrd-boot-option.patch
+add-retain_initrd-boot-option-tweak.patch
 
