@@ -1,120 +1,73 @@
 From: akpm@osdl.org
-Subject: - lockdep-internal-locking-fixes.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:02:31 -0800
-Message-ID: <200612072302.kB7N2VXD029860@shell0.pdx.osdl.net>
+Subject: - correct-bus_num-and-buffer-bug-in-spi-core.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:02:23 -0800
+Message-ID: <200612072302.kB7N2N3f029847@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51713 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51702 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163705AbWLGXCi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:02:38 -0500
+	id S1163794AbWLGXCe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:02:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jarkao2@o2.pl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: hcegtvedt@atmel.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: internal locking fixes
+     spi: correct bus_num and buffer bug in spi core
 has been removed from the -mm tree.  Its filename was
-     lockdep-internal-locking-fixes.patch
+     correct-bus_num-and-buffer-bug-in-spi-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: internal locking fixes
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: spi: correct bus_num and buffer bug in spi core
+From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
 
-Here are mainly some lockdep returns with 0 with unlocking fixes.
+Correct the following in driver/spi/spi.c in function spi_busnum_to_master:
 
-Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
+ * must allow bus_num 0, the if is really not needed.
+ * correct the name buffer which is too small for bus_num >= 10000. It
+
+should be 9 bytes big, not 8.
+
+Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ drivers/spi/spi.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-internal-locking-fixes kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-internal-locking-fixes
-+++ a/kernel/lockdep.c
-@@ -237,8 +237,10 @@ e	   locks. */
- 	trace->max_entries = trace->nr_entries;
- 
- 	nr_stack_trace_entries += trace->nr_entries;
--	if (DEBUG_LOCKS_WARN_ON(nr_stack_trace_entries > MAX_STACK_TRACE_ENTRIES))
-+	if (DEBUG_LOCKS_WARN_ON(nr_stack_trace_entries > MAX_STACK_TRACE_ENTRIES)) {
-+		__raw_spin_unlock(&hash_lock);
- 		return 0;
-+	}
- 
- 	if (nr_stack_trace_entries == MAX_STACK_TRACE_ENTRIES) {
- 		__raw_spin_unlock(&hash_lock);
-@@ -474,7 +476,8 @@ static int add_lock_to_list(struct lock_
- 		return 0;
- 
- 	entry->class = this;
--	save_trace(&entry->trace);
-+	if (!save_trace(&entry->trace))
-+		return 0;
- 
- 	/*
- 	 * Since we never remove from the dependency list, the list can
-@@ -562,8 +565,12 @@ static noinline int print_circular_bug_t
- 	if (debug_locks_silent)
- 		return 0;
- 
-+	/* hash_lock unlocked by the header */
-+	__raw_spin_lock(&hash_lock);
- 	this.class = check_source->class;
--	save_trace(&this.trace);
-+	if (!save_trace(&this.trace))
-+		return 0;
-+	__raw_spin_unlock(&hash_lock);
- 	print_circular_bug_entry(&this, 0);
- 
- 	printk("\nother info that might help us debug this:\n\n");
-@@ -959,6 +966,9 @@ check_prev_add(struct task_struct *curr,
- 	}
- 
- 	/*
-+	 * Return value of 2 signals 'dependency already added',
-+	 * in that case we dont have to add the backlink either.
-+	 *
- 	 * Ok, all validations passed, add the new lock
- 	 * to the previous lock's dependency list:
- 	 */
-@@ -966,15 +976,10 @@ check_prev_add(struct task_struct *curr,
- 			       &prev->class->locks_after, next->acquire_ip);
- 	if (!ret)
- 		return 0;
--	/*
--	 * Return value of 2 signals 'dependency already added',
--	 * in that case we dont have to add the backlink either.
--	 */
--	if (ret == 2)
--		return 2;
- 	ret = add_lock_to_list(next->class, prev->class,
- 			       &next->class->locks_before, next->acquire_ip);
+diff -puN drivers/spi/spi.c~correct-bus_num-and-buffer-bug-in-spi-core drivers/spi/spi.c
+--- a/drivers/spi/spi.c~correct-bus_num-and-buffer-bug-in-spi-core
++++ a/drivers/spi/spi.c
+@@ -465,15 +465,13 @@ EXPORT_SYMBOL_GPL(spi_unregister_master)
+  */
+ struct spi_master *spi_busnum_to_master(u16 bus_num)
+ {
+-	if (bus_num) {
+-		char			name[8];
+-		struct kobject		*bus;
 -
-+	if (!ret)
-+		return 0;
- 	/*
- 	 * Debugging printouts:
- 	 */
-@@ -1025,7 +1030,8 @@ check_prevs_add(struct task_struct *curr
- 		 * added:
- 		 */
- 		if (hlock->read != 2) {
--			check_prev_add(curr, hlock, next);
-+			if (!check_prev_add(curr, hlock, next))
-+				return 0;
- 			/*
- 			 * Stop after the first non-trylock entry,
- 			 * as non-trylock entries have added their
+-		snprintf(name, sizeof name, "spi%u", bus_num);
+-		bus = kset_find_obj(&spi_master_class.subsys.kset, name);
+-		if (bus)
+-			return container_of(bus, struct spi_master, cdev.kobj);
+-	}
++	char			name[9];
++	struct kobject		*bus;
++
++	snprintf(name, sizeof name, "spi%u", bus_num);
++	bus = kset_find_obj(&spi_master_class.subsys.kset, name);
++	if (bus)
++		return container_of(bus, struct spi_master, cdev.kobj);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(spi_busnum_to_master);
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from hcegtvedt@atmel.com are
 
 origin.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
 
