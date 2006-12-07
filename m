@@ -1,51 +1,51 @@
 From: akpm@osdl.org
-Subject: - struct-seq_operations-and-struct-file_operations-constification-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:40:04 -0800
-Message-ID: <200612070340.kB73e46J027627@shell0.pdx.osdl.net>
+Subject: - struct-seq_operations-and-struct-file_operations-constification-fix-2.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:40:08 -0800
+Message-ID: <200612070340.kB73e83K027630@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43291 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43296 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968104AbWLGDkK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:40:10 -0500
+	id S968180AbWLGDkQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:40:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, deller@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct-seq_operations-and-struct-file_operations-constification-fix
+     struct-seq_operations-and-struct-file_operations-constification-fix-2
 has been removed from the -mm tree.  Its filename was
-     struct-seq_operations-and-struct-file_operations-constification-fix.patch
+     struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
 
 This patch was dropped because it was folded into struct-seq_operations-and-struct-file_operations-constification.patch
 
 ------------------------------------------------------
-Subject: struct-seq_operations-and-struct-file_operations-constification-fix
+Subject: struct-seq_operations-and-struct-file_operations-constification-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/sched.c:508: error:  conflicting type qualifiers for 'proc_schedstat_operations'
-include/linux/sched.h:576: error: previous declaration of 'proc_schedstat_operations' was here
+kernel/cpuset.c:2529: error:  conflicting type qualifiers for 'proc_cpuset_operations'
+include/linux/cpuset.h:49: error: previous declaration of 'proc_cpuset_operations' was here
 
 Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h |    2 +-
+ include/linux/cpuset.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~struct-seq_operations-and-struct-file_operations-constification-fix include/linux/sched.h
---- a/include/linux/sched.h~struct-seq_operations-and-struct-file_operations-constification-fix
-+++ a/include/linux/sched.h
-@@ -573,7 +573,7 @@ struct sched_info {
- #endif /* defined(CONFIG_SCHEDSTATS) || defined(CONFIG_TASK_DELAY_ACCT) */
+diff -puN include/linux/cpuset.h~struct-seq_operations-and-struct-file_operations-constification-fix-2 include/linux/cpuset.h
+--- a/include/linux/cpuset.h~struct-seq_operations-and-struct-file_operations-constification-fix-2
++++ a/include/linux/cpuset.h
+@@ -46,7 +46,7 @@ extern int cpuset_excl_nodes_overlap(con
+ extern int cpuset_memory_pressure_enabled;
+ extern void __cpuset_memory_pressure_bump(void);
  
- #ifdef CONFIG_SCHEDSTATS
--extern struct file_operations proc_schedstat_operations;
-+extern const struct file_operations proc_schedstat_operations;
- #endif /* CONFIG_SCHEDSTATS */
+-extern struct file_operations proc_cpuset_operations;
++extern const struct file_operations proc_cpuset_operations;
+ extern char *cpuset_task_status_allowed(struct task_struct *task, char *buffer);
  
- #ifdef CONFIG_TASK_DELAY_ACCT
+ extern void cpuset_lock(void);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -93,7 +93,6 @@ make-8250_pnp-serial-driver-work-after.patch
 gcc-4-1-0-is-bust.patch
 cleanup-include-asm-generic-atomich.patch
 struct-seq_operations-and-struct-file_operations-constification.patch
-struct-seq_operations-and-struct-file_operations-constification-fix.patch
 struct-seq_operations-and-struct-file_operations-constification-fix-2.patch
 touch_atime-cleanup.patch
 ocfs2-relative-atime-support-tweaks.patch
