@@ -1,49 +1,77 @@
 From: akpm@osdl.org
-Subject: - fix-gregkh-pci-pci-enable-disable-device-is-nestable.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 18:55:50 -0800
-Message-ID: <200612070255.kB72toOh026559@shell0.pdx.osdl.net>
+Subject: - uml-workqueue-build-fix-2.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 18:56:47 -0800
+Message-ID: <200612070256.kB72ulHX026592@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40136 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40254 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967776AbWLGCzz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 21:55:55 -0500
+	id S967671AbWLGC5G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 21:57:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, greg@kroah.com, inaky@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dhowells@redhat.com, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "gregkh pci pci enable disable device is nestable"
+     uml-workqueue-build-fix-2
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-pci-pci-enable-disable-device-is-nestable.patch
+     uml-workqueue-build-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into uml-workqueue-build-fix.patch
 
 ------------------------------------------------------
-Subject: fix "gregkh pci pci enable disable device is nestable"
+Subject: uml-workqueue-build-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Inaky Perez-Gonzalez <inaky@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
+bah
+
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/pci/pci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/drivers/line.c |    6 +++---
+ arch/um/include/line.h |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/pci/pci.c~fix-gregkh-pci-pci-enable-disable-device-is-nestable arch/ia64/pci/pci.c
---- a/arch/ia64/pci/pci.c~fix-gregkh-pci-pci-enable-disable-device-is-nestable
-+++ a/arch/ia64/pci/pci.c
-@@ -563,7 +563,7 @@ pcibios_enable_device (struct pci_dev *d
- void
- pcibios_disable_device (struct pci_dev *dev)
- {
--	if (dev->is_enabled)
-+	if (atomic_read(&dev->enable_cnt))
- 		acpi_pci_irq_disable(dev);
+diff -puN arch/um/drivers/line.c~uml-workqueue-build-fix-2 arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-workqueue-build-fix-2
++++ a/arch/um/drivers/line.c
+@@ -31,9 +31,9 @@ static irqreturn_t line_interrupt(int ir
+ 	return IRQ_HANDLED;
  }
  
+-static void line_timer_cb(void *arg)
++static void line_timer_cb(struct work_struct *work)
+ {
+-	struct line *line = arg;
++	struct line *line = container_of(work, struct line, task.work);
+ 
+ 	if(!line->throttled)
+ 		chan_interrupt(&line->chan_list, &line->task, line->tty,
+@@ -443,7 +443,7 @@ int line_open(struct line *lines, struct
+ 		 * is registered.
+ 		 */
+ 		enable_chan(line);
+-		INIT_WORK(&line->task, line_timer_cb, line);
++		INIT_DELAYED_WORK(&line->task, line_timer_cb);
+ 
+ 		if(!line->sigio){
+ 			chan_enable_winch(&line->chan_list, tty);
+diff -puN arch/um/include/chan_kern.h~uml-workqueue-build-fix-2 arch/um/include/chan_kern.h
+diff -puN arch/um/include/line.h~uml-workqueue-build-fix-2 arch/um/include/line.h
+--- a/arch/um/include/line.h~uml-workqueue-build-fix-2
++++ a/arch/um/include/line.h
+@@ -51,7 +51,7 @@ struct line {
+ 	char *tail;
+ 
+ 	int sigio;
+-	struct work_struct task;
++	struct delayed_work task;
+ 	const struct line_driver *driver;
+ 	int have_irq;
+ };
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
