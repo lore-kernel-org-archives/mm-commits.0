@@ -1,49 +1,53 @@
 From: akpm@osdl.org
-Subject: - fs-ufs-add-missing-bracket.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:16:07 -0800
-Message-ID: <200612072316.kB7NG73Q030781@shell0.pdx.osdl.net>
+Subject: - char-ip2-remove-broken-macro.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:15:31 -0800
+Message-ID: <200612072315.kB7NFVE7030734@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53606 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53542 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163829AbWLGXQP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:16:15 -0500
+	id S1163886AbWLGXPi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:15:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, dushistov@mail.ru, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: ufs add missing bracket
+     char: ip2 remove broken macro
 has been removed from the -mm tree.  Its filename was
-     fs-ufs-add-missing-bracket.patch
+     char-ip2-remove-broken-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: ufs add missing bracket
+Subject: char: ip2 remove broken macro
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
+This macro is broken and unused so why not remove it.
+
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ufs/util.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ip2/i2cmd.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/ufs/util.h~fs-ufs-add-missing-bracket fs/ufs/util.h
---- a/fs/ufs/util.h~fs-ufs-add-missing-bracket
-+++ a/fs/ufs/util.h
-@@ -299,7 +299,7 @@ static inline void *get_usb_offset(struc
+diff -puN drivers/char/ip2/i2cmd.h~char-ip2-remove-broken-macro drivers/char/ip2/i2cmd.h
+--- a/drivers/char/ip2/i2cmd.h~char-ip2-remove-broken-macro
++++ a/drivers/char/ip2/i2cmd.h
+@@ -367,11 +367,6 @@ static UCHAR cc02[];
+ #define CSE_NULL  3  // Replace with a null
+ #define CSE_MARK  4  // Replace with a 3-character sequence (as Unix)
  
- #define ubh_get_addr16(ubh,begin) \
- 	(((__fs16*)((ubh)->bh[(begin) >> (uspi->s_fshift-1)]->b_data)) + \
--	((begin) & (uspi->fsize>>1) - 1)))
-+	((begin) & ((uspi->fsize>>1) - 1)))
+-#define  CMD_SET_REPLACEMENT(arg,ch)   \
+-			(((cmdSyntaxPtr)(ct36a))->cmd[1] = (arg), \
+-			(((cmdSyntaxPtr)(ct36a))->cmd[2] = (ch),  \
+-			(cmdSyntaxPtr)(ct36a))
+-
+ #define CSE_REPLACE  0x8	// Replace the errored character with the
+ 							// replacement character defined here
  
- #define ubh_get_addr32(ubh,begin) \
- 	(((__fs32*)((ubh)->bh[(begin) >> (uspi->s_fshift-2)]->b_data)) + \
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
