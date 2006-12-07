@@ -1,252 +1,64 @@
 From: akpm@osdl.org
-Subject: - cciss-increase-number-of-commands-on-controller.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:00:23 -0800
-Message-ID: <200612072300.kB7N0NgS029637@shell0.pdx.osdl.net>
+Subject: - use-freezeable-workqueues-in-xfs.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:00:02 -0800
+Message-ID: <200612072300.kB7N02RE029604@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51245 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51180 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163720AbWLGXAd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:00:33 -0500
+	id S1163598AbWLGXAO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:00:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, dgc@sgi.com, nigel@suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: increase number of commands on controller
+     Use freezeable workqueues in XFS
 has been removed from the -mm tree.  Its filename was
-     cciss-increase-number-of-commands-on-controller.patch
+     use-freezeable-workqueues-in-xfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cciss: increase number of commands on controller
-From: Mike Miller <mike.miller@hp.com>
+Subject: Use freezeable workqueues in XFS
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Remove #define NR_CMDS and replace it w/hba[i]->nr_cmds.  Most Smart Array
-controllers can support up to 1024 commands but the E200 family can only
-support 128.  To prevent annoying "fifo full" messages we define nr_cmds on a
-per controller basis by adding it the product table.
+Make the workqueues used by XFS freezeable, so their worker threads don't
+submit any I/O after the suspend image has been created.
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@suspend2.net>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/cciss.c |   74 ++++++++++++++++++++--------------------
- drivers/block/cciss.h |    2 +
- 2 files changed, 40 insertions(+), 36 deletions(-)
+ fs/xfs/linux-2.6/xfs_buf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-increase-number-of-commands-on-controller drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-increase-number-of-commands-on-controller
-+++ a/drivers/block/cciss.c
-@@ -93,28 +93,29 @@ MODULE_DEVICE_TABLE(pci, cciss_pci_devic
- /*  board_id = Subsystem Device ID & Vendor ID
-  *  product = Marketing Name for the board
-  *  access = Address of the struct of function pointers
-+ *  nr_cmds = Number of commands supported by controller
-  */
- static struct board_type products[] = {
--	{0x40700E11, "Smart Array 5300", &SA5_access},
--	{0x40800E11, "Smart Array 5i", &SA5B_access},
--	{0x40820E11, "Smart Array 532", &SA5B_access},
--	{0x40830E11, "Smart Array 5312", &SA5B_access},
--	{0x409A0E11, "Smart Array 641", &SA5_access},
--	{0x409B0E11, "Smart Array 642", &SA5_access},
--	{0x409C0E11, "Smart Array 6400", &SA5_access},
--	{0x409D0E11, "Smart Array 6400 EM", &SA5_access},
--	{0x40910E11, "Smart Array 6i", &SA5_access},
--	{0x3225103C, "Smart Array P600", &SA5_access},
--	{0x3223103C, "Smart Array P800", &SA5_access},
--	{0x3234103C, "Smart Array P400", &SA5_access},
--	{0x3235103C, "Smart Array P400i", &SA5_access},
--	{0x3211103C, "Smart Array E200i", &SA5_access},
--	{0x3212103C, "Smart Array E200", &SA5_access},
--	{0x3213103C, "Smart Array E200i", &SA5_access},
--	{0x3214103C, "Smart Array E200i", &SA5_access},
--	{0x3215103C, "Smart Array E200i", &SA5_access},
--	{0x3233103C, "Smart Array E500", &SA5_access},
--	{0xFFFF103C, "Unknown Smart Array", &SA5_access},
-+	{0x40700E11, "Smart Array 5300", &SA5_access, 512},
-+	{0x40800E11, "Smart Array 5i", &SA5B_access, 512},
-+	{0x40820E11, "Smart Array 532", &SA5B_access, 512},
-+	{0x40830E11, "Smart Array 5312", &SA5B_access, 512},
-+	{0x409A0E11, "Smart Array 641", &SA5_access, 512},
-+	{0x409B0E11, "Smart Array 642", &SA5_access, 512},
-+	{0x409C0E11, "Smart Array 6400", &SA5_access, 512},
-+	{0x409D0E11, "Smart Array 6400 EM", &SA5_access, 512},
-+	{0x40910E11, "Smart Array 6i", &SA5_access, 512},
-+	{0x3225103C, "Smart Array P600", &SA5_access, 512},
-+	{0x3223103C, "Smart Array P800", &SA5_access, 512},
-+	{0x3234103C, "Smart Array P400", &SA5_access, 512},
-+	{0x3235103C, "Smart Array P400i", &SA5_access, 512},
-+	{0x3211103C, "Smart Array E200i", &SA5_access, 120},
-+	{0x3212103C, "Smart Array E200", &SA5_access, 120},
-+	{0x3213103C, "Smart Array E200i", &SA5_access, 120},
-+	{0x3214103C, "Smart Array E200i", &SA5_access, 120},
-+	{0x3215103C, "Smart Array E200i", &SA5_access, 120},
-+	{0x3233103C, "Smart Array E500", &SA5_access, 512},
-+	{0xFFFF103C, "Unknown Smart Array", &SA5_access, 120},
- };
+diff -puN fs/xfs/linux-2.6/xfs_buf.c~use-freezeable-workqueues-in-xfs fs/xfs/linux-2.6/xfs_buf.c
+--- a/fs/xfs/linux-2.6/xfs_buf.c~use-freezeable-workqueues-in-xfs
++++ a/fs/xfs/linux-2.6/xfs_buf.c
+@@ -1827,11 +1827,11 @@ xfs_buf_init(void)
+ 	if (!xfs_buf_zone)
+ 		goto out_free_trace_buf;
  
- /* How long to wait (in milliseconds) for board to go into simple mode */
-@@ -125,7 +126,6 @@ static struct board_type products[] = {
- #define MAX_CMD_RETRIES 3
+-	xfslogd_workqueue = create_workqueue("xfslogd");
++	xfslogd_workqueue = create_freezeable_workqueue("xfslogd");
+ 	if (!xfslogd_workqueue)
+ 		goto out_free_buf_zone;
  
- #define READ_AHEAD 	 1024
--#define NR_CMDS		 384	/* #commands that can be outstanding */
- #define MAX_CTLR	32
+-	xfsdatad_workqueue = create_workqueue("xfsdatad");
++	xfsdatad_workqueue = create_freezeable_workqueue("xfsdatad");
+ 	if (!xfsdatad_workqueue)
+ 		goto out_destroy_xfslogd_workqueue;
  
- /* Originally cciss driver only supports 8 major numbers */
-@@ -404,8 +404,8 @@ static CommandList_struct *cmd_alloc(ctl
- 	} else {		/* get it out of the controllers pool */
- 
- 		do {
--			i = find_first_zero_bit(h->cmd_pool_bits, NR_CMDS);
--			if (i == NR_CMDS)
-+			i = find_first_zero_bit(h->cmd_pool_bits, h->nr_cmds);
-+			if (i == h->nr_cmds)
- 				return NULL;
- 		} while (test_and_set_bit
- 			 (i & (BITS_PER_LONG - 1),
-@@ -1247,7 +1247,7 @@ static void cciss_check_queues(ctlr_info
- 	 * in case the interrupt we serviced was from an ioctl and did not
- 	 * free any new commands.
- 	 */
--	if ((find_first_zero_bit(h->cmd_pool_bits, NR_CMDS)) == NR_CMDS)
-+	if ((find_first_zero_bit(h->cmd_pool_bits, h->nr_cmds)) == h->nr_cmds)
- 		return;
- 
- 	/* We have room on the queue for more commands.  Now we need to queue
-@@ -1266,7 +1266,7 @@ static void cciss_check_queues(ctlr_info
- 		/* check to see if we have maxed out the number of commands
- 		 * that can be placed on the queue.
- 		 */
--		if ((find_first_zero_bit(h->cmd_pool_bits, NR_CMDS)) == NR_CMDS) {
-+		if ((find_first_zero_bit(h->cmd_pool_bits, h->nr_cmds)) == h->nr_cmds) {
- 			if (curr_queue == start_queue) {
- 				h->next_to_run =
- 				    (start_queue + 1) % (h->highest_lun + 1);
-@@ -2140,7 +2140,7 @@ static int add_sendcmd_reject(__u8 cmd, 
- 
- 	/* We've sent down an abort or reset, but something else
- 	   has completed */
--	if (srl->ncompletions >= (NR_CMDS + 2)) {
-+	if (srl->ncompletions >= (hba[ctlr]->nr_cmds + 2)) {
- 		/* Uh oh.  No room to save it for later... */
- 		printk(KERN_WARNING "cciss%d: Sendcmd: Invalid command addr, "
- 		       "reject list overflow, command lost!\n", ctlr);
-@@ -2677,7 +2677,7 @@ static irqreturn_t do_cciss_intr(int irq
- 			a1 = a;
- 			if ((a & 0x04)) {
- 				a2 = (a >> 3);
--				if (a2 >= NR_CMDS) {
-+				if (a2 >= h->nr_cmds) {
- 					printk(KERN_WARNING
- 					       "cciss: controller cciss%d failed, stopping.\n",
- 					       h->ctlr);
-@@ -2960,6 +2960,7 @@ static int cciss_pci_init(ctlr_info_t *c
- 		if (board_id == products[i].board_id) {
- 			c->product_name = products[i].product_name;
- 			c->access = *(products[i].access);
-+			c->nr_cmds = products[i].nr_cmds;
- 			break;
- 		}
- 	}
-@@ -2979,6 +2980,7 @@ static int cciss_pci_init(ctlr_info_t *c
- 		if (subsystem_vendor_id == PCI_VENDOR_ID_HP) {
- 			c->product_name = products[i-1].product_name;
- 			c->access = *(products[i-1].access);
-+			c->nr_cmds = products[i-1].nr_cmds;
- 			printk(KERN_WARNING "cciss: This is an unknown "
- 				"Smart Array controller.\n"
- 				"cciss: Please update to the latest driver "
-@@ -3286,15 +3288,15 @@ static int __devinit cciss_init_one(stru
- 	       hba[i]->intr[SIMPLE_MODE_INT], dac ? "" : " not");
- 
- 	hba[i]->cmd_pool_bits =
--	    kmalloc(((NR_CMDS + BITS_PER_LONG -
-+	    kmalloc(((hba[i]->nr_cmds + BITS_PER_LONG -
- 		      1) / BITS_PER_LONG) * sizeof(unsigned long), GFP_KERNEL);
- 	hba[i]->cmd_pool = (CommandList_struct *)
- 	    pci_alloc_consistent(hba[i]->pdev,
--		    NR_CMDS * sizeof(CommandList_struct),
-+		    hba[i]->nr_cmds * sizeof(CommandList_struct),
- 		    &(hba[i]->cmd_pool_dhandle));
- 	hba[i]->errinfo_pool = (ErrorInfo_struct *)
- 	    pci_alloc_consistent(hba[i]->pdev,
--		    NR_CMDS * sizeof(ErrorInfo_struct),
-+		    hba[i]->nr_cmds * sizeof(ErrorInfo_struct),
- 		    &(hba[i]->errinfo_pool_dhandle));
- 	if ((hba[i]->cmd_pool_bits == NULL)
- 	    || (hba[i]->cmd_pool == NULL)
-@@ -3305,7 +3307,7 @@ static int __devinit cciss_init_one(stru
- #ifdef CONFIG_CISS_SCSI_TAPE
- 	hba[i]->scsi_rejects.complete =
- 	    kmalloc(sizeof(hba[i]->scsi_rejects.complete[0]) *
--		    (NR_CMDS + 5), GFP_KERNEL);
-+		    (hba[i]->nr_cmds + 5), GFP_KERNEL);
- 	if (hba[i]->scsi_rejects.complete == NULL) {
- 		printk(KERN_ERR "cciss: out of memory");
- 		goto clean4;
-@@ -3319,7 +3321,7 @@ static int __devinit cciss_init_one(stru
- 	/* command and error info recs zeroed out before
- 	   they are used */
- 	memset(hba[i]->cmd_pool_bits, 0,
--	       ((NR_CMDS + BITS_PER_LONG -
-+	       ((hba[i]->nr_cmds + BITS_PER_LONG -
- 		 1) / BITS_PER_LONG) * sizeof(unsigned long));
- 
- #ifdef CCISS_DEBUG
-@@ -3388,11 +3390,11 @@ static int __devinit cciss_init_one(stru
- 	kfree(hba[i]->cmd_pool_bits);
- 	if (hba[i]->cmd_pool)
- 		pci_free_consistent(hba[i]->pdev,
--				    NR_CMDS * sizeof(CommandList_struct),
-+				    hba[i]->nr_cmds * sizeof(CommandList_struct),
- 				    hba[i]->cmd_pool, hba[i]->cmd_pool_dhandle);
- 	if (hba[i]->errinfo_pool)
- 		pci_free_consistent(hba[i]->pdev,
--				    NR_CMDS * sizeof(ErrorInfo_struct),
-+				    hba[i]->nr_cmds * sizeof(ErrorInfo_struct),
- 				    hba[i]->errinfo_pool,
- 				    hba[i]->errinfo_pool_dhandle);
- 	free_irq(hba[i]->intr[SIMPLE_MODE_INT], hba[i]);
-@@ -3459,9 +3461,9 @@ static void __devexit cciss_remove_one(s
- 		}
- 	}
- 
--	pci_free_consistent(hba[i]->pdev, NR_CMDS * sizeof(CommandList_struct),
-+	pci_free_consistent(hba[i]->pdev, hba[i]->nr_cmds * sizeof(CommandList_struct),
- 			    hba[i]->cmd_pool, hba[i]->cmd_pool_dhandle);
--	pci_free_consistent(hba[i]->pdev, NR_CMDS * sizeof(ErrorInfo_struct),
-+	pci_free_consistent(hba[i]->pdev, hba[i]->nr_cmds * sizeof(ErrorInfo_struct),
- 			    hba[i]->errinfo_pool, hba[i]->errinfo_pool_dhandle);
- 	kfree(hba[i]->cmd_pool_bits);
- #ifdef CONFIG_CISS_SCSI_TAPE
-diff -puN drivers/block/cciss.h~cciss-increase-number-of-commands-on-controller drivers/block/cciss.h
---- a/drivers/block/cciss.h~cciss-increase-number-of-commands-on-controller
-+++ a/drivers/block/cciss.h
-@@ -60,6 +60,7 @@ struct ctlr_info 
- 	__u32	board_id;
- 	void __iomem *vaddr;
- 	unsigned long paddr;
-+	int 	nr_cmds; /* Number of commands allowed on this controller */
- 	CfgTable_struct __iomem *cfgtable;
- 	int	interrupts_enabled;
- 	int	major;
-@@ -282,6 +283,7 @@ struct board_type {
- 	__u32	board_id;
- 	char	*product_name;
- 	struct access_method *access;
-+	int nr_cmds; /* Max cmds this kind of ctlr can handle. */
- };
- 
- #define CCISS_LOCK(i)	(&hba[i]->lock)
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
+git-acpi.patch
+md-change-lifetime-rules-for-md-devices.patch
 
