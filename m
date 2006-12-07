@@ -1,239 +1,2992 @@
 From: akpm@osdl.org
-Subject: - pcengines-wrap-led-support.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:04:36 -0800
-Message-ID: <200612072304.kB7N4aWG030070@shell0.pdx.osdl.net>
+Subject: - remove-kernel-syscalls.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:04:41 -0800
+Message-ID: <200612072304.kB7N4fck030076@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52209 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52287 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163665AbWLGXEz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:04:55 -0500
+	id S1163874AbWLGXFC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:05:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kris@krisk.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: arnd@arndb.de, dwmw2@infradead.org, gschafer@zip.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCEngines WRAP LED Support
+     remove kernel syscalls
 has been removed from the -mm tree.  Its filename was
-     pcengines-wrap-led-support.patch
+     remove-kernel-syscalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PCEngines WRAP LED Support
-From: Kristian Kielhofner <kris@krisk.org>
+Subject: remove kernel syscalls
+From: Arnd Bergmann <arnd@arndb.de>
 
-A driver for the PCEngines WRAP boards (http://www.pcengines.ch), which are
-very similar to the Soekris net4801 (same NS SC1100 geode reference
-design).
+The last thing we agreed on was to remove the macros entirely for 2.6.19,
+on all architectures. Unfortunately, I think nobody actually _did_ that,
+so they are still there.
 
-The LEDs on the WRAP are on different GPIO lines and I have modified and
-copied the net48xx error led support for this.  It also includes support
-for an "extra" led (in addition to error).  The three LEDs on the WRAP are
-at GPIO lines 2,3,18 (WRAP LEDs from left to right).  This driver gives
-access to the second and third LEDs by twiddling GPIO lines 3 & 18.
-
-Because these boards are so similar to the net48xx, I basically sed-ed that
-driver to form the basis for leds-wrap.c.  The only changes from
-leds-net48xx.c are:
-
-- #define WRAP_EXTRA_LED_GPIO
-
-- name changes
-
-- duplicate relevant sections to provide support for the "extra" led
-
-- reverse the various *_led_set values.  The WRAP is "backwards" from the
-  net48xx, and these needed to be updated for that.
-
-[akpm@osdl.org: build fix]
-Signed-off-by: Kristian Kielhofner <kris@krisk.org>
-Acked-by: Richard Purdie <rpurdie@rpsys.net>
+[akpm@osdl.org: x86_64 fix]
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg Schafer <gschafer@zip.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/leds/Kconfig     |    6 +
- drivers/leds/Makefile    |    1 
- drivers/leds/leds-wrap.c |  142 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 149 insertions(+)
+ arch/x86_64/kernel/vsyscall.c  |    1 
+ include/asm-alpha/unistd.h     |  182 ---------------------
+ include/asm-arm/unistd.h       |  150 -----------------
+ include/asm-arm26/unistd.h     |  133 ---------------
+ include/asm-frv/unistd.h       |  119 --------------
+ include/asm-h8300/unistd.h     |  166 -------------------
+ include/asm-i386/unistd.h      |   98 -----------
+ include/asm-m32r/unistd.h      |  111 -------------
+ include/asm-m68k/unistd.h      |   97 -----------
+ include/asm-m68knommu/unistd.h |  150 -----------------
+ include/asm-mips/unistd.h      |  262 -------------------------------
+ include/asm-powerpc/unistd.h   |  109 ------------
+ include/asm-s390/unistd.h      |  154 ------------------
+ include/asm-sh/unistd.h        |  137 ----------------
+ include/asm-sh64/unistd.h      |  142 ----------------
+ include/asm-sparc/unistd.h     |  130 ---------------
+ include/asm-sparc64/unistd.h   |  118 -------------
+ include/asm-v850/unistd.h      |  160 ------------------
+ include/asm-x86_64/unistd.h    |   99 -----------
+ include/asm-xtensa/unistd.h    |  184 ---------------------
+ 20 files changed, 1 insertion(+), 2701 deletions(-)
 
-diff -puN drivers/leds/Kconfig~pcengines-wrap-led-support drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~pcengines-wrap-led-support
-+++ a/drivers/leds/Kconfig
-@@ -76,6 +76,12 @@ config LEDS_NET48XX
- 	  This option enables support for the Soekris net4801 and net4826 error
- 	  LED.
+diff -puN arch/x86_64/kernel/vsyscall.c~remove-kernel-syscalls arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~remove-kernel-syscalls
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -42,6 +42,7 @@
+ #include <asm/topology.h>
  
-+config LEDS_WRAP
-+	tristate "LED Support for the WRAP series LEDs"
-+	depends on LEDS_CLASS && SCx200_GPIO
-+	help
-+	  This option enables support for the PCEngines WRAP programmable LEDs.
-+
- comment "LED Triggers"
+ #define __vsyscall(nr) __attribute__ ((unused,__section__(".vsyscall_" #nr)))
++#define __syscall_clobber "r11","rcx","memory"
  
- config LEDS_TRIGGERS
-diff -puN drivers/leds/Makefile~pcengines-wrap-led-support drivers/leds/Makefile
---- a/drivers/leds/Makefile~pcengines-wrap-led-support
-+++ a/drivers/leds/Makefile
-@@ -13,6 +13,7 @@ obj-$(CONFIG_LEDS_TOSA)			+= leds-tosa.o
- obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
- obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-ams-delta.o
- obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
-+obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
+ int __sysctl_vsyscall __section_sysctl_vsyscall = 1;
+ seqlock_t __xtime_lock __section_xtime_lock = SEQLOCK_UNLOCKED;
+diff -puN include/asm-alpha/unistd.h~remove-kernel-syscalls include/asm-alpha/unistd.h
+--- a/include/asm-alpha/unistd.h~remove-kernel-syscalls
++++ a/include/asm-alpha/unistd.h
+@@ -387,188 +387,6 @@
  
- # LED Triggers
- obj-$(CONFIG_LEDS_TRIGGER_TIMER)	+= ledtrig-timer.o
-diff -puN /dev/null drivers/leds/leds-wrap.c
---- /dev/null
-+++ a/drivers/leds/leds-wrap.c
-@@ -0,0 +1,142 @@
-+/*
-+ * LEDs driver for PCEngines WRAP
-+ *
-+ * Copyright (C) 2006 Kristian Kielhofner <kris@krisk.org>
-+ *
-+ * Based on leds-net48xx.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/leds.h>
-+#include <linux/err.h>
-+#include <asm/io.h>
-+#include <linux/scx200_gpio.h>
-+
-+#define DRVNAME "wrap-led"
-+#define WRAP_ERROR_LED_GPIO	3
-+#define	WRAP_EXTRA_LED_GPIO	18
-+
-+static struct platform_device *pdev;
-+
-+static void wrap_error_led_set(struct led_classdev *led_cdev,
-+		enum led_brightness value)
-+{
-+	if (value)
-+		scx200_gpio_set_low(WRAP_ERROR_LED_GPIO);
-+	else
-+		scx200_gpio_set_high(WRAP_ERROR_LED_GPIO);
-+}
-+
-+static void wrap_extra_led_set(struct led_classdev *led_cdev,
-+		enum led_brightness value)
-+{
-+	if (value)
-+		scx200_gpio_set_low(WRAP_EXTRA_LED_GPIO);
-+	else
-+		scx200_gpio_set_high(WRAP_EXTRA_LED_GPIO);
-+}
-+
-+static struct led_classdev wrap_error_led = {
-+	.name		= "wrap:error",
-+	.brightness_set	= wrap_error_led_set,
-+};
-+
-+static struct led_classdev wrap_extra_led = {
-+	.name           = "wrap:extra",
-+	.brightness_set = wrap_extra_led_set,
-+};
-+
-+#ifdef CONFIG_PM
-+static int wrap_led_suspend(struct platform_device *dev,
-+		pm_message_t state)
-+{
-+	led_classdev_suspend(&wrap_error_led);
-+	led_classdev_suspend(&wrap_extra_led);
-+	return 0;
-+}
-+
-+static int wrap_led_resume(struct platform_device *dev)
-+{
-+	led_classdev_resume(&wrap_error_led);
-+	led_classdev_resume(&wrap_extra_led);
-+	return 0;
-+}
-+#else
-+#define wrap_led_suspend NULL
-+#define wrap_led_resume NULL
-+#endif
-+
-+static int wrap_led_probe(struct platform_device *pdev)
-+{
-+	int ret;
-+
-+	ret = led_classdev_register(&pdev->dev, &wrap_error_led);
-+	if (ret == 0) {
-+		ret = led_classdev_register(&pdev->dev, &wrap_extra_led);
-+		if (ret < 0)
-+			led_classdev_unregister(&wrap_error_led);
-+	}
-+	return ret;
-+}
-+
-+static int wrap_led_remove(struct platform_device *pdev)
-+{
-+	led_classdev_unregister(&wrap_error_led);
-+	led_classdev_unregister(&wrap_extra_led);
-+	return 0;
-+}
-+
-+static struct platform_driver wrap_led_driver = {
-+	.probe		= wrap_led_probe,
-+	.remove		= wrap_led_remove,
-+	.suspend	= wrap_led_suspend,
-+	.resume		= wrap_led_resume,
-+	.driver		= {
-+		.name		= DRVNAME,
-+		.owner		= THIS_MODULE,
-+	},
-+};
-+
-+static int __init wrap_led_init(void)
-+{
-+	int ret;
-+
-+	if (!scx200_gpio_present()) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
-+	ret = platform_driver_register(&wrap_led_driver);
-+	if (ret < 0)
-+		goto out;
-+
-+	pdev = platform_device_register_simple(DRVNAME, -1, NULL, 0);
-+	if (IS_ERR(pdev)) {
-+		ret = PTR_ERR(pdev);
-+		platform_driver_unregister(&wrap_led_driver);
-+		goto out;
-+	}
-+
-+out:
-+	return ret;
-+}
-+
-+static void __exit wrap_led_exit(void)
-+{
-+	platform_device_unregister(pdev);
-+	platform_driver_unregister(&wrap_led_driver);
-+}
-+
-+module_init(wrap_led_init);
-+module_exit(wrap_led_exit);
-+
-+MODULE_AUTHOR("Kristian Kielhofner <kris@krisk.org>");
-+MODULE_DESCRIPTION("PCEngines WRAP LED driver");
-+MODULE_LICENSE("GPL");
-+
+ #define NR_SYSCALLS			447
+ 
+-#if defined(__GNUC__)
+-
+-#define _syscall_return(type)						\
+-	return (_sc_err ? errno = _sc_ret, _sc_ret = -1L : 0), (type) _sc_ret
+-
+-#define _syscall_clobbers						\
+-	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8",			\
+-	"$22", "$23", "$24", "$25", "$27", "$28" 			\
+-
+-#define _syscall0(type, name)						\
+-type name(void)								\
+-{									\
+-	long _sc_ret, _sc_err;						\
+-	{								\
+-		register long _sc_0 __asm__("$0");			\
+-		register long _sc_19 __asm__("$19");			\
+-									\
+-		_sc_0 = __NR_##name;					\
+-		__asm__("callsys # %0 %1 %2"				\
+-			: "=r"(_sc_0), "=r"(_sc_19)			\
+-			: "0"(_sc_0)					\
+-			: _syscall_clobbers);				\
+-		_sc_ret = _sc_0, _sc_err = _sc_19;			\
+-	}								\
+-	_syscall_return(type);						\
+-}
+-
+-#define _syscall1(type,name,type1,arg1)					\
+-type name(type1 arg1)							\
+-{									\
+-	long _sc_ret, _sc_err;						\
+-	{								\
+-		register long _sc_0 __asm__("$0");			\
+-		register long _sc_16 __asm__("$16");			\
+-		register long _sc_19 __asm__("$19");			\
+-									\
+-		_sc_0 = __NR_##name;					\
+-		_sc_16 = (long) (arg1);					\
+-		__asm__("callsys # %0 %1 %2 %3"				\
+-			: "=r"(_sc_0), "=r"(_sc_19)			\
+-			: "0"(_sc_0), "r"(_sc_16)			\
+-			: _syscall_clobbers);				\
+-		_sc_ret = _sc_0, _sc_err = _sc_19;			\
+-	}								\
+-	_syscall_return(type);						\
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2)			\
+-type name(type1 arg1,type2 arg2)					\
+-{									\
+-	long _sc_ret, _sc_err;						\
+-	{								\
+-		register long _sc_0 __asm__("$0");			\
+-		register long _sc_16 __asm__("$16");			\
+-		register long _sc_17 __asm__("$17");			\
+-		register long _sc_19 __asm__("$19");			\
+-									\
+-		_sc_0 = __NR_##name;					\
+-		_sc_16 = (long) (arg1);					\
+-		_sc_17 = (long) (arg2);					\
+-		__asm__("callsys # %0 %1 %2 %3 %4"			\
+-			: "=r"(_sc_0), "=r"(_sc_19)			\
+-			: "0"(_sc_0), "r"(_sc_16), "r"(_sc_17)		\
+-			: _syscall_clobbers);				\
+-		_sc_ret = _sc_0, _sc_err = _sc_19;			\
+-	}								\
+-	_syscall_return(type);						\
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)		\
+-type name(type1 arg1,type2 arg2,type3 arg3)				\
+-{									\
+-	long _sc_ret, _sc_err;						\
+-	{								\
+-		register long _sc_0 __asm__("$0");			\
+-		register long _sc_16 __asm__("$16");			\
+-		register long _sc_17 __asm__("$17");			\
+-		register long _sc_18 __asm__("$18");			\
+-		register long _sc_19 __asm__("$19");			\
+-									\
+-		_sc_0 = __NR_##name;					\
+-		_sc_16 = (long) (arg1);					\
+-		_sc_17 = (long) (arg2);					\
+-		_sc_18 = (long) (arg3);					\
+-		__asm__("callsys # %0 %1 %2 %3 %4 %5"			\
+-			: "=r"(_sc_0), "=r"(_sc_19)			\
+-			: "0"(_sc_0), "r"(_sc_16), "r"(_sc_17),		\
+-			  "r"(_sc_18)					\
+-			: _syscall_clobbers);				\
+-		_sc_ret = _sc_0, _sc_err = _sc_19;			\
+-	}								\
+-	_syscall_return(type);						\
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4)		 \
+-{									 \
+-	long _sc_ret, _sc_err;						\
+-	{								\
+-		register long _sc_0 __asm__("$0");			\
+-		register long _sc_16 __asm__("$16");			\
+-		register long _sc_17 __asm__("$17");			\
+-		register long _sc_18 __asm__("$18");			\
+-		register long _sc_19 __asm__("$19");			\
+-									\
+-		_sc_0 = __NR_##name;					\
+-		_sc_16 = (long) (arg1);					\
+-		_sc_17 = (long) (arg2);					\
+-		_sc_18 = (long) (arg3);					\
+-		_sc_19 = (long) (arg4);					\
+-		__asm__("callsys # %0 %1 %2 %3 %4 %5 %6"		\
+-			: "=r"(_sc_0), "=r"(_sc_19)			\
+-			: "0"(_sc_0), "r"(_sc_16), "r"(_sc_17),		\
+-			  "r"(_sc_18), "1"(_sc_19)			\
+-			: _syscall_clobbers);				\
+-		_sc_ret = _sc_0, _sc_err = _sc_19;			\
+-	}								\
+-	_syscall_return(type);						\
+-} 
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5)							 \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5)	\
+-{									\
+-	long _sc_ret, _sc_err;						\
+-	{								\
+-		register long _sc_0 __asm__("$0");			\
+-		register long _sc_16 __asm__("$16");			\
+-		register long _sc_17 __asm__("$17");			\
+-		register long _sc_18 __asm__("$18");			\
+-		register long _sc_19 __asm__("$19");			\
+-		register long _sc_20 __asm__("$20");			\
+-									\
+-		_sc_0 = __NR_##name;					\
+-		_sc_16 = (long) (arg1);					\
+-		_sc_17 = (long) (arg2);					\
+-		_sc_18 = (long) (arg3);					\
+-		_sc_19 = (long) (arg4);					\
+-		_sc_20 = (long) (arg5);					\
+-		__asm__("callsys # %0 %1 %2 %3 %4 %5 %6 %7"		\
+-			: "=r"(_sc_0), "=r"(_sc_19)			\
+-			: "0"(_sc_0), "r"(_sc_16), "r"(_sc_17),		\
+-			  "r"(_sc_18), "1"(_sc_19), "r"(_sc_20)		\
+-			: _syscall_clobbers);				\
+-		_sc_ret = _sc_0, _sc_err = _sc_19;			\
+-	}								\
+-	_syscall_return(type);						\
+-}
+-
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5,type6,arg6)					 \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5, type6 arg6)\
+-{									\
+-	long _sc_ret, _sc_err;						\
+-	{								\
+-		register long _sc_0 __asm__("$0");			\
+-		register long _sc_16 __asm__("$16");			\
+-		register long _sc_17 __asm__("$17");			\
+-		register long _sc_18 __asm__("$18");			\
+-		register long _sc_19 __asm__("$19");			\
+-		register long _sc_20 __asm__("$20");			\
+-		register long _sc_21 __asm__("$21");			\
+-									\
+-		_sc_0 = __NR_##name;					\
+-		_sc_16 = (long) (arg1);					\
+-		_sc_17 = (long) (arg2);					\
+-		_sc_18 = (long) (arg3);					\
+-		_sc_19 = (long) (arg4);					\
+-		_sc_20 = (long) (arg5);					\
+-		_sc_21 = (long) (arg6);					\
+-		__asm__("callsys # %0 %1 %2 %3 %4 %5 %6 %7 %8"		\
+-			: "=r"(_sc_0), "=r"(_sc_19)			\
+-			: "0"(_sc_0), "r"(_sc_16), "r"(_sc_17),		\
+-			  "r"(_sc_18), "1"(_sc_19), "r"(_sc_20), "r"(_sc_21) \
+-			: _syscall_clobbers);				\
+-		_sc_ret = _sc_0, _sc_err = _sc_19;			\
+-	}								\
+-	_syscall_return(type);						\
+-}
+-
+-#endif /* __GNUC__ */
+-
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+ #define __ARCH_WANT_STAT64
+diff -puN include/asm-arm/unistd.h~remove-kernel-syscalls include/asm-arm/unistd.h
+--- a/include/asm-arm/unistd.h~remove-kernel-syscalls
++++ a/include/asm-arm/unistd.h
+@@ -377,156 +377,6 @@
+ #endif
+ 
+ #ifdef __KERNEL__
+-#include <linux/err.h>
+-#include <linux/linkage.h>
+-
+-#define __sys2(x) #x
+-#define __sys1(x) __sys2(x)
+-
+-#ifndef __syscall
+-#if defined(__thumb__) || defined(__ARM_EABI__)
+-#define __SYS_REG(name) register long __sysreg __asm__("r7") = __NR_##name;
+-#define __SYS_REG_LIST(regs...) "r" (__sysreg) , ##regs
+-#define __syscall(name) "swi\t0"
+-#else
+-#define __SYS_REG(name)
+-#define __SYS_REG_LIST(regs...) regs
+-#define __syscall(name) "swi\t" __sys1(__NR_##name) ""
+-#endif
+-#endif
+-
+-#define __syscall_return(type, res)					\
+-do {									\
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) {	\
+-		errno = -(res);						\
+-		res = -1;						\
+-	}								\
+-	return (type) (res);						\
+-} while (0)
+-
+-#define _syscall0(type,name)						\
+-type name(void) {							\
+-  __SYS_REG(name)							\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: __SYS_REG_LIST()						\
+-	: "memory" );							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-#define _syscall1(type,name,type1,arg1) 				\
+-type name(type1 arg1) { 						\
+-  __SYS_REG(name)							\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: __SYS_REG_LIST( "0" (__r0) )					\
+-	: "memory" );							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2)			\
+-type name(type1 arg1,type2 arg2) {					\
+-  __SYS_REG(name)							\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: __SYS_REG_LIST( "0" (__r0), "r" (__r1) )			\
+-	: "memory" );							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)		\
+-type name(type1 arg1,type2 arg2,type3 arg3) {				\
+-  __SYS_REG(name)							\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: __SYS_REG_LIST( "0" (__r0), "r" (__r1), "r" (__r2) )		\
+-	: "memory" );							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4)\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4) {		\
+-  __SYS_REG(name)							\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __r3 __asm__("r3") = (long)arg4;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: __SYS_REG_LIST( "0" (__r0), "r" (__r1), "r" (__r2), "r" (__r3) ) \
+-	: "memory" );							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-  
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5)	\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5) {	\
+-  __SYS_REG(name)							\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __r3 __asm__("r3") = (long)arg4;			\
+-  register long __r4 __asm__("r4") = (long)arg5;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: __SYS_REG_LIST( "0" (__r0), "r" (__r1), "r" (__r2),		\
+-			  "r" (__r3), "r" (__r4) )			\
+-	: "memory" );							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5,type6,arg6)	\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5, type6 arg6) {	\
+-  __SYS_REG(name)							\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __r3 __asm__("r3") = (long)arg4;			\
+-  register long __r4 __asm__("r4") = (long)arg5;			\
+-  register long __r5 __asm__("r5") = (long)arg6;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: __SYS_REG_LIST( "0" (__r0), "r" (__r1), "r" (__r2),		\
+-			  "r" (__r3), "r" (__r4), "r" (__r5) )		\
+-	: "memory" );							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_STAT64
+diff -puN include/asm-arm26/unistd.h~remove-kernel-syscalls include/asm-arm26/unistd.h
+--- a/include/asm-arm26/unistd.h~remove-kernel-syscalls
++++ a/include/asm-arm26/unistd.h
+@@ -311,139 +311,6 @@
+ #define __ARM_NR_usr26			(__ARM_NR_BASE+3)
+ 
+ #ifdef __KERNEL__
+-#include <linux/err.h>
+-#include <linux/linkage.h>
+-
+-#define __sys2(x) #x
+-#define __sys1(x) __sys2(x)
+-
+-#ifndef __syscall
+-#define __syscall(name) "swi\t" __sys1(__NR_##name) ""
+-#endif
+-
+-#define __syscall_return(type, res)					\
+-do {									\
+-	if ((unsigned long)(res) >= (unsigned long)-MAX_ERRNO) {	\
+-		errno = -(res);						\
+-		res = -1;						\
+-	}								\
+-	return (type) (res);						\
+-} while (0)
+-
+-#define _syscall0(type,name)						\
+-type name(void) {							\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	:								\
+-	: "lr");							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-#define _syscall1(type,name,type1,arg1) 				\
+-type name(type1 arg1) { 						\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: "r" (__r0)							\
+-	: "lr");							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2)			\
+-type name(type1 arg1,type2 arg2) {					\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: "r" (__r0),"r" (__r1) 					\
+-	: "lr");							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)		\
+-type name(type1 arg1,type2 arg2,type3 arg3) {				\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: "r" (__r0),"r" (__r1),"r" (__r2)				\
+-	: "lr");							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4)\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4) {		\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __r3 __asm__("r3") = (long)arg4;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: "r" (__r0),"r" (__r1),"r" (__r2),"r" (__r3)			\
+-	: "lr");							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-  
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5)	\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5) {	\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __r3 __asm__("r3") = (long)arg4;			\
+-  register long __r4 __asm__("r4") = (long)arg5;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: "r" (__r0),"r" (__r1),"r" (__r2),"r" (__r3),"r" (__r4)	\
+-	: "lr");							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+-
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5,type6,arg6)	\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5, type6 arg6) {	\
+-  register long __r0 __asm__("r0") = (long)arg1;			\
+-  register long __r1 __asm__("r1") = (long)arg2;			\
+-  register long __r2 __asm__("r2") = (long)arg3;			\
+-  register long __r3 __asm__("r3") = (long)arg4;			\
+-  register long __r4 __asm__("r4") = (long)arg5;			\
+-  register long __r5 __asm__("r5") = (long)arg6;			\
+-  register long __res_r0 __asm__("r0");					\
+-  long __res;								\
+-  __asm__ __volatile__ (						\
+-  __syscall(name)							\
+-	: "=r" (__res_r0)						\
+-	: "r" (__r0),"r" (__r1),"r" (__r2),"r" (__r3), "r" (__r4),"r" (__r5)		\
+-	: "lr");							\
+-  __res = __res_r0;							\
+-  __syscall_return(type,__res);						\
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-frv/unistd.h~remove-kernel-syscalls include/asm-frv/unistd.h
+--- a/include/asm-frv/unistd.h~remove-kernel-syscalls
++++ a/include/asm-frv/unistd.h
+@@ -320,125 +320,6 @@
+ #ifdef __KERNEL__
+ 
+ #define NR_syscalls 310
+-#include <linux/err.h>
+-
+-/*
+- * process the return value of a syscall, consigning it to one of two possible fates
+- * - user-visible error numbers are in the range -1 - -4095: see <asm-frv/errno.h>
+- */
+-#undef __syscall_return
+-#define __syscall_return(type, res)					\
+-do {									\
+-        unsigned long __sr2 = (res);					\
+-	if (__builtin_expect(__sr2 >= (unsigned long)(-MAX_ERRNO), 0)) { \
+-		errno = (-__sr2);					\
+-		__sr2 = ~0UL;						\
+-	}								\
+-	return (type) __sr2;						\
+-} while (0)
+-
+-/* XXX - _foo needs to be __foo, while __NR_bar could be _NR_bar. */
+-
+-#undef _syscall0
+-#define _syscall0(type,name)						\
+-type name(void)								\
+-{									\
+-	register unsigned long __scnum __asm__ ("gr7") = (__NR_##name);	\
+-	register unsigned long __sc0 __asm__ ("gr8");			\
+-	__asm__ __volatile__ ("tira gr0,#0"				\
+-			      : "=r" (__sc0)				\
+-			      : "r" (__scnum));				\
+-	__syscall_return(type, __sc0);					\
+-}
+-
+-#undef _syscall1
+-#define _syscall1(type,name,type1,arg1)						\
+-type name(type1 arg1)								\
+-{										\
+-	register unsigned long __scnum __asm__ ("gr7") = (__NR_##name);		\
+-	register unsigned long __sc0 __asm__ ("gr8") = (unsigned long) arg1;	\
+-	__asm__ __volatile__ ("tira gr0,#0"					\
+-			      : "+r" (__sc0)					\
+-			      : "r" (__scnum));					\
+-	__syscall_return(type, __sc0);						\
+-}
+-
+-#undef _syscall2
+-#define _syscall2(type,name,type1,arg1,type2,arg2)				\
+-type name(type1 arg1,type2 arg2)						\
+-{										\
+-	register unsigned long __scnum __asm__ ("gr7") = (__NR_##name);		\
+-	register unsigned long __sc0 __asm__ ("gr8") = (unsigned long) arg1;	\
+-	register unsigned long __sc1 __asm__ ("gr9") = (unsigned long) arg2;	\
+-	__asm__ __volatile__ ("tira gr0,#0"					\
+-			      : "+r" (__sc0)					\
+-			      : "r" (__scnum), "r" (__sc1));			\
+-	__syscall_return(type, __sc0);						\
+-}
+-
+-#undef _syscall3
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)			\
+-type name(type1 arg1,type2 arg2,type3 arg3)					\
+-{										\
+-	register unsigned long __scnum __asm__ ("gr7") = (__NR_##name);		\
+-	register unsigned long __sc0 __asm__ ("gr8") = (unsigned long) arg1;	\
+-	register unsigned long __sc1 __asm__ ("gr9") = (unsigned long) arg2;	\
+-	register unsigned long __sc2 __asm__ ("gr10") = (unsigned long) arg3;	\
+-	__asm__ __volatile__ ("tira gr0,#0"					\
+-			      : "+r" (__sc0)					\
+-			      : "r" (__scnum), "r" (__sc1), "r" (__sc2));	\
+-	__syscall_return(type, __sc0);						\
+-}
+-
+-#undef _syscall4
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4)		\
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4)				\
+-{											\
+-	register unsigned long __scnum __asm__ ("gr7") = (__NR_##name);			\
+-	register unsigned long __sc0 __asm__ ("gr8") = (unsigned long) arg1;		\
+-	register unsigned long __sc1 __asm__ ("gr9") = (unsigned long) arg2;		\
+-	register unsigned long __sc2 __asm__ ("gr10") = (unsigned long) arg3;		\
+-	register unsigned long __sc3 __asm__ ("gr11") = (unsigned long) arg4;		\
+-	__asm__ __volatile__ ("tira gr0,#0"						\
+-			      : "+r" (__sc0)						\
+-			      : "r" (__scnum), "r" (__sc1), "r" (__sc2), "r" (__sc3));	\
+-	__syscall_return(type, __sc0);							\
+-}
+-
+-#undef _syscall5
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5)	\
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)			\
+-{											\
+-	register unsigned long __scnum __asm__ ("gr7") = (__NR_##name);			\
+-	register unsigned long __sc0 __asm__ ("gr8") = (unsigned long) arg1;		\
+-	register unsigned long __sc1 __asm__ ("gr9") = (unsigned long) arg2;		\
+-	register unsigned long __sc2 __asm__ ("gr10") = (unsigned long) arg3;		\
+-	register unsigned long __sc3 __asm__ ("gr11") = (unsigned long) arg4;		\
+-	register unsigned long __sc4 __asm__ ("gr12") = (unsigned long) arg5;		\
+-	__asm__ __volatile__ ("tira gr0,#0"						\
+-			      : "+r" (__sc0)						\
+-			      : "r" (__scnum), "r" (__sc1), "r" (__sc2),		\
+-			      "r" (__sc3), "r" (__sc4));				\
+-	__syscall_return(type, __sc0);							\
+-}
+-
+-#undef _syscall6
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5, type6, arg6) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5, type6 arg6)		 \
+-{												 \
+-	register unsigned long __scnum __asm__ ("gr7") = (__NR_##name);				 \
+-	register unsigned long __sc0 __asm__ ("gr8") = (unsigned long) arg1;			 \
+-	register unsigned long __sc1 __asm__ ("gr9") = (unsigned long) arg2;			 \
+-	register unsigned long __sc2 __asm__ ("gr10") = (unsigned long) arg3;			 \
+-	register unsigned long __sc3 __asm__ ("gr11") = (unsigned long) arg4;			 \
+-	register unsigned long __sc4 __asm__ ("gr12") = (unsigned long) arg5;			 \
+-	register unsigned long __sc5 __asm__ ("gr13") = (unsigned long) arg6;			 \
+-	__asm__ __volatile__ ("tira gr0,#0"							 \
+-			      : "+r" (__sc0)							 \
+-			      : "r" (__scnum), "r" (__sc1), "r" (__sc2),			 \
+-			      "r" (__sc3), "r" (__sc4), "r" (__sc5));				 \
+-	__syscall_return(type, __sc0);								 \
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ /* #define __ARCH_WANT_OLD_READDIR */
+diff -puN include/asm-h8300/unistd.h~remove-kernel-syscalls include/asm-h8300/unistd.h
+--- a/include/asm-h8300/unistd.h~remove-kernel-syscalls
++++ a/include/asm-h8300/unistd.h
+@@ -295,172 +295,6 @@
+ #ifdef __KERNEL__
+ 
+ #define NR_syscalls 289
+-#include <linux/err.h>
+-
+-/* user-visible error numbers are in the range -1 - -MAX_ERRNO: see
+-   <asm-m68k/errno.h> */
+-
+-#define __syscall_return(type, res) \
+-do { \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-	/* avoid using res which is declared to be in register d0; \
+-	   errno might expand to a function call and clobber it.  */ \
+-		int __err = -(res); \
+-		errno = __err; \
+-		res = -1; \
+-	} \
+-	return (type) (res); \
+-} while (0)
+-
+-#define _syscall0(type, name)				\
+-type name(void)						\
+-{							\
+-  register long __res __asm__("er0");			\
+-  __asm__ __volatile__ ("mov.l %1,er0\n\t"		\
+-                        "trapa	#0\n\t"			\
+-			: "=r" (__res)			\
+-			: "g" (__NR_##name)		\
+-			: "cc", "memory");		\
+-  __syscall_return(type, __res);			\
+-}
+-
+-#define _syscall1(type, name, atype, a)			\
+-type name(atype a)					\
+-{							\
+-  register long __res __asm__("er0");			\
+-  register long _a __asm__("er1");			\
+-  _a = (long)a;						\
+-  __asm__ __volatile__ ("mov.l %1,er0\n\t"		\
+-                        "trapa	#0\n\t"			\
+-			: "=r" (__res)			\
+-			: "g" (__NR_##name),		\
+-			  "g" (_a)			\
+-			: "cc", "memory");	 	\
+-  __syscall_return(type, __res);			\
+-}
+-
+-#define _syscall2(type, name, atype, a, btype, b)	\
+-type name(atype a, btype b)				\
+-{							\
+-  register long __res __asm__("er0");			\
+-  register long _a __asm__("er1");			\
+-  register long _b __asm__("er2");			\
+-  _a = (long)a;						\
+-  _b = (long)b;						\
+-  __asm__ __volatile__ ("mov.l %1,er0\n\t"		\
+-                        "trapa	#0\n\t"			\
+-			: "=r" (__res)			\
+-			: "g" (__NR_##name),		\
+-			  "g" (_a),			\
+-			  "g" (_b)			\
+-			: "cc", "memory");	 	\
+-  __syscall_return(type, __res);			\
+-}
+-
+-#define _syscall3(type, name, atype, a, btype, b, ctype, c)	\
+-type name(atype a, btype b, ctype c)			\
+-{							\
+-  register long __res __asm__("er0");			\
+-  register long _a __asm__("er1");			\
+-  register long _b __asm__("er2");			\
+-  register long _c __asm__("er3");			\
+-  _a = (long)a;						\
+-  _b = (long)b;						\
+-  _c = (long)c;						\
+-  __asm__ __volatile__ ("mov.l %1,er0\n\t"		\
+-                        "trapa	#0\n\t"			\
+-			: "=r" (__res)			\
+-			: "g" (__NR_##name),		\
+-			  "g" (_a),			\
+-			  "g" (_b),			\
+-			  "g" (_c)			\
+-			: "cc", "memory");		\
+-  __syscall_return(type, __res);			\
+-}
+-
+-#define _syscall4(type, name, atype, a, btype, b,	\
+-                  ctype, c, dtype, d)			\
+-type name(atype a, btype b, ctype c, dtype d)		\
+-{							\
+-  register long __res __asm__("er0");			\
+-  register long _a __asm__("er1");			\
+-  register long _b __asm__("er2");			\
+-  register long _c __asm__("er3");			\
+-  register long _d __asm__("er4");			\
+-  _a = (long)a;						\
+-  _b = (long)b;						\
+-  _c = (long)c;						\
+-  _d = (long)d;						\
+-  __asm__ __volatile__ ("mov.l	%1,er0\n\t"		\
+-                        "trapa	#0\n\t"			\
+-			: "=r" (__res)			\
+-			: "g" (__NR_##name),		\
+-			  "g" (_a),			\
+-			  "g" (_b),			\
+-			  "g" (_c),			\
+-			  "g" (_d)			\
+-			: "cc", "memory");		\
+-  __syscall_return(type, __res);			\
+-}
+-
+-#define _syscall5(type, name, atype, a, btype, b,	\
+-                  ctype, c, dtype, d, etype, e)		\
+-type name(atype a, btype b, ctype c, dtype d, etype e)	\
+-{							\
+-  register long __res __asm__("er0");			\
+-  register long _a __asm__("er1");			\
+-  register long _b __asm__("er2");			\
+-  register long _c __asm__("er3");			\
+-  register long _d __asm__("er4");			\
+-  register long _e __asm__("er5");			\
+-  _a = (long)a;                                       	\
+-  _b = (long)b;                                       	\
+-  _c = (long)c;                                       	\
+-  _d = (long)d;                                       	\
+-  _e = (long)e;                                       	\
+-  __asm__ __volatile__ ("mov.l	%1,er0\n\t"		\
+-                        "trapa	#0\n\t"			\
+-			: "=r" (__res)			\
+-			: "g" (__NR_##name),		\
+-			  "g" (_a),			\
+-			  "g" (_b),			\
+-			  "g" (_c),			\
+-			  "g" (_d),			\
+-			  "g" (_e)			\
+-			: "cc", "memory");		\
+-  __syscall_return(type, __res);			\
+-}
+-
+-#define _syscall6(type, name, atype, a, btype, b,	\
+-                  ctype, c, dtype, d, etype, e, ftype, f)	\
+-type name(atype a, btype b, ctype c, dtype d, etype e, ftype f)	\
+-{							\
+-  register long __res __asm__("er0");			\
+-  register long _a __asm__("er1");			\
+-  register long _b __asm__("er2");			\
+-  register long _c __asm__("er3");			\
+-  register long _d __asm__("er4");			\
+-  register long _e __asm__("er5");			\
+-  register long _f __asm__("er6");			\
+-  _a = (long)a;                                       	\
+-  _b = (long)b;                                       	\
+-  _c = (long)c;                                       	\
+-  _d = (long)d;                                       	\
+-  _e = (long)e;                                       	\
+-  _f = (long)f;                                       	\
+-  __asm__ __volatile__ ("mov.l	%1,er0\n\t"		\
+-                        "trapa	#0\n\t"			\
+-			: "=r" (__res)			\
+-			: "g" (__NR_##name),		\
+-			  "g" (_a),			\
+-			  "g" (_b),			\
+-			  "g" (_c),			\
+-			  "g" (_d),			\
+-			  "g" (_e)			\
+-			  "g" (_f)			\
+-			: "cc", "memory");		\
+-  __syscall_return(type, __res);			\
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-i386/unistd.h~remove-kernel-syscalls include/asm-i386/unistd.h
+--- a/include/asm-i386/unistd.h~remove-kernel-syscalls
++++ a/include/asm-i386/unistd.h
+@@ -329,104 +329,6 @@
+ #ifdef __KERNEL__
+ 
+ #define NR_syscalls 320
+-#include <linux/err.h>
+-
+-/*
+- * user-visible error numbers are in the range -1 - -MAX_ERRNO: see
+- * <asm-i386/errno.h>
+- */
+-#define __syscall_return(type, res) \
+-do { \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-		errno = -(res); \
+-		res = -1; \
+-	} \
+-	return (type) (res); \
+-} while (0)
+-
+-/* XXX - _foo needs to be __foo, while __NR_bar could be _NR_bar. */
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-long __res; \
+-__asm__ volatile ("int $0x80" \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name)); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall1(type,name,type1,arg1) \
+-type name(type1 arg1) \
+-{ \
+-long __res; \
+-__asm__ volatile ("push %%ebx ; movl %2,%%ebx ; int $0x80 ; pop %%ebx" \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"ri" ((long)(arg1)) : "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2) \
+-type name(type1 arg1,type2 arg2) \
+-{ \
+-long __res; \
+-__asm__ volatile ("push %%ebx ; movl %2,%%ebx ; int $0x80 ; pop %%ebx" \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"ri" ((long)(arg1)),"c" ((long)(arg2)) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-long __res; \
+-__asm__ volatile ("push %%ebx ; movl %2,%%ebx ; int $0x80 ; pop %%ebx" \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"ri" ((long)(arg1)),"c" ((long)(arg2)), \
+-		  "d" ((long)(arg3)) : "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4) \
+-{ \
+-long __res; \
+-__asm__ volatile ("push %%ebx ; movl %2,%%ebx ; int $0x80 ; pop %%ebx" \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"ri" ((long)(arg1)),"c" ((long)(arg2)), \
+-	  "d" ((long)(arg3)),"S" ((long)(arg4)) : "memory"); \
+-__syscall_return(type,__res); \
+-} 
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5) \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5) \
+-{ \
+-long __res; \
+-__asm__ volatile ("push %%ebx ; movl %2,%%ebx ; movl %1,%%eax ; " \
+-                  "int $0x80 ; pop %%ebx" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name),"ri" ((long)(arg1)),"c" ((long)(arg2)), \
+-	  "d" ((long)(arg3)),"S" ((long)(arg4)),"D" ((long)(arg5)) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5,type6,arg6) \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5,type6 arg6) \
+-{ \
+-long __res; \
+-  struct { long __a1; long __a6; } __s = { (long)arg1, (long)arg6 }; \
+-__asm__ volatile ("push %%ebp ; push %%ebx ; movl 4(%2),%%ebp ; " \
+-                  "movl 0(%2),%%ebx ; movl %1,%%eax ; int $0x80 ; " \
+-                  "pop %%ebx ;  pop %%ebp" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name),"0" ((long)(&__s)),"c" ((long)(arg2)), \
+-	  "d" ((long)(arg3)),"S" ((long)(arg4)),"D" ((long)(arg5)) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-m32r/unistd.h~remove-kernel-syscalls include/asm-m32r/unistd.h
+--- a/include/asm-m32r/unistd.h~remove-kernel-syscalls
++++ a/include/asm-m32r/unistd.h
+@@ -296,117 +296,6 @@
+ #ifdef __KERNEL__
+ 
+ #define NR_syscalls 285
+-#include <linux/err.h>
+-
+-/* user-visible error numbers are in the range -1 - -MAX_ERRNO: see
+- * <asm-m32r/errno.h>
+- */
+-
+-#include <asm/syscall.h>	/* SYSCALL_* */
+-
+-#define __syscall_return(type, res) \
+-do { \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-	/* Avoid using "res" which is declared to be in register r0; \
+-	   errno might expand to a function call and clobber it.  */ \
+-		int __err = -(res); \
+-		errno = __err; \
+-		res = -1; \
+-	} \
+-	return (type) (res); \
+-} while (0)
+-
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-register long __scno __asm__ ("r7") = __NR_##name; \
+-register long __res __asm__("r0"); \
+-__asm__ __volatile__ (\
+-	"trap #" SYSCALL_VECTOR "|| nop"\
+-	: "=r" (__res) \
+-	: "r" (__scno) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall1(type,name,type1,arg1) \
+-type name(type1 arg1) \
+-{ \
+-register long __scno __asm__ ("r7") = __NR_##name; \
+-register long __res __asm__ ("r0") = (long)(arg1); \
+-__asm__ __volatile__ (\
+-	"trap #" SYSCALL_VECTOR "|| nop"\
+-	: "=r" (__res) \
+-	: "r" (__scno), "0" (__res) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2) \
+-type name(type1 arg1,type2 arg2) \
+-{ \
+-register long __scno __asm__ ("r7") = __NR_##name; \
+-register long __arg2 __asm__ ("r1") = (long)(arg2); \
+-register long __res __asm__ ("r0") = (long)(arg1); \
+-__asm__ __volatile__ (\
+-	"trap #" SYSCALL_VECTOR "|| nop"\
+-	: "=r" (__res) \
+-	: "r" (__scno), "0" (__res), "r" (__arg2) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-register long __scno __asm__ ("r7") = __NR_##name; \
+-register long __arg3 __asm__ ("r2") = (long)(arg3); \
+-register long __arg2 __asm__ ("r1") = (long)(arg2); \
+-register long __res __asm__ ("r0") = (long)(arg1); \
+-__asm__ __volatile__ (\
+-	"trap #" SYSCALL_VECTOR "|| nop"\
+-	: "=r" (__res) \
+-	: "r" (__scno), "0" (__res), "r" (__arg2), \
+-		"r" (__arg3) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name(type1 arg1,type2 arg2,type3 arg3,type4 arg4) \
+-{ \
+-register long __scno __asm__ ("r7") = __NR_##name; \
+-register long __arg4 __asm__ ("r3") = (long)(arg4); \
+-register long __arg3 __asm__ ("r2") = (long)(arg3); \
+-register long __arg2 __asm__ ("r1") = (long)(arg2); \
+-register long __res __asm__ ("r0") = (long)(arg1); \
+-__asm__ __volatile__ (\
+-	"trap #" SYSCALL_VECTOR "|| nop"\
+-	: "=r" (__res) \
+-	: "r" (__scno), "0" (__res), "r" (__arg2), \
+-		"r" (__arg3), "r" (__arg4) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	type5,arg5) \
+-type name(type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5) \
+-{ \
+-register long __scno __asm__ ("r7") = __NR_##name; \
+-register long __arg5 __asm__ ("r4") = (long)(arg5); \
+-register long __arg4 __asm__ ("r3") = (long)(arg4); \
+-register long __arg3 __asm__ ("r2") = (long)(arg3); \
+-register long __arg2 __asm__ ("r1") = (long)(arg2); \
+-register long __res __asm__ ("r0") = (long)(arg1); \
+-__asm__ __volatile__ (\
+-	"trap #" SYSCALL_VECTOR "|| nop"\
+-	: "=r" (__res) \
+-	: "r" (__scno), "0" (__res), "r" (__arg2), \
+-		"r" (__arg3), "r" (__arg4), "r" (__arg5) \
+-	: "memory"); \
+-__syscall_return(type,__res); \
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_STAT64
+diff -puN include/asm-m68k/unistd.h~remove-kernel-syscalls include/asm-m68k/unistd.h
+--- a/include/asm-m68k/unistd.h~remove-kernel-syscalls
++++ a/include/asm-m68k/unistd.h
+@@ -317,103 +317,6 @@
+ #ifdef __KERNEL__
+ 
+ #define NR_syscalls		311
+-#include <linux/err.h>
+-
+-/* user-visible error numbers are in the range -1 - -MAX_ERRNO: see
+-   <asm-m68k/errno.h> */
+-
+-#define __syscall_return(type, res) \
+-do { \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-	/* avoid using res which is declared to be in register d0; \
+-	   errno might expand to a function call and clobber it.  */ \
+-		int __err = -(res); \
+-		errno = __err; \
+-		res = -1; \
+-	} \
+-	return (type) (res); \
+-} while (0)
+-
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-register long __res __asm__ ("%d0") = __NR_##name; \
+-__asm__ __volatile__ ("trap  #0" \
+-                      : "+d" (__res) ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall1(type,name,atype,a) \
+-type name(atype a) \
+-{ \
+-register long __res __asm__ ("%d0") = __NR_##name; \
+-register long __a __asm__ ("%d1") = (long)(a); \
+-__asm__ __volatile__ ("trap  #0" \
+-		      : "+d" (__res) \
+-		      : "d" (__a)  ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall2(type,name,atype,a,btype,b) \
+-type name(atype a,btype b) \
+-{ \
+-register long __res __asm__ ("%d0") = __NR_##name; \
+-register long __a __asm__ ("%d1") = (long)(a); \
+-register long __b __asm__ ("%d2") = (long)(b); \
+-__asm__ __volatile__ ("trap  #0" \
+-		      : "+d" (__res) \
+-                      : "d" (__a), "d" (__b) \
+-		     ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall3(type,name,atype,a,btype,b,ctype,c) \
+-type name(atype a,btype b,ctype c) \
+-{ \
+-register long __res __asm__ ("%d0") = __NR_##name; \
+-register long __a __asm__ ("%d1") = (long)(a); \
+-register long __b __asm__ ("%d2") = (long)(b); \
+-register long __c __asm__ ("%d3") = (long)(c); \
+-__asm__ __volatile__ ("trap  #0" \
+-		      : "+d" (__res) \
+-                      : "d" (__a), "d" (__b), \
+-			"d" (__c) \
+-		     ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall4(type,name,atype,a,btype,b,ctype,c,dtype,d) \
+-type name (atype a, btype b, ctype c, dtype d) \
+-{ \
+-register long __res __asm__ ("%d0") = __NR_##name; \
+-register long __a __asm__ ("%d1") = (long)(a); \
+-register long __b __asm__ ("%d2") = (long)(b); \
+-register long __c __asm__ ("%d3") = (long)(c); \
+-register long __d __asm__ ("%d4") = (long)(d); \
+-__asm__ __volatile__ ("trap  #0" \
+-                      : "+d" (__res) \
+-                      : "d" (__a), "d" (__b), \
+-			"d" (__c), "d" (__d)  \
+-		     ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall5(type,name,atype,a,btype,b,ctype,c,dtype,d,etype,e) \
+-type name (atype a,btype b,ctype c,dtype d,etype e) \
+-{ \
+-register long __res __asm__ ("%d0") = __NR_##name; \
+-register long __a __asm__ ("%d1") = (long)(a); \
+-register long __b __asm__ ("%d2") = (long)(b); \
+-register long __c __asm__ ("%d3") = (long)(c); \
+-register long __d __asm__ ("%d4") = (long)(d); \
+-register long __e __asm__ ("%d5") = (long)(e); \
+-__asm__ __volatile__ ("trap  #0" \
+-		      : "+d" (__res) \
+-		      : "d" (__a), "d" (__b), \
+-			"d" (__c), "d" (__d), "d" (__e)  \
+-                     ); \
+-__syscall_return(type,__res); \
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-m68knommu/unistd.h~remove-kernel-syscalls include/asm-m68knommu/unistd.h
+--- a/include/asm-m68knommu/unistd.h~remove-kernel-syscalls
++++ a/include/asm-m68knommu/unistd.h
+@@ -318,156 +318,6 @@
+ #ifdef __KERNEL__
+ 
+ #define NR_syscalls		311
+-#include <linux/err.h>
+-
+-/* user-visible error numbers are in the range -1 - -MAX_ERRNO: see
+-   <asm-m68k/errno.h> */
+-
+-#define __syscall_return(type, res) \
+-do { \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-	/* avoid using res which is declared to be in register d0; \
+-	   errno might expand to a function call and clobber it.  */ \
+-		int __err = -(res); \
+-		errno = __err; \
+-		res = -1; \
+-	} \
+-	return (type) (res); \
+-} while (0)
+-
+-#define _syscall0(type, name)							\
+-type name(void)									\
+-{										\
+-  long __res;									\
+-  __asm__ __volatile__ ("movel	%1, %%d0\n\t"					\
+-  			"trap	#0\n\t"						\
+-  			"movel	%%d0, %0"					\
+-			: "=g" (__res)						\
+-			: "i" (__NR_##name)					\
+-			: "cc", "%d0");						\
+-  if ((unsigned long)(__res) >= (unsigned long)(-125)) {				\
+-    errno = -__res;								\
+-    __res = -1;									\
+-  }										\
+-  return (type)__res;								\
+-}
+-
+-#define _syscall1(type, name, atype, a)						\
+-type name(atype a)								\
+-{										\
+-  long __res;									\
+-  __asm__ __volatile__ ("movel	%2, %%d1\n\t"					\
+-  			"movel	%1, %%d0\n\t"					\
+-  			"trap	#0\n\t"						\
+-  			"movel	%%d0, %0"					\
+-			: "=g" (__res)						\
+-			: "i" (__NR_##name),					\
+-			  "g" ((long)a)						\
+-			: "cc", "%d0", "%d1");					\
+-  if ((unsigned long)(__res) >= (unsigned long)(-125)) {				\
+-    errno = -__res;								\
+-    __res = -1;									\
+-  }										\
+-  return (type)__res;								\
+-}
+-
+-#define _syscall2(type, name, atype, a, btype, b)				\
+-type name(atype a, btype b)							\
+-{										\
+-  long __res;									\
+-  __asm__ __volatile__ ("movel	%3, %%d2\n\t"					\
+-  			"movel	%2, %%d1\n\t"					\
+-			"movel	%1, %%d0\n\t"					\
+-  			"trap	#0\n\t"						\
+-  			"movel	%%d0, %0"					\
+-			: "=g" (__res)						\
+-			: "i" (__NR_##name),					\
+-			  "a" ((long)a),					\
+-			  "g" ((long)b)						\
+-			: "cc", "%d0", "%d1", "%d2");				\
+-  if ((unsigned long)(__res) >= (unsigned long)(-125)) {				\
+-    errno = -__res;								\
+-    __res = -1;									\
+-  }										\
+-  return (type)__res;								\
+-}
+-
+-#define _syscall3(type, name, atype, a, btype, b, ctype, c)			\
+-type name(atype a, btype b, ctype c)						\
+-{										\
+-  long __res;									\
+-  __asm__ __volatile__ ("movel	%4, %%d3\n\t"					\
+-			"movel	%3, %%d2\n\t"					\
+-  			"movel	%2, %%d1\n\t"					\
+-			"movel	%1, %%d0\n\t"					\
+-  			"trap	#0\n\t"						\
+-  			"movel	%%d0, %0"					\
+-			: "=g" (__res)						\
+-			: "i" (__NR_##name),					\
+-			  "a" ((long)a),					\
+-			  "a" ((long)b),					\
+-			  "g" ((long)c)						\
+-			: "cc", "%d0", "%d1", "%d2", "%d3");			\
+-  if ((unsigned long)(__res) >= (unsigned long)(-125)) {				\
+-    errno = -__res;								\
+-    __res = -1;									\
+-  }										\
+-  return (type)__res;								\
+-}
+-
+-#define _syscall4(type, name, atype, a, btype, b, ctype, c, dtype, d)		\
+-type name(atype a, btype b, ctype c, dtype d)					\
+-{										\
+-  long __res;									\
+-  __asm__ __volatile__ ("movel	%5, %%d4\n\t"					\
+-			"movel	%4, %%d3\n\t"					\
+-			"movel	%3, %%d2\n\t"					\
+-  			"movel	%2, %%d1\n\t"					\
+-			"movel	%1, %%d0\n\t"					\
+-  			"trap	#0\n\t"						\
+-  			"movel	%%d0, %0"					\
+-			: "=g" (__res)						\
+-			: "i" (__NR_##name),					\
+-			  "a" ((long)a),					\
+-			  "a" ((long)b),					\
+-			  "a" ((long)c),					\
+-			  "g" ((long)d)						\
+-			: "cc", "%d0", "%d1", "%d2", "%d3",			\
+-			  "%d4");						\
+-  if ((unsigned long)(__res) >= (unsigned long)(-125)) {				\
+-    errno = -__res;								\
+-    __res = -1;									\
+-  }										\
+-  return (type)__res;								\
+-}
+-
+-#define _syscall5(type, name, atype, a, btype, b, ctype, c, dtype, d, etype, e)	\
+-type name(atype a, btype b, ctype c, dtype d, etype e)				\
+-{										\
+-  long __res;									\
+-  __asm__ __volatile__ ("movel	%6, %%d5\n\t"					\
+-			"movel	%5, %%d4\n\t"					\
+-			"movel	%4, %%d3\n\t"					\
+-			"movel	%3, %%d2\n\t"					\
+-  			"movel	%2, %%d1\n\t"					\
+-			"movel	%1, %%d0\n\t"					\
+-  			"trap	#0\n\t"						\
+-  			"movel	%%d0, %0"					\
+-			: "=g" (__res)						\
+-			: "i" (__NR_##name),					\
+-			  "a" ((long)a),					\
+-			  "a" ((long)b),					\
+-			  "a" ((long)c),					\
+-			  "a" ((long)d),					\
+-			  "g" ((long)e)						\
+-			: "cc", "%d0", "%d1", "%d2", "%d3",			\
+-			  "%d4", "%d5");					\
+-  if ((unsigned long)(__res) >= (unsigned long)(-125)) {				\
+-    errno = -__res;								\
+-    __res = -1;									\
+-  }										\
+-  return (type)__res;								\
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-mips/unistd.h~remove-kernel-syscalls include/asm-mips/unistd.h
+--- a/include/asm-mips/unistd.h~remove-kernel-syscalls
++++ a/include/asm-mips/unistd.h
+@@ -933,268 +933,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-/* XXX - _foo needs to be __foo, while __NR_bar could be _NR_bar. */
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-	register unsigned long __a3 asm("$7"); \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"li\t$2, %2\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "=r" (__a3) \
+-	: "i" (__NR_##name) \
+-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-/*
+- * DANGER: This macro isn't usable for the pipe(2) call
+- * which has a unusual return convention.
+- */
+-#define _syscall1(type,name,atype,a) \
+-type name(atype a) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a3 asm("$7"); \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"li\t$2, %3\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "=r" (__a3) \
+-	: "r" (__a0), "i" (__NR_##name) \
+-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#define _syscall2(type,name,atype,a,btype,b) \
+-type name(atype a, btype b) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+-	register unsigned long __a3 asm("$7"); \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"li\t$2, %4\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "=r" (__a3) \
+-	: "r" (__a0), "r" (__a1), "i" (__NR_##name) \
+-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#define _syscall3(type,name,atype,a,btype,b,ctype,c) \
+-type name(atype a, btype b, ctype c) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+-	register unsigned long __a2 asm("$6") = (unsigned long) c; \
+-	register unsigned long __a3 asm("$7"); \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"li\t$2, %5\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "=r" (__a3) \
+-	: "r" (__a0), "r" (__a1), "r" (__a2), "i" (__NR_##name) \
+-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#define _syscall4(type,name,atype,a,btype,b,ctype,c,dtype,d) \
+-type name(atype a, btype b, ctype c, dtype d) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+-	register unsigned long __a2 asm("$6") = (unsigned long) c; \
+-	register unsigned long __a3 asm("$7") = (unsigned long) d; \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"li\t$2, %5\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "+r" (__a3) \
+-	: "r" (__a0), "r" (__a1), "r" (__a2), "i" (__NR_##name) \
+-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#if (_MIPS_SIM == _MIPS_SIM_ABI32)
+-
+-/*
+- * Using those means your brain needs more than an oil change ;-)
+- */
+-
+-#define _syscall5(type,name,atype,a,btype,b,ctype,c,dtype,d,etype,e) \
+-type name(atype a, btype b, ctype c, dtype d, etype e) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+-	register unsigned long __a2 asm("$6") = (unsigned long) c; \
+-	register unsigned long __a3 asm("$7") = (unsigned long) d; \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"lw\t$2, %6\n\t" \
+-	"subu\t$29, 32\n\t" \
+-	"sw\t$2, 16($29)\n\t" \
+-	"li\t$2, %5\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	"addiu\t$29, 32\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "+r" (__a3) \
+-	: "r" (__a0), "r" (__a1), "r" (__a2), "i" (__NR_##name), \
+-	  "m" ((unsigned long)e) \
+-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#define _syscall6(type,name,atype,a,btype,b,ctype,c,dtype,d,etype,e,ftype,f) \
+-type name(atype a, btype b, ctype c, dtype d, etype e, ftype f) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+-	register unsigned long __a2 asm("$6") = (unsigned long) c; \
+-	register unsigned long __a3 asm("$7") = (unsigned long) d; \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"lw\t$2, %6\n\t" \
+-	"lw\t$8, %7\n\t" \
+-	"subu\t$29, 32\n\t" \
+-	"sw\t$2, 16($29)\n\t" \
+-	"sw\t$8, 20($29)\n\t" \
+-	"li\t$2, %5\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	"addiu\t$29, 32\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "+r" (__a3) \
+-	: "r" (__a0), "r" (__a1), "r" (__a2), "i" (__NR_##name), \
+-	  "m" ((unsigned long)e), "m" ((unsigned long)f) \
+-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#endif /* (_MIPS_SIM == _MIPS_SIM_ABI32) */
+-
+-#if (_MIPS_SIM == _MIPS_SIM_NABI32) || (_MIPS_SIM == _MIPS_SIM_ABI64)
+-
+-#define _syscall5(type,name,atype,a,btype,b,ctype,c,dtype,d,etype,e) \
+-type name (atype a,btype b,ctype c,dtype d,etype e) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+-	register unsigned long __a2 asm("$6") = (unsigned long) c; \
+-	register unsigned long __a3 asm("$7") = (unsigned long) d; \
+-	register unsigned long __a4 asm("$8") = (unsigned long) e; \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"li\t$2, %6\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "+r" (__a3) \
+-	: "r" (__a0), "r" (__a1), "r" (__a2), "r" (__a4), "i" (__NR_##name) \
+-	: "$2", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#define _syscall6(type,name,atype,a,btype,b,ctype,c,dtype,d,etype,e,ftype,f) \
+-type name (atype a,btype b,ctype c,dtype d,etype e,ftype f) \
+-{ \
+-	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+-	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+-	register unsigned long __a2 asm("$6") = (unsigned long) c; \
+-	register unsigned long __a3 asm("$7") = (unsigned long) d; \
+-	register unsigned long __a4 asm("$8") = (unsigned long) e; \
+-	register unsigned long __a5 asm("$9") = (unsigned long) f; \
+-	unsigned long __v0; \
+-	\
+-	__asm__ volatile ( \
+-	".set\tnoreorder\n\t" \
+-	"li\t$2, %7\t\t\t# " #name "\n\t" \
+-	"syscall\n\t" \
+-	"move\t%0, $2\n\t" \
+-	".set\treorder" \
+-	: "=&r" (__v0), "+r" (__a3) \
+-	: "r" (__a0), "r" (__a1), "r" (__a2), "r" (__a4), "r" (__a5), \
+-	  "i" (__NR_##name) \
+-	: "$2", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+-	  "memory"); \
+-	\
+-	if (__a3 == 0) \
+-		return (type) __v0; \
+-	errno = __v0; \
+-	return (type) -1; \
+-}
+-
+-#endif /* (_MIPS_SIM == _MIPS_SIM_NABI32) || (_MIPS_SIM == _MIPS_SIM_ABI64) */
+-
+-
+ #define __ARCH_OMIT_COMPAT_SYS_GETDENTS64
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-powerpc/unistd.h~remove-kernel-syscalls include/asm-powerpc/unistd.h
+--- a/include/asm-powerpc/unistd.h~remove-kernel-syscalls
++++ a/include/asm-powerpc/unistd.h
+@@ -334,115 +334,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-/* On powerpc a system call basically clobbers the same registers like a
+- * function call, with the exception of LR (which is needed for the
+- * "sc; bnslr" sequence) and CR (where only CR0.SO is clobbered to signal
+- * an error return status).
+- */
+-
+-#define __syscall_nr(nr, type, name, args...)				\
+-	unsigned long __sc_ret, __sc_err;				\
+-	{								\
+-		register unsigned long __sc_0  __asm__ ("r0");		\
+-		register unsigned long __sc_3  __asm__ ("r3");		\
+-		register unsigned long __sc_4  __asm__ ("r4");		\
+-		register unsigned long __sc_5  __asm__ ("r5");		\
+-		register unsigned long __sc_6  __asm__ ("r6");		\
+-		register unsigned long __sc_7  __asm__ ("r7");		\
+-		register unsigned long __sc_8  __asm__ ("r8");		\
+-									\
+-		__sc_loadargs_##nr(name, args);				\
+-		__asm__ __volatile__					\
+-			("sc           \n\t"				\
+-			 "mfcr %0      "				\
+-			: "=&r" (__sc_0),				\
+-			  "=&r" (__sc_3),  "=&r" (__sc_4),		\
+-			  "=&r" (__sc_5),  "=&r" (__sc_6),		\
+-			  "=&r" (__sc_7),  "=&r" (__sc_8)		\
+-			: __sc_asm_input_##nr				\
+-			: "cr0", "ctr", "memory",			\
+-			  "r9", "r10","r11", "r12");			\
+-		__sc_ret = __sc_3;					\
+-		__sc_err = __sc_0;					\
+-	}								\
+-	if (__sc_err & 0x10000000)					\
+-	{								\
+-		errno = __sc_ret;					\
+-		__sc_ret = -1;						\
+-	}								\
+-	return (type) __sc_ret
+-
+-#define __sc_loadargs_0(name, dummy...)					\
+-	__sc_0 = __NR_##name
+-#define __sc_loadargs_1(name, arg1)					\
+-	__sc_loadargs_0(name);						\
+-	__sc_3 = (unsigned long) (arg1)
+-#define __sc_loadargs_2(name, arg1, arg2)				\
+-	__sc_loadargs_1(name, arg1);					\
+-	__sc_4 = (unsigned long) (arg2)
+-#define __sc_loadargs_3(name, arg1, arg2, arg3)				\
+-	__sc_loadargs_2(name, arg1, arg2);				\
+-	__sc_5 = (unsigned long) (arg3)
+-#define __sc_loadargs_4(name, arg1, arg2, arg3, arg4)			\
+-	__sc_loadargs_3(name, arg1, arg2, arg3);			\
+-	__sc_6 = (unsigned long) (arg4)
+-#define __sc_loadargs_5(name, arg1, arg2, arg3, arg4, arg5)		\
+-	__sc_loadargs_4(name, arg1, arg2, arg3, arg4);			\
+-	__sc_7 = (unsigned long) (arg5)
+-#define __sc_loadargs_6(name, arg1, arg2, arg3, arg4, arg5, arg6)	\
+-	__sc_loadargs_5(name, arg1, arg2, arg3, arg4, arg5);		\
+-	__sc_8 = (unsigned long) (arg6)
+-
+-#define __sc_asm_input_0 "0" (__sc_0)
+-#define __sc_asm_input_1 __sc_asm_input_0, "1" (__sc_3)
+-#define __sc_asm_input_2 __sc_asm_input_1, "2" (__sc_4)
+-#define __sc_asm_input_3 __sc_asm_input_2, "3" (__sc_5)
+-#define __sc_asm_input_4 __sc_asm_input_3, "4" (__sc_6)
+-#define __sc_asm_input_5 __sc_asm_input_4, "5" (__sc_7)
+-#define __sc_asm_input_6 __sc_asm_input_5, "6" (__sc_8)
+-
+-#define _syscall0(type,name)						\
+-type name(void)								\
+-{									\
+-	__syscall_nr(0, type, name);					\
+-}
+-
+-#define _syscall1(type,name,type1,arg1)					\
+-type name(type1 arg1)							\
+-{									\
+-	__syscall_nr(1, type, name, arg1);				\
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2)			\
+-type name(type1 arg1, type2 arg2)					\
+-{									\
+-	__syscall_nr(2, type, name, arg1, arg2);			\
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)		\
+-type name(type1 arg1, type2 arg2, type3 arg3)				\
+-{									\
+-	__syscall_nr(3, type, name, arg1, arg2, arg3);			\
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
+-{									\
+-	__syscall_nr(4, type, name, arg1, arg2, arg3, arg4);		\
+-}
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5) \
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
+-{									\
+-	__syscall_nr(5, type, name, arg1, arg2, arg3, arg4, arg5);	\
+-}
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5,type6,arg6) \
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5, type6 arg6) \
+-{									\
+-	__syscall_nr(6, type, name, arg1, arg2, arg3, arg4, arg5, arg6); \
+-}
+-
+-
+ #include <linux/types.h>
+ #include <linux/compiler.h>
+ #include <linux/linkage.h>
+diff -puN include/asm-s390/unistd.h~remove-kernel-syscalls include/asm-s390/unistd.h
+--- a/include/asm-s390/unistd.h~remove-kernel-syscalls
++++ a/include/asm-s390/unistd.h
+@@ -345,160 +345,6 @@
+ 
+ #ifdef __KERNEL__
+ 
+-#include <linux/err.h>
+-
+-#define __syscall_return(type, res)			     \
+-do {							     \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-		errno = -(res);				     \
+-		res = -1;				     \
+-	}						     \
+-	return (type) (res);				     \
+-} while (0)
+-
+-#define _svc_clobber "1", "cc", "memory"
+-
+-#define _syscall0(type,name)					\
+-type name(void) {						\
+-	register long __svcres asm("2");			\
+-	long __res;						\
+-	asm volatile(						\
+-		"	.if	%1 < 256\n"			\
+-		"	svc	%b1\n"				\
+-		"	.else\n"				\
+-		"	la	%%r1,%1\n"			\
+-		"	svc	0\n"				\
+-		"	.endif"					\
+-		: "=d" (__svcres)				\
+-		: "i" (__NR_##name)				\
+-		: _svc_clobber);				\
+-	__res = __svcres;					\
+-	__syscall_return(type,__res);				\
+-}
+-
+-#define _syscall1(type,name,type1,arg1)				\
+-type name(type1 arg1) {						\
+-	register type1 __arg1 asm("2") = arg1;			\
+-	register long __svcres asm("2");			\
+-	long __res;						\
+-	asm volatile(						\
+-		"	.if	%1 < 256\n"			\
+-		"	svc	%b1\n"				\
+-		"	.else\n"				\
+-		"	la	%%r1,%1\n"			\
+-		"	svc	0\n"				\
+-		"	.endif"					\
+-		: "=d" (__svcres)				\
+-		: "i" (__NR_##name),				\
+-		  "0" (__arg1)					\
+-		: _svc_clobber);				\
+-	__res = __svcres;					\
+-	__syscall_return(type,__res);				\
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2)		\
+-type name(type1 arg1, type2 arg2) {				\
+-	register type1 __arg1 asm("2") = arg1;			\
+-	register type2 __arg2 asm("3") = arg2;			\
+-	register long __svcres asm("2");			\
+-	long __res;						\
+-	asm volatile(						\
+-		"	.if	%1 < 256\n"			\
+-		"	svc	%b1\n"				\
+-		"	.else\n"				\
+-		"	la	%%r1,%1\n"			\
+-		"	svc	0\n"				\
+-		"	.endif"					\
+-		: "=d" (__svcres)				\
+-		: "i" (__NR_##name),				\
+-		  "0" (__arg1),					\
+-		  "d" (__arg2)					\
+-		: _svc_clobber );				\
+-	__res = __svcres;					\
+-	__syscall_return(type,__res);				\
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)	\
+-type name(type1 arg1, type2 arg2, type3 arg3) {			\
+-	register type1 __arg1 asm("2") = arg1;			\
+-	register type2 __arg2 asm("3") = arg2;			\
+-	register type3 __arg3 asm("4") = arg3;			\
+-	register long __svcres asm("2");			\
+-	long __res;						\
+-	asm volatile(						\
+-		"	.if	%1 < 256\n"			\
+-		"	svc	%b1\n"				\
+-		"	.else\n"				\
+-		"	la	%%r1,%1\n"			\
+-		"	svc	0\n"				\
+-		"	.endif"					\
+-		: "=d" (__svcres)				\
+-		: "i" (__NR_##name),				\
+-		  "0" (__arg1),					\
+-		  "d" (__arg2),					\
+-		  "d" (__arg3)					\
+-		: _svc_clobber);				\
+-	__res = __svcres;					\
+-	__syscall_return(type,__res);				\
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,	\
+-		  type4,name4)					\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4) {	\
+-	register type1 __arg1 asm("2") = arg1;			\
+-	register type2 __arg2 asm("3") = arg2;			\
+-	register type3 __arg3 asm("4") = arg3;			\
+-	register type4 __arg4 asm("5") = arg4;			\
+-	register long __svcres asm("2");			\
+-	long __res;						\
+-	asm volatile(						\
+-		"	.if	%1 < 256\n"			\
+-		"	svc	%b1\n"				\
+-		"	.else\n"				\
+-		"	la	%%r1,%1\n"			\
+-		"	svc	0\n"				\
+-		"	.endif"					\
+-		: "=d" (__svcres)				\
+-		: "i" (__NR_##name),				\
+-		  "0" (__arg1),					\
+-		  "d" (__arg2),					\
+-		  "d" (__arg3),					\
+-		  "d" (__arg4)					\
+-		: _svc_clobber);				\
+-	__res = __svcres;					\
+-	__syscall_return(type,__res);				\
+-}
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,	\
+-		  type4,name4,type5,name5)			\
+-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4,	\
+-	  type5 arg5) {						\
+-	register type1 __arg1 asm("2") = arg1;			\
+-	register type2 __arg2 asm("3") = arg2;			\
+-	register type3 __arg3 asm("4") = arg3;			\
+-	register type4 __arg4 asm("5") = arg4;			\
+-	register type5 __arg5 asm("6") = arg5;			\
+-	register long __svcres asm("2");			\
+-	long __res;						\
+-	asm volatile(						\
+-		"	.if	%1 < 256\n"			\
+-		"	svc	%b1\n"				\
+-		"	.else\n"				\
+-		"	la	%%r1,%1\n"			\
+-		"	svc	0\n"				\
+-		"	.endif"					\
+-		: "=d" (__svcres)				\
+-		: "i" (__NR_##name),				\
+-		  "0" (__arg1),					\
+-		  "d" (__arg2),					\
+-		  "d" (__arg3),					\
+-		  "d" (__arg4),					\
+-		  "d" (__arg5)					\
+-		: _svc_clobber);				\
+-	__res = __svcres;					\
+-	__syscall_return(type,__res);				\
+-}
+-
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+ #define __ARCH_WANT_SYS_ALARM
+diff -puN include/asm-sh/unistd.h~remove-kernel-syscalls include/asm-sh/unistd.h
+--- a/include/asm-sh/unistd.h~remove-kernel-syscalls
++++ a/include/asm-sh/unistd.h
+@@ -332,143 +332,6 @@
+ 
+ #ifdef __KERNEL__
+ 
+-#include <linux/err.h>
+-
+-/* user-visible error numbers are in the range -1 - -MAX_ERRNO:
+- * see <asm-sh/errno.h> */
+-
+-#define __syscall_return(type, res) \
+-do { \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-	/* Avoid using "res" which is declared to be in register r0; \
+-	   errno might expand to a function call and clobber it.  */ \
+-		int __err = -(res); \
+-		errno = __err; \
+-		res = -1; \
+-	} \
+-	return (type) (res); \
+-} while (0)
+-
+-#if defined(__sh2__) || defined(__SH2E__) || defined(__SH2A__)
+-#define SYSCALL_ARG0	"trapa #0x20"
+-#define SYSCALL_ARG1	"trapa #0x21"
+-#define SYSCALL_ARG2	"trapa #0x22"
+-#define SYSCALL_ARG3	"trapa #0x23"
+-#define SYSCALL_ARG4	"trapa #0x24"
+-#define SYSCALL_ARG5	"trapa #0x25"
+-#define SYSCALL_ARG6	"trapa #0x26"
+-#else
+-#define SYSCALL_ARG0	"trapa #0x10"
+-#define SYSCALL_ARG1	"trapa #0x11"
+-#define SYSCALL_ARG2	"trapa #0x12"
+-#define SYSCALL_ARG3	"trapa #0x13"
+-#define SYSCALL_ARG4	"trapa #0x14"
+-#define SYSCALL_ARG5	"trapa #0x15"
+-#define SYSCALL_ARG6	"trapa #0x16"
+-#endif
+-
+-/* XXX - _foo needs to be __foo, while __NR_bar could be _NR_bar. */
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-register long __sc0 __asm__ ("r3") = __NR_##name; \
+-__asm__ __volatile__ (SYSCALL_ARG0 \
+-	: "=z" (__sc0) \
+-	: "0" (__sc0) \
+-	: "memory" ); \
+-__syscall_return(type,__sc0); \
+-}
+-
+-#define _syscall1(type,name,type1,arg1) \
+-type name(type1 arg1) \
+-{ \
+-register long __sc0 __asm__ ("r3") = __NR_##name; \
+-register long __sc4 __asm__ ("r4") = (long) arg1; \
+-__asm__ __volatile__ (SYSCALL_ARG1 \
+-	: "=z" (__sc0) \
+-	: "0" (__sc0), "r" (__sc4) \
+-	: "memory"); \
+-__syscall_return(type,__sc0); \
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2) \
+-type name(type1 arg1,type2 arg2) \
+-{ \
+-register long __sc0 __asm__ ("r3") = __NR_##name; \
+-register long __sc4 __asm__ ("r4") = (long) arg1; \
+-register long __sc5 __asm__ ("r5") = (long) arg2; \
+-__asm__ __volatile__ (SYSCALL_ARG2 \
+-	: "=z" (__sc0) \
+-	: "0" (__sc0), "r" (__sc4), "r" (__sc5) \
+-	: "memory"); \
+-__syscall_return(type,__sc0); \
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-register long __sc0 __asm__ ("r3") = __NR_##name; \
+-register long __sc4 __asm__ ("r4") = (long) arg1; \
+-register long __sc5 __asm__ ("r5") = (long) arg2; \
+-register long __sc6 __asm__ ("r6") = (long) arg3; \
+-__asm__ __volatile__ (SYSCALL_ARG3 \
+-	: "=z" (__sc0) \
+-	: "0" (__sc0), "r" (__sc4), "r" (__sc5), "r" (__sc6) \
+-	: "memory"); \
+-__syscall_return(type,__sc0); \
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4) \
+-{ \
+-register long __sc0 __asm__ ("r3") = __NR_##name; \
+-register long __sc4 __asm__ ("r4") = (long) arg1; \
+-register long __sc5 __asm__ ("r5") = (long) arg2; \
+-register long __sc6 __asm__ ("r6") = (long) arg3; \
+-register long __sc7 __asm__ ("r7") = (long) arg4; \
+-__asm__ __volatile__ (SYSCALL_ARG4 \
+-	: "=z" (__sc0) \
+-	: "0" (__sc0), "r" (__sc4), "r" (__sc5), "r" (__sc6),  \
+-	  "r" (__sc7) \
+-	: "memory" ); \
+-__syscall_return(type,__sc0); \
+-}
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5) \
+-{ \
+-register long __sc3 __asm__ ("r3") = __NR_##name; \
+-register long __sc4 __asm__ ("r4") = (long) arg1; \
+-register long __sc5 __asm__ ("r5") = (long) arg2; \
+-register long __sc6 __asm__ ("r6") = (long) arg3; \
+-register long __sc7 __asm__ ("r7") = (long) arg4; \
+-register long __sc0 __asm__ ("r0") = (long) arg5; \
+-__asm__ __volatile__ (SYSCALL_ARG5 \
+-	: "=z" (__sc0) \
+-	: "0" (__sc0), "r" (__sc4), "r" (__sc5), "r" (__sc6), "r" (__sc7),  \
+-	  "r" (__sc3) \
+-	: "memory" ); \
+-__syscall_return(type,__sc0); \
+-}
+-
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5,type6,arg6) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5, type6 arg6) \
+-{ \
+-register long __sc3 __asm__ ("r3") = __NR_##name; \
+-register long __sc4 __asm__ ("r4") = (long) arg1; \
+-register long __sc5 __asm__ ("r5") = (long) arg2; \
+-register long __sc6 __asm__ ("r6") = (long) arg3; \
+-register long __sc7 __asm__ ("r7") = (long) arg4; \
+-register long __sc0 __asm__ ("r0") = (long) arg5; \
+-register long __sc1 __asm__ ("r1") = (long) arg6; \
+-__asm__ __volatile__ (SYSCALL_ARG6 \
+-	: "=z" (__sc0) \
+-	: "0" (__sc0), "r" (__sc4), "r" (__sc5), "r" (__sc6), "r" (__sc7),  \
+-	  "r" (__sc3), "r" (__sc1) \
+-	: "memory" ); \
+-__syscall_return(type,__sc0); \
+-}
+-
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+ #define __ARCH_WANT_OLD_STAT
+diff -puN include/asm-sh64/unistd.h~remove-kernel-syscalls include/asm-sh64/unistd.h
+--- a/include/asm-sh64/unistd.h~remove-kernel-syscalls
++++ a/include/asm-sh64/unistd.h
+@@ -347,148 +347,6 @@
+ #ifdef __KERNEL__ 
+ 
+ #define NR_syscalls 321
+-#include <linux/err.h>
+-
+-/* user-visible error numbers are in the range -1 - -MAX_ERRNO:
+- * see <asm-sh64/errno.h> */
+-
+-#define __syscall_return(type, res) \
+-do { \
+-	/* Note: when returning from kernel the return value is in r9	    \
+-	**       This prevents conflicts between return value and arg1      \
+-	**       when dispatching signal handler, in other words makes	    \
+-	**       life easier in the system call epilogue (see entry.S)      \
+-	*/								    \
+-        register unsigned long __sr2 __asm__ ("r2") = res;		    \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) {	    \
+-		errno = -(res);						    \
+-		__sr2 = -1; 						    \
+-	} \
+-	return (type) (__sr2); 						    \
+-} while (0)
+-
+-/* XXX - _foo needs to be __foo, while __NR_bar could be _NR_bar. */
+-
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-register unsigned long __sc0 __asm__ ("r9") = ((0x10 << 16) | __NR_##name); \
+-__asm__ __volatile__ ("trapa	%1 !\t\t\t" #name "()"			    \
+-	: "=r" (__sc0) 							    \
+-	: "r" (__sc0) ); 						    \
+-__syscall_return(type,__sc0); 						    \
+-}
+-
+-	/*
+-	 * The apparent spurious "dummy" assembler comment is *needed*,
+-	 * as without it, the compiler treats the arg<n> variables
+-	 * as no longer live just before the asm. The compiler can
+-	 * then optimize the storage into any registers it wishes.
+-	 * The additional dummy statement forces the compiler to put
+-	 * the arguments into the correct registers before the TRAPA.
+-	 */
+-#define _syscall1(type,name,type1,arg1) \
+-type name(type1 arg1) \
+-{ \
+-register unsigned long __sc0 __asm__ ("r9") = ((0x11 << 16) | __NR_##name); \
+-register unsigned long __sc2 __asm__ ("r2") = (unsigned long) arg1;	    \
+-__asm__ __volatile__ ("trapa	%1 !\t\t\t" #name "(%2)"		    \
+-	: "=r" (__sc0) 							    \
+-	: "r" (__sc0), "r" (__sc2));					    \
+-__asm__ __volatile__ ("!dummy	%0 %1"				   	    \
+-	:								    \
+-	: "r" (__sc0), "r" (__sc2));					    \
+-__syscall_return(type,__sc0); 						    \
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2) \
+-type name(type1 arg1,type2 arg2) \
+-{ \
+-register unsigned long __sc0 __asm__ ("r9") = ((0x12 << 16) | __NR_##name); \
+-register unsigned long __sc2 __asm__ ("r2") = (unsigned long) arg1;	    \
+-register unsigned long __sc3 __asm__ ("r3") = (unsigned long) arg2;	    \
+-__asm__ __volatile__ ("trapa	%1 !\t\t\t" #name "(%2,%3)"		    \
+-	: "=r" (__sc0) 							    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3) );			    \
+-__asm__ __volatile__ ("!dummy	%0 %1 %2"			   	    \
+-	:								    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3) );			    \
+-__syscall_return(type,__sc0); 						    \
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-register unsigned long __sc0 __asm__ ("r9") = ((0x13 << 16) | __NR_##name); \
+-register unsigned long __sc2 __asm__ ("r2") = (unsigned long) arg1;	    \
+-register unsigned long __sc3 __asm__ ("r3") = (unsigned long) arg2;	    \
+-register unsigned long __sc4 __asm__ ("r4") = (unsigned long) arg3;	    \
+-__asm__ __volatile__ ("trapa	%1 !\t\t\t" #name "(%2,%3,%4)"		    \
+-	: "=r" (__sc0) 							    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4) );		    \
+-__asm__ __volatile__ ("!dummy	%0 %1 %2 %3"			   	    \
+-	:								    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4) );	   	    \
+-__syscall_return(type,__sc0); 						    \
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4) \
+-{ \
+-register unsigned long __sc0 __asm__ ("r9") = ((0x14 << 16) | __NR_##name); \
+-register unsigned long __sc2 __asm__ ("r2") = (unsigned long) arg1;	    \
+-register unsigned long __sc3 __asm__ ("r3") = (unsigned long) arg2;	    \
+-register unsigned long __sc4 __asm__ ("r4") = (unsigned long) arg3;	    \
+-register unsigned long __sc5 __asm__ ("r5") = (unsigned long) arg4;	    \
+-__asm__ __volatile__ ("trapa	%1 !\t\t\t" #name "(%2,%3,%4,%5)"	    \
+-	: "=r" (__sc0) 							    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4), "r" (__sc5) );\
+-__asm__ __volatile__ ("!dummy	%0 %1 %2 %3 %4"			   	    \
+-	:								    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4), "r" (__sc5) );\
+-__syscall_return(type,__sc0); 						    \
+-}
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5) \
+-{ \
+-register unsigned long __sc0 __asm__ ("r9") = ((0x15 << 16) | __NR_##name); \
+-register unsigned long __sc2 __asm__ ("r2") = (unsigned long) arg1;	    \
+-register unsigned long __sc3 __asm__ ("r3") = (unsigned long) arg2;	    \
+-register unsigned long __sc4 __asm__ ("r4") = (unsigned long) arg3;	    \
+-register unsigned long __sc5 __asm__ ("r5") = (unsigned long) arg4;	    \
+-register unsigned long __sc6 __asm__ ("r6") = (unsigned long) arg5;	    \
+-__asm__ __volatile__ ("trapa	%1 !\t\t\t" #name "(%2,%3,%4,%5,%6)"	    \
+-	: "=r" (__sc0) 							    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4), "r" (__sc5),  \
+-	  "r" (__sc6));							    \
+-__asm__ __volatile__ ("!dummy	%0 %1 %2 %3 %4 %5"		   	    \
+-	:								    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4), "r" (__sc5),  \
+-	  "r" (__sc6));							    \
+-__syscall_return(type,__sc0); 						    \
+-}
+-
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5, type6, arg6) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5, type6 arg6) \
+-{ \
+-register unsigned long __sc0 __asm__ ("r9") = ((0x16 << 16) | __NR_##name); \
+-register unsigned long __sc2 __asm__ ("r2") = (unsigned long) arg1;	    \
+-register unsigned long __sc3 __asm__ ("r3") = (unsigned long) arg2;	    \
+-register unsigned long __sc4 __asm__ ("r4") = (unsigned long) arg3;	    \
+-register unsigned long __sc5 __asm__ ("r5") = (unsigned long) arg4;	    \
+-register unsigned long __sc6 __asm__ ("r6") = (unsigned long) arg5;	    \
+-register unsigned long __sc7 __asm__ ("r7") = (unsigned long) arg6;	    \
+-__asm__ __volatile__ ("trapa	%1 !\t\t\t" #name "(%2,%3,%4,%5,%6,%7)"	    \
+-	: "=r" (__sc0) 							    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4), "r" (__sc5),  \
+-	  "r" (__sc6), "r" (__sc7));					    \
+-__asm__ __volatile__ ("!dummy	%0 %1 %2 %3 %4 %5 %6"		   	    \
+-	:								    \
+-	: "r" (__sc0), "r" (__sc2), "r" (__sc3), "r" (__sc4), "r" (__sc5),  \
+-	  "r" (__sc6), "r" (__sc7));					    \
+-__syscall_return(type,__sc0); 						    \
+-}
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-sparc/unistd.h~remove-kernel-syscalls include/asm-sparc/unistd.h
+--- a/include/asm-sparc/unistd.h~remove-kernel-syscalls
++++ a/include/asm-sparc/unistd.h
+@@ -329,136 +329,6 @@
+  *          find a free slot in the 0-302 range.
+  */
+ 
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-__asm__ __volatile__ ("t 0x10\n\t" \
+-		      "bcc 1f\n\t" \
+-		      "mov %%o0, %0\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "1:\n\t" \
+-		      : "=r" (__res)\
+-		      : "r" (__g1) \
+-		      : "o0", "cc"); \
+-if (__res < -255 || __res >= 0) \
+-    return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall1(type,name,type1,arg1) \
+-type name(type1 arg1) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-__asm__ __volatile__ ("t 0x10\n\t" \
+-		      "bcc 1f\n\t" \
+-		      "mov %%o0, %0\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "1:\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__g1) \
+-		      : "cc"); \
+-if (__res < -255 || __res >= 0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2) \
+-type name(type1 arg1,type2 arg2) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-__asm__ __volatile__ ("t 0x10\n\t" \
+-		      "bcc 1f\n\t" \
+-		      "mov %%o0, %0\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "1:\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__g1) \
+-		      : "cc"); \
+-if (__res < -255 || __res >= 0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-register long __o2 __asm__ ("o2") = (long)(arg3); \
+-__asm__ __volatile__ ("t 0x10\n\t" \
+-		      "bcc 1f\n\t" \
+-		      "mov %%o0, %0\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "1:\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__g1) \
+-		      : "cc"); \
+-if (__res < -255 || __res>=0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-register long __o2 __asm__ ("o2") = (long)(arg3); \
+-register long __o3 __asm__ ("o3") = (long)(arg4); \
+-__asm__ __volatile__ ("t 0x10\n\t" \
+-		      "bcc 1f\n\t" \
+-		      "mov %%o0, %0\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "1:\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__o3), "r" (__g1) \
+-		      : "cc"); \
+-if (__res < -255 || __res>=0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-} 
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5) \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-register long __o2 __asm__ ("o2") = (long)(arg3); \
+-register long __o3 __asm__ ("o3") = (long)(arg4); \
+-register long __o4 __asm__ ("o4") = (long)(arg5); \
+-__asm__ __volatile__ ("t 0x10\n\t" \
+-		      "bcc 1f\n\t" \
+-		      "mov %%o0, %0\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "1:\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__o3), "r" (__o4), "r" (__g1) \
+-		      : "cc"); \
+-if (__res < -255 || __res>=0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+ #define __ARCH_WANT_STAT64
+diff -puN include/asm-sparc64/unistd.h~remove-kernel-syscalls include/asm-sparc64/unistd.h
+--- a/include/asm-sparc64/unistd.h~remove-kernel-syscalls
++++ a/include/asm-sparc64/unistd.h
+@@ -332,124 +332,6 @@
+  *          find a free slot in the 0-302 range.
+  */
+ 
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-__asm__ __volatile__ ("t 0x6d\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "movcc %%xcc, %%o0, %0\n\t" \
+-		      : "=r" (__res)\
+-		      : "r" (__g1) \
+-		      : "o0", "cc"); \
+-if (__res >= 0) \
+-    return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall1(type,name,type1,arg1) \
+-type name(type1 arg1) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-__asm__ __volatile__ ("t 0x6d\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "movcc %%xcc, %%o0, %0\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__g1) \
+-		      : "cc"); \
+-if (__res >= 0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2) \
+-type name(type1 arg1,type2 arg2) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-__asm__ __volatile__ ("t 0x6d\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "movcc %%xcc, %%o0, %0\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__g1) \
+-		      : "cc"); \
+-if (__res >= 0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-register long __o2 __asm__ ("o2") = (long)(arg3); \
+-__asm__ __volatile__ ("t 0x6d\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "movcc %%xcc, %%o0, %0\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__g1) \
+-		      : "cc"); \
+-if (__res>=0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-register long __o2 __asm__ ("o2") = (long)(arg3); \
+-register long __o3 __asm__ ("o3") = (long)(arg4); \
+-__asm__ __volatile__ ("t 0x6d\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "movcc %%xcc, %%o0, %0\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__o3), "r" (__g1) \
+-		      : "cc"); \
+-if (__res>=0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-} 
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5) \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5) \
+-{ \
+-long __res; \
+-register long __g1 __asm__ ("g1") = __NR_##name; \
+-register long __o0 __asm__ ("o0") = (long)(arg1); \
+-register long __o1 __asm__ ("o1") = (long)(arg2); \
+-register long __o2 __asm__ ("o2") = (long)(arg3); \
+-register long __o3 __asm__ ("o3") = (long)(arg4); \
+-register long __o4 __asm__ ("o4") = (long)(arg5); \
+-__asm__ __volatile__ ("t 0x6d\n\t" \
+-		      "sub %%g0, %%o0, %0\n\t" \
+-		      "movcc %%xcc, %%o0, %0\n\t" \
+-		      : "=r" (__res), "=&r" (__o0) \
+-		      : "1" (__o0), "r" (__o1), "r" (__o2), "r" (__o3), "r" (__o4), "r" (__g1) \
+-		      : "cc"); \
+-if (__res>=0) \
+-	return (type) __res; \
+-errno = -__res; \
+-return -1; \
+-}
+-
+ /* sysconf options, for SunOS compatibility */
+ #define   _SC_ARG_MAX             1
+ #define   _SC_CHILD_MAX           2
+diff -puN include/asm-v850/unistd.h~remove-kernel-syscalls include/asm-v850/unistd.h
+--- a/include/asm-v850/unistd.h~remove-kernel-syscalls
++++ a/include/asm-v850/unistd.h
+@@ -204,168 +204,8 @@
+ #define __NR_gettid		201
+ #define __NR_tkill		202
+ 
+-
+-/* Syscall protocol:
+-   Syscall number in r12, args in r6-r9, r13-r14
+-   Return value in r10
+-   Trap 0 for `short' syscalls, where all the args can fit in function
+-   call argument registers, and trap 1 when there are additional args in
+-   r13-r14.  */
+-
+-#define SYSCALL_NUM	"r12"
+-#define SYSCALL_ARG0	"r6"
+-#define SYSCALL_ARG1	"r7"
+-#define SYSCALL_ARG2	"r8"
+-#define SYSCALL_ARG3	"r9"
+-#define SYSCALL_ARG4	"r13"
+-#define SYSCALL_ARG5	"r14"
+-#define SYSCALL_RET	"r10"
+-
+-#define SYSCALL_SHORT_TRAP	"0"
+-#define SYSCALL_LONG_TRAP	"1"
+-
+-/* Registers clobbered by any syscall.  This _doesn't_ include the syscall
+-   number (r12) or the `extended arg' registers (r13, r14), even though
+-   they are actually clobbered too (this is because gcc's `asm' statement
+-   doesn't allow a clobber to be used as an input or output).  */
+-#define SYSCALL_CLOBBERS	"r1", "r5", "r11", "r15", "r16", \
+-				"r17", "r18", "r19"
+-
+-/* Registers clobbered by a `short' syscall.  This includes all clobbers
+-   except the syscall number (r12).  */
+-#define SYSCALL_SHORT_CLOBBERS	SYSCALL_CLOBBERS, "r13", "r14"
+-
+ #ifdef __KERNEL__
+ 
+-#include <asm/clinkage.h>
+-#include <linux/err.h>
+-
+-#define __syscall_return(type, res)					      \
+-  do {									      \
+-	  /* user-visible error numbers are in the range -1 - -MAX_ERRNO:      \
+-	     see <asm-v850/errno.h> */					      \
+-	  if (__builtin_expect ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO), 0)) { \
+-		  errno = -(res);					      \
+-		  res = -1;						      \
+-	  }								      \
+-	  return (type) (res);						      \
+-  } while (0)
+-
+-
+-#define _syscall0(type, name)						      \
+-type name (void)							      \
+-{									      \
+-  register unsigned long __syscall __asm__ (SYSCALL_NUM) = __NR_##name;	      \
+-  register unsigned long __ret __asm__ (SYSCALL_RET);			      \
+-  __asm__ __volatile__ ("trap " SYSCALL_SHORT_TRAP			      \
+-			: "=r" (__ret), "=r" (__syscall)	 	      \
+-			: "1" (__syscall)				      \
+-			: SYSCALL_SHORT_CLOBBERS);			      \
+-  __syscall_return (type, __ret);					      \
+-}
+-
+-#define _syscall1(type, name, atype, a)					      \
+-type name (atype a)							      \
+-{									      \
+-  register atype __a __asm__ (SYSCALL_ARG0) = a;			      \
+-  register unsigned long __syscall __asm__ (SYSCALL_NUM) = __NR_##name;	      \
+-  register unsigned long __ret __asm__ (SYSCALL_RET);			      \
+-  __asm__ __volatile__ ("trap " SYSCALL_SHORT_TRAP			      \
+-			: "=r" (__ret), "=r" (__syscall)		      \
+-			: "1" (__syscall), "r" (__a)			      \
+-			: SYSCALL_SHORT_CLOBBERS);			      \
+-  __syscall_return (type, __ret);					      \
+-}
+-
+-#define _syscall2(type, name, atype, a, btype, b)			      \
+-type name (atype a, btype b)						      \
+-{									      \
+-  register atype __a __asm__ (SYSCALL_ARG0) = a;			      \
+-  register btype __b __asm__ (SYSCALL_ARG1) = b;			      \
+-  register unsigned long __syscall __asm__ (SYSCALL_NUM) = __NR_##name;	      \
+-  register unsigned long __ret __asm__ (SYSCALL_RET);			      \
+-  __asm__ __volatile__ ("trap " SYSCALL_SHORT_TRAP			      \
+-			: "=r" (__ret), "=r" (__syscall)		      \
+-			: "1" (__syscall), "r" (__a), "r" (__b)		      \
+-			: SYSCALL_SHORT_CLOBBERS);			      \
+-  __syscall_return (type, __ret);					      \
+-}
+-
+-#define _syscall3(type, name, atype, a, btype, b, ctype, c)		      \
+-type name (atype a, btype b, ctype c)					      \
+-{									      \
+-  register atype __a __asm__ (SYSCALL_ARG0) = a;			      \
+-  register btype __b __asm__ (SYSCALL_ARG1) = b;			      \
+-  register ctype __c __asm__ (SYSCALL_ARG2) = c;			      \
+-  register unsigned long __syscall __asm__ (SYSCALL_NUM) = __NR_##name;	      \
+-  register unsigned long __ret __asm__ (SYSCALL_RET);			      \
+-  __asm__ __volatile__ ("trap " SYSCALL_SHORT_TRAP			      \
+-			: "=r" (__ret), "=r" (__syscall)		      \
+-			: "1" (__syscall), "r" (__a), "r" (__b), "r" (__c)    \
+-			: SYSCALL_SHORT_CLOBBERS);			      \
+-  __syscall_return (type, __ret);					      \
+-}
+-
+-#define _syscall4(type, name, atype, a, btype, b, ctype, c, dtype, d)	      \
+-type name (atype a, btype b, ctype c, dtype d)				      \
+-{									      \
+-  register atype __a __asm__ (SYSCALL_ARG0) = a;			      \
+-  register btype __b __asm__ (SYSCALL_ARG1) = b;			      \
+-  register ctype __c __asm__ (SYSCALL_ARG2) = c;			      \
+-  register dtype __d __asm__ (SYSCALL_ARG3) = d;			      \
+-  register unsigned long __syscall __asm__ (SYSCALL_NUM) = __NR_##name;	      \
+-  register unsigned long __ret __asm__ (SYSCALL_RET);			      \
+-  __asm__ __volatile__ ("trap " SYSCALL_SHORT_TRAP			      \
+-			: "=r" (__ret), "=r" (__syscall)		      \
+-			: "1" (__syscall),				      \
+-			"r" (__a), "r" (__b), "r" (__c), "r" (__d)	      \
+-			: SYSCALL_SHORT_CLOBBERS);			      \
+-  __syscall_return (type, __ret);					      \
+-}
+-
+-#define _syscall5(type, name, atype, a, btype, b, ctype, c, dtype, d, etype,e)\
+-type name (atype a, btype b, ctype c, dtype d, etype e)			      \
+-{									      \
+-  register atype __a __asm__ (SYSCALL_ARG0) = a;			      \
+-  register btype __b __asm__ (SYSCALL_ARG1) = b;			      \
+-  register ctype __c __asm__ (SYSCALL_ARG2) = c;			      \
+-  register dtype __d __asm__ (SYSCALL_ARG3) = d;			      \
+-  register etype __e __asm__ (SYSCALL_ARG4) = e;			      \
+-  register unsigned long __syscall __asm__ (SYSCALL_NUM) = __NR_##name;	      \
+-  register unsigned long __ret __asm__ (SYSCALL_RET);			      \
+-  __asm__ __volatile__ ("trap " SYSCALL_LONG_TRAP			      \
+-			: "=r" (__ret), "=r" (__syscall), "=r" (__e)	      \
+-			: "1" (__syscall),				      \
+-			"r" (__a), "r" (__b), "r" (__c), "r" (__d), "2" (__e) \
+-			: SYSCALL_CLOBBERS);				      \
+-  __syscall_return (type, __ret);					      \
+-}
+-
+-#define __SYSCALL6_TRAP(syscall, ret, a, b, c, d, e, f)			      \
+-  __asm__ __volatile__ ("trap " SYSCALL_LONG_TRAP			      \
+-			: "=r" (ret), "=r" (syscall),			      \
+- 			"=r" (e), "=r" (f)				      \
+-			: "1" (syscall),				      \
+-			"r" (a), "r" (b), "r" (c), "r" (d),		      \
+-			"2" (e), "3" (f)				      \
+-			: SYSCALL_CLOBBERS);
+-
+-#define _syscall6(type, name, atype, a, btype, b, ctype, c, dtype, d, etype, e, ftype, f) \
+-type name (atype a, btype b, ctype c, dtype d, etype e, ftype f)	      \
+-{									      \
+-  register atype __a __asm__ (SYSCALL_ARG0) = a;			      \
+-  register btype __b __asm__ (SYSCALL_ARG1) = b;			      \
+-  register ctype __c __asm__ (SYSCALL_ARG2) = c;			      \
+-  register dtype __d __asm__ (SYSCALL_ARG3) = d;			      \
+-  register etype __e __asm__ (SYSCALL_ARG4) = e;			      \
+-  register etype __f __asm__ (SYSCALL_ARG5) = f;			      \
+-  register unsigned long __syscall __asm__ (SYSCALL_NUM) = __NR_##name;	      \
+-  register unsigned long __ret __asm__ (SYSCALL_RET);			      \
+-  __SYSCALL6_TRAP(__syscall, __ret, __a, __b, __c, __d, __e, __f);	      \
+-  __syscall_return (type, __ret);					      \
+-}
+-		
+-
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+ #define __ARCH_WANT_STAT64
+diff -puN include/asm-x86_64/unistd.h~remove-kernel-syscalls include/asm-x86_64/unistd.h
+--- a/include/asm-x86_64/unistd.h~remove-kernel-syscalls
++++ a/include/asm-x86_64/unistd.h
+@@ -622,25 +622,7 @@ __SYSCALL(__NR_move_pages, sys_move_page
+ 
+ #define __NR_syscall_max __NR_move_pages
+ 
+-#ifdef __KERNEL__
+-#include <linux/err.h>
+-#endif
+-
+ #ifndef __NO_STUBS
+-
+-/* user-visible error numbers are in the range -1 - -MAX_ERRNO */
+-
+-#define __syscall_clobber "r11","rcx","memory" 
+-
+-#define __syscall_return(type, res) \
+-do { \
+-	if ((unsigned long)(res) >= (unsigned long)(-MAX_ERRNO)) { \
+-		errno = -(res); \
+-		res = -1; \
+-	} \
+-	return (type) (res); \
+-} while (0)
+-
+ #define __ARCH_WANT_OLD_READDIR
+ #define __ARCH_WANT_OLD_STAT
+ #define __ARCH_WANT_SYS_ALARM
+@@ -664,87 +646,6 @@ do { \
+ #define __ARCH_WANT_SYS_TIME
+ #define __ARCH_WANT_COMPAT_SYS_TIME
+ 
+-#define __syscall "syscall"
+-
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-long __res; \
+-__asm__ volatile (__syscall \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name) : __syscall_clobber ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall1(type,name,type1,arg1) \
+-type name(type1 arg1) \
+-{ \
+-long __res; \
+-__asm__ volatile (__syscall \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"D" ((long)(arg1)) : __syscall_clobber ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall2(type,name,type1,arg1,type2,arg2) \
+-type name(type1 arg1,type2 arg2) \
+-{ \
+-long __res; \
+-__asm__ volatile (__syscall \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"D" ((long)(arg1)),"S" ((long)(arg2)) : __syscall_clobber ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-long __res; \
+-__asm__ volatile (__syscall \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"D" ((long)(arg1)),"S" ((long)(arg2)), \
+-		  "d" ((long)(arg3)) : __syscall_clobber); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name (type1 arg1, type2 arg2, type3 arg3, type4 arg4) \
+-{ \
+-long __res; \
+-__asm__ volatile ("movq %5,%%r10 ;" __syscall \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"D" ((long)(arg1)),"S" ((long)(arg2)), \
+-	  "d" ((long)(arg3)),"g" ((long)(arg4)) : __syscall_clobber,"r10" ); \
+-__syscall_return(type,__res); \
+-} 
+-
+-#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5) \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5) \
+-{ \
+-long __res; \
+-__asm__ volatile ("movq %5,%%r10 ; movq %6,%%r8 ; " __syscall \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"D" ((long)(arg1)),"S" ((long)(arg2)), \
+-	  "d" ((long)(arg3)),"g" ((long)(arg4)),"g" ((long)(arg5)) : \
+-	__syscall_clobber,"r8","r10" ); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall6(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4, \
+-	  type5,arg5,type6,arg6) \
+-type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5,type6 arg6) \
+-{ \
+-long __res; \
+-__asm__ volatile ("movq %5,%%r10 ; movq %6,%%r8 ; movq %7,%%r9 ; " __syscall \
+-	: "=a" (__res) \
+-	: "0" (__NR_##name),"D" ((long)(arg1)),"S" ((long)(arg2)), \
+-	  "d" ((long)(arg3)), "g" ((long)(arg4)), "g" ((long)(arg5)), \
+-	  "g" ((long)(arg6)) : \
+-	__syscall_clobber,"r8","r10","r9" ); \
+-__syscall_return(type,__res); \
+-}
+-
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ 
+diff -puN include/asm-xtensa/unistd.h~remove-kernel-syscalls include/asm-xtensa/unistd.h
+--- a/include/asm-xtensa/unistd.h~remove-kernel-syscalls
++++ a/include/asm-xtensa/unistd.h
+@@ -218,190 +218,6 @@
+ 
+ #define SYSXTENSA_COUNT		   5	/* count of syscall0 functions*/
+ 
+-#ifdef __KERNEL__
+-#include <linux/linkage.h>
+-
+-#define __syscall_return(type, res) return ((type)(res))
+-
+-/* Tensilica's xt-xcc compiler is much more agressive at code
+- * optimization than gcc.  Multiple __asm__ statements are
+- * insufficient for xt-xcc because subsequent optimization passes
+- * (beyond the front-end that knows of __asm__ statements and other
+- * such GNU Extensions to C) can modify the register selection for
+- * containment of C variables.
+- *
+- * xt-xcc cannot modify the contents of a single __asm__ statement, so
+- * we create single-asm versions of the syscall macros that are
+- * suitable and optimal for both xt-xcc and gcc.
+- *
+- * Linux takes system-call arguments in registers.  The following
+- * design is optimized for user-land apps (e.g., glibc) which
+- * typically have a function wrapper around the "syscall" assembly
+- * instruction.  It satisfies the Xtensa ABI while minizing argument
+- * shifting.
+- *
+- * The Xtensa ABI and software conventions require the system-call
+- * number in a2.  If an argument exists in a2, we move it to the next
+- * available register.  Note that for improved efficiency, we do NOT
+- * shift all parameters down one register to maintain the original
+- * order.
+- *
+- * At best case (zero arguments), we just write the syscall number to
+- * a2.  At worst case (1 to 6 arguments), we move the argument in a2
+- * to the next available register, then write the syscall number to
+- * a2.
+- *
+- * For clarity, the following truth table enumerates all possibilities.
+- *
+- * arguments	syscall number	arg0, arg1, arg2, arg3, arg4, arg5
+- * ---------	--------------	----------------------------------
+- *	0	      a2
+- *	1	      a2	a3
+- *	2	      a2	a4,   a3
+- *	3	      a2	a5,   a3,   a4
+- *	4	      a2	a6,   a3,   a4,   a5
+- *	5	      a2	a7,   a3,   a4,   a5,   a6
+- *	6	      a2	a8,   a3,   a4,   a5,   a6,   a7
+- */
+-
+-#define _syscall0(type,name) \
+-type name(void) \
+-{ \
+-long __res; \
+-__asm__ __volatile__ ( \
+-	"  movi  a2, %1 \n" \
+-	"  syscall      \n" \
+-	"  mov   %0, a2 \n" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name) \
+-	: "a2" \
+-	); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall1(type,name,type0,arg0) \
+-type name(type0 arg0) \
+-{ \
+-long __res; \
+-__asm__ __volatile__ ( \
+-	"  mov   a3, %2 \n" \
+-	"  movi  a2, %1 \n" \
+-	"  syscall      \n" \
+-	"  mov   %0, a2 \n" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name), "a" (arg0) \
+-	: "a2", "a3" \
+-	); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall2(type,name,type0,arg0,type1,arg1) \
+-type name(type0 arg0,type1 arg1) \
+-{ \
+-long __res; \
+-__asm__ __volatile__ ( \
+-	"  mov   a4, %2 \n" \
+-	"  mov   a3, %3 \n" \
+-	"  movi  a2, %1 \n" \
+-	"  syscall      \n" \
+-	"  mov   %0, a2 \n" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name), "a" (arg0), "a" (arg1) \
+-	: "a2", "a3", "a4" \
+-	); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall3(type,name,type0,arg0,type1,arg1,type2,arg2) \
+-type name(type0 arg0,type1 arg1,type2 arg2) \
+-{ \
+-long __res; \
+-__asm__ __volatile__ ( \
+-	"  mov   a5, %2 \n" \
+-	"  mov   a4, %4 \n" \
+-	"  mov   a3, %3 \n" \
+-	"  movi  a2, %1 \n" \
+-	"  syscall      \n" \
+-	"  mov   %0, a2 \n" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name), "a" (arg0), "a" (arg1), "a" (arg2) \
+-	: "a2", "a3", "a4", "a5" \
+-	); \
+-__syscall_return(type,__res); \
+-}
+-
+-#define _syscall4(type,name,type0,arg0,type1,arg1,type2,arg2,type3,arg3) \
+-type name(type0 arg0,type1 arg1,type2 arg2,type3 arg3) \
+-{ \
+-long __res; \
+-__asm__ __volatile__ ( \
+-	"  mov   a6, %2 \n" \
+-	"  mov   a5, %5 \n" \
+-	"  mov   a4, %4 \n" \
+-	"  mov   a3, %3 \n" \
+-	"  movi  a2, %1 \n" \
+-	"  syscall      \n" \
+-	"  mov   %0, a2 \n" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name), "a" (arg0), "a" (arg1), "a" (arg2), "a" (arg3) \
+-	: "a2", "a3", "a4", "a5", "a6" \
+-	); \
+-__syscall_return(type,__res); \
+-}
+-
+-/* Note that we save and restore the a7 frame pointer.
+- * Including a7 in the clobber list doesn't do what you'd expect.
+- */
+-#define _syscall5(type,name,type0,arg0,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+-type name(type0 arg0,type1 arg1,type2 arg2,type3 arg3,type4 arg4) \
+-{ \
+-long __res; \
+-__asm__ __volatile__ ( \
+-	"  mov   a9, a7 \n" \
+-	"  mov   a7, %2 \n" \
+-	"  mov   a6, %6 \n" \
+-	"  mov   a5, %5 \n" \
+-	"  mov   a4, %4 \n" \
+-	"  mov   a3, %3 \n" \
+-	"  movi  a2, %1 \n" \
+-	"  syscall      \n" \
+-	"  mov   a7, a9 \n" \
+-	"  mov   %0, a2 \n" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name), "a" (arg0), "a" (arg1), "a" (arg2), \
+-                             "a" (arg3), "a" (arg4) \
+-	: "a2", "a3", "a4", "a5", "a6", "a9" \
+-	); \
+-__syscall_return(type,__res); \
+-}
+-
+-/* Note that we save and restore the a7 frame pointer.
+- * Including a7 in the clobber list doesn't do what you'd expect.
+- */
+-#define _syscall6(type,name,type0,arg0,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5) \
+-type name(type0 arg0,type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5) \
+-{ \
+-long __res; \
+-__asm__ __volatile__ ( \
+-	"  mov   a9, a7 \n" \
+-	"  mov   a8, %2 \n" \
+-	"  mov   a7, %7 \n" \
+-	"  mov   a6, %6 \n" \
+-	"  mov   a5, %5 \n" \
+-	"  mov   a4, %4 \n" \
+-	"  mov   a3, %3 \n" \
+-	"  movi  a2, %1 \n" \
+-	"  syscall      \n" \
+-	"  mov   a7, a9 \n" \
+-	"  mov   %0, a2 \n" \
+-	: "=a" (__res) \
+-	: "i" (__NR_##name), "a" (arg0), "a" (arg1), "a" (arg2), \
+-                             "a" (arg3), "a" (arg4), "a" (arg5)  \
+-	: "a2", "a3", "a4", "a5", "a6", "a8", "a9" \
+-	); \
+-__syscall_return(type,__res); \
+-}
+-
+ /*
+  * "Conditional" syscalls
+  *
 _
 
-Patches currently in -mm which might be from kris@krisk.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 origin.patch
+spidernet-dma-coalescing.patch
+spidernet-rx-locking.patch
+spidernet-refactor-rx-refill.patch
+spidernet-rx-skb-mem-leak.patch
+spidernet-another-skb-mem-leak.patch
+spidernet-cleanup-return-codes.patch
+spidernet-rx-refill.patch
+spidernet-merge-error-branches.patch
+spidernet-remove-unused-variable.patch
+spidernet-rx-chain-tail.patch
+spidernet-turn-rx-irq-back-on.patch
+spidernet-memory-barrier.patch
+spidernet-avoid-possible-rx-chain-corruption.patch
+spidernet-rx-debugging-printout.patch
+spidernet-rework-rx-linked-list.patch
+kvm-expose-msrs-to-userspace.patch
 
