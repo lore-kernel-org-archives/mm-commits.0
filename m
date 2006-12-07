@@ -1,60 +1,49 @@
 From: akpm@osdl.org
-Subject: - make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:06:16 -0800
-Message-ID: <200612072306.kB7N6GBU030238@shell0.pdx.osdl.net>
+Subject: - make-ecryptfs_version_str_map-static.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:06:11 -0800
+Message-ID: <200612072306.kB7N6BP5030226@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52971 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53015 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163975AbWLGXJd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:09:33 -0500
+	id S1163838AbWLGXK1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:10:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make fs/jbd2/transaction.c:__kbd2_journal_temp_unlink_buffer() static
+     make ecryptfs_version_str_map[] static
 has been removed from the -mm tree.  Its filename was
-     make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static.patch
+     make-ecryptfs_version_str_map-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make fs/jbd2/transaction.c:__kbd2_journal_temp_unlink_buffer() static
+Subject: make ecryptfs_version_str_map[] static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/jbd2/transaction.c |    2 ++
- include/linux/jbd2.h  |    1 -
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/ecryptfs/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd2/transaction.c~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static
-+++ a/fs/jbd2/transaction.c
-@@ -27,6 +27,8 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>
+diff -puN fs/ecryptfs/main.c~make-ecryptfs_version_str_map-static fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~make-ecryptfs_version_str_map-static
++++ a/fs/ecryptfs/main.c
+@@ -691,7 +691,7 @@ static ssize_t version_show(struct ecryp
  
-+static void __jbd2_journal_temp_unlink_buffer(struct journal_head *jh);
-+
- /*
-  * jbd2_get_transaction: obtain a new transaction_t object.
-  *
-diff -puN include/linux/jbd2.h~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static include/linux/jbd2.h
---- a/include/linux/jbd2.h~make-fs-jbd2-transactionc__jbd2_journal_temp_unlink_buffer-static
-+++ a/include/linux/jbd2.h
-@@ -848,7 +848,6 @@ struct journal_s
-  */
+ static struct ecryptfs_attribute sysfs_attr_version = __ATTR_RO(version);
  
- /* Filing buffers */
--extern void __jbd2_journal_temp_unlink_buffer(struct journal_head *jh);
- extern void jbd2_journal_unfile_buffer(journal_t *, struct journal_head *);
- extern void __jbd2_journal_unfile_buffer(struct journal_head *);
- extern void __jbd2_journal_refile_buffer(struct journal_head *);
+-struct ecryptfs_version_str_map_elem {
++static struct ecryptfs_version_str_map_elem {
+ 	u32 flag;
+ 	char *str;
+ } ecryptfs_version_str_map[] = {
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
