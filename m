@@ -1,400 +1,202 @@
 From: akpm@osdl.org
-Subject: - kexec--kdump-unify-elf-note-code.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:17:04 -0800
-Message-ID: <200612072317.kB7NH4K4030899@shell0.pdx.osdl.net>
+Subject: - lockdep-register_lock_class-fix.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:17:19 -0800
+Message-ID: <200612072317.kB7NHJtx030914@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53808 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53816 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163860AbWLGXRZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:17:25 -0500
+	id S1163862AbWLGXR1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:17:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magnus@valinux.co.jp, ak@suse.de, benh@kernel.crashing.org, paulus@samba.org, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kexec / Kdump: Unify elf note code
+     lockdep: register_lock_class() fix
 has been removed from the -mm tree.  Its filename was
-     kexec--kdump-unify-elf-note-code.patch
+     lockdep-register_lock_class-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Kexec / Kdump: Unify elf note code
-From: Magnus Damm <magnus@valinux.co.jp>
+Subject: lockdep: register_lock_class() fix
+From: Ingo Molnar <mingo@elte.hu>
 
-The elf note saving code is currently duplicated over several
-architectures.  This cleanup patch simply adds code to a common file and
-then replaces the arch-specific code with calls to the newly added code.
+The hash_lock must only ever be taken with irqs disabled.  This happens in
+all the important places, except one codepath: register_lock_class().  The
+race should trigger rarely because register_lock_class() is quite rare and
+single-threaded (happens during init most of the time).
 
-The only drawback with this approach is that s390 doesn't fully support
-kexec-on-panic which for that arch leads to introduction of unused code.
+The fix is to disable irqs.
 
-Signed-off-by: Magnus Damm <magnus@valinux.co.jp>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+( bug found live in -rt: there preemption is alot more agressive and
+  preempting with the hash-lock held caused a lockup.)
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/crash.c    |   66 --------------------------------
- arch/powerpc/kernel/crash.c |   59 -----------------------------
- arch/x86_64/kernel/crash.c  |   69 ----------------------------------
- include/linux/kexec.h       |    1 
- kernel/kexec.c              |   56 +++++++++++++++++++++++++++
- 5 files changed, 63 insertions(+), 188 deletions(-)
+ kernel/lockdep.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/i386/kernel/crash.c~kexec--kdump-unify-elf-note-code arch/i386/kernel/crash.c
---- a/arch/i386/kernel/crash.c~kexec--kdump-unify-elf-note-code
-+++ a/arch/i386/kernel/crash.c
-@@ -31,68 +31,6 @@
- /* This keeps a track of which one is crashing cpu. */
- static int crashing_cpu;
+diff -puN kernel/lockdep.c~lockdep-register_lock_class-fix kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-register_lock_class-fix
++++ a/kernel/lockdep.c
+@@ -1183,6 +1183,7 @@ register_lock_class(struct lockdep_map *
+ 	struct lockdep_subclass_key *key;
+ 	struct list_head *hash_head;
+ 	struct lock_class *class;
++	unsigned long flags;
  
--static u32 *append_elf_note(u32 *buf, char *name, unsigned type, void *data,
--							       size_t data_len)
--{
--	struct elf_note note;
--
--	note.n_namesz = strlen(name) + 1;
--	note.n_descsz = data_len;
--	note.n_type   = type;
--	memcpy(buf, &note, sizeof(note));
--	buf += (sizeof(note) +3)/4;
--	memcpy(buf, name, note.n_namesz);
--	buf += (note.n_namesz + 3)/4;
--	memcpy(buf, data, note.n_descsz);
--	buf += (note.n_descsz + 3)/4;
--
--	return buf;
--}
--
--static void final_note(u32 *buf)
--{
--	struct elf_note note;
--
--	note.n_namesz = 0;
--	note.n_descsz = 0;
--	note.n_type   = 0;
--	memcpy(buf, &note, sizeof(note));
--}
--
--static void crash_save_this_cpu(struct pt_regs *regs, int cpu)
--{
--	struct elf_prstatus prstatus;
--	u32 *buf;
--
--	if ((cpu < 0) || (cpu >= NR_CPUS))
--		return;
--
--	/* Using ELF notes here is opportunistic.
--	 * I need a well defined structure format
--	 * for the data I pass, and I need tags
--	 * on the data to indicate what information I have
--	 * squirrelled away.  ELF notes happen to provide
--	 * all of that, so there is no need to invent something new.
--	 */
--	buf = (u32*)per_cpu_ptr(crash_notes, cpu);
--	if (!buf)
--		return;
--	memset(&prstatus, 0, sizeof(prstatus));
--	prstatus.pr_pid = current->pid;
--	elf_core_copy_regs(&prstatus.pr_reg, regs);
--	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, &prstatus,
--				sizeof(prstatus));
--	final_note(buf);
--}
--
--static void crash_save_self(struct pt_regs *regs)
--{
--	int cpu;
--
--	cpu = safe_smp_processor_id();
--	crash_save_this_cpu(regs, cpu);
--}
--
- #if defined(CONFIG_SMP) && defined(CONFIG_X86_LOCAL_APIC)
- static atomic_t waiting_for_crash_ipi;
+ 	class = look_up_lock_class(lock, subclass);
+ 	if (likely(class))
+@@ -1204,6 +1205,7 @@ register_lock_class(struct lockdep_map *
+ 	key = lock->key->subkeys + subclass;
+ 	hash_head = classhashentry(key);
  
-@@ -121,7 +59,7 @@ static int crash_nmi_callback(struct not
- 		crash_fixup_ss_esp(&fixed_regs, regs);
- 		regs = &fixed_regs;
- 	}
--	crash_save_this_cpu(regs, cpu);
-+	crash_save_cpu(regs, cpu);
- 	disable_local_APIC();
- 	atomic_dec(&waiting_for_crash_ipi);
- 	/* Assume hlt works */
-@@ -195,5 +133,5 @@ void machine_crash_shutdown(struct pt_re
- #if defined(CONFIG_X86_IO_APIC)
- 	disable_IO_APIC();
- #endif
--	crash_save_self(regs);
-+	crash_save_cpu(regs, safe_smp_processor_id());
- }
-diff -puN arch/powerpc/kernel/crash.c~kexec--kdump-unify-elf-note-code arch/powerpc/kernel/crash.c
---- a/arch/powerpc/kernel/crash.c~kexec--kdump-unify-elf-note-code
-+++ a/arch/powerpc/kernel/crash.c
-@@ -46,61 +46,6 @@ int crashing_cpu = -1;
- static cpumask_t cpus_in_crash = CPU_MASK_NONE;
- cpumask_t cpus_in_sr = CPU_MASK_NONE;
- 
--static u32 *append_elf_note(u32 *buf, char *name, unsigned type, void *data,
--							       size_t data_len)
--{
--	struct elf_note note;
--
--	note.n_namesz = strlen(name) + 1;
--	note.n_descsz = data_len;
--	note.n_type   = type;
--	memcpy(buf, &note, sizeof(note));
--	buf += (sizeof(note) +3)/4;
--	memcpy(buf, name, note.n_namesz);
--	buf += (note.n_namesz + 3)/4;
--	memcpy(buf, data, note.n_descsz);
--	buf += (note.n_descsz + 3)/4;
--
--	return buf;
--}
--
--static void final_note(u32 *buf)
--{
--	struct elf_note note;
--
--	note.n_namesz = 0;
--	note.n_descsz = 0;
--	note.n_type   = 0;
--	memcpy(buf, &note, sizeof(note));
--}
--
--static void crash_save_this_cpu(struct pt_regs *regs, int cpu)
--{
--	struct elf_prstatus prstatus;
--	u32 *buf;
--
--	if ((cpu < 0) || (cpu >= NR_CPUS))
--		return;
--
--	/* Using ELF notes here is opportunistic.
--	 * I need a well defined structure format
--	 * for the data I pass, and I need tags
--	 * on the data to indicate what information I have
--	 * squirrelled away.  ELF notes happen to provide
--	 * all of that that no need to invent something new.
--	 */
--	buf = (u32*)per_cpu_ptr(crash_notes, cpu);
--	if (!buf) 
--		return;
--
--	memset(&prstatus, 0, sizeof(prstatus));
--	prstatus.pr_pid = current->pid;
--	elf_core_copy_regs(&prstatus.pr_reg, regs);
--	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, &prstatus,
--			sizeof(prstatus));
--	final_note(buf);
--}
--
- #ifdef CONFIG_SMP
- static atomic_t enter_on_soft_reset = ATOMIC_INIT(0);
- 
-@@ -113,7 +58,7 @@ void crash_ipi_callback(struct pt_regs *
- 
- 	hard_irq_disable();
- 	if (!cpu_isset(cpu, cpus_in_crash))
--		crash_save_this_cpu(regs, cpu);
-+		crash_save_cpu(regs, cpu);
- 	cpu_set(cpu, cpus_in_crash);
- 
++	raw_local_irq_save(flags);
+ 	__raw_spin_lock(&hash_lock);
  	/*
-@@ -306,7 +251,7 @@ void default_machine_crash_shutdown(stru
- 	 * such that another IPI will not be sent.
+ 	 * We have to do the hash-walk again, to avoid races
+@@ -1218,6 +1220,7 @@ register_lock_class(struct lockdep_map *
  	 */
- 	crashing_cpu = smp_processor_id();
--	crash_save_this_cpu(regs, crashing_cpu);
-+	crash_save_cpu(regs, crashing_cpu);
- 	crash_kexec_prepare_cpus(crashing_cpu);
- 	cpu_set(crashing_cpu, cpus_in_crash);
- 	if (ppc_md.kexec_cpu_down)
-diff -puN arch/x86_64/kernel/crash.c~kexec--kdump-unify-elf-note-code arch/x86_64/kernel/crash.c
---- a/arch/x86_64/kernel/crash.c~kexec--kdump-unify-elf-note-code
-+++ a/arch/x86_64/kernel/crash.c
-@@ -28,71 +28,6 @@
- /* This keeps a track of which one is crashing cpu. */
- static int crashing_cpu;
+ 	if (nr_lock_classes >= MAX_LOCKDEP_KEYS) {
+ 		__raw_spin_unlock(&hash_lock);
++		raw_local_irq_restore(flags);
+ 		debug_locks_off();
+ 		printk("BUG: MAX_LOCKDEP_KEYS too low!\n");
+ 		printk("turning off the locking correctness validator.\n");
+@@ -1240,15 +1243,18 @@ register_lock_class(struct lockdep_map *
  
--static u32 *append_elf_note(u32 *buf, char *name, unsigned type,
--						void *data, size_t data_len)
--{
--	struct elf_note note;
--
--	note.n_namesz = strlen(name) + 1;
--	note.n_descsz = data_len;
--	note.n_type   = type;
--	memcpy(buf, &note, sizeof(note));
--	buf += (sizeof(note) +3)/4;
--	memcpy(buf, name, note.n_namesz);
--	buf += (note.n_namesz + 3)/4;
--	memcpy(buf, data, note.n_descsz);
--	buf += (note.n_descsz + 3)/4;
--
--	return buf;
--}
--
--static void final_note(u32 *buf)
--{
--	struct elf_note note;
--
--	note.n_namesz = 0;
--	note.n_descsz = 0;
--	note.n_type   = 0;
--	memcpy(buf, &note, sizeof(note));
--}
--
--static void crash_save_this_cpu(struct pt_regs *regs, int cpu)
--{
--	struct elf_prstatus prstatus;
--	u32 *buf;
--
--	if ((cpu < 0) || (cpu >= NR_CPUS))
--		return;
--
--	/* Using ELF notes here is opportunistic.
--	 * I need a well defined structure format
--	 * for the data I pass, and I need tags
--	 * on the data to indicate what information I have
--	 * squirrelled away.  ELF notes happen to provide
--	 * all of that, no need to invent something new.
--	 */
--
--	buf = (u32*)per_cpu_ptr(crash_notes, cpu);
--
--	if (!buf)
--		return;
--
--	memset(&prstatus, 0, sizeof(prstatus));
--	prstatus.pr_pid = current->pid;
--	elf_core_copy_regs(&prstatus.pr_reg, regs);
--	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, &prstatus,
--					sizeof(prstatus));
--	final_note(buf);
--}
--
--static void crash_save_self(struct pt_regs *regs)
--{
--	int cpu;
--
--	cpu = smp_processor_id();
--	crash_save_this_cpu(regs, cpu);
--}
--
- #ifdef CONFIG_SMP
- static atomic_t waiting_for_crash_ipi;
- 
-@@ -117,7 +52,7 @@ static int crash_nmi_callback(struct not
- 		return NOTIFY_STOP;
- 	local_irq_disable();
- 
--	crash_save_this_cpu(regs, cpu);
-+	crash_save_cpu(regs, cpu);
- 	disable_local_APIC();
- 	atomic_dec(&waiting_for_crash_ipi);
- 	/* Assume hlt works */
-@@ -196,5 +131,5 @@ void machine_crash_shutdown(struct pt_re
- 
- 	disable_IO_APIC();
- 
--	crash_save_self(regs);
-+	crash_save_cpu(regs, smp_processor_id());
- }
-diff -puN include/linux/kexec.h~kexec--kdump-unify-elf-note-code include/linux/kexec.h
---- a/include/linux/kexec.h~kexec--kdump-unify-elf-note-code
-+++ a/include/linux/kexec.h
-@@ -105,6 +105,7 @@ extern struct page *kimage_alloc_control
- 						unsigned int order);
- extern void crash_kexec(struct pt_regs *);
- int kexec_should_crash(struct task_struct *);
-+void crash_save_cpu(struct pt_regs *regs, int cpu);
- extern struct kimage *kexec_image;
- extern struct kimage *kexec_crash_image;
- 
-diff -puN kernel/kexec.c~kexec--kdump-unify-elf-note-code kernel/kexec.c
---- a/kernel/kexec.c~kexec--kdump-unify-elf-note-code
-+++ a/kernel/kexec.c
-@@ -20,6 +20,8 @@
- #include <linux/syscalls.h>
- #include <linux/ioport.h>
- #include <linux/hardirq.h>
-+#include <linux/elf.h>
-+#include <linux/elfcore.h>
- 
- #include <asm/page.h>
- #include <asm/uaccess.h>
-@@ -1066,6 +1068,60 @@ void crash_kexec(struct pt_regs *regs)
+ 	if (verbose(class)) {
+ 		__raw_spin_unlock(&hash_lock);
++		raw_local_irq_restore(flags);
+ 		printk("\nnew class %p: %s", class->key, class->name);
+ 		if (class->name_version > 1)
+ 			printk("#%d", class->name_version);
+ 		printk("\n");
+ 		dump_stack();
++		raw_local_irq_save(flags);
+ 		__raw_spin_lock(&hash_lock);
  	}
- }
+ out_unlock_set:
+ 	__raw_spin_unlock(&hash_lock);
++	raw_local_irq_restore(flags);
  
-+static u32 *append_elf_note(u32 *buf, char *name, unsigned type, void *data,
-+			    size_t data_len)
-+{
-+	struct elf_note note;
-+
-+	note.n_namesz = strlen(name) + 1;
-+	note.n_descsz = data_len;
-+	note.n_type   = type;
-+	memcpy(buf, &note, sizeof(note));
-+	buf += (sizeof(note) + 3)/4;
-+	memcpy(buf, name, note.n_namesz);
-+	buf += (note.n_namesz + 3)/4;
-+	memcpy(buf, data, note.n_descsz);
-+	buf += (note.n_descsz + 3)/4;
-+
-+	return buf;
-+}
-+
-+static void final_note(u32 *buf)
-+{
-+	struct elf_note note;
-+
-+	note.n_namesz = 0;
-+	note.n_descsz = 0;
-+	note.n_type   = 0;
-+	memcpy(buf, &note, sizeof(note));
-+}
-+
-+void crash_save_cpu(struct pt_regs *regs, int cpu)
-+{
-+	struct elf_prstatus prstatus;
-+	u32 *buf;
-+
-+	if ((cpu < 0) || (cpu >= NR_CPUS))
-+		return;
-+
-+	/* Using ELF notes here is opportunistic.
-+	 * I need a well defined structure format
-+	 * for the data I pass, and I need tags
-+	 * on the data to indicate what information I have
-+	 * squirrelled away.  ELF notes happen to provide
-+	 * all of that, so there is no need to invent something new.
-+	 */
-+	buf = (u32*)per_cpu_ptr(crash_notes, cpu);
-+	if (!buf)
-+		return;
-+	memset(&prstatus, 0, sizeof(prstatus));
-+	prstatus.pr_pid = current->pid;
-+	elf_core_copy_regs(&prstatus.pr_reg, regs);
-+	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, &prstatus,
-+				sizeof(prstatus));
-+	final_note(buf);
-+}
-+
- static int __init crash_notes_memory_init(void)
- {
- 	/* Allocate memory for saving cpu registers. */
+ 	if (!subclass || force)
+ 		lock->class_cache = class;
 _
 
-Patches currently in -mm which might be from magnus@valinux.co.jp are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
+time-re-add-verify_pmtmr_rate.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+remove-the-old-bd_mutex-lockdep-annotation.patch
+new-bd_mutex-lockdep-annotation.patch
+remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+simplify-some-aspects-of-bd_mutex-nesting.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+fix-generic-warn_on-message.patch
+schedc-correct-comment-for-this_rq_lock-routine.patch
+sched-fix-migration-cost-estimator.patch
+sched-domain-move-sched-group-allocations-to-percpu-area.patch
+move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
+sched-domain-increase-the-smt-busy-rebalance-interval.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+sched-improve-migration-accuracy.patch
+sched-improve-migration-accuracy-tidy.patch
+sched-decrease-number-of-load-balances.patch
+sched-remove-lb_stopbalance-counter.patch
+sched-optimize-activate_task-for-rt-task.patch
+kernel-schedc-whitespace-cleanups.patch
+kernel-schedc-whitespace-cleanups-more.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+time-uninline-jiffiesh.patch
+time-uninline-jiffiesh-fix.patch
+time-fix-msecs_to_jiffies-bug.patch
+time-fix-timeout-overflow.patch
+cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-acpi-include-apich.patch
+updated-acpi-keep-track-of-timer-broadcast.patch
+updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+updated-i386-cleanup-apic-code.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-high-res-timers-core.patch
+updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+high-res-timers-utilize-tsc-clocksource-again.patch
+high-res-timers-utilize-tsc-clocksource-again-fix.patch
+updated-dynticks-core-code.patch
+updated-dynticks-core-code-fix-resume-bug.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-dynticks-fix-nmi-watchdog.patch
+updated-high-res-timers-dynticks-enable-i386-support.patch
+updated-debugging-feature-timer-stats.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+round_jiffies-infrastructure.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
+clocksource-small-cleanup-2-fix.patch
+clocksource-small-acpi_pm-cleanup.patch
+kvm-amd-svm-implementation-more-i386-fixes.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
 
