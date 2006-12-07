@@ -1,68 +1,100 @@
 From: akpm@osdl.org
-Subject: - convert-pm_sem-to-a-mutex-fix.patch removed from -mm tree
-Date: Wed, 06 Dec 2006 19:18:19 -0800
-Message-ID: <200612070318.kB73IJuE027051@shell0.pdx.osdl.net>
+Subject: - cciss-set-sector_size-to-2048-for-performance-tidy.patch removed from -mm tree
+Date: Wed, 06 Dec 2006 19:19:07 -0800
+Message-ID: <200612070319.kB73J7W8027065@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41826 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967802AbWLGDSc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 6 Dec 2006 22:18:32 -0500
+	id S967805AbWLGDTS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 6 Dec 2006 22:19:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, shemminger@osdl.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, jens.axboe@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     convert-pm_sem-to-a-mutex-fix
+     cciss-set-sector_size-to-2048-for-performance-tidy
 has been removed from the -mm tree.  Its filename was
-     convert-pm_sem-to-a-mutex-fix.patch
+     cciss-set-sector_size-to-2048-for-performance-tidy.patch
 
-This patch was dropped because it was folded into convert-pm_sem-to-a-mutex.patch
+This patch was dropped because it was folded into cciss-set-sector_size-to-2048-for-performance.patch
 
 ------------------------------------------------------
-Subject: convert-pm_sem-to-a-mutex-fix
+Subject: cciss-set-sector_size-to-2048-for-performance-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-I am not here to fix rudimentary bugs in other people's untested code.
+s/sector_size/max_sectors/
 
-(and a poke in the eye to the people who acked this as well)
-
-Cc: Stephen Hemminger <shemminger@osdl.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/main.c |    2 +-
- kernel/power/user.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/cciss.c |   10 +++++-----
+ drivers/block/cciss.h |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/power/main.c~convert-pm_sem-to-a-mutex-fix kernel/power/main.c
---- a/kernel/power/main.c~convert-pm_sem-to-a-mutex-fix
-+++ a/kernel/power/main.c
-@@ -183,7 +183,7 @@ static int enter_state(suspend_state_t s
+diff -puN drivers/block/cciss.c~cciss-set-sector_size-to-2048-for-performance-tidy drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-set-sector_size-to-2048-for-performance-tidy
++++ a/drivers/block/cciss.c
+@@ -269,7 +269,7 @@ static int cciss_proc_get_info(char *buf
+ 		       "Firmware Version: %c%c%c%c\n"
+ 		       "IRQ: %d\n"
+ 		       "Logical drives: %d\n"
+-		       "Sector size: %d\n"
++		       "Max sectors: %d\n"
+ 		       "Current Q depth: %d\n"
+ 		       "Current # commands on controller: %d\n"
+ 		       "Max Q depth since init: %d\n"
+@@ -281,7 +281,7 @@ static int cciss_proc_get_info(char *buf
+ 		       h->firm_ver[0], h->firm_ver[1], h->firm_ver[2],
+ 		       h->firm_ver[3], (unsigned int)h->intr[SIMPLE_MODE_INT],
+ 		       h->num_luns,
+-		       h->cciss_sector_size,
++		       h->cciss_max_sectors,
+ 		       h->Qdepth, h->commands_outstanding,
+ 		       h->maxQsinceinit, h->max_outstanding, h->maxSG);
  
- 	if (!valid_state(state))
- 		return -ENODEV;
--	if (mutex_trylock(&pm_mutex))
-+	if (!mutex_trylock(&pm_mutex))
- 		return -EBUSY;
+@@ -1398,7 +1398,7 @@ static void cciss_update_drive_info(int 
+ 		/* This is a limit in the driver and could be eliminated. */
+ 		blk_queue_max_phys_segments(disk->queue, MAXSGENTRIES);
  
- 	if (state == PM_SUSPEND_DISK) {
-diff -puN kernel/power/user.c~convert-pm_sem-to-a-mutex-fix kernel/power/user.c
---- a/kernel/power/user.c~convert-pm_sem-to-a-mutex-fix
-+++ a/kernel/power/user.c
-@@ -286,7 +286,7 @@ static int snapshot_ioctl(struct inode *
- 			break;
- 		}
+-		blk_queue_max_sectors(disk->queue, h->cciss_sector_size);
++		blk_queue_max_sectors(disk->queue, h->cciss_max_sectors);
  
--		if (mutex_trylock(&pm_mutex)) {
-+		if (!mutex_trylock(&pm_mutex)) {
- 			error = -EBUSY;
- 			break;
- 		}
+ 		blk_queue_softirq_done(disk->queue, cciss_softirq_done);
+ 
+@@ -3351,7 +3351,7 @@ static int __devinit cciss_init_one(stru
+ 
+ 	cciss_procinit(i);
+ 
+-	hba[i]->cciss_sector_size = 2048;
++	hba[i]->cciss_max_sectors = 2048;
+ 
+ 	hba[i]->busy_initializing = 0;
+ 
+@@ -3377,7 +3377,7 @@ static int __devinit cciss_init_one(stru
+ 		/* This is a limit in the driver and could be eliminated. */
+ 		blk_queue_max_phys_segments(q, MAXSGENTRIES);
+ 
+-		blk_queue_max_sectors(q, hba[i]->cciss_sector_size);
++		blk_queue_max_sectors(q, hba[i]->cciss_max_sectors);
+ 
+ 		blk_queue_softirq_done(q, cciss_softirq_done);
+ 
+diff -puN drivers/block/cciss.h~cciss-set-sector_size-to-2048-for-performance-tidy drivers/block/cciss.h
+--- a/drivers/block/cciss.h~cciss-set-sector_size-to-2048-for-performance-tidy
++++ a/drivers/block/cciss.h
+@@ -77,7 +77,7 @@ struct ctlr_info 
+ 	unsigned int intr[4];
+ 	unsigned int msix_vector;
+ 	unsigned int msi_vector;
+-	int 	cciss_sector_size;
++	int 	cciss_max_sectors;
+ 	BYTE	cciss_read;
+ 	BYTE	cciss_write;
+ 	BYTE	cciss_read_capacity;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -82,7 +114,7 @@ radix-tree-rcu-lockless-readside.patch
 swsusp-add-resume_offset-command-line-parameter-rev-2.patch
 add-include-linux-freezerh-and-move-definitions-from.patch
 convert-pm_sem-to-a-mutex.patch
-convert-pm_sem-to-a-mutex-fix.patch
+cciss-set-sector_size-to-2048-for-performance.patch
 cciss-set-sector_size-to-2048-for-performance-tidy.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
