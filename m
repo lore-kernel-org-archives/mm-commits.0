@@ -1,201 +1,139 @@
 From: akpm@osdl.org
-Subject: - via82cxxx-handle-error-condition-properly.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:02:10 -0800
-Message-ID: <200612072302.kB7N2AqK029829@shell0.pdx.osdl.net>
+Subject: - fuse-add-destroy-operation.patch removed from -mm tree
+Date: Thu, 07 Dec 2006 15:01:47 -0800
+Message-ID: <200612072301.kB7N1lgN029802@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51653 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163785AbWLGXC0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 18:02:26 -0500
+	id S1163778AbWLGXCQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 18:02:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     via82cxxx: handle error condition properly
+     fuse: add DESTROY operation
 has been removed from the -mm tree.  Its filename was
-     via82cxxx-handle-error-condition-properly.patch
+     fuse-add-destroy-operation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: via82cxxx: handle error condition properly
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: fuse: add DESTROY operation
+From: Miklos Szeredi <miklos@szeredi.hu>
 
-Jeff noted that the via driver returned an error to an unsigned int in a
-a case where errors are not permitted. Move the check down earlier so we
-can handle it properly. Not as pretty but it works this way and avoids
-hacking up ugly stuff in the legacy ide core.
+Add a DESTROY operation for block device based filesystems.  With the help of
+this operation, such a filesystem can flush dirty data to the device
+synchronously before the umount returns.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+This is needed in situations where the filesystem is assumed to be clean
+immediately after unmount (e.g.  ejecting removable media).
+
+Signed-off-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/via82cxxx.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ fs/fuse/fuse_i.h     |    6 ++++++
+ fs/fuse/inode.c      |   22 ++++++++++++++++++++++
+ include/linux/fuse.h |    1 +
+ 3 files changed, 29 insertions(+)
 
-diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-handle-error-condition-properly drivers/ide/pci/via82cxxx.c
---- a/drivers/ide/pci/via82cxxx.c~via82cxxx-handle-error-condition-properly
-+++ a/drivers/ide/pci/via82cxxx.c
-@@ -282,11 +282,11 @@ static unsigned int __devinit init_chips
- 	 * Find the ISA bridge to see how good the IDE is.
- 	 */
- 	via_config = via_config_find(&isa);
--	if (!via_config->id) {
--		printk(KERN_WARNING "VP_IDE: Unknown VIA SouthBridge, disabling DMA.\n");
--		pci_dev_put(isa);
--		return -ENODEV;
--	}
-+
-+	/* We checked this earlier so if it fails here deeep badness
-+	   is involved */
-+
-+	BUG_ON(!via_config->id);
+diff -puN fs/fuse/fuse_i.h~fuse-add-destroy-operation fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-destroy-operation
++++ a/fs/fuse/fuse_i.h
+@@ -298,6 +298,9 @@ struct fuse_conn {
+ 	    reply, before any other request, and never cleared */
+ 	unsigned conn_error : 1;
  
- 	/*
- 	 * Setup or disable Clk66 if appropriate
-@@ -494,6 +494,17 @@ static ide_pci_device_t via82cxxx_chipse
++	/** Connection successful.  Only set in INIT */
++	unsigned conn_init : 1;
++
+ 	/** Do readpages asynchronously?  Only set in INIT */
+ 	unsigned async_read : 1;
  
- static int __devinit via_init_one(struct pci_dev *dev, const struct pci_device_id *id)
- {
-+	struct pci_dev *isa = NULL;
-+	struct via_isa_bridge *via_config;
-+	/*
-+	 * Find the ISA bridge and check we know what it is.
-+	 */
-+	via_config = via_config_find(&isa);
-+	pci_dev_put(isa);
-+	if (!via_config->id) {
-+		printk(KERN_WARNING "VP_IDE: Unknown VIA SouthBridge, disabling DMA.\n");
-+		return -ENODEV;
-+	}
- 	return ide_setup_pci_device(dev, &via82cxxx_chipsets[id->driver_data]);
+@@ -368,6 +371,9 @@ struct fuse_conn {
+ 
+ 	/** Key for lock owner ID scrambling */
+ 	u32 scramble_key[4];
++
++	/** Reserved request for the DESTROY message */
++	struct fuse_req *destroy_req;
+ };
+ 
+ static inline struct fuse_conn *get_fuse_conn_super(struct super_block *sb)
+diff -puN fs/fuse/inode.c~fuse-add-destroy-operation fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-add-destroy-operation
++++ a/fs/fuse/inode.c
+@@ -206,10 +206,23 @@ static void fuse_umount_begin(struct vfs
+ 		fuse_abort_conn(get_fuse_conn_super(vfsmnt->mnt_sb));
  }
  
++static void fuse_send_destroy(struct fuse_conn *fc)
++{
++	struct fuse_req *req = fc->destroy_req;
++	if (req && fc->conn_init) {
++		fc->destroy_req = NULL;
++		req->in.h.opcode = FUSE_DESTROY;
++		req->force = 1;
++		request_send(fc, req);
++		fuse_put_request(fc, req);
++	}
++}
++
+ static void fuse_put_super(struct super_block *sb)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn_super(sb);
+ 
++	fuse_send_destroy(fc);
+ 	spin_lock(&fc->lock);
+ 	fc->connected = 0;
+ 	fc->blocked = 0;
+@@ -410,6 +423,8 @@ static struct fuse_conn *new_conn(void)
+ void fuse_conn_put(struct fuse_conn *fc)
+ {
+ 	if (atomic_dec_and_test(&fc->count)) {
++		if (fc->destroy_req)
++			fuse_request_free(fc->destroy_req);
+ 		mutex_destroy(&fc->inst_mutex);
+ 		kfree(fc);
+ 	}
+@@ -466,6 +481,7 @@ static void process_init_reply(struct fu
+ 		fc->bdi.ra_pages = min(fc->bdi.ra_pages, ra_pages);
+ 		fc->minor = arg->minor;
+ 		fc->max_write = arg->minor < 5 ? 4096 : arg->max_write;
++		fc->conn_init = 1;
+ 	}
+ 	fuse_put_request(fc, req);
+ 	fc->blocked = 0;
+@@ -563,6 +579,12 @@ static int fuse_fill_super(struct super_
+ 	if (!init_req)
+ 		goto err_put_root;
+ 
++	if (is_bdev) {
++		fc->destroy_req = fuse_request_alloc();
++		if (!fc->destroy_req)
++			goto err_put_root;
++	}
++
+ 	mutex_lock(&fuse_mutex);
+ 	err = -EINVAL;
+ 	if (file->private_data)
+diff -puN include/linux/fuse.h~fuse-add-destroy-operation include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-add-destroy-operation
++++ a/include/linux/fuse.h
+@@ -133,6 +133,7 @@ enum fuse_opcode {
+ 	FUSE_CREATE        = 35,
+ 	FUSE_INTERRUPT     = 36,
+ 	FUSE_BMAP          = 37,
++	FUSE_DESTROY       = 38,
+ };
+ 
+ /* The read buffer is required to be at least 8k, but may be much larger */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from miklos@szeredi.hu are
 
 origin.patch
-ata-fix-platform_device_register_simple-error-check.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pci-quirks-fix-the-festering-mess-that-claims-to-handle-ide-quirks-ide-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-via-sb600-sata-quirk.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-ide-complete-switch-to-pci_get.patch
-do_task_stat-dont-take-tty_mutex.patch
-mxser-correct-tty-driver-name.patch
-pci-mxser-pci-refcounts.patch
-mxser-make-an-experimental-clone.patch
-char-mxser_new-correct-include-file.patch
-char-mxser_new-upgrade-to-191.patch
-char-mxser_new-rework-to-allow-dynamic-structs.patch
-char-mxser_new-eliminate-tty-ldisc-deref.patch
-char-mxser_new-testbit-for-bit-testing.patch
-char-mxser_new-correct-fail-paths.patch
-char-mxser_new-dont-check-tty_unregister-retval.patch
-char-mxser_new-compress-isa-finding.patch
-char-mxser_new-register-tty-devices-on-the-fly.patch
-char-mxser_new-compact-structures-round2.patch
-char-mxser_new-reverse-if-else-paths-patch.patch
-char-mxser_new-comments-cleanup.patch
-char-mxser_new-correct-intr-handler-proto.patch
-char-mxser_new-delete-ttys-and-termios.patch
-char-mxser_new-pci-probing.patch
-mxser_new-correct-tty-driver-name.patch
-char-stallion-use-pr_debug-macro.patch
-char-stallion-remove-unneeded-casts.patch
-char-stallion-kill-typedefs.patch
-char-stallion-move-init-deinit.patch
-char-stallion-uninline-functions.patch
-char-stallion-mark-functions-as-init.patch
-char-stallion-remove-many-prototypes.patch
-tty-preparatory-structures-for-termios-revamp.patch
-tty-preparatory-structures-for-termios-revamp-strip-fix.patch
-tty-switch-to-ktermios-and-new-framework.patch
-tty-switch-to-ktermios.patch
-tty-switch-to-ktermios-nozomi-fix.patch
-tty-switch-to-ktermios-bluetooth-fix.patch
-tty-switch-to-ktermios-3270-fix.patch
-tty-switch-to-ktermios-uml-fix.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-update.patch
-termios-enable-new-style-termios-ioctls-on-x86-64.patch
-char-isicom-use-completion.patch
-char-isicom-simplify-timer.patch
-char-isicom-remove-cvs-stuff.patch
-char-isicom-fix-tty-index-check.patch
-char-sx-convert-to-pci-probing.patch
-char-sx-use-kcalloc.patch
-char-sx-mark-functions-as-devinit.patch
-char-sx-use-eisa-probing.patch
-char-sx-ifdef-isa-code.patch
-char-sx-lock-boards-struct.patch
-char-sx-remove-duplicite-code.patch
-char-sx-whitespace-cleanup.patch
-char-sx-simplify-timer-logic.patch
-char-sx-fix-return-in-module-init.patch
-char-sx-use-pci_iomap.patch
-char-sx-request-regions.patch
-char-stallion-convert-to-pci-probing.patch
-char-stallion-prints-cleanup.patch
-char-stallion-implement-fail-paths.patch
-char-stallion-correct-__init-macros.patch
-char-stallion-functions-cleanup.patch
-char-stallion-fix-fail-paths.patch
-char-stallion-brd-struct-locking.patch
-char-stallion-remove-syntactic-sugar.patch
-char-stallion-variables-cleanup.patch
-char-stallion-use-dynamic-dev.patch
-char-istallion-convert-to-pci-probing.patch
-char-istallion-remove-the-mess.patch
-char-istallion-eliminate-typedefs.patch
-char-istallion-variables-cleanup.patch
-char-istallion-ifdef-eisa-code.patch
-char-istallion-brdnr-locking.patch
-char-istallion-free-only-isa.patch
-char-istallion-correct-fail-paths.patch
-char-istallion-fix-enabling.patch
-char-istallion-move-init-and-exit-code.patch
-char-istallion-change-init-sequence.patch
-char-istallion-dynamic-tty-device.patch
-char-istallion-use-mod_timer.patch
-char-cyclades-save-indent-levels.patch
-char-cyclades-lindent-the-code.patch
-char-cyclades-cleanup.patch
-char-cyclades-fix-warnings.patch
-ide-hpt3xxn-clocking-fixes.patch
-ide-fix-hpt37x-timing-tables.patch
-ide-optimize-hpt37x-timing-tables.patch
-ide-fix-hpt3xx-hotswap-support.patch
-ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch
-ide-hpt3xx-fix-pci-clock-detection.patch
-ide-hpt3xx-fix-pci-clock-detection-fix-2.patch
-piix-fix-82371mx-enablebits.patch
-piix-remove-check-for-broken-mw-dma-mode-0.patch
-piix-slc90e66-pio-mode-fallback-fix.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-ide-more-conversion-to-pci_get-apis.patch
-pdc202xx_new-fix-pio-mode-setup.patch
-ide-cd-handle-strange-interrupt-on-the-intel-esb2.patch
-sl82c105-straighten-up-ide-control-status-register-caching.patch
-igafb-switch-to-pci_get-api.patch
 
