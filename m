@@ -1,66 +1,111 @@
 From: akpm@osdl.org
-Subject: - pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 08:58:27 -0800
-Message-ID: <200612071658.kB7GwRjk016611@shell0.pdx.osdl.net>
+Subject: + workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch added to -mm tree
+Date: Thu, 07 Dec 2006 11:37:09 -0800
+Message-ID: <200612071937.kB7JbAeK022929@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44030 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59706 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032414AbWLGQ6t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 11:58:49 -0500
+	id S938004AbWLGTix (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 14:38:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, bjorn.helgaas@hp.com, dhowells@redhat.com, ego@in.ibm.com, mingo@elte.hu, vatsa@in.ibm.com
 
 
 The patch titled
-     pata_it8213-add-new-driver-for-the-it8213-card-tidy
-has been removed from the -mm tree.  Its filename was
-     pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
+     workqueue: don't hold workqueue_mutex in flush_scheduled_work
+has been added to the -mm tree.  Its filename is
+     workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
 
-This patch was dropped because it was folded into pata_it8213-add-new-driver-for-the-it8213-card.patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pata_it8213-add-new-driver-for-the-it8213-card-tidy
+Subject: workqueue: don't hold workqueue_mutex in flush_scheduled_work
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+We have a class of deadlocks where the flush_scheduled_work() caller can get
+stuck waiting for a work to complete, where that work wants to take
+workqueue_mutex for some reason.
+
+Fix this by not holding workqueue_mutex when waiting for a workqueue to flush.
+
+The patch assumes that the per-cpu workqueue won't get freed up while there's
+a task waiting on cpu_workqueue_struct.work_done.  If that can happen,
+run_workqueue() would crash anyway.
+
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Gautham shenoy <ego@in.ibm.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/pata_it8213.c |    3 +--
- include/linux/pci_ids.h   |    1 +
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/workqueue.c |   22 +++++++++++++++++++---
+ 1 files changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_it8213.c~pata_it8213-add-new-driver-for-the-it8213-card-tidy drivers/ata/pata_it8213.c
---- a/drivers/ata/pata_it8213.c~pata_it8213-add-new-driver-for-the-it8213-card-tidy
-+++ a/drivers/ata/pata_it8213.c
-@@ -194,7 +194,7 @@ static void it8213_set_dmamode (struct a
- 		unsigned int mwdma	= adev->dma_mode - XFER_MW_DMA_0;
- 		unsigned int control;
- 		u8 slave_data;
--		const unsigned int needed_pio[3] = {
-+		static const unsigned int needed_pio[3] = {
- 			XFER_PIO_0, XFER_PIO_3, XFER_PIO_4
- 		};
- 		int pio = needed_pio[mwdma] - XFER_PIO_0;
-@@ -352,4 +352,3 @@ MODULE_DESCRIPTION("SCSI low-level drive
- MODULE_LICENSE("GPL");
- MODULE_DEVICE_TABLE(pci, it8213_pci_tbl);
- MODULE_VERSION(DRV_VERSION);
--
-diff -puN include/linux/pci_ids.h~pata_it8213-add-new-driver-for-the-it8213-card-tidy include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~pata_it8213-add-new-driver-for-the-it8213-card-tidy
-+++ a/include/linux/pci_ids.h
-@@ -1622,6 +1622,7 @@
- #define PCI_VENDOR_ID_ITE		0x1283
- #define PCI_DEVICE_ID_ITE_8211		0x8211
- #define PCI_DEVICE_ID_ITE_8212		0x8212
-+#define PCI_DEVICE_ID_ITE_8213		0x8213
- #define PCI_DEVICE_ID_ITE_8872		0x8872
- #define PCI_DEVICE_ID_ITE_IT8330G_0	0xe886
+diff -puN kernel/workqueue.c~workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work
++++ a/kernel/workqueue.c
+@@ -325,14 +325,22 @@ static int worker_thread(void *__cwq)
+ 	return 0;
+ }
  
+-static void flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
++/*
++ * If cpu == -1 it's a single-threaded workqueue and the caller does not hold
++ * workqueue_mutex
++ */
++static void flush_cpu_workqueue(struct cpu_workqueue_struct *cwq, int cpu)
+ {
+ 	if (cwq->thread == current) {
+ 		/*
+ 		 * Probably keventd trying to flush its own queue. So simply run
+ 		 * it by hand rather than deadlocking.
+ 		 */
++		if (cpu != -1)
++			mutex_unlock(&workqueue_mutex);
+ 		run_workqueue(cwq);
++		if (cpu != -1)
++			mutex_lock(&workqueue_mutex);
+ 	} else {
+ 		DEFINE_WAIT(wait);
+ 		long sequence_needed;
+@@ -344,7 +352,14 @@ static void flush_cpu_workqueue(struct c
+ 			prepare_to_wait(&cwq->work_done, &wait,
+ 					TASK_UNINTERRUPTIBLE);
+ 			spin_unlock_irq(&cwq->lock);
++			if (cpu != -1)
++				mutex_unlock(&workqueue_mutex);
+ 			schedule();
++			if (cpu != -1) {
++				mutex_lock(&workqueue_mutex);
++				if (!cpu_online(cpu))
++					return; /* oops, CPU unplugged */
++			}
+ 			spin_lock_irq(&cwq->lock);
+ 		}
+ 		finish_wait(&cwq->work_done, &wait);
+@@ -373,13 +388,14 @@ void fastcall flush_workqueue(struct wor
+ 
+ 	if (is_single_threaded(wq)) {
+ 		/* Always use first cpu's area. */
+-		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
++		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu),
++					-1);
+ 	} else {
+ 		int cpu;
+ 
+ 		mutex_lock(&workqueue_mutex);
+ 		for_each_online_cpu(cpu)
+-			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
++			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu), cpu);
+ 		mutex_unlock(&workqueue_mutex);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -149,7 +194,6 @@ pata_cs5530-suspend-resume-support-tweak.patch
 pata_sil680-suspend-resume-tidy.patch
 pata_via-suspend-resume-support-fix.patch
 pata_it8213-add-new-driver-for-the-it8213-card.patch
-pata_it8213-add-new-driver-for-the-it8213-card-tidy.patch
 git-lxdialog-fixup.patch
 git-mmc-fixup.patch
 git-mmc-tifm_sd-warning-fix.patch
@@ -299,4 +343,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 zeromap_pte_range-debug.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
 
