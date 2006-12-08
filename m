@@ -1,63 +1,52 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-befs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:37 -0800
-Message-ID: <200612082002.kB8K2bbL001990@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-block.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:43 -0800
+Message-ID: <200612082002.kB8K2h94001996@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57047 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57055 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426246AbWLHUCm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:42 -0500
+	id S1426249AbWLHUCr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert befs
+     struct path: convert block
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-befs.patch
+     struct-path-convert-block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert befs
+Subject: struct path: convert block
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/befs/linuxvfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ block/ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/befs/linuxvfs.c~struct-path-convert-befs fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~struct-path-convert-befs
-+++ a/fs/befs/linuxvfs.c
-@@ -212,7 +212,7 @@ befs_lookup(struct inode *dir, struct de
- static int
- befs_readdir(struct file *filp, void *dirent, filldir_t filldir)
+diff -puN block/ioctl.c~struct-path-convert-block block/ioctl.c
+--- a/block/ioctl.c~struct-path-convert-block
++++ a/block/ioctl.c
+@@ -290,7 +290,7 @@ int blkdev_ioctl(struct inode *inode, st
+    ENOIOCTLCMD for unknown ioctls. */
+ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
  {
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct super_block *sb = inode->i_sb;
- 	befs_data_stream *ds = &BEFS_I(inode)->i_data.ds;
- 	befs_off_t value;
-@@ -222,7 +222,7 @@ befs_readdir(struct file *filp, void *di
- 	char keybuf[BEFS_NAME_LEN + 1];
- 	char *nlsname;
- 	int nlsnamelen;
--	const char *dirname = filp->f_dentry->d_name.name;
-+	const char *dirname = filp->f_path.dentry->d_name.name;
- 
- 	befs_debug(sb, "---> befs_readdir() "
- 		   "name %s, inode %ld, filp->f_pos %Ld",
+-	struct block_device *bdev = file->f_dentry->d_inode->i_bdev;
++	struct block_device *bdev = file->f_path.dentry->d_inode->i_bdev;
+ 	struct gendisk *disk = bdev->bd_disk;
+ 	int ret = -ENOIOCTLCMD;
+ 	if (disk->fops->compat_ioctl) {
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-befs.patch
-struct-path-convert-bfs.patch
 struct-path-convert-block.patch
 struct-path-convert-block_drivers.patch
 struct-path-convert-char-drivers.patch
