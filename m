@@ -1,92 +1,85 @@
 From: akpm@osdl.org
-Subject: - ext3-4-dont-do-orphan-processing-on-readonly-devices.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:33:08 -0800
-Message-ID: <200612080833.kB88X83F013527__29346.0446097471$1165566818$gmane$org@shell0.pdx.osdl.net>
+Subject: - tty-signal-tty-locking-post-viro-trainwreck-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:43:23 -0800
+Message-ID: <200612080843.kB88hNUw013737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35847 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36455 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425164AbWLHId1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:33:27 -0500
+	id S1425188AbWLHIng (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:43:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, a.p.zijlstra@chello.nl, alan@redhat.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3/4: don't do orphan processing on readonly devices
+     tty-signal-tty-locking-post-viro-trainwreck-fix
 has been removed from the -mm tree.  Its filename was
-     ext3-4-dont-do-orphan-processing-on-readonly-devices.patch
+     tty-signal-tty-locking-post-viro-trainwreck-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into tty-signal-tty-locking.patch
 
 ------------------------------------------------------
-Subject: ext3/4: don't do orphan processing on readonly devices
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: tty-signal-tty-locking-post-viro-trainwreck-fix
+From: Andrew Morton <akpm@osdl.org>
 
-If you do something like:
+WARNING: "tty_devnum" [drivers/net/slip.ko] undefined!                          
 
-# touch foo
-# tail -f foo &
-# rm foo
-# <take snapshot>
-# <mount snapshot>
-
-you'll panic, because ext3/4 tries to do orphan list processing on the
-readonly snapshot device, and:
-
-kernel: journal commit I/O error
-kernel: Assertion failure in journal_flush_Rsmp_e2f189ce() at journal.c:1356: "!journal->j_checkpoint_transactions"
-kernel: Kernel panic: Fatal exception
-
-for a truly readonly underlying device, it's reasonable and necessary
-to just skip orphan list processing.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext3/super.c |    6 ++++++
- fs/ext4/super.c |    6 ++++++
- 2 files changed, 12 insertions(+)
+ drivers/char/tty_io.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ext3/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices
-+++ a/fs/ext3/super.c
-@@ -1270,6 +1270,12 @@ static void ext3_orphan_cleanup (struct 
- 		return;
- 	}
+diff -puN drivers/char/tty_io.c~tty-signal-tty-locking-post-viro-trainwreck-fix drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-signal-tty-locking-post-viro-trainwreck-fix
++++ a/drivers/char/tty_io.c
+@@ -3778,6 +3778,7 @@ dev_t tty_devnum(struct tty_struct *tty)
+ {
+ 	return MKDEV(tty->driver->major, tty->driver->minor_start) + tty->index;
+ }
++EXPORT_SYMBOL(tty_devnum);
  
-+	if (bdev_read_only(sb->s_bdev)) {
-+		printk(KERN_ERR "EXT3-fs: write access "
-+			"unavailable, skipping orphan cleanup.\n");
-+		return;
-+	}
-+
- 	if (EXT3_SB(sb)->s_mount_state & EXT3_ERROR_FS) {
- 		if (es->s_last_orphan)
- 			jbd_debug(1, "Errors on filesystem, "
-diff -puN fs/ext4/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices fs/ext4/super.c
---- a/fs/ext4/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices
-+++ a/fs/ext4/super.c
-@@ -1327,6 +1327,12 @@ static void ext4_orphan_cleanup (struct 
- 		return;
- 	}
- 
-+	if (bdev_read_only(sb->s_bdev)) {
-+		printk(KERN_ERR "EXT4-fs: write access "
-+			"unavailable, skipping orphan cleanup.\n");
-+		return;
-+	}
-+
- 	if (EXT4_SB(sb)->s_mount_state & EXT4_ERROR_FS) {
- 		if (es->s_last_orphan)
- 			jbd_debug(1, "Errors on filesystem, "
+ void proc_clear_tty(struct task_struct *p)
+ {
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-ext3-4-dont-do-orphan-processing-on-readonly-devices.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+tty-signal-tty-locking.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
 
