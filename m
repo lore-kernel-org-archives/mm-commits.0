@@ -1,332 +1,263 @@
 From: akpm@osdl.org
-Subject: - char-stallion-remove-many-prototypes.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:13 -0800
-Message-ID: <200612082008.kB8K8DPm002588@shell0.pdx.osdl.net>
+Subject: - char-isicom-expand-function.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:33 -0800
+Message-ID: <200612082008.kB8K8XMI002614@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58164 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58263 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946078AbWLHUIT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:08:19 -0500
+	id S1946235AbWLHUIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:08:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: stallion, remove many prototypes
+     Char: isicom, expand function
 has been removed from the -mm tree.  Its filename was
-     char-stallion-remove-many-prototypes.patch
+     char-isicom-expand-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: stallion, remove many prototypes
+Subject: Char: isicom, expand function
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Many prototypes are useless, since functions are declared before they are
-called.  Also some code was easy to move to resolve this dependency and delete
-prototypes.
+Simple functions (those, that calls reuest_irq, request_region et al) may be
+expanded directly in code.  It makes probe function more readable and
+transparent.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/stallion.c |  222 +++++++++++++++-----------------------
- 1 file changed, 91 insertions(+), 131 deletions(-)
+ drivers/char/isicom.c |  151 +++++++++++-----------------------------
+ 1 file changed, 44 insertions(+), 107 deletions(-)
 
-diff -puN drivers/char/stallion.c~char-stallion-remove-many-prototypes drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-remove-many-prototypes
-+++ a/drivers/char/stallion.c
-@@ -450,51 +450,11 @@ static unsigned int	stl_baudrates[] = {
-  *	Declare all those functions in this driver!
+diff -puN drivers/char/isicom.c~char-isicom-expand-function drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-expand-function
++++ a/drivers/char/isicom.c
+@@ -1520,37 +1520,6 @@ static void isicom_flush_buffer(struct t
+  * Driver init and deinit functions
   */
  
--static void	stl_argbrds(void);
--static int	stl_parsebrd(struct stlconf *confp, char **argp);
--
--static unsigned long stl_atol(char *str);
--
--static int	stl_open(struct tty_struct *tty, struct file *filp);
--static void	stl_close(struct tty_struct *tty, struct file *filp);
--static int	stl_write(struct tty_struct *tty, const unsigned char *buf, int count);
--static void	stl_putchar(struct tty_struct *tty, unsigned char ch);
--static void	stl_flushchars(struct tty_struct *tty);
--static int	stl_writeroom(struct tty_struct *tty);
--static int	stl_charsinbuffer(struct tty_struct *tty);
--static int	stl_ioctl(struct tty_struct *tty, struct file *file, unsigned int cmd, unsigned long arg);
--static void	stl_settermios(struct tty_struct *tty, struct termios *old);
--static void	stl_throttle(struct tty_struct *tty);
--static void	stl_unthrottle(struct tty_struct *tty);
--static void	stl_stop(struct tty_struct *tty);
--static void	stl_start(struct tty_struct *tty);
--static void	stl_flushbuffer(struct tty_struct *tty);
--static void	stl_breakctl(struct tty_struct *tty, int state);
--static void	stl_waituntilsent(struct tty_struct *tty, int timeout);
--static void	stl_sendxchar(struct tty_struct *tty, char ch);
--static void	stl_hangup(struct tty_struct *tty);
- static int	stl_memioctl(struct inode *ip, struct file *fp, unsigned int cmd, unsigned long arg);
--static int	stl_portinfo(struct stlport *portp, int portnr, char *pos);
--static int	stl_readproc(char *page, char **start, off_t off, int count, int *eof, void *data);
--
- static int	stl_brdinit(struct stlbrd *brdp);
--static int	stl_initports(struct stlbrd *brdp, struct stlpanel *panelp);
--static int	stl_getserial(struct stlport *portp, struct serial_struct __user *sp);
--static int	stl_setserial(struct stlport *portp, struct serial_struct __user *sp);
--static int	stl_getbrdstats(combrd_t __user *bp);
- static int	stl_getportstats(struct stlport *portp, comstats_t __user *cp);
- static int	stl_clrportstats(struct stlport *portp, comstats_t __user *cp);
--static int	stl_getportstruct(struct stlport __user *arg);
--static int	stl_getbrdstruct(struct stlbrd __user *arg);
- static int	stl_waitcarrier(struct stlport *portp, struct file *filp);
--static int	stl_eiointr(struct stlbrd *brdp);
--static int	stl_echatintr(struct stlbrd *brdp);
--static int	stl_echmcaintr(struct stlbrd *brdp);
--static int	stl_echpciintr(struct stlbrd *brdp);
--static int	stl_echpci64intr(struct stlbrd *brdp);
--static void	stl_offintr(struct work_struct *);
--static struct stlbrd *stl_allocbrd(void);
--static struct stlport *stl_getport(int brdnr, int panelnr, int portnr);
- 
- /*
-  *	CD1400 uart specific handling functions.
-@@ -700,31 +660,6 @@ static struct class *stallion_class;
-  *	Check for any arguments passed in on the module load command line.
-  */
- 
--static void __init stl_argbrds(void)
+-static int __devinit isicom_register_ioregion(struct pci_dev *pdev,
+-	const unsigned int index)
 -{
--	struct stlconf	conf;
--	struct stlbrd	*brdp;
--	int		i;
+-	struct isi_board *board = pci_get_drvdata(pdev);
 -
--	pr_debug("stl_argbrds()\n");
+-	if (!board->base)
+-		return -EINVAL;
 -
--	for (i = stl_nrbrds; (i < stl_nargs); i++) {
--		memset(&conf, 0, sizeof(conf));
--		if (stl_parsebrd(&conf, stl_brdsp[i]) == 0)
--			continue;
--		if ((brdp = stl_allocbrd()) == NULL)
--			continue;
--		stl_nrbrds = i + 1;
--		brdp->brdnr = i;
--		brdp->brdtype = conf.brdtype;
--		brdp->ioaddr1 = conf.ioaddr1;
--		brdp->ioaddr2 = conf.ioaddr2;
--		brdp->irq = conf.irq;
--		brdp->irqtype = conf.irqtype;
--		stl_brdinit(brdp);
--	}
+-	if (!request_region(board->base, 16, ISICOM_NAME)) {
+-		dev_dbg(&pdev->dev, "I/O Region 0x%lx-0x%lx is busy. Card%d "
+-			"will be disabled.\n", board->base, board->base + 15,
+-			index + 1);
+-		return -EBUSY;
+- 	}
+-
+-	return 0;
 -}
 -
- /*****************************************************************************/
+-static void isicom_unregister_ioregion(struct pci_dev *pdev)
+-{
+-	struct isi_board *board = pci_get_drvdata(pdev);
+-
+-	if (!board->base)
+-		return;
+-
+-	release_region(board->base, 16);
+-	dev_dbg(&pdev->dev, "I/O Region 0x%lx-0x%lx released.\n",
+-		board->base, board->base + 15);
+-	board->base = 0;
+-}
+-
+ static const struct tty_operations isicom_ops = {
+ 	.open			= isicom_open,
+ 	.close			= isicom_close,
+@@ -1571,70 +1540,6 @@ static const struct tty_operations isico
+ 	.tiocmset		= isicom_tiocmset,
+ };
  
- /*
-@@ -826,6 +761,31 @@ static struct stlbrd *stl_allocbrd(void)
- 	return brdp;
+-static int __devinit isicom_register_tty_driver(void)
+-{
+-	int error = -ENOMEM;
+-
+-	/* tty driver structure initialization */
+-	isicom_normal = alloc_tty_driver(PORT_COUNT);
+-	if (!isicom_normal)
+-		goto end;
+-
+-	isicom_normal->owner			= THIS_MODULE;
+-	isicom_normal->name 			= "ttyM";
+-	isicom_normal->major			= ISICOM_NMAJOR;
+-	isicom_normal->minor_start		= 0;
+-	isicom_normal->type			= TTY_DRIVER_TYPE_SERIAL;
+-	isicom_normal->subtype			= SERIAL_TYPE_NORMAL;
+-	isicom_normal->init_termios		= tty_std_termios;
+-	isicom_normal->init_termios.c_cflag	= B9600 | CS8 | CREAD | HUPCL |
+-		CLOCAL;
+-	isicom_normal->flags			= TTY_DRIVER_REAL_RAW;
+-	tty_set_operations(isicom_normal, &isicom_ops);
+-
+-	if ((error = tty_register_driver(isicom_normal))) {
+-		pr_dbg("Couldn't register the dialin driver, error=%d\n",
+-			error);
+-		put_tty_driver(isicom_normal);
+-	}
+-end:
+-	return error;
+-}
+-
+-static void isicom_unregister_tty_driver(void)
+-{
+-	int error;
+-
+-	if ((error = tty_unregister_driver(isicom_normal)))
+-		pr_dbg("couldn't unregister normal driver, error=%d.\n", error);
+-
+-	put_tty_driver(isicom_normal);
+-}
+-
+-static int __devinit isicom_register_isr(struct pci_dev *pdev,
+-	const unsigned int index)
+-{
+-	struct isi_board *board = pci_get_drvdata(pdev);
+-	unsigned long irqflags = IRQF_DISABLED;
+-	int retval = -EINVAL;
+-
+-	if (!board->base)
+-		goto end;
+-
+-	if (board->isa == NO)
+-		irqflags |= IRQF_SHARED;
+-
+-	retval = request_irq(board->irq, isicom_interrupt, irqflags,
+-		ISICOM_NAME, board);
+-	if (retval < 0)
+-		dev_warn(&pdev->dev, "Could not install handler at Irq %d. "
+-			"Card%d will be disabled.\n", board->irq, index + 1);
+- 	else
+-		retval = 0;
+-end:
+-	return retval;
+-}
+-
+ static int __devinit reset_card(struct pci_dev *pdev,
+ 	const unsigned int card, unsigned int *signature)
+ {
+@@ -1913,13 +1818,21 @@ static int __devinit isicom_probe(struct
+ 
+ 	pci_set_drvdata(pdev, board);
+ 
+-	retval = isicom_register_ioregion(pdev, index);
+-	if (retval < 0)
++	if (!request_region(board->base, 16, ISICOM_NAME)) {
++		dev_err(&pdev->dev, "I/O Region 0x%lx-0x%lx is busy. Card%d "
++			"will be disabled.\n", board->base, board->base + 15,
++			index + 1);
++		retval = -EBUSY;
+ 		goto err;
++ 	}
+ 
+-	retval = isicom_register_isr(pdev, index);
+-	if (retval < 0)
++	retval = request_irq(board->irq, isicom_interrupt,
++			IRQF_SHARED | IRQF_DISABLED, ISICOM_NAME, board);
++	if (retval < 0) {
++		dev_err(&pdev->dev, "Could not install handler at Irq %d. "
++			"Card%d will be disabled.\n", board->irq, index + 1);
+ 		goto errunrr;
++	}
+ 
+ 	retval = reset_card(pdev, index, &signature);
+ 	if (retval < 0)
+@@ -1934,7 +1847,7 @@ static int __devinit isicom_probe(struct
+ errunri:
+ 	free_irq(board->irq, board);
+ errunrr:
+-	isicom_unregister_ioregion(pdev);
++	release_region(board->base, 16);
+ err:
+ 	board->base = 0;
+ 	return retval;
+@@ -1945,7 +1858,7 @@ static void __devexit isicom_remove(stru
+ 	struct isi_board *board = pci_get_drvdata(pdev);
+ 
+ 	free_irq(board->irq, board);
+-	isicom_unregister_ioregion(pdev);
++	release_region(board->base, 16);
  }
  
-+static void __init stl_argbrds(void)
-+{
-+	struct stlconf	conf;
-+	struct stlbrd	*brdp;
-+	int		i;
-+
-+	pr_debug("stl_argbrds()\n");
-+
-+	for (i = stl_nrbrds; (i < stl_nargs); i++) {
-+		memset(&conf, 0, sizeof(conf));
-+		if (stl_parsebrd(&conf, stl_brdsp[i]) == 0)
-+			continue;
-+		if ((brdp = stl_allocbrd()) == NULL)
-+			continue;
-+		stl_nrbrds = i + 1;
-+		brdp->brdnr = i;
-+		brdp->brdtype = conf.brdtype;
-+		brdp->ioaddr1 = conf.ioaddr1;
-+		brdp->ioaddr2 = conf.ioaddr2;
-+		brdp->irq = conf.irq;
-+		brdp->irqtype = conf.irqtype;
-+		stl_brdinit(brdp);
+ static int __devinit isicom_setup(void)
+@@ -1991,14 +1904,35 @@ static int __devinit isicom_setup(void)
+ 				"Disabling Card%d...\n", irq[idx], idx + 1);
+ 	}
+ 
+-	retval = isicom_register_tty_driver();
+-	if (retval < 0)
++	/* tty driver structure initialization */
++	isicom_normal = alloc_tty_driver(PORT_COUNT);
++	if (!isicom_normal) {
++		retval = -ENOMEM;
+ 		goto error;
 +	}
-+}
 +
- /*****************************************************************************/
- 
- static int stl_open(struct tty_struct *tty, struct file *filp)
-@@ -972,6 +932,52 @@ static int stl_waitcarrier(struct stlpor
- 
- /*****************************************************************************/
- 
-+static void stl_flushbuffer(struct tty_struct *tty)
-+{
-+	struct stlport	*portp;
++	isicom_normal->owner			= THIS_MODULE;
++	isicom_normal->name 			= "ttyM";
++	isicom_normal->major			= ISICOM_NMAJOR;
++	isicom_normal->minor_start		= 0;
++	isicom_normal->type			= TTY_DRIVER_TYPE_SERIAL;
++	isicom_normal->subtype			= SERIAL_TYPE_NORMAL;
++	isicom_normal->init_termios		= tty_std_termios;
++	isicom_normal->init_termios.c_cflag	= B9600 | CS8 | CREAD | HUPCL |
++		CLOCAL;
++	isicom_normal->flags			= TTY_DRIVER_REAL_RAW;
++	tty_set_operations(isicom_normal, &isicom_ops);
 +
-+	pr_debug("stl_flushbuffer(tty=%p)\n", tty);
-+
-+	if (tty == NULL)
-+		return;
-+	portp = tty->driver_data;
-+	if (portp == NULL)
-+		return;
-+
-+	stl_flush(portp);
-+	tty_wakeup(tty);
-+}
-+
-+/*****************************************************************************/
-+
-+static void stl_waituntilsent(struct tty_struct *tty, int timeout)
-+{
-+	struct stlport	*portp;
-+	unsigned long	tend;
-+
-+	pr_debug("stl_waituntilsent(tty=%p,timeout=%d)\n", tty, timeout);
-+
-+	if (tty == NULL)
-+		return;
-+	portp = tty->driver_data;
-+	if (portp == NULL)
-+		return;
-+
-+	if (timeout == 0)
-+		timeout = HZ;
-+	tend = jiffies + timeout;
-+
-+	while (stl_datastate(portp)) {
-+		if (signal_pending(current))
-+			break;
-+		msleep_interruptible(20);
-+		if (time_after_eq(jiffies, tend))
-+			break;
++	retval = tty_register_driver(isicom_normal);
++	if (retval) {
++		pr_dbg("Couldn't register the dialin driver\n");
++		goto err_puttty;
 +	}
-+}
-+
-+/*****************************************************************************/
-+
- static void stl_close(struct tty_struct *tty, struct file *filp)
- {
- 	struct stlport	*portp;
-@@ -1401,6 +1407,26 @@ static int stl_ioctl(struct tty_struct *
  
- /*****************************************************************************/
+ 	retval = pci_register_driver(&isicom_driver);
+ 	if (retval < 0) {
+ 		printk(KERN_ERR "ISICOM: Unable to register pci driver.\n");
+-		goto errtty;
++		goto err_unrtty;
+ 	}
  
-+/*
-+ *	Start the transmitter again. Just turn TX interrupts back on.
-+ */
-+
-+static void stl_start(struct tty_struct *tty)
-+{
-+	struct stlport	*portp;
-+
-+	pr_debug("stl_start(tty=%p)\n", tty);
-+
-+	if (tty == NULL)
-+		return;
-+	portp = tty->driver_data;
-+	if (portp == NULL)
-+		return;
-+	stl_startrxtx(portp, -1, 1);
-+}
-+
-+/*****************************************************************************/
-+
- static void stl_settermios(struct tty_struct *tty, struct termios *old)
- {
- 	struct stlport	*portp;
-@@ -1495,26 +1521,6 @@ static void stl_stop(struct tty_struct *
- /*****************************************************************************/
+ 	init_timer(&tx);
+@@ -2009,8 +1943,10 @@ static int __devinit isicom_setup(void)
+ 	add_timer(&tx);
  
- /*
-- *	Start the transmitter again. Just turn TX interrupts back on.
-- */
--
--static void stl_start(struct tty_struct *tty)
--{
--	struct stlport	*portp;
--
--	pr_debug("stl_start(tty=%p)\n", tty);
--
--	if (tty == NULL)
--		return;
--	portp = tty->driver_data;
--	if (portp == NULL)
--		return;
--	stl_startrxtx(portp, -1, 1);
--}
--
--/*****************************************************************************/
--
--/*
-  *	Hangup this port. This is pretty much like closing the port, only
-  *	a little more brutal. No waiting for data to drain. Shutdown the
-  *	port and maybe drop signals.
-@@ -1554,24 +1560,6 @@ static void stl_hangup(struct tty_struct
+ 	return 0;
+-errtty:
+-	isicom_unregister_tty_driver();
++err_unrtty:
++	tty_unregister_driver(isicom_normal);
++err_puttty:
++	put_tty_driver(isicom_normal);
+ error:
+ 	return retval;
+ }
+@@ -2025,7 +1961,8 @@ static void __exit isicom_exit(void)
+ 		msleep(10);
  
- /*****************************************************************************/
+ 	pci_unregister_driver(&isicom_driver);
+-	isicom_unregister_tty_driver();
++	tty_unregister_driver(isicom_normal);
++	put_tty_driver(isicom_normal);
+ }
  
--static void stl_flushbuffer(struct tty_struct *tty)
--{
--	struct stlport	*portp;
--
--	pr_debug("stl_flushbuffer(tty=%p)\n", tty);
--
--	if (tty == NULL)
--		return;
--	portp = tty->driver_data;
--	if (portp == NULL)
--		return;
--
--	stl_flush(portp);
--	tty_wakeup(tty);
--}
--
--/*****************************************************************************/
--
- static void stl_breakctl(struct tty_struct *tty, int state)
- {
- 	struct stlport	*portp;
-@@ -1589,34 +1577,6 @@ static void stl_breakctl(struct tty_stru
- 
- /*****************************************************************************/
- 
--static void stl_waituntilsent(struct tty_struct *tty, int timeout)
--{
--	struct stlport	*portp;
--	unsigned long	tend;
--
--	pr_debug("stl_waituntilsent(tty=%p,timeout=%d)\n", tty, timeout);
--
--	if (tty == NULL)
--		return;
--	portp = tty->driver_data;
--	if (portp == NULL)
--		return;
--
--	if (timeout == 0)
--		timeout = HZ;
--	tend = jiffies + timeout;
--
--	while (stl_datastate(portp)) {
--		if (signal_pending(current))
--			break;
--		msleep_interruptible(20);
--		if (time_after_eq(jiffies, tend))
--			break;
--	}
--}
--
--/*****************************************************************************/
--
- static void stl_sendxchar(struct tty_struct *tty, char ch)
- {
- 	struct stlport	*portp;
+ module_init(isicom_setup);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-stallion-remove-many-prototypes.patch
 char-isicom-expand-function.patch
 char-isicom-rename-init-function.patch
 char-isicom-remove-isa-code.patch
