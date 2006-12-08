@@ -1,113 +1,96 @@
 From: akpm@osdl.org
-Subject: - nfsd-replace-kmallocmemset-with-kcalloc.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:11:06 -0800
-Message-ID: <200612082011.kB8KB6YN002876@shell0.pdx.osdl.net>
+Subject: - lockdep-annotate-nfsd4-recover-code.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:10:58 -0800
+Message-ID: <200612082010.kB8KAwsp002867@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59001 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58985 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946551AbWLHULL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:11:11 -0500
+	id S1946552AbWLHULH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:11:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: burman.yan@gmail.com, neilb@cse.unsw.edu.au, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd: replace kmalloc+memset with kcalloc + simplify NULL check
+     lockdep: annotate nfsd4 recover code
 has been removed from the -mm tree.  Its filename was
-     nfsd-replace-kmallocmemset-with-kcalloc.patch
+     lockdep-annotate-nfsd4-recover-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfsd: replace kmalloc+memset with kcalloc + simplify NULL check
-From: Yan Burman <burman.yan@gmail.com>
+Subject: lockdep: annotate nfsd4 recover code
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Replace kmalloc+memset with kcalloc and simplify
+> =============================================
+> [ INFO: possible recursive locking detected ]
+> 2.6.18-1.2724.lockdepPAE #1
+> ---------------------------------------------
+> nfsd/6884 is trying to acquire lock:
+>  (&inode->i_mutex){--..}, at: [<c04811e5>] vfs_rmdir+0x73/0xf4
+>
+> but task is already holding lock:
+>  (&inode->i_mutex){--..}, at: [<f8dfa621>]
+> nfsd4_clear_clid_dir+0x1f/0x3d [nfsd]
+>
+> other info that might help us debug this:
+> 3 locks held by nfsd/6884:
+>  #0:  (hash_sem){----}, at: [<f8de05eb>] nfsd+0x181/0x2ea [nfsd]
+>  #1:  (client_mutex){--..}, at: [<f8df6d19>]
+> nfsd4_setclientid_confirm+0x3b/0x2cf [nfsd]
+>  #2:  (&inode->i_mutex){--..}, at: [<f8dfa621>]
+> nfsd4_clear_clid_dir+0x1f/0x3d [nfsd]
+>
+> stack backtrace:
+>  [<c040524d>] dump_trace+0x69/0x1af
+>  [<c04053ab>] show_trace_log_lvl+0x18/0x2c
+>  [<c040595f>] show_trace+0xf/0x11
+>  [<c0405a53>] dump_stack+0x15/0x17
+>  [<c043ca7a>] __lock_acquire+0x110/0x9b6
+>  [<c043d91e>] lock_acquire+0x5c/0x7a
+>  [<c061a41b>] __mutex_lock_slowpath+0xde/0x234
+>  [<c04811e5>] vfs_rmdir+0x73/0xf4
+>  [<f8dfa62b>] nfsd4_clear_clid_dir+0x29/0x3d [nfsd]
+>  [<f8dfa733>] nfsd4_remove_clid_dir+0xb8/0xf8 [nfsd]
+>  [<f8df6e90>] nfsd4_setclientid_confirm+0x1b2/0x2cf [nfsd]
+>  [<f8def19a>] nfsd4_proc_compound+0x137a/0x166c [nfsd]
+>  [<f8de00d5>] nfsd_dispatch+0xc5/0x180 [nfsd]
+>  [<f8d09d83>] svc_process+0x3bd/0x631 [sunrpc]
+>  [<f8de0604>] nfsd+0x19a/0x2ea [nfsd]
+>  [<c0404e27>] kernel_thread_helper+0x7/0x10
+> DWARF2 unwinder stuck at kernel_thread_helper+0x7/0x10
+> Leftover inexact backtrace:
+>  =======================
 
-Signed-off-by: Yan Burman <burman.yan@gmail.com>
-Cc: Neil Brown <neilb@cse.unsw.edu.au>
+Some nesting annotation to the nfsd4 recovery code.
+The vfs operations called will take dentry->d_inode->i_mutex.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/nfscache.c |    3 +--
- fs/nfsd/vfs.c      |   35 +++++++++++++++++------------------
- 2 files changed, 18 insertions(+), 20 deletions(-)
+ fs/nfsd/nfs4recover.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfsd/nfscache.c~nfsd-replace-kmallocmemset-with-kcalloc fs/nfsd/nfscache.c
---- a/fs/nfsd/nfscache.c~nfsd-replace-kmallocmemset-with-kcalloc
-+++ a/fs/nfsd/nfscache.c
-@@ -66,14 +66,13 @@ nfsd_cache_init(void)
- 		printk (KERN_ERR "nfsd: cannot allocate all %d cache entries, only got %d\n",
- 			CACHESIZE, CACHESIZE-i);
- 
--	hash_list = kmalloc (HASHSIZE * sizeof(struct hlist_head), GFP_KERNEL);
-+	hash_list = kcalloc (HASHSIZE, sizeof(struct hlist_head), GFP_KERNEL);
- 	if (!hash_list) {
- 		nfsd_cache_shutdown();
- 		printk (KERN_ERR "nfsd: cannot allocate %Zd bytes for hash list\n",
- 			HASHSIZE * sizeof(struct hlist_head));
- 		return;
+diff -puN fs/nfsd/nfs4recover.c~lockdep-annotate-nfsd4-recover-code fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~lockdep-annotate-nfsd4-recover-code
++++ a/fs/nfsd/nfs4recover.c
+@@ -259,7 +259,7 @@ nfsd4_remove_clid_file(struct dentry *di
+ 		printk("nfsd4: non-file found in client recovery directory\n");
+ 		return -EINVAL;
  	}
--	memset(hash_list, 0, HASHSIZE * sizeof(struct hlist_head));
- 
- 	cache_disabled = 0;
- }
-diff -puN fs/nfsd/vfs.c~nfsd-replace-kmallocmemset-with-kcalloc fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~nfsd-replace-kmallocmemset-with-kcalloc
-+++ a/fs/nfsd/vfs.c
-@@ -1885,28 +1885,27 @@ nfsd_racache_init(int cache_size)
- 		return 0;
- 	if (cache_size < 2*RAPARM_HASH_SIZE)
- 		cache_size = 2*RAPARM_HASH_SIZE;
--	raparml = kmalloc(sizeof(struct raparms) * cache_size, GFP_KERNEL);
-+	raparml = kcalloc(cache_size, sizeof(struct raparms), GFP_KERNEL);
- 
--	if (raparml != NULL) {
--		dprintk("nfsd: allocating %d readahead buffers.\n",
--			cache_size);
--		for (i = 0 ; i < RAPARM_HASH_SIZE ; i++) {
--			raparm_hash[i].pb_head = NULL;
--			spin_lock_init(&raparm_hash[i].pb_lock);
--		}
--		nperbucket = cache_size >> RAPARM_HASH_BITS;
--		memset(raparml, 0, sizeof(struct raparms) * cache_size);
--		for (i = 0; i < cache_size - 1; i++) {
--			if (i % nperbucket == 0)
--				raparm_hash[j++].pb_head = raparml + i;
--			if (i % nperbucket < nperbucket-1)
--				raparml[i].p_next = raparml + i + 1;
--		}
--	} else {
-+	if (!raparml) {
- 		printk(KERN_WARNING
--		       "nfsd: Could not allocate memory read-ahead cache.\n");
-+			"nfsd: Could not allocate memory read-ahead cache.\n");
- 		return -ENOMEM;
- 	}
-+
-+	dprintk("nfsd: allocating %d readahead buffers.\n", cache_size);
-+	for (i = 0 ; i < RAPARM_HASH_SIZE ; i++) {
-+		raparm_hash[i].pb_head = NULL;
-+		spin_lock_init(&raparm_hash[i].pb_lock);
-+	}
-+	nperbucket = cache_size >> RAPARM_HASH_BITS;
-+	for (i = 0; i < cache_size - 1; i++) {
-+		if (i % nperbucket == 0)
-+			raparm_hash[j++].pb_head = raparml + i;
-+		if (i % nperbucket < nperbucket-1)
-+			raparml[i].p_next = raparml + i + 1;
-+	}
-+
- 	nfsdstats.ra_size = cache_size;
- 	return 0;
- }
+-	mutex_lock(&dir->d_inode->i_mutex);
++	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
+ 	status = vfs_unlink(dir->d_inode, dentry);
+ 	mutex_unlock(&dir->d_inode->i_mutex);
+ 	return status;
 _
 
-Patches currently in -mm which might be from burman.yan@gmail.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-nfsd-replace-kmallocmemset-with-kcalloc.patch
-jffs2-replace-kmallocmemset-with-kzalloc.patch
+lockdep-annotate-nfsd4-recover-code.patch
 
