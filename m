@@ -1,163 +1,69 @@
 From: akpm@osdl.org
-Subject: - git-ieee1394-fixup.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:29:55 -0800
-Message-ID: <200612080829.kB88TtnE013417@shell0.pdx.osdl.net>
+Subject: - git-input-fixup.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:30:05 -0800
+Message-ID: <200612080830.kB88U5pd013454@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35471 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35472 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425174AbWLHIaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1425175AbWLHIaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 8 Dec 2006 03:30:07 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB88U5ID020640
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 00:30:06 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ieee1394-fixup
+     git-input-fixup
 has been removed from the -mm tree.  Its filename was
-     git-ieee1394-fixup.patch
+     git-input-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-ieee1394-fixup
+Subject: git-input-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-Probably wrong..
-
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ieee1394/pcilynx.c |    6 ----
- drivers/ieee1394/sbp2.c    |   46 +++++------------------------------
- drivers/ieee1394/sbp2.h    |    6 ----
- 3 files changed, 8 insertions(+), 50 deletions(-)
+ drivers/usb/input/hid.h |    5 +----
+ include/linux/input.h   |    3 +--
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/ieee1394/sbp2.c~git-ieee1394-fixup drivers/ieee1394/sbp2.c
---- a/drivers/ieee1394/sbp2.c~git-ieee1394-fixup
-+++ a/drivers/ieee1394/sbp2.c
-@@ -458,27 +458,20 @@ static void sbp2util_notify_fetch_agent(
+diff -puN include/linux/input.h~git-input-fixup include/linux/input.h
+--- a/include/linux/input.h~git-input-fixup
++++ a/include/linux/input.h
+@@ -953,8 +953,7 @@ struct input_dev {
+ 	unsigned int repeat_key;
+ 	struct timer_list timer;
  
- static void sbp2util_write_orb_pointer(struct work_struct *work)
- {
--	struct scsi_id_instance_data *scsi_id =
--		container_of(work, struct scsi_id_instance_data,
--			     protocol_work.work);
-+	struct sbp2_lu *scsi_id = container_of(work, struct sbp2_lu,
-+						protocol_work.work);
- 	quadlet_t data[2];
- 
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
- 	data[0] = ORB_SET_NODE_ID(scsi_id->hi->host->node_id);
- 	data[1] = scsi_id->last_orb_dma;
--=======
--	data[0] = ORB_SET_NODE_ID(((struct sbp2_lu *)p)->hi->host->node_id);
--	data[1] = ((struct sbp2_lu *)p)->last_orb_dma;
-->>>>>>> /drivers/ieee1394/sbp2.c
- 	sbp2util_cpu_to_be32_buffer(data, 8);
- 	sbp2util_notify_fetch_agent(scsi_id, SBP2_ORB_POINTER_OFFSET, data, 8);
- }
- 
- static void sbp2util_write_doorbell(struct work_struct *work)
- {
--	struct scsi_id_instance_data *scsi_id =
--		container_of(work, struct scsi_id_instance_data,
--			     protocol_work.work);
-+	struct sbp2_lu *scsi_id = container_of(work, struct sbp2_lu,
-+						protocol_work.work);
- 	sbp2util_notify_fetch_agent(scsi_id, SBP2_DOORBELL_OFFSET, NULL, 4);
- }
- 
-@@ -738,19 +731,6 @@ static struct sbp2_lu *sbp2_alloc_device
- 		goto failed_alloc;
- 	}
- 
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
--	scsi_id->ne = ud->ne;
--	scsi_id->ud = ud;
--	scsi_id->speed_code = IEEE1394_SPEED_100;
--	scsi_id->max_payload_size = sbp2_speedto_max_payload[IEEE1394_SPEED_100];
--	scsi_id->status_fifo_addr = CSR1212_INVALID_ADDR_SPACE;
--	INIT_LIST_HEAD(&scsi_id->sbp2_command_orb_inuse);
--	INIT_LIST_HEAD(&scsi_id->sbp2_command_orb_completed);
--	INIT_LIST_HEAD(&scsi_id->scsi_list);
--	spin_lock_init(&scsi_id->sbp2_command_orb_lock);
--	atomic_set(&scsi_id->state, SBP2LU_STATE_RUNNING);
--	INIT_DELAYED_WORK(&scsi_id->protocol_work, NULL);
--=======
- 	lu->ne = ud->ne;
- 	lu->ud = ud;
- 	lu->speed_code = IEEE1394_SPEED_100;
-@@ -761,8 +741,7 @@ static struct sbp2_lu *sbp2_alloc_device
- 	INIT_LIST_HEAD(&lu->lu_list);
- 	spin_lock_init(&lu->cmd_orb_lock);
- 	atomic_set(&lu->state, SBP2LU_STATE_RUNNING);
--	INIT_WORK(&lu->protocol_work, NULL, NULL);
-->>>>>>> /drivers/ieee1394/sbp2.c
-+	INIT_WORK(&lu->protocol_work.work, NULL);
- 
- 	ud->device.driver_data = lu;
- 
-@@ -1704,22 +1683,11 @@ static void sbp2_link_orb_command(struct
- 		 * the workqueue job will sleep to guaranteedly get a tlabel.
- 		 * We do not accept new commands until the job is over.
- 		 */
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
--		scsi_block_requests(scsi_id->scsi_host);
--		PREPARE_DELAYED_WORK(&scsi_id->protocol_work,
--=======
- 		scsi_block_requests(lu->shost);
--		PREPARE_WORK(&lu->protocol_work,
-->>>>>>> /drivers/ieee1394/sbp2.c
-+		PREPARE_DELAYED_WORK(&lu->protocol_work,
- 			     last_orb ? sbp2util_write_doorbell:
--<<<<<<< HEAD/drivers/ieee1394/sbp2.c
- 					sbp2util_write_orb_pointer);
--		schedule_delayed_work(&scsi_id->protocol_work, 0);
--=======
--					sbp2util_write_orb_pointer,
--			     lu);
--		schedule_work(&lu->protocol_work);
-->>>>>>> /drivers/ieee1394/sbp2.c
-+		schedule_delayed_work(&lu->protocol_work, 0);
- 	}
- }
- 
-diff -puN drivers/ieee1394/sbp2.h~git-ieee1394-fixup drivers/ieee1394/sbp2.h
---- a/drivers/ieee1394/sbp2.h~git-ieee1394-fixup
-+++ a/drivers/ieee1394/sbp2.h
-@@ -326,13 +326,7 @@ struct sbp2_lu {
- 
- 	/* Connection state */
- 	atomic_t state;
--<<<<<<< HEAD/drivers/ieee1394/sbp2.h
- 	struct delayed_work protocol_work;
--=======
+-	int state;
 -
--	/* For deferred requests to the fetch agent */
--	struct work_struct protocol_work;
-->>>>>>> /drivers/ieee1394/sbp2.h
- };
++	int dead;
+ 	int sync;
  
- /* For use in sbp2_lu.state */
-diff -puN drivers/ieee1394/pcilynx.c~git-ieee1394-fixup drivers/ieee1394/pcilynx.c
---- a/drivers/ieee1394/pcilynx.c~git-ieee1394-fixup
-+++ a/drivers/ieee1394/pcilynx.c
-@@ -1428,11 +1428,7 @@ static int __devinit add_card(struct pci
-         	struct i2c_algo_bit_data i2c_adapter_data;
- 
-         	error = -ENOMEM;
--<<<<<<< HEAD/drivers/ieee1394/pcilynx.c
--		i2c_ad = kmalloc(sizeof(*i2c_ad), GFP_KERNEL);
+ 	int abs[ABS_MAX + 1];
+diff -puN drivers/usb/input/hid.h~git-input-fixup drivers/usb/input/hid.h
+--- a/drivers/usb/input/hid.h~git-input-fixup
++++ a/drivers/usb/input/hid.h
+@@ -260,11 +260,8 @@ struct hid_item {
+ #define HID_QUIRK_POWERBOOK_HAS_FN		0x00001000
+ #define HID_QUIRK_POWERBOOK_FN_ON		0x00002000
+ #define HID_QUIRK_INVERT_HWHEEL			0x00004000
+-<<<<<<< HEAD/drivers/usb/input/hid.h
+ #define HID_QUIRK_POWERBOOK_ISO_KEYBOARD	0x00008000
 -=======
--		i2c_ad = kmemdup(&bit_ops, sizeof(*i2c_ad), SLAB_KERNEL);
-->>>>>>> /drivers/ieee1394/pcilynx.c
-+		i2c_ad = kmemdup(&bit_ops, sizeof(*i2c_ad), GFP_KERNEL);
-         	if (!i2c_ad) FAIL("failed to allocate I2C adapter memory");
+-#define HID_QUIRK_BAD_RELATIVE_KEYS		0x00008000
+->>>>>>> /drivers/usb/input/hid.h
++#define HID_QUIRK_BAD_RELATIVE_KEYS		0x00010000
  
-                 i2c_adapter_data = bit_data;
+ /*
+  * This is the global environment of the parser. This information is
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -188,7 +94,6 @@ platform_driver_probe-can-save-codespace-save-codespace.patch
 git-drm.patch
 git-dvb.patch
 git-dvb-fixup.patch
-git-ieee1394-fixup.patch
 git-input-fixup.patch
 git-input-vs-git-alsa.patch
 kbuild-fix-rr-is-now-default.patch
