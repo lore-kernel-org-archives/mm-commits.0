@@ -1,98 +1,92 @@
 From: akpm@osdl.org
-Subject: - netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:31:35 -0800
-Message-ID: <200612080831.kB88VZf1013488@shell0.pdx.osdl.net>
+Subject: - ext3-4-dont-do-orphan-processing-on-readonly-devices.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:33:08 -0800
+Message-ID: <200612080833.kB88X83F013527__29346.0446097471$1165566818$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35847 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425178AbWLHIcA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:32:00 -0500
+	id S1425164AbWLHId1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:33:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nhorman@tuxdriver.com, clalance@redhat.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netpoll: make arp replies through netpoll use mac address of sender
+     ext3/4: don't do orphan processing on readonly devices
 has been removed from the -mm tree.  Its filename was
-     netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender.patch
+     ext3-4-dont-do-orphan-processing-on-readonly-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: netpoll: make arp replies through netpoll use mac address of sender
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: ext3/4: don't do orphan processing on readonly devices
+From: Eric Sandeen <sandeen@redhat.com>
 
-Back in 2.4 arp requests that were recevied by netpoll were processed in
-netconsole_receive_skb, where they were responded to using the src mac of
-the request sender.  In the 2.6 kernel arp_reply is responsible for this
-function, but instead of using the src mac address of the incomming
-request, the stored mac address that was registered for the netconsole
-application is used.  While this is usually ok, it can lead to failures in
-netpoll in some situations (specifically situations where a network may
-have two gateways, as arp requests from one may be responded to using the
-mac address of the other).  This patch reverts the behavior to what we had
-in 2.4, in which all arp requests are sent back using the src address of
-the request sender.
+If you do something like:
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+# touch foo
+# tail -f foo &
+# rm foo
+# <take snapshot>
+# <mount snapshot>
+
+you'll panic, because ext3/4 tries to do orphan list processing on the
+readonly snapshot device, and:
+
+kernel: journal commit I/O error
+kernel: Assertion failure in journal_flush_Rsmp_e2f189ce() at journal.c:1356: "!journal->j_checkpoint_transactions"
+kernel: Kernel panic: Fatal exception
+
+for a truly readonly underlying device, it's reasonable and necessary
+to just skip orphan list processing.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/core/netpoll.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ fs/ext3/super.c |    6 ++++++
+ fs/ext4/super.c |    6 ++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN net/core/netpoll.c~netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender net/core/netpoll.c
---- a/net/core/netpoll.c~netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender
-+++ a/net/core/netpoll.c
-@@ -330,6 +330,7 @@ static void arp_reply(struct sk_buff *sk
- 	unsigned char *arp_ptr;
- 	int size, type = ARPOP_REPLY, ptype = ETH_P_ARP;
- 	__be32 sip, tip;
-+	unsigned char *sha;
- 	struct sk_buff *send_skb;
- 	struct netpoll *np = NULL;
- 
-@@ -356,9 +357,14 @@ static void arp_reply(struct sk_buff *sk
- 	    arp->ar_op != htons(ARPOP_REQUEST))
+diff -puN fs/ext3/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices
++++ a/fs/ext3/super.c
+@@ -1270,6 +1270,12 @@ static void ext3_orphan_cleanup (struct 
  		return;
+ 	}
  
--	arp_ptr = (unsigned char *)(arp+1) + skb->dev->addr_len;
-+	arp_ptr = (unsigned char *)(arp+1);
-+	/* save the location of the src hw addr */
-+	sha = arp_ptr;
-+	arp_ptr += skb->dev->addr_len;
- 	memcpy(&sip, arp_ptr, 4);
--	arp_ptr += 4 + skb->dev->addr_len;
-+	arp_ptr += 4;
-+	/* if we actually cared about dst hw addr, it would get copied here */
-+	arp_ptr += skb->dev->addr_len;
- 	memcpy(&tip, arp_ptr, 4);
- 
- 	/* Should we ignore arp? */
-@@ -381,7 +387,7 @@ static void arp_reply(struct sk_buff *sk
- 
- 	if (np->dev->hard_header &&
- 	    np->dev->hard_header(send_skb, skb->dev, ptype,
--				 np->remote_mac, np->local_mac,
-+				 sha, np->local_mac,
- 				 send_skb->len) < 0) {
- 		kfree_skb(send_skb);
++	if (bdev_read_only(sb->s_bdev)) {
++		printk(KERN_ERR "EXT3-fs: write access "
++			"unavailable, skipping orphan cleanup.\n");
++		return;
++	}
++
+ 	if (EXT3_SB(sb)->s_mount_state & EXT3_ERROR_FS) {
+ 		if (es->s_last_orphan)
+ 			jbd_debug(1, "Errors on filesystem, "
+diff -puN fs/ext4/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices fs/ext4/super.c
+--- a/fs/ext4/super.c~ext3-4-dont-do-orphan-processing-on-readonly-devices
++++ a/fs/ext4/super.c
+@@ -1327,6 +1327,12 @@ static void ext4_orphan_cleanup (struct 
  		return;
-@@ -405,7 +411,7 @@ static void arp_reply(struct sk_buff *sk
- 	arp_ptr += np->dev->addr_len;
- 	memcpy(arp_ptr, &tip, 4);
- 	arp_ptr += 4;
--	memcpy(arp_ptr, np->remote_mac, np->dev->addr_len);
-+	memcpy(arp_ptr, sha, np->dev->addr_len);
- 	arp_ptr += np->dev->addr_len;
- 	memcpy(arp_ptr, &sip, 4);
+ 	}
  
++	if (bdev_read_only(sb->s_bdev)) {
++		printk(KERN_ERR "EXT4-fs: write access "
++			"unavailable, skipping orphan cleanup.\n");
++		return;
++	}
++
+ 	if (EXT4_SB(sb)->s_mount_state & EXT4_ERROR_FS) {
+ 		if (es->s_last_orphan)
+ 			jbd_debug(1, "Errors on filesystem, "
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-git-net.patch
+ext3-4-dont-do-orphan-processing-on-readonly-devices.patch
 
