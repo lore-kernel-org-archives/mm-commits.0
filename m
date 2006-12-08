@@ -1,62 +1,63 @@
 From: akpm@osdl.org
-Subject: - char-isicom-check-kmalloc-retval.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:45 -0800
-Message-ID: <200612082008.kB8K8jYR002636@shell0.pdx.osdl.net>
+Subject: - char-isicom-fix-tty-index-check.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:57 -0800
+Message-ID: <200612082008.kB8K8v4I002650@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58333 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58344 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946371AbWLHUJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:09:00 -0500
+	id S1946295AbWLHUJC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, check kmalloc retval
+     Char: isicom, fix tty index check
 has been removed from the -mm tree.  Its filename was
-     char-isicom-check-kmalloc-retval.patch
+     char-isicom-fix-tty-index-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, check kmalloc retval
+Subject: Char: isicom, fix tty index check
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Value returned from kamlloc may be NULL, we should check if ENOMEM occured.
+Since tty->index is signed and may be < 0, we should assign this to int not
+uint.  There is already a check to ensure if it is not negative, but gcc
+complains with -W flag enabled and it is perfectly correct:
+drivers/char/isicom.c:953: warning: comparison of unsigned expression < 0
+is always false
+
+Fix this issue by converting `line' variable from uint to int.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/char/isicom.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-check-kmalloc-retval drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-check-kmalloc-retval
+diff -puN drivers/char/isicom.c~char-isicom-fix-tty-index-check drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-fix-tty-index-check
 +++ a/drivers/char/isicom.c
-@@ -1709,6 +1709,11 @@ static int __devinit load_firmware(struc
- 		}
+@@ -946,8 +946,8 @@ static int isicom_open(struct tty_struct
+ {
+ 	struct isi_port *port;
+ 	struct isi_board *card;
+-	unsigned int line, board;
+-	int error;
++	unsigned int board;
++	int error, line;
  
- 		data = kmalloc(word_count * 2, GFP_KERNEL);
-+		if (data == NULL) {
-+			dev_err(&pdev->dev, "Card%d, firmware upload "
-+				"failed, not enough memory\n", index + 1);
-+			goto errrelfw;
-+		}
- 		inw(base);
- 		insw(base, data, word_count);
- 		InterruptTheCard(base);
+ 	line = tty->index;
+ 	if (line < 0 || line > PORT_COUNT-1)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-isicom-check-kmalloc-retval.patch
-char-isicom-use-completion.patch
-char-isicom-simplify-timer.patch
-char-isicom-remove-cvs-stuff.patch
 char-isicom-fix-tty-index-check.patch
 char-sx-convert-to-pci-probing.patch
 char-sx-use-kcalloc.patch
