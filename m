@@ -1,64 +1,91 @@
 From: akpm@osdl.org
-Subject: - cpu-hotplug-broken-with-2gb-vmsplit.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:15:33 -0800
-Message-ID: <200612082015.kB8KFXWZ003307@shell0.pdx.osdl.net>
+Subject: - make-drivers-md-dm-snapcksnapd-static.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:15:31 -0800
+Message-ID: <200612082015.kB8KFVsu003303@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60046 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60653 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947086AbWLHUPw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:15:52 -0500
+	id S1947141AbWLHUSw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:18:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, ak@suse.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CPU hotplug broken with 2GB VMSPLIT
+     make drivers/md/dm-snap.c:ksnapd static
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-broken-with-2gb-vmsplit.patch
+     make-drivers-md-dm-snapcksnapd-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CPU hotplug broken with 2GB VMSPLIT
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: make drivers/md/dm-snap.c:ksnapd static
+From: Adrian Bunk <bunk@stusta.de>
 
-In VMSPLIT mode, kernel PGD might have more entries than user space.
-
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/smpboot.c |    2 +-
+ drivers/md/dm-snap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/smpboot.c~cpu-hotplug-broken-with-2gb-vmsplit arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~cpu-hotplug-broken-with-2gb-vmsplit
-+++ a/arch/i386/kernel/smpboot.c
-@@ -1118,7 +1118,7 @@ static int __cpuinit __smp_prepare_cpu(i
+diff -puN drivers/md/dm-snap.c~make-drivers-md-dm-snapcksnapd-static drivers/md/dm-snap.c
+--- a/drivers/md/dm-snap.c~make-drivers-md-dm-snapcksnapd-static
++++ a/drivers/md/dm-snap.c
+@@ -39,7 +39,7 @@
+  */
+ #define SNAPSHOT_PAGES 256
  
- 	/* init low mem mapping */
- 	clone_pgd_range(swapper_pg_dir, swapper_pg_dir + USER_PGD_PTRS,
--			KERNEL_PGD_PTRS);
-+			min_t(unsigned long, KERNEL_PGD_PTRS, USER_PGD_PTRS));
- 	flush_tlb_all();
- 	schedule_work(&info.task);
- 	wait_for_completion(&done);
+-struct workqueue_struct *ksnapd;
++static struct workqueue_struct *ksnapd;
+ static void flush_queued_bios(struct work_struct *work);
+ 
+ struct pending_exception {
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-cpu-hotplug-broken-with-2gb-vmsplit.patch
-git-acpi.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+make-drivers-md-dm-snapcksnapd-static.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+git-alsa.patch
+git-dvb.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
+git-mtd.patch
+remove-mtd-jffs2-userh.patch
+git-net.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+drivers-edac-make-code-static.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+make-ext2_get_blocks-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
+gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch
+updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
+updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slab-cache-shrinker-statistics.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
