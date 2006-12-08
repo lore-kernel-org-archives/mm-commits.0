@@ -1,101 +1,77 @@
 From: akpm@osdl.org
-Subject: - acpi-asus-s3-resume-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:29 -0800
-Message-ID: <200612081104.kB8B4T2k018554@shell0.pdx.osdl.net>
+Subject: - kbuild-write-astest-files-to-kbuild_extmod-directory.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:31 -0800
+Message-ID: <200612081104.kB8B4VTX018562@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48612 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48619 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S938030AbWLHLEf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:04:35 -0500
+	id S938032AbWLHLEj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:04:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luming.yu@intel.com, akpm@osdl.org, len.brown@intel.com, mm-commits@vger.kernel.org
+To: dsd@gentoo.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: asus s3-resume fix
+     kbuild: Write astest files to $(KBUILD_EXTMOD) directory
 has been removed from the -mm tree.  Its filename was
-     acpi-asus-s3-resume-fix.patch
+     kbuild-write-astest-files-to-kbuild_extmod-directory.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: acpi: asus s3-resume fix
-From: "Yu, Luming" <luming.yu@intel.com>
+Subject: kbuild: Write astest files to $(KBUILD_EXTMOD) directory
+From: Daniel Drake <dsd@gentoo.org>
 
-See http://bugzilla.kernel.org/show_bug.cgi?id=6655
+The astest code in 2.6.19 causes problems for Gentoo and other
+distributions building external kernel modules in sandboxes.  kbuild has
+generally been pretty good at not violating the sandbox for quite a while,
+I hope we can keep it that way.
 
-- extern decls never ever ever go in .c files.
+Right now it writes to a temporary astest file in the current directory
+(i.e.  /usr/src/linux), this is because it is found that writing to
+/dev/null is not safe because as deletes its output file on failure.
 
-- The !CONFIG_ACPI stub should be inline
+To clarify what a sandbox is: Gentoo's package system compiles the package
+in /var/tmp/portage and while that package is building it restricts writes
+to parts of the filesystem outside of /var/tmp/portage and /tmp.  If the
+external module tries to write to another location on the real filesystem
+such as /usr/src/linux, the build is aborted due to sandbox violation.
 
-- The !CONFIG_ACPI stub should be in a header file
+This patch prefixes the astest file path with the KBUILD_EXTMOD path if an
+external kernel module is being built.  The behaviour in other situations
+is unmodified.
 
-- The !CONFIG_ACPI stub has an extra (and buggy) semicolon.
-
-- The extra blank line in machine_emergency_restart() is unwelcome.
-
-Cc: "Brown, Len" <len.brown@intel.com>
-DESC
-acpi-asus-s3-resume-fix-fix
-EDESC
-
-arch/i386/kernel/reboot.c: In function 'acpi_disable':
-arch/i386/kernel/reboot.c:37: warning: control reaches end of non-void function
-
-Also,
-
-- extern decls never ever ever go in .c files.
-
-- The !CONFIG_ACPI stub should be inline
-
-- The !CONFIG_ACPI stub should be in a header file
-
-- The !CONFIG_ACPI stub has an extra (and buggy) semicolon.
-
-- The extra blank line in machine_emergency_restart() is unwelcome.
-
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "Yu, Luming" <luming.yu@intel.com>
+Signed-off-by: Daniel Drake <dsd@gentoo.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/reboot.c |   11 +++++++++++
- 1 files changed, 11 insertions(+)
+ scripts/Kbuild.include |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/reboot.c~acpi-asus-s3-resume-fix arch/i386/kernel/reboot.c
---- a/arch/i386/kernel/reboot.c~acpi-asus-s3-resume-fix
-+++ a/arch/i386/kernel/reboot.c
-@@ -30,6 +30,15 @@ static int reboot_thru_bios;
- #ifdef CONFIG_SMP
- static int reboot_cpu = -1;
- #endif
-+#ifdef CONFIG_ACPI
-+extern u32 acpi_disable(void);
-+#else
-+static u32 acpi_disable(void)
-+{
-+	return 0;
-+};
-+#endif
-+
- static int __init reboot_setup(char *str)
- {
- 	while(1) {
-@@ -317,6 +326,8 @@ void machine_shutdown(void)
+diff -puN scripts/Kbuild.include~kbuild-write-astest-files-to-kbuild_extmod-directory scripts/Kbuild.include
+--- a/scripts/Kbuild.include~kbuild-write-astest-files-to-kbuild_extmod-directory
++++ a/scripts/Kbuild.include
+@@ -66,9 +66,11 @@ as-option = $(shell if $(CC) $(CFLAGS) $
+ # as-instr
+ # Usage: cflags-y += $(call as-instr, instr, option1, option2)
  
- void machine_emergency_restart(void)
- {
-+
-+	acpi_disable();
- 	if (!reboot_thru_bios) {
- 		if (efi_enabled) {
- 			efi.reset_system(EFI_RESET_COLD, EFI_SUCCESS, 0, NULL);
+-as-instr = $(shell if echo -e "$(1)" | $(AS) >/dev/null 2>&1 -W -Z -o astest$$$$.out ; \
++as-instr = $(shell if echo -e "$(1)" | $(AS) >/dev/null 2>&1 -W -Z -o \
++		   $(if $(KBUILD_EXTMOD),$(firstword $(KBUILD_EXTMOD))/)astest$$$$.out ; \
+ 		   then echo "$(2)"; else echo "$(3)"; fi; \
+-	           rm -f astest$$$$.out)
++	           rm -f \
++		   $(if $(KBUILD_EXTMOD),$(firstword $(KBUILD_EXTMOD))/)astest$$$$.out)
+ 
+ # cc-option
+ # Usage: cflags-y += $(call cc-option, -march=winchip-c6, -march=i586)
 _
 
-Patches currently in -mm which might be from luming.yu@intel.com are
+Patches currently in -mm which might be from dsd@gentoo.org are
 
-acpi-clear-gpe-before-disabling-it.patch
-acpi-asus-s3-resume-fix.patch
+origin.patch
+some-kbuild-fix.patch
 
