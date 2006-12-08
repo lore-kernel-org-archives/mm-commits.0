@@ -1,60 +1,54 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-frv.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:06 -0800
-Message-ID: <200612082003.kB8K366a002040@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-efs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:03:02 -0800
+Message-ID: <200612082003.kB8K326e002032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57109 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57103 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426263AbWLHUDL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:11 -0500
+	id S1426259AbWLHUDI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:03:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert frv
+     struct path: convert efs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-frv.patch
+     struct-path-convert-efs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert frv
+Subject: struct path: convert efs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/frv/mm/elf-fdpic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/efs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/mm/elf-fdpic.c~struct-path-convert-frv arch/frv/mm/elf-fdpic.c
---- a/arch/frv/mm/elf-fdpic.c~struct-path-convert-frv
-+++ a/arch/frv/mm/elf-fdpic.c
-@@ -110,14 +110,14 @@ unsigned long arch_get_unmapped_area(str
+diff -puN fs/efs/dir.c~struct-path-convert-efs fs/efs/dir.c
+--- a/fs/efs/dir.c~struct-path-convert-efs
++++ a/fs/efs/dir.c
+@@ -20,7 +20,7 @@ struct inode_operations efs_dir_inode_op
+ };
  
- #if 0
- 	printk("[area] l=%lx (ENOMEM) f='%s'\n",
--	       len, filp ? filp->f_dentry->d_name.name : "");
-+	       len, filp ? filp->f_path.dentry->d_name.name : "");
- #endif
- 	return -ENOMEM;
+ static int efs_readdir(struct file *filp, void *dirent, filldir_t filldir) {
+-	struct inode *inode = filp->f_dentry->d_inode;
++	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct buffer_head *bh;
  
-  success:
- #if 0
- 	printk("[area] l=%lx ad=%lx f='%s'\n",
--	       len, addr, filp ? filp->f_dentry->d_name.name : "");
-+	       len, addr, filp ? filp->f_path.dentry->d_name.name : "");
- #endif
- 	return addr;
- } /* end arch_get_unmapped_area() */
+ 	struct efs_dir		*dirblock;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
+struct-path-convert-efs.patch
+struct-path-convert-freevxfs.patch
 struct-path-convert-frv.patch
 struct-path-convert-fuse.patch
 struct-path-convert-gfs2.patch
