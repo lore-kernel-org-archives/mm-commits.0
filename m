@@ -1,100 +1,151 @@
 From: akpm@osdl.org
-Subject: - constify-vga16fbc.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:13:30 -0800
-Message-ID: <200612082013.kB8KDUU2003097@shell0.pdx.osdl.net>
+Subject: - various-fbdev-files-mark-structs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:13:22 -0800
+Message-ID: <200612082013.kB8KDMfC003088@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59534 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59533 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946756AbWLHUNe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:13:34 -0500
+	id S1946753AbWLHUNd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:13:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, mm-commits@vger.kernel.org
+To: deller@gmx.de, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     constify vga16fb.c
+     various fbdev files: mark structs and array read-only
 has been removed from the -mm tree.  Its filename was
-     constify-vga16fbc.patch
+     various-fbdev-files-mark-structs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: constify vga16fb.c
+Subject: various fbdev files: mark structs and array read-only
 From: Helge Deller <deller@gmx.de>
 
-- move some static data into the .rodata section
+- move some structs and arrays to the read-only (.rodata) section
 
-- simplify source code for transl_l[] and transl_h[] which makes it more
-  readable
-
+[akpm@osdl.org: build fix]
 Signed-off-by: Helge Deller <deller@gmx.de>
+Acked-by: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/vga16fb.c |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ drivers/video/backlight/backlight.c |    2 +-
+ drivers/video/backlight/lcd.c       |    2 +-
+ drivers/video/cfbimgblt.c           |    8 ++++----
+ drivers/video/console/sticon.c      |    2 +-
+ drivers/video/fbcvt.c               |    2 +-
+ drivers/video/fbmon.c               |    2 +-
+ 6 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/vga16fb.c~constify-vga16fbc drivers/video/vga16fb.c
---- a/drivers/video/vga16fb.c~constify-vga16fbc
-+++ a/drivers/video/vga16fb.c
-@@ -264,7 +264,7 @@ static void vga16fb_clock_chip(struct vg
- 			       const struct fb_info *info,
- 			       int mul, int div)
- {
--	static struct {
-+	static const struct {
- 		u32 pixclock;
- 		u8  misc;
- 		u8  seq_clock_mode;
-@@ -652,7 +652,7 @@ static int vga16fb_set_par(struct fb_inf
- 
- static void ega16_setpalette(int regno, unsigned red, unsigned green, unsigned blue)
- {
--	static unsigned char map[] = { 000, 001, 010, 011 };
-+	static const unsigned char map[] = { 000, 001, 010, 011 };
- 	int val;
- 	
- 	if (regno >= 16)
-@@ -1139,23 +1139,19 @@ static void vga16fb_copyarea(struct fb_i
- 	}
+diff -puN drivers/video/backlight/backlight.c~various-fbdev-files-mark-structs drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~various-fbdev-files-mark-structs
++++ a/drivers/video/backlight/backlight.c
+@@ -142,7 +142,7 @@ static struct class backlight_class = {
+ 	.store	= _store,					\
  }
  
--#ifdef __LITTLE_ENDIAN
--static unsigned int transl_l[] =
--{0x0,0x8,0x4,0xC,0x2,0xA,0x6,0xE,0x1,0x9,0x5,0xD,0x3,0xB,0x7,0xF};
--static unsigned int transl_h[] =
--{0x000, 0x800, 0x400, 0xC00, 0x200, 0xA00, 0x600, 0xE00,
-- 0x100, 0x900, 0x500, 0xD00, 0x300, 0xB00, 0x700, 0xF00};
--#else
--#ifdef __BIG_ENDIAN
--static unsigned int transl_h[] =
--{0x0,0x8,0x4,0xC,0x2,0xA,0x6,0xE,0x1,0x9,0x5,0xD,0x3,0xB,0x7,0xF};
--static unsigned int transl_l[] =
--{0x000, 0x800, 0x400, 0xC00, 0x200, 0xA00, 0x600, 0xE00,
-- 0x100, 0x900, 0x500, 0xD00, 0x300, 0xB00, 0x700, 0xF00};
-+#define TRANS_MASK_LOW  {0x0,0x8,0x4,0xC,0x2,0xA,0x6,0xE,0x1,0x9,0x5,0xD,0x3,0xB,0x7,0xF}
-+#define TRANS_MASK_HIGH {0x000, 0x800, 0x400, 0xC00, 0x200, 0xA00, 0x600, 0xE00, \
-+			 0x100, 0x900, 0x500, 0xD00, 0x300, 0xB00, 0x700, 0xF00}
-+
-+#if defined(__LITTLE_ENDIAN)
-+static const u16 transl_l[] = TRANS_MASK_LOW;
-+static const u16 transl_h[] = TRANS_MASK_HIGH;
-+#elif defined(__BIG_ENDIAN)
-+static const u16 transl_l[] = TRANS_MASK_HIGH;
-+static const u16 transl_h[] = TRANS_MASK_LOW;
- #else
- #error "Only __BIG_ENDIAN and __LITTLE_ENDIAN are supported in vga-planes"
- #endif
--#endif
+-static struct class_device_attribute bl_class_device_attributes[] = {
++static const struct class_device_attribute bl_class_device_attributes[] = {
+ 	DECLARE_ATTR(power, 0644, backlight_show_power, backlight_store_power),
+ 	DECLARE_ATTR(brightness, 0644, backlight_show_brightness,
+ 		     backlight_store_brightness),
+diff -puN drivers/video/backlight/lcd.c~various-fbdev-files-mark-structs drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~various-fbdev-files-mark-structs
++++ a/drivers/video/backlight/lcd.c
+@@ -121,7 +121,7 @@ static struct class lcd_class = {
+ 	.store	= _store,					\
+ }
  
- static void vga_8planes_imageblit(struct fb_info *info, const struct fb_image *image)
+-static struct class_device_attribute lcd_class_device_attributes[] = {
++static const struct class_device_attribute lcd_class_device_attributes[] = {
+ 	DECLARE_ATTR(power, 0644, lcd_show_power, lcd_store_power),
+ 	DECLARE_ATTR(contrast, 0644, lcd_show_contrast, lcd_store_contrast),
+ 	DECLARE_ATTR(max_contrast, 0444, lcd_show_max_contrast, NULL),
+diff -puN drivers/video/cfbimgblt.c~various-fbdev-files-mark-structs drivers/video/cfbimgblt.c
+--- a/drivers/video/cfbimgblt.c~various-fbdev-files-mark-structs
++++ a/drivers/video/cfbimgblt.c
+@@ -42,7 +42,7 @@
+ #define DPRINTK(fmt, args...)
+ #endif
+ 
+-static u32 cfb_tab8[] = {
++static const u32 cfb_tab8[] = {
+ #if defined(__BIG_ENDIAN)
+     0x00000000,0x000000ff,0x0000ff00,0x0000ffff,
+     0x00ff0000,0x00ff00ff,0x00ffff00,0x00ffffff,
+@@ -58,7 +58,7 @@ static u32 cfb_tab8[] = {
+ #endif
+ };
+ 
+-static u32 cfb_tab16[] = {
++static const u32 cfb_tab16[] = {
+ #if defined(__BIG_ENDIAN)
+     0x00000000, 0x0000ffff, 0xffff0000, 0xffffffff
+ #elif defined(__LITTLE_ENDIAN)
+@@ -68,7 +68,7 @@ static u32 cfb_tab16[] = {
+ #endif
+ };
+ 
+-static u32 cfb_tab32[] = {
++static const u32 cfb_tab32[] = {
+ 	0x00000000, 0xffffffff
+ };
+ 
+@@ -218,7 +218,7 @@ static inline void fast_imageblit(const 
+ 	u32 bit_mask, end_mask, eorx, shift;
+ 	const char *s = image->data, *src;
+ 	u32 __iomem *dst;
+-	u32 *tab = NULL;
++	const u32 *tab = NULL;
+ 	int i, j, k;
+ 		
+ 	switch (bpp) {
+diff -puN drivers/video/console/sticon.c~various-fbdev-files-mark-structs drivers/video/console/sticon.c
+--- a/drivers/video/console/sticon.c~various-fbdev-files-mark-structs
++++ a/drivers/video/console/sticon.c
+@@ -345,7 +345,7 @@ static void sticon_save_screen(struct vc
  {
+ }
+ 
+-static struct consw sti_con = {
++static const struct consw sti_con = {
+ 	.owner			= THIS_MODULE,
+ 	.con_startup		= sticon_startup,
+ 	.con_init		= sticon_init,
+diff -puN drivers/video/fbcvt.c~various-fbdev-files-mark-structs drivers/video/fbcvt.c
+--- a/drivers/video/fbcvt.c~various-fbdev-files-mark-structs
++++ a/drivers/video/fbcvt.c
+@@ -57,7 +57,7 @@ struct fb_cvt_data {
+ 	u32 status;
+ };
+ 
+-static int fb_cvt_vbi_tab[] = {
++static const unsigned char fb_cvt_vbi_tab[] = {
+ 	4,        /* 4:3      */
+ 	5,        /* 16:9     */
+ 	6,        /* 16:10    */
+diff -puN drivers/video/fbmon.c~various-fbdev-files-mark-structs drivers/video/fbmon.c
+--- a/drivers/video/fbmon.c~various-fbdev-files-mark-structs
++++ a/drivers/video/fbmon.c
+@@ -58,7 +58,7 @@ struct broken_edid {
+ 	u32 fix;
+ };
+ 
+-static struct broken_edid brokendb[] = {
++static const struct broken_edid brokendb[] = {
+ 	/* DEC FR-PCXAV-YZ */
+ 	{
+ 		.manufacturer = "DEC",
 _
 
 Patches currently in -mm which might be from deller@gmx.de are
 
 origin.patch
+various-fbdev-files-mark-structs.patch
+constify-and-annotate-__read_mostly.patch
+annotate-some-variables-in-vesafb.patch
 constify-vga16fbc.patch
 
