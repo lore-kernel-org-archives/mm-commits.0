@@ -1,91 +1,59 @@
 From: akpm@osdl.org
-Subject: - char-isicom-simplify-timer.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:51 -0800
-Message-ID: <200612082008.kB8K8pNf002642@shell0.pdx.osdl.net>
+Subject: - char-isicom-remove-unneeded-memset.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:39 -0800
+Message-ID: <200612082008.kB8K8dTf002624@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58331 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58292 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946304AbWLHUI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:08:59 -0500
+	id S1946249AbWLHUIu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:08:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, simplify timer
+     Char: isicom, remove unneeded memset
 has been removed from the -mm tree.  Its filename was
-     char-isicom-simplify-timer.patch
+     char-isicom-remove-unneeded-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, simplify timer
+Subject: Char: isicom, remove unneeded memset
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Don't init timer in such complicated way. Use DEFINE_TIMER and then only
-mod_timer to reset the expiration.
+Memsetting of global static variables is not needed in the init code.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ drivers/char/isicom.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-simplify-timer drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-simplify-timer
+diff -puN drivers/char/isicom.c~char-isicom-remove-unneeded-memset drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-remove-unneeded-memset
 +++ a/drivers/char/isicom.c
-@@ -173,12 +173,13 @@ static int prev_card = 3;	/*	start servi
- static struct tty_driver *isicom_normal;
+@@ -1836,7 +1836,6 @@ static int __init isicom_init(void)
+ 	struct isi_port *port;
  
- static DECLARE_COMPLETION(isi_timerdone);
--static struct timer_list tx;
- static char re_schedule = 1;
+ 	card = 0;
+-	memset(isi_ports, 0, sizeof(isi_ports));
  
- static void isicom_tx(unsigned long _data);
- static void isicom_start(struct tty_struct *tty);
- 
-+static DEFINE_TIMER(tx, isicom_tx, 0, 0);
-+
- /*   baud index mappings from linux defns to isi */
- 
- static signed char linuxb_to_isib[] = {
-@@ -519,13 +520,7 @@ sched_again:
-  		return;
- 	}
- 
--	init_timer(&tx);
--	tx.expires = jiffies + HZ/100;
--	tx.data = 0;
--	tx.function = isicom_tx;
--	add_timer(&tx);
--
--	return;
-+	mod_timer(&tx, jiffies + msecs_to_jiffies(10));
- }
- 
- /* 	Interrupt handlers 	*/
-@@ -1907,12 +1902,7 @@ static int __init isicom_init(void)
- 		goto err_unrtty;
- 	}
- 
--	init_timer(&tx);
--	tx.expires = jiffies + 1;
--	tx.data = 0;
--	tx.function = isicom_tx;
--	re_schedule = 1;
--	add_timer(&tx);
-+	mod_timer(&tx, jiffies + 1);
- 
- 	return 0;
- err_unrtty:
+ 	for(idx = 0; idx < BOARD_COUNT; idx++) {
+ 		port = &isi_ports[idx * 16];
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
+char-isicom-remove-unneeded-memset.patch
+char-isicom-move-to-tty_register_device.patch
+char-isicom-use-pci_request_region.patch
+char-isicom-check-kmalloc-retval.patch
+char-isicom-use-completion.patch
 char-isicom-simplify-timer.patch
 char-isicom-remove-cvs-stuff.patch
 char-isicom-fix-tty-index-check.patch
