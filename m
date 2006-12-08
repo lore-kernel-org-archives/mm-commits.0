@@ -1,27 +1,27 @@
 From: akpm@osdl.org
-Subject: - gxfb-support-flat-panel-timings-tidy.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 01:09:00 -0800
-Message-ID: <200612080909.kB8990PP014477@shell0.pdx.osdl.net>
+Subject: - gxfb-support-command-line-options-tidy.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 01:09:14 -0800
+Message-ID: <200612080909.kB899EDs014485@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39245 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39299 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425279AbWLHJJL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 04:09:11 -0500
+	id S1425277AbWLHJJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 04:09:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, adaplas@pol.net, jordan.crouse@amd.com, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gxfb-support-flat-panel-timings-tidy
+     gxfb-support-command-line-options-tidy
 has been removed from the -mm tree.  Its filename was
-     gxfb-support-flat-panel-timings-tidy.patch
+     gxfb-support-command-line-options-tidy.patch
 
-This patch was dropped because it was folded into gxfb-support-flat-panel-timings.patch
+This patch was dropped because it was folded into gxfb-support-command-line-options.patch
 
 ------------------------------------------------------
-Subject: gxfb-support-flat-panel-timings-tidy
+Subject: gxfb-support-command-line-options-tidy
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: Jordan Crouse <jordan.crouse@amd.com>
@@ -30,23 +30,30 @@ Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/geode/video_gx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/geode/gxfb_core.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/geode/video_gx.c~gxfb-support-flat-panel-timings-tidy drivers/video/geode/video_gx.c
---- a/drivers/video/geode/video_gx.c~gxfb-support-flat-panel-timings-tidy
-+++ a/drivers/video/geode/video_gx.c
-@@ -176,8 +176,8 @@ static void gx_set_dclk_frequency(struct
- }
+diff -puN drivers/video/geode/gxfb_core.c~gxfb-support-command-line-options-tidy drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~gxfb-support-command-line-options-tidy
++++ a/drivers/video/geode/gxfb_core.c
+@@ -413,14 +413,15 @@ static struct pci_driver gxfb_driver = {
+ };
  
- static void
--gx_configure_tft(struct fb_info *info) {
--
-+gx_configure_tft(struct fb_info *info)
+ #ifndef MODULE
+-static int __init gxfb_setup(char *options) {
++static int __init gxfb_setup(char *options)
 +{
- 	struct geodefb_par *par = info->par;
- 	unsigned long val;
- 	unsigned long fp;
+ 
+ 	char *opt;
+ 
+ 	if (!options || !*options)
+ 		return 0;
+ 
+-	while((opt = strsep(&options, ",")) != NULL) {
++	while ((opt = strsep(&options, ",")) != NULL) {
+ 		if (!*opt)
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -72,6 +79,6 @@ various-fbdev-files-mark-structs.patch
 backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
 gxfb-fixups-for-the-amd-geode-gx.patch
 gxfb-support-flat-panel-timings.patch
-gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options.patch
 gxfb-support-command-line-options-tidy.patch
 
