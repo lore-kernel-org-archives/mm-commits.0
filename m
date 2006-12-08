@@ -1,445 +1,605 @@
 From: akpm@osdl.org
-Subject: - add-address_space_operationsbatch_write.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:05:06 -0800
-Message-ID: <200612081105.kB8B566V018616@shell0.pdx.osdl.net>
+Subject: - clocksource-convert-generic-timeofday.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:05:38 -0800
+Message-ID: <200612081105.kB8B5cX6018657@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49418 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49467 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425402AbWLHLKF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:10:05 -0500
+	id S938036AbWLHLKZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:10:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vs@namesys.com, akpm@osdl.org, hch@lst.de, mark.fasheh@oracle.com, miklos@szeredi.hu, nathans@sgi.com, reiser@namesys.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add address_space_operations.batch_write
+     clocksource: convert generic timeofday
 has been removed from the -mm tree.  Its filename was
-     add-address_space_operationsbatch_write.patch
+     clocksource-convert-generic-timeofday.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: add address_space_operations.batch_write
-From: Vladimir Saveliev <vs@namesys.com>
+Subject: clocksource: convert generic timeofday
+From: Daniel Walker <dwalker@mvista.com>
 
-Add a method batch_write to struct address_space_operations.  A filesystem
-may want to implement this operation to improve write performance.  Generic
-implementation for the method is made by cut-n-paste off
-generic_file_buffered_write: it writes one page using prepare_write and
-commit_write address space operations.
+Delete alot of remaining code in kernel/time/clocksource.c that is replaced
+with this patch.  Removed the deprecated "clock" kernel parameter.
 
-It is anticipated that this interface will be of benefit to Reiser4, FUSE,
-maybe XFS, and GFS2.
+Shifts some of the code around so that the time of day override happens inside
+kernel/timer.c.
 
-Signed-off-by: Vladimir Saveliev <vs@namesys.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Hans Reiser <reiser@namesys.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Nathan Scott <nathans@sgi.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-DESC
-add-address_space_operationsbatch_write-fix
-EDESC
+The biggest timeofday changes are in update_wall_time() and
+change_clocksource().  I removed the unconditional call to
+change_clocksource(), and replaced it with a single atomic check.  The atomic
+is asserted only when a clock change is needed.  update_callback is no longer
+driven from update_wall_time().
 
-RLIMIT_FSIZE can cause generic_write_checks() to reduce `count'.  So we cannot
-assume that `count' is equal to the total size of the incoming iovec.
+The fast path is now a single atomic check.
 
-Cc: Vladimir Saveliev <vs@namesys.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Hans Reiser <reiser@namesys.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Nathan Scott <nathans@sgi.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/filesystems/vfs.txt |   13 +
- include/linux/fs.h                |   22 ++
- mm/filemap.c                      |  246 ++++++++++++++++------------
- 3 files changed, 179 insertions(+), 102 deletions(-)
+ include/linux/clocksource.h |    3 
+ kernel/time/clocksource.c   |  216 ++++------------------------------
+ kernel/timer.c              |  167 ++++++++++++++++++++++----
+ 3 files changed, 178 insertions(+), 208 deletions(-)
 
-diff -puN Documentation/filesystems/vfs.txt~add-address_space_operationsbatch_write Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~add-address_space_operationsbatch_write
-+++ a/Documentation/filesystems/vfs.txt
-@@ -534,6 +534,8 @@ struct address_space_operations {
- 			struct list_head *pages, unsigned nr_pages);
- 	int (*prepare_write)(struct file *, struct page *, unsigned, unsigned);
- 	int (*commit_write)(struct file *, struct page *, unsigned, unsigned);
-+	long (*batch_write)(struct file *file, struct write_descriptor *desc,
-+			    size_t *written);
- 	sector_t (*bmap)(struct address_space *, sector_t);
- 	int (*invalidatepage) (struct page *, unsigned long);
- 	int (*releasepage) (struct page *, int);
-@@ -624,6 +626,17 @@ struct address_space_operations {
-         operations.  It should avoid returning an error if possible -
-         errors should have been handled by prepare_write.
+diff -puN include/linux/clocksource.h~clocksource-convert-generic-timeofday include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-convert-generic-timeofday
++++ a/include/linux/clocksource.h
+@@ -205,7 +205,8 @@ static inline void clocksource_calculate
  
-+  batch_write: optional
-+        When calling the filesystem for writes, there is processing
-+        that must be done:
-+        1) per word
-+        2) per page
-+        3) per call to the FS
-+        If the FS is called per page, then it turns out that 3) costs more
-+        than 1) and 2) for sophisticated filesystems.  To allow the FS to
-+        choose to pay the cost of 3) only once we call batch_write, if the
-+        FS supports it.
-+
-   bmap: called by the VFS to map a logical block offset within object to
-   	physical block number. This method is used by the FIBMAP
-   	ioctl and for working with swap-files.  To be able to swap to
-diff -puN include/linux/fs.h~add-address_space_operationsbatch_write include/linux/fs.h
---- a/include/linux/fs.h~add-address_space_operationsbatch_write
-+++ a/include/linux/fs.h
-@@ -292,6 +292,7 @@ struct poll_table_struct;
- struct kstatfs;
- struct vm_area_struct;
- struct vfsmount;
-+struct pagevec;
  
- extern void __init inode_init(unsigned long);
- extern void __init inode_init_early(void);
-@@ -393,6 +394,25 @@ struct page;
- struct address_space;
- struct writeback_control;
- 
-+/**
-+ * struct write_descriptor - set of write arguments
-+ * @pos: offset from the start of the file to write to
-+ * @count: number of bytes to write
-+ * @buf: pointer to data to be written
-+ * @lru_pvec: multipage container to batch adding pages to LRU list
-+ * @cached_page: allocated but not used on previous call
+ /* used to install a new clocksource */
+-extern struct clocksource *clocksource_get_next(void);
++extern int clocksource_sysfs_register(struct sysdev_attribute*);
++extern void clocksource_sysfs_unregister(struct sysdev_attribute*);
+ extern int clocksource_register(struct clocksource*);
+ extern void clocksource_rating_change(struct clocksource*);
+ extern struct clocksource * clocksource_get_clock(char*);
+diff -puN kernel/time/clocksource.c~clocksource-convert-generic-timeofday kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-convert-generic-timeofday
++++ a/kernel/time/clocksource.c
+@@ -5,6 +5,8 @@
+  *
+  * Copyright (C) 2004, 2005 IBM, John Stultz (johnstul@us.ibm.com)
+  *
++ * Copyright (C) 2006 MontaVista Daniel Walker (dwalker@mvista.com)
 + *
-+ * This structure is to pass to batch_write file operation all
-+ * information which is needed to continue write.
-+ */
-+struct write_descriptor {
-+	loff_t pos;
-+	size_t count;
-+	char __user *buf;
-+	struct page *cached_page;
-+	struct pagevec *lru_pvec;
-+};
-+
- struct address_space_operations {
- 	int (*writepage)(struct page *page, struct writeback_control *wbc);
- 	int (*readpage)(struct file *, struct page *);
-@@ -413,6 +433,8 @@ struct address_space_operations {
- 	 */
- 	int (*prepare_write)(struct file *, struct page *, unsigned, unsigned);
- 	int (*commit_write)(struct file *, struct page *, unsigned, unsigned);
-+	long (*batch_write)(struct file *file, struct write_descriptor *desc,
-+			    size_t *written);
- 	/* Unfortunately this kludge is needed for FIBMAP. Don't use it */
- 	sector_t (*bmap)(struct address_space *, sector_t);
- 	void (*invalidatepage) (struct page *, unsigned long);
-diff -puN mm/filemap.c~add-address_space_operationsbatch_write mm/filemap.c
---- a/mm/filemap.c~add-address_space_operationsbatch_write
-+++ a/mm/filemap.c
-@@ -2058,78 +2058,59 @@ generic_file_direct_write(struct kiocb *
- }
- EXPORT_SYMBOL(generic_file_direct_write);
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -21,7 +23,6 @@
+  *
+  * TODO WishList:
+  *   o Allow clocksource drivers to be unregistered
+- *   o get rid of clocksource_jiffies extern
+  */
  
--ssize_t
--generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
--		unsigned long nr_segs, loff_t pos, loff_t *ppos,
--		size_t count, ssize_t written)
-+/**
-+ * generic_batch_write - generic batch_write address space operation
-+ * @file: the file to write to
-+ * @desc: set of write arguments
-+ * @written: returned number of bytes successfully written
-+ *
-+ * This implementation of batch_write address space operation writes not more
-+ * than one page of file. It faults in user space, allocates page and calls
-+ * prepare_write and commit_write address space operations. User data are
-+ * copied by filemap_copy_from_user.
-+ */
-+static long generic_batch_write(struct file *file,
-+				struct write_descriptor *desc,
-+				size_t *written)
- {
--	struct file *file = iocb->ki_filp;
--	struct address_space * mapping = file->f_mapping;
--	const struct address_space_operations *a_ops = mapping->a_ops;
--	struct inode 	*inode = mapping->host;
--	long		status = 0;
--	struct page	*page;
--	struct page	*cached_page = NULL;
--	size_t		bytes;
--	struct pagevec	lru_pvec;
--	const struct iovec *cur_iov = iov; /* current iovec */
--	size_t		iov_base = 0;	   /* offset in the current iovec */
--	char __user	*buf;
+ #include <linux/clocksource.h>
+@@ -29,45 +30,15 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ 
+-/* XXX - Would like a better way for initializing curr_clocksource */
+-extern struct clocksource clocksource_jiffies;
 -
--	pagevec_init(&lru_pvec, 0);
+ /*[Clocksource internal variables]---------
+- * curr_clocksource:
+- *	currently selected clocksource. Initialized to clocksource_jiffies.
+- * next_clocksource:
+- *	pending next selected clocksource.
+  * clocksource_list:
+  *	priority list with the registered clocksources
+  * clocksource_lock:
+- *	protects manipulations to curr_clocksource and next_clocksource
+- *	and the clocksource_list
+- * override_name:
+- *	Name of the user-specified clocksource.
++ * 	protects manipulations to the clocksource_list
+  */
+-static struct clocksource *curr_clocksource = &clocksource_jiffies;
+-static struct clocksource *next_clocksource;
+-static struct list_head clocksource_list = LIST_HEAD_INIT(clocksource_list);
++static __read_mostly
++struct list_head clocksource_list = LIST_HEAD_INIT(clocksource_list);
+ static DEFINE_SPINLOCK(clocksource_lock);
+-static char override_name[32];
 -
--	/*
--	 * handle partial DIO write.  Adjust cur_iov if needed.
--	 */
--	if (likely(nr_segs == 1))
--		buf = iov->iov_base + written;
--	else {
--		filemap_set_next_iovec(&cur_iov, &iov_base, written);
--		buf = cur_iov->iov_base + iov_base;
+-/**
+- * clocksource_get_next - Returns the selected clocksource
+- *
+- */
+-struct clocksource *clocksource_get_next(void)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&clocksource_lock, flags);
+-	if (next_clocksource) {
+-		curr_clocksource = next_clocksource;
+-		next_clocksource = NULL;
 -	}
+-	spin_unlock_irqrestore(&clocksource_lock, flags);
 -
--	do {
--		unsigned long index;
--		unsigned long offset;
--		size_t copied;
--
--		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
--		index = pos >> PAGE_CACHE_SHIFT;
--		bytes = PAGE_CACHE_SIZE - offset;
--
--		/* Limit the size of the copy to the caller's write size */
--		bytes = min(bytes, count);
--
--		/*
--		 * Limit the size of the copy to that of the current segment,
--		 * because fault_in_pages_readable() doesn't know how to walk
--		 * segments.
--		 */
--		bytes = min(bytes, cur_iov->iov_len - iov_base);
-+  	const struct address_space_operations *a_ops = file->f_mapping->a_ops;
-+	struct page *page;
-+	pgoff_t index;
-+	size_t bytes;
-+	unsigned long offset;
-+	long status;
-+
-+	/* offset within page write is to start at */
-+	offset = (desc->pos & (PAGE_CACHE_SIZE - 1));
-+
-+	/* index of page we are to write to */
-+	index = desc->pos >> PAGE_CACHE_SHIFT;
-+
-+	/* number of bytes which can be written to the page */
-+	bytes = PAGE_CACHE_SIZE - offset;
-+
-+	/* limit the size of the copy to the caller's write size */
-+	bytes = min(bytes, desc->count);
-+	BUG_ON(bytes == 0);
+-	return curr_clocksource;
+-}
  
-+	while (1) {
- 		/*
- 		 * Bring in the user page that we will copy from _first_.
--		 * Otherwise there's a nasty deadlock on copying from the
--		 * same page as we're writing to, without it being marked
-+		 * Otherwise there's a nasty deadlock on copying from the same
-+		 * page as we're writing to, without it being marked
- 		 * up-to-date.
- 		 */
--		fault_in_pages_readable(buf, bytes);
-+		fault_in_pages_readable(desc->buf, bytes);
+ /**
+  * __is_registered - Returns a clocksource if it's registered
+@@ -95,28 +66,6 @@ static struct clocksource * __is_registe
+ }
  
--		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
--		if (!page) {
--			status = -ENOMEM;
--			break;
--		}
+ /**
+- * __get_clock - Finds a specific clocksource
+- * @name:		name of the clocksource to return
+- *
+- * Private function. Must hold clocksource_lock when called.
+- *
+- * Returns the clocksource if registered, zero otherwise.
+- * If the @name is null the highest rated clock is returned.
+- */
+-static inline struct clocksource * __get_clock(char * name)
+-{
 -
--		if (unlikely(bytes == 0)) {
--			status = 0;
--			copied = 0;
--			goto zero_length_segment;
--		}
-+		page = __grab_cache_page(file->f_mapping, index,
-+					 &desc->cached_page, desc->lru_pvec);
-+		if (!page)
-+			return -ENOMEM;
+-	if (unlikely(list_empty(&clocksource_list)))
+-		return &clocksource_jiffies;
+-
+-	if (!name)
+-		return list_entry(clocksource_list.next,
+-				  struct clocksource, list);
+-
+-	return __is_registered(name);
+-}
+-
+-/**
+  * clocksource_get_clock - Finds a specific clocksource
+  * @name:		name of the clocksource to return
+  *
+@@ -128,29 +77,17 @@ struct clocksource * clocksource_get_clo
+ 	unsigned long flags;
  
--		status = a_ops->prepare_write(file, page, offset, offset+bytes);
-+		status = a_ops->prepare_write(file, page, offset,
-+					      offset+bytes);
- 		if (unlikely(status)) {
--			loff_t isize = i_size_read(inode);
-+			loff_t isize = i_size_read(file->f_mapping->host);
+ 	spin_lock_irqsave(&clocksource_lock, flags);
+-	ret = __get_clock(name);
++	if (unlikely(list_empty(&clocksource_list)))
++		ret = &clocksource_jiffies;
++	else if (!name)
++		ret = list_entry(clocksource_list.next,
++				 struct clocksource, list);
++	else
++		ret = __is_registered(name);
+ 	spin_unlock_irqrestore(&clocksource_lock, flags);
+ 	return ret;
+ }
  
- 			if (status != AOP_TRUNCATED_PAGE)
- 				unlock_page(page);
-@@ -2140,58 +2121,119 @@ generic_file_buffered_write(struct kiocb
- 			 * prepare_write() may have instantiated a few blocks
- 			 * outside i_size.  Trim these off again.
- 			 */
--			if (pos + bytes > isize)
--				vmtruncate(inode, isize);
--			break;
-+			if (desc->pos + bytes > isize)
-+				vmtruncate(file->f_mapping->host, isize);
-+			return status;
- 		}
--		if (likely(nr_segs == 1))
--			copied = filemap_copy_from_user(page, offset,
--							buf, bytes);
--		else
--			copied = filemap_copy_from_user_iovec(page, offset,
--						cur_iov, iov_base, bytes);
-+
-+		/* copy user data to the page */
-+		*written = filemap_copy_from_user(page, offset, desc->buf,
-+						  bytes);
-+
- 		flush_dcache_page(page);
- 		status = a_ops->commit_write(file, page, offset, offset+bytes);
- 		if (status == AOP_TRUNCATED_PAGE) {
- 			page_cache_release(page);
- 			continue;
- 		}
--zero_length_segment:
--		if (likely(copied >= 0)) {
--			if (!status)
--				status = copied;
-+  		unlock_page(page);
-+  		mark_page_accessed(page);
-+  		page_cache_release(page);
-+		break;
-+	}
-+	/*
-+	 * If commit_write returned error - write failed and we zero number of
-+	 * written bytes. If filemap_copy_from_user copied less than it was
-+	 * asked to we return -EFAULT and number of bytes actually written.
-+	 */
-+	if (status)
-+		*written = 0;
-+	else if (*written != bytes)
-+		status = -EFAULT;
-+	return status;
+-
+-/**
+- * select_clocksource - Finds the best registered clocksource.
+- *
+- * Private function. Must hold clocksource_lock when called.
+- *
+- * Looks through the list of registered clocksources, returning
+- * the one with the highest rating value. If there is a clocksource
+- * name that matches the override string, it returns that clocksource.
+- */
+-static struct clocksource *select_clocksource(void)
+-{
+-	if (!*override_name)
+-		return list_entry(clocksource_list.next,
+-				  struct clocksource, list);
+-
+-	return __get_clock(override_name);
+-}
+ /*
+  * __sorted_list_add - Sorted clocksource add
+  * @c:			clocksource to add
+@@ -200,8 +137,6 @@ int clocksource_register(struct clocksou
+ 	} else {
+ 		INIT_LIST_HEAD(&c->list);
+  		__sorted_list_add(c);
+-		/* scan the registered clocksources, and pick the best one */
+-		next_clocksource = select_clocksource();
+ 	}
+ 	spin_unlock_irqrestore(&clocksource_lock, flags);
+ 	return ret;
+@@ -230,70 +165,12 @@ void clocksource_rating_change(struct cl
+ 	list_del_init(&c->list);
+ 	__sorted_list_add(c);
+ 
+-	next_clocksource = select_clocksource();
++	/* XXX: Add block notifier to signal new rating */
+ 	spin_unlock_irqrestore(&clocksource_lock, flags);
+ }
+ EXPORT_SYMBOL(clocksource_rating_change);
+ 
+ /**
+- * sysfs_show_current_clocksources - sysfs interface for current clocksource
+- * @dev:	unused
+- * @buf:	char buffer to be filled with clocksource list
+- *
+- * Provides sysfs interface for listing current clocksource.
+- */
+-static ssize_t
+-sysfs_show_current_clocksources(struct sys_device *dev, char *buf)
+-{
+-	char *curr = buf;
+-
+-	spin_lock_irq(&clocksource_lock);
+-	curr += sprintf(curr, "%s ", curr_clocksource->name);
+-	spin_unlock_irq(&clocksource_lock);
+-
+-	curr += sprintf(curr, "\n");
+-
+-	return curr - buf;
+-}
+-
+-/**
+- * sysfs_override_clocksource - interface for manually overriding clocksource
+- * @dev:	unused
+- * @buf:	name of override clocksource
+- * @count:	length of buffer
+- *
+- * Takes input from sysfs interface for manually overriding the default
+- * clocksource selction.
+- */
+-static ssize_t sysfs_override_clocksource(struct sys_device *dev,
+-					  const char *buf, size_t count)
+-{
+-	size_t ret = count;
+-	/* strings from sysfs write are not 0 terminated! */
+-	if (count >= sizeof(override_name))
+-		return -EINVAL;
+-
+-	/* strip of \n: */
+-	if (buf[count-1] == '\n')
+-		count--;
+-	if (count < 1)
+-		return -EINVAL;
+-
+-	spin_lock_irq(&clocksource_lock);
+-
+-	/* copy the name given: */
+-	memcpy(override_name, buf, count);
+-	override_name[count] = 0;
+-
+-	/* try to select it: */
+-	next_clocksource = select_clocksource();
+-
+-	spin_unlock_irq(&clocksource_lock);
+-
+-	return ret;
+-}
+-
+-/**
+  * sysfs_show_available_clocksources - sysfs interface for listing clocksource
+  * @dev:	unused
+  * @buf:	char buffer to be filled with clocksource list
+@@ -322,11 +199,8 @@ sysfs_show_available_clocksources(struct
+ }
+ 
+ /*
+- * Sysfs setup bits:
++ * Generic sysfs setup bits:
+  */
+-static SYSDEV_ATTR(current_clocksource, 0600, sysfs_show_current_clocksources,
+-		   sysfs_override_clocksource);
+-
+ static SYSDEV_ATTR(available_clocksource, 0600,
+ 		   sysfs_show_available_clocksources, NULL);
+ 
+@@ -339,6 +213,21 @@ static struct sys_device device_clocksou
+ 	.cls	= &clocksource_sysclass,
+ };
+ 
++/**
++ * clocksource_sysfs_register - interface to register a sysfs
++ *				hook under the clocksource sys_device.
++ * @attr:	sysdev_attribute created with the SYSDEV_ATTR macro.
++ *
++ * This functions should be used to create a sysfs file under
++ * the clocksource directory which will be used to show the current
++ * clock used by the code calling clocksource_sysfs_register(), and
++ * set a specific overide when written to.
++ */
++int clocksource_sysfs_register(struct sysdev_attribute * attr)
++{
++	return sysdev_create_file(&device_clocksource, attr);
 +}
 +
-+ssize_t
-+generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
-+			    unsigned long nr_segs, loff_t pos, loff_t *ppos,
-+			    size_t count, ssize_t written)
+ static int __init init_clocksource_sysfs(void)
+ {
+ 	int error = sysdev_class_register(&clocksource_sysclass);
+@@ -348,52 +237,7 @@ static int __init init_clocksource_sysfs
+ 	if (!error)
+ 		error = sysdev_create_file(
+ 				&device_clocksource,
+-				&attr_current_clocksource);
+-	if (!error)
+-		error = sysdev_create_file(
+-				&device_clocksource,
+ 				&attr_available_clocksource);
+ 	return error;
+ }
+-
+-device_initcall(init_clocksource_sysfs);
+-
+-/**
+- * boot_override_clocksource - boot clock override
+- * @str:	override name
+- *
+- * Takes a clocksource= boot argument and uses it
+- * as the clocksource override name.
+- */
+-static int __init boot_override_clocksource(char* str)
+-{
+-	unsigned long flags;
+-	spin_lock_irqsave(&clocksource_lock, flags);
+-	if (str)
+-		strlcpy(override_name, str, sizeof(override_name));
+-	spin_unlock_irqrestore(&clocksource_lock, flags);
+-	return 1;
+-}
+-
+-__setup("clocksource=", boot_override_clocksource);
+-
+-/**
+- * boot_override_clock - Compatibility layer for deprecated boot option
+- * @str:	override name
+- *
+- * DEPRECATED! Takes a clock= boot argument and uses it
+- * as the clocksource override name
+- */
+-static int __init boot_override_clock(char* str)
+-{
+-	if (!strcmp(str, "pmtmr")) {
+-		printk("Warning: clock=pmtmr is deprecated. "
+-			"Use clocksource=acpi_pm.\n");
+-		return boot_override_clocksource("acpi_pm");
+-	}
+-	printk("Warning! clock= boot option is deprecated. "
+-		"Use clocksource=xyz\n");
+-	return boot_override_clocksource(str);
+-}
+-
+-__setup("clock=", boot_override_clock);
++postcore_initcall(init_clocksource_sysfs);
+diff -puN kernel/timer.c~clocksource-convert-generic-timeofday kernel/timer.c
+--- a/kernel/timer.c~clocksource-convert-generic-timeofday
++++ a/kernel/timer.c
+@@ -17,6 +17,8 @@
+  *  2000-10-05  Implemented scalable SMP per-CPU timer handling.
+  *                              Copyright (C) 2000, 2001, 2002  Ingo Molnar
+  *              Designed by David S. Miller, Alexey Kuznetsov and Ingo Molnar
++ *  2006-08-03  Added usage of the generic clocksource API
++ *				Copyright (C) 2006 MontaVista, Daniel Walker
+  */
+ 
+ #include <linux/kernel_stat.h>
+@@ -650,9 +652,15 @@ EXPORT_SYMBOL(xtime);
+ 
+ /* XXX - all of this timekeeping code should be later moved to time.c */
+ #include <linux/clocksource.h>
+-static struct clocksource *clock; /* pointer to current clocksource */
++/* pointer to current clocksource */
++static struct clocksource *clock = &clocksource_jiffies;
++static char clock_override_name[32];
++
++/* Interrupt update singaling variables */
++static atomic_t clock_check = ATOMIC_INIT(0);
+ 
+ #ifdef CONFIG_GENERIC_TIME
++
+ /**
+  * __get_nsec_offset - Returns nanoseconds since last call to periodic_hook
+  *
+@@ -772,29 +780,119 @@ EXPORT_SYMBOL(do_settimeofday);
+  *
+  * Accumulates current time interval and initializes new clocksource
+  */
+-static int change_clocksource(void)
++static int change_clocksource(char * override)
+ {
+-	struct clocksource *new;
+-	cycle_t now;
+ 	u64 nsec;
+-	new = clocksource_get_next();
+-	if (clock != new) {
+-		now = clocksource_read(new);
+-		nsec =  __get_nsec_offset();
+-		timespec_add_ns(&xtime, nsec);
+-
+-		clock = new;
+-		clock->cycle_last = now;
+-		printk(KERN_INFO "Time: %s clocksource has been installed.\n",
+-		       clock->name);
+-		return 1;
+-	} else if (clock->update_callback) {
+-		return clock->update_callback();
++	cycle_t now;
++	struct clocksource *new = clocksource_get_clock(override);
++
++	now = clocksource_read(new);
++	nsec =  __get_nsec_offset();
++	timespec_add_ns(&xtime, nsec);
++
++	clock = new;
++	clock->cycle_last = now;
++	printk(KERN_INFO "Time: %s clocksource has been installed.\n",
++	       clock->name);
++
++	return 1;
++}
++
++/**
++ * sysfs_show_current_clocksources - sysfs interface for current clocksource
++ * @dev:	unused
++ * @buf:	char buffer to be filled with clocksource list
++ *
++ * Provides sysfs interface for listing the current clocksource.
++ * Locking handled inside sysfs.
++ */
++static ssize_t
++sysfs_show_current_clocksources(struct sys_device *dev, char *buf)
 +{
-+	struct file *file = iocb->ki_filp;
-+	struct address_space * mapping = file->f_mapping;
-+	const struct address_space_operations *a_ops = mapping->a_ops;
-+	struct inode 	*inode = mapping->host;
-+	long		status;
-+	struct pagevec	lru_pvec;
-+	struct write_descriptor desc;
-+	size_t copied = 0;
-+        const struct iovec *cur_iov = iov; /* current iovec */
-+        size_t          iov_base = 0;      /* offset in the current iovec */
-+	long (*batch_write)(struct file *file,
-+			    struct write_descriptor *desc,
-+			    size_t *written);
++	return sprintf(buf, "%s \n", clock->name);
++}
 +
-+	pagevec_init(&lru_pvec, 0);
- 
--			if (status >= 0) {
--				written += status;
--				count -= status;
--				pos += status;
--				buf += status;
--				if (unlikely(nr_segs > 1)) {
-+	/*
-+	 * initialize write descriptor fields: position to write to
-+	 * and number of bytes to write
-+	 */
-+	desc.pos = pos;
-+	desc.cached_page = NULL;
-+	desc.lru_pvec = &lru_pvec;
++/**
++ * sysfs_override_clocksource - interface for manually overriding clocksource
++ * @dev:	unused
++ * @buf:	name of override clocksource
++ * @count:	length of buffer
++ *
++ * Takes input from sysfs interface for manually overriding the default
++ * clocksource selction. Locking handled inside sysfs
++ */
++static ssize_t sysfs_override_clocksource(struct sys_device *dev,
++					  const char *buf, size_t count)
++{
++	size_t ret = count;
 +
 +	/*
-+	 * handle partial DIO write.  Adjust cur_iov if needed.
++	 * If there's already an update in progress then
++	 * we can't proceed.
 +	 */
-+	if (likely(nr_segs == 1))
-+		iov_base = written;
-+	else
-+                filemap_set_next_iovec(&cur_iov, &iov_base, written);
++	if (atomic_read(&clock_check))
++		return -EINVAL;
 +
-+	/*
-+	 * if file system implements batch_write method - use it, otherwise -
-+	 * use generic_batch_write
-+	 */
-+	batch_write = generic_batch_write;
-+	if (a_ops->batch_write)
-+		batch_write = a_ops->batch_write;
++	/* strings from sysfs write are not 0 terminated! */
++	if (count >= sizeof(clock_override_name))
++		return -EINVAL;
 +
-+	do {
-+		/* do not walk over current segment */
-+		desc.buf = cur_iov->iov_base + iov_base;
-+		desc.count = min(count, cur_iov->iov_len - iov_base);
-+		if (desc.count > 0)
-+			status = (*batch_write)(file, &desc, &copied);
++	/* strip of \n: */
++	if (buf[count-1] == '\n')
++		count--;
++	if (count < 1)
++		return -EINVAL;
++
++	/* copy the name given: */
++	memcpy(clock_override_name, buf, count);
++	clock_override_name[count] = 0;
++
++	if (!clocksource_get_clock(clock_override_name)) {
++		clock_override_name[0] = 0;
++		return  -EINVAL;
+ 	}
+-	return 0;
++
++	atomic_inc(&clock_check);
++
++	return ret;
++}
++
++/*
++ * Sysfs atrribure structure.
++ */
++static SYSDEV_ATTR(timeofday_clocksource, 0600, sysfs_show_current_clocksources,
++		   sysfs_override_clocksource);
++
++/**
++ * boot_override_clocksource - boot clock override
++ * @str:	override name
++ *
++ * Takes a clocksource= boot argument and uses it
++ * as the clocksource override name.
++ */
++static int __init boot_override_clocksource(char* str)
++{
++	if (str) {
++		/*
++		 * Make sure the clock exists.
++		 */
++		if (clocksource_get_clock(str))
++			strlcpy(clock_override_name, str,
++				sizeof(clock_override_name));
 +		else {
-+			copied = 0;
-+			status = 0;
++			printk("Time: requested clock \"%s\" doesn't exist\n",
++			       str);
++			return 0;
 +		}
-+		if (likely(copied >= 0)) {
-+			written += copied;
-+			count -= copied;
-+			if (count) {
-+				/*
-+				 * not everything is written yet. Adjust write
-+				 * descriptor for next iteration
-+				 */
-+				desc.pos += copied;
-+				if (likely(nr_segs == 1))
-+					iov_base += copied;
-+				else
- 					filemap_set_next_iovec(&cur_iov,
--							&iov_base, status);
--					if (count)
--						buf = cur_iov->iov_base +
--							iov_base;
--				} else {
--					iov_base += status;
--				}
-+							       &iov_base,
-+							       copied);
- 			}
- 		}
--		if (unlikely(copied != bytes))
--			if (status >= 0)
--				status = -EFAULT;
--		unlock_page(page);
--		mark_page_accessed(page);
--		page_cache_release(page);
--		if (status < 0)
--			break;
--		balance_dirty_pages_ratelimited(mapping);
--		cond_resched();
-+  		if (status < 0)
-+  			break;
-+  		balance_dirty_pages_ratelimited(mapping);
-+  		cond_resched();
- 	} while (count);
--	*ppos = pos;
-+	*ppos = pos + written;
++
++	}
++
++	return 1;
+ }
++__setup("timeofday_clocksource=", boot_override_clocksource);
++
+ #else
+-#define change_clocksource()	do { 0; } while(0)
++#define change_clocksource(x)	do { } while(0)
+ #endif
  
--	if (cached_page)
--		page_cache_release(cached_page);
-+  	if (desc.cached_page)
-+  		page_cache_release(desc.cached_page);
+ /**
+@@ -841,7 +939,7 @@ void __init timekeeping_init(void)
  
- 	/*
- 	 * For now, when the user asks for O_SYNC, we'll actually give O_DSYNC
+ 	ntp_clear();
+ 
+-	clock = clocksource_get_next();
++	clock = clocksource_get_best_clock();
+ 	clocksource_calculate_interval(clock, tick_nsec);
+ 	clock->cycle_last = clocksource_read(clock);
+ 
+@@ -918,6 +1016,17 @@ static int __init timekeeping_init_devic
+ 	int error = sysdev_class_register(&timekeeping_sysclass);
+ 	if (!error)
+ 		error = sysdev_register(&device_timer);
++
++#ifdef CONFIG_GENERIC_TIME
++	clocksource_sysfs_register(&attr_timeofday_clocksource);
++
++	/*
++	 * All the clocks should be registered at this point,
++	 * so it's safe to trigger a switch to a higher res
++	 * clock.
++	 */
++	atomic_inc(&clock_check);
++#endif
+ 	return error;
+ }
+ 
+@@ -1070,11 +1179,27 @@ static void update_wall_time(void)
+ 	clock->xtime_nsec -= (s64)xtime.tv_nsec << clock->shift;
+ 
+ 	/* check to see if there is a new clocksource to use */
+-	if (change_clocksource()) {
++	if (unlikely(atomic_read(&clock_check))) {
++
++		/*
++		 * Switch to the new override clock, or the highest
++		 * rated clock.
++		 */
++		if (*clock_override_name)
++			change_clocksource(clock_override_name);
++		else
++			change_clocksource(NULL);
++
+ 		clock->error = 0;
+ 		clock->xtime_nsec = 0;
+ 		hrtimer_clock_notify();
+ 		clocksource_calculate_interval(clock, tick_nsec);
++
++		/*
++		 * Remove the change signal
++		 */
++		atomic_dec(&clock_check);
++
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from vs@namesys.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-fix-trivial-tyops-which-were-hard-to-hit.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-bug-fixes.patch
-reiser4-fix-gcc-ws-compains.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-vs-streamline-generic_file_-interfaces-and-filemap.patch
-reiser4-rename-generic_sounding_globalspatch.patch
-reiser4-possible-cleanups-2.patch
-reiser4-temp-fix.patch
-fs-reiser4-more-possible-cleanups.patch
-reiser4-use-null-for-pointers.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
+clocksource-small-cleanup-2-fix.patch
+clocksource-small-acpi_pm-cleanup.patch
+profile-likely-unlikely-macros.patch
+profile_likely-export-do_check_likely.patch
 
