@@ -1,220 +1,520 @@
 From: akpm@osdl.org
-Subject: - char-isicom-remove-isa-code.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:37 -0800
-Message-ID: <200612082008.kB8K8blm002621@shell0.pdx.osdl.net>
+Subject: - tty-preparatory-structures-for-termios-revamp.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:16 -0800
+Message-ID: <200612082008.kB8K8Gxv002594@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58286 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58227 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946236AbWLHUIt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:08:49 -0500
+	id S1946171AbWLHUIg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:08:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, remove isa code
+     tty: preparatory structures for termios revamp
 has been removed from the -mm tree.  Its filename was
-     char-isicom-remove-isa-code.patch
+     tty-preparatory-structures-for-termios-revamp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, remove isa code
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: tty: preparatory structures for termios revamp
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-ISA is not supported by this driver, remove parts, that take care of this.
+In order to sort out our struct termios and add proper speed control we need
+to separate the kernel and user termios structures.  Glibc is fine but the
+other libraries rely on the kernel exported struct termios and we need to
+extend this without breaking the ABI/API
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+To do so we add a struct ktermios which is the kernel view of a termios
+structure and overlaps the struct termios with extra fields on the end for
+now.  (That limitation will go away in later patches).  Some platforms (eg
+alpha) planned ahead and thus use the same struct for both, others did not.
+
+This just adds the structures but does not use them, it seems a sensible
+splitting point for bisect if there are compile failures (not that I expect
+them)
+
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |   91 +++++++++-------------------------------
- 1 file changed, 21 insertions(+), 70 deletions(-)
+ drivers/net/wireless/strip.c   |    2 +-
+ include/asm-alpha/termbits.h   |   13 +++++++++++++
+ include/asm-arm/termbits.h     |   12 ++++++++++++
+ include/asm-arm26/termbits.h   |   12 ++++++++++++
+ include/asm-avr32/termbits.h   |   11 +++++++++++
+ include/asm-cris/termbits.h    |   11 +++++++++++
+ include/asm-frv/termbits.h     |   11 +++++++++++
+ include/asm-h8300/termbits.h   |   11 +++++++++++
+ include/asm-i386/termbits.h    |   11 +++++++++++
+ include/asm-ia64/termbits.h    |   11 +++++++++++
+ include/asm-m32r/termbits.h    |   11 +++++++++++
+ include/asm-m68k/termbits.h    |   11 +++++++++++
+ include/asm-mips/termbits.h    |   11 +++++++++++
+ include/asm-parisc/termbits.h  |   11 +++++++++++
+ include/asm-powerpc/termbits.h |   13 +++++++++++++
+ include/asm-s390/termbits.h    |   11 +++++++++++
+ include/asm-sh/termbits.h      |   11 +++++++++++
+ include/asm-sparc/termbits.h   |   12 ++++++++++++
+ include/asm-sparc64/termbits.h |   12 ++++++++++++
+ include/asm-v850/termbits.h    |   11 +++++++++++
+ include/asm-x86_64/termbits.h  |   11 +++++++++++
+ 21 files changed, 229 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-remove-isa-code drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-remove-isa-code
-+++ a/drivers/char/isicom.c
-@@ -193,7 +193,6 @@ struct	isi_board {
- 	unsigned short		shift_count;
- 	struct isi_port		* ports;
- 	signed char		count;
--	unsigned char		isa;
- 	spinlock_t		card_lock; /* Card wide lock 11/5/00 -sameer */
- 	unsigned long		flags;
- };
-@@ -562,14 +561,12 @@ static irqreturn_t isicom_interrupt(int 
- 	base = card->base;
- 	spin_lock(&card->card_lock);
- 
--	if (card->isa == NO) {
--		/*
--		 * disable any interrupts from the PCI card and lower the
--		 * interrupt line
--		 */
--		outw(0x8000, base+0x04);
--		ClearInterrupt(base);
--	}
-+	/*
-+	 * disable any interrupts from the PCI card and lower the
-+	 * interrupt line
-+	 */
-+	outw(0x8000, base+0x04);
-+	ClearInterrupt(base);
- 
- 	inw(base);		/* get the dummy word out */
- 	header = inw(base);
-@@ -579,19 +576,13 @@ static irqreturn_t isicom_interrupt(int 
- 	if (channel + 1 > card->port_count) {
- 		printk(KERN_WARNING "ISICOM: isicom_interrupt(0x%lx): "
- 			"%d(channel) > port_count.\n", base, channel+1);
--		if (card->isa)
--			ClearInterrupt(base);
--		else
--			outw(0x0000, base+0x04); /* enable interrupts */
-+		outw(0x0000, base+0x04); /* enable interrupts */
- 		spin_unlock(&card->card_lock);
- 		return IRQ_HANDLED;
- 	}
- 	port = card->ports + channel;
- 	if (!(port->flags & ASYNC_INITIALIZED)) {
--		if (card->isa)
--			ClearInterrupt(base);
--		else
--			outw(0x0000, base+0x04); /* enable interrupts */
-+		outw(0x0000, base+0x04); /* enable interrupts */
- 		return IRQ_HANDLED;
- 	}
- 
-@@ -604,10 +595,7 @@ static irqreturn_t isicom_interrupt(int 
- 		}
- 		if (byte_count & 0x01)
- 			inw(base);
--		if (card->isa == YES)
--			ClearInterrupt(base);
--		else
--			outw(0x0000, base+0x04); /* enable interrupts */
-+		outw(0x0000, base+0x04); /* enable interrupts */
- 		spin_unlock(&card->card_lock);
- 		return IRQ_HANDLED;
- 	}
-@@ -708,10 +696,7 @@ static irqreturn_t isicom_interrupt(int 
- 		}
- 		tty_flip_buffer_push(tty);
- 	}
--	if (card->isa == YES)
--		ClearInterrupt(base);
--	else
--		outw(0x0000, base+0x04); /* enable interrupts */
-+	outw(0x0000, base+0x04); /* enable interrupts */
- 
- 	return IRQ_HANDLED;
- }
-@@ -1561,36 +1546,23 @@ static int __devinit reset_card(struct p
- 
- 	*signature = inw(base + 0x4) & 0xff;
- 
--	if (board->isa == YES) {
--		if (!(inw(base + 0xe) & 0x1) || (inw(base + 0x2))) {
--			dev_dbg(&pdev->dev, "base+0x2=0x%lx, base+0xe=0x%lx\n",
--				inw(base + 0x2), inw(base + 0xe));
--			dev_err(&pdev->dev, "ISILoad:ISA Card%d reset failure "
--				"(Possible bad I/O Port Address 0x%lx).\n",
--				card + 1, base);
--			retval = -EIO;
--			goto end;
--		}
--	} else {
--		portcount = inw(base + 0x2);
--		if (!(inw(base + 0xe) & 0x1) || ((portcount != 0) &&
--				(portcount != 4) && (portcount != 8))) {
--			dev_dbg(&pdev->dev, "base+0x2=0x%lx, base+0xe=0x%lx\n",
--				inw(base + 0x2), inw(base + 0xe));
--			dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure "
--				"(Possible bad I/O Port Address 0x%lx).\n",
--				card + 1, base);
--			retval = -EIO;
--			goto end;
--		}
-+	portcount = inw(base + 0x2);
-+	if (!(inw(base + 0xe) & 0x1) || ((portcount != 0) &&
-+			(portcount != 4) && (portcount != 8))) {
-+		dev_dbg(&pdev->dev, "base+0x2=0x%lx, base+0xe=0x%lx\n",
-+			inw(base + 0x2), inw(base + 0xe));
-+		dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure "
-+			"(Possible bad I/O Port Address 0x%lx).\n",
-+			card + 1, base);
-+		retval = -EIO;
-+		goto end;
- 	}
- 
- 	switch (*signature) {
- 	case 0xa5:
- 	case 0xbb:
- 	case 0xdd:
--		board->port_count = (board->isa == NO && portcount == 4) ? 4 :
--			8;
-+		board->port_count = (portcount == 4) ? 4 : 8;
- 		board->shift_count = 12;
- 		break;
- 	case 0xcc:
-@@ -1784,8 +1756,6 @@ end:
- /*
-  *	Insmod can set static symbols so keep these static
+diff -puN drivers/net/wireless/strip.c~tty-preparatory-structures-for-termios-revamp drivers/net/wireless/strip.c
+--- a/drivers/net/wireless/strip.c~tty-preparatory-structures-for-termios-revamp
++++ a/drivers/net/wireless/strip.c
+@@ -798,7 +798,7 @@ static unsigned int get_baud(struct tty_
   */
--static int io[4];
--static int irq[4];
- static int card;
+ static void set_baud(struct tty_struct *tty, unsigned int baudcode)
+ {
+-	struct termios old_termios = *(tty->termios);
++	struct ktermios old_termios = *(tty->termios);
+ 	tty->termios->c_cflag &= ~CBAUD;	/* Clear the old baud setting */
+ 	tty->termios->c_cflag |= baudcode;	/* Set the new baud setting */
+ 	tty->driver->set_termios(tty, &old_termios);
+diff -puN include/asm-alpha/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-alpha/termbits.h
+--- a/include/asm-alpha/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-alpha/termbits.h
+@@ -25,6 +25,19 @@ struct termios {
+ 	speed_t c_ospeed;		/* output speed */
+ };
  
- static int __devinit isicom_probe(struct pci_dev *pdev,
-@@ -1813,7 +1783,6 @@ static int __devinit isicom_probe(struct
++/* Alpha has matching termios and ktermios */
++
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_cc[NCCS];		/* control characters */
++	cc_t c_line;			/* line discipline (== c_cc[19]) */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VEOF 0
+ #define VEOL 1
+diff -puN include/asm-arm/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-arm/termbits.h
+--- a/include/asm-arm/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-arm/termbits.h
+@@ -15,6 +15,18 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
  
- 	board->base = ioaddr;
- 	board->irq = pciirq;
--	board->isa = NO;
- 	card++;
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-arm26/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-arm26/termbits.h
+--- a/include/asm-arm26/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-arm26/termbits.h
+@@ -15,6 +15,18 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
  
- 	pci_set_drvdata(pdev, board);
-@@ -1888,20 +1857,6 @@ static int __init isicom_init(void)
-  		}
- 		isi_card[idx].base = 0;
- 		isi_card[idx].irq = 0;
--
--		if (!io[idx])
--			continue;
--
--		if (irq[idx] == 2 || irq[idx] == 3 || irq[idx] == 4	||
--				irq[idx] == 5	|| irq[idx] == 7	||
--				irq[idx] == 10	|| irq[idx] == 11	||
--				irq[idx] == 12	|| irq[idx] == 15) {
--			printk(KERN_ERR "ISICOM: ISA not supported yet.\n");
--			retval = -EINVAL;
--			goto error;
--		} else
--			printk(KERN_ERR "ISICOM: Irq %d unsupported. "
--				"Disabling Card%d...\n", irq[idx], idx + 1);
- 	}
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-avr32/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-avr32/termbits.h
+--- a/include/asm-avr32/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-avr32/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
  
- 	/* tty driver structure initialization */
-@@ -1971,7 +1926,3 @@ module_exit(isicom_exit);
- MODULE_AUTHOR("MultiTech");
- MODULE_DESCRIPTION("Driver for the ISI series of cards by MultiTech");
- MODULE_LICENSE("GPL");
--module_param_array(io, int, NULL, 0);
--MODULE_PARM_DESC(io, "I/O ports for the cards");
--module_param_array(irq, int, NULL, 0);
--MODULE_PARM_DESC(irq, "Interrupts for the cards");
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-cris/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-cris/termbits.h
+--- a/include/asm-cris/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-cris/termbits.h
+@@ -19,6 +19,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-frv/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-frv/termbits.h
+--- a/include/asm-frv/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-frv/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-h8300/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-h8300/termbits.h
+--- a/include/asm-h8300/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-h8300/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-i386/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-i386/termbits.h
+--- a/include/asm-i386/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-i386/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-ia64/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-ia64/termbits.h
+--- a/include/asm-ia64/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-ia64/termbits.h
+@@ -26,6 +26,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-m32r/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-m32r/termbits.h
+--- a/include/asm-m32r/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-m32r/termbits.h
+@@ -19,6 +19,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-m68k/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-m68k/termbits.h
+--- a/include/asm-m68k/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-m68k/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-mips/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-mips/termbits.h
+--- a/include/asm-mips/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-mips/termbits.h
+@@ -30,6 +30,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR		 0		/* Interrupt character [ISIG].  */
+ #define VQUIT		 1		/* Quit character [ISIG].  */
+diff -puN include/asm-parisc/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-parisc/termbits.h
+--- a/include/asm-parisc/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-parisc/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-powerpc/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-powerpc/termbits.h
+--- a/include/asm-powerpc/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-powerpc/termbits.h
+@@ -30,6 +30,19 @@ struct termios {
+ 	speed_t c_ospeed;		/* output speed */
+ };
+ 
++/* For PowerPC the termios and ktermios are the same */
++
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 	         0
+ #define VQUIT 	         1
+diff -puN include/asm-s390/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-s390/termbits.h
+--- a/include/asm-s390/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-s390/termbits.h
+@@ -25,6 +25,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-sh/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-sh/termbits.h
+--- a/include/asm-sh/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-sh/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-sparc/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-sparc/termbits.h
+--- a/include/asm-sparc/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-sparc/termbits.h
+@@ -31,6 +31,18 @@ struct termios {
+ #endif
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR    0
+ #define VQUIT    1
+diff -puN include/asm-sparc64/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-sparc64/termbits.h
+--- a/include/asm-sparc64/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-sparc64/termbits.h
+@@ -33,6 +33,18 @@ struct termios {
+ #endif
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	cc_t _x_cc[2];                  /* We need them to hold vmin/vtime */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR    0
+ #define VQUIT    1
+diff -puN include/asm-v850/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-v850/termbits.h
+--- a/include/asm-v850/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-v850/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
+diff -puN include/asm-x86_64/termbits.h~tty-preparatory-structures-for-termios-revamp include/asm-x86_64/termbits.h
+--- a/include/asm-x86_64/termbits.h~tty-preparatory-structures-for-termios-revamp
++++ a/include/asm-x86_64/termbits.h
+@@ -17,6 +17,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ /* c_cc characters */
+ #define VINTR 0
+ #define VQUIT 1
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-char-isicom-remove-isa-code.patch
-char-isicom-remove-unneeded-memset.patch
-char-isicom-move-to-tty_register_device.patch
-char-isicom-use-pci_request_region.patch
-char-isicom-check-kmalloc-retval.patch
+origin.patch
+tty-preparatory-structures-for-termios-revamp.patch
+tty-switch-to-ktermios-and-new-framework.patch
+tty-switch-to-ktermios.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
+termios-enable-new-style-termios-ioctls-on-x86-64.patch
 char-isicom-use-completion.patch
 char-isicom-simplify-timer.patch
 char-isicom-remove-cvs-stuff.patch
@@ -258,4 +558,42 @@ char-cyclades-save-indent-levels.patch
 char-cyclades-lindent-the-code.patch
 char-cyclades-cleanup.patch
 char-cyclades-fix-warnings.patch
+ide-more-conversion-to-pci_get-apis.patch
+pdc202xx_new-fix-pio-mode-setup.patch
+sl82c105-straighten-up-ide-control-status-register-caching.patch
+igafb-switch-to-pci_get-api.patch
+tty-switch-to-ktermios-nozomi-fix.patch
+ata-fix-platform_device_register_simple-error-check.patch
+initializer-entry-defined-twice-in-pata_rz1000.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-mtd.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pci-quirks-fix-the-festering-mess-that-claims-to-handle-ide-quirks-ide-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+via-sb600-sata-quirk.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+ide-complete-switch-to-pci_get.patch
+ide-hpt3xxn-clocking-fixes.patch
+ide-fix-hpt37x-timing-tables.patch
+ide-optimize-hpt37x-timing-tables.patch
+ide-fix-hpt3xx-hotswap-support.patch
+ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch
+ide-hpt3xx-fix-pci-clock-detection.patch
+ide-hpt3xx-fix-pci-clock-detection-fix-2.patch
+piix-fix-82371mx-enablebits.patch
+piix-remove-check-for-broken-mw-dma-mode-0.patch
+piix-slc90e66-pio-mode-fallback-fix.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+ide-cd-handle-strange-interrupt-on-the-intel-esb2.patch
 
