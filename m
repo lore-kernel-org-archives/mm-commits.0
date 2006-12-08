@@ -1,89 +1,74 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-cris.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:56 -0800
-Message-ID: <200612082002.kB8K2umx002022@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-hpfs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:03:20 -0800
+Message-ID: <200612082003.kB8K3KMl002061@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57094 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57143 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426251AbWLHUDB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:01 -0500
+	id S1426274AbWLHUDZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:03:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert cris
+     struct path: convert hpfs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-cris.patch
+     struct-path-convert-hpfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert cris
+Subject: struct path: convert hpfs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/cris/arch-v32/drivers/sync_serial.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/hpfs/dir.c  |    4 ++--
+ fs/hpfs/file.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/cris/arch-v32/drivers/sync_serial.c~struct-path-convert-cris arch/cris/arch-v32/drivers/sync_serial.c
---- a/arch/cris/arch-v32/drivers/sync_serial.c~struct-path-convert-cris
-+++ a/arch/cris/arch-v32/drivers/sync_serial.c
-@@ -504,7 +504,7 @@ static int sync_serial_release(struct in
+diff -puN fs/hpfs/dir.c~struct-path-convert-hpfs fs/hpfs/dir.c
+--- a/fs/hpfs/dir.c~struct-path-convert-hpfs
++++ a/fs/hpfs/dir.c
+@@ -24,7 +24,7 @@ static loff_t hpfs_dir_lseek(struct file
+ 	loff_t new_off = off + (whence == 1 ? filp->f_pos : 0);
+ 	loff_t pos;
+ 	struct quad_buffer_head qbh;
+-	struct inode *i = filp->f_dentry->d_inode;
++	struct inode *i = filp->f_path.dentry->d_inode;
+ 	struct hpfs_inode_info *hpfs_inode = hpfs_i(i);
+ 	struct super_block *s = i->i_sb;
  
- static unsigned int sync_serial_poll(struct file *file, poll_table *wait)
+@@ -52,7 +52,7 @@ fail:
+ 
+ static int hpfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
  {
--	int dev = iminor(file->f_dentry->d_inode);
-+	int dev = iminor(file->f_path.dentry->d_inode);
- 	unsigned int mask = 0;
- 	sync_port* port;
- 	DEBUGPOLL( static unsigned int prev_mask = 0; );
-@@ -531,7 +531,7 @@ static int sync_serial_ioctl(struct inod
- 		  unsigned int cmd, unsigned long arg)
- {
- 	int return_val = 0;
--	int dev = iminor(file->f_dentry->d_inode);
-+	int dev = iminor(file->f_path.dentry->d_inode);
- 	sync_port* port;
- 	reg_sser_rw_tr_cfg tr_cfg;
- 	reg_sser_rw_rec_cfg rec_cfg;
-@@ -789,7 +789,7 @@ static int sync_serial_ioctl(struct inod
- static ssize_t sync_serial_write(struct file * file, const char * buf,
-                                  size_t count, loff_t *ppos)
- {
--	int dev = iminor(file->f_dentry->d_inode);
-+	int dev = iminor(file->f_path.dentry->d_inode);
- 	DECLARE_WAITQUEUE(wait, current);
- 	sync_port *port;
- 	unsigned long c, c1;
-@@ -919,7 +919,7 @@ static ssize_t sync_serial_write(struct 
- static ssize_t sync_serial_read(struct file * file, char * buf,
- 				size_t count, loff_t *ppos)
- {
--	int dev = iminor(file->f_dentry->d_inode);
-+	int dev = iminor(file->f_path.dentry->d_inode);
- 	int avail;
- 	sync_port *port;
- 	unsigned char* start;
+-	struct inode *inode = filp->f_dentry->d_inode;
++	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct hpfs_inode_info *hpfs_inode = hpfs_i(inode);
+ 	struct quad_buffer_head qbh;
+ 	struct hpfs_dirent *de;
+diff -puN fs/hpfs/file.c~struct-path-convert-hpfs fs/hpfs/file.c
+--- a/fs/hpfs/file.c~struct-path-convert-hpfs
++++ a/fs/hpfs/file.c
+@@ -115,7 +115,7 @@ static ssize_t hpfs_file_write(struct fi
+ 
+ 	retval = do_sync_write(file, buf, count, ppos);
+ 	if (retval > 0)
+-		hpfs_i(file->f_dentry->d_inode)->i_dirty = 1;
++		hpfs_i(file->f_path.dentry->d_inode)->i_dirty = 1;
+ 	return retval;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-cris.patch
-struct-path-convert-drm.patch
-struct-path-convert-efs.patch
-struct-path-convert-freevxfs.patch
-struct-path-convert-frv.patch
-struct-path-convert-fuse.patch
-struct-path-convert-gfs2.patch
-struct-path-convert-hfs.patch
-struct-path-convert-hfsplus.patch
-struct-path-convert-hostfs.patch
 struct-path-convert-hpfs.patch
 struct-path-convert-hppfs.patch
 struct-path-convert-hugetlbfs.patch
