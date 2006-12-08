@@ -1,105 +1,283 @@
 From: akpm@osdl.org
-Subject: - sys_unshare-remove-a-broken-clone_sighand-code.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:00:12 -0800
-Message-ID: <200612082000.kB8K0C3Z001714@shell0.pdx.osdl.net>
+Subject: - m32r-bootloader-support-for-opsput-platform.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 11:59:31 -0800
+Message-ID: <200612081959.kB8JxVMR001626@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56540 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56504 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426191AbWLHUAT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:00:19 -0500
+	id S1426191AbWLHUAK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:00:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: takata@linux-m32r.org, inaoka@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_unshare: remove a broken CLONE_SIGHAND code
+     m32r: bootloader support for OPSPUT platform
 has been removed from the -mm tree.  Its filename was
-     sys_unshare-remove-a-broken-clone_sighand-code.patch
+     m32r-bootloader-support-for-opsput-platform.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sys_unshare: remove a broken CLONE_SIGHAND code
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: m32r: bootloader support for OPSPUT platform
+From: Hirokazu Takata <takata@linux-m32r.org>
 
-sys_unshare(CLONE_SIGHAND) is broken, the code under 'if (new_sigh)' is
-never executed but very wrong. Just remove it to avoid a confusion,
-task_lock() has nothing to do with ->sighand changing.
+This patch supports "m32r-g00ff" bootloader for an OPSPUT platform.
 
-Also, change the comment in unshare_sighand(). Yes, CLONE_THREAD implies
-CLONE_SIGHAND, but still it looks confusing. Also, we don't need to check
-current->sighand != NULL.
+Applying this patch, it is possible to do ATA-boot from an IDE drive or
+HTTP-boot from network by m32r-g00ff.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+    * arch/m32r/boot/compressed/m32r_sio.c: Fix hangup on OPSPUT at boot.
+
+    * arch/m32r/kernel/io_opsput.c: IDE support for OPSPUT.
+    * arch/m32r/kernel/setup_opsput.c: ditto.
+    * include/asm-m32r/ide.h: ditto.
+
+Signed-off-by: Kazuhiro Inaoka <inaoka@linux-m32r.org>
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/fork.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ arch/m32r/boot/compressed/m32r_sio.c |    7 ++
+ arch/m32r/kernel/io_opsput.c         |   71 ++++++++++++++++++++++++-
+ arch/m32r/kernel/setup_opsput.c      |   17 ++---
+ include/asm-m32r/ide.h               |    3 -
+ 4 files changed, 84 insertions(+), 14 deletions(-)
 
-diff -puN kernel/fork.c~sys_unshare-remove-a-broken-clone_sighand-code kernel/fork.c
---- a/kernel/fork.c~sys_unshare-remove-a-broken-clone_sighand-code
-+++ a/kernel/fork.c
-@@ -1544,15 +1544,13 @@ static int unshare_namespace(unsigned lo
+diff -puN arch/m32r/boot/compressed/m32r_sio.c~m32r-bootloader-support-for-opsput-platform arch/m32r/boot/compressed/m32r_sio.c
+--- a/arch/m32r/boot/compressed/m32r_sio.c~m32r-bootloader-support-for-opsput-platform
++++ a/arch/m32r/boot/compressed/m32r_sio.c
+@@ -2,6 +2,7 @@
+  * arch/m32r/boot/compressed/m32r_sio.c
+  *
+  * 2003-02-12:	Takeo Takahashi
++ * 2006-11-30:	OPSPUT support by Kazuhiro Inaoka
+  *
+  */
+ 
+@@ -16,7 +17,7 @@ static int puts(const char *s)
+ 	return 0;
  }
  
- /*
-- * Unsharing of sighand for tasks created with CLONE_SIGHAND is not
-- * supported yet
-+ * Unsharing of sighand is not supported yet
-  */
- static int unshare_sighand(unsigned long unshare_flags, struct sighand_struct **new_sighp)
+-#if defined(CONFIG_PLAT_M32700UT_Alpha) || defined(CONFIG_PLAT_M32700UT)
++#if defined(CONFIG_PLAT_M32700UT_Alpha) || defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_OPSPUT)
+ #include <asm/m32r.h>
+ #include <asm/io.h>
+ 
+@@ -31,7 +32,11 @@ static int puts(const char *s)
+ #define BOOT_SIO0TXB	(volatile unsigned short *)(0x02c00000 + 0x2000c)
+ #else
+ #undef PLD_BASE
++#if defined(CONFIG_PLAT_OPSPUT)
++#define PLD_BASE	0x1cc00000
++#else
+ #define PLD_BASE	0xa4c00000
++#endif
+ #define BOOT_SIO0STS	PLD_ESIO0STS
+ #define BOOT_SIO0TXB	PLD_ESIO0TXB
+ #endif
+diff -puN arch/m32r/kernel/io_opsput.c~m32r-bootloader-support-for-opsput-platform arch/m32r/kernel/io_opsput.c
+--- a/arch/m32r/kernel/io_opsput.c~m32r-bootloader-support-for-opsput-platform
++++ a/arch/m32r/kernel/io_opsput.c
+@@ -30,14 +30,34 @@ extern void pcc_iowrite_byte(int, unsign
+ extern void pcc_iowrite_word(int, unsigned long, void *, size_t, size_t, int);
+ #endif /* CONFIG_PCMCIA && CONFIG_M32R_CFC */
+ 
+-#define PORT2ADDR(port)  _port2addr(port)
+-#define PORT2ADDR_USB(port) _port2addr_usb(port)
++#define PORT2ADDR(port)		_port2addr(port)
++#define PORT2ADDR_USB(port)	_port2addr_usb(port)
+ 
+ static inline void *_port2addr(unsigned long port)
  {
- 	struct sighand_struct *sigh = current->sighand;
+ 	return (void *)(port | NONCACHE_OFFSET);
+ }
  
--	if ((unshare_flags & CLONE_SIGHAND) &&
--	    (sigh && atomic_read(&sigh->count) > 1))
-+	if ((unshare_flags & CLONE_SIGHAND) && atomic_read(&sigh->count) > 1)
- 		return -EINVAL;
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++static inline void *__port2addr_ata(unsigned long port)
++{
++	static int	dummy_reg;
++
++	switch (port) {
++	case 0x1f0:	return (void *)(0x0c002000 | NONCACHE_OFFSET);
++	case 0x1f1:	return (void *)(0x0c012800 | NONCACHE_OFFSET);
++	case 0x1f2:	return (void *)(0x0c012002 | NONCACHE_OFFSET);
++	case 0x1f3:	return (void *)(0x0c012802 | NONCACHE_OFFSET);
++	case 0x1f4:	return (void *)(0x0c012004 | NONCACHE_OFFSET);
++	case 0x1f5:	return (void *)(0x0c012804 | NONCACHE_OFFSET);
++	case 0x1f6:	return (void *)(0x0c012006 | NONCACHE_OFFSET);
++	case 0x1f7:	return (void *)(0x0c012806 | NONCACHE_OFFSET);
++	case 0x3f6:	return (void *)(0x0c01200e | NONCACHE_OFFSET);
++	default: 	return (void *)&dummy_reg;
++	}
++}
++#endif
++
+ /*
+  * OPSPUT-LAN is located in the extended bus space
+  * from 0x10000000 to 0x13ffffff on physical address.
+@@ -97,6 +117,12 @@ unsigned char _inb(unsigned long port)
+ {
+ 	if (port >= LAN_IOSTART && port < LAN_IOEND)
+ 		return _ne_inb(PORT2ADDR_NE(port));
++
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	else if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		return *(volatile unsigned char *)__port2addr_ata(port);
++	}
++#endif
+ #if defined(CONFIG_PCMCIA) && defined(CONFIG_M32R_CFC)
+ 	else if (port >= M32R_PCC_IOSTART0 && port <= M32R_PCC_IOEND0) {
+ 		unsigned char b;
+@@ -112,6 +138,11 @@ unsigned short _inw(unsigned long port)
+ {
+ 	if (port >= LAN_IOSTART && port < LAN_IOEND)
+ 		return _ne_inw(PORT2ADDR_NE(port));
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	else if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		return *(volatile unsigned short *)__port2addr_ata(port);
++	}
++#endif
+ #if defined(CONFIG_USB)
+ 	else if(port >= 0x340 && port < 0x3a0)
+ 		return *(volatile unsigned short *)PORT2ADDR_USB(port);
+@@ -164,6 +195,11 @@ void _outb(unsigned char b, unsigned lon
+ 	if (port >= LAN_IOSTART && port < LAN_IOEND)
+ 		_ne_outb(b, PORT2ADDR_NE(port));
  	else
- 		return 0;
-@@ -1626,7 +1624,7 @@ asmlinkage long sys_unshare(unsigned lon
- 	int err = 0;
- 	struct fs_struct *fs, *new_fs = NULL;
- 	struct namespace *ns, *new_ns = NULL;
--	struct sighand_struct *sigh, *new_sigh = NULL;
-+	struct sighand_struct *new_sigh = NULL;
- 	struct mm_struct *mm, *new_mm = NULL, *active_mm = NULL;
- 	struct files_struct *fd, *new_fd = NULL;
- 	struct sem_undo_list *new_ulist = NULL;
-@@ -1671,7 +1669,7 @@ asmlinkage long sys_unshare(unsigned lon
- 		}
- 	}
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		*(volatile unsigned char *)__port2addr_ata(port) = b;
++	} else
++#endif
+ #if defined(CONFIG_PCMCIA) && defined(CONFIG_M32R_CFC)
+ 	if (port >= M32R_PCC_IOSTART0 && port <= M32R_PCC_IOEND0) {
+ 		pcc_iowrite_byte(0, port, &b, sizeof(b), 1, 0);
+@@ -177,6 +213,11 @@ void _outw(unsigned short w, unsigned lo
+ 	if (port >= LAN_IOSTART && port < LAN_IOEND)
+ 		_ne_outw(w, PORT2ADDR_NE(port));
+ 	else
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		*(volatile unsigned short *)__port2addr_ata(port) = w;
++	} else
++#endif
+ #if defined(CONFIG_USB)
+ 	if(port >= 0x340 && port < 0x3a0)
+ 		*(volatile unsigned short *)PORT2ADDR_USB(port) = w;
+@@ -222,6 +263,14 @@ void _insb(unsigned int port, void *addr
+ {
+ 	if (port >= LAN_IOSTART && port < LAN_IOEND)
+ 		_ne_insb(PORT2ADDR_NE(port), addr, count);
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	else if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		unsigned char *buf = addr;
++		unsigned char *portp = __port2addr_ata(port);
++		while (count--)
++			*buf++ = *(volatile unsigned char *)portp;
++	}
++#endif
+ #if defined(CONFIG_PCMCIA) && defined(CONFIG_M32R_CFC)
+ 	else if (port >= M32R_PCC_IOSTART0 && port <= M32R_PCC_IOEND0) {
+ 		pcc_ioread_byte(0, port, (void *)addr, sizeof(unsigned char),
+@@ -254,6 +303,12 @@ void _insw(unsigned int port, void *addr
+ 		pcc_ioread_word(9, port, (void *)addr, sizeof(unsigned short),
+ 				count, 1);
+ #endif
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	} else if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		portp = __port2addr_ata(port);
++		while (count--)
++			*buf++ = *(volatile unsigned short *)portp;
++#endif
+ 	} else {
+ 		portp = PORT2ADDR(port);
+ 		while (count--)
+@@ -280,6 +335,12 @@ void _outsb(unsigned int port, const voi
+ 		portp = PORT2ADDR_NE(port);
+ 		while (count--)
+ 			_ne_outb(*buf++, portp);
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	} else if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		portp = __port2addr_ata(port);
++		while (count--)
++			*(volatile unsigned char *)portp = *buf++;
++#endif
+ #if defined(CONFIG_PCMCIA) && defined(CONFIG_M32R_CFC)
+ 	} else if (port >= M32R_PCC_IOSTART0 && port <= M32R_PCC_IOEND0) {
+ 		pcc_iowrite_byte(0, port, (void *)addr, sizeof(unsigned char),
+@@ -305,6 +366,12 @@ void _outsw(unsigned int port, const voi
+ 		portp = PORT2ADDR_NE(port);
+ 		while (count--)
+ 			*(volatile unsigned short *)portp = *buf++;
++#if defined(CONFIG_IDE) && !defined(CONFIG_M32R_CFC)
++	} else if ((port >= 0x1f0 && port <=0x1f7) || port == 0x3f6) {
++		portp = __port2addr_ata(port);
++		while (count--)
++			*(volatile unsigned short *)portp = *buf++;
++#endif
+ #if defined(CONFIG_PCMCIA) && defined(CONFIG_M32R_CFC)
+ 	} else if (port >= M32R_PCC_IOSTART0 && port <= M32R_PCC_IOEND0) {
+ 		pcc_iowrite_word(9, port, (void *)addr, sizeof(unsigned short),
+diff -puN arch/m32r/kernel/setup_opsput.c~m32r-bootloader-support-for-opsput-platform arch/m32r/kernel/setup_opsput.c
+--- a/arch/m32r/kernel/setup_opsput.c~m32r-bootloader-support-for-opsput-platform
++++ a/arch/m32r/kernel/setup_opsput.c
+@@ -218,13 +218,13 @@ static void shutdown_opsput_lanpld_irq(u
  
--	if (new_fs || new_ns || new_sigh || new_mm || new_fd || new_ulist ||
-+	if (new_fs || new_ns || new_mm || new_fd || new_ulist ||
- 				new_uts || new_ipc) {
+ static struct hw_interrupt_type opsput_lanpld_irq_type =
+ {
+-	"OPSPUT-PLD-LAN-IRQ",
+-	startup_opsput_lanpld_irq,
+-	shutdown_opsput_lanpld_irq,
+-	enable_opsput_lanpld_irq,
+-	disable_opsput_lanpld_irq,
+-	mask_and_ack_opsput_lanpld,
+-	end_opsput_lanpld_irq
++	.typename = "OPSPUT-PLD-LAN-IRQ",
++	.startup = startup_opsput_lanpld_irq,
++	.shutdown = shutdown_opsput_lanpld_irq,
++	.enable = enable_opsput_lanpld_irq,
++	.disable = disable_opsput_lanpld_irq,
++	.ack = mask_and_ack_opsput_lanpld,
++	.end = end_opsput_lanpld_irq
+ };
  
- 		task_lock(current);
-@@ -1693,12 +1691,6 @@ asmlinkage long sys_unshare(unsigned lon
- 			new_ns = ns;
- 		}
+ /*
+@@ -374,7 +374,6 @@ void __init init_IRQ(void)
+ 	disable_opsput_pld_irq(PLD_IRQ_SIO0_SND);
+ #endif  /* CONFIG_SERIAL_M32R_PLDSIO */
  
--		if (new_sigh) {
--			sigh = current->sighand;
--			rcu_assign_pointer(current->sighand, new_sigh);
--			new_sigh = sigh;
--		}
+-#if defined(CONFIG_M32R_CFC)
+ 	/* INT#1: CFC IREQ on PLD */
+ 	irq_desc[PLD_IRQ_CFIREQ].status = IRQ_DISABLED;
+ 	irq_desc[PLD_IRQ_CFIREQ].chip = &opsput_pld_irq_type;
+@@ -398,8 +397,6 @@ void __init init_IRQ(void)
+ 	irq_desc[PLD_IRQ_CFC_EJECT].depth = 1;	/* disable nested irq */
+ 	pld_icu_data[irq2pldirq(PLD_IRQ_CFC_EJECT)].icucr = PLD_ICUCR_IEN|PLD_ICUCR_ISMOD02;	/* 'H' edge sense */
+ 	disable_opsput_pld_irq(PLD_IRQ_CFC_EJECT);
+-#endif /* CONFIG_M32R_CFC */
 -
- 		if (new_mm) {
- 			mm = current->mm;
- 			active_mm = current->active_mm;
+ 
+ 	/*
+ 	 * INT0# is used for LAN, DIO
+diff -puN include/asm-m32r/ide.h~m32r-bootloader-support-for-opsput-platform include/asm-m32r/ide.h
+--- a/include/asm-m32r/ide.h~m32r-bootloader-support-for-opsput-platform
++++ a/include/asm-m32r/ide.h
+@@ -32,7 +32,8 @@
+ static __inline__ int ide_default_irq(unsigned long base)
+ {
+ 	switch (base) {
+-#if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_MAPPI2)
++#if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_MAPPI2) \
++	|| defined(CONFIG_PLAT_OPSPUT)
+ 		case 0x1f0: return PLD_IRQ_CFIREQ;
+ 		default:
+ 			return 0;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from takata@linux-m32r.org are
 
-origin.patch
-sys_unshare-remove-a-broken-clone_sighand-code.patch
-sys_setpgid-eliminate-unnecessary-do_each_task_pidpidtype_pgid.patch
-session_of_pgrp-kill-unnecessary-do_each_task_pidpidtype_pgid.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-pidhash-temporary-debug-checks.patch
+m32r-bootloader-support-for-opsput-platform.patch
 
