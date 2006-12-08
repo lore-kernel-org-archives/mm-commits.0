@@ -1,251 +1,332 @@
 From: akpm@osdl.org
-Subject: - fault-injection-Kconfig-cleanup.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:11:27 -0800
-Message-ID: <200612082011.kB8KBRdw002917@shell0.pdx.osdl.net>
+Subject: - fault-injection-stacktrace-filtering.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:11:24 -0800
+Message-ID: <200612082011.kB8KBOAN002914@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59161 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59140 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946622AbWLHULz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:11:55 -0500
+	id S1946642AbWLHULv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:11:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, akinobu.mita@gmail.com, dwm@meer.net, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, dwm@meer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault-injection Kconfig cleanup
+     fault injection: stacktrace filtering
 has been removed from the -mm tree.  Its filename was
-     fault-injection-Kconfig-cleanup.patch
+     fault-injection-stacktrace-filtering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault-injection Kconfig cleanup
-From: Andrew Morton <akpm@osdl.org>
+Subject: fault injection: stacktrace filtering
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-- Fix some spelling and grammatical errors
+This patch provides stacktrace filtering feature.
 
-- Make the Kconfig menu more conventional.  First you select
-  fault-injection, then under that you select particular clients of it.
+The stacktrace filter allows failing only for the caller you are
+interested in.
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Don Mullis <dwm@meer.net>
+For example someone may want to inject kmalloc() failures into
+only e100 module. they want to inject not only direct kmalloc() call,
+but also indirect allocation, too.
+
+- e100_poll --> netif_receive_skb --> packet_rcv_spkt --> skb_clone
+  --> kmem_cache_alloc
+
+This patch enables to detect function calls like this by stacktrace
+and inject failures. The script Documentaion/fault-injection/failmodule.sh
+helps it.
+
+The range of text section of loaded e100 is expected to be
+[/sys/module/e100/sections/.text, /sys/module/e100/sections/.exit.text)
+
+So failmodule.sh stores these values into /debug/failslab/address-start
+and /debug/failslab/address-end. The maximum stacktrace depth is specified
+by /debug/failslab/stacktrace-depth.
+
+Please see the example that demonstrates how to inject slab allocation
+failures only for a specific module
+in Documentation/fault-injection/fault-injection.txt
+
+[dwm@meer.net: reject failure if any caller lies within specified range]
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Don Mullis <dwm@meer.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/Kconfig.debug |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ Documentation/fault-injection/fault-injection.txt |   12 -
+ include/linux/fault-inject.h                      |   12 +
+ lib/Kconfig.debug                                 |    5 
+ lib/fault-inject.c                                |  126 +++++++++++-
+ 4 files changed, 150 insertions(+), 5 deletions(-)
 
-diff -puN lib/Kconfig.debug~fault-injection-Kconfig-cleanup lib/Kconfig.debug
---- a/lib/Kconfig.debug~fault-injection-Kconfig-cleanup
+diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-stacktrace-filtering Documentation/fault-injection/fault-injection.txt
+--- a/Documentation/fault-injection/fault-injection.txt~fault-injection-stacktrace-filtering
++++ a/Documentation/fault-injection/fault-injection.txt
+@@ -73,13 +73,17 @@ configuration of fault-injection capabil
+ 	Any positive value limits failures to only processes indicated by
+ 	/proc/<pid>/make-it-fail==1.
+ 
+-- /debug/*/address-start:
+-- /debug/*/address-end:
++- /debug/*/require-start:
++- /debug/*/require-end:
++- /debug/*/reject-start:
++- /debug/*/reject-end:
+ 
+ 	specifies the range of virtual addresses tested during
+ 	stacktrace walking.  Failure is injected only if some caller
+-	in the walked stacktrace lies within this range.
+-	Default is [0,ULONG_MAX) (whole of virtual address space).
++	in the walked stacktrace lies within the required range, and
++	none lies within the rejected range.
++	Default required range is [0,ULONG_MAX) (whole of virtual address space).
++	Default rejected range is [0,0).
+ 
+ - /debug/*/stacktrace-depth:
+ 
+diff -puN include/linux/fault-inject.h~fault-injection-stacktrace-filtering include/linux/fault-inject.h
+--- a/include/linux/fault-inject.h~fault-injection-stacktrace-filtering
++++ a/include/linux/fault-inject.h
+@@ -18,6 +18,11 @@ struct fault_attr {
+ 	atomic_t space;
+ 	unsigned long verbose;
+ 	u32 task_filter;
++	unsigned long stacktrace_depth;
++	unsigned long require_start;
++	unsigned long require_end;
++	unsigned long reject_start;
++	unsigned long reject_end;
+ 
+ 	unsigned long count;
+ 
+@@ -32,6 +37,11 @@ struct fault_attr {
+ 		struct dentry *space_file;
+ 		struct dentry *verbose_file;
+ 		struct dentry *task_filter_file;
++		struct dentry *stacktrace_depth_file;
++		struct dentry *require_start_file;
++		struct dentry *require_end_file;
++		struct dentry *reject_start_file;
++		struct dentry *reject_end_file;
+ 	} dentries;
+ 
+ #endif
+@@ -40,6 +50,8 @@ struct fault_attr {
+ #define FAULT_ATTR_INITIALIZER {				\
+ 		.interval = 1,					\
+ 		.times = ATOMIC_INIT(1),			\
++		.require_end = ULONG_MAX,			\
++		.stacktrace_depth = 32,				\
+ 	}
+ 
+ #define DECLARE_FAULT_ATTR(name) struct fault_attr name = FAULT_ATTR_INITIALIZER
+diff -puN lib/Kconfig.debug~fault-injection-stacktrace-filtering lib/Kconfig.debug
+--- a/lib/Kconfig.debug~fault-injection-stacktrace-filtering
 +++ a/lib/Kconfig.debug
-@@ -415,7 +415,8 @@ config LKDTM
- 	drivers/misc/lkdtm.c
+@@ -416,6 +416,11 @@ config LKDTM
  
  config FAULT_INJECTION
--	bool
-+	bool "Fault-injection framework"
-+	depends on DEBUG_KERNEL
- 	select STACKTRACE
- 	select FRAME_POINTER
- 	help
-@@ -423,31 +424,25 @@ config FAULT_INJECTION
- 	  For more details, see Documentation/fault-injection/.
+ 	bool
++	select STACKTRACE
++	select FRAME_POINTER
++	help
++	  Provide fault-injection framework.
++	  For more details, see Documentation/fault-injection/.
  
  config FAILSLAB
--	bool "Fault-injection capabilitiy for kmalloc"
--	depends on DEBUG_KERNEL
--	select FAULT_INJECTION
-+	bool "Fault-injection capability for kmalloc"
-+	depends on FAULT_INJECTION
- 	help
--	  This option provides fault-injection capabilitiy for kmalloc.
-+	  Provide fault-injection capability for kmalloc.
+ 	bool "Fault-injection capabilitiy for kmalloc"
+diff -puN lib/fault-inject.c~fault-injection-stacktrace-filtering lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-injection-stacktrace-filtering
++++ a/lib/fault-inject.c
+@@ -6,6 +6,9 @@
+ #include <linux/fs.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
++#include <linux/unwind.h>
++#include <linux/stacktrace.h>
++#include <linux/kallsyms.h>
+ #include <linux/fault-inject.h>
  
- config FAIL_PAGE_ALLOC
- 	bool "Fault-injection capabilitiy for alloc_pages()"
--	depends on DEBUG_KERNEL
--	select FAULT_INJECTION
-+	depends on FAULT_INJECTION
- 	help
--	  This option provides fault-injection capabilitiy for alloc_pages().
-+	  Provide fault-injection capability for alloc_pages().
+ /*
+@@ -50,6 +53,86 @@ static int fail_task(struct fault_attr *
+ 	return !in_interrupt() && task->make_it_fail;
+ }
  
- config FAIL_MAKE_REQUEST
- 	bool "Fault-injection capabilitiy for disk IO"
--	depends on DEBUG_KERNEL
--	select FAULT_INJECTION
-+	depends on FAULT_INJECTION
- 	help
--	  This option provides fault-injection capabilitiy to disk IO.
-+	  Provide fault-injection capability for disk IO.
++#ifdef CONFIG_STACK_UNWIND
++
++static asmlinkage int fail_stacktrace_callback(struct unwind_frame_info *info,
++						void *arg)
++{
++	int depth;
++	struct fault_attr *attr = arg;
++	bool found = (attr->require_start == 0 && attr->require_end == ULONG_MAX);
++
++	for (depth = 0; depth < attr->stacktrace_depth
++			&& unwind(info) == 0 && UNW_PC(info); depth++) {
++		if (arch_unw_user_mode(info))
++			break;
++		if (attr->reject_start <= UNW_PC(info) &&
++			       UNW_PC(info) < attr->reject_end)
++			return 0;
++		if (attr->require_start <= UNW_PC(info) &&
++			       UNW_PC(info) < attr->require_end)
++			found = 1;
++	}
++	return found;
++}
++
++static int fail_stacktrace(struct fault_attr *attr)
++{
++	struct unwind_frame_info info;
++
++	return unwind_init_running(&info, fail_stacktrace_callback, attr);
++}
++
++#elif defined(CONFIG_STACKTRACE)
++
++#define MAX_STACK_TRACE_DEPTH 32
++
++static int fail_stacktrace(struct fault_attr *attr)
++{
++	struct stack_trace trace;
++	int depth = attr->stacktrace_depth;
++	unsigned long entries[MAX_STACK_TRACE_DEPTH];
++	int n;
++	bool found = (attr->require_start == 0 && attr->require_end == ULONG_MAX);
++
++	if (depth == 0)
++		return found;
++
++	trace.nr_entries = 0;
++	trace.entries = entries;
++	trace.max_entries = (depth < MAX_STACK_TRACE_DEPTH) ?
++				depth : MAX_STACK_TRACE_DEPTH;
++	trace.skip = 1;
++	trace.all_contexts = 0;
++
++	save_stack_trace(&trace, NULL);
++	for (n = 0; n < trace.nr_entries; n++) {
++		if (attr->reject_start <= entries[n] &&
++			       entries[n] < attr->reject_end)
++			return 0;
++		if (attr->require_start <= entries[n] &&
++			       entries[n] < attr->require_end)
++			found = 1;
++	}
++	return found;
++}
++
++#else
++
++static inline int fail_stacktrace(struct fault_attr *attr)
++{
++	static int firsttime = 1;
++
++	if (firsttime) {
++		printk(KERN_WARNING
++		"This architecture does not implement save_stack_trace()\n");
++		firsttime = 0;
++	}
++	return 0;
++}
++
++#endif
++
+ /*
+  * This code is stolen from failmalloc-1.0
+  * http://www.nongnu.org/failmalloc/
+@@ -60,6 +143,9 @@ int should_fail(struct fault_attr *attr,
+ 	if (attr->task_filter && !fail_task(attr, current))
+ 		return 0;
  
- config FAULT_INJECTION_DEBUG_FS
- 	bool "Debugfs entries for fault-injection capabilities"
--	depends on FAULT_INJECTION && SYSFS
--	select DEBUG_FS
-+	depends on FAULT_INJECTION && SYSFS && DEBUG_FS
- 	help
--	  This option enable configuration of fault-injection capabilities via
--	  debugfs.
--
-+	  Enable configuration of fault-injection capabilities via debugfs.
++	if (!fail_stacktrace(attr))
++		return 0;
++
+ 	if (atomic_read(&attr->times) == 0)
+ 		return 0;
+ 
+@@ -147,6 +233,21 @@ void cleanup_fault_attr_dentries(struct 
+ 	debugfs_remove(attr->dentries.task_filter_file);
+ 	attr->dentries.task_filter_file = NULL;
+ 
++	debugfs_remove(attr->dentries.stacktrace_depth_file);
++	attr->dentries.stacktrace_depth_file = NULL;
++
++	debugfs_remove(attr->dentries.require_start_file);
++	attr->dentries.require_start_file = NULL;
++
++	debugfs_remove(attr->dentries.require_end_file);
++	attr->dentries.require_end_file = NULL;
++
++	debugfs_remove(attr->dentries.reject_start_file);
++	attr->dentries.reject_start_file = NULL;
++
++	debugfs_remove(attr->dentries.reject_end_file);
++	attr->dentries.reject_end_file = NULL;
++
+ 	if (attr->dentries.dir)
+ 		WARN_ON(!simple_empty(attr->dentries.dir));
+ 
+@@ -184,9 +285,32 @@ int init_fault_attr_dentries(struct faul
+ 	attr->dentries.task_filter_file = debugfs_create_bool("task-filter",
+ 						mode, dir, &attr->task_filter);
+ 
++	attr->dentries.stacktrace_depth_file =
++		debugfs_create_ul("stacktrace-depth", mode, dir,
++				  &attr->stacktrace_depth);
++
++	attr->dentries.require_start_file =
++		debugfs_create_ul("require-start", mode, dir, &attr->require_start);
++
++	attr->dentries.require_end_file =
++		debugfs_create_ul("require-end", mode, dir, &attr->require_end);
++
++	attr->dentries.reject_start_file =
++		debugfs_create_ul("reject-start", mode, dir, &attr->reject_start);
++
++	attr->dentries.reject_end_file =
++		debugfs_create_ul("reject-end", mode, dir, &attr->reject_end);
++
++
+ 	if (!attr->dentries.probability_file || !attr->dentries.interval_file
+ 	    || !attr->dentries.times_file || !attr->dentries.space_file
+-	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file)
++	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file
++	    || !attr->dentries.stacktrace_depth_file
++	    || !attr->dentries.require_start_file
++	    || !attr->dentries.require_end_file
++	    || !attr->dentries.reject_start_file
++	    || !attr->dentries.reject_end_file
++	    )
+ 		goto fail;
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+fault-injection-stacktrace-filtering.patch
 fault-injection-Kconfig-cleanup.patch
 fault-injection-stacktrace-filtering-kconfig-fix.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
-video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
-gxfb-fixups-for-the-amd-geode-gx.patch
-gxfb-support-flat-panel-timings.patch
-gxfb-support-command-line-options.patch
-proc_misc-build-fix.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+fault-injection-correct-disambiguate-and.patch
+fault-injection-use-bool-true-false-throughout.patch
+fault-injection-clamp-debugfs-stacktrace-depth-to.patch
+fault-injection-optimize-and-simplify.patch
+fault-injection-defaults-likely-to-please-a-new.patch
+acpi-fix-single-linked-list-manipulation.patch
+acpi-processor-prevent-loading-module-on-failures.patch
 git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
+audit-fix-kstrdup-error-check.patch
+drm-fix-return-value-check.patch
+ata-fix-platform_device_register_simple-error-check.patch
 git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-s390-workqueue-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+gss_spkm3-fix-error-handling-in-module-init.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+iscsi-fix-crypto_alloc_hash-error-check.patch
 
