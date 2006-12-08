@@ -1,78 +1,100 @@
 From: akpm@osdl.org
-Subject: - fault-injection-optimize-and-simplify.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:11:43 -0800
-Message-ID: <200612082011.kB8KBhbA002943@shell0.pdx.osdl.net>
+Subject: - ioremap-balanced-with-iounmap-for-drivers-video-virgefb.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:12:13 -0800
+Message-ID: <200612082012.kB8KCDtV002988@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59213 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59229 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946647AbWLHUML (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:12:11 -0500
+	id S1946681AbWLHUMR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:12:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwm@meer.net, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: amol@verismonetworks.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault-injection: optimize and simplify should_fail()
+     ioremap balanced with iounmap for drivers/video/virgefb
 has been removed from the -mm tree.  Its filename was
-     fault-injection-optimize-and-simplify.patch
+     ioremap-balanced-with-iounmap-for-drivers-video-virgefb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault-injection: optimize and simplify should_fail()
-From: Don Mullis <dwm@meer.net>
+Subject: ioremap balanced with iounmap for drivers/video/virgefb
+From: Amol Lad <amol@verismonetworks.com>
 
-Trivial optimization and simplification of should_fail().
+ioremap must be balanced by an iounmap and failing to do so can result in a
+memory leak.
 
-Do cheaper disqualification tests first (performance gain not quantified). 
-Simplify logic; eliminate goto.
-
-Signed-off-by: Don Mullis <dwm@meer.net>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Amol Lad <amol@verismonetworks.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/fault-inject.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/video/virgefb.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN lib/fault-inject.c~fault-injection-optimize-and-simplify lib/fault-inject.c
---- a/lib/fault-inject.c~fault-injection-optimize-and-simplify
-+++ a/lib/fault-inject.c
-@@ -142,9 +142,6 @@ bool should_fail(struct fault_attr *attr
- 	if (attr->task_filter && !fail_task(attr, current))
- 		return false;
- 
--	if (!fail_stacktrace(attr))
--		return false;
--
- 	if (atomic_read(&attr->times) == 0)
- 		return false;
- 
-@@ -159,12 +156,12 @@ bool should_fail(struct fault_attr *attr
- 			return false;
+diff -puN drivers/video/virgefb.c~ioremap-balanced-with-iounmap-for-drivers-video-virgefb drivers/video/virgefb.c
+--- a/drivers/video/virgefb.c~ioremap-balanced-with-iounmap-for-drivers-video-virgefb
++++ a/drivers/video/virgefb.c
+@@ -1799,7 +1799,7 @@ int __init virgefb_init(void)
+ 		#warning release resources
+ 		printk(KERN_ERR "virgefb.c: register_framebuffer failed\n");
+ 		DPRINTK("EXIT\n");
+-		return -EINVAL;
++		goto out_unmap;
  	}
  
--	if (attr->probability > random32() % 100)
--		goto fail;
-+	if (attr->probability <= random32() % 100)
-+		return false;
+ 	printk(KERN_INFO "fb%d: %s frame buffer device, using %ldK of video memory\n",
+@@ -1809,6 +1809,21 @@ int __init virgefb_init(void)
  
--	return false;
-+	if (!fail_stacktrace(attr))
-+		return false;
+ 	DPRINTK("EXIT\n");
+ 	return 0;
++
++out_unmap:
++	if (board_addr >= 0x01000000) {
++		if (v_ram)
++			iounmap((void*)v_ram);
++		if (vgaio_regs)
++			iounmap(vgaio_regs);
++		if (mmio_regs)
++			iounmap(mmio_regs);
++		if (vcode_switch_base)
++			iounmap((void*)vcode_switch_base);
++		v_ram = vcode_switch_base = 0;
++		vgaio_regs = mmio_regs = NULL;
++	}
++	return -EINVAL;
+ }
  
--fail:
- 	fail_dump(attr);
  
- 	if (atomic_read(&attr->times) != -1)
 _
 
-Patches currently in -mm which might be from dwm@meer.net are
+Patches currently in -mm which might be from amol@verismonetworks.com are
 
-fault-injection-optimize-and-simplify.patch
-fault-injection-defaults-likely-to-please-a-new.patch
-kconfig-refactoring-for-better-menu-nesting.patch
-sched-improve-migration-accuracy-fix.patch
+origin.patch
+ioremap-balanced-with-iounmap-for-drivers-video-virgefb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-vesafb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-tridentfb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-tgafb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-stifb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-retz3fb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-pvr2fb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-platinumfb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-offb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-macfb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-hpfb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-fm2fb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-ffb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-cyberfb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-cirrusfb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-atyfb_base.patch
+ioremap-balanced-with-iounmap-for-drivers-video-atafb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-amifb.patch
+ioremap-balanced-with-iounmap-for-drivers-video-S3triofb.patch
+git-cpufreq.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-megaraidc-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 
