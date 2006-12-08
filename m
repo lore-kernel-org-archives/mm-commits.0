@@ -1,33 +1,34 @@
 From: akpm@osdl.org
-Subject: - clocksource-initialize-list-value.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:05:44 -0800
-Message-ID: <200612081105.kB8B5imV018666@shell0.pdx.osdl.net>
+Subject: - clocksource-remove-update_callback.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:05:42 -0800
+Message-ID: <200612081105.kB8B5gAZ018663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49037 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49126 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425397AbWLHLHB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:07:01 -0500
+	id S1425402AbWLHLHT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:07:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dwalker@mvista.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource: initialize list value
+     clocksource: remove update_callback
 has been removed from the -mm tree.  Its filename was
-     clocksource-initialize-list-value.patch
+     clocksource-remove-update_callback.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: clocksource: initialize list value
+Subject: clocksource: remove update_callback
 From: Daniel Walker <dwalker@mvista.com>
 
-A change to clocksource initialization.  It's optional for new clocksources,
-but prefered.  If the list field is initialized it allows clocksource_register
-to complete faster since it doesn't have the scan the list of clocks doing
-strcmp on each.
+Inorporated John's comment of moving the rating change code into
+mark_tsc_unstable() , then I renamed tsc_update_callback() to tsc_update_khz()
+and added a call to it into places that change the tsc_khz variable.
+
+With the new notifier block the update_callback becomes obsolete.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Cc: john stultz <johnstul@us.ibm.com>
@@ -37,94 +38,143 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/hpet.c          |    1 +
- arch/i386/kernel/i8253.c         |    1 +
- arch/i386/kernel/tsc.c           |    1 +
- drivers/clocksource/acpi_pm.c    |    1 +
- drivers/clocksource/cyclone.c    |    1 +
- drivers/clocksource/scx200_hrt.c |    1 +
- include/linux/clocksource.h      |    3 +++
- 7 files changed, 9 insertions(+)
+ arch/i386/kernel/tsc.c      |   54 +++++++++++++++++-----------------
+ include/linux/clocksource.h |    2 -
+ 2 files changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~clocksource-initialize-list-value arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~clocksource-initialize-list-value
-+++ a/arch/i386/kernel/hpet.c
-@@ -27,6 +27,7 @@ static struct clocksource clocksource_hp
- 	.mult		= 0, /* set below */
- 	.shift		= HPET_SHIFT,
- 	.is_continuous	= 1,
-+	.list		= CLOCKSOURCE_LIST_INIT(clocksource_hpet.list),
- };
- 
- static int __init init_hpet_clocksource(void)
-diff -puN arch/i386/kernel/i8253.c~clocksource-initialize-list-value arch/i386/kernel/i8253.c
---- a/arch/i386/kernel/i8253.c~clocksource-initialize-list-value
-+++ a/arch/i386/kernel/i8253.c
-@@ -184,6 +184,7 @@ static struct clocksource clocksource_pi
- 	.mask	= CLOCKSOURCE_MASK(32),
- 	.mult	= 0,
- 	.shift	= 20,
-+	.list	= CLOCKSOURCE_LIST_INIT(clocksource_pit.list),
- };
- 
- static int __init init_pit_clocksource(void)
-diff -puN arch/i386/kernel/tsc.c~clocksource-initialize-list-value arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~clocksource-initialize-list-value
+diff -puN arch/i386/kernel/tsc.c~clocksource-remove-update_callback arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~clocksource-remove-update_callback
 +++ a/arch/i386/kernel/tsc.c
-@@ -350,6 +350,7 @@ static struct clocksource clocksource_ts
+@@ -50,8 +50,7 @@ static int __init tsc_setup(char *str)
+ __setup("notsc", tsc_setup);
+ 
+ /*
+- * code to mark and check if the TSC is unstable
+- * due to cpufreq or due to unsynced TSCs
++ * Flag that denotes an unstable tsc and check function.
+  */
+ static int tsc_unstable;
+ 
+@@ -60,12 +59,6 @@ static inline int check_tsc_unstable(voi
+ 	return tsc_unstable;
+ }
+ 
+-void mark_tsc_unstable(void)
+-{
+-	tsc_unstable = 1;
+-}
+-EXPORT_SYMBOL_GPL(mark_tsc_unstable);
+-
+ /* Accellerators for sched_clock()
+  * convert from cycles(64bits) => nanoseconds (64bits)
+  *  basic equation:
+@@ -171,6 +164,21 @@ err:
+ 	return 0;
+ }
+ 
++#if !defined(CONFIG_SMP) || defined(CONFIG_CPU_FREQ)
++static struct clocksource clocksource_tsc;
++static unsigned long current_tsc_khz;
++static void tsc_update_khz(void)
++{
++	/* only update if tsc_khz has changed: */
++	if (current_tsc_khz != tsc_khz) {
++		current_tsc_khz = tsc_khz;
++		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
++							clocksource_tsc.shift);
++	}
++
++}
++#endif
++
+ int recalibrate_cpu_khz(void)
+ {
+ #ifndef CONFIG_SMP
+@@ -179,6 +187,7 @@ int recalibrate_cpu_khz(void)
+ 	if (cpu_has_tsc) {
+ 		cpu_khz = calculate_cpu_khz();
+ 		tsc_khz = cpu_khz;
++		tsc_update_khz();
+ 		cpu_data[0].loops_per_jiffy =
+ 			cpufreq_scale(cpu_data[0].loops_per_jiffy,
+ 					cpu_khz_old, cpu_khz);
+@@ -282,6 +291,7 @@ time_cpufreq_notifier(struct notifier_bl
+ 						ref_freq, freq->new);
+ 			if (!(freq->flags & CPUFREQ_CONST_LOOPS)) {
+ 				tsc_khz = cpu_khz;
++				tsc_update_khz();
+ 				set_cyc2ns_scale(cpu_khz);
+ 				/*
+ 				 * TSC based sched_clock turns
+@@ -322,7 +332,6 @@ core_initcall(cpufreq_tsc);
+ /* clock source code */
+ 
+ static unsigned long current_tsc_khz = 0;
+-static int tsc_update_callback(void);
+ 
+ static cycle_t read_tsc(void)
+ {
+@@ -340,31 +349,24 @@ static struct clocksource clocksource_ts
+ 	.mask			= CLOCKSOURCE_MASK(64),
  	.mult			= 0, /* to be set */
  	.shift			= 22,
+-	.update_callback	= tsc_update_callback,
  	.is_continuous		= 1,
-+	.list			= CLOCKSOURCE_LIST_INIT(clocksource_tsc.list),
  };
  
+-static int tsc_update_callback(void)
+-{
+-	int change = 0;
  
-diff -puN drivers/clocksource/acpi_pm.c~clocksource-initialize-list-value drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clocksource-initialize-list-value
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -73,6 +73,7 @@ static struct clocksource clocksource_ac
- 	.mult		= 0, /*to be caluclated*/
- 	.shift		= 22,
- 	.is_continuous	= 1,
-+	.list		= CLOCKSOURCE_LIST_INIT(clocksource_acpi_pm.list),
- };
- 
- 
-diff -puN drivers/clocksource/cyclone.c~clocksource-initialize-list-value drivers/clocksource/cyclone.c
---- a/drivers/clocksource/cyclone.c~clocksource-initialize-list-value
-+++ a/drivers/clocksource/cyclone.c
-@@ -32,6 +32,7 @@ static struct clocksource clocksource_cy
- 	.mult		= 10,
- 	.shift		= 0,
- 	.is_continuous	= 1,
-+	.list		= CLOCKSOURCE_LIST_INIT(clocksource_cyclone.list),
- };
- 
- static int __init init_cyclone_clocksource(void)
-diff -puN drivers/clocksource/scx200_hrt.c~clocksource-initialize-list-value drivers/clocksource/scx200_hrt.c
---- a/drivers/clocksource/scx200_hrt.c~clocksource-initialize-list-value
-+++ a/drivers/clocksource/scx200_hrt.c
-@@ -58,6 +58,7 @@ static struct clocksource cs_hrt = {
- 	.read		= read_hrt,
- 	.mask		= CLOCKSOURCE_MASK(32),
- 	.is_continuous	= 1,
-+	.list		= CLOCKSOURCE_LIST_INIT(cs_hrt.list),
- 	/* mult, shift are set based on mhz27 flag */
- };
- 
-diff -puN include/linux/clocksource.h~clocksource-initialize-list-value include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-initialize-list-value
-+++ a/include/linux/clocksource.h
-@@ -82,6 +82,9 @@ struct clocksource {
- /* simplify initialization of mask field */
- #define CLOCKSOURCE_MASK(bits) (cycle_t)(bits<64 ? ((1ULL<<bits)-1) : -1)
- 
-+/* Abstracted list initialization */
-+#define CLOCKSOURCE_LIST_INIT(x)	LIST_HEAD_INIT(x)
+-	/* check to see if we should switch to the safe clocksource: */
+-	if (clocksource_tsc.rating != 50 && check_tsc_unstable()) {
++/*
++ * code to mark if the TSC is unstable
++ * due to cpufreq or due to unsynced TSCs
++ */
++void mark_tsc_unstable(void)
++{
++	if (unlikely(!tsc_unstable)) {
+ 		clocksource_tsc.rating = 50;
+ 		clocksource_rating_change(&clocksource_tsc);
+-		change = 1;
+ 	}
+-
+-	/* only update if tsc_khz has changed: */
+-	if (current_tsc_khz != tsc_khz) {
+-		current_tsc_khz = tsc_khz;
+-		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
+-							clocksource_tsc.shift);
+-		change = 1;
+-	}
+-
+-	return change;
++	tsc_unstable = 1;
+ }
++EXPORT_SYMBOL_GPL(mark_tsc_unstable);
 +
- /**
-  * clocksource_khz2mult - calculates mult from khz and shift
-  * @khz:		Clocksource frequency in KHz
+ 
+ static int __init dmi_mark_tsc_unstable(struct dmi_system_id *d)
+ {
+diff -puN include/linux/clocksource.h~clocksource-remove-update_callback include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-remove-update_callback
++++ a/include/linux/clocksource.h
+@@ -59,7 +59,6 @@ extern struct clocksource clocksource_ji
+  *			subtraction of non 64 bit counters
+  * @mult:		cycle to nanosecond multiplier
+  * @shift:		cycle to nanosecond divisor (power of two)
+- * @update_callback:	called when safe to alter clocksource values
+  * @is_continuous:	defines if clocksource is free-running.
+  * @cycle_interval:	Used internally by timekeeping core, please ignore.
+  * @xtime_interval:	Used internally by timekeeping core, please ignore.
+@@ -72,7 +71,6 @@ struct clocksource {
+ 	cycle_t mask;
+ 	u32 mult;
+ 	u32 shift;
+-	int (*update_callback)(void);
+ 	int is_continuous;
+ 
+ 	/* timekeeping specific data, ignore */
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
