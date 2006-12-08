@@ -1,36 +1,31 @@
 From: akpm@osdl.org
-Subject: - mbxfb-add-more-registers-to-debugfs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:13:43 -0800
-Message-ID: <200612082013.kB8KDhN8003111@shell0.pdx.osdl.net>
+Subject: - mbxfb-add-more-registers-bits.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:13:39 -0800
+Message-ID: <200612082013.kB8KDdng003108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59778 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59751 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946857AbWLHUOa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:14:30 -0500
+	id S1946824AbWLHUO0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:14:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: raph@8d.com, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mbxfb: add more registers to debugfs
+     mbxfb: Add more registers bits 	access macros
 has been removed from the -mm tree.  Its filename was
-     mbxfb-add-more-registers-to-debugfs.patch
+     mbxfb-add-more-registers-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mbxfb: add more registers to debugfs
+Subject: mbxfb: Add more registers bits 	access macros
 From: Raphael Assenat <raph@8d.com>
 
-This patch fixes debugfs for mbxfb and adds some missing registers.
-
-The way registers were read was out of sync with the rest of the driver (direct
-access instead of using readl())
-
-sdram controller registers are now accessible in the sdram/ subdirectory and
-some other registers are grouped in the misc/ subdirectory.
+This patch adds register bits access macros for chip's Video Plane, Scaling
+and interrupt registers.
 
 Signed-off-by: Raphael Assenat <raph@8d.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
@@ -38,265 +33,160 @@ Acked-by: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/mbx/mbxdebugfs.c |  188 ++++++++++++++++++++-----------
- 1 file changed, 122 insertions(+), 66 deletions(-)
+ drivers/video/mbx/reg_bits.h |  114 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 112 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/mbx/mbxdebugfs.c~mbxfb-add-more-registers-to-debugfs drivers/video/mbx/mbxdebugfs.c
---- a/drivers/video/mbx/mbxdebugfs.c~mbxfb-add-more-registers-to-debugfs
-+++ a/drivers/video/mbx/mbxdebugfs.c
-@@ -10,6 +10,8 @@ struct mbxfb_debugfs_data {
- 	struct dentry *clock;
- 	struct dentry *display;
- 	struct dentry *gsctl;
-+	struct dentry *sdram;
-+	struct dentry *misc;
- };
+diff -puN drivers/video/mbx/reg_bits.h~mbxfb-add-more-registers-bits drivers/video/mbx/reg_bits.h
+--- a/drivers/video/mbx/reg_bits.h~mbxfb-add-more-registers-bits
++++ a/drivers/video/mbx/reg_bits.h
+@@ -242,6 +242,67 @@
+ #define GPLUT_LUTDATA	Fld(24,0)
+ #define Gplut_Lutdata(x)	((x) << FShft(GPLUT_LUTDATA))
  
- static int open_file_generic(struct inode *inode, struct file *file)
-@@ -29,11 +31,11 @@ static ssize_t sysconf_read_file(struct 
- {
- 	char * s = big_buffer;
- 
--	s += sprintf(s, "SYSCFG = %08lx\n", SYSCFG);
--	s += sprintf(s, "PFBASE = %08lx\n", PFBASE);
--	s += sprintf(s, "PFCEIL = %08lx\n", PFCEIL);
--	s += sprintf(s, "POLLFLAG = %08lx\n", POLLFLAG);
--	s += sprintf(s, "SYSRST = %08lx\n", SYSRST);
-+	s += sprintf(s, "SYSCFG = %08x\n", readl(SYSCFG));
-+	s += sprintf(s, "PFBASE = %08x\n", readl(PFBASE));
-+	s += sprintf(s, "PFCEIL = %08x\n", readl(PFCEIL));
-+	s += sprintf(s, "POLLFLAG = %08x\n", readl(POLLFLAG));
-+	s += sprintf(s, "SYSRST = %08x\n", readl(SYSRST));
- 
- 	return  simple_read_from_buffer(userbuf, count, ppos,
- 					big_buffer, s-big_buffer);
-@@ -45,24 +47,24 @@ static ssize_t gsctl_read_file(struct fi
- {
- 	char * s = big_buffer;
- 
--	s += sprintf(s, "GSCTRL = %08lx\n", GSCTRL);
--	s += sprintf(s, "VSCTRL = %08lx\n", VSCTRL);
--	s += sprintf(s, "GBBASE = %08lx\n", GBBASE);
--	s += sprintf(s, "VBBASE = %08lx\n", VBBASE);
--	s += sprintf(s, "GDRCTRL = %08lx\n", GDRCTRL);
--	s += sprintf(s, "VCMSK = %08lx\n", VCMSK);
--	s += sprintf(s, "GSCADR = %08lx\n", GSCADR);
--	s += sprintf(s, "VSCADR = %08lx\n", VSCADR);
--	s += sprintf(s, "VUBASE = %08lx\n", VUBASE);
--	s += sprintf(s, "VVBASE = %08lx\n", VVBASE);
--	s += sprintf(s, "GSADR = %08lx\n", GSADR);
--	s += sprintf(s, "VSADR = %08lx\n", VSADR);
--	s += sprintf(s, "HCCTRL = %08lx\n", HCCTRL);
--	s += sprintf(s, "HCSIZE = %08lx\n", HCSIZE);
--	s += sprintf(s, "HCPOS = %08lx\n", HCPOS);
--	s += sprintf(s, "HCBADR = %08lx\n", HCBADR);
--	s += sprintf(s, "HCCKMSK = %08lx\n", HCCKMSK);
--	s += sprintf(s, "GPLUT = %08lx\n", GPLUT);
-+	s += sprintf(s, "GSCTRL = %08x\n", readl(GSCTRL));
-+	s += sprintf(s, "VSCTRL = %08x\n", readl(VSCTRL));
-+	s += sprintf(s, "GBBASE = %08x\n", readl(GBBASE));
-+	s += sprintf(s, "VBBASE = %08x\n", readl(VBBASE));
-+	s += sprintf(s, "GDRCTRL = %08x\n", readl(GDRCTRL));
-+	s += sprintf(s, "VCMSK = %08x\n", readl(VCMSK));
-+	s += sprintf(s, "GSCADR = %08x\n", readl(GSCADR));
-+	s += sprintf(s, "VSCADR = %08x\n", readl(VSCADR));
-+	s += sprintf(s, "VUBASE = %08x\n", readl(VUBASE));
-+	s += sprintf(s, "VVBASE = %08x\n", readl(VVBASE));
-+	s += sprintf(s, "GSADR = %08x\n", readl(GSADR));
-+	s += sprintf(s, "VSADR = %08x\n", readl(VSADR));
-+	s += sprintf(s, "HCCTRL = %08x\n", readl(HCCTRL));
-+	s += sprintf(s, "HCSIZE = %08x\n", readl(HCSIZE));
-+	s += sprintf(s, "HCPOS = %08x\n", readl(HCPOS));
-+	s += sprintf(s, "HCBADR = %08x\n", readl(HCBADR));
-+	s += sprintf(s, "HCCKMSK = %08x\n", readl(HCCKMSK));
-+	s += sprintf(s, "GPLUT = %08x\n", readl(GPLUT));
- 
- 	return  simple_read_from_buffer(userbuf, count, ppos,
- 					big_buffer, s-big_buffer);
-@@ -73,36 +75,36 @@ static ssize_t display_read_file(struct 
- {
- 	char * s = big_buffer;
- 
--	s += sprintf(s, "DSCTRL = %08lx\n", DSCTRL);
--	s += sprintf(s, "DHT01 = %08lx\n", DHT01);
--	s += sprintf(s, "DHT02 = %08lx\n", DHT02);
--	s += sprintf(s, "DHT03 = %08lx\n", DHT03);
--	s += sprintf(s, "DVT01 = %08lx\n", DVT01);
--	s += sprintf(s, "DVT02 = %08lx\n", DVT02);
--	s += sprintf(s, "DVT03 = %08lx\n", DVT03);
--	s += sprintf(s, "DBCOL = %08lx\n", DBCOL);
--	s += sprintf(s, "BGCOLOR = %08lx\n", BGCOLOR);
--	s += sprintf(s, "DINTRS = %08lx\n", DINTRS);
--	s += sprintf(s, "DINTRE = %08lx\n", DINTRE);
--	s += sprintf(s, "DINTRCNT = %08lx\n", DINTRCNT);
--	s += sprintf(s, "DSIG = %08lx\n", DSIG);
--	s += sprintf(s, "DMCTRL = %08lx\n", DMCTRL);
--	s += sprintf(s, "CLIPCTRL = %08lx\n", CLIPCTRL);
--	s += sprintf(s, "SPOCTRL = %08lx\n", SPOCTRL);
--	s += sprintf(s, "SVCTRL = %08lx\n", SVCTRL);
--	s += sprintf(s, "DLSTS = %08lx\n", DLSTS);
--	s += sprintf(s, "DLLCTRL = %08lx\n", DLLCTRL);
--	s += sprintf(s, "DVLNUM = %08lx\n", DVLNUM);
--	s += sprintf(s, "DUCTRL = %08lx\n", DUCTRL);
--	s += sprintf(s, "DVECTRL = %08lx\n", DVECTRL);
--	s += sprintf(s, "DHDET = %08lx\n", DHDET);
--	s += sprintf(s, "DVDET = %08lx\n", DVDET);
--	s += sprintf(s, "DODMSK = %08lx\n", DODMSK);
--	s += sprintf(s, "CSC01 = %08lx\n", CSC01);
--	s += sprintf(s, "CSC02 = %08lx\n", CSC02);
--	s += sprintf(s, "CSC03 = %08lx\n", CSC03);
--	s += sprintf(s, "CSC04 = %08lx\n", CSC04);
--	s += sprintf(s, "CSC05 = %08lx\n", CSC05);
-+	s += sprintf(s, "DSCTRL = %08x\n", readl(DSCTRL));
-+	s += sprintf(s, "DHT01 = %08x\n", readl(DHT01));
-+	s += sprintf(s, "DHT02 = %08x\n", readl(DHT02));
-+	s += sprintf(s, "DHT03 = %08x\n", readl(DHT03));
-+	s += sprintf(s, "DVT01 = %08x\n", readl(DVT01));
-+	s += sprintf(s, "DVT02 = %08x\n", readl(DVT02));
-+	s += sprintf(s, "DVT03 = %08x\n", readl(DVT03));
-+	s += sprintf(s, "DBCOL = %08x\n", readl(DBCOL));
-+	s += sprintf(s, "BGCOLOR = %08x\n", readl(BGCOLOR));
-+	s += sprintf(s, "DINTRS = %08x\n", readl(DINTRS));
-+	s += sprintf(s, "DINTRE = %08x\n", readl(DINTRE));
-+	s += sprintf(s, "DINTRCNT = %08x\n", readl(DINTRCNT));
-+	s += sprintf(s, "DSIG = %08x\n", readl(DSIG));
-+	s += sprintf(s, "DMCTRL = %08x\n", readl(DMCTRL));
-+	s += sprintf(s, "CLIPCTRL = %08x\n", readl(CLIPCTRL));
-+	s += sprintf(s, "SPOCTRL = %08x\n", readl(SPOCTRL));
-+	s += sprintf(s, "SVCTRL = %08x\n", readl(SVCTRL));
-+	s += sprintf(s, "DLSTS = %08x\n", readl(DLSTS));
-+	s += sprintf(s, "DLLCTRL = %08x\n", readl(DLLCTRL));
-+	s += sprintf(s, "DVLNUM = %08x\n", readl(DVLNUM));
-+	s += sprintf(s, "DUCTRL = %08x\n", readl(DUCTRL));
-+	s += sprintf(s, "DVECTRL = %08x\n", readl(DVECTRL));
-+	s += sprintf(s, "DHDET = %08x\n", readl(DHDET));
-+	s += sprintf(s, "DVDET = %08x\n", readl(DVDET));
-+	s += sprintf(s, "DODMSK = %08x\n", readl(DODMSK));
-+	s += sprintf(s, "CSC01 = %08x\n", readl(CSC01));
-+	s += sprintf(s, "CSC02 = %08x\n", readl(CSC02));
-+	s += sprintf(s, "CSC03 = %08x\n", readl(CSC03));
-+	s += sprintf(s, "CSC04 = %08x\n", readl(CSC04));
-+	s += sprintf(s, "CSC05 = %08x\n", readl(CSC05));
- 
- 	return  simple_read_from_buffer(userbuf, count, ppos,
- 					big_buffer, s-big_buffer);
-@@ -113,24 +115,61 @@ static ssize_t clock_read_file(struct fi
- {
- 	char * s = big_buffer;
- 
--	s += sprintf(s, "SYSCLKSRC = %08lx\n", SYSCLKSRC);
--	s += sprintf(s, "PIXCLKSRC = %08lx\n", PIXCLKSRC);
--	s += sprintf(s, "CLKSLEEP = %08lx\n", CLKSLEEP);
--	s += sprintf(s, "COREPLL = %08lx\n", COREPLL);
--	s += sprintf(s, "DISPPLL = %08lx\n", DISPPLL);
--	s += sprintf(s, "PLLSTAT = %08lx\n", PLLSTAT);
--	s += sprintf(s, "VOVRCLK = %08lx\n", VOVRCLK);
--	s += sprintf(s, "PIXCLK = %08lx\n", PIXCLK);
--	s += sprintf(s, "MEMCLK = %08lx\n", MEMCLK);
--	s += sprintf(s, "M24CLK = %08lx\n", M24CLK);
--	s += sprintf(s, "MBXCLK = %08lx\n", MBXCLK);
--	s += sprintf(s, "SDCLK = %08lx\n", SDCLK);
--	s += sprintf(s, "PIXCLKDIV = %08lx\n", PIXCLKDIV);
-+	s += sprintf(s, "SYSCLKSRC = %08x\n", readl(SYSCLKSRC));
-+	s += sprintf(s, "PIXCLKSRC = %08x\n", readl(PIXCLKSRC));
-+	s += sprintf(s, "CLKSLEEP = %08x\n", readl(CLKSLEEP));
-+	s += sprintf(s, "COREPLL = %08x\n", readl(COREPLL));
-+	s += sprintf(s, "DISPPLL = %08x\n", readl(DISPPLL));
-+	s += sprintf(s, "PLLSTAT = %08x\n", readl(PLLSTAT));
-+	s += sprintf(s, "VOVRCLK = %08x\n", readl(VOVRCLK));
-+	s += sprintf(s, "PIXCLK = %08x\n", readl(PIXCLK));
-+	s += sprintf(s, "MEMCLK = %08x\n", readl(MEMCLK));
-+	s += sprintf(s, "M24CLK = %08x\n", readl(M24CLK));
-+	s += sprintf(s, "MBXCLK = %08x\n", readl(MBXCLK));
-+	s += sprintf(s, "SDCLK = %08x\n", readl(SDCLK));
-+	s += sprintf(s, "PIXCLKDIV = %08x\n", readl(PIXCLKDIV));
- 
- 	return  simple_read_from_buffer(userbuf, count, ppos,
- 					big_buffer, s-big_buffer);
- }
- 
-+static ssize_t sdram_read_file(struct file *file, char __user *userbuf,
-+			       size_t count, loff_t *ppos)
-+{
-+	char * s = big_buffer;
++/* VSCTRL - Video Surface Control Register */
++#define VSCTRL_VPIXFMT		Fld(4,27)
++#define VSCTRL_VPIXFMT_YUV12	((0x9) << FShft(VSCTRL_VPIXFMT))
++#define VSCTRL_VPIXFMT_UY0VY1	((0xc) << FShft(VSCTRL_VPIXFMT))
++#define VSCTRL_VPIXFMT_VY0UY1	((0xd) << FShft(VSCTRL_VPIXFMT))
++#define VSCTRL_VPIXFMT_Y0UY1V	((0xe) << FShft(VSCTRL_VPIXFMT))
++#define VSCTRL_VPIXFMT_Y0VY1U	((0xf) << FShft(VSCTRL_VPIXFMT))
++#define VSCTRL_GAMMA_EN		(1 << 26)
++#define VSCTRL_CSC_EN		(1 << 25)
++#define VSCTRL_COSITED		(1 << 22)
++#define VSCTRL_VSWIDTH		Fld(11,11)
++#define Vsctrl_Width(Pixels) /* Video Width [1-2048] */ \
++			(((Pixels) - 1) << FShft(VSCTRL_VSWIDTH))
++#define VSCTRL_VSHEIGHT		Fld(11,0)
++#define Vsctrl_Height(Pixels) /* Video Height [1-2048] */ \
++			(((Pixels) - 1) << FShft(VSCTRL_VSHEIGHT))
 +
-+	s += sprintf(s, "LMRST = %08x\n", readl(LMRST));
-+	s += sprintf(s, "LMCFG = %08x\n", readl(LMCFG));
-+	s += sprintf(s, "LMPWR = %08x\n", readl(LMPWR));
-+	s += sprintf(s, "LMPWRSTAT = %08x\n", readl(LMPWRSTAT));
-+	s += sprintf(s, "LMCEMR = %08x\n", readl(LMCEMR));
-+	s += sprintf(s, "LMTYPE = %08x\n", readl(LMTYPE));
-+	s += sprintf(s, "LMTIM = %08x\n", readl(LMTIM));
-+	s += sprintf(s, "LMREFRESH = %08x\n", readl(LMREFRESH));
-+	s += sprintf(s, "LMPROTMIN = %08x\n", readl(LMPROTMIN));
-+	s += sprintf(s, "LMPROTMAX = %08x\n", readl(LMPROTMAX));
-+	s += sprintf(s, "LMPROTCFG = %08x\n", readl(LMPROTCFG));
-+	s += sprintf(s, "LMPROTERR = %08x\n", readl(LMPROTERR));
++/* VBBASE - Video Blending Base Register */
++#define VBBASE_GLALPHA		Fld(8,24)
++#define Vbbase_Glalpha(x)	((x) << FShft(VBBASE_GLALPHA))
 +
-+	return  simple_read_from_buffer(userbuf, count, ppos,
-+					big_buffer, s-big_buffer);
-+}
++#define VBBASE_COLKEY		Fld(24,0)
++#define Vbbase_Colkey(x)	((x) << FShft(VBBASE_COLKEY))
 +
-+static ssize_t misc_read_file(struct file *file, char __user *userbuf,
-+			       size_t count, loff_t *ppos)
-+{
-+	char * s = big_buffer;
++/* VCMSK - Video Color Key Mask Register */
++#define VCMSK_COLKEY_M		Fld(24,0)
++#define Vcmsk_colkey_m(x)	((x) << FShft(VCMSK_COLKEY_M))
 +
-+	s += sprintf(s, "LCD_CONFIG = %08x\n", readl(LCD_CONFIG));
-+	s += sprintf(s, "ODFBPWR = %08x\n", readl(ODFBPWR));
-+	s += sprintf(s, "ODFBSTAT = %08x\n", readl(ODFBSTAT));
-+	s += sprintf(s, "ID = %08x\n", readl(ID));
++/* VSCADR - Video Stream Control Rddress Register */
++#define VSCADR_STR_EN		(1 << 31)
++#define VSCADR_COLKEY_EN	(1 << 30)
++#define VSCADR_COLKEYSRC	(1 << 29)
++#define VSCADR_BLEND_M		Fld(2,27)
++#define VSCADR_BLEND_NONE	((0x0) << FShft(VSCADR_BLEND_M))
++#define VSCADR_BLEND_INV	((0x1) << FShft(VSCADR_BLEND_M))
++#define VSCADR_BLEND_GLOB	((0x2) << FShft(VSCADR_BLEND_M))
++#define VSCADR_BLEND_PIX	((0x3) << FShft(VSCADR_BLEND_M))
++#define VSCADR_BLEND_POS	Fld(2,24)
++#define VSCADR_BLEND_GFX	((0x0) << FShft(VSCADR_BLEND_POS))
++#define VSCADR_BLEND_VID	((0x1) << FShft(VSCADR_BLEND_POS))
++#define VSCADR_BLEND_CUR	((0x2) << FShft(VSCADR_BLEND_POS))
++#define VSCADR_VBASE_ADR	Fld(23,0)
++#define Vscadr_Vbase_Adr(x)	((x) << FShft(VSCADR_VBASE_ADR))
 +
-+	return  simple_read_from_buffer(userbuf, count, ppos,
-+					big_buffer, s-big_buffer);
-+}
++/* VUBASE - Video U Base Register */
++#define VUBASE_UVHALFSTR	(1 << 31)
++#define VUBASE_UBASE_ADR	Fld(24,0)
++#define Vubase_Ubase_Adr(x)	((x) << FShft(VUBASE_UBASE_ADR))
 +
++/* VVBASE - Video V Base Register */
++#define VVBASE_VBASE_ADR	Fld(24,0)
++#define Vvbase_Vbase_Adr(x)	((x) << FShft(VVBASE_VBASE_ADR))
 +
- static struct file_operations sysconf_fops = {
- 	.read = sysconf_read_file,
- 	.write = write_file_dummy,
-@@ -155,6 +194,17 @@ static struct file_operations gsctl_fops
- 	.open = open_file_generic,
- };
++/* VSADR - Video Stride Address Register */
++#define VSADR_SRCSTRIDE		Fld(10,22)
++#define Vsadr_Srcstride(x)	((x) << FShft(VSADR_SRCSTRIDE))
++#define VSADR_XSTART		Fld(11,11)
++#define Vsadr_Xstart(x)		((x) << FShft(VSADR_XSTART))
++#define VSADR_YSTART		Fld(11,0)
++#define Vsadr_Ystart(x)		((x) << FShft(VSADR_YSTART))
++
+ /* HCCTRL - Hardware Cursor Register fields */
+ #define HCCTRL_CUR_EN	(1 << 31)
+ #define HCCTRL_COLKEY_EN	(1 << 29)
+@@ -394,6 +455,30 @@
+ #define DMCTRL_BURSTLEN	Fld(6,0)
+ #define Dmctrl_Burstlen(x)	((x) << FShft(DMCTRL_BURSTLEN))
  
-+static struct file_operations sdram_fops = {
-+	.read = sdram_read_file,
-+	.write = write_file_dummy,
-+	.open = open_file_generic,
-+};
++/* DINTRS - Display Interrupt Status Register */
++#define DINTRS_CUR_OR_S		(1 << 18)
++#define DINTRS_STR2_OR_S	(1 << 17)
++#define DINTRS_STR1_OR_S	(1 << 16)
++#define DINTRS_CUR_UR_S		(1 << 6)
++#define DINTRS_STR2_UR_S	(1 << 5)
++#define DINTRS_STR1_UR_S	(1 << 4)
++#define DINTRS_VEVENT1_S	(1 << 3)
++#define DINTRS_VEVENT0_S	(1 << 2)
++#define DINTRS_HBLNK1_S		(1 << 1)
++#define DINTRS_HBLNK0_S		(1 << 0)
 +
-+static struct file_operations misc_fops = {
-+	.read = misc_read_file,
-+	.write = write_file_dummy,
-+	.open = open_file_generic,
-+};
++/* DINTRE - Display Interrupt Enable Register */
++#define DINTRE_CUR_OR_EN	(1 << 18)
++#define DINTRE_STR2_OR_EN	(1 << 17)
++#define DINTRE_STR1_OR_EN	(1 << 16)
++#define DINTRE_CUR_UR_EN	(1 << 6)
++#define DINTRE_STR2_UR_EN	(1 << 5)
++#define DINTRE_STR1_UR_EN	(1 << 4)
++#define DINTRE_VEVENT1_EN	(1 << 3)
++#define DINTRE_VEVENT0_EN	(1 << 2)
++#define DINTRE_HBLNK1_EN	(1 << 1)
++#define DINTRE_HBLNK0_EN	(1 << 0)
++
  
- static void __devinit mbxfb_debugfs_init(struct fb_info *fbi)
- {
-@@ -173,6 +223,10 @@ static void __devinit mbxfb_debugfs_init
- 				      fbi, &display_fops);
- 	dbg->gsctl = debugfs_create_file("gsctl", 0444, dbg->dir,
- 				    fbi, &gsctl_fops);
-+	dbg->sdram = debugfs_create_file("sdram", 0444, dbg->dir,
-+					fbi, &sdram_fops);
-+	dbg->misc = debugfs_create_file("misc", 0444, dbg->dir,
-+					fbi, &misc_fops);
- }
+ /* DLSTS - display load status register */
+ #define DLSTS_RLD_ADONE	(1 << 23)
+@@ -403,16 +488,41 @@
+ #define DLLCTRL_RLD_ADRLN	Fld(8,24)
+ #define Dllctrl_Rld_Adrln(x)	((x) << FShft(DLLCTRL_RLD_ADRLN))
  
- static void __devexit mbxfb_debugfs_remove(struct fb_info *fbi)
-@@ -180,6 +234,8 @@ static void __devexit mbxfb_debugfs_remo
- 	struct mbxfb_info *mfbi = fbi->par;
- 	struct mbxfb_debugfs_data *dbg = mfbi->debugfs_data;
++/* CLIPCTRL - Clipping Control Register */
++#define CLIPCTRL_HSKIP		Fld(11,16)
++#define Clipctrl_Hskip		((x) << FShft(CLIPCTRL_HSKIP))
++#define CLIPCTRL_VSKIP		Fld(11,0)
++#define Clipctrl_Vskip		((x) << FShft(CLIPCTRL_VSKIP))
++
+ /* SPOCTRL - Scale Pitch/Order Control Register */
+ #define SPOCTRL_H_SC_BP		(1 << 31)
+ #define SPOCTRL_V_SC_BP		(1 << 30)
+ #define SPOCTRL_HV_SC_OR	(1 << 29)
+ #define SPOCTRL_VS_UR_C		(1 << 27)
+-#define SPOCTRL_VORDER	Fld(2,16)
++#define SPOCTRL_VORDER		Fld(2,16)
+ #define SPOCTRL_VORDER_1TAP	((0x0) << FShft(SPOCTRL_VORDER))
+ #define SPOCTRL_VORDER_2TAP	((0x1) << FShft(SPOCTRL_VORDER))
+ #define SPOCTRL_VORDER_4TAP	((0x3) << FShft(SPOCTRL_VORDER))
+-#define SPOCTRL_VPITCH	Fld(16,0)
++#define SPOCTRL_VPITCH		Fld(16,0)
+ #define Spoctrl_Vpitch(x)	((x) << FShft(SPOCTRL_VPITCH))
  
-+	debugfs_remove(dbg->misc);
-+	debugfs_remove(dbg->sdram);
- 	debugfs_remove(dbg->gsctl);
- 	debugfs_remove(dbg->display);
- 	debugfs_remove(dbg->clock);
++/* SVCTRL - Scale Vertical Control Register */
++#define SVCTRL_INITIAL1		Fld(16,16)
++#define Svctrl_Initial1(x)	((x) << FShft(SVCTRL_INITIAL1))
++#define SVCTRL_INITIAL2		Fld(16,0)
++#define Svctrl_Initial2(x)	((x) << FShft(SVCTRL_INITIAL2))
++
++/* SHCTRL - Scale Horizontal Control Register */
++#define SHCTRL_HINITIAL		Fld(16,16)
++#define Shctrl_Hinitial(x)	((x) << FShft(SHCTRL_HINITIAL))
++#define SHCTRL_HDECIM		(1 << 15)
++#define SHCTRL_HPITCH		Fld(15,0)
++#define Shctrl_Hpitch(x)	((x) << FShft(SHCTRL_HPITCH))
++
++/* SSSIZE - Scale Surface Size Register */
++#define SSSIZE_SC_WIDTH		Fld(11,16)
++#define Sssize_Sc_Width(x)	((x) << FShft(SSSIZE_SC_WIDTH))
++#define SSSIZE_SC_HEIGHT	Fld(11,0)
++#define Sssize_Sc_Height(x)	((x) << FShft(SSSIZE_SC_HEIGHT))
++
+ #endif /* __REG_BITS_2700G_ */
 _
 
 Patches currently in -mm which might be from raph@8d.com are
 
+mbxfb-add-more-registers-bits.patch
 mbxfb-add-more-registers-to-debugfs.patch
 mbxfb-add-yuv-video-overlay-support.patch
 mbxfb-document-the-new-ioctl.patch
