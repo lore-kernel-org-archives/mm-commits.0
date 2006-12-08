@@ -1,83 +1,81 @@
 From: akpm@osdl.org
-Subject: - annotate-some-variables-in-vesafb.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:13:28 -0800
-Message-ID: <200612082013.kB8KDS1I003094@shell0.pdx.osdl.net>
+Subject: - video-get-the-default-mode-from-the-right-database.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:13:13 -0800
+Message-ID: <200612082013.kB8KDDdl003076@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59555 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59552 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946748AbWLHUNh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:13:37 -0500
+	id S1946746AbWLHUNg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:13:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: jordan.crouse@amd.com, adaplas@pol.net, geert@linux-m68k.org, jsimmons@infradead.org, teanropo@jyu.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     annotate some variables in vesafb driver as __read_mostly
+     video: Get the default mode from the right database
 has been removed from the -mm tree.  Its filename was
-     annotate-some-variables-in-vesafb.patch
+     video-get-the-default-mode-from-the-right-database.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: annotate some variables in vesafb driver as __read_mostly
-From: Helge Deller <deller@gmx.de>
+Subject: video: Get the default mode from the right database
+From: Jordan Crouse <jordan.crouse@amd.com>
 
-- annotate some variables in vesafb driver as __read_mostly
+If no default mode is specified, it should be grabbed from the supplied
+database, not the default one.
 
-Signed-off-by: Helge Deller <deller@gmx.de>
-Acked-by: James Simmons <jsimmons@infradead.org>
+[teanropo@jyu.fi: fix it]
+[akpm@osdl.org: simplify it]
+[akpm@osdl.org: remove pointless DEFAULT_MODEDB_INDEX]
+Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Tero Roponen <teanropo@jyu.fi>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/vesafb.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/video/modedb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/vesafb.c~annotate-some-variables-in-vesafb drivers/video/vesafb.c
---- a/drivers/video/vesafb.c~annotate-some-variables-in-vesafb
-+++ a/drivers/video/vesafb.c
-@@ -47,17 +47,16 @@ static struct fb_fix_screeninfo vesafb_f
- 	.accel	= FB_ACCEL_NONE,
- };
+diff -puN drivers/video/modedb.c~video-get-the-default-mode-from-the-right-database drivers/video/modedb.c
+--- a/drivers/video/modedb.c~video-get-the-default-mode-from-the-right-database
++++ a/drivers/video/modedb.c
+@@ -34,8 +34,6 @@ const char *global_mode_option;
+      *  Standard video mode definitions (taken from XFree86)
+      */
  
--static int             inverse   = 0;
--static int             mtrr      = 0; /* disable mtrr */
--static int	       vram_remap __initdata = 0; /* Set amount of memory to be used */
--static int	       vram_total __initdata = 0; /* Set total amount of memory */
--static int             pmi_setpal = 1;	/* pmi for palette changes ??? */
--static int             ypan       = 0;  /* 0..nothing, 1..ypan, 2..ywrap */
--static unsigned short  *pmi_base  = NULL;
--static void            (*pmi_start)(void);
--static void            (*pmi_pal)(void);
--static int             depth;
--static int             vga_compat;
-+static int   inverse    __read_mostly;
-+static int   mtrr       __read_mostly;		/* disable mtrr */
-+static int   vram_remap __initdata;		/* Set amount of memory to be used */
-+static int   vram_total __initdata;		/* Set total amount of memory */
-+static int   pmi_setpal __read_mostly = 1;	/* pmi for palette changes ??? */
-+static int   ypan       __read_mostly;		/* 0..nothing, 1..ypan, 2..ywrap */
-+static void  (*pmi_start)(void) __read_mostly;
-+static void  (*pmi_pal)  (void) __read_mostly;
-+static int   depth      __read_mostly;
-+static int   vga_compat __read_mostly;
- /* --------------------------------------------------------------------- */
+-#define DEFAULT_MODEDB_INDEX	0
+-
+ static const struct fb_videomode modedb[] = {
+     {
+ 	/* 640x400 @ 70 Hz, 31.5 kHz hsync */
+@@ -505,8 +503,10 @@ int fb_find_mode(struct fb_var_screeninf
+ 	db = modedb;
+ 	dbsize = ARRAY_SIZE(modedb);
+     }
++
+     if (!default_mode)
+-	default_mode = &modedb[DEFAULT_MODEDB_INDEX];
++	default_mode = &db[0];
++
+     if (!default_bpp)
+ 	default_bpp = 8;
  
- static int vesafb_pan_display(struct fb_var_screeninfo *var,
-@@ -312,6 +311,7 @@ static int __init vesafb_probe(struct pl
- 		ypan = pmi_setpal = 0; /* not available or some DOS TSR ... */
- 
- 	if (ypan || pmi_setpal) {
-+		unsigned short *pmi_base;
- 		pmi_base  = (unsigned short*)phys_to_virt(((unsigned long)screen_info.vesapm_seg << 4) + screen_info.vesapm_off);
- 		pmi_start = (void*)((char*)pmi_base + pmi_base[1]);
- 		pmi_pal   = (void*)((char*)pmi_base + pmi_base[2]);
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from jordan.crouse@amd.com are
 
 origin.patch
-annotate-some-variables-in-vesafb.patch
-constify-vga16fbc.patch
+video-get-the-default-mode-from-the-right-database.patch
+fb-get-the-geode-gx-frambuffer-size-from-the-bios.patch
+gxfb-fixups-for-the-amd-geode-gx.patch
+gxfb-support-flat-panel-timings.patch
+gxfb-support-command-line-options.patch
+gxfb-fixup-flatpanel-detection.patch
+gxfb-turn-on-the-flatpanel-power-and-data.patch
+acpi-clear-gpe-before-disabling-it.patch
 
