@@ -1,51 +1,51 @@
 From: akpm@osdl.org
-Subject: - log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:50:50 -0800
-Message-ID: <200612080850.kB88ooWH013936@shell0.pdx.osdl.net>
+Subject: - log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:50:45 -0800
+Message-ID: <200612080850.kB88okIv013933@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37186 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37216 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425203AbWLHIvL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:51:11 -0500
+	id S1425204AbWLHIva (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:51:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, benh@kernel.crashing.org, dhowells@redhat.com, paulus@samba.org, wojtekka@toxygen.net, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dhowells@redhat.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix
+     log2-implement-a-general-integer-log2-facility-in-the-kernel vs git-cryptodev.txt
 has been removed from the -mm tree.  Its filename was
-     log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+     log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
 
 This patch was dropped because it was folded into log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
 
 ------------------------------------------------------
-Subject: log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix
+Subject: log2-implement-a-general-integer-log2-facility-in-the-kernel vs git-cryptodev.txt
 From: Andrew Morton <akpm@osdl.org>
 
+David taketh away, Herbert useth.
+
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Wojtek Kaniewski <wojtekka@toxygen.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ppc/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/dm-crypt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ppc/Kconfig~log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix
-+++ a/arch/ppc/Kconfig
-@@ -21,7 +21,7 @@ config RWSEM_XCHGADD_ALGORITHM
+diff -puN drivers/md/dm-crypt.c~log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev
++++ a/drivers/md/dm-crypt.c
+@@ -217,7 +217,7 @@ static int crypt_iv_benbi_ctr(struct cry
+ 			      const char *opts)
+ {
+ 	unsigned int bs = crypto_blkcipher_blocksize(cc->tfm);
+-	int log = long_log2(bs);
++	int log = ilog2(bs);
  
- config ARCH_HAS_ILOG2_U32
- 	bool
--	default n
-+	default y
- 
- config ARCH_HAS_ILOG2_U64
- 	bool
+ 	/* we need to calculate how far we must shift the sector count
+ 	 * to get the cipher block count, we use this shift in _gen */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -56,6 +56,7 @@ tty-signal-tty-locking.patch
 pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
 fsstack-introduce-fsstack_copy_attrinode_.patch
 log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
 log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
 add-process_session-helper-routine-deprecate-old-field-tidy.patch
 add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
