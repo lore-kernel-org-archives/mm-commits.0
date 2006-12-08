@@ -1,108 +1,57 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-check-request_region-retvals.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:06:49 -0800
-Message-ID: <200612082006.kB8K6ngZ002442@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-cmspar-is-defined.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:07:12 -0800
+Message-ID: <200612082007.kB8K7ChG002493@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57781 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57835 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426348AbWLHUGz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:06:55 -0500
+	id S1946057AbWLHUHP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char: mxser_new, check request_region retvals
+     Char: mxser_new, CMSPAR is defined
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-check-request_region-retvals.patch
+     char-mxser_new-cmspar-is-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: char: mxser_new, check request_region retvals
+Subject: Char: mxser_new, CMSPAR is defined
 From: Jiri Slaby <jirislaby@gmail.com>
 
-mxser_new, check request_region retvals
-
-Return values of (pci_)request_region should be checked and error should be
-returned if something is in bad state.
+There is no need to have another (ifndeffed) definition of CMSPAR.  It's
+defined in includes.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ drivers/char/mxser_new.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-check-request_region-retvals drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-check-request_region-retvals
+diff -puN drivers/char/mxser_new.c~char-mxser_new-cmspar-is-defined drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-cmspar-is-defined
 +++ a/drivers/char/mxser_new.c
-@@ -622,19 +622,24 @@ static int __init mxser_get_PCI_conf(int
+@@ -1602,10 +1602,6 @@ static int mxser_read_register(int port,
+ 	return id;
+ }
+ 
+-#ifndef CMSPAR
+-#define	CMSPAR 010000000000
+-#endif
+-
+ static int mxser_ioctl_special(unsigned int cmd, void __user *argp)
  {
- 	unsigned int i, j;
- 	unsigned long ioaddress;
-+	int retval;
- 
- 	/* io address */
- 	brd->board_type = board_type;
- 	brd->nports = mxser_numports[board_type - 1];
- 	ioaddress = pci_resource_start(pdev, 2);
--	pci_request_region(pdev, 2, "mxser(IO)");
-+	retval = pci_request_region(pdev, 2, "mxser(IO)");
-+	if (retval)
-+		goto err;
- 
- 	for (i = 0; i < brd->nports; i++)
- 		brd->ports[i].ioaddr = ioaddress + 8 * i;
- 
- 	/* vector */
- 	ioaddress = pci_resource_start(pdev, 3);
--	pci_request_region(pdev, 3, "mxser(vector)");
-+	retval = pci_request_region(pdev, 3, "mxser(vector)");
-+	if (retval)
-+		goto err_relio;
- 	brd->vector = ioaddress;
- 
- 	/* irq */
-@@ -674,6 +679,10 @@ static int __init mxser_get_PCI_conf(int
- 		brd->ports[i].baud_base = 921600;
- 	}
- 	return 0;
-+err_relio:
-+	pci_release_region(pdev, 2);
-+err:
-+	return retval;
- }
- 
- static int __init mxser_init(void)
-@@ -3009,8 +3018,12 @@ static int __init mxser_get_ISA_conf(int
- 		brd->nports = 8;
- 	else
- 		brd->nports = 4;
--	request_region(brd->ports[0].ioaddr, 8 * brd->nports, "mxser(IO)");
--	request_region(brd->vector, 1, "mxser(vector)");
-+	if (!request_region(brd->ports[0].ioaddr, 8 * brd->nports, "mxser(IO)"))
-+		return MXSER_ERR_IOADDR;
-+	if (!request_region(brd->vector, 1, "mxser(vector)")) {
-+		release_region(brd->ports[0].ioaddr, 8 * brd->nports);
-+		return MXSER_ERR_VECTOR;
-+	}
- 	return brd->nports;
- }
- 
+ 	struct mxser_port *port;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-check-request_region-retvals.patch
-char-mxser_new-kill-unneeded-memsets.patch
-char-mxser_new-revert-spin_lock-changes.patch
-char-mxser_new-remove-request-for-testers-line.patch
-char-mxser_new-debug-printk-dependent-on-debug.patch
-char-mxser_new-alter-license-terms.patch
-char-mxser_new-code-upside-down.patch
 char-mxser_new-cmspar-is-defined.patch
 char-remove-unneded-termbits-redefinitions-mxser_new.patch
 char-mxser_new-eliminate-tty-ldisc-deref.patch
