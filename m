@@ -1,261 +1,150 @@
 From: akpm@osdl.org
-Subject: - char-istallion-convert-to-pci-probing.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:10:03 -0800
-Message-ID: <200612082010.kB8KA3dW002769@shell0.pdx.osdl.net>
+Subject: - char-stallion-use-dynamic-dev.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:10:00 -0800
+Message-ID: <200612082010.kB8KA0gt002759@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58716 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58711 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946406AbWLHUKJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:10:09 -0500
+	id S1946402AbWLHUKF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:10:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: istallion, convert to pci probing
+     Char: stallion, use dynamic dev
 has been removed from the -mm tree.  Its filename was
-     char-istallion-convert-to-pci-probing.patch
+     char-stallion-use-dynamic-dev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: istallion, convert to pci probing
+Subject: Char: stallion, use dynamic dev
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Use probing for pci devices.  Change some __inits to __devinits to use these
-functions in probe function.  Create stli_cleanup_ports and move there cleanup
-code from module_exit() code to not have duplicite cleanup code.
+Use dynamic tty device registering depending on board's port count.  (i ->
+retval change is relevant, since gcc complains about signedness of i)
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/istallion.c |  114 +++++++++++++++++++++----------------
- 1 file changed, 66 insertions(+), 48 deletions(-)
+ drivers/char/stallion.c |   33 +++++++++++++++++++++++++++------
+ 1 file changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/istallion.c~char-istallion-convert-to-pci-probing drivers/char/istallion.c
---- a/drivers/char/istallion.c~char-istallion-convert-to-pci-probing
-+++ a/drivers/char/istallion.c
-@@ -402,7 +402,6 @@ static int	stli_eisamempsize = ARRAY_SIZ
- /*
-  *	Define the Stallion PCI vendor and device IDs.
-  */
--#ifdef CONFIG_PCI
- #ifndef	PCI_VENDOR_ID_STALLION
- #define	PCI_VENDOR_ID_STALLION		0x124d
- #endif
-@@ -416,7 +415,7 @@ static struct pci_device_id istallion_pc
- };
- MODULE_DEVICE_TABLE(pci, istallion_pci_tbl);
- 
--#endif /* CONFIG_PCI */
-+static struct pci_driver stli_pcidriver;
- 
- /*****************************************************************************/
- 
-@@ -728,10 +727,6 @@ static int	stli_initonb(stlibrd_t *brdp)
- static int	stli_eisamemprobe(stlibrd_t *brdp);
- static int	stli_initports(stlibrd_t *brdp);
- 
--#ifdef	CONFIG_PCI
--static int	stli_initpcibrd(int brdtype, struct pci_dev *devp);
--#endif
--
- /*****************************************************************************/
- 
- /*
-@@ -768,6 +763,21 @@ static int	stli_timeron;
- 
- static struct class *istallion_class;
- 
-+static void stli_cleanup_ports(stlibrd_t *brdp)
-+{
-+	stliport_t *portp;
-+	unsigned int j;
-+
-+	for (j = 0; j < STL_MAXPORTS; j++) {
-+		portp = brdp->ports[j];
-+		if (portp != NULL) {
-+			if (portp->tty != NULL)
-+				tty_hangup(portp->tty);
-+			kfree(portp);
-+		}
-+	}
-+}
-+
- /*
-  *	Loadable module initialization stuff.
-  */
-@@ -783,12 +793,12 @@ static int __init istallion_module_init(
- static void __exit istallion_module_exit(void)
+diff -puN drivers/char/stallion.c~char-stallion-use-dynamic-dev drivers/char/stallion.c
+--- a/drivers/char/stallion.c~char-stallion-use-dynamic-dev
++++ a/drivers/char/stallion.c
+@@ -2348,7 +2348,7 @@ static int __devinit stl_pciprobe(struct
+ 		const struct pci_device_id *ent)
  {
- 	stlibrd_t	*brdp;
--	stliport_t	*portp;
--	int		i, j;
-+	int		i;
+ 	struct stlbrd *brdp;
+-	unsigned int brdtype = ent->driver_data;
++	unsigned int i, brdtype = ent->driver_data;
+ 	int brdnr, retval = -ENODEV;
  
- 	printk(KERN_INFO "Unloading %s: version %s\n", stli_drvtitle,
- 		stli_drvversion);
+ 	if ((pdev->class >> 8) == PCI_CLASS_STORAGE_IDE)
+@@ -2409,6 +2409,10 @@ static int __devinit stl_pciprobe(struct
  
-+	pci_unregister_driver(&stli_pcidriver);
- 	/*
- 	 *	Free up all allocated resources used by the ports. This includes
- 	 *	memory and interrupts.
-@@ -817,14 +827,8 @@ static void __exit istallion_module_exit
- 	for (i = 0; (i < stli_nrbrds); i++) {
- 		if ((brdp = stli_brds[i]) == NULL)
- 			continue;
--		for (j = 0; (j < STL_MAXPORTS); j++) {
--			portp = brdp->ports[j];
--			if (portp != NULL) {
--				if (portp->tty != NULL)
--					tty_hangup(portp->tty);
--				kfree(portp);
--			}
--		}
+ 	pci_set_drvdata(pdev, brdp);
+ 
++	for (i = 0; i < brdp->nrports; i++)
++		tty_register_device(stl_serial,
++				brdp->brdnr * STL_MAXPORTS + i, &pdev->dev);
 +
-+		stli_cleanup_ports(brdp);
- 
- 		iounmap(brdp->membase);
- 		if (brdp->iosize > 0)
-@@ -3777,7 +3781,7 @@ stli_donestartup:
-  *	Probe and initialize the specified board.
-  */
- 
--static int __init stli_brdinit(stlibrd_t *brdp)
-+static int __devinit stli_brdinit(stlibrd_t *brdp)
- {
- 	stli_brds[brdp->brdnr] = brdp;
- 
-@@ -4019,58 +4023,72 @@ static int stli_findeisabrds(void)
- 
- /*****************************************************************************/
- 
--#ifdef	CONFIG_PCI
--
- /*
-  *	We have a Stallion board. Allocate a board structure and
-  *	initialize it. Read its IO and MEMORY resources from PCI
-  *	configuration space.
-  */
- 
--static int stli_initpcibrd(int brdtype, struct pci_dev *devp)
-+static int __devinit stli_pciprobe(struct pci_dev *pdev,
-+		const struct pci_device_id *ent)
- {
- 	stlibrd_t *brdp;
-+	int retval = -EIO;
- 
--	if (pci_enable_device(devp))
--		return -EIO;
--	if ((brdp = stli_allocbrd()) == NULL)
--		return -ENOMEM;
--	if ((brdp->brdnr = stli_getbrdnr()) < 0) {
-+	retval = pci_enable_device(pdev);
-+	if (retval)
-+		goto err;
-+	brdp = stli_allocbrd();
-+	if (brdp == NULL) {
-+		retval = -ENOMEM;
-+		goto err;
-+	}
-+	if ((brdp->brdnr = stli_getbrdnr()) < 0) { /* TODO: locking */
- 		printk(KERN_INFO "STALLION: too many boards found, "
- 			"maximum supported %d\n", STL_MAXBRDS);
--		return 0;
-+		retval = -EIO;
-+		goto err_fr;
- 	}
--	brdp->brdtype = brdtype;
-+	brdp->brdtype = BRD_ECPPCI;
- /*
-  *	We have all resources from the board, so lets setup the actual
-  *	board structure now.
-  */
--	brdp->iobase = pci_resource_start(devp, 3);
--	brdp->memaddr = pci_resource_start(devp, 2);
--	stli_brdinit(brdp);
-+	brdp->iobase = pci_resource_start(pdev, 3);
-+	brdp->memaddr = pci_resource_start(pdev, 2);
-+	retval = stli_brdinit(brdp);
-+	if (retval)
-+		goto err_fr;
-+
-+	pci_set_drvdata(pdev, brdp);
- 
  	return 0;
-+err_fr:
-+	kfree(brdp);
-+err:
-+	return retval;
- }
- 
--/*****************************************************************************/
-+static void stli_pciremove(struct pci_dev *pdev)
-+{
-+	stlibrd_t *brdp = pci_get_drvdata(pdev);
- 
--/*
-- *	Find all Stallion PCI boards that might be installed. Initialize each
-- *	one as it is found.
-- */
-+	stli_cleanup_ports(brdp);
- 
--static int stli_findpcibrds(void)
--{
--	struct pci_dev *dev = NULL;
-+	iounmap(brdp->membase);
-+	if (brdp->iosize > 0)
-+		release_region(brdp->iobase, brdp->iosize);
- 
--	while ((dev = pci_get_device(PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_ECRA, dev))) {
--		stli_initpcibrd(BRD_ECPPCI, dev);
--	}
--	return 0;
-+	stli_brds[brdp->brdnr] = NULL;
-+	kfree(brdp);
- }
- 
--#endif
--
-+static struct pci_driver stli_pcidriver = {
-+	.name = "istallion",
-+	.id_table = istallion_pci_tbl,
-+	.probe = stli_pciprobe,
-+	.remove = __devexit_p(stli_pciremove)
-+};
- /*****************************************************************************/
- 
- /*
-@@ -4102,7 +4120,7 @@ static int stli_initbrds(void)
+ err_null:
+ 	stl_brds[brdp->brdnr] = NULL;
+@@ -2421,6 +2425,7 @@ err:
+ static void __devexit stl_pciremove(struct pci_dev *pdev)
  {
- 	stlibrd_t *brdp, *nxtbrdp;
- 	stlconf_t *confp;
--	int i, j;
-+	int i, j, retval;
+ 	struct stlbrd *brdp = pci_get_drvdata(pdev);
++	unsigned int i;
  
- 	if (stli_nrbrds > STL_MAXBRDS) {
- 		printk(KERN_INFO "STALLION: too many boards in configuration "
-@@ -4134,9 +4152,9 @@ static int stli_initbrds(void)
- 	stli_argbrds();
- 	if (STLI_EISAPROBE)
- 		stli_findeisabrds();
--#ifdef CONFIG_PCI
--	stli_findpcibrds();
--#endif
+ 	free_irq(brdp->irq, brdp);
+ 
+@@ -2430,6 +2435,10 @@ static void __devexit stl_pciremove(stru
+ 	if (brdp->iosize2 > 0)
+ 		release_region(brdp->ioaddr2, brdp->iosize2);
+ 
++	for (i = 0; i < brdp->nrports; i++)
++		tty_unregister_device(stl_serial,
++				brdp->brdnr * STL_MAXPORTS + i);
 +
-+	retval = pci_register_driver(&stli_pcidriver);
-+	/* TODO: check retval and do something */
+ 	stl_brds[brdp->brdnr] = NULL;
+ 	kfree(brdp);
+ }
+@@ -4693,7 +4702,7 @@ static int __init stallion_module_init(v
+ {
+ 	struct stlbrd	*brdp;
+ 	struct stlconf	conf;
+-	unsigned int i;
++	unsigned int i, j;
+ 	int retval;
  
- /*
-  *	All found boards are initialized. Now for a little optimization, if
+ 	printk(KERN_INFO "%s: version %s\n", stl_drvtitle, stl_drvversion);
+@@ -4720,6 +4729,9 @@ static int __init stallion_module_init(v
+ 		if (stl_brdinit(brdp))
+ 			kfree(brdp);
+ 		else {
++			for (j = 0; j < brdp->nrports; j++)
++				tty_register_device(stl_serial,
++					brdp->brdnr * STL_MAXPORTS + j, NULL);
+ 			stl_brds[brdp->brdnr] = brdp;
+ 			stl_nrbrds = i + 1;
+ 		}
+@@ -4761,7 +4773,7 @@ static int __init stallion_module_init(v
+ 	stl_serial->type = TTY_DRIVER_TYPE_SERIAL;
+ 	stl_serial->subtype = SERIAL_TYPE_NORMAL;
+ 	stl_serial->init_termios = stl_deftermios;
+-	stl_serial->flags = TTY_DRIVER_REAL_RAW;
++	stl_serial->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+ 	tty_set_operations(stl_serial, &stl_ops);
+ 
+ 	retval = tty_register_driver(stl_serial);
+@@ -4787,7 +4799,9 @@ err:
+ 
+ static void __exit stallion_module_exit(void)
+ {
+-	int		i;
++	struct stlbrd *brdp;
++	unsigned int i, j;
++	int retval;
+ 
+ 	pr_debug("cleanup_module()\n");
+ 
+@@ -4800,14 +4814,21 @@ static void __exit stallion_module_exit(
+  *	a hangup on every open port - to try to flush out any processes
+  *	hanging onto ports.
+  */
++	for (i = 0; i < stl_nrbrds; i++) {
++		if ((brdp = stl_brds[i]) == NULL || (brdp->state & STL_PROBED))
++			continue;
++		for (j = 0; j < brdp->nrports; j++)
++			tty_unregister_device(stl_serial,
++				brdp->brdnr * STL_MAXPORTS + j);
++	}
+ 	tty_unregister_driver(stl_serial);
+ 	put_tty_driver(stl_serial);
+ 
+ 	for (i = 0; i < 4; i++)
+ 		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
+-	if ((i = unregister_chrdev(STL_SIOMEMMAJOR, "staliomem")))
++	if ((retval = unregister_chrdev(STL_SIOMEMMAJOR, "staliomem")))
+ 		printk("STALLION: failed to un-register serial memory device, "
+-			"errno=%d\n", -i);
++			"errno=%d\n", -retval);
+ 	class_destroy(stallion_class);
+ 
+ 	pci_unregister_driver(&stl_pcidriver);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
+char-stallion-use-dynamic-dev.patch
 char-istallion-convert-to-pci-probing.patch
 char-istallion-remove-the-mess.patch
 char-istallion-eliminate-typedefs.patch
