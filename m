@@ -1,151 +1,129 @@
 From: akpm@osdl.org
-Subject: - use-generic-bug-for-ppc.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:00:56 -0800
-Message-ID: <200612082000.kB8K0utx001792@shell0.pdx.osdl.net>
+Subject: - time-re-add-verify_pmtmr_rate.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 11:59:44 -0800
+Message-ID: <200612081959.kB8JxiDe001648@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56708 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56657 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426226AbWLHUBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:01:09 -0500
+	id S1426221AbWLHUAz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:00:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: judith@osdl.org, benh@kernel.crashing.org, jeremy@goop.org, michael@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, ak@suse.de, ijc@hellion.org.uk, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use generic BUG for ppc
+     time: re-add verify_pmtmr_rate
 has been removed from the -mm tree.  Its filename was
-     use-generic-bug-for-ppc.patch
+     time-re-add-verify_pmtmr_rate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use generic BUG for ppc
-From: Judith Lebzelter <judith@osdl.org>
+Subject: time: re-add verify_pmtmr_rate
+From: john stultz <johnstul@us.ibm.com>
 
-Switch ppc over to using the generic BUG implementation.
+This patch re-adds the verify_pmtmr_rate functionality from 2.6.17 that
+I dropped 2.6.18.
 
-Signed-off-by: Judith Lebzelter <judith@osdl.org>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+This resolves problems seen on older K6 ASUS boards where the ACPI PM
+timer runs too fast.
+
+See:
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=211902
+http://bugme.osdl.org/show_bug.cgi?id=2375
+
+Thanks to Ian Campbell for re-reporting this and testing the fix!
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ian Campbell <ijc@hellion.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ppc/Kconfig        |    5 ++
- arch/ppc/kernel/traps.c |   64 +++-----------------------------------
- 2 files changed, 11 insertions(+), 58 deletions(-)
+ drivers/clocksource/acpi_pm.c |   36 ++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff -puN arch/ppc/Kconfig~use-generic-bug-for-ppc arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~use-generic-bug-for-ppc
-+++ a/arch/ppc/Kconfig
-@@ -52,6 +52,11 @@ config ARCH_MAY_HAVE_PC_FDC
- 	bool
- 	default y
+diff -puN drivers/clocksource/acpi_pm.c~time-re-add-verify_pmtmr_rate drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~time-re-add-verify_pmtmr_rate
++++ a/drivers/clocksource/acpi_pm.c
+@@ -142,6 +142,39 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SE
+ 			acpi_pm_check_graylist);
+ #endif
  
-+config GENERIC_BUG
-+	bool
-+	default y
-+	depends on BUG
++#ifndef CONFIG_X86_64
++#include "mach_timer.h"
++#define PMTMR_EXPECTED_RATE \
++  ((CALIBRATE_LATCH * (PMTMR_TICKS_PER_SEC >> 10)) / (CLOCK_TICK_RATE>>10))
++/*
++ * Some boards have the PMTMR running way too fast. We check
++ * the PMTMR rate against PIT channel 2 to catch these cases.
++ */
++static int verify_pmtmr_rate(void)
++{
++	u32 value1, value2;
++	unsigned long count, delta;
 +
- source "init/Kconfig"
++	mach_prepare_counter();
++	value1 = read_pmtmr();
++	mach_countup(&count);
++	value2 = read_pmtmr();
++	delta = (value2 - value1) & ACPI_PM_MASK;
++
++	/* Check that the PMTMR delta is within 5% of what we expect */
++	if (delta < (PMTMR_EXPECTED_RATE * 19) / 20 ||
++	    delta > (PMTMR_EXPECTED_RATE * 21) / 20) {
++		printk(KERN_INFO "PM-Timer running at invalid rate: %lu%% "
++			"of normal - aborting.\n",
++			100UL * delta / PMTMR_EXPECTED_RATE);
++		return -1;
++	}
++
++	return 0;
++}
++#else
++#define verify_pmtmr_rate() (0)
++#endif
  
- menu "Processor"
-diff -puN arch/ppc/kernel/traps.c~use-generic-bug-for-ppc arch/ppc/kernel/traps.c
---- a/arch/ppc/kernel/traps.c~use-generic-bug-for-ppc
-+++ a/arch/ppc/kernel/traps.c
-@@ -28,6 +28,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/prctl.h>
-+#include <linux/bug.h>
- 
- #include <asm/pgtable.h>
- #include <asm/uaccess.h>
-@@ -559,64 +560,9 @@ static void emulate_single_step(struct p
- 	}
- }
- 
--/*
-- * Look through the list of trap instructions that are used for BUG(),
-- * BUG_ON() and WARN_ON() and see if we hit one.  At this point we know
-- * that the exception was caused by a trap instruction of some kind.
-- * Returns 1 if we should continue (i.e. it was a WARN_ON) or 0
-- * otherwise.
-- */
--extern struct bug_entry __start___bug_table[], __stop___bug_table[];
--
--#ifndef CONFIG_MODULES
--#define module_find_bug(x)	NULL
--#endif
--
--struct bug_entry *find_bug(unsigned long bugaddr)
--{
--	struct bug_entry *bug;
--
--	for (bug = __start___bug_table; bug < __stop___bug_table; ++bug)
--		if (bugaddr == bug->bug_addr)
--			return bug;
--	return module_find_bug(bugaddr);
--}
--
--int check_bug_trap(struct pt_regs *regs)
-+int is_valid_bugaddr(unsigned long addr)
+ static int __init init_acpi_pm_clocksource(void)
  {
--	struct bug_entry *bug;
--	unsigned long addr;
--
--	if (regs->msr & MSR_PR)
--		return 0;	/* not in kernel */
--	addr = regs->nip;	/* address of trap instruction */
--	if (addr < PAGE_OFFSET)
--		return 0;
--	bug = find_bug(regs->nip);
--	if (bug == NULL)
--		return 0;
--	if (bug->line & BUG_WARNING_TRAP) {
--		/* this is a WARN_ON rather than BUG/BUG_ON */
--#ifdef CONFIG_XMON
--		xmon_printf(KERN_ERR "Badness in %s at %s:%ld\n",
--		       bug->function, bug->file,
--		       bug->line & ~BUG_WARNING_TRAP);
--#endif /* CONFIG_XMON */		
--		printk(KERN_ERR "Badness in %s at %s:%ld\n",
--		       bug->function, bug->file,
--		       bug->line & ~BUG_WARNING_TRAP);
--		dump_stack();
--		return 1;
--	}
--#ifdef CONFIG_XMON
--	xmon_printf(KERN_CRIT "kernel BUG in %s at %s:%ld!\n",
--	       bug->function, bug->file, bug->line);
--	xmon(regs);
--#endif /* CONFIG_XMON */
--	printk(KERN_CRIT "kernel BUG in %s at %s:%ld!\n",
--	       bug->function, bug->file, bug->line);
--
--	return 0;
-+	return addr >= PAGE_OFFSET;
+@@ -173,6 +206,9 @@ static int __init init_acpi_pm_clocksour
+ 	return -ENODEV;
+ 
+ pm_good:
++	if (verify_pmtmr_rate() != 0)
++		return -ENODEV;
++
+ 	return clocksource_register(&clocksource_acpi_pm);
  }
  
- void program_check_exception(struct pt_regs *regs)
-@@ -671,7 +617,9 @@ void program_check_exception(struct pt_r
- 		/* trap exception */
- 		if (debugger_bpt(regs))
- 			return;
--		if (check_bug_trap(regs)) {
-+
-+		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
-+		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
- 			regs->nip += 4;
- 			return;
- 		}
 _
 
-Patches currently in -mm which might be from judith@osdl.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-use-generic-bug-for-ppc.patch
-powerpc-iseries-link-error-in-allmodconfig.patch
+time-re-add-verify_pmtmr_rate.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-acpi-include-apich.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-high-res-timers-core.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+updated-dynticks-core-code.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-debugging-feature-timer-stats.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
+clocksource-small-cleanup-2-fix.patch
+clocksource-small-acpi_pm-cleanup.patch
 
