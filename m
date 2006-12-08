@@ -1,27 +1,27 @@
 From: akpm@osdl.org
-Subject: - ioremap-balanced-with-iounmap-for-drivers-video-macfb.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:12:35 -0800
-Message-ID: <200612082012.kB8KCZkL003015@shell0.pdx.osdl.net>
+Subject: - ioremap-balanced-with-iounmap-for-drivers-video-hpfb.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:12:38 -0800
+Message-ID: <200612082012.kB8KCcuM003019@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59356 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59349 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946717AbWLHUMr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:12:47 -0500
+	id S1946714AbWLHUMp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:12:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amol@verismonetworks.com, adaplas@pol.net, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: amol@verismonetworks.com, adaplas@pol.net, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ioremap balanced with iounmap for drivers/video/macfb
+     ioremap balanced with iounmap for drivers/video/hpfb
 has been removed from the -mm tree.  Its filename was
-     ioremap-balanced-with-iounmap-for-drivers-video-macfb.patch
+     ioremap-balanced-with-iounmap-for-drivers-video-hpfb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ioremap balanced with iounmap for drivers/video/macfb
+Subject: ioremap balanced with iounmap for drivers/video/hpfb
 From: Amol Lad <amol@verismonetworks.com>
 
 ioremap must be balanced by an iounmap and failing to do so can result in a
@@ -29,56 +29,30 @@ memory leak.
 
 Signed-off-by: Amol Lad <amol@verismonetworks.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/macfb.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/video/hpfb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/macfb.c~ioremap-balanced-with-iounmap-for-drivers-video-macfb drivers/video/macfb.c
---- a/drivers/video/macfb.c~ioremap-balanced-with-iounmap-for-drivers-video-macfb
-+++ a/drivers/video/macfb.c
-@@ -608,6 +608,22 @@ void __init macfb_setup(char *options)
- 	}
- }
+diff -puN drivers/video/hpfb.c~ioremap-balanced-with-iounmap-for-drivers-video-hpfb drivers/video/hpfb.c
+--- a/drivers/video/hpfb.c~ioremap-balanced-with-iounmap-for-drivers-video-hpfb
++++ a/drivers/video/hpfb.c
+@@ -295,6 +295,8 @@ static int __init hpfb_init_one(unsigned
  
-+static void __init iounmap_macfb(void)
-+{
-+	if (valkyrie_cmap_regs)
-+		iounmap(valkyrie_cmap_regs);
-+	if (dafb_cmap_regs)
-+		iounmap(dafb_cmap_regs);
-+	if (v8_brazil_cmap_regs)
-+		iounmap(v8_brazil_cmap_regs);
-+	if (rbv_cmap_regs)
-+		iounmap(rbv_cmap_regs);
-+	if (civic_cmap_regs)
-+		iounmap(civic_cmap_regs);
-+	if (csc_cmap_regs)
-+		iounmap(csc_cmap_regs);
-+}
-+
- static int __init macfb_init(void)
- {
- 	int video_cmap_len, video_is_nubus = 0;
-@@ -962,6 +978,10 @@ static int __init macfb_init(void)
- 	if (!err)
- 		printk("fb%d: %s frame buffer device\n",
- 		       fb_info.node, fb_info.fix.id);
-+	else {
+ 	if (register_framebuffer(&fb_info) < 0) {
+ 		fb_dealloc_cmap(&fb_info.cmap);
 +		iounmap(fb_info.screen_base);
-+		iounmap_macfb();
-+	}
- 	return err;
- }
++		fb_info.screen_base = NULL;
+ 		return 1;
+ 	}
  
 _
 
 Patches currently in -mm which might be from amol@verismonetworks.com are
 
 origin.patch
-ioremap-balanced-with-iounmap-for-drivers-video-macfb.patch
 ioremap-balanced-with-iounmap-for-drivers-video-hpfb.patch
 ioremap-balanced-with-iounmap-for-drivers-video-fm2fb.patch
 ioremap-balanced-with-iounmap-for-drivers-video-ffb.patch
