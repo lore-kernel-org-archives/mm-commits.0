@@ -1,58 +1,55 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-cmspar-is-defined.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:07:12 -0800
-Message-ID: <200612082007.kB8K7ChG002493@shell0.pdx.osdl.net>
+Subject: - char-remove-unneded-termbits-redefinitions-mxser_new.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:07:14 -0800
+Message-ID: <200612082007.kB8K7EJG002496@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57835 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57840 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946057AbWLHUHP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:07:15 -0500
+	id S1946064AbWLHUHR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, CMSPAR is defined
+     char: remove unneded termbits redefinitions (mxser_new)
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-cmspar-is-defined.patch
+     char-remove-unneded-termbits-redefinitions-mxser_new.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, CMSPAR is defined
+Subject: char: remove unneded termbits redefinitions (mxser_new)
 From: Jiri Slaby <jirislaby@gmail.com>
 
-There is no need to have another (ifndeffed) definition of CMSPAR.  It's
-defined in includes.
+No need to redefine termbits in char tree.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/char/mxser_new.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-cmspar-is-defined drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-cmspar-is-defined
+diff -puN drivers/char/mxser_new.c~char-remove-unneded-termbits-redefinitions-mxser_new drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-remove-unneded-termbits-redefinitions-mxser_new
 +++ a/drivers/char/mxser_new.c
-@@ -1602,10 +1602,6 @@ static int mxser_read_register(int port,
- 	return id;
- }
+@@ -592,9 +592,6 @@ static int mxser_change_speed(struct mxs
+ 	if (!(info->ioaddr))
+ 		return ret;
  
--#ifndef CMSPAR
--#define	CMSPAR 010000000000
+-#ifndef B921600
+-#define B921600 (B460800 +1)
 -#endif
--
- static int mxser_ioctl_special(unsigned int cmd, void __user *argp)
- {
- 	struct mxser_port *port;
+ 	if (mxser_set_baud_method[info->tty->index] == 0) {
+ 		baud = tty_get_baud_rate(info->tty);
+ 		mxser_set_baud(info, baud);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-cmspar-is-defined.patch
 char-remove-unneded-termbits-redefinitions-mxser_new.patch
 char-mxser_new-eliminate-tty-ldisc-deref.patch
 char-mxser_new-testbit-for-bit-testing.patch
