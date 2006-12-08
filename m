@@ -1,230 +1,213 @@
 From: akpm@osdl.org
-Subject: - fault-injection-process-filtering-for-fault-injection-capabilities.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:11:22 -0800
-Message-ID: <200612082011.kB8KBM0b002899@shell0.pdx.osdl.net>
+Subject: - fault-injection-capability-for-kmalloc.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:11:14 -0800
+Message-ID: <200612082011.kB8KBEt6002888@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59048 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59033 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946562AbWLHUL0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:11:26 -0500
+	id S1946575AbWLHULX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:11:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault injection: process filtering for fault-injection capabilities
+     fault-injection capability for kmalloc
 has been removed from the -mm tree.  Its filename was
-     fault-injection-process-filtering-for-fault-injection-capabilities.patch
+     fault-injection-capability-for-kmalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault injection: process filtering for fault-injection capabilities
+Subject: fault-injection capability for kmalloc
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This patch provides process filtering feature.
-The process filter allows failing only permitted processes
-by /proc/<pid>/make-it-fail
+This patch provides fault-injection capability for kmalloc.
 
-Please see the example that demostrates how to inject slab allocation
-failures into module init/cleanup code
-in Documentation/fault-injection/fault-injection.txt
+Boot option:
 
+failslab=<interval>,<probability>,<space>,<times>
+
+	<interval> -- specifies the interval of failures.
+
+	<probability> -- specifies how often it should fail in percent.
+
+	<space> -- specifies the size of free space where memory can be
+		   allocated safely in bytes.
+
+	<times> -- specifies how many times failures may happen at most.
+
+Debugfs:
+
+/debug/failslab/interval
+/debug/failslab/probability
+/debug/failslab/specifies
+/debug/failslab/times
+/debug/failslab/ignore-gfp-highmem
+/debug/failslab/ignore-gfp-wait
+
+Example:
+
+	failslab=10,100,0,-1
+
+slab allocation (kmalloc(), kmem_cache_alloc(),..) fails once per 10 times.
+
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/base.c               |   65 +++++++++++++++++++++++++++++++++
- include/linux/fault-inject.h |    2 +
- include/linux/sched.h        |    3 +
- lib/fault-inject.c           |   17 ++++++++
- 4 files changed, 86 insertions(+), 1 deletion(-)
+ Documentation/fault-injection/fault-injection.txt |    2 
+ lib/Kconfig.debug                                 |    7 +
+ mm/slab.c                                         |   77 ++++++++++++
+ 3 files changed, 84 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~fault-injection-process-filtering-for-fault-injection-capabilities fs/proc/base.c
---- a/fs/proc/base.c~fault-injection-process-filtering-for-fault-injection-capabilities
-+++ a/fs/proc/base.c
-@@ -853,6 +853,65 @@ static struct file_operations proc_secco
- };
- #endif /* CONFIG_SECCOMP */
+diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-capability-for-kmalloc Documentation/fault-injection/fault-injection.txt
+--- a/Documentation/fault-injection/fault-injection.txt~fault-injection-capability-for-kmalloc
++++ a/Documentation/fault-injection/fault-injection.txt
+@@ -86,7 +86,6 @@ configuration of fault-injection capabil
+ 	specifies the maximum stacktrace depth walked during search
+ 	for a caller within [address-start,address-end).
  
-+#ifdef CONFIG_FAULT_INJECTION
-+static ssize_t proc_fault_inject_read(struct file * file, char __user * buf,
-+				      size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
-+	char buffer[PROC_NUMBUF];
-+	size_t len;
-+	int make_it_fail;
-+	loff_t __ppos = *ppos;
+-- /debug/failslab/ignore-gfp-highmem:
+ - /debug/fail_page_alloc/ignore-gfp-highmem:
+ 
+ 	Format: { 0 | 1 }
+@@ -167,7 +166,6 @@ echo 10 > /debug/$FAILNAME/probability
+ echo 100 > /debug/$FAILNAME/interval
+ echo -1 > /debug/$FAILNAME/times
+ echo 2 > /debug/$FAILNAME/verbose
+-echo 1 > /debug/$FAILNAME/ignore-gfp-highmem
+ echo 1 > /debug/$FAILNAME/ignore-gfp-wait
+ 
+ blacklist()
+diff -puN lib/Kconfig.debug~fault-injection-capability-for-kmalloc lib/Kconfig.debug
+--- a/lib/Kconfig.debug~fault-injection-capability-for-kmalloc
++++ a/lib/Kconfig.debug
+@@ -417,6 +417,13 @@ config LKDTM
+ config FAULT_INJECTION
+ 	bool
+ 
++config FAILSLAB
++	bool "Fault-injection capabilitiy for kmalloc"
++	depends on DEBUG_KERNEL
++	select FAULT_INJECTION
++	help
++	  This option provides fault-injection capabilitiy for kmalloc.
 +
-+	if (!task)
-+		return -ESRCH;
-+	make_it_fail = task->make_it_fail;
-+	put_task_struct(task);
+ config FAULT_INJECTION_DEBUG_FS
+ 	bool "Debugfs entries for fault-injection capabilities"
+ 	depends on FAULT_INJECTION && SYSFS
+diff -puN mm/slab.c~fault-injection-capability-for-kmalloc mm/slab.c
+--- a/mm/slab.c~fault-injection-capability-for-kmalloc
++++ a/mm/slab.c
+@@ -107,6 +107,7 @@
+ #include	<linux/nodemask.h>
+ #include	<linux/mempolicy.h>
+ #include	<linux/mutex.h>
++#include	<linux/fault-inject.h>
+ #include	<linux/rtmutex.h>
+ 
+ #include	<asm/cacheflush.h>
+@@ -3088,12 +3089,88 @@ static void *cache_alloc_debugcheck_afte
+ #define cache_alloc_debugcheck_after(a,b,objp,d) (objp)
+ #endif
+ 
++#ifdef CONFIG_FAILSLAB
 +
-+	len = snprintf(buffer, sizeof(buffer), "%i\n", make_it_fail);
-+	if (__ppos >= len)
-+		return 0;
-+	if (count > len-__ppos)
-+		count = len-__ppos;
-+	if (copy_to_user(buf, buffer + __ppos, count))
-+		return -EFAULT;
-+	*ppos = __ppos + count;
-+	return count;
-+}
++static struct failslab_attr {
 +
-+static ssize_t proc_fault_inject_write(struct file * file,
-+			const char __user * buf, size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task;
-+	char buffer[PROC_NUMBUF], *end;
-+	int make_it_fail;
++	struct fault_attr attr;
 +
-+	if (!capable(CAP_SYS_RESOURCE))
-+		return -EPERM;
-+	memset(buffer, 0, sizeof(buffer));
-+	if (count > sizeof(buffer) - 1)
-+		count = sizeof(buffer) - 1;
-+	if (copy_from_user(buffer, buf, count))
-+		return -EFAULT;
-+	make_it_fail = simple_strtol(buffer, &end, 0);
-+	if (*end == '\n')
-+		end++;
-+	task = get_proc_task(file->f_dentry->d_inode);
-+	if (!task)
-+		return -ESRCH;
-+	task->make_it_fail = make_it_fail;
-+	put_task_struct(task);
-+	if (end - buffer == 0)
-+		return -EIO;
-+	return end - buffer;
-+}
++	u32 ignore_gfp_wait;
++#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
++	struct dentry *ignore_gfp_wait_file;
++#endif
 +
-+static struct file_operations proc_fault_inject_operations = {
-+	.read		= proc_fault_inject_read,
-+	.write		= proc_fault_inject_write,
++} failslab = {
++	.attr = FAULT_ATTR_INITIALIZER,
 +};
-+#endif
 +
- static void *proc_pid_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
- 	struct inode *inode = dentry->d_inode;
-@@ -1793,6 +1852,9 @@ static struct pid_entry tgid_base_stuff[
- #ifdef CONFIG_AUDITSYSCALL
- 	REG("loginuid",   S_IWUSR|S_IRUGO, loginuid),
- #endif
-+#ifdef CONFIG_FAULT_INJECTION
-+	REG("make-it-fail", S_IRUGO|S_IWUSR, fault_inject),
-+#endif
- };
- 
- static int proc_tgid_base_readdir(struct file * filp,
-@@ -2068,6 +2130,9 @@ static struct pid_entry tid_base_stuff[]
- #ifdef CONFIG_AUDITSYSCALL
- 	REG("loginuid",  S_IWUSR|S_IRUGO, loginuid),
- #endif
-+#ifdef CONFIG_FAULT_INJECTION
-+	REG("make-it-fail", S_IRUGO|S_IWUSR, fault_inject),
-+#endif
- };
- 
- static int proc_tid_base_readdir(struct file * filp,
-diff -puN include/linux/fault-inject.h~fault-injection-process-filtering-for-fault-injection-capabilities include/linux/fault-inject.h
---- a/include/linux/fault-inject.h~fault-injection-process-filtering-for-fault-injection-capabilities
-+++ a/include/linux/fault-inject.h
-@@ -17,6 +17,7 @@ struct fault_attr {
- 	atomic_t times;
- 	atomic_t space;
- 	unsigned long verbose;
-+	u32 task_filter;
- 
- 	unsigned long count;
- 
-@@ -30,6 +31,7 @@ struct fault_attr {
- 		struct dentry *times_file;
- 		struct dentry *space_file;
- 		struct dentry *verbose_file;
-+		struct dentry *task_filter_file;
- 	} dentries;
- 
- #endif
-diff -puN include/linux/sched.h~fault-injection-process-filtering-for-fault-injection-capabilities include/linux/sched.h
---- a/include/linux/sched.h~fault-injection-process-filtering-for-fault-injection-capabilities
-+++ a/include/linux/sched.h
-@@ -1045,6 +1045,9 @@ struct task_struct {
- #ifdef	CONFIG_TASK_DELAY_ACCT
- 	struct task_delay_info *delays;
- #endif
-+#ifdef CONFIG_FAULT_INJECTION
-+	int make_it_fail;
-+#endif
- };
- 
- static inline pid_t process_group(struct task_struct *tsk)
-diff -puN lib/fault-inject.c~fault-injection-process-filtering-for-fault-injection-capabilities lib/fault-inject.c
---- a/lib/fault-inject.c~fault-injection-process-filtering-for-fault-injection-capabilities
-+++ a/lib/fault-inject.c
-@@ -5,6 +5,7 @@
- #include <linux/types.h>
- #include <linux/fs.h>
- #include <linux/module.h>
-+#include <linux/interrupt.h>
- #include <linux/fault-inject.h>
- 
- /*
-@@ -44,6 +45,11 @@ static void fail_dump(struct fault_attr 
- 
- #define atomic_dec_not_zero(v)		atomic_add_unless((v), -1, 0)
- 
-+static int fail_task(struct fault_attr *attr, struct task_struct *task)
++static int __init setup_failslab(char *str)
 +{
-+	return !in_interrupt() && task->make_it_fail;
++	return setup_fault_attr(&failslab.attr, str);
 +}
++__setup("failslab=", setup_failslab);
 +
- /*
-  * This code is stolen from failmalloc-1.0
-  * http://www.nongnu.org/failmalloc/
-@@ -51,6 +57,9 @@ static void fail_dump(struct fault_attr 
- 
- int should_fail(struct fault_attr *attr, ssize_t size)
- {
-+	if (attr->task_filter && !fail_task(attr, current))
++static int should_failslab(struct kmem_cache *cachep, gfp_t flags)
++{
++	if (cachep == &cache_cache)
++		return 0;
++	if (flags & __GFP_NOFAIL)
++		return 0;
++	if (failslab.ignore_gfp_wait && (flags & __GFP_WAIT))
 +		return 0;
 +
- 	if (atomic_read(&attr->times) == 0)
- 		return 0;
- 
-@@ -135,6 +144,9 @@ void cleanup_fault_attr_dentries(struct 
- 	debugfs_remove(attr->dentries.verbose_file);
- 	attr->dentries.verbose_file = NULL;
- 
-+	debugfs_remove(attr->dentries.task_filter_file);
-+	attr->dentries.task_filter_file = NULL;
++	return should_fail(&failslab.attr, obj_size(cachep));
++}
 +
- 	if (attr->dentries.dir)
- 		WARN_ON(!simple_empty(attr->dentries.dir));
- 
-@@ -169,9 +181,12 @@ int init_fault_attr_dentries(struct faul
- 	attr->dentries.verbose_file =
- 		debugfs_create_ul("verbose", mode, dir, &attr->verbose);
- 
-+	attr->dentries.task_filter_file = debugfs_create_bool("task-filter",
-+						mode, dir, &attr->task_filter);
++#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
 +
- 	if (!attr->dentries.probability_file || !attr->dentries.interval_file
- 	    || !attr->dentries.times_file || !attr->dentries.space_file
--	    || !attr->dentries.verbose_file)
-+	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file)
- 		goto fail;
++static int __init failslab_debugfs(void)
++{
++	mode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
++	struct dentry *dir;
++	int err;
++
++       	err = init_fault_attr_dentries(&failslab.attr, "failslab");
++	if (err)
++		return err;
++	dir = failslab.attr.dentries.dir;
++
++	failslab.ignore_gfp_wait_file =
++		debugfs_create_bool("ignore-gfp-wait", mode, dir,
++				      &failslab.ignore_gfp_wait);
++
++	if (!failslab.ignore_gfp_wait_file) {
++		err = -ENOMEM;
++		debugfs_remove(failslab.ignore_gfp_wait_file);
++		cleanup_fault_attr_dentries(&failslab.attr);
++	}
++
++	return err;
++}
++
++late_initcall(failslab_debugfs);
++
++#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
++
++#else /* CONFIG_FAILSLAB */
++
++static inline int should_failslab(struct kmem_cache *cachep, gfp_t flags)
++{
++	return 0;
++}
++
++#endif /* CONFIG_FAILSLAB */
++
+ static inline void *____cache_alloc(struct kmem_cache *cachep, gfp_t flags)
+ {
+ 	void *objp;
+ 	struct array_cache *ac;
  
- 	return 0;
+ 	check_irq_off();
++
++	if (should_failslab(cachep, flags))
++		return NULL;
++
+ 	ac = cpu_cache_get(cachep);
+ 	if (likely(ac->avail)) {
+ 		STATS_INC_ALLOCHIT(cachep);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+fault-injection-capability-for-kmalloc.patch
+fault-injection-capability-for-alloc_pages.patch
+fault-injection-capability-for-disk-io.patch
 fault-injection-process-filtering-for-fault-injection-capabilities.patch
 fault-injection-stacktrace-filtering.patch
 fault-injection-Kconfig-cleanup.patch
