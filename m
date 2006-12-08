@@ -1,67 +1,116 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-dont-check-tty_unregister-retval.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:07:25 -0800
-Message-ID: <200612082007.kB8K7PTP002511@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-debug-printk-dependent-on-debug.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:07:02 -0800
+Message-ID: <200612082007.kB8K721X002473@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57921 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57810 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946025AbWLHUH3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:07:29 -0500
+	id S1426347AbWLHUHH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, don't check tty_unregister retval
+     Char: mxser_new, debug printk dependent on DEBUG
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-dont-check-tty_unregister-retval.patch
+     char-mxser_new-debug-printk-dependent-on-debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, don't check tty_unregister retval
+Subject: Char: mxser_new, debug printk dependent on DEBUG
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Like other drivers silently unregister_tty_driver and put_tty_driver.  It
-shouldn't be busy when module release function is called, since we are not
-bsd, no refs shouldn't be held.
+Print some debug info only when DEBUG is enabled (use pr_debug macro). 
+Eliminate verbose kernel parameter which takes care of this.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/char/mxser_new.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-dont-check-tty_unregister-retval drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-dont-check-tty_unregister-retval
+diff -puN drivers/char/mxser_new.c~char-mxser_new-debug-printk-dependent-on-debug drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-debug-printk-dependent-on-debug
 +++ a/drivers/char/mxser_new.c
-@@ -2994,15 +2994,12 @@ static int __init mxser_module_init(void
+@@ -244,7 +244,6 @@ MODULE_DEVICE_TABLE(pci, mxser_pcibrds);
+ static int ioaddr[MXSER_BOARDS] = { 0, 0, 0, 0 };
+ static int ttymajor = MXSERMAJOR;
+ static int calloutmajor = MXSERCUMAJOR;
+-static int verbose = 0;
  
- static void __exit mxser_module_exit(void)
+ /* Variables for insmod */
+ 
+@@ -252,7 +251,6 @@ MODULE_AUTHOR("Casper Yang");
+ MODULE_DESCRIPTION("MOXA Smartio/Industio Family Multiport Board Device Driver");
+ module_param_array(ioaddr, int, NULL, 0);
+ module_param(ttymajor, int, 0);
+-module_param(verbose, bool, 0);
+ MODULE_LICENSE("GPL");
+ 
+ struct mxser_log {
+@@ -493,11 +491,9 @@ static int __init mxser_module_init(void
  {
--	int i, err;
-+	unsigned int i;
+ 	int ret;
  
- 	pr_debug("Unloading module mxser ...\n");
+-	if (verbose)
+-		printk(KERN_DEBUG "Loading module mxser ...\n");
++	pr_debug("Loading module mxser ...\n");
+ 	ret = mxser_init();
+-	if (verbose)
+-		printk(KERN_DEBUG "Done.\n");
++	pr_debug("Done.\n");
+ 	return ret;
+ }
  
--	err = tty_unregister_driver(mxvar_sdriver);
--	if (!err)
--		put_tty_driver(mxvar_sdriver);
--	else
--		printk(KERN_ERR "Couldn't unregister MOXA Smartio/Industio family serial driver\n");
-+	tty_unregister_driver(mxvar_sdriver);
-+	put_tty_driver(mxvar_sdriver);
+@@ -505,8 +501,7 @@ static void __exit mxser_module_exit(voi
+ {
+ 	int i, err;
  
- 	for (i = 0; i < MXSER_BOARDS; i++)
- 		if (mxser_boards[i].board_type != -1)
+-	if (verbose)
+-		printk(KERN_DEBUG "Unloading module mxser ...\n");
++	pr_debug("Unloading module mxser ...\n");
+ 
+ 	err = tty_unregister_driver(mxvar_sdriver);
+ 	if (!err)
+@@ -532,8 +527,7 @@ static void __exit mxser_module_exit(voi
+ 			}
+ 		}
+ 	}
+-	if (verbose)
+-		printk(KERN_DEBUG "Done.\n");
++	pr_debug("Done.\n");
+ }
+ 
+ static void process_txrx_fifo(struct mxser_port *info)
+@@ -562,10 +556,7 @@ static int __devinit mxser_initbrd(struc
+ 	unsigned int i;
+ 	int retval;
+ 
+-	/*if (verbose) */  {
+-		printk(" max. baud rate = %d bps.\n",
+-			brd->ports[0].max_baud);
+-	}
++	printk(KERN_INFO "max. baud rate = %d bps.\n", brd->ports[0].max_baud);
+ 
+ 	for (i = 0; i < brd->nports; i++) {
+ 		info = &brd->ports[i];
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
+char-mxser_new-debug-printk-dependent-on-debug.patch
+char-mxser_new-alter-license-terms.patch
+char-mxser_new-code-upside-down.patch
+char-mxser_new-cmspar-is-defined.patch
+char-remove-unneded-termbits-redefinitions-mxser_new.patch
+char-mxser_new-eliminate-tty-ldisc-deref.patch
+char-mxser_new-testbit-for-bit-testing.patch
+char-mxser_new-correct-fail-paths.patch
 char-mxser_new-dont-check-tty_unregister-retval.patch
 char-mxser_new-compress-isa-finding.patch
 char-mxser_new-register-tty-devices-on-the-fly.patch
