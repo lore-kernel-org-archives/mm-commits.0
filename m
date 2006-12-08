@@ -1,88 +1,79 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-jffs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:49 -0800
-Message-ID: <200612082003.kB8K3ngU002108@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-pci.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:04:34 -0800
+Message-ID: <200612082004.kB8K4Ytn002196@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57212 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57354 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426262AbWLHUDy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:54 -0500
+	id S1426289AbWLHUEj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:04:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert jffs
+     struct path: convert pci
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-jffs.patch
+     struct-path-convert-pci.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert jffs
+Subject: struct path: convert pci
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/jffs/inode-v23.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/proc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/jffs/inode-v23.c~struct-path-convert-jffs fs/jffs/inode-v23.c
---- a/fs/jffs/inode-v23.c~struct-path-convert-jffs
-+++ a/fs/jffs/inode-v23.c
-@@ -566,7 +566,7 @@ static int
- jffs_readdir(struct file *filp, void *dirent, filldir_t filldir)
+diff -puN drivers/pci/proc.c~struct-path-convert-pci drivers/pci/proc.c
+--- a/drivers/pci/proc.c~struct-path-convert-pci
++++ a/drivers/pci/proc.c
+@@ -23,7 +23,7 @@ static loff_t
+ proc_bus_pci_lseek(struct file *file, loff_t off, int whence)
  {
- 	struct jffs_file *f;
--	struct dentry *dentry = filp->f_dentry;
-+	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
- 	struct jffs_control *c = (struct jffs_control *)inode->i_sb->s_fs_info;
- 	int j;
-@@ -1372,7 +1372,7 @@ jffs_file_write(struct file *filp, const
- 	struct jffs_control *c;
- 	struct jffs_file *f;
- 	struct jffs_node *node;
--	struct dentry *dentry = filp->f_dentry;
-+	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
- 	int recoverable = 0;
- 	size_t written = 0;
-@@ -1380,7 +1380,7 @@ jffs_file_write(struct file *filp, const
- 	loff_t pos = *ppos;
- 	int err;
+ 	loff_t new = -1;
+-	struct inode *inode = file->f_dentry->d_inode;
++	struct inode *inode = file->f_path.dentry->d_inode;
  
--	inode = filp->f_dentry->d_inode;
-+	inode = filp->f_path.dentry->d_inode;
- 
- 	D2(printk("***jffs_file_write(): inode: 0x%p (ino: %lu), "
- 		  "filp: 0x%p, buf: 0x%p, count: %d\n",
+ 	mutex_lock(&inode->i_mutex);
+ 	switch (whence) {
+@@ -48,7 +48,7 @@ proc_bus_pci_lseek(struct file *file, lo
+ static ssize_t
+ proc_bus_pci_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+ {
+-	const struct inode *ino = file->f_dentry->d_inode;
++	const struct inode *ino = file->f_path.dentry->d_inode;
+ 	const struct proc_dir_entry *dp = PDE(ino);
+ 	struct pci_dev *dev = dp->data;
+ 	unsigned int pos = *ppos;
+@@ -130,7 +130,7 @@ proc_bus_pci_read(struct file *file, cha
+ static ssize_t
+ proc_bus_pci_write(struct file *file, const char __user *buf, size_t nbytes, loff_t *ppos)
+ {
+-	const struct inode *ino = file->f_dentry->d_inode;
++	const struct inode *ino = file->f_path.dentry->d_inode;
+ 	const struct proc_dir_entry *dp = PDE(ino);
+ 	struct pci_dev *dev = dp->data;
+ 	int pos = *ppos;
+@@ -245,7 +245,7 @@ static int proc_bus_pci_ioctl(struct ino
+ #ifdef HAVE_PCI_MMAP
+ static int proc_bus_pci_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct inode *inode = file->f_dentry->d_inode;
++	struct inode *inode = file->f_path.dentry->d_inode;
+ 	const struct proc_dir_entry *dp = PDE(inode);
+ 	struct pci_dev *dev = dp->data;
+ 	struct pci_filp_private *fpriv = file->private_data;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-jffs.patch
-struct-path-convert-jffs2.patch
-struct-path-convert-jfs.patch
-struct-path-convert-kernel.patch
-struct-path-convert-lockd.patch
-struct-path-convert-md.patch
-struct-path-convert-minix.patch
-struct-path-convert-mips.patch
-struct-path-convert-mm.patch
-struct-path-convert-nbd.patch
-struct-path-convert-ncpfs.patch
-struct-path-convert-net.patch
-struct-path-convert-netfilter.patch
-struct-path-convert-netlink.patch
-struct-path-convert-ocfs2.patch
-struct-path-convert-openpromfs.patch
-struct-path-convert-oprofile.patch
-struct-path-convert-parisc.patch
 struct-path-convert-pci.patch
 struct-path-convert-pcmcia.patch
 struct-path-convert-powerpc.patch
