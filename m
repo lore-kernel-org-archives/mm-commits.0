@@ -1,51 +1,47 @@
 From: akpm@osdl.org
-Subject: - uml-add-generic-bug-support.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:00:53 -0800
-Message-ID: <200612082000.kB8K0r3q001787@shell0.pdx.osdl.net>
+Subject: - use-generic-bug-for-ppc.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:00:56 -0800
+Message-ID: <200612082000.kB8K0utx001792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56679 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426226AbWLHUBA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:01:00 -0500
+	id S1426226AbWLHUBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jeremy@goop.org, mm-commits@vger.kernel.org
+To: judith@osdl.org, benh@kernel.crashing.org, jeremy@goop.org, michael@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UML: add generic BUG support
+     use generic BUG for ppc
 has been removed from the -mm tree.  Its filename was
-     uml-add-generic-bug-support.patch
+     use-generic-bug-for-ppc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: UML: add generic BUG support
-From: Jeff Dike <jdike@addtoit.com>
+Subject: use generic BUG for ppc
+From: Judith Lebzelter <judith@osdl.org>
 
-The BUG changes in -mm3 need some arch support.  This patch adds the UML
-support needed.  For the most part, it was stolen from the underlying
-architecture.  The exception is the kernel eip < PAGE_OFFSET test, which is
-wrong for skas mode UMLs.
+Switch ppc over to using the generic BUG implementation.
 
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Judith Lebzelter <judith@osdl.org>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/Kconfig             |    5 +++++
- arch/um/sys-i386/Makefile   |    2 +-
- arch/um/sys-i386/bug.c      |   20 ++++++++++++++++++++
- arch/um/sys-x86_64/Makefile |    2 +-
- arch/um/sys-x86_64/bug.c    |   20 ++++++++++++++++++++
- include/asm-um/bug.h        |    4 +++-
- 6 files changed, 50 insertions(+), 3 deletions(-)
+ arch/ppc/Kconfig        |    5 ++
+ arch/ppc/kernel/traps.c |   64 +++-----------------------------------
+ 2 files changed, 11 insertions(+), 58 deletions(-)
 
-diff -puN arch/um/Kconfig~uml-add-generic-bug-support arch/um/Kconfig
---- a/arch/um/Kconfig~uml-add-generic-bug-support
-+++ a/arch/um/Kconfig
-@@ -47,6 +47,11 @@ config GENERIC_CALIBRATE_DELAY
+diff -puN arch/ppc/Kconfig~use-generic-bug-for-ppc arch/ppc/Kconfig
+--- a/arch/ppc/Kconfig~use-generic-bug-for-ppc
++++ a/arch/ppc/Kconfig
+@@ -52,6 +52,11 @@ config ARCH_MAY_HAVE_PC_FDC
  	bool
  	default y
  
@@ -54,97 +50,102 @@ diff -puN arch/um/Kconfig~uml-add-generic-bug-support arch/um/Kconfig
 +	default y
 +	depends on BUG
 +
- # Used in kernel/irq/manage.c and include/linux/irq.h
- config IRQ_RELEASE_METHOD
- 	bool
-diff -puN arch/um/sys-i386/Makefile~uml-add-generic-bug-support arch/um/sys-i386/Makefile
---- a/arch/um/sys-i386/Makefile~uml-add-generic-bug-support
-+++ a/arch/um/sys-i386/Makefile
-@@ -1,4 +1,4 @@
--obj-y = bugs.o checksum.o delay.o fault.o ksyms.o ldt.o ptrace.o \
-+obj-y = bug.o bugs.o checksum.o delay.o fault.o ksyms.o ldt.o ptrace.o \
- 	ptrace_user.o setjmp.o signal.o sigcontext.o syscalls.o sysrq.o \
- 	sys_call_table.o tls.o
+ source "init/Kconfig"
  
-diff -puN /dev/null arch/um/sys-i386/bug.c
---- /dev/null
-+++ a/arch/um/sys-i386/bug.c
-@@ -0,0 +1,20 @@
-+/*
-+ * Copyright (C) 2006 Jeff Dike (jdike@addtoit.com)
-+ * Licensed under the GPL V2
-+ */
-+
-+#include <linux/uaccess.h>
-+
-+/* Mostly copied from i386/x86_86 - eliminated the eip < PAGE_OFFSET because
-+ * that's not relevent in skas mode.
-+ */
-+
-+int is_valid_bugaddr(unsigned long eip)
-+{
-+	unsigned short ud2;
-+
-+	if (probe_kernel_address((unsigned short __user *)eip, ud2))
-+		return 0;
-+
-+	return ud2 == 0x0b0f;
-+}
-diff -puN arch/um/sys-x86_64/Makefile~uml-add-generic-bug-support arch/um/sys-x86_64/Makefile
---- a/arch/um/sys-x86_64/Makefile~uml-add-generic-bug-support
-+++ a/arch/um/sys-x86_64/Makefile
-@@ -4,7 +4,7 @@
- # Licensed under the GPL
- #
+ menu "Processor"
+diff -puN arch/ppc/kernel/traps.c~use-generic-bug-for-ppc arch/ppc/kernel/traps.c
+--- a/arch/ppc/kernel/traps.c~use-generic-bug-for-ppc
++++ a/arch/ppc/kernel/traps.c
+@@ -28,6 +28,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/prctl.h>
++#include <linux/bug.h>
  
--obj-y = bugs.o delay.o fault.o ldt.o mem.o ptrace.o ptrace_user.o \
-+obj-y = bug.o bugs.o delay.o fault.o ldt.o mem.o ptrace.o ptrace_user.o \
- 	setjmp.o sigcontext.o signal.o syscalls.o syscall_table.o sysrq.o \
- 	ksyms.o tls.o
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+@@ -559,64 +560,9 @@ static void emulate_single_step(struct p
+ 	}
+ }
  
-diff -puN /dev/null arch/um/sys-x86_64/bug.c
---- /dev/null
-+++ a/arch/um/sys-x86_64/bug.c
-@@ -0,0 +1,20 @@
-+/*
-+ * Copyright (C) 2006 Jeff Dike (jdike@addtoit.com)
-+ * Licensed under the GPL V2
-+ */
+-/*
+- * Look through the list of trap instructions that are used for BUG(),
+- * BUG_ON() and WARN_ON() and see if we hit one.  At this point we know
+- * that the exception was caused by a trap instruction of some kind.
+- * Returns 1 if we should continue (i.e. it was a WARN_ON) or 0
+- * otherwise.
+- */
+-extern struct bug_entry __start___bug_table[], __stop___bug_table[];
+-
+-#ifndef CONFIG_MODULES
+-#define module_find_bug(x)	NULL
+-#endif
+-
+-struct bug_entry *find_bug(unsigned long bugaddr)
+-{
+-	struct bug_entry *bug;
+-
+-	for (bug = __start___bug_table; bug < __stop___bug_table; ++bug)
+-		if (bugaddr == bug->bug_addr)
+-			return bug;
+-	return module_find_bug(bugaddr);
+-}
+-
+-int check_bug_trap(struct pt_regs *regs)
++int is_valid_bugaddr(unsigned long addr)
+ {
+-	struct bug_entry *bug;
+-	unsigned long addr;
+-
+-	if (regs->msr & MSR_PR)
+-		return 0;	/* not in kernel */
+-	addr = regs->nip;	/* address of trap instruction */
+-	if (addr < PAGE_OFFSET)
+-		return 0;
+-	bug = find_bug(regs->nip);
+-	if (bug == NULL)
+-		return 0;
+-	if (bug->line & BUG_WARNING_TRAP) {
+-		/* this is a WARN_ON rather than BUG/BUG_ON */
+-#ifdef CONFIG_XMON
+-		xmon_printf(KERN_ERR "Badness in %s at %s:%ld\n",
+-		       bug->function, bug->file,
+-		       bug->line & ~BUG_WARNING_TRAP);
+-#endif /* CONFIG_XMON */		
+-		printk(KERN_ERR "Badness in %s at %s:%ld\n",
+-		       bug->function, bug->file,
+-		       bug->line & ~BUG_WARNING_TRAP);
+-		dump_stack();
+-		return 1;
+-	}
+-#ifdef CONFIG_XMON
+-	xmon_printf(KERN_CRIT "kernel BUG in %s at %s:%ld!\n",
+-	       bug->function, bug->file, bug->line);
+-	xmon(regs);
+-#endif /* CONFIG_XMON */
+-	printk(KERN_CRIT "kernel BUG in %s at %s:%ld!\n",
+-	       bug->function, bug->file, bug->line);
+-
+-	return 0;
++	return addr >= PAGE_OFFSET;
+ }
+ 
+ void program_check_exception(struct pt_regs *regs)
+@@ -671,7 +617,9 @@ void program_check_exception(struct pt_r
+ 		/* trap exception */
+ 		if (debugger_bpt(regs))
+ 			return;
+-		if (check_bug_trap(regs)) {
 +
-+#include <linux/uaccess.h>
-+
-+/* Mostly copied from i386/x86_86 - eliminated the eip < PAGE_OFFSET because
-+ * that's not relevent in skas mode.
-+ */
-+
-+int is_valid_bugaddr(unsigned long eip)
-+{
-+	unsigned short ud2;
-+
-+	if (probe_kernel_address((unsigned short __user *)eip, ud2))
-+		return 0;
-+
-+	return ud2 == 0x0b0f;
-+}
-diff -puN include/asm-um/bug.h~uml-add-generic-bug-support include/asm-um/bug.h
---- a/include/asm-um/bug.h~uml-add-generic-bug-support
-+++ a/include/asm-um/bug.h
-@@ -1,4 +1,6 @@
- #ifndef __UM_BUG_H
- #define __UM_BUG_H
--#include <asm-generic/bug.h>
-+
-+#include <asm/arch/bug.h>
-+
- #endif
++		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
++		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
+ 			regs->nip += 4;
+ 			return;
+ 		}
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from judith@osdl.org are
 
-origin.patch
-uml-add-generic-bug-support.patch
-add-process_session-helper-routine-deprecate-old-field.patch
-tty-switch-to-ktermios.patch
-x86_64-i386-kernel-mode-faults-pollute-current-thead.patch
-uml-fix-prototypes.patch
+use-generic-bug-for-ppc.patch
+powerpc-iseries-link-error-in-allmodconfig.patch
 
