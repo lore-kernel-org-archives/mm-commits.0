@@ -1,227 +1,217 @@
 From: akpm@osdl.org
-Subject: + kmap_atomic-debugging.patch added to -mm tree
-Date: Fri, 08 Dec 2006 14:19:40 -0800
-Message-ID: <200612082219.kB8MJeIa006870@shell0.pdx.osdl.net>
+Subject: + x86_64-do-not-enable-the-nmi-watchdog-by-default.patch added to -mm tree
+Date: Fri, 08 Dec 2006 15:06:02 -0800
+Message-ID: <200612082306.kB8N62EW008343@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44437 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48655 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947447AbWLHWTy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 17:19:54 -0500
+	id S1761245AbWLHXGW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 18:06:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mingo@elte.hu
+Cc: mingo@elte.hu, ak@suse.de, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     kmap_atomic debugging
+     x86_64: do not enable the NMI watchdog by default
 has been added to the -mm tree.  Its filename is
-     kmap_atomic-debugging.patch
+     x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kmap_atomic debugging
-From: Andrew Morton <akpm@osdl.org>
+Subject: x86_64: do not enable the NMI watchdog by default
+From: Ingo Molnar <mingo@elte.hu>
 
-This is almost certainly wrong.  Or at least incomplete.
+Do not enable the NMI watchdog by default.  Now that we have lockdep i
+cannot remember the last time it caught a real bug, but the NMI watchdog
+can /cause/ problems.  Furthermore, to the typical user, an NMI watchdog
+assert results in a total lockup anyway (if under X).  In that sense, all
+that the NMI watchdog does is that it makes the system /less/ stable and
+/less/ debuggable.
 
-Cc: Ingo Molnar <mingo@elte.hu>
+People can still enable it either after bootup via:
+
+   echo 1 > /proc/sys/kernel/nmi
+
+or via the nmi_watchdog=1 or nmi_watchdog=2 boot options.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/mm/highmem.c |   31 +++++++++++++++++++++++++++++++
- 1 files changed, 31 insertions(+)
+ arch/x86_64/kernel/apic.c    |    1 -
+ arch/x86_64/kernel/io_apic.c |    1 -
+ arch/x86_64/kernel/nmi.c     |    2 +-
+ arch/x86_64/kernel/smpboot.c |    1 -
+ include/asm-x86_64/nmi.h     |    1 -
+ 5 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/i386/mm/highmem.c~kmap_atomic-debugging arch/i386/mm/highmem.c
---- a/arch/i386/mm/highmem.c~kmap_atomic-debugging
-+++ a/arch/i386/mm/highmem.c
-@@ -30,7 +30,38 @@ void *kmap_atomic(struct page *page, enu
- {
- 	enum fixed_addresses idx;
- 	unsigned long vaddr;
-+	static unsigned warn_count = 10;
+diff -puN arch/x86_64/kernel/apic.c~x86_64-do-not-enable-the-nmi-watchdog-by-default arch/x86_64/kernel/apic.c
+--- a/arch/x86_64/kernel/apic.c~x86_64-do-not-enable-the-nmi-watchdog-by-default
++++ a/arch/x86_64/kernel/apic.c
+@@ -427,7 +427,6 @@ void __cpuinit setup_local_APIC (void)
+ 			oldvalue, value);
+ 	}
  
-+	if (unlikely(warn_count))
-+		goto skip;
-+
-+	if (unlikely(in_interrupt())) {
-+		if (in_irq()) {
-+			if (type != KM_IRQ0 && type != KM_IRQ1) {
-+				WARN_ON(1);
-+				warn_count--;
-+			}
-+		} else {	/* softirq */
-+			if (type != KM_IRQ0 && type != KM_IRQ1 &&
-+			    type != KM_SOFTIRQ0 && type != KM_SOFTIRQ1) {
-+				WARN_ON(1);
-+				warn_count--;
-+			}
-+		}
-+	}
-+
-+	if (type == KM_IRQ0 || type == KM_IRQ1) {
-+		if (!irqs_disabled() && !hardirq_count()) {
-+			WARN_ON(1);
-+			warn_count--;
-+		}
-+	} else if (type == KM_SOFTIRQ0 || type == KM_SOFTIRQ1) {
-+		if (irq_count() == 0 && !irqs_disabled()) {
-+			WARN_ON(1);
-+			warn_count--;
-+		}
-+	}
-+skip:
- 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
- 	pagefault_disable();
- 	if (!PageHighMem(page))
+-	nmi_watchdog_default();
+ 	setup_apic_nmi_watchdog(NULL);
+ 	apic_pm_activate();
+ }
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-do-not-enable-the-nmi-watchdog-by-default arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-do-not-enable-the-nmi-watchdog-by-default
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -1580,7 +1580,6 @@ static int try_apic_pin(int apic, int pi
+ 	 * Ok, does IRQ0 through the IOAPIC work?
+ 	 */
+ 	if (!no_timer_check && timer_irq_works()) {
+-		nmi_watchdog_default();
+ 		if (nmi_watchdog == NMI_IO_APIC) {
+ 			disable_8259A_irq(0);
+ 			setup_nmi();
+diff -puN arch/x86_64/kernel/nmi.c~x86_64-do-not-enable-the-nmi-watchdog-by-default arch/x86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~x86_64-do-not-enable-the-nmi-watchdog-by-default
++++ a/arch/x86_64/kernel/nmi.c
+@@ -183,7 +183,7 @@ static __cpuinit inline int nmi_known_cp
+ }
+ 
+ /* Run after command line and cpu_init init, but before all other checks */
+-void nmi_watchdog_default(void)
++static inline void nmi_watchdog_default(void)
+ {
+ 	if (nmi_watchdog != NMI_DEFAULT)
+ 		return;
+diff -puN arch/x86_64/kernel/smpboot.c~x86_64-do-not-enable-the-nmi-watchdog-by-default arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~x86_64-do-not-enable-the-nmi-watchdog-by-default
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -1081,7 +1081,6 @@ static int __init smp_sanity_check(unsig
+  */
+ void __init smp_prepare_cpus(unsigned int max_cpus)
+ {
+-	nmi_watchdog_default();
+ 	current_cpu_data = boot_cpu_data;
+ 	current_thread_info()->cpu = 0;  /* needed? */
+ 	set_cpu_sibling_map(0);
+diff -puN include/asm-x86_64/nmi.h~x86_64-do-not-enable-the-nmi-watchdog-by-default include/asm-x86_64/nmi.h
+--- a/include/asm-x86_64/nmi.h~x86_64-do-not-enable-the-nmi-watchdog-by-default
++++ a/include/asm-x86_64/nmi.h
+@@ -59,7 +59,6 @@ extern void disable_timer_nmi_watchdog(v
+ extern void enable_timer_nmi_watchdog(void);
+ extern int nmi_watchdog_tick (struct pt_regs * regs, unsigned reason);
+ 
+-extern void nmi_watchdog_default(void);
+ extern int setup_nmi_watchdog(char *);
+ 
+ extern atomic_t nmi_active;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-workqueue-tweaks.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
+schedc-correct-comment-for-this_rq_lock-routine.patch
+sched-fix-migration-cost-estimator.patch
+sched-domain-move-sched-group-allocations-to-percpu-area.patch
+move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
+sched-domain-increase-the-smt-busy-rebalance-interval.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
 sched-add-option-to-serialize-load-balancing-fix.patch
+sched-improve-migration-accuracy.patch
+sched-improve-migration-accuracy-tidy.patch
+sched-decrease-number-of-load-balances.patch
+sched-remove-lb_stopbalance-counter.patch
+sched-optimize-activate_task-for-rt-task.patch
+kernel-schedc-whitespace-cleanups.patch
 kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
+time-uninline-jiffiesh.patch
+time-uninline-jiffiesh-fix.patch
+time-fix-msecs_to_jiffies-bug.patch
+time-fix-timeout-overflow.patch
+cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
 hrtimers-clean-up-locking-fix.patch
 updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-acpi-include-apich.patch
+updated-acpi-keep-track-of-timer-broadcast.patch
+updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+updated-i386-cleanup-apic-code.patch
 updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-high-res-timers-core.patch
+updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
 updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+high-res-timers-utilize-tsc-clocksource-again.patch
+high-res-timers-utilize-tsc-clocksource-again-fix.patch
+updated-dynticks-core-code.patch
+updated-dynticks-core-code-fix-resume-bug.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-dynticks-fix-nmi-watchdog.patch
+updated-high-res-timers-dynticks-enable-i386-support.patch
+updated-debugging-feature-timer-stats.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+round_jiffies-infrastructure.patch
 round_jiffies-infrastructure-fix.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
 clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
+clocksource-small-acpi_pm-cleanup.patch
+kvm-amd-svm-implementation-more-i386-fixes.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
 kmap_atomic-debugging.patch
 
