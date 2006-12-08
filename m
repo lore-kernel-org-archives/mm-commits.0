@@ -1,127 +1,119 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-alpha.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:29 -0800
-Message-ID: <200612082002.kB8K2Tc9001981@shell0.pdx.osdl.net>
+Subject: - autofs4-change-uses-of-f_dentry.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:14 -0800
+Message-ID: <200612082002.kB8K2E2x001957@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57034 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57035 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426237AbWLHUCg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:36 -0500
+	id S1426238AbWLHUCh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
+To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert alpha
+     autofs4: change uses of f_{dentry, vfsmnt} to use f_path
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-alpha.patch
+     autofs4-change-uses-of-f_dentry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert alpha
-From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
+Subject: autofs4: change uses of f_{dentry, vfsmnt} to use f_path
+From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
+Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the autofs4
+filesystem.
+
+Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/alpha/kernel/osf_sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/autofs_i.h |    3 ++-
+ fs/autofs4/root.c     |   16 ++++++++--------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN arch/alpha/kernel/osf_sys.c~struct-path-convert-alpha arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~struct-path-convert-alpha
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -277,7 +277,7 @@ osf_fstatfs(unsigned long fd, struct osf
- 	retval = -EBADF;
- 	file = fget(fd);
- 	if (file) {
--		retval = do_osf_statfs(file->f_dentry, buffer, bufsiz);
-+		retval = do_osf_statfs(file->f_path.dentry, buffer, bufsiz);
- 		fput(file);
- 	}
- 	return retval;
+diff -puN fs/autofs4/autofs_i.h~autofs4-change-uses-of-f_dentry fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-change-uses-of-f_dentry
++++ a/fs/autofs4/autofs_i.h
+@@ -150,7 +150,8 @@ static inline int autofs4_ispending(stru
+ 
+ static inline void autofs4_copy_atime(struct file *src, struct file *dst)
+ {
+-	dst->f_dentry->d_inode->i_atime = src->f_dentry->d_inode->i_atime;
++	dst->f_path.dentry->d_inode->i_atime =
++		src->f_path.dentry->d_inode->i_atime;
+ 	return;
+ }
+ 
+diff -puN fs/autofs4/root.c~autofs4-change-uses-of-f_dentry fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-change-uses-of-f_dentry
++++ a/fs/autofs4/root.c
+@@ -74,7 +74,7 @@ struct inode_operations autofs4_dir_inod
+ static int autofs4_root_readdir(struct file *file, void *dirent,
+ 				filldir_t filldir)
+ {
+-	struct autofs_sb_info *sbi = autofs4_sbi(file->f_dentry->d_sb);
++	struct autofs_sb_info *sbi = autofs4_sbi(file->f_path.dentry->d_sb);
+ 	int oz_mode = autofs4_oz_mode(sbi);
+ 
+ 	DPRINTK("called, filp->f_pos = %lld", file->f_pos);
+@@ -95,8 +95,8 @@ static int autofs4_root_readdir(struct f
+ 
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ {
+-	struct dentry *dentry = file->f_dentry;
+-	struct vfsmount *mnt = file->f_vfsmnt;
++	struct dentry *dentry = file->f_path.dentry;
++	struct vfsmount *mnt = file->f_path.mnt;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct dentry *cursor;
+ 	int status;
+@@ -172,7 +172,7 @@ out:
+ 
+ static int autofs4_dir_close(struct inode *inode, struct file *file)
+ {
+-	struct dentry *dentry = file->f_dentry;
++	struct dentry *dentry = file->f_path.dentry;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct dentry *cursor = file->private_data;
+ 	int status = 0;
+@@ -204,7 +204,7 @@ out:
+ 
+ static int autofs4_dir_readdir(struct file *file, void *dirent, filldir_t filldir)
+ {
+-	struct dentry *dentry = file->f_dentry;
++	struct dentry *dentry = file->f_path.dentry;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct dentry *cursor = file->private_data;
+ 	int status;
+@@ -858,14 +858,14 @@ static int autofs4_root_ioctl(struct ino
+ 		return autofs4_ask_reghost(sbi, p);
+ 
+ 	case AUTOFS_IOC_ASKUMOUNT:
+-		return autofs4_ask_umount(filp->f_vfsmnt, p);
++		return autofs4_ask_umount(filp->f_path.mnt, p);
+ 
+ 	/* return a single thing to expire */
+ 	case AUTOFS_IOC_EXPIRE:
+-		return autofs4_expire_run(inode->i_sb,filp->f_vfsmnt,sbi, p);
++		return autofs4_expire_run(inode->i_sb,filp->f_path.mnt,sbi, p);
+ 	/* same as above, but can send multiple expires through pipe */
+ 	case AUTOFS_IOC_EXPIRE_MULTI:
+-		return autofs4_expire_multi(inode->i_sb,filp->f_vfsmnt,sbi, p);
++		return autofs4_expire_multi(inode->i_sb,filp->f_path.mnt,sbi, p);
+ 
+ 	default:
+ 		return -ENOSYS;
 _
 
-Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
+Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-struct-path-convert-alpha.patch
-struct-path-convert-atm.patch
-struct-path-convert-befs.patch
-struct-path-convert-bfs.patch
-struct-path-convert-block.patch
-struct-path-convert-block_drivers.patch
-struct-path-convert-char-drivers.patch
-struct-path-convert-coda.patch
-struct-path-convert-cosa.patch
-struct-path-convert-cramfs.patch
-struct-path-convert-cris.patch
-struct-path-convert-drm.patch
-struct-path-convert-efs.patch
-struct-path-convert-freevxfs.patch
-struct-path-convert-frv.patch
-struct-path-convert-fuse.patch
-struct-path-convert-gfs2.patch
-struct-path-convert-hfs.patch
-struct-path-convert-hfsplus.patch
-struct-path-convert-hostfs.patch
-struct-path-convert-hpfs.patch
-struct-path-convert-hppfs.patch
-struct-path-convert-hugetlbfs.patch
-struct-path-convert-i2c-drivers.patch
-struct-path-convert-ia64.patch
-struct-path-convert-ieee1394.patch
-struct-path-convert-infiniband.patch
-struct-path-convert-ipc.patch
-struct-path-convert-ipmi.patch
-struct-path-convert-isapnp.patch
-struct-path-convert-isdn.patch
-struct-path-convert-ixj.patch
-struct-path-convert-jffs.patch
-struct-path-convert-jffs2.patch
-struct-path-convert-jfs.patch
-struct-path-convert-kernel.patch
-struct-path-convert-lockd.patch
-struct-path-convert-md.patch
-struct-path-convert-minix.patch
-struct-path-convert-mips.patch
-struct-path-convert-mm.patch
-struct-path-convert-nbd.patch
-struct-path-convert-ncpfs.patch
-struct-path-convert-net.patch
-struct-path-convert-netfilter.patch
-struct-path-convert-netlink.patch
-struct-path-convert-ocfs2.patch
-struct-path-convert-openpromfs.patch
-struct-path-convert-oprofile.patch
-struct-path-convert-parisc.patch
-struct-path-convert-pci.patch
-struct-path-convert-pcmcia.patch
-struct-path-convert-powerpc.patch
-struct-path-convert-ppc.patch
-struct-path-convert-qnx4.patch
-struct-path-convert-ramfs.patch
-struct-path-convert-reiserfs.patch
-struct-path-convert-romfs.patch
-struct-path-convert-s390-drivers.patch
-struct-path-convert-s390.patch
-struct-path-convert-sbus.patch
-struct-path-convert-scsi.patch
-struct-path-convert-selinux.patch
-struct-path-convert-sh.patch
-struct-path-convert-smbfs.patch
-struct-path-convert-sound.patch
-struct-path-convert-sparc.patch
-struct-path-convert-sparc64.patch
-struct-path-convert-sunrpc.patch
-struct-path-convert-sysv.patch
-struct-path-convert-udf.patch
-struct-path-convert-ufs.patch
-struct-path-convert-unix.patch
-struct-path-convert-usb.patch
-struct-path-convert-v4l.patch
-struct-path-convert-video.patch
-struct-path-convert-zorro.patch
+autofs4-change-uses-of-f_dentry.patch
+configfs-change-uses-of-f_dentry.patch
+cifs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ecryptfs-change-uses-of-f_dentry.patch
+xfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
 
