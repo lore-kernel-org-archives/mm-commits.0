@@ -1,87 +1,78 @@
 From: akpm@osdl.org
-Subject: - fat-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:01:48 -0800
-Message-ID: <200612082001.kB8K1mdq001903@shell0.pdx.osdl.net>
+Subject: - isofs-change-uses-of-f_dentry.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:01:50 -0800
+Message-ID: <200612082001.kB8K1oT6001912@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56973 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56968 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761159AbWLHUCP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:15 -0500
+	id S1426239AbWLHUCM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: change uses of f_{dentry,vfsmnt} to use f_path
+     isofs: change uses of f_{dentry, vfsmnt} to use f_path
 has been removed from the -mm tree.  Its filename was
-     fat-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+     isofs-change-uses-of-f_dentry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fat: change uses of f_{dentry,vfsmnt} to use f_path
+Subject: isofs: change uses of f_{dentry, vfsmnt} to use f_path
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the fat
+Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the isofs
 filesystem.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/fat/dir.c  |    6 +++---
- fs/fat/file.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/isofs/compress.c |    2 +-
+ fs/isofs/dir.c      |    5 ++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-change-uses-of-f_dentryvfsmnt-to-use-f_path fs/fat/dir.c
---- a/fs/fat/dir.c~fat-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/fs/fat/dir.c
-@@ -579,7 +579,7 @@ parse_record:
- 	if (!memcmp(de->name, MSDOS_DOT, MSDOS_NAME))
- 		inum = inode->i_ino;
- 	else if (!memcmp(de->name, MSDOS_DOTDOT, MSDOS_NAME)) {
--		inum = parent_ino(filp->f_dentry);
-+		inum = parent_ino(filp->f_path.dentry);
- 	} else {
- 		loff_t i_pos = fat_make_i_pos(sb, bh, de);
- 		struct inode *tmp = fat_iget(sb, i_pos);
-@@ -643,7 +643,7 @@ out:
- 
- static int fat_readdir(struct file *filp, void *dirent, filldir_t filldir)
+diff -puN fs/isofs/compress.c~isofs-change-uses-of-f_dentry fs/isofs/compress.c
+--- a/fs/isofs/compress.c~isofs-change-uses-of-f_dentry
++++ a/fs/isofs/compress.c
+@@ -42,7 +42,7 @@ static struct semaphore zisofs_zlib_sema
+  */
+ static int zisofs_readpage(struct file *file, struct page *page)
  {
+-	struct inode *inode = file->f_dentry->d_inode;
++	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	unsigned int maxpage, xpage, fpage, blockindex;
+ 	unsigned long offset;
+diff -puN fs/isofs/dir.c~isofs-change-uses-of-f_dentry fs/isofs/dir.c
+--- a/fs/isofs/dir.c~isofs-change-uses-of-f_dentry
++++ a/fs/isofs/dir.c
+@@ -183,7 +183,7 @@ static int do_isofs_readdir(struct inode
+ 
+ 		/* Handle the case of the '..' directory */
+ 		if (de->name_len[0] == 1 && de->name[0] == 1) {
+-			inode_number = parent_ino(filp->f_dentry);
++			inode_number = parent_ino(filp->f_path.dentry);
+ 			if (filldir(dirent, "..", 2, filp->f_pos, inode_number, DT_DIR) < 0)
+ 				break;
+ 			filp->f_pos += de_len;
+@@ -255,8 +255,7 @@ static int isofs_readdir(struct file *fi
+ 	int result;
+ 	char * tmpname;
+ 	struct iso_directory_record * tmpde;
 -	struct inode *inode = filp->f_dentry->d_inode;
+-
 +	struct inode *inode = filp->f_path.dentry->d_inode;
- 	return __fat_readdir(inode, filp, dirent, filldir, 0, 0);
- }
  
-@@ -782,7 +782,7 @@ static long fat_compat_dir_ioctl(struct 
- 
- 	set_fs(KERNEL_DS);
- 	lock_kernel();
--	ret = fat_dir_ioctl(file->f_dentry->d_inode, file,
-+	ret = fat_dir_ioctl(file->f_path.dentry->d_inode, file,
- 			    cmd, (unsigned long) &d);
- 	unlock_kernel();
- 	set_fs(oldfs);
-diff -puN fs/fat/file.c~fat-change-uses-of-f_dentryvfsmnt-to-use-f_path fs/fat/file.c
---- a/fs/fat/file.c~fat-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/fs/fat/file.c
-@@ -92,7 +92,7 @@ int fat_generic_ioctl(struct inode *inod
- 		}
- 
- 		/* This MUST be done before doing anything irreversible... */
--		err = notify_change(filp->f_dentry, &ia);
-+		err = notify_change(filp->f_path.dentry, &ia);
- 		if (err)
- 			goto up;
- 
+ 	tmpname = (char *)__get_free_page(GFP_KERNEL);
+ 	if (tmpname == NULL)
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-fat-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
 isofs-change-uses-of-f_dentry.patch
 nfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
 nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
