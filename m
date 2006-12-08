@@ -1,357 +1,99 @@
 From: akpm@osdl.org
-Subject: - video-use-bitrev8.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:01:09 -0800
-Message-ID: <200612082001.kB8K19Vq001815@shell0.pdx.osdl.net>
+Subject: - struct-path-move-struct-path-from-fs-nameic-into.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:01:31 -0800
+Message-ID: <200612082001.kB8K1VRh001872@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56720 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56820 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426236AbWLHUBP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:01:15 -0500
+	id S1426213AbWLHUBe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:01:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: jsipek@cs.sunysb.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video: use bitrev8
+     struct path: move struct path from fs/namei.c into include/linux
 has been removed from the -mm tree.  Its filename was
-     video-use-bitrev8.patch
+     struct-path-move-struct-path-from-fs-nameic-into.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: video: use bitrev8
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: struct path: move struct path from fs/namei.c into include/linux
+From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Use bitrev8 for nvidiafb, rivafb, and tgafb drivers
+Moved struct path from fs/namei.c to include/linux/namei.h.  This allows many
+places in the VFS, as well as any stackable filesystem to easily keep track of
+dentry-vfsmount pairs.
 
-Cc: Antonino Daplas <adaplas@pol.net>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/Kconfig           |    3 +
- drivers/video/nvidia/nv_accel.c |   35 ------------------
- drivers/video/nvidia/nv_local.h |   11 +++--
- drivers/video/nvidia/nv_proto.h |    1 
- drivers/video/riva/fbdev.c      |   44 ++---------------------
- drivers/video/tgafb.c           |   56 +++++-------------------------
- 6 files changed, 26 insertions(+), 124 deletions(-)
+ fs/namei.c            |    5 -----
+ include/linux/namei.h |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/Kconfig~video-use-bitrev8 drivers/video/Kconfig
---- a/drivers/video/Kconfig~video-use-bitrev8
-+++ a/drivers/video/Kconfig
-@@ -541,6 +541,7 @@ config FB_TGA
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-+	select BITREVERSE
- 	help
- 	  This is the frame buffer device driver for generic TGA graphic
- 	  cards. Say Y if you have one of those.
-@@ -705,6 +706,7 @@ config FB_NVIDIA
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-+	select BITREVERSE
- 	help
- 	  This driver supports graphics boards with the nVidia chips, TNT
- 	  and newer. For very old chipsets, such as the RIVA128, then use
-@@ -744,6 +746,7 @@ config FB_RIVA
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-+	select BITREVERSE
- 	help
- 	  This driver supports graphics boards with the nVidia Riva/Geforce
- 	  chips.
-diff -puN drivers/video/nvidia/nv_accel.c~video-use-bitrev8 drivers/video/nvidia/nv_accel.c
---- a/drivers/video/nvidia/nv_accel.c~video-use-bitrev8
-+++ a/drivers/video/nvidia/nv_accel.c
-@@ -261,41 +261,6 @@ void NVResetGraphics(struct fb_info *inf
- 	NVDmaKickoff(par);
+diff -puN fs/namei.c~struct-path-move-struct-path-from-fs-nameic-into fs/namei.c
+--- a/fs/namei.c~struct-path-move-struct-path-from-fs-nameic-into
++++ a/fs/namei.c
+@@ -572,11 +572,6 @@ fail:
+ 	return PTR_ERR(link);
  }
  
--u8 byte_rev[256] = {
--	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
--	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
--	0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
--	0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
--	0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
--	0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
--	0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
--	0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
--	0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
--	0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
--	0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
--	0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
--	0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
--	0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
--	0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
--	0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
--	0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
--	0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
--	0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
--	0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
--	0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
--	0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
--	0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
--	0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
--	0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
--	0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
--	0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
--	0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
--	0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
--	0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
--	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
--	0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
+-struct path {
+-	struct vfsmount *mnt;
+-	struct dentry *dentry;
 -};
 -
- int nvidiafb_sync(struct fb_info *info)
+ static inline void dput_path(struct path *path, struct nameidata *nd)
  {
- 	struct nvidia_par *par = info->par;
-diff -puN drivers/video/nvidia/nv_local.h~video-use-bitrev8 drivers/video/nvidia/nv_local.h
---- a/drivers/video/nvidia/nv_local.h~video-use-bitrev8
-+++ a/drivers/video/nvidia/nv_local.h
-@@ -96,13 +96,16 @@
- #define READ_GET(par) (NV_RD32(&(par)->FIFO[0x0011], 0) >> 2)
+ 	dput(path->dentry);
+diff -puN include/linux/namei.h~struct-path-move-struct-path-from-fs-nameic-into include/linux/namei.h
+--- a/include/linux/namei.h~struct-path-move-struct-path-from-fs-nameic-into
++++ a/include/linux/namei.h
+@@ -29,6 +29,11 @@ struct nameidata {
+ 	} intent;
+ };
  
- #ifdef __LITTLE_ENDIAN
++struct path {
++	struct vfsmount *mnt;
++	struct dentry *dentry;
++};
 +
-+#include <linux/bitrev.h>
-+
- #define reverse_order(l)        \
- do {                            \
- 	u8 *a = (u8 *)(l);      \
--	*a = byte_rev[*a], a++; \
--	*a = byte_rev[*a], a++; \
--	*a = byte_rev[*a], a++; \
--	*a = byte_rev[*a];      \
-+	a[0] = bitrev8(a[0]);   \
-+	a[1] = bitrev8(a[1]);   \
-+	a[2] = bitrev8(a[2]);   \
-+	a[3] = bitrev8(a[3]);   \
- } while(0)
- #else
- #define reverse_order(l) do { } while(0)
-diff -puN drivers/video/nvidia/nv_proto.h~video-use-bitrev8 drivers/video/nvidia/nv_proto.h
---- a/drivers/video/nvidia/nv_proto.h~video-use-bitrev8
-+++ a/drivers/video/nvidia/nv_proto.h
-@@ -62,7 +62,6 @@ extern void nvidiafb_fillrect(struct fb_
- extern void nvidiafb_imageblit(struct fb_info *info,
- 			       const struct fb_image *image);
- extern int nvidiafb_sync(struct fb_info *info);
--extern u8 byte_rev[256];
- 
- /* in nv_backlight.h */
- #ifdef CONFIG_FB_NVIDIA_BACKLIGHT
-diff -puN drivers/video/riva/fbdev.c~video-use-bitrev8 drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~video-use-bitrev8
-+++ a/drivers/video/riva/fbdev.c
-@@ -40,6 +40,7 @@
- #include <linux/init.h>
- #include <linux/pci.h>
- #include <linux/backlight.h>
-+#include <linux/bitrev.h>
- #ifdef CONFIG_MTRR
- #include <asm/mtrr.h>
- #endif
-@@ -521,48 +522,13 @@ static inline unsigned char MISCin(struc
- 	return (VGA_RD08(par->riva.PVIO, 0x3cc));
- }
- 
--static u8 byte_rev[256] = {
--	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
--	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
--	0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
--	0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
--	0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
--	0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
--	0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
--	0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
--	0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
--	0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
--	0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
--	0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
--	0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
--	0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
--	0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
--	0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
--	0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
--	0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
--	0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
--	0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
--	0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
--	0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
--	0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
--	0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
--	0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
--	0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
--	0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
--	0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
--	0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
--	0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
--	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
--	0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
--};
--
- static inline void reverse_order(u32 *l)
- {
- 	u8 *a = (u8 *)l;
--	*a = byte_rev[*a], a++;
--	*a = byte_rev[*a], a++;
--	*a = byte_rev[*a], a++;
--	*a = byte_rev[*a];
-+	a[0] = bitrev8(a[0]);
-+	a[1] = bitrev8(a[1]);
-+	a[2] = bitrev8(a[2]);
-+	a[3] = bitrev8(a[3]);
- }
- 
- /* ------------------------------------------------------------------------- *
-diff -puN drivers/video/tgafb.c~video-use-bitrev8 drivers/video/tgafb.c
---- a/drivers/video/tgafb.c~video-use-bitrev8
-+++ a/drivers/video/tgafb.c
-@@ -23,6 +23,7 @@
- #include <linux/fb.h>
- #include <linux/pci.h>
- #include <linux/selection.h>
-+#include <linux/bitrev.h>
- #include <asm/io.h>
- #include <video/tgafb.h>
- 
-@@ -517,41 +518,6 @@ tgafb_blank(int blank, struct fb_info *i
- static void
- tgafb_imageblit(struct fb_info *info, const struct fb_image *image)
- {
--	static unsigned char const bitrev[256] = {
--		0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
--		0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
--		0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
--		0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
--		0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
--		0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
--		0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
--		0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
--		0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
--		0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
--		0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
--		0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
--		0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
--		0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
--		0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
--		0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
--		0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
--		0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
--		0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
--		0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
--		0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
--		0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
--		0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
--		0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
--		0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
--		0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
--		0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
--		0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
--		0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
--		0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
--		0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
--		0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff
--	};
--
- 	struct tga_par *par = (struct tga_par *) info->par;
- 	u32 fgcolor, bgcolor, dx, dy, width, height, vxres, vyres, pixelmask;
- 	unsigned long rincr, line_length, shift, pos, is8bpp;
-@@ -649,7 +615,7 @@ tgafb_imageblit(struct fb_info *info, co
- 			/* The image data is bit big endian; we need
- 			   little endian.  */
- 			for (j = 0; j < bwidth; ++j)
--				mask |= bitrev[data[j]] << (j * 8);
-+				mask |= bitrev8(data[j]) << (j * 8);
- 
- 			__raw_writel(mask << shift, fb_base + pos);
- 
-@@ -676,10 +642,10 @@ tgafb_imageblit(struct fb_info *info, co
- 		for (i = 0; i < height; ++i) {
- 			for (j = 0; j < bwidth; j += 4) {
- 				u32 mask = 0;
--				mask |= bitrev[data[j+0]] << (0 * 8);
--				mask |= bitrev[data[j+1]] << (1 * 8);
--				mask |= bitrev[data[j+2]] << (2 * 8);
--				mask |= bitrev[data[j+3]] << (3 * 8);
-+				mask |= bitrev8(data[j+0]) << (0 * 8);
-+				mask |= bitrev8(data[j+1]) << (1 * 8);
-+				mask |= bitrev8(data[j+2]) << (2 * 8);
-+				mask |= bitrev8(data[j+3]) << (3 * 8);
- 				__raw_writel(mask, fb_base + pos + j*bincr);
- 			}
- 			pos += line_length;
-@@ -699,7 +665,7 @@ tgafb_imageblit(struct fb_info *info, co
- 			for (i = 0; i < height; ++i) {
- 				u32 mask = 0;
- 				for (j = 0; j < bwidth; ++j)
--					mask |= bitrev[data[j]] << (j * 8);
-+					mask |= bitrev8(data[j]) << (j * 8);
- 				__raw_writel(mask, fb_base + pos);
- 				pos += line_length;
- 				data += rincr;
-@@ -726,8 +692,8 @@ tgafb_imageblit(struct fb_info *info, co
- 		for (i = 0; i < height; ++i) {
- 			for (j = 0; j < bwidth; j += 2) {
- 				u32 mask = 0;
--				mask |= bitrev[data[j+0]] << (0 * 8);
--				mask |= bitrev[data[j+1]] << (1 * 8);
-+				mask |= bitrev8(data[j+0]) << (0 * 8);
-+				mask |= bitrev8(data[j+1]) << (1 * 8);
- 				mask <<= shift;
- 				__raw_writel(mask, fb_base + pos + j*bincr);
- 			}
-@@ -746,9 +712,9 @@ tgafb_imageblit(struct fb_info *info, co
- 			bwidth = (width & 15) > 8;
- 
- 			for (i = 0; i < height; ++i) {
--				u32 mask = bitrev[data[0]];
-+				u32 mask = bitrev8(data[0]);
- 				if (bwidth)
--					mask |= bitrev[data[1]] << 8;
-+					mask |= bitrev8(data[1]) << 8;
- 				mask <<= shift;
- 				__raw_writel(mask, fb_base + pos);
- 				pos += line_length;
+ /*
+  * Type of the last component on LOOKUP_PARENT
+  */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-origin.patch
-video-use-bitrev8.patch
-isdn-hisax-use-bitrev8.patch
-atm-ambassador-use-bitrev8.patch
-isdn-gigaset-use-bitrev8.patch
-isdn-fix-missing-unregister_capi_driver.patch
-fault-injection-documentation-and-scripts.patch
-fault-injection-capabilities-infrastructure.patch
-fault-injection-capability-for-kmalloc.patch
-fault-injection-capability-for-alloc_pages.patch
-fault-injection-capability-for-disk-io.patch
-fault-injection-process-filtering-for-fault-injection-capabilities.patch
-fault-injection-stacktrace-filtering.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-fault-injection-correct-disambiguate-and.patch
-fault-injection-use-bool-true-false-throughout.patch
-fault-injection-clamp-debugfs-stacktrace-depth-to.patch
-fault-injection-optimize-and-simplify.patch
-fault-injection-defaults-likely-to-please-a-new.patch
-acpi-fix-single-linked-list-manipulation.patch
-acpi-processor-prevent-loading-module-on-failures.patch
-git-alsa.patch
-audit-fix-kstrdup-error-check.patch
-drm-fix-return-value-check.patch
-ata-fix-platform_device_register_simple-error-check.patch
-git-mtd.patch
-net-use-bitrev8.patch
-gss_spkm3-fix-error-handling-in-module-init.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-iscsi-fix-crypto_alloc_hash-error-check.patch
+struct-path-move-struct-path-from-fs-nameic-into.patch
+struct-path-make-ecryptfs-a-user-of-struct-path.patch
+vfs-change-struct-file-to-use-struct-path.patch
+sysfs-change-uses-of-f_dentry.patch
+proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ext2-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ext3-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+fat-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+isofs-change-uses-of-f_dentry.patch
+nfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ntfs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+i386-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+x86_64-change-uses-of-f_dentry.patch
+kernel-change-uses-of-f_dentry.patch
+mm-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+9p-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+affs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+autofs-change-uses-of-f_dentry.patch
+autofs4-change-uses-of-f_dentry.patch
+configfs-change-uses-of-f_dentry.patch
+cifs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ecryptfs-change-uses-of-f_dentry.patch
+xfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
 
