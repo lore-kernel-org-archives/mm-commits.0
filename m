@@ -1,69 +1,54 @@
 From: akpm@osdl.org
-Subject: - sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 01:06:49 -0800
-Message-ID: <200612080906.kB896nxe014434@shell0.pdx.osdl.net>
+Subject: - various-fbdev-files-mark-structs-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 01:07:27 -0800
+Message-ID: <200612080907.kB897R1e014450@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39047 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425267AbWLHJGv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 04:06:51 -0500
+	id S1425269AbWLHJHc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 04:07:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, deller@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3
+     various-fbdev-files-mark-structs-fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+     various-fbdev-files-mark-structs-fix.patch
 
-This patch was dropped because it was folded into sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
+This patch was dropped because it was folded into various-fbdev-files-mark-structs.patch
 
 ------------------------------------------------------
-Subject: sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3
+Subject: various-fbdev-files-mark-structs-fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/sysctl.c:2676: warning: 'sysctl_ipc_data' defined but not used
+drivers/video/fbsysfs.c: In function 'fb_init_device':
+drivers/video/fbsysfs.c:517: warning: passing argument 2 of 'device_create_file' discards qualifiers from pointer target type
+drivers/video/fbsysfs.c:525: warning: passing argument 2 of 'device_remove_file' discards qualifiers from pointer target type
+drivers/video/fbsysfs.c: In function 'fb_cleanup_device':
+drivers/video/fbsysfs.c:538: warning: passing argument 2 of 'device_remove_file' discards qualifiers from pointer target type
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sysctl.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/video/fbsysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3 kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3
-+++ a/kernel/sysctl.c
-@@ -150,9 +150,11 @@ static int sysctl_uts_string(ctl_table *
- 		  void __user *oldval, size_t __user *oldlenp,
- 		  void __user *newval, size_t newlen, void **context);
- 
-+#ifdef CONFIG_SYSVIPC
- static int sysctl_ipc_data(ctl_table *table, int __user *name, int nlen,
- 		  void __user *oldval, size_t __user *oldlenp,
- 		  void __user *newval, size_t newlen, void **context);
-+#endif
- 
- #ifdef CONFIG_PROC_SYSCTL
- static int proc_do_cad_pid(ctl_table *table, int write, struct file *filp,
-@@ -2669,6 +2671,7 @@ static int sysctl_uts_string(ctl_table *
- 	return r;
- }
- 
-+#ifdef CONFIG_SYSVIPC
- /* The generic sysctl ipc data routine. */
- static int sysctl_ipc_data(ctl_table *table, int __user *name, int nlen,
- 		void __user *oldval, size_t __user *oldlenp,
-@@ -2707,6 +2710,7 @@ static int sysctl_ipc_data(ctl_table *ta
- 	}
- 	return 1;
- }
-+#endif
- 
- #else /* CONFIG_SYSCTL_SYSCALL */
- 
+diff -puN drivers/video/fbsysfs.c~various-fbdev-files-mark-structs-fix drivers/video/fbsysfs.c
+--- a/drivers/video/fbsysfs.c~various-fbdev-files-mark-structs-fix
++++ a/drivers/video/fbsysfs.c
+@@ -487,7 +487,7 @@ static ssize_t show_bl_curve(struct devi
+ /* When cmap is added back in it should be a binary attribute
+  * not a text one. Consideration should also be given to converting
+  * fbdev to use configfs instead of sysfs */
+-static const struct device_attribute device_attrs[] = {
++static struct device_attribute device_attrs[] = {
+ 	__ATTR(bits_per_pixel, S_IRUGO|S_IWUSR, show_bpp, store_bpp),
+ 	__ATTR(blank, S_IRUGO|S_IWUSR, show_blank, store_blank),
+ 	__ATTR(console, S_IRUGO|S_IWUSR, show_console, store_console),
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -84,8 +69,8 @@ fault-injection-capabilities-infrastructure.patch
 fault-injection-Kconfig-cleanup.patch
 fault-injection-stacktrace-filtering-kconfig-fix.patch
 sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
 video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs.patch
 various-fbdev-files-mark-structs-fix.patch
 backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
 gxfb-fixups-for-the-amd-geode-gx-tidy.patch
