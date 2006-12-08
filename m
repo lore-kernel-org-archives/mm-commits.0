@@ -1,54 +1,58 @@
 From: akpm@osdl.org
-Subject: - libphy-dont-do-that.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:36 -0800
-Message-ID: <200612081104.kB8B4aA5018571@shell0.pdx.osdl.net>
+Subject: - git-nfs-more-hacks.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:43 -0800
+Message-ID: <200612081104.kB8B4hPs018583@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48657 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48652 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S938036AbWLHLFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:05:01 -0500
+	id S938035AbWLHLE7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:04:59 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B4hID029544
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 03:04:48 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, jeff@garzik.org, macro@ds2.pg.gda.pl, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libphy-dont-do-that
+     git-nfs-more-hacks
 has been removed from the -mm tree.  Its filename was
-     libphy-dont-do-that.patch
+     git-nfs-more-hacks.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: libphy-dont-do-that
+Subject: git-nfs-more-hacks
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: "Maciej W. Rozycki" <macro@ds2.pg.gda.pl>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/phy/phy.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ net/sunrpc/xprtsock.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/phy/phy.c~libphy-dont-do-that drivers/net/phy/phy.c
---- a/drivers/net/phy/phy.c~libphy-dont-do-that
-+++ a/drivers/net/phy/phy.c
-@@ -583,12 +583,7 @@ int phy_stop_interrupts(struct phy_devic
- 	if (err)
- 		phy_error(phydev);
+diff -puN net/sunrpc/xprtsock.c~git-nfs-more-hacks net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~git-nfs-more-hacks
++++ a/net/sunrpc/xprtsock.c
+@@ -1355,6 +1355,7 @@ static struct rpc_xprt *xs_setup_xprt(st
+  */
+ struct rpc_xprt *xs_setup_udp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
+ {
++	return NULL;
+ }
  
--	/*
--	 * Finish any pending work; we might have been scheduled
--	 * to be called from keventd ourselves, though.
--	 */
--	if (!current_is_keventd())
--		flush_scheduled_work();
-+	flush_scheduled_work();
+ /**
+@@ -1366,6 +1367,7 @@ struct rpc_xprt *xs_setup_udp(struct soc
+  */
+ struct rpc_xprt *xs_setup_tcp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
+ {
++	return NULL;
+ }
  
- 	free_irq(phydev->irq, phydev);
- 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
