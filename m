@@ -1,291 +1,207 @@
 From: akpm@osdl.org
-Subject: - rename-struct-pspace-to-struct-pid_namespace.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:05:56 -0800
-Message-ID: <200612082005.kB8K5uuA002346@shell0.pdx.osdl.net>
+Subject: - fault-injection-stacktrace-filtering-kconfig-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:11:30 -0800
+Message-ID: <200612082011.kB8KBUnb002921@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59166 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59172 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946656AbWLHUL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:11:57 -0500
+	id S1946659AbWLHUL7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:11:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@us.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, mm-commits@vger.kernel.org
+To: akpm@osdl.org, akinobu.mita@gmail.com, dwm@meer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename struct pspace to struct pid_namespace
+     fault-injection: stacktrace filtering kconfig fix
 has been removed from the -mm tree.  Its filename was
-     rename-struct-pspace-to-struct-pid_namespace.patch
+     fault-injection-stacktrace-filtering-kconfig-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rename struct pspace to struct pid_namespace
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: fault-injection: stacktrace filtering kconfig fix
+From: Andrew Morton <akpm@osdl.org>
 
-Rename struct pspace to struct pid_namespace for consistency with other
-namespaces (uts_namespace and ipc_namespace).  Also rename
-include/linux/pspace.h to include/linux/pid_namespace.h and variables from
-pspace to pid_ns.
+`select' doesn't work very well.  With alpha `make allmodconfig' we end up
+with CONFIG_STACKTRACE enabled, so we end up with undefined save_stacktrace()
+at link time.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Don Mullis <dwm@meer.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/proc_misc.c           |    4 +-
- include/linux/pid_namespace.h |   23 +++++++++++++++
- include/linux/pspace.h        |   23 ---------------
- kernel/pid.c                  |   49 ++++++++++++++++----------------
- 4 files changed, 50 insertions(+), 49 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~rename-struct-pspace-to-struct-pid_namespace fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~rename-struct-pspace-to-struct-pid_namespace
-+++ a/fs/proc/proc_misc.c
-@@ -45,7 +45,7 @@
- #include <linux/sysrq.h>
- #include <linux/vmalloc.h>
- #include <linux/crash_dump.h>
--#include <linux/pspace.h>
-+#include <linux/pid_namespace.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/io.h>
-@@ -92,7 +92,7 @@ static int loadavg_read_proc(char *page,
- 		LOAD_INT(a), LOAD_FRAC(a),
- 		LOAD_INT(b), LOAD_FRAC(b),
- 		LOAD_INT(c), LOAD_FRAC(c),
--		nr_running(), nr_threads, init_pspace.last_pid);
-+		nr_running(), nr_threads, init_pid_ns.last_pid);
- 	return proc_calc_metrics(page, start, off, count, eof, len);
- }
- 
-diff -puN /dev/null include/linux/pid_namespace.h
---- /dev/null
-+++ a/include/linux/pid_namespace.h
-@@ -0,0 +1,23 @@
-+#ifndef _LINUX_PID_NS_H
-+#define _LINUX_PID_NS_H
-+
-+#include <linux/sched.h>
-+#include <linux/mm.h>
-+#include <linux/threads.h>
-+#include <linux/pid.h>
-+
-+struct pidmap {
-+       atomic_t nr_free;
-+       void *page;
-+};
-+
-+#define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
-+
-+struct pid_namespace {
-+       struct pidmap pidmap[PIDMAP_ENTRIES];
-+       int last_pid;
-+};
-+
-+extern struct pid_namespace init_pid_ns;
-+
-+#endif /* _LINUX_PID_NS_H */
-diff -puN include/linux/pspace.h~rename-struct-pspace-to-struct-pid_namespace /dev/null
---- a/include/linux/pspace.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--#ifndef _LINUX_PSPACE_H
--#define _LINUX_PSPACE_H
--
--#include <linux/sched.h>
--#include <linux/mm.h>
--#include <linux/threads.h>
--#include <linux/pid.h>
--
--struct pidmap {
--       atomic_t nr_free;
--       void *page;
--};
--
--#define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
--
--struct pspace {
--       struct pidmap pidmap[PIDMAP_ENTRIES];
--       int last_pid;
--};
--
--extern struct pspace init_pspace;
--
--#endif /* _LINUX_PSPACE_H */
-diff -puN kernel/pid.c~rename-struct-pspace-to-struct-pid_namespace kernel/pid.c
---- a/kernel/pid.c~rename-struct-pspace-to-struct-pid_namespace
-+++ a/kernel/pid.c
-@@ -26,7 +26,7 @@
- #include <linux/init.h>
- #include <linux/bootmem.h>
- #include <linux/hash.h>
--#include <linux/pspace.h>
-+#include <linux/pid_namespace.h>
- 
- #define pid_hashfn(nr) hash_long((unsigned long)nr, pidhash_shift)
- static struct hlist_head *pid_hash;
-@@ -43,9 +43,10 @@ int pid_max_max = PID_MAX_LIMIT;
- #define BITS_PER_PAGE		(PAGE_SIZE*8)
- #define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
- 
--static inline int mk_pid(struct pspace *pspace, struct pidmap *map, int off)
-+static inline int mk_pid(struct pid_namespace *pid_ns,
-+		struct pidmap *map, int off)
- {
--	return (map - pspace->pidmap)*BITS_PER_PAGE + off;
-+	return (map - pid_ns->pidmap)*BITS_PER_PAGE + off;
- }
- 
- #define find_next_offset(map, off)					\
-@@ -57,7 +58,7 @@ static inline int mk_pid(struct pspace *
-  * value does not cause lots of bitmaps to be allocated, but
-  * the scheme scales to up to 4 million PIDs, runtime.
-  */
--struct pspace init_pspace = {
-+struct pid_namespace init_pid_ns = {
- 	.pidmap = {
- 		[ 0 ... PIDMAP_ENTRIES-1] = { ATOMIC_INIT(BITS_PER_PAGE), NULL }
- 	},
-@@ -80,25 +81,25 @@ struct pspace init_pspace = {
- 
- static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(pidmap_lock);
- 
--static fastcall void free_pidmap(struct pspace *pspace, int pid)
-+static fastcall void free_pidmap(struct pid_namespace *pid_ns, int pid)
- {
--	struct pidmap *map = pspace->pidmap + pid / BITS_PER_PAGE;
-+	struct pidmap *map = pid_ns->pidmap + pid / BITS_PER_PAGE;
- 	int offset = pid & BITS_PER_PAGE_MASK;
- 
- 	clear_bit(offset, map->page);
- 	atomic_inc(&map->nr_free);
- }
- 
--static int alloc_pidmap(struct pspace *pspace)
-+static int alloc_pidmap(struct pid_namespace *pid_ns)
- {
--	int i, offset, max_scan, pid, last = pspace->last_pid;
-+	int i, offset, max_scan, pid, last = pid_ns->last_pid;
- 	struct pidmap *map;
- 
- 	pid = last + 1;
- 	if (pid >= pid_max)
- 		pid = RESERVED_PIDS;
- 	offset = pid & BITS_PER_PAGE_MASK;
--	map = &pspace->pidmap[pid/BITS_PER_PAGE];
-+	map = &pid_ns->pidmap[pid/BITS_PER_PAGE];
- 	max_scan = (pid_max + BITS_PER_PAGE - 1)/BITS_PER_PAGE - !offset;
- 	for (i = 0; i <= max_scan; ++i) {
- 		if (unlikely(!map->page)) {
-@@ -120,11 +121,11 @@ static int alloc_pidmap(struct pspace *p
- 			do {
- 				if (!test_and_set_bit(offset, map->page)) {
- 					atomic_dec(&map->nr_free);
--					pspace->last_pid = pid;
-+					pid_ns->last_pid = pid;
- 					return pid;
- 				}
- 				offset = find_next_offset(map, offset);
--				pid = mk_pid(pspace, map, offset);
-+				pid = mk_pid(pid_ns, map, offset);
- 			/*
- 			 * find_next_offset() found a bit, the pid from it
- 			 * is in-bounds, and if we fell back to the last
-@@ -135,34 +136,34 @@ static int alloc_pidmap(struct pspace *p
- 					(i != max_scan || pid < last ||
- 					    !((last+1) & BITS_PER_PAGE_MASK)));
- 		}
--		if (map < &pspace->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
-+		if (map < &pid_ns->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
- 			++map;
- 			offset = 0;
- 		} else {
--			map = &pspace->pidmap[0];
-+			map = &pid_ns->pidmap[0];
- 			offset = RESERVED_PIDS;
- 			if (unlikely(last == offset))
- 				break;
- 		}
--		pid = mk_pid(pspace, map, offset);
-+		pid = mk_pid(pid_ns, map, offset);
- 	}
- 	return -1;
- }
- 
--static int next_pidmap(struct pspace *pspace, int last)
-+static int next_pidmap(struct pid_namespace *pid_ns, int last)
- {
- 	int offset;
- 	struct pidmap *map, *end;
- 
- 	offset = (last + 1) & BITS_PER_PAGE_MASK;
--	map = &pspace->pidmap[(last + 1)/BITS_PER_PAGE];
--	end = &pspace->pidmap[PIDMAP_ENTRIES];
-+	map = &pid_ns->pidmap[(last + 1)/BITS_PER_PAGE];
-+	end = &pid_ns->pidmap[PIDMAP_ENTRIES];
- 	for (; map < end; map++, offset = 0) {
- 		if (unlikely(!map->page))
- 			continue;
- 		offset = find_next_bit((map)->page, BITS_PER_PAGE, offset);
- 		if (offset < BITS_PER_PAGE)
--			return mk_pid(pspace, map, offset);
-+			return mk_pid(pid_ns, map, offset);
- 	}
- 	return -1;
- }
-@@ -192,7 +193,7 @@ fastcall void free_pid(struct pid *pid)
- 	hlist_del_rcu(&pid->pid_chain);
- 	spin_unlock_irqrestore(&pidmap_lock, flags);
- 
--	free_pidmap(&init_pspace, pid->nr);
-+	free_pidmap(&init_pid_ns, pid->nr);
- 	call_rcu(&pid->rcu, delayed_put_pid);
- }
- 
-@@ -206,7 +207,7 @@ struct pid *alloc_pid(void)
- 	if (!pid)
- 		goto out;
- 
--	nr = alloc_pidmap(&init_pspace);
-+	nr = alloc_pidmap(&init_pid_ns);
- 	if (nr < 0)
- 		goto out_free;
- 
-@@ -348,7 +349,7 @@ struct pid *find_ge_pid(int nr)
- 		pid = find_pid(nr);
- 		if (pid)
- 			break;
--		nr = next_pidmap(&init_pspace, nr);
-+		nr = next_pidmap(&init_pid_ns, nr);
- 	} while (nr > 0);
- 
- 	return pid;
-@@ -382,10 +383,10 @@ void __init pidhash_init(void)
- 
- void __init pidmap_init(void)
- {
--	init_pspace.pidmap[0].page = kzalloc(PAGE_SIZE, GFP_KERNEL);
-+	init_pid_ns.pidmap[0].page = kzalloc(PAGE_SIZE, GFP_KERNEL);
- 	/* Reserve PID 0. We never call free_pidmap(0) */
--	set_bit(0, init_pspace.pidmap[0].page);
--	atomic_dec(&init_pspace.pidmap[0].nr_free);
-+	set_bit(0, init_pid_ns.pidmap[0].page);
-+	atomic_dec(&init_pid_ns.pidmap[0].nr_free);
- 
- 	pid_cachep = kmem_cache_create("pid", sizeof(struct pid),
- 					__alignof__(struct pid),
+diff -puN lib/Kconfig.debug~fault-injection-stacktrace-filtering-kconfig-fix lib/Kconfig.debug
+--- a/lib/Kconfig.debug~fault-injection-stacktrace-filtering-kconfig-fix
++++ a/lib/Kconfig.debug
+@@ -417,7 +417,7 @@ config LKDTM
+ config FAULT_INJECTION
+ 	bool "Fault-injection framework"
+ 	depends on DEBUG_KERNEL
+-	select STACKTRACE
++	depends on STACKTRACE
+ 	select FRAME_POINTER
+ 	help
+ 	  Provide fault-injection framework.
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-rename-struct-pspace-to-struct-pid_namespace.patch
-add-pid_namespace-to-nsproxy.patch
-use-current-nsproxy-pid_ns.patch
-add-child-reaper-to-pid_namespace.patch
+origin.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
+gxfb-fixups-for-the-amd-geode-gx.patch
+gxfb-support-flat-panel-timings.patch
+gxfb-support-command-line-options.patch
+proc_misc-build-fix.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
