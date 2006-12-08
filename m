@@ -1,59 +1,63 @@
 From: akpm@osdl.org
-Subject: - au1100fb-fix-to-remove-flickering.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:13:32 -0800
-Message-ID: <200612082013.kB8KDWHD003102@shell0.pdx.osdl.net>
+Subject: - atyfb-fix-blanking-level.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:14:00 -0800
+Message-ID: <200612082014.kB8KE0B0003129@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59611 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59648 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946749AbWLHUNp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:13:45 -0500
+	id S1946765AbWLHUOE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:14:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: freddy@dusktilldawn.nl, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: syrjala@sci.fi, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     au11oofb: fix to remove flickering
+     atyfb: Fix blanking level transitions
 has been removed from the -mm tree.  Its filename was
-     au1100fb-fix-to-remove-flickering.patch
+     atyfb-fix-blanking-level.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: au11oofb: fix to remove flickering
-From: Freddy Spierenburg <freddy@dusktilldawn.nl>
+Subject: atyfb: Fix blanking level transitions
+From: Ville Syrjala <syrjala@sci.fi>
 
-Currently a lot of flickering is seen on the VGA and LCD port when one
-starts a DBAu1100 board, with 'CONFIG_PRINTK=3Dy'.
+Fix a minor problem in blanking level transitions.  Reducing the blanking
+level gradually was impossible.
 
-This patch removes the flickering and as a result all kernel messages come
-by in a nice steady fashion.
-
-Signed-off-by: Freddy Spierenburg <freddy@dusktilldawn.nl>
+Signed-off-by: Ville Syrjala <syrjala@sci.fi>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Acked-by: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/au1100fb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/aty/atyfb_base.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/au1100fb.h~au1100fb-fix-to-remove-flickering drivers/video/au1100fb.h
---- a/drivers/video/au1100fb.h~au1100fb-fix-to-remove-flickering
-+++ a/drivers/video/au1100fb.h
-@@ -274,7 +274,7 @@ static struct au1100fb_panel known_lcd_p
- 		.bpp = 16,
- 		.control_base =	0x0004886A |
- 			LCD_CONTROL_DEFAULT_PO | LCD_CONTROL_DEFAULT_SBPPF |
--			LCD_CONTROL_BPP_16,
-+			LCD_CONTROL_BPP_16 | LCD_CONTROL_SBB_4,
- 		.clkcontrol_base = 0x00020000,
- 		.horztiming = 0x005aff1f,
- 		.verttiming = 0x16000e57,
+diff -puN drivers/video/aty/atyfb_base.c~atyfb-fix-blanking-level drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb-fix-blanking-level
++++ a/drivers/video/aty/atyfb_base.c
+@@ -2825,9 +2825,9 @@ static int atyfb_blank(int blank, struct
+ #endif
+ 
+ 	gen_cntl = aty_ld_le32(CRTC_GEN_CNTL, par);
++	gen_cntl &= ~0x400004c;
+ 	switch (blank) {
+-        	case FB_BLANK_UNBLANK:
+-			gen_cntl &= ~0x400004c;
++		case FB_BLANK_UNBLANK:
+ 			break;
+ 		case FB_BLANK_NORMAL:
+ 			gen_cntl |= 0x4000040;
 _
 
-Patches currently in -mm which might be from freddy@dusktilldawn.nl are
+Patches currently in -mm which might be from syrjala@sci.fi are
 
-au1100fb-fix-to-remove-flickering.patch
+atyfb-fix-blanking-level.patch
+atyfb-remove-pointless-aty_init.patch
+atyfb-fix-__init-and-__devinit.patch
+atyfb-remove-aty_cmap_regs.patch
+atyfb-improve-atyfb_atari_probe.patch
+atyfb-improve-power-management.patch
 
