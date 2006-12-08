@@ -1,85 +1,51 @@
 From: akpm@osdl.org
-Subject: - backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 01:08:11 -0800
-Message-ID: <200612080908.kB898Bc5014460@shell0.pdx.osdl.net>
+Subject: - gxfb-fixups-for-the-amd-geode-gx-tidy.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 01:08:41 -0800
+Message-ID: <200612080908.kB898fMZ014474@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39082 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39196 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425273AbWLHJIU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 04:08:20 -0500
+	id S1425273AbWLHJI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 04:08:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, adaplas@pol.net, jordan.crouse@amd.com, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy
+     gxfb-fixups-for-the-amd-geode-gx-tidy
 has been removed from the -mm tree.  Its filename was
-     backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+     gxfb-fixups-for-the-amd-geode-gx-tidy.patch
 
-This patch was dropped because it was folded into backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
+This patch was dropped because it was folded into gxfb-fixups-for-the-amd-geode-gx.patch
 
 ------------------------------------------------------
-Subject: backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy
+Subject: gxfb-fixups-for-the-amd-geode-gx-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-cleanuplets.
-
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/backlight/backlight.c |    6 ++++--
- drivers/video/backlight/lcd.c       |    6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/video/geode/display_gx.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy
-+++ a/drivers/video/backlight/backlight.c
-@@ -25,7 +25,7 @@ static int fb_notifier_callback(struct n
- 				unsigned long event, void *data)
- {
- 	struct backlight_device *bd;
--	struct fb_event *evdata =(struct fb_event *)data;
-+	struct fb_event *evdata = data;
+diff -puN drivers/video/geode/display_gx.c~gxfb-fixups-for-the-amd-geode-gx-tidy drivers/video/geode/display_gx.c
+--- a/drivers/video/geode/display_gx.c~gxfb-fixups-for-the-amd-geode-gx-tidy
++++ a/drivers/video/geode/display_gx.c
+@@ -22,7 +22,8 @@
+ #include "display_gx.h"
  
- 	/* If we aren't interested in this event, skip it immediately ... */
- 	if (event != FB_EVENT_BLANK)
-@@ -62,7 +62,9 @@ static inline int backlight_register_fb(
- 	return 0;
- }
- 
--#define backlight_unregister_fb(...) do { } while (0)
-+static inline void backlight_unregister_fb(struct backlight_device *bd)
+ #ifdef CONFIG_FB_GEODE_GX_SET_FBSIZE
+-unsigned int gx_frame_buffer_size(void) {
++unsigned int gx_frame_buffer_size(void)
 +{
-+}
- #endif /* CONFIG_FB */
- 
- static ssize_t backlight_show_power(struct class_device *cdev, char *buf)
-diff -puN drivers/video/backlight/lcd.c~backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy
-+++ a/drivers/video/backlight/lcd.c
-@@ -24,7 +24,7 @@ static int fb_notifier_callback(struct n
- 				 unsigned long event, void *data)
- {
- 	struct lcd_device *ld;
--	struct fb_event *evdata =(struct fb_event *)data;
-+	struct fb_event *evdata = data;
- 
- 	/* If we aren't interested in this event, skip it immediately ... */
- 	if (event != FB_EVENT_BLANK)
-@@ -56,7 +56,9 @@ static int lcd_register_fb(struct lcd_de
- 	return 0;
+ 	return CONFIG_FB_GEODE_GX_FBSIZE;
  }
- 
--#define lcd_unregister_fb(...) do { } while (0)
-+static inline void lcd_unregister_fb(struct lcd_device *ld)
-+{
-+}
- #endif /* CONFIG_FB */
- 
- static ssize_t lcd_show_power(struct class_device *cdev, char *buf)
+ #else
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -103,7 +69,7 @@ sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
 video-get-the-default-mode-from-the-right-database.patch
 various-fbdev-files-mark-structs.patch
 backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx.patch
 gxfb-fixups-for-the-amd-geode-gx-tidy.patch
 gxfb-support-flat-panel-timings-tidy.patch
 gxfb-support-command-line-options-tidy.patch
