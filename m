@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + libata-use-flush_work.patch added to -mm tree
-Date: Thu, 07 Dec 2006 16:24:01 -0800
-Message-ID: <200612080024.kB80O2LQ000970@shell0.pdx.osdl.net>
+Subject: + phy-use-flush_work.patch added to -mm tree
+Date: Thu, 07 Dec 2006 16:40:06 -0800
+Message-ID: <200612080040.kB80e7gM001443@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59527 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60509 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1164217AbWLHAYg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 19:24:36 -0500
+	id S1164235AbWLHAkc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 19:40:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,15 +15,15 @@ Cc: akpm@osdl.org, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, t
 
 
 The patch titled
-     libata: use flush_work()
+     phy: use flush_keventd_work()
 has been added to the -mm tree.  Its filename is
-     libata-use-flush_work.patch
+     phy-use-flush_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: use flush_work()
+Subject: phy: use flush_keventd_work()
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
@@ -33,57 +33,31 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-core.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/phy/phy.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-use-flush_work drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-use-flush_work
-+++ a/drivers/ata/libata-core.c
-@@ -1134,7 +1134,7 @@ void ata_port_flush_task(struct ata_port
- 	spin_unlock_irqrestore(ap->lock, flags);
- 
- 	DPRINTK("flush #1\n");
--	flush_workqueue(ata_wq);
-+	flush_work(ata_wq, &ap->port_task.work); /* akpm: seems unneeded */
+diff -puN drivers/net/phy/phy.c~phy-use-flush_work drivers/net/phy/phy.c
+--- a/drivers/net/phy/phy.c~phy-use-flush_work
++++ a/drivers/net/phy/phy.c
+@@ -584,10 +584,10 @@ int phy_stop_interrupts(struct phy_devic
+ 		phy_error(phydev);
  
  	/*
- 	 * At this point, if a task is running, it's guaranteed to see
-@@ -1145,7 +1145,7 @@ void ata_port_flush_task(struct ata_port
- 		if (ata_msg_ctl(ap))
- 			ata_port_printk(ap, KERN_DEBUG, "%s: flush #2\n",
- 					__FUNCTION__);
--		flush_workqueue(ata_wq);
-+		flush_work(ata_wq, &ap->port_task.work);
- 	}
- 
- 	spin_lock_irqsave(ap->lock, flags);
-@@ -6001,9 +6001,9 @@ void ata_port_detach(struct ata_port *ap
- 	/* Flush hotplug task.  The sequence is similar to
- 	 * ata_port_flush_task().
+-	 * Finish any pending work; we might have been scheduled
+-	 * to be called from keventd ourselves, though.
++	 * Finish any pending work; we might have been scheduled to be called
++	 * from keventd ourselves, but flush_keventd_work() handles that.
  	 */
--	flush_workqueue(ata_aux_wq);
-+	flush_work(ata_aux_wq, &ap->hotplug_task.work); /* akpm: why? */
- 	cancel_delayed_work(&ap->hotplug_task);
--	flush_workqueue(ata_aux_wq);
-+	flush_work(ata_aux_wq, &ap->hotplug_task.work);
+-	run_scheduled_work(&phydev->phy_queue);
++	flush_keventd_work(&phydev->phy_queue);
  
-  skip_eh:
- 	/* remove the associated SCSI host */
+ 	free_irq(phydev->irq, phydev);
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-implement-flush_work.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-bridge-avoid-using-noautorel-workqueues.patch
 revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
 revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
 generic_file_buffered_write-cleanup.patch
@@ -157,6 +131,17 @@ touch_atime-cleanup.patch
 ocfs2-relative-atime-support-tweaks.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
 add-retain_initrd-boot-option-tweak.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+implement-flush_work.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+bridge-avoid-using-noautorel-workqueues.patch
 io-accounting-core-statistics.patch
 clean-up-__set_page_dirty_nobuffers.patch
 io-accounting-write-accounting.patch
