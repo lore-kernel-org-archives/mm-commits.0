@@ -1,84 +1,78 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-use-__devinit-macros.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:06:42 -0800
-Message-ID: <200612082006.kB8K6g3g002431@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-pci_request_region-for-pci-regions.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:06:45 -0800
+Message-ID: <200612082006.kB8K6jsF002434@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57733 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57760 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946023AbWLHUGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:06:47 -0500
+	id S1426346AbWLHUGv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char: mxser_new, use __(dev)init macros
+     char: mxser_new, pci_request_region for pci regions
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-use-__devinit-macros.patch
+     char-mxser_new-pci_request_region-for-pci-regions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: char: mxser_new, use __(dev)init macros
+Subject: char: mxser_new, pci_request_region for pci regions
 From: Jiri Slaby <jirislaby@gmail.com>
 
-mxser_new, use __(dev)init macros
+mxser_new, pci_request_region for pci regions
 
-Let kernel know what can be freed after init of the driver.
+Use pci_request_region instead of standard request_region for pci device
+regions.  More checking, simplier use.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/mxser_new.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-use-__devinit-macros drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-use-__devinit-macros
+diff -puN drivers/char/mxser_new.c~char-mxser_new-pci_request_region-for-pci-regions drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-pci_request_region-for-pci-regions
 +++ a/drivers/char/mxser_new.c
-@@ -559,7 +559,7 @@ static void process_txrx_fifo(struct mxs
- 			}
- }
+@@ -526,8 +526,8 @@ static void __exit mxser_module_exit(voi
+ 			pdev = mxser_boards[i].pdev;
+ 			free_irq(mxser_boards[i].irq, &mxser_boards[i]);
+ 			if (pdev != NULL) {	/* PCI */
+-				release_region(pci_resource_start(pdev, 2), pci_resource_len(pdev, 2));
+-				release_region(pci_resource_start(pdev, 3), pci_resource_len(pdev, 3));
++				pci_release_region(pdev, 2);
++				pci_release_region(pdev, 3);
+ 				pci_dev_put(pdev);
+ 			} else {
+ 				release_region(mxser_boards[i].ports[0].ioaddr, 8 * mxser_boards[i].nports);
+@@ -627,16 +627,14 @@ static int __init mxser_get_PCI_conf(int
+ 	brd->board_type = board_type;
+ 	brd->nports = mxser_numports[board_type - 1];
+ 	ioaddress = pci_resource_start(pdev, 2);
+-	request_region(pci_resource_start(pdev, 2), pci_resource_len(pdev, 2),
+-			"mxser(IO)");
++	pci_request_region(pdev, 2, "mxser(IO)");
  
--static int mxser_initbrd(struct mxser_board *brd)
-+static int __devinit mxser_initbrd(struct mxser_board *brd)
- {
- 	struct mxser_port *info;
- 	unsigned int i;
-@@ -617,7 +617,7 @@ static int mxser_initbrd(struct mxser_bo
- 	return 0;
- }
+ 	for (i = 0; i < brd->nports; i++)
+ 		brd->ports[i].ioaddr = ioaddress + 8 * i;
  
--static int mxser_get_PCI_conf(int board_type, struct mxser_board *brd,
-+static int __init mxser_get_PCI_conf(int board_type, struct mxser_board *brd,
- 		struct pci_dev *pdev)
- {
- 	unsigned int i, j;
-@@ -678,7 +678,7 @@ static int mxser_get_PCI_conf(int board_
- 	return 0;
- }
+ 	/* vector */
+ 	ioaddress = pci_resource_start(pdev, 3);
+-	request_region(pci_resource_start(pdev, 3), pci_resource_len(pdev, 3),
+-			"mxser(vector)");
++	pci_request_region(pdev, 3, "mxser(vector)");
+ 	brd->vector = ioaddress;
  
--static int mxser_init(void)
-+static int __init mxser_init(void)
- {
- 	struct pci_dev *pdev = NULL;
- 	struct mxser_board *brd;
-@@ -2925,7 +2925,7 @@ static int mxser_read_register(int, unsi
- static int mxser_program_mode(int);
- static void mxser_normal_mode(int);
- 
--static int mxser_get_ISA_conf(int cap, struct mxser_board *brd)
-+static int __init mxser_get_ISA_conf(int cap, struct mxser_board *brd)
- {
- 	int id, i, bits;
- 	unsigned short regs[16], irq;
+ 	/* irq */
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-use-__devinit-macros.patch
 char-mxser_new-pci_request_region-for-pci-regions.patch
 char-mxser_new-check-request_region-retvals.patch
 char-mxser_new-kill-unneeded-memsets.patch
