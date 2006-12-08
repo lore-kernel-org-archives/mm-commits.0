@@ -1,63 +1,81 @@
 From: akpm@osdl.org
-Subject: - add-process_session-helper-routine-deprecate-old-field-fix-warnings-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:52:25 -0800
-Message-ID: <200612080852.kB88qP5w013997@shell0.pdx.osdl.net>
+Subject: - tty-switch-to-ktermios-and-new-framework-warning-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:54:03 -0800
+Message-ID: <200612080854.kB88s3EM014051@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37289 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37412 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425212AbWLHIwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:52:35 -0500
+	id S1425218AbWLHIyL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:54:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, clg@fr.ibm.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-process_session-helper-routine-deprecate-old-field-fix-warnings fix
+     tty-switch-to-ktermios-and-new-framework-warning-fix
 has been removed from the -mm tree.  Its filename was
-     add-process_session-helper-routine-deprecate-old-field-fix-warnings-fix.patch
+     tty-switch-to-ktermios-and-new-framework-warning-fix.patch
 
-This patch was dropped because it was folded into add-process_session-helper-routine-deprecate-old-field.patch
+This patch was dropped because it was folded into tty-switch-to-ktermios-and-new-framework.patch
 
 ------------------------------------------------------
-Subject: add-process_session-helper-routine-deprecate-old-field-fix-warnings fix
-From: Jeff Dike <jdike@addtoit.com>
+Subject: tty-switch-to-ktermios-and-new-framework-warning-fix
+From: Andrew Morton <akpm@osdl.org>
 
-add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
-in -mm causes UML to hang at shutdown - init is sitting in a select on the
-initctl socket.
+drivers/char/tty_ioctl.c: In function 'tty_termios_input_baud_rate':
+drivers/char/tty_ioctl.c:198: warning: unused variable 'cbaud'
 
-This patch fixes it for me.
-
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_ioctl.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/proc/array.c~add-process_session-helper-routine-deprecate-old-field-fix-warnings-fix fs/proc/array.c
---- a/fs/proc/array.c~add-process_session-helper-routine-deprecate-old-field-fix-warnings-fix
-+++ a/fs/proc/array.c
-@@ -381,7 +381,7 @@ static int do_task_stat(struct task_stru
- 			stime = cputime_add(stime, sig->stime);
- 		}
+diff -puN drivers/char/tty_ioctl.c~tty-switch-to-ktermios-and-new-framework-warning-fix drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-switch-to-ktermios-and-new-framework-warning-fix
++++ a/drivers/char/tty_ioctl.c
+@@ -195,10 +195,8 @@ EXPORT_SYMBOL(tty_termios_baud_rate);
  
--		signal_session(sig);
-+		sid = signal_session(sig);
- 		pgid = process_group(task);
- 		ppid = rcu_dereference(task->real_parent)->tgid;
+ speed_t tty_termios_input_baud_rate(struct ktermios *termios)
+ {
+-	unsigned int cbaud;
+-
+ #ifdef IBSHIFT
+-	cbaud = (termios->c_cflag >> IBSHIFT) & CBAUD;
++	unsigned int cbaud = (termios->c_cflag >> IBSHIFT) & CBAUD;
  
+ 	if (cbaud == B0)
+ 		return tty_termios_baud_rate(termios);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
 tty-signal-tty-locking.patch
-uml-add-generic-bug-support.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
+fsstack-introduce-fsstack_copy_attrinode_.patch
 add-process_session-helper-routine-deprecate-old-field.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings-fix.patch
-tty-switch-to-ktermios-uml-fix.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
 
