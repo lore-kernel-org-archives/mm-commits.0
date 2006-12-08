@@ -1,98 +1,69 @@
 From: akpm@osdl.org
-Subject: + kblockd-use-flush_work.patch added to -mm tree
-Date: Thu, 07 Dec 2006 16:23:33 -0800
-Message-ID: <200612080023.kB80NX5e000949@shell0.pdx.osdl.net>
+Subject: + aio-use-flush_work.patch added to -mm tree
+Date: Thu, 07 Dec 2006 16:23:23 -0800
+Message-ID: <200612080023.kB80NNqr000935@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59473 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59482 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1164201AbWLHAX7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 19:23:59 -0500
+	id S1164210AbWLHAYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 19:24:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, axboe@suse.de, dhowells@redhat.com, macro@linux-mips.org, nickpiggin@yahoo.com.au, torvalds@osdl.org
+Cc: akpm@osdl.org, bcrl@kvack.org, dhowells@redhat.com, macro@linux-mips.org, torvalds@osdl.org, zach.brown@oracle.com
 
 
 The patch titled
-     kblockd: use flush_work
+     aio: use flush_work()
 has been added to the -mm tree.  Its filename is
-     kblockd-use-flush_work.patch
+     aio-use-flush_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kblockd: use flush_work
+Subject: aio: use flush_work()
 From: Andrew Morton <akpm@osdl.org>
 
-Switch the kblockd flushing from a global flush to a more specific
-flush_work().
+Migrate AIO over to use flush_work().
 
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Cc: Linus Torvalds <torvalds@osdl.org>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Jens Axboe <axboe@suse.de>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/as-iosched.c     |    2 +-
- block/ll_rw_blk.c      |    8 ++++----
- include/linux/blkdev.h |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ fs/aio.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN block/as-iosched.c~kblockd-use-flush_work block/as-iosched.c
---- a/block/as-iosched.c~kblockd-use-flush_work
-+++ a/block/as-iosched.c
-@@ -1306,7 +1306,7 @@ static void as_exit_queue(elevator_t *e)
- 	struct as_data *ad = e->elevator_data;
+diff -puN fs/aio.c~aio-use-flush_work fs/aio.c
+--- a/fs/aio.c~aio-use-flush_work
++++ a/fs/aio.c
+@@ -344,10 +344,9 @@ void fastcall exit_aio(struct mm_struct 
  
- 	del_timer_sync(&ad->antic_timer);
--	kblockd_flush();
-+	kblockd_flush_work(&ad->antic_work);
+ 		wait_for_all_aios(ctx);
+ 		/*
+-		 * this is an overkill, but ensures we don't leave
+-		 * the ctx on the aio_wq
++		 * Ensure we don't leave the ctx on the aio_wq
+ 		 */
+-		flush_workqueue(aio_wq);
++		flush_workqueue(aio_wq, &ctx->wq.work);
  
- 	BUG_ON(!list_empty(&ad->fifo_list[REQ_SYNC]));
- 	BUG_ON(!list_empty(&ad->fifo_list[REQ_ASYNC]));
-diff -puN block/ll_rw_blk.c~kblockd-use-flush_work block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~kblockd-use-flush_work
-+++ a/block/ll_rw_blk.c
-@@ -1719,7 +1719,7 @@ EXPORT_SYMBOL(blk_stop_queue);
- void blk_sync_queue(struct request_queue *q)
- {
- 	del_timer_sync(&q->unplug_timer);
--	kblockd_flush();
-+	kblockd_flush_work(&q->unplug_work);
- }
- EXPORT_SYMBOL(blk_sync_queue);
+ 		if (1 != atomic_read(&ctx->users))
+ 			printk(KERN_DEBUG
+@@ -370,7 +369,7 @@ void fastcall __put_ioctx(struct kioctx 
+ 	BUG_ON(ctx->reqs_active);
  
-@@ -3590,11 +3590,11 @@ int kblockd_schedule_work(struct work_st
- 
- EXPORT_SYMBOL(kblockd_schedule_work);
- 
--void kblockd_flush(void)
-+void kblockd_flush_work(struct work_struct *work)
- {
--	flush_workqueue(kblockd_workqueue);
-+	flush_work(kblockd_workqueue, work);
- }
--EXPORT_SYMBOL(kblockd_flush);
-+EXPORT_SYMBOL(kblockd_flush_work);
- 
- int __init blk_dev_init(void)
- {
-diff -puN include/linux/blkdev.h~kblockd-use-flush_work include/linux/blkdev.h
---- a/include/linux/blkdev.h~kblockd-use-flush_work
-+++ a/include/linux/blkdev.h
-@@ -861,7 +861,7 @@ static inline void put_dev_sector(Sector
- 
- struct work_struct;
- int kblockd_schedule_work(struct work_struct *work);
--void kblockd_flush(void);
-+void kblockd_flush_work(struct work_struct *work);
- 
- #define MODULE_ALIAS_BLOCKDEV(major,minor) \
- 	MODULE_ALIAS("block-major-" __stringify(major) "-" __stringify(minor))
+ 	cancel_delayed_work(&ctx->wq);
+-	flush_workqueue(aio_wq);
++	flush_work(aio_wq, &ctx->wq.work);
+ 	aio_free_ring(ctx);
+ 	mmdrop(ctx->mm);
+ 	ctx->mm = NULL;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
