@@ -1,15 +1,15 @@
 From: akpm@osdl.org
-Subject: - git-scsi-target-fixup.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:54 -0800
-Message-ID: <200612081104.kB8B4sWO018598@shell0.pdx.osdl.net>
+Subject: - git-scsi-misc-fixup.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:50 -0800
+Message-ID: <200612081104.kB8B4okN018592@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48716 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48720 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425373AbWLHLFS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:05:18 -0500
+	id S1425376AbWLHLFV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:05:21 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B4sID029556
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B4oID029551
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
 	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 03:04:56 -0800
 Sender: mm-commits-owner@vger.kernel.org
@@ -18,45 +18,34 @@ To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-target-fixup
+     git-scsi-misc-fixup
 has been removed from the -mm tree.  Its filename was
-     git-scsi-target-fixup.patch
+     git-scsi-misc-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-scsi-target-fixup
+Subject: git-scsi-misc-fixup
 From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/scsi/scsi_cmnd.h |    5 +++++
- 1 files changed, 5 insertions(+)
+ include/linux/blkdev.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/scsi/scsi_cmnd.h~git-scsi-target-fixup include/scsi/scsi_cmnd.h
---- a/include/scsi/scsi_cmnd.h~git-scsi-target-fixup
-+++ a/include/scsi/scsi_cmnd.h
-@@ -122,14 +122,19 @@ struct scsi_cmnd {
- 	unsigned long pid;	/* Process ID, starts at 0. Unique per host. */
- };
+diff -puN include/linux/blkdev.h~git-scsi-misc-fixup include/linux/blkdev.h
+--- a/include/linux/blkdev.h~git-scsi-misc-fixup
++++ a/include/linux/blkdev.h
+@@ -768,6 +768,8 @@ extern long blk_congestion_wait(int rw, 
+ extern struct blk_queue_tag *blk_init_tags(int);
+ extern void blk_free_tags(struct blk_queue_tag *);
+ extern void blk_congestion_end(int rw);
++extern struct blk_queue_tag *blk_init_tags(int);
++extern void blk_free_tags(struct blk_queue_tag *);
  
-+extern struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *,
-+					       enum dma_data_direction, gfp_t);
- extern struct scsi_cmnd *scsi_get_command(struct scsi_device *, gfp_t);
- extern struct scsi_cmnd *__scsi_get_command(struct Scsi_Host *, gfp_t);
-+extern void scsi_host_put_command(struct Scsi_Host *, struct scsi_cmnd *);
- extern void scsi_put_command(struct scsi_cmnd *);
- extern void __scsi_put_command(struct Scsi_Host *, struct scsi_cmnd *,
- 			       struct device *);
- extern void scsi_io_completion(struct scsi_cmnd *, unsigned int);
- extern void scsi_finish_command(struct scsi_cmnd *cmd);
- extern void scsi_req_abort_cmd(struct scsi_cmnd *cmd);
-+extern struct scatterlist *scsi_alloc_sgtable(struct scsi_cmnd *, gfp_t);
-+extern void scsi_free_sgtable(struct scatterlist *, int);
- 
- extern void *scsi_kmap_atomic_sg(struct scatterlist *sg, int sg_count,
- 				 size_t *offset, size_t *len);
+ extern void blk_rq_bio_prep(request_queue_t *, struct request *, struct bio *);
+ extern int blkdev_issue_flush(struct block_device *, sector_t *);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
