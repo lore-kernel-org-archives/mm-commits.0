@@ -1,137 +1,220 @@
 From: akpm@osdl.org
-Subject: - isdn-fix-warnings.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:10:55 -0800
-Message-ID: <200612082010.kB8KAtvq002864@shell0.pdx.osdl.net>
+Subject: - fault-injection-capability-for-alloc_pages.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:11:17 -0800
+Message-ID: <200612082011.kB8KBHUs002891@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58975 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59023 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946532AbWLHULG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:11:06 -0500
+	id S1946513AbWLHULV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:11:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, kkeil@suse.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ISDN: fix warnings
+     fault-injection capability for alloc_pages()
 has been removed from the -mm tree.  Its filename was
-     isdn-fix-warnings.patch
+     fault-injection-capability-for-alloc_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ISDN: fix warnings
-From: Jeff Garzik <jeff@garzik.org>
+Subject: fault-injection capability for alloc_pages()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-* diva, sedlbauer: the 'ready' label is only used in certain configurations
-* hfc_pci:
-	- cast 'arg' to proper size for testing and printing
-	- print out 'void __iomem *' variables with %p,
-	  rather than using incorrect casts that throw warnings
+This patch provides fault-injection capability for alloc_pages()
 
-Signed-off-by: Jeff Garzik <jeff@garzik.org>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Boot option:
+
+fail_page_alloc=<interval>,<probability>,<space>,<times>
+
+	<interval> -- specifies the interval of failures.
+
+	<probability> -- specifies how often it should fail in percent.
+
+	<space> -- specifies the size of free space where memory can be
+		   allocated safely in pages.
+
+	<times> -- specifies how many times failures may happen at most.
+
+Debugfs:
+
+/debug/fail_page_alloc/interval
+/debug/fail_page_alloc/probability
+/debug/fail_page_alloc/specifies
+/debug/fail_page_alloc/times
+/debug/fail_page_alloc/ignore-gfp-highmem
+/debug/fail_page_alloc/ignore-gfp-wait
+
+Example:
+
+	fail_page_alloc=10,100,0,-1
+
+The page allocation (alloc_pages(), ...) fails once per 10 times.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/isdn/hisax/diva.c      |    4 ++++
- drivers/isdn/hisax/hfc_pci.c   |   10 +++++-----
- drivers/isdn/hisax/sedlbauer.c |    4 ++++
- 3 files changed, 13 insertions(+), 5 deletions(-)
+ lib/Kconfig.debug |    7 +++
+ mm/page_alloc.c   |   87 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 94 insertions(+)
 
-diff -puN drivers/isdn/hisax/diva.c~isdn-fix-warnings drivers/isdn/hisax/diva.c
---- a/drivers/isdn/hisax/diva.c~isdn-fix-warnings
-+++ a/drivers/isdn/hisax/diva.c
-@@ -1121,7 +1121,11 @@ setup_diva(struct IsdnCard *card)
- 			bytecnt = 32;
- 		}
- 	}
+diff -puN lib/Kconfig.debug~fault-injection-capability-for-alloc_pages lib/Kconfig.debug
+--- a/lib/Kconfig.debug~fault-injection-capability-for-alloc_pages
++++ a/lib/Kconfig.debug
+@@ -424,6 +424,13 @@ config FAILSLAB
+ 	help
+ 	  This option provides fault-injection capabilitiy for kmalloc.
+ 
++config FAIL_PAGE_ALLOC
++	bool "Fault-injection capabilitiy for alloc_pages()"
++	depends on DEBUG_KERNEL
++	select FAULT_INJECTION
++	help
++	  This option provides fault-injection capabilitiy for alloc_pages().
 +
-+#ifdef __ISAPNP__
- ready:
-+#endif
+ config FAULT_INJECTION_DEBUG_FS
+ 	bool "Debugfs entries for fault-injection capabilities"
+ 	depends on FAULT_INJECTION && SYSFS
+diff -puN mm/page_alloc.c~fault-injection-capability-for-alloc_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~fault-injection-capability-for-alloc_pages
++++ a/mm/page_alloc.c
+@@ -40,6 +40,7 @@
+ #include <linux/sort.h>
+ #include <linux/pfn.h>
+ #include <linux/backing-dev.h>
++#include <linux/fault-inject.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -892,6 +893,89 @@ failed:
+ #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
+ #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
+ 
++#ifdef CONFIG_FAIL_PAGE_ALLOC
 +
- 	printk(KERN_INFO
- 		"Diva: %s card configured at %#lx IRQ %d\n",
- 		(cs->subtyp == DIVA_PCI) ? "PCI" :
-diff -puN drivers/isdn/hisax/hfc_pci.c~isdn-fix-warnings drivers/isdn/hisax/hfc_pci.c
---- a/drivers/isdn/hisax/hfc_pci.c~isdn-fix-warnings
-+++ a/drivers/isdn/hisax/hfc_pci.c
-@@ -1211,7 +1211,7 @@ HFCPCI_l1hw(struct PStack *st, int pr, v
- 			break;
- 		case (HW_TESTLOOP | REQUEST):
- 			spin_lock_irqsave(&cs->lock, flags);
--			switch ((int) arg) {
-+			switch ((long) arg) {
- 				case (1):
- 					Write_hfc(cs, HFCPCI_B1_SSL, 0x80);	/* tx slot */
- 					Write_hfc(cs, HFCPCI_B1_RSL, 0x80);	/* rx slot */
-@@ -1229,7 +1229,7 @@ HFCPCI_l1hw(struct PStack *st, int pr, v
- 				default:
- 					spin_unlock_irqrestore(&cs->lock, flags);
- 					if (cs->debug & L1_DEB_WARN)
--						debugl1(cs, "hfcpci_l1hw loop invalid %4x", (int) arg);
-+						debugl1(cs, "hfcpci_l1hw loop invalid %4lx", (long) arg);
- 					return;
- 			}
- 			cs->hw.hfcpci.trm |= 0x80;	/* enable IOM-loop */
-@@ -1711,9 +1711,9 @@ setup_hfcpci(struct IsdnCard *card)
- 		pci_write_config_dword(cs->hw.hfcpci.dev, 0x80, (u_int) virt_to_bus(cs->hw.hfcpci.fifos));
- 		cs->hw.hfcpci.pci_io = ioremap((ulong) cs->hw.hfcpci.pci_io, 256);
- 		printk(KERN_INFO
--		       "HFC-PCI: defined at mem %#x fifo %#x(%#x) IRQ %d HZ %d\n",
--		       (u_int) cs->hw.hfcpci.pci_io,
--		       (u_int) cs->hw.hfcpci.fifos,
-+		       "HFC-PCI: defined at mem %p fifo %p(%#x) IRQ %d HZ %d\n",
-+		       cs->hw.hfcpci.pci_io,
-+		       cs->hw.hfcpci.fifos,
- 		       (u_int) virt_to_bus(cs->hw.hfcpci.fifos),
- 		       cs->irq, HZ);
- 		spin_lock_irqsave(&cs->lock, flags);
-diff -puN drivers/isdn/hisax/sedlbauer.c~isdn-fix-warnings drivers/isdn/hisax/sedlbauer.c
---- a/drivers/isdn/hisax/sedlbauer.c~isdn-fix-warnings
-+++ a/drivers/isdn/hisax/sedlbauer.c
-@@ -677,7 +677,11 @@ setup_sedlbauer(struct IsdnCard *card)
- 		return (0);
- #endif /* CONFIG_PCI */
- 	}	
++static struct fail_page_alloc_attr {
++	struct fault_attr attr;
 +
-+#ifdef __ISAPNP__
- ready:	
-+#endif
++	u32 ignore_gfp_highmem;
++	u32 ignore_gfp_wait;
 +
- 	/* In case of the sedlbauer pcmcia card, this region is in use,
- 	 * reserved for us by the card manager. So we do not check it
- 	 * here, it would fail.
++#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
++
++	struct dentry *ignore_gfp_highmem_file;
++	struct dentry *ignore_gfp_wait_file;
++
++#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
++
++} fail_page_alloc = {
++	.attr = FAULT_ATTR_INITIALIZER,
++};
++
++static int __init setup_fail_page_alloc(char *str)
++{
++	return setup_fault_attr(&fail_page_alloc.attr, str);
++}
++__setup("fail_page_alloc=", setup_fail_page_alloc);
++
++static int should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
++{
++	if (gfp_mask & __GFP_NOFAIL)
++		return 0;
++	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
++		return 0;
++	if (fail_page_alloc.ignore_gfp_wait && (gfp_mask & __GFP_WAIT))
++		return 0;
++
++	return should_fail(&fail_page_alloc.attr, 1 << order);
++}
++
++#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
++
++static int __init fail_page_alloc_debugfs(void)
++{
++	mode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
++	struct dentry *dir;
++	int err;
++
++	err = init_fault_attr_dentries(&fail_page_alloc.attr,
++				       "fail_page_alloc");
++	if (err)
++		return err;
++	dir = fail_page_alloc.attr.dentries.dir;
++
++	fail_page_alloc.ignore_gfp_wait_file =
++		debugfs_create_bool("ignore-gfp-wait", mode, dir,
++				      &fail_page_alloc.ignore_gfp_wait);
++
++	fail_page_alloc.ignore_gfp_highmem_file =
++		debugfs_create_bool("ignore-gfp-highmem", mode, dir,
++				      &fail_page_alloc.ignore_gfp_highmem);
++
++	if (!fail_page_alloc.ignore_gfp_wait_file ||
++			!fail_page_alloc.ignore_gfp_highmem_file) {
++		err = -ENOMEM;
++		debugfs_remove(fail_page_alloc.ignore_gfp_wait_file);
++		debugfs_remove(fail_page_alloc.ignore_gfp_highmem_file);
++		cleanup_fault_attr_dentries(&fail_page_alloc.attr);
++	}
++
++	return err;
++}
++
++late_initcall(fail_page_alloc_debugfs);
++
++#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
++
++#else /* CONFIG_FAIL_PAGE_ALLOC */
++
++static inline int should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
++{
++	return 0;
++}
++
++#endif /* CONFIG_FAIL_PAGE_ALLOC */
++
+ /*
+  * Return 1 if free pages are above 'mark'. This takes into account the order
+  * of the allocation.
+@@ -1136,6 +1220,9 @@ __alloc_pages(gfp_t gfp_mask, unsigned i
+ 
+ 	might_sleep_if(wait);
+ 
++	if (should_fail_alloc_page(gfp_mask, order))
++		return NULL;
++
+ restart:
+ 	z = zonelist->zones;  /* the list of zones suitable for gfp_mask */
+ 
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-isdn-fix-warnings.patch
-atyfb-rivafb-minor-fixes.patch
-git-acpi.patch
-git-cpufreq.patch
-drm-handle-pci_enable_device-failure.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
-ata_piix-ide-mode-sata-patch-for-intel-ich9.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
+fault-injection-capability-for-alloc_pages.patch
+fault-injection-capability-for-disk-io.patch
+fault-injection-process-filtering-for-fault-injection-capabilities.patch
+fault-injection-stacktrace-filtering.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+fault-injection-correct-disambiguate-and.patch
+fault-injection-use-bool-true-false-throughout.patch
+fault-injection-clamp-debugfs-stacktrace-depth-to.patch
+fault-injection-optimize-and-simplify.patch
+fault-injection-defaults-likely-to-please-a-new.patch
+acpi-fix-single-linked-list-manipulation.patch
+acpi-processor-prevent-loading-module-on-failures.patch
+git-alsa.patch
+audit-fix-kstrdup-error-check.patch
+drm-fix-return-value-check.patch
+ata-fix-platform_device_register_simple-error-check.patch
 git-mtd.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-8139too-force-media-setting-fix.patch
-tulip-fix-shutdown-dma-irq-race.patch
-git-ioat.patch
-via-sb600-sata-quirk.patch
-git-pciseg.patch
-pci-device-ensure-sysdata-initialised-v2.patch
-mpt-fusion-handle-pci-layer-error-on-resume.patch
-usb-fix-ohcih-over-use-warnings.patch
-md-conditionalize-some-code.patch
-user-of-the-jiffies-rounding-patch-ata-subsystem.patch
-e1000-printk-warning-fixes.patch
-git-gccbug.patch
+net-use-bitrev8.patch
+gss_spkm3-fix-error-handling-in-module-init.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+iscsi-fix-crypto_alloc_hash-error-check.patch
 
