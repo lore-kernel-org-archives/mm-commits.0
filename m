@@ -1,267 +1,95 @@
 From: akpm@osdl.org
-Subject: - char-isicom-expand-function.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:33 -0800
-Message-ID: <200612082008.kB8K8XMI002614@shell0.pdx.osdl.net>
+Subject: - char-isicom-move-to-tty_register_device.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:41 -0800
+Message-ID: <200612082008.kB8K8fiZ002629@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58263 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58302 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946235AbWLHUIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:08:43 -0500
+	id S1946250AbWLHUIx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:08:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, expand function
+     Char: isicom, move to tty_register_device
 has been removed from the -mm tree.  Its filename was
-     char-isicom-expand-function.patch
+     char-isicom-move-to-tty_register_device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, expand function
+Subject: Char: isicom, move to tty_register_device
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Simple functions (those, that calls reuest_irq, request_region et al) may be
-expanded directly in code.  It makes probe function more readable and
-transparent.
+Instead of registering all devices in register_tty_driver, register devices in
+probe function and register only port_count devices.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |  151 +++++++++++-----------------------------
- 1 file changed, 44 insertions(+), 107 deletions(-)
+ drivers/char/isicom.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-expand-function drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-expand-function
+diff -puN drivers/char/isicom.c~char-isicom-move-to-tty_register_device drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-move-to-tty_register_device
 +++ a/drivers/char/isicom.c
-@@ -1520,37 +1520,6 @@ static void isicom_flush_buffer(struct t
-  * Driver init and deinit functions
-  */
- 
--static int __devinit isicom_register_ioregion(struct pci_dev *pdev,
--	const unsigned int index)
--{
--	struct isi_board *board = pci_get_drvdata(pdev);
--
--	if (!board->base)
--		return -EINVAL;
--
--	if (!request_region(board->base, 16, ISICOM_NAME)) {
--		dev_dbg(&pdev->dev, "I/O Region 0x%lx-0x%lx is busy. Card%d "
--			"will be disabled.\n", board->base, board->base + 15,
--			index + 1);
--		return -EBUSY;
-- 	}
--
--	return 0;
--}
--
--static void isicom_unregister_ioregion(struct pci_dev *pdev)
--{
--	struct isi_board *board = pci_get_drvdata(pdev);
--
--	if (!board->base)
--		return;
--
--	release_region(board->base, 16);
--	dev_dbg(&pdev->dev, "I/O Region 0x%lx-0x%lx released.\n",
--		board->base, board->base + 15);
--	board->base = 0;
--}
--
- static const struct tty_operations isicom_ops = {
- 	.open			= isicom_open,
- 	.close			= isicom_close,
-@@ -1571,70 +1540,6 @@ static const struct tty_operations isico
- 	.tiocmset		= isicom_tiocmset,
+@@ -195,6 +195,7 @@ struct	isi_board {
+ 	signed char		count;
+ 	spinlock_t		card_lock; /* Card wide lock 11/5/00 -sameer */
+ 	unsigned long		flags;
++	unsigned int		index;
  };
  
--static int __devinit isicom_register_tty_driver(void)
--{
--	int error = -ENOMEM;
--
--	/* tty driver structure initialization */
--	isicom_normal = alloc_tty_driver(PORT_COUNT);
--	if (!isicom_normal)
--		goto end;
--
--	isicom_normal->owner			= THIS_MODULE;
--	isicom_normal->name 			= "ttyM";
--	isicom_normal->major			= ISICOM_NMAJOR;
--	isicom_normal->minor_start		= 0;
--	isicom_normal->type			= TTY_DRIVER_TYPE_SERIAL;
--	isicom_normal->subtype			= SERIAL_TYPE_NORMAL;
--	isicom_normal->init_termios		= tty_std_termios;
--	isicom_normal->init_termios.c_cflag	= B9600 | CS8 | CREAD | HUPCL |
--		CLOCAL;
--	isicom_normal->flags			= TTY_DRIVER_REAL_RAW;
--	tty_set_operations(isicom_normal, &isicom_ops);
--
--	if ((error = tty_register_driver(isicom_normal))) {
--		pr_dbg("Couldn't register the dialin driver, error=%d\n",
--			error);
--		put_tty_driver(isicom_normal);
--	}
--end:
--	return error;
--}
--
--static void isicom_unregister_tty_driver(void)
--{
--	int error;
--
--	if ((error = tty_unregister_driver(isicom_normal)))
--		pr_dbg("couldn't unregister normal driver, error=%d.\n", error);
--
--	put_tty_driver(isicom_normal);
--}
--
--static int __devinit isicom_register_isr(struct pci_dev *pdev,
--	const unsigned int index)
--{
--	struct isi_board *board = pci_get_drvdata(pdev);
--	unsigned long irqflags = IRQF_DISABLED;
--	int retval = -EINVAL;
--
--	if (!board->base)
--		goto end;
--
--	if (board->isa == NO)
--		irqflags |= IRQF_SHARED;
--
--	retval = request_irq(board->irq, isicom_interrupt, irqflags,
--		ISICOM_NAME, board);
--	if (retval < 0)
--		dev_warn(&pdev->dev, "Could not install handler at Irq %d. "
--			"Card%d will be disabled.\n", board->irq, index + 1);
-- 	else
--		retval = 0;
--end:
--	return retval;
--}
--
- static int __devinit reset_card(struct pci_dev *pdev,
- 	const unsigned int card, unsigned int *signature)
- {
-@@ -1913,13 +1818,21 @@ static int __devinit isicom_probe(struct
+ struct	isi_port {
+@@ -1781,6 +1782,7 @@ static int __devinit isicom_probe(struct
+ 			break;
+ 		}
  
- 	pci_set_drvdata(pdev, board);
- 
--	retval = isicom_register_ioregion(pdev, index);
--	if (retval < 0)
-+	if (!request_region(board->base, 16, ISICOM_NAME)) {
-+		dev_err(&pdev->dev, "I/O Region 0x%lx-0x%lx is busy. Card%d "
-+			"will be disabled.\n", board->base, board->base + 15,
-+			index + 1);
-+		retval = -EBUSY;
- 		goto err;
-+ 	}
- 
--	retval = isicom_register_isr(pdev, index);
--	if (retval < 0)
-+	retval = request_irq(board->irq, isicom_interrupt,
-+			IRQF_SHARED | IRQF_DISABLED, ISICOM_NAME, board);
-+	if (retval < 0) {
-+		dev_err(&pdev->dev, "Could not install handler at Irq %d. "
-+			"Card%d will be disabled.\n", board->irq, index + 1);
- 		goto errunrr;
-+	}
- 
- 	retval = reset_card(pdev, index, &signature);
++	board->index = index;
+ 	board->base = ioaddr;
+ 	board->irq = pciirq;
+ 	card++;
+@@ -1811,6 +1813,10 @@ static int __devinit isicom_probe(struct
  	if (retval < 0)
-@@ -1934,7 +1847,7 @@ static int __devinit isicom_probe(struct
- errunri:
- 	free_irq(board->irq, board);
- errunrr:
--	isicom_unregister_ioregion(pdev);
-+	release_region(board->base, 16);
- err:
- 	board->base = 0;
- 	return retval;
-@@ -1945,7 +1858,7 @@ static void __devexit isicom_remove(stru
- 	struct isi_board *board = pci_get_drvdata(pdev);
+ 		goto errunri;
  
- 	free_irq(board->irq, board);
--	isicom_unregister_ioregion(pdev);
-+	release_region(board->base, 16);
- }
- 
- static int __devinit isicom_setup(void)
-@@ -1991,14 +1904,35 @@ static int __devinit isicom_setup(void)
- 				"Disabling Card%d...\n", irq[idx], idx + 1);
- 	}
- 
--	retval = isicom_register_tty_driver();
--	if (retval < 0)
-+	/* tty driver structure initialization */
-+	isicom_normal = alloc_tty_driver(PORT_COUNT);
-+	if (!isicom_normal) {
-+		retval = -ENOMEM;
- 		goto error;
-+	}
++	for (index = 0; index < board->port_count; index++)
++		tty_register_device(isicom_normal, board->index * 16 + index,
++				&pdev->dev);
 +
-+	isicom_normal->owner			= THIS_MODULE;
-+	isicom_normal->name 			= "ttyM";
-+	isicom_normal->major			= ISICOM_NMAJOR;
-+	isicom_normal->minor_start		= 0;
-+	isicom_normal->type			= TTY_DRIVER_TYPE_SERIAL;
-+	isicom_normal->subtype			= SERIAL_TYPE_NORMAL;
-+	isicom_normal->init_termios		= tty_std_termios;
-+	isicom_normal->init_termios.c_cflag	= B9600 | CS8 | CREAD | HUPCL |
-+		CLOCAL;
-+	isicom_normal->flags			= TTY_DRIVER_REAL_RAW;
-+	tty_set_operations(isicom_normal, &isicom_ops);
-+
-+	retval = tty_register_driver(isicom_normal);
-+	if (retval) {
-+		pr_dbg("Couldn't register the dialin driver\n");
-+		goto err_puttty;
-+	}
- 
- 	retval = pci_register_driver(&isicom_driver);
- 	if (retval < 0) {
- 		printk(KERN_ERR "ISICOM: Unable to register pci driver.\n");
--		goto errtty;
-+		goto err_unrtty;
- 	}
- 
- 	init_timer(&tx);
-@@ -2009,8 +1943,10 @@ static int __devinit isicom_setup(void)
- 	add_timer(&tx);
- 
  	return 0;
--errtty:
--	isicom_unregister_tty_driver();
-+err_unrtty:
-+	tty_unregister_driver(isicom_normal);
-+err_puttty:
-+	put_tty_driver(isicom_normal);
- error:
- 	return retval;
- }
-@@ -2025,7 +1961,8 @@ static void __exit isicom_exit(void)
- 		msleep(10);
  
- 	pci_unregister_driver(&isicom_driver);
--	isicom_unregister_tty_driver();
-+	tty_unregister_driver(isicom_normal);
-+	put_tty_driver(isicom_normal);
- }
+ errunri:
+@@ -1825,6 +1831,10 @@ err:
+ static void __devexit isicom_remove(struct pci_dev *pdev)
+ {
+ 	struct isi_board *board = pci_get_drvdata(pdev);
++	unsigned int i;
++
++	for (i = 0; i < board->port_count; i++)
++		tty_unregister_device(isicom_normal, board->index * 16 + i);
  
- module_init(isicom_setup);
+ 	free_irq(board->irq, board);
+ 	release_region(board->base, 16);
+@@ -1874,7 +1884,8 @@ static int __init isicom_init(void)
+ 	isicom_normal->init_termios		= tty_std_termios;
+ 	isicom_normal->init_termios.c_cflag	= B9600 | CS8 | CREAD | HUPCL |
+ 		CLOCAL;
+-	isicom_normal->flags			= TTY_DRIVER_REAL_RAW;
++	isicom_normal->flags			= TTY_DRIVER_REAL_RAW |
++		TTY_DRIVER_DYNAMIC_DEV;
+ 	tty_set_operations(isicom_normal, &isicom_ops);
+ 
+ 	retval = tty_register_driver(isicom_normal);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-isicom-expand-function.patch
-char-isicom-rename-init-function.patch
-char-isicom-remove-isa-code.patch
-char-isicom-remove-unneeded-memset.patch
 char-isicom-move-to-tty_register_device.patch
 char-isicom-use-pci_request_region.patch
 char-isicom-check-kmalloc-retval.patch
