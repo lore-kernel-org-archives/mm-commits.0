@@ -1,75 +1,64 @@
 From: akpm@osdl.org
-Subject: - char-sx-use-kcalloc.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:09:02 -0800
-Message-ID: <200612082009.kB8K92il002660@shell0.pdx.osdl.net>
+Subject: - char-isicom-check-kmalloc-retval.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:45 -0800
+Message-ID: <200612082008.kB8K8jYR002636@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58421 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58333 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946220AbWLHUJM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:09:12 -0500
+	id S1946371AbWLHUJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: sx, use kcalloc
+     Char: isicom, check kmalloc retval
 has been removed from the -mm tree.  Its filename was
-     char-sx-use-kcalloc.patch
+     char-isicom-check-kmalloc-retval.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: sx, use kcalloc
+Subject: Char: isicom, check kmalloc retval
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Convert self-implemented kzalloc to kernel kcalloc.
+Value returned from kamlloc may be NULL, we should check if ENOMEM occured.
 
-Cc: <R.E.Wolff@BitWizard.nl>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/sx.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/char/isicom.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/char/sx.c~char-sx-use-kcalloc drivers/char/sx.c
---- a/drivers/char/sx.c~char-sx-use-kcalloc
-+++ a/drivers/char/sx.c
-@@ -2267,18 +2267,6 @@ static int sx_init_drivers(void)
- 	return 0;
- }
+diff -puN drivers/char/isicom.c~char-isicom-check-kmalloc-retval drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-check-kmalloc-retval
++++ a/drivers/char/isicom.c
+@@ -1709,6 +1709,11 @@ static int __devinit load_firmware(struc
+ 		}
  
--
--static void * ckmalloc (int size)
--{
--	void *p;
--
--	p = kmalloc(size, GFP_KERNEL);
--	if (p) 
--		memset(p, 0, size);
--	return p;
--}
--
--
- static int sx_init_portstructs (int nboards, int nports)
- {
- 	struct sx_board *board;
-@@ -2291,7 +2279,7 @@ static int sx_init_portstructs (int nboa
- 
- 	/* Many drivers statically allocate the maximum number of ports
- 	   There is no reason not to allocate them dynamically. Is there? -- REW */
--	sx_ports          = ckmalloc(nports * sizeof (struct sx_port));
-+	sx_ports = kcalloc(nports, sizeof(struct sx_port), GFP_KERNEL);
- 	if (!sx_ports)
- 		return -ENOMEM;
- 
+ 		data = kmalloc(word_count * 2, GFP_KERNEL);
++		if (data == NULL) {
++			dev_err(&pdev->dev, "Card%d, firmware upload "
++				"failed, not enough memory\n", index + 1);
++			goto errrelfw;
++		}
+ 		inw(base);
+ 		insw(base, data, word_count);
+ 		InterruptTheCard(base);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
+char-isicom-check-kmalloc-retval.patch
+char-isicom-use-completion.patch
+char-isicom-simplify-timer.patch
+char-isicom-remove-cvs-stuff.patch
+char-isicom-fix-tty-index-check.patch
+char-sx-convert-to-pci-probing.patch
 char-sx-use-kcalloc.patch
 char-sx-mark-functions-as-devinit.patch
 char-sx-use-eisa-probing.patch
