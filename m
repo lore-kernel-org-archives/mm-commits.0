@@ -1,332 +1,392 @@
 From: akpm@osdl.org
-Subject: - char-stallion-convert-to-pci-probing.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:09:33 -0800
-Message-ID: <200612082009.kB8K9XQG002716@shell0.pdx.osdl.net>
+Subject: - char-stallion-functions-cleanup.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:09:45 -0800
+Message-ID: <200612082009.kB8K9jME002741@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58646 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58671 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946274AbWLHUJl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:09:41 -0500
+	id S1946274AbWLHUJv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: stallion, convert to pci probing
+     Char: stallion, functions cleanup
 has been removed from the -mm tree.  Its filename was
-     char-stallion-convert-to-pci-probing.patch
+     char-stallion-functions-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: stallion, convert to pci probing
+Subject: Char: stallion, functions cleanup
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Convert stallion driver to pci probing instead of pci_dev_get iteration.
+Delete macros and functions, that are implemented in kernel yet (strtoul, min,
+tolower).  Expand one function body in place, where it is called from.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/stallion.c |  167 +++++++++++++++++++-------------------
- 1 file changed, 84 insertions(+), 83 deletions(-)
+ drivers/char/stallion.c |  207 +++++++-------------------------------
+ 1 file changed, 40 insertions(+), 167 deletions(-)
 
-diff -puN drivers/char/stallion.c~char-stallion-convert-to-pci-probing drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-convert-to-pci-probing
+diff -puN drivers/char/stallion.c~char-stallion-functions-cleanup drivers/char/stallion.c
+--- a/drivers/char/stallion.c~char-stallion-functions-cleanup
 +++ a/drivers/char/stallion.c
-@@ -381,8 +381,6 @@ static spinlock_t stallion_lock;	/* Guar
+@@ -41,13 +41,12 @@
+ #include <linux/smp_lock.h>
+ #include <linux/device.h>
+ #include <linux/delay.h>
++#include <linux/ctype.h>
  
- /*****************************************************************************/
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
  
 -#ifdef CONFIG_PCI
--
- /*
-  *	Define the Stallion PCI vendor and device IDs.
-  */
-@@ -402,22 +400,19 @@ static spinlock_t stallion_lock;	/* Guar
- /*
-  *	Define structure to hold all Stallion PCI boards.
-  */
--typedef struct stlpcibrd {
--	unsigned short		vendid;
--	unsigned short		devid;
--	int			brdtype;
--} stlpcibrd_t;
--
--static stlpcibrd_t	stl_pcibrds[] = {
--	{ PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_ECHPCI864, BRD_ECH64PCI },
--	{ PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_EIOPCI, BRD_EASYIOPCI },
--	{ PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_ECHPCI832, BRD_ECHPCI },
--	{ PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_87410, BRD_ECHPCI },
--};
--
--static int	stl_nrpcibrds = ARRAY_SIZE(stl_pcibrds);
- 
+ #include <linux/pci.h>
 -#endif
-+static struct pci_device_id stl_pcibrds[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_ECHPCI864),
-+		.driver_data = BRD_ECH64PCI },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_EIOPCI),
-+		.driver_data = BRD_EASYIOPCI },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_ECHPCI832),
-+		.driver_data = BRD_ECHPCI },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_87410),
-+		.driver_data = BRD_ECHPCI },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(pci, stl_pcibrds);
  
  /*****************************************************************************/
  
-@@ -2390,24 +2385,52 @@ static int __init stl_getbrdnr(void)
- 	return(-1);
- }
+@@ -63,43 +62,16 @@
+ #define	BRD_ECH64PCI	27
+ #define	BRD_EASYIOPCI	28
  
+-/*
+- *	Define a configuration structure to hold the board configuration.
+- *	Need to set this up in the code (for now) with the boards that are
+- *	to be configured into the system. This is what needs to be modified
+- *	when adding/removing/modifying boards. Each line entry in the
+- *	stl_brdconf[] array is a board. Each line contains io/irq/memory
+- *	ranges for that board (as well as what type of board it is).
+- *	Some examples:
+- *		{ BRD_EASYIO, 0x2a0, 0, 0, 10, 0 },
+- *	This line would configure an EasyIO board (4 or 8, no difference),
+- *	at io address 2a0 and irq 10.
+- *	Another example:
+- *		{ BRD_ECH, 0x2a8, 0x280, 0, 12, 0 },
+- *	This line will configure an EasyConnection 8/32 board at primary io
+- *	address 2a8, secondary io address 280 and irq 12.
+- *	Enter as many lines into this array as you want (only the first 4
+- *	will actually be used!). Any combination of EasyIO and EasyConnection
+- *	boards can be specified. EasyConnection 8/32 boards can share their
+- *	secondary io addresses between each other.
+- *
+- *	NOTE: there is no need to put any entries in this table for PCI
+- *	boards. They will be found automatically by the driver - provided
+- *	PCI BIOS32 support is compiled into the kernel.
+- */
+-
+-static struct stlconf {
++struct stlconf {
+ 	int		brdtype;
+ 	int		ioaddr1;
+ 	int		ioaddr2;
+ 	unsigned long	memaddr;
+ 	int		irq;
+ 	int		irqtype;
+-} stl_brdconf[] = {
+-	/*{ BRD_EASYIO, 0x2a0, 0, 0, 10, 0 },*/
+ };
+ 
+-static int	stl_nrbrds = ARRAY_SIZE(stl_brdconf);
++static unsigned int stl_nrbrds;
+ 
+ /*****************************************************************************/
+ 
+@@ -432,15 +404,6 @@ static unsigned int	stl_baudrates[] = {
+ 	9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
+ };
+ 
+-/*
+- *	Define some handy local macros...
+- */
+-#undef	MIN
+-#define	MIN(a,b)	(((a) <= (b)) ? (a) : (b))
+-
+-#undef	TOLOWER
+-#define	TOLOWER(x)	((((x) >= 'A') && ((x) <= 'Z')) ? ((x) + 0x20) : (x))
+-
+ /*****************************************************************************/
+ 
+ /*
+@@ -660,42 +623,6 @@ static struct class *stallion_class;
+ /*****************************************************************************/
+ 
+ /*
+- *	Convert an ascii string number into an unsigned long.
+- */
+-
+-static unsigned long stl_atol(char *str)
+-{
+-	unsigned long	val;
+-	int		base, c;
+-	char		*sp;
+-
+-	val = 0;
+-	sp = str;
+-	if ((*sp == '0') && (*(sp+1) == 'x')) {
+-		base = 16;
+-		sp += 2;
+-	} else if (*sp == '0') {
+-		base = 8;
+-		sp++;
+-	} else {
+-		base = 10;
+-	}
+-
+-	for (; (*sp != 0); sp++) {
+-		c = (*sp > '9') ? (TOLOWER(*sp) - 'a' + 10) : (*sp - '0');
+-		if ((c < 0) || (c >= base)) {
+-			printk("STALLION: invalid argument %s\n", str);
+-			val = 0;
+-			break;
+-		}
+-		val = (val * base) + c;
+-	}
+-	return val;
+-}
+-
 -/*****************************************************************************/
 -
--#ifdef	CONFIG_PCI
-+static void stl_cleanup_panels(struct stlbrd *brdp)
-+{
-+	struct stlpanel *panelp;
-+	struct stlport *portp;
-+	unsigned int j, k;
-+
-+	for (j = 0; j < STL_MAXPANELS; j++) {
-+		panelp = brdp->panels[j];
-+		if (panelp == NULL)
-+			continue;
-+		for (k = 0; k < STL_PORTSPERPANEL; k++) {
-+			portp = panelp->ports[k];
-+			if (portp == NULL)
-+				continue;
-+			if (portp->tty != NULL)
-+				stl_hangup(portp->tty);
-+			kfree(portp->tx.buf);
-+			kfree(portp);
-+		}
-+		kfree(panelp);
-+	}
-+}
- 
-+/*****************************************************************************/
- /*
-  *	We have a Stallion board. Allocate a board structure and
-  *	initialize it. Read its IO and IRQ resources from PCI
-  *	configuration space.
+-/*
+  *	Parse the supplied argument string, into the board conf struct.
   */
  
--static int __init stl_initpcibrd(int brdtype, struct pci_dev *devp)
-+static int __devinit stl_pciprobe(struct pci_dev *pdev,
-+		const struct pci_device_id *ent)
- {
+@@ -710,7 +637,7 @@ static int __init stl_parsebrd(struct st
+ 		return 0;
+ 
+ 	for (sp = argp[0], i = 0; ((*sp != 0) && (i < 25)); sp++, i++)
+-		*sp = TOLOWER(*sp);
++		*sp = tolower(*sp);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(stl_brdstr); i++) {
+ 		if (strcmp(stl_brdstr[i].name, argp[0]) == 0)
+@@ -725,15 +652,15 @@ static int __init stl_parsebrd(struct st
+ 
+ 	i = 1;
+ 	if ((argp[i] != NULL) && (*argp[i] != 0))
+-		confp->ioaddr1 = stl_atol(argp[i]);
++		confp->ioaddr1 = simple_strtoul(argp[i], NULL, 0);
+ 	i++;
+ 	if (confp->brdtype == BRD_ECH) {
+ 		if ((argp[i] != NULL) && (*argp[i] != 0))
+-			confp->ioaddr2 = stl_atol(argp[i]);
++			confp->ioaddr2 = simple_strtoul(argp[i], NULL, 0);
+ 		i++;
+ 	}
+ 	if ((argp[i] != NULL) && (*argp[i] != 0))
+-		confp->irq = stl_atol(argp[i]);
++		confp->irq = simple_strtoul(argp[i], NULL, 0);
+ 	return 1;
+ }
+ 
+@@ -758,32 +685,6 @@ static struct stlbrd *stl_allocbrd(void)
+ 	return brdp;
+ }
+ 
+-static void __init stl_argbrds(void)
+-{
+-	struct stlconf	conf;
 -	struct stlbrd	*brdp;
-+	struct stlbrd *brdp;
-+	unsigned int brdtype = ent->driver_data;
+-	int		i;
+-
+-	pr_debug("stl_argbrds()\n");
+-
+-	for (i = stl_nrbrds; (i < stl_nargs); i++) {
+-		memset(&conf, 0, sizeof(conf));
+-		if (stl_parsebrd(&conf, stl_brdsp[i]) == 0)
+-			continue;
+-		if ((brdp = stl_allocbrd()) == NULL)
+-			continue;
+-		stl_nrbrds = i + 1;
+-		brdp->brdnr = i;
+-		brdp->brdtype = conf.brdtype;
+-		brdp->ioaddr1 = conf.ioaddr1;
+-		brdp->ioaddr2 = conf.ioaddr2;
+-		brdp->irq = conf.irq;
+-		brdp->irqtype = conf.irqtype;
+-		if (stl_brdinit(brdp))
+-			kfree(brdp);
+-	}
+-}
+-
+ /*****************************************************************************/
  
- 	pr_debug("stl_initpcibrd(brdtype=%d,busnr=%x,devnr=%x)\n", brdtype,
--		devp->bus->number, devp->devfn);
-+		pdev->bus->number, pdev->devfn);
-+
-+	if ((pdev->class >> 8) == PCI_CLASS_STORAGE_IDE)
-+		return -ENODEV;
-+
-+	dev_info(&pdev->dev, "please, report this to LKML: %x/%x/%x\n",
-+			pdev->vendor, pdev->device, pdev->class);
- 
--	if (pci_enable_device(devp))
-+	if (pci_enable_device(pdev))
- 		return(-EIO);
- 	if ((brdp = stl_allocbrd()) == NULL)
- 		return(-ENOMEM);
-@@ -2423,8 +2446,8 @@ static int __init stl_initpcibrd(int brd
-  *	so set up io addresses based on board type.
-  */
- 	pr_debug("%s(%d): BAR[]=%Lx,%Lx,%Lx,%Lx IRQ=%x\n", __FILE__, __LINE__,
--		pci_resource_start(devp, 0), pci_resource_start(devp, 1),
--		pci_resource_start(devp, 2), pci_resource_start(devp, 3), devp->irq);
-+		pci_resource_start(pdev, 0), pci_resource_start(pdev, 1),
-+		pci_resource_start(pdev, 2), pci_resource_start(pdev, 3), pdev->irq);
- 
- /*
-  *	We have all resources from the board, so let's setup the actual
-@@ -2432,63 +2455,52 @@ static int __init stl_initpcibrd(int brd
-  */
- 	switch (brdtype) {
- 	case BRD_ECHPCI:
--		brdp->ioaddr2 = pci_resource_start(devp, 0);
--		brdp->ioaddr1 = pci_resource_start(devp, 1);
-+		brdp->ioaddr2 = pci_resource_start(pdev, 0);
-+		brdp->ioaddr1 = pci_resource_start(pdev, 1);
- 		break;
- 	case BRD_ECH64PCI:
--		brdp->ioaddr2 = pci_resource_start(devp, 2);
--		brdp->ioaddr1 = pci_resource_start(devp, 1);
-+		brdp->ioaddr2 = pci_resource_start(pdev, 2);
-+		brdp->ioaddr1 = pci_resource_start(pdev, 1);
- 		break;
- 	case BRD_EASYIOPCI:
--		brdp->ioaddr1 = pci_resource_start(devp, 2);
--		brdp->ioaddr2 = pci_resource_start(devp, 1);
-+		brdp->ioaddr1 = pci_resource_start(pdev, 2);
-+		brdp->ioaddr2 = pci_resource_start(pdev, 1);
- 		break;
- 	default:
- 		printk("STALLION: unknown PCI board type=%d\n", brdtype);
- 		break;
+ static int stl_open(struct tty_struct *tty, struct file *filp)
+@@ -1089,10 +990,10 @@ static int stl_write(struct tty_struct *
+ 		stlen = len;
  	}
  
--	brdp->irq = devp->irq;
-+	brdp->irq = pdev->irq;
- 	stl_brdinit(brdp);
+-	len = MIN(len, count);
++	len = min(len, (unsigned int)count);
+ 	count = 0;
+ 	while (len > 0) {
+-		stlen = MIN(len, stlen);
++		stlen = min(len, stlen);
+ 		memcpy(head, chbuf, stlen);
+ 		len -= stlen;
+ 		chbuf += stlen;
+@@ -2550,56 +2451,6 @@ static struct pci_driver stl_pcidriver =
+ /*****************************************************************************/
  
-+	pci_set_drvdata(pdev, brdp);
-+
- 	return(0);
- }
- 
+ /*
+- *	Scan through all the boards in the configuration and see what we
+- *	can find. Handle EIO and the ECH boards a little differently here
+- *	since the initial search and setup is too different.
+- */
+-
+-static int __init stl_initbrds(void)
+-{
+-	struct stlbrd	*brdp;
+-	struct stlconf	*confp;
+-	int		i;
+-
+-	pr_debug("stl_initbrds()\n");
+-
+-	if (stl_nrbrds > STL_MAXBRDS) {
+-		printk("STALLION: too many boards in configuration table, "
+-			"truncating to %d\n", STL_MAXBRDS);
+-		stl_nrbrds = STL_MAXBRDS;
+-	}
+-
+-/*
+- *	Firstly scan the list of static boards configured. Allocate
+- *	resources and initialize the boards as found.
+- */
+-	for (i = 0; (i < stl_nrbrds); i++) {
+-		confp = &stl_brdconf[i];
+-		stl_parsebrd(confp, stl_brdsp[i]);
+-		if ((brdp = stl_allocbrd()) == NULL)
+-			return(-ENOMEM);
+-		brdp->brdnr = i;
+-		brdp->brdtype = confp->brdtype;
+-		brdp->ioaddr1 = confp->ioaddr1;
+-		brdp->ioaddr2 = confp->ioaddr2;
+-		brdp->irq = confp->irq;
+-		brdp->irqtype = confp->irqtype;
+-		if (stl_brdinit(brdp))
+-			kfree(brdp);
+-	}
+-
+-/*
+- *	Find any dynamically supported boards. That is via module load
+- *	line options or auto-detected on the PCI bus.
+- */
+-	stl_argbrds();
+-
+-	return(0);
+-}
+-
 -/*****************************************************************************/
 -
 -/*
-- *	Find all Stallion PCI boards that might be installed. Initialize each
-- *	one as it is found.
-- */
--
--
--static int __init stl_findpcibrds(void)
-+static void __devexit stl_pciremove(struct pci_dev *pdev)
- {
--	struct pci_dev	*dev = NULL;
--	int		i, rc;
--
--	pr_debug("stl_findpcibrds()\n");
-+	struct stlbrd *brdp = pci_get_drvdata(pdev);
- 
--	for (i = 0; (i < stl_nrpcibrds); i++)
--		while ((dev = pci_get_device(stl_pcibrds[i].vendid,
--		    stl_pcibrds[i].devid, dev))) {
-+	free_irq(brdp->irq, brdp);
- 
--/*
-- *			Found a device on the PCI bus that has our vendor and
-- *			device ID. Need to check now that it is really us.
-- */
--			if ((dev->class >> 8) == PCI_CLASS_STORAGE_IDE)
--				continue;
-+	stl_cleanup_panels(brdp);
- 
--			rc = stl_initpcibrd(stl_pcibrds[i].brdtype, dev);
--			if (rc)
--				return(rc);
--		}
-+	release_region(brdp->ioaddr1, brdp->iosize1);
-+	if (brdp->iosize2 > 0)
-+		release_region(brdp->ioaddr2, brdp->iosize2);
- 
--	return(0);
-+	stl_brds[brdp->brdnr] = NULL;
-+	kfree(brdp);
- }
- 
--#endif
-+static struct pci_driver stl_pcidriver = {
-+	.name = "stallion",
-+	.id_table = stl_pcibrds,
-+	.probe = stl_pciprobe,
-+	.remove = __devexit_p(stl_pciremove)
-+};
- 
- /*****************************************************************************/
- 
-@@ -2535,9 +2547,6 @@ static int __init stl_initbrds(void)
-  *	line options or auto-detected on the PCI bus.
+  *	Return the board stats structure to user app.
   */
- 	stl_argbrds();
--#ifdef CONFIG_PCI
--	stl_findpcibrds();
--#endif
  
- 	return(0);
- }
-@@ -4776,7 +4785,7 @@ static void stl_sc26198otherisr(struct s
+@@ -3691,9 +3542,9 @@ static void stl_cd1400txisr(struct stlpa
+ 		}
+ 		outb(srer, (ioaddr + EREG_DATA));
+ 	} else {
+-		len = MIN(len, CD1400_TXFIFOSIZE);
++		len = min(len, CD1400_TXFIFOSIZE);
+ 		portp->stats.txtotal += len;
+-		stlen = MIN(len, ((portp->tx.buf + STL_TXBUFSIZE) - tail));
++		stlen = min(len, ((portp->tx.buf + STL_TXBUFSIZE) - tail));
+ 		outb((TDR + portp->uartaddr), ioaddr);
+ 		outsb((ioaddr + EREG_DATA), tail, stlen);
+ 		len -= stlen;
+@@ -3746,13 +3597,13 @@ static void stl_cd1400rxisr(struct stlpa
+ 		outb((RDCR + portp->uartaddr), ioaddr);
+ 		len = inb(ioaddr + EREG_DATA);
+ 		if (tty == NULL || (buflen = tty_buffer_request_room(tty, len)) == 0) {
+-			len = MIN(len, sizeof(stl_unwanted));
++			len = min(len, sizeof(stl_unwanted));
+ 			outb((RDSR + portp->uartaddr), ioaddr);
+ 			insb((ioaddr + EREG_DATA), &stl_unwanted[0], len);
+ 			portp->stats.rxlost += len;
+ 			portp->stats.rxtotal += len;
+ 		} else {
+-			len = MIN(len, buflen);
++			len = min(len, buflen);
+ 			if (len > 0) {
+ 				unsigned char *ptr;
+ 				outb((RDSR + portp->uartaddr), ioaddr);
+@@ -4615,9 +4466,9 @@ static void stl_sc26198txisr(struct stlp
+ 			outb(mr0, (ioaddr + XP_DATA));
+ 		}
+ 	} else {
+-		len = MIN(len, SC26198_TXFIFOSIZE);
++		len = min(len, SC26198_TXFIFOSIZE);
+ 		portp->stats.txtotal += len;
+-		stlen = MIN(len, ((portp->tx.buf + STL_TXBUFSIZE) - tail));
++		stlen = min(len, ((portp->tx.buf + STL_TXBUFSIZE) - tail));
+ 		outb(GTXFIFO, (ioaddr + XP_ADDR));
+ 		outsb((ioaddr + XP_DATA), tail, stlen);
+ 		len -= stlen;
+@@ -4658,13 +4509,13 @@ static void stl_sc26198rxisr(struct stlp
+ 
+ 	if ((iack & IVR_TYPEMASK) == IVR_RXDATA) {
+ 		if (tty == NULL || (buflen = tty_buffer_request_room(tty, len)) == 0) {
+-			len = MIN(len, sizeof(stl_unwanted));
++			len = min(len, sizeof(stl_unwanted));
+ 			outb(GRXFIFO, (ioaddr + XP_ADDR));
+ 			insb((ioaddr + XP_DATA), &stl_unwanted[0], len);
+ 			portp->stats.rxlost += len;
+ 			portp->stats.rxtotal += len;
+ 		} else {
+-			len = MIN(len, buflen);
++			len = min(len, buflen);
+ 			if (len > 0) {
+ 				unsigned char *ptr;
+ 				outb(GRXFIFO, (ioaddr + XP_ADDR));
+@@ -4831,6 +4682,8 @@ static void stl_sc26198otherisr(struct s
   */
  static int __init stallion_module_init(void)
  {
--	unsigned int i;
-+	unsigned int i, retval;
++	struct stlbrd	*brdp;
++	struct stlconf	conf;
+ 	unsigned int i, retval;
  
  	printk(KERN_INFO "%s: version %s\n", stl_drvtitle, stl_drvversion);
+@@ -4838,7 +4691,27 @@ static int __init stallion_module_init(v
+ 	spin_lock_init(&stallion_lock);
+ 	spin_lock_init(&brd_lock);
  
-@@ -4785,6 +4794,10 @@ static int __init stallion_module_init(v
+-	stl_initbrds();
++/*
++ *	Find any dynamically supported boards. That is via module load
++ *	line options.
++ */
++	for (i = stl_nrbrds; i < stl_nargs; i++) {
++		memset(&conf, 0, sizeof(conf));
++		if (stl_parsebrd(&conf, stl_brdsp[i]) == 0)
++			continue;
++		if ((brdp = stl_allocbrd()) == NULL)
++			continue;
++		brdp->brdnr = i;
++		brdp->brdtype = conf.brdtype;
++		brdp->ioaddr1 = conf.ioaddr1;
++		brdp->ioaddr2 = conf.ioaddr2;
++		brdp->irq = conf.irq;
++		brdp->irqtype = conf.irqtype;
++		if (stl_brdinit(brdp))
++			kfree(brdp);
++		else
++			stl_nrbrds = i + 1;
++	}
  
- 	stl_initbrds();
- 
-+	retval = pci_register_driver(&stl_pcidriver);
-+	if (retval)
-+		goto err;
-+
- 	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
- 	if (!stl_serial)
- 		return -1;
-@@ -4820,14 +4833,14 @@ static int __init stallion_module_init(v
- 	}
- 
- 	return 0;
-+err:
-+	return retval;
- }
- 
- static void __exit stallion_module_exit(void)
- {
- 	struct stlbrd	*brdp;
--	struct stlpanel	*panelp;
--	struct stlport	*portp;
--	int		i, j, k;
-+	int		i;
- 
- 	pr_debug("cleanup_module()\n");
- 
-@@ -4854,27 +4867,15 @@ static void __exit stallion_module_exit(
- 			"errno=%d\n", -i);
- 	class_destroy(stallion_class);
- 
-+	pci_unregister_driver(&stl_pcidriver);
-+
- 	for (i = 0; (i < stl_nrbrds); i++) {
- 		if ((brdp = stl_brds[i]) == NULL)
- 			continue;
- 
- 		free_irq(brdp->irq, brdp);
- 
--		for (j = 0; (j < STL_MAXPANELS); j++) {
--			panelp = brdp->panels[j];
--			if (panelp == NULL)
--				continue;
--			for (k = 0; (k < STL_PORTSPERPANEL); k++) {
--				portp = panelp->ports[k];
--				if (portp == NULL)
--					continue;
--				if (portp->tty != NULL)
--					stl_hangup(portp->tty);
--				kfree(portp->tx.buf);
--				kfree(portp);
--			}
--			kfree(panelp);
--		}
-+		stl_cleanup_panels(brdp);
- 
- 		release_region(brdp->ioaddr1, brdp->iosize1);
- 		if (brdp->iosize2 > 0)
+ 	retval = pci_register_driver(&stl_pcidriver);
+ 	if (retval)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-stallion-convert-to-pci-probing.patch
-char-stallion-prints-cleanup.patch
-char-stallion-implement-fail-paths.patch
-char-stallion-correct-__init-macros.patch
 char-stallion-functions-cleanup.patch
 char-stallion-fix-fail-paths.patch
 char-stallion-brd-struct-locking.patch
