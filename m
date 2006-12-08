@@ -1,129 +1,220 @@
 From: akpm@osdl.org
-Subject: - termios-enable-new-style-termios-ioctls-on-x86-64.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:30 -0800
-Message-ID: <200612082008.kB8K8ULm002609@shell0.pdx.osdl.net>
+Subject: - char-isicom-remove-isa-code.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:37 -0800
+Message-ID: <200612082008.kB8K8blm002621@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58269 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58286 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946224AbWLHUIo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:08:44 -0500
+	id S1946236AbWLHUIt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:08:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, ak@suse.de, alan@redhat.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     termios: Enable new style termios ioctls on x86-64
+     Char: isicom, remove isa code
 has been removed from the -mm tree.  Its filename was
-     termios-enable-new-style-termios-ioctls-on-x86-64.patch
+     char-isicom-remove-isa-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: termios: Enable new style termios ioctls on x86-64
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Char: isicom, remove isa code
+From: Jiri Slaby <jirislaby@gmail.com>
 
-This turns on the split input/output speed features and arbitary baud rate
-handling for the x86-64 platform.  Nothing should break if you use existing
-standard speeds.  If you use the new speed stuff then you may see some
-drivers failing to report the speed changes properly in error cases.  This
-will be worked on further.  For the working cases this all seems happy. 
-I'll post a test suite used to test the basic stuff as well.
+ISA is not supported by this driver, remove parts, that take care of this.
 
-Patches for i386 will follow when I get a moment but are basically the
-same.  If people could patch/test-suite other architectures and submit them
-that would be great.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-x86_64/ioctls.h   |    4 ++++
- include/asm-x86_64/termbits.h |   16 +++++++++++++++-
- include/asm-x86_64/termios.h  |    6 ++++--
- 3 files changed, 23 insertions(+), 3 deletions(-)
+ drivers/char/isicom.c |   91 +++++++++-------------------------------
+ 1 file changed, 21 insertions(+), 70 deletions(-)
 
-diff -puN include/asm-x86_64/ioctls.h~termios-enable-new-style-termios-ioctls-on-x86-64 include/asm-x86_64/ioctls.h
---- a/include/asm-x86_64/ioctls.h~termios-enable-new-style-termios-ioctls-on-x86-64
-+++ a/include/asm-x86_64/ioctls.h
-@@ -46,6 +46,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
- 
-diff -puN include/asm-x86_64/termbits.h~termios-enable-new-style-termios-ioctls-on-x86-64 include/asm-x86_64/termbits.h
---- a/include/asm-x86_64/termbits.h~termios-enable-new-style-termios-ioctls-on-x86-64
-+++ a/include/asm-x86_64/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
+diff -puN drivers/char/isicom.c~char-isicom-remove-isa-code drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-remove-isa-code
++++ a/drivers/char/isicom.c
+@@ -193,7 +193,6 @@ struct	isi_board {
+ 	unsigned short		shift_count;
+ 	struct isi_port		* ports;
+ 	signed char		count;
+-	unsigned char		isa;
+ 	spinlock_t		card_lock; /* Card wide lock 11/5/00 -sameer */
+ 	unsigned long		flags;
  };
+@@ -562,14 +561,12 @@ static irqreturn_t isicom_interrupt(int 
+ 	base = card->base;
+ 	spin_lock(&card->card_lock);
  
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-@@ -129,6 +140,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define	   BOTHER 0010000		/* non standard rate */
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -144,10 +156,12 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000	/* input baud rate */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
+-	if (card->isa == NO) {
+-		/*
+-		 * disable any interrupts from the PCI card and lower the
+-		 * interrupt line
+-		 */
+-		outw(0x8000, base+0x04);
+-		ClearInterrupt(base);
+-	}
++	/*
++	 * disable any interrupts from the PCI card and lower the
++	 * interrupt line
++	 */
++	outw(0x8000, base+0x04);
++	ClearInterrupt(base);
  
-+#define IBSHIFT	  8		/* Shift from CBAUD to CIBAUD */
-+
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-x86_64/termios.h~termios-enable-new-style-termios-ioctls-on-x86-64 include/asm-x86_64/termios.h
---- a/include/asm-x86_64/termios.h~termios-enable-new-style-termios-ioctls-on-x86-64
-+++ a/include/asm-x86_64/termios.h
-@@ -98,8 +98,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
+ 	inw(base);		/* get the dummy word out */
+ 	header = inw(base);
+@@ -579,19 +576,13 @@ static irqreturn_t isicom_interrupt(int 
+ 	if (channel + 1 > card->port_count) {
+ 		printk(KERN_WARNING "ISICOM: isicom_interrupt(0x%lx): "
+ 			"%d(channel) > port_count.\n", base, channel+1);
+-		if (card->isa)
+-			ClearInterrupt(base);
+-		else
+-			outw(0x0000, base+0x04); /* enable interrupts */
++		outw(0x0000, base+0x04); /* enable interrupts */
+ 		spin_unlock(&card->card_lock);
+ 		return IRQ_HANDLED;
+ 	}
+ 	port = card->ports + channel;
+ 	if (!(port->flags & ASYNC_INITIALIZED)) {
+-		if (card->isa)
+-			ClearInterrupt(base);
+-		else
+-			outw(0x0000, base+0x04); /* enable interrupts */
++		outw(0x0000, base+0x04); /* enable interrupts */
+ 		return IRQ_HANDLED;
+ 	}
  
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+@@ -604,10 +595,7 @@ static irqreturn_t isicom_interrupt(int 
+ 		}
+ 		if (byte_count & 0x01)
+ 			inw(base);
+-		if (card->isa == YES)
+-			ClearInterrupt(base);
+-		else
+-			outw(0x0000, base+0x04); /* enable interrupts */
++		outw(0x0000, base+0x04); /* enable interrupts */
+ 		spin_unlock(&card->card_lock);
+ 		return IRQ_HANDLED;
+ 	}
+@@ -708,10 +696,7 @@ static irqreturn_t isicom_interrupt(int 
+ 		}
+ 		tty_flip_buffer_push(tty);
+ 	}
+-	if (card->isa == YES)
+-		ClearInterrupt(base);
+-	else
+-		outw(0x0000, base+0x04); /* enable interrupts */
++	outw(0x0000, base+0x04); /* enable interrupts */
  
- #endif	/* __KERNEL__ */
+ 	return IRQ_HANDLED;
+ }
+@@ -1561,36 +1546,23 @@ static int __devinit reset_card(struct p
  
+ 	*signature = inw(base + 0x4) & 0xff;
+ 
+-	if (board->isa == YES) {
+-		if (!(inw(base + 0xe) & 0x1) || (inw(base + 0x2))) {
+-			dev_dbg(&pdev->dev, "base+0x2=0x%lx, base+0xe=0x%lx\n",
+-				inw(base + 0x2), inw(base + 0xe));
+-			dev_err(&pdev->dev, "ISILoad:ISA Card%d reset failure "
+-				"(Possible bad I/O Port Address 0x%lx).\n",
+-				card + 1, base);
+-			retval = -EIO;
+-			goto end;
+-		}
+-	} else {
+-		portcount = inw(base + 0x2);
+-		if (!(inw(base + 0xe) & 0x1) || ((portcount != 0) &&
+-				(portcount != 4) && (portcount != 8))) {
+-			dev_dbg(&pdev->dev, "base+0x2=0x%lx, base+0xe=0x%lx\n",
+-				inw(base + 0x2), inw(base + 0xe));
+-			dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure "
+-				"(Possible bad I/O Port Address 0x%lx).\n",
+-				card + 1, base);
+-			retval = -EIO;
+-			goto end;
+-		}
++	portcount = inw(base + 0x2);
++	if (!(inw(base + 0xe) & 0x1) || ((portcount != 0) &&
++			(portcount != 4) && (portcount != 8))) {
++		dev_dbg(&pdev->dev, "base+0x2=0x%lx, base+0xe=0x%lx\n",
++			inw(base + 0x2), inw(base + 0xe));
++		dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure "
++			"(Possible bad I/O Port Address 0x%lx).\n",
++			card + 1, base);
++		retval = -EIO;
++		goto end;
+ 	}
+ 
+ 	switch (*signature) {
+ 	case 0xa5:
+ 	case 0xbb:
+ 	case 0xdd:
+-		board->port_count = (board->isa == NO && portcount == 4) ? 4 :
+-			8;
++		board->port_count = (portcount == 4) ? 4 : 8;
+ 		board->shift_count = 12;
+ 		break;
+ 	case 0xcc:
+@@ -1784,8 +1756,6 @@ end:
+ /*
+  *	Insmod can set static symbols so keep these static
+  */
+-static int io[4];
+-static int irq[4];
+ static int card;
+ 
+ static int __devinit isicom_probe(struct pci_dev *pdev,
+@@ -1813,7 +1783,6 @@ static int __devinit isicom_probe(struct
+ 
+ 	board->base = ioaddr;
+ 	board->irq = pciirq;
+-	board->isa = NO;
+ 	card++;
+ 
+ 	pci_set_drvdata(pdev, board);
+@@ -1888,20 +1857,6 @@ static int __init isicom_init(void)
+  		}
+ 		isi_card[idx].base = 0;
+ 		isi_card[idx].irq = 0;
+-
+-		if (!io[idx])
+-			continue;
+-
+-		if (irq[idx] == 2 || irq[idx] == 3 || irq[idx] == 4	||
+-				irq[idx] == 5	|| irq[idx] == 7	||
+-				irq[idx] == 10	|| irq[idx] == 11	||
+-				irq[idx] == 12	|| irq[idx] == 15) {
+-			printk(KERN_ERR "ISICOM: ISA not supported yet.\n");
+-			retval = -EINVAL;
+-			goto error;
+-		} else
+-			printk(KERN_ERR "ISICOM: Irq %d unsupported. "
+-				"Disabling Card%d...\n", irq[idx], idx + 1);
+ 	}
+ 
+ 	/* tty driver structure initialization */
+@@ -1971,7 +1926,3 @@ module_exit(isicom_exit);
+ MODULE_AUTHOR("MultiTech");
+ MODULE_DESCRIPTION("Driver for the ISI series of cards by MultiTech");
+ MODULE_LICENSE("GPL");
+-module_param_array(io, int, NULL, 0);
+-MODULE_PARM_DESC(io, "I/O ports for the cards");
+-module_param_array(irq, int, NULL, 0);
+-MODULE_PARM_DESC(irq, "Interrupts for the cards");
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-termios-enable-new-style-termios-ioctls-on-x86-64.patch
+char-isicom-remove-isa-code.patch
+char-isicom-remove-unneeded-memset.patch
+char-isicom-move-to-tty_register_device.patch
+char-isicom-use-pci_request_region.patch
+char-isicom-check-kmalloc-retval.patch
 char-isicom-use-completion.patch
 char-isicom-simplify-timer.patch
 char-isicom-remove-cvs-stuff.patch
@@ -167,42 +258,4 @@ char-cyclades-save-indent-levels.patch
 char-cyclades-lindent-the-code.patch
 char-cyclades-cleanup.patch
 char-cyclades-fix-warnings.patch
-ide-more-conversion-to-pci_get-apis.patch
-pdc202xx_new-fix-pio-mode-setup.patch
-sl82c105-straighten-up-ide-control-status-register-caching.patch
-igafb-switch-to-pci_get-api.patch
-tty-switch-to-ktermios-nozomi-fix.patch
-ata-fix-platform_device_register_simple-error-check.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pci-quirks-fix-the-festering-mess-that-claims-to-handle-ide-quirks-ide-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-via-sb600-sata-quirk.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-ide-complete-switch-to-pci_get.patch
-ide-hpt3xxn-clocking-fixes.patch
-ide-fix-hpt37x-timing-tables.patch
-ide-optimize-hpt37x-timing-tables.patch
-ide-fix-hpt3xx-hotswap-support.patch
-ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch
-ide-hpt3xx-fix-pci-clock-detection.patch
-ide-hpt3xx-fix-pci-clock-detection-fix-2.patch
-piix-fix-82371mx-enablebits.patch
-piix-remove-check-for-broken-mw-dma-mode-0.patch
-piix-slc90e66-pio-mode-fallback-fix.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-ide-cd-handle-strange-interrupt-on-the-intel-esb2.patch
 
