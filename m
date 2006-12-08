@@ -1,214 +1,57 @@
 From: akpm@osdl.org
-Subject: - m32r-make-userspace-headers-platform-independent.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 11:59:19 -0800
-Message-ID: <200612081959.kB8JxJSV001612@shell0.pdx.osdl.net>
+Subject: - fix-generic-warn_on-message.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:00:59 -0800
+Message-ID: <200612082000.kB8K0xYs001799@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56601 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56689 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426195AbWLHUAg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:00:36 -0500
+	id S1426226AbWLHUBF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:01:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takata@linux-m32r.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: jeremy@goop.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: make userspace headers platform-independent
+     Fix generic WARN_ON message
 has been removed from the -mm tree.  Its filename was
-     m32r-make-userspace-headers-platform-independent.patch
+     fix-generic-warn_on-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m32r: make userspace headers platform-independent
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: Fix generic WARN_ON message
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-The m32r kernel 2.6.18-rc1 or after cause build errors of "unknown isa
-configuration" for userspace application programs, such as glibc, gdb, etc.
+A warning is a warning, not a BUG.
 
-This is because the recent kernel do not include linux/config.h not to expose
-kernel headers for userspace.
-
-To fix the above compile errors, this patch fixes two headers ptrace.h and
-sigcontext.h for m32r and makes them platform-independent.
-
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/m32r/kernel/entry.S      |   65 ++++++++++++++------------------
- include/asm-m32r/ptrace.h     |   28 +------------
- include/asm-m32r/sigcontext.h |   13 ------
- 3 files changed, 35 insertions(+), 71 deletions(-)
+ include/asm-generic/bug.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent arch/m32r/kernel/entry.S
---- a/arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent
-+++ a/arch/m32r/kernel/entry.S
-@@ -23,35 +23,35 @@
-  *	updated in fork.c:copy_thread, signal.c:do_signal,
-  *	ptrace.c and ptrace.h
-  *
-- * M32Rx/M32R2				M32R
-- *       @(sp)      - r4		ditto
-- *       @(0x04,sp) - r5		ditto
-- *       @(0x08,sp) - r6		ditto
-- *       @(0x0c,sp) - *pt_regs		ditto
-- *       @(0x10,sp) - r0		ditto
-- *       @(0x14,sp) - r1		ditto
-- *       @(0x18,sp) - r2		ditto
-- *       @(0x1c,sp) - r3		ditto
-- *       @(0x20,sp) - r7		ditto
-- *       @(0x24,sp) - r8		ditto
-- *       @(0x28,sp) - r9		ditto
-- *       @(0x2c,sp) - r10		ditto
-- *       @(0x30,sp) - r11		ditto
-- *       @(0x34,sp) - r12		ditto
-- *       @(0x38,sp) - syscall_nr	ditto
-- *       @(0x3c,sp) - acc0h		@(0x3c,sp) - acch
-- *       @(0x40,sp) - acc0l		@(0x40,sp) - accl
-- *       @(0x44,sp) - acc1h		@(0x44,sp) - dummy_acc1h
-- *       @(0x48,sp) - acc1l		@(0x48,sp) - dummy_acc1l
-- *       @(0x4c,sp) - psw		ditto
-- *       @(0x50,sp) - bpc		ditto
-- *       @(0x54,sp) - bbpsw		ditto
-- *       @(0x58,sp) - bbpc		ditto
-- *       @(0x5c,sp) - spu (cr3)		ditto
-- *       @(0x60,sp) - fp (r13)		ditto
-- *       @(0x64,sp) - lr (r14)		ditto
-- *       @(0x68,sp) - spi (cr2)		ditto
-- *       @(0x6c,sp) - orig_r0		ditto
-+ * M32R/M32Rx/M32R2
-+ *       @(sp)      - r4
-+ *       @(0x04,sp) - r5
-+ *       @(0x08,sp) - r6
-+ *       @(0x0c,sp) - *pt_regs
-+ *       @(0x10,sp) - r0
-+ *       @(0x14,sp) - r1
-+ *       @(0x18,sp) - r2
-+ *       @(0x1c,sp) - r3
-+ *       @(0x20,sp) - r7
-+ *       @(0x24,sp) - r8
-+ *       @(0x28,sp) - r9
-+ *       @(0x2c,sp) - r10
-+ *       @(0x30,sp) - r11
-+ *       @(0x34,sp) - r12
-+ *       @(0x38,sp) - syscall_nr
-+ *       @(0x3c,sp) - acc0h
-+ *       @(0x40,sp) - acc0l
-+ *       @(0x44,sp) - acc1h		; ISA_DSP_LEVEL2 only
-+ *       @(0x48,sp) - acc1l		; ISA_DSP_LEVEL2 only
-+ *       @(0x4c,sp) - psw
-+ *       @(0x50,sp) - bpc
-+ *       @(0x54,sp) - bbpsw
-+ *       @(0x58,sp) - bbpc
-+ *       @(0x5c,sp) - spu (cr3)
-+ *       @(0x60,sp) - fp (r13)
-+ *       @(0x64,sp) - lr (r14)
-+ *       @(0x68,sp) - spi (cr2)
-+ *       @(0x6c,sp) - orig_r0
-  */
- 
- #include <linux/linkage.h>
-@@ -95,17 +95,10 @@
- #define R11(reg)		@(0x30,reg)
- #define R12(reg)		@(0x34,reg)
- #define SYSCALL_NR(reg)		@(0x38,reg)
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- #define ACC0H(reg)		@(0x3C,reg)
- #define ACC0L(reg)		@(0x40,reg)
- #define ACC1H(reg)		@(0x44,reg)
- #define ACC1L(reg)		@(0x48,reg)
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--#define ACCH(reg)		@(0x3C,reg)
--#define ACCL(reg)		@(0x40,reg)
--#else
--#error unknown isa configuration
--#endif
- #define PSW(reg)		@(0x4C,reg)
- #define BPC(reg)		@(0x50,reg)
- #define BBPSW(reg)		@(0x54,reg)
-diff -puN include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/ptrace.h
---- a/include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent
-+++ a/include/asm-m32r/ptrace.h
-@@ -33,21 +33,10 @@
- #define PT_R15		PT_SP
- 
- /* processor status and miscellaneous context registers.  */
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- #define PT_ACC0H	15
- #define PT_ACC0L	16
--#define PT_ACC1H	17
--#define PT_ACC1L	18
--#define PT_ACCH		PT_ACC0H
--#define PT_ACCL		PT_ACC0L
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--#define PT_ACCH		15
--#define PT_ACCL		16
--#define PT_DUMMY_ACC1H	17
--#define PT_DUMMY_ACC1L	18
--#else
--#error unknown isa conifiguration
--#endif
-+#define PT_ACC1H	17	/* ISA_DSP_LEVEL2 only */
-+#define PT_ACC1L	18	/* ISA_DSP_LEVEL2 only */
- #define PT_PSW		19
- #define PT_BPC		20
- #define PT_BBPSW	21
-@@ -103,19 +92,10 @@ struct pt_regs {
- 	long syscall_nr;
- 
- 	/* Saved main processor status and miscellaneous context registers. */
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	unsigned long acc0h;
- 	unsigned long acc0l;
--	unsigned long acc1h;
--	unsigned long acc1l;
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	unsigned long acch;
--	unsigned long accl;
--	unsigned long dummy_acc1h;
--	unsigned long dummy_acc1l;
--#else
--#error unknown isa configuration
--#endif
-+	unsigned long acc1h;	/* ISA_DSP_LEVEL2 only */
-+	unsigned long acc1l;	/* ISA_DSP_LEVEL2 only */
- 	unsigned long psw;
- 	unsigned long bpc;		/* saved PC for TRAP syscalls */
- 	unsigned long bbpsw;
-diff -puN include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/sigcontext.h
---- a/include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent
-+++ a/include/asm-m32r/sigcontext.h
-@@ -23,19 +23,10 @@ struct sigcontext {
- 	unsigned long sc_r12;
- 
- 	/* Saved main processor status and miscellaneous context registers. */
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	unsigned long sc_acc0h;
- 	unsigned long sc_acc0l;
--	unsigned long sc_acc1h;
--	unsigned long sc_acc1l;
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	unsigned long sc_acch;
--	unsigned long sc_accl;
--	unsigned long sc_dummy_acc1h;
--	unsigned long sc_dummy_acc1l;
--#else
--#error unknown isa configuration
--#endif
-+	unsigned long sc_acc1h;	/* ISA_DSP_LEVEL2 only */
-+	unsigned long sc_acc1l;	/* ISA_DSP_LEVEL2 only */
- 	unsigned long sc_psw;
- 	unsigned long sc_bpc;		/* saved PC for TRAP syscalls */
- 	unsigned long sc_bbpsw;
+diff -puN include/asm-generic/bug.h~fix-generic-warn_on-message include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~fix-generic-warn_on-message
++++ a/include/asm-generic/bug.h
+@@ -35,7 +35,7 @@ struct bug_entry {
+ #define WARN_ON(condition) ({						\
+ 	typeof(condition) __ret_warn_on = (condition);			\
+ 	if (unlikely(__ret_warn_on)) {					\
+-		printk("BUG: warning at %s:%d/%s()\n", __FILE__,	\
++		printk("WARNING at %s:%d %s()\n", __FILE__,	\
+ 			__LINE__, __FUNCTION__);			\
+ 		dump_stack();						\
+ 	}								\
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-m32r-make-userspace-headers-platform-independent.patch
-m32r-support-a-synthesizable-m32700-core.patch
-m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
-m32r-bootloader-support-for-opsput-platform.patch
+origin.patch
+fix-generic-warn_on-message.patch
+convert-i386-pda-code-to-use-%fs.patch
+time-uninline-jiffiesh-fix.patch
 
