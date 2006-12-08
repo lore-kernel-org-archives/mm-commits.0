@@ -1,332 +1,291 @@
 From: akpm@osdl.org
-Subject: - fault-injection-stacktrace-filtering.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:11:24 -0800
-Message-ID: <200612082011.kB8KBOAN002914@shell0.pdx.osdl.net>
+Subject: - rename-struct-pspace-to-struct-pid_namespace.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:05:56 -0800
+Message-ID: <200612082005.kB8K5uuA002346@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59140 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59166 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946642AbWLHULv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:11:51 -0500
+	id S1946656AbWLHUL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:11:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, dwm@meer.net, mm-commits@vger.kernel.org
+To: sukadev@us.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault injection: stacktrace filtering
+     rename struct pspace to struct pid_namespace
 has been removed from the -mm tree.  Its filename was
-     fault-injection-stacktrace-filtering.patch
+     rename-struct-pspace-to-struct-pid_namespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault injection: stacktrace filtering
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: rename struct pspace to struct pid_namespace
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-This patch provides stacktrace filtering feature.
+Rename struct pspace to struct pid_namespace for consistency with other
+namespaces (uts_namespace and ipc_namespace).  Also rename
+include/linux/pspace.h to include/linux/pid_namespace.h and variables from
+pspace to pid_ns.
 
-The stacktrace filter allows failing only for the caller you are
-interested in.
-
-For example someone may want to inject kmalloc() failures into
-only e100 module. they want to inject not only direct kmalloc() call,
-but also indirect allocation, too.
-
-- e100_poll --> netif_receive_skb --> packet_rcv_spkt --> skb_clone
-  --> kmem_cache_alloc
-
-This patch enables to detect function calls like this by stacktrace
-and inject failures. The script Documentaion/fault-injection/failmodule.sh
-helps it.
-
-The range of text section of loaded e100 is expected to be
-[/sys/module/e100/sections/.text, /sys/module/e100/sections/.exit.text)
-
-So failmodule.sh stores these values into /debug/failslab/address-start
-and /debug/failslab/address-end. The maximum stacktrace depth is specified
-by /debug/failslab/stacktrace-depth.
-
-Please see the example that demonstrates how to inject slab allocation
-failures only for a specific module
-in Documentation/fault-injection/fault-injection.txt
-
-[dwm@meer.net: reject failure if any caller lies within specified range]
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Signed-off-by: Don Mullis <dwm@meer.net>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/fault-injection/fault-injection.txt |   12 -
- include/linux/fault-inject.h                      |   12 +
- lib/Kconfig.debug                                 |    5 
- lib/fault-inject.c                                |  126 +++++++++++-
- 4 files changed, 150 insertions(+), 5 deletions(-)
+ fs/proc/proc_misc.c           |    4 +-
+ include/linux/pid_namespace.h |   23 +++++++++++++++
+ include/linux/pspace.h        |   23 ---------------
+ kernel/pid.c                  |   49 ++++++++++++++++----------------
+ 4 files changed, 50 insertions(+), 49 deletions(-)
 
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-stacktrace-filtering Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-stacktrace-filtering
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -73,13 +73,17 @@ configuration of fault-injection capabil
- 	Any positive value limits failures to only processes indicated by
- 	/proc/<pid>/make-it-fail==1.
- 
--- /debug/*/address-start:
--- /debug/*/address-end:
-+- /debug/*/require-start:
-+- /debug/*/require-end:
-+- /debug/*/reject-start:
-+- /debug/*/reject-end:
- 
- 	specifies the range of virtual addresses tested during
- 	stacktrace walking.  Failure is injected only if some caller
--	in the walked stacktrace lies within this range.
--	Default is [0,ULONG_MAX) (whole of virtual address space).
-+	in the walked stacktrace lies within the required range, and
-+	none lies within the rejected range.
-+	Default required range is [0,ULONG_MAX) (whole of virtual address space).
-+	Default rejected range is [0,0).
- 
- - /debug/*/stacktrace-depth:
- 
-diff -puN include/linux/fault-inject.h~fault-injection-stacktrace-filtering include/linux/fault-inject.h
---- a/include/linux/fault-inject.h~fault-injection-stacktrace-filtering
-+++ a/include/linux/fault-inject.h
-@@ -18,6 +18,11 @@ struct fault_attr {
- 	atomic_t space;
- 	unsigned long verbose;
- 	u32 task_filter;
-+	unsigned long stacktrace_depth;
-+	unsigned long require_start;
-+	unsigned long require_end;
-+	unsigned long reject_start;
-+	unsigned long reject_end;
- 
- 	unsigned long count;
- 
-@@ -32,6 +37,11 @@ struct fault_attr {
- 		struct dentry *space_file;
- 		struct dentry *verbose_file;
- 		struct dentry *task_filter_file;
-+		struct dentry *stacktrace_depth_file;
-+		struct dentry *require_start_file;
-+		struct dentry *require_end_file;
-+		struct dentry *reject_start_file;
-+		struct dentry *reject_end_file;
- 	} dentries;
- 
- #endif
-@@ -40,6 +50,8 @@ struct fault_attr {
- #define FAULT_ATTR_INITIALIZER {				\
- 		.interval = 1,					\
- 		.times = ATOMIC_INIT(1),			\
-+		.require_end = ULONG_MAX,			\
-+		.stacktrace_depth = 32,				\
- 	}
- 
- #define DECLARE_FAULT_ATTR(name) struct fault_attr name = FAULT_ATTR_INITIALIZER
-diff -puN lib/Kconfig.debug~fault-injection-stacktrace-filtering lib/Kconfig.debug
---- a/lib/Kconfig.debug~fault-injection-stacktrace-filtering
-+++ a/lib/Kconfig.debug
-@@ -416,6 +416,11 @@ config LKDTM
- 
- config FAULT_INJECTION
- 	bool
-+	select STACKTRACE
-+	select FRAME_POINTER
-+	help
-+	  Provide fault-injection framework.
-+	  For more details, see Documentation/fault-injection/.
- 
- config FAILSLAB
- 	bool "Fault-injection capabilitiy for kmalloc"
-diff -puN lib/fault-inject.c~fault-injection-stacktrace-filtering lib/fault-inject.c
---- a/lib/fault-inject.c~fault-injection-stacktrace-filtering
-+++ a/lib/fault-inject.c
-@@ -6,6 +6,9 @@
- #include <linux/fs.h>
- #include <linux/module.h>
- #include <linux/interrupt.h>
-+#include <linux/unwind.h>
-+#include <linux/stacktrace.h>
-+#include <linux/kallsyms.h>
- #include <linux/fault-inject.h>
- 
- /*
-@@ -50,6 +53,86 @@ static int fail_task(struct fault_attr *
- 	return !in_interrupt() && task->make_it_fail;
+diff -puN fs/proc/proc_misc.c~rename-struct-pspace-to-struct-pid_namespace fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~rename-struct-pspace-to-struct-pid_namespace
++++ a/fs/proc/proc_misc.c
+@@ -45,7 +45,7 @@
+ #include <linux/sysrq.h>
+ #include <linux/vmalloc.h>
+ #include <linux/crash_dump.h>
+-#include <linux/pspace.h>
++#include <linux/pid_namespace.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
+@@ -92,7 +92,7 @@ static int loadavg_read_proc(char *page,
+ 		LOAD_INT(a), LOAD_FRAC(a),
+ 		LOAD_INT(b), LOAD_FRAC(b),
+ 		LOAD_INT(c), LOAD_FRAC(c),
+-		nr_running(), nr_threads, init_pspace.last_pid);
++		nr_running(), nr_threads, init_pid_ns.last_pid);
+ 	return proc_calc_metrics(page, start, off, count, eof, len);
  }
  
-+#ifdef CONFIG_STACK_UNWIND
+diff -puN /dev/null include/linux/pid_namespace.h
+--- /dev/null
++++ a/include/linux/pid_namespace.h
+@@ -0,0 +1,23 @@
++#ifndef _LINUX_PID_NS_H
++#define _LINUX_PID_NS_H
 +
-+static asmlinkage int fail_stacktrace_callback(struct unwind_frame_info *info,
-+						void *arg)
-+{
-+	int depth;
-+	struct fault_attr *attr = arg;
-+	bool found = (attr->require_start == 0 && attr->require_end == ULONG_MAX);
++#include <linux/sched.h>
++#include <linux/mm.h>
++#include <linux/threads.h>
++#include <linux/pid.h>
 +
-+	for (depth = 0; depth < attr->stacktrace_depth
-+			&& unwind(info) == 0 && UNW_PC(info); depth++) {
-+		if (arch_unw_user_mode(info))
-+			break;
-+		if (attr->reject_start <= UNW_PC(info) &&
-+			       UNW_PC(info) < attr->reject_end)
-+			return 0;
-+		if (attr->require_start <= UNW_PC(info) &&
-+			       UNW_PC(info) < attr->require_end)
-+			found = 1;
-+	}
-+	return found;
-+}
++struct pidmap {
++       atomic_t nr_free;
++       void *page;
++};
 +
-+static int fail_stacktrace(struct fault_attr *attr)
-+{
-+	struct unwind_frame_info info;
++#define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
 +
-+	return unwind_init_running(&info, fail_stacktrace_callback, attr);
-+}
++struct pid_namespace {
++       struct pidmap pidmap[PIDMAP_ENTRIES];
++       int last_pid;
++};
 +
-+#elif defined(CONFIG_STACKTRACE)
++extern struct pid_namespace init_pid_ns;
 +
-+#define MAX_STACK_TRACE_DEPTH 32
-+
-+static int fail_stacktrace(struct fault_attr *attr)
-+{
-+	struct stack_trace trace;
-+	int depth = attr->stacktrace_depth;
-+	unsigned long entries[MAX_STACK_TRACE_DEPTH];
-+	int n;
-+	bool found = (attr->require_start == 0 && attr->require_end == ULONG_MAX);
-+
-+	if (depth == 0)
-+		return found;
-+
-+	trace.nr_entries = 0;
-+	trace.entries = entries;
-+	trace.max_entries = (depth < MAX_STACK_TRACE_DEPTH) ?
-+				depth : MAX_STACK_TRACE_DEPTH;
-+	trace.skip = 1;
-+	trace.all_contexts = 0;
-+
-+	save_stack_trace(&trace, NULL);
-+	for (n = 0; n < trace.nr_entries; n++) {
-+		if (attr->reject_start <= entries[n] &&
-+			       entries[n] < attr->reject_end)
-+			return 0;
-+		if (attr->require_start <= entries[n] &&
-+			       entries[n] < attr->require_end)
-+			found = 1;
-+	}
-+	return found;
-+}
-+
-+#else
-+
-+static inline int fail_stacktrace(struct fault_attr *attr)
-+{
-+	static int firsttime = 1;
-+
-+	if (firsttime) {
-+		printk(KERN_WARNING
-+		"This architecture does not implement save_stack_trace()\n");
-+		firsttime = 0;
-+	}
-+	return 0;
-+}
-+
-+#endif
-+
- /*
-  * This code is stolen from failmalloc-1.0
-  * http://www.nongnu.org/failmalloc/
-@@ -60,6 +143,9 @@ int should_fail(struct fault_attr *attr,
- 	if (attr->task_filter && !fail_task(attr, current))
- 		return 0;
++#endif /* _LINUX_PID_NS_H */
+diff -puN include/linux/pspace.h~rename-struct-pspace-to-struct-pid_namespace /dev/null
+--- a/include/linux/pspace.h
++++ /dev/null
+@@ -1,23 +0,0 @@
+-#ifndef _LINUX_PSPACE_H
+-#define _LINUX_PSPACE_H
+-
+-#include <linux/sched.h>
+-#include <linux/mm.h>
+-#include <linux/threads.h>
+-#include <linux/pid.h>
+-
+-struct pidmap {
+-       atomic_t nr_free;
+-       void *page;
+-};
+-
+-#define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
+-
+-struct pspace {
+-       struct pidmap pidmap[PIDMAP_ENTRIES];
+-       int last_pid;
+-};
+-
+-extern struct pspace init_pspace;
+-
+-#endif /* _LINUX_PSPACE_H */
+diff -puN kernel/pid.c~rename-struct-pspace-to-struct-pid_namespace kernel/pid.c
+--- a/kernel/pid.c~rename-struct-pspace-to-struct-pid_namespace
++++ a/kernel/pid.c
+@@ -26,7 +26,7 @@
+ #include <linux/init.h>
+ #include <linux/bootmem.h>
+ #include <linux/hash.h>
+-#include <linux/pspace.h>
++#include <linux/pid_namespace.h>
  
-+	if (!fail_stacktrace(attr))
-+		return 0;
-+
- 	if (atomic_read(&attr->times) == 0)
- 		return 0;
+ #define pid_hashfn(nr) hash_long((unsigned long)nr, pidhash_shift)
+ static struct hlist_head *pid_hash;
+@@ -43,9 +43,10 @@ int pid_max_max = PID_MAX_LIMIT;
+ #define BITS_PER_PAGE		(PAGE_SIZE*8)
+ #define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
  
-@@ -147,6 +233,21 @@ void cleanup_fault_attr_dentries(struct 
- 	debugfs_remove(attr->dentries.task_filter_file);
- 	attr->dentries.task_filter_file = NULL;
+-static inline int mk_pid(struct pspace *pspace, struct pidmap *map, int off)
++static inline int mk_pid(struct pid_namespace *pid_ns,
++		struct pidmap *map, int off)
+ {
+-	return (map - pspace->pidmap)*BITS_PER_PAGE + off;
++	return (map - pid_ns->pidmap)*BITS_PER_PAGE + off;
+ }
  
-+	debugfs_remove(attr->dentries.stacktrace_depth_file);
-+	attr->dentries.stacktrace_depth_file = NULL;
-+
-+	debugfs_remove(attr->dentries.require_start_file);
-+	attr->dentries.require_start_file = NULL;
-+
-+	debugfs_remove(attr->dentries.require_end_file);
-+	attr->dentries.require_end_file = NULL;
-+
-+	debugfs_remove(attr->dentries.reject_start_file);
-+	attr->dentries.reject_start_file = NULL;
-+
-+	debugfs_remove(attr->dentries.reject_end_file);
-+	attr->dentries.reject_end_file = NULL;
-+
- 	if (attr->dentries.dir)
- 		WARN_ON(!simple_empty(attr->dentries.dir));
+ #define find_next_offset(map, off)					\
+@@ -57,7 +58,7 @@ static inline int mk_pid(struct pspace *
+  * value does not cause lots of bitmaps to be allocated, but
+  * the scheme scales to up to 4 million PIDs, runtime.
+  */
+-struct pspace init_pspace = {
++struct pid_namespace init_pid_ns = {
+ 	.pidmap = {
+ 		[ 0 ... PIDMAP_ENTRIES-1] = { ATOMIC_INIT(BITS_PER_PAGE), NULL }
+ 	},
+@@ -80,25 +81,25 @@ struct pspace init_pspace = {
  
-@@ -184,9 +285,32 @@ int init_fault_attr_dentries(struct faul
- 	attr->dentries.task_filter_file = debugfs_create_bool("task-filter",
- 						mode, dir, &attr->task_filter);
+ static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(pidmap_lock);
  
-+	attr->dentries.stacktrace_depth_file =
-+		debugfs_create_ul("stacktrace-depth", mode, dir,
-+				  &attr->stacktrace_depth);
-+
-+	attr->dentries.require_start_file =
-+		debugfs_create_ul("require-start", mode, dir, &attr->require_start);
-+
-+	attr->dentries.require_end_file =
-+		debugfs_create_ul("require-end", mode, dir, &attr->require_end);
-+
-+	attr->dentries.reject_start_file =
-+		debugfs_create_ul("reject-start", mode, dir, &attr->reject_start);
-+
-+	attr->dentries.reject_end_file =
-+		debugfs_create_ul("reject-end", mode, dir, &attr->reject_end);
-+
-+
- 	if (!attr->dentries.probability_file || !attr->dentries.interval_file
- 	    || !attr->dentries.times_file || !attr->dentries.space_file
--	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file)
-+	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file
-+	    || !attr->dentries.stacktrace_depth_file
-+	    || !attr->dentries.require_start_file
-+	    || !attr->dentries.require_end_file
-+	    || !attr->dentries.reject_start_file
-+	    || !attr->dentries.reject_end_file
-+	    )
- 		goto fail;
+-static fastcall void free_pidmap(struct pspace *pspace, int pid)
++static fastcall void free_pidmap(struct pid_namespace *pid_ns, int pid)
+ {
+-	struct pidmap *map = pspace->pidmap + pid / BITS_PER_PAGE;
++	struct pidmap *map = pid_ns->pidmap + pid / BITS_PER_PAGE;
+ 	int offset = pid & BITS_PER_PAGE_MASK;
  
- 	return 0;
+ 	clear_bit(offset, map->page);
+ 	atomic_inc(&map->nr_free);
+ }
+ 
+-static int alloc_pidmap(struct pspace *pspace)
++static int alloc_pidmap(struct pid_namespace *pid_ns)
+ {
+-	int i, offset, max_scan, pid, last = pspace->last_pid;
++	int i, offset, max_scan, pid, last = pid_ns->last_pid;
+ 	struct pidmap *map;
+ 
+ 	pid = last + 1;
+ 	if (pid >= pid_max)
+ 		pid = RESERVED_PIDS;
+ 	offset = pid & BITS_PER_PAGE_MASK;
+-	map = &pspace->pidmap[pid/BITS_PER_PAGE];
++	map = &pid_ns->pidmap[pid/BITS_PER_PAGE];
+ 	max_scan = (pid_max + BITS_PER_PAGE - 1)/BITS_PER_PAGE - !offset;
+ 	for (i = 0; i <= max_scan; ++i) {
+ 		if (unlikely(!map->page)) {
+@@ -120,11 +121,11 @@ static int alloc_pidmap(struct pspace *p
+ 			do {
+ 				if (!test_and_set_bit(offset, map->page)) {
+ 					atomic_dec(&map->nr_free);
+-					pspace->last_pid = pid;
++					pid_ns->last_pid = pid;
+ 					return pid;
+ 				}
+ 				offset = find_next_offset(map, offset);
+-				pid = mk_pid(pspace, map, offset);
++				pid = mk_pid(pid_ns, map, offset);
+ 			/*
+ 			 * find_next_offset() found a bit, the pid from it
+ 			 * is in-bounds, and if we fell back to the last
+@@ -135,34 +136,34 @@ static int alloc_pidmap(struct pspace *p
+ 					(i != max_scan || pid < last ||
+ 					    !((last+1) & BITS_PER_PAGE_MASK)));
+ 		}
+-		if (map < &pspace->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
++		if (map < &pid_ns->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
+ 			++map;
+ 			offset = 0;
+ 		} else {
+-			map = &pspace->pidmap[0];
++			map = &pid_ns->pidmap[0];
+ 			offset = RESERVED_PIDS;
+ 			if (unlikely(last == offset))
+ 				break;
+ 		}
+-		pid = mk_pid(pspace, map, offset);
++		pid = mk_pid(pid_ns, map, offset);
+ 	}
+ 	return -1;
+ }
+ 
+-static int next_pidmap(struct pspace *pspace, int last)
++static int next_pidmap(struct pid_namespace *pid_ns, int last)
+ {
+ 	int offset;
+ 	struct pidmap *map, *end;
+ 
+ 	offset = (last + 1) & BITS_PER_PAGE_MASK;
+-	map = &pspace->pidmap[(last + 1)/BITS_PER_PAGE];
+-	end = &pspace->pidmap[PIDMAP_ENTRIES];
++	map = &pid_ns->pidmap[(last + 1)/BITS_PER_PAGE];
++	end = &pid_ns->pidmap[PIDMAP_ENTRIES];
+ 	for (; map < end; map++, offset = 0) {
+ 		if (unlikely(!map->page))
+ 			continue;
+ 		offset = find_next_bit((map)->page, BITS_PER_PAGE, offset);
+ 		if (offset < BITS_PER_PAGE)
+-			return mk_pid(pspace, map, offset);
++			return mk_pid(pid_ns, map, offset);
+ 	}
+ 	return -1;
+ }
+@@ -192,7 +193,7 @@ fastcall void free_pid(struct pid *pid)
+ 	hlist_del_rcu(&pid->pid_chain);
+ 	spin_unlock_irqrestore(&pidmap_lock, flags);
+ 
+-	free_pidmap(&init_pspace, pid->nr);
++	free_pidmap(&init_pid_ns, pid->nr);
+ 	call_rcu(&pid->rcu, delayed_put_pid);
+ }
+ 
+@@ -206,7 +207,7 @@ struct pid *alloc_pid(void)
+ 	if (!pid)
+ 		goto out;
+ 
+-	nr = alloc_pidmap(&init_pspace);
++	nr = alloc_pidmap(&init_pid_ns);
+ 	if (nr < 0)
+ 		goto out_free;
+ 
+@@ -348,7 +349,7 @@ struct pid *find_ge_pid(int nr)
+ 		pid = find_pid(nr);
+ 		if (pid)
+ 			break;
+-		nr = next_pidmap(&init_pspace, nr);
++		nr = next_pidmap(&init_pid_ns, nr);
+ 	} while (nr > 0);
+ 
+ 	return pid;
+@@ -382,10 +383,10 @@ void __init pidhash_init(void)
+ 
+ void __init pidmap_init(void)
+ {
+-	init_pspace.pidmap[0].page = kzalloc(PAGE_SIZE, GFP_KERNEL);
++	init_pid_ns.pidmap[0].page = kzalloc(PAGE_SIZE, GFP_KERNEL);
+ 	/* Reserve PID 0. We never call free_pidmap(0) */
+-	set_bit(0, init_pspace.pidmap[0].page);
+-	atomic_dec(&init_pspace.pidmap[0].nr_free);
++	set_bit(0, init_pid_ns.pidmap[0].page);
++	atomic_dec(&init_pid_ns.pidmap[0].nr_free);
+ 
+ 	pid_cachep = kmem_cache_create("pid", sizeof(struct pid),
+ 					__alignof__(struct pid),
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-origin.patch
-fault-injection-stacktrace-filtering.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-fault-injection-correct-disambiguate-and.patch
-fault-injection-use-bool-true-false-throughout.patch
-fault-injection-clamp-debugfs-stacktrace-depth-to.patch
-fault-injection-optimize-and-simplify.patch
-fault-injection-defaults-likely-to-please-a-new.patch
-acpi-fix-single-linked-list-manipulation.patch
-acpi-processor-prevent-loading-module-on-failures.patch
-git-alsa.patch
-audit-fix-kstrdup-error-check.patch
-drm-fix-return-value-check.patch
-ata-fix-platform_device_register_simple-error-check.patch
-git-mtd.patch
-net-use-bitrev8.patch
-gss_spkm3-fix-error-handling-in-module-init.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-iscsi-fix-crypto_alloc_hash-error-check.patch
+rename-struct-pspace-to-struct-pid_namespace.patch
+add-pid_namespace-to-nsproxy.patch
+use-current-nsproxy-pid_ns.patch
+add-child-reaper-to-pid_namespace.patch
 
