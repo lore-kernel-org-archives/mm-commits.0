@@ -1,149 +1,213 @@
 From: akpm@osdl.org
-Subject: - various-fbdev-files-mark-structs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:13:22 -0800
-Message-ID: <200612082013.kB8KDMfC003088@shell0.pdx.osdl.net>
+Subject: - fbcmapc-mark-structs-const-or.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:13:19 -0800
+Message-ID: <200612082013.kB8KDJ12003083@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59533 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59523 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946753AbWLHUNd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:13:33 -0500
+	id S1946748AbWLHUNc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:13:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: deller@gmx.de, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     various fbdev files: mark structs and array read-only
+     fbcmap.c: mark structs const or __read_mostly
 has been removed from the -mm tree.  Its filename was
-     various-fbdev-files-mark-structs.patch
+     fbcmapc-mark-structs-const-or.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: various fbdev files: mark structs and array read-only
+Subject: fbcmap.c: mark structs const or __read_mostly
 From: Helge Deller <deller@gmx.de>
 
-- move some structs and arrays to the read-only (.rodata) section
+- Mark the default colormaps read-only, as nobody should be allowed to
+  modify them
 
-[akpm@osdl.org: build fix]
+- Additionally mark color values as __read_mostly since they will only be
+  modified (very seldom) by fb_invert_cmaps()
+
+- Add named C99-initializers in fb_cmap structs and use the ARRAY_SIZE()
+  macro
+
 Signed-off-by: Helge Deller <deller@gmx.de>
 Acked-by: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/backlight/backlight.c |    2 +-
- drivers/video/backlight/lcd.c       |    2 +-
- drivers/video/cfbimgblt.c           |    8 ++++----
- drivers/video/console/sticon.c      |    2 +-
- drivers/video/fbcvt.c               |    2 +-
- drivers/video/fbmon.c               |    2 +-
- 6 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/video/fbcmap.c |   55 +++++++++++++++++++--------------------
+ include/linux/fb.h     |    6 ++--
+ 2 files changed, 31 insertions(+), 30 deletions(-)
 
-diff -puN drivers/video/backlight/backlight.c~various-fbdev-files-mark-structs drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~various-fbdev-files-mark-structs
-+++ a/drivers/video/backlight/backlight.c
-@@ -142,7 +142,7 @@ static struct class backlight_class = {
- 	.store	= _store,					\
- }
+diff -puN drivers/video/fbcmap.c~fbcmapc-mark-structs-const-or drivers/video/fbcmap.c
+--- a/drivers/video/fbcmap.c~fbcmapc-mark-structs-const-or
++++ a/drivers/video/fbcmap.c
+@@ -18,63 +18,64 @@
  
--static struct class_device_attribute bl_class_device_attributes[] = {
-+static const struct class_device_attribute bl_class_device_attributes[] = {
- 	DECLARE_ATTR(power, 0644, backlight_show_power, backlight_store_power),
- 	DECLARE_ATTR(brightness, 0644, backlight_show_brightness,
- 		     backlight_store_brightness),
-diff -puN drivers/video/backlight/lcd.c~various-fbdev-files-mark-structs drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~various-fbdev-files-mark-structs
-+++ a/drivers/video/backlight/lcd.c
-@@ -121,7 +121,7 @@ static struct class lcd_class = {
- 	.store	= _store,					\
- }
+ #include <asm/uaccess.h>
  
--static struct class_device_attribute lcd_class_device_attributes[] = {
-+static const struct class_device_attribute lcd_class_device_attributes[] = {
- 	DECLARE_ATTR(power, 0644, lcd_show_power, lcd_store_power),
- 	DECLARE_ATTR(contrast, 0644, lcd_show_contrast, lcd_store_contrast),
- 	DECLARE_ATTR(max_contrast, 0444, lcd_show_max_contrast, NULL),
-diff -puN drivers/video/cfbimgblt.c~various-fbdev-files-mark-structs drivers/video/cfbimgblt.c
---- a/drivers/video/cfbimgblt.c~various-fbdev-files-mark-structs
-+++ a/drivers/video/cfbimgblt.c
-@@ -42,7 +42,7 @@
- #define DPRINTK(fmt, args...)
- #endif
- 
--static u32 cfb_tab8[] = {
-+static const u32 cfb_tab8[] = {
- #if defined(__BIG_ENDIAN)
-     0x00000000,0x000000ff,0x0000ff00,0x0000ffff,
-     0x00ff0000,0x00ff00ff,0x00ffff00,0x00ffffff,
-@@ -58,7 +58,7 @@ static u32 cfb_tab8[] = {
- #endif
+-static u16 red2[] = {
++static u16 red2[] __read_mostly = {
+     0x0000, 0xaaaa
+ };
+-static u16 green2[] = {
++static u16 green2[] __read_mostly = {
+     0x0000, 0xaaaa
+ };
+-static u16 blue2[] = {
++static u16 blue2[] __read_mostly = {
+     0x0000, 0xaaaa
  };
  
--static u32 cfb_tab16[] = {
-+static const u32 cfb_tab16[] = {
- #if defined(__BIG_ENDIAN)
-     0x00000000, 0x0000ffff, 0xffff0000, 0xffffffff
- #elif defined(__LITTLE_ENDIAN)
-@@ -68,7 +68,7 @@ static u32 cfb_tab16[] = {
- #endif
+-static u16 red4[] = {
++static u16 red4[] __read_mostly = {
+     0x0000, 0xaaaa, 0x5555, 0xffff
+ };
+-static u16 green4[] = {
++static u16 green4[] __read_mostly = {
+     0x0000, 0xaaaa, 0x5555, 0xffff
+ };
+-static u16 blue4[] = {
++static u16 blue4[] __read_mostly = {
+     0x0000, 0xaaaa, 0x5555, 0xffff
  };
  
--static u32 cfb_tab32[] = {
-+static const u32 cfb_tab32[] = {
- 	0x00000000, 0xffffffff
+-static u16 red8[] = {
++static u16 red8[] __read_mostly = {
+     0x0000, 0x0000, 0x0000, 0x0000, 0xaaaa, 0xaaaa, 0xaaaa, 0xaaaa
+ };
+-static u16 green8[] = {
++static u16 green8[] __read_mostly = {
+     0x0000, 0x0000, 0xaaaa, 0xaaaa, 0x0000, 0x0000, 0x5555, 0xaaaa
+ };
+-static u16 blue8[] = {
++static u16 blue8[] __read_mostly = {
+     0x0000, 0xaaaa, 0x0000, 0xaaaa, 0x0000, 0xaaaa, 0x0000, 0xaaaa
  };
  
-@@ -218,7 +218,7 @@ static inline void fast_imageblit(const 
- 	u32 bit_mask, end_mask, eorx, shift;
- 	const char *s = image->data, *src;
- 	u32 __iomem *dst;
--	u32 *tab = NULL;
-+	const u32 *tab = NULL;
- 	int i, j, k;
- 		
- 	switch (bpp) {
-diff -puN drivers/video/console/sticon.c~various-fbdev-files-mark-structs drivers/video/console/sticon.c
---- a/drivers/video/console/sticon.c~various-fbdev-files-mark-structs
-+++ a/drivers/video/console/sticon.c
-@@ -345,7 +345,7 @@ static void sticon_save_screen(struct vc
+-static u16 red16[] = {
++static u16 red16[] __read_mostly = {
+     0x0000, 0x0000, 0x0000, 0x0000, 0xaaaa, 0xaaaa, 0xaaaa, 0xaaaa,
+     0x5555, 0x5555, 0x5555, 0x5555, 0xffff, 0xffff, 0xffff, 0xffff
+ };
+-static u16 green16[] = {
++static u16 green16[] __read_mostly = {
+     0x0000, 0x0000, 0xaaaa, 0xaaaa, 0x0000, 0x0000, 0x5555, 0xaaaa,
+     0x5555, 0x5555, 0xffff, 0xffff, 0x5555, 0x5555, 0xffff, 0xffff
+ };
+-static u16 blue16[] = {
++static u16 blue16[] __read_mostly = {
+     0x0000, 0xaaaa, 0x0000, 0xaaaa, 0x0000, 0xaaaa, 0x0000, 0xaaaa,
+     0x5555, 0xffff, 0x5555, 0xffff, 0x5555, 0xffff, 0x5555, 0xffff
+ };
+ 
+-static struct fb_cmap default_2_colors = {
+-    0, 2, red2, green2, blue2, NULL
++static const struct fb_cmap default_2_colors = {
++    .len=2, .red=red2, .green=green2, .blue=blue2
+ };
+-static struct fb_cmap default_8_colors = {
+-    0, 8, red8, green8, blue8, NULL
++static const struct fb_cmap default_8_colors = {
++    .len=8, .red=red8, .green=green8, .blue=blue8
+ };
+-static struct fb_cmap default_4_colors = {
+-    0, 4, red4, green4, blue4, NULL
++static const struct fb_cmap default_4_colors = {
++    .len=4, .red=red4, .green=green4, .blue=blue4
+ };
+-static struct fb_cmap default_16_colors = {
+-    0, 16, red16, green16, blue16, NULL
++static const struct fb_cmap default_16_colors = {
++    .len=16, .red=red16, .green=green16, .blue=blue16
+ };
+ 
+ 
++
+ /**
+  *	fb_alloc_cmap - allocate a colormap
+  *	@cmap: frame buffer colormap structure
+@@ -146,7 +147,7 @@ void fb_dealloc_cmap(struct fb_cmap *cma
+  *	Copy contents of colormap from @from to @to.
+  */
+ 
+-int fb_copy_cmap(struct fb_cmap *from, struct fb_cmap *to)
++int fb_copy_cmap(const struct fb_cmap *from, struct fb_cmap *to)
  {
+ 	int tooff = 0, fromoff = 0;
+ 	int size;
+@@ -170,7 +171,7 @@ int fb_copy_cmap(struct fb_cmap *from, s
+ 	return 0;
  }
  
--static struct consw sti_con = {
-+static const struct consw sti_con = {
- 	.owner			= THIS_MODULE,
- 	.con_startup		= sticon_startup,
- 	.con_init		= sticon_init,
-diff -puN drivers/video/fbcvt.c~various-fbdev-files-mark-structs drivers/video/fbcvt.c
---- a/drivers/video/fbcvt.c~various-fbdev-files-mark-structs
-+++ a/drivers/video/fbcvt.c
-@@ -57,7 +57,7 @@ struct fb_cvt_data {
- 	u32 status;
- };
+-int fb_cmap_to_user(struct fb_cmap *from, struct fb_cmap_user *to)
++int fb_cmap_to_user(const struct fb_cmap *from, struct fb_cmap_user *to)
+ {
+ 	int tooff = 0, fromoff = 0;
+ 	int size;
+@@ -282,7 +283,7 @@ int fb_set_user_cmap(struct fb_cmap_user
+  *
+  */
  
--static int fb_cvt_vbi_tab[] = {
-+static const unsigned char fb_cvt_vbi_tab[] = {
- 	4,        /* 4:3      */
- 	5,        /* 16:9     */
- 	6,        /* 16:10    */
-diff -puN drivers/video/fbmon.c~various-fbdev-files-mark-structs drivers/video/fbmon.c
---- a/drivers/video/fbmon.c~various-fbdev-files-mark-structs
-+++ a/drivers/video/fbmon.c
-@@ -58,7 +58,7 @@ struct broken_edid {
- 	u32 fix;
- };
+-struct fb_cmap *fb_default_cmap(int len)
++const struct fb_cmap *fb_default_cmap(int len)
+ {
+     if (len <= 2)
+ 	return &default_2_colors;
+@@ -305,22 +306,22 @@ void fb_invert_cmaps(void)
+ {
+     u_int i;
  
--static struct broken_edid brokendb[] = {
-+static const struct broken_edid brokendb[] = {
- 	/* DEC FR-PCXAV-YZ */
- 	{
- 		.manufacturer = "DEC",
+-    for (i = 0; i < 2; i++) {
++    for (i = 0; i < ARRAY_SIZE(red2); i++) {
+ 	red2[i] = ~red2[i];
+ 	green2[i] = ~green2[i];
+ 	blue2[i] = ~blue2[i];
+     }
+-    for (i = 0; i < 4; i++) {
++    for (i = 0; i < ARRAY_SIZE(red4); i++) {
+ 	red4[i] = ~red4[i];
+ 	green4[i] = ~green4[i];
+ 	blue4[i] = ~blue4[i];
+     }
+-    for (i = 0; i < 8; i++) {
++    for (i = 0; i < ARRAY_SIZE(red8); i++) {
+ 	red8[i] = ~red8[i];
+ 	green8[i] = ~green8[i];
+ 	blue8[i] = ~blue8[i];
+     }
+-    for (i = 0; i < 16; i++) {
++    for (i = 0; i < ARRAY_SIZE(red16); i++) {
+ 	red16[i] = ~red16[i];
+ 	green16[i] = ~green16[i];
+ 	blue16[i] = ~blue16[i];
+diff -puN include/linux/fb.h~fbcmapc-mark-structs-const-or include/linux/fb.h
+--- a/include/linux/fb.h~fbcmapc-mark-structs-const-or
++++ a/include/linux/fb.h
+@@ -970,11 +970,11 @@ extern struct fb_videomode *fb_find_best
+ /* drivers/video/fbcmap.c */
+ extern int fb_alloc_cmap(struct fb_cmap *cmap, int len, int transp);
+ extern void fb_dealloc_cmap(struct fb_cmap *cmap);
+-extern int fb_copy_cmap(struct fb_cmap *from, struct fb_cmap *to);
+-extern int fb_cmap_to_user(struct fb_cmap *from, struct fb_cmap_user *to);
++extern int fb_copy_cmap(const struct fb_cmap *from, struct fb_cmap *to);
++extern int fb_cmap_to_user(const struct fb_cmap *from, struct fb_cmap_user *to);
+ extern int fb_set_cmap(struct fb_cmap *cmap, struct fb_info *fb_info);
+ extern int fb_set_user_cmap(struct fb_cmap_user *cmap, struct fb_info *fb_info);
+-extern struct fb_cmap *fb_default_cmap(int len);
++extern const struct fb_cmap *fb_default_cmap(int len);
+ extern void fb_invert_cmaps(void);
+ 
+ struct fb_videomode {
 _
 
 Patches currently in -mm which might be from deller@gmx.de are
 
 origin.patch
+fbcmapc-mark-structs-const-or.patch
 various-fbdev-files-mark-structs.patch
 constify-and-annotate-__read_mostly.patch
 annotate-some-variables-in-vesafb.patch
