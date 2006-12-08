@@ -1,234 +1,152 @@
 From: akpm@osdl.org
-Subject: - add-pid_namespace-to-nsproxy.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:05:59 -0800
-Message-ID: <200612082005.kB8K5x0i002350@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-kill-unneeded-memsets.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:06:52 -0800
+Message-ID: <200612082006.kB8K6qoj002445@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57795 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57793 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946023AbWLHUG6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1426346AbWLHUG6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 8 Dec 2006 15:06:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     to nsproxy
+     Char: mxser_new, kill unneeded memsets
 has been removed from the -mm tree.  Its filename was
-     add-pid_namespace-to-nsproxy.patch
+     char-mxser_new-kill-unneeded-memsets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: to nsproxy
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: Char: mxser_new, kill unneeded memsets
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Add the pid namespace framework to the nsproxy object.  The copy of the pid
-namespace only increases the refcount on the global pid namespace,
-init_pid_ns, and unshare is not implemented.
+mxser_new, kill unneeded memsets
 
-There is no configuration option to activate or deactivate this feature
-because this not relevant for the moment.
+There is no need to re-zero static global variables' memory, hence memsets
+doing this are useless.  alloc_tty_struct also zeroes allocated memory:
+another candidate for removing.
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+This fixes also a bug -- global structures are cleaned up after
+initialization of some its parts.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/init_task.h     |    2 ++
- include/linux/nsproxy.h       |    2 ++
- include/linux/pid_namespace.h |   20 ++++++++++++++++++--
- kernel/nsproxy.c              |   26 +++++++++++++++++++-------
- kernel/pid.c                  |   23 +++++++++++++++++++++++
- 5 files changed, 64 insertions(+), 9 deletions(-)
+ drivers/char/mxser_new.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/linux/init_task.h~add-pid_namespace-to-nsproxy include/linux/init_task.h
---- a/include/linux/init_task.h~add-pid_namespace-to-nsproxy
-+++ a/include/linux/init_task.h
-@@ -7,6 +7,7 @@
- #include <linux/utsname.h>
- #include <linux/lockdep.h>
- #include <linux/ipc.h>
-+#include <linux/pid_namespace.h>
+diff -puN drivers/char/mxser_new.c~char-mxser_new-kill-unneeded-memsets drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-kill-unneeded-memsets
++++ a/drivers/char/mxser_new.c
+@@ -704,7 +704,6 @@ static int __init mxser_init(void)
+ 		MXSER_VERSION);
  
- #define INIT_FDTABLE \
- {							\
-@@ -73,6 +74,7 @@
+ 	/* Initialize the tty_driver structure */
+-	memset(mxvar_sdriver, 0, sizeof(struct tty_driver));
+ 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
+ 	mxvar_sdriver->name = "ttyM";
+ 	mxvar_sdriver->major = ttymajor;
+@@ -721,12 +720,6 @@ static int __init mxser_init(void)
+ 	mxvar_sdriver->termios_locked = mxvar_termios_locked;
  
- extern struct nsproxy init_nsproxy;
- #define INIT_NSPROXY(nsproxy) {						\
-+	.pid_ns		= &init_pid_ns,					\
- 	.count		= ATOMIC_INIT(1),				\
- 	.nslock		= __SPIN_LOCK_UNLOCKED(nsproxy.nslock),		\
- 	.id		= 0,						\
-diff -puN include/linux/nsproxy.h~add-pid_namespace-to-nsproxy include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~add-pid_namespace-to-nsproxy
-+++ a/include/linux/nsproxy.h
-@@ -7,6 +7,7 @@
- struct mnt_namespace;
- struct uts_namespace;
- struct ipc_namespace;
-+struct pid_namespace;
+ 	mxvar_diagflag = 0;
+-	memset(mxser_boards, 0, sizeof(mxser_boards));
+-	memset(&mxvar_log, 0, sizeof(struct mxser_log));
+-
+-	memset(&mxser_msr, 0, sizeof(unsigned char) * (MXSER_PORTS + 1));
+-	memset(&mon_data_ext, 0, sizeof(struct mxser_mon_ext));
+-	memset(&mxser_set_baud_method, 0, sizeof(int) * (MXSER_PORTS + 1));
  
- /*
-  * A structure to contain pointers to all per-process
-@@ -27,6 +28,7 @@ struct nsproxy {
- 	struct uts_namespace *uts_ns;
- 	struct ipc_namespace *ipc_ns;
- 	struct mnt_namespace *mnt_ns;
-+	struct pid_namespace *pid_ns;
- };
- extern struct nsproxy init_nsproxy;
- 
-diff -puN include/linux/pid_namespace.h~add-pid_namespace-to-nsproxy include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~add-pid_namespace-to-nsproxy
-+++ a/include/linux/pid_namespace.h
-@@ -5,6 +5,8 @@
- #include <linux/mm.h>
- #include <linux/threads.h>
- #include <linux/pid.h>
-+#include <linux/nsproxy.h>
-+#include <linux/kref.h>
- 
- struct pidmap {
-        atomic_t nr_free;
-@@ -14,10 +16,24 @@ struct pidmap {
- #define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
- 
- struct pid_namespace {
--       struct pidmap pidmap[PIDMAP_ENTRIES];
--       int last_pid;
-+	struct kref kref;
-+	struct pidmap pidmap[PIDMAP_ENTRIES];
-+	int last_pid;
- };
- 
- extern struct pid_namespace init_pid_ns;
- 
-+static inline void get_pid_ns(struct pid_namespace *ns)
-+{
-+	kref_get(&ns->kref);
-+}
-+
-+extern int copy_pid_ns(int flags, struct task_struct *tsk);
-+extern void free_pid_ns(struct kref *kref);
-+
-+static inline void put_pid_ns(struct pid_namespace *ns)
-+{
-+	kref_put(&ns->kref, free_pid_ns);
-+}
-+
- #endif /* _LINUX_PID_NS_H */
-diff -puN kernel/nsproxy.c~add-pid_namespace-to-nsproxy kernel/nsproxy.c
---- a/kernel/nsproxy.c~add-pid_namespace-to-nsproxy
-+++ a/kernel/nsproxy.c
-@@ -19,6 +19,7 @@
- #include <linux/init_task.h>
- #include <linux/mnt_namespace.h>
- #include <linux/utsname.h>
-+#include <linux/pid_namespace.h>
- 
- struct nsproxy init_nsproxy = INIT_NSPROXY(init_nsproxy);
- 
-@@ -68,6 +69,8 @@ struct nsproxy *dup_namespaces(struct ns
- 			get_uts_ns(ns->uts_ns);
- 		if (ns->ipc_ns)
- 			get_ipc_ns(ns->ipc_ns);
-+		if (ns->pid_ns)
-+			get_pid_ns(ns->pid_ns);
- 	}
- 
- 	return ns;
-@@ -111,10 +114,17 @@ int copy_namespaces(int flags, struct ta
- 	if (err)
- 		goto out_ipc;
- 
-+	err = copy_pid_ns(flags, tsk);
-+	if (err)
-+		goto out_pid;
-+
- out:
- 	put_nsproxy(old_ns);
- 	return err;
- 
-+out_pid:
-+	if (new_ns->ipc_ns)
-+		put_ipc_ns(new_ns->ipc_ns);
- out_ipc:
- 	if (new_ns->uts_ns)
- 		put_uts_ns(new_ns->uts_ns);
-@@ -129,11 +139,13 @@ out_ns:
- 
- void free_nsproxy(struct nsproxy *ns)
- {
--		if (ns->mnt_ns)
--			put_mnt_ns(ns->mnt_ns);
--		if (ns->uts_ns)
--			put_uts_ns(ns->uts_ns);
--		if (ns->ipc_ns)
--			put_ipc_ns(ns->ipc_ns);
--		kfree(ns);
-+	if (ns->mnt_ns)
-+		put_mnt_ns(ns->mnt_ns);
-+	if (ns->uts_ns)
-+		put_uts_ns(ns->uts_ns);
-+	if (ns->ipc_ns)
-+		put_ipc_ns(ns->ipc_ns);
-+	if (ns->pid_ns)
-+		put_pid_ns(ns->pid_ns);
-+	kfree(ns);
- }
-diff -puN kernel/pid.c~add-pid_namespace-to-nsproxy kernel/pid.c
---- a/kernel/pid.c~add-pid_namespace-to-nsproxy
-+++ a/kernel/pid.c
-@@ -59,6 +59,9 @@ static inline int mk_pid(struct pid_name
-  * the scheme scales to up to 4 million PIDs, runtime.
-  */
- struct pid_namespace init_pid_ns = {
-+	.kref = {
-+		.refcount       = ATOMIC_INIT(2),
-+	},
- 	.pidmap = {
- 		[ 0 ... PIDMAP_ENTRIES-1] = { ATOMIC_INIT(BITS_PER_PAGE), NULL }
- 	},
-@@ -356,6 +359,26 @@ struct pid *find_ge_pid(int nr)
- }
- EXPORT_SYMBOL_GPL(find_get_pid);
- 
-+int copy_pid_ns(int flags, struct task_struct *tsk)
-+{
-+	struct pid_namespace *old_ns = tsk->nsproxy->pid_ns;
-+	int err = 0;
-+
-+	if (!old_ns)
-+		return 0;
-+
-+	get_pid_ns(old_ns);
-+	return err;
-+}
-+
-+void free_pid_ns(struct kref *kref)
-+{
-+	struct pid_namespace *ns;
-+
-+	ns = container_of(kref, struct pid_namespace, kref);
-+	kfree(ns);
-+}
-+
- /*
-  * The pid hash table is scaled according to the amount of memory in the
-  * machine.  From a minimum of 16 slots up to 4096 slots at one gigabyte or
+ 	m = 0;
+ 	/* Start finding ISA boards here */
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-add-pid_namespace-to-nsproxy.patch
-use-current-nsproxy-pid_ns.patch
-add-child-reaper-to-pid_namespace.patch
-mm-fix-pagecache-write-deadlocks-xip.patch
-statistics-replace-inode-ugeneric_ip-with-i_private.patch
+char-mxser_new-kill-unneeded-memsets.patch
+char-mxser_new-revert-spin_lock-changes.patch
+char-mxser_new-remove-request-for-testers-line.patch
+char-mxser_new-debug-printk-dependent-on-debug.patch
+char-mxser_new-alter-license-terms.patch
+char-mxser_new-code-upside-down.patch
+char-mxser_new-cmspar-is-defined.patch
+char-remove-unneded-termbits-redefinitions-mxser_new.patch
+char-mxser_new-eliminate-tty-ldisc-deref.patch
+char-mxser_new-testbit-for-bit-testing.patch
+char-mxser_new-correct-fail-paths.patch
+char-mxser_new-dont-check-tty_unregister-retval.patch
+char-mxser_new-compress-isa-finding.patch
+char-mxser_new-register-tty-devices-on-the-fly.patch
+char-mxser_new-compact-structures-round2.patch
+char-mxser_new-reverse-if-else-paths-patch.patch
+char-mxser_new-comments-cleanup.patch
+char-mxser_new-correct-intr-handler-proto.patch
+char-mxser_new-delete-ttys-and-termios.patch
+char-mxser_new-pci-probing.patch
+char-mxser_new-clean-macros.patch
+maintainers-add-me-to-isicom-mxser.patch
+mxser_new-correct-tty-driver-name.patch
+mxser-workqueue-fixes.patch
+char-stallion-use-pr_debug-macro.patch
+char-stallion-remove-unneeded-casts.patch
+char-stallion-kill-typedefs.patch
+char-stallion-move-init-deinit.patch
+char-stallion-uninline-functions.patch
+char-stallion-mark-functions-as-init.patch
+char-stallion-remove-many-prototypes.patch
+char-isicom-expand-function.patch
+char-isicom-rename-init-function.patch
+char-isicom-remove-isa-code.patch
+char-isicom-remove-unneeded-memset.patch
+char-isicom-move-to-tty_register_device.patch
+char-isicom-use-pci_request_region.patch
+char-isicom-check-kmalloc-retval.patch
+char-isicom-use-completion.patch
+char-isicom-simplify-timer.patch
+char-isicom-remove-cvs-stuff.patch
+char-isicom-fix-tty-index-check.patch
+char-sx-convert-to-pci-probing.patch
+char-sx-use-kcalloc.patch
+char-sx-mark-functions-as-devinit.patch
+char-sx-use-eisa-probing.patch
+char-sx-ifdef-isa-code.patch
+char-sx-lock-boards-struct.patch
+char-sx-remove-duplicite-code.patch
+char-sx-whitespace-cleanup.patch
+char-sx-simplify-timer-logic.patch
+char-sx-fix-return-in-module-init.patch
+char-sx-use-pci_iomap.patch
+char-sx-request-regions.patch
+char-stallion-convert-to-pci-probing.patch
+char-stallion-prints-cleanup.patch
+char-stallion-implement-fail-paths.patch
+char-stallion-correct-__init-macros.patch
+char-stallion-functions-cleanup.patch
+char-stallion-fix-fail-paths.patch
+char-stallion-brd-struct-locking.patch
+char-stallion-remove-syntactic-sugar.patch
+char-stallion-variables-cleanup.patch
+char-stallion-use-dynamic-dev.patch
+char-istallion-convert-to-pci-probing.patch
+char-istallion-remove-the-mess.patch
+char-istallion-eliminate-typedefs.patch
+char-istallion-variables-cleanup.patch
+char-istallion-ifdef-eisa-code.patch
+char-istallion-brdnr-locking.patch
+char-istallion-free-only-isa.patch
+char-istallion-correct-fail-paths.patch
+char-istallion-fix-enabling.patch
+char-istallion-move-init-and-exit-code.patch
+char-istallion-change-init-sequence.patch
+char-istallion-dynamic-tty-device.patch
+char-istallion-use-mod_timer.patch
+char-cyclades-save-indent-levels.patch
+char-cyclades-lindent-the-code.patch
+char-cyclades-cleanup.patch
+char-cyclades-fix-warnings.patch
 
