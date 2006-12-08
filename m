@@ -1,68 +1,102 @@
 From: akpm@osdl.org
-Subject: + use-activate_mm-in-fs-aiocuse_mm.patch added to -mm tree
-Date: Fri, 08 Dec 2006 15:47:55 -0800
-Message-ID: <200612082347.kB8NltJk009481@shell0.pdx.osdl.net>
+Subject: + read_zero_pagealigned-locking-fix.patch added to -mm tree
+Date: Fri, 08 Dec 2006 15:52:06 -0800
+Message-ID: <200612082352.kB8Nq67D009609@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53113 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53795 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947475AbWLHXr7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 18:47:59 -0500
+	id S1947511AbWLHXwZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 18:52:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org
+Cc: hugh@veritas.com, Ramiro.Voicu@cern.ch
 
 
 The patch titled
-     Use activate_mm() in fs/aio.c:use_mm()
+     read_zero_pagealigned() locking fix
 has been added to the -mm tree.  Its filename is
-     use-activate_mm-in-fs-aiocuse_mm.patch
+     read_zero_pagealigned-locking-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use activate_mm() in fs/aio.c:use_mm()
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: read_zero_pagealigned() locking fix
+From: Hugh Dickins <hugh@veritas.com>
 
-activate_mm() is not the right thing to be using in use_mm().  It should be
-switch_mm().
+It looks like reading /dev/zero has been using zeromap_page_range unsafely
+for years.
 
-On normal x86, they're synonymous, but for the Xen patches I'm adding a
-hook which assumes that activate_mm is only used the first time a new mm
-is used after creation (I have another hook for dealing with dup_mm).  I
-think this use of activate_mm() is the only place where it could be used
-a second time on an mm.
+First it zaps existing ptes, then it inserts the zero page ptes - but only
+while holding mmap_sem for read: could be racing against another thread
+doing the same, or against ordinary faulting.  Now, it may well be that the
+program is buggy to be racing against itself in this way (which would fit
+with why this hasn't been observed before - buggy programs are exceedingly
+rare, aren't they ;-?) but of course it shouldn't trigger a kernel BUG (or
+leak, which preceded the BUG).
 
-From a quick look at the other architectures I think this is OK (most
-simply implement one in terms of the other), but some are doing some
-subtly different stuff between the two.
+Will hopefully fix http://bugzilla.kernel.org/show_bug.cgi?id=7645, but Ramiro
+hasn't got back to us yet.
 
+Cc: Ramiro Voicu: <Ramiro.Voicu@cern.ch>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mem.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/aio.c~use-activate_mm-in-fs-aiocuse_mm fs/aio.c
---- a/fs/aio.c~use-activate_mm-in-fs-aiocuse_mm
-+++ a/fs/aio.c
-@@ -586,7 +586,7 @@ static void use_mm(struct mm_struct *mm)
- 	 * Note that on UML this *requires* PF_BORROWED_MM to be set, otherwise
- 	 * it won't work. Update it accordingly if you change it here
- 	 */
--	activate_mm(active_mm, mm);
-+	switch_mm(active_mm, mm, tsk);
- 	task_unlock(tsk);
+diff -puN drivers/char/mem.c~read_zero_pagealigned-locking-fix drivers/char/mem.c
+--- a/drivers/char/mem.c~read_zero_pagealigned-locking-fix
++++ a/drivers/char/mem.c
+@@ -631,7 +631,7 @@ static inline size_t read_zero_pagealign
  
- 	mmdrop(active_mm);
+ 	mm = current->mm;
+ 	/* Oops, this was forgotten before. -ben */
+-	down_read(&mm->mmap_sem);
++	down_write(&mm->mmap_sem);
+ 
+ 	/* For private mappings, just map in zero pages. */
+ 	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next) {
+@@ -646,7 +646,7 @@ static inline size_t read_zero_pagealign
+ 			count = size;
+ 
+ 		zap_page_range(vma, addr, count, NULL);
+-        	zeromap_page_range(vma, addr, count, PAGE_COPY);
++		zeromap_page_range(vma, addr, count, PAGE_COPY);
+ 
+ 		size -= count;
+ 		buf += count;
+@@ -655,7 +655,7 @@ static inline size_t read_zero_pagealign
+ 			goto out_up;
+ 	}
+ 
+-	up_read(&mm->mmap_sem);
++	up_write(&mm->mmap_sem);
+ 	
+ 	/* The shared case is hard. Let's do the conventional zeroing. */ 
+ 	do {
+@@ -669,7 +669,7 @@ static inline size_t read_zero_pagealign
+ 
+ 	return size;
+ out_up:
+-	up_read(&mm->mmap_sem);
++	up_write(&mm->mmap_sem);
+ 	return size;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-convert-i386-pda-code-to-use-%fs.patch
-use-activate_mm-in-fs-aiocuse_mm.patch
-time-uninline-jiffiesh-fix.patch
+read_zero_pagealigned-locking-fix.patch
+ext2-reservations.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
 
