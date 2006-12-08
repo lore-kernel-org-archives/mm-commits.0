@@ -1,182 +1,82 @@
 From: akpm@osdl.org
-Subject: - char-sx-lock-boards-struct.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:09:14 -0800
-Message-ID: <200612082009.kB8K9EDq002679@shell0.pdx.osdl.net>
+Subject: - char-isicom-remove-cvs-stuff.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:08:54 -0800
+Message-ID: <200612082008.kB8K8sUp002646@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58519 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58339 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946223AbWLHUJT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:09:19 -0500
+	id S1946372AbWLHUJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: sx, lock boards struct
+     Char: isicom, remove cvs stuff
 has been removed from the -mm tree.  Its filename was
-     char-sx-lock-boards-struct.patch
+     char-isicom-remove-cvs-stuff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: sx, lock boards struct
+Subject: Char: isicom, remove cvs stuff
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Fix race condition which may occurs when multiple cards are probed at the same
-time.  Add mutex to critical sections to avoid this situation.
+We don't need RCS_ID & co. Extract them from the code and define only one
+macro -- SX_VERSION.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/sx.c |   37 +++++++++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ drivers/char/sx.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/sx.c~char-sx-lock-boards-struct drivers/char/sx.c
---- a/drivers/char/sx.c~char-sx-lock-boards-struct
+diff -puN drivers/char/sx.c~char-isicom-remove-cvs-stuff drivers/char/sx.c
+--- a/drivers/char/sx.c~char-isicom-remove-cvs-stuff
 +++ a/drivers/char/sx.c
-@@ -298,6 +298,7 @@ static int sx_init_drivers(void);
+@@ -32,7 +32,6 @@
+  *      USA.
+  *
+  * Revision history:
+- * $Log: sx.c,v $
+  * Revision 1.33  2000/03/09 10:00:00  pvdl,wolff
+  * - Fixed module and port counting
+  * - Fixed signal handling
+@@ -199,9 +198,7 @@
+  *
+  * */
  
- static struct tty_driver *sx_driver;
+-
+-#define RCS_ID "$Id: sx.c,v 1.33 2000/03/08 10:01:02 wolff, pvdl Exp $"
+-#define RCS_REV "$Revision: 1.33 $"
++#define SX_VERSION	1.33
  
-+static DEFINE_MUTEX(sx_boards_lock);
- static struct sx_board boards[SX_NBOARDS];
- static struct sx_port *sx_ports;
- static int sx_initialized;
-@@ -1980,7 +1981,6 @@ static int sx_init_board (struct sx_boar
+ #include <linux/module.h>
+ #include <linux/kdev_t.h>
+@@ -2052,7 +2049,7 @@ static void printheader(void)
+ 	if (!header_printed) {
+ 		printk (KERN_INFO "Specialix SX driver "
+ 		        "(C) 1998/1999 R.E.Wolff@BitWizard.nl \n");
+-		printk (KERN_INFO "sx: version %s\n", RCS_ID);
++		printk (KERN_INFO "sx: version " __stringify(SX_VERSION) "\n");
+ 		header_printed = 1;
  	}
- 
- 	if (chans) {
--		/* board->flags |= SX_BOARD_PRESENT; */
- 		if(board->irq > 0) {
- 			/* fixed irq, probably PCI */
- 			if(sx_irqmask & (1 << board->irq)) { /* may we use this irq? */
-@@ -2115,8 +2115,6 @@ static int __devinit probe_sx (struct sx
- 		return 0;
- 	sx_dprintk (SX_DEBUG_INIT, "reset the board...\n");
- 
--	board->flags |= SX_BOARD_PRESENT;
--
- 	func_exit();
- 	return 1;
  }
-@@ -2211,8 +2209,6 @@ static int __devinit probe_si (struct sx
- 		return 0;
- 	sx_dprintk (SX_DEBUG_INIT, "reset the board...\n");
- 
--	board->flags |= SX_BOARD_PRESENT;
--
- 	func_exit();
- 	return 1;
- }
-@@ -2396,10 +2392,15 @@ static int __devinit sx_eisa_probe(struc
- 	unsigned int i;
- 	int retval = -EIO;
- 
-+	mutex_lock(&sx_boards_lock);
- 	i = sx_find_free_board();
--
--	if (i == SX_NBOARDS)
-+	if (i == SX_NBOARDS) {
-+		mutex_unlock(&sx_boards_lock);
- 		goto err;
-+	}
-+	board = &boards[i];
-+	board->flags |= SX_BOARD_PRESENT;
-+	mutex_unlock(&sx_boards_lock);
- 
- 	dev_info(dev, "XIO : Signature found in EISA slot %lu, "
- 			"Product %d Rev %d (REPORT THIS TO LKLM)\n",
-@@ -2407,7 +2408,6 @@ static int __devinit sx_eisa_probe(struc
- 			inb(eisa_slot + EISA_VENDOR_ID_OFFSET + 2),
- 			inb(eisa_slot + EISA_VENDOR_ID_OFFSET + 3));
- 
--	board = &boards[i];
- 	board->eisa_base = eisa_slot;
- 	board->flags &= ~SX_BOARD_TYPE;
- 	board->flags |= SI_EISA_BOARD;
-@@ -2430,6 +2430,7 @@ static int __devinit sx_eisa_probe(struc
- 	return 0;
- err_unmap:
- 	iounmap(board->base);
-+	board->flags &= ~SX_BOARD_PRESENT;
- err:
- 	return retval;
- }
-@@ -2498,16 +2499,19 @@ static int __devinit sx_pci_probe(struct
- 	unsigned int i;
- 	int retval = -EIO;
- 
-+	mutex_lock(&sx_boards_lock);
- 	i = sx_find_free_board();
--
--	if (i == SX_NBOARDS)
-+	if (i == SX_NBOARDS) {
-+		mutex_unlock(&sx_boards_lock);
- 		goto err;
-+	}
-+	board = &boards[i];
-+	board->flags |= SX_BOARD_PRESENT;
-+	mutex_unlock(&sx_boards_lock);
- 
- 	retval = pci_enable_device(pdev);
- 	if (retval)
--		goto err;
--
--	board = &boards[i];
-+		goto err_flag;
- 
- 	board->flags &= ~SX_BOARD_TYPE;
- 	board->flags |= (pdev->subsystem_vendor == 0x200) ? SX_PCI_BOARD :
-@@ -2522,7 +2526,7 @@ static int __devinit sx_pci_probe(struct
- 	board->base = ioremap(board->hw_base, WINDOW_LEN (board));
- 	if (!board->base) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
--		goto err;
-+		goto err_flag;
- 	}
- 
- 	/* Most of the stuff on the CF board is offset by 0x18000 ....  */
-@@ -2546,6 +2550,8 @@ static int __devinit sx_pci_probe(struct
- 	return 0;
- err_unmap:
- 	iounmap(board->base2);
-+err_flag:
-+	board->flags &= ~SX_BOARD_PRESENT;
- err:
- 	return retval;
- }
-@@ -2611,6 +2617,7 @@ static int __init sx_init(void) 
- 		board->irq = sx_irqmask?-1:0;
- 
- 		if (probe_sx (board)) {
-+			board->flags |= SX_BOARD_PRESENT;
- 			found++;
- 		} else {
- 			iounmap(board->base);
-@@ -2627,6 +2634,7 @@ static int __init sx_init(void) 
- 		board->irq = sx_irqmask ?-1:0;
- 
- 		if (probe_si (board)) {
-+			board->flags |= SX_BOARD_PRESENT;
- 			found++;
- 		} else {
- 			iounmap (board->base);
-@@ -2642,6 +2650,7 @@ static int __init sx_init(void) 
- 		board->irq = sx_irqmask ?-1:0;
- 
- 		if (probe_si (board)) {
-+			board->flags |= SX_BOARD_PRESENT;
- 			found++;
- 		} else {
- 			iounmap (board->base);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
+char-isicom-remove-cvs-stuff.patch
+char-isicom-fix-tty-index-check.patch
+char-sx-convert-to-pci-probing.patch
+char-sx-use-kcalloc.patch
+char-sx-mark-functions-as-devinit.patch
+char-sx-use-eisa-probing.patch
+char-sx-ifdef-isa-code.patch
 char-sx-lock-boards-struct.patch
 char-sx-remove-duplicite-code.patch
 char-sx-whitespace-cleanup.patch
