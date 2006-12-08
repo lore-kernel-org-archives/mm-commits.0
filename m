@@ -1,56 +1,58 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-block.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:43 -0800
-Message-ID: <200612082002.kB8K2h94001996@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-cosa.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:52 -0800
+Message-ID: <200612082002.kB8K2qfP002011@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57055 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57086 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426249AbWLHUCr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:47 -0500
+	id S1426253AbWLHUC4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert block
+     struct path: convert cosa
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-block.patch
+     struct-path-convert-cosa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert block
+Subject: struct path: convert cosa
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wan/cosa.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN block/ioctl.c~struct-path-convert-block block/ioctl.c
---- a/block/ioctl.c~struct-path-convert-block
-+++ a/block/ioctl.c
-@@ -290,7 +290,7 @@ int blkdev_ioctl(struct inode *inode, st
-    ENOIOCTLCMD for unknown ioctls. */
- long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
- {
--	struct block_device *bdev = file->f_dentry->d_inode->i_bdev;
-+	struct block_device *bdev = file->f_path.dentry->d_inode->i_bdev;
- 	struct gendisk *disk = bdev->bd_disk;
- 	int ret = -ENOIOCTLCMD;
- 	if (disk->fops->compat_ioctl) {
+diff -puN drivers/net/wan/cosa.c~struct-path-convert-cosa drivers/net/wan/cosa.c
+--- a/drivers/net/wan/cosa.c~struct-path-convert-cosa
++++ a/drivers/net/wan/cosa.c
+@@ -974,12 +974,12 @@ static int cosa_open(struct inode *inode
+ 	unsigned long flags;
+ 	int n;
+ 
+-	if ((n=iminor(file->f_dentry->d_inode)>>CARD_MINOR_BITS)
++	if ((n=iminor(file->f_path.dentry->d_inode)>>CARD_MINOR_BITS)
+ 		>= nr_cards)
+ 		return -ENODEV;
+ 	cosa = cosa_cards+n;
+ 
+-	if ((n=iminor(file->f_dentry->d_inode)
++	if ((n=iminor(file->f_path.dentry->d_inode)
+ 		& ((1<<CARD_MINOR_BITS)-1)) >= cosa->nchannels)
+ 		return -ENODEV;
+ 	chan = cosa->chan + n;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-block.patch
-struct-path-convert-block_drivers.patch
-struct-path-convert-char-drivers.patch
-struct-path-convert-coda.patch
 struct-path-convert-cosa.patch
 struct-path-convert-cramfs.patch
 struct-path-convert-cris.patch
