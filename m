@@ -1,129 +1,237 @@
 From: akpm@osdl.org
-Subject: - ia64-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:31:32 -0800
-Message-ID: <200612080831.kB88VW4T013485@shell0.pdx.osdl.net>
+Subject: - add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:31:38 -0800
+Message-ID: <200612080831.kB88VcEa013493@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35644 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35677 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425147AbWLHIbg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:31:36 -0500
+	id S1425177AbWLHIbk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:31:40 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB88VcID020712
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 00:31:38 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: burman.yan@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: replace kmalloc+memset with kzalloc
+     add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix
 has been removed from the -mm tree.  Its filename was
-     ia64-replace-kmallocmemset-with-kzalloc.patch
+     add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64: replace kmalloc+memset with kzalloc
-From: Yan Burman <burman.yan@gmail.com>
+Subject: add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix
+From: Andrew Morton <akpm@osdl.org>
 
-Replace kmalloc+memset with kzalloc
-
-Signed-off-by: Yan Burman <burman.yan@gmail.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/hp/common/sba_iommu.c |   10 +++-------
- arch/ia64/hp/sim/simserial.c    |    3 +--
- arch/ia64/kernel/perfmon.c      |    3 +--
- arch/ia64/pci/pci.c             |    3 +--
- 4 files changed, 6 insertions(+), 13 deletions(-)
+ drivers/input/touchscreen/ucb1400_ts.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/hp/common/sba_iommu.c~ia64-replace-kmallocmemset-with-kzalloc arch/ia64/hp/common/sba_iommu.c
---- a/arch/ia64/hp/common/sba_iommu.c~ia64-replace-kmallocmemset-with-kzalloc
-+++ a/arch/ia64/hp/common/sba_iommu.c
-@@ -1672,15 +1672,13 @@ ioc_sac_init(struct ioc *ioc)
- 	 * SAC (single address cycle) addressable, so allocate a
- 	 * pseudo-device to enforce that.
- 	 */
--	sac = kmalloc(sizeof(*sac), GFP_KERNEL);
-+	sac = kzalloc(sizeof(*sac), GFP_KERNEL);
- 	if (!sac)
- 		panic(PFX "Couldn't allocate struct pci_dev");
--	memset(sac, 0, sizeof(*sac));
+diff -puN drivers/input/touchscreen/ucb1400_ts.c~add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix drivers/input/touchscreen/ucb1400_ts.c
+--- a/drivers/input/touchscreen/ucb1400_ts.c~add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix
++++ a/drivers/input/touchscreen/ucb1400_ts.c
+@@ -26,6 +26,7 @@
+ #include <linux/suspend.h>
+ #include <linux/slab.h>
+ #include <linux/kthread.h>
++#include <linux/freezer.h>
  
--	controller = kmalloc(sizeof(*controller), GFP_KERNEL);
-+	controller = kzalloc(sizeof(*controller), GFP_KERNEL);
- 	if (!controller)
- 		panic(PFX "Couldn't allocate struct pci_controller");
--	memset(controller, 0, sizeof(*controller));
- 
- 	controller->iommu = ioc;
- 	sac->sysdata = controller;
-@@ -1737,12 +1735,10 @@ ioc_init(u64 hpa, void *handle)
- 	struct ioc *ioc;
- 	struct ioc_iommu *info;
- 
--	ioc = kmalloc(sizeof(*ioc), GFP_KERNEL);
-+	ioc = kzalloc(sizeof(*ioc), GFP_KERNEL);
- 	if (!ioc)
- 		return NULL;
- 
--	memset(ioc, 0, sizeof(*ioc));
--
- 	ioc->next = ioc_list;
- 	ioc_list = ioc;
- 
-diff -puN arch/ia64/hp/sim/simserial.c~ia64-replace-kmallocmemset-with-kzalloc arch/ia64/hp/sim/simserial.c
---- a/arch/ia64/hp/sim/simserial.c~ia64-replace-kmallocmemset-with-kzalloc
-+++ a/arch/ia64/hp/sim/simserial.c
-@@ -684,12 +684,11 @@ static int get_async_struct(int line, st
- 		*ret_info = sstate->info;
- 		return 0;
- 	}
--	info = kmalloc(sizeof(struct async_struct), GFP_KERNEL);
-+	info = kzalloc(sizeof(struct async_struct), GFP_KERNEL);
- 	if (!info) {
- 		sstate->count--;
- 		return -ENOMEM;
- 	}
--	memset(info, 0, sizeof(struct async_struct));
- 	init_waitqueue_head(&info->open_wait);
- 	init_waitqueue_head(&info->close_wait);
- 	init_waitqueue_head(&info->delta_msr_wait);
-diff -puN arch/ia64/kernel/perfmon.c~ia64-replace-kmallocmemset-with-kzalloc arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~ia64-replace-kmallocmemset-with-kzalloc
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -853,9 +853,8 @@ pfm_context_alloc(void)
- 	 * allocate context descriptor 
- 	 * must be able to free with interrupts disabled
- 	 */
--	ctx = kmalloc(sizeof(pfm_context_t), GFP_KERNEL);
-+	ctx = kzalloc(sizeof(pfm_context_t), GFP_KERNEL);
- 	if (ctx) {
--		memset(ctx, 0, sizeof(pfm_context_t));
- 		DPRINT(("alloc ctx @%p\n", ctx));
- 	}
- 	return ctx;
-diff -puN arch/ia64/pci/pci.c~ia64-replace-kmallocmemset-with-kzalloc arch/ia64/pci/pci.c
---- a/arch/ia64/pci/pci.c~ia64-replace-kmallocmemset-with-kzalloc
-+++ a/arch/ia64/pci/pci.c
-@@ -125,11 +125,10 @@ alloc_pci_controller (int seg)
- {
- 	struct pci_controller *controller;
- 
--	controller = kmalloc(sizeof(*controller), GFP_KERNEL);
-+	controller = kzalloc(sizeof(*controller), GFP_KERNEL);
- 	if (!controller)
- 		return NULL;
- 
--	memset(controller, 0, sizeof(*controller));
- 	controller->segment = seg;
- 	controller->node = -1;
- 	return controller;
+ #include <sound/driver.h>
+ #include <sound/core.h>
 _
 
-Patches currently in -mm which might be from burman.yan@gmail.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-jffs2-replace-kmallocmemset-with-kzalloc.patch
-nfsd-replace-kmallocmemset-with-kcalloc.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+acpi-asus-s3-resume-fix.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+implement-flush_work.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+bridge-avoid-using-noautorel-workqueues.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+bug-test-1.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
