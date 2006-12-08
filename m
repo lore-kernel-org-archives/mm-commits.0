@@ -1,126 +1,67 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-correct-fail-paths.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:07:22 -0800
-Message-ID: <200612082007.kB8K7Mts002508@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-dont-check-tty_unregister-retval.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:07:25 -0800
+Message-ID: <200612082007.kB8K7PTP002511@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57898 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57921 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426358AbWLHUH1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:07:27 -0500
+	id S1946025AbWLHUH3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, correct fail paths
+     Char: mxser_new, don't check tty_unregister retval
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-correct-fail-paths.patch
+     char-mxser_new-dont-check-tty_unregister-retval.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, correct fail paths
+Subject: Char: mxser_new, don't check tty_unregister retval
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Resources were not released in some fail paths.  Correct this behaviour by
-implementing function and calling it when something fails.
+Like other drivers silently unregister_tty_driver and put_tty_driver.  It
+shouldn't be busy when module release function is called, since we are not
+bsd, no refs shouldn't be held.
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |   49 ++++++++++++++++++-------------------
- 1 file changed, 24 insertions(+), 25 deletions(-)
+ drivers/char/mxser_new.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-correct-fail-paths drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-correct-fail-paths
+diff -puN drivers/char/mxser_new.c~char-mxser_new-dont-check-tty_unregister-retval drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-dont-check-tty_unregister-retval
 +++ a/drivers/char/mxser_new.c
-@@ -2563,6 +2563,22 @@ static const struct tty_operations mxser
-  * The MOXA Smartio/Industio serial driver boot-time initialization code!
-  */
+@@ -2994,15 +2994,12 @@ static int __init mxser_module_init(void
  
-+static void mxser_release_res(struct mxser_board *brd, unsigned int irq)
-+{
-+	struct pci_dev *pdev = brd->pdev;
-+
-+	if (irq)
-+		free_irq(brd->irq, brd);
-+	if (pdev != NULL) {	/* PCI */
-+		pci_release_region(pdev, 2);
-+		pci_release_region(pdev, 3);
-+		pci_dev_put(pdev);
-+	} else {
-+		release_region(brd->ports[0].ioaddr, 8 * brd->nports);
-+		release_region(brd->vector, 1);
-+	}
-+}
-+
- static int __devinit mxser_initbrd(struct mxser_board *brd)
+ static void __exit mxser_module_exit(void)
  {
- 	struct mxser_port *info;
-@@ -2613,6 +2629,8 @@ static int __devinit mxser_initbrd(struc
- 		printk(KERN_ERR "Board %s: Request irq failed, IRQ (%d) may "
- 			"conflict with another device.\n",
- 			mxser_brdname[brd->board_type - 1], brd->irq);
-+		/* We hold resources, we need to release them. */
-+		mxser_release_res(brd, 0);
- 		return retval;
- 	}
- 	return 0;
-@@ -2963,14 +2981,9 @@ static int __init mxser_module_init(void
- 				" driver !\n");
- 		put_tty_driver(mxvar_sdriver);
+-	int i, err;
++	unsigned int i;
  
--		for (i = 0; i < MXSER_BOARDS; i++) {
--			if (mxser_boards[i].board_type == -1)
--				continue;
--			else {
--				free_irq(mxser_boards[i].irq, &mxser_boards[i]);
--				/* todo: release io, vector */
--			}
--		}
-+		for (i = 0; i < MXSER_BOARDS; i++)
-+			if (mxser_boards[i].board_type != -1)
-+				mxser_release_res(&mxser_boards[i], 1);
- 		return retval;
- 	}
+ 	pr_debug("Unloading module mxser ...\n");
  
-@@ -2991,24 +3004,10 @@ static void __exit mxser_module_exit(voi
- 	else
- 		printk(KERN_ERR "Couldn't unregister MOXA Smartio/Industio family serial driver\n");
+-	err = tty_unregister_driver(mxvar_sdriver);
+-	if (!err)
+-		put_tty_driver(mxvar_sdriver);
+-	else
+-		printk(KERN_ERR "Couldn't unregister MOXA Smartio/Industio family serial driver\n");
++	tty_unregister_driver(mxvar_sdriver);
++	put_tty_driver(mxvar_sdriver);
  
--	for (i = 0; i < MXSER_BOARDS; i++) {
--		struct pci_dev *pdev;
-+	for (i = 0; i < MXSER_BOARDS; i++)
-+		if (mxser_boards[i].board_type != -1)
-+			mxser_release_res(&mxser_boards[i], 1);
- 
--		if (mxser_boards[i].board_type == -1)
--			continue;
--		else {
--			pdev = mxser_boards[i].pdev;
--			free_irq(mxser_boards[i].irq, &mxser_boards[i]);
--			if (pdev != NULL) {	/* PCI */
--				pci_release_region(pdev, 2);
--				pci_release_region(pdev, 3);
--				pci_dev_put(pdev);
--			} else {
--				release_region(mxser_boards[i].ports[0].ioaddr, 8 * mxser_boards[i].nports);
--				release_region(mxser_boards[i].vector, 1);
--			}
--		}
--	}
- 	pr_debug("Done.\n");
- }
- 
+ 	for (i = 0; i < MXSER_BOARDS; i++)
+ 		if (mxser_boards[i].board_type != -1)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-correct-fail-paths.patch
 char-mxser_new-dont-check-tty_unregister-retval.patch
 char-mxser_new-compress-isa-finding.patch
 char-mxser_new-register-tty-devices-on-the-fly.patch
