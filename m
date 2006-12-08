@@ -1,69 +1,57 @@
 From: akpm@osdl.org
-Subject: - generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:46:00 -0800
-Message-ID: <200612080846.kB88k0HX013808@shell0.pdx.osdl.net>
+Subject: - fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:47:41 -0800
+Message-ID: <200612080847.kB88lfWJ013854@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36982 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37167 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425196AbWLHItT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:49:19 -0500
+	id S1032532AbWLHIu6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:50:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, jeremy@goop.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/bug.h must always #include <linux/module.h>
+     fs/stack.c should #include <linux/fs_stack.h>
 has been removed from the -mm tree.  Its filename was
-     generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch
+     fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh.patch
 
-This patch was dropped because it was folded into generic-bug-implementation.patch
+This patch was dropped because it was folded into fsstack-introduce-fsstack_copy_attrinode_.patch
 
 ------------------------------------------------------
-Subject: include/linux/bug.h must always #include <linux/module.h>
+Subject: fs/stack.c should #include <linux/fs_stack.h>
 From: Adrian Bunk <bunk@stusta.de>
 
-In file included from
-/home/bunk/linux/kernel-2.6/linux-2.6.19-rc6-mm1/arch/i386/kernel/traps.c:32:
-/home/bunk/linux/kernel-2.6/linux-2.6.19-rc6-mm1/include/linux/bug.h:38: warning: type defaults to 'int' in declaration of 'Elf_Ehdr'
-/home/bunk/linux/kernel-2.6/linux-2.6.19-rc6-mm1/include/linux/bug.h:38: error: expected ';', ',' or ')' before '*' token
-...
+Every file should #include the headers containing the prototypes for
+its global functions.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Acked-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/bug.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/stack.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/linux/bug.h~generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh include/linux/bug.h
---- a/include/linux/bug.h~generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh
-+++ a/include/linux/bug.h
-@@ -1,6 +1,7 @@
- #ifndef _LINUX_BUG_H
- #define _LINUX_BUG_H
+diff -puN fs/stack.c~fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh fs/stack.c
+--- a/fs/stack.c~fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh
++++ a/fs/stack.c
+@@ -1,5 +1,6 @@
+ #include <linux/module.h>
+ #include <linux/fs.h>
++#include <linux/fs_stack.h>
  
-+#include <linux/module.h>
- #include <asm/bug.h>
- 
- enum bug_trap_type {
-@@ -10,7 +11,6 @@ enum bug_trap_type {
- };
- 
- #ifdef CONFIG_GENERIC_BUG
--#include <linux/module.h>
- #include <asm-generic/bug.h>
- 
- static inline int is_warning_bug(const struct bug_entry *bug)
+ /* does _NOT_ require i_mutex to be held.
+  *
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 generic-bug-implementation.patch
-generic-bug-implementation-include-linux-bugh-must-always-include-linux-moduleh.patch
+fsstack-introduce-fsstack_copy_attrinode_.patch
 fsstack-introduce-fsstack_copy_attrinode_-fs-stackc-should-include-linux-fs_stackh.patch
 i4l-remove-the-broken-hisax_amd7930-option.patch
 make-drivers-md-dm-snapcksnapd-static.patch
