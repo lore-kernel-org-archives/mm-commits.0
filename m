@@ -1,252 +1,214 @@
 From: akpm@osdl.org
-Subject: - simplify-some-aspects-of-bd_mutex-nesting.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:00:32 -0800
-Message-ID: <200612082000.kB8K0WDr001757@shell0.pdx.osdl.net>
+Subject: - m32r-make-userspace-headers-platform-independent.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 11:59:19 -0800
+Message-ID: <200612081959.kB8JxJSV001612@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56641 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56601 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426214AbWLHUAt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:00:49 -0500
+	id S1426195AbWLHUAg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:00:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: takata@linux-m32r.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: simplify some aspects of bd_mutex nesting
+     m32r: make userspace headers platform-independent
 has been removed from the -mm tree.  Its filename was
-     simplify-some-aspects-of-bd_mutex-nesting.patch
+     m32r-make-userspace-headers-platform-independent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: simplify some aspects of bd_mutex nesting
-From: NeilBrown <neilb@suse.de>
+Subject: m32r: make userspace headers platform-independent
+From: Hirokazu Takata <takata@linux-m32r.org>
 
-When we open (actually blkdev_get) a partition we need to also open (get) the
-whole device that holds the partition.  The involves some limited recursion. 
-This patch tries to simplify some aspects of this.
+The m32r kernel 2.6.18-rc1 or after cause build errors of "unknown isa
+configuration" for userspace application programs, such as glibc, gdb, etc.
 
-As well as opening the whole device, we need to increment ->bd_part_count when
-a partition is opened (this is used by rescan_partitions to avoid a rescan if
-any partition is active, as that would be confusing).
+This is because the recent kernel do not include linux/config.h not to expose
+kernel headers for userspace.
 
-The main change this patch makes is to move the inc/dec of bd_part_count into
-blkdev_{get,put} for the whole rather than doing it in blkdev_{get,put} for
-the partition.
+To fix the above compile errors, this patch fixes two headers ptrace.h and
+sigcontext.h for m32r and makes them platform-independent.
 
-More specifically, we introduce __blkdev_get and __blkdev_put which do exactly
-what blkdev_{get,put} did, only with an extra "for_part" argument
-(blkget_{get,put} then call the __ version with a '0' for the extra argument).
-
-If for_part is 1, then the blkdev is being get(put) because a partition is
-being opened(closed) for the first(last) time, and so bd_part_count should be
-updated (on success).  The particular advantage of pushing this function down
-is that the bd_mutex lock (which is needed to update bd_part_count) is already
-held at the lower level.
-
-Note that this slightly changes the semantics of bd_part_count.  Instead of
-updating it whenever a partition is opened or released, it is now only updated
-on the first open or last release.  This is an adequate semantic as it is only
-ever tested for "== 0".
-
-Having introduced these functions we remove the current bd_part_count updates
-from do_open (which is really the body of blkdev_get) and call
-__blkdev_get(...  1).  Similarly in blkget_put we remove the old bd_part_count
-updates and call __blkget_put(..., 1).  This call is moved to the end of
-__blkdev_put to avoid nested locks of bd_mutex.
-
-Finally the mutex_lock on whole->bd_mutex in do_open can be removed.  It was
-only really needed to protect bd_part_count, and that is now managed (and
-protected) within the recursive call.
-
-The observation that bd_part_count is central to the locking issues, and the
-modifications to create __blkdev_put are from Peter Zijlstra.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c |   51 ++++++++++++++++++++++++++---------------------
- 1 file changed, 29 insertions(+), 22 deletions(-)
+ arch/m32r/kernel/entry.S      |   65 ++++++++++++++------------------
+ include/asm-m32r/ptrace.h     |   28 +------------
+ include/asm-m32r/sigcontext.h |   13 ------
+ 3 files changed, 35 insertions(+), 71 deletions(-)
 
-diff -puN fs/block_dev.c~simplify-some-aspects-of-bd_mutex-nesting fs/block_dev.c
---- a/fs/block_dev.c~simplify-some-aspects-of-bd_mutex-nesting
-+++ a/fs/block_dev.c
-@@ -900,7 +900,10 @@ void bd_set_size(struct block_device *bd
- }
- EXPORT_SYMBOL(bd_set_size);
+diff -puN arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent arch/m32r/kernel/entry.S
+--- a/arch/m32r/kernel/entry.S~m32r-make-userspace-headers-platform-independent
++++ a/arch/m32r/kernel/entry.S
+@@ -23,35 +23,35 @@
+  *	updated in fork.c:copy_thread, signal.c:do_signal,
+  *	ptrace.c and ptrace.h
+  *
+- * M32Rx/M32R2				M32R
+- *       @(sp)      - r4		ditto
+- *       @(0x04,sp) - r5		ditto
+- *       @(0x08,sp) - r6		ditto
+- *       @(0x0c,sp) - *pt_regs		ditto
+- *       @(0x10,sp) - r0		ditto
+- *       @(0x14,sp) - r1		ditto
+- *       @(0x18,sp) - r2		ditto
+- *       @(0x1c,sp) - r3		ditto
+- *       @(0x20,sp) - r7		ditto
+- *       @(0x24,sp) - r8		ditto
+- *       @(0x28,sp) - r9		ditto
+- *       @(0x2c,sp) - r10		ditto
+- *       @(0x30,sp) - r11		ditto
+- *       @(0x34,sp) - r12		ditto
+- *       @(0x38,sp) - syscall_nr	ditto
+- *       @(0x3c,sp) - acc0h		@(0x3c,sp) - acch
+- *       @(0x40,sp) - acc0l		@(0x40,sp) - accl
+- *       @(0x44,sp) - acc1h		@(0x44,sp) - dummy_acc1h
+- *       @(0x48,sp) - acc1l		@(0x48,sp) - dummy_acc1l
+- *       @(0x4c,sp) - psw		ditto
+- *       @(0x50,sp) - bpc		ditto
+- *       @(0x54,sp) - bbpsw		ditto
+- *       @(0x58,sp) - bbpc		ditto
+- *       @(0x5c,sp) - spu (cr3)		ditto
+- *       @(0x60,sp) - fp (r13)		ditto
+- *       @(0x64,sp) - lr (r14)		ditto
+- *       @(0x68,sp) - spi (cr2)		ditto
+- *       @(0x6c,sp) - orig_r0		ditto
++ * M32R/M32Rx/M32R2
++ *       @(sp)      - r4
++ *       @(0x04,sp) - r5
++ *       @(0x08,sp) - r6
++ *       @(0x0c,sp) - *pt_regs
++ *       @(0x10,sp) - r0
++ *       @(0x14,sp) - r1
++ *       @(0x18,sp) - r2
++ *       @(0x1c,sp) - r3
++ *       @(0x20,sp) - r7
++ *       @(0x24,sp) - r8
++ *       @(0x28,sp) - r9
++ *       @(0x2c,sp) - r10
++ *       @(0x30,sp) - r11
++ *       @(0x34,sp) - r12
++ *       @(0x38,sp) - syscall_nr
++ *       @(0x3c,sp) - acc0h
++ *       @(0x40,sp) - acc0l
++ *       @(0x44,sp) - acc1h		; ISA_DSP_LEVEL2 only
++ *       @(0x48,sp) - acc1l		; ISA_DSP_LEVEL2 only
++ *       @(0x4c,sp) - psw
++ *       @(0x50,sp) - bpc
++ *       @(0x54,sp) - bbpsw
++ *       @(0x58,sp) - bbpc
++ *       @(0x5c,sp) - spu (cr3)
++ *       @(0x60,sp) - fp (r13)
++ *       @(0x64,sp) - lr (r14)
++ *       @(0x68,sp) - spi (cr2)
++ *       @(0x6c,sp) - orig_r0
+  */
  
--static int do_open(struct block_device *bdev, struct file *file)
-+static int __blkdev_get(struct block_device *bdev, mode_t mode, unsigned flags,
-+			int for_part);
-+
-+static int do_open(struct block_device *bdev, struct file *file, int for_part)
- {
- 	struct module *owner = NULL;
- 	struct gendisk *disk;
-@@ -944,25 +947,21 @@ static int do_open(struct block_device *
- 			ret = -ENOMEM;
- 			if (!whole)
- 				goto out_first;
--			ret = blkdev_get(whole, file->f_mode, file->f_flags);
-+			BUG_ON(for_part);
-+			ret = __blkdev_get(whole, file->f_mode, file->f_flags, 1);
- 			if (ret)
- 				goto out_first;
- 			bdev->bd_contains = whole;
--			mutex_lock(&whole->bd_mutex);
--			whole->bd_part_count++;
- 			p = disk->part[part - 1];
- 			bdev->bd_inode->i_data.backing_dev_info =
- 			   whole->bd_inode->i_data.backing_dev_info;
- 			if (!(disk->flags & GENHD_FL_UP) || !p || !p->nr_sects) {
--				whole->bd_part_count--;
--				mutex_unlock(&whole->bd_mutex);
- 				ret = -ENXIO;
- 				goto out_first;
- 			}
- 			kobject_get(&p->kobj);
- 			bdev->bd_part = p;
- 			bd_set_size(bdev, (loff_t) p->nr_sects << 9);
--			mutex_unlock(&whole->bd_mutex);
- 		}
- 	} else {
- 		put_disk(disk);
-@@ -975,13 +974,11 @@ static int do_open(struct block_device *
- 			}
- 			if (bdev->bd_invalidated)
- 				rescan_partitions(bdev->bd_disk, bdev);
--		} else {
--			mutex_lock(&bdev->bd_contains->bd_mutex);
--			bdev->bd_contains->bd_part_count++;
--			mutex_unlock(&bdev->bd_contains->bd_mutex);
- 		}
- 	}
- 	bdev->bd_openers++;
-+	if (for_part)
-+		bdev->bd_part_count++;
- 	mutex_unlock(&bdev->bd_mutex);
- 	unlock_kernel();
- 	return 0;
-@@ -1002,7 +999,8 @@ out:
- 	return ret;
- }
+ #include <linux/linkage.h>
+@@ -95,17 +95,10 @@
+ #define R11(reg)		@(0x30,reg)
+ #define R12(reg)		@(0x34,reg)
+ #define SYSCALL_NR(reg)		@(0x38,reg)
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ #define ACC0H(reg)		@(0x3C,reg)
+ #define ACC0L(reg)		@(0x40,reg)
+ #define ACC1H(reg)		@(0x44,reg)
+ #define ACC1L(reg)		@(0x48,reg)
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-#define ACCH(reg)		@(0x3C,reg)
+-#define ACCL(reg)		@(0x40,reg)
+-#else
+-#error unknown isa configuration
+-#endif
+ #define PSW(reg)		@(0x4C,reg)
+ #define BPC(reg)		@(0x50,reg)
+ #define BBPSW(reg)		@(0x54,reg)
+diff -puN include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/ptrace.h
+--- a/include/asm-m32r/ptrace.h~m32r-make-userspace-headers-platform-independent
++++ a/include/asm-m32r/ptrace.h
+@@ -33,21 +33,10 @@
+ #define PT_R15		PT_SP
  
--int blkdev_get(struct block_device *bdev, mode_t mode, unsigned flags)
-+static int __blkdev_get(struct block_device *bdev, mode_t mode, unsigned flags,
-+			int for_part)
- {
- 	/*
- 	 * This crockload is due to bad choice of ->open() type.
-@@ -1017,9 +1015,13 @@ int blkdev_get(struct block_device *bdev
- 	fake_file.f_dentry = &fake_dentry;
- 	fake_dentry.d_inode = bdev->bd_inode;
+ /* processor status and miscellaneous context registers.  */
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ #define PT_ACC0H	15
+ #define PT_ACC0L	16
+-#define PT_ACC1H	17
+-#define PT_ACC1L	18
+-#define PT_ACCH		PT_ACC0H
+-#define PT_ACCL		PT_ACC0L
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-#define PT_ACCH		15
+-#define PT_ACCL		16
+-#define PT_DUMMY_ACC1H	17
+-#define PT_DUMMY_ACC1L	18
+-#else
+-#error unknown isa conifiguration
+-#endif
++#define PT_ACC1H	17	/* ISA_DSP_LEVEL2 only */
++#define PT_ACC1L	18	/* ISA_DSP_LEVEL2 only */
+ #define PT_PSW		19
+ #define PT_BPC		20
+ #define PT_BBPSW	21
+@@ -103,19 +92,10 @@ struct pt_regs {
+ 	long syscall_nr;
  
--	return do_open(bdev, &fake_file);
-+	return do_open(bdev, &fake_file, for_part);
- }
+ 	/* Saved main processor status and miscellaneous context registers. */
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ 	unsigned long acc0h;
+ 	unsigned long acc0l;
+-	unsigned long acc1h;
+-	unsigned long acc1l;
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-	unsigned long acch;
+-	unsigned long accl;
+-	unsigned long dummy_acc1h;
+-	unsigned long dummy_acc1l;
+-#else
+-#error unknown isa configuration
+-#endif
++	unsigned long acc1h;	/* ISA_DSP_LEVEL2 only */
++	unsigned long acc1l;	/* ISA_DSP_LEVEL2 only */
+ 	unsigned long psw;
+ 	unsigned long bpc;		/* saved PC for TRAP syscalls */
+ 	unsigned long bbpsw;
+diff -puN include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent include/asm-m32r/sigcontext.h
+--- a/include/asm-m32r/sigcontext.h~m32r-make-userspace-headers-platform-independent
++++ a/include/asm-m32r/sigcontext.h
+@@ -23,19 +23,10 @@ struct sigcontext {
+ 	unsigned long sc_r12;
  
-+int blkdev_get(struct block_device *bdev, mode_t mode, unsigned flags)
-+{
-+	return __blkdev_get(bdev, mode, flags, 0);
-+}
- EXPORT_SYMBOL(blkdev_get);
- 
- static int blkdev_open(struct inode * inode, struct file * filp)
-@@ -1039,7 +1041,7 @@ static int blkdev_open(struct inode * in
- 	if (bdev == NULL)
- 		return -ENOMEM;
- 
--	res = do_open(bdev, filp);
-+	res = do_open(bdev, filp, 0);
- 	if (res)
- 		return res;
- 
-@@ -1053,14 +1055,18 @@ static int blkdev_open(struct inode * in
- 	return res;
- }
- 
--int blkdev_put(struct block_device *bdev)
-+static int __blkdev_put(struct block_device *bdev, int for_part)
- {
- 	int ret = 0;
- 	struct inode *bd_inode = bdev->bd_inode;
- 	struct gendisk *disk = bdev->bd_disk;
-+	struct block_device *victim = NULL;
- 
- 	mutex_lock(&bdev->bd_mutex);
- 	lock_kernel();
-+	if (for_part)
-+		bdev->bd_part_count--;
-+
- 	if (!--bdev->bd_openers) {
- 		sync_blockdev(bdev);
- 		kill_bdev(bdev);
-@@ -1068,10 +1074,6 @@ int blkdev_put(struct block_device *bdev
- 	if (bdev->bd_contains == bdev) {
- 		if (disk->fops->release)
- 			ret = disk->fops->release(bd_inode, NULL);
--	} else {
--		mutex_lock(&bdev->bd_contains->bd_mutex);
--		bdev->bd_contains->bd_part_count--;
--		mutex_unlock(&bdev->bd_contains->bd_mutex);
- 	}
- 	if (!bdev->bd_openers) {
- 		struct module *owner = disk->fops->owner;
-@@ -1085,17 +1087,22 @@ int blkdev_put(struct block_device *bdev
- 		}
- 		bdev->bd_disk = NULL;
- 		bdev->bd_inode->i_data.backing_dev_info = &default_backing_dev_info;
--		if (bdev != bdev->bd_contains) {
--			blkdev_put(bdev->bd_contains);
--		}
-+		if (bdev != bdev->bd_contains)
-+			victim = bdev->bd_contains;
- 		bdev->bd_contains = NULL;
- 	}
- 	unlock_kernel();
- 	mutex_unlock(&bdev->bd_mutex);
- 	bdput(bdev);
-+	if (victim)
-+		__blkdev_put(victim, 1);
- 	return ret;
- }
- 
-+int blkdev_put(struct block_device *bdev)
-+{
-+	return __blkdev_put(bdev, 0);
-+}
- EXPORT_SYMBOL(blkdev_put);
- 
- static int blkdev_close(struct inode * inode, struct file * filp)
+ 	/* Saved main processor status and miscellaneous context registers. */
+-#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
+ 	unsigned long sc_acc0h;
+ 	unsigned long sc_acc0l;
+-	unsigned long sc_acc1h;
+-	unsigned long sc_acc1l;
+-#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
+-	unsigned long sc_acch;
+-	unsigned long sc_accl;
+-	unsigned long sc_dummy_acc1h;
+-	unsigned long sc_dummy_acc1l;
+-#else
+-#error unknown isa configuration
+-#endif
++	unsigned long sc_acc1h;	/* ISA_DSP_LEVEL2 only */
++	unsigned long sc_acc1l;	/* ISA_DSP_LEVEL2 only */
+ 	unsigned long sc_psw;
+ 	unsigned long sc_bpc;		/* saved PC for TRAP syscalls */
+ 	unsigned long sc_bbpsw;
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from takata@linux-m32r.org are
 
-origin.patch
-simplify-some-aspects-of-bd_mutex-nesting.patch
-use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
-avoid-lockdep-warning-in-md.patch
-bdev-fix-bd_part_count-leak.patch
-lockdep-annotate-nfsd4-recover-code.patch
-nfs2-calculate-w-a-bit-later-in-nfsaclsvc_encode_getaclres.patch
-nfs3-calculate-w-a-bit-later-in-nfs3svc_encode_getaclres.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch
-md-define-raid5_mergeable_bvec.patch
-md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-error-handling-of-aligned-reads.patch
-md-enable-bypassing-cache-for-reads.patch
-md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch
-md-conditionalize-some-code.patch
-md-change-lifetime-rules-for-md-devices.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+m32r-make-userspace-headers-platform-independent.patch
+m32r-support-a-synthesizable-m32700-core.patch
+m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
+m32r-bootloader-support-for-opsput-platform.patch
 
