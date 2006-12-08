@@ -1,65 +1,65 @@
 From: akpm@osdl.org
-Subject: - ioremap-balanced-with-iounmap-for-drivers-video-S3triofb.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:12:59 -0800
-Message-ID: <200612082012.kB8KCxUi003050@shell0.pdx.osdl.net>
+Subject: - video-sis-remove-unnecessary-variables-in-sis_ddc2delay.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:13:07 -0800
+Message-ID: <200612082013.kB8KD7Io003062@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59407 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59444 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946738AbWLHUND (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:13:03 -0500
+	id S1946727AbWLHUNQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:13:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amol@verismonetworks.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: rientjes@cs.washington.edu, adaplas@pol.net, jesper.juhl@gmail.com, thomas@winischhofer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ioremap balanced with iounmap for drivers/video/S3triofb
+     video SiS: remove unnecessary variables in SiS_DDC2Delay
 has been removed from the -mm tree.  Its filename was
-     ioremap-balanced-with-iounmap-for-drivers-video-S3triofb.patch
+     video-sis-remove-unnecessary-variables-in-sis_ddc2delay.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ioremap balanced with iounmap for drivers/video/S3triofb
-From: Amol Lad <amol@verismonetworks.com>
+Subject: video SiS: remove unnecessary variables in SiS_DDC2Delay
+From: David Rientjes <rientjes@cs.washington.edu>
 
-ioremap must be balanced by an iounmap and failing to do so can result in a
-memory leak.
+Remove unnecesary iteration and accumulator variables from SiS_DDC2Delay.
 
-Signed-off-by: Amol Lad <amol@verismonetworks.com>
+Originally spotted by Jesper Juhl <jesper.juhl@gmail.com>.
+
+Cc: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
+Signed-off-by: David Rientjes <rientjes@cs.washington.edu>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/S3triofb.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/video/sis/init301.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/S3triofb.c~ioremap-balanced-with-iounmap-for-drivers-video-S3triofb drivers/video/S3triofb.c
---- a/drivers/video/S3triofb.c~ioremap-balanced-with-iounmap-for-drivers-video-S3triofb
-+++ a/drivers/video/S3triofb.c
-@@ -535,8 +535,11 @@ static void __init s3triofb_of_init(stru
- #endif
+diff -puN drivers/video/sis/init301.c~video-sis-remove-unnecessary-variables-in-sis_ddc2delay drivers/video/sis/init301.c
+--- a/drivers/video/sis/init301.c~video-sis-remove-unnecessary-variables-in-sis_ddc2delay
++++ a/drivers/video/sis/init301.c
+@@ -445,11 +445,8 @@ SiS_CR36BIOSWord23d(struct SiS_Private *
+ void
+ SiS_DDC2Delay(struct SiS_Private *SiS_Pr, unsigned int delaytime)
+ {
+-   unsigned int i, j;
+-
+-   for(i = 0; i < delaytime; i++) {
+-      j += SiS_GetReg(SiS_Pr->SiS_P3c4,0x05);
+-   }
++   while (delaytime-- > 0)
++      SiS_GetReg(SiS_Pr->SiS_P3c4, 0x05);
+ }
  
-     fb_info.flags = FBINFO_FLAG_DEFAULT;
--    if (register_framebuffer(&fb_info) < 0)
--	return;
-+    if (register_framebuffer(&fb_info) < 0) {
-+		iounmap(fb_info.screen_base);
-+		fb_info.screen_base = NULL;
-+		return;
-+    }
- 
-     printk("fb%d: S3 Trio frame buffer device on %s\n",
- 	   fb_info.node, dp->full_name);
+ #if defined(SIS300) || defined(SIS315H)
 _
 
-Patches currently in -mm which might be from amol@verismonetworks.com are
+Patches currently in -mm which might be from rientjes@cs.washington.edu are
 
 origin.patch
-ioremap-balanced-with-iounmap-for-drivers-video-S3triofb.patch
-git-cpufreq.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-megaraidc-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+video-sis-remove-unnecessary-variables-in-sis_ddc2delay.patch
+hrtimers-clean-up-locking-fix.patch
 
