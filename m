@@ -1,237 +1,98 @@
 From: akpm@osdl.org
-Subject: - add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:31:38 -0800
-Message-ID: <200612080831.kB88VcEa013493@shell0.pdx.osdl.net>
+Subject: - netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:31:35 -0800
+Message-ID: <200612080831.kB88VZf1013488@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35677 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35736 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425177AbWLHIbk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:31:40 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB88VcID020712
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 00:31:38 -0800
+	id S1425178AbWLHIcA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:32:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mm-commits@vger.kernel.org
+To: nhorman@tuxdriver.com, clalance@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix
+     netpoll: make arp replies through netpoll use mac address of sender
 has been removed from the -mm tree.  Its filename was
-     add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
+     netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: netpoll: make arp replies through netpoll use mac address of sender
+From: Neil Horman <nhorman@tuxdriver.com>
 
+Back in 2.4 arp requests that were recevied by netpoll were processed in
+netconsole_receive_skb, where they were responded to using the src mac of
+the request sender.  In the 2.6 kernel arp_reply is responsible for this
+function, but instead of using the src mac address of the incomming
+request, the stored mac address that was registered for the netconsole
+application is used.  While this is usually ok, it can lead to failures in
+netpoll in some situations (specifically situations where a network may
+have two gateways, as arp requests from one may be responded to using the
+mac address of the other).  This patch reverts the behavior to what we had
+in 2.4, in which all arp requests are sent back using the src address of
+the request sender.
+
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/input/touchscreen/ucb1400_ts.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/core/netpoll.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/input/touchscreen/ucb1400_ts.c~add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix drivers/input/touchscreen/ucb1400_ts.c
---- a/drivers/input/touchscreen/ucb1400_ts.c~add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix
-+++ a/drivers/input/touchscreen/ucb1400_ts.c
-@@ -26,6 +26,7 @@
- #include <linux/suspend.h>
- #include <linux/slab.h>
- #include <linux/kthread.h>
-+#include <linux/freezer.h>
+diff -puN net/core/netpoll.c~netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender net/core/netpoll.c
+--- a/net/core/netpoll.c~netpoll-make-arp-replies-through-netpoll-use-mac-address-of-sender
++++ a/net/core/netpoll.c
+@@ -330,6 +330,7 @@ static void arp_reply(struct sk_buff *sk
+ 	unsigned char *arp_ptr;
+ 	int size, type = ARPOP_REPLY, ptype = ETH_P_ARP;
+ 	__be32 sip, tip;
++	unsigned char *sha;
+ 	struct sk_buff *send_skb;
+ 	struct netpoll *np = NULL;
  
- #include <sound/driver.h>
- #include <sound/core.h>
+@@ -356,9 +357,14 @@ static void arp_reply(struct sk_buff *sk
+ 	    arp->ar_op != htons(ARPOP_REQUEST))
+ 		return;
+ 
+-	arp_ptr = (unsigned char *)(arp+1) + skb->dev->addr_len;
++	arp_ptr = (unsigned char *)(arp+1);
++	/* save the location of the src hw addr */
++	sha = arp_ptr;
++	arp_ptr += skb->dev->addr_len;
+ 	memcpy(&sip, arp_ptr, 4);
+-	arp_ptr += 4 + skb->dev->addr_len;
++	arp_ptr += 4;
++	/* if we actually cared about dst hw addr, it would get copied here */
++	arp_ptr += skb->dev->addr_len;
+ 	memcpy(&tip, arp_ptr, 4);
+ 
+ 	/* Should we ignore arp? */
+@@ -381,7 +387,7 @@ static void arp_reply(struct sk_buff *sk
+ 
+ 	if (np->dev->hard_header &&
+ 	    np->dev->hard_header(send_skb, skb->dev, ptype,
+-				 np->remote_mac, np->local_mac,
++				 sha, np->local_mac,
+ 				 send_skb->len) < 0) {
+ 		kfree_skb(send_skb);
+ 		return;
+@@ -405,7 +411,7 @@ static void arp_reply(struct sk_buff *sk
+ 	arp_ptr += np->dev->addr_len;
+ 	memcpy(arp_ptr, &tip, 4);
+ 	arp_ptr += 4;
+-	memcpy(arp_ptr, np->remote_mac, np->dev->addr_len);
++	memcpy(arp_ptr, sha, np->dev->addr_len);
+ 	arp_ptr += np->dev->addr_len;
+ 	memcpy(arp_ptr, &sip, 4);
+ 
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
 origin.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-acpi-asus-s3-resume-fix.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-s390-workqueue-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-implement-flush_work.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-bridge-avoid-using-noautorel-workqueues.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-tty-signal-tty-locking-post-viro-trainwreck.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
-pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
-bug-test-1.patch
-net-use-bitrev8-tidy.patch
-fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
-ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
-add-process_session-helper-routine-deprecate-old-field-tidy.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
-add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
-mxser-session-warning-fix.patch
-mxser-workqueue-fixes.patch
-tty-switch-to-ktermios-and-new-framework-warning-fix.patch
-tty-switch-to-ktermios-and-new-framework-irda-fix.patch
-tty-switch-to-ktermios-bluetooth-fix.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
-drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
-fault-injection-capabilities-infrastructure-tidy.patch
-fault-injection-capabilities-infrastructure-tweaks.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs-fix.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
-gxfb-fixups-for-the-amd-geode-gx-tidy.patch
-gxfb-support-flat-panel-timings-tidy.patch
-gxfb-support-command-line-options-tidy.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+git-net.patch
 
