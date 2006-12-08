@@ -1,61 +1,63 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-freevxfs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:04 -0800
-Message-ID: <200612082003.kB8K34A4002037@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-hugetlbfs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:03:24 -0800
+Message-ID: <200612082003.kB8K3O9C002067@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57106 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57154 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426262AbWLHUDJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:09 -0500
+	id S1426278AbWLHUD2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:03:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert freevxfs
+     struct path: convert hugetlbfs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-freevxfs.patch
+     struct-path-convert-hugetlbfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert freevxfs
+Subject: struct path: convert hugetlbfs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/freevxfs/vxfs_lookup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/freevxfs/vxfs_lookup.c~struct-path-convert-freevxfs fs/freevxfs/vxfs_lookup.c
---- a/fs/freevxfs/vxfs_lookup.c~struct-path-convert-freevxfs
-+++ a/fs/freevxfs/vxfs_lookup.c
-@@ -240,7 +240,7 @@ vxfs_lookup(struct inode *dip, struct de
- static int
- vxfs_readdir(struct file *fp, void *retp, filldir_t filler)
+diff -puN fs/hugetlbfs/inode.c~struct-path-convert-hugetlbfs fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~struct-path-convert-hugetlbfs
++++ a/fs/hugetlbfs/inode.c
+@@ -58,7 +58,7 @@ static void huge_pagevec_release(struct 
+ 
+ static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
  {
--	struct inode		*ip = fp->f_dentry->d_inode;
-+	struct inode		*ip = fp->f_path.dentry->d_inode;
- 	struct super_block	*sbp = ip->i_sb;
- 	u_long			bsize = sbp->s_blocksize;
- 	u_long			page, npages, block, pblocks, nblocks, offset;
+-	struct inode *inode = file->f_dentry->d_inode;
++	struct inode *inode = file->f_path.dentry->d_inode;
+ 	loff_t len, vma_len;
+ 	int ret;
+ 
+@@ -774,8 +774,8 @@ struct file *hugetlb_zero_setup(size_t s
+ 	d_instantiate(dentry, inode);
+ 	inode->i_size = size;
+ 	inode->i_nlink = 0;
+-	file->f_vfsmnt = mntget(hugetlbfs_vfsmount);
+-	file->f_dentry = dentry;
++	file->f_path.mnt = mntget(hugetlbfs_vfsmount);
++	file->f_path.dentry = dentry;
+ 	file->f_mapping = inode->i_mapping;
+ 	file->f_op = &hugetlbfs_file_operations;
+ 	file->f_mode = FMODE_WRITE | FMODE_READ;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-freevxfs.patch
-struct-path-convert-frv.patch
-struct-path-convert-fuse.patch
-struct-path-convert-gfs2.patch
-struct-path-convert-hfs.patch
-struct-path-convert-hfsplus.patch
-struct-path-convert-hostfs.patch
-struct-path-convert-hpfs.patch
-struct-path-convert-hppfs.patch
 struct-path-convert-hugetlbfs.patch
 struct-path-convert-i2c-drivers.patch
 struct-path-convert-ia64.patch
