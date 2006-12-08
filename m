@@ -1,229 +1,280 @@
 From: akpm@osdl.org
-Subject: - git-scsi-misc-fixup.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:50 -0800
-Message-ID: <200612081104.kB8B4okN018592@shell0.pdx.osdl.net>
+Subject: - e1000-make-intel-e1000-driver-legacy-i-o-port-free.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:45 -0800
+Message-ID: <200612081104.kB8B4jSl018586@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48720 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48747 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425376AbWLHLFV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:05:21 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B4oID029551
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 03:04:56 -0800
+	id S1425367AbWLHLFc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:05:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mm-commits@vger.kernel.org
+To: seto.hidetoshi@jp.fujitsu.com, auke-jan.h.kok@intel.com, greg@kroah.com, jeff@garzik.org, kaneshige.kenji@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc-fixup
+     e1000: make Intel e1000 driver legacy I/O port free
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-fixup.patch
+     e1000-make-intel-e1000-driver-legacy-i-o-port-free.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
-From: Andrew Morton <akpm@osdl.org>
+Subject: e1000: make Intel e1000 driver legacy I/O port free
+From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
+Make Intel e1000 driver legacy I/O port free.
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/blkdev.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/e1000/e1000.h      |    6 -
+ drivers/net/e1000/e1000_main.c |  152 ++++++++++++++++---------------
+ 2 files changed, 86 insertions(+), 72 deletions(-)
 
-diff -puN include/linux/blkdev.h~git-scsi-misc-fixup include/linux/blkdev.h
---- a/include/linux/blkdev.h~git-scsi-misc-fixup
-+++ a/include/linux/blkdev.h
-@@ -768,6 +768,8 @@ extern long blk_congestion_wait(int rw, 
- extern struct blk_queue_tag *blk_init_tags(int);
- extern void blk_free_tags(struct blk_queue_tag *);
- extern void blk_congestion_end(int rw);
-+extern struct blk_queue_tag *blk_init_tags(int);
-+extern void blk_free_tags(struct blk_queue_tag *);
+diff -puN drivers/net/e1000/e1000.h~e1000-make-intel-e1000-driver-legacy-i-o-port-free drivers/net/e1000/e1000.h
+--- a/drivers/net/e1000/e1000.h~e1000-make-intel-e1000-driver-legacy-i-o-port-free
++++ a/drivers/net/e1000/e1000.h
+@@ -78,8 +78,9 @@
+ #define BAR_1		1
+ #define BAR_5		5
  
- extern void blk_rq_bio_prep(request_queue_t *, struct request *, struct bio *);
- extern int blkdev_issue_flush(struct block_device *, sector_t *);
+-#define INTEL_E1000_ETHERNET_DEVICE(device_id) {\
+-	PCI_DEVICE(PCI_VENDOR_ID_INTEL, device_id)}
++#define E1000_USE_IOPORT	(1 << 0)
++#define INTEL_E1000_ETHERNET_DEVICE(device_id, flags) {\
++	PCI_DEVICE(PCI_VENDOR_ID_INTEL, device_id), .driver_data = flags}
+ 
+ struct e1000_adapter;
+ 
+@@ -355,6 +356,7 @@ struct e1000_adapter {
+ 	boolean_t quad_port_a;
+ 	unsigned long flags;
+ 	uint32_t eeprom_wol;
++	int bars;		/* BARs to be enabled */
+ };
+ 
+ enum e1000_state_t {
+diff -puN drivers/net/e1000/e1000_main.c~e1000-make-intel-e1000-driver-legacy-i-o-port-free drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~e1000-make-intel-e1000-driver-legacy-i-o-port-free
++++ a/drivers/net/e1000/e1000_main.c
+@@ -48,65 +48,65 @@ static char e1000_copyright[] = "Copyrig
+  *   {PCI_DEVICE(PCI_VENDOR_ID_INTEL, device_id)}
+  */
+ static struct pci_device_id e1000_pci_tbl[] = {
+-	INTEL_E1000_ETHERNET_DEVICE(0x1000),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1001),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1004),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1008),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1009),
+-	INTEL_E1000_ETHERNET_DEVICE(0x100C),
+-	INTEL_E1000_ETHERNET_DEVICE(0x100D),
+-	INTEL_E1000_ETHERNET_DEVICE(0x100E),
+-	INTEL_E1000_ETHERNET_DEVICE(0x100F),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1010),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1011),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1012),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1013),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1014),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1015),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1016),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1017),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1018),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1019),
+-	INTEL_E1000_ETHERNET_DEVICE(0x101A),
+-	INTEL_E1000_ETHERNET_DEVICE(0x101D),
+-	INTEL_E1000_ETHERNET_DEVICE(0x101E),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1026),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1027),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1028),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1049),
+-	INTEL_E1000_ETHERNET_DEVICE(0x104A),
+-	INTEL_E1000_ETHERNET_DEVICE(0x104B),
+-	INTEL_E1000_ETHERNET_DEVICE(0x104C),
+-	INTEL_E1000_ETHERNET_DEVICE(0x104D),
+-	INTEL_E1000_ETHERNET_DEVICE(0x105E),
+-	INTEL_E1000_ETHERNET_DEVICE(0x105F),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1060),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1075),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1076),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1077),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1078),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1079),
+-	INTEL_E1000_ETHERNET_DEVICE(0x107A),
+-	INTEL_E1000_ETHERNET_DEVICE(0x107B),
+-	INTEL_E1000_ETHERNET_DEVICE(0x107C),
+-	INTEL_E1000_ETHERNET_DEVICE(0x107D),
+-	INTEL_E1000_ETHERNET_DEVICE(0x107E),
+-	INTEL_E1000_ETHERNET_DEVICE(0x107F),
+-	INTEL_E1000_ETHERNET_DEVICE(0x108A),
+-	INTEL_E1000_ETHERNET_DEVICE(0x108B),
+-	INTEL_E1000_ETHERNET_DEVICE(0x108C),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1096),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1098),
+-	INTEL_E1000_ETHERNET_DEVICE(0x1099),
+-	INTEL_E1000_ETHERNET_DEVICE(0x109A),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10A4),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10B5),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10B9),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10BA),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10BB),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10BC),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10C4),
+-	INTEL_E1000_ETHERNET_DEVICE(0x10C5),
++	INTEL_E1000_ETHERNET_DEVICE(0x1000, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1001, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1004, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1008, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1009, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x100C, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x100D, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x100E, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x100F, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1010, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1011, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1012, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1013, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1014, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1015, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1016, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1017, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1018, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1019, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x101A, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x101D, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x101E, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1026, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1027, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1028, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1049, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x104A, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x104B, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x104C, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x104D, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x105E, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x105F, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1060, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1075, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1076, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1077, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1078, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x1079, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x107A, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x107B, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x107C, E1000_USE_IOPORT),
++	INTEL_E1000_ETHERNET_DEVICE(0x107D, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x107E, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x107F, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x108A, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x108B, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x108C, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1096, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1098, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x1099, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x109A, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10A4, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10B5, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10B9, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10BA, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10BB, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10BC, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10C4, 0),
++	INTEL_E1000_ETHERNET_DEVICE(0x10C5, 0),
+ 	/* required last entry */
+ 	{0,}
+ };
+@@ -741,7 +741,14 @@ e1000_probe(struct pci_dev *pdev,
+ 	int i, err, pci_using_dac;
+ 	uint16_t eeprom_data = 0;
+ 	uint16_t eeprom_apme_mask = E1000_EEPROM_APME;
+-	if ((err = pci_enable_device(pdev)))
++	int bars;
++
++	if (ent->driver_data & E1000_USE_IOPORT)
++		bars = pci_select_bars(pdev, IORESOURCE_MEM | IORESOURCE_IO);
++	else
++		bars = pci_select_bars(pdev, IORESOURCE_MEM);
++
++	if ((err = pci_enable_device_bars(pdev, bars)))
+ 		return err;
+ 
+ 	if (!(err = pci_set_dma_mask(pdev, DMA_64BIT_MASK)) &&
+@@ -756,7 +763,8 @@ e1000_probe(struct pci_dev *pdev,
+ 		pci_using_dac = 0;
+ 	}
+ 
+-	if ((err = pci_request_regions(pdev, e1000_driver_name)))
++	err = pci_request_selected_regions(pdev, bars, e1000_driver_name);
++	if (err)
+ 		goto err_pci_reg;
+ 
+ 	pci_set_master(pdev);
+@@ -775,6 +783,7 @@ e1000_probe(struct pci_dev *pdev,
+ 	adapter->pdev = pdev;
+ 	adapter->hw.back = adapter;
+ 	adapter->msg_enable = (1 << debug) - 1;
++	adapter->bars = bars;
+ 
+ 	mmio_start = pci_resource_start(pdev, BAR_0);
+ 	mmio_len = pci_resource_len(pdev, BAR_0);
+@@ -784,12 +793,15 @@ e1000_probe(struct pci_dev *pdev,
+ 	if (!adapter->hw.hw_addr)
+ 		goto err_ioremap;
+ 
+-	for (i = BAR_1; i <= BAR_5; i++) {
+-		if (pci_resource_len(pdev, i) == 0)
+-			continue;
+-		if (pci_resource_flags(pdev, i) & IORESOURCE_IO) {
+-			adapter->hw.io_base = pci_resource_start(pdev, i);
+-			break;
++	if (ent->driver_data & E1000_USE_IOPORT) {
++		for (i = BAR_1; i <= BAR_5; i++) {
++			if (pci_resource_len(pdev, i) == 0)
++				continue;
++			if (pci_resource_flags(pdev, i) & IORESOURCE_IO) {
++				adapter->hw.io_base =
++					pci_resource_start(pdev, i);
++				break;
++			}
+ 		}
+ 	}
+ 
+@@ -1057,7 +1069,7 @@ err_sw_init:
+ err_ioremap:
+ 	free_netdev(netdev);
+ err_alloc_etherdev:
+-	pci_release_regions(pdev);
++	pci_release_selected_regions(pdev, bars);
+ err_pci_reg:
+ err_dma:
+ 	pci_disable_device(pdev);
+@@ -1118,7 +1130,7 @@ e1000_remove(struct pci_dev *pdev)
+ 	iounmap(adapter->hw.hw_addr);
+ 	if (adapter->hw.flash_address)
+ 		iounmap(adapter->hw.flash_address);
+-	pci_release_regions(pdev);
++	pci_release_selected_regions(pdev, adapter->bars);
+ 
+ 	free_netdev(netdev);
+ 
+@@ -5106,7 +5118,7 @@ e1000_resume(struct pci_dev *pdev)
+ 
+ 	pci_set_power_state(pdev, PCI_D0);
+ 	e1000_pci_restore_state(adapter);
+-	if ((err = pci_enable_device(pdev))) {
++	if ((err = pci_enable_device_bars(pdev, adapter->bars))) {
+ 		printk(KERN_ERR "e1000: Cannot enable PCI device from suspend\n");
+ 		return err;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
 
-origin.patch
-tty-signal-tty-locking.patch
-pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
-fsstack-introduce-fsstack_copy_attrinode_.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
-add-process_session-helper-routine-deprecate-old-field.patch
-mxser-session-warning-fix.patch
-mxser-workqueue-fixes.patch
-tty-switch-to-ktermios-and-new-framework.patch
-tty-switch-to-ktermios.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
-drivers-isdn-handcrafted-min-max-macro-removal.patch
-fault-injection-capabilities-infrastructure.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
-video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
-gxfb-fixups-for-the-amd-geode-gx.patch
-gxfb-support-flat-panel-timings.patch
-gxfb-support-command-line-options.patch
-proc_misc-build-fix.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-s390-workqueue-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-implement-flush_work.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-bridge-avoid-using-noautorel-workqueues.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-bug-test-1.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
 
