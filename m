@@ -1,73 +1,84 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-delete-ttys-and-termios.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:07:43 -0800
-Message-ID: <200612082007.kB8K7hFv002532@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-clean-macros.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:07:49 -0800
+Message-ID: <200612082007.kB8K7nYc002538@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57978 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57994 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946149AbWLHUHr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:07:47 -0500
+	id S1946134AbWLHUHw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, delete ttys and termios
+     Char: mxser_new, clean macros
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-delete-ttys-and-termios.patch
+     char-mxser_new-clean-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, delete ttys and termios
+Subject: Char: mxser_new, clean macros
 From: Jiri Slaby <jirislaby@gmail.com>
 
-- Driver uses global tty_struct array, which tries to assign to the
-  tty_driver's ttys.
-- the very same thing for termios
-- the same for termios_locked
-
-Kill such constructions.
+Celan redundant macros.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/char/mxser_new.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-delete-ttys-and-termios drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-delete-ttys-and-termios
+diff -puN drivers/char/mxser_new.c~char-mxser_new-clean-macros drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-clean-macros
 +++ a/drivers/char/mxser_new.c
-@@ -313,9 +313,6 @@ static int mxserBoardCAP[MXSER_BOARDS] =
+@@ -54,11 +54,10 @@
+ #define	MXSERCUMAJOR	 175
  
- static struct mxser_board mxser_boards[MXSER_BOARDS];
- static struct tty_driver *mxvar_sdriver;
--static struct tty_struct *mxvar_tty[MXSER_PORTS + 1];
--static struct termios *mxvar_termios[MXSER_PORTS + 1];
--static struct termios *mxvar_termios_locked[MXSER_PORTS + 1];
- static struct mxser_log mxvar_log;
- static int mxvar_diagflag;
- static unsigned char mxser_msr[MXSER_PORTS + 1];
-@@ -2652,9 +2649,6 @@ static int __init mxser_module_init(void
- 	mxvar_sdriver->init_termios.c_cflag = B9600|CS8|CREAD|HUPCL|CLOCAL;
- 	mxvar_sdriver->flags = TTY_DRIVER_REAL_RAW|TTY_DRIVER_DYNAMIC_DEV;
- 	tty_set_operations(mxvar_sdriver, &mxser_ops);
--	mxvar_sdriver->ttys = mxvar_tty;
--	mxvar_sdriver->termios = mxvar_termios;
--	mxvar_sdriver->termios_locked = mxvar_termios_locked;
+ #define	MXSER_EVENT_TXLOW	1
+-#define	MXSER_EVENT_HANGUP	2
  
- 	retval = tty_register_driver(mxvar_sdriver);
- 	if (retval) {
+ #define MXSER_BOARDS		4	/* Max. boards */
+-#define MXSER_PORTS		32	/* Max. ports */
+ #define MXSER_PORTS_PER_BOARD	8	/* Max. ports per board */
++#define MXSER_PORTS		(MXSER_BOARDS * MXSER_PORTS_PER_BOARD)
+ #define MXSER_ISR_PASS_LIMIT	99999L
+ 
+ #define	MXSER_ERR_IOADDR	-1
+@@ -66,9 +65,6 @@
+ #define	MXSER_ERR_IRQ_CONFLIT	-3
+ #define	MXSER_ERR_VECTOR	-4
+ 
+-#define SERIAL_TYPE_NORMAL	1
+-#define SERIAL_TYPE_CALLOUT	2
+-
+ #define WAKEUP_CHARS		256
+ 
+ #define UART_MCR_AFE		0x20
+@@ -365,14 +361,10 @@ static void process_txrx_fifo(struct mxs
+ static void mxser_do_softint(void *private_)
+ {
+ 	struct mxser_port *info = private_;
+-	struct tty_struct *tty;
+-
+-	tty = info->tty;
++	struct tty_struct *tty = info->tty;
+ 
+ 	if (test_and_clear_bit(MXSER_EVENT_TXLOW, &info->event))
+ 		tty_wakeup(tty);
+-	if (test_and_clear_bit(MXSER_EVENT_HANGUP, &info->event))
+-		tty_hangup(tty);
+ }
+ 
+ static unsigned char mxser_get_msr(int baseaddr, int mode, int port)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-delete-ttys-and-termios.patch
-char-mxser_new-pci-probing.patch
 char-mxser_new-clean-macros.patch
 maintainers-add-me-to-isicom-mxser.patch
 mxser_new-correct-tty-driver-name.patch
