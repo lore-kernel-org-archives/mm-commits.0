@@ -1,195 +1,289 @@
 From: akpm@osdl.org
-Subject: - better-config_w1_slave_ds2433_crc-handling.patch removed from -mm tree
-Date: Thu, 07 Dec 2006 15:14:54 -0800
-Message-ID: <200612072314.kB7NEsJ7030664@shell0.pdx.osdl.net>
+Subject: + kblockd-use-flush_work.patch added to -mm tree
+Date: Thu, 07 Dec 2006 16:23:33 -0800
+Message-ID: <200612080023.kB80NX5e000949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59111 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59473 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1164204AbWLHATv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 19:19:51 -0500
+	id S1164201AbWLHAX7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 19:23:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnpol@2ka.mipt.ru, bunk@stusta.de, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, axboe@suse.de, dhowells@redhat.com, macro@linux-mips.org, nickpiggin@yahoo.com.au, torvalds@osdl.org
 
 
 The patch titled
-     better CONFIG_W1_SLAVE_DS2433_CRC handling
-has been removed from the -mm tree.  Its filename was
-     better-config_w1_slave_ds2433_crc-handling.patch
+     kblockd: use flush_work
+has been added to the -mm tree.  Its filename is
+     kblockd-use-flush_work.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: better CONFIG_W1_SLAVE_DS2433_CRC handling
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: kblockd: use flush_work
+From: Andrew Morton <akpm@osdl.org>
 
-CONFIG_W1_SLAVE_DS2433_CRC can be used directly, there's no reason for the
-indirection of defining a different variable in the Makefile.
+Switch the kblockd flushing from a global flush to a more specific
+flush_work().
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Greg KH <greg@kroah.com>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Linus Torvalds <torvalds@osdl.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jens Axboe <axboe@suse.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/w1/Makefile           |    4 ----
- drivers/w1/slaves/Makefile    |    4 ----
- drivers/w1/slaves/w1_ds2433.c |   30 +++++++++++++++---------------
- 3 files changed, 15 insertions(+), 23 deletions(-)
+ block/as-iosched.c     |    2 +-
+ block/ll_rw_blk.c      |    8 ++++----
+ include/linux/blkdev.h |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/w1/Makefile~better-config_w1_slave_ds2433_crc-handling drivers/w1/Makefile
---- a/drivers/w1/Makefile~better-config_w1_slave_ds2433_crc-handling
-+++ a/drivers/w1/Makefile
-@@ -2,10 +2,6 @@
- # Makefile for the Dallas's 1-wire bus.
- #
+diff -puN block/as-iosched.c~kblockd-use-flush_work block/as-iosched.c
+--- a/block/as-iosched.c~kblockd-use-flush_work
++++ a/block/as-iosched.c
+@@ -1306,7 +1306,7 @@ static void as_exit_queue(elevator_t *e)
+ 	struct as_data *ad = e->elevator_data;
  
--ifeq ($(CONFIG_W1_DS2433_CRC), y)
--EXTRA_CFLAGS	+= -DCONFIG_W1_F23_CRC
--endif
--
- obj-$(CONFIG_W1)	+= wire.o
- wire-objs		:= w1.o w1_int.o w1_family.o w1_netlink.o w1_io.o
+ 	del_timer_sync(&ad->antic_timer);
+-	kblockd_flush();
++	kblockd_flush_work(&ad->antic_work);
  
-diff -puN drivers/w1/slaves/Makefile~better-config_w1_slave_ds2433_crc-handling drivers/w1/slaves/Makefile
---- a/drivers/w1/slaves/Makefile~better-config_w1_slave_ds2433_crc-handling
-+++ a/drivers/w1/slaves/Makefile
-@@ -2,10 +2,6 @@
- # Makefile for the Dallas's 1-wire slaves.
- #
- 
--ifeq ($(CONFIG_W1_SLAVE_DS2433_CRC), y)
--EXTRA_CFLAGS += -DCONFIG_W1_F23_CRC
--endif
--
- obj-$(CONFIG_W1_SLAVE_THERM)	+= w1_therm.o
- obj-$(CONFIG_W1_SLAVE_SMEM)	+= w1_smem.o
- obj-$(CONFIG_W1_SLAVE_DS2433)	+= w1_ds2433.o
-diff -puN drivers/w1/slaves/w1_ds2433.c~better-config_w1_slave_ds2433_crc-handling drivers/w1/slaves/w1_ds2433.c
---- a/drivers/w1/slaves/w1_ds2433.c~better-config_w1_slave_ds2433_crc-handling
-+++ a/drivers/w1/slaves/w1_ds2433.c
-@@ -13,7 +13,7 @@
- #include <linux/device.h>
- #include <linux/types.h>
- #include <linux/delay.h>
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- #include <linux/crc16.h>
- 
- #define CRC16_INIT		0
-@@ -62,7 +62,7 @@ static inline size_t w1_f23_fix_count(lo
- 	return count;
- }
- 
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- static int w1_f23_refresh_block(struct w1_slave *sl, struct w1_f23_data *data,
- 				int block)
+ 	BUG_ON(!list_empty(&ad->fifo_list[REQ_SYNC]));
+ 	BUG_ON(!list_empty(&ad->fifo_list[REQ_ASYNC]));
+diff -puN block/ll_rw_blk.c~kblockd-use-flush_work block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~kblockd-use-flush_work
++++ a/block/ll_rw_blk.c
+@@ -1719,7 +1719,7 @@ EXPORT_SYMBOL(blk_stop_queue);
+ void blk_sync_queue(struct request_queue *q)
  {
-@@ -89,13 +89,13 @@ static int w1_f23_refresh_block(struct w
- 
- 	return 0;
+ 	del_timer_sync(&q->unplug_timer);
+-	kblockd_flush();
++	kblockd_flush_work(&q->unplug_work);
  }
--#endif	/* CONFIG_W1_F23_CRC */
-+#endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
+ EXPORT_SYMBOL(blk_sync_queue);
  
- static ssize_t w1_f23_read_bin(struct kobject *kobj, char *buf, loff_t off,
- 			       size_t count)
+@@ -3590,11 +3590,11 @@ int kblockd_schedule_work(struct work_st
+ 
+ EXPORT_SYMBOL(kblockd_schedule_work);
+ 
+-void kblockd_flush(void)
++void kblockd_flush_work(struct work_struct *work)
  {
- 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- 	struct w1_f23_data *data = sl->family_data;
- 	int i, min_page, max_page;
- #else
-@@ -107,7 +107,7 @@ static ssize_t w1_f23_read_bin(struct ko
- 
- 	mutex_lock(&sl->master->mutex);
- 
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- 
- 	min_page = (off >> W1_PAGE_BITS);
- 	max_page = (off + count - 1) >> W1_PAGE_BITS;
-@@ -119,7 +119,7 @@ static ssize_t w1_f23_read_bin(struct ko
- 	}
- 	memcpy(buf, &data->memory[off], count);
- 
--#else 	/* CONFIG_W1_F23_CRC */
-+#else 	/* CONFIG_W1_SLAVE_DS2433_CRC */
- 
- 	/* read directly from the EEPROM */
- 	if (w1_reset_select_slave(sl)) {
-@@ -133,7 +133,7 @@ static ssize_t w1_f23_read_bin(struct ko
- 	w1_write_block(sl->master, wrbuf, 3);
- 	w1_read_block(sl->master, buf, count);
- 
--#endif	/* CONFIG_W1_F23_CRC */
-+#endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
- 
- out_up:
- 	mutex_unlock(&sl->master->mutex);
-@@ -208,7 +208,7 @@ static ssize_t w1_f23_write_bin(struct k
- 	if ((count = w1_f23_fix_count(off, count, W1_EEPROM_SIZE)) == 0)
- 		return 0;
- 
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- 	/* can only write full blocks in cached mode */
- 	if ((off & W1_PAGE_MASK) || (count & W1_PAGE_MASK)) {
- 		dev_err(&sl->dev, "invalid offset/count off=%d cnt=%zd\n",
-@@ -223,7 +223,7 @@ static ssize_t w1_f23_write_bin(struct k
- 			return -EINVAL;
- 		}
- 	}
--#endif	/* CONFIG_W1_F23_CRC */
-+#endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
- 
- 	mutex_lock(&sl->master->mutex);
- 
-@@ -262,7 +262,7 @@ static struct bin_attribute w1_f23_bin_a
- static int w1_f23_add_slave(struct w1_slave *sl)
- {
- 	int err;
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- 	struct w1_f23_data *data;
- 
- 	data = kmalloc(sizeof(struct w1_f23_data), GFP_KERNEL);
-@@ -271,24 +271,24 @@ static int w1_f23_add_slave(struct w1_sl
- 	memset(data, 0, sizeof(struct w1_f23_data));
- 	sl->family_data = data;
- 
--#endif	/* CONFIG_W1_F23_CRC */
-+#endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
- 
- 	err = sysfs_create_bin_file(&sl->dev.kobj, &w1_f23_bin_attr);
- 
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- 	if (err)
- 		kfree(data);
--#endif	/* CONFIG_W1_F23_CRC */
-+#endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
- 
- 	return err;
+-	flush_workqueue(kblockd_workqueue);
++	flush_work(kblockd_workqueue, work);
  }
+-EXPORT_SYMBOL(kblockd_flush);
++EXPORT_SYMBOL(kblockd_flush_work);
  
- static void w1_f23_remove_slave(struct w1_slave *sl)
+ int __init blk_dev_init(void)
  {
--#ifdef CONFIG_W1_F23_CRC
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
- 	kfree(sl->family_data);
- 	sl->family_data = NULL;
--#endif	/* CONFIG_W1_F23_CRC */
-+#endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
- 	sysfs_remove_bin_file(&sl->dev.kobj, &w1_f23_bin_attr);
- }
+diff -puN include/linux/blkdev.h~kblockd-use-flush_work include/linux/blkdev.h
+--- a/include/linux/blkdev.h~kblockd-use-flush_work
++++ a/include/linux/blkdev.h
+@@ -861,7 +861,7 @@ static inline void put_dev_sector(Sector
  
+ struct work_struct;
+ int kblockd_schedule_work(struct work_struct *work);
+-void kblockd_flush(void);
++void kblockd_flush_work(struct work_struct *work);
+ 
+ #define MODULE_ALIAS_BLOCKDEV(major,minor) \
+ 	MODULE_ALIAS("block-major-" __stringify(major) "-" __stringify(minor))
 _
 
-Patches currently in -mm which might be from johnpol@2ka.mipt.ru are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+implement-flush_work.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+bridge-avoid-using-noautorel-workqueues.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+acpi-asus-s3-resume-fix.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-ia64.patch
+git-ieee1394-fixup.patch
+git-input.patch
+git-input-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+add-include-linux-freezerh-and-move-definitions-from-ucb1400_ts-fix.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+tty-signal-tty-locking-post-viro-trainwreck.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
+bug-test-1.patch
+net-use-bitrev8-tidy.patch
+fsstack-introduce-fsstack_copy_attrinode_-tidy.patch
+ecryptfs-use-fsstacks-generic-copy-inode-attr-tidy-fix-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-vs-git-cryptodev.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel-ppc-fix.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework-warning-fix.patch
+tty-switch-to-ktermios-and-new-framework-irda-fix.patch
+tty-switch-to-ktermios-bluetooth-fix.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
+drivers-isdn-handcrafted-min-max-macro-removal-fix.patch
+fault-injection-capabilities-infrastructure-tidy.patch
+fault-injection-capabilities-infrastructure-tweaks.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls-fix-3.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs-fix.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer-tidy.patch
+gxfb-fixups-for-the-amd-geode-gx-tidy.patch
+gxfb-support-flat-panel-timings-tidy.patch
+gxfb-support-command-line-options-tidy.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
