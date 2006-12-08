@@ -1,99 +1,113 @@
 From: akpm@osdl.org
-Subject: - move-kallsyms-data-to-rodata.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 11:59:35 -0800
-Message-ID: <200612081959.kB8JxZms001635@shell0.pdx.osdl.net>
+Subject: - fix-linux-banner-utsname-information.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 11:59:41 -0800
+Message-ID: <200612081959.kB8JxfYc001645@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56391 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56402 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426179AbWLHT7l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 14:59:41 -0500
+	id S1426181AbWLHT7r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 14:59:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, mm-commits@vger.kernel.org
+To: herbert@13thfloor.at, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move kallsyms data to .rodata
+     Fix linux banner utsname information
 has been removed from the -mm tree.  Its filename was
-     move-kallsyms-data-to-rodata.patch
+     fix-linux-banner-utsname-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: move kallsyms data to .rodata
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: Fix linux banner utsname information
+From: Herbert Poetzl <herbert@13thfloor.at>
 
-Kallsyms data is never written to, so it can as well benefit from
-CONFIG_DEBUG_RODATA.
+utsname information is shown in the linux banner, which also is used for
+/proc/version (which can have different utsname values inside a uts
+namespaces).  this patch makes the varying data arguments and changes the
+string to a format string, using those arguments.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Herbert Poetzl <herbert@13thfloor.at>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/kallsyms.c  |   16 ++++++++--------
- scripts/kallsyms.c |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ fs/proc/proc_misc.c |    4 ++--
+ init/Makefile       |    1 +
+ init/main.c         |    4 +++-
+ init/version.c      |    5 +++--
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN kernel/kallsyms.c~move-kallsyms-data-to-rodata kernel/kallsyms.c
---- a/kernel/kallsyms.c~move-kallsyms-data-to-rodata
-+++ a/kernel/kallsyms.c
-@@ -31,14 +31,14 @@
- #endif
- 
- /* These will be re-linked against their real values during the second link stage */
--extern unsigned long kallsyms_addresses[] __attribute__((weak));
--extern unsigned long kallsyms_num_syms __attribute__((weak,section("data")));
--extern u8 kallsyms_names[] __attribute__((weak));
-+extern const unsigned long kallsyms_addresses[] __attribute__((weak));
-+extern const unsigned long kallsyms_num_syms __attribute__((weak));
-+extern const u8 kallsyms_names[] __attribute__((weak));
- 
--extern u8 kallsyms_token_table[] __attribute__((weak));
--extern u16 kallsyms_token_index[] __attribute__((weak));
-+extern const u8 kallsyms_token_table[] __attribute__((weak));
-+extern const u16 kallsyms_token_index[] __attribute__((weak));
- 
--extern unsigned long kallsyms_markers[] __attribute__((weak));
-+extern const unsigned long kallsyms_markers[] __attribute__((weak));
- 
- static inline int is_kernel_inittext(unsigned long addr)
+diff -puN fs/proc/proc_misc.c~fix-linux-banner-utsname-information fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~fix-linux-banner-utsname-information
++++ a/fs/proc/proc_misc.c
+@@ -252,8 +252,8 @@ static int version_read_proc(char *page,
  {
-@@ -84,7 +84,7 @@ static int is_ksym_addr(unsigned long ad
- static unsigned int kallsyms_expand_symbol(unsigned int off, char *result)
- {
- 	int len, skipped_first = 0;
--	u8 *tptr, *data;
-+	const u8 *tptr, *data;
+ 	int len;
  
- 	/* get the compressed symbol length from the first symbol byte */
- 	data = &kallsyms_names[off];
-@@ -132,7 +132,7 @@ static char kallsyms_get_symbol_type(uns
-  * kallsyms array */
- static unsigned int get_symbol_offset(unsigned long pos)
- {
--	u8 *name;
-+	const u8 *name;
- 	int i;
+-	strcpy(page, linux_banner);
+-	len = strlen(page);
++	len = sprintf(page, linux_banner,
++		utsname()->release, utsname()->version);
+ 	return proc_calc_metrics(page, start, off, count, eof, len);
+ }
  
- 	/* use the closest marker we have. We have markers every 256 positions,
-diff -puN scripts/kallsyms.c~move-kallsyms-data-to-rodata scripts/kallsyms.c
---- a/scripts/kallsyms.c~move-kallsyms-data-to-rodata
-+++ a/scripts/kallsyms.c
-@@ -265,7 +265,7 @@ static void write_src(void)
- 	printf("#define ALGN .align 4\n");
- 	printf("#endif\n");
+diff -puN init/Makefile~fix-linux-banner-utsname-information init/Makefile
+--- a/init/Makefile~fix-linux-banner-utsname-information
++++ a/init/Makefile
+@@ -15,6 +15,7 @@ clean-files := ../include/linux/compile.
  
--	printf(".data\n");
-+	printf("\t.section .rodata, \"a\"\n");
+ # dependencies on generated files need to be listed explicitly
  
- 	/* Provide proper symbols relocatability by their '_text'
- 	 * relativeness.  The symbol names cannot be used to construct
++$(obj)/main.o: include/linux/compile.h
+ $(obj)/version.o: include/linux/compile.h
+ 
+ # compile.h changes depending on hostname, generation number, etc,
+diff -puN init/main.c~fix-linux-banner-utsname-information init/main.c
+--- a/init/main.c~fix-linux-banner-utsname-information
++++ a/init/main.c
+@@ -50,6 +50,8 @@
+ #include <linux/buffer_head.h>
+ #include <linux/debug_locks.h>
+ #include <linux/lockdep.h>
++#include <linux/utsrelease.h>
++#include <linux/compile.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -506,7 +508,7 @@ asmlinkage void __init start_kernel(void
+ 	boot_cpu_init();
+ 	page_address_init();
+ 	printk(KERN_NOTICE);
+-	printk(linux_banner);
++	printk(linux_banner, UTS_RELEASE, UTS_VERSION);
+ 	setup_arch(&command_line);
+ 	unwind_setup();
+ 	setup_per_cpu_areas();
+diff -puN init/version.c~fix-linux-banner-utsname-information init/version.c
+--- a/init/version.c~fix-linux-banner-utsname-information
++++ a/init/version.c
+@@ -35,5 +35,6 @@ struct uts_namespace init_uts_ns = {
+ EXPORT_SYMBOL_GPL(init_uts_ns);
+ 
+ const char linux_banner[] =
+-	"Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY "@"
+-	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") " UTS_VERSION "\n";
++	"Linux version %s (" LINUX_COMPILE_BY "@"
++	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") %s\n";
++
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from herbert@13thfloor.at are
 
-origin.patch
-move-kallsyms-data-to-rodata.patch
-some-kbuild-fix.patch
+fix-linux-banner-utsname-information.patch
+add-process_session-helper-routine.patch
+rename-struct-namespace-to-struct-mnt_namespace.patch
+add-an-identifier-to-nsproxy.patch
+rename-struct-pspace-to-struct-pid_namespace.patch
+add-pid_namespace-to-nsproxy.patch
+use-current-nsproxy-pid_ns.patch
+add-child-reaper-to-pid_namespace.patch
 
