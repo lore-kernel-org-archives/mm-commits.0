@@ -1,71 +1,82 @@
 From: akpm@osdl.org
-Subject: + convert-i386-pda-code-to-use-%fs-fixes.patch added to -mm tree
-Date: Fri, 08 Dec 2006 13:48:47 -0800
-Message-ID: <200612082148.kB8LmllM006011@shell0.pdx.osdl.net>
+Subject: + kmap_atomic-debugging.patch added to -mm tree
+Date: Fri, 08 Dec 2006 14:19:40 -0800
+Message-ID: <200612082219.kB8MJeIa006870@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41067 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44437 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947404AbWLHVt1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 16:49:27 -0500
+	id S1947447AbWLHWTy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 17:19:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, Ian.Campbell@XenSource.com, andi@muc.de, dada1@cosmosbay.com, jeremy@XenSource.com, mingo@elte.hu, zach@vmware.com
+Cc: akpm@osdl.org, mingo@elte.hu
 
 
 The patch titled
-     convert-i386-pda-code-to-use-%fs-fixes
+     kmap_atomic debugging
 has been added to the -mm tree.  Its filename is
-     convert-i386-pda-code-to-use-%fs-fixes.patch
+     kmap_atomic-debugging.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: convert-i386-pda-code-to-use-%fs-fixes
+Subject: kmap_atomic debugging
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Ian Campbell <Ian.Campbell@XenSource.com>
+This is almost certainly wrong.  Or at least incomplete.
+
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <andi@muc.de>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/ptrace.c        |    2 +-
- arch/i386/math-emu/get_address.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/mm/highmem.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+)
 
-diff -puN arch/i386/kernel/ptrace.c~convert-i386-pda-code-to-use-%fs-fixes arch/i386/kernel/ptrace.c
---- a/arch/i386/kernel/ptrace.c~convert-i386-pda-code-to-use-%fs-fixes
-+++ a/arch/i386/kernel/ptrace.c
-@@ -125,7 +125,7 @@ static unsigned long getreg(struct task_
+diff -puN arch/i386/mm/highmem.c~kmap_atomic-debugging arch/i386/mm/highmem.c
+--- a/arch/i386/mm/highmem.c~kmap_atomic-debugging
++++ a/arch/i386/mm/highmem.c
+@@ -30,7 +30,38 @@ void *kmap_atomic(struct page *page, enu
+ {
+ 	enum fixed_addresses idx;
+ 	unsigned long vaddr;
++	static unsigned warn_count = 10;
  
- 	switch (regno >> 2) {
- 		case GS:
--			retval = child->thread.fs;
-+			retval = child->thread.gs;
- 			break;
- 		case DS:
- 		case ES:
-diff -puN arch/i386/math-emu/get_address.c~convert-i386-pda-code-to-use-%fs-fixes arch/i386/math-emu/get_address.c
---- a/arch/i386/math-emu/get_address.c~convert-i386-pda-code-to-use-%fs-fixes
-+++ a/arch/i386/math-emu/get_address.c
-@@ -170,9 +170,9 @@ static long pm_address(u_char FPU_modrm,
-     {
-       /* gs isn't used by the kernel, so it still has its
- 	 user-space value. */
--    case PREFIX_FS_-1:
-+    case PREFIX_GS_-1:
-       /* N.B. - movl %seg, mem is a 2 byte write regardless of prefix */
--      savesegment(fs, addr->selector);
-+      savesegment(gs, addr->selector);
-       break;
-     default:
-       addr->selector = PM_REG_(segment);
++	if (unlikely(warn_count))
++		goto skip;
++
++	if (unlikely(in_interrupt())) {
++		if (in_irq()) {
++			if (type != KM_IRQ0 && type != KM_IRQ1) {
++				WARN_ON(1);
++				warn_count--;
++			}
++		} else {	/* softirq */
++			if (type != KM_IRQ0 && type != KM_IRQ1 &&
++			    type != KM_SOFTIRQ0 && type != KM_SOFTIRQ1) {
++				WARN_ON(1);
++				warn_count--;
++			}
++		}
++	}
++
++	if (type == KM_IRQ0 || type == KM_IRQ1) {
++		if (!irqs_disabled() && !hardirq_count()) {
++			WARN_ON(1);
++			warn_count--;
++		}
++	} else if (type == KM_SOFTIRQ0 || type == KM_SOFTIRQ1) {
++		if (irq_count() == 0 && !irqs_disabled()) {
++			WARN_ON(1);
++			warn_count--;
++		}
++	}
++skip:
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+ 	pagefault_disable();
+ 	if (!PageHighMem(page))
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -212,4 +223,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 zeromap_pte_range-debug.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+kmap_atomic-debugging.patch
 
