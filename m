@@ -1,28 +1,32 @@
 From: akpm@osdl.org
-Subject: - fault-injection-capabilities-infrastructure-tidy.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:58:55 -0800
-Message-ID: <200612080858.kB88wtK5014211@shell0.pdx.osdl.net>
+Subject: - fault-injection-capabilities-infrastructure-tweaks.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:58:59 -0800
+Message-ID: <200612080858.kB88wxHx014214@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38073 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38077 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425262AbWLHI7I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:59:08 -0500
+	id S1425264AbWLHI7L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:59:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, akinobu.mita@gmail.com, dwm@meer.net, okuji@enbug.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault-injection-capabilities-infrastructure-tidy
+     fault-injection-capabilities-infrastructure-retval-fix
 has been removed from the -mm tree.  Its filename was
-     fault-injection-capabilities-infrastructure-tidy.patch
+     fault-injection-capabilities-infrastructure-tweaks.patch
 
 This patch was dropped because it was folded into fault-injection-capabilities-infrastructure.patch
 
 ------------------------------------------------------
-Subject: fault-injection-capabilities-infrastructure-tidy
+Subject: fault-injection-capabilities-infrastructure-retval-fix
 From: Andrew Morton <akpm@osdl.org>
+
+- Add comment explaining weird return value
+
+- Make setup_fault_attr __init.
 
 Cc: <okuji@enbug.org>
 Cc: Akinobu Mita <akinobu.mita@gmail.com>
@@ -30,21 +34,25 @@ Cc: Don Mullis <dwm@meer.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/Kconfig.debug |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ lib/fault-inject.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~fault-injection-capabilities-infrastructure-tidy lib/Kconfig.debug
---- a/lib/Kconfig.debug~fault-injection-capabilities-infrastructure-tidy
-+++ a/lib/Kconfig.debug
-@@ -423,6 +423,6 @@ config FAULT_INJECTION_DEBUG_FS
- 	depends on FAULT_INJECTION && SYSFS
- 	select DEBUG_FS
- 	help
--	  This option enables to configure fault-injection capabilities via
--	  debugfs entries.
-+	  This option enable configuration of fault-injection capabilities via
-+	  debugfs.
+diff -puN lib/fault-inject.c~fault-injection-capabilities-infrastructure-tweaks lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-injection-capabilities-infrastructure-tweaks
++++ a/lib/fault-inject.c
+@@ -7,7 +7,11 @@
+ #include <linux/module.h>
+ #include <linux/fault-inject.h>
  
+-int setup_fault_attr(struct fault_attr *attr, char *str)
++/*
++ * setup_fault_attr() is a helper function for various __setup handlers, so it
++ * returns 0 on error, because that is what __setup handlers do.
++ */
++int __init setup_fault_attr(struct fault_attr *attr, char *str)
+ {
+ 	unsigned long probability;
+ 	unsigned long interval;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -62,7 +70,6 @@ tty-switch-to-ktermios.patch
 tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
 drivers-isdn-handcrafted-min-max-macro-removal.patch
 fault-injection-capabilities-infrastructure.patch
-fault-injection-capabilities-infrastructure-tidy.patch
 fault-injection-capabilities-infrastructure-tweaks.patch
 fault-injection-Kconfig-cleanup.patch
 fault-injection-stacktrace-filtering-kconfig-fix.patch
