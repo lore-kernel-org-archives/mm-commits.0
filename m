@@ -1,82 +1,52 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-ipmi.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:38 -0800
-Message-ID: <200612082003.kB8K3cxD002091@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-parisc.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:04:32 -0800
+Message-ID: <200612082004.kB8K4W00002190@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57186 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57347 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426268AbWLHUDn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:43 -0500
+	id S1426295AbWLHUEg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:04:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert ipmi
+     struct path: convert parisc
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-ipmi.patch
+     struct-path-convert-parisc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert ipmi
+Subject: struct path: convert parisc
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ipmi/ipmi_devintf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/parisc/hpux/sys_hpux.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_devintf.c~struct-path-convert-ipmi drivers/char/ipmi/ipmi_devintf.c
---- a/drivers/char/ipmi/ipmi_devintf.c~struct-path-convert-ipmi
-+++ a/drivers/char/ipmi/ipmi_devintf.c
-@@ -798,7 +798,7 @@ static long compat_ipmi_ioctl(struct fil
- 		if (copy_to_user(precv64, &recv64, sizeof(recv64)))
- 			return -EFAULT;
- 
--		rc = ipmi_ioctl(filep->f_dentry->d_inode, filep,
-+		rc = ipmi_ioctl(filep->f_path.dentry->d_inode, filep,
- 				((cmd == COMPAT_IPMICTL_RECEIVE_MSG)
- 				 ? IPMICTL_RECEIVE_MSG
- 				 : IPMICTL_RECEIVE_MSG_TRUNC),
-@@ -815,7 +815,7 @@ static long compat_ipmi_ioctl(struct fil
- 		return rc;
- 	}
- 	default:
--		return ipmi_ioctl(filep->f_dentry->d_inode, filep, cmd, arg);
-+		return ipmi_ioctl(filep->f_path.dentry->d_inode, filep, cmd, arg);
- 	}
- }
- #endif
+diff -puN arch/parisc/hpux/sys_hpux.c~struct-path-convert-parisc arch/parisc/hpux/sys_hpux.c
+--- a/arch/parisc/hpux/sys_hpux.c~struct-path-convert-parisc
++++ a/arch/parisc/hpux/sys_hpux.c
+@@ -237,7 +237,7 @@ asmlinkage long hpux_fstatfs(unsigned in
+ 	file = fget(fd);
+ 	if (!file)
+ 		goto out;
+-	error = vfs_statfs_hpux(file->f_dentry, &tmp);
++	error = vfs_statfs_hpux(file->f_path.dentry, &tmp);
+ 	if (!error && copy_to_user(buf, &tmp, sizeof(tmp)))
+ 		error = -EFAULT;
+ 	fput(file);
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-ipmi.patch
-struct-path-convert-isapnp.patch
-struct-path-convert-isdn.patch
-struct-path-convert-ixj.patch
-struct-path-convert-jffs.patch
-struct-path-convert-jffs2.patch
-struct-path-convert-jfs.patch
-struct-path-convert-kernel.patch
-struct-path-convert-lockd.patch
-struct-path-convert-md.patch
-struct-path-convert-minix.patch
-struct-path-convert-mips.patch
-struct-path-convert-mm.patch
-struct-path-convert-nbd.patch
-struct-path-convert-ncpfs.patch
-struct-path-convert-net.patch
-struct-path-convert-netfilter.patch
-struct-path-convert-netlink.patch
-struct-path-convert-ocfs2.patch
-struct-path-convert-openpromfs.patch
-struct-path-convert-oprofile.patch
 struct-path-convert-parisc.patch
 struct-path-convert-pci.patch
 struct-path-convert-pcmcia.patch
