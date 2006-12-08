@@ -1,95 +1,111 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-testbit-for-bit-testing.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:07:19 -0800
-Message-ID: <200612082007.kB8K7JDD002505@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-reverse-if-else-paths-patch.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:07:35 -0800
+Message-ID: <200612082007.kB8K7ZY3002523@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57878 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57974 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426347AbWLHUHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:07:24 -0500
+	id S1946126AbWLHUHr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, osv@javad.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, testbit for bit testing
+     Char: mxser_new, reverse if-else-paths patch
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-testbit-for-bit-testing.patch
+     char-mxser_new-reverse-if-else-paths-patch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, testbit for bit testing
+Subject: Char: mxser_new, reverse if-else-paths patch
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Use testbit like in tty subsystem for TTY_IO_ERROR testing.
+This patch was intorduced in mxser to 1.9.1 conversion, but causes endless
+sleep in tcdrain userspace call.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Thanks to Sergei Organov <osv@javad.com> for testing and pointing this out.
+
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/char/mxser_new.c |   27 +++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-testbit-for-bit-testing drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-testbit-for-bit-testing
+diff -puN drivers/char/mxser_new.c~char-mxser_new-reverse-if-else-paths-patch drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-reverse-if-else-paths-patch
 +++ a/drivers/char/mxser_new.c
-@@ -461,7 +461,8 @@ static int mxser_block_til_ready(struct 
- 	 * If non-blocking mode is set, or the port is not enabled,
- 	 * then make the check up front and then exit.
- 	 */
--	if ((filp->f_flags & O_NONBLOCK) || (tty->flags & (1 << TTY_IO_ERROR))) {
-+	if ((filp->f_flags & O_NONBLOCK) ||
-+			test_bit(TTY_IO_ERROR, &tty->flags)) {
- 		port->flags |= ASYNC_NORMAL_ACTIVE;
- 		return 0;
- 	}
-@@ -1437,7 +1438,7 @@ static int mxser_tiocmget(struct tty_str
+@@ -1218,12 +1218,7 @@ static int mxser_write_room(struct tty_s
+ static int mxser_chars_in_buffer(struct tty_struct *tty)
+ {
+ 	struct mxser_port *info = tty->driver_data;
+-	int len = info->xmit_cnt;
+-
+-	if (!(inb(info->ioaddr + UART_LSR) & UART_LSR_THRE))
+-		len++;
+-
+-	return len;
++	return info->xmit_cnt;
+ }
  
- 	if (tty->index == MXSER_PORTS)
- 		return -ENOIOCTLCMD;
--	if (tty->flags & (1 << TTY_IO_ERROR))
-+	if (test_bit(TTY_IO_ERROR, &tty->flags))
- 		return -EIO;
+ static void mxser_flush_buffer(struct tty_struct *tty)
+@@ -1953,7 +1948,7 @@ static void mxser_stoprx(struct tty_stru
+ 		if (info->board->chip_flag) {
+ 			info->IER &= ~MOXA_MUST_RECV_ISR;
+ 			outb(info->IER, info->ioaddr + UART_IER);
+-		} else if (!(info->flags & ASYNC_CLOSING)) {
++		} else {
+ 			info->x_char = STOP_CHAR(tty);
+ 			outb(0, info->ioaddr + UART_IER);
+ 			info->IER |= UART_IER_THRI;
+@@ -1990,7 +1985,7 @@ static void mxser_unthrottle(struct tty_
+ 			if (info->board->chip_flag) {
+ 				info->IER |= MOXA_MUST_RECV_ISR;
+ 				outb(info->IER, info->ioaddr + UART_IER);
+-			} else if (!(info->flags & ASYNC_CLOSING)) {
++			} else {
+ 				info->x_char = START_CHAR(tty);
+ 				outb(0, info->ioaddr + UART_IER);
+ 				info->IER |= UART_IER_THRI;
+@@ -2265,10 +2260,8 @@ static void mxser_receive_chars(struct m
+ 					flag = TTY_OVERRUN;
+ /* added by casper 1/11/2000 */
+ 					port->icount.overrun++;
+-				} else
+-					flags = TTY_BREAK;
+-			} else
+-				flags = 0;
++				}
++			}
+ 			tty_insert_flip_char(tty, ch, flag);
+ 			cnt++;
+ 			if (cnt >= recv_room) {
+@@ -2324,14 +2317,8 @@ static void mxser_transmit_chars(struct 
+ 	if (port->xmit_buf == 0)
+ 		goto unlock;
  
- 	control = info->MCR;
-@@ -1464,7 +1465,7 @@ static int mxser_tiocmset(struct tty_str
- 
- 	if (tty->index == MXSER_PORTS)
- 		return -ENOIOCTLCMD;
--	if (tty->flags & (1 << TTY_IO_ERROR))
-+	if (test_bit(TTY_IO_ERROR, &tty->flags))
- 		return -EIO;
- 
- 	spin_lock_irqsave(&info->slock, flags);
-@@ -1798,10 +1799,10 @@ static int mxser_ioctl(struct tty_struct
- 	}
- 	/* above add by Victor Yu. 01-05-2004 */
- 
--	if ((cmd != TIOCGSERIAL) && (cmd != TIOCMIWAIT) && (cmd != TIOCGICOUNT)) {
--		if (tty->flags & (1 << TTY_IO_ERROR))
--			return -EIO;
+-	if (port->xmit_cnt == 0) {
+-		if (port->xmit_cnt < WAKEUP_CHARS) { /* XXX what's this for?? */
+-			set_bit(MXSER_EVENT_TXLOW, &port->event);
+-			schedule_work(&port->tqueue);
+-		}
+-		goto unlock;
 -	}
-+	if (cmd != TIOCGSERIAL && cmd != TIOCMIWAIT && cmd != TIOCGICOUNT &&
-+			test_bit(TTY_IO_ERROR, &tty->flags))
-+		return -EIO;
-+
- 	switch (cmd) {
- 	case TCSBRK:		/* SVID version: non-zero arg --> no break */
- 		retval = tty_check_change(tty);
+-	if (port->tty->stopped || (port->tty->hw_stopped &&
++	if ((port->xmit_cnt <= 0) || port->tty->stopped ||
++			(port->tty->hw_stopped &&
+ 			(port->type != PORT_16550A) &&
+ 			(!port->board->chip_flag))) {
+ 		port->IER &= ~UART_IER_THRI;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-testbit-for-bit-testing.patch
-char-mxser_new-correct-fail-paths.patch
-char-mxser_new-dont-check-tty_unregister-retval.patch
-char-mxser_new-compress-isa-finding.patch
-char-mxser_new-register-tty-devices-on-the-fly.patch
-char-mxser_new-compact-structures-round2.patch
 char-mxser_new-reverse-if-else-paths-patch.patch
 char-mxser_new-comments-cleanup.patch
 char-mxser_new-correct-intr-handler-proto.patch
