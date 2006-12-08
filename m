@@ -1,67 +1,96 @@
 From: akpm@osdl.org
-Subject: - atyfb-remove-fixme.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:13:52 -0800
-Message-ID: <200612082013.kB8KDq9T003120@shell0.pdx.osdl.net>
+Subject: - atyfb-improve-atyfb_atari_probe.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:14:10 -0800
+Message-ID: <200612082014.kB8KEAon003145@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59658 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59682 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946783AbWLHUOH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:14:07 -0500
+	id S1946766AbWLHUOO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:14:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: syrjala@sci.fi, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: Remove FIXME
+     atyfb: Improve atyfb_atari_probe()
 has been removed from the -mm tree.  Its filename was
-     atyfb-remove-fixme.patch
+     atyfb-improve-atyfb_atari_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atyfb: Remove FIXME
+Subject: atyfb: Improve atyfb_atari_probe()
 From: Ville Syrjala <syrjala@sci.fi>
 
-atyfb has used the auxiliary register aperture for a long time.  Remove a
-related FIXME which was accidentally left in.
+Improve atyfb_atari_probe():
+* Call correct_chipset() so that more par members, par->features in
+  particular, get initialized.
+* If probe fails iounmap() the mapped regions and continue probing for more
+  adapters.
+
+Only verified to cross-compile due to lack of hardware.
 
 Signed-off-by: Ville Syrjala <syrjala@sci.fi>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Acked-by: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/aty/atyfb_base.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/video/aty/atyfb_base.c |   27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-remove-fixme drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-remove-fixme
+diff -puN drivers/video/aty/atyfb_base.c~atyfb-improve-atyfb_atari_probe drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb-improve-atyfb_atari_probe
 +++ a/drivers/video/aty/atyfb_base.c
-@@ -2601,9 +2601,8 @@ static int __devinit aty_init(struct fb_
- 		par->pll_ops->init_pll(info, &par->pll);
+@@ -3629,6 +3629,7 @@ static int __init atyfb_atari_probe(void
+ 	struct fb_info *info;
+ 	int m64_num;
+ 	u32 clock_r;
++	int num_found = 0;
  
- 	/*
--	 *  Last page of 8 MB (4 MB on ISA) aperture is MMIO
--	 *  FIXME: we should use the auxiliary aperture instead so we can access
--	 *  the full 8 MB of video RAM on 8 MB boards
-+	 *  Last page of 8 MB (4 MB on ISA) aperture is MMIO,
-+	 *  unless the auxiliary register aperture is used.
- 	 */
+ 	for (m64_num = 0; m64_num < mach64_count; m64_num++) {
+ 		if (!phys_vmembase[m64_num] || !phys_size[m64_num] ||
+@@ -3676,16 +3677,28 @@ static int __init atyfb_atari_probe(void
+ 			break;
+ 		}
  
- 	if (!par->aux_start &&
+-		if (aty_init(info)) {
+-			if (info->screen_base)
+-				iounmap(info->screen_base);
+-			if (par->ati_regbase)
+-				iounmap(par->ati_regbase);
++		/* Fake pci_id for correct_chipset() */
++		switch (aty_ld_le32(CONFIG_CHIP_ID, par) & CFG_CHIP_TYPE) {
++		case 0x00d7:
++			par->pci_id = PCI_CHIP_MACH64GX;
++			break;
++		case 0x0057:
++			par->pci_id = PCI_CHIP_MACH64CX;
++			break;
++		default:
++			break;
++		}
++
++		if (correct_chipset(par) || aty_init(info)) {
++			iounmap(info->screen_base);
++			iounmap(par->ati_regbase);
+ 			framebuffer_release(info);
+-			/* This is insufficient! kernel_map has added two large chunks!! */
+-			return -ENXIO;
++		} else {
++			num_found++;
+ 		}
+ 	}
++
++	return num_found ? 0 : -ENXIO;
+ }
+ 
+ #endif /* CONFIG_ATARI */
 _
 
 Patches currently in -mm which might be from syrjala@sci.fi are
 
-atyfb-remove-fixme.patch
-atyfb-fix-compiler-warnings.patch
-atyfb-fix-sparse-warnings.patch
-atyfb-fix-blanking-level.patch
-atyfb-remove-pointless-aty_init.patch
-atyfb-fix-__init-and-__devinit.patch
-atyfb-remove-aty_cmap_regs.patch
 atyfb-improve-atyfb_atari_probe.patch
 atyfb-improve-power-management.patch
 
