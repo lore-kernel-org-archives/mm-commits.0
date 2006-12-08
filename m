@@ -1,60 +1,79 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-cosa.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:52 -0800
-Message-ID: <200612082002.kB8K2qfP002011@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-cris.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:56 -0800
+Message-ID: <200612082002.kB8K2umx002022@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57086 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57094 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426253AbWLHUC4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:56 -0500
+	id S1426251AbWLHUDB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:03:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert cosa
+     struct path: convert cris
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-cosa.patch
+     struct-path-convert-cris.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert cosa
+Subject: struct path: convert cris
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/wan/cosa.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/cris/arch-v32/drivers/sync_serial.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wan/cosa.c~struct-path-convert-cosa drivers/net/wan/cosa.c
---- a/drivers/net/wan/cosa.c~struct-path-convert-cosa
-+++ a/drivers/net/wan/cosa.c
-@@ -974,12 +974,12 @@ static int cosa_open(struct inode *inode
- 	unsigned long flags;
- 	int n;
+diff -puN arch/cris/arch-v32/drivers/sync_serial.c~struct-path-convert-cris arch/cris/arch-v32/drivers/sync_serial.c
+--- a/arch/cris/arch-v32/drivers/sync_serial.c~struct-path-convert-cris
++++ a/arch/cris/arch-v32/drivers/sync_serial.c
+@@ -504,7 +504,7 @@ static int sync_serial_release(struct in
  
--	if ((n=iminor(file->f_dentry->d_inode)>>CARD_MINOR_BITS)
-+	if ((n=iminor(file->f_path.dentry->d_inode)>>CARD_MINOR_BITS)
- 		>= nr_cards)
- 		return -ENODEV;
- 	cosa = cosa_cards+n;
- 
--	if ((n=iminor(file->f_dentry->d_inode)
-+	if ((n=iminor(file->f_path.dentry->d_inode)
- 		& ((1<<CARD_MINOR_BITS)-1)) >= cosa->nchannels)
- 		return -ENODEV;
- 	chan = cosa->chan + n;
+ static unsigned int sync_serial_poll(struct file *file, poll_table *wait)
+ {
+-	int dev = iminor(file->f_dentry->d_inode);
++	int dev = iminor(file->f_path.dentry->d_inode);
+ 	unsigned int mask = 0;
+ 	sync_port* port;
+ 	DEBUGPOLL( static unsigned int prev_mask = 0; );
+@@ -531,7 +531,7 @@ static int sync_serial_ioctl(struct inod
+ 		  unsigned int cmd, unsigned long arg)
+ {
+ 	int return_val = 0;
+-	int dev = iminor(file->f_dentry->d_inode);
++	int dev = iminor(file->f_path.dentry->d_inode);
+ 	sync_port* port;
+ 	reg_sser_rw_tr_cfg tr_cfg;
+ 	reg_sser_rw_rec_cfg rec_cfg;
+@@ -789,7 +789,7 @@ static int sync_serial_ioctl(struct inod
+ static ssize_t sync_serial_write(struct file * file, const char * buf,
+                                  size_t count, loff_t *ppos)
+ {
+-	int dev = iminor(file->f_dentry->d_inode);
++	int dev = iminor(file->f_path.dentry->d_inode);
+ 	DECLARE_WAITQUEUE(wait, current);
+ 	sync_port *port;
+ 	unsigned long c, c1;
+@@ -919,7 +919,7 @@ static ssize_t sync_serial_write(struct 
+ static ssize_t sync_serial_read(struct file * file, char * buf,
+ 				size_t count, loff_t *ppos)
+ {
+-	int dev = iminor(file->f_dentry->d_inode);
++	int dev = iminor(file->f_path.dentry->d_inode);
+ 	int avail;
+ 	sync_port *port;
+ 	unsigned char* start;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-cosa.patch
-struct-path-convert-cramfs.patch
 struct-path-convert-cris.patch
 struct-path-convert-drm.patch
 struct-path-convert-efs.patch
