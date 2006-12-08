@@ -1,52 +1,62 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-bfs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:40 -0800
-Message-ID: <200612082002.kB8K2eu9001993@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-befs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:37 -0800
+Message-ID: <200612082002.kB8K2bbL001990@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57052 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57047 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426245AbWLHUCp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:45 -0500
+	id S1426246AbWLHUCm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert bfs
+     struct path: convert befs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-bfs.patch
+     struct-path-convert-befs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert bfs
+Subject: struct path: convert befs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/bfs/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/befs/linuxvfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/bfs/dir.c~struct-path-convert-bfs fs/bfs/dir.c
---- a/fs/bfs/dir.c~struct-path-convert-bfs
-+++ a/fs/bfs/dir.c
-@@ -27,7 +27,7 @@ static struct buffer_head * bfs_find_ent
- 
- static int bfs_readdir(struct file * f, void * dirent, filldir_t filldir)
+diff -puN fs/befs/linuxvfs.c~struct-path-convert-befs fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~struct-path-convert-befs
++++ a/fs/befs/linuxvfs.c
+@@ -212,7 +212,7 @@ befs_lookup(struct inode *dir, struct de
+ static int
+ befs_readdir(struct file *filp, void *dirent, filldir_t filldir)
  {
--	struct inode * dir = f->f_dentry->d_inode;
-+	struct inode * dir = f->f_path.dentry->d_inode;
- 	struct buffer_head * bh;
- 	struct bfs_dirent * de;
- 	unsigned int offset;
+-	struct inode *inode = filp->f_dentry->d_inode;
++	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct super_block *sb = inode->i_sb;
+ 	befs_data_stream *ds = &BEFS_I(inode)->i_data.ds;
+ 	befs_off_t value;
+@@ -222,7 +222,7 @@ befs_readdir(struct file *filp, void *di
+ 	char keybuf[BEFS_NAME_LEN + 1];
+ 	char *nlsname;
+ 	int nlsnamelen;
+-	const char *dirname = filp->f_dentry->d_name.name;
++	const char *dirname = filp->f_path.dentry->d_name.name;
+ 
+ 	befs_debug(sb, "---> befs_readdir() "
+ 		   "name %s, inode %ld, filp->f_pos %Ld",
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
+struct-path-convert-befs.patch
 struct-path-convert-bfs.patch
 struct-path-convert-block.patch
 struct-path-convert-block_drivers.patch
