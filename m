@@ -1,219 +1,231 @@
 From: akpm@osdl.org
-Subject: - sysfs-change-uses-of-f_dentry.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:01:37 -0800
-Message-ID: <200612082001.kB8K1bxU001884@shell0.pdx.osdl.net>
+Subject: - generic-bug-for-x86-64.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:00:50 -0800
+Message-ID: <200612082000.kB8K0oCE001784@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56849 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56851 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426213AbWLHUBk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:01:40 -0500
+	id S1426206AbWLHUBl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:01:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@muc.de, benh@kernel.crashing.org, hugh@veritas.com, michael@ellerman.id.au, paulus@samba.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: change uses of f_{dentry, vfsmnt} to use f_path
+     Generic BUG for x86-64
 has been removed from the -mm tree.  Its filename was
-     sysfs-change-uses-of-f_dentry.patch
+     generic-bug-for-x86-64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs: change uses of f_{dentry, vfsmnt} to use f_path
-From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+Subject: Generic BUG for x86-64
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the sysfs
-filesystem code.
+This makes x86-64 use the generic BUG machinery.  The most significant
 
-Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+The main advantage in using the generic BUG machinery for x86-64 is that the
+inlined overhead of BUG is just the ud2a instruction; the file+line
+information are no longer inlined into the instruction stream.  This reduces
+cache pollution.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Hugh Dickens <hugh@veritas.com>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/sysfs/bin.c  |   14 +++++++-------
- fs/sysfs/dir.c  |   10 +++++-----
- fs/sysfs/file.c |   16 ++++++++--------
- 3 files changed, 20 insertions(+), 20 deletions(-)
+ arch/x86_64/Kconfig              |    5 +++
+ arch/x86_64/kernel/module.c      |    5 ++-
+ arch/x86_64/kernel/traps.c       |   36 +++++++----------------
+ arch/x86_64/kernel/vmlinux.lds.S |    2 +
+ include/asm-x86_64/bug.h         |   44 ++++++++++++++---------------
+ 5 files changed, 45 insertions(+), 47 deletions(-)
 
-diff -puN fs/sysfs/bin.c~sysfs-change-uses-of-f_dentry fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-change-uses-of-f_dentry
-+++ a/fs/sysfs/bin.c
-@@ -35,7 +35,7 @@ static ssize_t
- read(struct file * file, char __user * userbuf, size_t count, loff_t * off)
- {
- 	char *buffer = file->private_data;
--	struct dentry *dentry = file->f_dentry;
-+	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
- 	int ret;
-@@ -81,7 +81,7 @@ static ssize_t write(struct file * file,
- 		     size_t count, loff_t * off)
- {
- 	char *buffer = file->private_data;
--	struct dentry *dentry = file->f_dentry;
-+	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
+diff -puN arch/x86_64/Kconfig~generic-bug-for-x86-64 arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~generic-bug-for-x86-64
++++ a/arch/x86_64/Kconfig
+@@ -96,6 +96,11 @@ config AUDIT_ARCH
+ 	bool
+ 	default y
  
-@@ -105,7 +105,7 @@ static ssize_t write(struct file * file,
++config GENERIC_BUG
++	bool
++	default y
++	depends on BUG
++
+ source "init/Kconfig"
  
- static int mmap(struct file *file, struct vm_area_struct *vma)
- {
--	struct dentry *dentry = file->f_dentry;
-+	struct dentry *dentry = file->f_path.dentry;
- 	struct bin_attribute *attr = to_bin_attr(dentry);
- 	struct kobject *kobj = to_kobj(dentry->d_parent);
  
-@@ -117,8 +117,8 @@ static int mmap(struct file *file, struc
+diff -puN arch/x86_64/kernel/module.c~generic-bug-for-x86-64 arch/x86_64/kernel/module.c
+--- a/arch/x86_64/kernel/module.c~generic-bug-for-x86-64
++++ a/arch/x86_64/kernel/module.c
+@@ -23,6 +23,7 @@
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
++#include <linux/bug.h>
  
- static int open(struct inode * inode, struct file * file)
- {
--	struct kobject *kobj = sysfs_get_kobject(file->f_dentry->d_parent);
--	struct bin_attribute * attr = to_bin_attr(file->f_dentry);
-+	struct kobject *kobj = sysfs_get_kobject(file->f_path.dentry->d_parent);
-+	struct bin_attribute * attr = to_bin_attr(file->f_path.dentry);
- 	int error = -EINVAL;
- 
- 	if (!kobj || !attr)
-@@ -153,8 +153,8 @@ static int open(struct inode * inode, st
- 
- static int release(struct inode * inode, struct file * file)
- {
--	struct kobject * kobj = to_kobj(file->f_dentry->d_parent);
--	struct bin_attribute * attr = to_bin_attr(file->f_dentry);
-+	struct kobject * kobj = to_kobj(file->f_path.dentry->d_parent);
-+	struct bin_attribute * attr = to_bin_attr(file->f_path.dentry);
- 	u8 * buffer = file->private_data;
- 
- 	if (kobj) 
-diff -puN fs/sysfs/dir.c~sysfs-change-uses-of-f_dentry fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~sysfs-change-uses-of-f_dentry
-+++ a/fs/sysfs/dir.c
-@@ -419,7 +419,7 @@ out:
- 
- static int sysfs_dir_open(struct inode *inode, struct file *file)
- {
--	struct dentry * dentry = file->f_dentry;
-+	struct dentry * dentry = file->f_path.dentry;
- 	struct sysfs_dirent * parent_sd = dentry->d_fsdata;
- 
- 	mutex_lock(&dentry->d_inode->i_mutex);
-@@ -432,7 +432,7 @@ static int sysfs_dir_open(struct inode *
- 
- static int sysfs_dir_close(struct inode *inode, struct file *file)
- {
--	struct dentry * dentry = file->f_dentry;
-+	struct dentry * dentry = file->f_path.dentry;
- 	struct sysfs_dirent * cursor = file->private_data;
- 
- 	mutex_lock(&dentry->d_inode->i_mutex);
-@@ -452,7 +452,7 @@ static inline unsigned char dt_type(stru
- 
- static int sysfs_readdir(struct file * filp, void * dirent, filldir_t filldir)
- {
--	struct dentry *dentry = filp->f_dentry;
-+	struct dentry *dentry = filp->f_path.dentry;
- 	struct sysfs_dirent * parent_sd = dentry->d_fsdata;
- 	struct sysfs_dirent *cursor = filp->private_data;
- 	struct list_head *p, *q = &cursor->s_sibling;
-@@ -509,7 +509,7 @@ static int sysfs_readdir(struct file * f
- 
- static loff_t sysfs_dir_lseek(struct file * file, loff_t offset, int origin)
- {
--	struct dentry * dentry = file->f_dentry;
-+	struct dentry * dentry = file->f_path.dentry;
- 
- 	mutex_lock(&dentry->d_inode->i_mutex);
- 	switch (origin) {
-@@ -519,7 +519,7 @@ static loff_t sysfs_dir_lseek(struct fil
- 			if (offset >= 0)
- 				break;
- 		default:
--			mutex_unlock(&file->f_dentry->d_inode->i_mutex);
-+			mutex_unlock(&file->f_path.dentry->d_inode->i_mutex);
- 			return -EINVAL;
+ #include <asm/system.h>
+ #include <asm/page.h>
+@@ -173,10 +174,12 @@ int module_finalize(const Elf_Ehdr *hdr,
+ 					    lseg, lseg + locks->sh_size,
+ 					    tseg, tseg + text->sh_size);
  	}
- 	if (offset != file->f_pos) {
-diff -puN fs/sysfs/file.c~sysfs-change-uses-of-f_dentry fs/sysfs/file.c
---- a/fs/sysfs/file.c~sysfs-change-uses-of-f_dentry
-+++ a/fs/sysfs/file.c
-@@ -154,7 +154,7 @@ sysfs_read_file(struct file *file, char 
+-	return 0;
++
++	return module_bug_finalize(hdr, sechdrs, me);
+ }
  
- 	down(&buffer->sem);
- 	if (buffer->needs_read_fill) {
--		if ((retval = fill_read_buffer(file->f_dentry,buffer)))
-+		if ((retval = fill_read_buffer(file->f_path.dentry,buffer)))
- 			goto out;
- 	}
- 	pr_debug("%s: count = %zd, ppos = %lld, buf = %s\n",
-@@ -245,7 +245,7 @@ sysfs_write_file(struct file *file, cons
- 	down(&buffer->sem);
- 	len = fill_write_buffer(buffer, buf, count);
- 	if (len > 0)
--		len = flush_write_buffer(file->f_dentry, buffer, len);
-+		len = flush_write_buffer(file->f_path.dentry, buffer, len);
- 	if (len > 0)
- 		*ppos += len;
- 	up(&buffer->sem);
-@@ -254,8 +254,8 @@ sysfs_write_file(struct file *file, cons
- 
- static int check_perm(struct inode * inode, struct file * file)
+ void module_arch_cleanup(struct module *mod)
  {
--	struct kobject *kobj = sysfs_get_kobject(file->f_dentry->d_parent);
--	struct attribute * attr = to_attr(file->f_dentry);
-+	struct kobject *kobj = sysfs_get_kobject(file->f_path.dentry->d_parent);
-+	struct attribute * attr = to_attr(file->f_path.dentry);
- 	struct sysfs_buffer * buffer;
- 	struct sysfs_ops * ops = NULL;
- 	int error = 0;
-@@ -337,8 +337,8 @@ static int sysfs_open_file(struct inode 
+ 	alternatives_smp_module_del(mod);
++	module_bug_cleanup(mod);
+ }
+diff -puN arch/x86_64/kernel/traps.c~generic-bug-for-x86-64 arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~generic-bug-for-x86-64
++++ a/arch/x86_64/kernel/traps.c
+@@ -31,6 +31,7 @@
+ #include <linux/kexec.h>
+ #include <linux/unwind.h>
+ #include <linux/uaccess.h>
++#include <linux/bug.h>
  
- static int sysfs_release(struct inode * inode, struct file * filp)
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -524,30 +525,15 @@ bad:
+ 	printk("\n");
+ }	
+ 
+-void handle_BUG(struct pt_regs *regs)
+-{ 
+-	struct bug_frame f;
+-	long len;
+-	const char *prefix = "";
++int is_valid_bugaddr(unsigned long rip)
++{
++	unsigned short ud2;
+ 
+-	if (user_mode(regs))
+-		return; 
+-	if (__copy_from_user(&f, (const void __user *) regs->rip,
+-			     sizeof(struct bug_frame)))
+-		return; 
+-	if (f.filename >= 0 ||
+-	    f.ud2[0] != 0x0f || f.ud2[1] != 0x0b) 
+-		return;
+-	len = __strnlen_user((char *)(long)f.filename, PATH_MAX) - 1;
+-	if (len < 0 || len >= PATH_MAX)
+-		f.filename = (int)(long)"unmapped filename";
+-	else if (len > 50) {
+-		f.filename += len - 50;
+-		prefix = "...";
+-	}
+-	printk("----------- [cut here ] --------- [please bite here ] ---------\n");
+-	printk(KERN_ALERT "Kernel BUG at %s%.50s:%d\n", prefix, (char *)(long)f.filename, f.line);
+-} 
++	if (__copy_from_user(&ud2, (const void __user *) rip, sizeof(ud2)))
++		return 0;
++
++	return ud2 == 0x0b0f;
++}
+ 
+ #ifdef CONFIG_BUG
+ void out_of_line_bug(void)
+@@ -627,7 +613,9 @@ void die(const char * str, struct pt_reg
  {
--	struct kobject * kobj = to_kobj(filp->f_dentry->d_parent);
--	struct attribute * attr = to_attr(filp->f_dentry);
-+	struct kobject * kobj = to_kobj(filp->f_path.dentry->d_parent);
-+	struct attribute * attr = to_attr(filp->f_path.dentry);
- 	struct module * owner = attr->owner;
- 	struct sysfs_buffer * buffer = filp->private_data;
+ 	unsigned long flags = oops_begin();
  
-@@ -372,8 +372,8 @@ static int sysfs_release(struct inode * 
- static unsigned int sysfs_poll(struct file *filp, poll_table *wait)
- {
- 	struct sysfs_buffer * buffer = filp->private_data;
--	struct kobject * kobj = to_kobj(filp->f_dentry->d_parent);
--	struct sysfs_dirent * sd = filp->f_dentry->d_fsdata;
-+	struct kobject * kobj = to_kobj(filp->f_path.dentry->d_parent);
-+	struct sysfs_dirent * sd = filp->f_path.dentry->d_fsdata;
- 	int res = 0;
+-	handle_BUG(regs);
++	if (!user_mode(regs))
++		report_bug(regs->rip);
++
+ 	__die(str, regs, err);
+ 	oops_end(flags);
+ 	do_exit(SIGSEGV); 
+diff -puN arch/x86_64/kernel/vmlinux.lds.S~generic-bug-for-x86-64 arch/x86_64/kernel/vmlinux.lds.S
+--- a/arch/x86_64/kernel/vmlinux.lds.S~generic-bug-for-x86-64
++++ a/arch/x86_64/kernel/vmlinux.lds.S
+@@ -51,6 +51,8 @@ SECTIONS
  
- 	poll_wait(filp, &kobj->poll, wait);
+   RODATA
+ 
++  BUG_TABLE
++
+   . = ALIGN(PAGE_SIZE);        /* Align data segment to page size boundary */
+ 				/* Data */
+   .data : AT(ADDR(.data) - LOAD_OFFSET) {
+diff -puN include/asm-x86_64/bug.h~generic-bug-for-x86-64 include/asm-x86_64/bug.h
+--- a/include/asm-x86_64/bug.h~generic-bug-for-x86-64
++++ a/include/asm-x86_64/bug.h
+@@ -1,30 +1,30 @@
+ #ifndef __ASM_X8664_BUG_H
+ #define __ASM_X8664_BUG_H 1
+ 
+-#include <linux/stringify.h>
+-
+-/*
+- * Tell the user there is some problem.  The exception handler decodes 
+- * this frame.
+- */
+-struct bug_frame {
+-	unsigned char ud2[2];
+-	unsigned char push;
+-	signed int filename;
+-	unsigned char ret;
+-	unsigned short line;
+-} __attribute__((packed));
+-
+ #ifdef CONFIG_BUG
+ #define HAVE_ARCH_BUG
+-/* We turn the bug frame into valid instructions to not confuse
+-   the disassembler. Thanks to Jan Beulich & Suresh Siddha
+-   for nice instruction selection.
+-   The magic numbers generate mov $64bitimm,%eax ; ret $offset. */
+-#define BUG() 								\
+-	asm volatile(							\
+-	"ud2 ; pushq $%c1 ; ret $%c0" :: 				\
+-		     "i"(__LINE__), "i" (__FILE__))
++
++#ifdef CONFIG_DEBUG_BUGVERBOSE
++#define BUG()								\
++	do {								\
++		asm volatile("1:\tud2\n"				\
++			     ".pushsection __bug_table,\"a\"\n"		\
++			     "2:\t.quad 1b, %c0\n"			\
++			     "\t.word %c1, 0\n"				\
++			     "\t.org 2b+%c2\n"				\
++			     ".popsection"				\
++			     : : "i" (__FILE__), "i" (__LINE__),	\
++			        "i" (sizeof(struct bug_entry)));	\
++		for(;;) ;						\
++	} while(0)
++#else
++#define BUG()								\
++	do {								\
++		asm volatile("ud2");					\
++		for(;;) ;						\
++	} while(0)
++#endif
++
+ void out_of_line_bug(void);
+ #else
+ static inline void out_of_line_bug(void) { }
 _
 
-Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-sysfs-change-uses-of-f_dentry.patch
-proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-ext2-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-ext3-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-fat-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-isofs-change-uses-of-f_dentry.patch
-nfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-ntfs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-i386-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-x86_64-change-uses-of-f_dentry.patch
-kernel-change-uses-of-f_dentry.patch
-mm-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-9p-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-affs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-autofs-change-uses-of-f_dentry.patch
-autofs4-change-uses-of-f_dentry.patch
-configfs-change-uses-of-f_dentry.patch
-cifs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-ecryptfs-change-uses-of-f_dentry.patch
-xfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+origin.patch
+generic-bug-for-x86-64.patch
+uml-add-generic-bug-support.patch
+use-generic-bug-for-ppc.patch
+fix-generic-warn_on-message.patch
+convert-i386-pda-code-to-use-%fs.patch
+time-uninline-jiffiesh-fix.patch
 
