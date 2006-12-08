@@ -1,53 +1,53 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-hfsplus.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:16 -0800
-Message-ID: <200612082003.kB8K3Gfl002055@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-hfs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:03:14 -0800
+Message-ID: <200612082003.kB8K3EQw002052@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57131 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57125 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426261AbWLHUDV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:21 -0500
+	id S1426258AbWLHUDT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:03:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert hfsplus
+     struct path: convert hfs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-hfsplus.patch
+     struct-path-convert-hfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert hfsplus
+Subject: struct path: convert hfs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/hfsplus/dir.c   |    2 +-
- fs/hfsplus/inode.c |    2 +-
+ fs/hfs/dir.c   |    2 +-
+ fs/hfs/inode.c |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/hfsplus/dir.c~struct-path-convert-hfsplus fs/hfsplus/dir.c
---- a/fs/hfsplus/dir.c~struct-path-convert-hfsplus
-+++ a/fs/hfsplus/dir.c
-@@ -111,7 +111,7 @@ fail:
- 
- static int hfsplus_readdir(struct file *filp, void *dirent, filldir_t filldir)
+diff -puN fs/hfs/dir.c~struct-path-convert-hfs fs/hfs/dir.c
+--- a/fs/hfs/dir.c~struct-path-convert-hfs
++++ a/fs/hfs/dir.c
+@@ -53,7 +53,7 @@ done:
+  */
+ static int hfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
  {
 -	struct inode *inode = filp->f_dentry->d_inode;
 +	struct inode *inode = filp->f_path.dentry->d_inode;
  	struct super_block *sb = inode->i_sb;
  	int len, err;
- 	char strbuf[HFSPLUS_MAX_STRLEN + 1];
-diff -puN fs/hfsplus/inode.c~struct-path-convert-hfsplus fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~struct-path-convert-hfsplus
-+++ a/fs/hfsplus/inode.c
-@@ -97,7 +97,7 @@ static ssize_t hfsplus_direct_IO(int rw,
+ 	char strbuf[HFS_MAX_NAMELEN];
+diff -puN fs/hfs/inode.c~struct-path-convert-hfs fs/hfs/inode.c
+--- a/fs/hfs/inode.c~struct-path-convert-hfs
++++ a/fs/hfs/inode.c
+@@ -102,7 +102,7 @@ static ssize_t hfs_direct_IO(int rw, str
  		const struct iovec *iov, loff_t offset, unsigned long nr_segs)
  {
  	struct file *file = iocb->ki_filp;
@@ -55,11 +55,12 @@ diff -puN fs/hfsplus/inode.c~struct-path-convert-hfsplus fs/hfsplus/inode.c
 +	struct inode *inode = file->f_path.dentry->d_inode->i_mapping->host;
  
  	return blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
- 				  offset, nr_segs, hfsplus_get_block, NULL);
+ 				  offset, nr_segs, hfs_get_block, NULL);
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
+struct-path-convert-hfs.patch
 struct-path-convert-hfsplus.patch
 struct-path-convert-hostfs.patch
 struct-path-convert-hpfs.patch
