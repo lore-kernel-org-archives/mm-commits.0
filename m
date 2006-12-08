@@ -1,71 +1,69 @@
 From: akpm@osdl.org
-Subject: - tty-switch-to-ktermios-uml-fix-2.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:55:14 -0800
-Message-ID: <200612080855.kB88tEpa014101@shell0.pdx.osdl.net>
+Subject: - tty-switch-to-ktermios-sclp-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:54:56 -0800
+Message-ID: <200612080854.kB88suS1014083@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37555 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37561 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425241AbWLHIzX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:55:23 -0500
+	id S1425243AbWLHIza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:55:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@redhat.com, mm-commits@vger.kernel.org
+To: mp3@de.ibm.com, alan@redhat.com, cornelia.huck@de.ibm.com, oberpar@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: escaped ktermios conversion
+     tty-switch-to-ktermios sclp fix
 has been removed from the -mm tree.  Its filename was
-     tty-switch-to-ktermios-uml-fix-2.patch
+     tty-switch-to-ktermios-sclp-fix.patch
 
 This patch was dropped because it was folded into tty-switch-to-ktermios.patch
 
 ------------------------------------------------------
-Subject: usb: escaped ktermios conversion
-From: Alan Cox <alan@redhat.com>
+Subject: tty-switch-to-ktermios sclp fix
+From: Martin Peschke <mp3@de.ibm.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Extern declaration of tty_std_termios in sclp_tty was a hack
+which is obsolete.
+
+  CC      drivers/s390/char/sclp_tty.o
+drivers/s390/char/sclp_tty.c:63: error: conflicting types for 'tty_std_termios'
+include/linux/tty.h:261: error: previous declaration of 'tty_std_termios' was here
+drivers/s390/char/sclp_tty.c: In function 'sclp_tty_init':
+drivers/s390/char/sclp_tty.c:790: error: incompatible types in assignment
+make[2]: *** [drivers/s390/char/sclp_tty.o] Error 1
+make[1]: *** [drivers/s390/char] Error 2
+make: *** [drivers/s390] Error 2
+Kernel compilation...FAILED
+
+Signed-off-by: Martin Peschke <mp3@de.ibm.com>
+Acked-by: Peter Oberparleiter <oberpar@de.ibm.com>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/serial/sierra.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/s390/char/sclp_tty.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/usb/serial/sierra.c~tty-switch-to-ktermios-uml-fix-2 drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~tty-switch-to-ktermios-uml-fix-2
-+++ a/drivers/usb/serial/sierra.c
-@@ -145,7 +145,7 @@ static void sierra_break_ctl(struct usb_
- }
+diff -puN drivers/s390/char/sclp_tty.c~tty-switch-to-ktermios-sclp-fix drivers/s390/char/sclp_tty.c
+--- a/drivers/s390/char/sclp_tty.c~tty-switch-to-ktermios-sclp-fix
++++ a/drivers/s390/char/sclp_tty.c
+@@ -60,8 +60,6 @@ static unsigned short int sclp_tty_chars
  
- static void sierra_set_termios(struct usb_serial_port *port,
--			struct termios *old_termios)
-+			struct ktermios *old_termios)
+ struct tty_driver *sclp_tty_driver;
+ 
+-extern struct termios  tty_std_termios;
+-
+ static struct sclp_ioctls sclp_ioctls;
+ static struct sclp_ioctls sclp_ioctls_init =
  {
- 	dbg("%s", __FUNCTION__);
- 
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from mp3@de.ibm.com are
 
-origin.patch
-tty-signal-tty-locking.patch
-pci-mxser-pci-refcounts.patch
-tty-preparatory-structures-for-termios-revamp.patch
-tty-switch-to-ktermios-and-new-framework.patch
 tty-switch-to-ktermios.patch
-tty-switch-to-ktermios-uml-fix-2.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-fix.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2-update.patch
-termios-enable-new-style-termios-ioctls-on-x86-64.patch
-char-isicom-expand-function.patch
-char-isicom-rename-init-function.patch
-char-isicom-remove-isa-code.patch
-char-isicom-remove-unneeded-memset.patch
-char-isicom-move-to-tty_register_device.patch
-char-isicom-use-pci_request_region.patch
-char-isicom-check-kmalloc-retval.patch
-drivers-isdn-trivial-vsnprintf-conversion.patch
-ide-more-conversion-to-pci_get-apis.patch
-igafb-switch-to-pci_get-api.patch
+tty-switch-to-ktermios-sclp-fix.patch
+tty-switch-to-ktermios-3270-fix.patch
 
