@@ -1,88 +1,52 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-gfs2.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:11 -0800
-Message-ID: <200612082003.kB8K3Btu002049@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-jfs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:03:55 -0800
+Message-ID: <200612082003.kB8K3tL7002123@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57118 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57228 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426268AbWLHUDP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:15 -0500
+	id S1426251AbWLHUEA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:04:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert gfs2
+     struct path: convert jfs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-gfs2.patch
+     struct-path-convert-jfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert gfs2
+Subject: struct path: convert jfs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/gfs2/ops_file.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/jfs/jfs_dtree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/gfs2/ops_file.c~struct-path-convert-gfs2 fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~struct-path-convert-gfs2
-+++ a/fs/gfs2/ops_file.c
-@@ -247,7 +247,7 @@ static const u32 gfs2_to_fsflags[32] = {
- 
- static int gfs2_get_flags(struct file *filp, u32 __user *ptr)
- {
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct gfs2_inode *ip = GFS2_I(inode);
- 	struct gfs2_holder gh;
- 	int error;
-@@ -305,7 +305,7 @@ void gfs2_set_inode_flags(struct inode *
+diff -puN fs/jfs/jfs_dtree.c~struct-path-convert-jfs fs/jfs/jfs_dtree.c
+--- a/fs/jfs/jfs_dtree.c~struct-path-convert-jfs
++++ a/fs/jfs/jfs_dtree.c
+@@ -3009,7 +3009,7 @@ static inline struct jfs_dirent *next_jf
   */
- static int do_gfs2_set_flags(struct file *filp, u32 reqflags, u32 mask)
+ int jfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
  {
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct gfs2_inode *ip = GFS2_I(inode);
- 	struct gfs2_sbd *sdp = GFS2_SB(inode);
- 	struct buffer_head *bh;
-@@ -588,7 +588,7 @@ static int do_flock(struct file *file, i
- {
- 	struct gfs2_file *fp = file->private_data;
- 	struct gfs2_holder *fl_gh = &fp->f_fl_gh;
--	struct gfs2_inode *ip = GFS2_I(file->f_dentry->d_inode);
-+	struct gfs2_inode *ip = GFS2_I(file->f_path.dentry->d_inode);
- 	struct gfs2_glock *gl;
- 	unsigned int state;
- 	int flags;
+-	struct inode *ip = filp->f_dentry->d_inode;
++	struct inode *ip = filp->f_path.dentry->d_inode;
+ 	struct nls_table *codepage = JFS_SBI(ip->i_sb)->nls_tab;
+ 	int rc = 0;
+ 	loff_t dtpos;	/* legacy OS/2 style position */
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-gfs2.patch
-struct-path-convert-hfs.patch
-struct-path-convert-hfsplus.patch
-struct-path-convert-hostfs.patch
-struct-path-convert-hpfs.patch
-struct-path-convert-hppfs.patch
-struct-path-convert-hugetlbfs.patch
-struct-path-convert-i2c-drivers.patch
-struct-path-convert-ia64.patch
-struct-path-convert-ieee1394.patch
-struct-path-convert-infiniband.patch
-struct-path-convert-ipc.patch
-struct-path-convert-ipmi.patch
-struct-path-convert-isapnp.patch
-struct-path-convert-isdn.patch
-struct-path-convert-ixj.patch
-struct-path-convert-jffs.patch
-struct-path-convert-jffs2.patch
 struct-path-convert-jfs.patch
 struct-path-convert-kernel.patch
 struct-path-convert-lockd.patch
