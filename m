@@ -1,30 +1,31 @@
 From: akpm@osdl.org
-Subject: - gxfb-fixup-flatpanel-detection.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:14:43 -0800
-Message-ID: <200612082014.kB8KEhE7003211@shell0.pdx.osdl.net>
+Subject: - gxfb-turn-on-the-flatpanel-power-and-data.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:14:46 -0800
+Message-ID: <200612082014.kB8KEkq9003214@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59869 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59872 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946857AbWLHUOy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:14:54 -0500
+	id S1946875AbWLHUOz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:14:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jordan.crouse@amd.com, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gxfb: Fixup flatpanel detection
+     gxfb: Turn on the flatpanel power and data
 has been removed from the -mm tree.  Its filename was
-     gxfb-fixup-flatpanel-detection.patch
+     gxfb-turn-on-the-flatpanel-power-and-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gxfb: Fixup flatpanel detection
+Subject: gxfb: Turn on the flatpanel power and data
 From: Jordan Crouse <jordan.crouse@amd.com>
 
-Use the right MSR and bits to detect if the GX is strapped for TFT or CRT
+For Geode devices without a flatpanel aware BIOS, this enables the flatpanel
+power and data.
 
 Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
@@ -32,53 +33,59 @@ Acked-by: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/geode/display_gx.h |    2 +-
- drivers/video/geode/gxfb_core.c  |    2 +-
- drivers/video/geode/video_gx.h   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/geode/video_gx.c |   13 +++++++++++--
+ drivers/video/geode/video_gx.h |    2 ++
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/geode/display_gx.h~gxfb-fixup-flatpanel-detection drivers/video/geode/display_gx.h
---- a/drivers/video/geode/display_gx.h~gxfb-fixup-flatpanel-detection
-+++ a/drivers/video/geode/display_gx.h
-@@ -18,7 +18,7 @@ extern struct geode_dc_ops gx_dc_ops;
+diff -puN drivers/video/geode/video_gx.c~gxfb-turn-on-the-flatpanel-power-and-data drivers/video/geode/video_gx.c
+--- a/drivers/video/geode/video_gx.c~gxfb-turn-on-the-flatpanel-power-and-data
++++ a/drivers/video/geode/video_gx.c
+@@ -220,7 +220,13 @@ gx_configure_tft(struct fb_info *info)
+ 	/*  Set the dither control */
+ 	writel(0x70, par->vid_regs + GX_FP_DFC);
  
- /* MSR that tells us if a TFT or CRT is attached */
- #define GLD_MSR_CONFIG   0xC0002001
--#define GLD_MSR_CONFIG_FMT_FP 0x01
-+#define GLD_MSR_CONFIG_DM_FP 0x40
+-	/* Turn on the device */
++	/* Enable the FP data and power (in case the BIOS didn't) */
++
++	fp = readl(par->vid_regs + GX_DCFG);
++	fp |= GX_DCFG_FP_PWR_EN | GX_DCFG_FP_DATA_EN;
++	writel(fp, par->vid_regs + GX_DCFG);
++
++	/* Unblank the panel */
  
- /* Display controller registers */
+ 	fp = readl(par->vid_regs + GX_FP_PM);
+ 	fp |= GX_FP_PM_P;
+@@ -245,9 +251,12 @@ static void gx_configure_display(struct 
+ 	writel(misc, par->vid_regs + GX_MISC);
  
-diff -puN drivers/video/geode/gxfb_core.c~gxfb-fixup-flatpanel-detection drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~gxfb-fixup-flatpanel-detection
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -328,7 +328,7 @@ static int __init gxfb_probe(struct pci_
+ 	/* Write the display configuration */
+-
+ 	dcfg = readl(par->vid_regs + GX_DCFG);
  
- 	rdmsrl(GLD_MSR_CONFIG, val);
- 
--	if (val & GLD_MSR_CONFIG_FMT_FP)
-+	if ((val & GLD_MSR_CONFIG_DM_FP) == GLD_MSR_CONFIG_DM_FP)
- 		par->enable_crt = 0;
- 	else
- 		par->enable_crt = 1;
-diff -puN drivers/video/geode/video_gx.h~gxfb-fixup-flatpanel-detection drivers/video/geode/video_gx.h
---- a/drivers/video/geode/video_gx.h~gxfb-fixup-flatpanel-detection
++	/* Disable hsync and vsync */
++	dcfg &= ~(GX_DCFG_VSYNC_EN | GX_DCFG_HSYNC_EN);
++	writel(dcfg, par->vid_regs + GX_DCFG);
++
+ 	/* Clear bits from existing mode. */
+ 	dcfg &= ~(GX_DCFG_CRT_SYNC_SKW_MASK
+ 		  | GX_DCFG_CRT_HSYNC_POL   | GX_DCFG_CRT_VSYNC_POL
+diff -puN drivers/video/geode/video_gx.h~gxfb-turn-on-the-flatpanel-power-and-data drivers/video/geode/video_gx.h
+--- a/drivers/video/geode/video_gx.h~gxfb-turn-on-the-flatpanel-power-and-data
 +++ a/drivers/video/geode/video_gx.h
-@@ -14,7 +14,7 @@
- extern struct geode_vid_ops gx_vid_ops;
- 
- /* GX Flatpanel control MSR */
--#define GX_VP_MSR_PAD_SELECT           0x2011
-+#define GX_VP_MSR_PAD_SELECT           0xC0002011
- #define GX_VP_PAD_SELECT_MASK          0x3FFFFFFF
- #define GX_VP_PAD_SELECT_TFT           0x1FFFFFFF
- 
+@@ -25,6 +25,8 @@ extern struct geode_vid_ops gx_vid_ops;
+ #  define GX_DCFG_HSYNC_EN		0x00000002
+ #  define GX_DCFG_VSYNC_EN		0x00000004
+ #  define GX_DCFG_DAC_BL_EN		0x00000008
++#  define GX_DCFG_FP_PWR_EN		0x00000040
++#  define GX_DCFG_FP_DATA_EN		0x00000080
+ #  define GX_DCFG_CRT_HSYNC_POL		0x00000100
+ #  define GX_DCFG_CRT_VSYNC_POL		0x00000200
+ #  define GX_DCFG_CRT_SYNC_SKW_MASK	0x0001C000
 _
 
 Patches currently in -mm which might be from jordan.crouse@amd.com are
 
 origin.patch
-gxfb-fixup-flatpanel-detection.patch
 gxfb-turn-on-the-flatpanel-power-and-data.patch
 acpi-clear-gpe-before-disabling-it.patch
 
