@@ -1,218 +1,251 @@
 From: akpm@osdl.org
-Subject: - fault-injection-correct-disambiguate-and.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:11:33 -0800
-Message-ID: <200612082011.kB8KBXPX002929@shell0.pdx.osdl.net>
+Subject: - sysctl-simplify-sysctl_uts_string.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:11:52 -0800
+Message-ID: <200612082011.kB8KBqu8002957@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59165 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59163 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946614AbWLHUL4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:11:56 -0500
+	id S1946642AbWLHULz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:11:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwm@meer.net, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault-injection: Correct, disambiguate, and reformat documentation
+     sysctl: simplify sysctl_uts_string
 has been removed from the -mm tree.  Its filename was
-     fault-injection-correct-disambiguate-and.patch
+     sysctl-simplify-sysctl_uts_string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault-injection: Correct, disambiguate, and reformat documentation
-From: Don Mullis <dwm@meer.net>
+Subject: sysctl: simplify sysctl_uts_string
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
-Correct, disambiguate, and reformat documentation.
+The binary interface to the namespace sysctls was never implemented resulting
+in some really weird things if you attempted to use sys_sysctl to read your
+hostname for example.
 
-Signed-off-by: Don Mullis <dwm@meer.net>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+This patch series simples the code a little and implements the binary sysctl
+interface.
+
+In testing this patch series I discovered that our 32bit compatibility for the
+binary sysctl interface is imperfect.  In particular KERN_SHMMAX and
+KERN_SMMALL are size_t sized quantities and are returned as 8 bytes on to
+32bit binaries using a x86_64 kernel.  However this has existing for a long
+time so it is not a new regression with the namespace work.
+
+Gads the whole sysctl thing needs work before it stops being easy to shoot
+yourself in the foot.
+
+Looking forward a little bit we need a better way to handle sysctls and
+namespaces as our current technique will not work for the network namespace. 
+I think something based on the current overlapping sysctl trees will work but
+the proc side needs to be redone before we can use it.
+
+
+
+This patch:
+
+Introduce get_uts() and put_uts() (used later) and remove most of the special
+cases for when UTS namespace is compiled in.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/fault-injection/failmodule.sh       |    4 
- Documentation/fault-injection/fault-injection.txt |   70 ++++++------
- 2 files changed, 37 insertions(+), 37 deletions(-)
+ kernel/sysctl.c |  128 +++++++++-------------------------------------
+ 1 file changed, 26 insertions(+), 102 deletions(-)
 
-diff -puN Documentation/fault-injection/failmodule.sh~fault-injection-correct-disambiguate-and Documentation/fault-injection/failmodule.sh
---- a/Documentation/fault-injection/failmodule.sh~fault-injection-correct-disambiguate-and
-+++ a/Documentation/fault-injection/failmodule.sh
-@@ -26,6 +26,6 @@ fi
- # Disable any fault injection
- echo 0 > /debug/$1/stacktrace-depth
+diff -puN kernel/sysctl.c~sysctl-simplify-sysctl_uts_string kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-simplify-sysctl_uts_string
++++ a/kernel/sysctl.c
+@@ -163,6 +163,28 @@ extern ctl_table inotify_table[];
+ int sysctl_legacy_va_layout;
+ #endif
  
--echo `cat /sys/module/$2/sections/.text` > /debug/$1/address-start
--echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/address-end
-+echo `cat /sys/module/$2/sections/.text` > /debug/$1/require-start
-+echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/require-end
- echo $STACKTRACE_DEPTH > /debug/$1/stacktrace-depth
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-correct-disambiguate-and Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-correct-disambiguate-and
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -17,7 +17,7 @@ o fail_page_alloc
++static void *get_uts(ctl_table *table, int write)
++{
++	char *which = table->data;
++#ifdef CONFIG_UTS_NS
++	struct uts_namespace *uts_ns = current->nsproxy->uts_ns;
++	which = (which - (char *)&init_uts_ns) + (char *)uts_ns;
++#endif
++	if (!write)
++		down_read(&uts_sem);
++	else
++		down_write(&uts_sem);
++	return which;
++}
++
++static void put_uts(ctl_table *table, int write, void *which)
++{
++	if (!write)
++		up_read(&uts_sem);
++	else
++		up_write(&uts_sem);
++}
++
+ /* /proc declarations: */
  
- o fail_make_request
+ #ifdef CONFIG_PROC_SYSCTL
+@@ -229,7 +251,6 @@ static ctl_table root_table[] = {
+ };
  
--  injects disk IO errors on permitted devices by
-+  injects disk IO errors on devices permitted by setting
-   /sys/block/<device>/make-it-fail or
-   /sys/block/<device>/<partition>/make-it-fail. (generic_make_request())
+ static ctl_table kern_table[] = {
+-#ifndef CONFIG_UTS_NS
+ 	{
+ 		.ctl_name	= KERN_OSTYPE,
+ 		.procname	= "ostype",
+@@ -275,54 +296,6 @@ static ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_do_uts_string,
+ 		.strategy	= &sysctl_string,
+ 	},
+-#else  /* !CONFIG_UTS_NS */
+-	{
+-		.ctl_name	= KERN_OSTYPE,
+-		.procname	= "ostype",
+-		.data		= NULL,
+-		/* could maybe use __NEW_UTS_LEN here? */
+-		.maxlen		= FIELD_SIZEOF(struct new_utsname, sysname),
+-		.mode		= 0444,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_string,
+-	},
+-	{
+-		.ctl_name	= KERN_OSRELEASE,
+-		.procname	= "osrelease",
+-		.data		= NULL,
+-		.maxlen		= FIELD_SIZEOF(struct new_utsname, release),
+-		.mode		= 0444,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_string,
+-	},
+-	{
+-		.ctl_name	= KERN_VERSION,
+-		.procname	= "version",
+-		.data		= NULL,
+-		.maxlen		= FIELD_SIZEOF(struct new_utsname, version),
+-		.mode		= 0444,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_string,
+-	},
+-	{
+-		.ctl_name	= KERN_NODENAME,
+-		.procname	= "hostname",
+-		.data		= NULL,
+-		.maxlen		= FIELD_SIZEOF(struct new_utsname, nodename),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_string,
+-	},
+-	{
+-		.ctl_name	= KERN_DOMAINNAME,
+-		.procname	= "domainname",
+-		.data		= NULL,
+-		.maxlen		= FIELD_SIZEOF(struct new_utsname, domainname),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_string,
+-	},
+-#endif /* !CONFIG_UTS_NS */
+ 	{
+ 		.ctl_name	= KERN_PANIC,
+ 		.procname	= "panic",
+@@ -1753,66 +1726,17 @@ int proc_dostring(ctl_table *table, int 
+  *	Special case of dostring for the UTS structure. This has locks
+  *	to observe. Should this be in kernel/sys.c ????
+  */
+- 
+-#ifndef CONFIG_UTS_NS
+-static int proc_do_uts_string(ctl_table *table, int write, struct file *filp,
+-		  void __user *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	int r;
  
-@@ -29,16 +29,16 @@ o debugfs entries
- fault-inject-debugfs kernel module provides some debugfs entries for runtime
- configuration of fault-injection capabilities.
+-	if (!write) {
+-		down_read(&uts_sem);
+-		r=proc_dostring(table,0,filp,buffer,lenp, ppos);
+-		up_read(&uts_sem);
+-	} else {
+-		down_write(&uts_sem);
+-		r=proc_dostring(table,1,filp,buffer,lenp, ppos);
+-		up_write(&uts_sem);
+-	}
+-	return r;
+-}
+-#else /* !CONFIG_UTS_NS */
+ static int proc_do_uts_string(ctl_table *table, int write, struct file *filp,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int r;
+-	struct uts_namespace* uts_ns = current->nsproxy->uts_ns;
+-	char* which;
+-
+-	switch (table->ctl_name) {
+-	case KERN_OSTYPE:
+-		which = uts_ns->name.sysname;
+-		break;
+-	case KERN_NODENAME:
+-		which = uts_ns->name.nodename;
+-		break;
+-	case KERN_OSRELEASE:
+-		which = uts_ns->name.release;
+-		break;
+-	case KERN_VERSION:
+-		which = uts_ns->name.version;
+-		break;
+-	case KERN_DOMAINNAME:
+-		which = uts_ns->name.domainname;
+-		break;
+-	default:
+-		r = -EINVAL;
+-		goto out;
+-	}
+-
+-	if (!write) {
+-		down_read(&uts_sem);
+-		r=_proc_do_string(which,table->maxlen,0,filp,buffer,lenp, ppos);
+-		up_read(&uts_sem);
+-	} else {
+-		down_write(&uts_sem);
+-		r=_proc_do_string(which,table->maxlen,1,filp,buffer,lenp, ppos);
+-		up_write(&uts_sem);
+-	}
+- out:
++	void *which;
++	which = get_uts(table, write);
++	r = _proc_do_string(which, table->maxlen,write,filp,buffer,lenp, ppos);
++	put_uts(table, write, which);
+ 	return r;
+ }
+-#endif /* !CONFIG_UTS_NS */
  
--- /debug/*/probability:
-+- /debug/fail*/probability:
- 
- 	likelihood of failure injection, in percent.
- 	Format: <percent>
- 
--	Note that one-failure-per-handred is a very high error rate
--	for some testcases. Please set probably=100 and configure
--	/debug/*/interval for such testcases.
-+	Note that one-failure-per-hundred is a very high error rate
-+	for some testcases.  Consider setting probability=100 and configure
-+	/debug/fail*/interval for such testcases.
- 
--- /debug/*/interval:
-+- /debug/fail*/interval:
- 
- 	specifies the interval between failures, for calls to
- 	should_fail() that pass all the other tests.
-@@ -46,37 +46,36 @@ configuration of fault-injection capabil
- 	Note that if you enable this, by setting interval>1, you will
- 	probably want to set probability=100.
- 
--- /debug/*/times:
-+- /debug/fail*/times:
- 
- 	specifies how many times failures may happen at most.
- 	A value of -1 means "no limit".
- 
--- /debug/*/space:
-+- /debug/fail*/space:
- 
- 	specifies an initial resource "budget", decremented by "size"
- 	on each call to should_fail(,size).  Failure injection is
- 	suppressed until "space" reaches zero.
- 
--- /debug/*/verbose
-+- /debug/fail*/verbose
- 
- 	Format: { 0 | 1 | 2 }
--	specifies the verbosity of the messages when failure is injected.
--	We default to 0 (no extra messages), setting it to '1' will
--	print only to tell failure happened, '2' will print call trace too -
--	it is useful to debug the problems revealed by fault injection
--	capabilities.
-+	specifies the verbosity of the messages when failure is
-+	injected.  '0' means no messages; '1' will print only a single
-+	log line per failure; '2' will print a call trace too -- useful
-+	to debug the problems revealed by fault injection.
- 
--- /debug/*/task-filter:
-+- /debug/fail*/task-filter:
- 
--	Format: { 0 | 1 }
--	A value of '0' disables filtering by process (default).
-+	Format: { 'Y' | 'N' }
-+	A value of 'N' disables filtering by process (default).
- 	Any positive value limits failures to only processes indicated by
- 	/proc/<pid>/make-it-fail==1.
- 
--- /debug/*/require-start:
--- /debug/*/require-end:
--- /debug/*/reject-start:
--- /debug/*/reject-end:
-+- /debug/fail*/require-start:
-+- /debug/fail*/require-end:
-+- /debug/fail*/reject-start:
-+- /debug/fail*/reject-end:
- 
- 	specifies the range of virtual addresses tested during
- 	stacktrace walking.  Failure is injected only if some caller
-@@ -85,22 +84,23 @@ configuration of fault-injection capabil
- 	Default required range is [0,ULONG_MAX) (whole of virtual address space).
- 	Default rejected range is [0,0).
- 
--- /debug/*/stacktrace-depth:
-+- /debug/fail*/stacktrace-depth:
- 
- 	specifies the maximum stacktrace depth walked during search
--	for a caller within [address-start,address-end).
-+	for a caller within [require-start,require-end) OR
-+	[reject-start,reject-end).
- 
- - /debug/fail_page_alloc/ignore-gfp-highmem:
- 
--	Format: { 0 | 1 }
--	default is 0, setting it to '1' won't inject failures into
-+	Format: { 'Y' | 'N' }
-+	default is 'N', setting it to 'Y' won't inject failures into
- 	highmem/user allocations.
- 
- - /debug/failslab/ignore-gfp-wait:
- - /debug/fail_page_alloc/ignore-gfp-wait:
- 
--	Format: { 0 | 1 }
--	default is 0, setting it to '1' will inject failures
-+	Format: { 'Y' | 'N' }
-+	default is 'N', setting it to 'Y' will inject failures
- 	only into non-sleep allocations (GFP_ATOMIC allocations).
- 
- o Boot option
-@@ -124,22 +124,22 @@ o define the fault attributes
-   Please see the definition of struct fault_attr in fault-inject.h
-   for details.
- 
--o provide the way to configure fault attributes
-+o provide a way to configure fault attributes
- 
- - boot option
- 
-   If you need to enable the fault injection capability from boot time, you can
--  provide boot option to configure it. There is a helper function for it.
-+  provide boot option to configure it. There is a helper function for it:
- 
--  setup_fault_attr(attr, str);
-+	setup_fault_attr(attr, str);
- 
- - debugfs entries
- 
-   failslab, fail_page_alloc, and fail_make_request use this way.
--  There is a helper function for it.
-+  Helper functions:
- 
--  init_fault_attr_entries(entries, attr, name);
--  void cleanup_fault_attr_entries(entries);
-+	init_fault_attr_entries(entries, attr, name);
-+	void cleanup_fault_attr_entries(entries);
- 
- - module parameters
- 
-@@ -149,9 +149,9 @@ o provide the way to configure fault att
- 
- o add a hook to insert failures
- 
--  should_fail() returns 1 when failures should happen.
-+  Upon should_fail() returning true, client code should inject a failure.
- 
--	should_fail(attr,size);
-+	should_fail(attr, size);
- 
- Application Examples
- --------------------
+ static int do_proc_dointvec_conv(int *negp, unsigned long *lvalp,
+ 				 int *valp,
 _
 
-Patches currently in -mm which might be from dwm@meer.net are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-fault-injection-correct-disambiguate-and.patch
-fault-injection-use-bool-true-false-throughout.patch
-fault-injection-clamp-debugfs-stacktrace-depth-to.patch
-fault-injection-optimize-and-simplify.patch
-fault-injection-defaults-likely-to-please-a-new.patch
-kconfig-refactoring-for-better-menu-nesting.patch
-sched-improve-migration-accuracy-fix.patch
+origin.patch
+sysctl-simplify-sysctl_uts_string.patch
+sysctl-implement-sysctl_uts_string.patch
+sysctl-simplify-ipc-ns-specific-sysctls.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+updated-i386-cleanup-apic-code.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-dynticks-fix-nmi-watchdog.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+pidhash-temporary-debug-checks.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
 
