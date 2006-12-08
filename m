@@ -1,163 +1,327 @@
 From: akpm@osdl.org
-Subject: - nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:01:54 -0800
-Message-ID: <200612082001.kB8K1sHf001919@shell0.pdx.osdl.net>
+Subject: - proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:01:40 -0800
+Message-ID: <200612082001.kB8K1erP001891@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56917 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56896 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426219AbWLHUB4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:01:56 -0500
+	id S1426217AbWLHUBv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:01:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd: change uses of f_{dentry, vfsmnt} to use f_path
+     proc: change uses of f_{dentry, vfsmnt} to use f_path
 has been removed from the -mm tree.  Its filename was
-     nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+     proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfsd: change uses of f_{dentry, vfsmnt} to use f_path
+Subject: proc: change uses of f_{dentry, vfsmnt} to use f_path
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the nfs
-server code.
+Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the proc
+filesystem code.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/nfs4state.c |   10 +++++-----
- fs/nfsd/nfsctl.c    |    2 +-
- fs/nfsd/vfs.c       |   16 ++++++++--------
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ fs/proc/base.c       |   36 ++++++++++++++++++------------------
+ fs/proc/generic.c    |   10 +++++-----
+ fs/proc/nommu.c      |    4 ++--
+ fs/proc/task_mmu.c   |    8 ++++----
+ fs/proc/task_nommu.c |    4 ++--
+ 5 files changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN fs/nfsd/nfs4state.c~nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path
-+++ a/fs/nfsd/nfs4state.c
-@@ -1310,7 +1310,7 @@ static inline void
- nfs4_file_downgrade(struct file *filp, unsigned int share_access)
+diff -puN fs/proc/base.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/proc/base.c
+--- a/fs/proc/base.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path
++++ a/fs/proc/base.c
+@@ -472,7 +472,7 @@ static struct file_operations proc_mount
+ static ssize_t proc_info_read(struct file * file, char __user * buf,
+ 			  size_t count, loff_t *ppos)
  {
- 	if (share_access & NFS4_SHARE_ACCESS_WRITE) {
--		put_write_access(filp->f_dentry->d_inode);
-+		put_write_access(filp->f_path.dentry->d_inode);
- 		filp->f_mode = (filp->f_mode | FMODE_READ) & ~FMODE_WRITE;
- 	}
- }
-@@ -1623,7 +1623,7 @@ static __be32
- nfs4_upgrade_open(struct svc_rqst *rqstp, struct svc_fh *cur_fh, struct nfs4_stateid *stp, struct nfsd4_open *open)
+-	struct inode * inode = file->f_dentry->d_inode;
++	struct inode * inode = file->f_path.dentry->d_inode;
+ 	unsigned long page;
+ 	ssize_t length;
+ 	struct task_struct *task = get_proc_task(inode);
+@@ -512,7 +512,7 @@ static int mem_open(struct inode* inode,
+ static ssize_t mem_read(struct file * file, char __user * buf,
+ 			size_t count, loff_t *ppos)
  {
- 	struct file *filp = stp->st_vfs_file;
+-	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
++	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
+ 	char *page;
+ 	unsigned long src = *ppos;
+ 	int ret = -ESRCH;
+@@ -584,7 +584,7 @@ static ssize_t mem_write(struct file * f
+ {
+ 	int copied;
+ 	char *page;
+-	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
++	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
+ 	unsigned long dst = *ppos;
+ 
+ 	copied = -ESRCH;
+@@ -654,7 +654,7 @@ static struct file_operations proc_mem_o
+ static ssize_t oom_adjust_read(struct file *file, char __user *buf,
+ 				size_t count, loff_t *ppos)
+ {
+-	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
++	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
+ 	char buffer[PROC_NUMBUF];
+ 	size_t len;
+ 	int oom_adjust;
+@@ -694,7 +694,7 @@ static ssize_t oom_adjust_write(struct f
+ 		return -EINVAL;
+ 	if (*end == '\n')
+ 		end++;
+-	task = get_proc_task(file->f_dentry->d_inode);
++	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+ 	if (oom_adjust < task->oomkilladj && !capable(CAP_SYS_RESOURCE)) {
+@@ -718,7 +718,7 @@ static struct file_operations proc_oom_a
+ static ssize_t proc_loginuid_read(struct file * file, char __user * buf,
+ 				  size_t count, loff_t *ppos)
+ {
+-	struct inode * inode = file->f_dentry->d_inode;
++	struct inode * inode = file->f_path.dentry->d_inode;
+ 	struct task_struct *task = get_proc_task(inode);
+ 	ssize_t length;
+ 	char tmpbuf[TMPBUFLEN];
+@@ -734,7 +734,7 @@ static ssize_t proc_loginuid_read(struct
+ static ssize_t proc_loginuid_write(struct file * file, const char __user * buf,
+ 				   size_t count, loff_t *ppos)
+ {
+-	struct inode * inode = file->f_dentry->d_inode;
++	struct inode * inode = file->f_path.dentry->d_inode;
+ 	char *page, *tmp;
+ 	ssize_t length;
+ 	uid_t loginuid;
+@@ -1078,7 +1078,7 @@ static int proc_fill_cache(struct file *
+ 	char *name, int len,
+ 	instantiate_t instantiate, struct task_struct *task, void *ptr)
+ {
+-	struct dentry *child, *dir = filp->f_dentry;
++	struct dentry *child, *dir = filp->f_path.dentry;
+ 	struct inode *inode;
+ 	struct qstr qname;
+ 	ino_t ino = 0;
+@@ -1157,8 +1157,8 @@ static int proc_fd_link(struct inode *in
+ 		spin_lock(&files->file_lock);
+ 		file = fcheck_files(files, fd);
+ 		if (file) {
+-			*mnt = mntget(file->f_vfsmnt);
+-			*dentry = dget(file->f_dentry);
++			*mnt = mntget(file->f_path.mnt);
++			*dentry = dget(file->f_path.dentry);
+ 			spin_unlock(&files->file_lock);
+ 			put_files_struct(files);
+ 			return 0;
+@@ -1293,7 +1293,7 @@ static int proc_fd_fill_cache(struct fil
+ 
+ static int proc_readfd(struct file * filp, void * dirent, filldir_t filldir)
+ {
+-	struct dentry *dentry = filp->f_dentry;
++	struct dentry *dentry = filp->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	struct task_struct *p = get_proc_task(inode);
+ 	unsigned int fd, tid, ino;
+@@ -1440,7 +1440,7 @@ static int proc_pident_readdir(struct fi
+ {
+ 	int i;
+ 	int pid;
+-	struct dentry *dentry = filp->f_dentry;
++	struct dentry *dentry = filp->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct pid_entry *p, *last;
+@@ -1496,7 +1496,7 @@ out_no_task:
+ static ssize_t proc_pid_attr_read(struct file * file, char __user * buf,
+ 				  size_t count, loff_t *ppos)
+ {
+-	struct inode * inode = file->f_dentry->d_inode;
++	struct inode * inode = file->f_path.dentry->d_inode;
+ 	unsigned long page;
+ 	ssize_t length;
+ 	struct task_struct *task = get_proc_task(inode);
+@@ -1512,7 +1512,7 @@ static ssize_t proc_pid_attr_read(struct
+ 		goto out;
+ 
+ 	length = security_getprocattr(task,
+-				      (char*)file->f_dentry->d_name.name,
++				      (char*)file->f_path.dentry->d_name.name,
+ 				      (void*)page, count);
+ 	if (length >= 0)
+ 		length = simple_read_from_buffer(buf, count, ppos, (char *)page, length);
+@@ -1526,7 +1526,7 @@ out_no_task:
+ static ssize_t proc_pid_attr_write(struct file * file, const char __user * buf,
+ 				   size_t count, loff_t *ppos)
+ {
+-	struct inode * inode = file->f_dentry->d_inode;
++	struct inode * inode = file->f_path.dentry->d_inode;
+ 	char *page;
+ 	ssize_t length;
+ 	struct task_struct *task = get_proc_task(inode);
+@@ -1552,7 +1552,7 @@ static ssize_t proc_pid_attr_write(struc
+ 		goto out_free;
+ 
+ 	length = security_setprocattr(task,
+-				      (char*)file->f_dentry->d_name.name,
++				      (char*)file->f_path.dentry->d_name.name,
+ 				      (void*)page, count);
+ out_free:
+ 	free_page((unsigned long) page);
+@@ -1994,7 +1994,7 @@ static int proc_pid_fill_cache(struct fi
+ int proc_pid_readdir(struct file * filp, void * dirent, filldir_t filldir)
+ {
+ 	unsigned int nr = filp->f_pos - FIRST_PROCESS_ENTRY;
+-	struct task_struct *reaper = get_proc_task(filp->f_dentry->d_inode);
++	struct task_struct *reaper = get_proc_task(filp->f_path.dentry->d_inode);
+ 	struct task_struct *task;
+ 	int tgid;
+ 
+@@ -2235,7 +2235,7 @@ static int proc_task_fill_cache(struct f
+ /* for the /proc/TGID/task/ directories */
+ static int proc_task_readdir(struct file * filp, void * dirent, filldir_t filldir)
+ {
+-	struct dentry *dentry = filp->f_dentry;
++	struct dentry *dentry = filp->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	struct task_struct *leader = get_proc_task(inode);
+ 	struct task_struct *task;
+diff -puN fs/proc/generic.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path
++++ a/fs/proc/generic.c
+@@ -52,7 +52,7 @@ static ssize_t
+ proc_file_read(struct file *file, char __user *buf, size_t nbytes,
+ 	       loff_t *ppos)
+ {
+-	struct inode * inode = file->f_dentry->d_inode;
++	struct inode * inode = file->f_path.dentry->d_inode;
+ 	char 	*page;
+ 	ssize_t	retval=0;
+ 	int	eof=0;
+@@ -203,7 +203,7 @@ static ssize_t
+ proc_file_write(struct file *file, const char __user *buffer,
+ 		size_t count, loff_t *ppos)
+ {
+-	struct inode *inode = file->f_dentry->d_inode;
++	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct proc_dir_entry * dp;
+ 	
+ 	dp = PDE(inode);
+@@ -432,7 +432,7 @@ int proc_readdir(struct file * filp,
+ 	struct proc_dir_entry * de;
+ 	unsigned int ino;
+ 	int i;
 -	struct inode *inode = filp->f_dentry->d_inode;
 +	struct inode *inode = filp->f_path.dentry->d_inode;
- 	unsigned int share_access, new_writer;
- 	__be32 status;
- 
-@@ -1965,7 +1965,7 @@ search_close_lru(u32 st_id, int flags)
- static inline int
- nfs4_check_fh(struct svc_fh *fhp, struct nfs4_stateid *stp)
- {
--	return fhp->fh_dentry->d_inode != stp->st_vfs_file->f_dentry->d_inode;
-+	return fhp->fh_dentry->d_inode != stp->st_vfs_file->f_path.dentry->d_inode;
- }
- 
- static int
-@@ -2862,7 +2862,7 @@ nfsd4_lockt(struct svc_rqst *rqstp, stru
- 	 * only the dentry:inode set.
- 	 */
- 	memset(&file, 0, sizeof (struct file));
--	file.f_dentry = current_fh->fh_dentry;
-+	file.f_path.dentry = current_fh->fh_dentry;
- 
- 	status = nfs_ok;
- 	if (posix_test_lock(&file, &file_lock, &conflock)) {
-@@ -2952,7 +2952,7 @@ static int
- check_for_locks(struct file *filp, struct nfs4_stateowner *lowner)
- {
- 	struct file_lock **flpp;
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	int status = 0;
+ 	int ret = 0;
  
  	lock_kernel();
-diff -puN fs/nfsd/nfsctl.c~nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/nfsd/nfsctl.c
---- a/fs/nfsd/nfsctl.c~nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path
-+++ a/fs/nfsd/nfsctl.c
-@@ -111,7 +111,7 @@ static ssize_t (*write_op[])(struct file
+@@ -453,7 +453,7 @@ int proc_readdir(struct file * filp,
+ 			/* fall through */
+ 		case 1:
+ 			if (filldir(dirent, "..", 2, i,
+-				    parent_ino(filp->f_dentry),
++				    parent_ino(filp->f_path.dentry),
+ 				    DT_DIR) < 0)
+ 				goto out;
+ 			i++;
+@@ -558,7 +558,7 @@ static void proc_kill_inodes(struct proc
+ 	file_list_lock();
+ 	list_for_each(p, &sb->s_files) {
+ 		struct file * filp = list_entry(p, struct file, f_u.fu_list);
+-		struct dentry * dentry = filp->f_dentry;
++		struct dentry * dentry = filp->f_path.dentry;
+ 		struct inode * inode;
+ 		const struct file_operations *fops;
  
- static ssize_t nfsctl_transaction_write(struct file *file, const char __user *buf, size_t size, loff_t *pos)
- {
--	ino_t ino =  file->f_dentry->d_inode->i_ino;
-+	ino_t ino =  file->f_path.dentry->d_inode->i_ino;
- 	char *data;
- 	ssize_t rv;
+diff -puN fs/proc/nommu.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/proc/nommu.c
+--- a/fs/proc/nommu.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path
++++ a/fs/proc/nommu.c
+@@ -46,7 +46,7 @@ int nommu_vma_show(struct seq_file *m, s
+ 	file = vma->vm_file;
  
-diff -puN fs/nfsd/vfs.c~nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path
-+++ a/fs/nfsd/vfs.c
-@@ -736,10 +736,10 @@ static int
- nfsd_sync(struct file *filp)
- {
-         int err;
--	struct inode *inode = filp->f_dentry->d_inode;
--	dprintk("nfsd: sync file %s\n", filp->f_dentry->d_name.name);
-+	struct inode *inode = filp->f_path.dentry->d_inode;
-+	dprintk("nfsd: sync file %s\n", filp->f_path.dentry->d_name.name);
- 	mutex_lock(&inode->i_mutex);
--	err=nfsd_dosync(filp, filp->f_dentry, filp->f_op);
-+	err=nfsd_dosync(filp, filp->f_path.dentry, filp->f_op);
- 	mutex_unlock(&inode->i_mutex);
- 
- 	return err;
-@@ -845,7 +845,7 @@ nfsd_vfs_read(struct svc_rqst *rqstp, st
- 	int		host_err;
- 
- 	err = nfserr_perm;
--	inode = file->f_dentry->d_inode;
-+	inode = file->f_path.dentry->d_inode;
- #ifdef MSNFS
- 	if ((fhp->fh_export->ex_flags & NFSEXP_MSNFS) &&
- 		(!lock_may_read(inode, offset, *count)))
-@@ -883,7 +883,7 @@ nfsd_vfs_read(struct svc_rqst *rqstp, st
- 		nfsdstats.io_read += host_err;
- 		*count = host_err;
- 		err = 0;
--		fsnotify_access(file->f_dentry);
-+		fsnotify_access(file->f_path.dentry);
- 	} else 
- 		err = nfserrno(host_err);
- out:
-@@ -917,11 +917,11 @@ nfsd_vfs_write(struct svc_rqst *rqstp, s
- 	err = nfserr_perm;
- 
- 	if ((fhp->fh_export->ex_flags & NFSEXP_MSNFS) &&
--		(!lock_may_write(file->f_dentry->d_inode, offset, cnt)))
-+		(!lock_may_write(file->f_path.dentry->d_inode, offset, cnt)))
- 		goto out;
- #endif
- 
--	dentry = file->f_dentry;
-+	dentry = file->f_path.dentry;
- 	inode = dentry->d_inode;
- 	exp   = fhp->fh_export;
- 
-@@ -950,7 +950,7 @@ nfsd_vfs_write(struct svc_rqst *rqstp, s
- 	set_fs(oldfs);
- 	if (host_err >= 0) {
- 		nfsdstats.io_write += cnt;
--		fsnotify_modify(file->f_dentry);
-+		fsnotify_modify(file->f_path.dentry);
+ 	if (file) {
+-		struct inode *inode = vma->vm_file->f_dentry->d_inode;
++		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+ 		ino = inode->i_ino;
+ 	}
+@@ -67,7 +67,7 @@ int nommu_vma_show(struct seq_file *m, s
+ 		if (len < 1)
+ 			len = 1;
+ 		seq_printf(m, "%*c", len, ' ');
+-		seq_path(m, file->f_vfsmnt, file->f_dentry, "");
++		seq_path(m, file->f_path.mnt, file->f_path.dentry, "");
  	}
  
- 	/* clear setuid/setgid flag after write */
+ 	seq_putc(m, '\n');
+diff -puN fs/proc/task_mmu.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path
++++ a/fs/proc/task_mmu.c
+@@ -94,8 +94,8 @@ int proc_exe_link(struct inode *inode, s
+ 	}
+ 
+ 	if (vma) {
+-		*mnt = mntget(vma->vm_file->f_vfsmnt);
+-		*dentry = dget(vma->vm_file->f_dentry);
++		*mnt = mntget(vma->vm_file->f_path.mnt);
++		*dentry = dget(vma->vm_file->f_path.dentry);
+ 		result = 0;
+ 	}
+ 
+@@ -135,7 +135,7 @@ static int show_map_internal(struct seq_
+ 	int len;
+ 
+ 	if (file) {
+-		struct inode *inode = vma->vm_file->f_dentry->d_inode;
++		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+ 		ino = inode->i_ino;
+ 	}
+@@ -156,7 +156,7 @@ static int show_map_internal(struct seq_
+ 	 */
+ 	if (file) {
+ 		pad_len_spaces(m, len);
+-		seq_path(m, file->f_vfsmnt, file->f_dentry, "\n");
++		seq_path(m, file->f_path.mnt, file->f_path.dentry, "\n");
+ 	} else {
+ 		const char *name = arch_vma_name(vma);
+ 		if (!name) {
+diff -puN fs/proc/task_nommu.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path
++++ a/fs/proc/task_nommu.c
+@@ -126,8 +126,8 @@ int proc_exe_link(struct inode *inode, s
+ 	}
+ 
+ 	if (vma) {
+-		*mnt = mntget(vma->vm_file->f_vfsmnt);
+-		*dentry = dget(vma->vm_file->f_dentry);
++		*mnt = mntget(vma->vm_file->f_path.mnt);
++		*dentry = dget(vma->vm_file->f_path.dentry);
+ 		result = 0;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
+proc-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ext2-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ext3-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+fat-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+isofs-change-uses-of-f_dentry.patch
+nfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
 nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
 ntfs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
 i386-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
