@@ -1,85 +1,215 @@
 From: akpm@osdl.org
-Subject: - wb_kupdate-fix-termination-condition.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:05:26 -0800
-Message-ID: <200612081105.kB8B5Q17018639@shell0.pdx.osdl.net>
+Subject: - io-accounting-read-accounting.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:05:16 -0800
+Message-ID: <200612081105.kB8B5GVr018627@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48859 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48873 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425381AbWLHLGB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:06:01 -0500
+	id S1425384AbWLHLGF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:06:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, dgc@sgi.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, tee@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wb_kupdate-fix-termination-condition
+     io-accounting: read accounting
 has been removed from the -mm tree.  Its filename was
-     wb_kupdate-fix-termination-condition.patch
+     io-accounting-read-accounting.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: wb_kupdate-fix-termination-condition
+Subject: io-accounting: read accounting
 From: Andrew Morton <akpm@osdl.org>
 
+Account for the number of storage-level byte reads which this process caused
+to happen.
 
-Thanks to David Chinner <dgc@sgi.com> for finding the bug.
+This is a bit trickier due to the need to handle ->readpages.  It's OK if the
+filesystem is using all the generic stuff, but if the filesystem is going it
+alone then more work is needed.
 
+Perhaps all this should have been done at the submit_bio level.  But that
+would subvert things like NFS, and NFS is an open question at this stage.
+
+We don't account for things like filesystem metadata reads yet.
+
+Cc: Jay Lan <jlan@sgi.com>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Chris Sturtivant <csturtiv@sgi.com>
+Cc: Tony Ernst <tee@sgi.com>
+Cc: Guillaume Thouvenin <guillaume.thouvenin@bull.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/fs-writeback.c         |    2 ++
- include/linux/writeback.h |    1 +
- mm/page-writeback.c       |   11 +++++------
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ fs/mpage.c              |    2 ++
+ fs/namei.c              |    2 +-
+ fs/splice.c             |    4 ++--
+ include/linux/pagemap.h |   11 ++++++++++-
+ mm/filemap.c            |   13 +++++++------
+ mm/readahead.c          |    2 +-
+ 6 files changed, 23 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/writeback.h~wb_kupdate-fix-termination-condition include/linux/writeback.h
---- devel/include/linux/writeback.h~wb_kupdate-fix-termination-condition	2006-02-06 23:55:19.000000000 -0800
-+++ devel-akpm/include/linux/writeback.h	2006-02-06 23:55:19.000000000 -0800
-@@ -58,6 +58,7 @@ struct writeback_control {
- 	unsigned for_kupdate:1;		/* A kupdate writeback */
- 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
- 	unsigned for_writepages:1;	/* This is a writepages() call */
-+	unsigned wrote_expired_inode:1;	/* 1 or more expired inodes written */
- };
+diff -puN fs/mpage.c~io-accounting-read-accounting fs/mpage.c
+--- a/fs/mpage.c~io-accounting-read-accounting
++++ a/fs/mpage.c
+@@ -19,6 +19,7 @@
+ #include <linux/bio.h>
+ #include <linux/fs.h>
+ #include <linux/buffer_head.h>
++#include <linux/task_io_accounting_ops.h>
+ #include <linux/blkdev.h>
+ #include <linux/highmem.h>
+ #include <linux/prefetch.h>
+@@ -402,6 +403,7 @@ mpage_readpages(struct address_space *ma
+ 		list_del(&page->lru);
+ 		if (!add_to_page_cache(page, mapping,
+ 					page->index, GFP_KERNEL)) {
++			task_io_account_read(PAGE_CACHE_SIZE);
+ 			bio = do_mpage_readpage(bio, page,
+ 					nr_pages - page_idx,
+ 					&last_block_in_bio, &map_bh,
+diff -puN fs/namei.c~io-accounting-read-accounting fs/namei.c
+--- a/fs/namei.c~io-accounting-read-accounting
++++ a/fs/namei.c
+@@ -2725,7 +2725,7 @@ retry:
+ 	 * OTOH it's obviously correct and should make the page up-to-date.
+ 	 */
+ 	if (!PageUptodate(page)) {
+-		err = mapping->a_ops->readpage(NULL, page);
++		err = do_readpage(mapping, NULL, page);
+ 		if (err != AOP_TRUNCATED_PAGE)
+ 			wait_on_page_locked(page);
+ 	} else {
+diff -puN fs/splice.c~io-accounting-read-accounting fs/splice.c
+--- a/fs/splice.c~io-accounting-read-accounting
++++ a/fs/splice.c
+@@ -403,7 +403,7 @@ __generic_file_splice_read(struct file *
+ 			/*
+ 			 * need to read in the page
+ 			 */
+-			error = mapping->a_ops->readpage(in, page);
++			error = do_readpage(mapping, in, page);
+ 			if (unlikely(error)) {
+ 				/*
+ 				 * We really should re-lookup the page here,
+@@ -625,7 +625,7 @@ find_page:
+ 		 */
+ 		if (!PageUptodate(page)) {
+ 			if (this_len < PAGE_CACHE_SIZE) {
+-				ret = mapping->a_ops->readpage(file, page);
++				ret = do_readpage(mapping, file, page);
+ 				if (unlikely(ret))
+ 					goto out;
  
+diff -puN include/linux/pagemap.h~io-accounting-read-accounting include/linux/pagemap.h
+--- a/include/linux/pagemap.h~io-accounting-read-accounting
++++ a/include/linux/pagemap.h
+@@ -9,9 +9,11 @@
+ #include <linux/list.h>
+ #include <linux/highmem.h>
+ #include <linux/compiler.h>
+-#include <asm/uaccess.h>
++#include <linux/task_io_accounting_ops.h>
+ #include <linux/gfp.h>
+ 
++#include <asm/uaccess.h>
++
  /*
-diff -puN fs/fs-writeback.c~wb_kupdate-fix-termination-condition fs/fs-writeback.c
---- devel/fs/fs-writeback.c~wb_kupdate-fix-termination-condition	2006-02-06 23:55:19.000000000 -0800
-+++ devel-akpm/fs/fs-writeback.c	2006-02-07 00:00:32.000000000 -0800
-@@ -367,6 +367,8 @@ sync_sb_inodes(struct super_block *sb, s
- 		__iget(inode);
- 		pages_skipped = wbc->pages_skipped;
- 		__writeback_single_inode(inode, wbc);
-+		if (unlikely(wbc->wrote_expired_inode == 0))
-+			wbc->wrote_expired_inode = 1;
- 		if (wbc->sync_mode == WB_SYNC_HOLD) {
- 			inode->dirtied_when = jiffies;
- 			list_move(&inode->i_list, &sb->s_dirty);
-diff -puN mm/page-writeback.c~wb_kupdate-fix-termination-condition mm/page-writeback.c
---- devel/mm/page-writeback.c~wb_kupdate-fix-termination-condition	2006-02-06 23:55:19.000000000 -0800
-+++ devel-akpm/mm/page-writeback.c	2006-02-07 00:01:59.000000000 -0800
-@@ -415,13 +415,12 @@ static void wb_kupdate(unsigned long arg
- 	while (nr_to_write > 0) {
- 		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
-+		wbc.wrote_expired_inode = 0;
- 		writeback_inodes(&wbc);
--		if (wbc.nr_to_write > 0) {
--			if (wbc.encountered_congestion)
--				blk_congestion_wait(WRITE, HZ/10);
--			else
--				break;	/* All the old data is written */
--		}
-+		if (!wbc.wrote_expired_inode && !wbc.encountered_congestion)
-+			break;	/* All the old data is written */
-+		if (wbc.encountered_congestion)
-+			blk_congestion_wait(WRITE, HZ/10);
- 		nr_to_write -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
+  * Bits in mapping->flags.  The lower __GFP_BITS_SHIFT bits are the page
+  * allocation mode flags.
+@@ -232,4 +234,11 @@ static inline void fault_in_pages_readab
  	}
- 	if (time_before(next_jif, jiffies + HZ))
+ }
+ 
++static inline int do_readpage(struct address_space *mapping, struct file *file,
++				struct page *page)
++{
++	task_io_account_read(PAGE_CACHE_SIZE);
++	return mapping->a_ops->readpage(file, page);
++}
++
+ #endif /* _LINUX_PAGEMAP_H */
+diff -puN mm/filemap.c~io-accounting-read-accounting mm/filemap.c
+--- a/mm/filemap.c~io-accounting-read-accounting
++++ a/mm/filemap.c
+@@ -990,7 +990,7 @@ page_not_up_to_date:
+ 
+ readpage:
+ 		/* Start the actual read. The read will unlock the page. */
+-		error = mapping->a_ops->readpage(filp, page);
++		error = do_readpage(mapping, filp, page);
+ 
+ 		if (unlikely(error)) {
+ 			if (error == AOP_TRUNCATED_PAGE) {
+@@ -1311,7 +1311,7 @@ static int fastcall page_cache_read(stru
+ 
+ 		ret = add_to_page_cache_lru(page, mapping, offset, GFP_KERNEL);
+ 		if (ret == 0)
+-			ret = mapping->a_ops->readpage(file, page);
++			ret = do_readpage(mapping, file, page);
+ 		else if (ret == -EEXIST)
+ 			ret = 0; /* losing race to add is OK */
+ 
+@@ -1483,7 +1483,7 @@ page_not_uptodate:
+ 		goto success;
+ 	}
+ 
+-	error = mapping->a_ops->readpage(file, page);
++	error = do_readpage(mapping, file, page);
+ 	if (!error) {
+ 		wait_on_page_locked(page);
+ 		if (PageUptodate(page))
+@@ -1514,7 +1514,7 @@ page_not_uptodate:
+ 		goto success;
+ 	}
+ 	ClearPageError(page);
+-	error = mapping->a_ops->readpage(file, page);
++	error = do_readpage(mapping, file, page);
+ 	if (!error) {
+ 		wait_on_page_locked(page);
+ 		if (PageUptodate(page))
+@@ -1604,7 +1604,7 @@ page_not_uptodate:
+ 		goto success;
+ 	}
+ 
+-	error = mapping->a_ops->readpage(file, page);
++	error = do_readpage(mapping, file, page);
+ 	if (!error) {
+ 		wait_on_page_locked(page);
+ 		if (PageUptodate(page))
+@@ -1634,7 +1634,7 @@ page_not_uptodate:
+ 	}
+ 
+ 	ClearPageError(page);
+-	error = mapping->a_ops->readpage(file, page);
++	error = do_readpage(mapping, file, page);
+ 	if (!error) {
+ 		wait_on_page_locked(page);
+ 		if (PageUptodate(page))
+@@ -1774,6 +1774,7 @@ repeat:
+ 		}
+ 		page = cached_page;
+ 		cached_page = NULL;
++		task_io_account_read(PAGE_CACHE_SIZE);
+ 		err = filler(data, page);
+ 		if (err < 0) {
+ 			page_cache_release(page);
+diff -puN mm/readahead.c~io-accounting-read-accounting mm/readahead.c
+--- a/mm/readahead.c~io-accounting-read-accounting
++++ a/mm/readahead.c
+@@ -178,7 +178,7 @@ static int read_pages(struct address_spa
+ 		list_del(&page->lru);
+ 		if (!add_to_page_cache(page, mapping,
+ 					page->index, GFP_KERNEL)) {
+-			mapping->a_ops->readpage(filp, page);
++			do_readpage(mapping, filp, page);
+ 			if (!pagevec_add(&lru_pvec, page))
+ 				__pagevec_lru_add(&lru_pvec);
+ 		} else
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
