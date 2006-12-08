@@ -1,87 +1,68 @@
 From: akpm@osdl.org
-Subject: + x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch added to -mm tree
-Date: Fri, 08 Dec 2006 15:35:19 -0800
-Message-ID: <200612082335.kB8NZJlA009136@shell0.pdx.osdl.net>
+Subject: + use-activate_mm-in-fs-aiocuse_mm.patch added to -mm tree
+Date: Fri, 08 Dec 2006 15:47:55 -0800
+Message-ID: <200612082347.kB8NltJk009481@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51573 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53113 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758883AbWLHXf1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 18:35:27 -0500
+	id S1947475AbWLHXr7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 18:47:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amul.shah@unisys.com, ak@suse.de, rohitseth@google.com
+Cc: jeremy@goop.org
 
 
 The patch titled
-     x86_64-make-the-numa-hash-function-nodemap-allocation fix fix
+     Use activate_mm() in fs/aio.c:use_mm()
 has been added to the -mm tree.  Its filename is
-     x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
+     use-activate_mm-in-fs-aiocuse_mm.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-make-the-numa-hash-function-nodemap-allocation fix fix
-From: Amul Shah <amul.shah@unisys.com>
+Subject: Use activate_mm() in fs/aio.c:use_mm()
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Rohit Seth <rohitseth@google.com>
+activate_mm() is not the right thing to be using in use_mm().  It should be
+switch_mm().
+
+On normal x86, they're synonymous, but for the Xen patches I'm adding a
+hook which assumes that activate_mm is only used the first time a new mm
+is used after creation (I have another hook for dealing with dup_mm).  I
+think this use of activate_mm() is the only place where it could be used
+a second time on an mm.
+
+From a quick look at the other architectures I think this is OK (most
+simply implement one in terms of the other), but some are doing some
+subtly different stuff between the two.
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/mm/numa.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ fs/aio.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2 arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2
-+++ a/arch/x86_64/mm/numa.c
-@@ -78,11 +78,8 @@ static int __init allocate_cachealigned_
- 	unsigned long pad, pad_addr;
+diff -puN fs/aio.c~use-activate_mm-in-fs-aiocuse_mm fs/aio.c
+--- a/fs/aio.c~use-activate_mm-in-fs-aiocuse_mm
++++ a/fs/aio.c
+@@ -586,7 +586,7 @@ static void use_mm(struct mm_struct *mm)
+ 	 * Note that on UML this *requires* PF_BORROWED_MM to be set, otherwise
+ 	 * it won't work. Update it accordingly if you change it here
+ 	 */
+-	activate_mm(active_mm, mm);
++	switch_mm(active_mm, mm, tsk);
+ 	task_unlock(tsk);
  
- 	memnodemap = memnode.embedded_map;
--	if (memnodemapsize <= 48) {
--		printk(KERN_DEBUG "NUMA: Allocated memnodemap from %lx - %lx\n",
--		       nodemap_addr, nodemap_addr + nodemap_size);
-+	if (memnodemapsize <= 48)
- 		return 0;
--	}
- 
- 	pad = L1_CACHE_BYTES - 1;
- 	pad_addr = 0x8000;
-@@ -110,7 +107,7 @@ static int __init allocate_cachealigned_
- static int __init
- extract_lsb_from_nodes (const struct bootnode *nodes, int numnodes)
- {
--	int i;
-+	int i, nodes_used = 0;
- 	unsigned long start, end;
- 	unsigned long bitfield = 0, memtop = 0;
- 
-@@ -119,11 +116,15 @@ extract_lsb_from_nodes (const struct boo
- 		end = nodes[i].end;
- 		if (start >= end)
- 			continue;
--		bitfield |= start | end;
-+		bitfield |= start;
-+		nodes_used++;
- 		if (end > memtop)
- 			memtop = end;
- 	}
--	i = find_first_bit(&bitfield, sizeof(unsigned long)*8);
-+	if (nodes_used <= 1 )
-+		i = 63;
-+	else
-+		i = find_first_bit(&bitfield, sizeof(unsigned long)*8);
- 	memnodemapsize = (memtop >> i)+1;
- 	return i;
- }
+ 	mmdrop(active_mm);
 _
 
-Patches currently in -mm which might be from amul.shah@unisys.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-x86_64-make-the-numa-hash-function-nodemap-allocation.patch
-x86_64-make-the-numa-hash-function-nodemap-allocation-fix.patch
-x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
+origin.patch
+convert-i386-pda-code-to-use-%fs.patch
+use-activate_mm-in-fs-aiocuse_mm.patch
+time-uninline-jiffiesh-fix.patch
 
