@@ -1,129 +1,85 @@
 From: akpm@osdl.org
-Subject: - time-re-add-verify_pmtmr_rate.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 11:59:44 -0800
-Message-ID: <200612081959.kB8JxiDe001648@shell0.pdx.osdl.net>
+Subject: - use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:00:35 -0800
+Message-ID: <200612082000.kB8K0Zmf001761@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56657 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56638 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426221AbWLHUAz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:00:55 -0500
+	id S1426210AbWLHUAs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:00:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, ak@suse.de, ijc@hellion.org.uk, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: re-add verify_pmtmr_rate
+     lockdep: use mutex_lock_nested for bd_mutex to avoid lockdep warning
 has been removed from the -mm tree.  Its filename was
-     time-re-add-verify_pmtmr_rate.patch
+     use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: time: re-add verify_pmtmr_rate
-From: john stultz <johnstul@us.ibm.com>
+Subject: lockdep: use mutex_lock_nested for bd_mutex to avoid lockdep warning
+From: NeilBrown <neilb@suse.de>
 
-This patch re-adds the verify_pmtmr_rate functionality from 2.6.17 that
-I dropped 2.6.18.
+Now that the nesting in blkdev_{get,put} is simpler, adding mutex_lock_nested
+is trivial.
 
-This resolves problems seen on older K6 ASUS boards where the ACPI PM
-timer runs too fast.
-
-See:
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=211902
-http://bugme.osdl.org/show_bug.cgi?id=2375
-
-Thanks to Ian Campbell for re-reporting this and testing the fix!
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ian Campbell <ijc@hellion.org.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/clocksource/acpi_pm.c |   36 ++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ fs/block_dev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/clocksource/acpi_pm.c~time-re-add-verify_pmtmr_rate drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~time-re-add-verify_pmtmr_rate
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -142,6 +142,39 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SE
- 			acpi_pm_check_graylist);
- #endif
+diff -puN fs/block_dev.c~use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning fs/block_dev.c
+--- a/fs/block_dev.c~use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning
++++ a/fs/block_dev.c
+@@ -920,7 +920,7 @@ static int do_open(struct block_device *
+ 	}
+ 	owner = disk->fops->owner;
  
-+#ifndef CONFIG_X86_64
-+#include "mach_timer.h"
-+#define PMTMR_EXPECTED_RATE \
-+  ((CALIBRATE_LATCH * (PMTMR_TICKS_PER_SEC >> 10)) / (CLOCK_TICK_RATE>>10))
-+/*
-+ * Some boards have the PMTMR running way too fast. We check
-+ * the PMTMR rate against PIT channel 2 to catch these cases.
-+ */
-+static int verify_pmtmr_rate(void)
-+{
-+	u32 value1, value2;
-+	unsigned long count, delta;
-+
-+	mach_prepare_counter();
-+	value1 = read_pmtmr();
-+	mach_countup(&count);
-+	value2 = read_pmtmr();
-+	delta = (value2 - value1) & ACPI_PM_MASK;
-+
-+	/* Check that the PMTMR delta is within 5% of what we expect */
-+	if (delta < (PMTMR_EXPECTED_RATE * 19) / 20 ||
-+	    delta > (PMTMR_EXPECTED_RATE * 21) / 20) {
-+		printk(KERN_INFO "PM-Timer running at invalid rate: %lu%% "
-+			"of normal - aborting.\n",
-+			100UL * delta / PMTMR_EXPECTED_RATE);
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+#else
-+#define verify_pmtmr_rate() (0)
-+#endif
+-	mutex_lock(&bdev->bd_mutex);
++	mutex_lock_nested(&bdev->bd_mutex, for_part);
+ 	if (!bdev->bd_openers) {
+ 		bdev->bd_disk = disk;
+ 		bdev->bd_contains = bdev;
+@@ -1062,7 +1062,7 @@ static int __blkdev_put(struct block_dev
+ 	struct gendisk *disk = bdev->bd_disk;
+ 	struct block_device *victim = NULL;
  
- static int __init init_acpi_pm_clocksource(void)
- {
-@@ -173,6 +206,9 @@ static int __init init_acpi_pm_clocksour
- 	return -ENODEV;
- 
- pm_good:
-+	if (verify_pmtmr_rate() != 0)
-+		return -ENODEV;
-+
- 	return clocksource_register(&clocksource_acpi_pm);
- }
- 
+-	mutex_lock(&bdev->bd_mutex);
++	mutex_lock_nested(&bdev->bd_mutex, for_part);
+ 	lock_kernel();
+ 	if (for_part)
+ 		bdev->bd_part_count--;
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-time-re-add-verify_pmtmr_rate.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-updated-hrtimers-state-tracking.patch
-updated-hrtimers-clean-up-callback-tracking.patch
-updated-hrtimers-move-and-add-documentation.patch
-updated-add-a-framework-to-manage-clock-event-devices.patch
-updated-acpi-include-apich.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
-updated-high-res-timers-core.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-updated-dynticks-core-code.patch
-updated-dyntick-add-nohz-stats-to-proc-stat.patch
-updated-dynticks-i386-arch-code.patch
-updated-debugging-feature-timer-stats.patch
-clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
-clocksource-add-usage-of-config_sysfs.patch
-clocksource-small-cleanup-2.patch
-clocksource-small-cleanup-2-fix.patch
-clocksource-small-acpi_pm-cleanup.patch
+origin.patch
+use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
+avoid-lockdep-warning-in-md.patch
+bdev-fix-bd_part_count-leak.patch
+lockdep-annotate-nfsd4-recover-code.patch
+nfs2-calculate-w-a-bit-later-in-nfsaclsvc_encode_getaclres.patch
+nfs3-calculate-w-a-bit-later-in-nfs3svc_encode_getaclres.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch
+md-define-raid5_mergeable_bvec.patch
+md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-error-handling-of-aligned-reads.patch
+md-enable-bypassing-cache-for-reads.patch
+md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch
+md-conditionalize-some-code.patch
+md-change-lifetime-rules-for-md-devices.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
 
