@@ -1,66 +1,90 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-jffs2.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:52 -0800
-Message-ID: <200612082003.kB8K3qXZ002115@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-ixj.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:03:46 -0800
+Message-ID: <200612082003.kB8K3kPW002104@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57224 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57207 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426257AbWLHUD5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:57 -0500
+	id S1426251AbWLHUDx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:03:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert jffs2
+     struct path: convert ixj
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-jffs2.patch
+     struct-path-convert-ixj.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert jffs2
+Subject: struct path: convert ixj
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/jffs2/dir.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/telephony/ixj.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/jffs2/dir.c~struct-path-convert-jffs2 fs/jffs2/dir.c
---- a/fs/jffs2/dir.c~struct-path-convert-jffs2
-+++ a/fs/jffs2/dir.c
-@@ -123,11 +123,11 @@ static int jffs2_readdir(struct file *fi
+diff -puN drivers/telephony/ixj.c~struct-path-convert-ixj drivers/telephony/ixj.c
+--- a/drivers/telephony/ixj.c~struct-path-convert-ixj
++++ a/drivers/telephony/ixj.c
+@@ -2747,7 +2747,7 @@ static void alaw2ulaw(unsigned char *buf
+ static ssize_t ixj_read(struct file * file_p, char __user *buf, size_t length, loff_t * ppos)
  {
- 	struct jffs2_inode_info *f;
- 	struct jffs2_sb_info *c;
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct jffs2_full_dirent *fd;
- 	unsigned long offset, curofs;
+ 	unsigned long i = *ppos;
+-	IXJ * j = get_ixj(NUM(file_p->f_dentry->d_inode));
++	IXJ * j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
  
--	D1(printk(KERN_DEBUG "jffs2_readdir() for dir_i #%lu\n", filp->f_dentry->d_inode->i_ino));
-+	D1(printk(KERN_DEBUG "jffs2_readdir() for dir_i #%lu\n", filp->f_path.dentry->d_inode->i_ino));
+ 	DECLARE_WAITQUEUE(wait, current);
  
- 	f = JFFS2_INODE_INFO(inode);
- 	c = JFFS2_SB_INFO(inode->i_sb);
-@@ -141,7 +141,7 @@ static int jffs2_readdir(struct file *fi
- 		offset++;
- 	}
- 	if (offset == 1) {
--		unsigned long pino = parent_ino(filp->f_dentry);
-+		unsigned long pino = parent_ino(filp->f_path.dentry);
- 		D1(printk(KERN_DEBUG "Dirent 1: \"..\", ino #%lu\n", pino));
- 		if (filldir(dirent, "..", 2, 1, pino, DT_DIR) < 0)
- 			goto out;
+@@ -2804,7 +2804,7 @@ static ssize_t ixj_enhanced_read(struct 
+ {
+ 	int pre_retval;
+ 	ssize_t read_retval = 0;
+-	IXJ *j = get_ixj(NUM(file_p->f_dentry->d_inode));
++	IXJ *j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
+ 
+ 	pre_retval = ixj_PreRead(j, 0L);
+ 	switch (pre_retval) {
+@@ -2883,7 +2883,7 @@ static ssize_t ixj_enhanced_write(struct
+ 	int pre_retval;
+ 	ssize_t write_retval = 0;
+ 
+-	IXJ *j = get_ixj(NUM(file_p->f_dentry->d_inode));
++	IXJ *j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
+ 
+ 	pre_retval = ixj_PreWrite(j, 0L);
+ 	switch (pre_retval) {
+@@ -4582,7 +4582,7 @@ static unsigned int ixj_poll(struct file
+ {
+ 	unsigned int mask = 0;
+ 
+-	IXJ *j = get_ixj(NUM(file_p->f_dentry->d_inode));
++	IXJ *j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
+ 
+ 	poll_wait(file_p, &(j->poll_q), wait);
+ 	if (j->read_buffer_ready > 0)
+@@ -6657,7 +6657,7 @@ static int ixj_ioctl(struct inode *inode
+ 
+ static int ixj_fasync(int fd, struct file *file_p, int mode)
+ {
+-	IXJ *j = get_ixj(NUM(file_p->f_dentry->d_inode));
++	IXJ *j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
+ 
+ 	return fasync_helper(fd, file_p, mode, &j->async_queue);
+ }
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
+struct-path-convert-ixj.patch
+struct-path-convert-jffs.patch
 struct-path-convert-jffs2.patch
 struct-path-convert-jfs.patch
 struct-path-convert-kernel.patch
