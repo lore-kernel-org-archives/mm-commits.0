@@ -1,75 +1,55 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-kill-unneeded-memsets.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:06:52 -0800
-Message-ID: <200612082006.kB8K6qoj002445@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-remove-request-for-testers-line.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:06:59 -0800
+Message-ID: <200612082006.kB8K6xq8002469@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57793 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57803 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426346AbWLHUG6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:06:58 -0500
+	id S1426348AbWLHUHE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, kill unneeded memsets
+     Char: mxser_new, remove request for testers line
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-kill-unneeded-memsets.patch
+     char-mxser_new-remove-request-for-testers-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, kill unneeded memsets
+Subject: Char: mxser_new, remove request for testers line
 From: Jiri Slaby <jirislaby@gmail.com>
 
-mxser_new, kill unneeded memsets
-
-There is no need to re-zero static global variables' memory, hence memsets
-doing this are useless.  alloc_tty_struct also zeroes allocated memory:
-another candidate for removing.
-
-This fixes also a bug -- global structures are cleaned up after
-initialization of some its parts.
+Remove printk with info we are looking for a tester.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/char/mxser_new.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-kill-unneeded-memsets drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-kill-unneeded-memsets
+diff -puN drivers/char/mxser_new.c~char-mxser_new-remove-request-for-testers-line drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-remove-request-for-testers-line
 +++ a/drivers/char/mxser_new.c
-@@ -704,7 +704,6 @@ static int __init mxser_init(void)
- 		MXSER_VERSION);
+@@ -495,9 +495,6 @@ static int __init mxser_module_init(void
  
- 	/* Initialize the tty_driver structure */
--	memset(mxvar_sdriver, 0, sizeof(struct tty_driver));
- 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
- 	mxvar_sdriver->name = "ttyM";
- 	mxvar_sdriver->major = ttymajor;
-@@ -721,12 +720,6 @@ static int __init mxser_init(void)
- 	mxvar_sdriver->termios_locked = mxvar_termios_locked;
- 
- 	mxvar_diagflag = 0;
--	memset(mxser_boards, 0, sizeof(mxser_boards));
--	memset(&mxvar_log, 0, sizeof(struct mxser_log));
--
--	memset(&mxser_msr, 0, sizeof(unsigned char) * (MXSER_PORTS + 1));
--	memset(&mon_data_ext, 0, sizeof(struct mxser_mon_ext));
--	memset(&mxser_set_baud_method, 0, sizeof(int) * (MXSER_PORTS + 1));
- 
- 	m = 0;
- 	/* Start finding ISA boards here */
+ 	if (verbose)
+ 		printk(KERN_DEBUG "Loading module mxser ...\n");
+-	printk(KERN_INFO "This is mxser driver version 1.9.1 and needs TESTING."
+-		"If your are willing to test this driver, please report to "
+-		"jirislaby@gmail.com. Thanks.\n");
+ 	ret = mxser_init();
+ 	if (verbose)
+ 		printk(KERN_DEBUG "Done.\n");
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-kill-unneeded-memsets.patch
-char-mxser_new-revert-spin_lock-changes.patch
 char-mxser_new-remove-request-for-testers-line.patch
 char-mxser_new-debug-printk-dependent-on-debug.patch
 char-mxser_new-alter-license-terms.patch
