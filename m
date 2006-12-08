@@ -1,295 +1,88 @@
 From: akpm@osdl.org
-Subject: - git-geode-fixup.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:05:01 -0800
-Message-ID: <200612081105.kB8B51Rt018607@shell0.pdx.osdl.net>
+Subject: - lpfc-make-emulex-lpfc-driver-legacy-i-o-port-free.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:47 -0800
+Message-ID: <200612081104.kB8B4ltu018589@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48673 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48711 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425368AbWLHLFH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:05:07 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B51ID029579
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 03:05:02 -0800
+	id S1425370AbWLHLFR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:05:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mm-commits@vger.kernel.org
+To: seto.hidetoshi@jp.fujitsu.com, James.Bottomley@steeleye.com, James.Smart@Emulex.Com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-geode-fixup
+     lpfc: make Emulex lpfc driver legacy I/O port free
 has been removed from the -mm tree.  Its filename was
-     git-geode-fixup.patch
+     lpfc-make-emulex-lpfc-driver-legacy-i-o-port-free.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-geode-fixup
-From: Andrew Morton <akpm@osdl.org>
+Subject: lpfc: make Emulex lpfc driver legacy I/O port free
+From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
+Make Emulex lpfc driver legacy I/O port free.
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>
+Acked-by: James Smart <James.Smart@Emulex.Com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/crypto/Kconfig        |    3 ---
- drivers/crypto/Makefile       |    8 --------
- drivers/video/Kconfig         |    5 -----
- drivers/video/console/Kconfig |    5 -----
- 4 files changed, 21 deletions(-)
+ drivers/scsi/lpfc/lpfc_init.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/crypto/Kconfig~git-geode-fixup drivers/crypto/Kconfig
---- a/drivers/crypto/Kconfig~git-geode-fixup
-+++ a/drivers/crypto/Kconfig
-@@ -32,7 +32,6 @@ config CRYPTO_DEV_PADLOCK_AES
- 	help
- 	  Use VIA PadLock for AES algorithm.
+diff -puN drivers/scsi/lpfc/lpfc_init.c~lpfc-make-emulex-lpfc-driver-legacy-i-o-port-free drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~lpfc-make-emulex-lpfc-driver-legacy-i-o-port-free
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1453,10 +1453,11 @@ lpfc_pci_probe_one(struct pci_dev *pdev,
+ 	int error = -ENODEV, retval;
+ 	int i;
+ 	uint16_t iotag;
++	int bars = pci_select_bars(pdev, IORESOURCE_MEM);
  
--<<<<<<< HEAD/drivers/crypto/Kconfig
- 	  Available in VIA C3 and newer CPUs.
+-	if (pci_enable_device(pdev))
++	if (pci_enable_device_bars(pdev, bars))
+ 		goto out;
+-	if (pci_request_regions(pdev, LPFC_DRIVER_NAME))
++	if (pci_request_selected_regions(pdev, bars, LPFC_DRIVER_NAME))
+ 		goto out_disable_device;
  
- 	  If unsure say M. The compiled module will be
-@@ -52,7 +51,6 @@ config CRYPTO_DEV_PADLOCK_SHA
- 	  If unsure say M. The compiled module will be
- 	  called padlock-sha.ko
+ 	host = scsi_host_alloc(&lpfc_template, sizeof (struct lpfc_hba));
+@@ -1759,7 +1760,7 @@ out_put_host:
+ 	phba->host = NULL;
+ 	scsi_host_put(host);
+ out_release_regions:
+-	pci_release_regions(pdev);
++	pci_release_selected_regions(pdev, bars);
+ out_disable_device:
+ 	pci_disable_device(pdev);
+ out:
+@@ -1773,6 +1774,7 @@ lpfc_pci_remove_one(struct pci_dev *pdev
+ 	struct Scsi_Host   *host = pci_get_drvdata(pdev);
+ 	struct lpfc_hba    *phba = (struct lpfc_hba *)host->hostdata;
+ 	unsigned long iflag;
++	int bars = pci_select_bars(pdev, IORESOURCE_MEM);
  
--=======
- config CRYPTO_DEV_GEODE
- 	tristate "Support for the Geode LX AES engine"
- 	depends on CRYPTO && X86_32
-@@ -62,5 +60,4 @@ config CRYPTO_DEV_GEODE
+ 	lpfc_free_sysfs_attr(phba);
  
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called geode-aes.
-->>>>>>> /drivers/crypto/Kconfig
- endmenu
-diff -puN drivers/crypto/Makefile~git-geode-fixup drivers/crypto/Makefile
---- a/drivers/crypto/Makefile~git-geode-fixup
-+++ a/drivers/crypto/Makefile
-@@ -1,12 +1,4 @@
- obj-$(CONFIG_CRYPTO_DEV_PADLOCK) += padlock.o
--<<<<<<< HEAD/drivers/crypto/Makefile
- obj-$(CONFIG_CRYPTO_DEV_PADLOCK_AES) += padlock-aes.o
- obj-$(CONFIG_CRYPTO_DEV_PADLOCK_SHA) += padlock-sha.o
--=======
- obj-$(CONFIG_CRYPTO_DEV_GEODE) += geode-aes.o
--
--padlock-objs-$(CONFIG_CRYPTO_DEV_PADLOCK_AES) += padlock-aes.o
--
--padlock-objs := padlock-generic.o $(padlock-objs-y)
--
-->>>>>>> /drivers/crypto/Makefile
-diff -puN drivers/video/Kconfig~git-geode-fixup drivers/video/Kconfig
---- a/drivers/video/Kconfig~git-geode-fixup
-+++ a/drivers/video/Kconfig
-@@ -833,13 +833,8 @@ config FB_I810_I2C
- 	help
+@@ -1816,7 +1818,7 @@ lpfc_pci_remove_one(struct pci_dev *pdev
+ 	iounmap(phba->ctrl_regs_memmap_p);
+ 	iounmap(phba->slim_memmap_p);
  
- config FB_INTEL
--<<<<<<< HEAD/drivers/video/Kconfig
- 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G support (EXPERIMENTAL)"
--	depends on FB && EXPERIMENTAL && PCI && X86
--=======
--	tristate "Intel 830M/845G/852GM/855GM/865G support (EXPERIMENTAL)"
- 	depends on FB && EXPERIMENTAL && PCI && X86 && !VGA_NOPROBE
-->>>>>>> /drivers/video/Kconfig
- 	select AGP
- 	select AGP_INTEL
- 	select I2C_ALGOBIT if FB_INTEL_I2C
-diff -puN drivers/video/console/Kconfig~git-geode-fixup drivers/video/console/Kconfig
---- a/drivers/video/console/Kconfig~git-geode-fixup
-+++ a/drivers/video/console/Kconfig
-@@ -5,13 +5,8 @@
- menu "Console display driver support"
+-	pci_release_regions(phba->pcidev);
++	pci_release_selected_regions(phba->pcidev, bars);
+ 	pci_disable_device(phba->pcidev);
  
- config VGA_CONSOLE
--<<<<<<< HEAD/drivers/video/console/Kconfig
--	bool "VGA text console" if EMBEDDED || !X86
--	depends on !ARCH_ACORN && !ARCH_EBSA110 && !4xx && !8xx && !SPARC && !M68K && !PARISC && !FRV && !ARCH_VERSATILE && !SUPERH
--=======
- 	bool "VGA text console" if (EMBEDDED || !X86)
- 	depends on !ARCH_ACORN && !ARCH_EBSA110 && !4xx && !8xx && !SPARC && !M68K && !PARISC && !FRV && !ARCH_VERSATILE && !VGA_NOPROBE
-->>>>>>> /drivers/video/console/Kconfig
- 	default y
- 	help
- 	  Saying Y here will allow you to use Linux in text mode through a
+ 	idr_remove(&lpfc_hba_index, phba->brd_no);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
 
-origin.patch
-tty-signal-tty-locking.patch
-pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
-fsstack-introduce-fsstack_copy_attrinode_.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
-add-process_session-helper-routine-deprecate-old-field.patch
-mxser-session-warning-fix.patch
-mxser-workqueue-fixes.patch
-tty-switch-to-ktermios-and-new-framework.patch
-tty-switch-to-ktermios.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
-drivers-isdn-handcrafted-min-max-macro-removal.patch
-fault-injection-capabilities-infrastructure.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
-video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
-gxfb-fixups-for-the-amd-geode-gx.patch
-gxfb-support-flat-panel-timings.patch
-gxfb-support-command-line-options.patch
-proc_misc-build-fix.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-s390-workqueue-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-implement-flush_work.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-bridge-avoid-using-noautorel-workqueues.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-bug-test-1.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+cpei-gets-warning-at-kernel-irq-migrationc27-move_masked_irq.patch
 
