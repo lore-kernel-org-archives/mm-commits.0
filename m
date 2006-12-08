@@ -1,177 +1,409 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-reiserfs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:04:46 -0800
-Message-ID: <200612082004.kB8K4k9a002225@shell0.pdx.osdl.net>
+Subject: - generic-bug-implementation.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:00:42 -0800
+Message-ID: <200612082000.kB8K0goB001778@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57390 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57388 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426305AbWLHUEv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1426303AbWLHUEv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 8 Dec 2006 15:04:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@muc.de, benh@kernel.crashing.org, bunk@stusta.de, hugh@veritas.com, michael@ellerman.id.au, paulus@samba.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert reiserfs
+     Generic BUG implementation
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-reiserfs.patch
+     generic-bug-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert reiserfs
-From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
+Subject: Generic BUG implementation
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
+This patch adds common handling for kernel BUGs, for use by architectures as
+they wish.  The code is derived from arch/powerpc.
+
+The advantages of having common BUG handling are:
+ - consistent BUG reporting across architectures
+ - shared implementation of out-of-line file/line data
+ - implement CONFIG_DEBUG_BUGVERBOSE consistently
+
+This means that in inline impact of BUG is just the illegal instruction
+itself, which is an improvement for i386 and x86-64.
+
+A BUG is represented in the instruction stream as an illegal instruction,
+which has file/line information associated with it.  This extra information is
+stored in the __bug_table section in the ELF file.
+
+When the kernel gets an illegal instruction, it first confirms it might
+possibly be from a BUG (ie, in kernel mode, the right illegal instruction). 
+It then calls report_bug().  This searches __bug_table for a matching
+instruction pointer, and if found, prints the corresponding file/line
+information.  If report_bug() determines that it wasn't a BUG which caused the
+trap, it returns BUG_TRAP_TYPE_NONE.
+
+Some architectures (powerpc) implement WARN using the same mechanism; if the
+illegal instruction was the result of a WARN, then report_bug(Q) returns
+CONFIG_DEBUG_BUGVERBOSE; otherwise it returns BUG_TRAP_TYPE_BUG.
+
+lib/bug.c keeps a list of loaded modules which can be searched for __bug_table
+entries.  The architecture must call
+module_bug_finalize()/module_bug_cleanup() from its corresponding
+module_finalize/cleanup functions.
+
+Unsetting CONFIG_DEBUG_BUGVERBOSE will reduce the kernel size by some amount. 
+At the very least, filename and line information will not be recorded for each
+but, but architectures may decide to store no extra information per BUG at
+all.
+
+Unfortunately, gcc doesn't have a general way to mark an asm() as noreturn, so
+architectures will generally have to include an infinite loop (or similar) in
+the BUG code, so that gcc knows execution won't continue beyond that point. 
+gcc does have a __builtin_trap() operator which may be useful to achieve the
+same effect, unfortunately it cannot be used to actually implement the BUG
+itself, because there's no way to get the instruction's address for use in
+generating the __bug_table entry.
+
+[randy.dunlap@oracle.com: Handle BUG=n, GENERIC_BUG=n to prevent build errors]
+[bunk@stusta.de: include/linux/bug.h must always #include <linux/module.h]
+Signed-off-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Hugh Dickens <hugh@veritas.com>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiserfs/dir.c    |    4 ++--
- fs/reiserfs/file.c   |    4 ++--
- fs/reiserfs/ioctl.c  |    2 +-
- fs/reiserfs/procfs.c |    2 +-
- fs/reiserfs/xattr.c  |   10 +++++-----
- 5 files changed, 11 insertions(+), 11 deletions(-)
+ include/asm-generic/bug.h         |   16 ++
+ include/asm-generic/vmlinux.lds.h |    8 +
+ include/linux/bug.h               |   47 ++++++++
+ include/linux/module.h            |    7 +
+ lib/Kconfig.debug                 |    2 
+ lib/Makefile                      |    2 
+ lib/bug.c                         |  163 ++++++++++++++++++++++++++++
+ 7 files changed, 244 insertions(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/dir.c~struct-path-convert-reiserfs fs/reiserfs/dir.c
---- a/fs/reiserfs/dir.c~struct-path-convert-reiserfs
-+++ a/fs/reiserfs/dir.c
-@@ -45,7 +45,7 @@ static int reiserfs_dir_fsync(struct fil
- //
- static int reiserfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
- {
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct cpu_key pos_key;	/* key of current position in the directory (key of directory entry) */
- 	INITIALIZE_PATH(path_to_entry);
- 	struct buffer_head *bh;
-@@ -135,7 +135,7 @@ static int reiserfs_readdir(struct file 
- 				/* Ignore the .reiserfs_priv entry */
- 				if (reiserfs_xattrs(inode->i_sb) &&
- 				    !old_format_only(inode->i_sb) &&
--				    filp->f_dentry == inode->i_sb->s_root &&
-+				    filp->f_path.dentry == inode->i_sb->s_root &&
- 				    REISERFS_SB(inode->i_sb)->priv_root &&
- 				    REISERFS_SB(inode->i_sb)->priv_root->d_inode
- 				    && deh_objectid(deh) ==
-diff -puN fs/reiserfs/file.c~struct-path-convert-reiserfs fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~struct-path-convert-reiserfs
-+++ a/fs/reiserfs/file.c
-@@ -1288,7 +1288,7 @@ static ssize_t reiserfs_file_write(struc
- 	loff_t pos;		// Current position in the file.
- 	ssize_t res;		// return value of various functions that we call.
- 	int err = 0;
--	struct inode *inode = file->f_dentry->d_inode;	// Inode of the file that we are writing to.
-+	struct inode *inode = file->f_path.dentry->d_inode;	// Inode of the file that we are writing to.
- 	/* To simplify coding at this time, we store
- 	   locked pages in array for now */
- 	struct page *prepared_pages[REISERFS_WRITE_PAGES_AT_A_TIME];
-@@ -1335,7 +1335,7 @@ static ssize_t reiserfs_file_write(struc
- 	if (count == 0)
- 		goto out;
+diff -puN include/asm-generic/bug.h~generic-bug-implementation include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~generic-bug-implementation
++++ a/include/asm-generic/bug.h
+@@ -4,6 +4,22 @@
+ #include <linux/compiler.h>
  
--	res = remove_suid(file->f_dentry);
-+	res = remove_suid(file->f_path.dentry);
- 	if (res)
- 		goto out;
+ #ifdef CONFIG_BUG
++
++#ifdef CONFIG_GENERIC_BUG
++#ifndef __ASSEMBLY__
++struct bug_entry {
++	unsigned long	bug_addr;
++#ifdef CONFIG_DEBUG_BUGVERBOSE
++	const char	*file;
++	unsigned short	line;
++#endif
++	unsigned short	flags;
++};
++#endif		/* __ASSEMBLY__ */
++
++#define BUGFLAG_WARNING	(1<<0)
++#endif	/* CONFIG_GENERIC_BUG */
++
+ #ifndef HAVE_ARCH_BUG
+ #define BUG() do { \
+ 	printk("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __FUNCTION__); \
+diff -puN include/asm-generic/vmlinux.lds.h~generic-bug-implementation include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~generic-bug-implementation
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -218,6 +218,14 @@
+ 		.stab.indexstr 0 : { *(.stab.indexstr) }		\
+ 		.comment 0 : { *(.comment) }
  
-diff -puN fs/reiserfs/ioctl.c~struct-path-convert-reiserfs fs/reiserfs/ioctl.c
---- a/fs/reiserfs/ioctl.c~struct-path-convert-reiserfs
-+++ a/fs/reiserfs/ioctl.c
-@@ -99,7 +99,7 @@ int reiserfs_ioctl(struct inode *inode, 
- long reiserfs_compat_ioctl(struct file *file, unsigned int cmd,
- 				unsigned long arg)
- {
--	struct inode *inode = file->f_dentry->d_inode;
-+	struct inode *inode = file->f_path.dentry->d_inode;
- 	int ret;
++#define BUG_TABLE							\
++	. = ALIGN(8);							\
++	__bug_table : AT(ADDR(__bug_table) - LOAD_OFFSET) {		\
++		__start___bug_table = .;				\
++		*(__bug_table)						\
++		__stop___bug_table = .;					\
++	}
++
+ #define NOTES								\
+ 		.notes : { *(.note.*) } :note
  
- 	/* These are just misnamed, they actually get/put from/to user an int */
-diff -puN fs/reiserfs/procfs.c~struct-path-convert-reiserfs fs/reiserfs/procfs.c
---- a/fs/reiserfs/procfs.c~struct-path-convert-reiserfs
-+++ a/fs/reiserfs/procfs.c
-@@ -295,7 +295,7 @@ static int show_oidmap(struct seq_file *
- 	}
- #if defined( REISERFS_USE_OIDMAPF )
- 	if (sb_info->oidmap.use_file && (sb_info->oidmap.mapf != NULL)) {
--		loff_t size = sb_info->oidmap.mapf->f_dentry->d_inode->i_size;
-+		loff_t size = sb_info->oidmap.mapf->f_path.dentry->d_inode->i_size;
- 		total_used += size / sizeof(reiserfs_oidinterval_d_t);
- 	}
- #endif
-diff -puN fs/reiserfs/xattr.c~struct-path-convert-reiserfs fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~struct-path-convert-reiserfs
-+++ a/fs/reiserfs/xattr.c
-@@ -274,7 +274,7 @@ static struct file *open_xa_file(const s
-  */
- static int __xattr_readdir(struct file *filp, void *dirent, filldir_t filldir)
- {
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct cpu_key pos_key;	/* key of current position in the directory (key of directory entry) */
- 	INITIALIZE_PATH(path_to_entry);
- 	struct buffer_head *bh;
-@@ -420,7 +420,7 @@ static int __xattr_readdir(struct file *
- static
- int xattr_readdir(struct file *file, filldir_t filler, void *buf)
- {
--	struct inode *inode = file->f_dentry->d_inode;
-+	struct inode *inode = file->f_path.dentry->d_inode;
- 	int res = -ENOTDIR;
- 	if (!file->f_op || !file->f_op->readdir)
- 		goto out;
-@@ -508,7 +508,7 @@ reiserfs_xattr_set(struct inode *inode, 
- 		goto out;
- 	}
+diff -puN /dev/null include/linux/bug.h
+--- /dev/null
++++ a/include/linux/bug.h
+@@ -0,0 +1,47 @@
++#ifndef _LINUX_BUG_H
++#define _LINUX_BUG_H
++
++#include <linux/module.h>
++#include <asm/bug.h>
++
++enum bug_trap_type {
++	BUG_TRAP_TYPE_NONE = 0,
++	BUG_TRAP_TYPE_WARN = 1,
++	BUG_TRAP_TYPE_BUG = 2,
++};
++
++#ifdef CONFIG_GENERIC_BUG
++#include <asm-generic/bug.h>
++
++static inline int is_warning_bug(const struct bug_entry *bug)
++{
++	return bug->flags & BUGFLAG_WARNING;
++}
++
++const struct bug_entry *find_bug(unsigned long bugaddr);
++
++enum bug_trap_type report_bug(unsigned long bug_addr);
++
++int  module_bug_finalize(const Elf_Ehdr *, const Elf_Shdr *,
++			 struct module *);
++void module_bug_cleanup(struct module *);
++
++/* These are defined by the architecture */
++int is_valid_bugaddr(unsigned long addr);
++
++#else	/* !CONFIG_GENERIC_BUG */
++
++static inline enum bug_trap_type report_bug(unsigned long bug_addr)
++{
++	return BUG_TRAP_TYPE_BUG;
++}
++static inline int  module_bug_finalize(const Elf_Ehdr *hdr,
++					const Elf_Shdr *sechdrs,
++					struct module *mod)
++{
++	return 0;
++}
++static inline void module_bug_cleanup(struct module *mod) {}
++
++#endif	/* CONFIG_GENERIC_BUG */
++#endif	/* _LINUX_BUG_H */
+diff -puN include/linux/module.h~generic-bug-implementation include/linux/module.h
+--- a/include/linux/module.h~generic-bug-implementation
++++ a/include/linux/module.h
+@@ -319,6 +319,13 @@ struct module
  
--	xinode = fp->f_dentry->d_inode;
-+	xinode = fp->f_path.dentry->d_inode;
- 	REISERFS_I(inode)->i_flags |= i_has_xattr_dir;
+ 	unsigned int taints;	/* same bits as kernel:tainted */
  
- 	/* we need to copy it off.. */
-@@ -527,7 +527,7 @@ reiserfs_xattr_set(struct inode *inode, 
- 	newattrs.ia_size = buffer_size;
- 	newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
- 	mutex_lock(&xinode->i_mutex);
--	err = notify_change(fp->f_dentry, &newattrs);
-+	err = notify_change(fp->f_path.dentry, &newattrs);
- 	if (err)
- 		goto out_filp;
++#ifdef CONFIG_GENERIC_BUG
++	/* Support for BUG */
++	struct list_head bug_list;
++	struct bug_entry *bug_table;
++	unsigned num_bugs;
++#endif
++
+ #ifdef CONFIG_MODULE_UNLOAD
+ 	/* Reference counts */
+ 	struct module_ref ref[NR_CPUS];
+diff -puN lib/Kconfig.debug~generic-bug-implementation lib/Kconfig.debug
+--- a/lib/Kconfig.debug~generic-bug-implementation
++++ a/lib/Kconfig.debug
+@@ -285,7 +285,7 @@ config DEBUG_HIGHMEM
+ config DEBUG_BUGVERBOSE
+ 	bool "Verbose BUG() reporting (adds 70K)" if DEBUG_KERNEL && EMBEDDED
+ 	depends on BUG
+-	depends on ARM || ARM26 || AVR32 || M32R || M68K || SPARC32 || SPARC64 || X86_32 || FRV || SUPERH
++	depends on ARM || ARM26 || AVR32 || M32R || M68K || SPARC32 || SPARC64 || X86_32 || FRV || SUPERH || GENERIC_BUG
+ 	default !EMBEDDED
+ 	help
+ 	  Say Y here to make BUG() panics output the file name and line number
+diff -puN lib/Makefile~generic-bug-implementation lib/Makefile
+--- a/lib/Makefile~generic-bug-implementation
++++ a/lib/Makefile
+@@ -55,6 +55,8 @@ obj-$(CONFIG_AUDIT_GENERIC) += audit.o
  
-@@ -626,7 +626,7 @@ reiserfs_xattr_get(const struct inode *i
- 		goto out;
- 	}
+ obj-$(CONFIG_SWIOTLB) += swiotlb.o
  
--	xinode = fp->f_dentry->d_inode;
-+	xinode = fp->f_path.dentry->d_inode;
- 	isize = xinode->i_size;
- 	REISERFS_I(inode)->i_flags |= i_has_xattr_dir;
++lib-$(CONFIG_GENERIC_BUG) += bug.o
++
+ hostprogs-y	:= gen_crc32table
+ clean-files	:= crc32table.h
  
+diff -puN /dev/null lib/bug.c
+--- /dev/null
++++ a/lib/bug.c
+@@ -0,0 +1,163 @@
++/*
++  Generic support for BUG()
++
++  This respects the following config options:
++
++  CONFIG_BUG - emit BUG traps.  Nothing happens without this.
++  CONFIG_GENERIC_BUG - enable this code.
++  CONFIG_DEBUG_BUGVERBOSE - emit full file+line information for each BUG
++
++  CONFIG_BUG and CONFIG_DEBUG_BUGVERBOSE are potentially user-settable
++  (though they're generally always on).
++
++  CONFIG_GENERIC_BUG is set by each architecture using this code.
++
++  To use this, your architecture must:
++
++  1. Set up the config options:
++     - Enable CONFIG_GENERIC_BUG if CONFIG_BUG
++
++  2. Implement BUG (and optionally BUG_ON, WARN, WARN_ON)
++     - Define HAVE_ARCH_BUG
++     - Implement BUG() to generate a faulting instruction
++     - NOTE: struct bug_entry does not have "file" or "line" entries
++       when CONFIG_DEBUG_BUGVERBOSE is not enabled, so you must generate
++       the values accordingly.
++
++  3. Implement the trap
++     - In the illegal instruction trap handler (typically), verify
++       that the fault was in kernel mode, and call report_bug()
++     - report_bug() will return whether it was a false alarm, a warning,
++       or an actual bug.
++     - You must implement the is_valid_bugaddr(bugaddr) callback which
++       returns true if the eip is a real kernel address, and it points
++       to the expected BUG trap instruction.
++
++    Jeremy Fitzhardinge <jeremy@goop.org> 2006
++ */
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/bug.h>
++
++extern const struct bug_entry __start___bug_table[], __stop___bug_table[];
++
++#ifdef CONFIG_MODULES
++static LIST_HEAD(module_bug_list);
++
++static const struct bug_entry *module_find_bug(unsigned long bugaddr)
++{
++	struct module *mod;
++
++	list_for_each_entry(mod, &module_bug_list, bug_list) {
++		const struct bug_entry *bug = mod->bug_table;
++		unsigned i;
++
++		for (i = 0; i < mod->num_bugs; ++i, ++bug)
++			if (bugaddr == bug->bug_addr)
++				return bug;
++	}
++	return NULL;
++}
++
++int module_bug_finalize(const Elf_Ehdr *hdr, const Elf_Shdr *sechdrs,
++			struct module *mod)
++{
++	char *secstrings;
++	unsigned int i;
++
++	mod->bug_table = NULL;
++	mod->num_bugs = 0;
++
++	/* Find the __bug_table section, if present */
++	secstrings = (char *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
++	for (i = 1; i < hdr->e_shnum; i++) {
++		if (strcmp(secstrings+sechdrs[i].sh_name, "__bug_table"))
++			continue;
++		mod->bug_table = (void *) sechdrs[i].sh_addr;
++		mod->num_bugs = sechdrs[i].sh_size / sizeof(struct bug_entry);
++		break;
++	}
++
++	/*
++	 * Strictly speaking this should have a spinlock to protect against
++	 * traversals, but since we only traverse on BUG()s, a spinlock
++	 * could potentially lead to deadlock and thus be counter-productive.
++	 */
++	list_add(&mod->bug_list, &module_bug_list);
++
++	return 0;
++}
++
++void module_bug_cleanup(struct module *mod)
++{
++	list_del(&mod->bug_list);
++}
++
++#else
++
++static inline const struct bug_entry *module_find_bug(unsigned long bugaddr)
++{
++	return NULL;
++}
++#endif
++
++const struct bug_entry *find_bug(unsigned long bugaddr)
++{
++	const struct bug_entry *bug;
++
++	for (bug = __start___bug_table; bug < __stop___bug_table; ++bug)
++		if (bugaddr == bug->bug_addr)
++			return bug;
++
++	return module_find_bug(bugaddr);
++}
++
++enum bug_trap_type report_bug(unsigned long bugaddr)
++{
++	const struct bug_entry *bug;
++	const char *file;
++	unsigned line, warning;
++
++	if (!is_valid_bugaddr(bugaddr))
++		return BUG_TRAP_TYPE_NONE;
++
++	bug = find_bug(bugaddr);
++
++	printk(KERN_EMERG "------------[ cut here ]------------\n");
++
++	file = NULL;
++	line = 0;
++	warning = 0;
++
++	if (bug) {
++#ifdef CONFIG_DEBUG_BUGVERBOSE
++		file = bug->file;
++		line = bug->line;
++#endif
++		warning = (bug->flags & BUGFLAG_WARNING) != 0;
++	}
++
++	if (warning) {
++		/* this is a WARN_ON rather than BUG/BUG_ON */
++		if (file)
++			printk(KERN_ERR "Badness at %s:%u\n",
++			       file, line);
++		else
++			printk(KERN_ERR "Badness at %p "
++			       "[verbose debug info unavailable]\n",
++			       (void *)bugaddr);
++
++		dump_stack();
++		return BUG_TRAP_TYPE_WARN;
++	}
++
++	if (file)
++		printk(KERN_CRIT "kernel BUG at %s:%u!\n",
++		       file, line);
++	else
++		printk(KERN_CRIT "Kernel BUG at %p "
++		       "[verbose debug info unavailable]\n",
++		       (void *)bugaddr);
++
++	return BUG_TRAP_TYPE_BUG;
++}
 _
 
-Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-struct-path-convert-reiserfs.patch
-struct-path-convert-romfs.patch
-struct-path-convert-s390-drivers.patch
-struct-path-convert-s390.patch
-struct-path-convert-sbus.patch
-struct-path-convert-scsi.patch
-struct-path-convert-selinux.patch
-struct-path-convert-sh.patch
-struct-path-convert-smbfs.patch
-struct-path-convert-sound.patch
-struct-path-convert-sparc.patch
-struct-path-convert-sparc64.patch
-struct-path-convert-sunrpc.patch
-struct-path-convert-sysv.patch
-struct-path-convert-udf.patch
-struct-path-convert-ufs.patch
-struct-path-convert-unix.patch
-struct-path-convert-usb.patch
-struct-path-convert-v4l.patch
-struct-path-convert-video.patch
-struct-path-convert-zorro.patch
+origin.patch
+generic-bug-implementation.patch
+generic-bug-for-i386.patch
+generic-bug-for-x86-64.patch
+uml-add-generic-bug-support.patch
+use-generic-bug-for-ppc.patch
+fix-generic-warn_on-message.patch
+convert-i386-pda-code-to-use-%fs.patch
+time-uninline-jiffiesh-fix.patch
 
