@@ -1,82 +1,84 @@
 From: akpm@osdl.org
-Subject: - char-isicom-use-pci_request_region.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:43 -0800
-Message-ID: <200612082008.kB8K8h7i002633@shell0.pdx.osdl.net>
+Subject: - char-sx-mark-functions-as-devinit.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:09:05 -0800
+Message-ID: <200612082009.kB8K95EM002663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58312 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58464 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946263AbWLHUIz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:08:55 -0500
+	id S1946221AbWLHUJQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, use pci_request_region
+     Char: sx, mark functions as devinit
 has been removed from the -mm tree.  Its filename was
-     char-isicom-use-pci_request_region.patch
+     char-sx-mark-functions-as-devinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, use pci_request_region
+Subject: Char: sx, mark functions as devinit
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Use pci_request_region in pci probing function instead of request_region.
+Mark as much as possible functions as __devinit to free them after driver
+initialization (if no hotplug).
 
+Cc: <R.E.Wolff@BitWizard.nl>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/char/sx.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-use-pci_request_region drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-use-pci_request_region
-+++ a/drivers/char/isicom.c
-@@ -1789,7 +1789,8 @@ static int __devinit isicom_probe(struct
- 
- 	pci_set_drvdata(pdev, board);
- 
--	if (!request_region(board->base, 16, ISICOM_NAME)) {
-+	retval = pci_request_region(pdev, 3, ISICOM_NAME);
-+	if (retval) {
- 		dev_err(&pdev->dev, "I/O Region 0x%lx-0x%lx is busy. Card%d "
- 			"will be disabled.\n", board->base, board->base + 15,
- 			index + 1);
-@@ -1822,7 +1823,7 @@ static int __devinit isicom_probe(struct
- errunri:
- 	free_irq(board->irq, board);
- errunrr:
--	release_region(board->base, 16);
-+	pci_release_region(pdev, 3);
- err:
- 	board->base = 0;
- 	return retval;
-@@ -1837,7 +1838,7 @@ static void __devexit isicom_remove(stru
- 		tty_unregister_device(isicom_normal, board->index * 16 + i);
- 
- 	free_irq(board->irq, board);
--	release_region(board->base, 16);
-+	pci_release_region(pdev, 3);
+diff -puN drivers/char/sx.c~char-sx-mark-functions-as-devinit drivers/char/sx.c
+--- a/drivers/char/sx.c~char-sx-mark-functions-as-devinit
++++ a/drivers/char/sx.c
+@@ -2034,7 +2034,7 @@ static int sx_init_board (struct sx_boar
  }
  
- static int __init isicom_init(void)
+ 
+-static void printheader(void)
++static void __devinit printheader(void)
+ {
+ 	static int header_printed;
+ 
+@@ -2047,7 +2047,7 @@ static void printheader(void)
+ }
+ 
+ 
+-static int probe_sx (struct sx_board *board)
++static int __devinit probe_sx (struct sx_board *board)
+ {
+ 	struct vpd_prom vpdp;
+ 	char *p;
+@@ -2125,7 +2125,7 @@ static int probe_sx (struct sx_board *bo
+    card. 0xe0000 and 0xf0000 are taken by the BIOS. That only leaves 
+    0xc0000, 0xc8000, 0xd0000 and 0xd8000 . */
+ 
+-static int probe_si (struct sx_board *board)
++static int __devinit probe_si (struct sx_board *board)
+ {
+ 	int i;
+ 
+@@ -2364,7 +2364,7 @@ static void __exit sx_release_drivers(vo
+    EEprom.  As the bit is read/write for the CPU, we can fix it here,
+    if we detect that it isn't set correctly. -- REW */
+ 
+-static void fix_sx_pci (struct pci_dev *pdev, struct sx_board *board)
++static void __devinit fix_sx_pci(struct pci_dev *pdev, struct sx_board *board)
+ {
+ 	unsigned int hwbase;
+ 	void __iomem *rebase;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-isicom-use-pci_request_region.patch
-char-isicom-check-kmalloc-retval.patch
-char-isicom-use-completion.patch
-char-isicom-simplify-timer.patch
-char-isicom-remove-cvs-stuff.patch
-char-isicom-fix-tty-index-check.patch
-char-sx-convert-to-pci-probing.patch
-char-sx-use-kcalloc.patch
 char-sx-mark-functions-as-devinit.patch
 char-sx-use-eisa-probing.patch
 char-sx-ifdef-isa-code.patch
