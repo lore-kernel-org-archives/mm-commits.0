@@ -1,123 +1,151 @@
 From: akpm@osdl.org
-Subject: - backlight-do-not-power-off-backlight-when-unregistering-try-3.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:14:27 -0800
-Message-ID: <200612082014.kB8KERO9003179@shell0.pdx.osdl.net>
+Subject: - dm-suspend-parameter-change.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:15:08 -0800
+Message-ID: <200612082015.kB8KF8nn003269@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59922 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59945 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946974AbWLHUPM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:15:12 -0500
+	id S1946993AbWLHUPS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:15:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hmh@hmh.eng.br, jsimmons@infradead.org, pavel@ucw.cz, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: k-ueda@ct.jp.nec.com, agk@redhat.com, j-nomura@ce.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: do not power off backlight when unregistering
+     dm: suspend: parameter change
 has been removed from the -mm tree.  Its filename was
-     backlight-do-not-power-off-backlight-when-unregistering-try-3.patch
+     dm-suspend-parameter-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: backlight: do not power off backlight when unregistering
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: dm: suspend: parameter change
+From: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
 
-ACPI drivers like ibm-acpi are moving to the backlight sysfs
-infrastructure.  During ibm-acpi testing, I have noticed that
-backlight_device_unregister() sets the display brightness and power to
-zero.
+Change the interface of dm_suspend() so that we can pass several options
+without increasing the number of parameters.  The existing 'do_lockfs' integer
+parameter is replaced by a flag DM_SUSPEND_LOCKFS_FLAG.
 
-This causes the display to be dimmed on ibm-acpi module removal.  It will
-affect all other ACPI drivers that are being converted to use the backlight
-class, as well.  It also affects a number of framebuffer devices that are
-used on desktops and laptops which might also not want such behaviour.
+There is no functional change to the code.
 
-Since working around this behaviour requires undesireable hacks, Richard
-Purdie decided that we would be better off reverting the changes in the
-sysfs class, and adding the code to dim and power off the backlight device
-to the drivers that want it.  This patch is my attempt to do so.
+Test results:
+I have tested 'dmsetup suspend' command with/without the '--nolockfs'
+option and confirmed the do_lockfs value is correctly set.
 
-Patch against latest linux-2.6.git.  Changes untested, as I lack the
-required hardware.  Still, they are trivial enough that, apart from typos,
-there is little chance of getting them wrong.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Acked-by: Richard Purdie <rpurdie@rpsys.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: James Simmons <jsimmons@infradead.org>
+Signed-off-by: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
+Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Cc: dm-devel@redhat.com
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/backlight/backlight.c |    6 ------
- drivers/video/backlight/corgi_bl.c  |    4 ++++
- drivers/video/backlight/hp680_bl.c  |    4 ++++
- drivers/video/backlight/locomolcd.c |    4 ++++
- 4 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/md/dm-ioctl.c         |   12 ++++++------
+ drivers/md/dm.c               |    3 ++-
+ drivers/md/dm.h               |    5 +++++
+ include/linux/device-mapper.h |    2 +-
+ 4 files changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-do-not-power-off-backlight-when-unregistering-try-3 drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-do-not-power-off-backlight-when-unregistering-try-3
-+++ a/drivers/video/backlight/backlight.c
-@@ -282,12 +282,6 @@ void backlight_device_unregister(struct 
- 					 &bl_class_device_attributes[i]);
- 
- 	down(&bd->sem);
--	if (likely(bd->props && bd->props->update_status)) {
--		bd->props->brightness = 0;
--		bd->props->power = 0;
--		bd->props->update_status(bd);
--	}
--
- 	bd->props = NULL;
- 	up(&bd->sem);
- 
-diff -puN drivers/video/backlight/corgi_bl.c~backlight-do-not-power-off-backlight-when-unregistering-try-3 drivers/video/backlight/corgi_bl.c
---- a/drivers/video/backlight/corgi_bl.c~backlight-do-not-power-off-backlight-when-unregistering-try-3
-+++ a/drivers/video/backlight/corgi_bl.c
-@@ -135,6 +135,10 @@ static int corgibl_probe(struct platform
- 
- static int corgibl_remove(struct platform_device *dev)
+diff -puN drivers/md/dm-ioctl.c~dm-suspend-parameter-change drivers/md/dm-ioctl.c
+--- a/drivers/md/dm-ioctl.c~dm-suspend-parameter-change
++++ a/drivers/md/dm-ioctl.c
+@@ -765,7 +765,7 @@ out:
+ static int do_suspend(struct dm_ioctl *param)
  {
-+	corgibl_data.power = 0;
-+	corgibl_data.brightness = 0;
-+	corgibl_send_intensity(corgi_backlight_device);
-+
- 	backlight_device_unregister(corgi_backlight_device);
+ 	int r = 0;
+-	int do_lockfs = 1;
++	unsigned suspend_flags = DM_SUSPEND_LOCKFS_FLAG;
+ 	struct mapped_device *md;
  
- 	printk("Corgi Backlight Driver Unloaded\n");
-diff -puN drivers/video/backlight/hp680_bl.c~backlight-do-not-power-off-backlight-when-unregistering-try-3 drivers/video/backlight/hp680_bl.c
---- a/drivers/video/backlight/hp680_bl.c~backlight-do-not-power-off-backlight-when-unregistering-try-3
-+++ a/drivers/video/backlight/hp680_bl.c
-@@ -117,6 +117,10 @@ static int __init hp680bl_probe(struct p
+ 	md = find_device(param);
+@@ -773,10 +773,10 @@ static int do_suspend(struct dm_ioctl *p
+ 		return -ENXIO;
  
- static int hp680bl_remove(struct platform_device *dev)
+ 	if (param->flags & DM_SKIP_LOCKFS_FLAG)
+-		do_lockfs = 0;
++		suspend_flags &= ~DM_SUSPEND_LOCKFS_FLAG;
+ 
+ 	if (!dm_suspended(md))
+-		r = dm_suspend(md, do_lockfs);
++		r = dm_suspend(md, suspend_flags);
+ 
+ 	if (!r)
+ 		r = __dev_status(md, param);
+@@ -788,7 +788,7 @@ static int do_suspend(struct dm_ioctl *p
+ static int do_resume(struct dm_ioctl *param)
  {
-+	hp680bl_data.brightness = 0;
-+	hp680bl_data.power = 0;
-+	hp680bl_send_intensity(hp680_backlight_device);
-+
- 	backlight_device_unregister(hp680_backlight_device);
+ 	int r = 0;
+-	int do_lockfs = 1;
++	unsigned suspend_flags = DM_SUSPEND_LOCKFS_FLAG;
+ 	struct hash_cell *hc;
+ 	struct mapped_device *md;
+ 	struct dm_table *new_map;
+@@ -814,9 +814,9 @@ static int do_resume(struct dm_ioctl *pa
+ 	if (new_map) {
+ 		/* Suspend if it isn't already suspended */
+ 		if (param->flags & DM_SKIP_LOCKFS_FLAG)
+-			do_lockfs = 0;
++			suspend_flags &= ~DM_SUSPEND_LOCKFS_FLAG;
+ 		if (!dm_suspended(md))
+-			dm_suspend(md, do_lockfs);
++			dm_suspend(md, suspend_flags);
  
- 	return 0;
-diff -puN drivers/video/backlight/locomolcd.c~backlight-do-not-power-off-backlight-when-unregistering-try-3 drivers/video/backlight/locomolcd.c
---- a/drivers/video/backlight/locomolcd.c~backlight-do-not-power-off-backlight-when-unregistering-try-3
-+++ a/drivers/video/backlight/locomolcd.c
-@@ -200,6 +200,10 @@ static int locomolcd_remove(struct locom
+ 		r = dm_swap_table(md, new_map);
+ 		if (r) {
+diff -puN drivers/md/dm.c~dm-suspend-parameter-change drivers/md/dm.c
+--- a/drivers/md/dm.c~dm-suspend-parameter-change
++++ a/drivers/md/dm.c
+@@ -1272,12 +1272,13 @@ static void unlock_fs(struct mapped_devi
+  * dm_bind_table, dm_suspend must be called to flush any in
+  * flight bios and ensure that any further io gets deferred.
+  */
+-int dm_suspend(struct mapped_device *md, int do_lockfs)
++int dm_suspend(struct mapped_device *md, unsigned suspend_flags)
  {
- 	unsigned long flags;
+ 	struct dm_table *map = NULL;
+ 	DECLARE_WAITQUEUE(wait, current);
+ 	struct bio *def;
+ 	int r = -EINVAL;
++	int do_lockfs = suspend_flags & DM_SUSPEND_LOCKFS_FLAG ? 1 : 0;
  
-+	locomobl_data.brightness = 0;
-+	locomobl_data.power = 0;
-+	locomolcd_set_intensity(locomolcd_bl_device);
+ 	down(&md->suspend_lock);
+ 
+diff -puN drivers/md/dm.h~dm-suspend-parameter-change drivers/md/dm.h
+--- a/drivers/md/dm.h~dm-suspend-parameter-change
++++ a/drivers/md/dm.h
+@@ -33,6 +33,11 @@
+ #define SECTOR_SHIFT 9
+ 
+ /*
++ * Suspend feature flags
++ */
++#define DM_SUSPEND_LOCKFS_FLAG		(1 << 0)
 +
- 	backlight_device_unregister(locomolcd_bl_device);
- 	local_irq_save(flags);
- 	locomolcd_dev = NULL;
++/*
+  * List of devices that a metadevice uses and should open/close.
+  */
+ struct dm_dev {
+diff -puN include/linux/device-mapper.h~dm-suspend-parameter-change include/linux/device-mapper.h
+--- a/include/linux/device-mapper.h~dm-suspend-parameter-change
++++ a/include/linux/device-mapper.h
+@@ -173,7 +173,7 @@ void *dm_get_mdptr(struct mapped_device 
+ /*
+  * A device can still be used while suspended, but I/O is deferred.
+  */
+-int dm_suspend(struct mapped_device *md, int with_lockfs);
++int dm_suspend(struct mapped_device *md, unsigned suspend_flags);
+ int dm_resume(struct mapped_device *md);
+ 
+ /*
 _
 
-Patches currently in -mm which might be from hmh@hmh.eng.br are
+Patches currently in -mm which might be from k-ueda@ct.jp.nec.com are
 
-backlight-do-not-power-off-backlight-when-unregistering-try-3.patch
-git-acpi.patch
+dm-suspend-parameter-change.patch
+dm-map-and-endio-return-code-clarification.patch
+dm-map-and-endio-symbolic-return-codes.patch
+dm-ioctl-add-noflush-suspend.patch
+dm-suspend-add-noflush-pushback.patch
+dm-mpath-use-noflush-suspending.patch
 
