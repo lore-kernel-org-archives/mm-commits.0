@@ -1,68 +1,57 @@
 From: akpm@osdl.org
-Subject: - gxfb-support-command-line-options-tidy.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 01:09:14 -0800
-Message-ID: <200612080909.kB899EDs014485@shell0.pdx.osdl.net>
+Subject: - log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 01:27:53 -0800
+Message-ID: <200612080927.kB89RrVT014916@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39299 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41003 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425277AbWLHJJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 04:09:29 -0500
+	id S1425286AbWLHJ2C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 04:28:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, adaplas@pol.net, jordan.crouse@amd.com, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gxfb-support-command-line-options-tidy
+     log2-implement-a-general-integer-log2-facility-in-the-kernel-fix
 has been removed from the -mm tree.  Its filename was
-     gxfb-support-command-line-options-tidy.patch
+     log2-implement-a-general-integer-log2-facility-in-the-kernel-fix.patch
 
-This patch was dropped because it was folded into gxfb-support-command-line-options.patch
+This patch was dropped because it was folded into log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
 
 ------------------------------------------------------
-Subject: gxfb-support-command-line-options-tidy
+Subject: log2-implement-a-general-integer-log2-facility-in-the-kernel-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: James Simmons <jsimmons@infradead.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/geode/gxfb_core.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/mmc/tifm_sd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/geode/gxfb_core.c~gxfb-support-command-line-options-tidy drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~gxfb-support-command-line-options-tidy
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -413,14 +413,15 @@ static struct pci_driver gxfb_driver = {
- };
+diff -puN drivers/mmc/tifm_sd.c~log2-implement-a-general-integer-log2-facility-in-the-kernel-fix drivers/mmc/tifm_sd.c
+--- a/drivers/mmc/tifm_sd.c~log2-implement-a-general-integer-log2-facility-in-the-kernel-fix
++++ a/drivers/mmc/tifm_sd.c
+@@ -387,7 +387,7 @@ static void tifm_sd_prepare_data(struct 
  
- #ifndef MODULE
--static int __init gxfb_setup(char *options) {
-+static int __init gxfb_setup(char *options)
-+{
- 
- 	char *opt;
- 
- 	if (!options || !*options)
- 		return 0;
- 
--	while((opt = strsep(&options, ",")) != NULL) {
-+	while ((opt = strsep(&options, ",")) != NULL) {
- 		if (!*opt)
- 			continue;
- 
+ 	writel(TIFM_FIFO_INT_SETALL,
+ 		sock->addr + SOCK_DMA_FIFO_INT_ENABLE_CLEAR);
+-	writel(long_log2(cmd->data->blksz) - 2,
++	writel(ilog2(cmd->data->blksz) - 2,
+ 			sock->addr + SOCK_FIFO_PAGE_SIZE);
+ 	writel(TIFM_FIFO_ENABLE, sock->addr + SOCK_FIFO_CONTROL);
+ 	writel(TIFM_FIFO_INTMASK, sock->addr + SOCK_DMA_FIFO_INT_ENABLE_SET);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
 tty-signal-tty-locking.patch
 pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
 fsstack-introduce-fsstack_copy_attrinode_.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
 add-process_session-helper-routine-deprecate-old-field.patch
 mxser-session-warning-fix.patch
 mxser-workqueue-fixes.patch
@@ -80,5 +69,4 @@ backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
 gxfb-fixups-for-the-amd-geode-gx.patch
 gxfb-support-flat-panel-timings.patch
 gxfb-support-command-line-options.patch
-gxfb-support-command-line-options-tidy.patch
 
