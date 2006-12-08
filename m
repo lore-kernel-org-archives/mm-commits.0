@@ -1,96 +1,54 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-block_drivers.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:45 -0800
-Message-ID: <200612082002.kB8K2jfV002000@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-bfs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:40 -0800
+Message-ID: <200612082002.kB8K2eu9001993@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57063 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57052 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426245AbWLHUCt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:49 -0500
+	id S1426245AbWLHUCp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert block_drivers
+     struct path: convert bfs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-block_drivers.patch
+     struct-path-convert-bfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert block_drivers
+Subject: struct path: convert bfs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/acsi_slm.c |    4 ++--
- drivers/block/cciss.c    |    2 +-
- drivers/block/loop.c     |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ fs/bfs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/acsi_slm.c~struct-path-convert-block_drivers drivers/block/acsi_slm.c
---- a/drivers/block/acsi_slm.c~struct-path-convert-block_drivers
-+++ a/drivers/block/acsi_slm.c
-@@ -363,7 +363,7 @@ static ssize_t slm_read( struct file *fi
- 						 loff_t *ppos )
+diff -puN fs/bfs/dir.c~struct-path-convert-bfs fs/bfs/dir.c
+--- a/fs/bfs/dir.c~struct-path-convert-bfs
++++ a/fs/bfs/dir.c
+@@ -27,7 +27,7 @@ static struct buffer_head * bfs_find_ent
  
+ static int bfs_readdir(struct file * f, void * dirent, filldir_t filldir)
  {
--	struct inode *node = file->f_dentry->d_inode;
-+	struct inode *node = file->f_path.dentry->d_inode;
- 	unsigned long page;
- 	int length;
- 	int end;
-@@ -618,7 +618,7 @@ static ssize_t slm_write( struct file *f
- 						  loff_t *ppos )
- 
- {
--	struct inode *node = file->f_dentry->d_inode;
-+	struct inode *node = file->f_path.dentry->d_inode;
- 	int		device = iminor(node);
- 	int		n, filled, w, h;
- 
-diff -puN drivers/block/cciss.c~struct-path-convert-block_drivers drivers/block/cciss.c
---- a/drivers/block/cciss.c~struct-path-convert-block_drivers
-+++ a/drivers/block/cciss.c
-@@ -535,7 +535,7 @@ static int do_ioctl(struct file *f, unsi
- {
- 	int ret;
- 	lock_kernel();
--	ret = cciss_ioctl(f->f_dentry->d_inode, f, cmd, arg);
-+	ret = cciss_ioctl(f->f_path.dentry->d_inode, f, cmd, arg);
- 	unlock_kernel();
- 	return ret;
- }
-diff -puN drivers/block/loop.c~struct-path-convert-block_drivers drivers/block/loop.c
---- a/drivers/block/loop.c~struct-path-convert-block_drivers
-+++ a/drivers/block/loop.c
-@@ -1000,7 +1000,7 @@ loop_get_status(struct loop_device *lo, 
- 
- 	if (lo->lo_state != Lo_bound)
- 		return -ENXIO;
--	error = vfs_getattr(file->f_vfsmnt, file->f_dentry, &stat);
-+	error = vfs_getattr(file->f_path.mnt, file->f_path.dentry, &stat);
- 	if (error)
- 		return error;
- 	memset(info, 0, sizeof(*info));
-@@ -1287,7 +1287,7 @@ loop_get_status_compat(struct loop_devic
- 
- static long lo_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	struct inode *inode = file->f_dentry->d_inode;
-+	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct loop_device *lo = inode->i_bdev->bd_disk->private_data;
- 	int err;
- 
+-	struct inode * dir = f->f_dentry->d_inode;
++	struct inode * dir = f->f_path.dentry->d_inode;
+ 	struct buffer_head * bh;
+ 	struct bfs_dirent * de;
+ 	unsigned int offset;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
+struct-path-convert-bfs.patch
+struct-path-convert-block.patch
 struct-path-convert-block_drivers.patch
 struct-path-convert-char-drivers.patch
 struct-path-convert-coda.patch
