@@ -1,31 +1,30 @@
 From: akpm@osdl.org
-Subject: - char-sx-mark-functions-as-devinit.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:09:05 -0800
-Message-ID: <200612082009.kB8K95EM002663@shell0.pdx.osdl.net>
+Subject: - char-sx-use-kcalloc.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:09:02 -0800
+Message-ID: <200612082009.kB8K92il002660@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58464 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58421 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946221AbWLHUJQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:09:16 -0500
+	id S1946220AbWLHUJM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: sx, mark functions as devinit
+     Char: sx, use kcalloc
 has been removed from the -mm tree.  Its filename was
-     char-sx-mark-functions-as-devinit.patch
+     char-sx-use-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: sx, mark functions as devinit
+Subject: Char: sx, use kcalloc
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Mark as much as possible functions as __devinit to free them after driver
-initialization (if no hotplug).
+Convert self-implemented kzalloc to kernel kcalloc.
 
 Cc: <R.E.Wolff@BitWizard.nl>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
@@ -33,52 +32,45 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/sx.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/sx.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/char/sx.c~char-sx-mark-functions-as-devinit drivers/char/sx.c
---- a/drivers/char/sx.c~char-sx-mark-functions-as-devinit
+diff -puN drivers/char/sx.c~char-sx-use-kcalloc drivers/char/sx.c
+--- a/drivers/char/sx.c~char-sx-use-kcalloc
 +++ a/drivers/char/sx.c
-@@ -2034,7 +2034,7 @@ static int sx_init_board (struct sx_boar
+@@ -2267,18 +2267,6 @@ static int sx_init_drivers(void)
+ 	return 0;
  }
  
- 
--static void printheader(void)
-+static void __devinit printheader(void)
+-
+-static void * ckmalloc (int size)
+-{
+-	void *p;
+-
+-	p = kmalloc(size, GFP_KERNEL);
+-	if (p) 
+-		memset(p, 0, size);
+-	return p;
+-}
+-
+-
+ static int sx_init_portstructs (int nboards, int nports)
  {
- 	static int header_printed;
+ 	struct sx_board *board;
+@@ -2291,7 +2279,7 @@ static int sx_init_portstructs (int nboa
  
-@@ -2047,7 +2047,7 @@ static void printheader(void)
- }
+ 	/* Many drivers statically allocate the maximum number of ports
+ 	   There is no reason not to allocate them dynamically. Is there? -- REW */
+-	sx_ports          = ckmalloc(nports * sizeof (struct sx_port));
++	sx_ports = kcalloc(nports, sizeof(struct sx_port), GFP_KERNEL);
+ 	if (!sx_ports)
+ 		return -ENOMEM;
  
- 
--static int probe_sx (struct sx_board *board)
-+static int __devinit probe_sx (struct sx_board *board)
- {
- 	struct vpd_prom vpdp;
- 	char *p;
-@@ -2125,7 +2125,7 @@ static int probe_sx (struct sx_board *bo
-    card. 0xe0000 and 0xf0000 are taken by the BIOS. That only leaves 
-    0xc0000, 0xc8000, 0xd0000 and 0xd8000 . */
- 
--static int probe_si (struct sx_board *board)
-+static int __devinit probe_si (struct sx_board *board)
- {
- 	int i;
- 
-@@ -2364,7 +2364,7 @@ static void __exit sx_release_drivers(vo
-    EEprom.  As the bit is read/write for the CPU, we can fix it here,
-    if we detect that it isn't set correctly. -- REW */
- 
--static void fix_sx_pci (struct pci_dev *pdev, struct sx_board *board)
-+static void __devinit fix_sx_pci(struct pci_dev *pdev, struct sx_board *board)
- {
- 	unsigned int hwbase;
- 	void __iomem *rebase;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
+char-sx-use-kcalloc.patch
 char-sx-mark-functions-as-devinit.patch
 char-sx-use-eisa-probing.patch
 char-sx-ifdef-isa-code.patch
