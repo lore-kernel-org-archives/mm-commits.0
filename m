@@ -1,135 +1,134 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-infiniband.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:33 -0800
-Message-ID: <200612082003.kB8K3XvU002085@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-mm.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:04:12 -0800
+Message-ID: <200612082004.kB8K4CVW002152@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57178 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57282 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426261AbWLHUDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:38 -0500
+	id S1426289AbWLHUES (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:04:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert infiniband
+     struct path: convert mm
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-infiniband.patch
+     struct-path-convert-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert infiniband
+Subject: struct path: convert mm
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/core/uverbs_main.c        |    6 +++---
- drivers/infiniband/hw/ipath/ipath_file_ops.c |    4 ++--
- drivers/infiniband/hw/ipath/ipath_fs.c       |   10 +++++-----
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ mm/mempolicy.c  |    2 +-
+ mm/nommu.c      |   12 ++++++------
+ mm/readahead.c  |    2 +-
+ mm/tiny-shmem.c |    4 ++--
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/infiniband/core/uverbs_main.c~struct-path-convert-infiniband drivers/infiniband/core/uverbs_main.c
---- a/drivers/infiniband/core/uverbs_main.c~struct-path-convert-infiniband
-+++ a/drivers/infiniband/core/uverbs_main.c
-@@ -534,9 +534,9 @@ struct file *ib_uverbs_alloc_event_file(
- 	 * module reference.
- 	 */
- 	filp->f_op 	   = fops_get(&uverbs_event_fops);
--	filp->f_vfsmnt 	   = mntget(uverbs_event_mnt);
--	filp->f_dentry 	   = dget(uverbs_event_mnt->mnt_root);
--	filp->f_mapping    = filp->f_dentry->d_inode->i_mapping;
-+	filp->f_path.mnt 	   = mntget(uverbs_event_mnt);
-+	filp->f_path.dentry 	   = dget(uverbs_event_mnt->mnt_root);
-+	filp->f_mapping    = filp->f_path.dentry->d_inode->i_mapping;
- 	filp->f_flags      = O_RDONLY;
- 	filp->f_mode       = FMODE_READ;
- 	filp->private_data = ev_file;
-diff -puN drivers/infiniband/hw/ipath/ipath_file_ops.c~struct-path-convert-infiniband drivers/infiniband/hw/ipath/ipath_file_ops.c
---- a/drivers/infiniband/hw/ipath/ipath_file_ops.c~struct-path-convert-infiniband
-+++ a/drivers/infiniband/hw/ipath/ipath_file_ops.c
-@@ -1745,9 +1745,9 @@ static int ipath_assign_port(struct file
- 		goto done;
- 	}
+diff -puN mm/mempolicy.c~struct-path-convert-mm mm/mempolicy.c
+--- a/mm/mempolicy.c~struct-path-convert-mm
++++ a/mm/mempolicy.c
+@@ -1857,7 +1857,7 @@ int show_numa_map(struct seq_file *m, vo
  
--	i_minor = iminor(fp->f_dentry->d_inode) - IPATH_USER_MINOR_BASE;
-+	i_minor = iminor(fp->f_path.dentry->d_inode) - IPATH_USER_MINOR_BASE;
- 	ipath_cdbg(VERBOSE, "open on dev %lx (minor %d)\n",
--		   (long)fp->f_dentry->d_inode->i_rdev, i_minor);
-+		   (long)fp->f_path.dentry->d_inode->i_rdev, i_minor);
+ 	if (file) {
+ 		seq_printf(m, " file=");
+-		seq_path(m, file->f_vfsmnt, file->f_dentry, "\n\t= ");
++		seq_path(m, file->f_path.mnt, file->f_path.dentry, "\n\t= ");
+ 	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
+ 		seq_printf(m, " heap");
+ 	} else if (vma->vm_start <= mm->start_stack &&
+diff -puN mm/nommu.c~struct-path-convert-mm mm/nommu.c
+--- a/mm/nommu.c~struct-path-convert-mm
++++ a/mm/nommu.c
+@@ -523,7 +523,7 @@ static int validate_mmap_request(struct 
+ 		 */
+ 		mapping = file->f_mapping;
+ 		if (!mapping)
+-			mapping = file->f_dentry->d_inode->i_mapping;
++			mapping = file->f_path.dentry->d_inode->i_mapping;
  
- 	if (i_minor)
- 		ret = find_free_port(i_minor - 1, fp, uinfo);
-diff -puN drivers/infiniband/hw/ipath/ipath_fs.c~struct-path-convert-infiniband drivers/infiniband/hw/ipath/ipath_fs.c
---- a/drivers/infiniband/hw/ipath/ipath_fs.c~struct-path-convert-infiniband
-+++ a/drivers/infiniband/hw/ipath/ipath_fs.c
-@@ -118,7 +118,7 @@ static ssize_t atomic_counters_read(stru
- 	u16 i;
- 	struct ipath_devdata *dd;
+ 		capabilities = 0;
+ 		if (mapping && mapping->backing_dev_info)
+@@ -532,7 +532,7 @@ static int validate_mmap_request(struct 
+ 		if (!capabilities) {
+ 			/* no explicit capabilities set, so assume some
+ 			 * defaults */
+-			switch (file->f_dentry->d_inode->i_mode & S_IFMT) {
++			switch (file->f_path.dentry->d_inode->i_mode & S_IFMT) {
+ 			case S_IFREG:
+ 			case S_IFBLK:
+ 				capabilities = BDI_CAP_MAP_COPY;
+@@ -563,11 +563,11 @@ static int validate_mmap_request(struct 
+ 			    !(file->f_mode & FMODE_WRITE))
+ 				return -EACCES;
  
--	dd = file->f_dentry->d_inode->i_private;
-+	dd = file->f_path.dentry->d_inode->i_private;
+-			if (IS_APPEND(file->f_dentry->d_inode) &&
++			if (IS_APPEND(file->f_path.dentry->d_inode) &&
+ 			    (file->f_mode & FMODE_WRITE))
+ 				return -EACCES;
  
- 	for (i = 0; i < NUM_COUNTERS; i++)
- 		counters[i] = ipath_snap_cntr(dd, i);
-@@ -138,7 +138,7 @@ static ssize_t atomic_node_info_read(str
- 	struct ipath_devdata *dd;
- 	u64 guid;
+-			if (locks_verify_locked(file->f_dentry->d_inode))
++			if (locks_verify_locked(file->f_path.dentry->d_inode))
+ 				return -EAGAIN;
  
--	dd = file->f_dentry->d_inode->i_private;
-+	dd = file->f_path.dentry->d_inode->i_private;
+ 			if (!(capabilities & BDI_CAP_MAP_DIRECT))
+@@ -598,7 +598,7 @@ static int validate_mmap_request(struct 
  
- 	guid = be64_to_cpu(dd->ipath_guid);
+ 		/* handle executable mappings and implied executable
+ 		 * mappings */
+-		if (file->f_vfsmnt->mnt_flags & MNT_NOEXEC) {
++		if (file->f_path.mnt->mnt_flags & MNT_NOEXEC) {
+ 			if (prot & PROT_EXEC)
+ 				return -EPERM;
+ 		}
+@@ -833,7 +833,7 @@ unsigned long do_mmap_pgoff(struct file 
+ 				continue;
  
-@@ -177,7 +177,7 @@ static ssize_t atomic_port_info_read(str
- 	u32 tmp, tmp2;
- 	struct ipath_devdata *dd;
+ 			/* search for overlapping mappings on the same file */
+-			if (vma->vm_file->f_dentry->d_inode != file->f_dentry->d_inode)
++			if (vma->vm_file->f_path.dentry->d_inode != file->f_path.dentry->d_inode)
+ 				continue;
  
--	dd = file->f_dentry->d_inode->i_private;
-+	dd = file->f_path.dentry->d_inode->i_private;
+ 			if (vma->vm_pgoff >= pgoff + pglen)
+diff -puN mm/readahead.c~struct-path-convert-mm mm/readahead.c
+--- a/mm/readahead.c~struct-path-convert-mm
++++ a/mm/readahead.c
+@@ -450,7 +450,7 @@ static int make_ahead_window(struct addr
+  *
+  * Note that @filp is purely used for passing on to the ->readpage[s]()
+  * handler: it may refer to a different file from @mapping (so we may not use
+- * @filp->f_mapping or @filp->f_dentry->d_inode here).
++ * @filp->f_mapping or @filp->f_path.dentry->d_inode here).
+  * Also, @ra may not be equal to &@filp->f_ra.
+  *
+  */
+diff -puN mm/tiny-shmem.c~struct-path-convert-mm mm/tiny-shmem.c
+--- a/mm/tiny-shmem.c~struct-path-convert-mm
++++ a/mm/tiny-shmem.c
+@@ -79,8 +79,8 @@ struct file *shmem_file_setup(char *name
+ 	d_instantiate(dentry, inode);
+ 	inode->i_nlink = 0;	/* It is unlinked */
  
- 	/* so we only initialize non-zero fields. */
- 	memset(portinfo, 0, sizeof portinfo);
-@@ -324,7 +324,7 @@ static ssize_t flash_read(struct file *f
- 		goto bail;
- 	}
- 
--	dd = file->f_dentry->d_inode->i_private;
-+	dd = file->f_path.dentry->d_inode->i_private;
- 	if (ipath_eeprom_read(dd, pos, tmp, count)) {
- 		ipath_dev_err(dd, "failed to read from flash\n");
- 		ret = -ENXIO;
-@@ -377,7 +377,7 @@ static ssize_t flash_write(struct file *
- 		goto bail_tmp;
- 	}
- 
--	dd = file->f_dentry->d_inode->i_private;
-+	dd = file->f_path.dentry->d_inode->i_private;
- 	if (ipath_eeprom_write(dd, pos, tmp, count)) {
- 		ret = -ENXIO;
- 		ipath_dev_err(dd, "failed to write to flash\n");
+-	file->f_vfsmnt = mntget(shm_mnt);
+-	file->f_dentry = dentry;
++	file->f_path.mnt = mntget(shm_mnt);
++	file->f_path.dentry = dentry;
+ 	file->f_mapping = inode->i_mapping;
+ 	file->f_op = &ramfs_file_operations;
+ 	file->f_mode = FMODE_WRITE | FMODE_READ;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-infiniband.patch
-struct-path-convert-ipc.patch
-struct-path-convert-ipmi.patch
-struct-path-convert-isapnp.patch
-struct-path-convert-isdn.patch
-struct-path-convert-ixj.patch
-struct-path-convert-jffs.patch
-struct-path-convert-jffs2.patch
-struct-path-convert-jfs.patch
-struct-path-convert-kernel.patch
-struct-path-convert-lockd.patch
-struct-path-convert-md.patch
-struct-path-convert-minix.patch
-struct-path-convert-mips.patch
 struct-path-convert-mm.patch
 struct-path-convert-nbd.patch
 struct-path-convert-ncpfs.patch
