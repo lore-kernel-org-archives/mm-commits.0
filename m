@@ -1,61 +1,85 @@
 From: akpm@osdl.org
-Subject: - 2.6.17-rc4-mm1-ich8-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:34 -0800
-Message-ID: <200612081104.kB8B4Ygp018568@shell0.pdx.osdl.net>
+Subject: - s390-fix-in-user-atomic-futex-operation.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:27 -0800
+Message-ID: <200612081104.kB8B4RFN018551@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48622 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48648 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S938033AbWLHLEl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:04:41 -0500
+	id S938034AbWLHLE7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:04:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: ich8 fix
+     s390: fix in-user atomic futex operation.
 has been removed from the -mm tree.  Its filename was
-     2.6.17-rc4-mm1-ich8-fix.patch
+     s390-fix-in-user-atomic-futex-operation.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: libata: ich8 fix
+Subject: s390: fix in-user atomic futex operation.
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 
 
-Mystery patch from Intel - needed on an ICH8-based preproduction machine.
+__futex_atomic_op needs to do an atomic operation in the user address space,
+not the kernel address space.  Add the missing sacf 256/sacf 0 to switch to
+the secondary mode before doing the compare-and-swap.  In addition add
+another fixup for catch specification exceptions if the compare-and-swap
+address is not aligned.
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/ata_piix.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/asm-s390/futex.h |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/scsi/ata_piix.c~2.6.17-rc4-mm1-ich8-fix drivers/scsi/ata_piix.c
---- a/drivers/scsi/ata_piix.c~2.6.17-rc4-mm1-ich8-fix
-+++ a/drivers/scsi/ata_piix.c
-@@ -654,6 +654,14 @@ static int piix_sata_prereset(struct ata
- 		port = map[base + i];
- 		if (port < 0)
- 			continue;
-+		if (ap->flags & PIIX_FLAG_AHCI) {
-+			/* FIXME: Port status of AHCI controllers
-+			 * should be accessed in AHCI memory space.  */
-+			if (pcs & 1 << port)
-+				present_mask |= 1 << i;
-+			else
-+				pcs &= ~(1 << port);
-+		}
- 		if (ap->flags & PIIX_FLAG_IGNORE_PCS || pcs & 1 << (4 + port))
- 			present_mask |= 1 << i;
- 		else
+diff -puN include/asm-s390/futex.h~s390-fix-in-user-atomic-futex-operation include/asm-s390/futex.h
+--- devel/include/asm-s390/futex.h~s390-fix-in-user-atomic-futex-operation	2006-06-08 01:33:53.000000000 -0700
++++ devel-akpm/include/asm-s390/futex.h	2006-06-08 01:33:53.000000000 -0700
+@@ -11,23 +11,24 @@
+ #define __futex_atomic_fixup \
+ 		     ".section __ex_table,\"a\"\n"			\
+ 		     "   .align 4\n"					\
+-		     "   .long  0b,2b,1b,2b\n"				\
++		     "   .long  0b,4b,2b,4b,3b,4b\n"			\
+ 		     ".previous"
+ #else /* __s390x__ */
+ #define __futex_atomic_fixup \
+ 		     ".section __ex_table,\"a\"\n"			\
+ 		     "   .align 8\n"					\
+-		     "   .quad  0b,2b,1b,2b\n"				\
++		     "   .quad  0b,4b,2b,4b,3b,4b\n"			\
+ 		     ".previous"
+ #endif /* __s390x__ */
+ 
+ #define __futex_atomic_op(insn, ret, oldval, newval, uaddr, oparg)	\
+-	asm volatile("   l   %1,0(%6)\n"				\
+-		     "0: " insn						\
+-		     "   cs  %1,%2,0(%6)\n"				\
+-		     "1: jl  0b\n"					\
++	asm volatile("   sacf 256\n"					\
++		     "0: l   %1,0(%6)\n"				\
++		     "1: " insn						\
++		     "2: cs  %1,%2,0(%6)\n"				\
++		     "3: jl  1b\n"					\
+ 		     "   lhi %0,0\n"					\
+-		     "2:\n"						\
++		     "4: sacf 0\n"					\
+ 		     __futex_atomic_fixup				\
+ 		     : "=d" (ret), "=&d" (oldval), "=&d" (newval),	\
+ 		       "=m" (*uaddr)					\
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
 origin.patch
-ata_piix-ide-mode-sata-patch-for-intel-ich9.patch
+tty-signal-tty-locking.patch
+generic-ioremap_page_range-s390-conversion.patch
+git-s390.patch
+s390-workqueue-fixes.patch
 
