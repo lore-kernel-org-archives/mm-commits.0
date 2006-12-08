@@ -1,103 +1,107 @@
 From: akpm@osdl.org
-Subject: - video-pm3fb-macros-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:14:57 -0800
-Message-ID: <200612082014.kB8KEvaK003229@shell0.pdx.osdl.net>
+Subject: - dm-io-fix-bi_max_vecs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:15:02 -0800
+Message-ID: <200612082015.kB8KF2kE003261@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59895 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59920 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946990AbWLHUPB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:15:01 -0500
+	id S1946990AbWLHUPK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:15:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: hjm@redhat.com, agk@redhat.com, mbroz@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video: pm3fb macros fix
+     dm io: fix bi_max_vecs
 has been removed from the -mm tree.  Its filename was
-     video-pm3fb-macros-fix.patch
+     dm-io-fix-bi_max_vecs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: video: pm3fb macros fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: dm io: fix bi_max_vecs
+From: Heinz Mauelshagen <hjm@redhat.com>
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+The existing code allocates an extra slot in bi_io_vec[] and uses it to store
+the region number.
+
+This patch hides the extra slot from bio_add_page() so the region number can't
+get overwritten.
+
+Also remove a hard-coded SECTOR_SHIFT and fix a typo in a comment.
+
+Signed-off-by: Heinz Mauelshagen <hjm@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Cc: Milan Broz <mbroz@redhat.com>
+Cc: dm-devel@redhat.com
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/video/pm3fb.h |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/md/dm-io.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN include/video/pm3fb.h~video-pm3fb-macros-fix include/video/pm3fb.h
---- a/include/video/pm3fb.h~video-pm3fb-macros-fix
-+++ a/include/video/pm3fb.h
-@@ -607,16 +607,16 @@
- #define PM3FBDestReadModeOr					0xac98
- 	#define PM3FBDestReadMode_ReadDisable			0<<0
- 	#define PM3FBDestReadMode_ReadEnable			1<<0
--	#define PM3FBDestReadMode_StripePitch(sp)	(((sp)&0x7)<<2
--	#define PM3FBDestReadMode_StripeHeight(sh)	(((sh)&0x7)<<7
-+	#define PM3FBDestReadMode_StripePitch(sp)	(((sp)&0x7)<<2)
-+	#define PM3FBDestReadMode_StripeHeight(sh)	(((sh)&0x7)<<7)
- 	#define PM3FBDestReadMode_Enable0			1<<8
- 	#define PM3FBDestReadMode_Enable1			1<<9
- 	#define PM3FBDestReadMode_Enable2			1<<10
- 	#define PM3FBDestReadMode_Enable3			1<<11
--	#define PM3FBDestReadMode_Layout0(l)		(((l)&0x3)<<12
--	#define PM3FBDestReadMode_Layout1(l)		(((l)&0x3)<<14
--	#define PM3FBDestReadMode_Layout2(l)		(((l)&0x3)<<16
--	#define PM3FBDestReadMode_Layout3(l)		(((l)&0x3)<<18
-+	#define PM3FBDestReadMode_Layout0(l)		(((l)&0x3)<<12)
-+	#define PM3FBDestReadMode_Layout1(l)		(((l)&0x3)<<14)
-+	#define PM3FBDestReadMode_Layout2(l)		(((l)&0x3)<<16)
-+	#define PM3FBDestReadMode_Layout3(l)		(((l)&0x3)<<18)
- 	#define PM3FBDestReadMode_Origin0			1<<20
- 	#define PM3FBDestReadMode_Origin1			1<<21
- 	#define PM3FBDestReadMode_Origin2			1<<22
-@@ -640,16 +640,16 @@
- #define PM3FBSourceReadModeOr					0xaca8
- 	#define PM3FBSourceReadMode_ReadDisable			(0<<0)
- 	#define PM3FBSourceReadMode_ReadEnable			(1<<0)
--	#define PM3FBSourceReadMode_StripePitch(sp)	(((sp)&0x7)<<2
--	#define PM3FBSourceReadMode_StripeHeight(sh)	(((sh)&0x7)<<7
--	#define PM3FBSourceReadMode_Layout(l)		(((l)&0x3)<<8
-+	#define PM3FBSourceReadMode_StripePitch(sp)	(((sp)&0x7)<<2)
-+	#define PM3FBSourceReadMode_StripeHeight(sh)	(((sh)&0x7)<<7)
-+	#define PM3FBSourceReadMode_Layout(l)		(((l)&0x3)<<8)
- 	#define PM3FBSourceReadMode_Origin			1<<10
- 	#define PM3FBSourceReadMode_Blocking			1<<11
- 	#define PM3FBSourceReadMode_UserTexelCoord		1<<13
- 	#define PM3FBSourceReadMode_WrapXEnable			1<<14
- 	#define PM3FBSourceReadMode_WrapYEnable			1<<15
--	#define PM3FBSourceReadMode_WrapX(w)		(((w)&0xf)<<16
--	#define PM3FBSourceReadMode_WrapY(w)		(((w)&0xf)<<20
-+	#define PM3FBSourceReadMode_WrapX(w)		(((w)&0xf)<<16)
-+	#define PM3FBSourceReadMode_WrapY(w)		(((w)&0xf)<<20)
- 	#define PM3FBSourceReadMode_ExternalSourceData		1<<24
- #define PM3FBWriteBufferAddr0                                   0xb000
- #define PM3FBWriteBufferAddr1                                   0xb008
-@@ -942,7 +942,7 @@
- #define PM3Window						0x8980
- 	#define PM3Window_ForceLBUpdate				1<<3
- 	#define PM3Window_LBUpdateSource			1<<4
--	#define PM3Window_FrameCount(c)				(((c)&0xff)<<9
-+	#define PM3Window_FrameCount(c)				(((c)&0xff)<<9)
- 	#define PM3Window_StencilFCP				1<<17
- 	#define PM3Window_DepthFCP				1<<18
- 	#define PM3Window_OverrideWriteFiltering		1<<19
+diff -puN drivers/md/dm-io.c~dm-io-fix-bi_max_vecs drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~dm-io-fix-bi_max_vecs
++++ a/drivers/md/dm-io.c
+@@ -92,12 +92,12 @@ void dm_io_put(unsigned int num_pages)
+  *---------------------------------------------------------------*/
+ static inline void bio_set_region(struct bio *bio, unsigned region)
+ {
+-	bio->bi_io_vec[bio->bi_max_vecs - 1].bv_len = region;
++	bio->bi_io_vec[bio->bi_max_vecs].bv_len = region;
+ }
+ 
+ static inline unsigned bio_get_region(struct bio *bio)
+ {
+-	return bio->bi_io_vec[bio->bi_max_vecs - 1].bv_len;
++	return bio->bi_io_vec[bio->bi_max_vecs].bv_len;
+ }
+ 
+ /*-----------------------------------------------------------------
+@@ -136,6 +136,7 @@ static int endio(struct bio *bio, unsign
+ 		zero_fill_bio(bio);
+ 
+ 	dec_count(io, bio_get_region(bio), error);
++	bio->bi_max_vecs++;
+ 	bio_put(bio);
+ 
+ 	return 0;
+@@ -250,16 +251,18 @@ static void do_region(int rw, unsigned i
+ 
+ 	while (remaining) {
+ 		/*
+-		 * Allocate a suitably sized bio, we add an extra
+-		 * bvec for bio_get/set_region().
++		 * Allocate a suitably sized-bio: we add an extra
++		 * bvec for bio_get/set_region() and decrement bi_max_vecs
++		 * to hide it from bio_add_page().
+ 		 */
+-		num_bvecs = (remaining / (PAGE_SIZE >> 9)) + 2;
++		num_bvecs = (remaining / (PAGE_SIZE >> SECTOR_SHIFT)) + 2;
+ 		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, _bios);
+ 		bio->bi_sector = where->sector + (where->count - remaining);
+ 		bio->bi_bdev = where->bdev;
+ 		bio->bi_end_io = endio;
+ 		bio->bi_private = io;
+ 		bio->bi_destructor = dm_bio_destructor;
++		bio->bi_max_vecs--;
+ 		bio_set_region(bio, region);
+ 
+ 		/*
+@@ -302,7 +305,7 @@ static void dispatch_io(int rw, unsigned
+ 	}
+ 
+ 	/*
+-	 * Drop the extra refence that we were holding to avoid
++	 * Drop the extra reference that we were holding to avoid
+ 	 * the io being completed too early.
+ 	 */
+ 	dec_count(io, 0, 0);
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from hjm@redhat.com are
 
-origin.patch
-video-pm3fb-macros-fix.patch
-ppc-cs4218_tdm-remove-extra-brace.patch
-mips-dbg_io-stray-brackets-fix.patch
-git-mtd.patch
-scsi-sic7xxx-stray-bracket-fix.patch
-scsi-53c7xx-brackets-fix.patch
-sparc64-dma-remove-extra-brackets.patch
+dm-io-fix-bi_max_vecs.patch
 
