@@ -1,214 +1,162 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-smbfs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:05:04 -0800
-Message-ID: <200612082005.kB8K541o002259@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-sound.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:05:06 -0800
+Message-ID: <200612082005.kB8K562M002262@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57431 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57435 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426304AbWLHUFJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:05:09 -0500
+	id S1426315AbWLHUFL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:05:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert smbfs
+     struct path: convert sound
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-smbfs.patch
+     struct-path-convert-sound.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert smbfs
+Subject: struct path: convert sound
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/smbfs/cache.c |    2 +-
- fs/smbfs/dir.c   |    6 +++---
- fs/smbfs/file.c  |   14 +++++++-------
- fs/smbfs/proc.c  |   10 +++++-----
- fs/smbfs/sock.c  |    4 ++--
- 5 files changed, 18 insertions(+), 18 deletions(-)
+ sound/core/info.c                  |    2 +-
+ sound/core/pcm_native.c            |    2 +-
+ sound/oss/dmasound/dmasound_core.c |    4 ++--
+ sound/oss/msnd_pinnacle.c          |    4 ++--
+ sound/oss/soundcard.c              |    8 ++++----
+ sound/sound_firmware.c             |    2 +-
+ 6 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN fs/smbfs/cache.c~struct-path-convert-smbfs fs/smbfs/cache.c
---- a/fs/smbfs/cache.c~struct-path-convert-smbfs
-+++ a/fs/smbfs/cache.c
-@@ -125,7 +125,7 @@ smb_fill_cache(struct file *filp, void *
- 	       struct smb_cache_control *ctrl, struct qstr *qname,
- 	       struct smb_fattr *entry)
- {
--	struct dentry *newdent, *dentry = filp->f_dentry;
-+	struct dentry *newdent, *dentry = filp->f_path.dentry;
- 	struct inode *newino, *inode = dentry->d_inode;
- 	struct smb_cache_control ctl = *ctrl;
- 	int valid = 0;
-diff -puN fs/smbfs/dir.c~struct-path-convert-smbfs fs/smbfs/dir.c
---- a/fs/smbfs/dir.c~struct-path-convert-smbfs
-+++ a/fs/smbfs/dir.c
-@@ -78,7 +78,7 @@ struct inode_operations smb_dir_inode_op
- static int 
- smb_readdir(struct file *filp, void *dirent, filldir_t filldir)
- {
--	struct dentry *dentry = filp->f_dentry;
-+	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *dir = dentry->d_inode;
- 	struct smb_sb_info *server = server_from_dentry(dentry);
- 	union  smb_dir_cache *cache = NULL;
-@@ -238,12 +238,12 @@ out:
- static int
- smb_dir_open(struct inode *dir, struct file *file)
- {
--	struct dentry *dentry = file->f_dentry;
-+	struct dentry *dentry = file->f_path.dentry;
- 	struct smb_sb_info *server;
- 	int error = 0;
+diff -puN sound/core/info.c~struct-path-convert-sound sound/core/info.c
+--- a/sound/core/info.c~struct-path-convert-sound
++++ a/sound/core/info.c
+@@ -488,7 +488,7 @@ static long snd_info_entry_ioctl(struct 
  
- 	VERBOSE("(%s/%s)\n", dentry->d_parent->d_name.name,
--		file->f_dentry->d_name.name);
-+		file->f_path.dentry->d_name.name);
+ static int snd_info_entry_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct inode *inode = file->f_dentry->d_inode;
++	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct snd_info_private_data *data;
+ 	struct snd_info_entry *entry;
+ 
+diff -puN sound/core/pcm_native.c~struct-path-convert-sound sound/core/pcm_native.c
+--- a/sound/core/pcm_native.c~struct-path-convert-sound
++++ a/sound/core/pcm_native.c
+@@ -1604,7 +1604,7 @@ static struct file *snd_pcm_file_fd(int 
+ 	file = fget(fd);
+ 	if (!file)
+ 		return NULL;
+-	inode = file->f_dentry->d_inode;
++	inode = file->f_path.dentry->d_inode;
+ 	if (!S_ISCHR(inode->i_mode) ||
+ 	    imajor(inode) != snd_major) {
+ 		fput(file);
+diff -puN sound/oss/dmasound/dmasound_core.c~struct-path-convert-sound sound/oss/dmasound/dmasound_core.c
+--- a/sound/oss/dmasound/dmasound_core.c~struct-path-convert-sound
++++ a/sound/oss/dmasound/dmasound_core.c
+@@ -1051,7 +1051,7 @@ static int sq_release(struct inode *inod
+ 
+ 	if (file->f_mode & FMODE_WRITE) {
+ 		if (write_sq.busy)
+-			rc = sq_fsync(file, file->f_dentry);
++			rc = sq_fsync(file, file->f_path.dentry);
+ 
+ 		sq_reset_output() ; /* make sure dma is stopped and all is quiet */
+ 		write_sq_release_buffers();
+@@ -1217,7 +1217,7 @@ static int sq_ioctl(struct inode *inode,
+ 		if ((file->f_mode & FMODE_READ) && dmasound.mach.record)
+ 			sq_reset_input() ;
+ 		if (file->f_mode & FMODE_WRITE) {
+-			result = sq_fsync(file, file->f_dentry);
++			result = sq_fsync(file, file->f_path.dentry);
+ 			sq_reset_output() ;
+ 		}
+ 		/* if we are the shared resource owner then release them */
+diff -puN sound/oss/msnd_pinnacle.c~struct-path-convert-sound sound/oss/msnd_pinnacle.c
+--- a/sound/oss/msnd_pinnacle.c~struct-path-convert-sound
++++ a/sound/oss/msnd_pinnacle.c
+@@ -1007,7 +1007,7 @@ static int dsp_write(const char __user *
+ 
+ static ssize_t dev_read(struct file *file, char __user *buf, size_t count, loff_t *off)
+ {
+-	int minor = iminor(file->f_dentry->d_inode);
++	int minor = iminor(file->f_path.dentry->d_inode);
+ 	if (minor == dev.dsp_minor)
+ 		return dsp_read(buf, count);
+ 	else
+@@ -1016,7 +1016,7 @@ static ssize_t dev_read(struct file *fil
+ 
+ static ssize_t dev_write(struct file *file, const char __user *buf, size_t count, loff_t *off)
+ {
+-	int minor = iminor(file->f_dentry->d_inode);
++	int minor = iminor(file->f_path.dentry->d_inode);
+ 	if (minor == dev.dsp_minor)
+ 		return dsp_write(buf, count);
+ 	else
+diff -puN sound/oss/soundcard.c~struct-path-convert-sound sound/oss/soundcard.c
+--- a/sound/oss/soundcard.c~struct-path-convert-sound
++++ a/sound/oss/soundcard.c
+@@ -141,7 +141,7 @@ static int get_mixer_levels(void __user 
+ 
+ static ssize_t sound_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+ {
+-	int dev = iminor(file->f_dentry->d_inode);
++	int dev = iminor(file->f_path.dentry->d_inode);
+ 	int ret = -EINVAL;
  
  	/*
- 	 * Directory timestamps in the core protocol aren't updated
-diff -puN fs/smbfs/file.c~struct-path-convert-smbfs fs/smbfs/file.c
---- a/fs/smbfs/file.c~struct-path-convert-smbfs
-+++ a/fs/smbfs/file.c
-@@ -102,7 +102,7 @@ static int
- smb_readpage(struct file *file, struct page *page)
- {
- 	int		error;
--	struct dentry  *dentry = file->f_dentry;
-+	struct dentry  *dentry = file->f_path.dentry;
+@@ -174,7 +174,7 @@ static ssize_t sound_read(struct file *f
  
- 	page_cache_get(page);
- 	error = smb_readpage_sync(dentry, page);
-@@ -205,7 +205,7 @@ static int
- smb_updatepage(struct file *file, struct page *page, unsigned long offset,
- 	       unsigned int count)
+ static ssize_t sound_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
  {
--	struct dentry *dentry = file->f_dentry;
-+	struct dentry *dentry = file->f_path.dentry;
- 
- 	DEBUG1("(%s/%s %d@%lld)\n", DENTRY_PATH(dentry), count,
- 		((unsigned long long)page->index << PAGE_CACHE_SHIFT) + offset);
-@@ -218,7 +218,7 @@ smb_file_aio_read(struct kiocb *iocb, co
- 			unsigned long nr_segs, loff_t pos)
- {
- 	struct file * file = iocb->ki_filp;
--	struct dentry * dentry = file->f_dentry;
-+	struct dentry * dentry = file->f_path.dentry;
- 	ssize_t	status;
- 
- 	VERBOSE("file %s/%s, count=%lu@%lu\n", DENTRY_PATH(dentry),
-@@ -243,7 +243,7 @@ out:
- static int
- smb_file_mmap(struct file * file, struct vm_area_struct * vma)
- {
--	struct dentry * dentry = file->f_dentry;
-+	struct dentry * dentry = file->f_path.dentry;
- 	int	status;
- 
- 	VERBOSE("file %s/%s, address %lu - %lu\n",
-@@ -264,7 +264,7 @@ static ssize_t
- smb_file_sendfile(struct file *file, loff_t *ppos,
- 		  size_t count, read_actor_t actor, void *target)
- {
--	struct dentry *dentry = file->f_dentry;
-+	struct dentry *dentry = file->f_path.dentry;
- 	ssize_t status;
- 
- 	VERBOSE("file %s/%s, pos=%Ld, count=%d\n",
-@@ -323,7 +323,7 @@ smb_file_aio_write(struct kiocb *iocb, c
- 			       unsigned long nr_segs, loff_t pos)
- {
- 	struct file * file = iocb->ki_filp;
--	struct dentry * dentry = file->f_dentry;
-+	struct dentry * dentry = file->f_path.dentry;
- 	ssize_t	result;
- 
- 	VERBOSE("file %s/%s, count=%lu@%lu\n",
-@@ -355,7 +355,7 @@ static int
- smb_file_open(struct inode *inode, struct file * file)
- {
- 	int result;
--	struct dentry *dentry = file->f_dentry;
-+	struct dentry *dentry = file->f_path.dentry;
- 	int smb_mode = (file->f_mode & O_ACCMODE) - 1;
- 
+-	int dev = iminor(file->f_dentry->d_inode);
++	int dev = iminor(file->f_path.dentry->d_inode);
+ 	int ret = -EINVAL;
+ 	
  	lock_kernel();
-diff -puN fs/smbfs/proc.c~struct-path-convert-smbfs fs/smbfs/proc.c
---- a/fs/smbfs/proc.c~struct-path-convert-smbfs
-+++ a/fs/smbfs/proc.c
-@@ -873,7 +873,7 @@ smb_newconn(struct smb_sb_info *server, 
- 	filp = fget(opt->fd);
- 	if (!filp)
- 		goto out;
--	if (!smb_valid_socket(filp->f_dentry->d_inode))
-+	if (!smb_valid_socket(filp->f_path.dentry->d_inode))
- 		goto out_putf;
+@@ -393,7 +393,7 @@ static int sound_ioctl(struct inode *ino
  
- 	server->sock_file = filp;
-@@ -898,7 +898,7 @@ smb_newconn(struct smb_sb_info *server, 
- 	/*
- 	 * Store the server in sock user_data (Only used by sunrpc)
- 	 */
--	sk = SOCKET_I(filp->f_dentry->d_inode)->sk;
-+	sk = SOCKET_I(filp->f_path.dentry->d_inode)->sk;
- 	sk->sk_user_data = server;
+ static unsigned int sound_poll(struct file *file, poll_table * wait)
+ {
+-	struct inode *inode = file->f_dentry->d_inode;
++	struct inode *inode = file->f_path.dentry->d_inode;
+ 	int dev = iminor(inode);
  
- 	/* chain into the data_ready callback */
-@@ -1939,7 +1939,7 @@ static int
- smb_proc_readdir_short(struct file *filp, void *dirent, filldir_t filldir,
- 		       struct smb_cache_control *ctl)
- {
--	struct dentry *dir = filp->f_dentry;
-+	struct dentry *dir = filp->f_path.dentry;
- 	struct smb_sb_info *server = server_from_dentry(dir);
- 	struct qstr qname;
- 	struct smb_fattr fattr;
-@@ -2291,7 +2291,7 @@ static int
- smb_proc_readdir_long(struct file *filp, void *dirent, filldir_t filldir,
- 		      struct smb_cache_control *ctl)
- {
--	struct dentry *dir = filp->f_dentry;
-+	struct dentry *dir = filp->f_path.dentry;
- 	struct smb_sb_info *server = server_from_dentry(dir);
- 	struct qstr qname;
- 	struct smb_fattr fattr;
-@@ -2859,7 +2859,7 @@ static int
- smb_proc_readdir_null(struct file *filp, void *dirent, filldir_t filldir,
- 		      struct smb_cache_control *ctl)
- {
--	struct smb_sb_info *server = server_from_dentry(filp->f_dentry);
-+	struct smb_sb_info *server = server_from_dentry(filp->f_path.dentry);
+ 	DEB(printk("sound_poll(dev=%d)\n", dev));
+@@ -418,7 +418,7 @@ static int sound_mmap(struct file *file,
+ 	int dev_class;
+ 	unsigned long size;
+ 	struct dma_buffparms *dmap = NULL;
+-	int dev = iminor(file->f_dentry->d_inode);
++	int dev = iminor(file->f_path.dentry->d_inode);
  
- 	if (smb_proc_ops_wait(server) < 0)
- 		return -EIO;
-diff -puN fs/smbfs/sock.c~struct-path-convert-smbfs fs/smbfs/sock.c
---- a/fs/smbfs/sock.c~struct-path-convert-smbfs
-+++ a/fs/smbfs/sock.c
-@@ -82,10 +82,10 @@ server_sock(struct smb_sb_info *server)
- 	if (server && (file = server->sock_file))
- 	{
- #ifdef SMBFS_PARANOIA
--		if (!smb_valid_socket(file->f_dentry->d_inode))
-+		if (!smb_valid_socket(file->f_path.dentry->d_inode))
- 			PARANOIA("bad socket!\n");
- #endif
--		return SOCKET_I(file->f_dentry->d_inode);
-+		return SOCKET_I(file->f_path.dentry->d_inode);
+ 	dev_class = dev & 0x0f;
+ 	dev >>= 4;
+diff -puN sound/sound_firmware.c~struct-path-convert-sound sound/sound_firmware.c
+--- a/sound/sound_firmware.c~struct-path-convert-sound
++++ a/sound/sound_firmware.c
+@@ -19,7 +19,7 @@ static int do_mod_firmware_load(const ch
+ 		printk(KERN_INFO "Unable to load '%s'.\n", fn);
+ 		return 0;
  	}
- 	return NULL;
- }
+-	l = filp->f_dentry->d_inode->i_size;
++	l = filp->f_path.dentry->d_inode->i_size;
+ 	if (l <= 0 || l > 131072)
+ 	{
+ 		printk(KERN_INFO "Invalid firmware '%s'\n", fn);
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
-struct-path-convert-smbfs.patch
 struct-path-convert-sound.patch
 struct-path-convert-sparc.patch
 struct-path-convert-sparc64.patch
