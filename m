@@ -1,207 +1,120 @@
 From: akpm@osdl.org
-Subject: - char-stallion-fix-fail-paths.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:09:49 -0800
-Message-ID: <200612082009.kB8K9nQ8002744@shell0.pdx.osdl.net>
+Subject: - char-stallion-brd-struct-locking.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:09:52 -0800
+Message-ID: <200612082009.kB8K9qkg002747@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58686 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946372AbWLHUJy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:09:54 -0500
+	id S1946406AbWLHUJ4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: stallion, fix fail paths
+     Char: stallion, brd struct locking
 has been removed from the -mm tree.  Its filename was
-     char-stallion-fix-fail-paths.patch
+     char-stallion-brd-struct-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: stallion, fix fail paths
+Subject: Char: stallion, brd struct locking
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Release everything what was allocated and check return value of isa probing. 
-Release only ISA boards in module exit, since pci have their own
-pci-probing-remove.
+Since assigning of stl_brds[brdnr] is racy, add locking to this critical
+section.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/stallion.c |   81 ++++++++++++++++++++++++--------------
- 1 file changed, 52 insertions(+), 29 deletions(-)
+ drivers/char/stallion.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/stallion.c~char-stallion-fix-fail-paths drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-fix-fail-paths
+diff -puN drivers/char/stallion.c~char-stallion-brd-struct-locking drivers/char/stallion.c
+--- a/drivers/char/stallion.c~char-stallion-brd-struct-locking
 +++ a/drivers/char/stallion.c
-@@ -143,6 +143,8 @@ static struct stlbrd		*stl_brds[STL_MAXB
-  *	Not really much here!
-  */
- #define	BRD_FOUND	0x1
-+#define STL_PROBED	0x2
-+
+@@ -136,6 +136,7 @@ static char		stl_unwanted[SC26198_RXFIFO
+ 
+ /*****************************************************************************/
+ 
++static DEFINE_MUTEX(stl_brdslock);
+ static struct stlbrd		*stl_brds[STL_MAXBRDS];
  
  /*
-  *	Define the port structure istate flags. These set of flags are
-@@ -2388,6 +2390,7 @@ static int __devinit stl_pciprobe(struct
- 		goto err_fr;
- 	}
- 	brdp->brdtype = brdtype;
-+	brdp->state |= STL_PROBED;
- 
- /*
-  *	We have all resources from the board, so let's setup the actual
-@@ -4677,6 +4680,28 @@ static void stl_sc26198otherisr(struct s
- 	}
- }
- 
-+static void stl_free_isabrds(void)
-+{
-+	struct stlbrd *brdp;
-+	unsigned int i;
-+
-+	for (i = 0; i < stl_nrbrds; i++) {
-+		if ((brdp = stl_brds[i]) == NULL || (brdp->state & STL_PROBED))
-+			continue;
-+
-+		free_irq(brdp->irq, brdp);
-+
-+		stl_cleanup_panels(brdp);
-+
-+		release_region(brdp->ioaddr1, brdp->iosize1);
-+		if (brdp->iosize2 > 0)
-+			release_region(brdp->ioaddr2, brdp->iosize2);
-+
-+		kfree(brdp);
-+		stl_brds[i] = NULL;
-+	}
-+}
-+
- /*
-  *	Loadable module initialization stuff.
-  */
-@@ -4684,7 +4709,8 @@ static int __init stallion_module_init(v
- {
- 	struct stlbrd	*brdp;
- 	struct stlconf	conf;
--	unsigned int i, retval;
-+	unsigned int i;
-+	int retval;
- 
- 	printk(KERN_INFO "%s: version %s\n", stl_drvtitle, stl_drvversion);
- 
-@@ -4714,12 +4740,14 @@ static int __init stallion_module_init(v
- 	}
- 
- 	retval = pci_register_driver(&stl_pcidriver);
--	if (retval)
-+	if (retval && stl_nrbrds == 0)
+@@ -2303,7 +2304,6 @@ static int __devinit stl_brdinit(struct 
  		goto err;
- 
- 	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
--	if (!stl_serial)
--		return -1;
-+	if (!stl_serial) {
-+		retval = -ENOMEM;
-+		goto err_pcidr;
-+	}
- 
- /*
-  *	Set up a character driver for per board stuff. This is mainly used
-@@ -4729,6 +4757,10 @@ static int __init stallion_module_init(v
- 		printk("STALLION: failed to register serial board device\n");
- 
- 	stallion_class = class_create(THIS_MODULE, "staliomem");
-+	if (IS_ERR(stallion_class)) {
-+		retval = PTR_ERR(stallion_class);
-+		goto err_reg;
-+	}
- 	for (i = 0; i < 4; i++)
- 		class_device_create(stallion_class, NULL,
- 				    MKDEV(STL_SIOMEMMAJOR, i), NULL,
-@@ -4745,20 +4777,29 @@ static int __init stallion_module_init(v
- 	stl_serial->flags = TTY_DRIVER_REAL_RAW;
- 	tty_set_operations(stl_serial, &stl_ops);
- 
--	if (tty_register_driver(stl_serial)) {
--		put_tty_driver(stl_serial);
-+	retval = tty_register_driver(stl_serial);
-+	if (retval) {
- 		printk("STALLION: failed to register serial driver\n");
--		return -1;
-+		goto err_clsdev;
  	}
  
- 	return 0;
-+err_clsdev:
-+	for (i = 0; i < 4; i++)
-+		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
-+	class_destroy(stallion_class);
-+err_reg:
-+	unregister_chrdev(STL_SIOMEMMAJOR, "staliomem");
-+	put_tty_driver(stl_serial);
-+err_pcidr:
-+	pci_unregister_driver(&stl_pcidriver);
-+	stl_free_isabrds();
+-	stl_brds[brdp->brdnr] = brdp;
+ 	if ((brdp->state & BRD_FOUND) == 0) {
+ 		printk("STALLION: %s board not found, board=%d io=%x irq=%d\n",
+ 			stl_brdnames[brdp->brdtype], brdp->brdnr,
+@@ -2329,8 +2329,6 @@ err_free:
+ 	release_region(brdp->ioaddr1, brdp->iosize1);
+ 	if (brdp->iosize2 > 0)
+ 		release_region(brdp->ioaddr2, brdp->iosize2);
+-
+-	stl_brds[brdp->brdnr] = NULL;
  err:
  	return retval;
  }
- 
- static void __exit stallion_module_exit(void)
- {
--	struct stlbrd	*brdp;
- 	int		i;
- 
- 	pr_debug("cleanup_module()\n");
-@@ -4772,13 +4813,9 @@ static void __exit stallion_module_exit(
-  *	a hangup on every open port - to try to flush out any processes
-  *	hanging onto ports.
-  */
--	i = tty_unregister_driver(stl_serial);
-+	tty_unregister_driver(stl_serial);
- 	put_tty_driver(stl_serial);
--	if (i) {
--		printk("STALLION: failed to un-register tty driver, "
--			"errno=%d\n", -i);
--		return;
--	}
+@@ -2383,12 +2381,17 @@ static int __devinit stl_pciprobe(struct
+ 		retval = -ENOMEM;
+ 		goto err;
+ 	}
++	mutex_lock(&stl_brdslock);
+ 	brdp->brdnr = stl_getbrdnr();
+ 	if (brdp->brdnr < 0) {
+ 		dev_err(&pdev->dev, "too many boards found, "
+ 			"maximum supported %d\n", STL_MAXBRDS);
++		mutex_unlock(&stl_brdslock);
+ 		goto err_fr;
+ 	}
++	stl_brds[brdp->brdnr] = brdp;
++	mutex_unlock(&stl_brdslock);
 +
- 	for (i = 0; i < 4; i++)
- 		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
- 	if ((i = unregister_chrdev(STL_SIOMEMMAJOR, "staliomem")))
-@@ -4788,21 +4825,7 @@ static void __exit stallion_module_exit(
+ 	brdp->brdtype = brdtype;
+ 	brdp->state |= STL_PROBED;
  
- 	pci_unregister_driver(&stl_pcidriver);
+@@ -2417,11 +2420,13 @@ static int __devinit stl_pciprobe(struct
+ 	brdp->irq = pdev->irq;
+ 	retval = stl_brdinit(brdp);
+ 	if (retval)
+-		goto err_fr;
++		goto err_null;
  
--	for (i = 0; (i < stl_nrbrds); i++) {
--		if ((brdp = stl_brds[i]) == NULL)
--			continue;
--
--		free_irq(brdp->irq, brdp);
--
--		stl_cleanup_panels(brdp);
--
--		release_region(brdp->ioaddr1, brdp->iosize1);
--		if (brdp->iosize2 > 0)
--			release_region(brdp->ioaddr2, brdp->iosize2);
--
--		kfree(brdp);
--		stl_brds[i] = NULL;
--	}
-+	stl_free_isabrds();
- }
+ 	pci_set_drvdata(pdev, brdp);
  
- module_init(stallion_module_init);
+ 	return 0;
++err_null:
++	stl_brds[brdp->brdnr] = NULL;
+ err_fr:
+ 	kfree(brdp);
+ err:
+@@ -4735,10 +4740,13 @@ static int __init stallion_module_init(v
+ 		brdp->irqtype = conf.irqtype;
+ 		if (stl_brdinit(brdp))
+ 			kfree(brdp);
+-		else
++		else {
++			stl_brds[brdp->brdnr] = brdp;
+ 			stl_nrbrds = i + 1;
++		}
+ 	}
+ 
++	/* this has to be _after_ isa finding because of locking */
+ 	retval = pci_register_driver(&stl_pcidriver);
+ 	if (retval && stl_nrbrds == 0)
+ 		goto err;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-stallion-fix-fail-paths.patch
 char-stallion-brd-struct-locking.patch
 char-stallion-remove-syntactic-sugar.patch
 char-stallion-variables-cleanup.patch
