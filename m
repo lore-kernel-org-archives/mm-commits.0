@@ -1,30 +1,30 @@
 From: akpm@osdl.org
-Subject: - tty-signal-tty-locking-post-viro-trainwreck-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:43:23 -0800
-Message-ID: <200612080843.kB88hNUw013737@shell0.pdx.osdl.net>
+Subject: - tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:43:26 -0800
+Message-ID: <200612080843.kB88hQ68013740@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36455 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36457 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425188AbWLHIng (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:43:36 -0500
+	id S1425190AbWLHInn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:43:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, a.p.zijlstra@chello.nl, alan@redhat.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-signal-tty-locking-post-viro-trainwreck-fix
+     tty-signal-tty-locking-post-viro-trainwreck-fix-fix
 has been removed from the -mm tree.  Its filename was
-     tty-signal-tty-locking-post-viro-trainwreck-fix.patch
+     tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
 
 This patch was dropped because it was folded into tty-signal-tty-locking.patch
 
 ------------------------------------------------------
-Subject: tty-signal-tty-locking-post-viro-trainwreck-fix
+Subject: tty-signal-tty-locking-post-viro-trainwreck-fix-fix
 From: Andrew Morton <akpm@osdl.org>
 
-WARNING: "tty_devnum" [drivers/net/slip.ko] undefined!                          
+WARNING: "proc_clear_tty" [arch/sparc64/solaris/solaris.ko] undefined!
 
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Alan Cox <alan@redhat.com>
@@ -35,16 +35,16 @@ Signed-off-by: Andrew Morton <akpm@osdl.org>
  drivers/char/tty_io.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/tty_io.c~tty-signal-tty-locking-post-viro-trainwreck-fix drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-signal-tty-locking-post-viro-trainwreck-fix
+diff -puN drivers/char/tty_io.c~tty-signal-tty-locking-post-viro-trainwreck-fix-fix drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-signal-tty-locking-post-viro-trainwreck-fix-fix
 +++ a/drivers/char/tty_io.c
-@@ -3778,6 +3778,7 @@ dev_t tty_devnum(struct tty_struct *tty)
- {
- 	return MKDEV(tty->driver->major, tty->driver->minor_start) + tty->index;
+@@ -3847,6 +3847,7 @@ void proc_clear_tty(struct task_struct *
+ 	p->signal->tty = NULL;
+ 	spin_unlock_irq(&p->sighand->siglock);
  }
-+EXPORT_SYMBOL(tty_devnum);
++EXPORT_SYMBOL(proc_clear_tty);
  
- void proc_clear_tty(struct task_struct *p)
+ void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
  {
 _
 
@@ -53,7 +53,6 @@ Patches currently in -mm which might be from akpm@osdl.org are
 origin.patch
 node-aware-skb-allocation-fix-for-device-tree-changes.patch
 tty-signal-tty-locking.patch
-tty-signal-tty-locking-post-viro-trainwreck-fix.patch
 tty-signal-tty-locking-post-viro-trainwreck-fix-fix.patch
 pktcdvd-bio-write-congestion-using-blk_congestion_wait-fix.patch
 net-use-bitrev8-tidy.patch
