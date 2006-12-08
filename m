@@ -1,88 +1,89 @@
 From: akpm@osdl.org
-Subject: - char-mxser_new-alter-license-terms.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:07:06 -0800
-Message-ID: <200612082007.kB8K76GB002484@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-testbit-for-bit-testing.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:07:19 -0800
+Message-ID: <200612082007.kB8K7JDD002505@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57821 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57878 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426354AbWLHUHK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:07:10 -0500
+	id S1426347AbWLHUHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:07:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, alter license terms
+     Char: mxser_new, testbit for bit testing
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-alter-license-terms.patch
+     char-mxser_new-testbit-for-bit-testing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, alter license terms
+Subject: Char: mxser_new, testbit for bit testing
 From: Jiri Slaby <jirislaby@gmail.com>
 
-- We don't need useless paragraphs in license terms.
+Use testbit like in tty subsystem for TTY_IO_ERROR testing.
 
-- Add me to copyright.
-
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/char/mxser_new.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-alter-license-terms drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-alter-license-terms
+diff -puN drivers/char/mxser_new.c~char-mxser_new-testbit-for-bit-testing drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-testbit-for-bit-testing
 +++ a/drivers/char/mxser_new.c
-@@ -2,31 +2,23 @@
-  *          mxser.c  -- MOXA Smartio/Industio family multiport serial driver.
-  *
-  *      Copyright (C) 1999-2006  Moxa Technologies (support@moxa.com.tw).
-+ *	Copyright (C) 2006       Jiri Slaby <jirislaby@gmail.com>
-  *
-- *      This code is loosely based on the Linux serial driver, written by
-- *      Linus Torvalds, Theodore T'so and others.
-+ *      This code is loosely based on the 1.8 moxa driver which is based on
-+ *	Linux serial driver, written by Linus Torvalds, Theodore T'so and
-+ *	others.
-  *
-  *      This program is free software; you can redistribute it and/or modify
-  *      it under the terms of the GNU General Public License as published by
-  *      the Free Software Foundation; either version 2 of the License, or
-  *      (at your option) any later version.
-  *
-- *      This program is distributed in the hope that it will be useful,
-- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *      GNU General Public License for more details.
-- *
-- *      You should have received a copy of the GNU General Public License
-- *      along with this program; if not, write to the Free Software
-- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- *
-  *	Fed through a cleanup, indent and remove of non 2.6 code by Alan Cox
-  *	<alan@redhat.com>. The original 1.8 code is available on www.moxa.com.
-  *	- Fixed x86_64 cleanness
-  *	- Fixed sleep with spinlock held in mxser_send_break
-  */
+@@ -461,7 +461,8 @@ static int mxser_block_til_ready(struct 
+ 	 * If non-blocking mode is set, or the port is not enabled,
+ 	 * then make the check up front and then exit.
+ 	 */
+-	if ((filp->f_flags & O_NONBLOCK) || (tty->flags & (1 << TTY_IO_ERROR))) {
++	if ((filp->f_flags & O_NONBLOCK) ||
++			test_bit(TTY_IO_ERROR, &tty->flags)) {
+ 		port->flags |= ASYNC_NORMAL_ACTIVE;
+ 		return 0;
+ 	}
+@@ -1437,7 +1438,7 @@ static int mxser_tiocmget(struct tty_str
  
--
- #include <linux/module.h>
- #include <linux/autoconf.h>
- #include <linux/errno.h>
+ 	if (tty->index == MXSER_PORTS)
+ 		return -ENOIOCTLCMD;
+-	if (tty->flags & (1 << TTY_IO_ERROR))
++	if (test_bit(TTY_IO_ERROR, &tty->flags))
+ 		return -EIO;
+ 
+ 	control = info->MCR;
+@@ -1464,7 +1465,7 @@ static int mxser_tiocmset(struct tty_str
+ 
+ 	if (tty->index == MXSER_PORTS)
+ 		return -ENOIOCTLCMD;
+-	if (tty->flags & (1 << TTY_IO_ERROR))
++	if (test_bit(TTY_IO_ERROR, &tty->flags))
+ 		return -EIO;
+ 
+ 	spin_lock_irqsave(&info->slock, flags);
+@@ -1798,10 +1799,10 @@ static int mxser_ioctl(struct tty_struct
+ 	}
+ 	/* above add by Victor Yu. 01-05-2004 */
+ 
+-	if ((cmd != TIOCGSERIAL) && (cmd != TIOCMIWAIT) && (cmd != TIOCGICOUNT)) {
+-		if (tty->flags & (1 << TTY_IO_ERROR))
+-			return -EIO;
+-	}
++	if (cmd != TIOCGSERIAL && cmd != TIOCMIWAIT && cmd != TIOCGICOUNT &&
++			test_bit(TTY_IO_ERROR, &tty->flags))
++		return -EIO;
++
+ 	switch (cmd) {
+ 	case TCSBRK:		/* SVID version: non-zero arg --> no break */
+ 		retval = tty_check_change(tty);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-mxser_new-alter-license-terms.patch
-char-mxser_new-code-upside-down.patch
-char-mxser_new-cmspar-is-defined.patch
-char-remove-unneded-termbits-redefinitions-mxser_new.patch
-char-mxser_new-eliminate-tty-ldisc-deref.patch
 char-mxser_new-testbit-for-bit-testing.patch
 char-mxser_new-correct-fail-paths.patch
 char-mxser_new-dont-check-tty_unregister-retval.patch
