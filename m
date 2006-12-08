@@ -1,227 +1,96 @@
 From: akpm@osdl.org
-Subject: + implement-flush_work.patch added to -mm tree
-Date: Thu, 07 Dec 2006 16:23:12 -0800
-Message-ID: <200612080023.kB80ND3k000929@shell0.pdx.osdl.net>
+Subject: + tg3-use-flush_keventd_work.patch added to -mm tree
+Date: Thu, 07 Dec 2006 16:23:46 -0800
+Message-ID: <200612080023.kB80Nl4G000962@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59504 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59524 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1164214AbWLHAYZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 19:24:25 -0500
+	id S1164215AbWLHAYd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 19:24:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, auke-jan.h.kok@intel.com, axboe@suse.de, bcrl@kvack.org, davem@davemloft.net, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, mchan@broadcom.com, nickpiggin@yahoo.com.au, torvalds@osdl.org, zach.brown@oracle.com
+Cc: akpm@osdl.org, davem@davemloft.net, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, mchan@broadcom.com, torvalds@osdl.org
 
 
 The patch titled
-     implement flush_work() and flush_keventd_work()
+     tg3: use flush_keventd_work()
 has been added to the -mm tree.  Its filename is
-     implement-flush_work.patch
+     tg3-use-flush_keventd_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: implement flush_work() and flush_keventd_work()
+Subject: tg3: use flush_keventd_work()
 From: Andrew Morton <akpm@osdl.org>
 
-A basic problem with flush_scheduled_work() is that it blocks behind _all_
-presently-queued works, rather than just the work whcih the caller wants to
-flush.  If the caller holds some lock, and if one of the queued work happens
-to want that lock as well then accidental deadlocks can occur.
-
-One example of this is the phy layer: it wants to flush work while holding
-rtnl_lock().  But if a linkwatch event happens to be queued, the phy code will
-deadlock because the linkwatch callback function takes rtnl_lock.
-
-So we implement a new function which will flush a *single* work - just the one
-which the caller wants to free up.  Thus we avoid the accidental deadlocks
-which can arise from unrelated subsystems' callbacks taking shared locks.
-
-It plays games with workqueue_mutex to avoid deadlocks which can occur when a
-work callback itself wants to run flush_scheduled_work.  scsi does this when
-tearing down a request_queue.
-
-It might well explode when used in combination with no-auto-release
-work_structs.  But they need to go away...
-
-(Various patches which use this new facility in various popular places
-follow..)
+Convert tg3 over to flush_keventd_work().  Remove nasty now-unneeded deadlock
+avoidance logic.
 
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Cc: Linus Torvalds <torvalds@osdl.org>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Jens Axboe <axboe@suse.de>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Michael Chan <mchan@broadcom.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/workqueue.h |    4 +
- kernel/workqueue.c        |   89 +++++++++++++++++++++++++++++++++++-
- 2 files changed, 90 insertions(+), 3 deletions(-)
+ drivers/net/tg3.c |   11 +----------
+ drivers/net/tg3.h |    2 +-
+ 2 files changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN kernel/workqueue.c~implement-flush_work kernel/workqueue.c
---- a/kernel/workqueue.c~implement-flush_work
-+++ a/kernel/workqueue.c
-@@ -56,6 +56,7 @@ struct cpu_workqueue_struct {
+diff -puN drivers/net/tg3.c~tg3-use-flush_keventd_work drivers/net/tg3.c
+--- a/drivers/net/tg3.c~tg3-use-flush_keventd_work
++++ a/drivers/net/tg3.c
+@@ -3669,10 +3669,8 @@ static void tg3_reset_task(struct work_s
+ 	unsigned int restart_timer;
  
- 	struct workqueue_struct *wq;
- 	struct task_struct *thread;
-+	struct work_struct *current_work;
+ 	tg3_full_lock(tp, 0);
+-	tp->tg3_flags |= TG3_FLAG_IN_RESET_TASK;
  
- 	int run_depth;		/* Detect run_workqueue() recursion depth */
- 
-@@ -78,6 +79,7 @@ static DEFINE_MUTEX(workqueue_mutex);
- static LIST_HEAD(workqueues);
- 
- static int singlethread_cpu;
-+static struct workqueue_struct *keventd_wq;
- 
- /* If it's single threaded, it isn't in the list of workqueues. */
- static inline int is_single_threaded(struct workqueue_struct *wq)
-@@ -323,6 +325,7 @@ static void run_workqueue(struct cpu_wor
- 		work_func_t f = work->func;
- 
- 		list_del_init(cwq->worklist.next);
-+		cwq->current_work = work;
- 		spin_unlock_irqrestore(&cwq->lock, flags);
- 
- 		BUG_ON(get_wq_data(work) != cwq);
-@@ -342,6 +345,7 @@ static void run_workqueue(struct cpu_wor
- 		}
- 
- 		spin_lock_irqsave(&cwq->lock, flags);
-+		cwq->current_work = NULL;
- 		cwq->remove_sequence++;
- 		wake_up(&cwq->work_done);
+ 	if (!netif_running(tp->dev)) {
+-		tp->tg3_flags &= ~TG3_FLAG_IN_RESET_TASK;
+ 		tg3_full_unlock(tp);
+ 		return;
  	}
-@@ -440,6 +444,89 @@ static void flush_cpu_workqueue(struct c
- 	}
- }
+@@ -3703,8 +3701,6 @@ static void tg3_reset_task(struct work_s
+ 		mod_timer(&tp->timer, jiffies + 1);
  
-+static void wait_on_work(struct cpu_workqueue_struct *cwq,
-+				struct work_struct *work, int cpu)
-+{
-+	DEFINE_WAIT(wait);
-+
-+	spin_lock_irq(&cwq->lock);
-+	while (cwq->current_work == work) {
-+		prepare_to_wait(&cwq->work_done, &wait, TASK_UNINTERRUPTIBLE);
-+		spin_unlock_irq(&cwq->lock);
-+		if (cpu != -1)
-+			mutex_unlock(&workqueue_mutex);
-+		schedule();
-+		if (cpu != -1) {
-+			mutex_lock(&workqueue_mutex);
-+			if (!cpu_online(cpu))	/* oops, CPU got unplugged */
-+				goto bail;
-+		}
-+		spin_lock_irq(&cwq->lock);
-+	}
-+	spin_unlock_irq(&cwq->lock);
-+bail:
-+	finish_wait(&cwq->work_done, &wait);
-+}
-+
-+static void flush_one_work(struct cpu_workqueue_struct *cwq,
-+				struct work_struct *work, int cpu)
-+{
-+	spin_lock_irq(&cwq->lock);
-+	if (test_and_clear_bit(WORK_STRUCT_PENDING, &work->management)) {
-+		list_del_init(&work->entry);
-+		spin_unlock_irq(&cwq->lock);
-+		return;
-+	}
-+	spin_unlock_irq(&cwq->lock);
-+
-+	/* It's running, or it has completed */
-+	wait_on_work(cwq, work, cpu);
-+}
-+
-+/**
-+ * flush_work - block until a work_struct's callback has terminated
-+ * @wq: the workqueue on which the work is queued
-+ * @work: the work which is to be flushed
-+ *
-+ * flush_work() will attempt to cancel the work if it is queued.  If the work's
-+ * callback appears to be running, flush_work() will block until it has
-+ * completed.
-+ *
-+ * flush_work() is designed to be used when the caller is tearing down data
-+ * structures which the callback function operates upon.  It is expected that,
-+ * prior to calling flush_work(), the caller has arranged for the work to not
-+ * be requeued.
-+ */
-+void flush_work(struct workqueue_struct *wq, struct work_struct *work)
-+{
-+	if (is_single_threaded(wq)) {
-+		/* Always use first cpu's area. */
-+		flush_one_work(per_cpu_ptr(wq->cpu_wq, singlethread_cpu), work,
-+				-1);
-+	} else {
-+		int cpu;
-+
-+		mutex_lock(&workqueue_mutex);
-+		for_each_online_cpu(cpu)
-+			flush_one_work(per_cpu_ptr(wq->cpu_wq, cpu), work, cpu);
-+		mutex_unlock(&workqueue_mutex);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(flush_work);
-+
-+/**
-+ * flush_keventd_work - block until a keventd-owned work_struct's callback has terminated
-+ * @work: the work whcih is to be flushed
-+ *
-+ * flush_keventd_work() runs flush_work() against a work_struct which is handled
-+ * by keventd.
-+ */
-+void flush_keventd_work(struct work_struct *work)
-+{
-+	flush_work(keventd_wq, work);
-+}
-+EXPORT_SYMBOL_GPL(flush_keventd_work);
-+
- /**
-  * flush_workqueue - ensure that any scheduled work has run to completion.
-  * @wq: workqueue to flush
-@@ -592,8 +679,6 @@ void destroy_workqueue(struct workqueue_
- }
- EXPORT_SYMBOL_GPL(destroy_workqueue);
- 
--static struct workqueue_struct *keventd_wq;
+ out:
+-	tp->tg3_flags &= ~TG3_FLAG_IN_RESET_TASK;
 -
- /**
-  * schedule_work - put work task in global workqueue
-  * @work: job to be done
-diff -puN include/linux/workqueue.h~implement-flush_work include/linux/workqueue.h
---- a/include/linux/workqueue.h~implement-flush_work
-+++ a/include/linux/workqueue.h
-@@ -160,6 +160,8 @@ extern int FASTCALL(queue_delayed_work(s
- extern int queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
- 	struct delayed_work *work, unsigned long delay);
- extern void FASTCALL(flush_workqueue(struct workqueue_struct *wq));
-+extern void flush_work(struct workqueue_struct *wq, struct work_struct *work);
-+extern void flush_keventd_work(struct work_struct *work);
+ 	tg3_full_unlock(tp);
+ }
  
- extern int FASTCALL(schedule_work(struct work_struct *work));
- extern int FASTCALL(run_scheduled_work(struct work_struct *work));
-@@ -180,7 +182,7 @@ int execute_in_process_context(work_func
- /*
-  * Kill off a pending schedule_delayed_work().  Note that the work callback
-  * function may still be running on return from cancel_delayed_work().  Run
-- * flush_scheduled_work() to wait on it.
-+ * flush_scheduled_work() or flush_work() to wait on it.
-  */
- static inline int cancel_delayed_work(struct delayed_work *work)
+@@ -7351,12 +7347,7 @@ static int tg3_close(struct net_device *
  {
+ 	struct tg3 *tp = netdev_priv(dev);
+ 
+-	/* Calling flush_scheduled_work() may deadlock because
+-	 * linkwatch_event() may be on the workqueue and it will try to get
+-	 * the rtnl_lock which we are holding.
+-	 */
+-	while (tp->tg3_flags & TG3_FLAG_IN_RESET_TASK)
+-		msleep(1);
++	flush_keventd_work(&tp->reset_task);
+ 
+ 	netif_stop_queue(dev);
+ 
+diff -puN drivers/net/tg3.h~tg3-use-flush_keventd_work drivers/net/tg3.h
+--- a/drivers/net/tg3.h~tg3-use-flush_keventd_work
++++ a/drivers/net/tg3.h
+@@ -2214,7 +2214,7 @@ struct tg3 {
+ #define TG3_FLAG_JUMBO_RING_ENABLE	0x00800000
+ #define TG3_FLAG_10_100_ONLY		0x01000000
+ #define TG3_FLAG_PAUSE_AUTONEG		0x02000000
+-#define TG3_FLAG_IN_RESET_TASK		0x04000000
++
+ #define TG3_FLAG_40BIT_DMA_BUG		0x08000000
+ #define TG3_FLAG_BROKEN_CHECKSUMS	0x10000000
+ #define TG3_FLAG_GOT_SERDES_FLOWCTL	0x20000000
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
