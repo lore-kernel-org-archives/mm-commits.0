@@ -1,138 +1,188 @@
 From: akpm@osdl.org
-Subject: - ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:01:46 -0800
-Message-ID: <200612082001.kB8K1kGq001900@shell0.pdx.osdl.net>
+Subject: - kernel-change-uses-of-f_dentry.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:02 -0800
+Message-ID: <200612082002.kB8K22jq001939@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56945 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56950 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426238AbWLHUCD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:03 -0500
+	id S1426224AbWLHUCF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: change uses of f_{dentry, vfsmnt} to use f_path
+     kernel: change uses of f_{dentry, vfsmnt} to use f_path
 has been removed from the -mm tree.  Its filename was
-     ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+     kernel-change-uses-of-f_dentry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: change uses of f_{dentry, vfsmnt} to use f_path
+Subject: kernel: change uses of f_{dentry, vfsmnt} to use f_path
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the ext4
-filesystem.
+Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in
+linux/kernel/.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext4/dir.c   |    8 ++++----
- fs/ext4/file.c  |    2 +-
- fs/ext4/ioctl.c |    2 +-
- fs/ext4/namei.c |    4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ kernel/acct.c   |   14 +++++++-------
+ kernel/fork.c   |    2 +-
+ kernel/futex.c  |   10 +++++-----
+ kernel/relay.c  |    4 ++--
+ kernel/sysctl.c |    2 +-
+ 5 files changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN fs/ext4/dir.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/ext4/dir.c
---- a/fs/ext4/dir.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path
-+++ a/fs/ext4/dir.c
-@@ -103,7 +103,7 @@ static int ext4_readdir(struct file * fi
- 	struct ext4_dir_entry_2 *de;
- 	struct super_block *sb;
- 	int err;
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	int ret = 0;
+diff -puN kernel/acct.c~kernel-change-uses-of-f_dentry kernel/acct.c
+--- a/kernel/acct.c~kernel-change-uses-of-f_dentry
++++ a/kernel/acct.c
+@@ -118,7 +118,7 @@ static int check_free_space(struct file 
+ 	spin_unlock(&acct_globals.lock);
  
- 	sb = inode->i_sb;
-@@ -122,7 +122,7 @@ static int ext4_readdir(struct file * fi
- 		 * We don't set the inode dirty flag since it's not
- 		 * critical that it get flushed back to the disk.
- 		 */
--		EXT4_I(filp->f_dentry->d_inode)->i_flags &= ~EXT4_INDEX_FL;
-+		EXT4_I(filp->f_path.dentry->d_inode)->i_flags &= ~EXT4_INDEX_FL;
+ 	/* May block */
+-	if (vfs_statfs(file->f_dentry, &sbuf))
++	if (vfs_statfs(file->f_path.dentry, &sbuf))
+ 		return res;
+ 	suspend = sbuf.f_blocks * SUSPEND;
+ 	resume = sbuf.f_blocks * RESUME;
+@@ -194,7 +194,7 @@ static void acct_file_reopen(struct file
+ 		add_timer(&acct_globals.timer);
  	}
- #endif
- 	stored = 0;
-@@ -402,7 +402,7 @@ static int call_filldir(struct file * fi
- {
- 	struct dir_private_info *info = filp->private_data;
- 	loff_t	curr_pos;
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct super_block * sb;
- 	int error;
+ 	if (old_acct) {
+-		mnt_unpin(old_acct->f_vfsmnt);
++		mnt_unpin(old_acct->f_path.mnt);
+ 		spin_unlock(&acct_globals.lock);
+ 		do_acct_process(old_acct);
+ 		filp_close(old_acct, NULL);
+@@ -212,7 +212,7 @@ static int acct_on(char *name)
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
  
-@@ -432,7 +432,7 @@ static int ext4_dx_readdir(struct file *
- 			 void * dirent, filldir_t filldir)
- {
- 	struct dir_private_info *info = filp->private_data;
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct fname *fname;
- 	int	ret;
- 
-diff -puN fs/ext4/file.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/ext4/file.c
---- a/fs/ext4/file.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path
-+++ a/fs/ext4/file.c
-@@ -52,7 +52,7 @@ ext4_file_write(struct kiocb *iocb, cons
- 		unsigned long nr_segs, loff_t pos)
- {
- 	struct file *file = iocb->ki_filp;
--	struct inode *inode = file->f_dentry->d_inode;
-+	struct inode *inode = file->f_path.dentry->d_inode;
- 	ssize_t ret;
- 	int err;
- 
-diff -puN fs/ext4/ioctl.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/ext4/ioctl.c
---- a/fs/ext4/ioctl.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path
-+++ a/fs/ext4/ioctl.c
-@@ -256,7 +256,7 @@ flags_err:
- #ifdef CONFIG_COMPAT
- long ext4_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	struct inode *inode = file->f_dentry->d_inode;
-+	struct inode *inode = file->f_path.dentry->d_inode;
- 	int ret;
- 
- 	/* These are just misnamed, they actually get/put from/to user an int */
-diff -puN fs/ext4/namei.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path
-+++ a/fs/ext4/namei.c
-@@ -602,7 +602,7 @@ int ext4_htree_fill_tree(struct file *di
- 
- 	dxtrace(printk("In htree_fill_tree, start hash: %x:%x\n", start_hash,
- 		       start_minor_hash));
--	dir = dir_file->f_dentry->d_inode;
-+	dir = dir_file->f_path.dentry->d_inode;
- 	if (!(EXT4_I(dir)->i_flags & EXT4_INDEX_FL)) {
- 		hinfo.hash_version = EXT4_SB(dir->i_sb)->s_def_hash_version;
- 		hinfo.seed = EXT4_SB(dir->i_sb)->s_hash_seed;
-@@ -613,7 +613,7 @@ int ext4_htree_fill_tree(struct file *di
+-	if (!S_ISREG(file->f_dentry->d_inode->i_mode)) {
++	if (!S_ISREG(file->f_path.dentry->d_inode->i_mode)) {
+ 		filp_close(file, NULL);
+ 		return -EACCES;
  	}
- 	hinfo.hash = start_hash;
- 	hinfo.minor_hash = 0;
--	frame = dx_probe(NULL, dir_file->f_dentry->d_inode, &hinfo, frames, &err);
-+	frame = dx_probe(NULL, dir_file->f_path.dentry->d_inode, &hinfo, frames, &err);
- 	if (!frame)
- 		return err;
+@@ -229,11 +229,11 @@ static int acct_on(char *name)
+ 	}
  
+ 	spin_lock(&acct_globals.lock);
+-	mnt_pin(file->f_vfsmnt);
++	mnt_pin(file->f_path.mnt);
+ 	acct_file_reopen(file);
+ 	spin_unlock(&acct_globals.lock);
+ 
+-	mntput(file->f_vfsmnt);	/* it's pinned, now give up active reference */
++	mntput(file->f_path.mnt); /* it's pinned, now give up active reference */
+ 
+ 	return 0;
+ }
+@@ -283,7 +283,7 @@ asmlinkage long sys_acct(const char __us
+ void acct_auto_close_mnt(struct vfsmount *m)
+ {
+ 	spin_lock(&acct_globals.lock);
+-	if (acct_globals.file && acct_globals.file->f_vfsmnt == m)
++	if (acct_globals.file && acct_globals.file->f_path.mnt == m)
+ 		acct_file_reopen(NULL);
+ 	spin_unlock(&acct_globals.lock);
+ }
+@@ -299,7 +299,7 @@ void acct_auto_close(struct super_block 
+ {
+ 	spin_lock(&acct_globals.lock);
+ 	if (acct_globals.file &&
+-	    acct_globals.file->f_vfsmnt->mnt_sb == sb) {
++	    acct_globals.file->f_path.mnt->mnt_sb == sb) {
+ 		acct_file_reopen(NULL);
+ 	}
+ 	spin_unlock(&acct_globals.lock);
+diff -puN kernel/fork.c~kernel-change-uses-of-f_dentry kernel/fork.c
+--- a/kernel/fork.c~kernel-change-uses-of-f_dentry
++++ a/kernel/fork.c
+@@ -252,7 +252,7 @@ static inline int dup_mmap(struct mm_str
+ 		anon_vma_link(tmp);
+ 		file = tmp->vm_file;
+ 		if (file) {
+-			struct inode *inode = file->f_dentry->d_inode;
++			struct inode *inode = file->f_path.dentry->d_inode;
+ 			get_file(file);
+ 			if (tmp->vm_flags & VM_DENYWRITE)
+ 				atomic_dec(&inode->i_writecount);
+diff -puN kernel/futex.c~kernel-change-uses-of-f_dentry kernel/futex.c
+--- a/kernel/futex.c~kernel-change-uses-of-f_dentry
++++ a/kernel/futex.c
+@@ -166,7 +166,7 @@ static inline int match_futex(union fute
+ /*
+  * Get parameters which are the keys for a futex.
+  *
+- * For shared mappings, it's (page->index, vma->vm_file->f_dentry->d_inode,
++ * For shared mappings, it's (page->index, vma->vm_file->f_path.dentry->d_inode,
+  * offset_within_page).  For private mappings, it's (uaddr, current->mm).
+  * We can usually work out the index without swapping in the page.
+  *
+@@ -223,7 +223,7 @@ static int get_futex_key(u32 __user *uad
+ 	/*
+ 	 * Linear file mappings are also simple.
+ 	 */
+-	key->shared.inode = vma->vm_file->f_dentry->d_inode;
++	key->shared.inode = vma->vm_file->f_path.dentry->d_inode;
+ 	key->both.offset++; /* Bit 0 of offset indicates inode-based key. */
+ 	if (likely(!(vma->vm_flags & VM_NONLINEAR))) {
+ 		key->shared.pgoff = (((address - vma->vm_start) >> PAGE_SHIFT)
+@@ -1528,9 +1528,9 @@ static int futex_fd(u32 __user *uaddr, i
+ 		goto out;
+ 	}
+ 	filp->f_op = &futex_fops;
+-	filp->f_vfsmnt = mntget(futex_mnt);
+-	filp->f_dentry = dget(futex_mnt->mnt_root);
+-	filp->f_mapping = filp->f_dentry->d_inode->i_mapping;
++	filp->f_path.mnt = mntget(futex_mnt);
++	filp->f_path.dentry = dget(futex_mnt->mnt_root);
++	filp->f_mapping = filp->f_path.dentry->d_inode->i_mapping;
+ 
+ 	if (signal) {
+ 		err = __f_setown(filp, task_pid(current), PIDTYPE_PID, 1);
+diff -puN kernel/relay.c~kernel-change-uses-of-f_dentry kernel/relay.c
+--- a/kernel/relay.c~kernel-change-uses-of-f_dentry
++++ a/kernel/relay.c
+@@ -959,7 +959,7 @@ static inline ssize_t relay_file_read_su
+ 	if (!desc->count)
+ 		return 0;
+ 
+-	mutex_lock(&filp->f_dentry->d_inode->i_mutex);
++	mutex_lock(&filp->f_path.dentry->d_inode->i_mutex);
+ 	do {
+ 		if (!relay_file_read_avail(buf, *ppos))
+ 			break;
+@@ -979,7 +979,7 @@ static inline ssize_t relay_file_read_su
+ 			*ppos = relay_file_read_end_pos(buf, read_start, ret);
+ 		}
+ 	} while (desc->count && ret);
+-	mutex_unlock(&filp->f_dentry->d_inode->i_mutex);
++	mutex_unlock(&filp->f_path.dentry->d_inode->i_mutex);
+ 
+ 	return desc->written;
+ }
+diff -puN kernel/sysctl.c~kernel-change-uses-of-f_dentry kernel/sysctl.c
+--- a/kernel/sysctl.c~kernel-change-uses-of-f_dentry
++++ a/kernel/sysctl.c
+@@ -1614,7 +1614,7 @@ static ssize_t do_rw_proc(int write, str
+ 			  size_t count, loff_t *ppos)
+ {
+ 	int op;
+-	struct proc_dir_entry *de = PDE(file->f_dentry->d_inode);
++	struct proc_dir_entry *de = PDE(file->f_path.dentry->d_inode);
+ 	struct ctl_table *table;
+ 	size_t res;
+ 	ssize_t error = -ENOTDIR;
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-ext4-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-fat-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-isofs-change-uses-of-f_dentry.patch
-nfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-nfsd-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-ntfs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-i386-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-x86_64-change-uses-of-f_dentry.patch
 kernel-change-uses-of-f_dentry.patch
 mm-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
 9p-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
