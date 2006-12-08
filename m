@@ -1,180 +1,91 @@
 From: akpm@osdl.org
-Subject: - crc32-replace-bitreverse-by-bitrev32.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:01:05 -0800
-Message-ID: <200612082001.kB8K15mF001808@shell0.pdx.osdl.net>
+Subject: - x86_64-change-uses-of-f_dentry.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:00 -0800
+Message-ID: <200612082002.kB8K205u001936@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56942 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56944 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426235AbWLHUCC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1426229AbWLHUCC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 8 Dec 2006 15:02:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, Matt_Domsch@dell.com, jgarzik@pobox.com, mm-commits@vger.kernel.org
+To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     crc32: replace bitreverse by bitrev32
+     x86_64: change uses of f_{dentry, vfsmnt} to use f_path
 has been removed from the -mm tree.  Its filename was
-     crc32-replace-bitreverse-by-bitrev32.patch
+     x86_64-change-uses-of-f_dentry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: crc32: replace bitreverse by bitrev32
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: x86_64: change uses of f_{dentry, vfsmnt} to use f_path
+From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-This patch replaces bitreverse() by bitrev32.  The only users of bitreverse()
-are crc32 itself and via-velocity.
+Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in the x86_64
+arch code.
 
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/via-velocity.c |    2 +-
- include/linux/crc32.h      |    4 ++--
- lib/Kconfig                |    1 +
- lib/crc32.c                |   28 +++++-----------------------
- 4 files changed, 9 insertions(+), 26 deletions(-)
+ arch/x86_64/ia32/ia32_aout.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/via-velocity.c~crc32-replace-bitreverse-by-bitrev32 drivers/net/via-velocity.c
---- a/drivers/net/via-velocity.c~crc32-replace-bitreverse-by-bitrev32
-+++ a/drivers/net/via-velocity.c
-@@ -3132,7 +3132,7 @@ static u16 wol_calc_crc(int size, u8 * p
+diff -puN arch/x86_64/ia32/ia32_aout.c~x86_64-change-uses-of-f_dentry arch/x86_64/ia32/ia32_aout.c
+--- a/arch/x86_64/ia32/ia32_aout.c~x86_64-change-uses-of-f_dentry
++++ a/arch/x86_64/ia32/ia32_aout.c
+@@ -272,7 +272,7 @@ static int load_aout_binary(struct linux
+ 	if ((N_MAGIC(ex) != ZMAGIC && N_MAGIC(ex) != OMAGIC &&
+ 	     N_MAGIC(ex) != QMAGIC && N_MAGIC(ex) != NMAGIC) ||
+ 	    N_TRSIZE(ex) || N_DRSIZE(ex) ||
+-	    i_size_read(bprm->file->f_dentry->d_inode) < ex.a_text+ex.a_data+N_SYMSIZE(ex)+N_TXTOFF(ex)) {
++	    i_size_read(bprm->file->f_path.dentry->d_inode) < ex.a_text+ex.a_data+N_SYMSIZE(ex)+N_TXTOFF(ex)) {
+ 		return -ENOEXEC;
  	}
- 	/*	Finally, invert the result once to get the correct data */
- 	crc = ~crc;
--	return bitreverse(crc) >> 16;
-+	return bitrev32(crc) >> 16;
- }
  
- /**
-diff -puN include/linux/crc32.h~crc32-replace-bitreverse-by-bitrev32 include/linux/crc32.h
---- a/include/linux/crc32.h~crc32-replace-bitreverse-by-bitrev32
-+++ a/include/linux/crc32.h
-@@ -6,10 +6,10 @@
- #define _LINUX_CRC32_H
- 
- #include <linux/types.h>
-+#include <linux/bitrev.h>
- 
- extern u32  crc32_le(u32 crc, unsigned char const *p, size_t len);
- extern u32  crc32_be(u32 crc, unsigned char const *p, size_t len);
--extern u32  bitreverse(u32 in);
- 
- #define crc32(seed, data, length)  crc32_le(seed, (unsigned char const *)data, length)
- 
-@@ -21,7 +21,7 @@ extern u32  bitreverse(u32 in);
-  * is in bit nr 0], thus it must be reversed before use. Except for
-  * nics that bit swap the result internally...
-  */
--#define ether_crc(length, data)    bitreverse(crc32_le(~0, data, length))
-+#define ether_crc(length, data)    bitrev32(crc32_le(~0, data, length))
- #define ether_crc_le(length, data) crc32_le(~0, data, length)
- 
- #endif /* _LINUX_CRC32_H */
-diff -puN lib/Kconfig~crc32-replace-bitreverse-by-bitrev32 lib/Kconfig
---- a/lib/Kconfig~crc32-replace-bitreverse-by-bitrev32
-+++ a/lib/Kconfig
-@@ -26,6 +26,7 @@ config CRC16
- config CRC32
- 	tristate "CRC32 functions"
- 	default y
-+	select BITREVERSE
- 	help
- 	  This option is provided for the case where no in-kernel-tree
- 	  modules require CRC32 functions, but a module built outside the
-diff -puN lib/crc32.c~crc32-replace-bitreverse-by-bitrev32 lib/crc32.c
---- a/lib/crc32.c~crc32-replace-bitreverse-by-bitrev32
-+++ a/lib/crc32.c
-@@ -235,23 +235,8 @@ u32 __attribute_pure__ crc32_be(u32 crc,
- }
+@@ -357,7 +357,7 @@ static int load_aout_binary(struct linux
+ 		{
+ 			printk(KERN_WARNING 
+ 			       "fd_offset is not page aligned. Please convert program: %s\n",
+-			       bprm->file->f_dentry->d_name.name);
++			       bprm->file->f_path.dentry->d_name.name);
+ 			error_time = jiffies;
+ 		}
  #endif
+@@ -440,7 +440,7 @@ static int load_aout_library(struct file
+ 	int retval;
+ 	struct exec ex;
  
--/**
-- * bitreverse - reverse the order of bits in a u32 value
-- * @x: value to be bit-reversed
-- */
--u32 bitreverse(u32 x)
--{
--	x = (x >> 16) | (x << 16);
--	x = (x >> 8 & 0x00ff00ff) | (x << 8 & 0xff00ff00);
--	x = (x >> 4 & 0x0f0f0f0f) | (x << 4 & 0xf0f0f0f0);
--	x = (x >> 2 & 0x33333333) | (x << 2 & 0xcccccccc);
--	x = (x >> 1 & 0x55555555) | (x << 1 & 0xaaaaaaaa);
--	return x;
--}
--
- EXPORT_SYMBOL(crc32_le);
- EXPORT_SYMBOL(crc32_be);
--EXPORT_SYMBOL(bitreverse);
+-	inode = file->f_dentry->d_inode;
++	inode = file->f_path.dentry->d_inode;
  
- /*
-  * A brief CRC tutorial.
-@@ -400,10 +385,7 @@ buf_dump(char const *prefix, unsigned ch
- static void bytereverse(unsigned char *buf, size_t len)
- {
- 	while (len--) {
--		unsigned char x = *buf;
--		x = (x >> 4) | (x << 4);
--		x = (x >> 2 & 0x33) | (x << 2 & 0xcc);
--		x = (x >> 1 & 0x55) | (x << 1 & 0xaa);
-+		unsigned char x = bitrev8(*buf);
- 		*buf++ = x;
- 	}
- }
-@@ -460,11 +442,11 @@ static u32 test_step(u32 init, unsigned 
- 	/* Now swap it around for the other test */
- 
- 	bytereverse(buf, len + 4);
--	init = bitreverse(init);
--	crc2 = bitreverse(crc1);
--	if (crc1 != bitreverse(crc2))
-+	init = bitrev32(init);
-+	crc2 = bitrev32(crc1);
-+	if (crc1 != bitrev32(crc2))
- 		printf("\nBit reversal fail: 0x%08x -> 0x%08x -> 0x%08x\n",
--		       crc1, crc2, bitreverse(crc2));
-+		       crc1, crc2, bitrev32(crc2));
- 	crc1 = crc32_le(init, buf, len);
- 	if (crc1 != crc2)
- 		printf("\nCRC endianness fail: 0x%08x != 0x%08x\n", crc1,
+ 	retval = -ENOEXEC;
+ 	error = kernel_read(file, 0, (char *) &ex, sizeof(ex));
+@@ -471,7 +471,7 @@ static int load_aout_library(struct file
+ 		{
+ 			printk(KERN_WARNING 
+ 			       "N_TXTOFF is not page aligned. Please convert library: %s\n",
+-			       file->f_dentry->d_name.name);
++			       file->f_path.dentry->d_name.name);
+ 			error_time = jiffies;
+ 		}
+ #endif
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-origin.patch
-crc32-replace-bitreverse-by-bitrev32.patch
-video-use-bitrev8.patch
-isdn-hisax-use-bitrev8.patch
-atm-ambassador-use-bitrev8.patch
-isdn-gigaset-use-bitrev8.patch
-isdn-fix-missing-unregister_capi_driver.patch
-fault-injection-documentation-and-scripts.patch
-fault-injection-capabilities-infrastructure.patch
-fault-injection-capability-for-kmalloc.patch
-fault-injection-capability-for-alloc_pages.patch
-fault-injection-capability-for-disk-io.patch
-fault-injection-process-filtering-for-fault-injection-capabilities.patch
-fault-injection-stacktrace-filtering.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-fault-injection-correct-disambiguate-and.patch
-fault-injection-use-bool-true-false-throughout.patch
-fault-injection-clamp-debugfs-stacktrace-depth-to.patch
-fault-injection-optimize-and-simplify.patch
-fault-injection-defaults-likely-to-please-a-new.patch
-acpi-fix-single-linked-list-manipulation.patch
-acpi-processor-prevent-loading-module-on-failures.patch
-git-alsa.patch
-audit-fix-kstrdup-error-check.patch
-drm-fix-return-value-check.patch
-ata-fix-platform_device_register_simple-error-check.patch
-git-mtd.patch
-net-use-bitrev8.patch
-gss_spkm3-fix-error-handling-in-module-init.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-iscsi-fix-crypto_alloc_hash-error-check.patch
+x86_64-change-uses-of-f_dentry.patch
+kernel-change-uses-of-f_dentry.patch
+mm-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+9p-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+affs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+autofs-change-uses-of-f_dentry.patch
+autofs4-change-uses-of-f_dentry.patch
+configfs-change-uses-of-f_dentry.patch
+cifs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
+ecryptfs-change-uses-of-f_dentry.patch
+xfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
 
