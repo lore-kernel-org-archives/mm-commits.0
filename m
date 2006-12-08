@@ -1,66 +1,99 @@
 From: akpm@osdl.org
-Subject: - mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 11:59:16 -0800
-Message-ID: <200612081959.kB8JxGIn001609@shell0.pdx.osdl.net>
+Subject: - move-kallsyms-data-to-rodata.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 11:59:35 -0800
+Message-ID: <200612081959.kB8JxZms001635@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56301 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56391 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426166AbWLHT7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 14:59:22 -0500
+	id S1426179AbWLHT7l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 14:59:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pj@sgi.com, menage@google.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fallback_alloc cpuset_zone_allowed irq fix
+     move kallsyms data to .rodata
 has been removed from the -mm tree.  Its filename was
-     mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch
+     move-kallsyms-data-to-rodata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: fallback_alloc cpuset_zone_allowed irq fix
-From: Paul Jackson <pj@sgi.com>
+Subject: move kallsyms data to .rodata
+From: "Jan Beulich" <jbeulich@novell.com>
 
-fallback_alloc() could end up calling cpuset_zone_allowed() with interrupts
-disabled (by code in kmem_cache_alloc_node()), but without __GFP_HARDWALL
-set, leading to a possible call of a sleeping function with interrupts
-disabled.
+Kallsyms data is never written to, so it can as well benefit from
+CONFIG_DEBUG_RODATA.
 
-This results in the BUG report:
-
-  BUG: sleeping function called from invalid context at kernel/cpuset.c:1520
-in_atomic():0, irqs_disabled():1
-
-Thanks to Paul Menage for catching this one.
-
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kallsyms.c  |   16 ++++++++--------
+ scripts/kallsyms.c |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/slab.c~mm-fallback_alloc-cpuset_zone_allowed-irq-fix mm/slab.c
---- a/mm/slab.c~mm-fallback_alloc-cpuset_zone_allowed-irq-fix
-+++ a/mm/slab.c
-@@ -3182,7 +3182,7 @@ retry:
- 	for (z = zonelist->zones; *z && !obj; z++) {
- 		nid = zone_to_nid(*z);
+diff -puN kernel/kallsyms.c~move-kallsyms-data-to-rodata kernel/kallsyms.c
+--- a/kernel/kallsyms.c~move-kallsyms-data-to-rodata
++++ a/kernel/kallsyms.c
+@@ -31,14 +31,14 @@
+ #endif
  
--		if (cpuset_zone_allowed(*z, flags) &&
-+		if (cpuset_zone_allowed(*z, flags | __GFP_HARDWALL) &&
- 			cache->nodelists[nid] &&
- 			cache->nodelists[nid]->free_objects)
- 				obj = ____cache_alloc_node(cache,
+ /* These will be re-linked against their real values during the second link stage */
+-extern unsigned long kallsyms_addresses[] __attribute__((weak));
+-extern unsigned long kallsyms_num_syms __attribute__((weak,section("data")));
+-extern u8 kallsyms_names[] __attribute__((weak));
++extern const unsigned long kallsyms_addresses[] __attribute__((weak));
++extern const unsigned long kallsyms_num_syms __attribute__((weak));
++extern const u8 kallsyms_names[] __attribute__((weak));
+ 
+-extern u8 kallsyms_token_table[] __attribute__((weak));
+-extern u16 kallsyms_token_index[] __attribute__((weak));
++extern const u8 kallsyms_token_table[] __attribute__((weak));
++extern const u16 kallsyms_token_index[] __attribute__((weak));
+ 
+-extern unsigned long kallsyms_markers[] __attribute__((weak));
++extern const unsigned long kallsyms_markers[] __attribute__((weak));
+ 
+ static inline int is_kernel_inittext(unsigned long addr)
+ {
+@@ -84,7 +84,7 @@ static int is_ksym_addr(unsigned long ad
+ static unsigned int kallsyms_expand_symbol(unsigned int off, char *result)
+ {
+ 	int len, skipped_first = 0;
+-	u8 *tptr, *data;
++	const u8 *tptr, *data;
+ 
+ 	/* get the compressed symbol length from the first symbol byte */
+ 	data = &kallsyms_names[off];
+@@ -132,7 +132,7 @@ static char kallsyms_get_symbol_type(uns
+  * kallsyms array */
+ static unsigned int get_symbol_offset(unsigned long pos)
+ {
+-	u8 *name;
++	const u8 *name;
+ 	int i;
+ 
+ 	/* use the closest marker we have. We have markers every 256 positions,
+diff -puN scripts/kallsyms.c~move-kallsyms-data-to-rodata scripts/kallsyms.c
+--- a/scripts/kallsyms.c~move-kallsyms-data-to-rodata
++++ a/scripts/kallsyms.c
+@@ -265,7 +265,7 @@ static void write_src(void)
+ 	printf("#define ALGN .align 4\n");
+ 	printf("#endif\n");
+ 
+-	printf(".data\n");
++	printf("\t.section .rodata, \"a\"\n");
+ 
+ 	/* Provide proper symbols relocatability by their '_text'
+ 	 * relativeness.  The symbol names cannot be used to construct
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
+move-kallsyms-data-to-rodata.patch
+some-kbuild-fix.patch
 
