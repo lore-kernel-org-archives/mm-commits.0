@@ -1,52 +1,61 @@
 From: akpm@osdl.org
-Subject: - add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 00:52:23 -0800
-Message-ID: <200612080852.kB88qNG3013994@shell0.pdx.osdl.net>
+Subject: - add-process_session-helper-routine-deprecate-old-field-tidy.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 00:52:12 -0800
+Message-ID: <200612080852.kB88qDKv013985@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37277 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37278 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032528AbWLHIwY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 03:52:24 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB88qNID021853
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 00:52:23 -0800
+	id S1425209AbWLHIw0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 03:52:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, clg@fr.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-process_session-helper-routine-deprecate-old-field-fix-warnings-2
+     add-process_session-helper-routine-deprecate-old-field-tidy
 has been removed from the -mm tree.  Its filename was
-     add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
+     add-process_session-helper-routine-deprecate-old-field-tidy.patch
 
 This patch was dropped because it was folded into add-process_session-helper-routine-deprecate-old-field.patch
 
 ------------------------------------------------------
-Subject: add-process_session-helper-routine-deprecate-old-field-fix-warnings-2
+Subject: add-process_session-helper-routine-deprecate-old-field-tidy
 From: Andrew Morton <akpm@osdl.org>
 
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/tty_io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/init_task.h |    2 +-
+ include/linux/sched.h     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/tty.h~add-process_session-helper-routine-deprecate-old-field-fix-warnings-2 include/linux/tty.h
-diff -puN drivers/char/tty_io.c~add-process_session-helper-routine-deprecate-old-field-fix-warnings-2 drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~add-process_session-helper-routine-deprecate-old-field-fix-warnings-2
-+++ a/drivers/char/tty_io.c
-@@ -3850,7 +3850,7 @@ void proc_clear_tty(struct task_struct *
- void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
- {
- 	if (tty) {
--		tty->session = tsk->signal->session;
-+		tty->session = process_session(tsk);
- 		tty->pgrp = process_group(tsk);
- 	}
- 	tsk->signal->tty = tty;
+diff -puN include/linux/init_task.h~add-process_session-helper-routine-deprecate-old-field-tidy include/linux/init_task.h
+--- a/include/linux/init_task.h~add-process_session-helper-routine-deprecate-old-field-tidy
++++ a/include/linux/init_task.h
+@@ -68,7 +68,7 @@
+ 	.rlim		= INIT_RLIMITS,					\
+ 	.pgrp		= 1,						\
+ 	.tty_old_pgrp   = 0,						\
+-	{ .session      = 1},						\
++	{ .__session      = 1},						\
+ }
+ 
+ extern struct nsproxy init_nsproxy;
+diff -puN include/linux/sched.h~add-process_session-helper-routine-deprecate-old-field-tidy include/linux/sched.h
+--- a/include/linux/sched.h~add-process_session-helper-routine-deprecate-old-field-tidy
++++ a/include/linux/sched.h
+@@ -439,7 +439,7 @@ struct signal_struct {
+ 	pid_t tty_old_pgrp;
+ 
+ 	union {
+-		pid_t session __attribute ((deprecated));
++		pid_t session __deprecated;
+ 		pid_t __session;
+ 	};
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -57,6 +66,8 @@ tty-signal-tty-locking.patch
 pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
 fsstack-introduce-fsstack_copy_attrinode_.patch
 add-process_session-helper-routine-deprecate-old-field.patch
+add-process_session-helper-routine-deprecate-old-field-tidy.patch
+add-process_session-helper-routine-deprecate-old-field-fix-warnings.patch
 add-process_session-helper-routine-deprecate-old-field-fix-warnings-2.patch
 mxser-session-warning-fix.patch
 mxser-workqueue-fixes.patch
