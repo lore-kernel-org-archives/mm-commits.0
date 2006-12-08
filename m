@@ -1,340 +1,240 @@
 From: akpm@osdl.org
-Subject: - ia64sparc-local-dos-with-corrupted-elfs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:24 -0800
-Message-ID: <200612081104.kB8B4Oeb018548@shell0.pdx.osdl.net>
+Subject: - git-scsi-target-fixup.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:54 -0800
+Message-ID: <200612081104.kB8B4sWO018598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48694 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48716 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425372AbWLHLFM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:05:12 -0500
+	id S1425373AbWLHLFS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:05:18 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B4sID029556
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 03:04:56 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dev@openvz.org, davem@davemloft.net, fernando@oss.ntt.co.jp, gregkh@suse.de, tony.luck@intel.com, wli@holomorphy.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IA64,sparc: local DoS with corrupted ELFs
+     git-scsi-target-fixup
 has been removed from the -mm tree.  Its filename was
-     ia64sparc-local-dos-with-corrupted-elfs.patch
+     git-scsi-target-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: IA64,sparc: local DoS with corrupted ELFs
-From: Kirill Korotaev <dev@openvz.org>
+Subject: git-scsi-target-fixup
+From: Andrew Morton <akpm@osdl.org>
 
-This patch is already commited into -stable 2.6.17.y tree. 
-http://www.kernel.org/git/?p=linux/kernel/git/stable/linux-2.6.17.y.git;a=commit;h=8833ebaa3f4325820fe3338ccf6fae04f6669254
-
-I only incorporated a small compilation fix from Fernando Vazquez
-<fernando@oss.ntt.co.jp>.  please, commit it into next 2.6.18-rcX.
-
-local DoS with corrupted ELFs
-
-This patch prevents cross-region mappings on IA64 and SPARC which could
-lead to system crash.
-
-davem@ confirmed: "This looks fine to me." :)
-
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Signed-off-by: Kirill Korotaev <dev@openvz.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/kernel/sys_ia64.c     |   28 +++++++++++++----------
- arch/sparc/kernel/sys_sparc.c   |   27 ++++++++++++----------
- arch/sparc64/kernel/sys_sparc.c |   36 ++++++++++++++++--------------
- include/asm-generic/mman.h      |    6 +++++
- include/asm-ia64/mman.h         |    8 ++++++
- include/asm-sparc/mman.h        |    8 ++++++
- include/asm-sparc64/mman.h      |    8 ++++++
- mm/mmap.c                       |   13 +++++++++-
- 8 files changed, 92 insertions(+), 42 deletions(-)
+ include/scsi/scsi_cmnd.h |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN arch/ia64/kernel/sys_ia64.c~ia64sparc-local-dos-with-corrupted-elfs arch/ia64/kernel/sys_ia64.c
---- a/arch/ia64/kernel/sys_ia64.c~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/arch/ia64/kernel/sys_ia64.c
-@@ -163,10 +163,25 @@ sys_pipe (void)
- 	return retval;
- }
+diff -puN include/scsi/scsi_cmnd.h~git-scsi-target-fixup include/scsi/scsi_cmnd.h
+--- a/include/scsi/scsi_cmnd.h~git-scsi-target-fixup
++++ a/include/scsi/scsi_cmnd.h
+@@ -122,14 +122,19 @@ struct scsi_cmnd {
+ 	unsigned long pid;	/* Process ID, starts at 0. Unique per host. */
+ };
  
-+int ia64_mmap_check(unsigned long addr, unsigned long len,
-+		unsigned long flags)
-+{
-+	unsigned long roff;
-+
-+	/*
-+	 * Don't permit mappings into unmapped space, the virtual page table
-+	 * of a region, or across a region boundary.  Note: RGN_MAP_LIMIT is
-+	 * equal to 2^n-PAGE_SIZE (for some integer n <= 61) and len > 0.
-+	 */
-+	roff = REGION_OFFSET(addr);
-+	if ((len > RGN_MAP_LIMIT) || (roff > (RGN_MAP_LIMIT - len)))
-+		return -EINVAL;
-+	return 0;
-+}
-+
- static inline unsigned long
- do_mmap2 (unsigned long addr, unsigned long len, int prot, int flags, int fd, unsigned long pgoff)
- {
--	unsigned long roff;
- 	struct file *file = NULL;
++extern struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *,
++					       enum dma_data_direction, gfp_t);
+ extern struct scsi_cmnd *scsi_get_command(struct scsi_device *, gfp_t);
+ extern struct scsi_cmnd *__scsi_get_command(struct Scsi_Host *, gfp_t);
++extern void scsi_host_put_command(struct Scsi_Host *, struct scsi_cmnd *);
+ extern void scsi_put_command(struct scsi_cmnd *);
+ extern void __scsi_put_command(struct Scsi_Host *, struct scsi_cmnd *,
+ 			       struct device *);
+ extern void scsi_io_completion(struct scsi_cmnd *, unsigned int);
+ extern void scsi_finish_command(struct scsi_cmnd *cmd);
+ extern void scsi_req_abort_cmd(struct scsi_cmnd *cmd);
++extern struct scatterlist *scsi_alloc_sgtable(struct scsi_cmnd *, gfp_t);
++extern void scsi_free_sgtable(struct scatterlist *, int);
  
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
-@@ -188,17 +203,6 @@ do_mmap2 (unsigned long addr, unsigned l
- 		goto out;
- 	}
- 
--	/*
--	 * Don't permit mappings into unmapped space, the virtual page table of a region,
--	 * or across a region boundary.  Note: RGN_MAP_LIMIT is equal to 2^n-PAGE_SIZE
--	 * (for some integer n <= 61) and len > 0.
--	 */
--	roff = REGION_OFFSET(addr);
--	if ((len > RGN_MAP_LIMIT) || (roff > (RGN_MAP_LIMIT - len))) {
--		addr = -EINVAL;
--		goto out;
--	}
--
- 	down_write(&current->mm->mmap_sem);
- 	addr = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- 	up_write(&current->mm->mmap_sem);
-diff -puN arch/sparc64/kernel/sys_sparc.c~ia64sparc-local-dos-with-corrupted-elfs arch/sparc64/kernel/sys_sparc.c
---- a/arch/sparc64/kernel/sys_sparc.c~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/arch/sparc64/kernel/sys_sparc.c
-@@ -548,6 +548,26 @@ asmlinkage long sparc64_personality(unsi
- 	return ret;
- }
- 
-+int sparc64_mmap_check(unsigned long addr, unsigned long len,
-+		unsigned long flags)
-+{
-+	if (test_thread_flag(TIF_32BIT)) {
-+		if (len >= STACK_TOP32)
-+			return -EINVAL;
-+
-+		if ((flags & MAP_FIXED) && addr > STACK_TOP32 - len)
-+			return -EINVAL;
-+	} else {
-+		if (len >= VA_EXCLUDE_START)
-+			return -EINVAL;
-+
-+		if ((flags & MAP_FIXED) && invalid_64bit_range(addr, len))
-+			return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- /* Linux version of mmap */
- asmlinkage unsigned long sys_mmap(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
-@@ -563,27 +583,11 @@ asmlinkage unsigned long sys_mmap(unsign
- 	}
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 	len = PAGE_ALIGN(len);
--	retval = -EINVAL;
--
--	if (test_thread_flag(TIF_32BIT)) {
--		if (len >= STACK_TOP32)
--			goto out_putf;
--
--		if ((flags & MAP_FIXED) && addr > STACK_TOP32 - len)
--			goto out_putf;
--	} else {
--		if (len >= VA_EXCLUDE_START)
--			goto out_putf;
--
--		if ((flags & MAP_FIXED) && invalid_64bit_range(addr, len))
--			goto out_putf;
--	}
- 
- 	down_write(&current->mm->mmap_sem);
- 	retval = do_mmap(file, addr, len, prot, flags, off);
- 	up_write(&current->mm->mmap_sem);
- 
--out_putf:
- 	if (file)
- 		fput(file);
- out:
-diff -puN arch/sparc/kernel/sys_sparc.c~ia64sparc-local-dos-with-corrupted-elfs arch/sparc/kernel/sys_sparc.c
---- a/arch/sparc/kernel/sys_sparc.c~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/arch/sparc/kernel/sys_sparc.c
-@@ -219,6 +219,21 @@ out:
- 	return err;
- }
- 
-+int sparc_mmap_check(unsigned long addr, unsigned long len, unsigned long flags)
-+{
-+	if (ARCH_SUN4C_SUN4 &&
-+	    (len > 0x20000000 ||
-+	     ((flags & MAP_FIXED) &&
-+	      addr < 0xe0000000 && addr + len > 0x20000000)))
-+		return -EINVAL;
-+
-+	/* See asm-sparc/uaccess.h */
-+	if (len > TASK_SIZE - PAGE_SIZE || addr + len > TASK_SIZE - PAGE_SIZE)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /* Linux version of mmap */
- static unsigned long do_mmap2(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
-@@ -233,25 +248,13 @@ static unsigned long do_mmap2(unsigned l
- 			goto out;
- 	}
- 
--	retval = -EINVAL;
- 	len = PAGE_ALIGN(len);
--	if (ARCH_SUN4C_SUN4 &&
--	    (len > 0x20000000 ||
--	     ((flags & MAP_FIXED) &&
--	      addr < 0xe0000000 && addr + len > 0x20000000)))
--		goto out_putf;
--
--	/* See asm-sparc/uaccess.h */
--	if (len > TASK_SIZE - PAGE_SIZE || addr + len > TASK_SIZE - PAGE_SIZE)
--		goto out_putf;
--
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
- 	down_write(&current->mm->mmap_sem);
- 	retval = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- 	up_write(&current->mm->mmap_sem);
- 
--out_putf:
- 	if (file)
- 		fput(file);
- out:
-diff -puN include/asm-generic/mman.h~ia64sparc-local-dos-with-corrupted-elfs include/asm-generic/mman.h
---- a/include/asm-generic/mman.h~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/include/asm-generic/mman.h
-@@ -39,4 +39,10 @@
- #define MAP_ANON	MAP_ANONYMOUS
- #define MAP_FILE	0
- 
-+#ifdef __KERNEL__
-+#ifndef arch_mmap_check
-+#define arch_mmap_check(addr, len, flags)	(0)
-+#endif
-+#endif
-+
- #endif
-diff -puN include/asm-ia64/mman.h~ia64sparc-local-dos-with-corrupted-elfs include/asm-ia64/mman.h
---- a/include/asm-ia64/mman.h~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/include/asm-ia64/mman.h
-@@ -8,6 +8,14 @@
-  *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
-  */
- 
-+#ifdef __KERNEL__
-+#define arch_mmap_check	ia64_mmap_check
-+#ifndef __ASSEMBLY__
-+int ia64_mmap_check(unsigned long addr, unsigned long len,
-+		unsigned long flags);
-+#endif
-+#endif
-+
- #include <asm-generic/mman.h>
- 
- #define MAP_GROWSDOWN	0x00100		/* stack-like segment */
-diff -puN include/asm-sparc64/mman.h~ia64sparc-local-dos-with-corrupted-elfs include/asm-sparc64/mman.h
---- a/include/asm-sparc64/mman.h~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/include/asm-sparc64/mman.h
-@@ -2,6 +2,14 @@
- #ifndef __SPARC64_MMAN_H__
- #define __SPARC64_MMAN_H__
- 
-+#ifdef __KERNEL__
-+#define arch_mmap_check	sparc64_mmap_check
-+#ifndef __ASSEMBLY__
-+int sparc64_mmap_check(unsigned long addr, unsigned long len,
-+		unsigned long flags);
-+#endif
-+#endif
-+
- #include <asm-generic/mman.h>
- 
- /* SunOS'ified... */
-diff -puN include/asm-sparc/mman.h~ia64sparc-local-dos-with-corrupted-elfs include/asm-sparc/mman.h
---- a/include/asm-sparc/mman.h~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/include/asm-sparc/mman.h
-@@ -2,6 +2,14 @@
- #ifndef __SPARC_MMAN_H__
- #define __SPARC_MMAN_H__
- 
-+#ifdef __KERNEL__
-+#define arch_mmap_check	sparc_mmap_check
-+#ifndef __ASSEMBLY__
-+int sparc_mmap_check(unsigned long addr, unsigned long len,
-+		unsigned long flags);
-+#endif
-+#endif
-+
- #include <asm-generic/mman.h>
- 
- /* SunOS'ified... */
-diff -puN mm/mmap.c~ia64sparc-local-dos-with-corrupted-elfs mm/mmap.c
---- a/mm/mmap.c~ia64sparc-local-dos-with-corrupted-elfs
-+++ a/mm/mmap.c
-@@ -913,6 +913,10 @@ unsigned long do_mmap_pgoff(struct file 
- 	if (!len)
- 		return -EINVAL;
- 
-+	error = arch_mmap_check(addr, len, flags);
-+	if (error)
-+		return error;
-+
- 	/* Careful about overflows.. */
- 	len = PAGE_ALIGN(len);
- 	if (!len || len > TASK_SIZE)
-@@ -1859,6 +1863,7 @@ unsigned long do_brk(unsigned long addr,
- 	unsigned long flags;
- 	struct rb_node ** rb_link, * rb_parent;
- 	pgoff_t pgoff = addr >> PAGE_SHIFT;
-+	int error;
- 
- 	len = PAGE_ALIGN(len);
- 	if (!len)
-@@ -1867,6 +1872,12 @@ unsigned long do_brk(unsigned long addr,
- 	if ((addr + len) > TASK_SIZE || (addr + len) < addr)
- 		return -EINVAL;
- 
-+	flags = VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
-+
-+	error = arch_mmap_check(addr, len, flags);
-+	if (error)
-+		return error;
-+
- 	/*
- 	 * mlock MCL_FUTURE?
- 	 */
-@@ -1907,8 +1918,6 @@ unsigned long do_brk(unsigned long addr,
- 	if (security_vm_enough_memory(len >> PAGE_SHIFT))
- 		return -ENOMEM;
- 
--	flags = VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
--
- 	/* Can we just expand an old private anonymous mapping? */
- 	if (vma_merge(mm, prev, addr, addr + len, flags,
- 					NULL, NULL, pgoff, NULL))
+ extern void *scsi_kmap_atomic_sg(struct scatterlist *sg, int sg_count,
+ 				 size_t *offset, size_t *len);
 _
 
-Patches currently in -mm which might be from dev@openvz.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-add-process_session-helper-routine.patch
-add-an-identifier-to-nsproxy.patch
-rename-struct-pspace-to-struct-pid_namespace.patch
-add-pid_namespace-to-nsproxy.patch
-use-current-nsproxy-pid_ns.patch
-add-child-reaper-to-pid_namespace.patch
-move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
+tty-signal-tty-locking.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
+fsstack-introduce-fsstack_copy_attrinode_.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
+add-process_session-helper-routine-deprecate-old-field.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework.patch
+tty-switch-to-ktermios.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
+drivers-isdn-handcrafted-min-max-macro-removal.patch
+fault-injection-capabilities-infrastructure.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
+gxfb-fixups-for-the-amd-geode-gx.patch
+gxfb-support-flat-panel-timings.patch
+gxfb-support-command-line-options.patch
+proc_misc-build-fix.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+implement-flush_work.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+bridge-avoid-using-noautorel-workqueues.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+bug-test-1.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
