@@ -1,239 +1,180 @@
 From: akpm@osdl.org
-Subject: - mm-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:05 -0800
-Message-ID: <200612082002.kB8K25YU001942@shell0.pdx.osdl.net>
+Subject: - crc32-replace-bitreverse-by-bitrev32.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:01:05 -0800
+Message-ID: <200612082001.kB8K15mF001808@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56955 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56942 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426236AbWLHUCI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:08 -0500
+	id S1426235AbWLHUCC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, Matt_Domsch@dell.com, jgarzik@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: change uses of f_{dentry,vfsmnt} to use f_path
+     crc32: replace bitreverse by bitrev32
 has been removed from the -mm tree.  Its filename was
-     mm-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+     crc32-replace-bitreverse-by-bitrev32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: change uses of f_{dentry,vfsmnt} to use f_path
-From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+Subject: crc32: replace bitreverse by bitrev32
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Change all the uses of f_{dentry,vfsmnt} to f_path.{dentry,mnt} in linux/mm/.
+This patch replaces bitreverse() by bitrev32.  The only users of bitreverse()
+are crc32 itself and via-velocity.
 
-Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/fadvise.c     |    2 +-
- mm/filemap.c     |    2 +-
- mm/filemap_xip.c |    2 +-
- mm/mmap.c        |   10 +++++-----
- mm/shmem.c       |   20 ++++++++++----------
- mm/swapfile.c    |    4 ++--
- 6 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/net/via-velocity.c |    2 +-
+ include/linux/crc32.h      |    4 ++--
+ lib/Kconfig                |    1 +
+ lib/crc32.c                |   28 +++++-----------------------
+ 4 files changed, 9 insertions(+), 26 deletions(-)
 
-diff -puN mm/fadvise.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path mm/fadvise.c
---- a/mm/fadvise.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/mm/fadvise.c
-@@ -38,7 +38,7 @@ asmlinkage long sys_fadvise64_64(int fd,
- 	if (!file)
- 		return -EBADF;
- 
--	if (S_ISFIFO(file->f_dentry->d_inode->i_mode)) {
-+	if (S_ISFIFO(file->f_path.dentry->d_inode->i_mode)) {
- 		ret = -ESPIPE;
- 		goto out;
+diff -puN drivers/net/via-velocity.c~crc32-replace-bitreverse-by-bitrev32 drivers/net/via-velocity.c
+--- a/drivers/net/via-velocity.c~crc32-replace-bitreverse-by-bitrev32
++++ a/drivers/net/via-velocity.c
+@@ -3132,7 +3132,7 @@ static u16 wol_calc_crc(int size, u8 * p
  	}
-diff -puN mm/filemap.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path mm/filemap.c
---- a/mm/filemap.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/mm/filemap.c
-@@ -2269,7 +2269,7 @@ __generic_file_aio_write_nolock(struct k
- 	if (count == 0)
- 		goto out;
- 
--	err = remove_suid(file->f_dentry);
-+	err = remove_suid(file->f_path.dentry);
- 	if (err)
- 		goto out;
- 
-diff -puN mm/filemap_xip.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/mm/filemap_xip.c
-@@ -379,7 +379,7 @@ xip_file_write(struct file *filp, const 
- 	if (count == 0)
- 		goto out_backing;
- 
--	ret = remove_suid(filp->f_dentry);
-+	ret = remove_suid(filp->f_path.dentry);
- 	if (ret)
- 		goto out_backing;
- 
-diff -puN mm/mmap.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path mm/mmap.c
---- a/mm/mmap.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/mm/mmap.c
-@@ -188,7 +188,7 @@ static void __remove_shared_vm_struct(st
- 		struct file *file, struct address_space *mapping)
- {
- 	if (vma->vm_flags & VM_DENYWRITE)
--		atomic_inc(&file->f_dentry->d_inode->i_writecount);
-+		atomic_inc(&file->f_path.dentry->d_inode->i_writecount);
- 	if (vma->vm_flags & VM_SHARED)
- 		mapping->i_mmap_writable--;
- 
-@@ -399,7 +399,7 @@ static inline void __vma_link_file(struc
- 		struct address_space *mapping = file->f_mapping;
- 
- 		if (vma->vm_flags & VM_DENYWRITE)
--			atomic_dec(&file->f_dentry->d_inode->i_writecount);
-+			atomic_dec(&file->f_path.dentry->d_inode->i_writecount);
- 		if (vma->vm_flags & VM_SHARED)
- 			mapping->i_mmap_writable++;
- 
-@@ -907,7 +907,7 @@ unsigned long do_mmap_pgoff(struct file 
- 	 *  mounted, in which case we dont add PROT_EXEC.)
- 	 */
- 	if ((prot & PROT_READ) && (current->personality & READ_IMPLIES_EXEC))
--		if (!(file && (file->f_vfsmnt->mnt_flags & MNT_NOEXEC)))
-+		if (!(file && (file->f_path.mnt->mnt_flags & MNT_NOEXEC)))
- 			prot |= PROT_EXEC;
- 
- 	if (!len)
-@@ -960,7 +960,7 @@ unsigned long do_mmap_pgoff(struct file 
- 			return -EAGAIN;
- 	}
- 
--	inode = file ? file->f_dentry->d_inode : NULL;
-+	inode = file ? file->f_path.dentry->d_inode : NULL;
- 
- 	if (file) {
- 		switch (flags & MAP_TYPE) {
-@@ -989,7 +989,7 @@ unsigned long do_mmap_pgoff(struct file 
- 		case MAP_PRIVATE:
- 			if (!(file->f_mode & FMODE_READ))
- 				return -EACCES;
--			if (file->f_vfsmnt->mnt_flags & MNT_NOEXEC) {
-+			if (file->f_path.mnt->mnt_flags & MNT_NOEXEC) {
- 				if (vm_flags & VM_EXEC)
- 					return -EPERM;
- 				vm_flags &= ~VM_MAYEXEC;
-diff -puN mm/shmem.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path mm/shmem.c
---- a/mm/shmem.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/mm/shmem.c
-@@ -1225,7 +1225,7 @@ failed:
- 
- struct page *shmem_nopage(struct vm_area_struct *vma, unsigned long address, int *type)
- {
--	struct inode *inode = vma->vm_file->f_dentry->d_inode;
-+	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
- 	struct page *page = NULL;
- 	unsigned long idx;
- 	int error;
-@@ -1248,7 +1248,7 @@ static int shmem_populate(struct vm_area
- 	unsigned long addr, unsigned long len,
- 	pgprot_t prot, unsigned long pgoff, int nonblock)
- {
--	struct inode *inode = vma->vm_file->f_dentry->d_inode;
-+	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
- 	struct mm_struct *mm = vma->vm_mm;
- 	enum sgp_type sgp = nonblock? SGP_QUICK: SGP_CACHE;
- 	unsigned long size;
-@@ -1293,14 +1293,14 @@ static int shmem_populate(struct vm_area
- #ifdef CONFIG_NUMA
- int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
- {
--	struct inode *i = vma->vm_file->f_dentry->d_inode;
-+	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
- 	return mpol_set_shared_policy(&SHMEM_I(i)->policy, vma, new);
+ 	/*	Finally, invert the result once to get the correct data */
+ 	crc = ~crc;
+-	return bitreverse(crc) >> 16;
++	return bitrev32(crc) >> 16;
  }
  
- struct mempolicy *
- shmem_get_policy(struct vm_area_struct *vma, unsigned long addr)
+ /**
+diff -puN include/linux/crc32.h~crc32-replace-bitreverse-by-bitrev32 include/linux/crc32.h
+--- a/include/linux/crc32.h~crc32-replace-bitreverse-by-bitrev32
++++ a/include/linux/crc32.h
+@@ -6,10 +6,10 @@
+ #define _LINUX_CRC32_H
+ 
+ #include <linux/types.h>
++#include <linux/bitrev.h>
+ 
+ extern u32  crc32_le(u32 crc, unsigned char const *p, size_t len);
+ extern u32  crc32_be(u32 crc, unsigned char const *p, size_t len);
+-extern u32  bitreverse(u32 in);
+ 
+ #define crc32(seed, data, length)  crc32_le(seed, (unsigned char const *)data, length)
+ 
+@@ -21,7 +21,7 @@ extern u32  bitreverse(u32 in);
+  * is in bit nr 0], thus it must be reversed before use. Except for
+  * nics that bit swap the result internally...
+  */
+-#define ether_crc(length, data)    bitreverse(crc32_le(~0, data, length))
++#define ether_crc(length, data)    bitrev32(crc32_le(~0, data, length))
+ #define ether_crc_le(length, data) crc32_le(~0, data, length)
+ 
+ #endif /* _LINUX_CRC32_H */
+diff -puN lib/Kconfig~crc32-replace-bitreverse-by-bitrev32 lib/Kconfig
+--- a/lib/Kconfig~crc32-replace-bitreverse-by-bitrev32
++++ a/lib/Kconfig
+@@ -26,6 +26,7 @@ config CRC16
+ config CRC32
+ 	tristate "CRC32 functions"
+ 	default y
++	select BITREVERSE
+ 	help
+ 	  This option is provided for the case where no in-kernel-tree
+ 	  modules require CRC32 functions, but a module built outside the
+diff -puN lib/crc32.c~crc32-replace-bitreverse-by-bitrev32 lib/crc32.c
+--- a/lib/crc32.c~crc32-replace-bitreverse-by-bitrev32
++++ a/lib/crc32.c
+@@ -235,23 +235,8 @@ u32 __attribute_pure__ crc32_be(u32 crc,
+ }
+ #endif
+ 
+-/**
+- * bitreverse - reverse the order of bits in a u32 value
+- * @x: value to be bit-reversed
+- */
+-u32 bitreverse(u32 x)
+-{
+-	x = (x >> 16) | (x << 16);
+-	x = (x >> 8 & 0x00ff00ff) | (x << 8 & 0xff00ff00);
+-	x = (x >> 4 & 0x0f0f0f0f) | (x << 4 & 0xf0f0f0f0);
+-	x = (x >> 2 & 0x33333333) | (x << 2 & 0xcccccccc);
+-	x = (x >> 1 & 0x55555555) | (x << 1 & 0xaaaaaaaa);
+-	return x;
+-}
+-
+ EXPORT_SYMBOL(crc32_le);
+ EXPORT_SYMBOL(crc32_be);
+-EXPORT_SYMBOL(bitreverse);
+ 
+ /*
+  * A brief CRC tutorial.
+@@ -400,10 +385,7 @@ buf_dump(char const *prefix, unsigned ch
+ static void bytereverse(unsigned char *buf, size_t len)
  {
--	struct inode *i = vma->vm_file->f_dentry->d_inode;
-+	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
- 	unsigned long idx;
- 
- 	idx = ((addr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
-@@ -1310,7 +1310,7 @@ shmem_get_policy(struct vm_area_struct *
- 
- int shmem_lock(struct file *file, int lock, struct user_struct *user)
- {
--	struct inode *inode = file->f_dentry->d_inode;
-+	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	int retval = -ENOMEM;
- 
-@@ -1422,7 +1422,7 @@ shmem_prepare_write(struct file *file, s
- static ssize_t
- shmem_file_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
- {
--	struct inode	*inode = file->f_dentry->d_inode;
-+	struct inode	*inode = file->f_path.dentry->d_inode;
- 	loff_t		pos;
- 	unsigned long	written;
- 	ssize_t		err;
-@@ -1442,7 +1442,7 @@ shmem_file_write(struct file *file, cons
- 	if (err || !count)
- 		goto out;
- 
--	err = remove_suid(file->f_dentry);
-+	err = remove_suid(file->f_path.dentry);
- 	if (err)
- 		goto out;
- 
-@@ -1524,7 +1524,7 @@ out:
- 
- static void do_shmem_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc, read_actor_t actor)
- {
--	struct inode *inode = filp->f_dentry->d_inode;
-+	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct address_space *mapping = inode->i_mapping;
- 	unsigned long index, offset;
- 
-@@ -2493,8 +2493,8 @@ struct file *shmem_file_setup(char *name
- 	d_instantiate(dentry, inode);
- 	inode->i_size = size;
- 	inode->i_nlink = 0;	/* It is unlinked */
--	file->f_vfsmnt = mntget(shm_mnt);
--	file->f_dentry = dentry;
-+	file->f_path.mnt = mntget(shm_mnt);
-+	file->f_path.dentry = dentry;
- 	file->f_mapping = inode->i_mapping;
- 	file->f_op = &shmem_file_operations;
- 	file->f_mode = FMODE_WRITE | FMODE_READ;
-diff -puN mm/swapfile.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path mm/swapfile.c
---- a/mm/swapfile.c~mm-change-uses-of-f_dentryvfsmnt-to-use-f_path
-+++ a/mm/swapfile.c
-@@ -1357,10 +1357,10 @@ static int swap_show(struct seq_file *sw
+ 	while (len--) {
+-		unsigned char x = *buf;
+-		x = (x >> 4) | (x << 4);
+-		x = (x >> 2 & 0x33) | (x << 2 & 0xcc);
+-		x = (x >> 1 & 0x55) | (x << 1 & 0xaa);
++		unsigned char x = bitrev8(*buf);
+ 		*buf++ = x;
  	}
+ }
+@@ -460,11 +442,11 @@ static u32 test_step(u32 init, unsigned 
+ 	/* Now swap it around for the other test */
  
- 	file = ptr->swap_file;
--	len = seq_path(swap, file->f_vfsmnt, file->f_dentry, " \t\n\\");
-+	len = seq_path(swap, file->f_path.mnt, file->f_path.dentry, " \t\n\\");
- 	seq_printf(swap, "%*s%s\t%u\t%u\t%d\n",
- 		       len < 40 ? 40 - len : 1, " ",
--		       S_ISBLK(file->f_dentry->d_inode->i_mode) ?
-+		       S_ISBLK(file->f_path.dentry->d_inode->i_mode) ?
- 				"partition" : "file\t",
- 		       ptr->pages << (PAGE_SHIFT - 10),
- 		       ptr->inuse_pages << (PAGE_SHIFT - 10),
+ 	bytereverse(buf, len + 4);
+-	init = bitreverse(init);
+-	crc2 = bitreverse(crc1);
+-	if (crc1 != bitreverse(crc2))
++	init = bitrev32(init);
++	crc2 = bitrev32(crc1);
++	if (crc1 != bitrev32(crc2))
+ 		printf("\nBit reversal fail: 0x%08x -> 0x%08x -> 0x%08x\n",
+-		       crc1, crc2, bitreverse(crc2));
++		       crc1, crc2, bitrev32(crc2));
+ 	crc1 = crc32_le(init, buf, len);
+ 	if (crc1 != crc2)
+ 		printf("\nCRC endianness fail: 0x%08x != 0x%08x\n", crc1,
 _
 
-Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-9p-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
-affs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-autofs-change-uses-of-f_dentry.patch
-autofs4-change-uses-of-f_dentry.patch
-configfs-change-uses-of-f_dentry.patch
-cifs-change-uses-of-f_dentry-vfsmnt-to-use-f_path.patch
-ecryptfs-change-uses-of-f_dentry.patch
-xfs-change-uses-of-f_dentryvfsmnt-to-use-f_path.patch
+origin.patch
+crc32-replace-bitreverse-by-bitrev32.patch
+video-use-bitrev8.patch
+isdn-hisax-use-bitrev8.patch
+atm-ambassador-use-bitrev8.patch
+isdn-gigaset-use-bitrev8.patch
+isdn-fix-missing-unregister_capi_driver.patch
+fault-injection-documentation-and-scripts.patch
+fault-injection-capabilities-infrastructure.patch
+fault-injection-capability-for-kmalloc.patch
+fault-injection-capability-for-alloc_pages.patch
+fault-injection-capability-for-disk-io.patch
+fault-injection-process-filtering-for-fault-injection-capabilities.patch
+fault-injection-stacktrace-filtering.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+fault-injection-correct-disambiguate-and.patch
+fault-injection-use-bool-true-false-throughout.patch
+fault-injection-clamp-debugfs-stacktrace-depth-to.patch
+fault-injection-optimize-and-simplify.patch
+fault-injection-defaults-likely-to-please-a-new.patch
+acpi-fix-single-linked-list-manipulation.patch
+acpi-processor-prevent-loading-module-on-failures.patch
+git-alsa.patch
+audit-fix-kstrdup-error-check.patch
+drm-fix-return-value-check.patch
+ata-fix-platform_device_register_simple-error-check.patch
+git-mtd.patch
+net-use-bitrev8.patch
+gss_spkm3-fix-error-handling-in-module-init.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+iscsi-fix-crypto_alloc_hash-error-check.patch
 
