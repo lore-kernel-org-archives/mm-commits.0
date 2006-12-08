@@ -1,76 +1,53 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-afs.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:02:26 -0800
-Message-ID: <200612082002.kB8K2Q9b001978@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-adfs.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:02:24 -0800
+Message-ID: <200612082002.kB8K2OJe001975@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57029 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57024 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761176AbWLHUCc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:02:32 -0500
+	id S1761177AbWLHUCb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:02:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert afs
+     struct path: convert adfs
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-afs.patch
+     struct-path-convert-adfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert afs
+Subject: struct path: convert adfs
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/afs/dir.c   |    4 ++--
- fs/afs/mntpt.c |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/adfs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/afs/dir.c~struct-path-convert-afs fs/afs/dir.c
---- a/fs/afs/dir.c~struct-path-convert-afs
-+++ a/fs/afs/dir.c
-@@ -392,10 +392,10 @@ static int afs_dir_readdir(struct file *
- 	unsigned fpos;
- 	int ret;
- 
--	_enter("{%Ld,{%lu}}", file->f_pos, file->f_dentry->d_inode->i_ino);
-+	_enter("{%Ld,{%lu}}", file->f_pos, file->f_path.dentry->d_inode->i_ino);
- 
- 	fpos = file->f_pos;
--	ret = afs_dir_iterate(file->f_dentry->d_inode, &fpos, cookie, filldir);
-+	ret = afs_dir_iterate(file->f_path.dentry->d_inode, &fpos, cookie, filldir);
- 	file->f_pos = fpos;
- 
- 	_leave(" = %d", ret);
-diff -puN fs/afs/mntpt.c~struct-path-convert-afs fs/afs/mntpt.c
---- a/fs/afs/mntpt.c~struct-path-convert-afs
-+++ a/fs/afs/mntpt.c
-@@ -136,11 +136,11 @@ static int afs_mntpt_open(struct inode *
+diff -puN fs/adfs/dir.c~struct-path-convert-adfs fs/adfs/dir.c
+--- a/fs/adfs/dir.c~struct-path-convert-adfs
++++ a/fs/adfs/dir.c
+@@ -28,7 +28,7 @@ static DEFINE_RWLOCK(adfs_dir_lock);
+ static int
+ adfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
  {
- 	kenter("%p,%p{%p{%s},%s}",
- 	       inode, file,
--	       file->f_dentry->d_parent,
--	       file->f_dentry->d_parent ?
--	       file->f_dentry->d_parent->d_name.name :
-+	       file->f_path.dentry->d_parent,
-+	       file->f_path.dentry->d_parent ?
-+	       file->f_path.dentry->d_parent->d_name.name :
- 	       (const unsigned char *) "",
--	       file->f_dentry->d_name.name);
-+	       file->f_path.dentry->d_name.name);
- 
- 	return -EREMOTE;
- } /* end afs_mntpt_open() */
+-	struct inode *inode = filp->f_dentry->d_inode;
++	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct super_block *sb = inode->i_sb;
+ 	struct adfs_dir_ops *ops = ADFS_SB(sb)->s_dir;
+ 	struct object_info obj;
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
+struct-path-convert-adfs.patch
 struct-path-convert-afs.patch
 struct-path-convert-alpha.patch
 struct-path-convert-atm.patch
