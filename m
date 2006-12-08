@@ -1,199 +1,85 @@
 From: akpm@osdl.org
-Subject: - io-accounting-remove-current-io-accounting.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:05:12 -0800
-Message-ID: <200612081105.kB8B5C15018624@shell0.pdx.osdl.net>
+Subject: - wb_kupdate-fix-termination-condition.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:05:26 -0800
+Message-ID: <200612081105.kB8B5Q17018639@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48832 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48859 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425382AbWLHLF5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:05:57 -0500
+	id S1425381AbWLHLGB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:06:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, tee@sgi.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dgc@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     io-accounting: remove current io accounting
+     wb_kupdate-fix-termination-condition
 has been removed from the -mm tree.  Its filename was
-     io-accounting-remove-current-io-accounting.patch
+     wb_kupdate-fix-termination-condition.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: io-accounting: remove current io accounting
+Subject: wb_kupdate-fix-termination-condition
 From: Andrew Morton <akpm@osdl.org>
 
-The present per-task IO accounting is unusable.  It simply counts the number
-of bytes passed into read() and write().  So if a process reads 1MB from an
-already-cached file, it is accused of having performed 1MB of I/O, which is
-hopelessly wrong.
 
-This patchset removes the old IO accounting and replaces it with new
-accounting which tries to be more accurate.  We account for three things:
+Thanks to David Chinner <dgc@sgi.com> for finding the bug.
 
-reads:
-
-  attempt to count the number of bytes which this process really did cause
-  to be fetched from the storage layer
-
-writes:
-
-  attempt to count the number of bytes which this process caused to be sent
-  to the storage layer.
-
-  The big inaccuracy here is truncate.  If a process writes 1MB to a file
-  and then deletes the file, it will in fact perform no writeout.  But it will
-  have been accounted as having caused 1MB of write.
-
-  So...
-
-cancelled_writes:
-
-  account the number of bytes which this process caused to not happen, by
-  truncating pagecache.
-
-  We _could_ just subtract this from the process's `write' accounting.  But
-  that means that some processes would be reported to have done negative
-  amounts of write IO, which is silly.
-
-  So we just report the raw number and punt this decision up to userspace.
-
-
-There are some open questions:
-
-- What the heck's going on with userspace?  The example getdelays.c appears
-  to exercise no more than a fraction of the taskstats interface.  How do I
-  get at my numbers?
-
-- Missing accounting of filesystem metadata reads
-
-- Filesystems which implement private a_ops.readpages might need work.
-
-- What to do about things like NFS?  It will probably presently account
-  _some_ IO, but it'll be wrong.
-
-
-
-This patch:
-
-Remove the old IO accounting, but leave the fields in the taskstats structure
-in-place, but zeroed.
-
-
-Cc: Jay Lan <jlan@sgi.com>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Chris Sturtivant <csturtiv@sgi.com>
-Cc: Tony Ernst <tee@sgi.com>
-Cc: Guillaume Thouvenin <guillaume.thouvenin@bull.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/read_write.c       |   18 ++----------------
- include/linux/sched.h |    4 ++--
- kernel/fork.c         |    2 --
- kernel/tsacct.c       |    4 ++--
- 4 files changed, 6 insertions(+), 22 deletions(-)
+ fs/fs-writeback.c         |    2 ++
+ include/linux/writeback.h |    1 +
+ mm/page-writeback.c       |   11 +++++------
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN fs/read_write.c~io-accounting-remove-current-io-accounting fs/read_write.c
---- a/fs/read_write.c~io-accounting-remove-current-io-accounting
-+++ a/fs/read_write.c
-@@ -272,10 +272,8 @@ ssize_t vfs_read(struct file *file, char
- 				ret = file->f_op->read(file, buf, count, pos);
- 			else
- 				ret = do_sync_read(file, buf, count, pos);
--			if (ret > 0) {
-+			if (ret > 0)
- 				fsnotify_access(file->f_dentry);
--				current->rchar += ret;
--			}
- 			current->syscr++;
- 		}
- 	}
-@@ -330,10 +328,8 @@ ssize_t vfs_write(struct file *file, con
- 				ret = file->f_op->write(file, buf, count, pos);
- 			else
- 				ret = do_sync_write(file, buf, count, pos);
--			if (ret > 0) {
-+			if (ret > 0)
- 				fsnotify_modify(file->f_dentry);
--				current->wchar += ret;
--			}
- 			current->syscw++;
- 		}
- 	}
-@@ -675,9 +671,6 @@ sys_readv(unsigned long fd, const struct
- 		file_pos_write(file, pos);
- 		fput_light(file, fput_needed);
- 	}
--
--	if (ret > 0)
--		current->rchar += ret;
- 	current->syscr++;
- 	return ret;
- }
-@@ -696,9 +689,6 @@ sys_writev(unsigned long fd, const struc
- 		file_pos_write(file, pos);
- 		fput_light(file, fput_needed);
- 	}
--
--	if (ret > 0)
--		current->wchar += ret;
- 	current->syscw++;
- 	return ret;
- }
-@@ -780,10 +770,6 @@ static ssize_t do_sendfile(int out_fd, i
+diff -puN include/linux/writeback.h~wb_kupdate-fix-termination-condition include/linux/writeback.h
+--- devel/include/linux/writeback.h~wb_kupdate-fix-termination-condition	2006-02-06 23:55:19.000000000 -0800
++++ devel-akpm/include/linux/writeback.h	2006-02-06 23:55:19.000000000 -0800
+@@ -58,6 +58,7 @@ struct writeback_control {
+ 	unsigned for_kupdate:1;		/* A kupdate writeback */
+ 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
+ 	unsigned for_writepages:1;	/* This is a writepages() call */
++	unsigned wrote_expired_inode:1;	/* 1 or more expired inodes written */
+ };
  
- 	retval = in_file->f_op->sendfile(in_file, ppos, count, file_send_actor, out_file);
- 
--	if (retval > 0) {
--		current->rchar += retval;
--		current->wchar += retval;
--	}
- 	current->syscr++;
- 	current->syscw++;
- 
-diff -puN include/linux/sched.h~io-accounting-remove-current-io-accounting include/linux/sched.h
---- a/include/linux/sched.h~io-accounting-remove-current-io-accounting
-+++ a/include/linux/sched.h
-@@ -1002,8 +1002,8 @@ struct task_struct {
-  * to a stack based synchronous wait) if its doing sync IO.
-  */
- 	wait_queue_t *io_wait;
--/* i/o counters(bytes read/written, #syscalls */
--	u64 rchar, wchar, syscr, syscw;
-+	u64 syscr;		/* number of read syscalls */
-+	u64 syscw;		/* number of write syscalls */
- #if defined(CONFIG_TASK_XACCT)
- 	u64 acct_rss_mem1;	/* accumulated rss usage */
- 	u64 acct_vm_mem1;	/* accumulated virtual memory usage */
-diff -puN kernel/fork.c~io-accounting-remove-current-io-accounting kernel/fork.c
---- a/kernel/fork.c~io-accounting-remove-current-io-accounting
-+++ a/kernel/fork.c
-@@ -1051,8 +1051,6 @@ static struct task_struct *copy_process(
- 	p->utime = cputime_zero;
- 	p->stime = cputime_zero;
-  	p->sched_time = 0;
--	p->rchar = 0;		/* I/O counter: bytes read */
--	p->wchar = 0;		/* I/O counter: bytes written */
- 	p->syscr = 0;		/* I/O counter: read syscalls */
- 	p->syscw = 0;		/* I/O counter: write syscalls */
- 	acct_clear_integrals(p);
-diff -puN kernel/tsacct.c~io-accounting-remove-current-io-accounting kernel/tsacct.c
---- a/kernel/tsacct.c~io-accounting-remove-current-io-accounting
-+++ a/kernel/tsacct.c
-@@ -92,8 +92,8 @@ void xacct_add_tsk(struct taskstats *sta
- 		stats->hiwater_vm    = mm->hiwater_vm * PAGE_SIZE / KB;
- 		mmput(mm);
+ /*
+diff -puN fs/fs-writeback.c~wb_kupdate-fix-termination-condition fs/fs-writeback.c
+--- devel/fs/fs-writeback.c~wb_kupdate-fix-termination-condition	2006-02-06 23:55:19.000000000 -0800
++++ devel-akpm/fs/fs-writeback.c	2006-02-07 00:00:32.000000000 -0800
+@@ -367,6 +367,8 @@ sync_sb_inodes(struct super_block *sb, s
+ 		__iget(inode);
+ 		pages_skipped = wbc->pages_skipped;
+ 		__writeback_single_inode(inode, wbc);
++		if (unlikely(wbc->wrote_expired_inode == 0))
++			wbc->wrote_expired_inode = 1;
+ 		if (wbc->sync_mode == WB_SYNC_HOLD) {
+ 			inode->dirtied_when = jiffies;
+ 			list_move(&inode->i_list, &sb->s_dirty);
+diff -puN mm/page-writeback.c~wb_kupdate-fix-termination-condition mm/page-writeback.c
+--- devel/mm/page-writeback.c~wb_kupdate-fix-termination-condition	2006-02-06 23:55:19.000000000 -0800
++++ devel-akpm/mm/page-writeback.c	2006-02-07 00:01:59.000000000 -0800
+@@ -415,13 +415,12 @@ static void wb_kupdate(unsigned long arg
+ 	while (nr_to_write > 0) {
+ 		wbc.encountered_congestion = 0;
+ 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
++		wbc.wrote_expired_inode = 0;
+ 		writeback_inodes(&wbc);
+-		if (wbc.nr_to_write > 0) {
+-			if (wbc.encountered_congestion)
+-				blk_congestion_wait(WRITE, HZ/10);
+-			else
+-				break;	/* All the old data is written */
+-		}
++		if (!wbc.wrote_expired_inode && !wbc.encountered_congestion)
++			break;	/* All the old data is written */
++		if (wbc.encountered_congestion)
++			blk_congestion_wait(WRITE, HZ/10);
+ 		nr_to_write -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
  	}
--	stats->read_char	= p->rchar;
--	stats->write_char	= p->wchar;
-+	stats->read_char	= 0;
-+	stats->write_char	= 0;
- 	stats->read_syscalls	= p->syscr;
- 	stats->write_syscalls	= p->syscw;
- }
+ 	if (time_before(next_jif, jiffies + HZ))
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
