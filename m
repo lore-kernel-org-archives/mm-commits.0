@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: - m32r-fix-ace_handler-to-pass-full-32-bit-address.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 11:59:28 -0800
-Message-ID: <200612081959.kB8JxSgk001623@shell0.pdx.osdl.net>
+Subject: - m32r-support-a-synthesizable-m32700-core.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 11:59:24 -0800
+Message-ID: <200612081959.kB8JxO7g001618@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56478 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56470 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426188AbWLHUAI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1426189AbWLHUAI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 8 Dec 2006 15:00:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,70 +14,65 @@ To: takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: fix ace_handler to pass full 32-bit address
+     m32r: support a synthesizable M32700 core
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
+     m32r-support-a-synthesizable-m32700-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m32r: fix ace_handler to pass full 32-bit address
+Subject: m32r: support a synthesizable M32700 core
 From: Hirokazu Takata <takata@linux-m32r.org>
 
-Don't mask the lower 12-bit of the page fault address.
+This patch is for supporting a synthesizable M32700 core for the Mappi-II FPGA
+board.
 
-In the current m32r kernel implementation, we use an access exception
-to detect page faults.
-
-This patch fixes ace_handler (access exception handler) for m32r.  In order to
-check userspace address in do_page_fault, we have to pass full 32-bit address
-to do_page_fault.
+On the core, location of MFT (Multi-Function Timer) registers is slightly
+different from the M32700 chip.
 
 Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/m32r/kernel/entry.S |    2 --
- arch/m32r/mm/fault.c     |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ include/asm-m32r/m32102.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/m32r/kernel/entry.S~m32r-fix-ace_handler-to-pass-full-32-bit-address arch/m32r/kernel/entry.S
---- a/arch/m32r/kernel/entry.S~m32r-fix-ace_handler-to-pass-full-32-bit-address
-+++ a/arch/m32r/kernel/entry.S
-@@ -596,8 +596,6 @@ ENTRY(ace_handler)
- 	beqz	r1, inst
- oprand:
- 	ld	r2, @(low(MDEVA_offset),r2)	; set address
--	srli	r2, #12
--	slli	r2, #12
- 	srli	r1, #1
- 	bra	1f
- inst:
-diff -puN arch/m32r/mm/fault.c~m32r-fix-ace_handler-to-pass-full-32-bit-address arch/m32r/mm/fault.c
---- a/arch/m32r/mm/fault.c~m32r-fix-ace_handler-to-pass-full-32-bit-address
-+++ a/arch/m32r/mm/fault.c
-@@ -173,7 +173,7 @@ asmlinkage void do_page_fault(struct pt_
- 		goto good_area;
- 	if (!(vma->vm_flags & VM_GROWSDOWN))
- 		goto bad_area;
--#if 0
-+
- 	if (error_code & ACE_USERMODE) {
- 		/*
- 		 * accessing the stack below "spu" is always a bug.
-@@ -184,7 +184,7 @@ asmlinkage void do_page_fault(struct pt_
- 		if (address + 4 < regs->spu)
- 			goto bad_area;
- 	}
--#endif
-+
- 	if (expand_stack(vma, address))
- 		goto bad_area;
- /*
+diff -puN include/asm-m32r/m32102.h~m32r-support-a-synthesizable-m32700-core include/asm-m32r/m32102.h
+--- a/include/asm-m32r/m32102.h~m32r-support-a-synthesizable-m32700-core
++++ a/include/asm-m32r/m32102.h
+@@ -104,7 +104,8 @@
+ #define M32R_MFT5RLD_PORTL     (0x0C+M32R_MFT5_OFFSET)  /* MFT4 reload */
+ #define M32R_MFT5CMPRLD_PORTL  (0x10+M32R_MFT5_OFFSET)  /* MFT4 compare reload */
+ 
+-#if defined(CONFIG_CHIP_M32700) || defined(CONFIG_CHIP_M32104)
++#if (defined(CONFIG_CHIP_M32700) && !defined(CONFIG_PLAT_MAPPI2)) \
++	|| defined(CONFIG_CHIP_M32104)
+ #define M32R_MFTCR_MFT0MSK  (1UL<<31)  /* b0 */
+ #define M32R_MFTCR_MFT1MSK  (1UL<<30)  /* b1 */
+ #define M32R_MFTCR_MFT2MSK  (1UL<<29)  /* b2 */
+@@ -117,7 +118,7 @@
+ #define M32R_MFTCR_MFT3EN   (1UL<<20)  /* b11 */
+ #define M32R_MFTCR_MFT4EN   (1UL<<19)  /* b12 */
+ #define M32R_MFTCR_MFT5EN   (1UL<<18)  /* b13 */
+-#else	/* not CONFIG_CHIP_M32700 && not CONFIG_CHIP_M32104 */
++#else
+ #define M32R_MFTCR_MFT0MSK  (1UL<<15)  /* b16 */
+ #define M32R_MFTCR_MFT1MSK  (1UL<<14)  /* b17 */
+ #define M32R_MFTCR_MFT2MSK  (1UL<<13)  /* b18 */
+@@ -130,7 +131,7 @@
+ #define M32R_MFTCR_MFT3EN   (1UL<<4)   /* b27 */
+ #define M32R_MFTCR_MFT4EN   (1UL<<3)   /* b28 */
+ #define M32R_MFTCR_MFT5EN   (1UL<<2)   /* b29 */
+-#endif	/* not CONFIG_CHIP_M32700 && not CONFIG_CHIP_M32104 */
++#endif
+ 
+ #define M32R_MFTMOD_CC_MASK    (1UL<<15)  /* b16 */
+ #define M32R_MFTMOD_TCCR       (1UL<<13)  /* b18 */
 _
 
 Patches currently in -mm which might be from takata@linux-m32r.org are
 
+m32r-support-a-synthesizable-m32700-core.patch
 m32r-fix-ace_handler-to-pass-full-32-bit-address.patch
 m32r-bootloader-support-for-opsput-platform.patch
 
