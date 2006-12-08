@@ -1,61 +1,70 @@
 From: akpm@osdl.org
-Subject: - struct-path-convert-i2c-drivers.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:03:26 -0800
-Message-ID: <200612082003.kB8K3Qlq002071@shell0.pdx.osdl.net>
+Subject: - struct-path-convert-hfsplus.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:03:16 -0800
+Message-ID: <200612082003.kB8K3Gfl002055@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57160 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57131 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426279AbWLHUDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:03:30 -0500
+	id S1426261AbWLHUDV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:03:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct path: convert i2c-drivers
+     struct path: convert hfsplus
 has been removed from the -mm tree.  Its filename was
-     struct-path-convert-i2c-drivers.patch
+     struct-path-convert-hfsplus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: struct path: convert i2c-drivers
+Subject: struct path: convert hfsplus
 From: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 
 Signed-off-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/i2c/i2c-dev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hfsplus/dir.c   |    2 +-
+ fs/hfsplus/inode.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/i2c/i2c-dev.c~struct-path-convert-i2c-drivers drivers/i2c/i2c-dev.c
---- a/drivers/i2c/i2c-dev.c~struct-path-convert-i2c-drivers
-+++ a/drivers/i2c/i2c-dev.c
-@@ -119,7 +119,7 @@ static ssize_t i2cdev_read (struct file 
- 		return -ENOMEM;
+diff -puN fs/hfsplus/dir.c~struct-path-convert-hfsplus fs/hfsplus/dir.c
+--- a/fs/hfsplus/dir.c~struct-path-convert-hfsplus
++++ a/fs/hfsplus/dir.c
+@@ -111,7 +111,7 @@ fail:
  
- 	pr_debug("i2c-dev: i2c-%d reading %zd bytes.\n",
--		iminor(file->f_dentry->d_inode), count);
-+		iminor(file->f_path.dentry->d_inode), count);
+ static int hfsplus_readdir(struct file *filp, void *dirent, filldir_t filldir)
+ {
+-	struct inode *inode = filp->f_dentry->d_inode;
++	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct super_block *sb = inode->i_sb;
+ 	int len, err;
+ 	char strbuf[HFSPLUS_MAX_STRLEN + 1];
+diff -puN fs/hfsplus/inode.c~struct-path-convert-hfsplus fs/hfsplus/inode.c
+--- a/fs/hfsplus/inode.c~struct-path-convert-hfsplus
++++ a/fs/hfsplus/inode.c
+@@ -97,7 +97,7 @@ static ssize_t hfsplus_direct_IO(int rw,
+ 		const struct iovec *iov, loff_t offset, unsigned long nr_segs)
+ {
+ 	struct file *file = iocb->ki_filp;
+-	struct inode *inode = file->f_dentry->d_inode->i_mapping->host;
++	struct inode *inode = file->f_path.dentry->d_inode->i_mapping->host;
  
- 	ret = i2c_master_recv(client,tmp,count);
- 	if (ret >= 0)
-@@ -147,7 +147,7 @@ static ssize_t i2cdev_write (struct file
- 	}
- 
- 	pr_debug("i2c-dev: i2c-%d writing %zd bytes.\n",
--		iminor(file->f_dentry->d_inode), count);
-+		iminor(file->f_path.dentry->d_inode), count);
- 
- 	ret = i2c_master_send(client,tmp,count);
- 	kfree(tmp);
+ 	return blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
+ 				  offset, nr_segs, hfsplus_get_block, NULL);
 _
 
 Patches currently in -mm which might be from jsipek@fsl.cs.sunysb.edu are
 
+struct-path-convert-hfsplus.patch
+struct-path-convert-hostfs.patch
+struct-path-convert-hpfs.patch
+struct-path-convert-hppfs.patch
+struct-path-convert-hugetlbfs.patch
 struct-path-convert-i2c-drivers.patch
 struct-path-convert-ia64.patch
 struct-path-convert-ieee1394.patch
