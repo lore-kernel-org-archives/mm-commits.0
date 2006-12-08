@@ -1,117 +1,295 @@
 From: akpm@osdl.org
-Subject: - aic94xx-increase-can_queue-and-cmds_per_lun.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:56 -0800
-Message-ID: <200612081104.kB8B4uIE018601@shell0.pdx.osdl.net>
+Subject: - git-geode-fixup.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:05:01 -0800
+Message-ID: <200612081105.kB8B51Rt018607@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48692 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48673 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425370AbWLHLFL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:05:11 -0500
+	id S1425368AbWLHLFH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:05:07 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B51ID029579
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 03:05:02 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aic94xx: Increase can_queue and cmds_per_lun
+     git-geode-fixup
 has been removed from the -mm tree.  Its filename was
-     aic94xx-increase-can_queue-and-cmds_per_lun.patch
+     git-geode-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: aic94xx: Increase can_queue and cmds_per_lun
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: git-geode-fixup
+From: Andrew Morton <akpm@osdl.org>
 
-Set sets cmd_per_lun and can_queue in the aic94xx driver's
-scsi_host_template to better performing values than what's there currently.
- The cmd_per_lun setting is stolen straight out of the adp94xx source, and
-can_queue is derived from the max_scb value that we calculate in
-asd_init_hw.  To the best of my (admittedly limited) knowledge, this method
-provides the correct values (can_queue = 443 in both adp94xx and aic94xx on
-my 9405W) but if anybody knows better, please enlighten me.  :)
-
-That said, the effect of leaving these values set to 1 is terrible
-performance in the case of either (a) certain Maxtor SAS drives flying solo
-or (b) flooding several disks with I/O simultaneously (md-raid).  There may
-be more scenarios where we see similar problems that I haven't uncovered.
-
-Just for grins, I ran bogodisk (an O_DIRECT-enabled read speed test)
-against three different scenarios:
-
-1) adp94xx 1.0.8-6, pounded into 2.6.18-rc4 [green]
-2) aic94xx 1.0.2, without this patch        [red]
-3) aic94xx 1.0.2, with this                 [blue]
-
-...with these results:
-
-http://sweaglesw.net/~djwong/programs/bogodisk/bd_graphs/bad_sas.0.png
-
-As you can see, the read performance is cut in half by the aic94xx driver
-not getting a chance to have multiple I/Os in flight at any given time. 
-With the patch, the two drivers are fairly close bandwidth-wise.  Also
-thanks to Mike Anderson for helping me figure this out.
-
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/aic94xx/aic94xx_hwi.h  |    3 +++
- drivers/scsi/aic94xx/aic94xx_init.c |   10 +++++++---
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ drivers/crypto/Kconfig        |    3 ---
+ drivers/crypto/Makefile       |    8 --------
+ drivers/video/Kconfig         |    5 -----
+ drivers/video/console/Kconfig |    5 -----
+ 4 files changed, 21 deletions(-)
 
-diff -puN drivers/scsi/aic94xx/aic94xx_hwi.h~aic94xx-increase-can_queue-and-cmds_per_lun drivers/scsi/aic94xx/aic94xx_hwi.h
---- a/drivers/scsi/aic94xx/aic94xx_hwi.h~aic94xx-increase-can_queue-and-cmds_per_lun
-+++ a/drivers/scsi/aic94xx/aic94xx_hwi.h
-@@ -36,6 +36,9 @@
- #include "aic94xx.h"
- #include "aic94xx_sas.h"
+diff -puN drivers/crypto/Kconfig~git-geode-fixup drivers/crypto/Kconfig
+--- a/drivers/crypto/Kconfig~git-geode-fixup
++++ a/drivers/crypto/Kconfig
+@@ -32,7 +32,6 @@ config CRYPTO_DEV_PADLOCK_AES
+ 	help
+ 	  Use VIA PadLock for AES algorithm.
  
-+/* Leave a few empty data buffers. */
-+#define ASD_FREE_SCBS      3
-+
- /* Define ASD_MAX_PHYS to the maximum phys ever. Currently 8. */
- #define ASD_MAX_PHYS       8
- #define ASD_PCBA_SN_SIZE   12
-diff -puN drivers/scsi/aic94xx/aic94xx_init.c~aic94xx-increase-can_queue-and-cmds_per_lun drivers/scsi/aic94xx/aic94xx_init.c
---- a/drivers/scsi/aic94xx/aic94xx_init.c~aic94xx-increase-can_queue-and-cmds_per_lun
-+++ a/drivers/scsi/aic94xx/aic94xx_init.c
-@@ -71,7 +71,7 @@ static struct scsi_host_template aic94xx
- 	.change_queue_type	= sas_change_queue_type,
- 	.bios_param		= sas_bios_param,
- 	.can_queue		= 1,
--	.cmd_per_lun		= 1,
-+	.cmd_per_lun		= 2,
- 	.this_id		= -1,
- 	.sg_tablesize		= SG_ALL,
- 	.max_sectors		= SCSI_DEFAULT_MAX_SECTORS,
-@@ -612,13 +612,17 @@ static int __devinit asd_pci_probe(struc
- 		goto Err_free_cache;
+-<<<<<<< HEAD/drivers/crypto/Kconfig
+ 	  Available in VIA C3 and newer CPUs.
  
- 	asd_printk("device %s: SAS addr %llx, PCBA SN %s, %d phys, %d enabled "
--		   "phys, flash %s, BIOS %s%d\n",
-+		   "phys, flash %s, BIOS %s%d, SCBs %d\n",
- 		   pci_name(dev), SAS_ADDR(asd_ha->hw_prof.sas_addr),
- 		   asd_ha->hw_prof.pcba_sn, asd_ha->hw_prof.max_phys,
- 		   asd_ha->hw_prof.num_phys,
- 		   asd_ha->hw_prof.flash.present ? "present" : "not present",
- 		   asd_ha->hw_prof.bios.present ? "build " : "not present",
--		   asd_ha->hw_prof.bios.bld);
-+		   asd_ha->hw_prof.bios.bld,
-+		   asd_ha->hw_prof.max_scbs);
-+
-+	aic94xx_sht.can_queue = asd_ha->hw_prof.max_scbs - ASD_FREE_SCBS;
-+	shost->can_queue = aic94xx_sht.can_queue;
+ 	  If unsure say M. The compiled module will be
+@@ -52,7 +51,6 @@ config CRYPTO_DEV_PADLOCK_SHA
+ 	  If unsure say M. The compiled module will be
+ 	  called padlock-sha.ko
  
- 	if (use_msi)
- 		pci_enable_msi(asd_ha->pcidev);
+-=======
+ config CRYPTO_DEV_GEODE
+ 	tristate "Support for the Geode LX AES engine"
+ 	depends on CRYPTO && X86_32
+@@ -62,5 +60,4 @@ config CRYPTO_DEV_GEODE
+ 
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called geode-aes.
+->>>>>>> /drivers/crypto/Kconfig
+ endmenu
+diff -puN drivers/crypto/Makefile~git-geode-fixup drivers/crypto/Makefile
+--- a/drivers/crypto/Makefile~git-geode-fixup
++++ a/drivers/crypto/Makefile
+@@ -1,12 +1,4 @@
+ obj-$(CONFIG_CRYPTO_DEV_PADLOCK) += padlock.o
+-<<<<<<< HEAD/drivers/crypto/Makefile
+ obj-$(CONFIG_CRYPTO_DEV_PADLOCK_AES) += padlock-aes.o
+ obj-$(CONFIG_CRYPTO_DEV_PADLOCK_SHA) += padlock-sha.o
+-=======
+ obj-$(CONFIG_CRYPTO_DEV_GEODE) += geode-aes.o
+-
+-padlock-objs-$(CONFIG_CRYPTO_DEV_PADLOCK_AES) += padlock-aes.o
+-
+-padlock-objs := padlock-generic.o $(padlock-objs-y)
+-
+->>>>>>> /drivers/crypto/Makefile
+diff -puN drivers/video/Kconfig~git-geode-fixup drivers/video/Kconfig
+--- a/drivers/video/Kconfig~git-geode-fixup
++++ a/drivers/video/Kconfig
+@@ -833,13 +833,8 @@ config FB_I810_I2C
+ 	help
+ 
+ config FB_INTEL
+-<<<<<<< HEAD/drivers/video/Kconfig
+ 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G support (EXPERIMENTAL)"
+-	depends on FB && EXPERIMENTAL && PCI && X86
+-=======
+-	tristate "Intel 830M/845G/852GM/855GM/865G support (EXPERIMENTAL)"
+ 	depends on FB && EXPERIMENTAL && PCI && X86 && !VGA_NOPROBE
+->>>>>>> /drivers/video/Kconfig
+ 	select AGP
+ 	select AGP_INTEL
+ 	select I2C_ALGOBIT if FB_INTEL_I2C
+diff -puN drivers/video/console/Kconfig~git-geode-fixup drivers/video/console/Kconfig
+--- a/drivers/video/console/Kconfig~git-geode-fixup
++++ a/drivers/video/console/Kconfig
+@@ -5,13 +5,8 @@
+ menu "Console display driver support"
+ 
+ config VGA_CONSOLE
+-<<<<<<< HEAD/drivers/video/console/Kconfig
+-	bool "VGA text console" if EMBEDDED || !X86
+-	depends on !ARCH_ACORN && !ARCH_EBSA110 && !4xx && !8xx && !SPARC && !M68K && !PARISC && !FRV && !ARCH_VERSATILE && !SUPERH
+-=======
+ 	bool "VGA text console" if (EMBEDDED || !X86)
+ 	depends on !ARCH_ACORN && !ARCH_EBSA110 && !4xx && !8xx && !SPARC && !M68K && !PARISC && !FRV && !ARCH_VERSATILE && !VGA_NOPROBE
+->>>>>>> /drivers/video/console/Kconfig
+ 	default y
+ 	help
+ 	  Saying Y here will allow you to use Linux in text mode through a
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-libata-simulate-report-luns-for-atapi-devices.patch
-git-sas.patch
-git-sas-kconfig-fix.patch
+tty-signal-tty-locking.patch
+pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
+fsstack-introduce-fsstack_copy_attrinode_.patch
+log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
+add-process_session-helper-routine-deprecate-old-field.patch
+mxser-session-warning-fix.patch
+mxser-workqueue-fixes.patch
+tty-switch-to-ktermios-and-new-framework.patch
+tty-switch-to-ktermios.patch
+tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
+drivers-isdn-handcrafted-min-max-macro-removal.patch
+fault-injection-capabilities-infrastructure.patch
+fault-injection-Kconfig-cleanup.patch
+fault-injection-stacktrace-filtering-kconfig-fix.patch
+sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
+video-get-the-default-mode-from-the-right-database.patch
+various-fbdev-files-mark-structs.patch
+backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
+gxfb-fixups-for-the-amd-geode-gx.patch
+gxfb-support-flat-panel-timings.patch
+gxfb-support-command-line-options.patch
+proc_misc-build-fix.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+s390-workqueue-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+implement-flush_work.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+bridge-avoid-using-noautorel-workqueues.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+bug-test-1.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
