@@ -1,96 +1,64 @@
 From: akpm@osdl.org
-Subject: - remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:00:29 -0800
-Message-ID: <200612082000.kB8K0Tlu001746@shell0.pdx.osdl.net>
+Subject: - bdev-fix-bd_part_count-leak.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:00:40 -0800
+Message-ID: <200612082000.kB8K0ebZ001775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56623 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56635 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426203AbWLHUAn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:00:43 -0500
+	id S1426209AbWLHUAr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:00:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: remove lock_key approach to managing nested bd_mutex locks
+     bdev: fix ->bd_part_count leak
 has been removed from the -mm tree.  Its filename was
-     remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
+     bdev-fix-bd_part_count-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: remove lock_key approach to managing nested bd_mutex locks
-From: NeilBrown <neilb@suse.de>
+Subject: bdev: fix ->bd_part_count leak
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-The extra call to get_gendisk is not good.  It causes a ->probe and possible
-module load before it is really appropriate to do this.
+Don't leak a ->bd_part_count when the partition open fails with -ENXIO.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ fs/block_dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/block_dev.c~remove-lock_key-approach-to-managing-nested-bd_mutex-locks fs/block_dev.c
---- a/fs/block_dev.c~remove-lock_key-approach-to-managing-nested-bd_mutex-locks
+diff -puN fs/block_dev.c~bdev-fix-bd_part_count-leak fs/block_dev.c
+--- a/fs/block_dev.c~bdev-fix-bd_part_count-leak
 +++ a/fs/block_dev.c
-@@ -355,14 +355,10 @@ static int bdev_set(struct inode *inode,
+@@ -902,6 +902,7 @@ EXPORT_SYMBOL(bd_set_size);
  
- static LIST_HEAD(all_bdevs);
+ static int __blkdev_get(struct block_device *bdev, mode_t mode, unsigned flags,
+ 			int for_part);
++static int __blkdev_put(struct block_device *bdev, int for_part);
  
--static struct lock_class_key bdev_part_lock_key;
--
- struct block_device *bdget(dev_t dev)
+ static int do_open(struct block_device *bdev, struct file *file, int for_part)
  {
- 	struct block_device *bdev;
- 	struct inode *inode;
--	struct gendisk *disk;
--	int part = 0;
- 
- 	inode = iget5_locked(bd_mnt->mnt_sb, hash(dev),
- 			bdev_test, bdev_set, &dev);
-@@ -388,11 +384,6 @@ struct block_device *bdget(dev_t dev)
- 		list_add(&bdev->bd_list, &all_bdevs);
- 		spin_unlock(&bdev_lock);
- 		unlock_new_inode(inode);
--		mutex_init(&bdev->bd_mutex);
--		disk = get_gendisk(dev, &part);
--		if (part)
--			lockdep_set_class(&bdev->bd_mutex, &bdev_part_lock_key);
--		put_disk(disk);
- 	}
- 	return bdev;
- }
+@@ -987,7 +988,7 @@ out_first:
+ 	bdev->bd_disk = NULL;
+ 	bdev->bd_inode->i_data.backing_dev_info = &default_backing_dev_info;
+ 	if (bdev != bdev->bd_contains)
+-		blkdev_put(bdev->bd_contains);
++		__blkdev_put(bdev->bd_contains, 1);
+ 	bdev->bd_contains = NULL;
+ 	put_disk(disk);
+ 	module_put(owner);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-remove-lock_key-approach-to-managing-nested-bd_mutex-locks.patch
-simplify-some-aspects-of-bd_mutex-nesting.patch
-use-mutex_lock_nested-for-bd_mutex-to-avoid-lockdep-warning.patch
-avoid-lockdep-warning-in-md.patch
 bdev-fix-bd_part_count-leak.patch
 lockdep-annotate-nfsd4-recover-code.patch
-nfs2-calculate-w-a-bit-later-in-nfsaclsvc_encode_getaclres.patch
-nfs3-calculate-w-a-bit-later-in-nfs3svc_encode_getaclres.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch
-md-define-raid5_mergeable_bvec.patch
-md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-error-handling-of-aligned-reads.patch
-md-enable-bypassing-cache-for-reads.patch
-md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch
-md-conditionalize-some-code.patch
-md-change-lifetime-rules-for-md-devices.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
 
