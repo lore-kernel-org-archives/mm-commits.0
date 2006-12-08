@@ -1,15 +1,15 @@
 From: akpm@osdl.org
-Subject: - git-nfs-more-hacks.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:04:43 -0800
-Message-ID: <200612081104.kB8B4hPs018583@shell0.pdx.osdl.net>
+Subject: - git-nfs-fixup.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:04:41 -0800
+Message-ID: <200612081104.kB8B4f4L018580@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48652 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48661 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S938035AbWLHLE7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:04:59 -0500
+	id S1425364AbWLHLFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:05:01 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B4hID029544
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8B4fID029541
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
 	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 03:04:48 -0800
 Sender: mm-commits-owner@vger.kernel.org
@@ -18,38 +18,329 @@ To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfs-more-hacks
+     git-nfs-fixup
 has been removed from the -mm tree.  Its filename was
-     git-nfs-more-hacks.patch
+     git-nfs-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-nfs-more-hacks
+Subject: git-nfs-fixup
 From: Andrew Morton <akpm@osdl.org>
+
+make nfs trainwreck compile.
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/xprtsock.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/sunrpc/xprt.h |    3 
+ net/sunrpc/xprtsock.c       |  247 ----------------------------------
+ 2 files changed, 1 insertion(+), 249 deletions(-)
 
-diff -puN net/sunrpc/xprtsock.c~git-nfs-more-hacks net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~git-nfs-more-hacks
+diff -puN include/linux/sunrpc/xprt.h~git-nfs-fixup include/linux/sunrpc/xprt.h
+--- a/include/linux/sunrpc/xprt.h~git-nfs-fixup
++++ a/include/linux/sunrpc/xprt.h
+@@ -157,11 +157,8 @@ struct rpc_xprt {
+ 	unsigned long		connect_timeout,
+ 				bind_timeout,
+ 				reestablish_timeout;
+-<<<<<<< HEAD/include/linux/sunrpc/xprt.h
+ 	struct delayed_work	connect_worker;
+ 	unsigned short		port;
+-=======
+->>>>>>> /include/linux/sunrpc/xprt.h
+ 
+ 	/*
+ 	 * Disconnection of idle transports
+diff -puN net/sunrpc/xprtsock.c~git-nfs-fixup net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~git-nfs-fixup
 +++ a/net/sunrpc/xprtsock.c
-@@ -1355,6 +1355,7 @@ static struct rpc_xprt *xs_setup_xprt(st
+@@ -654,7 +654,7 @@ static void xs_destroy(struct rpc_xprt *
+ 
+ 	dprintk("RPC:      xs_destroy xprt %p\n", xprt);
+ 
+-	cancel_delayed_work(&transport->connect_worker);
++//	cancel_delayed_work(&transport->connect_worker);
+ 	flush_scheduled_work();
+ 
+ 	xprt_disconnect(xprt);
+@@ -1181,63 +1181,6 @@ static int xs_bindresvport(struct sock_x
   */
- struct rpc_xprt *xs_setup_udp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
+ static void xs_udp_connect_worker(struct work_struct *work)
  {
-+	return NULL;
+-<<<<<<< HEAD/net/sunrpc/xprtsock.c
+-	struct rpc_xprt *xprt =
+-		container_of(work, struct rpc_xprt, connect_worker.work);
+-	struct socket *sock = xprt->sock;
+-=======
+-	struct sock_xprt *transport = (struct sock_xprt *)args;
+-	struct rpc_xprt *xprt = &transport->xprt;
+-	struct socket *sock = transport->sock;
+->>>>>>> /net/sunrpc/xprtsock.c
+-	int err, status = -EIO;
+-
+-	if (xprt->shutdown || !xprt_bound(xprt))
+-		goto out;
+-
+-	/* Start by resetting any existing state */
+-	xs_close(xprt);
+-
+-	if ((err = sock_create_kern(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock)) < 0) {
+-		dprintk("RPC:      can't create UDP transport socket (%d).\n", -err);
+-		goto out;
+-	}
+-
+-	if (xprt->resvport && xs_bindresvport(transport, sock) < 0) {
+-		sock_release(sock);
+-		goto out;
+-	}
+-
+-	dprintk("RPC:      worker connecting xprt %p to address: %s\n",
+-			xprt, xprt->address_strings[RPC_DISPLAY_ALL]);
+-
+-	if (!transport->inet) {
+-		struct sock *sk = sock->sk;
+-
+-		write_lock_bh(&sk->sk_callback_lock);
+-
+-		sk->sk_user_data = xprt;
+-		transport->old_data_ready = sk->sk_data_ready;
+-		transport->old_state_change = sk->sk_state_change;
+-		transport->old_write_space = sk->sk_write_space;
+-		sk->sk_data_ready = xs_udp_data_ready;
+-		sk->sk_write_space = xs_udp_write_space;
+-		sk->sk_no_check = UDP_CSUM_NORCV;
+-		sk->sk_allocation = GFP_ATOMIC;
+-
+-		xprt_set_connected(xprt);
+-
+-		/* Reset to new socket */
+-		transport->sock = sock;
+-		transport->inet = sk;
+-
+-		write_unlock_bh(&sk->sk_callback_lock);
+-	}
+-	xs_udp_do_set_buffer_size(xprt);
+-	status = 0;
+-out:
+-	xprt_wake_pending_tasks(xprt, status);
+-	xprt_clear_connecting(xprt);
+ }
+ 
+ /*
+@@ -1272,93 +1215,6 @@ static void xs_tcp_reuse_connection(stru
+  */
+ static void xs_tcp_connect_worker(struct work_struct *work)
+ {
+-<<<<<<< HEAD/net/sunrpc/xprtsock.c
+-	struct rpc_xprt *xprt =
+-		container_of(work, struct rpc_xprt, connect_worker.work);
+-	struct socket *sock = xprt->sock;
+-=======
+-	struct sock_xprt *transport = (struct sock_xprt *)args;
+-	struct rpc_xprt *xprt = &transport->xprt;
+-	struct socket *sock = transport->sock;
+->>>>>>> /net/sunrpc/xprtsock.c
+-	int err, status = -EIO;
+-
+-	if (xprt->shutdown || !xprt_bound(xprt))
+-		goto out;
+-
+-	if (!sock) {
+-		/* start from scratch */
+-		if ((err = sock_create_kern(PF_INET, SOCK_STREAM, IPPROTO_TCP, &sock)) < 0) {
+-			dprintk("RPC:      can't create TCP transport socket (%d).\n", -err);
+-			goto out;
+-		}
+-
+-		if (xprt->resvport && xs_bindresvport(transport, sock) < 0) {
+-			sock_release(sock);
+-			goto out;
+-		}
+-	} else
+-		/* "close" the socket, preserving the local port */
+-		xs_tcp_reuse_connection(xprt);
+-
+-	dprintk("RPC:      worker connecting xprt %p to address: %s\n",
+-			xprt, xprt->address_strings[RPC_DISPLAY_ALL]);
+-
+-	if (!transport->inet) {
+-		struct sock *sk = sock->sk;
+-
+-		write_lock_bh(&sk->sk_callback_lock);
+-
+-		sk->sk_user_data = xprt;
+-		transport->old_data_ready = sk->sk_data_ready;
+-		transport->old_state_change = sk->sk_state_change;
+-		transport->old_write_space = sk->sk_write_space;
+-		sk->sk_data_ready = xs_tcp_data_ready;
+-		sk->sk_state_change = xs_tcp_state_change;
+-		sk->sk_write_space = xs_tcp_write_space;
+-		sk->sk_allocation = GFP_ATOMIC;
+-
+-		/* socket options */
+-		sk->sk_userlocks |= SOCK_BINDPORT_LOCK;
+-		sock_reset_flag(sk, SOCK_LINGER);
+-		tcp_sk(sk)->linger2 = 0;
+-		tcp_sk(sk)->nonagle |= TCP_NAGLE_OFF;
+-
+-		xprt_clear_connected(xprt);
+-
+-		/* Reset to new socket */
+-		transport->sock = sock;
+-		transport->inet = sk;
+-
+-		write_unlock_bh(&sk->sk_callback_lock);
+-	}
+-
+-	/* Tell the socket layer to start connecting... */
+-	xprt->stat.connect_count++;
+-	xprt->stat.connect_start = jiffies;
+-	status = kernel_connect(sock, (struct sockaddr *) &xprt->addr,
+-			xprt->addrlen, O_NONBLOCK);
+-	dprintk("RPC: %p  connect status %d connected %d sock state %d\n",
+-			xprt, -status, xprt_connected(xprt), sock->sk->sk_state);
+-	if (status < 0) {
+-		switch (status) {
+-			case -EINPROGRESS:
+-			case -EALREADY:
+-				goto out_clear;
+-			case -ECONNREFUSED:
+-			case -ECONNRESET:
+-				/* retry with existing socket, after a delay */
+-				break;
+-			default:
+-				/* get rid of existing socket, and retry */
+-				xs_close(xprt);
+-				break;
+-		}
+-	}
+-out:
+-	xprt_wake_pending_tasks(xprt, status);
+-out_clear:
+-	xprt_clear_connecting(xprt);
  }
  
  /**
-@@ -1366,6 +1367,7 @@ struct rpc_xprt *xs_setup_udp(struct soc
+@@ -1376,32 +1232,6 @@ out_clear:
+  */
+ static void xs_connect(struct rpc_task *task)
+ {
+-	struct rpc_xprt *xprt = task->tk_xprt;
+-	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
+-
+-	if (xprt_test_and_set_connecting(xprt))
+-		return;
+-
+-	if (transport->sock != NULL) {
+-		dprintk("RPC:      xs_connect delayed xprt %p for %lu seconds\n",
+-				xprt, xprt->reestablish_timeout / HZ);
+-		schedule_delayed_work(&transport->connect_worker,
+-					xprt->reestablish_timeout);
+-		xprt->reestablish_timeout <<= 1;
+-		if (xprt->reestablish_timeout > XS_TCP_MAX_REEST_TO)
+-			xprt->reestablish_timeout = XS_TCP_MAX_REEST_TO;
+-	} else {
+-		dprintk("RPC:      xs_connect scheduled xprt %p\n", xprt);
+-<<<<<<< HEAD/net/sunrpc/xprtsock.c
+-		schedule_delayed_work(&xprt->connect_worker, 0);
+-=======
+-		schedule_work(&transport->connect_worker);
+->>>>>>> /net/sunrpc/xprtsock.c
+-
+-		/* flush_scheduled_work can sleep... */
+-		if (!RPC_IS_ASYNC(task))
+-			flush_scheduled_work();
+-	}
+ }
+ 
+ /**
+@@ -1525,44 +1355,6 @@ static struct rpc_xprt *xs_setup_xprt(st
+  */
+ struct rpc_xprt *xs_setup_udp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
+ {
+-	struct rpc_xprt *xprt;
+-	struct sock_xprt *transport;
+-
+-	xprt = xs_setup_xprt(addr, addrlen, xprt_udp_slot_table_entries);
+-	if (IS_ERR(xprt))
+-		return xprt;
+-	transport = container_of(xprt, struct sock_xprt, xprt);
+-
+-	if (ntohs(((struct sockaddr_in *)addr)->sin_port) != 0)
+-		xprt_set_bound(xprt);
+-
+-	xprt->prot = IPPROTO_UDP;
+-	xprt->tsh_size = 0;
+-	/* XXX: header size can vary due to auth type, IPv6, etc. */
+-	xprt->max_payload = (1U << 16) - (MAX_HEADER << 3);
+-
+-<<<<<<< HEAD/net/sunrpc/xprtsock.c
+-	INIT_DELAYED_WORK(&xprt->connect_worker, xs_udp_connect_worker);
+-=======
+-	INIT_WORK(&transport->connect_worker, xs_udp_connect_worker, transport);
+->>>>>>> /net/sunrpc/xprtsock.c
+-	xprt->bind_timeout = XS_BIND_TO;
+-	xprt->connect_timeout = XS_UDP_CONN_TO;
+-	xprt->reestablish_timeout = XS_UDP_REEST_TO;
+-	xprt->idle_timeout = XS_IDLE_DISC_TO;
+-
+-	xprt->ops = &xs_udp_ops;
+-
+-	if (to)
+-		xprt->timeout = *to;
+-	else
+-		xprt_set_timeout(&xprt->timeout, 5, 5 * HZ);
+-
+-	xs_format_peer_addresses(xprt);
+-	dprintk("RPC:      set up transport to address %s\n",
+-			xprt->address_strings[RPC_DISPLAY_ALL]);
+-
+-	return xprt;
+ }
+ 
+ /**
+@@ -1574,43 +1366,6 @@ struct rpc_xprt *xs_setup_udp(struct soc
   */
  struct rpc_xprt *xs_setup_tcp(struct sockaddr *addr, size_t addrlen, struct rpc_timeout *to)
  {
-+	return NULL;
+-	struct rpc_xprt *xprt;
+-	struct sock_xprt *transport;
+-
+-	xprt = xs_setup_xprt(addr, addrlen, xprt_tcp_slot_table_entries);
+-	if (IS_ERR(xprt))
+-		return xprt;
+-	transport = container_of(xprt, struct sock_xprt, xprt);
+-
+-	if (ntohs(((struct sockaddr_in *)addr)->sin_port) != 0)
+-		xprt_set_bound(xprt);
+-
+-	xprt->prot = IPPROTO_TCP;
+-	xprt->tsh_size = sizeof(rpc_fraghdr) / sizeof(u32);
+-	xprt->max_payload = RPC_MAX_FRAGMENT_SIZE;
+-
+-<<<<<<< HEAD/net/sunrpc/xprtsock.c
+-	INIT_DELAYED_WORK(&xprt->connect_worker, xs_tcp_connect_worker);
+-=======
+-	INIT_WORK(&transport->connect_worker, xs_tcp_connect_worker, transport);
+->>>>>>> /net/sunrpc/xprtsock.c
+-	xprt->bind_timeout = XS_BIND_TO;
+-	xprt->connect_timeout = XS_TCP_CONN_TO;
+-	xprt->reestablish_timeout = XS_TCP_INIT_REEST_TO;
+-	xprt->idle_timeout = XS_IDLE_DISC_TO;
+-
+-	xprt->ops = &xs_tcp_ops;
+-
+-	if (to)
+-		xprt->timeout = *to;
+-	else
+-		xprt_set_timeout(&xprt->timeout, 2, 60 * HZ);
+-
+-	xs_format_peer_addresses(xprt);
+-	dprintk("RPC:      set up transport to address %s\n",
+-			xprt->address_strings[RPC_DISPLAY_ALL]);
+-
+-	return xprt;
  }
  
  /**
