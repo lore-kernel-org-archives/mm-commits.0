@@ -1,233 +1,433 @@
 From: akpm@osdl.org
-Subject: - x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:19:41 -0800
-Message-ID: <200612081119.kB8BJf1i019012@shell0.pdx.osdl.net>
+Subject: - clocksource-add-some-new-api-calls.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 03:05:35 -0800
+Message-ID: <200612081105.kB8B5Z7n018654@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50287 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50625 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S938045AbWLHLU6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:20:58 -0500
+	id S1425407AbWLHLYy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 06:24:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ak@muc.de, kiran@scalex86.org, shai@scalex86.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code tidy
+     clocksource: add some new API calls
 has been removed from the -mm tree.  Its filename was
-     x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
+     clocksource-add-some-new-api-calls.patch
 
-This patch was dropped because it was folded into x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: clocksource: add some new API calls
+From: Daniel Walker <dwalker@mvista.com>
 
-sigh.
+originally used plist but removed it in this patch, and used a sorted list
+which is just as fast with a lot less memory overhead.
 
-Cc: Ravikiran Thirumalai <kiran@scalex86.org>
-Cc: Shai Fultheim <shai@scalex86.org>
-Cc: Andi Kleen <ak@muc.de>
-Cc: <stable@kernel.org>
+Introduces some new API calls,
+
+- clocksource_get_clock()
+	Allows a clock lookup by name.
+- clocksource_rating_change()
+	Used by a clocksource to signal a rating change. Replaces
+	reselect_clocksource()
+
+I also moved the the clock source list to a plist, which removes some lookup
+overhead in the average case.
+
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/nmi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/tsc.c      |    2 
+ include/linux/clocksource.h |   44 ++++++-
+ kernel/time/clocksource.c   |  213 +++++++++++++++++++++-------------
+ 3 files changed, 179 insertions(+), 80 deletions(-)
 
-diff -puN arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy arch/x86_64/kernel/nmi.c
---- a/arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy
-+++ a/arch/x86_64/kernel/nmi.c
-@@ -213,7 +213,7 @@ static __init void nmi_cpu_busy(void *da
+diff -puN arch/i386/kernel/tsc.c~clocksource-add-some-new-api-calls arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~clocksource-add-some-new-api-calls
++++ a/arch/i386/kernel/tsc.c
+@@ -351,7 +351,7 @@ static int tsc_update_callback(void)
+ 	/* check to see if we should switch to the safe clocksource: */
+ 	if (clocksource_tsc.rating != 50 && check_tsc_unstable()) {
+ 		clocksource_tsc.rating = 50;
+-		clocksource_reselect();
++		clocksource_rating_change(&clocksource_tsc);
+ 		change = 1;
+ 	}
+ 
+diff -puN include/linux/clocksource.h~clocksource-add-some-new-api-calls include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-add-some-new-api-calls
++++ a/include/linux/clocksource.h
+@@ -12,12 +12,20 @@
+ #include <linux/timex.h>
+ #include <linux/time.h>
+ #include <linux/list.h>
++#include <linux/plist.h>
++#include <linux/sysdev.h>
+ #include <asm/div64.h>
+ #include <asm/io.h>
+ 
+ /* clocksource cycle base type */
+ typedef u64 cycle_t;
+ 
++/*
++ * This is the only generic clock, it should be used
++ * for early initialization.
++ */
++extern struct clocksource clocksource_jiffies;
++
+ /**
+  * struct clocksource - hardware abstraction for a free running counter
+  *	Provides mostly state-free accessors to the underlying hardware.
+@@ -148,6 +156,25 @@ static inline s64 cyc2ns(struct clocksou
  }
- #endif
  
--static int endflag = 0;
-+static int endflag;
+ /**
++ * ns2cyc - converts nanoseconds to clocksource cycles
++ * @cs:		Pointer to clocksource
++ * @ns:		Nanoseconds
++ *
++ * Uses the clocksource to convert nanoseconds back to cycles.
++ *
++ * XXX - This could use some mult_lxl_ll() asm optimization
++ */
++static inline cycle_t ns2cyc(struct clocksource *cs, s64 ns)
++{
++	u64 ret = ns;
++
++	ret <<= cs->shift;
++	do_div(ret, cs->mult);
++
++	return ret;
++}
++
++/**
+  * clocksource_calculate_interval - Calculates a clocksource interval struct
+  *
+  * @c:		Pointer to clocksource.
+@@ -178,8 +205,19 @@ static inline void clocksource_calculate
  
- int __init check_nmi_watchdog (void)
+ 
+ /* used to install a new clocksource */
+-int clocksource_register(struct clocksource*);
+-void clocksource_reselect(void);
+-struct clocksource* clocksource_get_next(void);
++extern struct clocksource *clocksource_get_next(void);
++extern int clocksource_register(struct clocksource*);
++extern void clocksource_rating_change(struct clocksource*);
++extern struct clocksource * clocksource_get_clock(char*);
+ 
++/**
++ * clocksource_get_best_clock - Finds highest rated clocksource
++ *
++ * Returns the highest rated clocksource. If none are register the
++ * jiffies clock is returned.
++ */
++static inline struct clocksource * clocksource_get_best_clock(void)
++{
++	return clocksource_get_clock(NULL);
++}
+ #endif /* _LINUX_CLOCKSOURCE_H */
+diff -puN kernel/time/clocksource.c~clocksource-add-some-new-api-calls kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-add-some-new-api-calls
++++ a/kernel/time/clocksource.c
+@@ -31,8 +31,6 @@
+ 
+ /* XXX - Would like a better way for initializing curr_clocksource */
+ extern struct clocksource clocksource_jiffies;
+-static int is_registered_source(struct clocksource *c);
+-static struct clocksource *select_clocksource(void);
+ 
+ /*[Clocksource internal variables]---------
+  * curr_clocksource:
+@@ -40,7 +38,7 @@ static struct clocksource *select_clocks
+  * next_clocksource:
+  *	pending next selected clocksource.
+  * clocksource_list:
+- *	linked list with the registered clocksources
++ *	priority list with the registered clocksources
+  * clocksource_lock:
+  *	protects manipulations to curr_clocksource and next_clocksource
+  *	and the clocksource_list
+@@ -49,7 +47,7 @@ static struct clocksource *select_clocks
+  */
+ static struct clocksource *curr_clocksource = &clocksource_jiffies;
+ static struct clocksource *next_clocksource;
+-static LIST_HEAD(clocksource_list);
++static struct list_head clocksource_list = LIST_HEAD_INIT(clocksource_list);
+ static DEFINE_SPINLOCK(clocksource_lock);
+ static char override_name[32];
+ 
+@@ -72,10 +70,122 @@ struct clocksource *clocksource_get_next
+ }
+ 
+ /**
++ * __is_registered - Returns a clocksource if it's registered
++ * @name:		name of the clocksource to return
++ *
++ * Private function. Must hold clocksource_lock when called.
++ *
++ * Returns the clocksource if registered, zero otherwise.
++ * If no clocksources are registered the jiffies clock is
++ * returned.
++ */
++static struct clocksource * __is_registered(char * name)
++{
++	struct list_head *tmp;
++
++	list_for_each(tmp, &clocksource_list) {
++		struct clocksource *src;
++
++		src = list_entry(tmp, struct clocksource, list);
++		if (!strcmp(src->name, name))
++			return src;
++	}
++
++	return 0;
++}
++
++/**
++ * __get_clock - Finds a specific clocksource
++ * @name:		name of the clocksource to return
++ *
++ * Private function. Must hold clocksource_lock when called.
++ *
++ * Returns the clocksource if registered, zero otherwise.
++ * If the @name is null the highest rated clock is returned.
++ */
++static inline struct clocksource * __get_clock(char * name)
++{
++
++	if (unlikely(list_empty(&clocksource_list)))
++		return &clocksource_jiffies;
++
++	if (!name)
++		return list_entry(clocksource_list.next,
++				  struct clocksource, list);
++
++	return __is_registered(name);
++}
++
++/**
++ * clocksource_get_clock - Finds a specific clocksource
++ * @name:		name of the clocksource to return
++ *
++ * Returns the clocksource if registered, zero otherwise.
++ */
++struct clocksource * clocksource_get_clock(char * name)
++{
++	struct clocksource * ret;
++	unsigned long flags;
++
++	spin_lock_irqsave(&clocksource_lock, flags);
++	ret = __get_clock(name);
++	spin_unlock_irqrestore(&clocksource_lock, flags);
++	return ret;
++}
++
++
++/**
++ * select_clocksource - Finds the best registered clocksource.
++ *
++ * Private function. Must hold clocksource_lock when called.
++ *
++ * Looks through the list of registered clocksources, returning
++ * the one with the highest rating value. If there is a clocksource
++ * name that matches the override string, it returns that clocksource.
++ */
++static struct clocksource *select_clocksource(void)
++{
++	if (!*override_name)
++		return list_entry(clocksource_list.next,
++				  struct clocksource, list);
++
++	return __get_clock(override_name);
++}
++/*
++ * __sorted_list_add - Sorted clocksource add
++ * @c:			clocksource to add
++ *
++ * Adds a clocksource to the clocksource_list in sorted order.
++ */
++static void __sorted_list_add(struct clocksource *c)
++{
++	struct list_head *tmp;
++
++	list_for_each(tmp, &clocksource_list) {
++		struct clocksource *src;
++
++		src = list_entry(tmp, struct clocksource, list);
++
++		if (c->rating > src->rating) {
++			list_add_tail(&c->list, &src->list);
++			return;
++		}
++	}
++
++	/*
++	 * If it's bigger/smaller than all the other entries put it
++	 * at the end.
++	 */
++	list_add_tail(&c->list, &clocksource_list);
++}
++
++/**
+  * clocksource_register - Used to install new clocksources
+  * @t:		clocksource to be registered
+  *
+- * Returns -EBUSY if registration fails, zero otherwise.
++ * Returns -EBUSY clock is already registered,
++ * Returns -EINVAL if clocksource is invalid,
++ * Return zero otherwise.
+  */
+ int clocksource_register(struct clocksource *c)
  {
+@@ -83,14 +193,13 @@ int clocksource_register(struct clocksou
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&clocksource_lock, flags);
+-	/* check if clocksource is already registered */
+-	if (is_registered_source(c)) {
+-		printk("register_clocksource: Cannot register %s. "
++	if (unlikely(!list_empty(&c->list) && __is_registered(c->name))) {
++		printk("register_clocksource: Cannot register %s clocksource. "
+ 		       "Already registered!", c->name);
+ 		ret = -EBUSY;
+ 	} else {
+-		/* register it */
+- 		list_add(&c->list, &clocksource_list);
++		INIT_LIST_HEAD(&c->list);
++ 		__sorted_list_add(c);
+ 		/* scan the registered clocksources, and pick the best one */
+ 		next_clocksource = select_clocksource();
+ 	}
+@@ -100,21 +209,31 @@ int clocksource_register(struct clocksou
+ EXPORT_SYMBOL(clocksource_register);
+ 
+ /**
+- * clocksource_reselect - Rescan list for next clocksource
++ * clocksource_rating_change - Allows dynamic rating changes for register
++ *                           clocksources.
+  *
+- * A quick helper function to be used if a clocksource changes its
+- * rating. Forces the clocksource list to be re-scanned for the best
+- * clocksource.
++ * Signals that a clocksource is dynamically changing it's rating.
++ * This could happen if a clocksource becomes more/less stable.
+  */
+-void clocksource_reselect(void)
++void clocksource_rating_change(struct clocksource *c)
+ {
+ 	unsigned long flags;
+ 
++	if (unlikely(list_empty(&c->list)))
++		return;
++
+ 	spin_lock_irqsave(&clocksource_lock, flags);
++
++	/*
++	 * Re-register the clocksource with it's new rating.
++	 */
++	list_del_init(&c->list);
++	__sorted_list_add(c);
++
+ 	next_clocksource = select_clocksource();
+ 	spin_unlock_irqrestore(&clocksource_lock, flags);
+ }
+-EXPORT_SYMBOL(clocksource_reselect);
++EXPORT_SYMBOL(clocksource_rating_change);
+ 
+ /**
+  * sysfs_show_current_clocksources - sysfs interface for current clocksource
+@@ -179,7 +298,8 @@ static ssize_t sysfs_override_clocksourc
+  * @dev:	unused
+  * @buf:	char buffer to be filled with clocksource list
+  *
+- * Provides sysfs interface for listing registered clocksources
++ * Provides sysfs interface for listing registered clocksources.
++ * Output in priority sorted order.
+  */
+ static ssize_t
+ sysfs_show_available_clocksources(struct sys_device *dev, char *buf)
+@@ -277,62 +397,3 @@ static int __init boot_override_clock(ch
+ }
+ 
+ __setup("clock=", boot_override_clock);
+-
+-/**
+- * select_clocksource - Finds the best registered clocksource.
+- *
+- * Private function. Must hold clocksource_lock when called.
+- *
+- * Looks through the list of registered clocksources, returning
+- * the one with the highest rating value. If there is a clocksource
+- * name that matches the override string, it returns that clocksource.
+- */
+-static struct clocksource *select_clocksource(void)
+-{
+-	struct clocksource *best = NULL;
+-	struct list_head *tmp;
+-
+-	list_for_each(tmp, &clocksource_list) {
+-		struct clocksource *src;
+-
+-		src = list_entry(tmp, struct clocksource, list);
+-		if (!best)
+-			best = src;
+-
+-		/* check for override: */
+-		if (strlen(src->name) == strlen(override_name) &&
+-		    !strcmp(src->name, override_name)) {
+-			best = src;
+-			break;
+-		}
+-		/* pick the highest rating: */
+-		if (src->rating > best->rating)
+-		 	best = src;
+-	}
+-
+-	return best;
+-}
+-
+-/**
+- * is_registered_source - Checks if clocksource is registered
+- * @c:		pointer to a clocksource
+- *
+- * Private helper function. Must hold clocksource_lock when called.
+- *
+- * Returns one if the clocksource is already registered, zero otherwise.
+- */
+-static int is_registered_source(struct clocksource *c)
+-{
+-	int len = strlen(c->name);
+-	struct list_head *tmp;
+-
+-	list_for_each(tmp, &clocksource_list) {
+-		struct clocksource *src;
+-
+-		src = list_entry(tmp, struct clocksource, list);
+-		if (strlen(src->name) == len &&	!strcmp(src->name, c->name))
+-			return 1;
+-	}
+-
+-	return 0;
+-}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-tty-signal-tty-locking.patch
-pktcdvd-bio-write-congestion-using-blk_congestion_wait.patch
-fsstack-introduce-fsstack_copy_attrinode_.patch
-log2-implement-a-general-integer-log2-facility-in-the-kernel.patch
-add-process_session-helper-routine-deprecate-old-field.patch
-mxser-session-warning-fix.patch
-mxser-workqueue-fixes.patch
-tty-switch-to-ktermios-and-new-framework.patch
-tty-switch-to-ktermios.patch
-tty_ioctl-use-termios-for-the-old-structure-and-termios2.patch
-drivers-isdn-handcrafted-min-max-macro-removal.patch
-fault-injection-capabilities-infrastructure.patch
-fault-injection-Kconfig-cleanup.patch
-fault-injection-stacktrace-filtering-kconfig-fix.patch
-sysctl-fix-sys_sysctl-interface-of-ipc-sysctls.patch
-video-get-the-default-mode-from-the-right-database.patch
-various-fbdev-files-mark-structs.patch
-backlight-lcd-remove-dependenct-from-the-framebuffer-layer.patch
-gxfb-fixups-for-the-amd-geode-gx.patch
-gxfb-support-flat-panel-timings.patch
-gxfb-support-command-line-options.patch
-proc_misc-build-fix.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-s390-workqueue-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code-tidy-tidy-2.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-implement-flush_work.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-bridge-avoid-using-noautorel-workqueues.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-generic-bug-for-powerpc.patch
-bug-test-1.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
 clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+clocksource-small-acpi_pm-cleanup.patch
+profile-likely-unlikely-macros.patch
+profile_likely-export-do_check_likely.patch
 
