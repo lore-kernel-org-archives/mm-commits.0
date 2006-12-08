@@ -1,69 +1,53 @@
 From: akpm@osdl.org
-Subject: + aio-use-flush_work.patch added to -mm tree
-Date: Thu, 07 Dec 2006 16:23:23 -0800
-Message-ID: <200612080023.kB80NNqr000935@shell0.pdx.osdl.net>
+Subject: + relayfs-use-flush_keventd_work.patch added to -mm tree
+Date: Thu, 07 Dec 2006 16:23:40 -0800
+Message-ID: <200612080023.kB80NeXR000958@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59482 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59485 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1164210AbWLHAYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 7 Dec 2006 19:24:04 -0500
+	id S1164214AbWLHAYH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 7 Dec 2006 19:24:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, bcrl@kvack.org, dhowells@redhat.com, macro@linux-mips.org, torvalds@osdl.org, zach.brown@oracle.com
+Cc: akpm@osdl.org, axboe@suse.de, dhowells@redhat.com, macro@linux-mips.org, torvalds@osdl.org
 
 
 The patch titled
-     aio: use flush_work()
+     relayfs: use flush_keventd_work()
 has been added to the -mm tree.  Its filename is
-     aio-use-flush_work.patch
+     relayfs-use-flush_keventd_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aio: use flush_work()
+Subject: relayfs: use flush_keventd_work()
 From: Andrew Morton <akpm@osdl.org>
-
-Migrate AIO over to use flush_work().
 
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Cc: Linus Torvalds <torvalds@osdl.org>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Jens Axboe <axboe@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ kernel/relay.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-use-flush_work fs/aio.c
---- a/fs/aio.c~aio-use-flush_work
-+++ a/fs/aio.c
-@@ -344,10 +344,9 @@ void fastcall exit_aio(struct mm_struct 
+diff -puN kernel/relay.c~relayfs-use-flush_keventd_work kernel/relay.c
+--- a/kernel/relay.c~relayfs-use-flush_keventd_work
++++ a/kernel/relay.c
+@@ -332,7 +332,7 @@ static inline void __relay_reset(struct 
+ 		INIT_DELAYED_WORK(&buf->wake_readers, NULL);
+ 	} else {
+ 		cancel_delayed_work(&buf->wake_readers);
+-		flush_scheduled_work();
++		flush_keventd_work(&buf->wake_readers.work);
+ 	}
  
- 		wait_for_all_aios(ctx);
- 		/*
--		 * this is an overkill, but ensures we don't leave
--		 * the ctx on the aio_wq
-+		 * Ensure we don't leave the ctx on the aio_wq
- 		 */
--		flush_workqueue(aio_wq);
-+		flush_workqueue(aio_wq, &ctx->wq.work);
- 
- 		if (1 != atomic_read(&ctx->users))
- 			printk(KERN_DEBUG
-@@ -370,7 +369,7 @@ void fastcall __put_ioctx(struct kioctx 
- 	BUG_ON(ctx->reqs_active);
- 
- 	cancel_delayed_work(&ctx->wq);
--	flush_workqueue(aio_wq);
-+	flush_work(aio_wq, &ctx->wq.work);
- 	aio_free_ring(ctx);
- 	mmdrop(ctx->mm);
- 	ctx->mm = NULL;
+ 	buf->subbufs_produced = 0;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
