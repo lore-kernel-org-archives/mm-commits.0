@@ -1,61 +1,66 @@
 From: akpm@osdl.org
-Subject: - io-accounting-read-accounting-nfs-fix-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 03:51:11 -0800
-Message-ID: <200612081151.kB8BpBuU019693@shell0.pdx.osdl.net>
+Subject: - mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 11:59:16 -0800
+Message-ID: <200612081959.kB8JxGIn001609@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52256 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56301 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S938051AbWLHLvc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 06:51:32 -0500
+	id S1426166AbWLHT7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 14:59:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@gmail.com, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: pj@sgi.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     io accounting minor fix
+     mm: fallback_alloc cpuset_zone_allowed irq fix
 has been removed from the -mm tree.  Its filename was
-     io-accounting-read-accounting-nfs-fix-fix.patch
+     mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch
 
-This patch was dropped because it was folded into io-accounting-read-accounting-nfs-fix.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: io accounting minor fix
-From: Fengguang Wu <fengguang.wu@gmail.com>
+Subject: mm: fallback_alloc cpuset_zone_allowed irq fix
+From: Paul Jackson <pj@sgi.com>
 
-Account only successful nfs/fuse reads.
+fallback_alloc() could end up calling cpuset_zone_allowed() with interrupts
+disabled (by code in kmem_cache_alloc_node()), but without __GFP_HARDWALL
+set, leading to a possible call of a sleeping function with interrupts
+disabled.
 
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+This results in the BUG report:
+
+  BUG: sleeping function called from invalid context at kernel/cpuset.c:1520
+in_atomic():0, irqs_disabled():1
+
+Thanks to Paul Menage for catching this one.
+
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |    2 +-
+ mm/slab.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~io-accounting-read-accounting-nfs-fix-fix mm/readahead.c
---- a/mm/readahead.c~io-accounting-read-accounting-nfs-fix-fix
-+++ a/mm/readahead.c
-@@ -145,7 +145,6 @@ int read_cache_pages(struct address_spac
- 			page_cache_release(page);
- 			continue;
- 		}
--		task_io_account_read(PAGE_CACHE_SIZE);
- 		ret = filler(data, page);
- 		if (!pagevec_add(&lru_pvec, page))
- 			__pagevec_lru_add(&lru_pvec);
-@@ -153,6 +152,7 @@ int read_cache_pages(struct address_spac
- 			put_pages_list(pages);
- 			break;
- 		}
-+		task_io_account_read(PAGE_CACHE_SIZE);
- 	}
- 	pagevec_lru_add(&lru_pvec);
- 	return ret;
+diff -puN mm/slab.c~mm-fallback_alloc-cpuset_zone_allowed-irq-fix mm/slab.c
+--- a/mm/slab.c~mm-fallback_alloc-cpuset_zone_allowed-irq-fix
++++ a/mm/slab.c
+@@ -3182,7 +3182,7 @@ retry:
+ 	for (z = zonelist->zones; *z && !obj; z++) {
+ 		nid = zone_to_nid(*z);
+ 
+-		if (cpuset_zone_allowed(*z, flags) &&
++		if (cpuset_zone_allowed(*z, flags | __GFP_HARDWALL) &&
+ 			cache->nodelists[nid] &&
+ 			cache->nodelists[nid]->free_objects)
+ 				obj = ____cache_alloc_node(cache,
 _
 
-Patches currently in -mm which might be from fengguang.wu@gmail.com are
+Patches currently in -mm which might be from pj@sgi.com are
 
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-nfs-fix-fix.patch
+origin.patch
+mm-fallback_alloc-cpuset_zone_allowed-irq-fix.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
 
