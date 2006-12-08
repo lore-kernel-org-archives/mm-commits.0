@@ -1,70 +1,79 @@
 From: akpm@osdl.org
-Subject: - char-isicom-fix-tty-index-check.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:08:57 -0800
-Message-ID: <200612082008.kB8K8v4I002650@shell0.pdx.osdl.net>
+Subject: - char-sx-remove-duplicite-code.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:09:16 -0800
+Message-ID: <200612082009.kB8K9GKk002683@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58344 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58540 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946295AbWLHUJC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:09:02 -0500
+	id S1946134AbWLHUJV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:09:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, fix tty index check
+     Char: sx, remove duplicite code
 has been removed from the -mm tree.  Its filename was
-     char-isicom-fix-tty-index-check.patch
+     char-sx-remove-duplicite-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, fix tty index check
+Subject: Char: sx, remove duplicite code
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Since tty->index is signed and may be < 0, we should assign this to int not
-uint.  There is already a check to ensure if it is not negative, but gcc
-complains with -W flag enabled and it is perfectly correct:
-drivers/char/isicom.c:953: warning: comparison of unsigned expression < 0
-is always false
-
-Fix this issue by converting `line' variable from uint to int.
+sx_remove_code contents were used twice.  Call this function instead.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/sx.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-fix-tty-index-check drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-fix-tty-index-check
-+++ a/drivers/char/isicom.c
-@@ -946,8 +946,8 @@ static int isicom_open(struct tty_struct
+diff -puN drivers/char/sx.c~char-sx-remove-duplicite-code drivers/char/sx.c
+--- a/drivers/char/sx.c~char-sx-remove-duplicite-code
++++ a/drivers/char/sx.c
+@@ -2680,28 +2680,16 @@ static int __init sx_init(void) 
+ static void __exit sx_exit (void)
  {
- 	struct isi_port *port;
- 	struct isi_board *card;
--	unsigned int line, board;
--	int error;
-+	unsigned int board;
-+	int error, line;
+ 	int i; 
+-	struct sx_board *board;
  
- 	line = tty->index;
- 	if (line < 0 || line > PORT_COUNT-1)
+ 	func_enter();
+ #ifdef CONFIG_EISA
+ 	eisa_driver_unregister(&sx_eisadriver);
+ #endif
+ 	pci_unregister_driver(&sx_pcidriver);
+-	for (i = 0; i < SX_NBOARDS; i++) {
+-		board = &boards[i];
+-		if (board->flags & SX_BOARD_INITIALIZED) {
+-			sx_dprintk (SX_DEBUG_CLEANUP, "Cleaning up board at %p\n", board->base);
+-			/* The board should stop messing with us.
+-			   (actually I mean the interrupt) */
+-			sx_reset (board);
+-			if ((board->irq) && (board->flags & SX_IRQ_ALLOCATED))
+-				free_irq (board->irq, board);
+-
+-			/* It is safe/allowed to del_timer a non-active timer */
+-			del_timer (& board->timer);
+-			iounmap(board->base);
+-		}
+-	}
++
++	for (i = 0; i < SX_NBOARDS; i++)
++		sx_remove_card(&boards[i]);
++
+ 	if (misc_deregister(&sx_fw_device) < 0) {
+ 		printk (KERN_INFO "sx: couldn't deregister firmware loader device\n");
+ 	}
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-char-isicom-fix-tty-index-check.patch
-char-sx-convert-to-pci-probing.patch
-char-sx-use-kcalloc.patch
-char-sx-mark-functions-as-devinit.patch
-char-sx-use-eisa-probing.patch
-char-sx-ifdef-isa-code.patch
-char-sx-lock-boards-struct.patch
 char-sx-remove-duplicite-code.patch
 char-sx-whitespace-cleanup.patch
 char-sx-simplify-timer-logic.patch
