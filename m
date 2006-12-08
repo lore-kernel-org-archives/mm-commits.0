@@ -1,148 +1,165 @@
 From: akpm@osdl.org
-Subject: - generic-ioremap_page_range-s390-conversion.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 12:06:16 -0800
-Message-ID: <200612082006.kB8K6GQP002376@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-use-__devinit-macros.patch removed from -mm tree
+Date: Fri, 08 Dec 2006 12:06:42 -0800
+Message-ID: <200612082006.kB8K6g3g002431@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57748 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57733 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1426347AbWLHUGt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 15:06:49 -0500
+	id S1946023AbWLHUGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 15:06:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Generic ioremap_page_range: s390 conversion
+     char: mxser_new, use __(dev)init macros
 has been removed from the -mm tree.  Its filename was
-     generic-ioremap_page_range-s390-conversion.patch
+     char-mxser_new-use-__devinit-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Generic ioremap_page_range: s390 conversion
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: char: mxser_new, use __(dev)init macros
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Convert S390 to use generic ioremap_page_range()
+mxser_new, use __(dev)init macros
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Let kernel know what can be freed after init of the driver.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/s390/mm/ioremap.c |   84 +--------------------------------------
- 1 file changed, 3 insertions(+), 81 deletions(-)
+ drivers/char/mxser_new.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/s390/mm/ioremap.c~generic-ioremap_page_range-s390-conversion arch/s390/mm/ioremap.c
---- a/arch/s390/mm/ioremap.c~generic-ioremap_page_range-s390-conversion
-+++ a/arch/s390/mm/ioremap.c
-@@ -15,87 +15,8 @@
+diff -puN drivers/char/mxser_new.c~char-mxser_new-use-__devinit-macros drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-use-__devinit-macros
++++ a/drivers/char/mxser_new.c
+@@ -559,7 +559,7 @@ static void process_txrx_fifo(struct mxs
+ 			}
+ }
  
- #include <linux/vmalloc.h>
- #include <linux/mm.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <asm/pgalloc.h>
--#include <asm/cacheflush.h>
--#include <asm/tlbflush.h>
--
--static inline void remap_area_pte(pte_t * pte, unsigned long address, unsigned long size,
--        unsigned long phys_addr, unsigned long flags)
--{
--        unsigned long end;
--        unsigned long pfn;
--
--        address &= ~PMD_MASK;
--        end = address + size;
--        if (end > PMD_SIZE)
--                end = PMD_SIZE;
--	if (address >= end)
--		BUG();
--        pfn = phys_addr >> PAGE_SHIFT;
--        do {
--                if (!pte_none(*pte)) {
--                        printk("remap_area_pte: page already exists\n");
--			BUG();
--		}
--                set_pte(pte, pfn_pte(pfn, __pgprot(flags)));
--                address += PAGE_SIZE;
--                pfn++;
--                pte++;
--        } while (address && (address < end));
--}
--
--static inline int remap_area_pmd(pmd_t * pmd, unsigned long address, unsigned long size,
--        unsigned long phys_addr, unsigned long flags)
--{
--	unsigned long end;
--
--	address &= ~PGDIR_MASK;
--	end = address + size;
--	if (end > PGDIR_SIZE)
--		end = PGDIR_SIZE;
--	phys_addr -= address;
--	if (address >= end)
--		BUG();
--	do {
--		pte_t * pte = pte_alloc_kernel(pmd, address);
--		if (!pte)
--			return -ENOMEM;
--		remap_area_pte(pte, address, end - address, address + phys_addr, flags);
--		address = (address + PMD_SIZE) & PMD_MASK;
--		pmd++;
--	} while (address && (address < end));
--	return 0;
--}
--
--static int remap_area_pages(unsigned long address, unsigned long phys_addr,
--				 unsigned long size, unsigned long flags)
--{
--	int error;
--	pgd_t * dir;
--	unsigned long end = address + size;
--
--	phys_addr -= address;
--	dir = pgd_offset(&init_mm, address);
--	flush_cache_all();
--	if (address >= end)
--		BUG();
--	do {
--		pmd_t *pmd;
--		pmd = pmd_alloc(&init_mm, dir, address);
--		error = -ENOMEM;
--		if (!pmd)
--			break;
--		if (remap_area_pmd(pmd, address, end - address,
--					 phys_addr + address, flags))
--			break;
--		error = 0;
--		address = (address + PGDIR_SIZE) & PGDIR_MASK;
--		dir++;
--	} while (address && (address < end));
--	flush_tlb_all();
--	return 0;
--}
+-static int mxser_initbrd(struct mxser_board *brd)
++static int __devinit mxser_initbrd(struct mxser_board *brd)
+ {
+ 	struct mxser_port *info;
+ 	unsigned int i;
+@@ -617,7 +617,7 @@ static int mxser_initbrd(struct mxser_bo
+ 	return 0;
+ }
  
- /*
-  * Generic mapping function (not visible outside):
-@@ -122,7 +43,8 @@ void * __ioremap(unsigned long phys_addr
- 	if (!area)
- 		return NULL;
- 	addr = area->addr;
--	if (remap_area_pages((unsigned long) addr, phys_addr, size, flags)) {
-+	if (ioremap_page_range((unsigned long)addr, (unsigned long)addr + size,
-+			       phys_addr, __pgprot(flags))) {
- 		vfree(addr);
- 		return NULL;
- 	}
+-static int mxser_get_PCI_conf(int board_type, struct mxser_board *brd,
++static int __init mxser_get_PCI_conf(int board_type, struct mxser_board *brd,
+ 		struct pci_dev *pdev)
+ {
+ 	unsigned int i, j;
+@@ -678,7 +678,7 @@ static int mxser_get_PCI_conf(int board_
+ 	return 0;
+ }
+ 
+-static int mxser_init(void)
++static int __init mxser_init(void)
+ {
+ 	struct pci_dev *pdev = NULL;
+ 	struct mxser_board *brd;
+@@ -2925,7 +2925,7 @@ static int mxser_read_register(int, unsi
+ static int mxser_program_mode(int);
+ static void mxser_normal_mode(int);
+ 
+-static int mxser_get_ISA_conf(int cap, struct mxser_board *brd)
++static int __init mxser_get_ISA_conf(int cap, struct mxser_board *brd)
+ {
+ 	int id, i, bits;
+ 	unsigned short regs[16], irq;
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-generic-ioremap_page_range-s390-conversion.patch
-generic-ioremap_page_range-sh-conversion.patch
-generic-ioremap_page_range-sh64-conversion.patch
-git-mtd.patch
+char-mxser_new-use-__devinit-macros.patch
+char-mxser_new-pci_request_region-for-pci-regions.patch
+char-mxser_new-check-request_region-retvals.patch
+char-mxser_new-kill-unneeded-memsets.patch
+char-mxser_new-revert-spin_lock-changes.patch
+char-mxser_new-remove-request-for-testers-line.patch
+char-mxser_new-debug-printk-dependent-on-debug.patch
+char-mxser_new-alter-license-terms.patch
+char-mxser_new-code-upside-down.patch
+char-mxser_new-cmspar-is-defined.patch
+char-remove-unneded-termbits-redefinitions-mxser_new.patch
+char-mxser_new-eliminate-tty-ldisc-deref.patch
+char-mxser_new-testbit-for-bit-testing.patch
+char-mxser_new-correct-fail-paths.patch
+char-mxser_new-dont-check-tty_unregister-retval.patch
+char-mxser_new-compress-isa-finding.patch
+char-mxser_new-register-tty-devices-on-the-fly.patch
+char-mxser_new-compact-structures-round2.patch
+char-mxser_new-reverse-if-else-paths-patch.patch
+char-mxser_new-comments-cleanup.patch
+char-mxser_new-correct-intr-handler-proto.patch
+char-mxser_new-delete-ttys-and-termios.patch
+char-mxser_new-pci-probing.patch
+char-mxser_new-clean-macros.patch
+maintainers-add-me-to-isicom-mxser.patch
+mxser_new-correct-tty-driver-name.patch
+mxser-workqueue-fixes.patch
+char-stallion-use-pr_debug-macro.patch
+char-stallion-remove-unneeded-casts.patch
+char-stallion-kill-typedefs.patch
+char-stallion-move-init-deinit.patch
+char-stallion-uninline-functions.patch
+char-stallion-mark-functions-as-init.patch
+char-stallion-remove-many-prototypes.patch
+char-isicom-expand-function.patch
+char-isicom-rename-init-function.patch
+char-isicom-remove-isa-code.patch
+char-isicom-remove-unneeded-memset.patch
+char-isicom-move-to-tty_register_device.patch
+char-isicom-use-pci_request_region.patch
+char-isicom-check-kmalloc-retval.patch
+char-isicom-use-completion.patch
+char-isicom-simplify-timer.patch
+char-isicom-remove-cvs-stuff.patch
+char-isicom-fix-tty-index-check.patch
+char-sx-convert-to-pci-probing.patch
+char-sx-use-kcalloc.patch
+char-sx-mark-functions-as-devinit.patch
+char-sx-use-eisa-probing.patch
+char-sx-ifdef-isa-code.patch
+char-sx-lock-boards-struct.patch
+char-sx-remove-duplicite-code.patch
+char-sx-whitespace-cleanup.patch
+char-sx-simplify-timer-logic.patch
+char-sx-fix-return-in-module-init.patch
+char-sx-use-pci_iomap.patch
+char-sx-request-regions.patch
+char-stallion-convert-to-pci-probing.patch
+char-stallion-prints-cleanup.patch
+char-stallion-implement-fail-paths.patch
+char-stallion-correct-__init-macros.patch
+char-stallion-functions-cleanup.patch
+char-stallion-fix-fail-paths.patch
+char-stallion-brd-struct-locking.patch
+char-stallion-remove-syntactic-sugar.patch
+char-stallion-variables-cleanup.patch
+char-stallion-use-dynamic-dev.patch
+char-istallion-convert-to-pci-probing.patch
+char-istallion-remove-the-mess.patch
+char-istallion-eliminate-typedefs.patch
+char-istallion-variables-cleanup.patch
+char-istallion-ifdef-eisa-code.patch
+char-istallion-brdnr-locking.patch
+char-istallion-free-only-isa.patch
+char-istallion-correct-fail-paths.patch
+char-istallion-fix-enabling.patch
+char-istallion-move-init-and-exit-code.patch
+char-istallion-change-init-sequence.patch
+char-istallion-dynamic-tty-device.patch
+char-istallion-use-mod_timer.patch
+char-cyclades-save-indent-levels.patch
+char-cyclades-lindent-the-code.patch
+char-cyclades-cleanup.patch
+char-cyclades-fix-warnings.patch
 
