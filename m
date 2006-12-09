@@ -1,181 +1,94 @@
 From: akpm@osdl.org
-Subject: + read_zero_pagealigned-locking-fix-2.patch added to -mm tree
-Date: Fri, 08 Dec 2006 22:17:50 -0800
-Message-ID: <200612090617.kB96HoSe018246@shell0.pdx.osdl.net>
+Subject: + virtual-memmap-on-sparsemem-v3-static-virtual-update.patch added to -mm tree
+Date: Fri, 08 Dec 2006 22:20:22 -0800
+Message-ID: <200612090620.kB96KMXq018293@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49357 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49517 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759198AbWLIGSH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 01:18:07 -0500
+	id S933059AbWLIGVD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 01:21:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, Ramiro.Voicu@cern.ch
+Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, clameter@engr.sgi.com, haveblue@us.ibm.com, mbligh@google.com, tony.luck@intel.com
 
 
 The patch titled
-     read_zero_pagealigned() locking fix
+     virtual-memmap-on-sparsemem-v3-static-virtual update
 has been added to the -mm tree.  Its filename is
-     read_zero_pagealigned-locking-fix-2.patch
+     virtual-memmap-on-sparsemem-v3-static-virtual-update.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: read_zero_pagealigned() locking fix
-From: Hugh Dickins <hugh@veritas.com>
+Subject: virtual-memmap-on-sparsemem-v3-static-virtual update
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Ramiro Voicu hits the BUG_ON(!pte_none(*pte)) in zeromap_pte_range: kernel
-bugzilla 7645.  Right: read_zero_pagealigned uses down_read of mmap_sem,
-but another thread's racing read of /dev/zero, or a normal fault, can
-easily set that pte again, in between zap_page_range and zeromap_page_range
-getting there.  It's been wrong ever since 2.4.3.
+For avoiding complex inclusion of headr file in the middle of another
+header file.
 
-The simple fix is to use down_write instead, but that would serialize reads
-of /dev/zero more than at present: perhaps some app would be badly
-affected.  So instead let zeromap_page_range return the error instead of
-BUG_ON, and read_zero_pagealigned break to the slower clear_user loop in
-that case - there's no need to optimize for it.
-
-Use -EEXIST for when a pte is found: BUG_ON in mmap_zero (the other user of
-zeromap_page_range), though it really isn't interesting there.  And since
-mmap_zero wants -EAGAIN for out-of-memory, the zeromaps better return that
-than -ENOMEM.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Ramiro Voicu: <Ramiro.Voicu@cern.ch>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Martin Bligh <mbligh@google.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mem.c |   12 ++++++++----
- mm/memory.c        |   32 +++++++++++++++++++++-----------
- 2 files changed, 29 insertions(+), 15 deletions(-)
+ include/linux/mmzone.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/mem.c~read_zero_pagealigned-locking-fix-2 drivers/char/mem.c
---- a/drivers/char/mem.c~read_zero_pagealigned-locking-fix-2
-+++ a/drivers/char/mem.c
-@@ -646,7 +646,8 @@ static inline size_t read_zero_pagealign
- 			count = size;
+diff -puN include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-static-virtual-update include/linux/mmzone.h
+--- a/include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-static-virtual-update
++++ a/include/linux/mmzone.h
+@@ -13,6 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/seqlock.h>
+ #include <linux/nodemask.h>
++#include <linux/mm_types.h>
+ #include <asm/atomic.h>
+ #include <asm/page.h>
  
- 		zap_page_range(vma, addr, count, NULL);
--        	zeromap_page_range(vma, addr, count, PAGE_COPY);
-+        	if (zeromap_page_range(vma, addr, count, PAGE_COPY))
-+			break;
+@@ -637,7 +638,6 @@ extern struct zone *next_zone(struct zon
+ #error Allocator MAX_ORDER exceeds SECTION_SIZE
+ #endif
  
- 		size -= count;
- 		buf += count;
-@@ -713,11 +714,14 @@ out:
- 
- static int mmap_zero(struct file * file, struct vm_area_struct * vma)
- {
-+	int err;
-+
- 	if (vma->vm_flags & VM_SHARED)
- 		return shmem_zero_setup(vma);
--	if (zeromap_page_range(vma, vma->vm_start, vma->vm_end - vma->vm_start, vma->vm_page_prot))
--		return -EAGAIN;
--	return 0;
-+	err = zeromap_page_range(vma, vma->vm_start,
-+			vma->vm_end - vma->vm_start, vma->vm_page_prot);
-+	BUG_ON(err == -EEXIST);
-+	return err;
- }
- #else /* CONFIG_MMU */
- static ssize_t read_zero(struct file * file, char * buf, 
-diff -puN mm/memory.c~read_zero_pagealigned-locking-fix-2 mm/memory.c
---- a/mm/memory.c~read_zero_pagealigned-locking-fix-2
-+++ a/mm/memory.c
-@@ -1110,23 +1110,29 @@ static int zeromap_pte_range(struct mm_s
- {
- 	pte_t *pte;
- 	spinlock_t *ptl;
-+	int err = 0;
- 
- 	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
- 	if (!pte)
--		return -ENOMEM;
-+		return -EAGAIN;
- 	arch_enter_lazy_mmu_mode();
- 	do {
- 		struct page *page = ZERO_PAGE(addr);
- 		pte_t zero_pte = pte_wrprotect(mk_pte(page, prot));
-+
-+		if (unlikely(!pte_none(*pte))) {
-+			err = -EEXIST;
-+			pte++;
-+			break;
-+		}
- 		page_cache_get(page);
- 		page_add_file_rmap(page);
- 		inc_mm_counter(mm, file_rss);
--		BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, addr, pte, zero_pte);
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(pte - 1, ptl);
--	return 0;
-+	return err;
- }
- 
- static inline int zeromap_pmd_range(struct mm_struct *mm, pud_t *pud,
-@@ -1134,16 +1140,18 @@ static inline int zeromap_pmd_range(stru
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-+	int err;
- 
- 	pmd = pmd_alloc(mm, pud, addr);
- 	if (!pmd)
--		return -ENOMEM;
-+		return -EAGAIN;
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (zeromap_pte_range(mm, pmd, addr, next, prot))
--			return -ENOMEM;
-+		err = zeromap_pte_range(mm, pmd, addr, next, prot);
-+		if (err)
-+			break;
- 	} while (pmd++, addr = next, addr != end);
--	return 0;
-+	return err;
- }
- 
- static inline int zeromap_pud_range(struct mm_struct *mm, pgd_t *pgd,
-@@ -1151,16 +1159,18 @@ static inline int zeromap_pud_range(stru
- {
- 	pud_t *pud;
- 	unsigned long next;
-+	int err;
- 
- 	pud = pud_alloc(mm, pgd, addr);
- 	if (!pud)
--		return -ENOMEM;
-+		return -EAGAIN;
- 	do {
- 		next = pud_addr_end(addr, end);
--		if (zeromap_pmd_range(mm, pud, addr, next, prot))
--			return -ENOMEM;
-+		err = zeromap_pmd_range(mm, pud, addr, next, prot);
-+		if (err)
-+			break;
- 	} while (pud++, addr = next, addr != end);
--	return 0;
-+	return err;
- }
- 
- int zeromap_page_range(struct vm_area_struct *vma,
+-struct page;
+ struct mem_section {
+ 	/*
+ 	 * This is, logically, a pointer to an array of struct
+@@ -694,7 +694,6 @@ extern int __section_nr(struct mem_secti
+ #error "PAGE_SIZE/SECTION_SIZE relationship is not suitable for vmem_map"
+ #endif
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP_STATIC
+-#include <linux/mm_types.h>
+ extern struct page mem_map[];
+ #else
+ extern struct page* mem_map;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-read_zero_pagealigned-locking-fix-2.patch
-ext2-reservations.patch
-ext2-balloc-fix-_with_rsv-freeze.patch
-ext2-balloc-reset-windowsz-when-full.patch
-ext2-balloc-fix-off-by-one-against-rsv_end.patch
-ext2-balloc-fix-off-by-one-against-grp_goal.patch
-ext2-balloc-say-rb_entry-not-list_entry.patch
-ext2-balloc-use-io_error-label.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix.patch
+virtual-memmap-on-sparsemem-v3-generic-virtual.patch
+virtual-memmap-on-sparsemem-v3-static-virtual.patch
+virtual-memmap-on-sparsemem-v3-static-virtual-update.patch
+virtual-memmap-on-sparsemem-v3-ia64-support.patch
+virtual-memmap-on-sparsemem-v3-ia64-support-update.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+reiser4-hardirq-include-fix.patch
 
