@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:02:46 -0800
-Message-ID: <200612090002.kB902kCX010073@shell0.pdx.osdl.net>
+Subject: + md-remove-some-old-ifdefed-out-code-from-raid5c.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:02:44 -0800
+Message-ID: <200612090002.kB902iOB010070@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55025 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55018 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947556AbWLIACv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:02:51 -0500
+	id S1947557AbWLIACt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:02:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,75 +15,147 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: return a non-zero error to bi_end_io as appropriate in raid5
+     md: remove some old ifdefed-out code from raid5.c
 has been added to the -mm tree.  Its filename is
-     md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch
+     md-remove-some-old-ifdefed-out-code-from-raid5c.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: return a non-zero error to bi_end_io as appropriate in raid5
+Subject: md: remove some old ifdefed-out code from raid5.c
 From: NeilBrown <neilb@suse.de>
 
-Currently raid5 depends on clearing the BIO_UPTODATE flag to signal an error
-to higher levels.  While this should be sufficient, it is safer to explicitly
-set the error code as well - less room for confusion.
+There are some vestiges of old code that was used for bypassing the stripe
+cache on reads in raid5.c.  This was never updated after the change from
+buffer_heads to bios, but was left as a reminder.
+
+That functionality has nowe been implemented in a completely different way, so
+the old code can go.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/raid5.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/md/raid5.c |   63 -------------------------------------------
+ 1 files changed, 63 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5 drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5
+diff -puN drivers/md/raid5.c~md-remove-some-old-ifdefed-out-code-from-raid5c drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-remove-some-old-ifdefed-out-code-from-raid5c
 +++ a/drivers/md/raid5.c
-@@ -1818,7 +1818,9 @@ static void handle_stripe5(struct stripe
- 		return_bi = bi->bi_next;
- 		bi->bi_next = NULL;
- 		bi->bi_size = 0;
--		bi->bi_end_io(bi, bytes, 0);
-+		bi->bi_end_io(bi, bytes,
-+			      test_bit(BIO_UPTODATE, &bi->bi_flags)
-+			        ? 0 : -EIO);
+@@ -544,35 +544,7 @@ static int raid5_end_read_request(struct
  	}
- 	for (i=disks; i-- ;) {
- 		int rw;
-@@ -2359,7 +2361,9 @@ static void handle_stripe6(struct stripe
- 		return_bi = bi->bi_next;
- 		bi->bi_next = NULL;
- 		bi->bi_size = 0;
--		bi->bi_end_io(bi, bytes, 0);
-+		bi->bi_end_io(bi, bytes,
-+			      test_bit(BIO_UPTODATE, &bi->bi_flags)
-+			        ? 0 : -EIO);
- 	}
- 	for (i=disks; i-- ;) {
- 		int rw;
-@@ -2859,7 +2863,9 @@ static int make_request(request_queue_t 
- 		if ( rw == WRITE )
- 			md_write_end(mddev);
- 		bi->bi_size = 0;
--		bi->bi_end_io(bi, bytes, 0);
-+		bi->bi_end_io(bi, bytes,
-+			      test_bit(BIO_UPTODATE, &bi->bi_flags)
-+			        ? 0 : -EIO);
- 	}
- 	return 0;
- }
-@@ -3127,7 +3133,9 @@ static int  retry_aligned_read(raid5_con
- 		int bytes = raid_bio->bi_size;
  
- 		raid_bio->bi_size = 0;
--		raid_bio->bi_end_io(raid_bio, bytes, 0);
-+		raid_bio->bi_end_io(raid_bio, bytes,
-+			      test_bit(BIO_UPTODATE, &raid_bio->bi_flags)
-+			        ? 0 : -EIO);
+ 	if (uptodate) {
+-#if 0
+-		struct bio *bio;
+-		unsigned long flags;
+-		spin_lock_irqsave(&conf->device_lock, flags);
+-		/* we can return a buffer if we bypassed the cache or
+-		 * if the top buffer is not in highmem.  If there are
+-		 * multiple buffers, leave the extra work to
+-		 * handle_stripe
+-		 */
+-		buffer = sh->bh_read[i];
+-		if (buffer &&
+-		    (!PageHighMem(buffer->b_page)
+-		     || buffer->b_page == bh->b_page )
+-			) {
+-			sh->bh_read[i] = buffer->b_reqnext;
+-			buffer->b_reqnext = NULL;
+-		} else
+-			buffer = NULL;
+-		spin_unlock_irqrestore(&conf->device_lock, flags);
+-		if (sh->bh_page[i]==bh->b_page)
+-			set_buffer_uptodate(bh);
+-		if (buffer) {
+-			if (buffer->b_page != bh->b_page)
+-				memcpy(buffer->b_data, bh->b_data, bh->b_size);
+-			buffer->b_end_io(buffer, 1);
+-		}
+-#else
+ 		set_bit(R5_UPTODATE, &sh->dev[i].flags);
+-#endif
+ 		if (test_bit(R5_ReadError, &sh->dev[i].flags)) {
+ 			rdev = conf->disks[i].rdev;
+ 			printk(KERN_INFO "raid5:%s: read error corrected (%lu sectors at %llu on %s)\n",
+@@ -618,14 +590,6 @@ static int raid5_end_read_request(struct
+ 		}
  	}
- 	if (atomic_dec_and_test(&conf->active_aligned_reads))
- 		wake_up(&conf->wait_for_stripe);
+ 	rdev_dec_pending(conf->disks[i].rdev, conf->mddev);
+-#if 0
+-	/* must restore b_page before unlocking buffer... */
+-	if (sh->bh_page[i] != bh->b_page) {
+-		bh->b_page = sh->bh_page[i];
+-		bh->b_data = page_address(bh->b_page);
+-		clear_buffer_uptodate(bh);
+-	}
+-#endif
+ 	clear_bit(R5_LOCKED, &sh->dev[i].flags);
+ 	set_bit(STRIPE_HANDLE, &sh->state);
+ 	release_stripe(sh);
+@@ -1619,15 +1583,6 @@ static void handle_stripe5(struct stripe
+ 				} else if (test_bit(R5_Insync, &dev->flags)) {
+ 					set_bit(R5_LOCKED, &dev->flags);
+ 					set_bit(R5_Wantread, &dev->flags);
+-#if 0
+-					/* if I am just reading this block and we don't have
+-					   a failed drive, or any pending writes then sidestep the cache */
+-					if (sh->bh_read[i] && !sh->bh_read[i]->b_reqnext &&
+-					    ! syncing && !failed && !to_write) {
+-						sh->bh_cache[i]->b_page =  sh->bh_read[i]->b_page;
+-						sh->bh_cache[i]->b_data =  sh->bh_read[i]->b_data;
+-					}
+-#endif
+ 					locked++;
+ 					PRINTK("Reading block %d (sync=%d)\n", 
+ 						i, syncing);
+@@ -1645,9 +1600,6 @@ static void handle_stripe5(struct stripe
+ 			dev = &sh->dev[i];
+ 			if ((dev->towrite || i == sh->pd_idx) &&
+ 			    (!test_bit(R5_LOCKED, &dev->flags) 
+-#if 0
+-|| sh->bh_page[i]!=bh->b_page
+-#endif
+ 				    ) &&
+ 			    !test_bit(R5_UPTODATE, &dev->flags)) {
+ 				if (test_bit(R5_Insync, &dev->flags)
+@@ -1659,9 +1611,6 @@ static void handle_stripe5(struct stripe
+ 			/* Would I have to read this buffer for reconstruct_write */
+ 			if (!test_bit(R5_OVERWRITE, &dev->flags) && i != sh->pd_idx &&
+ 			    (!test_bit(R5_LOCKED, &dev->flags) 
+-#if 0
+-|| sh->bh_page[i] != bh->b_page
+-#endif
+ 				    ) &&
+ 			    !test_bit(R5_UPTODATE, &dev->flags)) {
+ 				if (test_bit(R5_Insync, &dev->flags)) rcw++;
+@@ -2197,15 +2146,6 @@ static void handle_stripe6(struct stripe
+ 				} else if (test_bit(R5_Insync, &dev->flags)) {
+ 					set_bit(R5_LOCKED, &dev->flags);
+ 					set_bit(R5_Wantread, &dev->flags);
+-#if 0
+-					/* if I am just reading this block and we don't have
+-					   a failed drive, or any pending writes then sidestep the cache */
+-					if (sh->bh_read[i] && !sh->bh_read[i]->b_reqnext &&
+-					    ! syncing && !failed && !to_write) {
+-						sh->bh_cache[i]->b_page =  sh->bh_read[i]->b_page;
+-						sh->bh_cache[i]->b_data =  sh->bh_read[i]->b_data;
+-					}
+-#endif
+ 					locked++;
+ 					PRINTK("Reading block %d (sync=%d)\n",
+ 						i, syncing);
+@@ -2224,9 +2164,6 @@ static void handle_stripe6(struct stripe
+ 			if (!test_bit(R5_OVERWRITE, &dev->flags)
+ 			    && i != pd_idx && i != qd_idx
+ 			    && (!test_bit(R5_LOCKED, &dev->flags)
+-#if 0
+-				|| sh->bh_page[i] != bh->b_page
+-#endif
+ 				    ) &&
+ 			    !test_bit(R5_UPTODATE, &dev->flags)) {
+ 				if (test_bit(R5_Insync, &dev->flags)) rcw++;
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
