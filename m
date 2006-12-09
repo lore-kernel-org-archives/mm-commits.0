@@ -1,266 +1,345 @@
 From: akpm@osdl.org
-Subject: + revert-git-block.patch added to -mm tree
-Date: Fri, 08 Dec 2006 22:08:50 -0800
-Message-ID: <200612090608.kB968oZS018047@shell0.pdx.osdl.net>
+Subject: + cpuset-rework-cpuset_zone_allowed-api.patch added to -mm tree
+Date: Fri, 08 Dec 2006 22:10:20 -0800
+Message-ID: <200612090610.kB96AKfO018083@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48671 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48783 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759163AbWLIGIw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 01:08:52 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB968oID027436
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 22:08:50 -0800
+	id S1759166AbWLIGKX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 01:10:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: pj@sgi.com
 
 
 The patch titled
-     revert git-block
+     cpuset: rework cpuset_zone_allowed api
 has been added to the -mm tree.  Its filename is
-     revert-git-block.patch
+     cpuset-rework-cpuset_zone_allowed-api.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert git-block
-From: Andrew Morton <akpm@osdl.org>
+Subject: cpuset: rework cpuset_zone_allowed api
+From: Paul Jackson <pj@sgi.com>
 
+Elaborate the API for calling cpuset_zone_allowed(), so that users have to
+explicitly choose between the two variants:
+
+  cpuset_zone_allowed_hardwall()
+  cpuset_zone_allowed_softwall()
+
+Until now, whether or not you got the hardwall flavor depended solely on
+whether or not you or'd in the __GFP_HARDWALL gfp flag to the gfp_mask
+argument.
+
+If you didn't specify __GFP_HARDWALL, you implicitly got the softwall
+version.
+
+Unfortunately, this meant that users would end up with the softwall version
+without thinking about it.  Since only the softwall version might sleep,
+this led to bugs with possible sleeping in interrupt context on more than
+one occassion.
+
+The hardwall version requires that the current tasks mems_allowed allows
+the node of the specified zone (or that you're in interrupt or that
+__GFP_THISNODE is set or that you're on a one cpuset system.)
+
+The softwall version, depending on the gfp_mask, might allow a node if it
+was allowed in the nearest enclusing cpuset marked mem_exclusive (which
+requires taking the cpuset lock 'callback_mutex' to evaluate.)
+
+This patch removes the cpuset_zone_allowed() call, and forces the caller to
+explicitly choose between the hardwall and the softwall case.
+
+If the caller wants the gfp_mask to determine this choice, they should (1)
+be sure they can sleep or that __GFP_HARDWALL is set, and (2) invoke the
+cpuset_zone_allowed_softwall() routine.
+
+This adds another 100 or 200 bytes to the kernel text space, due to the few
+lines of nearly duplicate code at the top of both cpuset_zone_allowed_*
+routines.  It should save a few instructions executed for the calls that
+turned into calls of cpuset_zone_allowed_hardwall, thanks to not having to
+set (before the call) then check (within the call) the __GFP_HARDWALL flag.
+
+For the most critical call, from get_page_from_freelist(), the same
+instructions are executed as before -- the old cpuset_zone_allowed()
+routine it used to call is the same code as the
+cpuset_zone_allowed_softwall() routine that it calls now.
+
+Not a perfect win, but seems worth it, to reduce this chance of hitting a
+sleeping with irq off complaint again.
+
+Signed-off-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/ll_rw_blk.c      |    8 --------
- block/scsi_ioctl.c     |    4 ----
- drivers/cdrom/cdrom.c  |    4 ----
- include/linux/blkdev.h |    5 -----
- 4 files changed, 21 deletions(-)
+ include/linux/cpuset.h |   22 ++++++++--
+ kernel/cpuset.c        |   82 +++++++++++++++++++++++++++++++--------
+ mm/hugetlb.c           |    2 
+ mm/oom_kill.c          |    2 
+ mm/page_alloc.c        |    2 
+ mm/slab.c              |    2 
+ mm/vmscan.c            |    8 +--
+ 7 files changed, 92 insertions(+), 28 deletions(-)
 
-diff -puN block/ll_rw_blk.c~revert-git-block block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~revert-git-block
-+++ a/block/ll_rw_blk.c
-@@ -2515,21 +2515,13 @@ EXPORT_SYMBOL(blk_rq_map_user_iov);
+diff -puN include/linux/cpuset.h~cpuset-rework-cpuset_zone_allowed-api include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpuset-rework-cpuset_zone_allowed-api
++++ a/include/linux/cpuset.h
+@@ -30,10 +30,19 @@ void cpuset_update_task_memory_state(voi
+ 		nodes_subset((nodes), current->mems_allowed)
+ int cpuset_zonelist_valid_mems_allowed(struct zonelist *zl);
+ 
+-extern int __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask);
+-static int inline cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++extern int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask);
++extern int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask);
++
++static int inline cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
++{
++	return number_of_cpusets <= 1 ||
++		__cpuset_zone_allowed_softwall(z, gfp_mask);
++}
++
++static int inline cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
+ {
+-	return number_of_cpusets <= 1 || __cpuset_zone_allowed(z, gfp_mask);
++	return number_of_cpusets <= 1 ||
++		__cpuset_zone_allowed_hardwall(z, gfp_mask);
+ }
+ 
+ extern int cpuset_excl_nodes_overlap(const struct task_struct *p);
+@@ -94,7 +103,12 @@ static inline int cpuset_zonelist_valid_
+ 	return 1;
+ }
+ 
+-static inline int cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
++{
++	return 1;
++}
++
++static inline int cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
+ {
+ 	return 1;
+ }
+diff -puN kernel/cpuset.c~cpuset-rework-cpuset_zone_allowed-api kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-rework-cpuset_zone_allowed-api
++++ a/kernel/cpuset.c
+@@ -2342,32 +2342,48 @@ static const struct cpuset *nearest_excl
+ }
  
  /**
-  * blk_rq_unmap_user - unmap a request with user data
--<<<<<<< HEAD/block/ll_rw_blk.c
-  * @rq:		rq to be unmapped
--=======
-- * @bio:	bio to be unmapped
-->>>>>>> /block/ll_rw_blk.c
+- * cpuset_zone_allowed - Can we allocate memory on zone z's memory node?
++ * cpuset_zone_allowed_softwall - Can we allocate on zone z's memory node?
+  * @z: is this zone on an allowed node?
+- * @gfp_mask: memory allocation flags (we use __GFP_HARDWALL)
++ * @gfp_mask: memory allocation flags
   *
-  * Description:
-  *    Unmap a rq previously mapped by blk_rq_map_user().
-  *    rq->bio must be set to the original head of the request.
-  */
--<<<<<<< HEAD/block/ll_rw_blk.c
- int blk_rq_unmap_user(struct request *rq)
--=======
--int blk_rq_unmap_user(struct bio *bio)
-->>>>>>> /block/ll_rw_blk.c
+- * If we're in interrupt, yes, we can always allocate.  If zone
++ * If we're in interrupt, yes, we can always allocate.  If
++ * __GFP_THISNODE is set, yes, we can always allocate.  If zone
+  * z's node is in our tasks mems_allowed, yes.  If it's not a
+  * __GFP_HARDWALL request and this zone's nodes is in the nearest
+  * mem_exclusive cpuset ancestor to this tasks cpuset, yes.
+  * Otherwise, no.
+  *
++ * If __GFP_HARDWALL is set, cpuset_zone_allowed_softwall()
++ * reduces to cpuset_zone_allowed_hardwall().  Otherwise,
++ * cpuset_zone_allowed_softwall() might sleep, and might allow a zone
++ * from an enclosing cpuset.
++ *
++ * cpuset_zone_allowed_hardwall() only handles the simpler case of
++ * hardwall cpusets, and never sleeps.
++ *
++ * The __GFP_THISNODE placement logic is really handled elsewhere,
++ * by forcibly using a zonelist starting at a specified node, and by
++ * (in get_page_from_freelist()) refusing to consider the zones for
++ * any node on the zonelist except the first.  By the time any such
++ * calls get to this routine, we should just shut up and say 'yes'.
++ *
+  * GFP_USER allocations are marked with the __GFP_HARDWALL bit,
+  * and do not allow allocations outside the current tasks cpuset.
+  * GFP_KERNEL allocations are not so marked, so can escape to the
+- * nearest mem_exclusive ancestor cpuset.
++ * nearest enclosing mem_exclusive ancestor cpuset.
+  *
+- * Scanning up parent cpusets requires callback_mutex.  The __alloc_pages()
+- * routine only calls here with __GFP_HARDWALL bit _not_ set if
+- * it's a GFP_KERNEL allocation, and all nodes in the current tasks
+- * mems_allowed came up empty on the first pass over the zonelist.
+- * So only GFP_KERNEL allocations, if all nodes in the cpuset are
+- * short of memory, might require taking the callback_mutex mutex.
++ * Scanning up parent cpusets requires callback_mutex.  The
++ * __alloc_pages() routine only calls here with __GFP_HARDWALL bit
++ * _not_ set if it's a GFP_KERNEL allocation, and all nodes in the
++ * current tasks mems_allowed came up empty on the first pass over
++ * the zonelist.  So only GFP_KERNEL allocations, if all nodes in the
++ * cpuset are short of memory, might require taking the callback_mutex
++ * mutex.
+  *
+  * The first call here from mm/page_alloc:get_page_from_freelist()
+- * has __GFP_HARDWALL set in gfp_mask, enforcing hardwall cpusets, so
+- * no allocation on a node outside the cpuset is allowed (unless in
+- * interrupt, of course).
++ * has __GFP_HARDWALL set in gfp_mask, enforcing hardwall cpusets,
++ * so no allocation on a node outside the cpuset is allowed (unless
++ * in interrupt, of course).
+  *
+  * The second pass through get_page_from_freelist() doesn't even call
+  * here for GFP_ATOMIC calls.  For those calls, the __alloc_pages()
+@@ -2380,12 +2396,12 @@ static const struct cpuset *nearest_excl
+  *	GFP_USER     - only nodes in current tasks mems allowed ok.
+  *
+  * Rule:
+- *    Don't call cpuset_zone_allowed() if you can't sleep, unless you
++ *    Don't call cpuset_zone_allowed_softwall if you can't sleep, unless you
+  *    pass in the __GFP_HARDWALL flag set in gfp_flag, which disables
+  *    the code that might scan up ancestor cpusets and sleep.
+- **/
++ */
+ 
+-int __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
  {
- 	struct bio *bio, *mapped_bio;
+ 	int node;			/* node that zone z is on */
+ 	const struct cpuset *cs;	/* current cpuset ancestors */
+@@ -2415,6 +2431,40 @@ int __cpuset_zone_allowed(struct zone *z
+ 	return allowed;
+ }
  
-diff -puN block/scsi_ioctl.c~revert-git-block block/scsi_ioctl.c
---- a/block/scsi_ioctl.c~revert-git-block
-+++ a/block/scsi_ioctl.c
-@@ -338,11 +338,7 @@ static int sg_io(struct file *file, requ
- 			hdr->sb_len_wr = len;
++/*
++ * cpuset_zone_allowed_hardwall - Can we allocate on zone z's memory node?
++ * @z: is this zone on an allowed node?
++ * @gfp_mask: memory allocation flags
++ *
++ * If we're in interrupt, yes, we can always allocate.
++ * If __GFP_THISNODE is set, yes, we can always allocate.  If zone
++ * z's node is in our tasks mems_allowed, yes.   Otherwise, no.
++ *
++ * The __GFP_THISNODE placement logic is really handled elsewhere,
++ * by forcibly using a zonelist starting at a specified node, and by
++ * (in get_page_from_freelist()) refusing to consider the zones for
++ * any node on the zonelist except the first.  By the time any such
++ * calls get to this routine, we should just shut up and say 'yes'.
++ *
++ * Unlike the cpuset_zone_allowed_softwall() variant, above,
++ * this variant requires that the zone be in the current tasks
++ * mems_allowed or that we're in interrupt.  It does not scan up the
++ * cpuset hierarchy for the nearest enclosing mem_exclusive cpuset.
++ * It never sleeps.
++ */
++
++int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
++{
++	int node;			/* node that zone z is on */
++
++	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
++		return 1;
++	node = zone_to_nid(z);
++	if (node_isset(node, current->mems_allowed))
++		return 1;
++	return 0;
++}
++
+ /**
+  * cpuset_lock - lock out any changes to cpuset structures
+  *
+diff -puN mm/hugetlb.c~cpuset-rework-cpuset_zone_allowed-api mm/hugetlb.c
+--- a/mm/hugetlb.c~cpuset-rework-cpuset_zone_allowed-api
++++ a/mm/hugetlb.c
+@@ -73,7 +73,7 @@ static struct page *dequeue_huge_page(st
+ 
+ 	for (z = zonelist->zones; *z; z++) {
+ 		nid = zone_to_nid(*z);
+-		if (cpuset_zone_allowed(*z, GFP_HIGHUSER) &&
++		if (cpuset_zone_allowed_softwall(*z, GFP_HIGHUSER) &&
+ 		    !list_empty(&hugepage_freelists[nid]))
+ 			break;
  	}
+diff -puN mm/oom_kill.c~cpuset-rework-cpuset_zone_allowed-api mm/oom_kill.c
+--- a/mm/oom_kill.c~cpuset-rework-cpuset_zone_allowed-api
++++ a/mm/oom_kill.c
+@@ -177,7 +177,7 @@ static inline int constrained_alloc(stru
+ 	nodemask_t nodes = node_online_map;
  
--<<<<<<< HEAD/block/scsi_ioctl.c
- 	if (blk_rq_unmap_user(rq))
--=======
--	if (blk_rq_unmap_user(bio))
-->>>>>>> /block/scsi_ioctl.c
- 		ret = -EFAULT;
+ 	for (z = zonelist->zones; *z; z++)
+-		if (cpuset_zone_allowed(*z, gfp_mask))
++		if (cpuset_zone_allowed_softwall(*z, gfp_mask))
+ 			node_clear(zone_to_nid(*z), nodes);
+ 		else
+ 			return CONSTRAINT_CPUSET;
+diff -puN mm/page_alloc.c~cpuset-rework-cpuset_zone_allowed-api mm/page_alloc.c
+--- a/mm/page_alloc.c~cpuset-rework-cpuset_zone_allowed-api
++++ a/mm/page_alloc.c
+@@ -1162,7 +1162,7 @@ zonelist_scan:
+ 			zone->zone_pgdat != zonelist->zones[0]->zone_pgdat))
+ 				break;
+ 		if ((alloc_flags & ALLOC_CPUSET) &&
+-			!cpuset_zone_allowed(zone, gfp_mask))
++			!cpuset_zone_allowed_softwall(zone, gfp_mask))
+ 				goto try_next_zone;
  
- 	/* may not have succeeded, but output values written to control
-diff -puN drivers/cdrom/cdrom.c~revert-git-block drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~revert-git-block
-+++ a/drivers/cdrom/cdrom.c
-@@ -2139,12 +2139,8 @@ static int cdrom_read_cdda_bpc(struct cd
- 			cdi->last_sense = s->sense_key;
- 		}
+ 		if (!(alloc_flags & ALLOC_NO_WATERMARKS)) {
+diff -puN mm/slab.c~cpuset-rework-cpuset_zone_allowed-api mm/slab.c
+--- a/mm/slab.c~cpuset-rework-cpuset_zone_allowed-api
++++ a/mm/slab.c
+@@ -3260,7 +3260,7 @@ retry:
+ 	for (z = zonelist->zones; *z && !obj; z++) {
+ 		nid = zone_to_nid(*z);
  
--<<<<<<< HEAD/drivers/cdrom/cdrom.c
- 		rq->bio = bio;
- 		if (blk_rq_unmap_user(rq))
--=======
--		if (blk_rq_unmap_user(bio))
-->>>>>>> /drivers/cdrom/cdrom.c
- 			ret = -EFAULT;
+-		if (cpuset_zone_allowed(*z, flags | __GFP_HARDWALL) &&
++		if (cpuset_zone_allowed_hardwall(*z, flags) &&
+ 			cache->nodelists[nid] &&
+ 			cache->nodelists[nid]->free_objects)
+ 				obj = ____cache_alloc_node(cache,
+diff -puN mm/vmscan.c~cpuset-rework-cpuset_zone_allowed-api mm/vmscan.c
+--- a/mm/vmscan.c~cpuset-rework-cpuset_zone_allowed-api
++++ a/mm/vmscan.c
+@@ -984,7 +984,7 @@ static unsigned long shrink_zones(int pr
+ 		if (!populated_zone(zone))
+ 			continue;
  
- 		if (ret)
-diff -puN include/linux/blkdev.h~revert-git-block include/linux/blkdev.h
---- a/include/linux/blkdev.h~revert-git-block
-+++ a/include/linux/blkdev.h
-@@ -678,13 +678,8 @@ extern void __blk_stop_queue(request_que
- extern void blk_run_queue(request_queue_t *);
- extern void blk_start_queueing(request_queue_t *);
- extern void blk_queue_activity_fn(request_queue_t *, activity_fn *, void *);
--<<<<<<< HEAD/include/linux/blkdev.h
- extern int blk_rq_map_user(request_queue_t *, struct request *, void __user *, unsigned long);
- extern int blk_rq_unmap_user(struct request *);
--=======
--extern int blk_rq_map_user(request_queue_t *, struct request *, void __user *, unsigned int);
--extern int blk_rq_unmap_user(struct bio *);
-->>>>>>> /include/linux/blkdev.h
- extern int blk_rq_map_kern(request_queue_t *, struct request *, void *, unsigned int, gfp_t);
- extern int blk_rq_map_user_iov(request_queue_t *, struct request *,
- 			       struct sg_iovec *, int, unsigned int);
+-		if (!cpuset_zone_allowed(zone, __GFP_HARDWALL))
++		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 			continue;
+ 
+ 		note_zone_scanning_priority(zone, priority);
+@@ -1034,7 +1034,7 @@ unsigned long try_to_free_pages(struct z
+ 	for (i = 0; zones[i] != NULL; i++) {
+ 		struct zone *zone = zones[i];
+ 
+-		if (!cpuset_zone_allowed(zone, __GFP_HARDWALL))
++		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 			continue;
+ 
+ 		lru_pages += zone->nr_active + zone->nr_inactive;
+@@ -1089,7 +1089,7 @@ out:
+ 	for (i = 0; zones[i] != 0; i++) {
+ 		struct zone *zone = zones[i];
+ 
+-		if (!cpuset_zone_allowed(zone, __GFP_HARDWALL))
++		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 			continue;
+ 
+ 		zone->prev_priority = priority;
+@@ -1354,7 +1354,7 @@ void wakeup_kswapd(struct zone *zone, in
+ 		return;
+ 	if (pgdat->kswapd_max_order < order)
+ 		pgdat->kswapd_max_order = order;
+-	if (!cpuset_zone_allowed(zone, __GFP_HARDWALL))
++	if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 		return;
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from pj@sgi.com are
 
 origin.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-netpoll-locking-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-revert-git-block.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-submit-checklist-update.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+cpuset-rework-cpuset_zone_allowed-api.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
 
