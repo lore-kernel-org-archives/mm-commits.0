@@ -1,294 +1,244 @@
 From: akpm@osdl.org
-Subject: + ipmi-misc-fixes.patch added to -mm tree
-Date: Fri, 08 Dec 2006 21:52:24 -0800
-Message-ID: <200612090552.kB95qOtM017743@shell0.pdx.osdl.net>
+Subject: + ipmi-remove-zero-inits.patch added to -mm tree
+Date: Fri, 08 Dec 2006 21:52:21 -0800
+Message-ID: <200612090552.kB95qLQn017740@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47754 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:47756 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758940AbWLIFw2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 00:52:28 -0500
+	id S1758976AbWLIFw3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 00:52:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minyard@acm.org
+Cc: randy.dunlap@oracle.com, minyard@acm.org
 
 
 The patch titled
-     IPMI: misc fixes
+     IPMI: remove zero inits
 has been added to the -mm tree.  Its filename is
-     ipmi-misc-fixes.patch
+     ipmi-remove-zero-inits.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IPMI: misc fixes
-From: Corey Minyard <minyard@acm.org>
+Subject: IPMI: remove zero inits
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix various problems pointed out by Andrew Morton and others:
-  * platform_device_unregister checks for NULL, no need to check here.
-  * Formatting fixes.
-  * Remove big macro and convert to a function.
-  * Use strcmp instead of defining a broken case-insensitive comparison,
-    and make the output parameter info match the case of the input one
-    (change "I/O" to "i/o").
-  * Return the length instead of 0 from the hotmod parameter handler.
-  * Remove some unused cruft.
-  * The trydefaults parameter only has to do with scanning the "standard"
-    addresses, don't check for that on ACPI.
+Remove all =0 and =NULL from static initializers.  They are not needed and
+removing them saves space in the object files.
 
-Signed-off-by: Corey Minyard <cminyard@acm.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |    6 -
- drivers/char/ipmi/ipmi_si_intf.c    |  120 ++++++++++++++------------
- 2 files changed, 68 insertions(+), 58 deletions(-)
+ drivers/char/ipmi/ipmi_bt_sm.c      |    4 +++-
+ drivers/char/ipmi/ipmi_devintf.c    |    2 +-
+ drivers/char/ipmi/ipmi_msghandler.c |    6 +++---
+ drivers/char/ipmi/ipmi_poweroff.c   |    6 +++---
+ drivers/char/ipmi/ipmi_si_intf.c    |   12 ++++++------
+ drivers/char/ipmi/ipmi_watchdog.c   |   18 +++++++++---------
+ 6 files changed, 25 insertions(+), 23 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-misc-fixes drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-misc-fixes
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -2142,8 +2142,7 @@ cleanup_bmc_device(struct kref *ref)
- 	bmc = container_of(ref, struct bmc_device, refcount);
+diff -puN drivers/char/ipmi/ipmi_bt_sm.c~ipmi-remove-zero-inits drivers/char/ipmi/ipmi_bt_sm.c
+--- a/drivers/char/ipmi/ipmi_bt_sm.c~ipmi-remove-zero-inits
++++ a/drivers/char/ipmi/ipmi_bt_sm.c
+@@ -37,8 +37,10 @@
+ #define BT_DEBUG_ENABLE	1	/* Generic messages */
+ #define BT_DEBUG_MSG	2	/* Prints all request/response buffers */
+ #define BT_DEBUG_STATES	4	/* Verbose look at state changes */
++/* BT_DEBUG_OFF must be zero to correspond to the default uninitialized
++   value */
  
- 	remove_files(bmc);
--	if (bmc->dev)
--		platform_device_unregister(bmc->dev);
-+	platform_device_unregister(bmc->dev);
- 	kfree(bmc);
+-static int bt_debug = BT_DEBUG_OFF;
++static int bt_debug; /* 0 == BT_DEBUG_OFF */
+ 
+ module_param(bt_debug, int, 0644);
+ MODULE_PARM_DESC(bt_debug, "debug bitmask, 1=enable, 2=messages, 4=states");
+diff -puN drivers/char/ipmi/ipmi_devintf.c~ipmi-remove-zero-inits drivers/char/ipmi/ipmi_devintf.c
+--- a/drivers/char/ipmi/ipmi_devintf.c~ipmi-remove-zero-inits
++++ a/drivers/char/ipmi/ipmi_devintf.c
+@@ -834,7 +834,7 @@ static const struct file_operations ipmi
+ 
+ #define DEVICE_NAME     "ipmidev"
+ 
+-static int ipmi_major = 0;
++static int ipmi_major;
+ module_param(ipmi_major, int, 0);
+ MODULE_PARM_DESC(ipmi_major, "Sets the major number of the IPMI device.  By"
+ 		 " default, or if you set it to zero, it will choose the next"
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-remove-zero-inits drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-remove-zero-inits
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -53,10 +53,10 @@
+ static struct ipmi_recv_msg *ipmi_alloc_recv_msg(void);
+ static int ipmi_init_msghandler(void);
+ 
+-static int initialized = 0;
++static int initialized;
+ 
+ #ifdef CONFIG_PROC_FS
+-static struct proc_dir_entry *proc_ipmi_root = NULL;
++static struct proc_dir_entry *proc_ipmi_root;
+ #endif /* CONFIG_PROC_FS */
+ 
+ /* Remain in auto-maintenance mode for this amount of time (in ms). */
+@@ -4043,7 +4043,7 @@ static void send_panic_events(char *str)
+ }
+ #endif /* CONFIG_IPMI_PANIC_EVENT */
+ 
+-static int has_panicked = 0;
++static int has_panicked;
+ 
+ static int panic_event(struct notifier_block *this,
+ 		       unsigned long         event,
+diff -puN drivers/char/ipmi/ipmi_poweroff.c~ipmi-remove-zero-inits drivers/char/ipmi/ipmi_poweroff.c
+--- a/drivers/char/ipmi/ipmi_poweroff.c~ipmi-remove-zero-inits
++++ a/drivers/char/ipmi/ipmi_poweroff.c
+@@ -58,10 +58,10 @@ static int poweroff_powercycle;
+ static int ifnum_to_use = -1;
+ 
+ /* Our local state. */
+-static int ready = 0;
++static int ready;
+ static ipmi_user_t ipmi_user;
+ static int ipmi_ifnum;
+-static void (*specific_poweroff_func)(ipmi_user_t user) = NULL;
++static void (*specific_poweroff_func)(ipmi_user_t user);
+ 
+ /* Holds the old poweroff function so we can restore it on removal. */
+ static void (*old_poweroff_func)(void);
+@@ -182,7 +182,7 @@ static int ipmi_request_in_rc_mode(ipmi_
+ #define IPMI_MOTOROLA_MANUFACTURER_ID		0x0000A1
+ #define IPMI_MOTOROLA_PPS_IPMC_PRODUCT_ID	0x0051
+ 
+-static void (*atca_oem_poweroff_hook)(ipmi_user_t user) = NULL;
++static void (*atca_oem_poweroff_hook)(ipmi_user_t user);
+ 
+ static void pps_poweroff_atca (ipmi_user_t user)
+ {
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-remove-zero-inits drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-remove-zero-inits
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -845,7 +845,7 @@ static void request_events(void *send_in
+ 	atomic_set(&smi_info->req_events, 1);
  }
  
-@@ -2341,8 +2340,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
+-static int initialized = 0;
++static int initialized;
  
- 		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
- 						 bmc->id.product_id,
--						 bmc->id.device_id))
--		{
-+						 bmc->id.device_id)) {
- 			if (!warn_printed) {
- 				printk(KERN_WARNING PFX
- 				       "This machine has two different BMCs"
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-misc-fixes drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-misc-fixes
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -1028,7 +1028,7 @@ static int num_slave_addrs;
+ static void smi_timeout(unsigned long data)
+ {
+@@ -1018,13 +1018,13 @@ static int num_ports;
+ static int           irqs[SI_MAX_PARMS];
+ static int num_irqs;
+ static int           regspacings[SI_MAX_PARMS];
+-static int num_regspacings = 0;
++static int num_regspacings;
+ static int           regsizes[SI_MAX_PARMS];
+-static int num_regsizes = 0;
++static int num_regsizes;
+ static int           regshifts[SI_MAX_PARMS];
+-static int num_regshifts = 0;
++static int num_regshifts;
+ static int slave_addrs[SI_MAX_PARMS];
+-static int num_slave_addrs = 0;
++static int num_slave_addrs;
  
  #define IPMI_IO_ADDR_SPACE  0
  #define IPMI_MEM_ADDR_SPACE 1
--static char *addr_space_to_str[] = { "I/O", "mem" };
-+static char *addr_space_to_str[] = { "i/o", "mem" };
+@@ -1668,7 +1668,7 @@ static __devinit void hardcode_find_bmc(
+ /* Once we get an ACPI failure, we don't try any more, because we go
+    through the tables sequentially.  Once we don't find a table, there
+    are no more. */
+-static int acpi_failure = 0;
++static int acpi_failure;
  
- static int hotmod_handler(const char *val, struct kernel_param *kp);
+ /* For GPE-type interrupts. */
+ static u32 ipmi_acpi_gpe(void *context)
+diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi-remove-zero-inits drivers/char/ipmi/ipmi_watchdog.c
+--- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi-remove-zero-inits
++++ a/drivers/char/ipmi/ipmi_watchdog.c
+@@ -134,14 +134,14 @@
  
-@@ -1397,20 +1397,7 @@ static struct hotmod_vals hotmod_as[] = 
- 	{ "i/o",	IPMI_IO_ADDR_SPACE },
- 	{ NULL }
- };
--static int ipmi_strcasecmp(const char *s1, const char *s2)
--{
--	while (*s1 || *s2) {
--		if (!*s1)
--			return -1;
--		if (!*s2)
--			return 1;
--		if (*s1 != *s2)
--			return *s1 - *s2;
--		s1++;
--		s2++;
--	}
--	return 0;
--}
-+
- static int parse_str(struct hotmod_vals *v, int *val, char *name, char **curr)
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ 
+-static ipmi_user_t watchdog_user = NULL;
++static ipmi_user_t watchdog_user;
+ static int watchdog_ifnum;
+ 
+ /* Default the timeout to 10 seconds. */
+ static int timeout = 10;
+ 
+ /* The pre-timeout is disabled by default. */
+-static int pretimeout = 0;
++static int pretimeout;
+ 
+ /* Default action is to reset the board on a timeout. */
+ static unsigned char action_val = WDOG_TIMEOUT_RESET;
+@@ -156,10 +156,10 @@ static unsigned char preop_val = WDOG_PR
+ 
+ static char preop[16] = "preop_none";
+ static DEFINE_SPINLOCK(ipmi_read_lock);
+-static char data_to_read = 0;
++static char data_to_read;
+ static DECLARE_WAIT_QUEUE_HEAD(read_q);
+-static struct fasync_struct *fasync_q = NULL;
+-static char pretimeout_since_last_heartbeat = 0;
++static struct fasync_struct *fasync_q;
++static char pretimeout_since_last_heartbeat;
+ static char expect_close;
+ 
+ static int ifnum_to_use = -1;
+@@ -177,7 +177,7 @@ static void ipmi_unregister_watchdog(int
+ 
+ /* If true, the driver will start running as soon as it is configured
+    and ready. */
+-static int start_now = 0;
++static int start_now;
+ 
+ static int set_param_int(const char *val, struct kernel_param *kp)
  {
- 	char *s;
-@@ -1424,7 +1411,7 @@ static int parse_str(struct hotmod_vals 
- 	*s = '\0';
- 	s++;
- 	for (i = 0; hotmod_ops[i].name; i++) {
--		if (ipmi_strcasecmp(*curr, v[i].name) == 0) {
-+		if (strcmp(*curr, v[i].name) == 0) {
- 			*val = v[i].val;
- 			*curr = s;
- 			return 0;
-@@ -1435,10 +1422,34 @@ static int parse_str(struct hotmod_vals 
- 	return -EINVAL;
- }
+@@ -300,16 +300,16 @@ MODULE_PARM_DESC(nowayout, "Watchdog can
+ static unsigned char ipmi_watchdog_state = WDOG_TIMEOUT_NONE;
  
-+static int check_hotmod_int_op(const char *curr, const char *option,
-+			       const char *name, int *val)
-+{
-+	char *n;
-+
-+	if (strcmp(curr, name) == 0) {
-+		if (!option) {
-+			printk(KERN_WARNING PFX
-+			       "No option given for '%s'\n",
-+			       curr);
-+			return -EINVAL;
-+		}
-+		*val = simple_strtoul(option, &n, 0);
-+		if ((*n != '\0') || (*option == '\0')) {
-+			printk(KERN_WARNING PFX
-+			       "Bad option given for '%s'\n",
-+			       curr);
-+			return -EINVAL;
-+		}
-+		return 1;
-+	}
-+	return 0;
-+}
-+
- static int hotmod_handler(const char *val, struct kernel_param *kp)
- {
- 	char *str = kstrdup(val, GFP_KERNEL);
--	int  rv = -EINVAL;
-+	int  rv;
- 	char *next, *curr, *s, *n, *o;
- 	enum hotmod_op op;
- 	enum si_type si_type;
-@@ -1450,13 +1461,15 @@ static int hotmod_handler(const char *va
- 	int irq;
- 	int ipmb;
- 	int ival;
-+	int len;
- 	struct smi_info *info;
+ /* If shutting down via IPMI, we ignore the heartbeat. */
+-static int ipmi_ignore_heartbeat = 0;
++static int ipmi_ignore_heartbeat;
  
- 	if (!str)
- 		return -ENOMEM;
+ /* Is someone using the watchdog?  Only one user is allowed. */
+-static unsigned long ipmi_wdog_open = 0;
++static unsigned long ipmi_wdog_open;
  
- 	/* Kill any trailing spaces, as we can get a "\n" from echo. */
--	ival = strlen(str) - 1;
-+	len = strlen(str);
-+	ival = len - 1;
- 	while ((ival >= 0) && isspace(str[ival])) {
- 		str[ival] = '\0';
- 		ival--;
-@@ -1513,35 +1526,37 @@ static int hotmod_handler(const char *va
- 				*o = '\0';
- 				o++;
- 			}
--#define HOTMOD_INT_OPT(name, val) \
--			if (ipmi_strcasecmp(curr, name) == 0) {		\
--				if (!o) {				\
--					printk(KERN_WARNING PFX		\
--					       "No option given for '%s'\n", \
--						curr);			\
--					goto out;			\
--				}					\
--				val = simple_strtoul(o, &n, 0);		\
--				if ((*n != '\0') || (*o == '\0')) {	\
--					printk(KERN_WARNING PFX		\
--					       "Bad option given for '%s'\n", \
--					       curr);			\
--					goto out;			\
--				}					\
--			}
--
--			HOTMOD_INT_OPT("rsp", regspacing)
--			else HOTMOD_INT_OPT("rsi", regsize)
--			else HOTMOD_INT_OPT("rsh", regshift)
--			else HOTMOD_INT_OPT("irq", irq)
--			else HOTMOD_INT_OPT("ipmb", ipmb)
--			else {
--				printk(KERN_WARNING PFX
--				       "Invalid hotmod option '%s'\n",
--				       curr);
-+			rv = check_hotmod_int_op(curr, o, "rsp", &regspacing);
-+			if (rv < 0)
- 				goto out;
--			}
--#undef HOTMOD_INT_OPT
-+			else if (rv)
-+				continue;
-+			rv = check_hotmod_int_op(curr, o, "rsi", &regsize);
-+			if (rv < 0)
-+				goto out;
-+			else if (rv)
-+				continue;
-+			rv = check_hotmod_int_op(curr, o, "rsh", &regshift);
-+			if (rv < 0)
-+				goto out;
-+			else if (rv)
-+				continue;
-+			rv = check_hotmod_int_op(curr, o, "irq", &irq);
-+			if (rv < 0)
-+				goto out;
-+			else if (rv)
-+				continue;
-+			rv = check_hotmod_int_op(curr, o, "ipmb", &ipmb);
-+			if (rv < 0)
-+				goto out;
-+			else if (rv)
-+				continue;
-+
-+			rv = -EINVAL;
-+			printk(KERN_WARNING PFX
-+			       "Invalid hotmod option '%s'\n",
-+			       curr);
-+			goto out;
- 		}
+ /* If set to 1, the heartbeat command will set the state to reset and
+    start the timer.  The timer doesn't normally run when the driver is
+    first opened until the heartbeat is set the first time, this
+    variable is used to accomplish this. */
+-static int ipmi_start_timer_on_heartbeat = 0;
++static int ipmi_start_timer_on_heartbeat;
  
- 		if (op == HM_ADD) {
-@@ -1590,6 +1605,7 @@ static int hotmod_handler(const char *va
- 			mutex_unlock(&smi_infos_lock);
- 		}
- 	}
-+	rv = len;
-  out:
- 	kfree(str);
- 	return rv;
-@@ -1610,11 +1626,11 @@ static __devinit void hardcode_find_bmc(
- 
- 		info->addr_source = "hardcoded";
- 
--		if (!si_type[i] || ipmi_strcasecmp(si_type[i], "kcs") == 0) {
-+		if (!si_type[i] || strcmp(si_type[i], "kcs") == 0) {
- 			info->si_type = SI_KCS;
--		} else if (ipmi_strcasecmp(si_type[i], "smic") == 0) {
-+		} else if (strcmp(si_type[i], "smic") == 0) {
- 			info->si_type = SI_SMIC;
--		} else if (ipmi_strcasecmp(si_type[i], "bt") == 0) {
-+		} else if (strcmp(si_type[i], "bt") == 0) {
- 			info->si_type = SI_BT;
- 		} else {
- 			printk(KERN_WARNING
-@@ -1779,7 +1795,6 @@ struct SPMITable {
- static __devinit int try_init_acpi(struct SPMITable *spmi)
- {
- 	struct smi_info  *info;
--	char             *io_type;
- 	u8 		 addr_space;
- 
- 	if (spmi->IPMIlegacy != 1) {
-@@ -1843,11 +1858,9 @@ static __devinit int try_init_acpi(struc
- 	info->io.regshift = spmi->addr.register_bit_offset;
- 
- 	if (spmi->addr.address_space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
--		io_type = "memory";
- 		info->io_setup = mem_setup;
- 		info->io.addr_type = IPMI_IO_ADDR_SPACE;
- 	} else if (spmi->addr.address_space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
--		io_type = "I/O";
- 		info->io_setup = port_setup;
- 		info->io.addr_type = IPMI_MEM_ADDR_SPACE;
- 	} else {
-@@ -2773,8 +2786,7 @@ static __devinit int init_ipmi_si(void)
- #endif
- 
- #ifdef CONFIG_ACPI
--	if (si_trydefaults)
--		acpi_find_bmc();
-+	acpi_find_bmc();
- #endif
- 
- #ifdef CONFIG_PCI
+ /* IPMI version of the BMC. */
+ static unsigned char ipmi_version_major;
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+mtd-esb2rom-uses-pci.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+codingstyle-updates.patch
+freezerh-uses-task_struct-fields.patch
+geode-crypto-is-pci-device.patch
 ipmi-remove-zero-inits.patch
-ipmi-misc-fixes.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+profile_likely-export-do_check_likely.patch
 
