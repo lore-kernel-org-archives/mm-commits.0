@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + knfsd-nfsd-simplify-exp_pseudoroot.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:09:28 -0800
-Message-ID: <200612090009.kB909SlL010386@shell0.pdx.osdl.net>
+Subject: + knfsd-nfsd4-remove-spurious-replay_owner-check.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:09:38 -0800
+Message-ID: <200612090009.kB909ci2010410@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55563 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55599 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947571AbWLIAJn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:09:43 -0500
+	id S1947574AbWLIAJw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:09:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,47 +15,40 @@ Cc: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd: simplify exp_pseudoroot
+     knfsd: nfsd4: remove spurious replay_owner check
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd-simplify-exp_pseudoroot.patch
+     knfsd-nfsd4-remove-spurious-replay_owner-check.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd: simplify exp_pseudoroot
+Subject: knfsd: nfsd4: remove spurious replay_owner check
 From: J.Bruce Fields <bfields@fieldses.org>
 
-Note there's no need for special handling of -EAGAIN here; nfserrno() does
-what we want already.  So this is a pure cleanup with no change in
-functionality.
+OK, this is embarassing--I've even looked back at the history, and cannot for
+the life of me figure out why I added this check.
 
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/export.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ fs/nfsd/nfs4proc.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfsd/export.c~knfsd-nfsd-simplify-exp_pseudoroot fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-nfsd-simplify-exp_pseudoroot
-+++ a/fs/nfsd/export.c
-@@ -1163,12 +1163,10 @@ exp_pseudoroot(struct auth_domain *clp, 
- 	mk_fsid_v1(fsidv, 0);
- 
- 	exp = exp_find(clp, 1, fsidv, creq);
--	if (IS_ERR(exp) && PTR_ERR(exp) == -EAGAIN)
--		return nfserr_dropit;
-+	if (IS_ERR(exp))
-+		return nfserrno(PTR_ERR(exp));
- 	if (exp == NULL)
- 		return nfserr_perm;
--	else if (IS_ERR(exp))
--		return nfserrno(PTR_ERR(exp));
- 	rv = fh_compose(fhp, exp, exp->ex_dentry, NULL);
- 	exp_put(exp);
- 	return rv;
+diff -puN fs/nfsd/nfs4proc.c~knfsd-nfsd4-remove-spurious-replay_owner-check fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~knfsd-nfsd4-remove-spurious-replay_owner-check
++++ a/fs/nfsd/nfs4proc.c
+@@ -1008,7 +1008,7 @@ encode_op:
+ 			nfsd4_encode_operation(resp, op);
+ 			status = op->status;
+ 		}
+-		if (replay_owner && (replay_owner != (void *)(-1))) {
++		if (replay_owner) {
+ 			nfs4_put_stateowner(replay_owner);
+ 			replay_owner = NULL;
+ 		}
 _
 
 Patches currently in -mm which might be from bfields@fieldses.org are
