@@ -1,154 +1,230 @@
 From: akpm@osdl.org
-Subject: + rtcs-dont-use-i2c_adapterdev.patch added to -mm tree
-Date: Fri, 08 Dec 2006 20:38:51 -0800
-Message-ID: <200612090438.kB94cpwN016406@shell0.pdx.osdl.net>
+Subject: + fix-pnx8550-serial-breakage.patch added to -mm tree
+Date: Fri, 08 Dec 2006 20:46:33 -0800
+Message-ID: <200612090446.kB94kXkM016567@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44265 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44664 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758356AbWLIEjE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 23:39:04 -0500
+	id S1758829AbWLIEqn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 23:46:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: vitalywool@gmail.com, ralf@linux-mips.org
 
 
 The patch titled
-     RTCs don't use i2c_adapter.dev
+     fix PNX8550 serial breakage
 has been added to the -mm tree.  Its filename is
-     rtcs-dont-use-i2c_adapterdev.patch
+     fix-pnx8550-serial-breakage.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTCs don't use i2c_adapter.dev
-From: David Brownell <david-b@pacbell.net>
+Subject: fix PNX8550 serial breakage
+From: Vitaly Wool <vitalywool@gmail.com>
 
-Update more I2C drivers that live outside drivers/i2c to understand that using
-adapter->dev is not The Way.  When actually referring to the adapter hardware,
-adapter->class_dev.dev is the answer.  When referring to a device connected to
-it, client->dev.dev is the answer.
+Fix the serial header breakage for the PNX8550 MIPS platform.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/rtc-ds1672.c  |    2 +-
- drivers/rtc/rtc-pcf8563.c |    6 +++---
- drivers/rtc/rtc-rs5c372.c |    2 +-
- drivers/rtc/rtc-x1205.c   |   10 +++++-----
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ include/linux/serial_core.h    |    2 
+ include/linux/serial_ip3106.h  |   81 -------------------------------
+ include/linux/serial_pnx8xxx.h |   81 +++++++++++++++++++++++++++++++
+ 3 files changed, 82 insertions(+), 82 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1672.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-ds1672.c
---- a/drivers/rtc/rtc-ds1672.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-ds1672.c
-@@ -199,7 +199,7 @@ static int ds1672_probe(struct i2c_adapt
- 	struct i2c_client *client;
- 	struct rtc_device *rtc;
+diff -puN include/linux/serial_core.h~fix-pnx8550-serial-breakage include/linux/serial_core.h
+--- a/include/linux/serial_core.h~fix-pnx8550-serial-breakage
++++ a/include/linux/serial_core.h
+@@ -122,7 +122,7 @@
+ /*Digi jsm */
+ #define PORT_JSM        69
  
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
+-#define PORT_IP3106	70
++#define PORT_PNX8XXX	70
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
-diff -puN drivers/rtc/rtc-pcf8563.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -192,7 +192,7 @@ static int pcf8563_validate_client(struc
- 		xfer = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
- 
- 		if (xfer != ARRAY_SIZE(msgs)) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: could not read register 0x%02X\n",
- 				__FUNCTION__, pattern[i].reg);
- 
-@@ -203,7 +203,7 @@ static int pcf8563_validate_client(struc
- 
- 		if (value > pattern[i].max ||
- 			value < pattern[i].min) {
--			dev_dbg(&client->adapter->dev,
-+			dev_dbg(&client->dev,
- 				"%s: pattern=%d, reg=%x, mask=0x%02x, min=%d, "
- 				"max=%d, value=%d, raw=0x%02X\n",
- 				__FUNCTION__, i, pattern[i].reg, pattern[i].mask,
-@@ -253,7 +253,7 @@ static int pcf8563_probe(struct i2c_adap
- 
- 	int err = 0;
- 
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
-diff -puN drivers/rtc/rtc-rs5c372.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -200,7 +200,7 @@ static int rs5c372_probe(struct i2c_adap
- 	struct i2c_client *client;
- 	struct rs5c372 *rs5c372;
- 
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
-diff -puN drivers/rtc/rtc-x1205.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -372,7 +372,7 @@ static int x1205_validate_client(struct 
- 		};
- 
- 		if ((xfer = i2c_transfer(client->adapter, msgs, 2)) != 2) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: could not read register %x\n",
- 				__FUNCTION__, probe_zero_pattern[i]);
- 
-@@ -380,7 +380,7 @@ static int x1205_validate_client(struct 
- 		}
- 
- 		if ((buf & probe_zero_pattern[i+1]) != 0) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: register=%02x, zero pattern=%d, value=%x\n",
- 				__FUNCTION__, probe_zero_pattern[i], i, buf);
- 
-@@ -400,7 +400,7 @@ static int x1205_validate_client(struct 
- 		};
- 
- 		if ((xfer = i2c_transfer(client->adapter, msgs, 2)) != 2) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: could not read register %x\n",
- 				__FUNCTION__, probe_limits_pattern[i].reg);
- 
-@@ -411,7 +411,7 @@ static int x1205_validate_client(struct 
- 
- 		if (value > probe_limits_pattern[i].max ||
- 			value < probe_limits_pattern[i].min) {
--			dev_dbg(&client->adapter->dev,
-+			dev_dbg(&client->dev,
- 				"%s: register=%x, lim pattern=%d, value=%d\n",
- 				__FUNCTION__, probe_limits_pattern[i].reg,
- 				i, value);
-@@ -506,7 +506,7 @@ static int x1205_probe(struct i2c_adapte
- 	struct i2c_client *client;
- 	struct rtc_device *rtc;
- 
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
+ /* Hilscher netx */
+ #define PORT_NETX	71
+diff -puN include/linux/serial_ip3106.h~fix-pnx8550-serial-breakage /dev/null
+--- a/include/linux/serial_ip3106.h
++++ /dev/null
+@@ -1,81 +0,0 @@
+-/*
+- * Embedded Alley Solutions, source@embeddedalley.com.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- */
+-
+-#ifndef _LINUX_SERIAL_IP3106_H
+-#define _LINUX_SERIAL_IP3106_H
+-
+-#include <linux/serial_core.h>
+-#include <linux/device.h>
+-
+-#define IP3106_NR_PORTS		2
+-
+-struct ip3106_port {
+-	struct uart_port	port;
+-	struct timer_list	timer;
+-	unsigned int		old_status;
+-};
+-
+-/* register offsets */
+-#define IP3106_LCR		0
+-#define IP3106_MCR		0x004
+-#define IP3106_BAUD		0x008
+-#define IP3106_CFG		0x00c
+-#define IP3106_FIFO		0x028
+-#define IP3106_ISTAT		0xfe0
+-#define IP3106_IEN		0xfe4
+-#define IP3106_ICLR		0xfe8
+-#define IP3106_ISET		0xfec
+-#define IP3106_PD		0xff4
+-#define IP3106_MID		0xffc
+-
+-#define IP3106_UART_LCR_TXBREAK		(1<<30)
+-#define IP3106_UART_LCR_PAREVN		0x10000000
+-#define IP3106_UART_LCR_PAREN		0x08000000
+-#define IP3106_UART_LCR_2STOPB		0x04000000
+-#define IP3106_UART_LCR_8BIT		0x01000000
+-#define IP3106_UART_LCR_TX_RST		0x00040000
+-#define IP3106_UART_LCR_RX_RST		0x00020000
+-#define IP3106_UART_LCR_RX_NEXT		0x00010000
+-
+-#define IP3106_UART_MCR_SCR		0xFF000000
+-#define IP3106_UART_MCR_DCD		0x00800000
+-#define IP3106_UART_MCR_CTS		0x00100000
+-#define IP3106_UART_MCR_LOOP		0x00000010
+-#define IP3106_UART_MCR_RTS		0x00000002
+-#define IP3106_UART_MCR_DTR		0x00000001
+-
+-#define IP3106_UART_INT_TX		0x00000080
+-#define IP3106_UART_INT_EMPTY		0x00000040
+-#define IP3106_UART_INT_RCVTO		0x00000020
+-#define IP3106_UART_INT_RX		0x00000010
+-#define IP3106_UART_INT_RXOVRN		0x00000008
+-#define IP3106_UART_INT_FRERR		0x00000004
+-#define IP3106_UART_INT_BREAK		0x00000002
+-#define IP3106_UART_INT_PARITY		0x00000001
+-#define IP3106_UART_INT_ALLRX		0x0000003F
+-#define IP3106_UART_INT_ALLTX		0x000000C0
+-
+-#define IP3106_UART_FIFO_TXFIFO		0x001F0000
+-#define IP3106_UART_FIFO_TXFIFO_STA	(0x1f<<16)
+-#define IP3106_UART_FIFO_RXBRK		0x00008000
+-#define IP3106_UART_FIFO_RXFE		0x00004000
+-#define IP3106_UART_FIFO_RXPAR		0x00002000
+-#define IP3106_UART_FIFO_RXFIFO		0x00001F00
+-#define IP3106_UART_FIFO_RBRTHR		0x000000FF
+-
+-#endif
+diff -puN /dev/null include/linux/serial_pnx8xxx.h
+--- /dev/null
++++ a/include/linux/serial_pnx8xxx.h
+@@ -0,0 +1,81 @@
++/*
++ * Embedded Alley Solutions, source@embeddedalley.com.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#ifndef _LINUX_SERIAL_PNX8XXX_H
++#define _LINUX_SERIAL_PNX8XXX_H
++
++#include <linux/serial_core.h>
++#include <linux/device.h>
++
++#define PNX8XXX_NR_PORTS	2
++
++struct pnx8xxx_port {
++	struct uart_port	port;
++	struct timer_list	timer;
++	unsigned int		old_status;
++};
++
++/* register offsets */
++#define PNX8XXX_LCR		0
++#define PNX8XXX_MCR		0x004
++#define PNX8XXX_BAUD		0x008
++#define PNX8XXX_CFG		0x00c
++#define PNX8XXX_FIFO		0x028
++#define PNX8XXX_ISTAT		0xfe0
++#define PNX8XXX_IEN		0xfe4
++#define PNX8XXX_ICLR		0xfe8
++#define PNX8XXX_ISET		0xfec
++#define PNX8XXX_PD		0xff4
++#define PNX8XXX_MID		0xffc
++
++#define PNX8XXX_UART_LCR_TXBREAK	(1<<30)
++#define PNX8XXX_UART_LCR_PAREVN		0x10000000
++#define PNX8XXX_UART_LCR_PAREN		0x08000000
++#define PNX8XXX_UART_LCR_2STOPB		0x04000000
++#define PNX8XXX_UART_LCR_8BIT		0x01000000
++#define PNX8XXX_UART_LCR_TX_RST		0x00040000
++#define PNX8XXX_UART_LCR_RX_RST		0x00020000
++#define PNX8XXX_UART_LCR_RX_NEXT	0x00010000
++
++#define PNX8XXX_UART_MCR_SCR		0xFF000000
++#define PNX8XXX_UART_MCR_DCD		0x00800000
++#define PNX8XXX_UART_MCR_CTS		0x00100000
++#define PNX8XXX_UART_MCR_LOOP		0x00000010
++#define PNX8XXX_UART_MCR_RTS		0x00000002
++#define PNX8XXX_UART_MCR_DTR		0x00000001
++
++#define PNX8XXX_UART_INT_TX		0x00000080
++#define PNX8XXX_UART_INT_EMPTY		0x00000040
++#define PNX8XXX_UART_INT_RCVTO		0x00000020
++#define PNX8XXX_UART_INT_RX		0x00000010
++#define PNX8XXX_UART_INT_RXOVRN		0x00000008
++#define PNX8XXX_UART_INT_FRERR		0x00000004
++#define PNX8XXX_UART_INT_BREAK		0x00000002
++#define PNX8XXX_UART_INT_PARITY		0x00000001
++#define PNX8XXX_UART_INT_ALLRX		0x0000003F
++#define PNX8XXX_UART_INT_ALLTX		0x000000C0
++
++#define PNX8XXX_UART_FIFO_TXFIFO	0x001F0000
++#define PNX8XXX_UART_FIFO_TXFIFO_STA	(0x1f<<16)
++#define PNX8XXX_UART_FIFO_RXBRK		0x00008000
++#define PNX8XXX_UART_FIFO_RXFE		0x00004000
++#define PNX8XXX_UART_FIFO_RXPAR		0x00002000
++#define PNX8XXX_UART_FIFO_RXFIFO	0x00001F00
++#define PNX8XXX_UART_FIFO_RBRTHR	0x000000FF
++
++#endif
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-origin.patch
-watchdog-omap_wdt-build-fix.patch
-rtcs-dont-use-i2c_adapterdev.patch
+mmc-fix-prev-state-2-=-task_running-problem-on-sd-mmc-card-removal.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
 
