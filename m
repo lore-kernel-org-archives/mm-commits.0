@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + ucb1400_ts-depends-snd_ac97_bus.patch added to -mm tree
-Date: Sat, 09 Dec 2006 00:51:21 -0800
-Message-ID: <200612090851.kB98pLkO021598@shell0.pdx.osdl.net>
+Subject: + ipc-procfs-sysctl-mixups.patch added to -mm tree
+Date: Sat, 09 Dec 2006 00:51:22 -0800
+Message-ID: <200612090851.kB98pMeD021601@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57258 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57259 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936467AbWLIIv0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 03:51:26 -0500
+	id S936476AbWLIIv1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 03:51:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,49 +15,57 @@ Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     ucb1400_ts depends SND_AC97_BUS
+     ipc-procfs-sysctl mixups
 has been added to the -mm tree.  Its filename is
-     ucb1400_ts-depends-snd_ac97_bus.patch
+     ipc-procfs-sysctl-mixups.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ucb1400_ts depends SND_AC97_BUS
+Subject: ipc-procfs-sysctl mixups
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This driver is an AC97 codec according to its help text.  However, if SOUND is
-disabled, the "select SND_AC97_BUS" still inserts that into the .config file:
+When CONFIG_PROC_FS=n and CONFIG_PROC_SYSCTL=n but CONFIG_SYSVIPC=y, we get
+this build error:
 
-#
-# Sound
-#
-# CONFIG_SOUND is not set
-CONFIG_SND_AC97_BUS=m
-
-Even if the config software followed dependency chains on selects, we should
-try to limit usage of "select" to library-type code that is needed (e.g., CRC
-functions) instead of bus-type support.
+kernel/built-in.o:(.data+0xc38): undefined reference to `proc_ipc_doulongvec_minmax'
+kernel/built-in.o:(.data+0xc88): undefined reference to `proc_ipc_doulongvec_minmax'
+kernel/built-in.o:(.data+0xcd8): undefined reference to `proc_ipc_dointvec'
+kernel/built-in.o:(.data+0xd28): undefined reference to `proc_ipc_dointvec'
+kernel/built-in.o:(.data+0xd78): undefined reference to `proc_ipc_dointvec'
+kernel/built-in.o:(.data+0xdc8): undefined reference to `proc_ipc_dointvec'
+kernel/built-in.o:(.data+0xe18): undefined reference to `proc_ipc_dointvec'
+make: *** [vmlinux] Error 1
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/input/touchscreen/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/input/touchscreen/Kconfig~ucb1400_ts-depends-snd_ac97_bus drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~ucb1400_ts-depends-snd_ac97_bus
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -146,7 +146,7 @@ config TOUCHSCREEN_TOUCHWIN
+diff -puN kernel/sysctl.c~ipc-procfs-sysctl-mixups kernel/sysctl.c
+--- a/kernel/sysctl.c~ipc-procfs-sysctl-mixups
++++ a/kernel/sysctl.c
+@@ -2408,6 +2408,17 @@ static int proc_do_ipc_string(ctl_table 
+ {
+ 	return -ENOSYS;
+ }
++static int proc_ipc_dointvec(ctl_table *table, int write, struct file *filp,
++		void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	return -ENOSYS;
++}
++static int proc_ipc_doulongvec_minmax(ctl_table *table, int write,
++		struct file *filp, void __user *buffer,
++		size_t *lenp, loff_t *ppos)
++{
++	return -ENOSYS;
++}
+ #endif
  
- config TOUCHSCREEN_UCB1400
- 	tristate "Philips UCB1400 touchscreen"
--	select SND_AC97_BUS
-+	depends on SND_AC97_BUS
- 	help
- 	  This enables support for the Philips UCB1400 touchscreen interface.
- 	  The UCB1400 is an AC97 audio codec.  The touchscreen interface
+ int proc_dointvec(ctl_table *table, int write, struct file *filp,
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
