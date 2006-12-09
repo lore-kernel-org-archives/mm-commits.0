@@ -1,58 +1,103 @@
 From: akpm@osdl.org
-Subject: + m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq.patch added to -mm tree
-Date: Sat, 09 Dec 2006 14:33:26 -0800
-Message-ID: <200612092233.kB9MXQT5006109@shell0.pdx.osdl.net>
+Subject: + no-paravirt-for-x86_voyager-or-x86_visws.patch added to -mm tree
+Date: Sat, 09 Dec 2006 14:34:58 -0800
+Message-ID: <200612092234.kB9MYw1A006142@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55680 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55694 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758877AbWLIWf0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 17:35:26 -0500
+	id S1758884AbWLIWfk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 17:35:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schmitz@opal.biophys.uni-duesseldorf.de, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, geert@linux-m68k.org, schmitz@biophys.uni-duesseldorf.de
+Cc: randy.dunlap@oracle.com, ak@suse.de, chrisw@sous-sol.org, jeremy@goop.org, zach@vmware.com
 
 
 The patch titled
-     m68k/Atari: 2.6.18 Atari IDE interrupt needs SA_SHIRQ
+     no paravirt for X86_VOYAGER or X86_VISWS
 has been added to the -mm tree.  Its filename is
-     m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq.patch
+     no-paravirt-for-x86_voyager-or-x86_visws.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k/Atari: 2.6.18 Atari IDE interrupt needs SA_SHIRQ
-From: Michael Schmitz <schmitz@opal.biophys.uni-duesseldorf.de>
+Subject: no paravirt for X86_VOYAGER or X86_VISWS
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Atari IDE: The interrupt needs SA_SHIRQ now to get registered.
+Since Voyager and Visual WS already define ARCH_SETUP,
+it looks like PARAVIRT shouldn't be offered for them.
 
-Signed-off-by: Michael Schmitz <schmitz@biophys.uni-duesseldorf.de>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+In file included from arch/i386/kernel/setup.c:63:
+include/asm-i386/mach-visws/setup_arch.h:8:1: warning: "ARCH_SETUP" redefined
+In file included from include/asm/msr.h:5,
+                 from include/asm/processor.h:17,
+                 from include/asm/thread_info.h:16,
+                 from include/linux/thread_info.h:21,
+                 from include/linux/preempt.h:9,
+                 from include/linux/spinlock.h:49,
+                 from include/linux/capability.h:45,
+                 from include/linux/sched.h:46,
+                 from arch/i386/kernel/setup.c:26:
+include/asm/paravirt.h:163:1: warning: this is the location of the previous definition
+In file included from arch/i386/kernel/setup.c:63:
+include/asm-i386/mach-visws/setup_arch.h:8:1: warning: "ARCH_SETUP" redefined
+In file included from include/asm/msr.h:5,
+                 from include/asm/processor.h:17,
+                 from include/asm/thread_info.h:16,
+                 from include/linux/thread_info.h:21,
+                 from include/linux/preempt.h:9,
+                 from include/linux/spinlock.h:49,
+                 from include/linux/capability.h:45,
+                 from include/linux/sched.h:46,
+                 from arch/i386/kernel/setup.c:26:
+include/asm/paravirt.h:163:1: warning: this is the location of the previous definition
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Acked-by: Zachary Amsden <zach@vmware.com>
+Acked-by: Chris Wright <chrisw@sous-sol.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/m68k/atari/stdma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/m68k/atari/stdma.c~m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq arch/m68k/atari/stdma.c
---- a/arch/m68k/atari/stdma.c~m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq
-+++ a/arch/m68k/atari/stdma.c
-@@ -174,7 +174,7 @@ int stdma_islocked(void)
- void __init stdma_init(void)
- {
- 	stdma_isr = NULL;
--	request_irq(IRQ_MFP_FDC, stdma_int, IRQ_TYPE_SLOW,
-+	request_irq(IRQ_MFP_FDC, stdma_int, IRQ_TYPE_SLOW | SA_SHIRQ,
- 	            "ST-DMA: floppy/ACSI/IDE/Falcon-SCSI", stdma_int);
- }
- 
+diff -puN arch/i386/Kconfig~no-paravirt-for-x86_voyager-or-x86_visws arch/i386/Kconfig
+--- a/arch/i386/Kconfig~no-paravirt-for-x86_voyager-or-x86_visws
++++ a/arch/i386/Kconfig
+@@ -190,6 +190,7 @@ endchoice
+ config PARAVIRT
+ 	bool "Paravirtualization support (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on !(X86_VISWS || X86_VOYAGER)
+ 	help
+ 	  Paravirtualization is a way of running multiple instances of
+ 	  Linux on the same machine, under a hypervisor.  This option
 _
 
-Patches currently in -mm which might be from schmitz@opal.biophys.uni-duesseldorf.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq.patch
+origin.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+ucb1400_ts-depends-snd_ac97_bus.patch
+ipc-procfs-sysctl-mixups.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+mtd-esb2rom-uses-pci.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+no-paravirt-for-x86_voyager-or-x86_visws.patch
+codingstyle-updates.patch
+freezerh-uses-task_struct-fields.patch
+geode-crypto-is-pci-device.patch
+ipmi-remove-zero-inits.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+profile_likely-export-do_check_likely.patch
 
