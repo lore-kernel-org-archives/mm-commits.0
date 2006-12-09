@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + knfsd-nfsd4-dont-inline-nfsd4-compound-op-functions.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:09:42 -0800
-Message-ID: <200612090009.kB909gNE010417@shell0.pdx.osdl.net>
+Subject: + knfsd-nfsd-dont-drop-silently-on-upcall-deferral.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:09:32 -0800
+Message-ID: <200612090009.kB909WWb010393@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55618 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55584 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947588AbWLIAJ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:09:57 -0500
+	id S1947571AbWLIAJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:09:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,207 +15,180 @@ Cc: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd4: don't inline nfsd4 compound op functions
+     knfsd: nfsd: don't drop silently on upcall deferral
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd4-dont-inline-nfsd4-compound-op-functions.patch
+     knfsd-nfsd-dont-drop-silently-on-upcall-deferral.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: don't inline nfsd4 compound op functions
+Subject: knfsd: nfsd: don't drop silently on upcall deferral
 From: J.Bruce Fields <bfields@fieldses.org>
 
-The inlining contributes to bloating the stack of nfsd4_compound, and I want
-to change the compound op functions to function pointers anyway.
+To avoid tying up server threads when nfsd makes an upcall (to mountd, to get
+export options, to idmapd, for nfsv4 name<->id mapping, etc.), we temporarily
+"drop" the request and save enough information so that we can revisit it
+later.
+
+Certain failures during the deferral process can cause us to really drop the
+request and never revisit it.
+
+This is often less than ideal, and is unacceptable in the NFSv4 case--rfc 3530
+forbids the server from dropping a request without also closing the
+connection.
+
+As a first step, we modify the deferral code to return -ETIMEDOUT (which is
+translated to nfserr_jukebox in the v3 and v4 cases, and remains a drop in the
+v2 case).
 
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/nfs4proc.c |   43 ++++++++++++++++++-------------------------
- 1 files changed, 18 insertions(+), 25 deletions(-)
+ fs/nfsd/export.c                  |   11 ++++++++---
+ fs/nfsd/nfsfh.c                   |    6 ++++--
+ fs/nfsd/vfs.c                     |    2 +-
+ net/sunrpc/auth_gss/svcauth_gss.c |    2 +-
+ net/sunrpc/cache.c                |   11 +++++++----
+ net/sunrpc/svcauth_unix.c         |    1 +
+ 6 files changed, 22 insertions(+), 11 deletions(-)
 
-diff -puN fs/nfsd/nfs4proc.c~knfsd-nfsd4-dont-inline-nfsd4-compound-op-functions fs/nfsd/nfs4proc.c
---- a/fs/nfsd/nfs4proc.c~knfsd-nfsd4-dont-inline-nfsd4-compound-op-functions
-+++ a/fs/nfsd/nfs4proc.c
-@@ -33,13 +33,6 @@
-  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- * Note: some routines in this file are just trivial wrappers
-- * (e.g. nfsd4_lookup()) defined solely for the sake of consistent
-- * naming.  Since all such routines have been declared "inline",
-- * there shouldn't be any associated overhead.  At some point in
-- * the future, I might inline these "by hand" to clean up a
-- * little.
+diff -puN fs/nfsd/export.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
++++ a/fs/nfsd/export.c
+@@ -787,15 +787,20 @@ exp_get_by_name(svc_client *clp, struct 
+ 	key.ex_dentry = dentry;
+ 
+ 	exp = svc_export_lookup(&key);
+-	if (exp != NULL) 
+-		switch (cache_check(&svc_export_cache, &exp->h, reqp)) {
++	if (exp != NULL)  {
++		int err;
++
++		err = cache_check(&svc_export_cache, &exp->h, reqp);
++		switch (err) {
+ 		case 0: break;
+ 		case -EAGAIN:
+-			exp = ERR_PTR(-EAGAIN);
++		case -ETIMEDOUT:
++			exp = ERR_PTR(err);
+ 			break;
+ 		default:
+ 			exp = NULL;
+ 		}
++	}
+ 
+ 	return exp;
+ }
+diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
++++ a/fs/nfsd/nfsfh.c
+@@ -169,9 +169,11 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 			exp = exp_find(rqstp->rq_client, 0, tfh, &rqstp->rq_chandle);
+ 		}
+ 
+-		error = nfserr_dropit;
+-		if (IS_ERR(exp) && PTR_ERR(exp) == -EAGAIN)
++		if (IS_ERR(exp) && (PTR_ERR(exp) == -EAGAIN
++				|| PTR_ERR(exp) == -ETIMEDOUT)) {
++			error = nfserrno(PTR_ERR(exp));
+ 			goto out;
++		}
+ 
+ 		error = nfserr_stale; 
+ 		if (!exp || IS_ERR(exp))
+diff -puN fs/nfsd/vfs.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
++++ a/fs/nfsd/vfs.c
+@@ -99,7 +99,7 @@ static struct raparm_hbucket	raparm_hash
+ /* 
+  * Called from nfsd_lookup and encode_dirent. Check if we have crossed 
+  * a mount point.
+- * Returns -EAGAIN leaving *dpp and *expp unchanged, 
++ * Returns -EAGAIN or -ETIMEDOUT leaving *dpp and *expp unchanged,
+  *  or nfs_ok having possibly changed *dpp and *expp
   */
+ int
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -1080,7 +1080,7 @@ svcauth_gss_accept(struct svc_rqst *rqst
+ 		}
+ 		switch(cache_check(&rsi_cache, &rsip->h, &rqstp->rq_chandle)) {
+ 		case -EAGAIN:
+-			goto drop;
++		case -ETIMEDOUT:
+ 		case -ENOENT:
+ 			goto drop;
+ 		case 0:
+diff -puN net/sunrpc/cache.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral net/sunrpc/cache.c
+--- a/net/sunrpc/cache.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
++++ a/net/sunrpc/cache.c
+@@ -34,7 +34,7 @@
  
- #include <linux/param.h>
-@@ -161,7 +154,7 @@ do_open_fhandle(struct svc_rqst *rqstp, 
- }
+ #define	 RPCDBG_FACILITY RPCDBG_CACHE
  
+-static void cache_defer_req(struct cache_req *req, struct cache_head *item);
++static int cache_defer_req(struct cache_req *req, struct cache_head *item);
+ static void cache_revisit_request(struct cache_head *item);
  
--static inline __be32
-+static __be32
- nfsd4_open(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	   struct nfsd4_open *open)
- {
-@@ -264,7 +257,7 @@ out:
- /*
-  * filehandle-manipulating ops.
+ static void cache_init(struct cache_head *h)
+@@ -185,6 +185,7 @@ static int cache_make_upcall(struct cach
+  *
+  * Returns 0 if the cache_head can be used, or cache_puts it and returns
+  * -EAGAIN if upcall is pending,
++ * -ETIMEDOUT if upcall failed and should be retried,
+  * -ENOENT if cache entry was negative
   */
--static inline __be32
-+static __be32
- nfsd4_getfh(struct nfsd4_compound_state *cstate, struct svc_fh **getfh)
+ int cache_check(struct cache_detail *detail,
+@@ -236,7 +237,8 @@ int cache_check(struct cache_detail *det
+ 	}
+ 
+ 	if (rv == -EAGAIN)
+-		cache_defer_req(rqstp, h);
++		if (cache_defer_req(rqstp, h) != 0)
++			rv = -ETIMEDOUT;
+ 
+ 	if (rv)
+ 		cache_put(h, detail);
+@@ -523,14 +525,14 @@ static LIST_HEAD(cache_defer_list);
+ static struct list_head cache_defer_hash[DFR_HASHSIZE];
+ static int cache_defer_cnt;
+ 
+-static void cache_defer_req(struct cache_req *req, struct cache_head *item)
++static int cache_defer_req(struct cache_req *req, struct cache_head *item)
  {
- 	if (!cstate->current_fh.fh_dentry)
-@@ -274,7 +267,7 @@ nfsd4_getfh(struct nfsd4_compound_state 
- 	return nfs_ok;
+ 	struct cache_deferred_req *dreq;
+ 	int hash = DFR_HASH(item);
+ 
+ 	dreq = req->defer(req);
+ 	if (dreq == NULL)
+-		return;
++		return -ETIMEDOUT;
+ 
+ 	dreq->item = item;
+ 	dreq->recv_time = get_seconds();
+@@ -571,6 +573,7 @@ static void cache_defer_req(struct cache
+ 		/* must have just been validated... */
+ 		cache_revisit_request(item);
+ 	}
++	return 0;
  }
  
--static inline __be32
-+static __be32
- nfsd4_putfh(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	    struct nfsd4_putfh *putfh)
- {
-@@ -285,7 +278,7 @@ nfsd4_putfh(struct svc_rqst *rqstp, stru
- 	return fh_verify(rqstp, &cstate->current_fh, 0, MAY_NOP);
- }
- 
--static inline __be32
-+static __be32
- nfsd4_putrootfh(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate)
- {
- 	__be32 status;
-@@ -296,7 +289,7 @@ nfsd4_putrootfh(struct svc_rqst *rqstp, 
- 	return status;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_restorefh(struct nfsd4_compound_state *cstate)
- {
- 	if (!cstate->save_fh.fh_dentry)
-@@ -306,7 +299,7 @@ nfsd4_restorefh(struct nfsd4_compound_st
- 	return nfs_ok;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_savefh(struct nfsd4_compound_state *cstate)
- {
- 	if (!cstate->current_fh.fh_dentry)
-@@ -319,7 +312,7 @@ nfsd4_savefh(struct nfsd4_compound_state
- /*
-  * misc nfsv4 ops
-  */
--static inline __be32
-+static __be32
- nfsd4_access(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	     struct nfsd4_access *access)
- {
-@@ -331,7 +324,7 @@ nfsd4_access(struct svc_rqst *rqstp, str
- 			   &access->ac_supported);
- }
- 
--static inline __be32
-+static __be32
- nfsd4_commit(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	     struct nfsd4_commit *commit)
- {
-@@ -434,7 +427,7 @@ nfsd4_create(struct svc_rqst *rqstp, str
- 	return status;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_getattr(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	      struct nfsd4_getattr *getattr)
- {
-@@ -454,7 +447,7 @@ nfsd4_getattr(struct svc_rqst *rqstp, st
- 	return nfs_ok;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_link(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	   struct nfsd4_link *link)
- {
-@@ -488,7 +481,7 @@ nfsd4_lookupp(struct svc_rqst *rqstp, st
- 			   "..", 2, &cstate->current_fh);
- }
- 
--static inline __be32
-+static __be32
- nfsd4_lookup(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	     struct nfsd4_lookup *lookup)
- {
-@@ -497,7 +490,7 @@ nfsd4_lookup(struct svc_rqst *rqstp, str
- 			   &cstate->current_fh);
- }
- 
--static inline __be32
-+static __be32
- nfsd4_read(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	   struct nfsd4_read *read)
- {
-@@ -527,7 +520,7 @@ out:
- 	return status;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_readdir(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	      struct nfsd4_readdir *readdir)
- {
-@@ -551,7 +544,7 @@ nfsd4_readdir(struct svc_rqst *rqstp, st
- 	return nfs_ok;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_readlink(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	       struct nfsd4_readlink *readlink)
- {
-@@ -560,7 +553,7 @@ nfsd4_readlink(struct svc_rqst *rqstp, s
- 	return nfs_ok;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_remove(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	     struct nfsd4_remove *remove)
- {
-@@ -579,7 +572,7 @@ nfsd4_remove(struct svc_rqst *rqstp, str
- 	return status;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_rename(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	     struct nfsd4_rename *rename)
- {
-@@ -612,7 +605,7 @@ nfsd4_rename(struct svc_rqst *rqstp, str
- 	return status;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_setattr(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	      struct nfsd4_setattr *setattr)
- {
-@@ -639,7 +632,7 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
- 	return status;
- }
- 
--static inline __be32
-+static __be32
- nfsd4_write(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
- 	    struct nfsd4_write *write)
- {
+ static void cache_revisit_request(struct cache_head *item)
+diff -puN net/sunrpc/svcauth_unix.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral net/sunrpc/svcauth_unix.c
+--- a/net/sunrpc/svcauth_unix.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
++++ a/net/sunrpc/svcauth_unix.c
+@@ -435,6 +435,7 @@ svcauth_unix_set_client(struct svc_rqst 
+ 		default:
+ 			BUG();
+ 		case -EAGAIN:
++		case -ETIMEDOUT:
+ 			return SVC_DROP;
+ 		case -ENOENT:
+ 			return SVC_DENIED;
 _
 
 Patches currently in -mm which might be from bfields@fieldses.org are
