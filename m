@@ -1,77 +1,72 @@
 From: akpm@osdl.org
-Subject: + pa-risc-fix-bogus-warnings-from-modpost.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:13:17 -0800
-Message-ID: <200612090013.kB90DHfS010535@shell0.pdx.osdl.net>
+Subject: + document-how-to-decode-an-ioctl-number.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:13:55 -0800
+Message-ID: <200612090013.kB90Dtdf010546@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55910 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55946 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947519AbWLIANZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:13:25 -0500
+	id S1947527AbWLIAOH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:14:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthew@wil.cx, kyle@mcmartin.ca, sam@ravnborg.org
+Cc: 76306.1226@compuserve.com
 
 
 The patch titled
-     PA-RISC: Fix bogus warnings from modpost
+     Document how to decode an IOCTL number
 has been added to the -mm tree.  Its filename is
-     pa-risc-fix-bogus-warnings-from-modpost.patch
+     document-how-to-decode-an-ioctl-number.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PA-RISC: Fix bogus warnings from modpost
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: Document how to decode an IOCTL number
+From: Chuck Ebbert <76306.1226@compuserve.com>
 
-parisc and parisc64 seem to name sections a little differently from other
-targets.  parisc64 gives spurious warnings like:
+Document how to decode a binary IOCTL number.
 
-WARNING: drivers/net/dummy.o - Section mismatch: reference to .init.text:dummy_setup from .data.rel.ro between '.LC1' (at offset 0x0) and '.LC6'
-
-and parisc gives spurious warnings like:
-
-WARNING: drivers/net/dummy.o - Section mismatch: reference to .init.text:dummy_setup from .rodata.cst4 between '.LC1' (at offset 0x0) and '.LC6'
-
-Given the other comments in modpost.c, it seems that the best solution is
-to move rodata down to the 'match at start of name' section and add
-.data.rel.ro to the 'match entire name' section.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/mod/modpost.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ Documentation/ioctl/ioctl-decoding.txt |   24 +++++++++++++++++++++++
+ 1 files changed, 24 insertions(+)
 
-diff -puN scripts/mod/modpost.c~pa-risc-fix-bogus-warnings-from-modpost scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~pa-risc-fix-bogus-warnings-from-modpost
-+++ a/scripts/mod/modpost.c
-@@ -910,7 +910,7 @@ static int init_section_ref_ok(const cha
- 		".opd",   /* see comment [OPD] at exit_section_ref_ok() */
- 		".toc1",  /* used by ppc64 */
- 		".stab",
--		".rodata",
-+		".data.rel.ro", /* used by parisc64 */
- 		".parainstructions",
- 		".text.lock",
- 		"__bug_table", /* used by powerpc for BUG() */
-@@ -933,6 +933,7 @@ static int init_section_ref_ok(const cha
- 		".eh_frame",
- 		".debug",
- 		".parainstructions",
-+		".rodata",
- 		NULL
- 	};
- 	/* part of section name */
+diff -puN /dev/null Documentation/ioctl/ioctl-decoding.txt
+--- /dev/null
++++ a/Documentation/ioctl/ioctl-decoding.txt
+@@ -0,0 +1,24 @@
++To decode a hex IOCTL code:
++
++Most architecures use this generic format, but check
++include/ARCH/ioctl.h for specifics, e.g. powerpc
++uses 3 bits to encode read/write and 13 bits for size.
++
++ bits    meaning
++ 31-30	00 - no parameters: uses _IO macro
++	10 - read: _IOR
++	01 - write: _IOW
++	11 - read/write: _IOWR
++
++ 29-16	size of arguments
++
++ 15-8	ascii character supposedly
++	unique to each driver
++
++ 7-0	function #
++
++
++ So for example 0x82187201 is a read with arg length of 0x218,
++character 'r' function 1. Grepping the source reveals this is:
++
++#define VFAT_IOCTL_READDIR_BOTH         _IOR('r', 1, struct dirent [2])
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from 76306.1226@compuserve.com are
 
 origin.patch
-make-sure-nobodys-leaking-resources.patch
-pa-risc-fix-bogus-warnings-from-modpost.patch
+document-how-to-decode-an-ioctl-number.patch
 
