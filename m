@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:02:53 -0800
-Message-ID: <200612090002.kB902rW6010096@shell0.pdx.osdl.net>
+Subject: + md-assorted-md-and-raid1-one-liners.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:02:48 -0800
+Message-ID: <200612090002.kB902mMe010078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55040 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55030 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947555AbWLIAC5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:02:57 -0500
+	id S1947567AbWLIACw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:02:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,49 +15,81 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: allow mddevs to live a bit longer to avoid a loop with udev
+     md: assorted md and raid1 one-liners
 has been added to the -mm tree.  Its filename is
-     md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev.patch
+     md-assorted-md-and-raid1-one-liners.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: allow mddevs to live a bit longer to avoid a loop with udev
+Subject: md: assorted md and raid1 one-liners
 From: NeilBrown <neilb@suse.de>
 
-As md devices a automatically created on first open, and automatically
-destroyed on last close if they have no significant state, a loop can be
-caused with udev.
+Fix few bugs that meant that:
+  - superblocks weren't alway written at exactly the right time (this
+    could show up if the array was not written to - writting to the array
+    causes lots of superblock updates and so hides these errors).
 
-If you open/close an md device that will generate add and remove events to
-udev.  udev will open the device, notice nothing is there and close it again
-...  which generates another pair of add/remove events.  Ad infinitum.
+  - restarting device recovery after a clean shutdown (version-1 metadata
+    only) didn't work as intended (or at all).
 
-So: Change md to only destroy a device if an explicity MD_STOP was requested. 
-This means that md devices might hang around longer than you would like, but
-it is easy to get rid of them, and that could even be automated in user-space
-(e.g.  by mdadm --monitor).
+1/ Ensure superblock is updated when a new device is added.
+2/ Remove an inappropriate test on MD_RECOVERY_SYNC in md_do_sync.
+   The body of this if takes one of two branches depending on whether
+   MD_RECOVERY_SYNC is set, so testing it in the clause of the if
+   is wrong.
+3/ Flag superblock for updating after a resync/recovery finishes.
+4/ If we find the neeed to restart a recovery in the middle (version-1
+   metadata only) make sure a full recovery (not just as guided by
+   bitmaps) does get done.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/md.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/md.c    |    3 ++-
+ drivers/md/raid1.c |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev drivers/md/md.c
---- a/drivers/md/md.c~md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev
+diff -puN drivers/md/md.c~md-assorted-md-and-raid1-one-liners drivers/md/md.c
+--- a/drivers/md/md.c~md-assorted-md-and-raid1-one-liners
 +++ a/drivers/md/md.c
-@@ -292,7 +292,7 @@ static mddev_t * mddev_find(dev_t unit)
- 	atomic_set(&new->active, 1);
- 	spin_lock_init(&new->write_lock);
- 	init_waitqueue_head(&new->sb_wait);
--	new->dead = 1;
-+	new->dead = 0;
+@@ -3724,6 +3724,7 @@ static int add_new_disk(mddev_t * mddev,
+ 		if (err)
+ 			export_rdev(rdev);
  
- 	new->queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!new->queue) {
++		md_update_sb(mddev, 1);
+ 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+ 		md_wakeup_thread(mddev->thread);
+ 		return err;
+@@ -5275,7 +5276,6 @@ void md_do_sync(mddev_t *mddev)
+ 	mddev->pers->sync_request(mddev, max_sectors, &skipped, 1);
+ 
+ 	if (!test_bit(MD_RECOVERY_ERR, &mddev->recovery) &&
+-	    test_bit(MD_RECOVERY_SYNC, &mddev->recovery) &&
+ 	    !test_bit(MD_RECOVERY_CHECK, &mddev->recovery) &&
+ 	    mddev->curr_resync > 2) {
+ 		if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
+@@ -5299,6 +5299,7 @@ void md_do_sync(mddev_t *mddev)
+ 					rdev->recovery_offset = mddev->curr_resync;
+ 		}
+ 	}
++	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+ 
+  skip:
+ 	mddev->curr_resync = 0;
+diff -puN drivers/md/raid1.c~md-assorted-md-and-raid1-one-liners drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-assorted-md-and-raid1-one-liners
++++ a/drivers/md/raid1.c
+@@ -1951,6 +1951,7 @@ static int run(mddev_t *mddev)
+ 		    !test_bit(In_sync, &disk->rdev->flags)) {
+ 			disk->head_position = 0;
+ 			mddev->degraded++;
++			conf->fullsync = 1;
+ 		}
+ 	}
+ 	if (mddev->degraded == conf->raid_disks) {
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
