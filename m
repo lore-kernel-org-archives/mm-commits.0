@@ -1,115 +1,99 @@
 From: akpm@osdl.org
-Subject: - kcalloc-re-order-out-of-order-args-in-kcalloc-calls.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 14:44:39 -0800
-Message-ID: <200612092244.kB9MidIQ006356@shell0.pdx.osdl.net>
+Subject: + dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch added to -mm tree
+Date: Sat, 09 Dec 2006 14:45:14 -0800
+Message-ID: <200612092245.kB9MjEQt006393@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56370 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56387 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758983AbWLIWpE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 17:45:04 -0500
+	id S1758988AbWLIWp1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 17:45:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, James.Bottomley@steeleye.com, benh@kernel.crashing.org, greg@kroah.com, jeff@garzik.org, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ralf@linux-mips.org, kkeil@suse.de
 
 
 The patch titled
-     kcalloc: Re-order out-of-order args in kcalloc() calls.
-has been removed from the -mm tree.  Its filename was
-     kcalloc-re-order-out-of-order-args-in-kcalloc-calls.patch
+     Don't build some broken ISDN drivers on big endian MIPS
+has been added to the -mm tree.  Its filename is
+     dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch
 
-This patch was dropped because your larger patch trashed it
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: kcalloc: Re-order out-of-order args in kcalloc() calls.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Don't build some broken ISDN drivers on big endian MIPS
+From: Ralf Baechle <ralf@linux-mips.org>
 
-A small number of kcalloc() calls in the source have the first two
-arguments in the wrong order.  An aesthetic thing.
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/macintosh/smu.c             |    2 +-
- drivers/net/skge.c                  |    2 +-
- drivers/scsi/sym53c8xx_2/sym_hipd.c |    2 +-
- drivers/usb/misc/uss720.c           |    2 +-
- net/sunrpc/svc.c                    |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/isdn/hisax/Kconfig |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/macintosh/smu.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls drivers/macintosh/smu.c
---- a/drivers/macintosh/smu.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls
-+++ a/drivers/macintosh/smu.c
-@@ -945,7 +945,7 @@ static struct smu_sdbp_header *smu_creat
- 	 */
- 	tlen = sizeof(struct property) + len + 18;
+diff -puN drivers/isdn/hisax/Kconfig~dont-build-some-broken-isdn-drivers-on-big-endian-mips drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~dont-build-some-broken-isdn-drivers-on-big-endian-mips
++++ a/drivers/isdn/hisax/Kconfig
+@@ -110,7 +110,7 @@ config HISAX_16_3
  
--	prop = kcalloc(tlen, 1, GFP_KERNEL);
-+	prop = kcalloc(1, tlen, GFP_KERNEL);
- 	if (prop == NULL)
- 		return NULL;
- 	hdr = (struct smu_sdbp_header *)(prop + 1);
-diff -puN drivers/net/skge.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls drivers/net/skge.c
---- a/drivers/net/skge.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls
-+++ a/drivers/net/skge.c
-@@ -749,7 +749,7 @@ static int skge_ring_alloc(struct skge_r
- 	struct skge_element *e;
- 	int i;
+ config HISAX_TELESPCI
+ 	bool "Teles PCI"
+-	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
++	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+ 	help
+ 	  This enables HiSax support for the Teles PCI.
+ 	  See <file:Documentation/isdn/README.HiSax> on how to configure it.
+@@ -238,7 +238,7 @@ config HISAX_MIC
  
--	ring->start = kcalloc(sizeof(*e), ring->count, GFP_KERNEL);
-+	ring->start = kcalloc(ring->count, sizeof(*e), GFP_KERNEL);
- 	if (!ring->start)
- 		return -ENOMEM;
+ config HISAX_NETJET
+ 	bool "NETjet card"
+-	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
++	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+ 	help
+ 	  This enables HiSax support for the NetJet from Traverse
+ 	  Technologies.
+@@ -249,7 +249,7 @@ config HISAX_NETJET
  
-diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls drivers/scsi/sym53c8xx_2/sym_hipd.c
---- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls
-+++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
-@@ -5545,7 +5545,7 @@ int sym_hcb_attach(struct Scsi_Host *sho
- 	/*
- 	 *  Allocate the array of lists of CCBs hashed by DSA.
- 	 */
--	np->ccbh = kcalloc(sizeof(struct sym_ccb **), CCB_HASH_SIZE, GFP_KERNEL);
-+	np->ccbh = kcalloc(CCB_HASH_SIZE, sizeof(struct sym_ccb **), GFP_KERNEL);
- 	if (!np->ccbh)
- 		goto attach_failed;
+ config HISAX_NETJET_U
+ 	bool "NETspider U card"
+-	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
++	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+ 	help
+ 	  This enables HiSax support for the Netspider U interface ISDN card
+ 	  from Traverse Technologies.
+@@ -317,7 +317,7 @@ config HISAX_GAZEL
  
-diff -puN drivers/usb/misc/uss720.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls drivers/usb/misc/uss720.c
---- a/drivers/usb/misc/uss720.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls
-+++ a/drivers/usb/misc/uss720.c
-@@ -705,7 +705,7 @@ static int uss720_probe(struct usb_inter
- 	/*
- 	 * Allocate parport interface 
- 	 */
--	if (!(priv = kcalloc(sizeof(struct parport_uss720_private), 1, GFP_KERNEL))) {
-+	if (!(priv = kcalloc(1, sizeof(struct parport_uss720_private), GFP_KERNEL))) {
- 		usb_put_dev(usbdev);
- 		return -ENOMEM;
- 	}
-diff -puN net/sunrpc/svc.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~kcalloc-re-order-out-of-order-args-in-kcalloc-calls
-+++ a/net/sunrpc/svc.c
-@@ -308,7 +308,7 @@ __svc_create(struct svc_program *prog, u
+ config HISAX_HFC_PCI
+ 	bool "HFC PCI-Bus cards"
+-	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
++	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+ 	help
+ 	  This enables HiSax support for the HFC-S PCI 2BDS0 based cards.
  
- 	serv->sv_nrpools = npools;
- 	serv->sv_pools =
--		kcalloc(sizeof(struct svc_pool), serv->sv_nrpools,
-+		kcalloc(serv->sv_nrpools, sizeof(struct svc_pool),
- 			GFP_KERNEL);
- 	if (!serv->sv_pools) {
- 		kfree(serv);
+@@ -344,7 +344,7 @@ config HISAX_HFC_SX
+ 
+ config HISAX_ENTERNOW_PCI
+ 	bool "Formula-n enter:now PCI card"
+-	depends on HISAX_NETJET && PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
++	depends on HISAX_NETJET && PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+ 	help
+ 	  This enables HiSax support for the Formula-n enter:now PCI
+ 	  ISDN card.
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
-kcalloc-re-order-out-of-order-args-in-kcalloc-calls.patch
-schedc-correct-comment-for-this_rq_lock-routine.patch
+mips-dbg_io-stray-brackets-fix.patch
+git-mtd.patch
+git-net.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pci-legacy-resource-fix.patch
+pci-legacy-resource-fix-tidy.patch
+sysctl-remove-unused-context-param.patch
+dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch
 
