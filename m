@@ -1,89 +1,70 @@
 From: akpm@osdl.org
-Subject: + knfsd-fix-up-some-bit-rot-in-exp_export.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:09:54 -0800
-Message-ID: <200612090009.kB909s1N010441@shell0.pdx.osdl.net>
+Subject: + knfsd-nfsd4-handling-more-nfsd_cross_mnt-errors-in-nfsd4-readdir.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:09:30 -0800
+Message-ID: <200612090009.kB909Uln010390@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55624 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55566 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947589AbWLIAJ6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:09:58 -0500
+	id S1947572AbWLIAJo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:09:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: Fix up some bit-rot in exp_export
+     knfsd: nfsd4: handling more nfsd_cross_mnt errors in nfsd4 readdir
 has been added to the -mm tree.  Its filename is
-     knfsd-fix-up-some-bit-rot-in-exp_export.patch
+     knfsd-nfsd4-handling-more-nfsd_cross_mnt-errors-in-nfsd4-readdir.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: Fix up some bit-rot in exp_export
-From: NeilBrown <neilb@suse.de>
+Subject: knfsd: nfsd4: handling more nfsd_cross_mnt errors in nfsd4 readdir
+From: J.Bruce Fields <bfields@fieldses.org>
 
-The nfsservctl system call isn't used but recent nfs-utils releases for
-exporting filesystems, and consequently the code that is uses - exp_export -
-has suffered some bitrot.
+This patch on its own causes no change in behavior, since nfsd_cross_mnt()
+only returns -EAGAIN; but in the future I'd like it to also be able to return
+-ETIMEDOUT, so we may as well handle any possible error here.
 
-Particular:
-  - some newly added fields in 'struct svc_export' are being initialised
-    properly.
-  - the return value is now always -ENOMEM ...
-
-This patch fixes both these problems.
-
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/export.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+ fs/nfsd/nfs4xdr.c |   14 +++++---------
+ 1 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-fix-up-some-bit-rot-in-exp_export fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-fix-up-some-bit-rot-in-exp_export
-+++ a/fs/nfsd/export.c
-@@ -955,6 +955,8 @@ exp_export(struct nfsctl_export *nxp)
+diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-handling-more-nfsd_cross_mnt-errors-in-nfsd4-readdir fs/nfsd/nfs4xdr.c
+--- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-handling-more-nfsd_cross_mnt-errors-in-nfsd4-readdir
++++ a/fs/nfsd/nfs4xdr.c
+@@ -1845,15 +1845,11 @@ nfsd4_encode_dirent_fattr(struct nfsd4_r
  
- 	exp = exp_get_by_name(clp, nd.mnt, nd.dentry, NULL);
- 
-+	memset(&new, 0, sizeof(new));
+ 	exp_get(exp);
+ 	if (d_mountpoint(dentry)) {
+-		if (nfsd_cross_mnt(cd->rd_rqstp, &dentry, &exp)) {
+-		/*
+-		 * -EAGAIN is the only error returned from
+-		 * nfsd_cross_mnt() and it indicates that an
+-		 * up-call has  been initiated to fill in the export
+-		 * options on exp.  When the answer comes back,
+-		 * this call will be retried.
+-		 */
+-			nfserr = nfserr_dropit;
++		int err;
 +
- 	/* must make sure there won't be an ex_fsid clash */
- 	if ((nxp->ex_flags & NFSEXP_FSID) &&
- 	    (fsid_key = exp_get_fsid_key(clp, nxp->ex_dev)) &&
-@@ -985,6 +987,9 @@ exp_export(struct nfsctl_export *nxp)
++		err = nfsd_cross_mnt(cd->rd_rqstp, &dentry, &exp);
++		if (err) {
++			nfserr = nfserrno(err);
+ 			goto out_put;
+ 		}
  
- 	new.h.expiry_time = NEVER;
- 	new.h.flags = 0;
-+	new.ex_path = kstrdup(nxp->ex_path, GFP_KERNEL);
-+	if (! new.ex_path)
-+		goto finish;
- 	new.ex_client = clp;
- 	new.ex_mnt = nd.mnt;
- 	new.ex_dentry = nd.dentry;
-@@ -1005,10 +1010,11 @@ exp_export(struct nfsctl_export *nxp)
- 		/* failed to create at least one index */
- 		exp_do_unexport(exp);
- 		cache_flush();
--		err = -ENOMEM;
--	}
--
-+	} else
-+		err = 0;
- finish:
-+	if (new.ex_path)
-+		kfree(new.ex_path);
- 	if (exp)
- 		exp_put(exp);
- 	if (fsid_key && !IS_ERR(fsid_key))
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
 origin.patch
 knfsd-nfsd4-remove-a-dprink-from-nfsd4_lock.patch
@@ -102,25 +83,4 @@ knfsd-nfsd4-make-verify-and-nverify-wrappers.patch
 knfsd-nfsd4-reorganize-compound-ops.patch
 knfsd-nfsd4-simplify-migration-op-check.patch
 knfsd-nfsd4-simplify-filehandle-check.patch
-knfsd-dont-ignore-kstrdup-failure-in-rpc-caches.patch
-knfsd-fix-up-some-bit-rot-in-exp_export.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch
-md-define-raid5_mergeable_bvec.patch
-md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-error-handling-of-aligned-reads.patch
-md-enable-bypassing-cache-for-reads.patch
-md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch
-md-conditionalize-some-code.patch
-md-remove-some-old-ifdefed-out-code-from-raid5c.patch
-md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch
-md-assorted-md-and-raid1-one-liners.patch
-md-change-lifetime-rules-for-md-devices.patch
-md-close-a-race-between-destroying-and-recreating-an-md-device.patch
-md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
 
