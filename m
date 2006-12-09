@@ -1,115 +1,236 @@
 From: akpm@osdl.org
-Subject: + i386-fix-the-verify_quirk_intel_irqbalance.patch added to -mm tree
-Date: Fri, 08 Dec 2006 21:49:40 -0800
-Message-ID: <200612090549.kB95nebM017687@shell0.pdx.osdl.net>
+Subject: + revert-i386-fix-the-verify_quirk_intel_irqbalance.patch added to -mm tree
+Date: Fri, 08 Dec 2006 21:50:34 -0800
+Message-ID: <200612090550.kB95oYO2017701@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47625 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:47688 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759088AbWLIFtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 00:49:50 -0500
+	id S1759090AbWLIFur (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 00:50:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, ak@suse.de, mingo@elte.hu
+Cc: akpm@osdl.org, ak@suse.de, mingo@elte.hu, suresh.b.siddha@intel.com
 
 
 The patch titled
-     i386: Fix the verify_quirk_intel_irqbalance()
+     revert i386-fix-the-verify_quirk_intel_irqbalance
 has been added to the -mm tree.  Its filename is
-     i386-fix-the-verify_quirk_intel_irqbalance.patch
+     revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: Fix the verify_quirk_intel_irqbalance()
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: revert i386-fix-the-verify_quirk_intel_irqbalance
+From: Andrew Morton <akpm@osdl.org>
 
-Fix the verify_quirk_intel_irqbalance().  genapic checks should really
-happen only on affected versions of the E7520/E7320/E7525 based platforms.
+This is unneeded with Ingo's genapic rework.
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/quirks.c |   33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+ arch/i386/kernel/quirks.c |   33 ++++-----------------------------
+ 1 file changed, 4 insertions(+), 29 deletions(-)
 
-diff -puN arch/i386/kernel/quirks.c~i386-fix-the-verify_quirk_intel_irqbalance arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~i386-fix-the-verify_quirk_intel_irqbalance
+diff -puN arch/i386/kernel/quirks.c~revert-i386-fix-the-verify_quirk_intel_irqbalance arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~revert-i386-fix-the-verify_quirk_intel_irqbalance
 +++ a/arch/i386/kernel/quirks.c
-@@ -10,13 +10,38 @@
+@@ -10,38 +10,13 @@
  #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
  static void __devinit verify_quirk_intel_irqbalance(struct pci_dev *dev)
  {
-+	u8 config, rev;
-+	u32 word;
-+
-+	/* BIOS may enable hardware IRQ balancing for
-+	 * E7520/E7320/E7525(revision ID 0x9 and below)
-+	 * based platforms.
-+	 * For those platforms, make sure that the genapic is set to 'flat'
-+	 */
-+	pci_read_config_byte(dev, PCI_CLASS_REVISION, &rev);
-+	if (rev > 0x9)
-+		return;
-+
-+	/* enable access to config space*/
-+	pci_read_config_byte(dev, 0xf4, &config);
-+	pci_write_config_byte(dev, 0xf4, config|0x2);
-+
-+	/* read xTPR register */
-+	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
-+
-+	if (!(word & (1 << 13))) {
+-	u8 config, rev;
+-	u32 word;
+-
+-	/* BIOS may enable hardware IRQ balancing for
+-	 * E7520/E7320/E7525(revision ID 0x9 and below)
+-	 * based platforms.
+-	 * For those platforms, make sure that the genapic is set to 'flat'
+-	 */
+-	pci_read_config_byte(dev, PCI_CLASS_REVISION, &rev);
+-	if (rev > 0x9)
+-		return;
+-
+-	/* enable access to config space*/
+-	pci_read_config_byte(dev, 0xf4, &config);
+-	pci_write_config_byte(dev, 0xf4, config|0x2);
+-
+-	/* read xTPR register */
+-	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
+-
+-	if (!(word & (1 << 13))) {
  #ifdef CONFIG_X86_64
--	if (genapic !=  &apic_flat)
--		panic("APIC mode must be flat on this system\n");
-+		if (genapic !=  &apic_flat)
-+			panic("APIC mode must be flat on this system\n");
+-		if (genapic !=  &apic_flat)
+-			panic("APIC mode must be flat on this system\n");
++	if (genapic !=  &apic_flat)
++		panic("APIC mode must be flat on this system\n");
  #elif defined(CONFIG_X86_GENERICARCH)
--	if (genapic != &apic_default)
--		panic("APIC mode must be default(flat) on this system. Use apic=default\n");
-+		if (genapic != &apic_default)
-+			panic("APIC mode must be default(flat) on this system. Use apic=default\n");
+-		if (genapic != &apic_default)
+-			panic("APIC mode must be default(flat) on this system. Use apic=default\n");
++	if (genapic != &apic_default)
++		panic("APIC mode must be default(flat) on this system. Use apic=default\n");
  #endif
-+	}
-+
-+	/* put back the original value for config space*/
-+	if (!(config & 0x2))
-+		pci_write_config_byte(dev, 0xf4, config);
+-	}
+-
+-	/* put back the original value for config space*/
+-	if (!(config & 0x2))
+-		pci_write_config_byte(dev, 0xf4, config);
  }
  
  void __init quirk_intel_irqbalance(void)
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+netpoll-locking-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+git-s390.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-sched-domain-move-sched-group-allocations-to-percpu-area.patch
-sched-domain-increase-the-smt-busy-rebalance-interval.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+submit-checklist-update.patch
+workqueue-tweaks.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
 sched-add-option-to-serialize-load-balancing-fix.patch
-sched-decrease-number-of-load-balances.patch
-sched-remove-lb_stopbalance-counter.patch
-sched-optimize-activate_task-for-rt-task.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+x86-kmap_atomic-debugging.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+zeromap_pte_range-debug.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
