@@ -1,72 +1,97 @@
 From: akpm@osdl.org
-Subject: + document-how-to-decode-an-ioctl-number.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:13:55 -0800
-Message-ID: <200612090013.kB90Dtdf010546@shell0.pdx.osdl.net>
+Subject: + freezerh-uses-task_struct-fields.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:17:16 -0800
+Message-ID: <200612090017.kB90HHlN010663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55946 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56154 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947527AbWLIAOH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:14:07 -0500
+	id S1947557AbWLIARd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:17:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 76306.1226@compuserve.com
+Cc: randy.dunlap@oracle.com, shaggy@linux.vnet.ibm.com
 
 
 The patch titled
-     Document how to decode an IOCTL number
+     freezer.h uses task_struct fields
 has been added to the -mm tree.  Its filename is
-     document-how-to-decode-an-ioctl-number.patch
+     freezerh-uses-task_struct-fields.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Document how to decode an IOCTL number
-From: Chuck Ebbert <76306.1226@compuserve.com>
+Subject: freezer.h uses task_struct fields
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Document how to decode a binary IOCTL number.
+freezer.h uses task_struct fields so it should include sched.h.
 
-Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
+  CC [M]  fs/jfs/jfs_txnmgr.o
+In file included from fs/jfs/jfs_txnmgr.c:49:
+include/linux/freezer.h: In function 'frozen':
+include/linux/freezer.h:9: error: dereferencing pointer to incomplete type
+include/linux/freezer.h:9: error: 'PF_FROZEN' undeclared (first use in this function)
+include/linux/freezer.h:9: error: (Each undeclared identifier is reported only once
+include/linux/freezer.h:9: error: for each function it appears in.)
+include/linux/freezer.h: In function 'freezing':
+include/linux/freezer.h:17: error: dereferencing pointer to incomplete type
+include/linux/freezer.h:17: error: 'PF_FREEZE' undeclared (first use in this function)
+include/linux/freezer.h: In function 'freeze':
+include/linux/freezer.h:26: error: dereferencing pointer to incomplete type
+include/linux/freezer.h:26: error: 'PF_FREEZE' undeclared (first use in this function)
+include/linux/freezer.h: In function 'do_not_freeze':
+include/linux/freezer.h:34: error: dereferencing pointer to incomplete type
+include/linux/freezer.h:34: error: 'PF_FREEZE' undeclared (first use in this function)
+include/linux/freezer.h: In function 'thaw_process':
+include/linux/freezer.h:43: error: dereferencing pointer to incomplete type
+include/linux/freezer.h:43: error: 'PF_FROZEN' undeclared (first use in this function)
+include/linux/freezer.h:44: warning: implicit declaration of function 'wake_up_process'
+include/linux/freezer.h: In function 'frozen_process':
+include/linux/freezer.h:55: error: dereferencing pointer to incomplete type
+include/linux/freezer.h:55: error: dereferencing pointer to incomplete type
+include/linux/freezer.h:55: error: 'PF_FREEZE' undeclared (first use in this function)
+include/linux/freezer.h:55: error: 'PF_FROZEN' undeclared (first use in this function)
+fs/jfs/jfs_txnmgr.c: In function 'freezing':
+include/linux/freezer.h:18: warning: control reaches end of non-void function
+make[2]: *** [fs/jfs/jfs_txnmgr.o] Error 1
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/ioctl/ioctl-decoding.txt |   24 +++++++++++++++++++++++
- 1 files changed, 24 insertions(+)
+ include/linux/freezer.h |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN /dev/null Documentation/ioctl/ioctl-decoding.txt
---- /dev/null
-+++ a/Documentation/ioctl/ioctl-decoding.txt
-@@ -0,0 +1,24 @@
-+To decode a hex IOCTL code:
+diff -puN include/linux/freezer.h~freezerh-uses-task_struct-fields include/linux/freezer.h
+--- a/include/linux/freezer.h~freezerh-uses-task_struct-fields
++++ a/include/linux/freezer.h
+@@ -1,5 +1,7 @@
+ /* Freezer declarations */
+ 
++#include <linux/sched.h>
 +
-+Most architecures use this generic format, but check
-+include/ARCH/ioctl.h for specifics, e.g. powerpc
-+uses 3 bits to encode read/write and 13 bits for size.
-+
-+ bits    meaning
-+ 31-30	00 - no parameters: uses _IO macro
-+	10 - read: _IOR
-+	01 - write: _IOW
-+	11 - read/write: _IOWR
-+
-+ 29-16	size of arguments
-+
-+ 15-8	ascii character supposedly
-+	unique to each driver
-+
-+ 7-0	function #
-+
-+
-+ So for example 0x82187201 is a read with arg length of 0x218,
-+character 'r' function 1. Grepping the source reveals this is:
-+
-+#define VFAT_IOCTL_READDIR_BOTH         _IOR('r', 1, struct dirent [2])
+ #ifdef CONFIG_PM
+ /*
+  * Check if a process has been frozen
 _
 
-Patches currently in -mm which might be from 76306.1226@compuserve.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-document-how-to-decode-an-ioctl-number.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+mtd-esb2rom-uses-pci.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+codingstyle-updates.patch
+freezerh-uses-task_struct-fields.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+profile_likely-export-do_check_likely.patch
 
