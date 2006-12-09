@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + knfsd-nfsd-dont-drop-silently-on-upcall-deferral.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:09:32 -0800
-Message-ID: <200612090009.kB909WWb010393@shell0.pdx.osdl.net>
+Subject: + knfsd-nfsd4-clarify-units-of-compound_slack_space.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:09:24 -0800
+Message-ID: <200612090009.kB909OPM010380@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55584 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55537 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947571AbWLIAJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:09:48 -0500
+	id S1947561AbWLIAJi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:09:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,180 +15,77 @@ Cc: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd: don't drop silently on upcall deferral
+     knfsd: nfsd4: clarify units of COMPOUND_SLACK_SPACE
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd-dont-drop-silently-on-upcall-deferral.patch
+     knfsd-nfsd4-clarify-units-of-compound_slack_space.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd: don't drop silently on upcall deferral
+Subject: knfsd: nfsd4: clarify units of COMPOUND_SLACK_SPACE
 From: J.Bruce Fields <bfields@fieldses.org>
 
-To avoid tying up server threads when nfsd makes an upcall (to mountd, to get
-export options, to idmapd, for nfsv4 name<->id mapping, etc.), we temporarily
-"drop" the request and save enough information so that we can revisit it
-later.
+A comment here incorrectly states that "slack_space" is measured in words, not
+bytes.  Remove the comment, and adjust a variable name and a few comments to
+clarify the situation.
 
-Certain failures during the deferral process can cause us to really drop the
-request and never revisit it.
-
-This is often less than ideal, and is unacceptable in the NFSv4 case--rfc 3530
-forbids the server from dropping a request without also closing the
-connection.
-
-As a first step, we modify the deferral code to return -ETIMEDOUT (which is
-translated to nfserr_jukebox in the v3 and v4 cases, and remains a drop in the
-v2 case).
+This is pure cleanup; there should be no change in functionality.
 
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/export.c                  |   11 ++++++++---
- fs/nfsd/nfsfh.c                   |    6 ++++--
- fs/nfsd/vfs.c                     |    2 +-
- net/sunrpc/auth_gss/svcauth_gss.c |    2 +-
- net/sunrpc/cache.c                |   11 +++++++----
- net/sunrpc/svcauth_unix.c         |    1 +
- 6 files changed, 22 insertions(+), 11 deletions(-)
+ fs/nfsd/nfs4proc.c        |   10 +++++-----
+ include/linux/nfsd/nfsd.h |    4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
-+++ a/fs/nfsd/export.c
-@@ -787,15 +787,20 @@ exp_get_by_name(svc_client *clp, struct 
- 	key.ex_dentry = dentry;
+diff -puN fs/nfsd/nfs4proc.c~knfsd-nfsd4-clarify-units-of-compound_slack_space fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~knfsd-nfsd4-clarify-units-of-compound_slack_space
++++ a/fs/nfsd/nfs4proc.c
+@@ -740,7 +740,7 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ 	struct svc_fh	*current_fh = NULL;
+ 	struct svc_fh	*save_fh = NULL;
+ 	struct nfs4_stateowner *replay_owner = NULL;
+-	int		slack_space;    /* in words, not bytes! */
++	int		slack_bytes;
+ 	__be32		status;
  
- 	exp = svc_export_lookup(&key);
--	if (exp != NULL) 
--		switch (cache_check(&svc_export_cache, &exp->h, reqp)) {
-+	if (exp != NULL)  {
-+		int err;
-+
-+		err = cache_check(&svc_export_cache, &exp->h, reqp);
-+		switch (err) {
- 		case 0: break;
- 		case -EAGAIN:
--			exp = ERR_PTR(-EAGAIN);
-+		case -ETIMEDOUT:
-+			exp = ERR_PTR(err);
- 			break;
- 		default:
- 			exp = NULL;
+ 	status = nfserr_resource;
+@@ -790,10 +790,10 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ 		 * failed response to the next operation.  If we don't
+ 		 * have enough room, fail with ERR_RESOURCE.
+ 		 */
+-/* FIXME - is slack_space *really* words, or bytes??? - neilb */
+-		slack_space = (char *)resp->end - (char *)resp->p;
+-		if (slack_space < COMPOUND_SLACK_SPACE + COMPOUND_ERR_SLACK_SPACE) {
+-			BUG_ON(slack_space < COMPOUND_ERR_SLACK_SPACE);
++		slack_bytes = (char *)resp->end - (char *)resp->p;
++		if (slack_bytes < COMPOUND_SLACK_SPACE
++				+ COMPOUND_ERR_SLACK_SPACE) {
++			BUG_ON(slack_bytes < COMPOUND_ERR_SLACK_SPACE);
+ 			op->status = nfserr_resource;
+ 			goto encode_op;
  		}
-+	}
- 
- 	return exp;
- }
-diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
-+++ a/fs/nfsd/nfsfh.c
-@@ -169,9 +169,11 @@ fh_verify(struct svc_rqst *rqstp, struct
- 			exp = exp_find(rqstp->rq_client, 0, tfh, &rqstp->rq_chandle);
- 		}
- 
--		error = nfserr_dropit;
--		if (IS_ERR(exp) && PTR_ERR(exp) == -EAGAIN)
-+		if (IS_ERR(exp) && (PTR_ERR(exp) == -EAGAIN
-+				|| PTR_ERR(exp) == -ETIMEDOUT)) {
-+			error = nfserrno(PTR_ERR(exp));
- 			goto out;
-+		}
- 
- 		error = nfserr_stale; 
- 		if (!exp || IS_ERR(exp))
-diff -puN fs/nfsd/vfs.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
-+++ a/fs/nfsd/vfs.c
-@@ -99,7 +99,7 @@ static struct raparm_hbucket	raparm_hash
- /* 
-  * Called from nfsd_lookup and encode_dirent. Check if we have crossed 
-  * a mount point.
-- * Returns -EAGAIN leaving *dpp and *expp unchanged, 
-+ * Returns -EAGAIN or -ETIMEDOUT leaving *dpp and *expp unchanged,
-  *  or nfs_ok having possibly changed *dpp and *expp
-  */
- int
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -1080,7 +1080,7 @@ svcauth_gss_accept(struct svc_rqst *rqst
- 		}
- 		switch(cache_check(&rsi_cache, &rsip->h, &rqstp->rq_chandle)) {
- 		case -EAGAIN:
--			goto drop;
-+		case -ETIMEDOUT:
- 		case -ENOENT:
- 			goto drop;
- 		case 0:
-diff -puN net/sunrpc/cache.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
-+++ a/net/sunrpc/cache.c
-@@ -34,7 +34,7 @@
- 
- #define	 RPCDBG_FACILITY RPCDBG_CACHE
- 
--static void cache_defer_req(struct cache_req *req, struct cache_head *item);
-+static int cache_defer_req(struct cache_req *req, struct cache_head *item);
- static void cache_revisit_request(struct cache_head *item);
- 
- static void cache_init(struct cache_head *h)
-@@ -185,6 +185,7 @@ static int cache_make_upcall(struct cach
+diff -puN include/linux/nfsd/nfsd.h~knfsd-nfsd4-clarify-units-of-compound_slack_space include/linux/nfsd/nfsd.h
+--- a/include/linux/nfsd/nfsd.h~knfsd-nfsd4-clarify-units-of-compound_slack_space
++++ a/include/linux/nfsd/nfsd.h
+@@ -275,12 +275,12 @@ static inline int is_fsid(struct svc_fh 
+  * we might process an operation with side effects, and be unable to
+  * tell the client that the operation succeeded.
   *
-  * Returns 0 if the cache_head can be used, or cache_puts it and returns
-  * -EAGAIN if upcall is pending,
-+ * -ETIMEDOUT if upcall failed and should be retried,
-  * -ENOENT if cache entry was negative
-  */
- int cache_check(struct cache_detail *detail,
-@@ -236,7 +237,8 @@ int cache_check(struct cache_detail *det
- 	}
- 
- 	if (rv == -EAGAIN)
--		cache_defer_req(rqstp, h);
-+		if (cache_defer_req(rqstp, h) != 0)
-+			rv = -ETIMEDOUT;
- 
- 	if (rv)
- 		cache_put(h, detail);
-@@ -523,14 +525,14 @@ static LIST_HEAD(cache_defer_list);
- static struct list_head cache_defer_hash[DFR_HASHSIZE];
- static int cache_defer_cnt;
- 
--static void cache_defer_req(struct cache_req *req, struct cache_head *item)
-+static int cache_defer_req(struct cache_req *req, struct cache_head *item)
- {
- 	struct cache_deferred_req *dreq;
- 	int hash = DFR_HASH(item);
- 
- 	dreq = req->defer(req);
- 	if (dreq == NULL)
--		return;
-+		return -ETIMEDOUT;
- 
- 	dreq->item = item;
- 	dreq->recv_time = get_seconds();
-@@ -571,6 +573,7 @@ static void cache_defer_req(struct cache
- 		/* must have just been validated... */
- 		cache_revisit_request(item);
- 	}
-+	return 0;
- }
- 
- static void cache_revisit_request(struct cache_head *item)
-diff -puN net/sunrpc/svcauth_unix.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral net/sunrpc/svcauth_unix.c
---- a/net/sunrpc/svcauth_unix.c~knfsd-nfsd-dont-drop-silently-on-upcall-deferral
-+++ a/net/sunrpc/svcauth_unix.c
-@@ -435,6 +435,7 @@ svcauth_unix_set_client(struct svc_rqst 
- 		default:
- 			BUG();
- 		case -EAGAIN:
-+		case -ETIMEDOUT:
- 			return SVC_DROP;
- 		case -ENOENT:
- 			return SVC_DENIED;
+- * COMPOUND_SLACK_SPACE - this is the minimum amount of buffer space
++ * COMPOUND_SLACK_SPACE - this is the minimum bytes of buffer space
+  * needed to encode an "ordinary" _successful_ operation.  (GETATTR,
+  * READ, READDIR, and READLINK have their own buffer checks.)  if we
+  * fall below this level, we fail the next operation with NFS4ERR_RESOURCE.
+  *
+- * COMPOUND_ERR_SLACK_SPACE - this is the minimum amount of buffer space
++ * COMPOUND_ERR_SLACK_SPACE - this is the minimum bytes of buffer space
+  * needed to encode an operation which has failed with NFS4ERR_RESOURCE.
+  * care is taken to ensure that we never fall below this level for any
+  * reason.
 _
 
 Patches currently in -mm which might be from bfields@fieldses.org are
