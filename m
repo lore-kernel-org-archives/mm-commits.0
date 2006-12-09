@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + virtual-memmap-on-sparsemem-v3-ia64-support.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:30:45 -0800
-Message-ID: <200612090030.kB90UkNW011057@shell0.pdx.osdl.net>
+Subject: + virtual-memmap-on-sparsemem-v3-map-and-unmap.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:30:38 -0800
+Message-ID: <200612090030.kB90UcYL011048@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57146 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57316 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947590AbWLIAb1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:31:27 -0500
+	id S1760168AbWLIAec (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:34:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,21 +15,41 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, clameter@engr.sgi.com, hav
 
 
 The patch titled
-     virtual memmap on sparsemem: ia64 support
+     virtual memmap on sparsemem: map and unmap
 has been added to the -mm tree.  Its filename is
-     virtual-memmap-on-sparsemem-v3-ia64-support.patch
+     virtual-memmap-on-sparsemem-v3-map-and-unmap.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: virtual memmap on sparsemem: ia64 support
+Subject: virtual memmap on sparsemem: map and unmap
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ia64 support for sparsemem/vmem_map.
-* defines mem_map[] and set its value (by static way).
-* changes definitions of VMALLOC_START.
-* adds CONFIGS.
+When using SPARSEMEM, pfn_to_page()/page_to_pfn() accesses global big table of
+mem_section.  if SPARSEMEM_EXTREME, this is 2-level table lookup.
+
+If we can map mem_section->mem_map in (virtually) linear address, we can
+expect optimzed pfn <-> page translation.
+
+Virtual mem_map is not useful for 32bit archs.  This uses huge virtual address
+range.
+
+
+This patch:
+
+When we want to map pages into the kernel space by vmalloc()'s routine, we
+always need 'struct page' to do that.
+
+There are cases where there is no page struct to use (bootstrap, etc..).  This
+function is designed to help map any memory to anywhere, anytime.
+
+Users should manage their virtual/physical space by themselves.  Because it's
+complex and danger to manage virtual address space by each function's own
+code, it's better to use fixed address.
+
+Note: My first purpose is supporting virtual mem_map both at boot/hotplug
+      sharing the same logic.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -40,98 +60,268 @@ Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/Kconfig              |    8 ++++++++
- arch/ia64/kernel/vmlinux.lds.S |    4 ++++
- include/asm-ia64/pgtable.h     |   16 ++++++++++++----
- include/asm-ia64/sparsemem.h   |    9 +++++++++
- 4 files changed, 33 insertions(+), 4 deletions(-)
+ include/linux/vmalloc.h |   36 ++++++
+ mm/vmalloc.c            |  200 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 236 insertions(+)
 
-diff -puN arch/ia64/Kconfig~virtual-memmap-on-sparsemem-v3-ia64-support arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~virtual-memmap-on-sparsemem-v3-ia64-support
-+++ a/arch/ia64/Kconfig
-@@ -341,6 +341,14 @@ config ARCH_SPARSEMEM_ENABLE
- 	def_bool y
- 	depends on ARCH_DISCONTIGMEM_ENABLE
+diff -puN include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap
++++ a/include/linux/vmalloc.h
+@@ -3,6 +3,7 @@
  
-+config ARCH_SPARSEMEM_VMEMMAP
-+	def_bool y
-+	depends on ARCH_SPARSEMEM_ENABLE
-+
-+config ARCH_SPARSEMEM_VMEMMAP_STATIC
-+	def_bool y
-+	depends on SPARSEMEM_VMEMMAP
-+
- config ARCH_DISCONTIGMEM_DEFAULT
- 	def_bool y if (IA64_SGI_SN2 || IA64_GENERIC || IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB)
- 	depends on ARCH_DISCONTIGMEM_ENABLE
-diff -puN arch/ia64/kernel/vmlinux.lds.S~virtual-memmap-on-sparsemem-v3-ia64-support arch/ia64/kernel/vmlinux.lds.S
---- a/arch/ia64/kernel/vmlinux.lds.S~virtual-memmap-on-sparsemem-v3-ia64-support
-+++ a/arch/ia64/kernel/vmlinux.lds.S
-@@ -2,6 +2,7 @@
- #include <asm/cache.h>
- #include <asm/ptrace.h>
- #include <asm/system.h>
-+#include <asm/sparsemem.h>
- #include <asm/pgtable.h>
+ #include <linux/spinlock.h>
+ #include <asm/page.h>		/* pgprot_t */
++#include <asm/pgtable.h>	/* pud_t */
  
- #define LOAD_OFFSET	(KERNEL_START - KERNEL_TR_PAGE_SIZE)
-@@ -34,6 +35,9 @@ SECTIONS
+ struct vm_area_struct;
  
-   v = PAGE_OFFSET;	/* this symbol is here to make debugging easier... */
-   phys_start = _start - LOAD_OFFSET;
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+  mem_map = VIRTUAL_MEM_MAP_START;
-+#endif
+@@ -74,4 +75,39 @@ extern void unmap_vm_area(struct vm_stru
+ extern rwlock_t vmlist_lock;
+ extern struct vm_struct *vmlist;
  
-   code : { } :code
-   . = KERNEL_START;
-diff -puN include/asm-ia64/pgtable.h~virtual-memmap-on-sparsemem-v3-ia64-support include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~virtual-memmap-on-sparsemem-v3-ia64-support
-+++ a/include/asm-ia64/pgtable.h
-@@ -230,13 +230,21 @@ ia64_phys_addr_valid (unsigned long addr
- #define set_pte(ptep, pteval)	(*(ptep) = (pteval))
- #define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
++/*
++ * map kernel memory with callback routine. this function is designed
++ * for assisting special mappings in the kernel space, in other words,
++ * not managed by standard vmap calls.
++ * The caller has to be responsible to manage his own virtual address space.
++ *
++ * Bootstrap consideration:
++ * you can pass pud/pmd/pte alloc functions to map_generic_kernel().
++ * So you can use bootmem function or something to alloc page tables if
++ * necessary.
++ */
++
++struct gen_map_kern_ops {
++	/* must be defined */
++	int	(*k_pte_set)(pte_t *pte, unsigned long addr, void *data);
++	int	(*k_pte_clear)(pte_t *pte, unsigned long addr, void *data);
++	/* optional */
++	int 	(*k_pud_alloc)(pgd_t *pgd, unsigned long addr, void *data);
++	int 	(*k_pmd_alloc)(pud_t *pud, unsigned long addr, void *data);
++	int 	(*k_pte_alloc)(pmd_t *pmd, unsigned long addr, void *data);
++};
++
++/*
++ * call set_pte for specified address range.
++ */
++extern int map_generic_kernel(unsigned long addr, unsigned long size,
++			      struct gen_map_kern_ops *ops, void *data);
++/*
++ * call clear_pte() callback against all ptes found.
++ * pgtable itself is not freed.
++ */
++extern int unmap_generic_kernel(unsigned long addr, unsigned long size,
++				struct gen_map_kern_ops *ops, void *data);
++
++
+ #endif /* _LINUX_VMALLOC_H */
+diff -puN mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap mm/vmalloc.c
+--- a/mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap
++++ a/mm/vmalloc.c
+@@ -747,3 +747,203 @@ out_einval_locked:
+ }
+ EXPORT_SYMBOL(remap_vmalloc_range);
  
-+#if defined(CONFIG_SPARSEMEM_VMEMMAP)
-+#define VMALLOC_START	(VIRTUAL_MEM_MAP_END)
-+#define VMALLOC_END	(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
 +
-+#elif defined(CONFIG_VIRTUAL_MEM_MAP)
- #define VMALLOC_START		(RGN_BASE(RGN_GATE) + 0x200000000UL)
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--# define VMALLOC_END_INIT	(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
--# define VMALLOC_END		vmalloc_end
--  extern unsigned long vmalloc_end;
 +
-+#defineVMALLOC_END_INIT    (RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
-+#define VMALLOC_END		vmalloc_end
-+extern unsigned long vmalloc_end;
- #else
++/*
++ * Generic VM mapper for kernel routines.
++ * Can be used even in bootstrap (before memory is availabe) if callback
++ * func support it.
++ * for usual use, please use vmalloc/vfree/map_vm_ara/unmap_vm_area.
++ */
 +
-+#define VMALLOC_START		(RGN_BASE(RGN_GATE) + 0x200000000UL)
- # define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
++static int map_generic_pte_range(pmd_t *pmd, unsigned long addr,
++				 unsigned long end,
++				 struct gen_map_kern_ops *ops, void *data)
++{
++	pte_t *pte;
++	int ret = 0;
++	unsigned long next;
++	if (!pmd_present(*pmd)) {
++		if (ops->k_pte_alloc) {
++			ret = ops->k_pte_alloc(pmd, addr, data);
++			if (ret)
++				return ret;
++		} else {
++			pte = pte_alloc_kernel(pmd, addr);
++			if (!pte)
++				return -ENOMEM;
++		}
++	}
++	pte = pte_offset_kernel(pmd, addr);
 +
- #endif
- 
- /* fs/proc/kcore.c */
-diff -puN include/asm-ia64/sparsemem.h~virtual-memmap-on-sparsemem-v3-ia64-support include/asm-ia64/sparsemem.h
---- a/include/asm-ia64/sparsemem.h~virtual-memmap-on-sparsemem-v3-ia64-support
-+++ a/include/asm-ia64/sparsemem.h
-@@ -16,5 +16,14 @@
- #endif
- #endif
- 
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#define VIRTUAL_MEM_MAP_START	(RGN_BASE(RGN_GATE) + 0x200000000)
++	do {
++		WARN_ON(!pte_none(*pte));
++		BUG_ON(!ops->k_pte_set);
++		ret = ops->k_pte_set(pte, addr, data);
++		if (ret)
++			break;
++		next = addr + PAGE_SIZE;
++	} while (pte++, addr = next, addr != end);
++	return ret;
++}
 +
-+#ifndef __ASSEMBLY__
-+#define VIRTUAL_MEM_MAP_SIZE	((1UL << (MAX_PHYSMEM_BITS - PAGE_SHIFT)) * sizeof(struct page))
-+#define VIRTUAL_MEM_MAP_END	(VIRTUAL_MEM_MAP_START + VIRTUAL_MEM_MAP_SIZE)
-+#endif
-+#endif
++static int map_generic_pmd_range(pud_t *pud, unsigned long addr,
++				 unsigned long end,
++				 struct gen_map_kern_ops *ops, void *data)
++{
++	pmd_t *pmd;
++	unsigned long next;
++	int ret;
 +
- #endif /* CONFIG_SPARSEMEM */
- #endif /* _ASM_IA64_SPARSEMEM_H */
++	if (pud_none(*pud)) {
++		if (ops->k_pmd_alloc) {
++			ret = ops->k_pmd_alloc(pud, addr, data);
++			if (ret)
++				return ret;
++		} else {
++			pmd = pmd_alloc(&init_mm, pud, addr);
++			if (!pmd)
++				return -ENOMEM;
++		}
++	}
++	pmd = pmd_offset(pud, addr);
++	do {
++		next = pmd_addr_end(addr, end);
++		ret = map_generic_pte_range(pmd, addr, next, ops, data);
++		if (ret)
++			break;
++	} while (pmd++, addr = next, addr != end);
++	return ret;
++}
++
++static int map_generic_pud_range(pgd_t *pgd, unsigned long addr,
++				 unsigned long end,
++				 struct gen_map_kern_ops *ops, void *data)
++{
++	pud_t *pud;
++	unsigned long next;
++	int ret;
++	if (pgd_none(*pgd)) {
++		if (ops->k_pud_alloc) {
++			ret = ops->k_pud_alloc(pgd, addr, data);
++			if (ret)
++				return ret;
++		} else {
++			pud = pud_alloc(&init_mm, pgd, addr);
++			if (!pud)
++				return -ENOMEM;
++		}
++	}
++	pud = pud_offset(pgd, addr);
++	do {
++		next = pud_addr_end(addr, end);
++		ret = map_generic_pmd_range(pud, addr, next, ops, data);
++		if (ret)
++			break;
++
++	} while (pud++, addr = next, addr != end);
++	return ret;
++}
++
++int map_generic_kernel(unsigned long addr, unsigned long size,
++		       struct gen_map_kern_ops *ops, void *data)
++{
++	pgd_t *pgd;
++	unsigned long end = addr + size;
++	unsigned long next;
++	int ret;
++
++	do {
++		pgd = pgd_offset_k(addr);
++		next = pgd_addr_end(addr, end);
++		ret = map_generic_pud_range(pgd, addr, next, ops, data);
++		if (ret)
++			break;
++
++	} while (addr = next, addr != end);
++	flush_cache_vmap(addr, end);
++	return ret;
++}
++
++static int
++unmap_generic_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++			struct gen_map_kern_ops *ops, void *data)
++{
++	pte_t *pte;
++	int err = 0;
++	pte = pte_offset_kernel(pmd, addr);
++	do {
++		if (!pte_present(*pte))
++			continue;
++		err = ops->k_pte_clear(pte, addr, data);
++		if (err)
++			break;
++	} while (pte++, addr += PAGE_SIZE, addr != end);
++	return err;
++}
++
++static int
++unmap_generic_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
++			struct gen_map_kern_ops *ops, void *data)
++{
++	pmd_t *pmd;
++	unsigned long next;
++	int err = 0;
++
++	pmd = pmd_offset(pud, addr);
++
++	do {
++		next = pmd_addr_end(addr, end);
++		if (pmd_none_or_clear_bad(pmd))
++			continue;
++		err = unmap_generic_pte_range(pmd, addr, next, ops, data);
++		if (err)
++			break;
++	} while (pmd++, addr = next, addr != end);
++	return err;
++}
++
++static int
++unmap_generic_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
++			struct gen_map_kern_ops *ops, void *data)
++{
++	pud_t *pud;
++	unsigned long next;
++	int err = 0;
++
++	pud = pud_offset(pgd, addr);
++
++	do {
++		next = pud_addr_end(addr, end);
++		if (pud_none_or_clear_bad(pud))
++			continue;
++		err = unmap_generic_pmd_range(pud, addr, next, ops, data);
++		if (err)
++			break;
++	} while (pud++, addr = next, addr != end);
++	return err;
++}
++
++int unmap_generic_kernel(unsigned long addr, unsigned long size,
++			 struct gen_map_kern_ops *ops, void *data)
++{
++	unsigned long next, end;
++	pgd_t *pgd;
++	int err = 0;
++
++	end = addr + size;
++	flush_cache_vmap(addr, end);
++
++	pgd = pgd_offset_k(addr);
++
++	do {
++		next = pgd_addr_end(addr, end);
++		if (pgd_none_or_clear_bad(pgd))
++			continue;
++		err = unmap_generic_pud_range(pgd, addr, next, ops, data);
++		if (err)
++			break;
++	} while (pgd++, addr = next, addr != end);
++	flush_tlb_kernel_range((unsigned long)start_addr, end_addr);
++	return err;
++}
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
