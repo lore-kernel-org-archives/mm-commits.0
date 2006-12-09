@@ -1,224 +1,250 @@
 From: akpm@osdl.org
-Subject: + more-slabh-cleanups.patch added to -mm tree
-Date: Sat, 09 Dec 2006 14:47:17 -0800
-Message-ID: <200612092247.kB9MlHwg006438@shell0.pdx.osdl.net>
+Subject: + driver-for-silan-sc92031-netdev-fixes.patch added to -mm tree
+Date: Sat, 09 Dec 2006 14:48:16 -0800
+Message-ID: <200612092248.kB9MmGCq006465@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56488 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56530 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759064AbWLIWr3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 17:47:29 -0500
+	id S1759065AbWLIWsX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 17:48:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: cesarb@cesarb.net
 
 
 The patch titled
-     More slab.h cleanups
+     driver-for-silan-sc92031-netdev fixes
 has been added to the -mm tree.  Its filename is
-     more-slabh-cleanups.patch
+     driver-for-silan-sc92031-netdev-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: More slab.h cleanups
-From: Christoph Lameter <clameter@sgi.com>
+Subject: driver-for-silan-sc92031-netdev fixes
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-More cleanups for slab.h
+Andrew Morton escreveu:
+> On Fri, 08 Dec 2006 18:17:06 -0200
+> Cesar Eduardo Barros <cesarb@cesarb.net> wrote:
+>
+>> From: Cesar Eduardo Barros <cesarb@cesarb.net>
+>>
+>> +	} while(unlikely(cmpxchg(&priv->intr_status,
+>
+> You'll have the arm maintainer after you with a pointy stick.
+>
+> cmpxchg is only available on certain architectures.  It would be acceptable
+> to make this driver depend on X86 (or something).  Better to rewrite this
+> code so it doesn't use cmpxchg.
 
-1. Remove tabs from weird locations as suggested by Pekka
+Fixed.  As long as I make sure the interrupt and the tasklet never run at
+the same time, I do not need to protect intr_status against concurrent
+modification.
 
-2. Drop the check for NUMA and SLAB_DEBUG from the fallback section
-   as suggested by Pekka.
+Also fixed a potential bug where the tasklet could end up permanently
+disabled.
 
-3. Uses static inline for the fallback defs as also suggested by Pekka.
+It has received the same testing as the previous one, only for less time (I'm
+using it right now).
 
-4. Make kmem_ptr_valid take a const * argument.
-
-5. Separate the NUMA fallback definitions from the kmalloc_track fallback
-   definitions.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/slab.h |   44 ++++++++++++++++++++++-------------------
- mm/slab.c            |    2 -
- mm/slob.c            |    2 -
- 3 files changed, 26 insertions(+), 22 deletions(-)
+ drivers/net/sc92031.c |   74 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 54 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/slab.h~more-slabh-cleanups include/linux/slab.h
---- a/include/linux/slab.h~more-slabh-cleanups
-+++ a/include/linux/slab.h
-@@ -20,11 +20,11 @@ typedef struct kmem_cache kmem_cache_t _
-  * Flags to pass to kmem_cache_create().
-  * The ones marked DEBUG are only valid if CONFIG_SLAB_DEBUG is set.
+diff -puN drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fixes drivers/net/sc92031.c
+--- a/drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fixes
++++ a/drivers/net/sc92031.c
+@@ -34,7 +34,7 @@
+ 
+ #define SC92031_NAME "sc92031"
+ #define SC92031_DESCRIPTION "Silan SC92031 PCI Fast Ethernet Adapter driver"
+-#define SC92031_VERSION "2.0b"
++#define SC92031_VERSION "2.0c"
+ 
+ /* BAR 0 is MMIO, BAR 1 is PIO */
+ #ifndef SC92031_USE_BAR
+@@ -261,6 +261,12 @@ enum PMConfigBits {
+  * Use mmiowb() before unlocking if the hardware was written to.
   */
--#define	SLAB_DEBUG_FREE		0x00000100UL	/* DEBUG: Perform (expensive) checks on free */
--#define	SLAB_DEBUG_INITIAL	0x00000200UL	/* DEBUG: Call constructor (as verifier) */
--#define	SLAB_RED_ZONE		0x00000400UL	/* DEBUG: Red zone objs in a cache */
--#define	SLAB_POISON		0x00000800UL	/* DEBUG: Poison objects */
--#define	SLAB_HWCACHE_ALIGN	0x00002000UL	/* Align objs on cache lines */
-+#define SLAB_DEBUG_FREE		0x00000100UL	/* DEBUG: Perform (expensive) checks on free */
-+#define SLAB_DEBUG_INITIAL	0x00000200UL	/* DEBUG: Call constructor (as verifier) */
-+#define SLAB_RED_ZONE		0x00000400UL	/* DEBUG: Red zone objs in a cache */
-+#define SLAB_POISON		0x00000800UL	/* DEBUG: Poison objects */
-+#define SLAB_HWCACHE_ALIGN	0x00002000UL	/* Align objs on cache lines */
- #define SLAB_CACHE_DMA		0x00004000UL	/* Use GFP_DMA memory */
- #define SLAB_MUST_HWCACHE_ALIGN	0x00008000UL	/* Force alignment even if debuggin is active */
- #define SLAB_STORE_USER		0x00010000UL	/* DEBUG: Store the last owner for bug hunting */
-@@ -34,9 +34,9 @@ typedef struct kmem_cache kmem_cache_t _
- #define SLAB_MEM_SPREAD		0x00100000UL	/* Spread some memory over cpuset */
  
- /* Flags passed to a constructor functions */
--#define	SLAB_CTOR_CONSTRUCTOR	0x001UL		/* If not set, then deconstructor */
-+#define SLAB_CTOR_CONSTRUCTOR	0x001UL		/* If not set, then deconstructor */
- #define SLAB_CTOR_ATOMIC	0x002UL		/* Tell constructor it can't sleep */
--#define	SLAB_CTOR_VERIFY	0x004UL		/* Tell constructor it's a verify call */
-+#define SLAB_CTOR_VERIFY	0x004UL		/* Tell constructor it's a verify call */
- 
- /*
-  * struct kmem_cache related prototypes
-@@ -55,7 +55,7 @@ void *kmem_cache_zalloc(struct kmem_cach
- void kmem_cache_free(struct kmem_cache *, void *);
- unsigned int kmem_cache_size(struct kmem_cache *);
- const char *kmem_cache_name(struct kmem_cache *);
--int kmem_ptr_validate(struct kmem_cache *cachep, void *ptr);
-+int kmem_ptr_validate(struct kmem_cache *cachep, const void *ptr);
- 
- #ifdef CONFIG_NUMA
- extern void *kmem_cache_alloc_node(struct kmem_cache *, gfp_t flags, int node);
-@@ -93,19 +93,15 @@ static inline void *kcalloc(size_t n, si
-  * ways to convert kmalloc() calls to kmem_cache_alloc() invocations by selecting
-  * the appropriate general cache at compile time.
-  */
++/* Locking rules for the interrupt:
++ * - the interrupt and the tasklet never run at the same time
++ * - neither run between sc92031_disable_interrupts and
++ *   sc92031_enable_interrupt
++ */
 +
- #ifdef CONFIG_SLAB
- #include <linux/slab_def.h>
- #else
--
- /*
-  * Fallback definitions for an allocator not wanting to provide
-  * its own optimized kmalloc definitions (like SLOB).
-  */
+ struct sc92031_priv {
+ 	spinlock_t		lock;
+ 	/* iomap.h cookie */
+@@ -288,6 +294,7 @@ struct sc92031_priv {
  
--#if defined(CONFIG_NUMA) || defined(CONFIG_DEBUG_SLAB)
--#error "SLAB fallback definitions not usable for NUMA or Slab debug"
--#endif
--
- /**
-  * kmalloc - allocate memory
-  * @size: how many bytes of memory are required.
-@@ -151,7 +147,7 @@ static inline void *kcalloc(size_t n, si
-  *
-  * %__GFP_REPEAT - If allocation fails initially, try once more before failing.
-  */
--void *kmalloc(size_t size, gfp_t flags)
-+static inline void *kmalloc(size_t size, gfp_t flags)
- {
- 	return __kmalloc(size, flags);
- }
-@@ -161,12 +157,24 @@ void *kmalloc(size_t size, gfp_t flags)
-  * @size: how many bytes of memory are required.
-  * @flags: the type of memory to allocate (see kmalloc).
-  */
--void *kzalloc(size_t size, gfp_t flags)
-+static inline void *kzalloc(size_t size, gfp_t flags)
- {
- 	return __kzalloc(size, flags);
- }
- #endif
+ 	/* copies of some hardware registers */
+ 	u32			intr_status;
++	atomic_t		intr_mask;
+ 	u32			rx_config;
+ 	u32			tx_config;
+ 	u32			pm_config;
+@@ -304,6 +311,13 @@ struct sc92031_priv {
+ 	struct net_device_stats	stats;
+ };
  
-+#ifndef CONFIG_NUMA
-+static inline void *kmalloc_node(size_t size, gfp_t flags, int node)
++/* I don't know which registers can be safely read; however, I can guess
++ * MAC0 is one of them. */
++static inline void _sc92031_dummy_read(void __iomem *port_base)
 +{
-+	return kmalloc(size, flags);
++	ioread32(port_base + MAC0);
 +}
 +
-+static inline void *__kmalloc_node(size_t size, gfp_t flags, int node)
-+{
-+	return __kmalloc(size, flags);
-+}
-+#endif /* !CONFIG_NUMA */
+ static u32 _sc92031_mii_wait(void __iomem *port_base)
+ {
+ 	u32 mii_status;
+@@ -348,12 +362,18 @@ static void sc92031_disable_interrupts(s
+ 	struct sc92031_priv *priv = netdev_priv(dev);
+ 	void __iomem *port_base = priv->port_base;
+ 
+-	tasklet_disable(&priv->tasklet);
++	/* tell the tasklet/interrupt not to enable interrupts */
++	atomic_set(&priv->intr_mask, 0);
++	wmb();
+ 
++	/* stop interrupts */
+ 	iowrite32(0, port_base + IntrMask);
++	_sc92031_dummy_read(port_base);
+ 	mmiowb();
+ 
++	/* wait for any concurrent interrupt/tasklet to finish */
+ 	synchronize_irq(dev->irq);
++	tasklet_disable(&priv->tasklet);
+ }
+ 
+ static void sc92031_enable_interrupts(struct net_device *dev)
+@@ -363,6 +383,9 @@ static void sc92031_enable_interrupts(st
+ 
+ 	tasklet_enable(&priv->tasklet);
+ 
++	atomic_set(&priv->intr_mask, IntrBits);
++	wmb();
 +
- /*
-  * kmalloc_track_caller is a special version of kmalloc that records the
-  * calling function of the routine calling it for slab leak tracking instead
-@@ -208,12 +216,8 @@ extern void *__kmalloc_node_track_caller
- #define kmalloc_node_track_caller(size, flags, node) \
- 	kmalloc_track_caller(size, flags)
- 
--static inline void *kmalloc_node(size_t size, gfp_t flags, int node)
--{
--	return kmalloc(size, flags);
--}
-+#endif /* DEBUG_SLAB */
- 
--#endif /* !CONFIG_NUMA */
- #endif	/* __KERNEL__ */
- #endif	/* _LINUX_SLAB_H */
- 
-diff -puN mm/slab.c~more-slabh-cleanups mm/slab.c
---- a/mm/slab.c~more-slabh-cleanups
-+++ a/mm/slab.c
-@@ -3534,7 +3534,7 @@ EXPORT_SYMBOL(kmem_cache_zalloc);
-  *
-  * Currently only used for dentry validation.
-  */
--int fastcall kmem_ptr_validate(struct kmem_cache *cachep, void *ptr)
-+int fastcall kmem_ptr_validate(struct kmem_cache *cachep, const void *ptr)
- {
- 	unsigned long addr = (unsigned long)ptr;
- 	unsigned long min_addr = PAGE_OFFSET;
-diff -puN mm/slob.c~more-slabh-cleanups mm/slob.c
---- a/mm/slob.c~more-slabh-cleanups
-+++ a/mm/slob.c
-@@ -334,7 +334,7 @@ int kmem_cache_shrink(struct kmem_cache 
+ 	iowrite32(IntrBits, port_base + IntrMask);
+ 	mmiowb();
  }
- EXPORT_SYMBOL(kmem_cache_shrink);
+@@ -608,6 +631,7 @@ static void _sc92031_reset(struct net_de
  
--int kmem_ptr_validate(struct kmem_cache *a, void *b)
-+int kmem_ptr_validate(struct kmem_cache *a, const void *b)
- {
- 	return 0;
+ 	/* clear old register values */
+ 	priv->intr_status = 0;
++	atomic_set(&priv->intr_mask, 0);
+ 	priv->rx_config = 0;
+ 	priv->tx_config = 0;
+ 	priv->mc_flags = 0;
+@@ -824,9 +848,9 @@ static void sc92031_tasklet(unsigned lon
+ 	struct net_device *dev = (struct net_device *)data;
+ 	struct sc92031_priv *priv = netdev_priv(dev);
+ 	void __iomem *port_base = priv->port_base;
+-	u32 intr_status;
++	u32 intr_status, intr_mask;
+ 
+-	intr_status = xchg(&priv->intr_status, 0);
++	intr_status = priv->intr_status;
+ 
+ 	spin_lock(&priv->lock);
+ 
+@@ -851,7 +875,10 @@ static void sc92031_tasklet(unsigned lon
+ 		_sc92031_link_tasklet(dev);
+ 
+ out:
+-	iowrite32(IntrBits, port_base + IntrMask);
++	intr_mask = atomic_read(&priv->intr_mask);
++	rmb();
++
++	iowrite32(intr_mask, port_base + IntrMask);
+ 	mmiowb();
+ 
+ 	spin_unlock(&priv->lock);
+@@ -862,29 +889,33 @@ static irqreturn_t sc92031_interrupt(int
+ 	struct net_device *dev = dev_id;
+ 	struct sc92031_priv *priv = netdev_priv(dev);
+ 	void __iomem *port_base = priv->port_base;
+-	u32 intr_status, old_intr_status, new_intr_status;
++	u32 intr_status, intr_mask;
++
++	/* mask interrupts before clearing IntrStatus */
++	iowrite32(0, port_base + IntrMask);
++	_sc92031_dummy_read(port_base);
+ 
+ 	intr_status = ioread32(port_base + IntrStatus);
+ 	if (unlikely(intr_status == 0xffffffff))
+-		return IRQ_NONE;
++		return IRQ_NONE;	// hardware has gone missing
+ 
+ 	intr_status &= IntrBits;
+ 	if (!intr_status)
+-		return IRQ_NONE;
+-
+-	do {
+-		old_intr_status = priv->intr_status;
+-		new_intr_status = old_intr_status | intr_status;
+-	} while(unlikely(cmpxchg(&priv->intr_status,
+-					old_intr_status, new_intr_status)
+-			!= old_intr_status));
+-
+-	iowrite32(0, port_base + IntrMask);
+-	mmiowb();
++		goto out_none;
+ 
++	priv->intr_status = intr_status;
+ 	tasklet_schedule(&priv->tasklet);
+ 
+ 	return IRQ_HANDLED;
++
++out_none:
++	intr_mask = atomic_read(&priv->intr_mask);
++	rmb();
++
++	iowrite32(intr_mask, port_base + IntrMask);
++	mmiowb();
++
++	return IRQ_NONE;
  }
+ 
+ static struct net_device_stats *sc92031_get_stats(struct net_device *dev)
+@@ -1007,7 +1038,7 @@ static int sc92031_open(struct net_devic
+ 
+ 	priv->pm_config = 0;
+ 
+-	sc92031_disable_interrupts(dev);
++	/* Interrupts already disabled by sc92031_stop or sc92031_probe */
+ 	spin_lock(&priv->lock);
+ 
+ 	_sc92031_reset(dev);
+@@ -1442,6 +1473,9 @@ static int __devinit sc92031_probe(struc
+ 	priv->port_base = port_base;
+ 	priv->pdev = pdev;
+ 	tasklet_init(&priv->tasklet, sc92031_tasklet, (unsigned long)dev);
++	/* Fudge tasklet count so the call to sc92031_enable_interrupts at
++	 * sc92031_open will work correctly */
++	tasklet_disable_nosync(&priv->tasklet);
+ 
+ 	/* PCI PM Wakeup */
+ 	iowrite32((~PM_LongWF & ~PM_LWPTN) | PM_Enable, port_base + PMConfig);
+@@ -1527,7 +1561,7 @@ static int sc92031_resume(struct pci_dev
+ 	if (!netif_running(dev))
+ 		goto out;
+ 
+-	sc92031_disable_interrupts(dev);
++	/* Interrupts already disabled by sc92031_suspend */
+ 	spin_lock(&priv->lock);
+ 
+ 	_sc92031_reset(dev);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from cesarb@cesarb.net are
 
-origin.patch
-cleanup-slab-headers--api-to-allow-easy-addition-of-new-slab.patch
-more-slabh-cleanups.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
-optional-zone_dma-for-ia64.patch
-remove-zone_dma-remains-from-parisc.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-set-config_zone_dma-for-arches-with-generic_isa_dma.patch
-zoneid-fix-up-calculations-for-zoneid_pgshift.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
-sched-domain-move-sched-group-allocations-to-percpu-area.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
+driver-for-silan-sc92031-netdev.patch
+driver-for-silan-sc92031-netdev-fixes.patch
 
