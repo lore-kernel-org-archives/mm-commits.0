@@ -1,69 +1,115 @@
 From: akpm@osdl.org
-Subject: + workstruct-fix-ieee80211-softmac-compile-problem.patch added to -mm tree
-Date: Fri, 08 Dec 2006 20:49:54 -0800
-Message-ID: <200612090449.kB94nskk016633@shell0.pdx.osdl.net>
+Subject: + i386-fix-the-verify_quirk_intel_irqbalance.patch added to -mm tree
+Date: Fri, 08 Dec 2006 21:49:40 -0800
+Message-ID: <200612090549.kB95nebM017687@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44891 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:47625 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758826AbWLIEuV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 23:50:21 -0500
+	id S1759088AbWLIFtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 00:49:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, linville@tuxdriver.com
+Cc: suresh.b.siddha@intel.com, ak@suse.de, mingo@elte.hu
 
 
 The patch titled
-     workstruct: fix ieee80211-softmac compile problem
+     i386: Fix the verify_quirk_intel_irqbalance()
 has been added to the -mm tree.  Its filename is
-     workstruct-fix-ieee80211-softmac-compile-problem.patch
+     i386-fix-the-verify_quirk_intel_irqbalance.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workstruct: fix ieee80211-softmac compile problem
-From: David Howells <dhowells@redhat.com>
+Subject: i386: Fix the verify_quirk_intel_irqbalance()
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
-Fix ieee80211-softmac compile problem where it's using schedule_work() on a
-delayed_work struct.
+Fix the verify_quirk_intel_irqbalance().  genapic checks should really
+happen only on affected versions of the E7520/E7320/E7525 based platforms.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/ieee80211/softmac/ieee80211softmac_assoc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/quirks.c |   33 +++++++++++++++++++++++++++++----
+ 1 file changed, 29 insertions(+), 4 deletions(-)
 
-diff -puN net/ieee80211/softmac/ieee80211softmac_assoc.c~workstruct-fix-ieee80211-softmac-compile-problem net/ieee80211/softmac/ieee80211softmac_assoc.c
---- a/net/ieee80211/softmac/ieee80211softmac_assoc.c~workstruct-fix-ieee80211-softmac-compile-problem
-+++ a/net/ieee80211/softmac/ieee80211softmac_assoc.c
-@@ -438,7 +438,7 @@ ieee80211softmac_try_reassoc(struct ieee
- 
- 	spin_lock_irqsave(&mac->lock, flags);
- 	mac->associnfo.associating = 1;
--	schedule_work(&mac->associnfo.work);
-+	schedule_delayed_work(&mac->associnfo.work, 0);
- 	spin_unlock_irqrestore(&mac->lock, flags);
+diff -puN arch/i386/kernel/quirks.c~i386-fix-the-verify_quirk_intel_irqbalance arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~i386-fix-the-verify_quirk_intel_irqbalance
++++ a/arch/i386/kernel/quirks.c
+@@ -10,13 +10,38 @@
+ #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
+ static void __devinit verify_quirk_intel_irqbalance(struct pci_dev *dev)
+ {
++	u8 config, rev;
++	u32 word;
++
++	/* BIOS may enable hardware IRQ balancing for
++	 * E7520/E7320/E7525(revision ID 0x9 and below)
++	 * based platforms.
++	 * For those platforms, make sure that the genapic is set to 'flat'
++	 */
++	pci_read_config_byte(dev, PCI_CLASS_REVISION, &rev);
++	if (rev > 0x9)
++		return;
++
++	/* enable access to config space*/
++	pci_read_config_byte(dev, 0xf4, &config);
++	pci_write_config_byte(dev, 0xf4, config|0x2);
++
++	/* read xTPR register */
++	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
++
++	if (!(word & (1 << 13))) {
+ #ifdef CONFIG_X86_64
+-	if (genapic !=  &apic_flat)
+-		panic("APIC mode must be flat on this system\n");
++		if (genapic !=  &apic_flat)
++			panic("APIC mode must be flat on this system\n");
+ #elif defined(CONFIG_X86_GENERICARCH)
+-	if (genapic != &apic_default)
+-		panic("APIC mode must be default(flat) on this system. Use apic=default\n");
++		if (genapic != &apic_default)
++			panic("APIC mode must be default(flat) on this system. Use apic=default\n");
+ #endif
++	}
++
++	/* put back the original value for config space*/
++	if (!(config & 0x2))
++		pci_write_config_byte(dev, 0xf4, config);
  }
  
+ void __init quirk_intel_irqbalance(void)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
 origin.patch
-workstruct-fix-ieee80211-softmac-compile-problem.patch
-alsa-workqueue-fixes.patch
-nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch
-git-s390.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-ecryptfs-public-key-transport-mechanism.patch
-ecryptfs-public-key-packet-management.patch
-workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-reiser4-get_sb_dev-fix.patch
-mutex-subsystem-synchro-test-module.patch
+i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+sched-domain-move-sched-group-allocations-to-percpu-area.patch
+sched-domain-increase-the-smt-busy-rebalance-interval.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+sched-decrease-number-of-load-balances.patch
+sched-remove-lb_stopbalance-counter.patch
+sched-optimize-activate_task-for-rt-task.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
 
