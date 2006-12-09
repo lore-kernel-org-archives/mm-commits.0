@@ -1,87 +1,49 @@
 From: akpm@osdl.org
-Subject: + dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch added to -mm tree
-Date: Sat, 09 Dec 2006 14:45:14 -0800
-Message-ID: <200612092245.kB9MjEQt006393@shell0.pdx.osdl.net>
+Subject: + ignore-generated-file-pca200e_ecdbin2.patch added to -mm tree
+Date: Sat, 09 Dec 2006 14:45:58 -0800
+Message-ID: <200612092245.kB9MjwR1006401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56387 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56440 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758988AbWLIWp1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 17:45:27 -0500
+	id S1759001AbWLIWqT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 17:46:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, kkeil@suse.de
+Cc: ralf@linux-mips.org, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     Don't build some broken ISDN drivers on big endian MIPS
+     atm: ignore generated file pca200e_ecd.bin2
 has been added to the -mm tree.  Its filename is
-     dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch
+     ignore-generated-file-pca200e_ecdbin2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Don't build some broken ISDN drivers on big endian MIPS
+Subject: atm: ignore generated file pca200e_ecd.bin2
 From: Ralf Baechle <ralf@linux-mips.org>
 
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/isdn/hisax/Kconfig |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/atm/.gitignore |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hisax/Kconfig~dont-build-some-broken-isdn-drivers-on-big-endian-mips drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~dont-build-some-broken-isdn-drivers-on-big-endian-mips
-+++ a/drivers/isdn/hisax/Kconfig
-@@ -110,7 +110,7 @@ config HISAX_16_3
- 
- config HISAX_TELESPCI
- 	bool "Teles PCI"
--	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
-+	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
- 	help
- 	  This enables HiSax support for the Teles PCI.
- 	  See <file:Documentation/isdn/README.HiSax> on how to configure it.
-@@ -238,7 +238,7 @@ config HISAX_MIC
- 
- config HISAX_NETJET
- 	bool "NETjet card"
--	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
-+	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
- 	help
- 	  This enables HiSax support for the NetJet from Traverse
- 	  Technologies.
-@@ -249,7 +249,7 @@ config HISAX_NETJET
- 
- config HISAX_NETJET_U
- 	bool "NETspider U card"
--	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
-+	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
- 	help
- 	  This enables HiSax support for the Netspider U interface ISDN card
- 	  from Traverse Technologies.
-@@ -317,7 +317,7 @@ config HISAX_GAZEL
- 
- config HISAX_HFC_PCI
- 	bool "HFC PCI-Bus cards"
--	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
-+	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
- 	help
- 	  This enables HiSax support for the HFC-S PCI 2BDS0 based cards.
- 
-@@ -344,7 +344,7 @@ config HISAX_HFC_SX
- 
- config HISAX_ENTERNOW_PCI
- 	bool "Formula-n enter:now PCI card"
--	depends on HISAX_NETJET && PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || FRV))
-+	depends on HISAX_NETJET && PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
- 	help
- 	  This enables HiSax support for the Formula-n enter:now PCI
- 	  ISDN card.
+diff -puN drivers/atm/.gitignore~ignore-generated-file-pca200e_ecdbin2 drivers/atm/.gitignore
+--- a/drivers/atm/.gitignore~ignore-generated-file-pca200e_ecdbin2
++++ a/drivers/atm/.gitignore
+@@ -2,4 +2,4 @@
+ fore200e_mkfirm
+ fore200e_pca_fw.c
+ pca200e.bin
+-
++pca200e_ecd.bin2
 _
 
 Patches currently in -mm which might be from ralf@linux-mips.org are
@@ -90,6 +52,7 @@ origin.patch
 mips-dbg_io-stray-brackets-fix.patch
 git-mtd.patch
 git-net.patch
+ignore-generated-file-pca200e_ecdbin2.patch
 fix-pnx8550-serial-breakage.patch
 pnx8550-uart-driver.patch
 pci-legacy-resource-fix.patch
