@@ -1,160 +1,84 @@
 From: akpm@osdl.org
-Subject: + virtual-memmap-on-sparsemem-v3-map-and-unmap-fix.patch added to -mm tree
-Date: Fri, 08 Dec 2006 22:20:19 -0800
-Message-ID: <200612090620.kB96KJrE018290@shell0.pdx.osdl.net>
+Subject: + ucb1400_ts-depends-snd_ac97_bus.patch added to -mm tree
+Date: Sat, 09 Dec 2006 00:51:21 -0800
+Message-ID: <200612090851.kB98pLkO021598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49559 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57258 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759200AbWLIGVd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 01:21:33 -0500
+	id S936467AbWLIIv0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 03:51:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, clameter@engr.sgi.com, haveblue@us.ibm.com, mbligh@google.com, tony.luck@intel.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     virtual-memmap-on-sparsemem-v3-map-and-unmap fix
+     ucb1400_ts depends SND_AC97_BUS
 has been added to the -mm tree.  Its filename is
-     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix.patch
+     ucb1400_ts-depends-snd_ac97_bus.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: virtual-memmap-on-sparsemem-v3-map-and-unmap fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: ucb1400_ts depends SND_AC97_BUS
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This removes implicit default actions in map_generic_kernel() call.
-Also changes comments in vmalloc.h
+This driver is an AC97 codec according to its help text.  However, if SOUND is
+disabled, the "select SND_AC97_BUS" still inserts that into the .config file:
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Martin Bligh <mbligh@google.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+#
+# Sound
+#
+# CONFIG_SOUND is not set
+CONFIG_SND_AC97_BUS=m
+
+Even if the config software followed dependency chains on selects, we should
+try to limit usage of "select" to library-type code that is needed (e.g., CRC
+functions) instead of bus-type support.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/vmalloc.h |    8 ++++---
- mm/vmalloc.c            |   39 +++++++++++---------------------------
- 2 files changed, 17 insertions(+), 30 deletions(-)
+ drivers/input/touchscreen/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix
-+++ a/include/linux/vmalloc.h
-@@ -81,6 +81,9 @@ extern struct vm_struct *vmlist;
-  * not managed by standard vmap calls.
-  * The caller has to be responsible to manage his own virtual address space.
-  *
-+ * what you have to do in pud/pmd/pte allocation is allocate page and
-+ * populate that entry.
-+ *
-  * Bootstrap consideration:
-  * you can pass pud/pmd/pte alloc functions to map_generic_kernel().
-  * So you can use bootmem function or something to alloc page tables if
-@@ -88,13 +91,12 @@ extern struct vm_struct *vmlist;
-  */
+diff -puN drivers/input/touchscreen/Kconfig~ucb1400_ts-depends-snd_ac97_bus drivers/input/touchscreen/Kconfig
+--- a/drivers/input/touchscreen/Kconfig~ucb1400_ts-depends-snd_ac97_bus
++++ a/drivers/input/touchscreen/Kconfig
+@@ -146,7 +146,7 @@ config TOUCHSCREEN_TOUCHWIN
  
- struct gen_map_kern_ops {
--	/* must be defined */
-+	/* all pointers must be filled */
- 	int	(*k_pte_set)(pte_t *pte, unsigned long addr, void *data);
--	int	(*k_pte_clear)(pte_t *pte, unsigned long addr, void *data);
--	/* optional */
- 	int 	(*k_pud_alloc)(pgd_t *pgd, unsigned long addr, void *data);
- 	int 	(*k_pmd_alloc)(pud_t *pud, unsigned long addr, void *data);
- 	int 	(*k_pte_alloc)(pmd_t *pmd, unsigned long addr, void *data);
-+	int	(*k_pte_clear)(pte_t *pte, unsigned long addr, void *data);
- };
- 
- /*
-diff -puN mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix mm/vmalloc.c
---- a/mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix
-+++ a/mm/vmalloc.c
-@@ -764,15 +764,10 @@ static int map_generic_pte_range(pmd_t *
- 	int ret = 0;
- 	unsigned long next;
- 	if (!pmd_present(*pmd)) {
--		if (ops->k_pte_alloc) {
--			ret = ops->k_pte_alloc(pmd, addr, data);
--			if (ret)
--				return ret;
--		} else {
--			pte = pte_alloc_kernel(pmd, addr);
--			if (!pte)
--				return -ENOMEM;
--		}
-+		BUG_ON(!ops->k_pte_alloc);
-+		ret = ops->k_pte_alloc(pmd, addr, data);
-+		if (ret)
-+			return ret;
- 	}
- 	pte = pte_offset_kernel(pmd, addr);
- 
-@@ -796,15 +791,10 @@ static int map_generic_pmd_range(pud_t *
- 	int ret;
- 
- 	if (pud_none(*pud)) {
--		if (ops->k_pmd_alloc) {
--			ret = ops->k_pmd_alloc(pud, addr, data);
--			if (ret)
--				return ret;
--		} else {
--			pmd = pmd_alloc(&init_mm, pud, addr);
--			if (!pmd)
--				return -ENOMEM;
--		}
-+		BUG_ON(!ops->k_pmd_alloc);
-+		ret = ops->k_pmd_alloc(pud, addr, data);
-+		if (ret)
-+			return ret;
- 	}
- 	pmd = pmd_offset(pud, addr);
- 	do {
-@@ -824,15 +814,10 @@ static int map_generic_pud_range(pgd_t *
- 	unsigned long next;
- 	int ret;
- 	if (pgd_none(*pgd)) {
--		if (ops->k_pud_alloc) {
--			ret = ops->k_pud_alloc(pgd, addr, data);
--			if (ret)
--				return ret;
--		} else {
--			pud = pud_alloc(&init_mm, pgd, addr);
--			if (!pud)
--				return -ENOMEM;
--		}
-+		BUG_ON(!ops->k_pud_alloc);
-+		ret = ops->k_pud_alloc(pgd, addr, data);
-+		if (ret)
-+			return ret;
- 	}
- 	pud = pud_offset(pgd, addr);
- 	do {
+ config TOUCHSCREEN_UCB1400
+ 	tristate "Philips UCB1400 touchscreen"
+-	select SND_AC97_BUS
++	depends on SND_AC97_BUS
+ 	help
+ 	  This enables support for the Philips UCB1400 touchscreen interface.
+ 	  The UCB1400 is an AC97 audio codec.  The touchscreen interface
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix.patch
-virtual-memmap-on-sparsemem-v3-generic-virtual.patch
-virtual-memmap-on-sparsemem-v3-static-virtual.patch
-virtual-memmap-on-sparsemem-v3-static-virtual-update.patch
-virtual-memmap-on-sparsemem-v3-ia64-support.patch
-virtual-memmap-on-sparsemem-v3-ia64-support-update.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-reiser4-hardirq-include-fix.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+ucb1400_ts-depends-snd_ac97_bus.patch
+ipc-procfs-sysctl-mixups.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+mtd-esb2rom-uses-pci.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+codingstyle-updates.patch
+freezerh-uses-task_struct-fields.patch
+geode-crypto-is-pci-device.patch
+ipmi-remove-zero-inits.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+profile_likely-export-do_check_likely.patch
 
