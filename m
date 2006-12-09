@@ -1,250 +1,90 @@
 From: akpm@osdl.org
-Subject: + driver-for-silan-sc92031-netdev-fixes.patch added to -mm tree
-Date: Sat, 09 Dec 2006 14:48:16 -0800
-Message-ID: <200612092248.kB9MmGCq006465@shell0.pdx.osdl.net>
+Subject: + fix-noise-in-futexh.patch added to -mm tree
+Date: Sat, 09 Dec 2006 14:51:07 -0800
+Message-ID: <200612092251.kB9Mp7fv006508@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56530 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759065AbWLIWsX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 17:48:23 -0500
+	id S1759119AbWLIWvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 17:51:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net
+Cc: dwmw2@infradead.org
 
 
 The patch titled
-     driver-for-silan-sc92031-netdev fixes
+     Fix noise in futex.h
 has been added to the -mm tree.  Its filename is
-     driver-for-silan-sc92031-netdev-fixes.patch
+     fix-noise-in-futexh.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: driver-for-silan-sc92031-netdev fixes
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: Fix noise in futex.h
+From: David Woodhouse <dwmw2@infradead.org>
 
-Andrew Morton escreveu:
-> On Fri, 08 Dec 2006 18:17:06 -0200
-> Cesar Eduardo Barros <cesarb@cesarb.net> wrote:
->
->> From: Cesar Eduardo Barros <cesarb@cesarb.net>
->>
->> +	} while(unlikely(cmpxchg(&priv->intr_status,
->
-> You'll have the arm maintainer after you with a pointy stick.
->
-> cmpxchg is only available on certain architectures.  It would be acceptable
-> to make this driver depend on X86 (or something).  Better to rewrite this
-> code so it doesn't use cmpxchg.
+There are some kernel-only bits in the middle of <linux/futex.h> which
+should be removed in what we export to userspace.
 
-Fixed.  As long as I make sure the interrupt and the tasklet never run at
-the same time, I do not need to protect intr_status against concurrent
-modification.
-
-Also fixed a potential bug where the tasklet could end up permanently
-disabled.
-
-It has received the same testing as the previous one, only for less time (I'm
-using it right now).
-
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/sc92031.c |   74 +++++++++++++++++++++++++++++-----------
- 1 file changed, 54 insertions(+), 20 deletions(-)
+ include/linux/Kbuild  |    2 +-
+ include/linux/futex.h |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fixes drivers/net/sc92031.c
---- a/drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fixes
-+++ a/drivers/net/sc92031.c
-@@ -34,7 +34,7 @@
- 
- #define SC92031_NAME "sc92031"
- #define SC92031_DESCRIPTION "Silan SC92031 PCI Fast Ethernet Adapter driver"
--#define SC92031_VERSION "2.0b"
-+#define SC92031_VERSION "2.0c"
- 
- /* BAR 0 is MMIO, BAR 1 is PIO */
- #ifndef SC92031_USE_BAR
-@@ -261,6 +261,12 @@ enum PMConfigBits {
-  * Use mmiowb() before unlocking if the hardware was written to.
+diff -puN include/linux/futex.h~fix-noise-in-futexh include/linux/futex.h
+--- a/include/linux/futex.h~fix-noise-in-futexh
++++ a/include/linux/futex.h
+@@ -93,6 +93,7 @@ struct robust_list_head {
   */
+ #define ROBUST_LIST_LIMIT	2048
  
-+/* Locking rules for the interrupt:
-+ * - the interrupt and the tasklet never run at the same time
-+ * - neither run between sc92031_disable_interrupts and
-+ *   sc92031_enable_interrupt
-+ */
-+
- struct sc92031_priv {
- 	spinlock_t		lock;
- 	/* iomap.h cookie */
-@@ -288,6 +294,7 @@ struct sc92031_priv {
++#ifdef __KERNEL__
+ long do_futex(u32 __user *uaddr, int op, u32 val, unsigned long timeout,
+ 	      u32 __user *uaddr2, u32 val2, u32 val3);
  
- 	/* copies of some hardware registers */
- 	u32			intr_status;
-+	atomic_t		intr_mask;
- 	u32			rx_config;
- 	u32			tx_config;
- 	u32			pm_config;
-@@ -304,6 +311,13 @@ struct sc92031_priv {
- 	struct net_device_stats	stats;
- };
- 
-+/* I don't know which registers can be safely read; however, I can guess
-+ * MAC0 is one of them. */
-+static inline void _sc92031_dummy_read(void __iomem *port_base)
-+{
-+	ioread32(port_base + MAC0);
-+}
-+
- static u32 _sc92031_mii_wait(void __iomem *port_base)
+@@ -110,6 +111,7 @@ static inline void exit_pi_state_list(st
  {
- 	u32 mii_status;
-@@ -348,12 +362,18 @@ static void sc92031_disable_interrupts(s
- 	struct sc92031_priv *priv = netdev_priv(dev);
- 	void __iomem *port_base = priv->port_base;
- 
--	tasklet_disable(&priv->tasklet);
-+	/* tell the tasklet/interrupt not to enable interrupts */
-+	atomic_set(&priv->intr_mask, 0);
-+	wmb();
- 
-+	/* stop interrupts */
- 	iowrite32(0, port_base + IntrMask);
-+	_sc92031_dummy_read(port_base);
- 	mmiowb();
- 
-+	/* wait for any concurrent interrupt/tasklet to finish */
- 	synchronize_irq(dev->irq);
-+	tasklet_disable(&priv->tasklet);
  }
+ #endif
++#endif /* __KERNEL__ */
  
- static void sc92031_enable_interrupts(struct net_device *dev)
-@@ -363,6 +383,9 @@ static void sc92031_enable_interrupts(st
- 
- 	tasklet_enable(&priv->tasklet);
- 
-+	atomic_set(&priv->intr_mask, IntrBits);
-+	wmb();
-+
- 	iowrite32(IntrBits, port_base + IntrMask);
- 	mmiowb();
- }
-@@ -608,6 +631,7 @@ static void _sc92031_reset(struct net_de
- 
- 	/* clear old register values */
- 	priv->intr_status = 0;
-+	atomic_set(&priv->intr_mask, 0);
- 	priv->rx_config = 0;
- 	priv->tx_config = 0;
- 	priv->mc_flags = 0;
-@@ -824,9 +848,9 @@ static void sc92031_tasklet(unsigned lon
- 	struct net_device *dev = (struct net_device *)data;
- 	struct sc92031_priv *priv = netdev_priv(dev);
- 	void __iomem *port_base = priv->port_base;
--	u32 intr_status;
-+	u32 intr_status, intr_mask;
- 
--	intr_status = xchg(&priv->intr_status, 0);
-+	intr_status = priv->intr_status;
- 
- 	spin_lock(&priv->lock);
- 
-@@ -851,7 +875,10 @@ static void sc92031_tasklet(unsigned lon
- 		_sc92031_link_tasklet(dev);
- 
- out:
--	iowrite32(IntrBits, port_base + IntrMask);
-+	intr_mask = atomic_read(&priv->intr_mask);
-+	rmb();
-+
-+	iowrite32(intr_mask, port_base + IntrMask);
- 	mmiowb();
- 
- 	spin_unlock(&priv->lock);
-@@ -862,29 +889,33 @@ static irqreturn_t sc92031_interrupt(int
- 	struct net_device *dev = dev_id;
- 	struct sc92031_priv *priv = netdev_priv(dev);
- 	void __iomem *port_base = priv->port_base;
--	u32 intr_status, old_intr_status, new_intr_status;
-+	u32 intr_status, intr_mask;
-+
-+	/* mask interrupts before clearing IntrStatus */
-+	iowrite32(0, port_base + IntrMask);
-+	_sc92031_dummy_read(port_base);
- 
- 	intr_status = ioread32(port_base + IntrStatus);
- 	if (unlikely(intr_status == 0xffffffff))
--		return IRQ_NONE;
-+		return IRQ_NONE;	// hardware has gone missing
- 
- 	intr_status &= IntrBits;
- 	if (!intr_status)
--		return IRQ_NONE;
--
--	do {
--		old_intr_status = priv->intr_status;
--		new_intr_status = old_intr_status | intr_status;
--	} while(unlikely(cmpxchg(&priv->intr_status,
--					old_intr_status, new_intr_status)
--			!= old_intr_status));
--
--	iowrite32(0, port_base + IntrMask);
--	mmiowb();
-+		goto out_none;
- 
-+	priv->intr_status = intr_status;
- 	tasklet_schedule(&priv->tasklet);
- 
- 	return IRQ_HANDLED;
-+
-+out_none:
-+	intr_mask = atomic_read(&priv->intr_mask);
-+	rmb();
-+
-+	iowrite32(intr_mask, port_base + IntrMask);
-+	mmiowb();
-+
-+	return IRQ_NONE;
- }
- 
- static struct net_device_stats *sc92031_get_stats(struct net_device *dev)
-@@ -1007,7 +1038,7 @@ static int sc92031_open(struct net_devic
- 
- 	priv->pm_config = 0;
- 
--	sc92031_disable_interrupts(dev);
-+	/* Interrupts already disabled by sc92031_stop or sc92031_probe */
- 	spin_lock(&priv->lock);
- 
- 	_sc92031_reset(dev);
-@@ -1442,6 +1473,9 @@ static int __devinit sc92031_probe(struc
- 	priv->port_base = port_base;
- 	priv->pdev = pdev;
- 	tasklet_init(&priv->tasklet, sc92031_tasklet, (unsigned long)dev);
-+	/* Fudge tasklet count so the call to sc92031_enable_interrupts at
-+	 * sc92031_open will work correctly */
-+	tasklet_disable_nosync(&priv->tasklet);
- 
- 	/* PCI PM Wakeup */
- 	iowrite32((~PM_LongWF & ~PM_LWPTN) | PM_Enable, port_base + PMConfig);
-@@ -1527,7 +1561,7 @@ static int sc92031_resume(struct pci_dev
- 	if (!netif_running(dev))
- 		goto out;
- 
--	sc92031_disable_interrupts(dev);
-+	/* Interrupts already disabled by sc92031_suspend */
- 	spin_lock(&priv->lock);
- 
- 	_sc92031_reset(dev);
+ #define FUTEX_OP_SET		0	/* *(int *)UADDR2 = OPARG; */
+ #define FUTEX_OP_ADD		1	/* *(int *)UADDR2 += OPARG; */
+diff -puN include/linux/Kbuild~fix-noise-in-futexh include/linux/Kbuild
+--- a/include/linux/Kbuild~fix-noise-in-futexh
++++ a/include/linux/Kbuild
+@@ -61,7 +61,6 @@ header-y += fd.h
+ header-y += fdreg.h
+ header-y += fib_rules.h
+ header-y += fuse.h
+-header-y += futex.h
+ header-y += genetlink.h
+ header-y += gen_stats.h
+ header-y += gigaset_dev.h
+@@ -201,6 +200,7 @@ unifdef-y += fb.h
+ unifdef-y += fcntl.h
+ unifdef-y += filter.h
+ unifdef-y += flat.h
++unifdef-y += futex.h
+ unifdef-y += fs.h
+ unifdef-y += gameport.h
+ unifdef-y += generic_serial.h
 _
 
-Patches currently in -mm which might be from cesarb@cesarb.net are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
-driver-for-silan-sc92031-netdev.patch
-driver-for-silan-sc92031-netdev-fixes.patch
+origin.patch
+audit-fix-kstrdup-error-check.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+jffs2-replace-kmallocmemset-with-kzalloc.patch
+fix-noise-in-futexh.patch
+debug-shared-irqs.patch
+debug-shared-irqs-kconfig-fix.patch
 
