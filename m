@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + virtual-memmap-on-sparsemem-v3-static-virtual-update.patch added to -mm tree
-Date: Fri, 08 Dec 2006 22:20:22 -0800
-Message-ID: <200612090620.kB96KMXq018293@shell0.pdx.osdl.net>
+Subject: + virtual-memmap-on-sparsemem-v3-ia64-support-update.patch added to -mm tree
+Date: Fri, 08 Dec 2006 22:20:24 -0800
+Message-ID: <200612090620.kB96KORf018296@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49517 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49518 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933059AbWLIGVD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 01:21:03 -0500
+	id S933061AbWLIGVE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 01:21:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,26 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, clameter@engr.sgi.com, hav
 
 
 The patch titled
-     virtual-memmap-on-sparsemem-v3-static-virtual update
+     virtual-memmap-on-sparsemem-v3-ia64-support update
 has been added to the -mm tree.  Its filename is
-     virtual-memmap-on-sparsemem-v3-static-virtual-update.patch
+     virtual-memmap-on-sparsemem-v3-ia64-support-update.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: virtual-memmap-on-sparsemem-v3-static-virtual update
+Subject: virtual-memmap-on-sparsemem-v3-ia64-support update
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-For avoiding complex inclusion of headr file in the middle of another
-header file.
+I tested ia64 with this patch under
+
+- DISCONTIGMEM + VIRTUAL_MEM_MAP
+- SPARSEMEM
+- SPARSEMEM_VMEMMAP
+
+on SMP with tiger4_defconfig.
+
+Fix typo for  DISCONTIGMEM
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -38,36 +45,21 @@ Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/mmzone.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-ia64/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-static-virtual-update include/linux/mmzone.h
---- a/include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-static-virtual-update
-+++ a/include/linux/mmzone.h
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <linux/seqlock.h>
- #include <linux/nodemask.h>
-+#include <linux/mm_types.h>
- #include <asm/atomic.h>
- #include <asm/page.h>
+diff -puN include/asm-ia64/pgtable.h~virtual-memmap-on-sparsemem-v3-ia64-support-update include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~virtual-memmap-on-sparsemem-v3-ia64-support-update
++++ a/include/asm-ia64/pgtable.h
+@@ -237,7 +237,7 @@ ia64_phys_addr_valid (unsigned long addr
+ #elif defined(CONFIG_VIRTUAL_MEM_MAP)
+ #define VMALLOC_START		(RGN_BASE(RGN_GATE) + 0x200000000UL)
  
-@@ -637,7 +638,6 @@ extern struct zone *next_zone(struct zon
- #error Allocator MAX_ORDER exceeds SECTION_SIZE
- #endif
- 
--struct page;
- struct mem_section {
- 	/*
- 	 * This is, logically, a pointer to an array of struct
-@@ -694,7 +694,6 @@ extern int __section_nr(struct mem_secti
- #error "PAGE_SIZE/SECTION_SIZE relationship is not suitable for vmem_map"
- #endif
- #ifdef CONFIG_SPARSEMEM_VMEMMAP_STATIC
--#include <linux/mm_types.h>
- extern struct page mem_map[];
+-#defineVMALLOC_END_INIT    (RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
++#define VMALLOC_END_INIT    (RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
+ #define VMALLOC_END		vmalloc_end
+ extern unsigned long vmalloc_end;
  #else
- extern struct page* mem_map;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
