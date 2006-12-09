@@ -1,203 +1,111 @@
 From: akpm@osdl.org
-Subject: + submit-checklist-update.patch added to -mm tree
-Date: Fri, 08 Dec 2006 15:57:10 -0800
-Message-ID: <200612082357.kB8NvAMK009711@shell0.pdx.osdl.net>
+Subject: + md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:02:46 -0800
+Message-ID: <200612090002.kB902kCX010073@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54343 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55025 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947512AbWLHX5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 18:57:14 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kB8NvAID010961
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Dec 2006 15:57:11 -0800
+	id S1947556AbWLIACv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:02:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: neilb@suse.de
 
 
 The patch titled
-     submit checklist update
+     md: return a non-zero error to bi_end_io as appropriate in raid5
 has been added to the -mm tree.  Its filename is
-     submit-checklist-update.patch
+     md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: submit checklist update
-From: Andrew Morton <akpm@osdl.org>
+Subject: md: return a non-zero error to bi_end_io as appropriate in raid5
+From: NeilBrown <neilb@suse.de>
 
-Mention the new fault-injection test framework.
+Currently raid5 depends on clearing the BIO_UPTODATE flag to signal an error
+to higher levels.  While this should be sufficient, it is safer to explicitly
+set the error code as well - less room for confusion.
 
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/SubmitChecklist |    6 ++++++
- 1 files changed, 6 insertions(+)
+ drivers/md/raid5.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/SubmitChecklist~submit-checklist-update Documentation/SubmitChecklist
---- a/Documentation/SubmitChecklist~submit-checklist-update
-+++ a/Documentation/SubmitChecklist
-@@ -66,3 +66,9 @@ kernel patches.
-     See Documentation/ABI/README for more information.
+diff -puN drivers/md/raid5.c~md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5 drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5
++++ a/drivers/md/raid5.c
+@@ -1818,7 +1818,9 @@ static void handle_stripe5(struct stripe
+ 		return_bi = bi->bi_next;
+ 		bi->bi_next = NULL;
+ 		bi->bi_size = 0;
+-		bi->bi_end_io(bi, bytes, 0);
++		bi->bi_end_io(bi, bytes,
++			      test_bit(BIO_UPTODATE, &bi->bi_flags)
++			        ? 0 : -EIO);
+ 	}
+ 	for (i=disks; i-- ;) {
+ 		int rw;
+@@ -2359,7 +2361,9 @@ static void handle_stripe6(struct stripe
+ 		return_bi = bi->bi_next;
+ 		bi->bi_next = NULL;
+ 		bi->bi_size = 0;
+-		bi->bi_end_io(bi, bytes, 0);
++		bi->bi_end_io(bi, bytes,
++			      test_bit(BIO_UPTODATE, &bi->bi_flags)
++			        ? 0 : -EIO);
+ 	}
+ 	for (i=disks; i-- ;) {
+ 		int rw;
+@@ -2859,7 +2863,9 @@ static int make_request(request_queue_t 
+ 		if ( rw == WRITE )
+ 			md_write_end(mddev);
+ 		bi->bi_size = 0;
+-		bi->bi_end_io(bi, bytes, 0);
++		bi->bi_end_io(bi, bytes,
++			      test_bit(BIO_UPTODATE, &bi->bi_flags)
++			        ? 0 : -EIO);
+ 	}
+ 	return 0;
+ }
+@@ -3127,7 +3133,9 @@ static int  retry_aligned_read(raid5_con
+ 		int bytes = raid_bio->bi_size;
  
- 20: Check that it all passes `make headers_check'.
-+
-+21: Has been checked with injection of at least slab and page-allocation
-+    fauilures.  See Documentation/fault-injection/.
-+
-+    If the new code is substantial, addition of subsystem-specific fault
-+    injection might be appropriate.
+ 		raid_bio->bi_size = 0;
+-		raid_bio->bi_end_io(raid_bio, bytes, 0);
++		raid_bio->bi_end_io(raid_bio, bytes,
++			      test_bit(BIO_UPTODATE, &raid_bio->bi_flags)
++			        ? 0 : -EIO);
+ 	}
+ 	if (atomic_dec_and_test(&conf->active_aligned_reads))
+ 		wake_up(&conf->wait_for_stripe);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-netpoll-locking-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-git-s390.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-workqueue-tweaks.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
+readahead-nfsd-case.patch
 readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
+md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch
+md-define-raid5_mergeable_bvec.patch
+md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
 md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-x86-kmap_atomic-debugging.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
-submit-checklist-update.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-error-handling-of-aligned-reads.patch
+md-enable-bypassing-cache-for-reads.patch
+md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch
+md-conditionalize-some-code.patch
+md-remove-some-old-ifdefed-out-code-from-raid5c.patch
+md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch
+md-assorted-md-and-raid1-one-liners.patch
+md-change-lifetime-rules-for-md-devices.patch
+md-close-a-race-between-destroying-and-recreating-an-md-device.patch
+md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
 
