@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + virtual-memmap-on-sparsemem-v3-static-virtual.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:30:43 -0800
-Message-ID: <200612090030.kB90UhuD011054@shell0.pdx.osdl.net>
+Subject: + virtual-memmap-on-sparsemem-v3-ia64-support.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:30:45 -0800
+Message-ID: <200612090030.kB90UkNW011057@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57149 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57146 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947586AbWLIAb2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:31:28 -0500
+	id S1947590AbWLIAb1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:31:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,20 +15,21 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, clameter@engr.sgi.com, hav
 
 
 The patch titled
-     virtual memmap on sparsemem: static virtual  mem_map
+     virtual memmap on sparsemem: ia64 support
 has been added to the -mm tree.  Its filename is
-     virtual-memmap-on-sparsemem-v3-static-virtual.patch
+     virtual-memmap-on-sparsemem-v3-ia64-support.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: virtual memmap on sparsemem: static virtual  mem_map
+Subject: virtual memmap on sparsemem: ia64 support
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add support for statically allocated virtual mem_map.  (means virtual address
-of mem_map array is defined statically.) This removes reference to
-*(&mem_map).
+ia64 support for sparsemem/vmem_map.
+* defines mem_map[] and set its value (by static way).
+* changes definitions of VMALLOC_START.
+* adds CONFIGS.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -39,55 +40,98 @@ Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/mmzone.h |    5 +++++
- mm/Kconfig             |    4 ++++
- mm/memory.c            |    2 ++
- 3 files changed, 11 insertions(+)
+ arch/ia64/Kconfig              |    8 ++++++++
+ arch/ia64/kernel/vmlinux.lds.S |    4 ++++
+ include/asm-ia64/pgtable.h     |   16 ++++++++++++----
+ include/asm-ia64/sparsemem.h   |    9 +++++++++
+ 4 files changed, 33 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-static-virtual include/linux/mmzone.h
---- a/include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-static-virtual
-+++ a/include/linux/mmzone.h
-@@ -693,8 +693,13 @@ extern int __section_nr(struct mem_secti
- #if (((BITS_PER_LONG/4) * PAGES_PER_SECTION) % PAGE_SIZE) != 0
- #error "PAGE_SIZE/SECTION_SIZE relationship is not suitable for vmem_map"
- #endif
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP_STATIC
-+#include <linux/mm_types.h>
-+extern struct page mem_map[];
-+#else
- extern struct page* mem_map;
- #endif
-+#endif
+diff -puN arch/ia64/Kconfig~virtual-memmap-on-sparsemem-v3-ia64-support arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~virtual-memmap-on-sparsemem-v3-ia64-support
++++ a/arch/ia64/Kconfig
+@@ -341,6 +341,14 @@ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
+ 	depends on ARCH_DISCONTIGMEM_ENABLE
  
- static inline struct page *__section_mem_map_addr(struct mem_section *section)
- {
-diff -puN mm/Kconfig~virtual-memmap-on-sparsemem-v3-static-virtual mm/Kconfig
---- a/mm/Kconfig~virtual-memmap-on-sparsemem-v3-static-virtual
-+++ a/mm/Kconfig
-@@ -121,6 +121,10 @@ config SPARSEMEM_VMEMMAP
- 	  But this consumes huge amount of virtual memory(not physical).
- 	  This option is selectable only if your arch supports it.
- 
-+config SPARSEMEM_VMEMMAP_STATIC
++config ARCH_SPARSEMEM_VMEMMAP
 +	def_bool y
-+	depends on ARCH_SPARSEMEM_VMEMMAP_STATIC
++	depends on ARCH_SPARSEMEM_ENABLE
 +
- # eventually, we can have this option just 'select SPARSEMEM'
- config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
-diff -puN mm/memory.c~virtual-memmap-on-sparsemem-v3-static-virtual mm/memory.c
---- a/mm/memory.c~virtual-memmap-on-sparsemem-v3-static-virtual
-+++ a/mm/memory.c
-@@ -71,7 +71,9 @@ EXPORT_SYMBOL(mem_map);
++config ARCH_SPARSEMEM_VMEMMAP_STATIC
++	def_bool y
++	depends on SPARSEMEM_VMEMMAP
++
+ config ARCH_DISCONTIGMEM_DEFAULT
+ 	def_bool y if (IA64_SGI_SN2 || IA64_GENERIC || IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB)
+ 	depends on ARCH_DISCONTIGMEM_ENABLE
+diff -puN arch/ia64/kernel/vmlinux.lds.S~virtual-memmap-on-sparsemem-v3-ia64-support arch/ia64/kernel/vmlinux.lds.S
+--- a/arch/ia64/kernel/vmlinux.lds.S~virtual-memmap-on-sparsemem-v3-ia64-support
++++ a/arch/ia64/kernel/vmlinux.lds.S
+@@ -2,6 +2,7 @@
+ #include <asm/cache.h>
+ #include <asm/ptrace.h>
+ #include <asm/system.h>
++#include <asm/sparsemem.h>
+ #include <asm/pgtable.h>
  
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- /* for the virtual mem_map */
-+#ifndef CONFIG_SPARSEMEM_VMEMMAP_STATIC
- struct page *mem_map;
+ #define LOAD_OFFSET	(KERNEL_START - KERNEL_TR_PAGE_SIZE)
+@@ -34,6 +35,9 @@ SECTIONS
+ 
+   v = PAGE_OFFSET;	/* this symbol is here to make debugging easier... */
+   phys_start = _start - LOAD_OFFSET;
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++  mem_map = VIRTUAL_MEM_MAP_START;
 +#endif
- EXPORT_SYMBOL(mem_map);
+ 
+   code : { } :code
+   . = KERNEL_START;
+diff -puN include/asm-ia64/pgtable.h~virtual-memmap-on-sparsemem-v3-ia64-support include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~virtual-memmap-on-sparsemem-v3-ia64-support
++++ a/include/asm-ia64/pgtable.h
+@@ -230,13 +230,21 @@ ia64_phys_addr_valid (unsigned long addr
+ #define set_pte(ptep, pteval)	(*(ptep) = (pteval))
+ #define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
+ 
++#if defined(CONFIG_SPARSEMEM_VMEMMAP)
++#define VMALLOC_START	(VIRTUAL_MEM_MAP_END)
++#define VMALLOC_END	(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
++
++#elif defined(CONFIG_VIRTUAL_MEM_MAP)
+ #define VMALLOC_START		(RGN_BASE(RGN_GATE) + 0x200000000UL)
+-#ifdef CONFIG_VIRTUAL_MEM_MAP
+-# define VMALLOC_END_INIT	(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
+-# define VMALLOC_END		vmalloc_end
+-  extern unsigned long vmalloc_end;
++
++#defineVMALLOC_END_INIT    (RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
++#define VMALLOC_END		vmalloc_end
++extern unsigned long vmalloc_end;
+ #else
++
++#define VMALLOC_START		(RGN_BASE(RGN_GATE) + 0x200000000UL)
+ # define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
++
  #endif
  
+ /* fs/proc/kcore.c */
+diff -puN include/asm-ia64/sparsemem.h~virtual-memmap-on-sparsemem-v3-ia64-support include/asm-ia64/sparsemem.h
+--- a/include/asm-ia64/sparsemem.h~virtual-memmap-on-sparsemem-v3-ia64-support
++++ a/include/asm-ia64/sparsemem.h
+@@ -16,5 +16,14 @@
+ #endif
+ #endif
+ 
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#define VIRTUAL_MEM_MAP_START	(RGN_BASE(RGN_GATE) + 0x200000000)
++
++#ifndef __ASSEMBLY__
++#define VIRTUAL_MEM_MAP_SIZE	((1UL << (MAX_PHYSMEM_BITS - PAGE_SHIFT)) * sizeof(struct page))
++#define VIRTUAL_MEM_MAP_END	(VIRTUAL_MEM_MAP_START + VIRTUAL_MEM_MAP_SIZE)
++#endif
++#endif
++
+ #endif /* CONFIG_SPARSEMEM */
+ #endif /* _ASM_IA64_SPARSEMEM_H */
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
