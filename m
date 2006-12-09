@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + knfsd-svcrpc-remove-another-silent-drop-from-deferral-code.patch added to -mm tree
-Date: Fri, 08 Dec 2006 16:09:34 -0800
-Message-ID: <200612090009.kB909YX0010401@shell0.pdx.osdl.net>
+Subject: + knfsd-svcrpc-fix-gss-krb5i-memory-leak.patch added to -mm tree
+Date: Fri, 08 Dec 2006 16:09:22 -0800
+Message-ID: <200612090009.kB909M1o010373@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55587 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55532 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947577AbWLIAJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 8 Dec 2006 19:09:48 -0500
+	id S1947549AbWLIAJf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 8 Dec 2006 19:09:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,66 +15,67 @@ Cc: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: svcrpc: remove another silent drop from deferral code
+     knfsd: svcrpc: fix gss krb5i memory leak
 has been added to the -mm tree.  Its filename is
-     knfsd-svcrpc-remove-another-silent-drop-from-deferral-code.patch
+     knfsd-svcrpc-fix-gss-krb5i-memory-leak.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: svcrpc: remove another silent drop from deferral code
+Subject: knfsd: svcrpc: fix gss krb5i memory leak
 From: J.Bruce Fields <bfields@fieldses.org>
 
-There's no point deferring something just to immediately fail the deferral,
-especially now that we can do something more useful in the failure case by
-returning an error.
+The memory leak here is embarassingly obvious.
+
+This fixes a problem that causes the kernel to leak a small amount of memory
+every time it receives a integrity-protected request.
+
+Thanks to Aim Le Rouzic for the bug report.
 
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/cache.c |   20 +++++++++-----------
- 1 files changed, 9 insertions(+), 11 deletions(-)
+ net/sunrpc/auth_gss/svcauth_gss.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN net/sunrpc/cache.c~knfsd-svcrpc-remove-another-silent-drop-from-deferral-code net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~knfsd-svcrpc-remove-another-silent-drop-from-deferral-code
-+++ a/net/sunrpc/cache.c
-@@ -530,6 +530,13 @@ static int cache_defer_req(struct cache_
- 	struct cache_deferred_req *dreq;
- 	int hash = DFR_HASH(item);
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-svcrpc-fix-gss-krb5i-memory-leak net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-svcrpc-fix-gss-krb5i-memory-leak
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -818,19 +818,19 @@ unwrap_integ_data(struct xdr_buf *buf, u
  
-+	if (cache_defer_cnt >= DFR_MAX) {
-+		/* too much in the cache, randomly drop this one,
-+		 * or continue and drop the oldest below
-+		 */
-+		if (net_random()&1)
-+			return -ETIMEDOUT;
-+	}
- 	dreq = req->defer(req);
- 	if (dreq == NULL)
- 		return -ETIMEDOUT;
-@@ -548,17 +555,8 @@ static int cache_defer_req(struct cache_
- 	/* it is in, now maybe clean up */
- 	dreq = NULL;
- 	if (++cache_defer_cnt > DFR_MAX) {
--		/* too much in the cache, randomly drop
--		 * first or last
--		 */
--		if (net_random()&1) 
--			dreq = list_entry(cache_defer_list.next,
--					  struct cache_deferred_req,
--					  recent);
--		else
--			dreq = list_entry(cache_defer_list.prev,
--					  struct cache_deferred_req,
--					  recent);
-+		dreq = list_entry(cache_defer_list.prev,
-+				  struct cache_deferred_req, recent);
- 		list_del(&dreq->recent);
- 		list_del(&dreq->hash);
- 		cache_defer_cnt--;
+ 	integ_len = svc_getnl(&buf->head[0]);
+ 	if (integ_len & 3)
+-		goto out;
++		return stat;
+ 	if (integ_len > buf->len)
+-		goto out;
++		return stat;
+ 	if (xdr_buf_subsegment(buf, &integ_buf, 0, integ_len))
+ 		BUG();
+ 	/* copy out mic... */
+ 	if (read_u32_from_xdr_buf(buf, integ_len, &mic.len))
+ 		BUG();
+ 	if (mic.len > RPC_MAX_AUTH_SIZE)
+-		goto out;
++		return stat;
+ 	mic.data = kmalloc(mic.len, GFP_KERNEL);
+ 	if (!mic.data)
+-		goto out;
++		return stat;
+ 	if (read_bytes_from_xdr_buf(buf, integ_len + 4, mic.data, mic.len))
+ 		goto out;
+ 	maj_stat = gss_verify_mic(ctx, &integ_buf, &mic);
+@@ -840,6 +840,7 @@ unwrap_integ_data(struct xdr_buf *buf, u
+ 		goto out;
+ 	stat = 0;
+ out:
++	kfree(mic.data);
+ 	return stat;
+ }
+ 
 _
 
 Patches currently in -mm which might be from bfields@fieldses.org are
