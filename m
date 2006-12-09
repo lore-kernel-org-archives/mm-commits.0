@@ -1,95 +1,176 @@
 From: akpm@osdl.org
-Subject: - read_zero_pagealigned-locking-fix.patch removed from -mm tree
-Date: Fri, 08 Dec 2006 22:16:48 -0800
-Message-ID: <200612090616.kB96GmiV018224@shell0.pdx.osdl.net>
+Subject: + read_zero_pagealigned-locking-fix-2.patch added to -mm tree
+Date: Fri, 08 Dec 2006 22:17:50 -0800
+Message-ID: <200612090617.kB96HoSe018246@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49202 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49357 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759129AbWLIGRA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 01:17:00 -0500
+	id S1759198AbWLIGSH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 01:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, Ramiro.Voicu@cern.ch, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hugh@veritas.com, Ramiro.Voicu@cern.ch
 
 
 The patch titled
      read_zero_pagealigned() locking fix
-has been removed from the -mm tree.  Its filename was
-     read_zero_pagealigned-locking-fix.patch
+has been added to the -mm tree.  Its filename is
+     read_zero_pagealigned-locking-fix-2.patch
 
-This patch was dropped because an updated version will be merged
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: read_zero_pagealigned() locking fix
 From: Hugh Dickins <hugh@veritas.com>
 
-It looks like reading /dev/zero has been using zeromap_page_range unsafely
-for years.
+Ramiro Voicu hits the BUG_ON(!pte_none(*pte)) in zeromap_pte_range: kernel
+bugzilla 7645.  Right: read_zero_pagealigned uses down_read of mmap_sem,
+but another thread's racing read of /dev/zero, or a normal fault, can
+easily set that pte again, in between zap_page_range and zeromap_page_range
+getting there.  It's been wrong ever since 2.4.3.
 
-First it zaps existing ptes, then it inserts the zero page ptes - but only
-while holding mmap_sem for read: could be racing against another thread
-doing the same, or against ordinary faulting.  Now, it may well be that the
-program is buggy to be racing against itself in this way (which would fit
-with why this hasn't been observed before - buggy programs are exceedingly
-rare, aren't they ;-?) but of course it shouldn't trigger a kernel BUG (or
-leak, which preceded the BUG).
+The simple fix is to use down_write instead, but that would serialize reads
+of /dev/zero more than at present: perhaps some app would be badly
+affected.  So instead let zeromap_page_range return the error instead of
+BUG_ON, and read_zero_pagealigned break to the slower clear_user loop in
+that case - there's no need to optimize for it.
 
-Will hopefully fix http://bugzilla.kernel.org/show_bug.cgi?id=7645, but Ramiro
-hasn't got back to us yet.
+Use -EEXIST for when a pte is found: BUG_ON in mmap_zero (the other user of
+zeromap_page_range), though it really isn't interesting there.  And since
+mmap_zero wants -EAGAIN for out-of-memory, the zeromaps better return that
+than -ENOMEM.
 
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Ramiro Voicu: <Ramiro.Voicu@cern.ch>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mem.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/mem.c |   12 ++++++++----
+ mm/memory.c        |   32 +++++++++++++++++++++-----------
+ 2 files changed, 29 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/mem.c~read_zero_pagealigned-locking-fix drivers/char/mem.c
---- a/drivers/char/mem.c~read_zero_pagealigned-locking-fix
+diff -puN drivers/char/mem.c~read_zero_pagealigned-locking-fix-2 drivers/char/mem.c
+--- a/drivers/char/mem.c~read_zero_pagealigned-locking-fix-2
 +++ a/drivers/char/mem.c
-@@ -631,7 +631,7 @@ static inline size_t read_zero_pagealign
- 
- 	mm = current->mm;
- 	/* Oops, this was forgotten before. -ben */
--	down_read(&mm->mmap_sem);
-+	down_write(&mm->mmap_sem);
- 
- 	/* For private mappings, just map in zero pages. */
- 	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next) {
-@@ -646,7 +646,7 @@ static inline size_t read_zero_pagealign
+@@ -646,7 +646,8 @@ static inline size_t read_zero_pagealign
  			count = size;
  
  		zap_page_range(vma, addr, count, NULL);
 -        	zeromap_page_range(vma, addr, count, PAGE_COPY);
-+		zeromap_page_range(vma, addr, count, PAGE_COPY);
++        	if (zeromap_page_range(vma, addr, count, PAGE_COPY))
++			break;
  
  		size -= count;
  		buf += count;
-@@ -655,7 +655,7 @@ static inline size_t read_zero_pagealign
- 			goto out_up;
- 	}
+@@ -713,11 +714,14 @@ out:
  
--	up_read(&mm->mmap_sem);
-+	up_write(&mm->mmap_sem);
- 	
- 	/* The shared case is hard. Let's do the conventional zeroing. */ 
+ static int mmap_zero(struct file * file, struct vm_area_struct * vma)
+ {
++	int err;
++
+ 	if (vma->vm_flags & VM_SHARED)
+ 		return shmem_zero_setup(vma);
+-	if (zeromap_page_range(vma, vma->vm_start, vma->vm_end - vma->vm_start, vma->vm_page_prot))
+-		return -EAGAIN;
+-	return 0;
++	err = zeromap_page_range(vma, vma->vm_start,
++			vma->vm_end - vma->vm_start, vma->vm_page_prot);
++	BUG_ON(err == -EEXIST);
++	return err;
+ }
+ #else /* CONFIG_MMU */
+ static ssize_t read_zero(struct file * file, char * buf, 
+diff -puN mm/memory.c~read_zero_pagealigned-locking-fix-2 mm/memory.c
+--- a/mm/memory.c~read_zero_pagealigned-locking-fix-2
++++ a/mm/memory.c
+@@ -1110,23 +1110,29 @@ static int zeromap_pte_range(struct mm_s
+ {
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
++	int err = 0;
+ 
+ 	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
+ 	if (!pte)
+-		return -ENOMEM;
++		return -EAGAIN;
+ 	arch_enter_lazy_mmu_mode();
  	do {
-@@ -669,7 +669,7 @@ static inline size_t read_zero_pagealign
- 
- 	return size;
- out_up:
--	up_read(&mm->mmap_sem);
-+	up_write(&mm->mmap_sem);
- 	return size;
+ 		struct page *page = ZERO_PAGE(addr);
+ 		pte_t zero_pte = pte_wrprotect(mk_pte(page, prot));
++
++		if (unlikely(!pte_none(*pte))) {
++			err = -EEXIST;
++			pte++;
++			break;
++		}
+ 		page_cache_get(page);
+ 		page_add_file_rmap(page);
+ 		inc_mm_counter(mm, file_rss);
+-		BUG_ON(!pte_none(*pte));
+ 		set_pte_at(mm, addr, pte, zero_pte);
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ 	arch_leave_lazy_mmu_mode();
+ 	pte_unmap_unlock(pte - 1, ptl);
+-	return 0;
++	return err;
  }
  
+ static inline int zeromap_pmd_range(struct mm_struct *mm, pud_t *pud,
+@@ -1134,16 +1140,18 @@ static inline int zeromap_pmd_range(stru
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
++	int err;
+ 
+ 	pmd = pmd_alloc(mm, pud, addr);
+ 	if (!pmd)
+-		return -ENOMEM;
++		return -EAGAIN;
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (zeromap_pte_range(mm, pmd, addr, next, prot))
+-			return -ENOMEM;
++		err = zeromap_pte_range(mm, pmd, addr, next, prot);
++		if (err)
++			break;
+ 	} while (pmd++, addr = next, addr != end);
+-	return 0;
++	return err;
+ }
+ 
+ static inline int zeromap_pud_range(struct mm_struct *mm, pgd_t *pgd,
+@@ -1151,16 +1159,18 @@ static inline int zeromap_pud_range(stru
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
++	int err;
+ 
+ 	pud = pud_alloc(mm, pgd, addr);
+ 	if (!pud)
+-		return -ENOMEM;
++		return -EAGAIN;
+ 	do {
+ 		next = pud_addr_end(addr, end);
+-		if (zeromap_pmd_range(mm, pud, addr, next, prot))
+-			return -ENOMEM;
++		err = zeromap_pmd_range(mm, pud, addr, next, prot);
++		if (err)
++			break;
+ 	} while (pud++, addr = next, addr != end);
+-	return 0;
++	return err;
+ }
+ 
+ int zeromap_page_range(struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-read_zero_pagealigned-locking-fix.patch
+read_zero_pagealigned-locking-fix-2.patch
 ext2-reservations.patch
 ext2-balloc-fix-_with_rsv-freeze.patch
 ext2-balloc-reset-windowsz-when-full.patch
