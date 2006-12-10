@@ -1,236 +1,140 @@
 From: akpm@osdl.org
-Subject: - kernel-schedc-whitespace-cleanups-more.patch removed from -mm tree
-Date: Sun, 10 Dec 2006 00:25:26 -0800
-Message-ID: <200612100825.kBA8PQO8018808@shell0.pdx.osdl.net>
+Subject: - md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch removed from -mm tree
+Date: Sun, 10 Dec 2006 00:28:00 -0800
+Message-ID: <200612100828.kBA8S0in018865@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33425 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760371AbWLJIZd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 03:25:33 -0500
+	id S1760423AbWLJI2E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 03:28:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, maxextreme@gmail.com, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-schedc-whitespace-cleanups-more
+     md: misc fixes for aligned-read handling including raid6 read corruption
 has been removed from the -mm tree.  Its filename was
-     kernel-schedc-whitespace-cleanups-more.patch
+     md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch
 
-This patch was dropped because it was folded into kernel-schedc-whitespace-cleanups.patch
+This patch was dropped because it was folded into md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
 
 ------------------------------------------------------
-Subject: kernel-schedc-whitespace-cleanups-more
-From: Andrew Morton <akpm@osdl.org>
+Subject: md: misc fixes for aligned-read handling including raid6 read corruption
+From: NeilBrown <neilb@suse.de>
 
-Cc: Miguel Ojeda Sandonis <maxextreme@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+1/
+  chunk_aligned_read and retry_aligned_read assume that
+      data_disks == raid_disks - 1
+  which is not true for raid6.
+  So when an aligned read request bypasses the cache, we can get the wrong data.
+
+2/ The cloned bio is being used-after-free in raid5_align_endio
+   (to test BIO_UPTODATE).
+
+3/ We forgot to add rdev->data_offset when submitting
+   a bio for aligned-read
+
+4/ clone_bio calls blk_recount_segments and then we change bi_bdev,
+   so we need to invalidate the segment counts.
+
+5/ We don't de-reference the rdev when the read completes.
+   This means we need to record the rdev to so it is still
+   available in the end_io routine.  Fortunately
+   bi_next in the original bio is unused at this point so
+   we can stuff it in there.
+
+6/ We leak a cloned bio if the target rdev is not usable.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   61 ++++++++++++++++++++++-------------------------
- 1 file changed, 29 insertions(+), 32 deletions(-)
+ drivers/md/raid5.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sched.c~kernel-schedc-whitespace-cleanups-more kernel/sched.c
---- a/kernel/sched.c~kernel-schedc-whitespace-cleanups-more
-+++ a/kernel/sched.c
-@@ -1457,8 +1457,9 @@ static int try_to_wake_up(struct task_st
+diff -puN drivers/md/raid5.c~md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption
++++ a/drivers/md/raid5.c
+@@ -2696,6 +2696,8 @@ static int raid5_align_endio(struct bio 
+ 	struct bio* raid_bi  = bi->bi_private;
+ 	mddev_t *mddev;
+ 	raid5_conf_t *conf;
++	int uptodate = test_bit(BIO_UPTODATE, &bi->bi_flags);
++	mdk_rdev_t *rdev;
  
- 		if (this_sd->flags & SD_WAKE_AFFINE) {
- 			unsigned long tl = this_load;
--			unsigned long tl_per_task =
--				cpu_avg_load_per_task(this_cpu);
-+			unsigned long tl_per_task;
+ 	if (bi->bi_size)
+ 		return 1;
+@@ -2703,8 +2705,12 @@ static int raid5_align_endio(struct bio 
+ 
+ 	mddev = raid_bi->bi_bdev->bd_disk->queue->queuedata;
+ 	conf = mddev_to_conf(mddev);
++	rdev = (void*)raid_bi->bi_next;
++	raid_bi->bi_next = NULL;
 +
-+			tl_per_task = cpu_avg_load_per_task(this_cpu);
++	rdev_dec_pending(rdev, conf->mddev);
  
- 			/*
- 			 * If sync wakeup then subtract the (maximum possible)
-@@ -3374,7 +3375,7 @@ void fastcall add_preempt_count(int val)
- 	 * Spinlock count overflowing soon?
- 	 */
- 	DEBUG_LOCKS_WARN_ON((preempt_count() & PREEMPT_MASK) >=
--		PREEMPT_MASK - 10);
-+				PREEMPT_MASK - 10);
- }
- EXPORT_SYMBOL(add_preempt_count);
+-	if (!error && test_bit(BIO_UPTODATE, &bi->bi_flags)) {
++	if (!error && uptodate) {
+ 		bio_endio(raid_bi, bytes, 0);
+ 		if (atomic_dec_and_test(&conf->active_aligned_reads))
+ 			wake_up(&conf->wait_for_stripe);
+@@ -2723,7 +2729,7 @@ static int chunk_aligned_read(request_qu
+ 	mddev_t *mddev = q->queuedata;
+ 	raid5_conf_t *conf = mddev_to_conf(mddev);
+ 	const unsigned int raid_disks = conf->raid_disks;
+-	const unsigned int data_disks = raid_disks - 1;
++	const unsigned int data_disks = raid_disks - conf->max_degraded;
+ 	unsigned int dd_idx, pd_idx;
+ 	struct bio* align_bi;
+ 	mdk_rdev_t *rdev;
+@@ -2757,9 +2763,12 @@ static int chunk_aligned_read(request_qu
+ 	rcu_read_lock();
+ 	rdev = rcu_dereference(conf->disks[dd_idx].rdev);
+ 	if (rdev && test_bit(In_sync, &rdev->flags)) {
+-		align_bi->bi_bdev =  rdev->bdev;
+ 		atomic_inc(&rdev->nr_pending);
+ 		rcu_read_unlock();
++		raid_bio->bi_next = (void*)rdev;
++		align_bi->bi_bdev =  rdev->bdev;
++		align_bi->bi_flags &= ~(1 << BIO_SEG_VALID);
++		align_bi->bi_sector += rdev->data_offset;
  
-@@ -5449,19 +5450,19 @@ static void sched_domain_debug(struct sc
- 		if (!(sd->flags & SD_LOAD_BALANCE)) {
- 			printk("does not load-balance\n");
- 			if (sd->parent)
--				printk(KERN_ERR "ERROR: "
--					"!SD_LOAD_BALANCE domain has parent");
-+				printk(KERN_ERR "ERROR: !SD_LOAD_BALANCE domain"
-+						" has parent");
- 			break;
- 		}
- 
- 		printk("span %s\n", str);
- 
- 		if (!cpu_isset(cpu, sd->span))
--			printk(KERN_ERR "ERROR: "
--				"domain->span does not contain CPU%d\n", cpu);
-+			printk(KERN_ERR "ERROR: domain->span does not contain "
-+					"CPU%d\n", cpu);
- 		if (!cpu_isset(cpu, group->cpumask))
--			printk(KERN_ERR "ERROR: "
--				"domain->groups does not contain CPU%d\n", cpu);
-+			printk(KERN_ERR "ERROR: domain->groups does not contain"
-+					" CPU%d\n", cpu);
- 
- 		printk(KERN_DEBUG);
- 		for (i = 0; i < level + 2; i++)
-@@ -5476,8 +5477,8 @@ static void sched_domain_debug(struct sc
- 
- 			if (!group->cpu_power) {
- 				printk("\n");
--				printk(KERN_ERR "ERROR: "
--					"domain->cpu_power not set\n");
-+				printk(KERN_ERR "ERROR: domain->cpu_power not "
-+						"set\n");
- 			}
- 
- 			if (!cpus_weight(group->cpumask)) {
-@@ -5500,18 +5501,17 @@ static void sched_domain_debug(struct sc
- 		printk("\n");
- 
- 		if (!cpus_equal(sd->span, groupmask))
--			printk(KERN_ERR "ERROR: "
--				"groups don't span domain->span\n");
-+			printk(KERN_ERR "ERROR: groups don't span "
-+					"domain->span\n");
- 
- 		level++;
- 		sd = sd->parent;
-+		if (!sd)
-+			continue;
- 
--		if (sd) {
--			if (!cpus_subset(groupmask, sd->span))
--				printk(KERN_ERR "ERROR: "
--					"parent span is not a superset of "
--					"domain->span\n");
--		}
-+		if (!cpus_subset(groupmask, sd->span))
-+			printk(KERN_ERR "ERROR: parent span is not a superset "
-+				"of domain->span\n");
- 
- 	} while (sd);
- }
-@@ -5829,8 +5829,9 @@ __setup("max_cache_size=", setup_max_cac
-  */
- static void touch_cache(void *__cache, unsigned long __size)
- {
--	unsigned long size = __size/sizeof(long), chunk1 = size/3,
--			chunk2 = 2*size/3;
-+	unsigned long size = __size / sizeof(long);
-+	unsigned long chunk1 = size / 3;
-+	unsigned long chunk2 = 2 * size / 3;
- 	unsigned long *cache = __cache;
- 	int i;
- 
-@@ -6132,18 +6133,14 @@ static void calibrate_migration_costs(co
- 			-1
- #endif
- 		);
--	if (system_state == SYSTEM_BOOTING) {
--		if (num_online_cpus() > 1) {
--			printk("migration_cost=");
--			for (distance = 0; distance <= max_distance;
--				distance++) {
--				if (distance)
--					printk(",");
--				printk("%ld",
--					(long)migration_cost[distance] / 1000);
--			}
--			printk("\n");
-+	if (system_state == SYSTEM_BOOTING && num_online_cpus() > 1) {
-+		printk("migration_cost=");
-+		for (distance = 0; distance <= max_distance; distance++) {
-+			if (distance)
-+				printk(",");
-+			printk("%ld", (long)migration_cost[distance] / 1000);
- 		}
-+		printk("\n");
+ 		spin_lock_irq(&conf->device_lock);
+ 		wait_event_lock_irq(conf->wait_for_stripe,
+@@ -2772,6 +2781,7 @@ static int chunk_aligned_read(request_qu
+ 		return 1;
+ 	} else {
+ 		rcu_read_unlock();
++		bio_put(align_bi);
+ 		return 0;
  	}
- 	j1 = jiffies;
- 	if (migration_debug)
+ }
+@@ -3138,7 +3148,7 @@ static int  retry_aligned_read(raid5_con
+ 	logical_sector = raid_bio->bi_sector & ~((sector_t)STRIPE_SECTORS-1);
+ 	sector = raid5_compute_sector(	logical_sector,
+ 					conf->raid_disks,
+-					conf->raid_disks-1,
++					conf->raid_disks - conf->max_degraded,
+ 					&dd_idx,
+ 					&pd_idx,
+ 					conf);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-submit-checklist-update.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-sched-add-option-to-serialize-load-balancing.patch
-kernel-schedc-whitespace-cleanups.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
-kvm-userspace-interface.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch
+md-define-raid5_mergeable_bvec.patch
+md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-aligned-read-handling-including-raid6-read-corruption.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-misc-fixes-for-error-handling-of-aligned-reads.patch
+md-enable-bypassing-cache-for-reads.patch
+md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch
+md-conditionalize-some-code.patch
+md-remove-some-old-ifdefed-out-code-from-raid5c.patch
+md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch
+md-assorted-md-and-raid1-one-liners.patch
 
