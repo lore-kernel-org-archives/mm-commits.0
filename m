@@ -1,104 +1,142 @@
 From: akpm@osdl.org
-Subject: - kvm-use-the-general-purpose-register-accessors-rather.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:54:58 -0800
-Message-ID: <200612100754.kBA7swKe017833@shell0.pdx.osdl.net>
+Subject: - kvm-access-rflags-through-an-arch-operation.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:55:02 -0800
+Message-ID: <200612100755.kBA7t29A017839@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59772 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59783 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760404AbWLJHzA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:55:00 -0500
+	id S1760556AbWLJHzF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:55:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: use the general purpose register accessors rather than direct access
+     KVM: access rflags through an arch operation
 has been removed from the -mm tree.  Its filename was
-     kvm-use-the-general-purpose-register-accessors-rather.patch
+     kvm-access-rflags-through-an-arch-operation.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: use the general purpose register accessors rather than direct access
+Subject: KVM: access rflags through an arch operation
 From: Avi Kivity <avi@qumranet.com>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/kvm/kvm.h      |    2 ++
+ drivers/kvm/kvm_main.c |   12 ++++++------
+ drivers/kvm/vmx.c      |   12 ++++++++++++
+ 3 files changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-use-the-general-purpose-register-accessors-rather drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-use-the-general-purpose-register-accessors-rather
+diff -puN drivers/kvm/kvm.h~kvm-access-rflags-through-an-arch-operation drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-access-rflags-through-an-arch-operation
++++ a/drivers/kvm/kvm.h
+@@ -279,6 +279,8 @@ struct kvm_arch_ops {
+ 	void (*set_gdt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
+ 	void (*cache_regs)(struct kvm_vcpu *vcpu);
+ 	void (*decache_regs)(struct kvm_vcpu *vcpu);
++	unsigned long (*get_rflags)(struct kvm_vcpu *vcpu);
++	void (*set_rflags)(struct kvm_vcpu *vcpu, unsigned long rflags);
+ 
+ 	void (*flush_tlb)(struct kvm_vcpu *vcpu);
+ 	void (*inject_page_fault)(struct kvm_vcpu *vcpu,
+diff -puN drivers/kvm/kvm_main.c~kvm-access-rflags-through-an-arch-operation drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-access-rflags-through-an-arch-operation
 +++ a/drivers/kvm/kvm_main.c
-@@ -1116,7 +1116,7 @@ static void report_emulation_failure(str
+@@ -1127,7 +1127,7 @@ int emulate_instruction(struct kvm_vcpu 
+ 	cs_ar = vmcs_read32(GUEST_CS_AR_BYTES);
+ 
+ 	emulate_ctxt.vcpu = vcpu;
+-	emulate_ctxt.eflags = vmcs_readl(GUEST_RFLAGS);
++	emulate_ctxt.eflags = kvm_arch_ops->get_rflags(vcpu);
+ 	emulate_ctxt.cr2 = cr2;
+ 	emulate_ctxt.mode = (emulate_ctxt.eflags & X86_EFLAGS_VM)
+ 		? X86EMUL_MODE_REAL : (cs_ar & AR_L_MASK)
+@@ -1168,7 +1168,7 @@ int emulate_instruction(struct kvm_vcpu 
+ 	}
+ 
+ 	kvm_arch_ops->decache_regs(vcpu);
+-	vmcs_writel(GUEST_RFLAGS, emulate_ctxt.eflags);
++	kvm_arch_ops->set_rflags(vcpu, emulate_ctxt.eflags);
+ 
+ 	if (vcpu->mmio_is_write)
+ 		return EMULATE_DO_MMIO;
+@@ -1200,7 +1200,7 @@ void realmode_lmsw(struct kvm_vcpu *vcpu
+ 		   unsigned long *rflags)
  {
- 	static int reported;
- 	u8 opcodes[4];
--	unsigned long rip = vmcs_readl(GUEST_RIP);
-+	unsigned long rip = ctxt->vcpu->rip;
- 	unsigned long rip_linear;
+ 	lmsw(vcpu, msw);
+-	*rflags = vmcs_readl(GUEST_RFLAGS);
++	*rflags = kvm_arch_ops->get_rflags(vcpu);
+ }
  
- 	rip_linear = rip + get_segment_base(ctxt->vcpu, VCPU_SREG_CS);
-@@ -1392,13 +1392,15 @@ static int kvm_dev_ioctl_get_regs(struct
- 	if (!vcpu)
- 		return -ENOENT;
- 
-+	kvm_arch_ops->cache_regs(vcpu);
-+
- 	regs->rax = vcpu->regs[VCPU_REGS_RAX];
- 	regs->rbx = vcpu->regs[VCPU_REGS_RBX];
- 	regs->rcx = vcpu->regs[VCPU_REGS_RCX];
- 	regs->rdx = vcpu->regs[VCPU_REGS_RDX];
- 	regs->rsi = vcpu->regs[VCPU_REGS_RSI];
- 	regs->rdi = vcpu->regs[VCPU_REGS_RDI];
--	regs->rsp = vmcs_readl(GUEST_RSP);
-+	regs->rsp = vcpu->regs[VCPU_REGS_RSP];
- 	regs->rbp = vcpu->regs[VCPU_REGS_RBP];
- #ifdef __x86_64__
- 	regs->r8 = vcpu->regs[VCPU_REGS_R8];
-@@ -1411,7 +1413,7 @@ static int kvm_dev_ioctl_get_regs(struct
- 	regs->r15 = vcpu->regs[VCPU_REGS_R15];
+ unsigned long realmode_get_cr(struct kvm_vcpu *vcpu, int cr)
+@@ -1226,7 +1226,7 @@ void realmode_set_cr(struct kvm_vcpu *vc
+ 	switch (cr) {
+ 	case 0:
+ 		set_cr0(vcpu, mk_cr_64(vcpu->cr0, val));
+-		*rflags = vmcs_readl(GUEST_RFLAGS);
++		*rflags = kvm_arch_ops->get_rflags(vcpu);
+ 		break;
+ 	case 2:
+ 		vcpu->cr2 = val;
+@@ -1387,7 +1387,7 @@ static int kvm_dev_ioctl_get_regs(struct
  #endif
  
--	regs->rip = vmcs_readl(GUEST_RIP);
-+	regs->rip = vcpu->rip;
- 	regs->rflags = vmcs_readl(GUEST_RFLAGS);
+ 	regs->rip = vcpu->rip;
+-	regs->rflags = vmcs_readl(GUEST_RFLAGS);
++	regs->rflags = kvm_arch_ops->get_rflags(vcpu);
  
  	/*
-@@ -1442,7 +1444,7 @@ static int kvm_dev_ioctl_set_regs(struct
- 	vcpu->regs[VCPU_REGS_RDX] = regs->rdx;
- 	vcpu->regs[VCPU_REGS_RSI] = regs->rsi;
- 	vcpu->regs[VCPU_REGS_RDI] = regs->rdi;
--	vmcs_writel(GUEST_RSP, regs->rsp);
-+	vcpu->regs[VCPU_REGS_RSP] = regs->rsp;
- 	vcpu->regs[VCPU_REGS_RBP] = regs->rbp;
- #ifdef __x86_64__
- 	vcpu->regs[VCPU_REGS_R8] = regs->r8;
-@@ -1455,9 +1457,11 @@ static int kvm_dev_ioctl_set_regs(struct
- 	vcpu->regs[VCPU_REGS_R15] = regs->r15;
+ 	 * Don't leak debug flags in case they were set for guest debugging
+@@ -1431,7 +1431,7 @@ static int kvm_dev_ioctl_set_regs(struct
  #endif
  
--	vmcs_writel(GUEST_RIP, regs->rip);
-+	vcpu->rip = regs->rip;
- 	vmcs_writel(GUEST_RFLAGS, regs->rflags);
+ 	vcpu->rip = regs->rip;
+-	vmcs_writel(GUEST_RFLAGS, regs->rflags);
++	kvm_arch_ops->set_rflags(vcpu, regs->rflags);
  
-+	kvm_arch_ops->decache_regs(vcpu);
+ 	kvm_arch_ops->decache_regs(vcpu);
+ 
+diff -puN drivers/kvm/vmx.c~kvm-access-rflags-through-an-arch-operation drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-access-rflags-through-an-arch-operation
++++ a/drivers/kvm/vmx.c
+@@ -61,6 +61,16 @@ static const u32 vmx_msr_index[] = {
+ 
+ struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr);
+ 
++static unsigned long vmx_get_rflags(struct kvm_vcpu *vcpu)
++{
++	return vmcs_readl(GUEST_RFLAGS);
++}
 +
- 	vcpu_put(vcpu);
++static void vmx_set_rflags(struct kvm_vcpu *vcpu, unsigned long rflags)
++{
++	vmcs_writel(GUEST_RFLAGS, rflags);
++}
++
+ static void skip_emulated_instruction(struct kvm_vcpu *vcpu)
+ {
+ 	unsigned long rip;
+@@ -1717,6 +1727,8 @@ static struct kvm_arch_ops vmx_arch_ops 
+ 	.set_gdt = vmx_set_gdt,
+ 	.cache_regs = vcpu_load_rsp_rip,
+ 	.decache_regs = vcpu_put_rsp_rip,
++	.get_rflags = vmx_get_rflags,
++	.set_rflags = vmx_set_rflags,
  
- 	return 0;
+ 	.flush_tlb = vmx_flush_tlb,
+ 	.inject_page_fault = vmx_inject_page_fault,
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-use-the-general-purpose-register-accessors-rather.patch
-kvm-move-the-vmx-tsc-accessors-to-vmxc.patch
 kvm-access-rflags-through-an-arch-operation.patch
 kvm-move-the-vmx-segment-field-definitions-to-vmxc.patch
 kvm-add-an-arch-accessor-for-cs-d-b-and-l-bits.patch
