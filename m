@@ -1,303 +1,217 @@
 From: akpm@osdl.org
-Subject: - kvm-make-vcpu-creation-and-destruction-arch-operations.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:55:15 -0800
-Message-ID: <200612100755.kBA7tFa7017861@shell0.pdx.osdl.net>
+Subject: - kvm-move-vmcs-accessors-to-vmxc.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:55:30 -0800
+Message-ID: <200612100755.kBA7tUqe017876@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59815 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59849 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760558AbWLJHzT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:55:19 -0500
+	id S1760571AbWLJHzd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:55:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: make vcpu creation and destruction arch operations
+     KVM: move vmcs accessors to vmx.c
 has been removed from the -mm tree.  Its filename was
-     kvm-make-vcpu-creation-and-destruction-arch-operations.patch
+     kvm-move-vmcs-accessors-to-vmxc.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: make vcpu creation and destruction arch operations
+Subject: KVM: move vmcs accessors to vmx.c
 From: Avi Kivity <avi@qumranet.com>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    5 +-
- drivers/kvm/kvm_main.c |   74 +-----------------------------------
- drivers/kvm/vmx.c      |   79 ++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 85 insertions(+), 73 deletions(-)
+ drivers/kvm/kvm.h      |   27 -----------------
+ drivers/kvm/kvm_main.c |   22 --------------
+ drivers/kvm/kvm_vmx.h  |   16 ----------
+ drivers/kvm/vmx.c      |   60 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 60 insertions(+), 65 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-make-vcpu-creation-and-destruction-arch-operations drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-make-vcpu-creation-and-destruction-arch-operations
+diff -puN drivers/kvm/kvm.h~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-move-vmcs-accessors-to-vmxc
 +++ a/drivers/kvm/kvm.h
-@@ -260,6 +260,9 @@ struct kvm_arch_ops {
- 	int (*hardware_setup)(void);               /* __init */
- 	void (*hardware_unsetup)(void);            /* __exit */
+@@ -377,9 +377,6 @@ int kvm_write_guest(struct kvm_vcpu *vcp
+ 		unsigned long size,
+ 		void *data);
  
-+	int (*vcpu_create)(struct kvm_vcpu *vcpu);
-+	void (*vcpu_free)(struct kvm_vcpu *vcpu);
-+
- 	struct kvm_vcpu *(*vcpu_load)(struct kvm_vcpu *vcpu);
- 	void (*vcpu_put)(struct kvm_vcpu *vcpu);
- 
-@@ -299,8 +302,6 @@ struct kvm_arch_ops {
- 	void (*skip_emulated_instruction)(struct kvm_vcpu *vcpu);
- };
- 
--void __vcpu_clear(void *arg); /* temporary hack */
+-void vmcs_writel(unsigned long field, unsigned long value);
+-unsigned long vmcs_readl(unsigned long field);
 -
- extern struct kvm_stat kvm_stat;
- extern struct kvm_arch_ops *kvm_arch_ops;
+ unsigned long segment_base(u16 selector);
  
-diff -puN drivers/kvm/kvm_main.c~kvm-make-vcpu-creation-and-destruction-arch-operations drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-make-vcpu-creation-and-destruction-arch-operations
-+++ a/drivers/kvm/kvm_main.c
-@@ -204,31 +204,6 @@ int kvm_write_guest(struct kvm_vcpu *vcp
+ static inline struct page *_gfn_to_page(struct kvm *kvm, gfn_t gfn)
+@@ -388,30 +385,6 @@ static inline struct page *_gfn_to_page(
+ 	return (slot) ? slot->phys_mem[gfn - slot->base_gfn] : 0;
  }
- EXPORT_SYMBOL_GPL(kvm_write_guest);
  
--static void vmcs_clear(struct vmcs *vmcs)
+-static inline u16 vmcs_read16(unsigned long field)
 -{
--	u64 phys_addr = __pa(vmcs);
+-	return vmcs_readl(field);
+-}
+-
+-static inline u32 vmcs_read32(unsigned long field)
+-{
+-	return vmcs_readl(field);
+-}
+-
+-static inline u64 vmcs_read64(unsigned long field)
+-{
+-#ifdef __x86_64__
+-	return vmcs_readl(field);
+-#else
+-	return vmcs_readl(field) | ((u64)vmcs_readl(field+1) << 32);
+-#endif
+-}
+-
+-static inline void vmcs_write32(unsigned long field, u32 value)
+-{
+-	vmcs_writel(field, value);
+-}
+-
+ static inline int is_pae(struct kvm_vcpu *vcpu)
+ {
+ 	return vcpu->cr4 & CR4_PAE_MASK;
+diff -puN drivers/kvm/kvm_main.c~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-move-vmcs-accessors-to-vmxc
++++ a/drivers/kvm/kvm_main.c
+@@ -295,28 +295,6 @@ static int kvm_dev_release(struct inode 
+ 	return 0;
+ }
+ 
+-unsigned long vmcs_readl(unsigned long field)
+-{
+-	unsigned long value;
+-
+-	asm volatile (ASM_VMX_VMREAD_RDX_RAX
+-		      : "=a"(value) : "d"(field) : "cc");
+-	return value;
+-}
+-EXPORT_SYMBOL_GPL(vmcs_readl);
+-
+-void vmcs_writel(unsigned long field, unsigned long value)
+-{
 -	u8 error;
 -
--	asm volatile (ASM_VMX_VMCLEAR_RAX "; setna %0"
--		      : "=g"(error) : "a"(&phys_addr), "m"(phys_addr)
--		      : "cc", "memory");
+-	asm volatile (ASM_VMX_VMWRITE_RAX_RDX "; setna %0"
+-		       : "=q"(error) : "a"(value), "d"(field) : "cc" );
 -	if (error)
--		printk(KERN_ERR "kvm: vmclear fail: %p/%llx\n",
--		       vmcs, phys_addr);
+-		printk(KERN_ERR "vmwrite error: reg %lx value %lx (err %d)\n",
+-		       field, value, vmcs_read32(VM_INSTRUCTION_ERROR));
 -}
+-EXPORT_SYMBOL_GPL(vmcs_writel);
 -
--void __vcpu_clear(void *arg)
--{
--	struct kvm_vcpu *vcpu = arg;
--	int cpu = smp_processor_id();
--
--	if (vcpu->cpu == cpu)
--		vmcs_clear(vcpu->vmcs);
--	if (per_cpu(current_vmcs, cpu) == vcpu->vmcs)
--		per_cpu(current_vmcs, cpu) = 0;
--}
--EXPORT_SYMBOL_GPL(__vcpu_clear);
--
- static int vcpu_slot(struct kvm_vcpu *vcpu)
+ static void inject_gp(struct kvm_vcpu *vcpu)
  {
- 	return vcpu - vcpu->kvm->vcpus;
-@@ -256,33 +231,6 @@ static void vcpu_put(struct kvm_vcpu *vc
- 	mutex_unlock(&vcpu->mutex);
- }
+ 	kvm_arch_ops->inject_gp(vcpu, 0);
+diff -puN drivers/kvm/kvm_vmx.h~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/kvm_vmx.h
+--- a/drivers/kvm/kvm_vmx.h~kvm-move-vmcs-accessors-to-vmxc
++++ a/drivers/kvm/kvm_vmx.h
+@@ -1,22 +1,6 @@
+ #ifndef __KVM_VMX_H
+ #define __KVM_VMX_H
  
--struct vmcs *alloc_vmcs_cpu(int cpu)
+-static inline void vmcs_write16(unsigned long field, u16 value)
 -{
--	int node = cpu_to_node(cpu);
--	struct page *pages;
--	struct vmcs *vmcs;
--
--	pages = alloc_pages_node(node, GFP_KERNEL, vmcs_descriptor.order);
--	if (!pages)
--		return 0;
--	vmcs = page_address(pages);
--	memset(vmcs, 0, vmcs_descriptor.size);
--	vmcs->revision_id = vmcs_descriptor.revision_id; /* vmcs revision id */
--	return vmcs;
--}
--EXPORT_SYMBOL_GPL(alloc_vmcs_cpu);
--
--static struct vmcs *alloc_vmcs(void)
--{
--	return alloc_vmcs_cpu(smp_processor_id());
+-	vmcs_writel(field, value);
 -}
 -
--void free_vmcs(struct vmcs *vmcs)
+-static inline void vmcs_write64(unsigned long field, u64 value)
 -{
--	free_pages((unsigned long)vmcs, vmcs_descriptor.order);
--}
--EXPORT_SYMBOL_GPL(free_vmcs);
--
- static int kvm_dev_open(struct inode *inode, struct file *filp)
- {
- 	struct kvm *kvm = kzalloc(sizeof(struct kvm), GFP_KERNEL);
-@@ -335,18 +283,9 @@ static void kvm_free_physmem(struct kvm 
- 		kvm_free_physmem_slot(&kvm->memslots[i], 0);
- }
- 
--static void kvm_free_vmcs(struct kvm_vcpu *vcpu)
--{
--	if (vcpu->vmcs) {
--		on_each_cpu(__vcpu_clear, vcpu, 0, 1);
--		free_vmcs(vcpu->vmcs);
--		vcpu->vmcs = 0;
--	}
+-#ifdef __x86_64__
+-	vmcs_writel(field, value);
+-#else
+-	vmcs_writel(field, value);
+-	asm volatile ("");
+-	vmcs_writel(field+1, value >> 32);
+-#endif
 -}
 -
- static void kvm_free_vcpu(struct kvm_vcpu *vcpu)
- {
--	kvm_free_vmcs(vcpu);
-+	kvm_arch_ops->vcpu_free(vcpu);
- 	kvm_mmu_destroy(vcpu);
- }
- 
-@@ -598,7 +537,6 @@ static int kvm_dev_ioctl_create_vcpu(str
- {
- 	int r;
- 	struct kvm_vcpu *vcpu;
--	struct vmcs *vmcs;
- 
- 	r = -EINVAL;
- 	if (n < 0 || n >= KVM_MAX_VCPUS)
-@@ -619,14 +557,9 @@ static int kvm_dev_ioctl_create_vcpu(str
- 
- 	vcpu->cpu = -1;  /* First load will set up TR */
- 	vcpu->kvm = kvm;
--	vmcs = alloc_vmcs();
--	if (!vmcs) {
--		mutex_unlock(&vcpu->mutex);
-+	r = kvm_arch_ops->vcpu_create(vcpu);
-+	if (r < 0)
- 		goto out_free_vcpus;
--	}
--	vmcs_clear(vmcs);
--	vcpu->vmcs = vmcs;
--	vcpu->launched = 0;
- 
- 	kvm_arch_ops->vcpu_load(vcpu);
- 
-@@ -643,6 +576,7 @@ static int kvm_dev_ioctl_create_vcpu(str
- 
- out_free_vcpus:
- 	kvm_free_vcpu(vcpu);
-+	mutex_unlock(&vcpu->mutex);
- out:
- 	return r;
- }
-diff -puN drivers/kvm/vmx.c~kvm-make-vcpu-creation-and-destruction-arch-operations drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-make-vcpu-creation-and-destruction-arch-operations
+ #ifdef __x86_64__
+ /*
+  * avoid save/load MSR_SYSCALL_MASK and MSR_LSTAR by std vt
+diff -puN drivers/kvm/vmx.c~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-move-vmcs-accessors-to-vmxc
 +++ a/drivers/kvm/vmx.c
-@@ -79,6 +79,30 @@ static const u32 vmx_msr_index[] = {
+@@ -103,6 +103,66 @@ static void __vcpu_clear(void *arg)
+ 		per_cpu(current_vmcs, cpu) = 0;
+ }
  
- struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr);
- 
-+static void vmcs_clear(struct vmcs *vmcs)
++static unsigned long vmcs_readl(unsigned long field)
 +{
-+	u64 phys_addr = __pa(vmcs);
-+	u8 error;
++	unsigned long value;
 +
-+	asm volatile (ASM_VMX_VMCLEAR_RAX "; setna %0"
-+		      : "=g"(error) : "a"(&phys_addr), "m"(phys_addr)
-+		      : "cc", "memory");
-+	if (error)
-+		printk(KERN_ERR "kvm: vmclear fail: %p/%llx\n",
-+		       vmcs, phys_addr);
++	asm volatile (ASM_VMX_VMREAD_RDX_RAX
++		      : "=a"(value) : "d"(field) : "cc");
++	return value;
 +}
 +
-+static void __vcpu_clear(void *arg)
++static u16 vmcs_read16(unsigned long field)
 +{
-+	struct kvm_vcpu *vcpu = arg;
-+	int cpu = smp_processor_id();
++	return vmcs_readl(field);
++}
 +
-+	if (vcpu->cpu == cpu)
-+		vmcs_clear(vcpu->vmcs);
-+	if (per_cpu(current_vmcs, cpu) == vcpu->vmcs)
-+		per_cpu(current_vmcs, cpu) = 0;
++static u32 vmcs_read32(unsigned long field)
++{
++	return vmcs_readl(field);
++}
++
++static u64 vmcs_read64(unsigned long field)
++{
++#ifdef __x86_64__
++	return vmcs_readl(field);
++#else
++	return vmcs_readl(field) | ((u64)vmcs_readl(field+1) << 32);
++#endif
++}
++
++static void vmcs_writel(unsigned long field, unsigned long value)
++{
++	u8 error;
++
++	asm volatile (ASM_VMX_VMWRITE_RAX_RDX "; setna %0"
++		       : "=q"(error) : "a"(value), "d"(field) : "cc" );
++	if (error)
++		printk(KERN_ERR "vmwrite error: reg %lx value %lx (err %d)\n",
++		       field, value, vmcs_read32(VM_INSTRUCTION_ERROR));
++}
++
++static void vmcs_write16(unsigned long field, u16 value)
++{
++	vmcs_writel(field, value);
++}
++
++static void vmcs_write32(unsigned long field, u32 value)
++{
++	vmcs_writel(field, value);
++}
++
++static void vmcs_write64(unsigned long field, u64 value)
++{
++#ifdef __x86_64__
++	vmcs_writel(field, value);
++#else
++	vmcs_writel(field, value);
++	asm volatile ("");
++	vmcs_writel(field+1, value >> 32);
++#endif
 +}
 +
  /*
   * Switches to specified vcpu, until a matching vcpu_put(), but assumes
   * vcpu mutex is already taken.
-@@ -451,7 +475,30 @@ static __init void setup_vmcs_descriptor
- 	vmcs_descriptor.revision_id = vmx_msr_low;
- };
- 
--void free_vmcs(struct vmcs *vmcs);
-+static struct vmcs *alloc_vmcs_cpu(int cpu)
-+{
-+	int node = cpu_to_node(cpu);
-+	struct page *pages;
-+	struct vmcs *vmcs;
-+
-+	pages = alloc_pages_node(node, GFP_KERNEL, vmcs_descriptor.order);
-+	if (!pages)
-+		return 0;
-+	vmcs = page_address(pages);
-+	memset(vmcs, 0, vmcs_descriptor.size);
-+	vmcs->revision_id = vmcs_descriptor.revision_id; /* vmcs revision id */
-+	return vmcs;
-+}
-+
-+static struct vmcs *alloc_vmcs(void)
-+{
-+	return alloc_vmcs_cpu(smp_processor_id());
-+}
-+
-+static void free_vmcs(struct vmcs *vmcs)
-+{
-+	free_pages((unsigned long)vmcs, vmcs_descriptor.order);
-+}
- 
- static __exit void free_kvm_area(void)
- {
-@@ -1792,6 +1839,33 @@ static void vmx_inject_page_fault(struct
- 
- }
- 
-+static void vmx_free_vmcs(struct kvm_vcpu *vcpu)
-+{
-+	if (vcpu->vmcs) {
-+		on_each_cpu(__vcpu_clear, vcpu, 0, 1);
-+		free_vmcs(vcpu->vmcs);
-+		vcpu->vmcs = 0;
-+	}
-+}
-+
-+static void vmx_free_vcpu(struct kvm_vcpu *vcpu)
-+{
-+	vmx_free_vmcs(vcpu);
-+}
-+
-+static int vmx_create_vcpu(struct kvm_vcpu *vcpu)
-+{
-+	struct vmcs *vmcs;
-+
-+	vmcs = alloc_vmcs();
-+	if (!vmcs)
-+		return -ENOMEM;
-+	vmcs_clear(vmcs);
-+	vcpu->vmcs = vmcs;
-+	vcpu->launched = 0;
-+	return 0;
-+}
-+
- static struct kvm_arch_ops vmx_arch_ops = {
- 	.cpu_has_kvm_support = cpu_has_kvm_support,
- 	.disabled_by_bios = vmx_disabled_by_bios,
-@@ -1800,6 +1874,9 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.hardware_enable = hardware_enable,
- 	.hardware_disable = hardware_disable,
- 
-+	.vcpu_create = vmx_create_vcpu,
-+	.vcpu_free = vmx_free_vcpu,
-+
- 	.vcpu_load = vmx_vcpu_load,
- 	.vcpu_put = vmx_vcpu_put,
- 
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-make-vcpu-creation-and-destruction-arch-operations.patch
-kvm-move-vmcs-static-variables-to-vmxc.patch
-kvm-make-is_long_mode-an-arch-operation.patch
-kvm-use-the-tlb-flush-arch-operation-instead-of-an.patch
-kvm-remove-guest_cpl.patch
 kvm-move-vmcs-accessors-to-vmxc.patch
 kvm-move-vmx-helper-inlines-to-vmxc.patch
 kvm-remove-vmx-includes-from-arch-independent-code.patch
