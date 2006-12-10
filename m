@@ -1,102 +1,72 @@
 From: akpm@osdl.org
-Subject: - kvm-plumbing.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:13 -0800
-Message-ID: <200612100753.kBA7rDY3017712@shell0.pdx.osdl.net>
+Subject: - kvm-fix-calculation-of-initial-value-of-rdx-register.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:19 -0800
+Message-ID: <200612100753.kBA7rKF3017718@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59617 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59642 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760368AbWLJHxQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:16 -0500
+	id S1760379AbWLJHxe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mail@earthworm.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm: plumbing
+     kvm: fix calculation of initial value of rdx register
 has been removed from the -mm tree.  Its filename was
-     kvm-plumbing.patch
+     kvm-fix-calculation-of-initial-value-of-rdx-register.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: kvm: plumbing
+Subject: kvm: fix calculation of initial value of rdx register
 From: Avi Kivity <avi@qumranet.com>
 
-Add a config entry and a Makefile for KVM.
+On bootup, the rdx register contains information about the processor.  The
+function which calculates this value has the bugs:
+
+ - missing 'cpuid' to get the value from the processor
+ - missing register clobber caused a miscompilation in some circumstances
+ - we shouldn't return a value that depends on the current processor in
+   case we migrate
+
+In any case nobody looks at the value, so just return a generic P6
+identifier.
+
+Thanks to Christian Hesse <mail@earthworm.de> for debugging help.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/Kconfig      |    2 ++
- drivers/Makefile     |    1 +
- drivers/kvm/Kconfig  |   18 ++++++++++++++++++
- drivers/kvm/Makefile |    6 ++++++
- 4 files changed, 27 insertions(+)
+ drivers/kvm/kvm_main.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/Kconfig~kvm-plumbing drivers/Kconfig
---- a/drivers/Kconfig~kvm-plumbing
-+++ a/drivers/Kconfig
-@@ -80,4 +80,6 @@ source "drivers/dma/Kconfig"
+diff -puN drivers/kvm/kvm_main.c~kvm-fix-calculation-of-initial-value-of-rdx-register drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-fix-calculation-of-initial-value-of-rdx-register
++++ a/drivers/kvm/kvm_main.c
+@@ -1114,12 +1114,7 @@ static void set_cr8(struct kvm_vcpu *vcp
  
- source "drivers/auxdisplay/Kconfig"
+ static u32 get_rdx_init_val(void)
+ {
+-	u32 val;
+-
+-	asm ("movl $1, %%eax \n\t"
+-	     "movl %%eax, %0 \n\t" : "=g"(val) );
+-	return val;
+-
++	return 0x600; /* P6 family */
+ }
  
-+source "drivers/kvm/Kconfig"
-+
- endmenu
-diff -puN drivers/Makefile~kvm-plumbing drivers/Makefile
---- a/drivers/Makefile~kvm-plumbing
-+++ a/drivers/Makefile
-@@ -44,6 +44,7 @@ obj-$(CONFIG_SPI)		+= spi/
- obj-$(CONFIG_PCCARD)		+= pcmcia/
- obj-$(CONFIG_DIO)		+= dio/
- obj-$(CONFIG_SBUS)		+= sbus/
-+obj-$(CONFIG_KVM)		+= kvm/
- obj-$(CONFIG_ZORRO)		+= zorro/
- obj-$(CONFIG_MAC)		+= macintosh/
- obj-$(CONFIG_ATA_OVER_ETH)	+= block/aoe/
-diff -puN /dev/null drivers/kvm/Kconfig
---- /dev/null
-+++ a/drivers/kvm/Kconfig
-@@ -0,0 +1,18 @@
-+#
-+# KVM configuration
-+#
-+config KVM
-+	tristate "Kernel-based Virtual Machine (KVM) support"
-+	depends on X86 && EXPERIMENTAL
-+	---help---
-+	  Support hosting fully virtualized guest machines using hardware
-+	  virtualization extensions.  You will need a fairly recent Intel
-+	  processor equipped with VT extensions.
-+
-+	  This module provides access to the hardware capabilities through
-+	  a character device node named /dev/kvm.
-+
-+	  To compile this as a module, choose M here: the module
-+	  will be called kvm.
-+
-+	  If unsure, say N.
-diff -puN /dev/null drivers/kvm/Makefile
---- /dev/null
-+++ a/drivers/kvm/Makefile
-@@ -0,0 +1,6 @@
-+#
-+# Makefile for Kernel-based Virtual Machine module
-+#
-+
-+kvm-objs := kvm_main.o mmu.o x86_emulate.o
-+obj-$(CONFIG_KVM) += kvm.o
+ static void fx_init(struct kvm_vcpu *vcpu)
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-plumbing.patch
-kvm-dynamically-determine-which-msrs-to-load-and-save.patch
 kvm-fix-calculation-of-initial-value-of-rdx-register.patch
 kvm-avoid-using-vmx-instruction-directly.patch
 kvm-avoid-using-vmx-instruction-directly-fix-asm-constraints.patch
