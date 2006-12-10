@@ -1,61 +1,61 @@
 From: akpm@osdl.org
-Subject: + profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch added to -mm tree
-Date: Sun, 10 Dec 2006 11:22:53 -0800
-Message-ID: <200612101922.kBAJMrmi000705@shell0.pdx.osdl.net>
+Subject: + ieee80211softmac-fix-mutex_lock-at-exit-of-ieee80211_softmac_get_genie.patch added to -mm tree
+Date: Sun, 10 Dec 2006 11:24:27 -0800
+Message-ID: <200612101924.kBAJORqn000736@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52664 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52887 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762405AbWLJTXD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 14:23:03 -0500
+	id S1762457AbWLJTZc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 14:25:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com
+Cc: kune@deine-taler.de, linville@tuxdriver.com, mb@bu3sch.de, stable@kernle.org
 
 
 The patch titled
-     remove likely profiling int cast
+     ieee80211softmac: Fix mutex_lock at exit of ieee80211_softmac_get_genie
 has been added to the -mm tree.  Its filename is
-     profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
+     ieee80211softmac-fix-mutex_lock-at-exit-of-ieee80211_softmac_get_genie.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove likely profiling int cast
-From: Daniel Walker <dwalker@mvista.com>
+Subject: ieee80211softmac: Fix mutex_lock at exit of ieee80211_softmac_get_genie
+From: Ulrich Kunitz <kune@deine-taler.de>
 
-Fix some wrong casting from unsigned int to int. Reported by Andreas Mohr.
+ieee80211softmac_wx_get_genie locks the associnfo mutex at function exit.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Signed-off-by: Ulrich Kunitz <kune@deine-taler.de>
+Acked-by: Michael Buesch <mb@bu3sch.de>
+Cc: <stable@kernle.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/likely_prof.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ieee80211/softmac/ieee80211softmac_wx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/likely_prof.c~profile-likely-unlikely-macros_remove-likely-profiling-int-cast lib/likely_prof.c
---- a/lib/likely_prof.c~profile-likely-unlikely-macros_remove-likely-profiling-int-cast
-+++ a/lib/likely_prof.c
-@@ -86,8 +86,8 @@ static void *lp_seq_next(struct seq_file
- static int lp_seq_show(struct seq_file *out, void *p)
- {
- 	struct likeliness *entry = p;
--	int true = entry->count[1];
--	int false = entry->count[0];
-+	unsigned int true = entry->count[1];
-+	unsigned int false = entry->count[0];
+diff -puN net/ieee80211/softmac/ieee80211softmac_wx.c~ieee80211softmac-fix-mutex_lock-at-exit-of-ieee80211_softmac_get_genie net/ieee80211/softmac/ieee80211softmac_wx.c
+--- a/net/ieee80211/softmac/ieee80211softmac_wx.c~ieee80211softmac-fix-mutex_lock-at-exit-of-ieee80211_softmac_get_genie
++++ a/net/ieee80211/softmac/ieee80211softmac_wx.c
+@@ -463,7 +463,7 @@ ieee80211softmac_wx_get_genie(struct net
+ 			err = -E2BIG;
+ 	}
+ 	spin_unlock_irqrestore(&mac->lock, flags);
+-	mutex_lock(&mac->associnfo.mutex);
++	mutex_unlock(&mac->associnfo.mutex);
  
- 	if (!entry->type) {
- 		if (true > false)
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from kune@deine-taler.de are
 
-clocksource-add-usage-of-config_sysfs.patch
-clocksource-small-cleanup-2.patch
-profile-likely-unlikely-macros.patch
-profile_likely-export-do_check_likely.patch
-profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
+origin.patch
+ieee80211softmac-fix-errors-related-to-the-work_struct-changes.patch
+zd1211rw-call-ieee80211_rx-in-tasklet.patch
+ieee80211softmac-fix-mutex_lock-at-exit-of-ieee80211_softmac_get_genie.patch
 
