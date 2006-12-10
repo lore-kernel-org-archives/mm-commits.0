@@ -1,327 +1,184 @@
 From: akpm@osdl.org
-Subject: - kvm-expose-msrs-to-userspace-v2.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:39 -0800
-Message-ID: <200612100753.kBA7rdRs017741@shell0.pdx.osdl.net>
+Subject: - kvm-create-kvm-intelko-module.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:42 -0800
+Message-ID: <200612100753.kBA7rg7F017744@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59652 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59660 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760379AbWLJHxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:42 -0500
+	id S1760482AbWLJHxp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, uril@qumranet.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Expose MSRs to userspace (v2)
+     KVM: create kvm-intel.ko module
 has been removed from the -mm tree.  Its filename was
-     kvm-expose-msrs-to-userspace-v2.patch
+     kvm-create-kvm-intelko-module.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: Expose MSRs to userspace (v2)
+Subject: KVM: create kvm-intel.ko module
 From: Avi Kivity <avi@qumranet.com>
 
-Changes from v1:
+This patch lays the foundation for arch-independent kvm: it creates the
+kvm-intel.ko module and prepares an arch function vector for the arch-specific
+implementation.
 
- - get msrs and set msrs are now symmetric: both accept a list of msrs. it
-   is now possible to retrieve a single msr.
- - a new KVM_GET_MSR_INDEX_LIST allows discovering which msrs are supported
-   by kvm (previously this was integrated into KVM_GET_MSRS)
- - error handling is simpler and correcter
- - the implementation is collapsed into a single msr_io() function
- - avoid pointers in ioctl structs, instead use zero length arrays
-
-Signed-off-by: Uri Lublin <uril@qumranet.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |  177 +++++++++++++++++----------------------
- include/linux/kvm.h    |   14 +--
- 2 files changed, 89 insertions(+), 102 deletions(-)
+ drivers/kvm/Kconfig    |   12 ++++++++++--
+ drivers/kvm/Makefile   |    2 ++
+ drivers/kvm/kvm.h      |    7 +++++++
+ drivers/kvm/kvm_main.c |   13 +++++++++++++
+ drivers/kvm/vmx.c      |   39 +++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 71 insertions(+), 2 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-expose-msrs-to-userspace-v2 drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-expose-msrs-to-userspace-v2
-+++ a/drivers/kvm/kvm_main.c
-@@ -129,6 +129,8 @@ static const u32 vmx_msr_index[] = {
- #define MSR_IA32_VMX_EXIT_CTLS_MSR		0x483
- #define MSR_IA32_VMX_ENTRY_CTLS_MSR		0x484
+diff -puN drivers/kvm/Kconfig~kvm-create-kvm-intelko-module drivers/kvm/Kconfig
+--- a/drivers/kvm/Kconfig~kvm-create-kvm-intelko-module
++++ a/drivers/kvm/Kconfig
+@@ -6,8 +6,9 @@ config KVM
+ 	depends on X86 && EXPERIMENTAL
+ 	---help---
+ 	  Support hosting fully virtualized guest machines using hardware
+-	  virtualization extensions.  You will need a fairly recent Intel
+-	  processor equipped with VT extensions.
++	  virtualization extensions.  You will need a fairly recent
++	  processor equipped with virtualization extensions. You will also
++	  need to select one or more of the processor modules below.
  
-+#define MAX_IO_MSRS 256
+ 	  This module provides access to the hardware capabilities through
+ 	  a character device node named /dev/kvm.
+@@ -16,3 +17,10 @@ config KVM
+ 	  will be called kvm.
+ 
+ 	  If unsure, say N.
 +
- #define CR0_RESEVED_BITS 0xffffffff1ffaffc0ULL
- #define LMSW_GUEST_MASK 0x0eULL
- #define CR4_RESEVED_BITS (~((1ULL << 11) - 1))
-@@ -3151,7 +3153,7 @@ static int kvm_dev_ioctl_set_sregs(struc
++config KVM_INTEL
++	tristate "KVM for Intel processors support"
++	depends on KVM
++	---help---
++	  Provides support for KVM on Intel processors equipped with the VT
++	  extensions.
+diff -puN drivers/kvm/Makefile~kvm-create-kvm-intelko-module drivers/kvm/Makefile
+--- a/drivers/kvm/Makefile~kvm-create-kvm-intelko-module
++++ a/drivers/kvm/Makefile
+@@ -4,3 +4,5 @@
  
- /*
-  * List of msr numbers which we expose to userspace through KVM_GET_MSRS
-- * and KVM_SET_MSRS.
-+ * and KVM_SET_MSRS, and KVM_GET_MSR_INDEX_LIST.
-  */
- static u32 msrs_to_save[] = {
- 	MSR_IA32_SYSENTER_CS, MSR_IA32_SYSENTER_ESP, MSR_IA32_SYSENTER_EIP,
-@@ -3162,110 +3164,91 @@ static u32 msrs_to_save[] = {
- 	MSR_IA32_TIME_STAMP_COUNTER,
+ kvm-objs := kvm_main.o mmu.o x86_emulate.o
+ obj-$(CONFIG_KVM) += kvm.o
++kvm-intel-objs = vmx.o
++obj-$(CONFIG_KVM_INTEL) += kvm-intel.o
+diff -puN drivers/kvm/kvm.h~kvm-create-kvm-intelko-module drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-create-kvm-intelko-module
++++ a/drivers/kvm/kvm.h
+@@ -235,11 +235,18 @@ struct kvm_stat {
+ 	u32 irq_exits;
  };
  
--static int kvm_dev_ioctl_get_msrs(struct kvm *kvm, struct kvm_msrs *msrs)
-+
-+/*
-+ * Adapt set_msr() to msr_io()'s calling convention
-+ */
-+static int do_set_msr(struct kvm_vcpu *vcpu, unsigned index, u64 *data)
-+{
-+	return set_msr(vcpu, index, *data);
-+}
-+
-+/*
-+ * Read or write a bunch of msrs. All parameters are kernel addresses.
-+ *
-+ * @return number of msrs set successfully.
-+ */
-+static int __msr_io(struct kvm *kvm, struct kvm_msrs *msrs,
-+		    struct kvm_msr_entry *entries,
-+		    int (*do_msr)(struct kvm_vcpu *vcpu,
-+				  unsigned index, u64 *data))
- {
- 	struct kvm_vcpu *vcpu;
--	struct kvm_msr_entry *entry, *entries;
--	int rc;
--	u32 size, num_entries, i;
-+	int i;
- 
- 	if (msrs->vcpu < 0 || msrs->vcpu >= KVM_MAX_VCPUS)
- 		return -EINVAL;
- 
--	num_entries = ARRAY_SIZE(msrs_to_save);
--	if (msrs->nmsrs < num_entries) {
--		/* inform actual number of entries */
--		msrs->nmsrs = num_entries;
--		return -EINVAL;
--	}
--
- 	vcpu = vcpu_load(kvm, msrs->vcpu);
- 	if (!vcpu)
- 		return -ENOENT;
- 
--	msrs->nmsrs = num_entries; /* update to actual number of entries */
--	size = msrs->nmsrs * sizeof(struct kvm_msr_entry);
--	rc = -E2BIG;
--	if (size > 4096)
--		goto out_vcpu;
--
--	rc = -ENOMEM;
--	entries = vmalloc(size);
--	if (entries == NULL)
--		goto out_vcpu;
--
--	memset(entries, 0, size);
--	rc = -EINVAL;
--	for (i=0; i<num_entries; i++) {
--		entry = &entries[i];
--		entry->index = msrs_to_save[i];
--		if (get_msr(vcpu, entry->index, &entry->data))
--			goto out_free;
--	}
--
--	rc = -EFAULT;
--	if (copy_to_user(msrs->entries, entries, size))
--		goto out_free;
--
--	rc = 0;
--out_free:
--	vfree(entries);
-+	for (i = 0; i < msrs->nmsrs; ++i)
-+		if (do_msr(vcpu, entries[i].index, &entries[i].data))
-+			break;
- 
--out_vcpu:
- 	vcpu_put(vcpu);
- 
--	return rc;
-+	return i;
- }
- 
--static int kvm_dev_ioctl_set_msrs(struct kvm *kvm, struct kvm_msrs *msrs)
--{
--	struct kvm_vcpu *vcpu;
--	struct kvm_msr_entry *entry, *entries;
--	int rc;
--	u32 size, num_entries, i;
-+/*
-+ * Read or write a bunch of msrs. Parameters are user addresses.
-+ *
-+ * @return number of msrs set successfully.
-+ */
-+static int msr_io(struct kvm *kvm, struct kvm_msrs __user *user_msrs,
-+		  int (*do_msr)(struct kvm_vcpu *vcpu,
-+				unsigned index, u64 *data),
-+		  int writeback)
-+{
-+	struct kvm_msrs msrs;
-+	struct kvm_msr_entry *entries;
-+	int r, n;
-+	unsigned size;
- 
--	if (msrs->vcpu < 0 || msrs->vcpu >= KVM_MAX_VCPUS)
--		return -EINVAL;
-+	r = -EFAULT;
-+	if (copy_from_user(&msrs, user_msrs, sizeof msrs))
-+		goto out;
- 
--	num_entries = ARRAY_SIZE(msrs_to_save);
--	if (msrs->nmsrs < num_entries) {
--		msrs->nmsrs = num_entries; /* inform actual size */
--		return -EINVAL;
--	}
-+	r = -E2BIG;
-+	if (msrs.nmsrs >= MAX_IO_MSRS)
-+		goto out;
- 
--	vcpu = vcpu_load(kvm, msrs->vcpu);
--	if (!vcpu)
--		return -ENOENT;
-+	r = -ENOMEM;
-+	size = sizeof(struct kvm_msr_entry) * msrs.nmsrs;
-+	entries = vmalloc(size);
-+	if (!entries)
-+		goto out;
- 
--	size = msrs->nmsrs * sizeof(struct kvm_msr_entry);
--	rc = -E2BIG;
--	if (size > 4096)
--		goto out_vcpu;
-+	r = -EFAULT;
-+	if (copy_from_user(entries, user_msrs->entries, size))
-+		goto out_free;
- 
--	rc = -ENOMEM;
--	entries = vmalloc(size);
--	if (entries == NULL)
--		goto out_vcpu;
-+	r = n = __msr_io(kvm, &msrs, entries, do_msr);
-+	if (r < 0)
-+		goto out_free;
- 
--	rc = -EFAULT;
--	if (copy_from_user(entries, msrs->entries, size))
-+	r = -EFAULT;
-+	if (writeback && copy_to_user(user_msrs->entries, entries, size))
- 		goto out_free;
- 
--	rc = -EINVAL;
--	for (i=0; i<num_entries; i++) {
--		entry = &entries[i];
--		if (set_msr(vcpu, entry->index,  entry->data))
--			goto out_free;
--	}
-+	r = n;
- 
--	rc = 0;
- out_free:
- 	vfree(entries);
--
--out_vcpu:
--	vcpu_put(vcpu);
--
--	return rc;
-+out:
-+	return r;
- }
- 
- /*
-@@ -3509,32 +3492,32 @@ static long kvm_dev_ioctl(struct file *f
- 			goto out;
- 		break;
- 	}
--	case KVM_GET_MSRS: {
--		struct kvm_msrs kvm_msrs;
-+	case KVM_GET_MSRS:
-+		r = msr_io(kvm, (void __user *)arg, get_msr, 1);
-+		break;
-+	case KVM_SET_MSRS:
-+		r = msr_io(kvm, (void __user *)arg, do_set_msr, 0);
-+		break;
-+	case KVM_GET_MSR_INDEX_LIST: {
-+		struct kvm_msr_list __user *user_msr_list = (void __user *)arg;
-+		struct kvm_msr_list msr_list;
-+		unsigned n;
- 
- 		r = -EFAULT;
--		if (copy_from_user(&kvm_msrs, (void *)arg, sizeof kvm_msrs))
-+		if (copy_from_user(&msr_list, user_msr_list, sizeof msr_list))
- 			goto out;
--		r = kvm_dev_ioctl_get_msrs(kvm, &kvm_msrs);
--		if (r)
-+		n = msr_list.nmsrs;
-+		msr_list.nmsrs = ARRAY_SIZE(msrs_to_save);
-+		if (copy_to_user(user_msr_list, &msr_list, sizeof msr_list))
- 			goto out;
--		r = -EFAULT;
--		if (copy_to_user((void *)arg, &kvm_msrs, sizeof kvm_msrs))
-+		r = -E2BIG;
-+		if (n < ARRAY_SIZE(msrs_to_save))
- 			goto out;
--		r = 0;
--		break;
--	}
--	case KVM_SET_MSRS: {
--		struct kvm_msrs kvm_msrs;
--
- 		r = -EFAULT;
--		if (copy_from_user(&kvm_msrs, (void *)arg, sizeof kvm_msrs))
--			goto out;
--		r = kvm_dev_ioctl_set_msrs(kvm, &kvm_msrs);
--		if (r)
-+		if (copy_to_user(user_msr_list->indices, &msrs_to_save,
-+				 sizeof msrs_to_save))
- 			goto out;
- 		r = 0;
--		break;
- 	}
- 	default:
- 		;
-diff -puN include/linux/kvm.h~kvm-expose-msrs-to-userspace-v2 include/linux/kvm.h
---- a/include/linux/kvm.h~kvm-expose-msrs-to-userspace-v2
-+++ a/include/linux/kvm.h
-@@ -152,10 +152,13 @@ struct kvm_msrs {
- 	__u32 vcpu;
- 	__u32 nmsrs; /* number of msrs in entries */
- 
--	union {
--		struct kvm_msr_entry __user *entries;
--		__u64 padding;
--	};
-+	struct kvm_msr_entry entries[0];
++struct kvm_arch_ops {
 +};
 +
-+/* for KVM_GET_MSR_INDEX_LIST */
-+struct kvm_msr_list {
-+	__u32 nmsrs; /* number of msrs in entries */
-+	__u32 indices[0];
- };
+ extern struct kvm_stat kvm_stat;
++extern struct kvm_arch_ops *kvm_arch_ops;
  
- /* for KVM_TRANSLATE */
-@@ -218,6 +221,7 @@ struct kvm_dirty_log {
- #define KVM_CREATE_VCPU           _IOW(KVMIO, 11, int /* vcpu_slot */)
- #define KVM_GET_DIRTY_LOG         _IOW(KVMIO, 12, struct kvm_dirty_log)
- #define KVM_GET_MSRS              _IOWR(KVMIO, 13, struct kvm_msrs)
--#define KVM_SET_MSRS              _IOW(KVMIO, 14, struct kvm_msrs)
-+#define KVM_SET_MSRS              _IOWR(KVMIO, 14, struct kvm_msrs)
-+#define KVM_GET_MSR_INDEX_LIST    _IOWR(KVMIO, 15, struct kvm_msr_list)
+ #define kvm_printf(kvm, fmt ...) printk(KERN_DEBUG fmt)
+ #define vcpu_printf(vcpu, fmt...) kvm_printf(vcpu->kvm, fmt)
  
- #endif
++void kvm_init_arch(struct kvm_arch_ops *ops);
++void kvm_exit_arch(void);
++
+ void kvm_mmu_destroy(struct kvm_vcpu *vcpu);
+ int kvm_mmu_init(struct kvm_vcpu *vcpu);
+ 
+diff -puN drivers/kvm/kvm_main.c~kvm-create-kvm-intelko-module drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-create-kvm-intelko-module
++++ a/drivers/kvm/kvm_main.c
+@@ -41,6 +41,7 @@
+ MODULE_AUTHOR("Qumranet");
+ MODULE_LICENSE("GPL");
+ 
++struct kvm_arch_ops *kvm_arch_ops;
+ struct kvm_stat kvm_stat;
+ 
+ static struct kvm_stats_debugfs_item {
+@@ -3612,6 +3613,15 @@ static void kvm_exit_debug(void)
+ 
+ hpa_t bad_page_address;
+ 
++void kvm_init_arch(struct kvm_arch_ops *ops)
++{
++	kvm_arch_ops = ops;
++}
++
++void kvm_exit_arch(void)
++{
++}
++
+ static __init int kvm_init(void)
+ {
+ 	static struct page *bad_page;
+@@ -3671,3 +3681,6 @@ static __exit void kvm_exit(void)
+ 
+ module_init(kvm_init)
+ module_exit(kvm_exit)
++
++EXPORT_SYMBOL_GPL(kvm_init_arch);
++EXPORT_SYMBOL_GPL(kvm_exit_arch);
+diff -puN /dev/null drivers/kvm/vmx.c
+--- /dev/null
++++ a/drivers/kvm/vmx.c
+@@ -0,0 +1,39 @@
++/*
++ * Kernel-based Virtual Machine driver for Linux
++ *
++ * This module enables machines with Intel VT-x extensions to run virtual
++ * machines without emulation or binary translation.
++ *
++ * Copyright (C) 2006 Qumranet, Inc.
++ *
++ * Authors:
++ *   Avi Kivity   <avi@qumranet.com>
++ *   Yaniv Kamay  <yaniv@qumranet.com>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ *
++ */
++
++#include "kvm.h"
++#include <linux/module.h>
++
++MODULE_AUTHOR("Qumranet");
++MODULE_LICENSE("GPL");
++
++static struct kvm_arch_ops vmx_arch_ops = {
++};
++
++static int __init vmx_init(void)
++{
++	kvm_init_arch(&vmx_arch_ops);
++	return 0;
++}
++
++static void __exit vmx_exit(void)
++{
++	kvm_exit_arch();
++}
++
++module_init(vmx_init)
++module_exit(vmx_exit)
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-expose-msrs-to-userspace-v2.patch
 kvm-create-kvm-intelko-module.patch
 kvm-make-dev-registration-happen-when-the-arch.patch
 kvm-make-hardware-detection-an-arch-operation.patch
