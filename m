@@ -1,154 +1,130 @@
 From: akpm@osdl.org
-Subject: + rtc-driver-init-adjustment.patch added to -mm tree
-Date: Sun, 10 Dec 2006 12:06:47 -0800
-Message-ID: <200612102006.kBAK6lSe001791@shell0.pdx.osdl.net>
+Subject: + libata-fix-oops-with-sparsemem.patch added to -mm tree
+Date: Sun, 10 Dec 2006 12:12:55 -0800
+Message-ID: <200612102012.kBAKCtpp001939@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57079 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57774 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762457AbWLJUGv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 15:06:51 -0500
+	id S1762472AbWLJUNR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 15:13:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com
+Cc: arnd.bergmann@de.ibm.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     RTC driver init adjustment
+     libata: fix oops with sparsemem
 has been added to the -mm tree.  Its filename is
-     rtc-driver-init-adjustment.patch
+     libata-fix-oops-with-sparsemem.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTC driver init adjustment
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: libata: fix oops with sparsemem
+From: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 
-- conditionalizes procfs code upon CONFIG_PROC_FS (to reduce code size when
-  that option is not enabled)
+libata incorrectly passes NULL arguments to sg_set_buf, which crashes on
+powerpc64 when looking for the corresponding mem_section.
 
-- make initialization no longer fail when the procfs entry can't be
-  allocated (namely would initialization always have failed when
-  CONFIG_PROC_FS was not set)
+This introduces a new ata_exec_nodma() wrapper that takes no buffer
+arguments and does not call sg_set_buf either.  In order to make it easier
+to detect this sort of problem, it also adds a WARN_ON(!buf) to
+sg_set_buf() so we get a log message even platforms without sparsemem.
 
-- move the formerly file-scope static variable rtc_int_handler_ptr into
-  the only function using it, and makes it automatic.
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/rtc.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ drivers/ata/libata-core.c   |   27 +++++++++++++++++++++++----
+ include/linux/scatterlist.h |    2 ++
+ 2 files changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/rtc.c~rtc-driver-init-adjustment drivers/char/rtc.c
---- a/drivers/char/rtc.c~rtc-driver-init-adjustment
-+++ a/drivers/char/rtc.c
-@@ -113,7 +113,7 @@ static int rtc_has_irq = 1;
- #define hpet_set_rtc_irq_bit(arg) 		0
- #define hpet_rtc_timer_init() 			do { } while (0)
- #define hpet_rtc_dropped_irq() 			0
--static inline irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id) {return 0;}
-+static irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id) {return 0;}
- #else
- extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
- #endif
-@@ -165,7 +165,9 @@ static void mask_rtc_irq_bit(unsigned ch
+diff -puN drivers/ata/libata-core.c~libata-fix-oops-with-sparsemem drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-fix-oops-with-sparsemem
++++ a/drivers/ata/libata-core.c
+@@ -1336,7 +1336,7 @@ unsigned ata_exec_internal_sg(struct ata
  }
- #endif
  
-+#ifdef CONFIG_PROC_FS
- static int rtc_proc_open(struct inode *inode, struct file *file);
-+#endif
- 
- /*
-  *	Bits in rtc_status. (6 bits of room for future expansion)
-@@ -906,6 +908,7 @@ static struct miscdevice rtc_dev = {
- 	.fops		= &rtc_fops,
- };
- 
-+#ifdef CONFIG_PROC_FS
- static const struct file_operations rtc_proc_fops = {
- 	.owner = THIS_MODULE,
- 	.open = rtc_proc_open,
-@@ -913,14 +916,13 @@ static const struct file_operations rtc_
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
--
--#if defined(RTC_IRQ) && !defined(__sparc__)
--static irq_handler_t rtc_int_handler_ptr;
- #endif
- 
- static int __init rtc_init(void)
- {
-+#ifdef CONFIG_PROC_FS
- 	struct proc_dir_entry *ent;
-+#endif
- #if defined(__alpha__) || defined(__mips__)
- 	unsigned int year, ctrl;
- 	char *guess = NULL;
-@@ -932,9 +934,11 @@ static int __init rtc_init(void)
- 	struct sparc_isa_bridge *isa_br;
- 	struct sparc_isa_device *isa_dev;
- #endif
--#endif
--#ifndef __sparc__
-+#else
- 	void *r;
-+#ifdef RTC_IRQ
-+	irq_handler_t rtc_int_handler_ptr;
-+#endif
- #endif
- 
- #ifdef __sparc__
-@@ -1024,17 +1028,13 @@ no_irq:
- 		return -ENODEV;
- 	}
- 
-+#ifdef CONFIG_PROC_FS
- 	ent = create_proc_entry("driver/rtc", 0, NULL);
--	if (!ent) {
--#ifdef RTC_IRQ
--		free_irq(RTC_IRQ, NULL);
--		rtc_has_irq = 0;
-+	if (ent)
-+		ent->proc_fops = &rtc_proc_fops;
-+	else
-+		printk(KERN_WARNING "rtc: Failed to register with procfs.\n");
- #endif
--		release_region(RTC_PORT(0), RTC_IO_EXTENT);
--		misc_deregister(&rtc_dev);
--		return -ENOMEM;
--	}
--	ent->proc_fops = &rtc_proc_fops;
- 
- #if defined(__alpha__) || defined(__mips__)
- 	rtc_freq = HZ;
-@@ -1167,6 +1167,7 @@ static void rtc_dropped_irq(unsigned lon
+ /**
+- *	ata_exec_internal_sg - execute libata internal command
++ *	ata_exec_internal - execute libata internal command
+  *	@dev: Device to which the command is sent
+  *	@tf: Taskfile registers for the command and the result
+  *	@cdb: CDB for packet command
+@@ -1365,6 +1365,25 @@ unsigned ata_exec_internal(struct ata_de
  }
- #endif
  
-+#ifdef CONFIG_PROC_FS
- /*
-  *	Info exported via "/proc/driver/rtc".
-  */
-@@ -1251,6 +1252,7 @@ static int rtc_proc_open(struct inode *i
- {
- 	return single_open(file, rtc_proc_show, NULL);
+ /**
++ *	ata_exec_nodma - execute libata internal command
++ *	@dev: Device to which the command is sent
++ *	@tf: Taskfile registers for the command and the result
++ *
++ *	Wrapper around ata_exec_internal_sg() which takes no
++ *	data buffer.
++ *
++ *	LOCKING:
++ *	None.  Should be called with kernel context, might sleep.
++ *
++ *	RETURNS:
++ *	Zero on success, AC_ERR_* mask on failure
++ */
++static unsigned ata_exec_nodma(struct ata_device *dev, struct ata_taskfile *tf)
++{
++	return ata_exec_internal_sg(dev, tf, NULL, DMA_NONE, NULL, 0);
++}
++
++/**
+  *	ata_do_simple_cmd - execute simple internal command
+  *	@dev: Device to which the command is sent
+  *	@cmd: Opcode to execute
+@@ -1388,7 +1407,7 @@ unsigned int ata_do_simple_cmd(struct at
+ 	tf.flags |= ATA_TFLAG_DEVICE;
+ 	tf.protocol = ATA_PROT_NODATA;
+ 
+-	return ata_exec_internal(dev, &tf, NULL, DMA_NONE, NULL, 0);
++	return ata_exec_nodma(dev, &tf);
  }
-+#endif
  
- void rtc_get_rtc_time(struct rtc_time *rtc_tm)
+ /**
+@@ -3489,7 +3508,7 @@ static unsigned int ata_dev_set_xfermode
+ 	tf.protocol = ATA_PROT_NODATA;
+ 	tf.nsect = dev->xfer_mode;
+ 
+-	err_mask = ata_exec_internal(dev, &tf, NULL, DMA_NONE, NULL, 0);
++	err_mask = ata_exec_nodma(dev, &tf);
+ 
+ 	DPRINTK("EXIT, err_mask=%x\n", err_mask);
+ 	return err_mask;
+@@ -3527,7 +3546,7 @@ static unsigned int ata_dev_init_params(
+ 	tf.nsect = sectors;
+ 	tf.device |= (heads - 1) & 0x0f; /* max head = num. of heads - 1 */
+ 
+-	err_mask = ata_exec_internal(dev, &tf, NULL, DMA_NONE, NULL, 0);
++	err_mask = ata_exec_nodma(dev, &tf);
+ 
+ 	DPRINTK("EXIT, err_mask=%x\n", err_mask);
+ 	return err_mask;
+diff -puN include/linux/scatterlist.h~libata-fix-oops-with-sparsemem include/linux/scatterlist.h
+--- a/include/linux/scatterlist.h~libata-fix-oops-with-sparsemem
++++ a/include/linux/scatterlist.h
+@@ -8,6 +8,8 @@
+ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
+ 			      unsigned int buflen)
  {
++	WARN_ON(!buf); /* virt_to_page(NULL) crashes with sparsemem */
++
+ 	sg->page = virt_to_page(buf);
+ 	sg->offset = offset_in_page(buf);
+ 	sg->length = buflen;
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from arnd.bergmann@de.ibm.com are
 
 origin.patch
-some-kbuild-fix.patch
-rtc-fix-error-case.patch
-rtc-driver-init-adjustment.patch
+libata-fix-oops-with-sparsemem.patch
 
