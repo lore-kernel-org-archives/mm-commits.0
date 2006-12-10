@@ -1,198 +1,92 @@
 From: akpm@osdl.org
-Subject: - kvm-make-__set_efer-an-arch-operation-build-fix.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:54:43 -0800
-Message-ID: <200612100754.kBA7shHN017815@shell0.pdx.osdl.net>
+Subject: - kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:54:55 -0800
+Message-ID: <200612100754.kBA7stdt017827@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59754 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59767 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760536AbWLJHyq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:54:46 -0500
+	id S1760420AbWLJHy5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:54:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, avi@qumranet.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm-build-fix-2
+     KVM: use the idt and gdt accessors in realmode emulation
 has been removed from the -mm tree.  Its filename was
-     kvm-make-__set_efer-an-arch-operation-build-fix.patch
+     kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: kvm-build-fix-2
-From: Andrew Morton <akpm@osdl.org>
+Subject: KVM: use the idt and gdt accessors in realmode emulation
+From: Avi Kivity <avi@qumranet.com>
 
-Another i386 build fix.
-
-Please use CONFIG_X86_64 throughout, not __x86_64__.
-
-Cc: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/kvm/kvm_main.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-make-__set_efer-an-arch-operation-build-fix drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-make-__set_efer-an-arch-operation-build-fix
-+++ a/drivers/kvm/vmx.c
-@@ -1632,7 +1632,9 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.set_segment = vmx_set_segment,
- 	.set_cr0 = vmx_set_cr0,
- 	.set_cr4 = vmx_set_cr4,
-+#ifdef __x86_64__
- 	.set_efer = vmx_set_efer,
-+#endif
- 	.get_idt = vmx_get_idt,
- 	.set_idt = vmx_set_idt,
- 	.get_gdt = vmx_get_gdt,
+diff -puN drivers/kvm/kvm_main.c~kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation
++++ a/drivers/kvm/kvm_main.c
+@@ -1211,14 +1211,16 @@ static u64 mk_cr_64(u64 curr_cr, u32 new
+ 
+ void realmode_lgdt(struct kvm_vcpu *vcpu, u16 limit, unsigned long base)
+ {
+-	vmcs_writel(GUEST_GDTR_BASE, base);
+-	vmcs_write32(GUEST_GDTR_LIMIT, limit);
++	struct descriptor_table dt = { limit, base };
++
++	kvm_arch_ops->set_gdt(vcpu, &dt);
+ }
+ 
+ void realmode_lidt(struct kvm_vcpu *vcpu, u16 limit, unsigned long base)
+ {
+-	vmcs_writel(GUEST_IDTR_BASE, base);
+-	vmcs_write32(GUEST_IDTR_LIMIT, limit);
++	struct descriptor_table dt = { limit, base };
++
++	kvm_arch_ops->set_idt(vcpu, &dt);
+ }
+ 
+ void realmode_lmsw(struct kvm_vcpu *vcpu, unsigned long msw,
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
-x86-smp-export-smp_num_siblings-for-oprofile.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-platform_driver_probe-can-save-codespace-save-codespace.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-input-vs-git-alsa.patch
-kbuild-fix-rr-is-now-default.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-ssfdc-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-net.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-git-ocfs2-fixup.patch
-pci-fix-multiple-problems-with-via-hardware.patch
-pci-legacy-resource-fix-tidy.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-revert-git-block.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-submit-checklist-update.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-io-accounting-core-statistics.patch
-clean-up-__set_page_dirty_nobuffers.patch
-io-accounting-write-accounting.patch
-io-accounting-write-cancel-accounting.patch
-io-accounting-read-accounting-2.patch
-io-accounting-read-accounting-nfs-fix.patch
-io-accounting-read-accounting-cifs-fix.patch
-io-accounting-direct-io.patch
-io-accounting-report-in-procfs.patch
-cleanup-taskstatsh.patch
-io-accounting-via-taskstats.patch
-getdelays-various-fixes.patch
-io-accounting-add-to-getdelays.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-kernel-schedc-whitespace-cleanups-more.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-small-cleanup-2-fix.patch
 kvm-userspace-interface.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation.patch
+kvm-use-the-general-purpose-register-accessors-rather.patch
+kvm-move-the-vmx-tsc-accessors-to-vmxc.patch
+kvm-access-rflags-through-an-arch-operation.patch
+kvm-move-the-vmx-segment-field-definitions-to-vmxc.patch
+kvm-add-an-arch-accessor-for-cs-d-b-and-l-bits.patch
+kvm-add-a-set_cr0_no_modeswitch-arch-accessor.patch
+kvm-make-vcpu_load-and-vcpu_put-arch-operations.patch
+kvm-make-vcpu-creation-and-destruction-arch-operations.patch
+kvm-move-vmcs-static-variables-to-vmxc.patch
+kvm-make-is_long_mode-an-arch-operation.patch
+kvm-use-the-tlb-flush-arch-operation-instead-of-an.patch
+kvm-remove-guest_cpl.patch
+kvm-move-vmcs-accessors-to-vmxc.patch
+kvm-move-vmx-helper-inlines-to-vmxc.patch
+kvm-remove-vmx-includes-from-arch-independent-code.patch
+kvm-amd-svm-add-architecture-definitions-for-amd-svm.patch
+kvm-amd-svm-enhance-x86-emulator.patch
+kvm-amd-svm-enhance-x86-emulator-fix-mov-to-from-control-register-emulation.patch
+kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu.patch
+kvm-amd-svm-add-data-structures.patch
+kvm-amd-svm-implementation.patch
+kvm-amd-svm-implementation-avoid-three-more-new-instructions.patch
+kvm-amd-svm-implementation-more-i386-fixes.patch
+kvm-amd-svm-implementation-printk-log-levels.patch
+kvm-amd-svm-plumbing.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+kvm-load-i386-segment-bases.patch
 
