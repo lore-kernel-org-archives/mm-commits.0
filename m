@@ -1,523 +1,342 @@
 From: akpm@osdl.org
-Subject: - rtc-rtc-class-driver-for-the-ds1374.patch removed from -mm tree
-Date: Sun, 10 Dec 2006 00:53:07 -0800
-Message-ID: <200612100854.kBA8sN9o019450@shell0.pdx.osdl.net>
+Subject: - kvm-amd-svm-32-bit-host-support.patch removed from -mm tree
+Date: Sun, 10 Dec 2006 01:21:02 -0800
+Message-ID: <200612100921.kBA9L2f2019957@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34833 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36268 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760514AbWLJIyf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 03:54:35 -0500
+	id S1760588AbWLJJVg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 04:21:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scottwood@freescale.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: anthony@codemonkey.ws, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: RTC class driver for the ds1374
+     KVM: AMD SVM: 32-bit host support
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-class-driver-for-the-ds1374.patch
+     kvm-amd-svm-32-bit-host-support.patch
 
-This patch was dropped because it doesn't compile in the current tree
+This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: rtc: RTC class driver for the ds1374
-From: Scott Wood <scottwood@freescale.com>
+Subject: KVM: AMD SVM: 32-bit host support
+From: Anthony Liguori <anthony@codemonkey.ws>
 
-Add an RTC class driver for the Maxim/Dallas 1374 RTC chip, based on
-drivers/i2c/chips/ds1374.c.  It uses new-style device enumeration and supports
-alarm functionality.
+Enable kvm support for 32-bit AMD SVM hosts.
 
-Signed-off-by: Scott Wood <scottwood@freescale.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Anthony Liguori <anthony@codemonkey.ws>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/Kconfig      |   11 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-ds1374.c |  439 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 451 insertions(+)
+ drivers/kvm/Kconfig   |    2 
+ drivers/kvm/kvm_svm.h |    4 +
+ drivers/kvm/svm.c     |  109 +++++++++++++++++++++++++++++-----------
+ 3 files changed, 85 insertions(+), 30 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-rtc-class-driver-for-the-ds1374 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-rtc-class-driver-for-the-ds1374
-+++ a/drivers/rtc/Kconfig
-@@ -123,6 +123,17 @@ config RTC_DRV_DS1307
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-ds1307.
+diff -puN drivers/kvm/Kconfig~kvm-amd-svm-32-bit-host-support drivers/kvm/Kconfig
+--- a/drivers/kvm/Kconfig~kvm-amd-svm-32-bit-host-support
++++ a/drivers/kvm/Kconfig
+@@ -27,7 +27,7 @@ config KVM_INTEL
  
-+config RTC_DRV_DS1374
-+	tristate "Maxim/Dallas Semiconductor DS1374 Real Time Clock"
-+	depends on RTC_CLASS && I2C && !SENSORS_DS1374
-+	help
-+	  If you say yes here you get support for Dallas Semiconductor
-+	  DS1374 real-time clock chips.  If an interrupt is associated
-+	  with the device, the alarm functionality is supported.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called rtc-ds1374.
-+
- config RTC_DRV_DS1553
- 	tristate "Dallas DS1553"
- 	depends on RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-rtc-class-driver-for-the-ds1374 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-rtc-class-driver-for-the-ds1374
-+++ a/drivers/rtc/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205
- obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
- obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
- obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
-+obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
- obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
- obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
- obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
-diff -puN /dev/null drivers/rtc/rtc-ds1374.c
---- /dev/null
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -0,0 +1,439 @@
-+/*
-+ * RTC client/driver for the Maxim/Dallas DS1374 Real-Time Clock over I2C
-+ *
-+ * Based on drivers/i2c/chips/ds1374.c by Randy Vinson <rvinson@mvista.com>,
-+ * which was based on the m41t00.c by Mark Greer <mgreer@mvista.com>.
-+ *
-+ * Copyright (C) 2006 Freescale Semiconductor
-+ *
-+ * 2005 (c) MontaVista Software, Inc. This file is licensed under
-+ * the terms of the GNU General Public License version 2. This program
-+ * is licensed "as is" without any warranty of any kind, whether express
-+ * or implied.
-+ */
-+/*
-+ * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
-+ * recommened in .../Documentation/i2c/writing-clients section
-+ * "Sending and receiving", using SMBus level communication is preferred.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/interrupt.h>
-+#include <linux/i2c.h>
-+#include <linux/rtc.h>
-+#include <linux/bcd.h>
-+#include <linux/workqueue.h>
-+
-+#define DS1374_REG_TOD0		0x00 /* Time of Day */
-+#define DS1374_REG_TOD1		0x01
-+#define DS1374_REG_TOD2		0x02
-+#define DS1374_REG_TOD3		0x03
-+#define DS1374_REG_WDALM0	0x04 /* Watchdog/Alarm */
-+#define DS1374_REG_WDALM1	0x05
-+#define DS1374_REG_WDALM2	0x06
-+#define DS1374_REG_CR		0x07 /* Control */
-+#define DS1374_REG_CR_AIE	0x01 /* Alarm Int. Enable */
-+#define DS1374_REG_CR_WDALM	0x20 /* 1=Watchdog, 0=Alarm */
-+#define DS1374_REG_CR_WACE	0x40 /* WD/Alarm counter enable */
-+#define DS1374_REG_SR		0x08 /* Status */
-+#define DS1374_REG_SR_OSF	0x80 /* Oscillator Stop Flag */
-+#define DS1374_REG_SR_AF	0x01 /* Alarm Flag */
-+#define DS1374_REG_TCR		0x09 /* Trickle Charge */
-+
-+#define	DS1374_DRV_NAME		"ds1374"
-+
-+struct ds1374 {
-+	struct rtc_device *rtc;
-+	struct work_struct work;
-+	struct mutex mutex;
-+	spinlock_t lock;
-+	int have_irq;
-+};
-+
-+static struct i2c_driver ds1374_driver;
-+
-+static u8 read_reg(struct i2c_client *client, int reg, int *err)
-+{
-+	s32 val = i2c_smbus_read_byte_data(client, reg);
-+
-+	if (val < 0) {
-+		dev_warn(&client->dev, "read from I2C register %d failed\n",
-+		         reg);
-+
-+		if (err)
-+			*err = -EIO;
-+
-+		return 0;
-+	}
-+
-+	return val;
-+}
-+
-+static void write_reg(struct i2c_client *client, int reg, u8 val, int *err)
-+{
-+	if (i2c_smbus_write_byte_data(client, reg, val) < 0) {
-+		dev_warn(&client->dev, "write to I2C register %d failed\n",
-+		         reg);
-+
-+		if (err)
-+			*err = -EIO;
-+	}
-+}
-+
-+static int ds1374_read_rtc(struct i2c_client *client, ulong *time,
-+                           int from, int to)
-+{
-+	int reg, ret = 0;
-+	*time = 0;
-+
-+	for (reg = to; reg >= from; reg--)
-+		*time = (*time << 8) | read_reg(client, reg, &ret);
-+
-+	return ret;
-+}
-+
-+static int ds1374_write_rtc(struct i2c_client *client, ulong time,
-+                            int from, int to)
-+{
-+	int reg, ret = 0;
-+
-+	for (reg = from; reg <= to; reg++) {
-+		write_reg(client, reg, time & 0xff, &ret);
-+		time = time >> 8;
-+	}
-+
-+	return ret;
-+}
-+
-+static int ds1374_check_rtc_status(struct i2c_client *client)
-+{
-+	int ret = 0;
-+	u8 stat = read_reg(client, DS1374_REG_SR, &ret);
-+	u8 control;
-+
-+	if (ret == 0) {
-+		if (stat & DS1374_REG_SR_OSF)
-+			dev_warn(&client->dev,
-+			         "oscillator discontinuity flagged, "
-+			         "time unreliable\n");
-+
-+		stat &= ~(DS1374_REG_SR_OSF | DS1374_REG_SR_AF);
-+		write_reg(client, DS1374_REG_SR, stat, &ret);
-+	}
-+
-+	/* If the alarm is pending, clear it before requesting
-+	 * the interrupt, so an interrupt event isn't reported
-+	 * before everything is initialized.
-+	 */
-+
-+	control = read_reg(client, DS1374_REG_CR, &ret);
-+
-+	if (ret == 0) {
-+		control &= ~(DS1374_REG_CR_WACE | DS1374_REG_CR_AIE);
-+		write_reg(client, DS1374_REG_CR, control, &ret);
-+	}
-+
-+	return ret;
-+}
-+
-+static int ds1374_read_rtc_retry(struct device *dev, ulong *time,
-+                                 int from, int to)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	ulong time2;
-+	int limit = 10;		/* arbitrary retry limit */
-+	int ret;
-+
-+	/*
-+	 * Since the reads are being performed one byte at a time using
-+	 * the SMBus vs a 4-byte i2c transfer, there is a chance that a
-+	 * carry will occur during the read. To detect this, 2 reads are
-+	 * performed and compared.
-+	 */
-+	do {
-+		ret = ds1374_read_rtc(client, time, from, to);
-+		if (ret)
-+			return ret;
-+
-+		ret = ds1374_read_rtc(client, &time2, from, to);
-+		if (ret)
-+			return ret;
-+	} while (*time != time2 && limit--);
-+
-+	if (*time != time2) {
-+		dev_warn(dev, "can't get consistent time from rtc chip\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ds1374_write_rtc_retry(struct device *dev, ulong time,
-+                                  int from, int to)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	ulong time2;
-+	int limit = 10;		/* arbitrary retry limit */
-+	int ret;
-+
-+	/*
-+	 * Since the writes are being performed one byte at a time using
-+	 * the SMBus vs a 4-byte i2c transfer, there is a chance that a
-+	 * carry will occur during the write. To detect this, the write
-+	 * value is read back and compared.
-+	 */
-+	do {
-+		ds1374_write_rtc(client, time, from, to);
-+
-+		ret = ds1374_read_rtc(client, &time2, from, to);
-+		if (ret)
-+			return ret;
-+	} while (time != time2 && limit--);
-+
-+	if (time != time2) {
-+		dev_warn(dev, "can't confirm time set from rtc chip\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ds1374_read_time(struct device *dev, struct rtc_time *time)
-+{
-+	ulong itime;
-+
-+	int ret = ds1374_read_rtc_retry(dev, &itime,
-+	                                DS1374_REG_TOD0,
-+	                                DS1374_REG_TOD3);
-+
-+	if (!ret)
-+		rtc_time_to_tm(itime, time);
-+
-+	return ret;
-+}
-+
-+static int ds1374_set_time(struct device *dev, struct rtc_time *time)
-+{
-+	ulong itime;
-+	rtc_tm_to_time(time, &itime);
-+
-+	return ds1374_write_rtc_retry(dev, itime,
-+	                              DS1374_REG_TOD0,
-+	                              DS1374_REG_TOD3);
-+}
-+
-+/* The ds1374 has a decrementer for an alarm, rather than a comparator.
-+ * If the time of day is changed, then the alarm will need to be
-+ * reset.
-+ */
-+static int ds1374_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	ulong now, cur_alarm;
-+	u8 cr, sr;
-+	int ret = 0;
-+
-+	cr = read_reg(client, DS1374_REG_CR, &ret);
-+	sr = read_reg(client, DS1374_REG_SR, &ret);
-+	if (ret)
-+		return ret;
-+
-+	ret = ds1374_read_rtc_retry(dev, &now,
-+	                            DS1374_REG_TOD0, DS1374_REG_TOD3);
-+	if (ret)
-+		return ret;
-+
-+	ret = ds1374_read_rtc_retry(dev, &cur_alarm,
-+	                            DS1374_REG_WDALM0, DS1374_REG_WDALM2);
-+	if (ret)
-+		return ret;
-+
-+	rtc_time_to_tm(now + cur_alarm, &alarm->time);
-+	alarm->enabled = !!(cr & DS1374_REG_CR_WACE);
-+	alarm->pending = !!(sr & DS1374_REG_SR_AF);
-+
-+	return 0;
-+}
-+
-+static int ds1374_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ds1374 *ds1374 = i2c_get_clientdata(client);
-+	struct rtc_time now;
-+	ulong new_alarm, itime;
-+	u8 cr;
-+	int ret = 0;
-+
-+	if (!ds1374->have_irq)
-+		return -EINVAL;
-+
-+	cr = read_reg(client, DS1374_REG_CR, &ret);
-+	if (ret)
-+		return ret;
-+
-+	ret = ds1374_read_time(dev, &now);
-+	if (ret)
-+		return ret;
-+
-+	rtc_merge_alarm(&now, &alarm->time);
-+	rtc_tm_to_time(&alarm->time, &new_alarm);
-+	rtc_tm_to_time(&now, &itime);
-+
-+	new_alarm -= itime;
-+
-+	/* This should only happen due to races, or if the full date
-+	 * up to the year was specified (and is in the past).  Partial
-+	 * dates in the past are interpreted into the future by
-+	 * rtc_merge_alarm().
-+	 */
-+	if (new_alarm <= 0)
-+		new_alarm = 1;
-+
-+	mutex_lock(&ds1374->mutex);
-+
-+	ret = ds1374_write_rtc_retry(dev, new_alarm,
-+	                             DS1374_REG_WDALM0,
-+	                             DS1374_REG_WDALM2);
-+
-+	if (alarm->enabled) {
-+		cr |= DS1374_REG_CR_WACE | DS1374_REG_CR_AIE;
-+		cr &= ~DS1374_REG_CR_WDALM;
-+
-+		write_reg(client, DS1374_REG_CR, cr, &ret);
-+	}
-+
-+	mutex_unlock(&ds1374->mutex);
-+	return ret;
-+}
-+
-+static irqreturn_t ds1374_irq(int irq, void *dev_id)
-+{
-+	struct i2c_client *client = dev_id;
-+	struct ds1374 *ds1374 = i2c_get_clientdata(client);
-+	irqreturn_t ret = IRQ_NONE;
-+
-+	spin_lock_irq(&ds1374->lock);
-+
-+	if (ds1374->have_irq) {
-+		disable_irq_nosync(irq);
-+		schedule_work(&ds1374->work);
-+		ret = IRQ_HANDLED;
-+	}
-+
-+	spin_unlock_irq(&ds1374->lock);
-+	return ret;
-+}
-+
-+static void ds1374_work(void *arg)
-+{
-+	struct i2c_client *client = arg;
-+	struct ds1374 *ds1374 = i2c_get_clientdata(client);
-+	u8 stat, control;
-+
-+	mutex_lock(&ds1374->mutex);
-+
-+	stat = read_reg(client, DS1374_REG_SR, NULL);
-+
-+	if (stat & DS1374_REG_SR_AF) {
-+		stat &= ~DS1374_REG_SR_AF;
-+		write_reg(client, DS1374_REG_SR, stat, NULL);
-+
-+		control = read_reg(client, DS1374_REG_CR, NULL);
-+		control &= ~(DS1374_REG_CR_WACE | DS1374_REG_CR_AIE);
-+		write_reg(client, DS1374_REG_CR, control, NULL);
-+
-+		rtc_update_irq(&ds1374->rtc->class_dev, 1, RTC_AF | RTC_IRQF);
-+	}
-+
-+	mutex_unlock(&ds1374->mutex);
-+
-+	enable_irq(client->irq);
-+}
-+
-+static const struct rtc_class_ops ds1374_rtc_ops = {
-+	.read_time = ds1374_read_time,
-+	.set_time = ds1374_set_time,
-+	.read_alarm = ds1374_read_alarm,
-+	.set_alarm = ds1374_set_alarm,
-+};
-+
-+static int ds1374_probe(struct i2c_client *client)
-+{
-+	struct ds1374 *ds1374;
-+	int ret;
-+
-+	ds1374 = kzalloc(sizeof(struct ds1374), GFP_KERNEL);
-+	if (!ds1374)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, ds1374);
-+
-+	INIT_WORK(&ds1374->work, ds1374_work, client);
-+	spin_lock_init(&ds1374->lock);
-+	mutex_init(&ds1374->mutex);
-+
-+	ret = ds1374_check_rtc_status(client);
-+	if (ret)
-+		return ret;
-+
-+	if (client->irq != -1 &&
-+	    !request_irq(client->irq, ds1374_irq, 0, DS1374_DRV_NAME, client))
-+		ds1374->have_irq = 1;
-+
-+	ds1374->rtc = rtc_device_register(client->name, &client->dev,
-+	                                  &ds1374_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(ds1374->rtc)) {
-+		ret = PTR_ERR(ds1374->rtc);
-+		dev_err(&client->dev, "unable to register the class device\n");
-+		kfree(ds1374);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __devexit ds1374_remove(struct i2c_client *client)
-+{
-+	struct ds1374 *ds1374 = i2c_get_clientdata(client);
-+
-+	if (ds1374->have_irq) {
-+		spin_lock_irq(&ds1374->lock);
-+		ds1374->have_irq = 0;
-+		spin_unlock_irq(&ds1374->lock);
-+
-+		flush_scheduled_work();
-+		free_irq(client->irq, client);
-+	}
-+
-+	rtc_device_unregister(ds1374->rtc);
-+	kfree(ds1374);
-+	return 0;
-+}
-+
-+static struct i2c_driver ds1374_driver = {
-+	.driver = {
-+		.name	= DS1374_DRV_NAME,
-+		.owner = THIS_MODULE,
-+	},
-+	.id = I2C_DRIVERID_DS1374,
-+	.probe = ds1374_probe,
-+	.remove = __devexit_p(ds1374_remove),
-+};
-+
-+static int __init ds1374_init(void)
-+{
-+	return i2c_add_driver(&ds1374_driver);
-+}
-+
-+static void __exit ds1374_exit(void)
-+{
-+	i2c_del_driver(&ds1374_driver);
-+}
-+
-+module_init(ds1374_init);
-+module_exit(ds1374_exit);
-+
-+MODULE_AUTHOR("Scott Wood <scottwood@freescale.com>");
-+MODULE_DESCRIPTION("Maxim/Dallas DS1374 RTC I2C Client Driver");
-+MODULE_LICENSE("GPL");
+ config KVM_AMD
+ 	tristate "KVM for AMD processors support"
+-	depends on KVM && X86_64
++	depends on KVM
+ 	---help---
+ 	  Provides support for KVM on AMD processors equipped with the AMD-V
+ 	  (SVM) extensions.
+diff -puN drivers/kvm/kvm_svm.h~kvm-amd-svm-32-bit-host-support drivers/kvm/kvm_svm.h
+--- a/drivers/kvm/kvm_svm.h~kvm-amd-svm-32-bit-host-support
++++ a/drivers/kvm/kvm_svm.h
+@@ -9,11 +9,13 @@
+ #include "kvm.h"
+ 
+ static const u32 host_save_msrs[] = {
++#ifdef __x86_64__
+ 	MSR_STAR, MSR_LSTAR, MSR_CSTAR, MSR_SYSCALL_MASK, MSR_KERNEL_GS_BASE,
++	MSR_FS_BASE, MSR_GS_BASE,
++#endif
+ 	MSR_IA32_SYSENTER_CS, MSR_IA32_SYSENTER_ESP, MSR_IA32_SYSENTER_EIP,
+ 	MSR_IA32_DEBUGCTLMSR, /*MSR_IA32_LASTBRANCHFROMIP,
+ 	MSR_IA32_LASTBRANCHTOIP, MSR_IA32_LASTINTFROMIP,MSR_IA32_LASTINTTOIP,*/
+-	MSR_FS_BASE, MSR_GS_BASE,
+ };
+ 
+ #define NR_HOST_SAVE_MSRS (sizeof(host_save_msrs) / sizeof(*host_save_msrs))
+diff -puN drivers/kvm/svm.c~kvm-amd-svm-32-bit-host-support drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-amd-svm-32-bit-host-support
++++ a/drivers/kvm/svm.c
+@@ -39,16 +39,28 @@ MODULE_LICENSE("GPL");
+ #define SEG_TYPE_LDT 2
+ #define SEG_TYPE_BUSY_TSS16 3
+ 
++#define KVM_EFER_LMA (1 << 10)
++#define KVM_EFER_LME (1 << 8)
++
+ unsigned long iopm_base;
+ unsigned long msrpm_base;
+ 
++struct kvm_ldttss_desc {
++	u16 limit0;
++	u16 base0;
++	unsigned base1 : 8, type : 5, dpl : 2, p : 1;
++	unsigned limit1 : 4, zero0 : 3, g : 1, base2 : 8;
++	u32 base3;
++	u32 zero1;
++} __attribute__((packed));
++
+ struct svm_cpu_data {
+ 	int cpu;
+ 
+ 	uint64_t asid_generation;
+ 	uint32_t max_asid;
+ 	uint32_t next_asid;
+-	struct ldttss_desc *tss_desc;
++	struct kvm_ldttss_desc *tss_desc;
+ 
+ 	struct page *save_area;
+ };
+@@ -156,7 +168,7 @@ static inline void write_dr7(unsigned lo
+ 
+ static inline int svm_is_long_mode(struct kvm_vcpu *vcpu)
+ {
+-	return vcpu->svm->vmcb->save.efer & EFER_LMA;
++	return vcpu->svm->vmcb->save.efer & KVM_EFER_LMA;
+ }
+ 
+ static inline void force_new_asid(struct kvm_vcpu *vcpu)
+@@ -171,8 +183,8 @@ static inline void flush_guest_tlb(struc
+ 
+ static void svm_set_efer(struct kvm_vcpu *vcpu, u64 efer)
+ {
+-	if (!(efer & EFER_LMA))
+-		efer &= ~EFER_LME;
++	if (!(efer & KVM_EFER_LMA))
++		efer &= ~KVM_EFER_LME;
+ 
+ 	vcpu->svm->vmcb->save.efer = efer | MSR_EFER_SVME_MASK;
+ 	vcpu->shadow_efer = efer;
+@@ -275,7 +287,11 @@ static void svm_hardware_enable(void *ga
+ 
+ 	struct svm_cpu_data *svm_data;
+ 	uint64_t efer;
++#ifdef __x86_64__
+ 	struct desc_ptr gdt_descr;
++#else
++	struct Xgt_desc_struct gdt_descr;
++#endif
+ 	struct desc_struct *gdt;
+ 	int me = raw_smp_processor_id();
+ 
+@@ -297,7 +313,7 @@ static void svm_hardware_enable(void *ga
+ 
+ 	asm volatile ( "sgdt %0" : "=m"(gdt_descr) );
+ 	gdt = (struct desc_struct *)gdt_descr.address;
+-	svm_data->tss_desc = (struct ldttss_desc *)(gdt + GDT_ENTRY_TSS);
++	svm_data->tss_desc = (struct kvm_ldttss_desc *)(gdt + GDT_ENTRY_TSS);
+ 
+ 	rdmsrl(MSR_EFER, efer);
+ 	wrmsrl(MSR_EFER, efer | MSR_EFER_SVME_MASK);
+@@ -381,6 +397,7 @@ static __init int svm_hardware_setup(voi
+ 	memset(msrpm_va, 0xff, PAGE_SIZE * (1 << MSRPM_ALLOC_ORDER));
+ 	msrpm_base = page_to_pfn(msrpm_pages) << PAGE_SHIFT;
+ 
++#ifdef __x86_64__
+ 	set_msr_interception(msrpm_va, MSR_GS_BASE, 1, 1);
+ 	set_msr_interception(msrpm_va, MSR_FS_BASE, 1, 1);
+ 	set_msr_interception(msrpm_va, MSR_KERNEL_GS_BASE, 1, 1);
+@@ -388,6 +405,7 @@ static __init int svm_hardware_setup(voi
+ 	set_msr_interception(msrpm_va, MSR_LSTAR, 1, 1);
+ 	set_msr_interception(msrpm_va, MSR_CSTAR, 1, 1);
+ 	set_msr_interception(msrpm_va, MSR_SYSCALL_MASK, 1, 1);
++#endif
+ 	set_msr_interception(msrpm_va, MSR_IA32_SYSENTER_CS, 1, 1);
+ 	set_msr_interception(msrpm_va, MSR_IA32_SYSENTER_ESP, 1, 1);
+ 	set_msr_interception(msrpm_va, MSR_IA32_SYSENTER_EIP, 1, 1);
+@@ -687,15 +705,15 @@ static void svm_set_gdt(struct kvm_vcpu 
+ static void svm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+ {
+ #ifdef __x86_64__
+-	if (vcpu->shadow_efer & EFER_LME) {
++	if (vcpu->shadow_efer & KVM_EFER_LME) {
+ 		if (!is_paging(vcpu) && (cr0 & CR0_PG_MASK)) {
+-			vcpu->shadow_efer |= EFER_LMA;
+-			vcpu->svm->vmcb->save.efer |= EFER_LMA | EFER_LME;
++			vcpu->shadow_efer |= KVM_EFER_LMA;
++			vcpu->svm->vmcb->save.efer |= KVM_EFER_LMA | KVM_EFER_LME;
+ 		}
+ 
+ 		if (is_paging(vcpu) && !(cr0 & CR0_PG_MASK) ) {
+-			vcpu->shadow_efer &= ~EFER_LMA;
+-			vcpu->svm->vmcb->save.efer &= ~(EFER_LMA | EFER_LME);
++			vcpu->shadow_efer &= ~KVM_EFER_LMA;
++			vcpu->svm->vmcb->save.efer &= ~(KVM_EFER_LMA | KVM_EFER_LME);
+ 		}
+ 	}
+ #endif
+@@ -1079,6 +1097,7 @@ static int svm_get_msr(struct kvm_vcpu *
+ 	case MSR_IA32_APICBASE:
+ 		*data = vcpu->apic_base;
+ 		break;
++#ifdef __x86_64__
+ 	case MSR_STAR:
+ 		*data = vcpu->svm->vmcb->save.star;
+ 		break;
+@@ -1088,6 +1107,13 @@ static int svm_get_msr(struct kvm_vcpu *
+ 	case MSR_CSTAR:
+ 		*data = vcpu->svm->vmcb->save.cstar;
+ 		break;
++	case MSR_KERNEL_GS_BASE:
++		*data = vcpu->svm->vmcb->save.kernel_gs_base;
++		break;
++	case MSR_SYSCALL_MASK:
++		*data = vcpu->svm->vmcb->save.sfmask;
++		break;
++#endif
+ 	case MSR_IA32_SYSENTER_CS:
+ 		*data = vcpu->svm->vmcb->save.sysenter_cs;
+ 		break;
+@@ -1097,12 +1123,6 @@ static int svm_get_msr(struct kvm_vcpu *
+ 	case MSR_IA32_SYSENTER_ESP:
+ 		*data = vcpu->svm->vmcb->save.sysenter_esp;
+ 		break;
+-	case MSR_KERNEL_GS_BASE:
+-		*data = vcpu->svm->vmcb->save.kernel_gs_base;
+-		break;
+-	case MSR_SYSCALL_MASK:
+-		*data = vcpu->svm->vmcb->save.sfmask;
+-		break;
+ 	default:
+ 		printk(KERN_ERR "kvm: unhandled rdmsr: 0x%x\n", ecx);
+ 		return 1;
+@@ -1152,6 +1172,7 @@ static int svm_set_msr(struct kvm_vcpu *
+ 	case MSR_IA32_APICBASE:
+ 		vcpu->apic_base = data;
+ 		break;
++#ifdef __x86_64___
+ 	case MSR_STAR:
+ 		vcpu->svm->vmcb->save.star = data;
+ 		break;
+@@ -1161,6 +1182,13 @@ static int svm_set_msr(struct kvm_vcpu *
+ 	case MSR_CSTAR:
+ 		vcpu->svm->vmcb->save.cstar = data;
+ 		break;
++	case MSR_KERNEL_GS_BASE:
++		vcpu->svm->vmcb->save.kernel_gs_base = data;
++		break;
++	case MSR_SYSCALL_MASK:
++		vcpu->svm->vmcb->save.sfmask = data;
++		break;
++#endif
+ 	case MSR_IA32_SYSENTER_CS:
+ 		vcpu->svm->vmcb->save.sysenter_cs = data;
+ 		break;
+@@ -1170,12 +1198,6 @@ static int svm_set_msr(struct kvm_vcpu *
+ 	case MSR_IA32_SYSENTER_ESP:
+ 		vcpu->svm->vmcb->save.sysenter_esp = data;
+ 		break;
+-	case MSR_KERNEL_GS_BASE:
+-		vcpu->svm->vmcb->save.kernel_gs_base = data;
+-		break;
+-	case MSR_SYSCALL_MASK:
+-		vcpu->svm->vmcb->save.sfmask = data;
+-		break;
+ 	default:
+ 		printk(KERN_ERR "kvm: unhandled wrmsr: %x\n", ecx);
+ 		return 1;
+@@ -1323,6 +1345,7 @@ static void kvm_reput_irq(struct kvm_vcp
+ 
+ static void save_db_regs(unsigned long *db_regs)
+ {
++#ifdef __x86_64__
+ 	asm ("mov %%dr0, %%rax \n\t"
+ 	     "mov %%rax, %[dr0] \n\t"
+ 	     "mov %%dr1, %%rax \n\t"
+@@ -1336,6 +1359,21 @@ static void save_db_regs(unsigned long *
+ 	       [dr2] "=m"(db_regs[2]),
+ 	       [dr3] "=m"(db_regs[3])
+ 	     : : "rax");
++#else
++	asm ("mov %%dr0, %%eax \n\t"
++	     "mov %%eax, %[dr0] \n\t"
++	     "mov %%dr1, %%eax \n\t"
++	     "mov %%eax, %[dr1] \n\t"
++	     "mov %%dr2, %%eax \n\t"
++	     "mov %%eax, %[dr2] \n\t"
++	     "mov %%dr3, %%eax \n\t"
++	     "mov %%eax, %[dr3] \n\t"
++	     : [dr0] "=m"(db_regs[0]),
++	       [dr1] "=m"(db_regs[1]),
++	       [dr2] "=m"(db_regs[2]),
++	       [dr3] "=m"(db_regs[3])
++	     : : "eax");
++#endif
+ }
+ 
+ static void load_db_regs(unsigned long *db_regs)
+@@ -1349,7 +1387,11 @@ static void load_db_regs(unsigned long *
+ 	       [dr1] "r"(db_regs[1]),
+ 	       [dr2] "r"(db_regs[2]),
+ 	       [dr3] "r"(db_regs[3])
++#ifdef __x86_64__
+ 	     : "rax");
++#else
++	     : "eax");
++#endif
+ }
+ 
+ static int svm_vcpu_run(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+@@ -1414,6 +1456,7 @@ again:
+ 		"mov %c[rbp](%[vcpu]), %%ebp \n\t"
+ #endif
+ 
++#ifdef __x86_64__
+ 		/* Enter guest mode */
+ 		"push %%rax \n\t"
+ 		"mov %c[svm](%[vcpu]), %%rax \n\t"
+@@ -1422,6 +1465,16 @@ again:
+ 		SVM_VMRUN "\n\t"
+ 		SVM_VMSAVE "\n\t"
+ 		"pop %%rax \n\t"
++#else
++		/* Enter guest mode */
++		"push %%eax \n\t"
++		"mov %c[svm](%[vcpu]), %%eax \n\t"
++		"mov %c[vmcb](%%eax), %%eax \n\t"
++		SVM_VMLOAD "\n\t"
++		SVM_VMRUN "\n\t"
++		SVM_VMSAVE "\n\t"
++		"pop %%eax \n\t"
++#endif
+ 
+ 		/* Save guest registers, load host registers */
+ #ifdef __x86_64__
+@@ -1445,12 +1498,12 @@ again:
+ 		"pop  %%rbp; pop  %%rdi; pop  %%rsi;"
+ 		"pop  %%rdx; pop  %%rcx; pop  %%rbx; \n\t"
+ #else
+-		"mov %%ebx, %c[rbx](%3) \n\t"
+-		"mov %%ecx, %c[rcx](%3) \n\t"
+-		"mov %%edx, %c[rdx](%3) \n\t"
+-		"mov %%esi, %c[rsi](%3) \n\t"
+-		"mov %%edi, %c[rdi](%3) \n\t"
+-		"mov %%ebp, %c[rbp](%3) \n\t"
++		"mov %%ebx, %c[rbx](%[vcpu]) \n\t"
++		"mov %%ecx, %c[rcx](%[vcpu]) \n\t"
++		"mov %%edx, %c[rdx](%[vcpu]) \n\t"
++		"mov %%esi, %c[rsi](%[vcpu]) \n\t"
++		"mov %%edi, %c[rdi](%[vcpu]) \n\t"
++		"mov %%ebp, %c[rbp](%[vcpu]) \n\t"
+ 
+ 		"pop  %%ebp; pop  %%edi; pop  %%esi;"
+ 		"pop  %%edx; pop  %%ecx; pop  %%ebx; \n\t"
 _
 
-Patches currently in -mm which might be from scottwood@freescale.com are
+Patches currently in -mm which might be from anthony@codemonkey.ws are
 
-origin.patch
-rtc-add-rtc_merge_alarm.patch
-rtc-rtc-class-driver-for-the-ds1374.patch
+kvm-userspace-interface.patch
+kvm-amd-svm-32-bit-host-support.patch
 
