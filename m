@@ -1,66 +1,127 @@
 From: akpm@osdl.org
-Subject: - kvm-x86-emulator-x86-emulator-handle-smsw.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:04 -0800
-Message-ID: <200612100753.kBA7r4rO017703@shell0.pdx.osdl.net>
+Subject: - kvm-clarify-licensing.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:07 -0800
+Message-ID: <200612100753.kBA7r7Kt017706@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59600 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59604 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760433AbWLJHxH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:07 -0500
+	id S1760449AbWLJHxJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: x86 emulator: handle smsw
+     KVM: Clarify licensing
 has been removed from the -mm tree.  Its filename was
-     kvm-x86-emulator-x86-emulator-handle-smsw.patch
+     kvm-clarify-licensing.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: x86 emulator: handle smsw
+Subject: KVM: Clarify licensing
 From: Avi Kivity <avi@qumranet.com>
-
-This allows FreeBSD 6.2rc1 to boot.
-
-Also, don't pretend to support lmsw (mem).
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/x86_emulate.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/kvm/kvm.h         |    5 +++++
+ drivers/kvm/kvm_main.c    |    3 +++
+ drivers/kvm/mmu.c         |    3 +++
+ drivers/kvm/paging_tmpl.h |   19 +++++++++++++++++++
+ drivers/kvm/x86_emulate.c |    3 +++
+ 5 files changed, 33 insertions(+)
 
-diff -puN drivers/kvm/x86_emulate.c~kvm-x86-emulator-x86-emulator-handle-smsw drivers/kvm/x86_emulate.c
---- a/drivers/kvm/x86_emulate.c~kvm-x86-emulator-x86-emulator-handle-smsw
+diff -puN drivers/kvm/kvm.h~kvm-clarify-licensing drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-clarify-licensing
++++ a/drivers/kvm/kvm.h
+@@ -1,6 +1,11 @@
+ #ifndef __KVM_H
+ #define __KVM_H
+ 
++/*
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ */
++
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+diff -puN drivers/kvm/kvm_main.c~kvm-clarify-licensing drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-clarify-licensing
++++ a/drivers/kvm/kvm_main.c
+@@ -10,6 +10,9 @@
+  *   Avi Kivity   <avi@qumranet.com>
+  *   Yaniv Kamay  <yaniv@qumranet.com>
+  *
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ *
+  */
+ 
+ #include "kvm.h"
+diff -puN drivers/kvm/mmu.c~kvm-clarify-licensing drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-clarify-licensing
++++ a/drivers/kvm/mmu.c
+@@ -12,6 +12,9 @@
+  *   Yaniv Kamay  <yaniv@qumranet.com>
+  *   Avi Kivity   <avi@qumranet.com>
+  *
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ *
+  */
+ #include <linux/types.h>
+ #include <linux/string.h>
+diff -puN drivers/kvm/paging_tmpl.h~kvm-clarify-licensing drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-clarify-licensing
++++ a/drivers/kvm/paging_tmpl.h
+@@ -1,4 +1,23 @@
+ /*
++ * Kernel-based Virtual Machine driver for Linux
++ *
++ * This module enables machines with Intel VT-x extensions to run virtual
++ * machines without emulation or binary translation.
++ *
++ * MMU support
++ *
++ * Copyright (C) 2006 Qumranet, Inc.
++ *
++ * Authors:
++ *   Yaniv Kamay  <yaniv@qumranet.com>
++ *   Avi Kivity   <avi@qumranet.com>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ *
++ */
++
++/*
+  * We need the mmu code to access both 32-bit and 64-bit guest ptes,
+  * so the code in this file is compiled twice, once per pte size.
+  */
+diff -puN drivers/kvm/x86_emulate.c~kvm-clarify-licensing drivers/kvm/x86_emulate.c
+--- a/drivers/kvm/x86_emulate.c~kvm-clarify-licensing
 +++ a/drivers/kvm/x86_emulate.c
-@@ -1148,7 +1148,15 @@ twobyte_insn:
- 				goto done;
- 			realmode_lidt(ctxt->vcpu, size, address);
- 			break;
-+		case 4: /* smsw */
-+			if (modrm_mod != 3)
-+				goto cannot_emulate;
-+			*(u16 *)&_regs[modrm_rm]
-+				= realmode_get_cr(ctxt->vcpu, 0);
-+			break;
- 		case 6: /* lmsw */
-+			if (modrm_mod != 3)
-+				goto cannot_emulate;
- 			realmode_lmsw(ctxt->vcpu, (u16)modrm_val, &_eflags);
- 			break;
- 		default:
+@@ -13,6 +13,9 @@
+  *   Avi Kivity <avi@qumranet.com>
+  *   Yaniv Kamay <yaniv@qumranet.com>
+  *
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ *
+  * From: xen-unstable 10676:af9809f51f81a3c43f276f00c81a52ef558afda4
+  */
+ 
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-x86-emulator-x86-emulator-handle-smsw.patch
 kvm-clarify-licensing.patch
 kvm-x86-emulator-fix-emulator-mov-cr-decoding.patch
 kvm-plumbing.patch
