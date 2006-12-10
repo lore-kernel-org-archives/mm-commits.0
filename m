@@ -1,168 +1,326 @@
 From: akpm@osdl.org
-Subject: - kvm-avoid-using-vmx-instruction-directly.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:23 -0800
-Message-ID: <200612100753.kBA7rNFc017721@shell0.pdx.osdl.net>
+Subject: - kvm-expose-msrs-to-userspace-v2.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:39 -0800
+Message-ID: <200612100753.kBA7rdRs017741@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59630 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59652 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760375AbWLJHx0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:26 -0500
+	id S1760379AbWLJHxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, uril@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Avoid using vmx instruction directly
+     KVM: Expose MSRs to userspace (v2)
 has been removed from the -mm tree.  Its filename was
-     kvm-avoid-using-vmx-instruction-directly.patch
+     kvm-expose-msrs-to-userspace-v2.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: Avoid using vmx instruction directly
+Subject: KVM: Expose MSRs to userspace (v2)
 From: Avi Kivity <avi@qumranet.com>
 
-Some users have an older assembler installed which doesn't grok the vmx
-instructions.
+Changes from v1:
 
-Fix by encoding the instruction opcodes directly.
+ - get msrs and set msrs are now symmetric: both accept a list of msrs. it
+   is now possible to retrieve a single msr.
+ - a new KVM_GET_MSR_INDEX_LIST allows discovering which msrs are supported
+   by kvm (previously this was integrated into KVM_GET_MSRS)
+ - error handling is simpler and correcter
+ - the implementation is collapsed into a single msr_io() function
+ - avoid pointers in ioctl structs, instead use zero length arrays
 
+Signed-off-by: Uri Lublin <uril@qumranet.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |   10 ++++++++++
- drivers/kvm/kvm_main.c |   29 +++++++++++++++--------------
- 2 files changed, 25 insertions(+), 14 deletions(-)
+ drivers/kvm/kvm_main.c |  177 +++++++++++++++++----------------------
+ include/linux/kvm.h    |   14 +--
+ 2 files changed, 89 insertions(+), 102 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-avoid-using-vmx-instruction-directly drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-avoid-using-vmx-instruction-directly
-+++ a/drivers/kvm/kvm.h
-@@ -378,6 +378,16 @@ static inline struct kvm_mmu_page *page_
- 	return (struct kvm_mmu_page *)page->private;
- }
+diff -puN drivers/kvm/kvm_main.c~kvm-expose-msrs-to-userspace-v2 drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-expose-msrs-to-userspace-v2
++++ a/drivers/kvm/kvm_main.c
+@@ -129,6 +129,8 @@ static const u32 vmx_msr_index[] = {
+ #define MSR_IA32_VMX_EXIT_CTLS_MSR		0x483
+ #define MSR_IA32_VMX_ENTRY_CTLS_MSR		0x484
  
-+#define ASM_VMX_VMCLEAR_RAX       ".byte 0x66, 0x0f, 0xc7, 0x30"
-+#define ASM_VMX_VMLAUNCH          ".byte 0x0f, 0x01, 0xc2"
-+#define ASM_VMX_VMRESUME          ".byte 0x0f, 0x01, 0xc3"
-+#define ASM_VMX_VMPTRLD_RAX       ".byte 0x0f, 0xc7, 0x30"
-+#define ASM_VMX_VMREAD_RDX_RAX    ".byte 0x0f, 0x78, 0xd0"
-+#define ASM_VMX_VMWRITE_RAX_RDX   ".byte 0x0f, 0x79, 0xd0"
-+#define ASM_VMX_VMWRITE_RSP_RDX   ".byte 0x0f, 0x79, 0xd4"
-+#define ASM_VMX_VMXOFF            ".byte 0x0f, 0x01, 0xc4"
-+#define ASM_VMX_VMXON_RAX         ".byte 0xf3, 0x0f, 0xc7, 0x30"
++#define MAX_IO_MSRS 256
 +
- #ifdef __x86_64__
+ #define CR0_RESEVED_BITS 0xffffffff1ffaffc0ULL
+ #define LMSW_GUEST_MASK 0x0eULL
+ #define CR4_RESEVED_BITS (~((1ULL << 11) - 1))
+@@ -3151,7 +3153,7 @@ static int kvm_dev_ioctl_set_sregs(struc
  
  /*
-diff -puN drivers/kvm/kvm_main.c~kvm-avoid-using-vmx-instruction-directly drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-avoid-using-vmx-instruction-directly
-+++ a/drivers/kvm/kvm_main.c
-@@ -405,8 +405,8 @@ static void vmcs_clear(struct vmcs *vmcs
- 	u64 phys_addr = __pa(vmcs);
- 	u8 error;
+  * List of msr numbers which we expose to userspace through KVM_GET_MSRS
+- * and KVM_SET_MSRS.
++ * and KVM_SET_MSRS, and KVM_GET_MSR_INDEX_LIST.
+  */
+ static u32 msrs_to_save[] = {
+ 	MSR_IA32_SYSENTER_CS, MSR_IA32_SYSENTER_ESP, MSR_IA32_SYSENTER_EIP,
+@@ -3162,110 +3164,91 @@ static u32 msrs_to_save[] = {
+ 	MSR_IA32_TIME_STAMP_COUNTER,
+ };
  
--	asm volatile ("vmclear %1; setna %0"
--		       : "=m"(error) : "m"(phys_addr) : "cc", "memory" );
-+	asm volatile (ASM_VMX_VMCLEAR_RAX "; setna %0"
-+		       : "=g"(error) : "a"(&phys_addr) : "cc", "memory" );
- 	if (error)
- 		printk(KERN_ERR "kvm: vmclear fail: %p/%llx\n",
- 		       vmcs, phys_addr);
-@@ -448,8 +448,8 @@ static struct kvm_vcpu *__vcpu_load(stru
- 		u8 error;
+-static int kvm_dev_ioctl_get_msrs(struct kvm *kvm, struct kvm_msrs *msrs)
++
++/*
++ * Adapt set_msr() to msr_io()'s calling convention
++ */
++static int do_set_msr(struct kvm_vcpu *vcpu, unsigned index, u64 *data)
++{
++	return set_msr(vcpu, index, *data);
++}
++
++/*
++ * Read or write a bunch of msrs. All parameters are kernel addresses.
++ *
++ * @return number of msrs set successfully.
++ */
++static int __msr_io(struct kvm *kvm, struct kvm_msrs *msrs,
++		    struct kvm_msr_entry *entries,
++		    int (*do_msr)(struct kvm_vcpu *vcpu,
++				  unsigned index, u64 *data))
+ {
+ 	struct kvm_vcpu *vcpu;
+-	struct kvm_msr_entry *entry, *entries;
+-	int rc;
+-	u32 size, num_entries, i;
++	int i;
  
- 		per_cpu(current_vmcs, cpu) = vcpu->vmcs;
--		asm volatile ("vmptrld %1; setna %0"
--			       : "=m"(error) : "m"(phys_addr) : "cc" );
-+		asm volatile (ASM_VMX_VMPTRLD_RAX "; setna %0"
-+			       : "=g"(error) : "a"(&phys_addr) : "cc" );
- 		if (error)
- 			printk(KERN_ERR "kvm: vmptrld %p/%llx fail\n",
- 			       vcpu->vmcs, phys_addr);
-@@ -572,12 +572,12 @@ static __init void kvm_enable(void *garb
- 		/* enable and lock */
- 		wrmsrl(MSR_IA32_FEATURE_CONTROL, old | 5);
- 	write_cr4(read_cr4() | CR4_VMXE); /* FIXME: not cpu hotplug safe */
--	asm volatile ("vmxon %0" : : "m"(phys_addr) : "memory", "cc");
-+	asm volatile (ASM_VMX_VMXON_RAX : : "a"(&phys_addr) : "memory", "cc");
+ 	if (msrs->vcpu < 0 || msrs->vcpu >= KVM_MAX_VCPUS)
+ 		return -EINVAL;
+ 
+-	num_entries = ARRAY_SIZE(msrs_to_save);
+-	if (msrs->nmsrs < num_entries) {
+-		/* inform actual number of entries */
+-		msrs->nmsrs = num_entries;
+-		return -EINVAL;
+-	}
+-
+ 	vcpu = vcpu_load(kvm, msrs->vcpu);
+ 	if (!vcpu)
+ 		return -ENOENT;
+ 
+-	msrs->nmsrs = num_entries; /* update to actual number of entries */
+-	size = msrs->nmsrs * sizeof(struct kvm_msr_entry);
+-	rc = -E2BIG;
+-	if (size > 4096)
+-		goto out_vcpu;
+-
+-	rc = -ENOMEM;
+-	entries = vmalloc(size);
+-	if (entries == NULL)
+-		goto out_vcpu;
+-
+-	memset(entries, 0, size);
+-	rc = -EINVAL;
+-	for (i=0; i<num_entries; i++) {
+-		entry = &entries[i];
+-		entry->index = msrs_to_save[i];
+-		if (get_msr(vcpu, entry->index, &entry->data))
+-			goto out_free;
+-	}
+-
+-	rc = -EFAULT;
+-	if (copy_to_user(msrs->entries, entries, size))
+-		goto out_free;
+-
+-	rc = 0;
+-out_free:
+-	vfree(entries);
++	for (i = 0; i < msrs->nmsrs; ++i)
++		if (do_msr(vcpu, entries[i].index, &entries[i].data))
++			break;
+ 
+-out_vcpu:
+ 	vcpu_put(vcpu);
+ 
+-	return rc;
++	return i;
  }
  
- static void kvm_disable(void *garbage)
- {
--	asm volatile ("vmxoff" : : : "cc");
-+	asm volatile (ASM_VMX_VMXOFF : : : "cc");
+-static int kvm_dev_ioctl_set_msrs(struct kvm *kvm, struct kvm_msrs *msrs)
+-{
+-	struct kvm_vcpu *vcpu;
+-	struct kvm_msr_entry *entry, *entries;
+-	int rc;
+-	u32 size, num_entries, i;
++/*
++ * Read or write a bunch of msrs. Parameters are user addresses.
++ *
++ * @return number of msrs set successfully.
++ */
++static int msr_io(struct kvm *kvm, struct kvm_msrs __user *user_msrs,
++		  int (*do_msr)(struct kvm_vcpu *vcpu,
++				unsigned index, u64 *data),
++		  int writeback)
++{
++	struct kvm_msrs msrs;
++	struct kvm_msr_entry *entries;
++	int r, n;
++	unsigned size;
+ 
+-	if (msrs->vcpu < 0 || msrs->vcpu >= KVM_MAX_VCPUS)
+-		return -EINVAL;
++	r = -EFAULT;
++	if (copy_from_user(&msrs, user_msrs, sizeof msrs))
++		goto out;
+ 
+-	num_entries = ARRAY_SIZE(msrs_to_save);
+-	if (msrs->nmsrs < num_entries) {
+-		msrs->nmsrs = num_entries; /* inform actual size */
+-		return -EINVAL;
+-	}
++	r = -E2BIG;
++	if (msrs.nmsrs >= MAX_IO_MSRS)
++		goto out;
+ 
+-	vcpu = vcpu_load(kvm, msrs->vcpu);
+-	if (!vcpu)
+-		return -ENOENT;
++	r = -ENOMEM;
++	size = sizeof(struct kvm_msr_entry) * msrs.nmsrs;
++	entries = vmalloc(size);
++	if (!entries)
++		goto out;
+ 
+-	size = msrs->nmsrs * sizeof(struct kvm_msr_entry);
+-	rc = -E2BIG;
+-	if (size > 4096)
+-		goto out_vcpu;
++	r = -EFAULT;
++	if (copy_from_user(entries, user_msrs->entries, size))
++		goto out_free;
+ 
+-	rc = -ENOMEM;
+-	entries = vmalloc(size);
+-	if (entries == NULL)
+-		goto out_vcpu;
++	r = n = __msr_io(kvm, &msrs, entries, do_msr);
++	if (r < 0)
++		goto out_free;
+ 
+-	rc = -EFAULT;
+-	if (copy_from_user(entries, msrs->entries, size))
++	r = -EFAULT;
++	if (writeback && copy_to_user(user_msrs->entries, entries, size))
+ 		goto out_free;
+ 
+-	rc = -EINVAL;
+-	for (i=0; i<num_entries; i++) {
+-		entry = &entries[i];
+-		if (set_msr(vcpu, entry->index,  entry->data))
+-			goto out_free;
+-	}
++	r = n;
+ 
+-	rc = 0;
+ out_free:
+ 	vfree(entries);
+-
+-out_vcpu:
+-	vcpu_put(vcpu);
+-
+-	return rc;
++out:
++	return r;
  }
  
- static int kvm_dev_open(struct inode *inode, struct file *filp)
-@@ -669,7 +669,8 @@ unsigned long vmcs_readl(unsigned long f
- {
- 	unsigned long value;
+ /*
+@@ -3509,32 +3492,32 @@ static long kvm_dev_ioctl(struct file *f
+ 			goto out;
+ 		break;
+ 	}
+-	case KVM_GET_MSRS: {
+-		struct kvm_msrs kvm_msrs;
++	case KVM_GET_MSRS:
++		r = msr_io(kvm, (void __user *)arg, get_msr, 1);
++		break;
++	case KVM_SET_MSRS:
++		r = msr_io(kvm, (void __user *)arg, do_set_msr, 0);
++		break;
++	case KVM_GET_MSR_INDEX_LIST: {
++		struct kvm_msr_list __user *user_msr_list = (void __user *)arg;
++		struct kvm_msr_list msr_list;
++		unsigned n;
  
--	asm volatile ("vmread %1, %0" : "=g"(value) : "r"(field) : "cc");
-+	asm volatile (ASM_VMX_VMREAD_RDX_RAX
-+		      : "=a"(value) : "d"(field) : "cc");
- 	return value;
- }
+ 		r = -EFAULT;
+-		if (copy_from_user(&kvm_msrs, (void *)arg, sizeof kvm_msrs))
++		if (copy_from_user(&msr_list, user_msr_list, sizeof msr_list))
+ 			goto out;
+-		r = kvm_dev_ioctl_get_msrs(kvm, &kvm_msrs);
+-		if (r)
++		n = msr_list.nmsrs;
++		msr_list.nmsrs = ARRAY_SIZE(msrs_to_save);
++		if (copy_to_user(user_msr_list, &msr_list, sizeof msr_list))
+ 			goto out;
+-		r = -EFAULT;
+-		if (copy_to_user((void *)arg, &kvm_msrs, sizeof kvm_msrs))
++		r = -E2BIG;
++		if (n < ARRAY_SIZE(msrs_to_save))
+ 			goto out;
+-		r = 0;
+-		break;
+-	}
+-	case KVM_SET_MSRS: {
+-		struct kvm_msrs kvm_msrs;
+-
+ 		r = -EFAULT;
+-		if (copy_from_user(&kvm_msrs, (void *)arg, sizeof kvm_msrs))
+-			goto out;
+-		r = kvm_dev_ioctl_set_msrs(kvm, &kvm_msrs);
+-		if (r)
++		if (copy_to_user(user_msr_list->indices, &msrs_to_save,
++				 sizeof msrs_to_save))
+ 			goto out;
+ 		r = 0;
+-		break;
+ 	}
+ 	default:
+ 		;
+diff -puN include/linux/kvm.h~kvm-expose-msrs-to-userspace-v2 include/linux/kvm.h
+--- a/include/linux/kvm.h~kvm-expose-msrs-to-userspace-v2
++++ a/include/linux/kvm.h
+@@ -152,10 +152,13 @@ struct kvm_msrs {
+ 	__u32 vcpu;
+ 	__u32 nmsrs; /* number of msrs in entries */
  
-@@ -677,8 +678,8 @@ void vmcs_writel(unsigned long field, un
- {
- 	u8 error;
+-	union {
+-		struct kvm_msr_entry __user *entries;
+-		__u64 padding;
+-	};
++	struct kvm_msr_entry entries[0];
++};
++
++/* for KVM_GET_MSR_INDEX_LIST */
++struct kvm_msr_list {
++	__u32 nmsrs; /* number of msrs in entries */
++	__u32 indices[0];
+ };
  
--	asm volatile ("vmwrite %1, %2; setna %0"
--		       : "=g"(error) : "r"(value), "r"(field) : "cc" );
-+	asm volatile (ASM_VMX_VMWRITE_RAX_RDX "; setna %0"
-+		       : "=q"(error) : "a"(value), "d"(field) : "cc" );
- 	if (error)
- 		printk(KERN_ERR "vmwrite error: reg %lx value %lx (err %d)\n",
- 		       field, value, vmcs_read32(VM_INSTRUCTION_ERROR));
-@@ -2698,10 +2699,10 @@ again:
- 		"push %%r8;  push %%r9;  push %%r10; push %%r11;"
- 		"push %%r12; push %%r13; push %%r14; push %%r15;"
- 		"push %%rcx \n\t"
--		"vmwrite %%rsp, %2 \n\t"
-+		ASM_VMX_VMWRITE_RSP_RDX "\n\t"
- #else
- 		"pusha; push %%ecx \n\t"
--		"vmwrite %%esp, %2 \n\t"
-+		ASM_VMX_VMWRITE_RSP_RDX "\n\t"
+ /* for KVM_TRANSLATE */
+@@ -218,6 +221,7 @@ struct kvm_dirty_log {
+ #define KVM_CREATE_VCPU           _IOW(KVMIO, 11, int /* vcpu_slot */)
+ #define KVM_GET_DIRTY_LOG         _IOW(KVMIO, 12, struct kvm_dirty_log)
+ #define KVM_GET_MSRS              _IOWR(KVMIO, 13, struct kvm_msrs)
+-#define KVM_SET_MSRS              _IOW(KVMIO, 14, struct kvm_msrs)
++#define KVM_SET_MSRS              _IOWR(KVMIO, 14, struct kvm_msrs)
++#define KVM_GET_MSR_INDEX_LIST    _IOWR(KVMIO, 15, struct kvm_msr_list)
+ 
  #endif
- 		/* Check if vmlaunch of vmresume is needed */
- 		"cmp $0, %1 \n\t"
-@@ -2737,9 +2738,9 @@ again:
- #endif
- 		/* Enter guest mode */
- 		"jne launched \n\t"
--		"vmlaunch \n\t"
-+		ASM_VMX_VMLAUNCH "\n\t"
- 		"jmp kvm_vmx_return \n\t"
--		"launched: vmresume \n\t"
-+		"launched: " ASM_VMX_VMRESUME "\n\t"
- 		".globl kvm_vmx_return \n\t"
- 		"kvm_vmx_return: "
- 		/* Save guest registers, load host registers, keep flags */
-@@ -2786,7 +2787,7 @@ again:
- 		"setbe %0 \n\t"
- 		"popf \n\t"
- 	      : "=g" (fail)
--	      : "r"(vcpu->launched), "r"((unsigned long)HOST_RSP),
-+	      : "r"(vcpu->launched), "d"((unsigned long)HOST_RSP),
- 		"c"(vcpu),
- 		[rax]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_RAX])),
- 		[rbx]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_RBX])),
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-avoid-using-vmx-instruction-directly.patch
-kvm-avoid-using-vmx-instruction-directly-fix-asm-constraints.patch
-kvm-expose-interrupt-bitmap.patch
-kvm-add-time-stamp-counter-msr-and-accessors.patch
-kvm-expose-msrs-to-userspace.patch
 kvm-expose-msrs-to-userspace-v2.patch
 kvm-create-kvm-intelko-module.patch
 kvm-make-dev-registration-happen-when-the-arch.patch
