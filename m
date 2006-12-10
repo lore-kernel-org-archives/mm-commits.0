@@ -1,90 +1,89 @@
 From: akpm@osdl.org
-Subject: - kvm-amd-svm-implementation-printk-log-levels.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:56:01 -0800
-Message-ID: <200612100756.kBA7u1Vl017920@shell0.pdx.osdl.net>
+Subject: - sched-improve-migration-accuracy-tidy.patch removed from -mm tree
+Date: Sun, 10 Dec 2006 00:23:06 -0800
+Message-ID: <200612100823.kBA8N6P3018770@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59903 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33037 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760593AbWLJH4I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:56:08 -0500
+	id S1760387AbWLJIXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 03:23:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, rdreier@cisco.com, mm-commits@vger.kernel.org
+To: kenneth.w.chen@intel.com, efault@gmx.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH] KVM: printk log levels
+     sched-improve-migration-accuracy tidy
 has been removed from the -mm tree.  Its filename was
-     kvm-amd-svm-implementation-printk-log-levels.patch
+     sched-improve-migration-accuracy-tidy.patch
 
-This patch was dropped because it was folded into kvm-userspace-interface.patch
+This patch was dropped because it was folded into sched-improve-migration-accuracy.patch
 
 ------------------------------------------------------
-Subject: Subject: [PATCH] KVM: printk log levels
-From: Avi Kivity <avi@qumranet.com>
+Subject: sched-improve-migration-accuracy tidy
+From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 
+While we at it, let's clean up this hunk.  task_hot is evaluated twice in
+the more common case of nr_balance_failed <= cache_nice_tries. We should
+only test/increment relevant stats for forced migration.
 
-Here's a trivial patch that adds log levels to all printks.  This
-avoids ugly things like
-
-Message from syslogd@roland-xeon-2 at Wed Nov 29 14:01:01 2006 ...
-roland-xeon-2 kernel: [81842.565619] msrs: 6
-
-popping up in a console on my system when starting a guest.
-
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-
-Index: linux-2.6/drivers/kvm/vmx.c
-===================================================================
+Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ken Chen <kenneth.w.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c |    4 ++--
- drivers/kvm/vmx.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/sched.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/kvm/svm.c~kvm-amd-svm-implementation-printk-log-levels drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-amd-svm-implementation-printk-log-levels
-+++ a/drivers/kvm/svm.c
-@@ -990,7 +990,7 @@ static int io_interception(struct kvm_vc
+diff -puN kernel/sched.c~sched-improve-migration-accuracy-tidy kernel/sched.c
+--- a/kernel/sched.c~sched-improve-migration-accuracy-tidy
++++ a/kernel/sched.c
+@@ -2106,8 +2106,13 @@ int can_migrate_task(struct task_struct 
+ 	 * 2) too many balance attempts have failed.
+ 	 */
  
- 		addr_mask = io_adress(vcpu, _in, &kvm_run->io.address);
- 		if (!addr_mask) {
--			printk("%s: get io address failed\n", __FUNCTION__);
-+			printk(KERN_DEBUG "%s: get io address failed\n", __FUNCTION__);
- 			return 1;
- 		}
+-	if (sd->nr_balance_failed > sd->cache_nice_tries)
++	if (sd->nr_balance_failed > sd->cache_nice_tries) {
++#ifdef CONFIG_SCHEDSTATS
++		if (task_hot(p, rq->most_recent_timestamp, sd))
++			schedstat_inc(sd, lb_hot_gained[idle]);
++#endif
+ 		return 1;
++	}
  
-@@ -1030,7 +1030,7 @@ static int invalid_op_interception(struc
- 
- static int task_switch_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
- {
--	printk("%s: task swiche is unsupported\n", __FUNCTION__);
-+	printk(KERN_DEBUG "%s: task swiche is unsupported\n", __FUNCTION__);
- 	kvm_run->exit_reason = KVM_EXIT_UNKNOWN;
- 	return 0;
- }
-diff -puN drivers/kvm/vmx.c~kvm-amd-svm-implementation-printk-log-levels drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-amd-svm-implementation-printk-log-levels
-+++ a/drivers/kvm/vmx.c
-@@ -1143,7 +1143,7 @@ static int vmx_vcpu_setup(struct kvm_vcp
- 		vcpu->guest_msrs[j] = vcpu->host_msrs[j];
- 		++vcpu->nmsrs;
+ 	if (task_hot(p, rq->most_recent_timestamp, sd))
+ 		return 0;
+@@ -2207,11 +2212,6 @@ skip_queue:
+ 		goto skip_bitmap;
  	}
--	printk("msrs: %d\n", vcpu->nmsrs);
-+	printk(KERN_DEBUG "kvm: msrs: %d\n", vcpu->nmsrs);
  
- 	nr_good_msrs = vcpu->nmsrs - NR_BAD_MSRS;
- 	vmcs_writel(VM_ENTRY_MSR_LOAD_ADDR,
+-#ifdef CONFIG_SCHEDSTATS
+-	if (task_hot(tmp, busiest->most_recent_timestamp, sd))
+-		schedstat_inc(sd, lb_hot_gained[idle]);
+-#endif
+-
+ 	pull_task(busiest, array, tmp, this_rq, dst_array, this_cpu);
+ 	pulled++;
+ 	rem_load_move -= tmp->load_weight;
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from kenneth.w.chen@intel.com are
 
 origin.patch
-kvm-userspace-interface.patch
-kvm-amd-svm-implementation-printk-log-levels.patch
-kvm-amd-svm-plumbing.patch
-kvm-fix-null-and-c99-init-sparse-warnings.patch
-kvm-load-i386-segment-bases.patch
+sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
+sched-remove-staggering-of-load-balancing.patch
+sched-disable-interrupts-for-locking-in-load_balance.patch
+sched-extract-load-calculation-from-rebalance_tick.patch
+sched-move-idle-status-calculation-into-rebalance_tick.patch
+sched-use-softirq-for-load-balancing.patch
+sched-call-tasklet-less-frequently.patch
+sched-add-option-to-serialize-load-balancing.patch
+sched-improve-migration-accuracy.patch
+sched-improve-migration-accuracy-tidy.patch
+sched-remove-lb_stopbalance-counter.patch
+sched-optimize-activate_task-for-rt-task.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
 
