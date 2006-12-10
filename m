@@ -1,59 +1,81 @@
 From: akpm@osdl.org
-Subject: - amiga-pcmcia-ne2000-ethernet-dev-irq-init.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 17:53:06 -0800
-Message-ID: <200612100153.kBA1r6Wl010629@shell0.pdx.osdl.net>
+Subject: - x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 17:52:44 -0800
+Message-ID: <200612100152.kBA1qi1J010600@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40588 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40598 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759338AbWLJBxk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 20:53:40 -0500
+	id S1759223AbWLJBxx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 20:53:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jongk@linux-m68k.org, geert@linux-m68k.org, jeff@garzik.org, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: kiran@scalex86.org, ak@muc.de, shai@scalex86.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Amiga PCMCIA NE2000 Ethernet dev->irq init
+     x86_64: fix boot hang due to nmi watchdog init code
 has been removed from the -mm tree.  Its filename was
-     amiga-pcmcia-ne2000-ethernet-dev-irq-init.patch
+     x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Amiga PCMCIA NE2000 Ethernet dev->irq init
-From: Kars de Jong <jongk@linux-m68k.org>
+Subject: x86_64: fix boot hang due to nmi watchdog init code
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
 
-Amiga PCMCIA NE2000 Ethernet: Add missing initialization of dev->irq
+2.6.19 stopped booting (or booted based on build/config) on our x86_64
+systems due to a bug introduced in 2.6.19.  check_nmi_watchdog schedules an
+IPI on all cpus to busy wait on a flag, but fails to set the busywait flag
+if NMI functionality is disabled.
 
-Signed-off-by: Kars de Jong <jongk@linux-m68k.org>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+This causes the secondary cpus to spin in an endless loop, causing the
+kernel bootup to hang.
+
+Depending upon the build, the busywait flag got overwritten (stack
+variable) and caused the kernel to bootup on certain builds.  Following
+patch fixes the bug by setting the busywait flag before returning from
+check_nmi_watchdog.
+
+I guess using a stack variable is not good here as the calling function
+could potentially return while the busy wait loop is still spinning on the
+flag.  I would think this is a good candidate for 2.6.19 stable as well.
+
+[akpm@osdl.org: cleanups]
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Signed-off-by: Shai Fultheim <shai@scalex86.org>
+Cc: Andi Kleen <ak@muc.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/apne.c |    3 ++-
+ arch/x86_64/kernel/nmi.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/apne.c~amiga-pcmcia-ne2000-ethernet-dev-irq-init drivers/net/apne.c
---- a/drivers/net/apne.c~amiga-pcmcia-ne2000-ethernet-dev-irq-init
-+++ a/drivers/net/apne.c
-@@ -311,9 +311,10 @@ static int __init apne_probe1(struct net
- #endif
+diff -puN arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code arch/x86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~x86_64-fix-boot-hang-due-to-nmi-watchdog-init-code
++++ a/arch/x86_64/kernel/nmi.c
+@@ -215,7 +215,7 @@ static __init void nmi_cpu_busy(void *da
  
-     dev->base_addr = ioaddr;
-+    dev->irq = IRQ_AMIGA_PORTS;
+ int __init check_nmi_watchdog (void)
+ {
+-	volatile int endflag = 0;
++	static int __initdata endflag;
+ 	int *counts;
+ 	int cpu;
  
-     /* Install the Interrupt handler */
--    i = request_irq(IRQ_AMIGA_PORTS, apne_interrupt, IRQF_SHARED, DRV_NAME, dev);
-+    i = request_irq(dev->irq, apne_interrupt, IRQF_SHARED, DRV_NAME, dev);
-     if (i) return i;
- 
-     for(i = 0; i < ETHER_ADDR_LEN; i++) {
+@@ -256,6 +256,7 @@ int __init check_nmi_watchdog (void)
+ 	if (!atomic_read(&nmi_active)) {
+ 		kfree(counts);
+ 		atomic_set(&nmi_active, -1);
++		endflag = 1;
+ 		return -1;
+ 	}
+ 	endflag = 1;
 _
 
-Patches currently in -mm which might be from jongk@linux-m68k.org are
+Patches currently in -mm which might be from kiran@scalex86.org are
 
 origin.patch
+slab-leaks3-default-y.patch
 
