@@ -1,60 +1,69 @@
 From: akpm@osdl.org
-Subject: - round_jiffies-infrastructure-fix.patch removed from -mm tree
-Date: Sun, 10 Dec 2006 00:30:31 -0800
-Message-ID: <200612100830.kBA8UV2o018945@shell0.pdx.osdl.net>
+Subject: - clocksource-small-cleanup-2-fix.patch removed from -mm tree
+Date: Sun, 10 Dec 2006 00:32:11 -0800
+Message-ID: <200612100832.kBA8WBVj018981@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33537 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33691 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760390AbWLJIan (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 03:30:43 -0500
+	id S1760491AbWLJIct (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 03:32:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dwalker@mvista.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     round_jiffies-infrastructure-fix
+     clocksource-small-cleanup-2-fix
 has been removed from the -mm tree.  Its filename was
-     round_jiffies-infrastructure-fix.patch
+     clocksource-small-cleanup-2-fix.patch
 
-This patch was dropped because it was folded into round_jiffies-infrastructure.patch
+This patch was dropped because it was folded into clocksource-small-cleanup-2.patch
 
 ------------------------------------------------------
-Subject: round_jiffies-infrastructure-fix
+Subject: clocksource-small-cleanup-2-fix
 From: Andrew Morton <akpm@osdl.org>
 
-That would have caused much unpleasantness...
+kernel/timer.c: In function `update_wall_time':
+kernel/timer.c:1207: error: syntax error before "do"
+kernel/timer.c: At top level:
+kernel/timer.c:1210: warning: type defaults to `int' in declaration of `hrtimer_clock_notify'
+kernel/timer.c:1210: warning: function declaration isn't a prototype
+kernel/timer.c:1210: error: conflicting types for 'hrtimer_clock_notify'
+include/linux/hrtimer.h:261: error: previous definition of 'hrtimer_clock_notify' was here
+kernel/timer.c:1210: warning: data definition has no type or storage class
+kernel/timer.c:1211: warning: type defaults to `int' in declaration of `clocksource_calculate_interval'
+kernel/timer.c:1211: warning: parameter names (without types) in function declaration
+kernel/timer.c:1211: error: conflicting types for 'clocksource_calculate_interval'
+include/linux/clocksource.h:163: error: previous definition of 'clocksource_calculate_interval' was here
+kernel/timer.c:1211: warning: data definition has no type or storage class
+kernel/timer.c:1212: error: syntax error before '}' token
 
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Daniel Walker <dwalker@mvista.com>
+Cc: John Stultz <johnstul@us.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/timer.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/timer.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~round_jiffies-infrastructure-fix kernel/timer.c
---- a/kernel/timer.c~round_jiffies-infrastructure-fix
+diff -puN kernel/timer.c~clocksource-small-cleanup-2-fix kernel/timer.c
+--- a/kernel/timer.c~clocksource-small-cleanup-2-fix
 +++ a/kernel/timer.c
-@@ -104,7 +104,7 @@ static DEFINE_PER_CPU(tvec_base_t *, tve
- unsigned long __round_jiffies(unsigned long j, int cpu)
- {
- 	int rem;
--	int original  = j;
-+	unsigned long original = j;
+@@ -923,7 +923,10 @@ static int change_clocksource(void)
+ 	return 0;
+ }
+ #else
+-#define change_clocksource()	do { 0; } while(0)
++static inline int change_clocksource(void)
++{
++	return 0;
++}
+ #endif
  
- 	/*
- 	 * We don't want all cpus firing their timers at once hitting the
-@@ -213,7 +213,6 @@ unsigned long round_jiffies_relative(uns
- EXPORT_SYMBOL_GPL(round_jiffies_relative);
- 
- 
--
- static inline void set_running_timer(tvec_base_t *base,
- 					struct timer_list *timer)
- {
+ /**
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -78,7 +87,7 @@ sched-add-option-to-serialize-load-balancing.patch
 kernel-schedc-whitespace-cleanups.patch
 md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure.patch
 round_jiffies-infrastructure.patch
-round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2.patch
 clocksource-small-cleanup-2-fix.patch
 kvm-userspace-interface.patch
 slim-main-include-fix.patch
