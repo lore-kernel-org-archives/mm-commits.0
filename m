@@ -1,218 +1,89 @@
 From: akpm@osdl.org
-Subject: - kvm-move-vmcs-accessors-to-vmxc.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:55:30 -0800
-Message-ID: <200612100755.kBA7tUqe017876@shell0.pdx.osdl.net>
+Subject: - kvm-move-vmx-helper-inlines-to-vmxc.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:55:33 -0800
+Message-ID: <200612100755.kBA7tXQK017882@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59849 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59855 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760571AbWLJHzd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:55:33 -0500
+	id S1760575AbWLJHzf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:55:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: move vmcs accessors to vmx.c
+     KVM: move vmx helper inlines to vmx.c
 has been removed from the -mm tree.  Its filename was
-     kvm-move-vmcs-accessors-to-vmxc.patch
+     kvm-move-vmx-helper-inlines-to-vmxc.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: move vmcs accessors to vmx.c
+Subject: KVM: move vmx helper inlines to vmx.c
 From: Avi Kivity <avi@qumranet.com>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |   27 -----------------
- drivers/kvm/kvm_main.c |   22 --------------
- drivers/kvm/kvm_vmx.h  |   16 ----------
- drivers/kvm/vmx.c      |   60 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 60 insertions(+), 65 deletions(-)
+ drivers/kvm/kvm.h |   13 -------------
+ drivers/kvm/vmx.c |   13 +++++++++++++
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-move-vmcs-accessors-to-vmxc
+diff -puN drivers/kvm/kvm.h~kvm-move-vmx-helper-inlines-to-vmxc drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-move-vmx-helper-inlines-to-vmxc
 +++ a/drivers/kvm/kvm.h
-@@ -377,9 +377,6 @@ int kvm_write_guest(struct kvm_vcpu *vcp
- 		unsigned long size,
- 		void *data);
- 
--void vmcs_writel(unsigned long field, unsigned long value);
--unsigned long vmcs_readl(unsigned long field);
--
- unsigned long segment_base(u16 selector);
- 
- static inline struct page *_gfn_to_page(struct kvm *kvm, gfn_t gfn)
-@@ -388,30 +385,6 @@ static inline struct page *_gfn_to_page(
- 	return (slot) ? slot->phys_mem[gfn - slot->base_gfn] : 0;
+@@ -400,19 +400,6 @@ static inline int is_paging(struct kvm_v
+ 	return vcpu->cr0 & CR0_PG_MASK;
  }
  
--static inline u16 vmcs_read16(unsigned long field)
+-static inline int is_page_fault(u32 intr_info)
 -{
--	return vmcs_readl(field);
+-	return (intr_info & (INTR_INFO_INTR_TYPE_MASK | INTR_INFO_VECTOR_MASK |
+-			     INTR_INFO_VALID_MASK)) ==
+-		(INTR_TYPE_EXCEPTION | PF_VECTOR | INTR_INFO_VALID_MASK);
 -}
 -
--static inline u32 vmcs_read32(unsigned long field)
+-static inline int is_external_interrupt(u32 intr_info)
 -{
--	return vmcs_readl(field);
+-	return (intr_info & (INTR_INFO_INTR_TYPE_MASK | INTR_INFO_VALID_MASK))
+-		== (INTR_TYPE_EXT_INTR | INTR_INFO_VALID_MASK);
 -}
 -
--static inline u64 vmcs_read64(unsigned long field)
--{
--#ifdef __x86_64__
--	return vmcs_readl(field);
--#else
--	return vmcs_readl(field) | ((u64)vmcs_readl(field+1) << 32);
--#endif
--}
--
--static inline void vmcs_write32(unsigned long field, u32 value)
--{
--	vmcs_writel(field, value);
--}
--
- static inline int is_pae(struct kvm_vcpu *vcpu)
+ static inline int memslot_id(struct kvm *kvm, struct kvm_memory_slot *slot)
  {
- 	return vcpu->cr4 & CR4_PAE_MASK;
-diff -puN drivers/kvm/kvm_main.c~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-move-vmcs-accessors-to-vmxc
-+++ a/drivers/kvm/kvm_main.c
-@@ -295,28 +295,6 @@ static int kvm_dev_release(struct inode 
- 	return 0;
- }
- 
--unsigned long vmcs_readl(unsigned long field)
--{
--	unsigned long value;
--
--	asm volatile (ASM_VMX_VMREAD_RDX_RAX
--		      : "=a"(value) : "d"(field) : "cc");
--	return value;
--}
--EXPORT_SYMBOL_GPL(vmcs_readl);
--
--void vmcs_writel(unsigned long field, unsigned long value)
--{
--	u8 error;
--
--	asm volatile (ASM_VMX_VMWRITE_RAX_RDX "; setna %0"
--		       : "=q"(error) : "a"(value), "d"(field) : "cc" );
--	if (error)
--		printk(KERN_ERR "vmwrite error: reg %lx value %lx (err %d)\n",
--		       field, value, vmcs_read32(VM_INSTRUCTION_ERROR));
--}
--EXPORT_SYMBOL_GPL(vmcs_writel);
--
- static void inject_gp(struct kvm_vcpu *vcpu)
- {
- 	kvm_arch_ops->inject_gp(vcpu, 0);
-diff -puN drivers/kvm/kvm_vmx.h~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/kvm_vmx.h
---- a/drivers/kvm/kvm_vmx.h~kvm-move-vmcs-accessors-to-vmxc
-+++ a/drivers/kvm/kvm_vmx.h
-@@ -1,22 +1,6 @@
- #ifndef __KVM_VMX_H
- #define __KVM_VMX_H
- 
--static inline void vmcs_write16(unsigned long field, u16 value)
--{
--	vmcs_writel(field, value);
--}
--
--static inline void vmcs_write64(unsigned long field, u64 value)
--{
--#ifdef __x86_64__
--	vmcs_writel(field, value);
--#else
--	vmcs_writel(field, value);
--	asm volatile ("");
--	vmcs_writel(field+1, value >> 32);
--#endif
--}
--
- #ifdef __x86_64__
- /*
-  * avoid save/load MSR_SYSCALL_MASK and MSR_LSTAR by std vt
-diff -puN drivers/kvm/vmx.c~kvm-move-vmcs-accessors-to-vmxc drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-move-vmcs-accessors-to-vmxc
+ 	return slot - kvm->memslots;
+diff -puN drivers/kvm/vmx.c~kvm-move-vmx-helper-inlines-to-vmxc drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-move-vmx-helper-inlines-to-vmxc
 +++ a/drivers/kvm/vmx.c
-@@ -103,6 +103,66 @@ static void __vcpu_clear(void *arg)
- 		per_cpu(current_vmcs, cpu) = 0;
- }
+@@ -79,6 +79,19 @@ static const u32 vmx_msr_index[] = {
  
-+static unsigned long vmcs_readl(unsigned long field)
+ struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr);
+ 
++static inline int is_page_fault(u32 intr_info)
 +{
-+	unsigned long value;
-+
-+	asm volatile (ASM_VMX_VMREAD_RDX_RAX
-+		      : "=a"(value) : "d"(field) : "cc");
-+	return value;
++	return (intr_info & (INTR_INFO_INTR_TYPE_MASK | INTR_INFO_VECTOR_MASK |
++			     INTR_INFO_VALID_MASK)) ==
++		(INTR_TYPE_EXCEPTION | PF_VECTOR | INTR_INFO_VALID_MASK);
 +}
 +
-+static u16 vmcs_read16(unsigned long field)
++static inline int is_external_interrupt(u32 intr_info)
 +{
-+	return vmcs_readl(field);
++	return (intr_info & (INTR_INFO_INTR_TYPE_MASK | INTR_INFO_VALID_MASK))
++		== (INTR_TYPE_EXT_INTR | INTR_INFO_VALID_MASK);
 +}
 +
-+static u32 vmcs_read32(unsigned long field)
-+{
-+	return vmcs_readl(field);
-+}
-+
-+static u64 vmcs_read64(unsigned long field)
-+{
-+#ifdef __x86_64__
-+	return vmcs_readl(field);
-+#else
-+	return vmcs_readl(field) | ((u64)vmcs_readl(field+1) << 32);
-+#endif
-+}
-+
-+static void vmcs_writel(unsigned long field, unsigned long value)
-+{
-+	u8 error;
-+
-+	asm volatile (ASM_VMX_VMWRITE_RAX_RDX "; setna %0"
-+		       : "=q"(error) : "a"(value), "d"(field) : "cc" );
-+	if (error)
-+		printk(KERN_ERR "vmwrite error: reg %lx value %lx (err %d)\n",
-+		       field, value, vmcs_read32(VM_INSTRUCTION_ERROR));
-+}
-+
-+static void vmcs_write16(unsigned long field, u16 value)
-+{
-+	vmcs_writel(field, value);
-+}
-+
-+static void vmcs_write32(unsigned long field, u32 value)
-+{
-+	vmcs_writel(field, value);
-+}
-+
-+static void vmcs_write64(unsigned long field, u64 value)
-+{
-+#ifdef __x86_64__
-+	vmcs_writel(field, value);
-+#else
-+	vmcs_writel(field, value);
-+	asm volatile ("");
-+	vmcs_writel(field+1, value >> 32);
-+#endif
-+}
-+
- /*
-  * Switches to specified vcpu, until a matching vcpu_put(), but assumes
-  * vcpu mutex is already taken.
+ static void vmcs_clear(struct vmcs *vmcs)
+ {
+ 	u64 phys_addr = __pa(vmcs);
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-move-vmcs-accessors-to-vmxc.patch
 kvm-move-vmx-helper-inlines-to-vmxc.patch
 kvm-remove-vmx-includes-from-arch-independent-code.patch
 kvm-amd-svm-add-architecture-definitions-for-amd-svm.patch
