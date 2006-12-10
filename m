@@ -1,251 +1,253 @@
 From: akpm@osdl.org
-Subject: - kvm-make-syncing-the-register-file-to-the-vcpu.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:54:18 -0800
-Message-ID: <200612100754.kBA7sIEM017787@shell0.pdx.osdl.net>
+Subject: - kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:54:24 -0800
+Message-ID: <200612100754.kBA7sOTn017793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59721 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59729 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760510AbWLJHyW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:54:22 -0500
+	id S1760514AbWLJHy1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:54:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: make syncing the register file to the vcpu structure an arch operation
+     kvm-build-fix
 has been removed from the -mm tree.  Its filename was
-     kvm-make-syncing-the-register-file-to-the-vcpu.patch
+     kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: make syncing the register file to the vcpu structure an arch operation
-From: Avi Kivity <avi@qumranet.com>
+Subject: kvm-build-fix
+From: Andrew Morton <akpm@osdl.org>
 
-This copies any general purpose guest registers maintained by the hardware
-to the vcpu structure (and back).
+temp hack to make i386 build.
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    2 +
- drivers/kvm/kvm_main.c |   44 ++++++++++-----------------------------
- drivers/kvm/vmx.c      |   22 +++++++++++++++++++
- 3 files changed, 36 insertions(+), 32 deletions(-)
+ drivers/kvm/kvm_main.c           |   17 +----------------
+ drivers/kvm/segment_descriptor.h |   17 +++++++++++++++++
+ drivers/kvm/vmx.c                |    2 ++
+ 3 files changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-make-syncing-the-register-file-to-the-vcpu drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-make-syncing-the-register-file-to-the-vcpu
-+++ a/drivers/kvm/kvm.h
-@@ -262,6 +262,8 @@ struct kvm_arch_ops {
- 	void (*set_idt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
- 	void (*get_gdt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
- 	void (*set_gdt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
-+	void (*cache_regs)(struct kvm_vcpu *vcpu);
-+	void (*decache_regs)(struct kvm_vcpu *vcpu);
- };
- 
- extern struct kvm_stat kvm_stat;
-diff -puN drivers/kvm/kvm_main.c~kvm-make-syncing-the-register-file-to-the-vcpu drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-make-syncing-the-register-file-to-the-vcpu
+diff -puN drivers/kvm/kvm_main.c~kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix
 +++ a/drivers/kvm/kvm_main.c
-@@ -1327,26 +1327,6 @@ out:
+@@ -38,6 +38,7 @@
+ #include "vmx.h"
+ #include "kvm_vmx.h"
+ #include "x86_emulate.h"
++#include "segment_descriptor.h"
+ 
+ MODULE_AUTHOR("Qumranet");
+ MODULE_LICENSE("GPL");
+@@ -156,22 +157,6 @@ static void get_idt(struct descriptor_ta
+ 	asm ("sidt %0" : "=m"(*table));
  }
  
- /*
-- * Sync the rsp and rip registers into the vcpu structure.  This allows
-- * registers to be accessed by indexing vcpu->regs.
-- */
--static void vcpu_load_rsp_rip(struct kvm_vcpu *vcpu)
--{
--	vcpu->regs[VCPU_REGS_RSP] = vmcs_readl(GUEST_RSP);
--	vcpu->rip = vmcs_readl(GUEST_RIP);
--}
+-struct segment_descriptor {
+-	u16 limit_low;
+-	u16 base_low;
+-	u8  base_mid;
+-	u8  type : 4;
+-	u8  system : 1;
+-	u8  dpl : 2;
+-	u8  present : 1;
+-	u8  limit_high : 4;
+-	u8  avl : 1;
+-	u8  long_mode : 1;
+-	u8  default_op : 1;
+-	u8  granularity : 1;
+-	u8  base_high;
+-} __attribute__((packed));
 -
--/*
-- * Syncs rsp and rip back into the vmcs.  Should be called after possible
-- * modification.
-- */
--static void vcpu_put_rsp_rip(struct kvm_vcpu *vcpu)
--{
--	vmcs_writel(GUEST_RSP, vcpu->regs[VCPU_REGS_RSP]);
--	vmcs_writel(GUEST_RIP, vcpu->rip);
--}
--
--/*
-  * Creates some virtual cpus.  Good luck creating more than one.
-  */
- static int kvm_dev_ioctl_create_vcpu(struct kvm *kvm, int n)
-@@ -1820,7 +1800,7 @@ static int emulate_instruction(struct kv
- 	int r;
- 	u32 cs_ar;
- 
--	vcpu_load_rsp_rip(vcpu);
-+	kvm_arch_ops->cache_regs(vcpu);
- 
- 	cs_ar = vmcs_read32(GUEST_CS_AR_BYTES);
- 
-@@ -1865,7 +1845,7 @@ static int emulate_instruction(struct kv
- 		return EMULATE_DO_MMIO;
- 	}
- 
--	vcpu_put_rsp_rip(vcpu);
-+	kvm_arch_ops->decache_regs(vcpu);
- 	vmcs_writel(GUEST_RFLAGS, emulate_ctxt.eflags);
- 
- 	if (vcpu->mmio_is_write)
-@@ -2135,22 +2115,22 @@ static int handle_cr(struct kvm_vcpu *vc
- 	case 0: /* mov to cr */
- 		switch (cr) {
- 		case 0:
--			vcpu_load_rsp_rip(vcpu);
-+			kvm_arch_ops->cache_regs(vcpu);
- 			set_cr0(vcpu, vcpu->regs[reg]);
- 			skip_emulated_instruction(vcpu);
- 			return 1;
- 		case 3:
--			vcpu_load_rsp_rip(vcpu);
-+			kvm_arch_ops->cache_regs(vcpu);
- 			set_cr3(vcpu, vcpu->regs[reg]);
- 			skip_emulated_instruction(vcpu);
- 			return 1;
- 		case 4:
--			vcpu_load_rsp_rip(vcpu);
-+			kvm_arch_ops->cache_regs(vcpu);
- 			set_cr4(vcpu, vcpu->regs[reg]);
- 			skip_emulated_instruction(vcpu);
- 			return 1;
- 		case 8:
--			vcpu_load_rsp_rip(vcpu);
-+			kvm_arch_ops->cache_regs(vcpu);
- 			set_cr8(vcpu, vcpu->regs[reg]);
- 			skip_emulated_instruction(vcpu);
- 			return 1;
-@@ -2159,17 +2139,17 @@ static int handle_cr(struct kvm_vcpu *vc
- 	case 1: /*mov from cr*/
- 		switch (cr) {
- 		case 3:
--			vcpu_load_rsp_rip(vcpu);
-+			kvm_arch_ops->cache_regs(vcpu);
- 			vcpu->regs[reg] = vcpu->cr3;
--			vcpu_put_rsp_rip(vcpu);
-+			kvm_arch_ops->decache_regs(vcpu);
- 			skip_emulated_instruction(vcpu);
- 			return 1;
- 		case 8:
- 			printk(KERN_DEBUG "handle_cr: read CR8 "
- 			       "cpu erratum AA15\n");
--			vcpu_load_rsp_rip(vcpu);
-+			kvm_arch_ops->cache_regs(vcpu);
- 			vcpu->regs[reg] = vcpu->cr8;
--			vcpu_put_rsp_rip(vcpu);
-+			kvm_arch_ops->decache_regs(vcpu);
- 			skip_emulated_instruction(vcpu);
- 			return 1;
- 		}
-@@ -2201,7 +2181,7 @@ static int handle_dr(struct kvm_vcpu *vc
- 	exit_qualification = vmcs_read64(EXIT_QUALIFICATION);
- 	dr = exit_qualification & 7;
- 	reg = (exit_qualification >> 8) & 15;
--	vcpu_load_rsp_rip(vcpu);
-+	kvm_arch_ops->cache_regs(vcpu);
- 	if (exit_qualification & 16) {
- 		/* mov from dr */
- 		switch (dr) {
-@@ -2218,7 +2198,7 @@ static int handle_dr(struct kvm_vcpu *vc
- 	} else {
- 		/* mov to dr */
- 	}
--	vcpu_put_rsp_rip(vcpu);
-+	kvm_arch_ops->decache_regs(vcpu);
- 	skip_emulated_instruction(vcpu);
- 	return 1;
- }
-diff -puN drivers/kvm/vmx.c~kvm-make-syncing-the-register-file-to-the-vcpu drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-make-syncing-the-register-file-to-the-vcpu
+ #ifdef __x86_64__
+ // LDT or TSS descriptor in the GDT. 16 bytes.
+ struct segment_descriptor_64 {
+diff -puN /dev/null drivers/kvm/segment_descriptor.h
+--- /dev/null
++++ a/drivers/kvm/segment_descriptor.h
+@@ -0,0 +1,17 @@
++struct segment_descriptor {
++	u16 limit_low;
++	u16 base_low;
++	u8  base_mid;
++	u8  type : 4;
++	u8  system : 1;
++	u8  dpl : 2;
++	u8  present : 1;
++	u8  limit_high : 4;
++	u8  avl : 1;
++	u8  long_mode : 1;
++	u8  default_op : 1;
++	u8  granularity : 1;
++	u8  base_high;
++} __attribute__((packed));
++
++
+diff -puN drivers/kvm/vmx.c~kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix
 +++ a/drivers/kvm/vmx.c
-@@ -180,6 +180,26 @@ static int vmx_set_msr(struct kvm_vcpu *
- 	return 0;
- }
+@@ -20,6 +20,8 @@
+ #include "vmx.h"
+ #include "kvm_vmx.h"
  
-+/*
-+ * Sync the rsp and rip registers into the vcpu structure.  This allows
-+ * registers to be accessed by indexing vcpu->regs.
-+ */
-+static void vcpu_load_rsp_rip(struct kvm_vcpu *vcpu)
-+{
-+	vcpu->regs[VCPU_REGS_RSP] = vmcs_readl(GUEST_RSP);
-+	vcpu->rip = vmcs_readl(GUEST_RIP);
-+}
++#include "segment_descriptor.h"
 +
-+/*
-+ * Syncs rsp and rip back into the vmcs.  Should be called after possible
-+ * modification.
-+ */
-+static void vcpu_put_rsp_rip(struct kvm_vcpu *vcpu)
-+{
-+	vmcs_writel(GUEST_RSP, vcpu->regs[VCPU_REGS_RSP]);
-+	vmcs_writel(GUEST_RIP, vcpu->rip);
-+}
-+
- static int set_guest_debug(struct kvm_vcpu *vcpu, struct kvm_debug_guest *dbg)
- {
- 	unsigned long dr7 = 0x400;
-@@ -405,6 +425,8 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.set_idt = vmx_set_idt,
- 	.get_gdt = vmx_get_gdt,
- 	.set_gdt = vmx_set_gdt,
-+	.cache_regs = vcpu_load_rsp_rip,
-+	.decache_regs = vcpu_put_rsp_rip,
- };
+ #define MSR_IA32_FEATURE_CONTROL 		0x03a
  
- static int __init vmx_init(void)
+ MODULE_AUTHOR("Qumranet");
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-net.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+git-ocfs2-fixup.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+revert-git-block.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+submit-checklist-update.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
 kvm-userspace-interface.patch
-kvm-make-syncing-the-register-file-to-the-vcpu.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation.patch
 kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-move-the-vmx-exit-handlers-to-vmxc.patch
-kvm-make-vcpu_setup-an-arch-operation.patch
-kvm-make-__set_cr0-and-dependencies-arch-operations.patch
-kvm-make-__set_cr4-an-arch-operation.patch
-kvm-make-__set_efer-an-arch-operation.patch
 kvm-make-__set_efer-an-arch-operation-build-fix.patch
-kvm-make-set_cr3-and-tlb-flushing-arch-operations.patch
-kvm-make-inject_page_fault-an-arch-operation.patch
-kvm-make-inject_gp-an-arch-operation.patch
-kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation.patch
-kvm-use-the-general-purpose-register-accessors-rather.patch
-kvm-move-the-vmx-tsc-accessors-to-vmxc.patch
-kvm-access-rflags-through-an-arch-operation.patch
-kvm-move-the-vmx-segment-field-definitions-to-vmxc.patch
-kvm-add-an-arch-accessor-for-cs-d-b-and-l-bits.patch
-kvm-add-a-set_cr0_no_modeswitch-arch-accessor.patch
-kvm-make-vcpu_load-and-vcpu_put-arch-operations.patch
-kvm-make-vcpu-creation-and-destruction-arch-operations.patch
-kvm-move-vmcs-static-variables-to-vmxc.patch
-kvm-make-is_long_mode-an-arch-operation.patch
-kvm-use-the-tlb-flush-arch-operation-instead-of-an.patch
-kvm-remove-guest_cpl.patch
-kvm-move-vmcs-accessors-to-vmxc.patch
-kvm-move-vmx-helper-inlines-to-vmxc.patch
-kvm-remove-vmx-includes-from-arch-independent-code.patch
-kvm-amd-svm-add-architecture-definitions-for-amd-svm.patch
-kvm-amd-svm-enhance-x86-emulator.patch
-kvm-amd-svm-enhance-x86-emulator-fix-mov-to-from-control-register-emulation.patch
-kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu.patch
-kvm-amd-svm-add-data-structures.patch
-kvm-amd-svm-implementation.patch
-kvm-amd-svm-implementation-avoid-three-more-new-instructions.patch
-kvm-amd-svm-implementation-more-i386-fixes.patch
-kvm-amd-svm-implementation-printk-log-levels.patch
-kvm-amd-svm-plumbing.patch
-kvm-fix-null-and-c99-init-sparse-warnings.patch
-kvm-load-i386-segment-bases.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
