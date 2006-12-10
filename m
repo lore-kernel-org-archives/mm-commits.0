@@ -1,137 +1,135 @@
 From: akpm@osdl.org
-Subject: - kvm-add-time-stamp-counter-msr-and-accessors.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:32 -0800
-Message-ID: <200612100753.kBA7rWiJ017733@shell0.pdx.osdl.net>
+Subject: - kvm-avoid-using-vmx-instruction-directly-fix-asm-constraints.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:26 -0800
+Message-ID: <200612100753.kBA7rQeb017724@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59643 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59635 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760472AbWLJHxe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:34 -0500
+	id S1760462AbWLJHx3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uril@qumranet.com, avi@qumranet.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Add time stamp counter msr and accessors
+     KVM: Fix asm constraints
 has been removed from the -mm tree.  Its filename was
-     kvm-add-time-stamp-counter-msr-and-accessors.patch
+     kvm-avoid-using-vmx-instruction-directly-fix-asm-constraints.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: Add time stamp counter msr and accessors
-From: Uri Lublin <uril@qumranet.com>
+Subject: KVM: Fix asm constraints
+From: Avi Kivity <avi@qumranet.com>
 
-Add a couple of accessors for the time stamp counter, and expose the tsc msr.
+The change to directly encoded vmx opcodes (rather than asm instructions)
+forced us to pass the address of phys_addr as an operand, rather than its
+contents.  However, nothing forces gcc to commit the contents of the variable
+to memory, so add an explicit "m" constraint.
 
-Signed-off-by: Uri Lublin <uril@qumranet.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |   40 ++++++++++++++++++++++++++++++---------
- 1 file changed, 31 insertions(+), 9 deletions(-)
+ drivers/kvm/kvm_main.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-add-time-stamp-counter-msr-and-accessors drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-add-time-stamp-counter-msr-and-accessors
+diff -puN drivers/kvm/kvm_main.c~kvm-avoid-using-vmx-instruction-directly-fix-asm-constraints drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-avoid-using-vmx-instruction-directly-fix-asm-constraints
 +++ a/drivers/kvm/kvm_main.c
-@@ -121,6 +121,7 @@ static const u32 vmx_msr_index[] = {
- #define TSS_REDIRECTION_SIZE (256 / 8)
- #define RMODE_TSS_SIZE (TSS_BASE_SIZE + TSS_REDIRECTION_SIZE + TSS_IOPB_SIZE + 1)
+@@ -406,7 +406,8 @@ static void vmcs_clear(struct vmcs *vmcs
+ 	u8 error;
  
-+#define MSR_IA32_TIME_STAMP_COUNTER		0x010
- #define MSR_IA32_FEATURE_CONTROL 		0x03a
- #define MSR_IA32_VMX_BASIC_MSR   		0x480
- #define MSR_IA32_VMX_PINBASED_CTLS_MSR		0x481
-@@ -716,6 +717,31 @@ static void inject_gp(struct kvm_vcpu *v
- 		     INTR_INFO_VALID_MASK);
+ 	asm volatile (ASM_VMX_VMCLEAR_RAX "; setna %0"
+-		       : "=g"(error) : "a"(&phys_addr) : "cc", "memory" );
++		      : "=g"(error) : "a"(&phys_addr), "m"(phys_addr)
++		      : "cc", "memory");
+ 	if (error)
+ 		printk(KERN_ERR "kvm: vmclear fail: %p/%llx\n",
+ 		       vmcs, phys_addr);
+@@ -449,7 +450,8 @@ static struct kvm_vcpu *__vcpu_load(stru
+ 
+ 		per_cpu(current_vmcs, cpu) = vcpu->vmcs;
+ 		asm volatile (ASM_VMX_VMPTRLD_RAX "; setna %0"
+-			       : "=g"(error) : "a"(&phys_addr) : "cc" );
++			      : "=g"(error) : "a"(&phys_addr), "m"(phys_addr)
++			      : "cc");
+ 		if (error)
+ 			printk(KERN_ERR "kvm: vmptrld %p/%llx fail\n",
+ 			       vcpu->vmcs, phys_addr);
+@@ -572,7 +574,8 @@ static __init void kvm_enable(void *garb
+ 		/* enable and lock */
+ 		wrmsrl(MSR_IA32_FEATURE_CONTROL, old | 5);
+ 	write_cr4(read_cr4() | CR4_VMXE); /* FIXME: not cpu hotplug safe */
+-	asm volatile (ASM_VMX_VMXON_RAX : : "a"(&phys_addr) : "memory", "cc");
++	asm volatile (ASM_VMX_VMXON_RAX : : "a"(&phys_addr), "m"(phys_addr)
++		      : "memory", "cc");
  }
  
-+/*
-+ * reads and returns guest's timestamp counter "register"
-+ * guest_tsc = host_tsc + tsc_offset    -- 21.3
-+ */
-+static u64 guest_read_tsc(void)
-+{
-+	u64 host_tsc, tsc_offset;
-+
-+	rdtscll(host_tsc);
-+	tsc_offset = vmcs_read64(TSC_OFFSET);
-+	return host_tsc + tsc_offset;
-+}
-+
-+/*
-+ * writes 'guest_tsc' into guest's timestamp counter "register"
-+ * guest_tsc = host_tsc + tsc_offset ==> tsc_offset = guest_tsc - host_tsc
-+ */
-+static void guest_write_tsc(u64 guest_tsc)
-+{
-+	u64 host_tsc;
-+
-+	rdtscll(host_tsc);
-+	vmcs_write64(TSC_OFFSET, guest_tsc - host_tsc);
-+}
-+
- static void update_exception_bitmap(struct kvm_vcpu *vcpu)
- {
- 	if (vcpu->rmode.active)
-@@ -1179,7 +1205,6 @@ static int kvm_vcpu_setup(struct kvm_vcp
- 	struct descriptor_table dt;
- 	int i;
- 	int ret;
--	u64 tsc;
- 	int nr_good_msrs;
- 
- 
-@@ -1249,8 +1274,7 @@ static int kvm_vcpu_setup(struct kvm_vcp
- 	vmcs_write64(IO_BITMAP_A, 0);
- 	vmcs_write64(IO_BITMAP_B, 0);
- 
--	rdtscll(tsc);
--	vmcs_write64(TSC_OFFSET, -tsc);
-+	guest_write_tsc(0);
- 
- 	vmcs_write64(VMCS_LINK_POINTER, -1ull); /* 22.3.1.5 */
- 
-@@ -2302,6 +2326,9 @@ static int handle_rdmsr(struct kvm_vcpu 
- 		data = vcpu->shadow_efer;
- 		break;
- #endif
-+	case MSR_IA32_TIME_STAMP_COUNTER:
-+		data = guest_read_tsc();
-+		break;
- 	case MSR_IA32_SYSENTER_CS:
- 		data = vmcs_read32(GUEST_SYSENTER_CS);
- 		break;
-@@ -2379,8 +2406,6 @@ static void set_efer(struct kvm_vcpu *vc
- 
- #endif
- 
--#define MSR_IA32_TIME_STAMP_COUNTER 0x10
--
- static int handle_wrmsr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
- {
- 	u32 ecx = vcpu->regs[VCPU_REGS_RCX];
-@@ -2424,10 +2449,7 @@ static int handle_wrmsr(struct kvm_vcpu 
- 		break;
- #endif
- 	case MSR_IA32_TIME_STAMP_COUNTER: {
--		u64 tsc;
--
--		rdtscll(tsc);
--		vmcs_write64(TSC_OFFSET, data - tsc);
-+		guest_write_tsc(data);
- 		break;
- 	}
- 	case MSR_IA32_UCODE_REV:
+ static void kvm_disable(void *garbage)
 _
 
-Patches currently in -mm which might be from uril@qumranet.com are
+Patches currently in -mm which might be from avi@qumranet.com are
 
+origin.patch
 kvm-userspace-interface.patch
+kvm-avoid-using-vmx-instruction-directly-fix-asm-constraints.patch
+kvm-expose-interrupt-bitmap.patch
 kvm-add-time-stamp-counter-msr-and-accessors.patch
 kvm-expose-msrs-to-userspace.patch
 kvm-expose-msrs-to-userspace-v2.patch
+kvm-create-kvm-intelko-module.patch
+kvm-make-dev-registration-happen-when-the-arch.patch
+kvm-make-hardware-detection-an-arch-operation.patch
+kvm-make-the-per-cpu-enable-disable-functions-arch.patch
+kvm-make-the-hardware-setup-operations-non-percpu.patch
+kvm-make-the-guest-debugger-an-arch-operation.patch
+kvm-make-msr-accessors-arch-operations.patch
+kvm-make-the-segment-accessors-arch-operations.patch
+kvm-cache-guest-cr4-in-vcpu-structure.patch
+kvm-cache-guest-cr0-in-vcpu-structure.patch
+kvm-add-get_segment_base-arch-accessor.patch
+kvm-add-idt-and-gdt-descriptor-accessors.patch
+kvm-make-syncing-the-register-file-to-the-vcpu.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-move-the-vmx-exit-handlers-to-vmxc.patch
+kvm-make-vcpu_setup-an-arch-operation.patch
+kvm-make-__set_cr0-and-dependencies-arch-operations.patch
+kvm-make-__set_cr4-an-arch-operation.patch
+kvm-make-__set_efer-an-arch-operation.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+kvm-make-set_cr3-and-tlb-flushing-arch-operations.patch
+kvm-make-inject_page_fault-an-arch-operation.patch
+kvm-make-inject_gp-an-arch-operation.patch
+kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation.patch
+kvm-use-the-general-purpose-register-accessors-rather.patch
+kvm-move-the-vmx-tsc-accessors-to-vmxc.patch
+kvm-access-rflags-through-an-arch-operation.patch
+kvm-move-the-vmx-segment-field-definitions-to-vmxc.patch
+kvm-add-an-arch-accessor-for-cs-d-b-and-l-bits.patch
+kvm-add-a-set_cr0_no_modeswitch-arch-accessor.patch
+kvm-make-vcpu_load-and-vcpu_put-arch-operations.patch
+kvm-make-vcpu-creation-and-destruction-arch-operations.patch
+kvm-move-vmcs-static-variables-to-vmxc.patch
+kvm-make-is_long_mode-an-arch-operation.patch
+kvm-use-the-tlb-flush-arch-operation-instead-of-an.patch
+kvm-remove-guest_cpl.patch
+kvm-move-vmcs-accessors-to-vmxc.patch
+kvm-move-vmx-helper-inlines-to-vmxc.patch
+kvm-remove-vmx-includes-from-arch-independent-code.patch
+kvm-amd-svm-add-architecture-definitions-for-amd-svm.patch
+kvm-amd-svm-enhance-x86-emulator.patch
+kvm-amd-svm-enhance-x86-emulator-fix-mov-to-from-control-register-emulation.patch
+kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu.patch
+kvm-amd-svm-add-data-structures.patch
+kvm-amd-svm-implementation.patch
+kvm-amd-svm-implementation-avoid-three-more-new-instructions.patch
+kvm-amd-svm-implementation-more-i386-fixes.patch
+kvm-amd-svm-implementation-printk-log-levels.patch
+kvm-amd-svm-plumbing.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+kvm-load-i386-segment-bases.patch
 
