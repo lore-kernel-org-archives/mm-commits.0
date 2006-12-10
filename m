@@ -1,60 +1,62 @@
 From: akpm@osdl.org
-Subject: - git-ocfs2-fixup.patch removed from -mm tree
-Date: Sun, 10 Dec 2006 15:10:27 -0800
-Message-ID: <200612102310.kBANARm9006257@shell0.pdx.osdl.net>
+Subject: + git-libata-all-fixup.patch added to -mm tree
+Date: Sun, 10 Dec 2006 15:13:33 -0800
+Message-ID: <200612102313.kBANDXoB006312@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:45697 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45944 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758499AbWLJXKg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 18:10:36 -0500
+	id S1760327AbWLJXNh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 18:13:37 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBANDYID029326
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 10 Dec 2006 15:13:35 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, davem@davemloft.net, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org
 
 
 The patch titled
-     git-ocfs2-fixup
-has been removed from the -mm tree.  Its filename was
-     git-ocfs2-fixup.patch
+     git-libata-all-fixup
+has been added to the -mm tree.  Its filename is
+     git-libata-all-fixup.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-ocfs2-fixup
+Subject: git-libata-all-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-bah.  Yet another reason to stop doing our changelogging in the kernel source
-code.
-
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ocfs2/cluster/tcp_internal.h |   10 ----------
- 1 file changed, 10 deletions(-)
+ Documentation/kernel-parameters.txt |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp_internal.h~git-ocfs2-fixup fs/ocfs2/cluster/tcp_internal.h
---- a/fs/ocfs2/cluster/tcp_internal.h~git-ocfs2-fixup
-+++ a/fs/ocfs2/cluster/tcp_internal.h
-@@ -38,16 +38,6 @@
-  * locking semantics of the file system using the protocol.  It should 
-  * be somewhere else, I'm sure, but right now it isn't.
-  *
--<<<<<<< HEAD/fs/ocfs2/cluster/tcp_internal.h
-- * New in version 5:
-- * 	- DLM lockres remote refcount fixes.
-- *
+diff -puN Documentation/kernel-parameters.txt~git-libata-all-fixup Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~git-libata-all-fixup
++++ a/Documentation/kernel-parameters.txt
+@@ -1027,17 +1027,14 @@ and is between 256 and 4096 characters. 
+ 			emulation library even if a 387 maths coprocessor
+ 			is present.
+ 
+-<<<<<<< HEAD/Documentation/kernel-parameters.txt
+ 	noaliencache	[MM, NUMA] Disables the allcoation of alien caches in
+ 			the slab allocator.  Saves per-node memory, but will
+ 			impact performance on real NUMA hardware.
+ 
 -=======
-- * New in version 5:
-- * 	- Network timeout checking protocol
-- *
-->>>>>>> 4725123c035c5e86563bb55ec90324b74e0ec73e/fs/ocfs2/cluster/tcp_internal.h
-- * New in version 4:
-  * 	- Remove i_generation from lock names for better stat performance.
-  *
-  * New in version 3:
+ 	noacpi		[LIBATA] Disables use of ACPI in libata suspend/resume
+ 			when set.
+ 			Format: <int>
+ 
+->>>>>>> /Documentation/kernel-parameters.txt
+ 	noalign		[KNL,ARM]
+ 
+ 	noapic		[SMP,APIC] Tells the kernel to not make use of any
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -82,6 +84,7 @@ git-cpufreq.patch
 git-cpufreq-fixup.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-input-vs-git-alsa.patch
+git-libata-all-fixup.patch
 pata_cs5530-suspend-resume-support-tweak.patch
 pata_sil680-suspend-resume-tidy.patch
 pata_via-suspend-resume-support-fix.patch
@@ -98,8 +101,6 @@ git-net.patch
 net-use-bitrev8.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
-git-ocfs2-fixup.patch
-pci-fix-multiple-problems-with-via-hardware.patch
 pci-legacy-resource-fix-tidy.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-in2000-scsi_cmnd-convertion.patch
