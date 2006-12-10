@@ -1,316 +1,155 @@
 From: akpm@osdl.org
-Subject: - kvm-make-vcpu_load-and-vcpu_put-arch-operations.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:55:12 -0800
-Message-ID: <200612100755.kBA7tCMP017856@shell0.pdx.osdl.net>
+Subject: - kvm-make-is_long_mode-an-arch-operation.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:55:21 -0800
+Message-ID: <200612100755.kBA7tLjK017867@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59805 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59827 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760429AbWLJHzP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:55:15 -0500
+	id S1760571AbWLJHzY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:55:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: make vcpu_load() and vcpu_put() arch operations
+     KVM: make is_long_mode() an arch operation
 has been removed from the -mm tree.  Its filename was
-     kvm-make-vcpu_load-and-vcpu_put-arch-operations.patch
+     kvm-make-is_long_mode-an-arch-operation.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: make vcpu_load() and vcpu_put() arch operations
+Subject: KVM: make is_long_mode() an arch operation
 From: Avi Kivity <avi@qumranet.com>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |   19 ++++++++++
- drivers/kvm/kvm_main.c |   73 ++++-----------------------------------
- drivers/kvm/vmx.c      |   56 +++++++++++++++++++++++++++++
- 3 files changed, 84 insertions(+), 64 deletions(-)
+ drivers/kvm/kvm.h         |    6 +-----
+ drivers/kvm/kvm_main.c    |    4 ++--
+ drivers/kvm/mmu.c         |    2 +-
+ drivers/kvm/paging_tmpl.h |    6 +++---
+ drivers/kvm/vmx.c         |    6 ++++++
+ 5 files changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-make-vcpu_load-and-vcpu_put-arch-operations drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-make-vcpu_load-and-vcpu_put-arch-operations
+diff -puN drivers/kvm/kvm.h~kvm-make-is_long_mode-an-arch-operation drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-make-is_long_mode-an-arch-operation
 +++ a/drivers/kvm/kvm.h
-@@ -260,6 +260,9 @@ struct kvm_arch_ops {
- 	int (*hardware_setup)(void);               /* __init */
- 	void (*hardware_unsetup)(void);            /* __exit */
- 
-+	struct kvm_vcpu *(*vcpu_load)(struct kvm_vcpu *vcpu);
-+	void (*vcpu_put)(struct kvm_vcpu *vcpu);
-+
- 	int (*set_guest_debug)(struct kvm_vcpu *vcpu,
- 			       struct kvm_debug_guest *dbg);
- 	int (*get_msr)(struct kvm_vcpu *vcpu, u32 msr_index, u64 *pdata);
-@@ -296,6 +299,8 @@ struct kvm_arch_ops {
- 	void (*skip_emulated_instruction)(struct kvm_vcpu *vcpu);
- };
- 
-+void __vcpu_clear(void *arg); /* temporary hack */
-+
- extern struct kvm_stat kvm_stat;
- extern struct kvm_arch_ops *kvm_arch_ops;
- 
-@@ -373,6 +378,8 @@ int kvm_write_guest(struct kvm_vcpu *vcp
- void vmcs_writel(unsigned long field, unsigned long value);
- unsigned long vmcs_readl(unsigned long field);
- 
-+unsigned long segment_base(u16 selector);
-+
- static inline struct page *_gfn_to_page(struct kvm *kvm, gfn_t gfn)
- {
- 	struct kvm_memory_slot *slot = gfn_to_memslot(kvm, gfn);
-@@ -501,6 +508,18 @@ static inline void get_idt(struct descri
- 	asm ("sidt %0" : "=m"(*table));
+@@ -275,6 +275,7 @@ struct kvm_arch_ops {
+ 			    struct kvm_segment *var, int seg);
+ 	void (*set_segment)(struct kvm_vcpu *vcpu,
+ 			    struct kvm_segment *var, int seg);
++	int (*is_long_mode)(struct kvm_vcpu *vcpu);
+ 	void (*get_cs_db_l_bits)(struct kvm_vcpu *vcpu, int *db, int *l);
+ 	void (*set_cr0)(struct kvm_vcpu *vcpu, unsigned long cr0);
+ 	void (*set_cr0_no_modeswitch)(struct kvm_vcpu *vcpu,
+@@ -411,11 +412,6 @@ static inline void vmcs_write32(unsigned
+ 	vmcs_writel(field, value);
  }
  
-+static inline void get_gdt(struct descriptor_table *table)
-+{
-+	asm ("sgdt %0" : "=m"(*table));
-+}
-+
-+static inline unsigned long read_tr_base(void)
-+{
-+	u16 tr;
-+	asm ("str %0" : "=g"(tr));
-+	return segment_base(tr);
-+}
-+
- #ifdef __x86_64__
- static inline unsigned long read_msr(unsigned long msr)
+-static inline int is_long_mode(void)
+-{
+-	return vmcs_read32(VM_ENTRY_CONTROLS) & VM_ENTRY_CONTROLS_IA32E_MASK;
+-}
+-
+ static inline int is_pae(struct kvm_vcpu *vcpu)
  {
-diff -puN drivers/kvm/kvm_main.c~kvm-make-vcpu_load-and-vcpu_put-arch-operations drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-make-vcpu_load-and-vcpu_put-arch-operations
+ 	return vcpu->cr4 & CR4_PAE_MASK;
+diff -puN drivers/kvm/kvm_main.c~kvm-make-is_long_mode-an-arch-operation drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-make-is_long_mode-an-arch-operation
 +++ a/drivers/kvm/kvm_main.c
-@@ -85,11 +85,6 @@ struct vmx_msr_entry *find_msr_entry(str
- }
- EXPORT_SYMBOL_GPL(find_msr_entry);
- 
--static void get_gdt(struct descriptor_table *table)
--{
--	asm ("sgdt %0" : "=m"(*table));
--}
--
- #ifdef __x86_64__
- // LDT or TSS descriptor in the GDT. 16 bytes.
- struct segment_descriptor_64 {
-@@ -100,7 +95,7 @@ struct segment_descriptor_64 {
- 
- #endif
- 
--static unsigned long segment_base(u16 selector)
-+unsigned long segment_base(u16 selector)
- {
- 	struct descriptor_table gdt;
- 	struct segment_descriptor *d;
-@@ -126,17 +121,12 @@ static unsigned long segment_base(u16 se
- #endif
- 	return v;
- }
--
--static unsigned long read_tr_base(void)
--{
--	u16 tr;
--	asm ("str %0" : "=g"(tr));
--	return segment_base(tr);
--}
-+EXPORT_SYMBOL_GPL(segment_base);
- 
- DEFINE_PER_CPU(struct vmcs *, vmxarea);
- EXPORT_SYMBOL_GPL(per_cpu__vmxarea); /* temporary hack */
--static DEFINE_PER_CPU(struct vmcs *, current_vmcs);
-+DEFINE_PER_CPU(struct vmcs *, current_vmcs);
-+EXPORT_SYMBOL_GPL(per_cpu__current_vmcs); /* temporary hack */
- 
- struct vmcs_descriptor {
- 	int size;
-@@ -227,7 +217,7 @@ static void vmcs_clear(struct vmcs *vmcs
- 		       vmcs, phys_addr);
- }
- 
--static void __vcpu_clear(void *arg)
-+void __vcpu_clear(void *arg)
- {
- 	struct kvm_vcpu *vcpu = arg;
- 	int cpu = smp_processor_id();
-@@ -237,6 +227,7 @@ static void __vcpu_clear(void *arg)
- 	if (per_cpu(current_vmcs, cpu) == vcpu->vmcs)
- 		per_cpu(current_vmcs, cpu) = 0;
- }
-+EXPORT_SYMBOL_GPL(__vcpu_clear);
- 
- static int vcpu_slot(struct kvm_vcpu *vcpu)
- {
-@@ -244,53 +235,6 @@ static int vcpu_slot(struct kvm_vcpu *vc
- }
- 
- /*
-- * Switches to specified vcpu, until a matching vcpu_put(), but assumes
-- * vcpu mutex is already taken.
-- */
--static struct kvm_vcpu *__vcpu_load(struct kvm_vcpu *vcpu)
--{
--	u64 phys_addr = __pa(vcpu->vmcs);
--	int cpu;
--
--	cpu = get_cpu();
--
--	if (vcpu->cpu != cpu) {
--		smp_call_function(__vcpu_clear, vcpu, 0, 1);
--		vcpu->launched = 0;
--	}
--
--	if (per_cpu(current_vmcs, cpu) != vcpu->vmcs) {
--		u8 error;
--
--		per_cpu(current_vmcs, cpu) = vcpu->vmcs;
--		asm volatile (ASM_VMX_VMPTRLD_RAX "; setna %0"
--			      : "=g"(error) : "a"(&phys_addr), "m"(phys_addr)
--			      : "cc");
--		if (error)
--			printk(KERN_ERR "kvm: vmptrld %p/%llx fail\n",
--			       vcpu->vmcs, phys_addr);
--	}
--
--	if (vcpu->cpu != cpu) {
--		struct descriptor_table dt;
--		unsigned long sysenter_esp;
--
--		vcpu->cpu = cpu;
--		/*
--		 * Linux uses per-cpu TSS and GDT, so set these when switching
--		 * processors.
--		 */
--		vmcs_writel(HOST_TR_BASE, read_tr_base()); /* 22.2.4 */
--		get_gdt(&dt);
--		vmcs_writel(HOST_GDTR_BASE, dt.base);   /* 22.2.4 */
--
--		rdmsrl(MSR_IA32_SYSENTER_ESP, sysenter_esp);
--		vmcs_writel(HOST_IA32_SYSENTER_ESP, sysenter_esp); /* 22.2.3 */
--	}
--	return vcpu;
--}
--
--/*
-  * Switches to specified vcpu, until a matching vcpu_put()
-  */
- static struct kvm_vcpu *vcpu_load(struct kvm *kvm, int vcpu_slot)
-@@ -302,11 +246,12 @@ static struct kvm_vcpu *vcpu_load(struct
- 		mutex_unlock(&vcpu->mutex);
- 		return 0;
+@@ -426,7 +426,7 @@ void set_cr4(struct kvm_vcpu *vcpu, unsi
+ 		return;
  	}
--	return __vcpu_load(vcpu);
-+	return kvm_arch_ops->vcpu_load(vcpu);
- }
  
- static void vcpu_put(struct kvm_vcpu *vcpu)
+-	if (is_long_mode()) {
++	if (kvm_arch_ops->is_long_mode(vcpu)) {
+ 		if (!(cr4 & CR4_PAE_MASK)) {
+ 			printk(KERN_DEBUG "set_cr4: #GP, clearing PAE while "
+ 			       "in long mode\n");
+@@ -453,7 +453,7 @@ EXPORT_SYMBOL_GPL(set_cr4);
+ 
+ void set_cr3(struct kvm_vcpu *vcpu, unsigned long cr3)
  {
-+	kvm_arch_ops->vcpu_put(vcpu);
- 	put_cpu();
- 	mutex_unlock(&vcpu->mutex);
- }
-@@ -683,7 +628,7 @@ static int kvm_dev_ioctl_create_vcpu(str
- 	vcpu->vmcs = vmcs;
- 	vcpu->launched = 0;
+-	if (is_long_mode()) {
++	if (kvm_arch_ops->is_long_mode(vcpu)) {
+ 		if ( cr3 & CR3_L_MODE_RESEVED_BITS) {
+ 			printk(KERN_DEBUG "set_cr3: #GP, reserved bits\n");
+ 			inject_gp(vcpu);
+diff -puN drivers/kvm/mmu.c~kvm-make-is_long_mode-an-arch-operation drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-make-is_long_mode-an-arch-operation
++++ a/drivers/kvm/mmu.c
+@@ -589,7 +589,7 @@ static int init_kvm_mmu(struct kvm_vcpu 
  
--	__vcpu_load(vcpu);
-+	kvm_arch_ops->vcpu_load(vcpu);
+ 	if (!is_paging(vcpu))
+ 		return nonpaging_init_context(vcpu);
+-	else if (is_long_mode())
++	else if (kvm_arch_ops->is_long_mode(vcpu))
+ 		return paging64_init_context(vcpu);
+ 	else if (is_pae(vcpu))
+ 		return paging32E_init_context(vcpu);
+diff -puN drivers/kvm/paging_tmpl.h~kvm-make-is_long_mode-an-arch-operation drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-make-is_long_mode-an-arch-operation
++++ a/drivers/kvm/paging_tmpl.h
+@@ -70,7 +70,7 @@ static void FNAME(init_walker)(struct gu
+ 	hpa = safe_gpa_to_hpa(vcpu, vcpu->cr3 & PT64_BASE_ADDR_MASK);
+ 	walker->table = kmap_atomic(pfn_to_page(hpa >> PAGE_SHIFT), KM_USER0);
  
- 	r = kvm_arch_ops->vcpu_setup(vcpu);
- 	if (r >= 0)
-diff -puN drivers/kvm/vmx.c~kvm-make-vcpu_load-and-vcpu_put-arch-operations drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-make-vcpu_load-and-vcpu_put-arch-operations
+-	ASSERT((!is_long_mode() && is_pae(vcpu)) ||
++	ASSERT((!kvm_arch_ops->is_long_mode(vcpu) && is_pae(vcpu)) ||
+ 	       (vcpu->cr3 & ~(PAGE_MASK | CR3_FLAGS_MASK)) == 0);
+ 
+ 	walker->table = (pt_element_t *)( (unsigned long)walker->table |
+@@ -135,7 +135,7 @@ static pt_element_t *FNAME(fetch_guest)(
+ 		     (walker->table[index] & PT_PAGE_SIZE_MASK) &&
+ 		     (PTTYPE == 64 || is_pse(vcpu))))
+ 			return &walker->table[index];
+-		if (walker->level != 3 || is_long_mode())
++		if (walker->level != 3 || kvm_arch_ops->is_long_mode(vcpu))
+ 			walker->inherited_ar &= walker->table[index];
+ 		paddr = safe_gpa_to_hpa(vcpu, walker->table[index] & PT_BASE_ADDR_MASK);
+ 		kunmap_atomic(walker->table, KM_USER0);
+@@ -204,7 +204,7 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
+ 		shadow_addr = kvm_mmu_alloc_page(vcpu, shadow_ent);
+ 		if (!VALID_PAGE(shadow_addr))
+ 			return ERR_PTR(-ENOMEM);
+-		if (!is_long_mode() && level == 3)
++		if (!kvm_arch_ops->is_long_mode(vcpu) && level == 3)
+ 			*shadow_ent = shadow_addr |
+ 				(*guest_ent & (PT_PRESENT_MASK | PT_PWT_MASK | PT_PCD_MASK));
+ 		else {
+diff -puN drivers/kvm/vmx.c~kvm-make-is_long_mode-an-arch-operation drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-make-is_long_mode-an-arch-operation
 +++ a/drivers/kvm/vmx.c
-@@ -31,6 +31,7 @@ MODULE_AUTHOR("Qumranet");
- MODULE_LICENSE("GPL");
+@@ -813,6 +813,11 @@ static void vmx_set_segment(struct kvm_v
+ 	vmcs_write32(sf->ar_bytes, ar);
+ }
  
- DECLARE_PER_CPU(struct vmcs *, vmxarea);
-+DECLARE_PER_CPU(struct vmcs *, current_vmcs);
- 
- #ifdef __x86_64__
- #define HOST_IS_64 1
-@@ -78,6 +79,58 @@ static const u32 vmx_msr_index[] = {
- 
- struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr);
- 
-+/*
-+ * Switches to specified vcpu, until a matching vcpu_put(), but assumes
-+ * vcpu mutex is already taken.
-+ */
-+static struct kvm_vcpu *vmx_vcpu_load(struct kvm_vcpu *vcpu)
++static int vmx_is_long_mode(struct kvm_vcpu *vcpu)
 +{
-+	u64 phys_addr = __pa(vcpu->vmcs);
-+	int cpu;
-+
-+	cpu = get_cpu();
-+
-+	if (vcpu->cpu != cpu) {
-+		smp_call_function(__vcpu_clear, vcpu, 0, 1);
-+		vcpu->launched = 0;
-+	}
-+
-+	if (per_cpu(current_vmcs, cpu) != vcpu->vmcs) {
-+		u8 error;
-+
-+		per_cpu(current_vmcs, cpu) = vcpu->vmcs;
-+		asm volatile (ASM_VMX_VMPTRLD_RAX "; setna %0"
-+			      : "=g"(error) : "a"(&phys_addr), "m"(phys_addr)
-+			      : "cc");
-+		if (error)
-+			printk(KERN_ERR "kvm: vmptrld %p/%llx fail\n",
-+			       vcpu->vmcs, phys_addr);
-+	}
-+
-+	if (vcpu->cpu != cpu) {
-+		struct descriptor_table dt;
-+		unsigned long sysenter_esp;
-+
-+		vcpu->cpu = cpu;
-+		/*
-+		 * Linux uses per-cpu TSS and GDT, so set these when switching
-+		 * processors.
-+		 */
-+		vmcs_writel(HOST_TR_BASE, read_tr_base()); /* 22.2.4 */
-+		get_gdt(&dt);
-+		vmcs_writel(HOST_GDTR_BASE, dt.base);   /* 22.2.4 */
-+
-+		rdmsrl(MSR_IA32_SYSENTER_ESP, sysenter_esp);
-+		vmcs_writel(HOST_IA32_SYSENTER_ESP, sysenter_esp); /* 22.2.3 */
-+	}
-+	return vcpu;
++	return vmcs_read32(VM_ENTRY_CONTROLS) & VM_ENTRY_CONTROLS_IA32E_MASK;
 +}
 +
-+static void vmx_vcpu_put(struct kvm_vcpu *vcpu)
-+{
-+	put_cpu();
-+}
-+
- static unsigned long vmx_get_rflags(struct kvm_vcpu *vcpu)
+ static void vmx_get_cs_db_l_bits(struct kvm_vcpu *vcpu, int *db, int *l)
  {
- 	return vmcs_readl(GUEST_RFLAGS);
-@@ -1747,6 +1800,9 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.hardware_enable = hardware_enable,
- 	.hardware_disable = hardware_disable,
- 
-+	.vcpu_load = vmx_vcpu_load,
-+	.vcpu_put = vmx_vcpu_put,
-+
- 	.set_guest_debug = set_guest_debug,
- 	.get_msr = vmx_get_msr,
- 	.set_msr = vmx_set_msr,
+ 	u32 ar = vmcs_read32(GUEST_CS_AR_BYTES);
+@@ -1886,6 +1891,7 @@ static struct kvm_arch_ops vmx_arch_ops 
+ 	.get_segment_base = vmx_get_segment_base,
+ 	.get_segment = vmx_get_segment,
+ 	.set_segment = vmx_set_segment,
++	.is_long_mode = vmx_is_long_mode,
+ 	.get_cs_db_l_bits = vmx_get_cs_db_l_bits,
+ 	.set_cr0 = vmx_set_cr0,
+ 	.set_cr0_no_modeswitch = vmx_set_cr0_no_modeswitch,
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-make-vcpu_load-and-vcpu_put-arch-operations.patch
-kvm-make-vcpu-creation-and-destruction-arch-operations.patch
-kvm-move-vmcs-static-variables-to-vmxc.patch
 kvm-make-is_long_mode-an-arch-operation.patch
 kvm-use-the-tlb-flush-arch-operation-instead-of-an.patch
 kvm-remove-guest_cpl.patch
