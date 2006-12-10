@@ -1,295 +1,204 @@
 From: akpm@osdl.org
-Subject: - kvm-amd-svm-implementation-more-i386-fixes.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:55:58 -0800
-Message-ID: <200612100755.kBA7twYB017915@shell0.pdx.osdl.net>
+Subject: - kvm-fix-null-and-c99-init-sparse-warnings.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:56:07 -0800
+Message-ID: <200612100756.kBA7u7BY017926@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59900 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59913 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760588AbWLJH4H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:56:07 -0500
+	id S1760594AbWLJH4O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:56:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, avi@qumranet.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: More i386 fixes
+     KVM: fix NULL and C99 init sparse warnings
 has been removed from the -mm tree.  Its filename was
-     kvm-amd-svm-implementation-more-i386-fixes.patch
+     kvm-fix-null-and-c99-init-sparse-warnings.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: More i386 fixes
-From: Ingo Molnar <mingo@elte.hu>
+Subject: KVM: fix NULL and C99 init sparse warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Fix sparse NULL and C99 struct init warnings in kvm:
+
+drivers/kvm/vmx.c:62:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:63:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:64:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:65:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:66:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:67:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:68:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:69:2: warning: obsolete array initializer, use C99 syntax
+drivers/kvm/vmx.c:116:32: warning: Using plain integer as NULL pointer
+drivers/kvm/vmx.c:559:10: warning: Using plain integer as NULL pointer
+drivers/kvm/kvm.h:385:57: warning: Using plain integer as NULL pointer
+drivers/kvm/kvm.h:385:57: warning: Using plain integer as NULL pointer
+drivers/kvm/kvm.h:385:57: warning: Using plain integer as NULL pointer
+drivers/kvm/vmx.c:1293:33: warning: Using plain integer as NULL pointer
+drivers/kvm/vmx.c:1917:16: warning: Using plain integer as NULL pointer
+drivers/kvm/mmu.c:321:34: warning: Using plain integer as NULL pointer
+drivers/kvm/mmu.c:387:47: warning: Using plain integer as NULL pointer
+drivers/kvm/mmu.c:548:47: warning: Using plain integer as NULL pointer
+drivers/kvm/mmu.c:566:47: warning: Using plain integer as NULL pointer
+drivers/kvm/x86_emulate.c:686:20: warning: Using plain integer as NULL pointer
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    2 +-
- drivers/kvm/kvm_main.c |    2 +-
- drivers/kvm/mmu.c      |    6 +++---
- drivers/kvm/svm.c      |   18 ++++++++++--------
- drivers/kvm/vmx.c      |    2 +-
- 5 files changed, 16 insertions(+), 14 deletions(-)
+ drivers/kvm/kvm.h         |    2 +-
+ drivers/kvm/mmu.c         |    8 ++++----
+ drivers/kvm/vmx.c         |   18 +++++++++---------
+ drivers/kvm/x86_emulate.c |    2 +-
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-amd-svm-implementation-more-i386-fixes drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-amd-svm-implementation-more-i386-fixes
+diff -puN drivers/kvm/kvm.h~kvm-fix-null-and-c99-init-sparse-warnings drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-fix-null-and-c99-init-sparse-warnings
 +++ a/drivers/kvm/kvm.h
-@@ -299,7 +299,7 @@ struct kvm_arch_ops {
- 	void (*set_rflags)(struct kvm_vcpu *vcpu, unsigned long rflags);
+@@ -400,7 +400,7 @@ unsigned long segment_base(u16 selector)
+ static inline struct page *_gfn_to_page(struct kvm *kvm, gfn_t gfn)
+ {
+ 	struct kvm_memory_slot *slot = gfn_to_memslot(kvm, gfn);
+-	return (slot) ? slot->phys_mem[gfn - slot->base_gfn] : 0;
++	return (slot) ? slot->phys_mem[gfn - slot->base_gfn] : NULL;
+ }
  
- 	void (*invlpg)(struct kvm_vcpu *vcpu, gva_t addr);
--	void (*flush_tlb)(struct kvm_vcpu *vcpu);
-+	void (*tlb_flush)(struct kvm_vcpu *vcpu);
- 	void (*inject_page_fault)(struct kvm_vcpu *vcpu,
- 				  unsigned long addr, u32 err_code);
- 
-diff -puN drivers/kvm/kvm_main.c~kvm-amd-svm-implementation-more-i386-fixes drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-amd-svm-implementation-more-i386-fixes
-+++ a/drivers/kvm/kvm_main.c
-@@ -737,7 +737,7 @@ static int kvm_dev_ioctl_get_dirty_log(s
- 
- 			if (!vcpu)
- 				continue;
--			kvm_arch_ops->flush_tlb(vcpu);
-+			kvm_arch_ops->tlb_flush(vcpu);
- 			vcpu_put(vcpu);
- 		}
- 	}
-diff -puN drivers/kvm/mmu.c~kvm-amd-svm-implementation-more-i386-fixes drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-amd-svm-implementation-more-i386-fixes
+ static inline int is_pae(struct kvm_vcpu *vcpu)
+diff -puN drivers/kvm/mmu.c~kvm-fix-null-and-c99-init-sparse-warnings drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-fix-null-and-c99-init-sparse-warnings
 +++ a/drivers/kvm/mmu.c
-@@ -324,7 +324,7 @@ static void nonpaging_flush(struct kvm_v
+@@ -318,7 +318,7 @@ static void nonpaging_flush(struct kvm_v
+ 	pgprintk("nonpaging_flush\n");
+ 	ASSERT(VALID_PAGE(root));
+ 	release_pt_page_64(vcpu, root, vcpu->mmu.shadow_root_level);
+-	root = kvm_mmu_alloc_page(vcpu, 0);
++	root = kvm_mmu_alloc_page(vcpu, NULL);
+ 	ASSERT(VALID_PAGE(root));
+ 	vcpu->mmu.root_hpa = root;
  	if (is_paging(vcpu))
- 		root |= (vcpu->cr3 & (CR3_PCD_MASK | CR3_WPT_MASK));
- 	kvm_arch_ops->set_cr3(vcpu, root);
--	kvm_arch_ops->flush_tlb(vcpu);
-+	kvm_arch_ops->tlb_flush(vcpu);
- }
- 
- static gpa_t nonpaging_gva_to_gpa(struct kvm_vcpu *vcpu, gva_t vaddr)
-@@ -408,7 +408,7 @@ static void kvm_mmu_flush_tlb(struct kvm
- 		release_pt_page_64(vcpu, page->page_hpa, 1);
- 	}
- 	++kvm_stat.tlb_flush;
--	kvm_arch_ops->flush_tlb(vcpu);
-+	kvm_arch_ops->tlb_flush(vcpu);
- }
- 
- static void paging_new_cr3(struct kvm_vcpu *vcpu)
-@@ -516,7 +516,7 @@ static void paging_inval_page(struct kvm
- 			table[index] = 0;
- 			release_pt_page_64(vcpu, page_addr, PT_PAGE_TABLE_LEVEL);
- 
--			kvm_arch_ops->flush_tlb(vcpu);
-+			kvm_arch_ops->tlb_flush(vcpu);
- 			return;
- 		}
- 	}
-diff -puN drivers/kvm/svm.c~kvm-amd-svm-implementation-more-i386-fixes drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-amd-svm-implementation-more-i386-fixes
-+++ a/drivers/kvm/svm.c
-@@ -115,7 +115,7 @@ static inline void invlpga(unsigned long
- 	asm volatile (SVM_INVLPGA :: "a"(addr), "c"(asid));
- }
- 
--static inline unsigned long read_cr2(void)
-+static inline unsigned long kvm_read_cr2(void)
- {
- 	unsigned long cr2;
- 
-@@ -123,7 +123,7 @@ static inline unsigned long read_cr2(voi
- 	return cr2;
- }
- 
--static inline void write_cr2(unsigned long val)
-+static inline void kvm_write_cr2(unsigned long val)
- {
- 	asm volatile ("mov %0, %%cr2" :: "r" (val));
- }
-@@ -1129,9 +1129,11 @@ static int rdmsr_interception(struct kvm
- static int svm_set_msr(struct kvm_vcpu *vcpu, unsigned ecx, u64 data)
- {
- 	switch (ecx) {
-+#ifdef __x86_64__
- 	case MSR_EFER:
- 		set_efer(vcpu, data);
- 		break;
-+#endif
- 	case MSR_IA32_MC0_STATUS:
- 		printk(KERN_WARNING "%s: MSR_IA32_MC0_STATUS 0x%llx, nop\n"
- 			    , __FUNCTION__, data);
-@@ -1367,7 +1369,7 @@ again:
- 	fs_selector = read_fs();
- 	gs_selector = read_gs();
- 	ldt_selector = read_ldt();
--	vcpu->svm->host_cr2 = read_cr2();
-+	vcpu->svm->host_cr2 = kvm_read_cr2();
- 	vcpu->svm->host_dr6 = read_dr6();
- 	vcpu->svm->host_dr7 = read_dr7();
- 	vcpu->svm->vmcb->save.cr2 = vcpu->cr2;
-@@ -1384,7 +1386,7 @@ again:
- 		"push %%r8;  push %%r9;  push %%r10; push %%r11;"
- 		"push %%r12; push %%r13; push %%r14; push %%r15;"
- #else
--		"push %%ebx; push %%rcx push %%edx;"
-+		"push %%ebx; push %%ecx; push %%edx;"
- 		"push %%esi; push %%edi; push %%ebp;"
- #endif
- 
-@@ -1462,9 +1464,9 @@ again:
- 		  [rdx]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_RDX])),
- 		  [rsi]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_RSI])),
- 		  [rdi]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_RDI])),
--		  [rbp]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_RBP])),
-+		  [rbp]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_RBP]))
- #ifdef __x86_64__
--		  [r8 ]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_R8 ])),
-+		  ,[r8 ]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_R8 ])),
- 		  [r9 ]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_R9 ])),
- 		  [r10]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_R10])),
- 		  [r11]"i"(offsetof(struct kvm_vcpu, regs[VCPU_REGS_R11])),
-@@ -1482,7 +1484,7 @@ again:
- 
- 	write_dr6(vcpu->svm->host_dr6);
- 	write_dr7(vcpu->svm->host_dr7);
--	write_cr2(vcpu->svm->host_cr2);
-+	kvm_write_cr2(vcpu->svm->host_cr2);
- 
- 	load_fs(fs_selector);
- 	load_gs(gs_selector);
-@@ -1596,7 +1598,7 @@ static struct kvm_arch_ops svm_arch_ops 
- 	.set_rflags = svm_set_rflags,
- 
- 	.invlpg = svm_invlpg,
--	.flush_tlb = svm_flush_tlb,
-+	.tlb_flush = svm_flush_tlb,
- 	.inject_page_fault = svm_inject_page_fault,
- 
- 	.inject_gp = svm_inject_gp,
-diff -puN drivers/kvm/vmx.c~kvm-amd-svm-implementation-more-i386-fixes drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-amd-svm-implementation-more-i386-fixes
+@@ -385,7 +385,7 @@ static int nonpaging_init_context(struct
+ 	context->free = nonpaging_free;
+ 	context->root_level = PT32E_ROOT_LEVEL;
+ 	context->shadow_root_level = PT32E_ROOT_LEVEL;
+-	context->root_hpa = kvm_mmu_alloc_page(vcpu, 0);
++	context->root_hpa = kvm_mmu_alloc_page(vcpu, NULL);
+ 	ASSERT(VALID_PAGE(context->root_hpa));
+ 	kvm_arch_ops->set_cr3(vcpu, context->root_hpa);
+ 	return 0;
+@@ -547,7 +547,7 @@ static int paging64_init_context(struct 
+ 	context->free = paging_free;
+ 	context->root_level = PT64_ROOT_LEVEL;
+ 	context->shadow_root_level = PT64_ROOT_LEVEL;
+-	context->root_hpa = kvm_mmu_alloc_page(vcpu, 0);
++	context->root_hpa = kvm_mmu_alloc_page(vcpu, NULL);
+ 	ASSERT(VALID_PAGE(context->root_hpa));
+ 	kvm_arch_ops->set_cr3(vcpu, context->root_hpa |
+ 		    (vcpu->cr3 & (CR3_PCD_MASK | CR3_WPT_MASK)));
+@@ -565,7 +565,7 @@ static int paging32_init_context(struct 
+ 	context->free = paging_free;
+ 	context->root_level = PT32_ROOT_LEVEL;
+ 	context->shadow_root_level = PT32E_ROOT_LEVEL;
+-	context->root_hpa = kvm_mmu_alloc_page(vcpu, 0);
++	context->root_hpa = kvm_mmu_alloc_page(vcpu, NULL);
+ 	ASSERT(VALID_PAGE(context->root_hpa));
+ 	kvm_arch_ops->set_cr3(vcpu, context->root_hpa |
+ 		    (vcpu->cr3 & (CR3_PCD_MASK | CR3_WPT_MASK)));
+diff -puN drivers/kvm/vmx.c~kvm-fix-null-and-c99-init-sparse-warnings drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-fix-null-and-c99-init-sparse-warnings
 +++ a/drivers/kvm/vmx.c
-@@ -1974,7 +1974,7 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.get_rflags = vmx_get_rflags,
- 	.set_rflags = vmx_set_rflags,
+@@ -46,11 +46,11 @@ static struct vmcs_descriptor {
+ } vmcs_descriptor;
  
--	.flush_tlb = vmx_flush_tlb,
-+	.tlb_flush = vmx_flush_tlb,
- 	.inject_page_fault = vmx_inject_page_fault,
+ #define VMX_SEGMENT_FIELD(seg)					\
+-	[VCPU_SREG_##seg] {                                     \
+-		GUEST_##seg##_SELECTOR,				\
+-		GUEST_##seg##_BASE,			   	\
+-		GUEST_##seg##_LIMIT,			   	\
+-		GUEST_##seg##_AR_BYTES,			   	\
++	[VCPU_SREG_##seg] = {                                   \
++		.selector = GUEST_##seg##_SELECTOR,		\
++		.base = GUEST_##seg##_BASE,		   	\
++		.limit = GUEST_##seg##_LIMIT,		   	\
++		.ar_bytes = GUEST_##seg##_AR_BYTES,	   	\
+ 	}
  
- 	.inject_gp = vmx_inject_gp,
+ static struct kvm_vmx_segment_field {
+@@ -113,7 +113,7 @@ static void __vcpu_clear(void *arg)
+ 	if (vcpu->cpu == cpu)
+ 		vmcs_clear(vcpu->vmcs);
+ 	if (per_cpu(current_vmcs, cpu) == vcpu->vmcs)
+-		per_cpu(current_vmcs, cpu) = 0;
++		per_cpu(current_vmcs, cpu) = NULL;
+ }
+ 
+ static unsigned long vmcs_readl(unsigned long field)
+@@ -556,7 +556,7 @@ static struct vmcs *alloc_vmcs_cpu(int c
+ 
+ 	pages = alloc_pages_node(node, GFP_KERNEL, vmcs_descriptor.order);
+ 	if (!pages)
+-		return 0;
++		return NULL;
+ 	vmcs = page_address(pages);
+ 	memset(vmcs, 0, vmcs_descriptor.size);
+ 	vmcs->revision_id = vmcs_descriptor.revision_id; /* vmcs revision id */
+@@ -1290,7 +1290,7 @@ static int handle_rmode_exception(struct
+ 		return 0;
+ 
+ 	if (vec == GP_VECTOR && err_code == 0)
+-		if (emulate_instruction(vcpu, 0, 0, 0) == EMULATE_DONE)
++		if (emulate_instruction(vcpu, NULL, 0, 0) == EMULATE_DONE)
+ 			return 1;
+ 	return 0;
+ }
+@@ -1914,7 +1914,7 @@ static void vmx_free_vmcs(struct kvm_vcp
+ 	if (vcpu->vmcs) {
+ 		on_each_cpu(__vcpu_clear, vcpu, 0, 1);
+ 		free_vmcs(vcpu->vmcs);
+-		vcpu->vmcs = 0;
++		vcpu->vmcs = NULL;
+ 	}
+ }
+ 
+diff -puN drivers/kvm/x86_emulate.c~kvm-fix-null-and-c99-init-sparse-warnings drivers/kvm/x86_emulate.c
+--- a/drivers/kvm/x86_emulate.c~kvm-fix-null-and-c99-init-sparse-warnings
++++ a/drivers/kvm/x86_emulate.c
+@@ -698,7 +698,7 @@ done_prefixes:
+ 		if (mode == X86EMUL_MODE_PROT64 &&
+ 		    override_base != &ctxt->fs_base &&
+ 		    override_base != &ctxt->gs_base)
+-			override_base = 0;
++			override_base = NULL;
+ 
+ 		if (override_base)
+ 			modrm_ea += *override_base;
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-debug-add-sysrq_always_enabled-boot-option.patch
-lockdep-filter-off-by-default.patch
-lockdep-improve-verbose-messages.patch
-lockdep-improve-lockdep_reset.patch
-lockdep-clean-up-very_verbose-define.patch
-lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
-lockdep-print-irq-trace-info-on-asserts.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-schedc-correct-comment-for-this_rq_lock-routine.patch
-sched-fix-migration-cost-estimator.patch
-sched-domain-move-sched-group-allocations-to-percpu-area.patch
-move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
-sched-domain-increase-the-smt-busy-rebalance-interval.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
-sched-add-option-to-serialize-load-balancing.patch
-sched-add-option-to-serialize-load-balancing-fix.patch
-sched-improve-migration-accuracy.patch
-sched-improve-migration-accuracy-tidy.patch
-sched-decrease-number-of-load-balances.patch
-sched-remove-lb_stopbalance-counter.patch
-sched-optimize-activate_task-for-rt-task.patch
-kernel-schedc-whitespace-cleanups.patch
-kernel-schedc-whitespace-cleanups-more.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-time-uninline-jiffiesh.patch
-time-uninline-jiffiesh-fix.patch
-time-fix-msecs_to_jiffies-bug.patch
-time-fix-timeout-overflow.patch
-cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-hrtimers-clean-up-callback-tracking.patch
-updated-hrtimers-move-and-add-documentation.patch
-updated-add-a-framework-to-manage-clock-event-devices.patch
-updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix.patch
-updated-add-a-framework-to-manage-clock-event-devices-pit-broadcasting-fix.patch
-updated-acpi-include-apich.patch
-updated-acpi-keep-track-of-timer-broadcast.patch
-updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-updated-i386-cleanup-apic-code.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
-updated-i386-rework-local-apic-calibration.patch
-updated-high-res-timers-core.patch
-updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-high-res-timers-utilize-tsc-clocksource-again.patch
-high-res-timers-utilize-tsc-clocksource-again-fix.patch
-updated-dynticks-core-code.patch
-updated-dynticks-core-code-fix-resume-bug.patch
-updated-dyntick-add-nohz-stats-to-proc-stat.patch
-updated-dynticks-i386-arch-code.patch
-updated-dynticks-fix-nmi-watchdog.patch
-updated-high-res-timers-dynticks-enable-i386-support.patch
-updated-debugging-feature-timer-stats.patch
-clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
-round_jiffies-infrastructure.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-add-usage-of-config_sysfs.patch
-clocksource-small-cleanup-2.patch
-clocksource-small-cleanup-2-fix.patch
-clocksource-small-acpi_pm-cleanup.patch
+ucb1400_ts-depends-snd_ac97_bus.patch
+ipc-procfs-sysctl-mixups.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+mtd-esb2rom-uses-pci.patch
+git-net.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+codingstyle-updates.patch
+freezerh-uses-task_struct-fields.patch
+geode-crypto-is-pci-device.patch
+ipmi-remove-zero-inits.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
 kvm-userspace-interface.patch
-kvm-amd-svm-implementation-more-i386-fixes.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+kvm-fix-null-and-c99-init-sparse-warnings.patch
+profile_likely-export-do_check_likely.patch
 
