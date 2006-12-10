@@ -1,234 +1,403 @@
 From: akpm@osdl.org
-Subject: - kvm-create-kvm-intelko-module.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:42 -0800
-Message-ID: <200612100753.kBA7rg7F017744@shell0.pdx.osdl.net>
+Subject: - kvm-expose-msrs-to-userspace.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:35 -0800
+Message-ID: <200612100753.kBA7rZhM017736@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59660 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59659 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760482AbWLJHxp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:45 -0500
+	id S1760481AbWLJHxo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: uril@qumranet.com, arnd@arndb.de, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: create kvm-intel.ko module
+     KVM: Expose MSRs to userspace
 has been removed from the -mm tree.  Its filename was
-     kvm-create-kvm-intelko-module.patch
+     kvm-expose-msrs-to-userspace.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: create kvm-intel.ko module
-From: Avi Kivity <avi@qumranet.com>
+Subject: KVM: Expose MSRs to userspace
+From: Uri Lublin <uril@qumranet.com>
 
-This patch lays the foundation for arch-independent kvm: it creates the
-kvm-intel.ko module and prepares an arch function vector for the arch-specific
-implementation.
+Expose the model-specific registers to userspace.  Primarily useful for
+save/resume.
 
+Signed-off-by: Uri Lublin <uril@qumranet.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/Kconfig    |   12 ++++++++++--
- drivers/kvm/Makefile   |    2 ++
- drivers/kvm/kvm.h      |    7 +++++++
- drivers/kvm/kvm_main.c |   13 +++++++++++++
- drivers/kvm/vmx.c      |   39 +++++++++++++++++++++++++++++++++++++++
- 5 files changed, 71 insertions(+), 2 deletions(-)
+ drivers/kvm/kvm.h      |    6 
+ drivers/kvm/kvm_main.c |  240 +++++++++++++++++++++++++++++++++------
+ include/linux/kvm.h    |   19 +++
+ 3 files changed, 225 insertions(+), 40 deletions(-)
 
-diff -puN drivers/kvm/Kconfig~kvm-create-kvm-intelko-module drivers/kvm/Kconfig
---- a/drivers/kvm/Kconfig~kvm-create-kvm-intelko-module
-+++ a/drivers/kvm/Kconfig
-@@ -6,8 +6,9 @@ config KVM
- 	depends on X86 && EXPERIMENTAL
- 	---help---
- 	  Support hosting fully virtualized guest machines using hardware
--	  virtualization extensions.  You will need a fairly recent Intel
--	  processor equipped with VT extensions.
-+	  virtualization extensions.  You will need a fairly recent
-+	  processor equipped with virtualization extensions. You will also
-+	  need to select one or more of the processor modules below.
- 
- 	  This module provides access to the hardware capabilities through
- 	  a character device node named /dev/kvm.
-@@ -16,3 +17,10 @@ config KVM
- 	  will be called kvm.
- 
- 	  If unsure, say N.
-+
-+config KVM_INTEL
-+	tristate "KVM for Intel processors support"
-+	depends on KVM
-+	---help---
-+	  Provides support for KVM on Intel processors equipped with the VT
-+	  extensions.
-diff -puN drivers/kvm/Makefile~kvm-create-kvm-intelko-module drivers/kvm/Makefile
---- a/drivers/kvm/Makefile~kvm-create-kvm-intelko-module
-+++ a/drivers/kvm/Makefile
-@@ -4,3 +4,5 @@
- 
- kvm-objs := kvm_main.o mmu.o x86_emulate.o
- obj-$(CONFIG_KVM) += kvm.o
-+kvm-intel-objs = vmx.o
-+obj-$(CONFIG_KVM_INTEL) += kvm-intel.o
-diff -puN drivers/kvm/kvm.h~kvm-create-kvm-intelko-module drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-create-kvm-intelko-module
+diff -puN drivers/kvm/kvm.h~kvm-expose-msrs-to-userspace drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-expose-msrs-to-userspace
 +++ a/drivers/kvm/kvm.h
-@@ -235,11 +235,18 @@ struct kvm_stat {
- 	u32 irq_exits;
+@@ -106,11 +106,7 @@ struct vmcs {
+ 	char data[0];
  };
  
-+struct kvm_arch_ops {
-+};
-+
- extern struct kvm_stat kvm_stat;
-+extern struct kvm_arch_ops *kvm_arch_ops;
+-struct vmx_msr_entry {
+-	u32 index;
+-	u32 reserved;
+-	u64 data;
+-};
++#define vmx_msr_entry kvm_msr_entry
  
- #define kvm_printf(kvm, fmt ...) printk(KERN_DEBUG fmt)
- #define vcpu_printf(vcpu, fmt...) kvm_printf(vcpu->kvm, fmt)
+ struct kvm_vcpu;
  
-+void kvm_init_arch(struct kvm_arch_ops *ops);
-+void kvm_exit_arch(void);
-+
- void kvm_mmu_destroy(struct kvm_vcpu *vcpu);
- int kvm_mmu_init(struct kvm_vcpu *vcpu);
- 
-diff -puN drivers/kvm/kvm_main.c~kvm-create-kvm-intelko-module drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-create-kvm-intelko-module
+diff -puN drivers/kvm/kvm_main.c~kvm-expose-msrs-to-userspace drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-expose-msrs-to-userspace
 +++ a/drivers/kvm/kvm_main.c
-@@ -41,6 +41,7 @@
- MODULE_AUTHOR("Qumranet");
- MODULE_LICENSE("GPL");
+@@ -2300,21 +2300,22 @@ static int handle_cpuid(struct kvm_vcpu 
+ 	return 0;
+ }
  
-+struct kvm_arch_ops *kvm_arch_ops;
- struct kvm_stat kvm_stat;
- 
- static struct kvm_stats_debugfs_item {
-@@ -3612,6 +3613,15 @@ static void kvm_exit_debug(void)
- 
- hpa_t bad_page_address;
- 
-+void kvm_init_arch(struct kvm_arch_ops *ops)
-+{
-+	kvm_arch_ops = ops;
-+}
-+
-+void kvm_exit_arch(void)
-+{
-+}
-+
- static __init int kvm_init(void)
- {
- 	static struct page *bad_page;
-@@ -3671,3 +3681,6 @@ static __exit void kvm_exit(void)
- 
- module_init(kvm_init)
- module_exit(kvm_exit)
-+
-+EXPORT_SYMBOL_GPL(kvm_init_arch);
-+EXPORT_SYMBOL_GPL(kvm_exit_arch);
-diff -puN /dev/null drivers/kvm/vmx.c
---- /dev/null
-+++ a/drivers/kvm/vmx.c
-@@ -0,0 +1,39 @@
+-static int handle_rdmsr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
 +/*
-+ * Kernel-based Virtual Machine driver for Linux
-+ *
-+ * This module enables machines with Intel VT-x extensions to run virtual
-+ * machines without emulation or binary translation.
-+ *
-+ * Copyright (C) 2006 Qumranet, Inc.
-+ *
-+ * Authors:
-+ *   Avi Kivity   <avi@qumranet.com>
-+ *   Yaniv Kamay  <yaniv@qumranet.com>
-+ *
-+ * This work is licensed under the terms of the GNU GPL, version 2.  See
-+ * the COPYING file in the top-level directory.
-+ *
++ * Reads an msr value (of 'msr_index') into 'pdata'.
++ * Returns 0 on success, non-0 otherwise.
++ * Assumes vcpu_load() was already called.
 + */
++static int get_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 *pdata)
+ {
+-	u32 ecx = vcpu->regs[VCPU_REGS_RCX];
+-	struct vmx_msr_entry *msr = find_msr_entry(vcpu, ecx);
+ 	u64 data;
++	struct vmx_msr_entry *msr;
+ 
+-#ifdef KVM_DEBUG
+-	if (guest_cpl() != 0) {
+-		vcpu_printf(vcpu, "%s: not supervisor\n", __FUNCTION__);
+-		inject_gp(vcpu);
+-		return 1;
++	if (!pdata) {
++		printk(KERN_ERR "BUG: get_msr called with NULL pdata\n");
++		return -EINVAL;
+ 	}
+-#endif
+ 
+-	switch (ecx) {
++	switch (msr_index) {
+ #ifdef __x86_64__
+ 	case MSR_FS_BASE:
+ 		data = vmcs_readl(GUEST_FS_BASE);
+@@ -2356,11 +2357,25 @@ static int handle_rdmsr(struct kvm_vcpu 
+ 		data = vcpu->apic_base;
+ 		break;
+ 	default:
+-		if (msr) {
+-			data = msr->data;
+-			break;
++		msr = find_msr_entry(vcpu, msr_index);
++		if (!msr) {
++			printk(KERN_ERR "kvm: unhandled rdmsr: %x\n", msr_index);
++			return 1;
+ 		}
+-		printk(KERN_ERR "kvm: unhandled rdmsr: %x\n", ecx);
++		data = msr->data;
++		break;
++	}
 +
-+#include "kvm.h"
-+#include <linux/module.h>
-+
-+MODULE_AUTHOR("Qumranet");
-+MODULE_LICENSE("GPL");
-+
-+static struct kvm_arch_ops vmx_arch_ops = {
-+};
-+
-+static int __init vmx_init(void)
-+{
-+	kvm_init_arch(&vmx_arch_ops);
++	*pdata = data;
 +	return 0;
 +}
 +
-+static void __exit vmx_exit(void)
++static int handle_rdmsr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
 +{
-+	kvm_exit_arch();
++	u32 ecx = vcpu->regs[VCPU_REGS_RCX];
++	u64 data;
++
++	if (get_msr(vcpu, ecx, &data)) {
+ 		inject_gp(vcpu);
+ 		return 1;
+ 	}
+@@ -2406,22 +2421,16 @@ static void set_efer(struct kvm_vcpu *vc
+ 
+ #endif
+ 
+-static int handle_wrmsr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
++
++/*
++ * Writes msr value into into the appropriate "register".
++ * Returns 0 on success, non-0 otherwise.
++ * Assumes vcpu_load() was already called.
++ */
++static int set_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 data)
+ {
+-	u32 ecx = vcpu->regs[VCPU_REGS_RCX];
+ 	struct vmx_msr_entry *msr;
+-	u64 data = (vcpu->regs[VCPU_REGS_RAX] & -1u)
+-		| ((u64)(vcpu->regs[VCPU_REGS_RDX] & -1u) << 32);
+-
+-#ifdef KVM_DEBUG
+-	if (guest_cpl() != 0) {
+-		vcpu_printf(vcpu, "%s: not supervisor\n", __FUNCTION__);
+-		inject_gp(vcpu);
+-		return 1;
+-	}
+-#endif
+-
+-	switch (ecx) {
++	switch (msr_index) {
+ #ifdef __x86_64__
+ 	case MSR_FS_BASE:
+ 		vmcs_writel(GUEST_FS_BASE, data);
+@@ -2442,7 +2451,7 @@ static int handle_wrmsr(struct kvm_vcpu 
+ #ifdef __x86_64
+ 	case MSR_EFER:
+ 		set_efer(vcpu, data);
+-		return 1;
++		break;
+ 	case MSR_IA32_MC0_STATUS:
+ 		printk(KERN_WARNING "%s: MSR_IA32_MC0_STATUS 0x%llx, nop\n"
+ 			    , __FUNCTION__, data);
+@@ -2460,16 +2469,31 @@ static int handle_wrmsr(struct kvm_vcpu 
+ 		vcpu->apic_base = data;
+ 		break;
+ 	default:
+-		msr = find_msr_entry(vcpu, ecx);
+-		if (msr) {
+-			msr->data = data;
+-			break;
++		msr = find_msr_entry(vcpu, msr_index);
++		if (!msr) {
++			printk(KERN_ERR "kvm: unhandled wrmsr: 0x%x\n", msr_index);
++			return 1;
+ 		}
+-		printk(KERN_ERR "kvm: unhandled wrmsr: %x\n", ecx);
++		msr->data = data;
++		break;
++	}
++
++	return 0;
 +}
 +
-+module_init(vmx_init)
-+module_exit(vmx_exit)
++static int handle_wrmsr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
++{
++	u32 ecx = vcpu->regs[VCPU_REGS_RCX];
++	u64 data = (vcpu->regs[VCPU_REGS_RAX] & -1u)
++		| ((u64)(vcpu->regs[VCPU_REGS_RDX] & -1u) << 32);
++
++	if (set_msr(vcpu, ecx, data) != 0) {
+ 		inject_gp(vcpu);
+ 		return 1;
+ 	}
+-	skip_emulated_instruction(vcpu);
++
++	if (ecx != MSR_EFER)
++		skip_emulated_instruction(vcpu);
+ 	return 1;
+ }
+ 
+@@ -3126,6 +3150,125 @@ static int kvm_dev_ioctl_set_sregs(struc
+ }
+ 
+ /*
++ * List of msr numbers which we expose to userspace through KVM_GET_MSRS
++ * and KVM_SET_MSRS.
++ */
++static u32 msrs_to_save[] = {
++	MSR_IA32_SYSENTER_CS, MSR_IA32_SYSENTER_ESP, MSR_IA32_SYSENTER_EIP,
++	MSR_K6_STAR,
++#ifdef __x86_64__
++	MSR_CSTAR, MSR_KERNEL_GS_BASE, MSR_SYSCALL_MASK, MSR_LSTAR,
++#endif
++	MSR_IA32_TIME_STAMP_COUNTER,
++};
++
++static int kvm_dev_ioctl_get_msrs(struct kvm *kvm, struct kvm_msrs *msrs)
++{
++	struct kvm_vcpu *vcpu;
++	struct kvm_msr_entry *entry, *entries;
++	int rc;
++	u32 size, num_entries, i;
++
++	if (msrs->vcpu < 0 || msrs->vcpu >= KVM_MAX_VCPUS)
++		return -EINVAL;
++
++	num_entries = ARRAY_SIZE(msrs_to_save);
++	if (msrs->nmsrs < num_entries) {
++		/* inform actual number of entries */
++		msrs->nmsrs = num_entries;
++		return -EINVAL;
++	}
++
++	vcpu = vcpu_load(kvm, msrs->vcpu);
++	if (!vcpu)
++		return -ENOENT;
++
++	msrs->nmsrs = num_entries; /* update to actual number of entries */
++	size = msrs->nmsrs * sizeof(struct kvm_msr_entry);
++	rc = -E2BIG;
++	if (size > 4096)
++		goto out_vcpu;
++
++	rc = -ENOMEM;
++	entries = vmalloc(size);
++	if (entries == NULL)
++		goto out_vcpu;
++
++	memset(entries, 0, size);
++	rc = -EINVAL;
++	for (i=0; i<num_entries; i++) {
++		entry = &entries[i];
++		entry->index = msrs_to_save[i];
++		if (get_msr(vcpu, entry->index, &entry->data))
++			goto out_free;
++	}
++
++	rc = -EFAULT;
++	if (copy_to_user(msrs->entries, entries, size))
++		goto out_free;
++
++	rc = 0;
++out_free:
++	vfree(entries);
++
++out_vcpu:
++	vcpu_put(vcpu);
++
++	return rc;
++}
++
++static int kvm_dev_ioctl_set_msrs(struct kvm *kvm, struct kvm_msrs *msrs)
++{
++	struct kvm_vcpu *vcpu;
++	struct kvm_msr_entry *entry, *entries;
++	int rc;
++	u32 size, num_entries, i;
++
++	if (msrs->vcpu < 0 || msrs->vcpu >= KVM_MAX_VCPUS)
++		return -EINVAL;
++
++	num_entries = ARRAY_SIZE(msrs_to_save);
++	if (msrs->nmsrs < num_entries) {
++		msrs->nmsrs = num_entries; /* inform actual size */
++		return -EINVAL;
++	}
++
++	vcpu = vcpu_load(kvm, msrs->vcpu);
++	if (!vcpu)
++		return -ENOENT;
++
++	size = msrs->nmsrs * sizeof(struct kvm_msr_entry);
++	rc = -E2BIG;
++	if (size > 4096)
++		goto out_vcpu;
++
++	rc = -ENOMEM;
++	entries = vmalloc(size);
++	if (entries == NULL)
++		goto out_vcpu;
++
++	rc = -EFAULT;
++	if (copy_from_user(entries, msrs->entries, size))
++		goto out_free;
++
++	rc = -EINVAL;
++	for (i=0; i<num_entries; i++) {
++		entry = &entries[i];
++		if (set_msr(vcpu, entry->index,  entry->data))
++			goto out_free;
++	}
++
++	rc = 0;
++out_free:
++	vfree(entries);
++
++out_vcpu:
++	vcpu_put(vcpu);
++
++	return rc;
++}
++
++/*
+  * Translate a guest virtual address to a guest physical address.
+  */
+ static int kvm_dev_ioctl_translate(struct kvm *kvm, struct kvm_translation *tr)
+@@ -3366,6 +3509,33 @@ static long kvm_dev_ioctl(struct file *f
+ 			goto out;
+ 		break;
+ 	}
++	case KVM_GET_MSRS: {
++		struct kvm_msrs kvm_msrs;
++
++		r = -EFAULT;
++		if (copy_from_user(&kvm_msrs, (void *)arg, sizeof kvm_msrs))
++			goto out;
++		r = kvm_dev_ioctl_get_msrs(kvm, &kvm_msrs);
++		if (r)
++			goto out;
++		r = -EFAULT;
++		if (copy_to_user((void *)arg, &kvm_msrs, sizeof kvm_msrs))
++			goto out;
++		r = 0;
++		break;
++	}
++	case KVM_SET_MSRS: {
++		struct kvm_msrs kvm_msrs;
++
++		r = -EFAULT;
++		if (copy_from_user(&kvm_msrs, (void *)arg, sizeof kvm_msrs))
++			goto out;
++		r = kvm_dev_ioctl_set_msrs(kvm, &kvm_msrs);
++		if (r)
++			goto out;
++		r = 0;
++		break;
++	}
+ 	default:
+ 		;
+ 	}
+diff -puN include/linux/kvm.h~kvm-expose-msrs-to-userspace include/linux/kvm.h
+--- a/include/linux/kvm.h~kvm-expose-msrs-to-userspace
++++ a/include/linux/kvm.h
+@@ -141,6 +141,23 @@ struct kvm_sregs {
+ 	__u64 interrupt_bitmap[KVM_IRQ_BITMAP_SIZE(__u64)];
+ };
+ 
++struct kvm_msr_entry {
++	__u32 index;
++	__u32 reserved;
++	__u64 data;
++};
++
++/* for KVM_GET_MSRS and KVM_SET_MSRS */
++struct kvm_msrs {
++	__u32 vcpu;
++	__u32 nmsrs; /* number of msrs in entries */
++
++	union {
++		struct kvm_msr_entry __user *entries;
++		__u64 padding;
++	};
++};
++
+ /* for KVM_TRANSLATE */
+ struct kvm_translation {
+ 	/* in */
+@@ -200,5 +217,7 @@ struct kvm_dirty_log {
+ #define KVM_SET_MEMORY_REGION     _IOW(KVMIO, 10, struct kvm_memory_region)
+ #define KVM_CREATE_VCPU           _IOW(KVMIO, 11, int /* vcpu_slot */)
+ #define KVM_GET_DIRTY_LOG         _IOW(KVMIO, 12, struct kvm_dirty_log)
++#define KVM_GET_MSRS              _IOWR(KVMIO, 13, struct kvm_msrs)
++#define KVM_SET_MSRS              _IOW(KVMIO, 14, struct kvm_msrs)
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from uril@qumranet.com are
 
-origin.patch
 kvm-userspace-interface.patch
-kvm-create-kvm-intelko-module.patch
-kvm-make-dev-registration-happen-when-the-arch.patch
-kvm-make-hardware-detection-an-arch-operation.patch
-kvm-make-the-per-cpu-enable-disable-functions-arch.patch
-kvm-make-the-hardware-setup-operations-non-percpu.patch
-kvm-make-the-guest-debugger-an-arch-operation.patch
-kvm-make-msr-accessors-arch-operations.patch
-kvm-make-the-segment-accessors-arch-operations.patch
-kvm-cache-guest-cr4-in-vcpu-structure.patch
-kvm-cache-guest-cr0-in-vcpu-structure.patch
-kvm-add-get_segment_base-arch-accessor.patch
-kvm-add-idt-and-gdt-descriptor-accessors.patch
-kvm-make-syncing-the-register-file-to-the-vcpu.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation.patch
-kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
-kvm-move-the-vmx-exit-handlers-to-vmxc.patch
-kvm-make-vcpu_setup-an-arch-operation.patch
-kvm-make-__set_cr0-and-dependencies-arch-operations.patch
-kvm-make-__set_cr4-an-arch-operation.patch
-kvm-make-__set_efer-an-arch-operation.patch
-kvm-make-__set_efer-an-arch-operation-build-fix.patch
-kvm-make-set_cr3-and-tlb-flushing-arch-operations.patch
-kvm-make-inject_page_fault-an-arch-operation.patch
-kvm-make-inject_gp-an-arch-operation.patch
-kvm-use-the-idt-and-gdt-accessors-in-realmode-emulation.patch
-kvm-use-the-general-purpose-register-accessors-rather.patch
-kvm-move-the-vmx-tsc-accessors-to-vmxc.patch
-kvm-access-rflags-through-an-arch-operation.patch
-kvm-move-the-vmx-segment-field-definitions-to-vmxc.patch
-kvm-add-an-arch-accessor-for-cs-d-b-and-l-bits.patch
-kvm-add-a-set_cr0_no_modeswitch-arch-accessor.patch
-kvm-make-vcpu_load-and-vcpu_put-arch-operations.patch
-kvm-make-vcpu-creation-and-destruction-arch-operations.patch
-kvm-move-vmcs-static-variables-to-vmxc.patch
-kvm-make-is_long_mode-an-arch-operation.patch
-kvm-use-the-tlb-flush-arch-operation-instead-of-an.patch
-kvm-remove-guest_cpl.patch
-kvm-move-vmcs-accessors-to-vmxc.patch
-kvm-move-vmx-helper-inlines-to-vmxc.patch
-kvm-remove-vmx-includes-from-arch-independent-code.patch
-kvm-amd-svm-add-architecture-definitions-for-amd-svm.patch
-kvm-amd-svm-enhance-x86-emulator.patch
-kvm-amd-svm-enhance-x86-emulator-fix-mov-to-from-control-register-emulation.patch
-kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu.patch
-kvm-amd-svm-add-data-structures.patch
-kvm-amd-svm-implementation.patch
-kvm-amd-svm-implementation-avoid-three-more-new-instructions.patch
-kvm-amd-svm-implementation-more-i386-fixes.patch
-kvm-amd-svm-implementation-printk-log-levels.patch
-kvm-amd-svm-plumbing.patch
-kvm-fix-null-and-c99-init-sparse-warnings.patch
-kvm-load-i386-segment-bases.patch
+kvm-expose-msrs-to-userspace.patch
+kvm-expose-msrs-to-userspace-v2.patch
 
