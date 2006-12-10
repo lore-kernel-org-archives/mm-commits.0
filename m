@@ -1,98 +1,118 @@
 From: akpm@osdl.org
-Subject: + re-baycom_eppc-compile-failure.patch added to -mm tree
-Date: Sun, 10 Dec 2006 13:02:47 -0800
-Message-ID: <200612102102.kBAL2pwB003173@shell0.pdx.osdl.net>
+Subject: + pm-fix-freezing-of-stopped-tasks.patch added to -mm tree
+Date: Sun, 10 Dec 2006 13:21:01 -0800
+Message-ID: <200612102121.kBALL1JG003544@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33974 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35501 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762599AbWLJVDA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 16:03:00 -0500
+	id S1762616AbWLJVV1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 16:21:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org
+Cc: rjw@sisk.pl, pavel@ucw.cz
 
 
 The patch titled
-     baycom_epp.c compile failure
+     PM: Fix freezing of stopped tasks
 has been added to the -mm tree.  Its filename is
-     re-baycom_eppc-compile-failure.patch
+     pm-fix-freezing-of-stopped-tasks.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: baycom_epp.c compile failure
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: PM: Fix freezing of stopped tasks
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Fix foobar in 15b1c0e822f578306332d4f4c449250db5c5dceb and
-e8cc49bb0fdb9e18a99e6780073d1400ba2b0d1f patch series.
+Currently, if a task is stopped (ie.  it's in the TASK_STOPPED state), it
+is considered by the freezer as unfreezeable.  However, there may be a race
+between the freezer and the delivery of the continuation signal to the task
+resulting in the task running after we have finished freezing the other
+tasks.  This, in turn, may lead to undesirable effects up to and including
+data corruption.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+To prevent this from happening we first need to make the freezer consider
+stopped tasks as freezeable.  For this purpose we need to make freezeable()
+stop returning 0 for these tasks and we need to force them to enter the
+refrigerator.  However, if there's no continuation signal in the meantime,
+the stopped tasks should remain stopped after all processes have been
+thawed, so we need to send an additional SIGSTOP to each of them before
+waking it up.
+
+Also, a stopped task that has just been woken up should first check if
+there's a freezing request for it and go to the refrigerator if that's the
+case.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/hamradio/baycom_epp.c |    2 +-
- include/net/ax25.h                |    2 ++
- net/ax25/ax25_addr.c              |    2 +-
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ kernel/power/process.c |   12 ++++++------
+ kernel/signal.c        |    4 +++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/hamradio/baycom_epp.c~re-baycom_eppc-compile-failure drivers/net/hamradio/baycom_epp.c
---- a/drivers/net/hamradio/baycom_epp.c~re-baycom_eppc-compile-failure
-+++ a/drivers/net/hamradio/baycom_epp.c
-@@ -1177,7 +1177,7 @@ static void baycom_probe(struct net_devi
- 	dev->mtu = AX25_DEF_PACLEN;        /* eth_mtu is the default */
- 	dev->addr_len = AX25_ADDR_LEN;     /* sizeof an ax.25 address */
- 	memcpy(dev->broadcast, &ax25_bcast, AX25_ADDR_LEN);
--	memcpy(dev->dev_addr, &ax25_nocall, AX25_ADDR_LEN);
-+	memcpy(dev->dev_addr, &null_ax25_address, AX25_ADDR_LEN);
- 	dev->tx_queue_len = 16;
+diff -puN kernel/power/process.c~pm-fix-freezing-of-stopped-tasks kernel/power/process.c
+--- a/kernel/power/process.c~pm-fix-freezing-of-stopped-tasks
++++ a/kernel/power/process.c
+@@ -28,8 +28,7 @@ static inline int freezeable(struct task
+ 	if ((p == current) || 
+ 	    (p->flags & PF_NOFREEZE) ||
+ 	    (p->exit_state == EXIT_ZOMBIE) ||
+-	    (p->exit_state == EXIT_DEAD) ||
+-	    (p->state == TASK_STOPPED))
++	    (p->exit_state == EXIT_DEAD))
+ 		return 0;
+ 	return 1;
+ }
+@@ -61,9 +60,12 @@ static inline void freeze_process(struct
+ 	unsigned long flags;
  
- 	/* New style flags */
-diff -puN include/net/ax25.h~re-baycom_eppc-compile-failure include/net/ax25.h
---- a/include/net/ax25.h~re-baycom_eppc-compile-failure
-+++ a/include/net/ax25.h
-@@ -285,6 +285,8 @@ extern struct sock *ax25_make_new(struct
- extern const ax25_address ax25_bcast;
- extern const ax25_address ax25_defaddr;
- extern const ax25_address null_ax25_address;
-+extern char *ax2asc(char *buf, const ax25_address *);
-+extern void asc2ax(ax25_address *addr, const char *callsign);
- extern int ax25cmp(const ax25_address *, const ax25_address *);
- extern int ax25digicmp(const ax25_digi *, const ax25_digi *);
- extern const unsigned char *ax25_addr_parse(const unsigned char *, int,
-diff -puN net/ax25/ax25_addr.c~re-baycom_eppc-compile-failure net/ax25/ax25_addr.c
---- a/net/ax25/ax25_addr.c~re-baycom_eppc-compile-failure
-+++ a/net/ax25/ax25_addr.c
-@@ -83,7 +83,7 @@ EXPORT_SYMBOL(ax2asc);
-  */
- void asc2ax(ax25_address *addr, const char *callsign)
- {
--	char *s;
-+	const char *s;
- 	int n;
+ 	if (!freezing(p)) {
++		if (p->state == TASK_STOPPED)
++			force_sig_specific(SIGSTOP, p);
++
+ 		freeze(p);
+ 		spin_lock_irqsave(&p->sighand->siglock, flags);
+-		signal_wake_up(p, 0);
++		signal_wake_up(p, p->state == TASK_STOPPED);
+ 		spin_unlock_irqrestore(&p->sighand->siglock, flags);
+ 	}
+ }
+@@ -103,9 +105,7 @@ static unsigned int try_to_freeze_tasks(
+ 			if (frozen(p))
+ 				continue;
  
- 	for (s = callsign, n = 0; n < 6; n++) {
+-			if (p->state == TASK_TRACED &&
+-			    (frozen(p->parent) ||
+-			     p->parent->state == TASK_STOPPED)) {
++			if (p->state == TASK_TRACED && frozen(p->parent)) {
+ 				cancel_freezing(p);
+ 				continue;
+ 			}
+diff -puN kernel/signal.c~pm-fix-freezing-of-stopped-tasks kernel/signal.c
+--- a/kernel/signal.c~pm-fix-freezing-of-stopped-tasks
++++ a/kernel/signal.c
+@@ -1705,7 +1705,9 @@ finish_stop(int stop_count)
+ 		read_unlock(&tasklist_lock);
+ 	}
+ 
+-	schedule();
++	do {
++		schedule();
++	} while (try_to_freeze());
+ 	/*
+ 	 * Now we don't run again until continued.
+ 	 */
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-sysctl-remove-unused-context-param.patch
-dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch
-i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit.patch
-fix-namespace-conflict-between-w9968cfc-on-mips.patch
-make-lm70_remove-a-__devexit-function.patch
-mips-dbg_io-stray-brackets-fix.patch
-git-mtd.patch
-git-net.patch
-re-baycom_eppc-compile-failure.patch
-fix-pnx8550-serial-breakage.patch
-pnx8550-uart-driver.patch
-pci-legacy-resource-fix.patch
-pci-legacy-resource-fix-tidy.patch
-xfs-remove-useless-wmb-memory-barrier.patch
-tty-remove-useless-memory-barrier.patch
-getting-rid-of-all-casts-of-kalloc-calls.patch
+git-acpi.patch
+pm-fix-freezing-of-stopped-tasks.patch
+pm-fix-smp-races-in-the-freezer.patch
+md-change-lifetime-rules-for-md-devices.patch
 
