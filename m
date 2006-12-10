@@ -1,134 +1,309 @@
 From: akpm@osdl.org
-Subject: - kvm-make-dev-registration-happen-when-the-arch.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:45 -0800
-Message-ID: <200612100753.kBA7rjG1017747@shell0.pdx.osdl.net>
+Subject: - kvm-make-the-hardware-setup-operations-non-percpu.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:54 -0800
+Message-ID: <200612100753.kBA7rsSl017756@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59667 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59678 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760477AbWLJHxr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:47 -0500
+	id S1760487AbWLJHx5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: make /dev/registration happen when the arch specific module is loaded
+     KVM: make the hardware setup operations (non-percpu) arch operations
 has been removed from the -mm tree.  Its filename was
-     kvm-make-dev-registration-happen-when-the-arch.patch
+     kvm-make-the-hardware-setup-operations-non-percpu.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: make /dev/registration happen when the arch specific module is loaded
+Subject: KVM: make the hardware setup operations (non-percpu) arch operations
 From: Avi Kivity <avi@qumranet.com>
-
-This avoids exposing the driver capabilities before they are loaded.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    2 +-
- drivers/kvm/kvm_main.c |   24 ++++++++++++++----------
- drivers/kvm/vmx.c      |    2 +-
- 3 files changed, 16 insertions(+), 12 deletions(-)
+ drivers/kvm/kvm.h      |    2 +
+ drivers/kvm/kvm_main.c |   67 +++++++++------------------------------
+ drivers/kvm/vmx.c      |   59 ++++++++++++++++++++++++++++++++++
+ drivers/kvm/vmx.h      |    2 +
+ 4 files changed, 80 insertions(+), 50 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-make-dev-registration-happen-when-the-arch drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-make-dev-registration-happen-when-the-arch
+diff -puN drivers/kvm/kvm.h~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-make-the-hardware-setup-operations-non-percpu
 +++ a/drivers/kvm/kvm.h
-@@ -244,7 +244,7 @@ extern struct kvm_arch_ops *kvm_arch_ops
- #define kvm_printf(kvm, fmt ...) printk(KERN_DEBUG fmt)
- #define vcpu_printf(vcpu, fmt...) kvm_printf(vcpu->kvm, fmt)
+@@ -240,6 +240,8 @@ struct kvm_arch_ops {
+ 	int (*disabled_by_bios)(void);             /* __init */
+ 	void (*hardware_enable)(void *dummy);      /* __init */
+ 	void (*hardware_disable)(void *dummy);
++	int (*hardware_setup)(void);               /* __init */
++	void (*hardware_unsetup)(void);            /* __exit */
+ };
  
--void kvm_init_arch(struct kvm_arch_ops *ops);
-+int kvm_init_arch(struct kvm_arch_ops *ops, struct module *module);
- void kvm_exit_arch(void);
- 
- void kvm_mmu_destroy(struct kvm_vcpu *vcpu);
-diff -puN drivers/kvm/kvm_main.c~kvm-make-dev-registration-happen-when-the-arch drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-make-dev-registration-happen-when-the-arch
+ extern struct kvm_stat kvm_stat;
+diff -puN drivers/kvm/kvm_main.c~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-make-the-hardware-setup-operations-non-percpu
 +++ a/drivers/kvm/kvm_main.c
-@@ -3559,7 +3559,6 @@ static int kvm_dev_mmap(struct file *fil
+@@ -124,7 +124,6 @@ static const u32 vmx_msr_index[] = {
+ 
+ #define MSR_IA32_TIME_STAMP_COUNTER		0x010
+ #define MSR_IA32_FEATURE_CONTROL 		0x03a
+-#define MSR_IA32_VMX_BASIC_MSR   		0x480
+ #define MSR_IA32_VMX_PINBASED_CTLS_MSR		0x481
+ #define MSR_IA32_VMX_PROCBASED_CTLS_MSR		0x482
+ #define MSR_IA32_VMX_EXIT_CTLS_MSR		0x483
+@@ -303,11 +302,12 @@ DEFINE_PER_CPU(struct vmcs *, vmxarea);
+ EXPORT_SYMBOL_GPL(per_cpu__vmxarea); /* temporary hack */
+ static DEFINE_PER_CPU(struct vmcs *, current_vmcs);
+ 
+-static struct vmcs_descriptor {
++struct vmcs_descriptor {
+ 	int size;
+ 	int order;
+ 	u32 revision_id;
+ } vmcs_descriptor;
++EXPORT_SYMBOL_GPL(vmcs_descriptor);
+ 
+ #ifdef __x86_64__
+ static unsigned long read_msr(unsigned long msr)
+@@ -394,16 +394,6 @@ int kvm_write_guest(struct kvm_vcpu *vcp
+ 	return req_size - size;
  }
  
- static struct file_operations kvm_chardev_ops = {
--	.owner		= THIS_MODULE,
- 	.open		= kvm_dev_open,
- 	.release        = kvm_dev_release,
- 	.unlocked_ioctl = kvm_dev_ioctl,
-@@ -3613,13 +3612,26 @@ static void kvm_exit_debug(void)
- 
- hpa_t bad_page_address;
- 
--void kvm_init_arch(struct kvm_arch_ops *ops)
-+int kvm_init_arch(struct kvm_arch_ops *ops, struct module *module)
+-static __init void setup_vmcs_descriptor(void)
+-{
+-	u32 vmx_msr_low, vmx_msr_high;
+-
+-	rdmsr(MSR_IA32_VMX_BASIC_MSR, vmx_msr_low, vmx_msr_high);
+-	vmcs_descriptor.size = vmx_msr_high & 0x1fff;
+-	vmcs_descriptor.order = get_order(vmcs_descriptor.size);
+-	vmcs_descriptor.revision_id = vmx_msr_low;
+-};
+-
+ static void vmcs_clear(struct vmcs *vmcs)
  {
-+	int r;
+ 	u64 phys_addr = __pa(vmcs);
+@@ -501,8 +491,7 @@ static void vcpu_put(struct kvm_vcpu *vc
+ 	mutex_unlock(&vcpu->mutex);
+ }
+ 
+-
+-static struct vmcs *alloc_vmcs_cpu(int cpu)
++struct vmcs *alloc_vmcs_cpu(int cpu)
+ {
+ 	int node = cpu_to_node(cpu);
+ 	struct page *pages;
+@@ -516,42 +505,18 @@ static struct vmcs *alloc_vmcs_cpu(int c
+ 	vmcs->revision_id = vmcs_descriptor.revision_id; /* vmcs revision id */
+ 	return vmcs;
+ }
++EXPORT_SYMBOL_GPL(alloc_vmcs_cpu);
+ 
+ static struct vmcs *alloc_vmcs(void)
+ {
+ 	return alloc_vmcs_cpu(smp_processor_id());
+ }
+ 
+-static void free_vmcs(struct vmcs *vmcs)
++void free_vmcs(struct vmcs *vmcs)
+ {
+ 	free_pages((unsigned long)vmcs, vmcs_descriptor.order);
+ }
+-
+-static __exit void free_kvm_area(void)
+-{
+-	int cpu;
+-
+-	for_each_online_cpu(cpu)
+-		free_vmcs(per_cpu(vmxarea, cpu));
+-}
+-
+-static __init int alloc_kvm_area(void)
+-{
+-	int cpu;
+-
+-	for_each_online_cpu(cpu) {
+-		struct vmcs *vmcs;
+-
+-		vmcs = alloc_vmcs_cpu(cpu);
+-		if (!vmcs) {
+-			free_kvm_area();
+-			return -ENOMEM;
+-		}
+-
+-		per_cpu(vmxarea, cpu) = vmcs;
+-	}
+-	return 0;
+-}
++EXPORT_SYMBOL_GPL(free_vmcs);
+ 
+ static int kvm_dev_open(struct inode *inode, struct file *filp)
+ {
+@@ -3593,6 +3558,10 @@ int kvm_init_arch(struct kvm_arch_ops *o
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	r = kvm_arch_ops->hardware_setup();
++	if (r < 0)
++	    return r;
 +
- 	kvm_arch_ops = ops;
-+	kvm_chardev_ops.owner = module;
-+
-+	r = misc_register(&kvm_dev);
-+	if (r) {
-+		printk (KERN_ERR "kvm: misc device register failed\n");
-+		goto out_free;
-+	}
-+
-+out_free:
+ 	on_each_cpu(kvm_arch_ops->hardware_enable, 0, 0, 1);
+ 	register_reboot_notifier(&kvm_reboot_notifier);
+ 
+@@ -3604,7 +3573,12 @@ int kvm_init_arch(struct kvm_arch_ops *o
+ 		goto out_free;
+ 	}
+ 
 +	return r;
++
+ out_free:
++	unregister_reboot_notifier(&kvm_reboot_notifier);
++	on_each_cpu(kvm_arch_ops->hardware_disable, 0, 0, 1);
++	kvm_arch_ops->hardware_unsetup();
+ 	return r;
  }
  
- void kvm_exit_arch(void)
- {
-+	misc_deregister(&kvm_dev);
+@@ -3614,6 +3588,7 @@ void kvm_exit_arch(void)
+ 
+ 	unregister_reboot_notifier(&kvm_reboot_notifier);
+ 	on_each_cpu(kvm_arch_ops->hardware_disable, 0, 0, 1);
++	kvm_arch_ops->hardware_unsetup();
  }
  
  static __init int kvm_init(void)
-@@ -3645,13 +3657,6 @@ static __init int kvm_init(void)
- 	on_each_cpu(kvm_enable, 0, 0, 1);
- 	register_reboot_notifier(&kvm_reboot_notifier);
+@@ -3623,14 +3598,9 @@ static __init int kvm_init(void)
  
--	r = misc_register(&kvm_dev);
--	if (r) {
--		printk (KERN_ERR "kvm: misc device register failed\n");
--		goto out_free;
--	}
--
+ 	kvm_init_debug();
+ 
+-	setup_vmcs_descriptor();
+-	r = alloc_kvm_area();
+-	if (r)
+-		goto out;
 -
  	if ((bad_page = alloc_page(GFP_KERNEL)) == NULL) {
  		r = -ENOMEM;
- 		goto out_free;
-@@ -3672,7 +3677,6 @@ out:
+-		goto out_free;
++		goto out;
+ 	}
+ 
+ 	bad_page_address = page_to_pfn(bad_page) << PAGE_SHIFT;
+@@ -3638,8 +3608,6 @@ static __init int kvm_init(void)
+ 
+ 	return r;
+ 
+-out_free:
+-	free_kvm_area();
+ out:
+ 	kvm_exit_debug();
+ 	return r;
+@@ -3648,7 +3616,6 @@ out:
  static __exit void kvm_exit(void)
  {
  	kvm_exit_debug();
--	misc_deregister(&kvm_dev);
- 	unregister_reboot_notifier(&kvm_reboot_notifier);
- 	on_each_cpu(kvm_disable, 0, 0, 1);
- 	free_kvm_area();
-diff -puN drivers/kvm/vmx.c~kvm-make-dev-registration-happen-when-the-arch drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-make-dev-registration-happen-when-the-arch
-+++ a/drivers/kvm/vmx.c
-@@ -26,7 +26,7 @@ static struct kvm_arch_ops vmx_arch_ops 
- 
- static int __init vmx_init(void)
- {
--	kvm_init_arch(&vmx_arch_ops);
-+	kvm_init_arch(&vmx_arch_ops, THIS_MODULE);
- 	return 0;
+-	free_kvm_area();
+ 	__free_page(pfn_to_page(bad_page_address >> PAGE_SHIFT));
  }
  
+diff -puN drivers/kvm/vmx.c~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-make-the-hardware-setup-operations-non-percpu
++++ a/drivers/kvm/vmx.c
+@@ -25,6 +25,12 @@ MODULE_LICENSE("GPL");
+ 
+ DECLARE_PER_CPU(struct vmcs *, vmxarea);
+ 
++extern struct vmcs_descriptor {
++	int size;
++	int order;
++	u32 revision_id;
++} vmcs_descriptor;
++
+ static __init int cpu_has_kvm_support(void)
+ {
+ 	unsigned long ecx = cpuid_ecx(1);
+@@ -59,9 +65,62 @@ static void hardware_disable(void *garba
+ 	asm volatile (ASM_VMX_VMXOFF : : : "cc");
+ }
+ 
++static __init void setup_vmcs_descriptor(void)
++{
++	u32 vmx_msr_low, vmx_msr_high;
++
++	rdmsr(MSR_IA32_VMX_BASIC_MSR, vmx_msr_low, vmx_msr_high);
++	vmcs_descriptor.size = vmx_msr_high & 0x1fff;
++	vmcs_descriptor.order = get_order(vmcs_descriptor.size);
++	vmcs_descriptor.revision_id = vmx_msr_low;
++};
++
++void free_vmcs(struct vmcs *vmcs);
++
++static __exit void free_kvm_area(void)
++{
++	int cpu;
++
++	for_each_online_cpu(cpu)
++		free_vmcs(per_cpu(vmxarea, cpu));
++}
++
++extern struct vmcs *alloc_vmcs_cpu(int cpu);
++
++static __init int alloc_kvm_area(void)
++{
++	int cpu;
++
++	for_each_online_cpu(cpu) {
++		struct vmcs *vmcs;
++
++		vmcs = alloc_vmcs_cpu(cpu);
++		if (!vmcs) {
++			free_kvm_area();
++			return -ENOMEM;
++		}
++
++		per_cpu(vmxarea, cpu) = vmcs;
++	}
++	return 0;
++}
++
++static __init int hardware_setup(void)
++{
++	setup_vmcs_descriptor();
++	return alloc_kvm_area();
++}
++
++static __exit void hardware_unsetup(void)
++{
++	free_kvm_area();
++}
++
+ static struct kvm_arch_ops vmx_arch_ops = {
+ 	.cpu_has_kvm_support = cpu_has_kvm_support,
+ 	.disabled_by_bios = vmx_disabled_by_bios,
++	.hardware_setup = hardware_setup,
++	.hardware_unsetup = hardware_unsetup,
+ 	.hardware_enable = hardware_enable,
+ 	.hardware_disable = hardware_disable,
+ };
+diff -puN drivers/kvm/vmx.h~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/vmx.h
+--- a/drivers/kvm/vmx.h~kvm-make-the-hardware-setup-operations-non-percpu
++++ a/drivers/kvm/vmx.h
+@@ -286,4 +286,6 @@ enum vmcs_field {
+ 
+ #define CR4_VMXE 0x2000
+ 
++#define MSR_IA32_VMX_BASIC_MSR   		0x480
++
+ #endif
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-make-dev-registration-happen-when-the-arch.patch
-kvm-make-hardware-detection-an-arch-operation.patch
-kvm-make-the-per-cpu-enable-disable-functions-arch.patch
 kvm-make-the-hardware-setup-operations-non-percpu.patch
 kvm-make-the-guest-debugger-an-arch-operation.patch
 kvm-make-msr-accessors-arch-operations.patch
