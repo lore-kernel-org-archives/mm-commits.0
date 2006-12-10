@@ -1,62 +1,81 @@
 From: akpm@osdl.org
-Subject: + git-ocfs2-fixup.patch added to -mm tree
-Date: Sat, 09 Dec 2006 17:43:50 -0800
-Message-ID: <200612100143.kBA1hou8010353@shell0.pdx.osdl.net>
+Subject: - workqueue-tweaks.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 17:47:03 -0800
+Message-ID: <200612100147.kBA1l3Mb010431@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39865 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40060 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758892AbWLJBoQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 20:44:16 -0500
+	id S1759001AbWLJBrM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 20:47:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, davem@davemloft.net, mark.fasheh@oracle.com
+To: akpm@osdl.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ocfs2-fixup
-has been added to the -mm tree.  Its filename is
-     git-ocfs2-fixup.patch
+     workqueue tweaks
+has been removed from the -mm tree.  Its filename was
+     workqueue-tweaks.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-ocfs2-fixup
+Subject: workqueue tweaks
 From: Andrew Morton <akpm@osdl.org>
 
-bah.  Yet another reason to stop doing our changelogging in the kernel source
-code.
+- set_wq_data() has three callsites and is too big to inline.
 
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+- Make comment layout consistently use the usual style.
+
+- Use the nice helper in cancel_delayed_work()
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ocfs2/cluster/tcp_internal.h |   10 ----------
- 1 file changed, 10 deletions(-)
+ include/linux/workqueue.h |    2 +-
+ kernel/workqueue.c        |    9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp_internal.h~git-ocfs2-fixup fs/ocfs2/cluster/tcp_internal.h
---- a/fs/ocfs2/cluster/tcp_internal.h~git-ocfs2-fixup
-+++ a/fs/ocfs2/cluster/tcp_internal.h
-@@ -38,16 +38,6 @@
-  * locking semantics of the file system using the protocol.  It should 
-  * be somewhere else, I'm sure, but right now it isn't.
-  *
--<<<<<<< HEAD/fs/ocfs2/cluster/tcp_internal.h
-- * New in version 5:
-- * 	- DLM lockres remote refcount fixes.
-- *
--=======
-- * New in version 5:
-- * 	- Network timeout checking protocol
-- *
-->>>>>>> 4725123c035c5e86563bb55ec90324b74e0ec73e/fs/ocfs2/cluster/tcp_internal.h
-- * New in version 4:
-  * 	- Remove i_generation from lock names for better stat performance.
-  *
-  * New in version 3:
+diff -puN kernel/workqueue.c~workqueue-tweaks kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-tweaks
++++ a/kernel/workqueue.c
+@@ -85,12 +85,14 @@ static inline int is_single_threaded(str
+ 	return list_empty(&wq->list);
+ }
+ 
+-static inline void set_wq_data(struct work_struct *work, void *wq)
++static void set_wq_data(struct work_struct *work, void *wq)
+ {
+ 	unsigned long new, old, res;
+ 
+-	/* assume the pending flag is already set and that the task has already
+-	 * been queued on this workqueue */
++	/*
++	 * Assume the pending flag is already set and that the task has already
++	 * been queued on this workqueue
++	 */
+ 	new = (unsigned long) wq | (1UL << WORK_STRUCT_PENDING);
+ 	res = work->management;
+ 	if (res != new) {
+@@ -818,4 +820,3 @@ void init_workqueues(void)
+ 	keventd_wq = create_workqueue("events");
+ 	BUG_ON(!keventd_wq);
+ }
+-
+diff -puN include/linux/workqueue.h~workqueue-tweaks include/linux/workqueue.h
+--- a/include/linux/workqueue.h~workqueue-tweaks
++++ a/include/linux/workqueue.h
+@@ -188,7 +188,7 @@ static inline int cancel_delayed_work(st
+ 
+ 	ret = del_timer_sync(&work->timer);
+ 	if (ret)
+-		clear_bit(WORK_STRUCT_PENDING, &work->work.management);
++		work_release(&work->work);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
