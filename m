@@ -1,60 +1,93 @@
 From: akpm@osdl.org
-Subject: - kvm-memory-slot-management-zero-guest-memory-before-use.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:52:26 -0800
-Message-ID: <200612100752.kBA7qQUl017646@shell0.pdx.osdl.net>
+Subject: - kvm-workaround-cr0cd-cache-disable-bit-leak-from-guest-to.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:52:35 -0800
+Message-ID: <200612100752.kBA7qZ5C017666@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59535 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59554 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760391AbWLJHw2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:52:28 -0500
+	id S1760400AbWLJHwi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:52:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Zero guest memory before use
+     KVM: Workaround cr0.cd (cache disable) bit leak from guest to host
 has been removed from the -mm tree.  Its filename was
-     kvm-memory-slot-management-zero-guest-memory-before-use.patch
+     kvm-workaround-cr0cd-cache-disable-bit-leak-from-guest-to.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: Zero guest memory before use
+Subject: KVM: Workaround cr0.cd (cache disable) bit leak from guest to host
 From: Avi Kivity <avi@qumranet.com>
 
-This prevents an information leak from the host to the vmm and the guest.
+On Core-not-2 processors (or on laptops - not sure what the cause is), the
+cache disable bit sometimes leaks from the guest cr0 to the host cr0.  This
+leaves the host limping along at a snail's pace long after the guest has left.
+ This might be a bug in the processor or in the smm (system management mode)
+bios.
+
+Workaround by giving the guest a virtual cr0.cd (and also cr0.nw for good
+measure) and keeping the real bits always clear.
+
+This makes sense even without the bug: the processor cache is a host resource,
+not a guest resource, and the guest has no business disabling it.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/kvm/kvm.h      |    4 +++-
+ drivers/kvm/kvm_main.c |    6 ++++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-memory-slot-management-zero-guest-memory-before-use drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-memory-slot-management-zero-guest-memory-before-use
-+++ a/drivers/kvm/kvm_main.c
-@@ -1144,7 +1144,8 @@ raced:
+diff -puN drivers/kvm/kvm.h~kvm-workaround-cr0cd-cache-disable-bit-leak-from-guest-to drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-workaround-cr0cd-cache-disable-bit-leak-from-guest-to
++++ a/drivers/kvm/kvm.h
+@@ -31,8 +31,10 @@
+ #define CR4_VMXE_MASK (1ULL << 13)
  
- 		memset(new.phys_mem, 0, npages * sizeof(struct page *));
- 		for (i = 0; i < npages; ++i) {
--			new.phys_mem[i] = alloc_page(GFP_HIGHUSER);
-+			new.phys_mem[i] = alloc_page(GFP_HIGHUSER
-+						     | __GFP_ZERO);
- 			if (!new.phys_mem[i])
- 				goto out_free;
- 		}
+ #define KVM_GUEST_CR0_MASK \
++	(CR0_PG_MASK | CR0_PE_MASK | CR0_WP_MASK | CR0_NE_MASK \
++	 | CR0_NW_MASK | CR0_CD_MASK)
++#define KVM_VM_CR0_ALWAYS_ON \
+ 	(CR0_PG_MASK | CR0_PE_MASK | CR0_WP_MASK | CR0_NE_MASK)
+-#define KVM_VM_CR0_ALWAYS_ON KVM_GUEST_CR0_MASK
+ 
+ #define KVM_GUEST_CR4_MASK \
+ 	(CR4_PSE_MASK | CR4_PAE_MASK | CR4_PGE_MASK | CR4_VMXE_MASK | CR4_VME_MASK)
+diff -puN drivers/kvm/kvm_main.c~kvm-workaround-cr0cd-cache-disable-bit-leak-from-guest-to drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-workaround-cr0cd-cache-disable-bit-leak-from-guest-to
++++ a/drivers/kvm/kvm_main.c
+@@ -927,7 +927,8 @@ static void __set_cr0(struct kvm_vcpu *v
+ #endif
+ 
+ 	vmcs_writel(CR0_READ_SHADOW, cr0);
+-	vmcs_writel(GUEST_CR0, cr0 | KVM_VM_CR0_ALWAYS_ON);
++	vmcs_writel(GUEST_CR0,
++		    (cr0 & ~KVM_GUEST_CR0_MASK) | KVM_VM_CR0_ALWAYS_ON);
+ }
+ 
+ static int pdptrs_have_reserved_bits_set(struct kvm_vcpu *vcpu,
+@@ -2017,7 +2018,8 @@ static int kvm_dev_ioctl_set_sregs(struc
+ 	vcpu->rmode.active = ((sregs->cr0 & CR0_PE_MASK) == 0);
+ 	update_exception_bitmap(vcpu);
+ 	vmcs_writel(CR0_READ_SHADOW, sregs->cr0);
+-	vmcs_writel(GUEST_CR0, sregs->cr0 | KVM_VM_CR0_ALWAYS_ON);
++	vmcs_writel(GUEST_CR0,
++		    (sregs->cr0 & ~KVM_GUEST_CR0_MASK) | KVM_VM_CR0_ALWAYS_ON);
+ 
+ 	mmu_reset_needed |=  guest_cr4() != sregs->cr4;
+ 	__set_cr4(vcpu, sregs->cr4);
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-memory-slot-management-zero-guest-memory-before-use.patch
-kvm-vcpu-creation-and-maintenance.patch
-kvm-vcpu-creation-and-maintenance-segment-access-cleanup.patch
 kvm-workaround-cr0cd-cache-disable-bit-leak-from-guest-to.patch
 kvm-vcpu-execution-loop.patch
 kvm-define-exit-handlers.patch
