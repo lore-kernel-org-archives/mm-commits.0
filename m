@@ -1,69 +1,109 @@
 From: akpm@osdl.org
-Subject: + xfs-remove-useless-wmb-memory-barrier.patch added to -mm tree
-Date: Sun, 10 Dec 2006 11:40:15 -0800
-Message-ID: <200612101940.kBAJeFF8001136@shell0.pdx.osdl.net>
+Subject: + uml-problems-with-linux-ioh.patch added to -mm tree
+Date: Sun, 10 Dec 2006 12:01:08 -0800
+Message-ID: <200612102001.kBAK1809001652@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54322 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56332 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762368AbWLJTk2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 14:40:28 -0500
+	id S1762466AbWLJUBR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 15:01:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, dgc@sgi.com
+Cc: viro@ftp.linux.org.uk, jdike@addtoit.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     xfs: remove useless wmb() memory barrier
+     uml problems with linux/io.h
 has been added to the -mm tree.  Its filename is
-     xfs-remove-useless-wmb-memory-barrier.patch
+     uml-problems-with-linux-ioh.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xfs: remove useless wmb() memory barrier
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: uml problems with linux/io.h
+From: Al Viro <viro@ftp.linux.org.uk>
 
-wake_up's implementation does an implicit memory barrier and I think that's
-the only sane semantics as the caller shouldn't have to worry.  So this
-write memory barrier is useless.
+Remove useless includes of linux/io.h, don't even try to build iomap_copy
+on uml (it doesn't have readb() et.al., so...)
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Chinner <dgc@sgi.com>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/xfs/linux-2.6/xfs_super.c |    1 -
- 1 file changed, 1 deletion(-)
+ crypto/blkcipher.c |    1 -
+ lib/Kconfig        |    5 +++++
+ lib/Makefile       |    3 ++-
+ lib/ioremap.c      |    1 -
+ 4 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_super.c~xfs-remove-useless-wmb-memory-barrier fs/xfs/linux-2.6/xfs_super.c
---- a/fs/xfs/linux-2.6/xfs_super.c~xfs-remove-useless-wmb-memory-barrier
-+++ a/fs/xfs/linux-2.6/xfs_super.c
-@@ -553,7 +553,6 @@ vfs_sync_worker(
- 		error = bhv_vfs_sync(vfsp, SYNC_FSDATA | SYNC_BDFLUSH | \
- 					SYNC_ATTR | SYNC_REFCACHE, NULL);
- 	vfsp->vfs_sync_seq++;
--	wmb();
- 	wake_up(&vfsp->vfs_wait_single_sync_task);
- }
+diff -puN crypto/blkcipher.c~uml-problems-with-linux-ioh crypto/blkcipher.c
+--- a/crypto/blkcipher.c~uml-problems-with-linux-ioh
++++ a/crypto/blkcipher.c
+@@ -17,7 +17,6 @@
+ #include <linux/crypto.h>
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+-#include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/scatterlist.h>
+ #include <linux/seq_file.h>
+diff -puN lib/Kconfig~uml-problems-with-linux-ioh lib/Kconfig
+--- a/lib/Kconfig~uml-problems-with-linux-ioh
++++ a/lib/Kconfig
+@@ -101,4 +101,9 @@ config TEXTSEARCH_FSM
+ config PLIST
+ 	boolean
+ 
++config IOMAP_COPY
++	boolean
++	depends on !UML
++	default y
++
+ endmenu
+diff -puN lib/Makefile~uml-problems-with-linux-ioh lib/Makefile
+--- a/lib/Makefile~uml-problems-with-linux-ioh
++++ a/lib/Makefile
+@@ -12,13 +12,14 @@ lib-$(CONFIG_SMP) += cpumask.o
+ 
+ lib-y	+= kobject.o kref.o kobject_uevent.o klist.o
+ 
+-obj-y += sort.o parser.o halfmd4.o iomap_copy.o debug_locks.o random32.o
++obj-y += sort.o parser.o halfmd4.o debug_locks.o random32.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+ CFLAGS_kobject_uevent.o += -DDEBUG
+ endif
+ 
++obj-$(CONFIG_IOMAP_COPY) += iomap_copy.o
+ obj-$(CONFIG_DEBUG_LOCKING_API_SELFTESTS) += locking-selftest.o
+ obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock_debug.o
+ lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += rwsem-spinlock.o
+diff -puN lib/ioremap.c~uml-problems-with-linux-ioh lib/ioremap.c
+--- a/lib/ioremap.c~uml-problems-with-linux-ioh
++++ a/lib/ioremap.c
+@@ -5,7 +5,6 @@
+  *
+  * (C) Copyright 1995 1996 Linus Torvalds
+  */
+-#include <linux/io.h>
+ #include <linux/vmalloc.h>
+ #include <linux/mm.h>
  
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
 origin.patch
-sysctl-remove-unused-context-param.patch
-dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch
-mips-dbg_io-stray-brackets-fix.patch
-git-mtd.patch
-git-net.patch
-fix-pnx8550-serial-breakage.patch
-pnx8550-uart-driver.patch
-pci-legacy-resource-fix.patch
-pci-legacy-resource-fix-tidy.patch
-xfs-remove-useless-wmb-memory-barrier.patch
-tty-remove-useless-memory-barrier.patch
-getting-rid-of-all-casts-of-kalloc-calls.patch
+config_computone-should-depend-on-isaeisapci.patch
+appldata_mem-dependes-on-vm-counters.patch
+uml-problems-with-linux-ioh.patch
+missing-includes-in-hilkbd.patch
+hci-endianness-annotations.patch
+lockd-endianness-annotations-rebased.patch
+slab-leaks3-default-y.patch
 
