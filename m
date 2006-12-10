@@ -1,81 +1,54 @@
 From: akpm@osdl.org
-Subject: - workqueue-tweaks.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 17:47:03 -0800
-Message-ID: <200612100147.kBA1l3Mb010431@shell0.pdx.osdl.net>
+Subject: - zeromap_pte_range-debug.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 17:51:12 -0800
+Message-ID: <200612100151.kBA1pCXb010542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40060 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40373 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759001AbWLJBrM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 20:47:12 -0500
+	id S1759050AbWLJBvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 20:51:14 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBA1pCID019288
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 9 Dec 2006 17:51:13 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue tweaks
+     a
 has been removed from the -mm tree.  Its filename was
-     workqueue-tweaks.patch
+     zeromap_pte_range-debug.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: workqueue tweaks
+Subject: a
 From: Andrew Morton <akpm@osdl.org>
 
-- set_wq_data() has three callsites and is too big to inline.
-
-- Make comment layout consistently use the usual style.
-
-- Use the nice helper in cancel_delayed_work()
-
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/workqueue.h |    2 +-
- kernel/workqueue.c        |    9 +++++----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ mm/memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/workqueue.c~workqueue-tweaks kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-tweaks
-+++ a/kernel/workqueue.c
-@@ -85,12 +85,14 @@ static inline int is_single_threaded(str
- 	return list_empty(&wq->list);
- }
- 
--static inline void set_wq_data(struct work_struct *work, void *wq)
-+static void set_wq_data(struct work_struct *work, void *wq)
- {
- 	unsigned long new, old, res;
- 
--	/* assume the pending flag is already set and that the task has already
--	 * been queued on this workqueue */
-+	/*
-+	 * Assume the pending flag is already set and that the task has already
-+	 * been queued on this workqueue
-+	 */
- 	new = (unsigned long) wq | (1UL << WORK_STRUCT_PENDING);
- 	res = work->management;
- 	if (res != new) {
-@@ -818,4 +820,3 @@ void init_workqueues(void)
- 	keventd_wq = create_workqueue("events");
- 	BUG_ON(!keventd_wq);
- }
--
-diff -puN include/linux/workqueue.h~workqueue-tweaks include/linux/workqueue.h
---- a/include/linux/workqueue.h~workqueue-tweaks
-+++ a/include/linux/workqueue.h
-@@ -188,7 +188,7 @@ static inline int cancel_delayed_work(st
- 
- 	ret = del_timer_sync(&work->timer);
- 	if (ret)
--		clear_bit(WORK_STRUCT_PENDING, &work->work.management);
-+		work_release(&work->work);
- 	return ret;
- }
- 
+diff -puN mm/memory.c~zeromap_pte_range-debug mm/memory.c
+--- a/mm/memory.c~zeromap_pte_range-debug
++++ a/mm/memory.c
+@@ -1121,7 +1121,10 @@ static int zeromap_pte_range(struct mm_s
+ 		page_cache_get(page);
+ 		page_add_file_rmap(page);
+ 		inc_mm_counter(mm, file_rss);
+-		BUG_ON(!pte_none(*pte));
++		if (!pte_none(*pte)) {
++			printk("pte_val: %lx\n", pte_val(*pte));
++			BUG();
++		}
+ 		set_pte_at(mm, addr, pte, zero_pte);
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ 	arch_leave_lazy_mmu_mode();
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -150,7 +123,6 @@ ocfs2-relative-atime-support-tweaks.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
 add-retain_initrd-boot-option-tweak.patch
 submit-checklist-update.patch
-workqueue-tweaks.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
 io-accounting-core-statistics.patch
 clean-up-__set_page_dirty_nobuffers.patch
