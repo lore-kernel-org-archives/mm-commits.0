@@ -1,343 +1,59 @@
 From: akpm@osdl.org
-Subject: + kvm-amd-svm-32-bit-host-support.patch added to -mm tree
-Date: Sun, 10 Dec 2006 01:20:52 -0800
-Message-ID: <200612100920.kBA9Kqgh019952@shell0.pdx.osdl.net>
+Subject: + add-module_-attributes-to-bit-reversal-library.patch added to -mm tree
+Date: Sun, 10 Dec 2006 03:33:10 -0800
+Message-ID: <200612101133.kBABXAP8022770@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36262 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45531 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760587AbWLJJVa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 04:21:30 -0500
+	id S1757574AbWLJLdX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 06:33:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anthony@codemonkey.ws, avi@qumranet.com
+Cc: cp@absolutedigital.net, akinobu.mita@gmail.com
 
 
 The patch titled
-     KVM: AMD SVM: 32-bit host support
+     add MODULE_* attributes to bit reversal library
 has been added to the -mm tree.  Its filename is
-     kvm-amd-svm-32-bit-host-support.patch
+     add-module_-attributes-to-bit-reversal-library.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: AMD SVM: 32-bit host support
-From: Anthony Liguori <anthony@codemonkey.ws>
+Subject: add MODULE_* attributes to bit reversal library
+From: Cal Peake <cp@absolutedigital.net>
 
-Enable kvm support for 32-bit AMD SVM hosts.
+Add MODULE_* attributes to the new bit reversal library.  Most notably
+MODULE_LICENSE which prevents superfluous kernel tainting.
 
-Signed-off-by: Anthony Liguori <anthony@codemonkey.ws>
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Cal Peake <cp@absolutedigital.net>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/Kconfig   |    2 
- drivers/kvm/kvm_svm.h |    4 +
- drivers/kvm/svm.c     |  109 +++++++++++++++++++++++++++++-----------
- 3 files changed, 85 insertions(+), 30 deletions(-)
+ lib/bitrev.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/kvm/Kconfig~kvm-amd-svm-32-bit-host-support drivers/kvm/Kconfig
---- a/drivers/kvm/Kconfig~kvm-amd-svm-32-bit-host-support
-+++ a/drivers/kvm/Kconfig
-@@ -27,7 +27,7 @@ config KVM_INTEL
+diff -puN lib/bitrev.c~add-module_-attributes-to-bit-reversal-library lib/bitrev.c
+--- a/lib/bitrev.c~add-module_-attributes-to-bit-reversal-library
++++ a/lib/bitrev.c
+@@ -2,6 +2,10 @@
+ #include <linux/module.h>
+ #include <linux/bitrev.h>
  
- config KVM_AMD
- 	tristate "KVM for AMD processors support"
--	depends on KVM && X86_64
-+	depends on KVM
- 	---help---
- 	  Provides support for KVM on AMD processors equipped with the AMD-V
- 	  (SVM) extensions.
-diff -puN drivers/kvm/kvm_svm.h~kvm-amd-svm-32-bit-host-support drivers/kvm/kvm_svm.h
---- a/drivers/kvm/kvm_svm.h~kvm-amd-svm-32-bit-host-support
-+++ a/drivers/kvm/kvm_svm.h
-@@ -9,11 +9,13 @@
- #include "kvm.h"
- 
- static const u32 host_save_msrs[] = {
-+#ifdef __x86_64__
- 	MSR_STAR, MSR_LSTAR, MSR_CSTAR, MSR_SYSCALL_MASK, MSR_KERNEL_GS_BASE,
-+	MSR_FS_BASE, MSR_GS_BASE,
-+#endif
- 	MSR_IA32_SYSENTER_CS, MSR_IA32_SYSENTER_ESP, MSR_IA32_SYSENTER_EIP,
- 	MSR_IA32_DEBUGCTLMSR, /*MSR_IA32_LASTBRANCHFROMIP,
- 	MSR_IA32_LASTBRANCHTOIP, MSR_IA32_LASTINTFROMIP,MSR_IA32_LASTINTTOIP,*/
--	MSR_FS_BASE, MSR_GS_BASE,
- };
- 
- #define NR_HOST_SAVE_MSRS (sizeof(host_save_msrs) / sizeof(*host_save_msrs))
-diff -puN drivers/kvm/svm.c~kvm-amd-svm-32-bit-host-support drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-amd-svm-32-bit-host-support
-+++ a/drivers/kvm/svm.c
-@@ -39,16 +39,28 @@ MODULE_LICENSE("GPL");
- #define SEG_TYPE_LDT 2
- #define SEG_TYPE_BUSY_TSS16 3
- 
-+#define KVM_EFER_LMA (1 << 10)
-+#define KVM_EFER_LME (1 << 8)
++MODULE_AUTHOR("Akinobu Mita <akinobu.mita@gmail.com>");
++MODULE_DESCRIPTION("Bit ordering reversal functions");
++MODULE_LICENSE("GPL");
 +
- unsigned long iopm_base;
- unsigned long msrpm_base;
- 
-+struct kvm_ldttss_desc {
-+	u16 limit0;
-+	u16 base0;
-+	unsigned base1 : 8, type : 5, dpl : 2, p : 1;
-+	unsigned limit1 : 4, zero0 : 3, g : 1, base2 : 8;
-+	u32 base3;
-+	u32 zero1;
-+} __attribute__((packed));
-+
- struct svm_cpu_data {
- 	int cpu;
- 
- 	uint64_t asid_generation;
- 	uint32_t max_asid;
- 	uint32_t next_asid;
--	struct ldttss_desc *tss_desc;
-+	struct kvm_ldttss_desc *tss_desc;
- 
- 	struct page *save_area;
- };
-@@ -156,7 +168,7 @@ static inline void write_dr7(unsigned lo
- 
- static inline int svm_is_long_mode(struct kvm_vcpu *vcpu)
- {
--	return vcpu->svm->vmcb->save.efer & EFER_LMA;
-+	return vcpu->svm->vmcb->save.efer & KVM_EFER_LMA;
- }
- 
- static inline void force_new_asid(struct kvm_vcpu *vcpu)
-@@ -171,8 +183,8 @@ static inline void flush_guest_tlb(struc
- 
- static void svm_set_efer(struct kvm_vcpu *vcpu, u64 efer)
- {
--	if (!(efer & EFER_LMA))
--		efer &= ~EFER_LME;
-+	if (!(efer & KVM_EFER_LMA))
-+		efer &= ~KVM_EFER_LME;
- 
- 	vcpu->svm->vmcb->save.efer = efer | MSR_EFER_SVME_MASK;
- 	vcpu->shadow_efer = efer;
-@@ -275,7 +287,11 @@ static void svm_hardware_enable(void *ga
- 
- 	struct svm_cpu_data *svm_data;
- 	uint64_t efer;
-+#ifdef __x86_64__
- 	struct desc_ptr gdt_descr;
-+#else
-+	struct Xgt_desc_struct gdt_descr;
-+#endif
- 	struct desc_struct *gdt;
- 	int me = raw_smp_processor_id();
- 
-@@ -297,7 +313,7 @@ static void svm_hardware_enable(void *ga
- 
- 	asm volatile ( "sgdt %0" : "=m"(gdt_descr) );
- 	gdt = (struct desc_struct *)gdt_descr.address;
--	svm_data->tss_desc = (struct ldttss_desc *)(gdt + GDT_ENTRY_TSS);
-+	svm_data->tss_desc = (struct kvm_ldttss_desc *)(gdt + GDT_ENTRY_TSS);
- 
- 	rdmsrl(MSR_EFER, efer);
- 	wrmsrl(MSR_EFER, efer | MSR_EFER_SVME_MASK);
-@@ -381,6 +397,7 @@ static __init int svm_hardware_setup(voi
- 	memset(msrpm_va, 0xff, PAGE_SIZE * (1 << MSRPM_ALLOC_ORDER));
- 	msrpm_base = page_to_pfn(msrpm_pages) << PAGE_SHIFT;
- 
-+#ifdef __x86_64__
- 	set_msr_interception(msrpm_va, MSR_GS_BASE, 1, 1);
- 	set_msr_interception(msrpm_va, MSR_FS_BASE, 1, 1);
- 	set_msr_interception(msrpm_va, MSR_KERNEL_GS_BASE, 1, 1);
-@@ -388,6 +405,7 @@ static __init int svm_hardware_setup(voi
- 	set_msr_interception(msrpm_va, MSR_LSTAR, 1, 1);
- 	set_msr_interception(msrpm_va, MSR_CSTAR, 1, 1);
- 	set_msr_interception(msrpm_va, MSR_SYSCALL_MASK, 1, 1);
-+#endif
- 	set_msr_interception(msrpm_va, MSR_IA32_SYSENTER_CS, 1, 1);
- 	set_msr_interception(msrpm_va, MSR_IA32_SYSENTER_ESP, 1, 1);
- 	set_msr_interception(msrpm_va, MSR_IA32_SYSENTER_EIP, 1, 1);
-@@ -687,15 +705,15 @@ static void svm_set_gdt(struct kvm_vcpu 
- static void svm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
- {
- #ifdef __x86_64__
--	if (vcpu->shadow_efer & EFER_LME) {
-+	if (vcpu->shadow_efer & KVM_EFER_LME) {
- 		if (!is_paging(vcpu) && (cr0 & CR0_PG_MASK)) {
--			vcpu->shadow_efer |= EFER_LMA;
--			vcpu->svm->vmcb->save.efer |= EFER_LMA | EFER_LME;
-+			vcpu->shadow_efer |= KVM_EFER_LMA;
-+			vcpu->svm->vmcb->save.efer |= KVM_EFER_LMA | KVM_EFER_LME;
- 		}
- 
- 		if (is_paging(vcpu) && !(cr0 & CR0_PG_MASK) ) {
--			vcpu->shadow_efer &= ~EFER_LMA;
--			vcpu->svm->vmcb->save.efer &= ~(EFER_LMA | EFER_LME);
-+			vcpu->shadow_efer &= ~KVM_EFER_LMA;
-+			vcpu->svm->vmcb->save.efer &= ~(KVM_EFER_LMA | KVM_EFER_LME);
- 		}
- 	}
- #endif
-@@ -1079,6 +1097,7 @@ static int svm_get_msr(struct kvm_vcpu *
- 	case MSR_IA32_APICBASE:
- 		*data = vcpu->apic_base;
- 		break;
-+#ifdef __x86_64__
- 	case MSR_STAR:
- 		*data = vcpu->svm->vmcb->save.star;
- 		break;
-@@ -1088,6 +1107,13 @@ static int svm_get_msr(struct kvm_vcpu *
- 	case MSR_CSTAR:
- 		*data = vcpu->svm->vmcb->save.cstar;
- 		break;
-+	case MSR_KERNEL_GS_BASE:
-+		*data = vcpu->svm->vmcb->save.kernel_gs_base;
-+		break;
-+	case MSR_SYSCALL_MASK:
-+		*data = vcpu->svm->vmcb->save.sfmask;
-+		break;
-+#endif
- 	case MSR_IA32_SYSENTER_CS:
- 		*data = vcpu->svm->vmcb->save.sysenter_cs;
- 		break;
-@@ -1097,12 +1123,6 @@ static int svm_get_msr(struct kvm_vcpu *
- 	case MSR_IA32_SYSENTER_ESP:
- 		*data = vcpu->svm->vmcb->save.sysenter_esp;
- 		break;
--	case MSR_KERNEL_GS_BASE:
--		*data = vcpu->svm->vmcb->save.kernel_gs_base;
--		break;
--	case MSR_SYSCALL_MASK:
--		*data = vcpu->svm->vmcb->save.sfmask;
--		break;
- 	default:
- 		printk(KERN_ERR "kvm: unhandled rdmsr: 0x%x\n", ecx);
- 		return 1;
-@@ -1152,6 +1172,7 @@ static int svm_set_msr(struct kvm_vcpu *
- 	case MSR_IA32_APICBASE:
- 		vcpu->apic_base = data;
- 		break;
-+#ifdef __x86_64___
- 	case MSR_STAR:
- 		vcpu->svm->vmcb->save.star = data;
- 		break;
-@@ -1161,6 +1182,13 @@ static int svm_set_msr(struct kvm_vcpu *
- 	case MSR_CSTAR:
- 		vcpu->svm->vmcb->save.cstar = data;
- 		break;
-+	case MSR_KERNEL_GS_BASE:
-+		vcpu->svm->vmcb->save.kernel_gs_base = data;
-+		break;
-+	case MSR_SYSCALL_MASK:
-+		vcpu->svm->vmcb->save.sfmask = data;
-+		break;
-+#endif
- 	case MSR_IA32_SYSENTER_CS:
- 		vcpu->svm->vmcb->save.sysenter_cs = data;
- 		break;
-@@ -1170,12 +1198,6 @@ static int svm_set_msr(struct kvm_vcpu *
- 	case MSR_IA32_SYSENTER_ESP:
- 		vcpu->svm->vmcb->save.sysenter_esp = data;
- 		break;
--	case MSR_KERNEL_GS_BASE:
--		vcpu->svm->vmcb->save.kernel_gs_base = data;
--		break;
--	case MSR_SYSCALL_MASK:
--		vcpu->svm->vmcb->save.sfmask = data;
--		break;
- 	default:
- 		printk(KERN_ERR "kvm: unhandled wrmsr: %x\n", ecx);
- 		return 1;
-@@ -1323,6 +1345,7 @@ static void kvm_reput_irq(struct kvm_vcp
- 
- static void save_db_regs(unsigned long *db_regs)
- {
-+#ifdef __x86_64__
- 	asm ("mov %%dr0, %%rax \n\t"
- 	     "mov %%rax, %[dr0] \n\t"
- 	     "mov %%dr1, %%rax \n\t"
-@@ -1336,6 +1359,21 @@ static void save_db_regs(unsigned long *
- 	       [dr2] "=m"(db_regs[2]),
- 	       [dr3] "=m"(db_regs[3])
- 	     : : "rax");
-+#else
-+	asm ("mov %%dr0, %%eax \n\t"
-+	     "mov %%eax, %[dr0] \n\t"
-+	     "mov %%dr1, %%eax \n\t"
-+	     "mov %%eax, %[dr1] \n\t"
-+	     "mov %%dr2, %%eax \n\t"
-+	     "mov %%eax, %[dr2] \n\t"
-+	     "mov %%dr3, %%eax \n\t"
-+	     "mov %%eax, %[dr3] \n\t"
-+	     : [dr0] "=m"(db_regs[0]),
-+	       [dr1] "=m"(db_regs[1]),
-+	       [dr2] "=m"(db_regs[2]),
-+	       [dr3] "=m"(db_regs[3])
-+	     : : "eax");
-+#endif
- }
- 
- static void load_db_regs(unsigned long *db_regs)
-@@ -1349,7 +1387,11 @@ static void load_db_regs(unsigned long *
- 	       [dr1] "r"(db_regs[1]),
- 	       [dr2] "r"(db_regs[2]),
- 	       [dr3] "r"(db_regs[3])
-+#ifdef __x86_64__
- 	     : "rax");
-+#else
-+	     : "eax");
-+#endif
- }
- 
- static int svm_vcpu_run(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
-@@ -1414,6 +1456,7 @@ again:
- 		"mov %c[rbp](%[vcpu]), %%ebp \n\t"
- #endif
- 
-+#ifdef __x86_64__
- 		/* Enter guest mode */
- 		"push %%rax \n\t"
- 		"mov %c[svm](%[vcpu]), %%rax \n\t"
-@@ -1422,6 +1465,16 @@ again:
- 		SVM_VMRUN "\n\t"
- 		SVM_VMSAVE "\n\t"
- 		"pop %%rax \n\t"
-+#else
-+		/* Enter guest mode */
-+		"push %%eax \n\t"
-+		"mov %c[svm](%[vcpu]), %%eax \n\t"
-+		"mov %c[vmcb](%%eax), %%eax \n\t"
-+		SVM_VMLOAD "\n\t"
-+		SVM_VMRUN "\n\t"
-+		SVM_VMSAVE "\n\t"
-+		"pop %%eax \n\t"
-+#endif
- 
- 		/* Save guest registers, load host registers */
- #ifdef __x86_64__
-@@ -1445,12 +1498,12 @@ again:
- 		"pop  %%rbp; pop  %%rdi; pop  %%rsi;"
- 		"pop  %%rdx; pop  %%rcx; pop  %%rbx; \n\t"
- #else
--		"mov %%ebx, %c[rbx](%3) \n\t"
--		"mov %%ecx, %c[rcx](%3) \n\t"
--		"mov %%edx, %c[rdx](%3) \n\t"
--		"mov %%esi, %c[rsi](%3) \n\t"
--		"mov %%edi, %c[rdi](%3) \n\t"
--		"mov %%ebp, %c[rbp](%3) \n\t"
-+		"mov %%ebx, %c[rbx](%[vcpu]) \n\t"
-+		"mov %%ecx, %c[rcx](%[vcpu]) \n\t"
-+		"mov %%edx, %c[rdx](%[vcpu]) \n\t"
-+		"mov %%esi, %c[rsi](%[vcpu]) \n\t"
-+		"mov %%edi, %c[rdi](%[vcpu]) \n\t"
-+		"mov %%ebp, %c[rbp](%[vcpu]) \n\t"
- 
- 		"pop  %%ebp; pop  %%edi; pop  %%esi;"
- 		"pop  %%edx; pop  %%ecx; pop  %%ebx; \n\t"
+ const u8 byte_rev_table[256] = {
+ 	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
+ 	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
 _
 
-Patches currently in -mm which might be from anthony@codemonkey.ws are
+Patches currently in -mm which might be from cp@absolutedigital.net are
 
-kvm-amd-svm-32-bit-host-support.patch
+add-module_-attributes-to-bit-reversal-library.patch
 
