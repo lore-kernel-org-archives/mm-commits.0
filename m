@@ -1,152 +1,132 @@
 From: akpm@osdl.org
-Subject: - kvm-make-hardware-detection-an-arch-operation.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:48 -0800
-Message-ID: <200612100753.kBA7rmlx017750@shell0.pdx.osdl.net>
+Subject: - kvm-make-dev-registration-happen-when-the-arch.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:53:45 -0800
+Message-ID: <200612100753.kBA7rjG1017747@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59671 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59667 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760485AbWLJHxv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:51 -0500
+	id S1760477AbWLJHxr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:53:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: make hardware detection an arch operation
+     KVM: make /dev/registration happen when the arch specific module is loaded
 has been removed from the -mm tree.  Its filename was
-     kvm-make-hardware-detection-an-arch-operation.patch
+     kvm-make-dev-registration-happen-when-the-arch.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: make hardware detection an arch operation
+Subject: KVM: make /dev/registration happen when the arch specific module is loaded
 From: Avi Kivity <avi@qumranet.com>
+
+This avoids exposing the driver capabilities before they are loaded.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    2 ++
- drivers/kvm/kvm_main.c |   33 ++++++++++-----------------------
- drivers/kvm/vmx.c      |   18 ++++++++++++++++++
- 3 files changed, 30 insertions(+), 23 deletions(-)
+ drivers/kvm/kvm.h      |    2 +-
+ drivers/kvm/kvm_main.c |   24 ++++++++++++++----------
+ drivers/kvm/vmx.c      |    2 +-
+ 3 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-make-hardware-detection-an-arch-operation drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-make-hardware-detection-an-arch-operation
+diff -puN drivers/kvm/kvm.h~kvm-make-dev-registration-happen-when-the-arch drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-make-dev-registration-happen-when-the-arch
 +++ a/drivers/kvm/kvm.h
-@@ -236,6 +236,8 @@ struct kvm_stat {
- };
+@@ -244,7 +244,7 @@ extern struct kvm_arch_ops *kvm_arch_ops
+ #define kvm_printf(kvm, fmt ...) printk(KERN_DEBUG fmt)
+ #define vcpu_printf(vcpu, fmt...) kvm_printf(vcpu->kvm, fmt)
  
- struct kvm_arch_ops {
-+	int (*cpu_has_kvm_support)(void);          /* __init */
-+	int (*disabled_by_bios)(void);             /* __init */
- };
+-void kvm_init_arch(struct kvm_arch_ops *ops);
++int kvm_init_arch(struct kvm_arch_ops *ops, struct module *module);
+ void kvm_exit_arch(void);
  
- extern struct kvm_stat kvm_stat;
-diff -puN drivers/kvm/kvm_main.c~kvm-make-hardware-detection-an-arch-operation drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-make-hardware-detection-an-arch-operation
+ void kvm_mmu_destroy(struct kvm_vcpu *vcpu);
+diff -puN drivers/kvm/kvm_main.c~kvm-make-dev-registration-happen-when-the-arch drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-make-dev-registration-happen-when-the-arch
 +++ a/drivers/kvm/kvm_main.c
-@@ -527,12 +527,6 @@ static void free_vmcs(struct vmcs *vmcs)
- 	free_pages((unsigned long)vmcs, vmcs_descriptor.order);
+@@ -3559,7 +3559,6 @@ static int kvm_dev_mmap(struct file *fil
  }
  
--static __init int cpu_has_kvm_support(void)
--{
--	unsigned long ecx = cpuid_ecx(1);
--	return test_bit(5, &ecx); /* CPUID.1:ECX.VMX[bit 5] -> VT */
--}
--
- static __exit void free_kvm_area(void)
+ static struct file_operations kvm_chardev_ops = {
+-	.owner		= THIS_MODULE,
+ 	.open		= kvm_dev_open,
+ 	.release        = kvm_dev_release,
+ 	.unlocked_ioctl = kvm_dev_ioctl,
+@@ -3613,13 +3612,26 @@ static void kvm_exit_debug(void)
+ 
+ hpa_t bad_page_address;
+ 
+-void kvm_init_arch(struct kvm_arch_ops *ops)
++int kvm_init_arch(struct kvm_arch_ops *ops, struct module *module)
  {
- 	int cpu;
-@@ -559,14 +553,6 @@ static __init int alloc_kvm_area(void)
++	int r;
++
+ 	kvm_arch_ops = ops;
++	kvm_chardev_ops.owner = module;
++
++	r = misc_register(&kvm_dev);
++	if (r) {
++		printk (KERN_ERR "kvm: misc device register failed\n");
++		goto out_free;
++	}
++
++out_free:
++	return r;
+ }
+ 
+ void kvm_exit_arch(void)
+ {
++	misc_deregister(&kvm_dev);
+ }
+ 
+ static __init int kvm_init(void)
+@@ -3645,13 +3657,6 @@ static __init int kvm_init(void)
+ 	on_each_cpu(kvm_enable, 0, 0, 1);
+ 	register_reboot_notifier(&kvm_reboot_notifier);
+ 
+-	r = misc_register(&kvm_dev);
+-	if (r) {
+-		printk (KERN_ERR "kvm: misc device register failed\n");
+-		goto out_free;
+-	}
+-
+-
+ 	if ((bad_page = alloc_page(GFP_KERNEL)) == NULL) {
+ 		r = -ENOMEM;
+ 		goto out_free;
+@@ -3672,7 +3677,6 @@ out:
+ static __exit void kvm_exit(void)
+ {
+ 	kvm_exit_debug();
+-	misc_deregister(&kvm_dev);
+ 	unregister_reboot_notifier(&kvm_reboot_notifier);
+ 	on_each_cpu(kvm_disable, 0, 0, 1);
+ 	free_kvm_area();
+diff -puN drivers/kvm/vmx.c~kvm-make-dev-registration-happen-when-the-arch drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-make-dev-registration-happen-when-the-arch
++++ a/drivers/kvm/vmx.c
+@@ -26,7 +26,7 @@ static struct kvm_arch_ops vmx_arch_ops 
+ 
+ static int __init vmx_init(void)
+ {
+-	kvm_init_arch(&vmx_arch_ops);
++	kvm_init_arch(&vmx_arch_ops, THIS_MODULE);
  	return 0;
  }
  
--static __init int vmx_disabled_by_bios(void)
--{
--	u64 msr;
--
--	rdmsrl(MSR_IA32_FEATURE_CONTROL, msr);
--	return (msr & 5) == 1; /* locked but not enabled */
--}
--
- static __init void kvm_enable(void *garbage)
- {
- 	int cpu = raw_smp_processor_id();
-@@ -3617,6 +3603,16 @@ int kvm_init_arch(struct kvm_arch_ops *o
- 	int r;
- 
- 	kvm_arch_ops = ops;
-+
-+	if (!kvm_arch_ops->cpu_has_kvm_support()) {
-+		printk(KERN_ERR "kvm: no hardware support\n");
-+		return -EOPNOTSUPP;
-+	}
-+	if (kvm_arch_ops->disabled_by_bios()) {
-+		printk(KERN_ERR "kvm: disabled by bios\n");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	kvm_chardev_ops.owner = module;
- 
- 	r = misc_register(&kvm_dev);
-@@ -3639,15 +3635,6 @@ static __init int kvm_init(void)
- 	static struct page *bad_page;
- 	int r = 0;
- 
--	if (!cpu_has_kvm_support()) {
--		printk(KERN_ERR "kvm: no hardware support\n");
--		return -EOPNOTSUPP;
--	}
--	if (vmx_disabled_by_bios()) {
--		printk(KERN_ERR "kvm: disabled by bios\n");
--		return -EOPNOTSUPP;
--	}
--
- 	kvm_init_debug();
- 
- 	setup_vmcs_descriptor();
-diff -puN drivers/kvm/vmx.c~kvm-make-hardware-detection-an-arch-operation drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-make-hardware-detection-an-arch-operation
-+++ a/drivers/kvm/vmx.c
-@@ -18,10 +18,28 @@
- #include "kvm.h"
- #include <linux/module.h>
- 
-+#define MSR_IA32_FEATURE_CONTROL 		0x03a
-+
- MODULE_AUTHOR("Qumranet");
- MODULE_LICENSE("GPL");
- 
-+static __init int cpu_has_kvm_support(void)
-+{
-+	unsigned long ecx = cpuid_ecx(1);
-+	return test_bit(5, &ecx); /* CPUID.1:ECX.VMX[bit 5] -> VT */
-+}
-+
-+static __init int vmx_disabled_by_bios(void)
-+{
-+	u64 msr;
-+
-+	rdmsrl(MSR_IA32_FEATURE_CONTROL, msr);
-+	return (msr & 5) == 1; /* locked but not enabled */
-+}
-+
- static struct kvm_arch_ops vmx_arch_ops = {
-+	.cpu_has_kvm_support = cpu_has_kvm_support,
-+	.disabled_by_bios = vmx_disabled_by_bios,
- };
- 
- static int __init vmx_init(void)
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
+kvm-make-dev-registration-happen-when-the-arch.patch
 kvm-make-hardware-detection-an-arch-operation.patch
 kvm-make-the-per-cpu-enable-disable-functions-arch.patch
 kvm-make-the-hardware-setup-operations-non-percpu.patch
