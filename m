@@ -1,186 +1,264 @@
 From: akpm@osdl.org
-Subject: - kvm-add-idt-and-gdt-descriptor-accessors.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:54:16 -0800
-Message-ID: <200612100754.kBA7sGCx017781@shell0.pdx.osdl.net>
+Subject: - kvm-cache-guest-cr0-in-vcpu-structure.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:54:09 -0800
+Message-ID: <200612100754.kBA7s92S017774@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59712 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59704 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760505AbWLJHyS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:54:18 -0500
+	id S1760496AbWLJHyM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: add idt and gdt descriptor accessors
+     KVM: cache guest cr0 in vcpu structure
 has been removed from the -mm tree.  Its filename was
-     kvm-add-idt-and-gdt-descriptor-accessors.patch
+     kvm-cache-guest-cr0-in-vcpu-structure.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: add idt and gdt descriptor accessors
+Subject: KVM: cache guest cr0 in vcpu structure
 From: Avi Kivity <avi@qumranet.com>
+
+This eliminates needing to have an arch operation to get cr0.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    9 +++++++++
- drivers/kvm/kvm_main.c |   33 ++++++++++++++-------------------
- drivers/kvm/vmx.c      |   28 ++++++++++++++++++++++++++++
- 3 files changed, 51 insertions(+), 19 deletions(-)
+ drivers/kvm/kvm.h         |   12 +++---------
+ drivers/kvm/kvm_main.c    |   28 ++++++++++++++++------------
+ drivers/kvm/mmu.c         |    8 ++++----
+ drivers/kvm/paging_tmpl.h |    2 +-
+ 4 files changed, 24 insertions(+), 26 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-add-idt-and-gdt-descriptor-accessors drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-add-idt-and-gdt-descriptor-accessors
+diff -puN drivers/kvm/kvm.h~kvm-cache-guest-cr0-in-vcpu-structure drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-cache-guest-cr0-in-vcpu-structure
 +++ a/drivers/kvm/kvm.h
-@@ -236,6 +236,11 @@ struct kvm_stat {
- 	u32 irq_exits;
- };
+@@ -41,7 +41,6 @@
+ 	 | CR0_NW_MASK | CR0_CD_MASK)
+ #define KVM_VM_CR0_ALWAYS_ON \
+ 	(CR0_PG_MASK | CR0_PE_MASK | CR0_WP_MASK | CR0_NE_MASK)
+-
+ #define KVM_GUEST_CR4_MASK \
+ 	(CR4_PSE_MASK | CR4_PAE_MASK | CR4_PGE_MASK | CR4_VMXE_MASK | CR4_VME_MASK)
+ #define KVM_PMODE_VM_CR4_ALWAYS_ON (CR4_VMXE_MASK | CR4_PAE_MASK)
+@@ -166,6 +165,7 @@ struct kvm_vcpu {
+ 	unsigned long regs[NR_VCPU_REGS]; /* for rsp: vcpu_load_rsp_rip() */
+ 	unsigned long rip;      /* needs vcpu_load_rsp_rip() */
  
-+struct descriptor_table {
-+	u16 limit;
-+	unsigned long base;
-+} __attribute__((packed));
-+
- struct kvm_arch_ops {
- 	int (*cpu_has_kvm_support)(void);          /* __init */
- 	int (*disabled_by_bios)(void);             /* __init */
-@@ -253,6 +258,10 @@ struct kvm_arch_ops {
- 			    struct kvm_segment *var, int seg);
- 	void (*set_segment)(struct kvm_vcpu *vcpu,
- 			    struct kvm_segment *var, int seg);
-+	void (*get_idt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
-+	void (*set_idt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
-+	void (*get_gdt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
-+	void (*set_gdt)(struct kvm_vcpu *vcpu, struct descriptor_table *dt);
- };
++	unsigned long cr0;
+ 	unsigned long cr2;
+ 	unsigned long cr3;
+ 	unsigned long cr4;
+@@ -346,20 +346,14 @@ static inline int is_pse(struct kvm_vcpu
+ 	return vcpu->cr4 & CR4_PSE_MASK;
+ }
  
- extern struct kvm_stat kvm_stat;
-diff -puN drivers/kvm/kvm_main.c~kvm-add-idt-and-gdt-descriptor-accessors drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-add-idt-and-gdt-descriptor-accessors
+-static inline unsigned long guest_cr0(void)
+-{
+-	return (vmcs_readl(CR0_READ_SHADOW) & KVM_GUEST_CR0_MASK) |
+-		(vmcs_readl(GUEST_CR0) & ~KVM_GUEST_CR0_MASK);
+-}
+-
+ static inline unsigned guest_cpl(void)
+ {
+ 	return vmcs_read16(GUEST_CS_SELECTOR) & SELECTOR_RPL_MASK;
+ }
+ 
+-static inline int is_paging(void)
++static inline int is_paging(struct kvm_vcpu *vcpu)
+ {
+-	return guest_cr0() & CR0_PG_MASK;
++	return vcpu->cr0 & CR0_PG_MASK;
+ }
+ 
+ static inline int is_page_fault(u32 intr_info)
+diff -puN drivers/kvm/kvm_main.c~kvm-cache-guest-cr0-in-vcpu-structure drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-cache-guest-cr0-in-vcpu-structure
 +++ a/drivers/kvm/kvm_main.c
-@@ -155,11 +155,6 @@ struct vmx_msr_entry *find_msr_entry(str
+@@ -875,9 +875,9 @@ static void __set_cr0(struct kvm_vcpu *v
+ 
+ #ifdef __x86_64__
+ 	if (vcpu->shadow_efer & EFER_LME) {
+-		if (!is_paging() && (cr0 & CR0_PG_MASK))
++		if (!is_paging(vcpu) && (cr0 & CR0_PG_MASK))
+ 			enter_lmode(vcpu);
+-		if (is_paging() && !(cr0 & CR0_PG_MASK))
++		if (is_paging(vcpu) && !(cr0 & CR0_PG_MASK))
+ 			exit_lmode(vcpu);
+ 	}
+ #endif
+@@ -885,6 +885,7 @@ static void __set_cr0(struct kvm_vcpu *v
+ 	vmcs_writel(CR0_READ_SHADOW, cr0);
+ 	vmcs_writel(GUEST_CR0,
+ 		    (cr0 & ~KVM_GUEST_CR0_MASK) | KVM_VM_CR0_ALWAYS_ON);
++	vcpu->cr0 = cr0;
  }
- EXPORT_SYMBOL_GPL(find_msr_entry);
  
--struct descriptor_table {
--	u16 limit;
--	unsigned long base;
--} __attribute__((packed));
--
- static void get_gdt(struct descriptor_table *table)
+ static int pdptrs_have_reserved_bits_set(struct kvm_vcpu *vcpu,
+@@ -918,7 +919,7 @@ static void set_cr0(struct kvm_vcpu *vcp
  {
- 	asm ("sgdt %0" : "=m"(*table));
-@@ -2828,6 +2823,7 @@ static void get_segment(struct kvm_vcpu 
- static int kvm_dev_ioctl_get_sregs(struct kvm *kvm, struct kvm_sregs *sregs)
+ 	if (cr0 & CR0_RESEVED_BITS) {
+ 		printk(KERN_DEBUG "set_cr0: 0x%lx #GP, reserved bits 0x%lx\n",
+-		       cr0, guest_cr0());
++		       cr0, vcpu->cr0);
+ 		inject_gp(vcpu);
+ 		return;
+ 	}
+@@ -936,7 +937,7 @@ static void set_cr0(struct kvm_vcpu *vcp
+ 		return;
+ 	}
+ 
+-	if (!is_paging() && (cr0 & CR0_PG_MASK)) {
++	if (!is_paging(vcpu) && (cr0 & CR0_PG_MASK)) {
+ #ifdef __x86_64__
+ 		if ((vcpu->shadow_efer & EFER_LME)) {
+ 			u32 guest_cs_ar;
+@@ -975,7 +976,7 @@ static void set_cr0(struct kvm_vcpu *vcp
+ 
+ static void lmsw(struct kvm_vcpu *vcpu, unsigned long msw)
  {
- 	struct kvm_vcpu *vcpu;
-+	struct descriptor_table dt;
+-	unsigned long cr0 = guest_cr0();
++	unsigned long cr0 = vcpu->cr0;
  
- 	if (sregs->vcpu < 0 || sregs->vcpu >= KVM_MAX_VCPUS)
- 		return -EINVAL;
-@@ -2845,13 +2841,12 @@ static int kvm_dev_ioctl_get_sregs(struc
- 	get_segment(vcpu, &sregs->tr, VCPU_SREG_TR);
- 	get_segment(vcpu, &sregs->ldt, VCPU_SREG_LDTR);
+ 	if ((msw & CR0_PE_MASK) && !(cr0 & CR0_PE_MASK)) {
+ 		enter_pmode(vcpu);
+@@ -986,6 +987,7 @@ static void lmsw(struct kvm_vcpu *vcpu, 
  
--#define get_dtable(var, table) \
--	sregs->var.limit = vmcs_read32(GUEST_##table##_LIMIT), \
--		sregs->var.base = vmcs_readl(GUEST_##table##_BASE)
--
--	get_dtable(idt, IDTR);
--	get_dtable(gdt, GDTR);
--#undef get_dtable
-+	kvm_arch_ops->get_idt(vcpu, &dt);
-+	sregs->idt.limit = dt.limit;
-+	sregs->idt.base = dt.base;
-+	kvm_arch_ops->get_gdt(vcpu, &dt);
-+	sregs->gdt.limit = dt.limit;
-+	sregs->gdt.base = dt.base;
+ 	vmcs_writel(GUEST_CR0, (vmcs_readl(GUEST_CR0) & ~LMSW_GUEST_MASK)
+ 				| (msw & LMSW_GUEST_MASK));
++	vcpu->cr0 = (vcpu->cr0 & ~0xfffful) | msw;
+ }
  
- 	sregs->cr0 = vcpu->cr0;
+ static void __set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+@@ -1011,7 +1013,7 @@ static void set_cr4(struct kvm_vcpu *vcp
+ 			inject_gp(vcpu);
+ 			return;
+ 		}
+-	} else if (is_paging() && !is_pae(vcpu) && (cr4 & CR4_PAE_MASK)
++	} else if (is_paging(vcpu) && !is_pae(vcpu) && (cr4 & CR4_PAE_MASK)
+ 		   && pdptrs_have_reserved_bits_set(vcpu, vcpu->cr3)) {
+ 		printk(KERN_DEBUG "set_cr4: #GP, pdptrs reserved bits\n");
+ 		inject_gp(vcpu);
+@@ -1042,7 +1044,7 @@ static void set_cr3(struct kvm_vcpu *vcp
+ 			inject_gp(vcpu);
+ 			return;
+ 		}
+-		if (is_paging() && is_pae(vcpu) &&
++		if (is_paging(vcpu) && is_pae(vcpu) &&
+ 		    pdptrs_have_reserved_bits_set(vcpu, cr3)) {
+ 			printk(KERN_DEBUG "set_cr3: #GP, pdptrs "
+ 			       "reserved bits\n");
+@@ -1898,7 +1900,7 @@ unsigned long realmode_get_cr(struct kvm
+ {
+ 	switch (cr) {
+ 	case 0:
+-		return guest_cr0();
++		return vcpu->cr0;
+ 	case 2:
+ 		return vcpu->cr2;
+ 	case 3:
+@@ -1916,7 +1918,7 @@ void realmode_set_cr(struct kvm_vcpu *vc
+ {
+ 	switch (cr) {
+ 	case 0:
+-		set_cr0(vcpu, mk_cr_64(guest_cr0(), val));
++		set_cr0(vcpu, mk_cr_64(vcpu->cr0, val));
+ 		*rflags = vmcs_readl(GUEST_RFLAGS);
+ 		break;
+ 	case 2:
+@@ -2265,7 +2267,8 @@ void set_efer(struct kvm_vcpu *vcpu, u64
+ 		return;
+ 	}
+ 
+-	if (is_paging() && (vcpu->shadow_efer & EFER_LME) != (efer & EFER_LME)) {
++	if (is_paging(vcpu)
++	    && (vcpu->shadow_efer & EFER_LME) != (efer & EFER_LME)) {
+ 		printk(KERN_DEBUG "set_efer: #GP, change LME while paging\n");
+ 		inject_gp(vcpu);
+ 		return;
+@@ -2843,7 +2846,7 @@ static int kvm_dev_ioctl_get_sregs(struc
+ 	get_dtable(gdt, GDTR);
+ #undef get_dtable
+ 
+-	sregs->cr0 = guest_cr0();
++	sregs->cr0 = vcpu->cr0;
  	sregs->cr2 = vcpu->cr2;
-@@ -2880,6 +2875,7 @@ static int kvm_dev_ioctl_set_sregs(struc
- 	struct kvm_vcpu *vcpu;
- 	int mmu_reset_needed = 0;
- 	int i;
-+	struct descriptor_table dt;
+ 	sregs->cr3 = vcpu->cr3;
+ 	sregs->cr4 = vcpu->cr4;
+@@ -2907,12 +2910,13 @@ static int kvm_dev_ioctl_set_sregs(struc
+ #endif
+ 	vcpu->apic_base = sregs->apic_base;
  
- 	if (sregs->vcpu < 0 || sregs->vcpu >= KVM_MAX_VCPUS)
- 		return -EINVAL;
-@@ -2897,13 +2893,12 @@ static int kvm_dev_ioctl_set_sregs(struc
- 	set_segment(vcpu, &sregs->tr, VCPU_SREG_TR);
- 	set_segment(vcpu, &sregs->ldt, VCPU_SREG_LDTR);
+-	mmu_reset_needed |= guest_cr0() != sregs->cr0;
++	mmu_reset_needed |= vcpu->cr0 != sregs->cr0;
+ 	vcpu->rmode.active = ((sregs->cr0 & CR0_PE_MASK) == 0);
+ 	update_exception_bitmap(vcpu);
+ 	vmcs_writel(CR0_READ_SHADOW, sregs->cr0);
+ 	vmcs_writel(GUEST_CR0,
+ 		    (sregs->cr0 & ~KVM_GUEST_CR0_MASK) | KVM_VM_CR0_ALWAYS_ON);
++	vcpu->cr0 = sregs->cr0;
  
--#define set_dtable(var, table) \
--	vmcs_write32(GUEST_##table##_LIMIT, sregs->var.limit), \
--	vmcs_writel(GUEST_##table##_BASE, sregs->var.base)
--
--	set_dtable(idt, IDTR);
--	set_dtable(gdt, GDTR);
--#undef set_dtable
-+	dt.limit = sregs->idt.limit;
-+	dt.base = sregs->idt.base;
-+	kvm_arch_ops->set_idt(vcpu, &dt);
-+	dt.limit = sregs->gdt.limit;
-+	dt.base = sregs->gdt.base;
-+	kvm_arch_ops->set_gdt(vcpu, &dt);
+ 	mmu_reset_needed |= vcpu->cr4 != sregs->cr4;
+ 	__set_cr4(vcpu, sregs->cr4);
+diff -puN drivers/kvm/mmu.c~kvm-cache-guest-cr0-in-vcpu-structure drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-cache-guest-cr0-in-vcpu-structure
++++ a/drivers/kvm/mmu.c
+@@ -138,9 +138,9 @@
+ #define PT_DIRECTORY_LEVEL 2
+ #define PT_PAGE_TABLE_LEVEL 1
  
- 	vcpu->cr2 = sregs->cr2;
- 	mmu_reset_needed |= vcpu->cr3 != sregs->cr3;
-diff -puN drivers/kvm/vmx.c~kvm-add-idt-and-gdt-descriptor-accessors drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-add-idt-and-gdt-descriptor-accessors
-+++ a/drivers/kvm/vmx.c
-@@ -363,6 +363,30 @@ static void vmx_set_segment(struct kvm_v
- 	vmcs_write32(sf->ar_bytes, ar);
+-static int is_write_protection(void)
++static int is_write_protection(struct kvm_vcpu *vcpu)
+ {
+-	return guest_cr0() & CR0_WP_MASK;
++	return vcpu->cr0 & CR0_WP_MASK;
  }
  
-+static void vmx_get_idt(struct kvm_vcpu *vcpu, struct descriptor_table *dt)
-+{
-+	dt->limit = vmcs_read32(GUEST_IDTR_LIMIT);
-+	dt->base = vmcs_readl(GUEST_IDTR_BASE);
-+}
-+
-+static void vmx_set_idt(struct kvm_vcpu *vcpu, struct descriptor_table *dt)
-+{
-+	vmcs_write32(GUEST_IDTR_LIMIT, dt->limit);
-+	vmcs_writel(GUEST_IDTR_BASE, dt->base);
-+}
-+
-+static void vmx_get_gdt(struct kvm_vcpu *vcpu, struct descriptor_table *dt)
-+{
-+	dt->limit = vmcs_read32(GUEST_GDTR_LIMIT);
-+	dt->base = vmcs_readl(GUEST_GDTR_BASE);
-+}
-+
-+static void vmx_set_gdt(struct kvm_vcpu *vcpu, struct descriptor_table *dt)
-+{
-+	vmcs_write32(GUEST_GDTR_LIMIT, dt->limit);
-+	vmcs_writel(GUEST_GDTR_BASE, dt->base);
-+}
-+
- static struct kvm_arch_ops vmx_arch_ops = {
- 	.cpu_has_kvm_support = cpu_has_kvm_support,
- 	.disabled_by_bios = vmx_disabled_by_bios,
-@@ -377,6 +401,10 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.get_segment_base = vmx_get_segment_base,
- 	.get_segment = vmx_get_segment,
- 	.set_segment = vmx_set_segment,
-+	.get_idt = vmx_get_idt,
-+	.set_idt = vmx_set_idt,
-+	.get_gdt = vmx_get_gdt,
-+	.set_gdt = vmx_set_gdt,
- };
+ static int is_cpuid_PSE36(void)
+@@ -321,7 +321,7 @@ static void nonpaging_flush(struct kvm_v
+ 	root = kvm_mmu_alloc_page(vcpu, 0);
+ 	ASSERT(VALID_PAGE(root));
+ 	vcpu->mmu.root_hpa = root;
+-	if (is_paging())
++	if (is_paging(vcpu))
+ 		root |= (vcpu->cr3 & (CR3_PCD_MASK | CR3_WPT_MASK));
+ 	vmcs_writel(GUEST_CR3, root);
+ }
+@@ -614,7 +614,7 @@ static int init_kvm_mmu(struct kvm_vcpu 
+ 	ASSERT(vcpu);
+ 	ASSERT(!VALID_PAGE(vcpu->mmu.root_hpa));
  
- static int __init vmx_init(void)
+-	if (!is_paging())
++	if (!is_paging(vcpu))
+ 		return nonpaging_init_context(vcpu);
+ 	else if (is_long_mode())
+ 		return paging64_init_context(vcpu);
+diff -puN drivers/kvm/paging_tmpl.h~kvm-cache-guest-cr0-in-vcpu-structure drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-cache-guest-cr0-in-vcpu-structure
++++ a/drivers/kvm/paging_tmpl.h
+@@ -251,7 +251,7 @@ static int FNAME(fix_write_pf)(struct kv
+ 		 * supervisor write protection is enabled.
+ 		 */
+ 		if (!writable_shadow) {
+-			if (is_write_protection())
++			if (is_write_protection(vcpu))
+ 				return 0;
+ 			*shadow_ent &= ~PT_USER_MASK;
+ 		}
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
+kvm-cache-guest-cr0-in-vcpu-structure.patch
+kvm-add-get_segment_base-arch-accessor.patch
 kvm-add-idt-and-gdt-descriptor-accessors.patch
 kvm-make-syncing-the-register-file-to-the-vcpu.patch
 kvm-make-the-vcpu-execution-loop-an-arch-operation.patch
