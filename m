@@ -1,60 +1,56 @@
 From: akpm@osdl.org
-Subject: - sha384-hmac-is-broken.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 17:52:50 -0800
-Message-ID: <200612100152.kBA1qoWM010606@shell0.pdx.osdl.net>
+Subject: - m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 17:53:01 -0800
+Message-ID: <200612100153.kBA1r1ol010622@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40613 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40726 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759383AbWLJByL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 20:54:11 -0500
+	id S1759352AbWLJB4w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 20:56:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linuxbugzilla@kriptik.org, herbert@gondor.apana.org.au, stable@kernel.org, mm-commits@vger.kernel.org
+To: schmitz@opal.biophys.uni-duesseldorf.de, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, geert@linux-m68k.org, schmitz@biophys.uni-duesseldorf.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SHA384 HMAC is broken
+     m68k/Atari: 2.6.18 Atari IDE interrupt needs SA_SHIRQ
 has been removed from the -mm tree.  Its filename was
-     sha384-hmac-is-broken.patch
+     m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SHA384 HMAC is broken
-From: Andrew Donofrio <linuxbugzilla@kriptik.org>
+Subject: m68k/Atari: 2.6.18 Atari IDE interrupt needs SA_SHIRQ
+From: Michael Schmitz <schmitz@opal.biophys.uni-duesseldorf.de>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7646
+Atari IDE: The interrupt needs SA_SHIRQ now to get registered.
 
-SHA384 and SHA512 share everything but the initial values and truncation of
-the output, so their block sizes are the same.  In the file
-crypto/sha512.c, the SHA384_HMAC_BLOCK_SIZE is incorrectly #defined as 96,
-when it should just be SHA512_HMAC_BLOCK_SIZE (i.e., 128).  As it is now,
-the kernel's SHA384 HMAC routine does not actually return "real" SHA384
-HMACs.
-
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: <stable@kernel.org>
+Signed-off-by: Michael Schmitz <schmitz@biophys.uni-duesseldorf.de>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- crypto/sha512.c |    2 +-
+ arch/m68k/atari/stdma.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN crypto/sha512.c~sha384-hmac-is-broken crypto/sha512.c
---- a/crypto/sha512.c~sha384-hmac-is-broken
-+++ a/crypto/sha512.c
-@@ -24,7 +24,7 @@
+diff -puN arch/m68k/atari/stdma.c~m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq arch/m68k/atari/stdma.c
+--- a/arch/m68k/atari/stdma.c~m68k-atari-2618-atari-ide-interrupt-needs-sa_shirq
++++ a/arch/m68k/atari/stdma.c
+@@ -174,7 +174,7 @@ int stdma_islocked(void)
+ void __init stdma_init(void)
+ {
+ 	stdma_isr = NULL;
+-	request_irq(IRQ_MFP_FDC, stdma_int, IRQ_TYPE_SLOW,
++	request_irq(IRQ_MFP_FDC, stdma_int, IRQ_TYPE_SLOW | SA_SHIRQ,
+ 	            "ST-DMA: floppy/ACSI/IDE/Falcon-SCSI", stdma_int);
+ }
  
- #define SHA384_DIGEST_SIZE 48
- #define SHA512_DIGEST_SIZE 64
--#define SHA384_HMAC_BLOCK_SIZE  96
-+#define SHA384_HMAC_BLOCK_SIZE SHA512_HMAC_BLOCK_SIZE 
- #define SHA512_HMAC_BLOCK_SIZE 128
- 
- struct sha512_ctx {
 _
 
-Patches currently in -mm which might be from linuxbugzilla@kriptik.org are
+Patches currently in -mm which might be from schmitz@opal.biophys.uni-duesseldorf.de are
 
+origin.patch
 
