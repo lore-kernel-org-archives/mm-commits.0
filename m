@@ -1,60 +1,121 @@
 From: akpm@osdl.org
-Subject: + another-build-fix-header-rearrangements-osk.patch added to -mm tree
-Date: Sun, 10 Dec 2006 11:31:06 -0800
-Message-ID: <200612101931.kBAJV6QT000929@shell0.pdx.osdl.net>
+Subject: + kbuild-make-fusion-mpt-selectable-from-device-drivers.patch added to -mm tree
+Date: Sun, 10 Dec 2006 11:35:22 -0800
+Message-ID: <200612101935.kBAJZMvI001031@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53432 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53763 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762426AbWLJTbl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 14:31:41 -0500
+	id S1762406AbWLJTfc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 14:35:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk, tony@atomide.com
+Cc: rpjday@mindspring.com, Eric.Moore@lsil.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     another build fix, header rearrangements (OSK)
+     kbuild : Make Fusion MPT selectable from "Device drivers" menu
 has been added to the -mm tree.  Its filename is
-     another-build-fix-header-rearrangements-osk.patch
+     kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: another build fix, header rearrangements (OSK)
-From: David Brownell <david-b@pacbell.net>
+Subject: kbuild : Make Fusion MPT selectable from "Device drivers" menu
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Some of the header file rearrangements broke the build for board-osk.
+Rewrite the Fusion MPT Kconfig file so that all of MPT functionality is
+entirely selectable from "Device drivers."
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: <tony@atomide.com>
+The original Kconfig file seems to have an odd structure, as you can see
+from the first part of the file:
+
+========================================================
+menu "Fusion MPT device support"
+
+config FUSION
+        bool
+        default n
+
+config FUSION_SPI
+        tristate "Fusion MPT ScsiHost drivers for SPI"
+        depends on PCI && SCSI
+        select FUSION
+        select SCSI_SPI_ATTRS
+        ...
+========================================================
+
+Note how the majority of entries in that file don't directly *depend* on
+FUSION.  instead, they depend on *external* config variables, and *select*
+FUSION, and this is not the only place i've noticed that kind of dependency
+wording.
+
+Is that a regular feature?  having that structure certainly makes it
+slightly more difficult to rewrite the menu entries, and it's not clear
+there's any obvious advantage to doing it that way.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/arm/mach-omap1/board-osk.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/message/fusion/Kconfig |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/mach-omap1/board-osk.c~another-build-fix-header-rearrangements-osk arch/arm/mach-omap1/board-osk.c
---- a/arch/arm/mach-omap1/board-osk.c~another-build-fix-header-rearrangements-osk
-+++ a/arch/arm/mach-omap1/board-osk.c
-@@ -30,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/irq.h>
-+#include <linux/interrupt.h>
+diff -puN drivers/message/fusion/Kconfig~kbuild-make-fusion-mpt-selectable-from-device-drivers drivers/message/fusion/Kconfig
+--- a/drivers/message/fusion/Kconfig~kbuild-make-fusion-mpt-selectable-from-device-drivers
++++ a/drivers/message/fusion/Kconfig
+@@ -1,14 +1,12 @@
+-
+-menu "Fusion MPT device support"
+-
+-config FUSION
+-	bool
++menuconfig FUSION
++	bool "Fusion MPT device support"
+ 	default n
  
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
++if FUSION
++
+ config FUSION_SPI
+ 	tristate "Fusion MPT ScsiHost drivers for SPI"
+ 	depends on PCI && SCSI
+-	select FUSION
+ 	select SCSI_SPI_ATTRS
+ 	---help---
+ 	  SCSI HOST support for a parallel SCSI host adapters.
+@@ -23,7 +21,6 @@ config FUSION_SPI
+ config FUSION_FC
+ 	tristate "Fusion MPT ScsiHost drivers for FC"
+ 	depends on PCI && SCSI
+-	select FUSION
+ 	select SCSI_FC_ATTRS
+ 	---help---
+ 	  SCSI HOST support for a Fiber Channel host adapters.
+@@ -40,7 +37,6 @@ config FUSION_FC
+ config FUSION_SAS
+ 	tristate "Fusion MPT ScsiHost drivers for SAS"
+ 	depends on PCI && SCSI
+- 	select FUSION
+ 	select SCSI_SAS_ATTRS
+ 	---help---
+ 	  SCSI HOST support for a SAS host adapters.
+@@ -100,4 +96,4 @@ config FUSION_LAN
+ 
+ 	  If unsure whether you really want or need this, say N.
+ 
+-endmenu
++endif
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-rtcs-dont-use-i2c_adapterdev.patch
-fix-more-workqueue-build-breakage-tps65010.patch
-another-build-fix-header-rearrangements-osk.patch
-watchdog-omap_wdt-build-fix.patch
+schedc-correct-comment-for-this_rq_lock-routine.patch
+kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
+fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
+getting-rid-of-all-casts-of-kalloc-calls.patch
 
