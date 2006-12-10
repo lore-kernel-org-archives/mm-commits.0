@@ -1,109 +1,228 @@
 From: akpm@osdl.org
-Subject: - m68k-hp300-hp-lance-updates.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 17:52:53 -0800
-Message-ID: <200612100152.kBA1qrWp010609@shell0.pdx.osdl.net>
+Subject: - netpoll-locking-fix.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 17:52:39 -0800
+Message-ID: <200612100152.kBA1qdQY010594@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40579 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40589 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759288AbWLJBxa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 20:53:30 -0500
+	id S1759349AbWLJBxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 20:53:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jongk@linux-m68k.org, geert@linux-m68k.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, davem@davemloft.net, herbert@gondor.apana.org.au, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k/HP300: HP LANCE updates
+     netpoll locking fix
 has been removed from the -mm tree.  Its filename was
-     m68k-hp300-hp-lance-updates.patch
+     netpoll-locking-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68k/HP300: HP LANCE updates
-From: Kars de Jong <jongk@linux-m68k.org>
+Subject: netpoll locking fix
+From: Andrew Morton <akpm@osdl.org>
 
-- 7990: request_irq() should have SA_SHIRQ flag set
-- hplance_init() printed dev->name before register_netdev() had filled it in
+Herbert sayeth "it's taking the tx lock in process context which is not
+allowed.  So it should disable BH before taking the tx lock."
 
-Signed-off-by: Kars de Jong <jongk@linux-m68k.org>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/7990.c    |    2 +-
- drivers/net/hplance.c |   14 ++++++++++----
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ net/core/netpoll.c |   28 ++++++++++++++++------------
+ 1 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/7990.c~m68k-hp300-hp-lance-updates drivers/net/7990.c
---- a/drivers/net/7990.c~m68k-hp300-hp-lance-updates
-+++ a/drivers/net/7990.c
-@@ -500,7 +500,7 @@ int lance_open (struct net_device *dev)
- 	int res;
+diff -puN net/core/netpoll.c~netpoll-locking-fix net/core/netpoll.c
+--- a/net/core/netpoll.c~netpoll-locking-fix
++++ a/net/core/netpoll.c
+@@ -242,22 +242,26 @@ static void netpoll_send_skb(struct netp
  
-         /* Install the Interrupt handler. Or we could shunt this out to specific drivers? */
--        if (request_irq(lp->irq, lance_interrupt, 0, lp->name, dev))
-+        if (request_irq(lp->irq, lance_interrupt, SA_SHIRQ, lp->name, dev))
-                 return -EAGAIN;
+ 	/* don't get messages out of order, and no recursion */
+ 	if (skb_queue_len(&npinfo->txq) == 0 &&
+-	    npinfo->poll_owner != smp_processor_id() &&
+-	    netif_tx_trylock(dev)) {
+-		/* try until next clock tick */
+-		for (tries = jiffies_to_usecs(1)/USEC_PER_POLL; tries > 0; --tries) {
+-			if (!netif_queue_stopped(dev))
+-				status = dev->hard_start_xmit(skb, dev);
++		    npinfo->poll_owner != smp_processor_id()) {
++		local_bh_disable();	/* Where's netif_tx_trylock_bh()? */
++		if (netif_tx_trylock(dev)) {
++			/* try until next clock tick */
++			for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
++					tries > 0; --tries) {
++				if (!netif_queue_stopped(dev))
++					status = dev->hard_start_xmit(skb, dev);
  
-         res = lance_reset(dev);
-diff -puN drivers/net/hplance.c~m68k-hp300-hp-lance-updates drivers/net/hplance.c
---- a/drivers/net/hplance.c~m68k-hp300-hp-lance-updates
-+++ a/drivers/net/hplance.c
-@@ -77,6 +77,7 @@ static int __devinit hplance_init_one(st
- {
- 	struct net_device *dev;
- 	int err = -ENOMEM;
-+	int i;
+-			if (status == NETDEV_TX_OK)
+-				break;
++				if (status == NETDEV_TX_OK)
++					break;
  
- 	dev = alloc_etherdev(sizeof(struct hplance_private));
- 	if (!dev)
-@@ -93,6 +94,15 @@ static int __devinit hplance_init_one(st
- 		goto out_release_mem_region;
+-			/* tickle device maybe there is some cleanup */
+-			netpoll_poll(np);
++				/* tickle device maybe there is some cleanup */
++				netpoll_poll(np);
  
- 	dio_set_drvdata(d, dev);
-+
-+	printk(KERN_INFO "%s: %s; select code %d, addr %2.2x", dev->name, d->name, d->scode, dev->dev_addr[0]);
-+
-+	for (i=1; i<6; i++) {
-+		printk(":%2.2x", dev->dev_addr[i]);
-+	}
-+
-+	printk(", irq %d\n", d->ipl);
-+
- 	return 0;
+-			udelay(USEC_PER_POLL);
++				udelay(USEC_PER_POLL);
++			}
++			netif_tx_unlock(dev);
+ 		}
+-		netif_tx_unlock(dev);
++		local_bh_enable();
+ 	}
  
-  out_release_mem_region:
-@@ -119,8 +129,6 @@ static void __init hplance_init(struct n
-         struct hplance_private *lp;
-         int i;
- 
--        printk(KERN_INFO "%s: %s; select code %d, addr", dev->name, d->name, d->scode);
--
-         /* reset the board */
-         out_8(va+DIO_IDOFF, 0xff);
-         udelay(100);                              /* ariba! ariba! udelay! udelay! */
-@@ -143,7 +151,6 @@ static void __init hplance_init(struct n
-                  */
-                 dev->dev_addr[i] = ((in_8(va + HPLANCE_NVRAMOFF + i*4 + 1) & 0xF) << 4)
-                         | (in_8(va + HPLANCE_NVRAMOFF + i*4 + 3) & 0xF);
--                printk("%c%2.2x", i == 0 ? ' ' : ':', dev->dev_addr[i]);
-         }
- 
-         lp = netdev_priv(dev);
-@@ -160,7 +167,6 @@ static void __init hplance_init(struct n
-         lp->lance.lance_log_tx_bufs = LANCE_LOG_TX_BUFFERS;
-         lp->lance.rx_ring_mod_mask = RX_RING_MOD_MASK;
-         lp->lance.tx_ring_mod_mask = TX_RING_MOD_MASK;
--	printk(", irq %d\n", lp->lance.irq);
- }
- 
- /* This is disgusting. We have to check the DIO status register for ack every
+ 	if (status != NETDEV_TX_OK) {
 _
 
-Patches currently in -mm which might be from jongk@linux-m68k.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-cpufreq-prep.patch
+git-cpufreq.patch
+git-cpufreq-fixup.patch
+platform_driver_probe-can-save-codespace-save-codespace.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-input-vs-git-alsa.patch
+kbuild-fix-rr-is-now-default.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+pata_it8213-add-new-driver-for-the-it8213-card.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-ssfdc-build-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-net.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+git-ocfs2-fixup.patch
+pci-fix-multiple-problems-with-via-hardware.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+revert-git-block.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+touchkit-ps-2-touchscreen-driver.patch
+node-aware-skb-allocation-fix-for-device-tree-changes.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+submit-checklist-update.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-make-the-vcpu-execution-loop-an-arch-operation-build-fix.patch
+kvm-make-__set_efer-an-arch-operation-build-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
