@@ -1,65 +1,98 @@
 From: akpm@osdl.org
-Subject: + avoid-race-when-deregistering-the-ir-control-for-dvb-usb.patch added to -mm tree
-Date: Sun, 10 Dec 2006 12:20:42 -0800
-Message-ID: <200612102020.kBAKKgi7002116@shell0.pdx.osdl.net>
+Subject: + re-baycom_eppc-compile-failure.patch added to -mm tree
+Date: Sun, 10 Dec 2006 13:02:47 -0800
+Message-ID: <200612102102.kBAL2pwB003173@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58515 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33974 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762500AbWLJUUv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 15:20:51 -0500
+	id S1762599AbWLJVDA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 16:03:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rankincj@yahoo.com, mchehab@infradead.org
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     Avoid race when deregistering the IR control for dvb-usb
+     baycom_epp.c compile failure
 has been added to the -mm tree.  Its filename is
-     avoid-race-when-deregistering-the-ir-control-for-dvb-usb.patch
+     re-baycom_eppc-compile-failure.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Avoid race when deregistering the IR control for dvb-usb
-From: Chris Rankin <rankincj@yahoo.com>
+Subject: baycom_epp.c compile failure
+From: Ralf Baechle <ralf@linux-mips.org>
 
-The work item function is dvb_usb_read_remote_control():
+Fix foobar in 15b1c0e822f578306332d4f4c449250db5c5dceb and
+e8cc49bb0fdb9e18a99e6780073d1400ba2b0d1f patch series.
 
-        INIT_WORK(&d->rc_query_work, dvb_usb_read_remote_control, d);
-
-and the last piece of work it does is:
-
-        schedule_delayed_work(&d->rc_query_work,msecs_to_jiffies(d->props.rc_interval));
-
-Hence you need to call "cancel_rearming_delayed_work()" and not
-"cancel_delayed_work()", correct?  I certainly haven't seen this oops
-reoccur since I applied this patch.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/hamradio/baycom_epp.c |    2 +-
+ include/net/ax25.h                |    2 ++
+ net/ax25/ax25_addr.c              |    2 +-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/dvb-usb-remote.c~avoid-race-when-deregistering-the-ir-control-for-dvb-usb drivers/media/dvb/dvb-usb/dvb-usb-remote.c
---- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c~avoid-race-when-deregistering-the-ir-control-for-dvb-usb
-+++ a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-@@ -151,7 +151,7 @@ int dvb_usb_remote_init(struct dvb_usb_d
- int dvb_usb_remote_exit(struct dvb_usb_device *d)
+diff -puN drivers/net/hamradio/baycom_epp.c~re-baycom_eppc-compile-failure drivers/net/hamradio/baycom_epp.c
+--- a/drivers/net/hamradio/baycom_epp.c~re-baycom_eppc-compile-failure
++++ a/drivers/net/hamradio/baycom_epp.c
+@@ -1177,7 +1177,7 @@ static void baycom_probe(struct net_devi
+ 	dev->mtu = AX25_DEF_PACLEN;        /* eth_mtu is the default */
+ 	dev->addr_len = AX25_ADDR_LEN;     /* sizeof an ax.25 address */
+ 	memcpy(dev->broadcast, &ax25_bcast, AX25_ADDR_LEN);
+-	memcpy(dev->dev_addr, &ax25_nocall, AX25_ADDR_LEN);
++	memcpy(dev->dev_addr, &null_ax25_address, AX25_ADDR_LEN);
+ 	dev->tx_queue_len = 16;
+ 
+ 	/* New style flags */
+diff -puN include/net/ax25.h~re-baycom_eppc-compile-failure include/net/ax25.h
+--- a/include/net/ax25.h~re-baycom_eppc-compile-failure
++++ a/include/net/ax25.h
+@@ -285,6 +285,8 @@ extern struct sock *ax25_make_new(struct
+ extern const ax25_address ax25_bcast;
+ extern const ax25_address ax25_defaddr;
+ extern const ax25_address null_ax25_address;
++extern char *ax2asc(char *buf, const ax25_address *);
++extern void asc2ax(ax25_address *addr, const char *callsign);
+ extern int ax25cmp(const ax25_address *, const ax25_address *);
+ extern int ax25digicmp(const ax25_digi *, const ax25_digi *);
+ extern const unsigned char *ax25_addr_parse(const unsigned char *, int,
+diff -puN net/ax25/ax25_addr.c~re-baycom_eppc-compile-failure net/ax25/ax25_addr.c
+--- a/net/ax25/ax25_addr.c~re-baycom_eppc-compile-failure
++++ a/net/ax25/ax25_addr.c
+@@ -83,7 +83,7 @@ EXPORT_SYMBOL(ax2asc);
+  */
+ void asc2ax(ax25_address *addr, const char *callsign)
  {
- 	if (d->state & DVB_USB_STATE_REMOTE) {
--		cancel_delayed_work(&d->rc_query_work);
-+		cancel_rearming_delayed_work(&d->rc_query_work);
- 		flush_scheduled_work();
- 		input_unregister_device(d->rc_input_dev);
- 	}
+-	char *s;
++	const char *s;
+ 	int n;
+ 
+ 	for (s = callsign, n = 0; n < 6; n++) {
 _
 
-Patches currently in -mm which might be from rankincj@yahoo.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-avoid-race-when-deregistering-the-ir-control-for-dvb-usb.patch
+origin.patch
+sysctl-remove-unused-context-param.patch
+dont-build-some-broken-isdn-drivers-on-big-endian-mips.patch
+i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit.patch
+fix-namespace-conflict-between-w9968cfc-on-mips.patch
+make-lm70_remove-a-__devexit-function.patch
+mips-dbg_io-stray-brackets-fix.patch
+git-mtd.patch
+git-net.patch
+re-baycom_eppc-compile-failure.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pci-legacy-resource-fix.patch
+pci-legacy-resource-fix-tidy.patch
+xfs-remove-useless-wmb-memory-barrier.patch
+tty-remove-useless-memory-barrier.patch
+getting-rid-of-all-casts-of-kalloc-calls.patch
 
