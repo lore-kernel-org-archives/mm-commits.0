@@ -1,24 +1,26 @@
 From: akpm@osdl.org
-Subject: - kvm-amd-svm-32-bit-host-support.patch removed from -mm tree
-Date: Sun, 10 Dec 2006 01:21:02 -0800
-Message-ID: <200612100921.kBA9L2f2019957@shell0.pdx.osdl.net>
+Subject: + kvm-amd-svm-32-bit-host-support.patch added to -mm tree
+Date: Sun, 10 Dec 2006 01:20:52 -0800
+Message-ID: <200612100920.kBA9Kqgh019952@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36262 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760588AbWLJJVg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 04:21:36 -0500
+	id S1760587AbWLJJVa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 04:21:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anthony@codemonkey.ws, avi@qumranet.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: anthony@codemonkey.ws, avi@qumranet.com
 
 
 The patch titled
      KVM: AMD SVM: 32-bit host support
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      kvm-amd-svm-32-bit-host-support.patch
 
-This patch was dropped because it was folded into kvm-userspace-interface.patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: KVM: AMD SVM: 32-bit host support
@@ -337,6 +339,5 @@ _
 
 Patches currently in -mm which might be from anthony@codemonkey.ws are
 
-kvm-userspace-interface.patch
 kvm-amd-svm-32-bit-host-support.patch
 
