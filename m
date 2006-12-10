@@ -1,121 +1,63 @@
 From: akpm@osdl.org
-Subject: + kbuild-make-fusion-mpt-selectable-from-device-drivers.patch added to -mm tree
-Date: Sun, 10 Dec 2006 11:35:22 -0800
-Message-ID: <200612101935.kBAJZMvI001031@shell0.pdx.osdl.net>
+Subject: + pci-mmconfig-only-call-unreachable_devices-when-type-1-is-available.patch added to -mm tree
+Date: Sun, 10 Dec 2006 11:37:21 -0800
+Message-ID: <200612101937.kBAJbLs0001065@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53763 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53964 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762406AbWLJTfc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 14:35:32 -0500
+	id S1762368AbWLJTha (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 14:37:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, Eric.Moore@lsil.com, James.Bottomley@steeleye.com
+Cc: galibert@pobox.com, ak@suse.de
 
 
 The patch titled
-     kbuild : Make Fusion MPT selectable from "Device drivers" menu
+     PCI MMConfig: Only call unreachable_devices() when type 1 is available.
 has been added to the -mm tree.  Its filename is
-     kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
+     pci-mmconfig-only-call-unreachable_devices-when-type-1-is-available.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kbuild : Make Fusion MPT selectable from "Device drivers" menu
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: PCI MMConfig: Only call unreachable_devices() when type 1 is available.
+From: Olivier Galibert <galibert@pobox.com>
 
-Rewrite the Fusion MPT Kconfig file so that all of MPT functionality is
-entirely selectable from "Device drivers."
+unreachable_devices compares between the results of pci configuration accesses
+through type1 and mmconfig, so it should be called only if type1 actually
+works in the first place.
 
-The original Kconfig file seems to have an odd structure, as you can see
-from the first part of the file:
-
-========================================================
-menu "Fusion MPT device support"
-
-config FUSION
-        bool
-        default n
-
-config FUSION_SPI
-        tristate "Fusion MPT ScsiHost drivers for SPI"
-        depends on PCI && SCSI
-        select FUSION
-        select SCSI_SPI_ATTRS
-        ...
-========================================================
-
-Note how the majority of entries in that file don't directly *depend* on
-FUSION.  instead, they depend on *external* config variables, and *select*
-FUSION, and this is not the only place i've noticed that kind of dependency
-wording.
-
-Is that a regular feature?  having that structure certainly makes it
-slightly more difficult to rewrite the menu entries, and it's not clear
-there's any obvious advantage to doing it that way.
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Olivier Galibert <galibert@pobox.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/message/fusion/Kconfig |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ arch/i386/pci/mmconfig-shared.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/message/fusion/Kconfig~kbuild-make-fusion-mpt-selectable-from-device-drivers drivers/message/fusion/Kconfig
---- a/drivers/message/fusion/Kconfig~kbuild-make-fusion-mpt-selectable-from-device-drivers
-+++ a/drivers/message/fusion/Kconfig
-@@ -1,14 +1,12 @@
--
--menu "Fusion MPT device support"
--
--config FUSION
--	bool
-+menuconfig FUSION
-+	bool "Fusion MPT device support"
- 	default n
+diff -puN arch/i386/pci/mmconfig-shared.c~pci-mmconfig-only-call-unreachable_devices-when-type-1-is-available arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~pci-mmconfig-only-call-unreachable_devices-when-type-1-is-available
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -80,7 +80,8 @@ void __init pci_mmcfg_init(int type)
+ 	}
  
-+if FUSION
-+
- config FUSION_SPI
- 	tristate "Fusion MPT ScsiHost drivers for SPI"
- 	depends on PCI && SCSI
--	select FUSION
- 	select SCSI_SPI_ATTRS
- 	---help---
- 	  SCSI HOST support for a parallel SCSI host adapters.
-@@ -23,7 +21,6 @@ config FUSION_SPI
- config FUSION_FC
- 	tristate "Fusion MPT ScsiHost drivers for FC"
- 	depends on PCI && SCSI
--	select FUSION
- 	select SCSI_FC_ATTRS
- 	---help---
- 	  SCSI HOST support for a Fiber Channel host adapters.
-@@ -40,7 +37,6 @@ config FUSION_FC
- config FUSION_SAS
- 	tristate "Fusion MPT ScsiHost drivers for SAS"
- 	depends on PCI && SCSI
-- 	select FUSION
- 	select SCSI_SAS_ATTRS
- 	---help---
- 	  SCSI HOST support for a SAS host adapters.
-@@ -100,4 +96,4 @@ config FUSION_LAN
- 
- 	  If unsure whether you really want or need this, say N.
- 
--endmenu
-+endif
+ 	if (pci_mmcfg_arch_init()) {
+-		unreachable_devices();
++		if (type == 1)
++			unreachable_devices();
+ 		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from galibert@pobox.com are
 
-origin.patch
-schedc-correct-comment-for-this_rq_lock-routine.patch
-kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
-fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
-getting-rid-of-all-casts-of-kalloc-calls.patch
+pci-mmconfig-share-whats-shareable.patch
+pci-mmconfig-only-call-unreachable_devices-when-type-1-is-available.patch
+pci-mmconfig-only-map-whats-necessary.patch
+pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch
+pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them.patch
 
