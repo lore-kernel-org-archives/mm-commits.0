@@ -1,54 +1,55 @@
 From: akpm@osdl.org
-Subject: - zeromap_pte_range-debug.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 17:51:12 -0800
-Message-ID: <200612100151.kBA1pCXb010542@shell0.pdx.osdl.net>
+Subject: - x86-kmap_atomic-debugging.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 17:52:12 -0800
+Message-ID: <200612100152.kBA1qCaj010565@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40373 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40466 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759050AbWLJBvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 9 Dec 2006 20:51:14 -0500
+	id S1759064AbWLJBwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 9 Dec 2006 20:52:15 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBA1pCID019288
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBA1qDID019323
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 9 Dec 2006 17:51:13 -0800
+	for <mm-commits@vger.kernel.org>; Sat, 9 Dec 2006 17:52:13 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     a
+     x86-kmap_atomic-debugging
 has been removed from the -mm tree.  Its filename was
-     zeromap_pte_range-debug.patch
+     x86-kmap_atomic-debugging.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: a
+Subject: x86-kmap_atomic-debugging
 From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/i386/mm/highmem.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/memory.c~zeromap_pte_range-debug mm/memory.c
---- a/mm/memory.c~zeromap_pte_range-debug
-+++ a/mm/memory.c
-@@ -1121,7 +1121,10 @@ static int zeromap_pte_range(struct mm_s
- 		page_cache_get(page);
- 		page_add_file_rmap(page);
- 		inc_mm_counter(mm, file_rss);
--		BUG_ON(!pte_none(*pte));
-+		if (!pte_none(*pte)) {
-+			printk("pte_val: %lx\n", pte_val(*pte));
-+			BUG();
-+		}
- 		set_pte_at(mm, addr, pte, zero_pte);
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
+diff -puN arch/i386/mm/highmem.c~x86-kmap_atomic-debugging arch/i386/mm/highmem.c
+--- a/arch/i386/mm/highmem.c~x86-kmap_atomic-debugging
++++ a/arch/i386/mm/highmem.c
+@@ -31,6 +31,12 @@ void *kmap_atomic(struct page *page, enu
+ 	enum fixed_addresses idx;
+ 	unsigned long vaddr;
+ 
++	if ((type == KM_IRQ0 || type == KM_IRQ1) && !irqs_disabled()) {
++		printk("%s: local irqs are enabled while using KM_IRQn\n",
++			__FUNCTION__);
++		dump_stack();
++	}
++
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+ 	pagefault_disable();
+ 	if (!PageHighMem(page))
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -194,7 +195,6 @@ put_bh-debug.patch
 e1000-printk-warning-fixes.patch
 acpi_format_exception-debug.patch
 add-debugging-aid-for-memory-initialisation-problems-fix.patch
-zeromap_pte_range-debug.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
