@@ -1,311 +1,431 @@
 From: akpm@osdl.org
-Subject: - kvm-make-the-hardware-setup-operations-non-percpu.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:53:54 -0800
-Message-ID: <200612100753.kBA7rsSl017756@shell0.pdx.osdl.net>
+Subject: - kvm-make-msr-accessors-arch-operations.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:54:00 -0800
+Message-ID: <200612100754.kBA7s0G1017762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59687 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760487AbWLJHx5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:53:57 -0500
+	id S1760491AbWLJHyD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:54:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: make the hardware setup operations (non-percpu) arch operations
+     KVM: make msr accessors arch operations
 has been removed from the -mm tree.  Its filename was
-     kvm-make-the-hardware-setup-operations-non-percpu.patch
+     kvm-make-msr-accessors-arch-operations.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: make the hardware setup operations (non-percpu) arch operations
+Subject: KVM: make msr accessors arch operations
 From: Avi Kivity <avi@qumranet.com>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    2 +
- drivers/kvm/kvm_main.c |   67 +++++++++------------------------------
- drivers/kvm/vmx.c      |   59 ++++++++++++++++++++++++++++++++++
- drivers/kvm/vmx.h      |    2 +
- 4 files changed, 80 insertions(+), 50 deletions(-)
+ drivers/kvm/kvm.h      |    4 +
+ drivers/kvm/kvm_main.c |  127 ++--------------------------------
+ drivers/kvm/vmx.c      |  142 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 156 insertions(+), 117 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-make-the-hardware-setup-operations-non-percpu
+diff -puN drivers/kvm/kvm.h~kvm-make-msr-accessors-arch-operations drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-make-msr-accessors-arch-operations
 +++ a/drivers/kvm/kvm.h
-@@ -240,6 +240,8 @@ struct kvm_arch_ops {
- 	int (*disabled_by_bios)(void);             /* __init */
- 	void (*hardware_enable)(void *dummy);      /* __init */
- 	void (*hardware_disable)(void *dummy);
-+	int (*hardware_setup)(void);               /* __init */
-+	void (*hardware_unsetup)(void);            /* __exit */
+@@ -245,6 +245,8 @@ struct kvm_arch_ops {
+ 
+ 	int (*set_guest_debug)(struct kvm_vcpu *vcpu,
+ 			       struct kvm_debug_guest *dbg);
++	int (*get_msr)(struct kvm_vcpu *vcpu, u32 msr_index, u64 *pdata);
++	int (*set_msr)(struct kvm_vcpu *vcpu, u32 msr_index, u64 data);
  };
  
  extern struct kvm_stat kvm_stat;
-diff -puN drivers/kvm/kvm_main.c~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-make-the-hardware-setup-operations-non-percpu
-+++ a/drivers/kvm/kvm_main.c
-@@ -124,7 +124,6 @@ static const u32 vmx_msr_index[] = {
+@@ -401,6 +403,8 @@ static inline struct kvm_mmu_page *page_
+ #define ASM_VMX_VMXOFF            ".byte 0x0f, 0x01, 0xc4"
+ #define ASM_VMX_VMXON_RAX         ".byte 0xf3, 0x0f, 0xc7, 0x30"
  
- #define MSR_IA32_TIME_STAMP_COUNTER		0x010
++#define MSR_IA32_TIME_STAMP_COUNTER		0x010
++
+ #ifdef __x86_64__
+ 
+ /*
+diff -puN drivers/kvm/kvm_main.c~kvm-make-msr-accessors-arch-operations drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-make-msr-accessors-arch-operations
++++ a/drivers/kvm/kvm_main.c
+@@ -122,7 +122,6 @@ static const u32 vmx_msr_index[] = {
+ #define TSS_REDIRECTION_SIZE (256 / 8)
+ #define RMODE_TSS_SIZE (TSS_BASE_SIZE + TSS_REDIRECTION_SIZE + TSS_IOPB_SIZE + 1)
+ 
+-#define MSR_IA32_TIME_STAMP_COUNTER		0x010
  #define MSR_IA32_FEATURE_CONTROL 		0x03a
--#define MSR_IA32_VMX_BASIC_MSR   		0x480
  #define MSR_IA32_VMX_PINBASED_CTLS_MSR		0x481
  #define MSR_IA32_VMX_PROCBASED_CTLS_MSR		0x482
- #define MSR_IA32_VMX_EXIT_CTLS_MSR		0x483
-@@ -303,11 +302,12 @@ DEFINE_PER_CPU(struct vmcs *, vmxarea);
- EXPORT_SYMBOL_GPL(per_cpu__vmxarea); /* temporary hack */
- static DEFINE_PER_CPU(struct vmcs *, current_vmcs);
+@@ -143,7 +142,7 @@ static const u32 vmx_msr_index[] = {
+ #define HOST_IS_64 0
+ #endif
  
--static struct vmcs_descriptor {
-+struct vmcs_descriptor {
- 	int size;
- 	int order;
- 	u32 revision_id;
- } vmcs_descriptor;
-+EXPORT_SYMBOL_GPL(vmcs_descriptor);
+-static struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr)
++struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr)
+ {
+ 	int i;
+ 
+@@ -152,6 +151,7 @@ static struct vmx_msr_entry *find_msr_en
+ 			return &vcpu->guest_msrs[i];
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(find_msr_entry);
+ 
+ struct descriptor_table {
+ 	u16 limit;
+@@ -657,7 +657,7 @@ static void inject_gp(struct kvm_vcpu *v
+  * reads and returns guest's timestamp counter "register"
+  * guest_tsc = host_tsc + tsc_offset    -- 21.3
+  */
+-static u64 guest_read_tsc(void)
++u64 guest_read_tsc(void)
+ {
+ 	u64 host_tsc, tsc_offset;
+ 
+@@ -665,18 +665,20 @@ static u64 guest_read_tsc(void)
+ 	tsc_offset = vmcs_read64(TSC_OFFSET);
+ 	return host_tsc + tsc_offset;
+ }
++EXPORT_SYMBOL_GPL(guest_read_tsc);
+ 
+ /*
+  * writes 'guest_tsc' into guest's timestamp counter "register"
+  * guest_tsc = host_tsc + tsc_offset ==> tsc_offset = guest_tsc - host_tsc
+  */
+-static void guest_write_tsc(u64 guest_tsc)
++void guest_write_tsc(u64 guest_tsc)
+ {
+ 	u64 host_tsc;
+ 
+ 	rdtscll(host_tsc);
+ 	vmcs_write64(TSC_OFFSET, guest_tsc - host_tsc);
+ }
++EXPORT_SYMBOL_GPL(guest_write_tsc);
+ 
+ static void update_exception_bitmap(struct kvm_vcpu *vcpu)
+ {
+@@ -2243,67 +2245,7 @@ static int handle_cpuid(struct kvm_vcpu 
+  */
+ static int get_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 *pdata)
+ {
+-	u64 data;
+-	struct vmx_msr_entry *msr;
+-
+-	if (!pdata) {
+-		printk(KERN_ERR "BUG: get_msr called with NULL pdata\n");
+-		return -EINVAL;
+-	}
+-
+-	switch (msr_index) {
+-#ifdef __x86_64__
+-	case MSR_FS_BASE:
+-		data = vmcs_readl(GUEST_FS_BASE);
+-		break;
+-	case MSR_GS_BASE:
+-		data = vmcs_readl(GUEST_GS_BASE);
+-		break;
+-	case MSR_EFER:
+-		data = vcpu->shadow_efer;
+-		break;
+-#endif
+-	case MSR_IA32_TIME_STAMP_COUNTER:
+-		data = guest_read_tsc();
+-		break;
+-	case MSR_IA32_SYSENTER_CS:
+-		data = vmcs_read32(GUEST_SYSENTER_CS);
+-		break;
+-	case MSR_IA32_SYSENTER_EIP:
+-		data = vmcs_read32(GUEST_SYSENTER_EIP);
+-		break;
+-	case MSR_IA32_SYSENTER_ESP:
+-		data = vmcs_read32(GUEST_SYSENTER_ESP);
+-		break;
+-	case MSR_IA32_MC0_CTL:
+-	case MSR_IA32_MCG_STATUS:
+-	case MSR_IA32_MCG_CAP:
+-	case MSR_IA32_MC0_MISC:
+-	case MSR_IA32_MC0_MISC+4:
+-	case MSR_IA32_MC0_MISC+8:
+-	case MSR_IA32_MC0_MISC+12:
+-	case MSR_IA32_MC0_MISC+16:
+-	case MSR_IA32_UCODE_REV:
+-		/* MTRR registers */
+-	case 0xfe:
+-	case 0x200 ... 0x2ff:
+-		data = 0;
+-		break;
+-	case MSR_IA32_APICBASE:
+-		data = vcpu->apic_base;
+-		break;
+-	default:
+-		msr = find_msr_entry(vcpu, msr_index);
+-		if (!msr) {
+-			printk(KERN_ERR "kvm: unhandled rdmsr: %x\n", msr_index);
+-			return 1;
+-		}
+-		data = msr->data;
+-		break;
+-	}
+-
+-	*pdata = data;
+-	return 0;
++	return kvm_arch_ops->get_msr(vcpu, msr_index, pdata);
+ }
+ 
+ static int handle_rdmsr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+@@ -2325,7 +2267,7 @@ static int handle_rdmsr(struct kvm_vcpu 
  
  #ifdef __x86_64__
- static unsigned long read_msr(unsigned long msr)
-@@ -394,16 +394,6 @@ int kvm_write_guest(struct kvm_vcpu *vcp
- 	return req_size - size;
- }
  
--static __init void setup_vmcs_descriptor(void)
--{
--	u32 vmx_msr_low, vmx_msr_high;
--
--	rdmsr(MSR_IA32_VMX_BASIC_MSR, vmx_msr_low, vmx_msr_high);
--	vmcs_descriptor.size = vmx_msr_high & 0x1fff;
--	vmcs_descriptor.order = get_order(vmcs_descriptor.size);
--	vmcs_descriptor.revision_id = vmx_msr_low;
--};
--
- static void vmcs_clear(struct vmcs *vmcs)
+-static void set_efer(struct kvm_vcpu *vcpu, u64 efer)
++void set_efer(struct kvm_vcpu *vcpu, u64 efer)
  {
- 	u64 phys_addr = __pa(vmcs);
-@@ -501,8 +491,7 @@ static void vcpu_put(struct kvm_vcpu *vc
- 	mutex_unlock(&vcpu->mutex);
+ 	struct vmx_msr_entry *msr;
+ 
+@@ -2354,10 +2296,10 @@ static void set_efer(struct kvm_vcpu *vc
+ 	msr->data = efer;
+ 	skip_emulated_instruction(vcpu);
  }
++EXPORT_SYMBOL_GPL(set_efer);
+ 
+ #endif
  
 -
--static struct vmcs *alloc_vmcs_cpu(int cpu)
-+struct vmcs *alloc_vmcs_cpu(int cpu)
+ /*
+  * Writes msr value into into the appropriate "register".
+  * Returns 0 on success, non-0 otherwise.
+@@ -2365,56 +2307,7 @@ static void set_efer(struct kvm_vcpu *vc
+  */
+ static int set_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 data)
  {
- 	int node = cpu_to_node(cpu);
- 	struct page *pages;
-@@ -516,42 +505,18 @@ static struct vmcs *alloc_vmcs_cpu(int c
- 	vmcs->revision_id = vmcs_descriptor.revision_id; /* vmcs revision id */
- 	return vmcs;
- }
-+EXPORT_SYMBOL_GPL(alloc_vmcs_cpu);
- 
- static struct vmcs *alloc_vmcs(void)
- {
- 	return alloc_vmcs_cpu(smp_processor_id());
- }
- 
--static void free_vmcs(struct vmcs *vmcs)
-+void free_vmcs(struct vmcs *vmcs)
- {
- 	free_pages((unsigned long)vmcs, vmcs_descriptor.order);
- }
--
--static __exit void free_kvm_area(void)
--{
--	int cpu;
--
--	for_each_online_cpu(cpu)
--		free_vmcs(per_cpu(vmxarea, cpu));
--}
--
--static __init int alloc_kvm_area(void)
--{
--	int cpu;
--
--	for_each_online_cpu(cpu) {
--		struct vmcs *vmcs;
--
--		vmcs = alloc_vmcs_cpu(cpu);
--		if (!vmcs) {
--			free_kvm_area();
--			return -ENOMEM;
--		}
--
--		per_cpu(vmxarea, cpu) = vmcs;
+-	struct vmx_msr_entry *msr;
+-	switch (msr_index) {
+-#ifdef __x86_64__
+-	case MSR_FS_BASE:
+-		vmcs_writel(GUEST_FS_BASE, data);
+-		break;
+-	case MSR_GS_BASE:
+-		vmcs_writel(GUEST_GS_BASE, data);
+-		break;
+-#endif
+-	case MSR_IA32_SYSENTER_CS:
+-		vmcs_write32(GUEST_SYSENTER_CS, data);
+-		break;
+-	case MSR_IA32_SYSENTER_EIP:
+-		vmcs_write32(GUEST_SYSENTER_EIP, data);
+-		break;
+-	case MSR_IA32_SYSENTER_ESP:
+-		vmcs_write32(GUEST_SYSENTER_ESP, data);
+-		break;
+-#ifdef __x86_64
+-	case MSR_EFER:
+-		set_efer(vcpu, data);
+-		break;
+-	case MSR_IA32_MC0_STATUS:
+-		printk(KERN_WARNING "%s: MSR_IA32_MC0_STATUS 0x%llx, nop\n"
+-			    , __FUNCTION__, data);
+-		break;
+-#endif
+-	case MSR_IA32_TIME_STAMP_COUNTER: {
+-		guest_write_tsc(data);
+-		break;
 -	}
--	return 0;
--}
-+EXPORT_SYMBOL_GPL(free_vmcs);
- 
- static int kvm_dev_open(struct inode *inode, struct file *filp)
- {
-@@ -3593,6 +3558,10 @@ int kvm_init_arch(struct kvm_arch_ops *o
- 		return -EOPNOTSUPP;
- 	}
- 
-+	r = kvm_arch_ops->hardware_setup();
-+	if (r < 0)
-+	    return r;
-+
- 	on_each_cpu(kvm_arch_ops->hardware_enable, 0, 0, 1);
- 	register_reboot_notifier(&kvm_reboot_notifier);
- 
-@@ -3604,7 +3573,12 @@ int kvm_init_arch(struct kvm_arch_ops *o
- 		goto out_free;
- 	}
- 
-+	return r;
-+
- out_free:
-+	unregister_reboot_notifier(&kvm_reboot_notifier);
-+	on_each_cpu(kvm_arch_ops->hardware_disable, 0, 0, 1);
-+	kvm_arch_ops->hardware_unsetup();
- 	return r;
- }
- 
-@@ -3614,6 +3588,7 @@ void kvm_exit_arch(void)
- 
- 	unregister_reboot_notifier(&kvm_reboot_notifier);
- 	on_each_cpu(kvm_arch_ops->hardware_disable, 0, 0, 1);
-+	kvm_arch_ops->hardware_unsetup();
- }
- 
- static __init int kvm_init(void)
-@@ -3623,14 +3598,9 @@ static __init int kvm_init(void)
- 
- 	kvm_init_debug();
- 
--	setup_vmcs_descriptor();
--	r = alloc_kvm_area();
--	if (r)
--		goto out;
+-	case MSR_IA32_UCODE_REV:
+-	case MSR_IA32_UCODE_WRITE:
+-	case 0x200 ... 0x2ff: /* MTRRs */
+-		break;
+-	case MSR_IA32_APICBASE:
+-		vcpu->apic_base = data;
+-		break;
+-	default:
+-		msr = find_msr_entry(vcpu, msr_index);
+-		if (!msr) {
+-			printk(KERN_ERR "kvm: unhandled wrmsr: 0x%x\n", msr_index);
+-			return 1;
+-		}
+-		msr->data = data;
+-		break;
+-	}
 -
- 	if ((bad_page = alloc_page(GFP_KERNEL)) == NULL) {
- 		r = -ENOMEM;
--		goto out_free;
-+		goto out;
- 	}
- 
- 	bad_page_address = page_to_pfn(bad_page) << PAGE_SHIFT;
-@@ -3638,8 +3608,6 @@ static __init int kvm_init(void)
- 
- 	return r;
- 
--out_free:
--	free_kvm_area();
- out:
- 	kvm_exit_debug();
- 	return r;
-@@ -3648,7 +3616,6 @@ out:
- static __exit void kvm_exit(void)
- {
- 	kvm_exit_debug();
--	free_kvm_area();
- 	__free_page(pfn_to_page(bad_page_address >> PAGE_SHIFT));
+-	return 0;
++	return kvm_arch_ops->set_msr(vcpu, msr_index, data);
  }
  
-diff -puN drivers/kvm/vmx.c~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-make-the-hardware-setup-operations-non-percpu
+ static int handle_wrmsr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+diff -puN drivers/kvm/vmx.c~kvm-make-msr-accessors-arch-operations drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-make-msr-accessors-arch-operations
 +++ a/drivers/kvm/vmx.c
-@@ -25,6 +25,12 @@ MODULE_LICENSE("GPL");
+@@ -31,6 +31,146 @@ extern struct vmcs_descriptor {
+ 	u32 revision_id;
+ } vmcs_descriptor;
  
- DECLARE_PER_CPU(struct vmcs *, vmxarea);
- 
-+extern struct vmcs_descriptor {
-+	int size;
-+	int order;
-+	u32 revision_id;
-+} vmcs_descriptor;
++u64 guest_read_tsc(void);
++void guest_write_tsc(u64 guest_tsc);
++struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr);
 +
- static __init int cpu_has_kvm_support(void)
- {
- 	unsigned long ecx = cpuid_ecx(1);
-@@ -59,9 +65,62 @@ static void hardware_disable(void *garba
- 	asm volatile (ASM_VMX_VMXOFF : : : "cc");
- }
- 
-+static __init void setup_vmcs_descriptor(void)
++#ifdef __x86_64__
++
++void set_efer(struct kvm_vcpu *vcpu, u64 efer);
++
++#endif
++
++
++/*
++ * Reads an msr value (of 'msr_index') into 'pdata'.
++ * Returns 0 on success, non-0 otherwise.
++ * Assumes vcpu_load() was already called.
++ */
++static int vmx_get_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 *pdata)
 +{
-+	u32 vmx_msr_low, vmx_msr_high;
++	u64 data;
++	struct vmx_msr_entry *msr;
 +
-+	rdmsr(MSR_IA32_VMX_BASIC_MSR, vmx_msr_low, vmx_msr_high);
-+	vmcs_descriptor.size = vmx_msr_high & 0x1fff;
-+	vmcs_descriptor.order = get_order(vmcs_descriptor.size);
-+	vmcs_descriptor.revision_id = vmx_msr_low;
-+};
-+
-+void free_vmcs(struct vmcs *vmcs);
-+
-+static __exit void free_kvm_area(void)
-+{
-+	int cpu;
-+
-+	for_each_online_cpu(cpu)
-+		free_vmcs(per_cpu(vmxarea, cpu));
-+}
-+
-+extern struct vmcs *alloc_vmcs_cpu(int cpu);
-+
-+static __init int alloc_kvm_area(void)
-+{
-+	int cpu;
-+
-+	for_each_online_cpu(cpu) {
-+		struct vmcs *vmcs;
-+
-+		vmcs = alloc_vmcs_cpu(cpu);
-+		if (!vmcs) {
-+			free_kvm_area();
-+			return -ENOMEM;
-+		}
-+
-+		per_cpu(vmxarea, cpu) = vmcs;
++	if (!pdata) {
++		printk(KERN_ERR "BUG: get_msr called with NULL pdata\n");
++		return -EINVAL;
 +	}
++
++	switch (msr_index) {
++#ifdef __x86_64__
++	case MSR_FS_BASE:
++		data = vmcs_readl(GUEST_FS_BASE);
++		break;
++	case MSR_GS_BASE:
++		data = vmcs_readl(GUEST_GS_BASE);
++		break;
++	case MSR_EFER:
++		data = vcpu->shadow_efer;
++		break;
++#endif
++	case MSR_IA32_TIME_STAMP_COUNTER:
++		data = guest_read_tsc();
++		break;
++	case MSR_IA32_SYSENTER_CS:
++		data = vmcs_read32(GUEST_SYSENTER_CS);
++		break;
++	case MSR_IA32_SYSENTER_EIP:
++		data = vmcs_read32(GUEST_SYSENTER_EIP);
++		break;
++	case MSR_IA32_SYSENTER_ESP:
++		data = vmcs_read32(GUEST_SYSENTER_ESP);
++		break;
++	case MSR_IA32_MC0_CTL:
++	case MSR_IA32_MCG_STATUS:
++	case MSR_IA32_MCG_CAP:
++	case MSR_IA32_MC0_MISC:
++	case MSR_IA32_MC0_MISC+4:
++	case MSR_IA32_MC0_MISC+8:
++	case MSR_IA32_MC0_MISC+12:
++	case MSR_IA32_MC0_MISC+16:
++	case MSR_IA32_UCODE_REV:
++		/* MTRR registers */
++	case 0xfe:
++	case 0x200 ... 0x2ff:
++		data = 0;
++		break;
++	case MSR_IA32_APICBASE:
++		data = vcpu->apic_base;
++		break;
++	default:
++		msr = find_msr_entry(vcpu, msr_index);
++		if (!msr) {
++			printk(KERN_ERR "kvm: unhandled rdmsr: %x\n", msr_index);
++			return 1;
++		}
++		data = msr->data;
++		break;
++	}
++
++	*pdata = data;
 +	return 0;
 +}
 +
-+static __init int hardware_setup(void)
++/*
++ * Writes msr value into into the appropriate "register".
++ * Returns 0 on success, non-0 otherwise.
++ * Assumes vcpu_load() was already called.
++ */
++static int vmx_set_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 data)
 +{
-+	setup_vmcs_descriptor();
-+	return alloc_kvm_area();
++	struct vmx_msr_entry *msr;
++	switch (msr_index) {
++#ifdef __x86_64__
++	case MSR_FS_BASE:
++		vmcs_writel(GUEST_FS_BASE, data);
++		break;
++	case MSR_GS_BASE:
++		vmcs_writel(GUEST_GS_BASE, data);
++		break;
++#endif
++	case MSR_IA32_SYSENTER_CS:
++		vmcs_write32(GUEST_SYSENTER_CS, data);
++		break;
++	case MSR_IA32_SYSENTER_EIP:
++		vmcs_write32(GUEST_SYSENTER_EIP, data);
++		break;
++	case MSR_IA32_SYSENTER_ESP:
++		vmcs_write32(GUEST_SYSENTER_ESP, data);
++		break;
++#ifdef __x86_64
++	case MSR_EFER:
++		set_efer(vcpu, data);
++		break;
++	case MSR_IA32_MC0_STATUS:
++		printk(KERN_WARNING "%s: MSR_IA32_MC0_STATUS 0x%llx, nop\n"
++			    , __FUNCTION__, data);
++		break;
++#endif
++	case MSR_IA32_TIME_STAMP_COUNTER: {
++		guest_write_tsc(data);
++		break;
++	}
++	case MSR_IA32_UCODE_REV:
++	case MSR_IA32_UCODE_WRITE:
++	case 0x200 ... 0x2ff: /* MTRRs */
++		break;
++	case MSR_IA32_APICBASE:
++		vcpu->apic_base = data;
++		break;
++	default:
++		msr = find_msr_entry(vcpu, msr_index);
++		if (!msr) {
++			printk(KERN_ERR "kvm: unhandled wrmsr: 0x%x\n", msr_index);
++			return 1;
++		}
++		msr->data = data;
++		break;
++	}
++
++	return 0;
 +}
 +
-+static __exit void hardware_unsetup(void)
-+{
-+	free_kvm_area();
-+}
-+
- static struct kvm_arch_ops vmx_arch_ops = {
- 	.cpu_has_kvm_support = cpu_has_kvm_support,
- 	.disabled_by_bios = vmx_disabled_by_bios,
-+	.hardware_setup = hardware_setup,
-+	.hardware_unsetup = hardware_unsetup,
- 	.hardware_enable = hardware_enable,
+ static int set_guest_debug(struct kvm_vcpu *vcpu, struct kvm_debug_guest *dbg)
+ {
+ 	unsigned long dr7 = 0x400;
+@@ -169,6 +309,8 @@ static struct kvm_arch_ops vmx_arch_ops 
  	.hardware_disable = hardware_disable,
+ 
+ 	.set_guest_debug = set_guest_debug,
++	.get_msr = vmx_get_msr,
++	.set_msr = vmx_set_msr,
  };
-diff -puN drivers/kvm/vmx.h~kvm-make-the-hardware-setup-operations-non-percpu drivers/kvm/vmx.h
---- a/drivers/kvm/vmx.h~kvm-make-the-hardware-setup-operations-non-percpu
-+++ a/drivers/kvm/vmx.h
-@@ -286,4 +286,6 @@ enum vmcs_field {
  
- #define CR4_VMXE 0x2000
- 
-+#define MSR_IA32_VMX_BASIC_MSR   		0x480
-+
- #endif
+ static int __init vmx_init(void)
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-make-the-hardware-setup-operations-non-percpu.patch
-kvm-make-the-guest-debugger-an-arch-operation.patch
 kvm-make-msr-accessors-arch-operations.patch
 kvm-make-the-segment-accessors-arch-operations.patch
 kvm-cache-guest-cr4-in-vcpu-structure.patch
