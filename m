@@ -1,89 +1,139 @@
 From: akpm@osdl.org
-Subject: - sched-improve-migration-accuracy-tidy.patch removed from -mm tree
-Date: Sun, 10 Dec 2006 00:23:06 -0800
-Message-ID: <200612100823.kBA8N6P3018770@shell0.pdx.osdl.net>
+Subject: - sched-add-option-to-serialize-load-balancing-fix.patch removed from -mm tree
+Date: Sun, 10 Dec 2006 00:21:02 -0800
+Message-ID: <200612100821.kBA8L2X0018720@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33037 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33060 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760387AbWLJIXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 03:23:17 -0500
+	id S1760390AbWLJIXq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 03:23:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenneth.w.chen@intel.com, efault@gmx.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@osdl.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, kenneth.w.chen@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, pwil3058@bigpond.net.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched-improve-migration-accuracy tidy
+     sched-add-option-to-serialize-load-balancing-fix
 has been removed from the -mm tree.  Its filename was
-     sched-improve-migration-accuracy-tidy.patch
+     sched-add-option-to-serialize-load-balancing-fix.patch
 
-This patch was dropped because it was folded into sched-improve-migration-accuracy.patch
+This patch was dropped because it was folded into sched-add-option-to-serialize-load-balancing.patch
 
 ------------------------------------------------------
-Subject: sched-improve-migration-accuracy tidy
-From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Subject: sched-add-option-to-serialize-load-balancing-fix
+From: Andrew Morton <akpm@osdl.org>
 
-While we at it, let's clean up this hunk.  task_hot is evaluated twice in
-the more common case of nr_balance_failed <= cache_nice_tries. We should
-only test/increment relevant stats for forced migration.
+kernel/sched.c: In function 'sched_init':
+kernel/sched.c:7066: error: 'balancing' undeclared (first use in this function)
 
-Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
-Cc: Mike Galbraith <efault@gmx.de>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Peter Williams <pwil3058@bigpond.net.au>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ken Chen <kenneth.w.chen@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/sched.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~sched-improve-migration-accuracy-tidy kernel/sched.c
---- a/kernel/sched.c~sched-improve-migration-accuracy-tidy
+diff -puN kernel/sched.c~sched-add-option-to-serialize-load-balancing-fix kernel/sched.c
+--- a/kernel/sched.c~sched-add-option-to-serialize-load-balancing-fix
 +++ a/kernel/sched.c
-@@ -2106,8 +2106,13 @@ int can_migrate_task(struct task_struct 
- 	 * 2) too many balance attempts have failed.
- 	 */
+@@ -2880,7 +2880,7 @@ static void update_load(struct rq *this_
+  *
+  * Balancing parameters are set up in arch_init_sched_domains.
+  */
+-static spinlock_t balancing;
++static DEFINE_SPINLOCK(balancing);
  
--	if (sd->nr_balance_failed > sd->cache_nice_tries)
-+	if (sd->nr_balance_failed > sd->cache_nice_tries) {
-+#ifdef CONFIG_SCHEDSTATS
-+		if (task_hot(p, rq->most_recent_timestamp, sd))
-+			schedstat_inc(sd, lb_hot_gained[idle]);
-+#endif
- 		return 1;
-+	}
+ static void run_rebalance_domains(struct softirq_action *h)
+ {
+@@ -6881,7 +6881,6 @@ void __init sched_init(void)
  
- 	if (task_hot(p, rq->most_recent_timestamp, sd))
- 		return 0;
-@@ -2207,11 +2212,6 @@ skip_queue:
- 		goto skip_bitmap;
- 	}
+ #ifdef CONFIG_RT_MUTEXES
+ 	plist_head_init(&init_task.pi_waiters, &init_task.pi_lock);
+-	spin_lock_init(&balancing);
+ #endif
  
--#ifdef CONFIG_SCHEDSTATS
--	if (task_hot(tmp, busiest->most_recent_timestamp, sd))
--		schedstat_inc(sd, lb_hot_gained[idle]);
--#endif
--
- 	pull_task(busiest, array, tmp, this_rq, dst_array, this_cpu);
- 	pulled++;
- 	rem_load_move -= tmp->load_weight;
+ 	/*
 _
 
-Patches currently in -mm which might be from kenneth.w.chen@intel.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-sched-avoid-taking-rq-lock-in-wake_priority_sleeper.patch
-sched-remove-staggering-of-load-balancing.patch
-sched-disable-interrupts-for-locking-in-load_balance.patch
-sched-extract-load-calculation-from-rebalance_tick.patch
-sched-move-idle-status-calculation-into-rebalance_tick.patch
-sched-use-softirq-for-load-balancing.patch
-sched-call-tasklet-less-frequently.patch
+submit-checklist-update.patch
+io-accounting-core-statistics.patch
+clean-up-__set_page_dirty_nobuffers.patch
+io-accounting-write-accounting.patch
+io-accounting-write-cancel-accounting.patch
+io-accounting-read-accounting-2.patch
+io-accounting-read-accounting-nfs-fix.patch
+io-accounting-read-accounting-cifs-fix.patch
+io-accounting-direct-io.patch
+io-accounting-report-in-procfs.patch
+cleanup-taskstatsh.patch
+io-accounting-via-taskstats.patch
+getdelays-various-fixes.patch
+io-accounting-add-to-getdelays.patch
 sched-add-option-to-serialize-load-balancing.patch
-sched-improve-migration-accuracy.patch
-sched-improve-migration-accuracy-tidy.patch
-sched-remove-lb_stopbalance-counter.patch
-sched-optimize-activate_task-for-rt-task.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-option-to-serialize-load-balancing-fix.patch
+kernel-schedc-whitespace-cleanups-more.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+md-allow-reads-that-have-bypassed-the-cache-to-be-retried-on-failure-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+round_jiffies-infrastructure-fix.patch
+clocksource-small-cleanup-2-fix.patch
+kvm-userspace-interface.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
