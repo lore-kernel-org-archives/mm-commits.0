@@ -1,56 +1,61 @@
 From: akpm@osdl.org
-Subject: + kvm-add-missing-include.patch added to -mm tree
-Date: Sun, 10 Dec 2006 11:14:26 -0800
-Message-ID: <200612101914.kBAJEQAt000460@shell0.pdx.osdl.net>
+Subject: + profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch added to -mm tree
+Date: Sun, 10 Dec 2006 11:22:53 -0800
+Message-ID: <200612101922.kBAJMrmi000705@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51775 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52664 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762512AbWLJTPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 14:15:00 -0500
+	id S1762405AbWLJTXD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 14:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anthony@codemonkey.ws, avi@qumranet.com
+Cc: dwalker@mvista.com
 
 
 The patch titled
-     KVM: Add missing include
+     remove likely profiling int cast
 has been added to the -mm tree.  Its filename is
-     kvm-add-missing-include.patch
+     profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Add missing include
-From: Anthony Liguori <anthony@codemonkey.ws>
+Subject: remove likely profiling int cast
+From: Daniel Walker <dwalker@mvista.com>
 
-load_TR_desc() lives in asm/desc.h, so #include that file.
+Fix some wrong casting from unsigned int to int. Reported by Andreas Mohr.
 
-Signed-off-by: Anthony Liguori <anthony@codemonkey.ws>
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/likely_prof.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-add-missing-include drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-add-missing-include
-+++ a/drivers/kvm/vmx.c
-@@ -22,6 +22,7 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>
- #include <asm/io.h>
-+#include <asm/desc.h>
+diff -puN lib/likely_prof.c~profile-likely-unlikely-macros_remove-likely-profiling-int-cast lib/likely_prof.c
+--- a/lib/likely_prof.c~profile-likely-unlikely-macros_remove-likely-profiling-int-cast
++++ a/lib/likely_prof.c
+@@ -86,8 +86,8 @@ static void *lp_seq_next(struct seq_file
+ static int lp_seq_show(struct seq_file *out, void *p)
+ {
+ 	struct likeliness *entry = p;
+-	int true = entry->count[1];
+-	int false = entry->count[0];
++	unsigned int true = entry->count[1];
++	unsigned int false = entry->count[0];
  
- #include "segment_descriptor.h"
- 
+ 	if (!entry->type) {
+ 		if (true > false)
 _
 
-Patches currently in -mm which might be from anthony@codemonkey.ws are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-kvm-userspace-interface.patch
-kvm-add-missing-include.patch
+clocksource-add-usage-of-config_sysfs.patch
+clocksource-small-cleanup-2.patch
+profile-likely-unlikely-macros.patch
+profile_likely-export-do_check_likely.patch
+profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
 
