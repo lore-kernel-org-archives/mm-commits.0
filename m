@@ -1,66 +1,107 @@
 From: akpm@osdl.org
-Subject: - kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu.patch removed from -mm tree
-Date: Sat, 09 Dec 2006 23:55:46 -0800
-Message-ID: <200612100755.kBA7tkGL017900@shell0.pdx.osdl.net>
+Subject: - kvm-amd-svm-add-data-structures.patch removed from -mm tree
+Date: Sat, 09 Dec 2006 23:55:49 -0800
+Message-ID: <200612100755.kBA7tnbU017903@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59872 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59875 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760576AbWLJHzs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 02:55:48 -0500
+	id S1760583AbWLJHzv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 10 Dec 2006 02:55:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, yaniv@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: AMD SVM: Add missing tlb flushes to the guest mmu
+     KVM: AMD SVM: Add data structures
 has been removed from the -mm tree.  Its filename was
-     kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu.patch
+     kvm-amd-svm-add-data-structures.patch
 
 This patch was dropped because it was folded into kvm-userspace-interface.patch
 
 ------------------------------------------------------
-Subject: KVM: AMD SVM: Add missing tlb flushes to the guest mmu
+Subject: KVM: AMD SVM: Add data structures
 From: Avi Kivity <avi@qumranet.com>
 
-Add a couple of missing mmu flushes.  The Intel tlb is too coarse to be
-affected, but they are necessary for AMD.
+This adds the AMD specific vcpu structure.
 
 Signed-off-by: Yaniv Kamay <yaniv@qumranet.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/kvm/kvm.h     |    5 +++-
+ drivers/kvm/kvm_svm.h |   42 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/mmu.c~kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu
-+++ a/drivers/kvm/mmu.c
-@@ -324,6 +324,7 @@ static void nonpaging_flush(struct kvm_v
- 	if (is_paging(vcpu))
- 		root |= (vcpu->cr3 & (CR3_PCD_MASK | CR3_WPT_MASK));
- 	kvm_arch_ops->set_cr3(vcpu, root);
-+	kvm_arch_ops->flush_tlb(vcpu);
- }
+diff -puN drivers/kvm/kvm.h~kvm-amd-svm-add-data-structures drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-amd-svm-add-data-structures
++++ a/drivers/kvm/kvm.h
+@@ -166,7 +166,10 @@ enum {
  
- static gpa_t nonpaging_gva_to_gpa(struct kvm_vcpu *vcpu, gva_t vaddr)
-@@ -407,6 +408,7 @@ static void kvm_mmu_flush_tlb(struct kvm
- 		release_pt_page_64(vcpu, page->page_hpa, 1);
- 	}
- 	++kvm_stat.tlb_flush;
-+	kvm_arch_ops->flush_tlb(vcpu);
- }
- 
- static void paging_new_cr3(struct kvm_vcpu *vcpu)
+ struct kvm_vcpu {
+ 	struct kvm *kvm;
+-	struct vmcs *vmcs;
++	union {
++		struct vmcs *vmcs;
++		struct vcpu_svm *svm;
++	};
+ 	struct mutex mutex;
+ 	int   cpu;
+ 	int   launched;
+diff -puN /dev/null drivers/kvm/kvm_svm.h
+--- /dev/null
++++ a/drivers/kvm/kvm_svm.h
+@@ -0,0 +1,42 @@
++#ifndef __KVM_SVM_H
++#define __KVM_SVM_H
++
++#include <linux/types.h>
++#include <linux/list.h>
++#include <asm/msr.h>
++
++#include "svm.h"
++#include "kvm.h"
++
++static const u32 host_save_msrs[] = {
++	MSR_STAR, MSR_LSTAR, MSR_CSTAR, MSR_SYSCALL_MASK, MSR_KERNEL_GS_BASE,
++	MSR_IA32_SYSENTER_CS, MSR_IA32_SYSENTER_ESP, MSR_IA32_SYSENTER_EIP,
++	MSR_IA32_DEBUGCTLMSR, /*MSR_IA32_LASTBRANCHFROMIP,
++	MSR_IA32_LASTBRANCHTOIP, MSR_IA32_LASTINTFROMIP,MSR_IA32_LASTINTTOIP,*/
++	MSR_FS_BASE, MSR_GS_BASE,
++};
++
++#define NR_HOST_SAVE_MSRS (sizeof(host_save_msrs) / sizeof(*host_save_msrs))
++#define NUM_DB_REGS 4
++
++struct vcpu_svm {
++	struct vmcb *vmcb;
++	unsigned long vmcb_pa;
++	struct svm_cpu_data *svm_data;
++	uint64_t asid_generation;
++
++	unsigned long cr0;
++	unsigned long cr4;
++	unsigned long db_regs[NUM_DB_REGS];
++
++	u64 next_rip;
++
++	u64 host_msrs[NR_HOST_SAVE_MSRS];
++	unsigned long host_cr2;
++	unsigned long host_db_regs[NUM_DB_REGS];
++	unsigned long host_dr6;
++	unsigned long host_dr7;
++};
++
++#endif
++
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
 kvm-userspace-interface.patch
-kvm-amd-svm-add-missing-tlb-flushes-to-the-guest-mmu.patch
 kvm-amd-svm-add-data-structures.patch
 kvm-amd-svm-implementation.patch
 kvm-amd-svm-implementation-avoid-three-more-new-instructions.patch
