@@ -1,62 +1,53 @@
 From: akpm@osdl.org
-Subject: + git-libata-all-fixup.patch added to -mm tree
-Date: Sun, 10 Dec 2006 15:13:33 -0800
-Message-ID: <200612102313.kBANDXoB006312@shell0.pdx.osdl.net>
+Subject: + lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch added to -mm tree
+Date: Sun, 10 Dec 2006 22:12:28 -0800
+Message-ID: <200612110613.kBB6Djwf015693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:45944 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48531 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760327AbWLJXNh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Dec 2006 18:13:37 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBANDYID029326
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 10 Dec 2006 15:13:35 -0800
+	id S1762556AbWLKGN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 01:13:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, jarkao2@o2.pl, mingo@elte.hu
 
 
 The patch titled
-     git-libata-all-fixup
+     lockdep-fix-possible-races-while-disabling-lock-debugging-fix
 has been added to the -mm tree.  Its filename is
-     git-libata-all-fixup.patch
+     lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-libata-all-fixup
+Subject: lockdep-fix-possible-races-while-disabling-lock-debugging-fix
 From: Andrew Morton <akpm@osdl.org>
 
+build fix
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/kernel-parameters.txt |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/lockdep.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~git-libata-all-fixup Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~git-libata-all-fixup
-+++ a/Documentation/kernel-parameters.txt
-@@ -1027,17 +1027,14 @@ and is between 256 and 4096 characters. 
- 			emulation library even if a 387 maths coprocessor
- 			is present.
- 
--<<<<<<< HEAD/Documentation/kernel-parameters.txt
- 	noaliencache	[MM, NUMA] Disables the allcoation of alien caches in
- 			the slab allocator.  Saves per-node memory, but will
- 			impact performance on real NUMA hardware.
- 
--=======
- 	noacpi		[LIBATA] Disables use of ACPI in libata suspend/resume
- 			when set.
- 			Format: <int>
- 
-->>>>>>> /Documentation/kernel-parameters.txt
- 	noalign		[KNL,ARM]
- 
- 	noapic		[SMP,APIC] Tells the kernel to not make use of any
+diff -puN kernel/lockdep.c~lockdep-fix-possible-races-while-disabling-lock-debugging-fix kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-fix-possible-races-while-disabling-lock-debugging-fix
++++ a/kernel/lockdep.c
+@@ -1758,7 +1758,7 @@ static int mark_lock(struct task_struct 
+ 		debug_atomic_dec(&nr_unused_locks);
+ 		break;
+ 	default:
+-		__raw_spin_unlock(&hash_lock);
++		__raw_spin_unlock(&lockdep_lock);
+ 		debug_locks_off();
+ 		WARN_ON(1);
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -114,7 +105,6 @@ revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
 touchkit-ps-2-touchscreen-driver.patch
-node-aware-skb-allocation-fix-for-device-tree-changes.patch
 congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
 slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
 deprecate-smbfs-in-favour-of-cifs.patch
@@ -125,6 +115,7 @@ touch_atime-cleanup.patch
 ocfs2-relative-atime-support-tweaks.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
 add-retain_initrd-boot-option-tweak.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
 move-page-writeback-acounting-out-of-macros.patch
 per-backing_dev-dirty-and-writeback-page-accounting.patch
