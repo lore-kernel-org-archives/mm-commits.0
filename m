@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-move-find_vmx_entry-to-vmxc.patch added to -mm tree
-Date: Mon, 11 Dec 2006 12:20:28 -0800
-Message-ID: <200612112020.kBBKKSQ2006080@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-ignore-pcd-pwt-and-pat-bits-on-ptes.patch added to -mm tree
+Date: Mon, 11 Dec 2006 12:20:32 -0800
+Message-ID: <200612112020.kBBKKWgc006089@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33109 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33124 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937643AbWLKUUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 15:20:45 -0500
+	id S937644AbWLKUU4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 15:20:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,103 +15,118 @@ Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: Move find_vmx_entry() to vmx.c
+     KVM: MMU: Ignore pcd, pwt, and pat bits on ptes
 has been added to the -mm tree.  Its filename is
-     kvm-move-find_vmx_entry-to-vmxc.patch
+     kvm-mmu-ignore-pcd-pwt-and-pat-bits-on-ptes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Move find_vmx_entry() to vmx.c
+Subject: KVM: MMU: Ignore pcd, pwt, and pat bits on ptes
 From: Avi Kivity <avi@qumranet.com>
+
+The pcd, pwt, and pat bits on page table entries affect the cpu cache.  Since
+the cache is a host resource, the guest should not be able to control it. 
+Moreover, the meaning of these bits changes depending on whether pat is
+enabled or not.
+
+So, force these bits to zero on shadow page table entries at all times.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |   21 ++-------------------
- drivers/kvm/vmx.c      |   12 ++++++++++--
- 2 files changed, 12 insertions(+), 21 deletions(-)
+ drivers/kvm/mmu.c         |   17 ++---------------
+ drivers/kvm/paging_tmpl.h |   20 +++++++-------------
+ 2 files changed, 9 insertions(+), 28 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-move-find_vmx_entry-to-vmxc drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-move-find_vmx_entry-to-vmxc
-+++ a/drivers/kvm/kvm_main.c
-@@ -72,17 +72,6 @@ static struct dentry *debugfs_dir;
- #define CR8_RESEVED_BITS (~0x0fULL)
- #define EFER_RESERVED_BITS 0xfffffffffffff2fe
+diff -puN drivers/kvm/mmu.c~kvm-mmu-ignore-pcd-pwt-and-pat-bits-on-ptes drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-ignore-pcd-pwt-and-pat-bits-on-ptes
++++ a/drivers/kvm/mmu.c
+@@ -61,22 +61,9 @@
  
--struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr)
--{
--	int i;
--
--	for (i = 0; i < vcpu->nmsrs; ++i)
--		if (vcpu->guest_msrs[i].index == msr)
--			return &vcpu->guest_msrs[i];
--	return 0;
--}
--EXPORT_SYMBOL_GPL(find_msr_entry);
--
- #ifdef CONFIG_X86_64
- // LDT or TSS descriptor in the GDT. 16 bytes.
- struct segment_descriptor_64 {
-@@ -1124,8 +1113,6 @@ static int get_msr(struct kvm_vcpu *vcpu
  
- void set_efer(struct kvm_vcpu *vcpu, u64 efer)
- {
--	struct vmx_msr_entry *msr;
+ #define PT32_PTE_COPY_MASK \
+-	(PT_PRESENT_MASK | PT_PWT_MASK | PT_PCD_MASK | \
+-	PT_ACCESSED_MASK | PT_DIRTY_MASK | PT_PAT_MASK | \
+-	PT_GLOBAL_MASK )
 -
- 	if (efer & EFER_RESERVED_BITS) {
- 		printk(KERN_DEBUG "set_efer: 0x%llx #GP, reserved bits\n",
- 		       efer);
-@@ -1140,16 +1127,12 @@ void set_efer(struct kvm_vcpu *vcpu, u64
- 		return;
+-#define PT32_NON_PTE_COPY_MASK \
+-	(PT_PRESENT_MASK | PT_PWT_MASK | PT_PCD_MASK | \
+-	PT_ACCESSED_MASK | PT_DIRTY_MASK)
+-
+-
+-#define PT64_PTE_COPY_MASK \
+-	(PT64_NX_MASK | PT32_PTE_COPY_MASK)
+-
+-#define PT64_NON_PTE_COPY_MASK \
+-	(PT64_NX_MASK | PT32_NON_PTE_COPY_MASK)
+-
++	(PT_PRESENT_MASK | PT_ACCESSED_MASK | PT_DIRTY_MASK | PT_GLOBAL_MASK)
+ 
++#define PT64_PTE_COPY_MASK (PT64_NX_MASK | PT32_PTE_COPY_MASK)
+ 
+ #define PT_FIRST_AVAIL_BITS_SHIFT 9
+ #define PT64_SECOND_AVAIL_BITS_SHIFT 52
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-ignore-pcd-pwt-and-pat-bits-on-ptes drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-ignore-pcd-pwt-and-pat-bits-on-ptes
++++ a/drivers/kvm/paging_tmpl.h
+@@ -32,7 +32,6 @@
+ 	#define SHADOW_PT_INDEX(addr, level) PT64_INDEX(addr, level)
+ 	#define PT_LEVEL_MASK(level) PT64_LEVEL_MASK(level)
+ 	#define PT_PTE_COPY_MASK PT64_PTE_COPY_MASK
+-	#define PT_NON_PTE_COPY_MASK PT64_NON_PTE_COPY_MASK
+ #elif PTTYPE == 32
+ 	#define pt_element_t u32
+ 	#define guest_walker guest_walker32
+@@ -43,7 +42,6 @@
+ 	#define SHADOW_PT_INDEX(addr, level) PT64_INDEX(addr, level)
+ 	#define PT_LEVEL_MASK(level) PT32_LEVEL_MASK(level)
+ 	#define PT_PTE_COPY_MASK PT32_PTE_COPY_MASK
+-	#define PT_NON_PTE_COPY_MASK PT32_NON_PTE_COPY_MASK
+ #else
+ 	#error Invalid PTTYPE value
+ #endif
+@@ -105,9 +103,7 @@ static void FNAME(set_pde)(struct kvm_vc
+ 	if (PTTYPE == 32 && is_cpuid_PSE36())
+ 		gaddr |= (guest_pde & PT32_DIR_PSE36_MASK) <<
+ 			(32 - PT32_DIR_PSE36_SHIFT);
+-	*shadow_pte = (guest_pde & (PT_NON_PTE_COPY_MASK | PT_GLOBAL_MASK)) |
+-		          ((guest_pde & PT_DIR_PAT_MASK) >>
+-			            (PT_DIR_PAT_SHIFT - PT_PAT_SHIFT));
++	*shadow_pte = guest_pde & PT_PTE_COPY_MASK;
+ 	set_pte_common(vcpu, shadow_pte, gaddr,
+ 		       guest_pde & PT_DIRTY_MASK, access_bits);
+ }
+@@ -162,6 +158,7 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
+ 		u32 index = SHADOW_PT_INDEX(addr, level);
+ 		u64 *shadow_ent = ((u64 *)__va(shadow_addr)) + index;
+ 		pt_element_t *guest_ent;
++		u64 shadow_pte;
+ 
+ 		if (is_present_pte(*shadow_ent) || is_io_pte(*shadow_ent)) {
+ 			if (level == PT_PAGE_TABLE_LEVEL)
+@@ -204,14 +201,11 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
+ 		shadow_addr = kvm_mmu_alloc_page(vcpu, shadow_ent);
+ 		if (!VALID_PAGE(shadow_addr))
+ 			return ERR_PTR(-ENOMEM);
+-		if (!kvm_arch_ops->is_long_mode(vcpu) && level == 3)
+-			*shadow_ent = shadow_addr |
+-				(*guest_ent & (PT_PRESENT_MASK | PT_PWT_MASK | PT_PCD_MASK));
+-		else {
+-			*shadow_ent = shadow_addr |
+-				(*guest_ent & PT_NON_PTE_COPY_MASK);
+-			*shadow_ent |= (PT_WRITABLE_MASK | PT_USER_MASK);
+-		}
++		shadow_pte = shadow_addr | PT_PRESENT_MASK;
++		if (vcpu->mmu.root_level > 3 || level != 3)
++			shadow_pte |= PT_ACCESSED_MASK
++				| PT_WRITABLE_MASK | PT_USER_MASK;
++		*shadow_ent = shadow_pte;
+ 		prev_shadow_ent = shadow_ent;
  	}
- 
-+	kvm_arch_ops->set_efer(vcpu, efer);
-+
- 	efer &= ~EFER_LMA;
- 	efer |= vcpu->shadow_efer & EFER_LMA;
- 
- 	vcpu->shadow_efer = efer;
--
--	msr = find_msr_entry(vcpu, MSR_EFER);
--
--	if (!(efer & EFER_LMA))
--	    efer &= ~EFER_LME;
--	msr->data = efer;
  }
- EXPORT_SYMBOL_GPL(set_efer);
- 
-diff -puN drivers/kvm/vmx.c~kvm-move-find_vmx_entry-to-vmxc drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-move-find_vmx_entry-to-vmxc
-+++ a/drivers/kvm/vmx.c
-@@ -78,8 +78,6 @@ static const u32 vmx_msr_index[] = {
- };
- #define NR_VMX_MSR (sizeof(vmx_msr_index) / sizeof(*vmx_msr_index))
- 
--struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr);
--
- static inline int is_page_fault(u32 intr_info)
- {
- 	return (intr_info & (INTR_INFO_INTR_TYPE_MASK | INTR_INFO_VECTOR_MASK |
-@@ -93,6 +91,16 @@ static inline int is_external_interrupt(
- 		== (INTR_TYPE_EXT_INTR | INTR_INFO_VALID_MASK);
- }
- 
-+static struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr)
-+{
-+	int i;
-+
-+	for (i = 0; i < vcpu->nmsrs; ++i)
-+		if (vcpu->guest_msrs[i].index == msr)
-+			return &vcpu->guest_msrs[i];
-+	return 0;
-+}
-+
- static void vmcs_clear(struct vmcs *vmcs)
- {
- 	u64 phys_addr = __pa(vmcs);
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
