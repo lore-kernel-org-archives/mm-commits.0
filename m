@@ -1,65 +1,72 @@
 From: akpm@osdl.org
-Subject: + lumpy-take-the-other-active-inactive-pages-in-the-area.patch added to -mm tree
-Date: Mon, 11 Dec 2006 14:42:40 -0800
-Message-ID: <200612112242.kBBMgest010967@shell0.pdx.osdl.net>
+Subject: - lumpy-ensure-we-respect-zone-boundaries.patch removed from -mm tree
+Date: Mon, 11 Dec 2006 14:44:55 -0800
+Message-ID: <200612112244.kBBMitYt011050@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:45297 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45484 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937705AbWLKWnR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 17:43:17 -0500
+	id S937707AbWLKWpa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 17:45:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, a.p.zijlstra@chello.nl
+To: apw@shadowen.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lumpy take the other active inactive pages in the area
-has been added to the -mm tree.  Its filename is
-     lumpy-take-the-other-active-inactive-pages-in-the-area.patch
+     lumpy ensure we respect zone boundaries
+has been removed from the -mm tree.  Its filename was
+     lumpy-ensure-we-respect-zone-boundaries.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into lumpy-reclaim-v2.patch
 
 ------------------------------------------------------
-Subject: lumpy take the other active inactive pages in the area
+Subject: lumpy ensure we respect zone boundaries
 From: Andy Whitcroft <apw@shadowen.org>
 
-When we scan an order N aligned area around our tag page take any other pages
-with a matching active state to that of the tag page.  This will tend to
-demote areas of the order we are interested from the active list to the
-inactive list and from the end of the inactive list, increasing the chances of
-such areas coming free together.
+When scanning an aligned order N area ensure we only pull out pages in the
+same zone as our tag page, else we will manipulate those pages' LRU under the
+wrong zone lru_lock.  Bad.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~lumpy-take-the-other-active-inactive-pages-in-the-area mm/vmscan.c
---- a/mm/vmscan.c~lumpy-take-the-other-active-inactive-pages-in-the-area
+diff -puN mm/vmscan.c~lumpy-ensure-we-respect-zone-boundaries mm/vmscan.c
+--- a/mm/vmscan.c~lumpy-ensure-we-respect-zone-boundaries
 +++ a/mm/vmscan.c
-@@ -709,7 +709,7 @@ static unsigned long isolate_lru_pages(u
+@@ -659,6 +659,7 @@ static unsigned long isolate_lru_pages(u
+ 	struct page *page, *tmp;
+ 	unsigned long scan, pfn, end_pfn, page_pfn;
+ 	int active;
++	int zone_id;
+ 
+ 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
+ 		page = lru_to_page(src);
+@@ -690,6 +691,7 @@ static unsigned long isolate_lru_pages(u
+ 		 * surrounding the tag page.  Only take those pages of
+ 		 * the same active state as that tag page.
+ 		 */
++		zone_id = page_zone_id(page);
+ 		page_pfn = __page_to_pfn(page);
+ 		pfn = page_pfn & ~((1 << order) - 1);
+ 		end_pfn = pfn + (1 << order);
+@@ -699,8 +701,10 @@ static unsigned long isolate_lru_pages(u
+ 			if (unlikely(!pfn_valid(pfn)))
+ 				break;
+ 
+-			scan++;
+ 			tmp = __pfn_to_page(pfn);
++			if (unlikely(page_zone_id(tmp) != zone_id))
++				continue;
++			scan++;
+ 			switch (__isolate_lru_page(tmp, active)) {
  			case 0:
  				list_move(&tmp->lru, dst);
- 				nr_taken++;
--				continue;
-+				break;
- 
- 			case -EBUSY:
- 				/* else it is being freed elsewhere */
-@@ -717,7 +717,6 @@ static unsigned long isolate_lru_pages(u
- 			default:
- 				break;
- 			}
--			break;
- 		}
- 	}
- 
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -78,7 +85,6 @@ virtual-memmap-on-sparsemem-v3-static-virtual-update.patch
 virtual-memmap-on-sparsemem-v3-ia64-support.patch
 virtual-memmap-on-sparsemem-v3-ia64-support-update.patch
 lumpy-reclaim-v2.patch
-lumpy-cleanup-a-missplaced-comment-and-simplify-some-code.patch
 lumpy-ensure-we-respect-zone-boundaries.patch
 lumpy-take-the-other-active-inactive-pages-in-the-area.patch
 deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
