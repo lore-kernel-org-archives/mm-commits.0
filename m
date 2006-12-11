@@ -1,53 +1,50 @@
 From: akpm@osdl.org
-Subject: + lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch added to -mm tree
-Date: Sun, 10 Dec 2006 22:12:28 -0800
-Message-ID: <200612110613.kBB6Djwf015693@shell0.pdx.osdl.net>
+Subject: + git-mtd-build-fix.patch added to -mm tree
+Date: Sun, 10 Dec 2006 22:15:14 -0800
+Message-ID: <200612110616.kBB6GUJ5015746@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48531 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48750 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762556AbWLKGN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 01:13:59 -0500
+	id S1762559AbWLKGQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 01:16:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, jarkao2@o2.pl, mingo@elte.hu
+Cc: akpm@osdl.org, dwmw2@infradead.org
 
 
 The patch titled
-     lockdep-fix-possible-races-while-disabling-lock-debugging-fix
+     git-mtd-build-fix
 has been added to the -mm tree.  Its filename is
-     lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
+     git-mtd-build-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep-fix-possible-races-while-disabling-lock-debugging-fix
+Subject: git-mtd-build-fix
 From: Andrew Morton <akpm@osdl.org>
 
-build fix
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jarek Poplawski <jarkao2@o2.pl>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    2 +-
+ drivers/mtd/ssfdc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/lockdep.c~lockdep-fix-possible-races-while-disabling-lock-debugging-fix kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-fix-possible-races-while-disabling-lock-debugging-fix
-+++ a/kernel/lockdep.c
-@@ -1758,7 +1758,7 @@ static int mark_lock(struct task_struct 
- 		debug_atomic_dec(&nr_unused_locks);
- 		break;
- 	default:
--		__raw_spin_unlock(&hash_lock);
-+		__raw_spin_unlock(&lockdep_lock);
- 		debug_locks_off();
- 		WARN_ON(1);
- 		return 0;
+diff -puN drivers/mtd/ssfdc.c~git-mtd-build-fix drivers/mtd/ssfdc.c
+--- a/drivers/mtd/ssfdc.c~git-mtd-build-fix
++++ a/drivers/mtd/ssfdc.c
+@@ -445,7 +445,7 @@ static struct mtd_blktrans_ops ssfdcr_tr
+ 	.name		= "ssfdc",
+ 	.major		= SSFDCR_MAJOR,
+ 	.part_bits	= SSFDCR_PARTN_BITS,
+-	.blksize	= SECTOR_SIZE;
++	.blksize	= SECTOR_SIZE,
+ 	.getgeo		= ssfdcr_getgeo,
+ 	.readsect	= ssfdcr_readsect,
+ 	.add_mtd	= ssfdcr_add_mtd,
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -84,6 +81,7 @@ git-lxdialog-fixup.patch
 git-mmc-fixup.patch
 git-mmc-tifm_sd-warning-fix.patch
 git-mtd.patch
+git-mtd-build-fix.patch
 git-ubi.patch
 ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
