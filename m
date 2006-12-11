@@ -1,51 +1,52 @@
 From: akpm@osdl.org
-Subject: + fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch added to -mm tree
-Date: Sun, 10 Dec 2006 23:27:01 -0800
-Message-ID: <200612110727.kBB7R1Et017251@shell0.pdx.osdl.net>
+Subject: + sony_apci-resume-fix.patch added to -mm tree
+Date: Sun, 10 Dec 2006 23:40:03 -0800
+Message-ID: <200612110740.kBB7e3BD017545@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54176 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55111 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762621AbWLKH1G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 02:27:06 -0500
+	id S1762639AbWLKHkL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 02:40:11 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBB7e4ID023619
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 10 Dec 2006 23:40:08 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, greg@kroah.com
+Cc: akpm@osdl.org
 
 
 The patch titled
-     fix gregkh-usb-usb-ehci-hcd-add-shadow-budget-code
+     sony_apci-resume-fix
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+     sony_apci-resume-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix gregkh-usb-usb-ehci-hcd-add-shadow-budget-code
+Subject: sony_apci-resume-fix
 From: Andrew Morton <akpm@osdl.org>
 
-kmem_cache_t is on the way out.
-
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/host/ehci.h |    2 +-
+ drivers/acpi/sony_acpi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/ehci.h~fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code drivers/usb/host/ehci.h
---- a/drivers/usb/host/ehci.h~fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code
-+++ a/drivers/usb/host/ehci.h
-@@ -73,7 +73,7 @@ struct ehci_hcd {			/* one per controlle
- 	unsigned		periodic_sched;	/* periodic activity count */
+diff -puN drivers/acpi/sony_acpi.c~sony_apci-resume-fix drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~sony_apci-resume-fix
++++ a/drivers/acpi/sony_acpi.c
+@@ -233,7 +233,7 @@ static int sony_acpi_write(struct file *
+ 	return count;
+ }
  
- 	char			poolname[20];	/* Shadow budget pool name */
--	kmem_cache_t		*budget_pool;	/* Pool for shadow budget */
-+	struct kmem_cache	*budget_pool;	/* Pool for shadow budget */
- 	struct ehci_shadow_budget **budget;	/* pointer to the shadow budget
- 						   of bandwidth placeholders */
+-static int sony_acpi_resume(struct acpi_device *device, int state)
++static int sony_acpi_resume(struct acpi_device *device)
+ {
+ 	struct sony_acpi_value *item;
  
 _
 
@@ -65,6 +66,7 @@ acpi-dont-select-pm.patch
 implementation-of-acpi_video_get_next_level.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
 sony_apci-resume.patch
+sony_apci-resume-fix.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
 git-alsa-fixup.patch
@@ -101,6 +103,7 @@ scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
 revert-git-block.patch
 git-qla3xxx-fixup.patch
 nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
@@ -173,5 +176,4 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
 
