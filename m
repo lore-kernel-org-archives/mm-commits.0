@@ -1,184 +1,122 @@
 From: akpm@osdl.org
-Subject: + congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch added to -mm tree
-Date: Mon, 11 Dec 2006 00:00:04 -0800
-Message-ID: <200612110800.kBB804J4018002@shell0.pdx.osdl.net>
+Subject: + fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64.patch added to -mm tree
+Date: Mon, 11 Dec 2006 00:59:56 -0800
+Message-ID: <200612110859.kBB8xub8019566@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56375 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60467 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762644AbWLKIAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 03:00:09 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBB805ID024496
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2006 00:00:06 -0800
+	id S1762669AbWLKJAF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 04:00:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: mchehab@infradead.org
 
 
 The patch titled
-     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
+     Fix: On ia64, i2c adap->inb/adap->outb are wrongly evaluated
 has been added to the -mm tree.  Its filename is
-     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch
+     fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
-From: Andrew Morton <akpm@osdl.org>
+Subject: Fix: On ia64, i2c adap->inb/adap->outb are wrongly evaluated
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 
+
+i2c defines two callbacks (inb/outb).  On ia64, since it defines also two
+macros with those names, it causes the following errors:
+
+drivers/media/video/usbvision/usbvision-i2c.c:64:39: macro "outb" passed 4 arguments, but takes just 2
+drivers/media/video/usbvision/usbvision-i2c.c: In function `try_write_address':
+drivers/media/video/usbvision/usbvision-i2c.c:64: warning: assignment makes integer from pointer without a cast
+drivers/media/video/usbvision/usbvision-i2c.c:89:38: macro "inb" passed 4 arguments, but takes just 1
+drivers/media/video/usbvision/usbvision-i2c.c: In function `try_read_address':
+drivers/media/video/usbvision/usbvision-i2c.c:89: warning: assignment makes integer from pointer without a cast
+drivers/media/video/usbvision/usbvision-i2c.c:85: warning: unused variable `buf'
+drivers/media/video/usbvision/usbvision-i2c.c:173:53: macro "inb" passed 4 arguments, but takes just 1
+drivers/media/video/usbvision/usbvision-i2c.c: In function `usb_xfer':
+drivers/media/video/usbvision/usbvision-i2c.c:173: warning: assignment makes integer from pointer without a cast
+drivers/media/video/usbvision/usbvision-i2c.c:179:54: macro "outb" passed 4 arguments, but takes just 2
+drivers/media/video/usbvision/usbvision-i2c.c:179: warning: assignment makes integer from pointer without a cast
+thanks to Andrew Morton for pointing this.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/backing-dev.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/media/video/usbvision/usbvision-i2c.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug mm/backing-dev.c
---- a/mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
-+++ a/mm/backing-dev.c
-@@ -50,8 +50,11 @@ long congestion_wait(int rw, long timeou
- 	DEFINE_WAIT(wait);
- 	wait_queue_head_t *wqh = &congestion_wqh[rw];
+diff -puN drivers/media/video/usbvision/usbvision-i2c.c~fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64 drivers/media/video/usbvision/usbvision-i2c.c
+--- a/drivers/media/video/usbvision/usbvision-i2c.c~fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64
++++ a/drivers/media/video/usbvision/usbvision-i2c.c
+@@ -50,6 +50,11 @@ MODULE_PARM_DESC(i2c_debug, "enable debu
+ #define PDEBUG(level, fmt, args...) \
+ 		if (i2c_debug & (level)) info("[%s:%d] " fmt, __PRETTY_FUNCTION__, __LINE__ , ## args)
  
--	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0)
-+	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0) {
-+		printk("%s: no pages are under writeback\n", __FUNCTION__);
-+		dump_stack();
- 		return timeout;
-+	}
- 	prepare_to_wait(wqh, &wait, TASK_UNINTERRUPTIBLE);
- 	ret = io_schedule_timeout(timeout);
- 	finish_wait(wqh, &wait);
++static int usbvision_i2c_write(void *data, unsigned char addr, char *buf,
++			    short len);
++static int usbvision_i2c_read(void *data, unsigned char addr, char *buf,
++			   short len);
++
+ static inline int try_write_address(struct i2c_adapter *i2c_adap,
+ 				    unsigned char addr, int retries)
+ {
+@@ -61,7 +66,7 @@ static inline int try_write_address(stru
+ 	data = i2c_get_adapdata(i2c_adap);
+ 	buf[0] = 0x00;
+ 	for (i = 0; i <= retries; i++) {
+-		ret = (adap->outb(data, addr, buf, 1));
++		ret = (usbvision_i2c_write(data, addr, buf, 1));
+ 		if (ret == 1)
+ 			break;	/* success! */
+ 		udelay(5 /*adap->udelay */ );
+@@ -86,7 +91,7 @@ static inline int try_read_address(struc
+ 
+ 	data = i2c_get_adapdata(i2c_adap);
+ 	for (i = 0; i <= retries; i++) {
+-		ret = (adap->inb(data, addr, buf, 1));
++		ret = (usbvision_i2c_read(data, addr, buf, 1));
+ 		if (ret == 1)
+ 			break;	/* success! */
+ 		udelay(5 /*adap->udelay */ );
+@@ -153,7 +158,6 @@ static int
+ usb_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msgs[], int num)
+ {
+ 	struct i2c_msg *pmsg;
+-	struct i2c_algo_usb_data *adap = i2c_adap->algo_data;
+ 	void *data;
+ 	int i, ret;
+ 	unsigned char addr;
+@@ -170,13 +174,13 @@ usb_xfer(struct i2c_adapter *i2c_adap, s
+ 
+ 		if (pmsg->flags & I2C_M_RD) {
+ 			/* read bytes into buffer */
+-			ret = (adap->inb(data, addr, pmsg->buf, pmsg->len));
++			ret = (usbvision_i2c_read(data, addr, pmsg->buf, pmsg->len));
+ 			if (ret < pmsg->len) {
+ 				return (ret < 0) ? ret : -EREMOTEIO;
+ 			}
+ 		} else {
+ 			/* write bytes from buffer */
+-			ret = (adap->outb(data, addr, pmsg->buf, pmsg->len));
++			ret = (usbvision_i2c_write(data, addr, pmsg->buf, pmsg->len));
+ 			if (ret < pmsg->len) {
+ 				return (ret < 0) ? ret : -EREMOTEIO;
+ 			}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from mchehab@infradead.org are
 
 origin.patch
-x86-smp-export-smp_num_siblings-for-oprofile.patch
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
-git-cpufreq.patch
-git-cpufreq-fixup.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-input-vs-git-alsa.patch
-git-libata-all-fixup.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-pata_it8213-add-new-driver-for-the-it8213-card.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-mtd-build-fix.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-net.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-revert-git-block.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
-congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support-tweaks.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-optimize-o_direct-on-block-device-v3-tweak.patch
-add-retain_initrd-boot-option-tweak.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+saa7134-add-support-for-the-encore-enl-tv.patch
+drivers-media-video-cpia2-cpia2_usbc-free.patch
+fix-namespace-conflict-between-w9968cfc-on-mips.patch
+avoid-race-when-deregistering-the-ir-control-for-dvb-usb.patch
+fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64.patch
+getting-rid-of-all-casts-of-kalloc-calls.patch
 
