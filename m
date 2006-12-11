@@ -1,88 +1,88 @@
 From: akpm@osdl.org
-Subject: + reorder-struct-pipe_buf_operations.patch added to -mm tree
-Date: Mon, 11 Dec 2006 14:07:07 -0800
-Message-ID: <200612112207.kBBM77vG009328@shell0.pdx.osdl.net>
+Subject: + debug-add-sysrq_always_enabled-boot-option-cleanup.patch added to -mm tree
+Date: Mon, 11 Dec 2006 14:13:07 -0800
+Message-ID: <200612112213.kBBMD7W0009593@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41820 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42427 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763144AbWLKWHP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 17:07:15 -0500
+	id S937037AbWLKWQV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 17:16:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com
+Cc: bunk@stusta.de
 
 
 The patch titled
-     reorder struct pipe_buf_operations
+     make sysrq_always_enabled_setup() static
 has been added to the -mm tree.  Its filename is
-     reorder-struct-pipe_buf_operations.patch
+     debug-add-sysrq_always_enabled-boot-option-cleanup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reorder struct pipe_buf_operations
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: make sysrq_always_enabled_setup() static
+From: Adrian Bunk <bunk@stusta.de>
 
-Fields of struct pipe_buf_operations have not a precise layout (ie not
-optimized to fit cache lines nor reduce cache line ping pongs)
-
-The bufs[] array is *large* and is placed near the beginning of the
-structure, so all following fields have a large offset.  This is
-unfortunate because many archs have smaller instructions when using small
-offsets relative to a base register.  On x86 for example, 7 bits offsets
-have smaller instruction lengths.
-
-Moving bufs[] at the end of pipe_buf_operations permits all fields to have
-small offsets, and reduce text size, and icache pressure.
-
-# size vmlinux.pre vmlinux
-    text    data     bss     dec     hex filename
-3268989  664356  492196 4425541  438745 vmlinux.pre
-3268765  664356  492196 4425317  438665 vmlinux
-
-So this patch reduces text size by 224 bytes on my x86_64 machine. Similar
-results on ia32.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/pipe_fs_i.h |    2 +-
+ drivers/char/sysrq.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pipe_fs_i.h~reorder-struct-pipe_buf_operations include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~reorder-struct-pipe_buf_operations
-+++ a/include/linux/pipe_fs_i.h
-@@ -41,7 +41,6 @@ struct pipe_buf_operations {
- struct pipe_inode_info {
- 	wait_queue_head_t wait;
- 	unsigned int nrbufs, curbuf;
--	struct pipe_buffer bufs[PIPE_BUFFERS];
- 	struct page *tmp_page;
- 	unsigned int readers;
- 	unsigned int writers;
-@@ -51,6 +50,7 @@ struct pipe_inode_info {
- 	struct fasync_struct *fasync_readers;
- 	struct fasync_struct *fasync_writers;
- 	struct inode *inode;
-+	struct pipe_buffer bufs[PIPE_BUFFERS];
- };
+diff -puN drivers/char/sysrq.c~debug-add-sysrq_always_enabled-boot-option-cleanup drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~debug-add-sysrq_always_enabled-boot-option-cleanup
++++ a/drivers/char/sysrq.c
+@@ -59,7 +59,7 @@ static inline int sysrq_on_mask(int mask
+ 						(__sysrq_enabled & mask);
+ }
  
- /* Differs from PIPE_BUF in that PIPE_SIZE is the length of the actual
+-int __init sysrq_always_enabled_setup(char *str)
++static int __init sysrq_always_enabled_setup(char *str)
+ {
+ 	sysrq_always_enabled = 1;
+ 	printk(KERN_INFO "debug: sysrq always enabled.\n");
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-constify-pipe_buf_operations.patch
-reorder-struct-pipe_buf_operations.patch
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-get-rid-of-arch_have_xtime_lock.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-optimize-calc_load.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+git-alsa.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
+git-mtd.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+drivers-edac-make-code-static.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+debug-add-sysrq_always_enabled-boot-option-cleanup.patch
+make-ext2_get_blocks-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
+gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch
+updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
+updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
