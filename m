@@ -1,52 +1,56 @@
 From: akpm@osdl.org
-Subject: + driver-for-silan-sc92031-netdev-include-fix.patch added to -mm tree
-Date: Sun, 10 Dec 2006 22:40:15 -0800
-Message-ID: <200612110641.kBB6fXrh016314@shell0.pdx.osdl.net>
+Subject: + virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch added to -mm tree
+Date: Sun, 10 Dec 2006 22:47:21 -0800
+Message-ID: <200612110648.kBB6mbft016487@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50306 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50902 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762587AbWLKGlm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 01:41:42 -0500
+	id S1762576AbWLKGt0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 01:49:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, cesarb@cesarb.net
+Cc: akpm@osdl.org, apw@shadowen.org, clameter@engr.sgi.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mbligh@google.com, tony.luck@intel.com
 
 
 The patch titled
-     driver-for-silan-sc92031-netdev-include-fix
+     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2
 has been added to the -mm tree.  Its filename is
-     driver-for-silan-sc92031-netdev-include-fix.patch
+     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: driver-for-silan-sc92031-netdev-include-fix
+Subject: virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/net/sc92031.c:1422: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
-drivers/net/sc92031.c:1422: error: (Each undeclared identifier is reported only once
+build fix
 
-Cc: Cesar Eduardo Barros <cesarb@cesarb.net>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Martin Bligh <mbligh@google.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/sc92031.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-include-fix drivers/net/sc92031.c
---- a/drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-include-fix
-+++ a/drivers/net/sc92031.c
-@@ -23,6 +23,7 @@
- #include <linux/kernel.h>
- #include <linux/delay.h>
- #include <linux/pci.h>
-+#include <linux/dma-mapping.h>
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
- #include <linux/ethtool.h>
+diff -puN mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2 mm/vmalloc.c
+--- a/mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2
++++ a/mm/vmalloc.c
+@@ -929,6 +929,6 @@ int unmap_generic_kernel(unsigned long a
+ 		if (err)
+ 			break;
+ 	} while (pgd++, addr = next, addr != end);
+-	flush_tlb_kernel_range((unsigned long)start_addr, end_addr);
++	flush_tlb_kernel_range(addr, addr);
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -87,6 +91,7 @@ git-mtd-build-fix.patch
 git-ubi.patch
 ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 git-net.patch
 net-use-bitrev8.patch
@@ -170,5 +175,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
 
