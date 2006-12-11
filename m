@@ -1,50 +1,52 @@
 From: akpm@osdl.org
-Subject: + ecryptfs-public-key-packet-management-slab-fix.patch added to -mm tree
-Date: Sun, 10 Dec 2006 22:17:06 -0800
-Message-ID: <200612110618.kBB6IM8H015797@shell0.pdx.osdl.net>
+Subject: + driver-for-silan-sc92031-netdev-include-fix.patch added to -mm tree
+Date: Sun, 10 Dec 2006 22:40:15 -0800
+Message-ID: <200612110641.kBB6fXrh016314@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48833 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50306 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762575AbWLKGS1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 01:18:27 -0500
+	id S1762587AbWLKGlm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 01:41:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mhalcrow@us.ibm.com
+Cc: akpm@osdl.org, cesarb@cesarb.net
 
 
 The patch titled
-     ecryptfs-public-key-packet-management-slab-fix
+     driver-for-silan-sc92031-netdev-include-fix
 has been added to the -mm tree.  Its filename is
-     ecryptfs-public-key-packet-management-slab-fix.patch
+     driver-for-silan-sc92031-netdev-include-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs-public-key-packet-management-slab-fix
+Subject: driver-for-silan-sc92031-netdev-include-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+drivers/net/sc92031.c:1422: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
+drivers/net/sc92031.c:1422: error: (Each undeclared identifier is reported only once
+
+Cc: Cesar Eduardo Barros <cesarb@cesarb.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ecryptfs/keystore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/sc92031.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-public-key-packet-management-slab-fix fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-public-key-packet-management-slab-fix
-+++ a/fs/ecryptfs/keystore.c
-@@ -538,7 +538,7 @@ parse_tag_1_packet(struct ecryptfs_crypt
- 	 * at end of function upon failure */
- 	auth_tok_list_item =
- 		kmem_cache_alloc(ecryptfs_auth_tok_list_item_cache,
--				 SLAB_KERNEL);
-+				 GFP_KERNEL);
- 	if (!auth_tok_list_item) {
- 		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
- 		rc = -ENOMEM;
+diff -puN drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-include-fix drivers/net/sc92031.c
+--- a/drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-include-fix
++++ a/drivers/net/sc92031.c
+@@ -23,6 +23,7 @@
+ #include <linux/kernel.h>
+ #include <linux/delay.h>
+ #include <linux/pci.h>
++#include <linux/dma-mapping.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+ #include <linux/ethtool.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -168,4 +170,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
 
