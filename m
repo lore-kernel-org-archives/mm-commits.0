@@ -1,61 +1,51 @@
 From: akpm@osdl.org
-Subject: + virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch added to -mm tree
-Date: Sun, 10 Dec 2006 23:18:51 -0800
-Message-ID: <200612110720.kBB7K7mm017128@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch added to -mm tree
+Date: Sun, 10 Dec 2006 23:27:01 -0800
+Message-ID: <200612110727.kBB7R1Et017251@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53746 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54176 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762619AbWLKHUy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 02:20:54 -0500
+	id S1762621AbWLKH1G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 02:27:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, apw@shadowen.org, clameter@engr.sgi.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mbligh@google.com, tony.luck@intel.com
+Cc: akpm@osdl.org, greg@kroah.com
 
 
 The patch titled
-     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3
+     fix gregkh-usb-usb-ehci-hcd-add-shadow-budget-code
 has been added to the -mm tree.  Its filename is
-     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+     fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3
+Subject: fix gregkh-usb-usb-ehci-hcd-add-shadow-budget-code
 From: Andrew Morton <akpm@osdl.org>
 
-s390: 
+kmem_cache_t is on the way out.
 
-In file included from include/linux/vmalloc.h:6,
-                 from arch/s390/mm/ioremap.c:16:
-include/asm/pgtable.h: In function 'page_test_and_clear_dirty':
-include/asm/pgtable.h:643: error: 'mem_map' undeclared (first use in this function)
-include/asm/pgtable.h:643: error: (Each undeclared identifier is reported only once
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Martin Bligh <mbligh@google.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/vmalloc.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/host/ehci.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3 include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3
-+++ a/include/linux/vmalloc.h
-@@ -2,6 +2,7 @@
- #define _LINUX_VMALLOC_H
+diff -puN drivers/usb/host/ehci.h~fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code drivers/usb/host/ehci.h
+--- a/drivers/usb/host/ehci.h~fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code
++++ a/drivers/usb/host/ehci.h
+@@ -73,7 +73,7 @@ struct ehci_hcd {			/* one per controlle
+ 	unsigned		periodic_sched;	/* periodic activity count */
  
- #include <linux/spinlock.h>
-+#include <linux/mmzone.h>
- #include <asm/page.h>		/* pgprot_t */
- #include <asm/pgtable.h>	/* pud_t */
+ 	char			poolname[20];	/* Shadow budget pool name */
+-	kmem_cache_t		*budget_pool;	/* Pool for shadow budget */
++	struct kmem_cache	*budget_pool;	/* Pool for shadow budget */
+ 	struct ehci_shadow_budget **budget;	/* pointer to the shadow budget
+ 						   of bandwidth placeholders */
  
 _
 
@@ -183,4 +173,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
 
