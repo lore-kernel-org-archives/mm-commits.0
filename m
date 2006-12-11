@@ -1,17 +1,17 @@
 From: akpm@osdl.org
-Subject: + sony_apci-resume-fix.patch added to -mm tree
-Date: Sun, 10 Dec 2006 23:40:03 -0800
-Message-ID: <200612110740.kBB7e3BD017545@shell0.pdx.osdl.net>
+Subject: + congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch added to -mm tree
+Date: Mon, 11 Dec 2006 00:00:04 -0800
+Message-ID: <200612110800.kBB804J4018002@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55111 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56375 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762639AbWLKHkL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 02:40:11 -0500
+	id S1762644AbWLKIAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 03:00:09 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBB7e4ID023619
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBB805ID024496
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 10 Dec 2006 23:40:08 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2006 00:00:06 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,35 +19,39 @@ Cc: akpm@osdl.org
 
 
 The patch titled
-     sony_apci-resume-fix
+     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
 has been added to the -mm tree.  Its filename is
-     sony_apci-resume-fix.patch
+     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sony_apci-resume-fix
+Subject: congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
 From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/sony_acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/backing-dev.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/sony_acpi.c~sony_apci-resume-fix drivers/acpi/sony_acpi.c
---- a/drivers/acpi/sony_acpi.c~sony_apci-resume-fix
-+++ a/drivers/acpi/sony_acpi.c
-@@ -233,7 +233,7 @@ static int sony_acpi_write(struct file *
- 	return count;
- }
+diff -puN mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug mm/backing-dev.c
+--- a/mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
++++ a/mm/backing-dev.c
+@@ -50,8 +50,11 @@ long congestion_wait(int rw, long timeou
+ 	DEFINE_WAIT(wait);
+ 	wait_queue_head_t *wqh = &congestion_wqh[rw];
  
--static int sony_acpi_resume(struct acpi_device *device, int state)
-+static int sony_acpi_resume(struct acpi_device *device)
- {
- 	struct sony_acpi_value *item;
- 
+-	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0)
++	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0) {
++		printk("%s: no pages are under writeback\n", __FUNCTION__);
++		dump_stack();
+ 		return timeout;
++	}
+ 	prepare_to_wait(wqh, &wait, TASK_UNINTERRUPTIBLE);
+ 	ret = io_schedule_timeout(timeout);
+ 	finish_wait(wqh, &wait);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -112,6 +116,7 @@ touchkit-ps-2-touchscreen-driver.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
 congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch
 slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
