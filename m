@@ -1,103 +1,101 @@
 From: akpm@osdl.org
-Subject: + memory-hotplug-fix-compile-error-for-i386-with-numa-config.patch added to -mm tree
-Date: Mon, 11 Dec 2006 12:16:30 -0800
-Message-ID: <200612112016.kBBKGUcn005912@shell0.pdx.osdl.net>
+Subject: + m68k-work-around-binutils-tokenizer-change.patch added to -mm tree
+Date: Mon, 11 Dec 2006 12:18:56 -0800
+Message-ID: <200612112018.kBBKIuZ3006031@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:32770 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33052 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937532AbWLKUQo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 15:16:44 -0500
+	id S937638AbWLKUTl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 15:19:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, ak@suse.de, rientjes@cs.washington.edu
+Cc: viro@ftp.linux.org.uk, geert@linux-m68k.org, viro@zeniv.linux.org.uk, zippel@linux-m68k.org
 
 
 The patch titled
-     memory hotplug: fix compile error for i386 with NUMA config
+     m68k: work around binutils tokenizer change
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-compile-error-for-i386-with-numa-config.patch
+     m68k-work-around-binutils-tokenizer-change.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory hotplug: fix compile error for i386 with NUMA config
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: m68k: work around binutils tokenizer change
+From: Al Viro <viro@ftp.linux.org.uk>
 
-This patch is to fix compile error when config memory hotplug with numa on
-i386.
+Recent as(1) doesn't think that .  terminates a macro name, so getuser.l is
+_not_ treated as invoking getuser with .l as the first argument. 
+arch/m68k/math-emu relies on old behaviour, so it gets a lot of undefined
+macros with more or less current binutils.
 
-The cause of compile error was missing of arch_add_memory(),
-remove_memory(), and memory_add_physaddr_to_nid().
+Note that this behaviour remains in all recent versions and is unrelated to
+another binutils problems we used to have for a while (having (%a0)+ parsed
+as two arguments).  This one is there to stay; it's an intentional and
+documented change.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@cs.washington.edu>
-Cc: Andi Kleen <ak@suse.de>
+Patch works by having a macro with name that would be treated differently
+by new and old rules; if expanded, it adds definition for getuser.b, etc.
+via getuser.  Old as(1) sees
+definition of gas_workaround with one argument
+redefinition of gas_workaround (with empty body and ignored argument)
+invocation of gas_workaround with .x as argument
+=> expands to nothing
+New as(1) sees
+definition of gas_workaround.x
+definition of gas_workaround (independent from gas_workaround.x)
+invocation of gas_workaround.x
+=> expands to definitions of getuser.l, etc.
+
+IOW, the trigger for workaround is precisely the behaviour we need to work
+around.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/mm/discontig.c |   17 +++++++++++++++++
- arch/i386/mm/init.c      |    9 +--------
- 2 files changed, 18 insertions(+), 8 deletions(-)
+ include/asm-m68k/math-emu.h |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN arch/i386/mm/discontig.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config arch/i386/mm/discontig.c
---- a/arch/i386/mm/discontig.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config
-+++ a/arch/i386/mm/discontig.c
-@@ -405,3 +405,20 @@ void __init set_highmem_pages_init(int b
- 	totalram_pages += totalhigh_pages;
- #endif
- }
-+
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+/* This is the case that there is no _PXM on DSDT for added memory */
-+int memory_add_physaddr_to_nid(u64 addr)
-+{
-+	int nid;
-+	unsigned long pfn = addr >> PAGE_SHIFT;
-+
-+	for (nid = 0; nid < MAX_NUMNODES; nid++){
-+		if (node_start_pfn[nid] <= pfn &&
-+		    pfn < node_end_pfn[nid])
-+			return nid;
-+	}
-+
-+	return 0;
-+}
-+#endif
-diff -puN arch/i386/mm/init.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config
-+++ a/arch/i386/mm/init.c
-@@ -673,16 +673,10 @@ void __init mem_init(void)
- #endif
- }
+diff -puN include/asm-m68k/math-emu.h~m68k-work-around-binutils-tokenizer-change include/asm-m68k/math-emu.h
+--- a/include/asm-m68k/math-emu.h~m68k-work-around-binutils-tokenizer-change
++++ a/include/asm-m68k/math-emu.h
+@@ -226,6 +226,20 @@ extern unsigned int fp_debugprint;
+ 	.previous
+ .endm
  
--/*
-- * this is for the non-NUMA, single node SMP system case.
-- * Specifically, in the case of x86, we will always add
-- * memory to the highmem for now.
-- */
- #ifdef CONFIG_MEMORY_HOTPLUG
--#ifndef CONFIG_NEED_MULTIPLE_NODES
- int arch_add_memory(int nid, u64 start, u64 size)
- {
--	struct pglist_data *pgdata = &contig_page_data;
-+	struct pglist_data *pgdata = NODE_DATA(nid);
- 	struct zone *zone = pgdata->node_zones + ZONE_HIGHMEM;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
-@@ -695,7 +689,6 @@ int remove_memory(u64 start, u64 size)
- 	return -EINVAL;
- }
- #endif
--#endif
++/* work around binutils idiocy */
++.macro  gas_workaround.x
++.irp	m b,w,l
++.macro  getuser.\m src,dest,label,addr
++        getuser .\m,"\src","\dest","\label","\addr"
++.endm
++.macro  putuser.\m src,dest,label,addr
++	putuser .\m,"\src","\dest","\label","\addr"
++.endm
++.endr
++.endm
++.macro  gas_workaround x=0
++.endm
++        gas_workaround.x
  
- struct kmem_cache *pgd_cache;
- struct kmem_cache *pmd_cache;
+ .macro	movestack	nr,arg1,arg2,arg3,arg4,arg5
+ 	.if	\nr
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
-memory-hotplug-fix-compile-error-for-i386-with-numa-config.patch
+origin.patch
+m68k-work-around-binutils-tokenizer-change.patch
+config_computone-should-depend-on-isaeisapci.patch
+appldata_mem-dependes-on-vm-counters.patch
+uml-problems-with-linux-ioh.patch
+missing-includes-in-hilkbd.patch
+hci-endianness-annotations.patch
+lockd-endianness-annotations-rebased.patch
+slab-leaks3-default-y.patch
 
