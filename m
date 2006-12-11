@@ -1,94 +1,79 @@
 From: akpm@osdl.org
-Subject: + get-rid-of-arch_have_xtime_lock.patch added to -mm tree
-Date: Mon, 11 Dec 2006 12:25:14 -0800
-Message-ID: <200612112025.kBBKPEXS006237@shell0.pdx.osdl.net>
+Subject: + optimize-calc_load.patch added to -mm tree
+Date: Mon, 11 Dec 2006 12:26:24 -0800
+Message-ID: <200612112026.kBBKQO9U006277@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33611 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33704 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762953AbWLKUZu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 15:25:50 -0500
+	id S1763075AbWLKU1C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 15:27:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, ak@suse.de
+Cc: dada1@cosmosbay.com, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com
 
 
 The patch titled
-     get rid of ARCH_HAVE_XTIME_LOCK
+     Optimize calc_load()
 has been added to the -mm tree.  Its filename is
-     get-rid-of-arch_have_xtime_lock.patch
+     optimize-calc_load.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get rid of ARCH_HAVE_XTIME_LOCK
+Subject: Optimize calc_load()
 From: Eric Dumazet <dada1@cosmosbay.com>
 
-ARCH_HAVE_XTIME_LOCK is used by x86_64 arch .  This arch needs to place a
-read only copy of xtime_lock into vsyscall page.  This read only copy is
-named __xtime_lock, and xtime_lock is defined in
-arch/x86_64/kernel/vmlinux.lds.S as an alias.  So the declaration of
-xtime_lock in kernel/timer.c was guarded by ARCH_HAVE_XTIME_LOCK define,
-defined to true on x86_64.
+calc_load() is called by timer interrupt to update avenrun[].  It currently
+calls nr_active() at each timer tick (HZ per second), while the update of
+avenrun[] is done only once every 5 seconds.  (LOAD_FREQ=5 Hz)
 
-We can get same result with _attribute__((weak)) in the declaration. linker
-should do the job.
+nr_active() is quite expensive on SMP machines, since it has to sum up
+nr_running and nr_uninterruptible of all online CPUS, bringing foreign
+dirty cache lines.
+
+This patch is an optimization of calc_load() so that nr_active() is called
+only if we need it.
+
+The use of unlikely() is welcome since the condition is true only once every
+5*HZ time.
 
 Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-x86_64/vsyscall.h |    5 -----
- include/linux/time.h          |    2 +-
- kernel/timer.c                |    4 +---
- 3 files changed, 2 insertions(+), 9 deletions(-)
+ kernel/timer.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-x86_64/vsyscall.h~get-rid-of-arch_have_xtime_lock include/asm-x86_64/vsyscall.h
---- a/include/asm-x86_64/vsyscall.h~get-rid-of-arch_have_xtime_lock
-+++ a/include/asm-x86_64/vsyscall.h
-@@ -56,11 +56,6 @@ extern struct vxtime_data vxtime;
- extern int vgetcpu_mode;
- extern struct timezone sys_tz;
- extern int sysctl_vsyscall;
--extern seqlock_t xtime_lock;
--
--extern int sysctl_vsyscall;
--
--#define ARCH_HAVE_XTIME_LOCK 1
- 
- #endif /* __KERNEL__ */
- 
-diff -puN include/linux/time.h~get-rid-of-arch_have_xtime_lock include/linux/time.h
---- a/include/linux/time.h~get-rid-of-arch_have_xtime_lock
-+++ a/include/linux/time.h
-@@ -90,7 +90,7 @@ static inline struct timespec timespec_s
- 
- extern struct timespec xtime;
- extern struct timespec wall_to_monotonic;
--extern seqlock_t xtime_lock;
-+extern seqlock_t xtime_lock __attribute__((weak));
- 
- void timekeeping_init(void);
- 
-diff -puN kernel/timer.c~get-rid-of-arch_have_xtime_lock kernel/timer.c
---- a/kernel/timer.c~get-rid-of-arch_have_xtime_lock
+diff -puN kernel/timer.c~optimize-calc_load kernel/timer.c
+--- a/kernel/timer.c~optimize-calc_load
 +++ a/kernel/timer.c
-@@ -1158,11 +1158,9 @@ static inline void calc_load(unsigned lo
-  * This read-write spinlock protects us from races in SMP while
-  * playing with xtime and avenrun.
-  */
--#ifndef ARCH_HAVE_XTIME_LOCK
--__cacheline_aligned_in_smp DEFINE_SEQLOCK(xtime_lock);
-+__attribute__((weak)) __cacheline_aligned_in_smp DEFINE_SEQLOCK(xtime_lock);
+@@ -1146,11 +1146,15 @@ static inline void calc_load(unsigned lo
+ 	unsigned long active_tasks; /* fixed-point */
+ 	static int count = LOAD_FREQ;
  
- EXPORT_SYMBOL(xtime_lock);
--#endif
+-	active_tasks = count_active_tasks();
+-	for (count -= ticks; count < 0; count += LOAD_FREQ) {
+-		CALC_LOAD(avenrun[0], EXP_1, active_tasks);
+-		CALC_LOAD(avenrun[1], EXP_5, active_tasks);
+-		CALC_LOAD(avenrun[2], EXP_15, active_tasks);
++	count -= ticks;
++	if (unlikely(count < 0)) {
++		active_tasks = count_active_tasks();
++		do {
++			CALC_LOAD(avenrun[0], EXP_1, active_tasks);
++			CALC_LOAD(avenrun[1], EXP_5, active_tasks);
++			CALC_LOAD(avenrun[2], EXP_15, active_tasks);
++			count += LOAD_FREQ;
++		} while (count < 0);
+ 	}
+ }
  
- /*
-  * This function runs timers and the timer-tq in bottom half context.
 _
 
 Patches currently in -mm which might be from dada1@cosmosbay.com are
@@ -99,4 +84,5 @@ convert-i386-pda-code-to-use-%fs-fixes.patch
 get-rid-of-arch_have_xtime_lock.patch
 slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
 slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+optimize-calc_load.patch
 
