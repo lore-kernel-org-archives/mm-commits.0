@@ -1,50 +1,50 @@
 From: akpm@osdl.org
-Subject: + git-mtd-build-fix.patch added to -mm tree
-Date: Sun, 10 Dec 2006 22:15:14 -0800
-Message-ID: <200612110616.kBB6GUJ5015746@shell0.pdx.osdl.net>
+Subject: + ecryptfs-public-key-packet-management-slab-fix.patch added to -mm tree
+Date: Sun, 10 Dec 2006 22:17:06 -0800
+Message-ID: <200612110618.kBB6IM8H015797@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48750 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48833 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762559AbWLKGQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 01:16:42 -0500
+	id S1762575AbWLKGS1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 01:18:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dwmw2@infradead.org
+Cc: akpm@osdl.org, mhalcrow@us.ibm.com
 
 
 The patch titled
-     git-mtd-build-fix
+     ecryptfs-public-key-packet-management-slab-fix
 has been added to the -mm tree.  Its filename is
-     git-mtd-build-fix.patch
+     ecryptfs-public-key-packet-management-slab-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mtd-build-fix
+Subject: ecryptfs-public-key-packet-management-slab-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/ssfdc.c |    2 +-
+ fs/ecryptfs/keystore.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/ssfdc.c~git-mtd-build-fix drivers/mtd/ssfdc.c
---- a/drivers/mtd/ssfdc.c~git-mtd-build-fix
-+++ a/drivers/mtd/ssfdc.c
-@@ -445,7 +445,7 @@ static struct mtd_blktrans_ops ssfdcr_tr
- 	.name		= "ssfdc",
- 	.major		= SSFDCR_MAJOR,
- 	.part_bits	= SSFDCR_PARTN_BITS,
--	.blksize	= SECTOR_SIZE;
-+	.blksize	= SECTOR_SIZE,
- 	.getgeo		= ssfdcr_getgeo,
- 	.readsect	= ssfdcr_readsect,
- 	.add_mtd	= ssfdcr_add_mtd,
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-public-key-packet-management-slab-fix fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-public-key-packet-management-slab-fix
++++ a/fs/ecryptfs/keystore.c
+@@ -538,7 +538,7 @@ parse_tag_1_packet(struct ecryptfs_crypt
+ 	 * at end of function upon failure */
+ 	auth_tok_list_item =
+ 		kmem_cache_alloc(ecryptfs_auth_tok_list_item_cache,
+-				 SLAB_KERNEL);
++				 GFP_KERNEL);
+ 	if (!auth_tok_list_item) {
+ 		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
+ 		rc = -ENOMEM;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -111,6 +111,7 @@ drivers-add-lcd-support-3-Kconfig-fix.patch
 drivers-add-lcd-support-workqueue-fixups.patch
 touch_atime-cleanup.patch
 ocfs2-relative-atime-support-tweaks.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
 add-retain_initrd-boot-option-tweak.patch
 lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
