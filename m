@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + clockevents-make-apicc-exports-gpl-remove-fastcall-attributes.patch added to -mm tree
-Date: Mon, 11 Dec 2006 13:35:00 -0800
-Message-ID: <200612112135.kBBLZ0Hq008336@shell0.pdx.osdl.net>
+Subject: + updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies.patch added to -mm tree
+Date: Mon, 11 Dec 2006 13:37:06 -0800
+Message-ID: <200612112137.kBBLb6EN008401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38929 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39083 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763136AbWLKVfK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 16:35:10 -0500
+	id S937052AbWLKVhQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Dec 2006 16:37:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,82 +15,71 @@ Cc: tglx@linutronix.de, mingo@elte.hu
 
 
 The patch titled
-     clockevents: make apic.c exports GPL, remove fastcall attributes
+     clockevents: i8253.c, remove HPET dependencies
 has been added to the -mm tree.  Its filename is
-     clockevents-make-apicc-exports-gpl-remove-fastcall-attributes.patch
+     updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clockevents: make apic.c exports GPL, remove fastcall attributes
+Subject: clockevents: i8253.c, remove HPET dependencies
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Address more review feedback from Arjan: make apic.c exports _GPL, remove
-fastcall attributes.
+Remove HPET dependencies from the PIT driver.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/apic.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/i386/kernel/i8253.c |    4 ----
+ include/asm-i386/i8253.h |    5 -----
+ 2 files changed, 9 deletions(-)
 
-diff -puN arch/i386/kernel/apic.c~clockevents-make-apicc-exports-gpl-remove-fastcall-attributes arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~clockevents-make-apicc-exports-gpl-remove-fastcall-attributes
-+++ a/arch/i386/kernel/apic.c
-@@ -509,7 +509,7 @@ void switch_APIC_timer_to_ipi(void *cpum
- 	if (cpu_isset(cpu, mask) && levt->event_handler)
- 		clockevents_set_global_broadcast(levt, 1);
+diff -puN arch/i386/kernel/i8253.c~updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies
++++ a/arch/i386/kernel/i8253.c
+@@ -19,13 +19,11 @@
+ DEFINE_SPINLOCK(i8253_lock);
+ EXPORT_SYMBOL(i8253_lock);
+ 
+-#ifdef CONFIG_HPET_TIMER
+ /*
+  * HPET replaces the PIT, when enabled. So we need to know, which of
+  * the two timers is used
+  */
+ struct clock_event_device *global_clock_event;
+-#endif
+ 
+ /*
+  * Initialize the PIT timer.
+@@ -103,9 +101,7 @@ void __init setup_pit_timer(void)
+ 	pit_clockevent.min_delta_ns =
+ 		clockevent_delta2ns(0xF, &pit_clockevent);
+ 	register_global_clockevent(&pit_clockevent);
+-#ifdef CONFIG_HPET_TIMER
+ 	global_clock_event = &pit_clockevent;
+-#endif
  }
--EXPORT_SYMBOL(switch_APIC_timer_to_ipi);
-+EXPORT_SYMBOL_GPL(switch_APIC_timer_to_ipi);
- 
- void switch_ipi_to_APIC_timer(void *cpumask)
- {
-@@ -520,12 +520,12 @@ void switch_ipi_to_APIC_timer(void *cpum
- 	if (cpu_isset(cpu, mask) && levt->event_handler)
- 		clockevents_set_global_broadcast(levt, 0);
- }
--EXPORT_SYMBOL(switch_ipi_to_APIC_timer);
-+EXPORT_SYMBOL_GPL(switch_ipi_to_APIC_timer);
  
  /*
-  * The guts of the apic timer interrupt
-  */
--static fastcall void local_apic_timer_interrupt(struct pt_regs *regs)
-+static void local_apic_timer_interrupt(struct pt_regs *regs)
- {
- 	int cpu = smp_processor_id();
- 	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
-@@ -577,7 +577,7 @@ static fastcall void local_apic_timer_in
-  *   interrupt as well. Thus we cannot inline the local irq ... ]
-  */
+diff -puN include/asm-i386/i8253.h~updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies include/asm-i386/i8253.h
+--- a/include/asm-i386/i8253.h~updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies
++++ a/include/asm-i386/i8253.h
+@@ -5,12 +5,7 @@
  
--fastcall void smp_apic_timer_interrupt(struct pt_regs *regs)
-+void smp_apic_timer_interrupt(struct pt_regs *regs)
- {
- 	struct pt_regs *old_regs = set_irq_regs(regs);
+ extern spinlock_t i8253_lock;
  
-@@ -1284,7 +1284,7 @@ __setup("apic=", apic_set_verbosity);
- /*
-  * This interrupt should _never_ happen with our APIC/SMP architecture
-  */
--fastcall void smp_spurious_interrupt(struct pt_regs *regs)
-+void smp_spurious_interrupt(struct pt_regs *regs)
- {
- 	unsigned long v;
+-#ifdef CONFIG_HPET_TIMER
+ extern struct clock_event_device *global_clock_event;
+-#else
+-extern struct clock_event_device pit_clockevent;
+-# define global_clock_event (&pit_clockevent)
+-#endif
  
-@@ -1308,7 +1308,7 @@ fastcall void smp_spurious_interrupt(str
- /*
-  * This interrupt should never happen with our APIC/SMP architecture
-  */
--fastcall void smp_error_interrupt(struct pt_regs *regs)
-+void smp_error_interrupt(struct pt_regs *regs)
- {
- 	unsigned long v, v1;
- 
+ /**
+  * pit_interrupt_hook - hook into timer tick
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
@@ -124,6 +113,7 @@ updated-i386-convert-to-clock-event-devices.patch
 updated-i386-convert-to-clock-event-devices-fix.patch
 updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
 updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
+updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies.patch
 updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
 updated-i386-rework-local-apic-calibration.patch
 updated-high-res-timers-core.patch
@@ -141,6 +131,5 @@ updated-debugging-feature-timer-stats.patch
 clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
 clockevents-convert-hpet-to-clockevents.patch
 clockevents-make-apicc-exports-gpl-remove-fastcall-attributes.patch
-clockevents-i8253c-remove-hpet-dependencies.patch
 clockevents-remove-ptregs-argument-from-handlers.patch
 
