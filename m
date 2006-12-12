@@ -1,106 +1,182 @@
 From: akpm@osdl.org
-Subject: + xtensa-add-ktermios-and-minor-filename-fix.patch added to -mm tree
-Date: Tue, 12 Dec 2006 12:50:28 -0800
-Message-ID: <200612122050.kBCKoSL2015391@shell0.pdx.osdl.net>
+Subject: + kobject-kobject_uevent-returns-manageable-value.patch added to -mm tree
+Date: Tue, 12 Dec 2006 12:56:29 -0800
+Message-ID: <200612122056.kBCKuTN9015499@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40389 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40668 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932353AbWLLUuj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 15:50:39 -0500
+	id S932361AbWLLU4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 15:56:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: czankel@tensilica.com, alan@lxorguk.ukuu.org.uk, chris@zankel.net
+Cc: aneesh.kumar@gmail.com, greg@kroah.com, mauriciolin@gmail.com
 
 
 The patch titled
-     Xtensa: Add ktermios and minor filename fix
+     kobject: kobject_uevent() returns manageable value
 has been added to the -mm tree.  Its filename is
-     xtensa-add-ktermios-and-minor-filename-fix.patch
+     kobject-kobject_uevent-returns-manageable-value.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xtensa: Add ktermios and minor filename fix
-From: Chris Zankel <czankel@tensilica.com>
+Subject: kobject: kobject_uevent() returns manageable value
+From: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
 
-The kernel termios (ktermios) changes were somehow missed for Xtensa.  This
-patch adds the ktermios structure and also includes some minor file name
-fix that was missed in the syscall patch.
+Since kobject_uevent() function does not return an integer value to
+indicate if its operation was completed with success or not, it is worth
+changing it in order to report a proper status (success or error) instead
+of returning void.
 
-Signed-off-by: Chris Zankel <chris@zankel.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Mauricio Lin <mauriciolin@gmail.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/xtensa/kernel/Makefile   |    2 +-
- arch/xtensa/kernel/syscall.c  |    2 +-
- include/asm-xtensa/termbits.h |   11 +++++++++++
- include/asm-xtensa/uaccess.h  |    1 -
- 4 files changed, 13 insertions(+), 3 deletions(-)
+ include/linux/kobject.h |    8 +++---
+ lib/kobject_uevent.c    |   44 +++++++++++++++++++++++++-------------
+ 2 files changed, 34 insertions(+), 18 deletions(-)
 
-diff -puN arch/xtensa/kernel/Makefile~xtensa-add-ktermios-and-minor-filename-fix arch/xtensa/kernel/Makefile
---- a/arch/xtensa/kernel/Makefile~xtensa-add-ktermios-and-minor-filename-fix
-+++ a/arch/xtensa/kernel/Makefile
-@@ -6,7 +6,7 @@ extra-y := head.o vmlinux.lds
+diff -puN include/linux/kobject.h~kobject-kobject_uevent-returns-manageable-value include/linux/kobject.h
+--- a/include/linux/kobject.h~kobject-kobject_uevent-returns-manageable-value
++++ a/include/linux/kobject.h
+@@ -265,8 +265,8 @@ extern int __must_check subsys_create_fi
+ 					struct subsys_attribute *);
  
+ #if defined(CONFIG_HOTPLUG)
+-void kobject_uevent(struct kobject *kobj, enum kobject_action action);
+-void kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
++int kobject_uevent(struct kobject *kobj, enum kobject_action action);
++int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+ 			char *envp[]);
  
- obj-y := align.o entry.o irq.o coprocessor.o process.o ptrace.o semaphore.o  \
--	 setup.o signal.o syscalls.o time.o traps.o vectors.o platform.o  \
-+	 setup.o signal.o syscall.o time.o traps.o vectors.o platform.o  \
- 	 pci-dma.o
- 
- ## windowspill.o
-diff -puN arch/xtensa/kernel/syscall.c~xtensa-add-ktermios-and-minor-filename-fix arch/xtensa/kernel/syscall.c
---- a/arch/xtensa/kernel/syscall.c~xtensa-add-ktermios-and-minor-filename-fix
-+++ a/arch/xtensa/kernel/syscall.c
-@@ -16,7 +16,7 @@
-  *
+ int add_uevent_var(char **envp, int num_envp, int *cur_index,
+@@ -274,8 +274,8 @@ int add_uevent_var(char **envp, int num_
+ 			const char *format, ...)
+ 	__attribute__((format (printf, 7, 8)));
+ #else
+-static inline void kobject_uevent(struct kobject *kobj, enum kobject_action action) { }
+-static inline void kobject_uevent_env(struct kobject *kobj,
++static inline int kobject_uevent(struct kobject *kobj, enum kobject_action action) { }
++static inline int kobject_uevent_env(struct kobject *kobj,
+ 				      enum kobject_action action,
+ 				      char *envp[])
+ { }
+diff -puN lib/kobject_uevent.c~kobject-kobject_uevent-returns-manageable-value lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~kobject-kobject_uevent-returns-manageable-value
++++ a/lib/kobject_uevent.c
+@@ -63,8 +63,11 @@ static char *action_to_string(enum kobje
+  * @action: action that is happening (usually KOBJ_MOVE)
+  * @kobj: struct kobject that the action is happening to
+  * @envp_ext: pointer to environmental data
++ *
++ * Returns 0 if kobject_uevent() is completed with success or the
++ * corresponding error when it fails.
   */
- #include <asm/uaccess.h>
--#include <asm/syscalls.h>
-+#include <asm/syscall.h>
- #include <asm/unistd.h>
- #include <linux/linkage.h>
- #include <linux/stringify.h>
-diff -puN include/asm-xtensa/termbits.h~xtensa-add-ktermios-and-minor-filename-fix include/asm-xtensa/termbits.h
---- a/include/asm-xtensa/termbits.h~xtensa-add-ktermios-and-minor-filename-fix
-+++ a/include/asm-xtensa/termbits.h
-@@ -30,6 +30,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
+-void kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
++int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+ 			char *envp_ext[])
+ {
+ 	char **envp;
+@@ -79,14 +82,16 @@ void kobject_uevent_env(struct kobject *
+ 	u64 seq;
+ 	char *seq_buff;
+ 	int i = 0;
+-	int retval;
++	int retval = 0;
+ 	int j;
  
-+struct ktermios {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- /* c_cc characters */
+ 	pr_debug("%s\n", __FUNCTION__);
  
- #define VINTR 0
-diff -puN include/asm-xtensa/uaccess.h~xtensa-add-ktermios-and-minor-filename-fix include/asm-xtensa/uaccess.h
---- a/include/asm-xtensa/uaccess.h~xtensa-add-ktermios-and-minor-filename-fix
-+++ a/include/asm-xtensa/uaccess.h
-@@ -23,7 +23,6 @@
+ 	action_string = action_to_string(action);
+-	if (!action_string)
+-		return;
++	if (!action_string) {
++		pr_debug("kobject attempted to send uevent without action_string!\n");
++		return -EINVAL;
++	}
  
- #ifdef __ASSEMBLY__
+ 	/* search the kset we belong to */
+ 	top_kobj = kobj;
+@@ -95,31 +100,39 @@ void kobject_uevent_env(struct kobject *
+ 			top_kobj = top_kobj->parent;
+ 		} while (!top_kobj->kset && top_kobj->parent);
+ 	}
+-	if (!top_kobj->kset)
+-		return;
++	if (!top_kobj->kset) {
++		pr_debug("kobject attempted to send uevent without kset!\n");
++		return -EINVAL;
++	}
  
--#define _ASMLANGUAGE
- #include <asm/current.h>
- #include <asm/asm-offsets.h>
- #include <asm/processor.h>
+ 	kset = top_kobj->kset;
+ 	uevent_ops = kset->uevent_ops;
+ 
+ 	/*  skip the event, if the filter returns zero. */
+ 	if (uevent_ops && uevent_ops->filter)
+-		if (!uevent_ops->filter(kset, kobj))
+-			return;
++		if (!uevent_ops->filter(kset, kobj)) {
++			pr_debug("kobject filter function caused the event to drop!\n");
++			return 0;
++		}
+ 
+ 	/* environment index */
+ 	envp = kzalloc(NUM_ENVP * sizeof (char *), GFP_KERNEL);
+ 	if (!envp)
+-		return;
++		return -ENOMEM;
+ 
+ 	/* environment values */
+ 	buffer = kmalloc(BUFFER_SIZE, GFP_KERNEL);
+-	if (!buffer)
++	if (!buffer) {
++		retval = -ENOMEM;
+ 		goto exit;
++	}
+ 
+ 	/* complete object path */
+ 	devpath = kobject_get_path(kobj, GFP_KERNEL);
+-	if (!devpath)
++	if (!devpath) {
++		retval = -ENOENT;
+ 		goto exit;
++	}
+ 
+ 	/* originating subsystem */
+ 	if (uevent_ops && uevent_ops->name)
+@@ -204,7 +217,7 @@ exit:
+ 	kfree(devpath);
+ 	kfree(buffer);
+ 	kfree(envp);
+-	return;
++	return retval;
+ }
+ 
+ EXPORT_SYMBOL_GPL(kobject_uevent_env);
+@@ -214,10 +227,13 @@ EXPORT_SYMBOL_GPL(kobject_uevent_env);
+  *
+  * @action: action that is happening (usually KOBJ_ADD and KOBJ_REMOVE)
+  * @kobj: struct kobject that the action is happening to
++ *
++ * Returns 0 if kobject_uevent() is completed with success or the
++ * corresponding error when it fails.
+  */
+-void kobject_uevent(struct kobject *kobj, enum kobject_action action)
++int kobject_uevent(struct kobject *kobj, enum kobject_action action)
+ {
+-	kobject_uevent_env(kobj, action, NULL);
++	return kobject_uevent_env(kobj, action, NULL);
+ }
+ 
+ EXPORT_SYMBOL_GPL(kobject_uevent);
 _
 
-Patches currently in -mm which might be from czankel@tensilica.com are
+Patches currently in -mm which might be from aneesh.kumar@gmail.com are
 
-origin.patch
-xtensa-add-ktermios-and-minor-filename-fix.patch
+kobject-kobject_uevent-returns-manageable-value.patch
 
