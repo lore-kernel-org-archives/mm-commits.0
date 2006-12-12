@@ -1,101 +1,50 @@
 From: akpm@osdl.org
-Subject: + proper-prototype-for-drivers-base-initcdriver_init.patch added to -mm tree
-Date: Tue, 12 Dec 2006 13:27:40 -0800
-Message-ID: <200612122127.kBCLReUW016247@shell0.pdx.osdl.net>
+Subject: + one-more-export_unused_symbol-removal.patch added to -mm tree
+Date: Tue, 12 Dec 2006 13:27:25 -0800
+Message-ID: <200612122127.kBCLRPfO016239@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43597 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43963 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932365AbWLLV1s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 16:27:48 -0500
+	id S932367AbWLLVai (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 16:30:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, greg@kroah.com, hmh@hmh.eng.br
+Cc: bunk@stusta.de
 
 
 The patch titled
-     proper prototype for drivers/base/init.c:driver_init()
+     one more EXPORT_UNUSED_SYMBOL removal
 has been added to the -mm tree.  Its filename is
-     proper-prototype-for-drivers-base-initcdriver_init.patch
+     one-more-export_unused_symbol-removal.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proper prototype for drivers/base/init.c:driver_init()
+Subject: one more EXPORT_UNUSED_SYMBOL removal
 From: Adrian Bunk <bunk@stusta.de>
 
-Add a prototype for driver_init() in include/linux/device.h.
-
-Also remove a static function of the same name in drivers/acpi/ibm_acpi.c to
-ibm_acpi_driver_init() to fix the namespace collision.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/ibm_acpi.c |    4 ++--
- include/linux/device.h  |    2 ++
- init/main.c             |    2 +-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ fs/read_write.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/acpi/ibm_acpi.c~proper-prototype-for-drivers-base-initcdriver_init drivers/acpi/ibm_acpi.c
---- a/drivers/acpi/ibm_acpi.c~proper-prototype-for-drivers-base-initcdriver_init
-+++ a/drivers/acpi/ibm_acpi.c
-@@ -493,7 +493,7 @@ static char *next_cmd(char **cmds)
- 	return start;
+diff -puN fs/read_write.c~one-more-export_unused_symbol-removal fs/read_write.c
+--- a/fs/read_write.c~one-more-export_unused_symbol-removal
++++ a/fs/read_write.c
+@@ -450,8 +450,6 @@ unsigned long iov_shorten(struct iovec *
+ 	return seg;
  }
  
--static int driver_init(void)
-+static int ibm_acpi_driver_init(void)
+-EXPORT_UNUSED_SYMBOL(iov_shorten);  /*  June 2006  */
+-
+ ssize_t do_sync_readv_writev(struct file *filp, const struct iovec *iov,
+ 		unsigned long nr_segs, size_t len, loff_t *ppos, iov_fn_t fn)
  {
- 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
- 	printk(IBM_INFO "%s\n", IBM_URL);
-@@ -2297,7 +2297,7 @@ static void fan_watchdog_fire(struct wor
- static struct ibm_struct ibms[] = {
- 	{
- 	 .name = "driver",
--	 .init = driver_init,
-+	 .init = ibm_acpi_driver_init,
- 	 .read = driver_read,
- 	 },
- 	{
-diff -puN /dev/null /dev/null
-diff -puN include/linux/device.h~proper-prototype-for-drivers-base-initcdriver_init include/linux/device.h
---- a/include/linux/device.h~proper-prototype-for-drivers-base-initcdriver_init
-+++ a/include/linux/device.h
-@@ -433,6 +433,8 @@ static inline int device_is_registered(s
- 	return dev->is_registered;
- }
- 
-+void driver_init(void);
-+
- /*
-  * High level routines for use by the bus drivers
-  */
-diff -puN /dev/null /dev/null
-diff -puN init/main.c~proper-prototype-for-drivers-base-initcdriver_init init/main.c
---- a/init/main.c~proper-prototype-for-drivers-base-initcdriver_init
-+++ a/init/main.c
-@@ -53,6 +53,7 @@
- #include <linux/utsrelease.h>
- #include <linux/pid_namespace.h>
- #include <linux/compile.h>
-+#include <linux/device.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -95,7 +96,6 @@ extern void prio_tree_init(void);
- extern void radix_tree_init(void);
- extern void free_initmem(void);
- extern void populate_rootfs(void);
--extern void driver_init(void);
- extern void prepare_namespace(void);
- #ifdef	CONFIG_ACPI
- extern void acpi_early_init(void);
 diff -puN /dev/null /dev/null
 _
 
