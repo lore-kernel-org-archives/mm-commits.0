@@ -1,62 +1,8621 @@
 From: akpm@osdl.org
-Subject: + lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix-fix.patch added to -mm tree
-Date: Tue, 12 Dec 2006 13:19:31 -0800
-Message-ID: <200612122119.kBCLJVlv016075@shell0.pdx.osdl.net>
+Subject: + remove-broken-video-drivers-v4.patch added to -mm tree
+Date: Tue, 12 Dec 2006 13:18:15 -0800
+Message-ID: <200612122118.kBCLIFZh016053@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42793 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43043 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932367AbWLLVTh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 16:19:37 -0500
+	id S932371AbWLLVWA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 16:22:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarkao2@o2.pl, mingo@elte.hu
+Cc: bunk@stusta.de, geert@linux-m68k.org, jsimmons@infradead.org
 
 
 The patch titled
-     lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix fix
+     remove broken video drivers
 has been added to the -mm tree.  Its filename is
-     lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix-fix.patch
+     remove-broken-video-drivers-v4.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix fix
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: remove broken video drivers
+=46rom: Adrian Bunk <bunk@stusta.de>
 
-build fix's refix
+Remove some video drivers that:
 
-Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
+- had already been marked as BROKEN in 2.6.0 three years ago and
+- are still marked as BROKEN.
+
+These are the following drivers:
+- FB_CYBER
+- FB_VIRGE
+- FB_RETINAZ3
+- FB_SUN3
+
+Drivers that had been marked as BROKEN for such a long time seem to be
+unlikely to be revived in the forseeable future.
+
+But if anyone wants to ever revive any of these drivers, the code is
+still present in the older kernel releases.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-By: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/Kconfig   |   46=20
+ drivers/video/Makefile  |    4=20
+ drivers/video/cyberfb.c | 2295 ----------------------------------
+ drivers/video/cyberfb.h |  415 ------
+ drivers/video/retz3fb.c | 1588 -----------------------
+ drivers/video/retz3fb.h |  286 ----
+ drivers/video/sun3fb.c  |  702 ----------
+ drivers/video/virgefb.c | 2526 --------------------------------------
+ drivers/video/virgefb.h |  288 ----
+ 9 files changed, 3 insertions(+), 8147 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix-fix kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix-fix
-+++ a/kernel/lockdep.c
-@@ -1760,8 +1760,8 @@ static int mark_lock(struct task_struct 
- 		debug_atomic_dec(&nr_unused_locks);
- 		break;
- 	default:
--		__raw_spin_unlock(&lockdep_lock);
--		debug_locks_off();
-+		if (!debug_locks_off_graph_unlock())
-+			return 0;
- 		WARN_ON(1);
- 		return 0;
- 	}
+diff -puN drivers/video/Kconfig~remove-broken-video-drivers-v4 drivers/=
+video/Kconfig
+--- a/drivers/video/Kconfig~remove-broken-video-drivers-v4
++++ a/drivers/video/Kconfig
+@@ -364,42 +364,6 @@ config FB_AMIGA_AGA
+ 	  and CD32. If you intend to run Linux on any of these systems, say Y=
+;
+ 	  otherwise say N.
+=20
+-config FB_CYBER
+-	tristate "Amiga CyberVision 64 support"
+-	depends on FB && ZORRO && BROKEN
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This enables support for the Cybervision 64 graphics card from
+-	  Phase5. Please note that its use is not all that intuitive (i.e. if
+-	  you have any questions, be sure to ask!). Say N unless you have a
+-	  Cybervision 64 or plan to get one before you next recompile the
+-	  kernel. Please note that this driver DOES NOT support the
+-	  Cybervision 64/3D card, as they use incompatible video chips.
+-
+-config FB_VIRGE
+-	bool "Amiga CyberVision 64/3D support "
+-	depends on (FB =3D y) && ZORRO && BROKEN
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This enables support for the Cybervision 64/3D graphics card from
+-	  Phase5. Please note that its use is not all that intuitive (i.e. if
+-	  you have any questions, be sure to ask!). Say N unless you have a
+-	  Cybervision 64/3D or plan to get one before you next recompile the
+-	  kernel. Please note that this driver DOES NOT support the older
+-	  Cybervision 64 card, as they use incompatible video chips.
+-
+-config FB_RETINAZ3
+-	tristate "Amiga Retina Z3 support"
+-	depends on (FB =3D y) && ZORRO && BROKEN
+-	help
+-	  This enables support for the Retina Z3 graphics card. Say N unless
+-	  you have a Retina Z3 or plan to get one before you next recompile
+-	  the kernel.
+-
+ config FB_FM2
+ 	bool "Amiga FrameMaster II/Rainbow II support"
+ 	depends on (FB =3D y) && ZORRO
+@@ -635,10 +599,6 @@ config FB_GBE_MEM
+ 	  This is the amount of memory reserved for the framebuffer,
+ 	  which can be any value between 1MB and 8MB.
+=20
+-config FB_SUN3
+-	bool "Sun3 framebuffer support"
+-	depends on (FB =3D y) && (SUN3 || SUN3X) && BROKEN
+-
+ config FB_SBUS
+ 	bool "SBUS and UPA framebuffers"
+ 	depends on (FB =3D y) && SPARC
+@@ -647,7 +607,7 @@ config FB_SBUS
+=20
+ config FB_BW2
+ 	bool "BWtwo support"
+-	depends on (FB =3D y) && (SPARC && FB_SBUS || (SUN3 || SUN3X) && FB_S=
+UN3)
++	depends on (FB =3D y) && (SPARC && FB_SBUS)
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+@@ -656,7 +616,7 @@ config FB_BW2
+=20
+ config FB_CG3
+ 	bool "CGthree support"
+-	depends on (FB =3D y) && (SPARC && FB_SBUS || (SUN3 || SUN3X) && FB_S=
+UN3)
++	depends on (FB =3D y) && (SPARC && FB_SBUS)
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+@@ -665,7 +625,7 @@ config FB_CG3
+=20
+ config FB_CG6
+ 	bool "CGsix (GX,TurboGX) support"
+-	depends on (FB =3D y) && (SPARC && FB_SBUS || (SUN3 || SUN3X) && FB_S=
+UN3)
++	depends on (FB =3D y) && (SPARC && FB_SBUS)
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	help
+diff -puN /dev/null /dev/null
+diff -puN drivers/video/Makefile~remove-broken-video-drivers-v4 drivers=
+/video/Makefile
+--- a/drivers/video/Makefile~remove-broken-video-drivers-v4
++++ a/drivers/video/Makefile
+@@ -22,11 +22,9 @@ obj-$(CONFIG_FB_MACMODES)      +=3D macmod
+ obj-$(CONFIG_FB_DDC)           +=3D fb_ddc.o
+=20
+ # Hardware specific drivers go first
+-obj-$(CONFIG_FB_RETINAZ3)         +=3D retz3fb.o
+ obj-$(CONFIG_FB_AMIGA)            +=3D amifb.o c2p.o
+ obj-$(CONFIG_FB_ARC)              +=3D arcfb.o
+ obj-$(CONFIG_FB_CLPS711X)         +=3D clps711xfb.o
+-obj-$(CONFIG_FB_CYBER)            +=3D cyberfb.o
+ obj-$(CONFIG_FB_CYBER2000)        +=3D cyber2000fb.o
+ obj-$(CONFIG_FB_PM2)              +=3D pm2fb.o
+ obj-$(CONFIG_FB_PM3)		  +=3D pm3fb.o
+@@ -44,7 +42,6 @@ obj-$(CONFIG_FB_GEODE)		  +=3D geode/
+ obj-$(CONFIG_FB_MBX)		  +=3D mbx/
+ obj-$(CONFIG_FB_I810)             +=3D vgastate.o
+ obj-$(CONFIG_FB_NEOMAGIC)         +=3D neofb.o vgastate.o
+-obj-$(CONFIG_FB_VIRGE)            +=3D virgefb.o
+ obj-$(CONFIG_FB_3DFX)             +=3D tdfxfb.o
+ obj-$(CONFIG_FB_CONTROL)          +=3D controlfb.o
+ obj-$(CONFIG_FB_PLATINUM)         +=3D platinumfb.o
+@@ -77,7 +74,6 @@ obj-$(CONFIG_FB_TGA)              +=3D tga
+ obj-$(CONFIG_FB_HP300)            +=3D hpfb.o
+ obj-$(CONFIG_FB_G364)             +=3D g364fb.o
+ obj-$(CONFIG_FB_SA1100)           +=3D sa1100fb.o
+-obj-$(CONFIG_FB_SUN3)             +=3D sun3fb.o
+ obj-$(CONFIG_FB_HIT)              +=3D hitfb.o
+ obj-$(CONFIG_FB_EPSON1355)	  +=3D epson1355fb.o
+ obj-$(CONFIG_FB_PVR2)             +=3D pvr2fb.o
+diff -puN /dev/null /dev/null
+diff -puN drivers/video/cyberfb.c~remove-broken-video-drivers-v4 /dev/n=
+ull
+--- a/drivers/video/cyberfb.c
++++ /dev/null
+@@ -1,2295 +0,0 @@
+-/*
+-* linux/drivers/video/cyberfb.c -- CyberVision64 frame buffer device
+-* $Id: cyberfb.c,v 1.6 1998/09/11 04:54:58 abair Exp $
+-*
+-*    Copyright (C) 1998 Alan Bair
+-*
+-* This file is based on two CyberVision64 frame buffer device drivers
+-*
+-* The second CyberVision64 frame buffer device (cvision.c cvision_core=
+=2Ec):
+-*
+-*   Copyright (c) 1997 Antonio Santos
+-*
+-* Released as a patch to 2.1.35, but never included in the source tree=
+=2E
+-* This is based on work from the NetBSD CyberVision64 frame buffer dri=
+ver=20
+-* and support files (grf_cv.c, grf_cvreg.h, ite_cv.c):
+-* Permission to use the source of this driver was obtained from the
+-* author Michael Teske by Alan Bair.
+-*
+-*   Copyright (c) 1995 Michael Teske
+-*
+-* The first CyberVision64 frame buffer device (cyberfb.c):
+-*
+-*    Copyright (C) 1996 Martin Apel
+-*                       Geert Uytterhoeven
+-*
+-* Which is based on the Amiga frame buffer device (amifb.c):
+-*
+-*    Copyright (C) 1995 Geert Uytterhoeven
+-*
+-*
+-* History:
+-*   - 22 Dec 95: Original version by Martin Apel
+-*   - 05 Jan 96: Geert: integration into the current source tree
+-*   - 01 Aug 98: Alan: Merge in code from cvision.c and cvision_core.c
+-* $Log: cyberfb.c,v $
+-* Revision 1.6  1998/09/11 04:54:58  abair
+-* Update for 2.1.120 change in include file location.
+-* Clean up for public release.
+-*
+-* Revision 1.5  1998/09/03 04:27:13  abair
+-* Move cv64_load_video_mode to cyber_set_video so a new video mode is =
+install
+-* with each change of the 'var' data.
+-*
+-* Revision 1.4  1998/09/01 00:31:17  abair
+-* Put in a set of default 8,16,24 bpp modes and map cyber8,16 to them.
+-* Update operations with 'par' to handle a more complete set of parame=
+ter
+-* values for encode/decode process.
+-*
+-* Revision 1.3  1998/08/31 21:31:33  abair
+-* Swap 800x490 for 640x480 video mode and more cleanup.
+-* Abandon idea to resurrect "custom" mode setting via kernel opts,
+-* instead work on making use of fbset program to do this.
+-*
+-* Revision 1.2  1998/08/31 06:17:08  abair
+-* Make updates for changes in cyberfb.c released in 2.1.119
+-* and do some cleanup of the code.
+-*
+-* Revision 1.1  1998/08/29 18:38:31  abair
+-* Initial revision
+-*
+-* Revision 1.3  1998/08/17 06:21:53  abair
+-* Remove more redundant code after merging in cvision_core.c
+-* Set blanking by colormap to pale red to detect this vs trying to
+-* use video blanking. More formating to Linux code style.
+-*
+-* Revision 1.2  1998/08/15 17:51:37  abair
+-* Added cvision_core.c code from 2.1.35 patches.
+-* Changed to compile correctly and switch to using initialization
+-* code. Added debugging and dropping of duplicate code.
+-*
+-*
+-*
+-* This file is subject to the terms and conditions of the GNU General =
+Public
+-* License.  See the file COPYING in the main directory of this archive
+-* for more details.
+-*/
+-
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/mm.h>
+-#include <linux/slab.h>
+-#include <linux/delay.h>
+-#include <linux/zorro.h>
+-#include <linux/fb.h>
+-#include <linux/init.h>
+-#include <asm/uaccess.h>
+-#include <asm/system.h>
+-#include <asm/irq.h>
+-#include <asm/pgtable.h>
+-#include <asm/amigahw.h>
+-#include <asm/io.h>
+-
+-#include "cyberfb.h"
+-#include <video/fbcon.h>
+-#include <video/fbcon-cfb8.h>
+-#include <video/fbcon-cfb16.h>
+-
+-/*#define CYBERFBDEBUG*/
+-#ifdef CYBERFBDEBUG
+-#define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __FUNCTION=
+__ , ## args)
+-static void cv64_dump(void);
+-#else
+-#define DPRINTK(fmt, args...)
+-#endif
+-
+-#define wb_64(regs,reg,dat) (*(((volatile unsigned char *)regs) + reg)=
+ =3D dat)
+-#define rb_64(regs, reg) (*(((volatile unsigned char *)regs) + reg))
+-
+-struct cyberfb_par {
+-	struct fb_var_screeninfo var;
+-	__u32 type;
+-	__u32 type_aux;
+-	__u32 visual;
+-	__u32 line_length;
+-};
+-
+-static struct cyberfb_par current_par;
+-
+-static int current_par_valid =3D 0;
+-
+-static struct display disp;
+-static struct fb_info fb_info;
+-
+-
+-/*
+- *    Frame Buffer Name
+- */
+-
+-static char cyberfb_name[16] =3D "Cybervision";
+-
+-
+-/*
+- *    CyberVision Graphics Board
+- */
+-
+-static unsigned char Cyber_colour_table [256][3];
+-static unsigned long CyberSize;
+-static volatile unsigned char *CyberBase;
+-static volatile unsigned char *CyberMem;
+-static volatile unsigned char *CyberRegs;
+-static unsigned long CyberMem_phys;
+-static unsigned long CyberRegs_phys;
+-
+-/*
+- *    Predefined Video Modes
+- */
+-
+-static struct {
+-    const char *name;
+-    struct fb_var_screeninfo var;
+-} cyberfb_predefined[] __initdata =3D {
+-	{ "640x480-8", {		/* Default 8 BPP mode (cyber8) */
+-		640, 480, 640, 480, 0, 0, 8, 0,
+-		{0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCELF_TEXT, 39722, 40, 24, 32, 11, 96, 2,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,=20
+-		FB_VMODE_NONINTERLACED
+-	}},=20
+-	{ "640x480-16", {		/* Default 16 BPP mode (cyber16) */
+-		640, 480, 640, 480, 0, 0, 16, 0,
+-		{11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCELF_TEXT, 39722, 40, 24, 32, 11, 96, 2,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,=20
+-		FB_VMODE_NONINTERLACED
+-	}},=20
+-	{ "640x480-24", {		/* Default 24 BPP mode */
+-		640, 480, 640, 480, 0, 0, 24, 0,
+-		{16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCELF_TEXT, 39722, 40, 24, 32, 11, 96, 2,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,=20
+-		FB_VMODE_NONINTERLACED
+-	}},=20
+-	{ "800x490-8", {		/* Cybervision 8 bpp */
+-		/* NO Acceleration */
+-		800, 490, 800, 490, 0, 0, 8, 0,
+-		{0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCEL_NONE, 33333, 80, 24, 23, 1, 56, 8,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,
+-		FB_VMODE_NONINTERLACED
+-	}},
+-/* I can't test these with my monitor, but I suspect they will
+- * be OK, since Antonio Santos indicated he had tested them in
+- * his system.
+- */
+-	{ "800x600-8", {		/* Cybervision 8 bpp */
+-		800, 600, 800, 600, 0, 0, 8, 0,
+-		{0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCELF_TEXT, 27778, 64, 24, 22, 1, 72, 2,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,
+-		FB_VMODE_NONINTERLACED
+-	}},
+-	{ "1024x768-8", {		/* Cybervision 8 bpp */
+-		1024, 768, 1024, 768, 0, 0, 8, 0,
+-		{0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCELF_TEXT, 16667, 224, 72, 60, 12, 168, 4,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,
+-		FB_VMODE_NONINTERLACED
+-	}},
+-	{ "1152x886-8", {		/* Cybervision 8 bpp */
+-		1152, 886, 1152, 886, 0, 0, 8, 0,
+-		{0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCELF_TEXT, 15873, 184, 40, 24, 1, 56, 16,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,
+-		FB_VMODE_NONINTERLACED
+-	}},
+-	{ "1280x1024-8", {	/* Cybervision 8 bpp */
+-		1280, 1024, 1280, 1024, 0, 0, 8, 0,
+-		{0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-		0, 0, -1, -1, FB_ACCELF_TEXT, 16667, 256, 48, 50, 12, 72, 4,
+-		FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,
+-		FB_VMODE_INTERLACED
+-	}}
+-};
+-
+-#define NUM_TOTAL_MODES    ARRAY_SIZE(cyberfb_predefined)
+-
+-static int Cyberfb_inverse =3D 0;
+-
+-/*
+- *    Some default modes
+- */
+-
+-#define CYBER8_DEFMODE     (0)
+-#define CYBER16_DEFMODE    (1)
+-
+-static struct fb_var_screeninfo cyberfb_default;
+-static int cyberfb_usermode __initdata =3D 0;
+-
+-/*
+- *    Interface used by the world
+- */
+-
+-int cyberfb_setup(char *options);
+-
+-static int cyberfb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			   struct fb_info *info);
+-static int cyberfb_get_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info);
+-static int cyberfb_set_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info);
+-static int cyberfb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			    struct fb_info *info);
+-static int cyberfb_setcolreg(u_int regno, u_int red, u_int green, u_in=
+t blue,
+-			     u_int transp, struct fb_info *info);
+-static int cyberfb_blank(int blank, struct fb_info *info);
+-
+-/*
+- *    Interface to the low level console driver
+- */
+-
+-int cyberfb_init(void);
+-static int Cyberfb_switch(int con, struct fb_info *info);
+-static int Cyberfb_updatevar(int con, struct fb_info *info);
+-
+-/*
+- *    Text console acceleration
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-static struct display_switch fbcon_cyber8;
+-#endif
+-
+-/*
+- *    Accelerated Functions used by the low level console driver
+- */
+-
+-static void Cyber_WaitQueue(u_short fifo);
+-static void Cyber_WaitBlit(void);
+-static void Cyber_BitBLT(u_short curx, u_short cury, u_short destx,
+-			 u_short desty, u_short width, u_short height,
+-			 u_short mode);
+-static void Cyber_RectFill(u_short x, u_short y, u_short width, u_shor=
+t height,
+-			   u_short mode, u_short color);
+-#if 0
+-static void Cyber_MoveCursor(u_short x, u_short y);
+-#endif
+-
+-/*
+- *   Hardware Specific Routines
+- */
+-
+-static int Cyber_init(void);
+-static int Cyber_encode_fix(struct fb_fix_screeninfo *fix,
+-			    struct cyberfb_par *par);
+-static int Cyber_decode_var(struct fb_var_screeninfo *var,
+-			    struct cyberfb_par *par);
+-static int Cyber_encode_var(struct fb_var_screeninfo *var,
+-			    struct cyberfb_par *par);
+-static int Cyber_getcolreg(u_int regno, u_int *red, u_int *green, u_in=
+t *blue,
+-			   u_int *transp, struct fb_info *info);
+-
+-/*
+- *    Internal routines
+- */
+-
+-static void cyberfb_get_par(struct cyberfb_par *par);
+-static void cyberfb_set_par(struct cyberfb_par *par);
+-static int do_fb_set_var(struct fb_var_screeninfo *var, int isactive);
+-static void cyberfb_set_disp(int con, struct fb_info *info);
+-static int get_video_mode(const char *name);
+-
+-/* For cvision_core.c */
+-static unsigned short cv64_compute_clock(unsigned long);
+-static int cv_has_4mb (volatile unsigned char *);
+-static void cv64_board_init (void);
+-static void cv64_load_video_mode (struct fb_var_screeninfo *);
+-
+-
+-/* -------------------- Hardware specific routines -------------------=
+------ */
+-
+-
+-/*
+- *    Initialization
+- *
+- *    Set the default video mode for this chipset. If a video mode was
+- *    specified on the command line, it will override the default mode=
+=2E
+- */
+-
+-static int Cyber_init(void)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	volatile unsigned long *CursorBase;
+-	int i;
+-	DPRINTK("ENTER\n");
+-
+-/* Init local cmap as greyscale levels */
+-	for (i =3D 0; i < 256; i++) {
+-		Cyber_colour_table [i][0] =3D i;
+-		Cyber_colour_table [i][1] =3D i;
+-		Cyber_colour_table [i][2] =3D i;
+-	}
+-
+-/* Initialize the board and determine fbmem size */
+-	cv64_board_init();=20
+-#ifdef CYBERFBDEBUG
+-	DPRINTK("Register state after initing board\n");
+-	cv64_dump();
+-#endif
+-/* Clear framebuffer memory */
+-	DPRINTK("Clear framebuffer memory\n");
+-	memset ((char *)CyberMem, 0, CyberSize);
+-
+-/* Disable hardware cursor */
+-	DPRINTK("Disable HW cursor\n");
+-	wb_64(regs, S3_CRTC_ADR, S3_REG_LOCK2);
+-	wb_64(regs, S3_CRTC_DATA, 0xa0);
+-	wb_64(regs, S3_CRTC_ADR, S3_HGC_MODE);
+-	wb_64(regs, S3_CRTC_DATA, 0x00);
+-	wb_64(regs, S3_CRTC_ADR, S3_HWGC_DX);
+-	wb_64(regs, S3_CRTC_DATA, 0x00);
+-	wb_64(regs, S3_CRTC_ADR, S3_HWGC_DY);
+-	wb_64(regs, S3_CRTC_DATA, 0x00);
+-
+-/* Initialize hardware cursor */
+-	DPRINTK("Init HW cursor\n");
+-	CursorBase =3D (u_long *)((char *)(CyberMem) + CyberSize - 0x400);
+-	for (i=3D0; i < 8; i++)
+-	{
+-		*(CursorBase  +(i*4)) =3D 0xffffff00;
+-		*(CursorBase+1+(i*4)) =3D 0xffff0000;
+-		*(CursorBase+2+(i*4)) =3D 0xffff0000;
+-		*(CursorBase+3+(i*4)) =3D 0xffff0000;
+-	}
+-	for (i=3D8; i < 64; i++)
+-	{
+-		*(CursorBase  +(i*4)) =3D 0xffff0000;
+-		*(CursorBase+1+(i*4)) =3D 0xffff0000;
+-		*(CursorBase+2+(i*4)) =3D 0xffff0000;
+-		*(CursorBase+3+(i*4)) =3D 0xffff0000;
+-	}
+-
+-	cyberfb_setcolreg (255, 56<<8, 100<<8, 160<<8, 0, NULL /* unused */);
+-	cyberfb_setcolreg (254, 0, 0, 0, 0, NULL /* unused */);
+-
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    This function should fill in the `fix' structure based on the
+- *    values in the `par' structure.
+- */
+-
+-static int Cyber_encode_fix(struct fb_fix_screeninfo *fix,
+-			    struct cyberfb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	memset(fix, 0, sizeof(struct fb_fix_screeninfo));
+-	strcpy(fix->id, cyberfb_name);
+-	fix->smem_start =3D CyberMem_phys;
+-	fix->smem_len =3D CyberSize;
+-	fix->mmio_start =3D CyberRegs_phys;
+-	fix->mmio_len =3D 0x10000;
+-
+-	fix->type =3D FB_TYPE_PACKED_PIXELS;
+-	fix->type_aux =3D 0;
+-	if (par->var.bits_per_pixel =3D=3D 15 || par->var.bits_per_pixel =3D=3D=
+ 16 ||
+-	    par->var.bits_per_pixel =3D=3D 24 || par->var.bits_per_pixel =3D=3D=
+ 32) {
+-		fix->visual =3D FB_VISUAL_DIRECTCOLOR;
+-	} else {
+-		fix->visual =3D FB_VISUAL_PSEUDOCOLOR;
+-	}
+-
+-	fix->xpanstep =3D 0;
+-	fix->ypanstep =3D 0;
+-	fix->ywrapstep =3D 0;
+-	fix->line_length =3D 0;
+-	fix->accel =3D FB_ACCEL_S3_TRIO64;
+-
+-	DPRINTK("EXIT\n");
+-	return(0);
+-}
+-
+-
+-/*
+-*    Fill the `par' structure based on the values in `var'.
+-*    TODO: Verify and adjust values, return -EINVAL if bad.
+-*/
+-
+-static int Cyber_decode_var(struct fb_var_screeninfo *var,
+-			    struct cyberfb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	par->var.xres =3D var->xres;
+-	par->var.yres =3D var->yres;
+-	par->var.xres_virtual =3D var->xres_virtual;
+-	par->var.yres_virtual =3D var->yres_virtual;
+-	par->var.xoffset =3D var->xoffset;
+-	par->var.yoffset =3D var->yoffset;
+-	par->var.bits_per_pixel =3D var->bits_per_pixel;
+-	par->var.grayscale =3D var->grayscale;
+-	par->var.red =3D var->red;
+-	par->var.green =3D var->green;
+-	par->var.blue =3D var->blue;
+-	par->var.transp =3D var->transp;
+-	par->var.nonstd =3D var->nonstd;
+-	par->var.activate =3D var->activate;
+-	par->var.height =3D var->height;
+-	par->var.width =3D var->width;
+-	if (var->accel_flags & FB_ACCELF_TEXT) {
+-		par->var.accel_flags =3D FB_ACCELF_TEXT;
+-	} else {
+-		par->var.accel_flags =3D 0;
+-	}
+-	par->var.pixclock =3D var->pixclock;
+-	par->var.left_margin =3D var->left_margin;
+-	par->var.right_margin =3D var->right_margin;
+-	par->var.upper_margin =3D var->upper_margin;
+-	par->var.lower_margin =3D var->lower_margin;
+-	par->var.hsync_len =3D var->hsync_len;
+-	par->var.vsync_len =3D var->vsync_len;
+-	par->var.sync =3D var->sync;
+-	par->var.vmode =3D var->vmode;
+-	DPRINTK("EXIT\n");
+-	return(0);
+-}
+-
+-/*
+-*    Fill the `var' structure based on the values in `par' and maybe
+-*    other values read out of the hardware.
+-*/
+-
+-static int Cyber_encode_var(struct fb_var_screeninfo *var,
+-			    struct cyberfb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	var->xres =3D par->var.xres;
+-	var->yres =3D par->var.yres;
+-	var->xres_virtual =3D par->var.xres_virtual;
+-	var->yres_virtual =3D par->var.yres_virtual;
+-	var->xoffset =3D par->var.xoffset;
+-	var->yoffset =3D par->var.yoffset;
+-
+-	var->bits_per_pixel =3D par->var.bits_per_pixel;
+-	var->grayscale =3D par->var.grayscale;
+-
+-	var->red =3D par->var.red;
+-	var->green =3D par->var.green;
+-	var->blue =3D par->var.blue;
+-	var->transp =3D par->var.transp;
+-
+-	var->nonstd =3D par->var.nonstd;
+-	var->activate =3D par->var.activate;
+-
+-	var->height =3D par->var.height;
+-	var->width =3D par->var.width;
+-
+-	var->accel_flags =3D par->var.accel_flags;
+-
+-	var->pixclock =3D par->var.pixclock;
+-	var->left_margin =3D par->var.left_margin;
+-	var->right_margin =3D par->var.right_margin;
+-	var->upper_margin =3D par->var.upper_margin;
+-	var->lower_margin =3D par->var.lower_margin;
+-	var->hsync_len =3D par->var.hsync_len;
+-	var->vsync_len =3D par->var.vsync_len;
+-	var->sync =3D par->var.sync;
+-	var->vmode =3D par->var.vmode;
+-=09
+-	DPRINTK("EXIT\n");
+-	return(0);
+-}
+-
+-
+-/*
+- *    Set a single color register. Return !=3D 0 for invalid regno.
+- */
+-
+-static int cyberfb_setcolreg(u_int regno, u_int red, u_int green, u_in=
+t blue,
+-			   u_int transp, struct fb_info *info)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-
+-	/*DPRINTK("ENTER\n");*/
+-	if (regno > 255) {
+-		DPRINTK("EXIT - Register # > 255\n");
+-		return (1);
+-	}
+-
+-	wb_64(regs, 0x3c8, (unsigned char) regno);
+-
+- 	red >>=3D 10;
+- 	green >>=3D 10;
+- 	blue >>=3D 10;
+-
+-	Cyber_colour_table [regno][0] =3D red;
+-	Cyber_colour_table [regno][1] =3D green;
+-	Cyber_colour_table [regno][2] =3D blue;
+-
+-	wb_64(regs, 0x3c9, red);
+-	wb_64(regs, 0x3c9, green);
+-	wb_64(regs, 0x3c9, blue);
+-
+-	/*DPRINTK("EXIT\n");*/
+-	return (0);
+-}
+-
+-
+-/*
+-*    Read a single color register and split it into
+-*    colors/transparent. Return !=3D 0 for invalid regno.
+-*/
+-
+-static int Cyber_getcolreg(u_int regno, u_int *red, u_int *green, u_in=
+t *blue,
+-			   u_int *transp, struct fb_info *info)
+-{
+-	int t;
+-
+-	/*DPRINTK("ENTER\n");*/
+-	if (regno > 255) {
+-		DPRINTK("EXIT - Register # > 255\n");
+-		return (1);
+-	}
+-	/* ARB This shifting & oring seems VERY strange */
+- 	t	=3D Cyber_colour_table [regno][0];
+- 	*red	=3D (t<<10) | (t<<4) | (t>>2);
+- 	t	=3D Cyber_colour_table [regno][1];
+- 	*green	=3D (t<<10) | (t<<4) | (t>>2);
+- 	t	=3D Cyber_colour_table [regno][2];
+- 	*blue	=3D (t<<10) | (t<<4) | (t>>2);
+- 	*transp =3D 0;
+-	/*DPRINTK("EXIT\n");*/
+-	return (0);
+-}
+-
+-
+-/*
+-*    (Un)Blank the screen
+-*    blank: 1 =3D zero fb cmap
+-*           0 =3D restore fb cmap from local cmap
+-*/
+-static int cyberfb_blank(int blank, struct fb_info *info)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	int i;
+-
+-	DPRINTK("ENTER\n");
+-#if 0
+-/* Blank by turning gfx off */
+-	gfx_on_off (1, regs);
+-#else
+-	if (blank) {
+-		for (i =3D 0; i < 256; i++) {
+-			wb_64(regs, 0x3c8, (unsigned char) i);
+-			/* ARB Pale red to detect this blanking method */
+-			wb_64(regs, 0x3c9, 48);=20
+-			wb_64(regs, 0x3c9, 0);
+-			wb_64(regs, 0x3c9, 0);
+-		}
+-	} else {
+-		for (i =3D 0; i < 256; i++) {
+-			wb_64(regs, 0x3c8, (unsigned char) i);
+-			wb_64(regs, 0x3c9, Cyber_colour_table[i][0]);
+-			wb_64(regs, 0x3c9, Cyber_colour_table[i][1]);
+-			wb_64(regs, 0x3c9, Cyber_colour_table[i][2]);
+-		}
+-	}
+-#endif
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/**************************************************************
+- * We are waiting for "fifo" FIFO-slots empty
+- */
+-static void Cyber_WaitQueue (u_short fifo)
+-{
+-	unsigned short status;
+-
+-	DPRINTK("ENTER\n");
+-	do {
+-		status =3D *((u_short volatile *)(CyberRegs + S3_GP_STAT));
+-	} while (status & fifo);
+-	DPRINTK("EXIT\n");
+-}
+-
+-/**************************************************************
+- * We are waiting for Hardware (Graphics Engine) not busy
+- */
+-static void Cyber_WaitBlit (void)
+-{
+-	unsigned short status;
+-
+-	DPRINTK("ENTER\n");
+-	do {
+-		status =3D *((u_short volatile *)(CyberRegs + S3_GP_STAT));
+-	} while (status & S3_HDW_BUSY);
+-	DPRINTK("EXIT\n");
+-}
+-
+-/**************************************************************
+- * BitBLT - Through the Plane
+- */
+-static void Cyber_BitBLT (u_short curx, u_short cury, u_short destx,
+-			  u_short desty, u_short width, u_short height,
+-			  u_short mode)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	u_short blitcmd =3D S3_BITBLT;
+-
+-	DPRINTK("ENTER\n");
+-	/* Set drawing direction */
+-	/* -Y, X maj, -X (default) */
+-	if (curx > destx) {
+-		blitcmd |=3D 0x0020;  /* Drawing direction +X */
+-	} else {
+-		curx  +=3D (width - 1);
+-		destx +=3D (width - 1);
+-	}
+-
+-	if (cury > desty) {
+-		blitcmd |=3D 0x0080;  /* Drawing direction +Y */
+-	} else {
+-		cury  +=3D (height - 1);
+-		desty +=3D (height - 1);
+-	}
+-
+-	Cyber_WaitQueue (0x8000);
+-
+-	*((u_short volatile *)(regs + S3_PIXEL_CNTL)) =3D 0xa000;
+-	*((u_short volatile *)(regs + S3_FRGD_MIX)) =3D (0x0060 | mode);
+-
+-	*((u_short volatile *)(regs + S3_CUR_X)) =3D curx;
+-	*((u_short volatile *)(regs + S3_CUR_Y)) =3D cury;
+-
+-	*((u_short volatile *)(regs + S3_DESTX_DIASTP)) =3D destx;
+-	*((u_short volatile *)(regs + S3_DESTY_AXSTP)) =3D desty;
+-
+-	*((u_short volatile *)(regs + S3_MIN_AXIS_PCNT)) =3D height - 1;
+-	*((u_short volatile *)(regs + S3_MAJ_AXIS_PCNT)) =3D width  - 1;
+-
+-	*((u_short volatile *)(regs + S3_CMD)) =3D blitcmd;
+-	DPRINTK("EXIT\n");
+-}
+-
+-/**************************************************************
+- * Rectangle Fill Solid
+- */
+-static void Cyber_RectFill (u_short x, u_short y, u_short width,
+-			    u_short height, u_short mode, u_short color)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	u_short blitcmd =3D S3_FILLEDRECT;
+-
+-	DPRINTK("ENTER\n");
+-	Cyber_WaitQueue (0x8000);
+-
+-	*((u_short volatile *)(regs + S3_PIXEL_CNTL)) =3D 0xa000;
+-	*((u_short volatile *)(regs + S3_FRGD_MIX)) =3D (0x0020 | mode);
+-
+-	*((u_short volatile *)(regs + S3_MULT_MISC)) =3D 0xe000;
+-	*((u_short volatile *)(regs + S3_FRGD_COLOR)) =3D color;
+-
+-	*((u_short volatile *)(regs + S3_CUR_X)) =3D x;
+-	*((u_short volatile *)(regs + S3_CUR_Y)) =3D y;
+-
+-	*((u_short volatile *)(regs + S3_MIN_AXIS_PCNT)) =3D height - 1;
+-	*((u_short volatile *)(regs + S3_MAJ_AXIS_PCNT)) =3D width  - 1;
+-
+-	*((u_short volatile *)(regs + S3_CMD)) =3D blitcmd;
+-	DPRINTK("EXIT\n");
+-}
+-
+-
+-#if 0
+-/**************************************************************
+- * Move cursor to x, y
+- */
+-static void Cyber_MoveCursor (u_short x, u_short y)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	DPRINTK("ENTER\n");
+-	*(regs + S3_CRTC_ADR)  =3D 0x39;
+-	*(regs + S3_CRTC_DATA) =3D 0xa0;
+-
+-	*(regs + S3_CRTC_ADR)  =3D S3_HWGC_ORGX_H;
+-	*(regs + S3_CRTC_DATA) =3D (char)((x & 0x0700) >> 8);
+-	*(regs + S3_CRTC_ADR)  =3D S3_HWGC_ORGX_L;
+-	*(regs + S3_CRTC_DATA) =3D (char)(x & 0x00ff);
+-
+-	*(regs + S3_CRTC_ADR)  =3D S3_HWGC_ORGY_H;
+-	*(regs + S3_CRTC_DATA) =3D (char)((y & 0x0700) >> 8);
+-	*(regs + S3_CRTC_ADR)  =3D S3_HWGC_ORGY_L;
+-	*(regs + S3_CRTC_DATA) =3D (char)(y & 0x00ff);
+-	DPRINTK("EXIT\n");
+-}
+-#endif
+-
+-
+-/* -------------------- Generic routines -----------------------------=
+----- */
+-
+-
+-/*
+- *    Fill the hardware's `par' structure.
+- */
+-
+-static void cyberfb_get_par(struct cyberfb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	if (current_par_valid) {
+-		*par =3D current_par;
+-	} else {
+-		Cyber_decode_var(&cyberfb_default, par);
+-	}
+-	DPRINTK("EXIT\n");
+-}
+-
+-
+-static void cyberfb_set_par(struct cyberfb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	current_par =3D *par;
+-	current_par_valid =3D 1;
+-	DPRINTK("EXIT\n");
+-}
+-
+-
+-static void cyber_set_video(struct fb_var_screeninfo *var)
+-{
+-
+-	/* Load the video mode defined by the 'var' data */
+-	cv64_load_video_mode (var);
+-#ifdef CYBERFBDEBUG
+-	DPRINTK("Register state after loading video mode\n");
+-	cv64_dump();
+-#endif
+-}
+-
+-
+-static int do_fb_set_var(struct fb_var_screeninfo *var, int isactive)
+-{
+-	int err, activate;
+-	struct cyberfb_par par;
+-
+-	DPRINTK("ENTER\n");
+-	if ((err =3D Cyber_decode_var(var, &par))) {
+-		DPRINTK("EXIT - decode_var failed\n");
+-		return(err);
+-	}
+-	activate =3D var->activate;
+-	if ((var->activate & FB_ACTIVATE_MASK) =3D=3D FB_ACTIVATE_NOW && isac=
+tive)
+-		cyberfb_set_par(&par);
+-	Cyber_encode_var(var, &par);
+-	var->activate =3D activate;
+-
+-	cyber_set_video(var);
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-/*
+- *    Get the Fixed Part of the Display
+- */
+-
+-static int cyberfb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			   struct fb_info *info)
+-{
+-	struct cyberfb_par par;
+-	int error =3D 0;
+-
+-	DPRINTK("ENTER\n");
+-	if (con =3D=3D -1) {
+-		cyberfb_get_par(&par);
+-	} else {
+-		error =3D Cyber_decode_var(&fb_display[con].var, &par);
+-	}
+-	DPRINTK("EXIT\n");
+-	return(error ? error : Cyber_encode_fix(fix, &par));
+-}
+-
+-
+-/*
+- *    Get the User Defined Part of the Display
+- */
+-
+-static int cyberfb_get_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info)
+-{
+-	struct cyberfb_par par;
+-	int error =3D 0;
+-
+-	DPRINTK("ENTER\n");
+-	if (con =3D=3D -1) {
+-		cyberfb_get_par(&par);
+-		error =3D Cyber_encode_var(var, &par);
+-		disp.var =3D *var;   /* ++Andre: don't know if this is the right pla=
+ce */
+-	} else {
+-		*var =3D fb_display[con].var;
+-	}
+-
+-	DPRINTK("EXIT\n");
+-	return(error);
+-}
+-
+-
+-static void cyberfb_set_disp(int con, struct fb_info *info)
+-{
+-	struct fb_fix_screeninfo fix;
+-	struct display *display;
+-
+-	DPRINTK("ENTER\n");
+-	if (con >=3D 0)
+-		display =3D &fb_display[con];
+-	else
+-		display =3D &disp;	/* used during initialization */
+-
+-	cyberfb_get_fix(&fix, con, info);
+-	if (con =3D=3D -1)
+-		con =3D 0;
+-	display->visual =3D fix.visual;
+-	display->type =3D fix.type;
+-	display->type_aux =3D fix.type_aux;
+-	display->ypanstep =3D fix.ypanstep;
+-	display->ywrapstep =3D fix.ywrapstep;
+-	display->can_soft_blank =3D 1;
+-	display->inverse =3D Cyberfb_inverse;
+-	switch (display->var.bits_per_pixel) {
+-#ifdef FBCON_HAS_CFB8
+-	    case 8:
+-		if (display->var.accel_flags & FB_ACCELF_TEXT) {
+-		    display->dispsw =3D &fbcon_cyber8;
+-#warning FIXME: We should reinit the graphics engine here
+-		} else
+-		    display->dispsw =3D &fbcon_cfb8;
+-		break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-	    case 16:
+-		display->dispsw =3D &fbcon_cfb16;
+-		break;
+-#endif
+-	    default:
+-		display->dispsw =3D NULL;
+-		break;
+-	}
+-	DPRINTK("EXIT\n");
+-}
+-
+-
+-/*
+- *    Set the User Defined Part of the Display
+- */
+-
+-static int cyberfb_set_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info)
+-{
+-	int err, oldxres, oldyres, oldvxres, oldvyres, oldbpp, oldaccel;
+-
+-	DPRINTK("ENTER\n");
+-	if ((err =3D do_fb_set_var(var, con =3D=3D info->currcon))) {
+-		DPRINTK("EXIT - do_fb_set_var failed\n");
+-		return(err);
+-	}
+-	if ((var->activate & FB_ACTIVATE_MASK) =3D=3D FB_ACTIVATE_NOW) {
+-		oldxres =3D fb_display[con].var.xres;
+-		oldyres =3D fb_display[con].var.yres;
+-		oldvxres =3D fb_display[con].var.xres_virtual;
+-		oldvyres =3D fb_display[con].var.yres_virtual;
+-		oldbpp =3D fb_display[con].var.bits_per_pixel;
+-		oldaccel =3D fb_display[con].var.accel_flags;
+-		fb_display[con].var =3D *var;
+-		if (oldxres !=3D var->xres || oldyres !=3D var->yres ||
+-		    oldvxres !=3D var->xres_virtual ||
+-		    oldvyres !=3D var->yres_virtual ||
+-		    oldbpp !=3D var->bits_per_pixel ||
+-		    oldaccel !=3D var->accel_flags) {
+-			cyberfb_set_disp(con, info);
+-			(*fb_info.changevar)(con);
+-			fb_alloc_cmap(&fb_display[con].cmap, 0, 0);
+-			do_install_cmap(con, info);
+-		}
+-	}
+-	var->activate =3D 0;
+-	DPRINTK("EXIT\n");
+-	return(0);
+-}
+-
+-
+-/*
+- *    Get the Colormap
+- */
+-
+-static int cyberfb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			    struct fb_info *info)
+-{
+-	DPRINTK("ENTER\n");
+-	if (con =3D=3D info->currcon) { /* current console? */
+-		DPRINTK("EXIT - console is current console\n");
+-		return(fb_get_cmap(cmap, kspc, Cyber_getcolreg, info));
+-	} else if (fb_display[con].cmap.len) { /* non default colormap? */
+-		DPRINTK("Use console cmap\n");
+-		fb_copy_cmap(&fb_display[con].cmap, cmap, kspc ? 0 : 2);
+-	} else {
+-		DPRINTK("Use default cmap\n");
+-		fb_copy_cmap(fb_default_cmap(1<<fb_display[con].var.bits_per_pixel),
+-			     cmap, kspc ? 0 : 2);
+-	}
+-	DPRINTK("EXIT\n");
+-	return(0);
+-}
+-
+-static struct fb_ops cyberfb_ops =3D {
+-	.owner =3D	THIS_MODULE,
+-	.fb_get_fix =3D	cyberfb_get_fix,
+-	.fb_get_var =3D	cyberfb_get_var,
+-	.fb_set_var =3D	cyberfb_set_var,
+-	.fb_get_cmap =3D	cyberfb_get_cmap,
+-	.fb_set_cmap =3D	gen_set_cmap,
+-	.fb_setcolreg =3D	cyberfb_setcolreg,
+-	.fb_blank =3D	cyberfb_blank,
+-};
+-
+-int __init cyberfb_setup(char *options)
+-{
+-	char *this_opt;
+-	DPRINTK("ENTER\n");
+-
+-	fb_info.fontname[0] =3D '\0';
+-
+-	if (!options || !*options) {
+-		DPRINTK("EXIT - no options\n");
+-		return 0;
+-	}
+-
+-	while ((this_opt =3D strsep(&options, ",")) !=3D NULL) {
+-		if (!*this_opt)
+-			continue;
+-		if (!strcmp(this_opt, "inverse")) {
+-			Cyberfb_inverse =3D 1;
+-			fb_invert_cmaps();
+-		} else if (!strncmp(this_opt, "font:", 5)) {
+-			strcpy(fb_info.fontname, this_opt+5);
+-		} else if (!strcmp (this_opt, "cyber8")) {
+-			cyberfb_default =3D cyberfb_predefined[CYBER8_DEFMODE].var;
+-			cyberfb_usermode =3D 1;
+-		} else if (!strcmp (this_opt, "cyber16")) {
+-			cyberfb_default =3D cyberfb_predefined[CYBER16_DEFMODE].var;
+-			cyberfb_usermode =3D 1;
+-		} else get_video_mode(this_opt);
+-	}
+-
+-	DPRINTK("default mode: xres=3D%d, yres=3D%d, bpp=3D%d\n",
+-		cyberfb_default.xres,
+-		cyberfb_default.yres,
+-		cyberfb_default.bits_per_pixel);
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-/*
+- *    Initialization
+- */
+-
+-int __init cyberfb_init(void)
+-{
+-	unsigned long board_addr, board_size;
+-	struct cyberfb_par par;
+-	struct zorro_dev *z =3D NULL;
+-	DPRINTK("ENTER\n");
+-
+-	while ((z =3D zorro_find_device(ZORRO_PROD_PHASE5_CYBERVISION64, z)))=
+ {
+-	    board_addr =3D z->resource.start;
+-	    board_size =3D z->resource.end-z->resource.start+1;
+-	    CyberMem_phys =3D board_addr + 0x01400000;
+-	    CyberRegs_phys =3D CyberMem_phys + 0x00c00000;
+-	    if (!request_mem_region(CyberRegs_phys, 0x10000, "S3 Trio64"))
+-		continue;
+-	    if (!request_mem_region(CyberMem_phys, 0x400000, "RAM")) {
+-		release_mem_region(CyberRegs_phys, 0x10000);
+-		continue;
+-	    }
+-	    DPRINTK("board_addr=3D%08lx\n", board_addr);
+-	    DPRINTK("board_size=3D%08lx\n", board_size);
+-
+-	    CyberBase =3D ioremap(board_addr, board_size);
+-	    CyberRegs =3D CyberBase + 0x02000000;
+-	    CyberMem =3D CyberBase + 0x01400000;
+-	    DPRINTK("CyberBase=3D%08lx CyberRegs=3D%08lx CyberMem=3D%08lx\n",
+-		    CyberBase, (long unsigned int)CyberRegs, CyberMem);
+-
+-#ifdef CYBERFBDEBUG
+-	    DPRINTK("Register state just after mapping memory\n");
+-	    cv64_dump();
+-#endif
+-
+-	    strcpy(fb_info.modename, cyberfb_name);
+-	    fb_info.changevar =3D NULL;
+-	    fb_info.fbops =3D &cyberfb_ops;
+-	    fb_info.screen_base =3D (unsigned char *)CyberMem;
+-	    fb_info.disp =3D &disp;
+-	    fb_info.currcon =3D -1;
+-	    fb_info.switch_con =3D &Cyberfb_switch;
+-	    fb_info.updatevar =3D &Cyberfb_updatevar;
+-
+-	    Cyber_init();
+-	    /* ++Andre: set cyberfb default mode */
+-	    if (!cyberfb_usermode) {
+-		    cyberfb_default =3D cyberfb_predefined[CYBER8_DEFMODE].var;
+-		    DPRINTK("Use default cyber8 mode\n");
+-	    }
+-	    Cyber_decode_var(&cyberfb_default, &par);
+-	    Cyber_encode_var(&cyberfb_default, &par);
+-
+-	    do_fb_set_var(&cyberfb_default, 1);
+-	    cyberfb_get_var(&fb_display[0].var, -1, &fb_info);
+-	    cyberfb_set_disp(-1, &fb_info);
+-	    do_install_cmap(0, &fb_info);
+-
+-	    if (register_framebuffer(&fb_info) < 0) {
+-		    DPRINTK("EXIT - register_framebuffer failed\n");
+-			if (CyberBase)
+-				iounmap(CyberBase);
+-		    release_mem_region(CyberMem_phys, 0x400000);
+-		    release_mem_region(CyberRegs_phys, 0x10000);
+-		    return -EINVAL;
+-	    }
+-
+-	    printk("fb%d: %s frame buffer device, using %ldK of video memory\=
+n",
+-		   fb_info.node, fb_info.modename, CyberSize>>10);
+-
+-	    /* TODO: This driver cannot be unloaded yet */
+-	    DPRINTK("EXIT\n");
+-	    return 0;
+-	}
+-	return -ENXIO;
+-}
+-
+-
+-static int Cyberfb_switch(int con, struct fb_info *info)
+-{
+-        DPRINTK("ENTER\n");
+-	/* Do we have to save the colormap? */
+-	if (fb_display[info->currcon].cmap.len) {
+-		fb_get_cmap(&fb_display[info->currcon].cmap, 1, Cyber_getcolreg,
+-			    info);
+-	}
+-
+-	do_fb_set_var(&fb_display[con].var, 1);
+-	info->currcon =3D con;
+-	/* Install new colormap */
+-	do_install_cmap(con, info);
+-	DPRINTK("EXIT\n");
+-	return(0);
+-}
+-
+-
+-/*
+- *    Update the `var' structure (called by fbcon.c)
+- *
+- *    This call looks only at yoffset and the FB_VMODE_YWRAP flag in `=
+var'.
+- *    Since it's called by a kernel driver, no range checking is done.
+- */
+-
+-static int Cyberfb_updatevar(int con, struct fb_info *info)
+-{
+-	DPRINTK("Enter - Exit\n");
+-	return(0);
+-}
+-
+-
+-/*
+- *    Get a Video Mode
+- */
+-
+-static int __init get_video_mode(const char *name)
+-{
+-	int i;
+-
+-	DPRINTK("ENTER\n");
+-	for (i =3D 0; i < NUM_TOTAL_MODES; i++) {
+-		if (!strcmp(name, cyberfb_predefined[i].name)) {
+-			cyberfb_default =3D cyberfb_predefined[i].var;
+-			cyberfb_usermode =3D 1;
+-			DPRINTK("EXIT - Matched predefined mode\n");
+-			return(i);
+-		}
+-	}
+-	return(0);
+-}
+-
+-
+-/*
+- *    Text console acceleration
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-static void fbcon_cyber8_bmove(struct display *p, int sy, int sx, int =
+dy,
+-			       int dx, int height, int width)
+-{
+-	DPRINTK("ENTER\n");
+-	sx *=3D 8; dx *=3D 8; width *=3D 8;
+-	Cyber_BitBLT((u_short)sx, (u_short)(sy*fontheight(p)), (u_short)dx,
+-		     (u_short)(dy*fontheight(p)), (u_short)width,
+-		     (u_short)(height*fontheight(p)), (u_short)S3_NEW);
+-	DPRINTK("EXIT\n");
+-}
+-
+-static void fbcon_cyber8_clear(struct vc_data *conp, struct display *p=
+, int sy,
+-			       int sx, int height, int width)
+-{
+-	unsigned char bg;
+-
+-	DPRINTK("ENTER\n");
+-	sx *=3D 8; width *=3D 8;
+-	bg =3D attr_bgcol_ec(p,conp);
+-	Cyber_RectFill((u_short)sx,
+-		       (u_short)(sy*fontheight(p)),
+-		       (u_short)width,
+-		       (u_short)(height*fontheight(p)),
+-		       (u_short)S3_NEW,
+-		       (u_short)bg);
+-	DPRINTK("EXIT\n");
+-}
+-
+-static void fbcon_cyber8_putc(struct vc_data *conp, struct display *p,=
+ int c,
+-			      int yy, int xx)
+-{
+-	DPRINTK("ENTER\n");
+-	Cyber_WaitBlit();
+-	fbcon_cfb8_putc(conp, p, c, yy, xx);
+-	DPRINTK("EXIT\n");
+-}
+-
+-static void fbcon_cyber8_putcs(struct vc_data *conp, struct display *p=
+,
+-			       const unsigned short *s, int count,
+-			       int yy, int xx)
+-{
+-	DPRINTK("ENTER\n");
+-	Cyber_WaitBlit();
+-	fbcon_cfb8_putcs(conp, p, s, count, yy, xx);
+-	DPRINTK("EXIT\n");
+-}
+-
+-static void fbcon_cyber8_revc(struct display *p, int xx, int yy)
+-{
+-	DPRINTK("ENTER\n");
+-	Cyber_WaitBlit();
+-	fbcon_cfb8_revc(p, xx, yy);
+-	DPRINTK("EXIT\n");
+-}
+-
+-static struct display_switch fbcon_cyber8 =3D {
+-	.setup =3D	fbcon_cfb8_setup,
+-	.bmove =3D	fbcon_cyber8_bmove,
+-	.clear =3D	fbcon_cyber8_clear,
+-	.putc =3D		fbcon_cyber8_putc,
+-	.putcs =3D	fbcon_cyber8_putcs,
+-	.revc =3D		fbcon_cyber8_revc,
+-	.clear_margins =3Dfbcon_cfb8_clear_margins,
+-	.fontwidthmask =3DFONTWIDTH(8)
+-};
+-#endif
+-
+-
+-#ifdef MODULE
+-MODULE_LICENSE("GPL");
+-
+-int init_module(void)
+-{
+-	return cyberfb_init();
+-}
+-#endif /* MODULE */
+-
+-/*
+- *
+- * Low level initialization routines for the CyberVision64 graphics ca=
+rd
+- *
+- * Most of the following code is from cvision_core.c
+- *
+- */
+-
+-#define MAXPIXELCLOCK 135000000 /* safety */
+-
+-#ifdef CV_AGGRESSIVE_TIMING
+-long cv64_memclk =3D 55000000;
+-#else
+-long cv64_memclk =3D 50000000;
+-#endif
+-
+-/*********************/
+-
+-static unsigned char clocks[]=3D{
+-  0x13, 0x61, 0x6b, 0x6d, 0x51, 0x69, 0x54, 0x69,
+-  0x4f, 0x68, 0x6b, 0x6b, 0x18, 0x61, 0x7b, 0x6c,
+-  0x51, 0x67, 0x24, 0x62, 0x56, 0x67, 0x77, 0x6a,
+-  0x1d, 0x61, 0x53, 0x66, 0x6b, 0x68, 0x79, 0x69,
+-  0x7c, 0x69, 0x7f, 0x69, 0x22, 0x61, 0x54, 0x65,
+-  0x56, 0x65, 0x58, 0x65, 0x67, 0x66, 0x41, 0x63,
+-  0x27, 0x61, 0x13, 0x41, 0x37, 0x62, 0x6b, 0x4d,
+-  0x23, 0x43, 0x51, 0x49, 0x79, 0x66, 0x54, 0x49,
+-  0x7d, 0x66, 0x34, 0x56, 0x4f, 0x63, 0x1f, 0x42,
+-  0x6b, 0x4b, 0x7e, 0x4d, 0x18, 0x41, 0x2a, 0x43,
+-  0x7b, 0x4c, 0x74, 0x4b, 0x51, 0x47, 0x65, 0x49,
+-  0x24, 0x42, 0x68, 0x49, 0x56, 0x47, 0x75, 0x4a,
+-  0x77, 0x4a, 0x31, 0x43, 0x1d, 0x41, 0x71, 0x49,
+-  0x53, 0x46, 0x29, 0x42, 0x6b, 0x48, 0x1f, 0x41,
+-  0x79, 0x49, 0x6f, 0x48, 0x7c, 0x49, 0x38, 0x43,
+-  0x7f, 0x49, 0x5d, 0x46, 0x22, 0x41, 0x53, 0x45,
+-  0x54, 0x45, 0x55, 0x45, 0x56, 0x45, 0x57, 0x45,
+-  0x58, 0x45, 0x25, 0x41, 0x67, 0x46, 0x5b, 0x45,
+-  0x41, 0x43, 0x78, 0x47, 0x27, 0x41, 0x51, 0x44,
+-  0x13, 0x21, 0x7d, 0x47, 0x37, 0x42, 0x71, 0x46,
+-  0x6b, 0x2d, 0x14, 0x21, 0x23, 0x23, 0x7d, 0x2f,
+-  0x51, 0x29, 0x61, 0x2b, 0x79, 0x46, 0x1d, 0x22,
+-  0x54, 0x29, 0x45, 0x27, 0x7d, 0x46, 0x7f, 0x46,
+-  0x4f, 0x43, 0x2f, 0x41, 0x1f, 0x22, 0x6a, 0x2b,
+-  0x6b, 0x2b, 0x5b, 0x29, 0x7e, 0x2d, 0x65, 0x44,
+-  0x18, 0x21, 0x5e, 0x29, 0x2a, 0x23, 0x45, 0x26,
+-  0x7b, 0x2c, 0x19, 0x21, 0x74, 0x2b, 0x75, 0x2b,
+-  0x51, 0x27, 0x3f, 0x25, 0x65, 0x29, 0x40, 0x25,
+-  0x24, 0x22, 0x41, 0x25, 0x68, 0x29, 0x42, 0x25,
+-  0x56, 0x27, 0x7e, 0x2b, 0x75, 0x2a, 0x1c, 0x21,
+-  0x77, 0x2a, 0x4f, 0x26, 0x31, 0x23, 0x6f, 0x29,
+-  0x1d, 0x21, 0x32, 0x23, 0x71, 0x29, 0x72, 0x29,
+-  0x53, 0x26, 0x69, 0x28, 0x29, 0x22, 0x75, 0x29,
+-  0x6b, 0x28, 0x1f, 0x21, 0x1f, 0x21, 0x6d, 0x28,
+-  0x79, 0x29, 0x2b, 0x22, 0x6f, 0x28, 0x59, 0x26,
+-  0x7c, 0x29, 0x7d, 0x29, 0x38, 0x23, 0x21, 0x21,
+-  0x7f, 0x29, 0x39, 0x23, 0x5d, 0x26, 0x75, 0x28,
+-  0x22, 0x21, 0x77, 0x28, 0x53, 0x25, 0x6c, 0x27,
+-  0x54, 0x25, 0x61, 0x26, 0x55, 0x25, 0x30, 0x22,
+-  0x56, 0x25, 0x63, 0x26, 0x57, 0x25, 0x71, 0x27,
+-  0x58, 0x25, 0x7f, 0x28, 0x25, 0x21, 0x74, 0x27,
+-  0x67, 0x26, 0x40, 0x23, 0x5b, 0x25, 0x26, 0x21,
+-  0x41, 0x23, 0x34, 0x22, 0x78, 0x27, 0x6b, 0x26,
+-  0x27, 0x21, 0x35, 0x22, 0x51, 0x24, 0x7b, 0x27,
+-  0x13, 0x1,  0x13, 0x1,  0x7d, 0x27, 0x4c, 0x9,
+-  0x37, 0x22, 0x5b, 0xb,  0x71, 0x26, 0x5c, 0xb,
+-  0x6b, 0xd,  0x47, 0x23, 0x14, 0x1,  0x4f, 0x9,
+-  0x23, 0x3,  0x75, 0x26, 0x7d, 0xf,  0x1c, 0x2,
+-  0x51, 0x9,  0x59, 0x24, 0x61, 0xb,  0x69, 0x25,
+-  0x79, 0x26, 0x34, 0x5,  0x1d, 0x2,  0x6b, 0x25,
+-  0x54, 0x9,  0x35, 0x5,  0x45, 0x7,  0x6d, 0x25,
+-  0x7d, 0x26, 0x16, 0x1,  0x7f, 0x26, 0x77, 0xd,
+-  0x4f, 0x23, 0x78, 0xd,  0x2f, 0x21, 0x27, 0x3,
+-  0x1f, 0x2,  0x59, 0x9,  0x6a, 0xb,  0x73, 0x25,
+-  0x6b, 0xb,  0x63, 0x24, 0x5b, 0x9,  0x20, 0x2,
+-  0x7e, 0xd,  0x4b, 0x7,  0x65, 0x24, 0x43, 0x22,
+-  0x18, 0x1,  0x6f, 0xb,  0x5e, 0x9,  0x70, 0xb,
+-  0x2a, 0x3,  0x33, 0x4,  0x45, 0x6,  0x60, 0x9,
+-  0x7b, 0xc,  0x19, 0x1,  0x19, 0x1,  0x7d, 0xc,
+-  0x74, 0xb,  0x50, 0x7,  0x75, 0xb,  0x63, 0x9,
+-  0x51, 0x7,  0x23, 0x2,  0x3f, 0x5,  0x1a, 0x1,
+-  0x65, 0x9,  0x2d, 0x3,  0x40, 0x5,  0x0,  0x0,
+-};
+-
+-/* Console colors */
+-unsigned char cvconscolors[16][3] =3D {	/* background, foreground, hil=
+ite */
+-  /*  R     G     B  */
+-  {0x30, 0x30, 0x30},
+-  {0x00, 0x00, 0x00},
+-  {0x80, 0x00, 0x00},
+-  {0x00, 0x80, 0x00},
+-  {0x00, 0x00, 0x80},
+-  {0x80, 0x80, 0x00},
+-  {0x00, 0x80, 0x80},
+-  {0x80, 0x00, 0x80},
+-  {0xff, 0xff, 0xff},
+-  {0x40, 0x40, 0x40},
+-  {0xff, 0x00, 0x00},
+-  {0x00, 0xff, 0x00},
+-  {0x00, 0x00, 0xff},
+-  {0xff, 0xff, 0x00},
+-  {0x00, 0xff, 0xff},
+-  {0x00, 0x00, 0xff}
+-};
+-
+-/* -------------------- Hardware specific routines -------------------=
+------ */
+-
+-/* Read Attribute Controller Register=3Didx */
+-inline unsigned char RAttr (volatile unsigned char *regs, short idx)
+-{
+-	wb_64 (regs, ACT_ADDRESS_W, idx);
+-	mb();
+-	udelay(100);
+-	return (rb_64(regs, ACT_ADDRESS_R));
+-}
+-
+-/* Read Sequencer Register=3Didx */
+-inline unsigned char RSeq (volatile unsigned char *regs, short idx)
+-{
+-	wb_64 (regs, SEQ_ADDRESS, idx);
+-	mb();
+-	return (rb_64(regs, SEQ_ADDRESS_R));
+-}
+-
+-/* Read CRT Controller Register=3Didx */
+-inline unsigned char RCrt (volatile unsigned char *regs, short idx)
+-{
+-	wb_64 (regs, CRT_ADDRESS, idx);
+-	mb();
+-	return (rb_64(regs, CRT_ADDRESS_R));
+-}
+-
+-/* Read Graphics Controller Register=3Didx */
+-inline unsigned char RGfx (volatile unsigned char *regs, short idx)
+-{
+-	wb_64 (regs, GCT_ADDRESS, idx);
+-	mb();
+-	return (rb_64(regs, GCT_ADDRESS_R));
+-}
+-
+-/*
+- * Special wakeup/passthrough registers on graphics boards
+- */
+-
+-inline void cv64_write_port (unsigned short bits,
+-			     volatile unsigned char *base)
+-{
+-	volatile unsigned char *addr;
+-	static unsigned char cvportbits =3D 0; /* Mirror port bits here */
+-	DPRINTK("ENTER\n");
+-
+-	addr =3D base + 0x40001;
+-	if (bits & 0x8000) {
+-		cvportbits |=3D bits & 0xff; /* Set bits */
+-		DPRINTK("Set bits: %04x\n", bits);
+-	} else {
+-		bits =3D bits & 0xff;
+-		bits =3D (~bits) & 0xff;
+-		cvportbits &=3D bits; /* Clear bits */
+-		DPRINTK("Clear bits: %04x\n", bits);
+-	}
+-
+-	*addr =3D cvportbits;
+-	DPRINTK("EXIT\n");
+-}
+-
+-/*
+- * Monitor switch on CyberVision board
+- *
+- *  toggle:
+- *    0 =3D CyberVision Signal
+- *    1 =3D Amiga Signal
+- *  board =3D board addr
+- *
+- */
+-inline void cvscreen (int toggle, volatile unsigned char *board)
+-{
+-	DPRINTK("ENTER\n");
+-	if (toggle =3D=3D 1) {
+-		DPRINTK("Show Amiga video\n");
+-		cv64_write_port (0x10, board);
+-	} else {
+-		DPRINTK("Show CyberVision video\n");
+-		cv64_write_port (0x8010, board);
+-	}
+-	DPRINTK("EXIT\n");
+-}
+-
+-/* Control screen display */
+-/* toggle: 0 =3D on, 1 =3D off */
+-/* board =3D registerbase */
+-inline void gfx_on_off(int toggle, volatile unsigned char *regs)
+-{
+-	int r;
+-	DPRINTK("ENTER\n");
+-=09
+-	toggle &=3D 0x1;
+-	toggle =3D toggle << 5;
+-	DPRINTK("Turn display %s\n", (toggle ? "off" : "on"));
+-=09
+-	r =3D (int) RSeq(regs, SEQ_ID_CLOCKING_MODE);
+-	r &=3D 0xdf;	/* Set bit 5 to 0 */
+-=09
+-	WSeq (regs, SEQ_ID_CLOCKING_MODE, r | toggle);
+-	DPRINTK("EXIT\n");
+-}
+-
+-/*
+- * Computes M, N, and R values from
+- * given input frequency. It uses a table of
+- * precomputed values, to keep CPU time low.
+- *
+- * The return value consist of:
+- * lower byte:  Bits 4-0: N Divider Value
+- *	        Bits 5-6: R Value          for e.g. SR10 or SR12
+- * higher byte: Bits 0-6: M divider value  for e.g. SR11 or SR13
+- */
+-static unsigned short cv64_compute_clock(unsigned long freq)
+-{
+-	static unsigned char *mnr, *save;	/* M, N + R vals */
+-	unsigned long work_freq, r;
+-	unsigned short erg;
+-	long diff, d2;
+-
+-	DPRINTK("ENTER\n");
+-	if (freq < 12500000 || freq > MAXPIXELCLOCK) {
+-		printk("CV64 driver: Illegal clock frequency %ld, using 25MHz\n",
+-		       freq);
+-		freq =3D 25000000;
+-	}
+-	DPRINTK("Freq =3D %ld\n", freq);
+-	mnr =3D clocks;	/* there the vals are stored */
+-	d2 =3D 0x7fffffff;
+-
+-	while (*mnr) {	/* mnr vals are 0-terminated */
+-		work_freq =3D (0x37EE * (mnr[0] + 2)) / ((mnr[1] & 0x1F) + 2);
+-
+-		r =3D (mnr[1] >> 5) & 0x03;
+-		if (r !=3D 0) {
+-			work_freq =3D work_freq >> r;	/* r is the freq divider */
+-		}
+-
+-		work_freq *=3D 0x3E8;	/* 2nd part of OSC */
+-
+-		diff =3D abs(freq - work_freq);
+-
+-		if (d2 >=3D diff) {
+-			d2 =3D diff;
+-			/* In save are the vals for minimal diff */
+-			save =3D mnr;
+-		}
+-		mnr +=3D 2;
+-	}
+-	erg =3D *((unsigned short *)save);
+-
+-	DPRINTK("EXIT\n");
+-	return (erg);
+-}
+-
+-static int cv_has_4mb (volatile unsigned char *fb)
+-{
+-	volatile unsigned long *tr, *tw;
+-	DPRINTK("ENTER\n");
+-
+-	/* write patterns in memory and test if they can be read */
+-	tw =3D (volatile unsigned long *) fb;
+-	tr =3D (volatile unsigned long *) (fb + 0x02000000);
+-
+-	*tw =3D 0x87654321;
+-=09
+-	if (*tr !=3D 0x87654321) {
+-		DPRINTK("EXIT - <4MB\n");
+-		return (0);
+-	}
+-
+-	/* upper memory region */
+-	tw =3D (volatile unsigned long *) (fb + 0x00200000);
+-	tr =3D (volatile unsigned long *) (fb + 0x02200000);
+-
+-	*tw =3D 0x87654321;
+-
+-	if (*tr !=3D 0x87654321) {
+-		DPRINTK("EXIT - <4MB\n");
+-		return (0);
+-	}
+-
+-	*tw =3D 0xAAAAAAAA;
+-
+-	if (*tr !=3D 0xAAAAAAAA) {
+-		DPRINTK("EXIT - <4MB\n");
+-		return (0);
+-	}
+-
+-	*tw =3D 0x55555555;
+-
+-	if (*tr !=3D 0x55555555) {
+-		DPRINTK("EXIT - <4MB\n");
+-		return (0);
+-	}
+-
+-	DPRINTK("EXIT\n");
+-	return (1);
+-}
+-
+-static void cv64_board_init (void)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	int i;
+-	unsigned int clockpar;
+-	unsigned char test;
+-=09
+-	DPRINTK("ENTER\n");
+-
+-	/*
+-	 * Special CyberVision 64 board operations
+-	 */
+-	/* Reset board */
+-	for (i =3D 0; i < 6; i++) {
+-		cv64_write_port (0xff, CyberBase);
+-	}
+-	/* Return to operational mode */
+-	cv64_write_port (0x8004, CyberBase);
+-=09
+-	/*
+-	 * Generic (?) S3 chip wakeup
+-	 */
+-	/* Disable I/O & memory decoders, video in setup mode */
+-	wb_64 (regs, SREG_VIDEO_SUBS_ENABLE, 0x10);
+-	/* Video responds to cmds, addrs & data */
+-	wb_64 (regs, SREG_OPTION_SELECT, 0x1);
+-	/* Enable I/O & memory decoders, video in operational mode */
+-	wb_64 (regs, SREG_VIDEO_SUBS_ENABLE, 0x8);
+-	/* VGA color emulation, enable cpu access to display mem */=20
+-	wb_64 (regs, GREG_MISC_OUTPUT_W, 0x03);
+-	/* Unlock S3 VGA regs */
+-	WCrt (regs, CRT_ID_REGISTER_LOCK_1, 0x48);=20
+-	/* Unlock system control & extension registers */
+-	WCrt (regs, CRT_ID_REGISTER_LOCK_2, 0xA5);
+-/* GRF - Enable interrupts */
+-	/* Enable enhanced regs access, Ready cntl 0 wait states */
+-	test =3D RCrt (regs, CRT_ID_SYSTEM_CONFIG);
+-	test =3D test | 0x01;		/* enable enhanced register access */
+-	test =3D test & 0xEF;		/* clear bit 4, 0 wait state */
+-	WCrt (regs, CRT_ID_SYSTEM_CONFIG, test);
+-	/*
+-	 * bit 0=3D1: Enable enhaced mode functions
+-	 * bit 2=3D0: Enhanced mode 8+ bits/pixel
+-	 * bit 4=3D1: Enable linear addressing
+-	 * bit 5=3D1: Enable MMIO
+-	 */
+-	wb_64 (regs, ECR_ADV_FUNC_CNTL, 0x31);
+-	/*
+-	 * bit 0=3D1: Color emulation
+-	 * bit 1=3D1: Enable CPU access to display memory
+-	 * bit 5=3D1: Select high 64K memory page
+-	 */
+-/* GRF - 0xE3 */
+-	wb_64 (regs, GREG_MISC_OUTPUT_W, 0x23);
+-=09
+-	/* Cpu base addr */
+-	WCrt (regs, CRT_ID_EXT_SYS_CNTL_4, 0x0);
+-=09
+-	/* Reset. This does nothing on Trio, but standard VGA practice */
+-	/* WSeq (CyberRegs, SEQ_ID_RESET, 0x03); */
+-	/* Character clocks 8 dots wide */
+-	WSeq (regs, SEQ_ID_CLOCKING_MODE, 0x01);
+-	/* Enable cpu write to all color planes */
+-	WSeq (regs, SEQ_ID_MAP_MASK, 0x0F);
+-	/* Font table in 1st 8k of plane 2, font A=3DB disables swtich */
+-	WSeq (regs, SEQ_ID_CHAR_MAP_SELECT, 0x0);
+-	/* Allow mem access to 256kb */
+-	WSeq (regs, SEQ_ID_MEMORY_MODE, 0x2);
+-	/* Unlock S3 extensions to VGA Sequencer regs */
+-	WSeq (regs, SEQ_ID_UNLOCK_EXT, 0x6);
+-=09
+-	/* Enable 4MB fast page mode */
+-	test =3D RSeq (regs, SEQ_ID_BUS_REQ_CNTL);
+-	test =3D test | 1 << 6;
+-	WSeq (regs, SEQ_ID_BUS_REQ_CNTL, test);
+-=09
+-	/* Faster LUT write: 1 DCLK LUT write cycle, RAMDAC clk doubled */
+-	WSeq (regs, SEQ_ID_RAMDAC_CNTL, 0xC0);
+-
+-	/* Clear immediate clock load bit */
+-	test =3D RSeq (regs, SEQ_ID_CLKSYN_CNTL_2);
+-	test =3D test & 0xDF;
+-	/* If > 55MHz, enable 2 cycle memory write */
+-	if (cv64_memclk >=3D 55000000) {
+-		test |=3D 0x80;
+-	}
+-	WSeq (regs, SEQ_ID_CLKSYN_CNTL_2, test);
+-
+-	/* Set MCLK value */
+-	clockpar =3D cv64_compute_clock (cv64_memclk);
+-	test =3D (clockpar & 0xFF00) >> 8;
+-	WSeq (regs, SEQ_ID_MCLK_HI, test);
+-	test =3D clockpar & 0xFF;
+-	WSeq (regs, SEQ_ID_MCLK_LO, test);
+-
+-	/* Chip rev specific: Not in my Trio manual!!! */
+-	if (RCrt (regs, CRT_ID_REVISION) =3D=3D 0x10)
+-		WSeq (regs, SEQ_ID_MORE_MAGIC, test);
+-
+-	/* We now load an 25 MHz, 31kHz, 640x480 standard VGA Mode. */
+-
+-	/* Set DCLK value */
+-	WSeq (regs, SEQ_ID_DCLK_HI, 0x13);
+-	WSeq (regs, SEQ_ID_DCLK_LO, 0x41);
+-
+-	/* Load DCLK (and MCLK?) immediately */
+-	test =3D RSeq (regs, SEQ_ID_CLKSYN_CNTL_2);
+-	test =3D test | 0x22;
+-	WSeq (regs, SEQ_ID_CLKSYN_CNTL_2, test);
+-
+-	/* Enable loading of DCLK */
+-	test =3D rb_64(regs, GREG_MISC_OUTPUT_R);
+-	test =3D test | 0x0C;
+-	wb_64 (regs, GREG_MISC_OUTPUT_W, test);
+-
+-	/* Turn off immediate xCLK load */
+-	WSeq (regs, SEQ_ID_CLKSYN_CNTL_2, 0x2);
+-
+-	/* Horizontal character clock counts */
+-	/* 8 LSB of 9 bits =3D total line - 5 */
+-	WCrt (regs, CRT_ID_HOR_TOTAL, 0x5F);
+-	/* Active display line */
+-	WCrt (regs, CRT_ID_HOR_DISP_ENA_END, 0x4F);
+-	/* Blank assertion start */
+-	WCrt (regs, CRT_ID_START_HOR_BLANK, 0x50);
+-	/* Blank assertion end */
+-	WCrt (regs, CRT_ID_END_HOR_BLANK, 0x82);
+-	/* HSYNC assertion start */
+-	WCrt (regs, CRT_ID_START_HOR_RETR, 0x54);
+-	/* HSYNC assertion end */
+-	WCrt (regs, CRT_ID_END_HOR_RETR, 0x80);
+-	WCrt (regs, CRT_ID_VER_TOTAL, 0xBF);
+-	WCrt (regs, CRT_ID_OVERFLOW, 0x1F);
+-	WCrt (regs, CRT_ID_PRESET_ROW_SCAN, 0x0);
+-	WCrt (regs, CRT_ID_MAX_SCAN_LINE, 0x40);
+-	WCrt (regs, CRT_ID_CURSOR_START, 0x00);
+-	WCrt (regs, CRT_ID_CURSOR_END, 0x00);
+-	WCrt (regs, CRT_ID_START_ADDR_HIGH, 0x00);
+-	WCrt (regs, CRT_ID_START_ADDR_LOW, 0x00);
+-	WCrt (regs, CRT_ID_CURSOR_LOC_HIGH, 0x00);
+-	WCrt (regs, CRT_ID_CURSOR_LOC_LOW, 0x00);
+-	WCrt (regs, CRT_ID_START_VER_RETR, 0x9C);
+-	WCrt (regs, CRT_ID_END_VER_RETR, 0x0E);
+-	WCrt (regs, CRT_ID_VER_DISP_ENA_END, 0x8F);
+-	WCrt (regs, CRT_ID_SCREEN_OFFSET, 0x50);
+-	WCrt (regs, CRT_ID_UNDERLINE_LOC, 0x00);
+-	WCrt (regs, CRT_ID_START_VER_BLANK, 0x96);
+-	WCrt (regs, CRT_ID_END_VER_BLANK, 0xB9);
+-	WCrt (regs, CRT_ID_MODE_CONTROL, 0xE3);
+-	WCrt (regs, CRT_ID_LINE_COMPARE, 0xFF);
+-	WCrt (regs, CRT_ID_BACKWAD_COMP_3, 0x10);	/* FIFO enabled */
+-	WCrt (regs, CRT_ID_MISC_1, 0x35);
+-	WCrt (regs, CRT_ID_DISPLAY_FIFO, 0x5A);
+-	WCrt (regs, CRT_ID_EXT_MEM_CNTL_2, 0x70);
+-	WCrt (regs, CRT_ID_LAW_POS_LO, 0x40);
+-	WCrt (regs, CRT_ID_EXT_MEM_CNTL_3, 0xFF);
+-
+-	WGfx (regs, GCT_ID_SET_RESET, 0x0);
+-	WGfx (regs, GCT_ID_ENABLE_SET_RESET, 0x0);
+-	WGfx (regs, GCT_ID_COLOR_COMPARE, 0x0);
+-	WGfx (regs, GCT_ID_DATA_ROTATE, 0x0);
+-	WGfx (regs, GCT_ID_READ_MAP_SELECT, 0x0);
+-	WGfx (regs, GCT_ID_GRAPHICS_MODE, 0x40);
+-	WGfx (regs, GCT_ID_MISC, 0x01);
+-	WGfx (regs, GCT_ID_COLOR_XCARE, 0x0F);
+-	WGfx (regs, GCT_ID_BITMASK, 0xFF);
+-
+-	/* Colors for text mode */
+-	for (i =3D 0; i < 0xf; i++)
+-		WAttr (regs, i, i);
+-
+-	WAttr (regs, ACT_ID_ATTR_MODE_CNTL, 0x41);
+-	WAttr (regs, ACT_ID_OVERSCAN_COLOR, 0x01);
+-	WAttr (regs, ACT_ID_COLOR_PLANE_ENA, 0x0F);
+-	WAttr (regs, ACT_ID_HOR_PEL_PANNING, 0x0);
+-	WAttr (regs, ACT_ID_COLOR_SELECT, 0x0);
+-
+-	wb_64 (regs, VDAC_MASK, 0xFF);
+-
+-	*((unsigned long *) (regs + ECR_FRGD_COLOR)) =3D 0xFF;
+-	*((unsigned long *) (regs + ECR_BKGD_COLOR)) =3D 0;
+-
+-	/* Colors initially set to grayscale */
+-
+-	wb_64 (regs, VDAC_ADDRESS_W, 0);
+-	for (i =3D 255; i >=3D 0; i--) {
+-		wb_64(regs, VDAC_DATA, i);
+-		wb_64(regs, VDAC_DATA, i);
+-		wb_64(regs, VDAC_DATA, i);
+-	}
+-
+-	/* GFx hardware cursor off */
+-	WCrt (regs, CRT_ID_HWGC_MODE, 0x00);
+-
+-	/* Set first to 4MB, so test will work */
+-	WCrt (regs, CRT_ID_LAW_CNTL, 0x13);
+-	/* Find "correct" size of fbmem of Z3 board */
+-	if (cv_has_4mb (CyberMem)) {
+-		CyberSize =3D 1024 * 1024 * 4;
+-		WCrt (regs, CRT_ID_LAW_CNTL, 0x13);
+-		DPRINTK("4MB board\n");
+-	} else {
+-		CyberSize =3D 1024 * 1024 * 2;
+-		WCrt (regs, CRT_ID_LAW_CNTL, 0x12);
+-		DPRINTK("2MB board\n");
+-	}
+-
+-	/* Initialize graphics engine */
+-	Cyber_WaitBlit();
+-	vgaw16 (regs, ECR_FRGD_MIX, 0x27);
+-	vgaw16 (regs, ECR_BKGD_MIX, 0x07);
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0x1000);
+-	udelay(200);
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0x2000);
+-	Cyber_WaitBlit();
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0x3FFF);
+-	Cyber_WaitBlit();
+-	udelay(200);
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0x4FFF);
+-	Cyber_WaitBlit();
+-	vgaw16 (regs, ECR_BITPLANE_WRITE_MASK, ~0);
+-	Cyber_WaitBlit();
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0xE000);
+-	vgaw16 (regs, ECR_CURRENT_Y_POS2, 0x00);
+-	vgaw16 (regs, ECR_CURRENT_X_POS2, 0x00);
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0xA000);
+-	vgaw16 (regs, ECR_DEST_Y__AX_STEP, 0x00);
+-	vgaw16 (regs, ECR_DEST_Y2__AX_STEP2, 0x00);
+-	vgaw16 (regs, ECR_DEST_X__DIA_STEP, 0x00);
+-	vgaw16 (regs, ECR_DEST_X2__DIA_STEP2, 0x00);
+-	vgaw16 (regs, ECR_SHORT_STROKE, 0x00);
+-	vgaw16 (regs, ECR_DRAW_CMD, 0x01);
+-
+-	Cyber_WaitBlit();
+-
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0x4FFF);
+-	vgaw16 (regs, ECR_BKGD_COLOR, 0x01);
+-	vgaw16 (regs, ECR_FRGD_COLOR, 0x00);
+-
+-
+-	/* Enable video display (set bit 5) */
+-/* ARB - Would also seem to write to AR13.
+- *       May want to use parts of WAttr to set JUST bit 5
+- */
+-	WAttr (regs, 0x33, 0);
+-=09
+-/* GRF - function code ended here */
+-
+-	/* Turn gfx on again */
+-	gfx_on_off (0, regs);
+-
+-	/* Pass-through */
+-	cvscreen (0, CyberBase);
+-
+-	DPRINTK("EXIT\n");
+-}
+-
+-static void cv64_load_video_mode (struct fb_var_screeninfo *video_mode=
+)
+-{
+-  volatile unsigned char *regs =3D CyberRegs;
+-  int fx, fy;
+-  unsigned short mnr;
+-  unsigned short HT, HDE, HBS, HBE, HSS, HSE, VDE, VBS, VBE, VSS, VSE,=
+ VT;
+-  char LACE, DBLSCAN, TEXT, CONSOLE;
+-  int cr50, sr15, sr18, clock_mode, test;
+-  int m, n;
+-  int tfillm, temptym;
+-  int hmul;
+-=09
+-  /* ---------------- */
+-  int xres, hfront, hsync, hback;
+-  int yres, vfront, vsync, vback;
+-  int bpp;
+-#if 0
+-  float freq_f;
+-#endif
+-  long freq;
+-  /* ---------------- */
+-=09
+-  DPRINTK("ENTER\n");
+-  TEXT =3D 0;	/* if depth =3D=3D 4 */
+-  CONSOLE =3D 0;	/* mode num =3D=3D 255 (console) */
+-  fx =3D fy =3D 8;	/* force 8x8 font */
+-
+-/* GRF - Disable interrupts */=09
+-=09
+-  gfx_on_off (1, regs);
+-=09
+-  switch (video_mode->bits_per_pixel) {
+-  case 15:
+-  case 16:
+-    hmul =3D 2;
+-    break;
+-	=09
+-  default:
+-    hmul =3D 1;
+-    break;
+-  }
+-=09
+-  bpp =3D video_mode->bits_per_pixel;
+-  xres =3D video_mode->xres;
+-  hfront =3D video_mode->right_margin;
+-  hsync =3D video_mode->hsync_len;
+-  hback =3D video_mode->left_margin;
+-
+-  LACE =3D 0;
+-  DBLSCAN =3D 0;
+-
+-  if (video_mode->vmode & FB_VMODE_DOUBLE) {
+-    yres =3D video_mode->yres * 2;
+-    vfront =3D video_mode->lower_margin * 2;
+-    vsync =3D video_mode->vsync_len * 2;
+-    vback =3D video_mode->upper_margin * 2;
+-    DBLSCAN =3D 1;
+-  } else if (video_mode->vmode & FB_VMODE_INTERLACED) {
+-    yres =3D (video_mode->yres + 1) / 2;
+-    vfront =3D (video_mode->lower_margin + 1) / 2;
+-    vsync =3D (video_mode->vsync_len + 1) / 2;
+-    vback =3D (video_mode->upper_margin + 1) / 2;
+-    LACE =3D 1;
+-  } else {
+-    yres =3D video_mode->yres;
+-    vfront =3D video_mode->lower_margin;
+-    vsync =3D video_mode->vsync_len;
+-    vback =3D video_mode->upper_margin;
+-  }
+-
+-  /* ARB Dropping custom setup method from cvision.c */
+-#if 0
+-  if (cvision_custom_mode) {
+-    HBS =3D hbs / 8 * hmul;
+-    HBE =3D hbe / 8 * hmul;
+-    HSS =3D hss / 8 * hmul;
+-    HSE =3D hse / 8 * hmul;
+-    HT  =3D ht / 8 * hmul - 5;
+-	=09
+-    VBS =3D vbs - 1;
+-    VSS =3D vss;
+-    VSE =3D vse;
+-    VBE =3D vbe;
+-    VT  =3D vt - 2;
+-  } else {
+-#else
+-    {
+-#endif
+-    HBS =3D hmul * (xres / 8);
+-    HBE =3D hmul * ((xres/8) + (hfront/8) + (hsync/8) + (hback/8) - 2)=
+;
+-    HSS =3D hmul * ((xres/8) + (hfront/8) + 2);
+-    HSE =3D hmul * ((xres/8) + (hfront/8) + (hsync/8) + 1);
+-    HT  =3D hmul * ((xres/8) + (hfront/8) + (hsync/8) + (hback/8));
+-=09
+-    VBS =3D yres;
+-    VBE =3D yres + vfront + vsync + vback - 2;
+-    VSS =3D yres + vfront - 1;
+-    VSE =3D yres + vfront + vsync - 1;
+-    VT  =3D yres + vfront + vsync + vback - 2;
+-  }
+-
+-  wb_64 (regs, ECR_ADV_FUNC_CNTL, (TEXT ? 0x00 : 0x31));
+-=09
+-  if (TEXT)
+-    HDE =3D ((video_mode->xres + fx - 1) / fx) - 1;
+-  else
+-    HDE =3D (video_mode->xres + 3) * hmul / 8 - 1;
+-=09
+-  VDE =3D video_mode->yres - 1;
+-
+-  WCrt (regs, CRT_ID_HWGC_MODE, 0x00);
+-  WCrt (regs, CRT_ID_EXT_DAC_CNTL, 0x00);
+-=09
+-  WSeq (regs, SEQ_ID_MEMORY_MODE,
+-	(TEXT || (video_mode->bits_per_pixel =3D=3D 1)) ? 0x06 : 0x0e);
+-  WGfx (regs, GCT_ID_READ_MAP_SELECT, 0x00);
+-  WSeq (regs, SEQ_ID_MAP_MASK,
+-	(video_mode->bits_per_pixel =3D=3D 1) ? 0x01 : 0xFF);
+-  WSeq (regs, SEQ_ID_CHAR_MAP_SELECT, 0x00);
+-=09
+-  /* cv64_compute_clock accepts arguments in Hz */
+-  /* pixclock is in ps ... convert to Hz */
+-=09
+-#if 0
+-  freq_f =3D (1.0 / (float) video_mode->pixclock) * 1000000000;
+-  freq =3D ((long) freq_f) * 1000;
+-#else
+-/* freq =3D (long) ((long long)1000000000000 / (long long) video_mode-=
+>pixclock);
+- */
+-  freq =3D (1000000000 / video_mode->pixclock) * 1000;
+-#endif
+-
+-  mnr =3D cv64_compute_clock (freq);
+-  WSeq (regs, SEQ_ID_DCLK_HI, ((mnr & 0xFF00) >> 8));
+-  WSeq (regs, SEQ_ID_DCLK_LO, (mnr & 0xFF));
+-=09
+-  /* Load display parameters into board */
+-  WCrt (regs, CRT_ID_EXT_HOR_OVF,
+-	((HT & 0x100) ? 0x01 : 0x00) |
+-	((HDE & 0x100) ? 0x02 : 0x00) |
+-	((HBS & 0x100) ? 0x04 : 0x00) |
+-	/* ((HBE & 0x40) ? 0x08 : 0x00) | */
+-	((HSS & 0x100) ? 0x10 : 0x00) |
+-	/* ((HSE & 0x20) ? 0x20 : 0x00) | */
+-	(((HT-5) & 0x100) ? 0x40 : 0x00)
+-	);
+-=09
+-  WCrt (regs, CRT_ID_EXT_VER_OVF,
+-	0x40 |
+-	((VT & 0x400) ? 0x01 : 0x00) |
+-	((VDE & 0x400) ? 0x02 : 0x00) |
+-	((VBS & 0x400) ? 0x04 : 0x00) |
+-	((VSS & 0x400) ? 0x10 : 0x00)
+-	);
+-=09
+-  WCrt (regs, CRT_ID_HOR_TOTAL, HT);
+-  WCrt (regs, CRT_ID_DISPLAY_FIFO, HT - 5);
+-  WCrt (regs, CRT_ID_HOR_DISP_ENA_END, ((HDE >=3D HBS) ? (HBS - 1) : H=
+DE));
+-  WCrt (regs, CRT_ID_START_HOR_BLANK, HBS);
+-  WCrt (regs, CRT_ID_END_HOR_BLANK, ((HBE & 0x1F) | 0x80));
+-  WCrt (regs, CRT_ID_START_HOR_RETR, HSS);
+-  WCrt (regs, CRT_ID_END_HOR_RETR,
+-	(HSE & 0x1F) |
+-	((HBE & 0x20) ? 0x80 : 0x00)
+-	);
+-  WCrt (regs, CRT_ID_VER_TOTAL, VT);
+-  WCrt (regs, CRT_ID_OVERFLOW,
+-	0x10 |
+-	((VT & 0x100) ? 0x01 : 0x00) |
+-	((VDE & 0x100) ? 0x02 : 0x00) |
+-	((VSS & 0x100) ? 0x04 : 0x00) |
+-	((VBS & 0x100) ? 0x08 : 0x00) |
+-	((VT & 0x200) ? 0x20 : 0x00) |
+-	((VDE & 0x200) ? 0x40 : 0x00) |
+-	((VSS & 0x200) ? 0x80 : 0x00)
+-	);
+-  WCrt (regs, CRT_ID_MAX_SCAN_LINE,
+-	0x40 |
+-	(DBLSCAN ? 0x80 : 0x00) |
+-	((VBS & 0x200) ? 0x20 : 0x00) |
+-	(TEXT ? ((fy - 1) & 0x1F) : 0x00)
+-	);
+-=09
+-  WCrt (regs, CRT_ID_MODE_CONTROL, 0xE3);
+-
+-  /* Text cursor */
+-=09
+-  if (TEXT) {
+-#if 1
+-    WCrt (regs, CRT_ID_CURSOR_START, (fy & 0x1f) - 2);
+-    WCrt (regs, CRT_ID_CURSOR_END, (fy & 0x1F) - 1);
+-#else
+-    WCrt (regs, CRT_ID_CURSOR_START, 0x00);
+-    WCrt (regs, CRT_ID_CURSOR_END, fy & 0x1F);
+-#endif
+-    WCrt (regs, CRT_ID_UNDERLINE_LOC, (fy - 1) & 0x1F);
+-    WCrt (regs, CRT_ID_CURSOR_LOC_HIGH, 0x00);
+-    WCrt (regs, CRT_ID_CURSOR_LOC_LOW, 0x00);
+-  }
+-=09
+-  WCrt (regs, CRT_ID_START_ADDR_HIGH, 0x00);
+-  WCrt (regs, CRT_ID_START_ADDR_LOW, 0x00);
+-  WCrt (regs, CRT_ID_START_VER_RETR, VSS);
+-  WCrt (regs, CRT_ID_END_VER_RETR, (VSE & 0x0F));
+-  WCrt (regs, CRT_ID_VER_DISP_ENA_END, VDE);
+-  WCrt (regs, CRT_ID_START_VER_BLANK, VBS);
+-  WCrt (regs, CRT_ID_END_VER_BLANK, VBE);
+-  WCrt (regs, CRT_ID_LINE_COMPARE, 0xFF);
+-  WCrt (regs, CRT_ID_LACE_RETR_START, HT / 2);
+-  WCrt (regs, CRT_ID_LACE_CONTROL, (LACE ? 0x20 : 0x00));
+-  WGfx (regs, GCT_ID_GRAPHICS_MODE,
+-	((TEXT || (video_mode->bits_per_pixel =3D=3D 1)) ? 0x00 : 0x40));
+-  WGfx (regs, GCT_ID_MISC, (TEXT ? 0x04 : 0x01));
+-  WSeq (regs, SEQ_ID_MEMORY_MODE,
+-	((TEXT || (video_mode->bits_per_pixel =3D=3D 1)) ? 0x06 : 0x02));
+-=09
+-  wb_64 (regs, VDAC_MASK, 0xFF);
+-=09
+-  /* Blank border */
+-  test =3D RCrt (regs, CRT_ID_BACKWAD_COMP_2);
+-  WCrt (regs, CRT_ID_BACKWAD_COMP_2, (test | 0x20));
+-=09
+-  sr15 =3D RSeq (regs, SEQ_ID_CLKSYN_CNTL_2);
+-  sr15 &=3D 0xEF;
+-  sr18 =3D RSeq (regs, SEQ_ID_RAMDAC_CNTL);
+-  sr18 &=3D 0x7F;
+-  clock_mode =3D 0x00;
+-  cr50 =3D 0x00;
+-=09
+-  test =3D RCrt (regs, CRT_ID_EXT_MISC_CNTL_2);
+-  test &=3D 0xD;
+-=09
+-  /* Clear roxxler byte-swapping... */
+-  cv64_write_port (0x0040, CyberBase);
+-  cv64_write_port (0x0020, CyberBase);
+-=09
+-  switch (video_mode->bits_per_pixel) {
+-  case 1:
+-  case 4:	/* text */
+-    HDE =3D video_mode->xres / 16;
+-    break;
+-	=09
+-  case 8:
+-    if (freq > 80000000) {
+-      clock_mode =3D 0x10 | 0x02;
+-      sr15 |=3D 0x10;
+-      sr18 |=3D 0x80;
+-    }
+-    HDE =3D video_mode->xres / 8;
+-    cr50 |=3D 0x00;
+-    break;
+-	=09
+-  case 15:
+-    cv64_write_port (0x8020, CyberBase);
+-    clock_mode =3D 0x30;
+-    HDE =3D video_mode->xres / 4;
+-    cr50 |=3D 0x10;
+-    break;
+-	=09
+-  case 16:
+-    cv64_write_port (0x8020, CyberBase);
+-    clock_mode =3D 0x50;
+-    HDE =3D video_mode->xres / 4;
+-    cr50 |=3D 0x10;
+-    break;
+-	=09
+-  case 24:
+-  case 32:
+-    cv64_write_port (0x8040, CyberBase);
+-    clock_mode =3D 0xD0;
+-    HDE =3D video_mode->xres / 2;
+-    cr50 |=3D 0x30;
+-    break;
+-  }
+-
+-  WCrt (regs, CRT_ID_EXT_MISC_CNTL_2, clock_mode | test);
+-  WSeq (regs, SEQ_ID_CLKSYN_CNTL_2, sr15);
+-  WSeq (regs, SEQ_ID_RAMDAC_CNTL, sr18);
+-  WCrt (regs, CRT_ID_SCREEN_OFFSET, HDE);
+-
+-  WCrt (regs, CRT_ID_MISC_1, (TEXT ? 0x05 : 0x35));
+-=09
+-  test =3D RCrt (regs, CRT_ID_EXT_SYS_CNTL_2);
+-  test &=3D ~0x30;
+-  test |=3D (HDE >> 4) & 0x30;
+-  WCrt (regs, CRT_ID_EXT_SYS_CNTL_2, test);
+-=09
+-  /* Set up graphics engine */
+-  switch (video_mode->xres) {
+-  case 1024:
+-    cr50 |=3D 0x00;
+-    break;
+-	=09
+-  case 640:
+-    cr50 |=3D 0x40;
+-    break;
+-	=09
+-  case 800:
+-    cr50 |=3D 0x80;
+-    break;
+-	=09
+-  case 1280:
+-    cr50 |=3D 0xC0;
+-    break;
+-	=09
+-  case 1152:
+-    cr50 |=3D 0x01;
+-    break;
+-	=09
+-  case 1600:
+-    cr50 |=3D 0x81;
+-    break;
+-	=09
+-  default:	/* XXX */
+-    break;
+-  }
+-=09
+-  WCrt (regs, CRT_ID_EXT_SYS_CNTL_1, cr50);
+-=09
+-  udelay(100);
+-  WAttr (regs, ACT_ID_ATTR_MODE_CNTL, (TEXT ? 0x08 : 0x41));
+-  udelay(100);
+-  WAttr (regs, ACT_ID_COLOR_PLANE_ENA,
+-	 (video_mode->bits_per_pixel =3D=3D 1) ? 0x01 : 0x0F);
+-  udelay(100);
+-=09
+-  tfillm =3D (96 * (cv64_memclk / 1000)) / 240000;
+-=09
+-  switch (video_mode->bits_per_pixel) {
+-  case 32:
+-  case 24:
+-    temptym =3D (24 * (cv64_memclk / 1000)) / (freq / 1000);
+-    break;
+-  case 15:
+-  case 16:
+-    temptym =3D (48 * (cv64_memclk / 1000)) / (freq / 1000);
+-    break;
+-  case 4:
+-    temptym =3D (192 * (cv64_memclk / 1000)) / (freq / 1000);
+-    break;
+-  default:
+-    temptym =3D (96 * (cv64_memclk / 1000)) / (freq / 1000);
+-    break;
+-  }
+-=09
+-  m =3D (temptym - tfillm - 9) / 2;
+-  if (m < 0)
+-    m =3D 0;
+-  m =3D (m & 0x1F) << 3;
+-  if (m < 0x18)
+-    m =3D 0x18;
+-  n =3D 0xFF;
+-=09
+-  WCrt (regs, CRT_ID_EXT_MEM_CNTL_2, m);
+-  WCrt (regs, CRT_ID_EXT_MEM_CNTL_3, n);
+-  udelay(10);
+-=09
+-  /* Text initialization */
+-=09
+-  if (TEXT) {
+-    /* Do text initialization here ! */
+-  }
+-=09
+-  if (CONSOLE) {
+-    int i;
+-    wb_64 (regs, VDAC_ADDRESS_W, 0);
+-    for (i =3D 0; i < 4; i++) {
+-      wb_64 (regs, VDAC_DATA, cvconscolors [i][0]);
+-      wb_64 (regs, VDAC_DATA, cvconscolors [i][1]);
+-      wb_64 (regs, VDAC_DATA, cvconscolors [i][2]);
+-    }
+-  }
+-=09
+-  WAttr (regs, 0x33, 0);
+-=09
+-  /* Turn gfx on again */
+-  gfx_on_off (0, (volatile unsigned char *) regs);
+-=09
+-  /* Pass-through */
+-  cvscreen (0, CyberBase);
+-
+-DPRINTK("EXIT\n");
+-}
+-
+-void cvision_bitblt (u_short sx, u_short sy, u_short dx, u_short dy,
+-		     u_short w, u_short h)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	unsigned short drawdir =3D 0;
+-=09
+-	DPRINTK("ENTER\n");
+-	if (sx > dx) {
+-		drawdir |=3D 1 << 5;
+-	} else {
+-		sx +=3D w - 1;
+-		dx +=3D w - 1;
+-	}
+-=09
+-	if (sy > dy) {
+-		drawdir |=3D 1 << 7;
+-	} else {
+-		sy +=3D h - 1;
+-		dy +=3D h - 1;
+-	}
+-=09
+-	Cyber_WaitBlit();
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0xA000);
+-	vgaw16 (regs, ECR_BKGD_MIX, 0x7);
+-	vgaw16 (regs, ECR_FRGD_MIX, 0x67);
+-	vgaw16 (regs, ECR_BKGD_COLOR, 0x0);
+-	vgaw16 (regs, ECR_FRGD_COLOR, 0x1);
+-	vgaw16 (regs, ECR_BITPLANE_READ_MASK, 0x1);
+-	vgaw16 (regs, ECR_BITPLANE_WRITE_MASK, 0xFFF);
+-	vgaw16 (regs, ECR_CURRENT_Y_POS, sy);
+-	vgaw16 (regs, ECR_CURRENT_X_POS, sx);
+-	vgaw16 (regs, ECR_DEST_Y__AX_STEP, dy);
+-	vgaw16 (regs, ECR_DEST_X__DIA_STEP, dx);
+-	vgaw16 (regs, ECR_READ_REG_DATA, h - 1);
+-	vgaw16 (regs, ECR_MAJ_AXIS_PIX_CNT, w - 1);
+-	vgaw16 (regs, ECR_DRAW_CMD, 0xC051 | drawdir);
+-	DPRINTK("EXIT\n");
+-}
+-
+-void cvision_clear (u_short dx, u_short dy, u_short w, u_short h, u_sh=
+ort bg)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	DPRINTK("ENTER\n");
+-	Cyber_WaitBlit();
+-	vgaw16 (regs, ECR_FRGD_MIX, 0x0027);
+-	vgaw16 (regs, ECR_FRGD_COLOR, bg);
+-	vgaw16 (regs, ECR_READ_REG_DATA, 0xA000);
+-	vgaw16 (regs, ECR_CURRENT_Y_POS, dy);
+-	vgaw16 (regs, ECR_CURRENT_X_POS, dx);
+-	vgaw16 (regs, ECR_READ_REG_DATA, h - 1);
+-	vgaw16 (regs, ECR_MAJ_AXIS_PIX_CNT, w - 1);
+-	vgaw16 (regs, ECR_DRAW_CMD, 0x40B1);=09
+-	DPRINTK("EXIT\n");
+-}
+-
+-#ifdef CYBERFBDEBUG
+-/*
+- * Dump internal settings of CyberVision board
+- */
+-static void cv64_dump (void)
+-{
+-	volatile unsigned char *regs =3D CyberRegs;
+-	DPRINTK("ENTER\n");
+-        /* Dump the VGA setup values */
+-	*(regs + S3_CRTC_ADR) =3D 0x00;
+-	DPRINTK("CR00 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x01;
+-	DPRINTK("CR01 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x02;
+-	DPRINTK("CR02 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x03;
+-	DPRINTK("CR03 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x04;
+-	DPRINTK("CR04 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x05;
+-	DPRINTK("CR05 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x06;
+-	DPRINTK("CR06 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x07;
+-	DPRINTK("CR07 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x08;
+-	DPRINTK("CR08 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x09;
+-	DPRINTK("CR09 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x10;
+-	DPRINTK("CR10 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x11;
+-	DPRINTK("CR11 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x12;
+-	DPRINTK("CR12 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x13;
+-	DPRINTK("CR13 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x15;
+-	DPRINTK("CR15 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x16;
+-	DPRINTK("CR16 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x36;
+-	DPRINTK("CR36 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x37;
+-	DPRINTK("CR37 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x42;
+-	DPRINTK("CR42 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x43;
+-	DPRINTK("CR43 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x50;
+-	DPRINTK("CR50 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x51;
+-	DPRINTK("CR51 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x53;
+-	DPRINTK("CR53 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x58;
+-	DPRINTK("CR58 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x59;
+-	DPRINTK("CR59 =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x5A;
+-	DPRINTK("CR5A =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x5D;
+-	DPRINTK("CR5D =3D %x\n", *(regs + S3_CRTC_DATA));
+-	*(regs + S3_CRTC_ADR) =3D 0x5E;
+-	DPRINTK("CR5E =3D %x\n", *(regs + S3_CRTC_DATA));
+-	DPRINTK("MISC =3D %x\n", *(regs + GREG_MISC_OUTPUT_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x01;
+-	DPRINTK("SR01 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x02;
+-	DPRINTK("SR02 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x03;
+-	DPRINTK("SR03 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x09;
+-	DPRINTK("SR09 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x10;
+-	DPRINTK("SR10 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x11;
+-	DPRINTK("SR11 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x12;
+-	DPRINTK("SR12 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x13;
+-	DPRINTK("SR13 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-	*(regs + SEQ_ADDRESS) =3D 0x15;
+-	DPRINTK("SR15 =3D %x\n", *(regs + SEQ_ADDRESS_R));
+-=09
+-	return;
+-}
+-#endif
+diff -puN drivers/video/cyberfb.h~remove-broken-video-drivers-v4 /dev/n=
+ull
+--- a/drivers/video/cyberfb.h
++++ /dev/null
+@@ -1,415 +0,0 @@
+-/*
+- * linux/arch/m68k/console/cvision.h -- CyberVision64 definitions for =
+the
+- *                                      text console driver.
+- *
+- *   Copyright (c) 1998 Alan Bair
+- *
+- * This file is based on the initial port to Linux of grf_cvreg.h:
+- *
+- *   Copyright (c) 1997 Antonio Santos
+- *
+- * The original work is from the NetBSD CyberVision 64 framebuffer dri=
+ver=20
+- * and support files (grf_cv.c, grf_cvreg.h, ite_cv.c):
+- * Permission to use the source of this driver was obtained from the
+- * author Michael Teske by Alan Bair.
+- *
+- *   Copyright (c) 1995 Michael Teske
+- *
+- * History:
+- *
+- *
+- *
+- * This file is subject to the terms and conditions of the GNU General=
+ Public
+- * License.  See the file COPYING in the main directory of this archiv=
+e
+- * for more details.
+- */
+-
+-/* s3 commands */
+-#define S3_BITBLT       0xc011
+-#define S3_TWOPOINTLINE 0x2811
+-#define S3_FILLEDRECT   0x40b1
+-
+-#define S3_FIFO_EMPTY 0x0400
+-#define S3_HDW_BUSY   0x0200
+-
+-/* Enhanced register mapping (MMIO mode) */
+-
+-#define S3_READ_SEL      0xbee8 /* offset f */
+-#define S3_MULT_MISC     0xbee8 /* offset e */
+-#define S3_ERR_TERM      0x92e8
+-#define S3_FRGD_COLOR    0xa6e8
+-#define S3_BKGD_COLOR    0xa2e8
+-#define S3_PIXEL_CNTL    0xbee8 /* offset a */
+-#define S3_FRGD_MIX      0xbae8
+-#define S3_BKGD_MIX      0xb6e8
+-#define S3_CUR_Y         0x82e8
+-#define S3_CUR_X         0x86e8
+-#define S3_DESTY_AXSTP   0x8ae8
+-#define S3_DESTX_DIASTP  0x8ee8
+-#define S3_MIN_AXIS_PCNT 0xbee8 /* offset 0 */
+-#define S3_MAJ_AXIS_PCNT 0x96e8
+-#define S3_CMD           0x9ae8
+-#define S3_GP_STAT       0x9ae8
+-#define S3_ADVFUNC_CNTL  0x4ae8
+-#define S3_WRT_MASK      0xaae8
+-#define S3_RD_MASK       0xaee8
+-
+-/* Enhanced register mapping (Packed MMIO mode, write only) */
+-#define S3_ALT_CURXY     0x8100
+-#define S3_ALT_CURXY2    0x8104
+-#define S3_ALT_STEP      0x8108
+-#define S3_ALT_STEP2     0x810c
+-#define S3_ALT_ERR       0x8110
+-#define S3_ALT_CMD       0x8118
+-#define S3_ALT_MIX       0x8134
+-#define S3_ALT_PCNT      0x8148
+-#define S3_ALT_PAT       0x8168
+-
+-/* Drawing modes */
+-#define S3_NOTCUR          0x0000
+-#define S3_LOGICALZERO     0x0001
+-#define S3_LOGICALONE      0x0002
+-#define S3_LEAVEASIS       0x0003
+-#define S3_NOTNEW          0x0004
+-#define S3_CURXORNEW       0x0005
+-#define S3_NOT_CURXORNEW   0x0006
+-#define S3_NEW             0x0007
+-#define S3_NOTCURORNOTNEW  0x0008
+-#define S3_CURORNOTNEW     0x0009
+-#define S3_NOTCURORNEW     0x000a
+-#define S3_CURORNEW        0x000b
+-#define S3_CURANDNEW       0x000c
+-#define S3_NOTCURANDNEW    0x000d
+-#define S3_CURANDNOTNEW    0x000e
+-#define S3_NOTCURANDNOTNEW 0x000f
+-
+-#define S3_CRTC_ADR    0x03d4
+-#define S3_CRTC_DATA   0x03d5
+-
+-#define S3_REG_LOCK2 0x39
+-#define S3_HGC_MODE  0x45
+-
+-#define S3_HWGC_ORGX_H 0x46
+-#define S3_HWGC_ORGX_L 0x47
+-#define S3_HWGC_ORGY_H 0x48
+-#define S3_HWGC_ORGY_L 0x49
+-#define S3_HWGC_DX     0x4e
+-#define S3_HWGC_DY     0x4f
+-
+-#define S3_LAW_CTL 0x58
+-
+-/**************************************************/
+-
+-/* support for a BitBlt operation. The op-codes are identical
+-   to X11 GCs */
+-#define	GRFBBOPclear		0x0	/* 0 */
+-#define GRFBBOPand		0x1	/* src AND dst */
+-#define GRFBBOPandReverse	0x2	/* src AND NOT dst */
+-#define GRFBBOPcopy		0x3	/* src */
+-#define GRFBBOPandInverted	0x4	/* NOT src AND dst */
+-#define	GRFBBOPnoop		0x5	/* dst */
+-#define GRFBBOPxor		0x6	/* src XOR dst */
+-#define GRFBBOPor		0x7	/* src OR dst */
+-#define GRFBBOPnor		0x8	/* NOT src AND NOT dst */
+-#define GRFBBOPequiv		0x9	/* NOT src XOR dst */
+-#define GRFBBOPinvert		0xa	/* NOT dst */
+-#define GRFBBOPorReverse	0xb	/* src OR NOT dst */
+-#define GRFBBOPcopyInverted	0xc	/* NOT src */
+-#define GRFBBOPorInverted	0xd	/* NOT src OR dst */
+-#define GRFBBOPnand		0xe	/* NOT src OR NOT dst */
+-#define GRFBBOPset		0xf	/* 1 */
+-
+-
+-/* Write 16 Bit VGA register */
+-#define vgaw16(ba, reg, val) \
+-*((unsigned short *)  (((volatile unsigned char *)ba)+reg)) =3D val
+-
+-/*
+- * Defines for the used register addresses (mw)
+- *
+- * NOTE: There are some registers that have different addresses when
+- *       in mono or color mode. We only support color mode, and thus
+- *       some addresses won't work in mono-mode!
+- *
+- * General and VGA-registers taken from retina driver. Fixed a few
+- * bugs in it. (SR and GR read address is Port + 1, NOT Port)
+- *
+- */
+-
+-/* General Registers: */
+-#define GREG_MISC_OUTPUT_R	0x03CC
+-#define GREG_MISC_OUTPUT_W	0x03C2=09
+-#define GREG_FEATURE_CONTROL_R	0x03CA
+-#define GREG_FEATURE_CONTROL_W	0x03DA
+-#define GREG_INPUT_STATUS0_R	0x03C2
+-#define GREG_INPUT_STATUS1_R	0x03DA
+-
+-/* Setup Registers: */
+-#define SREG_OPTION_SELECT	0x0102
+-#define SREG_VIDEO_SUBS_ENABLE	0x46E8
+-
+-/* Attribute Controller: */
+-#define ACT_ADDRESS		0x03C0
+-#define ACT_ADDRESS_R		0x03C1
+-#define ACT_ADDRESS_W		0x03C0
+-#define ACT_ADDRESS_RESET	0x03DA
+-#define ACT_ID_PALETTE0		0x00
+-#define ACT_ID_PALETTE1		0x01
+-#define ACT_ID_PALETTE2		0x02
+-#define ACT_ID_PALETTE3		0x03
+-#define ACT_ID_PALETTE4		0x04
+-#define ACT_ID_PALETTE5		0x05
+-#define ACT_ID_PALETTE6		0x06
+-#define ACT_ID_PALETTE7		0x07
+-#define ACT_ID_PALETTE8		0x08
+-#define ACT_ID_PALETTE9		0x09
+-#define ACT_ID_PALETTE10	0x0A
+-#define ACT_ID_PALETTE11	0x0B
+-#define ACT_ID_PALETTE12	0x0C
+-#define ACT_ID_PALETTE13	0x0D
+-#define ACT_ID_PALETTE14	0x0E
+-#define ACT_ID_PALETTE15	0x0F
+-#define ACT_ID_ATTR_MODE_CNTL	0x10
+-#define ACT_ID_OVERSCAN_COLOR	0x11
+-#define ACT_ID_COLOR_PLANE_ENA	0x12
+-#define ACT_ID_HOR_PEL_PANNING	0x13
+-#define ACT_ID_COLOR_SELECT	0x14
+-
+-/* Graphics Controller: */
+-#define GCT_ADDRESS		0x03CE
+-#define GCT_ADDRESS_R		0x03CF
+-#define GCT_ADDRESS_W		0x03CF
+-#define GCT_ID_SET_RESET	0x00
+-#define GCT_ID_ENABLE_SET_RESET	0x01
+-#define GCT_ID_COLOR_COMPARE	0x02
+-#define GCT_ID_DATA_ROTATE	0x03
+-#define GCT_ID_READ_MAP_SELECT	0x04
+-#define GCT_ID_GRAPHICS_MODE	0x05
+-#define GCT_ID_MISC		0x06
+-#define GCT_ID_COLOR_XCARE	0x07
+-#define GCT_ID_BITMASK		0x08
+-
+-/* Sequencer: */
+-#define SEQ_ADDRESS		0x03C4
+-#define SEQ_ADDRESS_R		0x03C5
+-#define SEQ_ADDRESS_W		0x03C5
+-#define SEQ_ID_RESET		0x00
+-#define SEQ_ID_CLOCKING_MODE	0x01
+-#define SEQ_ID_MAP_MASK		0x02
+-#define SEQ_ID_CHAR_MAP_SELECT	0x03
+-#define SEQ_ID_MEMORY_MODE	0x04
+-#define SEQ_ID_UNKNOWN1		0x05
+-#define SEQ_ID_UNKNOWN2		0x06
+-#define SEQ_ID_UNKNOWN3		0x07
+-/* S3 extensions */
+-#define SEQ_ID_UNLOCK_EXT	0x08
+-#define SEQ_ID_EXT_SEQ_REG9	0x09
+-#define SEQ_ID_BUS_REQ_CNTL	0x0A
+-#define SEQ_ID_EXT_MISC_SEQ	0x0B
+-#define SEQ_ID_UNKNOWN4		0x0C
+-#define SEQ_ID_EXT_SEQ		0x0D
+-#define SEQ_ID_UNKNOWN5		0x0E
+-#define SEQ_ID_UNKNOWN6		0x0F
+-#define SEQ_ID_MCLK_LO		0x10
+-#define SEQ_ID_MCLK_HI		0x11
+-#define SEQ_ID_DCLK_LO		0x12
+-#define SEQ_ID_DCLK_HI		0x13
+-#define SEQ_ID_CLKSYN_CNTL_1	0x14
+-#define SEQ_ID_CLKSYN_CNTL_2	0x15
+-#define SEQ_ID_CLKSYN_TEST_HI	0x16	/* reserved for S3 testing of the *=
+/
+-#define SEQ_ID_CLKSYN_TEST_LO	0x17	/*   internal clock synthesizer   *=
+/
+-#define SEQ_ID_RAMDAC_CNTL	0x18
+-#define SEQ_ID_MORE_MAGIC	0x1A
+-
+-/* CRT Controller: */
+-#define CRT_ADDRESS		0x03D4
+-#define CRT_ADDRESS_R		0x03D5
+-#define CRT_ADDRESS_W		0x03D5
+-#define CRT_ID_HOR_TOTAL	0x00
+-#define CRT_ID_HOR_DISP_ENA_END	0x01
+-#define CRT_ID_START_HOR_BLANK	0x02
+-#define CRT_ID_END_HOR_BLANK	0x03
+-#define CRT_ID_START_HOR_RETR	0x04
+-#define CRT_ID_END_HOR_RETR	0x05
+-#define CRT_ID_VER_TOTAL	0x06
+-#define CRT_ID_OVERFLOW		0x07
+-#define CRT_ID_PRESET_ROW_SCAN	0x08
+-#define CRT_ID_MAX_SCAN_LINE	0x09
+-#define CRT_ID_CURSOR_START	0x0A
+-#define CRT_ID_CURSOR_END	0x0B
+-#define CRT_ID_START_ADDR_HIGH	0x0C
+-#define CRT_ID_START_ADDR_LOW	0x0D
+-#define CRT_ID_CURSOR_LOC_HIGH	0x0E
+-#define CRT_ID_CURSOR_LOC_LOW	0x0F
+-#define CRT_ID_START_VER_RETR	0x10
+-#define CRT_ID_END_VER_RETR	0x11
+-#define CRT_ID_VER_DISP_ENA_END	0x12
+-#define CRT_ID_SCREEN_OFFSET	0x13
+-#define CRT_ID_UNDERLINE_LOC	0x14
+-#define CRT_ID_START_VER_BLANK	0x15
+-#define CRT_ID_END_VER_BLANK	0x16
+-#define CRT_ID_MODE_CONTROL	0x17
+-#define CRT_ID_LINE_COMPARE	0x18
+-#define CRT_ID_GD_LATCH_RBACK	0x22
+-#define CRT_ID_ACT_TOGGLE_RBACK	0x24
+-#define CRT_ID_ACT_INDEX_RBACK	0x26
+-/* S3 extensions: S3 VGA Registers */
+-#define CRT_ID_DEVICE_HIGH	0x2D
+-#define CRT_ID_DEVICE_LOW	0x2E
+-#define CRT_ID_REVISION 	0x2F
+-#define CRT_ID_CHIP_ID_REV	0x30
+-#define CRT_ID_MEMORY_CONF	0x31
+-#define CRT_ID_BACKWAD_COMP_1	0x32
+-#define CRT_ID_BACKWAD_COMP_2	0x33
+-#define CRT_ID_BACKWAD_COMP_3	0x34
+-#define CRT_ID_REGISTER_LOCK	0x35
+-#define CRT_ID_CONFIG_1 	0x36
+-#define CRT_ID_CONFIG_2 	0x37
+-#define CRT_ID_REGISTER_LOCK_1	0x38
+-#define CRT_ID_REGISTER_LOCK_2	0x39
+-#define CRT_ID_MISC_1		0x3A
+-#define CRT_ID_DISPLAY_FIFO	0x3B
+-#define CRT_ID_LACE_RETR_START	0x3C
+-/* S3 extensions: System Control Registers  */
+-#define CRT_ID_SYSTEM_CONFIG	0x40
+-#define CRT_ID_BIOS_FLAG	0x41
+-#define CRT_ID_LACE_CONTROL	0x42
+-#define CRT_ID_EXT_MODE 	0x43
+-#define CRT_ID_HWGC_MODE	0x45	/* HWGC =3D Hardware Graphics Cursor */
+-#define CRT_ID_HWGC_ORIGIN_X_HI	0x46
+-#define CRT_ID_HWGC_ORIGIN_X_LO	0x47
+-#define CRT_ID_HWGC_ORIGIN_Y_HI	0x48
+-#define CRT_ID_HWGC_ORIGIN_Y_LO	0x49
+-#define CRT_ID_HWGC_FG_STACK	0x4A
+-#define CRT_ID_HWGC_BG_STACK	0x4B
+-#define CRT_ID_HWGC_START_AD_HI	0x4C
+-#define CRT_ID_HWGC_START_AD_LO	0x4D
+-#define CRT_ID_HWGC_DSTART_X	0x4E
+-#define CRT_ID_HWGC_DSTART_Y	0x4F
+-/* S3 extensions: System Extension Registers  */
+-#define CRT_ID_EXT_SYS_CNTL_1	0x50
+-#define CRT_ID_EXT_SYS_CNTL_2	0x51
+-#define CRT_ID_EXT_BIOS_FLAG_1	0x52
+-#define CRT_ID_EXT_MEM_CNTL_1	0x53
+-#define CRT_ID_EXT_MEM_CNTL_2	0x54
+-#define CRT_ID_EXT_DAC_CNTL	0x55
+-#define CRT_ID_EX_SYNC_1	0x56
+-#define CRT_ID_EX_SYNC_2	0x57
+-#define CRT_ID_LAW_CNTL		0x58	/* LAW =3D Linear Address Window */
+-#define CRT_ID_LAW_POS_HI	0x59
+-#define CRT_ID_LAW_POS_LO	0x5A
+-#define CRT_ID_GOUT_PORT	0x5C
+-#define CRT_ID_EXT_HOR_OVF	0x5D
+-#define CRT_ID_EXT_VER_OVF	0x5E
+-#define CRT_ID_EXT_MEM_CNTL_3	0x60
+-#define CRT_ID_EX_SYNC_3	0x63
+-#define CRT_ID_EXT_MISC_CNTL	0x65
+-#define CRT_ID_EXT_MISC_CNTL_1	0x66
+-#define CRT_ID_EXT_MISC_CNTL_2	0x67
+-#define CRT_ID_CONFIG_3 	0x68
+-#define CRT_ID_EXT_SYS_CNTL_3	0x69
+-#define CRT_ID_EXT_SYS_CNTL_4	0x6A
+-#define CRT_ID_EXT_BIOS_FLAG_3	0x6B
+-#define CRT_ID_EXT_BIOS_FLAG_4	0x6C
+-
+-/* Enhanced Commands Registers: */
+-#define ECR_SUBSYSTEM_STAT	0x42E8
+-#define ECR_SUBSYSTEM_CNTL	0x42E8
+-#define ECR_ADV_FUNC_CNTL	0x4AE8
+-#define ECR_CURRENT_Y_POS	0x82E8
+-#define ECR_CURRENT_Y_POS2	0x82EA	/* Trio64 only */
+-#define ECR_CURRENT_X_POS	0x86E8
+-#define ECR_CURRENT_X_POS2	0x86EA	/* Trio64 only */
+-#define ECR_DEST_Y__AX_STEP	0x8AE8
+-#define ECR_DEST_Y2__AX_STEP2	0x8AEA	/* Trio64 only */
+-#define ECR_DEST_X__DIA_STEP	0x8EE8
+-#define ECR_DEST_X2__DIA_STEP2	0x8EEA	/* Trio64 only */
+-#define ECR_ERR_TERM		0x92E8
+-#define ECR_ERR_TERM2		0x92EA	/* Trio64 only */
+-#define ECR_MAJ_AXIS_PIX_CNT	0x96E8
+-#define ECR_MAJ_AXIS_PIX_CNT2	0x96EA	/* Trio64 only */
+-#define ECR_GP_STAT		0x9AE8	/* GP =3D Graphics Processor */
+-#define ECR_DRAW_CMD		0x9AE8
+-#define ECR_DRAW_CMD2		0x9AEA	/* Trio64 only */
+-#define ECR_SHORT_STROKE	0x9EE8
+-#define ECR_BKGD_COLOR		0xA2E8	/* BKGD =3D Background */
+-#define ECR_FRGD_COLOR		0xA6E8	/* FRGD =3D Foreground */
+-#define ECR_BITPLANE_WRITE_MASK	0xAAE8
+-#define ECR_BITPLANE_READ_MASK	0xAEE8
+-#define ECR_COLOR_COMPARE	0xB2E8
+-#define ECR_BKGD_MIX		0xB6E8
+-#define ECR_FRGD_MIX		0xBAE8
+-#define ECR_READ_REG_DATA	0xBEE8
+-#define ECR_ID_MIN_AXIS_PIX_CNT	0x00
+-#define ECR_ID_SCISSORS_TOP	0x01
+-#define ECR_ID_SCISSORS_LEFT	0x02
+-#define ECR_ID_SCISSORS_BUTTOM	0x03
+-#define ECR_ID_SCISSORS_RIGHT	0x04
+-#define ECR_ID_PIX_CNTL		0x0A
+-#define ECR_ID_MULT_CNTL_MISC_2	0x0D
+-#define ECR_ID_MULT_CNTL_MISC	0x0E
+-#define ECR_ID_READ_SEL		0x0F
+-#define ECR_PIX_TRANS		0xE2E8
+-#define ECR_PIX_TRANS_EXT	0xE2EA
+-#define ECR_PATTERN_Y		0xEAE8	/* Trio64 only */
+-#define ECR_PATTERN_X		0xEAEA	/* Trio64 only */
+-
+-
+-/* Pass-through */
+-#define PASS_ADDRESS		0x40001
+-#define PASS_ADDRESS_W		0x40001
+-
+-/* Video DAC */
+-#define VDAC_ADDRESS		0x03c8
+-#define VDAC_ADDRESS_W		0x03c8
+-#define VDAC_ADDRESS_R		0x03c7
+-#define VDAC_STATE		0x03c7
+-#define VDAC_DATA		0x03c9
+-#define VDAC_MASK		0x03c6
+-
+-
+-#define WGfx(ba, idx, val) \
+-do { wb_64(ba, GCT_ADDRESS, idx); wb_64(ba, GCT_ADDRESS_W , val); } wh=
+ile (0)
+-
+-#define WSeq(ba, idx, val) \
+-do { wb_64(ba, SEQ_ADDRESS, idx); wb_64(ba, SEQ_ADDRESS_W , val); } wh=
+ile (0)
+-
+-#define WCrt(ba, idx, val) \
+-do { wb_64(ba, CRT_ADDRESS, idx); wb_64(ba, CRT_ADDRESS_W , val); } wh=
+ile (0)
+-
+-#define WAttr(ba, idx, val) \
+-do { \
+-  unsigned char tmp;\
+-  tmp =3D rb_64(ba, ACT_ADDRESS_RESET);\
+-  wb_64(ba, ACT_ADDRESS_W, idx);\
+-  wb_64(ba, ACT_ADDRESS_W, val);\
+-} while (0)
+-
+-#define SetTextPlane(ba, m) \
+-do { \
+-  WGfx(ba, GCT_ID_READ_MAP_SELECT, m & 3 );\
+-  WSeq(ba, SEQ_ID_MAP_MASK, (1 << (m & 3)));\
+-} while (0)
+-
+-     /* --------------------------------- */
+-     /* prototypes                        */
+-     /* --------------------------------- */
+-
+-inline unsigned char RAttr(volatile unsigned char * board, short idx);
+-inline unsigned char RSeq(volatile unsigned char * board, short idx);
+-inline unsigned char RCrt(volatile unsigned char * board, short idx);
+-inline unsigned char RGfx(volatile unsigned char * board, short idx);
+-inline void cv64_write_port(unsigned short bits,
+-			    volatile unsigned char *board);
+-inline void cvscreen(int toggle, volatile unsigned char *board);
+-inline void gfx_on_off(int toggle, volatile unsigned char *board);
+-#if 0
+-unsigned short cv64_compute_clock(unsigned long freq);
+-int cv_has_4mb(volatile unsigned char * fb);
+-void cv64_board_init(void);
+-void cv64_load_video_mode(struct fb_var_screeninfo *video_mode);
+-#endif
+-
+-void cvision_bitblt(u_short sx, u_short sy, u_short dx, u_short dy, u_=
+short w,
+-		    u_short h);
+-void cvision_clear(u_short dx, u_short dy, u_short w, u_short h, u_sho=
+rt bg);
+diff -puN drivers/video/retz3fb.c~remove-broken-video-drivers-v4 /dev/n=
+ull
+--- a/drivers/video/retz3fb.c
++++ /dev/null
+@@ -1,1588 +0,0 @@
+-/*
+- * Linux/drivers/video/retz3fb.c -- RetinaZ3 frame buffer device
+- *
+- *    Copyright (C) 1997 Jes Sorensen
+- *
+- * This file is based on the CyberVision64 frame buffer device and
+- * the generic Cirrus Logic driver.
+- *
+- * cyberfb.c: Copyright (C) 1996 Martin Apel,
+- *                               Geert Uytterhoeven
+- * clgen.c:   Copyright (C) 1996 Frank Neumann
+- *
+- * History:
+- *   - 22 Jan 97: Initial work
+- *   - 14 Feb 97: Screen initialization works somewhat, still only
+- *                8-bit packed pixel is supported.
+- *
+- * This file is subject to the terms and conditions of the GNU General=
+ Public
+- * License.  See the file COPYING in the main directory of this archiv=
+e
+- * for more details.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/mm.h>
+-#include <linux/slab.h>
+-#include <linux/delay.h>
+-#include <linux/fb.h>
+-#include <linux/zorro.h>
+-#include <linux/init.h>
+-
+-#include <asm/uaccess.h>
+-#include <asm/system.h>
+-#include <asm/irq.h>
+-#include <asm/pgtable.h>
+-#include <asm/io.h>
+-
+-#include <video/fbcon.h>
+-#include <video/fbcon-cfb8.h>
+-#include <video/fbcon-cfb16.h>
+-
+-#include "retz3fb.h"
+-
+-/* #define DEBUG if(1) */
+-#define DEBUG if(0)
+-
+-/*
+- * Reserve space for one pattern line.
+- *
+- * For the time being we only support 4MB boards!
+- */
+-
+-#define PAT_MEM_SIZE 16*3
+-#define PAT_MEM_OFF  (4*1024*1024 - PAT_MEM_SIZE)
+-
+-struct retz3fb_par {
+-	int xres;
+-	int yres;
+-	int xres_vir;
+-	int yres_vir;
+-	int xoffset;
+-	int yoffset;
+-	int bpp;
+-
+-	struct fb_bitfield red;
+-	struct fb_bitfield green;
+-	struct fb_bitfield blue;
+-	struct fb_bitfield transp;
+-
+-	int pixclock;
+-	int left_margin;	/* time from sync to picture	*/
+-	int right_margin;	/* time from picture to sync	*/
+-	int upper_margin;	/* time from sync to picture	*/
+-	int lower_margin;
+-	int hsync_len;	/* length of horizontal sync	*/
+-	int vsync_len;	/* length of vertical sync	*/
+-	int vmode;
+-
+-	int accel;
+-};
+-
+-struct display_data {
+-	long h_total;		/* Horizontal Total */
+-	long h_sstart;		/* Horizontal Sync Start */
+-	long h_sstop;		/* Horizontal Sync Stop */
+-	long h_bstart;		/* Horizontal Blank Start */
+-	long h_bstop;		/* Horizontal Blank Stop */
+-	long h_dispend;		/* Horizontal Display End */
+-	long v_total;		/* Vertical Total */
+-	long v_sstart;		/* Vertical Sync Start */
+-	long v_sstop;		/* Vertical Sync Stop */
+-	long v_bstart;		/* Vertical Blank Start */
+-	long v_bstop;		/* Vertical Blank Stop */
+-	long v_dispend;		/* Horizontal Display End */
+-};
+-
+-struct retz3_fb_info {
+-	struct fb_info info;
+-	unsigned char *base;
+-	unsigned char *fbmem;
+-	unsigned long fbsize;
+-	volatile unsigned char *regs;
+-	unsigned long physfbmem;
+-	unsigned long physregs;
+-	int current_par_valid; /* set to 0 by memset */
+-	int blitbusy;
+-	struct display disp;
+-	struct retz3fb_par current_par;
+-	unsigned char color_table [256][3];
+-};
+-
+-
+-static char fontname[40] __initdata =3D { 0 };
+-
+-#define retz3info(info) ((struct retz3_fb_info *)(info))
+-#define fbinfo(info) ((struct fb_info *)(info))
+-
+-
+-/*
+- *    Frame Buffer Name
+- */
+-
+-static char retz3fb_name[16] =3D "RetinaZ3";
+-
+-
+-/*
+- * A small info on how to convert XFree86 timing values into fb
+- * timings - by Frank Neumann:
+- *
+-An XFree86 mode line consists of the following fields:
+- "800x600"     50      800  856  976 1040    600  637  643  666
+- < name >     DCF       HR  SH1  SH2  HFL     VR  SV1  SV2  VFL
+-
+-The fields in the fb_var_screeninfo structure are:
+-        unsigned long pixclock;         * pixel clock in ps (pico seco=
+nds) *
+-        unsigned long left_margin;      * time from sync to picture   =
+ *
+-        unsigned long right_margin;     * time from picture to sync   =
+ *
+-        unsigned long upper_margin;     * time from sync to picture   =
+ *
+-        unsigned long lower_margin;
+-        unsigned long hsync_len;        * length of horizontal sync   =
+ *
+-        unsigned long vsync_len;        * length of vertical sync     =
+ *
+-
+-1) Pixelclock:
+-   xfree: in MHz
+-   fb: In Picoseconds (ps)
+-
+-   pixclock =3D 1000000 / DCF
+-
+-2) horizontal timings:
+-   left_margin =3D HFL - SH2
+-   right_margin =3D SH1 - HR
+-   hsync_len =3D SH2 - SH1
+-
+-3) vertical timings:
+-   upper_margin =3D VFL - SV2
+-   lower_margin =3D SV1 - VR
+-   vsync_len =3D SV2 - SV1
+-
+-Good examples for VESA timings can be found in the XFree86 source tree=
+,
+-under "programs/Xserver/hw/xfree86/doc/modeDB.txt".
+-*/
+-
+-/*
+- *    Predefined Video Modes
+- */
+-
+-static struct {
+-    const char *name;
+-    struct fb_var_screeninfo var;
+-} retz3fb_predefined[] __initdata =3D {
+-    /*
+-     * NB: it is very important to adjust the pixel-clock to the color=
+-depth.
+-     */
+-
+-    {
+-	"640x480", {		/* 640x480, 8 bpp */
+-	    640, 480, 640, 480, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCEL_NONE, 39722, 48, 16, 33, 10, 96, 2,
+-	    FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,FB_VMODE_NONINTERLAC=
+ED
+-	}
+-    },
+-    /*
+-     ModeLine "800x600" 36 800 824 896 1024 600 601 603 625
+-	      < name > DCF HR  SH1 SH2  HFL VR  SV1 SV2 VFL
+-     */
+-    {
+-	"800x600", {		/* 800x600, 8 bpp */
+-	    800, 600, 800, 600, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 27778, 64, 24, 22, 1, 120, 2,
+-	    FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLAC=
+ED
+-	}
+-    },
+-    {
+-	"800x600-60", {		/* 800x600, 8 bpp */
+-	    800, 600, 800, 600, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 25000, 88, 40, 23, 1, 128, 4,
+-	    FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLAC=
+ED
+-	}
+-    },
+-    {
+-	"800x600-70", {		/* 800x600, 8 bpp */
+-	    800, 600, 800, 600, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 22272, 40, 24, 15, 9, 144, 12,
+-	    FB_SYNC_COMP_HIGH_ACT, FB_VMODE_NONINTERLACED
+-	}
+-    },
+-    /*
+-      ModeLine "1024x768i" 45 1024 1064 1224 1264 768 777 785 817 inte=
+rlace
+-	       < name >   DCF HR  SH1  SH2  HFL  VR  SV1 SV2 VFL
+-     */
+-    {
+-	"1024x768i", {		/* 1024x768, 8 bpp, interlaced */
+-	    1024, 768, 1024, 768, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 22222, 40, 40, 32, 9, 160, 8,
+-	    FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_INTERLACED
+-	}
+-    },
+-    {
+-	"1024x768", {
+-	    1024, 768, 1024, 768, 0, 0, 8, 0,=20
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},=20
+-	    0, 0, -1, -1, FB_ACCEL_NONE, 12500, 92, 112, 31, 2, 204, 4,
+-	    FB_SYNC_HOR_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACE=
+D
+-	 }
+-    },
+-    {
+-	"640x480-16", {		/* 640x480, 16 bpp */
+-	    640, 480, 640, 480, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, 0, 38461/2, 28, 32, 12, 10, 96, 2,
+-	    FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,FB_VMODE_NONINTERLAC=
+ED
+-	}
+-    },
+-    {
+-	"640x480-24", {		/* 640x480, 24 bpp */
+-	    640, 480, 640, 480, 0, 0, 24, 0,
+-	    {8, 8, 8}, {8, 8, 8}, {8, 8, 8}, {0, 0, 0},
+-	    0, 0, -1, -1, 0, 38461/3, 28, 32, 12, 10, 96, 2,
+-	    FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,FB_VMODE_NONINTERLAC=
+ED
+-	}
+-    },
+-};
+-
+-
+-#define NUM_TOTAL_MODES    ARRAY_SIZE(retz3fb_predefined)
+-
+-static struct fb_var_screeninfo retz3fb_default;
+-
+-static int z3fb_inverse =3D 0;
+-static int z3fb_mode __initdata =3D 0;
+-
+-
+-/*
+- *    Interface used by the world
+- */
+-
+-int retz3fb_setup(char *options);
+-
+-static int retz3fb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			   struct fb_info *info);
+-static int retz3fb_get_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info);
+-static int retz3fb_set_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info);
+-static int retz3fb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			    struct fb_info *info);
+-static int retz3fb_setcolreg(unsigned int regno, unsigned int red,
+-			     unsigned int green, unsigned int blue,
+-			     unsigned int transp, struct fb_info *info);
+-static int retz3fb_blank(int blank, struct fb_info *info);
+-
+-
+-/*
+- *    Interface to the low level console driver
+- */
+-
+-int retz3fb_init(void);
+-static int z3fb_switch(int con, struct fb_info *info);
+-static int z3fb_updatevar(int con, struct fb_info *info);
+-
+-
+-/*
+- *    Text console acceleration
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-static struct display_switch fbcon_retz3_8;
+-#endif
+-
+-
+-/*
+- *    Accelerated Functions used by the low level console driver
+- */
+-
+-static void retz3_bitblt(struct display *p,
+-			 unsigned short curx, unsigned short cury, unsigned
+-			 short destx, unsigned short desty, unsigned short
+-			 width, unsigned short height, unsigned short cmd,
+-			 unsigned short mask);
+-
+-/*
+- *   Hardware Specific Routines
+- */
+-
+-static int retz3_encode_fix(struct fb_info *info,
+-			    struct fb_fix_screeninfo *fix,
+-			    struct retz3fb_par *par);
+-static int retz3_decode_var(struct fb_var_screeninfo *var,
+-			    struct retz3fb_par *par);
+-static int retz3_encode_var(struct fb_var_screeninfo *var,
+-			    struct retz3fb_par *par);
+-static int retz3_getcolreg(unsigned int regno, unsigned int *red,
+-			   unsigned int *green, unsigned int *blue,
+-			   unsigned int *transp, struct fb_info *info);
+-
+-/*
+- *    Internal routines
+- */
+-
+-static void retz3fb_get_par(struct fb_info *info, struct retz3fb_par *=
+par);
+-static void retz3fb_set_par(struct fb_info *info, struct retz3fb_par *=
+par);
+-static int do_fb_set_var(struct fb_info *info,
+-			 struct fb_var_screeninfo *var, int isactive);
+-static void retz3fb_set_disp(int con, struct fb_info *info);
+-static int get_video_mode(const char *name);
+-
+-
+-/* -------------------- Hardware specific routines -------------------=
+------ */
+-
+-static unsigned short find_fq(unsigned int freq)
+-{
+-	unsigned long f;
+-	long tmp;
+-	long prev =3D 0x7fffffff;
+-	long n2, n1 =3D 3;
+-	unsigned long m;
+-	unsigned short res =3D 0;
+-
+-	if (freq <=3D 31250000)
+-		n2 =3D 3;
+-	else if (freq <=3D 62500000)
+-		n2 =3D 2;
+-	else if (freq <=3D 125000000)
+-		n2 =3D 1;
+-	else if (freq <=3D 250000000)
+-		n2 =3D 0;
+-	else
+-		return 0;
+-
+-
+-	do {
+-		f =3D freq >> (10 - n2);
+-
+-		m =3D (f * n1) / (14318180/1024);
+-
+-		if (m > 129)
+-			break;
+-
+-		tmp =3D  (((m * 14318180) >> n2) / n1) - freq;
+-		if (tmp < 0)
+-			tmp =3D -tmp;
+-
+-		if (tmp < prev) {
+-			prev =3D tmp;
+-			res =3D (((n2 << 5) | (n1-2)) << 8) | (m-2);
+-		}
+-
+-	} while ( (++n1) <=3D 21);
+-
+-	return res;
+-}
+-
+-
+-static int retz3_set_video(struct fb_info *info,
+-			   struct fb_var_screeninfo *var,
+-			   struct retz3fb_par *par)
+-{
+-	volatile unsigned char *regs =3D retz3info(info)->regs;
+-	unsigned int freq;
+-
+-	int xres, hfront, hsync, hback;
+-	int yres, vfront, vsync, vback;
+-	unsigned char tmp;
+-	unsigned short best_freq;
+-	struct display_data data;
+-
+-	short clocksel =3D 0; /* Apparantly this is always zero */
+-
+-	int bpp =3D var->bits_per_pixel;
+-
+-	/*
+-	 * XXX
+-	 */
+-	if (bpp =3D=3D 24)
+-		return 0;
+-
+-	if ((bpp !=3D 8) && (bpp !=3D 16) && (bpp !=3D 24))
+-		return -EFAULT;
+-
+-	par->xoffset =3D 0;
+-	par->yoffset =3D 0;
+-
+-	xres   =3D var->xres * bpp / 4;
+-	hfront =3D var->right_margin * bpp / 4;
+-	hsync  =3D var->hsync_len * bpp / 4;
+-	hback  =3D var->left_margin * bpp / 4;
+-
+-	if (var->vmode & FB_VMODE_DOUBLE)
+-	{
+-		yres =3D var->yres * 2;
+-		vfront =3D var->lower_margin * 2;
+-		vsync  =3D var->vsync_len * 2;
+-		vback  =3D var->upper_margin * 2;
+-	}
+-	else if (var->vmode & FB_VMODE_INTERLACED)
+-	{
+-		yres   =3D (var->yres + 1) / 2;
+-		vfront =3D (var->lower_margin + 1) / 2;
+-		vsync  =3D (var->vsync_len + 1) / 2;
+-		vback  =3D (var->upper_margin + 1) / 2;
+-	}
+-	else
+-	{
+-		yres   =3D var->yres; /* -1 ? */
+-		vfront =3D var->lower_margin;
+-		vsync  =3D var->vsync_len;
+-		vback  =3D var->upper_margin;
+-	}
+-
+-	data.h_total	=3D (hback / 8) + (xres / 8)
+-			+ (hfront / 8) + (hsync / 8) - 1 /* + 1 */;
+-	data.h_dispend	=3D ((xres + bpp - 1)/ 8) - 1;
+-	data.h_bstart	=3D xres / 8 - 1 /* + 1 */;
+-
+-	data.h_bstop	=3D data.h_total+1 + 2 + 1;
+-	data.h_sstart	=3D (xres / 8) + (hfront / 8) + 1;
+-	data.h_sstop	=3D (xres / 8) + (hfront / 8) + (hsync / 8) + 1;
+-
+-	data.v_total	=3D yres + vfront + vsync + vback - 1;
+-
+-	data.v_dispend	=3D yres - 1;
+-	data.v_bstart	=3D yres - 1;
+-
+-	data.v_bstop	=3D data.v_total;
+-	data.v_sstart	=3D yres + vfront - 1 - 2;
+-	data.v_sstop	=3D yres + vfront + vsync - 1;
+-
+-#if 0 /* testing */
+-
+-	printk("HBS: %i\n", data.h_bstart);
+-	printk("HSS: %i\n", data.h_sstart);
+-	printk("HSE: %i\n", data.h_sstop);
+-	printk("HBE: %i\n", data.h_bstop);
+-	printk("HT: %i\n", data.h_total);
+-
+-	printk("hsync: %i\n", hsync);
+-	printk("hfront: %i\n", hfront);
+-	printk("hback: %i\n", hback);
+-
+-	printk("VBS: %i\n", data.v_bstart);
+-	printk("VSS: %i\n", data.v_sstart);
+-	printk("VSE: %i\n", data.v_sstop);
+-	printk("VBE: %i\n", data.v_bstop);
+-	printk("VT: %i\n", data.v_total);
+-
+-	printk("vsync: %i\n", vsync);
+-	printk("vfront: %i\n", vfront);
+-	printk("vback: %i\n", vback);
+-#endif
+-
+-	if (data.v_total >=3D 1024)
+-		printk(KERN_ERR "MAYDAY: v_total >=3D 1024; bailing out!\n");
+-
+-	reg_w(regs, GREG_MISC_OUTPUT_W, 0xe3 | ((clocksel & 3) * 0x04));
+-	reg_w(regs, GREG_FEATURE_CONTROL_W, 0x00);
+-
+-	seq_w(regs, SEQ_RESET, 0x00);
+-	seq_w(regs, SEQ_RESET, 0x03);	/* reset sequencer logic */
+-
+-	/*
+-	 * CLOCKING_MODE bits:
+-	 * 2: This one is only set for certain text-modes, wonder if
+-	 *    it may be for EGA-lines? (it was referred to as CLKDIV2)
+-	 * (The CL drivers sets it to 0x21 with the comment:
+-	 *  FullBandwidth (video off) and 8/9 dot clock)
+-	 */
+-	seq_w(regs, SEQ_CLOCKING_MODE, 0x01 | 0x00 /* 0x08 */);
+-
+-	seq_w(regs, SEQ_MAP_MASK, 0x0f);        /* enable writing to plane 0-=
+3 */
+-	seq_w(regs, SEQ_CHAR_MAP_SELECT, 0x00); /* doesn't matter in gfx-mode=
+ */
+-	seq_w(regs, SEQ_MEMORY_MODE, 0x06); /* CL driver says 0x0e for 256 co=
+l mode*/
+-	seq_w(regs, SEQ_RESET, 0x01);
+-	seq_w(regs, SEQ_RESET, 0x03);
+-
+-	seq_w(regs, SEQ_EXTENDED_ENABLE, 0x05);
+-
+-	seq_w(regs, SEQ_CURSOR_CONTROL, 0x00);	/* disable cursor */
+-	seq_w(regs, SEQ_PRIM_HOST_OFF_HI, 0x00);
+-	seq_w(regs, SEQ_PRIM_HOST_OFF_HI, 0x00);
+-	seq_w(regs, SEQ_LINEAR_0, 0x4a);
+-	seq_w(regs, SEQ_LINEAR_1, 0x00);
+-
+-	seq_w(regs, SEQ_SEC_HOST_OFF_HI, 0x00);
+-	seq_w(regs, SEQ_SEC_HOST_OFF_LO, 0x00);
+-	seq_w(regs, SEQ_EXTENDED_MEM_ENA, 0x3 | 0x4 | 0x10 | 0x40);
+-
+-	/*
+-	 * The lower 4 bits (0-3) are used to set the font-width for
+-	 * text-mode - DON'T try to set this for gfx-mode.
+-	 */
+-	seq_w(regs, SEQ_EXT_CLOCK_MODE, 0x10);
+-	seq_w(regs, SEQ_EXT_VIDEO_ADDR, 0x03);
+-
+-	/*
+-	 * Extended Pixel Control:
+-	 * bit 0:   text-mode=3D0, gfx-mode=3D1 (Graphics Byte ?)
+-	 * bit 1: (Packed/Nibble Pixel Format ?)
+-	 * bit 4-5: depth, 0=3D1-8bpp, 1=3D9-16bpp, 2=3D17-24bpp
+-	 */
+-	seq_w(regs, SEQ_EXT_PIXEL_CNTL, 0x01 | (((bpp / 8) - 1) << 4));
+-
+-	seq_w(regs, SEQ_BUS_WIDTH_FEEDB, 0x04);
+-	seq_w(regs, SEQ_COLOR_EXP_WFG, 0x01);
+-	seq_w(regs, SEQ_COLOR_EXP_WBG, 0x00);
+-	seq_w(regs, SEQ_EXT_RW_CONTROL, 0x00);
+-	seq_w(regs, SEQ_MISC_FEATURE_SEL, (0x51 | (clocksel & 8)));
+-	seq_w(regs, SEQ_COLOR_KEY_CNTL, 0x40);
+-	seq_w(regs, SEQ_COLOR_KEY_MATCH0, 0x00);
+-	seq_w(regs, SEQ_COLOR_KEY_MATCH1, 0x00);
+-	seq_w(regs, SEQ_COLOR_KEY_MATCH2, 0x00);
+-	seq_w(regs, SEQ_CRC_CONTROL, 0x00);
+-	seq_w(regs, SEQ_PERF_SELECT, 0x10);
+-	seq_w(regs, SEQ_ACM_APERTURE_1, 0x00);
+-	seq_w(regs, SEQ_ACM_APERTURE_2, 0x30);
+-	seq_w(regs, SEQ_ACM_APERTURE_3, 0x00);
+-	seq_w(regs, SEQ_MEMORY_MAP_CNTL, 0x03);
+-
+-
+-	/* unlock register CRT0..CRT7 */
+-	crt_w(regs, CRT_END_VER_RETR, (data.v_sstop & 0x0f) | 0x20);
+-
+-	/* Zuerst zu schreibende Werte nur per printk ausgeben */
+-	DEBUG printk("CRT_HOR_TOTAL: %ld\n", data.h_total);
+-	crt_w(regs, CRT_HOR_TOTAL, data.h_total & 0xff);
+-
+-	DEBUG printk("CRT_HOR_DISP_ENA_END: %ld\n", data.h_dispend);
+-	crt_w(regs, CRT_HOR_DISP_ENA_END, (data.h_dispend) & 0xff);
+-
+-	DEBUG printk("CRT_START_HOR_BLANK: %ld\n", data.h_bstart);
+-	crt_w(regs, CRT_START_HOR_BLANK, data.h_bstart & 0xff);
+-
+-	DEBUG printk("CRT_END_HOR_BLANK: 128+%ld\n", data.h_bstop % 32);
+-	crt_w(regs, CRT_END_HOR_BLANK,  0x80 | (data.h_bstop & 0x1f));
+-
+-	DEBUG printk("CRT_START_HOR_RETR: %ld\n", data.h_sstart);
+-	crt_w(regs, CRT_START_HOR_RETR, data.h_sstart & 0xff);
+-
+-	tmp =3D (data.h_sstop & 0x1f);
+-	if (data.h_bstop & 0x20)
+-		tmp |=3D 0x80;
+-	DEBUG printk("CRT_END_HOR_RETR: %d\n", tmp);
+-	crt_w(regs, CRT_END_HOR_RETR, tmp);
+-
+-	DEBUG printk("CRT_VER_TOTAL: %ld\n", data.v_total & 0xff);
+-	crt_w(regs, CRT_VER_TOTAL, (data.v_total & 0xff));
+-
+-	tmp =3D 0x10;  /* LineCompare bit #9 */
+-	if (data.v_total & 256)
+-		tmp |=3D 0x01;
+-	if (data.v_dispend & 256)
+-		tmp |=3D 0x02;
+-	if (data.v_sstart & 256)
+-		tmp |=3D 0x04;
+-	if (data.v_bstart & 256)
+-		tmp |=3D 0x08;
+-	if (data.v_total & 512)
+-		tmp |=3D 0x20;
+-	if (data.v_dispend & 512)
+-		tmp |=3D 0x40;
+-	if (data.v_sstart & 512)
+-		tmp |=3D 0x80;
+-	DEBUG printk("CRT_OVERFLOW: %d\n", tmp);
+-	crt_w(regs, CRT_OVERFLOW, tmp);
+-
+-	crt_w(regs, CRT_PRESET_ROW_SCAN, 0x00); /* not CL !!! */
+-
+-	tmp =3D 0x40; /* LineCompare bit #8 */
+-	if (data.v_bstart & 512)
+-		tmp |=3D 0x20;
+-	if (var->vmode & FB_VMODE_DOUBLE)
+-		tmp |=3D 0x80;
+- 	DEBUG printk("CRT_MAX_SCAN_LINE: %d\n", tmp);
+-	crt_w(regs, CRT_MAX_SCAN_LINE, tmp);
+-
+-	crt_w(regs, CRT_CURSOR_START, 0x00);
+-	crt_w(regs, CRT_CURSOR_END, 8 & 0x1f); /* font height */
+-
+-	crt_w(regs, CRT_START_ADDR_HIGH, 0x00);
+-	crt_w(regs, CRT_START_ADDR_LOW, 0x00);
+-
+-	crt_w(regs, CRT_CURSOR_LOC_HIGH, 0x00);
+-	crt_w(regs, CRT_CURSOR_LOC_LOW, 0x00);
+-
+- 	DEBUG printk("CRT_START_VER_RETR: %ld\n", data.v_sstart & 0xff);
+-	crt_w(regs, CRT_START_VER_RETR, (data.v_sstart & 0xff));
+-
+-#if 1
+-	/* 5 refresh cycles per scanline */
+-	DEBUG printk("CRT_END_VER_RETR: 64+32+%ld\n", data.v_sstop % 16);
+-	crt_w(regs, CRT_END_VER_RETR, ((data.v_sstop & 0x0f) | 0x40 | 0x20));
+-#else
+-	DEBUG printk("CRT_END_VER_RETR: 128+32+%ld\n", data.v_sstop % 16);
+-	crt_w(regs, CRT_END_VER_RETR, ((data.v_sstop & 0x0f) | 128 | 32));
+-#endif
+-	DEBUG printk("CRT_VER_DISP_ENA_END: %ld\n", data.v_dispend & 0xff);
+-	crt_w(regs, CRT_VER_DISP_ENA_END, (data.v_dispend & 0xff));
+-
+-	DEBUG printk("CRT_START_VER_BLANK: %ld\n", data.v_bstart & 0xff);
+-	crt_w(regs, CRT_START_VER_BLANK, (data.v_bstart & 0xff));
+-
+-	DEBUG printk("CRT_END_VER_BLANK: %ld\n", data.v_bstop & 0xff);
+-	crt_w(regs, CRT_END_VER_BLANK, (data.v_bstop & 0xff));
+-
+-	DEBUG printk("CRT_MODE_CONTROL: 0xe3\n");
+-	crt_w(regs, CRT_MODE_CONTROL, 0xe3);
+-
+-	DEBUG printk("CRT_LINE_COMPARE: 0xff\n");
+-	crt_w(regs, CRT_LINE_COMPARE, 0xff);
+-
+-	tmp =3D (var->xres_virtual / 8) * (bpp / 8);
+-	crt_w(regs, CRT_OFFSET, tmp);
+-
+-	crt_w(regs, CRT_UNDERLINE_LOC, 0x07); /* probably font-height - 1 */
+-
+-	tmp =3D 0x20;			/* Enable extended end bits */
+-	if (data.h_total & 0x100)
+-		tmp |=3D 0x01;
+-	if ((data.h_dispend) & 0x100)
+-		tmp |=3D 0x02;
+-	if (data.h_bstart & 0x100)
+-		tmp |=3D 0x04;
+-	if (data.h_sstart & 0x100)
+-		tmp |=3D 0x08;
+-	if (var->vmode & FB_VMODE_INTERLACED)
+-		tmp |=3D 0x10;
+- 	DEBUG printk("CRT_EXT_HOR_TIMING1: %d\n", tmp);
+-	crt_w(regs, CRT_EXT_HOR_TIMING1, tmp);
+-
+-	tmp =3D 0x00;
+-	if (((var->xres_virtual / 8) * (bpp / 8)) & 0x100)
+-		tmp |=3D 0x10;
+-	crt_w(regs, CRT_EXT_START_ADDR, tmp);
+-
+-	tmp =3D 0x00;
+-	if (data.h_total & 0x200)
+-		tmp |=3D 0x01;
+-	if ((data.h_dispend) & 0x200)
+-		tmp |=3D 0x02;
+-	if (data.h_bstart & 0x200)
+-		tmp |=3D 0x04;
+-	if (data.h_sstart & 0x200)
+-		tmp |=3D 0x08;
+-	tmp |=3D ((data.h_bstop & 0xc0) >> 2);
+-	tmp |=3D ((data.h_sstop & 0x60) << 1);
+-	crt_w(regs, CRT_EXT_HOR_TIMING2, tmp);
+- 	DEBUG printk("CRT_EXT_HOR_TIMING2: %d\n", tmp);
+-
+-	tmp =3D 0x10;			/* Line compare bit 10 */
+-	if (data.v_total & 0x400)
+-		tmp |=3D 0x01;
+-	if ((data.v_dispend) & 0x400)
+-		tmp |=3D 0x02;
+-	if (data.v_bstart & 0x400)
+-		tmp |=3D 0x04;
+-	if (data.v_sstart & 0x400)
+-		tmp |=3D 0x08;
+-	tmp |=3D ((data.v_bstop & 0x300) >> 3);
+-	if (data.v_sstop & 0x10)
+-		tmp |=3D 0x80;
+-	crt_w(regs, CRT_EXT_VER_TIMING, tmp);
+- 	DEBUG printk("CRT_EXT_VER_TIMING: %d\n", tmp);
+-
+-	crt_w(regs, CRT_MONITOR_POWER, 0x00);
+-
+-	/*
+-	 * Convert from ps to Hz.
+-	 */
+-	freq =3D 2000000000 / var->pixclock;
+-	freq =3D freq * 500;
+-
+-	best_freq =3D find_fq(freq);
+-	pll_w(regs, 0x02, best_freq);
+-	best_freq =3D find_fq(61000000);
+-	pll_w(regs, 0x0a, best_freq);
+-	pll_w(regs, 0x0e, 0x22);
+-
+-	gfx_w(regs, GFX_SET_RESET, 0x00);
+-	gfx_w(regs, GFX_ENABLE_SET_RESET, 0x00);
+-	gfx_w(regs, GFX_COLOR_COMPARE, 0x00);
+-	gfx_w(regs, GFX_DATA_ROTATE, 0x00);
+-	gfx_w(regs, GFX_READ_MAP_SELECT, 0x00);
+-	gfx_w(regs, GFX_GRAPHICS_MODE, 0x00);
+-	gfx_w(regs, GFX_MISC, 0x05);
+-	gfx_w(regs, GFX_COLOR_XCARE, 0x0f);
+-	gfx_w(regs, GFX_BITMASK, 0xff);
+-
+-	reg_r(regs, ACT_ADDRESS_RESET);
+-	attr_w(regs, ACT_PALETTE0 , 0x00);
+-	attr_w(regs, ACT_PALETTE1 , 0x01);
+-	attr_w(regs, ACT_PALETTE2 , 0x02);
+-	attr_w(regs, ACT_PALETTE3 , 0x03);
+-	attr_w(regs, ACT_PALETTE4 , 0x04);
+-	attr_w(regs, ACT_PALETTE5 , 0x05);
+-	attr_w(regs, ACT_PALETTE6 , 0x06);
+-	attr_w(regs, ACT_PALETTE7 , 0x07);
+-	attr_w(regs, ACT_PALETTE8 , 0x08);
+-	attr_w(regs, ACT_PALETTE9 , 0x09);
+-	attr_w(regs, ACT_PALETTE10, 0x0a);
+-	attr_w(regs, ACT_PALETTE11, 0x0b);
+-	attr_w(regs, ACT_PALETTE12, 0x0c);
+-	attr_w(regs, ACT_PALETTE13, 0x0d);
+-	attr_w(regs, ACT_PALETTE14, 0x0e);
+-	attr_w(regs, ACT_PALETTE15, 0x0f);
+-	reg_r(regs, ACT_ADDRESS_RESET);
+-
+-	attr_w(regs, ACT_ATTR_MODE_CNTL, 0x09); /* 0x01 for CL */
+-
+-	attr_w(regs, ACT_OVERSCAN_COLOR, 0x00);
+-	attr_w(regs, ACT_COLOR_PLANE_ENA, 0x0f);
+-	attr_w(regs, ACT_HOR_PEL_PANNING, 0x00);
+-	attr_w(regs, ACT_COLOR_SELECT, 0x00);
+-
+-	reg_r(regs, ACT_ADDRESS_RESET);
+-	reg_w(regs, ACT_DATA, 0x20);
+-
+-	reg_w(regs, VDAC_MASK, 0xff);
+-
+-	/*
+-	 * Extended palette addressing ???
+-	 */
+-	switch (bpp){
+-	case 8:
+-		reg_w(regs, 0x83c6, 0x00);
+-		break;
+-	case 16:
+-		reg_w(regs, 0x83c6, 0x60);
+-		break;
+-	case 24:
+-		reg_w(regs, 0x83c6, 0xe0);
+-		break;
+-	default:
+-		printk(KERN_INFO "Illegal color-depth: %i\n", bpp);
+-	}
+-
+-	reg_w(regs, VDAC_ADDRESS, 0x00);
+-
+-	seq_w(regs, SEQ_MAP_MASK, 0x0f );
+-
+-	return 0;
+-}
+-
+-
+-/*
+- *    This function should fill in the `fix' structure based on the
+- *    values in the `par' structure.
+- */
+-
+-static int retz3_encode_fix(struct fb_info *info,
+-			    struct fb_fix_screeninfo *fix,
+-			    struct retz3fb_par *par)
+-{
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-
+-	memset(fix, 0, sizeof(struct fb_fix_screeninfo));
+-	strcpy(fix->id, retz3fb_name);
+-	fix->smem_start =3D zinfo->physfbmem;
+-	fix->smem_len =3D zinfo->fbsize;
+-	fix->mmio_start =3D zinfo->physregs;
+-	fix->mmio_len =3D 0x00c00000;
+-
+-	fix->type =3D FB_TYPE_PACKED_PIXELS;
+-	fix->type_aux =3D 0;
+-	if (par->bpp =3D=3D 8)
+-		fix->visual =3D FB_VISUAL_PSEUDOCOLOR;
+-	else
+-		fix->visual =3D FB_VISUAL_TRUECOLOR;
+-
+-	fix->xpanstep =3D 0;
+-	fix->ypanstep =3D 0;
+-	fix->ywrapstep =3D 0;
+-	fix->line_length =3D 0;
+-
+-	fix->accel =3D FB_ACCEL_NCR_77C32BLT;
+-
+-	return 0;
+-}
+-
+-
+-/*
+- *    Get the video params out of `var'. If a value doesn't fit, round
+- *    it up, if it's too big, return -EINVAL.
+- */
+-
+-static int retz3_decode_var(struct fb_var_screeninfo *var,
+-			    struct retz3fb_par *par)
+-{
+-	par->xres =3D var->xres;
+-	par->yres =3D var->yres;
+-	par->xres_vir =3D var->xres_virtual;
+-	par->yres_vir =3D var->yres_virtual;
+-	par->bpp =3D var->bits_per_pixel;
+-	par->pixclock =3D var->pixclock;
+-	par->vmode =3D var->vmode;
+-
+-	par->red =3D var->red;
+-	par->green =3D var->green;
+-	par->blue =3D var->blue;
+-	par->transp =3D var->transp;
+-
+-	par->left_margin =3D var->left_margin;
+-	par->right_margin =3D var->right_margin;
+-	par->upper_margin =3D var->upper_margin;
+-	par->lower_margin =3D var->lower_margin;
+-	par->hsync_len =3D var->hsync_len;
+-	par->vsync_len =3D var->vsync_len;
+-
+-	if (var->accel_flags & FB_ACCELF_TEXT)
+-	    par->accel =3D FB_ACCELF_TEXT;
+-	else
+-	    par->accel =3D 0;
+-
+-	return 0;
+-}
+-
+-
+-/*
+- *    Fill the `var' structure based on the values in `par' and maybe
+- *    other values read out of the hardware.
+- */
+-
+-static int retz3_encode_var(struct fb_var_screeninfo *var,
+-			    struct retz3fb_par *par)
+-{
+-	memset(var, 0, sizeof(struct fb_var_screeninfo));
+-	var->xres =3D par->xres;
+-	var->yres =3D par->yres;
+-	var->xres_virtual =3D par->xres_vir;
+-	var->yres_virtual =3D par->yres_vir;
+-	var->xoffset =3D 0;
+-	var->yoffset =3D 0;
+-
+-	var->bits_per_pixel =3D par->bpp;
+-	var->grayscale =3D 0;
+-
+-	var->red =3D par->red;
+-	var->green =3D par->green;
+-	var->blue =3D par->blue;
+-	var->transp =3D par->transp;
+-
+-	var->nonstd =3D 0;
+-	var->activate =3D 0;
+-
+-	var->height =3D -1;
+-	var->width =3D -1;
+-
+-	var->accel_flags =3D (par->accel && par->bpp =3D=3D 8) ? FB_ACCELF_TE=
+XT : 0;
+-
+-	var->pixclock =3D par->pixclock;
+-
+-	var->sync =3D 0;				/* ??? */
+-	var->left_margin =3D par->left_margin;
+-	var->right_margin =3D par->right_margin;
+-	var->upper_margin =3D par->upper_margin;
+-	var->lower_margin =3D par->lower_margin;
+-	var->hsync_len =3D par->hsync_len;
+-	var->vsync_len =3D par->vsync_len;
+-
+-	var->vmode =3D par->vmode;
+-	return 0;
+-}
+-
+-
+-/*
+- *    Set a single color register. Return !=3D 0 for invalid regno.
+- */
+-
+-static int retz3fb_setcolreg(unsigned int regno, unsigned int red,
+-			     unsigned int green, unsigned int blue,
+-			     unsigned int transp, struct fb_info *info)
+-{
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-	volatile unsigned char *regs =3D zinfo->regs;
+-
+-	/* We'll get to this */
+-
+-	if (regno > 255)
+-		return 1;
+-
+-	red >>=3D 10;
+-	green >>=3D 10;
+-	blue >>=3D 10;
+-
+-	zinfo->color_table[regno][0] =3D red;
+-	zinfo->color_table[regno][1] =3D green;
+-	zinfo->color_table[regno][2] =3D blue;
+-
+-	reg_w(regs, VDAC_ADDRESS_W, regno);
+-	reg_w(regs, VDAC_DATA, red);
+-	reg_w(regs, VDAC_DATA, green);
+-	reg_w(regs, VDAC_DATA, blue);
+-
+-	return 0;
+-}
+-
+-
+-/*
+- *    Read a single color register and split it into
+- *    colors/transparent. Return !=3D 0 for invalid regno.
+- */
+-
+-static int retz3_getcolreg(unsigned int regno, unsigned int *red,
+-			   unsigned int *green, unsigned int *blue,
+-			   unsigned int *transp, struct fb_info *info)
+-{
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-	int t;
+-
+-	if (regno > 255)
+-		return 1;
+-	t       =3D zinfo->color_table[regno][0];
+-	*red    =3D (t<<10) | (t<<4) | (t>>2);
+-	t       =3D zinfo->color_table[regno][1];
+-	*green  =3D (t<<10) | (t<<4) | (t>>2);
+-	t       =3D zinfo->color_table[regno][2];
+-	*blue   =3D (t<<10) | (t<<4) | (t>>2);
+-	*transp =3D 0;
+-	return 0;
+-}
+-
+-
+-static inline void retz3_busy(struct display *p)
+-{
+-	struct retz3_fb_info *zinfo =3D retz3info(p->fb_info);
+-	volatile unsigned char *acm =3D zinfo->base + ACM_OFFSET;
+-	unsigned char blt_status;
+-
+-	if (zinfo->blitbusy) {
+-		do{
+-			blt_status =3D *((acm) + (ACM_START_STATUS + 2));
+-		}while ((blt_status & 1) =3D=3D 0);
+-		zinfo->blitbusy =3D 0;
+-	}
+-}
+-
+-
+-static void retz3_bitblt (struct display *p,
+-			  unsigned short srcx, unsigned short srcy,
+-			  unsigned short destx, unsigned short desty,
+-			  unsigned short width, unsigned short height,
+-			  unsigned short cmd, unsigned short mask)
+-{
+-	struct fb_var_screeninfo *var =3D &p->var;
+-	struct retz3_fb_info *zinfo =3D retz3info(p->fb_info);
+-	volatile unsigned long *acm =3D (unsigned long *)(zinfo->base + ACM_O=
+=46FSET);
+-	unsigned long *pattern =3D (unsigned long *)(zinfo->fbmem + PAT_MEM_O=
+=46F);
+-
+-	unsigned short mod;
+-	unsigned long tmp;
+-	unsigned long pat, src, dst;
+-
+-	int i, xres_virtual =3D var->xres_virtual;
+-	short bpp =3D (var->bits_per_pixel & 0xff);
+-
+-	if (bpp < 8)
+-		bpp =3D 8;
+-
+-	tmp =3D mask | (mask << 16);
+-
+-	retz3_busy(p);
+-
+-	i =3D 0;
+-	do{
+-		*pattern++ =3D tmp;
+-	}while(i++ < bpp/4);
+-
+-	tmp =3D cmd << 8;
+-	*(acm + ACM_RASTEROP_ROTATION/4) =3D tmp;
+-
+-	mod =3D 0xc0c2;
+-
+-	pat =3D 8 * PAT_MEM_OFF;
+-	dst =3D bpp * (destx + desty * xres_virtual);
+-
+-	/*
+-	 * Source is not set for clear.
+-	 */
+-	if ((cmd !=3D Z3BLTclear) && (cmd !=3D Z3BLTset)) {
+-		src =3D bpp * (srcx + srcy * xres_virtual);
+-
+-		if (destx > srcx) {
+-			mod &=3D ~0x8000;
+-			src +=3D bpp * (width - 1);
+-			dst +=3D bpp * (width - 1);
+-			pat +=3D bpp * 2;
+-		}
+-		if (desty > srcy) {
+-			mod &=3D ~0x4000;
+-			src +=3D bpp * (height - 1) * xres_virtual;
+-			dst +=3D bpp * (height - 1) * xres_virtual;
+-			pat +=3D bpp * 4;
+-		}
+-
+-		*(acm + ACM_SOURCE/4) =3D cpu_to_le32(src);
+-	}
+-
+-	*(acm + ACM_PATTERN/4) =3D cpu_to_le32(pat);
+-
+-	*(acm + ACM_DESTINATION/4) =3D cpu_to_le32(dst);
+-
+-	tmp =3D mod << 16;
+-	*(acm + ACM_CONTROL/4) =3D tmp;
+-
+-	tmp  =3D width | (height << 16);
+-
+-	*(acm + ACM_BITMAP_DIMENSION/4) =3D cpu_to_le32(tmp);
+-
+-	*(((volatile unsigned char *)acm) + ACM_START_STATUS) =3D 0x00;
+-	*(((volatile unsigned char *)acm) + ACM_START_STATUS) =3D 0x01;
+-	zinfo->blitbusy =3D 1;
+-}
+-
+-#if 0
+-/*
+- * Move cursor to x, y
+- */
+-static void retz3_MoveCursor (unsigned short x, unsigned short y)
+-{
+-	/* Guess we gotta deal with the cursor at some point */
+-}
+-#endif
+-
+-
+-/*
+- *    Fill the hardware's `par' structure.
+- */
+-
+-static void retz3fb_get_par(struct fb_info *info, struct retz3fb_par *=
+par)
+-{
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-
+-	if (zinfo->current_par_valid)
+-		*par =3D zinfo->current_par;
+-	else
+-		retz3_decode_var(&retz3fb_default, par);
+-}
+-
+-
+-static void retz3fb_set_par(struct fb_info *info, struct retz3fb_par *=
+par)
+-{
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-
+-	zinfo->current_par =3D *par;
+-	zinfo->current_par_valid =3D 1;
+-}
+-
+-
+-static int do_fb_set_var(struct fb_info *info,
+-			 struct fb_var_screeninfo *var, int isactive)
+-{
+-	int err, activate;
+-	struct retz3fb_par par;
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-
+-	if ((err =3D retz3_decode_var(var, &par)))
+-		return err;
+-	activate =3D var->activate;
+-
+-	/* XXX ... what to do about isactive ? */
+-
+-	if ((var->activate & FB_ACTIVATE_MASK) =3D=3D FB_ACTIVATE_NOW && isac=
+tive)
+-		retz3fb_set_par(info, &par);
+-	retz3_encode_var(var, &par);
+-	var->activate =3D activate;
+-
+-	retz3_set_video(info, var, &zinfo->current_par);
+-
+-	return 0;
+-}
+-
+-/*
+- *    Get the Fixed Part of the Display
+- */
+-
+-static int retz3fb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			   struct fb_info *info)
+-{
+-	struct retz3fb_par par;
+-	int error =3D 0;
+-
+-	if (con =3D=3D -1)
+-		retz3fb_get_par(info, &par);
+-	else
+-		error =3D retz3_decode_var(&fb_display[con].var, &par);
+-	return(error ? error : retz3_encode_fix(info, fix, &par));
+-}
+-
+-
+-/*
+- *    Get the User Defined Part of the Display
+- */
+-
+-static int retz3fb_get_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info)
+-{
+-	struct retz3fb_par par;
+-	int error =3D 0;
+-
+-	if (con =3D=3D -1) {
+-		retz3fb_get_par(info, &par);
+-		error =3D retz3_encode_var(var, &par);
+-	} else
+-		*var =3D fb_display[con].var;
+-	return error;
+-}
+-
+-
+-static void retz3fb_set_disp(int con, struct fb_info *info)
+-{
+-	struct fb_fix_screeninfo fix;
+-	struct display *display;
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-
+-	if (con >=3D 0)
+-		display =3D &fb_display[con];
+-	else
+-		display =3D &zinfo->disp;	/* used during initialization */
+-
+-	retz3fb_get_fix(&fix, con, info);
+-
+-	if (con =3D=3D -1)
+-		con =3D 0;
+-
+-	display->visual =3D fix.visual;
+-	display->type =3D fix.type;
+-	display->type_aux =3D fix.type_aux;
+-	display->ypanstep =3D fix.ypanstep;
+-	display->ywrapstep =3D fix.ywrapstep;
+-	display->can_soft_blank =3D 1;
+-	display->inverse =3D z3fb_inverse;
+-
+-	/*
+-	 * This seems to be about 20% faster.
+-	 */
+-	display->scrollmode =3D SCROLL_YREDRAW;
+-
+-	switch (display->var.bits_per_pixel) {
+-#ifdef FBCON_HAS_CFB8
+-	case 8:
+-		if (display->var.accel_flags & FB_ACCELF_TEXT) {
+-		    display->dispsw =3D &fbcon_retz3_8;
+-		    retz3_set_video(info, &display->var, &zinfo->current_par);
+-		} else
+-		    display->dispsw =3D &fbcon_cfb8;
+-		break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-	case 16:
+-		display->dispsw =3D &fbcon_cfb16;
+-		break;
+-#endif
+-	default:
+-		display->dispsw =3D &fbcon_dummy;
+-		break;
+-	}
+-}
+-
+-
+-/*
+- *    Set the User Defined Part of the Display
+- */
+-
+-static int retz3fb_set_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info)
+-{
+-	int err, oldxres, oldyres, oldvxres, oldvyres, oldbpp, oldaccel;
+-	struct display *display;
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-
+-	if (con >=3D 0)
+-		display =3D &fb_display[con];
+-	else
+-		display =3D &zinfo->disp;	/* used during initialization */
+-
+-	if ((err =3D do_fb_set_var(info, var, con =3D=3D info->currcon)))
+-		return err;
+-	if ((var->activate & FB_ACTIVATE_MASK) =3D=3D FB_ACTIVATE_NOW) {
+-		oldxres =3D display->var.xres;
+-		oldyres =3D display->var.yres;
+-		oldvxres =3D display->var.xres_virtual;
+-		oldvyres =3D display->var.yres_virtual;
+-		oldbpp =3D display->var.bits_per_pixel;
+-		oldaccel =3D display->var.accel_flags;
+-		display->var =3D *var;
+-
+-		if (oldxres !=3D var->xres || oldyres !=3D var->yres ||
+-		    oldvxres !=3D var->xres_virtual ||
+-		    oldvyres !=3D var->yres_virtual ||
+-		    oldbpp !=3D var->bits_per_pixel ||
+-		    oldaccel !=3D var->accel_flags) {
+-
+-			struct fb_fix_screeninfo fix;
+-			retz3fb_get_fix(&fix, con, info);
+-
+-			display->visual =3D fix.visual;
+-			display->type =3D fix.type;
+-			display->type_aux =3D fix.type_aux;
+-			display->ypanstep =3D fix.ypanstep;
+-			display->ywrapstep =3D fix.ywrapstep;
+-			display->line_length =3D fix.line_length;
+-			display->can_soft_blank =3D 1;
+-			display->inverse =3D z3fb_inverse;
+-			switch (display->var.bits_per_pixel) {
+-#ifdef FBCON_HAS_CFB8
+-			case 8:
+-				if (var->accel_flags & FB_ACCELF_TEXT) {
+-					display->dispsw =3D &fbcon_retz3_8;
+-				} else
+-					display->dispsw =3D &fbcon_cfb8;
+-				break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-			case 16:
+-				display->dispsw =3D &fbcon_cfb16;
+-				break;
+-#endif
+-			default:
+-				display->dispsw =3D &fbcon_dummy;
+-				break;
+-			}
+-			/*
+-			 * We still need to find a way to tell the X
+-			 * server that the video mem has been fiddled with
+-			 * so it redraws the entire screen when switching
+-			 * between X and a text console.
+-			 */
+-			retz3_set_video(info, var, &zinfo->current_par);
+-
+-			if (info->changevar)
+-				(*info->changevar)(con);
+-		}
+-
+-		if (oldbpp !=3D var->bits_per_pixel) {
+-			if ((err =3D fb_alloc_cmap(&display->cmap, 0, 0)))
+-				return err;
+-			do_install_cmap(con, info);
+-		}
+-	}
+-	return 0;
+-}
+-
+-
+-/*
+- *    Get the Colormap
+- */
+-
+-static int retz3fb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			    struct fb_info *info)
+-{
+-	if (con =3D=3D info->currcon) /* current console? */
+-		return(fb_get_cmap(cmap, kspc, retz3_getcolreg, info));
+-	else if (fb_display[con].cmap.len) /* non default colormap? */
+-		fb_copy_cmap(&fb_display[con].cmap, cmap, kspc ? 0 : 2);
+-	else
+-		fb_copy_cmap(fb_default_cmap(1<<fb_display[con].var.bits_per_pixel),
+-			     cmap, kspc ? 0 : 2);
+-	return 0;
+-}
+-
+-/*
+- *    Blank the display.
+- */
+-
+-static int retz3fb_blank(int blank, struct fb_info *info)
+-{
+-	struct retz3_fb_info *zinfo =3D retz3info(info);
+-	volatile unsigned char *regs =3D retz3info(info)->regs;
+-	short i;
+-
+-	if (blank)
+-		for (i =3D 0; i < 256; i++){
+-			reg_w(regs, VDAC_ADDRESS_W, i);
+-			reg_w(regs, VDAC_DATA, 0);
+-			reg_w(regs, VDAC_DATA, 0);
+-			reg_w(regs, VDAC_DATA, 0);
+-		}
+-	else
+-		for (i =3D 0; i < 256; i++){
+-			reg_w(regs, VDAC_ADDRESS_W, i);
+-			reg_w(regs, VDAC_DATA, zinfo->color_table[i][0]);
+-			reg_w(regs, VDAC_DATA, zinfo->color_table[i][1]);
+-			reg_w(regs, VDAC_DATA, zinfo->color_table[i][2]);
+-		}
+-	return 0;
+-}
+-
+-static struct fb_ops retz3fb_ops =3D {
+-	.owner =3D	THIS_MODULE,
+-	.fb_get_fix =3D	retz3fb_get_fix,
+-	.fb_get_var =3D	retz3fb_get_var,
+-	.fb_set_var =3D	retz3fb_set_var,
+-	.fb_get_cmap =3D	retz3fb_get_cmap,
+-	.fb_set_cmap =3D	gen_set_cmap,
+-	.fb_setcolreg =3D	retz3fb_setcolreg,
+-	.fb_blank =3D	retz3fb_blank,
+-};
+-
+-int __init retz3fb_setup(char *options)
+-{
+-	char *this_opt;
+-
+-	if (!options || !*options)
+-		return 0;
+-
+-	while ((this_opt =3D strsep(&options, ",")) !=3D NULL) {
+-		if (!*this_opt)
+-			continue;
+-		if (!strcmp(this_opt, "inverse")) {
+-			z3fb_inverse =3D 1;
+-			fb_invert_cmaps();
+-		} else if (!strncmp(this_opt, "font:", 5)) {
+-			strlcpy(fontname, this_opt+5, sizeof(fontname));
+-		} else
+-			z3fb_mode =3D get_video_mode(this_opt);
+-	}
+-	return 0;
+-}
+-
+-
+-/*
+- *    Initialization
+- */
+-
+-int __init retz3fb_init(void)
+-{
+-	unsigned long board_addr, board_size;
+-	struct zorro_dev *z =3D NULL;
+-	volatile unsigned char *regs;
+-	struct retz3fb_par par;
+-	struct retz3_fb_info *zinfo;
+-	struct fb_info *fb_info;
+-	short i;
+-	int res =3D -ENXIO;
+-
+-	while ((z =3D zorro_find_device(ZORRO_PROD_MACROSYSTEMS_RETINA_Z3, z)=
+)) {
+-		board_addr =3D z->resource.start;
+-		board_size =3D z->resource.end-z->resource.start+1;
+-		if (!request_mem_region(board_addr, 0x0c00000,
+-			    		"ncr77c32blt")) {
+-			continue;
+-		if (!request_mem_region(board_addr+VIDEO_MEM_OFFSET,
+-			    		0x00400000, "RAM"))
+-			release_mem_region(board_addr, 0x00c00000);
+-			continue;
+-		}
+-		if (!(zinfo =3D kmalloc(sizeof(struct retz3_fb_info),
+-				      GFP_KERNEL)))
+-			return -ENOMEM;
+-		memset(zinfo, 0, sizeof(struct retz3_fb_info));
+-
+-		zinfo->base =3D ioremap(board_addr, board_size);
+-		zinfo->regs =3D zinfo->base;
+-		zinfo->fbmem =3D zinfo->base + VIDEO_MEM_OFFSET;
+-		/* Get memory size - for now we asume it's a 4MB board */
+-		zinfo->fbsize =3D 0x00400000; /* 4 MB */
+-		zinfo->physregs =3D board_addr;
+-		zinfo->physfbmem =3D board_addr + VIDEO_MEM_OFFSET;
+-
+-		fb_info =3D fbinfo(zinfo);
+-
+-		for (i =3D 0; i < 256; i++){
+-			for (i =3D 0; i < 256; i++){
+-				zinfo->color_table[i][0] =3D i;
+-				zinfo->color_table[i][1] =3D i;
+-				zinfo->color_table[i][2] =3D i;
+-			}
+-		}
+-
+-		regs =3D zinfo->regs;
+-		/* Disable hardware cursor */
+-		seq_w(regs, SEQ_CURSOR_Y_INDEX, 0x00);
+-
+-		retz3fb_setcolreg (255, 56<<8, 100<<8, 160<<8, 0, fb_info);
+-		retz3fb_setcolreg (254, 0, 0, 0, 0, fb_info);
+-
+-		strcpy(fb_info->modename, retz3fb_name);
+-		fb_info->changevar =3D NULL;
+-		fb_info->fbops =3D &retz3fb_ops;
+-		fb_info->screen_base =3D zinfo->fbmem;
+-		fb_info->disp =3D &zinfo->disp;
+-		fb_info->currcon =3D -1;
+-		fb_info->switch_con =3D &z3fb_switch;
+-		fb_info->updatevar =3D &z3fb_updatevar;
+-		fb_info->flags =3D FBINFO_FLAG_DEFAULT;
+-		strlcpy(fb_info->fontname, fontname, sizeof(fb_info->fontname));
+-
+-		if (z3fb_mode =3D=3D -1)
+-			retz3fb_default =3D retz3fb_predefined[0].var;
+-
+-		retz3_decode_var(&retz3fb_default, &par);
+-		retz3_encode_var(&retz3fb_default, &par);
+-
+-		do_fb_set_var(fb_info, &retz3fb_default, 0);
+-		retz3fb_get_var(&zinfo->disp.var, -1, fb_info);
+-
+-		retz3fb_set_disp(-1, fb_info);
+-
+-		do_install_cmap(0, fb_info);
+-
+-		if (register_framebuffer(fb_info) < 0) {
+-			iounmap(zinfo->base);
+-			return -EINVAL;
+-		}
+-
+-		printk(KERN_INFO "fb%d: %s frame buffer device, using %ldK of "
+-		       "video memory\n", fb_info->node,
+-		       fb_info->modename, zinfo->fbsize>>10);
+-
+-		/* FIXME: This driver cannot be unloaded yet */
+-		res =3D 0;
+-	}
+-	return res;
+-}
+-
+-
+-static int z3fb_switch(int con, struct fb_info *info)
+-{
+-	/* Do we have to save the colormap? */
+-	if (fb_display[info->currcon].cmap.len)
+-		fb_get_cmap(&fb_display[info->currcon].cmap, 1,
+-			    retz3_getcolreg, info);
+-
+-	do_fb_set_var(info, &fb_display[con].var, 1);
+-	info->currcon =3D con;
+-	/* Install new colormap */
+-	do_install_cmap(con, info);
+-	return 0;
+-}
+-
+-
+-/*
+- *    Update the `var' structure (called by fbcon.c)
+- *
+- *    This call looks only at yoffset and the FB_VMODE_YWRAP flag in `=
+var'.
+- *    Since it's called by a kernel driver, no range checking is done.
+- */
+-
+-static int z3fb_updatevar(int con, struct fb_info *info)
+-{
+-	return 0;
+-}
+-
+-/*
+- *    Get a Video Mode
+- */
+-
+-static int __init get_video_mode(const char *name)
+-{
+-	short i;
+-
+-	for (i =3D 0; i < NUM_TOTAL_MODES; i++)
+-		if (!strcmp(name, retz3fb_predefined[i].name)){
+-			retz3fb_default =3D retz3fb_predefined[i].var;
+-			return i;
+-		}
+-	return -1;
+-}
+-
+-
+-#ifdef MODULE
+-MODULE_LICENSE("GPL");
+-
+-int init_module(void)
+-{
+-	return retz3fb_init();
+-}
+-#endif
+-
+-
+-/*
+- *  Text console acceleration
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-static void retz3_8_bmove(struct display *p, int sy, int sx,
+-			  int dy, int dx, int height, int width)
+-{
+-	int fontwidth =3D fontwidth(p);
+-
+-	sx *=3D fontwidth;
+-	dx *=3D fontwidth;
+-	width *=3D fontwidth;
+-
+-	retz3_bitblt(p,
+-		     (unsigned short)sx,
+-		     (unsigned short)(sy*fontheight(p)),
+-		     (unsigned short)dx,
+-		     (unsigned short)(dy*fontheight(p)),
+-		     (unsigned short)width,
+-		     (unsigned short)(height*fontheight(p)),
+-		     Z3BLTcopy,
+-		     0xffff);
+-}
+-
+-static void retz3_8_clear(struct vc_data *conp, struct display *p,
+-			  int sy, int sx, int height, int width)
+-{
+-	unsigned short col;
+-	int fontwidth =3D fontwidth(p);
+-
+-	sx *=3D fontwidth;
+-	width *=3D fontwidth;
+-
+-	col =3D attr_bgcol_ec(p, conp);
+-	col &=3D 0xff;
+-	col |=3D (col << 8);
+-
+-	retz3_bitblt(p,
+-		     (unsigned short)sx,
+-		     (unsigned short)(sy*fontheight(p)),
+-		     (unsigned short)sx,
+-		     (unsigned short)(sy*fontheight(p)),
+-		     (unsigned short)width,
+-		     (unsigned short)(height*fontheight(p)),
+-		     Z3BLTset,
+-		     col);
+-}
+-
+-
+-static void retz3_putc(struct vc_data *conp, struct display *p, int c,
+-		       int yy, int xx)
+-{
+-	retz3_busy(p);
+-	fbcon_cfb8_putc(conp, p, c, yy, xx);
+-}
+-
+-
+-static void retz3_putcs(struct vc_data *conp, struct display *p,
+-			const unsigned short *s, int count,
+-			int yy, int xx)
+-{
+-	retz3_busy(p);
+-	fbcon_cfb8_putcs(conp, p, s, count, yy, xx);
+-}
+-
+-
+-static void retz3_revc(struct display *p, int xx, int yy)
+-{
+-	retz3_busy(p);
+-	fbcon_cfb8_revc(p, xx, yy);
+-}
+-
+-
+-static void retz3_clear_margins(struct vc_data* conp, struct display* =
+p,
+-				int bottom_only)
+-{
+-	retz3_busy(p);
+-	fbcon_cfb8_clear_margins(conp, p, bottom_only);
+-}
+-
+-
+-static struct display_switch fbcon_retz3_8 =3D {
+-	.setup		=3D fbcon_cfb8_setup,
+-	.bmove		=3D retz3_8_bmove,
+-	.clear		=3D retz3_8_clear,
+-	.putc		=3D retz3_putc,
+-	.putcs		=3D retz3_putcs,
+-	.revc		=3D retz3_revc,
+-	.clear_margins	=3D retz3_clear_margins,
+-	.fontwidthmask	=3D FONTWIDTH(8)
+-};
+-#endif
+diff -puN drivers/video/retz3fb.h~remove-broken-video-drivers-v4 /dev/n=
+ull
+--- a/drivers/video/retz3fb.h
++++ /dev/null
+@@ -1,286 +0,0 @@
+-/*
+- * linux/drivers/video/retz3fb.h -- Defines and macros for the RetinaZ=
+3 frame
+- *				    buffer device
+- *
+- *    Copyright (C) 1997 Jes Sorensen
+- *
+- * History:
+- *   - 22 Jan 97: Initial work
+- *
+- *
+- * This file is subject to the terms and conditions of the GNU General=
+ Public
+- * License.  See the file COPYING in the main directory of this archiv=
+e
+- * for more details.
+- */
+-
+-/*
+- * Macros to read and write to registers.
+- */
+-#define reg_w(regs, reg,dat) (*(regs + reg) =3D dat)
+-#define reg_r(regs, reg) (*(regs + reg))
+-
+-/*
+- * Macro to access the sequencer.
+- */
+-#define seq_w(regs, sreg, sdat) \
+-	do{ reg_w(regs, SEQ_IDX, sreg); reg_w(regs, SEQ_DATA, sdat); } while(=
+0)
+-
+-/*
+- * Macro to access the CRT controller.
+- */
+-#define crt_w(regs, creg, cdat) \
+-	do{ reg_w(regs, CRT_IDX, creg); reg_w(regs, CRT_DATA, cdat); } while(=
+0)
+-
+-/*
+- * Macro to access the graphics controller.
+- */
+-#define gfx_w(regs, greg, gdat) \
+-	do{ reg_w(regs, GFX_IDX, greg); reg_w(regs, GFX_DATA, gdat); } while(=
+0)
+-
+-/*
+- * Macro to access the attribute controller.
+- */
+-#define attr_w(regs, areg, adat) \
+-	do{ reg_w(regs, ACT_IDX, areg); reg_w(regs, ACT_DATA, adat); } while(=
+0)
+-
+-/*
+- * Macro to access the pll.
+- */
+-#define pll_w(regs, preg, pdat) \
+-	do{ reg_w(regs, PLL_IDX, preg); \
+-	    reg_w(regs, PLL_DATA, (pdat & 0xff)); \
+-	    reg_w(regs, PLL_DATA, (pdat >> 8));\
+-	} while(0)
+-
+-/*
+- * Offsets
+- */
+-#define VIDEO_MEM_OFFSET	0x00c00000
+-#define ACM_OFFSET		0x00b00000
+-
+-/*
+- * Accelerator Control Menu
+- */
+-#define ACM_PRIMARY_OFFSET	0x00
+-#define ACM_SECONDARY_OFFSET	0x04
+-#define ACM_MODE_CONTROL	0x08
+-#define ACM_CURSOR_POSITION	0x0c
+-#define ACM_START_STATUS	0x30
+-#define ACM_CONTROL		0x34
+-#define ACM_RASTEROP_ROTATION	0x38
+-#define ACM_BITMAP_DIMENSION	0x3c
+-#define ACM_DESTINATION		0x40
+-#define ACM_SOURCE		0x44
+-#define ACM_PATTERN		0x48
+-#define ACM_FOREGROUND		0x4c
+-#define ACM_BACKGROUND		0x50
+-
+-/*
+- * Video DAC addresses
+- */
+-#define VDAC_ADDRESS		0x03c8
+-#define VDAC_ADDRESS_W		0x03c8
+-#define VDAC_ADDRESS_R		0x03c7
+-#define VDAC_STATE		0x03c7
+-#define VDAC_DATA		0x03c9
+-#define VDAC_MASK		0x03c6
+-
+-/*
+- * Sequencer
+- */
+-#define SEQ_IDX			0x03c4	/* Sequencer Index */
+-#define SEQ_DATA		0x03c5
+-#define SEQ_RESET		0x00
+-#define SEQ_CLOCKING_MODE	0x01
+-#define SEQ_MAP_MASK		0x02
+-#define SEQ_CHAR_MAP_SELECT	0x03
+-#define SEQ_MEMORY_MODE		0x04
+-#define SEQ_EXTENDED_ENABLE	0x05	/* NCR extensions */
+-#define SEQ_UNKNOWN1         	0x06
+-#define SEQ_UNKNOWN2         	0x07
+-#define SEQ_CHIP_ID		0x08
+-#define SEQ_UNKNOWN3         	0x09
+-#define SEQ_CURSOR_COLOR1	0x0a
+-#define SEQ_CURSOR_COLOR0	0x0b
+-#define SEQ_CURSOR_CONTROL	0x0c
+-#define SEQ_CURSOR_X_LOC_HI	0x0d
+-#define SEQ_CURSOR_X_LOC_LO	0x0e
+-#define SEQ_CURSOR_Y_LOC_HI	0x0f
+-#define SEQ_CURSOR_Y_LOC_LO	0x10
+-#define SEQ_CURSOR_X_INDEX	0x11
+-#define SEQ_CURSOR_Y_INDEX	0x12
+-#define SEQ_CURSOR_STORE_HI	0x13
+-#define SEQ_CURSOR_STORE_LO	0x14
+-#define SEQ_CURSOR_ST_OFF_HI	0x15
+-#define SEQ_CURSOR_ST_OFF_LO	0x16
+-#define SEQ_CURSOR_PIXELMASK	0x17
+-#define SEQ_PRIM_HOST_OFF_HI	0x18
+-#define SEQ_PRIM_HOST_OFF_LO	0x19
+-#define SEQ_LINEAR_0		0x1a
+-#define SEQ_LINEAR_1		0x1b
+-#define SEQ_SEC_HOST_OFF_HI	0x1c
+-#define SEQ_SEC_HOST_OFF_LO	0x1d
+-#define SEQ_EXTENDED_MEM_ENA	0x1e
+-#define SEQ_EXT_CLOCK_MODE	0x1f
+-#define SEQ_EXT_VIDEO_ADDR	0x20
+-#define SEQ_EXT_PIXEL_CNTL	0x21
+-#define SEQ_BUS_WIDTH_FEEDB	0x22
+-#define SEQ_PERF_SELECT		0x23
+-#define SEQ_COLOR_EXP_WFG	0x24
+-#define SEQ_COLOR_EXP_WBG	0x25
+-#define SEQ_EXT_RW_CONTROL	0x26
+-#define SEQ_MISC_FEATURE_SEL	0x27
+-#define SEQ_COLOR_KEY_CNTL	0x28
+-#define SEQ_COLOR_KEY_MATCH0	0x29
+-#define SEQ_COLOR_KEY_MATCH1 	0x2a
+-#define SEQ_COLOR_KEY_MATCH2 	0x2b
+-#define SEQ_UNKNOWN6         	0x2c
+-#define SEQ_CRC_CONTROL		0x2d
+-#define SEQ_CRC_DATA_LOW	0x2e
+-#define SEQ_CRC_DATA_HIGH	0x2f
+-#define SEQ_MEMORY_MAP_CNTL	0x30
+-#define SEQ_ACM_APERTURE_1	0x31
+-#define SEQ_ACM_APERTURE_2	0x32
+-#define SEQ_ACM_APERTURE_3	0x33
+-#define SEQ_BIOS_UTILITY_0	0x3e
+-#define SEQ_BIOS_UTILITY_1	0x3f
+-
+-/*
+- * Graphics Controller
+- */
+-#define GFX_IDX			0x03ce
+-#define GFX_DATA		0x03cf
+-#define GFX_SET_RESET		0x00
+-#define GFX_ENABLE_SET_RESET	0x01
+-#define GFX_COLOR_COMPARE	0x02
+-#define GFX_DATA_ROTATE		0x03
+-#define GFX_READ_MAP_SELECT	0x04
+-#define GFX_GRAPHICS_MODE	0x05
+-#define GFX_MISC		0x06
+-#define GFX_COLOR_XCARE		0x07
+-#define GFX_BITMASK		0x08
+-
+-/*
+- * CRT Controller
+- */
+-#define CRT_IDX			0x03d4
+-#define CRT_DATA		0x03d5
+-#define CRT_HOR_TOTAL		0x00
+-#define CRT_HOR_DISP_ENA_END	0x01
+-#define CRT_START_HOR_BLANK	0x02
+-#define CRT_END_HOR_BLANK	0x03
+-#define CRT_START_HOR_RETR	0x04
+-#define CRT_END_HOR_RETR	0x05
+-#define CRT_VER_TOTAL		0x06
+-#define CRT_OVERFLOW		0x07
+-#define CRT_PRESET_ROW_SCAN	0x08
+-#define CRT_MAX_SCAN_LINE	0x09
+-#define CRT_CURSOR_START	0x0a
+-#define CRT_CURSOR_END		0x0b
+-#define CRT_START_ADDR_HIGH	0x0c
+-#define CRT_START_ADDR_LOW	0x0d
+-#define CRT_CURSOR_LOC_HIGH	0x0e
+-#define CRT_CURSOR_LOC_LOW	0x0f
+-#define CRT_START_VER_RETR	0x10
+-#define CRT_END_VER_RETR	0x11
+-#define CRT_VER_DISP_ENA_END	0x12
+-#define CRT_OFFSET		0x13
+-#define CRT_UNDERLINE_LOC	0x14
+-#define CRT_START_VER_BLANK	0x15
+-#define CRT_END_VER_BLANK	0x16
+-#define CRT_MODE_CONTROL	0x17
+-#define CRT_LINE_COMPARE	0x18
+-#define CRT_UNKNOWN1         	0x19
+-#define CRT_UNKNOWN2         	0x1a
+-#define CRT_UNKNOWN3         	0x1b
+-#define CRT_UNKNOWN4         	0x1c
+-#define CRT_UNKNOWN5         	0x1d
+-#define CRT_UNKNOWN6         	0x1e
+-#define CRT_UNKNOWN7         	0x1f
+-#define CRT_UNKNOWN8         	0x20
+-#define CRT_UNKNOWN9		0x21
+-#define CRT_UNKNOWN10		0x22
+-#define CRT_UNKNOWN11      	0x23
+-#define CRT_UNKNOWN12      	0x24
+-#define CRT_UNKNOWN13      	0x25
+-#define CRT_UNKNOWN14      	0x26
+-#define CRT_UNKNOWN15      	0x27
+-#define CRT_UNKNOWN16      	0x28
+-#define CRT_UNKNOWN17      	0x29
+-#define CRT_UNKNOWN18      	0x2a
+-#define CRT_UNKNOWN19      	0x2b
+-#define CRT_UNKNOWN20      	0x2c
+-#define CRT_UNKNOWN21      	0x2d
+-#define CRT_UNKNOWN22      	0x2e
+-#define CRT_UNKNOWN23      	0x2f
+-#define CRT_EXT_HOR_TIMING1	0x30	/* NCR crt extensions */
+-#define CRT_EXT_START_ADDR	0x31
+-#define CRT_EXT_HOR_TIMING2	0x32
+-#define CRT_EXT_VER_TIMING	0x33
+-#define CRT_MONITOR_POWER	0x34
+-
+-/*
+- * General Registers
+- */
+-#define GREG_STATUS0_R		0x03c2
+-#define GREG_STATUS1_R		0x03da
+-#define GREG_MISC_OUTPUT_R	0x03cc
+-#define GREG_MISC_OUTPUT_W	0x03c2=09
+-#define GREG_FEATURE_CONTROL_R	0x03ca
+-#define GREG_FEATURE_CONTROL_W	0x03da
+-#define GREG_POS		0x0102
+-
+-/*
+- * Attribute Controller
+- */
+-#define ACT_IDX			0x03C0
+-#define ACT_ADDRESS_R		0x03C0
+-#define ACT_DATA		0x03C0
+-#define ACT_ADDRESS_RESET	0x03DA
+-#define ACT_PALETTE0		0x00
+-#define ACT_PALETTE1		0x01
+-#define ACT_PALETTE2		0x02
+-#define ACT_PALETTE3		0x03
+-#define ACT_PALETTE4		0x04
+-#define ACT_PALETTE5		0x05
+-#define ACT_PALETTE6		0x06
+-#define ACT_PALETTE7		0x07
+-#define ACT_PALETTE8		0x08
+-#define ACT_PALETTE9		0x09
+-#define ACT_PALETTE10		0x0A
+-#define ACT_PALETTE11		0x0B
+-#define ACT_PALETTE12		0x0C
+-#define ACT_PALETTE13		0x0D
+-#define ACT_PALETTE14		0x0E
+-#define ACT_PALETTE15		0x0F
+-#define ACT_ATTR_MODE_CNTL	0x10
+-#define ACT_OVERSCAN_COLOR	0x11
+-#define ACT_COLOR_PLANE_ENA	0x12
+-#define ACT_HOR_PEL_PANNING	0x13
+-#define ACT_COLOR_SELECT	0x14
+-
+-/*
+- * PLL
+- */
+-#define PLL_IDX			0x83c8
+-#define PLL_DATA		0x83c9
+-
+-/*
+- * Blitter operations
+- */
+-#define	Z3BLTclear		0x00	/* 0 */
+-#define Z3BLTand		0x80	/* src AND dst */
+-#define Z3BLTandReverse		0x40	/* src AND NOT dst */
+-#define Z3BLTcopy		0xc0	/* src */
+-#define Z3BLTandInverted	0x20	/* NOT src AND dst */
+-#define	Z3BLTnoop		0xa0	/* dst */
+-#define Z3BLTxor		0x60	/* src XOR dst */
+-#define Z3BLTor			0xe0	/* src OR dst */
+-#define Z3BLTnor		0x10	/* NOT src AND NOT dst */
+-#define Z3BLTequiv		0x90	/* NOT src XOR dst */
+-#define Z3BLTinvert		0x50	/* NOT dst */
+-#define Z3BLTorReverse		0xd0	/* src OR NOT dst */
+-#define Z3BLTcopyInverted	0x30	/* NOT src */
+-#define Z3BLTorInverted		0xb0	/* NOT src OR dst */
+-#define Z3BLTnand		0x70	/* NOT src OR NOT dst */
+-#define Z3BLTset		0xf0	/* 1 */
+diff -puN drivers/video/sun3fb.c~remove-broken-video-drivers-v4 /dev/nu=
+ll
+--- a/drivers/video/sun3fb.c
++++ /dev/null
+@@ -1,702 +0,0 @@
+-/*
+- *  linux/drivers/video/sun3fb.c -- Frame buffer driver for Sun3
+- *
+- * (C) 1998 Thomas Bogendoerfer
+- *
+- * This driver is bases on sbusfb.c, which is
+- *
+- *	Copyright (C) 1998 Jakub Jelinek
+- *
+- *  This driver is partly based on the Open Firmware console driver
+- *
+- *	Copyright (C) 1997 Geert Uytterhoeven
+- *
+- *  and SPARC console subsystem
+- *
+- *      Copyright (C) 1995 Peter Zaitcev (zaitcev@yahoo.com)
+- *      Copyright (C) 1995-1997 David S. Miller (davem@caip.rutgers.ed=
+u)
+- *      Copyright (C) 1995-1996 Miguel de Icaza (miguel@nuclecu.unam.m=
+x)
+- *      Copyright (C) 1996 Dave Redman (djhr@tadpole.co.uk)
+- *      Copyright (C) 1996-1998 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+- *      Copyright (C) 1996 Eddie C. Dost (ecd@skynet.be)
+- *
+- *  This file is subject to the terms and conditions of the GNU Genera=
+l Public
+- *  License. See the file COPYING in the main directory of this archiv=
+e for
+- *  more details.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/mm.h>
+-#include <linux/slab.h>
+-#include <linux/vmalloc.h>
+-#include <linux/delay.h>
+-#include <linux/interrupt.h>
+-#include <linux/fb.h>
+-#include <linux/selection.h>
+-#include <linux/init.h>
+-#include <linux/console.h>
+-#include <linux/kd.h>
+-#include <linux/vt_kern.h>
+-
+-#include <asm/uaccess.h>
+-#include <asm/pgtable.h>	/* io_remap_page_range() */
+-
+-#ifdef CONFIG_SUN3
+-#include <asm/oplib.h>
+-#include <asm/machines.h>
+-#include <asm/idprom.h>
+-
+-#define CGFOUR_OBMEM_ADDR 0x1f300000
+-#define BWTWO_OBMEM_ADDR 0x1f000000
+-#define BWTWO_OBMEM50_ADDR 0x00100000
+-
+-#endif
+-#ifdef CONFIG_SUN3X
+-#include <asm/sun3x.h>
+-#endif
+-#include <video/sbusfb.h>
+-
+-#define DEFAULT_CURSOR_BLINK_RATE       (2*HZ/5)
+-
+-#define CURSOR_SHAPE			1
+-#define CURSOR_BLINK			2
+-
+-#define mymemset(x,y) memset(x,0,y)
+-
+-    /*
+-     *  Interface used by the world
+-     */
+-
+-int sun3fb_init(void);
+-void sun3fb_setup(char *options);
+-
+-static char fontname[40] __initdata =3D { 0 };
+-static int curblink __initdata =3D 1;
+-
+-static int sun3fb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			struct fb_info *info);
+-static int sun3fb_get_var(struct fb_var_screeninfo *var, int con,
+-			struct fb_info *info);
+-static int sun3fb_set_var(struct fb_var_screeninfo *var, int con,
+-			struct fb_info *info);
+-static int sun3fb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			struct fb_info *info);
+-static int sun3fb_set_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			struct fb_info *info);
+-static int sun3fb_setcolreg(u_int regno, u_int red, u_int green, u_int=
+ blue,
+-			    u_int transp, struct fb_info *info);
+-static int sun3fb_blank(int blank, struct fb_info *info);
+-static void sun3fb_cursor(struct display *p, int mode, int x, int y);
+-static void sun3fb_clear_margin(struct display *p, int s);
+-
+-    /*
+-     *  Interface to the low level console driver
+-     */
+-
+-static int sun3fbcon_switch(int con, struct fb_info *info);
+-static int sun3fbcon_updatevar(int con, struct fb_info *info);
+-
+-    /*
+-     *  Internal routines
+-     */
+-
+-static int sun3fb_getcolreg(u_int regno, u_int *red, u_int *green, u_i=
+nt *blue,
+-			    u_int *transp, struct fb_info *info);
+-
+-static struct fb_ops sun3fb_ops =3D {
+-	.owner =3D	THIS_MODULE,
+-	.fb_get_fix =3D	sun3fb_get_fix,
+-	.fb_get_var =3D	sun3fb_get_var,
+-	.fb_set_var =3D	sun3fb_set_var,
+-	.fb_get_cmap =3D	sun3fb_get_cmap,
+-	.fb_set_cmap =3D	sun3fb_set_cmap,
+-	.fb_setcolreg =3D	sun3fb_setcolreg,
+-	.fb_blank =3D	sun3fb_blank,
+-};
+-
+-static void sun3fb_clear_margin(struct display *p, int s)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfod(p);
+-=09
+-	return;
+-
+-	if (fb->switch_from_graph)
+-		(*fb->switch_from_graph)(fb);
+-	if (fb->fill) {
+-		unsigned short rects [16];
+-
+-		rects [0] =3D 0;
+-		rects [1] =3D 0;
+-		rects [2] =3D fb->var.xres_virtual;
+-		rects [3] =3D fb->y_margin;
+-		rects [4] =3D 0;
+-		rects [5] =3D fb->y_margin;
+-		rects [6] =3D fb->x_margin;
+-		rects [7] =3D fb->var.yres_virtual;
+-		rects [8] =3D fb->var.xres_virtual - fb->x_margin;
+-		rects [9] =3D fb->y_margin;
+-		rects [10] =3D fb->var.xres_virtual;
+-		rects [11] =3D fb->var.yres_virtual;
+-		rects [12] =3D fb->x_margin;
+-		rects [13] =3D fb->var.yres_virtual - fb->y_margin;
+-		rects [14] =3D fb->var.xres_virtual - fb->x_margin;
+-		rects [15] =3D fb->var.yres_virtual;
+-		(*fb->fill)(fb, p, s, 4, rects);
+-	} else {
+-		unsigned char *fb_base =3D fb->info.screen_base, *q;
+-		int skip_bytes =3D fb->y_margin * fb->var.xres_virtual;
+-		int scr_size =3D fb->var.xres_virtual * fb->var.yres_virtual;
+-		int h, he, incr, size;
+-
+-		he =3D fb->var.yres;
+-		if (fb->var.bits_per_pixel =3D=3D 1) {
+-			fb_base -=3D (skip_bytes + fb->x_margin) / 8;
+-			skip_bytes /=3D 8;
+-			scr_size /=3D 8;
+-			mymemset (fb_base, skip_bytes - fb->x_margin / 8);
+-			mymemset (fb_base + scr_size - skip_bytes + fb->x_margin / 8, skip_=
+bytes - fb->x_margin / 8);
+-			incr =3D fb->var.xres_virtual / 8;
+-			size =3D fb->x_margin / 8 * 2;
+-			for (q =3D fb_base + skip_bytes - fb->x_margin / 8, h =3D 0;
+-			     h <=3D he; q +=3D incr, h++)
+-				mymemset (q, size);
+-		} else {
+-			fb_base -=3D (skip_bytes + fb->x_margin);
+-			memset (fb_base, attr_bgcol(p,s), skip_bytes - fb->x_margin);
+-			memset (fb_base + scr_size - skip_bytes + fb->x_margin, attr_bgcol(=
+p,s), skip_bytes - fb->x_margin);
+-			incr =3D fb->var.xres_virtual;
+-			size =3D fb->x_margin * 2;
+-			for (q =3D fb_base + skip_bytes - fb->x_margin, h =3D 0;
+-			     h <=3D he; q +=3D incr, h++)
+-				memset (q, attr_bgcol(p,s), size);
+-		}
+-	}
+-}
+-
+-static void sun3fb_disp_setup(struct display *p)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfod(p);
+-
+-	if (fb->setup)
+-		fb->setup(p);=09
+-	sun3fb_clear_margin(p, 0);
+-}
+-
+-    /*
+-     *  Get the Fixed Part of the Display
+-     */
+-
+-static int sun3fb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			  struct fb_info *info)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-
+-	memcpy(fix, &fb->fix, sizeof(struct fb_fix_screeninfo));
+-	return 0;
+-}
+-
+-    /*
+-     *  Get the User Defined Part of the Display
+-     */
+-
+-static int sun3fb_get_var(struct fb_var_screeninfo *var, int con,
+-			  struct fb_info *info)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-
+-	memcpy(var, &fb->var, sizeof(struct fb_var_screeninfo));
+-	return 0;
+-}
+-
+-    /*
+-     *  Set the User Defined Part of the Display
+-     */
+-
+-static int sun3fb_set_var(struct fb_var_screeninfo *var, int con,
+-			struct fb_info *info)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-
+-	if (var->xres > fb->var.xres || var->yres > fb->var.yres ||
+-	    var->xres_virtual > fb->var.xres_virtual ||
+-	    var->yres_virtual > fb->var.yres_virtual ||
+-	    var->bits_per_pixel !=3D fb->var.bits_per_pixel ||
+-	    var->nonstd ||
+-	    (var->vmode & FB_VMODE_MASK) !=3D FB_VMODE_NONINTERLACED)
+-		return -EINVAL;
+-	memcpy(var, &fb->var, sizeof(struct fb_var_screeninfo));
+-	return 0;
+-}
+-
+-    /*
+-     *  Hardware cursor
+-     */
+-    =20
+-static unsigned char hw_cursor_cmap[2] =3D { 0, 0xff };
+-
+-static void
+-sun3fb_cursor_timer_handler(unsigned long dev_addr)
+-{
+-	struct fb_info_sbusfb *fb =3D (struct fb_info_sbusfb *)dev_addr;
+-       =20
+-	if (!fb->setcursor) return;
+-                               =20
+-	if (fb->cursor.mode & CURSOR_BLINK) {
+-		fb->cursor.enable ^=3D 1;
+-		fb->setcursor(fb);
+-	}
+-=09
+-	fb->cursor.timer.expires =3D jiffies + fb->cursor.blink_rate;
+-	add_timer(&fb->cursor.timer);
+-}
+-
+-static void sun3fb_cursor(struct display *p, int mode, int x, int y)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfod(p);
+-=09
+-	switch (mode) {
+-	case CM_ERASE:
+-		fb->cursor.mode &=3D ~CURSOR_BLINK;
+-		fb->cursor.enable =3D 0;
+-		(*fb->setcursor)(fb);
+-		break;
+-				 =20
+-	case CM_MOVE:
+-	case CM_DRAW:
+-		if (fb->cursor.mode & CURSOR_SHAPE) {
+-			fb->cursor.size.fbx =3D fontwidth(p);
+-			fb->cursor.size.fby =3D fontheight(p);
+-			fb->cursor.chot.fbx =3D 0;
+-			fb->cursor.chot.fby =3D 0;
+-			fb->cursor.enable =3D 1;
+-			memset (fb->cursor.bits, 0, sizeof (fb->cursor.bits));
+-			fb->cursor.bits[0][fontheight(p) - 2] =3D (0xffffffff << (32 - font=
+width(p)));
+-			fb->cursor.bits[1][fontheight(p) - 2] =3D (0xffffffff << (32 - font=
+width(p)));
+-			fb->cursor.bits[0][fontheight(p) - 1] =3D (0xffffffff << (32 - font=
+width(p)));
+-			fb->cursor.bits[1][fontheight(p) - 1] =3D (0xffffffff << (32 - font=
+width(p)));
+-			(*fb->setcursormap) (fb, hw_cursor_cmap, hw_cursor_cmap, hw_cursor_=
+cmap);
+-			(*fb->setcurshape) (fb);
+-		}
+-		fb->cursor.mode =3D CURSOR_BLINK;
+-		if (fontwidthlog(p))
+-			fb->cursor.cpos.fbx =3D (x << fontwidthlog(p)) + fb->x_margin;
+-		else
+-			fb->cursor.cpos.fbx =3D (x * fontwidth(p)) + fb->x_margin;
+-		if (fontheightlog(p))
+-			fb->cursor.cpos.fby =3D (y << fontheightlog(p)) + fb->y_margin;
+-		else
+-			fb->cursor.cpos.fby =3D (y * fontheight(p)) + fb->y_margin;
+-		(*fb->setcursor)(fb);
+-		break;
+-	}
+-}
+-
+-    /*
+-     *  Get the Colormap
+-     */
+-
+-static int sun3fb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			 struct fb_info *info)
+-{
+-	if (con =3D=3D info->currcon) /* current console? */
+-		return fb_get_cmap(cmap, kspc, sun3fb_getcolreg, info);
+-	else if (fb_display[con].cmap.len) /* non default colormap? */
+-		fb_copy_cmap(&fb_display[con].cmap, cmap, kspc ? 0 : 2);
+-	else
+-		fb_copy_cmap(fb_default_cmap(1<<fb_display[con].var.bits_per_pixel),=
+ cmap, kspc ? 0 : 2);
+-	return 0;
+-}
+-
+-    /*
+-     *  Set the Colormap
+-     */
+-
+-static int sun3fb_set_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			 struct fb_info *info)
+-{
+-	int err;
+-
+-	if (!fb_display[con].cmap.len) {	/* no colormap allocated? */
+-		if ((err =3D fb_alloc_cmap(&fb_display[con].cmap, 1<<fb_display[con]=
+=2Evar.bits_per_pixel, 0)))
+-			return err;
+-	}
+-	if (con =3D=3D info->currcon) {			/* current console? */
+-		err =3D fb_set_cmap(cmap, kspc, info);
+-		if (!err) {
+-			struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-		=09
+-			if (fb->loadcmap)
+-				(*fb->loadcmap)(fb, &fb_display[con], cmap->start, cmap->len);
+-		}
+-		return err;
+-	} else
+-		fb_copy_cmap(cmap, &fb_display[con].cmap, kspc ? 0 : 1);
+-	return 0;
+-}
+-
+-    /*
+-     *  Setup: parse used options
+-     */
+-
+-void __init sun3fb_setup(char *options)
+-{
+-	char *p;
+-=09
+-	for (p =3D options;;) {
+-		if (!strncmp(p, "font=3D", 5)) {
+-			int i;
+-		=09
+-			for (i =3D 0; i < sizeof(fontname) - 1; i++)
+-				if (p[i+5] =3D=3D ' ' || !p[i+5])
+-					break;
+-			memcpy(fontname, p+5, i);
+-			fontname[i] =3D 0;
+-		} else if (!strncmp(p, "noblink", 7))
+-			curblink =3D 0;
+-		while (*p && *p !=3D ' ' && *p !=3D ',') p++;
+-		if (*p !=3D ',') break;
+-		p++;
+-	}
+-
+-	return;
+-}
+-
+-static int sun3fbcon_switch(int con, struct fb_info *info)
+-{
+-	int x_margin, y_margin;
+-	struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-	int lastconsole;
+-   =20
+-	/* Do we have to save the colormap? */
+-	if (fb_display[info->currcon].cmap.len)
+-		fb_get_cmap(&fb_display[info->currcon].cmap, 1, sun3fb_getcolreg, in=
+fo);
+-
+-	if (info->display_fg) {
+-		lastconsole =3D info->display_fg->vc_num;
+-		if (lastconsole !=3D con &&=20
+-		    (fontwidth(&fb_display[lastconsole]) !=3D fontwidth(&fb_display[=
+con]) ||
+-		     fontheight(&fb_display[lastconsole]) !=3D fontheight(&fb_displa=
+y[con])))
+-			fb->cursor.mode |=3D CURSOR_SHAPE;
+-	}
+-	x_margin =3D (fb_display[con].var.xres_virtual - fb_display[con].var.=
+xres) / 2;
+-	y_margin =3D (fb_display[con].var.yres_virtual - fb_display[con].var.=
+yres) / 2;
+-	if (fb->margins)
+-		fb->margins(fb, &fb_display[con], x_margin, y_margin);
+-	if (fb->graphmode || fb->x_margin !=3D x_margin || fb->y_margin !=3D =
+y_margin) {
+-		fb->x_margin =3D x_margin; fb->y_margin =3D y_margin;
+-		sun3fb_clear_margin(&fb_display[con], 0);
+-	}
+-	info->currcon =3D con;
+-	/* Install new colormap */
+-	do_install_cmap(con, info);
+-	return 0;
+-}
+-
+-    /*
+-     *  Update the `var' structure (called by fbcon.c)
+-     */
+-
+-static int sun3fbcon_updatevar(int con, struct fb_info *info)
+-{
+-	/* Nothing */
+-	return 0;
+-}
+-
+-    /*
+-     *  Blank the display.
+-     */
+-
+-static int sun3fb_blank(int blank, struct fb_info *info)
+-{
+-    struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-   =20
+-    if (blank && fb->blank)
+-    	return fb->blank(fb);
+-    else if (!blank && fb->unblank)
+-    	return fb->unblank(fb);
+-    return 0;
+-}
+-
+-    /*
+-     *  Read a single color register and split it into
+-     *  colors/transparent. Return !=3D 0 for invalid regno.
+-     */
+-
+-static int sun3fb_getcolreg(u_int regno, u_int *red, u_int *green, u_i=
+nt *blue,
+-			  u_int *transp, struct fb_info *info)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-
+-	if (!fb->color_map || regno > 255)
+-		return 1;
+-	*red =3D (fb->color_map CM(regno, 0)<<8) | fb->color_map CM(regno, 0)=
+;
+-	*green =3D (fb->color_map CM(regno, 1)<<8) | fb->color_map CM(regno, =
+1);
+-	*blue =3D (fb->color_map CM(regno, 2)<<8) | fb->color_map CM(regno, 2=
+);
+-	*transp =3D 0;
+-	return 0;
+-}
+-
+-
+-    /*
+-     *  Set a single color register. The values supplied are already
+-     *  rounded down to the hardware's capabilities (according to the
+-     *  entries in the var structure). Return !=3D 0 for invalid regno=
+=2E
+-     */
+-
+-static int sun3fb_setcolreg(u_int regno, u_int red, u_int green, u_int=
+ blue,
+-			    u_int transp, struct fb_info *info)
+-{
+-	struct fb_info_sbusfb *fb =3D sbusfbinfo(info);
+-
+-	if (!fb->color_map || regno > 255)
+-		return 1;
+-	red >>=3D 8;
+-	green >>=3D 8;
+-	blue >>=3D 8;
+-	fb->color_map CM(regno, 0) =3D red;
+-	fb->color_map CM(regno, 1) =3D green;
+-	fb->color_map CM(regno, 2) =3D blue;
+-	return 0;
+-}
+-
+-static int sun3fb_set_font(struct display *p, int width, int height)
+-{
+-	int w =3D p->var.xres_virtual, h =3D p->var.yres_virtual;
+-	int depth =3D p->var.bits_per_pixel;
+-	struct fb_info_sbusfb *fb =3D sbusfbinfod(p);
+-	int x_margin, y_margin;
+-=09
+-	if (depth > 8) depth =3D 8;
+-	x_margin =3D (w % width) / 2;
+-	y_margin =3D (h % height) / 2;
+-
+-	p->var.xres =3D w - 2*x_margin;
+-	p->var.yres =3D h - 2*y_margin;
+-=09
+-	fb->cursor.mode |=3D CURSOR_SHAPE;
+-=09
+-	if (fb->margins)
+-		fb->margins(fb, p, x_margin, y_margin);
+-	if (fb->x_margin !=3D x_margin || fb->y_margin !=3D y_margin) {
+-		fb->x_margin =3D x_margin; fb->y_margin =3D y_margin;
+-		sun3fb_clear_margin(p, 0);
+-	}
+-
+-	return 1;
+-}
+-
+-void sun3fb_palette(int enter)
+-{
+-	int i;
+-	struct display *p;
+-=09
+-	for (i =3D 0; i < MAX_NR_CONSOLES; i++) {
+-		p =3D &fb_display[i];
+-		if (p->dispsw && p->dispsw->setup =3D=3D sun3fb_disp_setup &&
+-		    p->fb_info->display_fg &&
+-		    p->fb_info->display_fg->vc_num =3D=3D i) {
+-			struct fb_info_sbusfb *fb =3D sbusfbinfod(p);
+-
+-			if (fb->restore_palette) {
+-				if (enter)
+-					fb->restore_palette(fb);
+-				else if (vc_cons[i].d->vc_mode !=3D KD_GRAPHICS)
+-				         vc_cons[i].d->vc_sw->con_set_palette(vc_cons[i].d, color_=
+table);
+-			}
+-		}
+-	}
+-}
+-
+-    /*
+-     *  Initialisation
+-     */
+-static int __init sun3fb_init_fb(int fbtype, unsigned long addr)
+-{
+-	static struct sbus_dev sdb;
+-	struct fb_fix_screeninfo *fix;
+-	struct fb_var_screeninfo *var;
+-	struct display *disp;
+-	struct fb_info_sbusfb *fb;
+-	struct fbtype *type;
+-	int linebytes, w, h, depth;
+-	char *p =3D NULL;
+-=09
+-	fb =3D kmalloc(sizeof(struct fb_info_sbusfb), GFP_ATOMIC);
+-	if (!fb)
+-		return -ENOMEM;
+-=09
+-	memset(fb, 0, sizeof(struct fb_info_sbusfb));
+-	fix =3D &fb->fix;
+-	var =3D &fb->var;
+-	disp =3D &fb->disp;
+-	type =3D &fb->type;
+-=09
+-	sdb.reg_addrs[0].phys_addr =3D addr;
+-	fb->sbdp =3D &sdb;
+-
+-	type->fb_type =3D fbtype;
+-=09
+-	type->fb_height =3D h =3D 900;
+-	type->fb_width  =3D w =3D 1152;
+-sizechange:
+-	type->fb_depth  =3D depth =3D (fbtype =3D=3D FBTYPE_SUN2BW) ? 1 : 8;
+-	linebytes =3D w * depth / 8;
+-	type->fb_size   =3D PAGE_ALIGN((linebytes) * h);
+-/*=09
+-	fb->x_margin =3D (w & 7) / 2;
+-	fb->y_margin =3D (h & 15) / 2;
+-*/
+-	fb->x_margin =3D fb->y_margin =3D 0;
+-
+-	var->xres_virtual =3D w;
+-	var->yres_virtual =3D h;
+-	var->xres =3D w - 2*fb->x_margin;
+-	var->yres =3D h - 2*fb->y_margin;
+-=09
+-	var->bits_per_pixel =3D depth;
+-	var->height =3D var->width =3D -1;
+-	var->pixclock =3D 10000;
+-	var->vmode =3D FB_VMODE_NONINTERLACED;
+-	var->red.length =3D var->green.length =3D var->blue.length =3D 8;
+-
+-	fix->line_length =3D linebytes;
+-	fix->smem_len =3D type->fb_size;
+-	fix->type =3D FB_TYPE_PACKED_PIXELS;
+-	fix->visual =3D FB_VISUAL_PSEUDOCOLOR;
+-=09
+-	fb->info.fbops =3D &sun3fb_ops;
+-	fb->info.disp =3D disp;
+-	fb->info.currcon =3D -1;
+-	strcpy(fb->info.fontname, fontname);
+-	fb->info.changevar =3D NULL;
+-	fb->info.switch_con =3D &sun3fbcon_switch;
+-	fb->info.updatevar =3D &sun3fbcon_updatevar;
+-	fb->info.flags =3D FBINFO_FLAG_DEFAULT;
+-=09
+-	fb->cursor.hwsize.fbx =3D 32;
+-	fb->cursor.hwsize.fby =3D 32;
+-=09
+-	if (depth > 1 && !fb->color_map) {
+-		if((fb->color_map =3D kmalloc(256 * 3, GFP_ATOMIC))=3D=3DNULL)
+-			return -ENOMEM;
+-	}
+-		=09
+-	switch(fbtype) {
+-#ifdef CONFIG_FB_CGSIX
+-	case FBTYPE_SUNFAST_COLOR:
+-		p =3D cgsixfb_init(fb); break;
+-#endif
+-#ifdef CONFIG_FB_BWTWO
+-	case FBTYPE_SUN2BW:
+-		p =3D bwtwofb_init(fb); break;
+-#endif
+-#ifdef CONFIG_FB_CGTHREE
+-	case FBTYPE_SUN4COLOR:
+-	case FBTYPE_SUN3COLOR:
+-		type->fb_size =3D 0x100000;
+-		p =3D cgthreefb_init(fb); break;
+-#endif
+-	}
+-	fix->smem_start =3D (unsigned long)fb->info.screen_base;	// FIXME
+-=09
+-	if (!p) {
+-		kfree(fb);
+-		return -ENODEV;
+-	}
+-=09
+-	if (p =3D=3D SBUSFBINIT_SIZECHANGE)
+-		goto sizechange;
+-
+-	disp->dispsw =3D &fb->dispsw;
+-	if (fb->setcursor) {
+-		fb->dispsw.cursor =3D sun3fb_cursor;
+-		if (curblink) {
+-			fb->cursor.blink_rate =3D DEFAULT_CURSOR_BLINK_RATE;
+-			init_timer(&fb->cursor.timer);
+-			fb->cursor.timer.expires =3D jiffies + fb->cursor.blink_rate;
+-			fb->cursor.timer.data =3D (unsigned long)fb;
+-			fb->cursor.timer.function =3D sun3fb_cursor_timer_handler;
+-			add_timer(&fb->cursor.timer);
+-		}
+-	}
+-	fb->cursor.mode =3D CURSOR_SHAPE;
+-	fb->dispsw.set_font =3D sun3fb_set_font;
+-	fb->setup =3D fb->dispsw.setup;
+-	fb->dispsw.setup =3D sun3fb_disp_setup;
+-	fb->dispsw.clear_margins =3D NULL;
+-
+-	disp->var =3D *var;
+-	disp->visual =3D fix->visual;
+-	disp->type =3D fix->type;
+-	disp->type_aux =3D fix->type_aux;
+-	disp->line_length =3D fix->line_length;
+-=09
+-	if (fb->blank)
+-		disp->can_soft_blank =3D 1;
+-
+-	sun3fb_set_var(var, -1, &fb->info);
+-
+-	if (register_framebuffer(&fb->info) < 0) {
+-		kfree(fb);
+-		return -EINVAL;
+-	}
+-	printk("fb%d: %s\n", fb->info.node, p);
+-
+-	return 0;
+-}
+-
+-
+-int __init sun3fb_init(void)
+-{
+-	extern int con_is_present(void);
+-	unsigned long addr;
+-	char p4id;
+-=09
+-	if (!con_is_present()) return -ENODEV;
+-#ifdef CONFIG_SUN3
+-        switch(*(romvec->pv_fbtype))
+-        {
+-	case FBTYPE_SUN2BW:
+-		addr =3D 0xfe20000;
+-		return sun3fb_init_fb(FBTYPE_SUN2BW, addr);
+-	case FBTYPE_SUN3COLOR:
+-	case FBTYPE_SUN4COLOR:
+-		if(idprom->id_machtype !=3D (SM_SUN3|SM_3_60)) {
+-			printk("sun3fb: cgthree/four only supported on 3/60\n");
+-			return -ENODEV;
+-		}
+-	=09
+-		addr =3D CGFOUR_OBMEM_ADDR;
+-		return sun3fb_init_fb(*(romvec->pv_fbtype), addr);
+-	default:
+-		printk("sun3fb: unsupported framebuffer\n");
+-		return -ENODEV;
+-	}
+-#else
+-	addr =3D SUN3X_VIDEO_BASE;
+-	p4id =3D *(char *)SUN3X_VIDEO_P4ID;
+-
+-	p4id =3D (p4id =3D=3D 0x45) ? p4id : (p4id & 0xf0);
+-	switch (p4id) {
+-		case 0x00:
+-			return sun3fb_init_fb(FBTYPE_SUN2BW, addr);
+-#if 0 /* not yet */
+-		case 0x40:
+-			return sun3fb_init_fb(FBTYPE_SUN4COLOR, addr);
+-			break;
+-		case 0x45:
+-			return sun3fb_init_fb(FBTYPE_SUN8COLOR, addr);
+-			break;
+-#endif
+-		case 0x60:
+-			return sun3fb_init_fb(FBTYPE_SUNFAST_COLOR, addr);
+-	}
+-#endif		=09
+-=09
+-	return -ENODEV;
+-}
+-
+-MODULE_LICENSE("GPL");
+diff -puN drivers/video/virgefb.c~remove-broken-video-drivers-v4 /dev/n=
+ull
+--- a/drivers/video/virgefb.c
++++ /dev/null
+@@ -1,2526 +0,0 @@
+-/*
+- * linux/drivers/video/virgefb.c -- CyberVision64/3D frame buffer devi=
+ce
+- *
+- *    Copyright (C) 1997 Andr=E9 Heynatz
+- *
+- *
+- * This file is based on the CyberVision frame buffer device (cyberfb.=
+c):
+- *
+- *    Copyright (C) 1996 Martin Apel
+- *                       Geert Uytterhoeven
+- *
+- * Zorro II additions :
+- *
+- *    Copyright (C) 1998-2000 Christian T. Steigies
+- *
+- * Initialization additions :
+- *
+- *    Copyright (C) 1998-2000 Ken Tyler
+- *
+- * Parts of the Initialization code are based on Cyberfb.c by Allan Ba=
+ir,
+- * and on the NetBSD CyberVision64 frame buffer driver by Michael Tesk=
+e who gave
+- * permission for its use.
+- *
+- * Many thanks to Frank Mariak for his assistance with ZORRO 2 access =
+and other
+- * mysteries.
+- *
+- *
+- *
+- * This file is subject to the terms and conditions of the GNU General=
+ Public
+- * License.  See the file COPYING in the main directory of this archiv=
+e
+- * for more details.
+- */
+-
+-#undef VIRGEFBDEBUG
+-#undef VIRGEFBDUMP
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/mm.h>
+-#include <linux/slab.h>
+-#include <linux/delay.h>
+-#include <linux/zorro.h>
+-#include <linux/fb.h>
+-#include <linux/init.h>
+-#include <asm/uaccess.h>
+-#include <asm/system.h>
+-#include <asm/amigahw.h>
+-#include <asm/io.h>
+-#include <asm/irq.h>
+-#include <video/fbcon.h>
+-#include <video/fbcon-cfb8.h>
+-#include <video/fbcon-cfb16.h>
+-#include <video/fbcon-cfb32.h>
+-
+-#include "virgefb.h"
+-
+-#ifdef VIRGEFBDEBUG
+-#define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __FUNCTION=
+__ , ## args)
+-#else
+-#define DPRINTK(fmt, args...)
+-#endif
+-
+-#ifdef VIRGEFBDUMP
+-static void cv64_dump(void);
+-#define DUMP cv64_dump()
+-#else
+-#define DUMP
+-#endif
+-
+-/*
+- *	Macros for register access and zorro control
+- */
+-
+-static inline void mb_inline(void) { mb(); }	/* for use in comma expre=
+ssions */
+-
+-/* Set zorro 2 map */
+-
+-#define SelectIO \
+-	mb(); \
+-	if (on_zorro2) { \
+-		(*(volatile u16 *)((u8 *)(vcode_switch_base + 0x04)) =3D 0x01); \
+-		mb(); \
+-	}
+-
+-#define	SelectMMIO \
+-	mb(); \
+-	if (on_zorro2) { \
+-		(*(volatile u16 *)((u8 *)(vcode_switch_base + 0x04)) =3D 0x02); \
+-		mb(); \
+-	}
+-
+-#define	SelectCFG \
+-	mb(); \
+-	if (on_zorro2) { \
+-		(*(volatile u16 *)((u8 *)(vcode_switch_base + 0x04)) =3D 0x03); \
+-		mb(); \
+-	}
+-
+-/* Set pass through, 0 =3D amiga, !=3D0 =3D cv64/3d */
+-
+-#define SetVSwitch(x) \
+-	mb(); \
+-	(*(volatile u16 *)((u8 *)(vcode_switch_base)) =3D \
+-	(u16)(x ? 0 : 1)); \
+-	mb();
+-
+-/* Zorro2 endian 'aperture' */
+-
+-#define ENDIAN_BYTE	2
+-#define ENDIAN_WORD	1
+-#define ENDIAN_LONG	0
+-
+-#define Select_Zorro2_FrameBuffer(x) \
+-	do { \
+-		if (on_zorro2) { \
+-			mb(); \
+-			(*(volatile u16 *)((u8 *)(vcode_switch_base + 0x08)) =3D \
+-			(x * 0x40)); \
+-			mb(); \
+-		} \
+-	} while (0)
+-
+-/* SetPortVal - only used for interrupt enable (not yet implemented) *=
+/
+-
+-#if 0
+-#define SetPortVal(x) \
+-	mb(); \
+-	(*(volatile u16 *)((u8 *)(vcode_switch_base + 0x0c)) =3D \
+-	(u16)x); \
+-	mb();
+-#endif
+-
+-/* IO access */
+-
+-#define byte_access_io(x)	(((x) & 0x3ffc) | (((x) & 3)^3) | (((x) & 3)=
+ <<14))
+-#define byte_access_mmio(x)	(((x) & 0xfffc) | (((x) & 3)^3))
+-
+-/* Write 8 bit VGA register - used once for chip wakeup */
+-
+-#define wb_vgaio(reg, dat) \
+-	SelectIO; \
+-	(*(volatile u8 *)(vgaio_regs + ((u32)byte_access_io(reg) & 0xffff)) =3D=
+ \
+-	(dat & 0xff)); \
+-	SelectMMIO;
+-
+-/* Read 8 bit VGA register - only used in dump (SelectIO not needed on=
+ read ?) */
+-
+-#ifdef VIRGEFBDUMP
+-#define rb_vgaio(reg) \
+-	({ \
+-	u8 __zzyzx; \
+-	SelectIO; \
+-	__zzyzx =3D (*(volatile u8 *)((vgaio_regs)+(u32)byte_access_io(reg)))=
+; \
+-	SelectMMIO; \
+-	__zzyzx; \
+-	})
+-#endif
+-
+-/* MMIO access */
+-
+-/* Read 8 bit MMIO register */
+-
+-#define rb_mmio(reg) \
+-	(mb_inline(), \
+-	(*(volatile u8 *)(mmio_regs + 0x8000 + (u32)byte_access_mmio(reg))))
+-
+-/* Write 8 bit MMIO register */
+-
+-#define wb_mmio(reg,dat) \
+-	mb(); \
+-	(*(volatile u8 *)(mmio_regs + 0x8000 + (byte_access_mmio((reg) & 0xff=
+ff))) =3D \
+-	(dat & 0xff)); \
+-	mb();
+-
+-/* Read 32 bit MMIO register */
+-
+-#define rl_mmio(reg) \
+-	(mb_inline(), \
+-	(*((volatile u32 *)((u8 *)((mmio_regs + (on_zorro2 ? 0x20000 : 0)) + =
+(reg))))))
+-
+-/* Write 32 bit MMIO register */
+-
+-#define wl_mmio(reg,dat) \
+-	mb(); \
+-	((*(volatile u32 *)((u8 *)((mmio_regs + (on_zorro2 ? 0x20000 : 0)) + =
+(reg)))) =3D \
+-	(u32)(dat)); \
+-	mb();
+-
+-/* Write to virge graphics register */
+-
+-#define wgfx(reg, dat)	do { wb_mmio(GCT_ADDRESS, (reg)); wb_mmio(GCT_A=
+DDRESS_W, (dat)); } while (0)
+-
+-/* Write to virge sequencer register */
+-
+-#define wseq(reg, dat)	do { wb_mmio(SEQ_ADDRESS, (reg)); wb_mmio(SEQ_A=
+DDRESS_W, (dat)); } while (0)
+-
+-/* Write to virge CRT controller register */
+-
+-#define wcrt(reg, dat)	do { wb_mmio(CRT_ADDRESS, (reg)); wb_mmio(CRT_A=
+DDRESS_W, (dat)); } while (0)
+-
+-/* Write to virge attribute register */
+-
+-#define watr(reg, dat) \
+-	do { \
+-		volatile unsigned char watr_tmp; \
+-		watr_tmp =3D rb_mmio(ACT_ADDRESS_RESET); \
+-		wb_mmio(ACT_ADDRESS_W, (reg)); \
+-		wb_mmio(ACT_ADDRESS_W, (dat)); \
+-		udelay(10); \
+-	} while (0)
+-
+-/* end of macros */
+-
+-struct virgefb_par {
+-   struct fb_var_screeninfo var;
+-   __u32 type;
+-   __u32 type_aux;
+-   __u32 visual;
+-   __u32 line_length;
+-};
+-
+-static struct virgefb_par current_par;
+-
+-static int current_par_valid =3D 0;
+-
+-static struct display disp;
+-static struct fb_info fb_info;
+-
+-static union {
+-#ifdef FBCON_HAS_CFB16
+-    u16 cfb16[16];
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-    u32 cfb32[16];
+-#endif
+-} fbcon_cmap;
+-
+-/*
+- *    Switch for Chipset Independency
+- */
+-
+-static struct fb_hwswitch {
+-
+-   /* Initialisation */
+-
+-   int (*init)(void);
+-
+-   /* Display Control */
+-
+-   int (*encode_fix)(struct fb_fix_screeninfo *fix, struct virgefb_par=
+ *par);
+-   int (*decode_var)(struct fb_var_screeninfo *var, struct virgefb_par=
+ *par);
+-   int (*encode_var)(struct fb_var_screeninfo *var, struct virgefb_par=
+ *par);
+-   int (*getcolreg)(u_int regno, u_int *red, u_int *green, u_int *blue=
+,
+-                    u_int *transp, struct fb_info *info);
+-   void (*blank)(int blank);
+-} *fbhw;
+-
+-static unsigned char blit_maybe_busy =3D 0;
+-
+-/*
+- *    Frame Buffer Name
+- */
+-
+-static char virgefb_name[16] =3D "CyberVision/3D";
+-
+-/*
+- *    CyberVision64/3d Graphics Board
+- */
+-
+-static unsigned char virgefb_colour_table [256][3];
+-static unsigned long v_ram;
+-static unsigned long v_ram_size;
+-static volatile unsigned char *mmio_regs;
+-static volatile unsigned char *vgaio_regs;
+-
+-static unsigned long v_ram_phys;
+-static unsigned long mmio_regs_phys;
+-static unsigned long vcode_switch_base;
+-static unsigned char on_zorro2;
+-
+-/*
+- * Offsets from start of video ram to appropriate ZIII aperture
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-#define CYBMEM_OFFSET_8  0x800000	/* BGRX */
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-#define CYBMEM_OFFSET_16 0x400000	/* GBXR */
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-#define CYBMEM_OFFSET_32 0x000000	/* XRGB */
+-#endif
+-
+-/*
+- *    MEMCLOCK was 32MHz, 64MHz works, 72MHz doesn't (on my board)
+- */
+-
+-#define MEMCLOCK 50000000
+-
+-/*
+- *    Predefined Video Modes
+- */
+-
+-static struct {
+-    const char *name;
+-    struct fb_var_screeninfo var;
+-} virgefb_predefined[] __initdata =3D {
+-#ifdef FBCON_HAS_CFB8
+-    {
+-	"640x480-8", {		/* Cybervision 8 bpp */
+-	    640, 480, 640, 480, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 31250, 160, 136, 82, 61, 88, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"768x576-8", {		/* Cybervision 8 bpp */
+-	    768, 576, 768, 576, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 29411, 144, 112, 32, 15, 64, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"800x600-8", {		/* Cybervision 8 bpp */
+-	    800, 600, 800, 600, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 28571, 168, 104, 22, 1, 48, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-  #if 0=20
+-	"1024x768-8", {		/* Cybervision 8 bpp */
+-	    1024, 768, 1024, 768, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 20833, 272, 168, 39, 2, 72, 1,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-  #else
+-	"1024x768-8", {
+-	    1024, 768, 1024, 768, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-   #if 0
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 12500, 184, 40, 40, 2, 96, 1,
+-	    FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLAC=
+ED
+-	    }
+-    #else
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 12699, 176, 16, 28, 1, 96, 3,
+-	    FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLAC=
+ED
+-	    }
+-    #endif
+-  #endif
+-    }, {
+-	"1152x886-8", {		/* Cybervision 8 bpp */
+-	    1152, 886, 1152, 886, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 19230, 280, 168, 45, 1, 64, 10,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"1280x1024-8", { 	/* Cybervision 8 bpp */
+-	    1280, 1024, 1280, 1024, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-  #if 0
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 17857, 232, 232, 71, 15, 176, 12,
+-	    }
+-  #else
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 7414, 232, 64, 38, 1, 112, 3,
+-	    FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLAC=
+ED
+-	    }
+-  #endif
+-    }, {
+-	"1600x1200-8", { 	/* Cybervision 8 bpp */
+-	    1600, 1200, 1600, 1200, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-  #if 0
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 13698, 336, 224, 77, 15, 176, 12,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-  #else
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 6411, 256, 32, 52, 10, 160, 8,
+-	    FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLAC=
+ED
+-	    }
+-  #endif
+-    },
+-#endif
+-
+-#ifdef FBCON_HAS_CFB16
+-    {
+-	"640x480-16", {		/* Cybervision 16 bpp */
+-	    640, 480, 640, 480, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 31250, 152, 144, 82, 61, 88, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"768x576-16", {		/* Cybervision 16 bpp */
+-	    768, 576, 768, 576, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 29411, 144, 112, 32, 15, 64, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"800x600-16", {		/* Cybervision 16 bpp */
+-	    800, 600, 800, 600, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 28571, 168, 104, 22, 1, 48, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-#if 0
+-	"1024x768-16", { 	/* Cybervision 16 bpp */
+-	    1024, 768, 1024, 768, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 20833, 272, 168, 39, 2, 72, 1,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-#else
+-         "1024x768-16", {
+-             1024, 768, 1024, 768, 0, 0, 16, 0,
+-             {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-             0, 0, -1, -1, FB_ACCELF_TEXT, 12500, 184, 40, 40, 2, 96, =
+1,
+-             FB_SYNC_COMP_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NON=
+INTERLACED
+-         }
+-#endif
+-    }, {
+-	"1152x886-16", { 	/* Cybervision 16 bpp */
+-	    1152, 886, 1152, 886, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 19230, 280, 168, 45, 1, 64, 10,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"1280x1024-16", { 	/* Cybervision 16 bpp */
+-	    1280, 1024, 1280, 1024, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 17857, 232, 232, 71, 15, 176, 12,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"1600x1200-16", { 	/* Cybervision 16 bpp */
+-	    1600, 1200, 1600, 1200, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 13698, 336, 224, 77, 15, 176, 12,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    },
+-#endif
+-
+-#ifdef FBCON_HAS_CFB32
+-    {
+-	"640x480-32", {		/* Cybervision 32 bpp */
+-	    640, 480, 640, 480, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 31250, 160, 136, 82, 61, 88, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-     }, {
+-	"768x576-32", {		/* Cybervision 32 bpp */
+-	    768, 576, 768, 576, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 29411, 144, 112, 32, 15, 64, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-     }, {
+-	"800x600-32", {		/* Cybervision 32 bpp */
+-	    800, 600, 800, 600, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-  	    0, 0, -1, -1, FB_ACCELF_TEXT, 28571, 168, 104, 22, 1, 48, 2,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-     }, {
+-	"1024x768-32", {	/* Cybervision 32 bpp */
+-	    1024, 768, 1024, 768, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 20833, 272, 168, 39, 2, 72, 1,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"1152x886-32", {	/* Cybervision 32 bpp */
+-	    1152, 886, 1152, 886, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 19230, 280, 168, 45, 1, 64, 10,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"1280x1024-32", {	/* Cybervision 32 bpp */
+-	    1280, 1024, 1280, 1024, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 17857, 232, 232, 71, 15, 176, 12,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    }, {
+-	"1600x1200-32", {	/* Cybervision 32 bpp */
+-	    1600, 1200, 1600, 1200, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 13698, 336, 224, 77, 15, 176, 12,
+-	    0, FB_VMODE_NONINTERLACED
+-	    }
+-    },
+-#endif
+-
+-/* interlaced modes */
+-
+-#ifdef FBCON_HAS_CFB8
+-    {
+-	"1024x768-8i", {	/* Cybervision 8 bpp */
+-	    1024, 768, 1024, 768, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 20833, 272, 168, 39, 2, 72, 1,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    }, {
+-	"1280x1024-8i", {	/* Cybervision 8 bpp */
+-	    1280, 1024, 1280, 1024, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 17857, 232, 232, 71, 15, 176, 12,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    }, {
+-	"1600x1200-8i", {	/* Cybervision 8 bpp */
+-	    1600, 1200, 1600, 1200, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 13698, 336, 224, 77, 15, 176, 12,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    },
+-#endif
+-
+-#ifdef FBCON_HAS_CFB16
+-    {
+-	"1024x768-16i", {	/* Cybervision 16 bpp */
+-	    1024, 768, 1024, 768, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 20833, 272, 168, 39, 2, 72, 1,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    }, {
+-	"1280x1024-16i", {	/* Cybervision 16 bpp */
+-	    1280, 1024, 1280, 1024, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 17857, 232, 232, 71, 15, 176, 12,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    }, {
+-	"1600x1200-16i", {	/* Cybervision 16 bpp */
+-	    1600, 1200, 1600, 1200, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 13698, 336, 224, 77, 15, 176, 12,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    },
+-#endif
+-
+-#ifdef FBCON_HAS_CFB32
+-    {
+-	"1024x768-32i", {	/* Cybervision 32 bpp */
+-	    1024, 768, 1024, 768, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 22222, 216, 144, 39, 2, 72, 1,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    }, {
+-	"1280x1024-32i", {	/* Cybervision 32 bpp */
+-	    1280, 1024, 1280, 1024, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {23, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 17857, 232, 232, 71, 15, 176, 12,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    }, {
+-	"1600x1200-32i", {	/* Cybervision 32 bpp */
+-	    1600, 1200, 1600, 1200, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 13698, 336, 224, 77, 15, 176, 12,
+-	    0, FB_VMODE_INTERLACED
+-	    }
+-    },
+-#endif
+-
+-/* doublescan modes */
+-
+-#ifdef FBCON_HAS_CFB8
+-    {
+-	"320x240-8d", {		/* Cybervision 8 bpp */
+-	    320, 240, 320, 240, 0, 0, 8, 0,
+-	    {0, 8, 0}, {0, 8, 0}, {0, 8, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 59259, 80, 80, 45, 26, 32, 1,
+-	    0, FB_VMODE_DOUBLE
+-	    }
+-    },
+-#endif
+-
+-#ifdef FBCON_HAS_CFB16
+-    {
+-	"320x240-16d", {	/* Cybervision 16 bpp */
+-	    320, 240, 320, 240, 0, 0, 16, 0,
+-	    {11, 5, 0}, {5, 6, 0}, {0, 5, 0}, {0, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 59259, 80, 80, 45, 26, 32, 1,
+-	    0, FB_VMODE_DOUBLE
+-	    }
+-    },
+-#endif
+-
+-#ifdef FBCON_HAS_CFB32
+-    {
+-	"320x240-32d", {	/* Cybervision 32 bpp */
+-	    320, 240, 320, 240, 0, 0, 32, 0,
+-	    {16, 8, 0}, {8, 8, 0}, {0, 8, 0}, {24, 0, 0},
+-	    0, 0, -1, -1, FB_ACCELF_TEXT, 59259, 80, 80, 45, 26, 32, 1,
+-	    0, FB_VMODE_DOUBLE
+-	    }
+-    },
+-#endif
+-};
+-
+-#define NUM_TOTAL_MODES	ARRAY_SIZE(virgefb_predefined)
+-
+-/*
+- *    Default to 800x600 for video=3Dvirge8:, virge16: or virge32:
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-#define VIRGE8_DEFMODE	(2)
+-#endif
+-
+-#ifdef FBCON_HAS_CFB16
+-#define VIRGE16_DEFMODE	(9)
+-#endif
+-
+-#ifdef FBCON_HAS_CFB32
+-#define VIRGE32_DEFMODE	(16)
+-#endif
+-
+-static struct fb_var_screeninfo virgefb_default;
+-static int virgefb_inverse =3D 0;
+-
+-/*
+- *    Interface used by the world
+- */
+-
+-int virgefb_setup(char*);
+-static int virgefb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			   struct fb_info *info);
+-static int virgefb_get_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info);
+-static int virgefb_set_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info);
+-static int virgefb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			   struct fb_info *info);
+-static int virgefb_setcolreg(u_int regno, u_int red, u_int green, u_in=
+t blue,
+-			     u_int transp, struct fb_info *info);
+-static int virgefb_blank(int blank, struct fb_info *info);
+-
+-/*
+- *    Interface to the low level console driver
+- */
+-
+-int virgefb_init(void);
+-static int virgefb_switch(int con, struct fb_info *info);
+-static int virgefb_updatevar(int con, struct fb_info *info);
+-
+-/*
+- *    Text console acceleration
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-static struct display_switch fbcon_virge8;
+-#endif
+-
+-#ifdef FBCON_HAS_CFB16
+-static struct display_switch fbcon_virge16;
+-#endif
+-
+-#ifdef FBCON_HAS_CFB32
+-static struct display_switch fbcon_virge32;
+-#endif
+-
+-/*
+- *   Hardware Specific Routines
+- */
+-
+-static int virge_init(void);
+-static int virgefb_encode_fix(struct fb_fix_screeninfo *fix,
+-				struct virgefb_par *par);
+-static int virgefb_decode_var(struct fb_var_screeninfo *var,
+-				struct virgefb_par *par);
+-static int virgefb_encode_var(struct fb_var_screeninfo *var,
+-				struct virgefb_par *par);
+-static int virgefb_getcolreg(u_int regno, u_int *red, u_int *green, u_=
+int *blue,
+-				u_int *transp, struct fb_info *info);
+-static void virgefb_gfx_on_off(int blank);
+-static inline void virgefb_wait_for_idle(void);
+-static void virgefb_BitBLT(u_short curx, u_short cury, u_short destx, =
+u_short desty,
+-		u_short width, u_short height, u_short stride, u_short depth);
+-static void virgefb_RectFill(u_short x, u_short y, u_short width, u_sh=
+ort height,
+-		u_short color, u_short stride, u_short depth);
+-
+-/*
+- *    Internal routines
+- */
+-
+-static void virgefb_get_par(struct virgefb_par *par);
+-static void virgefb_set_par(struct virgefb_par *par);
+-static int virgefb_do_fb_set_var(struct fb_var_screeninfo *var, int is=
+active);
+-static void virgefb_set_disp(int con, struct fb_info *info);
+-static int virgefb_get_video_mode(const char *name);
+-static void virgefb_set_video(struct fb_var_screeninfo *var);
+-
+-/*
+- *    Additions for Initialization
+- */
+-
+-static void virgefb_load_video_mode(struct fb_var_screeninfo *video_mo=
+de);
+-static int cv3d_has_4mb(void);
+-static unsigned short virgefb_compute_clock(unsigned long freq);
+-static inline unsigned char rattr(short);
+-static inline unsigned char rseq(short);
+-static inline unsigned char rcrt(short);
+-static inline unsigned char rgfx(short);
+-static inline void gfx_on_off(int toggle);
+-static void virgefb_pci_init(void);
+-
+-/* -------------------- Hardware specific routines -------------------=
+------ */
+-
+-/*
+- *	Functions for register access
+- */
+-
+-/* Read attribute controller register */
+-
+-static inline unsigned char rattr(short idx)
+-{
+-	volatile unsigned char rattr_tmp;
+-
+-	rattr_tmp =3D rb_mmio(ACT_ADDRESS_RESET);
+-	wb_mmio(ACT_ADDRESS_W, idx);
+-	return (rb_mmio(ACT_ADDRESS_R));
+-}
+-
+-/* Read sequencer register */
+-
+-static inline unsigned char rseq(short idx)
+-{
+-	wb_mmio(SEQ_ADDRESS, idx);
+-	return (rb_mmio(SEQ_ADDRESS_R));
+-}
+-
+-/* Read CRT controller register */
+-
+-static inline unsigned char rcrt(short idx)
+-{
+-	wb_mmio(CRT_ADDRESS, idx);
+-	return (rb_mmio(CRT_ADDRESS_R));
+-}
+-
+-/* Read graphics controller register */
+-
+-static inline unsigned char rgfx(short idx)
+-{
+-	wb_mmio(GCT_ADDRESS, idx);
+-	return (rb_mmio(GCT_ADDRESS_R));
+-}
+-
+-
+-/*
+- *	Initialization
+- */
+-
+-/* PCI init */
+-
+-void virgefb_pci_init(void) {
+-
+-	DPRINTK("ENTER\n");
+-
+-	SelectCFG;
+-
+-	if (on_zorro2) {
+-		*((short *)(vgaio_regs + 0x00000010)) =3D 0;
+-		*((long  *)(vgaio_regs + 0x00000004)) =3D 0x02000003;
+-	} else {
+-		*((short *)(vgaio_regs + 0x000e0010)) =3D 0;
+-		*((long  *)(vgaio_regs + 0x000e0004)) =3D 0x02000003;
+-	}
+-
+-	/* SelectIO is in wb_vgaio macro */
+-	wb_vgaio(SREG_VIDEO_SUBS_ENABLE, 0x01);
+-	/* SelectMMIO is in wb_vgaio macro */
+-
+-	DPRINTK("EXIT\n");
+-
+-	return;
+-}
+-
+-/*=20
+- * Initalize all mode independent regs, find mem size and clear mem
+-*/
+-
+-static int virge_init(void)
+-{
+-	int i;
+-	unsigned char tmp;
+-
+-	DPRINTK("ENTER\n");
+-
+-	virgefb_pci_init();
+-
+-	wb_mmio(GREG_MISC_OUTPUT_W, 0x07);	/* colour, ram enable, clk sel */
+-
+-	wseq(SEQ_ID_UNLOCK_EXT, 0x06);		/* unlock extensions */
+-	tmp =3D rb_mmio(GREG_MISC_OUTPUT_R);
+-	wcrt(CRT_ID_REGISTER_LOCK_1, 0x48);	/* unlock CR2D to CR3F */
+-
+-	wcrt(CRT_ID_BACKWAD_COMP_1, 0x00);	/* irq disable */
+-
+-	wcrt(CRT_ID_REGISTER_LOCK_2, 0xa5);	/* unlock CR40 to CRFF and more *=
+/
+-	wcrt(CRT_ID_REGISTER_LOCK,0x00);	/* unlock h and v timing */
+-	wcrt(CRT_ID_SYSTEM_CONFIG, 0x01);	/* unlock enhanced programming regi=
+sters */
+-
+-	wb_mmio(GREG_FEATURE_CONTROL_W, 0x00);
+-
+-	wcrt(CRT_ID_EXT_MISC_CNTL, 0x00);	/* b2 =3D 0 to allow VDAC mmio acce=
+ss */
+-#if 0
+-	/* write strap options ... ? */
+-	wcrt(CRT_ID_CONFIG_1, 0x08);
+-	wcrt(CRT_ID_CONFIG_2, 0xff);		/* 0x0x2 bit needs to be set ?? */
+-	wcrt(CRT_ID_CONFIG_3, 0x0f);
+-	wcrt(CRT_ID_CONFIG_4, 0x1a);
+-#endif
+-	wcrt(CRT_ID_EXT_MISC_CNTL_1, 0x82);	 /* PCI DE and software reset S3D=
+ engine */
+-	/* EXT_MISC_CNTL_1, CR66 bit 0 should be the same as bit 0 MR_ADVANCE=
+D_FUNCTION_CONTROL - check */
+-	wl_mmio(MR_ADVANCED_FUNCTION_CONTROL, 0x00000011); /* enhanced mode, =
+linear addressing */
+-
+-/* crtc registers */
+-
+-	wcrt(CRT_ID_PRESET_ROW_SCAN, 0x00);
+-
+-	/* Disable h/w cursor */
+-
+-	wcrt(CRT_ID_CURSOR_START, 0x00);
+-	wcrt(CRT_ID_CURSOR_END, 0x00);
+-	wcrt(CRT_ID_START_ADDR_HIGH, 0x00);
+-	wcrt(CRT_ID_START_ADDR_LOW, 0x00);
+-	wcrt(CRT_ID_CURSOR_LOC_HIGH, 0x00);
+-	wcrt(CRT_ID_CURSOR_LOC_LOW, 0x00);
+-	wcrt(CRT_ID_EXT_MODE, 0x00);
+-	wcrt(CRT_ID_HWGC_MODE, 0x00);
+-	wcrt(CRT_ID_HWGC_ORIGIN_X_HI, 0x00);
+-	wcrt(CRT_ID_HWGC_ORIGIN_X_LO, 0x00);
+-	wcrt(CRT_ID_HWGC_ORIGIN_Y_HI, 0x00);
+-	wcrt(CRT_ID_HWGC_ORIGIN_Y_LO, 0x00);
+-	i =3D rcrt(CRT_ID_HWGC_MODE);
+-	wcrt(CRT_ID_HWGC_FG_STACK, 0x00);
+-	wcrt(CRT_ID_HWGC_FG_STACK, 0x00);
+-	wcrt(CRT_ID_HWGC_FG_STACK, 0x00);
+-	wcrt(CRT_ID_HWGC_BG_STACK, 0x00);
+-	wcrt(CRT_ID_HWGC_BG_STACK, 0x00);
+-	wcrt(CRT_ID_HWGC_BG_STACK, 0x00);
+-	wcrt(CRT_ID_HWGC_START_AD_HI, 0x00);
+-	wcrt(CRT_ID_HWGC_START_AD_LO, 0x00);
+-	wcrt(CRT_ID_HWGC_DSTART_X, 0x00);
+-	wcrt(CRT_ID_HWGC_DSTART_Y, 0x00);
+-
+-	wcrt(CRT_ID_UNDERLINE_LOC, 0x00);
+-
+-	wcrt(CRT_ID_MODE_CONTROL, 0xe3);
+-	wcrt(CRT_ID_BACKWAD_COMP_2, 0x22);	/* blank bdr bit 5 blanking only o=
+n 8 bit */
+-
+-	wcrt(CRT_ID_EX_SYNC_1, 0x00);
+-
+-	/* memory */
+-
+-	wcrt(CRT_ID_EXT_SYS_CNTL_3, 0x00);
+-	wcrt(CRT_ID_MEMORY_CONF, 0x08);		/* config enhanced map */
+-	wcrt(CRT_ID_EXT_MEM_CNTL_1, 0x08);	/* MMIO Select (0x0c works as well=
+)*/
+-	wcrt(CRT_ID_EXT_MEM_CNTL_2, 0x02);	/* why 02 big endian 00 works ? */
+-	wcrt(CRT_ID_EXT_MEM_CNTL_4, 0x9f);	/* config big endian - 0x00 ?  */
+-	wcrt(CRT_ID_LAW_POS_HI, 0x00);
+-	wcrt(CRT_ID_LAW_POS_LO, 0x00);
+-	wcrt(CRT_ID_EXT_MISC_CNTL_1, 0x81);
+-	wcrt(CRT_ID_MISC_1, 0x90);		/* must follow CRT_ID_EXT_MISC_CNTL_1 */
+-	wcrt(CRT_ID_LAW_CNTL, 0x13);		/* force 4 Meg for test */
+-	if (cv3d_has_4mb()) {
+-		v_ram_size =3D 0x00400000;
+-		wcrt(CRT_ID_LAW_CNTL, 0x13);	/* 4 MB */
+-	} else {
+-		v_ram_size =3D 0x00200000;
+-		wcrt(CRT_ID_LAW_CNTL, 0x12); 	/* 2 MB */
+-	}
+-
+-	if (on_zorro2)
+-		v_ram_size -=3D 0x60000;		/* we need some space for the registers */
+-
+-	wcrt(CRT_ID_EXT_SYS_CNTL_4, 0x00);
+-	wcrt(CRT_ID_EXT_DAC_CNTL, 0x00);	/* 0x10 for X11 cursor mode */
+-
+-/* sequencer registers */
+-
+-	wseq(SEQ_ID_CLOCKING_MODE, 0x01);	/* 8 dot clock */
+-	wseq(SEQ_ID_MAP_MASK, 0xff);
+-	wseq(SEQ_ID_CHAR_MAP_SELECT, 0x00);
+-	wseq(SEQ_ID_MEMORY_MODE, 0x02);
+-	wseq(SEQ_ID_RAMDAC_CNTL, 0x00);
+-	wseq(SEQ_ID_SIGNAL_SELECT, 0x00);
+-	wseq(SEQ_ID_EXT_SEQ_REG9, 0x00);	/* MMIO and PIO reg access enabled *=
+/
+-	wseq(SEQ_ID_EXT_MISC_SEQ, 0x00);
+-	wseq(SEQ_ID_CLKSYN_CNTL_1, 0x00);
+-	wseq(SEQ_ID_EXT_SEQ, 0x00);
+-
+-/* graphic registers */
+-
+-	wgfx(GCT_ID_SET_RESET, 0x00);
+-	wgfx(GCT_ID_ENABLE_SET_RESET, 0x00);
+-	wgfx(GCT_ID_COLOR_COMPARE, 0x00);
+-	wgfx(GCT_ID_DATA_ROTATE, 0x00);
+-	wgfx(GCT_ID_READ_MAP_SELECT, 0x00);
+-	wgfx(GCT_ID_GRAPHICS_MODE, 0x40);
+-	wgfx(GCT_ID_MISC, 0x01);
+-	wgfx(GCT_ID_COLOR_XCARE, 0x0f);
+-	wgfx(GCT_ID_BITMASK, 0xff);
+-
+-/* attribute  registers */
+-
+-	for(i =3D 0; i <=3D 15; i++)
+-		watr(ACT_ID_PALETTE0 + i, i);
+-	watr(ACT_ID_ATTR_MODE_CNTL, 0x41);
+-	watr(ACT_ID_OVERSCAN_COLOR, 0xff);
+-	watr(ACT_ID_COLOR_PLANE_ENA, 0x0f);
+-	watr(ACT_ID_HOR_PEL_PANNING, 0x00);
+-	watr(ACT_ID_COLOR_SELECT, 0x00);
+-
+-	wb_mmio(VDAC_MASK, 0xff);
+-
+-/* init local cmap as greyscale levels */
+-
+-	for (i =3D 0; i < 256; i++) {
+-		virgefb_colour_table [i][0] =3D i;
+-		virgefb_colour_table [i][1] =3D i;
+-		virgefb_colour_table [i][2] =3D i;
+-	}
+-
+-/* clear framebuffer memory */
+-
+-	memset((char*)v_ram, 0x00, v_ram_size);
+-
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    This function should fill in the `fix' structure based on the
+- *    values in the `par' structure.
+- */
+-
+-static int virgefb_encode_fix(struct fb_fix_screeninfo *fix,
+-			    struct virgefb_par *par)
+-{
+-	DPRINTK("ENTER set video phys addr\n");
+-
+-	memset(fix, 0, sizeof(struct fb_fix_screeninfo));
+-	strcpy(fix->id, virgefb_name);
+-	if (on_zorro2)
+-		fix->smem_start =3D v_ram_phys;
+-	switch (par->var.bits_per_pixel) {
+-#ifdef FBCON_HAS_CFB8
+-		case 8:
+-			if (on_zorro2)
+-				Select_Zorro2_FrameBuffer(ENDIAN_BYTE);
+-			else
+-				fix->smem_start =3D (v_ram_phys + CYBMEM_OFFSET_8);
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-		case 16:
+-			if (on_zorro2)
+-				Select_Zorro2_FrameBuffer(ENDIAN_WORD);
+-			else
+-				fix->smem_start =3D (v_ram_phys + CYBMEM_OFFSET_16);
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-		case 32:
+-			if (on_zorro2)
+-				Select_Zorro2_FrameBuffer(ENDIAN_LONG);
+-			else
+-				fix->smem_start =3D (v_ram_phys + CYBMEM_OFFSET_32);
+-			break;
+-#endif
+-	}
+-
+-	fix->smem_len =3D v_ram_size;
+-	fix->mmio_start =3D mmio_regs_phys;
+-	fix->mmio_len =3D 0x10000; /* TODO: verify this for the CV64/3D */
+-
+-	fix->type =3D FB_TYPE_PACKED_PIXELS;
+-	fix->type_aux =3D 0;
+-	if (par->var.bits_per_pixel =3D=3D 8)
+-		fix->visual =3D FB_VISUAL_PSEUDOCOLOR;
+-	else
+-		fix->visual =3D FB_VISUAL_TRUECOLOR;
+-
+-	fix->xpanstep =3D 0;
+-	fix->ypanstep =3D 0;
+-	fix->ywrapstep =3D 0;
+-	fix->line_length =3D par->var.xres_virtual*par->var.bits_per_pixel/8;
+-	fix->accel =3D FB_ACCEL_S3_VIRGE;
+-	DPRINTK("EXIT v_ram_phys =3D 0x%8.8lx\n", (unsigned long)fix->smem_st=
+art);
+-	return 0;
+-}
+-
+-
+-/*
+- *	Fill the `par' structure based on the values in `var'.
+- *	TODO: Verify and adjust values, return -EINVAL if bad.
+- */
+-
+-static int virgefb_decode_var(struct fb_var_screeninfo *var,
+-			    struct virgefb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	par->var.xres =3D var->xres;
+-	par->var.yres =3D var->yres;
+-	par->var.xres_virtual =3D var->xres_virtual;
+-	par->var.yres_virtual =3D var->yres_virtual;
+-	/* roundup and validate */
+-	par->var.xres =3D (par->var.xres+7) & ~7;
+-	par->var.xres_virtual =3D (par->var.xres_virtual+7) & ~7;
+-	if (par->var.xres_virtual < par->var.xres)
+-		par->var.xres_virtual =3D par->var.xres;
+-	if (par->var.yres_virtual < par->var.yres)
+-		par->var.yres_virtual =3D par->var.yres;
+-	par->var.xoffset =3D var->xoffset;
+-	par->var.yoffset =3D var->yoffset;
+-	par->var.bits_per_pixel =3D var->bits_per_pixel;
+-	if (par->var.bits_per_pixel <=3D 8)
+-		par->var.bits_per_pixel =3D 8;
+-	else if (par->var.bits_per_pixel <=3D 16)
+-		par->var.bits_per_pixel =3D 16;
+-	else
+-		par->var.bits_per_pixel =3D 32;
+-#ifndef FBCON_HAS_CFB32
+-	if (par->var.bits_per_pixel =3D=3D 32)
+-		par->var.bits_per_pixel =3D 16;
+-#endif
+-#ifndef FBCON_HAS_CFB16
+-	if (par->var.bits_per_pixel =3D=3D 16)
+-		par->var.bits_per_pixel =3D 8;
+-#endif
+-	par->var.grayscale =3D var->grayscale;
+-	par->var.red =3D var->red;
+-	par->var.green =3D var->green;
+-	par->var.blue =3D var->blue;
+-	par->var.transp =3D var->transp;
+-	par->var.nonstd =3D var->nonstd;
+-	par->var.activate =3D var->activate;
+-	par->var.height =3D var->height;
+-	par->var.width =3D var->width;
+-	if (var->accel_flags & FB_ACCELF_TEXT) {
+-		par->var.accel_flags =3D FB_ACCELF_TEXT;
+-	} else {
+-		par->var.accel_flags =3D 0;
+-	}
+-	par->var.pixclock =3D var->pixclock;
+-	par->var.left_margin =3D var->left_margin;
+-	par->var.right_margin =3D var->right_margin;
+-	par->var.upper_margin =3D var->upper_margin;
+-	par->var.lower_margin =3D var->lower_margin;
+-	par->var.hsync_len =3D var->hsync_len;
+-	par->var.vsync_len =3D var->vsync_len;
+-	par->var.sync =3D var->sync;
+-	par->var.vmode =3D var->vmode;
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-/*
+- *	Fill the `var' structure based on the values in `par' and maybe
+- *	other values read out of the hardware.
+- */
+-
+-static int virgefb_encode_var(struct fb_var_screeninfo *var,
+-				struct virgefb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	memset(var, 0, sizeof(struct fb_var_screeninfo));	/* need this ? */
+-	var->xres =3D par->var.xres;
+-	var->yres =3D par->var.yres;
+-	var->xres_virtual =3D par->var.xres_virtual;
+-	var->yres_virtual =3D par->var.yres_virtual;
+-	var->xoffset =3D par->var.xoffset;
+-	var->yoffset =3D par->var.yoffset;
+-	var->bits_per_pixel =3D par->var.bits_per_pixel;
+-	var->grayscale =3D par->var.grayscale;
+-	var->red =3D par->var.red;
+-	var->green =3D par->var.green;
+-	var->blue =3D par->var.blue;
+-	var->transp =3D par->var.transp;
+-	var->nonstd =3D par->var.nonstd;
+-	var->activate =3D par->var.activate;
+-	var->height =3D par->var.height;
+-	var->width =3D par->var.width;
+-	var->accel_flags =3D par->var.accel_flags;
+-	var->pixclock =3D par->var.pixclock;
+-	var->left_margin =3D par->var.left_margin;
+-	var->right_margin =3D par->var.right_margin;
+-	var->upper_margin =3D par->var.upper_margin;
+-	var->lower_margin =3D par->var.lower_margin;
+-	var->hsync_len =3D par->var.hsync_len;
+-	var->vsync_len =3D par->var.vsync_len;
+-	var->sync =3D par->var.sync;
+-	var->vmode =3D par->var.vmode;
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-/*
+- *    Set a single color register. The values supplied are already
+- *    rounded down to the hardware's capabilities (according to the
+- *    entries in the var structure). Return !=3D 0 for invalid regno.
+- */
+-
+-static int virgefb_setcolreg(u_int regno, u_int red, u_int green, u_in=
+t blue,
+-			     u_int transp, struct fb_info *info)
+-{
+-	DPRINTK("ENTER\n");
+-	if (((current_par.var.bits_per_pixel=3D=3D8) && (regno>255)) ||
+-		((current_par.var.bits_per_pixel!=3D8) && (regno>15))) {
+-			DPRINTK("EXIT\n");
+-			return 1;
+-	}
+-	if (((current_par.var.bits_per_pixel=3D=3D8) && (regno<256)) ||
+-			((current_par.var.bits_per_pixel!=3D8) && (regno<16))) {
+-		virgefb_colour_table [regno][0] =3D red >> 10;
+-		virgefb_colour_table [regno][1] =3D green >> 10;
+-		virgefb_colour_table [regno][2] =3D blue >> 10;
+-	}
+-
+-	switch (current_par.var.bits_per_pixel) {
+-#ifdef FBCON_HAS_CFB8
+-		case 8:
+-			wb_mmio(VDAC_ADDRESS_W, (unsigned char)regno);
+-			wb_mmio(VDAC_DATA, ((unsigned char)(red >> 10)));
+-			wb_mmio(VDAC_DATA, ((unsigned char)(green >> 10)));
+-			wb_mmio(VDAC_DATA, ((unsigned char)(blue >> 10)));
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-		case 16:
+-			fbcon_cmap.cfb16[regno] =3D
+-				((red  & 0xf800) |
+-				((green & 0xfc00) >> 5) |
+-				((blue  & 0xf800) >> 11));
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-		case 32:
+-			fbcon_cmap.cfb32[regno] =3D
+-				/* transp =3D 0's or 1's  ? */
+-				(((red  & 0xff00) << 8) |
+-				((green & 0xff00) >> 0) |
+-				((blue  & 0xff00) >> 8));
+-			break;
+-#endif
+-	}
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    Read a single color register and split it into
+- *    colors/transparent. Return !=3D 0 for invalid regno.
+- */
+-
+-static int virgefb_getcolreg(u_int regno, u_int *red, u_int *green, u_=
+int *blue,
+-			   u_int *transp, struct fb_info *info)
+-{
+-	int t;
+-
+-	DPRINTK("ENTER\n");
+-	if (regno > 255) {
+-		DPRINTK("EXIT\n");
+-		return 1;
+-	}
+-	if (((current_par.var.bits_per_pixel=3D=3D8) && (regno<256)) ||
+-			((current_par.var.bits_per_pixel!=3D8) && (regno<16))) {
+-
+-		t =3D virgefb_colour_table [regno][0];
+-		*red =3D (t<<10) | (t<<4) | (t>>2);
+-		t =3D virgefb_colour_table [regno][1];
+-		*green =3D (t<<10) | (t<<4) | (t>>2);
+-		t =3D virgefb_colour_table [regno][2];
+-		*blue =3D (t<<10) | (t<<4) | (t>>2);
+-	}
+-	*transp =3D 0;
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    (Un)Blank the screen
+- */
+-
+-static void virgefb_gfx_on_off(int blank)
+-{
+-	DPRINTK("ENTER\n");
+-	gfx_on_off(blank);
+-	DPRINTK("EXIT\n");
+-}
+-
+-/*
+- * CV3D low-level support
+- */
+-
+-
+-static inline void wait_3d_fifo_slots(int n)	/* WaitQueue */
+-{
+-	do {
+-		mb();
+-	} while (((rl_mmio(MR_SUBSYSTEM_STATUS_R) >> 8) & 0x1f) < (n + 2));
+-}
+-
+-static inline void virgefb_wait_for_idle(void)	/* WaitIdle */
+-{
+-	while(!(rl_mmio(MR_SUBSYSTEM_STATUS_R) & 0x2000)) ;
+-	blit_maybe_busy =3D 0;
+-}
+-
+- /*
+-  * BitBLT - Through the Plane
+-  */
+-
+-static void virgefb_BitBLT(u_short curx, u_short cury, u_short destx, =
+u_short desty,
+-			u_short width, u_short height, u_short stride, u_short depth)
+-{
+-	unsigned int blitcmd =3D S3V_BITBLT | S3V_DRAW | S3V_BLT_COPY;
+-
+-	switch (depth) {
+-#ifdef FBCON_HAS_CFB8
+-		case 8 :
+-			blitcmd |=3D S3V_DST_8BPP;
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-		case 16 :
+-			blitcmd |=3D S3V_DST_16BPP;
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-		case 32 :
+-			/* 32 bit uses 2 by 16 bit values, see fbcon_virge32_bmove */
+-			blitcmd |=3D S3V_DST_16BPP;
+-			break;
+-#endif
+-	}
+-
+-	/* Set drawing direction */
+-	/* -Y, X maj, -X (default) */
+-	if (curx > destx) {
+-		blitcmd |=3D (1 << 25);  /* Drawing direction +X */
+-	} else {
+-		curx  +=3D (width - 1);
+-		destx +=3D (width - 1);
+-	}
+-
+-	if (cury > desty) {
+-		blitcmd |=3D (1 << 26);  /* Drawing direction +Y */
+-	} else {
+-		cury  +=3D (height - 1);
+-		desty +=3D (height - 1);
+-	}
+-
+-	wait_3d_fifo_slots(8);		/* wait on fifo slots for 8 writes */
+-
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	blit_maybe_busy =3D 1;
+-
+-	wl_mmio(BLT_PATTERN_COLOR, 1);	/* pattern fb color */
+-	wl_mmio(BLT_MONO_PATTERN_0, ~0);
+-	wl_mmio(BLT_MONO_PATTERN_1, ~0);
+-	wl_mmio(BLT_SIZE_X_Y, ((width << 16) | height));
+-	wl_mmio(BLT_SRC_X_Y, ((curx << 16)  | cury));
+-	wl_mmio(BLT_DEST_X_Y, ((destx << 16) | desty));
+-	wl_mmio(BLT_SRC_DEST_STRIDE, (((stride << 16) | stride) /* & 0x0ff80f=
+f8 */)); /* why is this needed now ? */
+-	wl_mmio(BLT_COMMAND_SET, blitcmd);
+-}
+-
+-/*
+- * Rectangle Fill Solid
+- */
+-
+-static void virgefb_RectFill(u_short x, u_short y, u_short width, u_sh=
+ort height,
+-			u_short color,  u_short stride, u_short depth)
+-{
+-	unsigned int blitcmd =3D S3V_RECTFILL | S3V_DRAW |
+-		S3V_BLT_CLEAR | S3V_MONO_PAT | (1 << 26) | (1 << 25);
+-
+-	switch (depth) {
+-#ifdef FBCON_HAS_CFB8
+-		case 8 :
+-			blitcmd |=3D S3V_DST_8BPP;
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-		case 16 :
+-			blitcmd |=3D S3V_DST_16BPP;
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-		case 32 :
+-			/* 32 bit uses 2 times 16 bit values, see fbcon_virge32_clear */
+-			blitcmd |=3D S3V_DST_16BPP;
+-			break;
+-#endif
+-	}
+-
+-	wait_3d_fifo_slots(5);		/* wait on fifo slots for 5 writes */
+-
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	blit_maybe_busy =3D 1;
+-
+-	wl_mmio(BLT_PATTERN_COLOR, (color & 0xff));
+-	wl_mmio(BLT_SIZE_X_Y, ((width << 16) | height));
+-	wl_mmio(BLT_DEST_X_Y, ((x << 16) | y));
+-	wl_mmio(BLT_SRC_DEST_STRIDE, (((stride << 16) | stride) /* & 0x0ff80f=
+f8 */));
+-	wl_mmio(BLT_COMMAND_SET, blitcmd);
+-}
+-
+-/*
+- * Move cursor to x, y
+- */
+-
+-#if 0
+-static void virgefb_move_cursor(u_short x, u_short y)
+-{
+-	DPRINTK("Yuck .... MoveCursor on a 3D\n");
+-	return 0;
+-}
+-#endif
+-
+-/* -------------------- Interfaces to hardware functions -------------=
+------- */
+-
+-static struct fb_hwswitch virgefb_hw_switch =3D {
+-	.init		=3D virge_init,
+-	.encode_fix	=3D virgefb_encode_fix,
+-	.decode_var	=3D virgefb_decode_var,
+-	.encode_var	=3D virgefb_encode_var,
+-	.getcolreg	=3D virgefb_getcolreg,
+-	.blank		=3D virgefb_gfx_on_off
+-};
+-
+-
+-/* -------------------- Generic routines -----------------------------=
+------- */
+-
+-
+-/*
+- *    Fill the hardware's `par' structure.
+- */
+-
+-static void virgefb_get_par(struct virgefb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	if (current_par_valid) {
+-		*par =3D current_par;
+-	} else {
+-		fbhw->decode_var(&virgefb_default, par);
+-	}
+-	DPRINTK("EXIT\n");
+-}
+-
+-
+-static void virgefb_set_par(struct virgefb_par *par)
+-{
+-	DPRINTK("ENTER\n");
+-	current_par =3D *par;
+-	current_par_valid =3D 1;
+-	DPRINTK("EXIT\n");
+-}
+-
+-
+-static void virgefb_set_video(struct fb_var_screeninfo *var)
+-{
+-/* Set clipping rectangle to current screen size */
+-
+-	unsigned int clip;
+-
+-	DPRINTK("ENTER\n");
+-	wait_3d_fifo_slots(4);
+-	clip =3D ((0 << 16) | (var->xres - 1));
+-	wl_mmio(BLT_CLIP_LEFT_RIGHT, clip);
+-	clip =3D ((0 << 16) | (var->yres - 1));
+-	wl_mmio(BLT_CLIP_TOP_BOTTOM, clip);
+-	wl_mmio(BLT_SRC_BASE, 0);		/* seems we need to clear these two */
+-	wl_mmio(BLT_DEST_BASE, 0);
+-
+-/* Load the video mode defined by the 'var' data */
+-
+-	virgefb_load_video_mode(var);
+-	DPRINTK("EXIT\n");
+-}
+-
+-/*
+-Merge these two functions, Geert's suggestion.
+-static int virgefb_set_var(struct fb_var_screeninfo *var, int con, str=
+uct fb_info *info);
+-static int virgefb_do_fb_set_var(struct fb_var_screeninfo *var, int is=
+active);
+-*/
+-
+-static int virgefb_do_fb_set_var(struct fb_var_screeninfo *var, int is=
+active)
+-{
+-	int err, activate;
+-	struct virgefb_par par;
+-
+-	DPRINTK("ENTER\n");
+-	if ((err =3D fbhw->decode_var(var, &par))) {
+-		DPRINTK("EXIT\n");
+-		return (err);
+-	}
+-
+-	activate =3D var->activate;
+-	if ((var->activate & FB_ACTIVATE_MASK) =3D=3D FB_ACTIVATE_NOW && isac=
+tive)
+-		virgefb_set_par(&par);
+-	fbhw->encode_var(var, &par);
+-	var->activate =3D activate;
+-        if ((var->activate & FB_ACTIVATE_MASK) =3D=3D FB_ACTIVATE_NOW =
+&& isactive)
+-		virgefb_set_video(var);
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    Get the Fixed Part of the Display
+- */
+-
+-static int virgefb_get_fix(struct fb_fix_screeninfo *fix, int con,
+-			   struct fb_info *info)
+-{
+-	struct virgefb_par par;
+-	int error =3D 0;
+-
+-	DPRINTK("ENTER\n");
+-	if (con =3D=3D -1)
+-		virgefb_get_par(&par);
+-	else
+-		error =3D fbhw->decode_var(&fb_display[con].var, &par);
+-
+-	if (!error)
+-		error =3D fbhw->encode_fix(fix, &par);
+-	DPRINTK("EXIT\n");
+-	return(error);
+-}
+-
+-
+-/*
+- *    Get the User Defined Part of the Display
+- */
+-
+-static int virgefb_get_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info)
+-{
+-	struct virgefb_par par;
+-	int error =3D 0;
+-
+-	DPRINTK("ENTER\n");
+-	if (con =3D=3D -1) {
+-		virgefb_get_par(&par);
+-		error =3D fbhw->encode_var(var, &par);
+-		disp.var =3D *var;   /* ++Andre: don't know if this is the right pla=
+ce */
+-	} else {
+-		*var =3D fb_display[con].var;
+-	}
+-	DPRINTK("EXIT\n");
+-	return(error);
+-}
+-
+-static void virgefb_set_disp(int con, struct fb_info *info)
+-{
+-	struct fb_fix_screeninfo fix;
+-	struct display *display;
+-
+-	DPRINTK("ENTER\n");
+-	if (con >=3D 0)
+-		display =3D &fb_display[con];
+-	else
+-		display =3D &disp;	/* used during initialization */
+-
+-	virgefb_get_fix(&fix, con, info);
+-	if (con =3D=3D -1)
+-		con =3D 0;
+-	if(on_zorro2) {
+-		info->screen_base =3D (char*)v_ram;
+-	} else {
+-	        switch (display->var.bits_per_pixel) {
+-#ifdef FBCON_HAS_CFB8
+-			case 8:
+-				info->screen_base =3D (char*)(v_ram + CYBMEM_OFFSET_8);
+-				break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-			case 16:
+-				info->screen_base =3D (char*)(v_ram + CYBMEM_OFFSET_16);
+-				break;
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-			case 32:
+-				info->screen_base =3D (char*)(v_ram + CYBMEM_OFFSET_32);
+-				break;
+-#endif
+-		}
+-	}
+-	display->visual =3D fix.visual;
+-	display->type =3D fix.type;
+-	display->type_aux =3D fix.type_aux;
+-	display->ypanstep =3D fix.ypanstep;
+-	display->ywrapstep =3D fix.ywrapstep;
+-	display->can_soft_blank =3D 1;
+-	display->inverse =3D virgefb_inverse;
+-	display->line_length =3D display->var.xres_virtual*
+-			       display->var.bits_per_pixel/8;
+-
+-	switch (display->var.bits_per_pixel) {
+-#ifdef FBCON_HAS_CFB8
+-		case 8:
+-			if (display->var.accel_flags & FB_ACCELF_TEXT) {
+-		   		display->dispsw =3D &fbcon_virge8;
+-#warning FIXME: We should reinit the graphics engine here
+-			} else
+-				display->dispsw =3D &fbcon_cfb8;
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-		case 16:
+-			if (display->var.accel_flags & FB_ACCELF_TEXT) {
+-				display->dispsw =3D &fbcon_virge16;
+-			} else
+-				display->dispsw =3D &fbcon_cfb16;
+-			display->dispsw_data =3D &fbcon_cmap.cfb16;
+-			break;
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-		case 32:
+-			if (display->var.accel_flags & FB_ACCELF_TEXT) {
+-				display->dispsw =3D &fbcon_virge32;
+-			} else
+-				display->dispsw =3D &fbcon_cfb32;
+-			display->dispsw_data =3D &fbcon_cmap.cfb32;
+-			break;
+-#endif
+-		default:
+-			display->dispsw =3D &fbcon_dummy;
+-			break;
+-	}
+-	DPRINTK("EXIT v_ram virt =3D 0x%8.8lx\n",(unsigned long)display->scre=
+en_base);
+-}
+-
+-
+-/*
+- *    Set the User Defined Part of the Display
+- */
+-
+-static int virgefb_set_var(struct fb_var_screeninfo *var, int con,
+-			   struct fb_info *info)
+-{
+-	int err, oldxres, oldyres, oldvxres, oldvyres, oldbpp, oldaccel;
+-
+-	DPRINTK("ENTER\n");
+-
+-	if ((err =3D virgefb_do_fb_set_var(var, con =3D=3D info->currcon))) {
+-		DPRINTK("EXIT\n");
+-		return(err);
+-	}
+-	if ((var->activate & FB_ACTIVATE_MASK) =3D=3D FB_ACTIVATE_NOW) {
+-		oldxres =3D fb_display[con].var.xres;
+-		oldyres =3D fb_display[con].var.yres;
+-		oldvxres =3D fb_display[con].var.xres_virtual;
+-		oldvyres =3D fb_display[con].var.yres_virtual;
+-		oldbpp =3D fb_display[con].var.bits_per_pixel;
+-		oldaccel =3D fb_display[con].var.accel_flags;
+-		fb_display[con].var =3D *var;
+-		if (oldxres !=3D var->xres || oldyres !=3D var->yres ||
+-		    oldvxres !=3D var->xres_virtual ||
+-		    oldvyres !=3D var->yres_virtual ||
+-		    oldbpp !=3D var->bits_per_pixel ||
+-		    oldaccel !=3D var->accel_flags) {
+-			virgefb_set_disp(con, info);
+-			if (fb_info.changevar)
+-				(*fb_info.changevar)(con);
+-			fb_alloc_cmap(&fb_display[con].cmap, 0, 0);
+-			do_install_cmap(con, info);
+-		}
+-	}
+-	var->activate =3D 0;
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    Get the Colormap
+- */
+-
+-static int virgefb_get_cmap(struct fb_cmap *cmap, int kspc, int con,
+-			    struct fb_info *info)
+-{
+-	DPRINTK("ENTER\n");
+-	if (con =3D=3D info->currcon) { /* current console? */
+-		DPRINTK("EXIT - console is current console, fb_get_cmap\n");
+-		return(fb_get_cmap(cmap, kspc, fbhw->getcolreg, info));
+-	} else if (fb_display[con].cmap.len) { /* non default colormap? */
+-		DPRINTK("Use console cmap\n");
+-		fb_copy_cmap(&fb_display[con].cmap, cmap, kspc ? 0 : 2);
+-	} else {
+-		DPRINTK("Use default cmap\n");
+-		fb_copy_cmap(fb_default_cmap(fb_display[con].var.bits_per_pixel=3D=3D=
+8 ? 256 : 16),
+-			     cmap, kspc ? 0 : 2);
+-	}
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-static struct fb_ops virgefb_ops =3D {
+-	.owner =3D	THIS_MODULE,
+-	.fb_get_fix =3D	virgefb_get_fix,
+-	.fb_get_var =3D	virgefb_get_var,
+-	.fb_set_var =3D	virgefb_set_var,
+-	.fb_get_cmap =3D	virgefb_get_cmap,
+-	.fb_set_cmap =3D	gen_set_cmap,
+-	.fb_setcolreg =3D	virgefb_setcolreg,
+-	.fb_blank =3D	virgefb_blank,
+-};
+-
+-int __init virgefb_setup(char *options)
+-{
+-	char *this_opt;
+-	fb_info.fontname[0] =3D '\0';
+-
+-	DPRINTK("ENTER\n");
+-	if (!options || !*options) {
+-		DPRINTK("EXIT\n");
+-		return 0;
+-	}
+-
+-	while ((this_opt =3D strsep(&options, ",")) !=3D NULL) {
+-		if (!*this_opt)
+-			continue;
+-		if (!strcmp(this_opt, "inverse")) {
+-			virgefb_inverse =3D 1;
+-			fb_invert_cmaps();
+-		} else if (!strncmp(this_opt, "font:", 5))
+-			strcpy(fb_info.fontname, this_opt+5);
+-#ifdef FBCON_HAS_CFB8
+-		else if (!strcmp (this_opt, "virge8")){
+-			virgefb_default =3D virgefb_predefined[VIRGE8_DEFMODE].var;
+-		}
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-		else if (!strcmp (this_opt, "virge16")){
+-			virgefb_default =3D virgefb_predefined[VIRGE16_DEFMODE].var;
+-		}
+-#endif
+-#ifdef FBCON_HAS_CFB32
+-		else if (!strcmp (this_opt, "virge32")){
+-			virgefb_default =3D virgefb_predefined[VIRGE32_DEFMODE].var;
+-		}
+-#endif
+-		else
+-			virgefb_get_video_mode(this_opt);
+-	}
+-
+-	printk(KERN_INFO "mode : xres=3D%d, yres=3D%d, bpp=3D%d\n", virgefb_d=
+efault.xres,
+-			virgefb_default.yres, virgefb_default.bits_per_pixel);
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    Get a Video Mode
+- */
+-
+-static int __init virgefb_get_video_mode(const char *name)
+-{
+-	int i;
+-
+-	DPRINTK("ENTER\n");
+-	for (i =3D 0; i < NUM_TOTAL_MODES; i++) {
+-		if (!strcmp(name, virgefb_predefined[i].name)) {
+-			virgefb_default =3D virgefb_predefined[i].var;
+-			DPRINTK("EXIT\n");
+-			return(i);
+-		}
+-	}
+-	/* ++Andre: set virgefb default mode */
+-
+-/* prefer 16 bit depth, 8 if no 16, if no 8 or 16 use 32 */
+-
+-#ifdef FBCON_HAS_CFB32
+-	virgefb_default =3D virgefb_predefined[VIRGE32_DEFMODE].var;
+-#endif
+-#ifdef FBCON_HAS_CFB8
+-	virgefb_default =3D virgefb_predefined[VIRGE8_DEFMODE].var;
+-#endif
+-#ifdef FBCON_HAS_CFB16
+-	virgefb_default =3D virgefb_predefined[VIRGE16_DEFMODE].var;
+-#endif
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-/*
+- *    Initialization
+- */
+-
+-int __init virgefb_init(void)
+-{
+-	struct virgefb_par par;
+-	unsigned long board_addr, board_size;
+-	struct zorro_dev *z =3D NULL;
+-
+-	DPRINTK("ENTER\n");
+-
+-	z =3D zorro_find_device(ZORRO_PROD_PHASE5_CYBERVISION64_3D, NULL);
+-	if (!z)
+-		return -ENODEV;
+-
+-	board_addr =3D z->resource.start;
+-	if (board_addr < 0x01000000) {
+-
+-		/* board running in Z2 space. This includes the video memory
+-		    as well as the S3 register set */
+-
+-		on_zorro2 =3D 1;
+-		board_size =3D 0x00400000;
+-
+-		if (!request_mem_region(board_addr, board_size, "S3 ViRGE"))
+-			return -ENOMEM;
+-
+-		v_ram_phys =3D board_addr;
+-		v_ram =3D ZTWO_VADDR(v_ram_phys);
+-		mmio_regs_phys =3D (unsigned long)(board_addr + 0x003c0000);
+-		vgaio_regs =3D (unsigned char *) ZTWO_VADDR(board_addr + 0x003c0000)=
+;
+-		mmio_regs =3D (unsigned char *)ZTWO_VADDR(mmio_regs_phys);
+-		vcode_switch_base =3D (unsigned long) ZTWO_VADDR(board_addr + 0x003a=
+0000);
+-		printk(KERN_INFO "CV3D detected running in Z2 mode.\n");
+-
+-	} else {
+-
+-		/* board running in Z3 space. Separate video memory (3 apertures)
+-		   and S3 register set */
+-
+-		on_zorro2 =3D 0;
+-		board_size =3D 0x01000000;
+-
+-		if (!request_mem_region(board_addr, board_size, "S3 ViRGE"))
+-			return -ENOMEM;
+-
+-		v_ram_phys  =3D board_addr + 0x04000000;
+-		v_ram =3D (unsigned long)ioremap(v_ram_phys, 0x01000000);
+-		mmio_regs_phys =3D board_addr + 0x05000000;
+-		vgaio_regs =3D (unsigned char *)ioremap(board_addr +0x0c000000, 0x00=
+100000); /* includes PCI regs */
+-		mmio_regs =3D ioremap(mmio_regs_phys, 0x00010000);
+-		vcode_switch_base =3D (unsigned long)ioremap(board_addr + 0x08000000=
+, 0x1000);
+-		printk(KERN_INFO "CV3D detected running in Z3 mode\n");
+-	}
+-
+-#if defined (VIRGEFBDEBUG)
+-	DPRINTK("board_addr     : 0x%8.8lx\n",board_addr);
+-	DPRINTK("board_size     : 0x%8.8lx\n",board_size);
+-	DPRINTK("mmio_regs_phy  : 0x%8.8lx\n",mmio_regs_phys);
+-	DPRINTK("v_ram_phys     : 0x%8.8lx\n",v_ram_phys);
+-	DPRINTK("vgaio_regs     : 0x%8.8lx\n",(unsigned long)vgaio_regs);
+-	DPRINTK("mmio_regs      : 0x%8.8lx\n",(unsigned long)mmio_regs);
+-	DPRINTK("v_ram          : 0x%8.8lx\n",v_ram);
+-	DPRINTK("vcode sw base  : 0x%8.8lx\n",vcode_switch_base);
+-#endif
+-	fbhw =3D &virgefb_hw_switch;
+-	strcpy(fb_info.modename, virgefb_name);
+-	fb_info.changevar =3D NULL;
+-	fb_info.fbops =3D &virgefb_ops;
+-	fb_info.disp =3D &disp;
+-	fb_info.currcon =3D -1;
+-	fb_info.switch_con =3D &virgefb_switch;
+-	fb_info.updatevar =3D &virgefb_updatevar;
+-	fb_info.flags =3D FBINFO_FLAG_DEFAULT;
+-	fbhw->init();
+-	fbhw->decode_var(&virgefb_default, &par);
+-	fbhw->encode_var(&virgefb_default, &par);
+-	virgefb_do_fb_set_var(&virgefb_default, 1);
+-	virgefb_get_var(&fb_display[0].var, -1, &fb_info);
+-	virgefb_set_disp(-1, &fb_info);
+-	do_install_cmap(0, &fb_info);
+-
+-	if (register_framebuffer(&fb_info) < 0) {
+-		#warning release resources
+-		printk(KERN_ERR "virgefb.c: register_framebuffer failed\n");
+-		DPRINTK("EXIT\n");
+-		goto out_unmap;
+-	}
+-
+-	printk(KERN_INFO "fb%d: %s frame buffer device, using %ldK of video m=
+emory\n",
+-	       fb_info.node, fb_info.modename, v_ram_size>>10);
+-
+-	/* TODO: This driver cannot be unloaded yet */
+-
+-	DPRINTK("EXIT\n");
+-	return 0;
+-
+-out_unmap:
+-	if (board_addr >=3D 0x01000000) {
+-		if (v_ram)
+-			iounmap((void*)v_ram);
+-		if (vgaio_regs)
+-			iounmap(vgaio_regs);
+-		if (mmio_regs)
+-			iounmap(mmio_regs);
+-		if (vcode_switch_base)
+-			iounmap((void*)vcode_switch_base);
+-		v_ram =3D vcode_switch_base =3D 0;
+-		vgaio_regs =3D mmio_regs =3D NULL;
+-	}
+-	return -EINVAL;
+-}
+-
+-
+-static int virgefb_switch(int con, struct fb_info *info)
+-{
+-	DPRINTK("ENTER\n");
+-	/* Do we have to save the colormap? */
+-	if (fb_display[info->currcon].cmap.len)
+-		fb_get_cmap(&fb_display[info->currcon].cmap, 1,
+-			    fbhw->getcolreg, info);
+-	virgefb_do_fb_set_var(&fb_display[con].var, 1);
+-	info->currcon =3D con;
+-	/* Install new colormap */
+-	do_install_cmap(con, info);
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    Update the `var' structure (called by fbcon.c)
+- *
+- *    This call looks only at yoffset and the FB_VMODE_YWRAP flag in `=
+var'.
+- *    Since it's called by a kernel driver, no range checking is done.
+- */
+-
+-static int virgefb_updatevar(int con, struct fb_info *info)
+-{
+-	DPRINTK("ENTER\n");
+-	return 0;
+-	DPRINTK("EXIT\n");
+-}
+-
+-/*
+- *    Blank the display.
+- */
+-
+-static int virgefb_blank(int blank, struct fb_info *info)
+-{
+-	DPRINTK("ENTER\n");
+-	fbhw->blank(blank);
+-	DPRINTK("EXIT\n");
+-	return 0;
+-}
+-
+-
+-/*
+- *    Text console acceleration
+- */
+-
+-#ifdef FBCON_HAS_CFB8
+-static void fbcon_virge8_bmove(struct display *p, int sy, int sx, int =
+dy,
+-			       int dx, int height, int width)
+-{
+-        sx *=3D 8; dx *=3D 8; width *=3D 8;
+-        virgefb_BitBLT((u_short)sx, (u_short)(sy*fontheight(p)), (u_sh=
+ort)dx,
+-                       (u_short)(dy*fontheight(p)), (u_short)width,
+-                       (u_short)(height*fontheight(p)), (u_short)p->ne=
+xt_line, 8);
+-}
+-
+-static void fbcon_virge8_clear(struct vc_data *conp, struct display *p=
+, int sy,
+-			       int sx, int height, int width)
+-{
+-        unsigned char bg;
+-
+-        sx *=3D 8; width *=3D 8;
+-        bg =3D attr_bgcol_ec(p,conp);
+-        virgefb_RectFill((u_short)sx, (u_short)(sy*fontheight(p)),
+-                         (u_short)width, (u_short)(height*fontheight(p=
+)),
+-                         (u_short)bg, (u_short)p->next_line, 8);
+-}
+-
+-static void fbcon_virge8_putc(struct vc_data *conp, struct display *p,=
+ int c, int yy,
+-                              int xx)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb8_putc(conp, p, c, yy, xx);
+-}
+-
+-static void fbcon_virge8_putcs(struct vc_data *conp, struct display *p=
+,
+-                      const unsigned short *s, int count, int yy, int =
+xx)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb8_putcs(conp, p, s, count, yy, xx);
+-}
+-
+-static void fbcon_virge8_revc(struct display *p, int xx, int yy)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb8_revc(p, xx, yy);
+-}
+-
+-static void fbcon_virge8_clear_margins(struct vc_data *conp, struct di=
+splay *p,
+-                              int bottom_only)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb8_clear_margins(conp, p, bottom_only);
+-}
+-
+-static struct display_switch fbcon_virge8 =3D {
+-	.setup		=3D fbcon_cfb8_setup,
+-	.bmove		=3D fbcon_virge8_bmove,
+-	.clear		=3D fbcon_virge8_clear,
+-	.putc		=3D fbcon_virge8_putc,
+-	.putcs		=3D fbcon_virge8_putcs,
+-	.revc		=3D fbcon_virge8_revc,
+-	.clear_margins	=3D fbcon_virge8_clear_margins,
+-	.fontwidthmask	=3D FONTWIDTH(4)|FONTWIDTH(8)|FONTWIDTH(12)|FONTWIDTH(=
+16)
+-};
+-#endif
+-
+-#ifdef FBCON_HAS_CFB16
+-static void fbcon_virge16_bmove(struct display *p, int sy, int sx, int=
+ dy,
+-                               int dx, int height, int width)
+-{
+-        sx *=3D 8; dx *=3D 8; width *=3D 8;
+-        virgefb_BitBLT((u_short)sx, (u_short)(sy*fontheight(p)), (u_sh=
+ort)dx,
+-                       (u_short)(dy*fontheight(p)), (u_short)width,
+-                       (u_short)(height*fontheight(p)), (u_short)p->ne=
+xt_line, 16);
+-}
+-
+-static void fbcon_virge16_clear(struct vc_data *conp, struct display *=
+p, int sy,
+-                               int sx, int height, int width)
+-{
+-        unsigned char bg;
+-
+-        sx *=3D 8; width *=3D 8;
+-        bg =3D attr_bgcol_ec(p,conp);
+-        virgefb_RectFill((u_short)sx, (u_short)(sy*fontheight(p)),
+-                         (u_short)width, (u_short)(height*fontheight(p=
+)),
+-                         (u_short)bg, (u_short)p->next_line, 16);
+-}
+-
+-static void fbcon_virge16_putc(struct vc_data *conp, struct display *p=
+, int c, int yy,
+-                              int xx)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb16_putc(conp, p, c, yy, xx);
+-}
+-
+-static void fbcon_virge16_putcs(struct vc_data *conp, struct display *=
+p,
+-                      const unsigned short *s, int count, int yy, int =
+xx)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb16_putcs(conp, p, s, count, yy, xx);
+-}
+-
+-static void fbcon_virge16_revc(struct display *p, int xx, int yy)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb16_revc(p, xx, yy);
+-}
+-
+-static void fbcon_virge16_clear_margins(struct vc_data *conp, struct d=
+isplay *p,
+-                              int bottom_only)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb16_clear_margins(conp, p, bottom_only);
+-}
+-
+-static struct display_switch fbcon_virge16 =3D {
+-	.setup		=3D fbcon_cfb16_setup,
+-	.bmove		=3D fbcon_virge16_bmove,
+-	.clear		=3D fbcon_virge16_clear,
+-	.putc		=3D fbcon_virge16_putc,
+-	.putcs		=3D fbcon_virge16_putcs,
+-	.revc		=3D fbcon_virge16_revc,
+-	.clear_margins	=3D fbcon_virge16_clear_margins,
+-	.fontwidthmask	=3D FONTWIDTH(4)|FONTWIDTH(8)|FONTWIDTH(12)|FONTWIDTH(=
+16)
+-};
+-#endif
+-
+-#ifdef FBCON_HAS_CFB32
+-static void fbcon_virge32_bmove(struct display *p, int sy, int sx, int=
+ dy,
+-			       int dx, int height, int width)
+-{
+-        sx *=3D 16; dx *=3D 16; width *=3D 16;	/* doubled these values=
+ to do 32 bit blit */
+-        virgefb_BitBLT((u_short)sx, (u_short)(sy*fontheight(p)), (u_sh=
+ort)dx,
+-                       (u_short)(dy*fontheight(p)), (u_short)width,
+-                       (u_short)(height*fontheight(p)), (u_short)p->ne=
+xt_line, 16);
+-}
+-
+-static void fbcon_virge32_clear(struct vc_data *conp, struct display *=
+p, int sy,
+-			       int sx, int height, int width)
+-{
+-        unsigned char bg;
+-
+-        sx *=3D 16; width *=3D 16;			/* doubled these values to do 32 =
+bit blit */
+-        bg =3D attr_bgcol_ec(p,conp);
+-        virgefb_RectFill((u_short)sx, (u_short)(sy*fontheight(p)),
+-                         (u_short)width, (u_short)(height*fontheight(p=
+)),
+-                         (u_short)bg, (u_short)p->next_line, 16);
+-}
+-
+-static void fbcon_virge32_putc(struct vc_data *conp, struct display *p=
+, int c, int yy,
+-                              int xx)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb32_putc(conp, p, c, yy, xx);
+-}
+-
+-static void fbcon_virge32_putcs(struct vc_data *conp, struct display *=
+p,
+-                      const unsigned short *s, int count, int yy, int =
+xx)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb32_putcs(conp, p, s, count, yy, xx);
+-}
+-
+-static void fbcon_virge32_revc(struct display *p, int xx, int yy)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb32_revc(p, xx, yy);
+-}
+-
+-static void fbcon_virge32_clear_margins(struct vc_data *conp, struct d=
+isplay *p,
+-                              int bottom_only)
+-{
+-	if (blit_maybe_busy)
+-		virgefb_wait_for_idle();
+-	fbcon_cfb32_clear_margins(conp, p, bottom_only);
+-}
+-
+-static struct display_switch fbcon_virge32 =3D {
+-	.setup		=3D fbcon_cfb32_setup,
+-	.bmove		=3D fbcon_virge32_bmove,
+-	.clear		=3D fbcon_virge32_clear,
+-	.putc		=3D fbcon_virge32_putc,
+-	.putcs		=3D fbcon_virge32_putcs,
+-	.revc		=3D fbcon_virge32_revc,
+-	.clear_margins	=3D fbcon_virge32_clear_margins,
+-	.fontwidthmask	=3D FONTWIDTH(4)|FONTWIDTH(8)|FONTWIDTH(12)|FONTWIDTH(=
+16)
+-};
+-#endif
+-
+-#ifdef MODULE
+-MODULE_LICENSE("GPL");
+-
+-int init_module(void)
+-{
+-	return virgefb_init();
+-}
+-#endif /* MODULE */
+-
+-static int cv3d_has_4mb(void)
+-{
+-	/* cyberfb version didn't work, neither does this (not reliably)
+-	forced to return 4MB */
+-#if 0
+-	volatile unsigned long *t0, *t2;
+-#endif
+-	DPRINTK("ENTER\n");
+-#if 0
+-	/* write patterns in memory and test if they can be read */
+-	t0 =3D (volatile unsigned long *)v_ram;
+-	t2 =3D (volatile unsigned long *)(v_ram + 0x00200000);
+-	*t0 =3D 0x87654321;
+-	*t2 =3D 0x12345678;
+-
+-	if (*t0 !=3D 0x87654321) {
+-		/* read of first location failed */
+-		DPRINTK("EXIT - 0MB !\n");
+-		return 0;
+-	}
+-
+-	if (*t2 =3D=3D 0x87654321) {
+-		/* should read 0x12345678 if 4MB */
+-		DPRINTK("EXIT - 2MB(a) \n");
+-		return 0;
+-	}
+-
+-	if (*t2 !=3D 0x12345678) {
+-		/* upper 2MB read back match failed */
+-		DPRINTK("EXIT - 2MB(b)\n");
+-		return 0;
+-	}
+-
+-	/* may have 4MB */
+-
+-	*t2 =3D 0xAAAAAAAA;
+-
+-	if(*t2 !=3D 0xAAAAAAAA) {
+-		/* upper 2MB read back match failed */
+-		DPRINTK("EXIT - 2MB(c)\n");
+-		return 0;
+-	}
+-
+-	*t2 =3D 0x55555555;
+-
+-	if(*t2 !=3D 0x55555555) {
+-		/* upper 2MB read back match failed */
+-		DPRINTK("EXIT - 2MB(d)\n");
+-		return 0;
+-	}
+-
+-#endif
+-	DPRINTK("EXIT - 4MB\n");
+-	return 1;
+-}
+-
+-
+-/*
+- * Computes M, N, and R pll params for freq arg.
+- * Returns 16 bits - hi 0MMMMMM lo 0RRNNNNN
+- */
+-
+-#define REFCLOCK 14318000
+-
+-static unsigned short virgefb_compute_clock(unsigned long freq)
+-{
+-
+-	unsigned char m, n, r, rpwr;
+-	unsigned long diff, ftry, save =3D ~0UL;
+-	unsigned short mnr;
+-
+-	DPRINTK("ENTER\n");
+-
+-	for (r =3D 0, rpwr =3D 1 ; r < 4 ; r++, rpwr *=3D 2) {
+-		if ((135000000 <=3D (rpwr * freq)) && ((rpwr * freq) <=3D 270000000)=
+) {
+-			for (n =3D 1 ; n < 32 ; n++) {
+-				m =3D ((freq * (n + 2) * rpwr)/REFCLOCK) - 2;
+-				if (m =3D=3D 0 || m >127)
+-					break;
+-				ftry =3D ((REFCLOCK / (n + 2)) * (m + 2)) / rpwr;
+-				if (ftry > freq)
+-					diff =3D ftry - freq;
+-				else
+-					diff =3D freq - ftry;
+-				if (diff < save) {
+-					save =3D diff;
+-					mnr =3D  (m << 8) | (r<<5) | (n & 0x7f);
+-				}
+-			}
+-		}
+-	}
+-	if (save =3D=3D ~0UL)
+-		printk("Can't compute clock PLL values for %ld Hz clock\n", freq);
+-	DPRINTK("EXIT\n");
+-	return(mnr);
+-}
+-
+-static void virgefb_load_video_mode(struct fb_var_screeninfo *video_mo=
+de)
+-{
+-	unsigned char lace, dblscan, tmp;
+-	unsigned short mnr;
+-	unsigned short HT, HDE, HBS, HBW, HSS, HSW;
+-	unsigned short VT, VDE, VBS, VBW, VSS, VSW;
+-	unsigned short SCO;
+-	int cr11;
+-	int cr67;
+-	int hmul;
+-	int xres, xres_virtual, hfront, hsync, hback;
+-	int yres, vfront, vsync, vback;
+-	int bpp;
+-	int i;
+-	long freq;
+-
+-	DPRINTK("ENTER : %dx%d-%d\n",video_mode->xres, video_mode->yres,
+-				video_mode->bits_per_pixel);
+-
+-	bpp =3D video_mode->bits_per_pixel;
+-	xres =3D video_mode->xres;
+-	xres_virtual =3D video_mode->xres_virtual;
+-	hfront =3D video_mode->right_margin;
+-	hsync =3D video_mode->hsync_len;
+-	hback =3D video_mode->left_margin;
+-
+-	lace =3D 0;
+-	dblscan =3D 0;
+-
+-	if (video_mode->vmode & FB_VMODE_DOUBLE) {
+-		yres =3D video_mode->yres * 2;
+-		vfront =3D video_mode->lower_margin * 2;
+-		vsync =3D video_mode->vsync_len * 2;
+-		vback =3D video_mode->upper_margin * 2;
+-		dblscan =3D 1;
+-	} else if (video_mode->vmode & FB_VMODE_INTERLACED) {
+-		yres =3D (video_mode->yres + 1) / 2;
+-		vfront =3D (video_mode->lower_margin + 1) / 2;
+-		vsync =3D (video_mode->vsync_len + 1) / 2;
+-		vback =3D (video_mode->upper_margin + 1) / 2;
+-		lace =3D 1;
+-	} else {
+-		yres =3D video_mode->yres;
+-		vfront =3D video_mode->lower_margin;
+-		vsync =3D video_mode->vsync_len;
+-		vback =3D video_mode->upper_margin;
+-	}
+-
+-	switch (bpp) {
+-		case 8:
+-			video_mode->red.offset =3D 0;
+-			video_mode->green.offset =3D 0;
+-			video_mode->blue.offset =3D 0;
+-			video_mode->transp.offset =3D 0;
+-			video_mode->red.length =3D 8;
+-			video_mode->green.length =3D 8;
+-			video_mode->blue.length =3D 8;
+-			video_mode->transp.length =3D 0;
+-			hmul =3D 1;
+-			cr67 =3D 0x00;
+-			SCO =3D xres_virtual / 8;
+-			break;
+-		case 16:
+-			video_mode->red.offset =3D 11;
+-			video_mode->green.offset =3D 5;
+-			video_mode->blue.offset =3D 0;
+-			video_mode->transp.offset =3D 0;
+-			video_mode->red.length =3D 5;
+-			video_mode->green.length =3D 6;
+-			video_mode->blue.length =3D 5;
+-			video_mode->transp.length =3D 0;
+-			hmul =3D 2;
+-			cr67 =3D 0x50;
+-			SCO =3D xres_virtual / 4;
+-			break;
+-		case 32:
+-			video_mode->red.offset =3D 16;
+-			video_mode->green.offset =3D 8;
+-			video_mode->blue.offset =3D 0;
+-			video_mode->transp.offset =3D 24;
+-			video_mode->red.length =3D 8;
+-			video_mode->green.length =3D 8;
+-			video_mode->blue.length =3D 8;
+-			video_mode->transp.length =3D 8;
+-			hmul =3D 1;
+-			cr67 =3D 0xd0;
+-			SCO =3D xres_virtual / 2;
+-			break;
+-	}
+-
+-	HT  =3D (((xres + hfront + hsync + hback) / 8) * hmul) - 5;
+-	HDE =3D ((xres / 8) * hmul) - 1;
+-	HBS =3D (xres / 8) * hmul;
+-	HSS =3D ((xres + hfront) / 8) * hmul;
+-	HSW =3D (hsync / 8) * hmul;
+-	HBW =3D (((hfront + hsync + hback) / 8) * hmul) - 2;
+-
+-	VT  =3D yres + vfront + vsync + vback - 2;
+-	VDE =3D yres - 1;
+-	VBS =3D yres - 1;
+-	VSS =3D yres + vfront;
+-	VSW =3D vsync;
+-	VBW =3D vfront + vsync + vback - 2;
+-
+-#ifdef VIRGEFBDEBUG
+-	DPRINTK("HDE       : 0x%4.4x, %4.4d\n", HDE, HDE);
+-	DPRINTK("HBS       : 0x%4.4x, %4.4d\n", HBS, HBS);
+-	DPRINTK("HSS       : 0x%4.4x, %4.4d\n", HSS, HSS);
+-	DPRINTK("HSW       : 0x%4.4x, %4.4d\n", HSW, HSW);
+-	DPRINTK("HBW       : 0x%4.4x, %4.4d\n", HBW, HBW);
+-	DPRINTK("HSS + HSW : 0x%4.4x, %4.4d\n", HSS+HSW, HSS+HSW);
+-	DPRINTK("HBS + HBW : 0x%4.4x, %4.4d\n", HBS+HBW, HBS+HBW);
+-	DPRINTK("HT        : 0x%4.4x, %4.4d\n", HT, HT);
+-	DPRINTK("VDE       : 0x%4.4x, %4.4d\n", VDE, VDE);
+-	DPRINTK("VBS       : 0x%4.4x, %4.4d\n", VBS, VBS);
+-	DPRINTK("VSS       : 0x%4.4x, %4.4d\n", VSS, VSS);
+-	DPRINTK("VSW       : 0x%4.4x, %4.4d\n", VSW, VSW);
+-	DPRINTK("VBW       : 0x%4.4x, %4.4d\n", VBW, VBW);
+-	DPRINTK("VT        : 0x%4.4x, %4.4d\n", VT, VT);
+-#endif
+-
+-/* turn gfx off, don't mess up the display */
+-
+- 	gfx_on_off(1);
+-
+-/* H and V sync polarity */
+-
+-	tmp =3D rb_mmio(GREG_MISC_OUTPUT_R) & 0x2f;		/* colour, ram enable, c=
+lk sr12/s13 sel */
+-	if (!(video_mode->sync & FB_SYNC_HOR_HIGH_ACT))
+-		tmp |=3D 0x40;					/* neg H sync polarity */
+-	if (!(video_mode->sync & FB_SYNC_VERT_HIGH_ACT))
+-		tmp |=3D 0x80;					/* neg V sync polarity */
+-	tmp |=3D 0x0c;						/* clk from sr12/sr13 */
+-	wb_mmio(GREG_MISC_OUTPUT_W, tmp);
+-
+-/* clocks */
+-
+-	wseq(SEQ_ID_BUS_REQ_CNTL, 0xc0);			/* 2 clk mem wr and /RAS1 */
+-	wseq(SEQ_ID_CLKSYN_CNTL_2, 0x80);			/* b7 is 2 mem clk wr */
+-	mnr =3D virgefb_compute_clock(MEMCLOCK);
+-	DPRINTK("mem clock %d, m %d, n %d, r %d.\n", MEMCLOCK, ((mnr>>8)&0x7f=
+), (mnr&0x1f), ((mnr >> 5)&0x03));
+-	wseq(SEQ_ID_MCLK_LO, (mnr & 0x7f));
+-	wseq(SEQ_ID_MCLK_HI, ((mnr & 0x7f00) >> 8));
+-	freq =3D (1000000000 / video_mode->pixclock) * 1000;	/* pixclock is i=
+n ps ... convert to Hz */
+-	mnr =3D virgefb_compute_clock(freq);
+-	DPRINTK("dot clock %ld, m %d, n %d, r %d.\n", freq, ((mnr>>8)&0x7f), =
+(mnr&0x1f), ((mnr>>5)&0x03));
+-	wseq(SEQ_ID_DCLK_LO, (mnr & 0x7f));
+-	wseq(SEQ_ID_DCLK_HI, ((mnr & 0x7f00) >> 8));
+-	wseq(SEQ_ID_CLKSYN_CNTL_2, 0xa0);
+-	wseq(SEQ_ID_CLKSYN_CNTL_2, 0x80);
+-	udelay(100);
+-
+-/* load display parameters into board */
+-
+-	/* not sure about sync and blanking extensions bits in cr5d and cr5 *=
+/
+-
+-	wcrt(CRT_ID_EXT_HOR_OVF,			/* 0x5d */
+-		((HT & 0x100) ?         0x01 : 0x00) |
+-		((HDE & 0x100) ?        0x02 : 0x00) |
+-		((HBS & 0x100) ?        0x04 : 0x00) |
+-	/*	(((HBS + HBW) & 0x40) ? 0x08 : 0x00) |	*/
+-		((HSS & 0x100) ?        0x10 : 0x00) |
+-	/*	(((HSS + HSW) & 0x20) ? 0x20 : 0x00) |	*/
+-		((HSW >=3D 0x20) ?        0x20 : 0x00) |
+-		(((HT-5) & 0x100) ?     0x40 : 0x00));
+-
+-	wcrt(CRT_ID_EXT_VER_OVF,			/* 0x5e */
+-		((VT & 0x400) ? 0x01 : 0x00) |
+-		((VDE & 0x400) ? 0x02 : 0x00) |
+-		((VBS & 0x400) ? 0x04 : 0x00) |
+-		((VSS & 0x400) ? 0x10 : 0x00) |
+-		0x40);					/* line compare */
+-
+-	wcrt(CRT_ID_START_VER_RETR, VSS);
+-	cr11 =3D rcrt(CRT_ID_END_VER_RETR) | 0x20;	/* vert interrupt flag */
+-	wcrt(CRT_ID_END_VER_RETR, ((cr11 & 0x20) | ((VSS + VSW) & 0x0f)));	/*=
+ keeps vert irq enable state, also has unlock bit cr0 to 7 */
+-	wcrt(CRT_ID_VER_DISP_ENA_END, VDE);
+-	wcrt(CRT_ID_START_VER_BLANK, VBS);
+-	wcrt(CRT_ID_END_VER_BLANK, VBS + VBW);		/* might be +/- 1 out */
+-	wcrt(CRT_ID_HOR_TOTAL, HT);
+-	wcrt(CRT_ID_DISPLAY_FIFO, HT - 5);
+-	wcrt(CRT_ID_BACKWAD_COMP_3, 0x10);		/* enable display fifo */
+-	wcrt(CRT_ID_HOR_DISP_ENA_END, HDE);
+-	wcrt(CRT_ID_START_HOR_BLANK , HBS);
+-	wcrt(CRT_ID_END_HOR_BLANK, (HBS + HBW) & 0x1f);
+-	wcrt(CRT_ID_START_HOR_RETR, HSS);
+-	wcrt(CRT_ID_END_HOR_RETR,			/* cr5 */
+-		((HSS + HSW) & 0x1f) |
+-		(((HBS + HBW) & 0x20) ? 0x80 : 0x00));
+-	wcrt(CRT_ID_VER_TOTAL, VT);
+-	wcrt(CRT_ID_OVERFLOW,
+-		((VT & 0x100) ? 0x01 : 0x00) |
+-		((VDE & 0x100) ? 0x02 : 0x00) |
+-		((VSS & 0x100) ? 0x04 : 0x00) |
+-		((VBS & 0x100) ? 0x08 : 0x00) |
+-		0x10 |
+-		((VT & 0x200) ? 0x20 : 0x00) |
+-		((VDE & 0x200) ? 0x40 : 0x00) |
+-		((VSS & 0x200) ? 0x80 : 0x00));
+-	wcrt(CRT_ID_MAX_SCAN_LINE,
+-		(dblscan ? 0x80 : 0x00) |
+-		0x40 |
+-		((VBS & 0x200) ? 0x20 : 0x00));
+-	wcrt(CRT_ID_LINE_COMPARE, 0xff);
+-	wcrt(CRT_ID_LACE_RETR_START, HT / 2);		/* (HT-5)/2 ? */
+-	wcrt(CRT_ID_LACE_CONTROL, (lace ? 0x20 : 0x00));
+-
+-	wcrt(CRT_ID_SCREEN_OFFSET, SCO);
+-	wcrt(CRT_ID_EXT_SYS_CNTL_2, (SCO >> 4) & 0x30 );
+-
+-	/* wait for vert sync before cr67 update */
+-
+-	for (i=3D0; i < 10000; i++) {
+-		udelay(10);
+-		mb();
+-		if (rb_mmio(GREG_INPUT_STATUS1_R) & 0x08)
+-			break;
+-	}
+-
+-	wl_mmio(0x8200, 0x0000c000);	/* fifo control  (0x00110400 ?) */
+-	wcrt(CRT_ID_EXT_MISC_CNTL_2, cr67);
+-
+-/* enable video */
+-
+-	tmp =3D rb_mmio(ACT_ADDRESS_RESET);
+-	wb_mmio(ACT_ADDRESS_W, ((bpp =3D=3D 8) ? 0x20 : 0x00));	/* set b5, EN=
+B PLT in attr idx reg) */
+-	tmp =3D rb_mmio(ACT_ADDRESS_RESET);
+-
+-/* turn gfx on again */
+-
+-	gfx_on_off(0);
+-
+-/* pass-through */
+-
+-	SetVSwitch(1);		/* cv3d */
+-
+-	DUMP;
+-	DPRINTK("EXIT\n");
+-}
+-
+-static inline void gfx_on_off(int toggle)
+-{
+-	unsigned char tmp;
+-
+-	DPRINTK("ENTER gfx %s\n", (toggle ? "off" : "on"));
+-
+-	toggle =3D (toggle & 0x01) << 5;
+-	tmp =3D rseq(SEQ_ID_CLOCKING_MODE) & (~(0x01 << 5));
+-	wseq(SEQ_ID_CLOCKING_MODE, tmp | toggle);
+-
+-	DPRINTK("EXIT\n");
+-}
+-
+-#if defined (VIRGEFBDUMP)
+-
+-/*
+- * Dump board registers
+- */
+-
+-static void cv64_dump(void)
+-{
+-	int i;
+-	u8 c, b;
+-        u16 w;
+-	u32 l;
+-
+-	/* crt, seq, gfx and atr regs */
+-
+-	SelectMMIO;
+-
+-	printk("\n");
+-	for (i =3D 0; i <=3D 0x6f; i++) {
+-		wb_mmio(CRT_ADDRESS, i);
+-		printk("crt idx : 0x%2.2x : 0x%2.2x\n", i, rb_mmio(CRT_ADDRESS_R));
+-	}
+-	for (i =3D 0; i <=3D 0x1c; i++) {
+-		wb_mmio(SEQ_ADDRESS, i);
+-		printk("seq idx : 0x%2.2x : 0x%2.2x\n", i, rb_mmio(SEQ_ADDRESS_R));
+-	}
+-	for (i =3D 0; i <=3D 8; i++) {
+-		wb_mmio(GCT_ADDRESS, i);
+-		printk("gfx idx : 0x%2.2x : 0x%2.2x\n", i, rb_mmio(GCT_ADDRESS_R));
+-	}
+-	for (i =3D 0; i <=3D 0x14; i++) {
+-		c =3D rb_mmio(ACT_ADDRESS_RESET);
+-		wb_mmio(ACT_ADDRESS_W, i);
+-		printk("atr idx : 0x%2.2x : 0x%2.2x\n", i, rb_mmio(ACT_ADDRESS_R));
+-	}
+-
+-	/* re-enable video access to palette */
+-
+-	c =3D rb_mmio(ACT_ADDRESS_RESET);
+-	udelay(10);
+-	wb_mmio(ACT_ADDRESS_W, 0x20);
+-	c =3D rb_mmio(ACT_ADDRESS_RESET);
+-	udelay(10);
+-
+-	/* general regs */
+-
+-	printk("0x3cc(w 0x3c2) : 0x%2.2x\n", rb_mmio(0x3cc));	/* GREG_MISC_OU=
+TPUT READ */
+-	printk("0x3c2(-------) : 0x%2.2x\n", rb_mmio(0x3c2));	/* GREG_INPUT_S=
+TATUS 0 READ */
+-	printk("0x3c3(w 0x3c3) : 0x%2.2x\n", rb_vgaio(0x3c3));	/* GREG_VIDEO_=
+SUBS_ENABLE */
+-	printk("0x3ca(w 0x3da) : 0x%2.2x\n", rb_vgaio(0x3ca));	/* GREG_FEATUR=
+E_CONTROL read */
+-	printk("0x3da(-------) : 0x%2.2x\n", rb_mmio(0x3da));	/* GREG_INPUT_S=
+TATUS 1 READ */
+-
+-	/* engine regs */
+-
+-	for (i =3D 0x8180; i <=3D 0x8200; i =3D i + 4)
+-		printk("0x%8.8x : 0x%8.8x\n", i, rl_mmio(i));
+-
+-	i =3D 0x8504;
+-	printk("0x%8.8x : 0x%8.8x\n", i, rl_mmio(i));
+-	i =3D 0x850c;
+-	printk("0x%8.8x : 0x%8.8x\n", i, rl_mmio(i));
+-	for (i =3D 0xa4d4; i <=3D 0xa50c; i =3D i + 4)
+-		printk("0x%8.8x : 0x%8.8x\n", i, rl_mmio(i));
+-
+-	/* PCI regs */
+-
+-	SelectCFG;
+-
+-	for (c =3D 0; c < 0x08; c =3D c + 2) {
+-		w =3D (*((u16 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000)=
+) ^ 2)));
+-		printk("pci 0x%2.2x : 0x%4.4x\n", c, w);
+-	}
+-	c =3D 8;
+-	l =3D (*((u32 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000))=
+)));
+-	printk("pci 0x%2.2x : 0x%8.8x\n", c, l);
+-	c =3D 0x0d;
+-	b =3D (*((u8 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000)) =
+^ 3)));
+-	printk("pci 0x%2.2x : 0x%2.2x\n", c, b);
+-	c =3D 0x10;
+-	l =3D (*((u32 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000))=
+)));
+-	printk("pci 0x%2.2x : 0x%8.8x\n", c, l);
+-	c =3D 0x30;
+-	l =3D (*((u32 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000))=
+)));
+-	printk("pci 0x%2.2x : 0x%8.8x\n", c, l);
+-	c =3D 0x3c;
+-	b =3D (*((u8 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000)) =
+^ 3)));
+-	printk("pci 0x%2.2x : 0x%2.2x\n", c, b);
+-	c =3D 0x3d;
+-	b =3D (*((u8 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000)) =
+^ 3)));
+-	printk("pci 0x%2.2x : 0x%2.2x\n", c, b);
+-	c =3D 0x3e;
+-	w =3D (*((u16 *)((u32)(vgaio_regs + c + (on_zorro2 ? 0 : 0x000e0000))=
+ ^ 2)));
+-	printk("pci 0x%2.2x : 0x%4.4x\n", c, w);
+-	SelectMMIO;
+-}
+-#endif
+diff -puN drivers/video/virgefb.h~remove-broken-video-drivers-v4 /dev/n=
+ull
+--- a/drivers/video/virgefb.h
++++ /dev/null
+@@ -1,288 +0,0 @@
+-/*
+- * linux/drivers/video/virgefb.h -- CyberVision64 definitions for the
+- *                                  text console driver.
+- *
+- *   Copyright (c) 1998 Alan Bair
+- *
+- * This file is based on the initial port to Linux of grf_cvreg.h:
+- *
+- *   Copyright (c) 1997 Antonio Santos
+- *
+- * The original work is from the NetBSD CyberVision 64 framebuffer dri=
+ver=20
+- * and support files (grf_cv.c, grf_cvreg.h, ite_cv.c):
+- * Permission to use the source of this driver was obtained from the
+- * author Michael Teske by Alan Bair.
+- *
+- *   Copyright (c) 1995 Michael Teske
+- *
+- * History:
+- *
+- *
+- *
+- * This file is subject to the terms and conditions of the GNU General=
+ Public
+- * License.  See the file COPYING in the main directory of this archiv=
+e
+- * for more details.
+- */
+-
+-/* Enhanced register mapping (MMIO mode) */
+-
+-#define S3_CRTC_ADR    0x03d4
+-#define S3_CRTC_DATA   0x03d5
+-
+-#define S3_REG_LOCK2	0x39
+-#define S3_HGC_MODE	0x45
+-
+-#define S3_HWGC_ORGX_H	0x46
+-#define S3_HWGC_ORGX_L	0x47
+-#define S3_HWGC_ORGY_H	0x48
+-#define S3_HWGC_ORGY_L	0x49
+-#define S3_HWGC_DX	0x4e
+-#define S3_HWGC_DY	0x4f
+-
+-#define S3_LAW_CTL	0x58
+-
+-/**************************************************/
+-
+-/*
+- * Defines for the used register addresses (mw)
+- *
+- * NOTE: There are some registers that have different addresses when
+- *       in mono or color mode. We only support color mode, and thus
+- *       some addresses won't work in mono-mode!
+- *
+- * General and VGA-registers taken from retina driver. Fixed a few
+- * bugs in it. (SR and GR read address is Port + 1, NOT Port)
+- *
+- */
+-
+-/* General Registers: */
+-#define GREG_MISC_OUTPUT_R	0x03CC
+-#define GREG_MISC_OUTPUT_W	0x03C2=09
+-#define GREG_FEATURE_CONTROL_R	0x03CA=20
+-#define GREG_FEATURE_CONTROL_W	0x03DA
+-#define GREG_INPUT_STATUS0_R	0x03C2
+-#define GREG_INPUT_STATUS1_R	0x03DA
+-
+-/* Setup Registers: */
+-#define SREG_VIDEO_SUBS_ENABLE	0x03C3	/* virge */
+-
+-/* Attribute Controller: */
+-#define ACT_ADDRESS		0x03C0
+-#define ACT_ADDRESS_R		0x03C1
+-#define ACT_ADDRESS_W		0x03C0
+-#define ACT_ADDRESS_RESET	0x03DA
+-#define ACT_ID_PALETTE0		0x00
+-#define ACT_ID_PALETTE1		0x01
+-#define ACT_ID_PALETTE2		0x02
+-#define ACT_ID_PALETTE3		0x03
+-#define ACT_ID_PALETTE4		0x04
+-#define ACT_ID_PALETTE5		0x05
+-#define ACT_ID_PALETTE6		0x06
+-#define ACT_ID_PALETTE7		0x07
+-#define ACT_ID_PALETTE8		0x08
+-#define ACT_ID_PALETTE9		0x09
+-#define ACT_ID_PALETTE10	0x0A
+-#define ACT_ID_PALETTE11	0x0B
+-#define ACT_ID_PALETTE12	0x0C
+-#define ACT_ID_PALETTE13	0x0D
+-#define ACT_ID_PALETTE14	0x0E
+-#define ACT_ID_PALETTE15	0x0F
+-#define ACT_ID_ATTR_MODE_CNTL	0x10
+-#define ACT_ID_OVERSCAN_COLOR	0x11
+-#define ACT_ID_COLOR_PLANE_ENA	0x12
+-#define ACT_ID_HOR_PEL_PANNING	0x13
+-#define ACT_ID_COLOR_SELECT	0x14    /* virge PX_PADD  pixel padding re=
+gister */
+-
+-/* Graphics Controller: */
+-#define GCT_ADDRESS		0x03CE
+-#define GCT_ADDRESS_R		0x03CF
+-#define GCT_ADDRESS_W		0x03CF
+-#define GCT_ID_SET_RESET	0x00
+-#define GCT_ID_ENABLE_SET_RESET	0x01
+-#define GCT_ID_COLOR_COMPARE	0x02
+-#define GCT_ID_DATA_ROTATE	0x03
+-#define GCT_ID_READ_MAP_SELECT	0x04
+-#define GCT_ID_GRAPHICS_MODE	0x05
+-#define GCT_ID_MISC		0x06
+-#define GCT_ID_COLOR_XCARE	0x07
+-#define GCT_ID_BITMASK		0x08
+-
+-/* Sequencer: */
+-#define SEQ_ADDRESS		0x03C4
+-#define SEQ_ADDRESS_R		0x03C5
+-#define SEQ_ADDRESS_W		0x03C5
+-#define SEQ_ID_RESET		0x00
+-#define SEQ_ID_CLOCKING_MODE	0x01
+-#define SEQ_ID_MAP_MASK		0x02
+-#define SEQ_ID_CHAR_MAP_SELECT	0x03
+-#define SEQ_ID_MEMORY_MODE	0x04
+-#define SEQ_ID_UNKNOWN1		0x05
+-#define SEQ_ID_UNKNOWN2		0x06
+-#define SEQ_ID_UNKNOWN3		0x07
+-/* S3 extensions */
+-#define SEQ_ID_UNLOCK_EXT	0x08
+-#define SEQ_ID_EXT_SEQ_REG9	0x09	/* b7 =3D 1 extended reg access by MM=
+IO only */
+-#define SEQ_ID_BUS_REQ_CNTL	0x0A
+-#define SEQ_ID_EXT_MISC_SEQ	0x0B
+-#define SEQ_ID_UNKNOWN4		0x0C
+-#define SEQ_ID_EXT_SEQ		0x0D
+-#define SEQ_ID_UNKNOWN5		0x0E
+-#define SEQ_ID_UNKNOWN6		0x0F
+-#define SEQ_ID_MCLK_LO		0x10
+-#define SEQ_ID_MCLK_HI		0x11
+-#define SEQ_ID_DCLK_LO		0x12
+-#define SEQ_ID_DCLK_HI		0x13
+-#define SEQ_ID_CLKSYN_CNTL_1	0x14
+-#define SEQ_ID_CLKSYN_CNTL_2	0x15
+-#define SEQ_ID_CLKSYN_TEST_HI	0x16	/* reserved for S3 testing of the *=
+/
+-#define SEQ_ID_CLKSYN_TEST_LO	0x17	/* internal clock synthesizer   */
+-#define SEQ_ID_RAMDAC_CNTL	0x18
+-#define SEQ_ID_MORE_MAGIC	0x1A
+-#define SEQ_ID_SIGNAL_SELECT	0x1C	/* new for virge */
+-
+-/* CRT Controller: */
+-#define CRT_ADDRESS		0x03D4
+-#define CRT_ADDRESS_R		0x03D5
+-#define CRT_ADDRESS_W		0x03D5
+-#define CRT_ID_HOR_TOTAL	0x00
+-#define CRT_ID_HOR_DISP_ENA_END	0x01
+-#define CRT_ID_START_HOR_BLANK	0x02
+-#define CRT_ID_END_HOR_BLANK	0x03
+-#define CRT_ID_START_HOR_RETR	0x04
+-#define CRT_ID_END_HOR_RETR	0x05
+-#define CRT_ID_VER_TOTAL	0x06
+-#define CRT_ID_OVERFLOW		0x07
+-#define CRT_ID_PRESET_ROW_SCAN	0x08
+-#define CRT_ID_MAX_SCAN_LINE	0x09
+-#define CRT_ID_CURSOR_START	0x0A
+-#define CRT_ID_CURSOR_END	0x0B
+-#define CRT_ID_START_ADDR_HIGH	0x0C
+-#define CRT_ID_START_ADDR_LOW	0x0D
+-#define CRT_ID_CURSOR_LOC_HIGH	0x0E
+-#define CRT_ID_CURSOR_LOC_LOW	0x0F
+-#define CRT_ID_START_VER_RETR	0x10
+-#define CRT_ID_END_VER_RETR	0x11
+-#define CRT_ID_VER_DISP_ENA_END	0x12
+-#define CRT_ID_SCREEN_OFFSET	0x13
+-#define CRT_ID_UNDERLINE_LOC	0x14
+-#define CRT_ID_START_VER_BLANK	0x15
+-#define CRT_ID_END_VER_BLANK	0x16
+-#define CRT_ID_MODE_CONTROL	0x17
+-#define CRT_ID_LINE_COMPARE	0x18
+-#define CRT_ID_GD_LATCH_RBACK	0x22
+-#define CRT_ID_ACT_TOGGLE_RBACK	0x24
+-#define CRT_ID_ACT_INDEX_RBACK	0x26
+-/* S3 extensions: S3 VGA Registers */
+-#define CRT_ID_DEVICE_HIGH	0x2D
+-#define CRT_ID_DEVICE_LOW	0x2E
+-#define CRT_ID_REVISION 	0x2F
+-#define CRT_ID_CHIP_ID_REV	0x30
+-#define CRT_ID_MEMORY_CONF	0x31
+-#define CRT_ID_BACKWAD_COMP_1	0x32
+-#define CRT_ID_BACKWAD_COMP_2	0x33
+-#define CRT_ID_BACKWAD_COMP_3	0x34
+-#define CRT_ID_REGISTER_LOCK	0x35
+-#define CRT_ID_CONFIG_1 	0x36
+-#define CRT_ID_CONFIG_2 	0x37
+-#define CRT_ID_REGISTER_LOCK_1	0x38
+-#define CRT_ID_REGISTER_LOCK_2	0x39
+-#define CRT_ID_MISC_1		0x3A
+-#define CRT_ID_DISPLAY_FIFO	0x3B
+-#define CRT_ID_LACE_RETR_START	0x3C
+-/* S3 extensions: System Control Registers  */
+-#define CRT_ID_SYSTEM_CONFIG	0x40
+-#define CRT_ID_BIOS_FLAG	0x41
+-#define CRT_ID_LACE_CONTROL	0x42
+-#define CRT_ID_EXT_MODE 	0x43
+-#define CRT_ID_HWGC_MODE	0x45	/* HWGC =3D Hardware Graphics Cursor */
+-#define CRT_ID_HWGC_ORIGIN_X_HI	0x46
+-#define CRT_ID_HWGC_ORIGIN_X_LO	0x47
+-#define CRT_ID_HWGC_ORIGIN_Y_HI	0x48
+-#define CRT_ID_HWGC_ORIGIN_Y_LO	0x49
+-#define CRT_ID_HWGC_FG_STACK	0x4A
+-#define CRT_ID_HWGC_BG_STACK	0x4B
+-#define CRT_ID_HWGC_START_AD_HI	0x4C
+-#define CRT_ID_HWGC_START_AD_LO	0x4D
+-#define CRT_ID_HWGC_DSTART_X	0x4E
+-#define CRT_ID_HWGC_DSTART_Y	0x4F
+-/* S3 extensions: System Extension Registers  */
+-#define CRT_ID_EXT_SYS_CNTL_1	0x50	/* NOT a virge register */
+-#define CRT_ID_EXT_SYS_CNTL_2	0x51
+-#define CRT_ID_EXT_BIOS_FLAG_1	0x52
+-#define CRT_ID_EXT_MEM_CNTL_1	0x53
+-#define CRT_ID_EXT_MEM_CNTL_2	0x54
+-#define CRT_ID_EXT_DAC_CNTL	0x55
+-#define CRT_ID_EX_SYNC_1	0x56
+-#define CRT_ID_EX_SYNC_2	0x57
+-#define CRT_ID_LAW_CNTL		0x58	/* LAW =3D Linear Address Window */
+-#define CRT_ID_LAW_POS_HI	0x59
+-#define CRT_ID_LAW_POS_LO	0x5A
+-#define CRT_ID_GOUT_PORT	0x5C
+-#define CRT_ID_EXT_HOR_OVF	0x5D
+-#define CRT_ID_EXT_VER_OVF	0x5E
+-#define CRT_ID_EXT_MEM_CNTL_3	0x60	/* NOT a virge register */
+-#define CRT_ID_EXT_MEM_CNTL_4	0x61
+-#define CRT_ID_EX_SYNC_3	0x63	/* NOT a virge register */
+-#define CRT_ID_EXT_MISC_CNTL	0x65
+-#define CRT_ID_EXT_MISC_CNTL_1	0x66
+-#define CRT_ID_EXT_MISC_CNTL_2	0x67
+-#define CRT_ID_CONFIG_3 	0x68
+-#define CRT_ID_EXT_SYS_CNTL_3	0x69
+-#define CRT_ID_EXT_SYS_CNTL_4	0x6A
+-#define CRT_ID_EXT_BIOS_FLAG_3	0x6B
+-#define CRT_ID_EXT_BIOS_FLAG_4	0x6C
+-/* S3 virge extensions: more System Extension Registers  */
+-#define CRT_ID_EXT_BIOS_FLAG_5	0x6D
+-#define CRT_ID_EXT_DAC_TEST	0x6E
+-#define CRT_ID_CONFIG_4 	0x6F
+-
+-/* Video DAC */
+-#define VDAC_ADDRESS		0x03c8
+-#define VDAC_ADDRESS_W		0x03c8
+-#define VDAC_ADDRESS_R		0x03c7
+-#define VDAC_STATE		0x03c7
+-#define VDAC_DATA		0x03c9
+-#define VDAC_MASK		0x03c6
+-
+-/* Miscellaneous Registers */
+-#define MR_SUBSYSTEM_STATUS_R		0x8504	/* new for virge */
+-#define MR_SUBSYSTEM_CNTL_W		0x8504	/* new for virge */
+-#define MR_ADVANCED_FUNCTION_CONTROL	0x850C	/* new for virge */
+-
+-/* Blitter  */
+-#define BLT_COMMAND_SET		0xA500
+-#define BLT_SIZE_X_Y		0xA504
+-#define BLT_SRC_X_Y		0xA508
+-#define BLT_DEST_X_Y		0xA50C
+-
+-#define BLT_SRC_BASE		0xa4d4
+-#define BLT_DEST_BASE		0xa4d8
+-#define BLT_CLIP_LEFT_RIGHT	0xa4dc
+-#define BLT_CLIP_TOP_BOTTOM	0xa4e0
+-#define BLT_SRC_DEST_STRIDE	0xa4e4
+-#define BLT_MONO_PATTERN_0	0xa4e8
+-#define BLT_MONO_PATTERN_1	0xa4ec
+-#define BLT_PATTERN_COLOR	0xa4f4
+-
+-#define L2D_COMMAND_SET		0xA900
+-#define L2D_CLIP_LEFT_RIGHT	0xA8DC
+-#define L2D_CLIP_TOP_BOTTOM	0xA8E0
+-
+-#define P2D_COMMAND_SET		0xAD00
+-#define P2D_CLIP_LEFT_RIGHT	0xACDC
+-#define P2D_CLIP_TOP_BOTTOM	0xACE0
+-
+-#define CMD_NOP		(0xf << 27)	/* %1111 << 27, was 0x07 */=20
+-#define S3V_BITBLT	(0x0 << 27)
+-#define S3V_RECTFILL	(0x2 << 27)
+-#define S3V_AUTOEXE	0x01
+-#define S3V_HWCLIP	0x02
+-#define S3V_DRAW	0x20
+-#define S3V_DST_8BPP	0x00
+-#define S3V_DST_16BPP	0x04
+-#define S3V_DST_24BPP	0x08
+-#define S3V_MONO_PAT	0x100
+-
+-#define S3V_BLT_COPY	(0xcc<<17)
+-#define S3V_BLT_CLEAR	(0x00<<17)
+-#define S3V_BLT_SET	(0xff<<17)
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
-lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix.patch
-lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix-fix.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+acpi-make-code-static.patch
+git-alsa.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
+git-mtd.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=3Dn.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+drivers-edac-make-code-static.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+debug-add-sysrq_always_enabled-boot-option-cleanup.patch
+make-ext2_get_blocks-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.pat=
+ch
+gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.=
+patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-ker=
+nel-timerc__next_timer_interrupt-static.patch
+updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make=
+-a-function-static.patch
+updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-tim=
+e_hpetchpet_reenable.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
+-
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
