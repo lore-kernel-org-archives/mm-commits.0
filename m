@@ -1,55 +1,72 @@
 From: akpm@osdl.org
-Subject: + whinge-in-paging_init-if-noexec-is-on-with-a-non-pae-kernel.patch added to -mm tree
-Date: Mon, 11 Dec 2006 16:47:28 -0800
-Message-ID: <200612120047.kBC0lSpV014614@shell0.pdx.osdl.net>
+Subject: - kvm-needs-menu-structure.patch removed from -mm tree
+Date: Mon, 11 Dec 2006 23:53:36 -0800
+Message-ID: <200612120753.kBC7racA025701@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54972 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54821 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793AbWLLArl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Dec 2006 19:47:41 -0500
+	id S1750947AbWLLHyM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 02:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kyle@ubuntu.com, ak@suse.de, kyle@canonical.com
+To: randy.dunlap@oracle.com, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Whinge in paging_init if noexec is on with a non-PAE kernel
-has been added to the -mm tree.  Its filename is
-     whinge-in-paging_init-if-noexec-is-on-with-a-non-pae-kernel.patch
+     kvm needs menu structure
+has been removed from the -mm tree.  Its filename was
+     kvm-needs-menu-structure.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: Whinge in paging_init if noexec is on with a non-PAE kernel
-From: Kyle McMartin <kyle@ubuntu.com>
+Subject: kvm needs menu structure
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Kyle McMartin <kyle@canonical.com>
-Cc: Andi Kleen <ak@suse.de>
+KVM config items need to be inside a menu structure instead of dangling off
+of Device Drivers.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/mm/init.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/kvm/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/mm/init.c~whinge-in-paging_init-if-noexec-is-on-with-a-non-pae-kernel arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~whinge-in-paging_init-if-noexec-is-on-with-a-non-pae-kernel
-+++ a/arch/i386/mm/init.c
-@@ -512,6 +512,9 @@ void __init paging_init(void)
- 	set_nx();
- 	if (nx_enabled)
- 		printk("NX (Execute Disable) protection: active\n");
-+#else
-+	if (!disable_nx)
-+		printk("NX (Execute Disable) only supported with CONFIG_HIGHMEM64G\n");
- #endif
+diff -puN drivers/kvm/Kconfig~kvm-needs-menu-structure drivers/kvm/Kconfig
+--- a/drivers/kvm/Kconfig~kvm-needs-menu-structure
++++ a/drivers/kvm/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ menu "Virtualization"
  
- 	pagetable_init();
+-config KVM
++menuconfig KVM
+ 	tristate "Kernel-based Virtual Machine (KVM) support"
+ 	depends on X86 && EXPERIMENTAL
+ 	---help---
 _
 
-Patches currently in -mm which might be from kyle@ubuntu.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-whinge-in-paging_init-if-noexec-is-on-with-a-non-pae-kernel.patch
+origin.patch
+fix-section-mismatch-in-parainstructions.patch
+kconfig-new-function-bool-conf_get_changedvoid.patch
+kconfig-make-sym_change_count-static-let-it-be-altered-by-2-functions-only.patch
+kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc.patch
+kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state.patch
+kvm-needs-menu-structure.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+git-net.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+profile_likely-export-do_check_likely.patch
 
