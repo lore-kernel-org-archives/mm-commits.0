@@ -1,162 +1,227 @@
 From: akpm@osdl.org
-Subject: + debugging-feature-proc-timer_list-fix-2.patch added to -mm tree
-Date: Tue, 12 Dec 2006 12:57:55 -0800
-Message-ID: <200612122057.kBCKvtbD015530@shell0.pdx.osdl.net>
+Subject: + vt-refactor-console-sak-processing.patch added to -mm tree
+Date: Tue, 12 Dec 2006 13:14:52 -0800
+Message-ID: <200612122114.kBCLErWb015935@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40768 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42360 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932364AbWLLU6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 15:58:05 -0500
+	id S932370AbWLLVPM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 16:15:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+Cc: oleg@tv-sign.ru, ebiederm@xmission.com
 
 
 The patch titled
-     debugging feature: /proc/timer_list, fix #2
+     vt: refactor console SAK processing
 has been added to the -mm tree.  Its filename is
-     debugging-feature-proc-timer_list-fix-2.patch
+     vt-refactor-console-sak-processing.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: debugging feature: /proc/timer_list, fix #2
-From: Ingo Molnar <mingo@elte.hu>
+Subject: vt: refactor console SAK processing
+From: ebiederm@xmission.com (Eric W. Biederman)
 
-remove -rt-isms: DEFINE_RAW_SPINLOCK -> DEFINE_SPINLOCK and
-raw_spinlock_t -> spinlock_t.
+This does several things.
+- It moves looking up of the current foreground console into process
+  context where we can safely take the semaphore that protects this
+  operation.
+- It uses the new flavor of work queue processing.
+- This generates a factor of do_SAK, __do_SAK that runs immediately.
+- This calls __do_SAK with the console semaphore held ensuring nothing
+  else happens to the console while we process the SAK operation.
+- With the console SAK processing moved into process context this
+  patch removes the xchg operations that I used to attempt to attomically
+  update struct pid, because of the strange locking used in the SAK processing.
+  With SAK using the normal console semaphore nothing special is needed.
 
-Verified that the resulting kernel builds and boots fine and that the
-/proc/timer_list and /proc/timer_stats features work as expected.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/timer_stats.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/keyboard.c        |   12 +++---------
+ drivers/char/sysrq.c           |    6 +++---
+ drivers/char/tty_io.c          |   13 +++++++++----
+ drivers/char/vt_ioctl.c        |   28 ++++++++++++++++++++++++++--
+ include/linux/console_struct.h |    3 +++
+ include/linux/tty.h            |    1 +
+ 6 files changed, 45 insertions(+), 18 deletions(-)
 
-diff -puN kernel/time/timer_stats.c~debugging-feature-proc-timer_list-fix-2 kernel/time/timer_stats.c
---- a/kernel/time/timer_stats.c~debugging-feature-proc-timer_list-fix-2
-+++ a/kernel/time/timer_stats.c
-@@ -80,12 +80,12 @@ struct entry {
- /*
-  * Spinlock protecting the tables - not taken during lookup:
+diff -puN drivers/char/keyboard.c~vt-refactor-console-sak-processing drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~vt-refactor-console-sak-processing
++++ a/drivers/char/keyboard.c
+@@ -595,15 +595,9 @@ static void fn_spawn_con(struct vc_data 
+ 
+ static void fn_SAK(struct vc_data *vc)
+ {
+-	struct tty_struct *tty = vc->vc_tty;
+-
+-	/*
+-	 * SAK should also work in all raw modes and reset
+-	 * them properly.
+-	 */
+-	if (tty)
+-		do_SAK(tty);
+-	reset_vc(vc);
++	struct work_struct *SAK_work = &vc_cons[fg_console].SAK_work;
++	PREPARE_WORK(SAK_work, vc_SAK);
++	schedule_work(SAK_work);
+ }
+ 
+ static void fn_null(struct vc_data *vc)
+diff -puN drivers/char/sysrq.c~vt-refactor-console-sak-processing drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~vt-refactor-console-sak-processing
++++ a/drivers/char/sysrq.c
+@@ -88,9 +88,9 @@ static struct sysrq_key_op sysrq_logleve
+ #ifdef CONFIG_VT
+ static void sysrq_handle_SAK(int key, struct tty_struct *tty)
+ {
+-	if (tty)
+-		do_SAK(tty);
+-	reset_vc(vc_cons[fg_console].d);
++	struct work_struct *SAK_work = &vc_cons[fg_console].SAK_work;
++	PREPARE_WORK(SAK_work, vc_SAK);
++	schedule_work(SAK_work);
+ }
+ static struct sysrq_key_op sysrq_SAK_op = {
+ 	.handler	= sysrq_handle_SAK,
+diff -puN drivers/char/tty_io.c~vt-refactor-console-sak-processing drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~vt-refactor-console-sak-processing
++++ a/drivers/char/tty_io.c
+@@ -3324,10 +3324,8 @@ int tty_ioctl(struct inode * inode, stru
+  * Nasty bug: do_SAK is being called in interrupt context.  This can
+  * deadlock.  We punt it up to process context.  AKPM - 16Mar2001
   */
--static DEFINE_RAW_SPINLOCK(table_lock);
-+static DEFINE_SPINLOCK(table_lock);
+-static void __do_SAK(struct work_struct *work)
++void __do_SAK(struct tty_struct *tty)
+ {
+-	struct tty_struct *tty =
+-		container_of(work, struct tty_struct, SAK_work);
+ #ifdef TTY_SOFT_SAK
+ 	tty_hangup(tty);
+ #else
+@@ -3394,6 +3392,13 @@ static void __do_SAK(struct work_struct 
+ #endif
+ }
  
++static void do_SAK_work(struct work_struct *work)
++{
++	struct tty_struct *tty =
++		container_of(work, struct tty_struct, SAK_work);
++	__do_SAK(tty);
++}
++
  /*
-  * Per-CPU lookup locks for fast hash lookup:
+  * The tq handling here is a little racy - tty->SAK_work may already be queued.
+  * Fortunately we don't need to worry, because if ->SAK_work is already queued,
+@@ -3404,7 +3409,7 @@ void do_SAK(struct tty_struct *tty)
+ {
+ 	if (!tty)
+ 		return;
+-	PREPARE_WORK(&tty->SAK_work, __do_SAK);
++	PREPARE_WORK(&tty->SAK_work, do_SAK_work);
+ 	schedule_work(&tty->SAK_work);
+ }
+ 
+diff -puN drivers/char/vt_ioctl.c~vt-refactor-console-sak-processing drivers/char/vt_ioctl.c
+--- a/drivers/char/vt_ioctl.c~vt-refactor-console-sak-processing
++++ a/drivers/char/vt_ioctl.c
+@@ -672,7 +672,8 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		vc->vt_mode = tmp;
+ 		/* the frsig is ignored, so we set it to 0 */
+ 		vc->vt_mode.frsig = 0;
+-		put_pid(xchg(&vc->vt_pid, get_pid(task_pid(current))));
++		put_pid(vc->vt_pid);
++		vc->vt_pid = get_pid(task_pid(current));
+ 		/* no switch is required -- saw@shade.msu.ru */
+ 		vc->vt_newvt = -1;
+ 		release_console_sem();
+@@ -1063,12 +1064,35 @@ void reset_vc(struct vc_data *vc)
+ 	vc->vt_mode.relsig = 0;
+ 	vc->vt_mode.acqsig = 0;
+ 	vc->vt_mode.frsig = 0;
+-	put_pid(xchg(&vc->vt_pid, NULL));
++	put_pid(vc->vt_pid);
++	vc->vt_pid = NULL;
+ 	vc->vt_newvt = -1;
+ 	if (!in_interrupt())    /* Via keyboard.c:SAK() - akpm */
+ 		reset_palette(vc);
+ }
+ 
++void vc_SAK(struct work_struct *work)
++{
++	struct vc *vc_con =
++		container_of(work, struct vc, SAK_work);
++	struct vc_data *vc;
++	struct tty_struct *tty;
++
++	acquire_console_sem();
++	vc = vc_con->d;
++	if (vc) {
++		tty = vc->vc_tty;
++		/*
++		 * SAK should also work in all raw modes and reset
++		 * them properly.
++		 */
++		if (tty)
++			__do_SAK(tty);
++		reset_vc(vc);
++	}
++	release_console_sem();
++}
++
+ /*
+  * Performs the back end of a vt switch
   */
--static DEFINE_PER_CPU(raw_spinlock_t, lookup_lock);
-+static DEFINE_PER_CPU(spinlock_t, lookup_lock);
+diff -puN include/linux/console_struct.h~vt-refactor-console-sak-processing include/linux/console_struct.h
+--- a/include/linux/console_struct.h~vt-refactor-console-sak-processing
++++ a/include/linux/console_struct.h
+@@ -11,6 +11,7 @@
  
- /*
-  * Mutex to serialize state changes with show-stats activities:
-@@ -232,7 +232,7 @@ void timer_stats_update_stats(void *time
- 	/*
- 	 * It doesnt matter which lock we take:
- 	 */
--	raw_spinlock_t *lock = &per_cpu(lookup_lock, raw_smp_processor_id());
-+	spinlock_t *lock = &per_cpu(lookup_lock, raw_smp_processor_id());
- 	struct entry *entry, input;
- 	unsigned long flags;
+ #include <linux/wait.h>
+ #include <linux/vt.h>
++#include <linux/workqueue.h>
  
+ struct vt_struct;
+ 
+@@ -103,6 +104,7 @@ struct vc_data {
+ 
+ struct vc {
+ 	struct vc_data *d;
++	struct work_struct SAK_work;
+ 
+ 	/* might add  scrmem, vt_struct, kbd  at some time,
+ 	   to have everything in one place - the disadvantage
+@@ -110,6 +112,7 @@ struct vc {
+ };
+ 
+ extern struct vc vc_cons [MAX_NR_CONSOLES];
++extern void vc_SAK(struct work_struct *work);
+ 
+ #define CUR_DEF		0
+ #define CUR_NONE	1
+diff -puN include/linux/tty.h~vt-refactor-console-sak-processing include/linux/tty.h
+--- a/include/linux/tty.h~vt-refactor-console-sak-processing
++++ a/include/linux/tty.h
+@@ -291,6 +291,7 @@ extern void tty_vhangup(struct tty_struc
+ extern void tty_unhangup(struct file *filp);
+ extern int tty_hung_up_p(struct file * filp);
+ extern void do_SAK(struct tty_struct *tty);
++extern void __do_SAK(struct tty_struct *tty);
+ extern void disassociate_ctty(int priv);
+ extern void tty_flip_buffer_push(struct tty_struct *tty);
+ extern speed_t tty_get_baud_rate(struct tty_struct *tty);
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-debug-add-sysrq_always_enabled-boot-option.patch
-lockdep-filter-off-by-default.patch
-lockdep-improve-verbose-messages.patch
-lockdep-improve-lockdep_reset.patch
-lockdep-clean-up-very_verbose-define.patch
-lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
-lockdep-print-irq-trace-info-on-asserts.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
-lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-optimize-calc_load.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-time-uninline-jiffiesh.patch
-time-uninline-jiffiesh-fix.patch
-time-fix-msecs_to_jiffies-bug.patch
-time-fix-timeout-overflow.patch
-cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-hrtimers-clean-up-callback-tracking.patch
-updated-hrtimers-move-and-add-documentation.patch
-updated-add-a-framework-to-manage-clock-event-devices.patch
-updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix.patch
-updated-add-a-framework-to-manage-clock-event-devices-pit-broadcasting-fix.patch
-updated-acpi-include-apich.patch
-updated-acpi-keep-track-of-timer-broadcast.patch
-updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-updated-i386-cleanup-apic-code.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies.patch
-updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
-updated-i386-rework-local-apic-calibration.patch
-updated-high-res-timers-core.patch
-updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
-updated-high-res-timers-core-cleanup-state-tracking-update.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-high-res-timers-utilize-tsc-clocksource-again.patch
-high-res-timers-utilize-tsc-clocksource-again-fix.patch
-updated-dynticks-core-code.patch
-updated-dynticks-core-code-fix-resume-bug.patch
-updated-dyntick-add-nohz-stats-to-proc-stat.patch
-updated-dynticks-i386-arch-code.patch
-updated-dynticks-fix-nmi-watchdog.patch
-updated-high-res-timers-dynticks-enable-i386-support.patch
-updated-debugging-feature-timer-stats.patch
-updated-debugging-feature-timer-stats-fixes.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-proc-timer_list-fix.patch
-debugging-feature-proc-timer_list-fix-2.patch
-clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
-clockevents-convert-hpet-to-clockevents.patch
-clockevents-make-apicc-exports-gpl-remove-fastcall-attributes.patch
-clockevents-remove-ptregs-argument-from-handlers.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+vt-refactor-console-sak-processing.patch
+pidhash-temporary-debug-checks.patch
 
