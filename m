@@ -1,182 +1,162 @@
 From: akpm@osdl.org
-Subject: + kobject-kobject_uevent-returns-manageable-value.patch added to -mm tree
-Date: Tue, 12 Dec 2006 12:56:29 -0800
-Message-ID: <200612122056.kBCKuTN9015499@shell0.pdx.osdl.net>
+Subject: + debugging-feature-proc-timer_list-fix-2.patch added to -mm tree
+Date: Tue, 12 Dec 2006 12:57:55 -0800
+Message-ID: <200612122057.kBCKvtbD015530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40668 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40768 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932361AbWLLU4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 15:56:33 -0500
+	id S932364AbWLLU6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 15:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@gmail.com, greg@kroah.com, mauriciolin@gmail.com
+Cc: mingo@elte.hu
 
 
 The patch titled
-     kobject: kobject_uevent() returns manageable value
+     debugging feature: /proc/timer_list, fix #2
 has been added to the -mm tree.  Its filename is
-     kobject-kobject_uevent-returns-manageable-value.patch
+     debugging-feature-proc-timer_list-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kobject: kobject_uevent() returns manageable value
-From: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
+Subject: debugging feature: /proc/timer_list, fix #2
+From: Ingo Molnar <mingo@elte.hu>
 
-Since kobject_uevent() function does not return an integer value to
-indicate if its operation was completed with success or not, it is worth
-changing it in order to report a proper status (success or error) instead
-of returning void.
+remove -rt-isms: DEFINE_RAW_SPINLOCK -> DEFINE_SPINLOCK and
+raw_spinlock_t -> spinlock_t.
 
-Cc: Mauricio Lin <mauriciolin@gmail.com>
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Verified that the resulting kernel builds and boots fine and that the
+/proc/timer_list and /proc/timer_stats features work as expected.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/kobject.h |    8 +++---
- lib/kobject_uevent.c    |   44 +++++++++++++++++++++++++-------------
- 2 files changed, 34 insertions(+), 18 deletions(-)
+ kernel/time/timer_stats.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kobject.h~kobject-kobject_uevent-returns-manageable-value include/linux/kobject.h
---- a/include/linux/kobject.h~kobject-kobject_uevent-returns-manageable-value
-+++ a/include/linux/kobject.h
-@@ -265,8 +265,8 @@ extern int __must_check subsys_create_fi
- 					struct subsys_attribute *);
- 
- #if defined(CONFIG_HOTPLUG)
--void kobject_uevent(struct kobject *kobj, enum kobject_action action);
--void kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
-+int kobject_uevent(struct kobject *kobj, enum kobject_action action);
-+int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
- 			char *envp[]);
- 
- int add_uevent_var(char **envp, int num_envp, int *cur_index,
-@@ -274,8 +274,8 @@ int add_uevent_var(char **envp, int num_
- 			const char *format, ...)
- 	__attribute__((format (printf, 7, 8)));
- #else
--static inline void kobject_uevent(struct kobject *kobj, enum kobject_action action) { }
--static inline void kobject_uevent_env(struct kobject *kobj,
-+static inline int kobject_uevent(struct kobject *kobj, enum kobject_action action) { }
-+static inline int kobject_uevent_env(struct kobject *kobj,
- 				      enum kobject_action action,
- 				      char *envp[])
- { }
-diff -puN lib/kobject_uevent.c~kobject-kobject_uevent-returns-manageable-value lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~kobject-kobject_uevent-returns-manageable-value
-+++ a/lib/kobject_uevent.c
-@@ -63,8 +63,11 @@ static char *action_to_string(enum kobje
-  * @action: action that is happening (usually KOBJ_MOVE)
-  * @kobj: struct kobject that the action is happening to
-  * @envp_ext: pointer to environmental data
-+ *
-+ * Returns 0 if kobject_uevent() is completed with success or the
-+ * corresponding error when it fails.
+diff -puN kernel/time/timer_stats.c~debugging-feature-proc-timer_list-fix-2 kernel/time/timer_stats.c
+--- a/kernel/time/timer_stats.c~debugging-feature-proc-timer_list-fix-2
++++ a/kernel/time/timer_stats.c
+@@ -80,12 +80,12 @@ struct entry {
+ /*
+  * Spinlock protecting the tables - not taken during lookup:
   */
--void kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
-+int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
- 			char *envp_ext[])
- {
- 	char **envp;
-@@ -79,14 +82,16 @@ void kobject_uevent_env(struct kobject *
- 	u64 seq;
- 	char *seq_buff;
- 	int i = 0;
--	int retval;
-+	int retval = 0;
- 	int j;
+-static DEFINE_RAW_SPINLOCK(table_lock);
++static DEFINE_SPINLOCK(table_lock);
  
- 	pr_debug("%s\n", __FUNCTION__);
- 
- 	action_string = action_to_string(action);
--	if (!action_string)
--		return;
-+	if (!action_string) {
-+		pr_debug("kobject attempted to send uevent without action_string!\n");
-+		return -EINVAL;
-+	}
- 
- 	/* search the kset we belong to */
- 	top_kobj = kobj;
-@@ -95,31 +100,39 @@ void kobject_uevent_env(struct kobject *
- 			top_kobj = top_kobj->parent;
- 		} while (!top_kobj->kset && top_kobj->parent);
- 	}
--	if (!top_kobj->kset)
--		return;
-+	if (!top_kobj->kset) {
-+		pr_debug("kobject attempted to send uevent without kset!\n");
-+		return -EINVAL;
-+	}
- 
- 	kset = top_kobj->kset;
- 	uevent_ops = kset->uevent_ops;
- 
- 	/*  skip the event, if the filter returns zero. */
- 	if (uevent_ops && uevent_ops->filter)
--		if (!uevent_ops->filter(kset, kobj))
--			return;
-+		if (!uevent_ops->filter(kset, kobj)) {
-+			pr_debug("kobject filter function caused the event to drop!\n");
-+			return 0;
-+		}
- 
- 	/* environment index */
- 	envp = kzalloc(NUM_ENVP * sizeof (char *), GFP_KERNEL);
- 	if (!envp)
--		return;
-+		return -ENOMEM;
- 
- 	/* environment values */
- 	buffer = kmalloc(BUFFER_SIZE, GFP_KERNEL);
--	if (!buffer)
-+	if (!buffer) {
-+		retval = -ENOMEM;
- 		goto exit;
-+	}
- 
- 	/* complete object path */
- 	devpath = kobject_get_path(kobj, GFP_KERNEL);
--	if (!devpath)
-+	if (!devpath) {
-+		retval = -ENOENT;
- 		goto exit;
-+	}
- 
- 	/* originating subsystem */
- 	if (uevent_ops && uevent_ops->name)
-@@ -204,7 +217,7 @@ exit:
- 	kfree(devpath);
- 	kfree(buffer);
- 	kfree(envp);
--	return;
-+	return retval;
- }
- 
- EXPORT_SYMBOL_GPL(kobject_uevent_env);
-@@ -214,10 +227,13 @@ EXPORT_SYMBOL_GPL(kobject_uevent_env);
-  *
-  * @action: action that is happening (usually KOBJ_ADD and KOBJ_REMOVE)
-  * @kobj: struct kobject that the action is happening to
-+ *
-+ * Returns 0 if kobject_uevent() is completed with success or the
-+ * corresponding error when it fails.
+ /*
+  * Per-CPU lookup locks for fast hash lookup:
   */
--void kobject_uevent(struct kobject *kobj, enum kobject_action action)
-+int kobject_uevent(struct kobject *kobj, enum kobject_action action)
- {
--	kobject_uevent_env(kobj, action, NULL);
-+	return kobject_uevent_env(kobj, action, NULL);
- }
+-static DEFINE_PER_CPU(raw_spinlock_t, lookup_lock);
++static DEFINE_PER_CPU(spinlock_t, lookup_lock);
  
- EXPORT_SYMBOL_GPL(kobject_uevent);
+ /*
+  * Mutex to serialize state changes with show-stats activities:
+@@ -232,7 +232,7 @@ void timer_stats_update_stats(void *time
+ 	/*
+ 	 * It doesnt matter which lock we take:
+ 	 */
+-	raw_spinlock_t *lock = &per_cpu(lookup_lock, raw_smp_processor_id());
++	spinlock_t *lock = &per_cpu(lookup_lock, raw_smp_processor_id());
+ 	struct entry *entry, input;
+ 	unsigned long flags;
+ 
 _
 
-Patches currently in -mm which might be from aneesh.kumar@gmail.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-kobject-kobject_uevent-returns-manageable-value.patch
+origin.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
+lockdep-fix-possible-race-while-disabling-lock-debugging-restore-fix.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+optimize-calc_load.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+time-uninline-jiffiesh.patch
+time-uninline-jiffiesh-fix.patch
+time-fix-msecs_to_jiffies-bug.patch
+time-fix-timeout-overflow.patch
+cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix.patch
+updated-add-a-framework-to-manage-clock-event-devices-pit-broadcasting-fix.patch
+updated-acpi-include-apich.patch
+updated-acpi-keep-track-of-timer-broadcast.patch
+updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+updated-i386-cleanup-apic-code.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-i8253c-remove-hpet-dependencies.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-i386-rework-local-apic-calibration.patch
+updated-high-res-timers-core.patch
+updated-high-res-timers-core-high-res-timers-do-itimer-rearming-in-process-context.patch
+updated-high-res-timers-core-cleanup-state-tracking-update.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+high-res-timers-utilize-tsc-clocksource-again.patch
+high-res-timers-utilize-tsc-clocksource-again-fix.patch
+updated-dynticks-core-code.patch
+updated-dynticks-core-code-fix-resume-bug.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-dynticks-fix-nmi-watchdog.patch
+updated-high-res-timers-dynticks-enable-i386-support.patch
+updated-debugging-feature-timer-stats.patch
+updated-debugging-feature-timer-stats-fixes.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-proc-timer_list-fix.patch
+debugging-feature-proc-timer_list-fix-2.patch
+clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
+clockevents-convert-hpet-to-clockevents.patch
+clockevents-make-apicc-exports-gpl-remove-fastcall-attributes.patch
+clockevents-remove-ptregs-argument-from-handlers.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
