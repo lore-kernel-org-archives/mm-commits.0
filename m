@@ -1,32 +1,32 @@
 From: akpm@osdl.org
-Subject: + remove-the-broken-scsi_seagate-driver.patch added to -mm tree
-Date: Tue, 12 Dec 2006 13:27:56 -0800
-Message-ID: <200612122127.kBCLRuJg016252@shell0.pdx.osdl.net>
+Subject: + remove-the-broken-skmc-driver.patch added to -mm tree
+Date: Tue, 12 Dec 2006 13:28:10 -0800
+Message-ID: <200612122128.kBCLSAn2016269@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44018 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44075 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932436AbWLLVbR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 16:31:17 -0500
+	id S932439AbWLLVbz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 16:31:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, James.Bottomley@steeleye.com
+Cc: bunk@stusta.de, jeff@garzik.org
 
 
 The patch titled
-     remove the broken SCSI_SEAGATE driver
+     remove the broken SKMC driver
 has been added to the -mm tree.  Its filename is
-     remove-the-broken-scsi_seagate-driver.patch
+     remove-the-broken-skmc-driver.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove the broken SCSI_SEAGATE driver
+Subject: remove the broken SKMC driver
 From: Adrian Bunk <bunk@stusta.de>
 
-The SCSI_SEAGATE driver has:
+The SKMC driver has:
 - already been marked as BROKEN in 2.6.0 three years ago and
 - is still marked as BROKEN.
 
@@ -37,1730 +37,1471 @@ But if anyone wants to ever revive this driver, the code is still
 present in the older kernel releases.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/Kconfig   |   13 
- drivers/scsi/Makefile  |    3 
- drivers/scsi/seagate.c | 1666 ---------------------------------------
- 3 files changed, 1682 deletions(-)
+ drivers/net/Kconfig  |   15 
+ drivers/net/Makefile |    1 
+ drivers/net/Space.c  |    4 
+ drivers/net/sk_mca.c | 1216 -----------------------------------------
+ drivers/net/sk_mca.h |  170 -----
+ 5 files changed, 1406 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~remove-the-broken-scsi_seagate-driver drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~remove-the-broken-scsi_seagate-driver
-+++ a/drivers/scsi/Kconfig
-@@ -1301,19 +1301,6 @@ config SCSI_LPFC
-           This lpfc driver supports the Emulex LightPulse
-           Family of Fibre Channel PCI host adapters.
+diff -puN drivers/net/Kconfig~remove-the-broken-skmc-driver drivers/net/Kconfig
+--- a/drivers/net/Kconfig~remove-the-broken-skmc-driver
++++ a/drivers/net/Kconfig
+@@ -1155,21 +1155,6 @@ config SEEQ8005
+ 	  <file:Documentation/networking/net-modules.txt>. The module
+ 	  will be called seeq8005.
  
--config SCSI_SEAGATE
--	tristate "Seagate ST-02 and Future Domain TMC-8xx SCSI support"
--	depends on X86 && ISA && SCSI && BROKEN
+-config SKMC
+-	tristate "SKnet MCA support"
+-	depends on NET_ETHERNET && MCA && BROKEN
 -	---help---
--	  These are 8-bit SCSI controllers; the ST-01 is also supported by
--	  this driver.  It is explained in section 3.9 of the SCSI-HOWTO,
--	  available from <http://www.tldp.org/docs.html#howto>.  If it
--	  doesn't work out of the box, you may have to change some macros at
--	  compiletime, which are described in <file:drivers/scsi/seagate.c>.
+-	  These are Micro Channel Ethernet adapters. You need to say Y to "MCA
+-	  support" in order to use this driver.  Supported cards are the SKnet
+-	  Junior MC2 and the SKnet MC2(+).  The driver automatically
+-	  distinguishes between the two cards. Note that using multiple boards
+-	  of different type hasn't been tested with this driver.  Say Y if you
+-	  have one of these Ethernet adapters.
 -
--	  To compile this driver as a module, choose M here: the
--	  module will be called seagate.
+-	  To compile this driver as a module, choose M here and read
+-	  <file:Documentation/networking/net-modules.txt>. The module
+-	  will be called sk_mca.
 -
- # definitely looks not 64bit safe:
- config SCSI_SIM710
- 	tristate "Simple 53c710 SCSI support (Compaq, NCR machines)"
+ config NE2_MCA
+ 	tristate "NE/2 (ne2000 MCA version) support"
+ 	depends on NET_ETHERNET && MCA_LEGACY
 diff -puN /dev/null /dev/null
-diff -puN drivers/scsi/Makefile~remove-the-broken-scsi_seagate-driver drivers/scsi/Makefile
---- a/drivers/scsi/Makefile~remove-the-broken-scsi_seagate-driver
-+++ a/drivers/scsi/Makefile
-@@ -16,7 +16,6 @@
- 
- CFLAGS_aha152x.o =   -DAHA152X_STAT -DAUTOCONF
- CFLAGS_gdth.o    = # -DDEBUG_GDTH=2 -D__SERIAL__ -D__COM2__ -DGDTH_STATISTICS
--CFLAGS_seagate.o =   -DARBITRATE -DPARITY -DSEAGATE_USE_ASM
- 
- subdir-$(CONFIG_PCMCIA)		+= pcmcia
- 
-@@ -88,8 +87,6 @@ obj-$(CONFIG_SCSI_QLA_FC)	+= qla2xxx/
- obj-$(CONFIG_SCSI_QLA_ISCSI)	+= qla4xxx/
- obj-$(CONFIG_SCSI_LPFC)		+= lpfc/
- obj-$(CONFIG_SCSI_PAS16)	+= pas16.o
--obj-$(CONFIG_SCSI_SEAGATE)	+= seagate.o
--obj-$(CONFIG_SCSI_FD_8xx)	+= seagate.o
- obj-$(CONFIG_SCSI_T128)		+= t128.o
- obj-$(CONFIG_SCSI_DMX3191D)	+= dmx3191d.o
- obj-$(CONFIG_SCSI_DTC3280)	+= dtc.o
+diff -puN drivers/net/Makefile~remove-the-broken-skmc-driver drivers/net/Makefile
+--- a/drivers/net/Makefile~remove-the-broken-skmc-driver
++++ a/drivers/net/Makefile
+@@ -137,7 +137,6 @@ obj-$(CONFIG_AT1700) += at1700.o
+ obj-$(CONFIG_EL1) += 3c501.o
+ obj-$(CONFIG_EL16) += 3c507.o
+ obj-$(CONFIG_ELMC) += 3c523.o
+-obj-$(CONFIG_SKMC) += sk_mca.o
+ obj-$(CONFIG_IBMLANA) += ibmlana.o
+ obj-$(CONFIG_ELMC_II) += 3c527.o
+ obj-$(CONFIG_EL3) += 3c509.o
 diff -puN /dev/null /dev/null
-diff -puN drivers/scsi/seagate.c~remove-the-broken-scsi_seagate-driver /dev/null
---- a/drivers/scsi/seagate.c
+diff -puN drivers/net/Space.c~remove-the-broken-skmc-driver drivers/net/Space.c
+--- a/drivers/net/Space.c~remove-the-broken-skmc-driver
++++ a/drivers/net/Space.c
+@@ -59,7 +59,6 @@ extern struct net_device *wavelan_probe(
+ extern struct net_device *arlan_probe(int unit);
+ extern struct net_device *el16_probe(int unit);
+ extern struct net_device *elmc_probe(int unit);
+-extern struct net_device *skmca_probe(int unit);
+ extern struct net_device *elplus_probe(int unit);
+ extern struct net_device *ac3200_probe(int unit);
+ extern struct net_device *es_probe(int unit);
+@@ -153,9 +152,6 @@ static struct devprobe2 mca_probes[] __i
+ #ifdef CONFIG_ELMC_II		/* 3c527 */
+ 	{mc32_probe, 0},
+ #endif
+-#ifdef CONFIG_SKMC              /* SKnet Microchannel */
+-        {skmca_probe, 0},
+-#endif
+ 	{NULL, 0},
+ };
+ 
+diff -puN /dev/null /dev/null
+diff -puN drivers/net/sk_mca.c~remove-the-broken-skmc-driver /dev/null
+--- a/drivers/net/sk_mca.c
 +++ /dev/null
-@@ -1,1666 +0,0 @@
+@@ -1,1216 +0,0 @@
 -/*
-- *    seagate.c Copyright (C) 1992, 1993 Drew Eckhardt
-- *      low level scsi driver for ST01/ST02, Future Domain TMC-885,
-- *      TMC-950 by Drew Eckhardt <drew@colorado.edu>
-- *
-- *      Note : TMC-880 boards don't work because they have two bits in
-- *              the status register flipped, I'll fix this "RSN"
-- *	[why do I have strong feeling that above message is from 1993? :-)
-- *	        pavel@ucw.cz]
-- *
-- *      This card does all the I/O via memory mapped I/O, so there is no need
-- *      to check or allocate a region of the I/O address space.
-- */
+-net-3-driver for the SKNET MCA-based cards
 -
--/* 1996 - to use new read{b,w,l}, write{b,w,l}, and phys_to_virt
-- * macros, replaced assembler routines with C. There's probably a
-- * performance hit, but I only have a cdrom and can't tell. Define
-- * SEAGATE_USE_ASM if you want the old assembler code -- SJT
-- *
-- * 1998-jul-29 - created DPRINTK macros and made it work under 
-- * linux 2.1.112, simplified some #defines etc. <pavel@ucw.cz>
-- *
-- * Aug 2000 - aeb - deleted seagate_st0x_biosparam(). It would try to
-- * read the physical disk geometry, a bad mistake. Of course it doesn't
-- * matter much what geometry one invents, but on large disks it
-- * returned 256 (or more) heads, causing all kind of failures.
-- * Of course this means that people might see a different geometry now,
-- * so boot parameters may be necessary in some cases.
-- */
+-This is an extension to the Linux operating system, and is covered by the
+-same GNU General Public License that covers that work.
 -
--/*
-- * Configuration :
-- * To use without BIOS -DOVERRIDE=base_address -DCONTROLLER=FD or SEAGATE
-- * -DIRQ will override the default of 5.
-- * Note: You can now set these options from the kernel's "command line".
-- * The syntax is:
-- *
-- *     st0x=ADDRESS,IRQ                (for a Seagate controller)
-- * or:
-- *     tmc8xx=ADDRESS,IRQ              (for a TMC-8xx or TMC-950 controller)
-- * eg:
-- *     tmc8xx=0xC8000,15
-- *
-- * will configure the driver for a TMC-8xx style controller using IRQ 15
-- * with a base address of 0xC8000.
-- *
-- * -DARBITRATE 
-- *      Will cause the host adapter to arbitrate for the
-- *      bus for better SCSI-II compatibility, rather than just
-- *      waiting for BUS FREE and then doing its thing.  Should
-- *      let us do one command per Lun when I integrate my
-- *      reorganization changes into the distribution sources.
-- *
-- * -DDEBUG=65535
-- *      Will activate debug code.
-- *
-- * -DFAST or -DFAST32 
-- *      Will use blind transfers where possible
-- *
-- * -DPARITY  
-- *      This will enable parity.
-- *
-- * -DSEAGATE_USE_ASM
-- *      Will use older seagate assembly code. should be (very small amount)
-- *      Faster.
-- *
-- * -DSLOW_RATE=50
-- *      Will allow compatibility with broken devices that don't
-- *      handshake fast enough (ie, some CD ROM's) for the Seagate
-- *      code.
-- *
-- *      50 is some number, It will let you specify a default
-- *      transfer rate if handshaking isn't working correctly.
-- *
-- * -DOLDCNTDATASCEME  There is a new sceme to set the CONTROL
-- *                    and DATA reigsters which complies more closely
-- *                    with the SCSI2 standard. This hopefully eliminates
-- *                    the need to swap the order these registers are
-- *                    'messed' with. It makes the following two options
-- *                    obsolete. To reenable the old sceme define this.
-- *
-- * The following to options are patches from the SCSI.HOWTO
-- *
-- * -DSWAPSTAT  This will swap the definitions for STAT_MSG and STAT_CD.
-- *
-- * -DSWAPCNTDATA  This will swap the order that seagate.c messes with
-- *                the CONTROL an DATA registers.
-- */
+-Copyright 1999 by Alfred Arnold (alfred@ccac.rwth-aachen.de,
+-                                 alfred.arnold@lancom.de)
 -
--#include <linux/module.h>
--#include <linux/interrupt.h>
--#include <linux/spinlock.h>
--#include <linux/signal.h>
+-This driver is based both on the 3C523 driver and the SK_G16 driver.
+-
+-paper sources:
+-  'PC Hardware: Aufbau, Funktionsweise, Programmierung' by
+-  Hans-Peter Messmer for the basic Microchannel stuff
+-
+-  'Linux Geraetetreiber' by Allesandro Rubini, Kalle Dalheimer
+-  for help on Ethernet driver programming
+-
+-  'Ethernet/IEEE 802.3 Family 1992 World Network Data Book/Handbook' by AMD
+-  for documentation on the AM7990 LANCE
+-
+-  'SKNET Personal Technisches Manual', Version 1.2 by Schneider&Koch
+-  for documentation on the Junior board
+-
+-  'SK-NET MC2+ Technical Manual", Version 1.1 by Schneider&Koch for
+-  documentation on the MC2 bord
+-
+-  A big thank you to the S&K support for providing me so quickly with
+-  documentation!
+-
+-  Also see http://www.syskonnect.com/
+-
+-  Missing things:
+-
+-  -> set debug level via ioctl instead of compile-time switches
+-  -> I didn't follow the development of the 2.1.x kernels, so my
+-     assumptions about which things changed with which kernel version
+-     are probably nonsense
+-
+-History:
+-  May 16th, 1999
+-  	startup
+-  May 22st, 1999
+-	added private structure, methods
+-        begun building data structures in RAM
+-  May 23nd, 1999
+-	can receive frames, send frames
+-  May 24th, 1999
+-        modularized initialization of LANCE
+-        loadable as module
+-	still Tx problem :-(
+-  May 26th, 1999
+-  	MC2 works
+-  	support for multiple devices
+-  	display media type for MC2+
+-  May 28th, 1999
+-	fixed problem in GetLANCE leaving interrupts turned off
+-        increase TX queue to 4 packets to improve send performance
+-  May 29th, 1999
+-	a few corrections in statistics, caught rcvr overruns
+-        reinitialization of LANCE/board in critical situations
+-        MCA info implemented
+-	implemented LANCE multicast filter
+-  Jun 6th, 1999
+-	additions for Linux 2.2
+-  Dec 25th, 1999
+-  	unfortunately there seem to be newer MC2+ boards that react
+-  	on IRQ 3/5/9/10 instead of 3/5/10/11, so we have to autoprobe
+-  	in questionable cases...
+-  Dec 28th, 1999
+-	integrated patches from David Weinehall & Bill Wendling for 2.3
+-	kernels (isa_...functions).  Things are defined in a way that
+-        it still works with 2.0.x 8-)
+-  Dec 30th, 1999
+-	added handling of the remaining interrupt conditions.  That
+-        should cure the spurious hangs.
+-  Jan 30th, 2000
+-	newer kernels automatically probe more than one board, so the
+-	'startslot' as a variable is also needed here
+-  June 1st, 2000
+-	added changes for recent 2.3 kernels
+-
+- *************************************************************************/
+-
+-#include <linux/kernel.h>
 -#include <linux/string.h>
--#include <linux/proc_fs.h>
--#include <linux/init.h>
--#include <linux/blkdev.h>
--#include <linux/stat.h>
+-#include <linux/errno.h>
+-#include <linux/ioport.h>
+-#include <linux/slab.h>
+-#include <linux/interrupt.h>
 -#include <linux/delay.h>
--#include <linux/io.h>
+-#include <linux/time.h>
+-#include <linux/mca-legacy.h>
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/netdevice.h>
+-#include <linux/etherdevice.h>
+-#include <linux/skbuff.h>
+-#include <linux/bitops.h>
 -
--#include <asm/system.h>
--#include <asm/uaccess.h>
+-#include <asm/processor.h>
+-#include <asm/io.h>
 -
--#include <scsi/scsi_cmnd.h>
--#include <scsi/scsi_device.h>
--#include <scsi/scsi.h>
+-#define _SK_MCA_DRIVER_
+-#include "sk_mca.h"
 -
--#include <scsi/scsi_dbg.h>
--#include <scsi/scsi_host.h>
+-/* ------------------------------------------------------------------------
+- * global static data - not more since we can handle multiple boards and
+- * have to pack all state info into the device struct!
+- * ------------------------------------------------------------------------ */
 -
+-static char *MediaNames[Media_Count] =
+-    { "10Base2", "10BaseT", "10Base5", "Unknown" };
+-
+-static unsigned char poly[] =
+-    { 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0,
+-	1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0
+-};
+-
+-/* ------------------------------------------------------------------------
+- * private subfunctions
+- * ------------------------------------------------------------------------ */
+-
+-/* dump parts of shared memory - only needed during debugging */
 -
 -#ifdef DEBUG
--#define DPRINTK( when, msg... ) do { if ( (DEBUG & (when)) == (when) ) printk( msg ); } while (0)
--#else
--#define DPRINTK( when, msg... ) do { } while (0)
--#endif
--#define DANY( msg... ) DPRINTK( 0xffff, msg );
--
--#ifndef IRQ
--#define IRQ 5
--#endif
--
--#ifdef FAST32
--#define FAST
--#endif
--
--#undef LINKED			/* Linked commands are currently broken! */
--
--#if defined(OVERRIDE) && !defined(CONTROLLER)
--#error Please use -DCONTROLLER=SEAGATE or -DCONTROLLER=FD to override controller type
--#endif
--
--#ifndef __i386__
--#undef SEAGATE_USE_ASM
--#endif
--
--/*
--	Thanks to Brian Antoine for the example code in his Messy-Loss ST-01
--		driver, and Mitsugu Suzuki for information on the ST-01
--		SCSI host.
--*/
--
--/*
--	CONTROL defines
--*/
--
--#define CMD_RST 		0x01
--#define CMD_SEL 		0x02
--#define CMD_BSY 		0x04
--#define CMD_ATTN    		0x08
--#define CMD_START_ARB		0x10
--#define CMD_EN_PARITY		0x20
--#define CMD_INTR		0x40
--#define CMD_DRVR_ENABLE		0x80
--
--/*
--	STATUS
--*/
--#ifdef SWAPSTAT
--#define STAT_MSG		0x08
--#define STAT_CD			0x02
--#else
--#define STAT_MSG		0x02
--#define STAT_CD			0x08
--#endif
--
--#define STAT_BSY		0x01
--#define STAT_IO			0x04
--#define STAT_REQ		0x10
--#define STAT_SEL		0x20
--#define STAT_PARITY		0x40
--#define STAT_ARB_CMPL		0x80
--
--/* 
--	REQUESTS
--*/
--
--#define REQ_MASK (STAT_CD |  STAT_IO | STAT_MSG)
--#define REQ_DATAOUT 0
--#define REQ_DATAIN STAT_IO
--#define REQ_CMDOUT STAT_CD
--#define REQ_STATIN (STAT_CD | STAT_IO)
--#define REQ_MSGOUT (STAT_MSG | STAT_CD)
--#define REQ_MSGIN (STAT_MSG | STAT_CD | STAT_IO)
--
--extern volatile int seagate_st0x_timeout;
--
--#ifdef PARITY
--#define BASE_CMD CMD_EN_PARITY
--#else
--#define BASE_CMD  0
--#endif
--
--/*
--	Debugging code
--*/
--
--#define PHASE_BUS_FREE 1
--#define PHASE_ARBITRATION 2
--#define PHASE_SELECTION 4
--#define PHASE_DATAIN 8
--#define PHASE_DATAOUT 0x10
--#define PHASE_CMDOUT 0x20
--#define PHASE_MSGIN 0x40
--#define PHASE_MSGOUT 0x80
--#define PHASE_STATUSIN 0x100
--#define PHASE_ETC (PHASE_DATAIN | PHASE_DATAOUT | PHASE_CMDOUT | PHASE_MSGIN | PHASE_MSGOUT | PHASE_STATUSIN)
--#define PRINT_COMMAND 0x200
--#define PHASE_EXIT 0x400
--#define PHASE_RESELECT 0x800
--#define DEBUG_FAST 0x1000
--#define DEBUG_SG   0x2000
--#define DEBUG_LINKED	0x4000
--#define DEBUG_BORKEN	0x8000
--
--/* 
-- *	Control options - these are timeouts specified in .01 seconds.
-- */
--
--/* 30, 20 work */
--#define ST0X_BUS_FREE_DELAY 25
--#define ST0X_SELECTION_DELAY 25
--
--#define SEAGATE 1		/* these determine the type of the controller */
--#define FD	2
--
--#define ST0X_ID_STR	"Seagate ST-01/ST-02"
--#define FD_ID_STR	"TMC-8XX/TMC-950"
--
--static int internal_command (unsigned char target, unsigned char lun,
--			     const void *cmnd,
--			     void *buff, int bufflen, int reselect);
--
--static int incommand;		/* set if arbitration has finished
--				   and we are in some command phase. */
--
--static unsigned int base_address = 0;	/* Where the card ROM starts, used to 
--					   calculate memory mapped register
--					   location.  */
--
--static void __iomem *st0x_cr_sr;	/* control register write, status
--					   register read.  256 bytes in
--					   length.
--					   Read is status of SCSI BUS, as per 
--					   STAT masks.  */
--
--static void __iomem *st0x_dr;	/* data register, read write 256
--				   bytes in length.  */
--
--static volatile int st0x_aborted = 0;	/* set when we are aborted, ie by a
--					   time out, etc.  */
--
--static unsigned char controller_type = 0;	/* set to SEAGATE for ST0x
--						   boards or FD for TMC-8xx
--						   boards */
--static int irq = IRQ;
--
--module_param(base_address, uint, 0);
--module_param(controller_type, byte, 0);
--module_param(irq, int, 0);
--MODULE_LICENSE("GPL");
--
--
--#define retcode(result) (((result) << 16) | (message << 8) | status)
--#define STATUS ((u8) readb(st0x_cr_sr))
--#define DATA ((u8) readb(st0x_dr))
--#define WRITE_CONTROL(d) { writeb((d), st0x_cr_sr); }
--#define WRITE_DATA(d) { writeb((d), st0x_dr); }
--
--#ifndef OVERRIDE
--static unsigned int seagate_bases[] = {
--	0xc8000, 0xca000, 0xcc000,
--	0xce000, 0xdc000, 0xde000
--};
--
--typedef struct {
--	const unsigned char *signature;
--	unsigned offset;
--	unsigned length;
--	unsigned char type;
--} Signature;
--
--static Signature __initdata signatures[] = {
--	{"ST01 v1.7  (C) Copyright 1987 Seagate", 15, 37, SEAGATE},
--	{"SCSI BIOS 2.00  (C) Copyright 1987 Seagate", 15, 40, SEAGATE},
--
--/*
-- * The following two lines are NOT mistakes.  One detects ROM revision
-- * 3.0.0, the other 3.2.  Since seagate has only one type of SCSI adapter,
-- * and this is not going to change, the "SEAGATE" and "SCSI" together
-- * are probably "good enough"
-- */
--
--	{"SEAGATE SCSI BIOS ", 16, 17, SEAGATE},
--	{"SEAGATE SCSI BIOS ", 17, 17, SEAGATE},
--
--/*
-- * However, future domain makes several incompatible SCSI boards, so specific
-- * signatures must be used.
-- */
--
--	{"FUTURE DOMAIN CORP. (C) 1986-1989 V5.0C2/14/89", 5, 46, FD},
--	{"FUTURE DOMAIN CORP. (C) 1986-1989 V6.0A7/28/89", 5, 46, FD},
--	{"FUTURE DOMAIN CORP. (C) 1986-1990 V6.0105/31/90", 5, 47, FD},
--	{"FUTURE DOMAIN CORP. (C) 1986-1990 V6.0209/18/90", 5, 47, FD},
--	{"FUTURE DOMAIN CORP. (C) 1986-1990 V7.009/18/90", 5, 46, FD},
--	{"FUTURE DOMAIN CORP. (C) 1992 V8.00.004/02/92", 5, 44, FD},
--	{"IBM F1 BIOS V1.1004/30/92", 5, 25, FD},
--	{"FUTURE DOMAIN TMC-950", 5, 21, FD},
--	/* Added for 2.2.16 by Matthias_Heidbrink@b.maus.de */
--	{"IBM F1 V1.2009/22/93", 5, 25, FD},
--};
--
--#define NUM_SIGNATURES ARRAY_SIZE(signatures)
--#endif				/* n OVERRIDE */
--
--/*
-- * hostno stores the hostnumber, as told to us by the init routine.
-- */
--
--static int hostno = -1;
--static void seagate_reconnect_intr (int, void *);
--static irqreturn_t do_seagate_reconnect_intr (int, void *);
--static int seagate_st0x_bus_reset(struct scsi_cmnd *);
--
--#ifdef FAST
--static int fast = 1;
--#else
--#define fast 0
--#endif
--
--#ifdef SLOW_RATE
--/*
-- * Support for broken devices :
-- * The Seagate board has a handshaking problem.  Namely, a lack
-- * thereof for slow devices.  You can blast 600K/second through
-- * it if you are polling for each byte, more if you do a blind
-- * transfer.  In the first case, with a fast device, REQ will
-- * transition high-low or high-low-high before your loop restarts
-- * and you'll have no problems.  In the second case, the board
-- * will insert wait states for up to 13.2 usecs for REQ to
-- * transition low->high, and everything will work.
-- *
-- * However, there's nothing in the state machine that says
-- * you *HAVE* to see a high-low-high set of transitions before
-- * sending the next byte, and slow things like the Trantor CD ROMS
-- * will break because of this.
-- *
-- * So, we need to slow things down, which isn't as simple as it
-- * seems.  We can't slow things down period, because then people
-- * who don't recompile their kernels will shoot me for ruining
-- * their performance.  We need to do it on a case per case basis.
-- *
-- * The best for performance will be to, only for borken devices
-- * (this is stored on a per-target basis in the scsi_devices array)
-- *
-- * Wait for a low->high transition before continuing with that
-- * transfer.  If we timeout, continue anyways.  We don't need
-- * a long timeout, because REQ should only be asserted until the
-- * corresponding ACK is received and processed.
-- *
-- * Note that we can't use the system timer for this, because of
-- * resolution, and we *really* can't use the timer chip since
-- * gettimeofday() and the beeper routines use that.  So,
-- * the best thing for us to do will be to calibrate a timing
-- * loop in the initialization code using the timer chip before
-- * gettimeofday() can screw with it.
-- *
-- * FIXME: this is broken (not borken :-). Empty loop costs less than
-- * loop with ISA access in it! -- pavel@ucw.cz
-- */
--
--static int borken_calibration = 0;
--
--static void __init borken_init (void)
+-static void dumpmem(struct net_device *dev, u32 start, u32 len)
 -{
--	register int count = 0, start = jiffies + 1, stop = start + 25;
+-	skmca_priv *priv = netdev_priv(dev);
+-	int z;
 -
--	/* FIXME: There may be a better approach, this is a straight port for
--	   now */
--	preempt_disable();
--	while (time_before (jiffies, start))
--		cpu_relax();
--	for (; time_before (jiffies, stop); ++count)
--		cpu_relax();
--	preempt_enable();
--
--/*
-- * Ok, we now have a count for .25 seconds.  Convert to a
-- * count per second and divide by transfer rate in K.  */
--
--	borken_calibration = (count * 4) / (SLOW_RATE * 1024);
--
--	if (borken_calibration < 1)
--		borken_calibration = 1;
--}
--
--static inline void borken_wait (void)
--{
--	register int count;
--
--	for (count = borken_calibration; count && (STATUS & STAT_REQ); --count)
--		cpu_relax();
--	     	
--#if (DEBUG & DEBUG_BORKEN)
--	if (count)
--		printk ("scsi%d : borken timeout\n", hostno);
--#endif
--}
--
--#endif				/* def SLOW_RATE */
--
--/* These beasts only live on ISA, and ISA means 8MHz. Each ULOOP()
-- * contains at least one ISA access, which takes more than 0.125
-- * usec. So if we loop 8 times time in usec, we are safe.
-- */
--
--#define ULOOP( i ) for (clock = i*8;;)
--#define TIMEOUT (!(clock--))
--
--int __init seagate_st0x_detect (struct scsi_host_template * tpnt)
--{
--	struct Scsi_Host *instance;
--	int i, j;
--	unsigned long cr, dr;
--
--	tpnt->proc_name = "seagate";
--/*
-- *	First, we try for the manual override.
-- */
--	DANY ("Autodetecting ST0x / TMC-8xx\n");
--
--	if (hostno != -1) {
--		printk (KERN_ERR "seagate_st0x_detect() called twice?!\n");
--		return 0;
+-	for (z = 0; z < len; z++) {
+-		if ((z & 15) == 0)
+-			printk("%04x:", z);
+-		printk(" %02x", readb(priv->base + start + z));
+-		if ((z & 15) == 15)
+-			printk("\n");
 -	}
+-}
 -
--/* If the user specified the controller type from the command line,
--   controller_type will be non-zero, so don't try to detect one */
+-/* print exact time - ditto */
 -
--	if (!controller_type) {
--#ifdef OVERRIDE
--		base_address = OVERRIDE;
--		controller_type = CONTROLLER;
+-static void PrTime(void)
+-{
+-	struct timeval tv;
 -
--		DANY ("Base address overridden to %x, controller type is %s\n",
--		      base_address,
--		      controller_type == SEAGATE ? "SEAGATE" : "FD");
--#else				/* OVERRIDE */
--/*
-- * 	To detect this card, we simply look for the signature
-- *      from the BIOS version notice in all the possible locations
-- *      of the ROM's.  This has a nice side effect of not trashing
-- *      any register locations that might be used by something else.
-- *
-- * XXX - note that we probably should be probing the address
-- * space for the on-board RAM instead.
-- */
+-	do_gettimeofday(&tv);
+-	printk("%9d:%06d: ", tv.tv_sec, tv.tv_usec);
+-}
+-#endif
 -
--		for (i = 0; i < ARRAY_SIZE(seagate_bases); ++i) {
--			void __iomem *p = ioremap(seagate_bases[i], 0x2000);
--			if (!p)
--				continue;
--			for (j = 0; j < NUM_SIGNATURES; ++j)
--				if (check_signature(p + signatures[j].offset, signatures[j].signature, signatures[j].length)) {
--					base_address = seagate_bases[i];
--					controller_type = signatures[j].type;
--					break;
--				}
--			iounmap(p);
+-/* deduce resources out of POS registers */
+-
+-static void __init getaddrs(int slot, int junior, int *base, int *irq,
+-		     skmca_medium * medium)
+-{
+-	u_char pos0, pos1, pos2;
+-
+-	if (junior) {
+-		pos0 = mca_read_stored_pos(slot, 2);
+-		*base = ((pos0 & 0x0e) << 13) + 0xc0000;
+-		*irq = ((pos0 & 0x10) >> 4) + 10;
+-		*medium = Media_Unknown;
+-	} else {
+-		/* reset POS 104 Bits 0+1 so the shared memory region goes to the
+-		   configured area between 640K and 1M.  Afterwards, enable the MC2.
+-		   I really don't know what rode SK to do this... */
+-
+-		mca_write_pos(slot, 4,
+-			      mca_read_stored_pos(slot, 4) & 0xfc);
+-		mca_write_pos(slot, 2,
+-			      mca_read_stored_pos(slot, 2) | 0x01);
+-
+-		pos1 = mca_read_stored_pos(slot, 3);
+-		pos2 = mca_read_stored_pos(slot, 4);
+-		*base = ((pos1 & 0x07) << 14) + 0xc0000;
+-		switch (pos2 & 0x0c) {
+-		case 0:
+-			*irq = 3;
+-			break;
+-		case 4:
+-			*irq = 5;
+-			break;
+-		case 8:
+-			*irq = -10;
+-			break;
+-		case 12:
+-			*irq = -11;
+-			break;
 -		}
--#endif				/* OVERRIDE */
+-		*medium = (pos2 >> 6) & 3;
 -	}
--	/* (! controller_type) */
--	tpnt->this_id = (controller_type == SEAGATE) ? 7 : 6;
--	tpnt->name = (controller_type == SEAGATE) ? ST0X_ID_STR : FD_ID_STR;
+-}
 -
--	if (!base_address) {
--		printk(KERN_INFO "seagate: ST0x/TMC-8xx not detected.\n");
--		return 0;
+-/* check for both cards:
+-   When the MC2 is turned off, it was configured for more than 15MB RAM,
+-   is disabled and won't get detected using the standard probe.  We
+-   therefore have to scan the slots manually :-( */
+-
+-static int __init dofind(int *junior, int firstslot)
+-{
+-	int slot;
+-	unsigned int id;
+-
+-	for (slot = firstslot; slot < MCA_MAX_SLOT_NR; slot++) {
+-		id = mca_read_stored_pos(slot, 0)
+-		    + (((unsigned int) mca_read_stored_pos(slot, 1)) << 8);
+-
+-		*junior = 0;
+-		if (id == SKNET_MCA_ID)
+-			return slot;
+-		*junior = 1;
+-		if (id == SKNET_JUNIOR_MCA_ID)
+-			return slot;
 -	}
+-	return MCA_NOTFOUND;
+-}
 -
--	cr = base_address + (controller_type == SEAGATE ? 0x1a00 : 0x1c00);
--	dr = cr + 0x200;
--	st0x_cr_sr = ioremap(cr, 0x100);
--	st0x_dr = ioremap(dr, 0x100);
+-/* reset the whole board */
 -
--	DANY("%s detected. Base address = %x, cr = %x, dr = %x\n",
--	      tpnt->name, base_address, cr, dr);
+-static void ResetBoard(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
 -
--	/*
--	 *	At all times, we will use IRQ 5.  Should also check for IRQ3
--	 *	if we lose our first interrupt.
--	 */
--	instance = scsi_register (tpnt, 0);
--	if (instance == NULL)
--		return 0;
+-	writeb(CTRL_RESET_ON, priv->ctrladdr);
+-	udelay(10);
+-	writeb(CTRL_RESET_OFF, priv->ctrladdr);
+-}
 -
--	hostno = instance->host_no;
--	if (request_irq (irq, do_seagate_reconnect_intr, IRQF_DISABLED, (controller_type == SEAGATE) ? "seagate" : "tmc-8xx", instance)) {
--		printk(KERN_ERR "scsi%d : unable to allocate IRQ%d\n", hostno, irq);
--		return 0;
--	}
--	instance->irq = irq;
--	instance->io_port = base_address;
--#ifdef SLOW_RATE
--	printk(KERN_INFO "Calibrating borken timer... ");
--	borken_init();
--	printk(" %d cycles per transfer\n", borken_calibration);
--#endif
--	printk (KERN_INFO "This is one second... ");
--	{
--		int clock;
--		ULOOP (1 * 1000 * 1000) {
--			STATUS;
--			if (TIMEOUT)
--				break;
+-/* wait for LANCE interface to become not busy */
+-
+-static int WaitLANCE(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	int t = 0;
+-
+-	while ((readb(priv->ctrladdr) & STAT_IO_BUSY) ==
+-	       STAT_IO_BUSY) {
+-		udelay(1);
+-		if (++t > 1000) {
+-			printk("%s: LANCE access timeout", dev->name);
+-			return 0;
 -		}
 -	}
 -
--	printk ("done, %s options:"
--#ifdef ARBITRATE
--		" ARBITRATE"
--#endif
--#ifdef DEBUG
--		" DEBUG"
--#endif
--#ifdef FAST
--		" FAST"
--#ifdef FAST32
--		"32"
--#endif
--#endif
--#ifdef LINKED
--		" LINKED"
--#endif
--#ifdef PARITY
--		" PARITY"
--#endif
--#ifdef SEAGATE_USE_ASM
--		" SEAGATE_USE_ASM"
--#endif
--#ifdef SLOW_RATE
--		" SLOW_RATE"
--#endif
--#ifdef SWAPSTAT
--		" SWAPSTAT"
--#endif
--#ifdef SWAPCNTDATA
--		" SWAPCNTDATA"
--#endif
--		"\n", tpnt->name);
 -	return 1;
 -}
 -
--static const char *seagate_st0x_info (struct Scsi_Host *shpnt)
--{
--	static char buffer[64];
+-/* set LANCE register - must be atomic */
 -
--	snprintf(buffer, 64, "%s at irq %d, address 0x%05X",
--		 (controller_type == SEAGATE) ? ST0X_ID_STR : FD_ID_STR,
--		 irq, base_address);
--	return buffer;
+-static void SetLANCE(struct net_device *dev, u16 addr, u16 value)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	unsigned long flags;
+-
+-	/* disable interrupts */
+-
+-	spin_lock_irqsave(&priv->lock, flags);
+-
+-	/* wait until no transfer is pending */
+-
+-	WaitLANCE(dev);
+-
+-	/* transfer register address to RAP */
+-
+-	writeb(CTRL_RESET_OFF | CTRL_RW_WRITE | CTRL_ADR_RAP, priv->ctrladdr);
+-	writew(addr, priv->ioregaddr);
+-	writeb(IOCMD_GO, priv->cmdaddr);
+-	udelay(1);
+-	WaitLANCE(dev);
+-
+-	/* transfer data to register */
+-
+-	writeb(CTRL_RESET_OFF | CTRL_RW_WRITE | CTRL_ADR_DATA, priv->ctrladdr);
+-	writew(value, priv->ioregaddr);
+-	writeb(IOCMD_GO, priv->cmdaddr);
+-	udelay(1);
+-	WaitLANCE(dev);
+-
+-	/* reenable interrupts */
+-
+-	spin_unlock_irqrestore(&priv->lock, flags);
 -}
 -
--/*
-- * These are our saved pointers for the outstanding command that is
-- * waiting for a reconnect
-- */
+-/* get LANCE register */
 -
--static unsigned char current_target, current_lun;
--static unsigned char *current_cmnd, *current_data;
--static int current_nobuffs;
--static struct scatterlist *current_buffer;
--static int current_bufflen;
+-static u16 GetLANCE(struct net_device *dev, u16 addr)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	unsigned long flags;
+-	unsigned int res;
 -
--#ifdef LINKED
--/*
-- * linked_connected indicates whether or not we are currently connected to
-- * linked_target, linked_lun and in an INFORMATION TRANSFER phase,
-- * using linked commands.
-- */
+-	/* disable interrupts */
 -
--static int linked_connected = 0;
--static unsigned char linked_target, linked_lun;
+-	spin_lock_irqsave(&priv->lock, flags);
+-
+-	/* wait until no transfer is pending */
+-
+-	WaitLANCE(dev);
+-
+-	/* transfer register address to RAP */
+-
+-	writeb(CTRL_RESET_OFF | CTRL_RW_WRITE | CTRL_ADR_RAP, priv->ctrladdr);
+-	writew(addr, priv->ioregaddr);
+-	writeb(IOCMD_GO, priv->cmdaddr);
+-	udelay(1);
+-	WaitLANCE(dev);
+-
+-	/* transfer data from register */
+-
+-	writeb(CTRL_RESET_OFF | CTRL_RW_READ | CTRL_ADR_DATA, priv->ctrladdr);
+-	writeb(IOCMD_GO, priv->cmdaddr);
+-	udelay(1);
+-	WaitLANCE(dev);
+-	res = readw(priv->ioregaddr);
+-
+-	/* reenable interrupts */
+-
+-	spin_unlock_irqrestore(&priv->lock, flags);
+-
+-	return res;
+-}
+-
+-/* build up descriptors in shared RAM */
+-
+-static void InitDscrs(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	u32 bufaddr;
+-
+-	/* Set up Tx descriptors. The board has only 16K RAM so bits 16..23
+-	   are always 0. */
+-
+-	bufaddr = RAM_DATABASE;
+-	{
+-		LANCE_TxDescr descr;
+-		int z;
+-
+-		for (z = 0; z < TXCOUNT; z++) {
+-			descr.LowAddr = bufaddr;
+-			descr.Flags = 0;
+-			descr.Len = 0xf000;
+-			descr.Status = 0;
+-			memcpy_toio(priv->base + RAM_TXBASE +
+-				   (z * sizeof(LANCE_TxDescr)), &descr,
+-				   sizeof(LANCE_TxDescr));
+-			memset_io(priv->base + bufaddr, 0, RAM_BUFSIZE);
+-			bufaddr += RAM_BUFSIZE;
+-		}
+-	}
+-
+-	/* do the same for the Rx descriptors */
+-
+-	{
+-		LANCE_RxDescr descr;
+-		int z;
+-
+-		for (z = 0; z < RXCOUNT; z++) {
+-			descr.LowAddr = bufaddr;
+-			descr.Flags = RXDSCR_FLAGS_OWN;
+-			descr.MaxLen = -RAM_BUFSIZE;
+-			descr.Len = 0;
+-			memcpy_toio(priv->base + RAM_RXBASE +
+-				   (z * sizeof(LANCE_RxDescr)), &descr,
+-				   sizeof(LANCE_RxDescr));
+-			memset_io(priv->base + bufaddr, 0, RAM_BUFSIZE);
+-			bufaddr += RAM_BUFSIZE;
+-		}
+-	}
+-}
+-
+-/* calculate the hash bit position for a given multicast address
+-   taken more or less directly from the AMD datasheet... */
+-
+-static void UpdateCRC(unsigned char *CRC, int bit)
+-{
+-	int j;
+-
+-	/* shift CRC one bit */
+-
+-	memmove(CRC + 1, CRC, 32 * sizeof(unsigned char));
+-	CRC[0] = 0;
+-
+-	/* if bit XOR controlbit = 1, set CRC = CRC XOR polynomial */
+-
+-	if (bit ^ CRC[32])
+-		for (j = 0; j < 32; j++)
+-			CRC[j] ^= poly[j];
+-}
+-
+-static unsigned int GetHash(char *address)
+-{
+-	unsigned char CRC[33];
+-	int i, byte, hashcode;
+-
+-	/* a multicast address has bit 0 in the first byte set */
+-
+-	if ((address[0] & 1) == 0)
+-		return -1;
+-
+-	/* initialize CRC */
+-
+-	memset(CRC, 1, sizeof(CRC));
+-
+-	/* loop through address bits */
+-
+-	for (byte = 0; byte < 6; byte++)
+-		for (i = 0; i < 8; i++)
+-			UpdateCRC(CRC, (address[byte] >> i) & 1);
+-
+-	/* hashcode is the 6 least significant bits of the CRC */
+-
+-	hashcode = 0;
+-	for (i = 0; i < 6; i++)
+-		hashcode = (hashcode << 1) + CRC[i];
+-	return hashcode;
+-}
+-
+-/* feed ready-built initialization block into LANCE */
+-
+-static void InitLANCE(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-
+-	/* build up descriptors. */
+-
+-	InitDscrs(dev);
+-
+-	/* next RX descriptor to be read is the first one.  Since the LANCE
+-	   will start from the beginning after initialization, we have to
+-	   reset out pointers too. */
+-
+-	priv->nextrx = 0;
+-
+-	/* no TX descriptors active */
+-
+-	priv->nexttxput = priv->nexttxdone = priv->txbusy = 0;
+-
+-	/* set up the LANCE bus control register - constant for SKnet boards */
+-
+-	SetLANCE(dev, LANCE_CSR3,
+-		 CSR3_BSWAP_OFF | CSR3_ALE_LOW | CSR3_BCON_HOLD);
+-
+-	/* write address of initialization block into LANCE */
+-
+-	SetLANCE(dev, LANCE_CSR1, RAM_INITBASE & 0xffff);
+-	SetLANCE(dev, LANCE_CSR2, (RAM_INITBASE >> 16) & 0xff);
+-
+-	/* we don't get ready until the LANCE has read the init block */
+-
+-	netif_stop_queue(dev);
+-
+-	/* let LANCE read the initialization block.  LANCE is ready
+-	   when we receive the corresponding interrupt. */
+-
+-	SetLANCE(dev, LANCE_CSR0, CSR0_INEA | CSR0_INIT);
+-}
+-
+-/* stop the LANCE so we can reinitialize it */
+-
+-static void StopLANCE(struct net_device *dev)
+-{
+-	/* can't take frames any more */
+-
+-	netif_stop_queue(dev);
+-
+-	/* disable interrupts, stop it */
+-
+-	SetLANCE(dev, LANCE_CSR0, CSR0_STOP);
+-}
+-
+-/* initialize card and LANCE for proper operation */
+-
+-static void InitBoard(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	LANCE_InitBlock block;
+-
+-	/* Lay out the shared RAM - first we create the init block for the LANCE.
+-	   We do not overwrite it later because we need it again when we switch
+-	   promiscous mode on/off. */
+-
+-	block.Mode = 0;
+-	if (dev->flags & IFF_PROMISC)
+-		block.Mode |= LANCE_INIT_PROM;
+-	memcpy(block.PAdr, dev->dev_addr, 6);
+-	memset(block.LAdrF, 0, sizeof(block.LAdrF));
+-	block.RdrP = (RAM_RXBASE & 0xffffff) | (LRXCOUNT << 29);
+-	block.TdrP = (RAM_TXBASE & 0xffffff) | (LTXCOUNT << 29);
+-
+-	memcpy_toio(priv->base + RAM_INITBASE, &block, sizeof(block));
+-
+-	/* initialize LANCE. Implicitly sets up other structures in RAM. */
+-
+-	InitLANCE(dev);
+-}
+-
+-/* deinitialize card and LANCE */
+-
+-static void DeinitBoard(struct net_device *dev)
+-{
+-	/* stop LANCE */
+-
+-	StopLANCE(dev);
+-
+-	/* reset board */
+-
+-	ResetBoard(dev);
+-}
+-
+-/* probe for device's irq */
+-
+-static int __init ProbeIRQ(struct net_device *dev)
+-{
+-	unsigned long imaskval, njiffies, irq;
+-	u16 csr0val;
+-
+-	/* enable all interrupts */
+-
+-	imaskval = probe_irq_on();
+-
+-	/* initialize the board. Wait for interrupt 'Initialization done'. */
+-
+-	ResetBoard(dev);
+-	InitBoard(dev);
+-
+-	njiffies = jiffies + HZ;
+-	do {
+-		csr0val = GetLANCE(dev, LANCE_CSR0);
+-	}
+-	while (((csr0val & CSR0_IDON) == 0) && (jiffies != njiffies));
+-
+-	/* turn of interrupts again */
+-
+-	irq = probe_irq_off(imaskval);
+-
+-	/* if we found something, ack the interrupt */
+-
+-	if (irq)
+-		SetLANCE(dev, LANCE_CSR0, csr0val | CSR0_IDON);
+-
+-	/* back to idle state */
+-
+-	DeinitBoard(dev);
+-
+-	return irq;
+-}
+-
+-/* ------------------------------------------------------------------------
+- * interrupt handler(s)
+- * ------------------------------------------------------------------------ */
+-
+-/* LANCE has read initialization block -> start it */
+-
+-static u16 irqstart_handler(struct net_device *dev, u16 oldcsr0)
+-{
+-	/* now we're ready to transmit */
+-
+-	netif_wake_queue(dev);
+-
+-	/* reset IDON bit, start LANCE */
+-
+-	SetLANCE(dev, LANCE_CSR0, oldcsr0 | CSR0_IDON | CSR0_STRT);
+-	return GetLANCE(dev, LANCE_CSR0);
+-}
+-
+-/* did we lose blocks due to a FIFO overrun ? */
+-
+-static u16 irqmiss_handler(struct net_device *dev, u16 oldcsr0)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-
+-	/* update statistics */
+-
+-	priv->stat.rx_fifo_errors++;
+-
+-	/* reset MISS bit */
+-
+-	SetLANCE(dev, LANCE_CSR0, oldcsr0 | CSR0_MISS);
+-	return GetLANCE(dev, LANCE_CSR0);
+-}
+-
+-/* receive interrupt */
+-
+-static u16 irqrx_handler(struct net_device *dev, u16 oldcsr0)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	LANCE_RxDescr descr;
+-	unsigned int descraddr;
+-
+-	/* run through queue until we reach a descriptor we do not own */
+-
+-	descraddr = RAM_RXBASE + (priv->nextrx * sizeof(LANCE_RxDescr));
+-	while (1) {
+-		/* read descriptor */
+-		memcpy_fromio(&descr, priv->base + descraddr,
+-			     sizeof(LANCE_RxDescr));
+-
+-		/* if we reach a descriptor we do not own, we're done */
+-		if ((descr.Flags & RXDSCR_FLAGS_OWN) != 0)
+-			break;
+-
+-#ifdef DEBUG
+-		PrTime();
+-		printk("Receive packet on descr %d len %d\n", priv->nextrx,
+-		       descr.Len);
 -#endif
 -
--static void (*done_fn) (struct scsi_cmnd *) = NULL;
--static struct scsi_cmnd *SCint = NULL;
+-		/* erroneous packet ? */
+-		if ((descr.Flags & RXDSCR_FLAGS_ERR) != 0) {
+-			priv->stat.rx_errors++;
+-			if ((descr.Flags & RXDSCR_FLAGS_CRC) != 0)
+-				priv->stat.rx_crc_errors++;
+-			else if ((descr.Flags & RXDSCR_FLAGS_CRC) != 0)
+-				priv->stat.rx_frame_errors++;
+-			else if ((descr.Flags & RXDSCR_FLAGS_OFLO) != 0)
+-				priv->stat.rx_fifo_errors++;
+-		}
 -
--/*
-- * These control whether or not disconnect / reconnect will be attempted,
-- * or are being attempted.
-- */
+-		/* good packet ? */
+-		else {
+-			struct sk_buff *skb;
 -
--#define NO_RECONNECT    0
--#define RECONNECT_NOW   1
--#define CAN_RECONNECT   2
+-			skb = dev_alloc_skb(descr.Len + 2);
+-			if (skb == NULL)
+-				priv->stat.rx_dropped++;
+-			else {
+-				memcpy_fromio(skb_put(skb, descr.Len),
+-					     priv->base +
+-					     descr.LowAddr, descr.Len);
+-				skb->dev = dev;
+-				skb->protocol = eth_type_trans(skb, dev);
+-				skb->ip_summed = CHECKSUM_NONE;
+-				priv->stat.rx_packets++;
+-				priv->stat.rx_bytes += descr.Len;
+-				netif_rx(skb);
+-				dev->last_rx = jiffies;
+-			}
+-		}
 -
--/*
-- * LINKED_RIGHT indicates that we are currently connected to the correct target
-- * for this command, LINKED_WRONG indicates that we are connected to the wrong
-- * target. Note that these imply CAN_RECONNECT and require defined(LINKED).
-- */
+-		/* give descriptor back to LANCE */
+-		descr.Len = 0;
+-		descr.Flags |= RXDSCR_FLAGS_OWN;
 -
--#define LINKED_RIGHT    3
--#define LINKED_WRONG    4
+-		/* update descriptor in shared RAM */
+-		memcpy_toio(priv->base + descraddr, &descr,
+-			   sizeof(LANCE_RxDescr));
 -
--/*
-- * This determines if we are expecting to reconnect or not.
-- */
+-		/* go to next descriptor */
+-		priv->nextrx++;
+-		descraddr += sizeof(LANCE_RxDescr);
+-		if (priv->nextrx >= RXCOUNT) {
+-			priv->nextrx = 0;
+-			descraddr = RAM_RXBASE;
+-		}
+-	}
 -
--static int should_reconnect = 0;
+-	/* reset RINT bit */
 -
--/*
-- * The seagate_reconnect_intr routine is called when a target reselects the
-- * host adapter.  This occurs on the interrupt triggered by the target
-- * asserting SEL.
-- */
+-	SetLANCE(dev, LANCE_CSR0, oldcsr0 | CSR0_RINT);
+-	return GetLANCE(dev, LANCE_CSR0);
+-}
 -
--static irqreturn_t do_seagate_reconnect_intr(int irq, void *dev_id)
+-/* transmit interrupt */
+-
+-static u16 irqtx_handler(struct net_device *dev, u16 oldcsr0)
 -{
--	unsigned long flags;
--	struct Scsi_Host *dev = dev_id;
--	
--	spin_lock_irqsave (dev->host_lock, flags);
--	seagate_reconnect_intr (irq, dev_id);
--	spin_unlock_irqrestore (dev->host_lock, flags);
+-	skmca_priv *priv = netdev_priv(dev);
+-	LANCE_TxDescr descr;
+-	unsigned int descraddr;
+-
+-	/* check descriptors at most until no busy one is left */
+-
+-	descraddr =
+-	    RAM_TXBASE + (priv->nexttxdone * sizeof(LANCE_TxDescr));
+-	while (priv->txbusy > 0) {
+-		/* read descriptor */
+-		memcpy_fromio(&descr, priv->base + descraddr,
+-			     sizeof(LANCE_TxDescr));
+-
+-		/* if the LANCE still owns this one, we've worked out all sent packets */
+-		if ((descr.Flags & TXDSCR_FLAGS_OWN) != 0)
+-			break;
+-
+-#ifdef DEBUG
+-		PrTime();
+-		printk("Send packet done on descr %d\n", priv->nexttxdone);
+-#endif
+-
+-		/* update statistics */
+-		if ((descr.Flags & TXDSCR_FLAGS_ERR) == 0) {
+-			priv->stat.tx_packets++;
+-			priv->stat.tx_bytes++;
+-		} else {
+-			priv->stat.tx_errors++;
+-			if ((descr.Status & TXDSCR_STATUS_UFLO) != 0) {
+-				priv->stat.tx_fifo_errors++;
+-				InitLANCE(dev);
+-			}
+-				else
+-			    if ((descr.Status & TXDSCR_STATUS_LCOL) !=
+-				0) priv->stat.tx_window_errors++;
+-			else if ((descr.Status & TXDSCR_STATUS_LCAR) != 0)
+-				priv->stat.tx_carrier_errors++;
+-			else if ((descr.Status & TXDSCR_STATUS_RTRY) != 0)
+-				priv->stat.tx_aborted_errors++;
+-		}
+-
+-		/* go to next descriptor */
+-		priv->nexttxdone++;
+-		descraddr += sizeof(LANCE_TxDescr);
+-		if (priv->nexttxdone >= TXCOUNT) {
+-			priv->nexttxdone = 0;
+-			descraddr = RAM_TXBASE;
+-		}
+-		priv->txbusy--;
+-	}
+-
+-	/* reset TX interrupt bit */
+-
+-	SetLANCE(dev, LANCE_CSR0, oldcsr0 | CSR0_TINT);
+-	oldcsr0 = GetLANCE(dev, LANCE_CSR0);
+-
+-	/* at least one descriptor is freed.  Therefore we can accept
+-	   a new one */
+-	/* inform upper layers we're in business again */
+-
+-	netif_wake_queue(dev);
+-
+-	return oldcsr0;
+-}
+-
+-/* general interrupt entry */
+-
+-static irqreturn_t irq_handler(int irq, void *device)
+-{
+-	struct net_device *dev = (struct net_device *) device;
+-	u16 csr0val;
+-
+-	/* read CSR0 to get interrupt cause */
+-
+-	csr0val = GetLANCE(dev, LANCE_CSR0);
+-
+-	/* in case we're not meant... */
+-
+-	if ((csr0val & CSR0_INTR) == 0)
+-		return IRQ_NONE;
+-
+-#if 0
+-	set_bit(LINK_STATE_RXSEM, &dev->state);
+-#endif
+-
+-	/* loop through the interrupt bits until everything is clear */
+-
+-	do {
+-		if ((csr0val & CSR0_IDON) != 0)
+-			csr0val = irqstart_handler(dev, csr0val);
+-		if ((csr0val & CSR0_RINT) != 0)
+-			csr0val = irqrx_handler(dev, csr0val);
+-		if ((csr0val & CSR0_MISS) != 0)
+-			csr0val = irqmiss_handler(dev, csr0val);
+-		if ((csr0val & CSR0_TINT) != 0)
+-			csr0val = irqtx_handler(dev, csr0val);
+-		if ((csr0val & CSR0_MERR) != 0) {
+-			SetLANCE(dev, LANCE_CSR0, csr0val | CSR0_MERR);
+-			csr0val = GetLANCE(dev, LANCE_CSR0);
+-		}
+-		if ((csr0val & CSR0_BABL) != 0) {
+-			SetLANCE(dev, LANCE_CSR0, csr0val | CSR0_BABL);
+-			csr0val = GetLANCE(dev, LANCE_CSR0);
+-		}
+-	}
+-	while ((csr0val & CSR0_INTR) != 0);
+-
+-#if 0
+-	clear_bit(LINK_STATE_RXSEM, &dev->state);
+-#endif
 -	return IRQ_HANDLED;
 -}
 -
--static void seagate_reconnect_intr (int irq, void *dev_id)
+-/* ------------------------------------------------------------------------
+- * driver methods
+- * ------------------------------------------------------------------------ */
+-
+-/* MCA info */
+-
+-static int skmca_getinfo(char *buf, int slot, void *d)
 -{
--	int temp;
--	struct scsi_cmnd *SCtmp;
+-	int len = 0, i;
+-	struct net_device *dev = (struct net_device *) d;
+-	skmca_priv *priv;
 -
--	DPRINTK (PHASE_RESELECT, "scsi%d : seagate_reconnect_intr() called\n", hostno);
+-	/* can't say anything about an uninitialized device... */
 -
--	if (!should_reconnect)
--		printk(KERN_WARNING "scsi%d: unexpected interrupt.\n", hostno);
--	else {
--		should_reconnect = 0;
+-	if (dev == NULL)
+-		return len;
+-	priv = netdev_priv(dev);
 -
--		DPRINTK (PHASE_RESELECT, "scsi%d : internal_command(%d, %08x, %08x, RECONNECT_NOW\n", 
--			hostno, current_target, current_data, current_bufflen);
+-	/* print info */
 -
--		temp = internal_command (current_target, current_lun, current_cmnd, current_data, current_bufflen, RECONNECT_NOW);
+-	len += sprintf(buf + len, "IRQ: %d\n", priv->realirq);
+-	len += sprintf(buf + len, "Memory: %#lx-%#lx\n", dev->mem_start,
+-		       dev->mem_end - 1);
+-	len +=
+-	    sprintf(buf + len, "Transceiver: %s\n",
+-		    MediaNames[priv->medium]);
+-	len += sprintf(buf + len, "Device: %s\n", dev->name);
+-	len += sprintf(buf + len, "MAC address:");
+-	for (i = 0; i < 6; i++)
+-		len += sprintf(buf + len, " %02x", dev->dev_addr[i]);
+-	buf[len++] = '\n';
+-	buf[len] = 0;
 -
--		if (msg_byte(temp) != DISCONNECT) {
--			if (done_fn) {
--				DPRINTK(PHASE_RESELECT, "scsi%d : done_fn(%d,%08x)", hostno, hostno, temp);
--				if (!SCint)
--					panic ("SCint == NULL in seagate");
--				SCtmp = SCint;
--				SCint = NULL;
--				SCtmp->result = temp;
--				done_fn(SCtmp);
--			} else
--				printk(KERN_ERR "done_fn() not defined.\n");
--		}
--	}
+-	return len;
 -}
 -
--/*
-- * The seagate_st0x_queue_command() function provides a queued interface
-- * to the seagate SCSI driver.  Basically, it just passes control onto the
-- * seagate_command() function, after fixing it so that the done_fn()
-- * is set to the one passed to the function.  We have to be very careful,
-- * because there are some commands on some devices that do not disconnect,
-- * and if we simply call the done_fn when the command is done then another
-- * command is started and queue_command is called again...  We end up
-- * overflowing the kernel stack, and this tends not to be such a good idea.
-- */
+-/* open driver.  Means also initialization and start of LANCE */
 -
--static int recursion_depth = 0;
--
--static int seagate_st0x_queue_command(struct scsi_cmnd * SCpnt,
--				      void (*done) (struct scsi_cmnd *))
+-static int skmca_open(struct net_device *dev)
 -{
--	int result, reconnect;
--	struct scsi_cmnd *SCtmp;
+-	int result;
+-	skmca_priv *priv = netdev_priv(dev);
 -
--	DANY ("seagate: que_command");
--	done_fn = done;
--	current_target = SCpnt->device->id;
--	current_lun = SCpnt->device->lun;
--	current_cmnd = SCpnt->cmnd;
--	current_data = (unsigned char *) SCpnt->request_buffer;
--	current_bufflen = SCpnt->request_bufflen;
--	SCint = SCpnt;
--	if (recursion_depth)
--		return 1;
--	recursion_depth++;
--	do {
--#ifdef LINKED
--		/*
--		 * Set linked command bit in control field of SCSI command.
--		 */
--
--		current_cmnd[SCpnt->cmd_len] |= 0x01;
--		if (linked_connected) {
--			DPRINTK (DEBUG_LINKED, "scsi%d : using linked commands, current I_T_L nexus is ", hostno);
--			if (linked_target == current_target && linked_lun == current_lun) 
--			{
--				DPRINTK(DEBUG_LINKED, "correct\n");
--				reconnect = LINKED_RIGHT;
--			} else {
--				DPRINTK(DEBUG_LINKED, "incorrect\n");
--				reconnect = LINKED_WRONG;
--			}
--		} else
--#endif				/* LINKED */
--			reconnect = CAN_RECONNECT;
--
--		result = internal_command(SCint->device->id, SCint->device->lun, SCint->cmnd,
--				      SCint->request_buffer, SCint->request_bufflen, reconnect);
--		if (msg_byte(result) == DISCONNECT)
--			break;
--		SCtmp = SCint;
--		SCint = NULL;
--		SCtmp->result = result;
--		done_fn(SCtmp);
+-	/* register resources - only necessary for IRQ */
+-	result =
+-	    request_irq(priv->realirq, irq_handler,
+-			IRQF_SHARED | IRQF_SAMPLE_RANDOM, "sk_mca", dev);
+-	if (result != 0) {
+-		printk("%s: failed to register irq %d\n", dev->name,
+-		       dev->irq);
+-		return result;
 -	}
--	while (SCint);
--	recursion_depth--;
+-	dev->irq = priv->realirq;
+-
+-	/* set up the card and LANCE */
+-
+-	InitBoard(dev);
+-
+-	/* set up flags */
+-
+-	netif_start_queue(dev);
+-
 -	return 0;
 -}
 -
--static int internal_command (unsigned char target, unsigned char lun,
--		  const void *cmnd, void *buff, int bufflen, int reselect)
+-/* close driver.  Shut down board and free allocated resources */
+-
+-static int skmca_close(struct net_device *dev)
 -{
--	unsigned char *data = NULL;
--	struct scatterlist *buffer = NULL;
--	int clock, temp, nobuffs = 0, done = 0, len = 0;
+-	/* turn off board */
+-	DeinitBoard(dev);
+-
+-	/* release resources */
+-	if (dev->irq != 0)
+-		free_irq(dev->irq, dev);
+-	dev->irq = 0;
+-
+-	return 0;
+-}
+-
+-/* transmit a block. */
+-
+-static int skmca_tx(struct sk_buff *skb, struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	LANCE_TxDescr descr;
+-	unsigned int address;
+-	int tmplen, retval = 0;
+-	unsigned long flags;
+-
+-	/* if we get called with a NULL descriptor, the Ethernet layer thinks
+-	   our card is stuck an we should reset it.  We'll do this completely: */
+-
+-	if (skb == NULL) {
+-		DeinitBoard(dev);
+-		InitBoard(dev);
+-		return 0;	/* don't try to free the block here ;-) */
+-	}
+-
+-	/* is there space in the Tx queue ? If no, the upper layer gave us a
+-	   packet in spite of us not being ready and is really in trouble.
+-	   We'll do the dropping for him: */
+-	if (priv->txbusy >= TXCOUNT) {
+-		priv->stat.tx_dropped++;
+-		retval = -EIO;
+-		goto tx_done;
+-	}
+-
+-	/* get TX descriptor */
+-	address = RAM_TXBASE + (priv->nexttxput * sizeof(LANCE_TxDescr));
+-	memcpy_fromio(&descr, priv->base + address, sizeof(LANCE_TxDescr));
+-
+-	/* enter packet length as 2s complement - assure minimum length */
+-	tmplen = skb->len;
+-	if (tmplen < 60)
+-		tmplen = 60;
+-	descr.Len = 65536 - tmplen;
+-
+-	/* copy filler into RAM - in case we're filling up...
+-	   we're filling a bit more than necessary, but that doesn't harm
+-	   since the buffer is far larger... */
+-	if (tmplen > skb->len) {
+-		char *fill = "NetBSD is a nice OS too! ";
+-		unsigned int destoffs = 0, l = strlen(fill);
+-
+-		while (destoffs < tmplen) {
+-			memcpy_toio(priv->base + descr.LowAddr +
+-				   destoffs, fill, l);
+-			destoffs += l;
+-		}
+-	}
+-
+-	/* do the real data copying */
+-	memcpy_toio(priv->base + descr.LowAddr, skb->data, skb->len);
+-
+-	/* hand descriptor over to LANCE - this is the first and last chunk */
+-	descr.Flags =
+-	    TXDSCR_FLAGS_OWN | TXDSCR_FLAGS_STP | TXDSCR_FLAGS_ENP;
+-
 -#ifdef DEBUG
--	int transfered = 0, phase = 0, newphase;
--#endif
--	register unsigned char status_read;
--	unsigned char tmp_data, tmp_control, status = 0, message = 0;
--	unsigned transfersize = 0, underflow = 0;
--#ifdef SLOW_RATE
--	int borken = (int) SCint->device->borken;	/* Does the current target require
--							   Very Slow I/O ?  */
+-	PrTime();
+-	printk("Send packet on descr %d len %d\n", priv->nexttxput,
+-	       skb->len);
 -#endif
 -
--	incommand = 0;
--	st0x_aborted = 0;
+-	/* one more descriptor busy */
 -
--#if (DEBUG & PRINT_COMMAND)
--	printk("scsi%d : target = %d, command = ", hostno, target);
--	__scsi_print_command((unsigned char *) cmnd);
--#endif
+-	spin_lock_irqsave(&priv->lock, flags);
 -
--#if (DEBUG & PHASE_RESELECT)
--	switch (reselect) {
--	case RECONNECT_NOW:
--		printk("scsi%d : reconnecting\n", hostno);
--		break;
--#ifdef LINKED
--	case LINKED_RIGHT:
--		printk("scsi%d : connected, can reconnect\n", hostno);
--		break;
--	case LINKED_WRONG:
--		printk("scsi%d : connected to wrong target, can reconnect\n",
--			hostno);
--		break;
--#endif
--	case CAN_RECONNECT:
--		printk("scsi%d : allowed to reconnect\n", hostno);
--		break;
--	default:
--		printk("scsi%d : not allowed to reconnect\n", hostno);
--	}
--#endif
+-	priv->nexttxput++;
+-	if (priv->nexttxput >= TXCOUNT)
+-		priv->nexttxput = 0;
+-	priv->txbusy++;
 -
--	if (target == (controller_type == SEAGATE ? 7 : 6))
--		return DID_BAD_TARGET;
+-	/* are we saturated ? */
 -
--	/*
--	 *	We work it differently depending on if this is is "the first time,"
--	 *      or a reconnect.  If this is a reselect phase, then SEL will
--	 *      be asserted, and we must skip selection / arbitration phases.
--	 */
+-	if (priv->txbusy >= TXCOUNT)
+-		netif_stop_queue(dev);
 -
--	switch (reselect) {
--	case RECONNECT_NOW:
--		DPRINTK (PHASE_RESELECT, "scsi%d : phase RESELECT \n", hostno);
--		/*
--		 *	At this point, we should find the logical or of our ID
--		 *	and the original target's ID on the BUS, with BSY, SEL,
--		 *	and I/O signals asserted.
--		 *
--		 *      After ARBITRATION phase is completed, only SEL, BSY,
--		 *	and the target ID are asserted.  A valid initiator ID
--		 *	is not on the bus until IO is asserted, so we must wait
--		 *	for that.
--		 */
--		ULOOP (100 * 1000) {
--			temp = STATUS;
--			if ((temp & STAT_IO) && !(temp & STAT_BSY))
--				break;
--			if (TIMEOUT) {
--				DPRINTK (PHASE_RESELECT, "scsi%d : RESELECT timed out while waiting for IO .\n", hostno);
--				return (DID_BAD_INTR << 16);
--			}
--		}
+-	/* write descriptor back to RAM */
+-	memcpy_toio(priv->base + address, &descr, sizeof(LANCE_TxDescr));
 -
--		/*
--		 *	After I/O is asserted by the target, we can read our ID
--		 *	and its ID off of the BUS.
--		 */
+-	/* if no descriptors were active, give the LANCE a hint to read it
+-	   immediately */
 -
--		if (!((temp = DATA) & (controller_type == SEAGATE ? 0x80 : 0x40))) {
--			DPRINTK (PHASE_RESELECT, "scsi%d : detected reconnect request to different target.\n\tData bus = %d\n", hostno, temp);
--			return (DID_BAD_INTR << 16);
--		}
+-	if (priv->txbusy == 0)
+-		SetLANCE(dev, LANCE_CSR0, CSR0_INEA | CSR0_TDMD);
 -
--		if (!(temp & (1 << current_target))) {
--			printk(KERN_WARNING "scsi%d : Unexpected reselect interrupt.  Data bus = %d\n", hostno, temp);
--			return (DID_BAD_INTR << 16);
--		}
+-	spin_unlock_irqrestore(&priv->lock, flags);
 -
--		buffer = current_buffer;
--		cmnd = current_cmnd;	/* WDE add */
--		data = current_data;	/* WDE add */
--		len = current_bufflen;	/* WDE add */
--		nobuffs = current_nobuffs;
+-      tx_done:
 -
--		/*
--		 *	We have determined that we have been selected.  At this
--		 *	point, we must respond to the reselection by asserting
--		 *	BSY ourselves
--		 */
+-	dev_kfree_skb(skb);
 -
--#if 1
--		WRITE_CONTROL (BASE_CMD | CMD_DRVR_ENABLE | CMD_BSY);
--#else
--		WRITE_CONTROL (BASE_CMD | CMD_BSY);
--#endif
+-	return retval;
+-}
 -
--		/*
--		 *	The target will drop SEL, and raise BSY, at which time
--		 *	we must drop BSY.
--		 */
+-/* return pointer to Ethernet statistics */
 -
--		ULOOP (100 * 1000) {
--			if (!(STATUS & STAT_SEL))
--				break;
--			if (TIMEOUT) {
--				WRITE_CONTROL (BASE_CMD | CMD_INTR);
--				DPRINTK (PHASE_RESELECT, "scsi%d : RESELECT timed out while waiting for SEL.\n", hostno);
--				return (DID_BAD_INTR << 16);
--			}
--		}
--		WRITE_CONTROL (BASE_CMD);
--		/*
--		 *	At this point, we have connected with the target
--		 *	and can get on with our lives.
--		 */
--		break;
--	case CAN_RECONNECT:
--#ifdef LINKED
--		/*
--		 * This is a bletcherous hack, just as bad as the Unix #!
--		 * interpreter stuff. If it turns out we are using the wrong
--		 * I_T_L nexus, the easiest way to deal with it is to go into
--		 *  our INFORMATION TRANSFER PHASE code, send a ABORT
--		 * message on MESSAGE OUT phase, and then loop back to here.
--		 */
--connect_loop:
--#endif
--		DPRINTK (PHASE_BUS_FREE, "scsi%d : phase = BUS FREE \n", hostno);
+-static struct net_device_stats *skmca_stats(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
 -
--		/*
--		 *    BUS FREE PHASE
--		 *
--		 *      On entry, we make sure that the BUS is in a BUS FREE
--		 *      phase, by insuring that both BSY and SEL are low for
--		 *      at least one bus settle delay.  Several reads help
--		 *      eliminate wire glitch.
--		 */
+-	return &(priv->stat);
+-}
 -
--#ifndef ARBITRATE
--#error FIXME: this is broken: we may not use jiffies here - we are under cli(). It will hardlock.
--		clock = jiffies + ST0X_BUS_FREE_DELAY;
+-/* switch receiver mode.  We use the LANCE's multicast filter to prefilter
+-   multicast addresses. */
 -
--		while (((STATUS | STATUS | STATUS) & (STAT_BSY | STAT_SEL)) && (!st0x_aborted) && time_before (jiffies, clock))
--			cpu_relax();
+-static void skmca_set_multicast_list(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	LANCE_InitBlock block;
 -
--		if (time_after (jiffies, clock))
--			return retcode (DID_BUS_BUSY);
--		else if (st0x_aborted)
--			return retcode (st0x_aborted);
--#endif
--		DPRINTK (PHASE_SELECTION, "scsi%d : phase = SELECTION\n", hostno);
+-	/* first stop the LANCE... */
+-	StopLANCE(dev);
 -
--		clock = jiffies + ST0X_SELECTION_DELAY;
--
--		/*
--		 * Arbitration/selection procedure :
--		 * 1.  Disable drivers
--		 * 2.  Write HOST adapter address bit
--		 * 3.  Set start arbitration.
--		 * 4.  We get either ARBITRATION COMPLETE or SELECT at this
--		 *     point.
--		 * 5.  OR our ID and targets on bus.
--		 * 6.  Enable SCSI drivers and asserted SEL and ATTN
--		 */
--
--#ifdef ARBITRATE
--		/* FIXME: verify host lock is always held here */
--		WRITE_CONTROL(0);
--		WRITE_DATA((controller_type == SEAGATE) ? 0x80 : 0x40);
--		WRITE_CONTROL(CMD_START_ARB);
--
--		ULOOP (ST0X_SELECTION_DELAY * 10000) {
--			status_read = STATUS;
--			if (status_read & STAT_ARB_CMPL)
--				break;
--			if (st0x_aborted)	/* FIXME: What? We are going to do something even after abort? */
--				break;
--			if (TIMEOUT || (status_read & STAT_SEL)) {
--				printk(KERN_WARNING "scsi%d : arbitration lost or timeout.\n", hostno);
--				WRITE_CONTROL (BASE_CMD);
--				return retcode (DID_NO_CONNECT);
--			}
--		}
--		DPRINTK (PHASE_SELECTION, "scsi%d : arbitration complete\n", hostno);
--#endif
--
--		/*
--		 *    When the SCSI device decides that we're gawking at it, 
--		 *    it will respond by asserting BUSY on the bus.
--		 *
--		 *    Note : the Seagate ST-01/02 product manual says that we
--		 *    should twiddle the DATA register before the control
--		 *    register. However, this does not work reliably so we do
--		 *    it the other way around.
--		 *
--		 *    Probably could be a problem with arbitration too, we
--		 *    really should try this with a SCSI protocol or logic 
--		 *    analyzer to see what is going on.
--		 */
--		tmp_data = (unsigned char) ((1 << target) | (controller_type == SEAGATE ? 0x80 : 0x40));
--		tmp_control = BASE_CMD | CMD_DRVR_ENABLE | CMD_SEL | (reselect ? CMD_ATTN : 0);
--
--		/* FIXME: verify host lock is always held here */
--#ifdef OLDCNTDATASCEME
--#ifdef SWAPCNTDATA
--		WRITE_CONTROL (tmp_control);
--		WRITE_DATA (tmp_data);
--#else
--		WRITE_DATA (tmp_data);
--		WRITE_CONTROL (tmp_control);
--#endif
--#else
--		tmp_control ^= CMD_BSY;	/* This is guesswork. What used to be in driver    */
--		WRITE_CONTROL (tmp_control);	/* could never work: it sent data into control     */
--		WRITE_DATA (tmp_data);	/* register and control info into data. Hopefully  */
--		tmp_control ^= CMD_BSY;	/* fixed, but order of first two may be wrong.     */
--		WRITE_CONTROL (tmp_control);	/* -- pavel@ucw.cz   */
--#endif
--
--		ULOOP (250 * 1000) {
--			if (st0x_aborted) {
--				/*
--				 *	If we have been aborted, and we have a
--				 *	command in progress, IE the target 
--				 *	still has BSY asserted, then we will
--				 *	reset the bus, and notify the midlevel
--				 *	driver to expect sense.
--				 */
--
--				WRITE_CONTROL (BASE_CMD);
--				if (STATUS & STAT_BSY) {
--					printk(KERN_WARNING "scsi%d : BST asserted after we've been aborted.\n", hostno);
--					seagate_st0x_bus_reset(NULL);
--					return retcode (DID_RESET);
--				}
--				return retcode (st0x_aborted);
--			}
--			if (STATUS & STAT_BSY)
--				break;
--			if (TIMEOUT) {
--				DPRINTK (PHASE_SELECTION, "scsi%d : NO CONNECT with target %d, stat = %x \n", hostno, target, STATUS);
--				return retcode (DID_NO_CONNECT);
--			}
--		}
--
--		/* Establish current pointers.  Take into account scatter / gather */
--
--		if ((nobuffs = SCint->use_sg)) {
--#if (DEBUG & DEBUG_SG)
--			{
--				int i;
--				printk("scsi%d : scatter gather requested, using %d buffers.\n", hostno, nobuffs);
--				for (i = 0; i < nobuffs; ++i)
--					printk("scsi%d : buffer %d address = %p length = %d\n",
--					     hostno, i,
--					     page_address(buffer[i].page) + buffer[i].offset,
--					     buffer[i].length);
--			}
--#endif
--
--			buffer = (struct scatterlist *) SCint->request_buffer;
--			len = buffer->length;
--			data = page_address(buffer->page) + buffer->offset;
--		} else {
--			DPRINTK (DEBUG_SG, "scsi%d : scatter gather not requested.\n", hostno);
--			buffer = NULL;
--			len = SCint->request_bufflen;
--			data = (unsigned char *) SCint->request_buffer;
--		}
--
--		DPRINTK (PHASE_DATAIN | PHASE_DATAOUT, "scsi%d : len = %d\n",
--			 hostno, len);
--
--		break;
--#ifdef LINKED
--	case LINKED_RIGHT:
--		break;
--	case LINKED_WRONG:
--		break;
--#endif
--	}			/* end of switch(reselect) */
--
--	/*
--	 *    There are several conditions under which we wish to send a message :
--	 *      1.  When we are allowing disconnect / reconnect, and need to
--	 *	establish the I_T_L nexus via an IDENTIFY with the DiscPriv bit
--	 *	set.
--	 *
--	 *      2.  When we are doing linked commands, are have the wrong I_T_L
--	 *	nexus established and want to send an ABORT message.
--	 */
--
--	/* GCC does not like an ifdef inside a macro, so do it the hard way. */
--#ifdef LINKED
--	WRITE_CONTROL (BASE_CMD | CMD_DRVR_ENABLE | (((reselect == CAN_RECONNECT)|| (reselect == LINKED_WRONG))? CMD_ATTN : 0));
--#else
--	WRITE_CONTROL (BASE_CMD | CMD_DRVR_ENABLE | (((reselect == CAN_RECONNECT))? CMD_ATTN : 0));
--#endif
--
--	/*
--	 *    INFORMATION TRANSFER PHASE
--	 *
--	 *      The nasty looking read / write inline assembler loops we use for
--	 *      DATAIN and DATAOUT phases are approximately 4-5 times as fast as
--	 *      the 'C' versions - since we're moving 1024 bytes of data, this
--	 *      really adds up.
--	 *
--	 *      SJT: The nasty-looking assembler is gone, so it's slower.
--	 *
--	 */
--
--	DPRINTK (PHASE_ETC, "scsi%d : phase = INFORMATION TRANSFER\n", hostno);
--
--	incommand = 1;
--	transfersize = SCint->transfersize;
--	underflow = SCint->underflow;
--
--	/*
--	 *	Now, we poll the device for status information,
--	 *      and handle any requests it makes.  Note that since we are unsure
--	 *	of how much data will be flowing across the system, etc and
--	 *	cannot make reasonable timeouts, that we will instead have the
--	 *	midlevel driver handle any timeouts that occur in this phase.
--	 */
--
--	while (((status_read = STATUS) & STAT_BSY) && !st0x_aborted && !done) {
--#ifdef PARITY
--		if (status_read & STAT_PARITY) {
--			printk(KERN_ERR "scsi%d : got parity error\n", hostno);
--			st0x_aborted = DID_PARITY;
--		}
--#endif
--		if (status_read & STAT_REQ) {
--#if ((DEBUG & PHASE_ETC) == PHASE_ETC)
--			if ((newphase = (status_read & REQ_MASK)) != phase) {
--				phase = newphase;
--				switch (phase) {
--				case REQ_DATAOUT:
--					printk ("scsi%d : phase = DATA OUT\n", hostno);
--					break;
--				case REQ_DATAIN:
--					printk ("scsi%d : phase = DATA IN\n", hostno);
--					break;
--				case REQ_CMDOUT:
--					printk
--					    ("scsi%d : phase = COMMAND OUT\n", hostno);
--					break;
--				case REQ_STATIN:
--					printk ("scsi%d : phase = STATUS IN\n",	hostno);
--					break;
--				case REQ_MSGOUT:
--					printk
--					    ("scsi%d : phase = MESSAGE OUT\n", hostno);
--					break;
--				case REQ_MSGIN:
--					printk ("scsi%d : phase = MESSAGE IN\n", hostno);
--					break;
--				default:
--					printk ("scsi%d : phase = UNKNOWN\n", hostno);
--					st0x_aborted = DID_ERROR;
--				}
--			}
--#endif
--			switch (status_read & REQ_MASK) {
--			case REQ_DATAOUT:
--				/*
--				 * If we are in fast mode, then we simply splat
--				 * the data out in word-sized chunks as fast as
--				 * we can.
--				 */
--
--				if (!len) {
--#if 0
--					printk("scsi%d: underflow to target %d lun %d \n", hostno, target, lun);
--					st0x_aborted = DID_ERROR;
--					fast = 0;
--#endif
--					break;
--				}
--
--				if (fast && transfersize
--				    && !(len % transfersize)
--				    && (len >= transfersize)
--#ifdef FAST32
--				    && !(transfersize % 4)
--#endif
--				    ) {
--					DPRINTK (DEBUG_FAST,
--						 "scsi%d : FAST transfer, underflow = %d, transfersize = %d\n"
--						 "         len = %d, data = %08x\n",
--						 hostno, SCint->underflow,
--						 SCint->transfersize, len,
--						 data);
--
--			/* SJT: Start. Fast Write */
--#ifdef SEAGATE_USE_ASM
--					__asm__ ("cld\n\t"
--#ifdef FAST32
--						 "shr $2, %%ecx\n\t"
--						 "1:\t"
--						 "lodsl\n\t"
--						 "movl %%eax, (%%edi)\n\t"
--#else
--						 "1:\t"
--						 "lodsb\n\t"
--						 "movb %%al, (%%edi)\n\t"
--#endif
--						 "loop 1b;"
--				      /* output */ :
--				      /* input */ :"D" (st0x_dr),
--						 "S"
--						 (data),
--						 "c" (SCint->transfersize)
--/* clobbered */
--				      :	 "eax", "ecx",
--						 "esi");
--#else				/* SEAGATE_USE_ASM */
--					memcpy_toio(st0x_dr, data, transfersize);
--#endif				/* SEAGATE_USE_ASM */
--/* SJT: End */
--					len -= transfersize;
--					data += transfersize;
--					DPRINTK (DEBUG_FAST, "scsi%d : FAST transfer complete len = %d data = %08x\n", hostno, len, data);
--				} else {
--					/*
--					 *    We loop as long as we are in a 
--					 *    data out phase, there is data to
--					 *    send, and BSY is still active.
--					 */
--
--/* SJT: Start. Slow Write. */
--#ifdef SEAGATE_USE_ASM
--
--					int __dummy_1, __dummy_2;
--
--/*
-- *      We loop as long as we are in a data out phase, there is data to send, 
-- *      and BSY is still active.
-- */
--/* Local variables : len = ecx , data = esi, 
--                     st0x_cr_sr = ebx, st0x_dr =  edi
--*/
--					__asm__ (
--							/* Test for any data here at all. */
--							"orl %%ecx, %%ecx\n\t"
--							"jz 2f\n\t" "cld\n\t"
--/*                    "movl st0x_cr_sr, %%ebx\n\t"  */
--/*                    "movl st0x_dr, %%edi\n\t"  */
--							"1:\t"
--							"movb (%%ebx), %%al\n\t"
--							/* Test for BSY */
--							"test $1, %%al\n\t"
--							"jz 2f\n\t"
--							/* Test for data out phase - STATUS & REQ_MASK should be 
--							   REQ_DATAOUT, which is 0. */
--							"test $0xe, %%al\n\t"
--							"jnz 2f\n\t"
--							/* Test for REQ */
--							"test $0x10, %%al\n\t"
--							"jz 1b\n\t"
--							"lodsb\n\t"
--							"movb %%al, (%%edi)\n\t"
--							"loop 1b\n\t" "2:\n"
--				      /* output */ :"=S" (data), "=c" (len),
--							"=b"
--							(__dummy_1),
--							"=D" (__dummy_2)
--/* input */
--				      :		"0" (data), "1" (len),
--							"2" (st0x_cr_sr),
--							"3" (st0x_dr)
--/* clobbered */
--				      :		"eax");
--#else				/* SEAGATE_USE_ASM */
--					while (len) {
--						unsigned char stat;
--
--						stat = STATUS;
--						if (!(stat & STAT_BSY)
--						    || ((stat & REQ_MASK) !=
--							REQ_DATAOUT))
--							break;
--						if (stat & STAT_REQ) {
--							WRITE_DATA (*data++);
--							--len;
--						}
--					}
--#endif				/* SEAGATE_USE_ASM */
--/* SJT: End. */
--				}
--
--				if (!len && nobuffs) {
--					--nobuffs;
--					++buffer;
--					len = buffer->length;
--					data = page_address(buffer->page) + buffer->offset;
--					DPRINTK (DEBUG_SG,
--						 "scsi%d : next scatter-gather buffer len = %d address = %08x\n",
--						 hostno, len, data);
--				}
--				break;
--
--			case REQ_DATAIN:
--#ifdef SLOW_RATE
--				if (borken) {
--#if (DEBUG & (PHASE_DATAIN))
--					transfered += len;
--#endif
--					for (; len && (STATUS & (REQ_MASK | STAT_REQ)) == (REQ_DATAIN | STAT_REQ); --len) {
--						*data++ = DATA;
--						borken_wait();
--					}
--#if (DEBUG & (PHASE_DATAIN))
--					transfered -= len;
--#endif
--				} else
--#endif
--
--					if (fast && transfersize
--					    && !(len % transfersize)
--					    && (len >= transfersize)
--#ifdef FAST32
--					    && !(transfersize % 4)
--#endif
--				    ) {
--					DPRINTK (DEBUG_FAST,
--						 "scsi%d : FAST transfer, underflow = %d, transfersize = %d\n"
--						 "         len = %d, data = %08x\n",
--						 hostno, SCint->underflow,
--						 SCint->transfersize, len,
--						 data);
--
--/* SJT: Start. Fast Read */
--#ifdef SEAGATE_USE_ASM
--					__asm__ ("cld\n\t"
--#ifdef FAST32
--						 "shr $2, %%ecx\n\t"
--						 "1:\t"
--						 "movl (%%esi), %%eax\n\t"
--						 "stosl\n\t"
--#else
--						 "1:\t"
--						 "movb (%%esi), %%al\n\t"
--						 "stosb\n\t"
--#endif
--						 "loop 1b\n\t"
--				      /* output */ :
--				      /* input */ :"S" (st0x_dr),
--						 "D"
--						 (data),
--						 "c" (SCint->transfersize)
--/* clobbered */
--				      :	 "eax", "ecx",
--						 "edi");
--#else				/* SEAGATE_USE_ASM */
--					memcpy_fromio(data, st0x_dr, len);
--#endif				/* SEAGATE_USE_ASM */
--/* SJT: End */
--					len -= transfersize;
--					data += transfersize;
--#if (DEBUG & PHASE_DATAIN)
--					printk ("scsi%d: transfered += %d\n", hostno, transfersize);
--					transfered += transfersize;
--#endif
--
--					DPRINTK (DEBUG_FAST, "scsi%d : FAST transfer complete len = %d data = %08x\n", hostno, len, data);
--				} else {
--
--#if (DEBUG & PHASE_DATAIN)
--					printk ("scsi%d: transfered += %d\n", hostno, len);
--					transfered += len;	/* Assume we'll transfer it all, then
--								   subtract what we *didn't* transfer */
--#endif
--
--/*
-- *	We loop as long as we are in a data in phase, there is room to read,
-- *      and BSY is still active
-- */
--
--/* SJT: Start. */
--#ifdef SEAGATE_USE_ASM
--
--					int __dummy_3, __dummy_4;
--
--/* Dummy clobbering variables for the new gcc-2.95 */
--
--/*
-- *      We loop as long as we are in a data in phase, there is room to read, 
-- *      and BSY is still active
-- */
--					/* Local variables : ecx = len, edi = data
--					   esi = st0x_cr_sr, ebx = st0x_dr */
--					__asm__ (
--							/* Test for room to read */
--							"orl %%ecx, %%ecx\n\t"
--							"jz 2f\n\t" "cld\n\t"
--/*                "movl st0x_cr_sr, %%esi\n\t"  */
--/*                "movl st0x_dr, %%ebx\n\t"  */
--							"1:\t"
--							"movb (%%esi), %%al\n\t"
--							/* Test for BSY */
--							"test $1, %%al\n\t"
--							"jz 2f\n\t"
--							/* Test for data in phase - STATUS & REQ_MASK should be REQ_DATAIN, 
--							   = STAT_IO, which is 4. */
--							"movb $0xe, %%ah\n\t"
--							"andb %%al, %%ah\n\t"
--							"cmpb $0x04, %%ah\n\t"
--							"jne 2f\n\t"
--							/* Test for REQ */
--							"test $0x10, %%al\n\t"
--							"jz 1b\n\t"
--							"movb (%%ebx), %%al\n\t"
--							"stosb\n\t"
--							"loop 1b\n\t" "2:\n"
--				      /* output */ :"=D" (data), "=c" (len),
--							"=S"
--							(__dummy_3),
--							"=b" (__dummy_4)
--/* input */
--				      :		"0" (data), "1" (len),
--							"2" (st0x_cr_sr),
--							"3" (st0x_dr)
--/* clobbered */
--				      :		"eax");
--#else				/* SEAGATE_USE_ASM */
--					while (len) {
--						unsigned char stat;
--
--						stat = STATUS;
--						if (!(stat & STAT_BSY)
--						    || ((stat & REQ_MASK) !=
--							REQ_DATAIN))
--							break;
--						if (stat & STAT_REQ) {
--							*data++ = DATA;
--							--len;
--						}
--					}
--#endif				/* SEAGATE_USE_ASM */
--/* SJT: End. */
--#if (DEBUG & PHASE_DATAIN)
--					printk ("scsi%d: transfered -= %d\n", hostno, len);
--					transfered -= len;	/* Since we assumed all of Len got  *
--								   transfered, correct our mistake */
--#endif
--				}
--
--				if (!len && nobuffs) {
--					--nobuffs;
--					++buffer;
--					len = buffer->length;
--					data = page_address(buffer->page) + buffer->offset;
--					DPRINTK (DEBUG_SG, "scsi%d : next scatter-gather buffer len = %d address = %08x\n", hostno, len, data);
--				}
--				break;
--
--			case REQ_CMDOUT:
--				while (((status_read = STATUS) & STAT_BSY) &&
--				       ((status_read & REQ_MASK) == REQ_CMDOUT))
--					if (status_read & STAT_REQ) {
--						WRITE_DATA (*(const unsigned char *) cmnd);
--						cmnd = 1 + (const unsigned char *)cmnd;
--#ifdef SLOW_RATE
--						if (borken)
--							borken_wait ();
--#endif
--					}
--				break;
--
--			case REQ_STATIN:
--				status = DATA;
--				break;
--
--			case REQ_MSGOUT:
--				/*
--				 *	We can only have sent a MSG OUT if we
--				 *	requested to do this by raising ATTN.
--				 *	So, we must drop ATTN.
--				 */
--				WRITE_CONTROL (BASE_CMD | CMD_DRVR_ENABLE);
--				/*
--				 *	If we are reconnecting, then we must 
--				 *	send an IDENTIFY message in response
--				 *	to MSGOUT.
--				 */
--				switch (reselect) {
--				case CAN_RECONNECT:
--					WRITE_DATA (IDENTIFY (1, lun));
--					DPRINTK (PHASE_RESELECT | PHASE_MSGOUT, "scsi%d : sent IDENTIFY message.\n", hostno);
--					break;
--#ifdef LINKED
--				case LINKED_WRONG:
--					WRITE_DATA (ABORT);
--					linked_connected = 0;
--					reselect = CAN_RECONNECT;
--					goto connect_loop;
--					DPRINTK (PHASE_MSGOUT | DEBUG_LINKED, "scsi%d : sent ABORT message to cancel incorrect I_T_L nexus.\n", hostno);
--#endif					/* LINKED */
--					DPRINTK (DEBUG_LINKED, "correct\n");
--				default:
--					WRITE_DATA (NOP);
--					printk("scsi%d : target %d requested MSGOUT, sent NOP message.\n", hostno, target);
--				}
--				break;
--
--			case REQ_MSGIN:
--				switch (message = DATA) {
--				case DISCONNECT:
--					DANY("seagate: deciding to disconnect\n");
--					should_reconnect = 1;
--					current_data = data;	/* WDE add */
--					current_buffer = buffer;
--					current_bufflen = len;	/* WDE add */
--					current_nobuffs = nobuffs;
--#ifdef LINKED
--					linked_connected = 0;
--#endif
--					done = 1;
--					DPRINTK ((PHASE_RESELECT | PHASE_MSGIN), "scsi%d : disconnected.\n", hostno);
--					break;
--
--#ifdef LINKED
--				case LINKED_CMD_COMPLETE:
--				case LINKED_FLG_CMD_COMPLETE:
--#endif
--				case COMMAND_COMPLETE:
--					/*
--					 * Note : we should check for underflow here.
--					 */
--					DPRINTK(PHASE_MSGIN, "scsi%d : command complete.\n", hostno);
--					done = 1;
--					break;
--				case ABORT:
--					DPRINTK(PHASE_MSGIN, "scsi%d : abort message.\n", hostno);
--					done = 1;
--					break;
--				case SAVE_POINTERS:
--					current_buffer = buffer;
--					current_bufflen = len;	/* WDE add */
--					current_data = data;	/* WDE mod */
--					current_nobuffs = nobuffs;
--					DPRINTK (PHASE_MSGIN, "scsi%d : pointers saved.\n", hostno);
--					break;
--				case RESTORE_POINTERS:
--					buffer = current_buffer;
--					cmnd = current_cmnd;
--					data = current_data;	/* WDE mod */
--					len = current_bufflen;
--					nobuffs = current_nobuffs;
--					DPRINTK(PHASE_MSGIN, "scsi%d : pointers restored.\n", hostno);
--					break;
--				default:
--
--					/*
--					 *	IDENTIFY distinguishes itself
--					 *	from the other messages by 
--					 *	setting the high bit.
--					 *
--					 *      Note : we need to handle at 
--					 *	least one outstanding command
--					 *	per LUN, and need to hash the 
--					 *	SCSI command for that I_T_L
--					 *	nexus based on the known ID 
--					 *	(at this point) and LUN.
--					 */
--
--					if (message & 0x80) {
--						DPRINTK (PHASE_MSGIN, "scsi%d : IDENTIFY message received from id %d, lun %d.\n", hostno, target, message & 7);
--					} else {
--						/*
--						 *      We should go into a
--						 *	MESSAGE OUT phase, and
--						 *	send  a MESSAGE_REJECT
--						 *      if we run into a message 
--						 *	that we don't like.  The
--						 *	seagate driver needs 
--						 *	some serious 
--						 *	restructuring first
--						 *	though.
--						 */
--						DPRINTK (PHASE_MSGIN, "scsi%d : unknown message %d from target %d.\n", hostno, message, target);
--					}
--				}
--				break;
--			default:
--				printk(KERN_ERR "scsi%d : unknown phase.\n", hostno);
--				st0x_aborted = DID_ERROR;
--			}	/* end of switch (status_read &  REQ_MASK) */
--#ifdef SLOW_RATE
--			/*
--			 * I really don't care to deal with borken devices in
--			 * each single byte transfer case (ie, message in,
--			 * message out, status), so I'll do the wait here if 
--			 * necessary.
--			 */
--			if(borken)
--				borken_wait();
--#endif
--
--		}		/* if(status_read & STAT_REQ) ends */
--	}			/* while(((status_read = STATUS)...) ends */
--
--	DPRINTK(PHASE_DATAIN | PHASE_DATAOUT | PHASE_EXIT, "scsi%d : Transfered %d bytes\n", hostno, transfered);
--
--#if (DEBUG & PHASE_EXIT)
--#if 0				/* Doesn't work for scatter/gather */
--	printk("Buffer : \n");
--	for(i = 0; i < 20; ++i)
--		printk("%02x  ", ((unsigned char *) data)[i]);	/* WDE mod */
--	printk("\n");
--#endif
--	printk("scsi%d : status = ", hostno);
--	scsi_print_status(status);
--	printk(" message = %02x\n", message);
--#endif
--
--	/* We shouldn't reach this until *after* BSY has been deasserted */
--
--#ifdef LINKED
+-	/* ...then modify the initialization block... */
+-	memcpy_fromio(&block, priv->base + RAM_INITBASE, sizeof(block));
+-	if (dev->flags & IFF_PROMISC)
+-		block.Mode |= LANCE_INIT_PROM;
 -	else
--	{
--		/*
--		 * Fix the message byte so that unsuspecting high level drivers
--		 * don't puke when they see a LINKED COMMAND message in place of
--		 * the COMMAND COMPLETE they may be expecting.  Shouldn't be
--		 * necessary, but it's better to be on the safe side.
--		 *
--		 * A non LINKED* message byte will indicate that the command
--		 * completed, and we are now disconnected.
--		 */
+-		block.Mode &= ~LANCE_INIT_PROM;
 -
--		switch (message) {
--		case LINKED_CMD_COMPLETE:
--		case LINKED_FLG_CMD_COMPLETE:
--			message = COMMAND_COMPLETE;
--			linked_target = current_target;
--			linked_lun = current_lun;
--			linked_connected = 1;
--			DPRINTK (DEBUG_LINKED, "scsi%d : keeping I_T_L nexus established for linked command.\n", hostno);
--			/* We also will need to adjust status to accommodate intermediate
--			   conditions. */
--			if ((status == INTERMEDIATE_GOOD) || (status == INTERMEDIATE_C_GOOD))
--				status = GOOD;
--			break;
--			/*
--			 * We should also handle what are "normal" termination
--			 * messages here (ABORT, BUS_DEVICE_RESET?, and
--			 * COMMAND_COMPLETE individually, and flake if things
--			 * aren't right.
--			 */
--		default:
--			DPRINTK (DEBUG_LINKED, "scsi%d : closing I_T_L nexus.\n", hostno);
--			linked_connected = 0;
+-	if (dev->flags & IFF_ALLMULTI) {	/* get all multicasts */
+-		memset(block.LAdrF, 0xff, sizeof(block.LAdrF));
+-	} else {		/* get selected/no multicasts */
+-
+-		struct dev_mc_list *mptr;
+-		int code;
+-
+-		memset(block.LAdrF, 0, sizeof(block.LAdrF));
+-		for (mptr = dev->mc_list; mptr != NULL; mptr = mptr->next) {
+-			code = GetHash(mptr->dmi_addr);
+-			block.LAdrF[(code >> 3) & 7] |= 1 << (code & 7);
 -		}
 -	}
--#endif	/* LINKED */
 -
--	if (should_reconnect) {
--		DPRINTK (PHASE_RESELECT, "scsi%d : exiting seagate_st0x_queue_command() with reconnect enabled.\n", hostno);
--		WRITE_CONTROL (BASE_CMD | CMD_INTR);
+-	memcpy_toio(priv->base + RAM_INITBASE, &block, sizeof(block));
+-
+-	/* ...then reinit LANCE with the correct flags */
+-	InitLANCE(dev);
+-}
+-
+-/* ------------------------------------------------------------------------
+- * hardware check
+- * ------------------------------------------------------------------------ */
+-
+-static int startslot;		/* counts through slots when probing multiple devices */
+-
+-static void cleanup_card(struct net_device *dev)
+-{
+-	skmca_priv *priv = netdev_priv(dev);
+-	DeinitBoard(dev);
+-	if (dev->irq != 0)
+-		free_irq(dev->irq, dev);
+-	iounmap(priv->base);
+-	mca_mark_as_unused(priv->slot);
+-	mca_set_adapter_procfn(priv->slot, NULL, NULL);
+-}
+-
+-struct net_device * __init skmca_probe(int unit)
+-{
+-	struct net_device *dev;
+-	int force_detect = 0;
+-	int junior, slot, i;
+-	int base = 0, irq = 0;
+-	skmca_priv *priv;
+-	skmca_medium medium;
+-	int err;
+-
+-	/* can't work without an MCA bus ;-) */
+-
+-	if (MCA_bus == 0)
+-		return ERR_PTR(-ENODEV);
+-
+-	dev = alloc_etherdev(sizeof(skmca_priv));
+-	if (!dev)
+-		return ERR_PTR(-ENOMEM);
+-
+-	if (unit >= 0) {
+-		sprintf(dev->name, "eth%d", unit);
+-		netdev_boot_setup_check(dev);
+-	}
+-
+-	SET_MODULE_OWNER(dev);
+-
+-	/* start address of 1 --> forced detection */
+-
+-	if (dev->mem_start == 1)
+-		force_detect = 1;
+-
+-	/* search through slots */
+-
+-	base = dev->mem_start;
+-	irq = dev->base_addr;
+-	for (slot = startslot; (slot = dofind(&junior, slot)) != -1; slot++) {
+-		/* deduce card addresses */
+-
+-		getaddrs(slot, junior, &base, &irq, &medium);
+-
+-		/* slot already in use ? */
+-
+-		if (mca_is_adapter_used(slot))
+-			continue;
+-
+-		/* were we looking for something different ? */
+-
+-		if (dev->irq && dev->irq != irq)
+-			continue;
+-		if (dev->mem_start && dev->mem_start != base)
+-			continue;
+-
+-		/* found something that matches */
+-
+-		break;
+-	}
+-
+-	/* nothing found ? */
+-
+-	if (slot == -1) {
+-		free_netdev(dev);
+-		return (base || irq) ? ERR_PTR(-ENXIO) : ERR_PTR(-ENODEV);
+-	}
+-
+-	/* make procfs entries */
+-
+-	if (junior)
+-		mca_set_adapter_name(slot,
+-				     "SKNET junior MC2 Ethernet Adapter");
+-	else
+-		mca_set_adapter_name(slot, "SKNET MC2+ Ethernet Adapter");
+-	mca_set_adapter_procfn(slot, (MCA_ProcFn) skmca_getinfo, dev);
+-
+-	mca_mark_as_used(slot);
+-
+-	/* announce success */
+-	printk("%s: SKNet %s adapter found in slot %d\n", dev->name,
+-	       junior ? "Junior MC2" : "MC2+", slot + 1);
+-
+-	priv = netdev_priv(dev);
+-	priv->base = ioremap(base, 0x4000);
+-	if (!priv->base) {
+-		mca_set_adapter_procfn(slot, NULL, NULL);
+-		mca_mark_as_unused(slot);
+-		free_netdev(dev);
+-		return ERR_PTR(-ENOMEM);
+-	}
+-
+-	priv->slot = slot;
+-	priv->macbase = priv->base + 0x3fc0;
+-	priv->ioregaddr = priv->base + 0x3ff0;
+-	priv->ctrladdr = priv->base + 0x3ff2;
+-	priv->cmdaddr = priv->base + 0x3ff3;
+-	priv->medium = medium;
+-	memset(&priv->stat, 0, sizeof(struct net_device_stats));
+-	spin_lock_init(&priv->lock);
+-
+-	/* set base + irq for this device (irq not allocated so far) */
+-	dev->irq = 0;
+-	dev->mem_start = base;
+-	dev->mem_end = base + 0x4000;
+-
+-	/* autoprobe ? */
+-	if (irq < 0) {
+-		int nirq;
+-
+-		printk
+-		    ("%s: ambigous POS bit combination, must probe for IRQ...\n",
+-		     dev->name);
+-		nirq = ProbeIRQ(dev);
+-		if (nirq <= 0)
+-			printk("%s: IRQ probe failed, assuming IRQ %d",
+-			       dev->name, priv->realirq = -irq);
+-		else
+-			priv->realirq = nirq;
 -	} else
--		WRITE_CONTROL (BASE_CMD);
+-		priv->realirq = irq;
 -
--	return retcode (st0x_aborted);
--}				/* end of internal_command */
+-	/* set methods */
+-	dev->open = skmca_open;
+-	dev->stop = skmca_close;
+-	dev->hard_start_xmit = skmca_tx;
+-	dev->do_ioctl = NULL;
+-	dev->get_stats = skmca_stats;
+-	dev->set_multicast_list = skmca_set_multicast_list;
+-	dev->flags |= IFF_MULTICAST;
 -
--static int seagate_st0x_abort(struct scsi_cmnd * SCpnt)
--{
--	st0x_aborted = DID_ABORT;
--	return SUCCESS;
+-	/* copy out MAC address */
+-	for (i = 0; i < 6; i++)
+-		dev->dev_addr[i] = readb(priv->macbase + (i << 1));
+-
+-	/* print config */
+-	printk("%s: IRQ %d, memory %#lx-%#lx, "
+-	       "MAC address %02x:%02x:%02x:%02x:%02x:%02x.\n",
+-	       dev->name, priv->realirq, dev->mem_start, dev->mem_end - 1,
+-	       dev->dev_addr[0], dev->dev_addr[1], dev->dev_addr[2],
+-	       dev->dev_addr[3], dev->dev_addr[4], dev->dev_addr[5]);
+-	printk("%s: %s medium\n", dev->name, MediaNames[priv->medium]);
+-
+-	/* reset board */
+-
+-	ResetBoard(dev);
+-
+-	startslot = slot + 1;
+-
+-	err = register_netdev(dev);
+-	if (err) {
+-		cleanup_card(dev);
+-		free_netdev(dev);
+-		dev = ERR_PTR(err);
+-	}
+-	return dev;
 -}
 -
--#undef ULOOP
--#undef TIMEOUT
+-/* ------------------------------------------------------------------------
+- * modularization support
+- * ------------------------------------------------------------------------ */
 -
--/*
-- * the seagate_st0x_reset function resets the SCSI bus 
-- *
-- * May be called with SCpnt = NULL
-- */
+-#ifdef MODULE
+-MODULE_LICENSE("GPL");
 -
--static int seagate_st0x_bus_reset(struct scsi_cmnd * SCpnt)
+-#define DEVMAX 5
+-
+-static struct net_device *moddevs[DEVMAX];
+-
+-int init_module(void)
 -{
--	/* No timeouts - this command is going to fail because it was reset. */
--	DANY ("scsi%d: Reseting bus... ", hostno);
+-	int z;
 -
--	/* assert  RESET signal on SCSI bus.  */
--	WRITE_CONTROL (BASE_CMD | CMD_RST);
--
--	mdelay (20);
--
--	WRITE_CONTROL (BASE_CMD);
--	st0x_aborted = DID_RESET;
--
--	DANY ("done.\n");
--	return SUCCESS;
--}
--
--static int seagate_st0x_release(struct Scsi_Host *shost)
--{
--	if (shost->irq)
--		free_irq(shost->irq, shost);
--	release_region(shost->io_port, shost->n_io_port);
+-	startslot = 0;
+-	for (z = 0; z < DEVMAX; z++) {
+-		struct net_device *dev = skmca_probe(-1);
+-		if (IS_ERR(dev))
+-			break;
+-		moddevs[z] = dev;
+-	}
+-	if (!z)
+-		return -EIO;
 -	return 0;
 -}
 -
--static struct scsi_host_template driver_template = {
--	.detect         	= seagate_st0x_detect,
--	.release        	= seagate_st0x_release,
--	.info           	= seagate_st0x_info,
--	.queuecommand   	= seagate_st0x_queue_command,
--	.eh_abort_handler	= seagate_st0x_abort,
--	.eh_bus_reset_handler	= seagate_st0x_bus_reset,
--	.can_queue      	= 1,
--	.this_id        	= 7,
--	.sg_tablesize   	= SG_ALL,
--	.cmd_per_lun    	= 1,
--	.use_clustering		= DISABLE_CLUSTERING,
--};
--#include "scsi_module.c"
+-void cleanup_module(void)
+-{
+-	int z;
+-
+-	for (z = 0; z < DEVMAX; z++) {
+-		struct net_device *dev = moddevs[z];
+-		if (dev) {
+-			unregister_netdev(dev);
+-			cleanup_card(dev);
+-			free_netdev(dev);
+-		}
+-	}
+-}
+-#endif				/* MODULE */
+diff -puN drivers/net/sk_mca.h~remove-the-broken-skmc-driver /dev/null
+--- a/drivers/net/sk_mca.h
++++ /dev/null
+@@ -1,170 +0,0 @@
+-#ifndef _SK_MCA_INCLUDE_
+-#define _SK_MCA_INCLUDE_
+-
+-#ifdef _SK_MCA_DRIVER_
+-
+-/* Adapter ID's */
+-#define SKNET_MCA_ID 0x6afd
+-#define SKNET_JUNIOR_MCA_ID 0x6be9
+-
+-/* media enumeration - defined in a way that it fits onto the MC2+'s
+-   POS registers... */
+-
+-typedef enum { Media_10Base2, Media_10BaseT,
+-	Media_10Base5, Media_Unknown, Media_Count
+-} skmca_medium;
+-
+-/* private structure */
+-typedef struct {
+-	unsigned int slot;	/* MCA-Slot-#                       */
+-	void __iomem *base;
+-	void __iomem *macbase;	/* base address of MAC address PROM */
+-	void __iomem *ioregaddr;/* address of I/O-register (Lo)     */
+-	void __iomem *ctrladdr;	/* address of control/stat register */
+-	void __iomem *cmdaddr;	/* address of I/O-command register  */
+-	int nextrx;		/* index of next RX descriptor to
+-				   be read                          */
+-	int nexttxput;		/* index of next free TX descriptor */
+-	int nexttxdone;		/* index of next TX descriptor to
+-				   be finished                      */
+-	int txbusy;		/* # of busy TX descriptors         */
+-	struct net_device_stats stat;	/* packet statistics            */
+-	int realirq;		/* memorizes actual IRQ, even when
+-				   currently not allocated          */
+-	skmca_medium medium;	/* physical cannector               */
+-	spinlock_t lock;
+-} skmca_priv;
+-
+-/* card registers: control/status register bits */
+-
+-#define CTRL_ADR_DATA      0	/* Bit 0 = 0 ->access data register  */
+-#define CTRL_ADR_RAP       1	/* Bit 0 = 1 ->access RAP register   */
+-#define CTRL_RW_WRITE      0	/* Bit 1 = 0 ->write register        */
+-#define CTRL_RW_READ       2	/* Bit 1 = 1 ->read register         */
+-#define CTRL_RESET_ON      0	/* Bit 3 = 0 ->reset board           */
+-#define CTRL_RESET_OFF     8	/* Bit 3 = 1 ->no reset of board     */
+-
+-#define STAT_ADR_DATA      0	/* Bit 0 of ctrl register read back  */
+-#define STAT_ADR_RAP       1
+-#define STAT_RW_WRITE      0	/* Bit 1 of ctrl register read back  */
+-#define STAT_RW_READ       2
+-#define STAT_RESET_ON      0	/* Bit 3 of ctrl register read back  */
+-#define STAT_RESET_OFF     8
+-#define STAT_IRQ_ACT       0	/* interrupt pending                 */
+-#define STAT_IRQ_NOACT     16	/* no interrupt pending              */
+-#define STAT_IO_NOBUSY     0	/* no transfer busy                  */
+-#define STAT_IO_BUSY       32	/* transfer busy                     */
+-
+-/* I/O command register bits */
+-
+-#define IOCMD_GO           128	/* Bit 7 = 1 -> start register xfer  */
+-
+-/* LANCE registers */
+-
+-#define LANCE_CSR0         0	/* Status/Control                    */
+-
+-#define CSR0_ERR           0x8000	/* general error flag                */
+-#define CSR0_BABL          0x4000	/* transmitter timeout               */
+-#define CSR0_CERR          0x2000	/* collision error                   */
+-#define CSR0_MISS          0x1000	/* lost Rx block                     */
+-#define CSR0_MERR          0x0800	/* memory access error               */
+-#define CSR0_RINT          0x0400	/* receiver interrupt                */
+-#define CSR0_TINT          0x0200	/* transmitter interrupt             */
+-#define CSR0_IDON          0x0100	/* initialization done               */
+-#define CSR0_INTR          0x0080	/* general interrupt flag            */
+-#define CSR0_INEA          0x0040	/* interrupt enable                  */
+-#define CSR0_RXON          0x0020	/* receiver enabled                  */
+-#define CSR0_TXON          0x0010	/* transmitter enabled               */
+-#define CSR0_TDMD          0x0008	/* force transmission now            */
+-#define CSR0_STOP          0x0004	/* stop LANCE                        */
+-#define CSR0_STRT          0x0002	/* start LANCE                       */
+-#define CSR0_INIT          0x0001	/* read initialization block         */
+-
+-#define LANCE_CSR1         1	/* addr bit 0..15 of initialization  */
+-#define LANCE_CSR2         2	/*          16..23 block             */
+-
+-#define LANCE_CSR3         3	/* Bus control                       */
+-#define CSR3_BCON_HOLD     0	/* Bit 0 = 0 -> BM1,BM0,HOLD         */
+-#define CSR3_BCON_BUSRQ    1	/* Bit 0 = 1 -> BUSAK0,BYTE,BUSRQ    */
+-#define CSR3_ALE_HIGH      0	/* Bit 1 = 0 -> ALE asserted high    */
+-#define CSR3_ALE_LOW       2	/* Bit 1 = 1 -> ALE asserted low     */
+-#define CSR3_BSWAP_OFF     0	/* Bit 2 = 0 -> no byte swap         */
+-#define CSR3_BSWAP_ON      4	/* Bit 2 = 1 -> byte swap            */
+-
+-/* LANCE structures */
+-
+-typedef struct {		/* LANCE initialization block        */
+-	u16 Mode;		/* mode flags                        */
+-	u8 PAdr[6];		/* MAC address                       */
+-	u8 LAdrF[8];		/* Multicast filter                  */
+-	u32 RdrP;		/* Receive descriptor                */
+-	u32 TdrP;		/* Transmit descriptor               */
+-} LANCE_InitBlock;
+-
+-/* Mode flags init block */
+-
+-#define LANCE_INIT_PROM    0x8000	/* enable promiscous mode            */
+-#define LANCE_INIT_INTL    0x0040	/* internal loopback                 */
+-#define LANCE_INIT_DRTY    0x0020	/* disable retry                     */
+-#define LANCE_INIT_COLL    0x0010	/* force collision                   */
+-#define LANCE_INIT_DTCR    0x0008	/* disable transmit CRC              */
+-#define LANCE_INIT_LOOP    0x0004	/* loopback                          */
+-#define LANCE_INIT_DTX     0x0002	/* disable transmitter               */
+-#define LANCE_INIT_DRX     0x0001	/* disable receiver                  */
+-
+-typedef struct {		/* LANCE Tx descriptor               */
+-	u16 LowAddr;		/* bit 0..15 of address              */
+-	u16 Flags;		/* bit 16..23 of address + Flags     */
+-	u16 Len;		/* 2s complement of packet length    */
+-	u16 Status;		/* Result of transmission            */
+-} LANCE_TxDescr;
+-
+-#define TXDSCR_FLAGS_OWN   0x8000	/* LANCE owns descriptor             */
+-#define TXDSCR_FLAGS_ERR   0x4000	/* summary error flag                */
+-#define TXDSCR_FLAGS_MORE  0x1000	/* more than one retry needed?       */
+-#define TXDSCR_FLAGS_ONE   0x0800	/* one retry?                        */
+-#define TXDSCR_FLAGS_DEF   0x0400	/* transmission deferred?            */
+-#define TXDSCR_FLAGS_STP   0x0200	/* first packet in chain?            */
+-#define TXDSCR_FLAGS_ENP   0x0100	/* last packet in chain?             */
+-
+-#define TXDSCR_STATUS_BUFF 0x8000	/* buffer error?                     */
+-#define TXDSCR_STATUS_UFLO 0x4000	/* silo underflow during transmit?   */
+-#define TXDSCR_STATUS_LCOL 0x1000	/* late collision?                   */
+-#define TXDSCR_STATUS_LCAR 0x0800	/* loss of carrier?                  */
+-#define TXDSCR_STATUS_RTRY 0x0400	/* retry error?                      */
+-
+-typedef struct {		/* LANCE Rx descriptor               */
+-	u16 LowAddr;		/* bit 0..15 of address              */
+-	u16 Flags;		/* bit 16..23 of address + Flags     */
+-	u16 MaxLen;		/* 2s complement of buffer length    */
+-	u16 Len;		/* packet length                     */
+-} LANCE_RxDescr;
+-
+-#define RXDSCR_FLAGS_OWN   0x8000	/* LANCE owns descriptor             */
+-#define RXDSCR_FLAGS_ERR   0x4000	/* summary error flag                */
+-#define RXDSCR_FLAGS_FRAM  0x2000	/* framing error flag                */
+-#define RXDSCR_FLAGS_OFLO  0x1000	/* FIFO overflow?                    */
+-#define RXDSCR_FLAGS_CRC   0x0800	/* CRC error?                        */
+-#define RXDSCR_FLAGS_BUFF  0x0400	/* buffer error?                     */
+-#define RXDSCR_FLAGS_STP   0x0200	/* first packet in chain?            */
+-#define RXDCSR_FLAGS_ENP   0x0100	/* last packet in chain?             */
+-
+-/* RAM layout */
+-
+-#define TXCOUNT            4	/* length of TX descriptor queue     */
+-#define LTXCOUNT           2	/* log2 of it                        */
+-#define RXCOUNT            4	/* length of RX descriptor queue     */
+-#define LRXCOUNT           2	/* log2 of it                        */
+-
+-#define RAM_INITBASE       0	/* LANCE init block                  */
+-#define RAM_TXBASE         24	/* Start of TX descriptor queue      */
+-#define RAM_RXBASE         \
+-(RAM_TXBASE + (TXCOUNT * 8))	/* Start of RX descriptor queue      */
+-#define RAM_DATABASE       \
+-(RAM_RXBASE + (RXCOUNT * 8))	/* Start of data area for frames     */
+-#define RAM_BUFSIZE        1580	/* max. frame size - should never be
+-				   reached                           */
+-
+-#endif				/* _SK_MCA_DRIVER_ */
+-
+-#endif	/* _SK_MCA_INCLUDE_ */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
