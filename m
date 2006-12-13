@@ -1,142 +1,110 @@
 From: akpm@osdl.org
-Subject: - updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:49:05 -0800
-Message-ID: <200612132249.kBDMn5pU023132@shell0.pdx.osdl.net>
+Subject: - updated-hrtimers-clean-up-callback-tracking.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:48:44 -0800
+Message-ID: <200612132248.kBDMmiMt023103@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52882 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52914 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751729AbWLMWtQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:49:16 -0500
+	id S1751745AbWLMWtZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:49:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: Add state propagation for dynamic broadcasting
+     hrtimers: clean up callback tracking
 has been removed from the -mm tree.  Its filename was
-     updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+     updated-hrtimers-clean-up-callback-tracking.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: ACPI: Add state propagation for dynamic broadcasting
+Subject: hrtimers: clean up callback tracking
 From: Thomas Gleixner <tglx@linutronix.de>
 
-This is a preparatory patch for high resolution timers and dynticks.
-
-The local APIC timer is fast and per CPU, but it gets stopped in C3 state.  On
-some broken systems, especially AMD based ones it gets stopped in C2.  This
-also affects akpm's jinxed VAIO.
-
-The broadcast function informs the local APIC management code that a state
-which stops the local APIC is going to be entered/exited.  This switches the
-local APIC timer to the PIT broadcast mode.  The clockevents layer takes care
-of the distribution of events.
-
-The lapic_timer_idle_broadcast() function is an empty inline for now, which
-will be replaced by the later clockevents patches for the affected
-architectures.
+Reintroduce ktimers feature "optimized away" by the ktimers review process:
+remove the curr_timer pointer from the cpu-base and use the hrtimer state.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_idle.c |   20 ++++++++++++++++++++
- include/asm-i386/apic.h       |    1 +
- include/asm-x86_64/apic.h     |    1 +
- 3 files changed, 22 insertions(+)
+ include/linux/hrtimer.h |    1 -
+ kernel/hrtimer.c        |   10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~updated-acpi-add-state-propagation-for-dynamic-broadcasting drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~updated-acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/drivers/acpi/processor_idle.c
-@@ -281,11 +281,27 @@ static void acpi_propagate_timer_broadca
- 		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
+diff -puN include/linux/hrtimer.h~updated-hrtimers-clean-up-callback-tracking include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~updated-hrtimers-clean-up-callback-tracking
++++ a/include/linux/hrtimer.h
+@@ -136,7 +136,6 @@ struct hrtimer_cpu_base {
+ 	spinlock_t			lock;
+ 	struct lock_class_key		lock_key;
+ 	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
+-	struct hrtimer			*curr_timer;
+ };
+ 
+ /*
+diff -puN kernel/hrtimer.c~updated-hrtimers-clean-up-callback-tracking kernel/hrtimer.c
+--- a/kernel/hrtimer.c~updated-hrtimers-clean-up-callback-tracking
++++ a/kernel/hrtimer.c
+@@ -150,8 +150,6 @@ static void hrtimer_get_softirq_time(str
+  */
+ #ifdef CONFIG_SMP
+ 
+-#define set_curr_timer(b, t)		do { (b)->curr_timer = (t); } while (0)
+-
+ /*
+  * We are using hashed locking: holding per_cpu(hrtimer_bases)[n].lock
+  * means that all timers which are tied to this base via timer->base are
+@@ -205,7 +203,7 @@ switch_hrtimer_base(struct hrtimer *time
+ 		 * completed. There is no conflict as we hold the lock until
+ 		 * the timer is enqueued.
+ 		 */
+-		if (unlikely(base->cpu_base->curr_timer == timer))
++		if (unlikely(timer->state & HRTIMER_STATE_CALLBACK))
+ 			return base;
+ 
+ 		/* See the comment in lock_timer_base() */
+@@ -219,8 +217,6 @@ switch_hrtimer_base(struct hrtimer *time
+ 
+ #else /* CONFIG_SMP */
+ 
+-#define set_curr_timer(b, t)		do { } while (0)
+-
+ static inline struct hrtimer_clock_base *
+ lock_hrtimer_base(const struct hrtimer *timer, unsigned long *flags)
+ {
+@@ -654,7 +650,6 @@ static inline void run_hrtimer_queue(str
+ 			break;
+ 
+ 		fn = timer->function;
+-		set_curr_timer(cpu_base, timer);
+ 		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
+ 		spin_unlock_irq(&cpu_base->lock);
+ 
+@@ -668,7 +663,6 @@ static inline void run_hrtimer_queue(str
+ 			enqueue_hrtimer(timer, base);
+ 		}
+ 	}
+-	set_curr_timer(cpu_base, NULL);
+ 	spin_unlock_irq(&cpu_base->lock);
  }
  
-+/* Power(C) State timer broadcast control */
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+	int state = cx - pr->power.states;
-+
-+	if (state >= pr->power.timer_broadcast_on_state)
-+		lapic_timer_idle_broadcast(broadcast);
-+}
-+
- #else
+@@ -855,8 +849,6 @@ static void migrate_hrtimers(int cpu)
+ 	spin_lock(&old_base->lock);
  
- static void acpi_timer_check_state(int state, struct acpi_processor *pr,
- 				   struct acpi_processor_cx *cstate) { }
- static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+}
- 
- #endif
- 
-@@ -431,6 +447,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C2 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-@@ -445,6 +462,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C2_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	case ACPI_STATE_C3:
-@@ -467,6 +485,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C3 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-@@ -487,6 +506,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	default:
-diff -puN include/asm-i386/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting include/asm-i386/apic.h
---- a/include/asm-i386/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/include/asm-i386/apic.h
-@@ -113,6 +113,7 @@ extern void setup_secondary_APIC_clock (
- extern int APIC_init_uniprocessor (void);
- extern void disable_APIC_timer(void);
- extern void enable_APIC_timer(void);
-+static inline void lapic_timer_idle_broadcast(int broadcast) { }
- 
- extern void enable_NMI_through_LVT0 (void * dummy);
- 
-diff -puN include/asm-x86_64/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting include/asm-x86_64/apic.h
---- a/include/asm-x86_64/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/include/asm-x86_64/apic.h
-@@ -84,6 +84,7 @@ extern int APIC_init_uniprocessor (void)
- extern void disable_APIC_timer(void);
- extern void enable_APIC_timer(void);
- extern void setup_apic_routing(void);
-+static inline void lapic_timer_idle_broadcast(int broadcast) { }
- 
- extern void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
- 				   unsigned char msg_type, unsigned char mask);
+ 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
+-		BUG_ON(old_base->curr_timer);
+-
+ 		migrate_hrtimer_list(&old_base->clock_base[i],
+ 				     &new_base->clock_base[i]);
+ 	}
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
