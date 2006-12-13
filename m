@@ -1,246 +1,212 @@
 From: akpm@osdl.org
-Subject: - dio-centralize-completion-in-dio_complete.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:55:07 -0800
-Message-ID: <200612130655.kBD6t7oG030612@shell0.pdx.osdl.net>
+Subject: - netpoll-fix-local_bh_enable-warning.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:56:44 -0800
+Message-ID: <200612130656.kBD6uive030755@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58020 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58037 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965063AbWLMG5I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:57:08 -0500
+	id S965065AbWLMG51 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:57:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach.brown@oracle.com, jmoyer@redhat.com, pbadari@us.ibm.com, suparna@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, davem@davemloft.net, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dio: centralize completion in dio_complete()
+     netpoll: fix local_bh_enable() warning
 has been removed from the -mm tree.  Its filename was
-     dio-centralize-completion-in-dio_complete.patch
+     netpoll-fix-local_bh_enable-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dio: centralize completion in dio_complete()
-From: Zach Brown <zach.brown@oracle.com>
+Subject: netpoll: fix local_bh_enable() warning
+From: Andrew Morton <akpm@osdl.org>
 
-There have been a lot of bugs recently due to the way direct_io_worker() tries
-to decide how to finish direct IO operations.  In the worst examples it has
-failed to call aio_complete() at all (hang) or called it too many times
-(oops).
+During boot we get:
 
-This set of patches cleans up the completion phase with the goal of removing
-the complexity that lead to these bugs.  We end up with one path that
-calculates the result of the operation after all off the bios have completed. 
-We decide when to generate a result of the operation using that path based on
-the final release of a refcount on the dio structure.
+netconsole: device eth0 not up yet, forcing it
+e1000: eth0: e1000_watchdog: NIC Link is Up 100 Mbps Full Duplex
+WARNING (!__warned) at kernel/softirq.c:137 local_bh_enable()
 
-I tried to progress towards the final state in steps that were relatively easy
-to understand.  Each step should compile but I only tested the final result of
-having all the patches applied.  
+Call Trace:
+ [<ffffffff80235baf>] local_bh_enable+0x41/0xa3
+ [<ffffffff8045ab8e>] netpoll_send_skb+0x116/0x144
+ [<ffffffff8045b1ee>] netpoll_send_udp+0x263/0x271
+ [<ffffffff803d41ec>] write_msg+0x42/0x5e
+ [<ffffffff80230c9b>] __call_console_drivers+0x5f/0x70
+ [<ffffffff80230d19>] _call_console_drivers+0x6d/0x71
+ [<ffffffff802313f0>] release_console_sem+0x148/0x1ec
+ [<ffffffff802316ce>] register_console+0x1b1/0x1ba
+ [<ffffffff803d4178>] init_netconsole+0x54/0x68
+ [<ffffffff802071ae>] init+0x152/0x308
+ [<ffffffff804dac8b>] _spin_unlock_irq+0x14/0x30
+ [<ffffffff8022c15e>] schedule_tail+0x43/0x9f
+ [<ffffffff8020a758>] child_rip+0xa/0x12
 
-I've tested these on low end PC drives with aio-stress, the direct IO tests I
-could manage to get running in LTP, orasim, and some home-brew functional
-tests.
+Herbert sayeth:
 
-In http://lkml.org/lkml/2006/9/21/103 IBM reports success with ext2 and ext3
-running DIO LTP tests.  They found that XFS bug which has since been addressed
-in the patch series.
+  Normally networking isn't invoked with interrupts turned off, but I
+  suppose we don't have a choice here.  This is unique being a place where you
+  can get called with BH on, off, or IRQs off.
 
+  Given that this is only used for printk, the easiest solution is probably
+  just to disable local IRQs instead of BH.
 
-
-
-
-This patch:
-
-The mechanics which decide the result of a direct IO operation were duplicated
-in the sync and async paths.
-
-The async path didn't check page_errors which can manifest as silently
-returning success when the final pointer in an operation faults and its
-matching file region is filled with zeros.
-
-The sync path and async path differed in whether they passed errors to the
-caller's dio->end_io operation.  The async path was passing errors to it which
-trips an assertion in XFS, though it is apparently harmless.
-
-This centralizes the completion phase of dio ops in one place.  AIO will now
-return EFAULT consistently and all paths fall back to the previously sync
-behaviour of passing the number of bytes 'transferred' to the dio->end_io
-callback, regardless of errors.
-
-dio_await_completion() doesn't have to propogate EIO from non-uptodate bios
-now that it's being propogated through dio_complete() via dio->io_error.  This
-lets it return void which simplifies its sole caller.
-
-Signed-off-by: Zach Brown <zach.brown@oracle.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/direct-io.c |   94 +++++++++++++++++++++--------------------------
- 1 file changed, 42 insertions(+), 52 deletions(-)
+ net/core/netpoll.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/direct-io.c~dio-centralize-completion-in-dio_complete fs/direct-io.c
---- a/fs/direct-io.c~dio-centralize-completion-in-dio_complete
-+++ a/fs/direct-io.c
-@@ -210,19 +210,46 @@ static struct page *dio_get_page(struct 
- 	return dio->pages[dio->head++];
- }
- 
--/*
-- * Called when all DIO BIO I/O has been completed - let the filesystem
-- * know, if it registered an interest earlier via get_block.  Pass the
-- * private field of the map buffer_head so that filesystems can use it
-- * to hold additional state between get_block calls and dio_complete.
-+/**
-+ * dio_complete() - called when all DIO BIO I/O has been completed
-+ * @offset: the byte offset in the file of the completed operation
-+ *
-+ * This releases locks as dictated by the locking type, lets interested parties
-+ * know that a DIO operation has completed, and calculates the resulting return
-+ * code for the operation.
-+ *
-+ * It lets the filesystem know if it registered an interest earlier via
-+ * get_block.  Pass the private field of the map buffer_head so that
-+ * filesystems can use it to hold additional state between get_block calls and
-+ * dio_complete.
-  */
--static void dio_complete(struct dio *dio, loff_t offset, ssize_t bytes)
-+static int dio_complete(struct dio *dio, loff_t offset, int ret)
- {
-+	ssize_t transferred = 0;
+diff -puN net/core/netpoll.c~netpoll-fix-local_bh_enable-warning net/core/netpoll.c
+--- a/net/core/netpoll.c~netpoll-fix-local_bh_enable-warning
++++ a/net/core/netpoll.c
+@@ -243,7 +243,9 @@ static void netpoll_send_skb(struct netp
+ 	/* don't get messages out of order, and no recursion */
+ 	if (skb_queue_len(&npinfo->txq) == 0 &&
+ 		    npinfo->poll_owner != smp_processor_id()) {
+-		local_bh_disable();	/* Where's netif_tx_trylock_bh()? */
++		unsigned long flags;
 +
-+	if (dio->result) {
-+		transferred = dio->result;
-+
-+		/* Check for short read case */
-+		if ((dio->rw == READ) && ((offset + transferred) > dio->i_size))
-+			transferred = dio->i_size - offset;
-+	}
-+
- 	if (dio->end_io && dio->result)
--		dio->end_io(dio->iocb, offset, bytes, dio->map_bh.b_private);
-+		dio->end_io(dio->iocb, offset, transferred,
-+			    dio->map_bh.b_private);
- 	if (dio->lock_type == DIO_LOCKING)
- 		/* lockdep: non-owner release */
- 		up_read_non_owner(&dio->inode->i_alloc_sem);
-+
-+	if (ret == 0)
-+		ret = dio->page_errors;
-+	if (ret == 0)
-+		ret = dio->io_error;
-+	if (ret == 0)
-+		ret = transferred;
-+
-+	return ret;
- }
- 
- /*
-@@ -236,8 +263,7 @@ static void finished_one_bio(struct dio 
- 	spin_lock_irqsave(&dio->bio_lock, flags);
- 	if (dio->bio_count == 1) {
- 		if (dio->is_async) {
--			ssize_t transferred;
--			loff_t offset;
-+			int ret;
- 
- 			/*
- 			 * Last reference to the dio is going away.
-@@ -245,24 +271,12 @@ static void finished_one_bio(struct dio 
- 			 */
- 			spin_unlock_irqrestore(&dio->bio_lock, flags);
- 
--			/* Check for short read case */
--			transferred = dio->result;
--			offset = dio->iocb->ki_pos;
--
--			if ((dio->rw == READ) &&
--			    ((offset + transferred) > dio->i_size))
--				transferred = dio->i_size - offset;
--
--			/* check for error in completion path */
--			if (dio->io_error)
--				transferred = dio->io_error;
--
--			dio_complete(dio, offset, transferred);
-+			ret = dio_complete(dio, dio->iocb->ki_pos, 0);
- 
- 			/* Complete AIO later if falling back to buffered i/o */
- 			if (dio->result == dio->size ||
- 				((dio->rw == READ) && dio->result)) {
--				aio_complete(dio->iocb, transferred, 0);
-+				aio_complete(dio->iocb, ret, 0);
- 				kfree(dio);
- 				return;
- 			} else {
-@@ -434,10 +448,8 @@ static int dio_bio_complete(struct dio *
- /*
-  * Wait on and process all in-flight BIOs.
-  */
--static int dio_await_completion(struct dio *dio)
-+static void dio_await_completion(struct dio *dio)
- {
--	int ret = 0;
--
- 	if (dio->bio)
- 		dio_bio_submit(dio);
- 
-@@ -448,13 +460,9 @@ static int dio_await_completion(struct d
- 	 */
- 	while (dio->bio_count) {
- 		struct bio *bio = dio_await_one(dio);
--		int ret2;
--
--		ret2 = dio_bio_complete(dio, bio);
--		if (ret == 0)
--			ret = ret2;
-+		/* io errors are propogated through dio->io_error */
-+		dio_bio_complete(dio, bio);
- 	}
--	return ret;
- }
- 
- /*
-@@ -1127,28 +1135,10 @@ direct_io_worker(int rw, struct kiocb *i
- 			kfree(dio);
++		local_irq_save(flags);
+ 		if (netif_tx_trylock(dev)) {
+ 			/* try until next clock tick */
+ 			for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
+@@ -261,7 +263,7 @@ static void netpoll_send_skb(struct netp
+ 			}
+ 			netif_tx_unlock(dev);
  		}
- 	} else {
--		ssize_t transferred = 0;
--
- 		finished_one_bio(dio);
--		ret2 = dio_await_completion(dio);
--		if (ret == 0)
--			ret = ret2;
--		if (ret == 0)
--			ret = dio->page_errors;
--		if (dio->result) {
--			loff_t i_size = i_size_read(inode);
-+		dio_await_completion(dio);
+-		local_bh_enable();
++		local_irq_restore(flags);
+ 	}
  
--			transferred = dio->result;
--			/*
--			 * Adjust the return value if the read crossed a
--			 * non-block-aligned EOF.
--			 */
--			if (rw == READ && (offset + transferred > i_size))
--				transferred = i_size - offset;
--		}
--		dio_complete(dio, offset, transferred);
--		if (ret == 0)
--			ret = transferred;
-+		ret = dio_complete(dio, offset, ret);
- 
- 		/* We could have also come here on an AIO file extend */
- 		if (!is_sync_kiocb(iocb) && (rw & WRITE) &&
+ 	if (status != NETDEV_TX_OK) {
 _
 
-Patches currently in -mm which might be from zach.brown@oracle.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-optimize-o_direct-on-block-device-v3.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+cciss-remove-calls-to-pci_disable_device-fix.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input-vs-git-alsa.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-tidy.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
