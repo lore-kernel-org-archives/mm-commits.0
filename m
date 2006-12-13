@@ -1,72 +1,64 @@
 From: akpm@osdl.org
-Subject: - slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 23:13:20 -0800
-Message-ID: <200612130713.kBD7DLfQ031089@shell0.pdx.osdl.net>
+Subject: - ocfs2-relative-atime-support-tweaks.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 23:14:17 -0800
+Message-ID: <200612130714.kBD7EHoX031108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59143 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932484AbWLMHNd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 02:13:33 -0500
+	id S932484AbWLMHOq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 02:14:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, clameter@sgi.com, dada1@cosmosbay.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: akpm@osdl.org, hch@lst.de, mark.fasheh@oracle.com, val_henson@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks
+     ocfs2-relative-atime-support-tweaks
 has been removed from the -mm tree.  Its filename was
-     slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+     ocfs2-relative-atime-support-tweaks.patch
 
-This patch was dropped because it was folded into slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
+This patch was dropped because it was folded into ocfs2-relative-atime-support.patch
 
 ------------------------------------------------------
-Subject: slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks
+Subject: ocfs2-relative-atime-support-tweaks
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Miller <davem@davemloft.net>
+methinks...
+
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Valerie Henson <val_henson@linux.intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/reciprocal_div.h |    2 ++
- lib/reciprocal_div.c           |    1 -
- mm/slab.c                      |    2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/file.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/reciprocal_div.h~slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks include/linux/reciprocal_div.h
---- a/include/linux/reciprocal_div.h~slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks
-+++ a/include/linux/reciprocal_div.h
-@@ -1,6 +1,8 @@
- #ifndef _LINUX_RECIPROCAL_DIV_H
- #define _LINUX_RECIPROCAL_DIV_H
+diff -puN fs/ocfs2/file.c~ocfs2-relative-atime-support-tweaks fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-relative-atime-support-tweaks
++++ a/fs/ocfs2/file.c
+@@ -153,16 +153,15 @@ int ocfs2_should_update_atime(struct ino
+ 	    ((vfsmnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode)))
+ 		return 0;
  
-+#include <linux/types.h>
-+
- /*
-  * This file describes reciprocical division.
-  *
-diff -puN lib/reciprocal_div.c~slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks lib/reciprocal_div.c
---- a/lib/reciprocal_div.c~slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks
-+++ a/lib/reciprocal_div.c
-@@ -1,4 +1,3 @@
--#include <linux/types.h>
- #include <asm/div64.h>
- #include <linux/reciprocal_div.h>
+-	now = CURRENT_TIME;
+-
+ 	if (vfsmnt->mnt_flags & MNT_RELATIME) {
+-		if ((timespec_compare(&inode->i_atime, &inode->i_mtime) < 0) ||
+-		    (timespec_compare(&inode->i_atime, &inode->i_ctime) < 0))
++		if ((timespec_compare(&inode->i_atime, &inode->i_mtime) <= 0) ||
++		    (timespec_compare(&inode->i_atime, &inode->i_ctime) <= 0))
+ 			return 1;
  
-diff -puN mm/slab.c~slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks mm/slab.c
---- a/mm/slab.c~slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks
-+++ a/mm/slab.c
-@@ -638,7 +638,7 @@ static inline void *index_to_obj(struct 
- static inline unsigned int obj_to_index(const struct kmem_cache *cache,
- 					const struct slab *slab, void *obj)
- {
--	unsigned int offset = (obj - slab->s_mem);
-+	u32 offset = (obj - slab->s_mem);
- 	return reciprocal_divide(offset, cache->reciprocal_buffer_size);
- }
+ 		return 0;
+ 	}
  
++	now = CURRENT_TIME;
+ 	if ((now.tv_sec - inode->i_atime.tv_sec <= osb->s_atime_quantum))
+ 		return 0;
+ 	else
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -74,12 +66,8 @@ Patches currently in -mm which might be from akpm@osdl.org are
 origin.patch
 x86-smp-export-smp_num_siblings-for-oprofile.patch
 slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
 touch_atime-cleanup.patch
+ocfs2-relative-atime-support.patch
 ocfs2-relative-atime-support-tweaks.patch
 ecryptfs-public-key-packet-management-slab-fix.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
