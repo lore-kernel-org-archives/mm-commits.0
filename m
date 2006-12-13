@@ -1,214 +1,128 @@
 From: akpm@osdl.org
-Subject: - round_jiffies-infrastructure.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:55:32 -0800
-Message-ID: <200612130655.kBD6tWlj030649@shell0.pdx.osdl.net>
+Subject: - md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:55:44 -0800
+Message-ID: <200612130655.kBD6tiBc030670@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57818 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57835 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965026AbWLMGzo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:55:44 -0500
+	id S965033AbWLMGzt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:55:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: raziebe@gmail.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     round_jiffies infrastructure
+     md: handle bypassing the read cache (assuming nothing fails)
 has been removed from the -mm tree.  Its filename was
-     round_jiffies-infrastructure.patch
+     md-handle-bypassing-the-read-cache-assuming-nothing-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: round_jiffies infrastructure
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: md: handle bypassing the read cache (assuming nothing fails)
+From: "Raz Ben-Jehuda(caro)" <raziebe@gmail.com>
 
-Introduce a round_jiffies() function as well as a round_jiffies_relative()
-function.  These functions round a jiffies value to the next whole second. 
-The primary purpose of this rounding is to cause all "we don't care exactly
-when" timers to happen at the same jiffy.
-
-This avoids multiple timers firing within the second for no real reason;
-with dynamic ticks these extra timers cause wakeups from deep sleep CPU
-sleep states and thus waste power.
-
-The exact wakeup moment is skewed by the cpu number, to avoid all cpus from
-waking up at the exact same time (and hitting the same lock/cachelines
-there)
-
-[akpm@osdl.org: fix variable type]
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/timer.h |    6 +
- kernel/timer.c        |  132 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 138 insertions(+)
+ drivers/md/raid5.c |   78 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 78 insertions(+)
 
-diff -puN include/linux/timer.h~round_jiffies-infrastructure include/linux/timer.h
---- a/include/linux/timer.h~round_jiffies-infrastructure
-+++ a/include/linux/timer.h
-@@ -98,4 +98,10 @@ extern void run_local_timers(void);
- struct hrtimer;
- extern int it_real_fn(struct hrtimer *);
+diff -puN drivers/md/raid5.c~md-handle-bypassing-the-read-cache-assuming-nothing-fails drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-handle-bypassing-the-read-cache-assuming-nothing-fails
++++ a/drivers/md/raid5.c
+@@ -2633,6 +2633,84 @@ static int raid5_mergeable_bvec(request_
+ 		return max;
+ }
  
-+unsigned long __round_jiffies(unsigned long j, int cpu);
-+unsigned long __round_jiffies_relative(unsigned long j, int cpu);
-+unsigned long round_jiffies(unsigned long j);
-+unsigned long round_jiffies_relative(unsigned long j);
 +
-+
- #endif
-diff -puN kernel/timer.c~round_jiffies-infrastructure kernel/timer.c
---- a/kernel/timer.c~round_jiffies-infrastructure
-+++ a/kernel/timer.c
-@@ -80,6 +80,138 @@ tvec_base_t boot_tvec_bases;
- EXPORT_SYMBOL(boot_tvec_bases);
- static DEFINE_PER_CPU(tvec_base_t *, tvec_bases) = &boot_tvec_bases;
- 
-+/**
-+ * __round_jiffies - function to round jiffies to a full second
-+ * @j: the time in (absolute) jiffies that should be rounded
-+ * @cpu: the processor number on which the timeout will happen
-+ *
-+ * __round_jiffies rounds an absolute time in the future (in jiffies)
-+ * up or down to (approximately) full seconds. This is useful for timers
-+ * for which the exact time they fire does not matter too much, as long as
-+ * they fire approximately every X seconds.
-+ *
-+ * By rounding these timers to whole seconds, all such timers will fire
-+ * at the same time, rather than at various times spread out. The goal
-+ * of this is to have the CPU wake up less, which saves power.
-+ *
-+ * The exact rounding is skewed for each processor to avoid all
-+ * processors firing at the exact same time, which could lead
-+ * to lock contention or spurious cache line bouncing.
-+ *
-+ * The return value is the rounded version of the "j" parameter.
-+ */
-+unsigned long __round_jiffies(unsigned long j, int cpu)
++static int in_chunk_boundary(mddev_t *mddev, struct bio *bio)
 +{
-+	int rem;
-+	unsigned long original = j;
++	sector_t sector = bio->bi_sector + get_start_sect(bio->bi_bdev);
++	unsigned int chunk_sectors = mddev->chunk_size >> 9;
++	unsigned int bio_sectors = bio->bi_size >> 9;
 +
++	return  chunk_sectors >=
++		((sector & (chunk_sectors - 1)) + bio_sectors);
++}
++
++/*
++ *  The "raid5_align_endio" should check if the read succeeded and if it
++ *  did, call bio_endio on the original bio (having bio_put the new bio
++ *  first).
++ *  If the read failed..
++ */
++int raid5_align_endio(struct bio *bi, unsigned int bytes , int error)
++{
++	struct bio* raid_bi  = bi->bi_private;
++	if (bi->bi_size)
++		return 1;
++	bio_put(bi);
++	bio_endio(raid_bi, bytes, error);
++	return 0;
++}
++
++static int chunk_aligned_read(request_queue_t *q, struct bio * raid_bio)
++{
++	mddev_t *mddev = q->queuedata;
++	raid5_conf_t *conf = mddev_to_conf(mddev);
++	const unsigned int raid_disks = conf->raid_disks;
++	const unsigned int data_disks = raid_disks - 1;
++	unsigned int dd_idx, pd_idx;
++	struct bio* align_bi;
++	mdk_rdev_t *rdev;
++
++	if (!in_chunk_boundary(mddev, raid_bio)) {
++		printk("chunk_aligned_read : non aligned\n");
++		return 0;
++	}
 +	/*
-+	 * We don't want all cpus firing their timers at once hitting the
-+	 * same lock or cachelines, so we skew each extra cpu with an extra
-+	 * 3 jiffies. This 3 jiffies came originally from the mm/ code which
-+	 * already did this.
-+	 * The skew is done by adding 3*cpunr, then round, then subtract this
-+	 * extra offset again.
++ 	 * use bio_clone to make a copy of the bio
 +	 */
-+	j += cpu * 3;
-+
-+	rem = j % HZ;
-+
++	align_bi = bio_clone(raid_bio, GFP_NOIO);
++	if (!align_bi)
++		return 0;
 +	/*
-+	 * If the target jiffie is just after a whole second (which can happen
-+	 * due to delays of the timer irq, long irq off times etc etc) then
-+	 * we should round down to the whole second, not up. Use 1/4th second
-+	 * as cutoff for this rounding as an extreme upper bound for this.
++	 *   set bi_end_io to a new function, and set bi_private to the
++	 *     original bio.
 +	 */
-+	if (rem < HZ/4) /* round down */
-+		j = j - rem;
-+	else /* round up */
-+		j = j - rem + HZ;
-+
-+	/* now that we have rounded, subtract the extra skew again */
-+	j -= cpu * 3;
-+
-+	if (j <= jiffies) /* rounding ate our timeout entirely; */
-+		return original;
-+	return j;
-+}
-+EXPORT_SYMBOL_GPL(__round_jiffies);
-+
-+/**
-+ * __round_jiffies_relative - function to round jiffies to a full second
-+ * @j: the time in (relative) jiffies that should be rounded
-+ * @cpu: the processor number on which the timeout will happen
-+ *
-+ * __round_jiffies_relative rounds a time delta  in the future (in jiffies)
-+ * up or down to (approximately) full seconds. This is useful for timers
-+ * for which the exact time they fire does not matter too much, as long as
-+ * they fire approximately every X seconds.
-+ *
-+ * By rounding these timers to whole seconds, all such timers will fire
-+ * at the same time, rather than at various times spread out. The goal
-+ * of this is to have the CPU wake up less, which saves power.
-+ *
-+ * The exact rounding is skewed for each processor to avoid all
-+ * processors firing at the exact same time, which could lead
-+ * to lock contention or spurious cache line bouncing.
-+ *
-+ * The return value is the rounded version of the "j" parameter.
-+ */
-+unsigned long __round_jiffies_relative(unsigned long j, int cpu)
-+{
++	align_bi->bi_end_io  = raid5_align_endio;
++	align_bi->bi_private = raid_bio;
 +	/*
-+	 * In theory the following code can skip a jiffy in case jiffies
-+	 * increments right between the addition and the later subtraction.
-+	 * However since the entire point of this function is to use approximate
-+	 * timeouts, it's entirely ok to not handle that.
++	 *	compute position
 +	 */
-+	return  __round_jiffies(j + jiffies, cpu) - jiffies;
++	align_bi->bi_sector =  raid5_compute_sector(raid_bio->bi_sector,
++					raid_disks,
++					data_disks,
++					&dd_idx,
++					&pd_idx,
++					conf);
++
++	rcu_read_lock();
++	rdev = rcu_dereference(conf->disks[dd_idx].rdev);
++	if (rdev && test_bit(In_sync, &rdev->flags)) {
++		align_bi->bi_bdev =  rdev->bdev;
++		atomic_inc(&rdev->nr_pending);
++		rcu_read_unlock();
++		generic_make_request(align_bi);
++		return 1;
++	} else {
++		rcu_read_unlock();
++		return 0;
++	}
 +}
-+EXPORT_SYMBOL_GPL(__round_jiffies_relative);
-+
-+/**
-+ * round_jiffies - function to round jiffies to a full second
-+ * @j: the time in (absolute) jiffies that should be rounded
-+ *
-+ * round_jiffies rounds an absolute time in the future (in jiffies)
-+ * up or down to (approximately) full seconds. This is useful for timers
-+ * for which the exact time they fire does not matter too much, as long as
-+ * they fire approximately every X seconds.
-+ *
-+ * By rounding these timers to whole seconds, all such timers will fire
-+ * at the same time, rather than at various times spread out. The goal
-+ * of this is to have the CPU wake up less, which saves power.
-+ *
-+ * The return value is the rounded version of the "j" parameter.
-+ */
-+unsigned long round_jiffies(unsigned long j)
-+{
-+	return __round_jiffies(j, raw_smp_processor_id());
-+}
-+EXPORT_SYMBOL_GPL(round_jiffies);
-+
-+/**
-+ * round_jiffies_relative - function to round jiffies to a full second
-+ * @j: the time in (relative) jiffies that should be rounded
-+ *
-+ * round_jiffies_relative rounds a time delta  in the future (in jiffies)
-+ * up or down to (approximately) full seconds. This is useful for timers
-+ * for which the exact time they fire does not matter too much, as long as
-+ * they fire approximately every X seconds.
-+ *
-+ * By rounding these timers to whole seconds, all such timers will fire
-+ * at the same time, rather than at various times spread out. The goal
-+ * of this is to have the CPU wake up less, which saves power.
-+ *
-+ * The return value is the rounded version of the "j" parameter.
-+ */
-+unsigned long round_jiffies_relative(unsigned long j)
-+{
-+	return __round_jiffies_relative(j, raw_smp_processor_id());
-+}
-+EXPORT_SYMBOL_GPL(round_jiffies_relative);
 +
 +
- static inline void set_running_timer(tvec_base_t *base,
- 					struct timer_list *timer)
+ static int make_request(request_queue_t *q, struct bio * bi)
  {
+ 	mddev_t *mddev = q->queuedata;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from raziebe@gmail.com are
 
 origin.patch
-user-of-the-jiffies-rounding-patch-ata-subsystem.patch
-user-of-the-jiffies-rounding-code-networking.patch
+md-dont-assume-that-read==0-and-write==1-use-the-names-explicitly.patch
 
