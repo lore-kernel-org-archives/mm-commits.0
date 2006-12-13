@@ -1,198 +1,83 @@
 From: akpm@osdl.org
-Subject: - updated-acpi-keep-track-of-timer-broadcast.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:49:02 -0800
-Message-ID: <200612132249.kBDMn2tj023126__16974.4590916254$1166050161$gmane$org@shell0.pdx.osdl.net>
+Subject: - dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:48:33 -0800
+Message-ID: <200612132248.kBDMmXXO023089@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52868 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52844 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724AbWLMWtN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:49:13 -0500
+	id S1751722AbWLMWtF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:49:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: cotte@de.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: Keep track of timer broadcast
+     remove incorrect warning in kernel/timer.c:688
 has been removed from the -mm tree.  Its filename was
-     updated-acpi-keep-track-of-timer-broadcast.patch
+     dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: ACPI: Keep track of timer broadcast
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: remove incorrect warning in kernel/timer.c:688
+From: Carsten Otte <cotte@de.ibm.com>
 
-This is a preperatory patch for highres/dyntick:
+the following patch in your broken-out series produces an incorrect
+warning on s390:
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 
-- replace the big #ifdef ARCH_APICTIMER_STOPS_ON_C3 hackery by functions
+I get plenty of those on my syslog with 2.6.19-rc2-mm1:
+Oct 18 17:13:19 t6360021 klogd: BUG: warning at kernel/timer.c:688/__next_timer_interrupt()
+Oct 18 17:13:19 t6360021 klogd: 0000000000103502 000000001ff8dc20 0000000000000002 0000000000000000
+Oct 18 17:13:19 t6360021 klogd:        000000001ff8dcc0 000000001ff8dc38 000000001ff8dc38 0000000000103574
+Oct 18 17:13:19 t6360021 klogd:        0000000000000000 0000000000000000 0000000000000000 0000000000000000
+Oct 18 17:13:19 t6360021 klogd:        000000001ff8dc20 000000000000000c 000000001ff8dc20 000000001ff8dc90
+Oct 18 17:13:19 t6360021 klogd:        00000000004221e8 0000000000103574 000000001ff8dc20 000000001ff8dc70
+Oct 18 17:13:19 t6360021 klogd: Call Trace:
+Oct 18 17:13:19 t6360021 klogd: ([<0000000000103502>] show_trace+0x166/0x16c)
+Oct 18 17:13:19 t6360021 klogd:  [<00000000001035ce>] show_stack+0xc6/0xf8
+Oct 18 17:13:19 t6360021 klogd:  [<000000000010362e>] dump_stack+0x2e/0x3c
+Oct 18 17:13:19 t6360021 klogd:  [<0000000000137104>] __next_timer_interrupt+0x13c/0x270
+Oct 18 17:13:19 t6360021 klogd:  [<00000000001372da>] next_timer_interrupt+0xa2/0x124
+Oct 18 17:13:19 t6360021 klogd:  [<0000000000105568>] nohz_idle_notify+0x17c/0x244
+Oct 18 17:13:19 t6360021 klogd:  [<000000000041ce4c>] notifier_call_chain+0x64/0x88
+Oct 18 17:13:19 t6360021 klogd:  [<000000000041ceb0>] atomic_notifier_call_chain+0x40/0x8c
+Oct 18 17:13:19 t6360021 klogd:  [<0000000000105dde>] cpu_idle+0x82/0x1fc
+Oct 18 17:13:19 t6360021 klogd:  [<0000000000110104>] start_secondary+0xb0/0xc4
+Oct 18 17:13:19 t6360021 klogd:  [<0000000000000000>] 0x0
+Oct 18 17:13:19 t6360021 klogd:  [<0000000000000000>] 0x0
 
-- remove the double switch in the power verify function (in the worst case
-  we switched ipi to apic and 20usec later apic to ipi)
+Problem is, that the warning assumes that there are always pending timer
+events on a system when a CPU is going idle.  But this is not true in
+general, the system may be waiting for an I/O interruption, or the CPU may
+wait for an interprocessor signal.  The patch below removes the warning,
+please apply.
 
-- keep track of the the state which stops local APIC timer
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Carsten Otte <cotte@de.ibm.com>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_idle.c |   67 ++++++++++++++++++++++----------
- include/acpi/processor.h      |    1 
- 2 files changed, 49 insertions(+), 19 deletions(-)
+ kernel/timer.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~updated-acpi-keep-track-of-timer-broadcast drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~updated-acpi-keep-track-of-timer-broadcast
-+++ a/drivers/acpi/processor_idle.c
-@@ -246,6 +246,49 @@ static void acpi_cstate_enter(struct acp
- 	}
- }
- 
-+#ifdef ARCH_APICTIMER_STOPS_ON_C3
-+
-+/*
-+ * Some BIOS implementations switch to C3 in the published C2 state. This seems
-+ * to be a common problem on AMD boxen.
-+ */
-+static void acpi_timer_check_state(int state, struct acpi_processor *pr,
-+				   struct acpi_processor_cx *cx)
-+{
-+	struct acpi_processor_power *pwr = &pr->power;
-+
-+	/*
-+	 * Check, if one of the previous states already marked the lapic
-+	 * unstable
-+	 */
-+	if (pwr->timer_broadcast_on_state < state)
-+		return;
-+
-+	if(cx->type == ACPI_STATE_C3 ||
-+	   boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
-+		pr->power.timer_broadcast_on_state = state;
-+		return;
-+	}
-+}
-+
-+static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
-+{
-+	cpumask_t mask = cpumask_of_cpu(pr->id);
-+
-+	if (pr->power.timer_broadcast_on_state < INT_MAX)
-+		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
-+	else
-+		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
-+}
-+
-+#else
-+
-+static void acpi_timer_check_state(int state, struct acpi_processor *pr,
-+				   struct acpi_processor_cx *cstate) { }
-+static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
-+
-+#endif
-+
- static void acpi_processor_idle(void)
- {
- 	struct acpi_processor *pr = NULL;
-@@ -912,11 +955,7 @@ static int acpi_processor_power_verify(s
- 	unsigned int i;
- 	unsigned int working = 0;
- 
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
--	int timer_broadcast = 0;
--	cpumask_t mask = cpumask_of_cpu(pr->id);
--	on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
--#endif
-+	pr->power.timer_broadcast_on_state = INT_MAX;
- 
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
-@@ -928,21 +967,14 @@ static int acpi_processor_power_verify(s
- 
- 		case ACPI_STATE_C2:
- 			acpi_processor_power_verify_c2(cx);
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
--			/* Some AMD systems fake C3 as C2, but still
--			   have timer troubles */
--			if (cx->valid && 
--				boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
--				timer_broadcast++;
--#endif
-+			if (cx->valid)
-+				acpi_timer_check_state(i, pr, cx);
- 			break;
- 
- 		case ACPI_STATE_C3:
- 			acpi_processor_power_verify_c3(pr, cx);
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
- 			if (cx->valid)
--				timer_broadcast++;
--#endif
-+				acpi_timer_check_state(i, pr, cx);
- 			break;
+diff -puN kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc kernel/timer.c
+--- a/kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc
++++ a/kernel/timer.c
+@@ -526,7 +526,6 @@ found:
+ 			}
  		}
- 
-@@ -950,10 +982,7 @@ static int acpi_processor_power_verify(s
- 			working++;
  	}
+-	WARN_ON(!found);
  
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
--	if (timer_broadcast)
--		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
--#endif
-+	acpi_propagate_timer_broadcast(pr);
- 
- 	return (working);
+ 	return expires;
  }
-diff -puN include/acpi/processor.h~updated-acpi-keep-track-of-timer-broadcast include/acpi/processor.h
---- a/include/acpi/processor.h~updated-acpi-keep-track-of-timer-broadcast
-+++ a/include/acpi/processor.h
-@@ -79,6 +79,7 @@ struct acpi_processor_power {
- 	u32 bm_activity;
- 	int count;
- 	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
-+	int timer_broadcast_on_state;
- };
- 
- /* Performance Management */
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from cotte@de.ibm.com are
 
-origin.patch
-git-mtd.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
 dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
 
