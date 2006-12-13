@@ -1,140 +1,117 @@
 From: akpm@osdl.org
-Subject: - procfs-build-fix.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 12:24:16 -0800
-Message-ID: <200612132024.kBDKOJKt018819@shell0.pdx.osdl.net>
+Subject: + count_vm_events-warning-fix.patch added to -mm tree
+Date: Wed, 13 Dec 2006 12:42:44 -0800
+Message-ID: <200612132042.kBDKgjNH019263@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38221 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39819 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750706AbWLMUYW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 15:24:22 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBDKOKID023270
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2006 12:24:20 -0800
+	id S1750770AbWLMUmu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 15:42:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, torvalds@osdl.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, clameter@engr.sgi.com
 
 
 The patch titled
-     procfs build fix
-has been removed from the -mm tree.  Its filename was
-     procfs-build-fix.patch
+     count_vm_events-warning-fix
+has been added to the -mm tree.  Its filename is
+     count_vm_events-warning-fix.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: procfs build fix
+Subject: count_vm_events-warning-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Builds fail after mrproper because fs/procfs/proc_misc.c needs compile.h,
-which hasn't been made yet.
+- Prevent things liek this:
 
-Compile the new SLES code in init/version.c, after we've created compile.h.
+	block/ll_rw_blk.c: In function 'submit_bio':
+	block/ll_rw_blk.c:3222: warning: unused variable 'count'
 
-Cc: Linus Torvalds <torvalds@osdl.org>
+  inlines are very, very preferable to macros.
+
+- remove unused get_cpu_vm_events() macro
+
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/proc_misc.c     |   20 +-------------------
- include/linux/proc_fs.h |    6 ++++++
- init/version.c          |   21 +++++++++++++++++++++
- 3 files changed, 28 insertions(+), 19 deletions(-)
+ include/linux/vmstat.h |   46 ++++++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 17 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~procfs-build-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~procfs-build-fix
-+++ a/fs/proc/proc_misc.c
-@@ -47,7 +47,6 @@
- #include <linux/vmalloc.h>
- #include <linux/crash_dump.h>
- #include <linux/pid_namespace.h>
--#include <linux/compile.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/io.h>
-@@ -70,7 +69,7 @@ extern int get_exec_domain_list(char *);
- extern int get_dma_list(char *);
- extern int get_locks_status (char *, char **, off_t, int);
+diff -puN include/linux/vmstat.h~count_vm_events-warning-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~count_vm_events-warning-fix
++++ a/include/linux/vmstat.h
+@@ -6,17 +6,6 @@
+ #include <linux/mmzone.h>
+ #include <asm/atomic.h>
  
--static int proc_calc_metrics(char *page, char **start, off_t off,
-+int proc_calc_metrics(char *page, char **start, off_t off,
- 				 int count, int *eof, int len)
- {
- 	if (len <= off+count) *eof = 1;
-@@ -249,23 +248,6 @@ static struct file_operations proc_zonei
- 	.release	= seq_release,
- };
- 
--static int version_read_proc(char *page, char **start, off_t off,
--				 int count, int *eof, void *data)
--{
--	int len;
+-#ifdef CONFIG_VM_EVENT_COUNTERS
+-/*
+- * Light weight per cpu counter implementation.
+- *
+- * Counters should only be incremented and no critical kernel component
+- * should rely on the counter values.
+- *
+- * Counters are handled completely inline. On many platforms the code
+- * generated will simply be the increment of a global address.
+- */
 -
--	/* FIXED STRING! Don't touch! */
--	len = snprintf(page, PAGE_SIZE,
--		"%s version %s"
--		" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
--		" (" LINUX_COMPILER ")"
--		" %s\n",
--		utsname()->sysname,
--		utsname()->release,
--		utsname()->version);
--	return proc_calc_metrics(page, start, off, count, eof, len);
--}
--
- extern struct seq_operations cpuinfo_op;
- static int cpuinfo_open(struct inode *inode, struct file *file)
- {
-diff -puN include/linux/proc_fs.h~procfs-build-fix include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~procfs-build-fix
-+++ a/include/linux/proc_fs.h
-@@ -275,4 +275,10 @@ struct proc_maps_private {
- #endif
+ #ifdef CONFIG_ZONE_DMA32
+ #define DMA32_ZONE(xx) xx##_DMA32,
+ #else
+@@ -44,6 +33,17 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		NR_VM_EVENT_ITEMS
  };
  
-+int proc_calc_metrics(char *page, char **start, off_t off,
-+				 int count, int *eof, int len);
++#ifdef CONFIG_VM_EVENT_COUNTERS
++/*
++ * Light weight per cpu counter implementation.
++ *
++ * Counters should only be incremented and no critical kernel component
++ * should rely on the counter values.
++ *
++ * Counters are handled completely inline. On many platforms the code
++ * generated will simply be the increment of a global address.
++ */
 +
-+int version_read_proc(char *page, char **start, off_t off,
-+				 int count, int *eof, void *data);
-+
- #endif /* _LINUX_PROC_FS_H */
-diff -puN init/version.c~procfs-build-fix init/version.c
---- a/init/version.c~procfs-build-fix
-+++ a/init/version.c
-@@ -13,6 +13,8 @@
- #include <linux/utsrelease.h>
- #include <linux/version.h>
- #include <linux/sched.h>
-+#include <linux/proc_fs.h>
-+#include <linux/compile.h>
- 
- #define version(a) Version_ ## a
- #define version_string(a) version(a)
-@@ -33,3 +35,22 @@ struct uts_namespace init_uts_ns = {
- 	},
+ struct vm_event_state {
+ 	unsigned long event[NR_VM_EVENT_ITEMS];
  };
- EXPORT_SYMBOL_GPL(init_uts_ns);
-+
-+#ifdef CONFIG_PROC_FS
-+int version_read_proc(char *page, char **start, off_t off,
-+				 int count, int *eof, void *data)
+@@ -78,12 +78,24 @@ extern void vm_events_fold_cpu(int cpu);
+ #else
+ 
+ /* Disable counters */
+-#define get_cpu_vm_events(e)	0L
+-#define count_vm_event(e)	do { } while (0)
+-#define count_vm_events(e,d)	do { } while (0)
+-#define __count_vm_event(e)	do { } while (0)
+-#define __count_vm_events(e,d)	do { } while (0)
+-#define vm_events_fold_cpu(x)	do { } while (0)
++static inline void count_vm_event(enum vm_event_item item)
 +{
-+	int len;
-+
-+	/* FIXED STRING! Don't touch! */
-+	len = snprintf(page, PAGE_SIZE,
-+		"%s version %s"
-+		" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
-+		" (" LINUX_COMPILER ")"
-+		" %s\n",
-+		utsname()->sysname,
-+		utsname()->release,
-+		utsname()->version);
-+	return proc_calc_metrics(page, start, off, count, eof, len);
 +}
-+#endif
++static inline void count_vm_events(enum vm_event_item item, long delta)
++{
++}
++static inline void __count_vm_event(enum vm_event_item item)
++{
++}
++static inline void __count_vm_events(enum vm_event_item item, long delta)
++{
++}
++static inline void all_vm_events(unsigned long *ret)
++{
++}
++static inline void vm_events_fold_cpu(int cpu)
++{
++}
+ 
+ #endif /* CONFIG_VM_EVENT_COUNTERS */
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -147,7 +124,6 @@ ocfs2-relative-atime-support.patch
 optimize-o_direct-on-block-device-v3.patch
 lockdep-fix-possible-races-while-disabling-lock-debugging.patch
 procfs-build-fix.patch
-build-compileh-earlier.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
 acpi-dont-select-pm.patch
@@ -201,6 +177,8 @@ drivers-add-lcd-support-3-Kconfig-fix.patch
 drivers-add-lcd-support-workqueue-fixups.patch
 ecryptfs-public-key-packet-management-slab-fix.patch
 add-retain_initrd-boot-option-tweak.patch
+build-compileh-earlier.patch
+count_vm_events-warning-fix.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
 move-page-writeback-acounting-out-of-macros.patch
 per-backing_dev-dirty-and-writeback-page-accounting.patch
