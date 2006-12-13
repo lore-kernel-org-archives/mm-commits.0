@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:43:44 -0800
-Message-ID: <200612132243.kBDMhixt022826@shell0.pdx.osdl.net>
+Subject: + gtod-fix-timeout-overflow.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:43:46 -0800
+Message-ID: <200612132243.kBDMhkFM022829@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52274 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52277 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751626AbWLMWnv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:43:51 -0500
+	id S1751631AbWLMWnw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:43:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,99 +15,48 @@ Cc: mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     gtod: fix multiple conversion bugs in msecs_to_jiffies()
+     gtod: fix timeout overflow
 has been added to the -mm tree.  Its filename is
-     gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+     gtod-fix-timeout-overflow.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gtod: fix multiple conversion bugs in msecs_to_jiffies()
+Subject: gtod: fix timeout overflow
 From: Ingo Molnar <mingo@elte.hu>
 
-Fix multiple conversion bugs in msecs_to_jiffies().
-
-The main problem is that this condition:
-
-	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-
-overflows if HZ is smaller than 1000!
-
-This change is user-visible: for HZ=250 SUS-compliant poll()-timeout
-value of -20 is mistakenly converted to 'immediate timeout'.
-
-(The new dyntick code also triggered this, that's how we noticed.)
+Prevent timeout overflow if timer ticks are behind jiffies (due to high
+softirq load or due to dyntick), by limiting the valid timeout range to
+MAX_LONG/2.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time.c |   43 ++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 42 insertions(+), 1 deletion(-)
+ include/linux/jiffies.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/time.c~gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies kernel/time.c
---- a/kernel/time.c~gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies
-+++ a/kernel/time.c
-@@ -500,15 +500,56 @@ unsigned int jiffies_to_usecs(const unsi
- }
- EXPORT_SYMBOL(jiffies_to_usecs);
+diff -puN include/linux/jiffies.h~gtod-fix-timeout-overflow include/linux/jiffies.h
+--- a/include/linux/jiffies.h~gtod-fix-timeout-overflow
++++ a/include/linux/jiffies.h
+@@ -142,13 +142,13 @@ static inline u64 get_jiffies_64(void)
+  *
+  * And some not so obvious.
+  *
+- * Note that we don't want to return MAX_LONG, because
++ * Note that we don't want to return LONG_MAX, because
+  * for various timeout reasons we often end up having
+  * to wait "jiffies+1" in order to guarantee that we wait
+  * at _least_ "jiffies" - so "jiffies+1" had better still
+  * be positive.
+  */
+-#define MAX_JIFFY_OFFSET ((~0UL >> 1)-1)
++#define MAX_JIFFY_OFFSET ((LONG_MAX >> 1)-1)
  
-+/*
-+ * When we convert to jiffies then we interpret incoming values
-+ * the following way:
-+ *
-+ * - negative values mean 'infinite timeout' (MAX_JIFFY_OFFSET)
-+ *
-+ * - 'too large' values [that would result in larger than
-+ *   MAX_JIFFY_OFFSET values] mean 'infinite timeout' too.
-+ *
-+ * - all other values are converted to jiffies by either multiplying
-+ *   the input value by a factor or dividing it with a factor
-+ *
-+ * We must also be careful about 32-bit overflows.
-+ */
- unsigned long msecs_to_jiffies(const unsigned int m)
- {
--	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+	/*
-+	 * Negative value, means infinite timeout:
-+	 */
-+	if ((int)m < 0)
- 		return MAX_JIFFY_OFFSET;
-+
- #if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-+	/*
-+	 * HZ is equal to or smaller than 1000, and 1000 is a nice
-+	 * round multiple of HZ, divide with the factor between them,
-+	 * but round upwards:
-+	 */
- 	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
- #elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-+	/*
-+	 * HZ is larger than 1000, and HZ is a nice round multiple of
-+	 * 1000 - simply multiply with the factor between them.
-+	 *
-+	 * But first make sure the multiplication result cannot
-+	 * overflow:
-+	 */
-+	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
- 	return m * (HZ / MSEC_PER_SEC);
- #else
-+	/*
-+	 * Generic case - multiply, round and divide. But first
-+	 * check that if we are doing a net multiplication, that
-+	 * we wouldnt overflow:
-+	 */
-+	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
- 	return (m * HZ + MSEC_PER_SEC - 1) / MSEC_PER_SEC;
- #endif
- }
+ /*
+  * We want to do realistic conversions of time so we need to use the same
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
