@@ -1,107 +1,58 @@
 From: akpm@osdl.org
-Subject: + sx-fix-non-pci-build.patch added to -mm tree
-Date: Tue, 12 Dec 2006 16:47:16 -0800
-Message-ID: <200612130047.kBD0lGJ8022964@shell0.pdx.osdl.net>
+Subject: + cciss-map-out-more-memory-for-config-table.patch added to -mm tree
+Date: Tue, 12 Dec 2006 16:56:29 -0800
+Message-ID: <200612130056.kBD0uTUZ023163@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34242 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35530 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964849AbWLMArS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 19:47:18 -0500
+	id S964857AbWLMA7v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 19:59:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: mikem@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, mike.miller@hp.com
 
 
 The patch titled
-     sx: fix non-PCI build
+     cciss: map out more memory for config table
 has been added to the -mm tree.  Its filename is
-     sx-fix-non-pci-build.patch
+     cciss-map-out-more-memory-for-config-table.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sx: fix non-PCI build
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: cciss: map out more memory for config table
+From: "Mike Miller (OS Dev)" <mikem@beardog.cca.cpqcorp.net>
 
-When CONFIG_PCI is not defined (i.e.  PCI bus is disabled), the sx driver
-fails to link, since some pci functions are not available.  Fix this
-behaviour to be able to compile this driver on machines with no PCI bus
-(but with ISA bus support).
+Map out more memory for our config table.  It's required to reach offset
+0x214 to disable DMA on the P600.  I'm not sure how I lost this hunk. 
+Please consider this for inclusion.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/Kconfig |    2 +-
- drivers/char/sx.c    |    8 ++++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/block/cciss.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/Kconfig~sx-fix-non-pci-build drivers/char/Kconfig
---- a/drivers/char/Kconfig~sx-fix-non-pci-build
-+++ a/drivers/char/Kconfig
-@@ -312,7 +312,7 @@ config SPECIALIX_RTSCTS
+diff -puN drivers/block/cciss.c~cciss-map-out-more-memory-for-config-table drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-map-out-more-memory-for-config-table
++++ a/drivers/block/cciss.c
+@@ -2865,7 +2865,7 @@ static int cciss_pci_init(ctlr_info_t *c
+ #ifdef CCISS_DEBUG
+ 	printk("address 0 = %x\n", c->paddr);
+ #endif				/* CCISS_DEBUG */
+-	c->vaddr = remap_pci_mem(c->paddr, 200);
++	c->vaddr = remap_pci_mem(c->paddr, 0x250);
  
- config SX
- 	tristate "Specialix SX (and SI) card support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || EISA || ISA)
- 	help
- 	  This is a driver for the SX and SI multiport serial cards.
- 	  Please read the file <file:Documentation/sx.txt> for details.
-diff -puN drivers/char/sx.c~sx-fix-non-pci-build drivers/char/sx.c
---- a/drivers/char/sx.c~sx-fix-non-pci-build
-+++ a/drivers/char/sx.c
-@@ -2498,8 +2498,10 @@ static void __devexit sx_remove_card(str
- 		/* It is safe/allowed to del_timer a non-active timer */
- 		del_timer(&board->timer);
- 		if (pdev) {
-+#ifdef CONFIG_PCI
- 			pci_iounmap(pdev, board->base);
- 			pci_release_region(pdev, IS_CF_BOARD(board) ? 3 : 2);
-+#endif
- 		} else {
- 			iounmap(board->base);
- 			release_region(board->hw_base, board->hw_len);
-@@ -2601,6 +2603,7 @@ static struct eisa_driver sx_eisadriver 
- 
- #endif
- 
-+#ifdef CONFIG_PCI
-  /******************************************************** 
-  * Setting bit 17 in the CNTRL register of the PLX 9050  * 
-  * chip forces a retry on writes while a read is pending.*
-@@ -2632,10 +2635,12 @@ static void __devinit fix_sx_pci(struct 
- 	}
- 	iounmap(rebase);
- }
-+#endif
- 
- static int __devinit sx_pci_probe(struct pci_dev *pdev,
- 				  const struct pci_device_id *ent)
- {
-+#ifdef CONFIG_PCI
- 	struct sx_board *board;
- 	unsigned int i, reg;
- 	int retval = -EIO;
-@@ -2700,6 +2705,9 @@ err_flag:
- 	board->flags &= ~SX_BOARD_PRESENT;
- err:
- 	return retval;
-+#else
-+	return -ENODEV;
-+#endif
- }
- 
- static void __devexit sx_pci_remove(struct pci_dev *pdev)
+ 	/* Wait for the board to become ready.  (PCI hotplug needs this.)
+ 	 * We poll for up to 120 secs, once per 100ms. */
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mikem@beardog.cca.cpqcorp.net are
 
-origin.patch
-isicom-fix-build-with-pci-disabled.patch
-mxser_new-fix-non-pci-build.patch
-sx-fix-non-pci-build.patch
+cciss-map-out-more-memory-for-config-table.patch
 
