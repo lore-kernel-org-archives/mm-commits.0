@@ -1,136 +1,93 @@
 From: akpm@osdl.org
-Subject: - md-assorted-md-and-raid1-one-liners.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:55:05 -0800
-Message-ID: <200612130655.kBD6t5oZ030609@shell0.pdx.osdl.net>
+Subject: - md-conditionalize-some-code.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:54:59 -0800
+Message-ID: <200612130654.kBD6sxMn030595@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57718 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57729 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965020AbWLMGzJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:55:09 -0500
+	id S965026AbWLMGzL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:55:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: jeff@garzik.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: assorted md and raid1 one-liners
+     MD: conditionalize some code
 has been removed from the -mm tree.  Its filename was
-     md-assorted-md-and-raid1-one-liners.patch
+     md-conditionalize-some-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: assorted md and raid1 one-liners
-From: NeilBrown <neilb@suse.de>
+Subject: MD: conditionalize some code
+From: Jeff Garzik <jeff@garzik.org>
 
-Fix few bugs that meant that:
-  - superblocks weren't alway written at exactly the right time (this
-    could show up if the array was not written to - writting to the array
-    causes lots of superblock updates and so hides these errors).
+The autorun code is only used if this module is built into the static
+kernel image.  Adjust #ifdefs accordingly.
 
-  - restarting device recovery after a clean shutdown (version-1 metadata
-    only) didn't work as intended (or at all).
-
-1/ Ensure superblock is updated when a new device is added.
-2/ Remove an inappropriate test on MD_RECOVERY_SYNC in md_do_sync.
-   The body of this if takes one of two branches depending on whether
-   MD_RECOVERY_SYNC is set, so testing it in the clause of the if
-   is wrong.
-3/ Flag superblock for updating after a resync/recovery finishes.
-4/ If we find the neeed to restart a recovery in the middle (version-1
-   metadata only) make sure a full recovery (not just as guided by
-   bitmaps) does get done.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Jeff Garzik <jeff@garzik.org>
+Acked-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/md.c    |    3 ++-
- drivers/md/raid1.c |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/md/md.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-assorted-md-and-raid1-one-liners drivers/md/md.c
---- a/drivers/md/md.c~md-assorted-md-and-raid1-one-liners
+diff -puN drivers/md/md.c~md-conditionalize-some-code drivers/md/md.c
+--- a/drivers/md/md.c~md-conditionalize-some-code
 +++ a/drivers/md/md.c
-@@ -3724,6 +3724,7 @@ static int add_new_disk(mddev_t * mddev,
- 		if (err)
- 			export_rdev(rdev);
+@@ -3371,6 +3371,7 @@ out:
+ 	return err;
+ }
  
-+		md_update_sb(mddev, 1);
- 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
- 		md_wakeup_thread(mddev->thread);
- 		return err;
-@@ -5275,7 +5276,6 @@ void md_do_sync(mddev_t *mddev)
- 	mddev->pers->sync_request(mddev, max_sectors, &skipped, 1);
- 
- 	if (!test_bit(MD_RECOVERY_ERR, &mddev->recovery) &&
--	    test_bit(MD_RECOVERY_SYNC, &mddev->recovery) &&
- 	    !test_bit(MD_RECOVERY_CHECK, &mddev->recovery) &&
- 	    mddev->curr_resync > 2) {
- 		if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
-@@ -5299,6 +5299,7 @@ void md_do_sync(mddev_t *mddev)
- 					rdev->recovery_offset = mddev->curr_resync;
- 		}
++#ifndef MODULE
+ static void autorun_array(mddev_t *mddev)
+ {
+ 	mdk_rdev_t *rdev;
+@@ -3485,6 +3486,7 @@ static void autorun_devices(int part)
  	}
-+	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+ 	printk(KERN_INFO "md: ... autorun DONE.\n");
+ }
++#endif /* !MODULE */
  
-  skip:
- 	mddev->curr_resync = 0;
-diff -puN drivers/md/raid1.c~md-assorted-md-and-raid1-one-liners drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-assorted-md-and-raid1-one-liners
-+++ a/drivers/md/raid1.c
-@@ -1951,6 +1951,7 @@ static int run(mddev_t *mddev)
- 		    !test_bit(In_sync, &disk->rdev->flags)) {
- 			disk->head_position = 0;
- 			mddev->degraded++;
-+			conf->fullsync = 1;
- 		}
- 	}
- 	if (mddev->degraded == conf->raid_disks) {
+ static int get_version(void __user * arg)
+ {
+@@ -5593,7 +5595,7 @@ static void autostart_arrays(int part)
+ 	autorun_devices(part);
+ }
+ 
+-#endif
++#endif /* !MODULE */
+ 
+ static __exit void md_exit(void)
+ {
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
-md-dont-assume-that-read==0-and-write==1-use-the-names-explicitly.patch
+git-acpi.patch
+git-drm.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+initializer-entry-defined-twice-in-pata_rz1000.patch
+user-of-the-jiffies-rounding-patch-ata-subsystem.patch
+libata-fix-oops-with-sparsemem.patch
+git-mtd.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+8139too-force-media-setting-fix.patch
+remove-the-broken-skmc-driver.patch
+tulip-fix-shutdown-dma-irq-race.patch
+git-ioat.patch
+via-sb600-sata-quirk.patch
+git-pciseg.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+mpt-fusion-handle-pci-layer-error-on-resume.patch
 fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
-knfsd-nfsd4-remove-a-dprink-from-nfsd4_lock.patch
-knfsd-svcrpc-fix-gss-krb5i-memory-leak.patch
-knfsd-nfsd4-clarify-units-of-compound_slack_space.patch
-knfsd-nfsd-make-exp_rootfh-handle-exp_parent-errors.patch
-knfsd-nfsd-simplify-exp_pseudoroot.patch
-knfsd-nfsd4-handling-more-nfsd_cross_mnt-errors-in-nfsd4-readdir.patch
-knfsd-nfsd-dont-drop-silently-on-upcall-deferral.patch
-knfsd-svcrpc-remove-another-silent-drop-from-deferral-code.patch
-knfsd-nfsd4-pass-saved-and-current-fh-together-into-nfsd4-operations.patch
-knfsd-nfsd4-remove-spurious-replay_owner-check.patch
-knfsd-nfsd4-move-replay_owner-to-cstate.patch
-knfsd-nfsd4-dont-inline-nfsd4-compound-op-functions.patch
-knfsd-nfsd4-make-verify-and-nverify-wrappers.patch
-knfsd-nfsd4-reorganize-compound-ops.patch
-knfsd-nfsd4-simplify-migration-op-check.patch
-knfsd-nfsd4-simplify-filehandle-check.patch
-knfsd-dont-ignore-kstrdup-failure-in-rpc-caches.patch
-knfsd-fix-up-some-bit-rot-in-exp_export.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
-knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
-knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
-knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
-knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
-knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-change-lifetime-rules-for-md-devices.patch
-md-close-a-race-between-destroying-and-recreating-an-md-device.patch
-md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+getting-rid-of-all-casts-of-kalloc-calls.patch
+e1000-printk-warning-fixes.patch
+git-gccbug.patch
 
