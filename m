@@ -1,367 +1,329 @@
 From: akpm@osdl.org
-Subject: - fdtable-implement-new-pagesize-based-fdtable-allocator.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:55:29 -0800
-Message-ID: <200612130655.kBD6tT3G030646@shell0.pdx.osdl.net>
+Subject: - dio-formalize-bio-counters-as-a-dio-reference-count.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:55:12 -0800
+Message-ID: <200612130655.kBD6tCXc030618@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58108 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58123 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965067AbWLMG7A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:59:00 -0500
+	id S965067AbWLMG7K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:59:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vlobanov@speakeasy.net, dipankar@in.ibm.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: zach.brown@oracle.com, jmoyer@redhat.com, pbadari@us.ibm.com, suparna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fdtable: Implement new pagesize-based fdtable allocator
+     dio: formalize bio counters as a dio reference count
 has been removed from the -mm tree.  Its filename was
-     fdtable-implement-new-pagesize-based-fdtable-allocator.patch
+     dio-formalize-bio-counters-as-a-dio-reference-count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fdtable: Implement new pagesize-based fdtable allocator
-From: Vadim Lobanov <vlobanov@speakeasy.net>
+Subject: dio: formalize bio counters as a dio reference count
+From: Zach Brown <zach.brown@oracle.com>
 
-This patch provides an improved fdtable allocation scheme, useful for
-expanding fdtable file descriptor entries.  The main focus is on the fdarray,
-as its memory usage grows 128 times faster than that of an fdset.
+Previously we had two confusing counts of bio progress.  'bio_count' was
+decremented as bios were processed and freed by the dio core.  It was used to
+indicate final completion of the dio operation.  'bios_in_flight' reflected
+how many bios were between submit_bio() and bio->end_io.  It was used by the
+sync path to decide when to wake up and finish completing bios and was ignored
+by the async path.
 
-The allocation algorithm sizes the fdarray in such a way that its memory usage
-increases in easy page-sized chunks. The overall algorithm expands the allowed
-size in powers of two, in order to amortize the cost of invoking vmalloc() for
-larger allocation sizes. Namely, the following sizes for the fdarray are
-considered, and the smallest that accommodates the requested fd count is
-chosen:
+This patch collapses the two notions into one notion of a dio reference count.
+ bios hold a dio reference when they're between submit_bio and bio->end_io.
 
-    pagesize / 4
-    pagesize / 2
-    pagesize      <- memory allocator switch point
-    pagesize * 2
-    pagesize * 4
-    ...etc...
+Since bios_in_flight was only used in the sync path it is now equivalent to
+dio->refcount - 1 which accounts for direct_io_worker() holding a reference
+for the duration of the operation.
 
-Unlike the current implementation, this allocation scheme does not require a
-loop to compute the optimal fdarray size, and can be done in efficient
-straightline code.
+dio_bio_complete() -> finished_one_bio() was called from the sync path after
+finding bios on the list that the bio->end_io function had deposited. 
+finished_one_bio() can not drop the dio reference on behalf of these bios now
+because bio->end_io already has.  The is_async test in finished_one_bio()
+meant that it never actually did anything other than drop the bio_count for
+sync callers.  So we remove its refcount decrement, don't call it from
+dio_bio_complete(), and hoist its call up into the async dio_bio_complete()
+caller after an explicit refcount decrement.  It is renamed dio_complete_aio()
+to reflect the remaining work it actually does.
 
-Furthermore, since the fdarray overflows the pagesize boundary long before any
-of the fdsets do, it makes sense to optimize run-time by allocating both
-fdsets in a single swoop.  Even together, they will still be, by far, smaller
-than the fdarray.  The fdtable->open_fds is now used as the anchor for the
-fdset memory allocation.
-
-Signed-off-by: Vadim Lobanov <vlobanov@speakeasy.net>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Signed-off-by: Zach Brown <zach.brown@oracle.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/file.c            |  208 ++++++++++++++---------------------------
- include/linux/file.h |    6 -
- 2 files changed, 72 insertions(+), 142 deletions(-)
+ fs/direct-io.c |  140 ++++++++++++++++++++++-------------------------
+ 1 file changed, 66 insertions(+), 74 deletions(-)
 
-diff -puN fs/file.c~fdtable-implement-new-pagesize-based-fdtable-allocator fs/file.c
---- a/fs/file.c~fdtable-implement-new-pagesize-based-fdtable-allocator
-+++ a/fs/file.c
-@@ -32,46 +32,28 @@ struct fdtable_defer {
+diff -puN fs/direct-io.c~dio-formalize-bio-counters-as-a-dio-reference-count fs/direct-io.c
+--- a/fs/direct-io.c~dio-formalize-bio-counters-as-a-dio-reference-count
++++ a/fs/direct-io.c
+@@ -121,9 +121,8 @@ struct dio {
+ 	int page_errors;		/* errno from get_user_pages() */
+ 
+ 	/* BIO completion state */
++	atomic_t refcount;		/* direct_io_worker() and bios */
+ 	spinlock_t bio_lock;		/* protects BIO fields below */
+-	int bio_count;			/* nr bios to be completed */
+-	int bios_in_flight;		/* nr bios in flight */
+ 	struct bio *bio_list;		/* singly linked via bi_private */
+ 	struct task_struct *waiter;	/* waiting task (NULL if none) */
+ 
+@@ -256,44 +255,27 @@ static int dio_complete(struct dio *dio,
+  * Called when a BIO has been processed.  If the count goes to zero then IO is
+  * complete and we can signal this to the AIO layer.
   */
- static DEFINE_PER_CPU(struct fdtable_defer, fdtable_defer_list);
- 
--
--/*
-- * Allocate an fd array, using kmalloc or vmalloc.
-- * Note: the array isn't cleared at allocation time.
-- */
--struct file ** alloc_fd_array(int num)
-+static inline void * alloc_fdmem(unsigned int size)
+-static void finished_one_bio(struct dio *dio)
++static void dio_complete_aio(struct dio *dio)
  {
--	struct file **new_fds;
--	int size = num * sizeof(struct file *);
--
- 	if (size <= PAGE_SIZE)
--		new_fds = (struct file **) kmalloc(size, GFP_KERNEL);
--	else 
--		new_fds = (struct file **) vmalloc(size);
--	return new_fds;
-+		return kmalloc(size, GFP_KERNEL);
-+	else
-+		return vmalloc(size);
- }
+ 	unsigned long flags;
++	int ret;
  
--void free_fd_array(struct file **array, int num)
-+static inline void free_fdarr(struct fdtable *fdt)
- {
--	int size = num * sizeof(struct file *);
+-	spin_lock_irqsave(&dio->bio_lock, flags);
+-	if (dio->bio_count == 1) {
+-		if (dio->is_async) {
+-			int ret;
 -
--	if (!array) {
--		printk (KERN_ERR "free_fd_array: array = 0 (num = %d)\n", num);
--		return;
--	}
+-			/*
+-			 * Last reference to the dio is going away.
+-			 * Drop spinlock and complete the DIO.
+-			 */
+-			spin_unlock_irqrestore(&dio->bio_lock, flags);
 -
--	if (num <= NR_OPEN_DEFAULT) /* Don't free the embedded fd array! */
--		return;
--	else if (size <= PAGE_SIZE)
--		kfree(array);
-+	if (fdt->max_fds <= (PAGE_SIZE / sizeof(struct file *)))
-+		kfree(fdt->fd);
- 	else
--		vfree(array);
-+		vfree(fdt->fd);
- }
+-			ret = dio_complete(dio, dio->iocb->ki_pos, 0);
++	ret = dio_complete(dio, dio->iocb->ki_pos, 0);
  
--static void __free_fdtable(struct fdtable *fdt)
-+static inline void free_fdset(struct fdtable *fdt)
- {
--	free_fdset(fdt->open_fds, fdt->max_fds);
--	free_fdset(fdt->close_on_exec, fdt->max_fds);
--	free_fd_array(fdt->fd, fdt->max_fds);
--	kfree(fdt);
-+	if (fdt->max_fds <= (PAGE_SIZE * BITS_PER_BYTE / 2))
-+		kfree(fdt->open_fds);
-+	else
-+		vfree(fdt->open_fds);
- }
- 
- static void free_fdtable_work(struct work_struct *work)
-@@ -86,7 +68,9 @@ static void free_fdtable_work(struct wor
- 	spin_unlock_bh(&f->lock);
- 	while(fdt) {
- 		struct fdtable *next = fdt->next;
--		__free_fdtable(fdt);
-+		vfree(fdt->fd);
-+		free_fdset(fdt);
-+		kfree(fdt);
- 		fdt = next;
+-			/* Complete AIO later if falling back to buffered i/o */
+-			if (dio->result == dio->size ||
+-				((dio->rw == READ) && dio->result)) {
+-				aio_complete(dio->iocb, ret, 0);
+-				kfree(dio);
+-				return;
+-			} else {
+-				/*
+-				 * Falling back to buffered
+-				 */
+-				spin_lock_irqsave(&dio->bio_lock, flags);
+-				dio->bio_count--;
+-				if (dio->waiter)
+-					wake_up_process(dio->waiter);
+-				spin_unlock_irqrestore(&dio->bio_lock, flags);
+-				return;
+-			}
+-		}
++	/* Complete AIO later if falling back to buffered i/o */
++	if (dio->result == dio->size ||
++		((dio->rw == READ) && dio->result)) {
++		aio_complete(dio->iocb, ret, 0);
++		kfree(dio);
++	} else {
++		/*
++		 * Falling back to buffered
++		 */
++		spin_lock_irqsave(&dio->bio_lock, flags);
++		if (dio->waiter)
++			wake_up_process(dio->waiter);
++		spin_unlock_irqrestore(&dio->bio_lock, flags);
  	}
+-	dio->bio_count--;
+-	spin_unlock_irqrestore(&dio->bio_lock, flags);
  }
-@@ -94,12 +78,9 @@ static void free_fdtable_work(struct wor
- void free_fdtable_rcu(struct rcu_head *rcu)
- {
- 	struct fdtable *fdt = container_of(rcu, struct fdtable, rcu);
--	int fdset_size, fdarray_size;
- 	struct fdtable_defer *fddef;
  
- 	BUG_ON(!fdt);
--	fdset_size = fdt->max_fds / 8;
--	fdarray_size = fdt->max_fds * sizeof(struct file *);
+ static int dio_bio_complete(struct dio *dio, struct bio *bio);
+@@ -309,6 +291,10 @@ static int dio_bio_end_aio(struct bio *b
  
- 	if (fdt->max_fds <= NR_OPEN_DEFAULT) {
- 		/*
-@@ -110,10 +91,9 @@ void free_fdtable_rcu(struct rcu_head *r
- 				container_of(fdt, struct files_struct, fdtab));
- 		return;
- 	}
--	if (fdset_size <= PAGE_SIZE && fdarray_size <= PAGE_SIZE) {
--		kfree(fdt->open_fds);
--		kfree(fdt->close_on_exec);
-+	if (fdt->max_fds <= (PAGE_SIZE / sizeof(struct file *))) {
- 		kfree(fdt->fd);
-+		kfree(fdt->open_fds);
- 		kfree(fdt);
- 	} else {
- 		fddef = &get_cpu_var(fdtable_defer_list);
-@@ -131,116 +111,70 @@ void free_fdtable_rcu(struct rcu_head *r
-  * Expand the fdset in the files_struct.  Called with the files spinlock
-  * held for write.
+ 	/* cleanup the bio */
+ 	dio_bio_complete(dio, bio);
++
++	if (atomic_dec_and_test(&dio->refcount))
++		dio_complete_aio(dio);
++
+ 	return 0;
+ }
+ 
+@@ -330,8 +316,7 @@ static int dio_bio_end_io(struct bio *bi
+ 	spin_lock_irqsave(&dio->bio_lock, flags);
+ 	bio->bi_private = dio->bio_list;
+ 	dio->bio_list = bio;
+-	dio->bios_in_flight--;
+-	if (dio->waiter && dio->bios_in_flight == 0)
++	if ((atomic_sub_return(1, &dio->refcount) == 1) && dio->waiter)
+ 		wake_up_process(dio->waiter);
+ 	spin_unlock_irqrestore(&dio->bio_lock, flags);
+ 	return 0;
+@@ -362,17 +347,15 @@ dio_bio_alloc(struct dio *dio, struct bl
+  * In the AIO read case we speculatively dirty the pages before starting IO.
+  * During IO completion, any of these pages which happen to have been written
+  * back will be redirtied by bio_check_pages_dirty().
++ *
++ * bios hold a dio reference between submit_bio and ->end_io.
   */
--static void copy_fdtable(struct fdtable *nfdt, struct fdtable *fdt)
--{
--	int i;
--	int count;
--
--	BUG_ON(nfdt->max_fds < fdt->max_fds);
--	/* Copy the existing tables and install the new pointers */
--
--	i = fdt->max_fds / (sizeof(unsigned long) * 8);
--	count = (nfdt->max_fds - fdt->max_fds) / 8;
--
+ static void dio_bio_submit(struct dio *dio)
+ {
+ 	struct bio *bio = dio->bio;
+-	unsigned long flags;
+ 
+ 	bio->bi_private = dio;
+-	spin_lock_irqsave(&dio->bio_lock, flags);
+-	dio->bio_count++;
+-	dio->bios_in_flight++;
+-	spin_unlock_irqrestore(&dio->bio_lock, flags);
++	atomic_inc(&dio->refcount);
+ 	if (dio->is_async && dio->rw == READ)
+ 		bio_set_pages_dirty(bio);
+ 	submit_bio(dio->rw, bio);
+@@ -390,18 +373,28 @@ static void dio_cleanup(struct dio *dio)
+ 		page_cache_release(dio_get_page(dio));
+ }
+ 
++static int wait_for_more_bios(struct dio *dio)
++{
++	assert_spin_locked(&dio->bio_lock);
++
++	return (atomic_read(&dio->refcount) > 1) && (dio->bio_list == NULL);
++}
++
+ /*
+- * Wait for the next BIO to complete.  Remove it and return it.
++ * Wait for the next BIO to complete.  Remove it and return it.  NULL is
++ * returned once all BIOs have been completed.  This must only be called once
++ * all bios have been issued so that dio->refcount can only decrease.  This
++ * requires that that the caller hold a reference on the dio.
+  */
+ static struct bio *dio_await_one(struct dio *dio)
+ {
+ 	unsigned long flags;
+-	struct bio *bio;
++	struct bio *bio = NULL;
+ 
+ 	spin_lock_irqsave(&dio->bio_lock, flags);
+-	while (dio->bio_list == NULL) {
++	while (wait_for_more_bios(dio)) {
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
+-		if (dio->bio_list == NULL) {
++		if (wait_for_more_bios(dio)) {
+ 			dio->waiter = current;
+ 			spin_unlock_irqrestore(&dio->bio_lock, flags);
+ 			io_schedule();
+@@ -410,8 +403,10 @@ static struct bio *dio_await_one(struct 
+ 		}
+ 		set_current_state(TASK_RUNNING);
+ 	}
+-	bio = dio->bio_list;
+-	dio->bio_list = bio->bi_private;
++	if (dio->bio_list) {
++		bio = dio->bio_list;
++		dio->bio_list = bio->bi_private;
++	}
+ 	spin_unlock_irqrestore(&dio->bio_lock, flags);
+ 	return bio;
+ }
+@@ -440,25 +435,24 @@ static int dio_bio_complete(struct dio *
+ 		}
+ 		bio_put(bio);
+ 	}
+-	finished_one_bio(dio);
+ 	return uptodate ? 0 : -EIO;
+ }
+ 
+ /*
+- * Wait on and process all in-flight BIOs.
++ * Wait on and process all in-flight BIOs.  This must only be called once
++ * all bios have been issued so that the refcount can only decrease.
++ * This just waits for all bios to make it through dio_bio_complete.  IO
++ * errors are propogated through dio->io_error and should be propogated via
++ * dio_complete().
+  */
+ static void dio_await_completion(struct dio *dio)
+ {
 -	/*
--	 * Don't copy the entire array if the current fdset is
--	 * not yet initialised.
+-	 * The bio_lock is not held for the read of bio_count.
+-	 * This is ok since it is the dio_bio_complete() that changes
+-	 * bio_count.
 -	 */
--	if (i) {
--		memcpy (nfdt->open_fds, fdt->open_fds,
--						fdt->max_fds/8);
--		memcpy (nfdt->close_on_exec, fdt->close_on_exec,
--						fdt->max_fds/8);
--		memset (&nfdt->open_fds->fds_bits[i], 0, count);
--		memset (&nfdt->close_on_exec->fds_bits[i], 0, count);
+-	while (dio->bio_count) {
+-		struct bio *bio = dio_await_one(dio);
+-		/* io errors are propogated through dio->io_error */
+-		dio_bio_complete(dio, bio);
 -	}
--
--	/* Don't copy/clear the array if we are creating a new
--	   fd array for fork() */
--	if (fdt->max_fds) {
--		memcpy(nfdt->fd, fdt->fd,
--			fdt->max_fds * sizeof(struct file *));
--		/* clear the remainder of the array */
--		memset(&nfdt->fd[fdt->max_fds], 0,
--		       (nfdt->max_fds - fdt->max_fds) *
--					sizeof(struct file *));
--	}
--}
--
--/*
-- * Allocate an fdset array, using kmalloc or vmalloc.
-- * Note: the array isn't cleared at allocation time.
-- */
--fd_set * alloc_fdset(int num)
-+static void copy_fdtable(struct fdtable *nfdt, struct fdtable *ofdt)
- {
--	fd_set *new_fdset;
--	int size = num / 8;
--
--	if (size <= PAGE_SIZE)
--		new_fdset = (fd_set *) kmalloc(size, GFP_KERNEL);
--	else
--		new_fdset = (fd_set *) vmalloc(size);
--	return new_fdset;
--}
-+	unsigned int cpy, set;
- 
--void free_fdset(fd_set *array, int num)
--{
--	if (num <= NR_OPEN_DEFAULT) /* Don't free an embedded fdset */
-+	BUG_ON(nfdt->max_fds < ofdt->max_fds);
-+	if (ofdt->max_fds == 0)
- 		return;
--	else if (num <= 8 * PAGE_SIZE)
--		kfree(array);
--	else
--		vfree(array);
-+
-+	cpy = ofdt->max_fds * sizeof(struct file *);
-+	set = (nfdt->max_fds - ofdt->max_fds) * sizeof(struct file *);
-+	memcpy(nfdt->fd, ofdt->fd, cpy);
-+	memset((char *)(nfdt->fd) + cpy, 0, set);
-+
-+	cpy = ofdt->max_fds / BITS_PER_BYTE;
-+	set = (nfdt->max_fds - ofdt->max_fds) / BITS_PER_BYTE;
-+	memcpy(nfdt->open_fds, ofdt->open_fds, cpy);
-+	memset((char *)(nfdt->open_fds) + cpy, 0, set);
-+	memcpy(nfdt->close_on_exec, ofdt->close_on_exec, cpy);
-+	memset((char *)(nfdt->close_on_exec) + cpy, 0, set);
++	struct bio *bio;
++	do {
++		bio = dio_await_one(dio);
++		if (bio)
++			dio_bio_complete(dio, bio);
++	} while (bio);
  }
  
--static struct fdtable *alloc_fdtable(int nr)
-+static struct fdtable * alloc_fdtable(unsigned int nr)
- {
--	struct fdtable *fdt = NULL;
--	int nfds = 0;
--  	fd_set *new_openset = NULL, *new_execset = NULL;
--	struct file **new_fds;
--
--	fdt = kzalloc(sizeof(*fdt), GFP_KERNEL);
--	if (!fdt)
--  		goto out;
-+	struct fdtable *fdt;
-+	char *data;
+ /*
+@@ -995,16 +989,7 @@ direct_io_worker(int rw, struct kiocb *i
+ 	dio->iocb = iocb;
+ 	dio->i_size = i_size_read(inode);
  
--	nfds = NR_OPEN_DEFAULT;
- 	/*
--	 * Expand to the max in easy steps, and keep expanding it until
--	 * we have enough for the requested fd array size.
-+	 * Figure out how many fds we actually want to support in this fdtable.
-+	 * Allocation steps are keyed to the size of the fdarray, since it
-+	 * grows far faster than any of the other dynamic data. We try to fit
-+	 * the fdarray into comfortable page-tuned chunks: starting at 1024B
-+	 * and growing in powers of two from there on.
- 	 */
--	do {
--#if NR_OPEN_DEFAULT < 256
--		if (nfds < 256)
--			nfds = 256;
--		else
--#endif
--		if (nfds < (PAGE_SIZE / sizeof(struct file *)))
--			nfds = PAGE_SIZE / sizeof(struct file *);
--		else {
--			nfds = nfds * 2;
--			if (nfds > NR_OPEN)
--				nfds = NR_OPEN;
--  		}
--	} while (nfds <= nr);
--
--  	new_openset = alloc_fdset(nfds);
--  	new_execset = alloc_fdset(nfds);
--  	if (!new_openset || !new_execset)
--  		goto out;
--	fdt->open_fds = new_openset;
--	fdt->close_on_exec = new_execset;
-+	nr /= (1024 / sizeof(struct file *));
-+	nr = roundup_pow_of_two(nr + 1);
-+	nr *= (1024 / sizeof(struct file *));
-+	if (nr > NR_OPEN)
-+		nr = NR_OPEN;
- 
--	new_fds = alloc_fd_array(nfds);
--	if (!new_fds)
-+	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL);
-+	if (!fdt)
- 		goto out;
--	fdt->fd = new_fds;
--	fdt->max_fds = nfds;
-+	fdt->max_fds = nr;
-+	data = alloc_fdmem(nr * sizeof(struct file *));
-+	if (!data)
-+		goto out_fdt;
-+	fdt->fd = (struct file **)data;
-+	data = alloc_fdmem(max_t(unsigned int,
-+				 2 * nr / BITS_PER_BYTE, L1_CACHE_BYTES));
-+	if (!data)
-+		goto out_arr;
-+	fdt->open_fds = (fd_set *)data;
-+	data += nr / BITS_PER_BYTE;
-+	fdt->close_on_exec = (fd_set *)data;
-+	INIT_RCU_HEAD(&fdt->rcu);
-+	fdt->next = NULL;
+-	/*
+-	 * BIO completion state.
+-	 *
+-	 * ->bio_count starts out at one, and we decrement it to zero after all
+-	 * BIOs are submitted.  This to avoid the situation where a really fast
+-	 * (or synchronous) device could take the count to zero while we're
+-	 * still submitting BIOs.
+-	 */
+-	dio->bio_count = 1;
+-	dio->bios_in_flight = 0;
++	atomic_set(&dio->refcount, 1);
+ 	spin_lock_init(&dio->bio_lock);
+ 	dio->bio_list = NULL;
+ 	dio->waiter = NULL;
+@@ -1111,7 +1096,11 @@ direct_io_worker(int rw, struct kiocb *i
+ 		}
+ 		if (ret == 0)
+ 			ret = dio->result;
+-		finished_one_bio(dio);		/* This can free the dio */
 +
- 	return fdt;
--out:
--	free_fdset(new_openset, nfds);
--	free_fdset(new_execset, nfds);
++		/* this can free the dio */
++		if (atomic_dec_and_test(&dio->refcount))
++			dio_complete_aio(dio);
 +
-+out_arr:
-+	free_fdarr(fdt);
-+out_fdt:
- 	kfree(fdt);
-+out:
- 	return NULL;
- }
+ 		if (should_wait) {
+ 			unsigned long flags;
+ 			/*
+@@ -1122,7 +1111,7 @@ direct_io_worker(int rw, struct kiocb *i
  
-@@ -275,7 +209,9 @@ static int expand_fdtable(struct files_s
- 			call_rcu(&cur_fdt->rcu, free_fdtable_rcu);
+ 			spin_lock_irqsave(&dio->bio_lock, flags);
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+-			while (dio->bio_count) {
++			while (atomic_read(&dio->refcount)) {
+ 				spin_unlock_irqrestore(&dio->bio_lock, flags);
+ 				io_schedule();
+ 				spin_lock_irqsave(&dio->bio_lock, flags);
+@@ -1133,7 +1122,6 @@ direct_io_worker(int rw, struct kiocb *i
+ 			kfree(dio);
+ 		}
  	} else {
- 		/* Somebody else expanded, so undo our attempt */
--		__free_fdtable(new_fdt);
-+		free_fdarr(new_fdt);
-+		free_fdset(new_fdt);
-+		kfree(new_fdt);
- 	}
- 	return 1;
- }
-diff -puN include/linux/file.h~fdtable-implement-new-pagesize-based-fdtable-allocator include/linux/file.h
---- a/include/linux/file.h~fdtable-implement-new-pagesize-based-fdtable-allocator
-+++ a/include/linux/file.h
-@@ -76,12 +76,6 @@ extern int get_unused_fd(void);
- extern void FASTCALL(put_unused_fd(unsigned int fd));
- struct kmem_cache;
+-		finished_one_bio(dio);
+ 		dio_await_completion(dio);
  
--extern struct file ** alloc_fd_array(int);
--extern void free_fd_array(struct file **, int);
--
--extern fd_set *alloc_fdset(int);
--extern void free_fdset(fd_set *, int);
--
- extern int expand_files(struct files_struct *, int nr);
- extern void free_fdtable_rcu(struct rcu_head *rcu);
- extern void __init files_defer_init(void);
+ 		ret = dio_complete(dio, offset, ret);
+@@ -1146,7 +1134,11 @@ direct_io_worker(int rw, struct kiocb *i
+ 			 * i/o, we have to mark the the aio complete.
+ 			 */
+ 			aio_complete(iocb, ret, 0);
+-		kfree(dio);
++
++		if (atomic_dec_and_test(&dio->refcount))
++			kfree(dio);
++		else
++			BUG();
+ 	}
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from vlobanov@speakeasy.net are
+Patches currently in -mm which might be from zach.brown@oracle.com are
 
 origin.patch
-fdtable-make-fdarray-and-fdsets-equal-in-size-slim.patch
+optimize-o_direct-on-block-device-v3.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
 
