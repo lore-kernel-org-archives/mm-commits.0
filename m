@@ -1,162 +1,176 @@
 From: akpm@osdl.org
-Subject: - updated-i386-convert-to-clock-event-devices-fix.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:49:14 -0800
-Message-ID: <200612132249.kBDMnEZQ023141@shell0.pdx.osdl.net>
+Subject: - updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:49:05 -0800
+Message-ID: <200612132249.kBDMn5pU023132@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52890 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52882 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724AbWLMWtT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:49:19 -0500
+	id S1751729AbWLMWtQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:49:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     updated-i386-convert-to-clock-event-devices-fix
+     ACPI: Add state propagation for dynamic broadcasting
 has been removed from the -mm tree.  Its filename was
-     updated-i386-convert-to-clock-event-devices-fix.patch
+     updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: updated-i386-convert-to-clock-event-devices-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: ACPI: Add state propagation for dynamic broadcasting
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This is a preparatory patch for high resolution timers and dynticks.
+
+The local APIC timer is fast and per CPU, but it gets stopped in C3 state.  On
+some broken systems, especially AMD based ones it gets stopped in C2.  This
+also affects akpm's jinxed VAIO.
+
+The broadcast function informs the local APIC management code that a state
+which stops the local APIC is going to be entered/exited.  This switches the
+local APIC timer to the PIT broadcast mode.  The clockevents layer takes care
+of the distribution of events.
+
+The lapic_timer_idle_broadcast() function is an empty inline for now, which
+will be replaced by the later clockevents patches for the affected
+architectures.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/apic.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/processor_idle.c |   20 ++++++++++++++++++++
+ include/asm-i386/apic.h       |    1 +
+ include/asm-x86_64/apic.h     |    1 +
+ 3 files changed, 22 insertions(+)
 
-diff -puN arch/i386/kernel/apic.c~updated-i386-convert-to-clock-event-devices-fix arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~updated-i386-convert-to-clock-event-devices-fix
-+++ a/arch/i386/kernel/apic.c
-@@ -538,6 +538,7 @@ void lapic_timer_idle_broadcast(int broa
- 	if (evt->event_handler)
- 		clockevents_set_broadcast(evt, broadcast);
+diff -puN drivers/acpi/processor_idle.c~updated-acpi-add-state-propagation-for-dynamic-broadcasting drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~updated-acpi-add-state-propagation-for-dynamic-broadcasting
++++ a/drivers/acpi/processor_idle.c
+@@ -281,11 +281,27 @@ static void acpi_propagate_timer_broadca
+ 		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
  }
-+EXPORT_SYMBOL_GPL(lapic_timer_idle_broadcast);
  
- int setup_profiling_timer(unsigned int multiplier)
- {
++/* Power(C) State timer broadcast control */
++static void acpi_state_timer_broadcast(struct acpi_processor *pr,
++				       struct acpi_processor_cx *cx,
++				       int broadcast)
++{
++	int state = cx - pr->power.states;
++
++	if (state >= pr->power.timer_broadcast_on_state)
++		lapic_timer_idle_broadcast(broadcast);
++}
++
+ #else
+ 
+ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
+ 				   struct acpi_processor_cx *cstate) { }
+ static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
++static void acpi_state_timer_broadcast(struct acpi_processor *pr,
++				       struct acpi_processor_cx *cx,
++				       int broadcast)
++{
++}
+ 
+ #endif
+ 
+@@ -431,6 +447,7 @@ static void acpi_processor_idle(void)
+ 		/* Get start time (ticks) */
+ 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Invoke C2 */
++		acpi_state_timer_broadcast(pr, cx, 1);
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+@@ -445,6 +462,7 @@ static void acpi_processor_idle(void)
+ 		/* Compute time (ticks) that we were actually asleep */
+ 		sleep_ticks =
+ 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C2_OVERHEAD;
++		acpi_state_timer_broadcast(pr, cx, 0);
+ 		break;
+ 
+ 	case ACPI_STATE_C3:
+@@ -467,6 +485,7 @@ static void acpi_processor_idle(void)
+ 		/* Get start time (ticks) */
+ 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Invoke C3 */
++		acpi_state_timer_broadcast(pr, cx, 1);
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+@@ -487,6 +506,7 @@ static void acpi_processor_idle(void)
+ 		/* Compute time (ticks) that we were actually asleep */
+ 		sleep_ticks =
+ 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
++		acpi_state_timer_broadcast(pr, cx, 0);
+ 		break;
+ 
+ 	default:
+diff -puN include/asm-i386/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting include/asm-i386/apic.h
+--- a/include/asm-i386/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting
++++ a/include/asm-i386/apic.h
+@@ -113,6 +113,7 @@ extern void setup_secondary_APIC_clock (
+ extern int APIC_init_uniprocessor (void);
+ extern void disable_APIC_timer(void);
+ extern void enable_APIC_timer(void);
++static inline void lapic_timer_idle_broadcast(int broadcast) { }
+ 
+ extern void enable_NMI_through_LVT0 (void * dummy);
+ 
+diff -puN include/asm-x86_64/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting include/asm-x86_64/apic.h
+--- a/include/asm-x86_64/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting
++++ a/include/asm-x86_64/apic.h
+@@ -84,6 +84,7 @@ extern int APIC_init_uniprocessor (void)
+ extern void disable_APIC_timer(void);
+ extern void enable_APIC_timer(void);
+ extern void setup_apic_routing(void);
++static inline void lapic_timer_idle_broadcast(int broadcast) { }
+ 
+ extern void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
+ 				   unsigned char msg_type, unsigned char mask);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-x86-smp-export-smp_num_siblings-for-oprofile.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support.patch
-optimize-o_direct-on-block-device-v3.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-input-vs-git-alsa.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
 git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
 clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
 
