@@ -1,219 +1,906 @@
 From: akpm@osdl.org
-Subject: - updated-hrtimers-state-tracking.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:48:41 -0800
-Message-ID: <200612132248.kBDMmfFY023098@shell0.pdx.osdl.net>
+Subject: - updated-i386-convert-to-clock-event-devices.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:49:11 -0800
+Message-ID: <200612132249.kBDMnBSF023138@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54057 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54173 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686AbWLMW6s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:58:48 -0500
+	id S1750896AbWLMW7q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:59:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, akpm@osdl.org, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers: state tracking
+     i386: Convert to clock event devices
 has been removed from the -mm tree.  Its filename was
-     updated-hrtimers-state-tracking.patch
+     updated-i386-convert-to-clock-event-devices.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: hrtimers: state tracking
+Subject: i386: Convert to clock event devices
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Reintroduce ktimers feature "optimized away" by the ktimers review process:
-multiple hrtimer states to enable the running of hrtimers without holding the
-cpu-base-lock.
+Add clockevent drivers for i386: lapic (local) and PIT (global).  Update the
+timer IRQ to call into the PIT driver's event handler and the lapic-timer IRQ
+to call into the lapic clockevent driver.  The assignement of timer
+functionality is delegated to the core framework code and replaces the compile
+and runtime evalution in do_timer_interrupt_hook()
 
-(The "optimized" rbtree hack carried only 2 states worth of information and we
-need 4 for high resolution timers and dynamic ticks.)
+Use the clockevents broadcast support and implement the lapic_broadcast
+function for ACPI.
 
 Build-fixes-from: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/hrtimer.h |   36 +++++++++++++++++++++++++++++++++++-
- kernel/hrtimer.c        |   29 +++++++++++++++++++++--------
- 2 files changed, 56 insertions(+), 9 deletions(-)
+ Documentation/kernel-parameters.txt      |    5 
+ arch/i386/Kconfig                        |    8 
+ arch/i386/kernel/apic.c                  |  278 ++++++++++++---------
+ arch/i386/kernel/i8253.c                 |   92 ++++++
+ arch/i386/kernel/smpboot.c               |    5 
+ arch/i386/kernel/time.c                  |   50 ---
+ include/asm-i386/apic.h                  |    5 
+ include/asm-i386/i8253.h                 |   20 +
+ include/asm-i386/mach-default/do_timer.h |   26 -
+ include/asm-i386/mach-voyager/do_timer.h |   15 -
+ include/asm-i386/mpspec.h                |    1 
+ 11 files changed, 295 insertions(+), 210 deletions(-)
 
-diff -puN include/linux/hrtimer.h~updated-hrtimers-state-tracking include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~updated-hrtimers-state-tracking
-+++ a/include/linux/hrtimer.h
-@@ -40,6 +40,34 @@ enum hrtimer_restart {
- 	HRTIMER_RESTART,	/* Timer must be restarted */
- };
+diff -puN Documentation/kernel-parameters.txt~updated-i386-convert-to-clock-event-devices Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~updated-i386-convert-to-clock-event-devices
++++ a/Documentation/kernel-parameters.txt
+@@ -760,6 +760,11 @@ and is between 256 and 4096 characters. 
+ 	lapic		[IA-32,APIC] Enable the local APIC even if BIOS
+ 			disabled it.
  
-+/*
-+ * Bit values to track state of the timer
-+ *
-+ * Possible states:
-+ *
-+ * 0x00		inactive
-+ * 0x01		enqueued into rbtree
-+ * 0x02		callback function running
-+ * 0x03		callback function running and enqueued
-+ *		(was requeued on another CPU)
-+ *
-+ * The "callback function running and enqueued" status is only possible on
-+ * SMP. It happens for example when a posix timer expired and the callback
-+ * queued a signal. Between dropping the lock which protects the posix timer
-+ * and reacquiring the base lock of the hrtimer, another CPU can deliver the
-+ * signal and rearm the timer. We have to preserve the callback running state,
-+ * as otherwise the timer could be removed before the softirq code finishes the
-+ * the handling of the timer.
-+ *
-+ * The HRTIMER_STATE_ENQUEUE bit is always or'ed to the current state to
-+ * preserve the HRTIMER_STATE_CALLBACK bit in the above scenario.
-+ *
-+ * All state transitions are protected by cpu_base->lock.
-+ */
-+#define HRTIMER_STATE_INACTIVE	0x00
-+#define HRTIMER_STATE_ENQUEUED	0x01
-+#define HRTIMER_STATE_CALLBACK	0x02
++	lapictimer	[IA-32,APIC] Enable the local APIC timer on UP
++			systems for high resulution timers and dynticks.
++			This only has an effect when the local APIC is
++			available. It does not imply the "lapic" option.
 +
- /**
-  * struct hrtimer - the basic hrtimer structure
-  * @node:	red black tree node for time ordered insertion
-@@ -48,6 +76,7 @@ enum hrtimer_restart {
-  *		which the timer is based.
-  * @function:	timer expiry callback function
-  * @base:	pointer to the timer base (per cpu and per clock)
-+ * @state:	state information (See bit values above)
-  *
-  * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
-  */
-@@ -56,6 +85,7 @@ struct hrtimer {
- 	ktime_t				expires;
- 	enum hrtimer_restart		(*function)(struct hrtimer *);
- 	struct hrtimer_clock_base	*base;
-+	unsigned long			state;
- };
+ 	lasi=		[HW,SCSI] PARISC LASI driver for the 53c700 chip
+ 			Format: addr:<io>,irq:<irq>
  
- /**
-@@ -141,9 +171,13 @@ extern int hrtimer_get_res(const clockid
- extern ktime_t hrtimer_get_next_event(void);
+diff -puN arch/i386/Kconfig~updated-i386-convert-to-clock-event-devices arch/i386/Kconfig
+--- a/arch/i386/Kconfig~updated-i386-convert-to-clock-event-devices
++++ a/arch/i386/Kconfig
+@@ -18,6 +18,14 @@ config GENERIC_TIME
+ 	bool
+ 	default y
+ 
++config GENERIC_CLOCKEVENTS
++	bool
++	default y
++
++config GENERIC_CLOCKEVENTS_BROADCAST
++	bool
++	default y
++
+ config LOCKDEP_SUPPORT
+ 	bool
+ 	default y
+diff -puN arch/i386/kernel/apic.c~updated-i386-convert-to-clock-event-devices arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~updated-i386-convert-to-clock-event-devices
++++ a/arch/i386/kernel/apic.c
+@@ -25,6 +25,7 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/sysdev.h>
+ #include <linux/cpu.h>
++#include <linux/clockchips.h>
+ #include <linux/module.h>
+ 
+ #include <asm/atomic.h>
+@@ -52,28 +53,49 @@
  #endif
  
-+/*
-+ * A timer is active, when it is enqueued into the rbtree or the callback
-+ * function is running.
-+ */
- static inline int hrtimer_active(const struct hrtimer *timer)
- {
--	return rb_parent(&timer->node) != &timer->node;
-+	return timer->state != HRTIMER_STATE_INACTIVE;
- }
+ /*
+- * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
+- * IPIs in place of local APIC timers
+- */
+-static cpumask_t timer_bcast_ipi;
+-
+-/*
+  * Knob to control our willingness to enable the local APIC.
+  *
+  * -1=force-disable, +1=force-enable
+  */
+ static int enable_local_apic __initdata = 0;
  
- /* Forward a hrtimer so it expires after now: */
-diff -puN kernel/hrtimer.c~updated-hrtimers-state-tracking kernel/hrtimer.c
---- a/kernel/hrtimer.c~updated-hrtimers-state-tracking
-+++ a/kernel/hrtimer.c
-@@ -235,6 +235,12 @@ lock_hrtimer_base(const struct hrtimer *
- 
- #endif	/* !CONFIG_SMP */
- 
-+static inline int hrtimer_is_queued(struct hrtimer *timer)
-+{
-+	return timer->state != HRTIMER_STATE_INACTIVE &&
-+		timer->state != HRTIMER_STATE_CALLBACK;
-+}
++/* Enable local APIC timer for highres/dyntick on UP */
++static int enable_local_apic_timer __initdata = 0;
 +
  /*
-  * Functions for the union type storage format of ktime_t which are
-  * too large for inlining:
-@@ -385,6 +391,11 @@ static void enqueue_hrtimer(struct hrtim
- 	 */
- 	rb_link_node(&timer->node, parent, link);
- 	rb_insert_color(&timer->node, &base->active);
-+	/*
-+	 * HRTIMER_STATE_ENQUEUED is or'ed to the current state to preserve the
-+	 * state of a possibly running callback.
-+	 */
-+	timer->state |= HRTIMER_STATE_ENQUEUED;
- 
- 	if (!base->first || timer->expires.tv64 <
- 	    rb_entry(base->first, struct hrtimer, node)->expires.tv64)
-@@ -397,7 +408,8 @@ static void enqueue_hrtimer(struct hrtim
-  * Caller must hold the base lock.
+  * Debug level, exported for io_apic.c
   */
- static void __remove_hrtimer(struct hrtimer *timer,
--			     struct hrtimer_clock_base *base)
-+			     struct hrtimer_clock_base *base,
-+			     unsigned long newstate)
+ int apic_verbosity;
+ 
+-static void apic_pm_activate(void);
++static unsigned int calibration_result;
+ 
++static void lapic_next_event(unsigned long delta,
++			     struct clock_event_device *evt);
++static void lapic_timer_setup(enum clock_event_mode mode,
++			      struct clock_event_device *evt);
++static void lapic_timer_broadcast(cpumask_t *mask);
++static void apic_pm_activate(void);
+ 
+-/* Using APIC to generate smp_local_timer_interrupt? */
+-int using_apic_timer __read_mostly = 0;
++/*
++ * The local apic timer can be used for any function which is CPU local.
++ */
++static struct clock_event_device lapic_clockevent = {
++	.name = "lapic",
++	.capabilities = CLOCK_CAP_PROFILE
++#ifdef CONFIG_SMP
++	/*
++	 * On UP we keep update_process_times() on the PIT interrupt to
++	 * resemble the original behaviour as close as possible. SMP
++	 * requires to run this CPU local.
++	 */
++			| CLOCK_CAP_UPDATE
++#endif
++	,
++	.shift = 32,
++	.set_mode = lapic_timer_setup,
++	.set_next_event = lapic_next_event,
++};
++static DEFINE_PER_CPU(struct clock_event_device, lapic_events);
+ 
+ /* Local APIC was disabled by the BIOS and enabled by the kernel */
+ static int enabled_via_apicbase;
+@@ -152,6 +174,11 @@ int lapic_get_maxlvt(void)
+  */
+ 
+ /*
++ * FIXME: Move this to i8253.h. There is no need to keep the access to
++ * the PIT scattered all around the place -tglx
++ */
++
++/*
+  * The timer chip is already set up at HZ interrupts per second here,
+  * but we do not accept timer interrupts yet. We only allow the BP
+  * to calibrate.
+@@ -209,16 +236,17 @@ void (*wait_timer_tick)(void) __devinitd
+ 
+ #define APIC_DIVISOR 16
+ 
+-static void __setup_APIC_LVTT(unsigned int clocks)
++static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
  {
- 	/*
- 	 * Remove the timer from the rbtree and replace the
-@@ -406,7 +418,7 @@ static void __remove_hrtimer(struct hrti
- 	if (base->first == &timer->node)
- 		base->first = rb_next(&timer->node);
- 	rb_erase(&timer->node, &base->active);
--	rb_set_parent(&timer->node, &timer->node);
-+	timer->state = newstate;
+ 	unsigned int lvtt_value, tmp_value;
+-	int cpu = smp_processor_id();
+ 
+-	lvtt_value = APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
++	lvtt_value = LOCAL_TIMER_VECTOR;
++	if (!oneshot)
++		lvtt_value |= APIC_LVT_TIMER_PERIODIC;
+ 	if (!lapic_is_integrated())
+ 		lvtt_value |= SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV);
+ 
+-	if (cpu_isset(cpu, timer_bcast_ipi))
++	if (!irqen)
+ 		lvtt_value |= APIC_LVT_MASKED;
+ 
+ 	apic_write_around(APIC_LVTT, lvtt_value);
+@@ -231,31 +259,67 @@ static void __setup_APIC_LVTT(unsigned i
+ 				& ~(APIC_TDR_DIV_1 | APIC_TDR_DIV_TMBASE))
+ 				| APIC_TDR_DIV_16);
+ 
+-	apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
++	if (!oneshot)
++		apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
+ }
+ 
+-static void __devinit setup_APIC_timer(unsigned int clocks)
++/*
++ * Program the next event, relative to now
++ */
++static void lapic_next_event(unsigned long delta,
++			     struct clock_event_device *evt)
++{
++	apic_write_around(APIC_TMICT, delta);
++}
++
++/*
++ * Setup the lapic timer in periodic or oneshot mode
++ */
++static void lapic_timer_setup(enum clock_event_mode mode,
++			      struct clock_event_device *evt)
+ {
+ 	unsigned long flags;
++	unsigned int v;
+ 
+ 	local_irq_save(flags);
+ 
+-	/*
+-	 * Wait for IRQ0's slice:
+-	 */
+-	wait_timer_tick();
+-
+-	__setup_APIC_LVTT(clocks);
++	switch (mode) {
++	case CLOCK_EVT_PERIODIC:
++	case CLOCK_EVT_ONESHOT:
++		__setup_APIC_LVTT(calibration_result,
++				  mode != CLOCK_EVT_PERIODIC, 1);
++		break;
++	case CLOCK_EVT_SHUTDOWN:
++		v = apic_read(APIC_LVTT);
++		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
++		apic_write_around(APIC_LVTT, v);
++		break;
++	}
+ 
+ 	local_irq_restore(flags);
  }
  
  /*
-@@ -415,8 +427,8 @@ static void __remove_hrtimer(struct hrti
- static inline int
- remove_hrtimer(struct hrtimer *timer, struct hrtimer_clock_base *base)
- {
--	if (hrtimer_active(timer)) {
--		__remove_hrtimer(timer, base);
-+	if (hrtimer_is_queued(timer)) {
-+		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE);
- 		return 1;
- 	}
- 	return 0;
-@@ -488,7 +500,7 @@ int hrtimer_try_to_cancel(struct hrtimer
++ * Setup the local APIC timer for this CPU. Copy the initilized values
++ * of the boot CPU and register the clock event in the framework.
++ */
++static void __devinit setup_APIC_timer(void)
++{
++	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
++
++	memcpy(levt, &lapic_clockevent, sizeof(*levt));
++
++	register_local_clockevent(levt);
++}
++
++/*
+  * In this function we calibrate APIC bus clocks to the external
+  * timer. Unfortunately we cannot use jiffies and the timer irq
+  * to calibrate, since some later bootup code depends on getting
+  * the first irq? Ugh.
+  *
++ * TODO: Fix this rather than saying "Ugh" -tglx
++ *
+  * We want to do the calibration only once since we
+  * want to have local timer irqs syncron. CPUs connected
+  * by the same APIC bus have the very same bus frequency.
+@@ -278,7 +342,7 @@ static int __init calibrate_APIC_clock(v
+ 	 * value into the APIC clock, we just want to get the
+ 	 * counter running for calibration.
+ 	 */
+-	__setup_APIC_LVTT(1000000000);
++	__setup_APIC_LVTT(1000000000, 0, 0);
  
- 	base = lock_hrtimer_base(timer, &flags);
+ 	/*
+ 	 * The timer chip counts down to zero. Let's wait
+@@ -315,6 +379,17 @@ static int __init calibrate_APIC_clock(v
  
--	if (base->cpu_base->curr_timer != timer)
-+	if (!(timer->state & HRTIMER_STATE_CALLBACK))
- 		ret = remove_hrtimer(timer, base);
+ 	result = (tt1-tt2)*APIC_DIVISOR/LOOPS;
  
- 	unlock_hrtimer_base(timer, &flags);
-@@ -593,7 +605,6 @@ void hrtimer_init(struct hrtimer *timer,
- 		clock_id = CLOCK_MONOTONIC;
- 
- 	timer->base = &cpu_base->clock_base[clock_id];
--	rb_set_parent(&timer->node, &timer->node);
++	/* Calculate the scaled math multiplication factor */
++	lapic_clockevent.mult = div_sc(tt1-tt2, TICK_NSEC * LOOPS, 32);
++	lapic_clockevent.max_delta_ns =
++		clockevent_delta2ns(0x7FFFFF, &lapic_clockevent);
++	lapic_clockevent.min_delta_ns =
++		clockevent_delta2ns(0xF, &lapic_clockevent);
++
++	apic_printk(APIC_VERBOSE, "..... tt1-tt2 %ld\n", tt1 - tt2);
++	apic_printk(APIC_VERBOSE, "..... mult: %ld\n", lapic_clockevent.mult);
++	apic_printk(APIC_VERBOSE, "..... calibration result: %ld\n", result);
++
+ 	if (cpu_has_tsc)
+ 		apic_printk(APIC_VERBOSE, "..... CPU clock speed is "
+ 			"%ld.%04ld MHz.\n",
+@@ -329,8 +404,6 @@ static int __init calibrate_APIC_clock(v
+ 	return result;
  }
- EXPORT_SYMBOL_GPL(hrtimer_init);
  
-@@ -644,13 +655,14 @@ static inline void run_hrtimer_queue(str
+-static unsigned int calibration_result;
+-
+ void __init setup_boot_APIC_clock(void)
+ {
+ 	unsigned long flags;
+@@ -343,97 +416,66 @@ void __init setup_boot_APIC_clock(void)
+ 	/*
+ 	 * Now set up the timer for real.
+ 	 */
+-	setup_APIC_timer(calibration_result);
++	setup_APIC_timer();
  
- 		fn = timer->function;
- 		set_curr_timer(cpu_base, timer);
--		__remove_hrtimer(timer, base);
-+		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
- 		spin_unlock_irq(&cpu_base->lock);
+ 	local_irq_restore(flags);
+ }
  
- 		restart = fn(timer);
+ void __devinit setup_secondary_APIC_clock(void)
+ {
+-	setup_APIC_timer(calibration_result);
+-}
+-
+-void disable_APIC_timer(void)
+-{
+-	if (using_apic_timer) {
+-		unsigned long v;
+-
+-		v = apic_read(APIC_LVTT);
+-		/*
+-		 * When an illegal vector value (0-15) is written to an LVT
+-		 * entry and delivery mode is Fixed, the APIC may signal an
+-		 * illegal vector error, with out regard to whether the mask
+-		 * bit is set or whether an interrupt is actually seen on
+-		 * input.
+-		 *
+-		 * Boot sequence might call this function when the LVTT has
+-		 * '0' vector value. So make sure vector field is set to
+-		 * valid value.
+-		 */
+-		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
+-		apic_write_around(APIC_LVTT, v);
+-	}
+-}
+-
+-void enable_APIC_timer(void)
+-{
+-	int cpu = smp_processor_id();
+-
+-	if (using_apic_timer && !cpu_isset(cpu, timer_bcast_ipi)) {
+-		unsigned long v;
+-
+-		v = apic_read(APIC_LVTT);
+-		apic_write_around(APIC_LVTT, v & ~APIC_LVT_MASKED);
+-	}
++	setup_APIC_timer();
+ }
  
- 		spin_lock_irq(&cpu_base->lock);
+ void switch_APIC_timer_to_ipi(void *cpumask)
+ {
++	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
+ 	cpumask_t mask = *(cpumask_t *)cpumask;
+ 	int cpu = smp_processor_id();
  
-+		timer->state &= ~HRTIMER_STATE_CALLBACK;
- 		if (restart != HRTIMER_NORESTART) {
- 			BUG_ON(hrtimer_active(timer));
- 			enqueue_hrtimer(timer, base);
-@@ -821,7 +833,8 @@ static void migrate_hrtimer_list(struct 
+-	if (cpu_isset(cpu, mask) &&
+-	    !cpu_isset(cpu, timer_bcast_ipi)) {
+-		disable_APIC_timer();
+-		cpu_set(cpu, timer_bcast_ipi);
+-	}
++	if (cpu_isset(cpu, mask) && levt->event_handler)
++		clockevents_set_global_broadcast(levt, 1);
+ }
+ EXPORT_SYMBOL(switch_APIC_timer_to_ipi);
  
- 	while ((node = rb_first(&old_base->active))) {
- 		timer = rb_entry(node, struct hrtimer, node);
--		__remove_hrtimer(timer, old_base);
-+		BUG_ON(timer->state & HRTIMER_STATE_CALLBACK);
-+		__remove_hrtimer(timer, old_base, HRTIMER_STATE_INACTIVE);
- 		timer->base = new_base;
- 		enqueue_hrtimer(timer, new_base);
+ void switch_ipi_to_APIC_timer(void *cpumask)
+ {
++	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
+ 	cpumask_t mask = *(cpumask_t *)cpumask;
+ 	int cpu = smp_processor_id();
+ 
+-	if (cpu_isset(cpu, mask) &&
+-	    cpu_isset(cpu, timer_bcast_ipi)) {
+-		cpu_clear(cpu, timer_bcast_ipi);
+-		enable_APIC_timer();
+-	}
++	if (cpu_isset(cpu, mask) && levt->event_handler)
++		clockevents_set_global_broadcast(levt, 0);
+ }
+ EXPORT_SYMBOL(switch_ipi_to_APIC_timer);
+ 
+ /*
+- * Local timer interrupt handler. It does both profiling and
+- * process statistics/rescheduling.
++ * The guts of the apic timer interrupt
+  */
+-inline void smp_local_timer_interrupt(void)
++fastcall void local_apic_timer_interrupt(struct pt_regs *regs)
+ {
+-	profile_tick(CPU_PROFILING);
+-#ifdef CONFIG_SMP
+-	update_process_times(user_mode_vm(get_irq_regs()));
+-#endif
++	int cpu = smp_processor_id();
++	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
+ 
+ 	/*
+-	 * We take the 'long' return path, and there every subsystem
+-	 * grabs the apropriate locks (kernel lock/ irq lock).
+-	 *
+-	 * we might want to decouple profiling from the 'long path',
+-	 * and do the profiling totally in assembly.
++	 * Normally we should not be here till LAPIC has been initialized but
++	 * in some cases like kdump, its possible that there is a pending LAPIC
++	 * timer interrupt from previous kernel's context and is delivered in
++	 * new kernel the moment interrupts are enabled.
+ 	 *
+-	 * Currently this isn't too much of an issue (performance wise),
+-	 * we can take more than 100K local irqs per second on a 100 MHz P5.
+-	 */
++	 * Interrupts are enabled early and LAPIC is setup much later, hence
++	 * its possible that when we get here evt->event_handler is NULL.
++	 * Check for event_handler being NULL and discard the interrupt as
++	 * spurious.
++	 */
++	if (!evt->event_handler) {
++		printk(KERN_WARNING
++		       "Spurious LAPIC timer interrupt on cpu %d\n", cpu);
++		return;
++	}
++
++	per_cpu(irq_stat, cpu).apic_timer_irqs++;
++
++	evt->event_handler(regs);
+ }
+ 
+ /*
+@@ -448,12 +490,6 @@ inline void smp_local_timer_interrupt(vo
+ fastcall void smp_apic_timer_interrupt(struct pt_regs *regs)
+ {
+ 	struct pt_regs *old_regs = set_irq_regs(regs);
+-	int cpu = smp_processor_id();
+-
+-	/*
+-	 * the NMI deadlock-detector uses this.
+-	 */
+-	per_cpu(irq_stat, cpu).apic_timer_irqs++;
+ 
+ 	/*
+ 	 * NOTE! We'd better ACK the irq immediately,
+@@ -467,41 +503,40 @@ fastcall void smp_apic_timer_interrupt(s
+ 	 */
+ 	exit_idle();
+ 	irq_enter();
+-	smp_local_timer_interrupt();
++	local_apic_timer_interrupt(regs);
+ 	irq_exit();
+ 	set_irq_regs(old_regs);
+ }
+ 
+-#ifndef CONFIG_SMP
+-static void up_apic_timer_interrupt_call(void)
++/*
++ * Local APIC timer broadcast function
++ */
++static void lapic_timer_broadcast(cpumask_t *cpumask)
+ {
+ 	int cpu = smp_processor_id();
+-
+-	/*
+-	 * the NMI deadlock-detector uses this.
+-	 */
+-	per_cpu(irq_stat, cpu).apic_timer_irqs++;
+-
+-	smp_local_timer_interrupt();
+-}
+-#endif
+-
+-void smp_send_timer_broadcast_ipi(void)
+-{
+ 	cpumask_t mask;
+ 
+-	cpus_and(mask, cpu_online_map, timer_bcast_ipi);
+-	if (!cpus_empty(mask)) {
++	cpus_and(mask, cpu_online_map, *cpumask);
++	if (cpu_isset(cpu, mask)) {
++		cpu_clear(cpu, mask);
++		local_apic_timer_interrupt(get_irq_regs());
++	}
+ #ifdef CONFIG_SMP
++	if (!cpus_empty(mask))
+ 		send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
+-#else
+-		/*
+-		 * We can directly call the apic timer interrupt handler
+-		 * in UP case. Minus all irq related functions
+-		 */
+-		up_apic_timer_interrupt_call();
+ #endif
+-	}
++}
++
++/*
++ * Local APIC set next event broadcast
++ */
++void lapic_timer_idle_broadcast(int broadcast)
++{
++	int cpu = smp_processor_id();
++	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
++
++	if (evt->event_handler)
++		clockevents_set_broadcast(evt, broadcast);
+ }
+ 
+ int setup_profiling_timer(unsigned int multiplier)
+@@ -914,6 +949,11 @@ void __devinit setup_local_APIC(void)
+ 			printk(KERN_INFO "No ESR for 82489DX.\n");
  	}
+ 
++	/* Disable the local apic timer */
++	value = apic_read(APIC_LVTT);
++	value |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
++	apic_write_around(APIC_LVTT, value);
++
+ 	setup_apic_nmi_watchdog(NULL);
+ 	apic_pm_activate();
+ }
+@@ -1128,6 +1168,13 @@ static int __init parse_nolapic(char *ar
+ }
+ early_param("nolapic", parse_nolapic);
+ 
++static int __init apic_enable_lapic_timer(char *str)
++{
++	enable_local_apic_timer = 1;
++	return 0;
++}
++early_param("lapictimer", apic_enable_lapic_timer);
++
+ static int __init apic_set_verbosity(char *str)
+ {
+ 	if (strcmp("debug", str) == 0)
+@@ -1139,7 +1186,6 @@ static int __init apic_set_verbosity(cha
+ 
+ __setup("apic=", apic_set_verbosity);
+ 
+-
+ /*
+  * Local APIC interrupts
+  */
+diff -puN arch/i386/kernel/i8253.c~updated-i386-convert-to-clock-event-devices arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~updated-i386-convert-to-clock-event-devices
++++ a/arch/i386/kernel/i8253.c
+@@ -2,7 +2,7 @@
+  * i8253.c  8253/PIT functions
+  *
+  */
+-#include <linux/clocksource.h>
++#include <linux/clockchips.h>
+ #include <linux/spinlock.h>
+ #include <linux/jiffies.h>
+ #include <linux/sysdev.h>
+@@ -19,20 +19,96 @@
+ DEFINE_SPINLOCK(i8253_lock);
+ EXPORT_SYMBOL(i8253_lock);
+ 
+-void setup_pit_timer(void)
++#ifdef CONFIG_HPET_TIMER
++/*
++ * HPET replaces the PIT, when enabled. So we need to know, which of
++ * the two timers is used
++ */
++struct clock_event_device *global_clock_event;
++#endif
++
++/*
++ * Initialize the PIT timer.
++ *
++ * This is also called after resume to bring the PIT into operation again.
++ */
++static void init_pit_timer(enum clock_event_mode mode,
++			   struct clock_event_device *evt)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&i8253_lock, flags);
++
++	switch(mode) {
++	case CLOCK_EVT_PERIODIC:
++		/* binary, mode 2, LSB/MSB, ch 0 */
++		outb_p(0x34, PIT_MODE);
++		udelay(10);
++		outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
++		udelay(10);
++		outb(LATCH >> 8 , PIT_CH0);	/* MSB */
++		break;
++
++	case CLOCK_EVT_ONESHOT:
++	case CLOCK_EVT_SHUTDOWN:
++		/* One shot setup */
++		outb_p(0x38, PIT_MODE);
++		udelay(10);
++		break;
++	}
++	spin_unlock_irqrestore(&i8253_lock, flags);
++}
++
++/*
++ * Program the next event in oneshot mode
++ *
++ * Delta is given in PIT ticks
++ */
++static void pit_next_event(unsigned long delta, struct clock_event_device *evt)
+ {
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&i8253_lock, flags);
+-	outb_p(0x34,PIT_MODE);		/* binary, mode 2, LSB/MSB, ch 0 */
+-	udelay(10);
+-	outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
+-	udelay(10);
+-	outb(LATCH >> 8 , PIT_CH0);	/* MSB */
++	outb_p(delta & 0xff , PIT_CH0);	/* LSB */
++	outb(delta >> 8 , PIT_CH0);	/* MSB */
+ 	spin_unlock_irqrestore(&i8253_lock, flags);
+ }
+ 
+ /*
++ * On UP the PIT can serve all of the possible timer functions. On SMP systems
++ * it can be solely used for the global tick.
++ *
++ * The profiling and update capabilites are switched off once the local apic is
++ * registered. This mechanism replaces the previous #ifdef LOCAL_APIC -
++ * !using_apic_timer decisions in do_timer_interrupt_hook()
++ */
++struct clock_event_device pit_clockevent = {
++	.name		= "pit",
++	.capabilities	= CLOCK_CAP_TICK | CLOCK_CAP_PROFILE | CLOCK_CAP_UPDATE
++			| CLOCK_CAP_NEXTEVT,
++	.set_mode	= init_pit_timer,
++	.set_next_event = pit_next_event,
++	.shift		= 32,
++};
++
++/*
++ * Initialize the conversion factor and the min/max deltas of the clock event
++ * structure and register the clock event source with the framework.
++ */
++void __init setup_pit_timer(void)
++{
++	pit_clockevent.mult = div_sc(CLOCK_TICK_RATE, NSEC_PER_SEC, 32);
++	pit_clockevent.max_delta_ns =
++		clockevent_delta2ns(0x7FFF, &pit_clockevent);
++	pit_clockevent.min_delta_ns =
++		clockevent_delta2ns(0xF, &pit_clockevent);
++	register_global_clockevent(&pit_clockevent);
++#ifdef CONFIG_HPET_TIMER
++	global_clock_event = &pit_clockevent;
++#endif
++}
++
++/*
+  * Since the PIT overflows every tick, its not very useful
+  * to just read by itself. So use jiffies to emulate a free
+  * running counter:
+@@ -46,7 +122,7 @@ static cycle_t pit_read(void)
+ 	static u32 old_jifs;
+ 
+ 	spin_lock_irqsave(&i8253_lock, flags);
+-        /*
++	/*
+ 	 * Although our caller may have the read side of xtime_lock,
+ 	 * this is now a seqlock, and we are cheating in this routine
+ 	 * by having side effects on state that we cannot undo if
+diff -puN arch/i386/kernel/smpboot.c~updated-i386-convert-to-clock-event-devices arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~updated-i386-convert-to-clock-event-devices
++++ a/arch/i386/kernel/smpboot.c
+@@ -438,9 +438,7 @@ static void __devinit smp_callin(void)
+ 	/*
+ 	 * Save our processor parameters
+ 	 */
+- 	smp_store_cpu_info(cpuid);
+-
+-	disable_APIC_timer();
++	smp_store_cpu_info(cpuid);
+ 
+ 	/*
+ 	 * Allow the master to continue.
+@@ -557,7 +555,6 @@ static void __devinit start_secondary(vo
+ 		enable_NMI_through_LVT0(NULL);
+ 		enable_8259A_irq(0);
+ 	}
+-	enable_APIC_timer();
+ 	/*
+ 	 * low-memory mappings have been cleared, flush them from
+ 	 * the local TLBs too.
+diff -puN arch/i386/kernel/time.c~updated-i386-convert-to-clock-event-devices arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~updated-i386-convert-to-clock-event-devices
++++ a/arch/i386/kernel/time.c
+@@ -161,15 +161,6 @@ EXPORT_SYMBOL(profile_pc);
+  */
+ irqreturn_t timer_interrupt(int irq, void *dev_id)
+ {
+-	/*
+-	 * Here we are in the timer irq handler. We just have irqs locally
+-	 * disabled but we don't know if the timer_bh is running on the other
+-	 * CPU. We need to avoid to SMP race with it. NOTE: we don' t need
+-	 * the irq version of write_lock because as just said we have irq
+-	 * locally disabled. -arca
+-	 */
+-	write_seqlock(&xtime_lock);
+-
+ #ifdef CONFIG_X86_IO_APIC
+ 	if (timer_ack) {
+ 		/*
+@@ -188,7 +179,6 @@ irqreturn_t timer_interrupt(int irq, voi
+ 
+ 	do_timer_interrupt_hook();
+ 
+-
+ 	if (MCA_bus) {
+ 		/* The PS/2 uses level-triggered interrupts.  You can't
+ 		turn them off, nor would you want to (any attempt to
+@@ -203,13 +193,6 @@ irqreturn_t timer_interrupt(int irq, voi
+ 		outb_p( irq_v|0x80, 0x61 );	/* reset the IRQ */
+ 	}
+ 
+-	write_sequnlock(&xtime_lock);
+-
+-#ifdef CONFIG_X86_LOCAL_APIC
+-	if (using_apic_timer)
+-		smp_send_timer_broadcast_ipi();
+-#endif
+-
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -277,39 +260,6 @@ void notify_arch_cmos_timer(void)
+ 	mod_timer(&sync_cmos_timer, jiffies + 1);
+ }
+ 
+-static int timer_resume(struct sys_device *dev)
+-{
+-#ifdef CONFIG_HPET_TIMER
+-	if (is_hpet_enabled())
+-		hpet_reenable();
+-#endif
+-	setup_pit_timer();
+-	touch_softlockup_watchdog();
+-	return 0;
+-}
+-
+-static struct sysdev_class timer_sysclass = {
+-	.resume = timer_resume,
+-	set_kset_name("timer"),
+-};
+-
+-
+-/* XXX this driverfs stuff should probably go elsewhere later -john */
+-static struct sys_device device_timer = {
+-	.id	= 0,
+-	.cls	= &timer_sysclass,
+-};
+-
+-static int time_init_device(void)
+-{
+-	int error = sysdev_class_register(&timer_sysclass);
+-	if (!error)
+-		error = sysdev_register(&device_timer);
+-	return error;
+-}
+-
+-device_initcall(time_init_device);
+-
+ #ifdef CONFIG_HPET_TIMER
+ extern void (*late_time_init)(void);
+ /* Duplicate of time_init() below, with hpet_enable part added */
+diff -puN include/asm-i386/apic.h~updated-i386-convert-to-clock-event-devices include/asm-i386/apic.h
+--- a/include/asm-i386/apic.h~updated-i386-convert-to-clock-event-devices
++++ a/include/asm-i386/apic.h
+@@ -111,13 +111,10 @@ extern void smp_local_timer_interrupt (v
+ extern void setup_boot_APIC_clock (void);
+ extern void setup_secondary_APIC_clock (void);
+ extern int APIC_init_uniprocessor (void);
+-extern void disable_APIC_timer(void);
+-extern void enable_APIC_timer(void);
+-static inline void lapic_timer_idle_broadcast(int broadcast) { }
++extern void lapic_timer_idle_broadcast(int broadcast);
+ 
+ extern void enable_NMI_through_LVT0 (void * dummy);
+ 
+-void smp_send_timer_broadcast_ipi(void);
+ void switch_APIC_timer_to_ipi(void *cpumask);
+ void switch_ipi_to_APIC_timer(void *cpumask);
+ #define ARCH_APICTIMER_STOPS_ON_C3	1
+diff -puN include/asm-i386/i8253.h~updated-i386-convert-to-clock-event-devices include/asm-i386/i8253.h
+--- a/include/asm-i386/i8253.h~updated-i386-convert-to-clock-event-devices
++++ a/include/asm-i386/i8253.h
+@@ -1,6 +1,26 @@
+ #ifndef __ASM_I8253_H__
+ #define __ASM_I8253_H__
+ 
++#include <linux/clockchips.h>
++
+ extern spinlock_t i8253_lock;
+ 
++#ifdef CONFIG_HPET_TIMER
++extern struct clock_event_device *global_clock_event;
++#else
++extern struct clock_event_device pit_clockevent;
++# define global_clock_event (&pit_clockevent)
++#endif
++
++/**
++ * pit_interrupt_hook - hook into timer tick
++ * @regs:	standard registers from interrupt
++ *
++ * Call the global clock event handler.
++ **/
++static inline void pit_interrupt_hook(struct pt_regs *regs)
++{
++	global_clock_event->event_handler(regs);
++}
++
+ #endif	/* __ASM_I8253_H__ */
+diff -puN include/asm-i386/mach-default/do_timer.h~updated-i386-convert-to-clock-event-devices include/asm-i386/mach-default/do_timer.h
+--- a/include/asm-i386/mach-default/do_timer.h~updated-i386-convert-to-clock-event-devices
++++ a/include/asm-i386/mach-default/do_timer.h
+@@ -1,36 +1,18 @@
+ /* defines for inline arch setup functions */
++#include <linux/clockchips.h>
+ 
+-#include <asm/apic.h>
+ #include <asm/i8259.h>
++#include <asm/i8253.h>
+ 
+ /**
+  * do_timer_interrupt_hook - hook into timer tick
+- * @regs:	standard registers from interrupt
+  *
+- * Description:
+- *	This hook is called immediately after the timer interrupt is ack'd.
+- *	It's primary purpose is to allow architectures that don't possess
+- *	individual per CPU clocks (like the CPU APICs supply) to broadcast the
+- *	timer interrupt as a means of triggering reschedules etc.
++ * Call the pit clock event handler. see asm/i8253.h
+  **/
+ 
+ static inline void do_timer_interrupt_hook(void)
+ {
+-	do_timer(1);
+-#ifndef CONFIG_SMP
+-	update_process_times(user_mode_vm(get_irq_regs()));
+-#endif
+-/*
+- * In the SMP case we use the local APIC timer interrupt to do the
+- * profiling, except when we simulate SMP mode on a uniprocessor
+- * system, in that case we have to call the local interrupt handler.
+- */
+-#ifndef CONFIG_X86_LOCAL_APIC
+-	profile_tick(CPU_PROFILING);
+-#else
+-	if (!using_apic_timer)
+-		smp_local_timer_interrupt();
+-#endif
++	pit_interrupt_hook(get_irq_regs());
+ }
+ 
+ 
+diff -puN include/asm-i386/mach-voyager/do_timer.h~updated-i386-convert-to-clock-event-devices include/asm-i386/mach-voyager/do_timer.h
+--- a/include/asm-i386/mach-voyager/do_timer.h~updated-i386-convert-to-clock-event-devices
++++ a/include/asm-i386/mach-voyager/do_timer.h
+@@ -1,13 +1,18 @@
+ /* defines for inline arch setup functions */
++#include <linux/clockchips.h>
++
+ #include <asm/voyager.h>
++#include <asm/i8253.h>
+ 
++/**
++ * do_timer_interrupt_hook - hook into timer tick
++ * @regs:     standard registers from interrupt
++ *
++ * Call the pit clock event handler. see asm/i8253.h
++ **/
+ static inline void do_timer_interrupt_hook(void)
+ {
+-	do_timer(1);
+-#ifndef CONFIG_SMP
+-	update_process_times(user_mode_vm(irq_regs));
+-#endif
+-
++	pit_interrupt_hook(get_irq_regs());
+ 	voyager_timer_interrupt();
+ }
+ 
+diff -puN include/asm-i386/mpspec.h~updated-i386-convert-to-clock-event-devices include/asm-i386/mpspec.h
+--- a/include/asm-i386/mpspec.h~updated-i386-convert-to-clock-event-devices
++++ a/include/asm-i386/mpspec.h
+@@ -23,7 +23,6 @@ extern struct mpc_config_intsrc mp_irqs 
+ extern int mpc_default_type;
+ extern unsigned long mp_lapic_addr;
+ extern int pic_mode;
+-extern int using_apic_timer;
+ 
+ #ifdef CONFIG_ACPI
+ extern void mp_register_lapic (u8 id, u8 enabled);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
