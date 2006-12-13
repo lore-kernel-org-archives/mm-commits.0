@@ -1,36 +1,31 @@
 From: akpm@osdl.org
-Subject: - sched-remove-staggering-of-load-balancing.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:53:49 -0800
-Message-ID: <200612130653.kBD6rnge030526@shell0.pdx.osdl.net>
+Subject: - sched-disable-interrupts-for-locking-in-load_balance.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:53:55 -0800
+Message-ID: <200612130653.kBD6rtT8030534@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57616 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57604 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965007AbWLMGyg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:54:36 -0500
+	id S965004AbWLMGye (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:54:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, kenneth.w.chen@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, pwil3058@bigpond.net.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: remove staggering of load balancing
+     sched: disable interrupts for locking in load_balance()
 has been removed from the -mm tree.  Its filename was
-     sched-remove-staggering-of-load-balancing.patch
+     sched-disable-interrupts-for-locking-in-load_balance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: remove staggering of load balancing
+Subject: sched: disable interrupts for locking in load_balance()
 From: Christoph Lameter <clameter@sgi.com>
 
-Timer interrupts already are staggered.  We do not need an additional layer of
-time staggering for short load balancing actions that take a reasonably small
-portion of the time slice.
-
-For load balancing on large sched_domains we will add a serialization later
-that avoids concurrent load balance operations and thus has the same effect as
-load staggering.
+Interrupts must be disabled for request queue locks if we want to run
+load_balance() with interrupts enabled.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Peter Williams <pwil3058@bigpond.net.au>
@@ -43,39 +38,68 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ kernel/sched.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sched.c~sched-remove-staggering-of-load-balancing kernel/sched.c
---- a/kernel/sched.c~sched-remove-staggering-of-load-balancing
+diff -puN kernel/sched.c~sched-disable-interrupts-for-locking-in-load_balance kernel/sched.c
+--- a/kernel/sched.c~sched-disable-interrupts-for-locking-in-load_balance
 +++ a/kernel/sched.c
-@@ -2841,16 +2841,10 @@ static void active_load_balance(struct r
-  * Balancing parameters are set up in arch_init_sched_domains.
+@@ -2546,8 +2546,6 @@ static inline unsigned long minus_1_or_z
+ /*
+  * Check this_cpu to ensure it is balanced within domain. Attempt to move
+  * tasks if there is an imbalance.
+- *
+- * Called with this_rq unlocked.
   */
+ static int load_balance(int this_cpu, struct rq *this_rq,
+ 			struct sched_domain *sd, enum idle_type idle)
+@@ -2557,6 +2555,7 @@ static int load_balance(int this_cpu, st
+ 	unsigned long imbalance;
+ 	struct rq *busiest;
+ 	cpumask_t cpus = CPU_MASK_ALL;
++	unsigned long flags;
  
--/* Don't have all balancing operations going off at once: */
--static inline unsigned long cpu_offset(int cpu)
--{
--	return jiffies + cpu * HZ / NR_CPUS;
--}
--
- static void
- rebalance_tick(int this_cpu, struct rq *this_rq, enum idle_type idle)
- {
--	unsigned long this_load, interval, j = cpu_offset(this_cpu);
-+	unsigned long this_load, interval;
- 	struct sched_domain *sd;
- 	int i, scale;
+ 	/*
+ 	 * When power savings policy is enabled for the parent domain, idle
+@@ -2596,11 +2595,13 @@ redo:
+ 		 * still unbalanced. nr_moved simply stays zero, so it is
+ 		 * correctly treated as an imbalance.
+ 		 */
++		local_irq_save(flags);
+ 		double_rq_lock(this_rq, busiest);
+ 		nr_moved = move_tasks(this_rq, this_cpu, busiest,
+ 				      minus_1_or_zero(busiest->nr_running),
+ 				      imbalance, sd, idle, &all_pinned);
+ 		double_rq_unlock(this_rq, busiest);
++		local_irq_restore(flags);
  
-@@ -2885,7 +2879,7 @@ rebalance_tick(int this_cpu, struct rq *
- 		if (unlikely(!interval))
- 			interval = 1;
+ 		/* All tasks on this runqueue were pinned by CPU affinity */
+ 		if (unlikely(all_pinned)) {
+@@ -2617,13 +2618,13 @@ redo:
  
--		if (j - sd->last_balance >= interval) {
-+		if (jiffies - sd->last_balance >= interval) {
- 			if (load_balance(this_cpu, this_rq, sd, idle)) {
- 				/*
- 				 * We've pulled tasks over so either we're no
+ 		if (unlikely(sd->nr_balance_failed > sd->cache_nice_tries+2)) {
+ 
+-			spin_lock(&busiest->lock);
++			spin_lock_irqsave(&busiest->lock, flags);
+ 
+ 			/* don't kick the migration_thread, if the curr
+ 			 * task on busiest cpu can't be moved to this_cpu
+ 			 */
+ 			if (!cpu_isset(this_cpu, busiest->curr->cpus_allowed)) {
+-				spin_unlock(&busiest->lock);
++				spin_unlock_irqrestore(&busiest->lock, flags);
+ 				all_pinned = 1;
+ 				goto out_one_pinned;
+ 			}
+@@ -2633,7 +2634,7 @@ redo:
+ 				busiest->push_cpu = this_cpu;
+ 				active_balance = 1;
+ 			}
+-			spin_unlock(&busiest->lock);
++			spin_unlock_irqrestore(&busiest->lock, flags);
+ 			if (active_balance)
+ 				wake_up_process(busiest->migration_thread);
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
