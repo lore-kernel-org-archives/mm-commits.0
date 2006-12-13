@@ -1,213 +1,93 @@
 From: akpm@osdl.org
-Subject: - updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:49:23 -0800
-Message-ID: <200612132249.kBDMnNvr023153@shell0.pdx.osdl.net>
+Subject: - gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:48:17 -0800
+Message-ID: <200612132248.kBDMmHNx023055@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53289 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53306 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751663AbWLMWvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:51:21 -0500
+	id S1751769AbWLMWva (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:51:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM_timer: allow early access and move externs to a header file
+     remove kernel/timer.c:wall_jiffies
 has been removed from the -mm tree.  Its filename was
-     updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+     gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: PM_timer: allow early access and move externs to a header file
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: remove kernel/timer.c:wall_jiffies
+From: Adrian Bunk <bunk@stusta.de>
 
-Allow early access to the power management timer by exposing the verified read
-function and providing a helper function which checks the pmtmr_ioport
-variable and returns either the pm timer readout or 0 in case the pm timer is
-not available.
-
-Create a new header file and replace also the ifdef'ed extern definition in
-arch/i386/kernel/acpi/boot.c
-
-This is a preperatory patch for the rework of the local apic timer
-calibration.
-
-No functional changes.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/acpi/boot.c  |    5 ----
- drivers/clocksource/acpi_pm.c |   17 +++++++-------
- include/linux/acpi_pmtmr.h    |   38 ++++++++++++++++++++++++++++++++
- 3 files changed, 48 insertions(+), 12 deletions(-)
+ kernel/timer.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -25,6 +25,7 @@
- 
- #include <linux/init.h>
- #include <linux/acpi.h>
-+#include <linux/acpi_pmtmr.h>
- #include <linux/efi.h>
- #include <linux/cpumask.h>
- #include <linux/module.h>
-@@ -703,10 +704,6 @@ static int __init acpi_parse_hpet(unsign
- #define	acpi_parse_hpet	NULL
- #endif
- 
--#ifdef CONFIG_X86_PM_TIMER
--extern u32 pmtmr_ioport;
--#endif
--
- static int __init acpi_parse_fadt(unsigned long phys, unsigned long size)
- {
- 	struct fadt_descriptor *fadt = NULL;
-diff -puN drivers/clocksource/acpi_pm.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -16,15 +16,13 @@
-  * This file is licensed under the GPL v2.
-  */
- 
-+#include <linux/acpi_pmtmr.h>
- #include <linux/clocksource.h>
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/pci.h>
+diff -puN kernel/timer.c~gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies kernel/timer.c
+--- a/kernel/timer.c~gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies
++++ a/kernel/timer.c
+@@ -41,9 +41,6 @@
+ #include <asm/timex.h>
  #include <asm/io.h>
  
--/* Number of PMTMR ticks expected during calibration run */
--#define PMTMR_TICKS_PER_SEC 3579545
+-/* jiffies at the most recent update of wall time */
+-unsigned long wall_jiffies = INITIAL_JIFFIES;
 -
- /*
-  * The I/O port the PMTMR resides at.
-  * The location is detected during setup_arch(),
-@@ -32,15 +30,13 @@
-  */
- u32 pmtmr_ioport __read_mostly;
+ u64 jiffies_64 __cacheline_aligned_in_smp = INITIAL_JIFFIES;
  
--#define ACPI_PM_MASK CLOCKSOURCE_MASK(24) /* limit it to 24 bits */
--
- static inline u32 read_pmtmr(void)
- {
- 	/* mask the output to 24 bits */
- 	return inl(pmtmr_ioport) & ACPI_PM_MASK;
- }
- 
--static cycle_t acpi_pm_read_verified(void)
-+u32 acpi_pm_read_verified(void)
- {
- 	u32 v1 = 0, v2 = 0, v3 = 0;
- 
-@@ -57,7 +53,12 @@ static cycle_t acpi_pm_read_verified(voi
- 	} while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
- 			  || (v3 > v1 && v3 < v2)));
- 
--	return (cycle_t)v2;
-+	return v2;
-+}
-+
-+static cycle_t acpi_pm_read_slow(void)
-+{
-+	return (cycle_t)acpi_pm_read_verified();
- }
- 
- static cycle_t acpi_pm_read(void)
-@@ -87,7 +88,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
- 
- static inline void acpi_pm_need_workaround(void)
- {
--	clocksource_acpi_pm.read = acpi_pm_read_verified;
-+	clocksource_acpi_pm.read = acpi_pm_read_slow;
- 	clocksource_acpi_pm.rating = 110;
- }
- 
-diff -puN /dev/null include/linux/acpi_pmtmr.h
---- /dev/null
-+++ a/include/linux/acpi_pmtmr.h
-@@ -0,0 +1,38 @@
-+#ifndef _ACPI_PMTMR_H_
-+#define _ACPI_PMTMR_H_
-+
-+#include <linux/clocksource.h>
-+
-+/* Number of PMTMR ticks expected during calibration run */
-+#define PMTMR_TICKS_PER_SEC 3579545
-+
-+/* limit it to 24 bits */
-+#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
-+
-+/* Overrun value */
-+#define ACPI_PM_OVRRUN	1<<24
-+
-+#ifdef CONFIG_X86_PM_TIMER
-+
-+extern u32 acpi_pm_read_verified(void);
-+extern u32 pmtmr_ioport;
-+
-+static inline u32 acpi_pm_read_early(void)
-+{
-+	if (!pmtmr_ioport)
-+		return 0;
-+	/* mask the output to 24 bits */
-+	return acpi_pm_read_verified();
-+}
-+
-+#else
-+
-+static inline u32 acpi_pm_read_early(void)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#endif
-+
+ EXPORT_SYMBOL(jiffies_64);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+one-more-export_unused_symbol-removal.patch
+remove-the-broken-blk_dev_swim_iop-driver.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+acpi-make-code-static.patch
+git-alsa.patch
+proper-prototype-for-drivers-base-initcdriver_init.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
 git-mtd.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
+remove-the-broken-skmc-driver.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+drivers-edac-make-code-static.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+remove-include-linux-byteorder-pdp_endianh.patch
 gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
 dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
 clockevents-i386-drivers.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
+make-ext2_get_blocks-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
