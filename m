@@ -1,57 +1,57 @@
 From: akpm@osdl.org
-Subject: - git-cpufreq-prep.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:35:46 -0800
-Message-ID: <200612130635.kBD6Zkx0030021@shell0.pdx.osdl.net>
+Subject: - git-cpufreq-fixup.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:36:13 -0800
+Message-ID: <200612130636.kBD6aDlu030028@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56272 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56297 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964947AbWLMGfu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:35:50 -0500
+	id S964953AbWLMGgQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:36:16 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBD6ZnID013181
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBD6aEID013200
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2006 22:35:49 -0800
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2006 22:36:14 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     a
+     git-cpufreq-fixup
 has been removed from the -mm tree.  Its filename was
-     git-cpufreq-prep.patch
+     git-cpufreq-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: a
+Subject: git-cpufreq-fixup
+From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/cpufreq/cpufreq.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-cpufreq-prep arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-cpufreq-prep
-+++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -402,7 +402,6 @@ static int sw_any_bug_found(struct dmi_s
- 	return 0;
- }
+diff -puN drivers/cpufreq/cpufreq.c~git-cpufreq-fixup drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~git-cpufreq-fixup
++++ a/drivers/cpufreq/cpufreq.c
+@@ -42,14 +42,8 @@ static struct cpufreq_policy *cpufreq_cp
+ static DEFINE_SPINLOCK(cpufreq_driver_lock);
  
--#ifdef CONFIG_SMP
- static struct dmi_system_id sw_any_bug_dmi_table[] = {
- 	{
- 		.callback = sw_any_bug_found,
-@@ -415,7 +414,6 @@ static struct dmi_system_id sw_any_bug_d
- 	},
- 	{ }
- };
--#endif
+ /* internal prototypes */
+-<<<<<<< HEAD/drivers/cpufreq/cpufreq.c
+ static int __cpufreq_governor(struct cpufreq_policy *policy, unsigned int event);
+ static void handle_update(struct work_struct *work);
+-=======
+-static int __cpufreq_governor(struct cpufreq_policy *policy,
+-						unsigned int event);
+-static void handle_update(void *data);
+->>>>>>> /drivers/cpufreq/cpufreq.c
  
- static int
- acpi_cpufreq_cpu_init (
+ /**
+  * Two notifier lists: the "policy" list is involved in the
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -76,7 +76,6 @@ video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_a
 git-alsa.patch
 git-alsa-fixup.patch
 alsa-workqueue-fixes.patch
-git-cpufreq-prep.patch
 git-cpufreq-fixup.patch
 git-drm.patch
 ia64-enable-config_debug_spinlock_sleep.patch
