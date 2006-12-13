@@ -1,59 +1,34 @@
 From: akpm@osdl.org
-Subject: - sched-call-tasklet-less-frequently.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:54:25 -0800
-Message-ID: <200612130654.kBD6sPqG030548@shell0.pdx.osdl.net>
+Subject: - sched-add-option-to-serialize-load-balancing.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:54:32 -0800
+Message-ID: <200612130654.kBD6sWs1030555@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57632 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57640 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965008AbWLMGyk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:54:40 -0500
+	id S965004AbWLMGym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:54:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, kenneth.w.chen@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, pwil3058@bigpond.net.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: call tasklet less frequently
+     sched: add option to serialize load balancing
 has been removed from the -mm tree.  Its filename was
-     sched-call-tasklet-less-frequently.patch
+     sched-add-option-to-serialize-load-balancing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: call tasklet less frequently
+Subject: sched: add option to serialize load balancing
 From: Christoph Lameter <clameter@sgi.com>
 
-Trigger softirq less frequently
+Large sched domains can be very expensive to scan.  Add an option SD_SERIALIZE
+to the sched domain flags.  If that flag is set then we make sure that no
+other such domain is being balanced.
 
-We trigger the softirq before this patch using offset of sd->interval. 
-However, if the queue is busy then it is sufficient to schedule the softirq
-with sd->interval * busy_factor.
-
-So we modify the calculation of the next time to balance by taking
-the interval added to last_balance again. This is only the
-right value if the idle/busy situation continues as is.
-
-There are two potential trouble spots:
-- If the queue was idle and now gets busy then we call rebalance
-  early. However, that is not a problem because we will then use
-  the longer interval for the next period.
-
-- If the queue was busy and becomes idle then we potentially
-  wait too long before rebalancing. However, when the task
-  goes idle then idle_balance is called. We add another calculation
-  of the next balance time based on sd->interval in idle_balance
-  so that we will rebalance soon.
-
-V2->V3:
-- Calculate rebalance time based on current jiffies and not
-  based on the jiffies at the last time we load balanced.
-  We no longer rely on staggering and therefore we can
-  affort to do this now.
-
-V3->V4:
-- Use functions to do jiffy comparisons.
-
+[akpm@osdl.org: build fix]
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Peter Williams <pwil3058@bigpond.net.au>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -65,51 +40,116 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ include/asm-i386/topology.h    |    1 +
+ include/asm-ia64/topology.h    |    1 +
+ include/asm-powerpc/topology.h |    1 +
+ include/asm-x86_64/topology.h  |    1 +
+ include/linux/sched.h          |    1 +
+ include/linux/topology.h       |    3 ++-
+ kernel/sched.c                 |    9 +++++++++
+ 7 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-call-tasklet-less-frequently kernel/sched.c
---- a/kernel/sched.c~sched-call-tasklet-less-frequently
+diff -puN include/asm-i386/topology.h~sched-add-option-to-serialize-load-balancing include/asm-i386/topology.h
+--- a/include/asm-i386/topology.h~sched-add-option-to-serialize-load-balancing
++++ a/include/asm-i386/topology.h
+@@ -89,6 +89,7 @@ static inline int node_to_first_cpu(int 
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_BALANCE_EXEC	\
+ 				| SD_BALANCE_FORK	\
++				| SD_SERIALIZE		\
+ 				| SD_WAKE_BALANCE,	\
+ 	.last_balance		= jiffies,		\
+ 	.balance_interval	= 1,			\
+diff -puN include/asm-ia64/topology.h~sched-add-option-to-serialize-load-balancing include/asm-ia64/topology.h
+--- a/include/asm-ia64/topology.h~sched-add-option-to-serialize-load-balancing
++++ a/include/asm-ia64/topology.h
+@@ -101,6 +101,7 @@ void build_cpu_to_node_map(void);
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_BALANCE_EXEC	\
+ 				| SD_BALANCE_FORK	\
++				| SD_SERIALIZE		\
+ 				| SD_WAKE_BALANCE,	\
+ 	.last_balance		= jiffies,		\
+ 	.balance_interval	= 64,			\
+diff -puN include/asm-powerpc/topology.h~sched-add-option-to-serialize-load-balancing include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~sched-add-option-to-serialize-load-balancing
++++ a/include/asm-powerpc/topology.h
+@@ -66,6 +66,7 @@ static inline int pcibus_to_node(struct 
+ 				| SD_BALANCE_EXEC	\
+ 				| SD_BALANCE_NEWIDLE	\
+ 				| SD_WAKE_IDLE		\
++				| SD_SERIALIZE		\
+ 				| SD_WAKE_BALANCE,	\
+ 	.last_balance		= jiffies,		\
+ 	.balance_interval	= 1,			\
+diff -puN include/asm-x86_64/topology.h~sched-add-option-to-serialize-load-balancing include/asm-x86_64/topology.h
+--- a/include/asm-x86_64/topology.h~sched-add-option-to-serialize-load-balancing
++++ a/include/asm-x86_64/topology.h
+@@ -47,6 +47,7 @@ extern int __node_distance(int, int);
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_BALANCE_FORK	\
+ 				| SD_BALANCE_EXEC	\
++				| SD_SERIALIZE		\
+ 				| SD_WAKE_BALANCE,	\
+ 	.last_balance		= jiffies,		\
+ 	.balance_interval	= 1,			\
+diff -puN include/linux/sched.h~sched-add-option-to-serialize-load-balancing include/linux/sched.h
+--- a/include/linux/sched.h~sched-add-option-to-serialize-load-balancing
++++ a/include/linux/sched.h
+@@ -648,6 +648,7 @@ enum idle_type
+ #define SD_SHARE_CPUPOWER	128	/* Domain members share cpu power */
+ #define SD_POWERSAVINGS_BALANCE	256	/* Balance for power savings */
+ #define SD_SHARE_PKG_RESOURCES	512	/* Domain members share cpu pkg resources */
++#define SD_SERIALIZE		1024	/* Only a single load balancing instance */
+ 
+ #define BALANCE_FOR_MC_POWER	\
+ 	(sched_smt_power_savings ? SD_POWERSAVINGS_BALANCE : 0)
+diff -puN include/linux/topology.h~sched-add-option-to-serialize-load-balancing include/linux/topology.h
+--- a/include/linux/topology.h~sched-add-option-to-serialize-load-balancing
++++ a/include/linux/topology.h
+@@ -194,7 +194,8 @@
+ 	.wake_idx		= 0, /* unused */	\
+ 	.forkexec_idx		= 0, /* unused */	\
+ 	.per_cpu_gain		= 100,			\
+-	.flags			= SD_LOAD_BALANCE,	\
++	.flags			= SD_LOAD_BALANCE	\
++				| SD_SERIALIZE,	\
+ 	.last_balance		= jiffies,		\
+ 	.balance_interval	= 64,			\
+ 	.nr_balance_failed	= 0,			\
+diff -puN kernel/sched.c~sched-add-option-to-serialize-load-balancing kernel/sched.c
+--- a/kernel/sched.c~sched-add-option-to-serialize-load-balancing
 +++ a/kernel/sched.c
-@@ -2774,14 +2774,28 @@ out_balanced:
- static void idle_balance(int this_cpu, struct rq *this_rq)
+@@ -2880,6 +2880,7 @@ static void update_load(struct rq *this_
+  *
+  * Balancing parameters are set up in arch_init_sched_domains.
+  */
++static DEFINE_SPINLOCK(balancing);
+ 
+ static void run_rebalance_domains(struct softirq_action *h)
  {
- 	struct sched_domain *sd;
-+	int pulled_task = 0;
-+	unsigned long next_balance = jiffies + 60 *  HZ;
+@@ -2909,6 +2910,11 @@ static void run_rebalance_domains(struct
+ 		if (unlikely(!interval))
+ 			interval = 1;
  
- 	for_each_domain(this_cpu, sd) {
- 		if (sd->flags & SD_BALANCE_NEWIDLE) {
- 			/* If we've pulled tasks over stop searching: */
--			if (load_balance_newidle(this_cpu, this_rq, sd))
-+			pulled_task = load_balance_newidle(this_cpu,
-+							this_rq, sd);
-+			if (time_after(next_balance,
-+				  sd->last_balance + sd->balance_interval))
-+				next_balance = sd->last_balance
-+						+ sd->balance_interval;
-+			if (pulled_task)
- 				break;
- 		}
- 	}
-+	if (!pulled_task)
-+		/*
-+		 * We are going idle. next_balance may be set based on
-+		 * a busy processor. So reset next_balance.
-+		 */
-+		this_rq->next_balance = next_balance;
- }
- 
- /*
-@@ -2904,7 +2918,7 @@ static void run_rebalance_domains(struct
- 				 */
- 				idle = NOT_IDLE;
++		if (sd->flags & SD_SERIALIZE) {
++			if (!spin_trylock(&balancing))
++				goto out;
++		}
++
+ 		if (time_after_eq(jiffies, sd->last_balance + interval)) {
+ 			if (load_balance(this_cpu, this_rq, sd, idle)) {
+ 				/*
+@@ -2920,6 +2926,9 @@ static void run_rebalance_domains(struct
  			}
--			sd->last_balance += interval;
-+			sd->last_balance = jiffies;
+ 			sd->last_balance = jiffies;
  		}
++		if (sd->flags & SD_SERIALIZE)
++			spin_unlock(&balancing);
++out:
  		if (time_after(next_balance, sd->last_balance + interval))
  			next_balance = sd->last_balance + interval;
+ 	}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
