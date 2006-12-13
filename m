@@ -1,151 +1,81 @@
 From: akpm@osdl.org
-Subject: + acpi-add-state-propagation-for-dynamic-broadcasting.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:44:10 -0800
-Message-ID: <200612132244.kBDMiA0m022867@shell0.pdx.osdl.net>
+Subject: + high-res-timers-dynticks-i386-support-enable-in-kconfig.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:44:38 -0800
+Message-ID: <200612132244.kBDMicJP022911@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52360 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52450 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751674AbWLMWoX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:44:23 -0500
+	id S1751688AbWLMWor (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:44:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu
+Cc: mingo@elte.hu, ak@suse.de, tglx@linutronix.de
 
 
 The patch titled
-     ACPI: add state propagation for dynamic broadcasting
+     high-res timers & dynticks: i386 support, enable in Kconfig
 has been added to the -mm tree.  Its filename is
-     acpi-add-state-propagation-for-dynamic-broadcasting.patch
+     high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: add state propagation for dynamic broadcasting
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: high-res timers & dynticks: i386 support, enable in Kconfig
+From: Ingo Molnar <mingo@elte.hu>
 
-( This is a preparatory patch for high resolution timers and dynticks,
-  it causes no functional changes to existing functionality. )
+Enable high-res timers and dyntick on i386.
 
-The local APIC timer is fast and per CPU, but it gets stopped in C3 state.  On
-some broken systems, especially AMD based ones it gets stopped in C2.  This
-also affects akpm's jinxed VAIO.
-
-The broadcast function informs the local APIC management code that a state
-which stops the local APIC is going to be entered/exited.  This switches the
-local APIC timer to the PIT broadcast mode.  The clockevents layer takes care
-of the distribution of events.
-
-The lapic_timer_idle_broadcast() function is an empty inline for now, which
-will be replaced by the later clockevents patches for the affected
-architectures.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_idle.c |   20 ++++++++++++++++++++
- include/asm-i386/apic.h       |    1 +
- include/asm-x86_64/apic.h     |    1 +
- 3 files changed, 22 insertions(+)
+ arch/i386/Kconfig |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-add-state-propagation-for-dynamic-broadcasting drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/drivers/acpi/processor_idle.c
-@@ -281,11 +281,27 @@ static void acpi_propagate_timer_broadca
- 		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
- }
+diff -puN arch/i386/Kconfig~high-res-timers-dynticks-i386-support-enable-in-kconfig arch/i386/Kconfig
+--- a/arch/i386/Kconfig~high-res-timers-dynticks-i386-support-enable-in-kconfig
++++ a/arch/i386/Kconfig
+@@ -82,6 +82,8 @@ source "init/Kconfig"
  
-+/* Power(C) State timer broadcast control */
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+	int state = cx - pr->power.states;
+ menu "Processor type and features"
+ 
++source "kernel/time/Kconfig"
 +
-+	if (state >= pr->power.timer_broadcast_on_state)
-+		lapic_timer_idle_broadcast(broadcast);
-+}
-+
- #else
- 
- static void acpi_timer_check_state(int state, struct acpi_processor *pr,
- 				   struct acpi_processor_cx *cstate) { }
- static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+}
- 
- #endif
- 
-@@ -431,6 +447,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C2 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-@@ -445,6 +462,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C2_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	case ACPI_STATE_C3:
-@@ -467,6 +485,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C3 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-@@ -487,6 +506,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	default:
-diff -puN include/asm-i386/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting include/asm-i386/apic.h
---- a/include/asm-i386/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/include/asm-i386/apic.h
-@@ -113,6 +113,7 @@ extern void setup_secondary_APIC_clock (
- extern int APIC_init_uniprocessor (void);
- extern void disable_APIC_timer(void);
- extern void enable_APIC_timer(void);
-+static inline void lapic_timer_idle_broadcast(int broadcast) { }
- 
- extern void enable_NMI_through_LVT0 (void * dummy);
- 
-diff -puN include/asm-x86_64/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting include/asm-x86_64/apic.h
---- a/include/asm-x86_64/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/include/asm-x86_64/apic.h
-@@ -84,6 +84,7 @@ extern int APIC_init_uniprocessor (void)
- extern void disable_APIC_timer(void);
- extern void enable_APIC_timer(void);
- extern void setup_apic_routing(void);
-+static inline void lapic_timer_idle_broadcast(int broadcast) { }
- 
- extern void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
- 				   unsigned char msg_type, unsigned char mask);
+ config SMP
+ 	bool "Symmetric multi-processing support"
+ 	---help---
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-git-mtd.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+optimize-calc_load.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
 gtod-uninline-jiffiesh.patch
 gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
 gtod-fix-timeout-overflow.patch
@@ -176,4 +106,22 @@ dynticks-i386-support-idle-handler-callbacks.patch
 dynticks-i386-prepare-nmi-watchdog.patch
 high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
