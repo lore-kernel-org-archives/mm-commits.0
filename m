@@ -1,32 +1,32 @@
 From: akpm@osdl.org
-Subject: - io-accounting-write-cancel-accounting.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:52:40 -0800
-Message-ID: <200612130652.kBD6qeGG030455@shell0.pdx.osdl.net>
+Subject: - io-accounting-read-accounting-nfs-fix.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:52:45 -0800
+Message-ID: <200612130652.kBD6qjPb030461@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57416 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57420 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964987AbWLMGxA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:53:00 -0500
+	id S964986AbWLMGxB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:53:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, daw@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, tee@sgi.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, daw@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, tee@sgi.com, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     io-accounting: write-cancel accounting
+     io-accounting-read-accounting nfs fix
 has been removed from the -mm tree.  Its filename was
-     io-accounting-write-cancel-accounting.patch
+     io-accounting-read-accounting-nfs-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: io-accounting: write-cancel accounting
+Subject: io-accounting-read-accounting nfs fix
 From: Andrew Morton <akpm@osdl.org>
 
-Account for the number of byte writes which this process caused to not happen
-after all.
+nfs's ->readpages uses read_cache_pages().  Wire it up there.
 
+[wfg@mail.ustc.edu.cn: account only successful nfs/fuse reads]
 Cc: Jay Lan <jlan@sgi.com>
 Cc: Shailabh Nagar <nagar@watson.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -34,52 +34,32 @@ Cc: Chris Sturtivant <csturtiv@sgi.com>
 Cc: Tony Ernst <tee@sgi.com>
 Cc: Guillaume Thouvenin <guillaume.thouvenin@bull.net>
 Cc: David Wright <daw@sgi.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/buffer.c   |    7 ++++++-
- mm/truncate.c |    4 +++-
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ mm/readahead.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/buffer.c~io-accounting-write-cancel-accounting fs/buffer.c
---- a/fs/buffer.c~io-accounting-write-cancel-accounting
-+++ a/fs/buffer.c
-@@ -2853,8 +2853,13 @@ int try_to_free_buffers(struct page *pag
- 		 * could encounter a non-uptodate page, which is unresolvable.
- 		 * This only applies in the rare case where try_to_free_buffers
- 		 * succeeds but the page is not freed.
-+		 *
-+		 * Also, during truncate, discard_buffer will have marked all
-+		 * the page's buffers clean.  We discover that here and clean
-+		 * the page also.
- 		 */
--		clear_page_dirty(page);
-+		if (test_clear_page_dirty(page))
-+			task_io_account_cancelled_write(PAGE_CACHE_SIZE);
- 	}
- out:
- 	if (buffers_to_free) {
-diff -puN mm/truncate.c~io-accounting-write-cancel-accounting mm/truncate.c
---- a/mm/truncate.c~io-accounting-write-cancel-accounting
-+++ a/mm/truncate.c
+diff -puN mm/readahead.c~io-accounting-read-accounting-nfs-fix mm/readahead.c
+--- a/mm/readahead.c~io-accounting-read-accounting-nfs-fix
++++ a/mm/readahead.c
 @@ -13,6 +13,7 @@
  #include <linux/module.h>
- #include <linux/pagemap.h>
- #include <linux/pagevec.h>
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
 +#include <linux/task_io_accounting_ops.h>
- #include <linux/buffer_head.h>	/* grr. try_to_release_page,
- 				   do_invalidatepage */
+ #include <linux/pagevec.h>
  
-@@ -69,7 +70,8 @@ truncate_complete_page(struct address_sp
- 	if (PagePrivate(page))
- 		do_invalidatepage(page, 0);
- 
--	clear_page_dirty(page);
-+	if (test_clear_page_dirty(page))
-+		task_io_account_cancelled_write(PAGE_CACHE_SIZE);
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
- 	remove_from_page_cache(page);
+ void default_unplug_io_fn(struct backing_dev_info *bdi, struct page *page)
+@@ -151,6 +152,7 @@ int read_cache_pages(struct address_spac
+ 			put_pages_list(pages);
+ 			break;
+ 		}
++		task_io_account_read(PAGE_CACHE_SIZE);
+ 	}
+ 	pagevec_lru_add(&lru_pvec);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
