@@ -1,30 +1,30 @@
 From: akpm@osdl.org
-Subject: - io-accounting-direct-io.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:52:51 -0800
-Message-ID: <200612130652.kBD6qpao030467@shell0.pdx.osdl.net>
+Subject: - cleanup-taskstatsh.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:52:57 -0800
+Message-ID: <200612130652.kBD6qv93030473@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57408 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57443 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964984AbWLMGw5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:52:57 -0500
+	id S964986AbWLMGxH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:53:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, daw@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, tee@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     io-accounting: direct-io
+     cleanup taskstats.h
 has been removed from the -mm tree.  Its filename was
-     io-accounting-direct-io.patch
+     cleanup-taskstatsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: io-accounting: direct-io
+Subject: cleanup taskstats.h
 From: Andrew Morton <akpm@osdl.org>
 
-Account for direct-io.
+Fix weird whitespace mangling in taskstats.h
 
 Cc: Jay Lan <jlan@sgi.com>
 Cc: Shailabh Nagar <nagar@watson.ibm.com>
@@ -36,34 +36,54 @@ Cc: David Wright <daw@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/direct-io.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/taskstats.h |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/direct-io.c~io-accounting-direct-io fs/direct-io.c
---- a/fs/direct-io.c~io-accounting-direct-io
-+++ a/fs/direct-io.c
-@@ -27,6 +27,7 @@
- #include <linux/slab.h>
- #include <linux/highmem.h>
- #include <linux/pagemap.h>
-+#include <linux/task_io_accounting_ops.h>
- #include <linux/bio.h>
- #include <linux/wait.h>
- #include <linux/err.h>
-@@ -675,6 +676,13 @@ submit_page_section(struct dio *dio, str
- {
- 	int ret = 0;
+diff -puN include/linux/taskstats.h~cleanup-taskstatsh include/linux/taskstats.h
+--- a/include/linux/taskstats.h~cleanup-taskstatsh
++++ a/include/linux/taskstats.h
+@@ -115,31 +115,31 @@ struct taskstats {
+ 	__u64	ac_majflt;		/* Major Page Fault Count */
+ 	/* Basic Accounting Fields end */
  
-+	if (dio->rw & WRITE) {
-+		/*
-+		 * Read accounting is performed in submit_bio()
-+		 */
-+		task_io_account_write(len);
-+	}
-+
- 	/*
- 	 * Can we just grow the current page's presence in the dio?
+- 	/* Extended accounting fields start */
++	/* Extended accounting fields start */
+ 	/* Accumulated RSS usage in duration of a task, in MBytes-usecs.
+ 	 * The current rss usage is added to this counter every time
+ 	 * a tick is charged to a task's system time. So, at the end we
+ 	 * will have memory usage multiplied by system time. Thus an
+ 	 * average usage per system time unit can be calculated.
  	 */
+- 	__u64	coremem;		/* accumulated RSS usage in MB-usec */
++	__u64	coremem;		/* accumulated RSS usage in MB-usec */
+ 	/* Accumulated virtual memory usage in duration of a task.
+ 	 * Same as acct_rss_mem1 above except that we keep track of VM usage.
+ 	 */
+- 	__u64	virtmem;		/* accumulated VM  usage in MB-usec */
++	__u64	virtmem;		/* accumulated VM  usage in MB-usec */
+ 
+ 	/* High watermark of RSS and virtual memory usage in duration of
+ 	 * a task, in KBytes.
+ 	 */
+- 	__u64	hiwater_rss;		/* High-watermark of RSS usage, in KB */
+- 	__u64	hiwater_vm;		/* High-water VM usage, in KB */
++	__u64	hiwater_rss;		/* High-watermark of RSS usage, in KB */
++	__u64	hiwater_vm;		/* High-water VM usage, in KB */
+ 
+ 	/* The following four fields are I/O statistics of a task. */
+- 	__u64	read_char;		/* bytes read */
+- 	__u64	write_char;		/* bytes written */
+- 	__u64	read_syscalls;		/* read syscalls */
+- 	__u64	write_syscalls;		/* write syscalls */
+- 	/* Extended accounting fields end */
++	__u64	read_char;		/* bytes read */
++	__u64	write_char;		/* bytes written */
++	__u64	read_syscalls;		/* read syscalls */
++	__u64	write_syscalls;		/* write syscalls */
++	/* Extended accounting fields end */
+ };
+ 
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
