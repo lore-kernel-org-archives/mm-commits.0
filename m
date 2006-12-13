@@ -1,112 +1,77 @@
 From: akpm@osdl.org
-Subject: - time-fix-msecs_to_jiffies-bug.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:48:26 -0800
-Message-ID: <200612132248.kBDMmQS8023080@shell0.pdx.osdl.net>
+Subject: - cleanup-uninline-irq_enter-and-move-it-into-a-function.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:48:30 -0800
+Message-ID: <200612132248.kBDMmUm5023086@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52774 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52788 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751723AbWLMWsd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:48:33 -0500
+	id S1751735AbWLMWsl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:48:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: fix msecs_to_jiffies() bug
+     cleanup: uninline irq_enter() and move it into a function
 has been removed from the -mm tree.  Its filename was
-     time-fix-msecs_to_jiffies-bug.patch
+     cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: time: fix msecs_to_jiffies() bug
+Subject: cleanup: uninline irq_enter() and move it into a function
 From: Ingo Molnar <mingo@elte.hu>
 
-Fix multiple conversion bugs in msecs_to_jiffies().
-
-The main problem is that this condition:
-
-	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-
-overflows if HZ is smaller than 1000!
-
-This change is user-visible: for HZ=250 SUS-compliant poll()-timeout value of
--20 is mistakenly converted to 'immediate timeout'.
-
-(The new dyntick code also triggered this, as it frequently creates 'lagging
-timer wheel' scenarios.)
+Uninline irq_enter().  [dynticks adds more stuff to it]
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time.c |   43 ++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 42 insertions(+), 1 deletion(-)
+ include/linux/hardirq.h |    7 +------
+ kernel/softirq.c        |   10 ++++++++++
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN kernel/time.c~time-fix-msecs_to_jiffies-bug kernel/time.c
---- a/kernel/time.c~time-fix-msecs_to_jiffies-bug
-+++ a/kernel/time.c
-@@ -500,15 +500,56 @@ unsigned int jiffies_to_usecs(const unsi
- }
- EXPORT_SYMBOL(jiffies_to_usecs);
+diff -puN include/linux/hardirq.h~cleanup-uninline-irq_enter-and-move-it-into-a-function include/linux/hardirq.h
+--- a/include/linux/hardirq.h~cleanup-uninline-irq_enter-and-move-it-into-a-function
++++ a/include/linux/hardirq.h
+@@ -106,12 +106,7 @@ static inline void account_system_vtime(
+  * always balanced, so the interrupted value of ->hardirq_context
+  * will always be restored.
+  */
+-#define irq_enter()					\
+-	do {						\
+-		account_system_vtime(current);		\
+-		add_preempt_count(HARDIRQ_OFFSET);	\
+-		trace_hardirq_enter();			\
+-	} while (0)
++extern void irq_enter(void);
+ 
+ /*
+  * Exit irq context without processing softirqs:
+diff -puN kernel/softirq.c~cleanup-uninline-irq_enter-and-move-it-into-a-function kernel/softirq.c
+--- a/kernel/softirq.c~cleanup-uninline-irq_enter-and-move-it-into-a-function
++++ a/kernel/softirq.c
+@@ -273,6 +273,16 @@ EXPORT_SYMBOL(do_softirq);
+ 
+ #endif
  
 +/*
-+ * When we convert to jiffies then we interpret incoming values
-+ * the following way:
-+ *
-+ * - negative values mean 'infinite timeout' (MAX_JIFFY_OFFSET)
-+ *
-+ * - 'too large' values [that would result in larger than
-+ *   MAX_JIFFY_OFFSET values] mean 'infinite timeout' too.
-+ *
-+ * - all other values are converted to jiffies by either multiplying
-+ *   the input value by a factor or dividing it with a factor
-+ *
-+ * We must also be careful about 32-bit overflows.
++ * Enter an interrupt context.
 + */
- unsigned long msecs_to_jiffies(const unsigned int m)
- {
--	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+	/*
-+	 * Negative value, means infinite timeout:
-+	 */
-+	if ((int)m < 0)
- 		return MAX_JIFFY_OFFSET;
++void irq_enter(void)
++{
++	account_system_vtime(current);
++	add_preempt_count(HARDIRQ_OFFSET);
++	trace_hardirq_enter();
++}
 +
- #if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-+	/*
-+	 * HZ is equal to or smaller than 1000, and 1000 is a nice
-+	 * round multiple of HZ, divide with the factor between them,
-+	 * but round upwards:
-+	 */
- 	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
- #elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-+	/*
-+	 * HZ is larger than 1000, and HZ is a nice round multiple of
-+	 * 1000 - simply multiply with the factor between them.
-+	 *
-+	 * But first make sure the multiplication result cannot
-+	 * overflow:
-+	 */
-+	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
- 	return m * (HZ / MSEC_PER_SEC);
+ #ifdef __ARCH_IRQ_EXIT_IRQS_DISABLED
+ # define invoke_softirq()	__do_softirq()
  #else
-+	/*
-+	 * Generic case - multiply, round and divide. But first
-+	 * check that if we are doing a net multiplication, that
-+	 * we wouldnt overflow:
-+	 */
-+	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
- 	return (m * HZ + MSEC_PER_SEC - 1) / MSEC_PER_SEC;
- #endif
- }
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
