@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:09:24 -0800
-Message-ID: <200612132209.kBDM9OQt021907@shell0.pdx.osdl.net>
+Subject: + pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:09:41 -0800
+Message-ID: <200612132209.kBDM9fvI021941@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48349 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48402 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751616AbWLMWJ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:09:27 -0500
+	id S1751635AbWLMWJo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:09:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,20 +15,20 @@ Cc: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru
 
 
 The patch titled
-     tty: fix the locking for signal->session in disassociate_ctty
+     pid: remove now unused do_each_task_pid and while_each_task_pid
 has been added to the -mm tree.  Its filename is
-     tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+     pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: fix the locking for signal->session in disassociate_ctty
+Subject: pid: remove now unused do_each_task_pid and while_each_task_pid
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-commit 24ec839c431eb79bb8f6abc00c4e1eb3b8c4d517 while fixing the locking for
-signal->tty got the locking wrong for signal->session.  This places our
-accesses of signal->session back under the tasklist_lock where they belong.
+Now that I have changed all of the users remove the old version of these
+functions.  This should be a clear hint to any out of tree users that they
+should use do_each_pid_task and while_each_pid_task for new code.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -36,37 +36,33 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/tty_io.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ include/linux/pid.h |   14 --------------
+ 1 files changed, 14 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-fix-the-locking-for-signal-session-in-disassociate_ctty drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-fix-the-locking-for-signal-session-in-disassociate_ctty
-+++ a/drivers/char/tty_io.c
-@@ -1496,7 +1496,6 @@ void disassociate_ctty(int on_exit)
- {
- 	struct tty_struct *tty;
- 	int tty_pgrp = -1;
--	int session;
- 
- 	lock_kernel();
- 
-@@ -1530,7 +1529,6 @@ void disassociate_ctty(int on_exit)
- 
- 	spin_lock_irq(&current->sighand->siglock);
- 	current->signal->tty_old_pgrp = 0;
--	session = process_session(current);
- 	spin_unlock_irq(&current->sighand->siglock);
- 
- 	mutex_lock(&tty_mutex);
-@@ -1549,7 +1547,7 @@ void disassociate_ctty(int on_exit)
- 
- 	/* Now clear signal->tty under the lock */
- 	read_lock(&tasklist_lock);
--	session_clear_tty(session);
-+	session_clear_tty(process_session(current));
- 	read_unlock(&tasklist_lock);
- 	unlock_kernel();
+diff -puN include/linux/pid.h~pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid include/linux/pid.h
+--- a/include/linux/pid.h~pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid
++++ a/include/linux/pid.h
+@@ -105,20 +105,6 @@ static inline pid_t pid_nr(struct pid *p
+ 	return nr;
  }
+ 
+-
+-#define do_each_task_pid(who, type, task)				\
+-	do {								\
+-		struct hlist_node *pos___;				\
+-		struct pid *pid___ = find_pid(who);			\
+-		if (pid___ != NULL)					\
+-			hlist_for_each_entry_rcu((task), pos___,	\
+-				&pid___->tasks[type], pids[type].node) {
+-
+-#define while_each_task_pid(who, type, task)				\
+-			}						\
+-	} while (0)
+-
+-
+ #define do_each_pid_task(pid, type, task)				\
+ 	do {								\
+ 		struct hlist_node *pos___;				\
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
