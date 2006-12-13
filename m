@@ -1,69 +1,98 @@
 From: akpm@osdl.org
-Subject: - document-how-to-decode-an-ioctl-number.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:51:57 -0800
-Message-ID: <200612130651.kBD6pvru030386@shell0.pdx.osdl.net>
+Subject: - ide-complete-switch-to-pci_get.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:51:47 -0800
+Message-ID: <200612130651.kBD6pluE030373@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57283 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57247 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964971AbWLMGwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:52:15 -0500
+	id S964968AbWLMGv5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:51:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 76306.1226@compuserve.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Document how to decode an IOCTL number
+     ide: complete switch to pci_get
 has been removed from the -mm tree.  Its filename was
-     document-how-to-decode-an-ioctl-number.patch
+     ide-complete-switch-to-pci_get.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Document how to decode an IOCTL number
-From: Chuck Ebbert <76306.1226@compuserve.com>
+Subject: ide: complete switch to pci_get
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Document how to decode a binary IOCTL number.
+The reverse get function allows the final piece of the switching for the old
+IDE layer
 
-Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/ioctl/ioctl-decoding.txt |   24 +++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/ide/setup-pci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null Documentation/ioctl/ioctl-decoding.txt
---- /dev/null
-+++ a/Documentation/ioctl/ioctl-decoding.txt
-@@ -0,0 +1,24 @@
-+To decode a hex IOCTL code:
-+
-+Most architecures use this generic format, but check
-+include/ARCH/ioctl.h for specifics, e.g. powerpc
-+uses 3 bits to encode read/write and 13 bits for size.
-+
-+ bits    meaning
-+ 31-30	00 - no parameters: uses _IO macro
-+	10 - read: _IOR
-+	01 - write: _IOW
-+	11 - read/write: _IOWR
-+
-+ 29-16	size of arguments
-+
-+ 15-8	ascii character supposedly
-+	unique to each driver
-+
-+ 7-0	function #
-+
-+
-+ So for example 0x82187201 is a read with arg length of 0x218,
-+character 'r' function 1. Grepping the source reveals this is:
-+
-+#define VFAT_IOCTL_READDIR_BOTH         _IOR('r', 1, struct dirent [2])
+diff -puN drivers/ide/setup-pci.c~ide-complete-switch-to-pci_get drivers/ide/setup-pci.c
+--- a/drivers/ide/setup-pci.c~ide-complete-switch-to-pci_get
++++ a/drivers/ide/setup-pci.c
+@@ -844,11 +844,11 @@ void __init ide_scan_pcibus (int scan_di
+ 
+ 	pre_init = 0;
+ 	if (!scan_direction) {
+-		while ((dev = pci_find_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
++		while ((dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
+ 			ide_scan_pcidev(dev);
+ 		}
+ 	} else {
+-		while ((dev = pci_find_device_reverse(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
++		while ((dev = pci_get_device_reverse(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
+ 			ide_scan_pcidev(dev);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from 76306.1226@compuserve.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+tty-switch-to-ktermios-nozomi-fix.patch
+git-libata-all.patch
+ata-fix-platform_device_register_simple-error-check.patch
+initializer-entry-defined-twice-in-pata_rz1000.patch
+git-mtd.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pci-quirks-fix-the-festering-mess-that-claims-to-handle-ide-quirks-ide-fix.patch
+via-sb600-sata-quirk.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+xtensa-add-ktermios-and-minor-filename-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
+tty-remove-useless-memory-barrier.patch
+ide-hpt3xxn-clocking-fixes.patch
+ide-fix-hpt37x-timing-tables.patch
+ide-optimize-hpt37x-timing-tables.patch
+ide-fix-hpt3xx-hotswap-support.patch
+ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch
+ide-hpt3xx-fix-pci-clock-detection.patch
+ide-hpt3xx-fix-pci-clock-detection-fix-2.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+piix-fix-82371mx-enablebits.patch
+piix-remove-check-for-broken-mw-dma-mode-0.patch
+piix-slc90e66-pio-mode-fallback-fix.patch
+pdc202xx_new-remove-useless-code.patch
+pdc202xx_-remove-check_in_drive_lists-abomination.patch
+getting-rid-of-all-casts-of-kalloc-calls.patch
 
