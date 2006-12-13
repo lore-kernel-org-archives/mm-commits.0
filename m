@@ -1,51 +1,41 @@
 From: akpm@osdl.org
-Subject: - updated-debugging-feature-timer-stats.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:50:09 -0800
-Message-ID: <200612132250.kBDMo9K2023205@shell0.pdx.osdl.net>
+Subject: - updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:49:23 -0800
+Message-ID: <200612132249.kBDMnNvr023153@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53174 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53289 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751665AbWLMWup (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:50:45 -0500
+	id S1751663AbWLMWvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:51:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     debugging feature: timer stats
+     PM_timer: allow early access and move externs to a header file
 has been removed from the -mm tree.  Its filename was
-     updated-debugging-feature-timer-stats.patch
+     updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: debugging feature: timer stats
+Subject: PM_timer: allow early access and move externs to a header file
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Add /proc/timer_stats support: debugging feature to profile timer expiration. 
-Both the starting site, process/PID and the expiration function is captured. 
-This allows the quick identification of timer event sources in a system.
+Allow early access to the power management timer by exposing the verified read
+function and providing a helper function which checks the pmtmr_ioport
+variable and returns either the pm timer readout or 0 in case the pm timer is
+not available.
 
-Sample output:
+Create a new header file and replace also the ifdef'ed extern definition in
+arch/i386/kernel/acpi/boot.c
 
- # echo 1 > /proc/tstats
- # cat /proc/tstats
- Timerstats sample period: 3.888770 s
-   12,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
-   15,     1 swapper          hcd_submit_urb (rh_timer_func)
-    4,   959 kedac            schedule_timeout (process_timeout)
-    1,     0 swapper          page_writeback_init (wb_timer_fn)
-   28,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
-   22,  2948 IRQ 4            tty_flip_buffer_push (delayed_work_timer_fn)
-    3,  3100 bash             schedule_timeout (process_timeout)
-    1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
-    1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
-    1,     1 swapper          neigh_table_init_no_netlink (neigh_periodic_timer)
-    1,  2292 ip               __netdev_watchdog_up (dev_watchdog)
-    1,    23 events/1         do_cache_clean (delayed_work_timer_fn)
- 90 total events, 30.0 events/sec
+This is a preperatory patch for the rework of the local apic timer
+calibration.
+
+No functional changes.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
@@ -55,725 +45,135 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/hrtimer/timer_stats.txt |   68 ++++++
- include/linux/hrtimer.h               |   53 +++++
- include/linux/timer.h                 |   49 ++++
- kernel/hrtimer.c                      |   26 ++
- kernel/time/Makefile                  |    3 
- kernel/time/timer_stats.c             |  244 ++++++++++++++++++++++++
- kernel/timer.c                        |   29 ++
- kernel/workqueue.c                    |    7 
- lib/Kconfig.debug                     |   11 +
- 9 files changed, 484 insertions(+), 6 deletions(-)
+ arch/i386/kernel/acpi/boot.c  |    5 ----
+ drivers/clocksource/acpi_pm.c |   17 +++++++-------
+ include/linux/acpi_pmtmr.h    |   38 ++++++++++++++++++++++++++++++++
+ 3 files changed, 48 insertions(+), 12 deletions(-)
 
-diff -puN /dev/null Documentation/hrtimer/timer_stats.txt
---- /dev/null
-+++ a/Documentation/hrtimer/timer_stats.txt
-@@ -0,0 +1,68 @@
-+timer_stats - timer usage statistics
-+------------------------------------
-+
-+timer_stats is a debugging facility to make the timer (ab)usage in a Linux
-+system visible to kernel and userspace developers. It is not intended for
-+production usage as it adds significant overhead to the (hr)timer code and the
-+(hr)timer data structures.
-+
-+timer_stats should be used by kernel and userspace developers to verify that
-+their code does not make unduly use of timers. This helps to avoid unnecessary
-+wakeups, which should be avoided to optimize power consumption.
-+
-+It can be enabled by CONFIG_TIMER_STATS in the "Kernel hacking" configuration
-+section.
-+
-+timer_stats collects information about the timer events which are fired in a
-+Linux system over a sample period:
-+
-+- the pid of the task(process) which initialized the timer
-+- the name of the process which initialized the timer
-+- the function where the timer was intialized
-+- the callback function which is associated to the timer
-+- the number of events (callbacks)
-+
-+timer_stats adds an entry to /proc: /proc/timer_stats
-+
-+This entry is used to control the statistics functionality and to read out the
-+sampled information.
-+
-+The timer_stats functionality is inactive on bootup.
-+
-+To activate a sample period issue:
-+# echo 1 >/proc/timer_stats
-+
-+To stop a sample period issue:
-+# echo 0 >/proc/timer_stats
-+
-+The statistics can be retrieved by:
-+# cat /proc/timer_stats
-+
-+The readout of /proc/timer_stats automatically disables sampling. The sampled
-+information is kept until a new sample period is started. This allows multiple
-+readouts.
-+
-+Sample output of /proc/timer_stats:
-+
-+Timerstats sample period: 3.888770 s
-+  12,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
-+  15,     1 swapper          hcd_submit_urb (rh_timer_func)
-+   4,   959 kedac            schedule_timeout (process_timeout)
-+   1,     0 swapper          page_writeback_init (wb_timer_fn)
-+  28,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
-+  22,  2948 IRQ 4            tty_flip_buffer_push (delayed_work_timer_fn)
-+   3,  3100 bash             schedule_timeout (process_timeout)
-+   1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
-+   1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
-+   1,     1 swapper          neigh_table_init_no_netlink (neigh_periodic_timer)
-+   1,  2292 ip               __netdev_watchdog_up (dev_watchdog)
-+   1,    23 events/1         do_cache_clean (delayed_work_timer_fn)
-+90 total events, 30.0 events/sec
-+
-+The first column is the number of events, the second column the pid, the third
-+column is the name of the process. The forth column shows the function which
-+initialized the timer and in parantheses the callback function which was
-+executed on expiry.
-+
-+    Thomas, Ingo
-+
-diff -puN include/linux/hrtimer.h~updated-debugging-feature-timer-stats include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~updated-debugging-feature-timer-stats
-+++ a/include/linux/hrtimer.h
-@@ -101,8 +101,14 @@ enum hrtimer_cb_mode {
-  * @cb_mode:	high resolution timer feature to select the callback execution
-  *		 mode
-  * @cb_entry:	list head to enqueue an expired timer into the callback list
-+ * @start_site:	timer statistics field to store the site where the timer
-+ *		was started
-+ * @start_comm: timer statistics field to store the name of the process which
-+ *		started the timer
-+ * @start_pid: timer statistics field to store the pid of the task which
-+ *		started the timer
-  *
-- * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
-+ * The hrtimer structure must be initialized by hrtimer_init()
-  */
- struct hrtimer {
- 	struct rb_node			node;
-@@ -114,6 +120,11 @@ struct hrtimer {
- 	enum hrtimer_cb_mode		cb_mode;
- 	struct list_head		cb_entry;
+diff -puN arch/i386/kernel/acpi/boot.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -25,6 +25,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/acpi.h>
++#include <linux/acpi_pmtmr.h>
+ #include <linux/efi.h>
+ #include <linux/cpumask.h>
+ #include <linux/module.h>
+@@ -703,10 +704,6 @@ static int __init acpi_parse_hpet(unsign
+ #define	acpi_parse_hpet	NULL
  #endif
-+#ifdef CONFIG_TIMER_STATS
-+	void				*start_site;
-+	char				start_comm[16];
-+	int				start_pid;
-+#endif
- };
  
- /**
-@@ -332,4 +343,44 @@ static inline void show_no_hz_stats(stru
- /* Bootup initialization: */
- extern void __init hrtimers_init(void);
- 
-+/*
-+ * Timer-statistics info:
-+ */
-+#ifdef CONFIG_TIMER_STATS
-+
-+extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
-+				     void *timerf, char * comm);
-+
-+static inline void timer_stats_account_hrtimer(struct hrtimer *timer)
-+{
-+	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
-+				 timer->function, timer->start_comm);
-+}
-+
-+extern void __timer_stats_hrtimer_set_start_info(struct hrtimer *timer,
-+						 void *addr);
-+
-+static inline void timer_stats_hrtimer_set_start_info(struct hrtimer *timer)
-+{
-+	__timer_stats_hrtimer_set_start_info(timer, __builtin_return_address(0));
-+}
-+
-+static inline void timer_stats_hrtimer_clear_start_info(struct hrtimer *timer)
-+{
-+	timer->start_site = NULL;
-+}
-+#else
-+static inline void timer_stats_account_hrtimer(struct hrtimer *timer)
-+{
-+}
-+
-+static inline void timer_stats_hrtimer_set_start_info(struct hrtimer *timer)
-+{
-+}
-+
-+static inline void timer_stats_hrtimer_clear_start_info(struct hrtimer *timer)
-+{
-+}
-+#endif
-+
- #endif
-diff -puN include/linux/timer.h~updated-debugging-feature-timer-stats include/linux/timer.h
---- a/include/linux/timer.h~updated-debugging-feature-timer-stats
-+++ a/include/linux/timer.h
-@@ -2,6 +2,7 @@
- #define _LINUX_TIMER_H
- 
- #include <linux/list.h>
-+#include <linux/ktime.h>
- #include <linux/spinlock.h>
- #include <linux/stddef.h>
- 
-@@ -15,6 +16,11 @@ struct timer_list {
- 	unsigned long data;
- 
- 	struct tvec_t_base_s *base;
-+#ifdef CONFIG_TIMER_STATS
-+	void *start_site;
-+	char start_comm[16];
-+	int start_pid;
-+#endif
- };
- 
- extern struct tvec_t_base_s boot_tvec_bases;
-@@ -73,6 +79,49 @@ extern unsigned long next_timer_interrup
+-#ifdef CONFIG_X86_PM_TIMER
+-extern u32 pmtmr_ioport;
+-#endif
+-
+ static int __init acpi_parse_fadt(unsigned long phys, unsigned long size)
+ {
+ 	struct fadt_descriptor *fadt = NULL;
+diff -puN drivers/clocksource/acpi_pm.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file
++++ a/drivers/clocksource/acpi_pm.c
+@@ -16,15 +16,13 @@
+  * This file is licensed under the GPL v2.
   */
- extern unsigned long get_next_timer_interrupt(unsigned long now);
  
-+/*
-+ * Timer-statistics info:
-+ */
-+#ifdef CONFIG_TIMER_STATS
-+
-+extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
-+				     void *timerf, char * comm);
-+
-+static inline void timer_stats_account_timer(struct timer_list *timer)
-+{
-+	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
-+				 timer->function, timer->start_comm);
-+}
-+
-+extern void __timer_stats_timer_set_start_info(struct timer_list *timer,
-+					       void *addr);
-+
-+static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
-+{
-+	__timer_stats_timer_set_start_info(timer, __builtin_return_address(0));
-+}
-+
-+static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
-+{
-+	timer->start_site = NULL;
-+}
-+#else
-+static inline void timer_stats_account_timer(struct timer_list *timer)
-+{
-+}
-+
-+static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
-+{
-+}
-+
-+static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
-+{
-+}
-+#endif
-+
-+extern void delayed_work_timer_fn(unsigned long __data);
-+
-+
- /***
-  * add_timer - start a timer
-  * @timer: the timer to be added
-diff -puN kernel/hrtimer.c~updated-debugging-feature-timer-stats kernel/hrtimer.c
---- a/kernel/hrtimer.c~updated-debugging-feature-timer-stats
-+++ a/kernel/hrtimer.c
-@@ -972,6 +972,18 @@ static inline void hrtimer_resume_jiffy_
++#include <linux/acpi_pmtmr.h>
+ #include <linux/clocksource.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <asm/io.h>
  
- #endif /* CONFIG_HIGH_RES_TIMERS */
- 
-+#ifdef CONFIG_TIMER_STATS
-+void __timer_stats_hrtimer_set_start_info(struct hrtimer *timer, void *addr)
-+{
-+	if (timer->start_site)
-+		return;
-+
-+	timer->start_site = addr;
-+	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
-+	timer->start_pid = current->pid;
-+}
-+#endif
-+
+-/* Number of PMTMR ticks expected during calibration run */
+-#define PMTMR_TICKS_PER_SEC 3579545
+-
  /*
-  * Timekeeping resumed notification
+  * The I/O port the PMTMR resides at.
+  * The location is detected during setup_arch(),
+@@ -32,15 +30,13 @@
   */
-@@ -1140,6 +1152,7 @@ remove_hrtimer(struct hrtimer *timer, st
- 		 * reprogramming happens in the interrupt handler. This is a
- 		 * rare case and less expensive than a smp call.
- 		 */
-+		timer_stats_hrtimer_clear_start_info(timer);
- 		reprogram = base->cpu_base == &__get_cpu_var(hrtimer_bases);
- 		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE,
- 				 reprogram);
-@@ -1188,6 +1201,8 @@ hrtimer_start(struct hrtimer *timer, kti
- 	}
- 	timer->expires = tim;
+ u32 pmtmr_ioport __read_mostly;
  
-+	timer_stats_hrtimer_set_start_info(timer);
-+
- 	enqueue_hrtimer(timer, new_base, base == new_base);
- 
- 	unlock_hrtimer_base(timer, &flags);
-@@ -1320,6 +1335,12 @@ void hrtimer_init(struct hrtimer *timer,
- 
- 	timer->base = &cpu_base->clock_base[clock_id];
- 	hrtimer_init_timer_hres(timer);
-+
-+#ifdef CONFIG_TIMER_STATS
-+	timer->start_site = NULL;
-+	timer->start_pid = -1;
-+	memset(timer->start_comm, 0, TASK_COMM_LEN);
-+#endif
+-#define ACPI_PM_MASK CLOCKSOURCE_MASK(24) /* limit it to 24 bits */
+-
+ static inline u32 read_pmtmr(void)
+ {
+ 	/* mask the output to 24 bits */
+ 	return inl(pmtmr_ioport) & ACPI_PM_MASK;
  }
- EXPORT_SYMBOL_GPL(hrtimer_init);
  
-@@ -1400,6 +1421,7 @@ void hrtimer_interrupt(struct pt_regs *r
+-static cycle_t acpi_pm_read_verified(void)
++u32 acpi_pm_read_verified(void)
+ {
+ 	u32 v1 = 0, v2 = 0, v3 = 0;
  
- 			__remove_hrtimer(timer, base,
- 					 HRTIMER_STATE_CALLBACK, 0);
-+			timer_stats_account_hrtimer(timer);
+@@ -57,7 +53,12 @@ static cycle_t acpi_pm_read_verified(voi
+ 	} while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
+ 			  || (v3 > v1 && v3 < v2)));
  
- 			if (timer->function(timer) != HRTIMER_NORESTART) {
- 				BUG_ON(timer->state != HRTIMER_STATE_CALLBACK);
-@@ -1442,6 +1464,8 @@ static void run_hrtimer_softirq(struct s
- 		timer = list_entry(cpu_base->cb_pending.next,
- 				   struct hrtimer, cb_entry);
- 
-+		timer_stats_account_hrtimer(timer);
+-	return (cycle_t)v2;
++	return v2;
++}
 +
- 		fn = timer->function;
- 		__remove_hrtimer(timer, timer->base, HRTIMER_STATE_CALLBACK, 0);
- 		spin_unlock_irq(&cpu_base->lock);
-@@ -1498,6 +1522,8 @@ static inline void run_hrtimer_queue(str
- 		if (base->softirq_time.tv64 <= timer->expires.tv64)
- 			break;
++static cycle_t acpi_pm_read_slow(void)
++{
++	return (cycle_t)acpi_pm_read_verified();
+ }
  
-+		timer_stats_account_hrtimer(timer);
-+
- 		fn = timer->function;
- 		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK, 0);
- 		spin_unlock_irq(&cpu_base->lock);
-diff -puN kernel/time/Makefile~updated-debugging-feature-timer-stats kernel/time/Makefile
---- a/kernel/time/Makefile~updated-debugging-feature-timer-stats
-+++ a/kernel/time/Makefile
-@@ -1,3 +1,4 @@
- obj-y += ntp.o clocksource.o jiffies.o
+ static cycle_t acpi_pm_read(void)
+@@ -87,7 +88,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
  
--obj-$(CONFIG_GENERIC_CLOCKEVENTS) += clockevents.o
-+obj-$(CONFIG_GENERIC_CLOCKEVENTS)	+= clockevents.o
-+obj-$(CONFIG_TIMER_STATS)		+= timer_stats.o
-diff -puN /dev/null kernel/time/timer_stats.c
+ static inline void acpi_pm_need_workaround(void)
+ {
+-	clocksource_acpi_pm.read = acpi_pm_read_verified;
++	clocksource_acpi_pm.read = acpi_pm_read_slow;
+ 	clocksource_acpi_pm.rating = 110;
+ }
+ 
+diff -puN /dev/null include/linux/acpi_pmtmr.h
 --- /dev/null
-+++ a/kernel/time/timer_stats.c
-@@ -0,0 +1,244 @@
-+/*
-+ * kernel/time/timer_stats.c
-+ *
-+ * Collect timer usage statistics.
-+ *
-+ * Copyright(C) 2006, Red Hat, Inc., Ingo Molnar
-+ * Copyright(C) 2006 Timesys Corp., Thomas Gleixner <tglx@timesys.com>
-+ *
-+ * timer_stats is based on timer_top, a similar functionality which was part of
-+ * Con Kolivas dyntick patch set. It was developed by Daniel Petrini at the
-+ * Instituto Nokia de Tecnologia - INdT - Manaus. timer_top's design was based
-+ * on dynamic allocation of the statistics entries rather than the static array
-+ * which is used by timer_stats. It was written for the pre hrtimer kernel code
-+ * and therefor did not take hrtimers into account. Nevertheless it provided
-+ * the base for the timer_stats implementation and was a helpful source of
-+ * inspiration in the first place. Kudos to Daniel and the Nokia folks for this
-+ * effort.
-+ *
-+ * timer_top.c is
-+ *	Copyright (C) 2005 Instituto Nokia de Tecnologia - INdT - Manaus
-+ *	Written by Daniel Petrini <d.pensator@gmail.com>
-+ *	timer_top.c was released under the GNU General Public License version 2
-+ *
-+ * We export the addresses and counting of timer functions being called,
-+ * the pid and cmdline from the owner process if applicable.
-+ *
-+ * Start/stop data collection:
-+ * # echo 1[0] >/proc/timer_stats
-+ *
-+ * Display the collected information:
-+ * # cat /proc/timer_stats
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++++ a/include/linux/acpi_pmtmr.h
+@@ -0,0 +1,38 @@
++#ifndef _ACPI_PMTMR_H_
++#define _ACPI_PMTMR_H_
 +
-+#include <linux/list.h>
-+#include <linux/proc_fs.h>
-+#include <linux/module.h>
-+#include <linux/spinlock.h>
-+#include <linux/sched.h>
-+#include <linux/seq_file.h>
-+#include <linux/kallsyms.h>
++#include <linux/clocksource.h>
 +
-+#include <asm/uaccess.h>
++/* Number of PMTMR ticks expected during calibration run */
++#define PMTMR_TICKS_PER_SEC 3579545
 +
-+enum tstats_stat {
-+	TSTATS_INACTIVE,
-+	TSTATS_ACTIVE,
-+	TSTATS_READOUT,
-+	TSTATS_RESET,
-+};
++/* limit it to 24 bits */
++#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
 +
-+struct tstats_entry {
-+	void			*timer;
-+	void			*start_func;
-+	void			*expire_func;
-+	unsigned long		counter;
-+	pid_t			pid;
-+	char			comm[TASK_COMM_LEN + 1];
-+};
++/* Overrun value */
++#define ACPI_PM_OVRRUN	1<<24
 +
-+#define TSTATS_MAX_ENTRIES	1024
++#ifdef CONFIG_X86_PM_TIMER
 +
-+static struct tstats_entry tstats[TSTATS_MAX_ENTRIES];
-+static DEFINE_SPINLOCK(tstats_lock);
-+static enum tstats_stat tstats_status;
-+static ktime_t tstats_time;
++extern u32 acpi_pm_read_verified(void);
++extern u32 pmtmr_ioport;
 +
-+/**
-+ * timer_stats_update_stats - Update the statistics for a timer.
-+ * @timer:	pointer to either a timer_list or a hrtimer
-+ * @pid:	the pid of the task which set up the timer
-+ * @startf:	pointer to the function which did the timer setup
-+ * @timerf:	pointer to the timer callback function of the timer
-+ * @comm:	name of the process which set up the timer
-+ *
-+ * When the timer is already registered, then the event counter is
-+ * incremented. Otherwise the timer is registered in a free slot.
-+ */
-+void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
-+			      void *timerf, char * comm)
++static inline u32 acpi_pm_read_early(void)
 +{
-+	struct tstats_entry *entry = tstats;
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&tstats_lock, flags);
-+	if (tstats_status != TSTATS_ACTIVE)
-+		goto out_unlock;
-+
-+	for (i = 0; i < TSTATS_MAX_ENTRIES; i++, entry++) {
-+		if (entry->timer == timer &&
-+		    entry->start_func == startf &&
-+		    entry->expire_func == timerf &&
-+		    entry->pid == pid) {
-+
-+			entry->counter++;
-+			break;
-+		}
-+		if (!entry->timer) {
-+			entry->timer = timer;
-+			entry->start_func = startf;
-+			entry->expire_func = timerf;
-+			entry->counter = 1;
-+			entry->pid = pid;
-+			memcpy(entry->comm, comm, TASK_COMM_LEN);
-+			entry->comm[TASK_COMM_LEN] = 0;
-+			break;
-+		}
-+	}
-+
-+ out_unlock:
-+	spin_unlock_irqrestore(&tstats_lock, flags);
++	if (!pmtmr_ioport)
++		return 0;
++	/* mask the output to 24 bits */
++	return acpi_pm_read_verified();
 +}
 +
-+static void print_name_offset(struct seq_file *m, unsigned long addr)
++#else
++
++static inline u32 acpi_pm_read_early(void)
 +{
-+	char namebuf[KSYM_NAME_LEN+1];
-+	unsigned long size, offset;
-+	const char *sym_name;
-+	char *modname;
-+
-+	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
-+	if (sym_name)
-+		seq_printf(m, "%s", sym_name);
-+	else
-+		seq_printf(m, "<%p>", (void *)addr);
-+}
-+
-+static int tstats_show(struct seq_file *m, void *v)
-+{
-+	struct tstats_entry *entry = tstats;
-+	struct timespec period;
-+	unsigned long ms;
-+	long events = 0;
-+	int i;
-+
-+	spin_lock_irq(&tstats_lock);
-+	switch(tstats_status) {
-+	case TSTATS_ACTIVE:
-+		tstats_time = ktime_sub(ktime_get(), tstats_time);
-+	case TSTATS_INACTIVE:
-+		tstats_status = TSTATS_READOUT;
-+		break;
-+	default:
-+		spin_unlock_irq(&tstats_lock);
-+		return -EBUSY;
-+	}
-+	spin_unlock_irq(&tstats_lock);
-+
-+	period = ktime_to_timespec(tstats_time);
-+	ms = period.tv_nsec % 1000000;
-+
-+	seq_printf(m, "Timerstats sample period: %ld.%3ld s\n",
-+		   period.tv_sec, ms);
-+
-+	for (i = 0; i < TSTATS_MAX_ENTRIES && entry->timer; i++, entry++) {
-+		seq_printf(m, "%4lu, %5d %-16s ", entry->counter, entry->pid,
-+			   entry->comm);
-+
-+		print_name_offset(m, (unsigned long)entry->start_func);
-+		seq_puts(m, " (");
-+		print_name_offset(m, (unsigned long)entry->expire_func);
-+		seq_puts(m, ")\n");
-+		events += entry->counter;
-+	}
-+
-+	ms += period.tv_sec * 1000;
-+	if (events && period.tv_sec)
-+		seq_printf(m, "%ld total events, %ld.%ld events/sec\n", events,
-+			   events / period.tv_sec, events * 1000 / ms);
-+	else
-+		seq_printf(m, "%ld total events\n", events);
-+
-+	tstats_status = TSTATS_INACTIVE;
 +	return 0;
 +}
 +
-+static ssize_t tstats_write(struct file *file, const char __user *buf,
-+			    size_t count, loff_t *offs)
-+{
-+	char ctl[2];
-+
-+	if (count != 2 || *offs)
-+		return -EINVAL;
-+
-+	if (copy_from_user(ctl, buf, count))
-+		return -EFAULT;
-+
-+	switch (ctl[0]) {
-+	case '0':
-+		spin_lock_irq(&tstats_lock);
-+		if (tstats_status == TSTATS_ACTIVE) {
-+			tstats_status = TSTATS_INACTIVE;
-+			tstats_time = ktime_sub(ktime_get(), tstats_time);
-+		}
-+		spin_unlock_irq(&tstats_lock);
-+		break;
-+	case '1':
-+		spin_lock_irq(&tstats_lock);
-+		if (tstats_status == TSTATS_INACTIVE) {
-+			tstats_status = TSTATS_RESET;
-+			memset(tstats, 0, sizeof(tstats));
-+			tstats_time = ktime_get();
-+			tstats_status = TSTATS_ACTIVE;
-+		}
-+		spin_unlock_irq(&tstats_lock);
-+		break;
-+	default:
-+		count = -EINVAL;
-+	}
-+
-+	return count;
-+}
-+
-+static int tstats_open(struct inode *inode, struct file *filp)
-+{
-+	return single_open(filp, tstats_show, NULL);
-+}
-+
-+static struct file_operations tstats_fops = {
-+	.open		= tstats_open,
-+	.read		= seq_read,
-+	.write		= tstats_write,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
-+
-+static int __init init_tstats(void)
-+{
-+	struct proc_dir_entry *pe;
-+
-+	pe = create_proc_entry("timer_stats", 0666, NULL);
-+
-+	if (!pe)
-+		return -ENOMEM;
-+
-+	pe->proc_fops = &tstats_fops;
-+
-+	return 0;
-+}
-+module_init(init_tstats);
-diff -puN kernel/timer.c~updated-debugging-feature-timer-stats kernel/timer.c
---- a/kernel/timer.c~updated-debugging-feature-timer-stats
-+++ a/kernel/timer.c
-@@ -34,6 +34,7 @@
- #include <linux/cpu.h>
- #include <linux/syscalls.h>
- #include <linux/delay.h>
-+#include <linux/kallsyms.h>
- 
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
-@@ -262,6 +263,18 @@ static void internal_add_timer(tvec_base
- 	list_add_tail(&timer->entry, vec);
- }
- 
-+#ifdef CONFIG_TIMER_STATS
-+void __timer_stats_timer_set_start_info(struct timer_list *timer, void *addr)
-+{
-+	if (timer->start_site)
-+		return;
-+
-+	timer->start_site = addr;
-+	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
-+	timer->start_pid = current->pid;
-+}
 +#endif
 +
- /**
-  * init_timer - initialize a timer.
-  * @timer: the timer to be initialized
-@@ -273,11 +286,16 @@ void fastcall init_timer(struct timer_li
- {
- 	timer->entry.next = NULL;
- 	timer->base = __raw_get_cpu_var(tvec_bases);
-+#ifdef CONFIG_TIMER_STATS
-+	timer->start_site = NULL;
-+	timer->start_pid = -1;
-+	memset(timer->start_comm, 0, TASK_COMM_LEN);
 +#endif
- }
- EXPORT_SYMBOL(init_timer);
- 
- static inline void detach_timer(struct timer_list *timer,
--					int clear_pending)
-+				int clear_pending)
- {
- 	struct list_head *entry = &timer->entry;
- 
-@@ -324,6 +342,7 @@ int __mod_timer(struct timer_list *timer
- 	unsigned long flags;
- 	int ret = 0;
- 
-+	timer_stats_timer_set_start_info(timer);
- 	BUG_ON(!timer->function);
- 
- 	base = lock_timer_base(timer, &flags);
-@@ -374,6 +393,7 @@ void add_timer_on(struct timer_list *tim
- 	tvec_base_t *base = per_cpu(tvec_bases, cpu);
-   	unsigned long flags;
- 
-+	timer_stats_timer_set_start_info(timer);
-   	BUG_ON(timer_pending(timer) || !timer->function);
- 	spin_lock_irqsave(&base->lock, flags);
- 	timer->base = base;
-@@ -406,6 +426,7 @@ int mod_timer(struct timer_list *timer, 
- {
- 	BUG_ON(!timer->function);
- 
-+	timer_stats_timer_set_start_info(timer);
- 	/*
- 	 * This is a common optimization triggered by the
- 	 * networking code - if the timer is re-modified
-@@ -436,6 +457,7 @@ int del_timer(struct timer_list *timer)
- 	unsigned long flags;
- 	int ret = 0;
- 
-+	timer_stats_timer_clear_start_info(timer);
- 	if (timer_pending(timer)) {
- 		base = lock_timer_base(timer, &flags);
- 		if (timer_pending(timer)) {
-@@ -569,6 +591,8 @@ static inline void __run_timers(tvec_bas
-  			fn = timer->function;
-  			data = timer->data;
- 
-+			timer_stats_account_timer(timer);
 +
- 			set_running_timer(base, timer);
- 			detach_timer(timer, 1);
- 			spin_unlock_irq(&base->lock);
-@@ -1252,7 +1276,8 @@ static void run_timer_softirq(struct sof
- {
- 	tvec_base_t *base = __get_cpu_var(tvec_bases);
- 
-- 	hrtimer_run_queues();
-+	hrtimer_run_queues();
-+
- 	if (time_after_eq(jiffies, base->timer_jiffies))
- 		__run_timers(base);
- }
-diff -puN kernel/workqueue.c~updated-debugging-feature-timer-stats kernel/workqueue.c
---- a/kernel/workqueue.c~updated-debugging-feature-timer-stats
-+++ a/kernel/workqueue.c
-@@ -218,7 +218,7 @@ int fastcall queue_work(struct workqueue
- }
- EXPORT_SYMBOL_GPL(queue_work);
- 
--static void delayed_work_timer_fn(unsigned long __data)
-+void delayed_work_timer_fn(unsigned long __data)
- {
- 	struct delayed_work *dwork = (struct delayed_work *)__data;
- 	struct workqueue_struct *wq = get_wq_data(&dwork->work);
-@@ -245,6 +245,7 @@ int fastcall queue_delayed_work(struct w
- 	struct timer_list *timer = &dwork->timer;
- 	struct work_struct *work = &dwork->work;
- 
-+	timer_stats_timer_set_start_info(timer);
- 	if (delay == 0)
- 		return queue_work(wq, work);
- 
-@@ -609,8 +610,10 @@ EXPORT_SYMBOL(schedule_work);
-  * After waiting for a given time this puts a job in the kernel-global
-  * workqueue.
-  */
--int fastcall schedule_delayed_work(struct delayed_work *dwork, unsigned long delay)
-+int fastcall schedule_delayed_work(struct delayed_work *dwork,
-+					unsigned long delay)
- {
-+	timer_stats_timer_set_start_info(&dwork->timer);
- 	return queue_delayed_work(keventd_wq, dwork, delay);
- }
- EXPORT_SYMBOL(schedule_delayed_work);
-diff -puN lib/Kconfig.debug~updated-debugging-feature-timer-stats lib/Kconfig.debug
---- a/lib/Kconfig.debug~updated-debugging-feature-timer-stats
-+++ a/lib/Kconfig.debug
-@@ -125,6 +125,17 @@ config SCHEDSTATS
- 	  application, you can say N to avoid the very slight overhead
- 	  this adds.
- 
-+config TIMER_STATS
-+	bool "Collect kernel timers statistics"
-+	depends on DEBUG_KERNEL && PROC_FS
-+	help
-+	  If you say Y here, additional code will be inserted into the
-+	  timer routines to collect statistics about kernel timers being
-+	  reprogrammed. The statistics can be read from /proc/timer_stats.
-+	  The statistics collection is started by writing 1 to /proc/timer_stats,
-+	  writing 0 stops it. This feature is useful to collect information
-+	  about timer usage patterns in kernel and userspace.
-+
- config DEBUG_SLAB
- 	bool "Debug slab memory allocations"
- 	depends on DEBUG_KERNEL && SLAB
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
