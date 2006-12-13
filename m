@@ -1,129 +1,145 @@
 From: akpm@osdl.org
-Subject: + high-res-timers-core-do-itimer-rearming-in-process-context.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:44:26 -0800
-Message-ID: <200612132244.kBDMiQ5G022891@shell0.pdx.osdl.net>
+Subject: + acpi-add-state-propagation-for-dynamic-broadcasting.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:44:10 -0800
+Message-ID: <200612132244.kBDMiA0m022867@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52405 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52360 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751678AbWLMWog (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:44:36 -0500
+	id S1751674AbWLMWoX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:44:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@elte.hu
+Cc: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu
 
 
 The patch titled
-     high-res timers: core, do itimer rearming in process context
+     ACPI: add state propagation for dynamic broadcasting
 has been added to the -mm tree.  Its filename is
-     high-res-timers-core-do-itimer-rearming-in-process-context.patch
+     acpi-add-state-propagation-for-dynamic-broadcasting.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: high-res timers: core, do itimer rearming in process context
+Subject: ACPI: add state propagation for dynamic broadcasting
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Fix potential setitimer DoS with high-res timers by pushing itimer rearm
-processing to process context.
+( This is a preparatory patch for high resolution timers and dynticks,
+  it causes no functional changes to existing functionality. )
+
+The local APIC timer is fast and per CPU, but it gets stopped in C3 state.  On
+some broken systems, especially AMD based ones it gets stopped in C2.  This
+also affects akpm's jinxed VAIO.
+
+The broadcast function informs the local APIC management code that a state
+which stops the local APIC is going to be entered/exited.  This switches the
+local APIC timer to the PIT broadcast mode.  The clockevents layer takes care
+of the distribution of events.
+
+The lapic_timer_idle_broadcast() function is an empty inline for now, which
+will be replaced by the later clockevents patches for the affected
+architectures.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/itimer.c |    5 ---
- kernel/signal.c |   58 ++++++++++++++++++++++++++++++++--------------
- 2 files changed, 41 insertions(+), 22 deletions(-)
+ drivers/acpi/processor_idle.c |   20 ++++++++++++++++++++
+ include/asm-i386/apic.h       |    1 +
+ include/asm-x86_64/apic.h     |    1 +
+ 3 files changed, 22 insertions(+)
 
-diff -puN kernel/itimer.c~high-res-timers-core-do-itimer-rearming-in-process-context kernel/itimer.c
---- a/kernel/itimer.c~high-res-timers-core-do-itimer-rearming-in-process-context
-+++ a/kernel/itimer.c
-@@ -135,11 +135,6 @@ enum hrtimer_restart it_real_fn(struct h
- 
- 	send_group_sig_info(SIGALRM, SEND_SIG_PRIV, sig->tsk);
- 
--	if (sig->it_real_incr.tv64 != 0) {
--		hrtimer_forward(timer, hrtimer_cb_get_time(timer),
--				sig->it_real_incr);
--		return HRTIMER_RESTART;
--	}
- 	return HRTIMER_NORESTART;
+diff -puN drivers/acpi/processor_idle.c~acpi-add-state-propagation-for-dynamic-broadcasting drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-add-state-propagation-for-dynamic-broadcasting
++++ a/drivers/acpi/processor_idle.c
+@@ -281,11 +281,27 @@ static void acpi_propagate_timer_broadca
+ 		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
  }
  
-diff -puN kernel/signal.c~high-res-timers-core-do-itimer-rearming-in-process-context kernel/signal.c
---- a/kernel/signal.c~high-res-timers-core-do-itimer-rearming-in-process-context
-+++ a/kernel/signal.c
-@@ -456,26 +456,50 @@ static int __dequeue_signal(struct sigpe
- int dequeue_signal(struct task_struct *tsk, sigset_t *mask, siginfo_t *info)
- {
- 	int signr = __dequeue_signal(&tsk->pending, mask, info);
--	if (!signr)
-+	if (!signr) {
- 		signr = __dequeue_signal(&tsk->signal->shared_pending,
- 					 mask, info);
-+		/*
-+		 * itimer signal ?
-+		 *
-+		 * itimers are process shared and we restart periodic
-+		 * itimers in the signal delivery path to prevent DoS
-+		 * attacks in the high resolution timer case. This is
-+		 * compliant with the old way of self restarting
-+		 * itimers, as the SIGALRM is a legacy signal and only
-+		 * queued once. Changing the restart behaviour to
-+		 * restart the timer in the signal dequeue path is
-+		 * reducing the timer noise on heavy loaded !highres
-+		 * systems too.
-+		 */
-+		if (unlikely(signr == SIGALRM)) {
-+			struct hrtimer *tmr = &tsk->signal->real_timer;
++/* Power(C) State timer broadcast control */
++static void acpi_state_timer_broadcast(struct acpi_processor *pr,
++				       struct acpi_processor_cx *cx,
++				       int broadcast)
++{
++	int state = cx - pr->power.states;
 +
-+			if (!hrtimer_active(tmr) &&
-+			    tsk->signal->it_real_incr.tv64 != 0) {
-+				hrtimer_forward(tmr, hrtimer_cb_get_time(tmr),
-+						tsk->signal->it_real_incr);
-+				hrtimer_restart(tmr);
-+			}
-+		}
-+	}
- 	recalc_sigpending_tsk(tsk);
-- 	if (signr && unlikely(sig_kernel_stop(signr))) {
-- 		/*
-- 		 * Set a marker that we have dequeued a stop signal.  Our
-- 		 * caller might release the siglock and then the pending
-- 		 * stop signal it is about to process is no longer in the
-- 		 * pending bitmasks, but must still be cleared by a SIGCONT
-- 		 * (and overruled by a SIGKILL).  So those cases clear this
-- 		 * shared flag after we've set it.  Note that this flag may
-- 		 * remain set after the signal we return is ignored or
-- 		 * handled.  That doesn't matter because its only purpose
-- 		 * is to alert stop-signal processing code when another
-- 		 * processor has come along and cleared the flag.
-- 		 */
-- 		if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT))
-- 			tsk->signal->flags |= SIGNAL_STOP_DEQUEUED;
-- 	}
-+	if (signr && unlikely(sig_kernel_stop(signr))) {
-+		/*
-+		 * Set a marker that we have dequeued a stop signal.  Our
-+		 * caller might release the siglock and then the pending
-+		 * stop signal it is about to process is no longer in the
-+		 * pending bitmasks, but must still be cleared by a SIGCONT
-+		 * (and overruled by a SIGKILL).  So those cases clear this
-+		 * shared flag after we've set it.  Note that this flag may
-+		 * remain set after the signal we return is ignored or
-+		 * handled.  That doesn't matter because its only purpose
-+		 * is to alert stop-signal processing code when another
-+		 * processor has come along and cleared the flag.
-+		 */
-+		if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT))
-+			tsk->signal->flags |= SIGNAL_STOP_DEQUEUED;
-+	}
- 	if ( signr &&
- 	     ((info->si_code & __SI_MASK) == __SI_TIMER) &&
- 	     info->si_sys_private){
++	if (state >= pr->power.timer_broadcast_on_state)
++		lapic_timer_idle_broadcast(broadcast);
++}
++
+ #else
+ 
+ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
+ 				   struct acpi_processor_cx *cstate) { }
+ static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
++static void acpi_state_timer_broadcast(struct acpi_processor *pr,
++				       struct acpi_processor_cx *cx,
++				       int broadcast)
++{
++}
+ 
+ #endif
+ 
+@@ -431,6 +447,7 @@ static void acpi_processor_idle(void)
+ 		/* Get start time (ticks) */
+ 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Invoke C2 */
++		acpi_state_timer_broadcast(pr, cx, 1);
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+@@ -445,6 +462,7 @@ static void acpi_processor_idle(void)
+ 		/* Compute time (ticks) that we were actually asleep */
+ 		sleep_ticks =
+ 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C2_OVERHEAD;
++		acpi_state_timer_broadcast(pr, cx, 0);
+ 		break;
+ 
+ 	case ACPI_STATE_C3:
+@@ -467,6 +485,7 @@ static void acpi_processor_idle(void)
+ 		/* Get start time (ticks) */
+ 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Invoke C3 */
++		acpi_state_timer_broadcast(pr, cx, 1);
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+@@ -487,6 +506,7 @@ static void acpi_processor_idle(void)
+ 		/* Compute time (ticks) that we were actually asleep */
+ 		sleep_ticks =
+ 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
++		acpi_state_timer_broadcast(pr, cx, 0);
+ 		break;
+ 
+ 	default:
+diff -puN include/asm-i386/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting include/asm-i386/apic.h
+--- a/include/asm-i386/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting
++++ a/include/asm-i386/apic.h
+@@ -113,6 +113,7 @@ extern void setup_secondary_APIC_clock (
+ extern int APIC_init_uniprocessor (void);
+ extern void disable_APIC_timer(void);
+ extern void enable_APIC_timer(void);
++static inline void lapic_timer_idle_broadcast(int broadcast) { }
+ 
+ extern void enable_NMI_through_LVT0 (void * dummy);
+ 
+diff -puN include/asm-x86_64/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting include/asm-x86_64/apic.h
+--- a/include/asm-x86_64/apic.h~acpi-add-state-propagation-for-dynamic-broadcasting
++++ a/include/asm-x86_64/apic.h
+@@ -84,6 +84,7 @@ extern int APIC_init_uniprocessor (void)
+ extern void disable_APIC_timer(void);
+ extern void enable_APIC_timer(void);
+ extern void setup_apic_routing(void);
++static inline void lapic_timer_idle_broadcast(int broadcast) { }
+ 
+ extern void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
+ 				   unsigned char msg_type, unsigned char mask);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
