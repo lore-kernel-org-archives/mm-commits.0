@@ -1,154 +1,91 @@
 From: akpm@osdl.org
-Subject: + kvm-add-valid_vcpu-helper.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:12:58 -0800
-Message-ID: <200612132212.kBDMCwVm022035@shell0.pdx.osdl.net>
+Subject: + kvm-amd-svm-save-and-restore-the-floating-point-unit.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:13:02 -0800
+Message-ID: <200612132213.kBDMD2VJ022044@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48729 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48742 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751649AbWLMWNL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:13:11 -0500
+	id S1751653AbWLMWNT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:13:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmorris@namei.org, avi@qumranet.com
+Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: add valid_vcpu() helper
+     KVM: AMD SVM: Save and restore the floating point unit 	state
 has been added to the -mm tree.  Its filename is
-     kvm-add-valid_vcpu-helper.patch
+     kvm-amd-svm-save-and-restore-the-floating-point-unit.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: add valid_vcpu() helper
-From: James Morris <jmorris@namei.org>
+Subject: KVM: AMD SVM: Save and restore the floating point unit 	state
+From: Avi Kivity <avi@qumranet.com>
 
-Consolidate the logic for checking whether a vcpu index is valid.  Also, use
-likely(), as a valid value should be the overwhelmingly common case.
+Fixes sf bug 1614113 (segfaults in nbench).
 
-Signed-off-by: James Morris <jmorris@namei.org>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |   23 ++++++++++++++---------
- 1 files changed, 14 insertions(+), 9 deletions(-)
+ drivers/kvm/svm.c |    9 +++++++++
+ 1 files changed, 9 insertions(+)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-add-valid_vcpu-helper drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-add-valid_vcpu-helper
-+++ a/drivers/kvm/kvm_main.c
-@@ -113,6 +113,11 @@ unsigned long segment_base(u16 selector)
- }
- EXPORT_SYMBOL_GPL(segment_base);
+diff -puN drivers/kvm/svm.c~kvm-amd-svm-save-and-restore-the-floating-point-unit drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-amd-svm-save-and-restore-the-floating-point-unit
++++ a/drivers/kvm/svm.c
+@@ -575,6 +575,8 @@ static int svm_create_vcpu(struct kvm_vc
+ 	memset(vcpu->svm->db_regs, 0, sizeof(vcpu->svm->db_regs));
+ 	init_vmcb(vcpu->svm->vmcb);
  
-+static inline int valid_vcpu(int n)
-+{
-+	return likely(n >= 0 && n < KVM_MAX_VCPUS);
-+}
++	fx_init(vcpu);
 +
- int kvm_read_guest(struct kvm_vcpu *vcpu,
- 			     gva_t addr,
- 			     unsigned long size,
-@@ -494,7 +499,7 @@ static int kvm_dev_ioctl_create_vcpu(str
- 	struct kvm_vcpu *vcpu;
+ 	return 0;
  
- 	r = -EINVAL;
--	if (n < 0 || n >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(n))
- 		goto out;
+ out2:
+@@ -1387,6 +1389,10 @@ again:
+ 		save_db_regs(vcpu->svm->host_db_regs);
+ 		load_db_regs(vcpu->svm->db_regs);
+ 	}
++
++	fx_save(vcpu->host_fx_image);
++	fx_restore(vcpu->guest_fx_image);
++
+ 	asm volatile (
+ #ifdef CONFIG_X86_64
+ 		"push %%rbx; push %%rcx; push %%rdx;"
+@@ -1496,6 +1502,9 @@ again:
+ #endif
+ 		: "cc", "memory" );
  
- 	vcpu = &kvm->vcpus[n];
-@@ -1179,7 +1184,7 @@ static int kvm_dev_ioctl_run(struct kvm 
- 	struct kvm_vcpu *vcpu;
- 	int r;
++	fx_save(vcpu->guest_fx_image);
++	fx_restore(vcpu->host_fx_image);
++
+ 	if ((vcpu->svm->vmcb->save.dr7 & 0xff))
+ 		load_db_regs(vcpu->svm->host_db_regs);
  
--	if (kvm_run->vcpu < 0 || kvm_run->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(kvm_run->vcpu))
- 		return -EINVAL;
- 
- 	vcpu = vcpu_load(kvm, kvm_run->vcpu);
-@@ -1208,7 +1213,7 @@ static int kvm_dev_ioctl_get_regs(struct
- {
- 	struct kvm_vcpu *vcpu;
- 
--	if (regs->vcpu < 0 || regs->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(regs->vcpu))
- 		return -EINVAL;
- 
- 	vcpu = vcpu_load(kvm, regs->vcpu);
-@@ -1254,7 +1259,7 @@ static int kvm_dev_ioctl_set_regs(struct
- {
- 	struct kvm_vcpu *vcpu;
- 
--	if (regs->vcpu < 0 || regs->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(regs->vcpu))
- 		return -EINVAL;
- 
- 	vcpu = vcpu_load(kvm, regs->vcpu);
-@@ -1301,7 +1306,7 @@ static int kvm_dev_ioctl_get_sregs(struc
- 	struct kvm_vcpu *vcpu;
- 	struct descriptor_table dt;
- 
--	if (sregs->vcpu < 0 || sregs->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(sregs->vcpu))
- 		return -EINVAL;
- 	vcpu = vcpu_load(kvm, sregs->vcpu);
- 	if (!vcpu)
-@@ -1353,7 +1358,7 @@ static int kvm_dev_ioctl_set_sregs(struc
- 	int i;
- 	struct descriptor_table dt;
- 
--	if (sregs->vcpu < 0 || sregs->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(sregs->vcpu))
- 		return -EINVAL;
- 	vcpu = vcpu_load(kvm, sregs->vcpu);
- 	if (!vcpu)
-@@ -1444,7 +1449,7 @@ static int __msr_io(struct kvm *kvm, str
- 	struct kvm_vcpu *vcpu;
- 	int i;
- 
--	if (msrs->vcpu < 0 || msrs->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(msrs->vcpu))
- 		return -EINVAL;
- 
- 	vcpu = vcpu_load(kvm, msrs->vcpu);
-@@ -1537,7 +1542,7 @@ static int kvm_dev_ioctl_interrupt(struc
- {
- 	struct kvm_vcpu *vcpu;
- 
--	if (irq->vcpu < 0 || irq->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(irq->vcpu))
- 		return -EINVAL;
- 	if (irq->irq < 0 || irq->irq >= 256)
- 		return -EINVAL;
-@@ -1559,7 +1564,7 @@ static int kvm_dev_ioctl_debug_guest(str
- 	struct kvm_vcpu *vcpu;
- 	int r;
- 
--	if (dbg->vcpu < 0 || dbg->vcpu >= KVM_MAX_VCPUS)
-+	if (!valid_vcpu(dbg->vcpu))
- 		return -EINVAL;
- 	vcpu = vcpu_load(kvm, dbg->vcpu);
- 	if (!vcpu)
 _
 
-Patches currently in -mm which might be from jmorris@namei.org are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
+kvm-add-missing-include.patch
+kvm-put-kvm-in-a-new-virtualization-menu.patch
+kvm-clean-up-amd-svm-debug-registers-load-and-unload.patch
+kvm-replace-__x86_64__-with-config_x86_64.patch
+kvm-make-the-get_sregs-and-set_sregs-ioctls-symmetric.patch
+kvm-move-find_vmx_entry-to-vmxc.patch
+kvm-remove-extranous-put_cpu-from-vcpu_put.patch
+kvm-mmu-ignore-pcd-pwt-and-pat-bits-on-ptes.patch
+kvm-add-maintainers-entry.patch
+kvm-disallow-the-kvm-amd-module-on-intel-hardware.patch
+kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit.patch
+kvm-fix-vmx-hardware_enable-on-macbooks.patch
 kvm-add-valid_vcpu-helper.patch
-git-selinux.patch
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-mprotect-patch-for-use-by-slim.patch
-integrity-service-api-and-dummy-provider.patch
-slim-main-patch.patch
-slim-main-include-fix.patch
-slim-secfs-patch.patch
-slim-make-and-config-stuff.patch
-slim-debug-output.patch
-slim-documentation.patch
+kvm-amd-svm-handle-msr_star-in-32-bit-mode.patch
+kvm-amd-svm-save-and-restore-the-floating-point-unit.patch
 
