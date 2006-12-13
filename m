@@ -1,143 +1,140 @@
 From: akpm@osdl.org
-Subject: + build-compileh-earlier.patch added to -mm tree
-Date: Wed, 13 Dec 2006 12:22:00 -0800
-Message-ID: <200612132022.kBDKM39Y018750@shell0.pdx.osdl.net>
+Subject: - procfs-build-fix.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 12:24:16 -0800
+Message-ID: <200612132024.kBDKOJKt018819@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38045 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38221 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750730AbWLMUWK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 15:22:10 -0500
+	id S1750706AbWLMUYW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 15:24:22 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBDKOKID023270
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2006 12:24:20 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, sam@ravnborg.org, torvalds@osdl.org
+To: akpm@osdl.org, torvalds@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     build compile.h earlier
-has been added to the -mm tree.  Its filename is
-     build-compileh-earlier.patch
+     procfs build fix
+has been removed from the -mm tree.  Its filename was
+     procfs-build-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: build compile.h earlier
+Subject: procfs build fix
 From: Andrew Morton <akpm@osdl.org>
 
-compile.h is created super-late in the build.  But proc_misc.c want to include
-it, and it's generally not sane to have a header file in include/linux be
-created at the end of the build: it's either not present or, worse, wrong for
-most of the build.
+Builds fail after mrproper because fs/procfs/proc_misc.c needs compile.h,
+which hasn't been made yet.
 
-So the patch arranges for compile.h to be built at the start of the build
-process.  It also consolidates the compile.h rules with those for version.h
-and utsname.h, so they all get built together.
+Compile the new SLES code in init/version.c, after we've created compile.h.
 
-I hope.  My chances of having got this right are about 2%.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Makefile      |   31 ++++++++++++++++++++++---------
- init/Makefile |    9 ---------
- 2 files changed, 22 insertions(+), 18 deletions(-)
+ fs/proc/proc_misc.c     |   20 +-------------------
+ include/linux/proc_fs.h |    6 ++++++
+ init/version.c          |   21 +++++++++++++++++++++
+ 3 files changed, 28 insertions(+), 19 deletions(-)
 
-diff -puN Makefile~build-compileh-earlier Makefile
---- a/Makefile~build-compileh-earlier
-+++ a/Makefile
-@@ -368,10 +368,14 @@ endif
- # Detect when mixed targets is specified, and make a second invocation
- # of make so .config is not included in this case either (for *config).
+diff -puN fs/proc/proc_misc.c~procfs-build-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~procfs-build-fix
++++ a/fs/proc/proc_misc.c
+@@ -47,7 +47,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/crash_dump.h>
+ #include <linux/pid_namespace.h>
+-#include <linux/compile.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
+@@ -70,7 +69,7 @@ extern int get_exec_domain_list(char *);
+ extern int get_dma_list(char *);
+ extern int get_locks_status (char *, char **, off_t, int);
  
--no-dot-config-targets := clean mrproper distclean \
-+PHONY += generated_headers
-+
-+generated_headers: include/linux/version.h include/linux/compile.h \
-+		include/linux/utsrelease.h
-+
-+no-dot-config-targets := generated_headers clean mrproper distclean \
- 			 cscope TAGS tags help %docs check% \
--			 include/linux/version.h headers_% \
--			 kernelrelease kernelversion
-+			 headers_% kernelrelease kernelversion
+-static int proc_calc_metrics(char *page, char **start, off_t off,
++int proc_calc_metrics(char *page, char **start, off_t off,
+ 				 int count, int *eof, int len)
+ {
+ 	if (len <= off+count) *eof = 1;
+@@ -249,23 +248,6 @@ static struct file_operations proc_zonei
+ 	.release	= seq_release,
+ };
  
- config-targets := 0
- mixed-targets  := 0
-@@ -739,6 +743,16 @@ debug_kallsyms: .tmp_map$(last_kallsyms)
- 
- endif # ifdef CONFIG_KALLSYMS
- 
-+# compile.h changes depending on hostname, generation number, etc,
-+# so we regenerate it always.
-+# mkcompile_h will make sure to only update the
-+# actual file if its content has changed.
-+
-+include/linux/compile.h: FORCE
-+	@echo '  CHK     $@'
-+	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/mkcompile_h $@ \
-+	"$(UTS_MACHINE)" "$(CONFIG_SMP)" "$(CONFIG_PREEMPT)" "$(CC) $(CFLAGS)"
-+
- # vmlinux image - including updated kernel symbols
- vmlinux: $(vmlinux-lds) $(vmlinux-init) $(vmlinux-main) $(kallsyms.o) FORCE
- ifdef CONFIG_HEADERS_CHECK
-@@ -857,8 +871,8 @@ endif
- # prepare2 creates a makefile if using a separate output directory
- prepare2: prepare3 outputmakefile
- 
--prepare1: prepare2 include/linux/version.h include/linux/utsrelease.h \
--                   include/asm include/config/auto.conf
-+prepare1: prepare2 generated_headers include/asm include/config/auto.conf
-+
- ifneq ($(KBUILD_MODULES),)
- 	$(Q)mkdir -p $(MODVERDIR)
- 	$(Q)rm -f $(MODVERDIR)/*
-@@ -927,14 +941,14 @@ export INSTALL_HDR_PATH
- HDRARCHES=$(filter-out generic,$(patsubst $(srctree)/include/asm-%/Kbuild,%,$(wildcard $(srctree)/include/asm-*/Kbuild)))
- 
- PHONY += headers_install_all
--headers_install_all: include/linux/version.h scripts_basic FORCE
-+headers_install_all: generated_headers scripts_basic FORCE
- 	$(Q)$(MAKE) $(build)=scripts scripts/unifdef
- 	$(Q)for arch in $(HDRARCHES); do \
- 	 $(MAKE) ARCH=$$arch -f $(srctree)/scripts/Makefile.headersinst obj=include BIASMDIR=-bi-$$arch ;\
- 	 done
- 
- PHONY += headers_install
--headers_install: include/linux/version.h scripts_basic FORCE
-+headers_install: generated_headers scripts_basic FORCE
- 	@if [ ! -r $(srctree)/include/asm-$(ARCH)/Kbuild ]; then \
- 	  echo '*** Error: Headers not exportable for this architecture ($(ARCH))'; \
- 	  exit 1 ; fi
-@@ -1031,8 +1045,7 @@ CLEAN_FILES +=	vmlinux System.map \
- # Directories & files removed with 'make mrproper'
- MRPROPER_DIRS  += include/config include2 usr/include
- MRPROPER_FILES += .config .config.old include/asm .version .old_version \
--                  include/linux/autoconf.h include/linux/version.h      \
--                  include/linux/utsrelease.h                            \
-+                  include/linux/autoconf.h generated-headers		\
- 		  Module.symvers tags TAGS cscope*
- 
- # clean - Delete most, but leave enough to build external modules
-diff -puN init/Makefile~build-compileh-earlier init/Makefile
---- a/init/Makefile~build-compileh-earlier
-+++ a/init/Makefile
-@@ -18,12 +18,3 @@ clean-files := ../include/linux/compile.
- $(obj)/main.o: include/linux/compile.h
- $(obj)/version.o: include/linux/compile.h
- 
--# compile.h changes depending on hostname, generation number, etc,
--# so we regenerate it always.
--# mkcompile_h will make sure to only update the
--# actual file if its content has changed.
+-static int version_read_proc(char *page, char **start, off_t off,
+-				 int count, int *eof, void *data)
+-{
+-	int len;
 -
--include/linux/compile.h: FORCE
--	@echo '  CHK     $@'
--	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/mkcompile_h $@ \
--	"$(UTS_MACHINE)" "$(CONFIG_SMP)" "$(CONFIG_PREEMPT)" "$(CC) $(CFLAGS)"
+-	/* FIXED STRING! Don't touch! */
+-	len = snprintf(page, PAGE_SIZE,
+-		"%s version %s"
+-		" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
+-		" (" LINUX_COMPILER ")"
+-		" %s\n",
+-		utsname()->sysname,
+-		utsname()->release,
+-		utsname()->version);
+-	return proc_calc_metrics(page, start, off, count, eof, len);
+-}
+-
+ extern struct seq_operations cpuinfo_op;
+ static int cpuinfo_open(struct inode *inode, struct file *file)
+ {
+diff -puN include/linux/proc_fs.h~procfs-build-fix include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~procfs-build-fix
++++ a/include/linux/proc_fs.h
+@@ -275,4 +275,10 @@ struct proc_maps_private {
+ #endif
+ };
+ 
++int proc_calc_metrics(char *page, char **start, off_t off,
++				 int count, int *eof, int len);
++
++int version_read_proc(char *page, char **start, off_t off,
++				 int count, int *eof, void *data);
++
+ #endif /* _LINUX_PROC_FS_H */
+diff -puN init/version.c~procfs-build-fix init/version.c
+--- a/init/version.c~procfs-build-fix
++++ a/init/version.c
+@@ -13,6 +13,8 @@
+ #include <linux/utsrelease.h>
+ #include <linux/version.h>
+ #include <linux/sched.h>
++#include <linux/proc_fs.h>
++#include <linux/compile.h>
+ 
+ #define version(a) Version_ ## a
+ #define version_string(a) version(a)
+@@ -33,3 +35,22 @@ struct uts_namespace init_uts_ns = {
+ 	},
+ };
+ EXPORT_SYMBOL_GPL(init_uts_ns);
++
++#ifdef CONFIG_PROC_FS
++int version_read_proc(char *page, char **start, off_t off,
++				 int count, int *eof, void *data)
++{
++	int len;
++
++	/* FIXED STRING! Don't touch! */
++	len = snprintf(page, PAGE_SIZE,
++		"%s version %s"
++		" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
++		" (" LINUX_COMPILER ")"
++		" %s\n",
++		utsname()->sysname,
++		utsname()->release,
++		utsname()->version);
++	return proc_calc_metrics(page, start, off, count, eof, len);
++}
++#endif
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -150,6 +147,7 @@ ocfs2-relative-atime-support.patch
 optimize-o_direct-on-block-device-v3.patch
 lockdep-fix-possible-races-while-disabling-lock-debugging.patch
 procfs-build-fix.patch
+build-compileh-earlier.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
 acpi-dont-select-pm.patch
@@ -256,5 +254,4 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-build-compileh-earlier.patch
 
