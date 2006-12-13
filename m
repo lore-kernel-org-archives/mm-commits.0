@@ -1,30 +1,31 @@
 From: akpm@osdl.org
-Subject: - cleanup-taskstatsh.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:52:57 -0800
-Message-ID: <200612130652.kBD6qv93030473@shell0.pdx.osdl.net>
+Subject: - io-accounting-write-cancel-accounting.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:52:40 -0800
+Message-ID: <200612130652.kBD6qeGG030455@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57443 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57416 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964986AbWLMGxH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:53:07 -0500
+	id S964987AbWLMGxA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:53:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, daw@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, tee@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup taskstats.h
+     io-accounting: write-cancel accounting
 has been removed from the -mm tree.  Its filename was
-     cleanup-taskstatsh.patch
+     io-accounting-write-cancel-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cleanup taskstats.h
+Subject: io-accounting: write-cancel accounting
 From: Andrew Morton <akpm@osdl.org>
 
-Fix weird whitespace mangling in taskstats.h
+Account for the number of byte writes which this process caused to not happen
+after all.
 
 Cc: Jay Lan <jlan@sgi.com>
 Cc: Shailabh Nagar <nagar@watson.ibm.com>
@@ -36,54 +37,49 @@ Cc: David Wright <daw@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/taskstats.h |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ fs/buffer.c   |    7 ++++++-
+ mm/truncate.c |    4 +++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/taskstats.h~cleanup-taskstatsh include/linux/taskstats.h
---- a/include/linux/taskstats.h~cleanup-taskstatsh
-+++ a/include/linux/taskstats.h
-@@ -115,31 +115,31 @@ struct taskstats {
- 	__u64	ac_majflt;		/* Major Page Fault Count */
- 	/* Basic Accounting Fields end */
+diff -puN fs/buffer.c~io-accounting-write-cancel-accounting fs/buffer.c
+--- a/fs/buffer.c~io-accounting-write-cancel-accounting
++++ a/fs/buffer.c
+@@ -2853,8 +2853,13 @@ int try_to_free_buffers(struct page *pag
+ 		 * could encounter a non-uptodate page, which is unresolvable.
+ 		 * This only applies in the rare case where try_to_free_buffers
+ 		 * succeeds but the page is not freed.
++		 *
++		 * Also, during truncate, discard_buffer will have marked all
++		 * the page's buffers clean.  We discover that here and clean
++		 * the page also.
+ 		 */
+-		clear_page_dirty(page);
++		if (test_clear_page_dirty(page))
++			task_io_account_cancelled_write(PAGE_CACHE_SIZE);
+ 	}
+ out:
+ 	if (buffers_to_free) {
+diff -puN mm/truncate.c~io-accounting-write-cancel-accounting mm/truncate.c
+--- a/mm/truncate.c~io-accounting-write-cancel-accounting
++++ a/mm/truncate.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/pagemap.h>
+ #include <linux/pagevec.h>
++#include <linux/task_io_accounting_ops.h>
+ #include <linux/buffer_head.h>	/* grr. try_to_release_page,
+ 				   do_invalidatepage */
  
-- 	/* Extended accounting fields start */
-+	/* Extended accounting fields start */
- 	/* Accumulated RSS usage in duration of a task, in MBytes-usecs.
- 	 * The current rss usage is added to this counter every time
- 	 * a tick is charged to a task's system time. So, at the end we
- 	 * will have memory usage multiplied by system time. Thus an
- 	 * average usage per system time unit can be calculated.
- 	 */
-- 	__u64	coremem;		/* accumulated RSS usage in MB-usec */
-+	__u64	coremem;		/* accumulated RSS usage in MB-usec */
- 	/* Accumulated virtual memory usage in duration of a task.
- 	 * Same as acct_rss_mem1 above except that we keep track of VM usage.
- 	 */
-- 	__u64	virtmem;		/* accumulated VM  usage in MB-usec */
-+	__u64	virtmem;		/* accumulated VM  usage in MB-usec */
+@@ -69,7 +70,8 @@ truncate_complete_page(struct address_sp
+ 	if (PagePrivate(page))
+ 		do_invalidatepage(page, 0);
  
- 	/* High watermark of RSS and virtual memory usage in duration of
- 	 * a task, in KBytes.
- 	 */
-- 	__u64	hiwater_rss;		/* High-watermark of RSS usage, in KB */
-- 	__u64	hiwater_vm;		/* High-water VM usage, in KB */
-+	__u64	hiwater_rss;		/* High-watermark of RSS usage, in KB */
-+	__u64	hiwater_vm;		/* High-water VM usage, in KB */
- 
- 	/* The following four fields are I/O statistics of a task. */
-- 	__u64	read_char;		/* bytes read */
-- 	__u64	write_char;		/* bytes written */
-- 	__u64	read_syscalls;		/* read syscalls */
-- 	__u64	write_syscalls;		/* write syscalls */
-- 	/* Extended accounting fields end */
-+	__u64	read_char;		/* bytes read */
-+	__u64	write_char;		/* bytes written */
-+	__u64	read_syscalls;		/* read syscalls */
-+	__u64	write_syscalls;		/* write syscalls */
-+	/* Extended accounting fields end */
- };
- 
- 
+-	clear_page_dirty(page);
++	if (test_clear_page_dirty(page))
++		task_io_account_cancelled_write(PAGE_CACHE_SIZE);
+ 	ClearPageUptodate(page);
+ 	ClearPageMappedToDisk(page);
+ 	remove_from_page_cache(page);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
