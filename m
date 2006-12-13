@@ -1,48 +1,115 @@
 From: akpm@osdl.org
-Subject: - git-mtd-build-fix.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:43:22 -0800
-Message-ID: <200612130643.kBD6hMsJ030197@shell0.pdx.osdl.net>
+Subject: - revert-git-block.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:44:23 -0800
+Message-ID: <200612130644.kBD6iNhf030207@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56760 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56818 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964956AbWLMGnc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:43:32 -0500
+	id S964957AbWLMGoZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:44:25 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBD6iOID013498
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2006 22:44:24 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mtd-build-fix
+     revert git-block
 has been removed from the -mm tree.  Its filename was
-     git-mtd-build-fix.patch
+     revert-git-block.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-mtd-build-fix
+Subject: revert git-block
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/ssfdc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/ll_rw_blk.c      |    8 --------
+ block/scsi_ioctl.c     |    4 ----
+ drivers/cdrom/cdrom.c  |    4 ----
+ include/linux/blkdev.h |    5 -----
+ 4 files changed, 21 deletions(-)
 
-diff -puN drivers/mtd/ssfdc.c~git-mtd-build-fix drivers/mtd/ssfdc.c
---- a/drivers/mtd/ssfdc.c~git-mtd-build-fix
-+++ a/drivers/mtd/ssfdc.c
-@@ -445,7 +445,7 @@ static struct mtd_blktrans_ops ssfdcr_tr
- 	.name		= "ssfdc",
- 	.major		= SSFDCR_MAJOR,
- 	.part_bits	= SSFDCR_PARTN_BITS,
--	.blksize	= SECTOR_SIZE;
-+	.blksize	= SECTOR_SIZE,
- 	.getgeo		= ssfdcr_getgeo,
- 	.readsect	= ssfdcr_readsect,
- 	.add_mtd	= ssfdcr_add_mtd,
+diff -puN block/ll_rw_blk.c~revert-git-block block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~revert-git-block
++++ a/block/ll_rw_blk.c
+@@ -2515,21 +2515,13 @@ EXPORT_SYMBOL(blk_rq_map_user_iov);
+ 
+ /**
+  * blk_rq_unmap_user - unmap a request with user data
+-<<<<<<< HEAD/block/ll_rw_blk.c
+  * @rq:		rq to be unmapped
+-=======
+- * @bio:	bio to be unmapped
+->>>>>>> /block/ll_rw_blk.c
+  *
+  * Description:
+  *    Unmap a rq previously mapped by blk_rq_map_user().
+  *    rq->bio must be set to the original head of the request.
+  */
+-<<<<<<< HEAD/block/ll_rw_blk.c
+ int blk_rq_unmap_user(struct request *rq)
+-=======
+-int blk_rq_unmap_user(struct bio *bio)
+->>>>>>> /block/ll_rw_blk.c
+ {
+ 	struct bio *bio, *mapped_bio;
+ 
+diff -puN block/scsi_ioctl.c~revert-git-block block/scsi_ioctl.c
+--- a/block/scsi_ioctl.c~revert-git-block
++++ a/block/scsi_ioctl.c
+@@ -338,11 +338,7 @@ static int sg_io(struct file *file, requ
+ 			hdr->sb_len_wr = len;
+ 	}
+ 
+-<<<<<<< HEAD/block/scsi_ioctl.c
+ 	if (blk_rq_unmap_user(rq))
+-=======
+-	if (blk_rq_unmap_user(bio))
+->>>>>>> /block/scsi_ioctl.c
+ 		ret = -EFAULT;
+ 
+ 	/* may not have succeeded, but output values written to control
+diff -puN drivers/cdrom/cdrom.c~revert-git-block drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~revert-git-block
++++ a/drivers/cdrom/cdrom.c
+@@ -2139,12 +2139,8 @@ static int cdrom_read_cdda_bpc(struct cd
+ 			cdi->last_sense = s->sense_key;
+ 		}
+ 
+-<<<<<<< HEAD/drivers/cdrom/cdrom.c
+ 		rq->bio = bio;
+ 		if (blk_rq_unmap_user(rq))
+-=======
+-		if (blk_rq_unmap_user(bio))
+->>>>>>> /drivers/cdrom/cdrom.c
+ 			ret = -EFAULT;
+ 
+ 		if (ret)
+diff -puN include/linux/blkdev.h~revert-git-block include/linux/blkdev.h
+--- a/include/linux/blkdev.h~revert-git-block
++++ a/include/linux/blkdev.h
+@@ -678,13 +678,8 @@ extern void __blk_stop_queue(request_que
+ extern void blk_run_queue(request_queue_t *);
+ extern void blk_start_queueing(request_queue_t *);
+ extern void blk_queue_activity_fn(request_queue_t *, activity_fn *, void *);
+-<<<<<<< HEAD/include/linux/blkdev.h
+ extern int blk_rq_map_user(request_queue_t *, struct request *, void __user *, unsigned long);
+ extern int blk_rq_unmap_user(struct request *);
+-=======
+-extern int blk_rq_map_user(request_queue_t *, struct request *, void __user *, unsigned int);
+-extern int blk_rq_unmap_user(struct bio *);
+->>>>>>> /include/linux/blkdev.h
+ extern int blk_rq_map_kern(request_queue_t *, struct request *, void *, unsigned int, gfp_t);
+ extern int blk_rq_map_user_iov(request_queue_t *, struct request *,
+ 			       struct sg_iovec *, int, unsigned int);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -78,14 +145,12 @@ git-lxdialog-fixup.patch
 git-mmc-fixup.patch
 git-mmc-tifm_sd-warning-fix.patch
 git-mtd.patch
-git-mtd-build-fix.patch
 git-ubi.patch
 ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 driver-for-silan-sc92031-netdev-include-fix.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 net-use-bitrev8.patch
-netpoll-fix-local_bh_enable-warning.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
 pci-legacy-resource-fix-tidy.patch
