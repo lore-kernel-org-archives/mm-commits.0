@@ -1,98 +1,114 @@
 From: akpm@osdl.org
-Subject: - ide-complete-switch-to-pci_get.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:51:47 -0800
-Message-ID: <200612130651.kBD6pluE030373@shell0.pdx.osdl.net>
+Subject: - some-kbuild-fix.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:51:31 -0800
+Message-ID: <200612130651.kBD6pVXE030353@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57247 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57272 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964968AbWLMGv5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:51:57 -0500
+	id S964967AbWLMGwI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:52:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, ak@suse.de, dsd@gentoo.org, horst@schirmeier.com, jbeulich@novell.com, jpdenheijer@gmail.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide: complete switch to pci_get
+     kbuild: don't put temp files in source
 has been removed from the -mm tree.  Its filename was
-     ide-complete-switch-to-pci_get.patch
+     some-kbuild-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ide: complete switch to pci_get
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: kbuild: don't put temp files in source
+From: Roman Zippel <zippel@linux-m68k.org>
 
-The reverse get function allows the final piece of the switching for the old
-IDE layer
+The as-instr/ld-option need to create temporary files, but create them in the
+output directory, when compiling external modules.  Reformat them a bit and
+use $(CC) instead of $(AS) as the former is used by kbuild to assemble files.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: <jpdenheijer@gmail.com>
+Cc: Horst Schirmeier <horst@schirmeier.com>
+Cc: Daniel Drake <dsd@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/setup-pci.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/Kbuild.include |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ide/setup-pci.c~ide-complete-switch-to-pci_get drivers/ide/setup-pci.c
---- a/drivers/ide/setup-pci.c~ide-complete-switch-to-pci_get
-+++ a/drivers/ide/setup-pci.c
-@@ -844,11 +844,11 @@ void __init ide_scan_pcibus (int scan_di
+diff -puN scripts/Kbuild.include~some-kbuild-fix scripts/Kbuild.include
+--- a/scripts/Kbuild.include~some-kbuild-fix
++++ a/scripts/Kbuild.include
+@@ -56,6 +56,9 @@ endef
+ # gcc support functions
+ # See documentation in Documentation/kbuild/makefiles.txt
  
- 	pre_init = 0;
- 	if (!scan_direction) {
--		while ((dev = pci_find_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
-+		while ((dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
- 			ide_scan_pcidev(dev);
- 		}
- 	} else {
--		while ((dev = pci_find_device_reverse(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
-+		while ((dev = pci_get_device_reverse(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
- 			ide_scan_pcidev(dev);
- 		}
- 	}
++# output directory for tests below
++TMPOUT := $(if $(KBUILD_EXTMOD),$(firstword $(KBUILD_EXTMOD))/)
++
+ # as-option
+ # Usage: cflags-y += $(call as-option, -Wa$(comma)-isa=foo,)
+ 
+@@ -66,9 +69,11 @@ as-option = $(shell if $(CC) $(CFLAGS) $
+ # as-instr
+ # Usage: cflags-y += $(call as-instr, instr, option1, option2)
+ 
+-as-instr = $(shell if echo -e "$(1)" | $(AS) >/dev/null 2>&1 -W -Z -o astest$$$$.out ; \
+-		   then echo "$(2)"; else echo "$(3)"; fi; \
+-	           rm -f astest$$$$.out)
++as-instr = $(shell if echo -e "$(1)" | \
++		      $(CC) $(AFLAGS) -c -xassembler - \
++			    -o $(TMPOUT)astest$$$$.out > /dev/null 2>&1; \
++		   then rm $(TMPOUT)astest$$$$.out; echo "$(2)"; \
++		   else echo "$(3)"; fi)
+ 
+ # cc-option
+ # Usage: cflags-y += $(call cc-option, -march=winchip-c6, -march=i586)
+@@ -97,10 +102,10 @@ cc-ifversion = $(shell if [ $(call cc-ve
+ 
+ # ld-option
+ # Usage: ldflags += $(call ld-option, -Wl$(comma)--hash-style=both)
+-ld-option = $(shell if $(CC) $(1) \
+-			     -nostdlib -o ldtest$$$$.out -xc /dev/null \
+-             > /dev/null 2>&1; then echo "$(1)"; else echo "$(2)"; fi; \
+-	     rm -f ldtest$$$$.out)
++ld-option = $(shell if $(CC) $(1) -nostdlib -xc /dev/null \
++			     -o $(TMPOUT)ldtest$$$$.out > /dev/null 2>&1; \
++             then rm $(TMPOUT)ldtest$$$$.out; echo "$(1)"; \
++             else echo "$(2)"; fi)
+ 
+ ###
+ # Shorthand for $(Q)$(MAKE) -f scripts/Makefile.build obj=
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 origin.patch
-tty-switch-to-ktermios-nozomi-fix.patch
-git-libata-all.patch
-ata-fix-platform_device_register_simple-error-check.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pnx8550-uart-driver.patch
-pci-quirks-fix-the-festering-mess-that-claims-to-handle-ide-quirks-ide-fix.patch
-via-sb600-sata-quirk.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-xtensa-add-ktermios-and-minor-filename-fix.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
-tty-remove-useless-memory-barrier.patch
-ide-hpt3xxn-clocking-fixes.patch
-ide-fix-hpt37x-timing-tables.patch
-ide-optimize-hpt37x-timing-tables.patch
-ide-fix-hpt3xx-hotswap-support.patch
-ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch
-ide-hpt3xx-fix-pci-clock-detection.patch
-ide-hpt3xx-fix-pci-clock-detection-fix-2.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-piix-fix-82371mx-enablebits.patch
-piix-remove-check-for-broken-mw-dma-mode-0.patch
-piix-slc90e66-pio-mode-fallback-fix.patch
-pdc202xx_new-remove-useless-code.patch
-pdc202xx_-remove-check_in_drive_lists-abomination.patch
+kconfig-new-function-bool-conf_get_changedvoid.patch
+kconfig-make-sym_change_count-static-let-it-be-altered-by-2-functions-only.patch
+kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc.patch
+kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state.patch
+git-lxdialog.patch
+m68k-work-around-binutils-tokenizer-change.patch
+updated-hrtimers-state-tracking.patch
+updated-hrtimers-clean-up-callback-tracking.patch
+updated-hrtimers-move-and-add-documentation.patch
+updated-add-a-framework-to-manage-clock-event-devices.patch
+updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix.patch
+updated-add-a-framework-to-manage-clock-event-devices-pit-broadcasting-fix.patch
+updated-acpi-include-apich.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
+updated-high-res-timers-core.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+updated-dynticks-core-code.patch
+updated-dyntick-add-nohz-stats-to-proc-stat.patch
+updated-dynticks-i386-arch-code.patch
+updated-debugging-feature-timer-stats.patch
 getting-rid-of-all-casts-of-kalloc-calls.patch
 
