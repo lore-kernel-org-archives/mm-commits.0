@@ -1,289 +1,171 @@
 From: akpm@osdl.org
-Subject: - kernel-schedc-whitespace-cleanups.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:54:45 -0800
-Message-ID: <200612130654.kBD6sjZm030570@shell0.pdx.osdl.net>
+Subject: - sched-improve-migration-accuracy.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:54:35 -0800
+Message-ID: <200612130654.kBD6sZv5030558@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57667 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57668 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965014AbWLMGyv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S965013AbWLMGyv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Wed, 13 Dec 2006 01:54:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maxextreme@gmail.com, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: efault@gmx.de, dwm@meer.net, kenneth.w.chen@intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/sched.c: whitespace cleanups
+     sched: improve migration accuracy
 has been removed from the -mm tree.  Its filename was
-     kernel-schedc-whitespace-cleanups.patch
+     sched-improve-migration-accuracy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel/sched.c: whitespace cleanups
-From: Miguel Ojeda Sandonis <maxextreme@gmail.com>
+Subject: sched: improve migration accuracy
+From: Mike Galbraith <efault@gmx.de>
 
-[akpm@osdl.org: additional cleanups]
-Signed-off-by: Miguel Ojeda Sandonis <maxextreme@gmail.com>
+Co-opt rq->timestamp_last_tick to maintain a cache_hot_time evaluation
+reference timestamp at both tick and sched times to prevent said reference,
+formerly rq->timestamp_last_tick, from being behind task->last_ran at
+evaluation time, and to move said reference closer to current time on the
+remote processor, intent being to improve cache hot evaluation and
+timestamp adjustment accuracy for task migration.
+
+Fix minor sched_time double accounting error which occurs when a task
+passing through schedule() does not schedule off, and takes the next timer
+tick.
+
+[kenneth.w.chen@intel.com: cleanup]
+Signed-off-by: Mike Galbraith <efault@gmx.de>
 Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: Ken Chen <kenneth.w.chen@intel.com>
+Cc: Don Mullis <dwm@meer.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   97 +++++++++++++++++++++++++++--------------------
- 1 file changed, 56 insertions(+), 41 deletions(-)
+ kernel/sched.c |   41 ++++++++++++++++++++---------------------
+ 1 file changed, 20 insertions(+), 21 deletions(-)
 
-diff -puN kernel/sched.c~kernel-schedc-whitespace-cleanups kernel/sched.c
---- a/kernel/sched.c~kernel-schedc-whitespace-cleanups
+diff -puN kernel/sched.c~sched-improve-migration-accuracy kernel/sched.c
+--- a/kernel/sched.c~sched-improve-migration-accuracy
 +++ a/kernel/sched.c
-@@ -466,7 +466,8 @@ static int show_schedstat(struct seq_fil
- 			seq_printf(seq, "domain%d %s", dcnt++, mask_str);
- 			for (itype = SCHED_IDLE; itype < MAX_IDLE_TYPES;
- 					itype++) {
--				seq_printf(seq, " %lu %lu %lu %lu %lu %lu %lu %lu",
-+				seq_printf(seq, " %lu %lu %lu %lu %lu %lu %lu "
-+						"%lu",
- 				    sd->lb_cnt[itype],
- 				    sd->lb_balanced[itype],
- 				    sd->lb_failed[itype],
-@@ -476,11 +477,13 @@ static int show_schedstat(struct seq_fil
- 				    sd->lb_nobusyq[itype],
- 				    sd->lb_nobusyg[itype]);
- 			}
--			seq_printf(seq, " %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
-+			seq_printf(seq, " %lu %lu %lu %lu %lu %lu %lu %lu %lu"
-+			    " %lu %lu %lu\n",
- 			    sd->alb_cnt, sd->alb_failed, sd->alb_pushed,
- 			    sd->sbe_cnt, sd->sbe_balanced, sd->sbe_pushed,
- 			    sd->sbf_cnt, sd->sbf_balanced, sd->sbf_pushed,
--			    sd->ttwu_wake_remote, sd->ttwu_move_affine, sd->ttwu_move_balance);
-+			    sd->ttwu_wake_remote, sd->ttwu_move_affine,
-+			    sd->ttwu_move_balance);
- 		}
- 		preempt_enable();
+@@ -225,7 +225,8 @@ struct rq {
+ 	unsigned long nr_uninterruptible;
+ 
+ 	unsigned long expired_timestamp;
+-	unsigned long long timestamp_last_tick;
++	/* Cached timestamp set by update_cpu_clock() */
++	unsigned long long most_recent_timestamp;
+ 	struct task_struct *curr, *idle;
+ 	unsigned long next_balance;
+ 	struct mm_struct *prev_mm;
+@@ -944,8 +945,8 @@ static void activate_task(struct task_st
+ 	if (!local) {
+ 		/* Compensate for drifting sched_clock */
+ 		struct rq *this_rq = this_rq();
+-		now = (now - this_rq->timestamp_last_tick)
+-			+ rq->timestamp_last_tick;
++		now = (now - this_rq->most_recent_timestamp)
++			+ rq->most_recent_timestamp;
+ 	}
  #endif
-@@ -1454,7 +1457,9 @@ static int try_to_wake_up(struct task_st
  
- 		if (this_sd->flags & SD_WAKE_AFFINE) {
- 			unsigned long tl = this_load;
--			unsigned long tl_per_task = cpu_avg_load_per_task(this_cpu);
-+			unsigned long tl_per_task;
-+
-+			tl_per_task = cpu_avg_load_per_task(this_cpu);
- 
- 			/*
- 			 * If sync wakeup then subtract the (maximum possible)
-@@ -2487,18 +2492,21 @@ small_imbalance:
- 		pwr_now /= SCHED_LOAD_SCALE;
- 
- 		/* Amount of load we'd subtract */
--		tmp = busiest_load_per_task*SCHED_LOAD_SCALE/busiest->cpu_power;
-+		tmp = busiest_load_per_task * SCHED_LOAD_SCALE /
-+			busiest->cpu_power;
- 		if (max_load > tmp)
- 			pwr_move += busiest->cpu_power *
- 				min(busiest_load_per_task, max_load - tmp);
- 
- 		/* Amount of load we'd add */
--		if (max_load*busiest->cpu_power <
--				busiest_load_per_task*SCHED_LOAD_SCALE)
--			tmp = max_load*busiest->cpu_power/this->cpu_power;
-+		if (max_load * busiest->cpu_power <
-+				busiest_load_per_task * SCHED_LOAD_SCALE)
-+			tmp = max_load * busiest->cpu_power / this->cpu_power;
- 		else
--			tmp = busiest_load_per_task*SCHED_LOAD_SCALE/this->cpu_power;
--		pwr_move += this->cpu_power*min(this_load_per_task, this_load + tmp);
-+			tmp = busiest_load_per_task * SCHED_LOAD_SCALE /
-+				this->cpu_power;
-+		pwr_move += this->cpu_power *
-+			min(this_load_per_task, this_load + tmp);
- 		pwr_move /= SCHED_LOAD_SCALE;
- 
- 		/* Move if we gain throughput */
-@@ -3366,7 +3374,8 @@ void fastcall add_preempt_count(int val)
+@@ -1689,8 +1690,8 @@ void fastcall wake_up_new_task(struct ta
+ 		 * Not the local CPU - must adjust timestamp. This should
+ 		 * get optimised away in the !CONFIG_SMP case.
+ 		 */
+-		p->timestamp = (p->timestamp - this_rq->timestamp_last_tick)
+-					+ rq->timestamp_last_tick;
++		p->timestamp = (p->timestamp - this_rq->most_recent_timestamp)
++					+ rq->most_recent_timestamp;
+ 		__activate_task(p, rq);
+ 		if (TASK_PREEMPTS_CURR(p, rq))
+ 			resched_task(rq->curr);
+@@ -2068,8 +2069,8 @@ static void pull_task(struct rq *src_rq,
+ 	set_task_cpu(p, this_cpu);
+ 	inc_nr_running(p, this_rq);
+ 	enqueue_task(p, this_array);
+-	p->timestamp = (p->timestamp - src_rq->timestamp_last_tick)
+-				+ this_rq->timestamp_last_tick;
++	p->timestamp = (p->timestamp - src_rq->most_recent_timestamp)
++				+ this_rq->most_recent_timestamp;
  	/*
- 	 * Spinlock count overflowing soon?
+ 	 * Note that idle threads have a prio of MAX_PRIO, for this test
+ 	 * to be always true for them.
+@@ -2105,10 +2106,15 @@ int can_migrate_task(struct task_struct 
+ 	 * 2) too many balance attempts have failed.
  	 */
--	DEBUG_LOCKS_WARN_ON((preempt_count() & PREEMPT_MASK) >= PREEMPT_MASK-10);
-+	DEBUG_LOCKS_WARN_ON((preempt_count() & PREEMPT_MASK) >=
-+				PREEMPT_MASK - 10);
+ 
+-	if (sd->nr_balance_failed > sd->cache_nice_tries)
++	if (sd->nr_balance_failed > sd->cache_nice_tries) {
++#ifdef CONFIG_SCHEDSTATS
++		if (task_hot(p, rq->most_recent_timestamp, sd))
++			schedstat_inc(sd, lb_hot_gained[idle]);
++#endif
+ 		return 1;
++	}
+ 
+-	if (task_hot(p, rq->timestamp_last_tick, sd))
++	if (task_hot(p, rq->most_recent_timestamp, sd))
+ 		return 0;
+ 	return 1;
  }
- EXPORT_SYMBOL(add_preempt_count);
+@@ -2206,11 +2212,6 @@ skip_queue:
+ 		goto skip_bitmap;
+ 	}
  
-@@ -5439,16 +5448,19 @@ static void sched_domain_debug(struct sc
- 		if (!(sd->flags & SD_LOAD_BALANCE)) {
- 			printk("does not load-balance\n");
- 			if (sd->parent)
--				printk(KERN_ERR "ERROR: !SD_LOAD_BALANCE domain has parent");
-+				printk(KERN_ERR "ERROR: !SD_LOAD_BALANCE domain"
-+						" has parent");
- 			break;
- 		}
- 
- 		printk("span %s\n", str);
- 
- 		if (!cpu_isset(cpu, sd->span))
--			printk(KERN_ERR "ERROR: domain->span does not contain CPU%d\n", cpu);
-+			printk(KERN_ERR "ERROR: domain->span does not contain "
-+					"CPU%d\n", cpu);
- 		if (!cpu_isset(cpu, group->cpumask))
--			printk(KERN_ERR "ERROR: domain->groups does not contain CPU%d\n", cpu);
-+			printk(KERN_ERR "ERROR: domain->groups does not contain"
-+					" CPU%d\n", cpu);
- 
- 		printk(KERN_DEBUG);
- 		for (i = 0; i < level + 2; i++)
-@@ -5463,7 +5475,8 @@ static void sched_domain_debug(struct sc
- 
- 			if (!group->cpu_power) {
- 				printk("\n");
--				printk(KERN_ERR "ERROR: domain->cpu_power not set\n");
-+				printk(KERN_ERR "ERROR: domain->cpu_power not "
-+						"set\n");
- 			}
- 
- 			if (!cpus_weight(group->cpumask)) {
-@@ -5486,15 +5499,17 @@ static void sched_domain_debug(struct sc
- 		printk("\n");
- 
- 		if (!cpus_equal(sd->span, groupmask))
--			printk(KERN_ERR "ERROR: groups don't span domain->span\n");
-+			printk(KERN_ERR "ERROR: groups don't span "
-+					"domain->span\n");
- 
- 		level++;
- 		sd = sd->parent;
-+		if (!sd)
-+			continue;
- 
--		if (sd) {
--			if (!cpus_subset(groupmask, sd->span))
--				printk(KERN_ERR "ERROR: parent span is not a superset of domain->span\n");
--		}
-+		if (!cpus_subset(groupmask, sd->span))
-+			printk(KERN_ERR "ERROR: parent span is not a superset "
-+				"of domain->span\n");
- 
- 	} while (sd);
- }
-@@ -5812,8 +5827,9 @@ __setup("max_cache_size=", setup_max_cac
-  */
- static void touch_cache(void *__cache, unsigned long __size)
+-#ifdef CONFIG_SCHEDSTATS
+-	if (task_hot(tmp, busiest->timestamp_last_tick, sd))
+-		schedstat_inc(sd, lb_hot_gained[idle]);
+-#endif
+-
+ 	pull_task(busiest, array, tmp, this_rq, dst_array, this_cpu);
+ 	pulled++;
+ 	rem_load_move -= tmp->load_weight;
+@@ -2971,7 +2972,8 @@ EXPORT_PER_CPU_SYMBOL(kstat);
+ static inline void
+ update_cpu_clock(struct task_struct *p, struct rq *rq, unsigned long long now)
  {
--	unsigned long size = __size/sizeof(long), chunk1 = size/3,
--			chunk2 = 2*size/3;
-+	unsigned long size = __size / sizeof(long);
-+	unsigned long chunk1 = size / 3;
-+	unsigned long chunk2 = 2 * size / 3;
- 	unsigned long *cache = __cache;
- 	int i;
- 
-@@ -5827,7 +5843,7 @@ static void touch_cache(void *__cache, u
- 	 * step is 32 bytes on 32-bit systems, 64 bytes on
- 	 * 64-bit systems)
- 	 */
--	for (i = 0; i < size/6; i += 8) {
-+	for (i = 0; i < size / 6; i += 8) {
- 		switch (i % 6*8) {
- 			case 0*8: cache[i]++;
- 			case 1*8: cache[size-1-i]++;
-@@ -5932,11 +5948,11 @@ measure_cost(int cpu1, int cpu2, void *c
- 	 */
- 	measure_one(cache, size, cpu1, cpu2);
- 	for (i = 0; i < ITERATIONS; i++)
--		cost1 += measure_one(cache, size - i*1024, cpu1, cpu2);
-+		cost1 += measure_one(cache, size - i * 1024, cpu1, cpu2);
- 
- 	measure_one(cache, size, cpu2, cpu1);
- 	for (i = 0; i < ITERATIONS; i++)
--		cost1 += measure_one(cache, size - i*1024, cpu2, cpu1);
-+		cost1 += measure_one(cache, size - i * 1024, cpu2, cpu1);
- 
- 	/*
- 	 * (We measure the non-migrating [cached] cost on both
-@@ -5946,17 +5962,17 @@ measure_cost(int cpu1, int cpu2, void *c
- 
- 	measure_one(cache, size, cpu1, cpu1);
- 	for (i = 0; i < ITERATIONS; i++)
--		cost2 += measure_one(cache, size - i*1024, cpu1, cpu1);
-+		cost2 += measure_one(cache, size - i * 1024, cpu1, cpu1);
- 
- 	measure_one(cache, size, cpu2, cpu2);
- 	for (i = 0; i < ITERATIONS; i++)
--		cost2 += measure_one(cache, size - i*1024, cpu2, cpu2);
-+		cost2 += measure_one(cache, size - i * 1024, cpu2, cpu2);
- 
- 	/*
- 	 * Get the per-iteration migration cost:
- 	 */
--	do_div(cost1, 2*ITERATIONS);
--	do_div(cost2, 2*ITERATIONS);
-+	do_div(cost1, 2 * ITERATIONS);
-+	do_div(cost2, 2 * ITERATIONS);
- 
- 	return cost1 - cost2;
+-	p->sched_time += now - max(p->timestamp, rq->timestamp_last_tick);
++	p->sched_time += now - p->last_ran;
++	p->last_ran = rq->most_recent_timestamp = now;
  }
-@@ -5994,7 +6010,7 @@ static unsigned long long measure_migrat
- 	 */
- 	cache = vmalloc(max_size);
- 	if (!cache) {
--		printk("could not vmalloc %d bytes for cache!\n", 2*max_size);
-+		printk("could not vmalloc %d bytes for cache!\n", 2 * max_size);
- 		return 1000000; /* return 1 msec on very small boxen */
- 	}
  
-@@ -6019,7 +6035,8 @@ static unsigned long long measure_migrat
- 		avg_fluct = (avg_fluct + fluct)/2;
+ /*
+@@ -2984,8 +2986,7 @@ unsigned long long current_sched_time(co
+ 	unsigned long flags;
  
- 		if (migration_debug)
--			printk("-> [%d][%d][%7d] %3ld.%ld [%3ld.%ld] (%ld): (%8Ld %8Ld)\n",
-+			printk("-> [%d][%d][%7d] %3ld.%ld [%3ld.%ld] (%ld): "
-+				"(%8Ld %8Ld)\n",
- 				cpu1, cpu2, size,
- 				(long)cost / 1000000,
- 				((long)cost / 100000) % 10,
-@@ -6114,20 +6131,18 @@ static void calibrate_migration_costs(co
- 			-1
- #endif
- 		);
--	if (system_state == SYSTEM_BOOTING) {
--		if (num_online_cpus() > 1) {
--			printk("migration_cost=");
--			for (distance = 0; distance <= max_distance; distance++) {
--				if (distance)
--					printk(",");
--				printk("%ld", (long)migration_cost[distance] / 1000);
--			}
--			printk("\n");
-+	if (system_state == SYSTEM_BOOTING && num_online_cpus() > 1) {
-+		printk("migration_cost=");
-+		for (distance = 0; distance <= max_distance; distance++) {
-+			if (distance)
-+				printk(",");
-+			printk("%ld", (long)migration_cost[distance] / 1000);
- 		}
-+		printk("\n");
- 	}
- 	j1 = jiffies;
- 	if (migration_debug)
--		printk("migration: %ld seconds\n", (j1-j0)/HZ);
-+		printk("migration: %ld seconds\n", (j1-j0) / HZ);
+ 	local_irq_save(flags);
+-	ns = max(p->timestamp, task_rq(p)->timestamp_last_tick);
+-	ns = p->sched_time + sched_clock() - ns;
++	ns = p->sched_time + sched_clock() - p->last_ran;
+ 	local_irq_restore(flags);
  
- 	/*
- 	 * Move back to the original CPU. NUMA-Q gets confused
+ 	return ns;
+@@ -3176,8 +3177,6 @@ void scheduler_tick(void)
+ 
+ 	update_cpu_clock(p, rq, now);
+ 
+-	rq->timestamp_last_tick = now;
+-
+ 	if (p == rq->idle)
+ 		/* Task on the idle queue */
+ 		wake_priority_sleeper(rq);
+@@ -5032,8 +5031,8 @@ static int __migrate_task(struct task_st
+ 		 * afterwards, and pretending it was a local activate.
+ 		 * This way is cleaner and logically correct.
+ 		 */
+-		p->timestamp = p->timestamp - rq_src->timestamp_last_tick
+-				+ rq_dest->timestamp_last_tick;
++		p->timestamp = p->timestamp - rq_src->most_recent_timestamp
++				+ rq_dest->most_recent_timestamp;
+ 		deactivate_task(p, rq_src);
+ 		__activate_task(p, rq_dest);
+ 		if (TASK_PREEMPTS_CURR(p, rq_dest))
 _
 
-Patches currently in -mm which might be from maxextreme@gmail.com are
+Patches currently in -mm which might be from efault@gmx.de are
 
 origin.patch
-drivers-add-lcd-support-3.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-update-4.patch
-drivers-add-lcd-support-update-5.patch
-drivers-add-lcd-support-update6.patch
-drivers-add-lcd-support-update-7.patch
-drivers-add-lcd-support-update-8.patch
-drivers-add-lcd-support-workqueue-fixups.patch
+readahead-call-scheme.patch
 
