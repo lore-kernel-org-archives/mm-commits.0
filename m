@@ -1,71 +1,103 @@
 From: akpm@osdl.org
-Subject: - sched-domain-increase-the-smt-busy-rebalance-interval.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:53:20 -0800
-Message-ID: <200612130653.kBD6rKoJ030520@shell0.pdx.osdl.net>
+Subject: - move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:53:18 -0800
+Message-ID: <200612130653.kBD6rIip030517@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57502 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57497 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964997AbWLMGxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:53:24 -0500
+	id S964997AbWLMGxW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:53:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: dev@openvz.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched domain: increase the SMT busy rebalance interval
+     move_task_off_dead_cpu() should be called with disabled ints
 has been removed from the -mm tree.  Its filename was
-     sched-domain-increase-the-smt-busy-rebalance-interval.patch
+     move_task_off_dead_cpu-should-be-called-with-disabled-ints.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched domain: increase the SMT busy rebalance interval
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: move_task_off_dead_cpu() should be called with disabled ints
+From: Kirill Korotaev <dev@openvz.org>
 
-With SMT, if the logical processor is busy, load balance happens for every
-8msec(min)-16msec(max).  There is no need to do this often, as this is just
-for fairness(to maintain uniform runqueue lengths) and default time slice
-anyhow is 100msec.
+move_task_off_dead_cpu() requires interrupts to be disabled, while
+migrate_dead() calls it with enabled interrupts.  Added appropriate
+comments to functions and added BUG_ON(!irqs_disabled()) into
+double_rq_lock() and double_lock_balance() which are the origin sources of
+such bugs.
 
-Appended patch increases this interval to 64msec(min)-128msec(max) when the
-logical processor is busy.
-
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Kirill Korotaev <dev@openvz.org>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/topology.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/topology.h~sched-domain-increase-the-smt-busy-rebalance-interval include/linux/topology.h
---- a/include/linux/topology.h~sched-domain-increase-the-smt-busy-rebalance-interval
-+++ a/include/linux/topology.h
-@@ -93,7 +93,7 @@
- 	.groups			= NULL,			\
- 	.min_interval		= 1,			\
- 	.max_interval		= 2,			\
--	.busy_factor		= 8,			\
-+	.busy_factor		= 64,			\
- 	.imbalance_pct		= 110,			\
- 	.cache_nice_tries	= 0,			\
- 	.per_cpu_gain		= 25,			\
+diff -puN kernel/sched.c~move_task_off_dead_cpu-should-be-called-with-disabled-ints kernel/sched.c
+--- a/kernel/sched.c~move_task_off_dead_cpu-should-be-called-with-disabled-ints
++++ a/kernel/sched.c
+@@ -1952,6 +1952,7 @@ static void double_rq_lock(struct rq *rq
+ 	__acquires(rq1->lock)
+ 	__acquires(rq2->lock)
+ {
++	BUG_ON(!irqs_disabled());
+ 	if (rq1 == rq2) {
+ 		spin_lock(&rq1->lock);
+ 		__acquire(rq2->lock);	/* Fake it out ;) */
+@@ -1991,6 +1992,11 @@ static void double_lock_balance(struct r
+ 	__acquires(busiest->lock)
+ 	__acquires(this_rq->lock)
+ {
++	if (unlikely(!irqs_disabled())) {
++		/* printk() doesn't work good under rq->lock */
++		spin_unlock(&this_rq->lock);
++		BUG_ON(1);
++	}
+ 	if (unlikely(!spin_trylock(&busiest->lock))) {
+ 		if (busiest < this_rq) {
+ 			spin_unlock(&this_rq->lock);
+@@ -5067,7 +5073,10 @@ wait_to_die:
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+-/* Figure out where task on dead CPU should go, use force if neccessary. */
++/*
++ * Figure out where task on dead CPU should go, use force if neccessary.
++ * NOTE: interrupts should be disabled by the caller
++ */
+ static void move_task_off_dead_cpu(int dead_cpu, struct task_struct *p)
+ {
+ 	unsigned long flags;
+@@ -5187,6 +5196,7 @@ void idle_task_exit(void)
+ 	mmdrop(mm);
+ }
+ 
++/* called under rq->lock with disabled interrupts */
+ static void migrate_dead(unsigned int dead_cpu, struct task_struct *p)
+ {
+ 	struct rq *rq = cpu_rq(dead_cpu);
+@@ -5203,10 +5213,11 @@ static void migrate_dead(unsigned int de
+ 	 * Drop lock around migration; if someone else moves it,
+ 	 * that's OK.  No task can be added to this CPU, so iteration is
+ 	 * fine.
++	 * NOTE: interrupts should be left disabled  --dev@
+ 	 */
+-	spin_unlock_irq(&rq->lock);
++	spin_unlock(&rq->lock);
+ 	move_task_off_dead_cpu(dead_cpu, p);
+-	spin_lock_irq(&rq->lock);
++	spin_lock(&rq->lock);
+ 
+ 	put_task_struct(p);
+ }
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from dev@openvz.org are
 
 origin.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-optimize-calc_load.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
 
