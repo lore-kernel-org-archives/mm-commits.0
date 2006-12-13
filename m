@@ -1,81 +1,173 @@
 From: akpm@osdl.org
-Subject: + via-sb600-sata-quirk.patch added to -mm tree
-Date: Tue, 12 Dec 2006 22:42:59 -0800
-Message-ID: <200612130643.kBD6gxVG030162@shell0.pdx.osdl.net>
+Subject: - git-mtd-build-fix.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:43:22 -0800
+Message-ID: <200612130643.kBD6hMsJ030197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56760 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964955AbWLMGnO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:43:14 -0500
+	id S964956AbWLMGnc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:43:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: conke.hu@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, jeff@garzik.org
+To: akpm@osdl.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ATI sb600 sata quirk
-has been added to the -mm tree.  Its filename is
-     via-sb600-sata-quirk.patch
+     git-mtd-build-fix
+has been removed from the -mm tree.  Its filename was
+     git-mtd-build-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: ATI sb600 sata quirk
-From: Conke Hu <conke.hu@gmail.com>
+Subject: git-mtd-build-fix
+From: Andrew Morton <akpm@osdl.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/atiixp.c |    1 -
- drivers/pci/quirks.c     |   17 +++++++++++++++++
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/mtd/ssfdc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/pci/atiixp.c~via-sb600-sata-quirk drivers/ide/pci/atiixp.c
---- a/drivers/ide/pci/atiixp.c~via-sb600-sata-quirk
-+++ a/drivers/ide/pci/atiixp.c
-@@ -368,7 +368,6 @@ static struct pci_device_id atiixp_pci_t
- 	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP300_IDE, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
- 	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_IDE, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
- 	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP600_IDE, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
--	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP600_SATA, PCI_ANY_ID, PCI_ANY_ID, (PCI_CLASS_STORAGE_IDE<<8)|0x8a, 0xffff05, 1},
- 	{ 0, },
- };
- MODULE_DEVICE_TABLE(pci, atiixp_pci_tbl);
-diff -puN drivers/pci/quirks.c~via-sb600-sata-quirk drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~via-sb600-sata-quirk
-+++ a/drivers/pci/quirks.c
-@@ -819,6 +819,23 @@ static void __init quirk_disable_pxb(str
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82454NX,	quirk_disable_pxb );
- 
- 
-+static void __devinit quirk_sb600_sata(struct pci_dev *pdev)
-+{
-+	/* set sb600 sata to ahci mode */
-+	if ((pdev->class >> 8) == PCI_CLASS_STORAGE_IDE) {
-+		u8 tmp;
-+
-+		pci_read_config_byte(pdev, 0x40, &tmp);
-+		pci_write_config_byte(pdev, 0x40, tmp|1);
-+		pci_write_config_byte(pdev, 0x9, 1);
-+		pci_write_config_byte(pdev, 0xa, 6);
-+		pci_write_config_byte(pdev, 0x40, tmp);
-+
-+		pdev->class = 0x010601;
-+	}
-+}
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP600_SATA, quirk_sb600_sata);
-+
- /*
-  *	Serverworks CSB5 IDE does not fully support native mode
-  */
+diff -puN drivers/mtd/ssfdc.c~git-mtd-build-fix drivers/mtd/ssfdc.c
+--- a/drivers/mtd/ssfdc.c~git-mtd-build-fix
++++ a/drivers/mtd/ssfdc.c
+@@ -445,7 +445,7 @@ static struct mtd_blktrans_ops ssfdcr_tr
+ 	.name		= "ssfdc",
+ 	.major		= SSFDCR_MAJOR,
+ 	.part_bits	= SSFDCR_PARTN_BITS,
+-	.blksize	= SECTOR_SIZE;
++	.blksize	= SECTOR_SIZE,
+ 	.getgeo		= ssfdcr_getgeo,
+ 	.readsect	= ssfdcr_readsect,
+ 	.add_mtd	= ssfdcr_add_mtd,
 _
 
-Patches currently in -mm which might be from conke.hu@gmail.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
+origin.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+cciss-remove-calls-to-pci_disable_device-fix.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input-vs-git-alsa.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-mtd-build-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+netpoll-fix-local_bh_enable-warning.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+revert-git-block.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-tidy.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
