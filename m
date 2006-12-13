@@ -1,49 +1,50 @@
 From: akpm@osdl.org
-Subject: - gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:48:17 -0800
-Message-ID: <200612132248.kBDMmHNx023055@shell0.pdx.osdl.net>
+Subject: - gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:48:20 -0800
+Message-ID: <200612132248.kBDMmK6a023058@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53306 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53321 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751769AbWLMWva (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:51:30 -0500
+	id S1751773AbWLMWvg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove kernel/timer.c:wall_jiffies
+     i386: unexport read_persistent_clock
 has been removed from the -mm tree.  Its filename was
-     gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies.patch
+     gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: remove kernel/timer.c:wall_jiffies
+Subject: i386: unexport read_persistent_clock
 From: Adrian Bunk <bunk@stusta.de>
 
+This patch removes the unused EXPORT_SYMBOL(read_persistent_clock).
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/timer.c |    3 ---
- 1 files changed, 3 deletions(-)
+ arch/i386/kernel/time.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/timer.c~gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies kernel/timer.c
---- a/kernel/timer.c~gtod-persistent-clock-support-core-remove-kernel-timercwall_jiffies
-+++ a/kernel/timer.c
-@@ -41,9 +41,6 @@
- #include <asm/timex.h>
- #include <asm/io.h>
+diff -puN arch/i386/kernel/time.c~gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~gtod-persistent-clock-support-i386-i386-unexport-read_persistent_clock
++++ a/arch/i386/kernel/time.c
+@@ -227,7 +227,6 @@ unsigned long read_persistent_clock(void
  
--/* jiffies at the most recent update of wall time */
--unsigned long wall_jiffies = INITIAL_JIFFIES;
--
- u64 jiffies_64 __cacheline_aligned_in_smp = INITIAL_JIFFIES;
+ 	return retval;
+ }
+-EXPORT_SYMBOL(read_persistent_clock);
  
- EXPORT_SYMBOL(jiffies_64);
+ static void sync_cmos_clock(unsigned long dummy);
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
