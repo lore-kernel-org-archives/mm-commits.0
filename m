@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + tty-make-__proc_set_tty-static.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:09:19 -0800
-Message-ID: <200612132209.kBDM9JO1021899@shell0.pdx.osdl.net>
+Subject: + tty-clarify-disassociate_ctty.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:09:22 -0800
+Message-ID: <200612132209.kBDM9Mvn021904@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48386 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48378 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751632AbWLMWJj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:09:39 -0500
+	id S1751627AbWLMWJg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:09:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,62 +15,23 @@ Cc: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru
 
 
 The patch titled
-     tty: make __proc_set_tty static
+     tty: clarify disassociate_ctty
 has been added to the -mm tree.  Its filename is
-     tty-make-__proc_set_tty-static.patch
+     tty-clarify-disassociate_ctty.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: make __proc_set_tty static
+Subject: tty: clarify disassociate_ctty
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The aim of this patch set is to start wrapping up the struct pid conversions. 
-As such this patchset culminates with the removal of kill_pg, kill_pg_info,
-__kill_pg_info, do_each_task_pid, and while_each_task_pid.
+The code to look at tty_old_pgrp and send SIGHUP and SIGCONT when it is
+present only executes when disassociate_ctty is called from do_exit.  Make
+this clear by adding an explict on_exit check, and explicitly setting
+tty_old_pgrp to 0.
 
-kill_proc, daemonize, and kernel_thread are still in my sights but there is
-still work to get to them.
-
-
-The first three are basic cleanups around disassociate_ctty, while working on
-converting it I found several issues.  tty_old_pgrp can be a tricky concept to
-wrap your head around.
-
- 1 tty: Make __proc_set_tty static.
- 2 tty: Clarify disassociate_ctty
- 3 tty: Fix the locking for signal->session in disassociate_ctty
-
-These just stop using the old helper functions.
-
- 4 signal: Use kill_pgrp not kill_pg in the sunos compatibility code.
- 5 signal: Rewrite kill_something_info so it uses newer helpers.
-
-Then the grind to convert the tty layer and all of it's helper functions to
-struct pid.
-
- 6 pid: Make session_of_pgrp use struct pid instead of pid_t.
- 7 pid: Use struct pid for talking about process groups in exit.c
- 8 pid: Replace is_orphaned_pgrp with is_current_pgrp_orphaned
- 9 tty: Update the tty layer to work with struct pid.
-
-A final helper function update.
-
-10 pid: Replace do/while_each_task_pid with do/while_each_pid_task
-
-And the removal of the functions that are now unused.
-11 pid: Remove now unused do_each_task_pid and while_each_task_pid
-12 pid: Remove the now unused kill_pg kill_pg_info and __kill_pg_info
-
-All of these should be fairly simple and to the point.
-
-
-
-This patch:
-
-Currently all users of __proc_set_tty are in tty_io.c so make the function
-static.
+In addition fix the locking by reading tty_old_pgrp under the siglock.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -78,41 +39,27 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/tty_io.c |    3 ++-
- include/linux/tty.h   |    1 -
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/tty_io.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-make-__proc_set_tty-static drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-make-__proc_set_tty-static
+diff -puN drivers/char/tty_io.c~tty-clarify-disassociate_ctty drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-clarify-disassociate_ctty
 +++ a/drivers/char/tty_io.c
-@@ -155,6 +155,7 @@ int tty_ioctl(struct inode * inode, stru
- 	      unsigned int cmd, unsigned long arg);
- static int tty_fasync(int fd, struct file * filp, int on);
- static void release_mem(struct tty_struct *tty, int idx);
-+static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
- 
- /**
-  *	alloc_tty_struct	-	allocate a tty object
-@@ -3791,7 +3792,7 @@ void proc_clear_tty(struct task_struct *
- }
- EXPORT_SYMBOL(proc_clear_tty);
- 
--void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
-+static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
- {
- 	if (tty) {
- 		tty->session = process_session(tsk);
-diff -puN include/linux/tty.h~tty-make-__proc_set_tty-static include/linux/tty.h
---- a/include/linux/tty.h~tty-make-__proc_set_tty-static
-+++ a/include/linux/tty.h
-@@ -313,7 +313,6 @@ extern int tty_ioctl(struct inode *inode
- 
- extern dev_t tty_devnum(struct tty_struct *tty);
- extern void proc_clear_tty(struct task_struct *p);
--extern void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
- extern void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
- extern struct tty_struct *get_current_tty(void);
- 
+@@ -1508,8 +1508,12 @@ void disassociate_ctty(int on_exit)
+ 		/* XXX: here we race, there is nothing protecting tty */
+ 		if (on_exit && tty->driver->type != TTY_DRIVER_TYPE_PTY)
+ 			tty_vhangup(tty);
+-	} else {
+-		pid_t old_pgrp = current->signal->tty_old_pgrp;
++	} else if (on_exit) {
++		pid_t old_pgrp;
++		spin_lock_irq(&current->sighand->siglock);
++		old_pgrp = current->signal->tty_old_pgrp;
++		current->signal->tty_old_pgrp = 0;
++		spin_unlock_irq(&current->sighand->siglock);
+ 		if (old_pgrp) {
+ 			kill_pg(old_pgrp, SIGHUP, on_exit);
+ 			kill_pg(old_pgrp, SIGCONT, on_exit);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
