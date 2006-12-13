@@ -1,57 +1,79 @@
 From: akpm@osdl.org
-Subject: - cpufreq-fix-bug-in-duplicate-freq-elimination-code-in-acpi-cpufreq.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:56:29 -0800
-Message-ID: <200612130656.kBD6uTLJ030731@shell0.pdx.osdl.net>
+Subject: - drm-fix-return-value-check.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:56:32 -0800
+Message-ID: <200612130656.kBD6uWTg030734@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57970 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57962 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965045AbWLMG4k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:56:40 -0500
+	id S965045AbWLMG4g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:56:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexey.y.starikovskiy@intel.com, davej@codemonkey.org.uk, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: fix bug in duplicate freq elimination code in acpi-cpufreq
+     drm: fix return value check
 has been removed from the -mm tree.  Its filename was
-     cpufreq-fix-bug-in-duplicate-freq-elimination-code-in-acpi-cpufreq.patch
+     drm-fix-return-value-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpufreq: fix bug in duplicate freq elimination code in acpi-cpufreq
-From: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+Subject: drm: fix return value check
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Due to duplicate state elimiation in the loop earlier, the number of
-valid_states can be less than perf->state_count, in which case freq_table
-was ending up with some garbage/uninitialized entries in the table.
+class_create() and class_device_create() return error code as a pointer on
+failure.  These return values need to be checked by IS_ERR().
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: David Airlie <airlied@linux.ie>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/drm/drm_sysfs.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-fix-bug-in-duplicate-freq-elimination-code-in-acpi-cpufreq arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-fix-bug-in-duplicate-freq-elimination-code-in-acpi-cpufreq
-+++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -693,7 +693,7 @@ static int acpi_cpufreq_cpu_init(struct 
- 		    perf->states[i].core_frequency * 1000;
- 		valid_states++;
- 	}
--	data->freq_table[perf->state_count].frequency = CPUFREQ_TABLE_END;
-+	data->freq_table[valid_states].frequency = CPUFREQ_TABLE_END;
+diff -puN drivers/char/drm/drm_sysfs.c~drm-fix-return-value-check drivers/char/drm/drm_sysfs.c
+--- a/drivers/char/drm/drm_sysfs.c~drm-fix-return-value-check
++++ a/drivers/char/drm/drm_sysfs.c
+@@ -45,8 +45,8 @@ struct class *drm_sysfs_create(struct mo
+ 	int err;
  
- 	result = cpufreq_frequency_table_cpuinfo(policy, data->freq_table);
- 	if (result)
+ 	class = class_create(owner, name);
+-	if (!class) {
+-		err = -ENOMEM;
++	if (IS_ERR(class)) {
++		err = PTR_ERR(class);
+ 		goto err_out;
+ 	}
+ 
+@@ -113,8 +113,8 @@ struct class_device *drm_sysfs_device_ad
+ 					MKDEV(DRM_MAJOR, head->minor),
+ 					&(head->dev->pdev)->dev,
+ 					"card%d", head->minor);
+-	if (!class_dev) {
+-		err = -ENOMEM;
++	if (IS_ERR(class_dev)) {
++		err = PTR_ERR(class_dev);
+ 		goto err_out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from alexey.y.starikovskiy@intel.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-git-acpi.patch
+acpi-fix-single-linked-list-manipulation.patch
+acpi-processor-prevent-loading-module-on-failures.patch
+git-alsa.patch
+audit-fix-kstrdup-error-check.patch
+git-drm.patch
+ata-fix-platform_device_register_simple-error-check.patch
+git-mtd.patch
+net-use-bitrev8.patch
+gss_spkm3-fix-error-handling-in-module-init.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+iscsi-fix-crypto_alloc_hash-error-check.patch
 
