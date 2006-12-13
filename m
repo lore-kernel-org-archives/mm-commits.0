@@ -1,234 +1,222 @@
 From: akpm@osdl.org
-Subject: + hrtimers-add-state-tracking.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:44:00 -0800
-Message-ID: <200612132244.kBDMi0OO022852@shell0.pdx.osdl.net>
+Subject: + dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:43:52 -0800
+Message-ID: <200612132243.kBDMhuYs022841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52687 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751704AbWLMWre (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:47:34 -0500
+	id S1751710AbWLMWrp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:47:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, akpm@osdl.org, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, bunk@stusta.de, cotte@de.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     hrtimers: add state tracking
+     dynticks: extend next_timer_interrupt() to use a reference jiffie
 has been added to the -mm tree.  Its filename is
-     hrtimers-add-state-tracking.patch
+     dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hrtimers: add state tracking
+Subject: dynticks: extend next_timer_interrupt() to use a reference jiffie
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Reintroduce ktimers feature "optimized away" by the ktimers review
-process: multiple hrtimer states to enable the running of hrtimers
-without holding the cpu-base-lock.
+For CONFIG_NO_HZ we need to calculate the next timer wheel event based
+on a given jiffie value.  Extend the existing code to allow the extra
+'now' argument. Provide a compability function for the existing
+implementations to call the function with now == jiffies. (This also
+solves the racyness of the original code vs. jiffies changing during
+the iteration.)
 
-(The "optimized" rbtree hack carried only 2 states worth of information
-and we need 4 for high resolution timers and dynamic ticks.)
+No functional changes to existing users of this infrastructure.
 
-No functional changes.
+[ remove WARN_ON() that triggered on s390, by Carsten Otte <cotte@de.ibm.com> ]
+[ made new helper static, Adrian Bunk <bunk@stusta.de> ]
 
-Build-fixes-from: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/hrtimer.h |   36 +++++++++++++++++++++++++++++++++-
- kernel/hrtimer.c        |   40 ++++++++++++++++++++++++++++++--------
- 2 files changed, 67 insertions(+), 9 deletions(-)
+ include/linux/timer.h |   10 ++++
+ kernel/timer.c        |   97 +++++++++++++++++++++++++++++-----------
+ 2 files changed, 81 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/hrtimer.h~hrtimers-add-state-tracking include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimers-add-state-tracking
-+++ a/include/linux/hrtimer.h
-@@ -40,6 +40,34 @@ enum hrtimer_restart {
- 	HRTIMER_RESTART,	/* Timer must be restarted */
- };
+diff -puN include/linux/timer.h~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie include/linux/timer.h
+--- a/include/linux/timer.h~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/include/linux/timer.h
+@@ -61,7 +61,17 @@ extern int del_timer(struct timer_list *
+ extern int __mod_timer(struct timer_list *timer, unsigned long expires);
+ extern int mod_timer(struct timer_list *timer, unsigned long expires);
  
 +/*
-+ * Bit values to track state of the timer
-+ *
-+ * Possible states:
-+ *
-+ * 0x00		inactive
-+ * 0x01		enqueued into rbtree
-+ * 0x02		callback function running
-+ * 0x03		callback function running and enqueued
-+ *		(was requeued on another CPU)
-+ *
-+ * The "callback function running and enqueued" status is only possible on
-+ * SMP. It happens for example when a posix timer expired and the callback
-+ * queued a signal. Between dropping the lock which protects the posix timer
-+ * and reacquiring the base lock of the hrtimer, another CPU can deliver the
-+ * signal and rearm the timer. We have to preserve the callback running state,
-+ * as otherwise the timer could be removed before the softirq code finishes the
-+ * the handling of the timer.
-+ *
-+ * The HRTIMER_STATE_ENQUEUE bit is always or'ed to the current state to
-+ * preserve the HRTIMER_STATE_CALLBACK bit in the above scenario.
-+ *
-+ * All state transitions are protected by cpu_base->lock.
++ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
++ * locks the timer base:
 + */
-+#define HRTIMER_STATE_INACTIVE	0x00
-+#define HRTIMER_STATE_ENQUEUED	0x01
-+#define HRTIMER_STATE_CALLBACK	0x02
-+
- /**
-  * struct hrtimer - the basic hrtimer structure
-  * @node:	red black tree node for time ordered insertion
-@@ -48,6 +76,7 @@ enum hrtimer_restart {
-  *		which the timer is based.
-  * @function:	timer expiry callback function
-  * @base:	pointer to the timer base (per cpu and per clock)
-+ * @state:	state information (See bit values above)
-  *
-  * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
-  */
-@@ -56,6 +85,7 @@ struct hrtimer {
- 	ktime_t				expires;
- 	enum hrtimer_restart		(*function)(struct hrtimer *);
- 	struct hrtimer_clock_base	*base;
-+	unsigned long			state;
- };
+ extern unsigned long next_timer_interrupt(void);
++/*
++ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
++ * locks the timer base and does the comparison against the given
++ * jiffie.
++ */
++extern unsigned long get_next_timer_interrupt(unsigned long now);
  
- /**
-@@ -141,9 +171,13 @@ extern int hrtimer_get_res(const clockid
- extern ktime_t hrtimer_get_next_event(void);
+ /***
+  * add_timer - start a timer
+diff -puN kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie kernel/timer.c
+--- a/kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/kernel/timer.c
+@@ -597,29 +597,15 @@ static inline void __run_timers(tvec_bas
+  * is used on S/390 to stop all activity when a cpus is idle.
+  * This functions needs to be called disabled.
+  */
+-unsigned long next_timer_interrupt(void)
++static unsigned long __next_timer_interrupt(tvec_base_t *base,
++					    unsigned long now)
+ {
+-	tvec_base_t *base;
+ 	struct list_head *list;
+-	struct timer_list *nte;
++	struct timer_list *nte, *found = NULL;
+ 	unsigned long expires;
+-	unsigned long hr_expires = MAX_JIFFY_OFFSET;
+-	ktime_t hr_delta;
+ 	tvec_t *varray[4];
+ 	int i, j;
+ 
+-	hr_delta = hrtimer_get_next_event();
+-	if (hr_delta.tv64 != KTIME_MAX) {
+-		struct timespec tsdelta;
+-		tsdelta = ktime_to_timespec(hr_delta);
+-		hr_expires = timespec_to_jiffies(&tsdelta);
+-		if (hr_expires < 3)
+-			return hr_expires + jiffies;
+-	}
+-	hr_expires += jiffies;
+-
+-	base = __get_cpu_var(tvec_bases);
+-	spin_lock(&base->lock);
+ 	expires = base->timer_jiffies + (LONG_MAX >> 1);
+ 	list = NULL;
+ 
+@@ -628,6 +614,7 @@ unsigned long next_timer_interrupt(void)
+ 	do {
+ 		list_for_each_entry(nte, base->tv1.vec + j, entry) {
+ 			expires = nte->expires;
++			found = nte;
+ 			if (j < (base->timer_jiffies & TVR_MASK))
+ 				list = base->tv2.vec + (INDEX(0));
+ 			goto found;
+@@ -647,9 +634,12 @@ unsigned long next_timer_interrupt(void)
+ 				j = (j + 1) & TVN_MASK;
+ 				continue;
+ 			}
+-			list_for_each_entry(nte, varray[i]->vec + j, entry)
+-				if (time_before(nte->expires, expires))
++			list_for_each_entry(nte, varray[i]->vec + j, entry) {
++				if (time_before(nte->expires, expires)) {
+ 					expires = nte->expires;
++					found = nte;
++				}
++			}
+ 			if (j < (INDEX(i)) && i < 3)
+ 				list = varray[i + 1]->vec + (INDEX(i + 1));
+ 			goto found;
+@@ -663,10 +653,58 @@ found:
+ 		 * where we found the timer element.
+ 		 */
+ 		list_for_each_entry(nte, list, entry) {
+-			if (time_before(nte->expires, expires))
++			if (time_before(nte->expires, expires)) {
+ 				expires = nte->expires;
++				found = nte;
++			}
+ 		}
+ 	}
++
++	return expires;
++}
++
++#ifdef CONFIG_NO_HZ
++
++unsigned long get_next_timer_interrupt(unsigned long now)
++{
++	tvec_base_t *base = __get_cpu_var(tvec_bases);
++	unsigned long expires;
++
++	spin_lock(&base->lock);
++	expires = __next_timer_interrupt(base, now);
++	spin_unlock(&base->lock);
++
++	/*
++	 * 'Timer wheel time' can lag behind 'jiffies time' due to
++	 * delayed processing, so make sure we return a value that
++	 * makes sense externally. base->timer_jiffies is unchanged,
++	 * so it is safe to access it outside the lock.
++	 */
++
++	return expires - (now - base->timer_jiffies);
++}
++
++#else
++
++unsigned long next_timer_interrupt(void)
++{
++	tvec_base_t *base = __get_cpu_var(tvec_bases);
++	unsigned long expires;
++	unsigned long now = jiffies;
++	unsigned long hr_expires = MAX_JIFFY_OFFSET;
++	ktime_t hr_delta = hrtimer_get_next_event();
++
++	if (hr_delta.tv64 != KTIME_MAX) {
++		struct timespec tsdelta;
++		tsdelta = ktime_to_timespec(hr_delta);
++		hr_expires = timespec_to_jiffies(&tsdelta);
++		if (hr_expires < 3)
++			return hr_expires + now;
++	}
++	hr_expires += now;
++
++	spin_lock(&base->lock);
++	expires = __next_timer_interrupt(base, now);
+ 	spin_unlock(&base->lock);
+ 
+ 	/*
+@@ -682,16 +720,23 @@ found:
+ 	 * would falsely evaluate to true.  If that is the case, just
+ 	 * return jiffies so that we can immediately fire the local timer
+ 	 */
+-	if (time_before(expires, jiffies))
+-		return jiffies;
++	if (time_before(expires, now))
++		expires = now;
++	else if (time_before(hr_expires, expires))
++		expires = hr_expires;
+ 
+-	if (time_before(hr_expires, expires))
+-		return hr_expires;
+-
+-	return expires;
++	/*
++	 * 'Timer wheel time' can lag behind 'jiffies time' due to
++	 * delayed processing, so make sure we return a value that
++	 * makes sense externally. base->timer_jiffies is unchanged,
++	 * so it is safe to access it outside the lock.
++	 */
++	return expires - (now - base->timer_jiffies);
+ }
  #endif
  
-+/*
-+ * A timer is active, when it is enqueued into the rbtree or the callback
-+ * function is running.
-+ */
- static inline int hrtimer_active(const struct hrtimer *timer)
- {
--	return rb_parent(&timer->node) != &timer->node;
-+	return timer->state != HRTIMER_STATE_INACTIVE;
- }
- 
- /* Forward a hrtimer so it expires after now: */
-diff -puN kernel/hrtimer.c~hrtimers-add-state-tracking kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-add-state-tracking
-+++ a/kernel/hrtimer.c
-@@ -145,6 +145,23 @@ static void hrtimer_get_softirq_time(str
- }
- 
- /*
-+ * Helper function to check, whether the timer is on one of the queues
-+ */
-+static inline int hrtimer_is_queued(struct hrtimer *timer)
-+{
-+	return timer->state & HRTIMER_STATE_ENQUEUED;
-+}
++#endif
 +
-+/*
-+ * Helper function to check, whether the timer is running the callback
-+ * function
-+ */
-+static inline int hrtimer_callback_running(struct hrtimer *timer)
-+{
-+	return timer->state & HRTIMER_STATE_CALLBACK;
-+}
-+
-+/*
-  * Functions and macros which are different for UP/SMP systems are kept in a
-  * single place
-  */
-@@ -385,6 +402,11 @@ static void enqueue_hrtimer(struct hrtim
- 	 */
- 	rb_link_node(&timer->node, parent, link);
- 	rb_insert_color(&timer->node, &base->active);
-+	/*
-+	 * HRTIMER_STATE_ENQUEUED is or'ed to the current state to preserve the
-+	 * state of a possibly running callback.
-+	 */
-+	timer->state |= HRTIMER_STATE_ENQUEUED;
+ /******************************************************************/
  
- 	if (!base->first || timer->expires.tv64 <
- 	    rb_entry(base->first, struct hrtimer, node)->expires.tv64)
-@@ -397,7 +419,8 @@ static void enqueue_hrtimer(struct hrtim
-  * Caller must hold the base lock.
-  */
- static void __remove_hrtimer(struct hrtimer *timer,
--			     struct hrtimer_clock_base *base)
-+			     struct hrtimer_clock_base *base,
-+			     unsigned long newstate)
- {
- 	/*
- 	 * Remove the timer from the rbtree and replace the
-@@ -406,7 +429,7 @@ static void __remove_hrtimer(struct hrti
- 	if (base->first == &timer->node)
- 		base->first = rb_next(&timer->node);
- 	rb_erase(&timer->node, &base->active);
--	rb_set_parent(&timer->node, &timer->node);
-+	timer->state = newstate;
- }
- 
- /*
-@@ -415,8 +438,8 @@ static void __remove_hrtimer(struct hrti
- static inline int
- remove_hrtimer(struct hrtimer *timer, struct hrtimer_clock_base *base)
- {
--	if (hrtimer_active(timer)) {
--		__remove_hrtimer(timer, base);
-+	if (hrtimer_is_queued(timer)) {
-+		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE);
- 		return 1;
- 	}
- 	return 0;
-@@ -488,7 +511,7 @@ int hrtimer_try_to_cancel(struct hrtimer
- 
- 	base = lock_hrtimer_base(timer, &flags);
- 
--	if (base->cpu_base->curr_timer != timer)
-+	if (!hrtimer_callback_running(timer))
- 		ret = remove_hrtimer(timer, base);
- 
- 	unlock_hrtimer_base(timer, &flags);
-@@ -593,7 +616,6 @@ void hrtimer_init(struct hrtimer *timer,
- 		clock_id = CLOCK_MONOTONIC;
- 
- 	timer->base = &cpu_base->clock_base[clock_id];
--	rb_set_parent(&timer->node, &timer->node);
- }
- EXPORT_SYMBOL_GPL(hrtimer_init);
- 
-@@ -644,13 +666,14 @@ static inline void run_hrtimer_queue(str
- 
- 		fn = timer->function;
- 		set_curr_timer(cpu_base, timer);
--		__remove_hrtimer(timer, base);
-+		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
- 		spin_unlock_irq(&cpu_base->lock);
- 
- 		restart = fn(timer);
- 
- 		spin_lock_irq(&cpu_base->lock);
- 
-+		timer->state &= ~HRTIMER_STATE_CALLBACK;
- 		if (restart != HRTIMER_NORESTART) {
- 			BUG_ON(hrtimer_active(timer));
- 			enqueue_hrtimer(timer, base);
-@@ -821,7 +844,8 @@ static void migrate_hrtimer_list(struct 
- 
- 	while ((node = rb_first(&old_base->active))) {
- 		timer = rb_entry(node, struct hrtimer, node);
--		__remove_hrtimer(timer, old_base);
-+		BUG_ON(timer->state & HRTIMER_STATE_CALLBACK);
-+		__remove_hrtimer(timer, old_base, HRTIMER_STATE_INACTIVE);
- 		timer->base = new_base;
- 		enqueue_hrtimer(timer, new_base);
- 	}
+ /* 
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
