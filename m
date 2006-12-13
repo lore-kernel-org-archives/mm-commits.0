@@ -1,168 +1,198 @@
 From: akpm@osdl.org
-Subject: - hrtimers-clean-up-locking-fix.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:48:38 -0800
-Message-ID: <200612132248.kBDMmchK023095@shell0.pdx.osdl.net>
+Subject: - updated-acpi-keep-track-of-timer-broadcast.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:49:02 -0800
+Message-ID: <200612132249.kBDMn2tj023126__16974.4590916254$1166050161$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52808 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52868 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751741AbWLMWsv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:48:51 -0500
+	id S1751724AbWLMWtN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:49:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, dcb314@hotmail.com, mingo@elte.hu, rientjes@cs.washington.edu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers-clean-up-locking fix
+     ACPI: Keep track of timer broadcast
 has been removed from the -mm tree.  Its filename was
-     hrtimers-clean-up-locking-fix.patch
+     updated-acpi-keep-track-of-timer-broadcast.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: hrtimers-clean-up-locking fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: ACPI: Keep track of timer broadcast
+From: Thomas Gleixner <tglx@linutronix.de>
 
-We declared and initialised `base' - might as well use it, too.
+This is a preperatory patch for highres/dyntick:
 
-Cc: David Rientjes <rientjes@cs.washington.edu>
-Cc: d binderman <dcb314@hotmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+- replace the big #ifdef ARCH_APICTIMER_STOPS_ON_C3 hackery by functions
+
+- remove the double switch in the power verify function (in the worst case
+  we switched ipi to apic and 20usec later apic to ipi)
+
+- keep track of the the state which stops local APIC timer
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/hrtimer.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_idle.c |   67 ++++++++++++++++++++++----------
+ include/acpi/processor.h      |    1 
+ 2 files changed, 49 insertions(+), 19 deletions(-)
 
-diff -puN kernel/hrtimer.c~hrtimers-clean-up-locking-fix kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-clean-up-locking-fix
-+++ a/kernel/hrtimer.c
-@@ -529,7 +529,7 @@ ktime_t hrtimer_get_remaining(const stru
- 	ktime_t rem;
+diff -puN drivers/acpi/processor_idle.c~updated-acpi-keep-track-of-timer-broadcast drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~updated-acpi-keep-track-of-timer-broadcast
++++ a/drivers/acpi/processor_idle.c
+@@ -246,6 +246,49 @@ static void acpi_cstate_enter(struct acp
+ 	}
+ }
  
- 	base = lock_hrtimer_base(timer, &flags);
--	rem = ktime_sub(timer->expires, timer->base->get_time());
-+	rem = ktime_sub(timer->expires, base->get_time());
- 	unlock_hrtimer_base(timer, &flags);
++#ifdef ARCH_APICTIMER_STOPS_ON_C3
++
++/*
++ * Some BIOS implementations switch to C3 in the published C2 state. This seems
++ * to be a common problem on AMD boxen.
++ */
++static void acpi_timer_check_state(int state, struct acpi_processor *pr,
++				   struct acpi_processor_cx *cx)
++{
++	struct acpi_processor_power *pwr = &pr->power;
++
++	/*
++	 * Check, if one of the previous states already marked the lapic
++	 * unstable
++	 */
++	if (pwr->timer_broadcast_on_state < state)
++		return;
++
++	if(cx->type == ACPI_STATE_C3 ||
++	   boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
++		pr->power.timer_broadcast_on_state = state;
++		return;
++	}
++}
++
++static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
++{
++	cpumask_t mask = cpumask_of_cpu(pr->id);
++
++	if (pr->power.timer_broadcast_on_state < INT_MAX)
++		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
++	else
++		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
++}
++
++#else
++
++static void acpi_timer_check_state(int state, struct acpi_processor *pr,
++				   struct acpi_processor_cx *cstate) { }
++static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
++
++#endif
++
+ static void acpi_processor_idle(void)
+ {
+ 	struct acpi_processor *pr = NULL;
+@@ -912,11 +955,7 @@ static int acpi_processor_power_verify(s
+ 	unsigned int i;
+ 	unsigned int working = 0;
  
- 	return rem;
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+-	int timer_broadcast = 0;
+-	cpumask_t mask = cpumask_of_cpu(pr->id);
+-	on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
+-#endif
++	pr->power.timer_broadcast_on_state = INT_MAX;
+ 
+ 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+ 		struct acpi_processor_cx *cx = &pr->power.states[i];
+@@ -928,21 +967,14 @@ static int acpi_processor_power_verify(s
+ 
+ 		case ACPI_STATE_C2:
+ 			acpi_processor_power_verify_c2(cx);
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+-			/* Some AMD systems fake C3 as C2, but still
+-			   have timer troubles */
+-			if (cx->valid && 
+-				boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
+-				timer_broadcast++;
+-#endif
++			if (cx->valid)
++				acpi_timer_check_state(i, pr, cx);
+ 			break;
+ 
+ 		case ACPI_STATE_C3:
+ 			acpi_processor_power_verify_c3(pr, cx);
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+ 			if (cx->valid)
+-				timer_broadcast++;
+-#endif
++				acpi_timer_check_state(i, pr, cx);
+ 			break;
+ 		}
+ 
+@@ -950,10 +982,7 @@ static int acpi_processor_power_verify(s
+ 			working++;
+ 	}
+ 
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+-	if (timer_broadcast)
+-		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
+-#endif
++	acpi_propagate_timer_broadcast(pr);
+ 
+ 	return (working);
+ }
+diff -puN include/acpi/processor.h~updated-acpi-keep-track-of-timer-broadcast include/acpi/processor.h
+--- a/include/acpi/processor.h~updated-acpi-keep-track-of-timer-broadcast
++++ a/include/acpi/processor.h
+@@ -79,6 +79,7 @@ struct acpi_processor_power {
+ 	u32 bm_activity;
+ 	int count;
+ 	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
++	int timer_broadcast_on_state;
+ };
+ 
+ /* Performance Management */
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-x86-smp-export-smp_num_siblings-for-oprofile.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support.patch
-optimize-o_direct-on-block-device-v3.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-input-vs-git-alsa.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
 git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
 clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
 
