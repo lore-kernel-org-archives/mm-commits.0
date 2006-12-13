@@ -1,46 +1,52 @@
 From: akpm@osdl.org
-Subject: - debugging-feature-proc-timer_list-fix.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:50:15 -0800
-Message-ID: <200612132250.kBDMoFXL023211@shell0.pdx.osdl.net>
+Subject: - updated-high-res-timers-dynticks-enable-i386-support.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:50:07 -0800
+Message-ID: <200612132250.kBDMo70X023202@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53129 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53117 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751664AbWLMWuT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:50:19 -0500
+	id S1751768AbWLMWuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:50:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: mingo@elte.hu, ak@suse.de, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     debugging-feature-proc-timer_list fix
+     high-res timers, dynticks: enable i386 support
 has been removed from the -mm tree.  Its filename was
-     debugging-feature-proc-timer_list-fix.patch
+     updated-high-res-timers-dynticks-enable-i386-support.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: debugging-feature-proc-timer_list fix
+Subject: high-res timers, dynticks: enable i386 support
 From: Ingo Molnar <mingo@elte.hu>
 
+Enable high-res timers and dyntick on i386.
 
-
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/Makefile |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/Kconfig |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN kernel/time/Makefile~debugging-feature-proc-timer_list-fix kernel/time/Makefile
---- a/kernel/time/Makefile~debugging-feature-proc-timer_list-fix
-+++ a/kernel/time/Makefile
-@@ -1,4 +1,4 @@
--obj-y += ntp.o clocksource.o jiffies.o
-+obj-y += ntp.o clocksource.o jiffies.o timer_list.o
+diff -puN arch/i386/Kconfig~updated-high-res-timers-dynticks-enable-i386-support arch/i386/Kconfig
+--- a/arch/i386/Kconfig~updated-high-res-timers-dynticks-enable-i386-support
++++ a/arch/i386/Kconfig
+@@ -82,6 +82,8 @@ source "init/Kconfig"
  
- obj-$(CONFIG_GENERIC_CLOCKEVENTS)	+= clockevents.o
- obj-$(CONFIG_TIMER_STATS)		+= timer_stats.o
+ menu "Processor type and features"
+ 
++source "kernel/time/Kconfig"
++
+ config SMP
+ 	bool "Symmetric multi-processing support"
+ 	---help---
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
