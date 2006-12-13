@@ -1,57 +1,60 @@
 From: akpm@osdl.org
-Subject: - git-cpufreq-fixup.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:36:13 -0800
-Message-ID: <200612130636.kBD6aDlu030028@shell0.pdx.osdl.net>
+Subject: - git-libata-all-fixup.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:40:07 -0800
+Message-ID: <200612130640.kBD6e7bS030108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56297 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56547 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964953AbWLMGgQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:36:16 -0500
+	id S964776AbWLMGkJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:40:09 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBD6aEID013200
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBD6e7ID013343
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2006 22:36:14 -0800
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2006 22:40:07 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-cpufreq-fixup
+     git-libata-all-fixup
 has been removed from the -mm tree.  Its filename was
-     git-cpufreq-fixup.patch
+     git-libata-all-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-cpufreq-fixup
+Subject: git-libata-all-fixup
 From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/cpufreq/cpufreq.c |    6 ------
- 1 file changed, 6 deletions(-)
+ Documentation/kernel-parameters.txt |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~git-cpufreq-fixup drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~git-cpufreq-fixup
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -42,14 +42,8 @@ static struct cpufreq_policy *cpufreq_cp
- static DEFINE_SPINLOCK(cpufreq_driver_lock);
+diff -puN Documentation/kernel-parameters.txt~git-libata-all-fixup Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~git-libata-all-fixup
++++ a/Documentation/kernel-parameters.txt
+@@ -1027,17 +1027,14 @@ and is between 256 and 4096 characters. 
+ 			emulation library even if a 387 maths coprocessor
+ 			is present.
  
- /* internal prototypes */
--<<<<<<< HEAD/drivers/cpufreq/cpufreq.c
- static int __cpufreq_governor(struct cpufreq_policy *policy, unsigned int event);
- static void handle_update(struct work_struct *work);
+-<<<<<<< HEAD/Documentation/kernel-parameters.txt
+ 	noaliencache	[MM, NUMA] Disables the allcoation of alien caches in
+ 			the slab allocator.  Saves per-node memory, but will
+ 			impact performance on real NUMA hardware.
+ 
 -=======
--static int __cpufreq_governor(struct cpufreq_policy *policy,
--						unsigned int event);
--static void handle_update(void *data);
-->>>>>>> /drivers/cpufreq/cpufreq.c
+ 	noacpi		[LIBATA] Disables use of ACPI in libata suspend/resume
+ 			when set.
+ 			Format: <int>
  
- /**
-  * Two notifier lists: the "policy" list is involved in the
+->>>>>>> /Documentation/kernel-parameters.txt
+ 	noalign		[KNL,ARM]
+ 
+ 	noapic		[SMP,APIC] Tells the kernel to not make use of any
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -76,7 +79,6 @@ video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_a
 git-alsa.patch
 git-alsa-fixup.patch
 alsa-workqueue-fixes.patch
-git-cpufreq-fixup.patch
 git-drm.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-input-vs-git-alsa.patch
