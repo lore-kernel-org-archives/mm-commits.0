@@ -1,120 +1,96 @@
 From: akpm@osdl.org
-Subject: - fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:56:36 -0800
-Message-ID: <200612130656.kBD6uaOw030740@shell0.pdx.osdl.net>
+Subject: - drm-handle-pci_enable_device-failure.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:56:34 -0800
+Message-ID: <200612130656.kBD6uYMq030737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57977 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57973 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965052AbWLMG4n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:56:43 -0500
+	id S965052AbWLMG4m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:56:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mchehab@infradead.org, mm-commits@vger.kernel.org
+To: jeff@garzik.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix: On ia64, i2c adap->inb/adap->outb are wrongly evaluated
+     DRM: handle pci_enable_device failure
 has been removed from the -mm tree.  Its filename was
-     fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64.patch
+     drm-handle-pci_enable_device-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix: On ia64, i2c adap->inb/adap->outb are wrongly evaluated
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: DRM: handle pci_enable_device failure
+From: Jeff Garzik <jeff@garzik.org>
 
-
-i2c defines two callbacks (inb/outb).  On ia64, since it defines also two
-macros with those names, it causes the following errors:
-
-drivers/media/video/usbvision/usbvision-i2c.c:64:39: macro "outb" passed 4 arguments, but takes just 2
-drivers/media/video/usbvision/usbvision-i2c.c: In function `try_write_address':
-drivers/media/video/usbvision/usbvision-i2c.c:64: warning: assignment makes integer from pointer without a cast
-drivers/media/video/usbvision/usbvision-i2c.c:89:38: macro "inb" passed 4 arguments, but takes just 1
-drivers/media/video/usbvision/usbvision-i2c.c: In function `try_read_address':
-drivers/media/video/usbvision/usbvision-i2c.c:89: warning: assignment makes integer from pointer without a cast
-drivers/media/video/usbvision/usbvision-i2c.c:85: warning: unused variable `buf'
-drivers/media/video/usbvision/usbvision-i2c.c:173:53: macro "inb" passed 4 arguments, but takes just 1
-drivers/media/video/usbvision/usbvision-i2c.c: In function `usb_xfer':
-drivers/media/video/usbvision/usbvision-i2c.c:173: warning: assignment makes integer from pointer without a cast
-drivers/media/video/usbvision/usbvision-i2c.c:179:54: macro "outb" passed 4 arguments, but takes just 2
-drivers/media/video/usbvision/usbvision-i2c.c:179: warning: assignment makes integer from pointer without a cast
-thanks to Andrew Morton for pointing this.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Jeff Garzik <jeff@garzik.org>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/video/usbvision/usbvision-i2c.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/char/drm/drm_stub.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/video/usbvision/usbvision-i2c.c~fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64 drivers/media/video/usbvision/usbvision-i2c.c
---- a/drivers/media/video/usbvision/usbvision-i2c.c~fix-drivers-media-video-usbvision-usbvision-i2cc-on-ia64
-+++ a/drivers/media/video/usbvision/usbvision-i2c.c
-@@ -50,6 +50,11 @@ MODULE_PARM_DESC(i2c_debug, "enable debu
- #define PDEBUG(level, fmt, args...) \
- 		if (i2c_debug & (level)) info("[%s:%d] " fmt, __PRETTY_FUNCTION__, __LINE__ , ## args)
+diff -puN drivers/char/drm/drm_stub.c~drm-handle-pci_enable_device-failure drivers/char/drm/drm_stub.c
+--- a/drivers/char/drm/drm_stub.c~drm-handle-pci_enable_device-failure
++++ a/drivers/char/drm/drm_stub.c
+@@ -211,14 +211,16 @@ int drm_get_dev(struct pci_dev *pdev, co
+ 	if (!dev)
+ 		return -ENOMEM;
  
-+static int usbvision_i2c_write(void *data, unsigned char addr, char *buf,
-+			    short len);
-+static int usbvision_i2c_read(void *data, unsigned char addr, char *buf,
-+			   short len);
-+
- static inline int try_write_address(struct i2c_adapter *i2c_adap,
- 				    unsigned char addr, int retries)
- {
-@@ -61,7 +66,7 @@ static inline int try_write_address(stru
- 	data = i2c_get_adapdata(i2c_adap);
- 	buf[0] = 0x00;
- 	for (i = 0; i <= retries; i++) {
--		ret = (adap->outb(data, addr, buf, 1));
-+		ret = (usbvision_i2c_write(data, addr, buf, 1));
- 		if (ret == 1)
- 			break;	/* success! */
- 		udelay(5 /*adap->udelay */ );
-@@ -86,7 +91,7 @@ static inline int try_read_address(struc
+-	pci_enable_device(pdev);
++	ret = pci_enable_device(pdev);
++	if (ret)
++		goto err_g1;
  
- 	data = i2c_get_adapdata(i2c_adap);
- 	for (i = 0; i <= retries; i++) {
--		ret = (adap->inb(data, addr, buf, 1));
-+		ret = (usbvision_i2c_read(data, addr, buf, 1));
- 		if (ret == 1)
- 			break;	/* success! */
- 		udelay(5 /*adap->udelay */ );
-@@ -153,7 +158,6 @@ static int
- usb_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msgs[], int num)
- {
- 	struct i2c_msg *pmsg;
--	struct i2c_algo_usb_data *adap = i2c_adap->algo_data;
- 	void *data;
- 	int i, ret;
- 	unsigned char addr;
-@@ -170,13 +174,13 @@ usb_xfer(struct i2c_adapter *i2c_adap, s
+ 	if ((ret = drm_fill_in_dev(dev, pdev, ent, driver))) {
+ 		printk(KERN_ERR "DRM: Fill_in_dev failed.\n");
+-		goto err_g1;
++		goto err_g2;
+ 	}
+ 	if ((ret = drm_get_head(dev, &dev->primary)))
+-		goto err_g1;
++		goto err_g2;
+ 	
+ 	DRM_INFO("Initialized %s %d.%d.%d %s on minor %d\n",
+ 		 driver->name, driver->major, driver->minor, driver->patchlevel,
+@@ -226,7 +228,9 @@ int drm_get_dev(struct pci_dev *pdev, co
  
- 		if (pmsg->flags & I2C_M_RD) {
- 			/* read bytes into buffer */
--			ret = (adap->inb(data, addr, pmsg->buf, pmsg->len));
-+			ret = (usbvision_i2c_read(data, addr, pmsg->buf, pmsg->len));
- 			if (ret < pmsg->len) {
- 				return (ret < 0) ? ret : -EREMOTEIO;
- 			}
- 		} else {
- 			/* write bytes from buffer */
--			ret = (adap->outb(data, addr, pmsg->buf, pmsg->len));
-+			ret = (usbvision_i2c_write(data, addr, pmsg->buf, pmsg->len));
- 			if (ret < pmsg->len) {
- 				return (ret < 0) ? ret : -EREMOTEIO;
- 			}
+ 	return 0;
+ 
+-      err_g1:
++err_g2:
++	pci_disable_device(pdev);
++err_g1:
+ 	drm_free(dev, sizeof(*dev), DRM_MEM_STUB);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from mchehab@infradead.org are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
-git-dvb.patch
-saa7134-add-support-for-the-encore-enl-tv.patch
-drivers-media-video-cpia2-cpia2_usbc-free.patch
-fix-namespace-conflict-between-w9968cfc-on-mips.patch
-avoid-race-when-deregistering-the-ir-control-for-dvb-usb.patch
+git-acpi.patch
+git-drm.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+initializer-entry-defined-twice-in-pata_rz1000.patch
+user-of-the-jiffies-rounding-patch-ata-subsystem.patch
+libata-fix-oops-with-sparsemem.patch
+git-mtd.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+8139too-force-media-setting-fix.patch
+remove-the-broken-skmc-driver.patch
+tulip-fix-shutdown-dma-irq-race.patch
+git-ioat.patch
+via-sb600-sata-quirk.patch
+git-pciseg.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+mpt-fusion-handle-pci-layer-error-on-resume.patch
+fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
 getting-rid-of-all-casts-of-kalloc-calls.patch
+e1000-printk-warning-fixes.patch
+git-gccbug.patch
 
