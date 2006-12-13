@@ -1,962 +1,996 @@
 From: akpm@osdl.org
-Subject: + clockevents-i386-drivers.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:44:18 -0800
-Message-ID: <200612132244.kBDMiIrn022879@shell0.pdx.osdl.net>
+Subject: + debugging-feature-add-proc-timer_stat.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:44:40 -0800
+Message-ID: <200612132244.kBDMieXl022916@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53856 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54005 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751670AbWLMW5A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:57:00 -0500
+	id S1751788AbWLMW6d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:58:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, akpm@osdl.org, arjan@infradead.org, bunk@stusta.de, johnstul@us.ibm.com, mingo@elte.hu, vgoyal@in.ibm.com, zippel@linux-m68k.org
+Cc: mingo@elte.hu, ak@suse.de, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     clockevents: i386 drivers
+     debugging feature: add /proc/timer_stat
 has been added to the -mm tree.  Its filename is
-     clockevents-i386-drivers.patch
+     debugging-feature-add-proc-timer_stat.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clockevents: i386 drivers
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: debugging feature: add /proc/timer_stat
+From: Ingo Molnar <mingo@elte.hu>
 
-Add clockevent drivers for i386: lapic (local) and PIT (global).  Update
-the timer IRQ to call into the PIT driver's event handler and the
-lapic-timer IRQ to call into the lapic clockevent driver.  The
-assignement of timer functionality is delegated to the core framework
-code and replaces the compile and runtime evalution in
-do_timer_interrupt_hook()
+Add /proc/timer_stats support: debugging feature to profile timer
+expiration. Both the starting site, process/PID and the expiration
+function is captured. This allows the quick identification of timer
+event sources in a system.
 
-Use the clockevents broadcast support and implement the lapic_broadcast
-function for ACPI.
+Sample output:
 
-No changes to existing functionality.
+# echo 1 > /proc/timer_stats
+# cat /proc/timer_stats
+Timer Stats Version: v0.1
+Sample period: 4.010 s
+  24,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
+  11,     0 swapper          sk_reset_timer (tcp_delack_timer)
+   6,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
+   2,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
+  17,     0 swapper          hrtimer_restart_sched_tick (hrtimer_sched_tick)
+   2,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
+   4,  2050 pcscd            do_nanosleep (hrtimer_wakeup)
+   5,  4179 sshd             sk_reset_timer (tcp_write_timer)
+   4,  2248 yum-updatesd     schedule_timeout (process_timeout)
+  18,     0 swapper          hrtimer_restart_sched_tick (hrtimer_sched_tick)
+   3,     0 swapper          sk_reset_timer (tcp_delack_timer)
+   1,     1 swapper          neigh_table_init_no_netlink (neigh_periodic_timer)
+   2,     1 swapper          e1000_up (e1000_watchdog)
+   1,     1 init             schedule_timeout (process_timeout)
+100 total events, 25.24 events/sec
 
-[ kdump fix from Vivek Goyal <vgoyal@in.ibm.com> ]
-[ fixes based on review feedback from Arjan van de Ven <arjan@infradead.org> ]
+[ cleanups and hrtimers support from Thomas Gleixner <tglx@linutronix.de> ]
 
-Cleanups-from: Adrian Bunk <bunk@stusta.de>
-Build-fixes-from: Andrew Morton <akpm@osdl.org>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/kernel-parameters.txt      |    5 
- arch/i386/Kconfig                        |    8 
- arch/i386/kernel/apic.c                  |  290 ++++++++++++---------
- arch/i386/kernel/i8253.c                 |   88 +++++-
- arch/i386/kernel/smpboot.c               |    5 
- arch/i386/kernel/time.c                  |   50 ---
- arch/i386/kernel/time_hpet.c             |    5 
- include/asm-i386/apic.h                  |    5 
- include/asm-i386/hpet.h                  |    1 
- include/asm-i386/i8253.h                 |   15 +
- include/asm-i386/mach-default/do_timer.h |   26 -
- include/asm-i386/mach-voyager/do_timer.h |   15 -
- include/asm-i386/mpspec.h                |    1 
- 13 files changed, 291 insertions(+), 223 deletions(-)
+ Documentation/hrtimer/timer_stats.txt |   68 +++
+ include/linux/hrtimer.h               |   53 +++
+ include/linux/timer.h                 |   55 +++
+ kernel/hrtimer.c                      |   26 +
+ kernel/time/Makefile                  |    3 
+ kernel/time/timer_stats.c             |  411 ++++++++++++++++++++++++
+ kernel/timer.c                        |   31 +
+ kernel/workqueue.c                    |    7 
+ lib/Kconfig.debug                     |   11 
+ 9 files changed, 659 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~clockevents-i386-drivers Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~clockevents-i386-drivers
-+++ a/Documentation/kernel-parameters.txt
-@@ -760,6 +760,11 @@ and is between 256 and 4096 characters. 
- 	lapic		[IA-32,APIC] Enable the local APIC even if BIOS
- 			disabled it.
- 
-+	lapictimer	[IA-32,APIC] Enable the local APIC timer on UP
-+			systems for high resulution timers and dynticks.
-+			This only has an effect when the local APIC is
-+			available. It does not imply the "lapic" option.
+diff -puN /dev/null Documentation/hrtimer/timer_stats.txt
+--- /dev/null
++++ a/Documentation/hrtimer/timer_stats.txt
+@@ -0,0 +1,68 @@
++timer_stats - timer usage statistics
++------------------------------------
 +
- 	lasi=		[HW,SCSI] PARISC LASI driver for the 53c700 chip
- 			Format: addr:<io>,irq:<irq>
- 
-diff -puN arch/i386/Kconfig~clockevents-i386-drivers arch/i386/Kconfig
---- a/arch/i386/Kconfig~clockevents-i386-drivers
-+++ a/arch/i386/Kconfig
-@@ -18,6 +18,14 @@ config GENERIC_TIME
- 	bool
- 	default y
- 
-+config GENERIC_CLOCKEVENTS
-+	bool
-+	default y
++timer_stats is a debugging facility to make the timer (ab)usage in a Linux
++system visible to kernel and userspace developers. It is not intended for
++production usage as it adds significant overhead to the (hr)timer code and the
++(hr)timer data structures.
 +
-+config GENERIC_CLOCKEVENTS_BROADCAST
-+	bool
-+	default y
++timer_stats should be used by kernel and userspace developers to verify that
++their code does not make unduly use of timers. This helps to avoid unnecessary
++wakeups, which should be avoided to optimize power consumption.
 +
- config LOCKDEP_SUPPORT
- 	bool
- 	default y
-diff -puN arch/i386/kernel/apic.c~clockevents-i386-drivers arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~clockevents-i386-drivers
-+++ a/arch/i386/kernel/apic.c
-@@ -25,6 +25,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/sysdev.h>
- #include <linux/cpu.h>
-+#include <linux/clockchips.h>
- #include <linux/module.h>
- 
- #include <asm/atomic.h>
-@@ -52,28 +53,48 @@
++It can be enabled by CONFIG_TIMER_STATS in the "Kernel hacking" configuration
++section.
++
++timer_stats collects information about the timer events which are fired in a
++Linux system over a sample period:
++
++- the pid of the task(process) which initialized the timer
++- the name of the process which initialized the timer
++- the function where the timer was intialized
++- the callback function which is associated to the timer
++- the number of events (callbacks)
++
++timer_stats adds an entry to /proc: /proc/timer_stats
++
++This entry is used to control the statistics functionality and to read out the
++sampled information.
++
++The timer_stats functionality is inactive on bootup.
++
++To activate a sample period issue:
++# echo 1 >/proc/timer_stats
++
++To stop a sample period issue:
++# echo 0 >/proc/timer_stats
++
++The statistics can be retrieved by:
++# cat /proc/timer_stats
++
++The readout of /proc/timer_stats automatically disables sampling. The sampled
++information is kept until a new sample period is started. This allows multiple
++readouts.
++
++Sample output of /proc/timer_stats:
++
++Timerstats sample period: 3.888770 s
++  12,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
++  15,     1 swapper          hcd_submit_urb (rh_timer_func)
++   4,   959 kedac            schedule_timeout (process_timeout)
++   1,     0 swapper          page_writeback_init (wb_timer_fn)
++  28,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
++  22,  2948 IRQ 4            tty_flip_buffer_push (delayed_work_timer_fn)
++   3,  3100 bash             schedule_timeout (process_timeout)
++   1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
++   1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
++   1,     1 swapper          neigh_table_init_no_netlink (neigh_periodic_timer)
++   1,  2292 ip               __netdev_watchdog_up (dev_watchdog)
++   1,    23 events/1         do_cache_clean (delayed_work_timer_fn)
++90 total events, 30.0 events/sec
++
++The first column is the number of events, the second column the pid, the third
++column is the name of the process. The forth column shows the function which
++initialized the timer and in parantheses the callback function which was
++executed on expiry.
++
++    Thomas, Ingo
++
+diff -puN include/linux/hrtimer.h~debugging-feature-add-proc-timer_stat include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~debugging-feature-add-proc-timer_stat
++++ a/include/linux/hrtimer.h
+@@ -102,8 +102,14 @@ enum hrtimer_cb_mode {
+  * @cb_mode:	high resolution timer feature to select the callback execution
+  *		 mode
+  * @cb_entry:	list head to enqueue an expired timer into the callback list
++ * @start_site:	timer statistics field to store the site where the timer
++ *		was started
++ * @start_comm: timer statistics field to store the name of the process which
++ *		started the timer
++ * @start_pid: timer statistics field to store the pid of the task which
++ *		started the timer
+  *
+- * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
++ * The hrtimer structure must be initialized by hrtimer_init()
+  */
+ struct hrtimer {
+ 	struct rb_node			node;
+@@ -115,6 +121,11 @@ struct hrtimer {
+ 	enum hrtimer_cb_mode		cb_mode;
+ 	struct list_head		cb_entry;
  #endif
- 
- /*
-- * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
-- * IPIs in place of local APIC timers
-- */
--static cpumask_t timer_bcast_ipi;
--
--/*
-  * Knob to control our willingness to enable the local APIC.
-  *
-  * -1=force-disable, +1=force-enable
-  */
- static int enable_local_apic __initdata = 0;
- 
-+/* Enable local APIC timer for highres/dyntick on UP */
-+static int enable_local_apic_timer __initdata = 0;
-+
- /*
-  * Debug level, exported for io_apic.c
-  */
- int apic_verbosity;
- 
--static void apic_pm_activate(void);
-+static unsigned int calibration_result;
- 
-+static void lapic_next_event(unsigned long delta,
-+			     struct clock_event_device *evt);
-+static void lapic_timer_setup(enum clock_event_mode mode,
-+			      struct clock_event_device *evt);
-+static void apic_pm_activate(void);
- 
--/* Using APIC to generate smp_local_timer_interrupt? */
--int using_apic_timer __read_mostly = 0;
-+/*
-+ * The local apic timer can be used for any function which is CPU local.
-+ */
-+static struct clock_event_device lapic_clockevent = {
-+	.name = "lapic",
-+	.capabilities = CLOCK_CAP_PROFILE
-+#ifdef CONFIG_SMP
-+	/*
-+	 * On UP we keep update_process_times() on the PIT interrupt to
-+	 * resemble the original behaviour as close as possible. SMP
-+	 * requires to run this CPU local.
-+	 */
-+			| CLOCK_CAP_UPDATE
++#ifdef CONFIG_TIMER_STATS
++	void				*start_site;
++	char				start_comm[16];
++	int				start_pid;
 +#endif
-+	,
-+	.shift = 32,
-+	.set_mode = lapic_timer_setup,
-+	.set_next_event = lapic_next_event,
-+};
-+static DEFINE_PER_CPU(struct clock_event_device, lapic_events);
- 
- /* Local APIC was disabled by the BIOS and enabled by the kernel */
- static int enabled_via_apicbase;
-@@ -152,6 +173,11 @@ int lapic_get_maxlvt(void)
-  */
- 
- /*
-+ * FIXME: Move this to i8253.h. There is no need to keep the access to
-+ * the PIT scattered all around the place -tglx
-+ */
-+
-+/*
-  * The timer chip is already set up at HZ interrupts per second here,
-  * but we do not accept timer interrupts yet. We only allow the BP
-  * to calibrate.
-@@ -209,16 +235,17 @@ void (*wait_timer_tick)(void) __devinitd
- 
- #define APIC_DIVISOR 16
- 
--static void __setup_APIC_LVTT(unsigned int clocks)
-+static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
- {
- 	unsigned int lvtt_value, tmp_value;
--	int cpu = smp_processor_id();
- 
--	lvtt_value = APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
-+	lvtt_value = LOCAL_TIMER_VECTOR;
-+	if (!oneshot)
-+		lvtt_value |= APIC_LVT_TIMER_PERIODIC;
- 	if (!lapic_is_integrated())
- 		lvtt_value |= SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV);
- 
--	if (cpu_isset(cpu, timer_bcast_ipi))
-+	if (!irqen)
- 		lvtt_value |= APIC_LVT_MASKED;
- 
- 	apic_write_around(APIC_LVTT, lvtt_value);
-@@ -231,31 +258,67 @@ static void __setup_APIC_LVTT(unsigned i
- 				& ~(APIC_TDR_DIV_1 | APIC_TDR_DIV_TMBASE))
- 				| APIC_TDR_DIV_16);
- 
--	apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
-+	if (!oneshot)
-+		apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
- }
- 
--static void __devinit setup_APIC_timer(unsigned int clocks)
-+/*
-+ * Program the next event, relative to now
-+ */
-+static void lapic_next_event(unsigned long delta,
-+			     struct clock_event_device *evt)
-+{
-+	apic_write_around(APIC_TMICT, delta);
-+}
-+
-+/*
-+ * Setup the lapic timer in periodic or oneshot mode
-+ */
-+static void lapic_timer_setup(enum clock_event_mode mode,
-+			      struct clock_event_device *evt)
- {
- 	unsigned long flags;
-+	unsigned int v;
- 
- 	local_irq_save(flags);
- 
--	/*
--	 * Wait for IRQ0's slice:
--	 */
--	wait_timer_tick();
--
--	__setup_APIC_LVTT(clocks);
-+	switch (mode) {
-+	case CLOCK_EVT_PERIODIC:
-+	case CLOCK_EVT_ONESHOT:
-+		__setup_APIC_LVTT(calibration_result,
-+				  mode != CLOCK_EVT_PERIODIC, 1);
-+		break;
-+	case CLOCK_EVT_SHUTDOWN:
-+		v = apic_read(APIC_LVTT);
-+		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
-+		apic_write_around(APIC_LVTT, v);
-+		break;
-+	}
- 
- 	local_irq_restore(flags);
- }
- 
- /*
-+ * Setup the local APIC timer for this CPU. Copy the initilized values
-+ * of the boot CPU and register the clock event in the framework.
-+ */
-+static void __devinit setup_APIC_timer(void)
-+{
-+	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
-+
-+	memcpy(levt, &lapic_clockevent, sizeof(*levt));
-+
-+	register_local_clockevent(levt);
-+}
-+
-+/*
-  * In this function we calibrate APIC bus clocks to the external
-  * timer. Unfortunately we cannot use jiffies and the timer irq
-  * to calibrate, since some later bootup code depends on getting
-  * the first irq? Ugh.
-  *
-+ * TODO: Fix this rather than saying "Ugh" -tglx
-+ *
-  * We want to do the calibration only once since we
-  * want to have local timer irqs syncron. CPUs connected
-  * by the same APIC bus have the very same bus frequency.
-@@ -278,7 +341,7 @@ static int __init calibrate_APIC_clock(v
- 	 * value into the APIC clock, we just want to get the
- 	 * counter running for calibration.
- 	 */
--	__setup_APIC_LVTT(1000000000);
-+	__setup_APIC_LVTT(1000000000, 0, 0);
- 
- 	/*
- 	 * The timer chip counts down to zero. Let's wait
-@@ -315,6 +378,17 @@ static int __init calibrate_APIC_clock(v
- 
- 	result = (tt1-tt2)*APIC_DIVISOR/LOOPS;
- 
-+	/* Calculate the scaled math multiplication factor */
-+	lapic_clockevent.mult = div_sc(tt1-tt2, TICK_NSEC * LOOPS, 32);
-+	lapic_clockevent.max_delta_ns =
-+		clockevent_delta2ns(0x7FFFFF, &lapic_clockevent);
-+	lapic_clockevent.min_delta_ns =
-+		clockevent_delta2ns(0xF, &lapic_clockevent);
-+
-+	apic_printk(APIC_VERBOSE, "..... tt1-tt2 %ld\n", tt1 - tt2);
-+	apic_printk(APIC_VERBOSE, "..... mult: %ld\n", lapic_clockevent.mult);
-+	apic_printk(APIC_VERBOSE, "..... calibration result: %ld\n", result);
-+
- 	if (cpu_has_tsc)
- 		apic_printk(APIC_VERBOSE, "..... CPU clock speed is "
- 			"%ld.%04ld MHz.\n",
-@@ -329,13 +403,10 @@ static int __init calibrate_APIC_clock(v
- 	return result;
- }
- 
--static unsigned int calibration_result;
--
- void __init setup_boot_APIC_clock(void)
- {
- 	unsigned long flags;
- 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n");
--	using_apic_timer = 1;
- 
- 	local_irq_save(flags);
- 
-@@ -343,97 +414,82 @@ void __init setup_boot_APIC_clock(void)
- 	/*
- 	 * Now set up the timer for real.
- 	 */
--	setup_APIC_timer(calibration_result);
-+	setup_APIC_timer();
- 
- 	local_irq_restore(flags);
- }
- 
- void __devinit setup_secondary_APIC_clock(void)
- {
--	setup_APIC_timer(calibration_result);
--}
--
--void disable_APIC_timer(void)
--{
--	if (using_apic_timer) {
--		unsigned long v;
--
--		v = apic_read(APIC_LVTT);
--		/*
--		 * When an illegal vector value (0-15) is written to an LVT
--		 * entry and delivery mode is Fixed, the APIC may signal an
--		 * illegal vector error, with out regard to whether the mask
--		 * bit is set or whether an interrupt is actually seen on
--		 * input.
--		 *
--		 * Boot sequence might call this function when the LVTT has
--		 * '0' vector value. So make sure vector field is set to
--		 * valid value.
--		 */
--		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
--		apic_write_around(APIC_LVTT, v);
--	}
--}
--
--void enable_APIC_timer(void)
--{
--	int cpu = smp_processor_id();
--
--	if (using_apic_timer && !cpu_isset(cpu, timer_bcast_ipi)) {
--		unsigned long v;
--
--		v = apic_read(APIC_LVTT);
--		apic_write_around(APIC_LVTT, v & ~APIC_LVT_MASKED);
--	}
-+	setup_APIC_timer();
- }
- 
- void switch_APIC_timer_to_ipi(void *cpumask)
- {
-+	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
- 	cpumask_t mask = *(cpumask_t *)cpumask;
- 	int cpu = smp_processor_id();
- 
--	if (cpu_isset(cpu, mask) &&
--	    !cpu_isset(cpu, timer_bcast_ipi)) {
--		disable_APIC_timer();
--		cpu_set(cpu, timer_bcast_ipi);
--	}
-+	if (cpu_isset(cpu, mask) && levt->event_handler)
-+		clockevents_set_global_broadcast(levt, 1);
- }
--EXPORT_SYMBOL(switch_APIC_timer_to_ipi);
-+EXPORT_SYMBOL_GPL(switch_APIC_timer_to_ipi);
- 
- void switch_ipi_to_APIC_timer(void *cpumask)
- {
-+	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
- 	cpumask_t mask = *(cpumask_t *)cpumask;
- 	int cpu = smp_processor_id();
- 
--	if (cpu_isset(cpu, mask) &&
--	    cpu_isset(cpu, timer_bcast_ipi)) {
--		cpu_clear(cpu, timer_bcast_ipi);
--		enable_APIC_timer();
--	}
-+	if (cpu_isset(cpu, mask) && levt->event_handler)
-+		clockevents_set_global_broadcast(levt, 0);
- }
--EXPORT_SYMBOL(switch_ipi_to_APIC_timer);
-+EXPORT_SYMBOL_GPL(switch_ipi_to_APIC_timer);
- 
- /*
-- * Local timer interrupt handler. It does both profiling and
-- * process statistics/rescheduling.
-+ * The guts of the apic timer interrupt
-  */
--inline void smp_local_timer_interrupt(void)
-+static void local_apic_timer_interrupt(void)
- {
--	profile_tick(CPU_PROFILING);
--#ifdef CONFIG_SMP
--	update_process_times(user_mode_vm(get_irq_regs()));
--#endif
-+	int cpu = smp_processor_id();
-+	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
- 
- 	/*
--	 * We take the 'long' return path, and there every subsystem
--	 * grabs the apropriate locks (kernel lock/ irq lock).
-+	 * Normally we should not be here till LAPIC has been initialized but
-+	 * in some cases like kdump, its possible that there is a pending LAPIC
-+	 * timer interrupt from previous kernel's context and is delivered in
-+	 * new kernel the moment interrupts are enabled.
- 	 *
--	 * we might want to decouple profiling from the 'long path',
--	 * and do the profiling totally in assembly.
-+	 * Interrupts are enabled early and LAPIC is setup much later, hence
-+	 * its possible that when we get here evt->event_handler is NULL.
-+	 * Check for event_handler being NULL and discard the interrupt as
-+	 * spurious.
-+	 */
-+	if (!evt->event_handler) {
-+		printk(KERN_WARNING
-+		       "Spurious LAPIC timer interrupt on cpu %d\n", cpu);
-+		return;
-+	}
-+
-+	/* Normally we should not be here till LAPIC has been initialized
-+	 * but in some cases like kdump, its possible that there is a
-+	 * pending LAPIC timer interrupt from previous kernel's context
-+	 * and is delivered in new kernel the moment interrupts are enabled.
- 	 *
--	 * Currently this isn't too much of an issue (performance wise),
--	 * we can take more than 100K local irqs per second on a 100 MHz P5.
-+	 * Interrupts are enabled early and LAPIC is setup much later, hence
-+	 * its possible that when we get here evt->event_handler is NULL.
-+	 * Check for event_handler being NULL and discard the interrupt
-+	 * as spurious.
- 	 */
-+
-+	if (!evt->event_handler) {
-+		printk("Spurious LAPIC timer interrupt on cpu %d\n", cpu);
-+		return;
-+	}
-+
-+	per_cpu(irq_stat, cpu).apic_timer_irqs++;
-+
-+	evt->event_handler();
- }
- 
- /*
-@@ -445,15 +501,9 @@ inline void smp_local_timer_interrupt(vo
-  *   interrupt as well. Thus we cannot inline the local irq ... ]
-  */
- 
--fastcall void smp_apic_timer_interrupt(struct pt_regs *regs)
-+void fastcall smp_apic_timer_interrupt(struct pt_regs *regs)
- {
- 	struct pt_regs *old_regs = set_irq_regs(regs);
--	int cpu = smp_processor_id();
--
--	/*
--	 * the NMI deadlock-detector uses this.
--	 */
--	per_cpu(irq_stat, cpu).apic_timer_irqs++;
- 
- 	/*
- 	 * NOTE! We'd better ACK the irq immediately,
-@@ -466,42 +516,24 @@ fastcall void smp_apic_timer_interrupt(s
- 	 * interrupt lock, which is the WrongThing (tm) to do.
- 	 */
- 	irq_enter();
--	smp_local_timer_interrupt();
-+	local_apic_timer_interrupt();
- 	irq_exit();
-+
- 	set_irq_regs(old_regs);
- }
- 
--#ifndef CONFIG_SMP
--static void up_apic_timer_interrupt_call(void)
-+/*
-+ * Local APIC set next event broadcast
-+ */
-+void lapic_timer_idle_broadcast(int broadcast)
- {
- 	int cpu = smp_processor_id();
-+	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
- 
--	/*
--	 * the NMI deadlock-detector uses this.
--	 */
--	per_cpu(irq_stat, cpu).apic_timer_irqs++;
--
--	smp_local_timer_interrupt();
--}
--#endif
--
--void smp_send_timer_broadcast_ipi(void)
--{
--	cpumask_t mask;
--
--	cpus_and(mask, cpu_online_map, timer_bcast_ipi);
--	if (!cpus_empty(mask)) {
--#ifdef CONFIG_SMP
--		send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
--#else
--		/*
--		 * We can directly call the apic timer interrupt handler
--		 * in UP case. Minus all irq related functions
--		 */
--		up_apic_timer_interrupt_call();
--#endif
--	}
-+	if (evt->event_handler)
-+		clockevents_set_broadcast(evt, broadcast);
- }
-+EXPORT_SYMBOL_GPL(lapic_timer_idle_broadcast);
- 
- int setup_profiling_timer(unsigned int multiplier)
- {
-@@ -913,6 +945,11 @@ void __devinit setup_local_APIC(void)
- 			printk(KERN_INFO "No ESR for 82489DX.\n");
- 	}
- 
-+	/* Disable the local apic timer */
-+	value = apic_read(APIC_LVTT);
-+	value |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
-+	apic_write_around(APIC_LVTT, value);
-+
- 	setup_apic_nmi_watchdog(NULL);
- 	apic_pm_activate();
- }
-@@ -1127,6 +1164,13 @@ static int __init parse_nolapic(char *ar
- }
- early_param("nolapic", parse_nolapic);
- 
-+static int __init apic_enable_lapic_timer(char *str)
-+{
-+	enable_local_apic_timer = 1;
-+	return 0;
-+}
-+early_param("lapictimer", apic_enable_lapic_timer);
-+
- static int __init apic_set_verbosity(char *str)
- {
- 	if (strcmp("debug", str) == 0)
-@@ -1144,7 +1188,7 @@ __setup("apic=", apic_set_verbosity);
- /*
-  * This interrupt should _never_ happen with our APIC/SMP architecture
-  */
--fastcall void smp_spurious_interrupt(struct pt_regs *regs)
-+void smp_spurious_interrupt(struct pt_regs *regs)
- {
- 	unsigned long v;
- 
-@@ -1168,7 +1212,7 @@ fastcall void smp_spurious_interrupt(str
- /*
-  * This interrupt should never happen with our APIC/SMP architecture
-  */
--fastcall void smp_error_interrupt(struct pt_regs *regs)
-+void smp_error_interrupt(struct pt_regs *regs)
- {
- 	unsigned long v, v1;
- 
-diff -puN arch/i386/kernel/i8253.c~clockevents-i386-drivers arch/i386/kernel/i8253.c
---- a/arch/i386/kernel/i8253.c~clockevents-i386-drivers
-+++ a/arch/i386/kernel/i8253.c
-@@ -2,7 +2,7 @@
-  * i8253.c  8253/PIT functions
-  *
-  */
--#include <linux/clocksource.h>
-+#include <linux/clockchips.h>
- #include <linux/spinlock.h>
- #include <linux/jiffies.h>
- #include <linux/sysdev.h>
-@@ -19,20 +19,92 @@
- DEFINE_SPINLOCK(i8253_lock);
- EXPORT_SYMBOL(i8253_lock);
- 
--void setup_pit_timer(void)
-+/*
-+ * HPET replaces the PIT, when enabled. So we need to know, which of
-+ * the two timers is used
-+ */
-+struct clock_event_device *global_clock_event;
-+
-+/*
-+ * Initialize the PIT timer.
-+ *
-+ * This is also called after resume to bring the PIT into operation again.
-+ */
-+static void init_pit_timer(enum clock_event_mode mode,
-+			   struct clock_event_device *evt)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&i8253_lock, flags);
-+
-+	switch(mode) {
-+	case CLOCK_EVT_PERIODIC:
-+		/* binary, mode 2, LSB/MSB, ch 0 */
-+		outb_p(0x34, PIT_MODE);
-+		udelay(10);
-+		outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
-+		udelay(10);
-+		outb(LATCH >> 8 , PIT_CH0);	/* MSB */
-+		break;
-+
-+	case CLOCK_EVT_ONESHOT:
-+	case CLOCK_EVT_SHUTDOWN:
-+		/* One shot setup */
-+		outb_p(0x38, PIT_MODE);
-+		udelay(10);
-+		break;
-+	}
-+	spin_unlock_irqrestore(&i8253_lock, flags);
-+}
-+
-+/*
-+ * Program the next event in oneshot mode
-+ *
-+ * Delta is given in PIT ticks
-+ */
-+static void pit_next_event(unsigned long delta, struct clock_event_device *evt)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&i8253_lock, flags);
--	outb_p(0x34,PIT_MODE);		/* binary, mode 2, LSB/MSB, ch 0 */
--	udelay(10);
--	outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
--	udelay(10);
--	outb(LATCH >> 8 , PIT_CH0);	/* MSB */
-+	outb_p(delta & 0xff , PIT_CH0);	/* LSB */
-+	outb(delta >> 8 , PIT_CH0);	/* MSB */
- 	spin_unlock_irqrestore(&i8253_lock, flags);
- }
- 
- /*
-+ * On UP the PIT can serve all of the possible timer functions. On SMP systems
-+ * it can be solely used for the global tick.
-+ *
-+ * The profiling and update capabilites are switched off once the local apic is
-+ * registered. This mechanism replaces the previous #ifdef LOCAL_APIC -
-+ * !using_apic_timer decisions in do_timer_interrupt_hook()
-+ */
-+struct clock_event_device pit_clockevent = {
-+	.name		= "pit",
-+	.capabilities	= CLOCK_CAP_TICK | CLOCK_CAP_PROFILE | CLOCK_CAP_UPDATE
-+			| CLOCK_CAP_NEXTEVT,
-+	.set_mode	= init_pit_timer,
-+	.set_next_event = pit_next_event,
-+	.shift		= 32,
-+};
-+
-+/*
-+ * Initialize the conversion factor and the min/max deltas of the clock event
-+ * structure and register the clock event source with the framework.
-+ */
-+void __init setup_pit_timer(void)
-+{
-+	pit_clockevent.mult = div_sc(CLOCK_TICK_RATE, NSEC_PER_SEC, 32);
-+	pit_clockevent.max_delta_ns =
-+		clockevent_delta2ns(0x7FFF, &pit_clockevent);
-+	pit_clockevent.min_delta_ns =
-+		clockevent_delta2ns(0xF, &pit_clockevent);
-+	register_global_clockevent(&pit_clockevent);
-+	global_clock_event = &pit_clockevent;
-+}
-+
-+/*
-  * Since the PIT overflows every tick, its not very useful
-  * to just read by itself. So use jiffies to emulate a free
-  * running counter:
-@@ -46,7 +118,7 @@ static cycle_t pit_read(void)
- 	static u32 old_jifs;
- 
- 	spin_lock_irqsave(&i8253_lock, flags);
--        /*
-+	/*
- 	 * Although our caller may have the read side of xtime_lock,
- 	 * this is now a seqlock, and we are cheating in this routine
- 	 * by having side effects on state that we cannot undo if
-diff -puN arch/i386/kernel/smpboot.c~clockevents-i386-drivers arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~clockevents-i386-drivers
-+++ a/arch/i386/kernel/smpboot.c
-@@ -436,9 +436,7 @@ static void __devinit smp_callin(void)
- 	/*
- 	 * Save our processor parameters
- 	 */
-- 	smp_store_cpu_info(cpuid);
--
--	disable_APIC_timer();
-+	smp_store_cpu_info(cpuid);
- 
- 	/*
- 	 * Allow the master to continue.
-@@ -555,7 +553,6 @@ static void __devinit start_secondary(vo
- 		enable_NMI_through_LVT0(NULL);
- 		enable_8259A_irq(0);
- 	}
--	enable_APIC_timer();
- 	/*
- 	 * low-memory mappings have been cleared, flush them from
- 	 * the local TLBs too.
-diff -puN arch/i386/kernel/time.c~clockevents-i386-drivers arch/i386/kernel/time.c
---- a/arch/i386/kernel/time.c~clockevents-i386-drivers
-+++ a/arch/i386/kernel/time.c
-@@ -161,15 +161,6 @@ EXPORT_SYMBOL(profile_pc);
-  */
- irqreturn_t timer_interrupt(int irq, void *dev_id)
- {
--	/*
--	 * Here we are in the timer irq handler. We just have irqs locally
--	 * disabled but we don't know if the timer_bh is running on the other
--	 * CPU. We need to avoid to SMP race with it. NOTE: we don' t need
--	 * the irq version of write_lock because as just said we have irq
--	 * locally disabled. -arca
--	 */
--	write_seqlock(&xtime_lock);
--
- #ifdef CONFIG_X86_IO_APIC
- 	if (timer_ack) {
- 		/*
-@@ -188,7 +179,6 @@ irqreturn_t timer_interrupt(int irq, voi
- 
- 	do_timer_interrupt_hook();
- 
--
- 	if (MCA_bus) {
- 		/* The PS/2 uses level-triggered interrupts.  You can't
- 		turn them off, nor would you want to (any attempt to
-@@ -203,13 +193,6 @@ irqreturn_t timer_interrupt(int irq, voi
- 		outb_p( irq_v|0x80, 0x61 );	/* reset the IRQ */
- 	}
- 
--	write_sequnlock(&xtime_lock);
--
--#ifdef CONFIG_X86_LOCAL_APIC
--	if (using_apic_timer)
--		smp_send_timer_broadcast_ipi();
--#endif
--
- 	return IRQ_HANDLED;
- }
- 
-@@ -277,39 +260,6 @@ void notify_arch_cmos_timer(void)
- 	mod_timer(&sync_cmos_timer, jiffies + 1);
- }
- 
--static int timer_resume(struct sys_device *dev)
--{
--#ifdef CONFIG_HPET_TIMER
--	if (is_hpet_enabled())
--		hpet_reenable();
--#endif
--	setup_pit_timer();
--	touch_softlockup_watchdog();
--	return 0;
--}
--
--static struct sysdev_class timer_sysclass = {
--	.resume = timer_resume,
--	set_kset_name("timer"),
--};
--
--
--/* XXX this driverfs stuff should probably go elsewhere later -john */
--static struct sys_device device_timer = {
--	.id	= 0,
--	.cls	= &timer_sysclass,
--};
--
--static int time_init_device(void)
--{
--	int error = sysdev_class_register(&timer_sysclass);
--	if (!error)
--		error = sysdev_register(&device_timer);
--	return error;
--}
--
--device_initcall(time_init_device);
--
- #ifdef CONFIG_HPET_TIMER
- extern void (*late_time_init)(void);
- /* Duplicate of time_init() below, with hpet_enable part added */
-diff -puN arch/i386/kernel/time_hpet.c~clockevents-i386-drivers arch/i386/kernel/time_hpet.c
---- a/arch/i386/kernel/time_hpet.c~clockevents-i386-drivers
-+++ a/arch/i386/kernel/time_hpet.c
-@@ -221,11 +221,6 @@ int __init hpet_enable(void)
- 	return 0;
- }
- 
--int hpet_reenable(void)
--{
--	return hpet_timer_stop_set_go(hpet_tick);
--}
--
- int is_hpet_enabled(void)
- {
- 	return use_hpet;
-diff -puN include/asm-i386/apic.h~clockevents-i386-drivers include/asm-i386/apic.h
---- a/include/asm-i386/apic.h~clockevents-i386-drivers
-+++ a/include/asm-i386/apic.h
-@@ -111,13 +111,10 @@ extern void smp_local_timer_interrupt (v
- extern void setup_boot_APIC_clock (void);
- extern void setup_secondary_APIC_clock (void);
- extern int APIC_init_uniprocessor (void);
--extern void disable_APIC_timer(void);
--extern void enable_APIC_timer(void);
--static inline void lapic_timer_idle_broadcast(int broadcast) { }
-+extern void lapic_timer_idle_broadcast(int broadcast);
- 
- extern void enable_NMI_through_LVT0 (void * dummy);
- 
--void smp_send_timer_broadcast_ipi(void);
- void switch_APIC_timer_to_ipi(void *cpumask);
- void switch_ipi_to_APIC_timer(void *cpumask);
- #define ARCH_APICTIMER_STOPS_ON_C3	1
-diff -puN include/asm-i386/hpet.h~clockevents-i386-drivers include/asm-i386/hpet.h
---- a/include/asm-i386/hpet.h~clockevents-i386-drivers
-+++ a/include/asm-i386/hpet.h
-@@ -96,7 +96,6 @@ extern int hpet_use_timer;
- 
- extern int hpet_rtc_timer_init(void);
- extern int hpet_enable(void);
--extern int hpet_reenable(void);
- extern int is_hpet_enabled(void);
- extern int is_hpet_capable(void);
- extern int hpet_readl(unsigned long a);
-diff -puN include/asm-i386/i8253.h~clockevents-i386-drivers include/asm-i386/i8253.h
---- a/include/asm-i386/i8253.h~clockevents-i386-drivers
-+++ a/include/asm-i386/i8253.h
-@@ -1,6 +1,21 @@
- #ifndef __ASM_I8253_H__
- #define __ASM_I8253_H__
- 
-+#include <linux/clockchips.h>
-+
- extern spinlock_t i8253_lock;
- 
-+extern struct clock_event_device *global_clock_event;
-+
-+/**
-+ * pit_interrupt_hook - hook into timer tick
-+ * @regs:	standard registers from interrupt
-+ *
-+ * Call the global clock event handler.
-+ **/
-+static inline void pit_interrupt_hook(void)
-+{
-+	global_clock_event->event_handler();
-+}
-+
- #endif	/* __ASM_I8253_H__ */
-diff -puN include/asm-i386/mach-default/do_timer.h~clockevents-i386-drivers include/asm-i386/mach-default/do_timer.h
---- a/include/asm-i386/mach-default/do_timer.h~clockevents-i386-drivers
-+++ a/include/asm-i386/mach-default/do_timer.h
-@@ -1,36 +1,18 @@
- /* defines for inline arch setup functions */
-+#include <linux/clockchips.h>
- 
--#include <asm/apic.h>
- #include <asm/i8259.h>
-+#include <asm/i8253.h>
+ };
  
  /**
-  * do_timer_interrupt_hook - hook into timer tick
-- * @regs:	standard registers from interrupt
-  *
-- * Description:
-- *	This hook is called immediately after the timer interrupt is ack'd.
-- *	It's primary purpose is to allow architectures that don't possess
-- *	individual per CPU clocks (like the CPU APICs supply) to broadcast the
-- *	timer interrupt as a means of triggering reschedules etc.
-+ * Call the pit clock event handler. see asm/i8253.h
-  **/
+@@ -333,4 +344,44 @@ static inline void show_no_hz_stats(stru
+ /* Bootup initialization: */
+ extern void __init hrtimers_init(void);
  
- static inline void do_timer_interrupt_hook(void)
- {
--	do_timer(1);
--#ifndef CONFIG_SMP
--	update_process_times(user_mode_vm(get_irq_regs()));
--#endif
--/*
-- * In the SMP case we use the local APIC timer interrupt to do the
-- * profiling, except when we simulate SMP mode on a uniprocessor
-- * system, in that case we have to call the local interrupt handler.
-- */
--#ifndef CONFIG_X86_LOCAL_APIC
--	profile_tick(CPU_PROFILING);
--#else
--	if (!using_apic_timer)
--		smp_local_timer_interrupt();
--#endif
-+	pit_interrupt_hook();
- }
- 
- 
-diff -puN include/asm-i386/mach-voyager/do_timer.h~clockevents-i386-drivers include/asm-i386/mach-voyager/do_timer.h
---- a/include/asm-i386/mach-voyager/do_timer.h~clockevents-i386-drivers
-+++ a/include/asm-i386/mach-voyager/do_timer.h
-@@ -1,13 +1,18 @@
- /* defines for inline arch setup functions */
-+#include <linux/clockchips.h>
++/*
++ * Timer-statistics info:
++ */
++#ifdef CONFIG_TIMER_STATS
 +
- #include <asm/voyager.h>
-+#include <asm/i8253.h>
++extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
++				     void *timerf, char * comm);
++
++static inline void timer_stats_account_hrtimer(struct hrtimer *timer)
++{
++	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
++				 timer->function, timer->start_comm);
++}
++
++extern void __timer_stats_hrtimer_set_start_info(struct hrtimer *timer,
++						 void *addr);
++
++static inline void timer_stats_hrtimer_set_start_info(struct hrtimer *timer)
++{
++	__timer_stats_hrtimer_set_start_info(timer, __builtin_return_address(0));
++}
++
++static inline void timer_stats_hrtimer_clear_start_info(struct hrtimer *timer)
++{
++	timer->start_site = NULL;
++}
++#else
++static inline void timer_stats_account_hrtimer(struct hrtimer *timer)
++{
++}
++
++static inline void timer_stats_hrtimer_set_start_info(struct hrtimer *timer)
++{
++}
++
++static inline void timer_stats_hrtimer_clear_start_info(struct hrtimer *timer)
++{
++}
++#endif
++
+ #endif
+diff -puN include/linux/timer.h~debugging-feature-add-proc-timer_stat include/linux/timer.h
+--- a/include/linux/timer.h~debugging-feature-add-proc-timer_stat
++++ a/include/linux/timer.h
+@@ -2,6 +2,7 @@
+ #define _LINUX_TIMER_H
  
-+/**
-+ * do_timer_interrupt_hook - hook into timer tick
-+ * @regs:     standard registers from interrupt
+ #include <linux/list.h>
++#include <linux/ktime.h>
+ #include <linux/spinlock.h>
+ #include <linux/stddef.h>
+ 
+@@ -15,6 +16,11 @@ struct timer_list {
+ 	unsigned long data;
+ 
+ 	struct tvec_t_base_s *base;
++#ifdef CONFIG_TIMER_STATS
++	void *start_site;
++	char start_comm[16];
++	int start_pid;
++#endif
+ };
+ 
+ extern struct tvec_t_base_s boot_tvec_bases;
+@@ -73,6 +79,55 @@ extern unsigned long next_timer_interrup
+  */
+ extern unsigned long get_next_timer_interrupt(unsigned long now);
+ 
++/*
++ * Timer-statistics info:
++ */
++#ifdef CONFIG_TIMER_STATS
++
++extern void init_timer_stats(void);
++
++extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
++				     void *timerf, char * comm);
++
++static inline void timer_stats_account_timer(struct timer_list *timer)
++{
++	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
++				 timer->function, timer->start_comm);
++}
++
++extern void __timer_stats_timer_set_start_info(struct timer_list *timer,
++					       void *addr);
++
++static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
++{
++	__timer_stats_timer_set_start_info(timer, __builtin_return_address(0));
++}
++
++static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
++{
++	timer->start_site = NULL;
++}
++#else
++static inline void init_timer_stats(void)
++{
++}
++
++static inline void timer_stats_account_timer(struct timer_list *timer)
++{
++}
++
++static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
++{
++}
++
++static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
++{
++}
++#endif
++
++extern void delayed_work_timer_fn(unsigned long __data);
++
++
+ /***
+  * add_timer - start a timer
+  * @timer: the timer to be added
+diff -puN kernel/hrtimer.c~debugging-feature-add-proc-timer_stat kernel/hrtimer.c
+--- a/kernel/hrtimer.c~debugging-feature-add-proc-timer_stat
++++ a/kernel/hrtimer.c
+@@ -984,6 +984,18 @@ static inline void hrtimer_resume_jiffy_
+ 
+ #endif /* CONFIG_HIGH_RES_TIMERS */
+ 
++#ifdef CONFIG_TIMER_STATS
++void __timer_stats_hrtimer_set_start_info(struct hrtimer *timer, void *addr)
++{
++	if (timer->start_site)
++		return;
++
++	timer->start_site = addr;
++	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
++	timer->start_pid = current->pid;
++}
++#endif
++
+ /*
+  * Timekeeping resumed notification
+  */
+@@ -1152,6 +1164,7 @@ remove_hrtimer(struct hrtimer *timer, st
+ 		 * reprogramming happens in the interrupt handler. This is a
+ 		 * rare case and less expensive than a smp call.
+ 		 */
++		timer_stats_hrtimer_clear_start_info(timer);
+ 		reprogram = base->cpu_base == &__get_cpu_var(hrtimer_bases);
+ 		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE,
+ 				 reprogram);
+@@ -1200,6 +1213,8 @@ hrtimer_start(struct hrtimer *timer, kti
+ 	}
+ 	timer->expires = tim;
+ 
++	timer_stats_hrtimer_set_start_info(timer);
++
+ 	enqueue_hrtimer(timer, new_base, base == new_base);
+ 
+ 	unlock_hrtimer_base(timer, &flags);
+@@ -1332,6 +1347,12 @@ void hrtimer_init(struct hrtimer *timer,
+ 
+ 	timer->base = &cpu_base->clock_base[clock_id];
+ 	hrtimer_init_timer_hres(timer);
++
++#ifdef CONFIG_TIMER_STATS
++	timer->start_site = NULL;
++	timer->start_pid = -1;
++	memset(timer->start_comm, 0, TASK_COMM_LEN);
++#endif
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_init);
+ 
+@@ -1412,6 +1433,7 @@ void hrtimer_interrupt(void)
+ 
+ 			__remove_hrtimer(timer, base,
+ 					 HRTIMER_STATE_CALLBACK, 0);
++			timer_stats_account_hrtimer(timer);
+ 
+ 			/*
+ 			 * Note: We clear the CALLBACK bit after
+@@ -1456,6 +1478,8 @@ static void run_hrtimer_softirq(struct s
+ 		timer = list_entry(cpu_base->cb_pending.next,
+ 				   struct hrtimer, cb_entry);
+ 
++		timer_stats_account_hrtimer(timer);
++
+ 		fn = timer->function;
+ 		__remove_hrtimer(timer, timer->base, HRTIMER_STATE_CALLBACK, 0);
+ 		spin_unlock_irq(&cpu_base->lock);
+@@ -1512,6 +1536,8 @@ static inline void run_hrtimer_queue(str
+ 		if (base->softirq_time.tv64 <= timer->expires.tv64)
+ 			break;
+ 
++		timer_stats_account_hrtimer(timer);
++
+ 		fn = timer->function;
+ 		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK, 0);
+ 		spin_unlock_irq(&cpu_base->lock);
+diff -puN kernel/time/Makefile~debugging-feature-add-proc-timer_stat kernel/time/Makefile
+--- a/kernel/time/Makefile~debugging-feature-add-proc-timer_stat
++++ a/kernel/time/Makefile
+@@ -1,3 +1,4 @@
+ obj-y += ntp.o clocksource.o jiffies.o
+ 
+-obj-$(CONFIG_GENERIC_CLOCKEVENTS) += clockevents.o
++obj-$(CONFIG_GENERIC_CLOCKEVENTS)	+= clockevents.o
++obj-$(CONFIG_TIMER_STATS)		+= timer_stats.o
+diff -puN /dev/null kernel/time/timer_stats.c
+--- /dev/null
++++ a/kernel/time/timer_stats.c
+@@ -0,0 +1,411 @@
++/*
++ * kernel/time/timer_stats.c
 + *
-+ * Call the pit clock event handler. see asm/i8253.h
-+ **/
- static inline void do_timer_interrupt_hook(void)
- {
--	do_timer(1);
--#ifndef CONFIG_SMP
--	update_process_times(user_mode_vm(irq_regs));
--#endif
--
-+	pit_interrupt_hook(get_irq_regs());
- 	voyager_timer_interrupt();
++ * Collect timer usage statistics.
++ *
++ * Copyright(C) 2006, Red Hat, Inc., Ingo Molnar
++ * Copyright(C) 2006 Timesys Corp., Thomas Gleixner <tglx@timesys.com>
++ *
++ * timer_stats is based on timer_top, a similar functionality which was part of
++ * Con Kolivas dyntick patch set. It was developed by Daniel Petrini at the
++ * Instituto Nokia de Tecnologia - INdT - Manaus. timer_top's design was based
++ * on dynamic allocation of the statistics entries and linear search based
++ * lookup combined with a global lock, rather than the static array, hash
++ * and per-CPU locking which is used by timer_stats. It was written for the
++ * pre hrtimer kernel code and therefore did not take hrtimers into account.
++ * Nevertheless it provided the base for the timer_stats implementation and
++ * was a helpful source of inspiration. Kudos to Daniel and the Nokia folks
++ * for this effort.
++ *
++ * timer_top.c is
++ *	Copyright (C) 2005 Instituto Nokia de Tecnologia - INdT - Manaus
++ *	Written by Daniel Petrini <d.pensator@gmail.com>
++ *	timer_top.c was released under the GNU General Public License version 2
++ *
++ * We export the addresses and counting of timer functions being called,
++ * the pid and cmdline from the owner process if applicable.
++ *
++ * Start/stop data collection:
++ * # echo 1[0] >/proc/timer_stats
++ *
++ * Display the information collected so far:
++ * # cat /proc/timer_stats
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/proc_fs.h>
++#include <linux/module.h>
++#include <linux/spinlock.h>
++#include <linux/sched.h>
++#include <linux/seq_file.h>
++#include <linux/kallsyms.h>
++
++#include <asm/uaccess.h>
++
++/*
++ * This is our basic unit of interest: a timer expiry event identified
++ * by the timer, its start/expire functions and the PID of the task that
++ * started the timer. We count the number of times an event happens:
++ */
++struct entry {
++	/*
++	 * Hash list:
++	 */
++	struct entry		*next;
++
++	/*
++	 * Hash keys:
++	 */
++	void			*timer;
++	void			*start_func;
++	void			*expire_func;
++	pid_t			pid;
++
++	/*
++	 * Number of timeout events:
++	 */
++	unsigned long		count;
++
++	/*
++	 * We save the command-line string to preserve
++	 * this information past task exit:
++	 */
++	char			comm[TASK_COMM_LEN + 1];
++
++} ____cacheline_aligned_in_smp;
++
++/*
++ * Spinlock protecting the tables - not taken during lookup:
++ */
++static DEFINE_SPINLOCK(table_lock);
++
++/*
++ * Per-CPU lookup locks for fast hash lookup:
++ */
++static DEFINE_PER_CPU(spinlock_t, lookup_lock);
++
++/*
++ * Mutex to serialize state changes with show-stats activities:
++ */
++static DEFINE_MUTEX(show_mutex);
++
++/*
++ * Collection status, active/inactive:
++ */
++static int __read_mostly active;
++
++/*
++ * Beginning/end timestamps of measurement:
++ */
++static ktime_t time_start, time_stop;
++
++/*
++ * tstat entry structs only get allocated while collection is
++ * active and never freed during that time - this simplifies
++ * things quite a bit.
++ *
++ * They get freed when a new collection period is started.
++ */
++#define MAX_ENTRIES_BITS	10
++#define MAX_ENTRIES		(1UL << MAX_ENTRIES_BITS)
++
++unsigned long nr_entries;
++static struct entry entries[MAX_ENTRIES];
++
++static atomic_t overflow_count;
++
++static void reset_entries(void)
++{
++	nr_entries = 0;
++	memset(entries, 0, sizeof(entries));
++	atomic_set(&overflow_count, 0);
++}
++
++static struct entry *alloc_entry(void)
++{
++	if (nr_entries >= MAX_ENTRIES)
++		return NULL;
++
++	return entries + nr_entries++;
++}
++
++/*
++ * The entries are in a hash-table, for fast lookup:
++ */
++#define TSTAT_HASH_BITS		(MAX_ENTRIES_BITS - 1)
++#define TSTAT_HASH_SIZE		(1UL << TSTAT_HASH_BITS)
++#define TSTAT_HASH_MASK		(TSTAT_HASH_SIZE - 1)
++
++#define __tstat_hashfn(entry)						\
++	(((unsigned long)(entry)->timer       ^				\
++	  (unsigned long)(entry)->start_func  ^				\
++	  (unsigned long)(entry)->expire_func ^				\
++	  (unsigned long)(entry)->pid		) & TSTAT_HASH_MASK)
++
++#define tstat_hashentry(entry)	(tstat_hash_table + __tstat_hashfn(entry))
++
++static struct entry *tstat_hash_table[TSTAT_HASH_SIZE] __read_mostly;
++
++static int match_entries(struct entry *entry1, struct entry *entry2)
++{
++	return entry1->timer       == entry2->timer	  &&
++	       entry1->start_func  == entry2->start_func  &&
++	       entry1->expire_func == entry2->expire_func &&
++	       entry1->pid	   == entry2->pid;
++}
++
++/*
++ * Look up whether an entry matching this item is present
++ * in the hash already. Must be called with irqs off and the
++ * lookup lock held:
++ */
++static struct entry *tstat_lookup(struct entry *entry, char *comm)
++{
++	struct entry **head, *curr, *prev;
++
++	head = tstat_hashentry(entry);
++	curr = *head;
++
++	/*
++	 * The fastpath is when the entry is already hashed,
++	 * we do this with the lookup lock held, but with the
++	 * table lock not held:
++	 */
++	while (curr) {
++		if (match_entries(curr, entry))
++			return curr;
++
++		curr = curr->next;
++	}
++	/*
++	 * Slowpath: allocate, set up and link a new hash entry:
++	 */
++	prev = NULL;
++	curr = *head;
++
++	spin_lock(&table_lock);
++	/*
++	 * Make sure we have not raced with another CPU:
++	 */
++	while (curr) {
++		if (match_entries(curr, entry))
++			goto out_unlock;
++
++		prev = curr;
++		curr = curr->next;
++	}
++
++	curr = alloc_entry();
++	if (curr) {
++		*curr = *entry;
++		curr->count = 0;
++		memcpy(curr->comm, comm, TASK_COMM_LEN);
++		if (prev)
++			prev->next = curr;
++		else
++			*head = curr;
++		curr->next = NULL;
++	}
++ out_unlock:
++	spin_unlock(&table_lock);
++
++	return curr;
++}
++
++/**
++ * timer_stats_update_stats - Update the statistics for a timer.
++ * @timer:	pointer to either a timer_list or a hrtimer
++ * @pid:	the pid of the task which set up the timer
++ * @startf:	pointer to the function which did the timer setup
++ * @timerf:	pointer to the timer callback function of the timer
++ * @comm:	name of the process which set up the timer
++ *
++ * When the timer is already registered, then the event counter is
++ * incremented. Otherwise the timer is registered in a free slot.
++ */
++void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
++			      void *timerf, char * comm)
++{
++	/*
++	 * It doesnt matter which lock we take:
++	 */
++	spinlock_t *lock = &per_cpu(lookup_lock, raw_smp_processor_id());
++	struct entry *entry, input;
++	unsigned long flags;
++
++	input.timer = timer;
++	input.start_func = startf;
++	input.expire_func = timerf;
++	input.pid = pid;
++
++	spin_lock_irqsave(lock, flags);
++	if (!active)
++		goto out_unlock;
++
++	entry = tstat_lookup(&input, comm);
++	if (likely(entry))
++		entry->count++;
++	else
++		atomic_inc(&overflow_count);
++
++ out_unlock:
++	spin_unlock_irqrestore(lock, flags);
++}
++
++static void print_name_offset(struct seq_file *m, unsigned long addr)
++{
++	char namebuf[KSYM_NAME_LEN+1];
++	unsigned long size, offset;
++	const char *sym_name;
++	char *modname;
++
++	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	if (sym_name)
++		seq_printf(m, "%s", sym_name);
++	else
++		seq_printf(m, "<%p>", (void *)addr);
++}
++
++static int tstats_show(struct seq_file *m, void *v)
++{
++	struct timespec period;
++	struct entry *entry;
++	unsigned long ms;
++	long events = 0;
++	ktime_t time;
++	int i;
++
++	mutex_lock(&show_mutex);
++	/*
++	 * If still active then calculate up to now:
++	 */
++	if (active)
++		time_stop = ktime_get();
++
++	time = ktime_sub(time_stop, time_start);
++
++	period = ktime_to_timespec(time);
++	ms = period.tv_nsec / 1000000;
++
++	seq_puts(m, "Timer Stats Version: v0.1\n");
++	seq_printf(m, "Sample period: %ld.%03ld s\n", period.tv_sec, ms);
++	if (atomic_read(&overflow_count))
++		seq_printf(m, "Overflow: %d entries\n",
++			atomic_read(&overflow_count));
++
++	for (i = 0; i < nr_entries; i++) {
++		entry = entries + i;
++		seq_printf(m, "%4lu, %5d %-16s ",
++				entry->count, entry->pid, entry->comm);
++
++		print_name_offset(m, (unsigned long)entry->start_func);
++		seq_puts(m, " (");
++		print_name_offset(m, (unsigned long)entry->expire_func);
++		seq_puts(m, ")\n");
++
++		events += entry->count;
++	}
++
++	ms += period.tv_sec * 1000;
++	if (!ms)
++		ms = 1;
++
++	if (events && period.tv_sec)
++		seq_printf(m, "%ld total events, %ld.%ld events/sec\n", events,
++			   events / period.tv_sec, events * 1000 / ms);
++	else
++		seq_printf(m, "%ld total events\n", events);
++
++	mutex_unlock(&show_mutex);
++
++	return 0;
++}
++
++/*
++ * After a state change, make sure all concurrent lookup/update
++ * activities have stopped:
++ */
++static void sync_access(void)
++{
++	unsigned long flags;
++	int cpu;
++
++	for_each_online_cpu(cpu) {
++		spin_lock_irqsave(&per_cpu(lookup_lock, cpu), flags);
++		/* nothing */
++		spin_unlock_irqrestore(&per_cpu(lookup_lock, cpu), flags);
++	}
++}
++
++static ssize_t tstats_write(struct file *file, const char __user *buf,
++			    size_t count, loff_t *offs)
++{
++	char ctl[2];
++
++	if (count != 2 || *offs)
++		return -EINVAL;
++
++	if (copy_from_user(ctl, buf, count))
++		return -EFAULT;
++
++	mutex_lock(&show_mutex);
++	switch (ctl[0]) {
++	case '0':
++		if (active) {
++			active = 0;
++			time_stop = ktime_get();
++			sync_access();
++		}
++		break;
++	case '1':
++		if (!active) {
++			reset_entries();
++			time_start = ktime_get();
++			active = 1;
++		}
++		break;
++	default:
++		count = -EINVAL;
++	}
++	mutex_unlock(&show_mutex);
++
++	return count;
++}
++
++static int tstats_open(struct inode *inode, struct file *filp)
++{
++	return single_open(filp, tstats_show, NULL);
++}
++
++static struct file_operations tstats_fops = {
++	.open		= tstats_open,
++	.read		= seq_read,
++	.write		= tstats_write,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
++void __init init_timer_stats(void)
++{
++	int cpu;
++
++	for_each_possible_cpu(cpu)
++		spin_lock_init(&per_cpu(lookup_lock, cpu));
++}
++
++static int __init init_tstats_procfs(void)
++{
++	struct proc_dir_entry *pe;
++
++	pe = create_proc_entry("timer_stats", 0644, NULL);
++	if (!pe)
++		return -ENOMEM;
++
++	pe->proc_fops = &tstats_fops;
++
++	return 0;
++}
++__initcall(init_tstats_procfs);
+diff -puN kernel/timer.c~debugging-feature-add-proc-timer_stat kernel/timer.c
+--- a/kernel/timer.c~debugging-feature-add-proc-timer_stat
++++ a/kernel/timer.c
+@@ -34,6 +34,7 @@
+ #include <linux/cpu.h>
+ #include <linux/syscalls.h>
+ #include <linux/delay.h>
++#include <linux/kallsyms.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+@@ -262,6 +263,18 @@ static void internal_add_timer(tvec_base
+ 	list_add_tail(&timer->entry, vec);
  }
  
-diff -puN include/asm-i386/mpspec.h~clockevents-i386-drivers include/asm-i386/mpspec.h
---- a/include/asm-i386/mpspec.h~clockevents-i386-drivers
-+++ a/include/asm-i386/mpspec.h
-@@ -23,7 +23,6 @@ extern struct mpc_config_intsrc mp_irqs 
- extern int mpc_default_type;
- extern unsigned long mp_lapic_addr;
- extern int pic_mode;
--extern int using_apic_timer;
++#ifdef CONFIG_TIMER_STATS
++void __timer_stats_timer_set_start_info(struct timer_list *timer, void *addr)
++{
++	if (timer->start_site)
++		return;
++
++	timer->start_site = addr;
++	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
++	timer->start_pid = current->pid;
++}
++#endif
++
+ /**
+  * init_timer - initialize a timer.
+  * @timer: the timer to be initialized
+@@ -273,11 +286,16 @@ void fastcall init_timer(struct timer_li
+ {
+ 	timer->entry.next = NULL;
+ 	timer->base = __raw_get_cpu_var(tvec_bases);
++#ifdef CONFIG_TIMER_STATS
++	timer->start_site = NULL;
++	timer->start_pid = -1;
++	memset(timer->start_comm, 0, TASK_COMM_LEN);
++#endif
+ }
+ EXPORT_SYMBOL(init_timer);
  
- #ifdef CONFIG_ACPI
- extern void mp_register_lapic (u8 id, u8 enabled);
+ static inline void detach_timer(struct timer_list *timer,
+-					int clear_pending)
++				int clear_pending)
+ {
+ 	struct list_head *entry = &timer->entry;
+ 
+@@ -324,6 +342,7 @@ int __mod_timer(struct timer_list *timer
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
++	timer_stats_timer_set_start_info(timer);
+ 	BUG_ON(!timer->function);
+ 
+ 	base = lock_timer_base(timer, &flags);
+@@ -374,6 +393,7 @@ void add_timer_on(struct timer_list *tim
+ 	tvec_base_t *base = per_cpu(tvec_bases, cpu);
+   	unsigned long flags;
+ 
++	timer_stats_timer_set_start_info(timer);
+   	BUG_ON(timer_pending(timer) || !timer->function);
+ 	spin_lock_irqsave(&base->lock, flags);
+ 	timer->base = base;
+@@ -406,6 +426,7 @@ int mod_timer(struct timer_list *timer, 
+ {
+ 	BUG_ON(!timer->function);
+ 
++	timer_stats_timer_set_start_info(timer);
+ 	/*
+ 	 * This is a common optimization triggered by the
+ 	 * networking code - if the timer is re-modified
+@@ -436,6 +457,7 @@ int del_timer(struct timer_list *timer)
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
++	timer_stats_timer_clear_start_info(timer);
+ 	if (timer_pending(timer)) {
+ 		base = lock_timer_base(timer, &flags);
+ 		if (timer_pending(timer)) {
+@@ -569,6 +591,8 @@ static inline void __run_timers(tvec_bas
+  			fn = timer->function;
+  			data = timer->data;
+ 
++			timer_stats_account_timer(timer);
++
+ 			set_running_timer(base, timer);
+ 			detach_timer(timer, 1);
+ 			spin_unlock_irq(&base->lock);
+@@ -1254,7 +1278,8 @@ static void run_timer_softirq(struct sof
+ {
+ 	tvec_base_t *base = __get_cpu_var(tvec_bases);
+ 
+- 	hrtimer_run_queues();
++	hrtimer_run_queues();
++
+ 	if (time_after_eq(jiffies, base->timer_jiffies))
+ 		__run_timers(base);
+ }
+@@ -1693,6 +1718,8 @@ void __init init_timers(void)
+ 	int err = timer_cpu_notify(&timers_nb, (unsigned long)CPU_UP_PREPARE,
+ 				(void *)(long)smp_processor_id());
+ 
++	init_timer_stats();
++
+ 	BUG_ON(err == NOTIFY_BAD);
+ 	register_cpu_notifier(&timers_nb);
+ 	open_softirq(TIMER_SOFTIRQ, run_timer_softirq, NULL);
+diff -puN kernel/workqueue.c~debugging-feature-add-proc-timer_stat kernel/workqueue.c
+--- a/kernel/workqueue.c~debugging-feature-add-proc-timer_stat
++++ a/kernel/workqueue.c
+@@ -218,7 +218,7 @@ int fastcall queue_work(struct workqueue
+ }
+ EXPORT_SYMBOL_GPL(queue_work);
+ 
+-static void delayed_work_timer_fn(unsigned long __data)
++void delayed_work_timer_fn(unsigned long __data)
+ {
+ 	struct delayed_work *dwork = (struct delayed_work *)__data;
+ 	struct workqueue_struct *wq = get_wq_data(&dwork->work);
+@@ -245,6 +245,7 @@ int fastcall queue_delayed_work(struct w
+ 	struct timer_list *timer = &dwork->timer;
+ 	struct work_struct *work = &dwork->work;
+ 
++	timer_stats_timer_set_start_info(timer);
+ 	if (delay == 0)
+ 		return queue_work(wq, work);
+ 
+@@ -593,8 +594,10 @@ EXPORT_SYMBOL(schedule_work);
+  * After waiting for a given time this puts a job in the kernel-global
+  * workqueue.
+  */
+-int fastcall schedule_delayed_work(struct delayed_work *dwork, unsigned long delay)
++int fastcall schedule_delayed_work(struct delayed_work *dwork,
++					unsigned long delay)
+ {
++	timer_stats_timer_set_start_info(&dwork->timer);
+ 	return queue_delayed_work(keventd_wq, dwork, delay);
+ }
+ EXPORT_SYMBOL(schedule_delayed_work);
+diff -puN lib/Kconfig.debug~debugging-feature-add-proc-timer_stat lib/Kconfig.debug
+--- a/lib/Kconfig.debug~debugging-feature-add-proc-timer_stat
++++ a/lib/Kconfig.debug
+@@ -125,6 +125,17 @@ config SCHEDSTATS
+ 	  application, you can say N to avoid the very slight overhead
+ 	  this adds.
+ 
++config TIMER_STATS
++	bool "Collect kernel timers statistics"
++	depends on DEBUG_KERNEL && PROC_FS
++	help
++	  If you say Y here, additional code will be inserted into the
++	  timer routines to collect statistics about kernel timers being
++	  reprogrammed. The statistics can be read from /proc/timer_stats.
++	  The statistics collection is started by writing 1 to /proc/timer_stats,
++	  writing 0 stops it. This feature is useful to collect information
++	  about timer usage patterns in kernel and userspace.
++
+ config DEBUG_SLAB
+ 	bool "Debug slab memory allocations"
+ 	depends on DEBUG_KERNEL && SLAB
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-git-mtd.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+optimize-calc_load.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
 gtod-uninline-jiffiesh.patch
 gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
 gtod-fix-timeout-overflow.patch
@@ -987,4 +1021,22 @@ dynticks-i386-support-idle-handler-callbacks.patch
 dynticks-i386-prepare-nmi-watchdog.patch
 high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
