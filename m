@@ -1,84 +1,159 @@
 From: akpm@osdl.org
-Subject: - md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:54:57 -0800
-Message-ID: <200612130654.kBD6svID030591@shell0.pdx.osdl.net>
+Subject: - md-remove-some-old-ifdefed-out-code-from-raid5c.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:55:01 -0800
+Message-ID: <200612130655.kBD6t1xf030599@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57700 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57707 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965015AbWLMGzB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:55:01 -0500
+	id S965020AbWLMGzF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:55:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix innocuous bug in raid6 stripe_to_pdidx
+     md: remove some old ifdefed-out code from raid5.c
 has been removed from the -mm tree.  Its filename was
-     md-fix-innocuous-bug-in-raid6-stripe_to_pdidx.patch
+     md-remove-some-old-ifdefed-out-code-from-raid5c.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: fix innocuous bug in raid6 stripe_to_pdidx
+Subject: md: remove some old ifdefed-out code from raid5.c
 From: NeilBrown <neilb@suse.de>
 
-stripe_to_pdidx finds the index of the parity disk for a given stripe.  It
-assumes raid5 in that it uses "disks-1" to determine the number of data disks.
+There are some vestiges of old code that was used for bypassing the stripe
+cache on reads in raid5.c.  This was never updated after the change from
+buffer_heads to bios, but was left as a reminder.
 
-This is incorrect for raid6 but fortunately the two usages cancel each other
-out.  The only way that 'data_disks' affects the calculation of pd_idx in
-raid5_compute_sector is when it is divided into the sector number.  But as
-that sector number is calculated by multiplying in the wrong value of
-'data_disks' the division produces the right value.
-
-So it is innocuous but needs to be fixed.
-
-Also change the calculation of raid_disks in compute_blocknr to make it
-more obviously correct (it seems at first to always use disks-1 too).
+That functionality has nowe been implemented in a completely different way, so
+the old code can go.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/raid5.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/md/raid5.c |   63 -------------------------------------------
+ 1 file changed, 63 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-fix-innocuous-bug-in-raid6-stripe_to_pdidx drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-innocuous-bug-in-raid6-stripe_to_pdidx
+diff -puN drivers/md/raid5.c~md-remove-some-old-ifdefed-out-code-from-raid5c drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-remove-some-old-ifdefed-out-code-from-raid5c
 +++ a/drivers/md/raid5.c
-@@ -823,7 +823,8 @@ static sector_t raid5_compute_sector(sec
- static sector_t compute_blocknr(struct stripe_head *sh, int i)
- {
- 	raid5_conf_t *conf = sh->raid_conf;
--	int raid_disks = sh->disks, data_disks = raid_disks - 1;
-+	int raid_disks = sh->disks;
-+	int data_disks = raid_disks - conf->max_degraded;
- 	sector_t new_sector = sh->sector, check;
- 	int sectors_per_chunk = conf->chunk_size >> 9;
- 	sector_t stripe;
-@@ -859,7 +860,6 @@ static sector_t compute_blocknr(struct s
+@@ -544,35 +544,7 @@ static int raid5_end_read_request(struct
+ 	}
+ 
+ 	if (uptodate) {
+-#if 0
+-		struct bio *bio;
+-		unsigned long flags;
+-		spin_lock_irqsave(&conf->device_lock, flags);
+-		/* we can return a buffer if we bypassed the cache or
+-		 * if the top buffer is not in highmem.  If there are
+-		 * multiple buffers, leave the extra work to
+-		 * handle_stripe
+-		 */
+-		buffer = sh->bh_read[i];
+-		if (buffer &&
+-		    (!PageHighMem(buffer->b_page)
+-		     || buffer->b_page == bh->b_page )
+-			) {
+-			sh->bh_read[i] = buffer->b_reqnext;
+-			buffer->b_reqnext = NULL;
+-		} else
+-			buffer = NULL;
+-		spin_unlock_irqrestore(&conf->device_lock, flags);
+-		if (sh->bh_page[i]==bh->b_page)
+-			set_buffer_uptodate(bh);
+-		if (buffer) {
+-			if (buffer->b_page != bh->b_page)
+-				memcpy(buffer->b_data, bh->b_data, bh->b_size);
+-			buffer->b_end_io(buffer, 1);
+-		}
+-#else
+ 		set_bit(R5_UPTODATE, &sh->dev[i].flags);
+-#endif
+ 		if (test_bit(R5_ReadError, &sh->dev[i].flags)) {
+ 			rdev = conf->disks[i].rdev;
+ 			printk(KERN_INFO "raid5:%s: read error corrected (%lu sectors at %llu on %s)\n",
+@@ -618,14 +590,6 @@ static int raid5_end_read_request(struct
  		}
- 		break;
- 	case 6:
--		data_disks = raid_disks - 2;
- 		if (i == raid6_next_disk(sh->pd_idx, raid_disks))
- 			return 0; /* It is the Q disk */
- 		switch (conf->algorithm) {
-@@ -1355,8 +1355,10 @@ static int stripe_to_pdidx(sector_t stri
- 	int pd_idx, dd_idx;
- 	int chunk_offset = sector_div(stripe, sectors_per_chunk);
- 
--	raid5_compute_sector(stripe*(disks-1)*sectors_per_chunk
--			     + chunk_offset, disks, disks-1, &dd_idx, &pd_idx, conf);
-+	raid5_compute_sector(stripe * (disks - conf->max_degraded)
-+			     *sectors_per_chunk + chunk_offset,
-+			     disks, disks - conf->max_degraded,
-+			     &dd_idx, &pd_idx, conf);
- 	return pd_idx;
- }
- 
+ 	}
+ 	rdev_dec_pending(conf->disks[i].rdev, conf->mddev);
+-#if 0
+-	/* must restore b_page before unlocking buffer... */
+-	if (sh->bh_page[i] != bh->b_page) {
+-		bh->b_page = sh->bh_page[i];
+-		bh->b_data = page_address(bh->b_page);
+-		clear_buffer_uptodate(bh);
+-	}
+-#endif
+ 	clear_bit(R5_LOCKED, &sh->dev[i].flags);
+ 	set_bit(STRIPE_HANDLE, &sh->state);
+ 	release_stripe(sh);
+@@ -1619,15 +1583,6 @@ static void handle_stripe5(struct stripe
+ 				} else if (test_bit(R5_Insync, &dev->flags)) {
+ 					set_bit(R5_LOCKED, &dev->flags);
+ 					set_bit(R5_Wantread, &dev->flags);
+-#if 0
+-					/* if I am just reading this block and we don't have
+-					   a failed drive, or any pending writes then sidestep the cache */
+-					if (sh->bh_read[i] && !sh->bh_read[i]->b_reqnext &&
+-					    ! syncing && !failed && !to_write) {
+-						sh->bh_cache[i]->b_page =  sh->bh_read[i]->b_page;
+-						sh->bh_cache[i]->b_data =  sh->bh_read[i]->b_data;
+-					}
+-#endif
+ 					locked++;
+ 					PRINTK("Reading block %d (sync=%d)\n", 
+ 						i, syncing);
+@@ -1645,9 +1600,6 @@ static void handle_stripe5(struct stripe
+ 			dev = &sh->dev[i];
+ 			if ((dev->towrite || i == sh->pd_idx) &&
+ 			    (!test_bit(R5_LOCKED, &dev->flags) 
+-#if 0
+-|| sh->bh_page[i]!=bh->b_page
+-#endif
+ 				    ) &&
+ 			    !test_bit(R5_UPTODATE, &dev->flags)) {
+ 				if (test_bit(R5_Insync, &dev->flags)
+@@ -1659,9 +1611,6 @@ static void handle_stripe5(struct stripe
+ 			/* Would I have to read this buffer for reconstruct_write */
+ 			if (!test_bit(R5_OVERWRITE, &dev->flags) && i != sh->pd_idx &&
+ 			    (!test_bit(R5_LOCKED, &dev->flags) 
+-#if 0
+-|| sh->bh_page[i] != bh->b_page
+-#endif
+ 				    ) &&
+ 			    !test_bit(R5_UPTODATE, &dev->flags)) {
+ 				if (test_bit(R5_Insync, &dev->flags)) rcw++;
+@@ -2197,15 +2146,6 @@ static void handle_stripe6(struct stripe
+ 				} else if (test_bit(R5_Insync, &dev->flags)) {
+ 					set_bit(R5_LOCKED, &dev->flags);
+ 					set_bit(R5_Wantread, &dev->flags);
+-#if 0
+-					/* if I am just reading this block and we don't have
+-					   a failed drive, or any pending writes then sidestep the cache */
+-					if (sh->bh_read[i] && !sh->bh_read[i]->b_reqnext &&
+-					    ! syncing && !failed && !to_write) {
+-						sh->bh_cache[i]->b_page =  sh->bh_read[i]->b_page;
+-						sh->bh_cache[i]->b_data =  sh->bh_read[i]->b_data;
+-					}
+-#endif
+ 					locked++;
+ 					PRINTK("Reading block %d (sync=%d)\n",
+ 						i, syncing);
+@@ -2224,9 +2164,6 @@ static void handle_stripe6(struct stripe
+ 			if (!test_bit(R5_OVERWRITE, &dev->flags)
+ 			    && i != pd_idx && i != qd_idx
+ 			    && (!test_bit(R5_LOCKED, &dev->flags)
+-#if 0
+-				|| sh->bh_page[i] != bh->b_page
+-#endif
+ 				    ) &&
+ 			    !test_bit(R5_UPTODATE, &dev->flags)) {
+ 				if (test_bit(R5_Insync, &dev->flags)) rcw++;
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
