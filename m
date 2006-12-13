@@ -1,111 +1,124 @@
 From: akpm@osdl.org
-Subject: + knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch added to -mm tree
-Date: Tue, 12 Dec 2006 17:36:19 -0800
-Message-ID: <200612130136.kBD1aJBf024104@shell0.pdx.osdl.net>
+Subject: + knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch added to -mm tree
+Date: Tue, 12 Dec 2006 17:36:27 -0800
+Message-ID: <200612130136.kBD1aRMg024119@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38701 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38705 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964873AbWLMBjx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 20:39:53 -0500
+	id S964877AbWLMBjy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 20:39:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chuck.lever@oracle.com, aurelien.charbon@ext.bull.net, neilb@suse.de
+Cc: staubach@redhat.com, neilb@suse.de
 
 
 The patch titled
-     knfsd: SUNRPC: add a "generic" function to see if the peer uses a secure port
+     knfsd: Don't mess with the 'mode' when storing a exclusive-create cookie
 has been added to the -mm tree.  Its filename is
-     knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+     knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: SUNRPC: add a "generic" function to see if the peer uses a secure port
-From: Chuck Lever <chuck.lever@oracle.com>
+Subject: knfsd: Don't mess with the 'mode' when storing a exclusive-create cookie
+From: Peter Staubach <staubach@redhat.com>
 
-The only reason svcsock.c looks at a sockaddr's port is to check whether the
-remote peer is connecting from a privileged port.  Refactor this check to hide
-processing that is specific to address format.
+NFS V3 (and V4) support exclusive create by passing a 'cookie' which can get
+stored with the file.  If the file exists but has exactly the right cookie
+stored, then we assume this is a retransmit and the exclusive create was
+successful.
 
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Cc: Aurelien Charbon <aurelien.charbon@ext.bull.net>
+The cookie is 64bits and is traditionally stored in the mtime and atime
+fields.  This causes a problem with Solaris7 as negative mtime or atime
+confuse it.  So we moved two bits into the mode word instead.
+
+But inherited ACLs sometimes overwrite the mode word on create, so this is a
+problem.
+
+So we give up and just store 62 of the 64 bits and assume that is close
+enough.
+
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/svcsock.c |   20 +++++++++++++++++---
- 1 files changed, 17 insertions(+), 3 deletions(-)
+ fs/nfsd/vfs.c |   21 +++++----------------
+ 1 files changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port
-+++ a/net/sunrpc/svcsock.c
-@@ -926,6 +926,20 @@ svc_tcp_data_ready(struct sock *sk, int 
- 		wake_up_interruptible(sk->sk_sleep);
- }
+diff -puN fs/nfsd/vfs.c~knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie
++++ a/fs/nfsd/vfs.c
+@@ -1244,7 +1244,6 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
+ 	__be32		err;
+ 	int		host_err;
+ 	__u32		v_mtime=0, v_atime=0;
+-	int		v_mode=0;
  
-+static inline int svc_port_is_privileged(struct sockaddr *sin)
-+{
-+	switch (sin->sa_family) {
-+	case AF_INET:
-+		return ntohs(((struct sockaddr_in *)sin)->sin_port) < 1024;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+	case AF_INET6:
-+		return ntohs(((struct sockaddr_in6 *)sin)->sin6_port) < 1024;
-+#endif
-+	default:
-+		return 0;
-+	}
-+}
-+
- /*
-  * Accept a TCP connection
-  */
-@@ -972,7 +986,7 @@ svc_tcp_accept(struct svc_sock *svsk)
- 	 * hosts here, but when we get encryption, the IP of the host won't
- 	 * tell us anything.  For now just warn about unpriv connections.
+ 	err = nfserr_perm;
+ 	if (!flen)
+@@ -1281,16 +1280,11 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
+ 		goto out;
+ 
+ 	if (createmode == NFS3_CREATE_EXCLUSIVE) {
+-		/* while the verifier would fit in mtime+atime,
+-		 * solaris7 gets confused (bugid 4218508) if these have
+-		 * the high bit set, so we use the mode as well
++		/* solaris7 gets confused (bugid 4218508) if these have
++		 * the high bit set, so just clear the high bits.
+ 		 */
+ 		v_mtime = verifier[0]&0x7fffffff;
+ 		v_atime = verifier[1]&0x7fffffff;
+-		v_mode  = S_IFREG
+-			| ((verifier[0]&0x80000000) >> (32-7)) /* u+x */
+-			| ((verifier[1]&0x80000000) >> (32-9)) /* u+r */
+-			;
+ 	}
+ 	
+ 	if (dchild->d_inode) {
+@@ -1318,7 +1312,6 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
+ 		case NFS3_CREATE_EXCLUSIVE:
+ 			if (   dchild->d_inode->i_mtime.tv_sec == v_mtime
+ 			    && dchild->d_inode->i_atime.tv_sec == v_atime
+-			    && dchild->d_inode->i_mode  == v_mode
+ 			    && dchild->d_inode->i_size  == 0 )
+ 				break;
+ 			 /* fallthru */
+@@ -1340,26 +1333,22 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
+ 	}
+ 
+ 	if (createmode == NFS3_CREATE_EXCLUSIVE) {
+-		/* Cram the verifier into atime/mtime/mode */
++		/* Cram the verifier into atime/mtime */
+ 		iap->ia_valid = ATTR_MTIME|ATTR_ATIME
+-			| ATTR_MTIME_SET|ATTR_ATIME_SET
+-			| ATTR_MODE;
++			| ATTR_MTIME_SET|ATTR_ATIME_SET;
+ 		/* XXX someone who knows this better please fix it for nsec */ 
+ 		iap->ia_mtime.tv_sec = v_mtime;
+ 		iap->ia_atime.tv_sec = v_atime;
+ 		iap->ia_mtime.tv_nsec = 0;
+ 		iap->ia_atime.tv_nsec = 0;
+-		iap->ia_mode  = v_mode;
+ 	}
+ 
+ 	/* Set file attributes.
+-	 * Mode has already been set but we might need to reset it
+-	 * for CREATE_EXCLUSIVE
+ 	 * Irix appears to send along the gid when it tries to
+ 	 * implement setgid directories via NFS. Clear out all that cruft.
  	 */
--	if (ntohs(sin.sin_port) >= 1024) {
-+	if (!svc_port_is_privileged((struct sockaddr *) &sin)) {
- 		dprintk(KERN_WARNING
- 			"%s: connect from unprivileged port: %s\n",
- 			serv->sv_name,
-@@ -1313,7 +1327,6 @@ int
- svc_recv(struct svc_rqst *rqstp, long timeout)
- {
- 	struct svc_sock		*svsk = NULL;
--	struct sockaddr_in	*sin = svc_addr_in(rqstp);
- 	struct svc_serv		*serv = rqstp->rq_server;
- 	struct svc_pool		*pool = rqstp->rq_pool;
- 	int			len, i;
-@@ -1408,7 +1421,8 @@ svc_recv(struct svc_rqst *rqstp, long ti
- 	svsk->sk_lastrecv = get_seconds();
- 	clear_bit(SK_OLD, &svsk->sk_flags);
- 
--	rqstp->rq_secure = ntohs(sin->sin_port) < 1024;
-+	rqstp->rq_secure =
-+		svc_port_is_privileged(svc_addr(rqstp));
- 	rqstp->rq_chandle.defer = svc_defer;
- 
- 	if (serv->sv_stats)
+  set_attr:
+-	if ((iap->ia_valid &= ~(ATTR_UID|ATTR_GID)) != 0) {
++	if ((iap->ia_valid &= ~(ATTR_UID|ATTR_GID|ATTR_MODE)) != 0) {
+  		__be32 err2 = nfsd_setattr(rqstp, resfhp, iap, 0, (time_t)0);
+ 		if (err2)
+ 			err = err2;
 _
 
-Patches currently in -mm which might be from chuck.lever@oracle.com are
+Patches currently in -mm which might be from staubach@redhat.com are
 
-origin.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
-knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
-knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
-knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
-knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
+knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
 
