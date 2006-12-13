@@ -1,230 +1,187 @@
 From: akpm@osdl.org
-Subject: - dio-lock-refcount-operations.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:55:20 -0800
-Message-ID: <200612130655.kBD6tKKu030632@shell0.pdx.osdl.net>
+Subject: - io-accounting-read-accounting-cifs-fix.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:52:48 -0800
+Message-ID: <200612130652.kBD6qmnv030464@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57935 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57948 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965050AbWLMG40 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:56:26 -0500
+	id S965047AbWLMG4c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:56:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach.brown@oracle.com, jmoyer@redhat.com, pbadari@us.ibm.com, suparna@in.ibm.com, xfs-masters@oss.sgi.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, daw@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, sfrench@us.ibm.com, tee@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dio: lock refcount operations
+     io-accounting-read-accounting cifs fix
 has been removed from the -mm tree.  Its filename was
-     dio-lock-refcount-operations.patch
+     io-accounting-read-accounting-cifs-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dio: lock refcount operations
-From: Zach Brown <zach.brown@oracle.com>
+Subject: io-accounting-read-accounting cifs fix
+From: Andrew Morton <akpm@osdl.org>
 
-The wait_for_more_bios() function name was poorly chosen.  While looking to
-clean it up it I noticed that the dio struct refcounting between the bio
-completion and dio submission paths was racey.
+CIFS implements ->readpages and doesn't use read_cache_pages().  So wire the
+read IO accounting up within CIFS.
 
-The bio submission path was simply freeing the dio struct if
-atomic_dec_and_test() indicated that it dropped the final reference.
-
-The aio bio completion path was dereferencing its dio struct pointer *after
-dropping its reference* based on the remaining number of references.
-
-These two paths could race and result in the aio bio completion path
-dereferencing a freed dio, though this was not observed in the wild.
-
-This moves the refcount under the bio lock so that bio completion can drop
-its reference and decide to wake all in one atomic step.
-
-Once testing and waking is locked dio_await_one() can test its sleeping
-condition and mark itself uninterruptible under the lock.  It gets simpler
-and wait_for_more_bios() disappears.
-
-The addition of the interrupt masking spin lock acquiry in dio_bio_submit()
-looks alarming.  This lock acquiry existed in that path before the recent
-dio completion patch set.  We shouldn't expect significant performance
-regression from returning to the behaviour that existed before the
-completion clean up work.
-
-This passed 4k block ext3 O_DIRECT fsx and aio-stress on an SMP machine.
-
-Signed-off-by: Zach Brown <zach.brown@oracle.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: <xfs-masters@oss.sgi.com>
+Cc: Jay Lan <jlan@sgi.com>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Chris Sturtivant <csturtiv@sgi.com>
+Cc: Tony Ernst <tee@sgi.com>
+Cc: Guillaume Thouvenin <guillaume.thouvenin@bull.net>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: David Wright <daw@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/direct-io.c |   76 +++++++++++++++++++++++++++--------------------
- 1 file changed, 45 insertions(+), 31 deletions(-)
+ fs/cifs/file.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/direct-io.c~dio-lock-refcount-operations fs/direct-io.c
---- a/fs/direct-io.c~dio-lock-refcount-operations
-+++ a/fs/direct-io.c
-@@ -121,8 +121,8 @@ struct dio {
- 	int page_errors;		/* errno from get_user_pages() */
- 
- 	/* BIO completion state */
--	atomic_t refcount;		/* direct_io_worker() and bios */
- 	spinlock_t bio_lock;		/* protects BIO fields below */
-+	unsigned long refcount;		/* direct_io_worker() and bios */
- 	struct bio *bio_list;		/* singly linked via bi_private */
- 	struct task_struct *waiter;	/* waiting task (NULL if none) */
- 
-@@ -267,8 +267,8 @@ static int dio_bio_complete(struct dio *
- static int dio_bio_end_aio(struct bio *bio, unsigned int bytes_done, int error)
- {
- 	struct dio *dio = bio->bi_private;
--	int waiter_holds_ref = 0;
--	int remaining;
-+	unsigned long remaining;
-+	unsigned long flags;
- 
- 	if (bio->bi_size)
- 		return 1;
-@@ -276,10 +276,11 @@ static int dio_bio_end_aio(struct bio *b
- 	/* cleanup the bio */
- 	dio_bio_complete(dio, bio);
- 
--	waiter_holds_ref = !!dio->waiter;
--	remaining = atomic_sub_return(1, (&dio->refcount));
--	if (remaining == 1 && waiter_holds_ref)
-+	spin_lock_irqsave(&dio->bio_lock, flags);
-+	remaining = --dio->refcount;
-+	if (remaining == 1 && dio->waiter)
- 		wake_up_process(dio->waiter);
-+	spin_unlock_irqrestore(&dio->bio_lock, flags);
- 
- 	if (remaining == 0) {
- 		int ret = dio_complete(dio, dio->iocb->ki_pos, 0);
-@@ -308,7 +309,7 @@ static int dio_bio_end_io(struct bio *bi
- 	spin_lock_irqsave(&dio->bio_lock, flags);
- 	bio->bi_private = dio->bio_list;
- 	dio->bio_list = bio;
--	if ((atomic_sub_return(1, &dio->refcount) == 1) && dio->waiter)
-+	if (--dio->refcount == 1 && dio->waiter)
- 		wake_up_process(dio->waiter);
- 	spin_unlock_irqrestore(&dio->bio_lock, flags);
- 	return 0;
-@@ -345,11 +346,17 @@ dio_bio_alloc(struct dio *dio, struct bl
- static void dio_bio_submit(struct dio *dio)
- {
- 	struct bio *bio = dio->bio;
-+	unsigned long flags;
- 
- 	bio->bi_private = dio;
--	atomic_inc(&dio->refcount);
-+
-+	spin_lock_irqsave(&dio->bio_lock, flags);
-+	dio->refcount++;
-+	spin_unlock_irqrestore(&dio->bio_lock, flags);
-+
- 	if (dio->is_async && dio->rw == READ)
- 		bio_set_pages_dirty(bio);
-+
- 	submit_bio(dio->rw, bio);
- 
- 	dio->bio = NULL;
-@@ -365,13 +372,6 @@ static void dio_cleanup(struct dio *dio)
- 		page_cache_release(dio_get_page(dio));
- }
- 
--static int wait_for_more_bios(struct dio *dio)
--{
--	assert_spin_locked(&dio->bio_lock);
--
--	return (atomic_read(&dio->refcount) > 1) && (dio->bio_list == NULL);
--}
--
- /*
-  * Wait for the next BIO to complete.  Remove it and return it.  NULL is
-  * returned once all BIOs have been completed.  This must only be called once
-@@ -384,16 +384,21 @@ static struct bio *dio_await_one(struct 
- 	struct bio *bio = NULL;
- 
- 	spin_lock_irqsave(&dio->bio_lock, flags);
--	while (wait_for_more_bios(dio)) {
--		set_current_state(TASK_UNINTERRUPTIBLE);
--		if (wait_for_more_bios(dio)) {
--			dio->waiter = current;
--			spin_unlock_irqrestore(&dio->bio_lock, flags);
--			io_schedule();
--			spin_lock_irqsave(&dio->bio_lock, flags);
--			dio->waiter = NULL;
--		}
--		set_current_state(TASK_RUNNING);
-+
-+	/*
-+	 * Wait as long as the list is empty and there are bios in flight.  bio
-+	 * completion drops the count, maybe adds to the list, and wakes while
-+	 * holding the bio_lock so we don't need set_current_state()'s barrier
-+	 * and can call it after testing our condition.
-+	 */
-+	while (dio->refcount > 1 && dio->bio_list == NULL) {
-+		__set_current_state(TASK_UNINTERRUPTIBLE);
-+		dio->waiter = current;
-+		spin_unlock_irqrestore(&dio->bio_lock, flags);
-+		io_schedule();
-+		/* wake up sets us TASK_RUNNING */
-+		spin_lock_irqsave(&dio->bio_lock, flags);
-+		dio->waiter = NULL;
- 	}
- 	if (dio->bio_list) {
- 		bio = dio->bio_list;
-@@ -951,6 +956,7 @@ direct_io_worker(int rw, struct kiocb *i
- 	struct dio *dio)
- {
- 	unsigned long user_addr; 
-+	unsigned long flags;
- 	int seg;
- 	ssize_t ret = 0;
- 	ssize_t ret2;
-@@ -981,8 +987,8 @@ direct_io_worker(int rw, struct kiocb *i
- 	dio->iocb = iocb;
- 	dio->i_size = i_size_read(inode);
- 
--	atomic_set(&dio->refcount, 1);
- 	spin_lock_init(&dio->bio_lock);
-+	dio->refcount = 1;
- 	dio->bio_list = NULL;
- 	dio->waiter = NULL;
- 
-@@ -1092,12 +1098,20 @@ direct_io_worker(int rw, struct kiocb *i
- 
- 	/*
- 	 * Sync will always be dropping the final ref and completing the
--	 * operation.  AIO can if it was a broken operation described above
--	 * or in fact if all the bios race to complete before we get here.
--	 * In that case dio_complete() translates the EIOCBQUEUED into
--	 * the proper return code that the caller will hand to aio_complete().
-+	 * operation.  AIO can if it was a broken operation described above or
-+	 * in fact if all the bios race to complete before we get here.  In
-+	 * that case dio_complete() translates the EIOCBQUEUED into the proper
-+	 * return code that the caller will hand to aio_complete().
-+	 *
-+	 * This is managed by the bio_lock instead of being an atomic_t so that
-+	 * completion paths can drop their ref and use the remaining count to
-+	 * decide to wake the submission path atomically.
- 	 */
--	if (atomic_dec_and_test(&dio->refcount)) {
-+	spin_lock_irqsave(&dio->bio_lock, flags);
-+	ret2 = --dio->refcount;
-+	spin_unlock_irqrestore(&dio->bio_lock, flags);
-+	BUG_ON(!dio->is_async && ret2 != 0);
-+	if (ret2 == 0) {
- 		ret = dio_complete(dio, offset, ret);
- 		kfree(dio);
- 	} else
+diff -puN fs/cifs/file.c~io-accounting-read-accounting-cifs-fix fs/cifs/file.c
+--- a/fs/cifs/file.c~io-accounting-read-accounting-cifs-fix
++++ a/fs/cifs/file.c
+@@ -29,6 +29,7 @@
+ #include <linux/pagevec.h>
+ #include <linux/smp_lock.h>
+ #include <linux/writeback.h>
++#include <linux/task_io_accounting_ops.h>
+ #include <linux/delay.h>
+ #include <asm/div64.h>
+ #include "cifsfs.h"
+@@ -1812,6 +1813,7 @@ static int cifs_readpages(struct file *f
+ 			cFYI(1, ("Read error in readpages: %d", rc));
+ 			break;
+ 		} else if (bytes_read > 0) {
++			task_io_account_read(bytes_read);
+ 			pSMBr = (struct smb_com_read_rsp *)smb_read_data;
+ 			cifs_copy_cache_pages(mapping, page_list, bytes_read,
+ 				smb_read_data + 4 /* RFC1001 hdr */ +
 _
 
-Patches currently in -mm which might be from zach.brown@oracle.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-optimize-o_direct-on-block-device-v3.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+cciss-remove-calls-to-pci_disable_device-fix.patch
+revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
+revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
+generic_file_buffered_write-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+fs-prepare_write-fixes-fuse-fix.patch
+fs-prepare_write-fixes-fat-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input-vs-git-alsa.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-tidy.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index-tweaks.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support-tweaks.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
 optimize-o_direct-on-block-device-v3-tweak.patch
+add-retain_initrd-boot-option-tweak.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging-fix.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking-fix.patch
+updated-hrtimers-state-tracking.patch
+updated-i386-convert-to-clock-event-devices.patch
+updated-i386-convert-to-clock-event-devices-fix.patch
+updated-gtod-mark-tsc-unusable-for-highres-timers.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
