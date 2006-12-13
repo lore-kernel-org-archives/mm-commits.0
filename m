@@ -1,80 +1,73 @@
 From: akpm@osdl.org
-Subject: - updated-dynticks-fix-nmi-watchdog.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:50:02 -0800
-Message-ID: <200612132250.kBDMo4Ia023198@shell0.pdx.osdl.net>
+Subject: - debugging-feature-proc-timer_list-fix.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:50:15 -0800
+Message-ID: <200612132250.kBDMoFXL023211@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53113 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53129 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751764AbWLMWuP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:50:15 -0500
+	id S1751664AbWLMWuT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:50:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, ebiederm@xmission.com, mingo@elte.hu, rohitseth@google.com, zach@vmware.com, mm-commits@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dynticks: Fix nmi watchdog
+     debugging-feature-proc-timer_list fix
 has been removed from the -mm tree.  Its filename was
-     updated-dynticks-fix-nmi-watchdog.patch
+     debugging-feature-proc-timer_list-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: dynticks: Fix nmi watchdog
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: debugging-feature-proc-timer_list fix
+From: Ingo Molnar <mingo@elte.hu>
 
-The NMI watchdog implementation assumes that the local APIC timer interrupt is
-happening.  This assumption is not longer true when high resolution timers and
-dynamic ticks come into play, as they may switch off the local APIC timer
-completely.  Take the PIT/HPET interrupts into account too, to avoid false
-positives.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Rohit Seth <rohitseth@google.com>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/nmi.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/time/Makefile |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/nmi.c~updated-dynticks-fix-nmi-watchdog arch/i386/kernel/nmi.c
---- a/arch/i386/kernel/nmi.c~updated-dynticks-fix-nmi-watchdog
-+++ a/arch/i386/kernel/nmi.c
-@@ -23,6 +23,7 @@
- #include <linux/dmi.h>
- #include <linux/kprobes.h>
- #include <linux/cpumask.h>
-+#include <linux/kernel_stat.h>
+diff -puN kernel/time/Makefile~debugging-feature-proc-timer_list-fix kernel/time/Makefile
+--- a/kernel/time/Makefile~debugging-feature-proc-timer_list-fix
++++ a/kernel/time/Makefile
+@@ -1,4 +1,4 @@
+-obj-y += ntp.o clocksource.o jiffies.o
++obj-y += ntp.o clocksource.o jiffies.o timer_list.o
  
- #include <asm/smp.h>
- #include <asm/nmi.h>
-@@ -950,9 +951,13 @@ __kprobes int nmi_watchdog_tick(struct p
- 		cpu_clear(cpu, backtrace_mask);
- 	}
- 
--	sum = per_cpu(irq_stat, cpu).apic_timer_irqs;
-+	/*
-+	 * Take the local apic timer and PIT/HPET into account. We don't
-+	 * know which one is active, when we have highres/dyntick on
-+	 */
-+	sum = per_cpu(irq_stat, cpu).apic_timer_irqs + kstat_irqs(0);
- 
--	/* if the apic timer isn't firing, this cpu isn't doing much */
-+	/* if the none of the timers isn't firing, this cpu isn't doing much */
- 	if (!touched && last_irq_sums[cpu] == sum) {
- 		/*
- 		 * Ayiee, looks like this CPU is stuck ...
+ obj-$(CONFIG_GENERIC_CLOCKEVENTS)	+= clockevents.o
+ obj-$(CONFIG_TIMER_STATS)		+= timer_stats.o
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-git-mtd.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+lockdep-filter-off-by-default.patch
+lockdep-improve-verbose-messages.patch
+lockdep-improve-lockdep_reset.patch
+lockdep-clean-up-very_verbose-define.patch
+lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
+lockdep-print-irq-trace-info-on-asserts.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+optimize-calc_load.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
 gtod-uninline-jiffiesh.patch
 gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
 gtod-fix-timeout-overflow.patch
@@ -105,4 +98,22 @@ dynticks-i386-support-idle-handler-callbacks.patch
 dynticks-i386-prepare-nmi-watchdog.patch
 high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
