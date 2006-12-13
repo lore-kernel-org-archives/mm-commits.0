@@ -1,122 +1,93 @@
 From: akpm@osdl.org
-Subject: - gtod-exponential-update_wall_time.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:48:15 -0800
-Message-ID: <200612132248.kBDMmFaU023047@shell0.pdx.osdl.net>
+Subject: - dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:48:36 -0800
+Message-ID: <200612132248.kBDMma40023092@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53323 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53335 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775AbWLMWvi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:51:38 -0500
+	id S1751770AbWLMWvt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:51:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GTOD: exponential update_wall_time
+     make kernel/timer.c:__next_timer_interrupt() static
 has been removed from the -mm tree.  Its filename was
-     gtod-exponential-update_wall_time.patch
+     dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: GTOD: exponential update_wall_time
-From: John Stultz <johnstul@us.ibm.com>
+Subject: make kernel/timer.c:__next_timer_interrupt() static
+From: Adrian Bunk <bunk@stusta.de>
 
-Accumulate time in update_wall_time() exponentially.  This avoids long running
-loops seen with the dynticks patch as well as the problematic hang seen on
-systems with broken clocksources.
-
-NOTE: this only has relevance on dyntick kernels, so the quality of NTP
-updates on jiffies-tick systems is unaffected.  (non-dyntick kernels call
-update_wall_time() in every timer tick)
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/timer.c |   28 ++++++++++++++++++++--------
- 1 files changed, 20 insertions(+), 8 deletions(-)
+ kernel/timer.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~gtod-exponential-update_wall_time kernel/timer.c
---- a/kernel/timer.c~gtod-exponential-update_wall_time
+diff -puN kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static kernel/timer.c
+--- a/kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-make-kernel-timerc__next_timer_interrupt-static
 +++ a/kernel/timer.c
-@@ -907,6 +907,7 @@ static void clocksource_adjust(struct cl
- static void update_wall_time(void)
+@@ -465,7 +465,8 @@ static inline void __run_timers(tvec_bas
+  * is used on S/390 to stop all activity when a cpus is idle.
+  * This functions needs to be called disabled.
+  */
+-unsigned long __next_timer_interrupt(tvec_base_t *base, unsigned long now)
++static unsigned long __next_timer_interrupt(tvec_base_t *base,
++					    unsigned long now)
  {
- 	cycle_t offset;
-+	int shift = 0;
- 
- 	/* Make sure we're fully resumed: */
- 	if (unlikely(timekeeping_suspended))
-@@ -919,28 +920,39 @@ static void update_wall_time(void)
- #endif
- 	clock->xtime_nsec += (s64)xtime.tv_nsec << clock->shift;
- 
-+	while (offset > clock->cycle_interval << (shift + 1))
-+		shift++;
-+
- 	/* normally this loop will run just once, however in the
- 	 * case of lost or late ticks, it will accumulate correctly.
- 	 */
- 	while (offset >= clock->cycle_interval) {
-+		if (offset < (clock->cycle_interval << shift)) {
-+			shift--;
-+			continue;
-+		}
-+
- 		/* accumulate one interval */
--		clock->xtime_nsec += clock->xtime_interval;
--		clock->cycle_last += clock->cycle_interval;
--		offset -= clock->cycle_interval;
-+		clock->xtime_nsec += clock->xtime_interval << shift;
-+		clock->cycle_last += clock->cycle_interval << shift;
-+		offset -= clock->cycle_interval << shift;
- 
--		if (clock->xtime_nsec >= (u64)NSEC_PER_SEC << clock->shift) {
-+		while (clock->xtime_nsec >= (u64)NSEC_PER_SEC << clock->shift) {
- 			clock->xtime_nsec -= (u64)NSEC_PER_SEC << clock->shift;
- 			xtime.tv_sec++;
- 			second_overflow();
- 		}
- 
- 		/* interpolator bits */
--		time_interpolator_update(clock->xtime_interval
--						>> clock->shift);
-+		time_interpolator_update((clock->xtime_interval
-+						>> clock->shift)<<shift);
- 
- 		/* accumulate error between NTP and clock interval */
--		clock->error += current_tick_length();
--		clock->error -= clock->xtime_interval << (TICK_LENGTH_SHIFT - clock->shift);
-+		clock->error += current_tick_length() << shift;
-+		clock->error -= (clock->xtime_interval
-+			<< (TICK_LENGTH_SHIFT - clock->shift))<<shift;
-+
-+		shift--;
- 	}
- 
- 	/* correct the clock when NTP error is too big */
+ 	struct list_head *list;
+ 	struct timer_list *nte, *found = NULL;
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+debug-add-sysrq_always_enabled-boot-option.patch
+one-more-export_unused_symbol-removal.patch
+remove-the-broken-blk_dev_swim_iop-driver.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+acpi-make-code-static.patch
+git-alsa.patch
+proper-prototype-for-drivers-base-initcdriver_init.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
+git-mtd.patch
+remove-the-broken-skmc-driver.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+drivers-edac-make-code-static.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+remove-include-linux-byteorder-pdp_endianh.patch
 gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-clockevents-core.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 clockevents-i386-drivers.patch
-high-res-timers-core.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-debugging-feature-add-proc-timer_stat.patch
+make-ext2_get_blocks-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
