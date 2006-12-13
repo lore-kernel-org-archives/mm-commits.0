@@ -1,90 +1,121 @@
 From: akpm@osdl.org
-Subject: - updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:48:53 -0800
-Message-ID: <200612132248.kBDMmrSC023112@shell0.pdx.osdl.net>
+Subject: + hrtimers-clean-up-callback-tracking.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:44:02 -0800
+Message-ID: <200612132244.kBDMi2EU022855@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52912 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52929 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751746AbWLMWtZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:49:25 -0500
+	id S1751744AbWLMWtc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:49:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, ak@suse.de, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     high-res timers: next_event calculation fix
-has been removed from the -mm tree.  Its filename was
-     updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix.patch
+     hrtimers: clean up callback tracking
+has been added to the -mm tree.  Its filename is
+     hrtimers-clean-up-callback-tracking.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: high-res timers: next_event calculation fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: hrtimers: clean up callback tracking
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Do not set expires_next to KTIME_MAX if a too short timeout is being set -
-this can result in the clock events device being shut down completely.
+Reintroduce ktimers feature "optimized away" by the ktimers review
+process: remove the curr_timer pointer from the cpu-base and use the
+hrtimer state.
 
-Found via a stresstest on a C3-lapic-plagued laptop that did very short
-sleeps.
+No functional changes.
 
-This bug could explain the 'Synaptics hang' that was reported.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/clockevents.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/hrtimer.h |    1 -
+ kernel/hrtimer.c        |   10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN kernel/time/clockevents.c~updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~updated-add-a-framework-to-manage-clock-event-devices-next_event-calculation-fix
-+++ a/kernel/time/clockevents.c
-@@ -510,10 +510,8 @@ int clockevents_set_next_event(ktime_t e
- 	struct clock_event_device *nextevt = devices->nextevt;
- 	int64_t delta = ktime_to_ns(ktime_sub(expires, ktime_get()));
+diff -puN include/linux/hrtimer.h~hrtimers-clean-up-callback-tracking include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimers-clean-up-callback-tracking
++++ a/include/linux/hrtimer.h
+@@ -136,7 +136,6 @@ struct hrtimer_cpu_base {
+ 	spinlock_t			lock;
+ 	struct lock_class_key		lock_key;
+ 	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
+-	struct hrtimer			*curr_timer;
+ };
  
--	if (delta <= 0 && !force) {
--		devices->expires_next.tv64 = KTIME_MAX;
-+	if (delta <= 0 && !force)
- 		return -ETIME;
--	}
+ /*
+diff -puN kernel/hrtimer.c~hrtimers-clean-up-callback-tracking kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-clean-up-callback-tracking
++++ a/kernel/hrtimer.c
+@@ -167,8 +167,6 @@ static inline int hrtimer_callback_runni
+  */
+ #ifdef CONFIG_SMP
  
- 	devices->expires_next = expires;
+-#define set_curr_timer(b, t)		do { (b)->curr_timer = (t); } while (0)
+-
+ /*
+  * We are using hashed locking: holding per_cpu(hrtimer_bases)[n].lock
+  * means that all timers which are tied to this base via timer->base are
+@@ -222,7 +220,7 @@ switch_hrtimer_base(struct hrtimer *time
+ 		 * completed. There is no conflict as we hold the lock until
+ 		 * the timer is enqueued.
+ 		 */
+-		if (unlikely(base->cpu_base->curr_timer == timer))
++		if (unlikely(timer->state & HRTIMER_STATE_CALLBACK))
+ 			return base;
  
+ 		/* See the comment in lock_timer_base() */
+@@ -236,8 +234,6 @@ switch_hrtimer_base(struct hrtimer *time
+ 
+ #else /* CONFIG_SMP */
+ 
+-#define set_curr_timer(b, t)		do { } while (0)
+-
+ static inline struct hrtimer_clock_base *
+ lock_hrtimer_base(const struct hrtimer *timer, unsigned long *flags)
+ {
+@@ -665,7 +661,6 @@ static inline void run_hrtimer_queue(str
+ 			break;
+ 
+ 		fn = timer->function;
+-		set_curr_timer(cpu_base, timer);
+ 		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
+ 		spin_unlock_irq(&cpu_base->lock);
+ 
+@@ -679,7 +674,6 @@ static inline void run_hrtimer_queue(str
+ 			enqueue_hrtimer(timer, base);
+ 		}
+ 	}
+-	set_curr_timer(cpu_base, NULL);
+ 	spin_unlock_irq(&cpu_base->lock);
+ }
+ 
+@@ -866,8 +860,6 @@ static void migrate_hrtimers(int cpu)
+ 	spin_lock(&old_base->lock);
+ 
+ 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
+-		BUG_ON(old_base->curr_timer);
+-
+ 		migrate_hrtimer_list(&old_base->clock_base[i],
+ 				     &new_base->clock_base[i]);
+ 	}
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-debug-add-sysrq_always_enabled-boot-option.patch
-lockdep-filter-off-by-default.patch
-lockdep-improve-verbose-messages.patch
-lockdep-improve-lockdep_reset.patch
-lockdep-clean-up-very_verbose-define.patch
-lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
-lockdep-print-irq-trace-info-on-asserts.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-optimize-calc_load.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
+git-mtd.patch
 gtod-uninline-jiffiesh.patch
 gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
 gtod-fix-timeout-overflow.patch
@@ -115,22 +146,4 @@ dynticks-i386-support-idle-handler-callbacks.patch
 dynticks-i386-prepare-nmi-watchdog.patch
 high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
 
