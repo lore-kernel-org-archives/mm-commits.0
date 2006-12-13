@@ -1,52 +1,61 @@
 From: akpm@osdl.org
-Subject: - updated-high-res-timers-dynticks-enable-i386-support.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:50:07 -0800
-Message-ID: <200612132250.kBDMo70X023202@shell0.pdx.osdl.net>
+Subject: - updated-dynticks-i386-arch-code.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:49:59 -0800
+Message-ID: <200612132249.kBDMnxHD023189@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53117 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53133 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751768AbWLMWuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:50:16 -0500
+	id S1751770AbWLMWuV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:50:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, ak@suse.de, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mingo@elte.hu, ak@suse.de, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     high-res timers, dynticks: enable i386 support
+     dynticks: i386 arch code
 has been removed from the -mm tree.  Its filename was
-     updated-high-res-timers-dynticks-enable-i386-support.patch
+     updated-dynticks-i386-arch-code.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: high-res timers, dynticks: enable i386 support
+Subject: dynticks: i386 arch code
 From: Ingo Molnar <mingo@elte.hu>
 
-Enable high-res timers and dyntick on i386.
+Prepare i386 for dyntick: idle handler callbacks.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/Kconfig |    2 ++
- 1 files changed, 2 insertions(+)
+ arch/i386/kernel/process.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/Kconfig~updated-high-res-timers-dynticks-enable-i386-support arch/i386/Kconfig
---- a/arch/i386/Kconfig~updated-high-res-timers-dynticks-enable-i386-support
-+++ a/arch/i386/Kconfig
-@@ -82,6 +82,8 @@ source "init/Kconfig"
+diff -puN arch/i386/kernel/process.c~updated-dynticks-i386-arch-code arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~updated-dynticks-i386-arch-code
++++ a/arch/i386/kernel/process.c
+@@ -209,6 +209,7 @@ void cpu_idle(void)
  
- menu "Processor type and features"
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
++		hrtimer_stop_sched_tick();
+ 		while (!need_resched()) {
+ 			void (*idle)(void);
  
-+source "kernel/time/Kconfig"
-+
- config SMP
- 	bool "Symmetric multi-processing support"
- 	---help---
+@@ -229,6 +230,7 @@ void cpu_idle(void)
+ 			idle();
+ 			__exit_idle();
+ 		}
++		hrtimer_restart_sched_tick();
+ 		preempt_enable_no_resched();
+ 		schedule();
+ 		preempt_disable();
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
