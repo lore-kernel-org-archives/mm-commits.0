@@ -1,87 +1,93 @@
 From: akpm@osdl.org
-Subject: - md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:55:03 -0800
-Message-ID: <200612130655.kBD6t3cU030602@shell0.pdx.osdl.net>
+Subject: - md-assorted-md-and-raid1-one-liners.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:55:05 -0800
+Message-ID: <200612130655.kBD6t5oZ030609@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57712 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57718 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965024AbWLMGzH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:55:07 -0500
+	id S965020AbWLMGzJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:55:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: return a non-zero error to bi_end_io as appropriate in raid5
+     md: assorted md and raid1 one-liners
 has been removed from the -mm tree.  Its filename was
-     md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5.patch
+     md-assorted-md-and-raid1-one-liners.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: return a non-zero error to bi_end_io as appropriate in raid5
+Subject: md: assorted md and raid1 one-liners
 From: NeilBrown <neilb@suse.de>
 
-Currently raid5 depends on clearing the BIO_UPTODATE flag to signal an error
-to higher levels.  While this should be sufficient, it is safer to explicitly
-set the error code as well - less room for confusion.
+Fix few bugs that meant that:
+  - superblocks weren't alway written at exactly the right time (this
+    could show up if the array was not written to - writting to the array
+    causes lots of superblock updates and so hides these errors).
+
+  - restarting device recovery after a clean shutdown (version-1 metadata
+    only) didn't work as intended (or at all).
+
+1/ Ensure superblock is updated when a new device is added.
+2/ Remove an inappropriate test on MD_RECOVERY_SYNC in md_do_sync.
+   The body of this if takes one of two branches depending on whether
+   MD_RECOVERY_SYNC is set, so testing it in the clause of the if
+   is wrong.
+3/ Flag superblock for updating after a resync/recovery finishes.
+4/ If we find the neeed to restart a recovery in the middle (version-1
+   metadata only) make sure a full recovery (not just as guided by
+   bitmaps) does get done.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/raid5.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/md/md.c    |    3 ++-
+ drivers/md/raid1.c |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5 drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-return-a-non-zero-error-to-bi_end_io-as-appropriate-in-raid5
-+++ a/drivers/md/raid5.c
-@@ -1818,7 +1818,9 @@ static void handle_stripe5(struct stripe
- 		return_bi = bi->bi_next;
- 		bi->bi_next = NULL;
- 		bi->bi_size = 0;
--		bi->bi_end_io(bi, bytes, 0);
-+		bi->bi_end_io(bi, bytes,
-+			      test_bit(BIO_UPTODATE, &bi->bi_flags)
-+			        ? 0 : -EIO);
- 	}
- 	for (i=disks; i-- ;) {
- 		int rw;
-@@ -2359,7 +2361,9 @@ static void handle_stripe6(struct stripe
- 		return_bi = bi->bi_next;
- 		bi->bi_next = NULL;
- 		bi->bi_size = 0;
--		bi->bi_end_io(bi, bytes, 0);
-+		bi->bi_end_io(bi, bytes,
-+			      test_bit(BIO_UPTODATE, &bi->bi_flags)
-+			        ? 0 : -EIO);
- 	}
- 	for (i=disks; i-- ;) {
- 		int rw;
-@@ -2859,7 +2863,9 @@ static int make_request(request_queue_t 
- 		if ( rw == WRITE )
- 			md_write_end(mddev);
- 		bi->bi_size = 0;
--		bi->bi_end_io(bi, bytes, 0);
-+		bi->bi_end_io(bi, bytes,
-+			      test_bit(BIO_UPTODATE, &bi->bi_flags)
-+			        ? 0 : -EIO);
- 	}
- 	return 0;
- }
-@@ -3127,7 +3133,9 @@ static int  retry_aligned_read(raid5_con
- 		int bytes = raid_bio->bi_size;
+diff -puN drivers/md/md.c~md-assorted-md-and-raid1-one-liners drivers/md/md.c
+--- a/drivers/md/md.c~md-assorted-md-and-raid1-one-liners
++++ a/drivers/md/md.c
+@@ -3724,6 +3724,7 @@ static int add_new_disk(mddev_t * mddev,
+ 		if (err)
+ 			export_rdev(rdev);
  
- 		raid_bio->bi_size = 0;
--		raid_bio->bi_end_io(raid_bio, bytes, 0);
-+		raid_bio->bi_end_io(raid_bio, bytes,
-+			      test_bit(BIO_UPTODATE, &raid_bio->bi_flags)
-+			        ? 0 : -EIO);
++		md_update_sb(mddev, 1);
+ 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+ 		md_wakeup_thread(mddev->thread);
+ 		return err;
+@@ -5275,7 +5276,6 @@ void md_do_sync(mddev_t *mddev)
+ 	mddev->pers->sync_request(mddev, max_sectors, &skipped, 1);
+ 
+ 	if (!test_bit(MD_RECOVERY_ERR, &mddev->recovery) &&
+-	    test_bit(MD_RECOVERY_SYNC, &mddev->recovery) &&
+ 	    !test_bit(MD_RECOVERY_CHECK, &mddev->recovery) &&
+ 	    mddev->curr_resync > 2) {
+ 		if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
+@@ -5299,6 +5299,7 @@ void md_do_sync(mddev_t *mddev)
+ 					rdev->recovery_offset = mddev->curr_resync;
+ 		}
  	}
- 	if (atomic_dec_and_test(&conf->active_aligned_reads))
- 		wake_up(&conf->wait_for_stripe);
++	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+ 
+  skip:
+ 	mddev->curr_resync = 0;
+diff -puN drivers/md/raid1.c~md-assorted-md-and-raid1-one-liners drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-assorted-md-and-raid1-one-liners
++++ a/drivers/md/raid1.c
+@@ -1951,6 +1951,7 @@ static int run(mddev_t *mddev)
+ 		    !test_bit(In_sync, &disk->rdev->flags)) {
+ 			disk->head_position = 0;
+ 			mddev->degraded++;
++			conf->fullsync = 1;
+ 		}
+ 	}
+ 	if (mddev->degraded == conf->raid_disks) {
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
