@@ -1,306 +1,166 @@
 From: akpm@osdl.org
-Subject: + hrtimers-namespace-and-enum-cleanup.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:43:57 -0800
-Message-ID: <200612132243.kBDMhvkb022844@shell0.pdx.osdl.net>
+Subject: + acpi-keep-track-of-timer-broadcast.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:44:08 -0800
+Message-ID: <200612132244.kBDMi8gj022864@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52328 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52355 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751667AbWLMWoM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:44:12 -0500
+	id S1751669AbWLMWoV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:44:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@elte.hu
+Cc: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu
 
 
 The patch titled
-     hrtimers: namespace and enum cleanup
+     ACPI: keep track of timer broadcast
 has been added to the -mm tree.  Its filename is
-     hrtimers-namespace-and-enum-cleanup.patch
+     acpi-keep-track-of-timer-broadcast.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hrtimers: namespace and enum cleanup
+Subject: ACPI: keep track of timer broadcast
 From: Thomas Gleixner <tglx@linutronix.de>
 
-- hrtimers did not use the hrtimer_restart enum and relied on the implict
-  int representation. Fix the prototypes and the functions using the enums.
-- Use seperate name spaces for the enumerations
-- Convert hrtimer_restart macro to inline function
-- Add comments
+This is a preperatory patch for highres/dyntick:
 
-No functional changes.
+- replace the big #ifdef ARCH_APICTIMER_STOPS_ON_C3 hackery by functions
+
+- remove the double switch in the power verify function (in the worst case
+  we switched ipi to apic and 20usec later apic to ipi)
+
+- keep track of the the state which stops local APIC timer
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/hrtimer.h |   20 ++++++++++++--------
- include/linux/timer.h   |    2 +-
- kernel/fork.c           |    2 +-
- kernel/futex.c          |    2 +-
- kernel/hrtimer.c        |   18 +++++++++---------
- kernel/itimer.c         |    4 ++--
- kernel/posix-timers.c   |   13 +++++++------
- kernel/rtmutex.c        |    2 +-
- 8 files changed, 34 insertions(+), 29 deletions(-)
+ drivers/acpi/processor_idle.c |   67 ++++++++++++++++++++++----------
+ include/acpi/processor.h      |    1 
+ 2 files changed, 49 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup
-+++ a/include/linux/hrtimer.h
-@@ -25,17 +25,18 @@
-  * Mode arguments of xxx_hrtimer functions:
-  */
- enum hrtimer_mode {
--	HRTIMER_ABS,	/* Time value is absolute */
--	HRTIMER_REL,	/* Time value is relative to now */
-+	HRTIMER_MODE_ABS,	/* Time value is absolute */
-+	HRTIMER_MODE_REL,	/* Time value is relative to now */
- };
- 
-+/*
-+ * Return values for the callback function
-+ */
- enum hrtimer_restart {
--	HRTIMER_NORESTART,
--	HRTIMER_RESTART,
-+	HRTIMER_NORESTART,	/* Timer is not restarted */
-+	HRTIMER_RESTART,	/* Timer must be restarted */
- };
- 
--#define HRTIMER_INACTIVE	((void *)1UL)
--
- struct hrtimer_base;
- 
- /**
-@@ -52,7 +53,7 @@ struct hrtimer_base;
- struct hrtimer {
- 	struct rb_node		node;
- 	ktime_t			expires;
--	int			(*function)(struct hrtimer *);
-+	enum hrtimer_restart	(*function)(struct hrtimer *);
- 	struct hrtimer_base	*base;
- };
- 
-@@ -114,7 +115,10 @@ extern int hrtimer_start(struct hrtimer 
- extern int hrtimer_cancel(struct hrtimer *timer);
- extern int hrtimer_try_to_cancel(struct hrtimer *timer);
- 
--#define hrtimer_restart(timer) hrtimer_start((timer), (timer)->expires, HRTIMER_ABS)
-+static inline int hrtimer_restart(struct hrtimer *timer)
-+{
-+	return hrtimer_start(timer, timer->expires, HRTIMER_MODE_ABS);
-+}
- 
- /* Query timers: */
- extern ktime_t hrtimer_get_remaining(const struct hrtimer *timer);
-diff -puN include/linux/timer.h~hrtimers-namespace-and-enum-cleanup include/linux/timer.h
---- a/include/linux/timer.h~hrtimers-namespace-and-enum-cleanup
-+++ a/include/linux/timer.h
-@@ -106,7 +106,7 @@ static inline void add_timer(struct time
- extern void init_timers(void);
- extern void run_local_timers(void);
- struct hrtimer;
--extern int it_real_fn(struct hrtimer *);
-+extern enum hrtimer_restart it_real_fn(struct hrtimer *);
- 
- unsigned long __round_jiffies(unsigned long j, int cpu);
- unsigned long __round_jiffies_relative(unsigned long j, int cpu);
-diff -puN kernel/fork.c~hrtimers-namespace-and-enum-cleanup kernel/fork.c
---- a/kernel/fork.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/fork.c
-@@ -858,7 +858,7 @@ static inline int copy_signal(unsigned l
- 	init_sigpending(&sig->shared_pending);
- 	INIT_LIST_HEAD(&sig->posix_timers);
- 
--	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_REL);
-+	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 	sig->it_real_incr.tv64 = 0;
- 	sig->real_timer.function = it_real_fn;
- 	sig->tsk = tsk;
-diff -puN kernel/futex.c~hrtimers-namespace-and-enum-cleanup kernel/futex.c
---- a/kernel/futex.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/futex.c
-@@ -1134,7 +1134,7 @@ static int futex_lock_pi(u32 __user *uad
- 
- 	if (sec != MAX_SCHEDULE_TIMEOUT) {
- 		to = &timeout;
--		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_ABS);
-+		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
- 		hrtimer_init_sleeper(to, current);
- 		to->timer.expires = ktime_set(sec, nsec);
+diff -puN drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcast drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcast
++++ a/drivers/acpi/processor_idle.c
+@@ -246,6 +246,49 @@ static void acpi_cstate_enter(struct acp
  	}
-diff -puN kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/hrtimer.c
-@@ -439,7 +439,7 @@ hrtimer_start(struct hrtimer *timer, kti
- 	/* Switch the timer base, if necessary: */
- 	new_base = switch_hrtimer_base(timer, base);
- 
--	if (mode == HRTIMER_REL) {
-+	if (mode == HRTIMER_MODE_REL) {
- 		tim = ktime_add(tim, new_base->get_time());
- 		/*
- 		 * CONFIG_TIME_LOW_RES is a temporary way for architectures
-@@ -578,7 +578,7 @@ void hrtimer_init(struct hrtimer *timer,
- 
- 	bases = __raw_get_cpu_var(hrtimer_bases);
- 
--	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_ABS)
-+	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_MODE_ABS)
- 		clock_id = CLOCK_MONOTONIC;
- 
- 	timer->base = &bases[clock_id];
-@@ -622,7 +622,7 @@ static inline void run_hrtimer_queue(str
- 
- 	while ((node = base->first)) {
- 		struct hrtimer *timer;
--		int (*fn)(struct hrtimer *);
-+		enum hrtimer_restart (*fn)(struct hrtimer *);
- 		int restart;
- 
- 		timer = rb_entry(node, struct hrtimer, node);
-@@ -664,7 +664,7 @@ void hrtimer_run_queues(void)
- /*
-  * Sleep related functions:
-  */
--static int hrtimer_wakeup(struct hrtimer *timer)
-+static enum hrtimer_restart hrtimer_wakeup(struct hrtimer *timer)
- {
- 	struct hrtimer_sleeper *t =
- 		container_of(timer, struct hrtimer_sleeper, timer);
-@@ -694,7 +694,7 @@ static int __sched do_nanosleep(struct h
- 		schedule();
- 
- 		hrtimer_cancel(&t->timer);
--		mode = HRTIMER_ABS;
-+		mode = HRTIMER_MODE_ABS;
- 
- 	} while (t->task && !signal_pending(current));
- 
-@@ -710,10 +710,10 @@ long __sched hrtimer_nanosleep_restart(s
- 
- 	restart->fn = do_no_restart_syscall;
- 
--	hrtimer_init(&t.timer, restart->arg0, HRTIMER_ABS);
-+	hrtimer_init(&t.timer, restart->arg0, HRTIMER_MODE_ABS);
- 	t.timer.expires.tv64 = ((u64)restart->arg3 << 32) | (u64) restart->arg2;
- 
--	if (do_nanosleep(&t, HRTIMER_ABS))
-+	if (do_nanosleep(&t, HRTIMER_MODE_ABS))
- 		return 0;
- 
- 	rmtp = (struct timespec __user *) restart->arg1;
-@@ -746,7 +746,7 @@ long hrtimer_nanosleep(struct timespec *
- 		return 0;
- 
- 	/* Absolute timers do not update the rmtp value and restart: */
--	if (mode == HRTIMER_ABS)
-+	if (mode == HRTIMER_MODE_ABS)
- 		return -ERESTARTNOHAND;
- 
- 	if (rmtp) {
-@@ -779,7 +779,7 @@ sys_nanosleep(struct timespec __user *rq
- 	if (!timespec_valid(&tu))
- 		return -EINVAL;
- 
--	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_REL, CLOCK_MONOTONIC);
-+	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_MODE_REL, CLOCK_MONOTONIC);
  }
  
- /*
-diff -puN kernel/itimer.c~hrtimers-namespace-and-enum-cleanup kernel/itimer.c
---- a/kernel/itimer.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/itimer.c
-@@ -128,7 +128,7 @@ asmlinkage long sys_getitimer(int which,
- /*
-  * The timer is automagically restarted, when interval != 0
-  */
--int it_real_fn(struct hrtimer *timer)
-+enum hrtimer_restart it_real_fn(struct hrtimer *timer)
++#ifdef ARCH_APICTIMER_STOPS_ON_C3
++
++/*
++ * Some BIOS implementations switch to C3 in the published C2 state. This seems
++ * to be a common problem on AMD boxen.
++ */
++static void acpi_timer_check_state(int state, struct acpi_processor *pr,
++				   struct acpi_processor_cx *cx)
++{
++	struct acpi_processor_power *pwr = &pr->power;
++
++	/*
++	 * Check, if one of the previous states already marked the lapic
++	 * unstable
++	 */
++	if (pwr->timer_broadcast_on_state < state)
++		return;
++
++	if(cx->type == ACPI_STATE_C3 ||
++	   boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
++		pr->power.timer_broadcast_on_state = state;
++		return;
++	}
++}
++
++static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
++{
++	cpumask_t mask = cpumask_of_cpu(pr->id);
++
++	if (pr->power.timer_broadcast_on_state < INT_MAX)
++		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
++	else
++		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
++}
++
++#else
++
++static void acpi_timer_check_state(int state, struct acpi_processor *pr,
++				   struct acpi_processor_cx *cstate) { }
++static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
++
++#endif
++
+ static void acpi_processor_idle(void)
  {
- 	struct signal_struct *sig =
- 	    container_of(timer, struct signal_struct, real_timer);
-@@ -235,7 +235,7 @@ again:
- 			timeval_to_ktime(value->it_interval);
- 		expires = timeval_to_ktime(value->it_value);
- 		if (expires.tv64 != 0)
--			hrtimer_start(timer, expires, HRTIMER_REL);
-+			hrtimer_start(timer, expires, HRTIMER_MODE_REL);
- 		spin_unlock_irq(&tsk->sighand->siglock);
- 		break;
- 	case ITIMER_VIRTUAL:
-diff -puN kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup kernel/posix-timers.c
---- a/kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/posix-timers.c
-@@ -145,7 +145,7 @@ static int common_timer_set(struct k_iti
- 			    struct itimerspec *, struct itimerspec *);
- static int common_timer_del(struct k_itimer *timer);
+ 	struct acpi_processor *pr = NULL;
+@@ -912,11 +955,7 @@ static int acpi_processor_power_verify(s
+ 	unsigned int i;
+ 	unsigned int working = 0;
  
--static int posix_timer_fn(struct hrtimer *data);
-+static enum hrtimer_restart posix_timer_fn(struct hrtimer *data);
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+-	int timer_broadcast = 0;
+-	cpumask_t mask = cpumask_of_cpu(pr->id);
+-	on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
+-#endif
++	pr->power.timer_broadcast_on_state = INT_MAX;
  
- static struct k_itimer *lock_timer(timer_t timer_id, unsigned long *flags);
+ 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+ 		struct acpi_processor_cx *cx = &pr->power.states[i];
+@@ -928,21 +967,14 @@ static int acpi_processor_power_verify(s
  
-@@ -334,12 +334,12 @@ EXPORT_SYMBOL_GPL(posix_timer_event);
+ 		case ACPI_STATE_C2:
+ 			acpi_processor_power_verify_c2(cx);
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+-			/* Some AMD systems fake C3 as C2, but still
+-			   have timer troubles */
+-			if (cx->valid && 
+-				boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
+-				timer_broadcast++;
+-#endif
++			if (cx->valid)
++				acpi_timer_check_state(i, pr, cx);
+ 			break;
  
-  * This code is for CLOCK_REALTIME* and CLOCK_MONOTONIC* timers.
-  */
--static int posix_timer_fn(struct hrtimer *timer)
-+static enum hrtimer_restart posix_timer_fn(struct hrtimer *timer)
- {
- 	struct k_itimer *timr;
- 	unsigned long flags;
- 	int si_private = 0;
--	int ret = HRTIMER_NORESTART;
-+	enum hrtimer_restart ret = HRTIMER_NORESTART;
+ 		case ACPI_STATE_C3:
+ 			acpi_processor_power_verify_c3(pr, cx);
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+ 			if (cx->valid)
+-				timer_broadcast++;
+-#endif
++				acpi_timer_check_state(i, pr, cx);
+ 			break;
+ 		}
  
- 	timr = container_of(timer, struct k_itimer, it.real.timer);
- 	spin_lock_irqsave(&timr->it_lock, flags);
-@@ -723,7 +723,7 @@ common_timer_set(struct k_itimer *timr, 
- 	if (!new_setting->it_value.tv_sec && !new_setting->it_value.tv_nsec)
- 		return 0;
+@@ -950,10 +982,7 @@ static int acpi_processor_power_verify(s
+ 			working++;
+ 	}
  
--	mode = flags & TIMER_ABSTIME ? HRTIMER_ABS : HRTIMER_REL;
-+	mode = flags & TIMER_ABSTIME ? HRTIMER_MODE_ABS : HRTIMER_MODE_REL;
- 	hrtimer_init(&timr->it.real.timer, timr->it_clock, mode);
- 	timr->it.real.timer.function = posix_timer_fn;
+-#ifdef ARCH_APICTIMER_STOPS_ON_C3
+-	if (timer_broadcast)
+-		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
+-#endif
++	acpi_propagate_timer_broadcast(pr);
  
-@@ -735,7 +735,7 @@ common_timer_set(struct k_itimer *timr, 
- 	/* SIGEV_NONE timers are not queued ! See common_timer_get */
- 	if (((timr->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE)) {
- 		/* Setup correct expiry time for relative timers */
--		if (mode == HRTIMER_REL)
-+		if (mode == HRTIMER_MODE_REL)
- 			timer->expires = ktime_add(timer->expires,
- 						   timer->base->get_time());
- 		return 0;
-@@ -951,7 +951,8 @@ static int common_nsleep(const clockid_t
- 			 struct timespec *tsave, struct timespec __user *rmtp)
- {
- 	return hrtimer_nanosleep(tsave, rmtp, flags & TIMER_ABSTIME ?
--				 HRTIMER_ABS : HRTIMER_REL, which_clock);
-+				 HRTIMER_MODE_ABS : HRTIMER_MODE_REL,
-+				 which_clock);
+ 	return (working);
  }
+diff -puN include/acpi/processor.h~acpi-keep-track-of-timer-broadcast include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-keep-track-of-timer-broadcast
++++ a/include/acpi/processor.h
+@@ -79,6 +79,7 @@ struct acpi_processor_power {
+ 	u32 bm_activity;
+ 	int count;
+ 	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
++	int timer_broadcast_on_state;
+ };
  
- asmlinkage long
-diff -puN kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup kernel/rtmutex.c
---- a/kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/rtmutex.c
-@@ -625,7 +625,7 @@ rt_mutex_slowlock(struct rt_mutex *lock,
- 	/* Setup the timer, when timeout != NULL */
- 	if (unlikely(timeout))
- 		hrtimer_start(&timeout->timer, timeout->timer.expires,
--			      HRTIMER_ABS);
-+			      HRTIMER_MODE_ABS);
- 
- 	for (;;) {
- 		/* Try to acquire the lock: */
+ /* Performance Management */
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
