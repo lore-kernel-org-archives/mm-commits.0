@@ -1,103 +1,30 @@
 From: akpm@osdl.org
-Subject: - io-accounting-core-statistics.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:52:32 -0800
-Message-ID: <200612130652.kBD6qWDa030446@shell0.pdx.osdl.net>
+Subject: - io-accounting-direct-io.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:52:51 -0800
+Message-ID: <200612130652.kBD6qpao030467@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57373 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57408 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964985AbWLMGwv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:52:51 -0500
+	id S964984AbWLMGw5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:52:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, balbir@in.ibm.com, csturtiv@sgi.com, daw@sgi.com, guillaume.thouvenin@bull.net, jlan@sgi.com, nagar@watson.ibm.com, tee@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     io-accounting: core statistics
+     io-accounting: direct-io
 has been removed from the -mm tree.  Its filename was
-     io-accounting-core-statistics.patch
+     io-accounting-direct-io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: io-accounting: core statistics
+Subject: io-accounting: direct-io
 From: Andrew Morton <akpm@osdl.org>
 
-The present per-task IO accounting isn't very useful.  It simply counts the
-number of bytes passed into read() and write().  So if a process reads 1MB
-from an already-cached file, it is accused of having performed 1MB of I/O,
-which is wrong.
-
-(David Wright had some comments on the applicability of the present logical IO accounting:
-
-  For billing purposes it is useless but for workload analysis it is very
-  useful
-
-  read_bytes/read_calls  average read request size
-  write_bytes/write_calls average write request size
-
-  read_bytes/read_blocks ie logical/physical can indicate hit rate or thrashing
-  write_bytes/write_blocks  ie logical/physical  guess since pdflush writes can
-                                                be missed
-
-  I often look for logical larger than physical to see filesystem cache
-  problems.  And the bytes/cpusec can help find applications that are
-  dominating the cache and causing slow interactive response from page cache
-  contention.
-
-  I want to find the IO intensive applications and make sure they are doing
-  efficient IO.  Thus the acctcms(sysV) or csacms command would give the high
-  IO commands).
-
-
-This patchset adds new accounting which tries to be more accurate.  We account
-for three things:
-
-reads:
-
-  attempt to count the number of bytes which this process really did cause
-  to be fetched from the storage layer.  Done at the submit_bio() level, so it
-  is accurate for block-backed filesystems.  I also attempt to wire up NFS and
-  CIFS.
-
-writes:
-
-  attempt to count the number of bytes which this process caused to be sent
-  to the storage layer.  This is done at page-dirtying time.
-
-  The big inaccuracy here is truncate.  If a process writes 1MB to a file
-  and then deletes the file, it will in fact perform no writeout.  But it will
-  have been accounted as having caused 1MB of write.
-
-  So...
-
-cancelled_writes:
-
-  account the number of bytes which this process caused to not happen, by
-  truncating pagecache.
-
-  We _could_ just subtract this from the process's `write' accounting.  But
-  that means that some processes would be reported to have done negative
-  amounts of write IO, which is silly.
-
-  So we just report the raw number and punt this decision up to userspace.
-
-
-Now, we _could_ account for writes at the physical I/O level.  But
-
-- This would require that we track memory-dirtying tasks at the per-page
-  level (would require a new pointer in struct page).
-
-- It would mean that IO statistics for a process are usually only available
-  long after that process has exitted.  Which means that we probably cannot
-  communicate this info via taskstats.
-
-
-This patch:
-
-Wire up the kernel-private data structures and the accessor functions to
-manipulate them.
+Account for direct-io.
 
 Cc: Jay Lan <jlan@sgi.com>
 Cc: Shailabh Nagar <nagar@watson.ibm.com>
@@ -109,162 +36,34 @@ Cc: David Wright <daw@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h                  |    2 
- include/linux/task_io_accounting.h     |   37 ++++++++++++++++++
- include/linux/task_io_accounting_ops.h |   47 +++++++++++++++++++++++
- init/Kconfig                           |    9 ++++
- kernel/fork.c                          |    2 
- 5 files changed, 97 insertions(+)
+ fs/direct-io.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/sched.h~io-accounting-core-statistics include/linux/sched.h
---- a/include/linux/sched.h~io-accounting-core-statistics
-+++ a/include/linux/sched.h
-@@ -82,6 +82,7 @@ struct sched_param {
- #include <linux/resource.h>
- #include <linux/timer.h>
- #include <linux/hrtimer.h>
-+#include <linux/task_io_accounting.h>
- 
- #include <asm/processor.h>
- 
-@@ -1013,6 +1014,7 @@ struct task_struct {
- 	wait_queue_t *io_wait;
- /* i/o counters(bytes read/written, #syscalls */
- 	u64 rchar, wchar, syscr, syscw;
-+	struct task_io_accounting ioac;
- #if defined(CONFIG_TASK_XACCT)
- 	u64 acct_rss_mem1;	/* accumulated rss usage */
- 	u64 acct_vm_mem1;	/* accumulated virtual memory usage */
-diff -puN /dev/null include/linux/task_io_accounting.h
---- /dev/null
-+++ a/include/linux/task_io_accounting.h
-@@ -0,0 +1,37 @@
-+/*
-+ * task_io_accounting: a structure which is used for recording a single task's
-+ * IO statistics.
-+ *
-+ * Don't include this header file directly - it is designed to be dragged in via
-+ * sched.h.
-+ *
-+ * Blame akpm@osdl.org for all this.
-+ */
-+
-+#ifdef CONFIG_TASK_IO_ACCOUNTING
-+struct task_io_accounting {
-+	/*
-+	 * The number of bytes which this task has caused to be read from
-+	 * storage.
-+	 */
-+	u64 read_bytes;
-+
-+	/*
-+	 * The number of bytes which this task has caused, or shall cause to be
-+	 * written to disk.
-+	 */
-+	u64 write_bytes;
-+
-+	/*
-+	 * A task can cause "negative" IO too.  If this task truncates some
-+	 * dirty pagecache, some IO which another task has been accounted for
-+	 * (in its write_bytes) will not be happening.  We _could_ just
-+	 * subtract that from the truncating task's write_bytes, but there is
-+	 * information loss in doing that.
-+	 */
-+	u64 cancelled_write_bytes;
-+};
-+#else
-+struct task_io_accounting {
-+};
-+#endif
-diff -puN /dev/null include/linux/task_io_accounting_ops.h
---- /dev/null
-+++ a/include/linux/task_io_accounting_ops.h
-@@ -0,0 +1,47 @@
-+/*
-+ * Task I/O accounting operations
-+ */
-+#ifndef __TASK_IO_ACCOUNTING_OPS_INCLUDED
-+#define __TASK_IO_ACCOUNTING_OPS_INCLUDED
-+
-+#ifdef CONFIG_TASK_IO_ACCOUNTING
-+static inline void task_io_account_read(size_t bytes)
-+{
-+	current->ioac.read_bytes += bytes;
-+}
-+
-+static inline void task_io_account_write(size_t bytes)
-+{
-+	current->ioac.write_bytes += bytes;
-+}
-+
-+static inline void task_io_account_cancelled_write(size_t bytes)
-+{
-+	current->ioac.cancelled_write_bytes += bytes;
-+}
-+
-+static inline void task_io_accounting_init(struct task_struct *tsk)
-+{
-+	memset(&tsk->ioac, 0, sizeof(tsk->ioac));
-+}
-+
-+#else
-+
-+static inline void task_io_account_read(size_t bytes)
-+{
-+}
-+
-+static inline void task_io_account_write(size_t bytes)
-+{
-+}
-+
-+static inline void task_io_account_cancelled_write(size_t bytes)
-+{
-+}
-+
-+static inline void task_io_accounting_init(struct task_struct *tsk)
-+{
-+}
-+
-+#endif		/* CONFIG_TASK_IO_ACCOUNTING */
-+#endif		/* __TASK_IO_ACCOUNTING_OPS_INCLUDED */
-diff -puN init/Kconfig~io-accounting-core-statistics init/Kconfig
---- a/init/Kconfig~io-accounting-core-statistics
-+++ a/init/Kconfig
-@@ -304,6 +304,15 @@ config TASK_XACCT
- 
- 	  Say N if unsure.
- 
-+config TASK_IO_ACCOUNTING
-+	bool "Enable per-task storage I/O accounting (EXPERIMENTAL)"
-+	depends on TASK_XACCT
-+	help
-+	  Collect information on the number of bytes of storage I/O which this
-+	  task has caused.
-+
-+	  Say N if unsure.
-+
- config SYSCTL
- 	bool
- 
-diff -puN kernel/fork.c~io-accounting-core-statistics kernel/fork.c
---- a/kernel/fork.c~io-accounting-core-statistics
-+++ a/kernel/fork.c
-@@ -36,6 +36,7 @@
- #include <linux/syscalls.h>
- #include <linux/jiffies.h>
- #include <linux/futex.h>
+diff -puN fs/direct-io.c~io-accounting-direct-io fs/direct-io.c
+--- a/fs/direct-io.c~io-accounting-direct-io
++++ a/fs/direct-io.c
+@@ -27,6 +27,7 @@
+ #include <linux/slab.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
 +#include <linux/task_io_accounting_ops.h>
- #include <linux/rcupdate.h>
- #include <linux/ptrace.h>
- #include <linux/mount.h>
-@@ -1055,6 +1056,7 @@ static struct task_struct *copy_process(
- 	p->wchar = 0;		/* I/O counter: bytes written */
- 	p->syscr = 0;		/* I/O counter: read syscalls */
- 	p->syscw = 0;		/* I/O counter: write syscalls */
-+	task_io_accounting_init(p);
- 	acct_clear_integrals(p);
+ #include <linux/bio.h>
+ #include <linux/wait.h>
+ #include <linux/err.h>
+@@ -675,6 +676,13 @@ submit_page_section(struct dio *dio, str
+ {
+ 	int ret = 0;
  
-  	p->it_virt_expires = cputime_zero;
++	if (dio->rw & WRITE) {
++		/*
++		 * Read accounting is performed in submit_bio()
++		 */
++		task_io_account_write(len);
++	}
++
+ 	/*
+ 	 * Can we just grow the current page's presence in the dio?
+ 	 */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
