@@ -1,235 +1,76 @@
 From: akpm@osdl.org
-Subject: + count_vm_events-warning-fix.patch added to -mm tree
-Date: Wed, 13 Dec 2006 12:42:44 -0800
-Message-ID: <200612132042.kBDKgjNH019263@shell0.pdx.osdl.net>
+Subject: + alpha-increase-percpu_enough_room.patch added to -mm tree
+Date: Wed, 13 Dec 2006 13:04:00 -0800
+Message-ID: <200612132104.kBDL40M1019955@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39819 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41491 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770AbWLMUmu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 15:42:50 -0500
+	id S1750937AbWLMVET (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 16:04:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clameter@engr.sgi.com
+Cc: aneesh.kumar@gmail.com, Jay.Estabrook@hp.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     count_vm_events-warning-fix
+     Alpha: increase PERCPU_ENOUGH_ROOM
 has been added to the -mm tree.  Its filename is
-     count_vm_events-warning-fix.patch
+     alpha-increase-percpu_enough_room.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: count_vm_events-warning-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: Alpha: increase PERCPU_ENOUGH_ROOM
+From: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
 
-- Prevent things liek this:
+Module loading on Alpha was failing with error "Could not allocate 8 bytes
+percpu data".
 
-	block/ll_rw_blk.c: In function 'submit_bio':
-	block/ll_rw_blk.c:3222: warning: unused variable 'count'
+Looking at dmesg we have the below error "No per-cpu room for modules."
 
-  inlines are very, very preferable to macros.
+Increase the PERCPU_ENOUGH_ROOM in a similar way as x86_64
 
-- remove unused get_cpu_vm_events() macro
-
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@gmail.com>
+Cc: <Jay.Estabrook@hp.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/vmstat.h |   46 ++++++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 17 deletions(-)
+ include/asm-alpha/percpu.h |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN include/linux/vmstat.h~count_vm_events-warning-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~count_vm_events-warning-fix
-+++ a/include/linux/vmstat.h
-@@ -6,17 +6,6 @@
- #include <linux/mmzone.h>
- #include <asm/atomic.h>
+diff -puN include/asm-alpha/percpu.h~alpha-increase-percpu_enough_room include/asm-alpha/percpu.h
+--- a/include/asm-alpha/percpu.h~alpha-increase-percpu_enough_room
++++ a/include/asm-alpha/percpu.h
+@@ -1,6 +1,20 @@
+ #ifndef __ALPHA_PERCPU_H
+ #define __ALPHA_PERCPU_H
  
--#ifdef CONFIG_VM_EVENT_COUNTERS
--/*
-- * Light weight per cpu counter implementation.
-- *
-- * Counters should only be incremented and no critical kernel component
-- * should rely on the counter values.
-- *
-- * Counters are handled completely inline. On many platforms the code
-- * generated will simply be the increment of a global address.
-- */
--
- #ifdef CONFIG_ZONE_DMA32
- #define DMA32_ZONE(xx) xx##_DMA32,
- #else
-@@ -44,6 +33,17 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		NR_VM_EVENT_ITEMS
- };
- 
-+#ifdef CONFIG_VM_EVENT_COUNTERS
 +/*
-+ * Light weight per cpu counter implementation.
-+ *
-+ * Counters should only be incremented and no critical kernel component
-+ * should rely on the counter values.
-+ *
-+ * Counters are handled completely inline. On many platforms the code
-+ * generated will simply be the increment of a global address.
++ * Increase the per cpu area for Alpha so that
++ * modules using percpu area can load.
 + */
++#ifdef CONFIG_MODULES
++# define PERCPU_MODULE_RESERVE 8192
++#else
++# define PERCPU_MODULE_RESERVE 0
++#endif
 +
- struct vm_event_state {
- 	unsigned long event[NR_VM_EVENT_ITEMS];
- };
-@@ -78,12 +78,24 @@ extern void vm_events_fold_cpu(int cpu);
- #else
++#define PERCPU_ENOUGH_ROOM \
++	(ALIGN(__per_cpu_end - __per_cpu_start, SMP_CACHE_BYTES) + \
++	 PERCPU_MODULE_RESERVE)
++
+ #include <asm-generic/percpu.h>
  
- /* Disable counters */
--#define get_cpu_vm_events(e)	0L
--#define count_vm_event(e)	do { } while (0)
--#define count_vm_events(e,d)	do { } while (0)
--#define __count_vm_event(e)	do { } while (0)
--#define __count_vm_events(e,d)	do { } while (0)
--#define vm_events_fold_cpu(x)	do { } while (0)
-+static inline void count_vm_event(enum vm_event_item item)
-+{
-+}
-+static inline void count_vm_events(enum vm_event_item item, long delta)
-+{
-+}
-+static inline void __count_vm_event(enum vm_event_item item)
-+{
-+}
-+static inline void __count_vm_events(enum vm_event_item item, long delta)
-+{
-+}
-+static inline void all_vm_events(unsigned long *ret)
-+{
-+}
-+static inline void vm_events_fold_cpu(int cpu)
-+{
-+}
- 
- #endif /* CONFIG_VM_EVENT_COUNTERS */
- 
+ #endif /* __ALPHA_PERCPU_H */
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from aneesh.kumar@gmail.com are
 
-origin.patch
-x86-smp-export-smp_num_siblings-for-oprofile.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support.patch
-optimize-o_direct-on-block-device-v3.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-procfs-build-fix.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-input-vs-git-alsa.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-build-compileh-earlier.patch
-count_vm_events-warning-fix.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking-fix.patch
-updated-hrtimers-state-tracking.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-i386-convert-to-clock-event-devices-fix.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+kobject-kobject_uevent-returns-manageable-value.patch
+alpha-increase-percpu_enough_room.patch
 
