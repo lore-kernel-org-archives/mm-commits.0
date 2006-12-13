@@ -1,751 +1,785 @@
 From: akpm@osdl.org
-Subject: - updated-debugging-feature-timer-stats-fixes.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:50:12 -0800
-Message-ID: <200612132250.kBDMoCfP023208@shell0.pdx.osdl.net>
+Subject: - updated-debugging-feature-timer-stats.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:50:09 -0800
+Message-ID: <200612132250.kBDMo9K2023205@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53134 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53174 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751768AbWLMWuV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:50:21 -0500
+	id S1751665AbWLMWup (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:50:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timer stats: updates
+     debugging feature: timer stats
 has been removed from the -mm tree.  Its filename was
-     updated-debugging-feature-timer-stats-fixes.patch
+     updated-debugging-feature-timer-stats.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: timer stats: updates
-From: Ingo Molnar <mingo@elte.hu>
+Subject: debugging feature: timer stats
+From: Thomas Gleixner <tglx@linutronix.de>
 
-this is a major update to the /proc/timer_stats code and interface:
+Add /proc/timer_stats support: debugging feature to profile timer expiration. 
+Both the starting site, process/PID and the expiration function is captured. 
+This allows the quick identification of timer event sources in a system.
 
- - change from linear list walking and global locking to a
-   scalable design: hash table and per-CPU locks for lookup,
-   global lock for adding new buckets (rare) and mutex for
-   serializing state changes with displaying stats.
+Sample output:
 
- - state transition simplification: active/inactive.
+ # echo 1 > /proc/tstats
+ # cat /proc/tstats
+ Timerstats sample period: 3.888770 s
+   12,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
+   15,     1 swapper          hcd_submit_urb (rh_timer_func)
+    4,   959 kedac            schedule_timeout (process_timeout)
+    1,     0 swapper          page_writeback_init (wb_timer_fn)
+   28,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
+   22,  2948 IRQ 4            tty_flip_buffer_push (delayed_work_timer_fn)
+    3,  3100 bash             schedule_timeout (process_timeout)
+    1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
+    1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
+    1,     1 swapper          neigh_table_init_no_netlink (neigh_periodic_timer)
+    1,  2292 ip               __netdev_watchdog_up (dev_watchdog)
+    1,    23 events/1         do_cache_clean (delayed_work_timer_fn)
+ 90 total events, 30.0 events/sec
 
- - dont auto-stop collection of events when displaying /proc/timer_stats
-
- - include version information in /proc/timer_stats output
-
- - include count of missed events (overflow count)
-
- - sanitize start/stop time calculations
-
- - change /proc/timer_stat from 0666 to 0644 ...
-
- - fix bugs in milliseconds calculation and display
-
- - fix division by zero bug
-
- - add comments
-
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/clockchips.h |   25 ++
- include/linux/timer.h      |    6 
- kernel/time/clockevents.c  |   49 +---
- kernel/time/timer_stats.c  |  345 +++++++++++++++++++++++++----------
- kernel/timer.c             |    2 
- 5 files changed, 305 insertions(+), 122 deletions(-)
+ Documentation/hrtimer/timer_stats.txt |   68 ++++++
+ include/linux/hrtimer.h               |   53 +++++
+ include/linux/timer.h                 |   49 ++++
+ kernel/hrtimer.c                      |   26 ++
+ kernel/time/Makefile                  |    3 
+ kernel/time/timer_stats.c             |  244 ++++++++++++++++++++++++
+ kernel/timer.c                        |   29 ++
+ kernel/workqueue.c                    |    7 
+ lib/Kconfig.debug                     |   11 +
+ 9 files changed, 484 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/timer.h~updated-debugging-feature-timer-stats-fixes include/linux/timer.h
---- a/include/linux/timer.h~updated-debugging-feature-timer-stats-fixes
-+++ a/include/linux/timer.h
-@@ -84,6 +84,8 @@ extern unsigned long get_next_timer_inte
+diff -puN /dev/null Documentation/hrtimer/timer_stats.txt
+--- /dev/null
++++ a/Documentation/hrtimer/timer_stats.txt
+@@ -0,0 +1,68 @@
++timer_stats - timer usage statistics
++------------------------------------
++
++timer_stats is a debugging facility to make the timer (ab)usage in a Linux
++system visible to kernel and userspace developers. It is not intended for
++production usage as it adds significant overhead to the (hr)timer code and the
++(hr)timer data structures.
++
++timer_stats should be used by kernel and userspace developers to verify that
++their code does not make unduly use of timers. This helps to avoid unnecessary
++wakeups, which should be avoided to optimize power consumption.
++
++It can be enabled by CONFIG_TIMER_STATS in the "Kernel hacking" configuration
++section.
++
++timer_stats collects information about the timer events which are fired in a
++Linux system over a sample period:
++
++- the pid of the task(process) which initialized the timer
++- the name of the process which initialized the timer
++- the function where the timer was intialized
++- the callback function which is associated to the timer
++- the number of events (callbacks)
++
++timer_stats adds an entry to /proc: /proc/timer_stats
++
++This entry is used to control the statistics functionality and to read out the
++sampled information.
++
++The timer_stats functionality is inactive on bootup.
++
++To activate a sample period issue:
++# echo 1 >/proc/timer_stats
++
++To stop a sample period issue:
++# echo 0 >/proc/timer_stats
++
++The statistics can be retrieved by:
++# cat /proc/timer_stats
++
++The readout of /proc/timer_stats automatically disables sampling. The sampled
++information is kept until a new sample period is started. This allows multiple
++readouts.
++
++Sample output of /proc/timer_stats:
++
++Timerstats sample period: 3.888770 s
++  12,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
++  15,     1 swapper          hcd_submit_urb (rh_timer_func)
++   4,   959 kedac            schedule_timeout (process_timeout)
++   1,     0 swapper          page_writeback_init (wb_timer_fn)
++  28,     0 swapper          hrtimer_stop_sched_tick (hrtimer_sched_tick)
++  22,  2948 IRQ 4            tty_flip_buffer_push (delayed_work_timer_fn)
++   3,  3100 bash             schedule_timeout (process_timeout)
++   1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
++   1,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
++   1,     1 swapper          neigh_table_init_no_netlink (neigh_periodic_timer)
++   1,  2292 ip               __netdev_watchdog_up (dev_watchdog)
++   1,    23 events/1         do_cache_clean (delayed_work_timer_fn)
++90 total events, 30.0 events/sec
++
++The first column is the number of events, the second column the pid, the third
++column is the name of the process. The forth column shows the function which
++initialized the timer and in parantheses the callback function which was
++executed on expiry.
++
++    Thomas, Ingo
++
+diff -puN include/linux/hrtimer.h~updated-debugging-feature-timer-stats include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~updated-debugging-feature-timer-stats
++++ a/include/linux/hrtimer.h
+@@ -101,8 +101,14 @@ enum hrtimer_cb_mode {
+  * @cb_mode:	high resolution timer feature to select the callback execution
+  *		 mode
+  * @cb_entry:	list head to enqueue an expired timer into the callback list
++ * @start_site:	timer statistics field to store the site where the timer
++ *		was started
++ * @start_comm: timer statistics field to store the name of the process which
++ *		started the timer
++ * @start_pid: timer statistics field to store the pid of the task which
++ *		started the timer
+  *
+- * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
++ * The hrtimer structure must be initialized by hrtimer_init()
   */
- #ifdef CONFIG_TIMER_STATS
- 
-+extern void init_timer_stats(void);
-+
- extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
- 				     void *timerf, char * comm);
- 
-@@ -106,6 +108,10 @@ static inline void timer_stats_timer_cle
- 	timer->start_site = NULL;
- }
- #else
-+static inline void init_timer_stats(void)
-+{
-+}
-+
- static inline void timer_stats_account_timer(struct timer_list *timer)
- {
- }
-diff -puN kernel/time/timer_stats.c~updated-debugging-feature-timer-stats-fixes kernel/time/timer_stats.c
---- a/kernel/time/timer_stats.c~updated-debugging-feature-timer-stats-fixes
-+++ a/kernel/time/timer_stats.c
-@@ -9,12 +9,13 @@
-  * timer_stats is based on timer_top, a similar functionality which was part of
-  * Con Kolivas dyntick patch set. It was developed by Daniel Petrini at the
-  * Instituto Nokia de Tecnologia - INdT - Manaus. timer_top's design was based
-- * on dynamic allocation of the statistics entries rather than the static array
-- * which is used by timer_stats. It was written for the pre hrtimer kernel code
-- * and therefor did not take hrtimers into account. Nevertheless it provided
-- * the base for the timer_stats implementation and was a helpful source of
-- * inspiration in the first place. Kudos to Daniel and the Nokia folks for this
-- * effort.
-+ * on dynamic allocation of the statistics entries and linear search based
-+ * lookup combined with a global lock, rather than the static array, hash
-+ * and per-CPU locking which is used by timer_stats. It was written for the
-+ * pre hrtimer kernel code and therefore did not take hrtimers into account.
-+ * Nevertheless it provided the base for the timer_stats implementation and
-+ * was a helpful source of inspiration. Kudos to Daniel and the Nokia folks
-+ * for this effort.
-  *
-  * timer_top.c is
-  *	Copyright (C) 2005 Instituto Nokia de Tecnologia - INdT - Manaus
-@@ -27,7 +28,7 @@
-  * Start/stop data collection:
-  * # echo 1[0] >/proc/timer_stats
-  *
-- * Display the collected information:
-+ * Display the information collected so far:
-  * # cat /proc/timer_stats
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -35,7 +36,6 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include <linux/list.h>
- #include <linux/proc_fs.h>
- #include <linux/module.h>
- #include <linux/spinlock.h>
-@@ -45,28 +45,175 @@
- 
- #include <asm/uaccess.h>
- 
--enum tstats_stat {
--	TSTATS_INACTIVE,
--	TSTATS_ACTIVE,
--	TSTATS_READOUT,
--	TSTATS_RESET,
--};
--
--struct tstats_entry {
-+/*
-+ * This is our basic unit of interest: a timer expiry event identified
-+ * by the timer, its start/expire functions and the PID of the task that
-+ * started the timer. We count the number of times an event happens:
-+ */
-+struct entry {
-+	/*
-+	 * Hash list:
-+	 */
-+	struct entry		*next;
-+
-+	/*
-+	 * Hash keys:
-+	 */
- 	void			*timer;
- 	void			*start_func;
- 	void			*expire_func;
--	unsigned long		counter;
- 	pid_t			pid;
-+
-+	/*
-+	 * Number of timeout events:
-+	 */
-+	unsigned long		count;
-+
-+	/*
-+	 * We save the command-line string to preserve
-+	 * this information past task exit:
-+	 */
- 	char			comm[TASK_COMM_LEN + 1];
--};
- 
--#define TSTATS_MAX_ENTRIES	1024
-+} ____cacheline_aligned_in_smp;
-+
-+/*
-+ * Spinlock protecting the tables - not taken during lookup:
-+ */
-+static DEFINE_RAW_SPINLOCK(table_lock);
-+
-+/*
-+ * Per-CPU lookup locks for fast hash lookup:
-+ */
-+static DEFINE_PER_CPU(raw_spinlock_t, lookup_lock);
-+
-+/*
-+ * Mutex to serialize state changes with show-stats activities:
-+ */
-+static DEFINE_MUTEX(show_mutex);
-+
-+/*
-+ * Collection status, active/inactive:
-+ */
-+static int __read_mostly active;
-+
-+/*
-+ * Beginning/end timestamps of measurement:
-+ */
-+static ktime_t time_start, time_stop;
-+
-+/*
-+ * tstat entry structs only get allocated while collection is
-+ * active and never freed during that time - this simplifies
-+ * things quite a bit.
-+ *
-+ * They get freed when a new collection period is started.
-+ */
-+#define MAX_ENTRIES_BITS	10
-+#define MAX_ENTRIES		(1UL << MAX_ENTRIES_BITS)
-+
-+unsigned long nr_entries;
-+static struct entry entries[MAX_ENTRIES];
-+
-+static atomic_t overflow_count;
-+
-+static void reset_entries(void)
-+{
-+	nr_entries = 0;
-+	memset(entries, 0, sizeof(entries));
-+	atomic_set(&overflow_count, 0);
-+}
-+
-+static struct entry *alloc_entry(void)
-+{
-+	if (nr_entries >= MAX_ENTRIES)
-+		return NULL;
-+
-+	return entries + nr_entries++;
-+}
-+
-+/*
-+ * The entries are in a hash-table, for fast lookup:
-+ */
-+#define TSTAT_HASH_BITS		(MAX_ENTRIES_BITS - 1)
-+#define TSTAT_HASH_SIZE		(1UL << TSTAT_HASH_BITS)
-+#define TSTAT_HASH_MASK		(TSTAT_HASH_SIZE - 1)
-+
-+#define __tstat_hashfn(entry)						\
-+	(((unsigned long)(entry)->timer       ^				\
-+	  (unsigned long)(entry)->start_func  ^				\
-+	  (unsigned long)(entry)->expire_func ^				\
-+	  (unsigned long)(entry)->pid		) & TSTAT_HASH_MASK)
-+
-+#define tstat_hashentry(entry)	(tstat_hash_table + __tstat_hashfn(entry))
-+
-+static struct entry *tstat_hash_table[TSTAT_HASH_SIZE] __read_mostly;
-+
-+static int match_entries(struct entry *entry1, struct entry *entry2)
-+{
-+	return entry1->timer       == entry2->timer	  &&
-+	       entry1->start_func  == entry2->start_func  &&
-+	       entry1->expire_func == entry2->expire_func &&
-+	       entry1->pid	   == entry2->pid;
-+}
-+
-+/*
-+ * Look up whether an entry matching this item is present
-+ * in the hash already. Must be called with irqs off and the
-+ * lookup lock held:
-+ */
-+static struct entry *tstat_lookup(struct entry *entry, char *comm)
-+{
-+	struct entry **head, *curr, *prev;
-+
-+	head = tstat_hashentry(entry);
-+	curr = *head;
-+
-+	/*
-+	 * The fastpath is when the entry is already hashed,
-+	 * we do this with the lookup lock held, but with the
-+	 * table lock not held:
-+	 */
-+	while (curr) {
-+		if (match_entries(curr, entry))
-+			return curr;
-+
-+		curr = curr->next;
-+	}
-+	/*
-+	 * Slowpath: allocate, set up and link a new hash entry:
-+	 */
-+	prev = NULL;
-+	curr = *head;
-+
-+	spin_lock(&table_lock);
-+	/*
-+	 * Make sure we have not raced with another CPU:
-+	 */
-+	while (curr) {
-+		if (match_entries(curr, entry))
-+			goto out_unlock;
-+
-+		prev = curr;
-+		curr = curr->next;
-+	}
- 
--static struct tstats_entry tstats[TSTATS_MAX_ENTRIES];
--static DEFINE_SPINLOCK(tstats_lock);
--static enum tstats_stat tstats_status;
--static ktime_t tstats_time;
-+	curr = alloc_entry();
-+	if (curr) {
-+		*curr = *entry;
-+		curr->count = 0;
-+		memcpy(curr->comm, comm, TASK_COMM_LEN);
-+		if (prev)
-+			prev->next = curr;
-+		else
-+			*head = curr;
-+		curr->next = NULL;
-+	}
-+ out_unlock:
-+	spin_unlock(&table_lock);
-+
-+	return curr;
-+}
- 
- /**
-  * timer_stats_update_stats - Update the statistics for a timer.
-@@ -82,37 +229,30 @@ static ktime_t tstats_time;
- void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
- 			      void *timerf, char * comm)
- {
--	struct tstats_entry *entry = tstats;
-+	/*
-+	 * It doesnt matter which lock we take:
-+	 */
-+	raw_spinlock_t *lock = &per_cpu(lookup_lock, raw_smp_processor_id());
-+	struct entry *entry, input;
- 	unsigned long flags;
--	int i;
- 
--	spin_lock_irqsave(&tstats_lock, flags);
--	if (tstats_status != TSTATS_ACTIVE)
--		goto out_unlock;
-+	input.timer = timer;
-+	input.start_func = startf;
-+	input.expire_func = timerf;
-+	input.pid = pid;
- 
--	for (i = 0; i < TSTATS_MAX_ENTRIES; i++, entry++) {
--		if (entry->timer == timer &&
--		    entry->start_func == startf &&
--		    entry->expire_func == timerf &&
--		    entry->pid == pid) {
-+	spin_lock_irqsave(lock, flags);
-+	if (!active)
-+		goto out_unlock;
- 
--			entry->counter++;
--			break;
--		}
--		if (!entry->timer) {
--			entry->timer = timer;
--			entry->start_func = startf;
--			entry->expire_func = timerf;
--			entry->counter = 1;
--			entry->pid = pid;
--			memcpy(entry->comm, comm, TASK_COMM_LEN);
--			entry->comm[TASK_COMM_LEN] = 0;
--			break;
--		}
--	}
-+	entry = tstat_lookup(&input, comm);
-+	if (likely(entry))
-+		entry->count++;
-+	else
-+		atomic_inc(&overflow_count);
- 
-  out_unlock:
--	spin_unlock_irqrestore(&tstats_lock, flags);
-+	spin_unlock_irqrestore(lock, flags);
- }
- 
- static void print_name_offset(struct seq_file *m, unsigned long addr)
-@@ -131,53 +271,75 @@ static void print_name_offset(struct seq
- 
- static int tstats_show(struct seq_file *m, void *v)
- {
--	struct tstats_entry *entry = tstats;
- 	struct timespec period;
-+	struct entry *entry;
- 	unsigned long ms;
- 	long events = 0;
-+	ktime_t time;
- 	int i;
- 
--	spin_lock_irq(&tstats_lock);
--	switch(tstats_status) {
--	case TSTATS_ACTIVE:
--		tstats_time = ktime_sub(ktime_get(), tstats_time);
--	case TSTATS_INACTIVE:
--		tstats_status = TSTATS_READOUT;
--		break;
--	default:
--		spin_unlock_irq(&tstats_lock);
--		return -EBUSY;
--	}
--	spin_unlock_irq(&tstats_lock);
--
--	period = ktime_to_timespec(tstats_time);
--	ms = period.tv_nsec % 1000000;
--
--	seq_printf(m, "Timerstats sample period: %ld.%3ld s\n",
--		   period.tv_sec, ms);
--
--	for (i = 0; i < TSTATS_MAX_ENTRIES && entry->timer; i++, entry++) {
--		seq_printf(m, "%4lu, %5d %-16s ", entry->counter, entry->pid,
--			   entry->comm);
-+	mutex_lock(&show_mutex);
-+	/*
-+	 * If still active then calculate up to now:
-+	 */
-+	if (active)
-+		time_stop = ktime_get();
-+
-+	time = ktime_sub(time_stop, time_start);
-+
-+	period = ktime_to_timespec(time);
-+	ms = period.tv_nsec / 1000000;
-+
-+	seq_puts(m, "Timer Stats Version: v0.1\n");
-+	seq_printf(m, "Sample period: %ld.%03ld s\n", period.tv_sec, ms);
-+	if (atomic_read(&overflow_count))
-+		seq_printf(m, "Overflow: %d entries\n",
-+			atomic_read(&overflow_count));
-+
-+	for (i = 0; i < nr_entries; i++) {
-+		entry = entries + i;
-+		seq_printf(m, "%4lu, %5d %-16s ",
-+				entry->count, entry->pid, entry->comm);
- 
- 		print_name_offset(m, (unsigned long)entry->start_func);
- 		seq_puts(m, " (");
- 		print_name_offset(m, (unsigned long)entry->expire_func);
- 		seq_puts(m, ")\n");
--		events += entry->counter;
-+
-+		events += entry->count;
- 	}
- 
- 	ms += period.tv_sec * 1000;
-+	if (!ms)
-+		ms = 1;
-+
- 	if (events && period.tv_sec)
- 		seq_printf(m, "%ld total events, %ld.%ld events/sec\n", events,
- 			   events / period.tv_sec, events * 1000 / ms);
- 	else
- 		seq_printf(m, "%ld total events\n", events);
- 
--	tstats_status = TSTATS_INACTIVE;
-+	mutex_unlock(&show_mutex);
-+
- 	return 0;
- }
- 
-+/*
-+ * After a state change, make sure all concurrent lookup/update
-+ * activities have stopped:
-+ */
-+static void sync_access(void)
-+{
-+	unsigned long flags;
-+	int cpu;
-+
-+	for_each_online_cpu(cpu) {
-+		spin_lock_irqsave(&per_cpu(lookup_lock, cpu), flags);
-+		/* nothing */
-+		spin_unlock_irqrestore(&per_cpu(lookup_lock, cpu), flags);
-+	}
-+}
-+
- static ssize_t tstats_write(struct file *file, const char __user *buf,
- 			    size_t count, loff_t *offs)
- {
-@@ -189,28 +351,26 @@ static ssize_t tstats_write(struct file 
- 	if (copy_from_user(ctl, buf, count))
- 		return -EFAULT;
- 
-+	mutex_lock(&show_mutex);
- 	switch (ctl[0]) {
- 	case '0':
--		spin_lock_irq(&tstats_lock);
--		if (tstats_status == TSTATS_ACTIVE) {
--			tstats_status = TSTATS_INACTIVE;
--			tstats_time = ktime_sub(ktime_get(), tstats_time);
-+		if (active) {
-+			active = 0;
-+			time_stop = ktime_get();
-+			sync_access();
- 		}
--		spin_unlock_irq(&tstats_lock);
- 		break;
- 	case '1':
--		spin_lock_irq(&tstats_lock);
--		if (tstats_status == TSTATS_INACTIVE) {
--			tstats_status = TSTATS_RESET;
--			memset(tstats, 0, sizeof(tstats));
--			tstats_time = ktime_get();
--			tstats_status = TSTATS_ACTIVE;
-+		if (!active) {
-+			reset_entries();
-+			time_start = ktime_get();
-+			active = 1;
- 		}
--		spin_unlock_irq(&tstats_lock);
- 		break;
- 	default:
- 		count = -EINVAL;
- 	}
-+	mutex_unlock(&show_mutex);
- 
- 	return count;
- }
-@@ -228,12 +388,19 @@ static struct file_operations tstats_fop
- 	.release	= seq_release,
+ struct hrtimer {
+ 	struct rb_node			node;
+@@ -114,6 +120,11 @@ struct hrtimer {
+ 	enum hrtimer_cb_mode		cb_mode;
+ 	struct list_head		cb_entry;
+ #endif
++#ifdef CONFIG_TIMER_STATS
++	void				*start_site;
++	char				start_comm[16];
++	int				start_pid;
++#endif
  };
  
--static int __init init_tstats(void)
-+void __init init_timer_stats(void)
- {
--	struct proc_dir_entry *pe;
-+	int cpu;
+ /**
+@@ -332,4 +343,44 @@ static inline void show_no_hz_stats(stru
+ /* Bootup initialization: */
+ extern void __init hrtimers_init(void);
  
--	pe = create_proc_entry("timer_stats", 0666, NULL);
-+	for_each_possible_cpu(cpu)
-+		spin_lock_init(&per_cpu(lookup_lock, cpu));
++/*
++ * Timer-statistics info:
++ */
++#ifdef CONFIG_TIMER_STATS
++
++extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
++				     void *timerf, char * comm);
++
++static inline void timer_stats_account_hrtimer(struct hrtimer *timer)
++{
++	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
++				 timer->function, timer->start_comm);
 +}
 +
-+static int __init init_tstats_procfs(void)
++extern void __timer_stats_hrtimer_set_start_info(struct hrtimer *timer,
++						 void *addr);
++
++static inline void timer_stats_hrtimer_set_start_info(struct hrtimer *timer)
++{
++	__timer_stats_hrtimer_set_start_info(timer, __builtin_return_address(0));
++}
++
++static inline void timer_stats_hrtimer_clear_start_info(struct hrtimer *timer)
++{
++	timer->start_site = NULL;
++}
++#else
++static inline void timer_stats_account_hrtimer(struct hrtimer *timer)
++{
++}
++
++static inline void timer_stats_hrtimer_set_start_info(struct hrtimer *timer)
++{
++}
++
++static inline void timer_stats_hrtimer_clear_start_info(struct hrtimer *timer)
++{
++}
++#endif
++
+ #endif
+diff -puN include/linux/timer.h~updated-debugging-feature-timer-stats include/linux/timer.h
+--- a/include/linux/timer.h~updated-debugging-feature-timer-stats
++++ a/include/linux/timer.h
+@@ -2,6 +2,7 @@
+ #define _LINUX_TIMER_H
+ 
+ #include <linux/list.h>
++#include <linux/ktime.h>
+ #include <linux/spinlock.h>
+ #include <linux/stddef.h>
+ 
+@@ -15,6 +16,11 @@ struct timer_list {
+ 	unsigned long data;
+ 
+ 	struct tvec_t_base_s *base;
++#ifdef CONFIG_TIMER_STATS
++	void *start_site;
++	char start_comm[16];
++	int start_pid;
++#endif
+ };
+ 
+ extern struct tvec_t_base_s boot_tvec_bases;
+@@ -73,6 +79,49 @@ extern unsigned long next_timer_interrup
+  */
+ extern unsigned long get_next_timer_interrupt(unsigned long now);
+ 
++/*
++ * Timer-statistics info:
++ */
++#ifdef CONFIG_TIMER_STATS
++
++extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
++				     void *timerf, char * comm);
++
++static inline void timer_stats_account_timer(struct timer_list *timer)
++{
++	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
++				 timer->function, timer->start_comm);
++}
++
++extern void __timer_stats_timer_set_start_info(struct timer_list *timer,
++					       void *addr);
++
++static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
++{
++	__timer_stats_timer_set_start_info(timer, __builtin_return_address(0));
++}
++
++static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
++{
++	timer->start_site = NULL;
++}
++#else
++static inline void timer_stats_account_timer(struct timer_list *timer)
++{
++}
++
++static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
++{
++}
++
++static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
++{
++}
++#endif
++
++extern void delayed_work_timer_fn(unsigned long __data);
++
++
+ /***
+  * add_timer - start a timer
+  * @timer: the timer to be added
+diff -puN kernel/hrtimer.c~updated-debugging-feature-timer-stats kernel/hrtimer.c
+--- a/kernel/hrtimer.c~updated-debugging-feature-timer-stats
++++ a/kernel/hrtimer.c
+@@ -972,6 +972,18 @@ static inline void hrtimer_resume_jiffy_
+ 
+ #endif /* CONFIG_HIGH_RES_TIMERS */
+ 
++#ifdef CONFIG_TIMER_STATS
++void __timer_stats_hrtimer_set_start_info(struct hrtimer *timer, void *addr)
++{
++	if (timer->start_site)
++		return;
++
++	timer->start_site = addr;
++	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
++	timer->start_pid = current->pid;
++}
++#endif
++
+ /*
+  * Timekeeping resumed notification
+  */
+@@ -1140,6 +1152,7 @@ remove_hrtimer(struct hrtimer *timer, st
+ 		 * reprogramming happens in the interrupt handler. This is a
+ 		 * rare case and less expensive than a smp call.
+ 		 */
++		timer_stats_hrtimer_clear_start_info(timer);
+ 		reprogram = base->cpu_base == &__get_cpu_var(hrtimer_bases);
+ 		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE,
+ 				 reprogram);
+@@ -1188,6 +1201,8 @@ hrtimer_start(struct hrtimer *timer, kti
+ 	}
+ 	timer->expires = tim;
+ 
++	timer_stats_hrtimer_set_start_info(timer);
++
+ 	enqueue_hrtimer(timer, new_base, base == new_base);
+ 
+ 	unlock_hrtimer_base(timer, &flags);
+@@ -1320,6 +1335,12 @@ void hrtimer_init(struct hrtimer *timer,
+ 
+ 	timer->base = &cpu_base->clock_base[clock_id];
+ 	hrtimer_init_timer_hres(timer);
++
++#ifdef CONFIG_TIMER_STATS
++	timer->start_site = NULL;
++	timer->start_pid = -1;
++	memset(timer->start_comm, 0, TASK_COMM_LEN);
++#endif
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_init);
+ 
+@@ -1400,6 +1421,7 @@ void hrtimer_interrupt(struct pt_regs *r
+ 
+ 			__remove_hrtimer(timer, base,
+ 					 HRTIMER_STATE_CALLBACK, 0);
++			timer_stats_account_hrtimer(timer);
+ 
+ 			if (timer->function(timer) != HRTIMER_NORESTART) {
+ 				BUG_ON(timer->state != HRTIMER_STATE_CALLBACK);
+@@ -1442,6 +1464,8 @@ static void run_hrtimer_softirq(struct s
+ 		timer = list_entry(cpu_base->cb_pending.next,
+ 				   struct hrtimer, cb_entry);
+ 
++		timer_stats_account_hrtimer(timer);
++
+ 		fn = timer->function;
+ 		__remove_hrtimer(timer, timer->base, HRTIMER_STATE_CALLBACK, 0);
+ 		spin_unlock_irq(&cpu_base->lock);
+@@ -1498,6 +1522,8 @@ static inline void run_hrtimer_queue(str
+ 		if (base->softirq_time.tv64 <= timer->expires.tv64)
+ 			break;
+ 
++		timer_stats_account_hrtimer(timer);
++
+ 		fn = timer->function;
+ 		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK, 0);
+ 		spin_unlock_irq(&cpu_base->lock);
+diff -puN kernel/time/Makefile~updated-debugging-feature-timer-stats kernel/time/Makefile
+--- a/kernel/time/Makefile~updated-debugging-feature-timer-stats
++++ a/kernel/time/Makefile
+@@ -1,3 +1,4 @@
+ obj-y += ntp.o clocksource.o jiffies.o
+ 
+-obj-$(CONFIG_GENERIC_CLOCKEVENTS) += clockevents.o
++obj-$(CONFIG_GENERIC_CLOCKEVENTS)	+= clockevents.o
++obj-$(CONFIG_TIMER_STATS)		+= timer_stats.o
+diff -puN /dev/null kernel/time/timer_stats.c
+--- /dev/null
++++ a/kernel/time/timer_stats.c
+@@ -0,0 +1,244 @@
++/*
++ * kernel/time/timer_stats.c
++ *
++ * Collect timer usage statistics.
++ *
++ * Copyright(C) 2006, Red Hat, Inc., Ingo Molnar
++ * Copyright(C) 2006 Timesys Corp., Thomas Gleixner <tglx@timesys.com>
++ *
++ * timer_stats is based on timer_top, a similar functionality which was part of
++ * Con Kolivas dyntick patch set. It was developed by Daniel Petrini at the
++ * Instituto Nokia de Tecnologia - INdT - Manaus. timer_top's design was based
++ * on dynamic allocation of the statistics entries rather than the static array
++ * which is used by timer_stats. It was written for the pre hrtimer kernel code
++ * and therefor did not take hrtimers into account. Nevertheless it provided
++ * the base for the timer_stats implementation and was a helpful source of
++ * inspiration in the first place. Kudos to Daniel and the Nokia folks for this
++ * effort.
++ *
++ * timer_top.c is
++ *	Copyright (C) 2005 Instituto Nokia de Tecnologia - INdT - Manaus
++ *	Written by Daniel Petrini <d.pensator@gmail.com>
++ *	timer_top.c was released under the GNU General Public License version 2
++ *
++ * We export the addresses and counting of timer functions being called,
++ * the pid and cmdline from the owner process if applicable.
++ *
++ * Start/stop data collection:
++ * # echo 1[0] >/proc/timer_stats
++ *
++ * Display the collected information:
++ * # cat /proc/timer_stats
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/list.h>
++#include <linux/proc_fs.h>
++#include <linux/module.h>
++#include <linux/spinlock.h>
++#include <linux/sched.h>
++#include <linux/seq_file.h>
++#include <linux/kallsyms.h>
++
++#include <asm/uaccess.h>
++
++enum tstats_stat {
++	TSTATS_INACTIVE,
++	TSTATS_ACTIVE,
++	TSTATS_READOUT,
++	TSTATS_RESET,
++};
++
++struct tstats_entry {
++	void			*timer;
++	void			*start_func;
++	void			*expire_func;
++	unsigned long		counter;
++	pid_t			pid;
++	char			comm[TASK_COMM_LEN + 1];
++};
++
++#define TSTATS_MAX_ENTRIES	1024
++
++static struct tstats_entry tstats[TSTATS_MAX_ENTRIES];
++static DEFINE_SPINLOCK(tstats_lock);
++static enum tstats_stat tstats_status;
++static ktime_t tstats_time;
++
++/**
++ * timer_stats_update_stats - Update the statistics for a timer.
++ * @timer:	pointer to either a timer_list or a hrtimer
++ * @pid:	the pid of the task which set up the timer
++ * @startf:	pointer to the function which did the timer setup
++ * @timerf:	pointer to the timer callback function of the timer
++ * @comm:	name of the process which set up the timer
++ *
++ * When the timer is already registered, then the event counter is
++ * incremented. Otherwise the timer is registered in a free slot.
++ */
++void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
++			      void *timerf, char * comm)
++{
++	struct tstats_entry *entry = tstats;
++	unsigned long flags;
++	int i;
++
++	spin_lock_irqsave(&tstats_lock, flags);
++	if (tstats_status != TSTATS_ACTIVE)
++		goto out_unlock;
++
++	for (i = 0; i < TSTATS_MAX_ENTRIES; i++, entry++) {
++		if (entry->timer == timer &&
++		    entry->start_func == startf &&
++		    entry->expire_func == timerf &&
++		    entry->pid == pid) {
++
++			entry->counter++;
++			break;
++		}
++		if (!entry->timer) {
++			entry->timer = timer;
++			entry->start_func = startf;
++			entry->expire_func = timerf;
++			entry->counter = 1;
++			entry->pid = pid;
++			memcpy(entry->comm, comm, TASK_COMM_LEN);
++			entry->comm[TASK_COMM_LEN] = 0;
++			break;
++		}
++	}
++
++ out_unlock:
++	spin_unlock_irqrestore(&tstats_lock, flags);
++}
++
++static void print_name_offset(struct seq_file *m, unsigned long addr)
++{
++	char namebuf[KSYM_NAME_LEN+1];
++	unsigned long size, offset;
++	const char *sym_name;
++	char *modname;
++
++	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	if (sym_name)
++		seq_printf(m, "%s", sym_name);
++	else
++		seq_printf(m, "<%p>", (void *)addr);
++}
++
++static int tstats_show(struct seq_file *m, void *v)
++{
++	struct tstats_entry *entry = tstats;
++	struct timespec period;
++	unsigned long ms;
++	long events = 0;
++	int i;
++
++	spin_lock_irq(&tstats_lock);
++	switch(tstats_status) {
++	case TSTATS_ACTIVE:
++		tstats_time = ktime_sub(ktime_get(), tstats_time);
++	case TSTATS_INACTIVE:
++		tstats_status = TSTATS_READOUT;
++		break;
++	default:
++		spin_unlock_irq(&tstats_lock);
++		return -EBUSY;
++	}
++	spin_unlock_irq(&tstats_lock);
++
++	period = ktime_to_timespec(tstats_time);
++	ms = period.tv_nsec % 1000000;
++
++	seq_printf(m, "Timerstats sample period: %ld.%3ld s\n",
++		   period.tv_sec, ms);
++
++	for (i = 0; i < TSTATS_MAX_ENTRIES && entry->timer; i++, entry++) {
++		seq_printf(m, "%4lu, %5d %-16s ", entry->counter, entry->pid,
++			   entry->comm);
++
++		print_name_offset(m, (unsigned long)entry->start_func);
++		seq_puts(m, " (");
++		print_name_offset(m, (unsigned long)entry->expire_func);
++		seq_puts(m, ")\n");
++		events += entry->counter;
++	}
++
++	ms += period.tv_sec * 1000;
++	if (events && period.tv_sec)
++		seq_printf(m, "%ld total events, %ld.%ld events/sec\n", events,
++			   events / period.tv_sec, events * 1000 / ms);
++	else
++		seq_printf(m, "%ld total events\n", events);
++
++	tstats_status = TSTATS_INACTIVE;
++	return 0;
++}
++
++static ssize_t tstats_write(struct file *file, const char __user *buf,
++			    size_t count, loff_t *offs)
++{
++	char ctl[2];
++
++	if (count != 2 || *offs)
++		return -EINVAL;
++
++	if (copy_from_user(ctl, buf, count))
++		return -EFAULT;
++
++	switch (ctl[0]) {
++	case '0':
++		spin_lock_irq(&tstats_lock);
++		if (tstats_status == TSTATS_ACTIVE) {
++			tstats_status = TSTATS_INACTIVE;
++			tstats_time = ktime_sub(ktime_get(), tstats_time);
++		}
++		spin_unlock_irq(&tstats_lock);
++		break;
++	case '1':
++		spin_lock_irq(&tstats_lock);
++		if (tstats_status == TSTATS_INACTIVE) {
++			tstats_status = TSTATS_RESET;
++			memset(tstats, 0, sizeof(tstats));
++			tstats_time = ktime_get();
++			tstats_status = TSTATS_ACTIVE;
++		}
++		spin_unlock_irq(&tstats_lock);
++		break;
++	default:
++		count = -EINVAL;
++	}
++
++	return count;
++}
++
++static int tstats_open(struct inode *inode, struct file *filp)
++{
++	return single_open(filp, tstats_show, NULL);
++}
++
++static struct file_operations tstats_fops = {
++	.open		= tstats_open,
++	.read		= seq_read,
++	.write		= tstats_write,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
++static int __init init_tstats(void)
 +{
 +	struct proc_dir_entry *pe;
- 
-+	pe = create_proc_entry("timer_stats", 0644, NULL);
- 	if (!pe)
- 		return -ENOMEM;
- 
-@@ -241,4 +408,4 @@ static int __init init_tstats(void)
- 
- 	return 0;
- }
--module_init(init_tstats);
-+__initcall(init_tstats_procfs);
-diff -puN kernel/timer.c~updated-debugging-feature-timer-stats-fixes kernel/timer.c
---- a/kernel/timer.c~updated-debugging-feature-timer-stats-fixes
++
++	pe = create_proc_entry("timer_stats", 0666, NULL);
++
++	if (!pe)
++		return -ENOMEM;
++
++	pe->proc_fops = &tstats_fops;
++
++	return 0;
++}
++module_init(init_tstats);
+diff -puN kernel/timer.c~updated-debugging-feature-timer-stats kernel/timer.c
+--- a/kernel/timer.c~updated-debugging-feature-timer-stats
 +++ a/kernel/timer.c
-@@ -1716,6 +1716,8 @@ void __init init_timers(void)
- 	int err = timer_cpu_notify(&timers_nb, (unsigned long)CPU_UP_PREPARE,
- 				(void *)(long)smp_processor_id());
+@@ -34,6 +34,7 @@
+ #include <linux/cpu.h>
+ #include <linux/syscalls.h>
+ #include <linux/delay.h>
++#include <linux/kallsyms.h>
  
-+	init_timer_stats();
-+
- 	BUG_ON(err == NOTIFY_BAD);
- 	register_cpu_notifier(&timers_nb);
- 	open_softirq(TIMER_SOFTIRQ, run_timer_softirq, NULL);
-diff -puN include/linux/clockchips.h~updated-debugging-feature-timer-stats-fixes include/linux/clockchips.h
---- a/include/linux/clockchips.h~updated-debugging-feature-timer-stats-fixes
-+++ a/include/linux/clockchips.h
-@@ -12,6 +12,7 @@
- 
- #include <linux/clocksource.h>
- #include <linux/interrupt.h>
-+#include <linux/cpumask.h>
- 
- struct clock_event_device;
- 
-@@ -102,6 +103,27 @@ static inline unsigned long div_sc(unsig
- 	return (unsigned long) tmp;
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+@@ -262,6 +263,18 @@ static void internal_add_timer(tvec_base
+ 	list_add_tail(&timer->entry, vec);
  }
  
-+#define MAX_CLOCK_EVENTS	4
-+#define GLOBAL_CLOCK_EVENT	MAX_CLOCK_EVENTS
++#ifdef CONFIG_TIMER_STATS
++void __timer_stats_timer_set_start_info(struct timer_list *timer, void *addr)
++{
++	if (timer->start_site)
++		return;
 +
-+struct event_descr {
-+	struct clock_event_device *event;
-+	unsigned int mode;
-+	unsigned int real_caps;
-+	struct irqaction action;
-+};
++	timer->start_site = addr;
++	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
++	timer->start_pid = current->pid;
++}
++#endif
 +
-+struct local_events {
-+	int installed;
-+	struct event_descr events[MAX_CLOCK_EVENTS];
-+	struct clock_event_device *nextevt;
-+	ktime_t	expires_next;
-+};
-+
-+extern struct event_descr global_eventdevice;
-+
-+DECLARE_PER_CPU(struct local_events, local_eventdevices);
-+
- /* Clock event layer functions */
- extern int register_local_clockevent(struct clock_event_device *);
- extern int register_global_clockevent(struct clock_event_device *);
-@@ -120,6 +142,9 @@ extern void clockevents_set_broadcast(st
- extern void clockevents_set_global_broadcast(struct clock_event_device *evt,
- 					     int broadcast);
- extern int clockevents_register_broadcast(void (*fun)(cpumask_t *mask));
-+extern cpumask_t tick_broadcast_mask;
-+extern cpumask_t event_broadcast_mask;
-+
- #else
- static inline void clockevents_set_broadcast(struct clock_event_device *evt,
- 					     int broadcast)
-diff -puN kernel/time/clockevents.c~updated-debugging-feature-timer-stats-fixes kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~updated-debugging-feature-timer-stats-fixes
-+++ a/kernel/time/clockevents.c
-@@ -35,25 +35,8 @@
- #include <linux/profile.h>
- #include <linux/sysdev.h>
- 
--#define MAX_CLOCK_EVENTS	4
--#define GLOBAL_CLOCK_EVENT	MAX_CLOCK_EVENTS
--
--struct event_descr {
--	struct clock_event_device *event;
--	unsigned int mode;
--	unsigned int real_caps;
--	struct irqaction action;
--};
--
--struct local_events {
--	int installed;
--	struct event_descr events[MAX_CLOCK_EVENTS];
--	struct clock_event_device *nextevt;
--	ktime_t	expires_next;
--};
--
- /* Variables related to the global event device */
--static __read_mostly struct event_descr global_eventdevice;
-+__read_mostly struct event_descr global_eventdevice;
- 
- /*
-  * Lock to protect the above.
-@@ -65,7 +48,7 @@ static __read_mostly struct event_descr 
- static DEFINE_SPINLOCK(events_lock);
- 
- /* Variables related to the per cpu local event devices */
--static DEFINE_PER_CPU(struct local_events, local_eventdevices);
-+DEFINE_PER_CPU(struct local_events, local_eventdevices);
- 
- #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
- static void clockevents_check_broadcast(struct event_descr *descr);
-@@ -522,8 +505,8 @@ int clockevents_set_next_event(ktime_t e
- 
- #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
- 
--static cpumask_t global_event_broadcast;
--static cpumask_t local_event_broadcast;
-+cpumask_t tick_broadcast_mask;
-+cpumask_t event_broadcast_mask;
- static void (*broadcast_function)(cpumask_t *mask);
- static void (*global_event_handler)(struct pt_regs *regs);
- 
-@@ -535,13 +518,13 @@ static void (*global_event_handler)(stru
- static void clockevents_reprogram_broadcast(void)
+ /**
+  * init_timer - initialize a timer.
+  * @timer: the timer to be initialized
+@@ -273,11 +286,16 @@ void fastcall init_timer(struct timer_li
  {
- 	struct clock_event_device *glblevt = global_eventdevice.event;
--	struct local_events *dev;
- 	ktime_t expires = { .tv64 = KTIME_MAX };
-+	struct local_events *dev;
- 	int64_t delta;
- 	int cpu;
- 
--	for (cpu = first_cpu(local_event_broadcast); cpu != NR_CPUS;
--	     cpu = next_cpu(cpu, local_event_broadcast)) {
-+	for (cpu = first_cpu(event_broadcast_mask); cpu != NR_CPUS;
-+	     cpu = next_cpu(cpu, event_broadcast_mask)) {
- 		dev = &per_cpu(local_eventdevices, cpu);
- 		if (dev->expires_next.tv64 < expires.tv64)
- 			expires = dev->expires_next;
-@@ -571,10 +554,10 @@ void clockevents_set_broadcast(struct cl
- 	spin_lock_irqsave(&events_lock, flags);
- 
- 	if (broadcast) {
--		cpu_set(cpu, local_event_broadcast);
-+		cpu_set(cpu, event_broadcast_mask);
- 		evt->set_mode(CLOCK_EVT_SHUTDOWN, evt);
- 	} else {
--		cpu_clear(cpu, local_event_broadcast);
-+		cpu_clear(cpu, event_broadcast_mask);
- 		evt->set_mode(CLOCK_EVT_ONESHOT, evt);
- 		if (devices->expires_next.tv64 != KTIME_MAX)
- 			clockevents_set_next_event(devices->expires_next, 1);
-@@ -600,14 +583,14 @@ void clockevents_set_global_broadcast(st
- 	spin_lock_irqsave(&events_lock, flags);
- 
- 	if (broadcast) {
--		if (!cpu_isset(cpu, global_event_broadcast)) {
--			cpu_set(cpu, global_event_broadcast);
-+		if (!cpu_isset(cpu, tick_broadcast_mask)) {
-+			cpu_set(cpu, tick_broadcast_mask);
- 			if (devices->nextevt != evt)
- 				evt->set_mode(CLOCK_EVT_SHUTDOWN, evt);
- 		}
- 	} else {
--		if (cpu_isset(cpu, global_event_broadcast)) {
--			cpu_clear(cpu, global_event_broadcast);
-+		if (cpu_isset(cpu, tick_broadcast_mask)) {
-+			cpu_clear(cpu, tick_broadcast_mask);
- 			if (devices->nextevt != evt)
- 				evt->set_mode(CLOCK_EVT_PERIODIC, evt);
- 		}
-@@ -623,7 +606,7 @@ static void handle_tick_broadcast(struct
- {
- 	/* Call the original handler global tick handler */
- 	global_event_handler(regs);
--	broadcast_function(&global_event_broadcast);
-+	broadcast_function(&tick_broadcast_mask);
+ 	timer->entry.next = NULL;
+ 	timer->base = __raw_get_cpu_var(tvec_bases);
++#ifdef CONFIG_TIMER_STATS
++	timer->start_site = NULL;
++	timer->start_pid = -1;
++	memset(timer->start_comm, 0, TASK_COMM_LEN);
++#endif
  }
+ EXPORT_SYMBOL(init_timer);
  
- /*
-@@ -638,8 +621,8 @@ static void handle_nextevt_broadcast(str
+ static inline void detach_timer(struct timer_list *timer,
+-					int clear_pending)
++				int clear_pending)
+ {
+ 	struct list_head *entry = &timer->entry;
  
- 	spin_lock(&events_lock);
- 	/* Find all expired events */
--	for (cpu = first_cpu(local_event_broadcast); cpu != NR_CPUS;
--	     cpu = next_cpu(cpu, local_event_broadcast)) {
-+	for (cpu = first_cpu(event_broadcast_mask); cpu != NR_CPUS;
-+	     cpu = next_cpu(cpu, event_broadcast_mask)) {
- 		devices = &per_cpu(local_eventdevices, cpu);
- 		if (devices->expires_next.tv64 <= now.tv64) {
- 			devices->expires_next.tv64 = KTIME_MAX;
+@@ -324,6 +342,7 @@ int __mod_timer(struct timer_list *timer
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
++	timer_stats_timer_set_start_info(timer);
+ 	BUG_ON(!timer->function);
+ 
+ 	base = lock_timer_base(timer, &flags);
+@@ -374,6 +393,7 @@ void add_timer_on(struct timer_list *tim
+ 	tvec_base_t *base = per_cpu(tvec_bases, cpu);
+   	unsigned long flags;
+ 
++	timer_stats_timer_set_start_info(timer);
+   	BUG_ON(timer_pending(timer) || !timer->function);
+ 	spin_lock_irqsave(&base->lock, flags);
+ 	timer->base = base;
+@@ -406,6 +426,7 @@ int mod_timer(struct timer_list *timer, 
+ {
+ 	BUG_ON(!timer->function);
+ 
++	timer_stats_timer_set_start_info(timer);
+ 	/*
+ 	 * This is a common optimization triggered by the
+ 	 * networking code - if the timer is re-modified
+@@ -436,6 +457,7 @@ int del_timer(struct timer_list *timer)
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
++	timer_stats_timer_clear_start_info(timer);
+ 	if (timer_pending(timer)) {
+ 		base = lock_timer_base(timer, &flags);
+ 		if (timer_pending(timer)) {
+@@ -569,6 +591,8 @@ static inline void __run_timers(tvec_bas
+  			fn = timer->function;
+  			data = timer->data;
+ 
++			timer_stats_account_timer(timer);
++
+ 			set_running_timer(base, timer);
+ 			detach_timer(timer, 1);
+ 			spin_unlock_irq(&base->lock);
+@@ -1252,7 +1276,8 @@ static void run_timer_softirq(struct sof
+ {
+ 	tvec_base_t *base = __get_cpu_var(tvec_bases);
+ 
+- 	hrtimer_run_queues();
++	hrtimer_run_queues();
++
+ 	if (time_after_eq(jiffies, base->timer_jiffies))
+ 		__run_timers(base);
+ }
+diff -puN kernel/workqueue.c~updated-debugging-feature-timer-stats kernel/workqueue.c
+--- a/kernel/workqueue.c~updated-debugging-feature-timer-stats
++++ a/kernel/workqueue.c
+@@ -218,7 +218,7 @@ int fastcall queue_work(struct workqueue
+ }
+ EXPORT_SYMBOL_GPL(queue_work);
+ 
+-static void delayed_work_timer_fn(unsigned long __data)
++void delayed_work_timer_fn(unsigned long __data)
+ {
+ 	struct delayed_work *dwork = (struct delayed_work *)__data;
+ 	struct workqueue_struct *wq = get_wq_data(&dwork->work);
+@@ -245,6 +245,7 @@ int fastcall queue_delayed_work(struct w
+ 	struct timer_list *timer = &dwork->timer;
+ 	struct work_struct *work = &dwork->work;
+ 
++	timer_stats_timer_set_start_info(timer);
+ 	if (delay == 0)
+ 		return queue_work(wq, work);
+ 
+@@ -609,8 +610,10 @@ EXPORT_SYMBOL(schedule_work);
+  * After waiting for a given time this puts a job in the kernel-global
+  * workqueue.
+  */
+-int fastcall schedule_delayed_work(struct delayed_work *dwork, unsigned long delay)
++int fastcall schedule_delayed_work(struct delayed_work *dwork,
++					unsigned long delay)
+ {
++	timer_stats_timer_set_start_info(&dwork->timer);
+ 	return queue_delayed_work(keventd_wq, dwork, delay);
+ }
+ EXPORT_SYMBOL(schedule_delayed_work);
+diff -puN lib/Kconfig.debug~updated-debugging-feature-timer-stats lib/Kconfig.debug
+--- a/lib/Kconfig.debug~updated-debugging-feature-timer-stats
++++ a/lib/Kconfig.debug
+@@ -125,6 +125,17 @@ config SCHEDSTATS
+ 	  application, you can say N to avoid the very slight overhead
+ 	  this adds.
+ 
++config TIMER_STATS
++	bool "Collect kernel timers statistics"
++	depends on DEBUG_KERNEL && PROC_FS
++	help
++	  If you say Y here, additional code will be inserted into the
++	  timer routines to collect statistics about kernel timers being
++	  reprogrammed. The statistics can be read from /proc/timer_stats.
++	  The statistics collection is started by writing 1 to /proc/timer_stats,
++	  writing 0 stops it. This feature is useful to collect information
++	  about timer usage patterns in kernel and userspace.
++
+ config DEBUG_SLAB
+ 	bool "Debug slab memory allocations"
+ 	depends on DEBUG_KERNEL && SLAB
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-debug-add-sysrq_always_enabled-boot-option.patch
-lockdep-filter-off-by-default.patch
-lockdep-improve-verbose-messages.patch
-lockdep-improve-lockdep_reset.patch
-lockdep-clean-up-very_verbose-define.patch
-lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
-lockdep-print-irq-trace-info-on-asserts.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-optimize-calc_load.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
+git-mtd.patch
 gtod-uninline-jiffiesh.patch
 gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
 gtod-fix-timeout-overflow.patch
@@ -776,22 +810,4 @@ dynticks-i386-support-idle-handler-callbacks.patch
 dynticks-i386-prepare-nmi-watchdog.patch
 high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
 
