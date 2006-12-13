@@ -1,35 +1,37 @@
 From: akpm@osdl.org
-Subject: - sched-use-softirq-for-load-balancing.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:54:17 -0800
-Message-ID: <200612130654.kBD6sHrP030545@shell0.pdx.osdl.net>
+Subject: - sched-extract-load-calculation-from-rebalance_tick.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:54:02 -0800
+Message-ID: <200612130654.kBD6s2rb030537@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57603 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57585 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965002AbWLMGyd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:54:33 -0500
+	id S964998AbWLMGy3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:54:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, kenneth.w.chen@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, pwil3058@bigpond.net.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: use softirq for load balancing
+     sched: extract load calculation from rebalance_tick
 has been removed from the -mm tree.  Its filename was
-     sched-use-softirq-for-load-balancing.patch
+     sched-extract-load-calculation-from-rebalance_tick.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: use softirq for load balancing
+Subject: sched: extract load calculation from rebalance_tick
 From: Christoph Lameter <clameter@sgi.com>
 
-Call rebalance_tick (renamed to run_rebalance_domains) from a newly introduced
-softirq.
+A load calculation is always done in rebalance_tick() in addition to the real
+load balancing activities that only take place when certain jiffie counts have
+been reached.  Move that processing into a separate function and call it
+directly from scheduler_tick().
 
-We calculate the earliest time for each layer of sched domains to be rescanned
-(this is the rescan time for idle) and use the earliest of those to schedule
-the softirq via a new field "next_balance" added to struct rq.
+Also extract the time slice handling from scheduler_tick and put it into a
+separate function.  Then we can clean up scheduler_tick significantly.  It
+will no longer have any gotos.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Peter Williams <pwil3058@bigpond.net.au>
@@ -42,106 +44,152 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/interrupt.h |    3 ++-
- kernel/sched.c            |   22 +++++++++++++++++-----
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ kernel/sched.c |   96 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 54 insertions(+), 42 deletions(-)
 
-diff -puN include/linux/interrupt.h~sched-use-softirq-for-load-balancing include/linux/interrupt.h
---- a/include/linux/interrupt.h~sched-use-softirq-for-load-balancing
-+++ a/include/linux/interrupt.h
-@@ -231,7 +231,8 @@ enum
- 	NET_TX_SOFTIRQ,
- 	NET_RX_SOFTIRQ,
- 	BLOCK_SOFTIRQ,
--	TASKLET_SOFTIRQ
-+	TASKLET_SOFTIRQ,
-+	SCHED_SOFTIRQ,
- };
- 
- /* softirq mask and active fields moved to irq_cpustat_t in
-diff -puN kernel/sched.c~sched-use-softirq-for-load-balancing kernel/sched.c
---- a/kernel/sched.c~sched-use-softirq-for-load-balancing
+diff -puN kernel/sched.c~sched-extract-load-calculation-from-rebalance_tick kernel/sched.c
+--- a/kernel/sched.c~sched-extract-load-calculation-from-rebalance_tick
 +++ a/kernel/sched.c
-@@ -227,6 +227,7 @@ struct rq {
- 	unsigned long expired_timestamp;
- 	unsigned long long timestamp_last_tick;
- 	struct task_struct *curr, *idle;
-+	unsigned long next_balance;
- 	struct mm_struct *prev_mm;
- 	struct prio_array *active, *expired, arrays[2];
- 	int best_expired_prio;
-@@ -2858,7 +2859,7 @@ static void update_load(struct rq *this_
+@@ -2833,20 +2833,9 @@ static void active_load_balance(struct r
+ 	spin_unlock(&target_rq->lock);
  }
  
- /*
+-/*
 - * rebalance_tick will get called every timer tick, on every CPU.
-+ * run_rebalance_domains is triggered when needed from the scheduler tick.
-  *
-  * It checks each scheduling domain to see if it is due to be balanced,
-  * and initiates a balancing operation if so.
-@@ -2866,9 +2867,10 @@ static void update_load(struct rq *this_
-  * Balancing parameters are set up in arch_init_sched_domains.
-  */
- 
+- *
+- * It checks each scheduling domain to see if it is due to be balanced,
+- * and initiates a balancing operation if so.
+- *
+- * Balancing parameters are set up in arch_init_sched_domains.
+- */
+-
 -static void
--rebalance_tick(int this_cpu, struct rq *this_rq)
-+static void run_rebalance_domains(struct softirq_action *h)
+-rebalance_tick(int this_cpu, struct rq *this_rq, enum idle_type idle)
++static void update_load(struct rq *this_rq)
  {
-+	int this_cpu = smp_processor_id();
-+	struct rq *this_rq = cpu_rq(this_cpu);
- 	unsigned long interval;
- 	struct sched_domain *sd;
- 	/*
-@@ -2877,6 +2879,8 @@ rebalance_tick(int this_cpu, struct rq *
- 	 */
- 	enum idle_type idle = !this_rq->nr_running ?
- 				SCHED_IDLE : NOT_IDLE;
-+	/* Earliest time when we have to call run_rebalance_domains again */
-+	unsigned long next_balance = jiffies + 60*HZ;
+-	unsigned long this_load, interval;
+-	struct sched_domain *sd;
++	unsigned long this_load;
+ 	int i, scale;
+ 
+ 	this_load = this_rq->raw_weighted_load;
+@@ -2866,6 +2855,22 @@ rebalance_tick(int this_cpu, struct rq *
+ 			new_load += scale-1;
+ 		this_rq->cpu_load[i] = (old_load*(scale-1) + new_load) / scale;
+ 	}
++}
++
++/*
++ * rebalance_tick will get called every timer tick, on every CPU.
++ *
++ * It checks each scheduling domain to see if it is due to be balanced,
++ * and initiates a balancing operation if so.
++ *
++ * Balancing parameters are set up in arch_init_sched_domains.
++ */
++
++static void
++rebalance_tick(int this_cpu, struct rq *this_rq, enum idle_type idle)
++{
++	unsigned long interval;
++	struct sched_domain *sd;
  
  	for_each_domain(this_cpu, sd) {
  		if (!(sd->flags & SD_LOAD_BALANCE))
-@@ -2891,7 +2895,7 @@ rebalance_tick(int this_cpu, struct rq *
- 		if (unlikely(!interval))
- 			interval = 1;
- 
--		if (jiffies - sd->last_balance >= interval) {
-+		if (time_after_eq(jiffies, sd->last_balance + interval)) {
- 			if (load_balance(this_cpu, this_rq, sd, idle)) {
- 				/*
- 				 * We've pulled tasks over so either we're no
-@@ -2902,7 +2906,10 @@ rebalance_tick(int this_cpu, struct rq *
- 			}
- 			sd->last_balance += interval;
- 		}
-+		if (time_after(next_balance, sd->last_balance + interval))
-+			next_balance = sd->last_balance + interval;
- 	}
-+	this_rq->next_balance = next_balance;
- }
- #else
+@@ -2897,12 +2902,15 @@ rebalance_tick(int this_cpu, struct rq *
  /*
-@@ -3155,7 +3162,8 @@ void scheduler_tick(void)
- 		task_running_tick(rq, p);
- #ifdef CONFIG_SMP
- 	update_load(rq);
--	rebalance_tick(cpu, rq);
-+	if (time_after_eq(jiffies, rq->next_balance))
-+		raise_softirq(SCHED_SOFTIRQ);
+  * on UP we do not need to balance between CPUs:
+  */
+-static inline void rebalance_tick(int cpu, struct rq *rq, enum idle_type idle)
++static inline void rebalance_tick(int cpu, struct rq *rq)
+ {
+ }
+ static inline void idle_balance(int cpu, struct rq *rq)
+ {
+ }
++static inline void update_load(struct rq *this_rq)
++{
++}
  #endif
+ 
+ static inline int wake_priority_sleeper(struct rq *rq)
+@@ -3052,35 +3060,12 @@ void account_steal_time(struct task_stru
+ 		cpustat->steal = cputime64_add(cpustat->steal, tmp);
  }
  
-@@ -6869,6 +6877,10 @@ void __init sched_init(void)
- 
- 	set_load_weight(&init_task);
- 
-+#ifdef CONFIG_SMP
-+	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains, NULL);
-+#endif
+-/*
+- * This function gets called by the timer code, with HZ frequency.
+- * We call it with interrupts disabled.
+- *
+- * It also gets called by the fork code, when changing the parent's
+- * timeslices.
+- */
+-void scheduler_tick(void)
++static void task_running_tick(struct rq *rq, struct task_struct *p)
+ {
+-	unsigned long long now = sched_clock();
+-	struct task_struct *p = current;
+-	int cpu = smp_processor_id();
+-	struct rq *rq = cpu_rq(cpu);
+-
+-	update_cpu_clock(p, rq, now);
+-
+-	rq->timestamp_last_tick = now;
+-
+-	if (p == rq->idle) {
+-		if (wake_priority_sleeper(rq))
+-			goto out;
+-		rebalance_tick(cpu, rq, SCHED_IDLE);
+-		return;
+-	}
+-
+-	/* Task might have expired already, but not scheduled off yet */
+ 	if (p->array != rq->active) {
++		/* Task has expired but was not scheduled yet */
+ 		set_tsk_need_resched(p);
+-		goto out;
++		return;
+ 	}
+ 	spin_lock(&rq->lock);
+ 	/*
+@@ -3148,8 +3133,35 @@ void scheduler_tick(void)
+ 	}
+ out_unlock:
+ 	spin_unlock(&rq->lock);
+-out:
+-	rebalance_tick(cpu, rq, NOT_IDLE);
++}
 +
- #ifdef CONFIG_RT_MUTEXES
- 	plist_head_init(&init_task.pi_waiters, &init_task.pi_lock);
- #endif
++/*
++ * This function gets called by the timer code, with HZ frequency.
++ * We call it with interrupts disabled.
++ *
++ * It also gets called by the fork code, when changing the parent's
++ * timeslices.
++ */
++void scheduler_tick(void)
++{
++	unsigned long long now = sched_clock();
++	struct task_struct *p = current;
++	int cpu = smp_processor_id();
++	struct rq *rq = cpu_rq(cpu);
++	enum idle_type idle = NOT_IDLE;
++
++	update_cpu_clock(p, rq, now);
++
++	rq->timestamp_last_tick = now;
++
++	if (p == rq->idle) {
++		/* Task on the idle queue */
++		if (!wake_priority_sleeper(rq))
++			idle = SCHED_IDLE;
++	} else
++		task_running_tick(rq, p);
++	update_load(rq);
++	rebalance_tick(cpu, rq, idle);
+ }
+ 
+ #ifdef CONFIG_SCHED_SMT
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
