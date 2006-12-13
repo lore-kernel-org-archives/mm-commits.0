@@ -1,171 +1,117 @@
 From: akpm@osdl.org
-Subject: - sched-improve-migration-accuracy.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:54:35 -0800
-Message-ID: <200612130654.kBD6sZv5030558@shell0.pdx.osdl.net>
+Subject: - md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:54:52 -0800
+Message-ID: <200612130654.kBD6sqfM030582@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57668 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57681 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965013AbWLMGyv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:54:51 -0500
+	id S965012AbWLMGy4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:54:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: efault@gmx.de, dwm@meer.net, kenneth.w.chen@intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: improve migration accuracy
+     md: tidy up device-change notification when an md array is stopped
 has been removed from the -mm tree.  Its filename was
-     sched-improve-migration-accuracy.patch
+     md-tidy-up-device-change-notification-when-an-md-array-is-stopped.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: improve migration accuracy
-From: Mike Galbraith <efault@gmx.de>
+Subject: md: tidy up device-change notification when an md array is stopped
+From: NeilBrown <neilb@suse.de>
 
-Co-opt rq->timestamp_last_tick to maintain a cache_hot_time evaluation
-reference timestamp at both tick and sched times to prevent said reference,
-formerly rq->timestamp_last_tick, from being behind task->last_ran at
-evaluation time, and to move said reference closer to current time on the
-remote processor, intent being to improve cache hot evaluation and
-timestamp adjustment accuracy for task migration.
+An md array can be stopped leaving all the setting still in place, or it can
+torn down and destroyed.  set_capacity and other change notifications only
+happen in the latter case, but should happen in both.
 
-Fix minor sched_time double accounting error which occurs when a task
-passing through schedule() does not schedule off, and takes the next timer
-tick.
-
-[kenneth.w.chen@intel.com: cleanup]
-Signed-off-by: Mike Galbraith <efault@gmx.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Ken Chen <kenneth.w.chen@intel.com>
-Cc: Don Mullis <dwm@meer.net>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   41 ++++++++++++++++++++---------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ drivers/md/md.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sched.c~sched-improve-migration-accuracy kernel/sched.c
---- a/kernel/sched.c~sched-improve-migration-accuracy
-+++ a/kernel/sched.c
-@@ -225,7 +225,8 @@ struct rq {
- 	unsigned long nr_uninterruptible;
+diff -puN drivers/md/md.c~md-tidy-up-device-change-notification-when-an-md-array-is-stopped drivers/md/md.c
+--- a/drivers/md/md.c~md-tidy-up-device-change-notification-when-an-md-array-is-stopped
++++ a/drivers/md/md.c
+@@ -3314,6 +3314,10 @@ static int do_md_stop(mddev_t * mddev, i
  
- 	unsigned long expired_timestamp;
--	unsigned long long timestamp_last_tick;
-+	/* Cached timestamp set by update_cpu_clock() */
-+	unsigned long long most_recent_timestamp;
- 	struct task_struct *curr, *idle;
- 	unsigned long next_balance;
- 	struct mm_struct *prev_mm;
-@@ -944,8 +945,8 @@ static void activate_task(struct task_st
- 	if (!local) {
- 		/* Compensate for drifting sched_clock */
- 		struct rq *this_rq = this_rq();
--		now = (now - this_rq->timestamp_last_tick)
--			+ rq->timestamp_last_tick;
-+		now = (now - this_rq->most_recent_timestamp)
-+			+ rq->most_recent_timestamp;
- 	}
- #endif
+ 			module_put(mddev->pers->owner);
+ 			mddev->pers = NULL;
++
++			set_capacity(disk, 0);
++			mddev->changed = 1;
++
+ 			if (mddev->ro)
+ 				mddev->ro = 0;
+ 		}
+@@ -3333,7 +3337,7 @@ static int do_md_stop(mddev_t * mddev, i
+ 	if (mode == 0) {
+ 		mdk_rdev_t *rdev;
+ 		struct list_head *tmp;
+-		struct gendisk *disk;
++
+ 		printk(KERN_INFO "md: %s stopped.\n", mdname(mddev));
  
-@@ -1689,8 +1690,8 @@ void fastcall wake_up_new_task(struct ta
- 		 * Not the local CPU - must adjust timestamp. This should
- 		 * get optimised away in the !CONFIG_SMP case.
- 		 */
--		p->timestamp = (p->timestamp - this_rq->timestamp_last_tick)
--					+ rq->timestamp_last_tick;
-+		p->timestamp = (p->timestamp - this_rq->most_recent_timestamp)
-+					+ rq->most_recent_timestamp;
- 		__activate_task(p, rq);
- 		if (TASK_PREEMPTS_CURR(p, rq))
- 			resched_task(rq->curr);
-@@ -2068,8 +2069,8 @@ static void pull_task(struct rq *src_rq,
- 	set_task_cpu(p, this_cpu);
- 	inc_nr_running(p, this_rq);
- 	enqueue_task(p, this_array);
--	p->timestamp = (p->timestamp - src_rq->timestamp_last_tick)
--				+ this_rq->timestamp_last_tick;
-+	p->timestamp = (p->timestamp - src_rq->most_recent_timestamp)
-+				+ this_rq->most_recent_timestamp;
- 	/*
- 	 * Note that idle threads have a prio of MAX_PRIO, for this test
- 	 * to be always true for them.
-@@ -2105,10 +2106,15 @@ int can_migrate_task(struct task_struct 
- 	 * 2) too many balance attempts have failed.
- 	 */
+ 		bitmap_destroy(mddev);
+@@ -3358,10 +3362,6 @@ static int do_md_stop(mddev_t * mddev, i
+ 		mddev->raid_disks = 0;
+ 		mddev->recovery_cp = 0;
  
--	if (sd->nr_balance_failed > sd->cache_nice_tries)
-+	if (sd->nr_balance_failed > sd->cache_nice_tries) {
-+#ifdef CONFIG_SCHEDSTATS
-+		if (task_hot(p, rq->most_recent_timestamp, sd))
-+			schedstat_inc(sd, lb_hot_gained[idle]);
-+#endif
- 		return 1;
-+	}
- 
--	if (task_hot(p, rq->timestamp_last_tick, sd))
-+	if (task_hot(p, rq->most_recent_timestamp, sd))
- 		return 0;
- 	return 1;
- }
-@@ -2206,11 +2212,6 @@ skip_queue:
- 		goto skip_bitmap;
- 	}
- 
--#ifdef CONFIG_SCHEDSTATS
--	if (task_hot(tmp, busiest->timestamp_last_tick, sd))
--		schedstat_inc(sd, lb_hot_gained[idle]);
--#endif
--
- 	pull_task(busiest, array, tmp, this_rq, dst_array, this_cpu);
- 	pulled++;
- 	rem_load_move -= tmp->load_weight;
-@@ -2971,7 +2972,8 @@ EXPORT_PER_CPU_SYMBOL(kstat);
- static inline void
- update_cpu_clock(struct task_struct *p, struct rq *rq, unsigned long long now)
- {
--	p->sched_time += now - max(p->timestamp, rq->timestamp_last_tick);
-+	p->sched_time += now - p->last_ran;
-+	p->last_ran = rq->most_recent_timestamp = now;
- }
- 
- /*
-@@ -2984,8 +2986,7 @@ unsigned long long current_sched_time(co
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
--	ns = max(p->timestamp, task_rq(p)->timestamp_last_tick);
--	ns = p->sched_time + sched_clock() - ns;
-+	ns = p->sched_time + sched_clock() - p->last_ran;
- 	local_irq_restore(flags);
- 
- 	return ns;
-@@ -3176,8 +3177,6 @@ void scheduler_tick(void)
- 
- 	update_cpu_clock(p, rq, now);
- 
--	rq->timestamp_last_tick = now;
--
- 	if (p == rq->idle)
- 		/* Task on the idle queue */
- 		wake_priority_sleeper(rq);
-@@ -5032,8 +5031,8 @@ static int __migrate_task(struct task_st
- 		 * afterwards, and pretending it was a local activate.
- 		 * This way is cleaner and logically correct.
- 		 */
--		p->timestamp = p->timestamp - rq_src->timestamp_last_tick
--				+ rq_dest->timestamp_last_tick;
-+		p->timestamp = p->timestamp - rq_src->most_recent_timestamp
-+				+ rq_dest->most_recent_timestamp;
- 		deactivate_task(p, rq_src);
- 		__activate_task(p, rq_dest);
- 		if (TASK_PREEMPTS_CURR(p, rq_dest))
+-		disk = mddev->gendisk;
+-		if (disk)
+-			set_capacity(disk, 0);
+-		mddev->changed = 1;
+ 	} else if (mddev->pers)
+ 		printk(KERN_INFO "md: %s switched to read-only mode.\n",
+ 			mdname(mddev));
 _
 
-Patches currently in -mm which might be from efault@gmx.de are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-readahead-call-scheme.patch
+md-dont-assume-that-read==0-and-write==1-use-the-names-explicitly.patch
+fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
+knfsd-nfsd4-remove-a-dprink-from-nfsd4_lock.patch
+knfsd-svcrpc-fix-gss-krb5i-memory-leak.patch
+knfsd-nfsd4-clarify-units-of-compound_slack_space.patch
+knfsd-nfsd-make-exp_rootfh-handle-exp_parent-errors.patch
+knfsd-nfsd-simplify-exp_pseudoroot.patch
+knfsd-nfsd4-handling-more-nfsd_cross_mnt-errors-in-nfsd4-readdir.patch
+knfsd-nfsd-dont-drop-silently-on-upcall-deferral.patch
+knfsd-svcrpc-remove-another-silent-drop-from-deferral-code.patch
+knfsd-nfsd4-pass-saved-and-current-fh-together-into-nfsd4-operations.patch
+knfsd-nfsd4-remove-spurious-replay_owner-check.patch
+knfsd-nfsd4-move-replay_owner-to-cstate.patch
+knfsd-nfsd4-dont-inline-nfsd4-compound-op-functions.patch
+knfsd-nfsd4-make-verify-and-nverify-wrappers.patch
+knfsd-nfsd4-reorganize-compound-ops.patch
+knfsd-nfsd4-simplify-migration-op-check.patch
+knfsd-nfsd4-simplify-filehandle-check.patch
+knfsd-dont-ignore-kstrdup-failure-in-rpc-caches.patch
+knfsd-fix-up-some-bit-rot-in-exp_export.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
+knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
+knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-change-lifetime-rules-for-md-devices.patch
+md-close-a-race-between-destroying-and-recreating-an-md-device.patch
+md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
 
