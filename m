@@ -1,57 +1,83 @@
 From: akpm@osdl.org
-Subject: - add-module_-attributes-to-bit-reversal-library.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:55:51 -0800
-Message-ID: <200612130655.kBD6tpes030676@shell0.pdx.osdl.net>
+Subject: - fdtable-delete-pointless-code-in-dup_fd.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:55:23 -0800
+Message-ID: <200612130655.kBD6tN3d030635@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57868 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57855 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965033AbWLMGz7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:55:59 -0500
+	id S965030AbWLMGz4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:55:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cp@absolutedigital.net, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: vlobanov@speakeasy.net, dipankar@in.ibm.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add MODULE_* attributes to bit reversal library
+     fdtable: Delete pointless code in dup_fd()
 has been removed from the -mm tree.  Its filename was
-     add-module_-attributes-to-bit-reversal-library.patch
+     fdtable-delete-pointless-code-in-dup_fd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add MODULE_* attributes to bit reversal library
-From: Cal Peake <cp@absolutedigital.net>
+Subject: fdtable: Delete pointless code in dup_fd()
+From: Vadim Lobanov <vlobanov@speakeasy.net>
 
-Add MODULE_* attributes to the new bit reversal library.  Most notably
-MODULE_LICENSE which prevents superfluous kernel tainting.
+The dup_fd() function creates a new files_struct and fdtable embedded inside
+that files_struct, and then possibly expands the fdtable using expand_files().
 
-Signed-off-by: Cal Peake <cp@absolutedigital.net>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+The out_release error path is invoked when expand_files() returns an error
+code.  However, when this attempt to expand fails, the fdtable is left in its
+original embedded form, so it is pointless to try to free the associated
+fdarray and fdsets.
+
+Signed-off-by: Vadim Lobanov <vlobanov@speakeasy.net>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/bitrev.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/fork.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN lib/bitrev.c~add-module_-attributes-to-bit-reversal-library lib/bitrev.c
---- a/lib/bitrev.c~add-module_-attributes-to-bit-reversal-library
-+++ a/lib/bitrev.c
-@@ -2,6 +2,10 @@
- #include <linux/module.h>
- #include <linux/bitrev.h>
+diff -puN kernel/fork.c~fdtable-delete-pointless-code-in-dup_fd kernel/fork.c
+--- a/kernel/fork.c~fdtable-delete-pointless-code-in-dup_fd
++++ a/kernel/fork.c
+@@ -711,8 +711,10 @@ static struct files_struct *dup_fd(struc
+ 	old_fds = old_fdt->fd;
+ 	new_fds = new_fdt->fd;
  
-+MODULE_AUTHOR("Akinobu Mita <akinobu.mita@gmail.com>");
-+MODULE_DESCRIPTION("Bit ordering reversal functions");
-+MODULE_LICENSE("GPL");
-+
- const u8 byte_rev_table[256] = {
- 	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
- 	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
+-	memcpy(new_fdt->open_fds->fds_bits, old_fdt->open_fds->fds_bits, open_files/8);
+-	memcpy(new_fdt->close_on_exec->fds_bits, old_fdt->close_on_exec->fds_bits, open_files/8);
++	memcpy(new_fdt->open_fds->fds_bits,
++		old_fdt->open_fds->fds_bits, open_files/8);
++	memcpy(new_fdt->close_on_exec->fds_bits,
++		old_fdt->close_on_exec->fds_bits, open_files/8);
+ 
+ 	for (i = open_files; i != 0; i--) {
+ 		struct file *f = *old_fds++;
+@@ -745,14 +747,11 @@ static struct files_struct *dup_fd(struc
+ 		memset(&new_fdt->close_on_exec->fds_bits[start], 0, left);
+ 	}
+ 
+-out:
+ 	return newf;
+ 
+ out_release:
+-	free_fdset (new_fdt->close_on_exec, new_fdt->max_fdset);
+-	free_fdset (new_fdt->open_fds, new_fdt->max_fdset);
+-	free_fd_array(new_fdt->fd, new_fdt->max_fds);
+ 	kmem_cache_free(files_cachep, newf);
++out:
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from cp@absolutedigital.net are
+Patches currently in -mm which might be from vlobanov@speakeasy.net are
 
 origin.patch
+fdtable-make-fdarray-and-fdsets-equal-in-size-slim.patch
 
