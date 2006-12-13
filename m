@@ -1,577 +1,168 @@
 From: akpm@osdl.org
-Subject: - time-uninline-jiffiesh.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:48:22 -0800
-Message-ID: <200612132248.kBDMmMIH023074@shell0.pdx.osdl.net>
+Subject: - hrtimers-clean-up-locking-fix.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:48:38 -0800
+Message-ID: <200612132248.kBDMmchK023095@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52770 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52808 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751717AbWLMWsc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:48:32 -0500
+	id S1751741AbWLMWsv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:48:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dcb314@hotmail.com, mingo@elte.hu, rientjes@cs.washington.edu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: uninline jiffies.h
+     hrtimers-clean-up-locking fix
 has been removed from the -mm tree.  Its filename was
-     time-uninline-jiffiesh.patch
+     hrtimers-clean-up-locking-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: time: uninline jiffies.h
-From: Ingo Molnar <mingo@elte.hu>
+Subject: hrtimers-clean-up-locking fix
+From: Andrew Morton <akpm@osdl.org>
 
-There are load of fat functions hidden in jiffies.h.  Uninline them.  No code
-changes.
+We declared and initialised `base' - might as well use it, too.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Rientjes <rientjes@cs.washington.edu>
+Cc: d binderman <dcb314@hotmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/jiffies.h |  223 ++------------------------------------
- kernel/time.c           |  218 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 234 insertions(+), 207 deletions(-)
+ kernel/hrtimer.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/jiffies.h~time-uninline-jiffiesh include/linux/jiffies.h
---- a/include/linux/jiffies.h~time-uninline-jiffiesh
-+++ a/include/linux/jiffies.h
-@@ -259,215 +259,24 @@ static inline u64 get_jiffies_64(void)
- #endif
+diff -puN kernel/hrtimer.c~hrtimers-clean-up-locking-fix kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-clean-up-locking-fix
++++ a/kernel/hrtimer.c
+@@ -529,7 +529,7 @@ ktime_t hrtimer_get_remaining(const stru
+ 	ktime_t rem;
  
- /*
-- * Convert jiffies to milliseconds and back.
-- *
-- * Avoid unnecessary multiplications/divisions in the
-- * two most common HZ cases:
-+ * Convert various time units to each other:
-  */
--static inline unsigned int jiffies_to_msecs(const unsigned long j)
--{
--#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
--	return (MSEC_PER_SEC / HZ) * j;
--#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
--	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
--#else
--	return (j * MSEC_PER_SEC) / HZ;
--#endif
--}
--
--static inline unsigned int jiffies_to_usecs(const unsigned long j)
--{
--#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
--	return (USEC_PER_SEC / HZ) * j;
--#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
--	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
--#else
--	return (j * USEC_PER_SEC) / HZ;
--#endif
--}
--
--static inline unsigned long msecs_to_jiffies(const unsigned int m)
--{
--	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
--		return MAX_JIFFY_OFFSET;
--#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
--	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
--#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
--	return m * (HZ / MSEC_PER_SEC);
--#else
--	return (m * HZ + MSEC_PER_SEC - 1) / MSEC_PER_SEC;
--#endif
--}
--
--static inline unsigned long usecs_to_jiffies(const unsigned int u)
--{
--	if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
--		return MAX_JIFFY_OFFSET;
--#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
--	return (u + (USEC_PER_SEC / HZ) - 1) / (USEC_PER_SEC / HZ);
--#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
--	return u * (HZ / USEC_PER_SEC);
--#else
--	return (u * HZ + USEC_PER_SEC - 1) / USEC_PER_SEC;
--#endif
--}
--
--/*
-- * The TICK_NSEC - 1 rounds up the value to the next resolution.  Note
-- * that a remainder subtract here would not do the right thing as the
-- * resolution values don't fall on second boundries.  I.e. the line:
-- * nsec -= nsec % TICK_NSEC; is NOT a correct resolution rounding.
-- *
-- * Rather, we just shift the bits off the right.
-- *
-- * The >> (NSEC_JIFFIE_SC - SEC_JIFFIE_SC) converts the scaled nsec
-- * value to a scaled second value.
-- */
--static __inline__ unsigned long
--timespec_to_jiffies(const struct timespec *value)
--{
--	unsigned long sec = value->tv_sec;
--	long nsec = value->tv_nsec + TICK_NSEC - 1;
--
--	if (sec >= MAX_SEC_IN_JIFFIES){
--		sec = MAX_SEC_IN_JIFFIES;
--		nsec = 0;
--	}
--	return (((u64)sec * SEC_CONVERSION) +
--		(((u64)nsec * NSEC_CONVERSION) >>
--		 (NSEC_JIFFIE_SC - SEC_JIFFIE_SC))) >> SEC_JIFFIE_SC;
--
--}
--
--static __inline__ void
--jiffies_to_timespec(const unsigned long jiffies, struct timespec *value)
--{
--	/*
--	 * Convert jiffies to nanoseconds and separate with
--	 * one divide.
--	 */
--	u64 nsec = (u64)jiffies * TICK_NSEC;
--	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &value->tv_nsec);
--}
--
--/* Same for "timeval"
-- *
-- * Well, almost.  The problem here is that the real system resolution is
-- * in nanoseconds and the value being converted is in micro seconds.
-- * Also for some machines (those that use HZ = 1024, in-particular),
-- * there is a LARGE error in the tick size in microseconds.
--
-- * The solution we use is to do the rounding AFTER we convert the
-- * microsecond part.  Thus the USEC_ROUND, the bits to be shifted off.
-- * Instruction wise, this should cost only an additional add with carry
-- * instruction above the way it was done above.
-- */
--static __inline__ unsigned long
--timeval_to_jiffies(const struct timeval *value)
--{
--	unsigned long sec = value->tv_sec;
--	long usec = value->tv_usec;
--
--	if (sec >= MAX_SEC_IN_JIFFIES){
--		sec = MAX_SEC_IN_JIFFIES;
--		usec = 0;
--	}
--	return (((u64)sec * SEC_CONVERSION) +
--		(((u64)usec * USEC_CONVERSION + USEC_ROUND) >>
--		 (USEC_JIFFIE_SC - SEC_JIFFIE_SC))) >> SEC_JIFFIE_SC;
--}
--
--static __inline__ void
--jiffies_to_timeval(const unsigned long jiffies, struct timeval *value)
--{
--	/*
--	 * Convert jiffies to nanoseconds and separate with
--	 * one divide.
--	 */
--	u64 nsec = (u64)jiffies * TICK_NSEC;
--	long tv_usec;
--
--	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &tv_usec);
--	tv_usec /= NSEC_PER_USEC;
--	value->tv_usec = tv_usec;
--}
--
--/*
-- * Convert jiffies/jiffies_64 to clock_t and back.
-- */
--static inline clock_t jiffies_to_clock_t(long x)
--{
--#if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
--	return x / (HZ / USER_HZ);
--#else
--	u64 tmp = (u64)x * TICK_NSEC;
--	do_div(tmp, (NSEC_PER_SEC / USER_HZ));
--	return (long)tmp;
--#endif
--}
--
--static inline unsigned long clock_t_to_jiffies(unsigned long x)
--{
--#if (HZ % USER_HZ)==0
--	if (x >= ~0UL / (HZ / USER_HZ))
--		return ~0UL;
--	return x * (HZ / USER_HZ);
--#else
--	u64 jif;
--
--	/* Don't worry about loss of precision here .. */
--	if (x >= ~0UL / HZ * USER_HZ)
--		return ~0UL;
--
--	/* .. but do try to contain it here */
--	jif = x * (u64) HZ;
--	do_div(jif, USER_HZ);
--	return jif;
--#endif
--}
--
--static inline u64 jiffies_64_to_clock_t(u64 x)
--{
--#if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
--	do_div(x, HZ / USER_HZ);
--#else
--	/*
--	 * There are better ways that don't overflow early,
--	 * but even this doesn't overflow in hundreds of years
--	 * in 64 bits, so..
--	 */
--	x *= TICK_NSEC;
--	do_div(x, (NSEC_PER_SEC / USER_HZ));
--#endif
--	return x;
--}
--
--static inline u64 nsec_to_clock_t(u64 x)
--{
--#if (NSEC_PER_SEC % USER_HZ) == 0
--	do_div(x, (NSEC_PER_SEC / USER_HZ));
--#elif (USER_HZ % 512) == 0
--	x *= USER_HZ/512;
--	do_div(x, (NSEC_PER_SEC / 512));
--#else
--	/*
--         * max relative error 5.7e-8 (1.8s per year) for USER_HZ <= 1024,
--         * overflow after 64.99 years.
--         * exact for HZ=60, 72, 90, 120, 144, 180, 300, 600, 900, ...
--         */
--	x *= 9;
--	do_div(x, (unsigned long)((9ull * NSEC_PER_SEC + (USER_HZ/2))
--	                          / USER_HZ));
--#endif
--	return x;
--}
-+extern unsigned int jiffies_to_msecs(const unsigned long j);
-+extern unsigned int jiffies_to_usecs(const unsigned long j);
-+extern unsigned long msecs_to_jiffies(const unsigned int m);
-+extern unsigned long usecs_to_jiffies(const unsigned int u);
-+extern unsigned long timespec_to_jiffies(const struct timespec *value);
-+extern void jiffies_to_timespec(const unsigned long jiffies,
-+				struct timespec *value);
-+extern unsigned long timeval_to_jiffies(const struct timeval *value);
-+extern void jiffies_to_timeval(const unsigned long jiffies,
-+			       struct timeval *value);
-+extern clock_t jiffies_to_clock_t(long x);
-+extern unsigned long clock_t_to_jiffies(unsigned long x);
-+extern u64 jiffies_64_to_clock_t(u64 x);
-+extern u64 nsec_to_clock_t(u64 x);
-+extern int nsec_to_timestamp(char *s, u64 t);
+ 	base = lock_hrtimer_base(timer, &flags);
+-	rem = ktime_sub(timer->expires, timer->base->get_time());
++	rem = ktime_sub(timer->expires, base->get_time());
+ 	unlock_hrtimer_base(timer, &flags);
  
--static inline int nsec_to_timestamp(char *s, u64 t)
--{
--	unsigned long nsec_rem = do_div(t, NSEC_PER_SEC);
--	return sprintf(s, "[%5lu.%06lu]", (unsigned long)t,
--		       nsec_rem/NSEC_PER_USEC);
--}
- #define TIMESTAMP_SIZE	30
- 
- #endif
-diff -puN kernel/time.c~time-uninline-jiffiesh kernel/time.c
---- a/kernel/time.c~time-uninline-jiffiesh
-+++ a/kernel/time.c
-@@ -470,6 +470,224 @@ struct timeval ns_to_timeval(const s64 n
- 	return tv;
- }
- 
-+/*
-+ * Convert jiffies to milliseconds and back.
-+ *
-+ * Avoid unnecessary multiplications/divisions in the
-+ * two most common HZ cases:
-+ */
-+unsigned int jiffies_to_msecs(const unsigned long j)
-+{
-+#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-+	return (MSEC_PER_SEC / HZ) * j;
-+#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-+	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
-+#else
-+	return (j * MSEC_PER_SEC) / HZ;
-+#endif
-+}
-+EXPORT_SYMBOL(jiffies_to_msecs);
-+
-+unsigned int jiffies_to_usecs(const unsigned long j)
-+{
-+#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
-+	return (USEC_PER_SEC / HZ) * j;
-+#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
-+	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
-+#else
-+	return (j * USEC_PER_SEC) / HZ;
-+#endif
-+}
-+EXPORT_SYMBOL(jiffies_to_usecs);
-+
-+unsigned long msecs_to_jiffies(const unsigned int m)
-+{
-+	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-+	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
-+#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-+	return m * (HZ / MSEC_PER_SEC);
-+#else
-+	return (m * HZ + MSEC_PER_SEC - 1) / MSEC_PER_SEC;
-+#endif
-+}
-+EXPORT_SYMBOL(msecs_to_jiffies);
-+
-+unsigned long usecs_to_jiffies(const unsigned int u)
-+{
-+	if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
-+	return (u + (USEC_PER_SEC / HZ) - 1) / (USEC_PER_SEC / HZ);
-+#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
-+	return u * (HZ / USEC_PER_SEC);
-+#else
-+	return (u * HZ + USEC_PER_SEC - 1) / USEC_PER_SEC;
-+#endif
-+}
-+EXPORT_SYMBOL(usecs_to_jiffies);
-+
-+/*
-+ * The TICK_NSEC - 1 rounds up the value to the next resolution.  Note
-+ * that a remainder subtract here would not do the right thing as the
-+ * resolution values don't fall on second boundries.  I.e. the line:
-+ * nsec -= nsec % TICK_NSEC; is NOT a correct resolution rounding.
-+ *
-+ * Rather, we just shift the bits off the right.
-+ *
-+ * The >> (NSEC_JIFFIE_SC - SEC_JIFFIE_SC) converts the scaled nsec
-+ * value to a scaled second value.
-+ */
-+unsigned long
-+timespec_to_jiffies(const struct timespec *value)
-+{
-+	unsigned long sec = value->tv_sec;
-+	long nsec = value->tv_nsec + TICK_NSEC - 1;
-+
-+	if (sec >= MAX_SEC_IN_JIFFIES){
-+		sec = MAX_SEC_IN_JIFFIES;
-+		nsec = 0;
-+	}
-+	return (((u64)sec * SEC_CONVERSION) +
-+		(((u64)nsec * NSEC_CONVERSION) >>
-+		 (NSEC_JIFFIE_SC - SEC_JIFFIE_SC))) >> SEC_JIFFIE_SC;
-+
-+}
-+EXPORT_SYMBOL(timespec_to_jiffies);
-+
-+void
-+jiffies_to_timespec(const unsigned long jiffies, struct timespec *value)
-+{
-+	/*
-+	 * Convert jiffies to nanoseconds and separate with
-+	 * one divide.
-+	 */
-+	u64 nsec = (u64)jiffies * TICK_NSEC;
-+	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &value->tv_nsec);
-+}
-+
-+/* Same for "timeval"
-+ *
-+ * Well, almost.  The problem here is that the real system resolution is
-+ * in nanoseconds and the value being converted is in micro seconds.
-+ * Also for some machines (those that use HZ = 1024, in-particular),
-+ * there is a LARGE error in the tick size in microseconds.
-+
-+ * The solution we use is to do the rounding AFTER we convert the
-+ * microsecond part.  Thus the USEC_ROUND, the bits to be shifted off.
-+ * Instruction wise, this should cost only an additional add with carry
-+ * instruction above the way it was done above.
-+ */
-+unsigned long
-+timeval_to_jiffies(const struct timeval *value)
-+{
-+	unsigned long sec = value->tv_sec;
-+	long usec = value->tv_usec;
-+
-+	if (sec >= MAX_SEC_IN_JIFFIES){
-+		sec = MAX_SEC_IN_JIFFIES;
-+		usec = 0;
-+	}
-+	return (((u64)sec * SEC_CONVERSION) +
-+		(((u64)usec * USEC_CONVERSION + USEC_ROUND) >>
-+		 (USEC_JIFFIE_SC - SEC_JIFFIE_SC))) >> SEC_JIFFIE_SC;
-+}
-+
-+void jiffies_to_timeval(const unsigned long jiffies, struct timeval *value)
-+{
-+	/*
-+	 * Convert jiffies to nanoseconds and separate with
-+	 * one divide.
-+	 */
-+	u64 nsec = (u64)jiffies * TICK_NSEC;
-+	long tv_usec;
-+
-+	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &tv_usec);
-+	tv_usec /= NSEC_PER_USEC;
-+	value->tv_usec = tv_usec;
-+}
-+
-+/*
-+ * Convert jiffies/jiffies_64 to clock_t and back.
-+ */
-+clock_t jiffies_to_clock_t(long x)
-+{
-+#if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
-+	return x / (HZ / USER_HZ);
-+#else
-+	u64 tmp = (u64)x * TICK_NSEC;
-+	do_div(tmp, (NSEC_PER_SEC / USER_HZ));
-+	return (long)tmp;
-+#endif
-+}
-+EXPORT_SYMBOL(jiffies_to_clock_t);
-+
-+unsigned long clock_t_to_jiffies(unsigned long x)
-+{
-+#if (HZ % USER_HZ)==0
-+	if (x >= ~0UL / (HZ / USER_HZ))
-+		return ~0UL;
-+	return x * (HZ / USER_HZ);
-+#else
-+	u64 jif;
-+
-+	/* Don't worry about loss of precision here .. */
-+	if (x >= ~0UL / HZ * USER_HZ)
-+		return ~0UL;
-+
-+	/* .. but do try to contain it here */
-+	jif = x * (u64) HZ;
-+	do_div(jif, USER_HZ);
-+	return jif;
-+#endif
-+}
-+EXPORT_SYMBOL(clock_t_to_jiffies);
-+
-+u64 jiffies_64_to_clock_t(u64 x)
-+{
-+#if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
-+	do_div(x, HZ / USER_HZ);
-+#else
-+	/*
-+	 * There are better ways that don't overflow early,
-+	 * but even this doesn't overflow in hundreds of years
-+	 * in 64 bits, so..
-+	 */
-+	x *= TICK_NSEC;
-+	do_div(x, (NSEC_PER_SEC / USER_HZ));
-+#endif
-+	return x;
-+}
-+
-+EXPORT_SYMBOL(jiffies_64_to_clock_t);
-+
-+u64 nsec_to_clock_t(u64 x)
-+{
-+#if (NSEC_PER_SEC % USER_HZ) == 0
-+	do_div(x, (NSEC_PER_SEC / USER_HZ));
-+#elif (USER_HZ % 512) == 0
-+	x *= USER_HZ/512;
-+	do_div(x, (NSEC_PER_SEC / 512));
-+#else
-+	/*
-+         * max relative error 5.7e-8 (1.8s per year) for USER_HZ <= 1024,
-+         * overflow after 64.99 years.
-+         * exact for HZ=60, 72, 90, 120, 144, 180, 300, 600, 900, ...
-+         */
-+	x *= 9;
-+	do_div(x, (unsigned long)((9ull * NSEC_PER_SEC + (USER_HZ/2)) /
-+				  USER_HZ));
-+#endif
-+	return x;
-+}
-+
-+int nsec_to_timestamp(char *s, u64 t)
-+{
-+	unsigned long nsec_rem = do_div(t, NSEC_PER_SEC);
-+	return sprintf(s, "[%5lu.%06lu]", (unsigned long)t,
-+		       nsec_rem/NSEC_PER_USEC);
-+}
- __attribute__((weak)) unsigned long long timestamp_clock(void)
- {
- 	return sched_clock();
+ 	return rem;
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-debug-add-sysrq_always_enabled-boot-option.patch
-lockdep-filter-off-by-default.patch
-lockdep-improve-verbose-messages.patch
-lockdep-improve-lockdep_reset.patch
-lockdep-clean-up-very_verbose-define.patch
-lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
-lockdep-print-irq-trace-info-on-asserts.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support.patch
+optimize-o_direct-on-block-device-v3.patch
 lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-optimize-calc_load.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input-vs-git-alsa.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
 gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
 clockevents-i386-drivers.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
