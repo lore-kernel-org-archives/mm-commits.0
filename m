@@ -1,154 +1,269 @@
 From: akpm@osdl.org
-Subject: - rtcs-dont-use-i2c_adapterdev.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:52:07 -0800
-Message-ID: <200612130652.kBD6q7qB030411@shell0.pdx.osdl.net>
+Subject: - codingstyle-updates.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:51:52 -0800
+Message-ID: <200612130651.kBD6pqW3030380@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57308 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57312 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964973AbWLMGwY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:52:24 -0500
+	id S964976AbWLMGw0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:52:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, jengelh@gmx.de, jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTCs don't use i2c_adapter.dev
+     CodingStyle updates
 has been removed from the -mm tree.  Its filename was
-     rtcs-dont-use-i2c_adapterdev.patch
+     codingstyle-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTCs don't use i2c_adapter.dev
-From: David Brownell <david-b@pacbell.net>
+Subject: CodingStyle updates
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Update more I2C drivers that live outside drivers/i2c to understand that using
-adapter->dev is not The Way.  When actually referring to the adapter hardware,
-adapter->class_dev.dev is the answer.  When referring to a device connected to
-it, client->dev.dev is the answer.
+Add some kernel coding style comments, mostly pulled from emails
+by Andrew Morton, Jesper Juhl, and Randy Dunlap.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+- add paragraph on switch/case indentation (with fixes)
+- add paragraph on multiple-assignments
+- add more on Braces
+- add section on Spaces; add typeof, alignof, & __attribute__ with sizeof;
+  add more on postfix/prefix increment/decrement operators
+- add paragraph on function breaks in source files; add info on
+  function prototype parameter names
+- add paragraph on EXPORT_SYMBOL placement
+- add section on /*-comment style, long-comment style, and data
+  declarations and comments
+- correct some chapter number references that were missed when
+  chapters were renumbered
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/rtc-ds1672.c  |    2 +-
- drivers/rtc/rtc-pcf8563.c |    6 +++---
- drivers/rtc/rtc-rs5c372.c |    2 +-
- drivers/rtc/rtc-x1205.c   |   10 +++++-----
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ Documentation/CodingStyle |  126 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 121 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1672.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-ds1672.c
---- a/drivers/rtc/rtc-ds1672.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-ds1672.c
-@@ -199,7 +199,7 @@ static int ds1672_probe(struct i2c_adapt
- 	struct i2c_client *client;
- 	struct rtc_device *rtc;
+diff -puN Documentation/CodingStyle~codingstyle-updates Documentation/CodingStyle
+--- a/Documentation/CodingStyle~codingstyle-updates
++++ a/Documentation/CodingStyle
+@@ -35,12 +35,37 @@ In short, 8-char indents make things eas
+ benefit of warning you when you're nesting your functions too deep.
+ Heed that warning.
  
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
++The preferred way to ease multiple indentation levels in a switch statement is
++to align the "switch" and its subordinate "case" labels in the same column
++instead of "double-indenting" the "case" labels.  E.g.:
++
++	switch (suffix) {
++	case 'G':
++	case 'g':
++		mem <<= 30;
++		break;
++	case 'M':
++	case 'm':
++		mem <<= 20;
++		break;
++	case 'K':
++	case 'k':
++		mem <<= 10;
++		/* fall through */
++	default:
++		break;
++	}
++
++
+ Don't put multiple statements on a single line unless you have
+ something to hide:
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
-diff -puN drivers/rtc/rtc-pcf8563.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -192,7 +192,7 @@ static int pcf8563_validate_client(struc
- 		xfer = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+ 	if (condition) do_this;
+ 	  do_something_everytime;
  
- 		if (xfer != ARRAY_SIZE(msgs)) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: could not read register 0x%02X\n",
- 				__FUNCTION__, pattern[i].reg);
++Don't put multiple assignments on a single line either.  Kernel coding style
++is super simple.  Avoid tricky expressions.
++
+ Outside of comments, documentation and except in Kconfig, spaces are never
+ used for indentation, and the above example is deliberately broken.
  
-@@ -203,7 +203,7 @@ static int pcf8563_validate_client(struc
+@@ -69,7 +94,7 @@ void fun(int a, int b, int c)
+ 		next_statement;
+ }
  
- 		if (value > pattern[i].max ||
- 			value < pattern[i].min) {
--			dev_dbg(&client->adapter->dev,
-+			dev_dbg(&client->dev,
- 				"%s: pattern=%d, reg=%x, mask=0x%02x, min=%d, "
- 				"max=%d, value=%d, raw=0x%02X\n",
- 				__FUNCTION__, i, pattern[i].reg, pattern[i].mask,
-@@ -253,7 +253,7 @@ static int pcf8563_probe(struct i2c_adap
+-		Chapter 3: Placing Braces
++		Chapter 3: Placing Braces and Spaces
  
- 	int err = 0;
+ The other issue that always comes up in C styling is the placement of
+ braces.  Unlike the indent size, there are few technical reasons to
+@@ -81,6 +106,20 @@ brace last on the line, and put the clos
+ 		we do y
+ 	}
  
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
++This applies to all non-function statement blocks (if, switch, for,
++while, do).  E.g.:
++
++	switch (action) {
++	case KOBJ_ADD:
++		return "add";
++	case KOBJ_REMOVE:
++		return "remove";
++	case KOBJ_CHANGE:
++		return "change";
++	default:
++		return NULL;
++	}
++
+ However, there is one special case, namely functions: they have the
+ opening brace at the beginning of the next line, thus:
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
-diff -puN drivers/rtc/rtc-rs5c372.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -200,7 +200,7 @@ static int rs5c372_probe(struct i2c_adap
- 	struct i2c_client *client;
- 	struct rs5c372 *rs5c372;
+@@ -121,6 +160,49 @@ supply of new-lines on your screen is no
+ 25-line terminal screens here), you have more empty lines to put
+ comments on.
  
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
++		3.1:  Spaces
++
++Linux kernel style for use of spaces depends (mostly) on
++function-versus-keyword usage.  Use a space after (most) keywords.  The
++notable exceptions are sizeof, typeof, alignof, and __attribute__, which look
++somewhat like functions (and are usually used with parentheses in Linux,
++although they are not required in the language, as in: "sizeof info" after
++"struct fileinfo info;" is declared).
++
++So use a space after these keywords:
++	if, switch, case, for, do, while
++but not with sizeof, typeof, alignof, or __attribute__.  E.g.,
++	s = sizeof(struct file);
++
++Do not add spaces around (inside) parenthesized expressions.  This example is
++*bad*:
++
++	s = sizeof( struct file );
++
++When declaring pointer data or a function that returns a pointer type, the
++preferred use of '*' is adjacent to the data name or function name and not
++adjacent to the type name.  Examples:
++
++	char *linux_banner;
++	unsigned long long memparse(char *ptr, char **retptr);
++	char *match_strdup(substring_t *s);
++
++Use one space around (on each side of) most binary and ternary operators,
++such as any of these:
++
++	=  +  -  <  >  *  /  %  |  &  ^  <=  >=  ==  !=  ?  :
++
++but no space after unary operators:
++	&  *  +  -  ~  !  sizeof  typeof  alignof  __attribute__  defined
++
++no space before the postfix increment & decrement unary operators:
++	++  --
++
++no space after the prefix increment & decrement unary operators:
++	++  --
++
++and no space around the '.' and "->" structure member operators.
++
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
-diff -puN drivers/rtc/rtc-x1205.c~rtcs-dont-use-i2c_adapterdev drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtcs-dont-use-i2c_adapterdev
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -372,7 +372,7 @@ static int x1205_validate_client(struct 
- 		};
+ 		Chapter 4: Naming
  
- 		if ((xfer = i2c_transfer(client->adapter, msgs, 2)) != 2) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: could not read register %x\n",
- 				__FUNCTION__, probe_zero_pattern[i]);
+@@ -152,7 +234,7 @@ variable that is used to hold a temporar
  
-@@ -380,7 +380,7 @@ static int x1205_validate_client(struct 
- 		}
+ If you are afraid to mix up your local variable names, you have another
+ problem, which is called the function-growth-hormone-imbalance syndrome.
+-See next chapter.
++See chapter 6 (Functions).
  
- 		if ((buf & probe_zero_pattern[i+1]) != 0) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: register=%02x, zero pattern=%d, value=%x\n",
- 				__FUNCTION__, probe_zero_pattern[i], i, buf);
  
-@@ -400,7 +400,7 @@ static int x1205_validate_client(struct 
- 		};
+ 		Chapter 5: Typedefs
+@@ -258,6 +340,20 @@ generally easily keep track of about 7 d
+ and it gets confused.  You know you're brilliant, but maybe you'd like
+ to understand what you did 2 weeks from now.
  
- 		if ((xfer = i2c_transfer(client->adapter, msgs, 2)) != 2) {
--			dev_err(&client->adapter->dev,
-+			dev_err(&client->dev,
- 				"%s: could not read register %x\n",
- 				__FUNCTION__, probe_limits_pattern[i].reg);
++In source files, separate functions with one blank line.  If the function is
++exported, the EXPORT* macro for it should follow immediately after the closing
++function brace line.  E.g.:
++
++int system_is_up(void)
++{
++	return system_state == SYSTEM_RUNNING;
++}
++EXPORT_SYMBOL(system_is_up);
++
++In function prototypes, include parameter names with their data types.
++Although this is not required by the C language, it is preferred in Linux
++because it is a simple way to add valuable information for the reader.
++
  
-@@ -411,7 +411,7 @@ static int x1205_validate_client(struct 
+ 		Chapter 7: Centralized exiting of functions
  
- 		if (value > probe_limits_pattern[i].max ||
- 			value < probe_limits_pattern[i].min) {
--			dev_dbg(&client->adapter->dev,
-+			dev_dbg(&client->dev,
- 				"%s: register=%x, lim pattern=%d, value=%d\n",
- 				__FUNCTION__, probe_limits_pattern[i].reg,
- 				i, value);
-@@ -506,7 +506,7 @@ static int x1205_probe(struct i2c_adapte
- 	struct i2c_client *client;
- 	struct rtc_device *rtc;
+@@ -306,16 +402,36 @@ time to explain badly written code.
+ Generally, you want your comments to tell WHAT your code does, not HOW.
+ Also, try to avoid putting comments inside a function body: if the
+ function is so complex that you need to separately comment parts of it,
+-you should probably go back to chapter 5 for a while.  You can make
++you should probably go back to chapter 6 for a while.  You can make
+ small comments to note or warn about something particularly clever (or
+ ugly), but try to avoid excess.  Instead, put the comments at the head
+ of the function, telling people what it does, and possibly WHY it does
+ it.
  
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(adapter->class_dev.dev, "%s\n", __FUNCTION__);
+-When commenting the kernel API functions, please use the kerneldoc format.
++When commenting the kernel API functions, please use the kernel-doc format.
+ See the files Documentation/kernel-doc-nano-HOWTO.txt and scripts/kernel-doc
+ for details.
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
- 		err = -ENODEV;
++Linux style for comments is the C89 "/* ... */" style.
++Don't use C99-style "// ..." comments.
++
++The preferred style for long (multi-line) comments is:
++
++	/*
++	 * This is the preferred style for multi-line
++	 * comments in the Linux kernel source code.
++	 * Please use it consistently.
++	 *
++	 * Description:  A column of asterisks on the left side,
++	 * with beginning and ending almost-blank lines.
++	 */
++
++It's also important to comment data, whether they are basic types or derived
++types.  To this end, use just one data declaration per line (no commas for
++multiple data declarations).  This leaves you room for a small comment on each
++item, explaining its use.
++
++
+ 		Chapter 9: You've made a mess of it
+ 
+ That's OK, we all do.  You've probably been told by your long-time Unix
+@@ -591,4 +707,4 @@ Kernel CodingStyle, by greg@kroah.com at
+ http://www.kroah.com/linux/talks/ols_2002_kernel_codingstyle_talk/html/
+ 
+ --
+-Last updated on 30 April 2006.
++Last updated on 2006-December-06.
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-fix-more-workqueue-build-breakage-tps65010.patch
-another-build-fix-header-rearrangements-osk.patch
-rtc-remove-syslog-spam-on-registration.patch
-rtc-framework-rtc_wkalrmenabled-reporting-updates.patch
+fix-section-mismatch-in-parainstructions.patch
+kconfig-new-function-bool-conf_get_changedvoid.patch
+kconfig-make-sym_change_count-static-let-it-be-altered-by-2-functions-only.patch
+kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc.patch
+kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state.patch
+isicom-fix-build-with-pci-disabled.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+profile_likely-export-do_check_likely.patch
 
