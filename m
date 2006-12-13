@@ -1,66 +1,52 @@
 From: akpm@osdl.org
-Subject: - updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:49:19 -0800
-Message-ID: <200612132249.kBDMnJMx023147@shell0.pdx.osdl.net>
+Subject: - updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 14:49:17 -0800
+Message-ID: <200612132249.kBDMnHDv023144@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53478 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53476 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751781AbWLMWwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:52:35 -0500
+	id S1751779AbWLMWwe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:52:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove arch/i386/kernel/time_hpet.c:hpet_reenable()
+     arch/i386/kernel/apic.c: make a function static
 has been removed from the -mm tree.  Its filename was
-     updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable.patch
+     updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: remove arch/i386/kernel/time_hpet.c:hpet_reenable()
+Subject: arch/i386/kernel/apic.c: make a function static
 From: Adrian Bunk <bunk@stusta.de>
 
-Remove the no longer used hpet_reenable()
+This patch makes the needlessly global local_apic_timer_interrupt()
+static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/time_hpet.c |    5 -----
- include/asm-i386/hpet.h      |    1 -
- 2 files changed, 6 deletions(-)
+ arch/i386/kernel/apic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/time_hpet.c~updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable arch/i386/kernel/time_hpet.c
---- a/arch/i386/kernel/time_hpet.c~updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable
-+++ a/arch/i386/kernel/time_hpet.c
-@@ -221,11 +221,6 @@ int __init hpet_enable(void)
- 	return 0;
- }
- 
--int hpet_reenable(void)
--{
--	return hpet_timer_stop_set_go(hpet_tick);
--}
--
- int is_hpet_enabled(void)
+diff -puN arch/i386/kernel/apic.c~updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~updated-i386-convert-to-clock-event-devices-arch-i386-kernel-apicc-make-a-function-static
++++ a/arch/i386/kernel/apic.c
+@@ -451,7 +451,7 @@ EXPORT_SYMBOL(switch_ipi_to_APIC_timer);
+ /*
+  * The guts of the apic timer interrupt
+  */
+-fastcall void local_apic_timer_interrupt(struct pt_regs *regs)
++static fastcall void local_apic_timer_interrupt(struct pt_regs *regs)
  {
- 	return use_hpet;
-diff -puN include/asm-i386/hpet.h~updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable include/asm-i386/hpet.h
---- a/include/asm-i386/hpet.h~updated-i386-convert-to-clock-event-devices-remove-arch-i386-kernel-time_hpetchpet_reenable
-+++ a/include/asm-i386/hpet.h
-@@ -96,7 +96,6 @@ extern int hpet_use_timer;
- 
- extern int hpet_rtc_timer_init(void);
- extern int hpet_enable(void);
--extern int hpet_reenable(void);
- extern int is_hpet_enabled(void);
- extern int is_hpet_capable(void);
- extern int hpet_readl(unsigned long a);
+ 	int cpu = smp_processor_id();
+ 	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
