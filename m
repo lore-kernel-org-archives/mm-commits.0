@@ -1,73 +1,87 @@
 From: akpm@osdl.org
-Subject: - geode-crypto-is-pci-device.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:52:02 -0800
-Message-ID: <200612130652.kBD6q2vn030403@shell0.pdx.osdl.net>
+Subject: - fix-noise-in-futexh.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:52:26 -0800
+Message-ID: <200612130652.kBD6qQpG030437@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57322 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57329 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964978AbWLMGwa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 01:52:30 -0500
+	id S964975AbWLMGwd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 01:52:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jordan.crouse@amd.com, mm-commits@vger.kernel.org
+To: dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     geode crypto is PCI device
+     Fix noise in futex.h
 has been removed from the -mm tree.  Its filename was
-     geode-crypto-is-pci-device.patch
+     fix-noise-in-futexh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: geode crypto is PCI device
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Fix noise in futex.h
+From: David Woodhouse <dwmw2@infradead.org>
 
-This driver seems to be for a PCI device.
+There are some kernel-only bits in the middle of <linux/futex.h> which
+should be removed in what we export to userspace.
 
-drivers/crypto/geode-aes.c:384: warning: implicit declaration of function 'pci_release_regions'
-drivers/crypto/geode-aes.c:397: warning: implicit declaration of function 'pci_request_regions'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/crypto/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/Kbuild  |    2 +-
+ include/linux/futex.h |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/crypto/Kconfig~geode-crypto-is-pci-device drivers/crypto/Kconfig
---- a/drivers/crypto/Kconfig~geode-crypto-is-pci-device
-+++ a/drivers/crypto/Kconfig
-@@ -53,7 +53,7 @@ config CRYPTO_DEV_PADLOCK_SHA
+diff -puN include/linux/Kbuild~fix-noise-in-futexh include/linux/Kbuild
+--- a/include/linux/Kbuild~fix-noise-in-futexh
++++ a/include/linux/Kbuild
+@@ -61,7 +61,6 @@ header-y += fd.h
+ header-y += fdreg.h
+ header-y += fib_rules.h
+ header-y += fuse.h
+-header-y += futex.h
+ header-y += genetlink.h
+ header-y += gen_stats.h
+ header-y += gigaset_dev.h
+@@ -203,6 +202,7 @@ unifdef-y += fb.h
+ unifdef-y += fcntl.h
+ unifdef-y += filter.h
+ unifdef-y += flat.h
++unifdef-y += futex.h
+ unifdef-y += fs.h
+ unifdef-y += gameport.h
+ unifdef-y += generic_serial.h
+diff -puN include/linux/futex.h~fix-noise-in-futexh include/linux/futex.h
+--- a/include/linux/futex.h~fix-noise-in-futexh
++++ a/include/linux/futex.h
+@@ -93,6 +93,7 @@ struct robust_list_head {
+  */
+ #define ROBUST_LIST_LIMIT	2048
  
- config CRYPTO_DEV_GEODE
- 	tristate "Support for the Geode LX AES engine"
--	depends on CRYPTO && X86_32
-+	depends on CRYPTO && X86_32 && PCI
- 	select CRYPTO_ALGAPI
- 	select CRYPTO_BLKCIPHER
- 	default m
++#ifdef __KERNEL__
+ long do_futex(u32 __user *uaddr, int op, u32 val, unsigned long timeout,
+ 	      u32 __user *uaddr2, u32 val2, u32 val3);
+ 
+@@ -110,6 +111,7 @@ static inline void exit_pi_state_list(st
+ {
+ }
+ #endif
++#endif /* __KERNEL__ */
+ 
+ #define FUTEX_OP_SET		0	/* *(int *)UADDR2 = OPARG; */
+ #define FUTEX_OP_ADD		1	/* *(int *)UADDR2 += OPARG; */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
-fix-section-mismatch-in-parainstructions.patch
-kconfig-new-function-bool-conf_get_changedvoid.patch
-kconfig-make-sym_change_count-static-let-it-be-altered-by-2-functions-only.patch
-kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc.patch
-kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state.patch
-isicom-fix-build-with-pci-disabled.patch
-git-acpi.patch
-git-alsa.patch
-cpufreq-select-consistently-re-2619-rc5-mm1.patch
+audit-fix-kstrdup-error-check.patch
 git-mtd.patch
-parisc-fix-module_param-iommu-permission.patch
-scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
-kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
-reiser4-use-null-for-pointers.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-profile_likely-export-do_check_likely.patch
+n_r3964-use-struct-pid-to-track-user-space-clients.patch
+getting-rid-of-all-casts-of-kalloc-calls.patch
+debug-shared-irqs.patch
+debug-shared-irqs-kconfig-fix.patch
 
