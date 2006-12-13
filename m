@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + mxser_new-fix-non-pci-build.patch added to -mm tree
-Date: Tue, 12 Dec 2006 16:46:45 -0800
-Message-ID: <200612130046.kBD0kjq3022940@shell0.pdx.osdl.net>
+Subject: + sx-fix-non-pci-build.patch added to -mm tree
+Date: Tue, 12 Dec 2006 16:47:16 -0800
+Message-ID: <200612130047.kBD0lGJ8022964@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34226 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34242 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964850AbWLMAqr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Dec 2006 19:46:47 -0500
+	id S964849AbWLMArS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 12 Dec 2006 19:47:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,19 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     mxser_new: fix non-PCI build
+     sx: fix non-PCI build
 has been added to the -mm tree.  Its filename is
-     mxser_new-fix-non-pci-build.patch
+     sx-fix-non-pci-build.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mxser_new: fix non-PCI build
+Subject: sx: fix non-PCI build
 From: Jiri Slaby <jirislaby@gmail.com>
 
-When CONFIG_PCI is not defined (i.e.  PCI bus is disabled), the mxser_new
-driver fails to link, since some pci functions are not available.  Fix this
+When CONFIG_PCI is not defined (i.e.  PCI bus is disabled), the sx driver
+fails to link, since some pci functions are not available.  Fix this
 behaviour to be able to compile this driver on machines with no PCI bus
 (but with ISA bus support).
 
@@ -35,63 +35,59 @@ Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/Kconfig     |    2 +-
- drivers/char/mxser_new.c |    8 ++++++++
+ drivers/char/Kconfig |    2 +-
+ drivers/char/sx.c    |    8 ++++++++
  2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/Kconfig~mxser_new-fix-non-pci-build drivers/char/Kconfig
---- a/drivers/char/Kconfig~mxser_new-fix-non-pci-build
+diff -puN drivers/char/Kconfig~sx-fix-non-pci-build drivers/char/Kconfig
+--- a/drivers/char/Kconfig~sx-fix-non-pci-build
 +++ a/drivers/char/Kconfig
-@@ -203,7 +203,7 @@ config MOXA_SMARTIO
+@@ -312,7 +312,7 @@ config SPECIALIX_RTSCTS
  
- config MOXA_SMARTIO_NEW
- 	tristate "Moxa SmartIO support v. 2.0 (EXPERIMENTAL)"
+ config SX
+ 	tristate "Specialix SX (and SI) card support"
 -	depends on SERIAL_NONSTANDARD
 +	depends on SERIAL_NONSTANDARD && (PCI || EISA || ISA)
  	help
- 	  Say Y here if you have a Moxa SmartIO multiport serial card and/or
- 	  want to help develop a new version of this driver.
-diff -puN drivers/char/mxser_new.c~mxser_new-fix-non-pci-build drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~mxser_new-fix-non-pci-build
-+++ a/drivers/char/mxser_new.c
-@@ -315,6 +315,7 @@ static struct mxser_mon_ext mon_data_ext
- static int mxser_set_baud_method[MXSER_PORTS + 1];
- static spinlock_t gm_lock;
+ 	  This is a driver for the SX and SI multiport serial cards.
+ 	  Please read the file <file:Documentation/sx.txt> for details.
+diff -puN drivers/char/sx.c~sx-fix-non-pci-build drivers/char/sx.c
+--- a/drivers/char/sx.c~sx-fix-non-pci-build
++++ a/drivers/char/sx.c
+@@ -2498,8 +2498,10 @@ static void __devexit sx_remove_card(str
+ 		/* It is safe/allowed to del_timer a non-active timer */
+ 		del_timer(&board->timer);
+ 		if (pdev) {
++#ifdef CONFIG_PCI
+ 			pci_iounmap(pdev, board->base);
+ 			pci_release_region(pdev, IS_CF_BOARD(board) ? 3 : 2);
++#endif
+ 		} else {
+ 			iounmap(board->base);
+ 			release_region(board->hw_base, board->hw_len);
+@@ -2601,6 +2603,7 @@ static struct eisa_driver sx_eisadriver 
+ 
+ #endif
  
 +#ifdef CONFIG_PCI
- static int CheckIsMoxaMust(int io)
- {
- 	u8 oldmcr, hwid;
-@@ -337,6 +338,7 @@ static int CheckIsMoxaMust(int io)
+  /******************************************************** 
+  * Setting bit 17 in the CNTRL register of the PLX 9050  * 
+  * chip forces a retry on writes while a read is pending.*
+@@ -2632,10 +2635,12 @@ static void __devinit fix_sx_pci(struct 
  	}
- 	return MOXA_OTHER_UART;
+ 	iounmap(rebase);
  }
 +#endif
  
- static void process_txrx_fifo(struct mxser_port *info)
- {
-@@ -2380,9 +2382,11 @@ static void mxser_release_res(struct mxs
- 	if (irq)
- 		free_irq(brd->irq, brd);
- 	if (pdev != NULL) {	/* PCI */
-+#ifdef CONFIG_PCI
- 		pci_release_region(pdev, 2);
- 		pci_release_region(pdev, 3);
- 		pci_dev_put(pdev);
-+#endif
- 	} else {
- 		release_region(brd->ports[0].ioaddr, 8 * brd->info->nports);
- 		release_region(brd->vector, 1);
-@@ -2546,6 +2550,7 @@ static int __init mxser_get_ISA_conf(int
- static int __devinit mxser_probe(struct pci_dev *pdev,
- 		const struct pci_device_id *ent)
+ static int __devinit sx_pci_probe(struct pci_dev *pdev,
+ 				  const struct pci_device_id *ent)
  {
 +#ifdef CONFIG_PCI
- 	struct mxser_board *brd;
- 	unsigned int i, j;
- 	unsigned long ioaddress;
-@@ -2644,6 +2649,9 @@ err_relio:
- 	brd->info = NULL;
+ 	struct sx_board *board;
+ 	unsigned int i, reg;
+ 	int retval = -EIO;
+@@ -2700,6 +2705,9 @@ err_flag:
+ 	board->flags &= ~SX_BOARD_PRESENT;
  err:
  	return retval;
 +#else
@@ -99,7 +95,7 @@ diff -puN drivers/char/mxser_new.c~mxser_new-fix-non-pci-build drivers/char/mxse
 +#endif
  }
  
- static void __devexit mxser_remove(struct pci_dev *pdev)
+ static void __devexit sx_pci_remove(struct pci_dev *pdev)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
@@ -107,4 +103,5 @@ Patches currently in -mm which might be from jirislaby@gmail.com are
 origin.patch
 isicom-fix-build-with-pci-disabled.patch
 mxser_new-fix-non-pci-build.patch
+sx-fix-non-pci-build.patch
 
