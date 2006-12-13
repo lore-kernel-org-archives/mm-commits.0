@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: - sched-disable-interrupts-for-locking-in-load_balance.patch removed from -mm tree
-Date: Tue, 12 Dec 2006 22:53:55 -0800
-Message-ID: <200612130653.kBD6rtT8030534@shell0.pdx.osdl.net>
+Subject: - sched-move-idle-status-calculation-into-rebalance_tick.patch removed from -mm tree
+Date: Tue, 12 Dec 2006 22:54:09 -0800
+Message-ID: <200612130654.kBD6s9xa030542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57604 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:57605 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965004AbWLMGye (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S965003AbWLMGye (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Wed, 13 Dec 2006 01:54:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,18 +14,24 @@ To: clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, kenneth.w.chen@intel.com, 
 
 
 The patch titled
-     sched: disable interrupts for locking in load_balance()
+     sched: move idle status calculation into rebalance_tick()
 has been removed from the -mm tree.  Its filename was
-     sched-disable-interrupts-for-locking-in-load_balance.patch
+     sched-move-idle-status-calculation-into-rebalance_tick.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: disable interrupts for locking in load_balance()
+Subject: sched: move idle status calculation into rebalance_tick()
 From: Christoph Lameter <clameter@sgi.com>
 
-Interrupts must be disabled for request queue locks if we want to run
-load_balance() with interrupts enabled.
+Perform the idle state determination in rebalance_tick.
+
+If we separate balancing from sched_tick then we also need to determine the
+idle state in rebalance_tick.
+
+V2->V3
+	Remove useless idlle != 0 check. Checking nr_running seems
+	to be sufficient. Thanks Suresh.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Peter Williams <pwil3058@bigpond.net.au>
@@ -38,68 +44,98 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ kernel/sched.c |   37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN kernel/sched.c~sched-disable-interrupts-for-locking-in-load_balance kernel/sched.c
---- a/kernel/sched.c~sched-disable-interrupts-for-locking-in-load_balance
+diff -puN kernel/sched.c~sched-move-idle-status-calculation-into-rebalance_tick kernel/sched.c
+--- a/kernel/sched.c~sched-move-idle-status-calculation-into-rebalance_tick
 +++ a/kernel/sched.c
-@@ -2546,8 +2546,6 @@ static inline unsigned long minus_1_or_z
- /*
-  * Check this_cpu to ensure it is balanced within domain. Attempt to move
-  * tasks if there is an imbalance.
-- *
-- * Called with this_rq unlocked.
+@@ -2867,10 +2867,16 @@ static void update_load(struct rq *this_
   */
- static int load_balance(int this_cpu, struct rq *this_rq,
- 			struct sched_domain *sd, enum idle_type idle)
-@@ -2557,6 +2555,7 @@ static int load_balance(int this_cpu, st
- 	unsigned long imbalance;
- 	struct rq *busiest;
- 	cpumask_t cpus = CPU_MASK_ALL;
-+	unsigned long flags;
  
+ static void
+-rebalance_tick(int this_cpu, struct rq *this_rq, enum idle_type idle)
++rebalance_tick(int this_cpu, struct rq *this_rq)
+ {
+ 	unsigned long interval;
+ 	struct sched_domain *sd;
++	/*
++	 * We are idle if there are no processes running. This
++	 * is valid even if we are the idle process (SMT).
++	 */
++	enum idle_type idle = !this_rq->nr_running ?
++				SCHED_IDLE : NOT_IDLE;
+ 
+ 	for_each_domain(this_cpu, sd) {
+ 		if (!(sd->flags & SD_LOAD_BALANCE))
+@@ -2902,37 +2908,26 @@ rebalance_tick(int this_cpu, struct rq *
+ /*
+  * on UP we do not need to balance between CPUs:
+  */
+-static inline void rebalance_tick(int cpu, struct rq *rq)
+-{
+-}
+ static inline void idle_balance(int cpu, struct rq *rq)
+ {
+ }
+-static inline void update_load(struct rq *this_rq)
+-{
+-}
+ #endif
+ 
+-static inline int wake_priority_sleeper(struct rq *rq)
++static inline void wake_priority_sleeper(struct rq *rq)
+ {
+-	int ret = 0;
+-
+ #ifdef CONFIG_SCHED_SMT
+ 	if (!rq->nr_running)
+-		return 0;
++		return;
+ 
+ 	spin_lock(&rq->lock);
  	/*
- 	 * When power savings policy is enabled for the parent domain, idle
-@@ -2596,11 +2595,13 @@ redo:
- 		 * still unbalanced. nr_moved simply stays zero, so it is
- 		 * correctly treated as an imbalance.
- 		 */
-+		local_irq_save(flags);
- 		double_rq_lock(this_rq, busiest);
- 		nr_moved = move_tasks(this_rq, this_cpu, busiest,
- 				      minus_1_or_zero(busiest->nr_running),
- 				      imbalance, sd, idle, &all_pinned);
- 		double_rq_unlock(this_rq, busiest);
-+		local_irq_restore(flags);
+ 	 * If an SMT sibling task has been put to sleep for priority
+ 	 * reasons reschedule the idle task to see if it can now run.
+ 	 */
+-	if (rq->nr_running) {
++	if (rq->nr_running)
+ 		resched_task(rq->idle);
+-		ret = 1;
+-	}
+ 	spin_unlock(&rq->lock);
+ #endif
+-	return ret;
+ }
  
- 		/* All tasks on this runqueue were pinned by CPU affinity */
- 		if (unlikely(all_pinned)) {
-@@ -2617,13 +2618,13 @@ redo:
+ DEFINE_PER_CPU(struct kernel_stat, kstat);
+@@ -3148,20 +3143,20 @@ void scheduler_tick(void)
+ 	struct task_struct *p = current;
+ 	int cpu = smp_processor_id();
+ 	struct rq *rq = cpu_rq(cpu);
+-	enum idle_type idle = NOT_IDLE;
  
- 		if (unlikely(sd->nr_balance_failed > sd->cache_nice_tries+2)) {
+ 	update_cpu_clock(p, rq, now);
  
--			spin_lock(&busiest->lock);
-+			spin_lock_irqsave(&busiest->lock, flags);
+ 	rq->timestamp_last_tick = now;
  
- 			/* don't kick the migration_thread, if the curr
- 			 * task on busiest cpu can't be moved to this_cpu
- 			 */
- 			if (!cpu_isset(this_cpu, busiest->curr->cpus_allowed)) {
--				spin_unlock(&busiest->lock);
-+				spin_unlock_irqrestore(&busiest->lock, flags);
- 				all_pinned = 1;
- 				goto out_one_pinned;
- 			}
-@@ -2633,7 +2634,7 @@ redo:
- 				busiest->push_cpu = this_cpu;
- 				active_balance = 1;
- 			}
--			spin_unlock(&busiest->lock);
-+			spin_unlock_irqrestore(&busiest->lock, flags);
- 			if (active_balance)
- 				wake_up_process(busiest->migration_thread);
+-	if (p == rq->idle) {
++	if (p == rq->idle)
+ 		/* Task on the idle queue */
+-		if (!wake_priority_sleeper(rq))
+-			idle = SCHED_IDLE;
+-	} else
++		wake_priority_sleeper(rq);
++	else
+ 		task_running_tick(rq, p);
++#ifdef CONFIG_SMP
+ 	update_load(rq);
+-	rebalance_tick(cpu, rq, idle);
++	rebalance_tick(cpu, rq);
++#endif
+ }
  
+ #ifdef CONFIG_SCHED_SMT
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
