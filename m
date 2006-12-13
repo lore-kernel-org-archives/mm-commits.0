@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:09:26 -0800
-Message-ID: <200612132209.kBDM9Qin021910@shell0.pdx.osdl.net>
+Subject: + signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:09:28 -0800
+Message-ID: <200612132209.kBDM9S2N021913@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48355 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48361 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbWLMWJa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:09:30 -0500
+	id S1751621AbWLMWJb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:09:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,22 +15,19 @@ Cc: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru
 
 
 The patch titled
-     signal: use kill_pgrp not kill_pg in the sunos compatibility code
+     signal: rewrite kill_something_info so it uses newer helpers
 has been added to the -mm tree.  Its filename is
-     signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+     signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: signal: use kill_pgrp not kill_pg in the sunos compatibility code
+Subject: signal: rewrite kill_something_info so it uses newer helpers
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-I am slowly moving to a model where all process killing is struct pid based
-instead of pid_t based.  The sunos compatibility code is one of the last users
-of the old pid_t based kill_pg in the kernel.  By being complete I allow for
-the future removal of kill_pg from the kernel, which will ensure I don't miss
-something.
+The goal is to remove users of the old signal helper functions so they can be
+removed.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -38,57 +35,42 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc/kernel/sys_sunos.c     |   10 ++++++----
- arch/sparc64/kernel/sys_sunos32.c |   11 +++++++++--
- 2 files changed, 15 insertions(+), 6 deletions(-)
+ kernel/signal.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc/kernel/sys_sunos.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code arch/sparc/kernel/sys_sunos.c
---- a/arch/sparc/kernel/sys_sunos.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code
-+++ a/arch/sparc/kernel/sys_sunos.c
-@@ -859,14 +859,16 @@ asmlinkage int sunos_wait4(pid_t pid, un
- 	return ret;
- }
+diff -puN kernel/signal.c~signal-rewrite-kill_something_info-so-it-uses-newer-helpers kernel/signal.c
+--- a/kernel/signal.c~signal-rewrite-kill_something_info-so-it-uses-newer-helpers
++++ a/kernel/signal.c
+@@ -1192,8 +1192,10 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
  
--extern int kill_pg(int, int, int);
- asmlinkage int sunos_killpg(int pgrp, int sig)
+ static int kill_something_info(int sig, struct siginfo *info, int pid)
  {
- 	int ret;
- 
--	lock_kernel();
--	ret = kill_pg(pgrp, sig, 0);
--	unlock_kernel();
-+	rcu_read_lock();
-+	ret = -EINVAL;
-+	if (pgrp > 0)
-+		ret = kill_pgrp(find_pid(pgrp), sig, 0);
-+	rcu_read_unlock();
-+
- 	return ret;
- }
- 
-diff -puN arch/sparc64/kernel/sys_sunos32.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code arch/sparc64/kernel/sys_sunos32.c
---- a/arch/sparc64/kernel/sys_sunos32.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code
-+++ a/arch/sparc64/kernel/sys_sunos32.c
-@@ -824,10 +824,17 @@ asmlinkage int sunos_wait4(compat_pid_t 
- 	return ret;
- }
- 
--extern int kill_pg(int, int, int);
- asmlinkage int sunos_killpg(int pgrp, int sig)
- {
--	return kill_pg(pgrp, sig, 0);
 +	int ret;
-+
 +	rcu_read_lock();
-+	ret = -EINVAL;
-+	if (pgrp > 0)
-+		ret = kill_pgrp(find_pid(pgrp), sig, 0);
+ 	if (!pid) {
+-		return kill_pg_info(sig, info, process_group(current));
++		ret = kill_pgrp_info(sig, info, task_pgrp(current));
+ 	} else if (pid == -1) {
+ 		int retval = 0, count = 0;
+ 		struct task_struct * p;
+@@ -1208,12 +1210,14 @@ static int kill_something_info(int sig, 
+ 			}
+ 		}
+ 		read_unlock(&tasklist_lock);
+-		return count ? retval : -ESRCH;
++		ret = count ? retval : -ESRCH;
+ 	} else if (pid < 0) {
+-		return kill_pg_info(sig, info, -pid);
++		ret = kill_pgrp_info(sig, info, find_pid(-pid));
+ 	} else {
+-		return kill_proc_info(sig, info, pid);
++		ret = kill_pid_info(sig, info, find_pid(pid));
+ 	}
 +	rcu_read_unlock();
-+
 +	return ret;
  }
  
- asmlinkage int sunos_audit(void)
+ /*
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
