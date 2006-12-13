@@ -1,191 +1,268 @@
 From: akpm@osdl.org
-Subject: + gtod-persistent-clock-support-core.patch added to -mm tree
-Date: Wed, 13 Dec 2006 14:43:47 -0800
-Message-ID: <200612132243.kBDMhlD3022832@shell0.pdx.osdl.net>
+Subject: + hrtimers-add-state-tracking.patch added to -mm tree
+Date: Wed, 13 Dec 2006 14:44:00 -0800
+Message-ID: <200612132244.kBDMi0OO022852@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52637 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52687 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751211AbWLMWrO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 17:47:14 -0500
+	id S1751704AbWLMWre (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 17:47:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, bunk@stusta.de, mingo@elte.hu, tglx@linutronix.de
+Cc: tglx@linutronix.de, ak@suse.de, akpm@osdl.org, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     gtod: persistent clock support, core
+     hrtimers: add state tracking
 has been added to the -mm tree.  Its filename is
-     gtod-persistent-clock-support-core.patch
+     hrtimers-add-state-tracking.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gtod: persistent clock support, core
-From: John Stultz <johnstul@us.ibm.com>
+Subject: hrtimers: add state tracking
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Persistent clock support: do proper timekeeping across suspend/resume.
+Reintroduce ktimers feature "optimized away" by the ktimers review
+process: multiple hrtimer states to enable the running of hrtimers
+without holding the cpu-base-lock.
 
-[ cleanup from Adrian Bunk <bunk@stusta.de> ]
+(The "optimized" rbtree hack carried only 2 states worth of information
+and we need 4 for high resolution timers and dynamic ticks.)
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
+No functional changes.
+
+Build-fixes-from: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/hrtimer.h |    3 +++
- include/linux/time.h    |    1 +
- kernel/hrtimer.c        |    8 ++++++++
- kernel/timer.c          |   37 ++++++++++++++++++++++++++++++++++++-
- 4 files changed, 48 insertions(+), 1 deletion(-)
+ include/linux/hrtimer.h |   36 +++++++++++++++++++++++++++++++++-
+ kernel/hrtimer.c        |   40 ++++++++++++++++++++++++++++++--------
+ 2 files changed, 67 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/hrtimer.h~gtod-persistent-clock-support-core include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~gtod-persistent-clock-support-core
+diff -puN include/linux/hrtimer.h~hrtimers-add-state-tracking include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimers-add-state-tracking
 +++ a/include/linux/hrtimer.h
-@@ -146,6 +146,9 @@ extern void hrtimer_init_sleeper(struct 
- /* Soft interrupt function to run the hrtimer queues: */
- extern void hrtimer_run_queues(void);
+@@ -40,6 +40,34 @@ enum hrtimer_restart {
+ 	HRTIMER_RESTART,	/* Timer must be restarted */
+ };
  
-+/* Resume notification */
-+void hrtimer_notify_resume(void);
++/*
++ * Bit values to track state of the timer
++ *
++ * Possible states:
++ *
++ * 0x00		inactive
++ * 0x01		enqueued into rbtree
++ * 0x02		callback function running
++ * 0x03		callback function running and enqueued
++ *		(was requeued on another CPU)
++ *
++ * The "callback function running and enqueued" status is only possible on
++ * SMP. It happens for example when a posix timer expired and the callback
++ * queued a signal. Between dropping the lock which protects the posix timer
++ * and reacquiring the base lock of the hrtimer, another CPU can deliver the
++ * signal and rearm the timer. We have to preserve the callback running state,
++ * as otherwise the timer could be removed before the softirq code finishes the
++ * the handling of the timer.
++ *
++ * The HRTIMER_STATE_ENQUEUE bit is always or'ed to the current state to
++ * preserve the HRTIMER_STATE_CALLBACK bit in the above scenario.
++ *
++ * All state transitions are protected by cpu_base->lock.
++ */
++#define HRTIMER_STATE_INACTIVE	0x00
++#define HRTIMER_STATE_ENQUEUED	0x01
++#define HRTIMER_STATE_CALLBACK	0x02
 +
- /* Bootup initialization: */
- extern void __init hrtimers_init(void);
+ /**
+  * struct hrtimer - the basic hrtimer structure
+  * @node:	red black tree node for time ordered insertion
+@@ -48,6 +76,7 @@ enum hrtimer_restart {
+  *		which the timer is based.
+  * @function:	timer expiry callback function
+  * @base:	pointer to the timer base (per cpu and per clock)
++ * @state:	state information (See bit values above)
+  *
+  * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
+  */
+@@ -56,6 +85,7 @@ struct hrtimer {
+ 	ktime_t				expires;
+ 	enum hrtimer_restart		(*function)(struct hrtimer *);
+ 	struct hrtimer_clock_base	*base;
++	unsigned long			state;
+ };
  
-diff -puN include/linux/time.h~gtod-persistent-clock-support-core include/linux/time.h
---- a/include/linux/time.h~gtod-persistent-clock-support-core
-+++ a/include/linux/time.h
-@@ -92,6 +92,7 @@ extern struct timespec xtime;
- extern struct timespec wall_to_monotonic;
- extern seqlock_t xtime_lock __attribute__((weak));
+ /**
+@@ -141,9 +171,13 @@ extern int hrtimer_get_res(const clockid
+ extern ktime_t hrtimer_get_next_event(void);
+ #endif
  
-+extern unsigned long read_persistent_clock(void);
- void timekeeping_init(void);
++/*
++ * A timer is active, when it is enqueued into the rbtree or the callback
++ * function is running.
++ */
+ static inline int hrtimer_active(const struct hrtimer *timer)
+ {
+-	return rb_parent(&timer->node) != &timer->node;
++	return timer->state != HRTIMER_STATE_INACTIVE;
+ }
  
- static inline unsigned long get_seconds(void)
-diff -puN kernel/hrtimer.c~gtod-persistent-clock-support-core kernel/hrtimer.c
---- a/kernel/hrtimer.c~gtod-persistent-clock-support-core
+ /* Forward a hrtimer so it expires after now: */
+diff -puN kernel/hrtimer.c~hrtimers-add-state-tracking kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-add-state-tracking
 +++ a/kernel/hrtimer.c
-@@ -287,6 +287,14 @@ static unsigned long ktime_divns(const k
- #endif /* BITS_PER_LONG >= 64 */
+@@ -145,6 +145,23 @@ static void hrtimer_get_softirq_time(str
+ }
  
  /*
-+ * Timekeeping resumed notification
++ * Helper function to check, whether the timer is on one of the queues
 + */
-+void hrtimer_notify_resume(void)
++static inline int hrtimer_is_queued(struct hrtimer *timer)
 +{
-+	clock_was_set();
++	return timer->state & HRTIMER_STATE_ENQUEUED;
 +}
 +
 +/*
-  * Counterpart to lock_timer_base above:
-  */
- static inline
-diff -puN kernel/timer.c~gtod-persistent-clock-support-core kernel/timer.c
---- a/kernel/timer.c~gtod-persistent-clock-support-core
-+++ a/kernel/timer.c
-@@ -878,12 +878,27 @@ int timekeeping_is_continuous(void)
- 	return ret;
- }
- 
-+/**
-+ * read_persistent_clock -  Return time in seconds from the persistent clock.
-+ *
-+ * Weak dummy function for arches that do not yet support it.
-+ * Returns seconds from epoch using the battery backed persistent clock.
-+ * Returns zero if unsupported.
-+ *
-+ *  XXX - Do be sure to remove it once all arches implement it.
++ * Helper function to check, whether the timer is running the callback
++ * function
 + */
-+unsigned long __attribute__((weak)) read_persistent_clock(void)
++static inline int hrtimer_callback_running(struct hrtimer *timer)
 +{
-+	return 0;
++	return timer->state & HRTIMER_STATE_CALLBACK;
 +}
 +
- /*
-  * timekeeping_init - Initializes the clocksource and common timekeeping values
++/*
+  * Functions and macros which are different for UP/SMP systems are kept in a
+  * single place
   */
- void __init timekeeping_init(void)
+@@ -385,6 +402,11 @@ static void enqueue_hrtimer(struct hrtim
+ 	 */
+ 	rb_link_node(&timer->node, parent, link);
+ 	rb_insert_color(&timer->node, &base->active);
++	/*
++	 * HRTIMER_STATE_ENQUEUED is or'ed to the current state to preserve the
++	 * state of a possibly running callback.
++	 */
++	timer->state |= HRTIMER_STATE_ENQUEUED;
+ 
+ 	if (!base->first || timer->expires.tv64 <
+ 	    rb_entry(base->first, struct hrtimer, node)->expires.tv64)
+@@ -397,7 +419,8 @@ static void enqueue_hrtimer(struct hrtim
+  * Caller must hold the base lock.
+  */
+ static void __remove_hrtimer(struct hrtimer *timer,
+-			     struct hrtimer_clock_base *base)
++			     struct hrtimer_clock_base *base,
++			     unsigned long newstate)
  {
- 	unsigned long flags;
-+	unsigned long sec = read_persistent_clock();
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 
-@@ -893,11 +908,20 @@ void __init timekeeping_init(void)
- 	clocksource_calculate_interval(clock, tick_nsec);
- 	clock->cycle_last = clocksource_read(clock);
- 
-+	xtime.tv_sec = sec;
-+	xtime.tv_nsec = 0;
-+	set_normalized_timespec(&wall_to_monotonic,
-+		-xtime.tv_sec, -xtime.tv_nsec);
-+
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 	/*
+ 	 * Remove the timer from the rbtree and replace the
+@@ -406,7 +429,7 @@ static void __remove_hrtimer(struct hrti
+ 	if (base->first == &timer->node)
+ 		base->first = rb_next(&timer->node);
+ 	rb_erase(&timer->node, &base->active);
+-	rb_set_parent(&timer->node, &timer->node);
++	timer->state = newstate;
  }
  
- 
-+/* flag for if timekeeping is suspended */
- static int timekeeping_suspended;
-+/* time in seconds when suspend began */
-+static unsigned long timekeeping_suspend_time;
-+
- /**
-  * timekeeping_resume - Resumes the generic timekeeping subsystem.
-  * @dev:	unused
-@@ -909,13 +933,23 @@ static int timekeeping_suspended;
- static int timekeeping_resume(struct sys_device *dev)
+ /*
+@@ -415,8 +438,8 @@ static void __remove_hrtimer(struct hrti
+ static inline int
+ remove_hrtimer(struct hrtimer *timer, struct hrtimer_clock_base *base)
  {
- 	unsigned long flags;
-+	unsigned long now = read_persistent_clock();
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
--	/* restart the last cycle value */
-+
-+	if (now && (now > timekeeping_suspend_time)) {
-+		unsigned long sleep_length = now - timekeeping_suspend_time;
-+		xtime.tv_sec += sleep_length;
-+		jiffies_64 += (u64)sleep_length * HZ;
-+	}
-+	/* re-base the last cycle value */
- 	clock->cycle_last = clocksource_read(clock);
- 	clock->error = 0;
- 	timekeeping_suspended = 0;
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
-+
-+	hrtimer_notify_resume();
-+
+-	if (hrtimer_active(timer)) {
+-		__remove_hrtimer(timer, base);
++	if (hrtimer_is_queued(timer)) {
++		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE);
+ 		return 1;
+ 	}
  	return 0;
- }
+@@ -488,7 +511,7 @@ int hrtimer_try_to_cancel(struct hrtimer
  
-@@ -925,6 +959,7 @@ static int timekeeping_suspend(struct sy
+ 	base = lock_hrtimer_base(timer, &flags);
  
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 	timekeeping_suspended = 1;
-+	timekeeping_suspend_time = read_persistent_clock();
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- 	return 0;
+-	if (base->cpu_base->curr_timer != timer)
++	if (!hrtimer_callback_running(timer))
+ 		ret = remove_hrtimer(timer, base);
+ 
+ 	unlock_hrtimer_base(timer, &flags);
+@@ -593,7 +616,6 @@ void hrtimer_init(struct hrtimer *timer,
+ 		clock_id = CLOCK_MONOTONIC;
+ 
+ 	timer->base = &cpu_base->clock_base[clock_id];
+-	rb_set_parent(&timer->node, &timer->node);
  }
+ EXPORT_SYMBOL_GPL(hrtimer_init);
+ 
+@@ -644,13 +666,14 @@ static inline void run_hrtimer_queue(str
+ 
+ 		fn = timer->function;
+ 		set_curr_timer(cpu_base, timer);
+-		__remove_hrtimer(timer, base);
++		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
+ 		spin_unlock_irq(&cpu_base->lock);
+ 
+ 		restart = fn(timer);
+ 
+ 		spin_lock_irq(&cpu_base->lock);
+ 
++		timer->state &= ~HRTIMER_STATE_CALLBACK;
+ 		if (restart != HRTIMER_NORESTART) {
+ 			BUG_ON(hrtimer_active(timer));
+ 			enqueue_hrtimer(timer, base);
+@@ -821,7 +844,8 @@ static void migrate_hrtimer_list(struct 
+ 
+ 	while ((node = rb_first(&old_base->active))) {
+ 		timer = rb_entry(node, struct hrtimer, node);
+-		__remove_hrtimer(timer, old_base);
++		BUG_ON(timer->state & HRTIMER_STATE_CALLBACK);
++		__remove_hrtimer(timer, old_base, HRTIMER_STATE_INACTIVE);
+ 		timer->base = new_base;
+ 		enqueue_hrtimer(timer, new_base);
+ 	}
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
+git-mtd.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
 gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
 hrtimers-clean-up-callback-tracking.patch
 hrtimers-move-and-add-documentation.patch
 acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
 acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
 clockevents-core.patch
 clockevents-i386-drivers.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
 high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
 dynticks-core.patch
 dynticks-add-nohz-stats-to-proc-stat.patch
 dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 debugging-feature-add-proc-timer_stat.patch
 
