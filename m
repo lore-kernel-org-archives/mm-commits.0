@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + spidernet-cleanup-return-codes.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:26:10 -0800
-Message-ID: <200612140026.kBE0QAs2026142@shell0.pdx.osdl.net>
+Subject: + spidernet-remove-unused-variable.patch added to -mm tree
+Date: Wed, 13 Dec 2006 16:26:14 -0800
+Message-ID: <200612140026.kBE0QETe026150@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33369 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33383 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751851AbWLNA1F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:27:05 -0500
+	id S1751850AbWLNA11 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:27:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,18 @@ Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
 
 
 The patch titled
-     Spidernet: Cleanup return codes
+     Spidernet: Remove unused variable
 has been added to the -mm tree.  Its filename is
-     spidernet-cleanup-return-codes.patch
+     spidernet-remove-unused-variable.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Spidernet: Cleanup return codes
+Subject: Spidernet: Remove unused variable
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Simplify the somewhat convoluted use of return codes in the rx buffer
-handling.
+Remove unused variable; this makes code easier to read.  Tweak commentary.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -35,95 +34,52 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   32 ++++++++++++--------------------
- 1 files changed, 12 insertions(+), 20 deletions(-)
+ drivers/net/spider_net.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-cleanup-return-codes drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-cleanup-return-codes
+diff -puN drivers/net/spider_net.c~spidernet-remove-unused-variable drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-remove-unused-variable
 +++ a/drivers/net/spider_net.c
-@@ -911,12 +911,10 @@ spider_net_do_ioctl(struct net_device *n
-  * @descr: descriptor to process
-  * @card: card structure
-  *
-- * returns 1 on success, 0 if no packet was passed to the stack
-- *
-  * Fills out skb structure and passes the data to the stack.
-  * The descriptor state is not changed.
-  */
--static int
-+static void
- spider_net_pass_skb_up(struct spider_net_descr *descr,
- 		       struct spider_net_card *card)
- {
-@@ -961,8 +959,6 @@ spider_net_pass_skb_up(struct spider_net
- 	/* update netdevice statistics */
- 	card->netdev_stats.rx_packets++;
- 	card->netdev_stats.rx_bytes += skb->len;
--
--	return 1;
+@@ -367,21 +367,20 @@ spider_net_free_rx_chain_contents(struct
  }
  
  /**
-@@ -981,7 +977,6 @@ spider_net_decode_one_descr(struct spide
- 	struct spider_net_descr_chain *chain = &card->rx_chain;
- 	struct spider_net_descr *descr = chain->tail;
- 	int status;
--	int result;
+- * spider_net_prepare_rx_descr - reinitializes a rx descriptor
++ * spider_net_prepare_rx_descr - Reinitialize RX descriptor
+  * @card: card structure
+  * @descr: descriptor to re-init
+  *
+- * return 0 on succes, <0 on failure
++ * Return 0 on succes, <0 on failure.
+  *
+- * allocates a new rx skb, iommu-maps it and attaches it to the descriptor.
+- * Activate the descriptor state-wise
++ * Allocates a new rx skb, iommu-maps it and attaches it to the
++ * descriptor. Mark the descriptor as activated, ready-to-use.
+  */
+ static int
+ spider_net_prepare_rx_descr(struct spider_net_card *card,
+ 			    struct spider_net_descr *descr)
+ {
+ 	dma_addr_t buf;
+-	int error = 0;
+ 	int offset;
+ 	int bufsize;
  
- 	status = spider_net_get_descr_status(descr);
- 
-@@ -999,8 +994,6 @@ spider_net_decode_one_descr(struct spide
- 	/* descriptor definitively used -- move on tail */
- 	chain->tail = descr->next;
- 
--	result = 0;
--
- 	/* unmap descriptor */
- 	pci_unmap_single(card->pdev, descr->buf_addr,
+@@ -409,7 +408,7 @@ spider_net_prepare_rx_descr(struct spide
+ 		(SPIDER_NET_RXBUF_ALIGN - 1);
+ 	if (offset)
+ 		skb_reserve(descr->skb, SPIDER_NET_RXBUF_ALIGN - offset);
+-	/* io-mmu-map the skb */
++	/* iommu-map the skb */
+ 	buf = pci_map_single(card->pdev, descr->skb->data,
  			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
-@@ -1012,8 +1005,7 @@ spider_net_decode_one_descr(struct spide
- 			pr_err("%s: dropping RX descriptor with state %d\n",
- 			       card->netdev->name, status);
- 		card->netdev_stats.rx_dropped++;
--		dev_kfree_skb_irq(descr->skb);
--		goto refill;
-+		goto bad_desc;
+ 	descr->buf_addr = buf;
+@@ -424,7 +423,7 @@ spider_net_prepare_rx_descr(struct spide
+ 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
  	}
  
- 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
-@@ -1022,8 +1014,7 @@ spider_net_decode_one_descr(struct spide
- 			pr_err("%s: RX descriptor with unkown state %d\n",
- 			       card->netdev->name, status);
- 		card->spider_stats.rx_desc_unk_state++;
--		dev_kfree_skb_irq(descr->skb);
--		goto refill;
-+		goto bad_desc;
- 	}
- 
- 	/* The cases we'll throw away the packet immediately */
-@@ -1033,17 +1024,18 @@ spider_net_decode_one_descr(struct spide
- 			       "data_status=x%08x, data_error=x%08x\n",
- 			       card->netdev->name,
- 			       descr->data_status, descr->data_error);
--		card->spider_stats.rx_desc_error++;
--		dev_kfree_skb_irq(descr->skb);
--		goto refill;
-+		goto bad_desc;
- 	}
- 
--	/* ok, we've got a packet in descr */
--	result = spider_net_pass_skb_up(descr, card);
--refill:
--	/* change the descriptor state: */
-+	/* Ok, we've got a packet in descr */
-+	spider_net_pass_skb_up(descr, card);
- 	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
--	return result;
-+	return 1;
-+
-+bad_desc:
-+	dev_kfree_skb_irq(descr->skb);
-+	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+-	return error;
 +	return 0;
  }
  
