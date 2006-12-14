@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: - kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:03:59 -0800
-Message-ID: <200612140604.kBE63xGU001795@shell0.pdx.osdl.net>
+Subject: - kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:03:46 -0800
+Message-ID: <200612140603.kBE63kfL001790@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51978 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51977 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888AbWLNGHd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1751886AbWLNGHd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 14 Dec 2006 01:07:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,17 +14,19 @@ To: annabellesgarden@yahoo.de, fzu@wemgehoertderstaat.de, randy.dunlap@oracle.co
 
 
 The patch titled
-     kconfig: set gconf's save-widget's sensitivity according to .config's changed state
+     kconfig: add "void conf_set_changed_callback(void (*fn)(void))", use it in qconf.cc
 has been removed from the -mm tree.  Its filename was
-     kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state.patch
+     kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kconfig: set gconf's save-widget's sensitivity according to .config's changed state
+Subject: kconfig: add "void conf_set_changed_callback(void (*fn)(void))", use it in qconf.cc
 From: Karsten Wiese <annabellesgarden@yahoo.de>
 
-Clean up a little.
+Added function sets "void (*conf_changed_callback)(void)".  Call it, if
+.config's changed state changes.  Use above in qconf.cc to set gui's
+save-widget's sensitvity.
 
 Signed-off-by: Karsten Wiese <fzu@wemgehoertderstaat.de>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -33,152 +35,107 @@ Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/kconfig/gconf.c     |   35 +++++++++++++++++-----------------
- scripts/kconfig/gconf.glade |    4 +--
- 2 files changed, 20 insertions(+), 19 deletions(-)
+ scripts/kconfig/confdata.c  |   12 +++++++++++-
+ scripts/kconfig/lkc_proto.h |    1 +
+ scripts/kconfig/qconf.cc    |   13 ++++++++++++-
+ scripts/kconfig/qconf.h     |    3 +++
+ 4 files changed, 27 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kconfig/gconf.c~kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state scripts/kconfig/gconf.c
---- a/scripts/kconfig/gconf.c~kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state
-+++ a/scripts/kconfig/gconf.c
-@@ -38,8 +38,6 @@ static gboolean show_all = FALSE;
- static gboolean show_debug = FALSE;
- static gboolean resizeable = FALSE;
- 
--static gboolean config_changed = FALSE;
--
- static char nohelp_text[] =
-     N_("Sorry, no help available for this option yet.\n");
- 
-@@ -50,6 +48,8 @@ GtkWidget *text_w = NULL;
- GtkWidget *hpaned = NULL;
- GtkWidget *vpaned = NULL;
- GtkWidget *back_btn = NULL;
-+GtkWidget *save_btn = NULL;
-+GtkWidget *save_menu_item = NULL;
- 
- GtkTextTag *tag1, *tag2;
- GdkColor color;
-@@ -75,7 +75,7 @@ static void display_tree_part(void);
- static void update_tree(struct menu *src, GtkTreeIter * dst);
- static void set_node(GtkTreeIter * node, struct menu *menu, gchar ** row);
- static gchar **fill_row(struct menu *menu);
--
-+static void conf_changed(void);
- 
- /* Helping/Debugging Functions */
- 
-@@ -224,6 +224,10 @@ void init_main_window(const gchar * glad
- 	gtk_check_menu_item_set_active((GtkCheckMenuItem *) widget,
- 				       show_value);
- 
-+	save_btn = glade_xml_get_widget(xml, "button3");
-+	save_menu_item = glade_xml_get_widget(xml, "save1");
-+	conf_set_changed_callback(conf_changed);
-+
- 	style = gtk_widget_get_style(main_wnd);
- 	widget = glade_xml_get_widget(xml, "toolbar1");
- 
-@@ -512,14 +516,14 @@ static void text_insert_msg(const char *
- 
- /* Main Windows Callbacks */
- 
--void on_save1_activate(GtkMenuItem * menuitem, gpointer user_data);
-+void on_save_activate(GtkMenuItem * menuitem, gpointer user_data);
- gboolean on_window1_delete_event(GtkWidget * widget, GdkEvent * event,
- 				 gpointer user_data)
- {
- 	GtkWidget *dialog, *label;
- 	gint result;
- 
--	if (config_changed == FALSE)
-+	if (!conf_get_changed())
- 		return FALSE;
- 
- 	dialog = gtk_dialog_new_with_buttons(_("Warning !"),
-@@ -543,7 +547,7 @@ gboolean on_window1_delete_event(GtkWidg
- 	result = gtk_dialog_run(GTK_DIALOG(dialog));
- 	switch (result) {
- 	case GTK_RESPONSE_YES:
--		on_save1_activate(NULL, NULL);
-+		on_save_activate(NULL, NULL);
- 		return FALSE;
- 	case GTK_RESPONSE_NO:
- 		return FALSE;
-@@ -621,12 +625,10 @@ void on_load1_activate(GtkMenuItem * men
+diff -puN scripts/kconfig/confdata.c~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc scripts/kconfig/confdata.c
+--- a/scripts/kconfig/confdata.c~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc
++++ a/scripts/kconfig/confdata.c
+@@ -767,18 +767,28 @@ int conf_write_autoconf(void)
  }
  
+ static int sym_change_count;
++static void (*conf_changed_callback)(void);
  
--void on_save1_activate(GtkMenuItem * menuitem, gpointer user_data)
-+void on_save_activate(GtkMenuItem * menuitem, gpointer user_data)
+ void sym_set_change_count(int count)
  {
- 	if (conf_write(NULL))
- 		text_insert_msg(_("Error"), _("Unable to save configuration !"));
--
--	config_changed = FALSE;
++	int _sym_change_count = sym_change_count;
+ 	sym_change_count = count;
++	if (conf_changed_callback &&
++	    (bool)_sym_change_count != (bool)count)
++		conf_changed_callback();
  }
  
- 
-@@ -819,12 +821,6 @@ void on_load_clicked(GtkButton * button,
+ void sym_add_change_count(int count)
+ {
+-	sym_change_count += count;
++	sym_set_change_count(count + sym_change_count);
  }
  
- 
--void on_save_clicked(GtkButton * button, gpointer user_data)
--{
--	on_save1_activate(NULL, user_data);
--}
--
--
- void on_single_clicked(GtkButton * button, gpointer user_data)
+ bool conf_get_changed(void)
  {
- 	view_mode = SINGLE_VIEW;
-@@ -899,7 +895,6 @@ static void renderer_edited(GtkCellRende
- 
- 	sym_set_string_value(sym, new_def);
- 
--	config_changed = TRUE;
- 	update_tree(&rootmenu, NULL);
- 
- 	gtk_tree_path_free(path);
-@@ -930,7 +925,6 @@ static void change_sym_value(struct menu
- 		if (!sym_tristate_within_range(sym, newval))
- 			newval = yes;
- 		sym_set_tristate_value(sym, newval);
--		config_changed = TRUE;
- 		if (view_mode == FULL_VIEW)
- 			update_tree(&rootmenu, NULL);
- 		else if (view_mode == SPLIT_VIEW) {
-@@ -1633,3 +1627,10 @@ int main(int ac, char *av[])
- 
- 	return 0;
+ 	return sym_change_count;
  }
 +
-+static void conf_changed(void)
++void conf_set_changed_callback(void (*fn)(void))
 +{
-+	bool changed = conf_get_changed();
-+	gtk_widget_set_sensitive(save_btn, changed);
-+	gtk_widget_set_sensitive(save_menu_item, changed);
++	conf_changed_callback = fn;
 +}
-diff -puN scripts/kconfig/gconf.glade~kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state scripts/kconfig/gconf.glade
---- a/scripts/kconfig/gconf.glade~kconfig-set-gconfs-save-widgets-sensitivity-according-to-configs-changed-state
-+++ a/scripts/kconfig/gconf.glade
-@@ -70,7 +70,7 @@
- 		      <property name="tooltip" translatable="yes">Save the config in .config</property>
- 		      <property name="label" translatable="yes">_Save</property>
- 		      <property name="use_underline">True</property>
--		      <signal name="activate" handler="on_save1_activate"/>
-+		      <signal name="activate" handler="on_save_activate"/>
- 		      <accelerator key="S" modifiers="GDK_CONTROL_MASK" signal="activate"/>
+diff -puN scripts/kconfig/lkc_proto.h~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc scripts/kconfig/lkc_proto.h
+--- a/scripts/kconfig/lkc_proto.h~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc
++++ a/scripts/kconfig/lkc_proto.h
+@@ -6,6 +6,7 @@ P(conf_read_simple,int,(const char *name
+ P(conf_write,int,(const char *name));
+ P(conf_write_autoconf,int,(void));
+ P(conf_get_changed,bool,(void));
++P(conf_set_changed_callback, void,(void (*fn)(void)));
  
- 		      <child internal-child="image">
-@@ -380,7 +380,7 @@
- 		  <property name="visible_horizontal">True</property>
- 		  <property name="visible_vertical">True</property>
- 		  <property name="is_important">False</property>
--		  <signal name="clicked" handler="on_save_clicked"/>
-+		  <signal name="clicked" handler="on_save_activate"/>
- 		</widget>
- 		<packing>
- 		  <property name="expand">False</property>
+ /* menu.c */
+ P(rootmenu,struct menu,);
+diff -puN scripts/kconfig/qconf.cc~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc scripts/kconfig/qconf.cc
+--- a/scripts/kconfig/qconf.cc~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc
++++ a/scripts/kconfig/qconf.cc
+@@ -38,6 +38,8 @@
+ static QApplication *configApp;
+ static ConfigSettings *configSettings;
+ 
++QAction *ConfigMainWindow::saveAction;
++
+ static inline QString qgettext(const char* str)
+ {
+ 	return QString::fromLocal8Bit(gettext(str));
+@@ -1306,8 +1308,11 @@ ConfigMainWindow::ConfigMainWindow(void)
+ 	  connect(quitAction, SIGNAL(activated()), SLOT(close()));
+ 	QAction *loadAction = new QAction("Load", QPixmap(xpm_load), "&Load", CTRL+Key_L, this);
+ 	  connect(loadAction, SIGNAL(activated()), SLOT(loadConfig()));
+-	QAction *saveAction = new QAction("Save", QPixmap(xpm_save), "&Save", CTRL+Key_S, this);
++	saveAction = new QAction("Save", QPixmap(xpm_save), "&Save", CTRL+Key_S, this);
+ 	  connect(saveAction, SIGNAL(activated()), SLOT(saveConfig()));
++	conf_set_changed_callback(conf_changed);
++	// Set saveAction's initial state
++	conf_changed();
+ 	QAction *saveAsAction = new QAction("Save As...", "Save &As...", 0, this);
+ 	  connect(saveAsAction, SIGNAL(activated()), SLOT(saveConfigAs()));
+ 	QAction *searchAction = new QAction("Search", "&Search", CTRL+Key_F, this);
+@@ -1658,6 +1663,12 @@ void ConfigMainWindow::saveSettings(void
+ 	configSettings->writeSizes("/split2", split2->sizes());
+ }
+ 
++void ConfigMainWindow::conf_changed(void)
++{
++	if (saveAction)
++		saveAction->setEnabled(conf_get_changed());
++}
++
+ void fixup_rootmenu(struct menu *menu)
+ {
+ 	struct menu *child;
+diff -puN scripts/kconfig/qconf.h~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc scripts/kconfig/qconf.h
+--- a/scripts/kconfig/qconf.h~kconfig-add-void-conf_set_changed_callbackvoid-fnvoid-use-it-in-qconfcc
++++ a/scripts/kconfig/qconf.h
+@@ -297,6 +297,9 @@ protected:
+ 
+ class ConfigMainWindow : public QMainWindow {
+ 	Q_OBJECT
++
++	static QAction *saveAction;
++	static void conf_changed(void);
+ public:
+ 	ConfigMainWindow(void);
+ public slots:
 _
 
 Patches currently in -mm which might be from annabellesgarden@yahoo.de are
