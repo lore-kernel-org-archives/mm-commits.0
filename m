@@ -1,33 +1,30 @@
 From: akpm@osdl.org
-Subject: + spidernet-rework-rx-linked-list.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:26:24 -0800
-Message-ID: <200612140026.kBE0QOmP026165@shell0.pdx.osdl.net>
+Subject: - spidernet-rx-chain-tail.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 16:21:16 -0800
+Message-ID: <200612140021.kBE0LGpt025979@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33549 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33561 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751857AbWLNA3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:29:39 -0500
+	id S1751861AbWLNA3y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:29:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
+To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Spidernet: Rework RX linked list
-has been added to the -mm tree.  Its filename is
-     spidernet-rework-rx-linked-list.patch
+     spidernet: RX Chain tail
+has been removed from the -mm tree.  Its filename was
+     spidernet-rx-chain-tail.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Spidernet: Rework RX linked list
+Subject: spidernet: RX Chain tail
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Make the hardware perceive the RX descriptor ring as a null-terminated linked
-list, instead of a circular ring.
+Tell the hardware the location of the rx ring tail.  More punctuation cleanup.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -35,63 +32,56 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/net/spider_net.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-rework-rx-linked-list drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-rework-rx-linked-list
+diff -puN drivers/net/spider_net.c~spidernet-rx-chain-tail drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-rx-chain-tail
 +++ a/drivers/net/spider_net.c
-@@ -419,9 +419,13 @@ spider_net_prepare_rx_descr(struct spide
- 		card->spider_stats.rx_iommu_map_error++;
- 		descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
- 	} else {
-+		descr->next_descr_addr = 0;
- 		wmb();
- 		descr->dmac_cmd_status = SPIDER_NET_DESCR_CARDOWNED |
- 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
-+
-+		wmb();
-+		descr->prev->next_descr_addr = descr->bus_addr;
- 	}
+@@ -457,10 +457,10 @@ spider_net_refill_rx_chain(struct spider
+ }
  
+ /**
+- * spider_net_alloc_rx_skbs - allocates rx skbs in rx descriptor chains
++ * spider_net_alloc_rx_skbs - Allocates rx skbs in rx descriptor chains
+  * @card: card structure
+  *
+- * returns 0 on success, <0 on failure
++ * Returns 0 on success, <0 on failure.
+  */
+ static int
+ spider_net_alloc_rx_skbs(struct spider_net_card *card)
+@@ -471,17 +471,18 @@ spider_net_alloc_rx_skbs(struct spider_n
+ 	result = -ENOMEM;
+ 
+ 	chain = &card->rx_chain;
+-	/* put at least one buffer into the chain. if this fails,
+-	 * we've got a problem. if not, spider_net_refill_rx_chain
+-	 * will do the rest at the end of this function */
++	/* Put at least one buffer into the chain. if this fails,
++	 * we've got a problem. If not, spider_net_refill_rx_chain
++	 * will do the rest at the end of this function. */
+ 	if (spider_net_prepare_rx_descr(card, chain->head))
+ 		goto error;
+ 	else
+ 		chain->head = chain->head->next;
+ 
+-	/* this will allocate the rest of the rx buffers; if not, it's
+-	 * business as usual later on */
++	/* This will allocate the rest of the rx buffers;
++	 * if not, it's business as usual later on. */
+ 	spider_net_refill_rx_chain(card);
++	spider_net_enable_rxchtails(card);
+ 	spider_net_enable_rxdmac(card);
  	return 0;
-@@ -1650,7 +1654,6 @@ int
- spider_net_open(struct net_device *netdev)
- {
- 	struct spider_net_card *card = netdev_priv(netdev);
--	struct spider_net_descr *descr;
- 	int result;
  
- 	result = spider_net_init_chain(card, &card->tx_chain);
-@@ -1662,13 +1665,6 @@ spider_net_open(struct net_device *netde
- 	if (result)
- 		goto alloc_rx_failed;
- 
--	/* Make a ring of of bus addresses */
--	descr = card->rx_chain.ring;
--	do {
--		descr->next_descr_addr = descr->next->bus_addr;
--		descr = descr->next;
--	} while (descr != card->rx_chain.ring);
--
- 	/* Allocate rx skbs */
- 	if (spider_net_alloc_rx_skbs(card))
- 		goto alloc_skbs_failed;
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
 
 origin.patch
-spidernet-dma-coalescing.patch
-spidernet-add-net_ratelimit-to-suppress-long-output.patch
-spidernet-remove-rxramfull-tasklet.patch
-spidernet-cleanup-un-needed-api.patch
-spidernet-rx-skb-mem-leak.patch
-spidernet-another-skb-mem-leak.patch
-spidernet-cleanup-return-codes.patch
-spidernet-rx-refill.patch
-spidernet-remove-unused-variable.patch
 spidernet-rx-chain-tail.patch
+spidernet-turn-rx-irq-back-on.patch
 spidernet-memory-barrier.patch
 spidernet-avoid-possible-rx-chain-corruption.patch
 spidernet-rx-debugging-printout.patch
