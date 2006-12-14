@@ -1,102 +1,108 @@
 From: akpm@osdl.org
-Subject: + m32r-build-fix-for-processors-without-isa_dsp_level2.patch added to -mm tree
-Date: Thu, 14 Dec 2006 13:06:03 -0800
-Message-ID: <200612142106.kBEL63xr025491@shell0.pdx.osdl.net>
+Subject: + m32r-fix-kernel-entry-address-of-vmlinux.patch added to -mm tree
+Date: Thu, 14 Dec 2006 13:11:45 -0800
+Message-ID: <200612142111.kBELBkf0026066@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58440 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58795 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932912AbWLNVHN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 16:07:13 -0500
+	id S932917AbWLNVMT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 16:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takata@linux-m32r.org, stable@kernel.org
+Cc: takata@linux-m32r.org
 
 
 The patch titled
-     m32r: build fix for processors without ISA_DSP_LEVEL2
+     m32r: fix kernel entry address of vmlinux
 has been added to the -mm tree.  Its filename is
-     m32r-build-fix-for-processors-without-isa_dsp_level2.patch
+     m32r-fix-kernel-entry-address-of-vmlinux.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r: build fix for processors without ISA_DSP_LEVEL2
+Subject: m32r: fix kernel entry address of vmlinux
 From: Hirokazu Takata <takata@linux-m32r.org>
 
-Additional fixes for processors without ISA_DSP_LEVEL2.  sigcontext_t does not
-have dummy_acc1h, dummy_acc1l members any longer.
+This patch fixes the kernel entry point address of vmlinux.
+
+The m32r kernel entry address is 0x08002000 (physical).
+But, so far, the ENTRY point written in vmlinux.lds.S was not point
+the correct kernel entry address.
+
+(before fix)
+    $ objdump -x vmlinux
+    vmlinux:     file format elf32-m32r-linux
+    vmlinux
+    architecture: m32r2, flags 0x00000112:
+    EXEC_P, HAS_SYMS, D_PAGED
+    start address 0x88002090	/* NG */
+        :
+    Sections:
+    Idx Name          Size      VMA       LMA       File off  Algn
+      0 .empty_zero_page 00001000  88001000  88001000  00001000  2**12
+                      CONTENTS, ALLOC, LOAD, DATA
+      1 .boot         0000008c  88002000  88002000  00002000  2**2
+                      CONTENTS, ALLOC, LOAD, READONLY, CODE
+      2 .text         001ab694  88002090  88002090  00002090  2**4
+                      CONTENTS, ALLOC, LOAD, READONLY, CODE
+        :
+
+(after fix)
+    $ objdump -x vmlinux
+    vmlinux:     file format elf32-m32r-linux
+    vmlinux
+    architecture: m32r2, flags 0x00000112:
+    EXEC_P, HAS_SYMS, D_PAGED
+    start address 0x08002000	/* OK */
+        :
+
+This fix also remedies the following GDB error message (of gdb-6.4 or after)
+at the first operation of kernel debugging:
+"Previous frame identical to this frame (corrupt stack?)".
 
 Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/m32r/kernel/process.c |    2 +-
- arch/m32r/kernel/signal.c  |   26 ++++----------------------
- 2 files changed, 5 insertions(+), 23 deletions(-)
+ arch/m32r/Makefile             |    2 +-
+ arch/m32r/kernel/vmlinux.lds.S |    5 ++++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/m32r/kernel/process.c~m32r-build-fix-for-processors-without-isa_dsp_level2 arch/m32r/kernel/process.c
---- a/arch/m32r/kernel/process.c~m32r-build-fix-for-processors-without-isa_dsp_level2
-+++ a/arch/m32r/kernel/process.c
-@@ -174,7 +174,7 @@ void show_regs(struct pt_regs * regs)
- 	  regs->acc1h, regs->acc1l);
- #elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
- 	printk("ACCH[%08lx]:ACCL[%08lx]\n", \
--	  regs->acch, regs->accl);
-+	  regs->acc0h, regs->acc0l);
+diff -puN arch/m32r/Makefile~m32r-fix-kernel-entry-address-of-vmlinux arch/m32r/Makefile
+--- a/arch/m32r/Makefile~m32r-fix-kernel-entry-address-of-vmlinux
++++ a/arch/m32r/Makefile
+@@ -7,7 +7,7 @@
+ 
+ LDFLAGS		:=
+ OBJCOPYFLAGS	:= -O binary -R .note -R .comment -S
+-LDFLAGS_vmlinux	:= -e startup_32
++LDFLAGS_vmlinux	:=
+ 
+ CFLAGS += -pipe -fno-schedule-insns
+ CFLAGS_KERNEL += -mmodel=medium
+diff -puN arch/m32r/kernel/vmlinux.lds.S~m32r-fix-kernel-entry-address-of-vmlinux arch/m32r/kernel/vmlinux.lds.S
+--- a/arch/m32r/kernel/vmlinux.lds.S~m32r-fix-kernel-entry-address-of-vmlinux
++++ a/arch/m32r/kernel/vmlinux.lds.S
+@@ -6,12 +6,15 @@
+ #include <asm/page.h>
+ 
+ OUTPUT_ARCH(m32r)
+-ENTRY(startup_32)
+ #if defined(__LITTLE_ENDIAN__)
+        jiffies = jiffies_64;
  #else
- #error unknown isa configuration
+        jiffies = jiffies_64 + 4;
  #endif
-diff -puN arch/m32r/kernel/signal.c~m32r-build-fix-for-processors-without-isa_dsp_level2 arch/m32r/kernel/signal.c
---- a/arch/m32r/kernel/signal.c~m32r-build-fix-for-processors-without-isa_dsp_level2
-+++ a/arch/m32r/kernel/signal.c
-@@ -109,19 +109,10 @@ restore_sigcontext(struct pt_regs *regs,
- 	COPY(r10);
- 	COPY(r11);
- 	COPY(r12);
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	COPY(acc0h);
- 	COPY(acc0l);
--	COPY(acc1h);
--	COPY(acc1l);
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	COPY(acch);
--	COPY(accl);
--	COPY(dummy_acc1h);
--	COPY(dummy_acc1l);
--#else
--#error unknown isa configuration
--#endif
-+	COPY(acc1h);		/* ISA_DSP_LEVEL2 only */
-+	COPY(acc1l);		/* ISA_DSP_LEVEL2 only */
- 	COPY(psw);
- 	COPY(bpc);
- 	COPY(bbpsw);
-@@ -196,19 +187,10 @@ setup_sigcontext(struct sigcontext __use
- 	COPY(r10);
- 	COPY(r11);
- 	COPY(r12);
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	COPY(acc0h);
- 	COPY(acc0l);
--	COPY(acc1h);
--	COPY(acc1l);
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	COPY(acch);
--	COPY(accl);
--	COPY(dummy_acc1h);
--	COPY(dummy_acc1l);
--#else
--#error unknown isa configuration
--#endif
-+	COPY(acc1h);		/* ISA_DSP_LEVEL2 only */
-+	COPY(acc1l);		/* ISA_DSP_LEVEL2 only */
- 	COPY(psw);
- 	COPY(bpc);
- 	COPY(bbpsw);
++
++kernel_entry = boot - 0x80000000;
++ENTRY(kernel_entry)
++
+ SECTIONS
+ {
+   . = CONFIG_MEMORY_START + __PAGE_OFFSET;
 _
 
 Patches currently in -mm which might be from takata@linux-m32r.org are
