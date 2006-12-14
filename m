@@ -1,75 +1,60 @@
 From: akpm@osdl.org
-Subject: - lockdep-improve-verbose-messages.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:09:13 -0800
-Message-ID: <200612140609.kBE69DST001971@shell0.pdx.osdl.net>
+Subject: - lockdep-improve-lockdep_reset.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:09:22 -0800
+Message-ID: <200612140609.kBE69LMc001974@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52132 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52135 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751906AbWLNGJ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:09:28 -0500
+	id S1751908AbWLNGJi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:09:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: improve verbose messages
+     lockdep: improve lockdep_reset()
 has been removed from the -mm tree.  Its filename was
-     lockdep-improve-verbose-messages.patch
+     lockdep-improve-lockdep_reset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: improve verbose messages
+Subject: lockdep: improve lockdep_reset()
 From: Ingo Molnar <mingo@elte.hu>
 
-Make verbose lockdep messages (off by default) more informative by printing
-out the hash chain key.  (this patch was what helped me catch the earlier
-lockdep hash-collision bug)
+Clear all the chains during lockdep_reset().  This fixes some locking-selftest
+false positives i saw on -rt.  (never saw those on mainline though, but it
+could happen.)
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/lockdep.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/lockdep.c~lockdep-improve-verbose-messages kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-improve-verbose-messages
+diff -puN kernel/lockdep.c~lockdep-improve-lockdep_reset kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-improve-lockdep_reset
 +++ a/kernel/lockdep.c
-@@ -1264,7 +1264,7 @@ out_unlock_set:
-  * add it and return 0 - in this case the new dependency chain is
-  * validated. If the key is already hashed, return 1.
-  */
--static inline int lookup_chain_cache(u64 chain_key)
-+static inline int lookup_chain_cache(u64 chain_key, struct lock_class *class)
+@@ -2437,6 +2437,7 @@ EXPORT_SYMBOL_GPL(lock_release);
+ void lockdep_reset(void)
  {
- 	struct list_head *hash_head = chainhashentry(chain_key);
- 	struct lock_chain *chain;
-@@ -1286,9 +1286,13 @@ cache_hit:
- 			__raw_spin_lock(&hash_lock);
- 			return 1;
- #endif
-+			if (very_verbose(class))
-+				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
- 			return 0;
- 		}
- 	}
-+	if (very_verbose(class))
-+		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
- 	/*
- 	 * Allocate a new chain entry from the static array, and add
- 	 * it to the hash:
-@@ -2139,7 +2143,7 @@ out_calc_hash:
- 	 * (If lookup_chain_cache() returns with 1 it acquires
- 	 * hash_lock for us)
- 	 */
--	if (!trylock && (check == 2) && lookup_chain_cache(chain_key)) {
-+	if (!trylock && (check == 2) && lookup_chain_cache(chain_key, class)) {
- 		/*
- 		 * Check whether last held lock:
- 		 *
+ 	unsigned long flags;
++	int i;
+ 
+ 	raw_local_irq_save(flags);
+ 	current->curr_chain_key = 0;
+@@ -2447,6 +2448,8 @@ void lockdep_reset(void)
+ 	nr_softirq_chains = 0;
+ 	nr_process_chains = 0;
+ 	debug_locks = 1;
++	for (i = 0; i < CHAINHASH_SIZE; i++)
++		INIT_LIST_HEAD(chainhash_table + i);
+ 	raw_local_irq_restore(flags);
+ }
+ 
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
