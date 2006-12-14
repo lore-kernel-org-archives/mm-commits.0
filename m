@@ -1,62 +1,71 @@
 From: akpm@osdl.org
-Subject: - w1-fix-for-kconfig-entry-typo.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:05:23 -0800
-Message-ID: <200612140605.kBE65N9t001836@shell0.pdx.osdl.net>
+Subject: - isicom-fix-build-with-pci-disabled.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:05:38 -0800
+Message-ID: <200612140605.kBE65crE001846@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51825 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51834 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751857AbWLNGF5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:05:57 -0500
+	id S1751859AbWLNGGC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:06:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnpol@2ka.mipt.ru, alexander.rigbo@acgnystrom.se, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: Fix for kconfig entry typo
+     isicom: fix build with PCI disabled
 has been removed from the -mm tree.  Its filename was
-     w1-fix-for-kconfig-entry-typo.patch
+     isicom-fix-build-with-pci-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: w1: Fix for kconfig entry typo
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: isicom: fix build with PCI disabled
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Based on patch from Alexander Rigbo <alexander.rigbo@acgnystrom.se>
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+With CONFIG_PCI=n:
+drivers/char/isicom.c: In function 'isicom_probe':
+drivers/char/isicom.c:1793: warning: implicit declaration of function
+'pci_request_region'
+drivers/char/isicom.c:1827: warning: implicit declaration of function
+'pci_release_region'
+
+Let's CONFIG_ISI depend on CONFIG_PCI.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/w1/slaves/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/w1/slaves/Kconfig~w1-fix-for-kconfig-entry-typo drivers/w1/slaves/Kconfig
---- a/drivers/w1/slaves/Kconfig~w1-fix-for-kconfig-entry-typo
-+++ a/drivers/w1/slaves/Kconfig
-@@ -9,7 +9,7 @@ config W1_SLAVE_THERM
- 	tristate "Thermal family implementation"
- 	depends on W1
- 	help
--	  Say Y here if you want to connect 1-wire thermal sensors to you
-+	  Say Y here if you want to connect 1-wire thermal sensors to your
- 	  wire.
+diff -puN drivers/char/Kconfig~isicom-fix-build-with-pci-disabled drivers/char/Kconfig
+--- a/drivers/char/Kconfig~isicom-fix-build-with-pci-disabled
++++ a/drivers/char/Kconfig
+@@ -218,7 +218,7 @@ config MOXA_SMARTIO_NEW
  
- config W1_SLAVE_SMEM
-@@ -17,7 +17,7 @@ config W1_SLAVE_SMEM
- 	depends on W1
+ config ISI
+ 	tristate "Multi-Tech multiport card support (EXPERIMENTAL)"
+-	depends on SERIAL_NONSTANDARD
++	depends on SERIAL_NONSTANDARD && PCI
+ 	select FW_LOADER
  	help
- 	  Say Y here if you want to connect 1-wire
--	  simple 64bit memory rom(ds2401/ds2411/ds1990*) to you wire.
-+	  simple 64bit memory rom(ds2401/ds2411/ds1990*) to your wire.
- 
- config W1_SLAVE_DS2433
- 	tristate "4kb EEPROM family support (DS2433)"
+ 	  This is a driver for the Multi-Tech cards which provide several
 _
 
-Patches currently in -mm which might be from johnpol@2ka.mipt.ru are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-connector-some-fixes-for-ia64-unaligned-access-errors.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+git-mtd.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+kbuild-make-fusion-mpt-selectable-from-device-drivers.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+profile_likely-export-do_check_likely.patch
 
