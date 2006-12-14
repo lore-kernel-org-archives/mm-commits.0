@@ -1,191 +1,215 @@
 From: akpm@osdl.org
-Subject: - pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch removed from -mm tree
-Date: Thu, 14 Dec 2006 14:58:06 -0800
-Message-ID: <200612142258.kBEMw6vs031633@shell0.pdx.osdl.net>
+Subject: + add-support-for-acpi_load_table-acpi_unload_table_id.patch added to -mm tree
+Date: Thu, 14 Dec 2006 15:09:16 -0800
+Message-ID: <200612142309.kBEN9GPi031925@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39475 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40254 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751176AbWLNW6N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 17:58:13 -0500
+	id S1751736AbWLNXJV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 18:09:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: galibert@pobox.com, ak@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jpk@sgi.com, ayoung@sgi.com, greg@kroah.com, len.brown@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     PCI MMConfig: Detect and support the E7520 and the 945G/GZ/P/PL
-has been removed from the -mm tree.  Its filename was
-     pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch
+     Add support for acpi_load_table/acpi_unload_table_id
+has been added to the -mm tree.  Its filename is
+     add-support-for-acpi_load_table-acpi_unload_table_id.patch
 
-This patch was dropped because upstream acpi changes trashed this patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: PCI MMConfig: Detect and support the E7520 and the 945G/GZ/P/PL
-From: Olivier Galibert <galibert@pobox.com>
+Subject: Add support for acpi_load_table/acpi_unload_table_id
+From: John Keller <jpk@sgi.com>
 
-It seems that the only way to reliably support mmconfig in the presence of
-funky biosen is to detect the hostbridge and read where the window is mapped
-from its registers.  Do that for the E7520 and the 945G/GZ/P/PL for a start.
+Make acpi_load_table() available for use by removing it from the #ifdef
+ACPI_FUTURE_USAGE.
 
-Signed-off-by: Olivier Galibert <galibert@pobox.com>
-Cc: Andi Kleen <ak@suse.de>
+Also add a new routine used to unload an ACPI table of a given type and "id" -
+acpi_unload_table_id().  The implementation of this new routine was almost a
+direct copy of existing routine acpi_unload_table() - only difference being
+that it only removes a specific table id instead of ALL tables of a given
+type.  The SN hotplug driver (sgi_hotplug.c) now uses both of these interfaces
+to dynamically load and unload SSDT ACPI tables.
+
+Also, a few other ACPI routines now used by the SN hotplug driver are exported
+(since the driver can be a loadable module):
+
+ acpi_ns_map_handle_to_node
+ acpi_ns_convert_entry_to_handle
+ acpi_ns_get_next_node
+
+Signed-off-by: Aaron Young <ayoung@sgi.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/pci/mmconfig-shared.c |  116 +++++++++++++++++++++++++++++-
- 1 file changed, 113 insertions(+), 3 deletions(-)
+ drivers/acpi/namespace/nsxfobj.c |   44 +++++++++++++++++++++++
+ drivers/acpi/tables/tbxface.c    |   54 ++++++++++++++++++++++++++++-
+ include/acpi/acpixf.h            |    7 ++-
+ 3 files changed, 102 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/pci/mmconfig-shared.c~pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl
-+++ a/arch/i386/pci/mmconfig-shared.c
-@@ -3,6 +3,7 @@
-  *                     MMCONFIG - common code between i386 and x86-64.
+diff -puN drivers/acpi/namespace/nsxfobj.c~add-support-for-acpi_load_table-acpi_unload_table_id drivers/acpi/namespace/nsxfobj.c
+--- a/drivers/acpi/namespace/nsxfobj.c~add-support-for-acpi_load_table-acpi_unload_table_id
++++ a/drivers/acpi/namespace/nsxfobj.c
+@@ -50,6 +50,50 @@ ACPI_MODULE_NAME("nsxfobj")
+ 
+ /*******************************************************************************
   *
-  * This code does:
-+ * - known chipset handling
-  * - ACPI decoding and validation
++ * FUNCTION:    acpi_get_id
++ *
++ * PARAMETERS:  Handle          - Handle of object whose id is desired
++ *              ret_id          - Where the id will be placed
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: This routine returns the owner id associated with a handle
++ *
++ ******************************************************************************/
++acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
++{
++	struct acpi_namespace_node *node;
++	acpi_status status;
++
++	/* Parameter Validation */
++
++	if (!ret_id) {
++		return (AE_BAD_PARAMETER);
++	}
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++	if (ACPI_FAILURE(status)) {
++		return (status);
++	}
++
++	/* Convert and validate the handle */
++
++	node = acpi_ns_map_handle_to_node(handle);
++	if (!node) {
++		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++		return (AE_BAD_PARAMETER);
++	}
++
++	*ret_id = node->owner_id;
++
++	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++	return (status);
++}
++
++ACPI_EXPORT_SYMBOL(acpi_get_id)
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_get_type
   *
-  * Per-architecture code takes care of the mappings and accesses
-@@ -55,12 +56,121 @@ static __init void unreachable_devices(v
- 	}
- }
+  * PARAMETERS:  Handle          - Handle of object whose type is desired
+diff -puN drivers/acpi/tables/tbxface.c~add-support-for-acpi_load_table-acpi_unload_table_id drivers/acpi/tables/tbxface.c
+--- a/drivers/acpi/tables/tbxface.c~add-support-for-acpi_load_table-acpi_unload_table_id
++++ a/drivers/acpi/tables/tbxface.c
+@@ -123,7 +123,6 @@ acpi_status acpi_load_tables(void)
  
-+static __init const char *pci_mmcfg_e7520(void)
+ ACPI_EXPORT_SYMBOL(acpi_load_tables)
+ 
+-#ifdef ACPI_FUTURE_USAGE
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_load_table
+@@ -221,6 +220,59 @@ ACPI_EXPORT_SYMBOL(acpi_load_table)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_unload_table_id
++ *
++ * PARAMETERS:  table_type    - Type of table to be unloaded
++ *              id            - Owner ID of the table to be removed.
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: This routine is used to force the unload of a table (by id)
++ *
++ ******************************************************************************/
++acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id)
 +{
-+	u32 win;
-+	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0xce, 2, &win);
++	struct acpi_table_desc *table_desc;
++	acpi_status status;
 +
-+	pci_mmcfg_config_num = 1;
-+	pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
-+	pci_mmcfg_config[0].base_address = (win & 0xf000) << 16;
-+	pci_mmcfg_config[0].pci_segment_group_number = 0;
-+	pci_mmcfg_config[0].start_bus_number = 0;
-+	pci_mmcfg_config[0].end_bus_number = 255;
++	ACPI_FUNCTION_TRACE(acpi_unload_table);
 +
-+	return "Intel Corporation E7520 Memory Controller Hub";
++	/* Parameter validation */
++	if (table_type > ACPI_TABLE_ID_MAX)
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++
++	/* Find table from the requested type list */
++	table_desc = acpi_gbl_table_lists[table_type].next;
++	while (table_desc && table_desc->owner_id != id)
++		table_desc = table_desc->next;
++
++	if (!table_desc)
++		return_ACPI_STATUS(AE_NOT_EXIST);
++
++	/*
++	 * Delete all namespace objects owned by this table. Note that these
++	 * objects can appear anywhere in the namespace by virtue of the AML
++	 * "Scope" operator. Thus, we need to track ownership by an ID, not
++	 * simply a position within the hierarchy
++	 */
++	acpi_ns_delete_namespace_by_owner(table_desc->owner_id);
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
++	if (ACPI_FAILURE(status))
++		return_ACPI_STATUS(status);
++
++	(void)acpi_tb_uninstall_table(table_desc);
++
++	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
++
++	return_ACPI_STATUS(AE_OK);
 +}
 +
-+static __init const char *pci_mmcfg_intel_945(void)
-+{
-+	u32 pciexbar, mask = 0, len = 0;
++ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
 +
-+	pci_mmcfg_config_num = 1;
-+
-+	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0x48, 4, &pciexbar);
-+
-+	/* Enable bit */
-+	if (!(pciexbar & 1))
-+		pci_mmcfg_config_num = 0;
-+
-+	/* Size bits */
-+	switch ((pciexbar >> 1) & 3) {
-+	case 0:
-+		mask = 0xf0000000U;
-+		len  = 0x10000000U;
-+		break;
-+	case 1:
-+		mask = 0xf8000000U;
-+		len  = 0x08000000U;
-+		break;
-+	case 2:
-+		mask = 0xfc000000U;
-+		len  = 0x04000000U;
-+		break;
-+	default:
-+		pci_mmcfg_config_num = 0;
-+	}
-+
-+	/* Errata #2, things break when not aligned on a 256Mb boundary */
-+	/* Can only happen in 64M/128M mode */
-+
-+	if ((pciexbar & mask) & 0x0fffffffU)
-+		pci_mmcfg_config_num = 0;
-+
-+	if (pci_mmcfg_config_num) {
-+		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
-+		pci_mmcfg_config[0].base_address = pciexbar & mask;
-+		pci_mmcfg_config[0].pci_segment_group_number = 0;
-+		pci_mmcfg_config[0].start_bus_number = 0;
-+		pci_mmcfg_config[0].end_bus_number = (len >> 20) - 1;
-+	}
-+
-+	return "Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub";
-+}
-+
-+struct pci_mmcfg_hostbridge_probe {
-+	u32 vendor;
-+	u32 device;
-+	const char *(*probe)(void);
-+};
-+
-+static __initdata struct pci_mmcfg_hostbridge_probe pci_mmcfg_probes[] = {
-+	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_E7520_MCH, pci_mmcfg_e7520 },
-+	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82945G_HB, pci_mmcfg_intel_945 },
-+};
-+
-+static int __init pci_mmcfg_check_hostbridge(void)
-+{
-+	u32 l;
-+	u16 vendor, device;
-+	int i;
-+	const char *name;
-+
-+	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0, 4, &l);
-+	vendor = l & 0xffff;
-+	device = (l >> 16) & 0xffff;
-+
-+	pci_mmcfg_config_num = 0;
-+	pci_mmcfg_config = NULL;
-+	name = NULL;
-+
-+	for (i = 0; !name && i < sizeof(pci_mmcfg_probes) / sizeof(pci_mmcfg_probes[0]); i++)
-+		if ((pci_mmcfg_probes[i].vendor == PCI_ANY_ID || pci_mmcfg_probes[i].vendor == vendor) &&
-+		    (pci_mmcfg_probes[i].device == PCI_ANY_ID || pci_mmcfg_probes[i].device == device))
-+			name = pci_mmcfg_probes[i].probe();
-+
-+	if (name) {
-+		if (pci_mmcfg_config_num)
-+			printk(KERN_INFO "PCI: Found %s with MMCONFIG support.\n", name);
-+		else
-+			printk(KERN_INFO "PCI: Found %s without MMCONFIG support.\n", name);
-+	}
-+
-+	return name != NULL;
-+}
-+
- void __init pci_mmcfg_init(int type)
- {
-+	int known_bridge = 0;
-+
- 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
- 		return;
++#ifdef ACPI_FUTURE_USAGE
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_unload_table
+  *
+  * PARAMETERS:  table_type    - Type of table to be unloaded
+diff -puN include/acpi/acpixf.h~add-support-for-acpi_load_table-acpi_unload_table_id include/acpi/acpixf.h
+--- a/include/acpi/acpixf.h~add-support-for-acpi_load_table-acpi_unload_table_id
++++ a/include/acpi/acpixf.h
+@@ -97,11 +97,12 @@ acpi_find_root_pointer(u32 flags, struct
  
--	acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
-+	if (type == 1 && pci_mmcfg_check_hostbridge())
-+		known_bridge = 1;
+ acpi_status acpi_load_tables(void);
+ 
+-#ifdef ACPI_FUTURE_USAGE
+ acpi_status acpi_load_table(struct acpi_table_header *table_ptr);
+ 
+-acpi_status acpi_unload_table(acpi_table_type table_type);
++acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id);
+ 
++#ifdef ACPI_FUTURE_USAGE
++acpi_status acpi_unload_table(acpi_table_type table_type);
+ acpi_status
+ acpi_get_table_header(acpi_table_type table_type,
+ 		      u32 instance, struct acpi_table_header *out_table_header);
+@@ -180,6 +181,8 @@ acpi_get_next_object(acpi_object_type ty
+ 
+ acpi_status acpi_get_type(acpi_handle object, acpi_object_type * out_type);
+ 
++acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
 +
-+	if (!known_bridge)
-+		acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
+ acpi_status acpi_get_parent(acpi_handle object, acpi_handle * out_handle);
  
- 	if ((pci_mmcfg_config_num == 0) ||
- 	    (pci_mmcfg_config == NULL) ||
-@@ -68,8 +178,8 @@ void __init pci_mmcfg_init(int type)
- 		return;
- 
- 	/* Only do this check when type 1 works. If it doesn't work
--           assume we run on a Mac and always use MCFG */
--	if (type == 1 &&
-+	   assume we run on a Mac and always use MCFG */
-+	if (type == 1 && !known_bridge &&
- 	    !e820_all_mapped(pci_mmcfg_config[0].base_address,
- 			     pci_mmcfg_config[0].base_address + MMCONFIG_APER_MIN,
- 			     E820_RESERVED)) {
+ /*
 _
 
-Patches currently in -mm which might be from galibert@pobox.com are
+Patches currently in -mm which might be from jpk@sgi.com are
 
-bluetooth-add-support-for-another-kensington-dongle.patch
-pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch
-pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them.patch
+add-support-for-acpi_load_table-acpi_unload_table_id.patch
 
