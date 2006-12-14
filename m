@@ -1,103 +1,284 @@
 From: akpm@osdl.org
-Subject: - spidernet-add-net_ratelimit-to-suppress-long-output.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 16:20:48 -0800
-Message-ID: <200612140020.kBE0Km1s025945@shell0.pdx.osdl.net>
+Subject: - spidernet-dma-coalescing.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 16:20:45 -0800
+Message-ID: <200612140020.kBE0Kjjq025942@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:32901 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:32904 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751802AbWLNAVB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:21:01 -0500
+	id S1751822AbWLNAVD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:21:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jklewis@us.ibm.com, jlinas@austin.ibm.com, mm-commits@vger.kernel.org
+To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, jschopp@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidernet: add net_ratelimit to suppress long output
+     spidernet: DMA coalescing
 has been removed from the -mm tree.  Its filename was
-     spidernet-add-net_ratelimit-to-suppress-long-output.patch
+     spidernet-dma-coalescing.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: spidernet: add net_ratelimit to suppress long output
-From: James K Lewis <jklewis@us.ibm.com>
+Subject: spidernet: DMA coalescing
+From: Linas Vepstas <linas@austin.ibm.com>
 
-This patch adds net_ratelimit to many of the printks in order to limit
-extraneous warning messages This patch supercedes all previous ratelimit
-patches.  This has been tested, please apply.
+The current driver code performs 512 DMA mappings of a bunch of 32-byte
+structures.  This is silly, as they are all in contiguous memory.  Ths patch
+changes the code to DMA map the entie area with just one call.
 
-Signed-off-by: James K Lewis <jklewis@us.ibm.com>
-Signed-off-by: Linas Vepstas <jlinas@austin.ibm.com>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Acked-by: Joel Schopp <jschopp@austin.ibm.com>
+Cc: James K Lewis <jklewis@us.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   11 +++++------
- drivers/net/spider_net.h |    2 +-
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/net/spider_net.c |  107 ++++++++++++++++++-------------------
+ drivers/net/spider_net.h |   16 ++---
+ 2 files changed, 59 insertions(+), 64 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-add-net_ratelimit-to-suppress-long-output drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-add-net_ratelimit-to-suppress-long-output
+diff -puN drivers/net/spider_net.c~spidernet-dma-coalescing drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-dma-coalescing
 +++ a/drivers/net/spider_net.c
-@@ -1008,11 +1008,10 @@ spider_net_decode_one_descr(struct spide
+@@ -269,25 +269,6 @@ spider_net_get_descr_status(struct spide
+ }
  
- 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
- 	     (status != SPIDER_NET_DESCR_FRAME_END) ) {
--		if (netif_msg_rx_err(card)) {
-+		if (netif_msg_rx_err(card))
- 			pr_err("%s: RX descriptor with state %d\n",
- 			       card->netdev->name, status);
--			card->spider_stats.rx_desc_unk_state++;
--		}
-+		card->spider_stats.rx_desc_unk_state++;
- 		goto refill;
+ /**
+- * spider_net_free_chain - free descriptor chain
+- * @card: card structure
+- * @chain: address of chain
+- *
+- */
+-static void
+-spider_net_free_chain(struct spider_net_card *card,
+-		      struct spider_net_descr_chain *chain)
+-{
+-	struct spider_net_descr *descr;
+-
+-	for (descr = chain->tail; !descr->bus_addr; descr = descr->next) {
+-		pci_unmap_single(card->pdev, descr->bus_addr,
+-				 SPIDER_NET_DESCR_SIZE, PCI_DMA_BIDIRECTIONAL);
+-		descr->bus_addr = 0;
+-	}
+-}
+-
+-/**
+  * spider_net_init_chain - links descriptor chain
+  * @card: card structure
+  * @chain: address of chain
+@@ -299,15 +280,15 @@ spider_net_free_chain(struct spider_net_
+  *
+  * returns 0 on success, <0 on failure
+  */
+-static int
++static void
+ spider_net_init_chain(struct spider_net_card *card,
+ 		       struct spider_net_descr_chain *chain,
+ 		       struct spider_net_descr *start_descr,
++		       dma_addr_t buf,
+ 		       int no)
+ {
+ 	int i;
+ 	struct spider_net_descr *descr;
+-	dma_addr_t buf;
+ 
+ 	descr = start_descr;
+ 	memset(descr, 0, sizeof(*descr) * no);
+@@ -316,17 +297,12 @@ spider_net_init_chain(struct spider_net_
+ 	for (i=0; i<no; i++, descr++) {
+ 		descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+ 
+-		buf = pci_map_single(card->pdev, descr,
+-				     SPIDER_NET_DESCR_SIZE,
+-				     PCI_DMA_BIDIRECTIONAL);
+-
+-		if (pci_dma_mapping_error(buf))
+-			goto iommu_error;
+-
+ 		descr->bus_addr = buf;
++		descr->next_descr_addr = 0;
+ 		descr->next = descr + 1;
+ 		descr->prev = descr - 1;
+ 
++		buf += sizeof(struct spider_net_descr);
  	}
+ 	/* do actual circular list */
+ 	(descr-1)->next = start_descr;
+@@ -335,17 +311,6 @@ spider_net_init_chain(struct spider_net_
+ 	spin_lock_init(&chain->lock);
+ 	chain->head = start_descr;
+ 	chain->tail = start_descr;
+-
+-	return 0;
+-
+-iommu_error:
+-	descr = start_descr;
+-	for (i=0; i < no; i++, descr++)
+-		if (descr->bus_addr)
+-			pci_unmap_single(card->pdev, descr->bus_addr,
+-					 SPIDER_NET_DESCR_SIZE,
+-					 PCI_DMA_BIDIRECTIONAL);
+-	return -ENOMEM;
+ }
  
-@@ -1331,7 +1330,7 @@ spider_net_handle_error_irq(struct spide
- 	case SPIDER_NET_GRFAFLLINT: /* fallthrough */
- 	case SPIDER_NET_GRMFLLINT:
- 		if (netif_msg_intr(card) && net_ratelimit())
--			pr_debug("Spider RX RAM full, incoming packets "
-+			pr_err("Spider RX RAM full, incoming packets "
- 			       "might be discarded!\n");
- 		spider_net_rx_irq_off(card);
- 		tasklet_schedule(&card->rxram_full_tl);
-@@ -1349,7 +1348,7 @@ spider_net_handle_error_irq(struct spide
- 	case SPIDER_NET_GDCDCEINT: /* fallthrough */
- 	case SPIDER_NET_GDBDCEINT: /* fallthrough */
- 	case SPIDER_NET_GDADCEINT:
--		if (netif_msg_intr(card))
-+		if (netif_msg_intr(card) && net_ratelimit())
- 			pr_err("got descriptor chain end interrupt, "
- 			       "restarting DMAC %c.\n",
- 			       'D'-(i-SPIDER_NET_GDDDCEINT)/3);
-@@ -1420,7 +1419,7 @@ spider_net_handle_error_irq(struct spide
- 			break;
- 	}
+ /**
+@@ -1652,24 +1617,32 @@ spider_net_open(struct net_device *netde
+ {
+ 	struct spider_net_card *card = netdev_priv(netdev);
+ 	struct spider_net_descr *descr;
+-	int i, result;
++	int result = -ENOMEM;
  
--	if ((show_error) && (netif_msg_intr(card)))
-+	if ((show_error) && (netif_msg_intr(card)) && net_ratelimit())
- 		pr_err("Got error interrupt on %s, GHIINT0STS = 0x%08x, "
- 		       "GHIINT1STS = 0x%08x, GHIINT2STS = 0x%08x\n",
- 		       card->netdev->name,
-diff -puN drivers/net/spider_net.h~spidernet-add-net_ratelimit-to-suppress-long-output drivers/net/spider_net.h
---- a/drivers/net/spider_net.h~spidernet-add-net_ratelimit-to-suppress-long-output
+-	result = -ENOMEM;
+-	if (spider_net_init_chain(card, &card->tx_chain, card->descr,
+-	                          card->num_tx_desc))
+-		goto alloc_tx_failed;
++	card->descr_dma_addr = pci_map_single(card->pdev, card->descr,
++	        (card->num_tx_desc+card->num_rx_desc)*sizeof(struct spider_net_descr),
++				     PCI_DMA_BIDIRECTIONAL);
++	if (pci_dma_mapping_error(card->descr_dma_addr))
++		return -ENOMEM;
++
++	spider_net_init_chain(card, &card->tx_chain, card->descr,
++	                          card->descr_dma_addr,
++	                          card->num_tx_desc);
+ 
+ 	card->low_watermark = NULL;
+ 
+ 	/* rx_chain is after tx_chain, so offset is descr + tx_count */
+-	if (spider_net_init_chain(card, &card->rx_chain,
++	spider_net_init_chain(card, &card->rx_chain,
+ 	                          card->descr + card->num_tx_desc,
+-	                          card->num_rx_desc))
+-		goto alloc_rx_failed;
++	                          card->descr_dma_addr
++					+ card->num_tx_desc * sizeof(struct spider_net_descr),
++	                          card->num_rx_desc);
+ 
+ 	descr = card->rx_chain.head;
+-	for (i=0; i < card->num_rx_desc; i++, descr++)
++	do {
+ 		descr->next_descr_addr = descr->next->bus_addr;
++		descr = descr->next;
++	} while (descr != card->rx_chain.head);
+ 
+ 	/* allocate rx skbs */
+ 	if (spider_net_alloc_rx_skbs(card))
+@@ -1695,10 +1668,21 @@ spider_net_open(struct net_device *netde
+ register_int_failed:
+ 	spider_net_free_rx_chain_contents(card);
+ alloc_skbs_failed:
+-	spider_net_free_chain(card, &card->rx_chain);
+-alloc_rx_failed:
+-	spider_net_free_chain(card, &card->tx_chain);
+-alloc_tx_failed:
++	descr = card->rx_chain.head;
++	do {
++		descr->bus_addr = 0;
++		descr = descr->next;
++	} while (descr != card->rx_chain.head);
++
++	descr = card->tx_chain.head;
++	do {
++		descr->bus_addr = 0;
++		descr = descr->next;
++	} while (descr != card->tx_chain.head);
++
++	pci_unmap_single(card->pdev, card->descr_dma_addr,
++	   (card->num_tx_desc+card->num_rx_desc)*sizeof(struct spider_net_descr),
++	                 PCI_DMA_BIDIRECTIONAL);
+ 	return result;
+ }
+ 
+@@ -1901,6 +1885,7 @@ int
+ spider_net_stop(struct net_device *netdev)
+ {
+ 	struct spider_net_card *card = netdev_priv(netdev);
++	struct spider_net_descr *descr;
+ 
+ 	tasklet_kill(&card->rxram_full_tl);
+ 	netif_poll_disable(netdev);
+@@ -1924,9 +1909,23 @@ spider_net_stop(struct net_device *netde
+ 
+ 	/* release chains */
+ 	spider_net_release_tx_chain(card, 1);
++	spider_net_free_rx_chain_contents(card);
++
++	descr = card->rx_chain.head;
++	do {
++		descr->bus_addr = 0;
++		descr = descr->next;
++	} while (descr != card->rx_chain.head);
++
++	descr = card->tx_chain.head;
++	do {
++		descr->bus_addr = 0;
++		descr = descr->next;
++	} while (descr != card->tx_chain.head);
+ 
+-	spider_net_free_chain(card, &card->tx_chain);
+-	spider_net_free_chain(card, &card->rx_chain);
++	pci_unmap_single(card->pdev, card->descr_dma_addr,
++	      (card->num_tx_desc+card->num_rx_desc)*sizeof(struct spider_net_descr),
++	                 PCI_DMA_BIDIRECTIONAL);
+ 
+ 	return 0;
+ }
+diff -puN drivers/net/spider_net.h~spidernet-dma-coalescing drivers/net/spider_net.h
+--- a/drivers/net/spider_net.h~spidernet-dma-coalescing
 +++ a/drivers/net/spider_net.h
-@@ -24,7 +24,7 @@
- #ifndef _SPIDER_NET_H
- #define _SPIDER_NET_H
+@@ -397,8 +397,6 @@ struct spider_net_descr_chain {
+  * 701b8000 would be correct, but every packets gets that flag */
+ #define SPIDER_NET_DESTROY_RX_FLAGS	0x700b8000
  
--#define VERSION "1.6 A"
-+#define VERSION "1.6 B"
+-#define SPIDER_NET_DESCR_SIZE		32
+-
+ /* this will be bigger some time */
+ struct spider_net_options {
+ 	int rx_csum; /* for rx: if 0 ip_summed=NONE,
+@@ -437,28 +435,26 @@ struct spider_net_card {
  
- #include "sungem_phy.h"
+ 	void __iomem *regs;
+ 
++	int num_rx_desc;
++	int num_tx_desc;
+ 	struct spider_net_descr_chain tx_chain;
+ 	struct spider_net_descr_chain rx_chain;
+ 	struct spider_net_descr *low_watermark;
++	dma_addr_t descr_dma_addr;
+ 
+-	struct net_device_stats netdev_stats;
+-
+-	struct spider_net_options options;
+-
+-	spinlock_t intmask_lock;
+ 	struct tasklet_struct rxram_full_tl;
+ 	struct timer_list tx_timer;
+-
+ 	struct work_struct tx_timeout_task;
+ 	atomic_t tx_timeout_task_counter;
+ 	wait_queue_head_t waitq;
+ 
+ 	/* for ethtool */
+ 	int msg_enable;
+-	int num_rx_desc;
+-	int num_tx_desc;
++	struct net_device_stats netdev_stats;
+ 	struct spider_net_extra_stats spider_stats;
++	struct spider_net_options options;
+ 
++	/* Must be last element in the structure */
+ 	struct spider_net_descr descr[0];
+ };
  
 _
 
-Patches currently in -mm which might be from jklewis@us.ibm.com are
+Patches currently in -mm which might be from linas@austin.ibm.com are
 
 origin.patch
+spidernet-dma-coalescing.patch
 spidernet-add-net_ratelimit-to-suppress-long-output.patch
 spidernet-rx-locking.patch
 spidernet-refactor-rx-refill.patch
