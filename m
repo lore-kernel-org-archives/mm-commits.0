@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + spidernet-another-skb-mem-leak.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:26:08 -0800
-Message-ID: <200612140026.kBE0Q8N6026139@shell0.pdx.osdl.net>
+Subject: + spidernet-rework-rx-linked-list.patch added to -mm tree
+Date: Wed, 13 Dec 2006 16:26:24 -0800
+Message-ID: <200612140026.kBE0QOmP026165@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33525 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33549 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751853AbWLNA3Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:29:25 -0500
+	id S1751857AbWLNA3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:29:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,19 @@ Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
 
 
 The patch titled
-     Spidernet: another skb mem leak
+     Spidernet: Rework RX linked list
 has been added to the -mm tree.  Its filename is
-     spidernet-another-skb-mem-leak.patch
+     spidernet-rework-rx-linked-list.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Spidernet: another skb mem leak
+Subject: Spidernet: Rework RX linked list
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Another skb leak in an error branch.  Fix this by adding call to
-dev_kfree_skb_irq() after moving to a more appropriate spot.
+Make the hardware perceive the RX descriptor ring as a null-terminated linked
+list, instead of a circular ring.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -35,51 +35,48 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+ drivers/net/spider_net.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-another-skb-mem-leak drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-another-skb-mem-leak
+diff -puN drivers/net/spider_net.c~spidernet-rework-rx-linked-list drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-rework-rx-linked-list
 +++ a/drivers/net/spider_net.c
-@@ -926,19 +926,8 @@ spider_net_pass_skb_up(struct spider_net
- 
- 	data_status = descr->data_status;
- 	data_error = descr->data_error;
--
- 	netdev = card->netdev;
- 
--	/* the cases we'll throw away the packet immediately */
--	if (data_error & SPIDER_NET_DESTROY_RX_FLAGS) {
--		if (netif_msg_rx_err(card))
--			pr_err("error in received descriptor found, "
--			       "data_status=x%08x, data_error=x%08x\n",
--			       data_status, data_error);
--		card->spider_stats.rx_desc_error++;
--		return 0;
--	}
--
- 	skb = descr->skb;
- 	skb->dev = netdev;
- 	skb_put(skb, descr->valid_size);
-@@ -1037,6 +1026,18 @@ spider_net_decode_one_descr(struct spide
- 		goto refill;
+@@ -419,9 +419,13 @@ spider_net_prepare_rx_descr(struct spide
+ 		card->spider_stats.rx_iommu_map_error++;
+ 		descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+ 	} else {
++		descr->next_descr_addr = 0;
+ 		wmb();
+ 		descr->dmac_cmd_status = SPIDER_NET_DESCR_CARDOWNED |
+ 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
++
++		wmb();
++		descr->prev->next_descr_addr = descr->bus_addr;
  	}
  
-+	/* The cases we'll throw away the packet immediately */
-+	if (descr->data_error & SPIDER_NET_DESTROY_RX_FLAGS) {
-+		if (netif_msg_rx_err(card))
-+			pr_err("%s: error in received descriptor found, "
-+			       "data_status=x%08x, data_error=x%08x\n",
-+			       card->netdev->name,
-+			       descr->data_status, descr->data_error);
-+		card->spider_stats.rx_desc_error++;
-+		dev_kfree_skb_irq(descr->skb);
-+		goto refill;
-+	}
-+
- 	/* ok, we've got a packet in descr */
- 	result = spider_net_pass_skb_up(descr, card);
- refill:
+ 	return 0;
+@@ -1650,7 +1654,6 @@ int
+ spider_net_open(struct net_device *netdev)
+ {
+ 	struct spider_net_card *card = netdev_priv(netdev);
+-	struct spider_net_descr *descr;
+ 	int result;
+ 
+ 	result = spider_net_init_chain(card, &card->tx_chain);
+@@ -1662,13 +1665,6 @@ spider_net_open(struct net_device *netde
+ 	if (result)
+ 		goto alloc_rx_failed;
+ 
+-	/* Make a ring of of bus addresses */
+-	descr = card->rx_chain.ring;
+-	do {
+-		descr->next_descr_addr = descr->next->bus_addr;
+-		descr = descr->next;
+-	} while (descr != card->rx_chain.ring);
+-
+ 	/* Allocate rx skbs */
+ 	if (spider_net_alloc_rx_skbs(card))
+ 		goto alloc_skbs_failed;
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
