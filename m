@@ -1,111 +1,295 @@
 From: akpm@osdl.org
-Subject: - acpi-disable-irq-balance-even-in-apic-mode.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:16:10 -0800
-Message-ID: <200612140616.kBE6GAWN002236@shell0.pdx.osdl.net>
+Subject: - knfsd-nfsd4-move-replay_owner-to-cstate.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:16:34 -0800
+Message-ID: <200612140616.kBE6GYg7002255@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52537 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52590 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751979AbWLNGQn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:16:43 -0500
+	id S1751996AbWLNGRT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, len.brown@intel.com, stian_web@jordet.nu, mm-commits@vger.kernel.org
+To: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: disable irq balance even in APIC mode
+     knfsd: nfsd4: move replay_owner to cstate
 has been removed from the -mm tree.  Its filename was
-     acpi-disable-irq-balance-even-in-apic-mode.patch
+     knfsd-nfsd4-move-replay_owner-to-cstate.patch
 
-This patch was dropped because it was nacked by the maintainer
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: acpi: disable irq balance even in APIC mode
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: knfsd: nfsd4: move replay_owner to cstate
+From: J.Bruce Fields <bfields@fieldses.org>
 
-The two patches try to fix bug 2874, and Stian confirmed.  Basically in
-Stian's system, _PRT table lets some devices use link device for irq
-routing even in IOAPIC mode.  And in IOAPIC mode, if link device is
-enabled, all devices linked to the link device in PIC mode will not connect
-to IOAPIC pins, instead they will use PIC mode irq routing.  I'm not sure
-if the patches will break other systems, so they should be test for a long
-time.  http://bugzilla.kernel.org/show_bug.cgi?id=2874
+Tuck away the replay_owner in the cstate while we're at it.
 
-acpi_irq_balance is for PCI link device (pci interrupt router), it hasn't
-any relationship with APIC/IOAPIC.  Default enabling it in APIC mode
-doesn't make sense to me.
-
-Signed-off-by: Shaohua Li<shaohua.li@intel.com>
-Cc: Stian Jordet <stian_web@jordet.nu>
-Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/acpi/boot.c |    1 -
- drivers/acpi/pci_link.c      |    2 +-
- include/asm-i386/acpi.h      |    1 -
- include/asm-x86_64/acpi.h    |    1 -
- 4 files changed, 1 insertion(+), 4 deletions(-)
+ fs/nfsd/nfs4proc.c        |   31 ++++++++++++++-----------------
+ fs/nfsd/nfs4state.c       |   22 ++++++++++------------
+ include/linux/nfsd/xdr4.h |   17 +++++++----------
+ 3 files changed, 31 insertions(+), 39 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~acpi-disable-irq-balance-even-in-apic-mode arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~acpi-disable-irq-balance-even-in-apic-mode
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -927,7 +927,6 @@ static void __init acpi_process_madt(voi
- 			error = acpi_parse_madt_ioapic_entries();
- 			if (!error) {
- 				acpi_irq_model = ACPI_IRQ_MODEL_IOAPIC;
--				acpi_irq_balance_set(NULL);
- 				acpi_ioapic = 1;
+diff -puN fs/nfsd/nfs4proc.c~knfsd-nfsd4-move-replay_owner-to-cstate fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~knfsd-nfsd4-move-replay_owner-to-cstate
++++ a/fs/nfsd/nfs4proc.c
+@@ -163,7 +163,7 @@ do_open_fhandle(struct svc_rqst *rqstp, 
  
- 				smp_found_config = 1;
-diff -puN drivers/acpi/pci_link.c~acpi-disable-irq-balance-even-in-apic-mode drivers/acpi/pci_link.c
---- a/drivers/acpi/pci_link.c~acpi-disable-irq-balance-even-in-apic-mode
-+++ a/drivers/acpi/pci_link.c
-@@ -897,7 +897,7 @@ static int __init acpi_irq_nobalance_set
- 
- __setup("acpi_irq_nobalance", acpi_irq_nobalance_set);
- 
--int __init acpi_irq_balance_set(char *str)
-+static int __init acpi_irq_balance_set(char *str)
+ static inline __be32
+ nfsd4_open(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
+-	   struct nfsd4_open *open, struct nfs4_stateowner **replay_owner)
++	   struct nfsd4_open *open)
  {
- 	acpi_irq_balance = 1;
- 	return 1;
-diff -puN include/asm-i386/acpi.h~acpi-disable-irq-balance-even-in-apic-mode include/asm-i386/acpi.h
---- a/include/asm-i386/acpi.h~acpi-disable-irq-balance-even-in-apic-mode
-+++ a/include/asm-i386/acpi.h
-@@ -119,7 +119,6 @@ static inline void acpi_disable_pci(void
- 	acpi_pci_disabled = 1; 
- 	acpi_noirq_set();
+ 	__be32 status;
+ 	dprintk("NFSD: nfsd4_open filename %.*s op_stateowner %p\n",
+@@ -255,7 +255,7 @@ nfsd4_open(struct svc_rqst *rqstp, struc
+ out:
+ 	if (open->op_stateowner) {
+ 		nfs4_get_stateowner(open->op_stateowner);
+-		*replay_owner = open->op_stateowner;
++		cstate->replay_owner = open->op_stateowner;
+ 	}
+ 	nfs4_unlock_state();
+ 	return status;
+@@ -761,6 +761,7 @@ static void cstate_free(struct nfsd4_com
+ 		return;
+ 	fh_put(&cstate->current_fh);
+ 	fh_put(&cstate->save_fh);
++	BUG_ON(cstate->replay_owner);
+ 	kfree(cstate);
  }
--extern int acpi_irq_balance_set(char *str);
  
- #else	/* !CONFIG_ACPI */
- 
-diff -puN include/asm-x86_64/acpi.h~acpi-disable-irq-balance-even-in-apic-mode include/asm-x86_64/acpi.h
---- a/include/asm-x86_64/acpi.h~acpi-disable-irq-balance-even-in-apic-mode
-+++ a/include/asm-x86_64/acpi.h
-@@ -105,7 +105,6 @@ static inline void acpi_disable_pci(void
- 	acpi_pci_disabled = 1; 
- 	acpi_noirq_set();
+@@ -773,6 +774,7 @@ static struct nfsd4_compound_state *csta
+ 		return NULL;
+ 	fh_init(&cstate->current_fh, NFS4_FHSIZE);
+ 	fh_init(&cstate->save_fh, NFS4_FHSIZE);
++	cstate->replay_owner = NULL;
+ 	return cstate;
  }
--extern int acpi_irq_balance_set(char *str);
  
- #else	/* !CONFIG_ACPI */
+@@ -786,7 +788,6 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ {
+ 	struct nfsd4_op	*op;
+ 	struct nfsd4_compound_state *cstate = NULL;
+-	struct nfs4_stateowner *replay_owner = NULL;
+ 	int		slack_bytes;
+ 	__be32		status;
  
+@@ -876,7 +877,7 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ 			break;
+ 		case OP_CLOSE:
+ 			op->status = nfsd4_close(rqstp, cstate,
+-						 &op->u.close, &replay_owner);
++						 &op->u.close);
+ 			break;
+ 		case OP_COMMIT:
+ 			op->status = nfsd4_commit(rqstp, cstate,
+@@ -901,15 +902,13 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ 			op->status = nfsd4_link(rqstp, cstate, &op->u.link);
+ 			break;
+ 		case OP_LOCK:
+-			op->status = nfsd4_lock(rqstp, cstate, &op->u.lock,
+-						&replay_owner);
++			op->status = nfsd4_lock(rqstp, cstate, &op->u.lock);
+ 			break;
+ 		case OP_LOCKT:
+ 			op->status = nfsd4_lockt(rqstp, cstate, &op->u.lockt);
+ 			break;
+ 		case OP_LOCKU:
+-			op->status = nfsd4_locku(rqstp, cstate, &op->u.locku,
+-						 &replay_owner);
++			op->status = nfsd4_locku(rqstp, cstate, &op->u.locku);
+ 			break;
+ 		case OP_LOOKUP:
+ 			op->status = nfsd4_lookup(rqstp, cstate,
+@@ -926,17 +925,15 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ 			break;
+ 		case OP_OPEN:
+ 			op->status = nfsd4_open(rqstp, cstate,
+-						&op->u.open, &replay_owner);
++						&op->u.open);
+ 			break;
+ 		case OP_OPEN_CONFIRM:
+ 			op->status = nfsd4_open_confirm(rqstp, cstate,
+-							&op->u.open_confirm,
+-							&replay_owner);
++							&op->u.open_confirm);
+ 			break;
+ 		case OP_OPEN_DOWNGRADE:
+ 			op->status = nfsd4_open_downgrade(rqstp, cstate,
+-							 &op->u.open_downgrade,
+-							 &replay_owner);
++							&op->u.open_downgrade);
+ 			break;
+ 		case OP_PUTFH:
+ 			op->status = nfsd4_putfh(rqstp, cstate, &op->u.putfh);
+@@ -1001,16 +998,16 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ 
+ encode_op:
+ 		if (op->status == nfserr_replay_me) {
+-			op->replay = &replay_owner->so_replay;
++			op->replay = &cstate->replay_owner->so_replay;
+ 			nfsd4_encode_replay(resp, op);
+ 			status = op->status = op->replay->rp_status;
+ 		} else {
+ 			nfsd4_encode_operation(resp, op);
+ 			status = op->status;
+ 		}
+-		if (replay_owner) {
+-			nfs4_put_stateowner(replay_owner);
+-			replay_owner = NULL;
++		if (cstate->replay_owner) {
++			nfs4_put_stateowner(cstate->replay_owner);
++			cstate->replay_owner = NULL;
+ 		}
+ 		/* XXX Ugh, we need to get rid of this kind of special case: */
+ 		if (op->opnum == OP_READ && op->u.read.rd_filp)
+diff -puN fs/nfsd/nfs4state.c~knfsd-nfsd4-move-replay_owner-to-cstate fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~knfsd-nfsd4-move-replay_owner-to-cstate
++++ a/fs/nfsd/nfs4state.c
+@@ -2242,8 +2242,7 @@ check_replay:
+ 
+ __be32
+ nfsd4_open_confirm(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
+-		   struct nfsd4_open_confirm *oc,
+-		   struct nfs4_stateowner **replay_owner)
++		   struct nfsd4_open_confirm *oc)
+ {
+ 	__be32 status;
+ 	struct nfs4_stateowner *sop;
+@@ -2280,7 +2279,7 @@ nfsd4_open_confirm(struct svc_rqst *rqst
+ out:
+ 	if (oc->oc_stateowner) {
+ 		nfs4_get_stateowner(oc->oc_stateowner);
+-		*replay_owner = oc->oc_stateowner;
++		cstate->replay_owner = oc->oc_stateowner;
+ 	}
+ 	nfs4_unlock_state();
+ 	return status;
+@@ -2314,8 +2313,7 @@ reset_union_bmap_deny(unsigned long deny
+ __be32
+ nfsd4_open_downgrade(struct svc_rqst *rqstp,
+ 		     struct nfsd4_compound_state *cstate,
+-		     struct nfsd4_open_downgrade *od,
+-		     struct nfs4_stateowner **replay_owner)
++		     struct nfsd4_open_downgrade *od)
+ {
+ 	__be32 status;
+ 	struct nfs4_stateid *stp;
+@@ -2361,7 +2359,7 @@ nfsd4_open_downgrade(struct svc_rqst *rq
+ out:
+ 	if (od->od_stateowner) {
+ 		nfs4_get_stateowner(od->od_stateowner);
+-		*replay_owner = od->od_stateowner;
++		cstate->replay_owner = od->od_stateowner;
+ 	}
+ 	nfs4_unlock_state();
+ 	return status;
+@@ -2372,7 +2370,7 @@ out:
+  */
+ __be32
+ nfsd4_close(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
+-	    struct nfsd4_close *close, struct nfs4_stateowner **replay_owner)
++	    struct nfsd4_close *close)
+ {
+ 	__be32 status;
+ 	struct nfs4_stateid *stp;
+@@ -2405,7 +2403,7 @@ nfsd4_close(struct svc_rqst *rqstp, stru
+ out:
+ 	if (close->cl_stateowner) {
+ 		nfs4_get_stateowner(close->cl_stateowner);
+-		*replay_owner = close->cl_stateowner;
++		cstate->replay_owner = close->cl_stateowner;
+ 	}
+ 	nfs4_unlock_state();
+ 	return status;
+@@ -2646,7 +2644,7 @@ check_lock_length(u64 offset, u64 length
+  */
+ __be32
+ nfsd4_lock(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
+-	   struct nfsd4_lock *lock, struct nfs4_stateowner **replay_owner)
++	   struct nfsd4_lock *lock)
+ {
+ 	struct nfs4_stateowner *open_sop = NULL;
+ 	struct nfs4_stateowner *lock_sop = NULL;
+@@ -2796,7 +2794,7 @@ out:
+ 		release_stateowner(lock_sop);
+ 	if (lock->lk_replay_owner) {
+ 		nfs4_get_stateowner(lock->lk_replay_owner);
+-		*replay_owner = lock->lk_replay_owner;
++		cstate->replay_owner = lock->lk_replay_owner;
+ 	}
+ 	nfs4_unlock_state();
+ 	return status;
+@@ -2888,7 +2886,7 @@ out:
+ 
+ __be32
+ nfsd4_locku(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
+-	    struct nfsd4_locku *locku, struct nfs4_stateowner **replay_owner)
++	    struct nfsd4_locku *locku)
+ {
+ 	struct nfs4_stateid *stp;
+ 	struct file *filp = NULL;
+@@ -2946,7 +2944,7 @@ nfsd4_locku(struct svc_rqst *rqstp, stru
+ out:
+ 	if (locku->lu_stateowner) {
+ 		nfs4_get_stateowner(locku->lu_stateowner);
+-		*replay_owner = locku->lu_stateowner;
++		cstate->replay_owner = locku->lu_stateowner;
+ 	}
+ 	nfs4_unlock_state();
+ 	return status;
+diff -puN include/linux/nfsd/xdr4.h~knfsd-nfsd4-move-replay_owner-to-cstate include/linux/nfsd/xdr4.h
+--- a/include/linux/nfsd/xdr4.h~knfsd-nfsd4-move-replay_owner-to-cstate
++++ a/include/linux/nfsd/xdr4.h
+@@ -47,6 +47,7 @@
+ struct nfsd4_compound_state {
+ 	struct svc_fh current_fh;
+ 	struct svc_fh save_fh;
++	struct nfs4_stateowner *replay_owner;
+ };
+ 
+ struct nfsd4_change_info {
+@@ -442,25 +443,21 @@ extern __be32 nfsd4_process_open1(struct
+ extern __be32 nfsd4_process_open2(struct svc_rqst *rqstp,
+ 		struct svc_fh *current_fh, struct nfsd4_open *open);
+ extern __be32 nfsd4_open_confirm(struct svc_rqst *rqstp,
+-		struct nfsd4_compound_state *, struct nfsd4_open_confirm *oc,
+-		struct nfs4_stateowner **);
++		struct nfsd4_compound_state *, struct nfsd4_open_confirm *oc);
+ extern __be32 nfsd4_close(struct svc_rqst *rqstp,
+ 		struct nfsd4_compound_state *,
+-		struct nfsd4_close *close,
+-		struct nfs4_stateowner **replay_owner);
++		struct nfsd4_close *close);
+ extern __be32 nfsd4_open_downgrade(struct svc_rqst *rqstp,
+-		struct nfsd4_compound_state *, struct nfsd4_open_downgrade *od,
+-		struct nfs4_stateowner **replay_owner);
++		struct nfsd4_compound_state *,
++		struct nfsd4_open_downgrade *od);
+ extern __be32 nfsd4_lock(struct svc_rqst *rqstp, struct nfsd4_compound_state *,
+-		struct nfsd4_lock *lock,
+-		struct nfs4_stateowner **replay_owner);
++		struct nfsd4_lock *lock);
+ extern __be32 nfsd4_lockt(struct svc_rqst *rqstp,
+ 		struct nfsd4_compound_state *,
+ 		struct nfsd4_lockt *lockt);
+ extern __be32 nfsd4_locku(struct svc_rqst *rqstp,
+ 		struct nfsd4_compound_state *,
+-		struct nfsd4_locku *locku,
+-		struct nfs4_stateowner **replay_owner);
++		struct nfsd4_locku *locku);
+ extern __be32
+ nfsd4_release_lockowner(struct svc_rqst *rqstp,
+ 		struct nfsd4_release_lockowner *rlockowner);
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
-git-acpi.patch
-acpi-disable-irq-balance-even-in-apic-mode.patch
-acpi-dont-enable-link-device-in-ioapic-mode.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-parse-boot-parameter-error.patch
 
