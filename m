@@ -1,52 +1,62 @@
 From: akpm@osdl.org
-Subject: - kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:05:00 -0800
-Message-ID: <200612140605.kBE650fc001825@shell0.pdx.osdl.net>
+Subject: - w1-fix-for-kconfig-entry-typo.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:05:23 -0800
+Message-ID: <200612140605.kBE65N9t001836@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51792 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51825 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751850AbWLNGF2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:05:28 -0500
+	id S1751857AbWLNGF5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:05:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@mr511.de, avi@qumranet.com, mm-commits@vger.kernel.org
+To: johnpol@2ka.mipt.ru, alexander.rigbo@acgnystrom.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Don't touch the virtual apic vt registers on 32-bit
+     w1: Fix for kconfig entry typo
 has been removed from the -mm tree.  Its filename was
-     kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit.patch
+     w1-fix-for-kconfig-entry-typo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Don't touch the virtual apic vt registers on 32-bit
-From: Michael Riepe <michael@mr511.de>
+Subject: w1: Fix for kconfig entry typo
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Based on patch from Alexander Rigbo <alexander.rigbo@acgnystrom.se>
+
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/w1/slaves/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit
-+++ a/drivers/kvm/vmx.c
-@@ -1175,8 +1175,10 @@ static int vmx_vcpu_setup(struct kvm_vcp
-                                VM_ENTRY_CONTROLS, 0);
- 	vmcs_write32(VM_ENTRY_INTR_INFO_FIELD, 0);  /* 22.2.1 */
+diff -puN drivers/w1/slaves/Kconfig~w1-fix-for-kconfig-entry-typo drivers/w1/slaves/Kconfig
+--- a/drivers/w1/slaves/Kconfig~w1-fix-for-kconfig-entry-typo
++++ a/drivers/w1/slaves/Kconfig
+@@ -9,7 +9,7 @@ config W1_SLAVE_THERM
+ 	tristate "Thermal family implementation"
+ 	depends on W1
+ 	help
+-	  Say Y here if you want to connect 1-wire thermal sensors to you
++	  Say Y here if you want to connect 1-wire thermal sensors to your
+ 	  wire.
  
-+#ifdef CONFIG_X86_64
- 	vmcs_writel(VIRTUAL_APIC_PAGE_ADDR, 0);
- 	vmcs_writel(TPR_THRESHOLD, 0);
-+#endif
+ config W1_SLAVE_SMEM
+@@ -17,7 +17,7 @@ config W1_SLAVE_SMEM
+ 	depends on W1
+ 	help
+ 	  Say Y here if you want to connect 1-wire
+-	  simple 64bit memory rom(ds2401/ds2411/ds1990*) to you wire.
++	  simple 64bit memory rom(ds2401/ds2411/ds1990*) to your wire.
  
- 	vmcs_writel(CR0_GUEST_HOST_MASK, KVM_GUEST_CR0_MASK);
- 	vmcs_writel(CR4_GUEST_HOST_MASK, KVM_GUEST_CR4_MASK);
+ config W1_SLAVE_DS2433
+ 	tristate "4kb EEPROM family support (DS2433)"
 _
 
-Patches currently in -mm which might be from michael@mr511.de are
+Patches currently in -mm which might be from johnpol@2ka.mipt.ru are
 
+connector-some-fixes-for-ia64-unaligned-access-errors.patch
 
