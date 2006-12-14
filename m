@@ -1,53 +1,57 @@
 From: akpm@osdl.org
-Subject: - lockdep-clean-up-very_verbose-define.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:09:31 -0800
-Message-ID: <200612140609.kBE69VXE001977@shell0.pdx.osdl.net>
+Subject: - lockdep-use-chain-hash-on-config_debug_lockdep-too.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:09:40 -0800
+Message-ID: <200612140609.kBE69dJ4001985@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52139 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52147 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751909AbWLNGJo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:09:44 -0500
+	id S1751913AbWLNGJ6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:09:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: clean up VERY_VERBOSE define
+     lockdep: use chain hash on CONFIG_DEBUG_LOCKDEP too
 has been removed from the -mm tree.  Its filename was
-     lockdep-clean-up-very_verbose-define.patch
+     lockdep-use-chain-hash-on-config_debug_lockdep-too.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: clean up VERY_VERBOSE define
+Subject: lockdep: use chain hash on CONFIG_DEBUG_LOCKDEP too
 From: Ingo Molnar <mingo@elte.hu>
 
-Cleanup: the VERY_VERBOSE define was unnecessarily dependent on #ifdef VERBOSE
-- while the VERBOSE switch is 0 or 1 (always defined).
+CONFIG_DEBUG_LOCKDEP is unacceptably slow because it does not utilize
+the chain-hash. Turn the chain-hash back on in this case too.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/lockdep.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-clean-up-very_verbose-define kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-clean-up-very_verbose-define
+diff -puN kernel/lockdep.c~lockdep-use-chain-hash-on-config_debug_lockdep-too kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-use-chain-hash-on-config_debug_lockdep-too
 +++ a/kernel/lockdep.c
-@@ -145,9 +145,7 @@ EXPORT_SYMBOL(lockdep_on);
-  */
- 
- #define VERBOSE			0
--#ifdef VERBOSE
--# define VERY_VERBOSE		0
+@@ -1276,14 +1276,6 @@ static inline int lookup_chain_cache(u64
+ 		if (chain->chain_key == chain_key) {
+ cache_hit:
+ 			debug_atomic_inc(&chain_lookup_hits);
+-			/*
+-			 * In the debugging case, force redundant checking
+-			 * by returning 1:
+-			 */
+-#ifdef CONFIG_DEBUG_LOCKDEP
+-			__raw_spin_lock(&hash_lock);
+-			return 1;
 -#endif
-+#define VERY_VERBOSE		0
- 
- #if VERBOSE
- # define HARDIRQ_VERBOSE	1
+ 			if (very_verbose(class))
+ 				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
+ 			return 0;
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
