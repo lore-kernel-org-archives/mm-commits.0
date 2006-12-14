@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + disable-init-initramfsc-updated.patch added to -mm tree
-Date: Thu, 14 Dec 2006 13:39:33 -0800
-Message-ID: <200612142139.kBELdXC4028925@shell0.pdx.osdl.net>
+Subject: + disable-init-initramfsc-architectures.patch added to -mm tree
+Date: Thu, 14 Dec 2006 13:39:36 -0800
+Message-ID: <200612142139.kBELdaHG028932@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60835 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60839 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932942AbWLNVji (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 16:39:38 -0500
+	id S932947AbWLNVjl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 16:39:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,35 +15,20 @@ Cc: jean-paul.saman@nxp.com, linux-arch@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     disable init/initramfs.c
+     disable init/initramfs.c: architectures
 has been added to the -mm tree.  Its filename is
-     disable-init-initramfsc-updated.patch
+     disable-init-initramfsc-architectures.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: disable init/initramfs.c
+Subject: disable init/initramfs.c: architectures
 From: Jean-Paul Saman <jean-paul.saman@nxp.com>
 
-The file init/initramfs.c is always compiled and linked in the kernel
-vmlinux even when BLK_DEV_RAM and BLK_DEV_INITRD are disabled and the
-system isn't using any form of an initramfs or initrd.  In this situation
-the code is only used to unpack a (static) default initial rootfilesystem. 
-The current init/initramfs.c code.  usr/initramfs_data.o compiles to a size
-of ~15 kbytes.  Disabling BLK_DEV_RAM and BLK_DEV_INTRD shrinks the kernel
-code size with ~60 Kbytes.
-
-This patch avoids compiling in the code and data for initramfs support if
-CONFIG_BLK_DEV_INITRD is not defined.  Instead of the initramfs code and
-data it uses a small routine in init/noinitramfs.c to setup an initial
-static default environment for mounting a rootfilesystem later on in the
-kernel initialisation process.  The new code is: 164 bytes of size.
-
-The patch is separated in two parts:
-1) doesn't compile initramfs code when CONFIG_BLK_DEV_INITRD is not set
-2) changing all plaforms vmlinux.lds.S files to not reserve an area of
-PAGE_SIZE when CONFIG_BLK_DEV_INITRD is not set.
+Update all arch/*/kernel/vmlinux.lds.S to not include space for initramfs
+when CONFIG_BLK_DEV_INITRAMFS is not selected.  This saves another 4 kbytes
+on most platfoms (some reserve PAGE_SIZE for initramfs).
 
 Signed-off-by: Jean-Paul Saman <jean-paul.saman@nxp.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -51,124 +36,499 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/Kconfig |    4 ++-
- init/Kconfig          |    4 +++
- init/Makefile         |    8 +++++--
- init/noinitramfs.c    |   42 ++++++++++++++++++++++++++++++++++++++++
- usr/Makefile          |    2 -
- 5 files changed, 56 insertions(+), 4 deletions(-)
+ arch/alpha/kernel/vmlinux.lds.S            |    2 ++
+ arch/arm/kernel/vmlinux.lds.S              |    2 ++
+ arch/arm26/kernel/vmlinux-arm26-xip.lds.in |    2 ++
+ arch/arm26/kernel/vmlinux-arm26.lds.in     |    2 ++
+ arch/avr32/kernel/vmlinux.lds.c            |    2 ++
+ arch/cris/arch-v10/vmlinux.lds.S           |    4 +++-
+ arch/cris/arch-v32/vmlinux.lds.S           |    2 ++
+ arch/frv/kernel/vmlinux.lds.S              |    2 ++
+ arch/h8300/kernel/vmlinux.lds.S            |    2 ++
+ arch/i386/kernel/vmlinux.lds.S             |    2 ++
+ arch/ia64/kernel/vmlinux.lds.S             |    2 ++
+ arch/m32r/kernel/vmlinux.lds.S             |    4 ++++
+ arch/m68k/kernel/vmlinux-std.lds           |    2 ++
+ arch/m68k/kernel/vmlinux-sun3.lds          |    2 ++
+ arch/m68knommu/kernel/vmlinux.lds.S        |    2 ++
+ arch/mips/kernel/vmlinux.lds.S             |    2 ++
+ arch/parisc/kernel/vmlinux.lds.S           |    2 ++
+ arch/powerpc/kernel/vmlinux.lds.S          |    4 ++--
+ arch/ppc/kernel/vmlinux.lds.S              |    2 ++
+ arch/s390/kernel/vmlinux.lds.S             |    3 +++
+ arch/sh/kernel/vmlinux.lds.S               |    4 ++++
+ arch/sh64/kernel/vmlinux.lds.S             |    4 ++++
+ arch/sparc/kernel/vmlinux.lds.S            |    4 ++++
+ arch/sparc64/kernel/vmlinux.lds.S          |    4 ++++
+ arch/v850/kernel/vmlinux.lds.S             |    4 ++++
+ arch/x86_64/kernel/vmlinux.lds.S           |    4 ++++
+ arch/xtensa/kernel/vmlinux.lds.S           |    2 ++
+ 27 files changed, 70 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/Kconfig~disable-init-initramfsc-updated drivers/block/Kconfig
---- a/drivers/block/Kconfig~disable-init-initramfsc-updated
-+++ a/drivers/block/Kconfig
-@@ -417,8 +417,10 @@ config BLK_DEV_INITRD
- 	  etc. See <file:Documentation/initrd.txt> for details.
+diff -puN arch/alpha/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/alpha/kernel/vmlinux.lds.S
+--- a/arch/alpha/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/alpha/kernel/vmlinux.lds.S
+@@ -52,10 +52,12 @@ SECTIONS
+   }
+   __initcall_end = .;
  
- 	  If RAM disk support (BLK_DEV_RAM) is also included, this
--	  also enables initial RAM disk (initrd) support.
-+	  also enables initial RAM disk (initrd) support and adds
-+	  15 Kbytes (more on some other architectures) to the kernel size.
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(8192);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
  
-+	  If unsure say Y.
- 
- config CDROM_PKTCDVD
- 	tristate "Packet writing on CD/DVD media"
-diff -puN init/Kconfig~disable-init-initramfsc-updated init/Kconfig
---- a/init/Kconfig~disable-init-initramfsc-updated
-+++ a/init/Kconfig
-@@ -280,8 +280,12 @@ config RELAY
- 
- 	  If unsure, say N.
- 
-+if BLK_DEV_INITRD
+   . = ALIGN(8);
+   .con_initcall.init : {
+diff -puN arch/arm/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/arm/kernel/vmlinux.lds.S
+--- a/arch/arm/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/arm/kernel/vmlinux.lds.S
+@@ -53,10 +53,12 @@ SECTIONS
+ 		__security_initcall_start = .;
+ 			*(.security_initcall.init)
+ 		__security_initcall_end = .;
++#ifdef CONFIG_BLK_DEV_INITRD
+ 		. = ALIGN(32);
+ 		__initramfs_start = .;
+ 			usr/built-in.o(.init.ramfs)
+ 		__initramfs_end = .;
++#endif
+ 		. = ALIGN(64);
+ 		__per_cpu_start = .;
+ 			*(.data.percpu)
+diff -puN arch/arm26/kernel/vmlinux-arm26-xip.lds.in~disable-init-initramfsc-architectures arch/arm26/kernel/vmlinux-arm26-xip.lds.in
+--- a/arch/arm26/kernel/vmlinux-arm26-xip.lds.in~disable-init-initramfsc-architectures
++++ a/arch/arm26/kernel/vmlinux-arm26-xip.lds.in
+@@ -46,10 +46,12 @@ SECTIONS
+ 		__con_initcall_start = .;
+ 			*(.con_initcall.init)
+ 		__con_initcall_end = .;
++#ifdef CONFIG_BLK_DEV_INITRD
+ 		. = ALIGN(32);
+ 		__initramfs_start = .;
+ 			usr/built-in.o(.init.ramfs)
+ 		__initramfs_end = .;
++#endif
+ 		. = ALIGN(32768);
+ 		__init_end = .;
+ 	}
+diff -puN arch/arm26/kernel/vmlinux-arm26.lds.in~disable-init-initramfsc-architectures arch/arm26/kernel/vmlinux-arm26.lds.in
+--- a/arch/arm26/kernel/vmlinux-arm26.lds.in~disable-init-initramfsc-architectures
++++ a/arch/arm26/kernel/vmlinux-arm26.lds.in
+@@ -47,10 +47,12 @@ SECTIONS
+ 		__con_initcall_start = .;
+ 			*(.con_initcall.init)
+ 		__con_initcall_end = .;
++#ifdef CONFIG_BLK_DEV_INITRD
+ 		. = ALIGN(32);
+ 		__initramfs_start = .;
+ 			usr/built-in.o(.init.ramfs)
+ 		__initramfs_end = .;
++#endif
+ 		. = ALIGN(32768);
+ 		__init_end = .;
+ 	}
+diff -puN arch/avr32/kernel/vmlinux.lds.c~disable-init-initramfsc-architectures arch/avr32/kernel/vmlinux.lds.c
+--- a/arch/avr32/kernel/vmlinux.lds.c~disable-init-initramfsc-architectures
++++ a/arch/avr32/kernel/vmlinux.lds.c
+@@ -46,10 +46,12 @@ SECTIONS
+ 		__security_initcall_start = .;
+ 			*(.security_initcall.init)
+ 		__security_initcall_end = .;
++#ifdef CONFIG_BLK_DEV_INITRD
+ 		. = ALIGN(32);
+ 		__initramfs_start = .;
+ 			*(.init.ramfs)
+ 		__initramfs_end = .;
++#endif
+ 		. = ALIGN(4096);
+ 		__init_end = .;
+ 	}
+diff -puN arch/cris/arch-v10/vmlinux.lds.S~disable-init-initramfsc-architectures arch/cris/arch-v10/vmlinux.lds.S
+--- a/arch/cris/arch-v10/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/cris/arch-v10/vmlinux.lds.S
+@@ -82,7 +82,8 @@ SECTIONS
+ 		__con_initcall_end = .;
+ 	}	
+ 	SECURITY_INIT
+-		
 +
- source "usr/Kconfig"
++#ifdef CONFIG_BLK_DEV_INITRD
+ 	.init.ramfs : {
+ 		__initramfs_start = .;
+ 		*(.init.ramfs)
+@@ -93,6 +94,7 @@ SECTIONS
+ 		FILL (0); 
+ 		. = ALIGN (8192);
+ 	}
++#endif
+ 	
+ 	__vmlinux_end = .;            /* last address of the physical file */
+   	__init_end = .;
+diff -puN arch/cris/arch-v32/vmlinux.lds.S~disable-init-initramfsc-architectures arch/cris/arch-v32/vmlinux.lds.S
+--- a/arch/cris/arch-v32/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/cris/arch-v32/vmlinux.lds.S
+@@ -95,6 +95,7 @@ SECTIONS
+ 	.data.percpu  : { *(.data.percpu) }
+ 	__per_cpu_end = .;
  
-+endif
++#ifdef CONFIG_BLK_DEV_INITRD
+ 	.init.ramfs : {
+ 		__initramfs_start = .;
+ 		*(.init.ramfs)
+@@ -107,6 +108,7 @@ SECTIONS
+ 		FILL (0);
+ 		. = ALIGN (8192);
+ 	}
++#endif
+ 
+ 	__vmlinux_end = .;	/* Last address of the physical file. */
+   	__init_end = .;
+diff -puN arch/frv/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/frv/kernel/vmlinux.lds.S
+--- a/arch/frv/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/frv/kernel/vmlinux.lds.S
+@@ -61,10 +61,12 @@ SECTIONS
+   .data.percpu  : { *(.data.percpu) }
+   __per_cpu_end = .;
+ 
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
+ 
+   . = ALIGN(THREAD_SIZE);
+   __init_end = .;
+diff -puN arch/h8300/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/h8300/kernel/vmlinux.lds.S
+--- a/arch/h8300/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/h8300/kernel/vmlinux.lds.S
+@@ -126,10 +126,12 @@ SECTIONS
+ 	___con_initcall_end = .;
+ 		*(.exit.text)
+ 		*(.exit.data)
++#if defined(CONFIG_BLK_DEV_INITRD)
+ 		. = ALIGN(4);
+ 	___initramfs_start = .;
+   		*(.init.ramfs)
+   	___initramfs_end = .;
++#endif
+ 	. = ALIGN(0x4) ;
+ 	___init_end = .;
+ 	__edata = . ;
+diff -puN arch/i386/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -184,12 +184,14 @@ SECTIONS
+      from .altinstructions and .eh_frame */
+   .exit.text : AT(ADDR(.exit.text) - LOAD_OFFSET) { *(.exit.text) }
+   .exit.data : AT(ADDR(.exit.data) - LOAD_OFFSET) { *(.exit.data) }
++#if defined(CONFIG_BLK_DEV_INITRD)
+   . = ALIGN(4096);
+   .init.ramfs : AT(ADDR(.init.ramfs) - LOAD_OFFSET) {
+ 	__initramfs_start = .;
+ 	*(.init.ramfs)
+ 	__initramfs_end = .;
+   }
++#endif
+   . = ALIGN(L1_CACHE_BYTES);
+   .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
+ 	__per_cpu_start = .;
+diff -puN arch/ia64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/ia64/kernel/vmlinux.lds.S
+--- a/arch/ia64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/ia64/kernel/vmlinux.lds.S
+@@ -115,12 +115,14 @@ SECTIONS
+   .init.data : AT(ADDR(.init.data) - LOAD_OFFSET)
+ 	{ *(.init.data) }
+ 
++#ifdef CONFIG_BLK_DEV_INITRD
+   .init.ramfs : AT(ADDR(.init.ramfs) - LOAD_OFFSET)
+ 	{
+ 	  __initramfs_start = .;
+ 	  *(.init.ramfs)
+ 	  __initramfs_end = .;
+ 	}
++#endif
+ 
+    . = ALIGN(16);
+   .init.setup : AT(ADDR(.init.setup) - LOAD_OFFSET)
+diff -puN arch/m32r/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/m32r/kernel/vmlinux.lds.S
+--- a/arch/m32r/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/m32r/kernel/vmlinux.lds.S
+@@ -102,10 +102,14 @@ SECTIONS
+      from .altinstructions and .eh_frame */
+   .exit.text : { *(.exit.text) }
+   .exit.data : { *(.exit.data) }
 +
- config CC_OPTIMIZE_FOR_SIZE
- 	bool "Optimize for size (Look out for broken compilers!)"
- 	default y
-diff -puN init/Makefile~disable-init-initramfsc-updated init/Makefile
---- a/init/Makefile~disable-init-initramfsc-updated
-+++ a/init/Makefile
-@@ -2,7 +2,12 @@
- # Makefile for the linux kernel.
- #
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
++
+   . = ALIGN(32);
+   __per_cpu_start = .;
+   .data.percpu  : { *(.data.percpu) }
+diff -puN arch/m68k/kernel/vmlinux-std.lds~disable-init-initramfsc-architectures arch/m68k/kernel/vmlinux-std.lds
+--- a/arch/m68k/kernel/vmlinux-std.lds~disable-init-initramfsc-architectures
++++ a/arch/m68k/kernel/vmlinux-std.lds
+@@ -61,10 +61,12 @@ SECTIONS
+   .con_initcall.init : { *(.con_initcall.init) }
+   __con_initcall_end = .;
+   SECURITY_INIT
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(8192);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
+   . = ALIGN(8192);
+   __init_end = .;
  
--obj-y				:= main.o version.o mounts.o initramfs.o
-+obj-y                          := main.o version.o mounts.o
-+ifneq ($(CONFIG_BLK_DEV_INITRD),y)
-+obj-y                          += noinitramfs.o
-+else
-+obj-$(CONFIG_BLK_DEV_INITRD)   += initramfs.o
-+endif
- obj-$(CONFIG_GENERIC_CALIBRATE_DELAY) += calibrate.o
- 
- mounts-y			:= do_mounts.o
-@@ -17,4 +22,3 @@ clean-files := ../include/linux/compile.
- 
- $(obj)/main.o: include/linux/compile.h
- $(obj)/version.o: include/linux/compile.h
+diff -puN arch/m68k/kernel/vmlinux-sun3.lds~disable-init-initramfsc-architectures arch/m68k/kernel/vmlinux-sun3.lds
+--- a/arch/m68k/kernel/vmlinux-sun3.lds~disable-init-initramfsc-architectures
++++ a/arch/m68k/kernel/vmlinux-sun3.lds
+@@ -55,10 +55,12 @@ __init_begin = .;
+ 	.con_initcall.init : { *(.con_initcall.init) }
+ 	__con_initcall_end = .;
+ 	SECURITY_INIT
++#ifdef CONFIG_BLK_DEV_INITRD
+ 	. = ALIGN(8192);
+ 	__initramfs_start = .;
+ 	.init.ramfs : { *(.init.ramfs) }
+ 	__initramfs_end = .;
++#endif
+ 	. = ALIGN(8192);
+ 	__init_end = .;
+ 	.data.init.task : { *(.data.init_task) }
+diff -puN arch/m68knommu/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/m68knommu/kernel/vmlinux.lds.S
+--- a/arch/m68knommu/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/m68knommu/kernel/vmlinux.lds.S
+@@ -149,10 +149,12 @@ SECTIONS {
+ 		__security_initcall_start = .;
+ 		*(.security_initcall.init)
+ 		__security_initcall_end = .;
++#ifdef CONFIG_BLK_DEV_INITRD
+ 		. = ALIGN(4);
+ 		__initramfs_start = .;
+ 		*(.init.ramfs)
+ 		__initramfs_end = .;
++#endif
+ 		. = ALIGN(4096);
+ 		__init_end = .;
+ 	} > INIT
+diff -puN arch/mips/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/mips/kernel/vmlinux.lds.S
+--- a/arch/mips/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/mips/kernel/vmlinux.lds.S
+@@ -113,10 +113,12 @@ SECTIONS
+      references from .rodata */
+   .exit.text : { *(.exit.text) }
+   .exit.data : { *(.exit.data) }
++#if defined(CONFIG_BLK_DEV_INITRD)
+   . = ALIGN(_PAGE_SIZE);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
+   . = ALIGN(32);
+   __per_cpu_start = .;
+   .data.percpu  : { *(.data.percpu) }
+diff -puN arch/parisc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/parisc/kernel/vmlinux.lds.S
+--- a/arch/parisc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/parisc/kernel/vmlinux.lds.S
+@@ -173,10 +173,12 @@ SECTIONS
+      from .altinstructions and .eh_frame */
+   .exit.text : { *(.exit.text) }
+   .exit.data : { *(.exit.data) }
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(ASM_PAGE_SIZE);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
+   . = ALIGN(32);
+   __per_cpu_start = .;
+   .data.percpu  : { *(.data.percpu) }
+diff -puN arch/powerpc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/powerpc/kernel/vmlinux.lds.S
+--- a/arch/powerpc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/powerpc/kernel/vmlinux.lds.S
+@@ -131,14 +131,14 @@ SECTIONS
+ 		__stop___fw_ftr_fixup = .;
+ 	}
+ #endif
 -
-diff -puN /dev/null init/noinitramfs.c
---- /dev/null
-+++ a/init/noinitramfs.c
-@@ -0,0 +1,42 @@
-+/*
-+ * init/noinitramfs.c
-+ *
-+ * Copyright (C) 2006, NXP Semiconductors, All Rights Reserved
-+ * Author: Jean-Paul Saman <jean-paul.saman@nxp.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+#include <linux/init.h>
-+#include <linux/fs.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+#include <linux/fcntl.h>
-+#include <linux/delay.h>
-+#include <linux/string.h>
-+#include <linux/syscalls.h>
++#ifdef CONFIG_BLK_DEV_INITRD
+ 	. = ALIGN(PAGE_SIZE);
+ 	.init.ramfs : {
+ 		__initramfs_start = .;
+ 		*(.init.ramfs)
+ 		__initramfs_end = .;
+ 	}
+-
++#endif
+ #ifdef CONFIG_PPC32
+ 	. = ALIGN(32);
+ #else
+diff -puN arch/ppc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/ppc/kernel/vmlinux.lds.S
+--- a/arch/ppc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/ppc/kernel/vmlinux.lds.S
+@@ -135,10 +135,12 @@ SECTIONS
+   .data.percpu  : { *(.data.percpu) }
+   __per_cpu_end = .;
+ 
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
+ 
+   . = ALIGN(4096);
+   __init_end = .;
+diff -puN arch/s390/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/s390/kernel/vmlinux.lds.S
+--- a/arch/s390/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/s390/kernel/vmlinux.lds.S
+@@ -90,11 +90,14 @@ SECTIONS
+   .con_initcall.init : { *(.con_initcall.init) }
+   __con_initcall_end = .;
+   SECURITY_INIT
 +
-+/*
-+ * Create a simple rootfs that is similar to the default initramfs
-+ */
-+static void __init default_rootfs(void)
-+{
-+	int mkdir_err = sys_mkdir("/dev", 0755);
-+	int err = sys_mknod((const char __user *) "/dev/console",
-+				S_IFCHR | S_IRUSR | S_IWUSR,
-+				new_encode_dev(MKDEV(5, 1)));
-+	if (err == -EROFS)
-+		printk("Warning: Failed to create a rootfs\n");
-+	mkdir_err = sys_mkdir("/root", 0700);
-+}
-+rootfs_initcall(default_rootfs);
-diff -puN usr/Makefile~disable-init-initramfsc-updated usr/Makefile
---- a/usr/Makefile~disable-init-initramfsc-updated
-+++ a/usr/Makefile
-@@ -7,7 +7,7 @@ PHONY += klibcdirs
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(256);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.initramfs) }
+   . = ALIGN(2);
+   __initramfs_end = .;
++#endif
+   . = ALIGN(256);
+   __per_cpu_start = .;
+   .data.percpu  : { *(.data.percpu) }
+diff -puN arch/sh/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/sh/kernel/vmlinux.lds.S
+--- a/arch/sh/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/sh/kernel/vmlinux.lds.S
+@@ -83,9 +83,13 @@ SECTIONS
+   .con_initcall.init : { *(.con_initcall.init) }
+   __con_initcall_end = .;
+   SECURITY_INIT
++
++#ifdef CONFIG_BLK_DEV_INITRD
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
++
+   __machvec_start = .;
+   .init.machvec : { *(.init.machvec) }
+   __machvec_end = .;
+diff -puN arch/sh64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/sh64/kernel/vmlinux.lds.S
+--- a/arch/sh64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/sh64/kernel/vmlinux.lds.S
+@@ -115,9 +115,13 @@ SECTIONS
+   .con_initcall.init : C_PHYS(.con_initcall.init) { *(.con_initcall.init) }
+   __con_initcall_end = .;
+   SECURITY_INIT
++
++#ifdef CONFIG_BLK_DEV_INITRD
+   __initramfs_start = .;
+   .init.ramfs : C_PHYS(.init.ramfs) { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
++
+   . = ALIGN(PAGE_SIZE);
+   __init_end = .;
  
+diff -puN arch/sparc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/sparc/kernel/vmlinux.lds.S
+--- a/arch/sparc/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/sparc/kernel/vmlinux.lds.S
+@@ -57,10 +57,14 @@ SECTIONS
+   .con_initcall.init : { *(.con_initcall.init) }
+   __con_initcall_end = .;
+   SECURITY_INIT
++
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
++
+   . = ALIGN(32);
+   __per_cpu_start = .;
+   .data.percpu  : { *(.data.percpu) }
+diff -puN arch/sparc64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/sparc64/kernel/vmlinux.lds.S
+--- a/arch/sparc64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/sparc64/kernel/vmlinux.lds.S
+@@ -81,10 +81,14 @@ SECTIONS
+   __sun4v_2insn_patch = .;
+   .sun4v_2insn_patch : { *(.sun4v_2insn_patch) }
+   __sun4v_2insn_patch_end = .;
++
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(8192); 
+   __initramfs_start = .;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
++
+   . = ALIGN(8192);
+   __per_cpu_start = .;
+   .data.percpu  : { *(.data.percpu) }
+diff -puN arch/v850/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/v850/kernel/vmlinux.lds.S
+--- a/arch/v850/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/v850/kernel/vmlinux.lds.S
+@@ -190,12 +190,16 @@
+ 		__root_fs_image_start = . ;				      \
+ 		*(.root)						      \
+ 		__root_fs_image_end = . ;
++
++#ifdef CONFIG_BLK_DEV_INITRD
+ /* The initramfs archive.  */
+ #define INITRAMFS_CONTENTS						      \
+ 		. = ALIGN (4) ;						      \
+ 		___initramfs_start = . ;				      \
+ 			*(.init.ramfs)					      \
+ 		___initramfs_end = . ;
++#endif
++
+ /* Where the initial bootmap (bitmap for the boot-time memory allocator) 
+    should be place.  */
+ #define BOOTMAP_CONTENTS						      \
+diff -puN arch/x86_64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/x86_64/kernel/vmlinux.lds.S
+--- a/arch/x86_64/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/x86_64/kernel/vmlinux.lds.S
+@@ -186,10 +186,14 @@ SECTIONS
+      from .altinstructions and .eh_frame */
+   .exit.text : AT(ADDR(.exit.text) - LOAD_OFFSET) { *(.exit.text) }
+   .exit.data : AT(ADDR(.exit.data) - LOAD_OFFSET) { *(.exit.data) }
++
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+   __initramfs_start = .;
+   .init.ramfs : AT(ADDR(.init.ramfs) - LOAD_OFFSET) { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
++
+     . = ALIGN(CONFIG_X86_L1_CACHE_BYTES);
+   __per_cpu_start = .;
+   .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) { *(.data.percpu) }
+diff -puN arch/xtensa/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures arch/xtensa/kernel/vmlinux.lds.S
+--- a/arch/xtensa/kernel/vmlinux.lds.S~disable-init-initramfsc-architectures
++++ a/arch/xtensa/kernel/vmlinux.lds.S
+@@ -203,10 +203,12 @@ SECTIONS
+   .data.percpu  : { *(.data.percpu) }
+   __per_cpu_end = .;
  
- # Generate builtin.o based on initramfs_data.o
--obj-y := initramfs_data.o
-+obj-$(CONFIG_BLK_DEV_INITRD) := initramfs_data.o
++#ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+   __initramfs_start =.;
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
++#endif
  
- # initramfs_data.o contains the initramfs_data.cpio.gz image.
- # The image is included using .incbin, a dependency which is not
+   /* We need this dummy segment here */
+ 
 _
 
 Patches currently in -mm which might be from jean-paul.saman@nxp.com are
