@@ -1,60 +1,53 @@
 From: akpm@osdl.org
-Subject: - lockdep-improve-lockdep_reset.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:09:22 -0800
-Message-ID: <200612140609.kBE69LMc001974@shell0.pdx.osdl.net>
+Subject: - lockdep-clean-up-very_verbose-define.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:09:31 -0800
+Message-ID: <200612140609.kBE69VXE001977@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52135 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52139 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751908AbWLNGJi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:09:38 -0500
+	id S1751909AbWLNGJo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:09:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: improve lockdep_reset()
+     lockdep: clean up VERY_VERBOSE define
 has been removed from the -mm tree.  Its filename was
-     lockdep-improve-lockdep_reset.patch
+     lockdep-clean-up-very_verbose-define.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: improve lockdep_reset()
+Subject: lockdep: clean up VERY_VERBOSE define
 From: Ingo Molnar <mingo@elte.hu>
 
-Clear all the chains during lockdep_reset().  This fixes some locking-selftest
-false positives i saw on -rt.  (never saw those on mainline though, but it
-could happen.)
+Cleanup: the VERY_VERBOSE define was unnecessarily dependent on #ifdef VERBOSE
+- while the VERBOSE switch is 0 or 1 (always defined).
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/lockdep.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-improve-lockdep_reset kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-improve-lockdep_reset
+diff -puN kernel/lockdep.c~lockdep-clean-up-very_verbose-define kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-clean-up-very_verbose-define
 +++ a/kernel/lockdep.c
-@@ -2437,6 +2437,7 @@ EXPORT_SYMBOL_GPL(lock_release);
- void lockdep_reset(void)
- {
- 	unsigned long flags;
-+	int i;
+@@ -145,9 +145,7 @@ EXPORT_SYMBOL(lockdep_on);
+  */
  
- 	raw_local_irq_save(flags);
- 	current->curr_chain_key = 0;
-@@ -2447,6 +2448,8 @@ void lockdep_reset(void)
- 	nr_softirq_chains = 0;
- 	nr_process_chains = 0;
- 	debug_locks = 1;
-+	for (i = 0; i < CHAINHASH_SIZE; i++)
-+		INIT_LIST_HEAD(chainhash_table + i);
- 	raw_local_irq_restore(flags);
- }
+ #define VERBOSE			0
+-#ifdef VERBOSE
+-# define VERY_VERBOSE		0
+-#endif
++#define VERY_VERBOSE		0
  
+ #if VERBOSE
+ # define HARDIRQ_VERBOSE	1
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
