@@ -1,238 +1,139 @@
 From: akpm@osdl.org
-Subject: - x86_64-make-the-numa-hash-function-nodemap-allocation.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:20:32 -0800
-Message-ID: <200612140620.kBE6KVdt002402@shell0.pdx.osdl.net>
+Subject: - ide-hpt3xx-fix-pci-clock-detection.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:19:05 -0800
+Message-ID: <200612140619.kBE6J4x0002363@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52899 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53005 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752040AbWLNGVB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:21:01 -0500
+	id S1751982AbWLNGWg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:22:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amul.shah@unisys.com, ak@suse.de, rohitseth@google.com, mm-commits@vger.kernel.org
+To: sshtylyov@ru.mvista.com, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: Make the NUMA hash function nodemap allocation dynamic and remove NODEMAPSIZE (udpate)
+     ide: HPT3xx: fix PCI clock detection
 has been removed from the -mm tree.  Its filename was
-     x86_64-make-the-numa-hash-function-nodemap-allocation.patch
+     ide-hpt3xx-fix-pci-clock-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: Make the NUMA hash function nodemap allocation dynamic and remove NODEMAPSIZE (udpate)
-From: Amul Shah <amul.shah@unisys.com>
+Subject: ide: HPT3xx: fix PCI clock detection
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-Remove the statically allocated memory to NUMA node hash map in favor of a
-dynamically allocated memory to node hash map (it is cache aligned).
+Use the f_CNT value saved by the HighPoint BIOS if available as reading it
+directly would give us a wrong PCI frequency after DPLL has already been
+calibrated by BIOS.
 
-This patch has the nice side effect in that it allows the hash map to grow
-for systems with large amounts of memory (256GB - 1TB), but suffer from
-having small PCI space tacked onto the boot node (which is somewhere
-between 192MB to 512MB on the ES7000).
-
-Signed-off-by: Amul Shah <amul.shah@unisys.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Rohit Seth <rohitseth@google.com>
+Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/e820.c   |    6 ++
- arch/x86_64/kernel/setup.c  |    4 +
- arch/x86_64/mm/numa.c       |   73 +++++++++++++++++++++++++++++-----
- include/asm-x86_64/e820.h   |    1 
- include/asm-x86_64/mmzone.h |   13 +++---
- 5 files changed, 82 insertions(+), 15 deletions(-)
+ drivers/ide/pci/hpt366.c |   46 +++++++++++++++++++++++++------------
+ 1 file changed, 32 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86_64/kernel/e820.c~x86_64-make-the-numa-hash-function-nodemap-allocation arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~x86_64-make-the-numa-hash-function-nodemap-allocation
-+++ a/arch/x86_64/kernel/e820.c
-@@ -83,6 +83,12 @@ static inline int bad_addr(unsigned long
- 		return 1;
- 	}
- 
-+	/* NUMA memory to node map */
-+	if (last >= nodemap_addr && addr < nodemap_addr + nodemap_size) {
-+		*addrp = nodemap_addr + nodemap_size;
-+		return 1;
-+	}
-+
- 	/* XXX ramdisk image here? */ 
- 	return 0;
- } 
-diff -puN arch/x86_64/kernel/setup.c~x86_64-make-the-numa-hash-function-nodemap-allocation arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~x86_64-make-the-numa-hash-function-nodemap-allocation
-+++ a/arch/x86_64/kernel/setup.c
-@@ -445,6 +445,10 @@ void __init setup_arch(char **cmdline_p)
- 	if (ebda_addr)
- 		reserve_bootmem_generic(ebda_addr, ebda_size);
- 
-+	/* reserve nodemap region */
-+	if (nodemap_addr)
-+		reserve_bootmem_generic(nodemap_addr, nodemap_size);
-+
- #ifdef CONFIG_SMP
+diff -puN drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pci-clock-detection drivers/ide/pci/hpt366.c
+--- a/drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pci-clock-detection
++++ a/drivers/ide/pci/hpt366.c
+@@ -70,6 +70,8 @@
+  * - fix/remove bad/unused timing tables and use one set of tables for the whole
+  *   HPT37x chip family; save space by introducing the separate transfer mode
+  *   table in which the mode lookup is done
++ * - use f_CNT value saved by  the HighPoint BIOS as reading it directly gives
++ *   the wrong PCI frequency since DPLL has already been calibrated by BIOS
+  * - fix the hotswap code:  it caused RESET- to glitch when tristating the bus,
+  *   and for HPT36x the obsolete HDIO_TRISTATE_HWIF handler was called instead
+  * - pass to init_chipset() handlers a copy of the IDE PCI device structure as
+@@ -1010,8 +1012,8 @@ static void __devinit hpt37x_clocking(id
+ 	struct hpt_info *info = ide_get_hwifdata(hwif);
+ 	struct pci_dev *dev = hwif->pci_dev;
+ 	int adjust, i;
+-	u16 freq;
+-	u32 pll;
++	u16 freq = 0;
++	u32 pll, temp = 0;
+ 	u8 reg5bh = 0, mcr1 = 0;
+ 	
  	/*
- 	 * But first pinch a few for the stack/trampoline stuff
-diff -puN arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation
-+++ a/arch/x86_64/mm/numa.c
-@@ -36,6 +36,8 @@ unsigned char apicid_to_node[MAX_LOCAL_A
- cpumask_t node_to_cpumask[MAX_NUMNODES] __read_mostly;
+@@ -1025,15 +1027,34 @@ static void __devinit hpt37x_clocking(id
+ 	pci_write_config_byte(dev, 0x5b, 0x23);
  
- int numa_off __initdata;
-+unsigned long __initdata nodemap_addr;
-+unsigned long __initdata nodemap_size;
- 
- 
- /*
-@@ -52,34 +54,87 @@ populate_memnodemap(const struct bootnod
- 	int res = -1;
- 	unsigned long addr, end;
- 
--	if (shift >= 64)
--		return -1;
--	memset(memnodemap, 0xff, sizeof(memnodemap));
-+	memset(memnodemap, 0xff, memnodemapsize);
- 	for (i = 0; i < numnodes; i++) {
- 		addr = nodes[i].start;
- 		end = nodes[i].end;
- 		if (addr >= end)
- 			continue;
--		if ((end >> shift) >= NODEMAPSIZE)
-+		if ((end >> shift) >= memnodemapsize)
- 			return 0;
- 		do {
- 			if (memnodemap[addr >> shift] != 0xff)
- 				return -1;
- 			memnodemap[addr >> shift] = i;
--                       addr += (1UL << shift);
-+			addr += (1UL << shift);
- 		} while (addr < end);
- 		res = 1;
- 	} 
- 	return res;
- }
- 
--int __init compute_hash_shift(struct bootnode *nodes, int numnodes)
-+static int __init allocate_cachealigned_memnodemap(void)
-+{
-+	unsigned long pad, pad_addr;
+ 	/*
+-	 * set up the PLL. we need to adjust it so that it's stable. 
+-	 * freq = Tpll * 192 / Tpci
++	 * We'll have to read f_CNT value in order to determine
++	 * the PCI clock frequency according to the following ratio:
+ 	 *
+-	 * Todo. For non x86 should probably check the dword is
+-	 * set to 0xABCDExxx indicating the BIOS saved f_CNT
++	 * f_CNT = Fpci * 192 / Fdpll
++	 *
++	 * First try reading the register in which the HighPoint BIOS
++	 * saves f_CNT value before  reprogramming the DPLL from its
++	 * default setting (which differs for the various chips).
++	 * In case the signature check fails, we'll have to resort to
++	 * reading the f_CNT register itself in hopes that nobody has
++	 * touched the DPLL yet...
+ 	 */
+-	pci_read_config_word(dev, 0x78, &freq);
+-	freq &= 0x1FF;
+-	
++	pci_read_config_dword(dev, 0x70, &temp);
++	if ((temp & 0xFFFFF000) != 0xABCDE000) {
++		int i;
 +
-+	memnodemap = memnode.embedded_map;
-+	if (memnodemapsize <= 48) {
-+		printk(KERN_DEBUG "NUMA: Allocated memnodemap from %lx - %lx\n",
-+		       nodemap_addr, nodemap_addr + nodemap_size);
-+		return 0;
-+	}
++		printk(KERN_WARNING "HPT37X: no clock data saved by BIOS\n");
 +
-+	pad = L1_CACHE_BYTES - 1;
-+	pad_addr = 0x8000;
-+	nodemap_size = pad + memnodemapsize;
-+	nodemap_addr = find_e820_area(pad_addr, end_pfn<<PAGE_SHIFT,
-+				      nodemap_size);
-+	if (nodemap_addr == -1UL) {
-+		printk(KERN_ERR
-+		       "NUMA: Unable to allocate Memory to Node hash map\n");
-+		nodemap_addr = nodemap_size = 0;
-+		return -1;
-+	}
-+	pad_addr = (nodemap_addr + pad) & ~pad;
-+	memnodemap = phys_to_virt(pad_addr);
++		/* Calculate the average value of f_CNT */
++		for (temp = i = 0; i < 128; i++) {
++			pci_read_config_word(dev, 0x78, &freq);
++			temp += freq & 0x1ff;
++			mdelay(1);
++		}
++		freq = temp / 128;
++	} else
++		freq = temp & 0x1ff;
 +
-+	printk(KERN_DEBUG "NUMA: Allocated memnodemap from %lx - %lx\n",
-+	       nodemap_addr, nodemap_addr + nodemap_size);
-+	return 0;
-+}
-+
-+/*
-+ * The LSB of all start and end addresses in the node map is the value of the
-+ * maximum possible shift.
-+ */
-+static int __init
-+extract_lsb_from_nodes (const struct bootnode *nodes, int numnodes)
- {
--	int shift = 20;
-+	int i;
-+	unsigned long start, end;
-+	unsigned long bitfield = 0, memtop = 0;
- 
--	while (populate_memnodemap(nodes, numnodes, shift + 1) >= 0)
--		shift++;
-+	for (i = 0; i < numnodes; i++) {
-+		start = nodes[i].start;
-+		end = nodes[i].end;
-+		if (start >= end)
-+			continue;
-+		bitfield |= start | end;
-+		if (end > memtop)
-+			memtop = end;
-+	}
-+	i = find_first_bit(&bitfield, sizeof(unsigned long)*8);
-+	memnodemapsize = (memtop >> i)+1;
-+	return i;
-+}
-+
-+int __init compute_hash_shift(struct bootnode *nodes, int numnodes)
-+{
-+	int shift;
- 
-+	shift = extract_lsb_from_nodes(nodes, numnodes);
-+	if (allocate_cachealigned_memnodemap())
-+		return -1;
- 	printk(KERN_DEBUG "NUMA: Using %d for the hash shift.\n",
- 		shift);
- 
-diff -puN include/asm-x86_64/e820.h~x86_64-make-the-numa-hash-function-nodemap-allocation include/asm-x86_64/e820.h
---- a/include/asm-x86_64/e820.h~x86_64-make-the-numa-hash-function-nodemap-allocation
-+++ a/include/asm-x86_64/e820.h
-@@ -56,6 +56,7 @@ extern void finish_e820_parsing(void);
- extern struct e820map e820;
- 
- extern unsigned ebda_addr, ebda_size;
-+extern unsigned long nodemap_addr, nodemap_size;
- #endif/*!__ASSEMBLY__*/
- 
- #endif/*__E820_HEADER*/
-diff -puN include/asm-x86_64/mmzone.h~x86_64-make-the-numa-hash-function-nodemap-allocation include/asm-x86_64/mmzone.h
---- a/include/asm-x86_64/mmzone.h~x86_64-make-the-numa-hash-function-nodemap-allocation
-+++ a/include/asm-x86_64/mmzone.h
-@@ -11,24 +11,25 @@
- 
- #include <asm/smp.h>
- 
--/* Should really switch to dynamic allocation at some point */
--#define NODEMAPSIZE 0x4fff
--
- /* Simple perfect hash to map physical addresses to node numbers */
- struct memnode {
- 	int shift;
--	u8 map[NODEMAPSIZE];
--} ____cacheline_aligned;
-+	unsigned int mapsize;
-+	u8 *map;
-+	u8 embedded_map[64-16];
-+} ____cacheline_aligned; /* total size = 64 bytes */
- extern struct memnode memnode;
- #define memnode_shift memnode.shift
- #define memnodemap memnode.map
-+#define memnodemapsize memnode.mapsize
- 
- extern struct pglist_data *node_data[];
- 
- static inline __attribute__((pure)) int phys_to_nid(unsigned long addr) 
- { 
- 	unsigned nid; 
--	VIRTUAL_BUG_ON((addr >> memnode_shift) >= NODEMAPSIZE);
-+	VIRTUAL_BUG_ON(!memnodemap);
-+	VIRTUAL_BUG_ON((addr >> memnode_shift) >= memnodemapsize);
- 	nid = memnodemap[addr >> memnode_shift]; 
- 	VIRTUAL_BUG_ON(nid >= MAX_NUMNODES || !node_data[nid]); 
- 	return nid; 
+ 	/*
+ 	 * HPT3xxN chips use different PCI clock information.
+ 	 * Currently we always set up the PLL for them.
+@@ -1095,11 +1116,8 @@ static void __devinit hpt37x_clocking(id
+ 	info->flags |= PLL_MODE;
+ 	
+ 	/*
+-	 * FIXME: make this work correctly, esp with 372N as per
+-	 * reference driver code.
+-	 *
+-	 * adjust PLL based upon PCI clock, enable it, and wait for
+-	 * stabilization.
++	 * Adjust the PLL based upon the PCI clock, enable it, and
++	 * wait for stabilization...
+ 	 */
+ 	adjust = 0;
+ 	freq = (pll < F_LOW_PCI_50) ? 2 : 4;
 _
 
-Patches currently in -mm which might be from amul.shah@unisys.com are
+Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
 
-x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
+git-mtd.patch
+3x59x-fix-pci-resource-management.patch
+toshiba-tc86c001-ide-driver-take-2.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+piix-fix-82371mx-enablebits.patch
+piix-remove-check-for-broken-mw-dma-mode-0.patch
+piix-slc90e66-pio-mode-fallback-fix.patch
+pdc202xx_new-remove-useless-code.patch
+pdc202xx_-remove-check_in_drive_lists-abomination.patch
 
