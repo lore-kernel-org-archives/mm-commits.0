@@ -1,13 +1,13 @@
 From: akpm@osdl.org
 Subject: + fbdev-update-after-backlight-argument-change.patch added to -mm tree
-Date: Wed, 13 Dec 2006 15:57:07 -0800
-Message-ID: <200612132357.kBDNv7tk025175@shell0.pdx.osdl.net>
+Date: Wed, 13 Dec 2006 16:00:29 -0800
+Message-ID: <200612140000.kBE00Tcr025286@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58955 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59291 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751670AbWLMX5S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 18:57:18 -0500
+	id S1751773AbWLNAAk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:00:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -36,12 +36,12 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/aty/aty128fb.c         |    6 +++---
- drivers/video/aty/atyfb_base.c       |    6 +++---
+ drivers/video/aty/aty128fb.c         |    2 +-
+ drivers/video/aty/atyfb_base.c       |    2 +-
  drivers/video/aty/radeon_backlight.c |    2 +-
  drivers/video/nvidia/nv_backlight.c  |    2 +-
  drivers/video/riva/fbdev.c           |    2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
 diff -puN drivers/video/aty/aty128fb.c~fbdev-update-after-backlight-argument-change drivers/video/aty/aty128fb.c
 --- a/drivers/video/aty/aty128fb.c~fbdev-update-after-backlight-argument-change
@@ -55,24 +55,6 @@ diff -puN drivers/video/aty/aty128fb.c~fbdev-update-after-backlight-argument-cha
  	if (IS_ERR(bd)) {
  		info->bl_dev = NULL;
  		printk(KERN_WARNING "aty128: Backlight registration failed\n");
-@@ -2215,7 +2215,7 @@ static int aty128fb_blank(int blank, str
- 		return 0;
- 
- #ifdef CONFIG_FB_ATY128_BACKLIGHT
--	if (machine_is(powermac) && blank)
-+	if (blank)
- 		aty128_bl_set_power(fb, FB_BLANK_POWERDOWN);
- #endif
- 
-@@ -2234,7 +2234,7 @@ static int aty128fb_blank(int blank, str
- 	}
- 
- #ifdef CONFIG_FB_ATY128_BACKLIGHT
--	if (machine_is(powermac) && !blank)
-+	if (blank)
- 		aty128_bl_set_power(fb, FB_BLANK_UNBLANK);
- #endif
- 
 diff -puN drivers/video/aty/atyfb_base.c~fbdev-update-after-backlight-argument-change drivers/video/aty/atyfb_base.c
 --- a/drivers/video/aty/atyfb_base.c~fbdev-update-after-backlight-argument-change
 +++ a/drivers/video/aty/atyfb_base.c
@@ -85,24 +67,6 @@ diff -puN drivers/video/aty/atyfb_base.c~fbdev-update-after-backlight-argument-c
  	if (IS_ERR(bd)) {
  		info->bl_dev = NULL;
  		printk(KERN_WARNING "aty: Backlight registration failed\n");
-@@ -2814,7 +2814,7 @@ static int atyfb_blank(int blank, struct
- 		return 0;
- 
- #ifdef CONFIG_FB_ATY_BACKLIGHT
--	if (machine_is(powermac) && blank > FB_BLANK_NORMAL)
-+	if (blank > FB_BLANK_NORMAL)
- 		aty_bl_set_power(info, FB_BLANK_POWERDOWN);
- #elif defined(CONFIG_FB_ATY_GENERIC_LCD)
- 	if (par->lcd_table && blank > FB_BLANK_NORMAL &&
-@@ -2846,7 +2846,7 @@ static int atyfb_blank(int blank, struct
- 	aty_st_le32(CRTC_GEN_CNTL, gen_cntl, par);
- 
- #ifdef CONFIG_FB_ATY_BACKLIGHT
--	if (machine_is(powermac) && blank <= FB_BLANK_NORMAL)
-+	if (blank <= FB_BLANK_NORMAL)
- 		aty_bl_set_power(info, FB_BLANK_UNBLANK);
- #elif defined(CONFIG_FB_ATY_GENERIC_LCD)
- 	if (par->lcd_table && blank <= FB_BLANK_NORMAL &&
 diff -puN drivers/video/aty/radeon_backlight.c~fbdev-update-after-backlight-argument-change drivers/video/aty/radeon_backlight.c
 --- a/drivers/video/aty/radeon_backlight.c~fbdev-update-after-backlight-argument-change
 +++ a/drivers/video/aty/radeon_backlight.c
