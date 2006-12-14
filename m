@@ -1,166 +1,139 @@
 From: akpm@osdl.org
-Subject: - smbfs-make-conn_pid-a-struct-pid.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:13:20 -0800
-Message-ID: <200612140613.kBE6DKPT002105@shell0.pdx.osdl.net>
+Subject: - rtc-framework-rtc_wkalrmenabled-reporting-updates.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:12:47 -0800
+Message-ID: <200612140612.kBE6Cmp7002086@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52325 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52323 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751950AbWLNGNc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:13:32 -0500
+	id S1751949AbWLNGNb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:13:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smbfs: Make conn_pid a struct pid
+     rtc framewok: rtc_wkalrm.enabled reporting updates
 has been removed from the -mm tree.  Its filename was
-     smbfs-make-conn_pid-a-struct-pid.patch
+     rtc-framework-rtc_wkalrmenabled-reporting-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: smbfs: Make conn_pid a struct pid
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: rtc framewok: rtc_wkalrm.enabled reporting updates
+From: David Brownell <david-b@pacbell.net>
 
-smbfs keeps track of the user space server process in conn_pid.  This converts
-that track to use a struct pid instead of pid_t.  This keeps us safe from pid
-wrap around issues and prepares the way for the pid namespace.
+Fix a glitch in the procfs dumping of whether the alarm IRQ is enabled: use
+the traditional name (from drivers/char/rtc.c and many other places) of
+"alarm_IRQ", not "alrm_wakeup" (which didn't even match the efirtc code, which
+originated that reporting API).
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Also, update a few of the RTC drivers to stop providing that duplicate status,
+and/or to expose it properly when reporting the alarm state.  We really don't
+want every RTC driver doing their own thing here...
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/smbfs/inode.c          |    5 +++--
- fs/smbfs/proc.c           |    6 +++---
- fs/smbfs/smbiod.c         |    5 +++--
- include/linux/smb_fs_sb.h |    2 +-
- 4 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |    5 +++--
+ drivers/rtc/rtc-omap.c       |    3 +--
+ drivers/rtc/rtc-proc.c       |    2 +-
+ drivers/rtc/rtc-s3c.c        |    6 ++----
+ drivers/rtc/rtc-sa1100.c     |    4 +---
+ 5 files changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN fs/smbfs/inode.c~smbfs-make-conn_pid-a-struct-pid fs/smbfs/inode.c
---- a/fs/smbfs/inode.c~smbfs-make-conn_pid-a-struct-pid
-+++ a/fs/smbfs/inode.c
-@@ -482,12 +482,13 @@ smb_put_super(struct super_block *sb)
- 	smb_close_socket(server);
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-framework-rtc_wkalrmenabled-reporting-updates drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-framework-rtc_wkalrmenabled-reporting-updates
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -137,6 +137,9 @@ static int at91_rtc_readalarm(struct dev
+ 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
+ 	tm->tm_year = at91_alarm_year - 1900;
  
- 	if (server->conn_pid)
--		kill_proc(server->conn_pid, SIGTERM, 1);
-+		kill_pid(server->conn_pid, SIGTERM, 1);
- 
- 	kfree(server->ops);
- 	smb_unload_nls(server);
- 	sb->s_fs_info = NULL;
- 	smb_unlock_server(server);
-+	put_pid(server->conn_pid);
- 	kfree(server);
- }
- 
-@@ -530,7 +531,7 @@ static int smb_fill_super(struct super_b
- 	INIT_LIST_HEAD(&server->xmitq);
- 	INIT_LIST_HEAD(&server->recvq);
- 	server->conn_error = 0;
--	server->conn_pid = 0;
-+	server->conn_pid = NULL;
- 	server->state = CONN_INVALID; /* no connection yet */
- 	server->generation = 0;
- 
-diff -puN fs/smbfs/proc.c~smbfs-make-conn_pid-a-struct-pid fs/smbfs/proc.c
---- a/fs/smbfs/proc.c~smbfs-make-conn_pid-a-struct-pid
-+++ a/fs/smbfs/proc.c
-@@ -877,7 +877,7 @@ smb_newconn(struct smb_sb_info *server, 
- 		goto out_putf;
- 
- 	server->sock_file = filp;
--	server->conn_pid = current->pid;
-+	server->conn_pid = get_pid(task_pid(current));
- 	server->opt = *opt;
- 	server->generation += 1;
- 	server->state = CONN_VALID;
-@@ -971,8 +971,8 @@ smb_newconn(struct smb_sb_info *server, 
- 	}
- 
- 	VERBOSE("protocol=%d, max_xmit=%d, pid=%d capabilities=0x%x\n",
--		server->opt.protocol, server->opt.max_xmit, server->conn_pid,
--		server->opt.capabilities);
-+		server->opt.protocol, server->opt.max_xmit,
-+		pid_nr(server->conn_pid), server->opt.capabilities);
- 
- 	/* FIXME: this really should be done by smbmount. */
- 	if (server->opt.max_xmit > SMB_MAX_PACKET_SIZE) {
-diff -puN fs/smbfs/smbiod.c~smbfs-make-conn_pid-a-struct-pid fs/smbfs/smbiod.c
---- a/fs/smbfs/smbiod.c~smbfs-make-conn_pid-a-struct-pid
-+++ a/fs/smbfs/smbiod.c
-@@ -152,7 +152,7 @@ int smbiod_retry(struct smb_sb_info *ser
++	alrm->enabled = (at91_sys_read(AT91_RTC_IMR) & AT91_RTC_ALARM)
++			? 1 : 0;
++
+ 	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __FUNCTION__,
+ 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+@@ -223,8 +226,6 @@ static int at91_rtc_proc(struct device *
  {
- 	struct list_head *head;
- 	struct smb_request *req;
--	pid_t pid = server->conn_pid;
-+	struct pid *pid = get_pid(server->conn_pid);
- 	int result = 0;
+ 	unsigned long imr = at91_sys_read(AT91_RTC_IMR);
  
- 	VERBOSE("state: %d\n", server->state);
-@@ -222,7 +222,7 @@ int smbiod_retry(struct smb_sb_info *ser
- 	/*
- 	 * Note: use the "priv" flag, as a user process may need to reconnect.
- 	 */
--	result = kill_proc(pid, SIGUSR1, 1);
-+	result = kill_pid(pid, SIGUSR1, 1);
- 	if (result) {
- 		/* FIXME: this is most likely fatal, umount? */
- 		printk(KERN_ERR "smb_retry: signal failed [%d]\n", result);
-@@ -233,6 +233,7 @@ int smbiod_retry(struct smb_sb_info *ser
- 	/* FIXME: The retried requests should perhaps get a "time boost". */
+-	seq_printf(seq, "alarm_IRQ\t: %s\n",
+-			(imr & AT91_RTC_ALARM) ? "yes" : "no");
+ 	seq_printf(seq, "update_IRQ\t: %s\n",
+ 			(imr & AT91_RTC_ACKUPD) ? "yes" : "no");
+ 	seq_printf(seq, "periodic_IRQ\t: %s\n",
+diff -puN drivers/rtc/rtc-omap.c~rtc-framework-rtc_wkalrmenabled-reporting-updates drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-framework-rtc_wkalrmenabled-reporting-updates
++++ a/drivers/rtc/rtc-omap.c
+@@ -279,9 +279,8 @@ static int omap_rtc_read_alarm(struct de
+ 	local_irq_enable();
  
- out:
-+	put_pid(pid);
- 	return result;
+ 	bcd2tm(&alm->time);
+-	alm->pending = !!(rtc_read(OMAP_RTC_INTERRUPTS_REG)
++	alm->enabled = !!(rtc_read(OMAP_RTC_INTERRUPTS_REG)
+ 			& OMAP_RTC_INTERRUPTS_IT_ALARM);
+-	alm->enabled = alm->pending && device_may_wakeup(dev);
+ 
+ 	return 0;
  }
+diff -puN drivers/rtc/rtc-proc.c~rtc-framework-rtc_wkalrmenabled-reporting-updates drivers/rtc/rtc-proc.c
+--- a/drivers/rtc/rtc-proc.c~rtc-framework-rtc_wkalrmenabled-reporting-updates
++++ a/drivers/rtc/rtc-proc.c
+@@ -65,7 +65,7 @@ static int rtc_proc_show(struct seq_file
+ 			seq_printf(seq, "%02d\n", alrm.time.tm_mday);
+ 		else
+ 			seq_printf(seq, "**\n");
+-		seq_printf(seq, "alrm_wakeup\t: %s\n",
++		seq_printf(seq, "alarm_IRQ\t: %s\n",
+ 				alrm.enabled ? "yes" : "no");
+ 		seq_printf(seq, "alrm_pending\t: %s\n",
+ 				alrm.pending ? "yes" : "no");
+diff -puN drivers/rtc/rtc-s3c.c~rtc-framework-rtc_wkalrmenabled-reporting-updates drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-framework-rtc_wkalrmenabled-reporting-updates
++++ a/drivers/rtc/rtc-s3c.c
+@@ -191,6 +191,8 @@ static int s3c_rtc_getalarm(struct devic
  
-diff -puN include/linux/smb_fs_sb.h~smbfs-make-conn_pid-a-struct-pid include/linux/smb_fs_sb.h
---- a/include/linux/smb_fs_sb.h~smbfs-make-conn_pid-a-struct-pid
-+++ a/include/linux/smb_fs_sb.h
-@@ -55,7 +55,7 @@ struct smb_sb_info {
- 	 * generation is incremented.
- 	 */
- 	unsigned int generation;
--	pid_t conn_pid;
-+	struct pid *conn_pid;
- 	struct smb_conn_opt opt;
- 	wait_queue_head_t conn_wq;
- 	int conn_complete;
+ 	alm_en = readb(base + S3C2410_RTCALM);
+ 
++	alrm->enabled = (alm_en & S3C2410_RTCALM_ALMEN) ? 1 : 0;
++
+ 	pr_debug("read alarm %02x %02x.%02x.%02x %02x/%02x/%02x\n",
+ 		 alm_en,
+ 		 alm_tm->tm_year, alm_tm->tm_mon, alm_tm->tm_mday,
+@@ -331,12 +333,8 @@ static int s3c_rtc_ioctl(struct device *
+ 
+ static int s3c_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+-	unsigned int rtcalm = readb(s3c_rtc_base + S3C2410_RTCALM);
+ 	unsigned int ticnt = readb(s3c_rtc_base + S3C2410_TICNT);
+ 
+-	seq_printf(seq, "alarm_IRQ\t: %s\n",
+-		   (rtcalm & S3C2410_RTCALM_ALMEN) ? "yes" : "no" );
+-
+ 	seq_printf(seq, "periodic_IRQ\t: %s\n",
+ 		     (ticnt & S3C2410_TICNT_ENABLE) ? "yes" : "no" );
+ 
+diff -puN drivers/rtc/rtc-sa1100.c~rtc-framework-rtc_wkalrmenabled-reporting-updates drivers/rtc/rtc-sa1100.c
+--- a/drivers/rtc/rtc-sa1100.c~rtc-framework-rtc_wkalrmenabled-reporting-updates
++++ a/drivers/rtc/rtc-sa1100.c
+@@ -289,9 +289,7 @@ static int sa1100_rtc_set_alarm(struct d
+ 
+ static int sa1100_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+-	seq_printf(seq, "trim/divider\t: 0x%08lx\n", RTTR);
+-	seq_printf(seq, "alarm_IRQ\t: %s\n",
+-			(RTSR & RTSR_ALE) ? "yes" : "no" );
++	seq_printf(seq, "trim/divider\t: 0x%08x\n", (u32) RTTR);
+ 	seq_printf(seq, "update_IRQ\t: %s\n",
+ 			(RTSR & RTSR_HZE) ? "yes" : "no");
+ 	seq_printf(seq, "periodic_IRQ\t: %s\n",
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
-usbatm-update-to-use-the-kthread-api.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-vt-refactor-console-sak-processing.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-pidhash-temporary-debug-checks.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
 
