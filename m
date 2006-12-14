@@ -1,57 +1,52 @@
 From: akpm@osdl.org
-Subject: - kvm-fix-vmx-hardware_enable-on-macbooks.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:05:12 -0800
-Message-ID: <200612140605.kBE65CtU001830@shell0.pdx.osdl.net>
+Subject: - kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:05:00 -0800
+Message-ID: <200612140605.kBE650fc001825@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51788 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51792 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751853AbWLNGFZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:05:25 -0500
+	id S1751850AbWLNGF2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:05:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: michael@mr511.de, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Fix vmx hardware_enable() on macbooks
+     KVM: Don't touch the virtual apic vt registers on 32-bit
 has been removed from the -mm tree.  Its filename was
-     kvm-fix-vmx-hardware_enable-on-macbooks.patch
+     kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Fix vmx hardware_enable() on macbooks
-From: Avi Kivity <avi@qumranet.com>
-
-It seems macbooks set bit 2 but not bit 0, which is an "enabled but vmxon will
-fault" setting.
+Subject: KVM: Don't touch the virtual apic vt registers on 32-bit
+From: Michael Riepe <michael@mr511.de>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
-Tested-by: Alex Larsson (sometimes testing helps)
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/kvm/vmx.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/kvm/vmx.c~kvm-fix-vmx-hardware_enable-on-macbooks drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-fix-vmx-hardware_enable-on-macbooks
+diff -puN drivers/kvm/vmx.c~kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-dont-touch-the-virtual-apic-vt-registers-on-32-bit
 +++ a/drivers/kvm/vmx.c
-@@ -534,7 +534,7 @@ static __init void hardware_enable(void 
- 	u64 old;
+@@ -1175,8 +1175,10 @@ static int vmx_vcpu_setup(struct kvm_vcp
+                                VM_ENTRY_CONTROLS, 0);
+ 	vmcs_write32(VM_ENTRY_INTR_INFO_FIELD, 0);  /* 22.2.1 */
  
- 	rdmsrl(MSR_IA32_FEATURE_CONTROL, old);
--	if ((old & 5) == 0)
-+	if ((old & 5) != 5)
- 		/* enable and lock */
- 		wrmsrl(MSR_IA32_FEATURE_CONTROL, old | 5);
- 	write_cr4(read_cr4() | CR4_VMXE); /* FIXME: not cpu hotplug safe */
++#ifdef CONFIG_X86_64
+ 	vmcs_writel(VIRTUAL_APIC_PAGE_ADDR, 0);
+ 	vmcs_writel(TPR_THRESHOLD, 0);
++#endif
+ 
+ 	vmcs_writel(CR0_GUEST_HOST_MASK, KVM_GUEST_CR0_MASK);
+ 	vmcs_writel(CR4_GUEST_HOST_MASK, KVM_GUEST_CR4_MASK);
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from michael@mr511.de are
 
-kvm-add-valid_vcpu-helper.patch
-kvm-amd-svm-handle-msr_star-in-32-bit-mode.patch
-kvm-amd-svm-save-and-restore-the-floating-point-unit.patch
 
