@@ -1,166 +1,270 @@
 From: akpm@osdl.org
-Subject: + infiniband-is-borked.patch added to -mm tree
-Date: Thu, 14 Dec 2006 15:58:48 -0800
-Message-ID: <200612142358.kBENwpJL000660@shell0.pdx.osdl.net>
+Subject: + usbvision-possible-cleanups.patch added to -mm tree
+Date: Thu, 14 Dec 2006 15:55:42 -0800
+Message-ID: <200612142355.kBENtgAr000597@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43548 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43587 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752026AbWLNX6y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 18:58:54 -0500
+	id S1752034AbWLNX7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 18:59:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, rolandd@cisco.com
+Cc: bunk@stusta.de, mchehab@infradead.org, thierry.merle@free.fr
 
 
 The patch titled
-     infiniband-is-borked
+     usbvision: possible cleanups
 has been added to the -mm tree.  Its filename is
-     infiniband-is-borked.patch
+     usbvision-possible-cleanups.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: infiniband-is-borked
-From: Andrew Morton <akpm@osdl.org>
+Subject: usbvision: possible cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
-Infiniband is in disgrace.  Make it go away until it compiles.  Please let me
-know...
+This patch contains the following possible cleanups:
+- make needlessly global functions static
+- remove the unused EXPORT_SYMBOL's
 
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Thierry MERLE <thierry.merle@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/usbvision/usbvision-core.c  |   33 ++++++++------
+ drivers/media/video/usbvision/usbvision-i2c.c   |    5 --
+ drivers/media/video/usbvision/usbvision-video.c |    2 
+ drivers/media/video/usbvision/usbvision.h       |    2 
+ 4 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN drivers/infiniband/Kconfig~infiniband-is-borked drivers/infiniband/Kconfig
---- a/drivers/infiniband/Kconfig~infiniband-is-borked
-+++ a/drivers/infiniband/Kconfig
-@@ -1,7 +1,7 @@
- menu "InfiniBand support"
+diff -puN drivers/media/video/usbvision/usbvision-core.c~usbvision-possible-cleanups drivers/media/video/usbvision/usbvision-core.c
+--- a/drivers/media/video/usbvision/usbvision-core.c~usbvision-possible-cleanups
++++ a/drivers/media/video/usbvision/usbvision-core.c
+@@ -118,7 +118,7 @@ static int usbvision_measure_bandwidth (
+  * This is used when initializing the contents of the area.
+  */
  
- config INFINIBAND
--	depends on PCI || BROKEN
-+	depends on PCI && BROKEN
- 	tristate "InfiniBand support"
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
+-void *usbvision_rvmalloc(unsigned long size)
++static void *usbvision_rvmalloc(unsigned long size)
+ {
+ 	void *mem;
+ 	unsigned long adr;
+@@ -181,7 +181,7 @@ static void usbvision_hexdump(const unsi
+ /********************************
+  * scratch ring buffer handling
+  ********************************/
+-int scratch_len(struct usb_usbvision *usbvision)    /*This returns the amount of data actually in the buffer */
++static int scratch_len(struct usb_usbvision *usbvision)    /*This returns the amount of data actually in the buffer */
+ {
+ 	int len = usbvision->scratch_write_ptr - usbvision->scratch_read_ptr;
+ 	if (len < 0) {
+@@ -194,7 +194,7 @@ int scratch_len(struct usb_usbvision *us
+ 
+ 
+ /* This returns the free space left in the buffer */
+-int scratch_free(struct usb_usbvision *usbvision)
++static int scratch_free(struct usb_usbvision *usbvision)
+ {
+ 	int free = usbvision->scratch_read_ptr - usbvision->scratch_write_ptr;
+ 	if (free <= 0) {
+@@ -211,7 +211,8 @@ int scratch_free(struct usb_usbvision *u
+ 
+ 
+ /* This puts data into the buffer */
+-int scratch_put(struct usb_usbvision *usbvision, unsigned char *data, int len)
++static int scratch_put(struct usb_usbvision *usbvision, unsigned char *data,
++		       int len)
+ {
+ 	int len_part;
+ 
+@@ -237,7 +238,7 @@ int scratch_put(struct usb_usbvision *us
+ }
+ 
+ /* This marks the write_ptr as position of new frame header */
+-void scratch_mark_header(struct usb_usbvision *usbvision)
++static void scratch_mark_header(struct usb_usbvision *usbvision)
+ {
+ 	PDEBUG(DBG_SCRATCH, "header at write_ptr=%d\n", usbvision->scratch_headermarker_write_ptr);
+ 
+@@ -248,7 +249,8 @@ void scratch_mark_header(struct usb_usbv
+ }
+ 
+ /* This gets data from the buffer at the given "ptr" position */
+-int scratch_get_extra(struct usb_usbvision *usbvision, unsigned char *data, int *ptr, int len)
++static int scratch_get_extra(struct usb_usbvision *usbvision,
++			     unsigned char *data, int *ptr, int len)
+ {
+ 	int len_part;
+ 	if (*ptr + len < scratch_buf_size) {
+@@ -274,7 +276,8 @@ int scratch_get_extra(struct usb_usbvisi
+ 
+ 
+ /* This sets the scratch extra read pointer */
+-void scratch_set_extra_ptr(struct usb_usbvision *usbvision, int *ptr, int len)
++static void scratch_set_extra_ptr(struct usb_usbvision *usbvision, int *ptr,
++				  int len)
+ {
+ 	*ptr = (usbvision->scratch_read_ptr + len)%scratch_buf_size;
+ 
+@@ -283,7 +286,7 @@ void scratch_set_extra_ptr(struct usb_us
+ 
+ 
+ /*This increments the scratch extra read pointer */
+-void scratch_inc_extra_ptr(int *ptr, int len)
++static void scratch_inc_extra_ptr(int *ptr, int len)
+ {
+ 	*ptr = (*ptr + len) % scratch_buf_size;
+ 
+@@ -292,7 +295,8 @@ void scratch_inc_extra_ptr(int *ptr, int
+ 
+ 
+ /* This gets data from the buffer */
+-int scratch_get(struct usb_usbvision *usbvision, unsigned char *data, int len)
++static int scratch_get(struct usb_usbvision *usbvision, unsigned char *data,
++		       int len)
+ {
+ 	int len_part;
+ 	if (usbvision->scratch_read_ptr + len < scratch_buf_size) {
+@@ -318,7 +322,8 @@ int scratch_get(struct usb_usbvision *us
+ 
+ 
+ /* This sets read pointer to next header and returns it */
+-int scratch_get_header(struct usb_usbvision *usbvision,struct usbvision_frame_header *header)
++static int scratch_get_header(struct usb_usbvision *usbvision,
++			      struct usbvision_frame_header *header)
+ {
+ 	int errCode = 0;
+ 
+@@ -346,7 +351,7 @@ int scratch_get_header(struct usb_usbvis
+ 
+ 
+ /*This removes len bytes of old data from the buffer */
+-void scratch_rm_old(struct usb_usbvision *usbvision, int len)
++static void scratch_rm_old(struct usb_usbvision *usbvision, int len)
+ {
+ 
+ 	usbvision->scratch_read_ptr += len;
+@@ -356,7 +361,7 @@ void scratch_rm_old(struct usb_usbvision
+ 
+ 
+ /*This resets the buffer - kills all data in it too */
+-void scratch_reset(struct usb_usbvision *usbvision)
++static void scratch_reset(struct usb_usbvision *usbvision)
+ {
+ 	PDEBUG(DBG_SCRATCH, "\n");
+ 
+@@ -399,8 +404,8 @@ void usbvision_scratch_free(struct usb_u
+  *		1: Draw a colored grid
+  *
+  */
+-void usbvision_testpattern(struct usb_usbvision *usbvision, int fullframe,
+-			int pmode)
++static void usbvision_testpattern(struct usb_usbvision *usbvision,
++				  int fullframe, int pmode)
+ {
+ 	static const char proc[] = "usbvision_testpattern";
+ 	struct usbvision_frame *frame;
+diff -puN drivers/media/video/usbvision/usbvision-i2c.c~usbvision-possible-cleanups drivers/media/video/usbvision/usbvision-i2c.c
+--- a/drivers/media/video/usbvision/usbvision-i2c.c~usbvision-possible-cleanups
++++ a/drivers/media/video/usbvision/usbvision-i2c.c
+@@ -213,7 +213,7 @@ static struct i2c_algorithm i2c_usb_algo
+ /*
+  * registering functions to load algorithms at runtime
+  */
+-int usbvision_i2c_usb_add_bus(struct i2c_adapter *adap)
++static int usbvision_i2c_usb_add_bus(struct i2c_adapter *adap)
+ {
+ 	PDEBUG(DBG_I2C, "I2C   debugging is enabled [i2c]");
+ 	PDEBUG(DBG_ALGO, "ALGO   debugging is enabled [i2c]");
+@@ -559,9 +559,6 @@ static struct i2c_client i2c_client_temp
+ 	.name		= "usbvision internal",
+ };
+ 
+-EXPORT_SYMBOL(usbvision_i2c_usb_add_bus);
+-EXPORT_SYMBOL(usbvision_i2c_usb_del_bus);
+-
+ /*
+  * Overrides for Emacs so that we follow Linus's tabbing style.
+  * ---------------------------------------------------------------------------
+diff -puN drivers/media/video/usbvision/usbvision-video.c~usbvision-possible-cleanups drivers/media/video/usbvision/usbvision-video.c
+--- a/drivers/media/video/usbvision/usbvision-video.c~usbvision-possible-cleanups
++++ a/drivers/media/video/usbvision/usbvision-video.c
+@@ -1884,7 +1884,7 @@ static struct usb_driver usbvision_drive
+  * This procedure preprocesses CustomDevice parameter if any
+  *
+  */
+-void customdevice_process(void)
++static void customdevice_process(void)
+ {
+ 	usbvision_device_data[0]=usbvision_device_data[1];
+ 	usbvision_table[0]=usbvision_table[1];
+diff -puN drivers/media/video/usbvision/usbvision.h~usbvision-possible-cleanups drivers/media/video/usbvision/usbvision.h
+--- a/drivers/media/video/usbvision/usbvision.h~usbvision-possible-cleanups
++++ a/drivers/media/video/usbvision/usbvision.h
+@@ -489,7 +489,6 @@ struct usb_usbvision {
+ /* i2c-algo-usb declaration                                        */
+ /* --------------------------------------------------------------- */
+ 
+-int usbvision_i2c_usb_add_bus(struct i2c_adapter *);
+ int usbvision_i2c_usb_del_bus(struct i2c_adapter *);
+ 
+ static inline void *i2c_get_algo_usb_data (struct i2c_algo_usb_data *dev)
+@@ -510,7 +509,6 @@ int usbvision_init_i2c(struct usb_usbvis
+ void call_i2c_clients(struct usb_usbvision *usbvision, unsigned int cmd,void *arg);
+ 
+ /* defined in usbvision-core.c                                      */
+-void *usbvision_rvmalloc(unsigned long size);
+ void usbvision_rvfree(void *mem, unsigned long size);
+ int usbvision_read_reg(struct usb_usbvision *usbvision, unsigned char reg);
+ int usbvision_write_reg(struct usb_usbvision *usbvision, unsigned char reg,
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-rtc-warning-fix.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-cpufreq-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+make-drivers-acpi-eccec_ecdt-static.patch
+drivers-acpi-oslc-fix-a-null-check.patch
+acpi-make-code-static.patch
 git-alsa.patch
-alsa-workqueue-fixes.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-input-vs-git-alsa.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
+proper-prototype-for-drivers-base-initcdriver_init.patch
+git-gfs2-nmw.patch
+fs-dlm-lowcomms-tcpc-remove-2-functions.patch
 git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-add-memcpy_uncached_read-tidy.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
+remove-the-broken-skmc-driver.patch
+net-uninline-skb_put-fix.patch
+dont-export-device-ids-to-userspace.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+usbvision-possible-cleanups.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
-infiniband-is-borked.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
