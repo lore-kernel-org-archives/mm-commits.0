@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them.patch added to -mm tree
-Date: Thu, 14 Dec 2006 15:30:00 -0800
-Message-ID: <200612142330.kBENU0o6032417@shell0.pdx.osdl.net>
+Subject: + pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch added to -mm tree
+Date: Thu, 14 Dec 2006 15:29:48 -0800
+Message-ID: <200612142329.kBENTm9w032404@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41970 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42016 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751922AbWLNXaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 18:30:07 -0500
+	id S1751958AbWLNXaW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 18:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,79 +15,174 @@ Cc: galibert@pobox.com, ak@suse.de
 
 
 The patch titled
-     PCI MMConfig: Reserve resources but only when we're sure about them.
+     PCI MMConfig: Detect and support the E7520 and the 945G/GZ/P/PL
 has been added to the -mm tree.  Its filename is
-     pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them.patch
+     pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PCI MMConfig: Reserve resources but only when we're sure about them.
+Subject: PCI MMConfig: Detect and support the E7520 and the 945G/GZ/P/PL
 From: Olivier Galibert <galibert@pobox.com>
 
-Put back the resource reservation as per
-4c6e052adfe285ede5884e4e8c4d33af33932c13 but use it *only* when the range(s)
-come from a chipset probe instead of the bios.
+It seems that the only way to reliably support mmconfig in the presence of
+funky biosen is to detect the hostbridge and read where the window is mapped
+from its registers.  Do that for the E7520 and the 945G/GZ/P/PL for a start.
 
 Signed-off-by: Olivier Galibert <galibert@pobox.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/pci/mmconfig-shared.c |   33 ++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ arch/i386/pci/mmconfig-shared.c |  116 +++++++++++++++++++++++++++++-
+ 1 file changed, 113 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/pci/mmconfig-shared.c~pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them
+diff -puN arch/i386/pci/mmconfig-shared.c~pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl
 +++ a/arch/i386/pci/mmconfig-shared.c
-@@ -159,6 +159,37 @@ static int __init pci_mmcfg_check_hostbr
- 	return name != NULL;
+@@ -3,6 +3,7 @@
+  *                     MMCONFIG - common code between i386 and x86-64.
+  *
+  * This code does:
++ * - known chipset handling
+  * - ACPI decoding and validation
+  *
+  * Per-architecture code takes care of the mappings and accesses
+@@ -55,12 +56,121 @@ static __init void unreachable_devices(v
+ 	}
  }
  
-+static __init void pci_mmcfg_insert_resources(void)
++static __init const char *pci_mmcfg_e7520(void)
 +{
-+#define PCI_MMCFG_RESOURCE_NAME_LEN 19
++	u32 win;
++	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0xce, 2, &win);
++
++	pci_mmcfg_config_num = 1;
++	pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
++	pci_mmcfg_config[0].base_address = (win & 0xf000) << 16;
++	pci_mmcfg_config[0].pci_segment_group_number = 0;
++	pci_mmcfg_config[0].start_bus_number = 0;
++	pci_mmcfg_config[0].end_bus_number = 255;
++
++	return "Intel Corporation E7520 Memory Controller Hub";
++}
++
++static __init const char *pci_mmcfg_intel_945(void)
++{
++	u32 pciexbar, mask = 0, len = 0;
++
++	pci_mmcfg_config_num = 1;
++
++	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0x48, 4, &pciexbar);
++
++	/* Enable bit */
++	if (!(pciexbar & 1))
++		pci_mmcfg_config_num = 0;
++
++	/* Size bits */
++	switch ((pciexbar >> 1) & 3) {
++	case 0:
++		mask = 0xf0000000U;
++		len  = 0x10000000U;
++		break;
++	case 1:
++		mask = 0xf8000000U;
++		len  = 0x08000000U;
++		break;
++	case 2:
++		mask = 0xfc000000U;
++		len  = 0x04000000U;
++		break;
++	default:
++		pci_mmcfg_config_num = 0;
++	}
++
++	/* Errata #2, things break when not aligned on a 256Mb boundary */
++	/* Can only happen in 64M/128M mode */
++
++	if ((pciexbar & mask) & 0x0fffffffU)
++		pci_mmcfg_config_num = 0;
++
++	if (pci_mmcfg_config_num) {
++		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
++		pci_mmcfg_config[0].base_address = pciexbar & mask;
++		pci_mmcfg_config[0].pci_segment_group_number = 0;
++		pci_mmcfg_config[0].start_bus_number = 0;
++		pci_mmcfg_config[0].end_bus_number = (len >> 20) - 1;
++	}
++
++	return "Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub";
++}
++
++struct pci_mmcfg_hostbridge_probe {
++	u32 vendor;
++	u32 device;
++	const char *(*probe)(void);
++};
++
++static __initdata struct pci_mmcfg_hostbridge_probe pci_mmcfg_probes[] = {
++	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_E7520_MCH, pci_mmcfg_e7520 },
++	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82945G_HB, pci_mmcfg_intel_945 },
++};
++
++static int __init pci_mmcfg_check_hostbridge(void)
++{
++	u32 l;
++	u16 vendor, device;
 +	int i;
-+	struct resource *res;
-+	char *names;
-+	unsigned num_buses;
++	const char *name;
 +
-+	res = kcalloc(PCI_MMCFG_RESOURCE_NAME_LEN + sizeof(*res),
-+			pci_mmcfg_config_num, GFP_KERNEL);
++	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0, 4, &l);
++	vendor = l & 0xffff;
++	device = (l >> 16) & 0xffff;
 +
-+	if (!res) {
-+		printk(KERN_ERR "PCI: Unable to allocate MMCONFIG resources\n");
-+		return;
++	pci_mmcfg_config_num = 0;
++	pci_mmcfg_config = NULL;
++	name = NULL;
++
++	for (i = 0; !name && i < sizeof(pci_mmcfg_probes) / sizeof(pci_mmcfg_probes[0]); i++)
++		if ((pci_mmcfg_probes[i].vendor == PCI_ANY_ID || pci_mmcfg_probes[i].vendor == vendor) &&
++		    (pci_mmcfg_probes[i].device == PCI_ANY_ID || pci_mmcfg_probes[i].device == device))
++			name = pci_mmcfg_probes[i].probe();
++
++	if (name) {
++		if (pci_mmcfg_config_num)
++			printk(KERN_INFO "PCI: Found %s with MMCONFIG support.\n", name);
++		else
++			printk(KERN_INFO "PCI: Found %s without MMCONFIG support.\n", name);
 +	}
 +
-+	names = (void *)&res[pci_mmcfg_config_num];
-+	for (i = 0; i < pci_mmcfg_config_num; i++, res++) {
-+		num_buses = pci_mmcfg_config[i].end_bus_number -
-+		    pci_mmcfg_config[i].start_bus_number + 1;
-+		res->name = names;
-+		snprintf(names, PCI_MMCFG_RESOURCE_NAME_LEN, "PCI MMCONFIG %u",
-+			pci_mmcfg_config[i].pci_segment_group_number);
-+		res->start = pci_mmcfg_config[i].base_address;
-+		res->end = res->start + (num_buses << 20) - 1;
-+		res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-+		insert_resource(&iomem_resource, res);
-+		names += PCI_MMCFG_RESOURCE_NAME_LEN;
-+	}
++	return name != NULL;
 +}
 +
  void __init pci_mmcfg_init(int type)
  {
- 	int known_bridge = 0;
-@@ -192,6 +223,8 @@ void __init pci_mmcfg_init(int type)
- 	if (pci_mmcfg_arch_init()) {
- 		if (type == 1)
- 			unreachable_devices();
-+		if (known_bridge)
-+			pci_mmcfg_insert_resources();
- 		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
- 	}
- }
++	int known_bridge = 0;
++
+ 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
+ 		return;
+ 
+-	acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
++	if (type == 1 && pci_mmcfg_check_hostbridge())
++		known_bridge = 1;
++
++	if (!known_bridge)
++		acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
+ 
+ 	if ((pci_mmcfg_config_num == 0) ||
+ 	    (pci_mmcfg_config == NULL) ||
+@@ -68,8 +178,8 @@ void __init pci_mmcfg_init(int type)
+ 		return;
+ 
+ 	/* Only do this check when type 1 works. If it doesn't work
+-           assume we run on a Mac and always use MCFG */
+-	if (type == 1 &&
++	   assume we run on a Mac and always use MCFG */
++	if (type == 1 && !known_bridge &&
+ 	    !e820_all_mapped(pci_mmcfg_config[0].base_address,
+ 			     pci_mmcfg_config[0].base_address + MMCONFIG_APER_MIN,
+ 			     E820_RESERVED)) {
 _
 
 Patches currently in -mm which might be from galibert@pobox.com are
@@ -97,5 +192,4 @@ pci-mmconfig-share-whats-shareable.patch
 pci-mmconfig-only-call-unreachable_devices-when-type-1-is-available.patch
 pci-mmconfig-only-map-whats-necessary.patch
 pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch
-pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them.patch
 
