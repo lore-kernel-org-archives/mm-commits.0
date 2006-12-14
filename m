@@ -1,112 +1,102 @@
 From: akpm@osdl.org
-Subject: - pm-fix-freezing-of-stopped-tasks.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:07:17 -0800
-Message-ID: <200612140607.kBE67Hpx001906@shell0.pdx.osdl.net>
+Subject: - xtensa-add-ktermios-and-minor-filename-fix.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:07:48 -0800
+Message-ID: <200612140607.kBE67mPY001917@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51985 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52024 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751873AbWLNGHi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:07:38 -0500
+	id S1751794AbWLNGIG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:08:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: czankel@tensilica.com, alan@lxorguk.ukuu.org.uk, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Fix freezing of stopped tasks
+     Xtensa: Add ktermios and minor filename fix
 has been removed from the -mm tree.  Its filename was
-     pm-fix-freezing-of-stopped-tasks.patch
+     xtensa-add-ktermios-and-minor-filename-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Fix freezing of stopped tasks
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Xtensa: Add ktermios and minor filename fix
+From: Chris Zankel <czankel@tensilica.com>
 
-Currently, if a task is stopped (ie.  it's in the TASK_STOPPED state), it
-is considered by the freezer as unfreezeable.  However, there may be a race
-between the freezer and the delivery of the continuation signal to the task
-resulting in the task running after we have finished freezing the other
-tasks.  This, in turn, may lead to undesirable effects up to and including
-data corruption.
+The kernel termios (ktermios) changes were somehow missed for Xtensa.  This
+patch adds the ktermios structure and also includes some minor file name
+fix that was missed in the syscall patch.
 
-To prevent this from happening we first need to make the freezer consider
-stopped tasks as freezeable.  For this purpose we need to make freezeable()
-stop returning 0 for these tasks and we need to force them to enter the
-refrigerator.  However, if there's no continuation signal in the meantime,
-the stopped tasks should remain stopped after all processes have been
-thawed, so we need to send an additional SIGSTOP to each of them before
-waking it up.
-
-Also, a stopped task that has just been woken up should first check if
-there's a freezing request for it and go to the refrigerator if that's the
-case.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Chris Zankel <chris@zankel.net>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/process.c |   12 ++++++------
- kernel/signal.c        |    4 +++-
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ arch/xtensa/kernel/Makefile   |    2 +-
+ arch/xtensa/kernel/syscall.c  |    2 +-
+ include/asm-xtensa/termbits.h |   11 +++++++++++
+ include/asm-xtensa/uaccess.h  |    1 -
+ 4 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/process.c~pm-fix-freezing-of-stopped-tasks kernel/power/process.c
---- a/kernel/power/process.c~pm-fix-freezing-of-stopped-tasks
-+++ a/kernel/power/process.c
-@@ -28,8 +28,7 @@ static inline int freezeable(struct task
- 	if ((p == current) || 
- 	    (p->flags & PF_NOFREEZE) ||
- 	    (p->exit_state == EXIT_ZOMBIE) ||
--	    (p->exit_state == EXIT_DEAD) ||
--	    (p->state == TASK_STOPPED))
-+	    (p->exit_state == EXIT_DEAD))
- 		return 0;
- 	return 1;
- }
-@@ -61,9 +60,12 @@ static inline void freeze_process(struct
- 	unsigned long flags;
+diff -puN arch/xtensa/kernel/Makefile~xtensa-add-ktermios-and-minor-filename-fix arch/xtensa/kernel/Makefile
+--- a/arch/xtensa/kernel/Makefile~xtensa-add-ktermios-and-minor-filename-fix
++++ a/arch/xtensa/kernel/Makefile
+@@ -6,7 +6,7 @@ extra-y := head.o vmlinux.lds
  
- 	if (!freezing(p)) {
-+		if (p->state == TASK_STOPPED)
-+			force_sig_specific(SIGSTOP, p);
+ 
+ obj-y := align.o entry.o irq.o coprocessor.o process.o ptrace.o semaphore.o  \
+-	 setup.o signal.o syscalls.o time.o traps.o vectors.o platform.o  \
++	 setup.o signal.o syscall.o time.o traps.o vectors.o platform.o  \
+ 	 pci-dma.o
+ 
+ ## windowspill.o
+diff -puN arch/xtensa/kernel/syscall.c~xtensa-add-ktermios-and-minor-filename-fix arch/xtensa/kernel/syscall.c
+--- a/arch/xtensa/kernel/syscall.c~xtensa-add-ktermios-and-minor-filename-fix
++++ a/arch/xtensa/kernel/syscall.c
+@@ -16,7 +16,7 @@
+  *
+  */
+ #include <asm/uaccess.h>
+-#include <asm/syscalls.h>
++#include <asm/syscall.h>
+ #include <asm/unistd.h>
+ #include <linux/linkage.h>
+ #include <linux/stringify.h>
+diff -puN include/asm-xtensa/termbits.h~xtensa-add-ktermios-and-minor-filename-fix include/asm-xtensa/termbits.h
+--- a/include/asm-xtensa/termbits.h~xtensa-add-ktermios-and-minor-filename-fix
++++ a/include/asm-xtensa/termbits.h
+@@ -30,6 +30,17 @@ struct termios {
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+ 
++struct ktermios {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
 +
- 		freeze(p);
- 		spin_lock_irqsave(&p->sighand->siglock, flags);
--		signal_wake_up(p, 0);
-+		signal_wake_up(p, p->state == TASK_STOPPED);
- 		spin_unlock_irqrestore(&p->sighand->siglock, flags);
- 	}
- }
-@@ -103,9 +105,7 @@ static unsigned int try_to_freeze_tasks(
- 			if (frozen(p))
- 				continue;
+ /* c_cc characters */
  
--			if (p->state == TASK_TRACED &&
--			    (frozen(p->parent) ||
--			     p->parent->state == TASK_STOPPED)) {
-+			if (p->state == TASK_TRACED && frozen(p->parent)) {
- 				cancel_freezing(p);
- 				continue;
- 			}
-diff -puN kernel/signal.c~pm-fix-freezing-of-stopped-tasks kernel/signal.c
---- a/kernel/signal.c~pm-fix-freezing-of-stopped-tasks
-+++ a/kernel/signal.c
-@@ -1705,7 +1705,9 @@ finish_stop(int stop_count)
- 		read_unlock(&tasklist_lock);
- 	}
+ #define VINTR 0
+diff -puN include/asm-xtensa/uaccess.h~xtensa-add-ktermios-and-minor-filename-fix include/asm-xtensa/uaccess.h
+--- a/include/asm-xtensa/uaccess.h~xtensa-add-ktermios-and-minor-filename-fix
++++ a/include/asm-xtensa/uaccess.h
+@@ -23,7 +23,6 @@
  
--	schedule();
-+	do {
-+		schedule();
-+	} while (try_to_freeze());
- 	/*
- 	 * Now we don't run again until continued.
- 	 */
+ #ifdef __ASSEMBLY__
+ 
+-#define _ASMLANGUAGE
+ #include <asm/current.h>
+ #include <asm/asm-offsets.h>
+ #include <asm/processor.h>
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from czankel@tensilica.com are
 
-git-acpi.patch
 
