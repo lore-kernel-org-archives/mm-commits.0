@@ -1,120 +1,150 @@
 From: akpm@osdl.org
-Subject: - kvm-move-find_vmx_entry-to-vmxc.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:02:04 -0800
-Message-ID: <200612140602.kBE6247g001728@shell0.pdx.osdl.net>
+Subject: - fix-more-workqueue-build-breakage-tps65010.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:00:44 -0800
+Message-ID: <200612140600.kBE60iJu001681@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51511 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51515 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832AbWLNGCQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:02:16 -0500
+	id S1751692AbWLNGCT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:02:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, dhowells@redhat.com, khali@linux-fr.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Move find_vmx_entry() to vmx.c
+     fix more workqueue build breakage (tps65010)
 has been removed from the -mm tree.  Its filename was
-     kvm-move-find_vmx_entry-to-vmxc.patch
+     fix-more-workqueue-build-breakage-tps65010.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Move find_vmx_entry() to vmx.c
-From: Avi Kivity <avi@qumranet.com>
+Subject: fix more workqueue build breakage (tps65010)
+From: David Brownell <david-b@pacbell.net>
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+More fixes to build breakage from the work_struct changes ...  this updates
+the tps65010 driver.  Plus, fix some dependencies related to the way it's
+used on the OMAP OSK: force static linking there, since the resulting
+kernel can't link.
+
+NOTE that until the i2c core gets fixed to work without SMBUS_QUICK,
+kernels needing this driver must still use "tps65010.force=0,0x48" on the
+command line.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |   21 ++-------------------
- drivers/kvm/vmx.c      |   12 ++++++++++--
- 2 files changed, 12 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap1/Kconfig  |    1 +
+ drivers/i2c/chips/tps65010.c |   21 ++++++++++++---------
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-move-find_vmx_entry-to-vmxc drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-move-find_vmx_entry-to-vmxc
-+++ a/drivers/kvm/kvm_main.c
-@@ -72,17 +72,6 @@ static struct dentry *debugfs_dir;
- #define CR8_RESEVED_BITS (~0x0fULL)
- #define EFER_RESERVED_BITS 0xfffffffffffff2fe
- 
--struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr)
--{
--	int i;
--
--	for (i = 0; i < vcpu->nmsrs; ++i)
--		if (vcpu->guest_msrs[i].index == msr)
--			return &vcpu->guest_msrs[i];
--	return 0;
--}
--EXPORT_SYMBOL_GPL(find_msr_entry);
--
- #ifdef CONFIG_X86_64
- // LDT or TSS descriptor in the GDT. 16 bytes.
- struct segment_descriptor_64 {
-@@ -1124,8 +1113,6 @@ static int get_msr(struct kvm_vcpu *vcpu
- 
- void set_efer(struct kvm_vcpu *vcpu, u64 efer)
+diff -puN arch/arm/mach-omap1/Kconfig~fix-more-workqueue-build-breakage-tps65010 arch/arm/mach-omap1/Kconfig
+--- a/arch/arm/mach-omap1/Kconfig~fix-more-workqueue-build-breakage-tps65010
++++ a/arch/arm/mach-omap1/Kconfig
+@@ -43,6 +43,7 @@ config MACH_OMAP_H3
+ config MACH_OMAP_OSK
+ 	bool "TI OSK Support"
+ 	depends on ARCH_OMAP1 && ARCH_OMAP16XX
++	select TPS65010
+     	help
+ 	  TI OMAP 5912 OSK (OMAP Starter Kit) board support. Say Y here
+           if you have such a board.
+diff -puN drivers/i2c/chips/tps65010.c~fix-more-workqueue-build-breakage-tps65010 drivers/i2c/chips/tps65010.c
+--- a/drivers/i2c/chips/tps65010.c~fix-more-workqueue-build-breakage-tps65010
++++ a/drivers/i2c/chips/tps65010.c
+@@ -82,7 +82,7 @@ struct tps65010 {
+ 	struct i2c_client	client;
+ 	struct mutex		lock;
+ 	int			irq;
+-	struct work_struct	work;
++	struct delayed_work	work;
+ 	struct dentry		*file;
+ 	unsigned		charging:1;
+ 	unsigned		por:1;
+@@ -328,7 +328,7 @@ static void tps65010_interrupt(struct tp
  {
--	struct vmx_msr_entry *msr;
--
- 	if (efer & EFER_RESERVED_BITS) {
- 		printk(KERN_DEBUG "set_efer: 0x%llx #GP, reserved bits\n",
- 		       efer);
-@@ -1140,16 +1127,12 @@ void set_efer(struct kvm_vcpu *vcpu, u64
- 		return;
+ 	u8 tmp = 0, mask, poll;
+ 
+-	/* IRQs won't trigger irqs for certain events, but we can get
++	/* IRQs won't trigger for certain events, but we can get
+ 	 * others by polling (normally, with external power applied).
+ 	 */
+ 	poll = 0;
+@@ -411,10 +411,11 @@ static void tps65010_interrupt(struct tp
+ }
+ 
+ /* handle IRQs and polling using keventd for now */
+-static void tps65010_work(void *_tps)
++static void tps65010_work(struct work_struct *work)
+ {
+-	struct tps65010		*tps = _tps;
++	struct tps65010		*tps;
+ 
++	tps = container_of(work, struct tps65010, work.work);
+ 	mutex_lock(&tps->lock);
+ 
+ 	tps65010_interrupt(tps);
+@@ -452,7 +453,7 @@ static irqreturn_t tps65010_irq(int irq,
+ 
+ 	disable_irq_nosync(irq);
+ 	set_bit(FLAG_IRQ_ENABLE, &tps->flags);
+-	(void) schedule_work(&tps->work);
++	(void) schedule_work(&tps->work.work);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -465,13 +466,15 @@ static int __exit tps65010_detach_client
+ 	struct tps65010		*tps;
+ 
+ 	tps = container_of(client, struct tps65010, client);
++	free_irq(tps->irq, tps);
+ #ifdef	CONFIG_ARM
+ 	if (machine_is_omap_h2())
+ 		omap_free_gpio(58);
+ 	if (machine_is_omap_osk())
+ 		omap_free_gpio(OMAP_MPUIO(1));
+ #endif
+-	free_irq(tps->irq, tps);
++	cancel_delayed_work(&tps->work);
++	flush_scheduled_work();
+ 	debugfs_remove(tps->file);
+ 	if (i2c_detach_client(client) == 0)
+ 		kfree(tps);
+@@ -505,7 +508,7 @@ tps65010_probe(struct i2c_adapter *bus, 
+ 		return 0;
+ 
+ 	mutex_init(&tps->lock);
+-	INIT_WORK(&tps->work, tps65010_work, tps);
++	INIT_DELAYED_WORK(&tps->work, tps65010_work);
+ 	tps->irq = -1;
+ 	tps->client.addr = address;
+ 	tps->client.adapter = bus;
+@@ -620,7 +623,7 @@ tps65010_probe(struct i2c_adapter *bus, 
+ 	(void) i2c_smbus_write_byte_data(&tps->client, TPS_MASK3, 0x0f
+ 		| i2c_smbus_read_byte_data(&tps->client, TPS_MASK3));
+ 
+-	tps65010_work(tps);
++	tps65010_work(&tps->work.work);
+ 
+ 	tps->file = debugfs_create_file(DRIVER_NAME, S_IRUGO, NULL,
+ 				tps, DEBUG_FOPS);
+@@ -672,7 +675,7 @@ int tps65010_set_vbus_draw(unsigned mA)
+ 			&& test_and_set_bit(
+ 				FLAG_VBUS_CHANGED, &the_tps->flags)) {
+ 		/* gadget drivers call this in_irq() */
+-		(void) schedule_work(&the_tps->work);
++		(void) schedule_work(&the_tps->work.work);
  	}
+ 	local_irq_restore(flags);
  
-+	kvm_arch_ops->set_efer(vcpu, efer);
-+
- 	efer &= ~EFER_LMA;
- 	efer |= vcpu->shadow_efer & EFER_LMA;
- 
- 	vcpu->shadow_efer = efer;
--
--	msr = find_msr_entry(vcpu, MSR_EFER);
--
--	if (!(efer & EFER_LMA))
--	    efer &= ~EFER_LME;
--	msr->data = efer;
- }
- EXPORT_SYMBOL_GPL(set_efer);
- 
-diff -puN drivers/kvm/vmx.c~kvm-move-find_vmx_entry-to-vmxc drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-move-find_vmx_entry-to-vmxc
-+++ a/drivers/kvm/vmx.c
-@@ -78,8 +78,6 @@ static const u32 vmx_msr_index[] = {
- };
- #define NR_VMX_MSR (sizeof(vmx_msr_index) / sizeof(*vmx_msr_index))
- 
--struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr);
--
- static inline int is_page_fault(u32 intr_info)
- {
- 	return (intr_info & (INTR_INFO_INTR_TYPE_MASK | INTR_INFO_VECTOR_MASK |
-@@ -93,6 +91,16 @@ static inline int is_external_interrupt(
- 		== (INTR_TYPE_EXT_INTR | INTR_INFO_VALID_MASK);
- }
- 
-+static struct vmx_msr_entry *find_msr_entry(struct kvm_vcpu *vcpu, u32 msr)
-+{
-+	int i;
-+
-+	for (i = 0; i < vcpu->nmsrs; ++i)
-+		if (vcpu->guest_msrs[i].index == msr)
-+			return &vcpu->guest_msrs[i];
-+	return 0;
-+}
-+
- static void vmcs_clear(struct vmcs *vmcs)
- {
- 	u64 phys_addr = __pa(vmcs);
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-kvm-add-valid_vcpu-helper.patch
-kvm-amd-svm-handle-msr_star-in-32-bit-mode.patch
-kvm-amd-svm-save-and-restore-the-floating-point-unit.patch
 
