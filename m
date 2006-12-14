@@ -1,242 +1,142 @@
 From: akpm@osdl.org
-Subject: + edac-add-fully-buffered-dimm-apis-to-core.patch added to -mm tree
-Date: Thu, 14 Dec 2006 12:58:44 -0800
-Message-ID: <200612142058.kBEKwisk024729@shell0.pdx.osdl.net>
+Subject: + m32r-fix-do_page_fault-and-update_mmu_cache.patch added to -mm tree
+Date: Thu, 14 Dec 2006 13:06:05 -0800
+Message-ID: <200612142106.kBEL65mQ025499@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57606 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58418 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751657AbWLNU6w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 15:58:52 -0500
+	id S932911AbWLNVGl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 16:06:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ericw@xmtp.net, alan@redhat.com, norsk5@xmission.com
+Cc: takata@linux-m32r.org, inaoka@linux-m32r.org
 
 
 The patch titled
-     EDAC: Add Fully-Buffered DIMM APIs to core
+     m32r: fix do_page_fault and update_mmu_cache
 has been added to the -mm tree.  Its filename is
-     edac-add-fully-buffered-dimm-apis-to-core.patch
+     m32r-fix-do_page_fault-and-update_mmu_cache.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: EDAC: Add Fully-Buffered DIMM APIs to core
-From: eric wollesen <ericw@xmtp.net>
+Subject: m32r: fix do_page_fault and update_mmu_cache
+From: Hirokazu Takata <takata@linux-m32r.org>
 
-Eric Wollesen ported the Bluesmoke Memory Controller driver for the Intel
-5000X/V/P (Blackford/Greencreek) chipset to the in kernel EDAC model.
+Fix do_page_fault and update_mmu_cache.
 
-This patch incorporates those required changes to the edac_mc.c and edac_mc.h
-core files by added new Fully Buffered DIMM interface to the EDAC Core module.
+  * Fix do_page_fault (vmalloc_fault:) to pass error_code correctly
+    to update_mmu_cache by using a thread-fault code for all m32r chips.
 
-Signed-off-by: eric wollesen <ericw@xmtp.net>
-Signed-off-by: doug thompson <norsk5@xmission.com>
-Acked-by: Alan Cox <alan@redhat.com>
+  * Fix update_mmu_cache for OPSP chip
+    - #ifdef CONFIG_CHIP_OPSP portion is a workaround of OPSP;
+      Add a notfound-case operation to update_mmu_cache for OPSP
+      like other m32r chip.
+    - Fix pte_data that was not initialized if no entry found.
+
+Signed-off-by: Kazuhiro Inaoka <inaoka@linux-m32r.org>
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/edac/edac_mc.c |  120 +++++++++++++++++++++++++++++++++++++--
- drivers/edac/edac_mc.h |   16 ++++-
- 2 files changed, 130 insertions(+), 6 deletions(-)
+ arch/m32r/mm/fault.c |   40 +++++++++++++++++++---------------------
+ 1 files changed, 19 insertions(+), 21 deletions(-)
 
-diff -puN drivers/edac/edac_mc.c~edac-add-fully-buffered-dimm-apis-to-core drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-add-fully-buffered-dimm-apis-to-core
-+++ a/drivers/edac/edac_mc.c
-@@ -1497,11 +1497,11 @@ int edac_mc_add_mc(struct mem_ctl_info *
- 	/* set load time so that error rate can be tracked */
- 	mci->start_time = jiffies;
+diff -puN arch/m32r/mm/fault.c~m32r-fix-do_page_fault-and-update_mmu_cache arch/m32r/mm/fault.c
+--- a/arch/m32r/mm/fault.c~m32r-fix-do_page_fault-and-update_mmu_cache
++++ a/arch/m32r/mm/fault.c
+@@ -362,8 +362,10 @@ vmalloc_fault:
+ 		if (!pte_present(*pte_k))
+ 			goto no_context;
  
--        if (edac_create_sysfs_mci_device(mci)) {
--                edac_mc_printk(mci, KERN_WARNING,
-+	if (edac_create_sysfs_mci_device(mci)) {
-+		edac_mc_printk(mci, KERN_WARNING,
- 			"failed to create sysfs device\n");
--                goto fail1;
--        }
-+		goto fail1;
-+	}
- 
- 	/* Report action taken */
- 	edac_mc_printk(mci, KERN_INFO, "Giving out device to %s %s: DEV %s\n",
-@@ -1758,6 +1758,116 @@ void edac_mc_handle_ue_no_info(struct me
- EXPORT_SYMBOL_GPL(edac_mc_handle_ue_no_info);
- 
- 
-+/*************************************************************
-+ * On Fully Buffered DIMM modules, this help function is
-+ * called to process UE events
-+ */
-+void edac_mc_handle_fbd_ue(struct mem_ctl_info *mci,
-+				unsigned int csrow,
-+				unsigned int channela,
-+				unsigned int channelb,
-+				char *msg)
-+{
-+	int len = EDAC_MC_LABEL_LEN * 4;
-+	char labels[len + 1];
-+	char *pos = labels;
-+	int chars;
-+
-+	if (csrow >= mci->nr_csrows) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: row out of range (%d >= %d)\n",
-+			csrow, mci->nr_csrows);
-+		edac_mc_handle_ue_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	if (channela >= mci->csrows[csrow].nr_channels) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: channel-a out of range "
-+			"(%d >= %d)\n",
-+			channela, mci->csrows[csrow].nr_channels);
-+		edac_mc_handle_ue_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	if (channelb >= mci->csrows[csrow].nr_channels) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: channel-b out of range "
-+			"(%d >= %d)\n",
-+			channelb, mci->csrows[csrow].nr_channels);
-+		edac_mc_handle_ue_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	mci->ue_count++;
-+	mci->csrows[csrow].ue_count++;
-+
-+	/* Generate the DIMM labels from the specified channels */
-+	chars = snprintf(pos, len + 1, "%s",
-+			 mci->csrows[csrow].channels[channela].label);
-+	len -= chars; pos += chars;
-+	chars = snprintf(pos, len + 1, "-%s",
-+			 mci->csrows[csrow].channels[channelb].label);
-+
-+	if (log_ue)
-+		edac_mc_printk(mci, KERN_EMERG,
-+			"UE row %d, channel-a= %d channel-b= %d "
-+			"labels \"%s\": %s\n", csrow, channela, channelb,
-+			labels, msg);
-+
-+	if (panic_on_ue)
-+		panic("UE row %d, channel-a= %d channel-b= %d "
-+				"labels \"%s\": %s\n", csrow, channela,
-+				channelb, labels, msg);
-+}
-+EXPORT_SYMBOL(edac_mc_handle_fbd_ue);
-+
-+/*************************************************************
-+ * On Fully Buffered DIMM modules, this help function is
-+ * called to process CE events
-+ */
-+void edac_mc_handle_fbd_ce(struct mem_ctl_info *mci,
-+			   unsigned int csrow,
-+			   unsigned int channel,
-+			   char *msg)
-+{
-+
-+	/* Ensure boundary values */
-+	if (csrow >= mci->nr_csrows) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: row out of range (%d >= %d)\n",
-+			csrow, mci->nr_csrows);
-+		edac_mc_handle_ce_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+	if (channel >= mci->csrows[csrow].nr_channels) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: channel out of range (%d >= %d)\n",
-+			channel, mci->csrows[csrow].nr_channels);
-+		edac_mc_handle_ce_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	if (log_ce)
-+		/* FIXME - put in DIMM location */
-+		edac_mc_printk(mci, KERN_WARNING,
-+			"CE row %d, channel %d, label \"%s\": %s\n",
-+			csrow, channel,
-+			mci->csrows[csrow].channels[channel].label,
-+			msg);
-+
-+	mci->ce_count++;
-+	mci->csrows[csrow].ce_count++;
-+	mci->csrows[csrow].channels[channel].ce_count++;
-+}
-+EXPORT_SYMBOL(edac_mc_handle_fbd_ce);
-+
-+
- /*
-  * Iterate over all MC instances and check for ECC, et al, errors
-  */
-@@ -1861,7 +1971,7 @@ static void __exit edac_mc_exit(void)
- 	debugf0("%s()\n", __func__);
- 	kthread_stop(edac_thread);
- 
--        /* tear down the sysfs device */
-+	/* tear down the sysfs device */
- 	edac_sysfs_memctrl_teardown();
- 	edac_sysfs_pci_teardown();
+-		addr = (address & PAGE_MASK) | (error_code & ACE_INSTRUCTION);
++		addr = (address & PAGE_MASK);
++		set_thread_fault_code(error_code);
+ 		update_mmu_cache(NULL, addr, *pte_k);
++		set_thread_fault_code(0);
+ 		return;
+ 	}
  }
-diff -puN drivers/edac/edac_mc.h~edac-add-fully-buffered-dimm-apis-to-core drivers/edac/edac_mc.h
---- a/drivers/edac/edac_mc.h~edac-add-fully-buffered-dimm-apis-to-core
-+++ a/drivers/edac/edac_mc.h
-@@ -123,7 +123,9 @@ enum mem_type {
- 	MEM_RDR,		/* Registered single data rate SDRAM */
- 	MEM_DDR,		/* Double data rate SDRAM */
- 	MEM_RDDR,		/* Registered Double data rate SDRAM */
--	MEM_RMBS		/* Rambus DRAM */
-+	MEM_RMBS,		/* Rambus DRAM */
-+	MEM_DDR2,               /* DDR2 RAM */
-+	MEM_FB_DDR2,            /* fully buffered DDR2 */
- };
+@@ -377,7 +379,7 @@ vmalloc_fault:
+ void update_mmu_cache(struct vm_area_struct *vma, unsigned long vaddr,
+ 	pte_t pte)
+ {
+-	unsigned long *entry1, *entry2;
++	volatile unsigned long *entry1, *entry2;
+ 	unsigned long pte_data, flags;
+ 	unsigned int *entry_dat;
+ 	int inst = get_thread_fault_code() & ACE_INSTRUCTION;
+@@ -391,30 +393,26 @@ void update_mmu_cache(struct vm_area_str
  
- #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
-@@ -137,6 +139,8 @@ enum mem_type {
- #define MEM_FLAG_DDR		BIT(MEM_DDR)
- #define MEM_FLAG_RDDR		BIT(MEM_RDDR)
- #define MEM_FLAG_RMBS		BIT(MEM_RMBS)
-+#define MEM_FLAG_DDR2           BIT(MEM_DDR2)
-+#define MEM_FLAG_FB_DDR2        BIT(MEM_FB_DDR2)
+ 	vaddr = (vaddr & PAGE_MASK) | get_asid();
  
- /* chipset Error Detection and Correction capabilities and mode */
- enum edac_type {
-@@ -329,6 +333,7 @@ struct mem_ctl_info {
- 
- 	/* pointer to edac checking routine */
- 	void (*edac_check) (struct mem_ctl_info * mci);
++	pte_data = pte_val(pte);
 +
+ #ifdef CONFIG_CHIP_OPSP
+ 	entry1 = (unsigned long *)ITLB_BASE;
+-	for(i = 0 ; i < NR_TLB_ENTRIES; i++) {
+-	        if(*entry1++ == vaddr) {
+-	                pte_data = pte_val(pte);
+-	                set_tlb_data(entry1, pte_data);
+-	                break;
+-	        }
+-	        entry1++;
++	for (i = 0; i < NR_TLB_ENTRIES; i++) {
++		if (*entry1++ == vaddr) {
++			set_tlb_data(entry1, pte_data);
++			break;
++		}
++		entry1++;
+ 	}
+ 	entry2 = (unsigned long *)DTLB_BASE;
+-	for(i = 0 ; i < NR_TLB_ENTRIES ; i++) {
+-	        if(*entry2++ == vaddr) {
+-	                pte_data = pte_val(pte);
+-	                set_tlb_data(entry2, pte_data);
+-	                break;
+-	        }
+-	        entry2++;
++	for (i = 0; i < NR_TLB_ENTRIES; i++) {
++		if (*entry2++ == vaddr) {
++			set_tlb_data(entry2, pte_data);
++			break;
++		}
++		entry2++;
+ 	}
+-	local_irq_restore(flags);
+-	return;
+ #else
+-	pte_data = pte_val(pte);
+-
  	/*
- 	 * Remaps memory pages: controller pages to physical pages.
- 	 * For most MC's, this will be NULL.
-@@ -453,6 +458,15 @@ extern void edac_mc_handle_ue(struct mem
- 		int row, const char *msg);
- extern void edac_mc_handle_ue_no_info(struct mem_ctl_info *mci,
- 		const char *msg);
-+extern void edac_mc_handle_fbd_ue(struct mem_ctl_info *mci,
-+		unsigned int csrow,
-+		unsigned int channel0,
-+		unsigned int channel1,
-+		char *msg);
-+extern void edac_mc_handle_fbd_ce(struct mem_ctl_info *mci,
-+		unsigned int csrow,
-+		unsigned int channel,
-+		char *msg);
+ 	 * Update TLB entries
+ 	 *  entry1: ITLB entry address
+@@ -439,6 +437,7 @@ void update_mmu_cache(struct vm_area_str
+ 		"i" (MSVA_offset), "i" (MTOP_offset), "i" (MIDXI_offset)
+ 		: "r4", "memory"
+ 	);
++#endif
  
- /*
-  * This kmalloc's and initializes all the structures.
+ 	if ((!inst && entry2 >= DTLB_END) || (inst && entry1 >= ITLB_END))
+ 		goto notfound;
+@@ -482,7 +481,6 @@ notfound:
+ 	set_tlb_data(entry1, pte_data);
+ 
+ 	goto found;
+-#endif
+ }
+ 
+ /*======================================================================*
 _
 
-Patches currently in -mm which might be from ericw@xmtp.net are
+Patches currently in -mm which might be from takata@linux-m32r.org are
 
-edac-add-fully-buffered-dimm-apis-to-core.patch
+m32r-build-fix-for-processors-without-isa_dsp_level2.patch
+m32r-fix-do_page_fault-and-update_mmu_cache.patch
+m32r-update-defconfig-files-for-v2619.patch
+m32r-fix-kernel-entry-address-of-vmlinux.patch
+m32r-cosmetic-updates-and-trivial-fixes.patch
 
