@@ -1,129 +1,103 @@
 From: akpm@osdl.org
-Subject: - knfsd-nfsd4-simplify-filehandle-check.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:17:40 -0800
-Message-ID: <200612140617.kBE6HdwU002312@shell0.pdx.osdl.net>
+Subject: - knfsd-fix-up-some-bit-rot-in-exp_export.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:18:00 -0800
+Message-ID: <200612140618.kBE6HxAo002323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52740 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52746 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752024AbWLNGSM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:18:12 -0500
+	id S1752025AbWLNGSP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:18:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: nfsd4: simplify filehandle check
+     knfsd: Fix up some bit-rot in exp_export
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd4-simplify-filehandle-check.patch
+     knfsd-fix-up-some-bit-rot-in-exp_export.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: simplify filehandle check
-From: J.Bruce Fields <bfields@fieldses.org>
+Subject: knfsd: Fix up some bit-rot in exp_export
+From: NeilBrown <neilb@suse.de>
 
-Kill another big "if" clause.
+The nfsservctl system call isn't used but recent nfs-utils releases for
+exporting filesystems, and consequently the code that is uses - exp_export -
+has suffered some bitrot.
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Particular:
+  - some newly added fields in 'struct svc_export' are being initialised
+    properly.
+  - the return value is now always -ENOMEM ...
+
+This patch fixes both these problems.
+
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/nfs4proc.c |   29 ++++++++++++-----------------
- 1 file changed, 12 insertions(+), 17 deletions(-)
+ fs/nfsd/export.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfsd/nfs4proc.c~knfsd-nfsd4-simplify-filehandle-check fs/nfsd/nfs4proc.c
---- a/fs/nfsd/nfs4proc.c~knfsd-nfsd4-simplify-filehandle-check
-+++ a/fs/nfsd/nfs4proc.c
-@@ -802,8 +802,10 @@ typedef __be32(*nfsd4op_func)(struct svc
- struct nfsd4_operation {
- 	nfsd4op_func op_func;
- 	u32 op_flags;
-+/* Most ops require a valid current filehandle; a few don't: */
-+#define ALLOWED_WITHOUT_FH 1
- /* GETATTR and ops not listed as returning NFS4ERR_MOVED: */
--#define ALLOWED_ON_ABSENT_FS 1
-+#define ALLOWED_ON_ABSENT_FS 2
- };
+diff -puN fs/nfsd/export.c~knfsd-fix-up-some-bit-rot-in-exp_export fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-fix-up-some-bit-rot-in-exp_export
++++ a/fs/nfsd/export.c
+@@ -955,6 +955,8 @@ exp_export(struct nfsctl_export *nxp)
  
- static struct nfsd4_operation nfsd4_ops[];
-@@ -874,18 +876,8 @@ nfsd4_proc_compound(struct svc_rqst *rqs
+ 	exp = exp_get_by_name(clp, nd.mnt, nd.dentry, NULL);
  
- 		opdesc = &nfsd4_ops[op->opnum];
++	memset(&new, 0, sizeof(new));
++
+ 	/* must make sure there won't be an ex_fsid clash */
+ 	if ((nxp->ex_flags & NFSEXP_FSID) &&
+ 	    (fsid_key = exp_get_fsid_key(clp, nxp->ex_dev)) &&
+@@ -985,6 +987,9 @@ exp_export(struct nfsctl_export *nxp)
  
--		/* All operations except RENEW, SETCLIENTID, RESTOREFH
--		* SETCLIENTID_CONFIRM, PUTFH and PUTROOTFH
--		* require a valid current filehandle
--		*/
- 		if (!cstate->current_fh.fh_dentry) {
--			if (!((op->opnum == OP_PUTFH) ||
--			      (op->opnum == OP_PUTROOTFH) ||
--			      (op->opnum == OP_SETCLIENTID) ||
--			      (op->opnum == OP_SETCLIENTID_CONFIRM) ||
--			      (op->opnum == OP_RENEW) ||
--			      (op->opnum == OP_RESTOREFH) ||
--			      (op->opnum == OP_RELEASE_LOCKOWNER))) {
-+			if (!(opdesc->op_flags & ALLOWED_WITHOUT_FH)) {
- 				op->status = nfserr_nofilehandle;
- 				goto encode_op;
- 			}
-@@ -981,14 +973,15 @@ static struct nfsd4_operation nfsd4_ops[
- 	},
- 	[OP_PUTFH] = {
- 		.op_func = (nfsd4op_func)nfsd4_putfh,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- 	[OP_PUTPUBFH] = {
- 		/* unsupported; just for future reference: */
--		.op_flags = ALLOWED_ON_ABSENT_FS,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- 	[OP_PUTROOTFH] = {
- 		.op_func = (nfsd4op_func)nfsd4_putrootfh,
--		.op_flags = ALLOWED_ON_ABSENT_FS,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- 	[OP_READ] = {
- 		.op_func = (nfsd4op_func)nfsd4_read,
-@@ -1007,10 +1000,11 @@ static struct nfsd4_operation nfsd4_ops[
- 	},
- 	[OP_RENEW] = {
- 		.op_func = (nfsd4op_func)nfsd4_renew,
--		.op_flags = ALLOWED_ON_ABSENT_FS,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- 	[OP_RESTOREFH] = {
- 		.op_func = (nfsd4op_func)nfsd4_restorefh,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- 	[OP_SAVEFH] = {
- 		.op_func = (nfsd4op_func)nfsd4_savefh,
-@@ -1020,10 +1014,11 @@ static struct nfsd4_operation nfsd4_ops[
- 	},
- 	[OP_SETCLIENTID] = {
- 		.op_func = (nfsd4op_func)nfsd4_setclientid,
--		.op_flags = ALLOWED_ON_ABSENT_FS,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- 	[OP_SETCLIENTID_CONFIRM] = {
- 		.op_func = (nfsd4op_func)nfsd4_setclientid_confirm,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- 	[OP_VERIFY] = {
- 		.op_func = (nfsd4op_func)nfsd4_verify,
-@@ -1033,7 +1028,7 @@ static struct nfsd4_operation nfsd4_ops[
- 	},
- 	[OP_RELEASE_LOCKOWNER] = {
- 		.op_func = (nfsd4op_func)nfsd4_release_lockowner,
--		.op_flags = ALLOWED_ON_ABSENT_FS,
-+		.op_flags = ALLOWED_WITHOUT_FH | ALLOWED_ON_ABSENT_FS,
- 	},
- };
- 
+ 	new.h.expiry_time = NEVER;
+ 	new.h.flags = 0;
++	new.ex_path = kstrdup(nxp->ex_path, GFP_KERNEL);
++	if (!new.ex_path)
++		goto finish;
+ 	new.ex_client = clp;
+ 	new.ex_mnt = nd.mnt;
+ 	new.ex_dentry = nd.dentry;
+@@ -1005,10 +1010,11 @@ exp_export(struct nfsctl_export *nxp)
+ 		/* failed to create at least one index */
+ 		exp_do_unexport(exp);
+ 		cache_flush();
+-		err = -ENOMEM;
+-	}
+-
++	} else
++		err = 0;
+ finish:
++	if (new.ex_path)
++		kfree(new.ex_path);
+ 	if (exp)
+ 		exp_put(exp);
+ 	if (fsid_key && !IS_ERR(fsid_key))
 _
 
-Patches currently in -mm which might be from bfields@fieldses.org are
+Patches currently in -mm which might be from neilb@suse.de are
 
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
+knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
+knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
 
