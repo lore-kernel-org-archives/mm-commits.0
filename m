@@ -1,113 +1,212 @@
 From: akpm@osdl.org
-Subject: - uml-fix-net_kern-workqueue-abuse.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:01:15 -0800
-Message-ID: <200612140601.kBE61Eth001693@shell0.pdx.osdl.net>
+Subject: - isdn-gigaset-fix-possible-missing-wakeup.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:01:24 -0800
+Message-ID: <200612140601.kBE61OOJ001700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51432 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51451 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751824AbWLNGBd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:01:33 -0500
+	id S1751828AbWLNGBj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:01:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: tilman@imap.cc, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix net_kern workqueue abuse
+     isdn/gigaset: fix possible missing wakeup
 has been removed from the -mm tree.  Its filename was
-     uml-fix-net_kern-workqueue-abuse.patch
+     isdn-gigaset-fix-possible-missing-wakeup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix net_kern workqueue abuse
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: isdn/gigaset: fix possible missing wakeup
+From: Tilman Schmidt <tilman@imap.cc>
 
-Fix up the work on stack and exit scope trouble by placing the work_struct
-in the uml_net_private data.
+Eliminate some possibilities for user processes writing to the Gigaset
+character device to be left sleeping indefinitely, by adding wakeup calls
+to error paths and properly disposing of pending write requests when the
+device is disconnected.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Jeff Dike <jdike@addtoit.com>
+It also removes unnecessary NULL checks before usb_free_urb() and
+usb_kill_urb() calls.
+
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/drivers/net_kern.c |   15 +++++++++------
- arch/um/include/net_kern.h |    2 ++
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ drivers/isdn/gigaset/bas-gigaset.c |  118 +++++++++++----------------
+ 1 file changed, 52 insertions(+), 66 deletions(-)
 
-diff -puN arch/um/drivers/net_kern.c~uml-fix-net_kern-workqueue-abuse arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-fix-net_kern-workqueue-abuse
-+++ a/arch/um/drivers/net_kern.c
-@@ -72,9 +72,11 @@ static int uml_net_rx(struct net_device 
- 	return pkt_len;
- }
- 
--static void uml_dev_close(void* dev)
-+static void uml_dev_close(struct work_struct *work)
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~isdn-gigaset-fix-possible-missing-wakeup drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~isdn-gigaset-fix-possible-missing-wakeup
++++ a/drivers/isdn/gigaset/bas-gigaset.c
+@@ -1853,20 +1853,24 @@ static int gigaset_write_cmd(struct card
  {
--	dev_close( (struct net_device *) dev);
-+	struct uml_net_private *lp =
-+		container_of(work, struct uml_net_private, work);
-+	dev_close(lp->dev);
+ 	struct cmdbuf_t *cb;
+ 	unsigned long flags;
+-	int status;
++	int rc;
+ 
+ 	gigaset_dbg_buffer(atomic_read(&cs->mstate) != MS_LOCKED ?
+ 			     DEBUG_TRANSCMD : DEBUG_LOCKCMD,
+ 			   "CMD Transmit", len, buf);
+ 
+-	if (len <= 0)
+-		return 0;			/* nothing to do */
++	if (len <= 0) {
++		/* nothing to do */
++		rc = 0;
++		goto notqueued;
++	}
+ 
+ 	if (len > IF_WRITEBUF)
+ 		len = IF_WRITEBUF;
+ 	if (!(cb = kmalloc(sizeof(struct cmdbuf_t) + len, GFP_ATOMIC))) {
+ 		dev_err(cs->dev, "%s: out of memory\n", __func__);
+-		return -ENOMEM;
++		rc = -ENOMEM;
++		goto notqueued;
+ 	}
+ 
+ 	memcpy(cb->buf, buf, len);
+@@ -1891,11 +1895,21 @@ static int gigaset_write_cmd(struct card
+ 	if (unlikely(!cs->connected)) {
+ 		spin_unlock_irqrestore(&cs->lock, flags);
+ 		gig_dbg(DEBUG_USBREQ, "%s: not connected", __func__);
++		/* flush command queue */
++		spin_lock_irqsave(&cs->cmdlock, flags);
++		while (cs->cmdbuf != NULL)
++			complete_cb(cs);
++		spin_unlock_irqrestore(&cs->cmdlock, flags);
+ 		return -ENODEV;
+ 	}
+-	status = start_cbsend(cs);
++	rc = start_cbsend(cs);
+ 	spin_unlock_irqrestore(&cs->lock, flags);
+-	return status < 0 ? status : len;
++	return rc < 0 ? rc : len;
++
++notqueued:			/* request handled without queuing */
++	if (wake_tasklet)
++		tasklet_schedule(wake_tasklet);
++	return rc;
  }
  
- irqreturn_t uml_net_interrupt(int irq, void *dev_id)
-@@ -89,7 +91,6 @@ irqreturn_t uml_net_interrupt(int irq, v
- 	spin_lock(&lp->lock);
- 	while((err = uml_net_rx(dev)) > 0) ;
- 	if(err < 0) {
--		DECLARE_WORK(close_work, uml_dev_close, dev);
- 		printk(KERN_ERR 
- 		       "Device '%s' read returned %d, shutting it down\n", 
- 		       dev->name, err);
-@@ -97,9 +98,10 @@ irqreturn_t uml_net_interrupt(int irq, v
- 		 * again lp->lock.
- 		 * And dev_close() can be safely called multiple times on the
- 		 * same device, since it tests for (dev->flags & IFF_UP). So
--		 * there's no harm in delaying the device shutdown. */
--		schedule_work(&close_work);
--#error this is not permitted - close_work will go out of scope
-+		 * there's no harm in delaying the device shutdown.
-+		 * Furthermore, the workqueue will not re-enqueue an already
-+		 * enqueued work item. */
-+		schedule_work(&lp->work);
- 		goto out;
+ /* gigaset_write_room
+@@ -1964,20 +1978,15 @@ static int gigaset_freebcshw(struct bc_s
+ 
+ 	/* kill URBs and tasklets before freeing - better safe than sorry */
+ 	atomic_set(&ubc->running, 0);
+-	for (i = 0; i < BAS_OUTURBS; ++i)
+-		if (ubc->isoouturbs[i].urb) {
+-			gig_dbg(DEBUG_INIT, "%s: killing iso out URB %d",
+-				__func__, i);
+-			usb_kill_urb(ubc->isoouturbs[i].urb);
+-			usb_free_urb(ubc->isoouturbs[i].urb);
+-		}
+-	for (i = 0; i < BAS_INURBS; ++i)
+-		if (ubc->isoinurbs[i]) {
+-			gig_dbg(DEBUG_INIT, "%s: killing iso in URB %d",
+-				__func__, i);
+-			usb_kill_urb(ubc->isoinurbs[i]);
+-			usb_free_urb(ubc->isoinurbs[i]);
+-		}
++	gig_dbg(DEBUG_INIT, "%s: killing iso URBs", __func__);
++	for (i = 0; i < BAS_OUTURBS; ++i) {
++		usb_kill_urb(ubc->isoouturbs[i].urb);
++		usb_free_urb(ubc->isoouturbs[i].urb);
++	}
++	for (i = 0; i < BAS_INURBS; ++i) {
++		usb_kill_urb(ubc->isoinurbs[i]);
++		usb_free_urb(ubc->isoinurbs[i]);
++	}
+ 	tasklet_kill(&ubc->sent_tasklet);
+ 	tasklet_kill(&ubc->rcvd_tasklet);
+ 	kfree(ubc->isooutbuf);
+@@ -2099,55 +2108,32 @@ static void freeurbs(struct cardstate *c
+ 	struct bas_bc_state *ubc;
+ 	int i, j;
+ 
++	gig_dbg(DEBUG_INIT, "%s: killing URBs", __func__);
+ 	for (j = 0; j < 2; ++j) {
+ 		ubc = cs->bcs[j].hw.bas;
+-		for (i = 0; i < BAS_OUTURBS; ++i)
+-			if (ubc->isoouturbs[i].urb) {
+-				usb_kill_urb(ubc->isoouturbs[i].urb);
+-				gig_dbg(DEBUG_INIT,
+-					"%s: isoc output URB %d/%d unlinked",
+-					__func__, j, i);
+-				usb_free_urb(ubc->isoouturbs[i].urb);
+-				ubc->isoouturbs[i].urb = NULL;
+-			}
+-		for (i = 0; i < BAS_INURBS; ++i)
+-			if (ubc->isoinurbs[i]) {
+-				usb_kill_urb(ubc->isoinurbs[i]);
+-				gig_dbg(DEBUG_INIT,
+-					"%s: isoc input URB %d/%d unlinked",
+-					__func__, j, i);
+-				usb_free_urb(ubc->isoinurbs[i]);
+-				ubc->isoinurbs[i] = NULL;
+-			}
+-	}
+-	if (ucs->urb_int_in) {
+-		usb_kill_urb(ucs->urb_int_in);
+-		gig_dbg(DEBUG_INIT, "%s: interrupt input URB unlinked",
+-			__func__);
+-		usb_free_urb(ucs->urb_int_in);
+-		ucs->urb_int_in = NULL;
+-	}
+-	if (ucs->urb_cmd_out) {
+-		usb_kill_urb(ucs->urb_cmd_out);
+-		gig_dbg(DEBUG_INIT, "%s: command output URB unlinked",
+-			__func__);
+-		usb_free_urb(ucs->urb_cmd_out);
+-		ucs->urb_cmd_out = NULL;
+-	}
+-	if (ucs->urb_cmd_in) {
+-		usb_kill_urb(ucs->urb_cmd_in);
+-		gig_dbg(DEBUG_INIT, "%s: command input URB unlinked",
+-			__func__);
+-		usb_free_urb(ucs->urb_cmd_in);
+-		ucs->urb_cmd_in = NULL;
+-	}
+-	if (ucs->urb_ctrl) {
+-		usb_kill_urb(ucs->urb_ctrl);
+-		gig_dbg(DEBUG_INIT, "%s: control output URB unlinked",
+-			__func__);
+-		usb_free_urb(ucs->urb_ctrl);
+-		ucs->urb_ctrl = NULL;
++		for (i = 0; i < BAS_OUTURBS; ++i) {
++			usb_kill_urb(ubc->isoouturbs[i].urb);
++			usb_free_urb(ubc->isoouturbs[i].urb);
++			ubc->isoouturbs[i].urb = NULL;
++		}
++		for (i = 0; i < BAS_INURBS; ++i) {
++			usb_kill_urb(ubc->isoinurbs[i]);
++			usb_free_urb(ubc->isoinurbs[i]);
++			ubc->isoinurbs[i] = NULL;
++		}
  	}
- 	reactivate_fd(lp->fd, UM_ETH_IRQ);
-@@ -365,6 +367,7 @@ static int eth_configure(int n, void *in
- 	/* This points to the transport private data. It's still clear, but we
- 	 * must memset it to 0 *now*. Let's help the drivers. */
- 	memset(lp, 0, size);
-+	INIT_WORK(&lp->work, uml_dev_close);
++	usb_kill_urb(ucs->urb_int_in);
++	usb_free_urb(ucs->urb_int_in);
++	ucs->urb_int_in = NULL;
++	usb_kill_urb(ucs->urb_cmd_out);
++	usb_free_urb(ucs->urb_cmd_out);
++	ucs->urb_cmd_out = NULL;
++	usb_kill_urb(ucs->urb_cmd_in);
++	usb_free_urb(ucs->urb_cmd_in);
++	ucs->urb_cmd_in = NULL;
++	usb_kill_urb(ucs->urb_ctrl);
++	usb_free_urb(ucs->urb_ctrl);
++	ucs->urb_ctrl = NULL;
+ }
  
- 	/* sysfs register */
- 	if (!driver_registered) {
-diff -puN arch/um/include/net_kern.h~uml-fix-net_kern-workqueue-abuse arch/um/include/net_kern.h
---- a/arch/um/include/net_kern.h~uml-fix-net_kern-workqueue-abuse
-+++ a/arch/um/include/net_kern.h
-@@ -11,6 +11,7 @@
- #include <linux/skbuff.h>
- #include <linux/socket.h>
- #include <linux/list.h>
-+#include <linux/workqueue.h>
- 
- struct uml_net {
- 	struct list_head list;
-@@ -26,6 +27,7 @@ struct uml_net_private {
- 	struct net_device *dev;
- 	struct timer_list tl;
- 	struct net_device_stats stats;
-+	struct work_struct work;
- 	int fd;
- 	unsigned char mac[ETH_ALEN];
- 	unsigned short (*protocol)(struct sk_buff *);
+ /* gigaset_probe
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from tilman@imap.cc are
 
-lumpy-reclaim-v2.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
 
