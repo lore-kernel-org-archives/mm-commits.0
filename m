@@ -1,73 +1,87 @@
 From: akpm@osdl.org
-Subject: - fix-crossbuilding-checkstack.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:04:30 -0800
-Message-ID: <200612140604.kBE64UKc001812@shell0.pdx.osdl.net>
+Subject: - slab-fix-sleeping-in-atomic-bug.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:04:20 -0800
+Message-ID: <200612140604.kBE64KNx001806@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51733 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848AbWLNGEm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:04:42 -0500
+	id S1751846AbWLNGEh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:04:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, jacliburn@bellsouth.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix crossbuilding checkstack
+     slab: fix sleeping in atomic bug
 has been removed from the -mm tree.  Its filename was
-     fix-crossbuilding-checkstack.patch
+     slab-fix-sleeping-in-atomic-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix crossbuilding checkstack
-From: Jeff Dike <jdike@addtoit.com>
+Subject: slab: fix sleeping in atomic bug
+From: Christoph Lameter <clameter@sgi.com>
 
-The previous checkstack fix for UML, which needs to use the host's tools,
-was wrong in the crossbuilding case.  It would use the build host's, rather
-than the target's, toolchain.
+Fallback_alloc() does not do the check for GFP_WAIT as done in
+cache_grow().  Thus interrupts are disabled when we call kmem_getpages()
+which results in the failure.
 
-This patch removes the old fix and adds an explicit special case for UML,
-leaving everyone else alone.
+Duplicate the handling of GFP_WAIT in cache_grow().
 
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Jay Cliburn <jacliburn@bellsouth.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Makefile |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/slab.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN Makefile~fix-crossbuilding-checkstack Makefile
---- a/Makefile~fix-crossbuilding-checkstack
-+++ a/Makefile
-@@ -1390,12 +1390,18 @@ endif #ifeq ($(mixed-targets),1)
+diff -puN mm/slab.c~slab-fix-sleeping-in-atomic-bug mm/slab.c
+--- a/mm/slab.c~slab-fix-sleeping-in-atomic-bug
++++ a/mm/slab.c
+@@ -3252,6 +3252,7 @@ void *fallback_alloc(struct kmem_cache *
+ 	struct zone **z;
+ 	void *obj = NULL;
+ 	int nid;
++	gfp_t local_flags = (flags & GFP_LEVEL_MASK);
  
- PHONY += checkstack kernelrelease kernelversion
- 
--# Use $(SUBARCH) here instead of $(ARCH) so that this works for UML.
--# In the UML case, $(SUBARCH) is the name of the underlying
--# architecture, while for all other arches, it is the same as $(ARCH).
-+# UML needs a little special treatment here.  It wants to use the host
-+# toolchain, so needs $(SUBARCH) passed to checkstack.pl.  Everyone
-+# else wants $(ARCH), including people doing cross-builds, which means
-+# that $(SUBARCH) doesn't work here.
-+ifeq ($(ARCH), um)
-+CHECKSTACK_ARCH := $(SUBARCH)
-+else
-+CHECKSTACK_ARCH := $(ARCH)
-+endif
- checkstack:
- 	$(OBJDUMP) -d vmlinux $$(find . -name '*.ko') | \
--	$(PERL) $(src)/scripts/checkstack.pl $(SUBARCH)
-+	$(PERL) $(src)/scripts/checkstack.pl $(CHECKSTACK_ARCH)
- 
- kernelrelease:
- 	$(if $(wildcard include/config/kernel.release), $(Q)echo $(KERNELRELEASE), \
+ retry:
+ 	/*
+@@ -3275,7 +3276,12 @@ retry:
+ 		 * We may trigger various forms of reclaim on the allowed
+ 		 * set and go into memory reserves if necessary.
+ 		 */
++		if (local_flags & __GFP_WAIT)
++			local_irq_enable();
++		kmem_flagcheck(cache, flags);
+ 		obj = kmem_getpages(cache, flags, -1);
++		if (local_flags & __GFP_WAIT)
++			local_irq_disable();
+ 		if (obj) {
+ 			/*
+ 			 * Insert into the appropriate per node queues
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-x86_64-i386-kernel-mode-faults-pollute-current-thead.patch
-uml-fix-prototypes.patch
+config_vm_event_counter-comment-decrustify.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
 
