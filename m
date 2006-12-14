@@ -1,82 +1,58 @@
 From: akpm@osdl.org
-Subject: - acpi-dont-enable-link-device-in-ioapic-mode.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:16:21 -0800
-Message-ID: <200612140616.kBE6GM7i002246@shell0.pdx.osdl.net>
+Subject: - knfsd-nfsd-make-exp_rootfh-handle-exp_parent-errors.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:14:54 -0800
+Message-ID: <200612140614.kBE6EsMJ002168@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52567 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52439 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751979AbWLNGQ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:16:57 -0500
+	id S1751975AbWLNGP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:15:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, len.brown@intel.com, stian_web@jordet.nu, mm-commits@vger.kernel.org
+To: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: don't enable link device in IOAPIC mode
+     knfsd: nfsd: make exp_rootfh handle exp_parent errors
 has been removed from the -mm tree.  Its filename was
-     acpi-dont-enable-link-device-in-ioapic-mode.patch
+     knfsd-nfsd-make-exp_rootfh-handle-exp_parent-errors.patch
 
-This patch was dropped because it was nacked by the maintainer
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: acpi: don't enable link device in IOAPIC mode
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: knfsd: nfsd: make exp_rootfh handle exp_parent errors
+From: J.Bruce Fields <bfields@fieldses.org>
 
-In Stian's system, if link device is enabled in IOAPIC mode, pci device
-will connect to link device and link device connect to IOAPIC pin.  That is
-the device's interrupt is decided by link's irq.  If link device is
-disabled, pci device is connected to IOAPIC pin.
+Since exp_parent can fail by returning an error (-EAGAIN) in addition to by
+returning NULL, we should check for that case in exp_rootfh.
 
-There are two devices who share one link device in pic mode, but in IOAPIC
-mode, _PRT table reported one device connected to IOAPIC pin and the other
-connected to the link device.  If the link device is enabled, the device
-connected to IOAPIC pin directly will break as _PRT reported interrupt for
-the device doesn't reflect the case link device is enabled
+(TODO: we should check that userland handles these errors too.)
 
-If we leave the link device disabled, the device which connected to the
-link device doesn't break.  It appears the link device is just used to get
-an interrupt number instead of for real interrupt routing.  So in this
-patch, if current irq model is IOAPIC, we will leave link device disabled
-and just use its active irq number.
-
-Signed-off-by: Shaohua Li<shaohua.li@intel.com>
-Cc: Stian Jordet <stian_web@jordet.nu>
-Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/pci_link.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ fs/nfsd/export.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/acpi/pci_link.c~acpi-dont-enable-link-device-in-ioapic-mode drivers/acpi/pci_link.c
---- a/drivers/acpi/pci_link.c~acpi-dont-enable-link-device-in-ioapic-mode
-+++ a/drivers/acpi/pci_link.c
-@@ -526,6 +526,10 @@ static int acpi_pci_link_allocate(struct
- 	int i;
- 
- 
-+	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC && link->irq.active) {
-+		link->irq.initialized = 1;
-+		return 0;
+diff -puN fs/nfsd/export.c~knfsd-nfsd-make-exp_rootfh-handle-exp_parent-errors fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-nfsd-make-exp_rootfh-handle-exp_parent-errors
++++ a/fs/nfsd/export.c
+@@ -1104,6 +1104,10 @@ exp_rootfh(svc_client *clp, char *path, 
+ 		 path, nd.dentry, clp->name,
+ 		 inode->i_sb->s_id, inode->i_ino);
+ 	exp = exp_parent(clp, nd.mnt, nd.dentry, NULL);
++	if (IS_ERR(exp)) {
++		err = PTR_ERR(exp);
++		goto out;
 +	}
- 	if (link->irq.initialized) {
- 		if (link->refcnt == 0)
- 			/* This means the link is disabled but initialized */
+ 	if (!exp) {
+ 		dprintk("nfsd: exp_rootfh export not found.\n");
+ 		goto out;
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
-git-acpi.patch
-acpi-disable-irq-balance-even-in-apic-mode.patch
-acpi-dont-enable-link-device-in-ioapic-mode.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-parse-boot-parameter-error.patch
 
