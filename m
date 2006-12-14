@@ -1,98 +1,56 @@
 From: akpm@osdl.org
-Subject: - i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:01:34 -0800
-Message-ID: <200612140601.kBE61Yt9001703@shell0.pdx.osdl.net>
+Subject: - kvm-remove-extranous-put_cpu-from-vcpu_put.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:02:15 -0800
+Message-ID: <200612140602.kBE62F7n001743@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51529 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51537 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751836AbWLNGC0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:02:26 -0500
+	id S1751837AbWLNGC3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:02:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, Markus.Lidel@shadowconnect.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, huisinro@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2o_exec_exit and i2o_driver_exit should not be __exit.
+     KVM: Remove extranous put_cpu() from vcpu_put()
 has been removed from the -mm tree.  Its filename was
-     i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit.patch
+     kvm-remove-extranous-put_cpu-from-vcpu_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i2o_exec_exit and i2o_driver_exit should not be __exit.
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: KVM: Remove extranous put_cpu() from vcpu_put()
+From: Avi Kivity <avi@qumranet.com>
 
-i2o_exec_exit and i2o_driver_exit were marked as __exit which is a bug
-because both are invoked from __init and __exit functions.
+The arch splitting patchset left an extra put_cpu() in core code, where it can
+cause trouble for CONFIG_PREEMPT kernels.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Reported-by: Huihong Luo <huisinro@yahoo.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/message/i2o/core.h     |    4 ++--
- drivers/message/i2o/driver.c   |    2 +-
- drivers/message/i2o/exec-osm.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/kvm/kvm_main.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/message/i2o/core.h~i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit drivers/message/i2o/core.h
---- a/drivers/message/i2o/core.h~i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit
-+++ a/drivers/message/i2o/core.h
-@@ -18,7 +18,7 @@ extern struct i2o_driver i2o_exec_driver
- extern int i2o_exec_lct_get(struct i2o_controller *);
- 
- extern int __init i2o_exec_init(void);
--extern void __exit i2o_exec_exit(void);
-+extern void i2o_exec_exit(void);
- 
- /* driver */
- extern struct bus_type i2o_bus_type;
-@@ -26,7 +26,7 @@ extern struct bus_type i2o_bus_type;
- extern int i2o_driver_dispatch(struct i2o_controller *, u32);
- 
- extern int __init i2o_driver_init(void);
--extern void __exit i2o_driver_exit(void);
-+extern void i2o_driver_exit(void);
- 
- /* PCI */
- extern int __init i2o_pci_init(void);
-diff -puN drivers/message/i2o/driver.c~i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit drivers/message/i2o/driver.c
---- a/drivers/message/i2o/driver.c~i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit
-+++ a/drivers/message/i2o/driver.c
-@@ -362,7 +362,7 @@ int __init i2o_driver_init(void)
-  *
-  *	Unregisters the I2O bus and frees driver array.
-  */
--void __exit i2o_driver_exit(void)
-+void i2o_driver_exit(void)
+diff -puN drivers/kvm/kvm_main.c~kvm-remove-extranous-put_cpu-from-vcpu_put drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-remove-extranous-put_cpu-from-vcpu_put
++++ a/drivers/kvm/kvm_main.c
+@@ -205,7 +205,6 @@ static struct kvm_vcpu *vcpu_load(struct
+ static void vcpu_put(struct kvm_vcpu *vcpu)
  {
- 	bus_unregister(&i2o_bus_type);
- 	kfree(i2o_drivers);
-diff -puN drivers/message/i2o/exec-osm.c~i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit drivers/message/i2o/exec-osm.c
---- a/drivers/message/i2o/exec-osm.c~i2o_exec_exit-and-i2o_driver_exit-should-not-be-__exit
-+++ a/drivers/message/i2o/exec-osm.c
-@@ -595,7 +595,7 @@ int __init i2o_exec_init(void)
-  *
-  *	Unregisters the Exec OSM from the I2O core.
-  */
--void __exit i2o_exec_exit(void)
-+void i2o_exec_exit(void)
- {
- 	i2o_driver_unregister(&i2o_exec_driver);
- };
+ 	kvm_arch_ops->vcpu_put(vcpu);
+-	put_cpu();
+ 	mutex_unlock(&vcpu->mutex);
+ }
+ 
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from avi@qumranet.com are
 
-fix-namespace-conflict-between-w9968cfc-on-mips.patch
-make-lm70_remove-a-__devexit-function.patch
-mips-dbg_io-stray-brackets-fix.patch
-git-mtd.patch
-fix-pnx8550-serial-breakage.patch
-pnx8550-uart-driver.patch
-pci-legacy-resource-fix.patch
-pci-legacy-resource-fix-tidy.patch
-xfs-remove-useless-wmb-memory-barrier.patch
+kvm-add-valid_vcpu-helper.patch
+kvm-amd-svm-handle-msr_star-in-32-bit-mode.patch
+kvm-amd-svm-save-and-restore-the-floating-point-unit.patch
 
