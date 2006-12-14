@@ -1,31 +1,32 @@
 From: akpm@osdl.org
-Subject: - spidernet-cleanup-return-codes.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 16:21:07 -0800
-Message-ID: <200612140021.kBE0L7al025965@shell0.pdx.osdl.net>
+Subject: - spidernet-rx-locking.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 16:20:51 -0800
+Message-ID: <200612140020.kBE0KpAt025949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:32959 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33046 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832AbWLNAVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:21:23 -0500
+	id S1751833AbWLNAVw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:21:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidernet: cleanup return codes
+     spidernet: RX Locking
 has been removed from the -mm tree.  Its filename was
-     spidernet-cleanup-return-codes.patch
+     spidernet-rx-locking.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: spidernet: cleanup return codes
+Subject: spidernet: RX Locking
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Simplify the somewhat convoluted use of return codes in the rx buffre
-handling.
+The RX packet handling can be called from several places, yet does not protect
+the rx ring structure.  This patch places the ring buffer pointers under a
+lock.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -33,103 +34,68 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   31 ++++++++++++-------------------
- 1 file changed, 12 insertions(+), 19 deletions(-)
+ drivers/net/spider_net.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-cleanup-return-codes drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-cleanup-return-codes
+diff -puN drivers/net/spider_net.c~spidernet-rx-locking drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-rx-locking
 +++ a/drivers/net/spider_net.c
-@@ -882,12 +882,10 @@ spider_net_do_ioctl(struct net_device *n
-  * @card: card structure
-  * @napi: whether caller is in NAPI context
-  *
-- * returns 1 on success, 0 if no packet was passed to the stack
-- *
-  * Fills out skb structure and passes the data to the stack.
-  * The descriptor state is not changed.
-  */
--static int
-+static void
- spider_net_pass_skb_up(struct spider_net_descr *descr,
- 		       struct spider_net_card *card, int napi)
+@@ -969,28 +969,33 @@ static int
+ spider_net_decode_one_descr(struct spider_net_card *card, int napi)
  {
-@@ -935,8 +933,6 @@ spider_net_pass_skb_up(struct spider_net
- 	/* update netdevice statistics */
- 	card->netdev_stats.rx_packets++;
- 	card->netdev_stats.rx_bytes += skb->len;
--
--	return 1;
- }
- 
- /**
-@@ -956,7 +952,6 @@ spider_net_decode_one_descr(struct spide
  	struct spider_net_descr_chain *chain = &card->rx_chain;
- 	struct spider_net_descr *descr;
+-	struct spider_net_descr *descr = chain->tail;
++	struct spider_net_descr *descr;
  	int status;
--	int result;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&chain->lock, flags);
-@@ -982,8 +977,6 @@ spider_net_decode_one_descr(struct spide
- 	chain->tail = descr->next;
- 	spin_unlock_irqrestore(&chain->lock, flags);
- 
--	result = 0;
--
- 	/* unmap descriptor */
- 	pci_unmap_single(card->pdev, descr->buf_addr,
- 			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
-@@ -995,8 +988,7 @@ spider_net_decode_one_descr(struct spide
- 			pr_err("%s: dropping RX descriptor with state %d\n",
- 			       card->netdev->name, status);
- 		card->netdev_stats.rx_dropped++;
--		dev_kfree_skb_irq(descr->skb);
--		goto refill;
-+		goto bad_desc;
- 	}
- 
- 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
-@@ -1005,8 +997,7 @@ spider_net_decode_one_descr(struct spide
- 			pr_err("%s: RX descriptor with unkown state %d\n",
- 			       card->netdev->name, status);
- 		card->spider_stats.rx_desc_unk_state++;
--		dev_kfree_skb_irq(descr->skb);
--		goto refill;
-+		goto bad_desc;
- 	}
- 
- 	/* The cases we'll throw away the packet immediately */
-@@ -1017,16 +1008,18 @@ spider_net_decode_one_descr(struct spide
- 			       card->netdev->name,
- 			       descr->data_status, descr->data_error);
- 		card->spider_stats.rx_desc_error++;
--		dev_kfree_skb_irq(descr->skb);
--		goto refill;
-+		goto bad_desc;
- 	}
- 
--	/* ok, we've got a packet in descr */
--	result = spider_net_pass_skb_up(descr, card, napi);
--refill:
--	/* change the descriptor state: */
-+	/* Ok, we've got a packet in descr */
-+	spider_net_pass_skb_up(descr, card, napi);
- 	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
--	return result;
-+	return 1;
+ 	int result;
++	unsigned long flags;
 +
-+bad_desc:
-+	dev_kfree_skb_irq(descr->skb);
-+	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
-+	return 0;
++	spin_lock_irqsave(&chain->lock, flags);
++	descr = chain->tail;
+ 
+ 	status = spider_net_get_descr_status(descr);
+ 
+ 	if (status == SPIDER_NET_DESCR_CARDOWNED) {
+ 		/* nothing in the descriptor yet */
+-		result=0;
+-		goto out;
++		spin_unlock_irqrestore(&chain->lock, flags);
++		return 0;
+ 	}
+ 
+ 	if (status == SPIDER_NET_DESCR_NOT_IN_USE) {
+ 		/* not initialized yet, the ring must be empty */
++		spin_unlock_irqrestore(&chain->lock, flags);
+ 		spider_net_refill_rx_chain(card);
+ 		spider_net_enable_rxdmac(card);
+-		result=0;
+-		goto out;
++		return 0;
+ 	}
+ 
+ 	/* descriptor definitively used -- move on tail */
+ 	chain->tail = descr->next;
++	spin_unlock_irqrestore(&chain->lock, flags);
+ 
+ 	result = 0;
+ 	if ( (status == SPIDER_NET_DESCR_RESPONSE_ERROR) ||
+@@ -1022,7 +1027,6 @@ refill:
+ 	/* change the descriptor state: */
+ 	if (!napi)
+ 		spider_net_refill_rx_chain(card);
+-out:
+ 	return result;
  }
  
- /**
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
 
 origin.patch
+spidernet-rx-locking.patch
+spidernet-refactor-rx-refill.patch
+spidernet-rx-skb-mem-leak.patch
+spidernet-another-skb-mem-leak.patch
 spidernet-cleanup-return-codes.patch
 spidernet-rx-refill.patch
 spidernet-merge-error-branches.patch
