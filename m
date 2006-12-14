@@ -1,292 +1,315 @@
 From: akpm@osdl.org
-Subject: - pm-fix-smp-races-in-the-freezer.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:07:30 -0800
-Message-ID: <200612140607.kBE67UJT001914@shell0.pdx.osdl.net>
+Subject: - optimize-o_direct-on-block-device-v3.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:08:38 -0800
+Message-ID: <200612140608.kBE68cAE001955@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52102 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52127 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751902AbWLNGJH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:09:07 -0500
+	id S1751905AbWLNGJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:09:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ak@muc.de, benh@kernel.crashing.org, dhowells@redhat.com, lethal@linux-sh.org, paulus@samba.org, pavel@ucw.cz, rmk@arm.linux.org.uk, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: kenneth.w.chen@intel.com, hch@lst.de, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Fix SMP races in the freezer
+     optimize o_direct on block devices
 has been removed from the -mm tree.  Its filename was
-     pm-fix-smp-races-in-the-freezer.patch
+     optimize-o_direct-on-block-device-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Fix SMP races in the freezer
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: optimize o_direct on block devices
+From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 
-Currently, to tell a task that it should go to the refrigerator, we set the
-PF_FREEZE flag for it and send a fake signal to it.  Unfortunately there
-are two SMP-related problems with this approach.  First, a task running on
-another CPU may be updating its flags while the freezer attempts to set
-PF_FREEZE for it and this may leave the task's flags in an inconsistent
-state.  Second, there is a potential race between freeze_process() and
-refrigerator() in which freeze_process() running on one CPU is reading a
-task's PF_FREEZE flag while refrigerator() running on another CPU has just
-set PF_FROZEN for the same task and attempts to reset PF_FREEZE for it.  If
-the refrigerator wins the race, freeze_process() will state that PF_FREEZE
-hasn't been set for the task and will set it unnecessarily, so the task
-will go to the refrigerator once again after it's been thawed.
+Implement block device specific .direct_IO method instead of going through
+generic direct_io_worker for block device.
 
-To solve first of these problems we need to stop using PF_FREEZE to tell
-tasks that they should go to the refrigerator.  Instead, we can introduce a
-special TIF_*** flag and use it for this purpose, since it is allowed to
-change the other tasks' TIF_*** flags and there are special calls for it.
+direct_io_worker() is fairly complex because it needs to handle O_DIRECT on
+file system, where it needs to perform block allocation, hole detection,
+extents file on write, and tons of other corner cases.  The end result is
+that it takes tons of CPU time to submit an I/O.
 
-To avoid the freeze_process()-refrigerator() race we can make
-freeze_process() to always check the task's PF_FROZEN flag after it's read
-its "freeze" flag.  We should also make sure that refrigerator() will
-always reset the task's "freeze" flag after it's set PF_FROZEN for it.
+For block device, the block allocation is much simpler and a tight triple
+loop can be written to iterate each iovec and each page within the iovec in
+order to construct/prepare bio structure and then subsequently submit it to
+the block layer.  This significantly speeds up O_D on block device.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Andi Kleen <ak@muc.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+[akpm@osdl.org: small speedup]
+Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-arm/thread_info.h     |    2 ++
- include/asm-frv/thread_info.h     |    2 ++
- include/asm-i386/thread_info.h    |    2 ++
- include/asm-ia64/thread_info.h    |    2 ++
- include/asm-powerpc/thread_info.h |    2 ++
- include/asm-sh/thread_info.h      |    2 ++
- include/asm-x86_64/thread_info.h  |    2 ++
- include/linux/freezer.h           |   11 ++++++-----
- include/linux/sched.h             |    1 -
- kernel/power/process.c            |   17 ++++++++++-------
- 10 files changed, 30 insertions(+), 13 deletions(-)
+ fs/bio.c            |    2 
+ fs/block_dev.c      |  204 ++++++++++++++++++++++++++++++++++++------
+ include/linux/aio.h |    1 
+ include/linux/bio.h |    1 
+ 4 files changed, 179 insertions(+), 29 deletions(-)
 
-diff -puN include/asm-arm/thread_info.h~pm-fix-smp-races-in-the-freezer include/asm-arm/thread_info.h
---- a/include/asm-arm/thread_info.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/asm-arm/thread_info.h
-@@ -147,6 +147,7 @@ extern void iwmmxt_task_switch(struct th
- #define TIF_POLLING_NRFLAG	16
- #define TIF_USING_IWMMXT	17
- #define TIF_MEMDIE		18
-+#define TIF_FREEZE		19
- 
- #define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
- #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
-@@ -154,6 +155,7 @@ extern void iwmmxt_task_switch(struct th
- #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
- #define _TIF_POLLING_NRFLAG	(1 << TIF_POLLING_NRFLAG)
- #define _TIF_USING_IWMMXT	(1 << TIF_USING_IWMMXT)
-+#define _TIF_FREEZE		(1 << TIF_FREEZE)
- 
- /*
-  * Change these and you break ASM code in entry-common.S
-diff -puN include/asm-frv/thread_info.h~pm-fix-smp-races-in-the-freezer include/asm-frv/thread_info.h
---- a/include/asm-frv/thread_info.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/asm-frv/thread_info.h
-@@ -116,6 +116,7 @@ register struct thread_info *__current_t
- #define TIF_RESTORE_SIGMASK	6	/* restore signal mask in do_signal() */
- #define TIF_POLLING_NRFLAG	16	/* true if poll_idle() is polling TIF_NEED_RESCHED */
- #define TIF_MEMDIE		17	/* OOM killer killed process */
-+#define TIF_FREEZE		18	/* freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
-@@ -125,6 +126,7 @@ register struct thread_info *__current_t
- #define _TIF_IRET		(1 << TIF_IRET)
- #define _TIF_RESTORE_SIGMASK	(1 << TIF_RESTORE_SIGMASK)
- #define _TIF_POLLING_NRFLAG	(1 << TIF_POLLING_NRFLAG)
-+#define _TIF_FREEZE		(1 << TIF_FREEZE)
- 
- #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
- #define _TIF_ALLWORK_MASK	0x0000FFFF	/* work to do on any return to u-space */
-diff -puN include/asm-i386/thread_info.h~pm-fix-smp-races-in-the-freezer include/asm-i386/thread_info.h
---- a/include/asm-i386/thread_info.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/asm-i386/thread_info.h
-@@ -134,6 +134,7 @@ static inline struct thread_info *curren
- #define TIF_MEMDIE		16
- #define TIF_DEBUG		17	/* uses debug registers */
- #define TIF_IO_BITMAP		18	/* uses I/O bitmap */
-+#define TIF_FREEZE		19	/* is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -147,6 +148,7 @@ static inline struct thread_info *curren
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
- #define _TIF_DEBUG		(1<<TIF_DEBUG)
- #define _TIF_IO_BITMAP		(1<<TIF_IO_BITMAP)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- /* work to do on interrupt/exception return */
- #define _TIF_WORK_MASK \
-diff -puN include/asm-ia64/thread_info.h~pm-fix-smp-races-in-the-freezer include/asm-ia64/thread_info.h
---- a/include/asm-ia64/thread_info.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/asm-ia64/thread_info.h
-@@ -88,6 +88,7 @@ struct thread_info {
- #define TIF_MEMDIE		17
- #define TIF_MCA_INIT		18	/* this task is processing MCA or INIT */
- #define TIF_DB_DISABLED		19	/* debug trap disabled for fsyscall */
-+#define TIF_FREEZE		20	/* is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
- #define _TIF_SYSCALL_AUDIT	(1 << TIF_SYSCALL_AUDIT)
-@@ -98,6 +99,7 @@ struct thread_info {
- #define _TIF_POLLING_NRFLAG	(1 << TIF_POLLING_NRFLAG)
- #define _TIF_MCA_INIT		(1 << TIF_MCA_INIT)
- #define _TIF_DB_DISABLED	(1 << TIF_DB_DISABLED)
-+#define _TIF_FREEZE		(1 << TIF_FREEZE)
- 
- /* "work to do on user-return" bits */
- #define TIF_ALLWORK_MASK	(_TIF_NOTIFY_RESUME|_TIF_SIGPENDING|_TIF_NEED_RESCHED|_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT)
-diff -puN include/asm-powerpc/thread_info.h~pm-fix-smp-races-in-the-freezer include/asm-powerpc/thread_info.h
---- a/include/asm-powerpc/thread_info.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/asm-powerpc/thread_info.h
-@@ -122,6 +122,7 @@ static inline struct thread_info *curren
- #define TIF_RESTOREALL		12	/* Restore all regs (implies NOERROR) */
- #define TIF_NOERROR		14	/* Force successful syscall return */
- #define TIF_RESTORE_SIGMASK	15	/* Restore signal mask in do_signal */
-+#define TIF_FREEZE		16	/* Freezing for suspend */
- 
- /* as above, but as bit values */
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
-@@ -138,6 +139,7 @@ static inline struct thread_info *curren
- #define _TIF_RESTOREALL		(1<<TIF_RESTOREALL)
- #define _TIF_NOERROR		(1<<TIF_NOERROR)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- #define _TIF_SYSCALL_T_OR_A	(_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT|_TIF_SECCOMP)
- 
- #define _TIF_USER_WORK_MASK	(_TIF_NOTIFY_RESUME | _TIF_SIGPENDING | \
-diff -puN include/asm-sh/thread_info.h~pm-fix-smp-races-in-the-freezer include/asm-sh/thread_info.h
---- a/include/asm-sh/thread_info.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/asm-sh/thread_info.h
-@@ -106,6 +106,7 @@ static inline struct thread_info *curren
- #define TIF_USEDFPU		16	/* FPU was used by this task this quantum (SMP) */
- #define TIF_POLLING_NRFLAG	17	/* true if poll_idle() is polling TIF_NEED_RESCHED */
- #define TIF_MEMDIE		18
-+#define TIF_FREEZE		19
- 
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -114,6 +115,7 @@ static inline struct thread_info *curren
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
- #define _TIF_USEDFPU		(1<<TIF_USEDFPU)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- #define _TIF_WORK_MASK		0x000000FE	/* work to do on interrupt/exception return */
- #define _TIF_ALLWORK_MASK	0x000000FF	/* work to do on any return to u-space */
-diff -puN include/asm-x86_64/thread_info.h~pm-fix-smp-races-in-the-freezer include/asm-x86_64/thread_info.h
---- a/include/asm-x86_64/thread_info.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/asm-x86_64/thread_info.h
-@@ -122,6 +122,7 @@ static inline struct thread_info *stack_
- #define TIF_MEMDIE		20
- #define TIF_DEBUG		21	/* uses debug registers */
- #define TIF_IO_BITMAP		22	/* uses I/O bitmap */
-+#define TIF_FREEZE		23	/* is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -137,6 +138,7 @@ static inline struct thread_info *stack_
- #define _TIF_ABI_PENDING	(1<<TIF_ABI_PENDING)
- #define _TIF_DEBUG		(1<<TIF_DEBUG)
- #define _TIF_IO_BITMAP		(1<<TIF_IO_BITMAP)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- /* work to do on interrupt/exception return */
- #define _TIF_WORK_MASK \
-diff -puN include/linux/freezer.h~pm-fix-smp-races-in-the-freezer include/linux/freezer.h
---- a/include/linux/freezer.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/linux/freezer.h
-@@ -16,16 +16,15 @@ static inline int frozen(struct task_str
-  */
- static inline int freezing(struct task_struct *p)
- {
--	return p->flags & PF_FREEZE;
-+	return test_tsk_thread_flag(p, TIF_FREEZE);
- }
- 
- /*
-  * Request that a process be frozen
-- * FIXME: SMP problem. We may not modify other process' flags!
-  */
- static inline void freeze(struct task_struct *p)
- {
--	p->flags |= PF_FREEZE;
-+	set_tsk_thread_flag(p, TIF_FREEZE);
- }
- 
- /*
-@@ -33,7 +32,7 @@ static inline void freeze(struct task_st
-  */
- static inline void do_not_freeze(struct task_struct *p)
- {
--	p->flags &= ~PF_FREEZE;
-+	clear_tsk_thread_flag(p, TIF_FREEZE);
- }
- 
- /*
-@@ -54,7 +53,9 @@ static inline int thaw_process(struct ta
-  */
- static inline void frozen_process(struct task_struct *p)
- {
--	p->flags = (p->flags & ~PF_FREEZE) | PF_FROZEN;
-+	p->flags |= PF_FROZEN;
-+	wmb();
-+	clear_tsk_thread_flag(p, TIF_FREEZE);
- }
- 
- extern void refrigerator(void);
-diff -puN include/linux/sched.h~pm-fix-smp-races-in-the-freezer include/linux/sched.h
---- a/include/linux/sched.h~pm-fix-smp-races-in-the-freezer
-+++ a/include/linux/sched.h
-@@ -1144,7 +1144,6 @@ static inline void put_task_struct(struc
- #define PF_MEMALLOC	0x00000800	/* Allocating memory */
- #define PF_FLUSHER	0x00001000	/* responsible for disk writeback */
- #define PF_USED_MATH	0x00002000	/* if unset the fpu must be initialized before use */
--#define PF_FREEZE	0x00004000	/* this task is being frozen for suspend now */
- #define PF_NOFREEZE	0x00008000	/* this thread should not be frozen */
- #define PF_FROZEN	0x00010000	/* frozen for system suspend */
- #define PF_FSTRANS	0x00020000	/* inside a filesystem transaction */
-diff -puN kernel/power/process.c~pm-fix-smp-races-in-the-freezer kernel/power/process.c
---- a/kernel/power/process.c~pm-fix-smp-races-in-the-freezer
-+++ a/kernel/power/process.c
-@@ -60,13 +60,16 @@ static inline void freeze_process(struct
- 	unsigned long flags;
- 
- 	if (!freezing(p)) {
--		if (p->state == TASK_STOPPED)
--			force_sig_specific(SIGSTOP, p);
--
--		freeze(p);
--		spin_lock_irqsave(&p->sighand->siglock, flags);
--		signal_wake_up(p, p->state == TASK_STOPPED);
--		spin_unlock_irqrestore(&p->sighand->siglock, flags);
-+		rmb();
-+		if (!frozen(p)) {
-+			if (p->state == TASK_STOPPED)
-+				force_sig_specific(SIGSTOP, p);
-+
-+			freeze(p);
-+			spin_lock_irqsave(&p->sighand->siglock, flags);
-+			signal_wake_up(p, p->state == TASK_STOPPED);
-+			spin_unlock_irqrestore(&p->sighand->siglock, flags);
-+		}
+diff -puN fs/bio.c~optimize-o_direct-on-block-device-v3 fs/bio.c
+--- a/fs/bio.c~optimize-o_direct-on-block-device-v3
++++ a/fs/bio.c
+@@ -916,7 +916,7 @@ void bio_set_pages_dirty(struct bio *bio
  	}
  }
  
+-static void bio_release_pages(struct bio *bio)
++void bio_release_pages(struct bio *bio)
+ {
+ 	struct bio_vec *bvec = bio->bi_io_vec;
+ 	int i;
+diff -puN fs/block_dev.c~optimize-o_direct-on-block-device-v3 fs/block_dev.c
+--- a/fs/block_dev.c~optimize-o_direct-on-block-device-v3
++++ a/fs/block_dev.c
+@@ -129,43 +129,191 @@ blkdev_get_block(struct inode *inode, se
+ 	return 0;
+ }
+ 
+-static int
+-blkdev_get_blocks(struct inode *inode, sector_t iblock,
+-		struct buffer_head *bh, int create)
+-{
+-	sector_t end_block = max_block(I_BDEV(inode));
+-	unsigned long max_blocks = bh->b_size >> inode->i_blkbits;
+-
+-	if ((iblock + max_blocks) > end_block) {
+-		max_blocks = end_block - iblock;
+-		if ((long)max_blocks <= 0) {
+-			if (create)
+-				return -EIO;	/* write fully beyond EOF */
+-			/*
+-			 * It is a read which is fully beyond EOF.  We return
+-			 * a !buffer_mapped buffer
+-			 */
+-			max_blocks = 0;
+-		}
++static int blk_end_aio(struct bio *bio, unsigned int bytes_done, int error)
++{
++	struct kiocb *iocb = bio->bi_private;
++	atomic_t *bio_count = &iocb->ki_bio_count;
++
++	if (bio_data_dir(bio) == READ)
++		bio_check_pages_dirty(bio);
++	else {
++		bio_release_pages(bio);
++		bio_put(bio);
++	}
++
++	/* iocb->ki_nbytes stores error code from LLDD */
++	if (error)
++		iocb->ki_nbytes = -EIO;
++
++	if (atomic_dec_and_test(bio_count)) {
++		if (iocb->ki_nbytes < 0)
++			aio_complete(iocb, iocb->ki_nbytes, 0);
++		else
++			aio_complete(iocb, iocb->ki_left, 0);
+ 	}
+ 
+-	bh->b_bdev = I_BDEV(inode);
+-	bh->b_blocknr = iblock;
+-	bh->b_size = max_blocks << inode->i_blkbits;
+-	if (max_blocks)
+-		set_buffer_mapped(bh);
+ 	return 0;
+ }
+ 
++#define VEC_SIZE	16
++struct pvec {
++	unsigned short nr;
++	unsigned short idx;
++	struct page *page[VEC_SIZE];
++};
++
++#define PAGES_SPANNED(addr, len)	\
++	(DIV_ROUND_UP((addr) + (len), PAGE_SIZE) - (addr) / PAGE_SIZE);
++
++/*
++ * get page pointer for user addr, we internally cache struct page array for
++ * (addr, count) range in pvec to avoid frequent call to get_user_pages.  If
++ * internal page list is exhausted, a batch count of up to VEC_SIZE is used
++ * to get next set of page struct.
++ */
++static struct page *blk_get_page(unsigned long addr, size_t count, int rw,
++				 struct pvec *pvec)
++{
++	int ret, nr_pages;
++	if (pvec->idx == pvec->nr) {
++		nr_pages = PAGES_SPANNED(addr, count);
++		nr_pages = min(nr_pages, VEC_SIZE);
++		down_read(&current->mm->mmap_sem);
++		ret = get_user_pages(current, current->mm, addr, nr_pages,
++				     rw == READ, 0, pvec->page, NULL);
++		up_read(&current->mm->mmap_sem);
++		if (ret < 0)
++			return ERR_PTR(ret);
++		pvec->nr = ret;
++		pvec->idx = 0;
++	}
++	return pvec->page[pvec->idx++];
++}
++
+ static ssize_t
+ blkdev_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
+-			loff_t offset, unsigned long nr_segs)
++		 loff_t pos, unsigned long nr_segs)
+ {
+-	struct file *file = iocb->ki_filp;
+-	struct inode *inode = file->f_mapping->host;
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++	unsigned blkbits = blksize_bits(bdev_hardsect_size(I_BDEV(inode)));
++	unsigned blocksize_mask = (1 << blkbits) - 1;
++	unsigned long seg = 0;	/* iov segment iterator */
++	unsigned long nvec;	/* number of bio vec needed */
++	unsigned long cur_off;	/* offset into current page */
++	unsigned long cur_len;	/* I/O len of current page, up to PAGE_SIZE */
++
++	unsigned long addr;	/* user iovec address */
++	size_t count;		/* user iovec len */
++	size_t nbytes = iocb->ki_nbytes = iocb->ki_left; /* total xfer size */
++	loff_t size;		/* size of block device */
++	struct bio *bio;
++	atomic_t *bio_count = &iocb->ki_bio_count;
++	struct page *page;
++	struct pvec pvec;
++
++	pvec.nr = 0;
++	pvec.idx = 0;
+ 
+-	return blockdev_direct_IO_no_locking(rw, iocb, inode, I_BDEV(inode),
+-				iov, offset, nr_segs, blkdev_get_blocks, NULL);
++	if (pos & blocksize_mask)
++		return -EINVAL;
++
++	size = i_size_read(inode);
++	if (pos + nbytes > size) {
++		nbytes = size - pos;
++		iocb->ki_left = nbytes;
++	}
++
++	/*
++	 * check first non-zero iov alignment, the remaining
++	 * iov alignment is checked inside bio loop below.
++	 */
++	do {
++		addr = (unsigned long) iov[seg].iov_base;
++		count = min(iov[seg].iov_len, nbytes);
++		if (addr & blocksize_mask || count & blocksize_mask)
++			return -EINVAL;
++	} while (!count && ++seg < nr_segs);
++	atomic_set(bio_count, 1);
++
++	while (nbytes) {
++		/* roughly estimate number of bio vec needed */
++		nvec = (nbytes + PAGE_SIZE - 1) / PAGE_SIZE;
++		nvec = max(nvec, nr_segs - seg);
++		nvec = min(nvec, (unsigned long) BIO_MAX_PAGES);
++
++		/* bio_alloc should not fail with GFP_KERNEL flag */
++		bio = bio_alloc(GFP_KERNEL, nvec);
++		bio->bi_bdev = I_BDEV(inode);
++		bio->bi_end_io = blk_end_aio;
++		bio->bi_private = iocb;
++		bio->bi_sector = pos >> blkbits;
++same_bio:
++		cur_off = addr & ~PAGE_MASK;
++		cur_len = PAGE_SIZE - cur_off;
++		if (count < cur_len)
++			cur_len = count;
++
++		page = blk_get_page(addr, count, rw, &pvec);
++		if (unlikely(IS_ERR(page)))
++			goto backout;
++
++		if (bio_add_page(bio, page, cur_len, cur_off)) {
++			pos += cur_len;
++			addr += cur_len;
++			count -= cur_len;
++			nbytes -= cur_len;
++
++			if (count)
++				goto same_bio;
++			while (++seg < nr_segs) {
++				addr = (unsigned long) iov[seg].iov_base;
++				count = iov[seg].iov_len;
++				if (!count)
++					continue;
++				if (unlikely(addr & blocksize_mask ||
++					     count & blocksize_mask)) {
++					page = ERR_PTR(-EINVAL);
++					goto backout;
++				}
++				count = min(count, nbytes);
++				goto same_bio;
++			}
++		}
++
++		/* bio is ready, submit it */
++		if (rw == READ)
++			bio_set_pages_dirty(bio);
++		atomic_inc(bio_count);
++		submit_bio(rw, bio);
++	}
++
++completion:
++	iocb->ki_left -= nbytes;
++	nbytes = iocb->ki_left;
++	iocb->ki_pos += nbytes;
++
++	blk_run_address_space(inode->i_mapping);
++	if (atomic_dec_and_test(bio_count))
++		aio_complete(iocb, nbytes, 0);
++
++	return -EIOCBQUEUED;
++
++backout:
++	/*
++	 * back out nbytes count constructed so far for this bio,
++	 * we will throw away current bio.
++	 */
++	nbytes += bio->bi_size;
++	bio_release_pages(bio);
++	bio_put(bio);
++
++	/*
++	 * if no bio was submmitted, return the error code.
++	 * otherwise, proceed with pending I/O completion.
++	 */
++	if (atomic_read(bio_count) == 1)
++		return PTR_ERR(page);
++	goto completion;
+ }
+ 
+ static int blkdev_writepage(struct page *page, struct writeback_control *wbc)
+diff -puN include/linux/aio.h~optimize-o_direct-on-block-device-v3 include/linux/aio.h
+--- a/include/linux/aio.h~optimize-o_direct-on-block-device-v3
++++ a/include/linux/aio.h
+@@ -105,6 +105,7 @@ struct kiocb {
+ 	wait_queue_t		ki_wait;
+ 	loff_t			ki_pos;
+ 
++	atomic_t		ki_bio_count;	/* num bio used for this iocb */
+ 	void			*private;
+ 	/* State that we remember to be able to restart/retry  */
+ 	unsigned short		ki_opcode;
+diff -puN include/linux/bio.h~optimize-o_direct-on-block-device-v3 include/linux/bio.h
+--- a/include/linux/bio.h~optimize-o_direct-on-block-device-v3
++++ a/include/linux/bio.h
+@@ -309,6 +309,7 @@ extern struct bio *bio_map_kern(struct r
+ 				gfp_t);
+ extern void bio_set_pages_dirty(struct bio *bio);
+ extern void bio_check_pages_dirty(struct bio *bio);
++extern void bio_release_pages(struct bio *bio);
+ extern struct bio *bio_copy_user(struct request_queue *, unsigned long, unsigned int, int);
+ extern int bio_uncopy_user(struct bio *);
+ void zero_fill_bio(struct bio *bio);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from kenneth.w.chen@intel.com are
 
-git-acpi.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
 
