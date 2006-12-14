@@ -1,77 +1,116 @@
 From: akpm@osdl.org
-Subject: + conditionally-check-expected_preempt_count-in-__resched_legal.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:18:32 -0800
-Message-ID: <200612140018.kBE0IWCd025895@shell0.pdx.osdl.net>
+Subject: - spidernet-add-net_ratelimit-to-suppress-long-output.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 16:20:48 -0800
+Message-ID: <200612140020.kBE0Km1s025945@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60948 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:32901 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751821AbWLNASq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:18:46 -0500
+	id S1751802AbWLNAVB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:21:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mark.fasheh@oracle.com, mingo@elte.hu
+To: jklewis@us.ibm.com, jlinas@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Conditionally check expected_preempt_count in __resched_legal()
-has been added to the -mm tree.  Its filename is
-     conditionally-check-expected_preempt_count-in-__resched_legal.patch
+     spidernet: add net_ratelimit to suppress long output
+has been removed from the -mm tree.  Its filename was
+     spidernet-add-net_ratelimit-to-suppress-long-output.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Conditionally check expected_preempt_count in __resched_legal()
-From: Mark Fasheh <mark.fasheh@oracle.com>
+Subject: spidernet: add net_ratelimit to suppress long output
+From: James K Lewis <jklewis@us.ibm.com>
 
-Commit 2d7d253548cffdce80f4e03664686e9ccb1b0ed7 ("fix cond_resched() fix")
-introduced an 'expected_preempt_count' parameter to __resched_legal() to
-fix a bug where it was returning a false negative when called from
-cond_resched_lock() and preemption was enabled.
+This patch adds net_ratelimit to many of the printks in order to limit
+extraneous warning messages This patch supercedes all previous ratelimit
+patches.  This has been tested, please apply.
 
-Unfortunately this broke things for when preemption is disabled. 
-preempt_count() will always return zero, thus failing the check against any
-value of expected_preempt_count not equal to zero.  cond_resched_lock() for
-example, passes an expected_preempt_count value of 1.
-
-So fix the fix for the cond_resched() fix by skipping the check of
-preempt_count() against expected_preempt_count when preemption is disabled.
-
-Credit should go to Sunil Mushran for spotting the bug during testing.
-
-Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: James K Lewis <jklewis@us.ibm.com>
+Signed-off-by: Linas Vepstas <jlinas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/net/spider_net.c |   11 +++++------
+ drivers/net/spider_net.h |    2 +-
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN kernel/sched.c~conditionally-check-expected_preempt_count-in-__resched_legal kernel/sched.c
---- a/kernel/sched.c~conditionally-check-expected_preempt_count-in-__resched_legal
-+++ a/kernel/sched.c
-@@ -4627,8 +4627,10 @@ asmlinkage long sys_sched_yield(void)
+diff -puN drivers/net/spider_net.c~spidernet-add-net_ratelimit-to-suppress-long-output drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-add-net_ratelimit-to-suppress-long-output
++++ a/drivers/net/spider_net.c
+@@ -1008,11 +1008,10 @@ spider_net_decode_one_descr(struct spide
  
- static inline int __resched_legal(int expected_preempt_count)
- {
-+#ifdef CONFIG_PREEMPT
- 	if (unlikely(preempt_count() != expected_preempt_count))
- 		return 0;
-+#endif
- 	if (unlikely(system_state != SYSTEM_RUNNING))
- 		return 0;
- 	return 1;
+ 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
+ 	     (status != SPIDER_NET_DESCR_FRAME_END) ) {
+-		if (netif_msg_rx_err(card)) {
++		if (netif_msg_rx_err(card))
+ 			pr_err("%s: RX descriptor with state %d\n",
+ 			       card->netdev->name, status);
+-			card->spider_stats.rx_desc_unk_state++;
+-		}
++		card->spider_stats.rx_desc_unk_state++;
+ 		goto refill;
+ 	}
+ 
+@@ -1331,7 +1330,7 @@ spider_net_handle_error_irq(struct spide
+ 	case SPIDER_NET_GRFAFLLINT: /* fallthrough */
+ 	case SPIDER_NET_GRMFLLINT:
+ 		if (netif_msg_intr(card) && net_ratelimit())
+-			pr_debug("Spider RX RAM full, incoming packets "
++			pr_err("Spider RX RAM full, incoming packets "
+ 			       "might be discarded!\n");
+ 		spider_net_rx_irq_off(card);
+ 		tasklet_schedule(&card->rxram_full_tl);
+@@ -1349,7 +1348,7 @@ spider_net_handle_error_irq(struct spide
+ 	case SPIDER_NET_GDCDCEINT: /* fallthrough */
+ 	case SPIDER_NET_GDBDCEINT: /* fallthrough */
+ 	case SPIDER_NET_GDADCEINT:
+-		if (netif_msg_intr(card))
++		if (netif_msg_intr(card) && net_ratelimit())
+ 			pr_err("got descriptor chain end interrupt, "
+ 			       "restarting DMAC %c.\n",
+ 			       'D'-(i-SPIDER_NET_GDDDCEINT)/3);
+@@ -1420,7 +1419,7 @@ spider_net_handle_error_irq(struct spide
+ 			break;
+ 	}
+ 
+-	if ((show_error) && (netif_msg_intr(card)))
++	if ((show_error) && (netif_msg_intr(card)) && net_ratelimit())
+ 		pr_err("Got error interrupt on %s, GHIINT0STS = 0x%08x, "
+ 		       "GHIINT1STS = 0x%08x, GHIINT2STS = 0x%08x\n",
+ 		       card->netdev->name,
+diff -puN drivers/net/spider_net.h~spidernet-add-net_ratelimit-to-suppress-long-output drivers/net/spider_net.h
+--- a/drivers/net/spider_net.h~spidernet-add-net_ratelimit-to-suppress-long-output
++++ a/drivers/net/spider_net.h
+@@ -24,7 +24,7 @@
+ #ifndef _SPIDER_NET_H
+ #define _SPIDER_NET_H
+ 
+-#define VERSION "1.6 A"
++#define VERSION "1.6 B"
+ 
+ #include "sungem_phy.h"
+ 
 _
 
-Patches currently in -mm which might be from mark.fasheh@oracle.com are
+Patches currently in -mm which might be from jklewis@us.ibm.com are
 
 origin.patch
-touch_atime-cleanup.patch
-relative-atime.patch
-ocfs2-relative-atime-support.patch
-fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
-conditionally-check-expected_preempt_count-in-__resched_legal.patch
-git-ocfs2.patch
+spidernet-add-net_ratelimit-to-suppress-long-output.patch
+spidernet-rx-locking.patch
+spidernet-refactor-rx-refill.patch
+spidernet-rx-skb-mem-leak.patch
+spidernet-another-skb-mem-leak.patch
+spidernet-cleanup-return-codes.patch
+spidernet-rx-refill.patch
+spidernet-merge-error-branches.patch
+spidernet-remove-unused-variable.patch
+spidernet-rx-chain-tail.patch
+spidernet-turn-rx-irq-back-on.patch
+spidernet-memory-barrier.patch
+spidernet-avoid-possible-rx-chain-corruption.patch
+spidernet-rx-debugging-printout.patch
+spidernet-rework-rx-linked-list.patch
 
