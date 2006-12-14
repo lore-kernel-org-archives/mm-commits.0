@@ -1,53 +1,75 @@
 From: akpm@osdl.org
-Subject: - lockdep-filter-off-by-default.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:09:02 -0800
-Message-ID: <200612140609.kBE692Cl001965@shell0.pdx.osdl.net>
+Subject: - lockdep-improve-verbose-messages.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:09:13 -0800
+Message-ID: <200612140609.kBE69DST001971@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52128 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52132 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751903AbWLNGJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:09:17 -0500
+	id S1751906AbWLNGJ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:09:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: filter off by default
+     lockdep: improve verbose messages
 has been removed from the -mm tree.  Its filename was
-     lockdep-filter-off-by-default.patch
+     lockdep-improve-verbose-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: filter off by default
+Subject: lockdep: improve verbose messages
 From: Ingo Molnar <mingo@elte.hu>
 
-Fix typo in the class_filter() function.  (filtering is not used by default so
-this only affects lockdep-internal debugging cases)
+Make verbose lockdep messages (off by default) more informative by printing
+out the hash chain key.  (this patch was what helped me catch the earlier
+lockdep hash-collision bug)
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/lockdep.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-filter-off-by-default kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-filter-off-by-default
+diff -puN kernel/lockdep.c~lockdep-improve-verbose-messages kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-improve-verbose-messages
 +++ a/kernel/lockdep.c
-@@ -172,8 +172,8 @@ static int class_filter(struct lock_clas
- 			!strcmp(class->name, "&struct->lockfield"))
- 		return 1;
+@@ -1264,7 +1264,7 @@ out_unlock_set:
+  * add it and return 0 - in this case the new dependency chain is
+  * validated. If the key is already hashed, return 1.
+  */
+-static inline int lookup_chain_cache(u64 chain_key)
++static inline int lookup_chain_cache(u64 chain_key, struct lock_class *class)
+ {
+ 	struct list_head *hash_head = chainhashentry(chain_key);
+ 	struct lock_chain *chain;
+@@ -1286,9 +1286,13 @@ cache_hit:
+ 			__raw_spin_lock(&hash_lock);
+ 			return 1;
  #endif
--	/* Allow everything else. 0 would be filter everything else */
--	return 1;
-+	/* Filter everything else. 1 would be to allow everything else */
-+	return 0;
- }
- #endif
- 
++			if (very_verbose(class))
++				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
+ 			return 0;
+ 		}
+ 	}
++	if (very_verbose(class))
++		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
+ 	/*
+ 	 * Allocate a new chain entry from the static array, and add
+ 	 * it to the hash:
+@@ -2139,7 +2143,7 @@ out_calc_hash:
+ 	 * (If lookup_chain_cache() returns with 1 it acquires
+ 	 * hash_lock for us)
+ 	 */
+-	if (!trylock && (check == 2) && lookup_chain_cache(chain_key)) {
++	if (!trylock && (check == 2) && lookup_chain_cache(chain_key, class)) {
+ 		/*
+ 		 * Check whether last held lock:
+ 		 *
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
