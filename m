@@ -1,300 +1,184 @@
 From: akpm@osdl.org
-Subject: + kthread-api-conversion-for-dvb_frontend-and-av7110.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:06:14 -0800
-Message-ID: <200612140006.kBE06E09025496@shell0.pdx.osdl.net>
+Subject: + add-memcpy_uncached_read-tidy.patch added to -mm tree
+Date: Wed, 13 Dec 2006 16:10:58 -0800
+Message-ID: <200612140010.kBE0Aw7C025614@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59934 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60464 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751781AbWLNAGl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:06:41 -0500
+	id S1751809AbWLNALQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:11:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: herbert@13thfloor.at, clg@fr.ibm.com, ebiederm@xmission.com, mchehab@infradead.org
+Cc: akpm@osdl.org, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com
 
 
 The patch titled
-     kthread API conversion for dvb_frontend and av7110
+     add-memcpy_uncached_read-tidy
 has been added to the -mm tree.  Its filename is
-     kthread-api-conversion-for-dvb_frontend-and-av7110.patch
+     add-memcpy_uncached_read-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kthread API conversion for dvb_frontend and av7110
-From: Herbert Poetzl <herbert@13thfloor.at>
+Subject: add-memcpy_uncached_read-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-dvb kernel_thread to kthread API port.  It is running fine here since
-yesterday, including module load/unload and software suspend (which doesn't
-work as expected with or without this patch :), I didn't convert the
-dvb_ca_en50221 as I do not have such an interface, but if the conversion
-process is fine with the v4l-dvb maintainers, it should not be a problem to
-send a patch for that too ...
+Let's try the Linus trick to get rid of yet another ARCH_HAS_FOO.
 
-Signed-off-by: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/dvb/dvb-core/dvb_frontend.c |   69 ++++++--------------
- drivers/media/dvb/ttpci/av7110.c          |   29 +++-----
- drivers/media/dvb/ttpci/av7110.h          |    1 
- 3 files changed, 37 insertions(+), 62 deletions(-)
+ include/asm-x86_64/string.h |    2 +-
+ include/linux/string.h      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-core/dvb_frontend.c~kthread-api-conversion-for-dvb_frontend-and-av7110 drivers/media/dvb/dvb-core/dvb_frontend.c
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c~kthread-api-conversion-for-dvb_frontend-and-av7110
-+++ a/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -36,6 +36,7 @@
- #include <linux/list.h>
- #include <linux/freezer.h>
- #include <linux/jiffies.h>
-+#include <linux/kthread.h>
- #include <asm/processor.h>
+diff -puN include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy include/asm-x86_64/string.h
+--- a/include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy
++++ a/include/asm-x86_64/string.h
+@@ -39,8 +39,8 @@ extern void *__memcpy(void *to, const vo
+ 		 __ret = __builtin_memcpy((dst),(src),__len);	\
+ 	   __ret; }) 
  
- #include "dvb_frontend.h"
-@@ -100,7 +101,7 @@ struct dvb_frontend_private {
- 	struct semaphore sem;
- 	struct list_head list_head;
- 	wait_queue_head_t wait_queue;
--	pid_t thread_pid;
-+	struct task_struct *thread;
- 	unsigned long release_jiffies;
- 	unsigned int exit;
- 	unsigned int wakeup;
-@@ -508,19 +509,11 @@ static int dvb_frontend_thread(void *dat
- 	struct dvb_frontend *fe = data;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	unsigned long timeout;
--	char name [15];
- 	fe_status_t s;
- 	struct dvb_frontend_parameters *params;
+-#define __HAVE_ARCH_MEMCPY_UNCACHED_READ
+ extern void *memcpy_uncached_read(void *to, const void *from, size_t len);
++#define memcpy_uncached_read memcpy_uncached_read
  
- 	dprintk("%s\n", __FUNCTION__);
- 
--	snprintf (name, sizeof(name), "kdvb-fe-%i", fe->dvb->num);
--
--	lock_kernel();
--	daemonize(name);
--	sigfillset(&current->blocked);
--	unlock_kernel();
--
- 	fepriv->check_wrapped = 0;
- 	fepriv->quality = 0;
- 	fepriv->delay = 3*HZ;
-@@ -534,14 +527,16 @@ static int dvb_frontend_thread(void *dat
- 		up(&fepriv->sem);	    /* is locked when we enter the thread... */
- 
- 		timeout = wait_event_interruptible_timeout(fepriv->wait_queue,
--							   dvb_frontend_should_wakeup(fe),
--							   fepriv->delay);
--		if (0 != dvb_frontend_is_exiting(fe)) {
-+			dvb_frontend_should_wakeup(fe) || kthread_should_stop(),
-+			fepriv->delay);
-+
-+		if (kthread_should_stop() || dvb_frontend_is_exiting(fe)) {
- 			/* got signal or quitting */
- 			break;
- 		}
- 
--		try_to_freeze();
-+		if (try_to_freeze())
-+			continue;
- 
- 		if (down_interruptible(&fepriv->sem))
- 			break;
-@@ -591,7 +586,7 @@ static int dvb_frontend_thread(void *dat
- 			fe->ops.sleep(fe);
- 	}
- 
--	fepriv->thread_pid = 0;
-+	fepriv->thread = NULL;
- 	mb();
- 
- 	dvb_frontend_wakeup(fe);
-@@ -600,7 +595,6 @@ static int dvb_frontend_thread(void *dat
- 
- static void dvb_frontend_stop(struct dvb_frontend *fe)
- {
--	unsigned long ret;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 
- 	dprintk ("%s\n", __FUNCTION__);
-@@ -608,33 +602,17 @@ static void dvb_frontend_stop(struct dvb
- 	fepriv->exit = 1;
- 	mb();
- 
--	if (!fepriv->thread_pid)
-+	if (!fepriv->thread)
- 		return;
- 
--	/* check if the thread is really alive */
--	if (kill_proc(fepriv->thread_pid, 0, 1) == -ESRCH) {
--		printk("dvb_frontend_stop: thread PID %d already died\n",
--				fepriv->thread_pid);
--		/* make sure the mutex was not held by the thread */
--		init_MUTEX (&fepriv->sem);
--		return;
--	}
--
--	/* wake up the frontend thread, so it notices that fe->exit == 1 */
--	dvb_frontend_wakeup(fe);
--
--	/* wait until the frontend thread has exited */
--	ret = wait_event_interruptible(fepriv->wait_queue,0 == fepriv->thread_pid);
--	if (-ERESTARTSYS != ret) {
--		fepriv->state = FESTATE_IDLE;
--		return;
--	}
-+	kthread_stop(fepriv->thread);
-+	init_MUTEX (&fepriv->sem);
- 	fepriv->state = FESTATE_IDLE;
- 
- 	/* paranoia check in case a signal arrived */
--	if (fepriv->thread_pid)
--		printk("dvb_frontend_stop: warning: thread PID %d won't exit\n",
--				fepriv->thread_pid);
-+	if (fepriv->thread)
-+		printk("dvb_frontend_stop: warning: thread %p won't exit\n",
-+				fepriv->thread);
- }
- 
- s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime)
-@@ -684,10 +662,11 @@ static int dvb_frontend_start(struct dvb
- {
- 	int ret;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	struct task_struct *fe_thread;
- 
- 	dprintk ("%s\n", __FUNCTION__);
- 
--	if (fepriv->thread_pid) {
-+	if (fepriv->thread) {
- 		if (!fepriv->exit)
- 			return 0;
- 		else
-@@ -701,18 +680,18 @@ static int dvb_frontend_start(struct dvb
- 
- 	fepriv->state = FESTATE_IDLE;
- 	fepriv->exit = 0;
--	fepriv->thread_pid = 0;
-+	fepriv->thread = NULL;
- 	mb();
- 
--	ret = kernel_thread (dvb_frontend_thread, fe, 0);
--
--	if (ret < 0) {
--		printk("dvb_frontend_start: failed to start kernel_thread (%d)\n", ret);
-+	fe_thread = kthread_run(dvb_frontend_thread, fe,
-+		"kdvb-fe-%i", fe->dvb->num);
-+	if (IS_ERR(fe_thread)) {
-+		ret = PTR_ERR(fe_thread);
-+		printk("dvb_frontend_start: failed to start kthread (%d)\n", ret);
- 		up(&fepriv->sem);
- 		return ret;
- 	}
--	fepriv->thread_pid = ret;
--
-+	fepriv->thread = fe_thread;
- 	return 0;
- }
- 
-diff -puN drivers/media/dvb/ttpci/av7110.c~kthread-api-conversion-for-dvb_frontend-and-av7110 drivers/media/dvb/ttpci/av7110.c
---- a/drivers/media/dvb/ttpci/av7110.c~kthread-api-conversion-for-dvb_frontend-and-av7110
-+++ a/drivers/media/dvb/ttpci/av7110.c
-@@ -51,6 +51,7 @@
- #include <linux/firmware.h>
- #include <linux/crc32.h>
- #include <linux/i2c.h>
-+#include <linux/kthread.h>
- 
- #include <asm/system.h>
- 
-@@ -223,11 +224,10 @@ static void recover_arm(struct av7110 *a
- 
- static void av7110_arm_sync(struct av7110 *av7110)
- {
--	av7110->arm_rmmod = 1;
--	wake_up_interruptible(&av7110->arm_wait);
-+	if (av7110->arm_thread)
-+		kthread_stop(av7110->arm_thread);
- 
--	while (av7110->arm_thread)
--		msleep(1);
-+	av7110->arm_thread = NULL;
- }
- 
- static int arm_thread(void *data)
-@@ -238,17 +238,11 @@ static int arm_thread(void *data)
- 
- 	dprintk(4, "%p\n",av7110);
- 
--	lock_kernel();
--	daemonize("arm_mon");
--	sigfillset(&current->blocked);
--	unlock_kernel();
--
--	av7110->arm_thread = current;
--
- 	for (;;) {
- 		timeout = wait_event_interruptible_timeout(av7110->arm_wait,
--							   av7110->arm_rmmod, 5 * HZ);
--		if (-ERESTARTSYS == timeout || av7110->arm_rmmod) {
-+			kthread_should_stop(), 5 * HZ);
-+
-+		if (-ERESTARTSYS == timeout || kthread_should_stop()) {
- 			/* got signal or told to quit*/
- 			break;
- 		}
-@@ -276,7 +270,6 @@ static int arm_thread(void *data)
- 		av7110->arm_errors = 0;
- 	}
- 
--	av7110->arm_thread = NULL;
- 	return 0;
- }
- 
-@@ -2338,6 +2331,7 @@ static int __devinit av7110_attach(struc
- 	const int length = TS_WIDTH * TS_HEIGHT;
- 	struct pci_dev *pdev = dev->pci;
- 	struct av7110 *av7110;
-+	struct task_struct *thread;
- 	int ret, count = 0;
- 
- 	dprintk(4, "dev: %p\n", dev);
-@@ -2622,9 +2616,12 @@ static int __devinit av7110_attach(struc
- 		printk ("dvb-ttpci: Warning, firmware version 0x%04x is too old. "
- 			"System might be unstable!\n", FW_VERSION(av7110->arm_app));
- 
--	ret = kernel_thread(arm_thread, (void *) av7110, 0);
--	if (ret < 0)
-+	thread = kthread_run(arm_thread, (void *) av7110, "arm_mon");
-+	if (IS_ERR(thread)) {
-+		ret = PTR_ERR(thread);
- 		goto err_stop_arm_9;
-+	}
-+	av7110->arm_thread = thread;
- 
- 	/* set initial volume in mixer struct */
- 	av7110->mixer.volume_left  = volume;
-diff -puN drivers/media/dvb/ttpci/av7110.h~kthread-api-conversion-for-dvb_frontend-and-av7110 drivers/media/dvb/ttpci/av7110.h
---- a/drivers/media/dvb/ttpci/av7110.h~kthread-api-conversion-for-dvb_frontend-and-av7110
-+++ a/drivers/media/dvb/ttpci/av7110.h
-@@ -205,7 +205,6 @@ struct av7110 {
- 	struct task_struct *arm_thread;
- 	wait_queue_head_t   arm_wait;
- 	u16		    arm_loops;
--	int		    arm_rmmod;
- 
- 	void		   *debi_virt;
- 	dma_addr_t	    debi_bus;
+ #define __HAVE_ARCH_MEMSET
+ void *memset(void *s, int c, size_t n);
+diff -puN include/linux/string.h~add-memcpy_uncached_read-tidy include/linux/string.h
+--- a/include/linux/string.h~add-memcpy_uncached_read-tidy
++++ a/include/linux/string.h
+@@ -85,7 +85,7 @@ extern void * memset(void *,int,__kernel
+ #ifndef __HAVE_ARCH_MEMCPY
+ extern void * memcpy(void *,const void *,__kernel_size_t);
+ #endif
+-#ifndef __HAVE_ARCH_MEMCPY_UNCACHED_READ
++#ifndef memcpy_uncached_read
+ #define memcpy_uncached_read(dest, src, count) memcpy((dest), (src), (count))
+ #endif
+ #ifndef __HAVE_ARCH_MEMMOVE
 _
 
-Patches currently in -mm which might be from herbert@13thfloor.at are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
+x86-smp-export-smp_num_siblings-for-oprofile.patch
+slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
+touch_atime-cleanup.patch
+ocfs2-relative-atime-support.patch
+optimize-o_direct-on-block-device-v3.patch
+lockdep-fix-possible-races-while-disabling-lock-debugging.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+alsa-workqueue-fixes.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input-vs-git-alsa.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+add-memcpy_uncached_read-tidy.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
