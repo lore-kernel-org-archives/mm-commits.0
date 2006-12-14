@@ -1,80 +1,82 @@
 From: akpm@osdl.org
-Subject: - knfsd-svcrpc-remove-another-silent-drop-from-deferral-code.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:15:43 -0800
-Message-ID: <200612140615.kBE6FgIi002219@shell0.pdx.osdl.net>
+Subject: - acpi-dont-enable-link-device-in-ioapic-mode.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:16:21 -0800
+Message-ID: <200612140616.kBE6GM7i002246@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52514 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52567 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751990AbWLNGQR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:16:17 -0500
+	id S1751979AbWLNGQ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:16:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, len.brown@intel.com, stian_web@jordet.nu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: svcrpc: remove another silent drop from deferral code
+     acpi: don't enable link device in IOAPIC mode
 has been removed from the -mm tree.  Its filename was
-     knfsd-svcrpc-remove-another-silent-drop-from-deferral-code.patch
+     acpi-dont-enable-link-device-in-ioapic-mode.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: knfsd: svcrpc: remove another silent drop from deferral code
-From: J.Bruce Fields <bfields@fieldses.org>
+Subject: acpi: don't enable link device in IOAPIC mode
+From: Shaohua Li <shaohua.li@intel.com>
 
-There's no point deferring something just to immediately fail the deferral,
-especially now that we can do something more useful in the failure case by
-returning an error.
+In Stian's system, if link device is enabled in IOAPIC mode, pci device
+will connect to link device and link device connect to IOAPIC pin.  That is
+the device's interrupt is decided by link's irq.  If link device is
+disabled, pci device is connected to IOAPIC pin.
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Signed-off-by: Neil Brown <neilb@suse.de>
+There are two devices who share one link device in pic mode, but in IOAPIC
+mode, _PRT table reported one device connected to IOAPIC pin and the other
+connected to the link device.  If the link device is enabled, the device
+connected to IOAPIC pin directly will break as _PRT reported interrupt for
+the device doesn't reflect the case link device is enabled
+
+If we leave the link device disabled, the device which connected to the
+link device doesn't break.  It appears the link device is just used to get
+an interrupt number instead of for real interrupt routing.  So in this
+patch, if current irq model is IOAPIC, we will leave link device disabled
+and just use its active irq number.
+
+Signed-off-by: Shaohua Li<shaohua.li@intel.com>
+Cc: Stian Jordet <stian_web@jordet.nu>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/cache.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/acpi/pci_link.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN net/sunrpc/cache.c~knfsd-svcrpc-remove-another-silent-drop-from-deferral-code net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~knfsd-svcrpc-remove-another-silent-drop-from-deferral-code
-+++ a/net/sunrpc/cache.c
-@@ -530,6 +530,13 @@ static int cache_defer_req(struct cache_
- 	struct cache_deferred_req *dreq;
- 	int hash = DFR_HASH(item);
+diff -puN drivers/acpi/pci_link.c~acpi-dont-enable-link-device-in-ioapic-mode drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c~acpi-dont-enable-link-device-in-ioapic-mode
++++ a/drivers/acpi/pci_link.c
+@@ -526,6 +526,10 @@ static int acpi_pci_link_allocate(struct
+ 	int i;
  
-+	if (cache_defer_cnt >= DFR_MAX) {
-+		/* too much in the cache, randomly drop this one,
-+		 * or continue and drop the oldest below
-+		 */
-+		if (net_random()&1)
-+			return -ETIMEDOUT;
+ 
++	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC && link->irq.active) {
++		link->irq.initialized = 1;
++		return 0;
 +	}
- 	dreq = req->defer(req);
- 	if (dreq == NULL)
- 		return -ETIMEDOUT;
-@@ -548,17 +555,8 @@ static int cache_defer_req(struct cache_
- 	/* it is in, now maybe clean up */
- 	dreq = NULL;
- 	if (++cache_defer_cnt > DFR_MAX) {
--		/* too much in the cache, randomly drop
--		 * first or last
--		 */
--		if (net_random()&1) 
--			dreq = list_entry(cache_defer_list.next,
--					  struct cache_deferred_req,
--					  recent);
--		else
--			dreq = list_entry(cache_defer_list.prev,
--					  struct cache_deferred_req,
--					  recent);
-+		dreq = list_entry(cache_defer_list.prev,
-+				  struct cache_deferred_req, recent);
- 		list_del(&dreq->recent);
- 		list_del(&dreq->hash);
- 		cache_defer_cnt--;
+ 	if (link->irq.initialized) {
+ 		if (link->refcnt == 0)
+ 			/* This means the link is disabled but initialized */
 _
 
-Patches currently in -mm which might be from bfields@fieldses.org are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
+git-acpi.patch
+acpi-disable-irq-balance-even-in-apic-mode.patch
+acpi-dont-enable-link-device-in-ioapic-mode.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+parse-boot-parameter-error.patch
 
