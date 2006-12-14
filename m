@@ -1,71 +1,98 @@
 From: akpm@osdl.org
-Subject: + spidernet-avoid-possible-rx-chain-corruption.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:26:20 -0800
-Message-ID: <200612140026.kBE0QKiR026159@shell0.pdx.osdl.net>
+Subject: + kref-refcnt-and-false-positives.patch added to -mm tree
+Date: Wed, 13 Dec 2006 16:43:50 -0800
+Message-ID: <200612140044.kBE0i73f026654@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34122 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34203 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888AbWLNAmQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:42:16 -0500
+	id S1751885AbWLNAoL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:44:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
+Cc: venkatesh.pallipadi@intel.com, greg@kroah.com
 
 
 The patch titled
-     Spidernet: Avoid possible RX chain corruption
+     kref refcnt and false positives
 has been added to the -mm tree.  Its filename is
-     spidernet-avoid-possible-rx-chain-corruption.patch
+     kref-refcnt-and-false-positives.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Spidernet: Avoid possible RX chain corruption
-From: Linas Vepstas <linas@austin.ibm.com>
+Subject: kref refcnt and false positives
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Delete possible source of chain corruption; the hardware already knows the
-location of the tail, and writing it again is likely to mess it up.
+With WARN_ON addition to kobject_init()
+[ http://kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.19/2.6.19-mm1/dont-use/broken-out/gregkh-driver-kobject-warn.patch ]
 
-Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
-Cc: James K Lewis <jklewis@us.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+I started seeing following WARNING on CPU offline followed by online on my
+x86_64 system.
+
+WARNING at lib/kobject.c:172 kobject_init()
+
+Call Trace:
+ [<ffffffff8020ab45>] dump_trace+0xaa/0x3ef
+ [<ffffffff8020aec4>] show_trace+0x3a/0x50
+ [<ffffffff8020b0f6>] dump_stack+0x15/0x17
+ [<ffffffff80350abc>] kobject_init+0x3f/0x8a
+ [<ffffffff80350be1>] kobject_register+0x1a/0x3e
+ [<ffffffff803bbd89>] sysdev_register+0x5b/0xf9
+ [<ffffffff80211d0b>] mce_create_device+0x77/0xf4
+ [<ffffffff80211dc2>] mce_cpu_callback+0x3a/0xe5
+ [<ffffffff805632fd>] notifier_call_chain+0x26/0x3b
+ [<ffffffff8023f6f3>] raw_notifier_call_chain+0x9/0xb
+ [<ffffffff802519bf>] _cpu_up+0xb4/0xdc
+ [<ffffffff80251a12>] cpu_up+0x2b/0x42
+ [<ffffffff803bef00>] store_online+0x4a/0x72
+ [<ffffffff803bb6ce>] sysdev_store+0x24/0x26
+ [<ffffffff802baaa2>] sysfs_write_file+0xcf/0xfc
+ [<ffffffff8027fc6f>] vfs_write+0xae/0x154
+ [<ffffffff80280418>] sys_write+0x47/0x6f
+ [<ffffffff8020963e>] system_call+0x7e/0x83
+DWARF2 unwinder stuck at system_call+0x7e/0x83
+Leftover inexact backtrace:
+
+This is a false positive as mce.c is unregistering/registering sysfs
+interfaces cleanly on hotplug.
+
+kref_put() and conditional decrement of refcnt seems to be the root cause
+for this and the patch below resolves the issue for me.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |    1 -
- 1 files changed, 1 deletion(-)
+ lib/kref.c |    7 +------
+ 1 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-avoid-possible-rx-chain-corruption drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-avoid-possible-rx-chain-corruption
-+++ a/drivers/net/spider_net.c
-@@ -513,7 +513,6 @@ spider_net_alloc_rx_skbs(struct spider_n
- 	/* This will allocate the rest of the rx buffers;
- 	 * if not, it's business as usual later on. */
- 	spider_net_refill_rx_chain(card);
--	spider_net_enable_rxchtails(card);
- 	spider_net_enable_rxdmac(card);
- 	return 0;
+diff -puN lib/kref.c~kref-refcnt-and-false-positives lib/kref.c
+--- a/lib/kref.c~kref-refcnt-and-false-positives
++++ a/lib/kref.c
+@@ -52,12 +52,7 @@ int kref_put(struct kref *kref, void (*r
+ 	WARN_ON(release == NULL);
+ 	WARN_ON(release == (void (*)(struct kref *))kfree);
  
+-	/*
+-	 * if current count is one, we are the last user and can release object
+-	 * right now, avoiding an atomic operation on 'refcount'
+-	 */
+-	if ((atomic_read(&kref->refcount) == 1) ||
+-	    (atomic_dec_and_test(&kref->refcount))) {
++	if (atomic_dec_and_test(&kref->refcount)) {
+ 		release(kref);
+ 		return 1;
+ 	}
 _
 
-Patches currently in -mm which might be from linas@austin.ibm.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
-spidernet-dma-coalescing.patch
-spidernet-add-net_ratelimit-to-suppress-long-output.patch
-spidernet-remove-rxramfull-tasklet.patch
-spidernet-cleanup-un-needed-api.patch
-spidernet-rx-skb-mem-leak.patch
-spidernet-another-skb-mem-leak.patch
-spidernet-cleanup-return-codes.patch
-spidernet-rx-refill.patch
-spidernet-remove-unused-variable.patch
-spidernet-rx-chain-tail.patch
-spidernet-memory-barrier.patch
-spidernet-avoid-possible-rx-chain-corruption.patch
-spidernet-rx-debugging-printout.patch
-spidernet-rework-rx-linked-list.patch
+cpufreq-set-policy-curfreq-on-initialization.patch
+bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification.patch
+kref-refcnt-and-false-positives.patch
 
