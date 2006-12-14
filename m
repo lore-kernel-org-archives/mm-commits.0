@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + spidernet-remove-unused-variable.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:26:14 -0800
-Message-ID: <200612140026.kBE0QETe026150@shell0.pdx.osdl.net>
+Subject: + spidernet-another-skb-mem-leak.patch added to -mm tree
+Date: Wed, 13 Dec 2006 16:26:08 -0800
+Message-ID: <200612140026.kBE0Q8N6026139@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33383 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33525 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751850AbWLNA11 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:27:27 -0500
+	id S1751853AbWLNA3Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:29:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,18 +15,19 @@ Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
 
 
 The patch titled
-     Spidernet: Remove unused variable
+     Spidernet: another skb mem leak
 has been added to the -mm tree.  Its filename is
-     spidernet-remove-unused-variable.patch
+     spidernet-another-skb-mem-leak.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Spidernet: Remove unused variable
+Subject: Spidernet: another skb mem leak
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Remove unused variable; this makes code easier to read.  Tweak commentary.
+Another skb leak in an error branch.  Fix this by adding call to
+dev_kfree_skb_irq() after moving to a more appropriate spot.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -34,56 +35,51 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/net/spider_net.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-remove-unused-variable drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-remove-unused-variable
+diff -puN drivers/net/spider_net.c~spidernet-another-skb-mem-leak drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-another-skb-mem-leak
 +++ a/drivers/net/spider_net.c
-@@ -367,21 +367,20 @@ spider_net_free_rx_chain_contents(struct
- }
+@@ -926,19 +926,8 @@ spider_net_pass_skb_up(struct spider_net
  
- /**
-- * spider_net_prepare_rx_descr - reinitializes a rx descriptor
-+ * spider_net_prepare_rx_descr - Reinitialize RX descriptor
-  * @card: card structure
-  * @descr: descriptor to re-init
-  *
-- * return 0 on succes, <0 on failure
-+ * Return 0 on succes, <0 on failure.
-  *
-- * allocates a new rx skb, iommu-maps it and attaches it to the descriptor.
-- * Activate the descriptor state-wise
-+ * Allocates a new rx skb, iommu-maps it and attaches it to the
-+ * descriptor. Mark the descriptor as activated, ready-to-use.
-  */
- static int
- spider_net_prepare_rx_descr(struct spider_net_card *card,
- 			    struct spider_net_descr *descr)
- {
- 	dma_addr_t buf;
--	int error = 0;
- 	int offset;
- 	int bufsize;
+ 	data_status = descr->data_status;
+ 	data_error = descr->data_error;
+-
+ 	netdev = card->netdev;
  
-@@ -409,7 +408,7 @@ spider_net_prepare_rx_descr(struct spide
- 		(SPIDER_NET_RXBUF_ALIGN - 1);
- 	if (offset)
- 		skb_reserve(descr->skb, SPIDER_NET_RXBUF_ALIGN - offset);
--	/* io-mmu-map the skb */
-+	/* iommu-map the skb */
- 	buf = pci_map_single(card->pdev, descr->skb->data,
- 			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
- 	descr->buf_addr = buf;
-@@ -424,7 +423,7 @@ spider_net_prepare_rx_descr(struct spide
- 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
+-	/* the cases we'll throw away the packet immediately */
+-	if (data_error & SPIDER_NET_DESTROY_RX_FLAGS) {
+-		if (netif_msg_rx_err(card))
+-			pr_err("error in received descriptor found, "
+-			       "data_status=x%08x, data_error=x%08x\n",
+-			       data_status, data_error);
+-		card->spider_stats.rx_desc_error++;
+-		return 0;
+-	}
+-
+ 	skb = descr->skb;
+ 	skb->dev = netdev;
+ 	skb_put(skb, descr->valid_size);
+@@ -1037,6 +1026,18 @@ spider_net_decode_one_descr(struct spide
+ 		goto refill;
  	}
  
--	return error;
-+	return 0;
- }
- 
- /**
++	/* The cases we'll throw away the packet immediately */
++	if (descr->data_error & SPIDER_NET_DESTROY_RX_FLAGS) {
++		if (netif_msg_rx_err(card))
++			pr_err("%s: error in received descriptor found, "
++			       "data_status=x%08x, data_error=x%08x\n",
++			       card->netdev->name,
++			       descr->data_status, descr->data_error);
++		card->spider_stats.rx_desc_error++;
++		dev_kfree_skb_irq(descr->skb);
++		goto refill;
++	}
++
+ 	/* ok, we've got a packet in descr */
+ 	result = spider_net_pass_skb_up(descr, card);
+ refill:
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
