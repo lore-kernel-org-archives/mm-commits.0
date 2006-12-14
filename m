@@ -1,89 +1,92 @@
 From: akpm@osdl.org
-Subject: - remove-references-to-non-existent.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:19:24 -0800
-Message-ID: <200612140619.kBE6JNuc002369@shell0.pdx.osdl.net>
+Subject: - ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:18:56 -0800
+Message-ID: <200612140618.kBE6Itbr002356@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52841 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52991 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752032AbWLNGUE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:20:04 -0500
+	id S1751979AbWLNGW1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:22:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: sshtylyov@ru.mvista.com, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: remove references to non-existent fbmon_valid_timings()
+     ide: fix the case of multiple HPT3xx chips present
 has been removed from the -mm tree.  Its filename was
-     remove-references-to-non-existent.patch
+     ide-fix-the-case-of-multiple-hpt3xx-chips-present.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev: remove references to non-existent fbmon_valid_timings()
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: ide: fix the case of multiple HPT3xx chips present
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-Remove references to non-existent fbmon_valid_timings()
+init_chipset_hpt366() modifies some fields of the ide_pci_device_t structure
+depending on the chip's revision, so pass it a copy of the structure to avoid
+issues when multiple different chips are present.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: James Simmons <jsimmons@infradead.org>
+Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/amifb.c          |    8 --------
- drivers/video/aty/atyfb_base.c |    4 ----
- include/linux/fb.h             |    2 --
- 3 files changed, 14 deletions(-)
+ drivers/ide/pci/hpt366.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/amifb.c~remove-references-to-non-existent drivers/video/amifb.c
---- a/drivers/video/amifb.c~remove-references-to-non-existent
-+++ a/drivers/video/amifb.c
-@@ -2906,14 +2906,6 @@ static int ami_decode_var(struct fb_var_
- 	par->crsr.spot_x = par->crsr.spot_y = 0;
- 	par->crsr.height = par->crsr.width = 0;
+diff -puN drivers/ide/pci/hpt366.c~ide-fix-the-case-of-multiple-hpt3xx-chips-present drivers/ide/pci/hpt366.c
+--- a/drivers/ide/pci/hpt366.c~ide-fix-the-case-of-multiple-hpt3xx-chips-present
++++ a/drivers/ide/pci/hpt366.c
+@@ -72,6 +72,8 @@
+  *   table in which the mode lookup is done
+  * - fix the hotswap code:  it caused RESET- to glitch when tristating the bus,
+  *   and for HPT36x the obsolete HDIO_TRISTATE_HWIF handler was called instead
++ * - pass to init_chipset() handlers a copy of the IDE PCI device structure as
++ *   they tamper with its fields
+  *		<source@mvista.com>
+  *
+  */
+@@ -1564,13 +1566,16 @@ static ide_pci_device_t hpt366_chipsets[
+  *
+  *	Called when the PCI registration layer (or the IDE initialization)
+  *	finds a device matching our IDE device tables.
++ *
++ *	NOTE: since we'll have to modify some fields of the ide_pci_device_t
++ *	structure depending on the chip's revision, we'd better pass a local
++ *	copy down the call chain...
+  */
+- 
+ static int __devinit hpt366_init_one(struct pci_dev *dev, const struct pci_device_id *id)
+ {
+-	ide_pci_device_t *d = &hpt366_chipsets[id->driver_data];
++	ide_pci_device_t d = hpt366_chipsets[id->driver_data];
  
--#if 0	/* fbmon not done.  uncomment for 2.5.x -brad */
--	if (!fbmon_valid_timings(pixclock[clk_shift], htotal, vtotal,
--				 &fb_info)) {
--		DPRINTK("mode doesn't fit for monitor\n");
--		return -EINVAL;
--	}
--#endif
--
- 	return 0;
+-	return d->init_setup(dev, d);
++	return d.init_setup(dev, &d);
  }
  
-diff -puN drivers/video/aty/atyfb_base.c~remove-references-to-non-existent drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~remove-references-to-non-existent
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -1488,10 +1488,6 @@ static int atyfb_check_var(struct fb_var
- 	else
- 		info->var.accel_flags = 0;
- 
--#if 0 /* fbmon is not done. uncomment for 2.5.x -brad */
--	if (!fbmon_valid_timings(pixclock, htotal, vtotal, info))
--		return -EINVAL;
--#endif
- 	aty_crtc_to_var(&crtc, var);
- 	var->pixclock = par->pll_ops->pll_to_var(info, &pll);
- 	return 0;
-diff -puN include/linux/fb.h~remove-references-to-non-existent include/linux/fb.h
---- a/include/linux/fb.h~remove-references-to-non-existent
-+++ a/include/linux/fb.h
-@@ -929,8 +929,6 @@ extern void fb_bl_default_curve(struct f
- #define FB_MODE_IS_FIRST	16
- #define FB_MODE_IS_FROM_VAR     32
- 
--extern int fbmon_valid_timings(u_int pixclock, u_int htotal, u_int vtotal,
--			       const struct fb_info *fb_info);
- extern int fbmon_dpms(const struct fb_info *fb_info);
- extern int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var,
- 		       struct fb_info *info);
+ static struct pci_device_id hpt366_pci_tbl[] = {
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
 
-m68k-work-around-binutils-tokenizer-change.patch
-remove-broken-video-drivers-v4.patch
+git-mtd.patch
+3x59x-fix-pci-resource-management.patch
+toshiba-tc86c001-ide-driver-take-2.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+piix-fix-82371mx-enablebits.patch
+piix-remove-check-for-broken-mw-dma-mode-0.patch
+piix-slc90e66-pio-mode-fallback-fix.patch
+pdc202xx_new-remove-useless-code.patch
+pdc202xx_-remove-check_in_drive_lists-abomination.patch
 
