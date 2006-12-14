@@ -1,81 +1,81 @@
 From: akpm@osdl.org
-Subject: - add-support-for-korenix-16c950-based-pci-cards.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:20:16 -0800
-Message-ID: <200612140620.kBE6KGem002391@shell0.pdx.osdl.net>
+Subject: - knfsd-svcrpc-fix-gss-krb5i-memory-leak.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:14:36 -0800
+Message-ID: <200612140614.kBE6EZ7Q002154@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52879 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52420 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752034AbWLNGUr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:20:47 -0500
+	id S1751969AbWLNGPF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:15:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk+lkml@arm.linux.org.uk, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: bfields@fieldses.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add support for Korenix 16C950-based PCI cards
+     knfsd: svcrpc: fix gss krb5i memory leak
 has been removed from the -mm tree.  Its filename was
-     add-support-for-korenix-16c950-based-pci-cards.patch
+     knfsd-svcrpc-fix-gss-krb5i-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add support for Korenix 16C950-based PCI cards
-From: Russell King <rmk+lkml@arm.linux.org.uk>
+Subject: knfsd: svcrpc: fix gss krb5i memory leak
+From: J.Bruce Fields <bfields@fieldses.org>
 
-Add initial support to 8250-pci for the Korenix Jetcard PCI serial cards. 
-The JC12xx cards are standard RS232-based serial cards utilising the Oxford
-16C950 device.
+The memory leak here is embarassingly obvious.
 
-The JC14xx are RS422/RS485-based cards, but in order for these to be
-supported natively, we will need additional tweaks to the 8250 layers so we
-can specify some values for the 950's registers.  Hence, these two entries
-are commented out.
+This fixes a problem that causes the kernel to leak a small amount of memory
+every time it receives a integrity-protected request.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Thanks to Aim Le Rouzic for the bug report.
+
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/8250_pci.c |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+)
+ net/sunrpc/auth_gss/svcauth_gss.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~add-support-for-korenix-16c950-based-pci-cards drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~add-support-for-korenix-16c950-based-pci-cards
-+++ a/drivers/serial/8250_pci.c
-@@ -2243,6 +2243,30 @@ static struct pci_device_id serial_pci_t
- 		pbn_b0_bt_1_460800 },
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-svcrpc-fix-gss-krb5i-memory-leak net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-svcrpc-fix-gss-krb5i-memory-leak
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -804,19 +804,19 @@ unwrap_integ_data(struct xdr_buf *buf, u
  
- 	/*
-+	 * Korenix Jetcard F0/F1 cards (JC1204, JC1208, JC1404, JC1408).
-+	 * Cards are identified by their subsystem vendor IDs, which
-+	 * (in hex) match the model number.
-+	 *
-+	 * Note that JC140x are RS422/485 cards which require ox950
-+	 * ACR = 0x10, and as such are not currently fully supported.
-+	 */
-+	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF0,
-+		0x1204, 0x0004, 0, 0,
-+		pbn_b0_4_921600 },
-+	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF0,
-+		0x1208, 0x0004, 0, 0,
-+		pbn_b0_4_921600 },
-+/*	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF0,
-+		0x1402, 0x0002, 0, 0,
-+		pbn_b0_2_921600 }, */
-+/*	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF0,
-+		0x1404, 0x0004, 0, 0,
-+		pbn_b0_4_921600 }, */
-+	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF1,
-+		0x1208, 0x0004, 0, 0,
-+		pbn_b0_4_921600 },
-+
-+	/*
- 	 * Dell Remote Access Card 4 - Tim_T_Murphy@Dell.com
- 	 */
- 	{	PCI_VENDOR_ID_DELL, PCI_DEVICE_ID_DELL_RAC4,
+ 	integ_len = svc_getnl(&buf->head[0]);
+ 	if (integ_len & 3)
+-		goto out;
++		return stat;
+ 	if (integ_len > buf->len)
+-		goto out;
++		return stat;
+ 	if (xdr_buf_subsegment(buf, &integ_buf, 0, integ_len))
+ 		BUG();
+ 	/* copy out mic... */
+ 	if (read_u32_from_xdr_buf(buf, integ_len, &mic.len))
+ 		BUG();
+ 	if (mic.len > RPC_MAX_AUTH_SIZE)
+-		goto out;
++		return stat;
+ 	mic.data = kmalloc(mic.len, GFP_KERNEL);
+ 	if (!mic.data)
+-		goto out;
++		return stat;
+ 	if (read_bytes_from_xdr_buf(buf, integ_len + 4, mic.data, mic.len))
+ 		goto out;
+ 	maj_stat = gss_verify_mic(ctx, &integ_buf, &mic);
+@@ -826,6 +826,7 @@ unwrap_integ_data(struct xdr_buf *buf, u
+ 		goto out;
+ 	stat = 0;
+ out:
++	kfree(mic.data);
+ 	return stat;
+ }
+ 
 _
 
-Patches currently in -mm which might be from rmk+lkml@arm.linux.org.uk are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
 
