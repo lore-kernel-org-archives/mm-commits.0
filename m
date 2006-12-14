@@ -1,84 +1,85 @@
 From: akpm@osdl.org
-Subject: + libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch added to -mm tree
-Date: Thu, 14 Dec 2006 14:12:05 -0800
-Message-ID: <200612142212.kBEMC5A2030318@shell0.pdx.osdl.net>
+Subject: + hpet-avoid-warning-message-livelock.patch added to -mm tree
+Date: Thu, 14 Dec 2006 14:18:39 -0800
+Message-ID: <200612142218.kBEMIdZ0030514@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34756 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35391 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751779AbWLNWMi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 17:12:38 -0500
+	id S964864AbWLNWSm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 17:18:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, arnd.bergmann@de.ibm.com
+Cc: rdreier@cisco.com, rolandd@cisco.com
 
 
 The patch titled
-     libata: don't initialize sg in ata_exec_internal() if DMA_NONE
+     hpet: avoid warning message livelock
 has been added to the -mm tree.  Its filename is
-     libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch
+     hpet-avoid-warning-message-livelock.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: don't initialize sg in ata_exec_internal() if DMA_NONE
-From: Tejun Heo <htejun@gmail.com>
+Subject: hpet: avoid warning message livelock
+From: Roland Dreier <rdreier@cisco.com>
 
-Calling sg_init_one() with NULL buf causes oops on certain configurations. 
-Don't initialize sg in ata_exec_internal() if DMA_NONE and make the
-function complain if @buf is NULL when dma_dir isn't DMA_NONE.  While at
-it, fix comment.
+I've seen my box paralyzed by an endless spew of
 
-The problem is discovered and initial patch was submitted by Arnd Bergmann.
+    rtc: lost some interrupts at 1024Hz.
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Arnd Bergmann <arnd.bergmann@de.ibm.com>
+messages on the serial console.  What seems to be happening is that
+something real causes an interrupt to be lost and triggers the
+message.  But then printing the message to the serial console (from
+the hpet interrupt handler) takes more than 1/1024th of a second, and
+then some more interrupts are lost, so the message triggers again....
+
+Fix this by adding a printk_ratelimit() before printing the warning.
+
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-core.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ arch/i386/kernel/time_hpet.c |    5 +++--
+ arch/x86_64/kernel/time.c    |    5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2 drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2
-+++ a/drivers/ata/libata-core.c
-@@ -1168,7 +1168,7 @@ void ata_qc_complete_internal(struct ata
+diff -puN arch/i386/kernel/time_hpet.c~hpet-avoid-warning-message-livelock arch/i386/kernel/time_hpet.c
+--- a/arch/i386/kernel/time_hpet.c~hpet-avoid-warning-message-livelock
++++ a/arch/i386/kernel/time_hpet.c
+@@ -367,8 +367,9 @@ static void hpet_rtc_timer_reinit(void)
+ 		if (PIE_on)
+ 			PIE_count += lost_ints;
+ 
+-		printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
+-		       hpet_rtc_int_freq);
++		if (printk_ratelimit())
++			printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
++			       hpet_rtc_int_freq);
+ 	}
  }
  
- /**
-- *	ata_exec_internal_sg - execute libata internal command
-+ *	ata_exec_internal - execute libata internal command
-  *	@dev: Device to which the command is sent
-  *	@tf: Taskfile registers for the command and the result
-  *	@cdb: CDB for packet command
-@@ -1357,11 +1357,17 @@ unsigned ata_exec_internal(struct ata_de
- 			   struct ata_taskfile *tf, const u8 *cdb,
- 			   int dma_dir, void *buf, unsigned int buflen)
- {
--	struct scatterlist sg;
-+	struct scatterlist *psg = NULL, sg;
-+	unsigned int n_elem = 0;
+diff -puN arch/x86_64/kernel/time.c~hpet-avoid-warning-message-livelock arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~hpet-avoid-warning-message-livelock
++++ a/arch/x86_64/kernel/time.c
+@@ -1216,8 +1216,9 @@ static void hpet_rtc_timer_reinit(void)
+ 		if (PIE_on)
+ 			PIE_count += lost_ints;
  
--	sg_init_one(&sg, buf, buflen);
-+	if (dma_dir != DMA_NONE) {
-+		WARN_ON(!buf);
-+		sg_init_one(&sg, buf, buflen);
-+		psg = &sg;
-+		n_elem++;
-+	}
- 
--	return ata_exec_internal_sg(dev, tf, cdb, dma_dir, &sg, 1);
-+	return ata_exec_internal_sg(dev, tf, cdb, dma_dir, psg, n_elem);
+-		printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
+-		       hpet_rtc_int_freq);
++		if (printk_ratelimit())
++			printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
++			       hpet_rtc_int_freq);
+ 	}
  }
  
- /**
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
-git-libata-all.patch
-libata-fix-oops-with-sparsemem.patch
-libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch
+infiniband-work-around-gcc-bug-on-sparc64.patch
+hpet-avoid-warning-message-livelock.patch
 
