@@ -1,146 +1,94 @@
 From: akpm@osdl.org
-Subject: - rtc-driver-init-adjustment.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:12:27 -0800
-Message-ID: <200612140612.kBE6CRr0002080@shell0.pdx.osdl.net>
+Subject: - rtc-fix-error-case.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:12:17 -0800
+Message-ID: <200612140612.kBE6CHLL002072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52284 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52298 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751943AbWLNGMs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:12:48 -0500
+	id S1751946AbWLNGNG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:13:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTC driver init adjustment
+     rtc: fx error case
 has been removed from the -mm tree.  Its filename was
-     rtc-driver-init-adjustment.patch
+     rtc-fix-error-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTC driver init adjustment
+Subject: rtc: fx error case
 From: "Jan Beulich" <jbeulich@novell.com>
 
-- conditionalizes procfs code upon CONFIG_PROC_FS (to reduce code size when
-  that option is not enabled)
-
-- make initialization no longer fail when the procfs entry can't be
-  allocated (namely would initialization always have failed when
-  CONFIG_PROC_FS was not set)
-
-- move the formerly file-scope static variable rtc_int_handler_ptr into
-  the only function using it, and makes it automatic.
+Ensure RTC driver doesn't use its timer when it doesn't get to set it up
+(as it cannot currently prevent other of its functions to be called from
+outside when not built as a module - probably this should also be
+addressed).
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/rtc.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ drivers/char/rtc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/char/rtc.c~rtc-driver-init-adjustment drivers/char/rtc.c
---- a/drivers/char/rtc.c~rtc-driver-init-adjustment
+diff -puN drivers/char/rtc.c~rtc-fix-error-case drivers/char/rtc.c
+--- a/drivers/char/rtc.c~rtc-fix-error-case
 +++ a/drivers/char/rtc.c
-@@ -113,7 +113,7 @@ static int rtc_has_irq = 1;
- #define hpet_set_rtc_irq_bit(arg) 		0
- #define hpet_rtc_timer_init() 			do { } while (0)
- #define hpet_rtc_dropped_irq() 			0
--static inline irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id) {return 0;}
-+static irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id) {return 0;}
- #else
- extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
- #endif
-@@ -165,7 +165,9 @@ static void mask_rtc_irq_bit(unsigned ch
- }
- #endif
- 
-+#ifdef CONFIG_PROC_FS
- static int rtc_proc_open(struct inode *inode, struct file *file);
-+#endif
- 
- /*
-  *	Bits in rtc_status. (6 bits of room for future expansion)
-@@ -906,6 +908,7 @@ static struct miscdevice rtc_dev = {
- 	.fops		= &rtc_fops,
- };
- 
-+#ifdef CONFIG_PROC_FS
- static const struct file_operations rtc_proc_fops = {
- 	.owner = THIS_MODULE,
- 	.open = rtc_proc_open,
-@@ -913,14 +916,13 @@ static const struct file_operations rtc_
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
--
--#if defined(RTC_IRQ) && !defined(__sparc__)
--static irq_handler_t rtc_int_handler_ptr;
- #endif
- 
- static int __init rtc_init(void)
- {
-+#ifdef CONFIG_PROC_FS
- 	struct proc_dir_entry *ent;
-+#endif
- #if defined(__alpha__) || defined(__mips__)
- 	unsigned int year, ctrl;
- 	char *guess = NULL;
-@@ -932,9 +934,11 @@ static int __init rtc_init(void)
- 	struct sparc_isa_bridge *isa_br;
- 	struct sparc_isa_device *isa_dev;
- #endif
--#endif
--#ifndef __sparc__
-+#else
- 	void *r;
-+#ifdef RTC_IRQ
-+	irq_handler_t rtc_int_handler_ptr;
-+#endif
- #endif
- 
- #ifdef __sparc__
-@@ -1024,17 +1028,13 @@ no_irq:
- 		return -ENODEV;
+@@ -958,6 +958,7 @@ static int __init rtc_init(void)
+ 		}
  	}
- 
-+#ifdef CONFIG_PROC_FS
- 	ent = create_proc_entry("driver/rtc", 0, NULL);
--	if (!ent) {
--#ifdef RTC_IRQ
--		free_irq(RTC_IRQ, NULL);
--		rtc_has_irq = 0;
-+	if (ent)
-+		ent->proc_fops = &rtc_proc_fops;
-+	else
-+		printk(KERN_WARNING "rtc: Failed to register with procfs.\n");
  #endif
--		release_region(RTC_PORT(0), RTC_IO_EXTENT);
--		misc_deregister(&rtc_dev);
--		return -ENOMEM;
--	}
--	ent->proc_fops = &rtc_proc_fops;
++	rtc_has_irq = 0;
+ 	printk(KERN_ERR "rtc_init: no PC rtc found\n");
+ 	return -EIO;
  
- #if defined(__alpha__) || defined(__mips__)
- 	rtc_freq = HZ;
-@@ -1167,6 +1167,7 @@ static void rtc_dropped_irq(unsigned lon
- }
- #endif
- 
-+#ifdef CONFIG_PROC_FS
- /*
-  *	Info exported via "/proc/driver/rtc".
-  */
-@@ -1251,6 +1252,7 @@ static int rtc_proc_open(struct inode *i
- {
- 	return single_open(file, rtc_proc_show, NULL);
- }
+@@ -972,6 +973,7 @@ found:
+ 	 * PCI Slot 2 INTA# (and some INTx# in Slot 1).
+ 	 */
+ 	if (request_irq(rtc_irq, rtc_interrupt, IRQF_SHARED, "rtc", (void *)&rtc_port)) {
++		rtc_has_irq = 0;
+ 		printk(KERN_ERR "rtc: cannot register IRQ %d\n", rtc_irq);
+ 		return -EIO;
+ 	}
+@@ -982,6 +984,9 @@ no_irq:
+ 	else
+ 		r = request_mem_region(RTC_PORT(0), RTC_IO_EXTENT, "rtc");
+ 	if (!r) {
++#ifdef RTC_IRQ
++		rtc_has_irq = 0;
 +#endif
+ 		printk(KERN_ERR "rtc: I/O resource %lx is not free.\n",
+ 		       (long)(RTC_PORT(0)));
+ 		return -EIO;
+@@ -996,6 +1001,7 @@ no_irq:
  
- void rtc_get_rtc_time(struct rtc_time *rtc_tm)
- {
+ 	if(request_irq(RTC_IRQ, rtc_int_handler_ptr, IRQF_DISABLED, "rtc", NULL)) {
+ 		/* Yeah right, seeing as irq 8 doesn't even hit the bus. */
++		rtc_has_irq = 0;
+ 		printk(KERN_ERR "rtc: IRQ %d is not free.\n", RTC_IRQ);
+ 		if (RTC_IOMAPPED)
+ 			release_region(RTC_PORT(0), RTC_IO_EXTENT);
+@@ -1012,6 +1018,7 @@ no_irq:
+ 	if (misc_register(&rtc_dev)) {
+ #ifdef RTC_IRQ
+ 		free_irq(RTC_IRQ, NULL);
++		rtc_has_irq = 0;
+ #endif
+ 		release_region(RTC_PORT(0), RTC_IO_EXTENT);
+ 		return -ENODEV;
+@@ -1021,6 +1028,7 @@ no_irq:
+ 	if (!ent) {
+ #ifdef RTC_IRQ
+ 		free_irq(RTC_IRQ, NULL);
++		rtc_has_irq = 0;
+ #endif
+ 		release_region(RTC_PORT(0), RTC_IO_EXTENT);
+ 		misc_deregister(&rtc_dev);
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
