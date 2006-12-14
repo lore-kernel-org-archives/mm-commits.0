@@ -1,98 +1,206 @@
 From: akpm@osdl.org
-Subject: + kref-refcnt-and-false-positives.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:43:50 -0800
-Message-ID: <200612140044.kBE0i73f026654@shell0.pdx.osdl.net>
+Subject: - md-change-lifetime-rules-for-md-devices.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 16:44:38 -0800
+Message-ID: <200612140044.kBE0idQ9026658@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34203 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34224 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751885AbWLNAoL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:44:11 -0500
+	id S1751892AbWLNAor (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:44:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, greg@kroah.com
+To: neilb@suse.de, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kref refcnt and false positives
-has been added to the -mm tree.  Its filename is
-     kref-refcnt-and-false-positives.patch
+     md: change lifetime rules for 'md' devices.
+has been removed from the -mm tree.  Its filename was
+     md-change-lifetime-rules-for-md-devices.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: kref refcnt and false positives
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: md: change lifetime rules for 'md' devices.
+From: Neil Brown <neilb@suse.de>
 
-With WARN_ON addition to kobject_init()
-[ http://kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.19/2.6.19-mm1/dont-use/broken-out/gregkh-driver-kobject-warn.patch ]
+Currently md devices are created when first opened and remain in existence
+until the module is unloaded.  This isn't a major problem, but it somewhat
+ugly.
 
-I started seeing following WARNING on CPU offline followed by online on my
-x86_64 system.
+This patch changes the lifetime rules so that an md device will disappear
+on the last close if it has no state.
 
-WARNING at lib/kobject.c:172 kobject_init()
+Locking rules depend on bd_mutex being held in do_open and __blkdev_put,
+and on setting bd_disk->private_data to 'mddev'.
 
-Call Trace:
- [<ffffffff8020ab45>] dump_trace+0xaa/0x3ef
- [<ffffffff8020aec4>] show_trace+0x3a/0x50
- [<ffffffff8020b0f6>] dump_stack+0x15/0x17
- [<ffffffff80350abc>] kobject_init+0x3f/0x8a
- [<ffffffff80350be1>] kobject_register+0x1a/0x3e
- [<ffffffff803bbd89>] sysdev_register+0x5b/0xf9
- [<ffffffff80211d0b>] mce_create_device+0x77/0xf4
- [<ffffffff80211dc2>] mce_cpu_callback+0x3a/0xe5
- [<ffffffff805632fd>] notifier_call_chain+0x26/0x3b
- [<ffffffff8023f6f3>] raw_notifier_call_chain+0x9/0xb
- [<ffffffff802519bf>] _cpu_up+0xb4/0xdc
- [<ffffffff80251a12>] cpu_up+0x2b/0x42
- [<ffffffff803bef00>] store_online+0x4a/0x72
- [<ffffffff803bb6ce>] sysdev_store+0x24/0x26
- [<ffffffff802baaa2>] sysfs_write_file+0xcf/0xfc
- [<ffffffff8027fc6f>] vfs_write+0xae/0x154
- [<ffffffff80280418>] sys_write+0x47/0x6f
- [<ffffffff8020963e>] system_call+0x7e/0x83
-DWARF2 unwinder stuck at system_call+0x7e/0x83
-Leftover inexact backtrace:
+There is room for a race because md_probe is called early in do_open
+(get_gendisk) to create the mddev.  As this isn't protected by bd_mutex, a
+concurrent call to md_close can destroy that mddev before do_open calls
+md_open to get a reference on it.
 
-This is a false positive as mce.c is unregistering/registering sysfs
-interfaces cleanly on hotplug.
+md_open and md_close are serialised by md_mutex so the worst that can
+happen is that md_open finds that the mddev structure doesn't exist after
+all.  In this case bd_disk->private_data will be NULL, and md_open chooses
+to exit with -EBUSY in this case, which is arguable and appropriate result.
 
-kref_put() and conditional decrement of refcnt seems to be the root cause
-for this and the patch below resolves the issue for me.
+The new 'dead' field in mddev is used to track whether it is time to
+destroy the mddev (if a last-close happens).  It is cleared when any state
+is create (set_array_info) and set when the array is stopped (do_md_stop).
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Greg KH <greg@kroah.com>
+mddev_put becomes simpler.  It just destroys the mddev when the refcount
+hits zero.  This will normally be the reference held in
+bd_disk->private_data.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/kref.c |    7 +------
- 1 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/md/md.c           |   32 +++++++++++++++++++++++---------
+ include/linux/raid/md_k.h |    3 +++
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN lib/kref.c~kref-refcnt-and-false-positives lib/kref.c
---- a/lib/kref.c~kref-refcnt-and-false-positives
-+++ a/lib/kref.c
-@@ -52,12 +52,7 @@ int kref_put(struct kref *kref, void (*r
- 	WARN_ON(release == NULL);
- 	WARN_ON(release == (void (*)(struct kref *))kfree);
+diff -puN drivers/md/md.c~md-change-lifetime-rules-for-md-devices drivers/md/md.c
+--- a/drivers/md/md.c~md-change-lifetime-rules-for-md-devices
++++ a/drivers/md/md.c
+@@ -226,13 +226,14 @@ static void mddev_put(mddev_t *mddev)
+ {
+ 	if (!atomic_dec_and_lock(&mddev->active, &all_mddevs_lock))
+ 		return;
+-	if (!mddev->raid_disks && list_empty(&mddev->disks)) {
+-		list_del(&mddev->all_mddevs);
+-		spin_unlock(&all_mddevs_lock);
+-		blk_cleanup_queue(mddev->queue);
+-		kobject_unregister(&mddev->kobj);
+-	} else
+-		spin_unlock(&all_mddevs_lock);
++	list_del(&mddev->all_mddevs);
++	spin_unlock(&all_mddevs_lock);
++
++	del_gendisk(mddev->gendisk);
++	mddev->gendisk = NULL;
++	blk_cleanup_queue(mddev->queue);
++	mddev->queue = NULL;
++	kobject_unregister(&mddev->kobj);
+ }
  
--	/*
--	 * if current count is one, we are the last user and can release object
--	 * right now, avoiding an atomic operation on 'refcount'
--	 */
--	if ((atomic_read(&kref->refcount) == 1) ||
--	    (atomic_dec_and_test(&kref->refcount))) {
-+	if (atomic_dec_and_test(&kref->refcount)) {
- 		release(kref);
- 		return 1;
- 	}
+ static mddev_t * mddev_find(dev_t unit)
+@@ -273,6 +274,7 @@ static mddev_t * mddev_find(dev_t unit)
+ 	atomic_set(&new->active, 1);
+ 	spin_lock_init(&new->write_lock);
+ 	init_waitqueue_head(&new->sb_wait);
++	new->dead = 1;
+ 
+ 	new->queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!new->queue) {
+@@ -1384,6 +1386,7 @@ static int bind_rdev_to_array(mdk_rdev_t
+ 		ko = &rdev->bdev->bd_disk->kobj;
+ 	sysfs_create_link(&rdev->kobj, ko, "block");
+ 	bd_claim_by_disk(rdev->bdev, rdev, mddev->gendisk);
++	mddev->dead = 0;
+ 	return 0;
+ }
+ 
+@@ -3360,6 +3363,8 @@ static int do_md_stop(mddev_t * mddev, i
+ 		mddev->array_size = 0;
+ 		mddev->size = 0;
+ 		mddev->raid_disks = 0;
++		mddev->dead = 1;
++
+ 		mddev->recovery_cp = 0;
+ 
+ 	} else if (mddev->pers)
+@@ -4023,6 +4028,7 @@ static int set_array_info(mddev_t * mdde
+ 	mddev->new_layout = mddev->layout;
+ 	mddev->delta_disks = 0;
+ 
++	mddev->dead = 0;
+ 	return 0;
+ }
+ 
+@@ -4423,8 +4429,12 @@ static int md_open(struct inode *inode, 
+ 	 * Succeed if we can lock the mddev, which confirms that
+ 	 * it isn't being stopped right now.
+ 	 */
+-	mddev_t *mddev = inode->i_bdev->bd_disk->private_data;
+-	int err;
++	mddev_t *mddev;
++	int err = -EBUSY;
++
++	mddev = inode->i_bdev->bd_disk->private_data;
++	if (!mddev)
++		goto out;
+ 
+ 	if ((err = mutex_lock_interruptible_nested(&mddev->reconfig_mutex, 1)))
+ 		goto out;
+@@ -4443,6 +4453,10 @@ static int md_release(struct inode *inod
+  	mddev_t *mddev = inode->i_bdev->bd_disk->private_data;
+ 
+ 	BUG_ON(!mddev);
++	if (inode->i_bdev->bd_openers == 0 && mddev->dead) {
++		inode->i_bdev->bd_disk->private_data = NULL;
++		mddev_put(mddev);
++	}
+ 	mddev_put(mddev);
+ 
+ 	return 0;
+diff -puN include/linux/raid/md_k.h~md-change-lifetime-rules-for-md-devices include/linux/raid/md_k.h
+--- a/include/linux/raid/md_k.h~md-change-lifetime-rules-for-md-devices
++++ a/include/linux/raid/md_k.h
+@@ -119,6 +119,9 @@ struct mddev_s
+ #define MD_CHANGE_PENDING 2	/* superblock update in progress */
+ 
+ 	int				ro;
++	int				dead; /* array should be discarded on
++					       * last close
++					       */
+ 
+ 	struct gendisk			*gendisk;
+ 
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-cpufreq-set-policy-curfreq-on-initialization.patch
-bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification.patch
-kref-refcnt-and-false-positives.patch
+md-dont-assume-that-read==0-and-write==1-use-the-names-explicitly.patch
+fix-numerous-kcalloc-calls-convert-to-kzalloc.patch
+knfsd-nfsd4-remove-a-dprink-from-nfsd4_lock.patch
+knfsd-svcrpc-fix-gss-krb5i-memory-leak.patch
+knfsd-nfsd4-clarify-units-of-compound_slack_space.patch
+knfsd-nfsd-make-exp_rootfh-handle-exp_parent-errors.patch
+knfsd-nfsd-simplify-exp_pseudoroot.patch
+knfsd-nfsd4-handling-more-nfsd_cross_mnt-errors-in-nfsd4-readdir.patch
+knfsd-nfsd-dont-drop-silently-on-upcall-deferral.patch
+knfsd-svcrpc-remove-another-silent-drop-from-deferral-code.patch
+knfsd-nfsd4-pass-saved-and-current-fh-together-into-nfsd4-operations.patch
+knfsd-nfsd4-remove-spurious-replay_owner-check.patch
+knfsd-nfsd4-move-replay_owner-to-cstate.patch
+knfsd-nfsd4-dont-inline-nfsd4-compound-op-functions.patch
+knfsd-nfsd4-make-verify-and-nverify-wrappers.patch
+knfsd-nfsd4-reorganize-compound-ops.patch
+knfsd-nfsd4-simplify-migration-op-check.patch
+knfsd-nfsd4-simplify-filehandle-check.patch
+knfsd-dont-ignore-kstrdup-failure-in-rpc-caches.patch
+knfsd-fix-up-some-bit-rot-in-exp_export.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
+knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
+knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-change-lifetime-rules-for-md-devices.patch
+md-close-a-race-between-destroying-and-recreating-an-md-device.patch
+md-allow-mddevs-to-live-a-bit-longer-to-avoid-a-loop-with-udev.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
 
