@@ -1,211 +1,163 @@
 From: akpm@osdl.org
-Subject: + reiser4-fix-write_extent.patch added to -mm tree
-Date: Thu, 14 Dec 2006 00:23:46 -0800
-Message-ID: <200612140823.kBE8Nme8004901@shell0.pdx.osdl.net>
+Subject: + git-acpi-cpufreq-fixup.patch added to -mm tree
+Date: Thu, 14 Dec 2006 00:27:19 -0800
+Message-ID: <200612140827.kBE8RLdu004952@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59253 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59534 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751820AbWLNIX5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 03:23:57 -0500
+	id S1751818AbWLNI1z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 03:27:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: edward@namesys.com
+Cc: akpm@osdl.org, lenb@kernel.org
 
 
 The patch titled
-     reiser4: fix write_extent
+     git-acpi-cpufreq-fixup
 has been added to the -mm tree.  Its filename is
-     reiser4-fix-write_extent.patch
+     git-acpi-cpufreq-fixup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiser4: fix write_extent
-From: Edward Shishkin <edward@namesys.com>
+Subject: git-acpi-cpufreq-fixup
+From: Andrew Morton <akpm@osdl.org>
 
-. Fix reiser4_write_extent():
-   1) handling incomplete writes missed in reiser4-temp-fix.patch
-   2) bugs in the case of returned errors
+arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c:540:1: error: unterminated #ifdef
 
-
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/plugin/item/extent_file_ops.c |   64 ++++++++++++---------
- 1 file changed, 37 insertions(+), 27 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-write_extent fs/reiser4/plugin/item/extent_file_ops.c
---- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-write_extent
-+++ a/fs/reiser4/plugin/item/extent_file_ops.c
-@@ -941,15 +941,15 @@ static int write_extent_reserve_space(st
-  * reiser4_write_extent - write method of extent item plugin
-  * @file: file to write to
-  * @buf: address of user-space buffer
-- * @write_amount: number of bytes to write
-- * @off: position in file to write to
-+ * @count: number of bytes to write
-+ * @pos: position in file to write to
-  *
-  */
- ssize_t reiser4_write_extent(struct file *file, const char __user *buf,
- 			     size_t count, loff_t *pos)
- {
- 	int have_to_update_extent;
--	int nr_pages;
-+	int nr_pages, nr_dirty;
- 	struct page *page;
- 	jnode *jnodes[WRITE_GRANULARITY + 1];
- 	struct inode *inode;
-@@ -958,7 +958,7 @@ ssize_t reiser4_write_extent(struct file
- 	int i;
- 	int to_page, page_off;
- 	size_t left, written;
--	int result;
-+	int result = 0;
- 
- 	inode = file->f_dentry->d_inode;
- 	if (write_extent_reserve_space(inode))
-@@ -972,10 +972,12 @@ ssize_t reiser4_write_extent(struct file
- 
- 	BUG_ON(get_current_context()->trans->atom != NULL);
- 
-+	left = count;
- 	index = *pos >> PAGE_CACHE_SHIFT;
- 	/* calculate number of pages which are to be written */
-       	end = ((*pos + count - 1) >> PAGE_CACHE_SHIFT);
- 	nr_pages = end - index + 1;
-+	nr_dirty = 0;
- 	assert("", nr_pages <= WRITE_GRANULARITY + 1);
- 
- 	/* get pages and jnodes */
-@@ -983,22 +985,17 @@ ssize_t reiser4_write_extent(struct file
- 		page = find_or_create_page(inode->i_mapping, index + i,
- 					   reiser4_ctx_gfp_mask_get());
- 		if (page == NULL) {
--			while(i --) {
--				unlock_page(jnode_page(jnodes[i]));
--				page_cache_release(jnode_page(jnodes[i]));
--			}
--			return RETERR(-ENOMEM);
-+			nr_pages = i;
-+			result = RETERR(-ENOMEM);
-+			goto out;
- 		}
--
- 		jnodes[i] = jnode_of_page(page);
- 		if (IS_ERR(jnodes[i])) {
- 			unlock_page(page);
- 			page_cache_release(page);
--			while (i --) {
--				jput(jnodes[i]);
--				page_cache_release(jnode_page(jnodes[i]));
--			}
--			return RETERR(-ENOMEM);
-+			nr_pages = i;
-+			result = RETERR(-ENOMEM);
-+			goto out;
- 		}
- 		/* prevent jnode and page from disconnecting */
- 		JF_SET(jnodes[i], JNODE_WRITE_PREPARED);
-@@ -1009,7 +1006,6 @@ ssize_t reiser4_write_extent(struct file
- 
- 	have_to_update_extent = 0;
- 
--	left = count;
- 	page_off = (*pos & (PAGE_CACHE_SIZE - 1));
- 	for (i = 0; i < nr_pages; i ++) {
- 		to_page = PAGE_CACHE_SIZE - page_off;
-@@ -1050,14 +1046,26 @@ ssize_t reiser4_write_extent(struct file
- 			flush_dcache_page(page);
- 			kunmap_atomic(kaddr, KM_USER0);
- 		}
--
--		written = filemap_copy_from_user(page, page_off, buf, to_page);
-+		written = filemap_copy_from_user_atomic(page, page_off, buf,
-+							to_page);
-+		if (written != to_page)
-+			/* Do it the slow way */
-+			written = filemap_copy_from_user_nonatomic(page,
-+								   page_off,
-+								   buf,
-+								   to_page);
-+		if (unlikely(written != to_page)) {
-+			unlock_page(page);
-+			result = RETERR(-EFAULT);
-+			break;
-+		}
- 		flush_dcache_page(page);
- 		reiser4_set_page_dirty_internal(page);
- 		unlock_page(page);
-+		nr_dirty ++;
-+
- 		mark_page_accessed(page);
- 		SetPageUptodate(page);
--		page_cache_release(page);
- 
- 		if (jnodes[i]->blocknr == 0)
- 			have_to_update_extent ++;
-@@ -1067,27 +1075,29 @@ ssize_t reiser4_write_extent(struct file
- 		left -= to_page;
- 		BUG_ON(get_current_context()->trans->atom != NULL);
- 	}
--
- 	if (have_to_update_extent) {
--		update_extents(file, jnodes, nr_pages, *pos);
-+		update_extents(file, jnodes, nr_dirty, *pos);
- 	} else {
--		for (i = 0; i < nr_pages; i ++) {
-+		for (i = 0; i < nr_dirty; i ++) {
-+			int ret;
- 			spin_lock_jnode(jnodes[i]);
--			result = reiser4_try_capture(jnodes[i],
-+			ret = reiser4_try_capture(jnodes[i],
- 						     ZNODE_WRITE_LOCK, 0);
--			BUG_ON(result != 0);
-+			BUG_ON(ret != 0);
- 			jnode_make_dirty_locked(jnodes[i]);
- 			spin_unlock_jnode(jnodes[i]);
- 		}
- 	}
--
-+ out:
- 	for (i = 0; i < nr_pages; i ++) {
-+		page_cache_release(jnode_page(jnodes[i]));
- 		JF_CLR(jnodes[i], JNODE_WRITE_PREPARED);
- 		jput(jnodes[i]);
- 	}
-+	/* the only errors handled so far is ENOMEM and
-+	   EFAULT on copy_from_user  */
- 
--	/* the only error handled so far is EFAULT on copy_from_user  */
--	return (count - left) ? (count - left) : -EFAULT;
-+	return (count - left) ? (count - left) : result;
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-cpufreq-fixup arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-cpufreq-fixup
++++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -569,7 +569,6 @@ static int sw_any_bug_found(struct dmi_s
+ 	return 0;
  }
  
- static inline void zero_page(struct page *page)
+-#ifdef CONFIG_SMP
+ static struct dmi_system_id sw_any_bug_dmi_table[] = {
+ 	{
+ 		.callback = sw_any_bug_found,
 _
 
-Patches currently in -mm which might be from edward@namesys.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-reiser4-vs-streamline-generic_file_-interfaces-and-filemap-fix.patch
-reiser4-rename-generic_sounding_globalspatch.patch
-reiser4-use-generic-file-read-fix-readpages-unix-file.patch
-reiser4-format-subversion-numbers-heir-set-and-file-conversion.patch
-reiser4-format-subversion-numbers-heir-set-and-file-conversion-fix-readpages-cryptcompress.patch
-reiser4-cleanups-in-lzo-compression-library.patch
-reiser4-get-rid-of-deprecated-crypto-api.patch
-reiser4-get-rid-of-deprecated-crypto-api-build-fix.patch
-reiser4-fix-missed-unlock-and-exit_context.patch
-reiser4-use-list_head-instead-of-struct-blocknr.patch
-reiser4-use-list_empty-instead-of-list_empty_careful-for.patch
-reiser4-update-comments-fix-write-and-truncate-cryptcompress.patch
+rtc-warning-fix.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+alsa-workqueue-fixes.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input-vs-git-alsa.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+add-memcpy_uncached_read-tidy.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
 reiser4-temp-fix.patch
-reiser4-fix-write_extent-1.patch
-reiser4-fix-write_extent.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-reiser4-use-null-for-pointers.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+git-acpi-cpufreq-fixup.patch
 
