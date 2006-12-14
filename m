@@ -1,32 +1,31 @@
 From: akpm@osdl.org
-Subject: - spidernet-rx-locking.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 16:20:51 -0800
-Message-ID: <200612140020.kBE0KpAt025949@shell0.pdx.osdl.net>
+Subject: - spidernet-memory-barrier.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 16:21:20 -0800
+Message-ID: <200612140021.kBE0LKZf025986@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33046 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33051 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751833AbWLNAVw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:21:52 -0500
+	id S1751837AbWLNAV4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:21:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidernet: RX Locking
+     spidernet: memory barrier
 has been removed from the -mm tree.  Its filename was
-     spidernet-rx-locking.patch
+     spidernet-memory-barrier.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: spidernet: RX Locking
+Subject: spidernet: memory barrier
 From: Linas Vepstas <linas@austin.ibm.com>
 
-The RX packet handling can be called from several places, yet does not protect
-the rx ring structure.  This patch places the ring buffer pointers under a
-lock.
+Add memory barrier to make sure that the rest of the RX descriptor state is
+flushed to memory before we tell the hardware that its ready to go.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -34,74 +33,25 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/net/spider_net.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/spider_net.c~spidernet-rx-locking drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-rx-locking
+diff -puN drivers/net/spider_net.c~spidernet-memory-barrier drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-memory-barrier
 +++ a/drivers/net/spider_net.c
-@@ -969,28 +969,33 @@ static int
- spider_net_decode_one_descr(struct spider_net_card *card, int napi)
- {
- 	struct spider_net_descr_chain *chain = &card->rx_chain;
--	struct spider_net_descr *descr = chain->tail;
-+	struct spider_net_descr *descr;
- 	int status;
- 	int result;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&chain->lock, flags);
-+	descr = chain->tail;
- 
- 	status = spider_net_get_descr_status(descr);
- 
- 	if (status == SPIDER_NET_DESCR_CARDOWNED) {
- 		/* nothing in the descriptor yet */
--		result=0;
--		goto out;
-+		spin_unlock_irqrestore(&chain->lock, flags);
-+		return 0;
+@@ -389,6 +389,7 @@ spider_net_prepare_rx_descr(struct spide
+ 		card->spider_stats.rx_iommu_map_error++;
+ 		descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+ 	} else {
++		wmb();
+ 		descr->dmac_cmd_status = SPIDER_NET_DESCR_CARDOWNED |
+ 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
  	}
- 
- 	if (status == SPIDER_NET_DESCR_NOT_IN_USE) {
- 		/* not initialized yet, the ring must be empty */
-+		spin_unlock_irqrestore(&chain->lock, flags);
- 		spider_net_refill_rx_chain(card);
- 		spider_net_enable_rxdmac(card);
--		result=0;
--		goto out;
-+		return 0;
- 	}
- 
- 	/* descriptor definitively used -- move on tail */
- 	chain->tail = descr->next;
-+	spin_unlock_irqrestore(&chain->lock, flags);
- 
- 	result = 0;
- 	if ( (status == SPIDER_NET_DESCR_RESPONSE_ERROR) ||
-@@ -1022,7 +1027,6 @@ refill:
- 	/* change the descriptor state: */
- 	if (!napi)
- 		spider_net_refill_rx_chain(card);
--out:
- 	return result;
- }
- 
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
 
 origin.patch
-spidernet-rx-locking.patch
-spidernet-refactor-rx-refill.patch
-spidernet-rx-skb-mem-leak.patch
-spidernet-another-skb-mem-leak.patch
-spidernet-cleanup-return-codes.patch
-spidernet-rx-refill.patch
-spidernet-merge-error-branches.patch
-spidernet-remove-unused-variable.patch
-spidernet-rx-chain-tail.patch
-spidernet-turn-rx-irq-back-on.patch
 spidernet-memory-barrier.patch
 spidernet-avoid-possible-rx-chain-corruption.patch
 spidernet-rx-debugging-printout.patch
