@@ -1,83 +1,90 @@
 From: akpm@osdl.org
-Subject: - optimize-calc_load.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:18:08 -0800
-Message-ID: <200612140618.kBE6I7gf002326@shell0.pdx.osdl.net>
+Subject: - x86_64-make-the-numa-hash-function-nodemap-allocation-fix.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:20:41 -0800
+Message-ID: <200612140620.kBE6Keq3002407@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:52766 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52897 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751987AbWLNGSc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:18:32 -0500
+	id S1752038AbWLNGVA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:21:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: amul.shah@unisys.com, ak@suse.de, rohitseth@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Optimize calc_load()
+     x86_64: Make the NUMA hash function nodemap allocation dynamic and remove NODEMAPSIZE
 has been removed from the -mm tree.  Its filename was
-     optimize-calc_load.patch
+     x86_64-make-the-numa-hash-function-nodemap-allocation-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Optimize calc_load()
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: x86_64: Make the NUMA hash function nodemap allocation dynamic and remove NODEMAPSIZE
+From: Amul Shah <amul.shah@unisys.com>
 
-calc_load() is called by timer interrupt to update avenrun[].  It currently
-calls nr_active() at each timer tick (HZ per second), while the update of
-avenrun[] is done only once every 5 seconds.  (LOAD_FREQ=5 Hz)
+Updated patch to fix a bug that Andi Kleen found for platforms that
+don't support NUMA (or "numa=off").
 
-nr_active() is quite expensive on SMP machines, since it has to sum up
-nr_running and nr_uninterruptible of all online CPUS, bringing foreign
-dirty cache lines.
-
-This patch is an optimization of calc_load() so that nr_active() is called
-only if we need it.
-
-The use of unlikely() is welcome since the condition is true only once every
-5*HZ time.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Rohit Seth <rohitseth@google.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/timer.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ arch/x86_64/kernel/e820.c  |    3 ++-
+ arch/x86_64/kernel/setup.c |    3 ++-
+ arch/x86_64/mm/numa.c      |    1 +
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN kernel/timer.c~optimize-calc_load kernel/timer.c
---- a/kernel/timer.c~optimize-calc_load
-+++ a/kernel/timer.c
-@@ -1146,11 +1146,15 @@ static inline void calc_load(unsigned lo
- 	unsigned long active_tasks; /* fixed-point */
- 	static int count = LOAD_FREQ;
- 
--	active_tasks = count_active_tasks();
--	for (count -= ticks; count < 0; count += LOAD_FREQ) {
--		CALC_LOAD(avenrun[0], EXP_1, active_tasks);
--		CALC_LOAD(avenrun[1], EXP_5, active_tasks);
--		CALC_LOAD(avenrun[2], EXP_15, active_tasks);
-+	count -= ticks;
-+	if (unlikely(count < 0)) {
-+		active_tasks = count_active_tasks();
-+		do {
-+			CALC_LOAD(avenrun[0], EXP_1, active_tasks);
-+			CALC_LOAD(avenrun[1], EXP_5, active_tasks);
-+			CALC_LOAD(avenrun[2], EXP_15, active_tasks);
-+			count += LOAD_FREQ;
-+		} while (count < 0);
+diff -puN arch/x86_64/kernel/e820.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix
++++ a/arch/x86_64/kernel/e820.c
+@@ -83,12 +83,13 @@ static inline int bad_addr(unsigned long
+ 		return 1;
  	}
- }
  
++#ifdef CONFIG_NUMA
+ 	/* NUMA memory to node map */
+ 	if (last >= nodemap_addr && addr < nodemap_addr + nodemap_size) {
+ 		*addrp = nodemap_addr + nodemap_size;
+ 		return 1;
+ 	}
+-
++#endif
+ 	/* XXX ramdisk image here? */ 
+ 	return 0;
+ } 
+diff -puN arch/x86_64/kernel/setup.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix
++++ a/arch/x86_64/kernel/setup.c
+@@ -444,10 +444,11 @@ void __init setup_arch(char **cmdline_p)
+ 	/* reserve ebda region */
+ 	if (ebda_addr)
+ 		reserve_bootmem_generic(ebda_addr, ebda_size);
+-
++#ifdef CONFIG_NUMA
+ 	/* reserve nodemap region */
+ 	if (nodemap_addr)
+ 		reserve_bootmem_generic(nodemap_addr, nodemap_size);
++#endif
+ 
+ #ifdef CONFIG_SMP
+ 	/*
+diff -puN arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix
++++ a/arch/x86_64/mm/numa.c
+@@ -345,6 +345,7 @@ void __init numa_initmem_init(unsigned l
+ 	       end_pfn << PAGE_SHIFT); 
+ 		/* setup dummy node covering all memory */ 
+ 	memnode_shift = 63; 
++	memnodemap = memnode.embedded_map;
+ 	memnodemap[0] = 0;
+ 	nodes_clear(node_online_map);
+ 	node_set_online(0);
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from amul.shah@unisys.com are
 
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-get-rid-of-arch_have_xtime_lock.patch
-introduce-time_data-a-new-structure-to-hold-jiffies-xtime.patch
+x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
 
