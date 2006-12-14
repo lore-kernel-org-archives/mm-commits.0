@@ -1,120 +1,81 @@
 From: akpm@osdl.org
-Subject: - revert-identifier-to-nsproxy.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:02:54 -0800
-Message-ID: <200612140602.kBE62sNH001761@shell0.pdx.osdl.net>
+Subject: - reorder-struct-pipe_buf_operations.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:04:12 -0800
+Message-ID: <200612140604.kBE64CUf001803@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51645 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51720 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751842AbWLNGDX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:03:23 -0500
+	id S1751842AbWLNGE2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:04:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, clg@fr.ibm.com, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Revert "[PATCH] identifier to nsproxy"
+     reorder struct pipe_buf_operations
 has been removed from the -mm tree.  Its filename was
-     revert-identifier-to-nsproxy.patch
+     reorder-struct-pipe_buf_operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Revert "[PATCH] identifier to nsproxy"
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: reorder struct pipe_buf_operations
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-This reverts commit 373beb35cd6b625e0ba4ad98baace12310a26aa8.
+Fields of struct pipe_buf_operations have not a precise layout (ie not
+optimized to fit cache lines nor reduce cache line ping pongs)
 
-No one is using this identifier yet.  The purpose of this identifier is to
-export nsproxy to user space which is wrong.  nsproxy is an internal
-implementation optimization, which should keep our fork times from getting
-slower as we increase the number of global namespaces you don't have to
-share.
+The bufs[] array is *large* and is placed near the beginning of the
+structure, so all following fields have a large offset.  This is
+unfortunate because many archs have smaller instructions when using small
+offsets relative to a base register.  On x86 for example, 7 bits offsets
+have smaller instruction lengths.
 
-Adding a global identifier like this is inappropriate because it makes
-namespaces inherently non-recursive, greatly limiting what we can do with
-them in the future.
+Moving bufs[] at the end of pipe_buf_operations permits all fields to have
+small offsets, and reduce text size, and icache pressure.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
+# size vmlinux.pre vmlinux
+    text    data     bss     dec     hex filename
+3268989  664356  492196 4425541  438745 vmlinux.pre
+3268765  664356  492196 4425317  438665 vmlinux
+
+So this patch reduces text size by 224 bytes on my x86_64 machine. Similar
+results on ia32.
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/init_task.h |    1 -
- include/linux/nsproxy.h   |    1 -
- kernel/nsproxy.c          |    4 +---
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ include/linux/pipe_fs_i.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/init_task.h~revert-identifier-to-nsproxy include/linux/init_task.h
---- a/include/linux/init_task.h~revert-identifier-to-nsproxy
-+++ a/include/linux/init_task.h
-@@ -75,7 +75,6 @@ extern struct nsproxy init_nsproxy;
- 	.pid_ns		= &init_pid_ns,					\
- 	.count		= ATOMIC_INIT(1),				\
- 	.nslock		= __SPIN_LOCK_UNLOCKED(nsproxy.nslock),		\
--	.id		= 0,						\
- 	.uts_ns		= &init_uts_ns,					\
- 	.mnt_ns		= NULL,						\
- 	INIT_IPC_NS(ipc_ns)						\
-diff -puN include/linux/nsproxy.h~revert-identifier-to-nsproxy include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~revert-identifier-to-nsproxy
-+++ a/include/linux/nsproxy.h
-@@ -24,7 +24,6 @@ struct pid_namespace;
- struct nsproxy {
- 	atomic_t count;
- 	spinlock_t nslock;
--	unsigned long id;
- 	struct uts_namespace *uts_ns;
- 	struct ipc_namespace *ipc_ns;
- 	struct mnt_namespace *mnt_ns;
-diff -puN kernel/nsproxy.c~revert-identifier-to-nsproxy kernel/nsproxy.c
---- a/kernel/nsproxy.c~revert-identifier-to-nsproxy
-+++ a/kernel/nsproxy.c
-@@ -46,10 +46,8 @@ static inline struct nsproxy *clone_name
- 	struct nsproxy *ns;
+diff -puN include/linux/pipe_fs_i.h~reorder-struct-pipe_buf_operations include/linux/pipe_fs_i.h
+--- a/include/linux/pipe_fs_i.h~reorder-struct-pipe_buf_operations
++++ a/include/linux/pipe_fs_i.h
+@@ -41,7 +41,6 @@ struct pipe_buf_operations {
+ struct pipe_inode_info {
+ 	wait_queue_head_t wait;
+ 	unsigned int nrbufs, curbuf;
+-	struct pipe_buffer bufs[PIPE_BUFFERS];
+ 	struct page *tmp_page;
+ 	unsigned int readers;
+ 	unsigned int writers;
+@@ -51,6 +50,7 @@ struct pipe_inode_info {
+ 	struct fasync_struct *fasync_readers;
+ 	struct fasync_struct *fasync_writers;
+ 	struct inode *inode;
++	struct pipe_buffer bufs[PIPE_BUFFERS];
+ };
  
- 	ns = kmemdup(orig, sizeof(struct nsproxy), GFP_KERNEL);
--	if (ns) {
-+	if (ns)
- 		atomic_set(&ns->count, 1);
--		ns->id = -1;
--	}
- 	return ns;
- }
- 
+ /* Differs from PIPE_BUF in that PIPE_SIZE is the length of the actual
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
-usbatm-update-to-use-the-kthread-api.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-vt-refactor-console-sak-processing.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-pidhash-temporary-debug-checks.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+convert-i386-pda-code-to-use-%fs.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+get-rid-of-arch_have_xtime_lock.patch
+introduce-time_data-a-new-structure-to-hold-jiffies-xtime.patch
 
