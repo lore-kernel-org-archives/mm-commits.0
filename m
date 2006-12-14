@@ -1,139 +1,480 @@
 From: akpm@osdl.org
-Subject: - ide-hpt3xx-fix-pci-clock-detection.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:19:05 -0800
-Message-ID: <200612140619.kBE6J4x0002363@shell0.pdx.osdl.net>
+Subject: - optimize-d-cache-alias-handling-on-fork.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:21:13 -0800
+Message-ID: <200612140621.kBE6LCqJ002421@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53005 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:52931 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751982AbWLNGWg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:22:36 -0500
+	id S1751971AbWLNGVg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:21:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sshtylyov@ru.mvista.com, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide: HPT3xx: fix PCI clock detection
+     Optimize D-cache alias handling on fork
 has been removed from the -mm tree.  Its filename was
-     ide-hpt3xx-fix-pci-clock-detection.patch
+     optimize-d-cache-alias-handling-on-fork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ide: HPT3xx: fix PCI clock detection
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Optimize D-cache alias handling on fork
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Use the f_CNT value saved by the HighPoint BIOS if available as reading it
-directly would give us a wrong PCI frequency after DPLL has already been
-calibrated by BIOS.
+Virtually index, physically tagged cache architectures can get away without
+cache flushing when forking.  This patch adds a new cache flushing function
+flush_cache_dup_mm(struct mm_struct *) which for the moment I've implemented
+to do the same thing on all architectures except on MIPS where it's a no-op.
 
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/hpt366.c |   46 +++++++++++++++++++++++++------------
- 1 file changed, 32 insertions(+), 14 deletions(-)
+ Documentation/cachetlb.txt          |   23 +++++++++++++++++------
+ include/asm-alpha/cacheflush.h      |    1 +
+ include/asm-arm/cacheflush.h        |    2 ++
+ include/asm-arm26/cacheflush.h      |    1 +
+ include/asm-avr32/cacheflush.h      |    1 +
+ include/asm-cris/cacheflush.h       |    1 +
+ include/asm-frv/cacheflush.h        |    1 +
+ include/asm-h8300/cacheflush.h      |    1 +
+ include/asm-i386/cacheflush.h       |    1 +
+ include/asm-ia64/cacheflush.h       |    1 +
+ include/asm-m32r/cacheflush.h       |    3 +++
+ include/asm-m68k/cacheflush.h       |    2 ++
+ include/asm-m68knommu/cacheflush.h  |    1 +
+ include/asm-mips/cacheflush.h       |    2 ++
+ include/asm-parisc/cacheflush.h     |    2 ++
+ include/asm-powerpc/cacheflush.h    |    1 +
+ include/asm-s390/cacheflush.h       |    1 +
+ include/asm-sh/cpu-sh2/cacheflush.h |    2 ++
+ include/asm-sh/cpu-sh3/cacheflush.h |    3 +++
+ include/asm-sh/cpu-sh4/cacheflush.h |    1 +
+ include/asm-sh64/cacheflush.h       |    2 ++
+ include/asm-sparc/cacheflush.h      |    1 +
+ include/asm-sparc64/cacheflush.h    |    1 +
+ include/asm-v850/cacheflush.h       |    1 +
+ include/asm-x86_64/cacheflush.h     |    1 +
+ include/asm-xtensa/cacheflush.h     |    2 ++
+ kernel/fork.c                       |    2 +-
+ 27 files changed, 54 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pci-clock-detection drivers/ide/pci/hpt366.c
---- a/drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pci-clock-detection
-+++ a/drivers/ide/pci/hpt366.c
-@@ -70,6 +70,8 @@
-  * - fix/remove bad/unused timing tables and use one set of tables for the whole
-  *   HPT37x chip family; save space by introducing the separate transfer mode
-  *   table in which the mode lookup is done
-+ * - use f_CNT value saved by  the HighPoint BIOS as reading it directly gives
-+ *   the wrong PCI frequency since DPLL has already been calibrated by BIOS
-  * - fix the hotswap code:  it caused RESET- to glitch when tristating the bus,
-  *   and for HPT36x the obsolete HDIO_TRISTATE_HWIF handler was called instead
-  * - pass to init_chipset() handlers a copy of the IDE PCI device structure as
-@@ -1010,8 +1012,8 @@ static void __devinit hpt37x_clocking(id
- 	struct hpt_info *info = ide_get_hwifdata(hwif);
- 	struct pci_dev *dev = hwif->pci_dev;
- 	int adjust, i;
--	u16 freq;
--	u32 pll;
-+	u16 freq = 0;
-+	u32 pll, temp = 0;
- 	u8 reg5bh = 0, mcr1 = 0;
- 	
- 	/*
-@@ -1025,15 +1027,34 @@ static void __devinit hpt37x_clocking(id
- 	pci_write_config_byte(dev, 0x5b, 0x23);
+diff -puN Documentation/cachetlb.txt~optimize-d-cache-alias-handling-on-fork Documentation/cachetlb.txt
+--- a/Documentation/cachetlb.txt~optimize-d-cache-alias-handling-on-fork
++++ a/Documentation/cachetlb.txt
+@@ -179,10 +179,21 @@ Here are the routines, one by one:
+ 	lines associated with 'mm'.
  
+ 	This interface is used to handle whole address space
+-	page table operations such as what happens during
+-	fork, exit, and exec.
++	page table operations such as what happens during exit and exec.
+ 
+-2) void flush_cache_range(struct vm_area_struct *vma,
++2) void flush_cache_dup_mm(struct mm_struct *mm)
++
++	This interface flushes an entire user address space from
++	the caches.  That is, after running, there will be no cache
++	lines associated with 'mm'.
++
++	This interface is used to handle whole address space
++	page table operations such as what happens during fork.
++
++	This option is separate from flush_cache_mm to allow some
++	optimizations for VIPT caches.
++
++3) void flush_cache_range(struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long end)
+ 
+ 	Here we are flushing a specific range of (user) virtual
+@@ -199,7 +210,7 @@ Here are the routines, one by one:
+ 	call flush_cache_page (see below) for each entry which may be
+ 	modified.
+ 
+-3) void flush_cache_page(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn)
++4) void flush_cache_page(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn)
+ 
+ 	This time we need to remove a PAGE_SIZE sized range
+ 	from the cache.  The 'vma' is the backing structure used by
+@@ -220,7 +231,7 @@ Here are the routines, one by one:
+ 
+ 	This is used primarily during fault processing.
+ 
+-4) void flush_cache_kmaps(void)
++5) void flush_cache_kmaps(void)
+ 
+ 	This routine need only be implemented if the platform utilizes
+ 	highmem.  It will be called right before all of the kmaps
+@@ -232,7 +243,7 @@ Here are the routines, one by one:
+ 
+ 	This routing should be implemented in asm/highmem.h
+ 
+-5) void flush_cache_vmap(unsigned long start, unsigned long end)
++6) void flush_cache_vmap(unsigned long start, unsigned long end)
+    void flush_cache_vunmap(unsigned long start, unsigned long end)
+ 
+ 	Here in these two interfaces we are flushing a specific range
+diff -puN include/asm-alpha/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-alpha/cacheflush.h
+--- a/include/asm-alpha/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-alpha/cacheflush.h
+@@ -6,6 +6,7 @@
+ /* Caches aren't brain-dead on the Alpha. */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-arm/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-arm/cacheflush.h
+--- a/include/asm-arm/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-arm/cacheflush.h
+@@ -319,6 +319,8 @@ extern void flush_ptrace_access(struct v
+ 				unsigned long len, int write);
+ #endif
+ 
++#define flush_cache_dup_mm(mm) flush_cache_mm(mm)
++
+ /*
+  * flush_cache_user_range is used when we want to ensure that the
+  * Harvard caches are synchronised for the user space address range.
+diff -puN include/asm-arm26/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-arm26/cacheflush.h
+--- a/include/asm-arm26/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-arm26/cacheflush.h
+@@ -22,6 +22,7 @@
+ 
+ #define flush_cache_all()                       do { } while (0)
+ #define flush_cache_mm(mm)                      do { } while (0)
++#define flush_cache_dup_mm(mm)                  do { } while (0)
+ #define flush_cache_range(vma,start,end)        do { } while (0)
+ #define flush_cache_page(vma,vmaddr,pfn)        do { } while (0)
+ #define flush_cache_vmap(start, end)		do { } while (0)
+diff -puN include/asm-avr32/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-avr32/cacheflush.h
+--- a/include/asm-avr32/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-avr32/cacheflush.h
+@@ -87,6 +87,7 @@ void invalidate_icache_region(void *star
+  */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_cache_vmap(start, end)		do { } while (0)
+diff -puN include/asm-cris/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-cris/cacheflush.h
+--- a/include/asm-cris/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-cris/cacheflush.h
+@@ -9,6 +9,7 @@
+  */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-frv/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-frv/cacheflush.h
+--- a/include/asm-frv/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-frv/cacheflush.h
+@@ -20,6 +20,7 @@
+  */
+ #define flush_cache_all()			do {} while(0)
+ #define flush_cache_mm(mm)			do {} while(0)
++#define flush_cache_dup_mm(mm)			do {} while(0)
+ #define flush_cache_range(mm, start, end)	do {} while(0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do {} while(0)
+ #define flush_cache_vmap(start, end)		do {} while(0)
+diff -puN include/asm-h8300/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-h8300/cacheflush.h
+--- a/include/asm-h8300/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-h8300/cacheflush.h
+@@ -12,6 +12,7 @@
+ 
+ #define flush_cache_all()
+ #define	flush_cache_mm(mm)
++#define	flush_cache_dup_mm(mm)		do { } while (0)
+ #define	flush_cache_range(vma,a,b)
+ #define	flush_cache_page(vma,p,pfn)
+ #define	flush_dcache_page(page)
+diff -puN include/asm-i386/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-i386/cacheflush.h
+--- a/include/asm-i386/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-i386/cacheflush.h
+@@ -7,6 +7,7 @@
+ /* Caches aren't brain-dead on the intel. */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-ia64/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-ia64/cacheflush.h
+--- a/include/asm-ia64/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-ia64/cacheflush.h
+@@ -18,6 +18,7 @@
+ 
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_icache_page(vma,page)		do { } while (0)
+diff -puN include/asm-m32r/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-m32r/cacheflush.h
+--- a/include/asm-m32r/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-m32r/cacheflush.h
+@@ -9,6 +9,7 @@ extern void _flush_cache_copyback_all(vo
+ #if defined(CONFIG_CHIP_M32700) || defined(CONFIG_CHIP_OPSP) || defined(CONFIG_CHIP_M32104)
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+@@ -29,6 +30,7 @@ extern void smp_flush_cache_all(void);
+ #elif defined(CONFIG_CHIP_M32102)
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+@@ -41,6 +43,7 @@ extern void smp_flush_cache_all(void);
+ #else
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-m68k/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-m68k/cacheflush.h
+--- a/include/asm-m68k/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-m68k/cacheflush.h
+@@ -89,6 +89,8 @@ static inline void flush_cache_mm(struct
+ 		__flush_cache_030();
+ }
+ 
++#define flush_cache_dup_mm(mm)			flush_cache_mm(mm)
++
+ /* flush_cache_range/flush_cache_page must be macros to avoid
+    a dependency on linux/mm.h, which includes this file... */
+ static inline void flush_cache_range(struct vm_area_struct *vma,
+diff -puN include/asm-m68knommu/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-m68knommu/cacheflush.h
+--- a/include/asm-m68knommu/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-m68knommu/cacheflush.h
+@@ -8,6 +8,7 @@
+ 
+ #define flush_cache_all()			__flush_cache_all()
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	__flush_cache_all()
+ #define flush_cache_page(vma, vmaddr)		do { } while (0)
+ #define flush_dcache_range(start,len)		__flush_cache_all()
+diff -puN include/asm-mips/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-mips/cacheflush.h
+--- a/include/asm-mips/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-mips/cacheflush.h
+@@ -17,6 +17,7 @@
+  *
+  *  - flush_cache_all() flushes entire cache
+  *  - flush_cache_mm(mm) flushes the specified mm context's cache lines
++ *  - flush_cache_dup mm(mm) handles cache flushing when forking
+  *  - flush_cache_page(mm, vmaddr, pfn) flushes a single page
+  *  - flush_cache_range(vma, start, end) flushes a range of pages
+  *  - flush_icache_range(start, end) flush a range of instructions
+@@ -31,6 +32,7 @@
+ extern void (*flush_cache_all)(void);
+ extern void (*__flush_cache_all)(void);
+ extern void (*flush_cache_mm)(struct mm_struct *mm);
++#define flush_cache_dup_mm(mm)	do { (void) (mm); } while (0)
+ extern void (*flush_cache_range)(struct vm_area_struct *vma,
+ 	unsigned long start, unsigned long end);
+ extern void (*flush_cache_page)(struct vm_area_struct *vma, unsigned long page, unsigned long pfn);
+diff -puN include/asm-parisc/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-parisc/cacheflush.h
+--- a/include/asm-parisc/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-parisc/cacheflush.h
+@@ -15,6 +15,8 @@
+ #define flush_cache_mm(mm) flush_cache_all_local()
+ #endif
+ 
++#define flush_cache_dup_mm(mm) flush_cache_mm(mm)
++
+ #define flush_kernel_dcache_range(start,size) \
+ 	flush_kernel_dcache_range_asm((start), (start)+(size));
+ 
+diff -puN include/asm-powerpc/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-powerpc/cacheflush.h
+--- a/include/asm-powerpc/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-powerpc/cacheflush.h
+@@ -18,6 +18,7 @@
+  */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_icache_page(vma, page)		do { } while (0)
+diff -puN include/asm-s390/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-s390/cacheflush.h
+--- a/include/asm-s390/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-s390/cacheflush.h
+@@ -7,6 +7,7 @@
+ /* Caches aren't brain-dead on the s390. */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-sh/cpu-sh2/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-sh/cpu-sh2/cacheflush.h
+--- a/include/asm-sh/cpu-sh2/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-sh/cpu-sh2/cacheflush.h
+@@ -15,6 +15,7 @@
+  *
+  *  - flush_cache_all() flushes entire cache
+  *  - flush_cache_mm(mm) flushes the specified mm context's cache lines
++ *  - flush_cache_dup mm(mm) handles cache flushing when forking
+  *  - flush_cache_page(mm, vmaddr, pfn) flushes a single page
+  *  - flush_cache_range(vma, start, end) flushes a range of pages
+  *
+@@ -27,6 +28,7 @@
+  */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-sh/cpu-sh3/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-sh/cpu-sh3/cacheflush.h
+--- a/include/asm-sh/cpu-sh3/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-sh/cpu-sh3/cacheflush.h
+@@ -15,6 +15,7 @@
+  *
+  *  - flush_cache_all() flushes entire cache
+  *  - flush_cache_mm(mm) flushes the specified mm context's cache lines
++ *  - flush_cache_dup mm(mm) handles cache flushing when forking
+  *  - flush_cache_page(mm, vmaddr, pfn) flushes a single page
+  *  - flush_cache_range(vma, start, end) flushes a range of pages
+  *
+@@ -39,6 +40,7 @@
+ 
+ void flush_cache_all(void);
+ void flush_cache_mm(struct mm_struct *mm);
++#define flush_cache_dup_mm(mm) flush_cache_mm(mm)
+ void flush_cache_range(struct vm_area_struct *vma, unsigned long start,
+                               unsigned long end);
+ void flush_cache_page(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn);
+@@ -48,6 +50,7 @@ void flush_icache_page(struct vm_area_st
+ #else
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-sh/cpu-sh4/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-sh/cpu-sh4/cacheflush.h
+--- a/include/asm-sh/cpu-sh4/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-sh/cpu-sh4/cacheflush.h
+@@ -18,6 +18,7 @@
+  */
+ void flush_cache_all(void);
+ void flush_cache_mm(struct mm_struct *mm);
++#define flush_cache_dup_mm(mm) flush_cache_mm(mm)
+ void flush_cache_range(struct vm_area_struct *vma, unsigned long start,
+ 		       unsigned long end);
+ void flush_cache_page(struct vm_area_struct *vma, unsigned long addr,
+diff -puN include/asm-sh64/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-sh64/cacheflush.h
+--- a/include/asm-sh64/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-sh64/cacheflush.h
+@@ -21,6 +21,8 @@ extern void flush_icache_user_range(stru
+ 				    struct page *page, unsigned long addr,
+ 				    int len);
+ 
++#define flush_cache_dup_mm(mm)	flush_cache_mm(mm)
++
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+ 
+diff -puN include/asm-sparc/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-sparc/cacheflush.h
+--- a/include/asm-sparc/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-sparc/cacheflush.h
+@@ -48,6 +48,7 @@ BTFIXUPDEF_CALL(void, flush_cache_page, 
+ 
+ #define flush_cache_all() BTFIXUP_CALL(flush_cache_all)()
+ #define flush_cache_mm(mm) BTFIXUP_CALL(flush_cache_mm)(mm)
++#define flush_cache_dup_mm(mm) BTFIXUP_CALL(flush_cache_mm)(mm)
+ #define flush_cache_range(vma,start,end) BTFIXUP_CALL(flush_cache_range)(vma,start,end)
+ #define flush_cache_page(vma,addr,pfn) BTFIXUP_CALL(flush_cache_page)(vma,addr)
+ #define flush_icache_range(start, end)		do { } while (0)
+diff -puN include/asm-sparc64/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-sparc64/cacheflush.h
+--- a/include/asm-sparc64/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-sparc64/cacheflush.h
+@@ -12,6 +12,7 @@
+ /* These are the same regardless of whether this is an SMP kernel or not. */
+ #define flush_cache_mm(__mm) \
+ 	do { if ((__mm) == current->mm) flushw_user(); } while(0)
++#define flush_cache_dup_mm(mm) flush_cache_mm(mm)
+ #define flush_cache_range(vma, start, end) \
+ 	flush_cache_mm((vma)->vm_mm)
+ #define flush_cache_page(vma, page, pfn) \
+diff -puN include/asm-v850/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-v850/cacheflush.h
+--- a/include/asm-v850/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-v850/cacheflush.h
+@@ -24,6 +24,7 @@
+    systems with MMUs, so we don't need them.  */
+ #define flush_cache_all()			((void)0)
+ #define flush_cache_mm(mm)			((void)0)
++#define flush_cache_dup_mm(mm)			((void)0)
+ #define flush_cache_range(vma, start, end)	((void)0)
+ #define flush_cache_page(vma, vmaddr, pfn)	((void)0)
+ #define flush_dcache_page(page)			((void)0)
+diff -puN include/asm-x86_64/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-x86_64/cacheflush.h
+--- a/include/asm-x86_64/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-x86_64/cacheflush.h
+@@ -7,6 +7,7 @@
+ /* Caches aren't brain-dead on the intel. */
+ #define flush_cache_all()			do { } while (0)
+ #define flush_cache_mm(mm)			do { } while (0)
++#define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ #define flush_dcache_page(page)			do { } while (0)
+diff -puN include/asm-xtensa/cacheflush.h~optimize-d-cache-alias-handling-on-fork include/asm-xtensa/cacheflush.h
+--- a/include/asm-xtensa/cacheflush.h~optimize-d-cache-alias-handling-on-fork
++++ a/include/asm-xtensa/cacheflush.h
+@@ -75,6 +75,7 @@ extern void __flush_invalidate_dcache_ra
+ 
+ #define flush_cache_all()		__flush_invalidate_cache_all();
+ #define flush_cache_mm(mm)		__flush_invalidate_cache_all();
++#define flush_cache_dup_mm(mm)		__flush_invalidate_cache_all();
+ 
+ #define flush_cache_vmap(start,end)	__flush_invalidate_cache_all();
+ #define flush_cache_vunmap(start,end)	__flush_invalidate_cache_all();
+@@ -88,6 +89,7 @@ extern void flush_cache_page(struct vm_a
+ 
+ #define flush_cache_all()				do { } while (0)
+ #define flush_cache_mm(mm)				do { } while (0)
++#define flush_cache_dup_mm(mm)				do { } while (0)
+ 
+ #define flush_cache_vmap(start,end)			do { } while (0)
+ #define flush_cache_vunmap(start,end)			do { } while (0)
+diff -puN kernel/fork.c~optimize-d-cache-alias-handling-on-fork kernel/fork.c
+--- a/kernel/fork.c~optimize-d-cache-alias-handling-on-fork
++++ a/kernel/fork.c
+@@ -203,7 +203,7 @@ static inline int dup_mmap(struct mm_str
+ 	struct mempolicy *pol;
+ 
+ 	down_write(&oldmm->mmap_sem);
+-	flush_cache_mm(oldmm);
++	flush_cache_dup_mm(oldmm);
  	/*
--	 * set up the PLL. we need to adjust it so that it's stable. 
--	 * freq = Tpll * 192 / Tpci
-+	 * We'll have to read f_CNT value in order to determine
-+	 * the PCI clock frequency according to the following ratio:
- 	 *
--	 * Todo. For non x86 should probably check the dword is
--	 * set to 0xABCDExxx indicating the BIOS saved f_CNT
-+	 * f_CNT = Fpci * 192 / Fdpll
-+	 *
-+	 * First try reading the register in which the HighPoint BIOS
-+	 * saves f_CNT value before  reprogramming the DPLL from its
-+	 * default setting (which differs for the various chips).
-+	 * In case the signature check fails, we'll have to resort to
-+	 * reading the f_CNT register itself in hopes that nobody has
-+	 * touched the DPLL yet...
+ 	 * Not linked in yet - no deadlock potential:
  	 */
--	pci_read_config_word(dev, 0x78, &freq);
--	freq &= 0x1FF;
--	
-+	pci_read_config_dword(dev, 0x70, &temp);
-+	if ((temp & 0xFFFFF000) != 0xABCDE000) {
-+		int i;
-+
-+		printk(KERN_WARNING "HPT37X: no clock data saved by BIOS\n");
-+
-+		/* Calculate the average value of f_CNT */
-+		for (temp = i = 0; i < 128; i++) {
-+			pci_read_config_word(dev, 0x78, &freq);
-+			temp += freq & 0x1ff;
-+			mdelay(1);
-+		}
-+		freq = temp / 128;
-+	} else
-+		freq = temp & 0x1ff;
-+
- 	/*
- 	 * HPT3xxN chips use different PCI clock information.
- 	 * Currently we always set up the PLL for them.
-@@ -1095,11 +1116,8 @@ static void __devinit hpt37x_clocking(id
- 	info->flags |= PLL_MODE;
- 	
- 	/*
--	 * FIXME: make this work correctly, esp with 372N as per
--	 * reference driver code.
--	 *
--	 * adjust PLL based upon PCI clock, enable it, and wait for
--	 * stabilization.
-+	 * Adjust the PLL based upon the PCI clock, enable it, and
-+	 * wait for stabilization...
- 	 */
- 	adjust = 0;
- 	freq = (pll < F_LOW_PCI_50) ? 2 : 4;
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
+fix-namespace-conflict-between-w9968cfc-on-mips.patch
+make-lm70_remove-a-__devexit-function.patch
+mips-dbg_io-stray-brackets-fix.patch
 git-mtd.patch
-3x59x-fix-pci-resource-management.patch
-toshiba-tc86c001-ide-driver-take-2.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-piix-fix-82371mx-enablebits.patch
-piix-remove-check-for-broken-mw-dma-mode-0.patch
-piix-slc90e66-pio-mode-fallback-fix.patch
-pdc202xx_new-remove-useless-code.patch
-pdc202xx_-remove-check_in_drive_lists-abomination.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pci-legacy-resource-fix.patch
+pci-legacy-resource-fix-tidy.patch
+xfs-remove-useless-wmb-memory-barrier.patch
 
