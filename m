@@ -1,184 +1,244 @@
 From: akpm@osdl.org
-Subject: + add-memcpy_uncached_read-tidy.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:10:58 -0800
-Message-ID: <200612140010.kBE0Aw7C025614@shell0.pdx.osdl.net>
+Subject: + add-memcpy_uncached_read.patch added to -mm tree
+Date: Wed, 13 Dec 2006 16:10:56 -0800
+Message-ID: <200612140010.kBE0AusC025611@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60464 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60486 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751809AbWLNALQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:11:16 -0500
+	id S1751812AbWLNALa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:11:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com
+Cc: bos@pathscale.com, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com
 
 
 The patch titled
-     add-memcpy_uncached_read-tidy
+     Add memcpy_uncached_read(): a memcpy that tries to reduce cache pressure
 has been added to the -mm tree.  Its filename is
-     add-memcpy_uncached_read-tidy.patch
+     add-memcpy_uncached_read.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-memcpy_uncached_read-tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: Add memcpy_uncached_read(): a memcpy that tries to reduce cache pressure
+From: "Bryan O'Sullivan" <bos@pathscale.com>
 
-Let's try the Linus trick to get rid of yet another ARCH_HAS_FOO.
+This copy routine is memcpy-compatible, but on some architectures will use
+cache-bypassing loads to avoid bringing the source data into the cache.
 
-Cc: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
+One case where this is useful is when a device issues a DMA to a memory
+region, and the CPU must copy the DMAed data elsewhere before doing any work
+with it.  Since the source data is read-once, write-never from the CPU's
+perspective, caching the data at those addresses can only evict potentially
+useful data.
+
+We provide an x86_64 implementation that uses SSE non-temporal loads, and a
+generic version that falls back to plain memcpy.
+
+Implementors for other arches should not use cache-bypassing stores to the
+destination, as in most cases, the destination is accessed almost immediately
+after a copy finishes.
+
+Signed-off-by: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-x86_64/string.h |    2 +-
- include/linux/string.h      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/lib/Makefile               |    3 
+ arch/x86_64/lib/memcpy_uncached_read.S |  142 +++++++++++++++++++++++
+ include/asm-x86_64/string.h            |    2 
+ include/linux/string.h                 |    3 
+ 4 files changed, 149 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy include/asm-x86_64/string.h
---- a/include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy
+diff -puN arch/x86_64/lib/Makefile~add-memcpy_uncached_read arch/x86_64/lib/Makefile
+--- a/arch/x86_64/lib/Makefile~add-memcpy_uncached_read
++++ a/arch/x86_64/lib/Makefile
+@@ -9,4 +9,5 @@ obj-y := io.o iomap_copy.o
+ lib-y := csum-partial.o csum-copy.o csum-wrappers.o delay.o \
+ 	usercopy.o getuser.o putuser.o  \
+ 	thunk.o clear_page.o copy_page.o bitstr.o bitops.o
+-lib-y += memcpy.o memmove.o memset.o copy_user.o rwlock.o
++lib-y += memcpy.o memmove.o memset.o copy_user.o rwlock.o \
++	memcpy_uncached_read.o
+diff -puN /dev/null arch/x86_64/lib/memcpy_uncached_read.S
+--- /dev/null
++++ a/arch/x86_64/lib/memcpy_uncached_read.S
+@@ -0,0 +1,142 @@
++/*
++ * Copyright (c) 2006 QLogic Corporation.  All Rights Reserved.
++ *
++ * This file is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software Foundation,
++ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
++ */
++
++/*
++ * memcpy_uncached_read - memcpy-compatible copy routine, using streaming loads
++ * @dest: destination address
++ * @src: source address (will not be cached)
++ * @count: number of bytes to copy
++ *
++ * Use streaming loads and normal stores for a special-case copy where
++ * we know we won't be reading the source again, but will be reading the
++ * destination again soon.
++ */
++	.text
++	.p2align 4,,15
++	/* rdi  destination, rsi source, rdx count */
++	.globl	memcpy_uncached_read
++	.type	memcpy_uncached_read, @function
++memcpy_uncached_read:
++	movq	%rdi, %rax
++.L5:
++	cmpq	$15, %rdx
++	ja	.L34
++.L3:
++	cmpl	$8, %edx	/* rdx is 0..15 */
++	jbe	.L9
++.L6:
++	testb	$8, %dxl	/* rdx is 3,5,6,7,9..15 */
++	je	.L13
++	movq	(%rsi), %rcx
++	addq	$8, %rsi
++	movq	%rcx, (%rdi)
++	addq	$8, %rdi
++.L13:
++	testb	$4, %dxl
++	je	.L15
++	movl	(%rsi), %ecx
++	addq	$4, %rsi
++	movl	%ecx, (%rdi)
++	addq	$4, %rdi
++.L15:
++	testb	$2, %dxl
++	je	.L17
++	movzwl	(%rsi), %ecx
++	addq	$2, %rsi
++	movw	%cx, (%rdi)
++	addq	$2, %rdi
++.L17:
++	testb	$1, %dxl
++	je	.L33
++.L1:
++	movzbl	(%rsi), %ecx
++	movb	%cl, (%rdi)
++.L33:
++	ret
++.L34:
++	cmpq	$63, %rdx	/* rdx is > 15 */
++	ja	.L64
++	movl	$16, %ecx	/* rdx is 16..63 */
++.L25:
++	movq	8(%rsi), %r8
++	movq	(%rsi), %r9
++	addq	%rcx, %rsi
++	movq	%r8, 8(%rdi)
++	movq	%r9, (%rdi)
++	addq	%rcx, %rdi
++	subq	%rcx, %rdx
++	cmpl	%edx, %ecx	/* is rdx >= 16? */
++	jbe	.L25
++	jmp	.L3		/* rdx is 0..15 */
++	.p2align 4,,7
++.L64:
++	movl	$64, %ecx
++.L42:
++	prefetchnta	128(%rsi)
++	movq	(%rsi), %r8
++	movq	8(%rsi), %r9
++	movq	16(%rsi), %r10
++	movq	24(%rsi), %r11
++	subq	%rcx, %rdx
++	movq	%r8, (%rdi)
++	movq	32(%rsi), %r8
++	movq	%r9, 8(%rdi)
++	movq	40(%rsi), %r9
++	movq	%r10, 16(%rdi)
++	movq	48(%rsi), %r10
++	movq	%r11, 24(%rdi)
++	movq	56(%rsi), %r11
++	addq	%rcx, %rsi
++	movq	%r8, 32(%rdi)
++	movq	%r9, 40(%rdi)
++	movq	%r10, 48(%rdi)
++	movq	%r11, 56(%rdi)
++	addq	%rcx, %rdi
++	cmpq	%rdx, %rcx	/* is rdx >= 64? */
++	jbe	.L42
++	sfence
++	orl	%edx, %edx
++	je	.L33
++	jmp	.L5
++.L9:
++	jmp	*.L12(,%rdx,8)	/* rdx is 0..8 */
++	.section	.rodata
++	.align 8
++	.align 4
++.L12:
++	.quad	.L33
++	.quad	.L1
++	.quad	.L2
++	.quad	.L6
++	.quad	.L4
++	.quad	.L6
++	.quad	.L6
++	.quad	.L6
++	.quad	.L8
++	.text
++.L2:
++	movzwl	(%rsi), %ecx
++	movw	%cx, (%rdi)
++	ret
++.L4:
++	movl	(%rsi), %ecx
++	movl	%ecx, (%rdi)
++	ret
++.L8:
++	movq	(%rsi), %rcx
++	movq	%rcx, (%rdi)
++	ret
+diff -puN include/asm-x86_64/string.h~add-memcpy_uncached_read include/asm-x86_64/string.h
+--- a/include/asm-x86_64/string.h~add-memcpy_uncached_read
 +++ a/include/asm-x86_64/string.h
-@@ -39,8 +39,8 @@ extern void *__memcpy(void *to, const vo
+@@ -39,6 +39,8 @@ extern void *__memcpy(void *to, const vo
  		 __ret = __builtin_memcpy((dst),(src),__len);	\
  	   __ret; }) 
  
--#define __HAVE_ARCH_MEMCPY_UNCACHED_READ
- extern void *memcpy_uncached_read(void *to, const void *from, size_t len);
-+#define memcpy_uncached_read memcpy_uncached_read
++#define __HAVE_ARCH_MEMCPY_UNCACHED_READ
++extern void *memcpy_uncached_read(void *to, const void *from, size_t len);
  
  #define __HAVE_ARCH_MEMSET
  void *memset(void *s, int c, size_t n);
-diff -puN include/linux/string.h~add-memcpy_uncached_read-tidy include/linux/string.h
---- a/include/linux/string.h~add-memcpy_uncached_read-tidy
+diff -puN include/linux/string.h~add-memcpy_uncached_read include/linux/string.h
+--- a/include/linux/string.h~add-memcpy_uncached_read
 +++ a/include/linux/string.h
-@@ -85,7 +85,7 @@ extern void * memset(void *,int,__kernel
+@@ -85,6 +85,9 @@ extern void * memset(void *,int,__kernel
  #ifndef __HAVE_ARCH_MEMCPY
  extern void * memcpy(void *,const void *,__kernel_size_t);
  #endif
--#ifndef __HAVE_ARCH_MEMCPY_UNCACHED_READ
-+#ifndef memcpy_uncached_read
- #define memcpy_uncached_read(dest, src, count) memcpy((dest), (src), (count))
- #endif
++#ifndef __HAVE_ARCH_MEMCPY_UNCACHED_READ
++#define memcpy_uncached_read(dest, src, count) memcpy((dest), (src), (count))
++#endif
  #ifndef __HAVE_ARCH_MEMMOVE
+ extern void * memmove(void *,const void *,__kernel_size_t);
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bos@pathscale.com are
 
-origin.patch
-x86-smp-export-smp_num_siblings-for-oprofile.patch
-slab-use-a-multiply-instead-of-a-divide-in-obj_to_index.patch
-touch_atime-cleanup.patch
-ocfs2-relative-atime-support.patch
-optimize-o_direct-on-block-device-v3.patch
-lockdep-fix-possible-races-while-disabling-lock-debugging.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-alsa-workqueue-fixes.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-input-vs-git-alsa.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-add-memcpy_uncached_read-tidy.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+add-memcpy_uncached_read.patch
+ib-ipath-use-memcpy_uncached_read-in-rdma-interrupt.patch
 
