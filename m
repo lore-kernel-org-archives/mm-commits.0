@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + spidernet-rx-chain-tail.patch added to -mm tree
-Date: Wed, 13 Dec 2006 16:26:16 -0800
-Message-ID: <200612140026.kBE0QGCm026153@shell0.pdx.osdl.net>
+Subject: + spidernet-cleanup-return-codes.patch added to -mm tree
+Date: Wed, 13 Dec 2006 16:26:10 -0800
+Message-ID: <200612140026.kBE0QAs2026142@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33359 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33369 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848AbWLNA0m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Dec 2006 19:26:42 -0500
+	id S1751851AbWLNA1F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Dec 2006 19:27:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,18 +15,19 @@ Cc: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com
 
 
 The patch titled
-     Spidernet: RX Chain tail
+     Spidernet: Cleanup return codes
 has been added to the -mm tree.  Its filename is
-     spidernet-rx-chain-tail.patch
+     spidernet-cleanup-return-codes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Spidernet: RX Chain tail
+Subject: Spidernet: Cleanup return codes
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Tell the hardware the location of the rx ring tail.  More punctuation cleanup.
+Simplify the somewhat convoluted use of return codes in the rx buffer
+handling.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -34,49 +35,99 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/net/spider_net.c |   32 ++++++++++++--------------------
+ 1 files changed, 12 insertions(+), 20 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-rx-chain-tail drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-rx-chain-tail
+diff -puN drivers/net/spider_net.c~spidernet-cleanup-return-codes drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-cleanup-return-codes
 +++ a/drivers/net/spider_net.c
-@@ -487,10 +487,10 @@ spider_net_refill_rx_chain(struct spider
+@@ -911,12 +911,10 @@ spider_net_do_ioctl(struct net_device *n
+  * @descr: descriptor to process
+  * @card: card structure
+  *
+- * returns 1 on success, 0 if no packet was passed to the stack
+- *
+  * Fills out skb structure and passes the data to the stack.
+  * The descriptor state is not changed.
+  */
+-static int
++static void
+ spider_net_pass_skb_up(struct spider_net_descr *descr,
+ 		       struct spider_net_card *card)
+ {
+@@ -961,8 +959,6 @@ spider_net_pass_skb_up(struct spider_net
+ 	/* update netdevice statistics */
+ 	card->netdev_stats.rx_packets++;
+ 	card->netdev_stats.rx_bytes += skb->len;
+-
+-	return 1;
  }
  
  /**
-- * spider_net_alloc_rx_skbs - allocates rx skbs in rx descriptor chains
-+ * spider_net_alloc_rx_skbs - Allocates rx skbs in rx descriptor chains
-  * @card: card structure
-  *
-- * returns 0 on success, <0 on failure
-+ * Returns 0 on success, <0 on failure.
-  */
- static int
- spider_net_alloc_rx_skbs(struct spider_net_card *card)
-@@ -501,17 +501,18 @@ spider_net_alloc_rx_skbs(struct spider_n
- 	result = -ENOMEM;
+@@ -981,7 +977,6 @@ spider_net_decode_one_descr(struct spide
+ 	struct spider_net_descr_chain *chain = &card->rx_chain;
+ 	struct spider_net_descr *descr = chain->tail;
+ 	int status;
+-	int result;
  
- 	chain = &card->rx_chain;
--	/* put at least one buffer into the chain. if this fails,
--	 * we've got a problem. if not, spider_net_refill_rx_chain
--	 * will do the rest at the end of this function */
-+	/* Put at least one buffer into the chain. if this fails,
-+	 * we've got a problem. If not, spider_net_refill_rx_chain
-+	 * will do the rest at the end of this function. */
- 	if (spider_net_prepare_rx_descr(card, chain->head))
- 		goto error;
- 	else
- 		chain->head = chain->head->next;
+ 	status = spider_net_get_descr_status(descr);
  
--	/* this will allocate the rest of the rx buffers; if not, it's
--	 * business as usual later on */
-+	/* This will allocate the rest of the rx buffers;
-+	 * if not, it's business as usual later on. */
- 	spider_net_refill_rx_chain(card);
-+	spider_net_enable_rxchtails(card);
- 	spider_net_enable_rxdmac(card);
- 	return 0;
+@@ -999,8 +994,6 @@ spider_net_decode_one_descr(struct spide
+ 	/* descriptor definitively used -- move on tail */
+ 	chain->tail = descr->next;
  
+-	result = 0;
+-
+ 	/* unmap descriptor */
+ 	pci_unmap_single(card->pdev, descr->buf_addr,
+ 			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
+@@ -1012,8 +1005,7 @@ spider_net_decode_one_descr(struct spide
+ 			pr_err("%s: dropping RX descriptor with state %d\n",
+ 			       card->netdev->name, status);
+ 		card->netdev_stats.rx_dropped++;
+-		dev_kfree_skb_irq(descr->skb);
+-		goto refill;
++		goto bad_desc;
+ 	}
+ 
+ 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
+@@ -1022,8 +1014,7 @@ spider_net_decode_one_descr(struct spide
+ 			pr_err("%s: RX descriptor with unkown state %d\n",
+ 			       card->netdev->name, status);
+ 		card->spider_stats.rx_desc_unk_state++;
+-		dev_kfree_skb_irq(descr->skb);
+-		goto refill;
++		goto bad_desc;
+ 	}
+ 
+ 	/* The cases we'll throw away the packet immediately */
+@@ -1033,17 +1024,18 @@ spider_net_decode_one_descr(struct spide
+ 			       "data_status=x%08x, data_error=x%08x\n",
+ 			       card->netdev->name,
+ 			       descr->data_status, descr->data_error);
+-		card->spider_stats.rx_desc_error++;
+-		dev_kfree_skb_irq(descr->skb);
+-		goto refill;
++		goto bad_desc;
+ 	}
+ 
+-	/* ok, we've got a packet in descr */
+-	result = spider_net_pass_skb_up(descr, card);
+-refill:
+-	/* change the descriptor state: */
++	/* Ok, we've got a packet in descr */
++	spider_net_pass_skb_up(descr, card);
+ 	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+-	return result;
++	return 1;
++
++bad_desc:
++	dev_kfree_skb_irq(descr->skb);
++	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
++	return 0;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
