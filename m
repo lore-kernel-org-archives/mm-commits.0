@@ -1,109 +1,52 @@
 From: akpm@osdl.org
-Subject: - kvm-clean-up-amd-svm-debug-registers-load-and-unload.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 22:00:23 -0800
-Message-ID: <200612140600.kBE60NdC001668@shell0.pdx.osdl.net>
+Subject: - kvm-add-missing-include.patch removed from -mm tree
+Date: Wed, 13 Dec 2006 22:00:03 -0800
+Message-ID: <200612140600.kBE603Jr001655@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51302 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51361 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751814AbWLNGAe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 01:00:34 -0500
+	id S1751818AbWLNGAt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 01:00:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: anthony@codemonkey.ws, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Clean up AMD SVM debug registers load and unload
+     KVM: Add missing include
 has been removed from the -mm tree.  Its filename was
-     kvm-clean-up-amd-svm-debug-registers-load-and-unload.patch
+     kvm-add-missing-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Clean up AMD SVM debug registers load and unload
-From: Avi Kivity <avi@qumranet.com>
+Subject: KVM: Add missing include
+From: Anthony Liguori <anthony@codemonkey.ws>
 
-By letting gcc choose the temporary register for us, we lose arch dependency
-and some ugliness.  Conceivably gcc will also generate marginally better code.
+load_TR_desc() lives in asm/desc.h, so #include that file.
 
+Signed-off-by: Anthony Liguori <anthony@codemonkey.ws>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c |   51 ++++++--------------------------------------
- 1 file changed, 8 insertions(+), 43 deletions(-)
+ drivers/kvm/vmx.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/kvm/svm.c~kvm-clean-up-amd-svm-debug-registers-load-and-unload drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-clean-up-amd-svm-debug-registers-load-and-unload
-+++ a/drivers/kvm/svm.c
-@@ -1345,53 +1345,18 @@ static void kvm_reput_irq(struct kvm_vcp
+diff -puN drivers/kvm/vmx.c~kvm-add-missing-include drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-add-missing-include
++++ a/drivers/kvm/vmx.c
+@@ -22,6 +22,7 @@
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
+ #include <asm/io.h>
++#include <asm/desc.h>
  
- static void save_db_regs(unsigned long *db_regs)
- {
--#ifdef __x86_64__
--	asm ("mov %%dr0, %%rax \n\t"
--	     "mov %%rax, %[dr0] \n\t"
--	     "mov %%dr1, %%rax \n\t"
--	     "mov %%rax, %[dr1] \n\t"
--	     "mov %%dr2, %%rax \n\t"
--	     "mov %%rax, %[dr2] \n\t"
--	     "mov %%dr3, %%rax \n\t"
--	     "mov %%rax, %[dr3] \n\t"
--	     : [dr0] "=m"(db_regs[0]),
--	       [dr1] "=m"(db_regs[1]),
--	       [dr2] "=m"(db_regs[2]),
--	       [dr3] "=m"(db_regs[3])
--	     : : "rax");
--#else
--	asm ("mov %%dr0, %%eax \n\t"
--	     "mov %%eax, %[dr0] \n\t"
--	     "mov %%dr1, %%eax \n\t"
--	     "mov %%eax, %[dr1] \n\t"
--	     "mov %%dr2, %%eax \n\t"
--	     "mov %%eax, %[dr2] \n\t"
--	     "mov %%dr3, %%eax \n\t"
--	     "mov %%eax, %[dr3] \n\t"
--	     : [dr0] "=m"(db_regs[0]),
--	       [dr1] "=m"(db_regs[1]),
--	       [dr2] "=m"(db_regs[2]),
--	       [dr3] "=m"(db_regs[3])
--	     : : "eax");
--#endif
-+	asm volatile ("mov %%dr0, %0" : "=r"(db_regs[0]));
-+	asm volatile ("mov %%dr1, %0" : "=r"(db_regs[1]));
-+	asm volatile ("mov %%dr2, %0" : "=r"(db_regs[2]));
-+	asm volatile ("mov %%dr3, %0" : "=r"(db_regs[3]));
- }
+ #include "segment_descriptor.h"
  
- static void load_db_regs(unsigned long *db_regs)
- {
--	asm volatile ("mov %[dr0], %%dr0 \n\t"
--	     "mov %[dr1], %%dr1 \n\t"
--	     "mov %[dr2], %%dr2 \n\t"
--	     "mov %[dr3], %%dr3 \n\t"
--	     :
--	     : [dr0] "r"(db_regs[0]),
--	       [dr1] "r"(db_regs[1]),
--	       [dr2] "r"(db_regs[2]),
--	       [dr3] "r"(db_regs[3])
--#ifdef __x86_64__
--	     : "rax");
--#else
--	     : "eax");
--#endif
-+	asm volatile ("mov %0, %%dr0" : : "r"(db_regs[0]));
-+	asm volatile ("mov %0, %%dr1" : : "r"(db_regs[1]));
-+	asm volatile ("mov %0, %%dr2" : : "r"(db_regs[2]));
-+	asm volatile ("mov %0, %%dr3" : : "r"(db_regs[3]));
- }
- 
- static int svm_vcpu_run(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from anthony@codemonkey.ws are
 
-kvm-add-valid_vcpu-helper.patch
-kvm-amd-svm-handle-msr_star-in-32-bit-mode.patch
-kvm-amd-svm-save-and-restore-the-floating-point-unit.patch
 
