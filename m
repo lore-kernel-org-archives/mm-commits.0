@@ -1,49 +1,179 @@
 From: akpm@osdl.org
-Subject: - git-alsa-more-borkage.patch removed from -mm tree
-Date: Fri, 15 Dec 2006 14:16:47 -0800
-Message-ID: <200612152216.kBFMGl2J002415@shell0.pdx.osdl.net>
+Subject: + kgdb-fix-rejects.patch added to -mm tree
+Date: Fri, 15 Dec 2006 14:07:09 -0800
+Message-ID: <200612152207.kBFM79Au002206@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50346 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50345 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030249AbWLOWaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030242AbWLOWaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 15 Dec 2006 17:30:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, piet@bluelane.com, trini@kernel.crashing.org
 
 
 The patch titled
-     git-alsa: more borkage
-has been removed from the -mm tree.  Its filename was
-     git-alsa-more-borkage.patch
+     kgdb: fix rejects
+has been added to the -mm tree.  Its filename is
+     kgdb-fix-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-alsa: more borkage
+Subject: kgdb: fix rejects
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Fix the rejects which arise from forcing the kgdb patch onto the -mm queue.
+
+Cc: Piet Delaney <piet@bluelane.com>
+Cc: Tom Rini <trini@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/input/touchscreen/ucb1400_ts.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Makefile              |    1 
+ include/asm-sh/kgdb.h |   87 +++++++---------------------------------
+ kernel/timer.c        |    1 
+ 3 files changed, 18 insertions(+), 71 deletions(-)
 
-diff -puN drivers/input/touchscreen/ucb1400_ts.c~git-alsa-more-borkage drivers/input/touchscreen/ucb1400_ts.c
---- a/drivers/input/touchscreen/ucb1400_ts.c~git-alsa-more-borkage
-+++ a/drivers/input/touchscreen/ucb1400_ts.c
-@@ -83,7 +83,7 @@
+diff -puN Makefile~kgdb-fix-rejects Makefile
+--- a/Makefile~kgdb-fix-rejects
++++ a/Makefile
+@@ -1041,6 +1041,7 @@ CLEAN_FILES +=	vmlinux System.map \
+ MRPROPER_DIRS  += include/config include2 usr/include
+ MRPROPER_FILES += .config .config.old include/asm .version .old_version \
+                   include/linux/autoconf.h generated-headers		\
++		  include/linux/dwarf2-defs.h				\
+ 		  Module.symvers tags TAGS cscope*
  
+ # clean - Delete most, but leave enough to build external modules
+diff -puN include/asm-sh/kgdb.h~kgdb-fix-rejects include/asm-sh/kgdb.h
+--- a/include/asm-sh/kgdb.h~kgdb-fix-rejects
++++ a/include/asm-sh/kgdb.h
+@@ -2,94 +2,39 @@
+  * May be copied or modified under the terms of the GNU General Public
+  * License.  See linux/COPYING for more information.
+  *
+- * Based on original code by Glenn Engel, Jim Kingdon,
+- * David Grothe <dave@gcom.com>, Tigran Aivazian, <tigran@sco.com> and
+- * Amit S. Kale <akale@veritas.com>
+- * 
+- * Super-H port based on sh-stub.c (Ben Lee and Steve Chamberlain) by
+- * Henry Bell <henry.bell@st.com>
+- * 
+- * Header file for low-level support for remote debug using GDB. 
++ * Based on a file that was modified or based on files by: Glenn Engel,
++ * Jim Kingdon, David Grothe <dave@gcom.com>, Tigran Aivazian <tigran@sco.com>,
++ * Amit S. Kale <akale@veritas.com>, sh-stub.c from Ben Lee and
++ * Steve Chamberlain, Henry Bell <henry.bell@st.com>
+  *
++ * Maintainer: Tom Rini <trini@kernel.crashing.org>
+  */
  
- struct ucb1400 {
--	ac97_t			*ac97;
-+	struct snd_ac97		*ac97;
- 	struct input_dev	*ts_idev;
+ #ifndef __KGDB_H
+ #define __KGDB_H
  
- 	int			irq;
+-#include <asm/ptrace.h>
+-
+-struct console;
++#include <asm-generic/kgdb.h>
++/* Based on sh-gdb.c from gdb-6.1, Glenn
++     Engel at HP  Ben Lee and Steve Chamberlain */
++#define NUMREGBYTES	112	/* 92 */
++#define NUMCRITREGBYTES	(9 << 2)
++#define BUFMAX		400
+ 
+ /* Same as pt_regs but has vbr in place of syscall_nr */
+ struct kgdb_regs {
+         unsigned long regs[16];
+         unsigned long pc;
+         unsigned long pr;
+-        unsigned long sr;
+         unsigned long gbr;
++	unsigned long vbr;
+         unsigned long mach;
+         unsigned long macl;
+-        unsigned long vbr;
+-};
+-
+-/* State info */
+-extern char kgdb_in_gdb_mode;
+-extern int kgdb_done_init;
+-extern int kgdb_enabled;
+-extern int kgdb_nofault;	/* Ignore bus errors (in gdb mem access) */
+-extern int kgdb_halt;		/* Execute initial breakpoint at startup */
+-extern char in_nmi;		/* Debounce flag to prevent NMI reentry*/
+-
+-/* SCI */
+-extern int kgdb_portnum;
+-extern int kgdb_baud;
+-extern char kgdb_parity;
+-extern char kgdb_bits;
+-extern int kgdb_console_setup(struct console *, char *);
+-
+-/* Init and interface stuff */
+-extern int kgdb_init(void);
+-extern int (*kgdb_serial_setup)(void);
+-extern int (*kgdb_getchar)(void);
+-extern void (*kgdb_putchar)(int);
+-
+-struct kgdb_sermap {
+-	char *name;
+-	int namelen;
+-	int (*setup_fn)(struct console *, char *);
+-	struct kgdb_sermap *next;
++	unsigned long sr;
+ };
+-extern void kgdb_register_sermap(struct kgdb_sermap *map);
+-extern struct kgdb_sermap *kgdb_porttype;
+ 
+-/* Trap functions */
+-typedef void (kgdb_debug_hook_t)(struct pt_regs *regs); 
+-typedef void (kgdb_bus_error_hook_t)(void);
+-extern kgdb_debug_hook_t  *kgdb_debug_hook;
+-extern kgdb_bus_error_hook_t *kgdb_bus_err_hook;
+-
+-extern void breakpoint(void);
+-
+-/* Console */
+-struct console;
+-void kgdb_console_write(struct console *co, const char *s, unsigned count);
+-void kgdb_console_init(void);
+-
+-/* Prototypes for jmp fns */
+-#define _JBLEN 9
+-typedef        int jmp_buf[_JBLEN];
+-extern void    longjmp(jmp_buf __jmpb, int __retval);
+-extern int     setjmp(jmp_buf __jmpb);
+-
+-/* Variadic macro to print our own message to the console */
+-#define KGDB_PRINTK(...) printk("KGDB: " __VA_ARGS__)
+-
+-/* Forced breakpoint */
+-#define BREAKPOINT()					\
+-do {							\
+-	if (kgdb_enabled)				\
+-		__asm__ __volatile__("trapa   #0x3c");	\
+-} while (0)
++#define BREAKPOINT()		asm("trapa #0xff");
++#define BREAK_INSTR_SIZE	2
++#define CACHE_FLUSH_IS_SAFE	1
+ 
+ /* KGDB should be able to flush all kernel text space */
+ #if defined(CONFIG_CPU_SH4)
+diff -puN kernel/timer.c~kgdb-fix-rejects kernel/timer.c
+--- a/kernel/timer.c~kgdb-fix-rejects
++++ a/kernel/timer.c
+@@ -35,6 +35,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/delay.h>
+ #include <linux/kallsyms.h>
++#include <linux/kgdb.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
