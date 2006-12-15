@@ -1,44 +1,64 @@
 From: akpm@osdl.org
-Subject: - knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch removed from -mm tree
-Date: Thu, 14 Dec 2006 20:32:03 -0800
-Message-ID: <200612150432.kBF4W35V006706@shell0.pdx.osdl.net>
+Subject: + knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch added to -mm tree
+Date: Thu, 14 Dec 2006 20:32:23 -0800
+Message-ID: <200612150432.kBF4WN9a006723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58970 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58979 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965072AbWLOEcO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 23:32:14 -0500
+	id S965072AbWLOEce (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 23:32:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chuck.lever@oracle.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: chuck.lever@oracle.com, aurelien.charbon@ext.bull.net, neilb@suse.de
 
 
 The patch titled
-     knfsd: SUNRPC: Don't set msg_name and msg_namelen when calling sock_recvmsg
-has been removed from the -mm tree.  Its filename was
-     knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+     knfsd: SUNRPC: Cache remote peer's address in svc_sock
+has been added to the -mm tree.  Its filename is
+     knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
 
-This patch was dropped because it was folded into knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: SUNRPC: Don't set msg_name and msg_namelen when calling sock_recvmsg
+Subject: knfsd: SUNRPC: Cache remote peer's address in svc_sock
 From: Chuck Lever <chuck.lever@oracle.com>
 
-Clean-up: msg_name and msg_namelen are not used by sock_recvmsg, so don't
-bother to set them in svc_recvfrom.
+- The remote peer's address won't change after the socket has been accepted.
+   We don't need to call ->getname on every incoming request.
+
+- Clean-up: msg_name and msg_namelen are not used by sock_recvmsg, so don't
+  bother to set them in svc_recvfrom.
 
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+Cc: Aurelien Charbon <aurelien.charbon@ext.bull.net>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/svcsock.c |   23 ++++++++---------------
- 1 files changed, 8 insertions(+), 15 deletions(-)
+ include/linux/sunrpc/svcsock.h |    3 ++
+ net/sunrpc/svcsock.c           |   34 +++++++++++--------------------
+ 2 files changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg
+diff -puN include/linux/sunrpc/svcsock.h~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock include/linux/sunrpc/svcsock.h
+--- a/include/linux/sunrpc/svcsock.h~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock
++++ a/include/linux/sunrpc/svcsock.h
+@@ -57,6 +57,9 @@ struct svc_sock {
+ 
+ 	/* cache of various info for TCP sockets */
+ 	void			*sk_info_authunix;
++
++	struct sockaddr_storage	sk_remote;	/* remote peer's address */
++	int			sk_remotelen;	/* length of address */
+ };
+ 
+ /*
+diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock
 +++ a/net/sunrpc/svcsock.c
-@@ -560,21 +560,14 @@ svc_recv_available(struct svc_sock *svsk
+@@ -560,31 +560,22 @@ svc_recv_available(struct svc_sock *svsk
  static int
  svc_recvfrom(struct svc_rqst *rqstp, struct kvec *iov, int nr, int buflen)
  {
@@ -66,9 +86,13 @@ diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-wh
 +				msg.msg_flags);
  
  	/* sock_recvmsg doesn't fill in the name/namelen, so we must..
+-	 * possibly we should cache this in the svc_sock structure
+-	 * at accept time. FIXME
  	 */
-@@ -582,7 +575,7 @@ svc_recvfrom(struct svc_rqst *rqstp, str
- 	rqstp->rq_addrlen = svsk->sk_remotelen;
+-	alen = sizeof(rqstp->rq_addr);
+-	kernel_getpeername(sock, (struct sockaddr *)&rqstp->rq_addr, &alen);
++	memcpy(&rqstp->rq_addr, &svsk->sk_remote, svsk->sk_remotelen);
++	rqstp->rq_addrlen = svsk->sk_remotelen;
  
  	dprintk("svc: socket %p recvfrom(%p, %Zu) = %d\n",
 -		rqstp->rq_sock, iov[0].iov_base, iov[0].iov_len, len);
@@ -76,6 +100,25 @@ diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-wh
  
  	return len;
  }
+@@ -873,7 +864,7 @@ svc_tcp_accept(struct svc_sock *svsk)
+ 	struct socket	*sock = svsk->sk_sock;
+ 	struct socket	*newsock;
+ 	struct svc_sock	*newsvsk;
+-	int		err, slen;
++	int		err, slen = 0;
+ 
+ 	dprintk("svc: tcp_accept %p sock %p\n", svsk, sock);
+ 	if (!sock)
+@@ -925,7 +916,8 @@ svc_tcp_accept(struct svc_sock *svsk)
+ 	if (!(newsvsk = svc_setup_socket(serv, newsock, &err,
+ 				 (SVC_SOCK_ANONYMOUS | SVC_SOCK_TEMPORARY))))
+ 		goto failed;
+-
++	memcpy(&newsvsk->sk_remote, &sin, slen);
++	newsvsk->sk_remotelen = slen;
+ 
+ 	/* make sure that we don't have too many active connections.
+ 	 * If we have, something must be dropped.
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
@@ -83,7 +126,6 @@ Patches currently in -mm which might be from chuck.lever@oracle.com are
 knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
 knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
 knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
 knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
 knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
 knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
