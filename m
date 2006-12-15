@@ -1,58 +1,252 @@
 From: akpm@osdl.org
-Subject: + smc911x-fix-netpoll-compilation-faliure.patch added to -mm tree
-Date: Fri, 15 Dec 2006 12:43:27 -0800
-Message-ID: <200612152043.kBFKhRth029191@shell0.pdx.osdl.net>
+Subject: + smc911-workqueue-fixes.patch added to -mm tree
+Date: Fri, 15 Dec 2006 12:55:44 -0800
+Message-ID: <200612152055.kBFKtiKW029486@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43053 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44019 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964793AbWLOUnq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Dec 2006 15:43:46 -0500
+	id S964876AbWLOU4A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 15 Dec 2006 15:56:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vitalywool@gmail.com, jeff@garzik.org
+Cc: akpm@osdl.org, jeff@garzik.org, vitalywool@gmail.com
 
 
 The patch titled
-     smc911x: fix netpoll compilation faliure
+     smc911 workqueue fixes
 has been added to the -mm tree.  Its filename is
-     smc911x-fix-netpoll-compilation-faliure.patch
+     smc911-workqueue-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: smc911x: fix netpoll compilation faliure
-From: Vitaly Wool <vitalywool@gmail.com>
+Subject: smc911 workqueue fixes
+From: Andrew Morton <akpm@osdl.org>
 
-Fix the compilation failure for smc911x.c when NET_POLL_CONTROLLER is set.
+Teach this driver about the workqueue changes.
 
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/smc911x.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/smc911x.c |   21 ++++++++++++++-------
+ 1 files changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/smc911x.c~smc911x-fix-netpoll-compilation-faliure drivers/net/smc911x.c
---- a/drivers/net/smc911x.c~smc911x-fix-netpoll-compilation-faliure
+diff -puN drivers/net/smc911x.c~smc911-workqueue-fixes drivers/net/smc911x.c
+--- a/drivers/net/smc911x.c~smc911-workqueue-fixes
 +++ a/drivers/net/smc911x.c
-@@ -1331,7 +1331,7 @@ smc911x_rx_dma_irq(int dma, void *data)
- static void smc911x_poll_controller(struct net_device *dev)
+@@ -148,6 +148,8 @@ struct smc911x_local {
+ 	int tx_throttle;
+ 	spinlock_t lock;
+ 
++	struct net_device *netdev;
++
+ #ifdef SMC_USE_DMA
+ 	/* DMA needs the physical address of the chip */
+ 	u_long physaddr;
+@@ -948,10 +950,11 @@ static void smc911x_phy_check_media(stru
+  * of autonegotiation.)  If the RPC ANEG bit is cleared, the selection
+  * is controlled by the RPC SPEED and RPC DPLX bits.
+  */
+-static void smc911x_phy_configure(void *data)
++static void smc911x_phy_configure(struct work_struct *work)
  {
- 	disable_irq(dev->irq);
--	smc911x_interrupt(dev->irq, dev, NULL);
-+	smc911x_interrupt(dev->irq, dev);
- 	enable_irq(dev->irq);
- }
+-	struct net_device *dev = data;
+-	struct smc911x_local *lp = netdev_priv(dev);
++	struct smc911x_local *lp = container_of(work, struct smc911x_local,
++						phy_configure);
++	struct net_device *dev = lp->netdev;
+ 	unsigned long ioaddr = dev->base_addr;
+ 	int phyaddr = lp->mii.phy_id;
+ 	int my_phy_caps; /* My PHY capabilities */
+@@ -1495,6 +1498,8 @@ static void smc911x_set_multicast_list(s
+ static int
+ smc911x_open(struct net_device *dev)
+ {
++	struct smc911x_local *lp = netdev_priv(dev);
++
+ 	DBG(SMC_DEBUG_FUNC, "%s: --> %s\n", dev->name, __FUNCTION__);
+ 
+ 	/*
+@@ -1511,7 +1516,7 @@ smc911x_open(struct net_device *dev)
+ 	smc911x_reset(dev);
+ 
+ 	/* Configure the PHY, initialize the link state */
+-	smc911x_phy_configure(dev);
++	smc911x_phy_configure(&lp->phy_configure);
+ 
+ 	/* Turn on Tx + Rx */
+ 	smc911x_enable(dev);
+@@ -2060,7 +2065,7 @@ static int __init smc911x_probe(struct n
+ 	dev->poll_controller = smc911x_poll_controller;
  #endif
+ 
+-	INIT_WORK(&lp->phy_configure, smc911x_phy_configure, dev);
++	INIT_WORK(&lp->phy_configure, smc911x_phy_configure);
+ 	lp->mii.phy_id_mask = 0x1f;
+ 	lp->mii.reg_num_mask = 0x1f;
+ 	lp->mii.force_media = 0;
+@@ -2154,6 +2159,7 @@ static int smc911x_drv_probe(struct plat
+ {
+ 	struct net_device *ndev;
+ 	struct resource *res;
++	struct smc911x_local *lp;
+ 	unsigned int *addr;
+ 	int ret;
+ 
+@@ -2183,6 +2189,8 @@ static int smc911x_drv_probe(struct plat
+ 
+ 	ndev->dma = (unsigned char)-1;
+ 	ndev->irq = platform_get_irq(pdev, 0);
++	lp = netdev_priv(ndev);
++	lp->netdev = ndev;
+ 
+ 	addr = ioremap(res->start, SMC911X_IO_EXTENT);
+ 	if (!addr) {
+@@ -2204,7 +2212,6 @@ out:
+ 	}
+ #ifdef SMC_USE_DMA
+ 	else {
+-		struct smc911x_local *lp = netdev_priv(ndev);
+ 		lp->physaddr = res->start;
+ 		lp->dev = &pdev->dev;
+ 	}
+@@ -2275,7 +2282,7 @@ static int smc911x_drv_resume(struct pla
+ 			smc911x_reset(ndev);
+ 			smc911x_enable(ndev);
+ 			if (lp->phy_type != 0)
+-				smc911x_phy_configure(ndev);
++				smc911x_phy_configure(&lp->phy_configure);
+ 			netif_device_attach(ndev);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-smc911x-fix-netpoll-compilation-faliure.patch
-fix-pnx8550-serial-breakage.patch
-pnx8550-uart-driver.patch
+deadlock-in-mincore-tidy.patch
+deadlock-in-mincore-speedup.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-cpufreq-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-more-borkage.patch
+alsa-workqueue-fixes.patch
+arm-systemh-build-fix.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+infiniband-fix-for-gregkh-depredations.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+driver-for-silan-sc92031-netdev-fix-more.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+add-memcpy_uncached_read-fix.patch
+add-memcpy_uncached_read-tidy.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
