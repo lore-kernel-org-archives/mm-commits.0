@@ -1,80 +1,77 @@
 From: akpm@osdl.org
-Subject: + oprofile-add-a-special-cookie-for-the-vdso-region.patch added to -mm tree
-Date: Fri, 15 Dec 2006 13:35:40 -0800
-Message-ID: <200612152135.kBFLZeG8030544@shell0.pdx.osdl.net>
+Subject: + mxser-remove-ambiguous-redefinition-of-init_work.patch added to -mm tree
+Date: Fri, 15 Dec 2006 13:36:54 -0800
+Message-ID: <200612152136.kBFLasQw030568@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:46709 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:46755 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753446AbWLOVgS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Dec 2006 16:36:18 -0500
+	id S1753452AbWLOVg6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 15 Dec 2006 16:36:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amitabha.roy@gmail.com, levon@movementarian.org, phil.el@wanadoo.fr
+Cc: andreas.jaggi@waterwave.ch, jirislaby@gmail.com
 
 
 The patch titled
-     oprofile: Add a special cookie for the VDSO region
+     mxser: remove ambiguous redefinition of INIT_WORK
 has been added to the -mm tree.  Its filename is
-     oprofile-add-a-special-cookie-for-the-vdso-region.patch
+     mxser-remove-ambiguous-redefinition-of-init_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: oprofile: Add a special cookie for the VDSO region
-From: "Amitabha Roy" <amitabha.roy@gmail.com>
+Subject: mxser: remove ambiguous redefinition of INIT_WORK
+From: Andreas Jaggi <andreas.jaggi@waterwave.ch>
 
-Emit a special VDSO_COOKIE for VDSO regions instead of simply marking
-them as anon.
+Removes an unused and ambiguous redefinition of INIT_WORK()
 
-So we can debug performance problems where a lot of time is spent in the VDSO
-region (as an example frequent syscall restarts due to too many signals ?).
-
-Signed-off-by: Amitabha Roy <amitabha.roy@gmail.com>
-Cc: John Levon <levon@movementarian.org>
-Cc: Philippe Elie <phil.el@wanadoo.fr>
+Signed-off-by: Andreas Jaggi <andreas.jaggi@waterwave.ch>
+Acked-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/oprofile/buffer_sync.c  |    9 ++++++++-
- drivers/oprofile/event_buffer.h |    1 +
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/char/mxser.h     |    8 --------
+ drivers/char/mxser_new.h |    8 --------
+ 2 files changed, 16 deletions(-)
 
-diff -puN drivers/oprofile/buffer_sync.c~oprofile-add-a-special-cookie-for-the-vdso-region drivers/oprofile/buffer_sync.c
---- a/drivers/oprofile/buffer_sync.c~oprofile-add-a-special-cookie-for-the-vdso-region
-+++ a/drivers/oprofile/buffer_sync.c
-@@ -250,7 +250,14 @@ static unsigned long lookup_dcookie(stru
- 				vma->vm_file->f_path.mnt);
- 			*offset = (vma->vm_pgoff << PAGE_SHIFT) + addr -
- 				vma->vm_start;
--		} else {
-+		}
-+#ifdef CONFIG_X86_32
-+		else if(mm->context.vdso==vma->vm_start){
-+                        cookie = VDSO_COOKIE;
-+		        *offset = addr;
-+		}
-+#endif
-+		else {
- 			/* must be an anonymous map */
- 			*offset = addr;
- 		}
-diff -puN drivers/oprofile/event_buffer.h~oprofile-add-a-special-cookie-for-the-vdso-region drivers/oprofile/event_buffer.h
---- a/drivers/oprofile/event_buffer.h~oprofile-add-a-special-cookie-for-the-vdso-region
-+++ a/drivers/oprofile/event_buffer.h
-@@ -35,6 +35,7 @@ void wake_up_buffer_waiter(void);
- #define TRACE_BEGIN_CODE		8
- #define TRACE_END_CODE			9
-  
-+#define VDSO_COOKIE ~1UL
- #define INVALID_COOKIE ~0UL
- #define NO_COOKIE 0UL
+diff -puN drivers/char/mxser.h~mxser-remove-ambiguous-redefinition-of-init_work drivers/char/mxser.h
+--- a/drivers/char/mxser.h~mxser-remove-ambiguous-redefinition-of-init_work
++++ a/drivers/char/mxser.h
+@@ -439,12 +439,4 @@
  
+ #define READ_MOXA_MUST_GDL(baseio)	inb((baseio)+MOXA_MUST_GDL_REGISTER)
+ 
+-
+-#ifndef INIT_WORK
+-#define INIT_WORK(_work, _func, _data){	\
+-	_data->tqueue.routine = _func;\
+-	_data->tqueue.data = _data;\
+-	}
+-#endif
+-
+ #endif
+diff -puN drivers/char/mxser_new.h~mxser-remove-ambiguous-redefinition-of-init_work drivers/char/mxser_new.h
+--- a/drivers/char/mxser_new.h~mxser-remove-ambiguous-redefinition-of-init_work
++++ a/drivers/char/mxser_new.h
+@@ -439,12 +439,4 @@
+ 
+ #define READ_MOXA_MUST_GDL(baseio)	inb((baseio)+MOXA_MUST_GDL_REGISTER)
+ 
+-
+-#ifndef INIT_WORK
+-#define INIT_WORK(_work, _func, _data){	\
+-	_data->tqueue.routine = _func;\
+-	_data->tqueue.data = _data;\
+-	}
+-#endif
+-
+ #endif
 _
 
-Patches currently in -mm which might be from amitabha.roy@gmail.com are
+Patches currently in -mm which might be from andreas.jaggi@waterwave.ch are
 
-oprofile-add-a-special-cookie-for-the-vdso-region.patch
+mxser-remove-ambiguous-redefinition-of-init_work.patch
 
