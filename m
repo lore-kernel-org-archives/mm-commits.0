@@ -1,54 +1,51 @@
 From: akpm@osdl.org
-Subject: + infiniband-fix-for-gregkh-depredations.patch added to -mm tree
-Date: Thu, 14 Dec 2006 16:24:05 -0800
-Message-ID: <200612150024.kBF0O7BA001262@shell0.pdx.osdl.net>
+Subject: + git-alsa-more-borkage.patch added to -mm tree
+Date: Thu, 14 Dec 2006 16:28:38 -0800
+Message-ID: <200612150028.kBF0SenL001379@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:45184 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45470 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750958AbWLOAYL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 19:24:11 -0500
+	id S1750770AbWLOA2s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 19:28:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, greg@kroah.com, rolandd@cisco.com
+Cc: akpm@osdl.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     infiniband-fix-for-gregkh-depredations
+     git-alsa: more borkage
 has been added to the -mm tree.  Its filename is
-     infiniband-fix-for-gregkh-depredations.patch
+     git-alsa-more-borkage.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: infiniband-fix-for-gregkh-depredations
+Subject: git-alsa: more borkage
 From: Andrew Morton <akpm@osdl.org>
 
-gregkh borkage which I can't be bothered fixing.  The stuff's been smelling up
-the place for months - I wish you'd either merge it or drop it.
-
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/ulp/ipoib/Kconfig |    2 +-
+ drivers/input/touchscreen/ucb1400_ts.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/ulp/ipoib/ipoib_cm.c~infiniband-fix-for-gregkh-depredations drivers/infiniband/ulp/ipoib/ipoib_cm.c
-diff -puN drivers/infiniband/ulp/ipoib/Kconfig~infiniband-fix-for-gregkh-depredations drivers/infiniband/ulp/ipoib/Kconfig
---- a/drivers/infiniband/ulp/ipoib/Kconfig~infiniband-fix-for-gregkh-depredations
-+++ a/drivers/infiniband/ulp/ipoib/Kconfig
-@@ -1,6 +1,6 @@
- config INFINIBAND_IPOIB
- 	tristate "IP-over-InfiniBand"
--	depends on INFINIBAND && NETDEVICES && INET
-+	depends on INFINIBAND && NETDEVICES && INET && BROKEN
- 	---help---
- 	  Support for the IP-over-InfiniBand protocol (IPoIB). This
- 	  transports IP packets over InfiniBand so you can use your IB
+diff -puN drivers/input/touchscreen/ucb1400_ts.c~git-alsa-more-borkage drivers/input/touchscreen/ucb1400_ts.c
+--- a/drivers/input/touchscreen/ucb1400_ts.c~git-alsa-more-borkage
++++ a/drivers/input/touchscreen/ucb1400_ts.c
+@@ -83,7 +83,7 @@
+ 
+ 
+ struct ucb1400 {
+-	ac97_t			*ac97;
++	struct snd_ac97		*ac97;
+ 	struct input_dev	*ts_idev;
+ 
+ 	int			irq;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -68,7 +65,7 @@ git-alsa.patch
 alsa-workqueue-fixes.patch
 git-drm.patch
 ia64-enable-config_debug_spinlock_sleep.patch
-infiniband-is-borked.patch
+infiniband-fix-for-gregkh-depredations.patch
 git-input-vs-git-alsa.patch
 git-libata-all.patch
 pata_cs5530-suspend-resume-support-tweak.patch
@@ -164,5 +161,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-infiniband-fix-for-gregkh-depredations.patch
+git-alsa-more-borkage.patch
 
