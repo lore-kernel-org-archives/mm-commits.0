@@ -1,150 +1,52 @@
 From: akpm@osdl.org
-Subject: + drivers-isdn-pcbit-proper-prototypes.patch added to -mm tree
-Date: Thu, 14 Dec 2006 16:53:40 -0800
-Message-ID: <200612150053.kBF0rei1002040@shell0.pdx.osdl.net>
+Subject: + arch-i386-kernel-e820c-should-include-asm-setuph.patch added to -mm tree
+Date: Thu, 14 Dec 2006 16:55:24 -0800
+Message-ID: <200612150055.kBF0tO26002068@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47320 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:47326 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932556AbWLOA44 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 19:56:56 -0500
+	id S932592AbWLOA5C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 19:57:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, kkeil@suse.de
+Cc: bunk@stusta.de
 
 
 The patch titled
-     drivers/isdn/pcbit/: proper prototypes
+     arch/i386/kernel/e820.c should #include <asm/setup.h
 has been added to the -mm tree.  Its filename is
-     drivers-isdn-pcbit-proper-prototypes.patch
+     arch-i386-kernel-e820c-should-include-asm-setuph.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/isdn/pcbit/: proper prototypes
+Subject: arch/i386/kernel/e820.c should #include <asm/setup.h
 From: Adrian Bunk <bunk@stusta.de>
 
-Add correct prototypes in header files for global functions and variables.
+Every file should #include the headers containing the prototypes for
+its global functions.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/isdn/pcbit/drv.c    |    4 ----
- drivers/isdn/pcbit/edss1.c  |    6 ------
- drivers/isdn/pcbit/edss1.h  |    7 +++++--
- drivers/isdn/pcbit/layer2.c |   16 ----------------
- drivers/isdn/pcbit/module.c |    3 ---
- drivers/isdn/pcbit/pcbit.h  |    8 +++++++-
- 6 files changed, 12 insertions(+), 32 deletions(-)
+ arch/i386/kernel/e820.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/isdn/pcbit/drv.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/drv.c
---- a/drivers/isdn/pcbit/drv.c~drivers-isdn-pcbit-proper-prototypes
-+++ a/drivers/isdn/pcbit/drv.c
-@@ -774,10 +774,6 @@ static void pcbit_logstat(struct pcbit_d
- 	dev->dev_if->statcallb(&ictl);
- }
- 	
--extern char * isdn_state_table[];
--extern char * strisdnevent(unsigned short);
--
--
- void pcbit_state_change(struct pcbit_dev * dev, struct pcbit_chan * chan, 
- 			unsigned short i, unsigned short ev, unsigned short f)
- {
-diff -puN drivers/isdn/pcbit/edss1.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/edss1.c
---- a/drivers/isdn/pcbit/edss1.c~drivers-isdn-pcbit-proper-prototypes
-+++ a/drivers/isdn/pcbit/edss1.c
-@@ -35,12 +35,6 @@
- #include "callbacks.h"
+diff -puN arch/i386/kernel/e820.c~arch-i386-kernel-e820c-should-include-asm-setuph arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~arch-i386-kernel-e820c-should-include-asm-setuph
++++ a/arch/i386/kernel/e820.c
+@@ -14,6 +14,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/page.h>
+ #include <asm/e820.h>
++#include <asm/setup.h>
  
- 
--extern void pcbit_state_change(struct pcbit_dev *, struct pcbit_chan *, 
--                               unsigned short i, unsigned short ev, 
--                               unsigned short f);
--
--extern struct pcbit_dev * dev_pcbit[MAX_PCBIT_CARDS];
--
- char * isdn_state_table[] = {
-   "Closed",
-   "Call initiated",
-diff -puN drivers/isdn/pcbit/edss1.h~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/edss1.h
---- a/drivers/isdn/pcbit/edss1.h~drivers-isdn-pcbit-proper-prototypes
-+++ a/drivers/isdn/pcbit/edss1.h
-@@ -90,9 +90,12 @@ struct fsm_timer_entry {
- 	unsigned long timeout;          /* in seconds */
- };
- 
-+extern char * isdn_state_table[];
-+
-+void pcbit_fsm_event(struct pcbit_dev *, struct pcbit_chan *,
-+		     unsigned short event, struct callb_data *);
-+char * strisdnevent(ushort ev);
- 
--extern void pcbit_fsm_event(struct pcbit_dev *, struct pcbit_chan *,
--			    unsigned short event, struct callb_data *);
- #endif
- 
- 
-diff -puN drivers/isdn/pcbit/layer2.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/layer2.c
---- a/drivers/isdn/pcbit/layer2.c~drivers-isdn-pcbit-proper-prototypes
-+++ a/drivers/isdn/pcbit/layer2.c
-@@ -47,22 +47,6 @@
- #undef DEBUG_FRAG
- 
- 
--
--/*
-- *  task queue struct
-- */
--
--
--
--/*
-- *  Layer 3 packet demultiplexer
-- *  drv.c
-- */
--
--extern void pcbit_l3_receive(struct pcbit_dev *dev, ulong msg,
--			     struct sk_buff *skb,
--			     ushort hdr_len, ushort refnum);
--
- /*
-  *  Prototypes
-  */
-diff -puN drivers/isdn/pcbit/module.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/module.c
---- a/drivers/isdn/pcbit/module.c~drivers-isdn-pcbit-proper-prototypes
-+++ a/drivers/isdn/pcbit/module.c
-@@ -32,9 +32,6 @@ module_param_array(irq, int, NULL, 0);
- static int num_boards;
- struct pcbit_dev * dev_pcbit[MAX_PCBIT_CARDS];
- 
--extern void pcbit_terminate(int board);
--extern int pcbit_init_dev(int board, int mem_base, int irq);
--
- static int __init pcbit_init(void)
- {
- 	int board;
-diff -puN drivers/isdn/pcbit/pcbit.h~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/pcbit.h
---- a/drivers/isdn/pcbit/pcbit.h~drivers-isdn-pcbit-proper-prototypes
-+++ a/drivers/isdn/pcbit/pcbit.h
-@@ -166,6 +166,12 @@ struct pcbit_ioctl {
- #define L2_RUNNING  5
- #define L2_ERROR    6
- 
--extern void pcbit_deliver(struct work_struct *work);
-+void pcbit_deliver(struct work_struct *work);
-+int pcbit_init_dev(int board, int mem_base, int irq);
-+void pcbit_terminate(int board);
-+void pcbit_l3_receive(struct pcbit_dev * dev, ulong msg, struct sk_buff * skb,
-+		      ushort hdr_len, ushort refnum);
-+void pcbit_state_change(struct pcbit_dev * dev, struct pcbit_chan * chan, 
-+			unsigned short i, unsigned short ev, unsigned short f);
- 
- #endif
+ #ifdef CONFIG_EFI
+ int efi_enabled = 0;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -172,6 +74,7 @@ drivers-scsi-aic7xxx-make-functions-static.patch
 make-qla2x00_reg_remote_port-static.patch
 drivers-scsi-wd33c93c-cleanups.patch
 usb_rtl8150-must-select-mii.patch
+arch-i386-kernel-e820c-should-include-asm-setuph.patch
 remove-drivers-pci-searchcpci_find_device_reverse.patch
 remove-include-linux-byteorder-pdp_endianh.patch
 gtod-persistent-clock-support-core.patch
