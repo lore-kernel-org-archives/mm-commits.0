@@ -1,61 +1,75 @@
 From: akpm@osdl.org
-Subject: + add-memcpy_uncached_read-fix.patch added to -mm tree
-Date: Thu, 14 Dec 2006 19:23:10 -0800
-Message-ID: <200612150323.kBF3NCpc005355@shell0.pdx.osdl.net>
+Subject: + arm-systemh-build-fix.patch added to -mm tree
+Date: Thu, 14 Dec 2006 19:50:27 -0800
+Message-ID: <200612150350.kBF3oTPF005907@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55640 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56955 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751740AbWLODX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 22:23:28 -0500
+	id S965062AbWLODut (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 22:50:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com
+Cc: akpm@osdl.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     add-memcpy_uncached_read-fix
+     arm: system.h build fix
 has been added to the -mm tree.  Its filename is
-     add-memcpy_uncached_read-fix.patch
+     arm-systemh-build-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-memcpy_uncached_read-fix
+Subject: arm: system.h build fix
 From: Andrew Morton <akpm@osdl.org>
 
-WARNING: "memcpy_uncached_read" [drivers/infiniband/hw/ipath/ib_ipath.ko] undefined!
+In file included from include/asm/bitops.h:23,
+                 from include/linux/bitops.h:9,
+                 from include/linux/thread_info.h:20,
+                 from include/linux/preempt.h:9,
+                 from include/linux/spinlock.h:49,
+                 from include/linux/capability.h:45,
+                 from include/linux/sched.h:46,
+                 from arch/arm/kernel/asm-offsets.c:13:
+include/asm/system.h: In function `adjust_cr':
+include/asm/system.h:185: warning: implicit declaration of function `local_irq_save'
+include/asm/system.h:192: warning: implicit declaration of function `local_irq_restore'
 
-Cc: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Roland Dreier <rolandd@cisco.com>
+
+and
+
+include/asm/system.h:179: warning: unused variable `cr'
+
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/x8664_ksyms.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-arm/system.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix arch/x86_64/kernel/x8664_ksyms.c
---- a/arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix
-+++ a/arch/x86_64/kernel/x8664_ksyms.c
-@@ -8,6 +8,7 @@
- #include <asm/processor.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
-+#include <asm/string.h>
+diff -puN include/asm-arm/system.h~arm-systemh-build-fix include/asm-arm/system.h
+--- a/include/asm-arm/system.h~arm-systemh-build-fix
++++ a/include/asm-arm/system.h
+@@ -73,6 +73,7 @@
+ #ifndef __ASSEMBLY__
  
- EXPORT_SYMBOL(kernel_thread);
+ #include <linux/linkage.h>
++#include <linux/irqflags.h>
  
-@@ -53,6 +54,7 @@ extern void * __memcpy(void *,const void
- EXPORT_SYMBOL(memset);
- EXPORT_SYMBOL(memcpy);
- EXPORT_SYMBOL(__memcpy);
-+EXPORT_SYMBOL(memcpy_uncached_read);
+ struct thread_info;
+ struct task_struct;
+@@ -176,7 +177,7 @@ extern unsigned long cr_alignment;	/* de
+ #ifndef CONFIG_SMP
+ static inline void adjust_cr(unsigned long mask, unsigned long set)
+ {
+-	unsigned long flags, cr;
++	unsigned long flags;
  
- EXPORT_SYMBOL(empty_zero_page);
- EXPORT_SYMBOL(init_level4_pgt);
+ 	mask &= ~CR_A;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -74,6 +88,7 @@ video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_a
 git-alsa.patch
 git-alsa-more-borkage.patch
 alsa-workqueue-fixes.patch
+arm-systemh-build-fix.patch
 git-drm.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 infiniband-fix-for-gregkh-depredations.patch
