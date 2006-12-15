@@ -1,69 +1,72 @@
 From: akpm@osdl.org
-Subject: + x86_64-do-not-always-end-the-stack-trace-with-ulong_max.patch added to -mm tree
-Date: Thu, 14 Dec 2006 16:48:43 -0800
-Message-ID: <200612150048.kBF0mhqf001916@shell0.pdx.osdl.net>
+Subject: + usblp-add-serial-number-to-device-id.patch added to -mm tree
+Date: Thu, 14 Dec 2006 16:51:32 -0800
+Message-ID: <200612150051.kBF0pWaG001975@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:46701 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:46964 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932263AbWLOAtM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 19:49:12 -0500
+	id S932304AbWLOAvh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 19:51:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: catalin.marinas@arm.com, ak@suse.de, jbeulich@novell.com
+Cc: eibach@gdsys.de, greg@kroah.com
 
 
 The patch titled
-     x86_64: do not always end the stack trace with ULONG_MAX
+     usblp: Add serial number to device ID
 has been added to the -mm tree.  Its filename is
-     x86_64-do-not-always-end-the-stack-trace-with-ulong_max.patch
+     usblp-add-serial-number-to-device-id.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: do not always end the stack trace with ULONG_MAX
-From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: usblp: Add serial number to device ID
+From: Dirk Eibach <eibach@gdsys.de>
 
-It makes more sense to end the stack trace with ULONG_MAX only if
-nr_entries < max_entries.  Otherwise, we lose one entry in the long stack
-traces and cannot know whether the trace was complete or not.
+I noticed that some USB-printers, e.g.  Canon PIXMA iP3000 don't add their
+serial number to the IEEE-1284 device ID string as expected by userspace
+apps like cups.  Because of this, connecting multiple printers of the same
+type to a system does not work properly.
 
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jan Beulich <jbeulich@novell.com>
+This patch adds the usb serial number to the device ID if it is left
+out by the printer.
+
+Signed-off-by: Dirk Eibach <eibach@gdsys.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/stacktrace.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/class/usblp.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+)
 
-diff -puN arch/x86_64/kernel/stacktrace.c~x86_64-do-not-always-end-the-stack-trace-with-ulong_max arch/x86_64/kernel/stacktrace.c
---- a/arch/x86_64/kernel/stacktrace.c~x86_64-do-not-always-end-the-stack-trace-with-ulong_max
-+++ a/arch/x86_64/kernel/stacktrace.c
-@@ -32,7 +32,7 @@ static void save_stack_address(void *dat
- 		trace->skip--;
- 		return;
- 	}
--	if (trace->nr_entries < trace->max_entries - 1)
-+	if (trace->nr_entries < trace->max_entries)
- 		trace->entries[trace->nr_entries++] = addr;
- }
+diff -puN drivers/usb/class/usblp.c~usblp-add-serial-number-to-device-id drivers/usb/class/usblp.c
+--- a/drivers/usb/class/usblp.c~usblp-add-serial-number-to-device-id
++++ a/drivers/usb/class/usblp.c
+@@ -1162,6 +1162,18 @@ static int usblp_cache_device_id_string(
+ 		length = USBLP_DEVICE_ID_SIZE - 1;
+ 	usblp->device_id_string[length] = '\0';
  
-@@ -49,7 +49,8 @@ static struct stacktrace_ops save_stack_
- void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
- {
- 	dump_trace(task, NULL, NULL, &save_stack_ops, trace);
--	trace->entries[trace->nr_entries++] = ULONG_MAX;
-+	if (trace->nr_entries < trace->max_entries)
-+		trace->entries[trace->nr_entries++] = ULONG_MAX;
- }
- EXPORT_SYMBOL(save_stack_trace);
++	/* Insert serial number into the device ID string if the printer
++	 * is braindead enough to leave it out. */
++	if ( (usblp->dev->serial)
++		&& (length + strlen(usblp->dev->serial) + 6 < USBLP_DEVICE_ID_SIZE)
++		&& !strstr(usblp->device_id_string+2, "SERN:")
++		&& !strstr(usblp->device_id_string+2, "SER:") )
++	{
++		sprintf(usblp->device_id_string+length, "SERN:%s;", usblp->dev->serial);
++		length += 6 + strlen(usblp->dev->serial);
++		*((__be16 *)usblp->device_id_string) = cpu_to_be16(length);
++	}
++
+ 	dbg("usblp%d Device ID string [len=%d]=\"%s\"",
+ 		usblp->minor, length, &usblp->device_id_string[2]);
  
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from eibach@gdsys.de are
 
-x86_64-do-not-always-end-the-stack-trace-with-ulong_max.patch
+usblp-add-serial-number-to-device-id.patch
 
