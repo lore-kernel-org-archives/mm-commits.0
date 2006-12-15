@@ -1,89 +1,174 @@
 From: akpm@osdl.org
-Subject: + infiniband-fix-for-gregkh-driver-network-device.patch added to -mm tree
-Date: Fri, 15 Dec 2006 14:40:51 -0800
-Message-ID: <200612152240.kBFMep9a003543@shell0.pdx.osdl.net>
+Subject: - infiniband-fix-for-gregkh-depredations.patch removed from -mm tree
+Date: Fri, 15 Dec 2006 14:41:00 -0800
+Message-ID: <200612152241.kBFMf0fE003546@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51025 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51037 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030287AbWLOWky (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Dec 2006 17:40:54 -0500
+	id S1030290AbWLOWlD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 15 Dec 2006 17:41:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rdreier@cisco.com, greg@kroah.com
+To: akpm@osdl.org, greg@kroah.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix infiniband for gregkh-driver-network-device
-has been added to the -mm tree.  Its filename is
-     infiniband-fix-for-gregkh-driver-network-device.patch
+     infiniband-fix-for-gregkh-depredations
+has been removed from the -mm tree.  Its filename was
+     infiniband-fix-for-gregkh-depredations.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fix infiniband for gregkh-driver-network-device
-From: Roland Dreier <rdreier@cisco.com>
+Subject: infiniband-fix-for-gregkh-depredations
+From: Andrew Morton <akpm@osdl.org>
 
-This should fix up the netdevice class stuff for IPoIB CM.
+gregkh borkage which I can't be bothered fixing.  The stuff's been smelling up
+the place for months - I wish you'd either merge it or drop it.
 
+Cc: Roland Dreier <rolandd@cisco.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/ulp/ipoib/ipoib_cm.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/ulp/ipoib/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/ulp/ipoib/ipoib_cm.c~infiniband-fix-for-gregkh-driver-network-device drivers/infiniband/ulp/ipoib/ipoib_cm.c
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c~infiniband-fix-for-gregkh-driver-network-device
-+++ a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1025,10 +1025,10 @@ void ipoib_cm_tx_reap(struct work_struct
- 	spin_unlock_irqrestore(&priv->tx_lock, flags);
- }
- 
--static ssize_t show_mode(struct class_device *cdev, char *buf)
-+static ssize_t show_mode(struct device *d, struct device_attribute *attr,
-+			 char *buf)
- {
--	struct net_device *dev = container_of(cdev, struct net_device, class_dev);
--	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_dev_priv *priv = netdev_priv(to_net_dev(d));
- 
- 	if (test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags))
- 		return sprintf(buf, "connected\n");
-@@ -1036,10 +1036,10 @@ static ssize_t show_mode(struct class_de
- 		return sprintf(buf, "datagram\n");
- }
- 
--static ssize_t set_mode(struct class_device *cdev,
-+static ssize_t set_mode(struct device *d, struct device_attribute *attr,
- 			const char *buf, size_t count)
- {
--	struct net_device *dev = container_of(cdev, struct net_device, class_dev);
-+	struct net_device *dev = to_net_dev(d);
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
- 	/* flush paths if we switch modes so that connections are restarted */
-@@ -1059,11 +1059,11 @@ static ssize_t set_mode(struct class_dev
- 	return -EINVAL;
- }
- 
--static CLASS_DEVICE_ATTR(mode, S_IWUGO | S_IRUGO, show_mode, set_mode);
-+static DEVICE_ATTR(mode, S_IWUGO | S_IRUGO, show_mode, set_mode);
- 
- int ipoib_cm_add_mode_attr(struct net_device *dev)
- {
--	return class_device_create_file(&dev->class_dev, &class_device_attr_mode);
-+	return device_create_file(&dev->dev, &dev_attr_mode);
- }
- 
- int ipoib_cm_dev_init(struct net_device *dev)
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_cm.c~infiniband-fix-for-gregkh-depredations drivers/infiniband/ulp/ipoib/ipoib_cm.c
+diff -puN drivers/infiniband/ulp/ipoib/Kconfig~infiniband-fix-for-gregkh-depredations drivers/infiniband/ulp/ipoib/Kconfig
+--- a/drivers/infiniband/ulp/ipoib/Kconfig~infiniband-fix-for-gregkh-depredations
++++ a/drivers/infiniband/ulp/ipoib/Kconfig
+@@ -1,6 +1,6 @@
+ config INFINIBAND_IPOIB
+ 	tristate "IP-over-InfiniBand"
+-	depends on INFINIBAND && NETDEVICES && INET
++	depends on INFINIBAND && NETDEVICES && INET && BROKEN
+ 	---help---
+ 	  Support for the IP-over-InfiniBand protocol (IPoIB). This
+ 	  transports IP packets over InfiniBand so you can use your IB
 _
 
-Patches currently in -mm which might be from rdreier@cisco.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-infiniband-work-around-gcc-bug-on-sparc64.patch
-infiniband-fix-for-gregkh-driver-network-device.patch
-hpet-avoid-warning-message-livelock.patch
+deadlock-in-mincore-tidy.patch
+deadlock-in-mincore-speedup.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-cpufreq-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+arm-systemh-build-fix.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+infiniband-fix-for-gregkh-depredations.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+driver-for-silan-sc92031-netdev-fix-more.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+add-memcpy_uncached_read-fix.patch
+add-memcpy_uncached_read-tidy.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+kgdb-fix-rejects.patch
+git-kgdb-fixup.patch
+git-kgdb-vs-define-struct-pspace.patch
+kgdb-default-to-ttys0.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
