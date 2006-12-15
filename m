@@ -1,192 +1,96 @@
 From: akpm@osdl.org
-Subject: + arm-systemh-build-fix.patch added to -mm tree
-Date: Thu, 14 Dec 2006 19:50:27 -0800
-Message-ID: <200612150350.kBF3oTPF005907@shell0.pdx.osdl.net>
+Subject: - knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch removed from -mm tree
+Date: Thu, 14 Dec 2006 20:32:03 -0800
+Message-ID: <200612150432.kBF4W35V006706@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56955 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965062AbWLODut (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 22:50:49 -0500
+	id S965072AbWLOEcO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 23:32:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, rmk@arm.linux.org.uk
+To: chuck.lever@oracle.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: system.h build fix
-has been added to the -mm tree.  Its filename is
-     arm-systemh-build-fix.patch
+     knfsd: SUNRPC: Don't set msg_name and msg_namelen when calling sock_recvmsg
+has been removed from the -mm tree.  Its filename was
+     knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
 
 ------------------------------------------------------
-Subject: arm: system.h build fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: knfsd: SUNRPC: Don't set msg_name and msg_namelen when calling sock_recvmsg
+From: Chuck Lever <chuck.lever@oracle.com>
 
-In file included from include/asm/bitops.h:23,
-                 from include/linux/bitops.h:9,
-                 from include/linux/thread_info.h:20,
-                 from include/linux/preempt.h:9,
-                 from include/linux/spinlock.h:49,
-                 from include/linux/capability.h:45,
-                 from include/linux/sched.h:46,
-                 from arch/arm/kernel/asm-offsets.c:13:
-include/asm/system.h: In function `adjust_cr':
-include/asm/system.h:185: warning: implicit declaration of function `local_irq_save'
-include/asm/system.h:192: warning: implicit declaration of function `local_irq_restore'
+Clean-up: msg_name and msg_namelen are not used by sock_recvmsg, so don't
+bother to set them in svc_recvfrom.
 
-
-and
-
-include/asm/system.h:179: warning: unused variable `cr'
-
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-arm/system.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/sunrpc/svcsock.c |   23 ++++++++---------------
+ 1 files changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-arm/system.h~arm-systemh-build-fix include/asm-arm/system.h
---- a/include/asm-arm/system.h~arm-systemh-build-fix
-+++ a/include/asm-arm/system.h
-@@ -73,6 +73,7 @@
- #ifndef __ASSEMBLY__
- 
- #include <linux/linkage.h>
-+#include <linux/irqflags.h>
- 
- struct thread_info;
- struct task_struct;
-@@ -176,7 +177,7 @@ extern unsigned long cr_alignment;	/* de
- #ifndef CONFIG_SMP
- static inline void adjust_cr(unsigned long mask, unsigned long set)
+diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg
++++ a/net/sunrpc/svcsock.c
+@@ -560,21 +560,14 @@ svc_recv_available(struct svc_sock *svsk
+ static int
+ svc_recvfrom(struct svc_rqst *rqstp, struct kvec *iov, int nr, int buflen)
  {
--	unsigned long flags, cr;
-+	unsigned long flags;
+-	struct msghdr	msg;
+-	struct socket	*sock;
+-	int		len, alen;
+-
+-	rqstp->rq_addrlen = sizeof(rqstp->rq_addr);
+-	sock = rqstp->rq_sock->sk_sock;
+-
+-	msg.msg_name    = &rqstp->rq_addr;
+-	msg.msg_namelen = sizeof(rqstp->rq_addr);
+-	msg.msg_control = NULL;
+-	msg.msg_controllen = 0;
+-
+-	msg.msg_flags	= MSG_DONTWAIT;
++	struct svc_sock	*svsk = rqstp->rq_sock;
++	struct msghdr msg = {
++		.msg_flags	= MSG_DONTWAIT,
++	};
++	int len;
  
- 	mask &= ~CR_A;
+-	len = kernel_recvmsg(sock, &msg, iov, nr, buflen, MSG_DONTWAIT);
++	len = kernel_recvmsg(svsk->sk_sock, &msg, iov, nr, buflen,
++				msg.msg_flags);
  
+ 	/* sock_recvmsg doesn't fill in the name/namelen, so we must..
+ 	 */
+@@ -582,7 +575,7 @@ svc_recvfrom(struct svc_rqst *rqstp, str
+ 	rqstp->rq_addrlen = svsk->sk_remotelen;
+ 
+ 	dprintk("svc: socket %p recvfrom(%p, %Zu) = %d\n",
+-		rqstp->rq_sock, iov[0].iov_base, iov[0].iov_len, len);
++		svsk, iov[0].iov_base, iov[0].iov_len, len);
+ 
+ 	return len;
+ }
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from chuck.lever@oracle.com are
 
-rtc-warning-fix.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-cpufreq-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-more-borkage.patch
-alsa-workqueue-fixes.patch
-arm-systemh-build-fix.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-infiniband-fix-for-gregkh-depredations.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-pci-disable-multithreaded-probing.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-add-memcpy_uncached_read-fix.patch
-add-memcpy_uncached_read-tidy.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
+knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
 
