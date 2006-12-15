@@ -1,113 +1,168 @@
 From: akpm@osdl.org
-Subject: + fs-sysv-proper-prototypes-for-2-functions.patch added to -mm tree
-Date: Thu, 14 Dec 2006 16:00:39 -0800
-Message-ID: <200612150000.kBF00dBl000713@shell0.pdx.osdl.net>
+Subject: + infiniband-fix-for-gregkh-depredations.patch added to -mm tree
+Date: Thu, 14 Dec 2006 16:24:05 -0800
+Message-ID: <200612150024.kBF0O7BA001262@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43976 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45184 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752044AbWLOAEB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 19:04:01 -0500
+	id S1750958AbWLOAYL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 19:24:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, hch@lst.de
+Cc: akpm@osdl.org, greg@kroah.com, rolandd@cisco.com
 
 
 The patch titled
-     fs/sysv/: proper prototypes for 2 functions
+     infiniband-fix-for-gregkh-depredations
 has been added to the -mm tree.  Its filename is
-     fs-sysv-proper-prototypes-for-2-functions.patch
+     infiniband-fix-for-gregkh-depredations.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/sysv/: proper prototypes for 2 functions
-From: Adrian Bunk <bunk@stusta.de>
+Subject: infiniband-fix-for-gregkh-depredations
+From: Andrew Morton <akpm@osdl.org>
 
-Add proper prototypes for sysv_{init,destroy}_icache() in sysv.h
+gregkh borkage which I can't be bothered fixing.  The stuff's been smelling up
+the place for months - I wish you'd either merge it or drop it.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/sysv/super.c |    3 ---
- fs/sysv/sysv.h  |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/sysv/super.c~fs-sysv-proper-prototypes-for-2-functions fs/sysv/super.c
---- a/fs/sysv/super.c~fs-sysv-proper-prototypes-for-2-functions
-+++ a/fs/sysv/super.c
-@@ -528,9 +528,6 @@ static struct file_system_type v7_fs_typ
- 	.fs_flags	= FS_REQUIRES_DEV,
- };
- 
--extern int sysv_init_icache(void) __init;
--extern void sysv_destroy_icache(void);
--
- static int __init init_sysv_fs(void)
- {
- 	int error;
-diff -puN fs/sysv/sysv.h~fs-sysv-proper-prototypes-for-2-functions fs/sysv/sysv.h
---- a/fs/sysv/sysv.h~fs-sysv-proper-prototypes-for-2-functions
-+++ a/fs/sysv/sysv.h
-@@ -143,6 +143,9 @@ extern int sysv_sync_inode(struct inode 
- extern int sysv_sync_file(struct file *, struct dentry *, int);
- extern void sysv_set_inode(struct inode *, dev_t);
- extern int sysv_getattr(struct vfsmount *, struct dentry *, struct kstat *);
-+extern int sysv_init_icache(void);
-+extern void sysv_destroy_icache(void);
-+
- 
- /* dir.c */
- extern struct sysv_dir_entry *sysv_find_entry(struct dentry *, struct page **);
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_cm.c~infiniband-fix-for-gregkh-depredations drivers/infiniband/ulp/ipoib/ipoib_cm.c
+diff -puN drivers/infiniband/ulp/ipoib/Kconfig~infiniband-fix-for-gregkh-depredations drivers/infiniband/ulp/ipoib/Kconfig
+--- a/drivers/infiniband/ulp/ipoib/Kconfig~infiniband-fix-for-gregkh-depredations
++++ a/drivers/infiniband/ulp/ipoib/Kconfig
+@@ -1,6 +1,6 @@
+ config INFINIBAND_IPOIB
+ 	tristate "IP-over-InfiniBand"
+-	depends on INFINIBAND && NETDEVICES && INET
++	depends on INFINIBAND && NETDEVICES && INET && BROKEN
+ 	---help---
+ 	  Support for the IP-over-InfiniBand protocol (IPoIB). This
+ 	  transports IP packets over InfiniBand so you can use your IB
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-make-kernel-printkcignore_loglevel_setup-static.patch
-fs-sysv-proper-prototypes-for-2-functions.patch
-make-drivers-acpi-eccec_ecdt-static.patch
-drivers-acpi-oslc-fix-a-null-check.patch
-acpi-make-code-static.patch
+rtc-warning-fix.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-acpi-cpufreq-fixup.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
-proper-prototype-for-drivers-base-initcdriver_init.patch
-usbvision-possible-cleanups.patch
-git-gfs2-nmw.patch
-fs-dlm-lowcomms-tcpc-remove-2-functions.patch
+alsa-workqueue-fixes.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+infiniband-is-borked.patch
+git-input-vs-git-alsa.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_sil680-suspend-resume-tidy.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc-fixup.patch
+git-mmc-tifm_sd-warning-fix.patch
 git-mtd.patch
-remove-the-broken-skmc-driver.patch
-net-uninline-skb_put-fix.patch
-dont-export-device-ids-to-userspace.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-make-qla2x00_reg_remote_port-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-usb_rtl8150-must-select-mii.patch
-remove-drivers-pci-searchcpci_find_device_reverse.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-gtod-persistent-clock-support-core.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-in2000-scsi_cmnd-convertion.patch
+aic79xx-wrong-max-memory-at-driver-init.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+add-memcpy_uncached_read-tidy.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
 gtod-persistent-clock-support-i386.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
 clockevents-i386-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+infiniband-fix-for-gregkh-depredations.patch
 
