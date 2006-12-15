@@ -1,100 +1,60 @@
 From: akpm@osdl.org
-Subject: + funsoft-is-bust-on-sparc.patch added to -mm tree
-Date: Thu, 14 Dec 2006 22:28:29 -0800
-Message-ID: <200612150628.kBF6SXPI008904@shell0.pdx.osdl.net>
+Subject: + schedule_on_each_cpu-use-preempt_disable.patch added to -mm tree
+Date: Fri, 15 Dec 2006 00:23:27 -0800
+Message-ID: <200612150823.kBF8NV2u011171@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36488 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43987 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928AbWLOG2q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Dec 2006 01:28:46 -0500
+	id S1750802AbWLOIXg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 15 Dec 2006 03:23:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, david@funsoft.com, gregkh@suse.de
+Cc: akpm@osdl.org, mingo@elte.hu
 
 
 The patch titled
-     funsoft-is-bust-on-sparc
+     schedule_on_each_cpu(): use preempt_disable()
 has been added to the -mm tree.  Its filename is
-     funsoft-is-bust-on-sparc.patch
+     schedule_on_each_cpu-use-preempt_disable.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: funsoft-is-bust-on-sparc
+Subject: schedule_on_each_cpu(): use preempt_disable()
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/usb/serial/funsoft.c: In function `funsoft_ioctl':
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_iflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_iflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_iflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_oflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_oflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_oflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_lflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_lflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_lflag' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_line' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_line' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_line' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
-drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
-drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+We take workqueue_mutex in there to keep CPU hotplug away.  But
+preempt_disable() will suffice for that.
 
-Cc: David Clare <david@funsoft.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/serial/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/workqueue.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/Kconfig~funsoft-is-bust-on-sparc drivers/usb/serial/Kconfig
---- a/drivers/usb/serial/Kconfig~funsoft-is-bust-on-sparc
-+++ a/drivers/usb/serial/Kconfig
-@@ -170,7 +170,7 @@ config USB_SERIAL_FTDI_SIO
+diff -puN kernel/workqueue.c~schedule_on_each_cpu-use-preempt_disable kernel/workqueue.c
+--- a/kernel/workqueue.c~schedule_on_each_cpu-use-preempt_disable
++++ a/kernel/workqueue.c
+@@ -635,13 +635,13 @@ int schedule_on_each_cpu(work_func_t fun
+ 	if (!works)
+ 		return -ENOMEM;
  
- config USB_SERIAL_FUNSOFT
- 	tristate "USB Fundamental Software Dongle Driver"
--	depends on USB_SERIAL
-+	depends on USB_SERIAL && !(SPARC || SPARC64)
- 	---help---
- 	  Say Y here if you want to use the Fundamental Software dongle.
- 
+-	mutex_lock(&workqueue_mutex);
++	preempt_disable();		/* CPU hotplug */
+ 	for_each_online_cpu(cpu) {
+ 		INIT_WORK(per_cpu_ptr(works, cpu), func);
+ 		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu),
+ 				per_cpu_ptr(works, cpu));
+ 	}
+-	mutex_unlock(&workqueue_mutex);
++	preempt_enable();
+ 	flush_workqueue(keventd_wq);
+ 	free_percpu(works);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -142,6 +102,7 @@ scsi-in2000-scsi_cmnd-convertion.patch
 aic79xx-wrong-max-memory-at-driver-init.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
 git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
 nokia-e70-is-an-unusual-device.patch
 fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
 git-wireless.patch
@@ -217,5 +178,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-funsoft-is-bust-on-sparc.patch
+schedule_on_each_cpu-use-preempt_disable.patch
 
