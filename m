@@ -1,51 +1,50 @@
 From: akpm@osdl.org
-Subject: - infiniband-is-borked.patch removed from -mm tree
-Date: Thu, 14 Dec 2006 16:24:28 -0800
-Message-ID: <200612150024.kBF0OU9S001271@shell0.pdx.osdl.net>
+Subject: - git-input-vs-git-alsa.patch removed from -mm tree
+Date: Thu, 14 Dec 2006 16:29:11 -0800
+Message-ID: <200612150029.kBF0TELK001392@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:45234 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45553 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750962AbWLOAYd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 19:24:33 -0500
+	id S1751051AbWLOA3T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 19:29:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     infiniband-is-borked
+     git-input vs git-alsa
 has been removed from the -mm tree.  Its filename was
-     infiniband-is-borked.patch
+     git-input-vs-git-alsa.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: infiniband-is-borked
+Subject: git-input vs git-alsa
 From: Andrew Morton <akpm@osdl.org>
 
-Infiniband is in disgrace.  Make it go away until it compiles.  Please let me
-know...
+ac97_t got removed.
 
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/Kconfig |    2 +-
+ drivers/input/touchscreen/ucb1400_ts.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/Kconfig~infiniband-is-borked drivers/infiniband/Kconfig
---- a/drivers/infiniband/Kconfig~infiniband-is-borked
-+++ a/drivers/infiniband/Kconfig
-@@ -1,7 +1,7 @@
- menu "InfiniBand support"
+diff -puN drivers/input/touchscreen/ucb1400_ts.c~git-input-vs-git-alsa drivers/input/touchscreen/ucb1400_ts.c
+--- a/drivers/input/touchscreen/ucb1400_ts.c~git-input-vs-git-alsa
++++ a/drivers/input/touchscreen/ucb1400_ts.c
+@@ -83,7 +83,7 @@
  
- config INFINIBAND
--	depends on PCI || BROKEN
-+	depends on PCI && BROKEN
- 	tristate "InfiniBand support"
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
+ 
+ struct ucb1400 {
+-	ac97_t			*ac97;
++	struct snd_ac97		*ac97;
+ 	struct input_dev	*ts_idev;
+ 
+ 	int			irq;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -62,11 +61,11 @@ sony_apci-resume.patch
 sony_apci-resume-fix.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
+git-alsa-more-borkage.patch
 alsa-workqueue-fixes.patch
 git-drm.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 infiniband-fix-for-gregkh-depredations.patch
-infiniband-is-borked.patch
 git-input-vs-git-alsa.patch
 git-libata-all.patch
 pata_cs5530-suspend-resume-support-tweak.patch
