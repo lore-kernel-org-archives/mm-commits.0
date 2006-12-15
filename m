@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: + cciss-set-default-raid-level-when-reading-geometry-fails.patch added to -mm tree
-Date: Fri, 15 Dec 2006 14:33:31 -0800
-Message-ID: <200612152233.kBFMXVs4003345@shell0.pdx.osdl.net>
+Subject: + cciss-fix-xfer_read-xfer_write-in-do_cciss_request.patch added to -mm tree
+Date: Fri, 15 Dec 2006 14:33:33 -0800
+Message-ID: <200612152233.kBFMXXcJ003348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50530 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50531 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030271AbWLOWdi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030273AbWLOWdi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 15 Dec 2006 17:33:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,42 +15,44 @@ Cc: mike.miller@hp.com, jens.axboe@oracle.com
 
 
 The patch titled
-     cciss: set default raid level when reading geometry fails
+     cciss: fix XFER_READ/XFER_WRITE in do_cciss_request
 has been added to the -mm tree.  Its filename is
-     cciss-set-default-raid-level-when-reading-geometry-fails.patch
+     cciss-fix-xfer_read-xfer_write-in-do_cciss_request.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cciss: set default raid level when reading geometry fails
+Subject: cciss: fix XFER_READ/XFER_WRITE in do_cciss_request
 From: Mike Miller <mike.miller@hp.com>
 
-Set a default raid level on a volume that either does not support reading the
-geometry or reports an invalid geometry for whatever reason.  We were always
-setting some values for heads and sectors but never set a raid level.  This
-caused lots of problems on some buggy firmware.  Please consider this for
-inclusion.
+Fix a stupid bug.  Sometime during the 2tb enhancement I ended up replacing
+the macros XFER_READ and XFER_WRITE with h->cciss_read and h->cciss_write
+respectively.  It seemed to work somehow at least on x86_64 and ia64.  I don't
+know how.  But people started complaining about command timeouts on older
+controllers like the 64xx series and only on ia32.  This resolves the issue
+reproduced in our lab.  Please consider this for inclusion.
 
 Signed-off-by: Mike Miller <mike.miller@hp.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/cciss.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/block/cciss.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-set-default-raid-level-when-reading-geometry-fails drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-set-default-raid-level-when-reading-geometry-fails
+diff -puN drivers/block/cciss.c~cciss-fix-xfer_read-xfer_write-in-do_cciss_request drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-xfer_read-xfer_write-in-do_cciss_request
 +++ a/drivers/block/cciss.c
-@@ -1907,6 +1907,7 @@ static void cciss_geometry_inquiry(int c
- 			       "does not support reading geometry\n");
- 			drv->heads = 255;
- 			drv->sectors = 32;	// Sectors per track
-+			drv->raid_level = RAID_UNKNOWN;
- 		} else {
- 			drv->heads = inq_buff->data_byte[6];
- 			drv->sectors = inq_buff->data_byte[7];
+@@ -2492,7 +2492,7 @@ static void do_cciss_request(request_que
+ 	c->Request.Type.Type = TYPE_CMD;	// It is a command.
+ 	c->Request.Type.Attribute = ATTR_SIMPLE;
+ 	c->Request.Type.Direction =
+-	    (rq_data_dir(creq) == READ) ? h->cciss_read : h->cciss_write;
++	    (rq_data_dir(creq) == READ) ? XFER_READ : XFER_WRITE;
+ 	c->Request.Timeout = 0;	// Don't time out
+ 	c->Request.CDB[0] =
+ 	    (rq_data_dir(creq) == READ) ? h->cciss_read : h->cciss_write;
 _
 
 Patches currently in -mm which might be from mike.miller@hp.com are
