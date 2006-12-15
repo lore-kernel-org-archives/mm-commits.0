@@ -1,83 +1,61 @@
 From: akpm@osdl.org
-Subject: + procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch added to -mm tree
-Date: Thu, 14 Dec 2006 18:35:55 -0800
-Message-ID: <200612150235.kBF2Zw8I004338@shell0.pdx.osdl.net>
+Subject: + add-memcpy_uncached_read-fix.patch added to -mm tree
+Date: Thu, 14 Dec 2006 19:23:10 -0800
+Message-ID: <200612150323.kBF3NCpc005355@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53001 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55640 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965044AbWLOCgN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 21:36:13 -0500
+	id S1751740AbWLODX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 22:23:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, djwong@us.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru
+Cc: akpm@osdl.org, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com
 
 
 The patch titled
-     procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
+     add-memcpy_uncached_read-fix
 has been added to the -mm tree.  Its filename is
-     procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+     add-memcpy_uncached_read-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
+Subject: add-memcpy_uncached_read-fix
 From: Andrew Morton <akpm@osdl.org>
 
-nfi what went wrong there.
+WARNING: "memcpy_uncached_read" [drivers/infiniband/hw/ipath/ib_ipath.ko] undefined!
 
-Cc: Darrick J. Wong <djwong@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/inode.c         |    9 +--------
- include/linux/proc_fs.h |    9 +++++++++
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ arch/x86_64/kernel/x8664_ksyms.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/proc_fs.h~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
-+++ a/include/linux/proc_fs.h
-@@ -275,4 +275,13 @@ struct proc_maps_private {
- #endif
- };
+diff -puN arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix arch/x86_64/kernel/x8664_ksyms.c
+--- a/arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix
++++ a/arch/x86_64/kernel/x8664_ksyms.c
+@@ -8,6 +8,7 @@
+ #include <asm/processor.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
++#include <asm/string.h>
  
-+static inline struct proc_dir_entry * de_get(struct proc_dir_entry *de)
-+{
-+	if (de)
-+		atomic_inc(&de->count);
-+	return de;
-+}
-+
-+void de_put(struct proc_dir_entry *de);
-+
- #endif /* _LINUX_PROC_FS_H */
-diff -puN fs/proc/generic.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix fs/proc/generic.c
-diff -puN fs/proc/inode.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix fs/proc/inode.c
---- a/fs/proc/inode.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
-+++ a/fs/proc/inode.c
-@@ -21,17 +21,10 @@
+ EXPORT_SYMBOL(kernel_thread);
  
- #include "internal.h"
+@@ -53,6 +54,7 @@ extern void * __memcpy(void *,const void
+ EXPORT_SYMBOL(memset);
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(__memcpy);
++EXPORT_SYMBOL(memcpy_uncached_read);
  
--static inline struct proc_dir_entry * de_get(struct proc_dir_entry *de)
--{
--	if (de)
--		atomic_inc(&de->count);
--	return de;
--}
--
- /*
-  * Decrements the use count and checks for deferred deletion.
-  */
--static void de_put(struct proc_dir_entry *de)
-+void de_put(struct proc_dir_entry *de)
- {
- 	if (de) {	
- 		lock_kernel();		
+ EXPORT_SYMBOL(empty_zero_page);
+ EXPORT_SYMBOL(init_level4_pgt);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -130,6 +108,7 @@ revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 revert-x86_64-mm-copy-user-nocache.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
+add-memcpy_uncached_read-fix.patch
 add-memcpy_uncached_read-tidy.patch
 touchkit-ps-2-touchscreen-driver.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
