@@ -1,182 +1,92 @@
 From: akpm@osdl.org
-Subject: + schedule_on_each_cpu-use-preempt_disable.patch added to -mm tree
-Date: Fri, 15 Dec 2006 00:23:27 -0800
-Message-ID: <200612150823.kBF8NV2u011171@shell0.pdx.osdl.net>
+Subject: + genirq-fix-irq-flow-handler-uninstall.patch added to -mm tree
+Date: Fri, 15 Dec 2006 10:23:22 -0800
+Message-ID: <200612151823.kBFINNo5025525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43987 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59822 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750802AbWLOIXg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Dec 2006 03:23:36 -0500
+	id S1753133AbWLOSXn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 15 Dec 2006 13:23:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mingo@elte.hu
+Cc: tglx@linutronix.de, mingo@elte.hu
 
 
 The patch titled
-     schedule_on_each_cpu(): use preempt_disable()
+     genirq: fix irq flow handler uninstall
 has been added to the -mm tree.  Its filename is
-     schedule_on_each_cpu-use-preempt_disable.patch
+     genirq-fix-irq-flow-handler-uninstall.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: schedule_on_each_cpu(): use preempt_disable()
-From: Andrew Morton <akpm@osdl.org>
+Subject: genirq: fix irq flow handler uninstall
+From: Thomas Gleixner <tglx@linutronix.de>
 
-We take workqueue_mutex in there to keep CPU hotplug away.  But
-preempt_disable() will suffice for that.
+The sanity check for no_irq_chip in __set_irq_hander() is unconditional on
+both install and uninstall of an handler.  This triggers false warnings and
+replaces no_irq_chip by dummy_irq_chip in the uninstall case.
 
+Check only, when a real handler is installed.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/workqueue.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/irq/chip.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/workqueue.c~schedule_on_each_cpu-use-preempt_disable kernel/workqueue.c
---- a/kernel/workqueue.c~schedule_on_each_cpu-use-preempt_disable
-+++ a/kernel/workqueue.c
-@@ -635,13 +635,13 @@ int schedule_on_each_cpu(work_func_t fun
- 	if (!works)
- 		return -ENOMEM;
+diff -puN kernel/irq/chip.c~genirq-fix-irq-flow-handler-uninstall kernel/irq/chip.c
+--- a/kernel/irq/chip.c~genirq-fix-irq-flow-handler-uninstall
++++ a/kernel/irq/chip.c
+@@ -517,8 +517,7 @@ __set_irq_handler(unsigned int irq, irq_
  
--	mutex_lock(&workqueue_mutex);
-+	preempt_disable();		/* CPU hotplug */
- 	for_each_online_cpu(cpu) {
- 		INIT_WORK(per_cpu_ptr(works, cpu), func);
- 		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu),
- 				per_cpu_ptr(works, cpu));
- 	}
--	mutex_unlock(&workqueue_mutex);
-+	preempt_enable();
- 	flush_workqueue(keventd_wq);
- 	free_percpu(works);
- 	return 0;
+ 	if (!handle)
+ 		handle = handle_bad_irq;
+-
+-	if (desc->chip == &no_irq_chip) {
++	else if (desc->chip == &no_irq_chip) {
+ 		printk(KERN_WARNING "Trying to install %sinterrupt handler "
+ 		       "for IRQ%d\n", is_chained ? "chained " : " ", irq);
+ 		/*
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-rtc-warning-fix.patch
-fix-vm_events_fold_cpu-build-breakage-fix.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-cpufreq-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-more-borkage.patch
-alsa-workqueue-fixes.patch
-arm-systemh-build-fix.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-infiniband-fix-for-gregkh-depredations.patch
-git-libata-all.patch
-pata_cs5530-suspend-resume-support-tweak.patch
-pata_sil680-suspend-resume-tidy.patch
-pata_via-suspend-resume-support-fix.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
+genirq-fix-irq-flow-handler-uninstall.patch
 git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-driver-for-silan-sc92031-netdev-fix-more.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-pci-disable-multithreaded-probing.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-in2000-scsi_cmnd-convertion.patch
-aic79xx-wrong-max-memory-at-driver-init.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-funsoft-is-bust-on-sparc.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-add-memcpy_uncached_read-fix.patch
-add-memcpy_uncached_read-tidy.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
 clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
-schedule_on_each_cpu-use-preempt_disable.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
 
