@@ -1,92 +1,150 @@
 From: akpm@osdl.org
-Subject: + struct-vfsmount-keep-mnt_count-mnt_expiry_mark-away-from-mnt_flags.patch added to -mm tree
-Date: Fri, 15 Dec 2006 12:01:05 -0800
-Message-ID: <200612152001.kBFK15Xj028038@shell0.pdx.osdl.net>
+Subject: - scsi-fix-uaccess-handling.patch removed from -mm tree
+Date: Fri, 15 Dec 2006 12:07:39 -0800
+Message-ID: <200612152007.kBFK7dJH028177@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40090 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40618 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753360AbWLOUBS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Dec 2006 15:01:18 -0500
+	id S1753370AbWLOUIb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 15 Dec 2006 15:08:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com
+To: heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     struct vfsmount: keep mnt_count & mnt_expiry_mark away from mnt_flags
-has been added to the -mm tree.  Its filename is
-     struct-vfsmount-keep-mnt_count-mnt_expiry_mark-away-from-mnt_flags.patch
+     scsi: fix uaccess handling
+has been removed from the -mm tree.  Its filename was
+     scsi-fix-uaccess-handling.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: struct vfsmount: keep mnt_count & mnt_expiry_mark away from mnt_flags
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: scsi: fix uaccess handling
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-I noticed cache misses in touch_atime() that can be avoided if we keep
-mnt_count & mnt_expiry_mark in a different cache line than mnt_flags
-(mostly read)
-
-mnt_count & mnt_expiry_mark are modified each time a file is opened/closed
-in a file system.
-
-touch_atime() is called each time a file is read, and generally needs to
-read mnt_flags.
-
-Other fields of struct vfsmount are mostly read so I chose to move
-mnt_count & mnt_expiry_mark at the end of struct vfsmount.  And adding a
-comment so that nobody tries to re-arrange fields to fill the holes :)
-
-On 64bits platforms, the new offsetof(mnt_count) is 0xC0
-On 32bits platforms, it is 0x60, so I didnot add a
-____cacheline_aligned_in_smp because it would have a too big impact on the
-size of this object (in particular if CONFIG_X86_L1_CACHE_SHIFT=7)
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/mount.h |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/scsi/scsi_ioctl.c |   17 +++++++------
+ drivers/scsi/sg.c         |   47 +++++++++++++++++++-----------------
+ 2 files changed, 35 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/mount.h~struct-vfsmount-keep-mnt_count-mnt_expiry_mark-away-from-mnt_flags include/linux/mount.h
---- a/include/linux/mount.h~struct-vfsmount-keep-mnt_count-mnt_expiry_mark-away-from-mnt_flags
-+++ a/include/linux/mount.h
-@@ -43,9 +43,8 @@ struct vfsmount {
- 	struct super_block *mnt_sb;	/* pointer to superblock */
- 	struct list_head mnt_mounts;	/* list of children, anchored here */
- 	struct list_head mnt_child;	/* and going through their mnt_child */
--	atomic_t mnt_count;
- 	int mnt_flags;
--	int mnt_expiry_mark;		/* true if marked for expiry */
-+	/* 4 bytes hole on 64bits arches */
- 	char *mnt_devname;		/* Name of device e.g. /dev/dsk/hda1 */
- 	struct list_head mnt_list;
- 	struct list_head mnt_expire;	/* link in fs-specific expiry list */
-@@ -54,6 +53,13 @@ struct vfsmount {
- 	struct list_head mnt_slave;	/* slave list entry */
- 	struct vfsmount *mnt_master;	/* slave is on master->mnt_slave_list */
- 	struct mnt_namespace *mnt_ns;	/* containing namespace */
-+	/*
-+	 * We put mnt_count & mnt_expiry_mark at the end of struct vfsmount
-+	 * to let these frequently modified fields in a separate cache line
-+	 * (so that reads of mnt_flags wont ping-pong on SMP machines)
-+	 */
-+	atomic_t mnt_count;
-+	int mnt_expiry_mark;		/* true if marked for expiry */
- 	int mnt_pinned;
- };
+diff -puN drivers/scsi/scsi_ioctl.c~scsi-fix-uaccess-handling drivers/scsi/scsi_ioctl.c
+--- a/drivers/scsi/scsi_ioctl.c~scsi-fix-uaccess-handling
++++ a/drivers/scsi/scsi_ioctl.c
+@@ -217,13 +217,16 @@ int scsi_ioctl(struct scsi_device *sdev,
+ 		if (!access_ok(VERIFY_WRITE, arg, sizeof(struct scsi_idlun)))
+ 			return -EFAULT;
  
+-		__put_user((sdev->id & 0xff)
+-			 + ((sdev->lun & 0xff) << 8)
+-			 + ((sdev->channel & 0xff) << 16)
+-			 + ((sdev->host->host_no & 0xff) << 24),
+-			 &((struct scsi_idlun __user *)arg)->dev_id);
+-		__put_user(sdev->host->unique_id,
+-			 &((struct scsi_idlun __user *)arg)->host_unique_id);
++		if (__put_user((sdev->id & 0xff)
++			       + ((sdev->lun & 0xff) << 8)
++			       + ((sdev->channel & 0xff) << 16)
++			       + ((sdev->host->host_no & 0xff) << 24),
++			       &((struct scsi_idlun __user *)arg)->dev_id))
++			return -EFAULT;
++
++		if(__put_user(sdev->host->unique_id,
++			&((struct scsi_idlun __user *)arg)->host_unique_id))
++			return -EFAULT;
+ 		return 0;
+ 	case SCSI_IOCTL_GET_BUS_NUMBER:
+ 		return put_user(sdev->host->host_no, (int __user *)arg);
+diff -puN drivers/scsi/sg.c~scsi-fix-uaccess-handling drivers/scsi/sg.c
+--- a/drivers/scsi/sg.c~scsi-fix-uaccess-handling
++++ a/drivers/scsi/sg.c
+@@ -556,7 +556,8 @@ sg_write(struct file *filp, const char _
+ 		return -EDOM;
+ 	}
+ 	buf += SZ_SG_HEADER;
+-	__get_user(opcode, buf);
++	if (__get_user(opcode, buf))
++		return -EFAULT;
+ 	if (sfp->next_cmd_len > 0) {
+ 		if (sfp->next_cmd_len > MAX_COMMAND_SIZE) {
+ 			SCSI_LOG_TIMEOUT(1, printk("sg_write: command length too long\n"));
+@@ -779,6 +780,7 @@ sg_ioctl(struct inode *inode, struct fil
+ 	Sg_fd *sfp;
+ 	Sg_request *srp;
+ 	unsigned long iflags;
++	sg_scsi_id_t __user *sg_idp;
+ 
+ 	if ((!(sfp = (Sg_fd *) filp->private_data)) || (!(sdp = sfp->parentdp)))
+ 		return -ENXIO;
+@@ -860,26 +862,25 @@ sg_ioctl(struct inode *inode, struct fil
+ 	case SG_GET_SCSI_ID:
+ 		if (!access_ok(VERIFY_WRITE, p, sizeof (sg_scsi_id_t)))
+ 			return -EFAULT;
+-		else {
+-			sg_scsi_id_t __user *sg_idp = p;
++		sg_idp = p;
+ 
+-			if (sdp->detached)
+-				return -ENODEV;
+-			__put_user((int) sdp->device->host->host_no,
+-				   &sg_idp->host_no);
+-			__put_user((int) sdp->device->channel,
+-				   &sg_idp->channel);
+-			__put_user((int) sdp->device->id, &sg_idp->scsi_id);
+-			__put_user((int) sdp->device->lun, &sg_idp->lun);
+-			__put_user((int) sdp->device->type, &sg_idp->scsi_type);
+-			__put_user((short) sdp->device->host->cmd_per_lun,
+-				   &sg_idp->h_cmd_per_lun);
+-			__put_user((short) sdp->device->queue_depth,
+-				   &sg_idp->d_queue_depth);
+-			__put_user(0, &sg_idp->unused[0]);
+-			__put_user(0, &sg_idp->unused[1]);
+-			return 0;
+-		}
++		if (sdp->detached)
++			return -ENODEV;
++		if (__put_user((int) sdp->device->host->host_no,
++			       &sg_idp->host_no) ||
++		    __put_user((int) sdp->device->channel,
++			       &sg_idp->channel) ||
++		    __put_user((int) sdp->device->id, &sg_idp->scsi_id) ||
++		    __put_user((int) sdp->device->lun, &sg_idp->lun) ||
++		    __put_user((int) sdp->device->type, &sg_idp->scsi_type) ||
++		    __put_user((short) sdp->device->host->cmd_per_lun,
++			       &sg_idp->h_cmd_per_lun) ||
++		    __put_user((short) sdp->device->queue_depth,
++			       &sg_idp->d_queue_depth) ||
++		    __put_user(0, &sg_idp->unused[0]) ||
++		    __put_user(0, &sg_idp->unused[1]))
++			return -EFAULT;
++		return 0;
+ 	case SG_SET_FORCE_PACK_ID:
+ 		result = get_user(val, ip);
+ 		if (result)
+@@ -894,12 +895,14 @@ sg_ioctl(struct inode *inode, struct fil
+ 			if ((1 == srp->done) && (!srp->sg_io_owned)) {
+ 				read_unlock_irqrestore(&sfp->rq_list_lock,
+ 						       iflags);
+-				__put_user(srp->header.pack_id, ip);
++				if (__put_user(srp->header.pack_id, ip))
++					return -EFAULT;
+ 				return 0;
+ 			}
+ 		}
+ 		read_unlock_irqrestore(&sfp->rq_list_lock, iflags);
+-		__put_user(-1, ip);
++		if (__put_user(-1, ip))
++			return -EFAULT;
+ 		return 0;
+ 	case SG_GET_NUM_WAITING:
+ 		read_lock_irqsave(&sfp->rq_list_lock, iflags);
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-get-rid-of-arch_have_xtime_lock.patch
-struct-vfsmount-keep-mnt_count-mnt_expiry_mark-away-from-mnt_flags.patch
-avoid-one-conditional-branch-in-touch_atime.patch
+scsi-fix-uaccess-handling.patch
 
