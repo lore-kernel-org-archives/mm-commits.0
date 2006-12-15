@@ -1,56 +1,100 @@
 From: akpm@osdl.org
-Subject: + driver-for-silan-sc92031-netdev-fix-more.patch added to -mm tree
-Date: Thu, 14 Dec 2006 22:19:06 -0800
-Message-ID: <200612150619.kBF6J9bV008747@shell0.pdx.osdl.net>
+Subject: + funsoft-is-bust-on-sparc.patch added to -mm tree
+Date: Thu, 14 Dec 2006 22:28:29 -0800
+Message-ID: <200612150628.kBF6SXPI008904@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36092 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36488 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750931AbWLOGTR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Dec 2006 01:19:17 -0500
+	id S1750928AbWLOG2q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 15 Dec 2006 01:28:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, cesarb@cesarb.net
+Cc: akpm@osdl.org, david@funsoft.com, gregkh@suse.de
 
 
 The patch titled
-     driver-for-silan-sc92031-netdev-fix-more
+     funsoft-is-bust-on-sparc
 has been added to the -mm tree.  Its filename is
-     driver-for-silan-sc92031-netdev-fix-more.patch
+     funsoft-is-bust-on-sparc.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: driver-for-silan-sc92031-netdev-fix-more
+Subject: funsoft-is-bust-on-sparc
 From: Andrew Morton <akpm@osdl.org>
 
-sparc32: 
+drivers/usb/serial/funsoft.c: In function `funsoft_ioctl':
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_iflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_iflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_iflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_oflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_oflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_oflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_lflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_lflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_lflag' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_line' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_line' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_line' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
+drivers/usb/serial/funsoft.c:35: warning: dereferencing `void *' pointer
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: error: request for member `c_cc' in something not a structure or union
+drivers/usb/serial/funsoft.c:35: warning: type defaults to `int' in declaration of `type name'
 
-drivers/net/sc92031.c: In function 'sc92031_poll_controller':
-drivers/net/sc92031.c:1134: warning: implicit declaration of function 'disable_irq'
-drivers/net/sc92031.c:1137: warning: implicit declaration of function 'enable_irq'
-
-Cc: Cesar Eduardo Barros <cesarb@cesarb.net>
+Cc: David Clare <david@funsoft.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/sc92031.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/usb/serial/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fix-more drivers/net/sc92031.c
---- a/drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fix-more
-+++ a/drivers/net/sc92031.c
-@@ -29,6 +29,8 @@
- #include <linux/ethtool.h>
- #include <linux/crc32.h>
+diff -puN drivers/usb/serial/Kconfig~funsoft-is-bust-on-sparc drivers/usb/serial/Kconfig
+--- a/drivers/usb/serial/Kconfig~funsoft-is-bust-on-sparc
++++ a/drivers/usb/serial/Kconfig
+@@ -170,7 +170,7 @@ config USB_SERIAL_FTDI_SIO
  
-+#include <asm/irq.h>
-+
- #define PCI_VENDOR_ID_SILAN		0x1904
- #define PCI_DEVICE_ID_SILAN_SC92031	0x2031
- #define PCI_DEVICE_ID_SILAN_8139D	0x8139
+ config USB_SERIAL_FUNSOFT
+ 	tristate "USB Fundamental Software Dongle Driver"
+-	depends on USB_SERIAL
++	depends on USB_SERIAL && !(SPARC || SPARC64)
+ 	---help---
+ 	  Say Y here if you want to use the Fundamental Software dongle.
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -86,6 +130,7 @@ git-ubi.patch
 ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 driver-for-silan-sc92031-netdev-include-fix.patch
+driver-for-silan-sc92031-netdev-fix-more.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 net-use-bitrev8.patch
 net-uninline-skb_put.patch
@@ -172,5 +217,5 @@ add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-driver-for-silan-sc92031-netdev-fix-more.patch
+funsoft-is-bust-on-sparc.patch
 
