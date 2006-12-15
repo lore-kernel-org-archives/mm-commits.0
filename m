@@ -1,90 +1,232 @@
 From: akpm@osdl.org
-Subject: + m68k-trivial-build-fixes.patch added to -mm tree
-Date: Thu, 14 Dec 2006 17:45:01 -0800
-Message-ID: <200612150145.kBF1j2w6003306@shell0.pdx.osdl.net>
+Subject: + agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch added to -mm tree
+Date: Thu, 14 Dec 2006 17:50:18 -0800
+Message-ID: <200612150150.kBF1oI2H003413@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50158 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50462 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964966AbWLOBpK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 20:45:10 -0500
+	id S965044AbWLOBud (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 20:50:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ftp.linux.org.uk, viro@zeniv.linux.org.uk
+Cc: eric@anholt.net, davej@codemonkey.org.uk
 
 
 The patch titled
-     m68k trivial build fixes
+     agp" fix detection of aperture size versus GTT size on G965
 has been added to the -mm tree.  Its filename is
-     m68k-trivial-build-fixes.patch
+     agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k trivial build fixes
-From: Al Viro <viro@ftp.linux.org.uk>
+Subject: agp" fix detection of aperture size versus GTT size on G965
+From: Eric Anholt <eric@anholt.net>
 
-amikbd: missing declaration
-sun3_NCR5380: more work_struct mess
-sun3_NCR5380: cast is not an lvalue
+On the G965, the GTT size may be larger than is required to cover the
+aperture.  (In fact, on all hardware we've seen, the GTT is 512KB to the
+aperture's 256MB).  A previous commit forced the aperture size to 512MB on
+G965 to match GTT, which would likely result in hangs at best if users
+tried to rely on agpgart's aperture size information.  Instead, we use the
+resource length for the aperture size and the system's reported GTT size
+when available for the GTT size.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Because the MSAC registers which had been read for aperture size detection
+on i9xx chips just cause a change in the resource size, we can use generic
+code for aperture detection on all i9xx.
+
+Signed-off-by: Eric Anholt <eric@anholt.net>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/input/keyboard/amikbd.c |    2 +-
- drivers/scsi/sun3_NCR5380.c     |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/agp/agp.h       |    4 +
+ drivers/char/agp/intel-agp.c |  110 +++++++++++++++++----------------
+ 2 files changed, 62 insertions(+), 52 deletions(-)
 
-diff -puN drivers/input/keyboard/amikbd.c~m68k-trivial-build-fixes drivers/input/keyboard/amikbd.c
---- a/drivers/input/keyboard/amikbd.c~m68k-trivial-build-fixes
-+++ a/drivers/input/keyboard/amikbd.c
-@@ -187,7 +187,7 @@ static irqreturn_t amikbd_interrupt(int 
+diff -puN drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/agp.h
+--- a/drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
++++ a/drivers/char/agp/agp.h
+@@ -225,6 +225,10 @@ struct agp_bridge_data {
+ #define I810_GMS_DISABLE	0x00000000
+ #define I810_PGETBL_CTL		0x2020
+ #define I810_PGETBL_ENABLED	0x00000001
++#define I965_PGETBL_SIZE_MASK	0x0000000e
++#define I965_PGETBL_SIZE_512KB	(0 << 1)
++#define I965_PGETBL_SIZE_256KB	(1 << 1)
++#define I965_PGETBL_SIZE_128KB	(2 << 1)
+ #define I810_DRAM_CTL		0x3000
+ #define I810_DRAM_ROW_0		0x00000001
+ #define I810_DRAM_ROW_0_SDRAM	0x00000001
+diff -puN drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
++++ a/drivers/char/agp/intel-agp.c
+@@ -370,6 +370,11 @@ static struct _intel_i830_private {
+ 	struct pci_dev *i830_dev;		/* device one */
+ 	volatile u8 __iomem *registers;
+ 	volatile u32 __iomem *gtt;		/* I915G */
++	/* gtt_entries is the number of gtt entries that are already mapped
++	 * to stolen memory.  Stolen memory is larger than the memory mapped
++	 * through gtt_entries, as it includes some reserved space for the BIOS
++	 * popup and for the GTT.
++	 */
+ 	int gtt_entries;
+ } intel_i830_private;
  
- static int __init amikbd_init(void)
+@@ -380,14 +385,41 @@ static void intel_i830_init_gtt_entries(
+ 	u8 rdct;
+ 	int local = 0;
+ 	static const int ddt[4] = { 0, 16, 32, 64 };
+-	int size;
++	int size; /* reserved space (in kb) at the top of stolen memory */
+ 
+ 	pci_read_config_word(agp_bridge->dev,I830_GMCH_CTRL,&gmch_ctrl);
+ 
+-	/* We obtain the size of the GTT, which is also stored (for some
+-	 * reason) at the top of stolen memory. Then we add 4KB to that
+-	 * for the video BIOS popup, which is also stored in there. */
+-	size = agp_bridge->driver->fetch_size() + 4;
++	if (IS_I965) {
++		u32 pgetbl_ctl;
++
++		pci_read_config_dword(agp_bridge->dev, I810_PGETBL_CTL,
++				      &pgetbl_ctl);
++		/* The 965 has a field telling us the size of the GTT,
++		 * which may be larger than what is necessary to map the
++		 * aperture.
++		 */
++		switch (pgetbl_ctl & I965_PGETBL_SIZE_MASK) {
++		case I965_PGETBL_SIZE_128KB:
++			size = 128;
++			break;
++		case I965_PGETBL_SIZE_256KB:
++			size = 256;
++			break;
++		case I965_PGETBL_SIZE_512KB:
++			size = 512;
++			break;
++		default:
++			printk(KERN_INFO PFX "Unknown page table size, "
++			       "assuming 512KB\n");
++			size = 512;
++		}
++		size += 4; /* add in BIOS popup space */
++	} else {
++		/* On previous hardware, the GTT size was just what was
++		 * required to map the aperture.
++		 */
++		size = agp_bridge->driver->fetch_size() + 4;
++	}
+ 
+ 	if (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82830_HB ||
+ 	    agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82845G_HB) {
+@@ -743,22 +775,27 @@ static int intel_i915_remove_entries(str
+ 	return 0;
+ }
+ 
+-static int intel_i915_fetch_size(void)
++/* Return the aperture size by just checking the resource length.  The effect
++ * described in the spec of the MSAC registers is just changing of the
++ * resource size.
++ */
++static int intel_i9xx_fetch_size(void)
  {
--	int i, j;
-+	int i, j, err;
+-	struct aper_size_info_fixed *values;
+-	u32 temp, offset;
++	int num_sizes = sizeof(intel_i830_sizes) / sizeof(*intel_i830_sizes);
++	int aper_size; /* size in megabytes */
++	int i;
  
- 	if (!AMIGAHW_PRESENT(AMI_KEYBOARD))
- 		return -ENODEV;
-diff -puN drivers/scsi/sun3_NCR5380.c~m68k-trivial-build-fixes drivers/scsi/sun3_NCR5380.c
---- a/drivers/scsi/sun3_NCR5380.c~m68k-trivial-build-fixes
-+++ a/drivers/scsi/sun3_NCR5380.c
-@@ -266,7 +266,7 @@ static struct scsi_host_template *the_te
- 	(struct NCR5380_hostdata *)(in)->hostdata
- #define	HOSTDATA(in) ((struct NCR5380_hostdata *)(in)->hostdata)
+-#define I915_256MB_ADDRESS_MASK (1<<27)
++	aper_size = pci_resource_len(intel_i830_private.i830_dev, 2) / MB(1);
  
--#define	NEXT(cmd)	((struct scsi_cmnd *)((cmd)->host_scribble))
-+#define	NEXT(cmd)	(*(struct scsi_cmnd **)&((cmd)->host_scribble))
- #define	NEXTADDR(cmd)	((struct scsi_cmnd **)&((cmd)->host_scribble))
+-	values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
++	for (i = 0; i < num_sizes; i++) {
++		if (aper_size == intel_i830_sizes[i].size) {
++			agp_bridge->current_size = intel_i830_sizes + i;
++			agp_bridge->previous_size = agp_bridge->current_size;
++			return aper_size;
++		}
++	}
  
- #define	HOSTNO		instance->host_no
-@@ -650,7 +650,7 @@ __inline__ void NCR5380_print_phase(stru
- #include <linux/interrupt.h>
+-	pci_read_config_dword(intel_i830_private.i830_dev, I915_GMADDR, &temp);
+-	if (temp & I915_256MB_ADDRESS_MASK)
+-		offset = 0;	/* 128MB aperture */
+-	else
+-		offset = 2;	/* 256MB aperture */
+-	agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
+-	return values[offset].size;
++	return 0;
+ }
  
- static volatile int main_running = 0;
--static DECLARE_WORK(NCR5380_tqueue, (void (*)(void*))NCR5380_main, NULL);
-+static DECLARE_WORK(NCR5380_tqueue, NCR5380_main);
+ /* The intel i915 automatically initializes the agp aperture during POST.
+@@ -821,40 +858,9 @@ static unsigned long intel_i965_mask_mem
+ 	return addr | bridge->driver->masks[type].mask;
+ }
  
- static __inline__ void queue_main(void)
+-static int intel_i965_fetch_size(void)
+-{
+-       struct aper_size_info_fixed *values;
+-       u32 offset = 0;
+-       u8 temp;
+-
+-#define I965_512MB_ADDRESS_MASK (3<<1)
+-
+-       values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
+-
+-       pci_read_config_byte(intel_i830_private.i830_dev, I965_MSAC, &temp);
+-       temp &= I965_512MB_ADDRESS_MASK;
+-       switch (temp) {
+-       case 0x00:
+-               offset = 0; /* 128MB */
+-               break;
+-       case 0x06:
+-               offset = 3; /* 512MB */
+-               break;
+-       default:
+-       case 0x02:
+-               offset = 2; /* 256MB */
+-               break;
+-       }
+-
+-       agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
+-
+-	/* The i965 GTT is always sized as if it had a 512kB aperture size */
+-	return 512;
+-}
+-
+ /* The intel i965 automatically initializes the agp aperture during POST.
+-+ * Use the memory already set aside for in the GTT.
+-+ */
++ * Use the memory already set aside for in the GTT.
++ */
+ static int intel_i965_create_gatt_table(struct agp_bridge_data *bridge)
  {
-@@ -1031,7 +1031,7 @@ static int NCR5380_queue_command(struct 
-  *  reenable them.  This prevents reentrancy and kernel stack overflow.
-  */ 	
-     
--static void NCR5380_main (void *bl)
-+static void NCR5380_main (struct work_struct *bl)
- {
-     struct scsi_cmnd *tmp, *prev;
-     struct Scsi_Host *instance = first_instance;
+        int page_order;
+@@ -1574,7 +1580,7 @@ static struct agp_bridge_driver intel_91
+ 	.num_aperture_sizes	= 4,
+ 	.needs_scratch_page	= TRUE,
+ 	.configure		= intel_i915_configure,
+-	.fetch_size		= intel_i915_fetch_size,
++	.fetch_size		= intel_i9xx_fetch_size,
+ 	.cleanup		= intel_i915_cleanup,
+ 	.tlb_flush		= intel_i810_tlbflush,
+ 	.mask_memory		= intel_i810_mask_memory,
+@@ -1598,7 +1604,7 @@ static struct agp_bridge_driver intel_i9
+        .num_aperture_sizes     = 4,
+        .needs_scratch_page     = TRUE,
+        .configure              = intel_i915_configure,
+-       .fetch_size             = intel_i965_fetch_size,
++       .fetch_size             = intel_i9xx_fetch_size,
+        .cleanup                = intel_i915_cleanup,
+        .tlb_flush              = intel_i810_tlbflush,
+        .mask_memory            = intel_i965_mask_memory,
 _
 
-Patches currently in -mm which might be from viro@ftp.linux.org.uk are
+Patches currently in -mm which might be from eric@anholt.net are
 
-m68k-work-around-binutils-tokenizer-change.patch
-m68k-trivial-build-fixes.patch
-slab-leaks3-default-y.patch
+agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch
 
