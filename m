@@ -1,50 +1,52 @@
 From: akpm@osdl.org
-Subject: - git-input-vs-git-alsa.patch removed from -mm tree
-Date: Thu, 14 Dec 2006 16:29:11 -0800
-Message-ID: <200612150029.kBF0TELK001392@shell0.pdx.osdl.net>
+Subject: + pci-disable-multithreaded-probing.patch added to -mm tree
+Date: Thu, 14 Dec 2006 16:40:00 -0800
+Message-ID: <200612150040.kBF0e3Wo001680@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:45553 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:46216 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751051AbWLOA3T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 19:29:19 -0500
+	id S932128AbWLOAkF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 19:40:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, greg@kroah.com
 
 
 The patch titled
-     git-input vs git-alsa
-has been removed from the -mm tree.  Its filename was
-     git-input-vs-git-alsa.patch
+     pci-disable-multithreaded-probing
+has been added to the -mm tree.  Its filename is
+     pci-disable-multithreaded-probing.patch
 
-This patch was dropped because an updated version will be merged
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-input vs git-alsa
+Subject: pci-disable-multithreaded-probing
 From: Andrew Morton <akpm@osdl.org>
 
-ac97_t got removed.
+Sorry, I don't need this grief right now.
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/input/touchscreen/ucb1400_ts.c |    2 +-
+ drivers/pci/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/ucb1400_ts.c~git-input-vs-git-alsa drivers/input/touchscreen/ucb1400_ts.c
---- a/drivers/input/touchscreen/ucb1400_ts.c~git-input-vs-git-alsa
-+++ a/drivers/input/touchscreen/ucb1400_ts.c
-@@ -83,7 +83,7 @@
+diff -puN drivers/pci/Kconfig~pci-disable-multithreaded-probing drivers/pci/Kconfig
+--- a/drivers/pci/Kconfig~pci-disable-multithreaded-probing
++++ a/drivers/pci/Kconfig
+@@ -19,7 +19,7 @@ config PCI_MSI
  
- 
- struct ucb1400 {
--	ac97_t			*ac97;
-+	struct snd_ac97		*ac97;
- 	struct input_dev	*ts_idev;
- 
- 	int			irq;
+ config PCI_MULTITHREAD_PROBE
+ 	bool "PCI Multi-threaded probe (EXPERIMENTAL)"
+-	depends on PCI && EXPERIMENTAL
++	depends on PCI && EXPERIMENTAL && BROKEN
+ 	help
+ 	  Say Y here if you want the PCI core to spawn a new thread for
+ 	  every PCI device that is probed.  This can cause a huge
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -66,7 +68,6 @@ alsa-workqueue-fixes.patch
 git-drm.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 infiniband-fix-for-gregkh-depredations.patch
-git-input-vs-git-alsa.patch
 git-libata-all.patch
 pata_cs5530-suspend-resume-support-tweak.patch
 pata_sil680-suspend-resume-tidy.patch
@@ -84,6 +85,7 @@ net-use-bitrev8.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
 pci-legacy-resource-fix-tidy.patch
+pci-disable-multithreaded-probing.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-in2000-scsi_cmnd-convertion.patch
 aic79xx-wrong-max-memory-at-driver-init.patch
