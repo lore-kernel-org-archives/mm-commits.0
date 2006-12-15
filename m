@@ -1,232 +1,150 @@
 From: akpm@osdl.org
-Subject: + agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch added to -mm tree
-Date: Thu, 14 Dec 2006 17:50:18 -0800
-Message-ID: <200612150150.kBF1oI2H003413@shell0.pdx.osdl.net>
+Subject: + procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch added to -mm tree
+Date: Thu, 14 Dec 2006 17:52:54 -0800
+Message-ID: <200612150152.kBF1qteG003437@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50462 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50583 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965044AbWLOBud (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Dec 2006 20:50:33 -0500
+	id S965050AbWLOBx5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 14 Dec 2006 20:53:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric@anholt.net, davej@codemonkey.org.uk
+Cc: djwong@us.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru
 
 
 The patch titled
-     agp" fix detection of aperture size versus GTT size on G965
+     procfs: fix race between proc_readdir and remove_proc_entry
 has been added to the -mm tree.  Its filename is
-     agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch
+     procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: agp" fix detection of aperture size versus GTT size on G965
-From: Eric Anholt <eric@anholt.net>
+Subject: procfs: fix race between proc_readdir and remove_proc_entry
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-On the G965, the GTT size may be larger than is required to cover the
-aperture.  (In fact, on all hardware we've seen, the GTT is 512KB to the
-aperture's 256MB).  A previous commit forced the aperture size to 512MB on
-G965 to match GTT, which would likely result in hangs at best if users
-tried to rely on agpgart's aperture size information.  Instead, we use the
-resource length for the aperture size and the system's reported GTT size
-when available for the GTT size.
+While running a insmod/rmmod loop with the mptsas driver (vanilla 2.6.19,
+IBM Intellistation Z30, SAS1064E controller if it matters), I encountered
+the following messages from the kernel:
 
-Because the MSAC registers which had been read for aperture size detection
-on i9xx chips just cause a change in the resource size, we can use generic
-code for aperture detection on all i9xx.
+[53092.441412] general protection fault: 0000 [1] PREEMPT SMP
+[53092.447058] CPU 4
+[53092.449108] Modules linked in: mptbase scsi_transport_sas ext2 ext3 jbd mbcache nbd acpi_cpufreq processor cpufreq_userspace cpufreq_stats
+ cpufreq_powersave cpufreq_ondemand freq_table cpufreq_conservative dm_mod md_mod ipv6 fuse ata_generic sg sd_mod ata_piix libata mousedev ts
+dev serio_raw evdev floppy rtc snd_hda_intel snd_hda_codec snd_pcm_oss snd_mixer_oss snd_pcm ohci1394 generic ieee1394 piix scsi_mod snd_time
+r ide_core ehci_hcd uhci_hcd snd usbcore soundcore snd_page_alloc shpchp pci_hotplug unix
+[53092.495003] Pid: 570, comm: udevd Not tainted 2.6.19-dic64 #6
+[53092.500753] RIP: 0010:[<ffffffff801fafc5>]  [<ffffffff801fafc5>] proc_readdir+0x110/0x186
+[53092.508968] RSP: 0018:ffff8100be829e78  EFLAGS: 00010246
+[53092.514289] RAX: 0000000000000000 RBX: 6b6b6b6b6b6b6b6b RCX: 000000002218b2b5
+[53092.521429] RDX: ffffffff801fafc5 RSI: 0000000000000001 RDI: ffff810092cf7e48
+[53092.528564] RBP: ffff8100be829eb8 R08: 0000000000000002 R09: 0000000000000000
+[53092.535700] R10: ffff810092cf7e48 R11: 0000000000000028 R12: ffff810005934a08
+[53092.542836] R13: 0000000000000002 R14: ffff810092cf7e48 R15: ffffffff8013b9e6
+[53092.549972] FS:  00002b19f2a14d70(0000) GS:ffff8100059b3898(0000) knlGS:0000000000000000
+[53092.558067] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[53092.563817] CR2: 000000000051108c CR3: 00000000bedb9000 CR4: 00000000000006e0
+[53092.570954] Process udevd (pid: 570, threadinfo ffff8100be828000, task ffff8100befc0080)
+[53092.579048] Stack:  0000000000000246 ffff8100be829f38 ffffffff80474ea0 0000000000000000
+[53092.587179]  ffff810092cf7e48 ffffffff8013b9e6 ffff8100be829f38 ffffffff8013b9e6
+[53092.594679]  ffff8100be829ee8 ffffffff8014e93e ffff810092cf7e48 ffff81000593a8a8
+[53092.601971] Call Trace:
+[53092.604644]  [<ffffffff8014e93e>] proc_root_readdir+0x32/0x68
+[53092.610397]  [<ffffffff80135abb>] vfs_readdir+0x65/0x9a
+[53092.615628]  [<ffffffff801d966b>] sys_getdents64+0x7a/0xc1
+[53092.621123]  [<ffffffff8015e11e>] system_call+0x7e/0x83
+[53092.627195] DWARF2 unwinder stuck at system_call+0x7e/0x83
+[53092.632681]
+[53092.634189] Leftover inexact backtrace:
+[53092.634191]
+[53092.643162]
+[53092.644663]
+[53092.644665] Code: 44 8b 4b 10 0f b7 53 04 44 8b 03 49 8b 4e 38 48 8b 73 08 48
+[53092.653935] RIP  [<ffffffff801fafc5>] proc_readdir+0x110/0x186
+[53092.659798]  RSP <ffff8100be829e78>
 
-Signed-off-by: Eric Anholt <eric@anholt.net>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+The slab poison value in %rbx is suspicious, so I dug into the
+relevant code:
+
+0xffffffff801fafc5 <proc_readdir+272>:  mov    0x10(%rbx),%r9d
+0xffffffff801fafc9 <proc_readdir+276>:  movzwl 0x4(%rbx),%edx
+0xffffffff801fafcd <proc_readdir+280>:  mov    (%rbx),%r8d
+0xffffffff801fafd0 <proc_readdir+283>:  mov    0x38(%r14),%rcx
+0xffffffff801fafd4 <proc_readdir+287>:  mov    0x8(%rbx),%rsi
+0xffffffff801fafd8 <proc_readdir+291>:  mov    0xffffffffffffffc8(%rbp),%rdi
+0xffffffff801fafdc <proc_readdir+295>:  shr    $0xc,%r9d
+0xffffffff801fafe0 <proc_readdir+299>:  callq  *%r15
+
+This corresponds to this code in proc_readdir near
+fs/proc/generic.c:480.  It looks like %rbx corresponds to the
+"de" pointer:
+
+spin_unlock(&proc_subdir_lock);
+if (filldir(dirent, de->name, de->namelen, filp->f_pos,
+            de->low_ino, de->mode >> 12) < 0)
+	goto out;
+spin_lock(&proc_subdir_lock);
+filp->f_pos++;
+de = de->next;
+
+I believe what's happening here is that proc_readdir drops proc_subdir_lock
+to call filldir() on the /proc/mpt directory at the same time mptbase is
+being unloaded.  The unload causes the removal of /proc/mpt, which means
+that de is overwritten with the slab poison value as it is being freed.  We
+reacquire the lock and try to grab the next value of de, but by then the
+next pointer has been lost, and we crash.
+
+I think an acceptable fix is to de_get() the proc_dir_entry count before
+the unlock and de_put() it after the unlock.
+
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/agp/agp.h       |    4 +
- drivers/char/agp/intel-agp.c |  110 +++++++++++++++++----------------
- 2 files changed, 62 insertions(+), 52 deletions(-)
+ fs/proc/generic.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/agp.h
---- a/drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
-+++ a/drivers/char/agp/agp.h
-@@ -225,6 +225,10 @@ struct agp_bridge_data {
- #define I810_GMS_DISABLE	0x00000000
- #define I810_PGETBL_CTL		0x2020
- #define I810_PGETBL_ENABLED	0x00000001
-+#define I965_PGETBL_SIZE_MASK	0x0000000e
-+#define I965_PGETBL_SIZE_512KB	(0 << 1)
-+#define I965_PGETBL_SIZE_256KB	(1 << 1)
-+#define I965_PGETBL_SIZE_128KB	(2 << 1)
- #define I810_DRAM_CTL		0x3000
- #define I810_DRAM_ROW_0		0x00000001
- #define I810_DRAM_ROW_0_SDRAM	0x00000001
-diff -puN drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
-+++ a/drivers/char/agp/intel-agp.c
-@@ -370,6 +370,11 @@ static struct _intel_i830_private {
- 	struct pci_dev *i830_dev;		/* device one */
- 	volatile u8 __iomem *registers;
- 	volatile u32 __iomem *gtt;		/* I915G */
-+	/* gtt_entries is the number of gtt entries that are already mapped
-+	 * to stolen memory.  Stolen memory is larger than the memory mapped
-+	 * through gtt_entries, as it includes some reserved space for the BIOS
-+	 * popup and for the GTT.
-+	 */
- 	int gtt_entries;
- } intel_i830_private;
- 
-@@ -380,14 +385,41 @@ static void intel_i830_init_gtt_entries(
- 	u8 rdct;
- 	int local = 0;
- 	static const int ddt[4] = { 0, 16, 32, 64 };
--	int size;
-+	int size; /* reserved space (in kb) at the top of stolen memory */
- 
- 	pci_read_config_word(agp_bridge->dev,I830_GMCH_CTRL,&gmch_ctrl);
- 
--	/* We obtain the size of the GTT, which is also stored (for some
--	 * reason) at the top of stolen memory. Then we add 4KB to that
--	 * for the video BIOS popup, which is also stored in there. */
--	size = agp_bridge->driver->fetch_size() + 4;
-+	if (IS_I965) {
-+		u32 pgetbl_ctl;
-+
-+		pci_read_config_dword(agp_bridge->dev, I810_PGETBL_CTL,
-+				      &pgetbl_ctl);
-+		/* The 965 has a field telling us the size of the GTT,
-+		 * which may be larger than what is necessary to map the
-+		 * aperture.
-+		 */
-+		switch (pgetbl_ctl & I965_PGETBL_SIZE_MASK) {
-+		case I965_PGETBL_SIZE_128KB:
-+			size = 128;
-+			break;
-+		case I965_PGETBL_SIZE_256KB:
-+			size = 256;
-+			break;
-+		case I965_PGETBL_SIZE_512KB:
-+			size = 512;
-+			break;
-+		default:
-+			printk(KERN_INFO PFX "Unknown page table size, "
-+			       "assuming 512KB\n");
-+			size = 512;
-+		}
-+		size += 4; /* add in BIOS popup space */
-+	} else {
-+		/* On previous hardware, the GTT size was just what was
-+		 * required to map the aperture.
-+		 */
-+		size = agp_bridge->driver->fetch_size() + 4;
-+	}
- 
- 	if (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82830_HB ||
- 	    agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82845G_HB) {
-@@ -743,22 +775,27 @@ static int intel_i915_remove_entries(str
- 	return 0;
- }
- 
--static int intel_i915_fetch_size(void)
-+/* Return the aperture size by just checking the resource length.  The effect
-+ * described in the spec of the MSAC registers is just changing of the
-+ * resource size.
-+ */
-+static int intel_i9xx_fetch_size(void)
+diff -puN fs/proc/generic.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry
++++ a/fs/proc/generic.c
+@@ -429,7 +429,7 @@ struct dentry *proc_lookup(struct inode 
+ int proc_readdir(struct file * filp,
+ 	void * dirent, filldir_t filldir)
  {
--	struct aper_size_info_fixed *values;
--	u32 temp, offset;
-+	int num_sizes = sizeof(intel_i830_sizes) / sizeof(*intel_i830_sizes);
-+	int aper_size; /* size in megabytes */
-+	int i;
+-	struct proc_dir_entry * de;
++	struct proc_dir_entry *de, *next;
+ 	unsigned int ino;
+ 	int i;
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+@@ -477,13 +477,16 @@ int proc_readdir(struct file * filp,
  
--#define I915_256MB_ADDRESS_MASK (1<<27)
-+	aper_size = pci_resource_len(intel_i830_private.i830_dev, 2) / MB(1);
- 
--	values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
-+	for (i = 0; i < num_sizes; i++) {
-+		if (aper_size == intel_i830_sizes[i].size) {
-+			agp_bridge->current_size = intel_i830_sizes + i;
-+			agp_bridge->previous_size = agp_bridge->current_size;
-+			return aper_size;
-+		}
-+	}
- 
--	pci_read_config_dword(intel_i830_private.i830_dev, I915_GMADDR, &temp);
--	if (temp & I915_256MB_ADDRESS_MASK)
--		offset = 0;	/* 128MB aperture */
--	else
--		offset = 2;	/* 256MB aperture */
--	agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
--	return values[offset].size;
-+	return 0;
- }
- 
- /* The intel i915 automatically initializes the agp aperture during POST.
-@@ -821,40 +858,9 @@ static unsigned long intel_i965_mask_mem
- 	return addr | bridge->driver->masks[type].mask;
- }
- 
--static int intel_i965_fetch_size(void)
--{
--       struct aper_size_info_fixed *values;
--       u32 offset = 0;
--       u8 temp;
--
--#define I965_512MB_ADDRESS_MASK (3<<1)
--
--       values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
--
--       pci_read_config_byte(intel_i830_private.i830_dev, I965_MSAC, &temp);
--       temp &= I965_512MB_ADDRESS_MASK;
--       switch (temp) {
--       case 0x00:
--               offset = 0; /* 128MB */
--               break;
--       case 0x06:
--               offset = 3; /* 512MB */
--               break;
--       default:
--       case 0x02:
--               offset = 2; /* 256MB */
--               break;
--       }
--
--       agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
--
--	/* The i965 GTT is always sized as if it had a 512kB aperture size */
--	return 512;
--}
--
- /* The intel i965 automatically initializes the agp aperture during POST.
--+ * Use the memory already set aside for in the GTT.
--+ */
-+ * Use the memory already set aside for in the GTT.
-+ */
- static int intel_i965_create_gatt_table(struct agp_bridge_data *bridge)
- {
-        int page_order;
-@@ -1574,7 +1580,7 @@ static struct agp_bridge_driver intel_91
- 	.num_aperture_sizes	= 4,
- 	.needs_scratch_page	= TRUE,
- 	.configure		= intel_i915_configure,
--	.fetch_size		= intel_i915_fetch_size,
-+	.fetch_size		= intel_i9xx_fetch_size,
- 	.cleanup		= intel_i915_cleanup,
- 	.tlb_flush		= intel_i810_tlbflush,
- 	.mask_memory		= intel_i810_mask_memory,
-@@ -1598,7 +1604,7 @@ static struct agp_bridge_driver intel_i9
-        .num_aperture_sizes     = 4,
-        .needs_scratch_page     = TRUE,
-        .configure              = intel_i915_configure,
--       .fetch_size             = intel_i965_fetch_size,
-+       .fetch_size             = intel_i9xx_fetch_size,
-        .cleanup                = intel_i915_cleanup,
-        .tlb_flush              = intel_i810_tlbflush,
-        .mask_memory            = intel_i965_mask_memory,
+ 			do {
+ 				/* filldir passes info to user space */
++				de_get(de);
+ 				spin_unlock(&proc_subdir_lock);
+ 				if (filldir(dirent, de->name, de->namelen, filp->f_pos,
+ 					    de->low_ino, de->mode >> 12) < 0)
+ 					goto out;
+ 				spin_lock(&proc_subdir_lock);
+ 				filp->f_pos++;
+-				de = de->next;
++				next = de->next;
++				de_put(de);
++				de = next;
+ 			} while (de);
+ 			spin_unlock(&proc_subdir_lock);
+ 	}
 _
 
-Patches currently in -mm which might be from eric@anholt.net are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch
+libata-simulate-report-luns-for-atapi-devices.patch
+git-sas.patch
+git-sas-kconfig-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
 
