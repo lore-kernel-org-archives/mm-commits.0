@@ -1,171 +1,110 @@
 From: akpm@osdl.org
-Subject: + cifs-sprintf-fix.patch added to -mm tree
-Date: Sun, 17 Dec 2006 00:37:35 -0800
-Message-ID: <200612170837.kBH8bZ9w005755@shell0.pdx.osdl.net>
+Subject: - fix-sense-key-medium-error-processing-and-retry.patch removed from -mm tree
+Date: Sun, 17 Dec 2006 03:05:44 -0800
+Message-ID: <200612171105.kBHB5l8G008976@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50538 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55719 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752245AbWLQImW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 17 Dec 2006 03:42:22 -0500
+	id S1752427AbWLQLFw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 17 Dec 2006 06:05:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, alert7@xfocus.org, sfrench@us.ibm.com
+To: ltuikov@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cifs sprintf fix
-has been added to the -mm tree.  Its filename is
-     cifs-sprintf-fix.patch
+     scsi: fix sense key MEDIUM ERROR processing and retry
+has been removed from the -mm tree.  Its filename was
+     fix-sense-key-medium-error-processing-and-retry.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: cifs sprintf fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: scsi: fix sense key MEDIUM ERROR processing and retry
+From: Luben Tuikov <ltuikov@yahoo.com>
 
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: <alert7@xfocus.org>
+- If the device reports an uncorrectable MEDIUM ERROR, such as SK MEDIUM
+  ERROR, ASC UNRECOVERED READ ERR, AMNF DATA FIELD or RECORD NOT FOUND,
+  then: In scsi_check_sense() return SUCCESS so as to not retry -- the
+  error is uncorrectable -- this speeds up total processing time.
+
+- In scsi_io_completion(), retry if and only if there was at least one
+  byte completed, i.e.  good_bytes != 0.  If good_bytes == 0, don't try to
+  retry.
+
+Without this patch, SCSI Core gets hung reading sector 0 forever, for
+example when reading the partition table of a (newly discovered) device.
+
+
+Here is what happens: sector 0 is broken -- the device cannot read the media
+at that location.  The device properly returns a certain type of uncorrectable
+MEDIUM ERROR (ASC: UNRECOVERABLE READ ERR).
+
+SCSI Core loops around its retries (which this patch fixes) and eventually
+gives up and sends it for "completion".  This is what happens when
+scsi_check_sense() returns NEEDS_RETRY to scsi_decide_disposition() to
+scsi_softirq().  The first chunk of the patch fixes this.
+
+We end up in scsi_io_completion(), where good_bytes = 0, and result =
+0x08000002 (DRIVER SENSE and CHECK CONDITION).
+
+This statement in scsi_io_completion() causes the infinite retry loop:
+
+   if (scsi_end_request(cmd, 1, good_bytes, !!result) == NULL)
+         return;
+
+substitute to get: scsi_end_request(cmd, uptodate=1, uptodate bytes=0,
+retry=1) Yeah, but it doesn't make sense to call scsi_end_request() with
+uptodate=1 and uptodate bytes = 0.  This causes the infinite retry, since the
+code tries to re-read the whole xfer size (0 bytes were uptodate and retry=1),
+from the bad media.
+
+That is, we want to set uptodate=1 iff there was at least 1 byte up to date. 
+Else if nothing was read, uptodate bytes = 0, then we should pass uptodate =
+0, uptodate_bytes = total xfer, to mean the whole xfer is not uptodate; and
+retry iff there was no error.  (This is the very bottom of the function.)
+
+
+Signed-off-by: Luben Tuikov <ltuikov@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/cifs/cifs_debug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/scsi_error.c |    5 +++++
+ drivers/scsi/scsi_lib.c   |    3 ++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifs_debug.c~cifs-sprintf-fix fs/cifs/cifs_debug.c
---- a/fs/cifs/cifs_debug.c~cifs-sprintf-fix
-+++ a/fs/cifs/cifs_debug.c
-@@ -143,8 +143,8 @@ cifs_debug_data_read(char *buf, char **b
- 		ses = list_entry(tmp, struct cifsSesInfo, cifsSessionList);
- 		if((ses->serverDomain == NULL) || (ses->serverOS == NULL) ||
- 		   (ses->serverNOS == NULL)) {
--			buf += sprintf("\nentry for %s not fully displayed\n\t",
--					ses->serverName);
-+			buf += sprintf(buf, "\nentry for %s not fully "
-+					"displayed\n\t", ses->serverName);
- 			
- 		} else {
- 			length =
+diff -puN drivers/scsi/scsi_error.c~fix-sense-key-medium-error-processing-and-retry drivers/scsi/scsi_error.c
+--- a/drivers/scsi/scsi_error.c~fix-sense-key-medium-error-processing-and-retry
++++ a/drivers/scsi/scsi_error.c
+@@ -359,6 +359,11 @@ static int scsi_check_sense(struct scsi_
+ 		return SUCCESS;
+ 
+ 	case MEDIUM_ERROR:
++		if (sshdr.asc == 0x11 || /* UNRECOVERED READ ERR */
++		    sshdr.asc == 0x13 || /* AMNF DATA FIELD */
++		    sshdr.asc == 0x14) { /* RECORD NOT FOUND */
++			return SUCCESS;
++		}
+ 		return NEEDS_RETRY;
+ 
+ 	case HARDWARE_ERROR:
+diff -puN drivers/scsi/scsi_lib.c~fix-sense-key-medium-error-processing-and-retry drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~fix-sense-key-medium-error-processing-and-retry
++++ a/drivers/scsi/scsi_lib.c
+@@ -871,7 +871,8 @@ void scsi_io_completion(struct scsi_cmnd
+ 	 * are leftovers and there is some kind of error
+ 	 * (result != 0), retry the rest.
+ 	 */
+-	if (scsi_end_request(cmd, 1, good_bytes, result == 0) == NULL)
++	if (good_bytes &&
++	    scsi_end_request(cmd, 1, good_bytes, result == 0) == NULL)
+ 		return;
+ 
+ 	/* good_bytes = 0, or (inclusive) there were leftovers and
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from ltuikov@yahoo.com are
 
-deadlock-in-mincore-tidy.patch
-deadlock-in-mincore-speedup.patch
-rtc-warning-fix.patch
-fix-vm_events_fold_cpu-build-breakage-fix.patch
-smc911-workqueue-fixes.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-acpi-cpufreq-fixup.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-arm-systemh-build-fix.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc-fixup.patch
-git-mmc-tifm_sd-warning-fix.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-driver-for-silan-sc92031-netdev-fix-more.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-pci-disable-multithreaded-probing.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-funsoft-is-bust-on-sparc.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-add-memcpy_uncached_read-fix.patch
-add-memcpy_uncached_read-tidy.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
-cifs-sprintf-fix.patch
+fix-sense-key-medium-error-processing-and-retry.patch
 
