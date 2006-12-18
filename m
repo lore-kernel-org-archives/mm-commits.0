@@ -1,102 +1,103 @@
 From: akpm@osdl.org
-Subject: + lumpy-reclaim-cleanup.patch added to -mm tree
-Date: Mon, 18 Dec 2006 15:43:24 -0800
-Message-ID: <200612182343.kBINhOxI016613@shell0.pdx.osdl.net>
+Subject: + disable-init-initramfsc-updated-fix.patch added to -mm tree
+Date: Mon, 18 Dec 2006 15:48:50 -0800
+Message-ID: <200612182348.kBINmoB1016753@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59723 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59868 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932222AbWLRXqi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 18:46:38 -0500
+	id S932256AbWLRXs5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 18:48:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com, jean-paul.saman@nxp.com
 
 
 The patch titled
-     mm/vmscan.c: make a function static
+     disable-init-initramfsc-updated fix
 has been added to the -mm tree.  Its filename is
-     lumpy-reclaim-cleanup.patch
+     disable-init-initramfsc-updated-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm/vmscan.c: make a function static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: disable-init-initramfsc-updated fix
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+The following patch silences the following compile time warning introduced
+by the disable-init-initramfsc-updated patch:
+
+  CC      init/noinitramfs.o
+  init/noinitramfs.c:42: warning : initialization from incompatible pointer type
+
+In addition, I've cleaned up the headers and added some error handling.
+
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Cc: Jean-Paul Saman <jean-paul.saman@nxp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ init/noinitramfs.c |   38 ++++++++++++++++++++++++--------------
+ 1 files changed, 24 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmscan.c~lumpy-reclaim-cleanup mm/vmscan.c
---- a/mm/vmscan.c~lumpy-reclaim-cleanup
-+++ a/mm/vmscan.c
-@@ -616,7 +616,7 @@ keep:
-  *
-  * returns 0 on success, -ve errno on failure.
+diff -puN init/noinitramfs.c~disable-init-initramfsc-updated-fix init/noinitramfs.c
+--- a/init/noinitramfs.c~disable-init-initramfsc-updated-fix
++++ a/init/noinitramfs.c
+@@ -18,25 +18,35 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
   */
--int __isolate_lru_page(struct page *page, int active)
-+static int __isolate_lru_page(struct page *page, int active)
- {
- 	int ret = -EINVAL;
+ #include <linux/init.h>
+-#include <linux/fs.h>
+-#include <linux/slab.h>
+-#include <linux/types.h>
+-#include <linux/fcntl.h>
+-#include <linux/delay.h>
+-#include <linux/string.h>
++#include <linux/stat.h>
++#include <linux/kdev_t.h>
+ #include <linux/syscalls.h>
  
+ /*
+  * Create a simple rootfs that is similar to the default initramfs
+  */
+-static void __init default_rootfs(void)
++static int __init default_rootfs(void)
+ {
+-	int mkdir_err = sys_mkdir("/dev", 0755);
+-	int err = sys_mknod((const char __user *) "/dev/console",
+-				S_IFCHR | S_IRUSR | S_IWUSR,
+-				new_encode_dev(MKDEV(5, 1)));
+-	if (err == -EROFS)
+-		printk("Warning: Failed to create a rootfs\n");
+-	mkdir_err = sys_mkdir("/root", 0700);
++	int err;
++
++	err = sys_mkdir("/dev", 0755);
++	if (err < 0)
++		goto out;
++
++	err = sys_mknod((const char __user *) "/dev/console",
++			S_IFCHR | S_IRUSR | S_IWUSR,
++			new_encode_dev(MKDEV(5, 1)));
++	if (err < 0)
++		goto out;
++
++	err = sys_mkdir("/root", 0700);
++	if (err < 0)
++		goto out;
++
++	return 0;
++
++out:
++	printk(KERN_WARNING "Failed to create a rootfs\n");
++	return err;
+ }
+ rootfs_initcall(default_rootfs);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-make-kernel-printkcignore_loglevel_setup-static.patch
-fs-sysv-proper-prototypes-for-2-functions.patch
-make-drivers-acpi-eccec_ecdt-static.patch
-drivers-acpi-oslc-fix-a-null-check.patch
-acpi-make-code-static.patch
-git-alsa.patch
-proper-prototype-for-drivers-base-initcdriver_init.patch
-usbvision-possible-cleanups.patch
-git-gfs2-nmw.patch
-fs-dlm-lowcomms-tcpc-remove-2-functions.patch
-git-mtd.patch
-remove-the-broken-skmc-driver.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-dont-export-device-ids-to-userspace.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-make-qla2x00_reg_remote_port-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-usb_rtl8150-must-select-mii.patch
-arch-i386-kernel-e820c-should-include-asm-setuph.patch
-lumpy-reclaim-cleanup.patch
-remove-drivers-pci-searchcpci_find_device_reverse.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-toshiba-tc86c001-ide-driver-take-2-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i386-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+disable-init-initramfsc-updated-fix.patch
 
