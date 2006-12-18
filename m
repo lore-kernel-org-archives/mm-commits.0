@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-isicom-fix-locking-in-isr.patch added to -mm tree
-Date: Mon, 18 Dec 2006 15:28:08 -0800
-Message-ID: <200612182328.kBINS8Nq016105@shell0.pdx.osdl.net>
+Subject: + char-isicom-fix-probe-race.patch added to -mm tree
+Date: Mon, 18 Dec 2006 15:28:10 -0800
+Message-ID: <200612182328.kBINSAUV016108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58108 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:58113 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754772AbWLRX2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 18:28:12 -0500
+	id S1754764AbWLRX2N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 18:28:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,46 +15,111 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: isicom, fix locking in isr
+     Char: isicom, fix probe race
 has been added to the -mm tree.  Its filename is
-     char-isicom-fix-locking-in-isr.patch
+     char-isicom-fix-probe-race.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: isicom, fix locking in isr
+Subject: Char: isicom, fix probe race
 From: Jiri Slaby <jirislaby@gmail.com>
 
-2 spin_unlocks are omitted in the interrupt handler.  Put them there to fix up
-deadlocking on UP.
+Fix two race conditions in the probe function with mutex.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/char/isicom.c |   28 +++++++++++++++++-----------
+ 1 files changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-fix-locking-in-isr drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-fix-locking-in-isr
+diff -puN drivers/char/isicom.c~char-isicom-fix-probe-race drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-fix-probe-race
 +++ a/drivers/char/isicom.c
-@@ -563,6 +563,7 @@ static irqreturn_t isicom_interrupt(int 
- 	port = card->ports + channel;
- 	if (!(port->flags & ASYNC_INITIALIZED)) {
- 		outw(0x0000, base+0x04); /* enable interrupts */
-+		spin_unlock(&card->card_lock);
- 		return IRQ_HANDLED;
- 	}
+@@ -1732,22 +1732,25 @@ end:
+ /*
+  *	Insmod can set static symbols so keep these static
+  */
+-static int card;
++static unsigned int card_count;
  
-@@ -677,6 +678,7 @@ static irqreturn_t isicom_interrupt(int 
- 		tty_flip_buffer_push(tty);
- 	}
- 	outw(0x0000, base+0x04); /* enable interrupts */
-+	spin_unlock(&card->card_lock);
+ static int __devinit isicom_probe(struct pci_dev *pdev,
+-	const struct pci_device_id *ent)
++				const struct pci_device_id *ent)
+ {
++	static DEFINE_MUTEX(probe_lock);
+ 	unsigned int ioaddr, signature, index;
+ 	int retval = -EPERM;
+-	u8 pciirq;
+ 	struct isi_board *board = NULL;
  
- 	return IRQ_HANDLED;
+-	if (card >= BOARD_COUNT)
++	mutex_lock(&probe_lock);
++	if (card_count >= BOARD_COUNT) {
++		mutex_unlock(&probe_lock);
+ 		goto err;
++	}
++	card_count++;
+ 
+ 	ioaddr = pci_resource_start(pdev, 3);
+ 	/* i.e at offset 0x1c in the PCI configuration register space. */
+-	pciirq = pdev->irq;
+ 	dev_info(&pdev->dev, "ISI PCI Card(Device ID 0x%x)\n", ent->device);
+ 
+ 	/* allot the first empty slot in the array */
+@@ -1759,8 +1762,9 @@ static int __devinit isicom_probe(struct
+ 
+ 	board->index = index;
+ 	board->base = ioaddr;
+-	board->irq = pciirq;
+-	card++;
++	board->irq = pdev->irq;
++
++	mutex_unlock(&probe_lock);
+ 
+ 	pci_set_drvdata(pdev, board);
+ 
+@@ -1770,7 +1774,7 @@ static int __devinit isicom_probe(struct
+ 			"will be disabled.\n", board->base, board->base + 15,
+ 			index + 1);
+ 		retval = -EBUSY;
+-		goto err;
++		goto err_dec;
+  	}
+ 
+ 	retval = request_irq(board->irq, isicom_interrupt,
+@@ -1799,8 +1803,10 @@ errunri:
+ 	free_irq(board->irq, board);
+ errunrr:
+ 	pci_release_region(pdev, 3);
+-err:
++err_dec:
++	card_count--;
+ 	board->base = 0;
++err:
+ 	return retval;
  }
+ 
+@@ -1814,6 +1820,8 @@ static void __devexit isicom_remove(stru
+ 
+ 	free_irq(board->irq, board);
+ 	pci_release_region(pdev, 3);
++	card_count--;
++	board->base = 0;
+ }
+ 
+ static int __init isicom_init(void)
+@@ -1821,8 +1829,6 @@ static int __init isicom_init(void)
+ 	int retval, idx, channel;
+ 	struct isi_port *port;
+ 
+-	card = 0;
+-
+ 	for(idx = 0; idx < BOARD_COUNT; idx++) {
+ 		port = &isi_ports[idx * 16];
+ 		isi_card[idx].ports = port;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
