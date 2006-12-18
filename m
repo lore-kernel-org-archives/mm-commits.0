@@ -1,124 +1,171 @@
 From: akpm@osdl.org
-Subject: + lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch added to -mm tree
-Date: Mon, 18 Dec 2006 15:31:45 -0800
-Message-ID: <200612182331.kBINVjnc016284@shell0.pdx.osdl.net>
+Subject: + toshiba-tc86c001-ide-driver-take-2-fix-2.patch added to -mm tree
+Date: Mon, 18 Dec 2006 15:36:02 -0800
+Message-ID: <200612182336.kBINa2tU016441@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58485 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59119 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754780AbWLRXbw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 18:31:52 -0500
+	id S1754789AbWLRXja (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 18:39:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, matthew@wil.cx
+Cc: akpm@osdl.org, bunk@stusta.de, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     lock debugging: fix DEBUG_LOCKS_WARN_ON() & debug_locks_silent
+     toshiba-tc86c001-ide-driver-take-2-fix-2
 has been added to the -mm tree.  Its filename is
-     lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
+     toshiba-tc86c001-ide-driver-take-2-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lock debugging: fix DEBUG_LOCKS_WARN_ON() & debug_locks_silent
-From: Ingo Molnar <mingo@elte.hu>
+Subject: toshiba-tc86c001-ide-driver-take-2-fix-2
+From: Andrew Morton <akpm@osdl.org>
 
-Matthew Wilcox noticed that the debug_locks_silent use should be inverted
-in DEBUG_LOCKS_WARN_ON().  This bug was causing spurious stacktraces and
-incorrect failures in the locking self-test on the parisc kernel.
-
-Bug-found-by: Matthew Wilcox <matthew@wil.cx>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/debug_locks.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/pci/tc86c001.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/debug_locks.h~lock-debugging-fix-debug_locks_warn_on-debug_locks_silent include/linux/debug_locks.h
---- a/include/linux/debug_locks.h~lock-debugging-fix-debug_locks_warn_on-debug_locks_silent
-+++ a/include/linux/debug_locks.h
-@@ -24,7 +24,7 @@ extern int debug_locks_off(void);
- 	int __ret = 0;							\
- 									\
- 	if (unlikely(c)) {						\
--		if (debug_locks_silent || debug_locks_off())		\
-+		if (!debug_locks_silent && debug_locks_off())		\
- 			WARN_ON(1);					\
- 		__ret = 1;						\
- 	}								\
+diff -puN drivers/ide/pci/tc86c001.c~toshiba-tc86c001-ide-driver-take-2-fix-2 drivers/ide/pci/tc86c001.c
+--- a/drivers/ide/pci/tc86c001.c~toshiba-tc86c001-ide-driver-take-2-fix-2
++++ a/drivers/ide/pci/tc86c001.c
+@@ -260,7 +260,8 @@ static void __devinit init_hwif_tc86c001
+ 	hwif->drives[0].autodma = hwif->drives[1].autodma = hwif->autodma;
+ }
+ 
+-static unsigned int init_chipset_tc86c001(struct pci_dev *dev, const char *name)
++static unsigned int __devinit init_chipset_tc86c001(struct pci_dev *dev,
++							const char *name)
+ {
+ 	int err = pci_request_region(dev, 5, name);
+ 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-conditionally-check-expected_preempt_count-in-__resched_legal.patch
-sched-remove-__cpuinitdata-anotation-to-cpu_isolated_map.patch
-genirq-fix-irq-flow-handler-uninstall.patch
-lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+origin.patch
+try_to_free_buffers-dont-clear-pte-dirty-bits.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+arm-systemh-build-fix.patch
+cifs-sprintf-fix.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+driver-for-silan-sc92031-netdev-include-fix.patch
+driver-for-silan-sc92031-netdev-fix-more.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix-tidy.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
+revert-x86_64-mm-copy-user-nocache.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
+add-memcpy_uncached_read-fix.patch
+add-memcpy_uncached_read-tidy.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
 schedule_on_each_cpu-use-preempt_disable.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
 clockevents-i386-drivers.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-sysrq-q-to-print-timers.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
 
