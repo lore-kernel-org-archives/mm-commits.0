@@ -1,579 +1,124 @@
 From: akpm@osdl.org
-Subject: + char-tty_wakeup-cleanup.patch added to -mm tree
-Date: Mon, 18 Dec 2006 15:52:04 -0800
-Message-ID: <200612182352.kBINq4p4016821@shell0.pdx.osdl.net>
+Subject: + lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch added to -mm tree
+Date: Mon, 18 Dec 2006 15:50:30 -0800
+Message-ID: <200612182350.kBINoVpK016796@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59991 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932307AbWLRXwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 18:52:10 -0500
+	id S932207AbWLRXug (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 18:50:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: mingo@elte.hu, matthew@wil.cx
 
 
 The patch titled
-     Char: tty_wakeup cleanup
+     lock debugging: fix DEBUG_LOCKS_WARN_ON() & debug_locks_silent
 has been added to the -mm tree.  Its filename is
-     char-tty_wakeup-cleanup.patch
+     lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: tty_wakeup cleanup
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: lock debugging: fix DEBUG_LOCKS_WARN_ON() & debug_locks_silent
+From: Ingo Molnar <mingo@elte.hu>
 
-tty_wakeup cleanup
+Matthew Wilcox noticed that the debug_locks_silent use should be inverted
+in DEBUG_LOCKS_WARN_ON().  This bug was causing spurious stacktraces and
+incorrect failures in the locking self-test on the parisc kernel.
 
-- remove wake_up_interruptible(&tty->write_wait) surrounding
-  tty_wakup(tty);
-- substitute tty->ldisc.write_wakeup(tty) + wake_up() by tty_wakeup(tty);
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Bug-found-by: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/amiserial.c             |    5 +----
- drivers/char/cyclades.c              |    1 -
- drivers/char/epca.c                  |    3 ---
- drivers/char/generic_serial.c        |    1 -
- drivers/char/ip2/i2lib.c             |   10 +---------
- drivers/char/isicom.c                |    1 -
- drivers/char/istallion.c             |    1 -
- drivers/char/mxser.c                 |    4 +---
- drivers/char/pcmcia/synclink_cs.c    |    4 +---
- drivers/char/rio/riointr.c           |    9 ++-------
- drivers/char/riscom8.c               |    5 +----
- drivers/char/rocket.c                |    3 ---
- drivers/char/specialix.c             |    4 +---
- drivers/char/synclink.c              |    5 +----
- drivers/char/synclink_gt.c           |    5 +----
- drivers/char/synclinkmp.c            |    5 +----
- drivers/isdn/gigaset/interface.c     |   14 ++------------
- drivers/isdn/i4l/isdn_tty.c          |    1 -
- drivers/serial/crisv10.c             |   14 +++-----------
- drivers/tc/zs.c                      |    4 +---
- drivers/usb/serial/digi_acceleport.c |   10 +---------
- drivers/usb/serial/keyspan_pda.c     |    7 +------
- drivers/usb/serial/mos7720.c         |   14 ++------------
- drivers/usb/serial/mos7840.c         |   14 ++------------
- drivers/usb/serial/serqt_usb.c       |   18 ++----------------
- 25 files changed, 25 insertions(+), 137 deletions(-)
+ include/linux/debug_locks.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/amiserial.c~char-tty_wakeup-cleanup drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/amiserial.c
-@@ -527,10 +527,8 @@ static void do_softint(unsigned long pri
- 	if (!tty)
- 		return;
- 
--	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &info->event)) {
-+	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &info->event))
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
- }
- 
- /*
-@@ -968,7 +966,6 @@ static void rs_flush_buffer(struct tty_s
- 	local_irq_save(flags);
- 	info->xmit.head = info->xmit.tail = 0;
- 	local_irq_restore(flags);
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- }
- 
-diff -puN drivers/char/cyclades.c~char-tty_wakeup-cleanup drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/cyclades.c
-@@ -4488,7 +4488,6 @@ static void cy_flush_buffer(struct tty_s
- 		CY_UNLOCK(info, flags);
- 	}
- 	tty_wakeup(tty);
--	wake_up_interruptible(&tty->write_wait);
- }				/* cy_flush_buffer */
- 
- /*
-diff -puN drivers/char/epca.c~char-tty_wakeup-cleanup drivers/char/epca.c
---- a/drivers/char/epca.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/epca.c
-@@ -844,7 +844,6 @@ static void pc_flush_buffer(struct tty_s
- 	fepcmd(ch, STOUT, (unsigned) tail, 0, 0, 0);
- 	memoff(ch);
- 	spin_unlock_irqrestore(&epca_lock, flags);
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- } /* End pc_flush_buffer */
- 
-@@ -1795,7 +1794,6 @@ static void doevent(int crd)
- 				{ /* Begin if LOWWAIT */
- 					ch->statusflags &= ~LOWWAIT;
- 					tty_wakeup(tty);
--					wake_up_interruptible(&tty->write_wait);
- 				} /* End if LOWWAIT */
- 			} else if (event & EMPTYTX_IND)  { /* Begin EMPTYTX_IND */
- 				/* This event is generated by setup_empty_event */
-@@ -1803,7 +1801,6 @@ static void doevent(int crd)
- 				if (ch->statusflags & EMPTYWAIT)  { /* Begin if EMPTYWAIT */
- 					ch->statusflags &= ~EMPTYWAIT;
- 					tty_wakeup(tty);
--					wake_up_interruptible(&tty->write_wait);
- 				} /* End if EMPTYWAIT */
- 			} /* End EMPTYTX_IND */
- 		} /* End if valid tty */
-diff -puN drivers/char/generic_serial.c~char-tty_wakeup-cleanup drivers/char/generic_serial.c
---- a/drivers/char/generic_serial.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/generic_serial.c
-@@ -382,7 +382,6 @@ void gs_flush_buffer(struct tty_struct *
- 	port->xmit_cnt = port->xmit_head = port->xmit_tail = 0;
- 	spin_unlock_irqrestore (&port->driver_lock, flags);
- 
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- 	func_exit ();
- }
-diff -puN drivers/char/ip2/i2lib.c~char-tty_wakeup-cleanup drivers/char/ip2/i2lib.c
---- a/drivers/char/ip2/i2lib.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/ip2/i2lib.c
-@@ -1373,15 +1373,7 @@ ip2_owake( PTTY tp)
- 	ip2trace (CHANN, ITRC_SICMD, 10, 2, tp->flags,
- 			(1 << TTY_DO_WRITE_WAKEUP) );
- 
--	wake_up_interruptible ( &tp->write_wait );
--	if ( ( tp->flags & (1 << TTY_DO_WRITE_WAKEUP) ) 
--	  && tp->ldisc.write_wakeup )
--	{
--		(tp->ldisc.write_wakeup) ( tp );
--
--		ip2trace (CHANN, ITRC_SICMD, 11, 0 );
--
--	}
-+	tty_wakeup(tp);
- }
- 
- static inline void
-diff -puN drivers/char/isicom.c~char-tty_wakeup-cleanup drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/isicom.c
-@@ -1478,7 +1478,6 @@ static void isicom_flush_buffer(struct t
- 	port->xmit_cnt = port->xmit_head = port->xmit_tail = 0;
- 	spin_unlock_irqrestore(&card->card_lock, flags);
- 
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- }
- 
-diff -puN drivers/char/istallion.c~char-tty_wakeup-cleanup drivers/char/istallion.c
---- a/drivers/char/istallion.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/istallion.c
-@@ -2424,7 +2424,6 @@ static int stli_hostcmd(struct stlibrd *
- 			if (tty != NULL) {
- 				tty_wakeup(tty);
- 				EBRDENABLE(brdp);
--				wake_up_interruptible(&tty->write_wait);
- 			}
- 		}
- 
-diff -puN drivers/char/mxser.c~char-tty_wakeup-cleanup drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/mxser.c
-@@ -1253,9 +1253,7 @@ static void mxser_flush_buffer(struct tt
- 	spin_unlock_irqrestore(&info->slock, flags);
- 	/* above added by shinhay */
- 
--	wake_up_interruptible(&tty->write_wait);
--	if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) && tty->ldisc.write_wakeup)
--		(tty->ldisc.write_wakeup) (tty);
-+	tty_wakeup(tty);
- }
- 
- static int mxser_ioctl(struct tty_struct *tty, struct file *file, unsigned int cmd, unsigned long arg)
-diff -puN drivers/char/pcmcia/synclink_cs.c~char-tty_wakeup-cleanup drivers/char/pcmcia/synclink_cs.c
---- a/drivers/char/pcmcia/synclink_cs.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/pcmcia/synclink_cs.c
-@@ -887,10 +887,8 @@ static void bh_transmit(MGSLPC_INFO *inf
- 	if (debug_level >= DEBUG_LEVEL_BH)
- 		printk("bh_transmit() entry on %s\n", info->device_name);
- 
--	if (tty) {
-+	if (tty)
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
- }
- 
- static void bh_status(MGSLPC_INFO *info)
-diff -puN drivers/char/rio/riointr.c~char-tty_wakeup-cleanup drivers/char/rio/riointr.c
---- a/drivers/char/rio/riointr.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/rio/riointr.c
-@@ -162,13 +162,8 @@ void RIOTxEnable(char *en)
- 
- 	rio_spin_unlock_irqrestore(&PortP->portSem, flags);
- 
--	if (PortP->gs.xmit_cnt <= (PortP->gs.wakeup_chars + 2 * PKT_MAX_DATA_LEN)) {
--		rio_dprintk(RIO_DEBUG_INTR, "Waking up.... ldisc:%d (%d/%d)....", (int) (PortP->gs.tty->flags & (1 << TTY_DO_WRITE_WAKEUP)), PortP->gs.wakeup_chars, PortP->gs.xmit_cnt);
--		if ((PortP->gs.tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) && PortP->gs.tty->ldisc.write_wakeup)
--			(PortP->gs.tty->ldisc.write_wakeup) (PortP->gs.tty);
--		rio_dprintk(RIO_DEBUG_INTR, "(%d/%d)\n", PortP->gs.wakeup_chars, PortP->gs.xmit_cnt);
--		wake_up_interruptible(&PortP->gs.tty->write_wait);
--	}
-+	if (PortP->gs.xmit_cnt <= (PortP->gs.wakeup_chars + 2 * PKT_MAX_DATA_LEN))
-+		tty_wakeup(PortP->gs.tty);
- 
- }
- 
-diff -puN drivers/char/riscom8.c~char-tty_wakeup-cleanup drivers/char/riscom8.c
---- a/drivers/char/riscom8.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/riscom8.c
-@@ -1229,7 +1229,6 @@ static void rc_flush_buffer(struct tty_s
- 	port->xmit_cnt = port->xmit_head = port->xmit_tail = 0;
- 	restore_flags(flags);
- 	
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- }
- 
-@@ -1570,10 +1569,8 @@ static void do_softint(struct work_struc
- 	if(!(tty = port->tty)) 
- 		return;
- 
--	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &port->event)) {
-+	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &port->event))
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
- }
- 
- static const struct tty_operations riscom_ops = {
-diff -puN drivers/char/rocket.c~char-tty_wakeup-cleanup drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/rocket.c
-@@ -474,7 +474,6 @@ static void rp_do_transmit(struct r_port
- 
- 	if (info->xmit_cnt < WAKEUP_CHARS) {
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
- #ifdef ROCKETPORT_HAVE_POLL_WAIT
- 		wake_up_interruptible(&tty->poll_wait);
- #endif
-@@ -1772,7 +1771,6 @@ static int rp_write(struct tty_struct *t
- end:
-  	if (info->xmit_cnt < WAKEUP_CHARS) {
-  		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
- #ifdef ROCKETPORT_HAVE_POLL_WAIT
- 		wake_up_interruptible(&tty->poll_wait);
- #endif
-@@ -1841,7 +1839,6 @@ static void rp_flush_buffer(struct tty_s
- 	info->xmit_cnt = info->xmit_head = info->xmit_tail = 0;
- 	spin_unlock_irqrestore(&info->slock, flags);
- 
--	wake_up_interruptible(&tty->write_wait);
- #ifdef ROCKETPORT_HAVE_POLL_WAIT
- 	wake_up_interruptible(&tty->poll_wait);
- #endif
-diff -puN drivers/char/specialix.c~char-tty_wakeup-cleanup drivers/char/specialix.c
---- a/drivers/char/specialix.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/specialix.c
-@@ -2350,10 +2350,8 @@ static void do_softint(struct work_struc
- 		return;
- 	}
- 
--	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &port->event)) {
-+	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &port->event))
-  		tty_wakeup(tty);
--		//wake_up_interruptible(&tty->write_wait);
--	}
- 
- 	func_exit();
- }
-diff -puN drivers/char/synclink.c~char-tty_wakeup-cleanup drivers/char/synclink.c
---- a/drivers/char/synclink.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/synclink.c
-@@ -1148,10 +1148,8 @@ static void mgsl_bh_transmit(struct mgsl
- 		printk( "%s(%d):mgsl_bh_transmit() entry on %s\n",
- 			__FILE__,__LINE__,info->device_name);
- 
--	if (tty) {
-+	if (tty)
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
- 
- 	/* if transmitter idle and loopmode_send_done_requested
- 	 * then start echoing RxD to TxD
-@@ -2340,7 +2338,6 @@ static void mgsl_flush_buffer(struct tty
- 	del_timer(&info->tx_timer);	
- 	spin_unlock_irqrestore(&info->irq_spinlock,flags);
- 	
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- }
- 
-diff -puN drivers/char/synclink_gt.c~char-tty_wakeup-cleanup drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/synclink_gt.c
-@@ -1045,7 +1045,6 @@ static void flush_buffer(struct tty_stru
- 		info->tx_count = 0;
- 	spin_unlock_irqrestore(&info->lock,flags);
- 
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- }
- 
-@@ -1933,10 +1932,8 @@ static void bh_transmit(struct slgt_info
- 	struct tty_struct *tty = info->tty;
- 
- 	DBGBH(("%s bh_transmit\n", info->device_name));
--	if (tty) {
-+	if (tty)
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
- }
- 
- static void dsr_change(struct slgt_info *info)
-diff -puN drivers/char/synclinkmp.c~char-tty_wakeup-cleanup drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~char-tty_wakeup-cleanup
-+++ a/drivers/char/synclinkmp.c
-@@ -1258,7 +1258,6 @@ static void flush_buffer(struct tty_stru
- 	del_timer(&info->tx_timer);
- 	spin_unlock_irqrestore(&info->lock,flags);
- 
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- }
- 
-@@ -2127,10 +2126,8 @@ void bh_transmit(SLMP_INFO *info)
- 		printk( "%s(%d):%s bh_transmit() entry\n",
- 			__FILE__,__LINE__,info->device_name);
- 
--	if (tty) {
-+	if (tty)
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
- }
- 
- void bh_status(SLMP_INFO *info)
-diff -puN drivers/isdn/gigaset/interface.c~char-tty_wakeup-cleanup drivers/isdn/gigaset/interface.c
---- a/drivers/isdn/gigaset/interface.c~char-tty_wakeup-cleanup
-+++ a/drivers/isdn/gigaset/interface.c
-@@ -599,19 +599,9 @@ out:
- static void if_wake(unsigned long data)
- {
- 	struct cardstate *cs = (struct cardstate *) data;
--	struct tty_struct *tty;
--
--	tty = cs->tty;
--	if (!tty)
--		return;
--
--	if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) &&
--	    tty->ldisc.write_wakeup) {
--		gig_dbg(DEBUG_IF, "write wakeup call");
--		tty->ldisc.write_wakeup(tty);
--	}
- 
--	wake_up_interruptible(&tty->write_wait);
-+	if (cs->tty)
-+		tty_wakeup(cs->tty);
- }
- 
- /*** interface to common ***/
-diff -puN drivers/isdn/i4l/isdn_tty.c~char-tty_wakeup-cleanup drivers/isdn/i4l/isdn_tty.c
---- a/drivers/isdn/i4l/isdn_tty.c~char-tty_wakeup-cleanup
-+++ a/drivers/isdn/i4l/isdn_tty.c
-@@ -1261,7 +1261,6 @@ isdn_tty_flush_buffer(struct tty_struct 
- 	}
- 	isdn_tty_cleanup_xmit(info);
- 	info->xmit_count = 0;
--	wake_up_interruptible(&tty->write_wait);
- 	tty_wakeup(tty);
- }
- 
-diff -puN drivers/serial/crisv10.c~char-tty_wakeup-cleanup drivers/serial/crisv10.c
---- a/drivers/serial/crisv10.c~char-tty_wakeup-cleanup
-+++ a/drivers/serial/crisv10.c
-@@ -3173,12 +3173,8 @@ do_softint(void *private_)
- 	if (!tty)
- 		return;
- 
--	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &info->event)) {
--		if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) &&
--		    tty->ldisc.write_wakeup)
--			(tty->ldisc.write_wakeup)(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
-+	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &info->event))
-+		tty_wakeup(tty);
- }
- 
- static int
-@@ -3798,11 +3794,7 @@ rs_flush_buffer(struct tty_struct *tty)
- 	info->xmit.head = info->xmit.tail = 0;
- 	restore_flags(flags);
- 
--	wake_up_interruptible(&tty->write_wait);
--
--	if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) &&
--	    tty->ldisc.write_wakeup)
--		(tty->ldisc.write_wakeup)(tty);
-+	tty_wakeup(tty);
- }
- 
- /*
-diff -puN drivers/tc/zs.c~char-tty_wakeup-cleanup drivers/tc/zs.c
---- a/drivers/tc/zs.c~char-tty_wakeup-cleanup
-+++ a/drivers/tc/zs.c
-@@ -626,10 +626,8 @@ static void do_softint(unsigned long pri
- 	if (!tty)
- 		return;
- 
--	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &info->event)) {
-+	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &info->event))
- 		tty_wakeup(tty);
--		wake_up_interruptible(&tty->write_wait);
--	}
- }
- 
- static int zs_startup(struct dec_serial * info)
-diff -puN drivers/usb/serial/digi_acceleport.c~char-tty_wakeup-cleanup drivers/usb/serial/digi_acceleport.c
---- a/drivers/usb/serial/digi_acceleport.c~char-tty_wakeup-cleanup
-+++ a/drivers/usb/serial/digi_acceleport.c
-@@ -614,15 +614,7 @@ static void digi_wakeup_write_lock(struc
- 
- static void digi_wakeup_write( struct usb_serial_port *port )
- {
--
--	struct tty_struct *tty = port->tty;
--
--
--	/* wake up port processes */
--	wake_up_interruptible( &port->write_wait );
--
--	/* wake up line discipline */
--	tty_wakeup(tty);
-+	tty_wakeup(port->tty);
- }
- 
- 
-diff -puN drivers/usb/serial/keyspan_pda.c~char-tty_wakeup-cleanup drivers/usb/serial/keyspan_pda.c
---- a/drivers/usb/serial/keyspan_pda.c~char-tty_wakeup-cleanup
-+++ a/drivers/usb/serial/keyspan_pda.c
-@@ -182,13 +182,8 @@ static void keyspan_pda_wakeup_write(str
- 	struct keyspan_pda_private *priv =
- 		container_of(work, struct keyspan_pda_private, wakeup_work);
- 	struct usb_serial_port *port = priv->port;
--	struct tty_struct *tty = port->tty;
- 
--	/* wake up port processes */
--	wake_up_interruptible( &port->write_wait );
--
--	/* wake up line discipline */
--	tty_wakeup(tty);
-+	tty_wakeup(port->tty);
- }
- 
- static void keyspan_pda_request_unthrottle(struct work_struct *work)
-diff -puN drivers/usb/serial/mos7720.c~char-tty_wakeup-cleanup drivers/usb/serial/mos7720.c
---- a/drivers/usb/serial/mos7720.c~char-tty_wakeup-cleanup
-+++ a/drivers/usb/serial/mos7720.c
-@@ -269,18 +269,8 @@ static void mos7720_bulk_out_data_callba
- 
- 	tty = mos7720_port->port->tty;
- 
--	if (tty && mos7720_port->open) {
--		/* let the tty driver wakeup if it has a special *
--		 * write_wakeup function */
--		if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) &&
--		     tty->ldisc.write_wakeup)
--			(tty->ldisc.write_wakeup)(tty);
--
--		/* tell the tty driver that something has changed */
--		wake_up_interruptible(&tty->write_wait);
--	}
--
--	/* schedule_work(&mos7720_port->port->work); */
-+	if (tty && mos7720_port->open)
-+		tty_wakeup(tty);
- }
- 
- /*
-diff -puN drivers/usb/serial/mos7840.c~char-tty_wakeup-cleanup drivers/usb/serial/mos7840.c
---- a/drivers/usb/serial/mos7840.c~char-tty_wakeup-cleanup
-+++ a/drivers/usb/serial/mos7840.c
-@@ -755,18 +755,8 @@ static void mos7840_bulk_out_data_callba
- 
- 	tty = mos7840_port->port->tty;
- 
--	if (tty && mos7840_port->open) {
--		/* let the tty driver wakeup if it has a special *
--		 * write_wakeup function                         */
--
--		if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP))
--		    && tty->ldisc.write_wakeup) {
--			(tty->ldisc.write_wakeup) (tty);
--		}
--
--		/* tell the tty driver that something has changed */
--		wake_up_interruptible(&tty->write_wait);
--	}
-+	if (tty && mos7840_port->open)
-+		tty_wakeup(tty);
- 
- }
- 
-diff -puN drivers/usb/serial/serqt_usb.c~char-tty_wakeup-cleanup drivers/usb/serial/serqt_usb.c
---- a/drivers/usb/serial/serqt_usb.c~char-tty_wakeup-cleanup
-+++ a/drivers/usb/serial/serqt_usb.c
-@@ -1542,28 +1542,14 @@ static void port_softint(struct work_str
-     struct usb_serial_port *port =
- 		container_of(work, struct usb_serial_port, work);
-     struct usb_serial *serial = get_usb_serial (port, __FUNCTION__);
--    struct tty_struct *tty;
--
- 
-     mydbg("%s - port %d\n", __FUNCTION__, port->number);
- 
--
--
-     if (!serial)
-         return;
- 
--
--    tty = port->tty;
--    if (!tty)
--        return;
--
--    if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) && tty->ldisc.write_wakeup)
--    {
--        mydbg("%s - write wakeup call.\n", __FUNCTION__);
--        (tty->ldisc.write_wakeup)(tty);
--    }
--
--    wake_up_interruptible(&tty->write_wait);
-+    if (port->tty)
-+	    tty_wakeup(port->tty);
- }
- static int serial_write_room (struct tty_struct *tty)
- {
+diff -puN include/linux/debug_locks.h~lock-debugging-fix-debug_locks_warn_on-debug_locks_silent include/linux/debug_locks.h
+--- a/include/linux/debug_locks.h~lock-debugging-fix-debug_locks_warn_on-debug_locks_silent
++++ a/include/linux/debug_locks.h
+@@ -24,7 +24,7 @@ extern int debug_locks_off(void);
+ 	int __ret = 0;							\
+ 									\
+ 	if (unlikely(c)) {						\
+-		if (debug_locks_silent || debug_locks_off())		\
++		if (debug_locks_off() && !debug_locks_silent)		\
+ 			WARN_ON(1);					\
+ 		__ret = 1;						\
+ 	}								\
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-isicom-remove-tty_hangwakeup-bottomhalves.patch
-mxser-remove-ambiguous-redefinition-of-init_work.patch
-char-isicom-fix-locking-in-isr.patch
-char-isicom-fix-probe-race.patch
-char-isicom-augment-card_reset.patch
-char-isicom-check-card-state-in-isr.patch
-char-isicom-support-higher-rates.patch
-char-tty_wakeup-cleanup.patch
-shrink_slab-handle-bad-shrinkers.patch
+conditionally-check-expected_preempt_count-in-__resched_legal.patch
+sched-remove-__cpuinitdata-anotation-to-cpu_isolated_map.patch
+genirq-fix-irq-flow-handler-uninstall.patch
+lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+convert-i386-pda-code-to-use-%fs-fixes.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
