@@ -1,30 +1,28 @@
 From: akpm@osdl.org
-Subject: + fix-race-in-do_no_page.patch added to -mm tree
-Date: Tue, 19 Dec 2006 02:37:06 -0800
-Message-ID: <200612191037.kBJAb6hk029737@shell0.pdx.osdl.net>
+Subject: - fix-race-in-do_no_page.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 02:48:03 -0800
+Message-ID: <200612191048.kBJAm3UJ029926@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47558 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48197 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932769AbWLSKhL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 05:37:11 -0500
+	id S932763AbWLSKsJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 05:48:09 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBJAb6ID030929
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBJAm3ID031418
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 19 Dec 2006 02:37:07 -0800
+	for <mm-commits@vger.kernel.org>; Tue, 19 Dec 2006 02:48:04 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      fix race in do_no_page
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fix-race-in-do_no_page.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: fix race in do_no_page
