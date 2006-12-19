@@ -1,69 +1,62 @@
 From: akpm@osdl.org
-Subject: - pci-legacy-resource-fix-tidy.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 13:10:28 -0800
-Message-ID: <200612192110.kBJLATaH010578@shell0.pdx.osdl.net>
+Subject: - scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 13:12:46 -0800
+Message-ID: <200612192112.kBJLClM0010640@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35584 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35760 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932947AbWLSVKv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:10:51 -0500
+	id S932972AbWLSVM7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:12:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, alan@redhat.com, greg@kroah.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, James.Bottomley@steeleye.com, mbligh@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-legacy-resource-fix-tidy
+     scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix
 has been removed from the -mm tree.  Its filename was
-     pci-legacy-resource-fix-tidy.patch
+     scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
 
-This patch was dropped because it was folded into pci-legacy-resource-fix.patch
+This patch was dropped because it was folded into scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 
 ------------------------------------------------------
-Subject: pci-legacy-resource-fix-tidy
+Subject: scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Convert to the One True Commenting Style.
+drivers/scsi/megaraid.c:5124:1: error: unterminated argument list invoking macro "writel"
+drivers/scsi/megaraid.c: In function 'megaraid_isr_memmapped':
+drivers/scsi/megaraid.c:1369: error: 'writel' undeclared (first use in this function)
+drivers/scsi/megaraid.c:1369: error: (Each undeclared identifier is reported only once
+drivers/scsi/megaraid.c:1369: error: for each function it appears in.)
+drivers/scsi/megaraid.c:1369: error: syntax error at end of input
+drivers/scsi/megaraid.c:1367: error: label 'out_unlock' used but not defined
+drivers/scsi/megaraid.c:1352: warning: unused variable 'handled'
+drivers/scsi/megaraid.c:1351: warning: unused variable 'completed'
+drivers/scsi/megaraid.c:1350: warning: unused variable 'nstatus'
+drivers/scsi/megaraid.c:1348: warning: unused variable 'status'
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+grr.
+
+Cc: Martin J. Bligh <mbligh@google.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/setup-res.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/scsi/megaraid.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pci/setup-res.c~pci-legacy-resource-fix-tidy drivers/pci/setup-res.c
---- a/drivers/pci/setup-res.c~pci-legacy-resource-fix-tidy
-+++ a/drivers/pci/setup-res.c
-@@ -33,15 +33,19 @@ pci_update_resource(struct pci_dev *dev,
- 	u32 new, check, mask;
- 	int reg;
+diff -puN drivers/scsi/megaraid.c~scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix
++++ a/drivers/scsi/megaraid.c
+@@ -80,6 +80,7 @@ MODULE_PARM_DESC(max_mbox_busy_wait, "Ma
+ #define WRINDOOR(adapter,value)		writel(value, (volatile void __iomem *)\
+ 							(adapter)->base + 0x20)
+ #define WROUTDOOR(adapter,value)	writel(value, (volatile void __iomem *)\
++							(adapter)->base + 0x2C)
  
--	/* Ignore resources for unimplemented BARs and unused resource slots
--	   for 64 bit BARs. */
-+	/*
-+	 * Ignore resources for unimplemented BARs and unused resource slots
-+	 * for 64 bit BARs.
-+	 */
- 	if (!res->flags)
- 		return;
- 
--	/* Ignore non-moveable resources.  This might be legacy resources for
--	   which no functional BAR register exists or another important
--	   system resource we should better not move around in system address
--	   space.  */
-+	/*
-+	 * Ignore non-moveable resources.  This might be legacy resources for
-+	 * which no functional BAR register exists or another important
-+	 * system resource we should better not move around in system address
-+	 * space.
-+	 */
- 	if (res->flags & IORESOURCE_PCI_FIXED)
- 		return;
- 
+ /*
+  * Global variables
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -96,16 +89,16 @@ git-mmc.patch
 git-mtd.patch
 git-ubi.patch
 ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
 driver-for-silan-sc92031-netdev.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 net-use-bitrev8.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
 pci-legacy-resource-fix.patch
-pci-legacy-resource-fix-tidy.patch
 pci-disable-multithreaded-probing.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
 git-qla3xxx-fixup.patch
 funsoft-is-bust-on-sparc.patch
