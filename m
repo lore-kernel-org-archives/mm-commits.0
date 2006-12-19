@@ -1,59 +1,69 @@
 From: akpm@osdl.org
-Subject: - add-memcpy_uncached_read-fix.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 13:15:53 -0800
-Message-ID: <200612192115.kBJLFsQM010881@shell0.pdx.osdl.net>
+Subject: - convert-i386-pda-code-to-use-%fs-fixes.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 13:27:22 -0800
+Message-ID: <200612192127.kBJLRMhp011325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36269 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37256 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932991AbWLSVQK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:16:10 -0500
+	id S933024AbWLSV2H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:28:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, Ian.Campbell@XenSource.com, andi@muc.de, dada1@cosmosbay.com, jeremy@XenSource.com, mingo@elte.hu, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-memcpy_uncached_read-fix
+     convert-i386-pda-code-to-use-%fs-fixes
 has been removed from the -mm tree.  Its filename was
-     add-memcpy_uncached_read-fix.patch
+     convert-i386-pda-code-to-use-%fs-fixes.patch
 
-This patch was dropped because it was folded into add-memcpy_uncached_read.patch
+This patch was dropped because it was folded into convert-i386-pda-code-to-use-%fs.patch
 
 ------------------------------------------------------
-Subject: add-memcpy_uncached_read-fix
+Subject: convert-i386-pda-code-to-use-%fs-fixes
 From: Andrew Morton <akpm@osdl.org>
 
-WARNING: "memcpy_uncached_read" [drivers/infiniband/hw/ipath/ib_ipath.ko] undefined!
-
-Cc: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Ian Campbell <Ian.Campbell@XenSource.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <andi@muc.de>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/x8664_ksyms.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/i386/kernel/ptrace.c        |    2 +-
+ arch/i386/math-emu/get_address.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix arch/x86_64/kernel/x8664_ksyms.c
---- a/arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix
-+++ a/arch/x86_64/kernel/x8664_ksyms.c
-@@ -8,6 +8,7 @@
- #include <asm/processor.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
-+#include <asm/string.h>
+diff -puN arch/i386/kernel/ptrace.c~convert-i386-pda-code-to-use-%fs-fixes arch/i386/kernel/ptrace.c
+--- a/arch/i386/kernel/ptrace.c~convert-i386-pda-code-to-use-%fs-fixes
++++ a/arch/i386/kernel/ptrace.c
+@@ -125,7 +125,7 @@ static unsigned long getreg(struct task_
  
- EXPORT_SYMBOL(kernel_thread);
- 
-@@ -53,6 +54,7 @@ extern void * __memcpy(void *,const void
- EXPORT_SYMBOL(memset);
- EXPORT_SYMBOL(memcpy);
- EXPORT_SYMBOL(__memcpy);
-+EXPORT_SYMBOL(memcpy_uncached_read);
- 
- EXPORT_SYMBOL(empty_zero_page);
- EXPORT_SYMBOL(init_level4_pgt);
+ 	switch (regno >> 2) {
+ 		case GS:
+-			retval = child->thread.fs;
++			retval = child->thread.gs;
+ 			break;
+ 		case DS:
+ 		case ES:
+diff -puN arch/i386/math-emu/get_address.c~convert-i386-pda-code-to-use-%fs-fixes arch/i386/math-emu/get_address.c
+--- a/arch/i386/math-emu/get_address.c~convert-i386-pda-code-to-use-%fs-fixes
++++ a/arch/i386/math-emu/get_address.c
+@@ -170,9 +170,9 @@ static long pm_address(u_char FPU_modrm,
+     {
+       /* gs isn't used by the kernel, so it still has its
+ 	 user-space value. */
+-    case PREFIX_FS_-1:
++    case PREFIX_GS_-1:
+       /* N.B. - movl %seg, mem is a 2 byte write regardless of prefix */
+-      savesegment(fs, addr->selector);
++      savesegment(gs, addr->selector);
+       break;
+     default:
+       addr->selector = PM_REG_(segment);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -105,10 +115,9 @@ revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 revert-x86_64-mm-copy-user-nocache.patch
+convert-i386-pda-code-to-use-%fs.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
 add-memcpy_uncached_read.patch
-add-memcpy_uncached_read-fix.patch
-add-memcpy_uncached_read-tidy.patch
 touchkit-ps-2-touchscreen-driver.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
