@@ -1,82 +1,80 @@
 From: akpm@osdl.org
-Subject: - libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 12:32:24 -0800
-Message-ID: <200612192032.kBJKWO1q009520@shell0.pdx.osdl.net>
+Subject: + char-hid-ff-support-yet-another-wheel.patch added to -mm tree
+Date: Tue, 19 Dec 2006 12:34:17 -0800
+Message-ID: <200612192034.kBJKYHsf009565@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60781 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60809 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932891AbWLSUeN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:34:13 -0500
+	id S932942AbWLSUe2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:34:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, arnd.bergmann@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jirislaby@gmail.com, dtor@mail.ru
 
 
 The patch titled
-     libata: don't initialize sg in ata_exec_internal() if DMA_NONE
-has been removed from the -mm tree.  Its filename was
-     libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch
+     Char: hid-ff, support yet another wheel
+has been added to the -mm tree.  Its filename is
+     char-hid-ff-support-yet-another-wheel.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: libata: don't initialize sg in ata_exec_internal() if DMA_NONE
-From: Tejun Heo <htejun@gmail.com>
+Subject: Char: hid-ff, support yet another wheel
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Calling sg_init_one() with NULL buf causes oops on certain configurations. 
-Don't initialize sg in ata_exec_internal() if DMA_NONE and make the
-function complain if @buf is NULL when dma_dir isn't DMA_NONE.  While at
-it, fix comment.
+hid-ff, support yet another wheel
 
-The problem is discovered and initial patch was submitted by Arnd Bergmann.
+Add support for Logitech Momo racing wheel (046d:ca03) to hid force
+feedback.
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Arnd Bergmann <arnd.bergmann@de.ibm.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-core.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/usb/input/hid-ff.c   |    1 +
+ drivers/usb/input/hid-lgff.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2 drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2
-+++ a/drivers/ata/libata-core.c
-@@ -1168,7 +1168,7 @@ void ata_qc_complete_internal(struct ata
- }
+diff -puN drivers/usb/input/hid-ff.c~char-hid-ff-support-yet-another-wheel drivers/usb/input/hid-ff.c
+--- a/drivers/usb/input/hid-ff.c~char-hid-ff-support-yet-another-wheel
++++ a/drivers/usb/input/hid-ff.c
+@@ -56,6 +56,7 @@ static struct hid_ff_initializer inits[]
+ 	{ 0x46d, 0xc283, hid_lgff_init }, /* Logitech Wingman Force 3d */
+ 	{ 0x46d, 0xc295, hid_lgff_init }, /* Logitech MOMO force wheel */
+ 	{ 0x46d, 0xc219, hid_lgff_init }, /* Logitech Cordless rumble pad 2 */
++	{ 0x46d, 0xca03, hid_lgff_init }, /* Logitech MOMO force wheel */
+ #endif
+ #ifdef CONFIG_THRUSTMASTER_FF
+ 	{ 0x44f, 0xb304, hid_tmff_init },
+diff -puN drivers/usb/input/hid-lgff.c~char-hid-ff-support-yet-another-wheel drivers/usb/input/hid-lgff.c
+--- a/drivers/usb/input/hid-lgff.c~char-hid-ff-support-yet-another-wheel
++++ a/drivers/usb/input/hid-lgff.c
+@@ -52,6 +52,7 @@ static const struct device_type devices[
+ 	{ 0x046d, 0xc211, ff_rumble },
+ 	{ 0x046d, 0xc219, ff_rumble },
+ 	{ 0x046d, 0xc283, ff_joystick },
++	{ 0x046d, 0xca03, ff_joystick },
+ 	{ 0x0000, 0x0000, ff_joystick }
+ };
  
- /**
-- *	ata_exec_internal_sg - execute libata internal command
-+ *	ata_exec_internal - execute libata internal command
-  *	@dev: Device to which the command is sent
-  *	@tf: Taskfile registers for the command and the result
-  *	@cdb: CDB for packet command
-@@ -1357,11 +1357,17 @@ unsigned ata_exec_internal(struct ata_de
- 			   struct ata_taskfile *tf, const u8 *cdb,
- 			   int dma_dir, void *buf, unsigned int buflen)
- {
--	struct scatterlist sg;
-+	struct scatterlist *psg = NULL, sg;
-+	unsigned int n_elem = 0;
- 
--	sg_init_one(&sg, buf, buflen);
-+	if (dma_dir != DMA_NONE) {
-+		WARN_ON(!buf);
-+		sg_init_one(&sg, buf, buflen);
-+		psg = &sg;
-+		n_elem++;
-+	}
- 
--	return ata_exec_internal_sg(dev, tf, cdb, dma_dir, &sg, 1);
-+	return ata_exec_internal_sg(dev, tf, cdb, dma_dir, psg, n_elem);
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch
-libata-wrong-sizeof-for-buffer.patch
+char-hid-ff-support-yet-another-wheel.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-isicom-remove-tty_hangwakeup-bottomhalves.patch
+mxser-remove-ambiguous-redefinition-of-init_work.patch
+char-isicom-fix-locking-in-isr.patch
+char-isicom-augment-card_reset.patch
+char-isicom-check-card-state-in-isr.patch
+char-isicom-support-higher-rates.patch
+char-isicom-correct-probing-removing.patch
+char-tty_wakeup-cleanup.patch
+shrink_slab-handle-bad-shrinkers.patch
 
