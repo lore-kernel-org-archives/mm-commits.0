@@ -1,65 +1,60 @@
 From: akpm@osdl.org
-Subject: + make-jffs-depend-on-config_broken.patch added to -mm tree
-Date: Mon, 18 Dec 2006 16:44:54 -0800
-Message-ID: <200612190044.kBJ0isI1018468@shell0.pdx.osdl.net>
+Subject: + alsa-kill-pxa2xx-kconfig-warning.patch added to -mm tree
+Date: Mon, 18 Dec 2006 16:46:24 -0800
+Message-ID: <200612190046.kBJ0kOgJ018530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36296 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36416 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932517AbWLSAo5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 19:44:57 -0500
+	id S932539AbWLSAqg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 19:46:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jwboyer@gmail.com
+Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     Make JFFS depend on CONFIG_BROKEN
+     alsa: kill pxa2xx Kconfig warning
 has been added to the -mm tree.  Its filename is
-     make-jffs-depend-on-config_broken.patch
+     alsa-kill-pxa2xx-kconfig-warning.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make JFFS depend on CONFIG_BROKEN
-From: "Josh Boyer" <jwboyer@gmail.com>
+Subject: alsa: kill pxa2xx Kconfig warning
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Mark JFFS as broken and provide a warning to users that it is deprecated
-and scheduled for removal in 2.6.21
+The following patch silences the following Kconfig warning:
+scripts/kconfig/conf -s arch/i386/Kconfig
+sound/soc/pxa/Kconfig:18:warning: 'select' used by config symbol 'SND_PXA2XX_SOC_AC97' refer to undefined symbol 'SND_AC97_BUS'
 
-Signed-off-by: Josh Boyer <jwboyer@gmail.com>
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/Kconfig |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ sound/soc/pxa/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~make-jffs-depend-on-config_broken fs/Kconfig
---- a/fs/Kconfig~make-jffs-depend-on-config_broken
-+++ a/fs/Kconfig
-@@ -1198,13 +1198,16 @@ config EFS_FS
+diff -puN sound/soc/pxa/Kconfig~alsa-kill-pxa2xx-kconfig-warning sound/soc/pxa/Kconfig
+--- a/sound/soc/pxa/Kconfig~alsa-kill-pxa2xx-kconfig-warning
++++ a/sound/soc/pxa/Kconfig
+@@ -15,7 +15,7 @@ config SND_PXA2XX_AC97
  
- config JFFS_FS
- 	tristate "Journalling Flash File System (JFFS) support"
--	depends on MTD && BLOCK
-+	depends on MTD && BLOCK && BROKEN
- 	help
- 	  JFFS is the Journalling Flash File System developed by Axis
- 	  Communications in Sweden, aimed at providing a crash/powerdown-safe
- 	  file system for disk-less embedded devices. Further information is
- 	  available at (<http://developer.axis.com/software/jffs/>).
+ config SND_PXA2XX_SOC_AC97
+ 	tristate
+-	select SND_AC97_BUS
++	select AC97_BUS
+ 	select SND_SOC_AC97_BUS
  
-+	  NOTE: This filesystem is deprecated and is scheduled for removal in
-+	  2.6.21.  See Documentation/feature-removal-schedule.txt
-+
- config JFFS_FS_VERBOSE
- 	int "JFFS debugging verbosity (0 = quiet, 3 = noisy)"
- 	depends on JFFS_FS
+ config SND_PXA2XX_SOC_I2S
 _
 
-Patches currently in -mm which might be from jwboyer@gmail.com are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-make-jffs-depend-on-config_broken.patch
+alsa-kill-pxa2xx-kconfig-warning.patch
+disable-init-initramfsc-updated-fix.patch
 
