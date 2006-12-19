@@ -1,54 +1,69 @@
 From: akpm@osdl.org
-Subject: - driver-for-silan-sc92031-netdev-fix-more.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 13:07:00 -0800
-Message-ID: <200612192107.kBJL70ff010442@shell0.pdx.osdl.net>
+Subject: - pci-legacy-resource-fix-tidy.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 13:10:28 -0800
+Message-ID: <200612192110.kBJLATaH010578@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35249 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35584 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932973AbWLSVHK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:07:10 -0500
+	id S932947AbWLSVKv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:10:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, cesarb@cesarb.net, mm-commits@vger.kernel.org
+To: akpm@osdl.org, alan@redhat.com, greg@kroah.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver-for-silan-sc92031-netdev-fix-more
+     pci-legacy-resource-fix-tidy
 has been removed from the -mm tree.  Its filename was
-     driver-for-silan-sc92031-netdev-fix-more.patch
+     pci-legacy-resource-fix-tidy.patch
 
-This patch was dropped because it was folded into driver-for-silan-sc92031-netdev.patch
+This patch was dropped because it was folded into pci-legacy-resource-fix.patch
 
 ------------------------------------------------------
-Subject: driver-for-silan-sc92031-netdev-fix-more
+Subject: pci-legacy-resource-fix-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-sparc32: 
+Convert to the One True Commenting Style.
 
-drivers/net/sc92031.c: In function 'sc92031_poll_controller':
-drivers/net/sc92031.c:1134: warning: implicit declaration of function 'disable_irq'
-drivers/net/sc92031.c:1137: warning: implicit declaration of function 'enable_irq'
-
-Cc: Cesar Eduardo Barros <cesarb@cesarb.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/sc92031.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pci/setup-res.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fix-more drivers/net/sc92031.c
---- a/drivers/net/sc92031.c~driver-for-silan-sc92031-netdev-fix-more
-+++ a/drivers/net/sc92031.c
-@@ -29,6 +29,8 @@
- #include <linux/ethtool.h>
- #include <linux/crc32.h>
+diff -puN drivers/pci/setup-res.c~pci-legacy-resource-fix-tidy drivers/pci/setup-res.c
+--- a/drivers/pci/setup-res.c~pci-legacy-resource-fix-tidy
++++ a/drivers/pci/setup-res.c
+@@ -33,15 +33,19 @@ pci_update_resource(struct pci_dev *dev,
+ 	u32 new, check, mask;
+ 	int reg;
  
-+#include <asm/irq.h>
-+
- #define PCI_VENDOR_ID_SILAN		0x1904
- #define PCI_DEVICE_ID_SILAN_SC92031	0x2031
- #define PCI_DEVICE_ID_SILAN_8139D	0x8139
+-	/* Ignore resources for unimplemented BARs and unused resource slots
+-	   for 64 bit BARs. */
++	/*
++	 * Ignore resources for unimplemented BARs and unused resource slots
++	 * for 64 bit BARs.
++	 */
+ 	if (!res->flags)
+ 		return;
+ 
+-	/* Ignore non-moveable resources.  This might be legacy resources for
+-	   which no functional BAR register exists or another important
+-	   system resource we should better not move around in system address
+-	   space.  */
++	/*
++	 * Ignore non-moveable resources.  This might be legacy resources for
++	 * which no functional BAR register exists or another important
++	 * system resource we should better not move around in system address
++	 * space.
++	 */
+ 	if (res->flags & IORESOURCE_PCI_FIXED)
+ 		return;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -83,11 +98,11 @@ git-ubi.patch
 ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 driver-for-silan-sc92031-netdev.patch
-driver-for-silan-sc92031-netdev-fix-more.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 net-use-bitrev8.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
+pci-legacy-resource-fix.patch
 pci-legacy-resource-fix-tidy.patch
 pci-disable-multithreaded-probing.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
