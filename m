@@ -1,30 +1,30 @@
 From: akpm@osdl.org
-Subject: - add-memcpy_uncached_read-tidy.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 13:15:56 -0800
-Message-ID: <200612192115.kBJLFuqs010886@shell0.pdx.osdl.net>
+Subject: - add-memcpy_uncached_read-fix.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 13:15:53 -0800
+Message-ID: <200612192115.kBJLFsQM010881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36286 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36269 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932981AbWLSVQM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:16:12 -0500
+	id S932991AbWLSVQK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:16:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-memcpy_uncached_read-tidy
+     add-memcpy_uncached_read-fix
 has been removed from the -mm tree.  Its filename was
-     add-memcpy_uncached_read-tidy.patch
+     add-memcpy_uncached_read-fix.patch
 
 This patch was dropped because it was folded into add-memcpy_uncached_read.patch
 
 ------------------------------------------------------
-Subject: add-memcpy_uncached_read-tidy
+Subject: add-memcpy_uncached_read-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Let's try the Linus trick to get rid of yet another ARCH_HAS_FOO.
+WARNING: "memcpy_uncached_read" [drivers/infiniband/hw/ipath/ib_ipath.ko] undefined!
 
 Cc: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -32,35 +32,28 @@ Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-x86_64/string.h |    2 +-
- include/linux/string.h      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/x8664_ksyms.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy include/asm-x86_64/string.h
---- a/include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy
-+++ a/include/asm-x86_64/string.h
-@@ -39,8 +39,8 @@ extern void *__memcpy(void *to, const vo
- 		 __ret = __builtin_memcpy((dst),(src),__len);	\
- 	   __ret; }) 
+diff -puN arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix arch/x86_64/kernel/x8664_ksyms.c
+--- a/arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read-fix
++++ a/arch/x86_64/kernel/x8664_ksyms.c
+@@ -8,6 +8,7 @@
+ #include <asm/processor.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
++#include <asm/string.h>
  
--#define __HAVE_ARCH_MEMCPY_UNCACHED_READ
- extern void *memcpy_uncached_read(void *to, const void *from, size_t len);
-+#define memcpy_uncached_read memcpy_uncached_read
+ EXPORT_SYMBOL(kernel_thread);
  
- #define __HAVE_ARCH_MEMSET
- void *memset(void *s, int c, size_t n);
-diff -puN include/linux/string.h~add-memcpy_uncached_read-tidy include/linux/string.h
---- a/include/linux/string.h~add-memcpy_uncached_read-tidy
-+++ a/include/linux/string.h
-@@ -85,7 +85,7 @@ extern void * memset(void *,int,__kernel
- #ifndef __HAVE_ARCH_MEMCPY
- extern void * memcpy(void *,const void *,__kernel_size_t);
- #endif
--#ifndef __HAVE_ARCH_MEMCPY_UNCACHED_READ
-+#ifndef memcpy_uncached_read
- #define memcpy_uncached_read(dest, src, count) memcpy((dest), (src), (count))
- #endif
- #ifndef __HAVE_ARCH_MEMMOVE
+@@ -53,6 +54,7 @@ extern void * __memcpy(void *,const void
+ EXPORT_SYMBOL(memset);
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(__memcpy);
++EXPORT_SYMBOL(memcpy_uncached_read);
+ 
+ EXPORT_SYMBOL(empty_zero_page);
+ EXPORT_SYMBOL(init_level4_pgt);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -114,6 +107,7 @@ revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 revert-x86_64-mm-copy-user-nocache.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
 add-memcpy_uncached_read.patch
+add-memcpy_uncached_read-fix.patch
 add-memcpy_uncached_read-tidy.patch
 touchkit-ps-2-touchscreen-driver.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
