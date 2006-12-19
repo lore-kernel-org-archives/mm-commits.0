@@ -1,71 +1,59 @@
 From: akpm@osdl.org
-Subject: + i386-more-ioapic-checks.patch added to -mm tree
-Date: Mon, 18 Dec 2006 16:28:06 -0800
-Message-ID: <200612190028.kBJ0S6Ed017744@shell0.pdx.osdl.net>
+Subject: + ia64-alignment-bug-in-ldscript.patch added to -mm tree
+Date: Mon, 18 Dec 2006 16:31:32 -0800
+Message-ID: <200612190031.kBJ0VWjs017885@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35143 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35482 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754791AbWLSA2g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 19:28:36 -0500
+	id S932488AbWLSAcH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 19:32:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 76306.1226@compuserve.com, ak@suse.de, ebiederm@xmission.com
+Cc: dev@openvz.org, kenneth.w.chen@intel.com, kuznet@ms2.inr.ac.ru, tony.luck@intel.com
 
 
 The patch titled
-     i386: more ioapic checks
+     IA64: alignment bug in ldscript
 has been added to the -mm tree.  Its filename is
-     i386-more-ioapic-checks.patch
+     ia64-alignment-bug-in-ldscript.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: more ioapic checks
-From: Chuck Ebbert <76306.1226@compuserve.com>
+Subject: IA64: alignment bug in ldscript
+From: Kirill Korotaev <dev@openvz.org>
 
-Coverity reports apic numbers are being passed to functions without
-checking to see if they are legal.
+Occasionally the FSYS_RETURN patch list can have an odd length, causing other
+data structures to get out of alignment.  In OpenVZ it is odd and we get
+misaligned kernel image, which does not boot.
 
-(This is Kernel Bugzilla #6188.)
-
-Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Signed-off-by: Kirill Korotaev <dev@openvz.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/io_apic.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/vmlinux.lds.S |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/io_apic.c~i386-more-ioapic-checks arch/i386/kernel/io_apic.c
---- a/arch/i386/kernel/io_apic.c~i386-more-ioapic-checks
-+++ a/arch/i386/kernel/io_apic.c
-@@ -2265,13 +2265,17 @@ static inline void __init check_timer(vo
- 				clear_IO_APIC_pin(0, pin1);
- 			return;
- 		}
--		clear_IO_APIC_pin(apic1, pin1);
-+		if (apic1 == -1)
-+			WARN_ON_ONCE(1);
-+		else
-+			clear_IO_APIC_pin(apic1, pin1);
-+
- 		printk(KERN_ERR "..MP-BIOS bug: 8254 timer not connected to "
- 				"IO-APIC\n");
+diff -puN arch/ia64/kernel/vmlinux.lds.S~ia64-alignment-bug-in-ldscript arch/ia64/kernel/vmlinux.lds.S
+--- a/arch/ia64/kernel/vmlinux.lds.S~ia64-alignment-bug-in-ldscript
++++ a/arch/ia64/kernel/vmlinux.lds.S
+@@ -157,6 +157,7 @@ SECTIONS
  	}
+ #endif
  
- 	printk(KERN_INFO "...trying to set up timer (IRQ0) through the 8259A ... ");
--	if (pin2 != -1) {
-+	if (pin2 != -1 && apic2 != -1) {
- 		printk("\n..... (found pin %d) ...", pin2);
- 		/*
- 		 * legacy devices should be connected to IO APIC #0
++  . = ALIGN(8);
+    __con_initcall_start = .;
+   .con_initcall.init : AT(ADDR(.con_initcall.init) - LOAD_OFFSET)
+ 	{ *(.con_initcall.init) }
 _
 
-Patches currently in -mm which might be from 76306.1226@compuserve.com are
+Patches currently in -mm which might be from dev@openvz.org are
 
-i386-more-ioapic-checks.patch
+ia64-alignment-bug-in-ldscript.patch
 
