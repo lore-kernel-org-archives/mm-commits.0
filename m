@@ -1,135 +1,87 @@
 From: akpm@osdl.org
-Subject: - char-isicom-fix-probe-race.patch removed from -mm tree
-Date: Mon, 18 Dec 2006 16:02:11 -0800
-Message-ID: <200612190002.kBJ02B6e017095@shell0.pdx.osdl.net>
+Subject: - kill_pid_info-kill-acquired_tasklist_lock.patch removed from -mm tree
+Date: Mon, 18 Dec 2006 16:13:35 -0800
+Message-ID: <200612190013.kBJ0DZKj017414@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:32811 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932377AbWLSACN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 19:02:13 -0500
+	id S932488AbWLSANq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 19:13:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, fix probe race
+     kill_pid_info: kill acquired_tasklist_lock
 has been removed from the -mm tree.  Its filename was
-     char-isicom-fix-probe-race.patch
+     kill_pid_info-kill-acquired_tasklist_lock.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Char: isicom, fix probe race
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: kill_pid_info: kill acquired_tasklist_lock
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Fix two race conditions in the probe function with mutex.
+Kill acquired_tasklist_lock, sig_needs_tasklist() is very cheap nowadays.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/isicom.c |   28 +++++++++++++++++-----------
- 1 files changed, 17 insertions(+), 11 deletions(-)
+ kernel/signal.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-fix-probe-race drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-fix-probe-race
-+++ a/drivers/char/isicom.c
-@@ -1732,22 +1732,25 @@ end:
- /*
-  *	Insmod can set static symbols so keep these static
-  */
--static int card;
-+static unsigned int card_count;
- 
- static int __devinit isicom_probe(struct pci_dev *pdev,
--	const struct pci_device_id *ent)
-+				const struct pci_device_id *ent)
+diff -puN kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock kernel/signal.c
+--- a/kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock
++++ a/kernel/signal.c
+@@ -1119,19 +1119,18 @@ kill_pg_info(int sig, struct siginfo *in
+ int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
  {
-+	static DEFINE_MUTEX(probe_lock);
- 	unsigned int ioaddr, signature, index;
- 	int retval = -EPERM;
--	u8 pciirq;
- 	struct isi_board *board = NULL;
+ 	int error;
+-	int acquired_tasklist_lock = 0;
+ 	struct task_struct *p;
  
--	if (card >= BOARD_COUNT)
-+	mutex_lock(&probe_lock);
-+	if (card_count >= BOARD_COUNT) {
-+		mutex_unlock(&probe_lock);
- 		goto err;
-+	}
-+	card_count++;
- 
- 	ioaddr = pci_resource_start(pdev, 3);
- 	/* i.e at offset 0x1c in the PCI configuration register space. */
--	pciirq = pdev->irq;
- 	dev_info(&pdev->dev, "ISI PCI Card(Device ID 0x%x)\n", ent->device);
- 
- 	/* allot the first empty slot in the array */
-@@ -1759,8 +1762,9 @@ static int __devinit isicom_probe(struct
- 
- 	board->index = index;
- 	board->base = ioaddr;
--	board->irq = pciirq;
--	card++;
-+	board->irq = pdev->irq;
+ 	rcu_read_lock();
+-	if (unlikely(sig_needs_tasklist(sig))) {
++	if (unlikely(sig_needs_tasklist(sig)))
+ 		read_lock(&tasklist_lock);
+-		acquired_tasklist_lock = 1;
+-	}
 +
-+	mutex_unlock(&probe_lock);
- 
- 	pci_set_drvdata(pdev, board);
- 
-@@ -1770,7 +1774,7 @@ static int __devinit isicom_probe(struct
- 			"will be disabled.\n", board->base, board->base + 15,
- 			index + 1);
- 		retval = -EBUSY;
--		goto err;
-+		goto err_dec;
-  	}
- 
- 	retval = request_irq(board->irq, isicom_interrupt,
-@@ -1799,8 +1803,10 @@ errunri:
- 	free_irq(board->irq, board);
- errunrr:
- 	pci_release_region(pdev, 3);
--err:
-+err_dec:
-+	card_count--;
- 	board->base = 0;
-+err:
- 	return retval;
- }
- 
-@@ -1814,6 +1820,8 @@ static void __devexit isicom_remove(stru
- 
- 	free_irq(board->irq, board);
- 	pci_release_region(pdev, 3);
-+	card_count--;
-+	board->base = 0;
- }
- 
- static int __init isicom_init(void)
-@@ -1821,8 +1829,6 @@ static int __init isicom_init(void)
- 	int retval, idx, channel;
- 	struct isi_port *port;
- 
--	card = 0;
--
- 	for(idx = 0; idx < BOARD_COUNT; idx++) {
- 		port = &isi_ports[idx * 16];
- 		isi_card[idx].ports = port;
+ 	p = pid_task(pid, PIDTYPE_PID);
+ 	error = -ESRCH;
+ 	if (p)
+ 		error = group_send_sig_info(sig, info, p);
+-	if (unlikely(acquired_tasklist_lock))
++
++	if (unlikely(sig_needs_tasklist(sig)))
+ 		read_unlock(&tasklist_lock);
+ 	rcu_read_unlock();
+ 	return error;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-isicom-remove-tty_hangwakeup-bottomhalves.patch
-mxser-remove-ambiguous-redefinition-of-init_work.patch
-char-isicom-fix-locking-in-isr.patch
-char-isicom-fix-probe-race.patch
-char-isicom-augment-card_reset.patch
-char-isicom-check-card-state-in-isr.patch
-char-isicom-support-higher-rates.patch
-char-tty_wakeup-cleanup.patch
-shrink_slab-handle-bad-shrinkers.patch
+origin.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+vt-refactor-console-sak-processing.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+kill_pid_info-kill-acquired_tasklist_lock.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+pidhash-temporary-debug-checks.patch
 
