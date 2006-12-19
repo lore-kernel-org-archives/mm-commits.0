@@ -1,130 +1,79 @@
 From: akpm@osdl.org
-Subject: + high-res-timers-core-hrtimers-add-state-tracking-fix.patch added to -mm tree
-Date: Tue, 19 Dec 2006 12:37:54 -0800
-Message-ID: <200612192037.kBJKbsHL009635@shell0.pdx.osdl.net>
+Subject: - kobject-kobject_uevent-returns-manageable-value-fix.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 12:59:37 -0800
+Message-ID: <200612192059.kBJKxbFP010198@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60944 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34657 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932941AbWLSUiG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:38:06 -0500
+	id S932962AbWLSU76 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:59:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, tglx@linutronix.de
+To: randy.dunlap@oracle.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers: add state tracking, fix
-has been added to the -mm tree.  Its filename is
-     high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+     fix warnings in kobject.h with HOTPLUG=n
+has been removed from the -mm tree.  Its filename was
+     kobject-kobject_uevent-returns-manageable-value-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into kobject-kobject_uevent-returns-manageable-value.patch
 
 ------------------------------------------------------
-Subject: hrtimers: add state tracking, fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: fix warnings in kobject.h with HOTPLUG=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix bug in hrtimer_is_queued(), introduced by a cleanup during
-the recent refactoring.
+Fix inline kobject functions to return 0 when CONFIG_HOTPLUG=n.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+include/linux/kobject.h: In function 'kobject_uevent':
+include/linux/kobject.h:277: warning: no return statement in function returning non-void
+include/linux/kobject.h: In function 'kobject_uevent_env':
+include/linux/kobject.h:281: warning: no return statement in function returning non-void
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/hrtimer.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kobject.h |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/hrtimer.c~high-res-timers-core-hrtimers-add-state-tracking-fix kernel/hrtimer.c
---- a/kernel/hrtimer.c~high-res-timers-core-hrtimers-add-state-tracking-fix
-+++ a/kernel/hrtimer.c
-@@ -156,7 +156,7 @@ static void hrtimer_get_softirq_time(str
- static inline int hrtimer_is_queued(struct hrtimer *timer)
- {
- 	return timer->state &
--		(HRTIMER_STATE_ENQUEUED || HRTIMER_STATE_PENDING);
-+		(HRTIMER_STATE_ENQUEUED | HRTIMER_STATE_PENDING);
- }
+diff -puN include/linux/kobject.h~fix-warnings-in-kobjecth-with-hotplug=n include/linux/kobject.h
+--- a/include/linux/kobject.h~fix-warnings-in-kobjecth-with-hotplug=n
++++ a/include/linux/kobject.h
+@@ -274,11 +274,12 @@ int add_uevent_var(char **envp, int num_
+ 			const char *format, ...)
+ 	__attribute__((format (printf, 7, 8)));
+ #else
+-static inline int kobject_uevent(struct kobject *kobj, enum kobject_action action) { }
++static inline int kobject_uevent(struct kobject *kobj, enum kobject_action action)
++{ return 0; }
+ static inline int kobject_uevent_env(struct kobject *kobj,
+ 				      enum kobject_action action,
+ 				      char *envp[])
+-{ }
++{ return 0; }
  
- /*
+ static inline int add_uevent_var(char **envp, int num_envp, int *cur_index,
+ 				      char *buffer, int buffer_size, int *cur_len, 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-conditionally-check-expected_preempt_count-in-__resched_legal.patch
-sched-remove-__cpuinitdata-anotation-to-cpu_isolated_map.patch
-genirq-fix-irq-flow-handler-uninstall.patch
-lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-sysrq-q-to-print-timers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-sched-improve-efficiency-of-sched_fork.patch
-sched-improve-efficiency-of-sched_fork-tidy.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+fix-kernel-doc-warnings-in-2620-rc1.patch
+add-a-new-section-to-codingstyle-promoting-include-linux-kernelh.patch
+handle-slob-with-sparsemen.patch
+git-acpi.patch
+git-alsa.patch
+cpufreq-select-consistently-re-2619-rc5-mm1.patch
+kobject-kobject_uevent-returns-manageable-value.patch
+kobject-kobject_uevent-returns-manageable-value-fix.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+profile_likely-export-do_check_likely.patch
 
