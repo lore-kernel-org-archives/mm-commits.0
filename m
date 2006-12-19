@@ -1,72 +1,58 @@
 From: akpm@osdl.org
-Subject: + search-a-little-harder-for-mkimage.patch added to -mm tree
-Date: Tue, 19 Dec 2006 12:21:55 -0800
-Message-ID: <200612192021.kBJKLtMd009298@shell0.pdx.osdl.net>
+Subject: + handle-slob-with-sparsemen.patch added to -mm tree
+Date: Tue, 19 Dec 2006 12:24:31 -0800
+Message-ID: <200612192024.kBJKOV6h009343@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60118 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60317 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932934AbWLSUWE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:22:04 -0500
+	id S932936AbWLSUYv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:24:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, sam@ravnborg.org, vapier@gentoo.org
+Cc: y-goto@jp.fujitsu.com, hugh@veritas.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     search a little harder for mkimage
+     handle SLOB with sparsemen
 has been added to the -mm tree.  Its filename is
-     search-a-little-harder-for-mkimage.patch
+     handle-slob-with-sparsemen.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: search a little harder for mkimage
-From: "Mike Frysinger" <vapier.adi@gmail.com>
+Subject: handle SLOB with sparsemen
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Check to see if `${CROSS_COMPILE}mkimage` exists and if not, fall back to
-the standard `mkimage`
+This is to disallow to make SLOB with SMP or SPARSEMEM.  This avoids latent
+troubles of SLOB with SLAB_DESTROY_BY_RCU.  And fix compile error.
 
-The Blackfin toolchain includes mkimage, but we dont want to namespace
-collide with any of the user's system setup, so we prefix it with our
-toolchain name.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/mkuboot.sh |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ init/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/mkuboot.sh~search-a-little-harder-for-mkimage scripts/mkuboot.sh
---- a/scripts/mkuboot.sh~search-a-little-harder-for-mkimage
-+++ a/scripts/mkuboot.sh
-@@ -4,12 +4,15 @@
- # Build U-Boot image when `mkimage' tool is available.
- #
+diff -puN init/Kconfig~handle-slob-with-sparsemen init/Kconfig
+--- a/init/Kconfig~handle-slob-with-sparsemen
++++ a/init/Kconfig
+@@ -454,7 +454,7 @@ config SHMEM
  
--MKIMAGE=$(type -path mkimage)
-+MKIMAGE=$(type -path ${CROSS_COMPILE}mkimage)
- 
- if [ -z "${MKIMAGE}" ]; then
--	# Doesn't exist
--	echo '"mkimage" command not found - U-Boot images will not be built' >&2
--	exit 0;
-+	MKIMAGE=$(type -path mkimage)
-+	if [ -z "${MKIMAGE}" ]; then
-+		# Doesn't exist
-+		echo '"mkimage" command not found - U-Boot images will not be built' >&2
-+		exit 0;
-+	fi
- fi
- 
- # Call "mkimage" to create U-Boot image
+ config SLAB
+ 	default y
+-	bool "Use full SLAB allocator" if EMBEDDED
++	bool "Use full SLAB allocator" if (EMBEDDED && !SMP && !SPARSEMEM)
+ 	help
+ 	  Disabling this replaces the advanced SLAB allocator and
+ 	  kmalloc support with the drastically simpler SLOB allocator.
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-search-a-little-harder-for-mkimage.patch
+handle-slob-with-sparsemen.patch
 
