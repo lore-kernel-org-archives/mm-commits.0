@@ -1,158 +1,173 @@
 From: akpm@osdl.org
-Subject: - nfs-kill-obsolete-nfs_paranoia.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 13:29:18 -0800
-Message-ID: <200612192129.kBJLTLLq011363@shell0.pdx.osdl.net>
+Subject: + high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch added to -mm tree
+Date: Tue, 19 Dec 2006 13:31:25 -0800
+Message-ID: <200612192131.kBJLVPxM011435@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37333 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37433 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932952AbWLSV3f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:29:35 -0500
+	id S933013AbWLSVbg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:31:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     NFS: Kill obsolete NFS_PARANOIA
-has been removed from the -mm tree.  Its filename was
-     nfs-kill-obsolete-nfs_paranoia.patch
+     high-res timers: core, do itimer rearming in process context, fix
+has been added to the -mm tree.  Its filename is
+     high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
 
-This patch was dropped because an updated version will be merged
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: NFS: Kill obsolete NFS_PARANOIA
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: high-res timers: core, do itimer rearming in process context, fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Remove obsolete NFS_PARANOIA.
+Restart itimers when they are not queued.  (a non-queued hrtimer might be
+callback-pending - but in that case we already missed the rearming so the
+SIGALRM branch has to rearm.)
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+This fixes a threaded itimers stress-test hang.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfs/dir.c      |   17 ++---------------
- fs/nfs/inode.c    |   11 +----------
- fs/nfs/nfs2xdr.c  |    1 -
- fs/nfs/pagelist.c |    6 ------
- 4 files changed, 3 insertions(+), 32 deletions(-)
+ include/linux/hrtimer.h |    9 +++++++++
+ kernel/hrtimer.c        |    9 ---------
+ kernel/signal.c         |    2 +-
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/nfs/dir.c~nfs-kill-obsolete-nfs_paranoia fs/nfs/dir.c
---- a/fs/nfs/dir.c~nfs-kill-obsolete-nfs_paranoia
-+++ a/fs/nfs/dir.c
-@@ -38,7 +38,6 @@
- #include "delegation.h"
- #include "iostat.h"
+diff -puN include/linux/hrtimer.h~high-res-timers-core-hrtimers-add-state-tracking-fix-fix include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~high-res-timers-core-hrtimers-add-state-tracking-fix-fix
++++ a/include/linux/hrtimer.h
+@@ -276,6 +276,15 @@ static inline int hrtimer_active(const s
+ 	return timer->state != HRTIMER_STATE_INACTIVE;
+ }
  
--#define NFS_PARANOIA 1
- /* #define NFS_DEBUG_VERBOSE 1 */
++/*
++ * Helper function to check, whether the timer is on one of the queues
++ */
++static inline int hrtimer_is_queued(struct hrtimer *timer)
++{
++	return timer->state &
++		(HRTIMER_STATE_ENQUEUED | HRTIMER_STATE_PENDING);
++}
++
+ /* Forward a hrtimer so it expires after now: */
+ extern unsigned long
+ hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval);
+diff -puN kernel/hrtimer.c~high-res-timers-core-hrtimers-add-state-tracking-fix-fix kernel/hrtimer.c
+--- a/kernel/hrtimer.c~high-res-timers-core-hrtimers-add-state-tracking-fix-fix
++++ a/kernel/hrtimer.c
+@@ -151,15 +151,6 @@ static void hrtimer_get_softirq_time(str
+ }
  
- static int nfs_opendir(struct inode *, struct file *);
-@@ -1322,11 +1321,6 @@ static int nfs_sillyrename(struct inode 
- 		atomic_read(&dentry->d_count));
- 	nfs_inc_stats(dir, NFSIOS_SILLYRENAME);
- 
--#ifdef NFS_PARANOIA
--if (!dentry->d_inode)
--printk("NFS: silly-renaming %s/%s, negative dentry??\n",
--dentry->d_parent->d_name.name, dentry->d_name.name);
--#endif
- 	/*
- 	 * We don't allow a dentry to be silly-renamed twice.
- 	 */
-@@ -1641,16 +1635,9 @@ static int nfs_rename(struct inode *old_
- 			new_inode = NULL;
- 			/* instantiate the replacement target */
- 			d_instantiate(new_dentry, NULL);
--		} else if (atomic_read(&new_dentry->d_count) > 1) {
--		/* dentry still busy? */
--#ifdef NFS_PARANOIA
--			printk("nfs_rename: target %s/%s busy, d_count=%d\n",
--			       new_dentry->d_parent->d_name.name,
--			       new_dentry->d_name.name,
--			       atomic_read(&new_dentry->d_count));
--#endif
-+		} else if (atomic_read(&new_dentry->d_count) > 1)
-+			/* dentry still busy? */
- 			goto out;
--		}
- 	} else
- 		drop_nlink(new_inode);
- 
-diff -puN fs/nfs/inode.c~nfs-kill-obsolete-nfs_paranoia fs/nfs/inode.c
---- a/fs/nfs/inode.c~nfs-kill-obsolete-nfs_paranoia
-+++ a/fs/nfs/inode.c
-@@ -48,7 +48,6 @@
- #include "internal.h"
- 
- #define NFSDBG_FACILITY		NFSDBG_VFS
--#define NFS_PARANOIA 1
- 
- static void nfs_invalidate_inode(struct inode *);
- static int nfs_update_inode(struct inode *, struct nfs_fattr *);
-@@ -910,7 +909,7 @@ static int nfs_update_inode(struct inode
- 	 * Make sure the inode's type hasn't changed.
- 	 */
- 	if ((inode->i_mode & S_IFMT) != (fattr->mode & S_IFMT))
--		goto out_changed;
-+		goto out_err;
- 
- 	server = NFS_SERVER(inode);
- 	/* Update the fsid if and only if this is the root directory */
-@@ -1018,14 +1017,6 @@ static int nfs_update_inode(struct inode
- 		nfsi->cache_validity |= invalid;
- 
- 	return 0;
-- out_changed:
--	/*
--	 * Big trouble! The inode has become a different object.
--	 */
--#ifdef NFS_PARANOIA
--	printk(KERN_DEBUG "%s: inode %ld mode changed, %07o to %07o\n",
--			__FUNCTION__, inode->i_ino, inode->i_mode, fattr->mode);
--#endif
-  out_err:
- 	/*
- 	 * No need to worry about unhashing the dentry, as the
-diff -puN fs/nfs/nfs2xdr.c~nfs-kill-obsolete-nfs_paranoia fs/nfs/nfs2xdr.c
---- a/fs/nfs/nfs2xdr.c~nfs-kill-obsolete-nfs_paranoia
-+++ a/fs/nfs/nfs2xdr.c
-@@ -26,7 +26,6 @@
- #include "internal.h"
- 
- #define NFSDBG_FACILITY		NFSDBG_XDR
--/* #define NFS_PARANOIA 1 */
- 
- /* Mapping from NFS error code to "errno" error code. */
- #define errno_NFSERR_IO		EIO
-diff -puN fs/nfs/pagelist.c~nfs-kill-obsolete-nfs_paranoia fs/nfs/pagelist.c
---- a/fs/nfs/pagelist.c~nfs-kill-obsolete-nfs_paranoia
-+++ a/fs/nfs/pagelist.c
-@@ -18,7 +18,6 @@
- #include <linux/nfs_fs.h>
- #include <linux/nfs_mount.h>
- 
--#define NFS_PARANOIA 1
- 
- static kmem_cache_t *nfs_page_cachep;
- 
-@@ -171,11 +170,6 @@ nfs_release_request(struct nfs_page *req
- 	if (!atomic_dec_and_test(&req->wb_count))
- 		return;
- 
--#ifdef NFS_PARANOIA
--	BUG_ON (!list_empty(&req->wb_list));
--	BUG_ON (NFS_WBACK_BUSY(req));
--#endif
+ /*
+- * Helper function to check, whether the timer is on one of the queues
+- */
+-static inline int hrtimer_is_queued(struct hrtimer *timer)
+-{
+-	return timer->state &
+-		(HRTIMER_STATE_ENQUEUED | HRTIMER_STATE_PENDING);
+-}
 -
- 	/* Release struct file or cached credential */
- 	nfs_clear_request(req);
- 	put_nfs_open_context(req->wb_context);
+-/*
+  * Helper function to check, whether the timer is running the callback
+  * function
+  */
+diff -puN kernel/signal.c~high-res-timers-core-hrtimers-add-state-tracking-fix-fix kernel/signal.c
+--- a/kernel/signal.c~high-res-timers-core-hrtimers-add-state-tracking-fix-fix
++++ a/kernel/signal.c
+@@ -475,7 +475,7 @@ int dequeue_signal(struct task_struct *t
+ 		if (unlikely(signr == SIGALRM)) {
+ 			struct hrtimer *tmr = &tsk->signal->real_timer;
+ 
+-			if (!hrtimer_active(tmr) &&
++			if (!hrtimer_is_queued(tmr) &&
+ 			    tsk->signal->it_real_incr.tv64 != 0) {
+ 				hrtimer_forward(tmr, hrtimer_cb_get_time(tmr),
+ 						tsk->signal->it_real_incr);
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-git-acpi.patch
-nfs-kill-obsolete-nfs_paranoia.patch
+conditionally-check-expected_preempt_count-in-__resched_legal.patch
+sched-remove-__cpuinitdata-anotation-to-cpu_isolated_map.patch
+genirq-fix-irq-flow-handler-uninstall.patch
+lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+sched-improve-efficiency-of-sched_fork.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
 debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
