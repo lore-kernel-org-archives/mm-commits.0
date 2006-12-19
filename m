@@ -1,62 +1,66 @@
 From: akpm@osdl.org
-Subject: - scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 13:12:46 -0800
-Message-ID: <200612192112.kBJLClM0010640@shell0.pdx.osdl.net>
+Subject: - add-memcpy_uncached_read-tidy.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 13:15:56 -0800
+Message-ID: <200612192115.kBJLFuqs010886@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35760 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36286 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932972AbWLSVM7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:12:59 -0500
+	id S932981AbWLSVQM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:16:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, James.Bottomley@steeleye.com, mbligh@google.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix
+     add-memcpy_uncached_read-tidy
 has been removed from the -mm tree.  Its filename was
-     scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
+     add-memcpy_uncached_read-tidy.patch
 
-This patch was dropped because it was folded into scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+This patch was dropped because it was folded into add-memcpy_uncached_read.patch
 
 ------------------------------------------------------
-Subject: scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix
+Subject: add-memcpy_uncached_read-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/scsi/megaraid.c:5124:1: error: unterminated argument list invoking macro "writel"
-drivers/scsi/megaraid.c: In function 'megaraid_isr_memmapped':
-drivers/scsi/megaraid.c:1369: error: 'writel' undeclared (first use in this function)
-drivers/scsi/megaraid.c:1369: error: (Each undeclared identifier is reported only once
-drivers/scsi/megaraid.c:1369: error: for each function it appears in.)
-drivers/scsi/megaraid.c:1369: error: syntax error at end of input
-drivers/scsi/megaraid.c:1367: error: label 'out_unlock' used but not defined
-drivers/scsi/megaraid.c:1352: warning: unused variable 'handled'
-drivers/scsi/megaraid.c:1351: warning: unused variable 'completed'
-drivers/scsi/megaraid.c:1350: warning: unused variable 'nstatus'
-drivers/scsi/megaraid.c:1348: warning: unused variable 'status'
+Let's try the Linus trick to get rid of yet another ARCH_HAS_FOO.
 
-grr.
-
-Cc: Martin J. Bligh <mbligh@google.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/megaraid.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-x86_64/string.h |    2 +-
+ include/linux/string.h      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/megaraid.c~scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix drivers/scsi/megaraid.c
---- a/drivers/scsi/megaraid.c~scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix
-+++ a/drivers/scsi/megaraid.c
-@@ -80,6 +80,7 @@ MODULE_PARM_DESC(max_mbox_busy_wait, "Ma
- #define WRINDOOR(adapter,value)		writel(value, (volatile void __iomem *)\
- 							(adapter)->base + 0x20)
- #define WROUTDOOR(adapter,value)	writel(value, (volatile void __iomem *)\
-+							(adapter)->base + 0x2C)
+diff -puN include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy include/asm-x86_64/string.h
+--- a/include/asm-x86_64/string.h~add-memcpy_uncached_read-tidy
++++ a/include/asm-x86_64/string.h
+@@ -39,8 +39,8 @@ extern void *__memcpy(void *to, const vo
+ 		 __ret = __builtin_memcpy((dst),(src),__len);	\
+ 	   __ret; }) 
  
- /*
-  * Global variables
+-#define __HAVE_ARCH_MEMCPY_UNCACHED_READ
+ extern void *memcpy_uncached_read(void *to, const void *from, size_t len);
++#define memcpy_uncached_read memcpy_uncached_read
+ 
+ #define __HAVE_ARCH_MEMSET
+ void *memset(void *s, int c, size_t n);
+diff -puN include/linux/string.h~add-memcpy_uncached_read-tidy include/linux/string.h
+--- a/include/linux/string.h~add-memcpy_uncached_read-tidy
++++ a/include/linux/string.h
+@@ -85,7 +85,7 @@ extern void * memset(void *,int,__kernel
+ #ifndef __HAVE_ARCH_MEMCPY
+ extern void * memcpy(void *,const void *,__kernel_size_t);
+ #endif
+-#ifndef __HAVE_ARCH_MEMCPY_UNCACHED_READ
++#ifndef memcpy_uncached_read
+ #define memcpy_uncached_read(dest, src, count) memcpy((dest), (src), (count))
+ #endif
+ #ifndef __HAVE_ARCH_MEMMOVE
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -99,7 +103,6 @@ pci-legacy-resource-fix.patch
 pci-disable-multithreaded-probing.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
 git-qla3xxx-fixup.patch
 funsoft-is-bust-on-sparc.patch
 nokia-e70-is-an-unusual-device.patch
@@ -110,7 +113,7 @@ revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 revert-x86_64-mm-copy-user-nocache.patch
 convert-i386-pda-code-to-use-%fs-fixes.patch
-add-memcpy_uncached_read-fix.patch
+add-memcpy_uncached_read.patch
 add-memcpy_uncached_read-tidy.patch
 touchkit-ps-2-touchscreen-driver.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
