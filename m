@@ -1,185 +1,190 @@
 From: akpm@osdl.org
-Subject: - fix-race-in-do_no_page.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 02:48:03 -0800
-Message-ID: <200612191048.kBJAm3UJ029926@shell0.pdx.osdl.net>
+Subject: + b44-fix-frequent-link-changes.patch added to -mm tree
+Date: Tue, 19 Dec 2006 12:07:08 -0800
+Message-ID: <200612192007.kBJK79Io008956@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48197 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59423 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932763AbWLSKsJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 05:48:09 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBJAm3ID031418
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 19 Dec 2006 02:48:04 -0800
+	id S932931AbWLSUHP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:07:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mchan@broadcom.com
 
 
 The patch titled
-     fix race in do_no_page
-has been removed from the -mm tree.  Its filename was
-     fix-race-in-do_no_page.patch
+     b44: Fix frequent link changes
+has been added to the -mm tree.  Its filename is
+     b44-fix-frequent-link-changes.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix race in do_no_page
-From: Andrew Morton <akpm@osdl.org>
+Subject: b44: Fix frequent link changes
+From: "Michael Chan" <mchan@broadcom.com>
 
+This fixes the issue of frequent link changes under heavy traffic reported
+below:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=7696
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=216338
+
+The b44 chip occasionally needs to be reset when ISTAT_ERRORS are
+encountered.  The reset sequence includes a PHY reset that will take many
+seconds to complete and cause the link to go down and up.  By skipping the
+PHY reset, it will greatly reduce the interruption when ISTAT_ERRORS are
+encountered.
+
+Change the full_reset parameter to reset_kind parameter in b44_init_hw(). 
+This will allow PHY reset to be skipped when ISTAT_ERRORS are encountered.
+
+Signed-off-by: Michael Chan <mchan@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/memory.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/net/b44.c |   35 ++++++++++++++++++++---------------
+ 1 files changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN mm/memory.c~fix-race-in-do_no_page mm/memory.c
---- a/mm/memory.c~fix-race-in-do_no_page
-+++ a/mm/memory.c
-@@ -2264,10 +2264,22 @@ retry:
- 		}
- 	} else {
- 		/* One of our sibling threads was faster, back out. */
-+		if (write_access) {
-+			/*
-+			 * We might have raced against a read-fault.  We still
-+			 * need to dirty the page.
-+			 */
-+			dirty_page = vm_normal_page(vma, address, *page_table);
-+			if (dirty_page) {
-+				get_page(dirty_page);
-+				goto dirty_it;
-+			}
-+		}
- 		page_cache_release(new_page);
- 		goto unlock;
+diff -puN drivers/net/b44.c~b44-fix-frequent-link-changes drivers/net/b44.c
+--- a/drivers/net/b44.c~b44-fix-frequent-link-changes
++++ a/drivers/net/b44.c
+@@ -110,6 +110,11 @@ MODULE_DEVICE_TABLE(pci, b44_pci_tbl);
+ 
+ static void b44_halt(struct b44 *);
+ static void b44_init_rings(struct b44 *);
++
++#define B44_FULL_RESET		1
++#define B44_FULL_RESET_SKIP_PHY	2
++#define B44_PARTIAL_RESET	3
++
+ static void b44_init_hw(struct b44 *, int);
+ 
+ static int dma_desc_align_mask;
+@@ -884,7 +889,7 @@ static int b44_poll(struct net_device *n
+ 		spin_lock_irqsave(&bp->lock, flags);
+ 		b44_halt(bp);
+ 		b44_init_rings(bp);
+-		b44_init_hw(bp, 1);
++		b44_init_hw(bp, B44_FULL_RESET_SKIP_PHY);
+ 		netif_wake_queue(bp->dev);
+ 		spin_unlock_irqrestore(&bp->lock, flags);
+ 		done = 1;
+@@ -954,7 +959,7 @@ static void b44_tx_timeout(struct net_de
+ 
+ 	b44_halt(bp);
+ 	b44_init_rings(bp);
+-	b44_init_hw(bp, 1);
++	b44_init_hw(bp, B44_FULL_RESET);
+ 
+ 	spin_unlock_irq(&bp->lock);
+ 
+@@ -1071,7 +1076,7 @@ static int b44_change_mtu(struct net_dev
+ 	b44_halt(bp);
+ 	dev->mtu = new_mtu;
+ 	b44_init_rings(bp);
+-	b44_init_hw(bp, 1);
++	b44_init_hw(bp, B44_FULL_RESET);
+ 	spin_unlock_irq(&bp->lock);
+ 
+ 	b44_enable_ints(bp);
+@@ -1368,12 +1373,12 @@ static int b44_set_mac_addr(struct net_d
+  * packet processing.  Invoked with bp->lock held.
+  */
+ static void __b44_set_rx_mode(struct net_device *);
+-static void b44_init_hw(struct b44 *bp, int full_reset)
++static void b44_init_hw(struct b44 *bp, int reset_kind)
+ {
+ 	u32 val;
+ 
+ 	b44_chip_reset(bp);
+-	if (full_reset) {
++	if (reset_kind == B44_FULL_RESET) {
+ 		b44_phy_reset(bp);
+ 		b44_setup_phy(bp);
+ 	}
+@@ -1390,7 +1395,10 @@ static void b44_init_hw(struct b44 *bp, 
+ 	bw32(bp, B44_TXMAXLEN, bp->dev->mtu + ETH_HLEN + 8 + RX_HEADER_LEN);
+ 
+ 	bw32(bp, B44_TX_WMARK, 56); /* XXX magic */
+-	if (full_reset) {
++	if (reset_kind == B44_PARTIAL_RESET) {
++		bw32(bp, B44_DMARX_CTRL, (DMARX_CTRL_ENABLE |
++				      (bp->rx_offset << DMARX_CTRL_ROSHIFT)));
++	} else {
+ 		bw32(bp, B44_DMATX_CTRL, DMATX_CTRL_ENABLE);
+ 		bw32(bp, B44_DMATX_ADDR, bp->tx_ring_dma + bp->dma_offset);
+ 		bw32(bp, B44_DMARX_CTRL, (DMARX_CTRL_ENABLE |
+@@ -1401,9 +1409,6 @@ static void b44_init_hw(struct b44 *bp, 
+ 		bp->rx_prod = bp->rx_pending;
+ 
+ 		bw32(bp, B44_MIB_CTRL, MIB_CTRL_CLR_ON_READ);
+-	} else {
+-		bw32(bp, B44_DMARX_CTRL, (DMARX_CTRL_ENABLE |
+-				      (bp->rx_offset << DMARX_CTRL_ROSHIFT)));
  	}
  
-+dirty_it:
- 	/* no need to invalidate: a not-present page shouldn't be cached */
- 	update_mmu_cache(vma, address, entry);
- 	lazy_mmu_prot_update(entry);
+ 	val = br32(bp, B44_ENET_CTRL);
+@@ -1420,7 +1425,7 @@ static int b44_open(struct net_device *d
+ 		goto out;
+ 
+ 	b44_init_rings(bp);
+-	b44_init_hw(bp, 1);
++	b44_init_hw(bp, B44_FULL_RESET);
+ 
+ 	b44_check_phy(bp);
+ 
+@@ -1629,7 +1634,7 @@ static int b44_close(struct net_device *
+ 	netif_poll_enable(dev);
+ 
+ 	if (bp->flags & B44_FLAG_WOL_ENABLE) {
+-		b44_init_hw(bp, 0);
++		b44_init_hw(bp, B44_PARTIAL_RESET);
+ 		b44_setup_wol(bp);
+ 	}
+ 
+@@ -1905,7 +1910,7 @@ static int b44_set_ringparam(struct net_
+ 
+ 	b44_halt(bp);
+ 	b44_init_rings(bp);
+-	b44_init_hw(bp, 1);
++	b44_init_hw(bp, B44_FULL_RESET);
+ 	netif_wake_queue(bp->dev);
+ 	spin_unlock_irq(&bp->lock);
+ 
+@@ -1948,7 +1953,7 @@ static int b44_set_pauseparam(struct net
+ 	if (bp->flags & B44_FLAG_PAUSE_AUTO) {
+ 		b44_halt(bp);
+ 		b44_init_rings(bp);
+-		b44_init_hw(bp, 1);
++		b44_init_hw(bp, B44_FULL_RESET);
+ 	} else {
+ 		__b44_set_flow_ctrl(bp, bp->flags);
+ 	}
+@@ -2304,7 +2309,7 @@ static int b44_suspend(struct pci_dev *p
+ 
+ 	free_irq(dev->irq, dev);
+ 	if (bp->flags & B44_FLAG_WOL_ENABLE) {
+-		b44_init_hw(bp, 0);
++		b44_init_hw(bp, B44_PARTIAL_RESET);
+ 		b44_setup_wol(bp);
+ 	}
+ 	pci_disable_device(pdev);
+@@ -2329,7 +2334,7 @@ static int b44_resume(struct pci_dev *pd
+ 	spin_lock_irq(&bp->lock);
+ 
+ 	b44_init_rings(bp);
+-	b44_init_hw(bp, 1);
++	b44_init_hw(bp, B44_FULL_RESET);
+ 	netif_device_attach(bp->dev);
+ 	spin_unlock_irq(&bp->lock);
+ 
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from mchan@broadcom.com are
 
-origin.patch
-try_to_free_buffers-dont-clear-pte-dirty-bits.patch
-rtc-warning-fix.patch
-fix-vm_events_fold_cpu-build-breakage-fix.patch
-smc911-workqueue-fixes.patch
-fix-race-in-do_no_page.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-acpi-dont-select-pm.patch
-implementation-of-acpi_video_get_next_level.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-arm-systemh-build-fix.patch
-cifs-sprintf-fix.patch
-git-drm.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-driver-for-silan-sc92031-netdev-include-fix.patch
-driver-for-silan-sc92031-netdev-fix-more.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-legacy-resource-fix-tidy.patch
-pci-disable-multithreaded-probing.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver-fix.patch
-git-qla3xxx-fixup.patch
-funsoft-is-bust-on-sparc.patch
-nokia-e70-is-an-unusual-device.patch
-fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-convert-i386-pda-code-to-use-%fs-fixes.patch
-add-memcpy_uncached_read-fix.patch
-add-memcpy_uncached_read-tidy.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+b44-fix-frequent-link-changes.patch
+git-net.patch
 
