@@ -1,88 +1,65 @@
 From: akpm@osdl.org
-Subject: + kill_pid_info-kill-acquired_tasklist_lock.patch added to -mm tree
-Date: Mon, 18 Dec 2006 16:44:12 -0800
-Message-ID: <200612190044.kBJ0iCRk018439@shell0.pdx.osdl.net>
+Subject: + make-jffs-depend-on-config_broken.patch added to -mm tree
+Date: Mon, 18 Dec 2006 16:44:54 -0800
+Message-ID: <200612190044.kBJ0isI1018468@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36282 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36296 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932521AbWLSAo1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 19:44:27 -0500
+	id S932517AbWLSAo5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 19:44:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ebiederm@xmission.com
+Cc: jwboyer@gmail.com
 
 
 The patch titled
-     kill_pid_info: kill acquired_tasklist_lock
+     Make JFFS depend on CONFIG_BROKEN
 has been added to the -mm tree.  Its filename is
-     kill_pid_info-kill-acquired_tasklist_lock.patch
+     make-jffs-depend-on-config_broken.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kill_pid_info: kill acquired_tasklist_lock
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Make JFFS depend on CONFIG_BROKEN
+From: "Josh Boyer" <jwboyer@gmail.com>
 
-Kill acquired_tasklist_lock, sig_needs_tasklist() is very cheap nowadays.
+Mark JFFS as broken and provide a warning to users that it is deprecated
+and scheduled for removal in 2.6.21
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Josh Boyer <jwboyer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/signal.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ fs/Kconfig |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock kernel/signal.c
---- a/kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock
-+++ a/kernel/signal.c
-@@ -1119,19 +1119,18 @@ kill_pg_info(int sig, struct siginfo *in
- int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
- {
- 	int error;
--	int acquired_tasklist_lock = 0;
- 	struct task_struct *p;
+diff -puN fs/Kconfig~make-jffs-depend-on-config_broken fs/Kconfig
+--- a/fs/Kconfig~make-jffs-depend-on-config_broken
++++ a/fs/Kconfig
+@@ -1198,13 +1198,16 @@ config EFS_FS
  
- 	rcu_read_lock();
--	if (unlikely(sig_needs_tasklist(sig))) {
-+	if (unlikely(sig_needs_tasklist(sig)))
- 		read_lock(&tasklist_lock);
--		acquired_tasklist_lock = 1;
--	}
+ config JFFS_FS
+ 	tristate "Journalling Flash File System (JFFS) support"
+-	depends on MTD && BLOCK
++	depends on MTD && BLOCK && BROKEN
+ 	help
+ 	  JFFS is the Journalling Flash File System developed by Axis
+ 	  Communications in Sweden, aimed at providing a crash/powerdown-safe
+ 	  file system for disk-less embedded devices. Further information is
+ 	  available at (<http://developer.axis.com/software/jffs/>).
+ 
++	  NOTE: This filesystem is deprecated and is scheduled for removal in
++	  2.6.21.  See Documentation/feature-removal-schedule.txt
 +
- 	p = pid_task(pid, PIDTYPE_PID);
- 	error = -ESRCH;
- 	if (p)
- 		error = group_send_sig_info(sig, info, p);
--	if (unlikely(acquired_tasklist_lock))
-+
-+	if (unlikely(sig_needs_tasklist(sig)))
- 		read_unlock(&tasklist_lock);
- 	rcu_read_unlock();
- 	return error;
+ config JFFS_FS_VERBOSE
+ 	int "JFFS debugging verbosity (0 = quiet, 3 = noisy)"
+ 	depends on JFFS_FS
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jwboyer@gmail.com are
 
-origin.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-vt-refactor-console-sak-processing.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+make-jffs-depend-on-config_broken.patch
 
