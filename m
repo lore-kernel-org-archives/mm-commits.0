@@ -1,163 +1,135 @@
 From: akpm@osdl.org
-Subject: + netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler.patch added to -mm tree
-Date: Mon, 18 Dec 2006 15:54:26 -0800
-Message-ID: <200612182354.kBINsQ5x016878@shell0.pdx.osdl.net>
+Subject: - char-isicom-fix-probe-race.patch removed from -mm tree
+Date: Mon, 18 Dec 2006 16:02:11 -0800
+Message-ID: <200612190002.kBJ02B6e017095@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60261 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:32811 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932318AbWLRXyh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 18:54:37 -0500
+	id S932377AbWLSACN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 19:02:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: romieu@fr.zoreil.com, aabdulla@nvidia.com, shemminger@osdl.org, zambrano@broadcom.com
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netpoll: drivers must not enable IRQ unconditionally in their NAPI handler
-has been added to the -mm tree.  Its filename is
-     netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler.patch
+     Char: isicom, fix probe race
+has been removed from the -mm tree.  Its filename was
+     char-isicom-fix-probe-race.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: netpoll: drivers must not enable IRQ unconditionally in their NAPI handler
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: Char: isicom, fix probe race
+From: Jiri Slaby <jirislaby@gmail.com>
 
-net/core/netpoll.c::netpoll_send_skb() calls the poll handler when it is
-available.  As netconsole can be used from almost any context, IRQ must not
-be enabled blindly in the NAPI handler of a driver which supports netpoll.
+Fix two race conditions in the probe function with mutex.
 
-b57bd06655a028aba7b92e1c19c2093e7fcfb341 fixed the issue for the
-8139too.c driver.
-
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Stephen Hemminger <shemminger@osdl.org>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Gary Zambrano <zambrano@broadcom.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/8139cp.c    |    6 ++++--
- drivers/net/b44.c       |    6 ++++--
- drivers/net/forcedeth.c |   11 +++++++----
- drivers/net/skge.c      |    5 +++--
- 4 files changed, 18 insertions(+), 10 deletions(-)
+ drivers/char/isicom.c |   28 +++++++++++++++++-----------
+ 1 files changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/8139cp.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler drivers/net/8139cp.c
---- a/drivers/net/8139cp.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler
-+++ a/drivers/net/8139cp.c
-@@ -617,13 +617,15 @@ rx_next:
- 	 * this round of polling
- 	 */
- 	if (rx_work) {
-+		unsigned long flags;
+diff -puN drivers/char/isicom.c~char-isicom-fix-probe-race drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-fix-probe-race
++++ a/drivers/char/isicom.c
+@@ -1732,22 +1732,25 @@ end:
+ /*
+  *	Insmod can set static symbols so keep these static
+  */
+-static int card;
++static unsigned int card_count;
+ 
+ static int __devinit isicom_probe(struct pci_dev *pdev,
+-	const struct pci_device_id *ent)
++				const struct pci_device_id *ent)
+ {
++	static DEFINE_MUTEX(probe_lock);
+ 	unsigned int ioaddr, signature, index;
+ 	int retval = -EPERM;
+-	u8 pciirq;
+ 	struct isi_board *board = NULL;
+ 
+-	if (card >= BOARD_COUNT)
++	mutex_lock(&probe_lock);
++	if (card_count >= BOARD_COUNT) {
++		mutex_unlock(&probe_lock);
+ 		goto err;
++	}
++	card_count++;
+ 
+ 	ioaddr = pci_resource_start(pdev, 3);
+ 	/* i.e at offset 0x1c in the PCI configuration register space. */
+-	pciirq = pdev->irq;
+ 	dev_info(&pdev->dev, "ISI PCI Card(Device ID 0x%x)\n", ent->device);
+ 
+ 	/* allot the first empty slot in the array */
+@@ -1759,8 +1762,9 @@ static int __devinit isicom_probe(struct
+ 
+ 	board->index = index;
+ 	board->base = ioaddr;
+-	board->irq = pciirq;
+-	card++;
++	board->irq = pdev->irq;
 +
- 		if (cpr16(IntrStatus) & cp_rx_intr_mask)
- 			goto rx_status_loop;
++	mutex_unlock(&probe_lock);
  
--		local_irq_disable();
-+		local_irq_save(flags);
- 		cpw16_f(IntrMask, cp_intr_mask);
- 		__netif_rx_complete(dev);
--		local_irq_enable();
-+		local_irq_restore(flags);
+ 	pci_set_drvdata(pdev, board);
  
- 		return 0;	/* done */
- 	}
-diff -puN drivers/net/b44.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler drivers/net/b44.c
---- a/drivers/net/b44.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler
-+++ a/drivers/net/b44.c
-@@ -879,12 +879,14 @@ static int b44_poll(struct net_device *n
- 	}
+@@ -1770,7 +1774,7 @@ static int __devinit isicom_probe(struct
+ 			"will be disabled.\n", board->base, board->base + 15,
+ 			index + 1);
+ 		retval = -EBUSY;
+-		goto err;
++		goto err_dec;
+  	}
  
- 	if (bp->istat & ISTAT_ERRORS) {
--		spin_lock_irq(&bp->lock);
-+		unsigned long flags;
-+
-+		spin_lock_irqsave(&bp->lock, flags);
- 		b44_halt(bp);
- 		b44_init_rings(bp);
- 		b44_init_hw(bp, 1);
- 		netif_wake_queue(bp->dev);
--		spin_unlock_irq(&bp->lock);
-+		spin_unlock_irqrestore(&bp->lock, flags);
- 		done = 1;
- 	}
- 
-diff -puN drivers/net/forcedeth.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler
-+++ a/drivers/net/forcedeth.c
-@@ -2576,14 +2576,15 @@ static int nv_napi_poll(struct net_devic
- 	int pkts, limit = min(*budget, dev->quota);
- 	struct fe_priv *np = netdev_priv(dev);
- 	u8 __iomem *base = get_hwbase(dev);
-+	unsigned long flags;
- 
- 	pkts = nv_rx_process(dev, limit);
- 
- 	if (nv_alloc_rx(dev)) {
--		spin_lock_irq(&np->lock);
-+		spin_lock_irqsave(&np->lock, flags);
- 		if (!np->in_shutdown)
- 			mod_timer(&np->oom_kick, jiffies + OOM_REFILL);
--		spin_unlock_irq(&np->lock);
-+		spin_unlock_irqrestore(&np->lock, flags);
- 	}
- 
- 	if (pkts < limit) {
-@@ -2591,13 +2592,15 @@ static int nv_napi_poll(struct net_devic
- 		netif_rx_complete(dev);
- 
- 		/* re-enable receive interrupts */
--		spin_lock_irq(&np->lock);
-+		spin_lock_irqsave(&np->lock, flags);
-+
- 		np->irqmask |= NVREG_IRQ_RX_ALL;
- 		if (np->msi_flags & NV_MSI_X_ENABLED)
- 			writel(NVREG_IRQ_RX_ALL, base + NvRegIrqMask);
- 		else
- 			writel(np->irqmask, base + NvRegIrqMask);
--		spin_unlock_irq(&np->lock);
-+
-+		spin_unlock_irqrestore(&np->lock, flags);
- 		return 0;
- 	} else {
- 		/* used up our quantum, so reschedule */
-diff -puN drivers/net/skge.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler drivers/net/skge.c
---- a/drivers/net/skge.c~netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler
-+++ a/drivers/net/skge.c
-@@ -2920,6 +2920,7 @@ static int skge_poll(struct net_device *
- 	struct skge_hw *hw = skge->hw;
- 	struct skge_ring *ring = &skge->rx_ring;
- 	struct skge_element *e;
-+	unsigned long flags;
- 	int to_do = min(dev->quota, *budget);
- 	int work_done = 0;
- 
-@@ -2957,12 +2958,12 @@ static int skge_poll(struct net_device *
- 	if (work_done >=  to_do)
- 		return 1; /* not done */
- 
--	spin_lock_irq(&hw->hw_lock);
-+	spin_lock_irqsave(&hw->hw_lock, flags);
- 	__netif_rx_complete(dev);
- 	hw->intr_mask |= irqmask[skge->port];
-   	skge_write32(hw, B0_IMSK, hw->intr_mask);
- 	skge_read32(hw, B0_IMSK);
--	spin_unlock_irq(&hw->hw_lock);
-+	spin_unlock_irqrestore(&hw->hw_lock, flags);
- 
- 	return 0;
+ 	retval = request_irq(board->irq, isicom_interrupt,
+@@ -1799,8 +1803,10 @@ errunri:
+ 	free_irq(board->irq, board);
+ errunrr:
+ 	pci_release_region(pdev, 3);
+-err:
++err_dec:
++	card_count--;
+ 	board->base = 0;
++err:
+ 	return retval;
  }
+ 
+@@ -1814,6 +1820,8 @@ static void __devexit isicom_remove(stru
+ 
+ 	free_irq(board->irq, board);
+ 	pci_release_region(pdev, 3);
++	card_count--;
++	board->base = 0;
+ }
+ 
+ static int __init isicom_init(void)
+@@ -1821,8 +1829,6 @@ static int __init isicom_init(void)
+ 	int retval, idx, channel;
+ 	struct isi_port *port;
+ 
+-	card = 0;
+-
+ 	for(idx = 0; idx < BOARD_COUNT; idx++) {
+ 		port = &isi_ports[idx * 16];
+ 		isi_card[idx].ports = port;
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-netpoll-drivers-must-not-enable-irq-unconditionally-in-their-napi-handler.patch
-git-r8169.patch
-git-chelsio.patch
-git-qla3xxx.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-isicom-remove-tty_hangwakeup-bottomhalves.patch
+mxser-remove-ambiguous-redefinition-of-init_work.patch
+char-isicom-fix-locking-in-isr.patch
+char-isicom-fix-probe-race.patch
+char-isicom-augment-card_reset.patch
+char-isicom-check-card-state-in-isr.patch
+char-isicom-support-higher-rates.patch
+char-tty_wakeup-cleanup.patch
+shrink_slab-handle-bad-shrinkers.patch
 
