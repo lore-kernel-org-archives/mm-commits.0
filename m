@@ -1,57 +1,60 @@
 From: akpm@osdl.org
-Subject: - initializer-entry-defined-twice-in-pata_rz1000.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 12:31:45 -0800
-Message-ID: <200612192031.kBJKVjmv009511@shell0.pdx.osdl.net>
+Subject: + libata-wrong-sizeof-for-buffer.patch added to -mm tree
+Date: Tue, 19 Dec 2006 12:33:12 -0800
+Message-ID: <200612192033.kBJKXCT1009536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60634 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60746 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932936AbWLSUcL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:32:11 -0500
+	id S932942AbWLSUdb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:33:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kernel@irasnyder.com, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fiodor.f.suietov@intel.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     initializer entry defined twice in pata_rz1000
-has been removed from the -mm tree.  Its filename was
-     initializer-entry-defined-twice-in-pata_rz1000.patch
+     libata: wrong sizeof for BUFFER
+has been added to the -mm tree.  Its filename is
+     libata-wrong-sizeof-for-buffer.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: initializer entry defined twice in pata_rz1000
-From: Ira Snyder <kernel@irasnyder.com>
+Subject: libata: wrong sizeof for BUFFER
+From: Fiodor Suietov <fiodor.f.suietov@intel.com>
 
-This removes the extra definition of the .error_handler member
-in the pata_rz1000 driver.
+I have reproduced the AE_AML_BUFFER_LIMIT exception mentioned in
+<http://bugzilla.kernel.org/show_bug.cgi?id=7689> basing on the SSDT ASL
+code and libata ata_acpi_push_id() code.  There is an oversight in
+ata_acpi_push_id() causing the exception.  The following update fixes it:
 
-Signed-off-by: Ira W. Snyder <kernel@irasnyder.com>
+Signed-off-by: Fiodor Suietov <fiodor.f.suietov@intel.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/pata_rz1000.c |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/ata/libata-acpi.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_rz1000.c~initializer-entry-defined-twice-in-pata_rz1000 drivers/ata/pata_rz1000.c
---- a/drivers/ata/pata_rz1000.c~initializer-entry-defined-twice-in-pata_rz1000
-+++ a/drivers/ata/pata_rz1000.c
-@@ -105,8 +105,6 @@ static struct ata_port_operations rz1000
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
+diff -puN drivers/ata/libata-acpi.c~libata-wrong-sizeof-for-buffer drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~libata-wrong-sizeof-for-buffer
++++ a/drivers/ata/libata-acpi.c
+@@ -672,7 +672,7 @@ int ata_acpi_push_id(struct ata_port *ap
+ 	input.count = 1;
+ 	input.pointer = in_params;
+ 	in_params[0].type = ACPI_TYPE_BUFFER;
+-	in_params[0].buffer.length = sizeof(atadev->id[0] * ATA_ID_WORDS);
++	in_params[0].buffer.length = sizeof(atadev->id[0]) * ATA_ID_WORDS;
+ 	in_params[0].buffer.pointer = (u8 *)atadev->id;
+ 	/* Output buffer: _SDD has no output */
  
--	.error_handler	= rz1000_error_handler,
--
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
- 	.bmdma_stop	= ata_bmdma_stop,
 _
 
-Patches currently in -mm which might be from kernel@irasnyder.com are
+Patches currently in -mm which might be from fiodor.f.suietov@intel.com are
 
-origin.patch
-initializer-entry-defined-twice-in-pata_rz1000.patch
+libata-wrong-sizeof-for-buffer.patch
 
