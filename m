@@ -1,51 +1,68 @@
 From: akpm@osdl.org
-Subject: - pidhash-temporary-debug-checks.patch removed from -mm tree
-Date: Mon, 18 Dec 2006 16:43:33 -0800
-Message-ID: <200612190043.kBJ0hXMe018415@shell0.pdx.osdl.net>
+Subject: + kill_pid_info-kill-acquired_tasklist_lock.patch added to -mm tree
+Date: Mon, 18 Dec 2006 16:44:12 -0800
+Message-ID: <200612190044.kBJ0iCRk018439@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36215 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36282 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932518AbWLSAno (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 19:43:44 -0500
+	id S932521AbWLSAo1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 19:44:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, ebiederm@xmission.com
 
 
 The patch titled
-     pidhash: temporary debug checks
-has been removed from the -mm tree.  Its filename was
-     pidhash-temporary-debug-checks.patch
+     kill_pid_info: kill acquired_tasklist_lock
+has been added to the -mm tree.  Its filename is
+     kill_pid_info-kill-acquired_tasklist_lock.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pidhash: temporary debug checks
+Subject: kill_pid_info: kill acquired_tasklist_lock
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This is for testing in -mm tree only.  Ensure that we really do not use pid ==
-0.
+Kill acquired_tasklist_lock, sig_needs_tasklist() is very cheap nowadays.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/pid.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/signal.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN kernel/pid.c~pidhash-temporary-debug-checks kernel/pid.c
---- a/kernel/pid.c~pidhash-temporary-debug-checks
-+++ a/kernel/pid.c
-@@ -240,6 +240,7 @@ struct pid * fastcall find_pid(int nr)
+diff -puN kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock kernel/signal.c
+--- a/kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock
++++ a/kernel/signal.c
+@@ -1119,19 +1119,18 @@ kill_pg_info(int sig, struct siginfo *in
+ int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
+ {
+ 	int error;
+-	int acquired_tasklist_lock = 0;
+ 	struct task_struct *p;
  
- 	hlist_for_each_entry_rcu(pid, elem,
- 			&pid_hash[pid_hashfn(nr)], pid_chain) {
-+		WARN_ON(!pid->nr); /* to be removed soon */
- 		if (pid->nr == nr)
- 			return pid;
- 	}
+ 	rcu_read_lock();
+-	if (unlikely(sig_needs_tasklist(sig))) {
++	if (unlikely(sig_needs_tasklist(sig)))
+ 		read_lock(&tasklist_lock);
+-		acquired_tasklist_lock = 1;
+-	}
++
+ 	p = pid_task(pid, PIDTYPE_PID);
+ 	error = -ESRCH;
+ 	if (p)
+ 		error = group_send_sig_info(sig, info, p);
+-	if (unlikely(acquired_tasklist_lock))
++
++	if (unlikely(sig_needs_tasklist(sig)))
+ 		read_unlock(&tasklist_lock);
+ 	rcu_read_unlock();
+ 	return error;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -55,6 +72,7 @@ doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
 vt-refactor-console-sak-processing.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+kill_pid_info-kill-acquired_tasklist_lock.patch
 tty-make-__proc_set_tty-static.patch
 tty-clarify-disassociate_ctty.patch
 tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
@@ -67,5 +85,4 @@ tty-update-the-tty-layer-to-work-with-struct-pid.patch
 pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
 pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
 pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-pidhash-temporary-debug-checks.patch
 
