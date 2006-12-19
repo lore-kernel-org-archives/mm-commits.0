@@ -1,79 +1,123 @@
 From: akpm@osdl.org
-Subject: + fix-warnings-in-kobjecth-with-hotplug=n.patch added to -mm tree
-Date: Mon, 18 Dec 2006 16:56:35 -0800
-Message-ID: <200612190056.kBJ0uZ8G018852@shell0.pdx.osdl.net>
+Subject: + char-isicom-correct-probing-removing.patch added to -mm tree
+Date: Mon, 18 Dec 2006 16:57:26 -0800
+Message-ID: <200612190057.kBJ0vQ9D018865@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37300 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37335 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932556AbWLSA4u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Dec 2006 19:56:50 -0500
+	id S932569AbWLSA53 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 18 Dec 2006 19:57:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     fix warnings in kobject.h with HOTPLUG=n
+     Char: isicom, correct probing/removing
 has been added to the -mm tree.  Its filename is
-     fix-warnings-in-kobjecth-with-hotplug=n.patch
+     char-isicom-correct-probing-removing.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix warnings in kobject.h with HOTPLUG=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Char: isicom, correct probing/removing
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Fix inline kobject functions to return 0 when CONFIG_HOTPLUG=n.
+Don't forget to decrease card_count in fail paths and in remove function. 
+Also null board->base in such cases to point out, that this structure is
+unused and thus can be reassigned.
 
-include/linux/kobject.h: In function 'kobject_uevent':
-include/linux/kobject.h:277: warning: no return statement in function returning non-void
-include/linux/kobject.h: In function 'kobject_uevent_env':
-include/linux/kobject.h:281: warning: no return statement in function returning non-void
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/kobject.h |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/char/isicom.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/kobject.h~fix-warnings-in-kobjecth-with-hotplug=n include/linux/kobject.h
---- a/include/linux/kobject.h~fix-warnings-in-kobjecth-with-hotplug=n
-+++ a/include/linux/kobject.h
-@@ -274,11 +274,12 @@ int add_uevent_var(char **envp, int num_
- 			const char *format, ...)
- 	__attribute__((format (printf, 7, 8)));
- #else
--static inline int kobject_uevent(struct kobject *kobj, enum kobject_action action) { }
-+static inline int kobject_uevent(struct kobject *kobj, enum kobject_action action)
-+{ return 0; }
- static inline int kobject_uevent_env(struct kobject *kobj,
- 				      enum kobject_action action,
- 				      char *envp[])
--{ }
-+{ return 0; }
+diff -puN drivers/char/isicom.c~char-isicom-correct-probing-removing drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-correct-probing-removing
++++ a/drivers/char/isicom.c
+@@ -1747,7 +1747,7 @@ end:
+ /*
+  *	Insmod can set static symbols so keep these static
+  */
+-static int card;
++static unsigned int card_count;
  
- static inline int add_uevent_var(char **envp, int num_envp, int *cur_index,
- 				      char *buffer, int buffer_size, int *cur_len, 
+ static int __devinit isicom_probe(struct pci_dev *pdev,
+ 	const struct pci_device_id *ent)
+@@ -1757,7 +1757,7 @@ static int __devinit isicom_probe(struct
+ 	u8 pciirq;
+ 	struct isi_board *board = NULL;
+ 
+-	if (card >= BOARD_COUNT)
++	if (card_count >= BOARD_COUNT)
+ 		goto err;
+ 
+ 	ioaddr = pci_resource_start(pdev, 3);
+@@ -1775,7 +1775,7 @@ static int __devinit isicom_probe(struct
+ 	board->index = index;
+ 	board->base = ioaddr;
+ 	board->irq = pciirq;
+-	card++;
++	card_count++;
+ 
+ 	pci_set_drvdata(pdev, board);
+ 
+@@ -1785,7 +1785,7 @@ static int __devinit isicom_probe(struct
+ 			"will be disabled.\n", board->base, board->base + 15,
+ 			index + 1);
+ 		retval = -EBUSY;
+-		goto err;
++		goto errdec;
+  	}
+ 
+ 	retval = request_irq(board->irq, isicom_interrupt,
+@@ -1814,8 +1814,10 @@ errunri:
+ 	free_irq(board->irq, board);
+ errunrr:
+ 	pci_release_region(pdev, 3);
+-err:
++errdec:
+ 	board->base = 0;
++	card_count--;
++err:
+ 	return retval;
+ }
+ 
+@@ -1829,6 +1831,8 @@ static void __devexit isicom_remove(stru
+ 
+ 	free_irq(board->irq, board);
+ 	pci_release_region(pdev, 3);
++	board->base = 0;
++	card_count--;
+ }
+ 
+ static int __init isicom_init(void)
+@@ -1836,8 +1840,6 @@ static int __init isicom_init(void)
+ 	int retval, idx, channel;
+ 	struct isi_port *port;
+ 
+-	card = 0;
+-
+ 	for(idx = 0; idx < BOARD_COUNT; idx++) {
+ 		port = &isi_ports[idx * 16];
+ 		isi_card[idx].ports = port;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-fix-kernel-doc-warnings-in-2620-rc1.patch
-add-a-new-section-to-codingstyle-promoting-include-linux-kernelh.patch
-fix-warnings-in-kobjecth-with-hotplug=n.patch
-git-acpi.patch
-git-alsa.patch
-cpufreq-select-consistently-re-2619-rc5-mm1.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-parisc-fix-module_param-iommu-permission.patch
-scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
-reiser4-use-null-for-pointers.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-profile_likely-export-do_check_likely.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-isicom-remove-tty_hangwakeup-bottomhalves.patch
+mxser-remove-ambiguous-redefinition-of-init_work.patch
+char-isicom-fix-locking-in-isr.patch
+char-isicom-augment-card_reset.patch
+char-isicom-check-card-state-in-isr.patch
+char-isicom-support-higher-rates.patch
+char-isicom-correct-probing-removing.patch
+char-tty_wakeup-cleanup.patch
+shrink_slab-handle-bad-shrinkers.patch
 
