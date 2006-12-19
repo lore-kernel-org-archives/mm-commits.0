@@ -1,60 +1,82 @@
 From: akpm@osdl.org
-Subject: + libata-wrong-sizeof-for-buffer.patch added to -mm tree
-Date: Tue, 19 Dec 2006 12:33:12 -0800
-Message-ID: <200612192033.kBJKXCT1009536@shell0.pdx.osdl.net>
+Subject: - libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 12:32:24 -0800
+Message-ID: <200612192032.kBJKWO1q009520@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60746 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60781 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932942AbWLSUdb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:33:31 -0500
+	id S932891AbWLSUeN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:34:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fiodor.f.suietov@intel.com, htejun@gmail.com, jeff@garzik.org
+To: htejun@gmail.com, arnd.bergmann@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: wrong sizeof for BUFFER
-has been added to the -mm tree.  Its filename is
-     libata-wrong-sizeof-for-buffer.patch
+     libata: don't initialize sg in ata_exec_internal() if DMA_NONE
+has been removed from the -mm tree.  Its filename was
+     libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: wrong sizeof for BUFFER
-From: Fiodor Suietov <fiodor.f.suietov@intel.com>
+Subject: libata: don't initialize sg in ata_exec_internal() if DMA_NONE
+From: Tejun Heo <htejun@gmail.com>
 
-I have reproduced the AE_AML_BUFFER_LIMIT exception mentioned in
-<http://bugzilla.kernel.org/show_bug.cgi?id=7689> basing on the SSDT ASL
-code and libata ata_acpi_push_id() code.  There is an oversight in
-ata_acpi_push_id() causing the exception.  The following update fixes it:
+Calling sg_init_one() with NULL buf causes oops on certain configurations. 
+Don't initialize sg in ata_exec_internal() if DMA_NONE and make the
+function complain if @buf is NULL when dma_dir isn't DMA_NONE.  While at
+it, fix comment.
 
-Signed-off-by: Fiodor Suietov <fiodor.f.suietov@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+The problem is discovered and initial patch was submitted by Arnd Bergmann.
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-acpi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-core.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-wrong-sizeof-for-buffer drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-wrong-sizeof-for-buffer
-+++ a/drivers/ata/libata-acpi.c
-@@ -672,7 +672,7 @@ int ata_acpi_push_id(struct ata_port *ap
- 	input.count = 1;
- 	input.pointer = in_params;
- 	in_params[0].type = ACPI_TYPE_BUFFER;
--	in_params[0].buffer.length = sizeof(atadev->id[0] * ATA_ID_WORDS);
-+	in_params[0].buffer.length = sizeof(atadev->id[0]) * ATA_ID_WORDS;
- 	in_params[0].buffer.pointer = (u8 *)atadev->id;
- 	/* Output buffer: _SDD has no output */
+diff -puN drivers/ata/libata-core.c~libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2 drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2
++++ a/drivers/ata/libata-core.c
+@@ -1168,7 +1168,7 @@ void ata_qc_complete_internal(struct ata
+ }
  
+ /**
+- *	ata_exec_internal_sg - execute libata internal command
++ *	ata_exec_internal - execute libata internal command
+  *	@dev: Device to which the command is sent
+  *	@tf: Taskfile registers for the command and the result
+  *	@cdb: CDB for packet command
+@@ -1357,11 +1357,17 @@ unsigned ata_exec_internal(struct ata_de
+ 			   struct ata_taskfile *tf, const u8 *cdb,
+ 			   int dma_dir, void *buf, unsigned int buflen)
+ {
+-	struct scatterlist sg;
++	struct scatterlist *psg = NULL, sg;
++	unsigned int n_elem = 0;
+ 
+-	sg_init_one(&sg, buf, buflen);
++	if (dma_dir != DMA_NONE) {
++		WARN_ON(!buf);
++		sg_init_one(&sg, buf, buflen);
++		psg = &sg;
++		n_elem++;
++	}
+ 
+-	return ata_exec_internal_sg(dev, tf, cdb, dma_dir, &sg, 1);
++	return ata_exec_internal_sg(dev, tf, cdb, dma_dir, psg, n_elem);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from fiodor.f.suietov@intel.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
+origin.patch
+libata-dont-initialize-sg-in-ata_exec_internal-if-dma_none-take-2.patch
 libata-wrong-sizeof-for-buffer.patch
 
