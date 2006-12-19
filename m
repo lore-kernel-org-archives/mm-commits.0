@@ -1,80 +1,100 @@
 From: akpm@osdl.org
-Subject: + char-hid-ff-support-yet-another-wheel.patch added to -mm tree
-Date: Tue, 19 Dec 2006 12:34:17 -0800
-Message-ID: <200612192034.kBJKYHsf009565@shell0.pdx.osdl.net>
+Subject: - ata-fix-platform_device_register_simple-error-check.patch removed from -mm tree
+Date: Tue, 19 Dec 2006 12:31:38 -0800
+Message-ID: <200612192031.kBJKVcQO009506@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60809 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60860 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932942AbWLSUe2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:34:28 -0500
+	id S932941AbWLSUfS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:35:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, dtor@mail.ru
+To: akinobu.mita@gmail.com, alan@lxorguk.ukuu.org.uk, jgarzik@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: hid-ff, support yet another wheel
-has been added to the -mm tree.  Its filename is
-     char-hid-ff-support-yet-another-wheel.patch
+     ata: fix platform_device_register_simple() error check
+has been removed from the -mm tree.  Its filename was
+     ata-fix-platform_device_register_simple-error-check.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: hid-ff, support yet another wheel
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: ata: fix platform_device_register_simple() error check
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-hid-ff, support yet another wheel
+The return value of platform_device_register_simple() should be checked
+by IS_ERR().
 
-Add support for Logitech Momo racing wheel (046d:ca03) to hid force
-feedback.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/input/hid-ff.c   |    1 +
- drivers/usb/input/hid-lgff.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/ata/pata_legacy.c  |    4 +++-
+ drivers/ata/pata_qdi.c     |    4 ++--
+ drivers/ata/pata_winbond.c |    4 ++--
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/usb/input/hid-ff.c~char-hid-ff-support-yet-another-wheel drivers/usb/input/hid-ff.c
---- a/drivers/usb/input/hid-ff.c~char-hid-ff-support-yet-another-wheel
-+++ a/drivers/usb/input/hid-ff.c
-@@ -56,6 +56,7 @@ static struct hid_ff_initializer inits[]
- 	{ 0x46d, 0xc283, hid_lgff_init }, /* Logitech Wingman Force 3d */
- 	{ 0x46d, 0xc295, hid_lgff_init }, /* Logitech MOMO force wheel */
- 	{ 0x46d, 0xc219, hid_lgff_init }, /* Logitech Cordless rumble pad 2 */
-+	{ 0x46d, 0xca03, hid_lgff_init }, /* Logitech MOMO force wheel */
- #endif
- #ifdef CONFIG_THRUSTMASTER_FF
- 	{ 0x44f, 0xb304, hid_tmff_init },
-diff -puN drivers/usb/input/hid-lgff.c~char-hid-ff-support-yet-another-wheel drivers/usb/input/hid-lgff.c
---- a/drivers/usb/input/hid-lgff.c~char-hid-ff-support-yet-another-wheel
-+++ a/drivers/usb/input/hid-lgff.c
-@@ -52,6 +52,7 @@ static const struct device_type devices[
- 	{ 0x046d, 0xc211, ff_rumble },
- 	{ 0x046d, 0xc219, ff_rumble },
- 	{ 0x046d, 0xc283, ff_joystick },
-+	{ 0x046d, 0xca03, ff_joystick },
- 	{ 0x0000, 0x0000, ff_joystick }
- };
+diff -puN drivers/ata/pata_legacy.c~ata-fix-platform_device_register_simple-error-check drivers/ata/pata_legacy.c
+--- a/drivers/ata/pata_legacy.c~ata-fix-platform_device_register_simple-error-check
++++ a/drivers/ata/pata_legacy.c
+@@ -698,8 +698,10 @@ static __init int legacy_init_one(int po
+ 		goto fail_io;
  
+ 	pdev = platform_device_register_simple(DRV_NAME, nr_legacy_host, NULL, 0);
+-	if (pdev == NULL)
++	if (IS_ERR(pdev)) {
++		ret = PTR_ERR(pdev);
+ 		goto fail_dev;
++	}
+ 
+ 	if (ht6560a & mask) {
+ 		ops = &ht6560a_port_ops;
+diff -puN drivers/ata/pata_qdi.c~ata-fix-platform_device_register_simple-error-check drivers/ata/pata_qdi.c
+--- a/drivers/ata/pata_qdi.c~ata-fix-platform_device_register_simple-error-check
++++ a/drivers/ata/pata_qdi.c
+@@ -247,8 +247,8 @@ static __init int qdi_init_one(unsigned 
+ 	 */
+ 
+ 	pdev = platform_device_register_simple(DRV_NAME, nr_qdi_host, NULL, 0);
+-	if (pdev == NULL)
+-		return -ENOMEM;
++	if (IS_ERR(pdev))
++		return PTR_ERR(pdev);
+ 
+ 	memset(&ae, 0, sizeof(struct ata_probe_ent));
+ 	INIT_LIST_HEAD(&ae.node);
+diff -puN drivers/ata/pata_winbond.c~ata-fix-platform_device_register_simple-error-check drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~ata-fix-platform_device_register_simple-error-check
++++ a/drivers/ata/pata_winbond.c
+@@ -206,8 +206,8 @@ static __init int winbond_init_one(unsig
+ 			 */
+ 
+ 			pdev = platform_device_register_simple(DRV_NAME, nr_winbond_host, NULL, 0);
+-			if (pdev == NULL)
+-				return -ENOMEM;
++			if (IS_ERR(pdev))
++				return PTR_ERR(pdev);
+ 
+ 			memset(&ae, 0, sizeof(struct ata_probe_ent));
+ 			INIT_LIST_HEAD(&ae.node);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-char-hid-ff-support-yet-another-wheel.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-isicom-remove-tty_hangwakeup-bottomhalves.patch
-mxser-remove-ambiguous-redefinition-of-init_work.patch
-char-isicom-fix-locking-in-isr.patch
-char-isicom-augment-card_reset.patch
-char-isicom-check-card-state-in-isr.patch
-char-isicom-support-higher-rates.patch
-char-isicom-correct-probing-removing.patch
-char-tty_wakeup-cleanup.patch
-shrink_slab-handle-bad-shrinkers.patch
+origin.patch
+acpi-fix-single-linked-list-manipulation.patch
+acpi-processor-prevent-loading-module-on-failures.patch
+git-alsa.patch
+audit-fix-kstrdup-error-check.patch
+git-drm.patch
+ata-fix-platform_device_register_simple-error-check.patch
+git-mtd.patch
+net-use-bitrev8.patch
+gss_spkm3-fix-error-handling-in-module-init.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+iscsi-fix-crypto_alloc_hash-error-check.patch
 
