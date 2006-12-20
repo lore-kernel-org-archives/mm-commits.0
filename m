@@ -1,59 +1,70 @@
 From: akpm@osdl.org
-Subject: + schedule_timeout-improve-warning-message.patch added to -mm tree
-Date: Tue, 19 Dec 2006 17:59:03 -0800
-Message-ID: <200612200159.kBK1x38M016692@shell0.pdx.osdl.net>
+Subject: + down_write-preserve-local-irqs.patch added to -mm tree
+Date: Wed, 20 Dec 2006 02:38:23 -0800
+Message-ID: <200612201038.kBKAcN4L026466@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53492 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53015 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932949AbWLTB7L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 20:59:11 -0500
+	id S964784AbWLTKid (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 05:38:33 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBKAcN2J005618
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2006 02:38:24 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, kylewong@southa.com
+Cc: akpm@osdl.org
 
 
 The patch titled
-     schedule_timeout(): improve warning message
+     down_write(): preserve local irqs
 has been added to the -mm tree.  Its filename is
-     schedule_timeout-improve-warning-message.patch
+     down_write-preserve-local-irqs.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: schedule_timeout(): improve warning message
+Subject: down_write(): preserve local irqs
 From: Andrew Morton <akpm@osdl.org>
 
-Kyle is hitting this warning, and we don't have a clue what it's caused by. 
-Add the obligatory dump_stack().
-
-Cc: kyle <kylewong@southa.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/timer.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/rwsem-spinlock.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/timer.c~schedule_timeout-improve-warning-message kernel/timer.c
---- a/kernel/timer.c~schedule_timeout-improve-warning-message
-+++ a/kernel/timer.c
-@@ -1344,11 +1344,10 @@ fastcall signed long __sched schedule_ti
- 		 * should never happens anyway). You just have the printk()
- 		 * that will tell you if something is gone wrong and where.
- 		 */
--		if (timeout < 0)
--		{
-+		if (timeout < 0) {
- 			printk(KERN_ERR "schedule_timeout: wrong timeout "
--				"value %lx from %p\n", timeout,
--				__builtin_return_address(0));
-+				"value %lx\n", timeout);
-+			dump_stack();
- 			current->state = TASK_RUNNING;
- 			goto out;
- 		}
+diff -puN lib/rwsem-spinlock.c~down_write-preserve-local-irqs lib/rwsem-spinlock.c
+--- a/lib/rwsem-spinlock.c~down_write-preserve-local-irqs
++++ a/lib/rwsem-spinlock.c
+@@ -195,13 +195,14 @@ void fastcall __sched __down_write_neste
+ {
+ 	struct rwsem_waiter waiter;
+ 	struct task_struct *tsk;
++	unsigned long flags;
+ 
+-	spin_lock_irq(&sem->wait_lock);
++	spin_lock_irqsave(&sem->wait_lock, flags);
+ 
+ 	if (sem->activity == 0 && list_empty(&sem->wait_list)) {
+ 		/* granted */
+ 		sem->activity = -1;
+-		spin_unlock_irq(&sem->wait_lock);
++		spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 		goto out;
+ 	}
+ 
+@@ -216,7 +217,7 @@ void fastcall __sched __down_write_neste
+ 	list_add_tail(&waiter.list, &sem->wait_list);
+ 
+ 	/* we don't need to touch the semaphore struct anymore */
+-	spin_unlock_irq(&sem->wait_lock);
++	spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 
+ 	/* wait to be given the lock */
+ 	for (;;) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -63,6 +74,8 @@ try_to_free_buffers-dont-clear-pte-dirty-bits.patch
 rtc-warning-fix.patch
 fix-vm_events_fold_cpu-build-breakage-fix.patch
 smc911-workqueue-fixes.patch
+schedule_timeout-improve-warning-message.patch
+down_write-preserve-local-irqs.patch
 shrink_all_memory-fix-lru_pages-handling.patch
 build-compileh-earlier.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
@@ -175,5 +188,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-schedule_timeout-improve-warning-message.patch
 
