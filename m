@@ -1,69 +1,179 @@
 From: akpm@osdl.org
-Subject: - i386-more-ioapic-checks.patch removed from -mm tree
-Date: Tue, 19 Dec 2006 13:57:00 -0800
-Message-ID: <200612192157.kBJLv0qg011983@shell0.pdx.osdl.net>
+Subject: + schedule_timeout-improve-warning-message.patch added to -mm tree
+Date: Tue, 19 Dec 2006 17:59:03 -0800
+Message-ID: <200612200159.kBK1x38M016692@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39188 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53492 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933032AbWLSWAn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Dec 2006 17:00:43 -0500
+	id S932949AbWLTB7L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 19 Dec 2006 20:59:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 76306.1226@compuserve.com, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, kylewong@southa.com
 
 
 The patch titled
-     i386: more ioapic checks
-has been removed from the -mm tree.  Its filename was
-     i386-more-ioapic-checks.patch
+     schedule_timeout(): improve warning message
+has been added to the -mm tree.  Its filename is
+     schedule_timeout-improve-warning-message.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: i386: more ioapic checks
-From: Chuck Ebbert <76306.1226@compuserve.com>
+Subject: schedule_timeout(): improve warning message
+From: Andrew Morton <akpm@osdl.org>
 
-Coverity reports apic numbers are being passed to functions without
-checking to see if they are legal.
+Kyle is hitting this warning, and we don't have a clue what it's caused by. 
+Add the obligatory dump_stack().
 
-(This is Kernel Bugzilla #6188.)
-
-Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: kyle <kylewong@southa.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/io_apic.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/timer.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/io_apic.c~i386-more-ioapic-checks arch/i386/kernel/io_apic.c
---- a/arch/i386/kernel/io_apic.c~i386-more-ioapic-checks
-+++ a/arch/i386/kernel/io_apic.c
-@@ -2265,13 +2265,17 @@ static inline void __init check_timer(vo
- 				clear_IO_APIC_pin(0, pin1);
- 			return;
+diff -puN kernel/timer.c~schedule_timeout-improve-warning-message kernel/timer.c
+--- a/kernel/timer.c~schedule_timeout-improve-warning-message
++++ a/kernel/timer.c
+@@ -1344,11 +1344,10 @@ fastcall signed long __sched schedule_ti
+ 		 * should never happens anyway). You just have the printk()
+ 		 * that will tell you if something is gone wrong and where.
+ 		 */
+-		if (timeout < 0)
+-		{
++		if (timeout < 0) {
+ 			printk(KERN_ERR "schedule_timeout: wrong timeout "
+-				"value %lx from %p\n", timeout,
+-				__builtin_return_address(0));
++				"value %lx\n", timeout);
++			dump_stack();
+ 			current->state = TASK_RUNNING;
+ 			goto out;
  		}
--		clear_IO_APIC_pin(apic1, pin1);
-+		if (apic1 == -1)
-+			WARN_ON_ONCE(1);
-+		else
-+			clear_IO_APIC_pin(apic1, pin1);
-+
- 		printk(KERN_ERR "..MP-BIOS bug: 8254 timer not connected to "
- 				"IO-APIC\n");
- 	}
- 
- 	printk(KERN_INFO "...trying to set up timer (IRQ0) through the 8259A ... ");
--	if (pin2 != -1) {
-+	if (pin2 != -1 && apic2 != -1) {
- 		printk("\n..... (found pin %d) ...", pin2);
- 		/*
- 		 * legacy devices should be connected to IO APIC #0
 _
 
-Patches currently in -mm which might be from 76306.1226@compuserve.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-i386-more-ioapic-checks.patch
+origin.patch
+try_to_free_buffers-dont-clear-pte-dirty-bits.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+acpi-dont-select-pm.patch
+implementation-of-acpi_video_get_next_level.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+arm-systemh-build-fix.patch
+cifs-sprintf-fix.patch
+git-drm.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-libata-all.patch
+pata_cs5530-suspend-resume-support-tweak.patch
+pata_via-suspend-resume-support-fix.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+driver-for-silan-sc92031-netdev.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-legacy-resource-fix.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+fix-gregkh-usb-usb-ehci-hcd-add-shadow-budget-code.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+schedule_timeout-improve-warning-message.patch
 
