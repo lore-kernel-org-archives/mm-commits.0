@@ -1,99 +1,116 @@
 From: akpm@osdl.org
-Subject: + alsa-soc-wm8750-fix.patch added to -mm tree
-Date: Wed, 20 Dec 2006 21:47:50 -0800
-Message-ID: <200612210547.kBL5lono016950@shell0.pdx.osdl.net>
+Subject: + ptrace-fix-efl_offset-value-according-to-i386-pda-changes.patch added to -mm tree
+Date: Wed, 20 Dec 2006 21:58:47 -0800
+Message-ID: <200612210558.kBL5wlhj017111@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40505 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40818 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422739AbWLUFr6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 00:47:58 -0500
+	id S1422750AbWLUF6z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 00:58:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: e.ilkov@gmail.com, perex@suse.cz, tiwai@suse.de
+Cc: jeremy@goop.org, ak@suse.de, deweerdt@free.fr
 
 
 The patch titled
-     alsa: soc wm8750 fix
+     ptrace: Fix EFL_OFFSET value according to i386 pda changes
 has been added to the -mm tree.  Its filename is
-     alsa-soc-wm8750-fix.patch
+     ptrace-fix-efl_offset-value-according-to-i386-pda-changes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alsa: soc wm8750 fix
-From: "Eugene Ilkov" <e.ilkov@gmail.com>
+Subject: ptrace: Fix EFL_OFFSET value according to i386 pda changes
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-There was some INIT_WORK related changes, here is patch against wm8750
-codec driver.  Tested on sharp sl-c1000
+-ENOCHANGELOG.
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Frederik Deweerdt <deweerdt@free.fr>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/soc/codecs/wm8750.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ arch/i386/kernel/ptrace.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN sound/soc/codecs/wm8750.c~alsa-soc-wm8750-fix sound/soc/codecs/wm8750.c
---- a/sound/soc/codecs/wm8750.c~alsa-soc-wm8750-fix
-+++ a/sound/soc/codecs/wm8750.c
-@@ -51,8 +51,6 @@
- #define warn(format, arg...) \
- 	printk(KERN_WARNING AUDIO_NAME ": " format "\n" , ## arg)
- 
--static struct work_struct wm8750_dapm_work;
--
+diff -puN arch/i386/kernel/ptrace.c~ptrace-fix-efl_offset-value-according-to-i386-pda-changes arch/i386/kernel/ptrace.c
+--- a/arch/i386/kernel/ptrace.c~ptrace-fix-efl_offset-value-according-to-i386-pda-changes
++++ a/arch/i386/kernel/ptrace.c
+@@ -45,7 +45,7 @@
  /*
-  * wm8750 register cache
-  * We can't read the WM8750 register space when we
-@@ -1000,9 +998,11 @@ struct snd_soc_codec_dai wm8750_dai = {
- };
- EXPORT_SYMBOL_GPL(wm8750_dai);
+  * Offset of eflags on child stack..
+  */
+-#define EFL_OFFSET ((EFL-2)*4-sizeof(struct pt_regs))
++#define EFL_OFFSET offsetof(struct pt_regs, eflags)
  
--static void wm8750_work(void *data)
-+static void wm8750_work(struct work_struct *work)
+ static inline struct pt_regs *get_child_regs(struct task_struct *task)
  {
--	struct snd_soc_codec *codec = (struct snd_soc_codec *)data;
-+	struct snd_soc_device *socdev =
-+		container_of(work, struct snd_soc_device, delayed_work.work);
-+	struct snd_soc_codec *codec = socdev->codec;
- 	wm8750_dapm_event(codec, codec->dapm_state);
+@@ -54,24 +54,24 @@ static inline struct pt_regs *get_child_
  }
  
-@@ -1038,7 +1038,7 @@ static int wm8750_resume(struct platform
- 	if (codec->suspend_dapm_state == SNDRV_CTL_POWER_D0) {
- 		wm8750_dapm_event(codec, SNDRV_CTL_POWER_D2);
- 		codec->dapm_state = SNDRV_CTL_POWER_D0;
--		schedule_delayed_work(&wm8750_dapm_work,
-+		queue_delayed_work(wm8750_workq, &socdev->delayed_work,
- 			 msecs_to_jiffies(1000));
+ /*
+- * this routine will get a word off of the processes privileged stack. 
+- * the offset is how far from the base addr as stored in the TSS.  
+- * this routine assumes that all the privileged stacks are in our
++ * This routine will get a word off of the processes privileged stack.
++ * the offset is bytes into the pt_regs structure on the stack.
++ * This routine assumes that all the privileged stacks are in our
+  * data space.
+  */   
+ static inline int get_stack_long(struct task_struct *task, int offset)
+ {
+ 	unsigned char *stack;
+ 
+-	stack = (unsigned char *)task->thread.esp0;
++	stack = (unsigned char *)task->thread.esp0 - sizeof(struct pt_regs);
+ 	stack += offset;
+ 	return (*((int *)stack));
+ }
+ 
+ /*
+- * this routine will put a word on the processes privileged stack. 
+- * the offset is how far from the base addr as stored in the TSS.  
+- * this routine assumes that all the privileged stacks are in our
++ * This routine will put a word on the processes privileged stack.
++ * the offset is bytes into the pt_regs structure on the stack.
++ * This routine assumes that all the privileged stacks are in our
+  * data space.
+  */
+ static inline int put_stack_long(struct task_struct *task, int offset,
+@@ -79,7 +79,7 @@ static inline int put_stack_long(struct 
+ {
+ 	unsigned char * stack;
+ 
+-	stack = (unsigned char *) task->thread.esp0;
++	stack = (unsigned char *)task->thread.esp0 - sizeof(struct pt_regs);
+ 	stack += offset;
+ 	*(unsigned long *) stack = data;
+ 	return 0;
+@@ -114,7 +114,7 @@ static int putreg(struct task_struct *ch
  	}
+ 	if (regno > ES*4)
+ 		regno -= 1*4;
+-	put_stack_long(child, regno - sizeof(struct pt_regs), value);
++	put_stack_long(child, regno, value);
+ 	return 0;
+ }
  
-@@ -1083,7 +1083,8 @@ static int wm8750_init(struct snd_soc_de
- 	/* charge output caps */
- 	wm8750_dapm_event(codec, SNDRV_CTL_POWER_D2);
- 	codec->dapm_state = SNDRV_CTL_POWER_D3hot;
--	schedule_delayed_work(&wm8750_dapm_work, msecs_to_jiffies(1000));
-+	queue_delayed_work(wm8750_workq, &socdev->delayed_work,
-+			msecs_to_jiffies(1000));
- 
- 	/* set the update bits */
- 	reg = wm8750_read_reg_cache(codec, WM8750_LDAC);
-@@ -1225,7 +1226,7 @@ static int wm8750_probe(struct platform_
- 	INIT_LIST_HEAD(&codec->dapm_widgets);
- 	INIT_LIST_HEAD(&codec->dapm_paths);
- 	wm8750_socdev = socdev;
--	INIT_WORK(&wm8750_dapm_work, wm8750_work, codec);
-+	INIT_DELAYED_WORK(&socdev->delayed_work, wm8750_work);
- #if defined (CONFIG_I2C) || defined (CONFIG_I2C_MODULE)
- 	if (setup->i2c_address) {
- 		normal_i2c[0] = setup->i2c_address;
+@@ -137,7 +137,6 @@ static unsigned long getreg(struct task_
+ 		default:
+ 			if (regno > ES*4)
+ 				regno -= 1*4;
+-			regno = regno - sizeof(struct pt_regs);
+ 			retval &= get_stack_long(child, regno);
+ 	}
+ 	return retval;
 _
 
-Patches currently in -mm which might be from e.ilkov@gmail.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-alsa-soc-wm8750-fix.patch
+ptrace-fix-efl_offset-value-according-to-i386-pda-changes.patch
+convert-i386-pda-code-to-use-%fs.patch
+gtod-uninline-jiffiesh.patch
 
