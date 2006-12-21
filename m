@@ -1,58 +1,54 @@
 From: akpm@osdl.org
-Subject: - libata-wrong-sizeof-for-buffer.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:59 -0800
-Message-ID: <200612210036.kBL0axEB011251@shell0.pdx.osdl.net>
+Subject: - usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:37:09 -0800
+Message-ID: <200612210037.kBL0b9B7011272@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53398 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53420 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161103AbWLUAhI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:37:08 -0500
+	id S1161110AbWLUAhL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:37:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fiodor.f.suietov@intel.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: eric@brouhaha.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: wrong sizeof for BUFFER
+     usb serial: add support for Novatel S720/U720 CDMA/EV-DO modems
 has been removed from the -mm tree.  Its filename was
-     libata-wrong-sizeof-for-buffer.patch
+     usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: wrong sizeof for BUFFER
-From: Fiodor Suietov <fiodor.f.suietov@intel.com>
+Subject: usb serial: add support for Novatel S720/U720 CDMA/EV-DO modems
+From: "Eric Smith" <eric@brouhaha.com>
 
-I have reproduced the AE_AML_BUFFER_LIMIT exception mentioned in
-<http://bugzilla.kernel.org/show_bug.cgi?id=7689> basing on the SSDT ASL
-code and libata ata_acpi_push_id() code.  There is an oversight in
-ata_acpi_push_id() causing the exception.  The following update fixes it:
+Add USB vendor/device IDs for Novatel Wireless S720 and U720 CDMA/EV-DO
+modems to airprime.c.
 
-Signed-off-by: Fiodor Suietov <fiodor.f.suietov@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Eric Smith <eric@brouhaha.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-acpi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/airprime.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/ata/libata-acpi.c~libata-wrong-sizeof-for-buffer drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-wrong-sizeof-for-buffer
-+++ a/drivers/ata/libata-acpi.c
-@@ -672,7 +672,7 @@ int ata_acpi_push_id(struct ata_port *ap
- 	input.count = 1;
- 	input.pointer = in_params;
- 	in_params[0].type = ACPI_TYPE_BUFFER;
--	in_params[0].buffer.length = sizeof(atadev->id[0] * ATA_ID_WORDS);
-+	in_params[0].buffer.length = sizeof(atadev->id[0]) * ATA_ID_WORDS;
- 	in_params[0].buffer.pointer = (u8 *)atadev->id;
- 	/* Output buffer: _SDD has no output */
- 
+diff -puN drivers/usb/serial/airprime.c~usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do drivers/usb/serial/airprime.c
+--- a/drivers/usb/serial/airprime.c~usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do
++++ a/drivers/usb/serial/airprime.c
+@@ -19,6 +19,8 @@
+ static struct usb_device_id id_table [] = {
+ 	{ USB_DEVICE(0x0c88, 0x17da) }, /* Kyocera Wireless KPC650/Passport */
+ 	{ USB_DEVICE(0x1410, 0x1110) }, /* Novatel Wireless Merlin CDMA */
++	{ USB_DEVICE(0x1410, 0x1130) }, /* Novatel Wireless S720 CDMA/EV-DO */
++	{ USB_DEVICE(0x1410, 0x2110) }, /* Novatel Wireless U720 CDMA/EV-DO */
+ 	{ USB_DEVICE(0x1410, 0x1430) },	/* Novatel Merlin XU870 HSDPA/3G */
+ 	{ USB_DEVICE(0x1410, 0x1100) }, /* ExpressCard34 Qualcomm 3G CDMA */
+ 	{ USB_DEVICE(0x413c, 0x8115) }, /* Dell Wireless HSDPA 5500 */
 _
 
-Patches currently in -mm which might be from fiodor.f.suietov@intel.com are
+Patches currently in -mm which might be from eric@brouhaha.com are
 
-git-libata-all.patch
 
