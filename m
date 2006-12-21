@@ -1,187 +1,97 @@
 From: akpm@osdl.org
-Subject: + spi-controller-driver-for-omap-microwire-tidy.patch added to -mm tree
-Date: Thu, 21 Dec 2006 00:44:57 -0800
-Message-ID: <200612210844.kBL8ivPp021963@shell0.pdx.osdl.net>
+Subject: + fix-lock-inversion-aio_kick_handler.patch added to -mm tree
+Date: Thu, 21 Dec 2006 01:05:45 -0800
+Message-ID: <200612210905.kBL95jK8022347@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49999 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51083 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422864AbWLUIpK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 03:45:10 -0500
+	id S1422882AbWLUJGe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 04:06:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dbrownell@users.sourceforge.net
+Cc: zach.brown@oracle.com, bcrl@kvack.org, kenneth.w.chen@intel.com, suparna@in.ibm.com
 
 
 The patch titled
-     spi-controller-driver-for-omap-microwire-tidy
+     Fix lock inversion aio_kick_handler()
 has been added to the -mm tree.  Its filename is
-     spi-controller-driver-for-omap-microwire-tidy.patch
+     fix-lock-inversion-aio_kick_handler.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi-controller-driver-for-omap-microwire-tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: Fix lock inversion aio_kick_handler()
+From: Zach Brown <zach.brown@oracle.com>
 
-EDOM??
+lockdep found a AB BC CA lock inversion in retry-based AIO:
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+1) The task struct's alloc_lock (A) is acquired in process context with
+   interrupts enabled.  An interrupt might arrive and call wake_up() which
+   grabs the wait queue's q->lock (B).
+
+2) When performing retry-based AIO the AIO core registers
+   aio_wake_function() as the wake funtion for iocb->ki_wait.  It is called
+   with the wait queue's q->lock (B) held and then tries to add the iocb to
+   the run list after acquiring the ctx_lock (C).
+
+3) aio_kick_handler() holds the ctx_lock (C) while acquiring the
+   alloc_lock (A) via lock_task() and unuse_mm().  Lockdep emits a warning
+   saying that we're trying to connect the irq-safe q->lock to the
+   irq-unsafe alloc_lock via ctx_lock.
+
+This fixes the inversion by calling unuse_mm() in the AIO kick handing path
+after we've released the ctx_lock.  As Ben LaHaise pointed out __put_ioctx
+could set ctx->mm to NULL, so we must only access ctx->mm while we have the
+lock.
+
+Signed-off-by: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/omap_uwire.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/aio.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/spi/omap_uwire.c~spi-controller-driver-for-omap-microwire-tidy drivers/spi/omap_uwire.c
---- a/drivers/spi/omap_uwire.c~spi-controller-driver-for-omap-microwire-tidy
-+++ a/drivers/spi/omap_uwire.c
-@@ -403,8 +403,8 @@ static int uwire_setup_transfer(struct s
- 	if (div1_idx == 4) {
- 		pr_debug("%s: lowest clock %ld, need %d\n",
- 			spi->dev.bus_id, rate / 10 / 8, hz);
--			status = -EDOM;
--			goto done;
-+		status = -EDOM;
-+		goto done;
- 	}
+diff -puN fs/aio.c~fix-lock-inversion-aio_kick_handler fs/aio.c
+--- a/fs/aio.c~fix-lock-inversion-aio_kick_handler
++++ a/fs/aio.c
+@@ -596,9 +596,6 @@ static void use_mm(struct mm_struct *mm)
+  *	by the calling kernel thread
+  *	(Note: this routine is intended to be called only
+  *	from a kernel thread context)
+- *
+- * Comments: Called with ctx->ctx_lock held. This nests
+- * task_lock instead ctx_lock.
+  */
+ static void unuse_mm(struct mm_struct *mm)
+ {
+@@ -846,14 +843,16 @@ static void aio_kick_handler(struct work
+ {
+ 	struct kioctx *ctx = container_of(work, struct kioctx, wq.work);
+ 	mm_segment_t oldfs = get_fs();
++	struct mm_struct *mm;
+ 	int requeue;
  
- 	/* we have to cache this and reset in uwire_chipselect as this is a
-@@ -480,7 +480,7 @@ static int uwire_probe(struct platform_d
- 
- 	master = spi_alloc_master(&pdev->dev, sizeof *uwire);
- 	if (!master)
--		return -ENODEV;
-+		return -ENOMEM;
- 
- 	uwire = spi_master_get_devdata(master);
- 	dev_set_drvdata(&pdev->dev, uwire);
+ 	set_fs(USER_DS);
+ 	use_mm(ctx->mm);
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 	requeue =__aio_run_iocbs(ctx);
+- 	unuse_mm(ctx->mm);
++	mm = ctx->mm;
+ 	spin_unlock_irq(&ctx->ctx_lock);
++ 	unuse_mm(mm);
+ 	set_fs(oldfs);
+ 	/*
+ 	 * we're in a worker thread already, don't use queue_delayed_work,
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from zach.brown@oracle.com are
 
-origin.patch
-try_to_free_buffers-dont-clear-pte-dirty-bits.patch
-rtc-warning-fix.patch
-fix-vm_events_fold_cpu-build-breakage-fix.patch
-smc911-workqueue-fixes.patch
-schedule_timeout-improve-warning-message.patch
-relay-remove-inlining.patch
-increase-cardbus_mem_size.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-arm-systemh-build-fix.patch
-cifs-sprintf-fix.patch
-git-drm.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-driver-for-silan-sc92031-netdev.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-disable-multithreaded-probing.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-funsoft-is-bust-on-sparc.patch
-nokia-e70-is-an-unusual-device.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-sched-improve-efficiency-of-sched_fork-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+aio-fix-buggy-put_ioctx-call-in-aio_complete.patch
+fix-lock-inversion-aio_kick_handler.patch
 
