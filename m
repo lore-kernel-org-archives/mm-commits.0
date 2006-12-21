@@ -1,97 +1,82 @@
 From: akpm@osdl.org
-Subject: - proper-prototype-for-drivers-base-initcdriver_init.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:42 -0800
-Message-ID: <200612210036.kBL0agr4011219@shell0.pdx.osdl.net>
+Subject: - fs-dlm-lowcomms-tcpc-remove-2-functions.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:50 -0800
+Message-ID: <200612210036.kBL0aoVc011230@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53596 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53601 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161092AbWLUAj6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:39:58 -0500
+	id S1161125AbWLUAkD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:40:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, greg@kroah.com, hmh@hmh.eng.br, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proper prototype for drivers/base/init.c:driver_init()
+     fs/dlm/lowcomms-tcp.c: remove 2 functions
 has been removed from the -mm tree.  Its filename was
-     proper-prototype-for-drivers-base-initcdriver_init.patch
+     fs-dlm-lowcomms-tcpc-remove-2-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proper prototype for drivers/base/init.c:driver_init()
+Subject: fs/dlm/lowcomms-tcp.c: remove 2 functions
 From: Adrian Bunk <bunk@stusta.de>
 
-Add a prototype for driver_init() in include/linux/device.h.
+Remove the following unused functions:
 
-Also remove a static function of the same name in drivers/acpi/ibm_acpi.c to
-ibm_acpi_driver_init() to fix the namespace collision.
+- lowcomms_send_message()
+- lowcomms_max_buffer_size()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/ibm_acpi.c |    4 ++--
- include/linux/device.h  |    2 ++
- init/main.c             |    2 +-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ fs/dlm/lowcomms-tcp.c |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
-diff -puN drivers/acpi/ibm_acpi.c~proper-prototype-for-drivers-base-initcdriver_init drivers/acpi/ibm_acpi.c
---- a/drivers/acpi/ibm_acpi.c~proper-prototype-for-drivers-base-initcdriver_init
-+++ a/drivers/acpi/ibm_acpi.c
-@@ -493,7 +493,7 @@ static char *next_cmd(char **cmds)
- 	return start;
+diff -puN fs/dlm/lowcomms-tcp.c~fs-dlm-lowcomms-tcpc-remove-2-functions fs/dlm/lowcomms-tcp.c
+--- a/fs/dlm/lowcomms-tcp.c~fs-dlm-lowcomms-tcpc-remove-2-functions
++++ a/fs/dlm/lowcomms-tcp.c
+@@ -913,22 +913,6 @@ int dlm_lowcomms_close(int nodeid)
+ 	return -1;
  }
  
--static int driver_init(void)
-+static int ibm_acpi_driver_init(void)
+-/* API send message call, may queue the request */
+-/* N.B. This is the old interface - use the new one for new calls */
+-int lowcomms_send_message(int nodeid, char *buf, int len, gfp_t allocation)
+-{
+-	struct writequeue_entry *e;
+-	char *b;
+-
+-	e = dlm_lowcomms_get_buffer(nodeid, len, allocation, &b);
+-	if (e) {
+-		memcpy(b, buf, len);
+-		dlm_lowcomms_commit_buffer(e);
+-		return 0;
+-	}
+-	return -ENOBUFS;
+-}
+-
+ /* Look for activity on active sockets */
+ static void process_sockets(void)
  {
- 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
- 	printk(IBM_INFO "%s\n", IBM_URL);
-@@ -2297,7 +2297,7 @@ static void fan_watchdog_fire(struct wor
- static struct ibm_struct ibms[] = {
- 	{
- 	 .name = "driver",
--	 .init = driver_init,
-+	 .init = ibm_acpi_driver_init,
- 	 .read = driver_read,
- 	 },
- 	{
-diff -puN include/linux/device.h~proper-prototype-for-drivers-base-initcdriver_init include/linux/device.h
---- a/include/linux/device.h~proper-prototype-for-drivers-base-initcdriver_init
-+++ a/include/linux/device.h
-@@ -433,6 +433,8 @@ static inline int device_is_registered(s
- 	return dev->is_registered;
+@@ -1129,14 +1113,6 @@ static int daemons_start(void)
+ 	return 0;
  }
  
-+void driver_init(void);
-+
- /*
-  * High level routines for use by the bus drivers
-  */
-diff -puN init/main.c~proper-prototype-for-drivers-base-initcdriver_init init/main.c
---- a/init/main.c~proper-prototype-for-drivers-base-initcdriver_init
-+++ a/init/main.c
-@@ -53,6 +53,7 @@
- #include <linux/utsrelease.h>
- #include <linux/pid_namespace.h>
- #include <linux/compile.h>
-+#include <linux/device.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -94,7 +95,6 @@ extern void pidmap_init(void);
- extern void prio_tree_init(void);
- extern void radix_tree_init(void);
- extern void free_initmem(void);
--extern void driver_init(void);
- extern void prepare_namespace(void);
- #ifdef	CONFIG_ACPI
- extern void acpi_early_init(void);
+-/*
+- * Return the largest buffer size we can cope with.
+- */
+-int lowcomms_max_buffer_size(void)
+-{
+-	return PAGE_CACHE_SIZE;
+-}
+-
+ void dlm_lowcomms_stop(void)
+ {
+ 	int i;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
