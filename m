@@ -1,61 +1,68 @@
 From: akpm@osdl.org
-Subject: + ppc-use-syslog-macro-for-the-printk-log-level.patch added to -mm tree
-Date: Wed, 20 Dec 2006 19:34:28 -0800
-Message-ID: <200612210334.kBL3YSvu014604@shell0.pdx.osdl.net>
+Subject: + powerpc-use-is_init.patch added to -mm tree
+Date: Wed, 20 Dec 2006 19:41:34 -0800
+Message-ID: <200612210341.kBL3fYNp014750@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34241 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34710 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422662AbWLUDeg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 22:34:36 -0500
+	id S1422675AbWLUDln (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 22:41:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: akinobu.mita@gmail.com, anton@samba.org, paulus@samba.org
 
 
 The patch titled
-     ppc: use syslog macro for the printk log level
+     powerpc: use is_init()
 has been added to the -mm tree.  Its filename is
-     ppc-use-syslog-macro-for-the-printk-log-level.patch
+     powerpc-use-is_init.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ppc: use syslog macro for the printk log level
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: powerpc: use is_init()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use the appropriate logging macro for the priority level for that
-printk call.
+Use is_init() rather than hard coded pid comparison.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Anton Blanchard <anton@samba.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ppc/syslib/m8260_pci_erratum9.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/powerpc/kernel/traps.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ppc/syslib/m8260_pci_erratum9.c~ppc-use-syslog-macro-for-the-printk-log-level arch/ppc/syslib/m8260_pci_erratum9.c
---- a/arch/ppc/syslib/m8260_pci_erratum9.c~ppc-use-syslog-macro-for-the-printk-log-level
-+++ a/arch/ppc/syslib/m8260_pci_erratum9.c
-@@ -105,7 +105,8 @@ void idma_pci9_init(void)
- 	idma_reg[IDMA_CHAN].idmr = 0;		/* mask all IDMA interrupts */
- 	idma_reg[IDMA_CHAN].idsr = 0xff;	/* clear all event flags */
+diff -puN arch/powerpc/kernel/traps.c~powerpc-use-is_init arch/powerpc/kernel/traps.c
+--- a/arch/powerpc/kernel/traps.c~powerpc-use-is_init
++++ a/arch/powerpc/kernel/traps.c
+@@ -174,7 +174,7 @@ void _exception(int signr, struct pt_reg
+ 	 * generate the same exception over and over again and we get
+ 	 * nowhere.  Better to kill it and let the kernel panic.
+ 	 */
+-	if (current->pid == 1) {
++	if (is_init(current)) {
+ 		__sighandler_t handler;
  
--	printk("<4>Using IDMA%d for MPC8260 device erratum PCI 9 workaround\n",
-+	printk(	KERN_WARNING
-+		"Using IDMA%d for MPC8260 device erratum PCI 9 workaround\n",
- 		IDMA_CHAN + 1);
- 
- 	return;
+ 		spin_lock_irq(&current->sighand->siglock);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-add-a-new-section-to-codingstyle-promoting-include-linux-kernelh.patch
+origin.patch
+audit-fix-kstrdup-error-check.patch
+gss_spkm3-fix-error-handling-in-module-init.patch
+git-acpi.patch
 git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+powerpc-use-is_init.patch
+git-drm.patch
+git-mtd.patch
+net-use-bitrev8.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+iscsi-fix-crypto_alloc_hash-error-check.patch
+git-watchdog.patch
 
