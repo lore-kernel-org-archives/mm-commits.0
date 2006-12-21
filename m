@@ -1,57 +1,57 @@
 From: akpm@osdl.org
-Subject: - alsa-kill-pxa2xx-kconfig-warning.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:37 -0800
-Message-ID: <200612210036.kBL0ab7Y011213@shell0.pdx.osdl.net>
+Subject: - cciss-set-default-raid-level-when-reading-geometry-fails.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:37:05 -0800
+Message-ID: <200612210037.kBL0b5K7011266@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53331 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53415 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161111AbWLUAgu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:36:50 -0500
+	id S1161104AbWLUAhK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:37:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deweerdt@free.fr, frederik.deweerdt@gmail.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mike.miller@hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alsa: kill pxa2xx Kconfig warning
+     cciss: set default raid level when reading geometry fails
 has been removed from the -mm tree.  Its filename was
-     alsa-kill-pxa2xx-kconfig-warning.patch
+     cciss-set-default-raid-level-when-reading-geometry-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alsa: kill pxa2xx Kconfig warning
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: cciss: set default raid level when reading geometry fails
+From: Mike Miller <mike.miller@hp.com>
 
-The following patch silences the following Kconfig warning:
-scripts/kconfig/conf -s arch/i386/Kconfig
-sound/soc/pxa/Kconfig:18:warning: 'select' used by config symbol 'SND_PXA2XX_SOC_AC97' refer to undefined symbol 'SND_AC97_BUS'
+Set a default raid level on a volume that either does not support reading the
+geometry or reports an invalid geometry for whatever reason.  We were always
+setting some values for heads and sectors but never set a raid level.  This
+caused lots of problems on some buggy firmware.  Please consider this for
+inclusion.
 
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/soc/pxa/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/cciss.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN sound/soc/pxa/Kconfig~alsa-kill-pxa2xx-kconfig-warning sound/soc/pxa/Kconfig
---- a/sound/soc/pxa/Kconfig~alsa-kill-pxa2xx-kconfig-warning
-+++ a/sound/soc/pxa/Kconfig
-@@ -15,7 +15,7 @@ config SND_PXA2XX_AC97
- 
- config SND_PXA2XX_SOC_AC97
- 	tristate
--	select SND_AC97_BUS
-+	select AC97_BUS
- 	select SND_SOC_AC97_BUS
- 
- config SND_PXA2XX_SOC_I2S
+diff -puN drivers/block/cciss.c~cciss-set-default-raid-level-when-reading-geometry-fails drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-set-default-raid-level-when-reading-geometry-fails
++++ a/drivers/block/cciss.c
+@@ -1907,6 +1907,7 @@ static void cciss_geometry_inquiry(int c
+ 			       "does not support reading geometry\n");
+ 			drv->heads = 255;
+ 			drv->sectors = 32;	// Sectors per track
++			drv->raid_level = RAID_UNKNOWN;
+ 		} else {
+ 			drv->heads = inq_buff->data_byte[6];
+ 			drv->sectors = inq_buff->data_byte[7];
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-disable-init-initramfsc-updated-fix.patch
+git-block.patch
 
