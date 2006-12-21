@@ -1,131 +1,217 @@
 From: akpm@osdl.org
-Subject: + sa1100-gpio-wrappers.patch added to -mm tree
-Date: Wed, 20 Dec 2006 22:13:49 -0800
-Message-ID: <200612210613.kBL6DnMm017401@shell0.pdx.osdl.net>
+Subject: + omap-gpio-wrappers-tidy.patch added to -mm tree
+Date: Wed, 20 Dec 2006 22:13:44 -0800
+Message-ID: <200612210613.kBL6DiMj017389@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41542 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41550 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422757AbWLUGNv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 01:13:51 -0500
+	id S1422761AbWLUGNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 01:13:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp.zabel@gmail.com
+Cc: akpm@osdl.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     SA1100 GPIO wrappers
+     omap-gpio-wrappers-tidy
 has been added to the -mm tree.  Its filename is
-     sa1100-gpio-wrappers.patch
+     omap-gpio-wrappers-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SA1100 GPIO wrappers
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: omap-gpio-wrappers-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-Arch-neutral GPIO calls for SA-1100.
+What on earth?
 
-
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-arm/arch-sa1100/gpio.h |   81 +++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ include/asm-arm/arch-omap/gpio.h |   30 ++++++++++++++++++++---------
+ 1 file changed, 21 insertions(+), 9 deletions(-)
 
-diff -puN /dev/null include/asm-arm/arch-sa1100/gpio.h
---- /dev/null
-+++ a/include/asm-arm/arch-sa1100/gpio.h
-@@ -0,0 +1,81 @@
-+/*
-+ * linux/include/asm-arm/arch-pxa/gpio.h
-+ *
-+ * SA1100 GPIO wrappers for arch-neutral GPIO calls
-+ *
-+ * Written by Philipp Zabel <philipp.zabel@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
-+ */
-+
-+#ifndef __ASM_ARCH_SA1100_GPIO_H
-+#define __ASM_ARCH_SA1100_GPIO_H
-+
-+#include <asm/arch/SA-1100.h>
-+#include <asm/arch/irqs.h>
-+#include <asm/arch/hardware.h>
-+
-+#include <asm/errno.h>
-+
-+static inline int gpio_request(unsigned gpio, const char *label)
+diff -puN include/asm-arm/arch-omap/gpio.h~omap-gpio-wrappers-tidy include/asm-arm/arch-omap/gpio.h
+--- a/include/asm-arm/arch-omap/gpio.h~omap-gpio-wrappers-tidy
++++ a/include/asm-arm/arch-omap/gpio.h
+@@ -86,11 +86,14 @@ extern int omap_get_gpio_datain(int gpio
+ #include <asm/errno.h>
+ 
+ static inline int gpio_request(unsigned gpio, const char *label)
+-	{ return omap_request_gpio(gpio); }
 +{
-+	return 0;
++	return omap_request_gpio(gpio);
 +}
-+
-+static inline void gpio_free(unsigned gpio)
+ 
+ static inline void gpio_free(unsigned gpio)
+-	{ omap_free_gpio(gpio); }
+-
 +{
-+	return;
++	omap_free_gpio(gpio);
 +}
-+
-+static inline int gpio_direction_input(unsigned gpio)
+ 
+ static inline int __gpio_set_direction(unsigned gpio, int is_input)
+ {
+@@ -106,22 +109,31 @@ static inline int __gpio_set_direction(u
+ }
+ 
+ static inline int gpio_direction_input(unsigned gpio)
+-	{ return __gpio_set_direction(gpio, 1); }
 +{
-+	if (gpio > GPIO_MAX)
-+		return -EINVAL;
-+	GPDR = (GPDR_In << gpio) 0
++	return __gpio_set_direction(gpio, 1);
 +}
-+
-+static inline int gpio_direction_output(unsigned gpio)
+ 
+ static inline int gpio_direction_output(unsigned gpio)
+-	{ return __gpio_set_direction(gpio, 0); }
+-
 +{
-+	if (gpio > GPIO_MAX)
-+		return -EINVAL;
-+	GPDR = (GPDR_Out << gpio) 0
++	return __gpio_set_direction(gpio, 0);
 +}
-+
-+#define gpio_get_value(gpio) \
-+	(GPLR & GPIO_GPIO(gpio))
-+
-+#define gpio_set_value(gpio,value) \
-+	((value) ? (GPSR = GPIO_GPIO(gpio)) : (GPCR(gpio) = GPIO_GPIO(gpio)))
-+
-+#include <asm-generic/gpio.h>			/* cansleep wrappers */
-+
-+static inline unsigned gpio_to_irq(unsigned gpio)
+ 
+ static inline int gpio_get_value(unsigned gpio)
+-	{ return omap_get_gpio_datain(gpio); }
 +{
-+	if (gpio < 11)
-+		return IRQ_GPIO0 + gpio;
-+	else
-+		return IRQ_GPIO11 - 11 + gpio;
++	return omap_get_gpio_datain(gpio);
 +}
-+
-+static inline unsigned irq_to_gpio(unsigned irq)
+ 
+ static inline void gpio_set_value(unsigned gpio, int value)
+-	{ omap_set_gpio_dataout(gpio, value); }
 +{
-+	if (irq < IRQ_GPIO11_27)
-+		return irq - IRQ_GPIO0;
-+	else
-+		return irq - IRQ_GPIO11 + 11;
++	omap_set_gpio_dataout(gpio, value);
 +}
-+
-+#endif
+ 
+ #include <asm-generic/gpio.h>		/* cansleep wrappers */
+ 
+ static inline int gpio_to_irq(unsigned gpio)
+-	{ return OMAP_GPIO_IRQ(gpio); }
++{
++	return OMAP_GPIO_IRQ(gpio);
++}
+ 
+ static inline int irq_to_gpio(unsigned irq)
+ {
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
+origin.patch
+try_to_free_buffers-dont-clear-pte-dirty-bits.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+schedule_timeout-improve-warning-message.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
-pxa-gpio-wrappers.patch
-sa1100-gpio-wrappers.patch
-s3c2410-gpio-wrappers.patch
+arm-systemh-build-fix.patch
+cifs-sprintf-fix.patch
+git-drm.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+driver-for-silan-sc92031-netdev.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
