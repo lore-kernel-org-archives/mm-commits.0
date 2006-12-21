@@ -1,693 +1,187 @@
 From: akpm@osdl.org
-Subject: + spi-controller-driver-for-omap-microwire.patch added to -mm tree
-Date: Thu, 21 Dec 2006 00:44:44 -0800
-Message-ID: <200612210844.kBL8iiIN021960@shell0.pdx.osdl.net>
+Subject: + spi-controller-driver-for-omap-microwire-tidy.patch added to -mm tree
+Date: Thu, 21 Dec 2006 00:44:57 -0800
+Message-ID: <200612210844.kBL8ivPp021963@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49994 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49999 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422863AbWLUIo7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 03:44:59 -0500
+	id S1422864AbWLUIpK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 03:45:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: akpm@osdl.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     SPI controller driver for OMAP Microwire
+     spi-controller-driver-for-omap-microwire-tidy
 has been added to the -mm tree.  Its filename is
-     spi-controller-driver-for-omap-microwire.patch
+     spi-controller-driver-for-omap-microwire-tidy.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPI controller driver for OMAP Microwire
-=46rom: David Brownell <david-b@pacbell.net>
+Subject: spi-controller-driver-for-omap-microwire-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-This adds a SPI driver for the Microwire controller on OMAP1 chips.  Th=
-is
-driver has been used in the Linux-OMAP tree for some time now, includin=
-g
-with some of those displays using standardized 9-bit commands followed =
-by
-data with 8-bit words.
+EDOM??
 
-Microwire only supports half duplex transfers, but that's all that most=
- SPI
-protocols need.  When full duplex, or higher speeds, are needed there a=
-re
-several other controllers that can be used on OMAP.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/Kconfig      |    7=20
- drivers/spi/Makefile     |    1=20
- drivers/spi/omap_uwire.c |  572 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 580 insertions(+)
+ drivers/spi/omap_uwire.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/Kconfig~spi-controller-driver-for-omap-microwire =
-drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-controller-driver-for-omap-microwire
-+++ a/drivers/spi/Kconfig
-@@ -87,6 +87,13 @@ config SPI_MPC83xx
- 	  family of PowerPC processors.  The MPC83xx uses a simple set of shi=
-ft
- 	  registers for data (opposed to the CPM based descriptor model).
-=20
-+config SPI_OMAP_UWIRE
-+	tristate "OMAP1 MicroWire"
-+	depends on SPI_MASTER && ARCH_OMAP1
-+	select SPI_BITBANG
-+	help
-+	  This hooks up to the MicroWire controller on OMAP1 chips.
-+
- config SPI_PXA2XX
- 	tristate "PXA2xx SSP SPI master"
- 	depends on SPI_MASTER && ARCH_PXA && EXPERIMENTAL
-diff -puN drivers/spi/Makefile~spi-controller-driver-for-omap-microwire=
- drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-controller-driver-for-omap-microwire
-+++ a/drivers/spi/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_SPI_MASTER)		+=3D spi.o
- obj-$(CONFIG_SPI_BITBANG)		+=3D spi_bitbang.o
- obj-$(CONFIG_SPI_BUTTERFLY)		+=3D spi_butterfly.o
- obj-$(CONFIG_SPI_PXA2XX)		+=3D pxa2xx_spi.o
-+obj-$(CONFIG_SPI_OMAP_UWIRE)		+=3D omap_uwire.o
- obj-$(CONFIG_SPI_MPC83xx)		+=3D spi_mpc83xx.o
- obj-$(CONFIG_SPI_S3C24XX_GPIO)		+=3D spi_s3c24xx_gpio.o
- obj-$(CONFIG_SPI_S3C24XX)		+=3D spi_s3c24xx.o
-diff -puN /dev/null drivers/spi/omap_uwire.c
---- /dev/null
+diff -puN drivers/spi/omap_uwire.c~spi-controller-driver-for-omap-microwire-tidy drivers/spi/omap_uwire.c
+--- a/drivers/spi/omap_uwire.c~spi-controller-driver-for-omap-microwire-tidy
 +++ a/drivers/spi/omap_uwire.c
-@@ -0,0 +1,572 @@
-+/*
-+ * omap_uwire.c -- MicroWire interface driver for OMAP
-+ *
-+ * Copyright 2003 MontaVista Software Inc. <source@mvista.com>
-+ *
-+ * Ported to 2.6 OMAP uwire interface.
-+ * Copyright (C) 2004 Texas Instruments.
-+ *
-+ * Generalization patches by Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.=
-com>
-+ *
-+ * Copyright (C) 2005 David Brownell (ported to 2.6 SPI interface)
-+ * Copyright (C) 2006 Nokia
-+ *
-+ * Many updates by Imre Deak <imre.deak@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y it
-+ * under the terms of the GNU General Public License as published by t=
-he
-+ * Free Software Foundation; either version 2 of the License, or (at y=
-our
-+ * option) any later version.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES O=
-=46
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED=
-=2E
-+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING=
-, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS O=
-=46
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND=
- ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR =
-TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE U=
-SE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License a=
-long
-+ * with this program; if not, write to the Free Software Foundation, I=
-nc.,
-+ * 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/workqueue.h>
-+#include <linux/interrupt.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
-+
-+#include <asm/system.h>
-+#include <asm/irq.h>
-+#include <asm/hardware.h>
-+#include <asm/io.h>
-+#include <asm/mach-types.h>
-+
-+#include <asm/arch/mux.h>
-+#include <asm/arch/omap730.h>	/* OMAP730_IO_CONF registers */
-+
-+
-+/* FIXME address is now a platform device resource,
-+ * and irqs should show there too...
-+ */
-+#define UWIRE_BASE_PHYS		0xFFFB3000
-+#define UWIRE_BASE		((void *__iomem)IO_ADDRESS(UWIRE_BASE_PHYS))
-+
-+/* uWire Registers: */
-+#define UWIRE_IO_SIZE 0x20
-+#define UWIRE_TDR     0x00
-+#define UWIRE_RDR     0x00
-+#define UWIRE_CSR     0x01
-+#define UWIRE_SR1     0x02
-+#define UWIRE_SR2     0x03
-+#define UWIRE_SR3     0x04
-+#define UWIRE_SR4     0x05
-+#define UWIRE_SR5     0x06
-+
-+/* CSR bits */
-+#define	RDRB	(1 << 15)
-+#define	CSRB	(1 << 14)
-+#define	START	(1 << 13)
-+#define	CS_CMD	(1 << 12)
-+
-+/* SR1 or SR2 bits */
-+#define UWIRE_READ_FALLING_EDGE		0x0001
-+#define UWIRE_READ_RISING_EDGE		0x0000
-+#define UWIRE_WRITE_FALLING_EDGE	0x0000
-+#define UWIRE_WRITE_RISING_EDGE		0x0002
-+#define UWIRE_CS_ACTIVE_LOW		0x0000
-+#define UWIRE_CS_ACTIVE_HIGH		0x0004
-+#define UWIRE_FREQ_DIV_2		0x0000
-+#define UWIRE_FREQ_DIV_4		0x0008
-+#define UWIRE_FREQ_DIV_8		0x0010
-+#define UWIRE_CHK_READY			0x0020
-+#define UWIRE_CLK_INVERTED		0x0040
-+
-+
-+struct uwire_spi {
-+	struct spi_bitbang	bitbang;
-+	struct clk		*ck;
-+};
-+
-+struct uwire_state {
-+	unsigned	bits_per_word;
-+	unsigned	div1_idx;
-+};
-+
-+/* REVISIT compile time constant for idx_shift? */
-+static unsigned int uwire_idx_shift;
-+
-+static inline void uwire_write_reg(int idx, u16 val)
-+{
-+	__raw_writew(val, UWIRE_BASE + (idx << uwire_idx_shift));
-+}
-+
-+static inline u16 uwire_read_reg(int idx)
-+{
-+	return __raw_readw(UWIRE_BASE + (idx << uwire_idx_shift));
-+}
-+
-+static inline void omap_uwire_configure_mode(u8 cs, unsigned long flag=
-s)
-+{
-+	u16	w, val =3D 0;
-+	int	shift, reg;
-+
-+	if (flags & UWIRE_CLK_INVERTED)
-+		val ^=3D 0x03;
-+	val =3D flags & 0x3f;
-+	if (cs & 1)
-+		shift =3D 6;
-+	else
-+		shift =3D 0;
-+	if (cs <=3D 1)
-+		reg =3D UWIRE_SR1;
-+	else
-+		reg =3D UWIRE_SR2;
-+
-+	w =3D uwire_read_reg(reg);
-+	w &=3D ~(0x3f << shift);
-+	w |=3D val << shift;
-+	uwire_write_reg(reg, w);
-+}
-+
-+static int wait_uwire_csr_flag(u16 mask, u16 val, int might_not_catch)
-+{
-+	u16 w;
-+	int c =3D 0;
-+	unsigned long max_jiffies =3D jiffies + HZ;
-+
-+	for (;;) {
-+		w =3D uwire_read_reg(UWIRE_CSR);
-+		if ((w & mask) =3D=3D val)
-+			break;
-+		if (time_after(jiffies, max_jiffies)) {
-+			printk(KERN_ERR "%s: timeout. reg=3D%#06x "
-+					"mask=3D%#06x val=3D%#06x\n",
-+			       __FUNCTION__, w, mask, val);
-+			return -1;
-+		}
-+		c++;
-+		if (might_not_catch && c > 64)
-+			break;
-+	}
-+	return 0;
-+}
-+
-+static void uwire_set_clk1_div(int div1_idx)
-+{
-+	u16 w;
-+
-+	w =3D uwire_read_reg(UWIRE_SR3);
-+	w &=3D ~(0x03 << 1);
-+	w |=3D div1_idx << 1;
-+	uwire_write_reg(UWIRE_SR3, w);
-+}
-+
-+static void uwire_chipselect(struct spi_device *spi, int value)
-+{
-+	struct	uwire_state *ust =3D spi->controller_state;
-+	u16	w;
-+	int	old_cs;
-+
-+
-+	BUG_ON(wait_uwire_csr_flag(CSRB, 0, 0));
-+
-+	w =3D uwire_read_reg(UWIRE_CSR);
-+	old_cs =3D (w >> 10) & 0x03;
-+	if (value =3D=3D BITBANG_CS_INACTIVE || old_cs !=3D spi->chip_select)=
- {
-+		/* Deselect this CS, or the previous CS */
-+		w &=3D ~CS_CMD;
-+		uwire_write_reg(UWIRE_CSR, w);
-+	}
-+	/* activate specfied chipselect */
-+	if (value =3D=3D BITBANG_CS_ACTIVE) {
-+		uwire_set_clk1_div(ust->div1_idx);
-+		/* invert clock? */
-+		if (spi->mode & SPI_CPOL)
-+			uwire_write_reg(UWIRE_SR4, 1);
-+		else
-+			uwire_write_reg(UWIRE_SR4, 0);
-+
-+		w =3D spi->chip_select << 10;
-+		w |=3D CS_CMD;
-+		uwire_write_reg(UWIRE_CSR, w);
-+	}
-+}
-+
-+static int uwire_txrx(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	struct uwire_state *ust =3D spi->controller_state;
-+	unsigned	len =3D t->len;
-+	unsigned	bits =3D ust->bits_per_word;
-+	unsigned	bytes;
-+	u16		val, w;
-+	int		status =3D 0;;
-+
-+	if (!t->tx_buf && !t->rx_buf)
-+		return 0;
-+
-+	/* Microwire doesn't read and write concurrently */
-+	if (t->tx_buf && t->rx_buf)
-+		return -EPERM;
-+
-+	w =3D spi->chip_select << 10;
-+	w |=3D CS_CMD;
-+
-+	if (t->tx_buf) {
-+		const u8	*buf =3D t->tx_buf;
-+
-+		/* NOTE:  DMA could be used for TX transfers */
-+
-+		/* write one or two bytes at a time */
-+		while (len >=3D 1) {
-+			/* tx bit 15 is first sent; we byteswap multibyte words
-+			 * (msb-first) on the way out from memory.
-+			 */
-+			val =3D *buf++;
-+			if (bits > 8) {
-+				bytes =3D 2;
-+				val |=3D *buf++ << 8;
-+			} else
-+				bytes =3D 1;
-+			val <<=3D 16 - bits;
-+
-+#ifdef	VERBOSE
-+			pr_debug("%s: write-%d =3D%04x\n",
-+					spi->dev.bus_id, bits, val);
-+#endif
-+			if (wait_uwire_csr_flag(CSRB, 0, 0))
-+				goto eio;
-+
-+			uwire_write_reg(UWIRE_TDR, val);
-+
-+			/* start write */
-+			val =3D START | w | (bits << 5);
-+
-+			uwire_write_reg(UWIRE_CSR, val);
-+			len -=3D bytes;
-+
-+			/* Wait till write actually starts.
-+			 * This is needed with MPU clock 60+ MHz.
-+			 * REVISIT: we may not have time to catch it...
-+			 */
-+			if (wait_uwire_csr_flag(CSRB, CSRB, 1))
-+				goto eio;
-+
-+			status +=3D bytes;
-+		}
-+
-+		/* REVISIT:  save this for later to get more i/o overlap */
-+		if (wait_uwire_csr_flag(CSRB, 0, 0))
-+			goto eio;
-+
-+	} else if (t->rx_buf) {
-+		u8		*buf =3D t->rx_buf;
-+
-+		/* read one or two bytes at a time */
-+		while (len) {
-+			if (bits > 8) {
-+				bytes =3D 2;
-+			} else
-+				bytes =3D 1;
-+
-+			/* start read */
-+			val =3D START | w | (bits << 0);
-+			uwire_write_reg(UWIRE_CSR, val);
-+			len -=3D bytes;
-+
-+			/* Wait till read actually starts */
-+			(void) wait_uwire_csr_flag(CSRB, CSRB, 1);
-+
-+			if (wait_uwire_csr_flag(RDRB | CSRB,
-+						RDRB, 0))
-+				goto eio;
-+
-+			/* rx bit 0 is last received; multibyte words will
-+			 * be properly byteswapped on the way to memory.
-+			 */
-+			val =3D uwire_read_reg(UWIRE_RDR);
-+			val &=3D (1 << bits) - 1;
-+			*buf++ =3D (u8) val;
-+			if (bytes =3D=3D 2)
-+				*buf++ =3D val >> 8;
-+			status +=3D bytes;
-+#ifdef	VERBOSE
-+			pr_debug("%s: read-%d =3D%04x\n",
-+					spi->dev.bus_id, bits, val);
-+#endif
-+
-+		}
-+	}
-+	return status;
-+eio:
-+	return -EIO;
-+}
-+
-+static int uwire_setup_transfer(struct spi_device *spi, struct spi_tra=
-nsfer *t)
-+{
-+	struct uwire_state	*ust =3D spi->controller_state;
-+	struct uwire_spi	*uwire;
-+	unsigned		flags =3D 0;
-+	unsigned		bits;
-+	unsigned		hz;
-+	unsigned long		rate;
-+	int			div1_idx;
-+	int			div1;
-+	int			div2;
-+	int			status;
-+
-+	uwire =3D spi_master_get_devdata(spi->master);
-+
-+	if (spi->chip_select > 3) {
-+		pr_debug("%s: cs%d?\n", spi->dev.bus_id, spi->chip_select);
-+		status =3D -ENODEV;
+@@ -403,8 +403,8 @@ static int uwire_setup_transfer(struct s
+ 	if (div1_idx == 4) {
+ 		pr_debug("%s: lowest clock %ld, need %d\n",
+ 			spi->dev.bus_id, rate / 10 / 8, hz);
+-			status = -EDOM;
+-			goto done;
++		status = -EDOM;
 +		goto done;
-+	}
-+
-+	bits =3D spi->bits_per_word;
-+	if (t !=3D NULL && t->bits_per_word)
-+		bits =3D t->bits_per_word;
-+	if (!bits)
-+		bits =3D 8;
-+
-+	if (bits > 16) {
-+		pr_debug("%s: wordsize %d?\n", spi->dev.bus_id, bits);
-+		status =3D -ENODEV;
-+		goto done;
-+	}
-+	ust->bits_per_word =3D bits;
-+
-+	/* mode 0..3, clock inverted separately;
-+	 * standard nCS signaling;
-+	 * don't treat DI=3Dhigh as "not ready"
-+	 */
-+	if (spi->mode & SPI_CS_HIGH)
-+		flags |=3D UWIRE_CS_ACTIVE_HIGH;
-+
-+	if (spi->mode & SPI_CPOL)
-+		flags |=3D UWIRE_CLK_INVERTED;
-+
-+	switch (spi->mode & (SPI_CPOL | SPI_CPHA)) {
-+	case SPI_MODE_0:
-+	case SPI_MODE_3:
-+		flags |=3D UWIRE_WRITE_RISING_EDGE | UWIRE_READ_FALLING_EDGE;
-+		break;
-+	case SPI_MODE_1:
-+	case SPI_MODE_2:
-+		flags |=3D UWIRE_WRITE_FALLING_EDGE | UWIRE_READ_RISING_EDGE;
-+		break;
-+	}
-+
-+	/* assume it's already enabled */
-+	rate =3D clk_get_rate(uwire->ck);
-+
-+	hz =3D spi->max_speed_hz;
-+	if (t !=3D NULL && t->speed_hz)
-+		hz =3D t->speed_hz;
-+
-+	if (!hz) {
-+		pr_debug("%s: zero speed?\n", spi->dev.bus_id);
-+		status =3D -EINVAL;
-+		goto done;
-+	}
-+
-+	/* F_INT =3D mpu_xor_clk / DIV1 */
-+	for (div1_idx =3D 0; div1_idx < 4; div1_idx++) {
-+		switch (div1_idx) {
-+		case 0:
-+			div1 =3D 2;
-+			break;
-+		case 1:
-+			div1 =3D 4;
-+			break;
-+		case 2:
-+			div1 =3D 7;
-+			break;
-+		default:
-+		case 3:
-+			div1 =3D 10;
-+			break;
-+		}
-+		div2 =3D (rate / div1 + hz - 1) / hz;
-+		if (div2 <=3D 8)
-+			break;
-+	}
-+	if (div1_idx =3D=3D 4) {
-+		pr_debug("%s: lowest clock %ld, need %d\n",
-+			spi->dev.bus_id, rate / 10 / 8, hz);
-+			status =3D -EDOM;
-+			goto done;
-+	}
-+
-+	/* we have to cache this and reset in uwire_chipselect as this is a
-+	 * global parameter and another uwire device can change it under
-+	 * us */
-+	ust->div1_idx =3D div1_idx;
-+	uwire_set_clk1_div(div1_idx);
-+
-+	rate /=3D div1;
-+
-+	switch (div2) {
-+	case 0:
-+	case 1:
-+	case 2:
-+		flags |=3D UWIRE_FREQ_DIV_2;
-+		rate /=3D 2;
-+		break;
-+	case 3:
-+	case 4:
-+		flags |=3D UWIRE_FREQ_DIV_4;
-+		rate /=3D 4;
-+		break;
-+	case 5:
-+	case 6:
-+	case 7:
-+	case 8:
-+		flags |=3D UWIRE_FREQ_DIV_8;
-+		rate /=3D 8;
-+		break;
-+	}
-+	omap_uwire_configure_mode(spi->chip_select, flags);
-+	pr_debug("%s: uwire flags %02x, armxor %lu KHz, SCK %lu KHz\n",
-+			__FUNCTION__, flags,
-+			clk_get_rate(uwire->ck) / 1000,
-+			rate / 1000);
-+	status =3D 0;
-+done:
-+	return status;
-+}
-+
-+static int uwire_setup(struct spi_device *spi)
-+{
-+	struct uwire_state *ust =3D spi->controller_state;
-+
-+	if (ust =3D=3D NULL) {
-+		ust =3D kzalloc(sizeof(*ust), GFP_KERNEL);
-+		if (ust =3D=3D NULL)
-+			return -ENOMEM;
-+		spi->controller_state =3D ust;
-+	}
-+
-+	return uwire_setup_transfer(spi, NULL);
-+}
-+
-+static void uwire_cleanup(const struct spi_device *spi)
-+{
-+	kfree(spi->controller_state);
-+}
-+
-+static void uwire_off(struct uwire_spi *uwire)
-+{
-+	uwire_write_reg(UWIRE_SR3, 0);
-+	clk_disable(uwire->ck);
-+	clk_put(uwire->ck);
-+	spi_master_put(uwire->bitbang.master);
-+}
-+
-+static int uwire_probe(struct platform_device *pdev)
-+{
-+	struct spi_master	*master;
-+	struct uwire_spi	*uwire;
-+	int			status;
-+
-+	master =3D spi_alloc_master(&pdev->dev, sizeof *uwire);
-+	if (!master)
-+		return -ENODEV;
-+
-+	uwire =3D spi_master_get_devdata(master);
-+	dev_set_drvdata(&pdev->dev, uwire);
-+
-+	uwire->ck =3D clk_get(&pdev->dev, "armxor_ck");
-+	if (!uwire->ck || IS_ERR(uwire->ck)) {
-+		dev_dbg(&pdev->dev, "no mpu_xor_clk ?\n");
-+		spi_master_put(master);
-+		return -ENODEV;
-+	}
-+	clk_enable(uwire->ck);
-+
-+	if (cpu_is_omap730())
-+		uwire_idx_shift =3D 1;
-+	else
-+		uwire_idx_shift =3D 2;
-+
-+	uwire_write_reg(UWIRE_SR3, 1);
-+
-+	master->bus_num =3D 2;	/* "official" */
-+	master->num_chipselect =3D 4;
-+	master->setup =3D uwire_setup;
-+	master->cleanup =3D uwire_cleanup;
-+
-+	uwire->bitbang.master =3D master;
-+	uwire->bitbang.chipselect =3D uwire_chipselect;
-+	uwire->bitbang.setup_transfer =3D uwire_setup_transfer;
-+	uwire->bitbang.txrx_bufs =3D uwire_txrx;
-+
-+	status =3D spi_bitbang_start(&uwire->bitbang);
-+	if (status < 0)
-+		uwire_off(uwire);
-+	return status;
-+}
-+
-+static int uwire_remove(struct platform_device *pdev)
-+{
-+	struct uwire_spi	*uwire =3D dev_get_drvdata(&pdev->dev);
-+	int			status;
-+
-+	// FIXME remove all child devices, somewhere ...
-+
-+	status =3D spi_bitbang_stop(&uwire->bitbang);
-+	uwire_off(uwire);
-+	return status;
-+}
-+
-+static struct platform_driver uwire_driver =3D {
-+	.driver =3D {
-+		.name		=3D "omap_uwire",
-+		.bus		=3D &platform_bus_type,
-+		.owner		=3D THIS_MODULE,
-+	},
-+	.probe		=3D uwire_probe,
-+	.remove		=3D uwire_remove,
-+	// suspend ... unuse ck
-+	// resume ... use ck
-+};
-+
-+static int __init omap_uwire_init(void)
-+{
-+	/* FIXME move these into the relevant board init code. also, include
-+	 * H3 support; it uses tsc2101 like H2 (on a different chipselect).
-+	 */
-+
-+	if (machine_is_omap_h2()) {
-+		/* defaults: W21 SDO, U18 SDI, V19 SCL */
-+		omap_cfg_reg(N14_1610_UWIRE_CS0);
-+		omap_cfg_reg(N15_1610_UWIRE_CS1);
-+	}
-+	if (machine_is_omap_perseus2()) {
-+		/* configure pins: MPU_UW_nSCS1, MPU_UW_SDO, MPU_UW_SCLK */
-+		int val =3D omap_readl(OMAP730_IO_CONF_9) & ~0x00EEE000;
-+		omap_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
-+	}
-+
-+	return platform_driver_register(&uwire_driver);
-+}
-+
-+static void __exit omap_uwire_exit(void)
-+{
-+	platform_driver_unregister(&uwire_driver);
-+}
-+
-+subsys_initcall(omap_uwire_init);
-+module_exit(omap_uwire_exit);
-+
-+MODULE_LICENSE("GPL");
-+
+ 	}
+ 
+ 	/* we have to cache this and reset in uwire_chipselect as this is a
+@@ -480,7 +480,7 @@ static int uwire_probe(struct platform_d
+ 
+ 	master = spi_alloc_master(&pdev->dev, sizeof *uwire);
+ 	if (!master)
+-		return -ENODEV;
++		return -ENOMEM;
+ 
+ 	uwire = spi_master_get_devdata(master);
+ 	dev_set_drvdata(&pdev->dev, uwire);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-spi-kconfig-fix.patch
-spi-controller-driver-for-omap-microwire.patch
-gpio-core.patch
-omap-gpio-wrappers.patch
-at91-gpio-wrappers.patch
+origin.patch
+try_to_free_buffers-dont-clear-pte-dirty-bits.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+schedule_timeout-improve-warning-message.patch
+relay-remove-inlining.patch
+increase-cardbus_mem_size.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+arm-systemh-build-fix.patch
+cifs-sprintf-fix.patch
+git-drm.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+driver-for-silan-sc92031-netdev.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
--
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
