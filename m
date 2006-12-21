@@ -1,150 +1,107 @@
 From: akpm@osdl.org
-Subject: + serial-serial_txx9-driver-update.patch added to -mm tree
-Date: Thu, 21 Dec 2006 12:53:13 -0800
-Message-ID: <200612212053.kBLKrDM0004566@shell0.pdx.osdl.net>
+Subject: + x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch added to -mm tree
+Date: Thu, 21 Dec 2006 12:59:10 -0800
+Message-ID: <200612212059.kBLKxBJ9004746@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39463 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39873 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423089AbWLUUxS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 15:53:18 -0500
+	id S1423099AbWLUU7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 15:59:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp
+Cc: amul.shah@unisys.com, ak@suse.de, rohitseth@google.com
 
 
 The patch titled
-     serial: serial_txx9 driver update
+     x86_64-make-the-numa-hash-function-nodemap-allocation fix fix
 has been added to the -mm tree.  Its filename is
-     serial-serial_txx9-driver-update.patch
+     x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: serial_txx9 driver update
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: x86_64-make-the-numa-hash-function-nodemap-allocation fix fix
+From: Amul Shah <amul.shah@unisys.com>
 
-Update the serial_txx9 driver.
+- Removed an extraneous debug message from allocate_cachealigned_map
 
- * Configurable manumum port number. (SERIAL_TXX9_NR_UARTS)
- * Remove some code which is unneeded if CONFIG_PM=n.
- * Use PCI_DEVICE() for pci device id table and make it const.
- * Do not include <asm/irq.h>
+- Changed extract_lsb_from_nodes to return 63 for the case where there was
+  only one memory node.  The prevents the creation of the dynamic hashmap.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+- Changed extract_lsb_from_nodes to use only the starting memory address of
+  a node.  On an ES7000, our nodes overlap the starting and ending address,
+  meaning, that we see nodes like
+
+	00000 - 10000
+	10000 - 20000
+
+  But other systems have nodes whose start and end addresses do not overlap.
+   For example:
+
+	00000 - 0FFFF
+	10000 - 1FFFF
+
+  In this case, using the ending address will result in an LSB much lower
+  than what is possible.  In this case an LSB of 1 when in reality it should
+  be 16.  
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: Rohit Seth <rohitseth@google.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/Kconfig       |    5 +++++
- drivers/serial/serial_txx9.c |   23 +++++++++++------------
- 2 files changed, 16 insertions(+), 12 deletions(-)
+ arch/x86_64/mm/numa.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/serial/Kconfig~serial-serial_txx9-driver-update drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~serial-serial_txx9-driver-update
-+++ a/drivers/serial/Kconfig
-@@ -916,6 +916,11 @@ config SERIAL_TXX9
- config HAS_TXX9_SERIAL
- 	bool
+diff -puN arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2 arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2
++++ a/arch/x86_64/mm/numa.c
+@@ -78,11 +78,8 @@ static int __init allocate_cachealigned_
+ 	unsigned long pad, pad_addr;
  
-+config SERIAL_TXX9_NR_UARTS
-+	int "Maximum number of TMPTX39XX/49XX SIO ports"
-+	depends on SERIAL_TXX9
-+	default "6"
-+
- config SERIAL_TXX9_CONSOLE
- 	bool "TMPTX39XX/49XX SIO Console support"
- 	depends on SERIAL_TXX9=y
-diff -puN drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update
-+++ a/drivers/serial/serial_txx9.c
-@@ -37,6 +37,7 @@
-  *	1.06	Do not insert a char caused previous overrun.
-  *		Fix some spin_locks.
-  *		Do not call uart_add_one_port for absent ports.
-+ *	1.07	Use CONFIG_SERIAL_TXX9_NR_UARTS.  Cleanup.
-  */
+ 	memnodemap = memnode.embedded_map;
+-	if (memnodemapsize <= 48) {
+-		printk(KERN_DEBUG "NUMA: Allocated memnodemap from %lx - %lx\n",
+-		       nodemap_addr, nodemap_addr + nodemap_size);
++	if (memnodemapsize <= 48)
+ 		return 0;
+-	}
  
- #if defined(CONFIG_SERIAL_TXX9_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-@@ -58,9 +59,8 @@
- #include <linux/mutex.h>
- 
- #include <asm/io.h>
--#include <asm/irq.h>
- 
--static char *serial_version = "1.06";
-+static char *serial_version = "1.07";
- static char *serial_name = "TX39/49 Serial driver";
- 
- #define PASS_LIMIT	256
-@@ -88,12 +88,7 @@ static char *serial_name = "TX39/49 Seri
- /*
-  * Number of serial ports
-  */
--#ifdef ENABLE_SERIAL_TXX9_PCI
--#define NR_PCI_BOARDS	4
--#define UART_NR  (4 + NR_PCI_BOARDS)
--#else
--#define UART_NR  4
--#endif
-+#define UART_NR  CONFIG_SERIAL_TXX9_NR_UARTS
- 
- #define HIGH_BITS_OFFSET	((sizeof(long)-sizeof(int))*8)
- 
-@@ -987,6 +982,7 @@ int __init early_serial_txx9_setup(struc
- }
- 
- #ifdef ENABLE_SERIAL_TXX9_PCI
-+#ifdef CONFIG_PM
- /**
-  *	serial_txx9_suspend_port - suspend one serial port
-  *	@line:  serial line number
-@@ -1008,6 +1004,7 @@ static void serial_txx9_resume_port(int 
+ 	pad = L1_CACHE_BYTES - 1;
+ 	pad_addr = 0x8000;
+@@ -110,7 +107,7 @@ static int __init allocate_cachealigned_
+ static int __init
+ extract_lsb_from_nodes (const struct bootnode *nodes, int numnodes)
  {
- 	uart_resume_port(&serial_txx9_reg, &serial_txx9_ports[line].port);
- }
-+#endif
+-	int i;
++	int i, nodes_used = 0;
+ 	unsigned long start, end;
+ 	unsigned long bitfield = 0, memtop = 0;
  
- static DEFINE_MUTEX(serial_txx9_mutex);
- 
-@@ -1118,6 +1115,7 @@ static void __devexit pciserial_txx9_rem
+@@ -119,11 +116,15 @@ extract_lsb_from_nodes (const struct boo
+ 		end = nodes[i].end;
+ 		if (start >= end)
+ 			continue;
+-		bitfield |= start | end;
++		bitfield |= start;
++		nodes_used++;
+ 		if (end > memtop)
+ 			memtop = end;
  	}
+-	i = find_first_bit(&bitfield, sizeof(unsigned long)*8);
++	if (nodes_used <= 1 )
++		i = 63;
++	else
++		i = find_first_bit(&bitfield, sizeof(unsigned long)*8);
+ 	memnodemapsize = (memtop >> i)+1;
+ 	return i;
  }
- 
-+#ifdef CONFIG_PM
- static int pciserial_txx9_suspend_one(struct pci_dev *dev, pm_message_t state)
- {
- 	int line = (int)(long)pci_get_drvdata(dev);
-@@ -1142,11 +1140,10 @@ static int pciserial_txx9_resume_one(str
- 	}
- 	return 0;
- }
-+#endif
- 
--static struct pci_device_id serial_txx9_pci_tbl[] = {
--	{	PCI_VENDOR_ID_TOSHIBA_2, PCI_DEVICE_ID_TOSHIBA_TC86C001_MISC,
--		PCI_ANY_ID, PCI_ANY_ID,
--		0, 0, 0 },
-+static const struct pci_device_id serial_txx9_pci_tbl[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA_2, PCI_DEVICE_ID_TOSHIBA_TC86C001_MISC) },
- 	{ 0, }
- };
- 
-@@ -1154,8 +1151,10 @@ static struct pci_driver serial_txx9_pci
- 	.name		= "serial_txx9",
- 	.probe		= pciserial_txx9_init_one,
- 	.remove		= __devexit_p(pciserial_txx9_remove_one),
-+#ifdef CONFIG_PM
- 	.suspend	= pciserial_txx9_suspend_one,
- 	.resume		= pciserial_txx9_resume_one,
-+#endif
- 	.id_table	= serial_txx9_pci_tbl,
- };
- 
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from amul.shah@unisys.com are
 
-serial-serial_txx9-driver-update.patch
+x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
 
