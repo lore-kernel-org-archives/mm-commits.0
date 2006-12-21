@@ -1,126 +1,148 @@
 From: akpm@osdl.org
-Subject: - fix-namespace-conflict-between-w9968cfc-on-mips.patch removed from -mm tree
-Date: Thu, 21 Dec 2006 12:10:16 -0800
-Message-ID: <200612212010.kBLKAG9m003546@shell0.pdx.osdl.net>
+Subject: - workqueue-fix-schedule_on_each_cpu.patch removed from -mm tree
+Date: Thu, 21 Dec 2006 12:09:58 -0800
+Message-ID: <200612212009.kBLK9w3q003512@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36544 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36533 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423075AbWLUUK0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 15:10:26 -0500
+	id S1423074AbWLUUKS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 15:10:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mingo@elte.hu, a.p.zijlstra@chello.nl, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix namespace conflict between w9968cf.c on MIPS
+     workqueue: fix schedule_on_each_cpu()
 has been removed from the -mm tree.  Its filename was
-     fix-namespace-conflict-between-w9968cfc-on-mips.patch
+     workqueue-fix-schedule_on_each_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix namespace conflict between w9968cf.c on MIPS
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: workqueue: fix schedule_on_each_cpu()
+From: Ingo Molnar <mingo@elte.hu>
 
-Both use __SC.  Since __* is sort of private namespace I've choosen to fix
-this in the driver.  For consistency I decieded to also change __UNSC to
-UNSC.
+Fix the schedule_on_each_cpu() implementation: __queue_work() is now
+stricter, hence set the work-pending bit before passing in the new work.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+(found in the -rt tree, using Peter Zijlstra's files-lock scalability
+patchset)
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/video/w9968cf.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ kernel/workqueue.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/video/w9968cf.c~fix-namespace-conflict-between-w9968cfc-on-mips drivers/media/video/w9968cf.c
---- a/drivers/media/video/w9968cf.c~fix-namespace-conflict-between-w9968cfc-on-mips
-+++ a/drivers/media/video/w9968cf.c
-@@ -1827,8 +1827,8 @@ w9968cf_set_window(struct w9968cf_device
- 	int err = 0;
+diff -puN kernel/workqueue.c~workqueue-fix-schedule_on_each_cpu kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-fix-schedule_on_each_cpu
++++ a/kernel/workqueue.c
+@@ -637,9 +637,11 @@ int schedule_on_each_cpu(work_func_t fun
  
- 	/* Work around to avoid FP arithmetics */
--	#define __SC(x) ((x) << 10)
--	#define __UNSC(x) ((x) >> 10)
-+	#define SC(x) ((x) << 10)
-+	#define UNSC(x) ((x) >> 10)
- 
- 	/* Make sure we are using a supported resolution */
- 	if ((err = w9968cf_adjust_window_size(cam, (u16*)&win.width,
-@@ -1836,15 +1836,15 @@ w9968cf_set_window(struct w9968cf_device
- 		goto error;
- 
- 	/* Scaling factors */
--	fw = __SC(win.width) / cam->maxwidth;
--	fh = __SC(win.height) / cam->maxheight;
-+	fw = SC(win.width) / cam->maxwidth;
-+	fh = SC(win.height) / cam->maxheight;
- 
- 	/* Set up the width and height values used by the chip */
- 	if ((win.width > cam->maxwidth) || (win.height > cam->maxheight)) {
- 		cam->vpp_flag |= VPP_UPSCALE;
- 		/* Calculate largest w,h mantaining the same w/h ratio */
--		w = (fw >= fh) ? cam->maxwidth : __SC(win.width)/fh;
--		h = (fw >= fh) ? __SC(win.height)/fw : cam->maxheight;
-+		w = (fw >= fh) ? cam->maxwidth : SC(win.width)/fh;
-+		h = (fw >= fh) ? SC(win.height)/fw : cam->maxheight;
- 		if (w < cam->minwidth) /* just in case */
- 			w = cam->minwidth;
- 		if (h < cam->minheight) /* just in case */
-@@ -1861,8 +1861,8 @@ w9968cf_set_window(struct w9968cf_device
- 
- 	/* Calculate cropped area manteining the right w/h ratio */
- 	if (cam->largeview && !(cam->vpp_flag & VPP_UPSCALE)) {
--		cw = (fw >= fh) ? cam->maxwidth : __SC(win.width)/fh;
--		ch = (fw >= fh) ? __SC(win.height)/fw : cam->maxheight;
-+		cw = (fw >= fh) ? cam->maxwidth : SC(win.width)/fh;
-+		ch = (fw >= fh) ? SC(win.height)/fw : cam->maxheight;
- 	} else {
- 		cw = w;
- 		ch = h;
-@@ -1901,8 +1901,8 @@ w9968cf_set_window(struct w9968cf_device
- 	/* We have to scale win.x and win.y offsets */
- 	if ( (cam->largeview && !(cam->vpp_flag & VPP_UPSCALE))
- 	     || (cam->vpp_flag & VPP_UPSCALE) ) {
--		ax = __SC(win.x)/fw;
--		ay = __SC(win.y)/fh;
-+		ax = SC(win.x)/fw;
-+		ay = SC(win.y)/fh;
- 	} else {
- 		ax = win.x;
- 		ay = win.y;
-@@ -1917,8 +1917,8 @@ w9968cf_set_window(struct w9968cf_device
- 	/* Adjust win.x, win.y */
- 	if ( (cam->largeview && !(cam->vpp_flag & VPP_UPSCALE))
- 	     || (cam->vpp_flag & VPP_UPSCALE) ) {
--		win.x = __UNSC(ax*fw);
--		win.y = __UNSC(ay*fh);
-+		win.x = UNSC(ax*fw);
-+		win.y = UNSC(ay*fh);
- 	} else {
- 		win.x = ax;
- 		win.y = ay;
+ 	mutex_lock(&workqueue_mutex);
+ 	for_each_online_cpu(cpu) {
+-		INIT_WORK(per_cpu_ptr(works, cpu), func);
+-		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu),
+-				per_cpu_ptr(works, cpu));
++		struct work_struct *work = per_cpu_ptr(works, cpu);
++
++		INIT_WORK(work, func);
++		set_bit(WORK_STRUCT_PENDING, work_data_bits(work));
++		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu), work);
+ 	}
+ 	mutex_unlock(&workqueue_mutex);
+ 	flush_workqueue(keventd_wq);
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-mips-if_fddih-add-a-missing-inclusion.patch
-git-dvb.patch
-mips-dbg_io-stray-brackets-fix.patch
-mips-turbochannel-update-to-the-driver-model.patch
-mips-turbochannel-support-for-the-decstation.patch
-mips-eisa-registration-with-config_eisa.patch
-mips-declance-driver-model-for-the-pmad-a.patch
-mips-pmag-ba-fb-convert-to-the-driver-model.patch
-mips-pmagb-b-fb-convert-to-the-driver-model.patch
-mips-dec_esp-driver-model-for-the-pmaz-a.patch
-git-mtd.patch
-fix-pnx8550-serial-breakage.patch
-pnx8550-uart-driver.patch
-xfs-remove-useless-wmb-memory-barrier.patch
-ioc3-ioc4-pci-mem-space-resources.patch
+conditionally-check-expected_preempt_count-in-__resched_legal.patch
+sched-remove-__cpuinitdata-anotation-to-cpu_isolated_map.patch
+genirq-fix-irq-flow-handler-uninstall.patch
+lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
