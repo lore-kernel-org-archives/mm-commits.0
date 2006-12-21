@@ -1,53 +1,48 @@
 From: akpm@osdl.org
-Subject: - drivers-acpi-oslc-fix-a-null-check.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:17 -0800
-Message-ID: <200612210036.kBL0aHpP011180@shell0.pdx.osdl.net>
+Subject: - make-drivers-acpi-eccec_ecdt-static.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:15 -0800
+Message-ID: <200612210036.kBL0aFKt011177@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53579 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53575 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161124AbWLUAja (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:39:30 -0500
+	id S1161121AbWLUAj3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:39:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/acpi/osl.c: fix a NULL check
+     make drivers/acpi/ec.c:ec_ecdt static
 has been removed from the -mm tree.  Its filename was
-     drivers-acpi-oslc-fix-a-null-check.patch
+     make-drivers-acpi-eccec_ecdt-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/acpi/osl.c: fix a NULL check
+Subject: make drivers/acpi/ec.c:ec_ecdt static
 From: Adrian Bunk <bunk@stusta.de>
-
-This patch fixes a non-working NULL check introduced by commit
-b229cf92eee616c7cb5ad8cdb35a19b119f00bc8.
-
-Spotted by the Coverity checker.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/osl.c |    2 +-
+ drivers/acpi/ec.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/osl.c~drivers-acpi-oslc-fix-a-null-check drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~drivers-acpi-oslc-fix-a-null-check
-+++ a/drivers/acpi/osl.c
-@@ -1032,7 +1032,7 @@ acpi_status
- acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
- {
- 	*cache = kmem_cache_create(name, size, 0, 0, NULL, NULL);
--	if (cache == NULL)
-+	if (*cache == NULL)
- 		return AE_ERROR;
- 	else
- 		return AE_OK;
+diff -puN drivers/acpi/ec.c~make-drivers-acpi-eccec_ecdt-static drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~make-drivers-acpi-eccec_ecdt-static
++++ a/drivers/acpi/ec.c
+@@ -92,7 +92,7 @@ static struct acpi_driver acpi_ec_driver
+ };
+ 
+ /* If we find an EC via the ECDT, we need to keep a ptr to its context */
+-struct acpi_ec {
++static struct acpi_ec {
+ 	acpi_handle handle;
+ 	unsigned long uid;
+ 	unsigned long gpe;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
