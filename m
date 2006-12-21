@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + s3c2410-gpio-wrappers.patch added to -mm tree
-Date: Wed, 20 Dec 2006 22:13:50 -0800
-Message-ID: <200612210613.kBL6DonA017404@shell0.pdx.osdl.net>
+Subject: + sa1100-gpio-wrappers.patch added to -mm tree
+Date: Wed, 20 Dec 2006 22:13:49 -0800
+Message-ID: <200612210613.kBL6DnMm017401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41546 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41542 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422758AbWLUGNw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 01:13:52 -0500
+	id S1422757AbWLUGNv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 01:13:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,34 +15,34 @@ Cc: philipp.zabel@gmail.com
 
 
 The patch titled
-     S3C2410 GPIO wrappers
+     SA1100 GPIO wrappers
 has been added to the -mm tree.  Its filename is
-     s3c2410-gpio-wrappers.patch
+     sa1100-gpio-wrappers.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: S3C2410 GPIO wrappers
+Subject: SA1100 GPIO wrappers
 From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Arch-neutral GPIO calls for S3C24xx.
+Arch-neutral GPIO calls for SA-1100.
 
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-arm/arch-s3c2410/gpio.h |   65 ++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ include/asm-arm/arch-sa1100/gpio.h |   81 +++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
-diff -puN /dev/null include/asm-arm/arch-s3c2410/gpio.h
+diff -puN /dev/null include/asm-arm/arch-sa1100/gpio.h
 --- /dev/null
-+++ a/include/asm-arm/arch-s3c2410/gpio.h
-@@ -0,0 +1,65 @@
++++ a/include/asm-arm/arch-sa1100/gpio.h
+@@ -0,0 +1,81 @@
 +/*
 + * linux/include/asm-arm/arch-pxa/gpio.h
 + *
-+ * S3C2400 GPIO wrappers for arch-neutral GPIO calls
++ * SA1100 GPIO wrappers for arch-neutral GPIO calls
 + *
 + * Written by Philipp Zabel <philipp.zabel@gmail.com>
 + *
@@ -62,10 +62,10 @@ diff -puN /dev/null include/asm-arm/arch-s3c2410/gpio.h
 + *
 + */
 +
-+#ifndef __ASM_ARCH_PXA_GPIO_H
-+#define __ASM_ARCH_PXA_GPIO_H
++#ifndef __ASM_ARCH_SA1100_GPIO_H
++#define __ASM_ARCH_SA1100_GPIO_H
 +
-+#include <asm/arch/pxa-regs.h>
++#include <asm/arch/SA-1100.h>
 +#include <asm/arch/irqs.h>
 +#include <asm/arch/hardware.h>
 +
@@ -83,25 +83,41 @@ diff -puN /dev/null include/asm-arm/arch-s3c2410/gpio.h
 +
 +static inline int gpio_direction_input(unsigned gpio)
 +{
-+	s3c2410_gpio_cfgpin(gpio, S3C2410_GPIO_INPUT);
-+	return 0;
++	if (gpio > GPIO_MAX)
++		return -EINVAL;
++	GPDR = (GPDR_In << gpio) 0
 +}
 +
 +static inline int gpio_direction_output(unsigned gpio)
 +{
-+	s3c2410_gpio_cfgpin(gpio, S3C2410_GPIO_OUTPUT);
-+	return 0;
++	if (gpio > GPIO_MAX)
++		return -EINVAL;
++	GPDR = (GPDR_Out << gpio) 0
 +}
 +
-+#define gpio_get_value(gpio)		s3c2410_gpio_getpin(gpio)
-+#define gpio_set_value(gpio,value)	s3c2410_gpio_setpin(gpio, value)
++#define gpio_get_value(gpio) \
++	(GPLR & GPIO_GPIO(gpio))
++
++#define gpio_set_value(gpio,value) \
++	((value) ? (GPSR = GPIO_GPIO(gpio)) : (GPCR(gpio) = GPIO_GPIO(gpio)))
 +
 +#include <asm-generic/gpio.h>			/* cansleep wrappers */
 +
-+/* FIXME or maybe s3c2400_gpio_getirq() ... */
-+#define gpio_to_irq(gpio)		s3c2410_gpio_getirq(gpio)
++static inline unsigned gpio_to_irq(unsigned gpio)
++{
++	if (gpio < 11)
++		return IRQ_GPIO0 + gpio;
++	else
++		return IRQ_GPIO11 - 11 + gpio;
++}
 +
-+/* FIXME implement irq_to_gpio() */
++static inline unsigned irq_to_gpio(unsigned irq)
++{
++	if (irq < IRQ_GPIO11_27)
++		return irq - IRQ_GPIO0;
++	else
++		return irq - IRQ_GPIO11 + 11;
++}
 +
 +#endif
 _
