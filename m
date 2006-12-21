@@ -1,184 +1,303 @@
 From: akpm@osdl.org
-Subject: + swsusp-change-code-ordering-in-userc-sanity.patch added to -mm tree
-Date: Wed, 20 Dec 2006 22:20:16 -0800
-Message-ID: <200612210620.kBL6KG7v017545@shell0.pdx.osdl.net>
+Subject: + time-x86_64-hpet_address-cleanup.patch added to -mm tree
+Date: Wed, 20 Dec 2006 22:32:17 -0800
+Message-ID: <200612210632.kBL6WHe7017757@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41980 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42761 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422740AbWLUGUj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 01:20:39 -0500
+	id S1422760AbWLUGdL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 01:33:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, greg@kroah.com, mochel@digitalimplant.org, nigel@suspend2.net, pavel@ucw.cz, rjw@sisk.pl
+Cc: johnstul@us.ibm.com, ak@muc.de, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     swsusp-change-code-ordering-in-userc-sanity
+     time: x86_64: hpet_address cleanup
 has been added to the -mm tree.  Its filename is
-     swsusp-change-code-ordering-in-userc-sanity.patch
+     time-x86_64-hpet_address-cleanup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: swsusp-change-code-ordering-in-userc-sanity
-From: Andrew Morton <akpm@osdl.org>
+Subject: time: x86_64: hpet_address cleanup
+From: john stultz <johnstul@us.ibm.com>
 
-The compiler will do that.  And if it doesn't, we don't want to either ;)
+In preparation for supporting generic timekeeping, this patch cleans up
+x86-64's use of vxtime.hpet_address, changing it to just hpet_address as is
+also used in i386.  This is necessary since the vxtime structure will be going
+away.
 
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Greg KH <greg@kroah.com>
-Cc: Nigel Cunningham <nigel@suspend2.net>
-Cc: Patrick Mochel <mochel@digitalimplant.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/user.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/acpi/boot.c |   23 +++++----------------
+ arch/x86_64/kernel/apic.c    |    3 +-
+ arch/x86_64/kernel/time.c    |   36 +++++++++++++++++----------------
+ include/asm-x86_64/hpet.h    |    1 
+ 4 files changed, 28 insertions(+), 35 deletions(-)
 
-diff -puN kernel/power/user.c~swsusp-change-code-ordering-in-userc-sanity kernel/power/user.c
---- a/kernel/power/user.c~swsusp-change-code-ordering-in-userc-sanity
-+++ a/kernel/power/user.c
-@@ -122,7 +122,7 @@ static ssize_t snapshot_write(struct fil
- 	return res;
+diff -puN arch/i386/kernel/acpi/boot.c~time-x86_64-hpet_address-cleanup arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~time-x86_64-hpet_address-cleanup
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -639,6 +639,7 @@ static int __init acpi_parse_sbf(unsigne
  }
  
--static inline int snapshot_suspend(void)
-+static int snapshot_suspend(void)
- {
- 	int error;
+ #ifdef CONFIG_HPET_TIMER
++#include <asm/hpet.h>
  
-@@ -151,7 +151,7 @@ static inline int snapshot_suspend(void)
- 	return error;
+ static int __init acpi_parse_hpet(unsigned long phys, unsigned long size)
+ {
+@@ -672,32 +673,20 @@ static int __init acpi_parse_hpet(unsign
+ 		hpet_res->end = (1 * 1024) - 1;
+ 	}
+ 
++	hpet_address = hpet_tbl->addr.addrl;
+ #ifdef	CONFIG_X86_64
+-	vxtime.hpet_address = hpet_tbl->addr.addrl |
+-	    ((long)hpet_tbl->addr.addrh << 32);
+-
++	hpet_address |= ((long)hpet_tbl->addr.addrh << 32);
++#endif
+ 	printk(KERN_INFO PREFIX "HPET id: %#x base: %#lx\n",
+-	       hpet_tbl->id, vxtime.hpet_address);
+-
+-	res_start = vxtime.hpet_address;
+-#else				/* X86 */
+-	{
+-		extern unsigned long hpet_address;
++	       hpet_tbl->id, hpet_address);
+ 
+-		hpet_address = hpet_tbl->addr.addrl;
+-		printk(KERN_INFO PREFIX "HPET id: %#x base: %#lx\n",
+-		       hpet_tbl->id, hpet_address);
+-
+-		res_start = hpet_address;
+-	}
+-#endif				/* X86 */
++	res_start = hpet_address;
+ 
+ 	if (hpet_res) {
+ 		hpet_res->start = res_start;
+ 		hpet_res->end += res_start;
+ 		insert_resource(&iomem_resource, hpet_res);
+ 	}
+-
+ 	return 0;
+ }
+ #else
+diff -puN arch/x86_64/kernel/apic.c~time-x86_64-hpet_address-cleanup arch/x86_64/kernel/apic.c
+--- a/arch/x86_64/kernel/apic.c~time-x86_64-hpet_address-cleanup
++++ a/arch/x86_64/kernel/apic.c
+@@ -37,6 +37,7 @@
+ #include <asm/idle.h>
+ #include <asm/proto.h>
+ #include <asm/timex.h>
++#include <asm/hpet.h>
+ #include <asm/apic.h>
+ 
+ int apic_mapped;
+@@ -762,7 +763,7 @@ static void setup_APIC_timer(unsigned in
+ 	local_irq_save(flags);
+ 
+ 	/* wait for irq slice */
+- 	if (vxtime.hpet_address && hpet_use_timer) {
++ 	if (hpet_address && hpet_use_timer) {
+  		int trigger = hpet_readl(HPET_T0_CMP);
+  		while (hpet_readl(HPET_COUNTER) >= trigger)
+  			/* do nothing */ ;
+diff -puN arch/x86_64/kernel/time.c~time-x86_64-hpet_address-cleanup arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~time-x86_64-hpet_address-cleanup
++++ a/arch/x86_64/kernel/time.c
+@@ -67,6 +67,7 @@ static int notsc __initdata = 0;
+ 
+ unsigned int cpu_khz;					/* TSC clocks / usec, not used here */
+ EXPORT_SYMBOL(cpu_khz);
++unsigned long hpet_address;
+ static unsigned long hpet_period;			/* fsecs / HPET clock */
+ unsigned long hpet_tick;				/* HPET clocks / interrupt */
+ int hpet_use_timer;				/* Use counter of hpet for time keeping, otherwise PIT */
+@@ -316,7 +317,7 @@ static noinline void handle_lost_ticks(i
+ 		       KERN_WARNING "Your time source seems to be instable or "
+ 		   		"some driver is hogging interupts\n");
+ 		print_symbol("rip %s\n", get_irq_regs()->rip);
+-		if (vxtime.mode == VXTIME_TSC && vxtime.hpet_address) {
++		if (vxtime.mode == VXTIME_TSC && hpet_address) {
+ 			printk(KERN_WARNING "Falling back to HPET\n");
+ 			if (hpet_use_timer)
+ 				vxtime.last = hpet_readl(HPET_T0_CMP) - 
+@@ -324,6 +325,7 @@ static noinline void handle_lost_ticks(i
+ 			else
+ 				vxtime.last = hpet_readl(HPET_COUNTER);
+ 			vxtime.mode = VXTIME_HPET;
++			vxtime.hpet_address = hpet_address;
+ 			do_gettimeoffset = do_gettimeoffset_hpet;
+ 		}
+ 		/* else should fall back to PIT, but code missing. */
+@@ -354,7 +356,7 @@ void main_timer_handler(void)
+ 
+ 	write_seqlock(&xtime_lock);
+ 
+-	if (vxtime.hpet_address)
++	if (hpet_address)
+ 		offset = hpet_readl(HPET_COUNTER);
+ 
+ 	if (hpet_use_timer) {
+@@ -717,7 +719,7 @@ static __init int late_hpet_init(void)
+ 	struct hpet_data	hd;
+ 	unsigned int 		ntimer;
+ 
+-	if (!vxtime.hpet_address)
++	if (!hpet_address)
+         	return 0;
+ 
+ 	memset(&hd, 0, sizeof (hd));
+@@ -730,7 +732,7 @@ static __init int late_hpet_init(void)
+ 	 * Register with driver.
+ 	 * Timer0 and Timer1 is used by platform.
+ 	 */
+-	hd.hd_phys_address = vxtime.hpet_address;
++	hd.hd_phys_address = hpet_address;
+ 	hd.hd_address = (void __iomem *)fix_to_virt(FIX_HPET_BASE);
+ 	hd.hd_nirqs = ntimer;
+ 	hd.hd_flags = HPET_DATA_PLATFORM;
+@@ -799,10 +801,10 @@ static int hpet_init(void)
+ {
+ 	unsigned int id;
+ 
+-	if (!vxtime.hpet_address)
++	if (!hpet_address)
+ 		return -1;
+-	set_fixmap_nocache(FIX_HPET_BASE, vxtime.hpet_address);
+-	__set_fixmap(VSYSCALL_HPET, vxtime.hpet_address, PAGE_KERNEL_VSYSCALL_NOCACHE);
++	set_fixmap_nocache(FIX_HPET_BASE, hpet_address);
++	__set_fixmap(VSYSCALL_HPET, hpet_address, PAGE_KERNEL_VSYSCALL_NOCACHE);
+ 
+ /*
+  * Read the period, compute tick and quotient.
+@@ -856,7 +858,7 @@ void __init pit_stop_interrupt(void)
+ void __init stop_timer_interrupt(void)
+ {
+ 	char *name;
+-	if (vxtime.hpet_address) {
++	if (hpet_address) {
+ 		name = "HPET";
+ 		hpet_timer_stop_set_go(0);
+ 	} else {
+@@ -879,8 +881,7 @@ static struct irqaction irq0 = {
+ void __init time_init(void)
+ {
+ 	if (nohpet)
+-		vxtime.hpet_address = 0;
+-
++		hpet_address = 0;
+ 	xtime.tv_sec = get_cmos_time();
+ 	xtime.tv_nsec = 0;
+ 
+@@ -890,7 +891,7 @@ void __init time_init(void)
+ 	if (!hpet_init())
+                 vxtime_hz = (FSEC_PER_SEC + hpet_period / 2) / hpet_period;
+ 	else
+-		vxtime.hpet_address = 0;
++		hpet_address = 0;
+ 
+ 	if (hpet_use_timer) {
+ 		/* set tick_nsec to use the proper rate for HPET */
+@@ -898,7 +899,7 @@ void __init time_init(void)
+ 		cpu_khz = hpet_calibrate_tsc();
+ 		timename = "HPET";
+ #ifdef CONFIG_X86_PM_TIMER
+-	} else if (pmtmr_ioport && !vxtime.hpet_address) {
++	} else if (pmtmr_ioport && !hpet_address) {
+ 		vxtime_hz = PM_TIMER_FREQUENCY;
+ 		timename = "PM";
+ 		pit_init();
+@@ -965,23 +966,24 @@ void time_init_gtod(void)
+ 	if (unsynchronized_tsc())
+ 		notsc = 1;
+ 
+- 	if (cpu_has(&boot_cpu_data, X86_FEATURE_RDTSCP))
++	if (cpu_has(&boot_cpu_data, X86_FEATURE_RDTSCP))
+ 		vgetcpu_mode = VGETCPU_RDTSCP;
+ 	else
+ 		vgetcpu_mode = VGETCPU_LSL;
+ 
+-	if (vxtime.hpet_address && notsc) {
++	if (hpet_address && notsc) {
+ 		timetype = hpet_use_timer ? "HPET" : "PIT/HPET";
+ 		if (hpet_use_timer)
+ 			vxtime.last = hpet_readl(HPET_T0_CMP) - hpet_tick;
+ 		else
+ 			vxtime.last = hpet_readl(HPET_COUNTER);
+ 		vxtime.mode = VXTIME_HPET;
++		vxtime.hpet_address = hpet_address;
+ 		do_gettimeoffset = do_gettimeoffset_hpet;
+ #ifdef CONFIG_X86_PM_TIMER
+ 	/* Using PM for gettimeofday is quite slow, but we have no other
+ 	   choice because the TSC is too unreliable on some systems. */
+-	} else if (pmtmr_ioport && !vxtime.hpet_address && notsc) {
++	} else if (pmtmr_ioport && !hpet_address && notsc) {
+ 		timetype = "PM";
+ 		do_gettimeoffset = do_gettimeoffset_pm;
+ 		vxtime.mode = VXTIME_PMTMR;
+@@ -1041,7 +1043,7 @@ static int timer_resume(struct sys_devic
+ 		sleep_length = 0;
+ 		ctime = sleep_start;
+ 	}
+-	if (vxtime.hpet_address)
++	if (hpet_address)
+ 		hpet_reenable();
+ 	else
+ 		i8254_timer_resume();
+@@ -1125,7 +1127,7 @@ static unsigned int hpet_t1_cmp; /* cach
+ 
+ int is_hpet_enabled(void)
+ {
+-	return vxtime.hpet_address != 0;
++	return hpet_address != 0;
  }
  
--static inline int snapshot_restore(void)
-+static int snapshot_restore(void)
- {
- 	int error;
+ /*
+diff -puN include/asm-x86_64/hpet.h~time-x86_64-hpet_address-cleanup include/asm-x86_64/hpet.h
+--- a/include/asm-x86_64/hpet.h~time-x86_64-hpet_address-cleanup
++++ a/include/asm-x86_64/hpet.h
+@@ -58,6 +58,7 @@ extern int hpet_rtc_timer_init(void);
+ extern int apic_is_clustered_box(void);
  
+ extern int hpet_use_timer;
++extern unsigned long hpet_address;
+ 
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ extern int hpet_mask_rtc_irq_bit(unsigned long bit_mask);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-origin.patch
-try_to_free_buffers-dont-clear-pte-dirty-bits.patch
-rtc-warning-fix.patch
-fix-vm_events_fold_cpu-build-breakage-fix.patch
-smc911-workqueue-fixes.patch
-schedule_timeout-improve-warning-message.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-arm-systemh-build-fix.patch
-cifs-sprintf-fix.patch
-git-drm.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-driver-for-silan-sc92031-netdev.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-disable-multithreaded-probing.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-funsoft-is-bust-on-sparc.patch
-nokia-e70-is-an-unusual-device.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
+gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+clockevents-core.patch
 clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-sched-improve-efficiency-of-sched_fork-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+high-res-timers-core.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+debugging-feature-add-proc-timer_stat.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+time-x86_64-hpet_address-cleanup.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 
