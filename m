@@ -1,94 +1,187 @@
 From: akpm@osdl.org
-Subject: - kref-refcnt-and-false-positives.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:45 -0800
-Message-ID: <200612210036.kBL0aj3r011222@shell0.pdx.osdl.net>
+Subject: - kobject-kobject_uevent-returns-manageable-value.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:40 -0800
+Message-ID: <200612210036.kBL0ae1d011216@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53339 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53346 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161112AbWLUAgx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:36:53 -0500
+	id S1161113AbWLUAgy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:36:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@gmail.com, greg@kroah.com, mauriciolin@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kref refcnt and false positives
+     kobject: kobject_uevent() returns manageable value
 has been removed from the -mm tree.  Its filename was
-     kref-refcnt-and-false-positives.patch
+     kobject-kobject_uevent-returns-manageable-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kref refcnt and false positives
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: kobject: kobject_uevent() returns manageable value
+From: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
 
-With WARN_ON addition to kobject_init()
-[ http://kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.19/2.6.19-mm1/dont-use/broken-out/gregkh-driver-kobject-warn.patch ]
+Since kobject_uevent() function does not return an integer value to
+indicate if its operation was completed with success or not, it is worth
+changing it in order to report a proper status (success or error) instead
+of returning void.
 
-I started seeing following WARNING on CPU offline followed by online on my
-x86_64 system.
-
-WARNING at lib/kobject.c:172 kobject_init()
-
-Call Trace:
- [<ffffffff8020ab45>] dump_trace+0xaa/0x3ef
- [<ffffffff8020aec4>] show_trace+0x3a/0x50
- [<ffffffff8020b0f6>] dump_stack+0x15/0x17
- [<ffffffff80350abc>] kobject_init+0x3f/0x8a
- [<ffffffff80350be1>] kobject_register+0x1a/0x3e
- [<ffffffff803bbd89>] sysdev_register+0x5b/0xf9
- [<ffffffff80211d0b>] mce_create_device+0x77/0xf4
- [<ffffffff80211dc2>] mce_cpu_callback+0x3a/0xe5
- [<ffffffff805632fd>] notifier_call_chain+0x26/0x3b
- [<ffffffff8023f6f3>] raw_notifier_call_chain+0x9/0xb
- [<ffffffff802519bf>] _cpu_up+0xb4/0xdc
- [<ffffffff80251a12>] cpu_up+0x2b/0x42
- [<ffffffff803bef00>] store_online+0x4a/0x72
- [<ffffffff803bb6ce>] sysdev_store+0x24/0x26
- [<ffffffff802baaa2>] sysfs_write_file+0xcf/0xfc
- [<ffffffff8027fc6f>] vfs_write+0xae/0x154
- [<ffffffff80280418>] sys_write+0x47/0x6f
- [<ffffffff8020963e>] system_call+0x7e/0x83
-DWARF2 unwinder stuck at system_call+0x7e/0x83
-Leftover inexact backtrace:
-
-This is a false positive as mce.c is unregistering/registering sysfs
-interfaces cleanly on hotplug.
-
-kref_put() and conditional decrement of refcnt seems to be the root cause
-for this and the patch below resolves the issue for me.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+[randy.dunlap@oracle.com: Fix inline kobject functions]
+Cc: Mauricio Lin <mauriciolin@gmail.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@gmail.com>
 Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/kref.c |    7 +------
- 1 files changed, 1 insertion(+), 6 deletions(-)
+ include/linux/kobject.h |   11 +++++----
+ lib/kobject_uevent.c    |   44 +++++++++++++++++++++++++-------------
+ 2 files changed, 36 insertions(+), 19 deletions(-)
 
-diff -puN lib/kref.c~kref-refcnt-and-false-positives lib/kref.c
---- a/lib/kref.c~kref-refcnt-and-false-positives
-+++ a/lib/kref.c
-@@ -52,12 +52,7 @@ int kref_put(struct kref *kref, void (*r
- 	WARN_ON(release == NULL);
- 	WARN_ON(release == (void (*)(struct kref *))kfree);
+diff -puN include/linux/kobject.h~kobject-kobject_uevent-returns-manageable-value include/linux/kobject.h
+--- a/include/linux/kobject.h~kobject-kobject_uevent-returns-manageable-value
++++ a/include/linux/kobject.h
+@@ -265,8 +265,8 @@ extern int __must_check subsys_create_fi
+ 					struct subsys_attribute *);
  
--	/*
--	 * if current count is one, we are the last user and can release object
--	 * right now, avoiding an atomic operation on 'refcount'
--	 */
--	if ((atomic_read(&kref->refcount) == 1) ||
--	    (atomic_dec_and_test(&kref->refcount))) {
-+	if (atomic_dec_and_test(&kref->refcount)) {
- 		release(kref);
- 		return 1;
+ #if defined(CONFIG_HOTPLUG)
+-void kobject_uevent(struct kobject *kobj, enum kobject_action action);
+-void kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
++int kobject_uevent(struct kobject *kobj, enum kobject_action action);
++int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+ 			char *envp[]);
+ 
+ int add_uevent_var(char **envp, int num_envp, int *cur_index,
+@@ -274,11 +274,12 @@ int add_uevent_var(char **envp, int num_
+ 			const char *format, ...)
+ 	__attribute__((format (printf, 7, 8)));
+ #else
+-static inline void kobject_uevent(struct kobject *kobj, enum kobject_action action) { }
+-static inline void kobject_uevent_env(struct kobject *kobj,
++static inline int kobject_uevent(struct kobject *kobj, enum kobject_action action)
++{ return 0; }
++static inline int kobject_uevent_env(struct kobject *kobj,
+ 				      enum kobject_action action,
+ 				      char *envp[])
+-{ }
++{ return 0; }
+ 
+ static inline int add_uevent_var(char **envp, int num_envp, int *cur_index,
+ 				      char *buffer, int buffer_size, int *cur_len, 
+diff -puN lib/kobject_uevent.c~kobject-kobject_uevent-returns-manageable-value lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~kobject-kobject_uevent-returns-manageable-value
++++ a/lib/kobject_uevent.c
+@@ -63,8 +63,11 @@ static char *action_to_string(enum kobje
+  * @action: action that is happening (usually KOBJ_MOVE)
+  * @kobj: struct kobject that the action is happening to
+  * @envp_ext: pointer to environmental data
++ *
++ * Returns 0 if kobject_uevent() is completed with success or the
++ * corresponding error when it fails.
+  */
+-void kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
++int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+ 			char *envp_ext[])
+ {
+ 	char **envp;
+@@ -79,14 +82,16 @@ void kobject_uevent_env(struct kobject *
+ 	u64 seq;
+ 	char *seq_buff;
+ 	int i = 0;
+-	int retval;
++	int retval = 0;
+ 	int j;
+ 
+ 	pr_debug("%s\n", __FUNCTION__);
+ 
+ 	action_string = action_to_string(action);
+-	if (!action_string)
+-		return;
++	if (!action_string) {
++		pr_debug("kobject attempted to send uevent without action_string!\n");
++		return -EINVAL;
++	}
+ 
+ 	/* search the kset we belong to */
+ 	top_kobj = kobj;
+@@ -95,31 +100,39 @@ void kobject_uevent_env(struct kobject *
+ 			top_kobj = top_kobj->parent;
+ 		} while (!top_kobj->kset && top_kobj->parent);
  	}
+-	if (!top_kobj->kset)
+-		return;
++	if (!top_kobj->kset) {
++		pr_debug("kobject attempted to send uevent without kset!\n");
++		return -EINVAL;
++	}
+ 
+ 	kset = top_kobj->kset;
+ 	uevent_ops = kset->uevent_ops;
+ 
+ 	/*  skip the event, if the filter returns zero. */
+ 	if (uevent_ops && uevent_ops->filter)
+-		if (!uevent_ops->filter(kset, kobj))
+-			return;
++		if (!uevent_ops->filter(kset, kobj)) {
++			pr_debug("kobject filter function caused the event to drop!\n");
++			return 0;
++		}
+ 
+ 	/* environment index */
+ 	envp = kzalloc(NUM_ENVP * sizeof (char *), GFP_KERNEL);
+ 	if (!envp)
+-		return;
++		return -ENOMEM;
+ 
+ 	/* environment values */
+ 	buffer = kmalloc(BUFFER_SIZE, GFP_KERNEL);
+-	if (!buffer)
++	if (!buffer) {
++		retval = -ENOMEM;
+ 		goto exit;
++	}
+ 
+ 	/* complete object path */
+ 	devpath = kobject_get_path(kobj, GFP_KERNEL);
+-	if (!devpath)
++	if (!devpath) {
++		retval = -ENOENT;
+ 		goto exit;
++	}
+ 
+ 	/* originating subsystem */
+ 	if (uevent_ops && uevent_ops->name)
+@@ -204,7 +217,7 @@ exit:
+ 	kfree(devpath);
+ 	kfree(buffer);
+ 	kfree(envp);
+-	return;
++	return retval;
+ }
+ 
+ EXPORT_SYMBOL_GPL(kobject_uevent_env);
+@@ -214,10 +227,13 @@ EXPORT_SYMBOL_GPL(kobject_uevent_env);
+  *
+  * @action: action that is happening (usually KOBJ_ADD and KOBJ_REMOVE)
+  * @kobj: struct kobject that the action is happening to
++ *
++ * Returns 0 if kobject_uevent() is completed with success or the
++ * corresponding error when it fails.
+  */
+-void kobject_uevent(struct kobject *kobj, enum kobject_action action)
++int kobject_uevent(struct kobject *kobj, enum kobject_action action)
+ {
+-	kobject_uevent_env(kobj, action, NULL);
++	return kobject_uevent_env(kobj, action, NULL);
+ }
+ 
+ EXPORT_SYMBOL_GPL(kobject_uevent);
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from aneesh.kumar@gmail.com are
 
-origin.patch
-bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification.patch
+alpha-increase-percpu_enough_room.patch
 
