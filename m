@@ -1,74 +1,116 @@
 From: akpm@osdl.org
-Subject: + mips-if_fddih-add-a-missing-inclusion.patch added to -mm tree
-Date: Wed, 20 Dec 2006 20:58:20 -0800
-Message-ID: <200612210458.kBL4wKaK016112@shell0.pdx.osdl.net>
+Subject: + memory-hotplug-fix-compile-error-for-i386-with-numa-config-take-3.patch added to -mm tree
+Date: Wed, 20 Dec 2006 21:09:41 -0800
+Message-ID: <200612210509.kBL59f5W016295@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38159 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38662 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422728AbWLUE6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 23:58:34 -0500
+	id S1422719AbWLUFJv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 00:09:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, davem@davemloft.net, jeff@garzik.org, ralf@linux-mips.org
+Cc: y-goto@jp.fujitsu.com, randy.dunlap@oracle.com, rientjes@cs.washington.edu
 
 
 The patch titled
-     mips: if_fddi.h: Add a missing inclusion
+     memory hotplug: fix compile error for i386 with NUMA config
 has been added to the -mm tree.  Its filename is
-     mips-if_fddih-add-a-missing-inclusion.patch
+     memory-hotplug-fix-compile-error-for-i386-with-numa-config-take-3.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips: if_fddi.h: Add a missing inclusion
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: memory hotplug: fix compile error for i386 with NUMA config
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-This is a change to include <linux/netdevice.h> in <linux/if_fddi.h> which is
-needed for "struct fddi_statistics".
+Fix compile error when config memory hotplug with numa on i386.
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+The cause of compile error was missing of arch_add_memory(),
+remove_memory(), and memory_add_physaddr_to_nid().
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@cs.washington.edu>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/if_fddi.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/i386/mm/discontig.c |   28 ++++++++++++++++++++++++++++
+ arch/i386/mm/init.c      |   10 ++--------
+ 2 files changed, 30 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/if_fddi.h~mips-if_fddih-add-a-missing-inclusion include/linux/if_fddi.h
---- a/include/linux/if_fddi.h~mips-if_fddih-add-a-missing-inclusion
-+++ a/include/linux/if_fddi.h
-@@ -103,6 +103,8 @@ struct fddihdr
- 	} __attribute__ ((packed));
- 
- #ifdef __KERNEL__
-+#include <linux/netdevice.h>
+diff -puN arch/i386/mm/discontig.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config-take-3 arch/i386/mm/discontig.c
+--- a/arch/i386/mm/discontig.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config-take-3
++++ a/arch/i386/mm/discontig.c
+@@ -405,3 +405,31 @@ void __init set_highmem_pages_init(int b
+ 	totalram_pages += totalhigh_pages;
+ #endif
+ }
 +
- /* Define FDDI statistics structure */
- struct fddi_statistics {
++#ifdef CONFIG_MEMORY_HOTPLUG
++int paddr_to_nid(u64 addr)
++{
++	int nid;
++	unsigned long pfn = PFN_DOWN(addr);
++
++	for_each_node(nid)
++		if (node_start_pfn[nid] <= pfn &&
++		    pfn < node_end_pfn[nid])
++			return nid;
++
++	return -1;
++}
++
++/*
++ * This function is used to ask node id BEFORE memmap and mem_section's
++ * initialization (pfn_to_nid() can't be used yet).
++ * If _PXM is not defined on ACPI's DSDT, node id must be found by this.
++ */
++int memory_add_physaddr_to_nid(u64 addr)
++{
++	int nid = paddr_to_nid(addr);
++	return (nid >= 0) ? nid : 0;
++}
++
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
++#endif
+diff -puN arch/i386/mm/init.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config-take-3 arch/i386/mm/init.c
+--- a/arch/i386/mm/init.c~memory-hotplug-fix-compile-error-for-i386-with-numa-config-take-3
++++ a/arch/i386/mm/init.c
+@@ -677,16 +677,10 @@ void __init mem_init(void)
+ #endif
+ }
  
+-/*
+- * this is for the non-NUMA, single node SMP system case.
+- * Specifically, in the case of x86, we will always add
+- * memory to the highmem for now.
+- */
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-#ifndef CONFIG_NEED_MULTIPLE_NODES
+ int arch_add_memory(int nid, u64 start, u64 size)
+ {
+-	struct pglist_data *pgdata = &contig_page_data;
++	struct pglist_data *pgdata = NODE_DATA(nid);
+ 	struct zone *zone = pgdata->node_zones + ZONE_HIGHMEM;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+@@ -698,7 +692,7 @@ int remove_memory(u64 start, u64 size)
+ {
+ 	return -EINVAL;
+ }
+-#endif
++EXPORT_SYMBOL_GPL(remove_memory);
+ #endif
+ 
+ struct kmem_cache *pgd_cache;
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-mips-if_fddih-add-a-missing-inclusion.patch
-mips-turbochannel-update-to-the-driver-model.patch
-mips-turbochannel-support-for-the-decstation.patch
-mips-eisa-registration-with-config_eisa.patch
-mips-declance-driver-model-for-the-pmad-a.patch
-mips-pmag-ba-fb-convert-to-the-driver-model.patch
-mips-pmagb-b-fb-convert-to-the-driver-model.patch
-mips-dec_esp-driver-model-for-the-pmaz-a.patch
-i386-io_apic-fix-a-typo-in-an-irq-handler-name.patch
-tgafb-switch-to-framebuffer_alloc.patch
-tgafb-fix-copying-overlapping-areas.patch
-tgafb-support-the-directcolor-visual.patch
-tgafb-fix-the-mode-register-setting.patch
-tgafb-module-support-fixes.patch
-tgafb-sync-on-green-support-fixes.patch
-tgafb-fix-the-pci-id-table.patch
+handle-slob-with-sparsemen.patch
+compile-error-of-register_memory.patch
+memory-hotplug-fix-compile-error-for-i386-with-numa-config-take-3.patch
 
