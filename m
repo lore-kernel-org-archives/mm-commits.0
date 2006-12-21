@@ -1,57 +1,73 @@
 From: akpm@osdl.org
-Subject: - bluetooth-add-support-for-another-kensington-dongle.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:37:11 -0800
-Message-ID: <200612210037.kBL0bBkO011275@shell0.pdx.osdl.net>
+Subject: + scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch added to -mm tree
+Date: Wed, 20 Dec 2006 16:41:16 -0800
+Message-ID: <200612210041.kBL0fG6K011386@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53616 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53691 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161126AbWLUAki (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:40:38 -0500
+	id S1161127AbWLUAlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:41:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: galibert@pobox.com, greg@kroah.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: vapier.adi@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     bluetooth: add support for another Kensington dongle
-has been removed from the -mm tree.  Its filename was
-     bluetooth-add-support-for-another-kensington-dongle.patch
+     scrub non-__GLIBC__ checks in linux/socket.h and linux/stat.h
+has been added to the -mm tree.  Its filename is
+     scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: bluetooth: add support for another Kensington dongle
-From: Olivier Galibert <galibert@pobox.com>
+Subject: scrub non-__GLIBC__ checks in linux/socket.h and linux/stat.h
+From: "Mike Frysinger" <vapier.adi@gmail.com>
 
-Add the stupid sco fixup quirk to yet another Broadcom/Kensington device.
+Userspace should be worrying about userspace, so having the socket.h
+and stat.h pollute the namespace in the non-glibc case is wrong and
+pretty much prevents any other libc from utilizing these headers
+sanely unless they set up the __GLIBC__ define themselves (which
+sucks)
 
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/bluetooth/hci_usb.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/socket.h |    2 +-
+ include/linux/stat.h   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.c~bluetooth-add-support-for-another-kensington-dongle drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~bluetooth-add-support-for-another-kensington-dongle
-+++ a/drivers/bluetooth/hci_usb.c
-@@ -126,6 +126,7 @@ static struct usb_device_id blacklist_id
+diff -puN include/linux/socket.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath include/linux/socket.h
+--- a/include/linux/socket.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath
++++ a/include/linux/socket.h
+@@ -16,7 +16,7 @@ struct __kernel_sockaddr_storage {
+ 				/* _SS_MAXSIZE value minus size of ss_family */
+ } __attribute__ ((aligned(_K_SS_ALIGNSIZE)));	/* force desired alignment */
  
- 	/* Kensington Bluetooth USB adapter */
- 	{ USB_DEVICE(0x047d, 0x105d), .driver_info = HCI_RESET },
-+	{ USB_DEVICE(0x047d, 0x105e), .driver_info = HCI_WRONG_SCO_MTU },
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#ifdef __KERNEL__
  
- 	/* ISSC Bluetooth Adapter v3.1 */
- 	{ USB_DEVICE(0x1131, 0x1001), .driver_info = HCI_RESET },
+ #include <asm/socket.h>			/* arch-dependent defines	*/
+ #include <linux/sockios.h>		/* the SIOCxxx I/O controls	*/
+diff -puN include/linux/stat.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath include/linux/stat.h
+--- a/include/linux/stat.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath
++++ a/include/linux/stat.h
+@@ -7,7 +7,7 @@
+ 
+ #endif
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#ifdef __KERNEL__
+ 
+ #define S_IFMT  00170000
+ #define S_IFSOCK 0140000
 _
 
-Patches currently in -mm which might be from galibert@pobox.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-pci-mmconfig-share-whats-shareable.patch
-pci-mmconfig-only-call-unreachable_devices-when-type-1-is-available.patch
-pci-mmconfig-only-map-whats-necessary.patch
-pci-mmconfig-detect-and-support-the-e7520-and-the-945g-gz-p-pl.patch
-pci-mmconfig-reserve-resources-but-only-when-were-sure-about-them.patch
+search-a-little-harder-for-mkimage.patch
+scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch
 
