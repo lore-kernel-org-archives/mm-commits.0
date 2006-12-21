@@ -1,129 +1,75 @@
 From: akpm@osdl.org
-Subject: + md-fix-a-few-problems-with-the-interface-sysfs-and-ioctl-to-md.patch added to -mm tree
-Date: Thu, 21 Dec 2006 00:00:23 -0800
-Message-ID: <200612210800.kBL80NUK020217@shell0.pdx.osdl.net>
+Subject: - virtual-memmap-on-sparsemem-v3-generic-virtual-fix.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 23:26:17 -0800
+Message-ID: <200612210726.kBL7QHAF018725@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47155 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:47238 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422808AbWLUIAa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 03:00:30 -0500
+	id S1422830AbWLUIBg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 03:01:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+To: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, clameter@engr.sgi.com, haveblue@us.ibm.com, mbligh@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix a few problems with the interface (sysfs and ioctl) to md
-has been added to the -mm tree.  Its filename is
-     md-fix-a-few-problems-with-the-interface-sysfs-and-ioctl-to-md.patch
+     virtual-memmap-on-sparsemem-v3-generic-virtual fix
+has been removed from the -mm tree.  Its filename was
+     virtual-memmap-on-sparsemem-v3-generic-virtual-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: md: fix a few problems with the interface (sysfs and ioctl) to md
-From: NeilBrown <neilb@suse.de>
+Subject: virtual-memmap-on-sparsemem-v3-generic-virtual fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-While developing more functionality in mdadm I found some bugs in md...
+Fixes #error condition.
 
-- When we remove a device from an inactive array (write 'remove' to
-  the 'state' sysfs file - see 'state_store') would should not
-  update the superblock information - as we may not have
-  read and processed it all properly yet.
+This check's meaning is:
+--for 32bits--
+4 (struct page's alignment) * PAGES_PER_SECTION % PAGE_SIZE == 0
+--for 64bits--
+8 (struct page's alignment) * PAGES_PER_SECTION % PAGE_SIZE == 0
 
-- initialise all raid_disk entries to '-1' else the 'slot sysfs file
-  will claim '0' for all devices in an array before the array is
-  started.
+Then, vmem_map is aligned per section.
 
-- all '\n' not to be present at the end of words written to
-  sysfs files
+This check may be removed if I (or someone) can write clean patch
+for not aligned vmem_map.
 
-- when we use SET_ARRAY_INFO to set the md metadata version,
-  set the flag to say that there is persistant metadata.
-
-- allow GET_BITMAP_FILE to be called on an array that hasn't
-  been started yet.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Martin Bligh <mbligh@google.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/md.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-fix-a-few-problems-with-the-interface-sysfs-and-ioctl-to-md drivers/md/md.c
---- a/drivers/md/md.c~md-fix-a-few-problems-with-the-interface-sysfs-and-ioctl-to-md
-+++ a/drivers/md/md.c
-@@ -1792,7 +1792,8 @@ state_store(mdk_rdev_t *rdev, const char
- 		else {
- 			mddev_t *mddev = rdev->mddev;
- 			kick_rdev_from_array(rdev);
--			md_update_sb(mddev, 1);
-+			if (mddev->pers)
-+				md_update_sb(mddev, 1);
- 			md_new_event(mddev);
- 			err = 0;
- 		}
-@@ -2004,6 +2005,7 @@ static mdk_rdev_t *md_import_device(dev_
+diff -puN include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-generic-virtual-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~virtual-memmap-on-sparsemem-v3-generic-virtual-fix
++++ a/include/linux/mmzone.h
+@@ -690,7 +690,7 @@ extern int __section_nr(struct mem_secti
+ #define SECTION_NID_SHIFT	2
  
- 	rdev->desc_nr = -1;
- 	rdev->saved_raid_disk = -1;
-+	rdev->raid_disk = -1;
- 	rdev->flags = 0;
- 	rdev->data_offset = 0;
- 	rdev->sb_events = 0;
-@@ -2233,7 +2235,6 @@ static int update_raid_disks(mddev_t *md
- static ssize_t
- raid_disks_store(mddev_t *mddev, const char *buf, size_t len)
- {
--	/* can only set raid_disks if array is not yet active */
- 	char *e;
- 	int rv = 0;
- 	unsigned long n = simple_strtoul(buf, &e, 10);
-@@ -2631,7 +2632,7 @@ metadata_store(mddev_t *mddev, const cha
- 		return -EINVAL;
- 	buf = e+1;
- 	minor = simple_strtoul(buf, &e, 10);
--	if (e==buf || *e != '\n')
-+	if (e==buf || (*e && *e != '\n') )
- 		return -EINVAL;
- 	if (major >= sizeof(super_types)/sizeof(super_types[0]) ||
- 	    super_types[major].name == NULL)
-@@ -3980,6 +3981,7 @@ static int set_array_info(mddev_t * mdde
- 		mddev->major_version = info->major_version;
- 		mddev->minor_version = info->minor_version;
- 		mddev->patch_version = info->patch_version;
-+		mddev->persistent = !info->not_persistent;
- 		return 0;
- 	}
- 	mddev->major_version = MD_MAJOR_VERSION;
-@@ -4304,9 +4306,10 @@ static int md_ioctl(struct inode *inode,
- 	 * Commands querying/configuring an existing array:
- 	 */
- 	/* if we are not initialised yet, only ADD_NEW_DISK, STOP_ARRAY,
--	 * RUN_ARRAY, and SET_BITMAP_FILE are allowed */
-+	 * RUN_ARRAY, and GET_ and SET_BITMAP_FILE are allowed */
- 	if (!mddev->raid_disks && cmd != ADD_NEW_DISK && cmd != STOP_ARRAY
--			&& cmd != RUN_ARRAY && cmd != SET_BITMAP_FILE) {
-+			&& cmd != RUN_ARRAY && cmd != SET_BITMAP_FILE
-+	    		&& cmd != GET_BITMAP_FILE) {
- 		err = -ENODEV;
- 		goto abort_unlock;
- 	}
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-#if (((BITS_PER_LONG/4) * PAGES_PER_SECTION) % PAGE_SIZE) != 0
++#if (((BITS_PER_LONG/8) * PAGES_PER_SECTION) % PAGE_SIZE) != 0
+ #error "PAGE_SIZE/SECTION_SIZE relationship is not suitable for vmem_map"
+ #endif
+ extern struct page* mem_map;
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-md-fix-a-few-problems-with-the-interface-sysfs-and-ioctl-to-md.patch
-igrab-should-check-for-i_clear.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+virtual-memmap-on-sparsemem-v3-generic-virtual-fix.patch
+virtual-memmap-on-sparsemem-v3-static-virtual.patch
+virtual-memmap-on-sparsemem-v3-static-virtual-update.patch
+virtual-memmap-on-sparsemem-v3-ia64-support.patch
+virtual-memmap-on-sparsemem-v3-ia64-support-update.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+reiser4-hardirq-include-fix.patch
 
