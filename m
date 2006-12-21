@@ -1,116 +1,122 @@
 From: akpm@osdl.org
-Subject: + ptrace-fix-efl_offset-value-according-to-i386-pda-changes.patch added to -mm tree
-Date: Wed, 20 Dec 2006 21:58:47 -0800
-Message-ID: <200612210558.kBL5wlhj017111@shell0.pdx.osdl.net>
+Subject: + pxa-gpio-wrappers.patch added to -mm tree
+Date: Wed, 20 Dec 2006 22:13:48 -0800
+Message-ID: <200612210613.kBL6DmwG017398@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40818 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41541 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422750AbWLUF6z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 00:58:55 -0500
+	id S1422745AbWLUGNu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 01:13:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, deweerdt@free.fr
+Cc: philipp.zabel@gmail.com
 
 
 The patch titled
-     ptrace: Fix EFL_OFFSET value according to i386 pda changes
+     PXA GPIO wrappers
 has been added to the -mm tree.  Its filename is
-     ptrace-fix-efl_offset-value-according-to-i386-pda-changes.patch
+     pxa-gpio-wrappers.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ptrace: Fix EFL_OFFSET value according to i386 pda changes
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: PXA GPIO wrappers
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
--ENOCHANGELOG.
+Arch-neutral GPIO calls for PXA.
 
-Cc: Frederik Deweerdt <deweerdt@free.fr>
-Cc: Andi Kleen <ak@suse.de>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/ptrace.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ include/asm-arm/arch-pxa/gpio.h |   72 ++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
-diff -puN arch/i386/kernel/ptrace.c~ptrace-fix-efl_offset-value-according-to-i386-pda-changes arch/i386/kernel/ptrace.c
---- a/arch/i386/kernel/ptrace.c~ptrace-fix-efl_offset-value-according-to-i386-pda-changes
-+++ a/arch/i386/kernel/ptrace.c
-@@ -45,7 +45,7 @@
- /*
-  * Offset of eflags on child stack..
-  */
--#define EFL_OFFSET ((EFL-2)*4-sizeof(struct pt_regs))
-+#define EFL_OFFSET offsetof(struct pt_regs, eflags)
- 
- static inline struct pt_regs *get_child_regs(struct task_struct *task)
- {
-@@ -54,24 +54,24 @@ static inline struct pt_regs *get_child_
- }
- 
- /*
-- * this routine will get a word off of the processes privileged stack. 
-- * the offset is how far from the base addr as stored in the TSS.  
-- * this routine assumes that all the privileged stacks are in our
-+ * This routine will get a word off of the processes privileged stack.
-+ * the offset is bytes into the pt_regs structure on the stack.
-+ * This routine assumes that all the privileged stacks are in our
-  * data space.
-  */   
- static inline int get_stack_long(struct task_struct *task, int offset)
- {
- 	unsigned char *stack;
- 
--	stack = (unsigned char *)task->thread.esp0;
-+	stack = (unsigned char *)task->thread.esp0 - sizeof(struct pt_regs);
- 	stack += offset;
- 	return (*((int *)stack));
- }
- 
- /*
-- * this routine will put a word on the processes privileged stack. 
-- * the offset is how far from the base addr as stored in the TSS.  
-- * this routine assumes that all the privileged stacks are in our
-+ * This routine will put a word on the processes privileged stack.
-+ * the offset is bytes into the pt_regs structure on the stack.
-+ * This routine assumes that all the privileged stacks are in our
-  * data space.
-  */
- static inline int put_stack_long(struct task_struct *task, int offset,
-@@ -79,7 +79,7 @@ static inline int put_stack_long(struct 
- {
- 	unsigned char * stack;
- 
--	stack = (unsigned char *) task->thread.esp0;
-+	stack = (unsigned char *)task->thread.esp0 - sizeof(struct pt_regs);
- 	stack += offset;
- 	*(unsigned long *) stack = data;
- 	return 0;
-@@ -114,7 +114,7 @@ static int putreg(struct task_struct *ch
- 	}
- 	if (regno > ES*4)
- 		regno -= 1*4;
--	put_stack_long(child, regno - sizeof(struct pt_regs), value);
-+	put_stack_long(child, regno, value);
- 	return 0;
- }
- 
-@@ -137,7 +137,6 @@ static unsigned long getreg(struct task_
- 		default:
- 			if (regno > ES*4)
- 				regno -= 1*4;
--			regno = regno - sizeof(struct pt_regs);
- 			retval &= get_stack_long(child, regno);
- 	}
- 	return retval;
+diff -puN /dev/null include/asm-arm/arch-pxa/gpio.h
+--- /dev/null
++++ a/include/asm-arm/arch-pxa/gpio.h
+@@ -0,0 +1,72 @@
++/*
++ * linux/include/asm-arm/arch-pxa/gpio.h
++ *
++ * PXA GPIO wrappers for arch-neutral GPIO calls
++ *
++ * Written by Philipp Zabel <philipp.zabel@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
++
++#ifndef __ASM_ARCH_PXA_GPIO_H
++#define __ASM_ARCH_PXA_GPIO_H
++
++#include <asm/arch/pxa-regs.h>
++#include <asm/arch/irqs.h>
++#include <asm/arch/hardware.h>
++
++#include <asm/errno.h>
++
++static inline int gpio_request(unsigned gpio, const char *label)
++{
++	return 0;
++}
++
++static inline void gpio_free(unsigned gpio)
++{
++	return;
++}
++
++static inline int gpio_direction_input(unsigned gpio)
++{
++	if (gpio > PXA_LAST_GPIO)
++		return -EINVAL;
++	pxa_gpio_mode(gpio | GPIO_IN);
++}
++
++static inline int gpio_direction_output(unsigned gpio)
++{
++	if (gpio > PXA_LAST_GPIO)
++		return -EINVAL;
++	pxa_gpio_mode(gpio | GPIO_OUT);
++}
++
++/* REVISIT these macros are correct, but suffer code explosion
++ * for non-constant parameters.  Provide out-line versions too.
++ */
++#define gpio_get_value(gpio) \
++	(GPLR(gpio) & GPIO_bit(gpio))
++
++#define gpio_set_value(gpio,value) \
++	((value) ? (GPSR(gpio) = GPIO_bit(gpio)):(GPCR(gpio) = GPIO_bit(gpio)))
++
++#include <asm-generic/gpio.h>			/* cansleep wrappers */
++
++#define gpio_to_irq(gpio)	IRQ_GPIO(gpio)
++#define irq_to_gpio(irq)	IRQ_TO_GPIO(irq)
++
++
++#endif
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
-ptrace-fix-efl_offset-value-according-to-i386-pda-changes.patch
-convert-i386-pda-code-to-use-%fs.patch
-gtod-uninline-jiffiesh.patch
+git-alsa.patch
+pxa-gpio-wrappers.patch
+sa1100-gpio-wrappers.patch
+s3c2410-gpio-wrappers.patch
 
