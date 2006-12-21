@@ -1,107 +1,103 @@
 From: akpm@osdl.org
-Subject: + x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch added to -mm tree
-Date: Thu, 21 Dec 2006 12:59:10 -0800
-Message-ID: <200612212059.kBLKxBJ9004746@shell0.pdx.osdl.net>
+Subject: + pnx8550-uart-driver-fixes.patch added to -mm tree
+Date: Thu, 21 Dec 2006 13:26:32 -0800
+Message-ID: <200612212126.kBLLQWtd005461@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39873 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42496 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423099AbWLUU7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 15:59:23 -0500
+	id S1423114AbWLUV1A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 16:27:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amul.shah@unisys.com, ak@suse.de, rohitseth@google.com
+Cc: vitalywool@gmail.com, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     x86_64-make-the-numa-hash-function-nodemap-allocation fix fix
+     pnx8xxx-uart: irq and ktermios fixes
 has been added to the -mm tree.  Its filename is
-     x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
+     pnx8550-uart-driver-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-make-the-numa-hash-function-nodemap-allocation fix fix
-From: Amul Shah <amul.shah@unisys.com>
+Subject: pnx8xxx-uart: irq and ktermios fixes
+From: Vitaly Wool <vitalywool@gmail.com>
 
-- Removed an extraneous debug message from allocate_cachealigned_map
+Add irq 2.6.19 changes and 2.6.20 ktermios changes to pnx8xxx-uart.c (which
+was added to -mm tree with pnx8550-uart-driver.patch).
 
-- Changed extract_lsb_from_nodes to return 63 for the case where there was
-  only one memory node.  The prevents the creation of the dynamic hashmap.
-
-- Changed extract_lsb_from_nodes to use only the starting memory address of
-  a node.  On an ES7000, our nodes overlap the starting and ending address,
-  meaning, that we see nodes like
-
-	00000 - 10000
-	10000 - 20000
-
-  But other systems have nodes whose start and end addresses do not overlap.
-   For example:
-
-	00000 - 0FFFF
-	10000 - 1FFFF
-
-  In this case, using the ending address will result in an LSB much lower
-  than what is possible.  In this case an LSB of 1 when in reality it should
-  be 16.  
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Rohit Seth <rohitseth@google.com>
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/mm/numa.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/serial/pnx8xxx_uart.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2 arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2
-+++ a/arch/x86_64/mm/numa.c
-@@ -78,11 +78,8 @@ static int __init allocate_cachealigned_
- 	unsigned long pad, pad_addr;
- 
- 	memnodemap = memnode.embedded_map;
--	if (memnodemapsize <= 48) {
--		printk(KERN_DEBUG "NUMA: Allocated memnodemap from %lx - %lx\n",
--		       nodemap_addr, nodemap_addr + nodemap_size);
-+	if (memnodemapsize <= 48)
- 		return 0;
--	}
- 
- 	pad = L1_CACHE_BYTES - 1;
- 	pad_addr = 0x8000;
-@@ -110,7 +107,7 @@ static int __init allocate_cachealigned_
- static int __init
- extract_lsb_from_nodes (const struct bootnode *nodes, int numnodes)
- {
--	int i;
-+	int i, nodes_used = 0;
- 	unsigned long start, end;
- 	unsigned long bitfield = 0, memtop = 0;
- 
-@@ -119,11 +116,15 @@ extract_lsb_from_nodes (const struct boo
- 		end = nodes[i].end;
- 		if (start >= end)
- 			continue;
--		bitfield |= start | end;
-+		bitfield |= start;
-+		nodes_used++;
- 		if (end > memtop)
- 			memtop = end;
- 	}
--	i = find_first_bit(&bitfield, sizeof(unsigned long)*8);
-+	if (nodes_used <= 1 )
-+		i = 63;
-+	else
-+		i = find_first_bit(&bitfield, sizeof(unsigned long)*8);
- 	memnodemapsize = (memtop >> i)+1;
- 	return i;
+diff -puN drivers/serial/pnx8xxx_uart.c~pnx8550-uart-driver-fixes drivers/serial/pnx8xxx_uart.c
+--- a/drivers/serial/pnx8xxx_uart.c~pnx8550-uart-driver-fixes
++++ a/drivers/serial/pnx8xxx_uart.c
+@@ -179,8 +179,7 @@ static void pnx8xxx_enable_ms(struct uar
+ 	mod_timer(&sport->timer, jiffies);
  }
+ 
+-static void
+-pnx8xxx_rx_chars(struct pnx8xxx_port *sport, struct pt_regs *regs)
++static void pnx8xxx_rx_chars(struct pnx8xxx_port *sport)
+ {
+ 	struct tty_struct *tty = sport->port.info->tty;
+ 	unsigned int status, ch, flg;
+@@ -220,7 +219,7 @@ pnx8xxx_rx_chars(struct pnx8xxx_port *sp
+ #endif
+ 		}
+ 
+-		if (uart_handle_sysrq_char(&sport->port, ch, regs))
++		if (uart_handle_sysrq_char(&sport->port, ch))
+ 			goto ignore_char;
+ 
+ 		uart_insert_char(&sport->port, status,
+@@ -293,7 +292,7 @@ static irqreturn_t pnx8xxx_int(int irq, 
+ 
+ 	/* Byte received */
+ 	if (status & PNX8XXX_UART_INT_RX)
+-		pnx8xxx_rx_chars(sport, regs);
++		pnx8xxx_rx_chars(sport);
+ 
+ 	/* TX holding register empty - transmit a byte */
+ 	if (status & PNX8XXX_UART_INT_TX)
+@@ -429,8 +428,8 @@ static void pnx8xxx_shutdown(struct uart
+ }
+ 
+ static void
+-pnx8xxx_set_termios(struct uart_port *port, struct termios *termios,
+-		   struct termios *old)
++pnx8xxx_set_termios(struct uart_port *port, struct ktermios *termios,
++		   struct ktermios *old)
+ {
+ 	struct pnx8xxx_port *sport = (struct pnx8xxx_port *)port;
+ 	unsigned long flags;
+@@ -727,7 +726,7 @@ pnx8xxx_console_setup(struct console *co
+ 	return uart_set_options(&sport->port, co, baud, parity, bits, flow);
+ }
+ 
+-extern struct uart_driver pnx8xxx_reg;
++static struct uart_driver pnx8xxx_reg;
+ static struct console pnx8xxx_console = {
+ 	.name		= "ttyS",
+ 	.write		= pnx8xxx_console_write,
 _
 
-Patches currently in -mm which might be from amul.shah@unisys.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
+origin.patch
+smc911x-fix-netpoll-compilation-faliure.patch
+smc911-workqueue-fixes.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
 
