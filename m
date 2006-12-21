@@ -1,48 +1,119 @@
 From: akpm@osdl.org
-Subject: - make-drivers-acpi-eccec_ecdt-static.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:15 -0800
-Message-ID: <200612210036.kBL0aFKt011177@shell0.pdx.osdl.net>
+Subject: - acpi-make-code-static.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:35 -0800
+Message-ID: <200612210036.kBL0aZR2011210@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53575 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53592 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161121AbWLUAj3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:39:29 -0500
+	id S1161122AbWLUAjt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:39:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/acpi/ec.c:ec_ecdt static
+     ACPI: make code static
 has been removed from the -mm tree.  Its filename was
-     make-drivers-acpi-eccec_ecdt-static.patch
+     acpi-make-code-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make drivers/acpi/ec.c:ec_ecdt static
+Subject: ACPI: make code static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/ec.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/bus.c          |    2 +-
+ drivers/acpi/dock.c         |    4 ++--
+ drivers/acpi/pci_bind.c     |    4 ++--
+ include/acpi/acpi_bus.h     |    2 --
+ include/acpi/acpi_drivers.h |    2 --
+ 5 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/acpi/ec.c~make-drivers-acpi-eccec_ecdt-static drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~make-drivers-acpi-eccec_ecdt-static
-+++ a/drivers/acpi/ec.c
-@@ -92,7 +92,7 @@ static struct acpi_driver acpi_ec_driver
+diff -puN drivers/acpi/bus.c~acpi-make-code-static drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~acpi-make-code-static
++++ a/drivers/acpi/bus.c
+@@ -728,7 +728,7 @@ static int __init acpi_bus_init(void)
+ 	return -ENODEV;
+ }
+ 
+-decl_subsys(acpi, NULL, NULL);
++static decl_subsys(acpi, NULL, NULL);
+ 
+ static int __init acpi_init(void)
+ {
+diff -puN drivers/acpi/dock.c~acpi-make-code-static drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-make-code-static
++++ a/drivers/acpi/dock.c
+@@ -641,7 +641,7 @@ static ssize_t show_docked(struct device
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
+ 
+ }
+-DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
++static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+ 
+ /*
+  * write_undock - write method for "undock" file in sysfs
+@@ -657,7 +657,7 @@ static ssize_t write_undock(struct devic
+ 	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
+ 	return ret ? ret: count;
+ }
+-DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
++static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
+ 
+ /**
+  * dock_add - add a new dock station
+diff -puN drivers/acpi/pci_bind.c~acpi-make-code-static drivers/acpi/pci_bind.c
+--- a/drivers/acpi/pci_bind.c~acpi-make-code-static
++++ a/drivers/acpi/pci_bind.c
+@@ -106,7 +106,7 @@ acpi_status acpi_get_pci_id(acpi_handle 
+ 
+ EXPORT_SYMBOL(acpi_get_pci_id);
+ 
+-int acpi_pci_bind(struct acpi_device *device)
++static int acpi_pci_bind(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+@@ -267,7 +267,7 @@ int acpi_pci_bind(struct acpi_device *de
+ 	return result;
+ }
+ 
+-int acpi_pci_unbind(struct acpi_device *device)
++static int acpi_pci_unbind(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+diff -puN include/acpi/acpi_bus.h~acpi-make-code-static include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-make-code-static
++++ a/include/acpi/acpi_bus.h
+@@ -315,8 +315,6 @@ struct acpi_bus_event {
+ 	u32 data;
  };
  
- /* If we find an EC via the ECDT, we need to keep a ptr to its context */
--struct acpi_ec {
-+static struct acpi_ec {
- 	acpi_handle handle;
- 	unsigned long uid;
- 	unsigned long gpe;
+-extern struct subsystem acpi_subsys;
+-
+ /*
+  * External Functions
+  */
+diff -puN include/acpi/acpi_drivers.h~acpi-make-code-static include/acpi/acpi_drivers.h
+--- a/include/acpi/acpi_drivers.h~acpi-make-code-static
++++ a/include/acpi/acpi_drivers.h
+@@ -66,8 +66,6 @@ void acpi_pci_irq_del_prt(int segment, i
+ struct pci_bus;
+ 
+ acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
+-int acpi_pci_bind(struct acpi_device *device);
+-int acpi_pci_unbind(struct acpi_device *device);
+ int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
+ 		       struct pci_bus *bus);
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
