@@ -1,159 +1,119 @@
 From: akpm@osdl.org
-Subject: - video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:24 -0800
-Message-ID: <200612210036.kBL0aOZ0011189@shell0.pdx.osdl.net>
+Subject: - fbdev-update-after-backlight-argument-change.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:27 -0800
+Message-ID: <200612210036.kBL0aRdr011197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53269 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53297 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161099AbWLUAgd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:36:33 -0500
+	id S1161102AbWLUAgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:36:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luming.yu@gmail.com, Luming.yu@intel.com, adaplas@pol.net, greg@kroah.com, len.brown@intel.com, mm-commits@vger.kernel.org
+To: jsimmons@infradead.org, Luming.yu@intel.com, adaplas@pol.net, greg@kroah.com, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video sysfs support: Add dev argument for backlight_device_register
+     fbdev: update after backlight argument change
 has been removed from the -mm tree.  Its filename was
-     video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register.patch
+     fbdev-update-after-backlight-argument-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: video sysfs support: Add dev argument for backlight_device_register
-From: Yu Luming <luming.yu@gmail.com>
+Subject: fbdev: update after backlight argument change
+From: James Simmons <jsimmons@infradead.org>
 
-This patch set adds generic abstract layer support for acpi video driver to
-have generic user interface to control backlight and output switch control by
-leveraging the existing backlight sysfs class driver, and by adding a new
-video output sysfs class driver.
+Update the frambuffer drivers to the backlight_device_registers changes.
 
-This patch:
-
-Add dev argument for backlight_device_register to link the class device to
-real device object.  The platform specific driver should find a way to get the
-real device object for their video device.
-
-[akpm@osdl.org: build fix]
-[akpm@osdl.org: fix msi-laptop.c]
-Signed-off-by: Luming Yu <Luming.yu@intel.com>
+Signed-off-by: James Simmons <jsimmons@infradead.org>
+Cc: Luming Yu <Luming.yu@intel.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: "Brown, Len" <len.brown@intel.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/asus_acpi.c            |    2 +-
- drivers/acpi/ibm_acpi.c             |    2 +-
- drivers/acpi/toshiba_acpi.c         |    3 ++-
- drivers/misc/msi-laptop.c           |    3 ++-
- drivers/usb/misc/appledisplay.c     |    2 +-
- drivers/video/backlight/backlight.c |    7 +++++--
- include/linux/backlight.h           |    2 +-
- 7 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/video/aty/aty128fb.c         |    2 +-
+ drivers/video/aty/atyfb_base.c       |    2 +-
+ drivers/video/aty/radeon_backlight.c |    2 +-
+ drivers/video/nvidia/nv_backlight.c  |    2 +-
+ drivers/video/riva/fbdev.c           |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/acpi/asus_acpi.c
-@@ -1400,7 +1400,7 @@ static int __init asus_acpi_init(void)
- 		return result;
- 	}
+diff -puN drivers/video/aty/aty128fb.c~fbdev-update-after-backlight-argument-change drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~fbdev-update-after-backlight-argument-change
++++ a/drivers/video/aty/aty128fb.c
+@@ -1834,7 +1834,7 @@ static void aty128_bl_init(struct aty128
  
--	asus_backlight_device = backlight_device_register("asus", NULL,
-+	asus_backlight_device = backlight_device_register("asus",NULL,NULL,
- 							  &asus_backlight_data);
-         if (IS_ERR(asus_backlight_device)) {
- 		printk(KERN_ERR "Could not register asus backlight device\n");
-diff -puN drivers/acpi/ibm_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/acpi/ibm_acpi.c
---- a/drivers/acpi/ibm_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/acpi/ibm_acpi.c
-@@ -1714,7 +1714,7 @@ static struct backlight_properties ibm_b
+ 	snprintf(name, sizeof(name), "aty128bl%d", info->node);
  
- static int brightness_init(void)
- {
--	ibm_backlight_device = backlight_device_register("ibm", NULL,
-+	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
- 							 &ibm_backlight_data);
- 	if (IS_ERR(ibm_backlight_device)) {
- 		printk(IBM_ERR "Could not register backlight device\n");
-diff -puN drivers/acpi/toshiba_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/acpi/toshiba_acpi.c
---- a/drivers/acpi/toshiba_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/acpi/toshiba_acpi.c
-@@ -590,7 +590,8 @@ static int __init toshiba_acpi_init(void
- 			remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
- 	}
+-	bd = backlight_device_register(name, par, &aty128_bl_data);
++	bd = backlight_device_register(name, info->dev, par, &aty128_bl_data);
+ 	if (IS_ERR(bd)) {
+ 		info->bl_dev = NULL;
+ 		printk(KERN_WARNING "aty128: Backlight registration failed\n");
+diff -puN drivers/video/aty/atyfb_base.c~fbdev-update-after-backlight-argument-change drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~fbdev-update-after-backlight-argument-change
++++ a/drivers/video/aty/atyfb_base.c
+@@ -2211,7 +2211,7 @@ static void aty_bl_init(struct atyfb_par
  
--	toshiba_backlight_device = backlight_device_register("toshiba", NULL,
-+	toshiba_backlight_device = backlight_device_register("toshiba",NULL,
-+						NULL,
- 						&toshiba_backlight_data);
-         if (IS_ERR(toshiba_backlight_device)) {
- 		printk(KERN_ERR "Could not register toshiba backlight device\n");
-diff -puN drivers/misc/msi-laptop.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/misc/msi-laptop.c
---- a/drivers/misc/msi-laptop.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/misc/msi-laptop.c
-@@ -317,7 +317,8 @@ static int __init msi_init(void)
+ 	snprintf(name, sizeof(name), "atybl%d", info->node);
  
- 	/* Register backlight stuff */
+-	bd = backlight_device_register(name, par, &aty_bl_data);
++	bd = backlight_device_register(name, info->dev, par, &aty_bl_data);
+ 	if (IS_ERR(bd)) {
+ 		info->bl_dev = NULL;
+ 		printk(KERN_WARNING "aty: Backlight registration failed\n");
+diff -puN drivers/video/aty/radeon_backlight.c~fbdev-update-after-backlight-argument-change drivers/video/aty/radeon_backlight.c
+--- a/drivers/video/aty/radeon_backlight.c~fbdev-update-after-backlight-argument-change
++++ a/drivers/video/aty/radeon_backlight.c
+@@ -163,7 +163,7 @@ void radeonfb_bl_init(struct radeonfb_in
  
--	msibl_device = backlight_device_register("msi-laptop-bl", NULL, &msibl_props);
-+	msibl_device = backlight_device_register("msi-laptop-bl", NULL, NULL,
-+						&msibl_props);
- 	if (IS_ERR(msibl_device))
- 		return PTR_ERR(msibl_device);
+ 	snprintf(name, sizeof(name), "radeonbl%d", rinfo->info->node);
  
-diff -puN drivers/usb/misc/appledisplay.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/usb/misc/appledisplay.c
---- a/drivers/usb/misc/appledisplay.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/usb/misc/appledisplay.c
-@@ -281,7 +281,7 @@ static int appledisplay_probe(struct usb
- 	/* Register backlight device */
- 	snprintf(bl_name, sizeof(bl_name), "appledisplay%d",
- 		atomic_inc_return(&count_displays) - 1);
--	pdata->bd = backlight_device_register(bl_name, pdata,
-+	pdata->bd = backlight_device_register(bl_name, NULL, NULL,
- 						&appledisplay_bl_data);
- 	if (IS_ERR(pdata->bd)) {
- 		err("appledisplay: Backlight registration failed");
-diff -puN drivers/video/backlight/backlight.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/video/backlight/backlight.c
-@@ -216,8 +216,10 @@ static const struct class_device_attribu
-  * Creates and registers new backlight class_device. Returns either an
-  * ERR_PTR() or a pointer to the newly allocated device.
-  */
--struct backlight_device *backlight_device_register(const char *name, void *devdata,
--						   struct backlight_properties *bp)
-+struct backlight_device *backlight_device_register(const char *name,
-+	struct device *dev,
-+	void *devdata,
-+	struct backlight_properties *bp)
- {
- 	int i, rc;
- 	struct backlight_device *new_bd;
-@@ -232,6 +234,7 @@ struct backlight_device *backlight_devic
- 	new_bd->props = bp;
- 	memset(&new_bd->class_dev, 0, sizeof(new_bd->class_dev));
- 	new_bd->class_dev.class = &backlight_class;
-+	new_bd->class_dev.dev = dev;
- 	strlcpy(new_bd->class_dev.class_id, name, KOBJ_NAME_LEN);
- 	class_set_devdata(&new_bd->class_dev, devdata);
+-	bd = backlight_device_register(name, pdata, &radeon_bl_data);
++	bd = backlight_device_register(name, rinfo->info->dev, pdata, &radeon_bl_data);
+ 	if (IS_ERR(bd)) {
+ 		rinfo->info->bl_dev = NULL;
+ 		printk("radeonfb: Backlight registration failed\n");
+diff -puN drivers/video/nvidia/nv_backlight.c~fbdev-update-after-backlight-argument-change drivers/video/nvidia/nv_backlight.c
+--- a/drivers/video/nvidia/nv_backlight.c~fbdev-update-after-backlight-argument-change
++++ a/drivers/video/nvidia/nv_backlight.c
+@@ -141,7 +141,7 @@ void nvidia_bl_init(struct nvidia_par *p
  
-diff -puN include/linux/backlight.h~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register include/linux/backlight.h
---- a/include/linux/backlight.h~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/include/linux/backlight.h
-@@ -54,7 +54,7 @@ struct backlight_device {
- };
+ 	snprintf(name, sizeof(name), "nvidiabl%d", info->node);
  
- extern struct backlight_device *backlight_device_register(const char *name,
--	void *devdata, struct backlight_properties *bp);
-+	struct device *dev,void *devdata,struct backlight_properties *bp);
- extern void backlight_device_unregister(struct backlight_device *bd);
+-	bd = backlight_device_register(name, par, &nvidia_bl_data);
++	bd = backlight_device_register(name, info->dev, par, &nvidia_bl_data);
+ 	if (IS_ERR(bd)) {
+ 		info->bl_dev = NULL;
+ 		printk(KERN_WARNING "nvidia: Backlight registration failed\n");
+diff -puN drivers/video/riva/fbdev.c~fbdev-update-after-backlight-argument-change drivers/video/riva/fbdev.c
+--- a/drivers/video/riva/fbdev.c~fbdev-update-after-backlight-argument-change
++++ a/drivers/video/riva/fbdev.c
+@@ -384,7 +384,7 @@ static void riva_bl_init(struct riva_par
  
- #define to_backlight_device(obj) container_of(obj, struct backlight_device, class_dev)
+ 	snprintf(name, sizeof(name), "rivabl%d", info->node);
+ 
+-	bd = backlight_device_register(name, par, &riva_bl_data);
++	bd = backlight_device_register(name, info->dev, par, &riva_bl_data);
+ 	if (IS_ERR(bd)) {
+ 		info->bl_dev = NULL;
+ 		printk(KERN_WARNING "riva: Backlight registration failed\n");
 _
 
-Patches currently in -mm which might be from luming.yu@gmail.com are
+Patches currently in -mm which might be from jsimmons@infradead.org are
 
 git-acpi.patch
+proper-backlight-selection-for-fbdev-drivers.patch
+fbdev-driver-for-s3-trio-virge.patch
+remove-broken-video-drivers-v4.patch
+tgafb-switch-to-framebuffer_alloc.patch
+tgafb-fix-copying-overlapping-areas.patch
+tgafb-support-the-directcolor-visual.patch
+tgafb-fix-the-mode-register-setting.patch
+tgafb-module-support-fixes.patch
+tgafb-sync-on-green-support-fixes.patch
+tgafb-fix-the-pci-id-table.patch
 
