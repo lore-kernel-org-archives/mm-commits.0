@@ -1,58 +1,58 @@
 From: akpm@osdl.org
-Subject: + fix-s3c24xx-gpio-driver-include-linux-workqueueh.patch added to -mm tree
-Date: Thu, 21 Dec 2006 01:56:50 -0800
-Message-ID: <200612210956.kBL9uoJm023420@shell0.pdx.osdl.net>
+Subject: + kvm-force-real-mode-cs-limit-to-64k.patch added to -mm tree
+Date: Thu, 21 Dec 2006 02:00:04 -0800
+Message-ID: <200612211000.kBLA044W023507@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54424 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54676 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965186AbWLUJ5c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 04:57:32 -0500
+	id S965191AbWLUKAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 05:00:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: michael@mr511.de, avi@qumranet.com
 
 
 The patch titled
-     fix s3c24xx gpio driver (include linux/workqueue.h)
+     KVM: Force real-mode cs limit to 64K
 has been added to the -mm tree.  Its filename is
-     fix-s3c24xx-gpio-driver-include-linux-workqueueh.patch
+     kvm-force-real-mode-cs-limit-to-64k.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix s3c24xx gpio driver (include linux/workqueue.h)
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: KVM: Force real-mode cs limit to 64K
+From: Michael Riepe <michael@mr511.de>
 
-The general gpio driver includes seem to now depend on having
-<linux/workqueue.h> included before they are.
+This allows opensolaris to boot on kvm/intel.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Michael Riepe <michael@mr511.de>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/spi_s3c24xx_gpio.c |    1 +
+ drivers/kvm/vmx.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~fix-s3c24xx-gpio-driver-include-linux-workqueueh drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~fix-s3c24xx-gpio-driver-include-linux-workqueueh
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -15,6 +15,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/spinlock.h>
-+#include <linux/workqueue.h>
- #include <linux/platform_device.h>
+diff -puN drivers/kvm/vmx.c~kvm-force-real-mode-cs-limit-to-64k drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-force-real-mode-cs-limit-to-64k
++++ a/drivers/kvm/vmx.c
+@@ -726,6 +726,7 @@ static void enter_rmode(struct kvm_vcpu 
+ 	vmcs_write32(GUEST_SS_AR_BYTES, 0xf3);
  
- #include <linux/spi/spi.h>
+ 	vmcs_write32(GUEST_CS_AR_BYTES, 0xf3);
++	vmcs_write32(GUEST_CS_LIMIT, 0xffff);
+ 	vmcs_write16(GUEST_CS_SELECTOR, vmcs_readl(GUEST_CS_BASE) >> 4);
+ 
+ 	fix_rmode_seg(VCPU_SREG_ES, &vcpu->rmode.es);
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from michael@mr511.de are
 
-maintainers-fix-email-for-s3c2410-and-s3c2440.patch
-fix-s3c24xx-gpio-driver-include-linux-workqueueh.patch
-git-watchdog.patch
+kvm-do-not-export-unsupported-msrs-to-userspace.patch
+kvm-do-not-export-unsupported-msrs-to-userspace-tweak.patch
+kvm-force-real-mode-cs-limit-to-64k.patch
+kvm-handle-p5-mce-msrs.patch
 
