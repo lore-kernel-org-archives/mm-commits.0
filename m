@@ -1,97 +1,58 @@
 From: akpm@osdl.org
-Subject: + fix-lock-inversion-aio_kick_handler.patch added to -mm tree
-Date: Thu, 21 Dec 2006 01:05:45 -0800
-Message-ID: <200612210905.kBL95jK8022347@shell0.pdx.osdl.net>
+Subject: + fix-s3c24xx-gpio-driver-include-linux-workqueueh.patch added to -mm tree
+Date: Thu, 21 Dec 2006 01:56:50 -0800
+Message-ID: <200612210956.kBL9uoJm023420@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:51083 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54424 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422882AbWLUJGe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 04:06:34 -0500
+	id S965186AbWLUJ5c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 04:57:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zach.brown@oracle.com, bcrl@kvack.org, kenneth.w.chen@intel.com, suparna@in.ibm.com
+Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Fix lock inversion aio_kick_handler()
+     fix s3c24xx gpio driver (include linux/workqueue.h)
 has been added to the -mm tree.  Its filename is
-     fix-lock-inversion-aio_kick_handler.patch
+     fix-s3c24xx-gpio-driver-include-linux-workqueueh.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix lock inversion aio_kick_handler()
-From: Zach Brown <zach.brown@oracle.com>
+Subject: fix s3c24xx gpio driver (include linux/workqueue.h)
+From: Ben Dooks <ben-linux@fluff.org>
 
-lockdep found a AB BC CA lock inversion in retry-based AIO:
+The general gpio driver includes seem to now depend on having
+<linux/workqueue.h> included before they are.
 
-1) The task struct's alloc_lock (A) is acquired in process context with
-   interrupts enabled.  An interrupt might arrive and call wake_up() which
-   grabs the wait queue's q->lock (B).
-
-2) When performing retry-based AIO the AIO core registers
-   aio_wake_function() as the wake funtion for iocb->ki_wait.  It is called
-   with the wait queue's q->lock (B) held and then tries to add the iocb to
-   the run list after acquiring the ctx_lock (C).
-
-3) aio_kick_handler() holds the ctx_lock (C) while acquiring the
-   alloc_lock (A) via lock_task() and unuse_mm().  Lockdep emits a warning
-   saying that we're trying to connect the irq-safe q->lock to the
-   irq-unsafe alloc_lock via ctx_lock.
-
-This fixes the inversion by calling unuse_mm() in the AIO kick handing path
-after we've released the ctx_lock.  As Ben LaHaise pointed out __put_ioctx
-could set ctx->mm to NULL, so we must only access ctx->mm while we have the
-lock.
-
-Signed-off-by: Zach Brown <zach.brown@oracle.com>
-Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/spi/spi_s3c24xx_gpio.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/aio.c~fix-lock-inversion-aio_kick_handler fs/aio.c
---- a/fs/aio.c~fix-lock-inversion-aio_kick_handler
-+++ a/fs/aio.c
-@@ -596,9 +596,6 @@ static void use_mm(struct mm_struct *mm)
-  *	by the calling kernel thread
-  *	(Note: this routine is intended to be called only
-  *	from a kernel thread context)
-- *
-- * Comments: Called with ctx->ctx_lock held. This nests
-- * task_lock instead ctx_lock.
-  */
- static void unuse_mm(struct mm_struct *mm)
- {
-@@ -846,14 +843,16 @@ static void aio_kick_handler(struct work
- {
- 	struct kioctx *ctx = container_of(work, struct kioctx, wq.work);
- 	mm_segment_t oldfs = get_fs();
-+	struct mm_struct *mm;
- 	int requeue;
+diff -puN drivers/spi/spi_s3c24xx_gpio.c~fix-s3c24xx-gpio-driver-include-linux-workqueueh drivers/spi/spi_s3c24xx_gpio.c
+--- a/drivers/spi/spi_s3c24xx_gpio.c~fix-s3c24xx-gpio-driver-include-linux-workqueueh
++++ a/drivers/spi/spi_s3c24xx_gpio.c
+@@ -15,6 +15,7 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/spinlock.h>
++#include <linux/workqueue.h>
+ #include <linux/platform_device.h>
  
- 	set_fs(USER_DS);
- 	use_mm(ctx->mm);
- 	spin_lock_irq(&ctx->ctx_lock);
- 	requeue =__aio_run_iocbs(ctx);
-- 	unuse_mm(ctx->mm);
-+	mm = ctx->mm;
- 	spin_unlock_irq(&ctx->ctx_lock);
-+ 	unuse_mm(mm);
- 	set_fs(oldfs);
- 	/*
- 	 * we're in a worker thread already, don't use queue_delayed_work,
+ #include <linux/spi/spi.h>
 _
 
-Patches currently in -mm which might be from zach.brown@oracle.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
-aio-fix-buggy-put_ioctx-call-in-aio_complete.patch
-fix-lock-inversion-aio_kick_handler.patch
+maintainers-fix-email-for-s3c2410-and-s3c2440.patch
+fix-s3c24xx-gpio-driver-include-linux-workqueueh.patch
+git-watchdog.patch
 
