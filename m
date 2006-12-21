@@ -1,119 +1,97 @@
 From: akpm@osdl.org
-Subject: - acpi-make-code-static.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:35 -0800
-Message-ID: <200612210036.kBL0aZR2011210@shell0.pdx.osdl.net>
+Subject: - proper-prototype-for-drivers-base-initcdriver_init.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:42 -0800
+Message-ID: <200612210036.kBL0agr4011219@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53592 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53596 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161122AbWLUAjt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:39:49 -0500
+	id S1161092AbWLUAj6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:39:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, len.brown@intel.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, greg@kroah.com, hmh@hmh.eng.br, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: make code static
+     proper prototype for drivers/base/init.c:driver_init()
 has been removed from the -mm tree.  Its filename was
-     acpi-make-code-static.patch
+     proper-prototype-for-drivers-base-initcdriver_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: make code static
+Subject: proper prototype for drivers/base/init.c:driver_init()
 From: Adrian Bunk <bunk@stusta.de>
 
+Add a prototype for driver_init() in include/linux/device.h.
+
+Also remove a static function of the same name in drivers/acpi/ibm_acpi.c to
+ibm_acpi_driver_init() to fix the namespace collision.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Brown, Len" <len.brown@intel.com>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/bus.c          |    2 +-
- drivers/acpi/dock.c         |    4 ++--
- drivers/acpi/pci_bind.c     |    4 ++--
- include/acpi/acpi_bus.h     |    2 --
- include/acpi/acpi_drivers.h |    2 --
- 5 files changed, 5 insertions(+), 9 deletions(-)
+ drivers/acpi/ibm_acpi.c |    4 ++--
+ include/linux/device.h  |    2 ++
+ init/main.c             |    2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/bus.c~acpi-make-code-static drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~acpi-make-code-static
-+++ a/drivers/acpi/bus.c
-@@ -728,7 +728,7 @@ static int __init acpi_bus_init(void)
- 	return -ENODEV;
+diff -puN drivers/acpi/ibm_acpi.c~proper-prototype-for-drivers-base-initcdriver_init drivers/acpi/ibm_acpi.c
+--- a/drivers/acpi/ibm_acpi.c~proper-prototype-for-drivers-base-initcdriver_init
++++ a/drivers/acpi/ibm_acpi.c
+@@ -493,7 +493,7 @@ static char *next_cmd(char **cmds)
+ 	return start;
  }
  
--decl_subsys(acpi, NULL, NULL);
-+static decl_subsys(acpi, NULL, NULL);
- 
- static int __init acpi_init(void)
+-static int driver_init(void)
++static int ibm_acpi_driver_init(void)
  {
-diff -puN drivers/acpi/dock.c~acpi-make-code-static drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~acpi-make-code-static
-+++ a/drivers/acpi/dock.c
-@@ -641,7 +641,7 @@ static ssize_t show_docked(struct device
- 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
- 
+ 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
+ 	printk(IBM_INFO "%s\n", IBM_URL);
+@@ -2297,7 +2297,7 @@ static void fan_watchdog_fire(struct wor
+ static struct ibm_struct ibms[] = {
+ 	{
+ 	 .name = "driver",
+-	 .init = driver_init,
++	 .init = ibm_acpi_driver_init,
+ 	 .read = driver_read,
+ 	 },
+ 	{
+diff -puN include/linux/device.h~proper-prototype-for-drivers-base-initcdriver_init include/linux/device.h
+--- a/include/linux/device.h~proper-prototype-for-drivers-base-initcdriver_init
++++ a/include/linux/device.h
+@@ -433,6 +433,8 @@ static inline int device_is_registered(s
+ 	return dev->is_registered;
  }
--DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
-+static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
  
++void driver_init(void);
++
  /*
-  * write_undock - write method for "undock" file in sysfs
-@@ -657,7 +657,7 @@ static ssize_t write_undock(struct devic
- 	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
- 	return ret ? ret: count;
- }
--DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
-+static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
- 
- /**
-  * dock_add - add a new dock station
-diff -puN drivers/acpi/pci_bind.c~acpi-make-code-static drivers/acpi/pci_bind.c
---- a/drivers/acpi/pci_bind.c~acpi-make-code-static
-+++ a/drivers/acpi/pci_bind.c
-@@ -106,7 +106,7 @@ acpi_status acpi_get_pci_id(acpi_handle 
- 
- EXPORT_SYMBOL(acpi_get_pci_id);
- 
--int acpi_pci_bind(struct acpi_device *device)
-+static int acpi_pci_bind(struct acpi_device *device)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
-@@ -267,7 +267,7 @@ int acpi_pci_bind(struct acpi_device *de
- 	return result;
- }
- 
--int acpi_pci_unbind(struct acpi_device *device)
-+static int acpi_pci_unbind(struct acpi_device *device)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
-diff -puN include/acpi/acpi_bus.h~acpi-make-code-static include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-make-code-static
-+++ a/include/acpi/acpi_bus.h
-@@ -315,8 +315,6 @@ struct acpi_bus_event {
- 	u32 data;
- };
- 
--extern struct subsystem acpi_subsys;
--
- /*
-  * External Functions
+  * High level routines for use by the bus drivers
   */
-diff -puN include/acpi/acpi_drivers.h~acpi-make-code-static include/acpi/acpi_drivers.h
---- a/include/acpi/acpi_drivers.h~acpi-make-code-static
-+++ a/include/acpi/acpi_drivers.h
-@@ -66,8 +66,6 @@ void acpi_pci_irq_del_prt(int segment, i
- struct pci_bus;
+diff -puN init/main.c~proper-prototype-for-drivers-base-initcdriver_init init/main.c
+--- a/init/main.c~proper-prototype-for-drivers-base-initcdriver_init
++++ a/init/main.c
+@@ -53,6 +53,7 @@
+ #include <linux/utsrelease.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/compile.h>
++#include <linux/device.h>
  
- acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
--int acpi_pci_bind(struct acpi_device *device);
--int acpi_pci_unbind(struct acpi_device *device);
- int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
- 		       struct pci_bus *bus);
- 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -94,7 +95,6 @@ extern void pidmap_init(void);
+ extern void prio_tree_init(void);
+ extern void radix_tree_init(void);
+ extern void free_initmem(void);
+-extern void driver_init(void);
+ extern void prepare_namespace(void);
+ #ifdef	CONFIG_ACPI
+ extern void acpi_early_init(void);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
