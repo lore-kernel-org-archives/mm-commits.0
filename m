@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch added to -mm tree
-Date: Wed, 20 Dec 2006 23:01:38 -0800
-Message-ID: <200612210701.kBL71cAJ018279@shell0.pdx.osdl.net>
+Subject: + time-x86_64-split-x86_64-kernel-timec-up-tidy.patch added to -mm tree
+Date: Wed, 20 Dec 2006 23:01:32 -0800
+Message-ID: <200612210701.kBL71WMf018267@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44782 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44874 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422777AbWLUHPL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 02:15:11 -0500
+	id S1422798AbWLUHS3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 02:18:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,15 +15,15 @@ Cc: akpm@osdl.org, ak@muc.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutroni
 
 
 The patch titled
-     time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy
+     time-x86_64-split-x86_64-kernel-timec-up-tidy
 has been added to the -mm tree.  Its filename is
-     time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+     time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy
+Subject: time-x86_64-split-x86_64-kernel-timec-up-tidy
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: John Stultz <johnstul@us.ibm.com>
@@ -34,21 +34,38 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/hpet.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/hpet.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy
+diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-split-x86_64-kernel-timec-up-tidy arch/x86_64/kernel/hpet.c
+--- a/arch/x86_64/kernel/hpet.c~time-x86_64-split-x86_64-kernel-timec-up-tidy
 +++ a/arch/x86_64/kernel/hpet.c
-@@ -444,7 +444,7 @@ static cycle_t read_hpet(void)
+@@ -12,7 +12,7 @@
+ #include <asm/timex.h>
+ #include <asm/hpet.h>
  
- static cycle_t __vsyscall_fn vread_hpet(void)
- {
--	return (cycle_t)readl((void *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
-+	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
- }
+-int nohpet __initdata = 0;
++int nohpet __initdata;
  
- struct clocksource clocksource_hpet = {
+ unsigned long hpet_address;
+ unsigned long hpet_period;	/* fsecs / HPET clock */
+@@ -37,7 +37,7 @@ static __init int late_hpet_init(void)
+ 	if (!hpet_address)
+         	return 0;
+ 
+-	memset(&hd, 0, sizeof (hd));
++	memset(&hd, 0, sizeof(hd));
+ 
+ 	ntimer = hpet_readl(HPET_ID);
+ 	ntimer = (ntimer & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT;
+@@ -160,7 +160,6 @@ unsigned int __init hpet_calibrate_tsc(v
+ 	unsigned long flags;
+ 
+ 	local_irq_save(flags);
+-	local_irq_disable();
+ 
+ 	hpet_start = hpet_readl(HPET_COUNTER);
+ 	rdtscl(tsc_start);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
