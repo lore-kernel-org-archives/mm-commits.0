@@ -1,277 +1,269 @@
 From: akpm@osdl.org
-Subject: - try_to_free_buffers-dont-clear-pte-dirty-bits.patch removed from -mm tree
-Date: Thu, 21 Dec 2006 11:57:20 -0800
-Message-ID: <200612211957.kBLJvKc6003177@shell0.pdx.osdl.net>
+Subject: + git-alsa-fixups.patch added to -mm tree
+Date: Thu, 21 Dec 2006 12:02:01 -0800
+Message-ID: <200612212002.kBLK21W4003330@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35489 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35747 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423065AbWLUT60 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 14:58:26 -0500
+	id S1423068AbWLUUCM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 15:02:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, a.p.zijlstra@chello.nl, dgc@sgi.com, hugh@veritas.com, miklos@szeredi.hu, reiserfs-dev@namesys.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     try_to_free_buffers(): don't clear pte dirty bits
-has been removed from the -mm tree.  Its filename was
-     try_to_free_buffers-dont-clear-pte-dirty-bits.patch
+     git-alsa-fixups
+has been added to the -mm tree.  Its filename is
+     git-alsa-fixups.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: try_to_free_buffers(): don't clear pte dirty bits
+Subject: git-alsa-fixups
 From: Andrew Morton <akpm@osdl.org>
 
-try_to_free_buffers() clears the page's dirty state if it successfully removed
-the page's buffers.
+Attempt to fix git conflicts due to git-alsa
 
-  Background for this:
-
-  - a process does a one-byte-write to a file on a 64k pagesize, 4k
-    blocksize ext3 filesystem.  The page is now PageDirty, !PgeUptodate and
-    has one dirty buffer and 15 not uptodate buffers.
-
-  - kjournald writes the dirty buffer.  The page is now PageDirty,
-    !PageUptodate and has a mix of clean and not uptodate buffers.
-
-  - try_to_free_buffers() removes the page's buffers.  It MUST now clear
-    PageDirty.  If we were to leave the page dirty then we'd have a dirty, not
-    uptodate page with no buffer_heads.
-
-    We're screwed: we cannot write the page because we don't know which
-    sections of it contain garbage.  We cannot read the page because we don't
-    know which sections of it contain modified data.  We cannot free the page
-    because it is dirty.
-
-
-Peter's "mm: tracking shared dirty pages"
-(d08b3851da41d0ee60851f2c75b118e1f7a5fc89) modified clear_page_dirty() so that
-it also clears the page's pte mapping's dirty flags, arranging for a
-subsequent userspace modification of the page to cause a fault.
-
-That change to clear_page_dirty() was correct for when it is called on the
-writeback path.  Here, we effectively do:
-
-	ClearPageDirty()
-	pte_mkclean()
-	submit-the-writeout
-
-if a page-dirtying via write() or via pte's happens after the ClearPageDirty()
-or the pte_mkclean() then the page is redirtied while writeout is in flight
-and the page will again need writing; no probs.
-
-But that change to clear_page_dirty() was incorrect for when it is called on
-the try_to_free_buffers() path.  Here, we want to preserve any pte-dirtiness
-because we're not going to write the page to backing store.  We need to keep
-a record of any userspace modification to the page.
-
-One way of addressing this would be to bale from try_to_free_buffers() if the
-page is mapped into pagetables.  However that is racy, because the pagefault
-path doesn't lock the page when establishing a pte against it (I which it did
-- it would solve a lot of nasties).
-
-So this patch instead arranges for clear_page_dirty() to not clean the pte's
-when it is called on the try_to_free_buffers() path.
-
-clear_page_dirty() had several callers and it's not immediately obvious to me
-what the appropriate behaviour is in each case.  Could maintainers please take
-a look?
-
-From my quick reading, all callers of try_to_free_buffers() have already
-unmapped the page from pagetables, and given that the reported ext3 corruption
-happens on uniprocessor, non-preempt kernels, I doubt if this patch will fix
-things.
-
-But even if it is true that try_to_free_buffers() callers unmap the page
-first, this fix is still needed, because a minor fault could reestablish pte's
-in the meanwhile.
-
-Note that with this change, we can now restore try_to_free_buffers()'s
-->private_lock to cover the test_clear_page_dirty().  If we indeed need to do
-that, it'll be in a separate patch.
-
-(Need to think about this some more.  How can a page be pte-dirty, but not
-have dirty buffers?  We're supposed to clean the pte's when we write the
-page, and we dirty the page and buffers when userspace dirties the pte...)
-
-
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: <reiserfs-dev@namesys.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/buffer.c                 |    2 +-
- fs/cifs/file.c              |    2 +-
- fs/fuse/file.c              |    2 +-
- fs/hugetlbfs/inode.c        |    2 +-
- fs/jfs/jfs_metapage.c       |    2 +-
- fs/reiserfs/stree.c         |    2 +-
- fs/xfs/linux-2.6/xfs_aops.c |    2 +-
- include/linux/page-flags.h  |    6 +++---
- mm/page-writeback.c         |    5 +++--
- mm/truncate.c               |    4 ++--
- 10 files changed, 15 insertions(+), 14 deletions(-)
+ sound/pci/ac97/ac97_patch.c   |    6 --
+ sound/pci/hda/patch_analog.c  |   46 ------------------
+ sound/pci/hda/patch_realtek.c |   23 ---------
+ sound/pci/via82xx.c           |   81 --------------------------------
+ 4 files changed, 156 deletions(-)
 
-diff -puN fs/buffer.c~try_to_free_buffers-dont-clear-pte-dirty-bits fs/buffer.c
---- a/fs/buffer.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/fs/buffer.c
-@@ -2858,7 +2858,7 @@ int try_to_free_buffers(struct page *pag
- 		 * the page's buffers clean.  We discover that here and clean
- 		 * the page also.
- 		 */
--		if (test_clear_page_dirty(page))
-+		if (test_clear_page_dirty(page, 0))
- 			task_io_account_cancelled_write(PAGE_CACHE_SIZE);
- 	}
- out:
-diff -puN fs/fuse/file.c~try_to_free_buffers-dont-clear-pte-dirty-bits fs/fuse/file.c
---- a/fs/fuse/file.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/fs/fuse/file.c
-@@ -484,7 +484,7 @@ static int fuse_commit_write(struct file
- 		spin_unlock(&fc->lock);
+diff -puN sound/pci/ac97/ac97_patch.c~git-alsa-fixups sound/pci/ac97/ac97_patch.c
+--- a/sound/pci/ac97/ac97_patch.c~git-alsa-fixups
++++ a/sound/pci/ac97/ac97_patch.c
+@@ -2361,14 +2361,8 @@ int patch_alc655(struct snd_ac97 * ac97)
+ 	else { /* ALC655 */
+ 		if (ac97->subsystem_vendor == 0x1462 &&
+ 		    (ac97->subsystem_device == 0x0131 || /* MSI S270 laptop */
+-<<<<<<< HEAD/sound/pci/ac97/ac97_patch.c
+ 		     ac97->subsystem_device == 0x0161 || /* LG K1 Express */
+ 		     ac97->subsystem_device == 0x0351))  /* MSI L725 laptop */
+-=======
+-		     ac97->subsystem_device == 0x0161 || /* LG K1 Express */
+-		     ac97->subsystem_device == 0x0351 || /* MSI L725 laptop */
+-		     ac97->subsystem_device == 0x0061))  /* MSI S250 laptop */
+->>>>>>> /sound/pci/ac97/ac97_patch.c
+ 			val &= ~(1 << 1); /* Pin 47 is EAPD (for internal speaker) */
+ 		else
+ 			val |= (1 << 1); /* Pin 47 is spdif input pin */
+diff -puN sound/pci/hda/patch_analog.c~git-alsa-fixups sound/pci/hda/patch_analog.c
+--- a/sound/pci/hda/patch_analog.c~git-alsa-fixups
++++ a/sound/pci/hda/patch_analog.c
+@@ -787,51 +787,6 @@ static struct hda_verb ad1986a_eapd_init
+ };
  
- 		if (offset == 0 && to == PAGE_CACHE_SIZE) {
--			clear_page_dirty(page);
-+			clear_page_dirty(page, 1);
- 			SetPageUptodate(page);
- 		}
- 	}
-diff -puN fs/hugetlbfs/inode.c~try_to_free_buffers-dont-clear-pte-dirty-bits fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/fs/hugetlbfs/inode.c
-@@ -176,7 +176,7 @@ static int hugetlbfs_commit_write(struct
+ /* models */
+-<<<<<<< HEAD/sound/pci/hda/patch_analog.c
+-enum { AD1986A_6STACK, AD1986A_3STACK, AD1986A_LAPTOP, AD1986A_LAPTOP_EAPD };
+-
+-static struct hda_board_config ad1986a_cfg_tbl[] = {
+-	{ .modelname = "6stack",	.config = AD1986A_6STACK },
+-	{ .modelname = "3stack",	.config = AD1986A_3STACK },
+-	{ .pci_subvendor = 0x10de, .pci_subdevice = 0xcb84,
+-	  .config = AD1986A_3STACK }, /* ASUS A8N-VM CSM */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x817f,
+-	  .config = AD1986A_3STACK }, /* ASUS P5P-L2 */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x81b3,
+-	  .config = AD1986A_3STACK }, /* ASUS P5RD2-VM / P5GPL-X SE */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x81cb,
+-	  .config = AD1986A_3STACK }, /* ASUS M2NPV-VM */
+-	{ .modelname = "laptop",	.config = AD1986A_LAPTOP },
+-	{ .pci_subvendor = 0x144d, .pci_subdevice = 0xc01e,
+-	  .config = AD1986A_LAPTOP }, /* FSC V2060 */
+-	{ .pci_subvendor = 0x17c0, .pci_subdevice = 0x2017,
+-	  .config = AD1986A_LAPTOP }, /* Samsung M50 */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x818f,
+-	  .config = AD1986A_LAPTOP }, /* ASUS P5GV-MX */
+-	{ .modelname = "laptop-eapd",	.config = AD1986A_LAPTOP_EAPD },
+-	{ .pci_subvendor = 0x144d, .pci_subdevice = 0xc023,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* Samsung X60 Chane */
+-	{ .pci_subvendor = 0x144d, .pci_subdevice = 0xc024,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* Samsung R65-T2300 Charis */
+-	{ .pci_subvendor = 0x144d, .pci_subdevice = 0xc026,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* Samsung X11-T2300 Culesa */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x1153,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* ASUS M9 */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x1213,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* ASUS A6J */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x11f7,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* ASUS U5A */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x1263,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* ASUS U5F */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x1297,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* ASUS Z62F */
+-	{ .pci_subvendor = 0x1043, .pci_subdevice = 0x12b3,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* ASUS V1j */
+-	{ .pci_subvendor = 0x103c, .pci_subdevice = 0x30af,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* HP Compaq Presario B2800 */
+-	{ .pci_subvendor = 0x17aa, .pci_subdevice = 0x2066,
+-	  .config = AD1986A_LAPTOP_EAPD }, /* Lenovo 3000 N100-07684JU */
+-=======
+ enum {
+ 	AD1986A_6STACK,
+ 	AD1986A_3STACK,
+@@ -869,7 +824,6 @@ static struct snd_pci_quirk ad1986a_cfg_
+ 	SND_PCI_QUIRK(0x17aa, 0x1017, "Lenovo A60", AD1986A_3STACK),
+ 	SND_PCI_QUIRK(0x17aa, 0x2066, "Lenovo N100", AD1986A_LAPTOP_EAPD),
+ 	SND_PCI_QUIRK(0x17c0, 0x2017, "Samsung M50", AD1986A_LAPTOP),
+->>>>>>> /sound/pci/hda/patch_analog.c
+ 	{}
+ };
  
- static void truncate_huge_page(struct page *page)
- {
--	clear_page_dirty(page);
-+	clear_page_dirty(page, 1);
- 	ClearPageUptodate(page);
- 	remove_from_page_cache(page);
- 	put_page(page);
-diff -puN fs/jfs/jfs_metapage.c~try_to_free_buffers-dont-clear-pte-dirty-bits fs/jfs/jfs_metapage.c
---- a/fs/jfs/jfs_metapage.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/fs/jfs/jfs_metapage.c
-@@ -773,7 +773,7 @@ void release_metapage(struct metapage * 
- 
- 	/* Retest mp->count since we may have released page lock */
- 	if (test_bit(META_discard, &mp->flag) && !mp->count) {
--		clear_page_dirty(page);
-+		clear_page_dirty(page, 1);
- 		ClearPageUptodate(page);
- 	}
- #else
-diff -puN fs/reiserfs/stree.c~try_to_free_buffers-dont-clear-pte-dirty-bits fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/fs/reiserfs/stree.c
-@@ -1459,7 +1459,7 @@ static void unmap_buffers(struct page *p
- 				bh = next;
- 			} while (bh != head);
- 			if (PAGE_SIZE == bh->b_size) {
--				clear_page_dirty(page);
-+				clear_page_dirty(page, 1);
- 			}
- 		}
- 	}
-diff -puN fs/xfs/linux-2.6/xfs_aops.c~try_to_free_buffers-dont-clear-pte-dirty-bits fs/xfs/linux-2.6/xfs_aops.c
---- a/fs/xfs/linux-2.6/xfs_aops.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/fs/xfs/linux-2.6/xfs_aops.c
-@@ -343,7 +343,7 @@ xfs_start_page_writeback(
- 	ASSERT(!PageWriteback(page));
- 	set_page_writeback(page);
- 	if (clear_dirty)
--		clear_page_dirty(page);
-+		clear_page_dirty(page, 1);
- 	unlock_page(page);
- 	if (!buffers) {
- 		end_page_writeback(page);
-diff -puN include/linux/page-flags.h~try_to_free_buffers-dont-clear-pte-dirty-bits include/linux/page-flags.h
---- a/include/linux/page-flags.h~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/include/linux/page-flags.h
-@@ -253,13 +253,13 @@ static inline void SetPageUptodate(struc
- 
- struct page;	/* forward declaration */
- 
--int test_clear_page_dirty(struct page *page);
-+int test_clear_page_dirty(struct page *page, int must_clean_ptes);
- int test_clear_page_writeback(struct page *page);
- int test_set_page_writeback(struct page *page);
- 
--static inline void clear_page_dirty(struct page *page)
-+static inline void clear_page_dirty(struct page *page, int must_clean_ptes)
- {
--	test_clear_page_dirty(page);
-+	test_clear_page_dirty(page, must_clean_ptes);
- }
- 
- static inline void set_page_writeback(struct page *page)
-diff -puN mm/page-writeback.c~try_to_free_buffers-dont-clear-pte-dirty-bits mm/page-writeback.c
---- a/mm/page-writeback.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/mm/page-writeback.c
-@@ -848,7 +848,7 @@ EXPORT_SYMBOL(set_page_dirty_lock);
-  * Clear a page's dirty flag, while caring for dirty memory accounting. 
-  * Returns true if the page was previously dirty.
+diff -puN sound/pci/hda/patch_realtek.c~git-alsa-fixups sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~git-alsa-fixups
++++ a/sound/pci/hda/patch_realtek.c
+@@ -6491,28 +6491,6 @@ static void alc262_auto_init(struct hda_
+ /*
+  * configuration and preset
   */
--int test_clear_page_dirty(struct page *page)
-+int test_clear_page_dirty(struct page *page, int must_clean_ptes)
+-<<<<<<< HEAD/sound/pci/hda/patch_realtek.c
+-static struct hda_board_config alc262_cfg_tbl[] = {
+-	{ .modelname = "basic", .config = ALC262_BASIC },
+-	{ .modelname = "fujitsu", .config = ALC262_FUJITSU },
+-	{ .pci_subvendor = 0x10cf, .pci_subdevice = 0x1397,
+-	  .config = ALC262_FUJITSU },
+-	{ .modelname = "hp-bpc", .config = ALC262_HP_BPC },
+-	{ .pci_subvendor = 0x103c, .pci_subdevice = 0x280c,
+-	  .config = ALC262_HP_BPC }, /* xw4400 */
+-	{ .pci_subvendor = 0x103c, .pci_subdevice = 0x2801,
+-	  .config = ALC262_HP_BPC }, /* q965 */
+-	{ .pci_subvendor = 0x103c, .pci_subdevice = 0x3014,
+-	  .config = ALC262_HP_BPC }, /* xw6400 */
+-	{ .pci_subvendor = 0x103c, .pci_subdevice = 0x3015,
+-	  .config = ALC262_HP_BPC }, /* xw8400 */
+-	{ .pci_subvendor = 0x103c, .pci_subdevice = 0x12fe,
+-	  .config = ALC262_HP_BPC }, /* xw9400 */
+-	{ .modelname = "benq", .config = ALC262_BENQ_ED8 },
+-	{ .pci_subvendor = 0x17ff, .pci_subdevice = 0x0560,
+-	  .config = ALC262_BENQ_ED8 },
+-	{ .modelname = "auto", .config = ALC262_AUTO },
+-=======
+ static const char *alc262_models[ALC262_MODEL_LAST] = {
+ 	[ALC262_BASIC]		= "basic",
+ 	[ALC262_HIPPO]		= "hippo",
+@@ -6534,7 +6512,6 @@ static struct snd_pci_quirk alc262_cfg_t
+ 	SND_PCI_QUIRK(0x10cf, 0x1397, "Fujitsu", ALC262_FUJITSU),
+ 	SND_PCI_QUIRK(0x17ff, 0x058f, "Benq Hippo", ALC262_HIPPO_1),
+ 	SND_PCI_QUIRK(0x17ff, 0x0560, "Benq ED8", ALC262_BENQ_ED8),
+->>>>>>> /sound/pci/hda/patch_realtek.c
+ 	{}
+ };
+ 
+diff -puN sound/pci/via82xx.c~git-alsa-fixups sound/pci/via82xx.c
+--- a/sound/pci/via82xx.c~git-alsa-fixups
++++ a/sound/pci/via82xx.c
+@@ -2403,86 +2403,6 @@ static struct snd_pci_quirk dxs_whitelis
+ 
+ static int __devinit check_dxs_list(struct pci_dev *pci, int revision)
  {
- 	struct address_space *mapping = page_mapping(page);
- 	unsigned long flags;
-@@ -866,7 +866,8 @@ int test_clear_page_dirty(struct page *p
- 		 * page is locked, which pins the address_space
- 		 */
- 		if (mapping_cap_account_dirty(mapping)) {
--			page_mkclean(page);
-+			if (must_clean_ptes)
-+				page_mkclean(page);
- 			dec_zone_page_state(page, NR_FILE_DIRTY);
- 		}
- 		return 1;
-diff -puN mm/truncate.c~try_to_free_buffers-dont-clear-pte-dirty-bits mm/truncate.c
---- a/mm/truncate.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/mm/truncate.c
-@@ -70,7 +70,7 @@ truncate_complete_page(struct address_sp
- 	if (PagePrivate(page))
- 		do_invalidatepage(page, 0);
+-<<<<<<< HEAD/sound/pci/via82xx.c
+-	static struct dxs_whitelist whitelist[] __devinitdata = {
+-		{ .subvendor = 0x1005, .subdevice = 0x4710, .action = VIA_DXS_ENABLE }, /* Avance Logic Mobo */
+-		{ .subvendor = 0x1019, .subdevice = 0x0996, .action = VIA_DXS_48K },
+-		{ .subvendor = 0x1019, .subdevice = 0x0a81, .action = VIA_DXS_NO_VRA }, /* ECS K7VTA3 v8.0 */
+-		{ .subvendor = 0x1019, .subdevice = 0x0a85, .action = VIA_DXS_NO_VRA }, /* ECS L7VMM2 */
+-		{ .subvendor = 0x1019, .subdevice = 0xa101, .action = VIA_DXS_SRC },
+-		{ .subvendor = 0x1019, .subdevice = 0xaa01, .action = VIA_DXS_SRC }, /* ECS K8T890-A */
+-		{ .subvendor = 0x1025, .subdevice = 0x0033, .action = VIA_DXS_NO_VRA }, /* Acer Inspire 1353LM */
+-		{ .subvendor = 0x1025, .subdevice = 0x0046, .action = VIA_DXS_SRC }, /* Acer Aspire 1524 WLMi */
+-		{ .subvendor = 0x1043, .subdevice = 0x8095, .action = VIA_DXS_NO_VRA }, /* ASUS A7V8X (FIXME: possibly VIA_DXS_ENABLE?)*/
+-		{ .subvendor = 0x1043, .subdevice = 0x80a1, .action = VIA_DXS_NO_VRA }, /* ASUS A7V8-X */
+-		{ .subvendor = 0x1043, .subdevice = 0x80b0, .action = VIA_DXS_NO_VRA }, /* ASUS A7V600 & K8V*/ 
+-		{ .subvendor = 0x1043, .subdevice = 0x810d, .action = VIA_DXS_SRC }, /* ASUS */
+-		{ .subvendor = 0x1043, .subdevice = 0x812a, .action = VIA_DXS_SRC    }, /* ASUS A8V Deluxe */ 
+-		{ .subvendor = 0x1043, .subdevice = 0x8174, .action = VIA_DXS_SRC    }, /* ASUS */
+-		{ .subvendor = 0x1043, .subdevice = 0x81b9, .action = VIA_DXS_SRC    }, /* ASUS A8V-MX */
+-		{ .subvendor = 0x1071, .subdevice = 0x8375, .action = VIA_DXS_NO_VRA }, /* Vobis/Yakumo/Mitac notebook */
+-		{ .subvendor = 0x1071, .subdevice = 0x8399, .action = VIA_DXS_NO_VRA }, /* Umax AB 595T (VIA K8N800A - VT8237) */
+-		{ .subvendor = 0x10cf, .subdevice = 0x118e, .action = VIA_DXS_ENABLE }, /* FSC laptop */
+-		{ .subvendor = 0x1106, .subdevice = 0x4161, .action = VIA_DXS_NO_VRA }, /* ASRock K7VT2 */
+-		{ .subvendor = 0x1106, .subdevice = 0x4552, .action = VIA_DXS_NO_VRA }, /* QDI Kudoz 7X/600-6AL */
+-		{ .subvendor = 0x1106, .subdevice = 0xaa01, .action = VIA_DXS_NO_VRA }, /* EPIA MII */
+-		{ .subvendor = 0x1106, .subdevice = 0xc001, .action = VIA_DXS_SRC }, /* Insight P4-ITX */
+-		{ .subvendor = 0x1297, .subdevice = 0xa232, .action = VIA_DXS_ENABLE }, /* Shuttle ?? */
+-		{ .subvendor = 0x1297, .subdevice = 0xc160, .action = VIA_DXS_ENABLE }, /* Shuttle SK41G */
+-		{ .subvendor = 0x1458, .subdevice = 0xa002, .action = VIA_DXS_ENABLE }, /* Gigabyte GA-7VAXP */
+-		{ .subvendor = 0x1462, .subdevice = 0x0080, .action = VIA_DXS_SRC }, /* MSI K8T Neo-FIS2R */
+-		{ .subvendor = 0x1462, .subdevice = 0x0430, .action = VIA_DXS_SRC }, /* MSI 7142 (K8MM-V) */
+-		{ .subvendor = 0x1462, .subdevice = 0x0470, .action = VIA_DXS_SRC }, /* MSI KT880 Delta-FSR */
+-		{ .subvendor = 0x1462, .subdevice = 0x3800, .action = VIA_DXS_ENABLE }, /* MSI KT266 */
+-		{ .subvendor = 0x1462, .subdevice = 0x5901, .action = VIA_DXS_NO_VRA }, /* MSI KT6 Delta-SR */
+-		{ .subvendor = 0x1462, .subdevice = 0x7023, .action = VIA_DXS_SRC }, /* MSI K8T Neo2-FI */
+-		{ .subvendor = 0x1462, .subdevice = 0x7120, .action = VIA_DXS_ENABLE }, /* MSI KT4V */
+-		{ .subvendor = 0x1462, .subdevice = 0x7142, .action = VIA_DXS_ENABLE }, /* MSI K8MM-V */
+-		{ .subvendor = 0x1462, .subdevice = 0xb012, .action = VIA_DXS_SRC }, /* P4M800/VIA8237R */
+-		{ .subvendor = 0x147b, .subdevice = 0x1401, .action = VIA_DXS_ENABLE }, /* ABIT KD7(-RAID) */
+-		{ .subvendor = 0x147b, .subdevice = 0x1411, .action = VIA_DXS_ENABLE }, /* ABIT VA-20 */
+-		{ .subvendor = 0x147b, .subdevice = 0x1413, .action = VIA_DXS_ENABLE }, /* ABIT KV8 Pro */
+-		{ .subvendor = 0x147b, .subdevice = 0x1415, .action = VIA_DXS_NO_VRA }, /* Abit AV8 */
+-		{ .subvendor = 0x14ff, .subdevice = 0x0403, .action = VIA_DXS_ENABLE }, /* Twinhead mobo */
+-		{ .subvendor = 0x14ff, .subdevice = 0x0408, .action = VIA_DXS_SRC }, /* Twinhead laptop */
+-		{ .subvendor = 0x1558, .subdevice = 0x4701, .action = VIA_DXS_SRC }, /* Clevo D470 */
+-		{ .subvendor = 0x1584, .subdevice = 0x8120, .action = VIA_DXS_ENABLE }, /* Gericom/Targa/Vobis/Uniwill laptop */
+-		{ .subvendor = 0x1584, .subdevice = 0x8123, .action = VIA_DXS_NO_VRA }, /* Uniwill (Targa Visionary XP-210) */
+-		{ .subvendor = 0x161f, .subdevice = 0x202b, .action = VIA_DXS_NO_VRA }, /* Amira Note book */
+-		{ .subvendor = 0x161f, .subdevice = 0x2032, .action = VIA_DXS_48K }, /* m680x machines */
+-		{ .subvendor = 0x1631, .subdevice = 0xe004, .action = VIA_DXS_ENABLE }, /* Easy Note 3174, Packard Bell */
+-		{ .subvendor = 0x1695, .subdevice = 0x3005, .action = VIA_DXS_ENABLE }, /* EPoX EP-8K9A */
+-		{ .subvendor = 0x1695, .subdevice = 0x300c, .action = VIA_DXS_SRC }, /* EPoX EP-8KRAI */
+-		{ .subvendor = 0x1695, .subdevice = 0x300e, .action = VIA_DXS_SRC }, /* EPoX 9HEAI */
+-		{ .subvendor = 0x16f3, .subdevice = 0x6405, .action = VIA_DXS_SRC }, /* Jetway K8M8MS */
+-		{ .subvendor = 0x1734, .subdevice = 0x1078, .action = VIA_DXS_SRC }, /* FSC Amilo L7300 */
+-		{ .subvendor = 0x1734, .subdevice = 0x1093, .action = VIA_DXS_SRC }, /* FSC */
+-		{ .subvendor = 0x1734, .subdevice = 0x10ab, .action = VIA_DXS_SRC }, /* FSC */
+-		{ .subvendor = 0x1849, .subdevice = 0x3059, .action = VIA_DXS_NO_VRA }, /* ASRock K7VM2 */
+-		{ .subvendor = 0x1849, .subdevice = 0x9739, .action = VIA_DXS_SRC }, /* ASRock mobo(?) */
+-		{ .subvendor = 0x1849, .subdevice = 0x9761, .action = VIA_DXS_SRC }, /* ASRock mobo(?) */
+-		{ .subvendor = 0x1919, .subdevice = 0x200a, .action = VIA_DXS_NO_VRA }, /* Soltek SL-K8Tpro-939 */
+-		{ .subvendor = 0x4005, .subdevice = 0x4710, .action = VIA_DXS_SRC },	/* MSI K7T266 Pro2 (MS-6380 V2.0) BIOS 3.7 */
+-		{ } /* terminator */
+-	};
+-	const struct dxs_whitelist *w;
+-	unsigned short subsystem_vendor;
+-	unsigned short subsystem_device;
+-
+-	pci_read_config_word(pci, PCI_SUBSYSTEM_VENDOR_ID, &subsystem_vendor);
+-	pci_read_config_word(pci, PCI_SUBSYSTEM_ID, &subsystem_device);
+-
+-	for (w = whitelist; w->subvendor; w++) {
+-		if (w->subvendor != subsystem_vendor)
+-			continue;
+-		if (w->mask) {
+-			if ((w->mask & subsystem_device) == w->subdevice)
+-				return w->action;
+-		} else {
+-			if (subsystem_device == w->subdevice)
+-				return w->action;
+-		}
+-=======
+ 	const struct snd_pci_quirk *w;
  
--	if (test_clear_page_dirty(page))
-+	if (test_clear_page_dirty(page, 1))
- 		task_io_account_cancelled_write(PAGE_CACHE_SIZE);
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
-@@ -386,7 +386,7 @@ int invalidate_inode_pages2_range(struct
- 					  PAGE_CACHE_SIZE, 0);
- 				}
- 			}
--			was_dirty = test_clear_page_dirty(page);
-+			was_dirty = test_clear_page_dirty(page, 0);
- 			if (!invalidate_complete_page2(mapping, page)) {
- 				if (was_dirty)
- 					set_page_dirty(page);
-diff -puN fs/cifs/file.c~try_to_free_buffers-dont-clear-pte-dirty-bits fs/cifs/file.c
---- a/fs/cifs/file.c~try_to_free_buffers-dont-clear-pte-dirty-bits
-+++ a/fs/cifs/file.c
-@@ -1245,7 +1245,7 @@ retry:
- 				wait_on_page_writeback(page);
+ 	w = snd_pci_quirk_lookup(pci, dxs_whitelist);
+@@ -2490,7 +2410,6 @@ static int __devinit check_dxs_list(stru
+ 		snd_printdd(KERN_INFO "via82xx: DXS white list for %s found\n",
+ 			    w->name);
+ 		return w->value;
+->>>>>>> /sound/pci/via82xx.c
+ 	}
  
- 			if (PageWriteback(page) ||
--					!test_clear_page_dirty(page)) {
-+					!test_clear_page_dirty(page, 1)) {
- 				unlock_page(page);
- 				break;
- 			}
+ 	/* for newer revision, default to DXS_SRC */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
 truncate-clear-page-dirtiness-before-running-try_to_free_buffers.patch
-try_to_free_buffers-dont-clear-pte-dirty-bits.patch
 kvm-do-not-export-unsupported-msrs-to-userspace-tweak.patch
 rtc-warning-fix.patch
 fix-vm_events_fold_cpu-build-breakage-fix.patch
@@ -288,7 +280,7 @@ sony_apci-resume.patch
 sony_apci-resume-fix.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
-arm-systemh-build-fix.patch
+git-alsa-fixups.patch
 cifs-sprintf-fix.patch
 git-dvb.patch
 git-gfs2-nmw.patch
