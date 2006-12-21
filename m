@@ -1,54 +1,56 @@
 From: akpm@osdl.org
-Subject: - usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:37:09 -0800
-Message-ID: <200612210037.kBL0b9B7011272@shell0.pdx.osdl.net>
+Subject: - drm-stop-defining-pci_pretty_name.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:47 -0800
+Message-ID: <200612210036.kBL0alZX011226@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53420 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53421 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161110AbWLUAhL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:37:11 -0500
+	id S1161103AbWLUAhM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:37:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric@brouhaha.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb serial: add support for Novatel S720/U720 CDMA/EV-DO modems
+     DRM: Stop defining pci_pretty_name
 has been removed from the -mm tree.  Its filename was
-     usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do.patch
+     drm-stop-defining-pci_pretty_name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb serial: add support for Novatel S720/U720 CDMA/EV-DO modems
-From: "Eric Smith" <eric@brouhaha.com>
+Subject: DRM: Stop defining pci_pretty_name
+From: Jean Delvare <khali@linux-fr.org>
 
-Add USB vendor/device IDs for Novatel Wireless S720 and U720 CDMA/EV-DO
-modems to airprime.c.
+DRM drivers no longer use pci_pretty_name so we can stop defining it.
 
-Signed-off-by: Eric Smith <eric@brouhaha.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/serial/airprime.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/drm/drmP.h |    4 ----
+ 1 files changed, 4 deletions(-)
 
-diff -puN drivers/usb/serial/airprime.c~usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do drivers/usb/serial/airprime.c
---- a/drivers/usb/serial/airprime.c~usb-serial-add-support-for-novatel-s720-u720-cdma-ev-do
-+++ a/drivers/usb/serial/airprime.c
-@@ -19,6 +19,8 @@
- static struct usb_device_id id_table [] = {
- 	{ USB_DEVICE(0x0c88, 0x17da) }, /* Kyocera Wireless KPC650/Passport */
- 	{ USB_DEVICE(0x1410, 0x1110) }, /* Novatel Wireless Merlin CDMA */
-+	{ USB_DEVICE(0x1410, 0x1130) }, /* Novatel Wireless S720 CDMA/EV-DO */
-+	{ USB_DEVICE(0x1410, 0x2110) }, /* Novatel Wireless U720 CDMA/EV-DO */
- 	{ USB_DEVICE(0x1410, 0x1430) },	/* Novatel Merlin XU870 HSDPA/3G */
- 	{ USB_DEVICE(0x1410, 0x1100) }, /* ExpressCard34 Qualcomm 3G CDMA */
- 	{ USB_DEVICE(0x413c, 0x8115) }, /* Dell Wireless HSDPA 5500 */
+diff -puN drivers/char/drm/drmP.h~drm-stop-defining-pci_pretty_name drivers/char/drm/drmP.h
+--- a/drivers/char/drm/drmP.h~drm-stop-defining-pci_pretty_name
++++ a/drivers/char/drm/drmP.h
+@@ -1143,9 +1143,5 @@ extern void *drm_calloc(size_t nmemb, si
+ extern unsigned long drm_core_get_map_ofs(drm_map_t * map);
+ extern unsigned long drm_core_get_reg_ofs(struct drm_device *dev);
+ 
+-#ifndef pci_pretty_name
+-#define pci_pretty_name(dev) ""
+-#endif
+-
+ #endif				/* __KERNEL__ */
+ #endif
 _
 
-Patches currently in -mm which might be from eric@brouhaha.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
+git-alsa.patch
+git-drm.patch
 
