@@ -1,54 +1,71 @@
 From: akpm@osdl.org
-Subject: + powerpc-use-is_init.patch added to -mm tree
-Date: Wed, 20 Dec 2006 19:41:34 -0800
-Message-ID: <200612210341.kBL3fYNp014750@shell0.pdx.osdl.net>
+Subject: + ehca-fix-kthread_create-error-check.patch added to -mm tree
+Date: Wed, 20 Dec 2006 19:42:31 -0800
+Message-ID: <200612210342.kBL3gVmO014761@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34710 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34894 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422675AbWLUDln (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 22:41:43 -0500
+	id S1422672AbWLUDnY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 22:43:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, anton@samba.org, paulus@samba.org
+Cc: akinobu.mita@gmail.com, hnguyen@de.ibm.com, raisch@de.ibm.com, rolandd@cisco.com
 
 
 The patch titled
-     powerpc: use is_init()
+     ehca: fix kthread_create() error check
 has been added to the -mm tree.  Its filename is
-     powerpc-use-is_init.patch
+     ehca-fix-kthread_create-error-check.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: use is_init()
+Subject: ehca: fix kthread_create() error check
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use is_init() rather than hard coded pid comparison.
+The return value of kthread_create() should be checked by IS_ERR(). 
+create_comp_task() returns the return value from kthread_create().
 
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
+Acked-by: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/powerpc/kernel/traps.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ehca/ehca_irq.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/traps.c~powerpc-use-is_init arch/powerpc/kernel/traps.c
---- a/arch/powerpc/kernel/traps.c~powerpc-use-is_init
-+++ a/arch/powerpc/kernel/traps.c
-@@ -174,7 +174,7 @@ void _exception(int signr, struct pt_reg
- 	 * generate the same exception over and over again and we get
- 	 * nowhere.  Better to kill it and let the kernel panic.
- 	 */
--	if (current->pid == 1) {
-+	if (is_init(current)) {
- 		__sighandler_t handler;
+diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~ehca-fix-kthread_create-error-check drivers/infiniband/hw/ehca/ehca_irq.c
+--- a/drivers/infiniband/hw/ehca/ehca_irq.c~ehca-fix-kthread_create-error-check
++++ a/drivers/infiniband/hw/ehca/ehca_irq.c
+@@ -670,11 +670,13 @@ static int comp_pool_callback(struct not
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+ 	struct ehca_cpu_comp_task *cct;
++	struct task_struct *task;
  
- 		spin_lock_irq(&current->sighand->siglock);
+ 	switch (action) {
+ 	case CPU_UP_PREPARE:
+ 		ehca_gen_dbg("CPU: %x (CPU_PREPARE)", cpu);
+-		if(!create_comp_task(pool, cpu)) {
++		task = create_comp_task(pool, cpu);
++		if (IS_ERR(task)) {
+ 			ehca_gen_err("Can't create comp_task for cpu: %x", cpu);
+ 			return NOTIFY_BAD;
+ 		}
+@@ -730,7 +732,7 @@ int ehca_create_comp_pool(void)
+ 
+ 	for_each_online_cpu(cpu) {
+ 		task = create_comp_task(pool, cpu);
+-		if (task) {
++		if (!IS_ERR(task)) {
+ 			kthread_bind(task, cpu);
+ 			wake_up_process(task);
+ 		}
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
@@ -60,6 +77,7 @@ git-acpi.patch
 git-alsa.patch
 powerpc-use-is_init.patch
 git-drm.patch
+ehca-fix-kthread_create-error-check.patch
 git-mtd.patch
 net-use-bitrev8.patch
 auth_gss-unregister-gss_domain-when-unloading-module.patch
