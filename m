@@ -1,140 +1,128 @@
 From: akpm@osdl.org
-Subject: + megaraid-build-with-proc_fs=n.patch added to -mm tree
-Date: Wed, 20 Dec 2006 19:28:26 -0800
-Message-ID: <200612210328.kBL3SQFA014474@shell0.pdx.osdl.net>
+Subject: + libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch added to -mm tree
+Date: Wed, 20 Dec 2006 19:32:49 -0800
+Message-ID: <200612210332.kBL3WnS1014574@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33871 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34156 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422645AbWLUD2b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 22:28:31 -0500
+	id S1422647AbWLUDdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 22:33:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: dmilburn@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     megaraid: build with PROC_FS=n
+     libata-scsi: ata_task_ioctl should return ATA registers from sense data
 has been added to the -mm tree.  Its filename is
-     megaraid-build-with-proc_fs=n.patch
+     libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: megaraid: build with PROC_FS=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: libata-scsi: ata_task_ioctl should return ATA registers from sense data
+From: David Milburn <dmilburn@redhat.com>
 
-Fix megaraid build error when PROC_FS=n:
+User applications using the HDIO_DRIVE_TASK ioctl through libata expect
+specific ATA registers to be returned to userspace.  Verified that
+ata_task_ioctl correctly returns register values to the smartctl
+application.
 
-drivers/built-in.o: In function `megaraid_probe_one':
-megaraid.c:(.text.megaraid_probe_one+0xf68): undefined reference to `mega_create_proc_entry'
-make: *** [.tmp_vmlinux1] Error 1
-
-and these warnings:
-drivers/scsi/megaraid.h:1004: warning: 'mega_print_inquiry' declared 'static' but never defined
-drivers/scsi/megaraid.c:4362: warning: 'mega_adapinq' defined but not used
-drivers/scsi/megaraid.c:4397: warning: 'mega_internal_dev_inquiry' defined but not used
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: David Milburn <dmilburn@redhat.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/megaraid.c |   11 ++++++++++-
- drivers/scsi/megaraid.h |    5 +++--
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ drivers/ata/libata-scsi.c |   51 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 45 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/megaraid.c~megaraid-build-with-proc_fs=n drivers/scsi/megaraid.c
---- a/drivers/scsi/megaraid.c~megaraid-build-with-proc_fs=n
-+++ a/drivers/scsi/megaraid.c
-@@ -3178,6 +3178,12 @@ proc_rdrv(adapter_t *adapter, char *page
- 	return len;
- }
- 
-+#else
-+
-+static inline void mega_create_proc_entry(int index,
-+					struct proc_dir_entry *parent)
-+{}
-+
- #endif
- 
- 
-@@ -4343,6 +4349,7 @@ mega_support_cluster(adapter_t *adapter)
- }
- 
- 
-+#ifdef CONFIG_PROC_FS
- /**
-  * mega_adapinq()
-  * @adapter - pointer to our soft state
-@@ -4447,6 +4454,7 @@ mega_internal_dev_inquiry(adapter_t *ada
- 
- 	return rval;
- }
-+#endif
- 
- 
- /**
-@@ -4965,7 +4973,6 @@ megaraid_remove_one(struct pci_dev *pdev
+diff -puN drivers/ata/libata-scsi.c~libata-scsi-ata_task_ioctl-should-return-ata-registers-from drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~libata-scsi-ata_task_ioctl-should-return-ata-registers-from
++++ a/drivers/ata/libata-scsi.c
+@@ -273,8 +273,8 @@ int ata_task_ioctl(struct scsi_device *s
  {
- 	struct Scsi_Host *host = pci_get_drvdata(pdev);
- 	adapter_t *adapter = (adapter_t *)host->hostdata;
--	char	buf[12] = { 0 };
+ 	int rc = 0;
+ 	u8 scsi_cmd[MAX_COMMAND_SIZE];
+-	u8 args[7];
+-	struct scsi_sense_hdr sshdr;
++	u8 args[7], *sensebuf = NULL;
++	int cmd_result;
  
- 	scsi_remove_host(host);
+ 	if (arg == NULL)
+ 		return -EINVAL;
+@@ -282,10 +282,14 @@ int ata_task_ioctl(struct scsi_device *s
+ 	if (copy_from_user(args, arg, sizeof(args)))
+ 		return -EFAULT;
  
-@@ -4982,6 +4989,8 @@ megaraid_remove_one(struct pci_dev *pdev
- 
- #ifdef CONFIG_PROC_FS
- 	if (adapter->controller_proc_dir_entry) {
-+		char buf[12];
++	sensebuf = kzalloc(SCSI_SENSE_BUFFERSIZE, GFP_NOIO);
++	if (!sensebuf)
++		return -ENOMEM;
 +
- 		remove_proc_entry("stat", adapter->controller_proc_dir_entry);
- 		remove_proc_entry("config",
- 				adapter->controller_proc_dir_entry);
-diff -puN drivers/scsi/megaraid.h~megaraid-build-with-proc_fs=n drivers/scsi/megaraid.h
---- a/drivers/scsi/megaraid.h~megaraid-build-with-proc_fs=n
-+++ a/drivers/scsi/megaraid.h
-@@ -1002,7 +1002,9 @@ static int megaraid_reset(Scsi_Cmnd *);
- static int megaraid_abort_and_reset(adapter_t *, Scsi_Cmnd *, int);
- static int megaraid_biosparam(struct scsi_device *, struct block_device *,
- 		sector_t, int []);
-+#ifdef CONFIG_PROC_FS
- static int mega_print_inquiry(char *, char *);
-+#endif
+ 	memset(scsi_cmd, 0, sizeof(scsi_cmd));
+ 	scsi_cmd[0]  = ATA_16;
+ 	scsi_cmd[1]  = (3 << 1); /* Non-data */
+-	/* scsi_cmd[2] is already 0 -- no off.line, cc, or data xfer */
++	scsi_cmd[2]  = 0x20;     /* cc but no off.line or data xfer */
+ 	scsi_cmd[4]  = args[1];
+ 	scsi_cmd[6]  = args[2];
+ 	scsi_cmd[8]  = args[3];
+@@ -295,11 +299,46 @@ int ata_task_ioctl(struct scsi_device *s
  
- static int mega_build_sglist (adapter_t *adapter, scb_t *scb,
- 			      u32 *buffer, u32 *length);
-@@ -1040,10 +1042,9 @@ static int proc_rdrv_20(char *, char **,
- static int proc_rdrv_30(char *, char **, off_t, int, int *, void *);
- static int proc_rdrv_40(char *, char **, off_t, int, int *, void *);
- static int proc_rdrv(adapter_t *, char *, int, int);
--#endif
--
- static int mega_adapinq(adapter_t *, dma_addr_t);
- static int mega_internal_dev_inquiry(adapter_t *, u8, u8, dma_addr_t);
-+#endif
+ 	/* Good values for timeout and retries?  Values below
+ 	   from scsi_ioctl_send_command() for default case... */
+-	if (scsi_execute_req(scsidev, scsi_cmd, DMA_NONE, NULL, 0, &sshdr,
+-			     (10*HZ), 5))
++	cmd_result = scsi_execute(scsidev, scsi_cmd, DMA_NONE, NULL, 0,
++				sensebuf, (10*HZ), 5, 0);
++
++	if (driver_byte(cmd_result) == DRIVER_SENSE) {/* sense data available */
++		u8 *desc = sensebuf + 8;
++		cmd_result &= ~(0xFF<<24); /* DRIVER_SENSE is not an error */
++
++		/* If we set cc then ATA pass-through will cause a
++		 * check condition even if no error. Filter that. */
++		if (cmd_result & SAM_STAT_CHECK_CONDITION) {
++			struct scsi_sense_hdr sshdr;
++			scsi_normalize_sense(sensebuf, SCSI_SENSE_BUFFERSIZE,
++						&sshdr);
++			if (sshdr.sense_key==0 &&
++				sshdr.asc==0 && sshdr.ascq==0)
++				cmd_result &= ~SAM_STAT_CHECK_CONDITION;
++		}
++
++		/* Send userspace ATA registers */
++		if (sensebuf[0] == 0x72 &&	/* format is "descriptor" */
++				desc[0] == 0x09) {/* code is "ATA Descriptor" */
++			args[0] = desc[13];	/* status */
++			args[1] = desc[3];	/* error */
++			args[2] = desc[5];	/* sector count (0:7) */
++			args[3] = desc[7];	/* lbal */
++			args[4] = desc[9];	/* lbam */
++			args[5] = desc[11];	/* lbah */
++			args[6] = desc[12];	/* select */
++			if (copy_to_user(arg, args, sizeof(args)))
++				rc = -EFAULT;
++		}
++	}
++
++	if (cmd_result) {
+ 		rc = -EIO;
++		goto error;
++	}
  
- static int mega_support_ext_cdb(adapter_t *);
- static mega_passthru* mega_prepare_passthru(adapter_t *, scb_t *,
+-	/* Need code to retrieve data from check condition? */
++ error:
++	kfree(sensebuf);
+ 	return rc;
+ }
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dmilburn@redhat.com are
 
-fix-kernel-doc-warnings-in-2620-rc1.patch
-add-a-new-section-to-codingstyle-promoting-include-linux-kernelh.patch
-handle-slob-with-sparsemen.patch
-git-acpi.patch
-git-alsa.patch
-cpufreq-select-consistently-re-2619-rc5-mm1.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-parisc-fix-module_param-iommu-permission.patch
-scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
-megaraid-build-with-proc_fs=n.patch
-reiser4-use-null-for-pointers.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-profile_likely-export-do_check_likely.patch
+libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch
 
