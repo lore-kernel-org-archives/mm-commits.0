@@ -1,129 +1,141 @@
 From: akpm@osdl.org
-Subject: + drivers-char-vc_screenc-proper-prototypes.patch added to -mm tree
-Date: Wed, 20 Dec 2006 16:53:43 -0800
-Message-ID: <200612210053.kBL0rhrC011671@shell0.pdx.osdl.net>
+Subject: + workqueue-fix-schedule_on_each_cpu.patch added to -mm tree
+Date: Wed, 20 Dec 2006 16:58:22 -0800
+Message-ID: <200612210058.kBL0wMmu011759@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54612 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54724 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161099AbWLUA45 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:56:57 -0500
+	id S1161100AbWLUA6h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:58:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: mingo@elte.hu, a.p.zijlstra@chello.nl, dhowells@redhat.com
 
 
 The patch titled
-     drivers/char/vc_screen.c: proper prototypes
+     workqueue: fix schedule_on_each_cpu()
 has been added to the -mm tree.  Its filename is
-     drivers-char-vc_screenc-proper-prototypes.patch
+     workqueue-fix-schedule_on_each_cpu.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/char/vc_screen.c: proper prototypes
-From: Adrian Bunk <bunk@stusta.de>
+Subject: workqueue: fix schedule_on_each_cpu()
+From: Ingo Molnar <mingo@elte.hu>
 
-Add proper prototypes for two functions in drivers/char/vc_screen.c
+Fix the schedule_on_each_cpu() implementation: __queue_work() is now
+stricter, hence set the work-pending bit before passing in the new work.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+(found in the -rt tree, using Peter Zijlstra's files-lock scalability
+patchset)
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/vt.c       |    3 ---
- include/linux/console.h |    4 ++++
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ kernel/workqueue.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/vt.c~drivers-char-vc_screenc-proper-prototypes drivers/char/vt.c
---- a/drivers/char/vt.c~drivers-char-vc_screenc-proper-prototypes
-+++ a/drivers/char/vt.c
-@@ -136,9 +136,6 @@ const struct consw *conswitchp;
- #define DEFAULT_BELL_PITCH	750
- #define DEFAULT_BELL_DURATION	(HZ/8)
+diff -puN kernel/workqueue.c~workqueue-fix-schedule_on_each_cpu kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-fix-schedule_on_each_cpu
++++ a/kernel/workqueue.c
+@@ -637,9 +637,11 @@ int schedule_on_each_cpu(work_func_t fun
  
--extern void vcs_make_sysfs(struct tty_struct *tty);
--extern void vcs_remove_sysfs(struct tty_struct *tty);
--
- struct vc vc_cons [MAX_NR_CONSOLES];
- 
- #ifndef VT_SINGLE_DRIVER
-diff -puN include/linux/console.h~drivers-char-vc_screenc-proper-prototypes include/linux/console.h
---- a/include/linux/console.h~drivers-char-vc_screenc-proper-prototypes
-+++ a/include/linux/console.h
-@@ -21,6 +21,7 @@ struct vc_data;
- struct console_font_op;
- struct console_font;
- struct module;
-+struct tty_struct;
- 
- /*
-  * this is what the terminal answers to a ESC-Z or csi0c query.
-@@ -132,6 +133,9 @@ static inline void resume_console(void) 
- int mda_console_init(void);
- void prom_con_init(void);
- 
-+void vcs_make_sysfs(struct tty_struct *tty);
-+void vcs_remove_sysfs(struct tty_struct *tty);
+ 	mutex_lock(&workqueue_mutex);
+ 	for_each_online_cpu(cpu) {
+-		INIT_WORK(per_cpu_ptr(works, cpu), func);
+-		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu),
+-				per_cpu_ptr(works, cpu));
++		struct work_struct *work = per_cpu_ptr(works, cpu);
 +
- /* Some debug stub to catch some of the obvious races in the VT code */
- #if 1
- #define WARN_CONSOLE_UNLOCKED()	WARN_ON(!is_console_locked() && !oops_in_progress)
++		INIT_WORK(work, func);
++		set_bit(WORK_STRUCT_PENDING, work_data_bits(work));
++		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu), work);
+ 	}
+ 	mutex_unlock(&workqueue_mutex);
+ 	flush_workqueue(keventd_wq);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-make-kernel-printkcignore_loglevel_setup-static.patch
-fs-sysv-proper-prototypes-for-2-functions.patch
-git-acpi.patch
-git-alsa.patch
-usbvision-possible-cleanups.patch
-drivers-media-video-cafe_ccicc-fix-null-dereference.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-remove-the-broken-skmc-driver.patch
-git-net.patch
-net-irda-proper-prototypes.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-make-qla2x00_reg_remote_port-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-usb_rtl8150-must-select-mii.patch
-arch-i386-kernel-e820c-should-include-asm-setuph.patch
-arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch
-lumpy-reclaim-cleanup.patch
-remove-drivers-pci-searchcpci_find_device_reverse.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-toshiba-tc86c001-ide-driver-take-2-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
+conditionally-check-expected_preempt_count-in-__resched_legal.patch
+sched-remove-__cpuinitdata-anotation-to-cpu_isolated_map.patch
+genirq-fix-irq-flow-handler-uninstall.patch
+lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
+workqueue-fix-schedule_on_each_cpu.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
 gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
 dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
 clockevents-i386-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+sched-improve-efficiency-of-sched_fork.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
 mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
