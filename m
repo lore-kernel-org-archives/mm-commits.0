@@ -1,215 +1,227 @@
 From: akpm@osdl.org
-Subject: - add-support-for-acpi_load_table-acpi_unload_table_id.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:33 -0800
-Message-ID: <200612210036.kBL0aXFl011207@shell0.pdx.osdl.net>
+Subject: - add-display-output-class-support.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:29 -0800
+Message-ID: <200612210036.kBL0aTwO011201@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53299 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53287 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161108AbWLUAgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:36:45 -0500
+	id S1161097AbWLUAgl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:36:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpk@sgi.com, ayoung@sgi.com, greg@kroah.com, len.brown@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: luming.yu@gmail.com, Luming.yu@intel.com, adaplas@pol.net, greg@kroah.com, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add support for acpi_load_table/acpi_unload_table_id
+     Add display output class support
 has been removed from the -mm tree.  Its filename was
-     add-support-for-acpi_load_table-acpi_unload_table_id.patch
+     add-display-output-class-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add support for acpi_load_table/acpi_unload_table_id
-From: John Keller <jpk@sgi.com>
+Subject: Add display output class support
+From: Yu Luming <luming.yu@gmail.com>
 
-Make acpi_load_table() available for use by removing it from the #ifdef
-ACPI_FUTURE_USAGE.
+Add generic abstract layer for display output switch control.  The output
+sysfs class driver provides an abstract video output layer that can be used to
+hook platform specific methods to enable/disable video output device through
+common sysfs interface.
 
-Also add a new routine used to unload an ACPI table of a given type and "id" -
-acpi_unload_table_id().  The implementation of this new routine was almost a
-direct copy of existing routine acpi_unload_table() - only difference being
-that it only removes a specific table id instead of ALL tables of a given
-type.  The SN hotplug driver (sgi_hotplug.c) now uses both of these interfaces
-to dynamically load and unload SSDT ACPI tables.
-
-Also, a few other ACPI routines now used by the SN hotplug driver are exported
-(since the driver can be a loadable module):
-
- acpi_ns_map_handle_to_node
- acpi_ns_convert_entry_to_handle
- acpi_ns_get_next_node
-
-Signed-off-by: Aaron Young <ayoung@sgi.com>
+Signed-off-by: Luming Yu <Luming.yu@intel.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: "Brown, Len" <len.brown@intel.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/namespace/nsxfobj.c |   44 +++++++++++++++++++++++
- drivers/acpi/tables/tbxface.c    |   54 ++++++++++++++++++++++++++++-
- include/acpi/acpixf.h            |    7 ++-
- 3 files changed, 102 insertions(+), 3 deletions(-)
+ drivers/video/output.c       |  129 +++++++++++++++++++++++++++++++++
+ include/linux/video_output.h |   42 ++++++++++
+ 2 files changed, 171 insertions(+)
 
-diff -puN drivers/acpi/namespace/nsxfobj.c~add-support-for-acpi_load_table-acpi_unload_table_id drivers/acpi/namespace/nsxfobj.c
---- a/drivers/acpi/namespace/nsxfobj.c~add-support-for-acpi_load_table-acpi_unload_table_id
-+++ a/drivers/acpi/namespace/nsxfobj.c
-@@ -50,6 +50,50 @@ ACPI_MODULE_NAME("nsxfobj")
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_get_id
+diff -puN /dev/null drivers/video/output.c
+--- /dev/null
++++ a/drivers/video/output.c
+@@ -0,0 +1,129 @@
++/*
++ *  output.c - Display Output Switch driver
 + *
-+ * PARAMETERS:  Handle          - Handle of object whose id is desired
-+ *              ret_id          - Where the id will be placed
++ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
 + *
-+ * RETURN:      Status
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + *
-+ * DESCRIPTION: This routine returns the owner id associated with a handle
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
 + *
-+ ******************************************************************************/
-+acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#include <linux/module.h>
++#include <linux/video_output.h>
++#include <linux/err.h>
++#include <linux/ctype.h>
++
++
++MODULE_DESCRIPTION("Display Output Switcher Lowlevel Control Abstraction");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Luming Yu <luming.yu@intel.com>");
++
++static ssize_t video_output_show_state(struct class_device *dev,char *buf)
 +{
-+	struct acpi_namespace_node *node;
-+	acpi_status status;
-+
-+	/* Parameter Validation */
-+
-+	if (!ret_id) {
-+		return (AE_BAD_PARAMETER);
-+	}
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-+	if (ACPI_FAILURE(status)) {
-+		return (status);
-+	}
-+
-+	/* Convert and validate the handle */
-+
-+	node = acpi_ns_map_handle_to_node(handle);
-+	if (!node) {
-+		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+		return (AE_BAD_PARAMETER);
-+	}
-+
-+	*ret_id = node->owner_id;
-+
-+	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+	return (status);
++	ssize_t ret_size = 0;
++	struct output_device *od = to_output_device(dev);
++	if (od->props)
++		ret_size = sprintf(buf,"%.8x\n",od->props->get_status(od));
++	return ret_size;
 +}
 +
-+ACPI_EXPORT_SYMBOL(acpi_get_id)
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_get_type
-  *
-  * PARAMETERS:  Handle          - Handle of object whose type is desired
-diff -puN drivers/acpi/tables/tbxface.c~add-support-for-acpi_load_table-acpi_unload_table_id drivers/acpi/tables/tbxface.c
---- a/drivers/acpi/tables/tbxface.c~add-support-for-acpi_load_table-acpi_unload_table_id
-+++ a/drivers/acpi/tables/tbxface.c
-@@ -123,7 +123,6 @@ acpi_status acpi_load_tables(void)
- 
- ACPI_EXPORT_SYMBOL(acpi_load_tables)
- 
--#ifdef ACPI_FUTURE_USAGE
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_load_table
-@@ -221,6 +220,59 @@ ACPI_EXPORT_SYMBOL(acpi_load_table)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_unload_table_id
-+ *
-+ * PARAMETERS:  table_type    - Type of table to be unloaded
-+ *              id            - Owner ID of the table to be removed.
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: This routine is used to force the unload of a table (by id)
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id)
++static ssize_t video_output_store_state(struct class_device *dev,
++	const char *buf,size_t count)
 +{
-+	struct acpi_table_desc *table_desc;
-+	acpi_status status;
++	char *endp;
++	struct output_device *od = to_output_device(dev);
++	int request_state = simple_strtoul(buf,&endp,0);
++	size_t size = endp - buf;
 +
-+	ACPI_FUNCTION_TRACE(acpi_unload_table);
++	if (*endp && isspace(*endp))
++		size++;
++	if (size != count)
++		return -EINVAL;
 +
-+	/* Parameter validation */
-+	if (table_type > ACPI_TABLE_ID_MAX)
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+
-+	/* Find table from the requested type list */
-+	table_desc = acpi_gbl_table_lists[table_type].next;
-+	while (table_desc && table_desc->owner_id != id)
-+		table_desc = table_desc->next;
-+
-+	if (!table_desc)
-+		return_ACPI_STATUS(AE_NOT_EXIST);
-+
-+	/*
-+	 * Delete all namespace objects owned by this table. Note that these
-+	 * objects can appear anywhere in the namespace by virtue of the AML
-+	 * "Scope" operator. Thus, we need to track ownership by an ID, not
-+	 * simply a position within the hierarchy
-+	 */
-+	acpi_ns_delete_namespace_by_owner(table_desc->owner_id);
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
-+	(void)acpi_tb_uninstall_table(table_desc);
-+
-+	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-+
-+	return_ACPI_STATUS(AE_OK);
++	if (od->props) {
++		od->request_state = request_state;
++		od->props->set_state(od);
++	}
++	return count;
 +}
 +
-+ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
++static void video_output_class_release(struct class_device *dev)
++{
++	struct output_device *od = to_output_device(dev);
++	kfree(od);
++}
 +
-+#ifdef ACPI_FUTURE_USAGE
-+/*******************************************************************************
++static struct class_device_attribute video_output_attributes[] = {
++	__ATTR(state, 0644, video_output_show_state, video_output_store_state),
++	__ATTR_NULL,
++};
++
++static struct class video_output_class = {
++	.name = "video_output",
++	.release = video_output_class_release,
++	.class_dev_attrs = video_output_attributes,
++};
++
++struct output_device *video_output_register(const char *name,
++	struct device *dev,
++	void *devdata,
++	struct output_properties *op)
++{
++	struct output_device *new_dev;
++	int ret_code = 0;
++
++	new_dev = kzalloc(sizeof(struct output_device),GFP_KERNEL);
++	if (!new_dev) {
++		ret_code = -ENOMEM;
++		goto error_return;
++	}
++	new_dev->props = op;
++	new_dev->class_dev.class = &video_output_class;
++	new_dev->class_dev.dev = dev;
++	strlcpy(new_dev->class_dev.class_id,name,KOBJ_NAME_LEN);
++	class_set_devdata(&new_dev->class_dev,devdata);
++	ret_code = class_device_register(&new_dev->class_dev);
++	if (ret_code) {
++		kfree(new_dev);
++		goto error_return;
++	}
++	return new_dev;
++
++error_return:
++	return ERR_PTR(ret_code);
++}
++EXPORT_SYMBOL(video_output_register);
++
++void video_output_unregister(struct output_device *dev)
++{
++	if (!dev)
++		return;
++	class_device_unregister(&dev->class_dev);
++}
++EXPORT_SYMBOL(video_output_unregister);
++
++static void __exit video_output_class_exit(void)
++{
++	class_unregister(&video_output_class);
++}
++
++static int __init video_output_class_init(void)
++{
++	return class_register(&video_output_class);
++}
++
++postcore_initcall(video_output_class_init);
++module_exit(video_output_class_exit);
+diff -puN /dev/null include/linux/video_output.h
+--- /dev/null
++++ a/include/linux/video_output.h
+@@ -0,0 +1,42 @@
++/*
 + *
-  * FUNCTION:    acpi_unload_table
-  *
-  * PARAMETERS:  table_type    - Type of table to be unloaded
-diff -puN include/acpi/acpixf.h~add-support-for-acpi_load_table-acpi_unload_table_id include/acpi/acpixf.h
---- a/include/acpi/acpixf.h~add-support-for-acpi_load_table-acpi_unload_table_id
-+++ a/include/acpi/acpixf.h
-@@ -97,11 +97,12 @@ acpi_find_root_pointer(u32 flags, struct
- 
- acpi_status acpi_load_tables(void);
- 
--#ifdef ACPI_FUTURE_USAGE
- acpi_status acpi_load_table(struct acpi_table_header *table_ptr);
- 
--acpi_status acpi_unload_table(acpi_table_type table_type);
-+acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id);
- 
-+#ifdef ACPI_FUTURE_USAGE
-+acpi_status acpi_unload_table(acpi_table_type table_type);
- acpi_status
- acpi_get_table_header(acpi_table_type table_type,
- 		      u32 instance, struct acpi_table_header *out_table_header);
-@@ -180,6 +181,8 @@ acpi_get_next_object(acpi_object_type ty
- 
- acpi_status acpi_get_type(acpi_handle object, acpi_object_type * out_type);
- 
-+acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
-+
- acpi_status acpi_get_parent(acpi_handle object, acpi_handle * out_handle);
- 
- /*
++ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#ifndef _LINUX_VIDEO_OUTPUT_H
++#define _LINUX_VIDEO_OUTPUT_H
++#include <linux/device.h>
++struct output_device;
++struct output_properties {
++	int (*set_state)(struct output_device *);
++	int (*get_status)(struct output_device *);
++};
++struct output_device {
++	int request_state;
++	struct output_properties *props;
++	struct class_device class_dev;
++};
++#define to_output_device(obj) container_of(obj, struct output_device, class_dev)
++struct output_device *video_output_register(const char *name,
++	struct device *dev,
++	void *devdata,
++	struct output_properties *op);
++void video_output_unregister(struct output_device *dev);
++#endif
 _
 
-Patches currently in -mm which might be from jpk@sgi.com are
+Patches currently in -mm which might be from luming.yu@gmail.com are
 
 git-acpi.patch
-altix-acpi-ssdt-pci-device-support.patch
-altix-add-acpi-ssdt-pci-device-support-hotplug.patch
 
