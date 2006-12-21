@@ -1,33 +1,32 @@
 From: akpm@osdl.org
-Subject: - virtual-memmap-on-sparsemem-v3-map-and-unmap-fix.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 23:26:06 -0800
-Message-ID: <200612210726.kBL7Q6Em018708@shell0.pdx.osdl.net>
+Subject: - virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 23:26:08 -0800
+Message-ID: <200612210726.kBL7Q8I6018711@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:45358 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45359 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422810AbWLUH1e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 02:27:34 -0500
+	id S1422810AbWLUH1k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 02:27:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, clameter@engr.sgi.com, haveblue@us.ibm.com, mbligh@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, apw@shadowen.org, clameter@engr.sgi.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mbligh@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     virtual-memmap-on-sparsemem-v3-map-and-unmap fix
+     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2
 has been removed from the -mm tree.  Its filename was
-     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix.patch
+     virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: virtual-memmap-on-sparsemem-v3-map-and-unmap fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2
+From: Andrew Morton <akpm@osdl.org>
 
-This removes implicit default actions in map_generic_kernel() call.
-Also changes comments in vmalloc.h
+build fix
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Martin Bligh <mbligh@google.com>
@@ -36,115 +35,144 @@ Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/vmalloc.h |    8 ++++---
- mm/vmalloc.c            |   39 +++++++++++---------------------------
- 2 files changed, 17 insertions(+), 30 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix
-+++ a/include/linux/vmalloc.h
-@@ -81,6 +81,9 @@ extern struct vm_struct *vmlist;
-  * not managed by standard vmap calls.
-  * The caller has to be responsible to manage his own virtual address space.
-  *
-+ * what you have to do in pud/pmd/pte allocation is allocate page and
-+ * populate that entry.
-+ *
-  * Bootstrap consideration:
-  * you can pass pud/pmd/pte alloc functions to map_generic_kernel().
-  * So you can use bootmem function or something to alloc page tables if
-@@ -88,13 +91,12 @@ extern struct vm_struct *vmlist;
-  */
- 
- struct gen_map_kern_ops {
--	/* must be defined */
-+	/* all pointers must be filled */
- 	int	(*k_pte_set)(pte_t *pte, unsigned long addr, void *data);
--	int	(*k_pte_clear)(pte_t *pte, unsigned long addr, void *data);
--	/* optional */
- 	int 	(*k_pud_alloc)(pgd_t *pgd, unsigned long addr, void *data);
- 	int 	(*k_pmd_alloc)(pud_t *pud, unsigned long addr, void *data);
- 	int 	(*k_pte_alloc)(pmd_t *pmd, unsigned long addr, void *data);
-+	int	(*k_pte_clear)(pte_t *pte, unsigned long addr, void *data);
- };
- 
- /*
-diff -puN mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix mm/vmalloc.c
---- a/mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix
+diff -puN mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2 mm/vmalloc.c
+--- a/mm/vmalloc.c~virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2
 +++ a/mm/vmalloc.c
-@@ -764,15 +764,10 @@ static int map_generic_pte_range(pmd_t *
- 	int ret = 0;
- 	unsigned long next;
- 	if (!pmd_present(*pmd)) {
--		if (ops->k_pte_alloc) {
--			ret = ops->k_pte_alloc(pmd, addr, data);
--			if (ret)
--				return ret;
--		} else {
--			pte = pte_alloc_kernel(pmd, addr);
--			if (!pte)
--				return -ENOMEM;
--		}
-+		BUG_ON(!ops->k_pte_alloc);
-+		ret = ops->k_pte_alloc(pmd, addr, data);
-+		if (ret)
-+			return ret;
- 	}
- 	pte = pte_offset_kernel(pmd, addr);
- 
-@@ -796,15 +791,10 @@ static int map_generic_pmd_range(pud_t *
- 	int ret;
- 
- 	if (pud_none(*pud)) {
--		if (ops->k_pmd_alloc) {
--			ret = ops->k_pmd_alloc(pud, addr, data);
--			if (ret)
--				return ret;
--		} else {
--			pmd = pmd_alloc(&init_mm, pud, addr);
--			if (!pmd)
--				return -ENOMEM;
--		}
-+		BUG_ON(!ops->k_pmd_alloc);
-+		ret = ops->k_pmd_alloc(pud, addr, data);
-+		if (ret)
-+			return ret;
- 	}
- 	pmd = pmd_offset(pud, addr);
- 	do {
-@@ -824,15 +814,10 @@ static int map_generic_pud_range(pgd_t *
- 	unsigned long next;
- 	int ret;
- 	if (pgd_none(*pgd)) {
--		if (ops->k_pud_alloc) {
--			ret = ops->k_pud_alloc(pgd, addr, data);
--			if (ret)
--				return ret;
--		} else {
--			pud = pud_alloc(&init_mm, pgd, addr);
--			if (!pud)
--				return -ENOMEM;
--		}
-+		BUG_ON(!ops->k_pud_alloc);
-+		ret = ops->k_pud_alloc(pgd, addr, data);
-+		if (ret)
-+			return ret;
- 	}
- 	pud = pud_offset(pgd, addr);
- 	do {
+@@ -929,6 +929,6 @@ int unmap_generic_kernel(unsigned long a
+ 		if (err)
+ 			break;
+ 	} while (pgd++, addr = next, addr != end);
+-	flush_tlb_kernel_range((unsigned long)start_addr, end_addr);
++	flush_tlb_kernel_range(addr, addr);
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix.patch
+origin.patch
+try_to_free_buffers-dont-clear-pte-dirty-bits.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+schedule_timeout-improve-warning-message.patch
+relay-remove-inlining.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+arm-systemh-build-fix.patch
+cifs-sprintf-fix.patch
+git-drm.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+driver-for-silan-sc92031-netdev.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+touchkit-ps-2-touchscreen-driver.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
 virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-virtual-memmap-on-sparsemem-v3-generic-virtual.patch
-virtual-memmap-on-sparsemem-v3-generic-virtual-fix.patch
-virtual-memmap-on-sparsemem-v3-static-virtual.patch
-virtual-memmap-on-sparsemem-v3-static-virtual-update.patch
-virtual-memmap-on-sparsemem-v3-ia64-support.patch
-virtual-memmap-on-sparsemem-v3-ia64-support-update.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
 reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
