@@ -1,72 +1,79 @@
 From: akpm@osdl.org
-Subject: - pc110pad-return-proper-error.patch removed from -mm tree
-Date: Thu, 21 Dec 2006 12:10:28 -0800
-Message-ID: <200612212010.kBLKASB4003568@shell0.pdx.osdl.net>
+Subject: - char-hid-ff-support-yet-another-wheel.patch removed from -mm tree
+Date: Thu, 21 Dec 2006 12:10:23 -0800
+Message-ID: <200612212010.kBLKAN63003565@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36562 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36567 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423078AbWLUUKg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 15:10:36 -0500
+	id S1423079AbWLUUKl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 15:10:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, dmitry.torokhov@gmail.com, vojtech@suse.cz, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pc110pad: return proper error
+     Char: hid-ff, support yet another wheel
 has been removed from the -mm tree.  Its filename was
-     pc110pad-return-proper-error.patch
+     char-hid-ff-support-yet-another-wheel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pc110pad: return proper error
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Char: hid-ff, support yet another wheel
+From: Jiri Slaby <jirislaby@gmail.com>
 
-According to the comment, "if we find any PCI devices in the machine, we
-don't have a PC110" in pc110pad.c, we should return -ENODEV rather than
--ENOENT in this case.
+hid-ff, support yet another wheel
 
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Vojtech Pavlik <vojtech@suse.cz>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Add support for Logitech Momo racing wheel (046d:ca03) to hid force
+feedback.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/input/mouse/pc110pad.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/input/hid-ff.c   |    1 +
+ drivers/usb/input/hid-lgff.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/input/mouse/pc110pad.c~pc110pad-return-proper-error drivers/input/mouse/pc110pad.c
---- a/drivers/input/mouse/pc110pad.c~pc110pad-return-proper-error
-+++ a/drivers/input/mouse/pc110pad.c
-@@ -113,7 +113,7 @@ static int __init pc110pad_init(void)
- 	dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, NULL);
- 	if (dev) {
- 		pci_dev_put(dev);
--		return -ENOENT;
-+		return -ENODEV;
- 	}
+diff -puN drivers/usb/input/hid-ff.c~char-hid-ff-support-yet-another-wheel drivers/usb/input/hid-ff.c
+--- a/drivers/usb/input/hid-ff.c~char-hid-ff-support-yet-another-wheel
++++ a/drivers/usb/input/hid-ff.c
+@@ -56,6 +56,7 @@ static struct hid_ff_initializer inits[]
+ 	{ 0x46d, 0xc283, hid_lgff_init }, /* Logitech Wingman Force 3d */
+ 	{ 0x46d, 0xc295, hid_lgff_init }, /* Logitech MOMO force wheel */
+ 	{ 0x46d, 0xc219, hid_lgff_init }, /* Logitech Cordless rumble pad 2 */
++	{ 0x46d, 0xca03, hid_lgff_init }, /* Logitech MOMO force wheel */
+ #endif
+ #ifdef CONFIG_THRUSTMASTER_FF
+ 	{ 0x44f, 0xb304, hid_tmff_init },
+diff -puN drivers/usb/input/hid-lgff.c~char-hid-ff-support-yet-another-wheel drivers/usb/input/hid-lgff.c
+--- a/drivers/usb/input/hid-lgff.c~char-hid-ff-support-yet-another-wheel
++++ a/drivers/usb/input/hid-lgff.c
+@@ -52,6 +52,7 @@ static const struct device_type devices[
+ 	{ 0x046d, 0xc211, ff_rumble },
+ 	{ 0x046d, 0xc219, ff_rumble },
+ 	{ 0x046d, 0xc283, ff_joystick },
++	{ 0x046d, 0xca03, ff_joystick },
+ 	{ 0x0000, 0x0000, ff_joystick }
+ };
  
- 	if (!request_region(pc110pad_io, 4, "pc110pad")) {
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-audit-fix-kstrdup-error-check.patch
-gss_spkm3-fix-error-handling-in-module-init.patch
-tlclk-delete-unnecessary-sysfs_remove_group.patch
-git-acpi.patch
-git-alsa.patch
-powerpc-use-is_init.patch
-git-dvb.patch
-ehca-fix-kthread_create-error-check.patch
-ehca-fix-do_mmap-error-check.patch
 git-input.patch
-git-mtd.patch
-net-use-bitrev8.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-iscsi-fix-crypto_alloc_hash-error-check.patch
-git-watchdog.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-isicom-remove-tty_hangwakeup-bottomhalves.patch
+mxser-remove-ambiguous-redefinition-of-init_work.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+char-isicom-fix-locking-in-isr.patch
+char-isicom-augment-card_reset.patch
+char-isicom-check-card-state-in-isr.patch
+char-isicom-support-higher-rates.patch
+char-isicom-correct-probing-removing.patch
+char-tty_wakeup-cleanup.patch
+shrink_slab-handle-bad-shrinkers.patch
 
