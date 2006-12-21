@@ -1,276 +1,361 @@
 From: akpm@osdl.org
-Subject: + mips-pmagb-b-fb-convert-to-the-driver-model.patch added to -mm tree
-Date: Wed, 20 Dec 2006 20:58:02 -0800
-Message-ID: <200612210458.kBL4w2U2016098@shell0.pdx.osdl.net>
+Subject: + mips-declance-driver-model-for-the-pmad-a.patch added to -mm tree
+Date: Wed, 20 Dec 2006 20:57:58 -0800
+Message-ID: <200612210457.kBL4vwZh016092@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38099 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38095 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422731AbWLUE6N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 23:58:13 -0500
+	id S1422728AbWLUE6M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 23:58:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, adaplas@pol.net, jsimmons@infradead.org, ralf@linux-mips.org
+Cc: macro@linux-mips.org, jeff@garzik.org, ralf@linux-mips.org
 
 
 The patch titled
-     mips: pmagb-b-fb: Convert to the driver model
+     mips: declance: Driver model for the PMAD-A
 has been added to the -mm tree.  Its filename is
-     mips-pmagb-b-fb-convert-to-the-driver-model.patch
+     mips-declance-driver-model-for-the-pmad-a.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips: pmagb-b-fb: Convert to the driver model
+Subject: mips: declance: Driver model for the PMAD-A
 From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-This is a set of changes to convert the driver to the driver model.  As a
-side-effect the driver now supports building as a module.
+This is a set of changes that converts the PMAD-A support to the driver model.
 
 Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/Kconfig      |    4 -
- drivers/video/pmagb-b-fb.c |   98 ++++++++++++++++++++---------------
- 2 files changed, 58 insertions(+), 44 deletions(-)
+ drivers/net/declance.c |  164 +++++++++++++++++++++++++++------------
+ 1 file changed, 117 insertions(+), 47 deletions(-)
 
-diff -puN drivers/video/Kconfig~mips-pmagb-b-fb-convert-to-the-driver-model drivers/video/Kconfig
---- a/drivers/video/Kconfig~mips-pmagb-b-fb-convert-to-the-driver-model
-+++ a/drivers/video/Kconfig
-@@ -1454,8 +1454,8 @@ config FB_PMAG_BA
- 	  used mainly in the MIPS-based DECstation series.
- 
- config FB_PMAGB_B
--	bool "PMAGB-B TURBOchannel framebuffer support"
--	depends on (FB = y) && TC
-+	tristate "PMAGB-B TURBOchannel framebuffer support"
-+	depends on TC
-  	select FB_CFB_FILLRECT
-  	select FB_CFB_COPYAREA
-  	select FB_CFB_IMAGEBLIT
-diff -puN drivers/video/pmagb-b-fb.c~mips-pmagb-b-fb-convert-to-the-driver-model drivers/video/pmagb-b-fb.c
---- a/drivers/video/pmagb-b-fb.c~mips-pmagb-b-fb-convert-to-the-driver-model
-+++ a/drivers/video/pmagb-b-fb.c
-@@ -11,7 +11,7 @@
-  *	Michael Engel <engel@unix-ag.org>,
-  *	Karsten Merker <merker@linuxtag.org> and
-  *	Harald Koerfgen.
-- *	Copyright (c) 2005  Maciej W. Rozycki
-+ *	Copyright (c) 2005, 2006  Maciej W. Rozycki
+diff -puN drivers/net/declance.c~mips-declance-driver-model-for-the-pmad-a drivers/net/declance.c
+--- a/drivers/net/declance.c~mips-declance-driver-model-for-the-pmad-a
++++ a/drivers/net/declance.c
+@@ -5,7 +5,7 @@
   *
-  *	This file is subject to the terms and conditions of the GNU General
-  *	Public License.  See the file COPYING in the main directory of this
-@@ -25,18 +25,16 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
+  *      adopted from sunlance.c by Richard van den Berg
+  *
+- *      Copyright (C) 2002, 2003, 2005  Maciej W. Rozycki
++ *      Copyright (C) 2002, 2003, 2005, 2006  Maciej W. Rozycki
+  *
+  *      additional sources:
+  *      - PMAD-AA TURBOchannel Ethernet Module Functional Specification,
+@@ -44,6 +44,8 @@
+  *      v0.010: Fixes for the PMAD mapping of the LANCE buffer and for the
+  *              PMAX requirement to only use halfword accesses to the
+  *              buffer. macro
++ *
++ *      v0.011: Converted the PMAD to the driver model. macro
+  */
+ 
+ #include <linux/crc32.h>
+@@ -58,6 +60,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/stddef.h>
+ #include <linux/string.h>
 +#include <linux/tc.h>
  #include <linux/types.h>
  
- #include <asm/io.h>
- #include <asm/system.h>
- 
+ #include <asm/addrspace.h>
+@@ -69,15 +72,16 @@
+ #include <asm/dec/kn01.h>
+ #include <asm/dec/machtype.h>
+ #include <asm/dec/system.h>
 -#include <asm/dec/tc.h>
--
- #include <video/pmagb-b-fb.h>
  
+ static char version[] __devinitdata =
+-"declance.c: v0.010 by Linux MIPS DECstation task force\n";
++"declance.c: v0.011 by Linux MIPS DECstation task force\n";
  
- struct pmagbbfb_par {
--	struct fb_info *next;
- 	volatile void __iomem *mmio;
- 	volatile void __iomem *smem;
- 	volatile u32 __iomem *sfb;
-@@ -47,8 +45,6 @@ struct pmagbbfb_par {
- };
+ MODULE_AUTHOR("Linux MIPS DECstation task force");
+ MODULE_DESCRIPTION("DEC LANCE (DECstation onboard, PMAD-xx) driver");
+ MODULE_LICENSE("GPL");
  
- 
--static struct fb_info *root_pmagbbfb_dev;
--
- static struct fb_var_screeninfo pmagbbfb_defined __initdata = {
- 	.bits_per_pixel	= 8,
- 	.red.length	= 8,
-@@ -190,8 +186,9 @@ static void __init pmagbbfb_osc_setup(st
- 		69197, 66000, 65000, 50350, 36000, 32000, 25175
- 	};
- 	struct pmagbbfb_par *par = info->par;
-+	struct tc_bus *tbus = to_tc_dev(info->device)->bus;
- 	u32 count0 = 8, count1 = 8, counttc = 16 * 256 + 8;
--	u32 freq0, freq1, freqtc = get_tc_speed() / 250;
-+	u32 freq0, freq1, freqtc = tc_get_speed(tbus) / 250;
- 	int i, j;
- 
- 	gp0_write(par, 0);				/* select Osc0 */
-@@ -249,26 +246,21 @@ static void __init pmagbbfb_osc_setup(st
- };
- 
- 
--static int __init pmagbbfb_init_one(int slot)
-+static int __init pmagbbfb_probe(struct device *dev)
- {
--	char freq0[12], freq1[12];
-+	struct tc_dev *tdev = to_tc_dev(dev);
-+	resource_size_t start, len;
- 	struct fb_info *info;
- 	struct pmagbbfb_par *par;
--	unsigned long base_addr;
-+	char freq0[12], freq1[12];
- 	u32 vid_base;
- 
--	info = framebuffer_alloc(sizeof(struct pmagbbfb_par), NULL);
-+	info = framebuffer_alloc(sizeof(struct pmagbbfb_par), dev);
- 	if (!info)
- 		return -ENOMEM;
- 
- 	par = info->par;
--	par->slot = slot;
--	claim_tc_card(par->slot);
--
--	base_addr = get_tc_base_addr(par->slot);
--
--	par->next = root_pmagbbfb_dev;
--	root_pmagbbfb_dev = info;
-+	dev_set_drvdata(dev, info);
- 
- 	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
- 		goto err_alloc;
-@@ -278,16 +270,22 @@ static int __init pmagbbfb_init_one(int 
- 	info->var = pmagbbfb_defined;
- 	info->flags = FBINFO_DEFAULT;
- 
-+	/* Request the I/O MEM resource.  */
-+	start = tdev->resource.start;
-+	len = tdev->resource.end - start + 1;
-+	if (!request_mem_region(start, len, dev->bus_id))
-+		goto err_cmap;
++#define __unused __attribute__ ((unused))
 +
- 	/* MMIO mapping setup.  */
--	info->fix.mmio_start = base_addr;
-+	info->fix.mmio_start = start;
- 	par->mmio = ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
- 	if (!par->mmio)
--		goto err_cmap;
-+		goto err_resource;
- 	par->sfb = par->mmio + PMAGB_B_SFB;
- 	par->dac = par->mmio + PMAGB_B_BT459;
- 
- 	/* Frame buffer mapping setup.  */
--	info->fix.smem_start = base_addr + PMAGB_B_FBMEM;
-+	info->fix.smem_start = start + PMAGB_B_FBMEM;
- 	par->smem = ioremap_nocache(info->fix.smem_start, info->fix.smem_len);
- 	if (!par->smem)
- 		goto err_mmio_map;
-@@ -302,13 +300,15 @@ static int __init pmagbbfb_init_one(int 
- 	if (register_framebuffer(info) < 0)
- 		goto err_smem_map;
- 
-+	get_device(dev);
-+
- 	snprintf(freq0, sizeof(freq0), "%u.%03uMHz",
- 		 par->osc0 / 1000, par->osc0 % 1000);
- 	snprintf(freq1, sizeof(freq1), "%u.%03uMHz",
- 		 par->osc1 / 1000, par->osc1 % 1000);
- 
--	pr_info("fb%d: %s frame buffer device in slot %d\n",
--		info->node, info->fix.id, par->slot);
-+	pr_info("fb%d: %s frame buffer device at %s\n",
-+		info->node, info->fix.id, dev->bus_id);
- 	pr_info("fb%d: Osc0: %s, Osc1: %s, Osc%u selected\n",
- 		info->node, freq0, par->osc1 ? freq1 : "disabled",
- 		par->osc1 != 0);
-@@ -322,54 +322,68 @@ err_smem_map:
- err_mmio_map:
- 	iounmap(par->mmio);
- 
-+err_resource:
-+	release_mem_region(start, len);
-+
- err_cmap:
- 	fb_dealloc_cmap(&info->cmap);
- 
- err_alloc:
--	root_pmagbbfb_dev = par->next;
--	release_tc_card(par->slot);
- 	framebuffer_release(info);
- 	return -ENXIO;
- }
- 
--static void __exit pmagbbfb_exit_one(void)
-+static int __exit pmagbbfb_remove(struct device *dev)
- {
--	struct fb_info *info = root_pmagbbfb_dev;
-+	struct tc_dev *tdev = to_tc_dev(dev);
-+	struct fb_info *info = dev_get_drvdata(dev);
- 	struct pmagbbfb_par *par = info->par;
-+	resource_size_t start, len;
- 
-+	put_device(dev);
- 	unregister_framebuffer(info);
- 	iounmap(par->smem);
- 	iounmap(par->mmio);
-+	start = tdev->resource.start;
-+	len = tdev->resource.end - start + 1;
-+	release_mem_region(start, len);
- 	fb_dealloc_cmap(&info->cmap);
--	root_pmagbbfb_dev = par->next;
--	release_tc_card(par->slot);
- 	framebuffer_release(info);
-+	return 0;
- }
- 
- 
  /*
-- * Initialise the framebuffer.
-+ * Initialize the framebuffer.
+  * card types
   */
-+static const struct tc_device_id pmagbbfb_tc_table[] = {
-+	{ "DEC     ", "PMAGB-BA" },
+@@ -246,7 +250,6 @@ struct lance_init_block {
+ struct lance_private {
+ 	struct net_device *next;
+ 	int type;
+-	int slot;
+ 	int dma_irq;
+ 	volatile struct lance_regs *ll;
+ 
+@@ -288,6 +291,7 @@ struct lance_regs {
+ 
+ int dec_lance_debug = 2;
+ 
++static struct tc_driver dec_lance_tc_driver;
+ static struct net_device *root_lance_dev;
+ 
+ static inline void writereg(volatile unsigned short *regptr, short value)
+@@ -1023,7 +1027,7 @@ static void lance_set_multicast_retry(un
+ 	lance_set_multicast(dev);
+ }
+ 
+-static int __init dec_lance_init(const int type, const int slot)
++static int __init dec_lance_probe(struct device *bdev, const int type)
+ {
+ 	static unsigned version_printed;
+ 	static const char fmt[] = "declance%d";
+@@ -1031,6 +1035,7 @@ static int __init dec_lance_init(const i
+ 	struct net_device *dev;
+ 	struct lance_private *lp;
+ 	volatile struct lance_regs *ll;
++	resource_size_t start = 0, len = 0;
+ 	int i, ret;
+ 	unsigned long esar_base;
+ 	unsigned char *esar;
+@@ -1038,14 +1043,18 @@ static int __init dec_lance_init(const i
+ 	if (dec_lance_debug && version_printed++ == 0)
+ 		printk(version);
+ 
+-	i = 0;
+-	dev = root_lance_dev;
+-	while (dev) {
+-		i++;
+-		lp = (struct lance_private *)dev->priv;
+-		dev = lp->next;
++	if (bdev)
++		snprintf(name, sizeof(name), "%s", bdev->bus_id);
++	else {
++		i = 0;
++		dev = root_lance_dev;
++		while (dev) {
++			i++;
++			lp = (struct lance_private *)dev->priv;
++			dev = lp->next;
++		}
++		snprintf(name, sizeof(name), fmt, i);
+ 	}
+-	snprintf(name, sizeof(name), fmt, i);
+ 
+ 	dev = alloc_etherdev(sizeof(struct lance_private));
+ 	if (!dev) {
+@@ -1063,7 +1072,6 @@ static int __init dec_lance_init(const i
+ 	spin_lock_init(&lp->lock);
+ 
+ 	lp->type = type;
+-	lp->slot = slot;
+ 	switch (type) {
+ 	case ASIC_LANCE:
+ 		dev->base_addr = CKSEG1ADDR(dec_kn_slot_base + IOASIC_LANCE);
+@@ -1110,12 +1118,22 @@ static int __init dec_lance_init(const i
+ 		break;
+ #ifdef CONFIG_TC
+ 	case PMAD_LANCE:
+-		claim_tc_card(slot);
++		dev_set_drvdata(bdev, dev);
+ 
+-		dev->mem_start = CKSEG1ADDR(get_tc_base_addr(slot));
++		start = to_tc_dev(bdev)->resource.start;
++		len = to_tc_dev(bdev)->resource.end - start + 1;
++		if (!request_mem_region(start, len, bdev->bus_id)) {
++			printk(KERN_ERR
++			       "%s: Unable to reserve MMIO resource\n",
++			       bdev->bus_id);
++			ret = -EBUSY;
++			goto err_out_dev;
++		}
++
++		dev->mem_start = CKSEG1ADDR(start);
+ 		dev->mem_end = dev->mem_start + 0x100000;
+ 		dev->base_addr = dev->mem_start + 0x100000;
+-		dev->irq = get_tc_irq_nr(slot);
++		dev->irq = to_tc_dev(bdev)->interrupt;
+ 		esar_base = dev->mem_start + 0x1c0002;
+ 		lp->dma_irq = -1;
+ 
+@@ -1174,7 +1192,7 @@ static int __init dec_lance_init(const i
+ 		printk(KERN_ERR "%s: declance_init called with unknown type\n",
+ 			name);
+ 		ret = -ENODEV;
+-		goto err_out_free_dev;
++		goto err_out_dev;
+ 	}
+ 
+ 	ll = (struct lance_regs *) dev->base_addr;
+@@ -1188,7 +1206,7 @@ static int __init dec_lance_init(const i
+ 			"%s: Ethernet station address prom not found!\n",
+ 			name);
+ 		ret = -ENODEV;
+-		goto err_out_free_dev;
++		goto err_out_resource;
+ 	}
+ 	/* Check the prom contents */
+ 	for (i = 0; i < 8; i++) {
+@@ -1198,7 +1216,7 @@ static int __init dec_lance_init(const i
+ 			printk(KERN_ERR "%s: Something is wrong with the "
+ 				"ethernet station address prom!\n", name);
+ 			ret = -ENODEV;
+-			goto err_out_free_dev;
++			goto err_out_resource;
+ 		}
+ 	}
+ 
+@@ -1255,48 +1273,51 @@ static int __init dec_lance_init(const i
+ 	if (ret) {
+ 		printk(KERN_ERR
+ 			"%s: Unable to register netdev, aborting.\n", name);
+-		goto err_out_free_dev;
++		goto err_out_resource;
+ 	}
+ 
+-	lp->next = root_lance_dev;
+-	root_lance_dev = dev;
++	if (!bdev) {
++		lp->next = root_lance_dev;
++		root_lance_dev = dev;
++	}
+ 
+ 	printk("%s: registered as %s.\n", name, dev->name);
+ 	return 0;
+ 
+-err_out_free_dev:
++err_out_resource:
++	if (bdev)
++		release_mem_region(start, len);
++
++err_out_dev:
+ 	free_netdev(dev);
+ 
+ err_out:
+ 	return ret;
+ }
+ 
++static void __exit dec_lance_remove(struct device *bdev)
++{
++	struct net_device *dev = dev_get_drvdata(bdev);
++	resource_size_t start, len;
++
++	unregister_netdev(dev);
++	start = to_tc_dev(bdev)->resource.start;
++	len = to_tc_dev(bdev)->resource.end - start + 1;
++	release_mem_region(start, len);
++	free_netdev(dev);
++}
+ 
+ /* Find all the lance cards on the system and initialize them */
+-static int __init dec_lance_probe(void)
++static int __init dec_lance_platform_probe(void)
+ {
+ 	int count = 0;
+ 
+-	/* Scan slots for PMAD-AA cards first. */
+-#ifdef CONFIG_TC
+-	if (TURBOCHANNEL) {
+-		int slot;
+-
+-		while ((slot = search_tc_card("PMAD-AA")) >= 0) {
+-			if (dec_lance_init(PMAD_LANCE, slot) < 0)
+-				break;
+-			count++;
+-		}
+-	}
+-#endif
+-
+-	/* Then handle onboard devices. */
+ 	if (dec_interrupt[DEC_IRQ_LANCE] >= 0) {
+ 		if (dec_interrupt[DEC_IRQ_LANCE_MERR] >= 0) {
+-			if (dec_lance_init(ASIC_LANCE, -1) >= 0)
++			if (dec_lance_probe(NULL, ASIC_LANCE) >= 0)
+ 				count++;
+ 		} else if (!TURBOCHANNEL) {
+-			if (dec_lance_init(PMAX_LANCE, -1) >= 0)
++			if (dec_lance_probe(NULL, PMAX_LANCE) >= 0)
+ 				count++;
+ 		}
+ 	}
+@@ -1304,21 +1325,70 @@ static int __init dec_lance_probe(void)
+ 	return (count > 0) ? 0 : -ENODEV;
+ }
+ 
+-static void __exit dec_lance_cleanup(void)
++static void __exit dec_lance_platform_remove(void)
+ {
+ 	while (root_lance_dev) {
+ 		struct net_device *dev = root_lance_dev;
+ 		struct lance_private *lp = netdev_priv(dev);
+ 
+ 		unregister_netdev(dev);
+-#ifdef CONFIG_TC
+-		if (lp->slot >= 0)
+-			release_tc_card(lp->slot);
+-#endif
+ 		root_lance_dev = lp->next;
+ 		free_netdev(dev);
+ 	}
+ }
+ 
+-module_init(dec_lance_probe);
+-module_exit(dec_lance_cleanup);
++#ifdef CONFIG_TC
++static int __init dec_lance_tc_probe(struct device *dev);
++static int __exit dec_lance_tc_remove(struct device *dev);
++
++static const struct tc_device_id dec_lance_tc_table[] = {
++	{ "DEC     ", "PMAD-AA " },
 +	{ }
 +};
-+MODULE_DEVICE_TABLE(tc, pmagbbfb_tc_table);
++MODULE_DEVICE_TABLE(tc, dec_lance_tc_table);
 +
-+static struct tc_driver pmagbbfb_driver = {
-+	.id_table	= pmagbbfb_tc_table,
++static struct tc_driver dec_lance_tc_driver = {
++	.id_table	= dec_lance_tc_table,
 +	.driver		= {
-+		.name	= "pmagbbfb",
++		.name	= "declance",
 +		.bus	= &tc_bus_type,
-+		.probe	= pmagbbfb_probe,
-+		.remove	= __exit_p(pmagbbfb_remove),
++		.probe	= dec_lance_tc_probe,
++		.remove	= __exit_p(dec_lance_tc_remove),
 +	},
 +};
 +
- static int __init pmagbbfb_init(void)
- {
--	int count = 0;
--	int slot;
--
-+#ifndef MODULE
- 	if (fb_get_options("pmagbbfb", NULL))
- 		return -ENXIO;
--
--	while ((slot = search_tc_card("PMAGB-BA")) >= 0) {
--		if (pmagbbfb_init_one(slot) < 0)
--			break;
--		count++;
--	}
--	return (count > 0) ? 0 : -ENXIO;
++static int __init dec_lance_tc_probe(struct device *dev)
++{
++        int status = dec_lance_probe(dev, PMAD_LANCE);
++        if (!status)
++                get_device(dev);
++        return status;
++}
++
++static int __exit dec_lance_tc_remove(struct device *dev)
++{
++        put_device(dev);
++        dec_lance_remove(dev);
++        return 0;
++}
 +#endif
-+	return tc_register_driver(&pmagbbfb_driver);
- }
- 
- static void __exit pmagbbfb_exit(void)
- {
--	while (root_pmagbbfb_dev)
--		pmagbbfb_exit_one();
-+	tc_unregister_driver(&pmagbbfb_driver);
- }
- 
- 
++
++static int __init dec_lance_init(void)
++{
++	int status;
++
++	status = tc_register_driver(&dec_lance_tc_driver);
++	if (!status)
++		dec_lance_platform_probe();
++	return status;
++}
++
++static void __exit dec_lance_exit(void)
++{
++	dec_lance_platform_remove();
++	tc_unregister_driver(&dec_lance_tc_driver);
++}
++
++
++module_init(dec_lance_init);
++module_exit(dec_lance_exit);
 _
 
 Patches currently in -mm which might be from macro@linux-mips.org are
