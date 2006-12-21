@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch added to -mm tree
-Date: Wed, 20 Dec 2006 23:01:34 -0800
-Message-ID: <200612210701.kBL71YOT018270@shell0.pdx.osdl.net>
+Subject: + time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch added to -mm tree
+Date: Wed, 20 Dec 2006 23:01:38 -0800
+Message-ID: <200612210701.kBL71cAJ018279@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44388 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44782 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422777AbWLUHES (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 02:04:18 -0500
+	id S1422777AbWLUHPL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 02:15:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,15 +15,15 @@ Cc: akpm@osdl.org, ak@muc.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutroni
 
 
 The patch titled
-     time-x86_64-convert-x86_64-to-use-generic_time-tidy
+     time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy
 has been added to the -mm tree.  Its filename is
-     time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+     time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time-x86_64-convert-x86_64-to-use-generic_time-tidy
+Subject: time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: John Stultz <johnstul@us.ibm.com>
@@ -34,22 +34,21 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/hpet.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86_64/kernel/hpet.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-convert-x86_64-to-use-generic_time-tidy arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~time-x86_64-convert-x86_64-to-use-generic_time-tidy
+diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy arch/x86_64/kernel/hpet.c
+--- a/arch/x86_64/kernel/hpet.c~time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy
 +++ a/arch/x86_64/kernel/hpet.c
-@@ -462,8 +462,7 @@ static int __init init_hpet_clocksource(
- 		return -ENODEV;
+@@ -444,7 +444,7 @@ static cycle_t read_hpet(void)
  
- 	/* calculate the hpet address: */
--	hpet_base =
--		(void __iomem*)ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
-+	hpet_base = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
- 	hpet_ptr = hpet_base + HPET_COUNTER;
+ static cycle_t __vsyscall_fn vread_hpet(void)
+ {
+-	return (cycle_t)readl((void *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
++	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
+ }
  
- 	/* calculate the frequency: */
+ struct clocksource clocksource_hpet = {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
