@@ -1,63 +1,58 @@
 From: akpm@osdl.org
-Subject: - acpi-fix-single-linked-list-manipulation.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:08 -0800
-Message-ID: <200612210036.kBL0a9xN011168@shell0.pdx.osdl.net>
+Subject: - acpi-processor-prevent-loading-module-on-failures.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:11 -0800
+Message-ID: <200612210036.kBL0aBeO011171@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53217 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53221 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161054AbWLUAgM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:36:12 -0500
+	id S1161091AbWLUAgO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:36:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akinobu.mita@gmail.com, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: fix single linked list manipulation
+     acpi/processor: prevent loading module on failures
 has been removed from the -mm tree.  Its filename was
-     acpi-fix-single-linked-list-manipulation.patch
+     acpi-processor-prevent-loading-module-on-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: acpi: fix single linked list manipulation
+Subject: acpi/processor: prevent loading module on failures
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Fix single linked list manipulation for sub_driver.  If the remving entry
-is not on the head of the sub_driver list, it goes into infinate loop.
-
-Though that infinite loop doesn't happen.  Because the only user of
-acpi_pci_register_dirver() is acpiphp.
+Make loading processor.ko fail when an error happens.
 
 Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/pci_root.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/acpi/processor_core.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/pci_root.c~acpi-fix-single-linked-list-manipulation drivers/acpi/pci_root.c
---- a/drivers/acpi/pci_root.c~acpi-fix-single-linked-list-manipulation
-+++ a/drivers/acpi/pci_root.c
-@@ -98,11 +98,12 @@ void acpi_pci_unregister_driver(struct a
+diff -puN drivers/acpi/processor_core.c~acpi-processor-prevent-loading-module-on-failures drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-processor-prevent-loading-module-on-failures
++++ a/drivers/acpi/processor_core.c
+@@ -901,13 +901,13 @@ static int __init acpi_processor_init(vo
  
- 	struct acpi_pci_driver **pptr = &sub_driver;
- 	while (*pptr) {
--		if (*pptr != driver)
--			continue;
--		*pptr = (*pptr)->next;
--		break;
-+		if (*pptr == driver)
-+			break;
-+		pptr = &(*pptr)->next;
+ 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	if (!acpi_processor_dir)
+-		return 0;
++		return -ENOMEM;
+ 	acpi_processor_dir->owner = THIS_MODULE;
+ 
+ 	result = acpi_bus_register_driver(&acpi_processor_driver);
+ 	if (result < 0) {
+ 		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-		return 0;
++		return result;
  	}
-+	BUG_ON(!*pptr);
-+	*pptr = (*pptr)->next;
  
- 	if (!driver->remove)
- 		return;
+ 	acpi_processor_install_hotplug_notify();
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
