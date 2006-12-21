@@ -1,376 +1,207 @@
 From: akpm@osdl.org
-Subject: + gpio-core.patch added to -mm tree
-Date: Wed, 20 Dec 2006 22:13:41 -0800
-Message-ID: <200612210613.kBL6DfRe017381@shell0.pdx.osdl.net>
+Subject: + at91-gpio-wrappers-tidy.patch added to -mm tree
+Date: Wed, 20 Dec 2006 22:13:47 -0800
+Message-ID: <200612210613.kBL6DlNU017395@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41552 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41554 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422756AbWLUGNz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 01:13:55 -0500
+	id S1422759AbWLUGN4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 01:13:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: akpm@osdl.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     GPIO core
+     at91-gpio-wrappers-tidy
 has been added to the -mm tree.  Its filename is
-     gpio-core.patch
+     at91-gpio-wrappers-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: GPIO core
-From: David Brownell <david-b@pacbell.net>
+Subject: at91-gpio-wrappers-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-This defines a simple and minimalist programming interface for GPIO APIs:
-
-  - Documentation/gpio.txt ... describes things (read it)
-
-  - include/asm-arm/gpio.h ... defines the ARM hook, which just punts
-    to <asm/arch/gpio.h> for any implementation
-
-  - include/asm-generic/gpio.h ... implement "can sleep" variants as calling
-    the normal ones, for systems that don't handle i2c expanders.
-
-The immediate need for such a cross-architecture API convention is to support
-drivers that work the same on AT91 ARM and AVR32 AP7000 chips, which embed many
-of the same controllers but have different CPUs.  However, several other users
-have been reported, including a driver for a hardware watchdog chip and some
-handhelds.org multi-CPU button drivers.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/gpio.txt     |  271 +++++++++++++++++++++++++++++++++++
- include/asm-arm/gpio.h     |    7 
- include/asm-generic/gpio.h |   25 +++
- 3 files changed, 303 insertions(+)
+ include/asm-arm/arch-at91rm9200/gpio.h |   25 +++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN /dev/null Documentation/gpio.txt
---- /dev/null
-+++ a/Documentation/gpio.txt
-@@ -0,0 +1,271 @@
-+GPIO Interfaces
-+
-+This provides an overview of GPIO access conventions on Linux.
-+
-+
-+What is a GPIO?
-+===============
-+A "General Purpose Input/Output" (GPIO) is a flexible software-controlled
-+digital signal.  They are provided from many kinds of chip, and are familiar
-+to Linux developers working with embedded and custom hardware.  Each GPIO
-+represents a bit connected to a particular pin, or "ball" on Ball Grid Array
-+(BGA) packages.  Board schematics show which external hardware connects to
-+which GPIOs.  Drivers can be written generically, so that board setup code
-+passes such pin configuration data to drivers.
-+
-+System-on-Chip (SOC) processors heavily rely on GPIOs.  In some cases, every
-+non-dedicated pin can be configured as a GPIO; and most chips have at least
-+several dozen of them.  Programmable logic devices (like FPGAs) can easily
-+provide GPIOs; multifunction chips like power managers, and audio codecs
-+often have a few such pins to help with pin scarcity on SOCs; and there are
-+also "GPIO Expander" chips that connect using the I2C or SPI serial busses.
-+Most PC southbridges have a few dozen GPIO-capable pins (with only the BIOS
-+firmware knowing how they're used).
-+
-+The exact capabilities of GPIOs vary between systems.  Common options:
-+
-+  - Output values are writable (high=1, low=0).  Some chips also have
-+    options about how that value is driven, so that for example only one
-+    value might be driven ... supporting "wire-OR" and similar schemes
-+    for the other value.
-+
-+  - Input values are likewise readable (1, 0).  Some chips support readback
-+    of pins configured as "output", which is very useful in such "wire-OR"
-+    cases (to support bidirectional signaling).  GPIO controllers may have
-+    input de-glitch logic, sometimes with software controls.
-+
-+  - Inputs can often be used as IRQ signals, often edge triggered but
-+    sometimes level triggered.  Such IRQs may be configurable as system
-+    wakeup events, to wake the system from a low power state.
-+
-+  - Usually a GPIO will be configurable as either input or output, as needed
-+    by different product boards; single direction ones exist too.
-+
-+  - Most GPIOs can be accessed while holding spinlocks, but those accessed
-+    through a serial bus normally can't.  Some systems support both types.
-+
-+On a given board each GPIO is used for one specific purpose like monitoring
-+MMC/SD card insertion/removal, detecting card writeprotect status, driving
-+a LED, configuring a transceiver, bitbanging a serial bus, poking a hardware
-+watchdog, sensing a switch, and so on.
-+
-+
-+GPIO conventions
-+================
-+Note that this is called a "convention" because you don't need to do it this
-+way, and it's no crime if you don't.  There **are** cases where portability
-+is not the main issue; GPIOs are often used for the kind of board-specific
-+glue logic that may even change between board revisions, and can't ever be
-+used on a board that's wired differently.  Only least-common-denominator
-+functionality can be very portable.  Other features are platform-specific,
-+and that can be critical for glue logic.
-+
-+Plus, this doesn't define an implementation framework, just an interface.
-+One platform might implement it as simple inline functions accessing chip
-+registers; another might implement it by delegating through abstractions
-+used for several very different kinds of GPIO controller.
-+
-+That said, if the convention is supported on their platform, drivers should
-+use it when possible:
-+
-+	#include <asm/gpio.h>
-+
-+If you stick to this convention then it'll be easier for other developers to
-+see what your code is doing, and help maintain it.
-+
-+
-+Identifying GPIOs
-+-----------------
-+GPIOs are identified by unsigned integers in the range 0..MAX_INT.  That
-+reserves "negative" numbers for other purposes like marking signals as
-+"not available on this board", or indicating faults.
-+
-+Platforms define how they use those integers, and usually #define symbols
-+for the GPIO lines so that board-specific setup code directly corresponds
-+to the relevant schematics.  In contrast, drivers should only use GPIO
-+numbers passed to them from that setup code, using platform_data to hold
-+board-specific pin configuration data (along with other board specific
-+data they need).  That avoids portability problems.
-+
-+So for example one platform uses numbers 32-159 for GPIOs; while another
-+uses numbers 0..63 with one set of GPIO controllers, 64-79 with another
-+type of GPIO controller, and on one particular board 80-95 with an FPGA.
-+The numbers need not be contiguous; either of those platforms could also
-+use numbers 2000-2063 to identify GPIOs in a bank of I2C GPIO expanders.
-+
-+Whether a platform supports multiple GPIO controllers is currently a
-+platform-specific implementation issue.
-+
-+
-+Using GPIOs
-+-----------
-+One of the first things to do with a GPIO, often in board setup code when
-+setting up a platform_device using the GPIO, is mark its direction:
-+
-+	/* set as input or output, returning 0 or negative errno */
-+	int gpio_direction_input(unsigned gpio);
-+	int gpio_direction_output(unsigned gpio);
-+
-+The return value is zero for success, else a negative errno.  It should
-+be checked, since the get/set calls don't have error returns and since
-+misconfiguration is possible.  (These calls could sleep.)
-+
-+Setting the direction can fail if the GPIO number is invalid, or when
-+that particular GPIO can't be used in that mode.  It's generally a bad
-+idea to rely on boot firmware to have set the direction correctly, since
-+it probably wasn't validated to do more than boot Linux.  (Similarly,
-+that board setup code probably needs to multiplex that pin as a GPIO,
-+and configure pullups/pulldowns appropriately.)
-+
-+
-+Spinlock-Safe GPIO access
-+-------------------------
-+Most GPIO controllers can be accessed with memory read/write instructions.
-+That doesn't need to sleep, and can safely be done from inside IRQ handlers.
-+
-+Use these calls to access such GPIOs:
-+
-+	/* GPIO INPUT:  return zero or nonzero */
-+	int gpio_get_value(unsigned gpio);
-+
-+	/* GPIO OUTPUT */
-+	void gpio_set_value(unsigned gpio, int value);
-+
-+The values are boolean, zero for low, nonzero for high.  When reading the
-+value of an output pin, the value returned should be what's seen on the
-+pin ... that won't always match the specified output value, because of
-+issues including wire-OR and output latencies.
-+
-+The get/set calls have no error returns because "invalid GPIO" should have
-+been reported earlier in gpio_set_direction().  However, note that not all
-+platforms can read the value of output pins; those that can't should always
-+return zero.  Also, these calls will be ignored for GPIOs that can't safely
-+be accessed wihtout sleeping (see below).
-+
-+Platform-specific implementations are encouraged to optimise the two
-+calls to access the GPIO value in cases where the GPIO number (and for
-+output, value) are constant.  It's normal for them to need only a couple
-+of instructions in such cases (reading or writing a hardware register),
-+and not to need spinlocks.  Such optimized calls can make bitbanging
-+applications a lot more efficient (in both space and time) than spending
-+dozens of instructions on subroutine calls.
-+
-+
-+GPIO access that may sleep
-+--------------------------
-+Some GPIO controllers must be accessed using message based busses like I2C
-+or SPI.  Commands to read or write those GPIO values require waiting to
-+get to the head of a queue to transmit a command and get its response.
-+This requires sleeping, which can't be done from inside IRQ handlers.
-+
-+Platforms that support this type of GPIO distinguish them from other GPIOs
-+by returning nonzero from this call:
-+
-+	int gpio_cansleep(unsigned gpio);
-+
-+To access such GPIOs, a different set of accessors is defined:
-+
-+	/* GPIO INPUT:  return zero or nonzero, might sleep */
-+	int gpio_get_value_cansleep(unsigned gpio);
-+
-+	/* GPIO OUTPUT, might sleep */
-+	void gpio_set_value_cansleep(unsigned gpio, int value);
-+
-+Other than the fact that these calls might sleep, and will not be ignored
-+for GPIOs that can't be accessed from IRQ handlers, these calls act the
-+same as the spinlock-safe calls.
-+
-+
-+Claiming and Releasing GPIOs (OPTIONAL)
-+---------------------------------------
-+To help catch system configuration errors, two calls are defined.
-+However, many platforms don't currently support this mechanism.
-+
-+	/* request GPIO, returning 0 or negative errno.
-+	 * non-null labels may be useful for diagnostics.
-+	 */
-+	int gpio_request(unsigned gpio, const char *label);
-+
-+	/* release previously-claimed GPIO */
-+	void gpio_free(unsigned gpio);
-+
-+Passing invalid GPIO numbers to gpio_request() will fail, as will requesting
-+GPIOs that have already been claimed with that call.  The return value of
-+gpio_request() must be checked.  (These calls could sleep.)
-+
-+These calls serve two basic purposes.  One is marking the signals which
-+are actually in use as GPIOs, for better diagnostics; systems may have
-+several hundred potential GPIOs, but often only a dozen are used on any
-+given board.  Another is to catch conflicts between drivers, reporting
-+errors when drivers wrongly think they have exclusive use of that signal.
-+
-+These two calls are optional because not not all current Linux platforms
-+offer such functionality in their GPIO support; a valid implementation
-+could return success for all gpio_request() calls.  Unlike the other calls,
-+the state they represent doesn't normally match anything from a hardware
-+register; it's just a software bitmap which clearly is not necessary for
-+correct operation of hardware or (bug free) drivers.
-+
-+Note that requesting a GPIO does NOT cause it to be configured in any
-+way; it just marks that GPIO as in use.  Separate code must handle any
-+pin setup (e.g. controlling which pin the GPIO uses, pullup/pulldown).
-+
-+
-+GPIOs mapped to IRQs
-+--------------------
-+GPIO numbers are unsigned integers; so are IRQ numbers.  These make up
-+two logically distinct namespaces (GPIO 0 need not use IRQ 0).  You can
-+map between them using calls like:
-+
-+	/* map GPIO numbers to IRQ numbers */
-+	int gpio_to_irq(unsigned gpio);
-+
-+	/* map IRQ numbers to GPIO numbers */
-+	int irq_to_gpio(unsigned irq);
-+
-+Those return either the corresponding number in the other namespace, or
-+else a negative errno code if the mapping can't be done.  (For example,
-+some GPIOs can't used as IRQs.)  It is an unchecked error to use a GPIO
-+number that hasn't been marked as an input using gpio_set_direction(), or
-+to use an IRQ number that didn't originally come from gpio_to_irq().
-+
-+These two mapping calls are expected to cost on the order of a single
-+addition or subtraction.  They're not allowed to sleep.
-+
-+Non-error values returned from gpio_to_irq() can be passed to request_irq()
-+or free_irq().  They will often be stored into IRQ resources for platform
-+devices, by the board-specific initialization code.  Note that IRQ trigger
-+options are part of the IRQ interface, e.g. IRQF_TRIGGER_FALLING, as are
-+system wakeup capabilities.
-+
-+Non-error values returned from irq_to_gpio() would most commonly be used
-+with gpio_get_value().
-+
-+
-+
-+What do these conventions omit?
-+===============================
-+One of the biggest things these conventions omit is pin multiplexing, since
-+this is highly chip-specific and nonportable.  One platform might not need
-+explicit multiplexing; another might have just two options for use of any
-+given pin; another might have eight options per pin; another might be able
-+to route a given GPIO to any one of several pins.  (Yes, those examples all
-+come from systems that run Linux today.)
-+
-+Related to multiplexing is configuration and enabling of the pullups or
-+pulldowns integrated on some platforms.  Not all platforms support them,
-+or support them in the same way; and any given board might use external
-+pullups (or pulldowns) so that the on-chip ones should not be used.
-+
-+There are other system-specific mechanisms that are not specified here,
-+like the aforementioned options for input de-glitching and wire-OR output.
-+Hardware may support reading or writing GPIOs in gangs, but that's usually
-+configuration dependednt:  for GPIOs sharing the same bank.  (GPIOs are
-+commonly grouped in banks of 16 or 32, with a given SOC having several such
-+banks.)  Code relying on such mechanisms will necessarily be nonportable.
-+
-+Dynamic definition of GPIOs is not currently supported; for example, as
-+a side effect of configuring an add-on board with some GPIO expanders.
-+
-+These calls are purely for kernel space, but a userspace API could be built
-+on top of it.
-diff -puN /dev/null include/asm-arm/gpio.h
---- /dev/null
-+++ a/include/asm-arm/gpio.h
-@@ -0,0 +1,7 @@
-+#ifndef _ARCH_ARM_GPIO_H
-+#define _ARCH_ARM_GPIO_H
-+
-+/* not all ARM platforms necessarily support this API ... */
-+#include <asm/arch/gpio.h>
-+
-+#endif /* _ARCH_ARM_GPIO_H */
-diff -puN /dev/null include/asm-generic/gpio.h
---- /dev/null
-+++ a/include/asm-generic/gpio.h
-@@ -0,0 +1,25 @@
-+#ifndef _ASM_GENERIC_GPIO_H
-+#define _ASM_GENERIC_GPIO_H
-+
-+/* platforms that don't directly support access to GPIOs through I2C, SPI,
-+ * or other blocking infrastructure can use these wrappers.
-+ */
-+
-+static inline int gpio_cansleep(unsigned gpio)
+diff -puN include/asm-arm/arch-at91rm9200/gpio.h~at91-gpio-wrappers-tidy include/asm-arm/arch-at91rm9200/gpio.h
+--- a/include/asm-arm/arch-at91rm9200/gpio.h~at91-gpio-wrappers-tidy
++++ a/include/asm-arm/arch-at91rm9200/gpio.h
+@@ -205,30 +205,39 @@ extern void at91_gpio_resume(void);
+ #include <asm/errno.h>
+ 
+ static inline int gpio_request(unsigned gpio, const char *label)
+-	{ return 0; }
 +{
 +	return 0;
 +}
-+
-+static inline int gpio_get_value_cansleep(unsigned gpio)
+ 
+ static inline void gpio_free(unsigned gpio)
+-	{ }
+-
 +{
-+	might_sleep();
-+	return gpio_get_value(gpio);
 +}
-+
-+static inline void gpio_set_value_cansleep(unsigned gpio, int value)
+ 
+ extern int gpio_direction_input(unsigned gpio);
+ extern int gpio_direction_output(unsigned gpio);
+ 
+ static inline int gpio_get_value(unsigned gpio)
+-	{ return at91_get_gpio_value(gpio); }
 +{
-+	might_sleep();
-+	gpio_set_value(gpio, value);
++	return at91_get_gpio_value(gpio);
 +}
-+
-+#endif /* _ASM_GENERIC_GPIO_H */
+ 
+ static inline void gpio_set_value(unsigned gpio, int value)
+-	{ (void) at91_set_gpio_value(gpio, value); }
++{
++	at91_set_gpio_value(gpio, value);
++}
+ 
+ #include <asm-generic/gpio.h>		/* cansleep wrappers */
+ 
+ static inline int gpio_to_irq(unsigned gpio)
+-	{ return gpio; }
++{
++	return gpio;
++}
+ 
+ static inline int irq_to_gpio(unsigned irq)
+-	{ return irq; }
++{
++	return irq;
++}
+ 
+ #endif	/* __ASSEMBLY__ */
+ 
+ #endif
+-
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-gpio-core.patch
-omap-gpio-wrappers.patch
-at91-gpio-wrappers.patch
+origin.patch
+try_to_free_buffers-dont-clear-pte-dirty-bits.patch
+rtc-warning-fix.patch
+fix-vm_events_fold_cpu-build-breakage-fix.patch
+smc911-workqueue-fixes.patch
+schedule_timeout-improve-warning-message.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+build-compileh-earlier.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+arm-systemh-build-fix.patch
+cifs-sprintf-fix.patch
+git-drm.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+driver-for-silan-sc92031-netdev.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+pci-disable-multithreaded-probing.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+funsoft-is-bust-on-sparc.patch
+nokia-e70-is-an-unusual-device.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+touchkit-ps-2-touchscreen-driver.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
+virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+nfs-fix-nr_file_dirty-underflow-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
