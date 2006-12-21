@@ -1,53 +1,57 @@
 From: akpm@osdl.org
-Subject: - __set_irq_handler-bogus-space.patch removed from -mm tree
-Date: Thu, 21 Dec 2006 12:10:03 -0800
-Message-ID: <200612212010.kBLKA3qa003524@shell0.pdx.osdl.net>
+Subject: - drivers-media-video-cpia2-cpia2_usbc-free.patch removed from -mm tree
+Date: Thu, 21 Dec 2006 12:10:14 -0800
+Message-ID: <200612212010.kBLKAETH003543@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36520 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36534 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423071AbWLUUKN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 15:10:13 -0500
+	id S1423073AbWLUUKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 15:10:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: amit2030@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     __set_irq_handler bogus space
+     drivers/media/video/cpia2/cpia2_usb.c: fix error-path leak
 has been removed from the -mm tree.  Its filename was
-     __set_irq_handler-bogus-space.patch
+     drivers-media-video-cpia2-cpia2_usbc-free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: __set_irq_handler bogus space
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: drivers/media/video/cpia2/cpia2_usb.c: fix error-path leak
+From: Amit Choudhary <amit2030@gmail.com>
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Free previously allocated memory (in array elements) if kmalloc() returns
+NULL in submit_urbs().
+
+Signed-off-by: Amit Choudhary <amit2030@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/irq/chip.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/cpia2/cpia2_usb.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN kernel/irq/chip.c~__set_irq_handler-bogus-space kernel/irq/chip.c
---- a/kernel/irq/chip.c~__set_irq_handler-bogus-space
-+++ a/kernel/irq/chip.c
-@@ -519,7 +519,7 @@ __set_irq_handler(unsigned int irq, irq_
- 		handle = handle_bad_irq;
- 	else if (desc->chip == &no_irq_chip) {
- 		printk(KERN_WARNING "Trying to install %sinterrupt handler "
--		       "for IRQ%d\n", is_chained ? "chained " : " ", irq);
-+		       "for IRQ%d\n", is_chained ? "chained " : "", irq);
- 		/*
- 		 * Some ARM implementations install a handler for really dumb
- 		 * interrupt hardware without setting an irq_chip. This worked
+diff -puN drivers/media/video/cpia2/cpia2_usb.c~drivers-media-video-cpia2-cpia2_usbc-free drivers/media/video/cpia2/cpia2_usb.c
+--- a/drivers/media/video/cpia2/cpia2_usb.c~drivers-media-video-cpia2-cpia2_usbc-free
++++ a/drivers/media/video/cpia2/cpia2_usb.c
+@@ -640,6 +640,10 @@ static int submit_urbs(struct camera_dat
+ 		cam->sbuf[i].data =
+ 		    kmalloc(FRAMES_PER_DESC * FRAME_SIZE_PER_DESC, GFP_KERNEL);
+ 		if (!cam->sbuf[i].data) {
++			while (--i >= 0) {
++				kfree(cam->sbuf[i].data);
++				cam->sbuf[i].data = NULL;
++			}
+ 			return -ENOMEM;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from amit2030@gmail.com are
 
-origin.patch
+git-dvb.patch
 
