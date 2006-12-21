@@ -1,73 +1,72 @@
 From: akpm@osdl.org
-Subject: + scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch added to -mm tree
-Date: Wed, 20 Dec 2006 16:41:16 -0800
-Message-ID: <200612210041.kBL0fG6K011386@shell0.pdx.osdl.net>
+Subject: + fix-collie-compilation.patch added to -mm tree
+Date: Wed, 20 Dec 2006 16:42:26 -0800
+Message-ID: <200612210042.kBL0gQCC011404@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53691 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161127AbWLUAlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:41:21 -0500
+	id S1161023AbWLUAmk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:42:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, davem@davemloft.net
+Cc: pavel@ucw.cz, pavel@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     scrub non-__GLIBC__ checks in linux/socket.h and linux/stat.h
+     fix collie compilation
 has been added to the -mm tree.  Its filename is
-     scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch
+     fix-collie-compilation.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scrub non-__GLIBC__ checks in linux/socket.h and linux/stat.h
-From: "Mike Frysinger" <vapier.adi@gmail.com>
+Subject: fix collie compilation
+From: Pavel Machek <pavel@ucw.cz>
 
-Userspace should be worrying about userspace, so having the socket.h
-and stat.h pollute the namespace in the non-glibc case is wrong and
-pretty much prevents any other libc from utilizing these headers
-sanely unless they set up the __GLIBC__ define themselves (which
-sucks)
+Thanks to Al Viro, here's fix to 2.6.20-rc1-git, so that collie compiles,
+again.  It was broken by INIT_WORK changes.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/socket.h |    2 +-
- include/linux/stat.h   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/sa1100fb.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/socket.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath include/linux/socket.h
---- a/include/linux/socket.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath
-+++ a/include/linux/socket.h
-@@ -16,7 +16,7 @@ struct __kernel_sockaddr_storage {
- 				/* _SS_MAXSIZE value minus size of ss_family */
- } __attribute__ ((aligned(_K_SS_ALIGNSIZE)));	/* force desired alignment */
+diff -puN drivers/video/sa1100fb.c~fix-collie-compilation drivers/video/sa1100fb.c
+--- a/drivers/video/sa1100fb.c~fix-collie-compilation
++++ a/drivers/video/sa1100fb.c
+@@ -1200,9 +1200,9 @@ static void set_ctrlr_state(struct sa110
+  * Our LCD controller task (which is called when we blank or unblank)
+  * via keventd.
+  */
+-static void sa1100fb_task(void *dummy)
++static void sa1100fb_task(struct work_struct *w)
+ {
+-	struct sa1100fb_info *fbi = dummy;
++	struct sa1100fb_info *fbi = container_of(w, struct sa1100fb_info, task);
+ 	u_int state = xchg(&fbi->task_state, -1);
  
--#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
-+#ifdef __KERNEL__
+ 	set_ctrlr_state(fbi, state);
+@@ -1444,7 +1444,7 @@ static struct sa1100fb_info * __init sa1
+ 					  fbi->max_bpp / 8;
  
- #include <asm/socket.h>			/* arch-dependent defines	*/
- #include <linux/sockios.h>		/* the SIOCxxx I/O controls	*/
-diff -puN include/linux/stat.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath include/linux/stat.h
---- a/include/linux/stat.h~scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath
-+++ a/include/linux/stat.h
-@@ -7,7 +7,7 @@
+ 	init_waitqueue_head(&fbi->ctrlr_wait);
+-	INIT_WORK(&fbi->task, sa1100fb_task, fbi);
++	INIT_WORK(&fbi->task, sa1100fb_task);
+ 	init_MUTEX(&fbi->ctrlr_sem);
  
- #endif
- 
--#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
-+#ifdef __KERNEL__
- 
- #define S_IFMT  00170000
- #define S_IFSOCK 0140000
+ 	return fbi;
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-search-a-little-harder-for-mkimage.patch
-scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch
+fix-swapped-parameters-in-mm-vmscanc.patch
+fix-collie-compilation.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+git-acpi.patch
 
