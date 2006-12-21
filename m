@@ -1,168 +1,94 @@
 From: akpm@osdl.org
-Subject: - pata_cs5530-suspend-resume-support-tweak.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:52 -0800
-Message-ID: <200612210036.kBL0aq6c011235@shell0.pdx.osdl.net>
+Subject: - kref-refcnt-and-false-positives.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:45 -0800
+Message-ID: <200612210036.kBL0aj3r011222@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53387 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53339 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161104AbWLUAhG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:37:06 -0500
+	id S1161112AbWLUAgx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:36:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cs5530-suspend-resume-support tweak
+     kref refcnt and false positives
 has been removed from the -mm tree.  Its filename was
-     pata_cs5530-suspend-resume-support-tweak.patch
+     kref-refcnt-and-false-positives.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_cs5530-suspend-resume-support tweak
-From: Andrew Morton <akpm@osdl.org>
+Subject: kref refcnt and false positives
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-side-effectful-expression-within-assert give me the creeps.
+With WARN_ON addition to kobject_init()
+[ http://kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.19/2.6.19-mm1/dont-use/broken-out/gregkh-driver-kobject-warn.patch ]
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+I started seeing following WARNING on CPU offline followed by online on my
+x86_64 system.
+
+WARNING at lib/kobject.c:172 kobject_init()
+
+Call Trace:
+ [<ffffffff8020ab45>] dump_trace+0xaa/0x3ef
+ [<ffffffff8020aec4>] show_trace+0x3a/0x50
+ [<ffffffff8020b0f6>] dump_stack+0x15/0x17
+ [<ffffffff80350abc>] kobject_init+0x3f/0x8a
+ [<ffffffff80350be1>] kobject_register+0x1a/0x3e
+ [<ffffffff803bbd89>] sysdev_register+0x5b/0xf9
+ [<ffffffff80211d0b>] mce_create_device+0x77/0xf4
+ [<ffffffff80211dc2>] mce_cpu_callback+0x3a/0xe5
+ [<ffffffff805632fd>] notifier_call_chain+0x26/0x3b
+ [<ffffffff8023f6f3>] raw_notifier_call_chain+0x9/0xb
+ [<ffffffff802519bf>] _cpu_up+0xb4/0xdc
+ [<ffffffff80251a12>] cpu_up+0x2b/0x42
+ [<ffffffff803bef00>] store_online+0x4a/0x72
+ [<ffffffff803bb6ce>] sysdev_store+0x24/0x26
+ [<ffffffff802baaa2>] sysfs_write_file+0xcf/0xfc
+ [<ffffffff8027fc6f>] vfs_write+0xae/0x154
+ [<ffffffff80280418>] sys_write+0x47/0x6f
+ [<ffffffff8020963e>] system_call+0x7e/0x83
+DWARF2 unwinder stuck at system_call+0x7e/0x83
+Leftover inexact backtrace:
+
+This is a false positive as mce.c is unregistering/registering sysfs
+interfaces cleanly on hotplug.
+
+kref_put() and conditional decrement of refcnt seems to be the root cause
+for this and the patch below resolves the issue for me.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/pata_cs5530.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ lib/kref.c |    7 +------
+ 1 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/ata/pata_cs5530.c~pata_cs5530-suspend-resume-support-tweak drivers/ata/pata_cs5530.c
---- a/drivers/ata/pata_cs5530.c~pata_cs5530-suspend-resume-support-tweak
-+++ a/drivers/ata/pata_cs5530.c
-@@ -372,7 +372,8 @@ static int cs5530_init_one(struct pci_de
- static int cs5530_reinit_one(struct pci_dev *pdev)
- {
- 	/* If we fail on resume we are doomed */
--	BUG_ON(cs5530_init_chip());
-+	if (cs5530_init_chip())
-+		BUG();
- 	return ata_pci_device_resume(pdev);
- }
+diff -puN lib/kref.c~kref-refcnt-and-false-positives lib/kref.c
+--- a/lib/kref.c~kref-refcnt-and-false-positives
++++ a/lib/kref.c
+@@ -52,12 +52,7 @@ int kref_put(struct kref *kref, void (*r
+ 	WARN_ON(release == NULL);
+ 	WARN_ON(release == (void (*)(struct kref *))kfree);
  
+-	/*
+-	 * if current count is one, we are the last user and can release object
+-	 * right now, avoiding an atomic operation on 'refcount'
+-	 */
+-	if ((atomic_read(&kref->refcount) == 1) ||
+-	    (atomic_dec_and_test(&kref->refcount))) {
++	if (atomic_dec_and_test(&kref->refcount)) {
+ 		release(kref);
+ 		return 1;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
-try_to_free_buffers-dont-clear-pte-dirty-bits.patch
-rtc-warning-fix.patch
-fix-vm_events_fold_cpu-build-breakage-fix.patch
-smc911-workqueue-fixes.patch
-schedule_timeout-improve-warning-message.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-build-compileh-earlier.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-arm-systemh-build-fix.patch
-cifs-sprintf-fix.patch
-git-drm.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-driver-for-silan-sc92031-netdev.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-pci-disable-multithreaded-probing.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-funsoft-is-bust-on-sparc.patch
-nokia-e70-is-an-unusual-device.patch
-git-wireless.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-touchkit-ps-2-touchscreen-driver.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-2.patch
-virtual-memmap-on-sparsemem-v3-map-and-unmap-fix-3.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-nr_file_dirty-underflow-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-sched-improve-efficiency-of-sched_fork-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification.patch
 
