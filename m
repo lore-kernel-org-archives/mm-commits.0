@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: + pm-change-code-ordering-in-mainc.patch added to -mm tree
-Date: Wed, 20 Dec 2006 22:20:10 -0800
-Message-ID: <200612210620.kBL6KANC017532@shell0.pdx.osdl.net>
+Subject: + swsusp-change-code-ordering-in-userc.patch added to -mm tree
+Date: Wed, 20 Dec 2006 22:20:14 -0800
+Message-ID: <200612210620.kBL6KEUK017542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41976 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41974 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422754AbWLUGUg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1422745AbWLUGUg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 21 Dec 2006 01:20:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,41 +15,25 @@ Cc: rjw@sisk.pl, greg@kroah.com, mochel@digitalimplant.org, nigel@suspend2.net, 
 
 
 The patch titled
-     PM: Change code ordering in main.c
+     swsusp: Change code ordering in user.c
 has been added to the -mm tree.  Its filename is
-     pm-change-code-ordering-in-mainc.patch
+     swsusp-change-code-ordering-in-userc.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PM: Change code ordering in main.c
+Subject: swsusp: Change code ordering in user.c
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-As indicated in a recent thread on Linux-PM, it's necessary to call
-pm_ops->finish() before devce_resume(), but enable_nonboot_cpus() has to be
-called before pm_ops->finish() (cf. 
-http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).  For
-consistency, it seems reasonable to call disable_nonboot_cpus() after
-device_suspend().
+Change the ordering of code in kernel/power/user.c so that device_suspend() is
+called before disable_nonboot_cpus() and device_resume() is called after
+enable_nonboot_cpus().  This is needed to make the userland suspend call
+pm_ops->finish() after enable_nonboot_cpus() and before device_resume(), as
+indicated by the recent discussion on Linux-PM (cf. 
+http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).
 
-This way the suspend code will remain symmetrical with respect to the resume
-code and it may allow us to speed up things in the future by suspending and
-resuming devices and/or saving the suspend image in many threads.
-
-The following series of patches reorders the suspend and resume code so that
-nonboot CPUs are disabled after devices have been suspended and enabled before
-the devices are resumed.  It also causes pm_ops->finish() to be called after
-enable_nonboot_cpus() wherever necessary.
-
-
-This patch:
-
-Change the ordering of code in kernel/power/main.c so that device_suspend()
-is called before disable_nonboot_cpus() and pm_ops->finish() is called after
-enable_nonboot_cpus() and before device_resume(), as indicated by recent
-discussion on Linux-PM
-(cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).
+The changes here only affect the userland interface of swsusp.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
@@ -59,81 +43,139 @@ Cc: Patrick Mochel <mochel@digitalimplant.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/main.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ kernel/power/user.c |   92 ++++++++++++++++++++++++++----------------
+ 1 file changed, 58 insertions(+), 34 deletions(-)
 
-diff -puN kernel/power/main.c~pm-change-code-ordering-in-mainc kernel/power/main.c
---- a/kernel/power/main.c~pm-change-code-ordering-in-mainc
-+++ a/kernel/power/main.c
-@@ -43,6 +43,11 @@ void pm_set_ops(struct pm_ops * ops)
- 	mutex_unlock(&pm_mutex);
+diff -puN kernel/power/user.c~swsusp-change-code-ordering-in-userc kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-change-code-ordering-in-userc
++++ a/kernel/power/user.c
+@@ -122,6 +122,59 @@ static ssize_t snapshot_write(struct fil
+ 	return res;
  }
  
-+static inline void pm_finish(suspend_state_t state)
++static inline int snapshot_suspend(void)
 +{
-+	if (pm_ops->finish)
-+		pm_ops->finish(state);
-+}
- 
- /**
-  *	suspend_prepare - Do prep work before entering low-power state.
-@@ -63,10 +68,6 @@ static int suspend_prepare(suspend_state
- 
- 	pm_prepare_console();
- 
--	error = disable_nonboot_cpus();
--	if (error)
--		goto Enable_cpu;
--
- 	if (freeze_processes()) {
- 		error = -EAGAIN;
- 		goto Thaw;
-@@ -88,18 +89,22 @@ static int suspend_prepare(suspend_state
- 	}
- 
- 	suspend_console();
--	if ((error = device_suspend(PMSG_SUSPEND))) {
-+	error = device_suspend(PMSG_SUSPEND);
-+	if (error) {
- 		printk(KERN_ERR "Some devices failed to suspend\n");
--		goto Finish;
++	int error;
++
++	mutex_lock(&pm_mutex);
++	/* Free memory before shutting down devices. */
++	error = swsusp_shrink_memory();
++	if (error)
++		goto Finish;
++
++	suspend_console();
++	error = device_suspend(PMSG_FREEZE);
++	if (error)
 +		goto Resume_devices;
- 	}
--	return 0;
-- Finish:
--	if (pm_ops->finish)
--		pm_ops->finish(state);
++
++	error = disable_nonboot_cpus();
++	if (!error) {
++		in_suspend = 1;
++		error = swsusp_suspend();
++	}
++	enable_nonboot_cpus();
++ Resume_devices:
++	device_resume();
++	resume_console();
++ Finish:
++	mutex_unlock(&pm_mutex);
++	return error;
++}
++
++static inline int snapshot_restore(void)
++{
++	int error;
++
++	mutex_lock(&pm_mutex);
++	pm_prepare_console();
++	suspend_console();
++	error = device_suspend(PMSG_PRETHAW);
++	if (error)
++		goto Resume_devices;
++
 +	error = disable_nonboot_cpus();
 +	if (!error)
-+		return 0;
++		error = swsusp_resume();
 +
 +	enable_nonboot_cpus();
 + Resume_devices:
-+	pm_finish(state);
 +	device_resume();
 +	resume_console();
-  Thaw:
- 	thaw_processes();
-- Enable_cpu:
--	enable_nonboot_cpus();
- 	pm_restore_console();
- 	return error;
- }
-@@ -134,12 +139,11 @@ int suspend_enter(suspend_state_t state)
- 
- static void suspend_finish(suspend_state_t state)
++	pm_restore_console();
++	mutex_unlock(&pm_mutex);
++	return error;
++}
++
+ static int snapshot_ioctl(struct inode *inode, struct file *filp,
+                           unsigned int cmd, unsigned long arg)
  {
-+	enable_nonboot_cpus();
-+	pm_finish(state);
- 	device_resume();
- 	resume_console();
- 	thaw_processes();
--	enable_nonboot_cpus();
--	if (pm_ops && pm_ops->finish)
--		pm_ops->finish(state);
- 	pm_restore_console();
- }
+@@ -145,14 +198,9 @@ static int snapshot_ioctl(struct inode *
+ 		if (data->frozen)
+ 			break;
+ 		mutex_lock(&pm_mutex);
+-		error = disable_nonboot_cpus();
+-		if (!error) {
+-			error = freeze_processes();
+-			if (error) {
+-				thaw_processes();
+-				enable_nonboot_cpus();
+-				error = -EBUSY;
+-			}
++		if (freeze_processes()) {
++			thaw_processes();
++			error = -EBUSY;
+ 		}
+ 		mutex_unlock(&pm_mutex);
+ 		if (!error)
+@@ -164,7 +212,6 @@ static int snapshot_ioctl(struct inode *
+ 			break;
+ 		mutex_lock(&pm_mutex);
+ 		thaw_processes();
+-		enable_nonboot_cpus();
+ 		mutex_unlock(&pm_mutex);
+ 		data->frozen = 0;
+ 		break;
+@@ -174,20 +221,7 @@ static int snapshot_ioctl(struct inode *
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		mutex_lock(&pm_mutex);
+-		/* Free memory before shutting down devices. */
+-		error = swsusp_shrink_memory();
+-		if (!error) {
+-			suspend_console();
+-			error = device_suspend(PMSG_FREEZE);
+-			if (!error) {
+-				in_suspend = 1;
+-				error = swsusp_suspend();
+-				device_resume();
+-			}
+-			resume_console();
+-		}
+-		mutex_unlock(&pm_mutex);
++		error = snapshot_suspend();
+ 		if (!error)
+ 			error = put_user(in_suspend, (unsigned int __user *)arg);
+ 		if (!error)
+@@ -201,17 +235,7 @@ static int snapshot_ioctl(struct inode *
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		mutex_lock(&pm_mutex);
+-		pm_prepare_console();
+-		suspend_console();
+-		error = device_suspend(PMSG_PRETHAW);
+-		if (!error) {
+-			error = swsusp_resume();
+-			device_resume();
+-		}
+-		resume_console();
+-		pm_restore_console();
+-		mutex_unlock(&pm_mutex);
++		error = snapshot_restore();
+ 		break;
  
+ 	case SNAPSHOT_FREE:
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
