@@ -1,55 +1,51 @@
 From: akpm@osdl.org
-Subject: + drivers-media-video-cafe_ccicc-fix-null-dereference.patch added to -mm tree
-Date: Wed, 20 Dec 2006 16:50:00 -0800
-Message-ID: <200612210050.kBL0o0iL011579@shell0.pdx.osdl.net>
+Subject: + make-drivers-char-mxser_newcmxser_hangup-static.patch added to -mm tree
+Date: Wed, 20 Dec 2006 16:52:45 -0800
+Message-ID: <200612210052.kBL0qjdb011636@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54202 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:54320 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161092AbWLUAvk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:51:40 -0500
+	id S1161092AbWLUAwy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:52:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mchehab@infradead.org
+Cc: bunk@stusta.de, jirislaby@gmail.com
 
 
 The patch titled
-     drivers/media/video/cafe_ccic.c: fix NULL dereference
+     make drivers/char/mxser_new.c:mxser_hangup() static
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-cafe_ccicc-fix-null-dereference.patch
+     make-drivers-char-mxser_newcmxser_hangup-static.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/media/video/cafe_ccic.c: fix NULL dereference
+Subject: make drivers/char/mxser_new.c:mxser_hangup() static
 From: Adrian Bunk <bunk@stusta.de>
 
-We shouldn't dereference "cam" when we already know it's NULL.
-
-Spotted by the Coverity checker.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/video/cafe_ccic.c |    2 +-
+ drivers/char/mxser_new.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/cafe_ccic.c~drivers-media-video-cafe_ccicc-fix-null-dereference drivers/media/video/cafe_ccic.c
---- a/drivers/media/video/cafe_ccic.c~drivers-media-video-cafe_ccicc-fix-null-dereference
-+++ a/drivers/media/video/cafe_ccic.c
-@@ -2166,7 +2166,7 @@ static void cafe_pci_remove(struct pci_d
- 	struct cafe_camera *cam = cafe_find_by_pdev(pdev);
+diff -puN drivers/char/mxser_new.c~make-drivers-char-mxser_newcmxser_hangup-static drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~make-drivers-char-mxser_newcmxser_hangup-static
++++ a/drivers/char/mxser_new.c
+@@ -2066,7 +2066,7 @@ static void mxser_wait_until_sent(struct
+ /*
+  * This routine is called by tty_hangup() when a hangup is signaled.
+  */
+-void mxser_hangup(struct tty_struct *tty)
++static void mxser_hangup(struct tty_struct *tty)
+ {
+ 	struct mxser_port *info = tty->driver_data;
  
- 	if (cam == NULL) {
--		cam_warn(cam, "pci_remove on unknown pdev %p\n", pdev);
-+		printk(KERN_WARNING "pci_remove on unknown pdev %p\n", pdev);
- 		return;
- 	}
- 	mutex_lock(&cam->s_mutex);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -64,6 +60,7 @@ git-gfs2-nmw.patch
 git-mtd.patch
 remove-the-broken-skmc-driver.patch
 git-net.patch
+net-irda-proper-prototypes.patch
 net-uninline-skb_put-fix.patch
 git-ocfs2.patch
 drivers-scsi-small-cleanups.patch
@@ -81,6 +78,7 @@ remove-drivers-pci-searchcpci_find_device_reverse.patch
 remove-include-linux-byteorder-pdp_endianh.patch
 toshiba-tc86c001-ide-driver-take-2-fix.patch
 toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
 gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
 dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
@@ -88,6 +86,7 @@ clockevents-i386-drivers.patch
 make-ext2_get_blocks-static.patch
 drivers-edac-make-code-static.patch
 drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
 readahead-events-accounting-make-readahead_debug_level-static.patch
 reiser4-export-remove_from_page_cache-fix.patch
 fs-reiser4-possible-cleanups.patch
