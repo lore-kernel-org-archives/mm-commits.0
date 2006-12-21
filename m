@@ -1,71 +1,89 @@
 From: akpm@osdl.org
-Subject: + time-x86_64-split-x86_64-kernel-timec-up-tidy.patch added to -mm tree
-Date: Wed, 20 Dec 2006 23:01:32 -0800
-Message-ID: <200612210701.kBL71WMf018267@shell0.pdx.osdl.net>
+Subject: + relay-remove-inlining.patch added to -mm tree
+Date: Wed, 20 Dec 2006 23:24:57 -0800
+Message-ID: <200612210724.kBL7OvqR018683@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44874 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45333 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422798AbWLUHS3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Dec 2006 02:18:29 -0500
+	id S1422801AbWLUH0s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 21 Dec 2006 02:26:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@muc.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: akpm@osdl.org, mathieu.desnoyers@polymtl.ca, zanussi@us.ibm.com
 
 
 The patch titled
-     time-x86_64-split-x86_64-kernel-timec-up-tidy
+     relay: remove inlining
 has been added to the -mm tree.  Its filename is
-     time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+     relay-remove-inlining.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time-x86_64-split-x86_64-kernel-timec-up-tidy
+Subject: relay: remove inlining
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+          text    data     bss     dec     hex filename
+before:   4036      44       0    4080     ff0 kernel/relay.o
+after:    3727      44       0    3771     ebb kernel/relay.o
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/hpet.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/relay.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-split-x86_64-kernel-timec-up-tidy arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~time-x86_64-split-x86_64-kernel-timec-up-tidy
-+++ a/arch/x86_64/kernel/hpet.c
-@@ -12,7 +12,7 @@
- #include <asm/timex.h>
- #include <asm/hpet.h>
+diff -puN kernel/relay.c~relay-remove-inlining kernel/relay.c
+--- a/kernel/relay.c~relay-remove-inlining
++++ a/kernel/relay.c
+@@ -322,7 +322,7 @@ static void wakeup_readers(struct work_s
+  *
+  *	See relay_reset for description of effect.
+  */
+-static inline void __relay_reset(struct rchan_buf *buf, unsigned int init)
++static void __relay_reset(struct rchan_buf *buf, unsigned int init)
+ {
+ 	size_t i;
  
--int nohpet __initdata = 0;
-+int nohpet __initdata;
+@@ -418,7 +418,7 @@ static struct rchan_buf *relay_open_buf(
+  *	The channel buffer and channel buffer data structure are then freed
+  *	automatically when the last reference is given up.
+  */
+-static inline void relay_close_buf(struct rchan_buf *buf)
++static void relay_close_buf(struct rchan_buf *buf)
+ {
+ 	buf->finalized = 1;
+ 	cancel_delayed_work(&buf->wake_readers);
+@@ -426,7 +426,7 @@ static inline void relay_close_buf(struc
+ 	kref_put(&buf->kref, relay_remove_buf);
+ }
  
- unsigned long hpet_address;
- unsigned long hpet_period;	/* fsecs / HPET clock */
-@@ -37,7 +37,7 @@ static __init int late_hpet_init(void)
- 	if (!hpet_address)
-         	return 0;
- 
--	memset(&hd, 0, sizeof (hd));
-+	memset(&hd, 0, sizeof(hd));
- 
- 	ntimer = hpet_readl(HPET_ID);
- 	ntimer = (ntimer & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT;
-@@ -160,7 +160,6 @@ unsigned int __init hpet_calibrate_tsc(v
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
--	local_irq_disable();
- 
- 	hpet_start = hpet_readl(HPET_COUNTER);
- 	rdtscl(tsc_start);
+-static inline void setup_callbacks(struct rchan *chan,
++static void setup_callbacks(struct rchan *chan,
+ 				   struct rchan_callbacks *cb)
+ {
+ 	if (!cb) {
+@@ -946,11 +946,10 @@ typedef int (*subbuf_actor_t) (size_t re
+ /*
+  *	relay_file_read_subbufs - read count bytes, bridging subbuf boundaries
+  */
+-static inline ssize_t relay_file_read_subbufs(struct file *filp,
+-					      loff_t *ppos,
+-					      subbuf_actor_t subbuf_actor,
+-					      read_actor_t actor,
+-					      read_descriptor_t *desc)
++static ssize_t relay_file_read_subbufs(struct file *filp, loff_t *ppos,
++					subbuf_actor_t subbuf_actor,
++					read_actor_t actor,
++					read_descriptor_t *desc)
+ {
+ 	struct rchan_buf *buf = filp->private_data;
+ 	size_t read_start, avail;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -131,6 +149,7 @@ count_vm_events-warning-fix.patch
 toshiba-tc86c001-ide-driver-take-2-fix-2.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
 schedule_on_each_cpu-use-preempt_disable.patch
+relay-remove-inlining.patch
 gtod-persistent-clock-support-i386.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
