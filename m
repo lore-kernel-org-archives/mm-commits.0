@@ -1,116 +1,215 @@
 From: akpm@osdl.org
-Subject: - implementation-of-acpi_video_get_next_level.patch removed from -mm tree
-Date: Wed, 20 Dec 2006 16:36:21 -0800
-Message-ID: <200612210036.kBL0aLWv011186@shell0.pdx.osdl.net>
+Subject: - add-support-for-acpi_load_table-acpi_unload_table_id.patch removed from -mm tree
+Date: Wed, 20 Dec 2006 16:36:33 -0800
+Message-ID: <200612210036.kBL0aXFl011207@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53248 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53299 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161095AbWLUAg0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Dec 2006 19:36:26 -0500
+	id S1161108AbWLUAgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 20 Dec 2006 19:36:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux-kernel@ttuttle.net, len.brown@intel.com, mm-commits@vger.kernel.org
+To: jpk@sgi.com, ayoung@sgi.com, greg@kroah.com, len.brown@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Implementation of acpi_video_get_next_level()
+     Add support for acpi_load_table/acpi_unload_table_id
 has been removed from the -mm tree.  Its filename was
-     implementation-of-acpi_video_get_next_level.patch
+     add-support-for-acpi_load_table-acpi_unload_table_id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Implementation of acpi_video_get_next_level()
-From: Thomas Tuttle <linux-kernel@ttuttle.net>
+Subject: Add support for acpi_load_table/acpi_unload_table_id
+From: John Keller <jpk@sgi.com>
 
-acpi_video_get_next_level was supposed to implement an algorithm to select
-a new brightness level based on the old brightness level of an ACPI video
-device, but it simply says "/* Fix me */" and returns the current
-brightness.
+Make acpi_load_table() available for use by removing it from the #ifdef
+ACPI_FUTURE_USAGE.
 
-This patch implements acpi_video_get_next_level properly.  It had to change
-a few constants at the top of the file because they were (apparently)
-wrong, but it appears to work on my Dell Inspiron e1405 (with BIOS A05
-only--BIOS A04 doesn't seem to send ACPI video hotkey events).
+Also add a new routine used to unload an ACPI table of a given type and "id" -
+acpi_unload_table_id().  The implementation of this new routine was almost a
+direct copy of existing routine acpi_unload_table() - only difference being
+that it only removes a specific table id instead of ALL tables of a given
+type.  The SN hotplug driver (sgi_hotplug.c) now uses both of these interfaces
+to dynamically load and unload SSDT ACPI tables.
 
-[akpm@osdl.org: cleanups]
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Thomas Tuttle <linux-kernel@ttuttle.net>
+Also, a few other ACPI routines now used by the SN hotplug driver are exported
+(since the driver can be a loadable module):
+
+ acpi_ns_map_handle_to_node
+ acpi_ns_convert_entry_to_handle
+ acpi_ns_get_next_node
+
+Signed-off-by: Aaron Young <ayoung@sgi.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/video.c |   41 ++++++++++++++++++++++++++++++++++-------
- 1 files changed, 34 insertions(+), 7 deletions(-)
+ drivers/acpi/namespace/nsxfobj.c |   44 +++++++++++++++++++++++
+ drivers/acpi/tables/tbxface.c    |   54 ++++++++++++++++++++++++++++-
+ include/acpi/acpixf.h            |    7 ++-
+ 3 files changed, 102 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/video.c~implementation-of-acpi_video_get_next_level drivers/acpi/video.c
---- a/drivers/acpi/video.c~implementation-of-acpi_video_get_next_level
-+++ a/drivers/acpi/video.c
-@@ -3,6 +3,7 @@
-  *
-  *  Copyright (C) 2004 Luming Yu <luming.yu@intel.com>
-  *  Copyright (C) 2004 Bruno Ducrot <ducrot@poupinou.org>
-+ *  Copyright (C) 2006 Thomas Tuttle <linux-kernel@ttuttle.net>
-  *
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  *
-@@ -47,11 +48,11 @@
- #define ACPI_VIDEO_NOTIFY_NEXT_OUTPUT	0x83
- #define ACPI_VIDEO_NOTIFY_PREV_OUTPUT	0x84
+diff -puN drivers/acpi/namespace/nsxfobj.c~add-support-for-acpi_load_table-acpi_unload_table_id drivers/acpi/namespace/nsxfobj.c
+--- a/drivers/acpi/namespace/nsxfobj.c~add-support-for-acpi_load_table-acpi_unload_table_id
++++ a/drivers/acpi/namespace/nsxfobj.c
+@@ -50,6 +50,50 @@ ACPI_MODULE_NAME("nsxfobj")
  
--#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x82
--#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x83
--#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x84
--#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x85
--#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x86
-+#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x85
-+#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x86
-+#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x87
-+#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x88
-+#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x89
- 
- #define ACPI_VIDEO_HEAD_INVALID		(~0u - 1)
- #define ACPI_VIDEO_HEAD_END		(~0u)
-@@ -1502,8 +1503,34 @@ static int
- acpi_video_get_next_level(struct acpi_video_device *device,
- 			  u32 level_current, u32 event)
- {
--	/*Fix me */
--	return level_current;
-+	int min, max, min_above, max_below, i, l;
-+	max = max_below = 0;
-+	min = min_above = 255;
-+	for (i = 0; i < device->brightness->count; i++) {
-+		l = device->brightness->levels[i];
-+		if (l < min)
-+			min = l;
-+		if (l > max)
-+			max = l;
-+		if (l < min_above && l > level_current)
-+			min_above = l;
-+		if (l > max_below && l < level_current)
-+			max_below = l;
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_get_id
++ *
++ * PARAMETERS:  Handle          - Handle of object whose id is desired
++ *              ret_id          - Where the id will be placed
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: This routine returns the owner id associated with a handle
++ *
++ ******************************************************************************/
++acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
++{
++	struct acpi_namespace_node *node;
++	acpi_status status;
++
++	/* Parameter Validation */
++
++	if (!ret_id) {
++		return (AE_BAD_PARAMETER);
 +	}
 +
-+	switch (event) {
-+	case ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS:
-+		return (level_current < max) ? min_above : min;
-+	case ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS:
-+		return (level_current < max) ? min_above : max;
-+	case ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS:
-+		return (level_current > min) ? max_below : min;
-+	case ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS:
-+	case ACPI_VIDEO_NOTIFY_DISPLAY_OFF:
-+		return 0;
-+	default:
-+		return level_current;
++	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++	if (ACPI_FAILURE(status)) {
++		return (status);
 +	}
- }
++
++	/* Convert and validate the handle */
++
++	node = acpi_ns_map_handle_to_node(handle);
++	if (!node) {
++		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++		return (AE_BAD_PARAMETER);
++	}
++
++	*ret_id = node->owner_id;
++
++	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++	return (status);
++}
++
++ACPI_EXPORT_SYMBOL(acpi_get_id)
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_get_type
+  *
+  * PARAMETERS:  Handle          - Handle of object whose type is desired
+diff -puN drivers/acpi/tables/tbxface.c~add-support-for-acpi_load_table-acpi_unload_table_id drivers/acpi/tables/tbxface.c
+--- a/drivers/acpi/tables/tbxface.c~add-support-for-acpi_load_table-acpi_unload_table_id
++++ a/drivers/acpi/tables/tbxface.c
+@@ -123,7 +123,6 @@ acpi_status acpi_load_tables(void)
  
- static void
+ ACPI_EXPORT_SYMBOL(acpi_load_tables)
+ 
+-#ifdef ACPI_FUTURE_USAGE
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_load_table
+@@ -221,6 +220,59 @@ ACPI_EXPORT_SYMBOL(acpi_load_table)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_unload_table_id
++ *
++ * PARAMETERS:  table_type    - Type of table to be unloaded
++ *              id            - Owner ID of the table to be removed.
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: This routine is used to force the unload of a table (by id)
++ *
++ ******************************************************************************/
++acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id)
++{
++	struct acpi_table_desc *table_desc;
++	acpi_status status;
++
++	ACPI_FUNCTION_TRACE(acpi_unload_table);
++
++	/* Parameter validation */
++	if (table_type > ACPI_TABLE_ID_MAX)
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++
++	/* Find table from the requested type list */
++	table_desc = acpi_gbl_table_lists[table_type].next;
++	while (table_desc && table_desc->owner_id != id)
++		table_desc = table_desc->next;
++
++	if (!table_desc)
++		return_ACPI_STATUS(AE_NOT_EXIST);
++
++	/*
++	 * Delete all namespace objects owned by this table. Note that these
++	 * objects can appear anywhere in the namespace by virtue of the AML
++	 * "Scope" operator. Thus, we need to track ownership by an ID, not
++	 * simply a position within the hierarchy
++	 */
++	acpi_ns_delete_namespace_by_owner(table_desc->owner_id);
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
++	if (ACPI_FAILURE(status))
++		return_ACPI_STATUS(status);
++
++	(void)acpi_tb_uninstall_table(table_desc);
++
++	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
++
++	return_ACPI_STATUS(AE_OK);
++}
++
++ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
++
++#ifdef ACPI_FUTURE_USAGE
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_unload_table
+  *
+  * PARAMETERS:  table_type    - Type of table to be unloaded
+diff -puN include/acpi/acpixf.h~add-support-for-acpi_load_table-acpi_unload_table_id include/acpi/acpixf.h
+--- a/include/acpi/acpixf.h~add-support-for-acpi_load_table-acpi_unload_table_id
++++ a/include/acpi/acpixf.h
+@@ -97,11 +97,12 @@ acpi_find_root_pointer(u32 flags, struct
+ 
+ acpi_status acpi_load_tables(void);
+ 
+-#ifdef ACPI_FUTURE_USAGE
+ acpi_status acpi_load_table(struct acpi_table_header *table_ptr);
+ 
+-acpi_status acpi_unload_table(acpi_table_type table_type);
++acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id);
+ 
++#ifdef ACPI_FUTURE_USAGE
++acpi_status acpi_unload_table(acpi_table_type table_type);
+ acpi_status
+ acpi_get_table_header(acpi_table_type table_type,
+ 		      u32 instance, struct acpi_table_header *out_table_header);
+@@ -180,6 +181,8 @@ acpi_get_next_object(acpi_object_type ty
+ 
+ acpi_status acpi_get_type(acpi_handle object, acpi_object_type * out_type);
+ 
++acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
++
+ acpi_status acpi_get_parent(acpi_handle object, acpi_handle * out_handle);
+ 
+ /*
 _
 
-Patches currently in -mm which might be from linux-kernel@ttuttle.net are
+Patches currently in -mm which might be from jpk@sgi.com are
 
 git-acpi.patch
+altix-acpi-ssdt-pci-device-support.patch
+altix-add-acpi-ssdt-pci-device-support-hotplug.patch
 
