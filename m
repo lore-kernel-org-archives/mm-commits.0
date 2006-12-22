@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + ptrace-make-putgetreg-work-again-for-gs-and-fs.patch added to -mm tree
-Date: Thu, 21 Dec 2006 23:03:40 -0800
-Message-ID: <200612220703.kBM73eI0016438@shell0.pdx.osdl.net>
+Subject: + convert-i386-pda-code-to-use-%fs-ptrace-make-putgetreg-work-again-for-gs-and-fs.patch added to -mm tree
+Date: Thu, 21 Dec 2006 23:13:19 -0800
+Message-ID: <200612220713.kBM7DJqP016576@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50924 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:51628 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423190AbWLVHDt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Dec 2006 02:03:49 -0500
+	id S1423193AbWLVHN1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 22 Dec 2006 02:13:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: deweerdt@free.fr, ak@suse.de, frederik.deweerdt@gmail.com, jeremy@goop.org
 The patch titled
      ptrace: make {put,get}reg work again for gs and fs
 has been added to the -mm tree.  Its filename is
-     ptrace-make-putgetreg-work-again-for-gs-and-fs.patch
+     convert-i386-pda-code-to-use-%fs-ptrace-make-putgetreg-work-again-for-gs-and-fs.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
@@ -42,8 +42,8 @@ Signed-off-by: Andrew Morton <akpm@osdl.org>
  arch/i386/kernel/ptrace.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/ptrace.c~ptrace-make-putgetreg-work-again-for-gs-and-fs arch/i386/kernel/ptrace.c
---- a/arch/i386/kernel/ptrace.c~ptrace-make-putgetreg-work-again-for-gs-and-fs
+diff -puN arch/i386/kernel/ptrace.c~convert-i386-pda-code-to-use-%fs-ptrace-make-putgetreg-work-again-for-gs-and-fs arch/i386/kernel/ptrace.c
+--- a/arch/i386/kernel/ptrace.c~convert-i386-pda-code-to-use-%fs-ptrace-make-putgetreg-work-again-for-gs-and-fs
 +++ a/arch/i386/kernel/ptrace.c
 @@ -89,14 +89,14 @@ static int putreg(struct task_struct *ch
  	unsigned long regno, unsigned long value)
@@ -68,6 +68,6 @@ _
 Patches currently in -mm which might be from deweerdt@free.fr are
 
 ptrace-fix-efl_offset-value-according-to-i386-pda-changes.patch
-ptrace-make-putgetreg-work-again-for-gs-and-fs.patch
+convert-i386-pda-code-to-use-%fs-ptrace-make-putgetreg-work-again-for-gs-and-fs.patch
 disable-init-initramfsc-updated-fix.patch
 
