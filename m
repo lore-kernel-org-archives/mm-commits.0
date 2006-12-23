@@ -1,332 +1,231 @@
 From: akpm@osdl.org
-Subject: - sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:55:09 -0800
-Message-ID: <200612230755.kBN7t9i4010274@shell0.pdx.osdl.net>
+Subject: - agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:55:18 -0800
+Message-ID: <200612230755.kBN7tI5X010286@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49859 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49864 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753505AbWLWHz1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:55:27 -0500
+	id S1753545AbWLWHza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:55:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, ak@suse.de, nando@ccrma.Stanford.EDU, mm-commits@vger.kernel.org
+To: eric@anholt.net, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix bad missed wakeups in the i386, x86_64, ia64, ACPI and APM idle code
+     agp: fix detection of aperture size versus GTT size on G965
 has been removed from the -mm tree.  Its filename was
-     sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code.patch
+     agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: fix bad missed wakeups in the i386, x86_64, ia64, ACPI and APM idle code
-From: Ingo Molnar <mingo@elte.hu>
+Subject: agp: fix detection of aperture size versus GTT size on G965
+From: Eric Anholt <eric@anholt.net>
 
-Fernando Lopez-Lezcano reported frequent scheduling latencies and audio
-xruns starting at the 2.6.18-rt kernel, and those problems persisted all
-until current -rt kernels. The latencies were serious and unjustified by
-system load, often in the milliseconds range.
+On the G965, the GTT size may be larger than is required to cover the
+aperture.  (In fact, on all hardware we've seen, the GTT is 512KB to the
+aperture's 256MB).  A previous commit forced the aperture size to 512MB on
+G965 to match GTT, which would likely result in hangs at best if users
+tried to rely on agpgart's aperture size information.  Instead, we use the
+resource length for the aperture size and the system's reported GTT size
+when available for the GTT size.
 
-After a patient and heroic multi-month effort of Fernando, where he
-tested dozens of kernels, tried various configs, boot options,
-test-patches of mine and provided latency traces of those incidents, the
-following 'smoking gun' trace was captured by him:
+Because the MSAC registers which had been read for aperture size detection
+on i9xx chips just cause a change in the resource size, we can use generic
+code for aperture detection on all i9xx.
 
-                 _------=> CPU#
-                / _-----=> irqs-off
-               | / _----=> need-resched
-               || / _---=> hardirq/softirq
-               ||| / _--=> preempt-depth
-               |||| /
-               |||||     delay
-   cmd     pid ||||| time  |   caller
-      \   /    |||||   \   |   /
-  IRQ_19-1479  1D..1    0us : __trace_start_sched_wakeup (try_to_wake_up)
-  IRQ_19-1479  1D..1    0us : __trace_start_sched_wakeup <<...>-5856> (37 0)
-  IRQ_19-1479  1D..1    0us : __trace_start_sched_wakeup (c01262ba 0 0)
-  IRQ_19-1479  1D..1    0us : resched_task (try_to_wake_up)
-  IRQ_19-1479  1D..1    0us : __spin_unlock_irqrestore (try_to_wake_up)
-  ...
-  <idle>-0     1...1   11us!: default_idle (cpu_idle)
-  ...
-  <idle>-0     0Dn.1  602us : smp_apic_timer_interrupt (c0103baf 1 0)
-  ...
-   <...>-5856  0D..2  618us : __switch_to (__schedule)
-   <...>-5856  0D..2  618us : __schedule <<idle>-0> (20 162)
-   <...>-5856  0D..2  619us : __spin_unlock_irq (__schedule)
-   <...>-5856  0...1  619us : trace_stop_sched_switched (__schedule)
-   <...>-5856  0D..1  619us : trace_stop_sched_switched <<...>-5856> (37 0)
-
-what is visible in this trace is that CPU#1 ran try_to_wake_up() for
-PID:5856, it placed PID:5856 on CPU#0's runqueue and ran resched_task()
-for CPU#0. But it decided to not send an IPI that no CPU - due to
-TS_POLLING. But CPU#0 never woke up after its NEED_RESCHED bit was set,
-and only rescheduled to PID:5856 upon the next lapic timer IRQ. The
-result was a 600+ usecs latency and a missed wakeup!
-
-the bug turned out to be an idle-wakeup bug introduced into the mainline
-kernel this summer via an optimization in the x86_64 tree:
-
-    commit 495ab9c045e1b0e5c82951b762257fe1c9d81564
-    Author: Andi Kleen <ak@suse.de>
-    Date:   Mon Jun 26 13:59:11 2006 +0200
-
-    [PATCH] i386/x86-64/ia64: Move polling flag into thread_info_status
-
-    During some profiling I noticed that default_idle causes a lot of
-    memory traffic. I think that is caused by the atomic operations
-    to clear/set the polling flag in thread_info. There is actually
-    no reason to make this atomic - only the idle thread does it
-    to itself, other CPUs only read it. So I moved it into ti->status.
-
-the problem is this type of change:
-
-        if (!hlt_counter && boot_cpu_data.hlt_works_ok) {
--               clear_thread_flag(TIF_POLLING_NRFLAG);
-+               current_thread_info()->status &= ~TS_POLLING;
-                smp_mb__after_clear_bit();
-                while (!need_resched()) {
-                        local_irq_disable();
-
-this changes clear_thread_flag() to an explicit clearing of TS_POLLING.
-clear_thread_flag() is defined as:
-
-        clear_bit(flag, &ti->flags);
-
-and clear_bit() is a LOCK-ed atomic instruction on all x86 platforms:
-
-  static inline void clear_bit(int nr, volatile unsigned long * addr)
-  {
-          __asm__ __volatile__( LOCK_PREFIX
-                  "btrl %1,%0"
-
-hence smp_mb__after_clear_bit() is defined as a simple compile barrier:
-
-  #define smp_mb__after_clear_bit()       barrier()
-
-but the explicit TS_POLLING clearing introduced by the patch:
-
-+               current_thread_info()->status &= ~TS_POLLING;
-
-is not an atomic op! So the clearing of the TS_POLLING bit is freely
-reorderable with the reading of the NEED_RESCHED bit - and both now
-reside in different memory addresses.
-
-CPU idle wakeup very much depends on ordered memory ops, the clearing of
-the TS_POLLING flag must always be done before we test need_resched()
-and hit the idle instruction(s). [Symmetrically, the wakeup code needs
-to set NEED_RESCHED before it tests the TS_POLLING flag, so memory
-ordering is paramount.]
-
-Fernando's dual-core Athlon64 system has a sufficiently advanced memory
-ordering model so that it triggered this scenario very often.
-
-( And it also turned out that the reason why these latencies never
-  triggered on my testsystems is that i routinely use idle=poll, which
-  was the only idle variant not affected by this bug. )
-
-The fix is to change the smp_mb__after_clear_bit() to an smp_mb(), to
-act as an absolute barrier between the TS_POLLING write and the
-NEED_RESCHED read. This affects almost all idling methods (default,
-ACPI, APM), on all 3 x86 architectures: i386, x86_64, ia64.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Tested-by: Fernando Lopez-Lezcano <nando@ccrma.Stanford.EDU>
+Signed-off-by: Eric Anholt <eric@anholt.net>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/apm.c        |    6 +++++-
- arch/i386/kernel/process.c    |    7 ++++++-
- arch/ia64/kernel/process.c    |   10 ++++++++--
- arch/x86_64/kernel/process.c  |    6 +++++-
- drivers/acpi/processor_idle.c |   12 ++++++++++--
- 5 files changed, 34 insertions(+), 7 deletions(-)
+ drivers/char/agp/agp.h       |    4 +
+ drivers/char/agp/intel-agp.c |  110 +++++++++++++++++----------------
+ 2 files changed, 62 insertions(+), 52 deletions(-)
 
-diff -puN arch/i386/kernel/apm.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code arch/i386/kernel/apm.c
---- a/arch/i386/kernel/apm.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code
-+++ a/arch/i386/kernel/apm.c
-@@ -785,7 +785,11 @@ static int apm_do_idle(void)
- 	polling = !!(current_thread_info()->status & TS_POLLING);
- 	if (polling) {
- 		current_thread_info()->status &= ~TS_POLLING;
--		smp_mb__after_clear_bit();
-+		/*
-+		 * TS_POLLING-cleared state must be visible before we
-+		 * test NEED_RESCHED:
-+		 */
-+		smp_mb();
- 	}
- 	if (!need_resched()) {
- 		idled = 1;
-diff -puN arch/i386/kernel/process.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code arch/i386/kernel/process.c
---- a/arch/i386/kernel/process.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code
-+++ a/arch/i386/kernel/process.c
-@@ -102,7 +102,12 @@ void default_idle(void)
- {
- 	if (!hlt_counter && boot_cpu_data.hlt_works_ok) {
- 		current_thread_info()->status &= ~TS_POLLING;
--		smp_mb__after_clear_bit();
-+		/*
-+		 * TS_POLLING-cleared state must be visible before we
-+		 * test NEED_RESCHED:
-+		 */
-+		smp_mb();
+diff -puN drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/agp.h
+--- a/drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
++++ a/drivers/char/agp/agp.h
+@@ -225,6 +225,10 @@ struct agp_bridge_data {
+ #define I810_GMS_DISABLE	0x00000000
+ #define I810_PGETBL_CTL		0x2020
+ #define I810_PGETBL_ENABLED	0x00000001
++#define I965_PGETBL_SIZE_MASK	0x0000000e
++#define I965_PGETBL_SIZE_512KB	(0 << 1)
++#define I965_PGETBL_SIZE_256KB	(1 << 1)
++#define I965_PGETBL_SIZE_128KB	(2 << 1)
+ #define I810_DRAM_CTL		0x3000
+ #define I810_DRAM_ROW_0		0x00000001
+ #define I810_DRAM_ROW_0_SDRAM	0x00000001
+diff -puN drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
++++ a/drivers/char/agp/intel-agp.c
+@@ -370,6 +370,11 @@ static struct _intel_i830_private {
+ 	struct pci_dev *i830_dev;		/* device one */
+ 	volatile u8 __iomem *registers;
+ 	volatile u32 __iomem *gtt;		/* I915G */
++	/* gtt_entries is the number of gtt entries that are already mapped
++	 * to stolen memory.  Stolen memory is larger than the memory mapped
++	 * through gtt_entries, as it includes some reserved space for the BIOS
++	 * popup and for the GTT.
++	 */
+ 	int gtt_entries;
+ } intel_i830_private;
+ 
+@@ -380,14 +385,41 @@ static void intel_i830_init_gtt_entries(
+ 	u8 rdct;
+ 	int local = 0;
+ 	static const int ddt[4] = { 0, 16, 32, 64 };
+-	int size;
++	int size; /* reserved space (in kb) at the top of stolen memory */
+ 
+ 	pci_read_config_word(agp_bridge->dev,I830_GMCH_CTRL,&gmch_ctrl);
+ 
+-	/* We obtain the size of the GTT, which is also stored (for some
+-	 * reason) at the top of stolen memory. Then we add 4KB to that
+-	 * for the video BIOS popup, which is also stored in there. */
+-	size = agp_bridge->driver->fetch_size() + 4;
++	if (IS_I965) {
++		u32 pgetbl_ctl;
 +
- 		local_irq_disable();
- 		if (!need_resched())
- 			safe_halt();	/* enables interrupts racelessly */
-diff -puN arch/ia64/kernel/process.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code arch/ia64/kernel/process.c
---- a/arch/ia64/kernel/process.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code
-+++ a/arch/ia64/kernel/process.c
-@@ -268,10 +268,16 @@ cpu_idle (void)
- 
- 	/* endless idle loop with no priority at all */
- 	while (1) {
--		if (can_do_pal_halt)
-+		if (can_do_pal_halt) {
- 			current_thread_info()->status &= ~TS_POLLING;
--		else
-+			/*
-+			 * TS_POLLING-cleared state must be visible before we
-+			 * test NEED_RESCHED:
-+			 */
-+			smp_mb();
-+		} else {
- 			current_thread_info()->status |= TS_POLLING;
-+		}
- 
- 		if (!need_resched()) {
- 			void (*idle)(void);
-diff -puN arch/x86_64/kernel/process.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code arch/x86_64/kernel/process.c
---- a/arch/x86_64/kernel/process.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code
-+++ a/arch/x86_64/kernel/process.c
-@@ -109,7 +109,11 @@ void exit_idle(void)
- static void default_idle(void)
- {
- 	current_thread_info()->status &= ~TS_POLLING;
--	smp_mb__after_clear_bit();
-+	/*
-+	 * TS_POLLING-cleared state must be visible before we
-+	 * test NEED_RESCHED:
-+	 */
-+	smp_mb();
- 	local_irq_disable();
- 	if (!need_resched()) {
- 		/* Enables interrupts one instruction before HLT.
-diff -puN drivers/acpi/processor_idle.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~sched-fix-bad-missed-wakeups-in-the-i386-x86_64-ia64-acpi-and-apm-idle-code
-+++ a/drivers/acpi/processor_idle.c
-@@ -211,7 +211,11 @@ acpi_processor_power_activate(struct acp
- static void acpi_safe_halt(void)
- {
- 	current_thread_info()->status &= ~TS_POLLING;
--	smp_mb__after_clear_bit();
-+	/*
-+	 * TS_POLLING-cleared state must be visible before we
-+	 * test NEED_RESCHED:
-+	 */
-+	smp_mb();
- 	if (!need_resched())
- 		safe_halt();
- 	current_thread_info()->status |= TS_POLLING;
-@@ -345,7 +349,11 @@ static void acpi_processor_idle(void)
- 	 */
- 	if (cx->type == ACPI_STATE_C2 || cx->type == ACPI_STATE_C3) {
- 		current_thread_info()->status &= ~TS_POLLING;
--		smp_mb__after_clear_bit();
-+		/*
-+		 * TS_POLLING-cleared state must be visible before we
-+		 * test NEED_RESCHED:
++		pci_read_config_dword(agp_bridge->dev, I810_PGETBL_CTL,
++				      &pgetbl_ctl);
++		/* The 965 has a field telling us the size of the GTT,
++		 * which may be larger than what is necessary to map the
++		 * aperture.
 +		 */
-+		smp_mb();
- 		if (need_resched()) {
- 			current_thread_info()->status |= TS_POLLING;
- 			local_irq_enable();
++		switch (pgetbl_ctl & I965_PGETBL_SIZE_MASK) {
++		case I965_PGETBL_SIZE_128KB:
++			size = 128;
++			break;
++		case I965_PGETBL_SIZE_256KB:
++			size = 256;
++			break;
++		case I965_PGETBL_SIZE_512KB:
++			size = 512;
++			break;
++		default:
++			printk(KERN_INFO PFX "Unknown page table size, "
++			       "assuming 512KB\n");
++			size = 512;
++		}
++		size += 4; /* add in BIOS popup space */
++	} else {
++		/* On previous hardware, the GTT size was just what was
++		 * required to map the aperture.
++		 */
++		size = agp_bridge->driver->fetch_size() + 4;
++	}
+ 
+ 	if (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82830_HB ||
+ 	    agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82845G_HB) {
+@@ -743,22 +775,27 @@ static int intel_i915_remove_entries(str
+ 	return 0;
+ }
+ 
+-static int intel_i915_fetch_size(void)
++/* Return the aperture size by just checking the resource length.  The effect
++ * described in the spec of the MSAC registers is just changing of the
++ * resource size.
++ */
++static int intel_i9xx_fetch_size(void)
+ {
+-	struct aper_size_info_fixed *values;
+-	u32 temp, offset;
++	int num_sizes = sizeof(intel_i830_sizes) / sizeof(*intel_i830_sizes);
++	int aper_size; /* size in megabytes */
++	int i;
+ 
+-#define I915_256MB_ADDRESS_MASK (1<<27)
++	aper_size = pci_resource_len(intel_i830_private.i830_dev, 2) / MB(1);
+ 
+-	values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
++	for (i = 0; i < num_sizes; i++) {
++		if (aper_size == intel_i830_sizes[i].size) {
++			agp_bridge->current_size = intel_i830_sizes + i;
++			agp_bridge->previous_size = agp_bridge->current_size;
++			return aper_size;
++		}
++	}
+ 
+-	pci_read_config_dword(intel_i830_private.i830_dev, I915_GMADDR, &temp);
+-	if (temp & I915_256MB_ADDRESS_MASK)
+-		offset = 0;	/* 128MB aperture */
+-	else
+-		offset = 2;	/* 256MB aperture */
+-	agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
+-	return values[offset].size;
++	return 0;
+ }
+ 
+ /* The intel i915 automatically initializes the agp aperture during POST.
+@@ -821,40 +858,9 @@ static unsigned long intel_i965_mask_mem
+ 	return addr | bridge->driver->masks[type].mask;
+ }
+ 
+-static int intel_i965_fetch_size(void)
+-{
+-       struct aper_size_info_fixed *values;
+-       u32 offset = 0;
+-       u8 temp;
+-
+-#define I965_512MB_ADDRESS_MASK (3<<1)
+-
+-       values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
+-
+-       pci_read_config_byte(intel_i830_private.i830_dev, I965_MSAC, &temp);
+-       temp &= I965_512MB_ADDRESS_MASK;
+-       switch (temp) {
+-       case 0x00:
+-               offset = 0; /* 128MB */
+-               break;
+-       case 0x06:
+-               offset = 3; /* 512MB */
+-               break;
+-       default:
+-       case 0x02:
+-               offset = 2; /* 256MB */
+-               break;
+-       }
+-
+-       agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
+-
+-	/* The i965 GTT is always sized as if it had a 512kB aperture size */
+-	return 512;
+-}
+-
+ /* The intel i965 automatically initializes the agp aperture during POST.
+-+ * Use the memory already set aside for in the GTT.
+-+ */
++ * Use the memory already set aside for in the GTT.
++ */
+ static int intel_i965_create_gatt_table(struct agp_bridge_data *bridge)
+ {
+        int page_order;
+@@ -1574,7 +1580,7 @@ static struct agp_bridge_driver intel_91
+ 	.num_aperture_sizes	= 4,
+ 	.needs_scratch_page	= TRUE,
+ 	.configure		= intel_i915_configure,
+-	.fetch_size		= intel_i915_fetch_size,
++	.fetch_size		= intel_i9xx_fetch_size,
+ 	.cleanup		= intel_i915_cleanup,
+ 	.tlb_flush		= intel_i810_tlbflush,
+ 	.mask_memory		= intel_i810_mask_memory,
+@@ -1598,7 +1604,7 @@ static struct agp_bridge_driver intel_i9
+        .num_aperture_sizes     = 4,
+        .needs_scratch_page     = TRUE,
+        .configure              = intel_i915_configure,
+-       .fetch_size             = intel_i965_fetch_size,
++       .fetch_size             = intel_i9xx_fetch_size,
+        .cleanup                = intel_i915_cleanup,
+        .tlb_flush              = intel_i810_tlbflush,
+        .mask_memory            = intel_i965_mask_memory,
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from eric@anholt.net are
 
 origin.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-sysrq-q-to-print-timers.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-sched-improve-efficiency-of-sched_fork-tidy.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+git-agpgart.patch
 
