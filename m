@@ -1,133 +1,64 @@
 From: akpm@osdl.org
-Subject: - fix-kernel-doc-warnings-in-2620-rc1.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:53:38 -0800
-Message-ID: <200612230753.kBN7rcjL010145@shell0.pdx.osdl.net>
+Subject: - fix-for-shmem_truncate_range-bug_on.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:53:31 -0800
+Message-ID: <200612230753.kBN7rVFn010130@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49681 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49678 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051AbWLWHyN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:54:13 -0500
+	id S1753027AbWLWHyM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, hugh@veritas.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix kernel-doc warnings in 2.6.20-rc1
+     Fix for shmem_truncate_range() BUG_ON()
 has been removed from the -mm tree.  Its filename was
-     fix-kernel-doc-warnings-in-2620-rc1.patch
+     fix-for-shmem_truncate_range-bug_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix kernel-doc warnings in 2.6.20-rc1
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Fix for shmem_truncate_range() BUG_ON()
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Fix kernel-doc warnings in 2.6.20-rc1.
+Ran into BUG() while doing madvise(REMOVE) testing.  If we are punching a
+hole into shared memory segment using madvise(REMOVE) and the entire hole
+is below the indirect blocks, we hit following assert.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+	        BUG_ON(limit <= SHMEM_NR_DIRECT);
+
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/ll_rw_blk.c              |    1 +
- drivers/base/firmware_class.c  |    1 +
- drivers/message/i2o/exec-osm.c |    2 +-
- kernel/relay.c                 |    2 +-
- kernel/workqueue.c             |    4 ++--
- mm/slab.c                      |    1 +
- 6 files changed, 7 insertions(+), 4 deletions(-)
+ mm/shmem.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN block/ll_rw_blk.c~fix-kernel-doc-warnings-in-2620-rc1 block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~fix-kernel-doc-warnings-in-2620-rc1
-+++ a/block/ll_rw_blk.c
-@@ -2453,6 +2453,7 @@ EXPORT_SYMBOL(blk_rq_map_user);
-  * @rq:		request to map data to
-  * @iov:	pointer to the iovec
-  * @iov_count:	number of elements in the iovec
-+ * @len:	I/O byte count
-  *
-  * Description:
-  *    Data will be mapped directly for zero copy io, if possible. Otherwise
-diff -puN drivers/base/firmware_class.c~fix-kernel-doc-warnings-in-2620-rc1 drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~fix-kernel-doc-warnings-in-2620-rc1
-+++ a/drivers/base/firmware_class.c
-@@ -127,6 +127,7 @@ static ssize_t firmware_loading_show(str
- /**
-  * firmware_loading_store - set value in the 'loading' control file
-  * @dev: device pointer
-+ * @attr: device attribute pointer
-  * @buf: buffer to scan for loading control value
-  * @count: number of bytes in @buf
-  *
-diff -puN drivers/message/i2o/exec-osm.c~fix-kernel-doc-warnings-in-2620-rc1 drivers/message/i2o/exec-osm.c
---- a/drivers/message/i2o/exec-osm.c~fix-kernel-doc-warnings-in-2620-rc1
-+++ a/drivers/message/i2o/exec-osm.c
-@@ -367,7 +367,7 @@ static int i2o_exec_remove(struct device
+diff -puN mm/shmem.c~fix-for-shmem_truncate_range-bug_on mm/shmem.c
+--- a/mm/shmem.c~fix-for-shmem_truncate_range-bug_on
++++ a/mm/shmem.c
+@@ -515,7 +515,12 @@ static void shmem_truncate_range(struct 
+ 			size = SHMEM_NR_DIRECT;
+ 		nr_swaps_freed = shmem_free_swp(ptr+idx, ptr+size);
+ 	}
+-	if (!topdir)
++
++	/*
++	 * If there are no indirect blocks or we are punching a hole
++	 * below indirect blocks, nothing to be done.
++	 */
++	if (!topdir || (punch_hole && (limit <= SHMEM_NR_DIRECT)))
+ 		goto done2;
  
- /**
-  *	i2o_exec_lct_modified - Called on LCT NOTIFY reply
-- *	@work: work struct for a specific controller
-+ *	@_work: work struct for a specific controller
-  *
-  *	This function handles asynchronus LCT NOTIFY replies. It parses the
-  *	new LCT and if the buffer for the LCT was to small sends a LCT NOTIFY
-diff -puN kernel/relay.c~fix-kernel-doc-warnings-in-2620-rc1 kernel/relay.c
---- a/kernel/relay.c~fix-kernel-doc-warnings-in-2620-rc1
-+++ a/kernel/relay.c
-@@ -302,7 +302,7 @@ static struct rchan_callbacks default_ch
- 
- /**
-  *	wakeup_readers - wake up readers waiting on a channel
-- *	@private: the channel buffer
-+ *	@work: work struct that contains the the channel buffer
-  *
-  *	This is the work function used to defer reader waking.  The
-  *	reason waking is deferred is that calling directly from write
-diff -puN kernel/workqueue.c~fix-kernel-doc-warnings-in-2620-rc1 kernel/workqueue.c
---- a/kernel/workqueue.c~fix-kernel-doc-warnings-in-2620-rc1
-+++ a/kernel/workqueue.c
-@@ -233,7 +233,7 @@ static void delayed_work_timer_fn(unsign
- /**
-  * queue_delayed_work - queue work on a workqueue after delay
-  * @wq: workqueue to use
-- * @work: delayable work to queue
-+ * @dwork: delayable work to queue
-  * @delay: number of jiffies to wait before queueing
-  *
-  * Returns 0 if @work was already on a queue, non-zero otherwise.
-@@ -268,7 +268,7 @@ EXPORT_SYMBOL_GPL(queue_delayed_work);
-  * queue_delayed_work_on - queue work on specific CPU after delay
-  * @cpu: CPU number to execute work on
-  * @wq: workqueue to use
-- * @work: work to queue
-+ * @dwork: work to queue
-  * @delay: number of jiffies to wait before queueing
-  *
-  * Returns 0 if @work was already on a queue, non-zero otherwise.
-diff -puN mm/slab.c~fix-kernel-doc-warnings-in-2620-rc1 mm/slab.c
---- a/mm/slab.c~fix-kernel-doc-warnings-in-2620-rc1
-+++ a/mm/slab.c
-@@ -3587,6 +3587,7 @@ out:
-  * @cachep: The cache to allocate from.
-  * @flags: See kmalloc().
-  * @nodeid: node number of the target node.
-+ * @caller: return address of caller, used for debug information
-  *
-  * Identical to kmem_cache_alloc but it will allocate memory on the given
-  * node, which can improve the performance for cpu bound structures.
+ 	BUG_ON(limit <= SHMEM_NR_DIRECT);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-git-alsa.patch
-git-cpufreq.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-parisc-fix-module_param-iommu-permission.patch
-scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
-reiser4-use-null-for-pointers.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-profile_likely-export-do_check_likely.patch
 
