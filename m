@@ -1,70 +1,104 @@
 From: akpm@osdl.org
-Subject: - conditionally-check-expected_preempt_count-in-__resched_legal.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:53:28 -0800
-Message-ID: <200612230753.kBN7rSWO010127@shell0.pdx.osdl.net>
+Subject: - genirq-fix-irq-flow-handler-uninstall.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:53:55 -0800
+Message-ID: <200612230753.kBN7rtsr010171@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49630 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49670 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752881AbWLWHxs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:53:48 -0500
+	id S1752910AbWLWHyI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:54:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.fasheh@oracle.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, mingo@elte.hu, tnt@246tNt.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Conditionally check expected_preempt_count in __resched_legal()
+     genirq: fix irq flow handler uninstall
 has been removed from the -mm tree.  Its filename was
-     conditionally-check-expected_preempt_count-in-__resched_legal.patch
+     genirq-fix-irq-flow-handler-uninstall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Conditionally check expected_preempt_count in __resched_legal()
-From: Mark Fasheh <mark.fasheh@oracle.com>
+Subject: genirq: fix irq flow handler uninstall
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Commit 2d7d253548cffdce80f4e03664686e9ccb1b0ed7 ("fix cond_resched() fix")
-introduced an 'expected_preempt_count' parameter to __resched_legal() to
-fix a bug where it was returning a false negative when called from
-cond_resched_lock() and preemption was enabled.
+The sanity check for no_irq_chip in __set_irq_hander() is unconditional on
+both install and uninstall of an handler.  This triggers false warnings and
+replaces no_irq_chip by dummy_irq_chip in the uninstall case.
 
-Unfortunately this broke things for when preemption is disabled. 
-preempt_count() will always return zero, thus failing the check against any
-value of expected_preempt_count not equal to zero.  cond_resched_lock() for
-example, passes an expected_preempt_count value of 1.
+Check only, when a real handler is installed.
 
-So fix the fix for the cond_resched() fix by skipping the check of
-preempt_count() against expected_preempt_count when preemption is disabled.
-
-Credit should go to Sunil Mushran for spotting the bug during testing.
-
-Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Sylvain Munaut <tnt@246tNt.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/irq/chip.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~conditionally-check-expected_preempt_count-in-__resched_legal kernel/sched.c
---- a/kernel/sched.c~conditionally-check-expected_preempt_count-in-__resched_legal
-+++ a/kernel/sched.c
-@@ -4619,8 +4619,10 @@ asmlinkage long sys_sched_yield(void)
+diff -puN kernel/irq/chip.c~genirq-fix-irq-flow-handler-uninstall kernel/irq/chip.c
+--- a/kernel/irq/chip.c~genirq-fix-irq-flow-handler-uninstall
++++ a/kernel/irq/chip.c
+@@ -517,8 +517,7 @@ __set_irq_handler(unsigned int irq, irq_
  
- static inline int __resched_legal(int expected_preempt_count)
- {
-+#ifdef CONFIG_PREEMPT
- 	if (unlikely(preempt_count() != expected_preempt_count))
- 		return 0;
-+#endif
- 	if (unlikely(system_state != SYSTEM_RUNNING))
- 		return 0;
- 	return 1;
+ 	if (!handle)
+ 		handle = handle_bad_irq;
+-
+-	if (desc->chip == &no_irq_chip) {
++	else if (desc->chip == &no_irq_chip) {
+ 		printk(KERN_WARNING "Trying to install %sinterrupt handler "
+ 		       "for IRQ%d\n", is_chained ? "chained " : "", irq);
+ 		/*
 _
 
-Patches currently in -mm which might be from mark.fasheh@oracle.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-git-ocfs2.patch
+git-mtd.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 
