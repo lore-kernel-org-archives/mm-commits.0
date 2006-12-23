@@ -1,78 +1,84 @@
 From: akpm@osdl.org
-Subject: - add-a-new-section-to-codingstyle-promoting-include-linux-kernelh.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:54:11 -0800
-Message-ID: <200612230754.kBN7sBsV010189@shell0.pdx.osdl.net>
+Subject: - compile-error-of-register_memory.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:54:20 -0800
+Message-ID: <200612230754.kBN7sKfF010203@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49740 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49721 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753102AbWLWHyg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:54:36 -0500
+	id S1753148AbWLWHy3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:54:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, jengelh@gmx.de, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add a new section to CodingStyle, promoting include/linux/kernel.h
+     compile error of register_memory()
 has been removed from the -mm tree.  Its filename was
-     add-a-new-section-to-codingstyle-promoting-include-linux-kernelh.patch
+     compile-error-of-register_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add a new section to CodingStyle, promoting include/linux/kernel.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: compile error of register_memory()
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Add a new section to the CodingStyle file, encouraging people not to
-re-invent available kernel macros such as ARRAY_SIZE(), FIELD_SIZEOF(),
-min() and max(), among others.
+register_memory() becomes double definition in 2.6.20-rc1.  It is defined
+in arch/i386/kernel/setup.c as static definition in 2.6.19.  But it is
+moved to arch/i386/kernel/e820.c in 2.6.20-rc1.  And same name function is
+defined in driver/base/memory.c too.  So, it becomes cause of compile error
+of duplicate definition if memory hotplug option is on.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Jan Engelhardt <jengelh@gmx.de>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/CodingStyle |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ arch/i386/kernel/e820.c  |    2 +-
+ arch/i386/kernel/setup.c |    2 +-
+ include/asm-i386/e820.h  |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/CodingStyle~add-a-new-section-to-codingstyle-promoting-include-linux-kernelh Documentation/CodingStyle
---- a/Documentation/CodingStyle~add-a-new-section-to-codingstyle-promoting-include-linux-kernelh
-+++ a/Documentation/CodingStyle
-@@ -682,6 +682,24 @@ result.  Typical examples would be funct
- NULL or the ERR_PTR mechanism to report failure.
+diff -puN arch/i386/kernel/e820.c~compile-error-of-register_memory arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~compile-error-of-register_memory
++++ a/arch/i386/kernel/e820.c
+@@ -668,7 +668,7 @@ void __init register_bootmem_low_pages(u
+ 	}
+ }
  
+-void __init register_memory(void)
++void __init e820_register_memory(void)
+ {
+ 	unsigned long gapstart, gapsize, round;
+ 	unsigned long long last;
+diff -puN arch/i386/kernel/setup.c~compile-error-of-register_memory arch/i386/kernel/setup.c
+--- a/arch/i386/kernel/setup.c~compile-error-of-register_memory
++++ a/arch/i386/kernel/setup.c
+@@ -639,7 +639,7 @@ void __init setup_arch(char **cmdline_p)
+ 		get_smp_config();
+ #endif
  
-+		Chapter 17:  Don't re-invent the kernel macros
-+
-+The header file include/linux/kernel.h contains a number of macros that
-+you should use, rather than explicitly coding some variant of them yourself.
-+For example, if you need to calculate the length of an array, take advantage
-+of the macro
-+
-+  #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-+
-+Similarly, if you need to calculate the size of some structure member, use
-+
-+  #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
-+
-+There are also min() and max() macros that do strict type checking if you
-+need them.  Feel free to peruse that header file to see what else is already
-+defined that you shouldn't reproduce in your code.
-+
-+
+-	register_memory();
++	e820_register_memory();
  
- 		Appendix I: References
+ #ifdef CONFIG_VT
+ #if defined(CONFIG_VGA_CONSOLE)
+diff -puN include/asm-i386/e820.h~compile-error-of-register_memory include/asm-i386/e820.h
+--- a/include/asm-i386/e820.h~compile-error-of-register_memory
++++ a/include/asm-i386/e820.h
+@@ -40,7 +40,7 @@ extern int e820_all_mapped(unsigned long
+ 			   unsigned type);
+ extern void find_max_pfn(void);
+ extern void register_bootmem_low_pages(unsigned long max_low_pfn);
+-extern void register_memory(void);
++extern void e820_register_memory(void);
+ extern void limit_regions(unsigned long long size);
+ extern void print_memory_map(char *who);
  
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
 
