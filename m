@@ -1,136 +1,158 @@
 From: akpm@osdl.org
-Subject: - lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:54:06 -0800
-Message-ID: <200612230754.kBN7s6uR010183@shell0.pdx.osdl.net>
+Subject: - mm-more-rmap-debugging.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:54:16 -0800
+Message-ID: <200612230754.kBN7sGDY010197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49683 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49700 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753054AbWLWHyN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:54:13 -0500
+	id S1753084AbWLWHyU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:54:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, matthew@wil.cx, mm-commits@vger.kernel.org
+To: nickpiggin@yahoo.com.au, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lock debugging: fix DEBUG_LOCKS_WARN_ON() & debug_locks_silent
+     mm: more rmap debugging
 has been removed from the -mm tree.  Its filename was
-     lock-debugging-fix-debug_locks_warn_on-debug_locks_silent.patch
+     mm-more-rmap-debugging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lock debugging: fix DEBUG_LOCKS_WARN_ON() & debug_locks_silent
-From: Ingo Molnar <mingo@elte.hu>
+Subject: mm: more rmap debugging
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-Matthew Wilcox noticed that the debug_locks_silent use should be inverted
-in DEBUG_LOCKS_WARN_ON().  This bug was causing spurious stacktraces and
-incorrect failures in the locking self-test on the parisc kernel.
+Add more debugging in the rmap code in an attempt to locate to source of
+the occasional "mapcount went negative" assertions.
 
-Bug-found-by: Matthew Wilcox <matthew@wil.cx>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/debug_locks.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |    2 +-
+ mm/filemap_xip.c     |    2 +-
+ mm/fremap.c          |    2 +-
+ mm/memory.c          |    4 ++--
+ mm/rmap.c            |   13 ++++++++++---
+ 5 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/debug_locks.h~lock-debugging-fix-debug_locks_warn_on-debug_locks_silent include/linux/debug_locks.h
---- a/include/linux/debug_locks.h~lock-debugging-fix-debug_locks_warn_on-debug_locks_silent
-+++ a/include/linux/debug_locks.h
-@@ -24,7 +24,7 @@ extern int debug_locks_off(void);
- 	int __ret = 0;							\
- 									\
- 	if (unlikely(c)) {						\
--		if (debug_locks_silent || debug_locks_off())		\
-+		if (debug_locks_off() && !debug_locks_silent)		\
- 			WARN_ON(1);					\
- 		__ret = 1;						\
- 	}								\
+diff -puN include/linux/rmap.h~mm-more-rmap-debugging include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-more-rmap-debugging
++++ a/include/linux/rmap.h
+@@ -72,7 +72,7 @@ void __anon_vma_link(struct vm_area_stru
+ void page_add_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
+ void page_add_new_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
+ void page_add_file_rmap(struct page *);
+-void page_remove_rmap(struct page *);
++void page_remove_rmap(struct page *, struct vm_area_struct *);
+ 
+ /**
+  * page_dup_rmap - duplicate pte mapping to a page
+diff -puN mm/filemap_xip.c~mm-more-rmap-debugging mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-more-rmap-debugging
++++ a/mm/filemap_xip.c
+@@ -189,7 +189,7 @@ __xip_unmap (struct address_space * mapp
+ 			/* Nuke the page table entry. */
+ 			flush_cache_page(vma, address, pte_pfn(*pte));
+ 			pteval = ptep_clear_flush(vma, address, pte);
+-			page_remove_rmap(page);
++			page_remove_rmap(page, vma);
+ 			dec_mm_counter(mm, file_rss);
+ 			BUG_ON(pte_dirty(pteval));
+ 			pte_unmap_unlock(pte, ptl);
+diff -puN mm/fremap.c~mm-more-rmap-debugging mm/fremap.c
+--- a/mm/fremap.c~mm-more-rmap-debugging
++++ a/mm/fremap.c
+@@ -33,7 +33,7 @@ static int zap_pte(struct mm_struct *mm,
+ 		if (page) {
+ 			if (pte_dirty(pte))
+ 				set_page_dirty(page);
+-			page_remove_rmap(page);
++			page_remove_rmap(page, vma);
+ 			page_cache_release(page);
+ 		}
+ 	} else {
+diff -puN mm/memory.c~mm-more-rmap-debugging mm/memory.c
+--- a/mm/memory.c~mm-more-rmap-debugging
++++ a/mm/memory.c
+@@ -681,7 +681,7 @@ static unsigned long zap_pte_range(struc
+ 					mark_page_accessed(page);
+ 				file_rss--;
+ 			}
+-			page_remove_rmap(page);
++			page_remove_rmap(page, vma);
+ 			tlb_remove_page(tlb, page);
+ 			continue;
+ 		}
+@@ -1586,7 +1586,7 @@ gotten:
+ 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	if (likely(pte_same(*page_table, orig_pte))) {
+ 		if (old_page) {
+-			page_remove_rmap(old_page);
++			page_remove_rmap(old_page, vma);
+ 			if (!PageAnon(old_page)) {
+ 				dec_mm_counter(mm, file_rss);
+ 				inc_mm_counter(mm, anon_rss);
+diff -puN mm/rmap.c~mm-more-rmap-debugging mm/rmap.c
+--- a/mm/rmap.c~mm-more-rmap-debugging
++++ a/mm/rmap.c
+@@ -47,6 +47,7 @@
+ #include <linux/rmap.h>
+ #include <linux/rcupdate.h>
+ #include <linux/module.h>
++#include <linux/kallsyms.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -567,14 +568,20 @@ void page_add_file_rmap(struct page *pag
+  *
+  * The caller needs to hold the pte lock.
+  */
+-void page_remove_rmap(struct page *page)
++void page_remove_rmap(struct page *page, struct vm_area_struct *vma)
+ {
+ 	if (atomic_add_negative(-1, &page->_mapcount)) {
+ 		if (unlikely(page_mapcount(page) < 0)) {
+ 			printk (KERN_EMERG "Eeek! page_mapcount(page) went negative! (%d)\n", page_mapcount(page));
++			printk (KERN_EMERG "  page pfn = %lx\n", page_to_pfn(page));
+ 			printk (KERN_EMERG "  page->flags = %lx\n", page->flags);
+ 			printk (KERN_EMERG "  page->count = %x\n", page_count(page));
+ 			printk (KERN_EMERG "  page->mapping = %p\n", page->mapping);
++			print_symbol (KERN_EMERG "  vma->vm_ops = %s\n", (unsigned long)vma->vm_ops);
++			if (vma->vm_ops)
++				print_symbol (KERN_EMERG "  vma->vm_ops->nopage = %s\n", (unsigned long)vma->vm_ops->nopage);
++			if (vma->vm_file && vma->vm_file->f_op)
++				print_symbol (KERN_EMERG "  vma->vm_file->f_op->mmap = %s\n", (unsigned long)vma->vm_file->f_op->mmap);
+ 			BUG();
+ 		}
+ 
+@@ -679,7 +686,7 @@ static int try_to_unmap_one(struct page 
+ 		dec_mm_counter(mm, file_rss);
+ 
+ 
+-	page_remove_rmap(page);
++	page_remove_rmap(page, vma);
+ 	page_cache_release(page);
+ 
+ out_unmap:
+@@ -769,7 +776,7 @@ static void try_to_unmap_cluster(unsigne
+ 		if (pte_dirty(pteval))
+ 			set_page_dirty(page);
+ 
+-		page_remove_rmap(page);
++		page_remove_rmap(page, vma);
+ 		page_cache_release(page);
+ 		dec_mm_counter(mm, file_rss);
+ 		(*mapcount)--;
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
 origin.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
 cpuset-remove-sched-domain-hooks-from-cpusets.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-sysrq-q-to-print-timers.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-sched-improve-efficiency-of-sched_fork-tidy.patch
 mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+sched2-sched-domain-sysctl.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 
