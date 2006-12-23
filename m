@@ -1,48 +1,66 @@
 From: akpm@osdl.org
-Subject: - make-kernel-printkcignore_loglevel_setup-static.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:53:40 -0800
-Message-ID: <200612230753.kBN7reTX010148@shell0.pdx.osdl.net>
+Subject: - fs-sysv-proper-prototypes-for-2-functions.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:53:42 -0800
+Message-ID: <200612230753.kBN7rgTw010151@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49942 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49950 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752910AbWLWH4y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:56:54 -0500
+	id S1752881AbWLWH5E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:57:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make kernel/printk.c:ignore_loglevel_setup() static
+     fs/sysv/: proper prototypes for 2 functions
 has been removed from the -mm tree.  Its filename was
-     make-kernel-printkcignore_loglevel_setup-static.patch
+     fs-sysv-proper-prototypes-for-2-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make kernel/printk.c:ignore_loglevel_setup() static
+Subject: fs/sysv/: proper prototypes for 2 functions
 From: Adrian Bunk <bunk@stusta.de>
 
+Add proper prototypes for sysv_{init,destroy}_icache() in sysv.h
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/sysv/super.c |    3 ---
+ fs/sysv/sysv.h  |    3 +++
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/printk.c~make-kernel-printkcignore_loglevel_setup-static kernel/printk.c
---- a/kernel/printk.c~make-kernel-printkcignore_loglevel_setup-static
-+++ a/kernel/printk.c
-@@ -335,7 +335,7 @@ static void __call_console_drivers(unsig
+diff -puN fs/sysv/super.c~fs-sysv-proper-prototypes-for-2-functions fs/sysv/super.c
+--- a/fs/sysv/super.c~fs-sysv-proper-prototypes-for-2-functions
++++ a/fs/sysv/super.c
+@@ -528,9 +528,6 @@ static struct file_system_type v7_fs_typ
+ 	.fs_flags	= FS_REQUIRES_DEV,
+ };
  
- static int __read_mostly ignore_loglevel;
- 
--int __init ignore_loglevel_setup(char *str)
-+static int __init ignore_loglevel_setup(char *str)
+-extern int sysv_init_icache(void) __init;
+-extern void sysv_destroy_icache(void);
+-
+ static int __init init_sysv_fs(void)
  {
- 	ignore_loglevel = 1;
- 	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
+ 	int error;
+diff -puN fs/sysv/sysv.h~fs-sysv-proper-prototypes-for-2-functions fs/sysv/sysv.h
+--- a/fs/sysv/sysv.h~fs-sysv-proper-prototypes-for-2-functions
++++ a/fs/sysv/sysv.h
+@@ -143,6 +143,9 @@ extern int sysv_sync_inode(struct inode 
+ extern int sysv_sync_file(struct file *, struct dentry *, int);
+ extern void sysv_set_inode(struct inode *, dev_t);
+ extern int sysv_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int sysv_init_icache(void);
++extern void sysv_destroy_icache(void);
++
+ 
+ /* dir.c */
+ extern struct sysv_dir_entry *sysv_find_entry(struct dentry *, struct page **);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
