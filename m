@@ -1,117 +1,204 @@
 From: akpm@osdl.org
-Subject: - fs-sysv-proper-prototypes-for-2-functions.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:53:42 -0800
-Message-ID: <200612230753.kBN7rgTw010151@shell0.pdx.osdl.net>
+Subject: - relay-remove-inlining.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:54:57 -0800
+Message-ID: <200612230754.kBN7svoQ010254@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49950 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50052 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752881AbWLWH5E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:57:04 -0500
+	id S1752532AbWLWH6V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:58:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, mathieu.desnoyers@polymtl.ca, zanussi@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/sysv/: proper prototypes for 2 functions
+     relay: remove inlining
 has been removed from the -mm tree.  Its filename was
-     fs-sysv-proper-prototypes-for-2-functions.patch
+     relay-remove-inlining.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/sysv/: proper prototypes for 2 functions
-From: Adrian Bunk <bunk@stusta.de>
+Subject: relay: remove inlining
+From: Andrew Morton <akpm@osdl.org>
 
-Add proper prototypes for sysv_{init,destroy}_icache() in sysv.h
+          text    data     bss     dec     hex filename
+before:   4036      44       0    4080     ff0 kernel/relay.o
+after:    3727      44       0    3771     ebb kernel/relay.o
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/sysv/super.c |    3 ---
- fs/sysv/sysv.h  |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/relay.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN fs/sysv/super.c~fs-sysv-proper-prototypes-for-2-functions fs/sysv/super.c
---- a/fs/sysv/super.c~fs-sysv-proper-prototypes-for-2-functions
-+++ a/fs/sysv/super.c
-@@ -528,9 +528,6 @@ static struct file_system_type v7_fs_typ
- 	.fs_flags	= FS_REQUIRES_DEV,
- };
- 
--extern int sysv_init_icache(void) __init;
--extern void sysv_destroy_icache(void);
--
- static int __init init_sysv_fs(void)
+diff -puN kernel/relay.c~relay-remove-inlining kernel/relay.c
+--- a/kernel/relay.c~relay-remove-inlining
++++ a/kernel/relay.c
+@@ -322,7 +322,7 @@ static void wakeup_readers(struct work_s
+  *
+  *	See relay_reset for description of effect.
+  */
+-static inline void __relay_reset(struct rchan_buf *buf, unsigned int init)
++static void __relay_reset(struct rchan_buf *buf, unsigned int init)
  {
- 	int error;
-diff -puN fs/sysv/sysv.h~fs-sysv-proper-prototypes-for-2-functions fs/sysv/sysv.h
---- a/fs/sysv/sysv.h~fs-sysv-proper-prototypes-for-2-functions
-+++ a/fs/sysv/sysv.h
-@@ -143,6 +143,9 @@ extern int sysv_sync_inode(struct inode 
- extern int sysv_sync_file(struct file *, struct dentry *, int);
- extern void sysv_set_inode(struct inode *, dev_t);
- extern int sysv_getattr(struct vfsmount *, struct dentry *, struct kstat *);
-+extern int sysv_init_icache(void);
-+extern void sysv_destroy_icache(void);
-+
+ 	size_t i;
  
- /* dir.c */
- extern struct sysv_dir_entry *sysv_find_entry(struct dentry *, struct page **);
+@@ -418,7 +418,7 @@ static struct rchan_buf *relay_open_buf(
+  *	The channel buffer and channel buffer data structure are then freed
+  *	automatically when the last reference is given up.
+  */
+-static inline void relay_close_buf(struct rchan_buf *buf)
++static void relay_close_buf(struct rchan_buf *buf)
+ {
+ 	buf->finalized = 1;
+ 	cancel_delayed_work(&buf->wake_readers);
+@@ -426,7 +426,7 @@ static inline void relay_close_buf(struc
+ 	kref_put(&buf->kref, relay_remove_buf);
+ }
+ 
+-static inline void setup_callbacks(struct rchan *chan,
++static void setup_callbacks(struct rchan *chan,
+ 				   struct rchan_callbacks *cb)
+ {
+ 	if (!cb) {
+@@ -946,11 +946,10 @@ typedef int (*subbuf_actor_t) (size_t re
+ /*
+  *	relay_file_read_subbufs - read count bytes, bridging subbuf boundaries
+  */
+-static inline ssize_t relay_file_read_subbufs(struct file *filp,
+-					      loff_t *ppos,
+-					      subbuf_actor_t subbuf_actor,
+-					      read_actor_t actor,
+-					      read_descriptor_t *desc)
++static ssize_t relay_file_read_subbufs(struct file *filp, loff_t *ppos,
++					subbuf_actor_t subbuf_actor,
++					read_actor_t actor,
++					read_descriptor_t *desc)
+ {
+ 	struct rchan_buf *buf = filp->private_data;
+ 	size_t read_start, avail;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
 git-dvb.patch
 git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input.patch
+git-libata-all.patch
+git-libata-all-fixup.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
 git-mtd.patch
-remove-the-broken-skmc-driver.patch
-net-irda-proper-prototypes.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-make-qla2x00_reg_remote_port-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-usb_rtl8150-must-select-mii.patch
-arch-i386-kernel-e820c-should-include-asm-setuph.patch
-arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch
-lumpy-reclaim-cleanup.patch
-remove-drivers-pci-searchcpci_find_device_reverse.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-toshiba-tc86c001-ide-driver-take-2-fix.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+driver-for-silan-sc92031-netdev.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+git-wireless.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
 toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-gtod-persistent-clock-support-core.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
 gtod-persistent-clock-support-i386.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
 clockevents-i386-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+sched-improve-efficiency-of-sched_fork-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
