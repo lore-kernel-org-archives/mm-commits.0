@@ -1,111 +1,94 @@
 From: akpm@osdl.org
-Subject: - fix-aoe-without-scatter-gather.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:54:13 -0800
-Message-ID: <200612230754.kBN7sDXn010192@shell0.pdx.osdl.net>
+Subject: - kernel-doc-allow-unnamed-structs-unions.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:54:41 -0800
+Message-ID: <200612230754.kBN7sfou010233@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49788 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49790 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753239AbWLWHy6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:54:58 -0500
+	id S1753262AbWLWHy7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:54:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, boddingt@optusnet.com.au, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix aoe without scatter-gather [Bug 7662]
+     kernel-doc: allow unnamed structs/unions
 has been removed from the -mm tree.  Its filename was
-     fix-aoe-without-scatter-gather.patch
+     kernel-doc-allow-unnamed-structs-unions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix aoe without scatter-gather [Bug 7662]
-From: "Ed L. Cashin" <ecashin@coraid.com>
+Subject: kernel-doc: allow unnamed structs/unions
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix a bug that only appears when AoE goes over a network card that does not
-support scatter-gather.  The headers in the linear part of the skb appeared
-to be larger than they really were, resulting in data that was offset by 24
-bytes.
+Make kernel-doc support unnamed (anonymous) structs and unions.  There is
+one (union) in include/linux/skbuff.h (inside struct sk_buff) that is
+currently generating a kernel-doc warning, so this fixes that warning.
 
-This patch eliminates the offset data on cards that don't support
-scatter-gather or have had scatter-gather turned off.  There remains an
-unrelated issue that I'll address in a separate email.
-
-Fixes bugzilla #7662
-
-Signed-off-by: "Ed L. Cashin" <ecashin@coraid.com>
-Cc: <stable@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: <boddingt@optusnet.com.au>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ scripts/kernel-doc |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~fix-aoe-without-scatter-gather drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~fix-aoe-without-scatter-gather
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -30,8 +30,6 @@ new_skb(ulong len)
- 		skb->nh.raw = skb->mac.raw = skb->data;
- 		skb->protocol = __constant_htons(ETH_P_AOE);
- 		skb->priority = 0;
--		skb_put(skb, len);
--		memset(skb->head, 0, len);
- 		skb->next = skb->prev = NULL;
+diff -puN scripts/kernel-doc~kernel-doc-allow-unnamed-structs-unions scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-allow-unnamed-structs-unions
++++ a/scripts/kernel-doc
+@@ -1469,6 +1469,7 @@ sub push_parameter($$$) {
+ 	my $param = shift;
+ 	my $type = shift;
+ 	my $file = shift;
++	my $anon = 0;
  
- 		/* tell the network layer not to perform IP checksums
-@@ -122,8 +120,8 @@ aoecmd_ata_rw(struct aoedev *d, struct f
- 	skb = f->skb;
- 	h = (struct aoe_hdr *) skb->mac.raw;
- 	ah = (struct aoe_atahdr *) (h+1);
--	skb->len = sizeof *h + sizeof *ah;
--	memset(h, 0, ETH_ZLEN);
-+	skb_put(skb, sizeof *h + sizeof *ah);
-+	memset(h, 0, skb->len);
- 	f->tag = aoehdr_atainit(d, h);
- 	f->waited = 0;
- 	f->buf = buf;
-@@ -149,7 +147,6 @@ aoecmd_ata_rw(struct aoedev *d, struct f
- 		skb->len += bcnt;
- 		skb->data_len = bcnt;
- 	} else {
--		skb->len = ETH_ZLEN;
- 		writebit = 0;
+ 	my $param_name = $param;
+ 	$param_name =~ s/\[.*//;
+@@ -1484,9 +1485,20 @@ sub push_parameter($$$) {
+ 	    $param="void";
+ 	    $parameterdescs{void} = "no arguments";
  	}
++	elsif ($type eq "" && ($param eq "struct" or $param eq "union"))
++	# handle unnamed (anonymous) union or struct:
++	{
++		$type = $param;
++		$param = "{unnamed_" . $param. "}";
++		$parameterdescs{$param} = "anonymous\n";
++		$anon = 1;
++	}
++
+ 	# warn if parameter has no description
+-	# (but ignore ones starting with # as these are no parameters
+-	# but inline preprocessor statements
++	# (but ignore ones starting with # as these are not parameters
++	# but inline preprocessor statements);
++	# also ignore unnamed structs/unions;
++	if (!$anon) {
+ 	if (!defined $parameterdescs{$param_name} && $param_name !~ /^#/) {
  
-@@ -206,6 +203,7 @@ aoecmd_cfg_pkts(ushort aoemajor, unsigne
- 			printk(KERN_INFO "aoe: skb alloc failure\n");
- 			continue;
- 		}
-+		skb_put(skb, sizeof *h + sizeof *ch);
- 		skb->dev = ifp;
- 		if (sl_tail == NULL)
- 			sl_tail = skb;
-@@ -243,6 +241,7 @@ freeframe(struct aoedev *d)
- 			continue;
- 		if (atomic_read(&skb_shinfo(f->skb)->dataref) == 1) {
- 			skb_shinfo(f->skb)->nr_frags = f->skb->data_len = 0;
-+			skb_trim(f->skb, 0);
- 			return f;
- 		}
- 		n++;
-@@ -698,8 +697,8 @@ aoecmd_ata_id(struct aoedev *d)
- 	skb = f->skb;
- 	h = (struct aoe_hdr *) skb->mac.raw;
- 	ah = (struct aoe_atahdr *) (h+1);
--	skb->len = ETH_ZLEN;
--	memset(h, 0, ETH_ZLEN);
-+	skb_put(skb, sizeof *h + sizeof *ah);
-+	memset(h, 0, skb->len);
- 	f->tag = aoehdr_atainit(d, h);
- 	f->waited = 0;
+ 	    $parameterdescs{$param_name} = $undescribed;
+@@ -1500,6 +1512,7 @@ sub push_parameter($$$) {
+ 	                 " No description found for parameter '$param'\n";
+ 	    ++$warnings;
+         }
++        }
  
+ 	push @parameterlist, $param;
+ 	$parametertypes{$param} = $type;
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+git-alsa.patch
+git-cpufreq.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+parisc-fix-module_param-iommu-permission.patch
+scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+profile_likely-export-do_check_likely.patch
 
