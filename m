@@ -1,67 +1,58 @@
 From: akpm@osdl.org
-Subject: - tlclk-delete-unnecessary-sysfs_remove_group.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:54:35 -0800
-Message-ID: <200612230754.kBN7sZIW010224@shell0.pdx.osdl.net>
+Subject: - smc911x-fix-netpoll-compilation-faliure.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:53:58 -0800
+Message-ID: <200612230753.kBN7rwZb010174@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49749 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49747 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753274AbWLWHyj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:54:39 -0500
+	id S1753249AbWLWHyi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:54:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, greg@kroah.com, mark.gross@intel.com, sebastien.bouchard@ca.kontron.com, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, jeff@garzik.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tlclk: delete unnecessary sysfs_remove_group
+     smc911x: fix netpoll compilation faliure
 has been removed from the -mm tree.  Its filename was
-     tlclk-delete-unnecessary-sysfs_remove_group.patch
+     smc911x-fix-netpoll-compilation-faliure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tlclk: delete unnecessary sysfs_remove_group
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: smc911x: fix netpoll compilation faliure
+From: Vitaly Wool <vitalywool@gmail.com>
 
-It is unnecessary and invalid to call sysfs_remove_group() after
-sysfs_create_group() failure.
+Fix the compilation failure for smc911x.c when NET_POLL_CONTROLLER is set.
 
-Cc: Sebastien Bouchard <sebastien.bouchard@ca.kontron.com>
-Cc: Mark Gross <mark.gross@intel.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/tlclk.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/smc911x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tlclk.c~tlclk-delete-unnecessary-sysfs_remove_group drivers/char/tlclk.c
---- a/drivers/char/tlclk.c~tlclk-delete-unnecessary-sysfs_remove_group
-+++ a/drivers/char/tlclk.c
-@@ -807,8 +807,6 @@ static int __init tlclk_init(void)
- 			&tlclk_attribute_group);
- 	if (ret) {
- 		printk(KERN_ERR "tlclk: failed to create sysfs device attributes.\n");
--		sysfs_remove_group(&tlclk_device->dev.kobj,
--			&tlclk_attribute_group);
- 		goto out5;
- 	}
- 
+diff -puN drivers/net/smc911x.c~smc911x-fix-netpoll-compilation-faliure drivers/net/smc911x.c
+--- a/drivers/net/smc911x.c~smc911x-fix-netpoll-compilation-faliure
++++ a/drivers/net/smc911x.c
+@@ -1331,7 +1331,7 @@ smc911x_rx_dma_irq(int dma, void *data)
+ static void smc911x_poll_controller(struct net_device *dev)
+ {
+ 	disable_irq(dev->irq);
+-	smc911x_interrupt(dev->irq, dev, NULL);
++	smc911x_interrupt(dev->irq, dev);
+ 	enable_irq(dev->irq);
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
 origin.patch
-powerpc-use-is_init.patch
-git-dvb.patch
-ehca-fix-kthread_create-error-check.patch
-ehca-fix-do_mmap-error-check.patch
-git-input.patch
-git-mtd.patch
-net-use-bitrev8.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-iscsi-fix-crypto_alloc_hash-error-check.patch
-git-watchdog.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
 
