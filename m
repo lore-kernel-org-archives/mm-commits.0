@@ -1,231 +1,109 @@
 From: akpm@osdl.org
-Subject: - agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:55:18 -0800
-Message-ID: <200612230755.kBN7tI5X010286@shell0.pdx.osdl.net>
+Subject: - bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:55:23 -0800
+Message-ID: <200612230755.kBN7tN7c010292@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49864 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49869 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753545AbWLWHza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:55:30 -0500
+	id S1753550AbWLWHze (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:55:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric@anholt.net, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, davej@codemonkey.org.uk, dhaval.giani@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     agp: fix detection of aperture size versus GTT size on G965
+     Bug fix for acpi-cpufreq and cpufreq_stats oops on frequency change notification
 has been removed from the -mm tree.  Its filename was
-     agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965.patch
+     bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: agp: fix detection of aperture size versus GTT size on G965
-From: Eric Anholt <eric@anholt.net>
+Subject: Bug fix for acpi-cpufreq and cpufreq_stats oops on frequency change notification
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On the G965, the GTT size may be larger than is required to cover the
-aperture.  (In fact, on all hardware we've seen, the GTT is 512KB to the
-aperture's 256MB).  A previous commit forced the aperture size to 512MB on
-G965 to match GTT, which would likely result in hangs at best if users
-tried to rely on agpgart's aperture size information.  Instead, we use the
-resource length for the aperture size and the system's reported GTT size
-when available for the GTT size.
+Fixes the oops in cpufreq_stats with acpi_cpufreq driver.  The issue was
+that the frequency was reported as 0 in acpi-cpufreq.c.  The bug is due to
+different indicies for freq_table and ACPI perf table.
 
-Because the MSAC registers which had been read for aperture size detection
-on i9xx chips just cause a change in the resource size, we can use generic
-code for aperture detection on all i9xx.
+Also adds a check in cpufreq_stats to check for error return from
+freq_table_get_index() and avoid using the error return value.
 
-Signed-off-by: Eric Anholt <eric@anholt.net>
+Patch fixes the issue reported at
+http://www.ussg.iu.edu/hypermail/linux/kernel/0611.2/0629.html
+and also other similar issue here
+http://bugme.osdl.org/show_bug.cgi?id=7383 comment 53
+
+Signed-off-by: Dhaval Giani <dhaval.giani@gmail.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/agp/agp.h       |    4 +
- drivers/char/agp/intel-agp.c |  110 +++++++++++++++++----------------
- 2 files changed, 62 insertions(+), 52 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    9 +++++----
+ drivers/cpufreq/cpufreq_stats.c             |    4 ++++
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/agp.h
---- a/drivers/char/agp/agp.h~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
-+++ a/drivers/char/agp/agp.h
-@@ -225,6 +225,10 @@ struct agp_bridge_data {
- #define I810_GMS_DISABLE	0x00000000
- #define I810_PGETBL_CTL		0x2020
- #define I810_PGETBL_ENABLED	0x00000001
-+#define I965_PGETBL_SIZE_MASK	0x0000000e
-+#define I965_PGETBL_SIZE_512KB	(0 << 1)
-+#define I965_PGETBL_SIZE_256KB	(1 << 1)
-+#define I965_PGETBL_SIZE_128KB	(2 << 1)
- #define I810_DRAM_CTL		0x3000
- #define I810_DRAM_ROW_0		0x00000001
- #define I810_DRAM_ROW_0_SDRAM	0x00000001
-diff -puN drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965 drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~agp-fix-detection-of-aperture-size-versus-gtt-size-on-g965
-+++ a/drivers/char/agp/intel-agp.c
-@@ -370,6 +370,11 @@ static struct _intel_i830_private {
- 	struct pci_dev *i830_dev;		/* device one */
- 	volatile u8 __iomem *registers;
- 	volatile u32 __iomem *gtt;		/* I915G */
-+	/* gtt_entries is the number of gtt entries that are already mapped
-+	 * to stolen memory.  Stolen memory is larger than the memory mapped
-+	 * through gtt_entries, as it includes some reserved space for the BIOS
-+	 * popup and for the GTT.
-+	 */
- 	int gtt_entries;
- } intel_i830_private;
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification
++++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -390,8 +390,8 @@ static int acpi_cpufreq_target(struct cp
+ 	cpumask_t online_policy_cpus;
+ 	struct drv_cmd cmd;
+ 	unsigned int msr;
+-	unsigned int next_state = 0;
+-	unsigned int next_perf_state = 0;
++	unsigned int next_state = 0; /* Index into freq_table */
++	unsigned int next_perf_state = 0; /* Index into perf table */
+ 	unsigned int i;
+ 	int result = 0;
  
-@@ -380,14 +385,41 @@ static void intel_i830_init_gtt_entries(
- 	u8 rdct;
- 	int local = 0;
- 	static const int ddt[4] = { 0, 16, 32, 64 };
--	int size;
-+	int size; /* reserved space (in kb) at the top of stolen memory */
+@@ -456,8 +456,8 @@ static int acpi_cpufreq_target(struct cp
+ 	else
+ 		cpu_set(policy->cpu, cmd.mask);
  
- 	pci_read_config_word(agp_bridge->dev,I830_GMCH_CTRL,&gmch_ctrl);
+-	freqs.old = data->freq_table[perf->state].frequency;
+-	freqs.new = data->freq_table[next_perf_state].frequency;
++	freqs.old = perf->states[perf->state].core_frequency * 1000;
++	freqs.new = data->freq_table[next_state].frequency;
+ 	for_each_cpu_mask(i, cmd.mask) {
+ 		freqs.cpu = i;
+ 		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+@@ -694,6 +694,7 @@ static int acpi_cpufreq_cpu_init(struct 
+ 		valid_states++;
+ 	}
+ 	data->freq_table[valid_states].frequency = CPUFREQ_TABLE_END;
++	perf->state = 0;
  
--	/* We obtain the size of the GTT, which is also stored (for some
--	 * reason) at the top of stolen memory. Then we add 4KB to that
--	 * for the video BIOS popup, which is also stored in there. */
--	size = agp_bridge->driver->fetch_size() + 4;
-+	if (IS_I965) {
-+		u32 pgetbl_ctl;
+ 	result = cpufreq_frequency_table_cpuinfo(policy, data->freq_table);
+ 	if (result)
+diff -puN drivers/cpufreq/cpufreq_stats.c~bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification drivers/cpufreq/cpufreq_stats.c
+--- a/drivers/cpufreq/cpufreq_stats.c~bug-fix-for-acpi-cpufreq-and-cpufreq_stats-oops-on-frequency-change-notification
++++ a/drivers/cpufreq/cpufreq_stats.c
+@@ -285,6 +285,7 @@ cpufreq_stat_notifier_trans (struct noti
+ 	stat = cpufreq_stats_table[freq->cpu];
+ 	if (!stat)
+ 		return 0;
 +
-+		pci_read_config_dword(agp_bridge->dev, I810_PGETBL_CTL,
-+				      &pgetbl_ctl);
-+		/* The 965 has a field telling us the size of the GTT,
-+		 * which may be larger than what is necessary to map the
-+		 * aperture.
-+		 */
-+		switch (pgetbl_ctl & I965_PGETBL_SIZE_MASK) {
-+		case I965_PGETBL_SIZE_128KB:
-+			size = 128;
-+			break;
-+		case I965_PGETBL_SIZE_256KB:
-+			size = 256;
-+			break;
-+		case I965_PGETBL_SIZE_512KB:
-+			size = 512;
-+			break;
-+		default:
-+			printk(KERN_INFO PFX "Unknown page table size, "
-+			       "assuming 512KB\n");
-+			size = 512;
-+		}
-+		size += 4; /* add in BIOS popup space */
-+	} else {
-+		/* On previous hardware, the GTT size was just what was
-+		 * required to map the aperture.
-+		 */
-+		size = agp_bridge->driver->fetch_size() + 4;
-+	}
+ 	old_index = freq_table_get_index(stat, freq->old);
+ 	new_index = freq_table_get_index(stat, freq->new);
  
- 	if (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82830_HB ||
- 	    agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82845G_HB) {
-@@ -743,22 +775,27 @@ static int intel_i915_remove_entries(str
- 	return 0;
- }
+@@ -292,6 +293,9 @@ cpufreq_stat_notifier_trans (struct noti
+ 	if (old_index == new_index)
+ 		return 0;
  
--static int intel_i915_fetch_size(void)
-+/* Return the aperture size by just checking the resource length.  The effect
-+ * described in the spec of the MSAC registers is just changing of the
-+ * resource size.
-+ */
-+static int intel_i9xx_fetch_size(void)
- {
--	struct aper_size_info_fixed *values;
--	u32 temp, offset;
-+	int num_sizes = sizeof(intel_i830_sizes) / sizeof(*intel_i830_sizes);
-+	int aper_size; /* size in megabytes */
-+	int i;
- 
--#define I915_256MB_ADDRESS_MASK (1<<27)
-+	aper_size = pci_resource_len(intel_i830_private.i830_dev, 2) / MB(1);
- 
--	values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
-+	for (i = 0; i < num_sizes; i++) {
-+		if (aper_size == intel_i830_sizes[i].size) {
-+			agp_bridge->current_size = intel_i830_sizes + i;
-+			agp_bridge->previous_size = agp_bridge->current_size;
-+			return aper_size;
-+		}
-+	}
- 
--	pci_read_config_dword(intel_i830_private.i830_dev, I915_GMADDR, &temp);
--	if (temp & I915_256MB_ADDRESS_MASK)
--		offset = 0;	/* 128MB aperture */
--	else
--		offset = 2;	/* 256MB aperture */
--	agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
--	return values[offset].size;
-+	return 0;
- }
- 
- /* The intel i915 automatically initializes the agp aperture during POST.
-@@ -821,40 +858,9 @@ static unsigned long intel_i965_mask_mem
- 	return addr | bridge->driver->masks[type].mask;
- }
- 
--static int intel_i965_fetch_size(void)
--{
--       struct aper_size_info_fixed *values;
--       u32 offset = 0;
--       u8 temp;
--
--#define I965_512MB_ADDRESS_MASK (3<<1)
--
--       values = A_SIZE_FIX(agp_bridge->driver->aperture_sizes);
--
--       pci_read_config_byte(intel_i830_private.i830_dev, I965_MSAC, &temp);
--       temp &= I965_512MB_ADDRESS_MASK;
--       switch (temp) {
--       case 0x00:
--               offset = 0; /* 128MB */
--               break;
--       case 0x06:
--               offset = 3; /* 512MB */
--               break;
--       default:
--       case 0x02:
--               offset = 2; /* 256MB */
--               break;
--       }
--
--       agp_bridge->previous_size = agp_bridge->current_size = (void *)(values + offset);
--
--	/* The i965 GTT is always sized as if it had a 512kB aperture size */
--	return 512;
--}
--
- /* The intel i965 automatically initializes the agp aperture during POST.
--+ * Use the memory already set aside for in the GTT.
--+ */
-+ * Use the memory already set aside for in the GTT.
-+ */
- static int intel_i965_create_gatt_table(struct agp_bridge_data *bridge)
- {
-        int page_order;
-@@ -1574,7 +1580,7 @@ static struct agp_bridge_driver intel_91
- 	.num_aperture_sizes	= 4,
- 	.needs_scratch_page	= TRUE,
- 	.configure		= intel_i915_configure,
--	.fetch_size		= intel_i915_fetch_size,
-+	.fetch_size		= intel_i9xx_fetch_size,
- 	.cleanup		= intel_i915_cleanup,
- 	.tlb_flush		= intel_i810_tlbflush,
- 	.mask_memory		= intel_i810_mask_memory,
-@@ -1598,7 +1604,7 @@ static struct agp_bridge_driver intel_i9
-        .num_aperture_sizes     = 4,
-        .needs_scratch_page     = TRUE,
-        .configure              = intel_i915_configure,
--       .fetch_size             = intel_i965_fetch_size,
-+       .fetch_size             = intel_i9xx_fetch_size,
-        .cleanup                = intel_i915_cleanup,
-        .tlb_flush              = intel_i810_tlbflush,
-        .mask_memory            = intel_i965_mask_memory,
++	if (old_index == -1 || new_index == -1)
++		return 0;
++
+ 	spin_lock(&cpufreq_stats_lock);
+ 	stat->last_index = new_index;
+ #ifdef CONFIG_CPU_FREQ_STAT_DETAILS
 _
 
-Patches currently in -mm which might be from eric@anholt.net are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
-git-agpgart.patch
+git-cpufreq.patch
 
