@@ -1,73 +1,137 @@
 From: akpm@osdl.org
-Subject: - mips-if_fddih-add-a-missing-inclusion.patch removed from -mm tree
-Date: Fri, 22 Dec 2006 23:54:47 -0800
-Message-ID: <200612230754.kBN7sl54010242@shell0.pdx.osdl.net>
+Subject: - fix-reparenting-to-the-same-thread-group.patch removed from -mm tree
+Date: Fri, 22 Dec 2006 23:55:12 -0800
+Message-ID: <200612230755.kBN7tCDF010277@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49803 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49827 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753291AbWLWHzF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Dec 2006 02:55:05 -0500
+	id S1753456AbWLWHzO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 23 Dec 2006 02:55:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: macro@linux-mips.org, davem@davemloft.net, jeff@garzik.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: if_fddi.h: Add a missing inclusion
+     Fix reparenting to the same thread group
 has been removed from the -mm tree.  Its filename was
-     mips-if_fddih-add-a-missing-inclusion.patch
+     fix-reparenting-to-the-same-thread-group.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips: if_fddi.h: Add a missing inclusion
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Fix reparenting to the same thread group
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-This is a change to include <linux/netdevice.h> in <linux/if_fddi.h> which is
-needed for "struct fddi_statistics".
+This patch fixes the case when we reparent to a different thread in the
+same thread group.  This modifies the code so that we do not send signals
+and do not change the signal to send to SIGCHLD unless we have change the
+thread group of our parents.  It also suppresses sending pdeath_sig in this
+case as well since the result of getppid doesn't change.
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/if_fddi.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/exit.c |   37 ++++++++++++++++++++++---------------
+ 1 files changed, 22 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/if_fddi.h~mips-if_fddih-add-a-missing-inclusion include/linux/if_fddi.h
---- a/include/linux/if_fddi.h~mips-if_fddih-add-a-missing-inclusion
-+++ a/include/linux/if_fddi.h
-@@ -103,6 +103,8 @@ struct fddihdr
- 	} __attribute__ ((packed));
+diff -puN kernel/exit.c~fix-reparenting-to-the-same-thread-group kernel/exit.c
+--- a/kernel/exit.c~fix-reparenting-to-the-same-thread-group
++++ a/kernel/exit.c
+@@ -595,14 +595,6 @@ choose_new_parent(struct task_struct *p,
+ static void
+ reparent_thread(struct task_struct *p, struct task_struct *father, int traced)
+ {
+-	/* We don't want people slaying init.  */
+-	if (p->exit_signal != -1)
+-		p->exit_signal = SIGCHLD;
+-
+-	if (p->pdeath_signal)
+-		/* We already hold the tasklist_lock here.  */
+-		group_send_sig_info(p->pdeath_signal, SEND_SIG_NOINFO, p);
+-
+ 	/* Move the child from its dying parent to the new one.  */
+ 	if (unlikely(traced)) {
+ 		/* Preserve ptrace links if someone else is tracing this child.  */
+@@ -618,13 +610,7 @@ reparent_thread(struct task_struct *p, s
+ 		p->parent = p->real_parent;
+ 		add_parent(p);
  
- #ifdef __KERNEL__
-+#include <linux/netdevice.h>
+-		/* If we'd notified the old parent about this child's death,
+-		 * also notify the new parent.
+-		 */
+-		if (p->exit_state == EXIT_ZOMBIE && p->exit_signal != -1 &&
+-		    thread_group_empty(p))
+-			do_notify_parent(p, p->exit_signal);
+-		else if (p->state == TASK_TRACED) {
++		if (p->state == TASK_TRACED) {
+ 			/*
+ 			 * If it was at a trace stop, turn it into
+ 			 * a normal stop since it's no longer being
+@@ -634,6 +620,27 @@ reparent_thread(struct task_struct *p, s
+ 		}
+ 	}
+ 
++	/* If this is a threaded reparent there is no need to
++	 * notify anyone anything has happened.
++	 */
++	if (!traced && p->real_parent->group_leader == father->group_leader)
++		return;
 +
- /* Define FDDI statistics structure */
- struct fddi_statistics {
- 
++	/* We don't want people slaying init.  */
++	if (p->exit_signal != -1)
++		p->exit_signal = SIGCHLD;
++
++	if (p->pdeath_signal)
++		/* We already hold the tasklist_lock here.  */
++		group_send_sig_info(p->pdeath_signal, SEND_SIG_NOINFO, p);
++
++	/* If we'd notified the old parent about this child's death,
++	 * also notify the new parent.
++	 */
++	if (!traced && p->exit_state == EXIT_ZOMBIE &&
++	    p->exit_signal != -1 && thread_group_empty(p))
++		do_notify_parent(p, p->exit_signal);
++
+ 	/*
+ 	 * process group orphan check
+ 	 * Case ii: Our child is in a different pgrp
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-mips-turbochannel-update-to-the-driver-model.patch
-mips-turbochannel-support-for-the-decstation.patch
-mips-eisa-registration-with-config_eisa.patch
-mips-declance-driver-model-for-the-pmad-a.patch
-mips-defxx-turbochannel-support.patch
-mips-pmag-ba-fb-convert-to-the-driver-model.patch
-mips-pmagb-b-fb-convert-to-the-driver-model.patch
-mips-dec_esp-driver-model-for-the-pmaz-a.patch
-i386-io_apic-fix-a-typo-in-an-irq-handler-name.patch
-tgafb-switch-to-framebuffer_alloc.patch
-tgafb-fix-copying-overlapping-areas.patch
-tgafb-support-the-directcolor-visual.patch
-tgafb-fix-the-mode-register-setting.patch
-tgafb-module-support-fixes.patch
-tgafb-sync-on-green-support-fixes.patch
-tgafb-fix-the-pci-id-table.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+vt-refactor-console-sak-processing.patch
+sysctl_ms_jiffies-fix-oldlen-semantics.patch
+9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+kill_pid_info-kill-acquired_tasklist_lock.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
 
