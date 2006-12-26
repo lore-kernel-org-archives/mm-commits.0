@@ -1,31 +1,31 @@
 From: akpm@osdl.org
-Subject: - spidernet-cleanup-un-needed-api.patch removed from -mm tree
-Date: Tue, 26 Dec 2006 15:19:08 -0800
-Message-ID: <200612262319.kBQNJ8mT027787@shell0.pdx.osdl.net>
+Subject: - spidernet-another-skb-mem-leak.patch removed from -mm tree
+Date: Tue, 26 Dec 2006 15:19:11 -0800
+Message-ID: <200612262319.kBQNJBSm027793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37694 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932865AbWLZXWb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Dec 2006 18:22:31 -0500
+	id S932859AbWLZXWw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 26 Dec 2006 18:22:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Spidernet: cleanup un-needed API
+     Spidernet: another skb mem leak
 has been removed from the -mm tree.  Its filename was
-     spidernet-cleanup-un-needed-api.patch
+     spidernet-another-skb-mem-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Spidernet: cleanup un-needed API
+Subject: Spidernet: another skb mem leak
 From: Linas Vepstas <linas@austin.ibm.com>
 
-There is no need to pass a flag into spider_net_decode_one_descr() so remove
-this, and perform some othre minor cleanup.
+Another skb leak in an error branch.  Fix this by adding call to
+dev_kfree_skb_irq() after moving to a more appropriate spot.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -33,109 +33,51 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |   35 ++++++++++++-----------------------
- 1 files changed, 12 insertions(+), 23 deletions(-)
+ drivers/net/spider_net.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-cleanup-un-needed-api drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-cleanup-un-needed-api
+diff -puN drivers/net/spider_net.c~spidernet-another-skb-mem-leak drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-another-skb-mem-leak
 +++ a/drivers/net/spider_net.c
-@@ -910,7 +910,6 @@ spider_net_do_ioctl(struct net_device *n
-  * spider_net_pass_skb_up - takes an skb from a descriptor and passes it on
-  * @descr: descriptor to process
-  * @card: card structure
-- * @napi: whether caller is in NAPI context
-  *
-  * returns 1 on success, 0 if no packet was passed to the stack
-  *
-@@ -919,7 +918,7 @@ spider_net_do_ioctl(struct net_device *n
-  */
- static int
- spider_net_pass_skb_up(struct spider_net_descr *descr,
--		       struct spider_net_card *card, int napi)
-+		       struct spider_net_card *card)
- {
- 	struct sk_buff *skb;
- 	struct net_device *netdev;
-@@ -972,10 +971,7 @@ spider_net_pass_skb_up(struct spider_net
- 	}
+@@ -926,19 +926,8 @@ spider_net_pass_skb_up(struct spider_net
  
- 	/* pass skb up to stack */
--	if (napi)
--		netif_receive_skb(skb);
--	else
--		netif_rx_ni(skb);
-+	netif_receive_skb(skb);
+ 	data_status = descr->data_status;
+ 	data_error = descr->data_error;
+-
+ 	netdev = card->netdev;
  
- 	/* update netdevice statistics */
- 	card->netdev_stats.rx_packets++;
-@@ -987,16 +983,15 @@ spider_net_pass_skb_up(struct spider_net
- /**
-  * spider_net_decode_one_descr - processes an rx descriptor
-  * @card: card structure
-- * @napi: whether caller is in NAPI context
-  *
-- * returns 1 if a packet has been sent to the stack, otherwise 0
-+ * Returns 1 if a packet has been sent to the stack, otherwise 0
-  *
-- * processes an rx descriptor by iommu-unmapping the data buffer and passing
-+ * Processes an rx descriptor by iommu-unmapping the data buffer and passing
-  * the packet up to the stack. This function is called in softirq
-  * context, e.g. either bottom half from interrupt or NAPI polling context
-  */
- static int
--spider_net_decode_one_descr(struct spider_net_card *card, int napi)
-+spider_net_decode_one_descr(struct spider_net_card *card)
- {
- 	struct spider_net_descr_chain *chain = &card->rx_chain;
- 	struct spider_net_descr *descr = chain->tail;
-@@ -1005,18 +1000,15 @@ spider_net_decode_one_descr(struct spide
- 
- 	status = spider_net_get_descr_status(descr);
- 
--	if (status == SPIDER_NET_DESCR_CARDOWNED) {
--		/* nothing in the descriptor yet */
--		result=0;
--		goto out;
+-	/* the cases we'll throw away the packet immediately */
+-	if (data_error & SPIDER_NET_DESTROY_RX_FLAGS) {
+-		if (netif_msg_rx_err(card))
+-			pr_err("error in received descriptor found, "
+-			       "data_status=x%08x, data_error=x%08x\n",
+-			       data_status, data_error);
+-		card->spider_stats.rx_desc_error++;
+-		return 0;
 -	}
-+	/* nothing in the descriptor yet */
-+	if (status == SPIDER_NET_DESCR_CARDOWNED)
-+		return 0;
- 
- 	if (status == SPIDER_NET_DESCR_NOT_IN_USE) {
- 		/* not initialized yet, the ring must be empty */
- 		spider_net_refill_rx_chain(card);
- 		spider_net_enable_rxdmac(card);
--		result=0;
--		goto out;
-+		return 0;
+-
+ 	skb = descr->skb;
+ 	skb->dev = netdev;
+ 	skb_put(skb, descr->valid_size);
+@@ -1037,6 +1026,18 @@ spider_net_decode_one_descr(struct spide
+ 		goto refill;
  	}
  
- 	/* descriptor definitively used -- move on tail */
-@@ -1046,13 +1038,10 @@ spider_net_decode_one_descr(struct spide
- 	}
- 
++	/* The cases we'll throw away the packet immediately */
++	if (descr->data_error & SPIDER_NET_DESTROY_RX_FLAGS) {
++		if (netif_msg_rx_err(card))
++			pr_err("%s: error in received descriptor found, "
++			       "data_status=x%08x, data_error=x%08x\n",
++			       card->netdev->name,
++			       descr->data_status, descr->data_error);
++		card->spider_stats.rx_desc_error++;
++		dev_kfree_skb_irq(descr->skb);
++		goto refill;
++	}
++
  	/* ok, we've got a packet in descr */
--	result = spider_net_pass_skb_up(descr, card, napi);
-+	result = spider_net_pass_skb_up(descr, card);
+ 	result = spider_net_pass_skb_up(descr, card);
  refill:
--	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
- 	/* change the descriptor state: */
--	if (!napi)
--		spider_net_refill_rx_chain(card);
--out:
-+	descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
- 	return result;
- }
- 
-@@ -1079,7 +1068,7 @@ spider_net_poll(struct net_device *netde
- 	packets_to_do = min(*budget, netdev->quota);
- 
- 	while (packets_to_do) {
--		if (spider_net_decode_one_descr(card, 1)) {
-+		if (spider_net_decode_one_descr(card)) {
- 			packets_done++;
- 			packets_to_do--;
- 		} else {
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
