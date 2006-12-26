@@ -1,63 +1,73 @@
 From: akpm@osdl.org
-Subject: - forcedeth-modified-comment-header.patch removed from -mm tree
-Date: Tue, 26 Dec 2006 15:19:00 -0800
-Message-ID: <200612262319.kBQNJ04B027775@shell0.pdx.osdl.net>
+Subject: - problem-phy-probe-not-working-properly-for-ibm_emac-ppc4xx.patch removed from -mm tree
+Date: Tue, 26 Dec 2006 15:18:55 -0800
+Message-ID: <200612262318.kBQNItcs027769@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37409 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37415 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932827AbWLZXTD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Dec 2006 18:19:03 -0500
+	id S932837AbWLZXTE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 26 Dec 2006 18:19:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
+To: hynek@swac.cz, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: modified comment header
+     PHY probe not working properly for ibm_emac (PPC4xx)
 has been removed from the -mm tree.  Its filename was
-     forcedeth-modified-comment-header.patch
+     problem-phy-probe-not-working-properly-for-ibm_emac-ppc4xx.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: forcedeth: modified comment header
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: PHY probe not working properly for ibm_emac (PPC4xx)
+From: Hynek Petrak <hynek@swac.cz>
 
-This patch removes comment that forcedeth is not supported by NVIDIA.
+I have a system with AMCC PowerPC 405EP and PHY Intel LXT971A.  Linux
+2.6.18.3 is not able to detect the PHY ID correctly.  The PHY ID
+detected is 0, but should be 0x1d.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+This is because phy_read() (__emac_mdio_read() resp.) from
+drivers/net/ibm_emac/ibm_emac_core.c might return -ETIMEDOUT or
+-EREMOTEIO on error.  This is ignored inside the
+
+int mii_phy_probe(struct mii_phy *phy, int address)
+from drivers/net/ibm_emac/ibm_emac_phy.c
+
+as the return value is assigned to an u32 variable.
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/ibm_emac/ibm_emac_phy.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-modified-comment-header drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-modified-comment-header
-+++ a/drivers/net/forcedeth.c
-@@ -3,8 +3,7 @@
-  *
-  * Note: This driver is a cleanroom reimplementation based on reverse
-  *      engineered documentation written by Carl-Daniel Hailfinger
-- *      and Andrew de Quincey. It's neither supported nor endorsed
-- *      by NVIDIA Corp. Use at your own risk.
-+ *      and Andrew de Quincey.
-  *
-  * NVIDIA, nForce and other NVIDIA marks are trademarks or registered
-  * trademarks of NVIDIA Corporation in the United States and other
-@@ -14,7 +13,7 @@
-  * Copyright (C) 2004 Andrew de Quincey (wol support)
-  * Copyright (C) 2004 Carl-Daniel Hailfinger (invalid MAC handling, insane
-  *		IRQ rate fixes, bigendian fixes, cleanups, verification)
-- * Copyright (c) 2004 NVIDIA Corporation
-+ * Copyright (c) 2004,5,6 NVIDIA Corporation
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
+diff -puN drivers/net/ibm_emac/ibm_emac_phy.c~problem-phy-probe-not-working-properly-for-ibm_emac-ppc4xx drivers/net/ibm_emac/ibm_emac_phy.c
+--- a/drivers/net/ibm_emac/ibm_emac_phy.c~problem-phy-probe-not-working-properly-for-ibm_emac-ppc4xx
++++ a/drivers/net/ibm_emac/ibm_emac_phy.c
+@@ -309,7 +309,7 @@ int mii_phy_probe(struct mii_phy *phy, i
+ {
+ 	struct mii_phy_def *def;
+ 	int i;
+-	u32 id;
++	int id;
+ 
+ 	phy->autoneg = AUTONEG_DISABLE;
+ 	phy->advertising = 0;
+@@ -324,6 +324,8 @@ int mii_phy_probe(struct mii_phy *phy, i
+ 
+ 	/* Read ID and find matching entry */
+ 	id = (phy_read(phy, MII_PHYSID1) << 16) | phy_read(phy, MII_PHYSID2);
++	if (id < 0)
++		return -ENODEV;
+ 	for (i = 0; (def = mii_phy_table[i]) != NULL; i++)
+ 		if ((id & def->phy_id_mask) == def->phy_id)
+ 			break;
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from hynek@swac.cz are
 
 git-netdev-all.patch
 
