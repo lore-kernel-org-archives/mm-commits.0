@@ -1,73 +1,77 @@
 From: akpm@osdl.org
-Subject: - ep93xx-some-minor-cleanups-to-the-ep93xx-eth-driver.patch removed from -mm tree
-Date: Tue, 26 Dec 2006 15:18:53 -0800
-Message-ID: <200612262318.kBQNIrOC027765@shell0.pdx.osdl.net>
+Subject: - spidernet-rx-refill.patch removed from -mm tree
+Date: Tue, 26 Dec 2006 15:19:14 -0800
+Message-ID: <200612262319.kBQNJEc7027799@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37461 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37471 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932852AbWLZXTU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Dec 2006 18:19:20 -0500
+	id S932854AbWLZXTX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 26 Dec 2006 18:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: burman.yan@gmail.com, jeff@garzik.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ep93xx: some minor cleanups to the ep93xx eth driver
+     Spidernet: RX Refill
 has been removed from the -mm tree.  Its filename was
-     ep93xx-some-minor-cleanups-to-the-ep93xx-eth-driver.patch
+     spidernet-rx-refill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ep93xx: some minor cleanups to the ep93xx eth driver
-From: Yan Burman <burman.yan@gmail.com>
+Subject: Spidernet: RX Refill
+From: Linas Vepstas <linas@austin.ibm.com>
 
-Small cleanup in the Cirrus Logic EP93xx ethernet driver: Check for NULL
-pointer before dereferencing it instead of after.  Remove unreferenced
-variable.
+The invocation of the rx ring refill routine is haphazard, it can be called
+from a central location.
 
-Signed-off-by: Yan Burman <burman.yan@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Cc: James K Lewis <jklewis@us.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/arm/ep93xx_eth.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/net/spider_net.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/arm/ep93xx_eth.c~ep93xx-some-minor-cleanups-to-the-ep93xx-eth-driver drivers/net/arm/ep93xx_eth.c
---- a/drivers/net/arm/ep93xx_eth.c~ep93xx-some-minor-cleanups-to-the-ep93xx-eth-driver
-+++ a/drivers/net/arm/ep93xx_eth.c
-@@ -780,12 +780,10 @@ static struct ethtool_ops ep93xx_ethtool
- struct net_device *ep93xx_dev_alloc(struct ep93xx_eth_data *data)
- {
- 	struct net_device *dev;
--	struct ep93xx_priv *ep;
+diff -puN drivers/net/spider_net.c~spidernet-rx-refill drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-rx-refill
++++ a/drivers/net/spider_net.c
+@@ -980,17 +980,11 @@ spider_net_decode_one_descr(struct spide
  
- 	dev = alloc_etherdev(sizeof(struct ep93xx_priv));
- 	if (dev == NULL)
- 		return NULL;
--	ep = netdev_priv(dev);
+ 	status = spider_net_get_descr_status(descr);
  
- 	memcpy(dev->dev_addr, data->dev_addr, ETH_ALEN);
+-	/* nothing in the descriptor yet */
+-	if (status == SPIDER_NET_DESCR_CARDOWNED)
++	/* Nothing in the descriptor, or ring must be empty */
++	if ((status == SPIDER_NET_DESCR_CARDOWNED) ||
++	    (status == SPIDER_NET_DESCR_NOT_IN_USE))
+ 		return 0;
  
-@@ -840,9 +838,9 @@ static int ep93xx_eth_probe(struct platf
- 	struct ep93xx_priv *ep;
- 	int err;
+-	if (status == SPIDER_NET_DESCR_NOT_IN_USE) {
+-		/* not initialized yet, the ring must be empty */
+-		spider_net_refill_rx_chain(card);
+-		spider_net_enable_rxdmac(card);
+-		return 0;
+-	}
+-
+ 	/* descriptor definitively used -- move on tail */
+ 	chain->tail = descr->next;
  
--	data = pdev->dev.platform_data;
- 	if (pdev == NULL)
- 		return -ENODEV;
-+	data = pdev->dev.platform_data;
+@@ -1074,6 +1068,7 @@ spider_net_poll(struct net_device *netde
+ 	netdev->quota -= packets_done;
+ 	*budget -= packets_done;
+ 	spider_net_refill_rx_chain(card);
++	spider_net_enable_rxdmac(card);
  
- 	dev = ep93xx_dev_alloc(data);
- 	if (dev == NULL) {
+ 	/* if all packets are in the stack, enable interrupts and return 0 */
+ 	/* if not, return 1 */
 _
 
-Patches currently in -mm which might be from burman.yan@gmail.com are
+Patches currently in -mm which might be from linas@austin.ibm.com are
 
-git-mtd.patch
 git-netdev-all.patch
+spidernet-rework-rx-linked-list.patch
 
