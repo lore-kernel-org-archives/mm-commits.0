@@ -1,31 +1,30 @@
 From: akpm@osdl.org
-Subject: - spidernet-memory-barrier.patch removed from -mm tree
-Date: Tue, 26 Dec 2006 15:19:19 -0800
-Message-ID: <200612262319.kBQNJJ6X027808@shell0.pdx.osdl.net>
+Subject: - spidernet-remove-unused-variable.patch removed from -mm tree
+Date: Tue, 26 Dec 2006 15:19:16 -0800
+Message-ID: <200612262319.kBQNJGG7027802@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37483 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37489 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932851AbWLZXT3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Dec 2006 18:19:29 -0500
+	id S932849AbWLZXTd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 26 Dec 2006 18:19:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Spidernet: Memory barrier
+     Spidernet: Remove unused variable
 has been removed from the -mm tree.  Its filename was
-     spidernet-memory-barrier.patch
+     spidernet-remove-unused-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Spidernet: Memory barrier
+Subject: Spidernet: Remove unused variable
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Add memory barrier to make sure that the rest of the RX descriptor state is
-flushed to memory before we tell the hardware that its ready to go.
+Remove unused variable; this makes code easier to read.  Tweak commentary.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Cc: James K Lewis <jklewis@us.ibm.com>
@@ -33,20 +32,56 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/spider_net.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/net/spider_net.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-memory-barrier drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-memory-barrier
+diff -puN drivers/net/spider_net.c~spidernet-remove-unused-variable drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-remove-unused-variable
 +++ a/drivers/net/spider_net.c
-@@ -419,6 +419,7 @@ spider_net_prepare_rx_descr(struct spide
- 		card->spider_stats.rx_iommu_map_error++;
- 		descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
- 	} else {
-+		wmb();
- 		descr->dmac_cmd_status = SPIDER_NET_DESCR_CARDOWNED |
+@@ -367,21 +367,20 @@ spider_net_free_rx_chain_contents(struct
+ }
+ 
+ /**
+- * spider_net_prepare_rx_descr - reinitializes a rx descriptor
++ * spider_net_prepare_rx_descr - Reinitialize RX descriptor
+  * @card: card structure
+  * @descr: descriptor to re-init
+  *
+- * return 0 on succes, <0 on failure
++ * Return 0 on succes, <0 on failure.
+  *
+- * allocates a new rx skb, iommu-maps it and attaches it to the descriptor.
+- * Activate the descriptor state-wise
++ * Allocates a new rx skb, iommu-maps it and attaches it to the
++ * descriptor. Mark the descriptor as activated, ready-to-use.
+  */
+ static int
+ spider_net_prepare_rx_descr(struct spider_net_card *card,
+ 			    struct spider_net_descr *descr)
+ {
+ 	dma_addr_t buf;
+-	int error = 0;
+ 	int offset;
+ 	int bufsize;
+ 
+@@ -409,7 +408,7 @@ spider_net_prepare_rx_descr(struct spide
+ 		(SPIDER_NET_RXBUF_ALIGN - 1);
+ 	if (offset)
+ 		skb_reserve(descr->skb, SPIDER_NET_RXBUF_ALIGN - offset);
+-	/* io-mmu-map the skb */
++	/* iommu-map the skb */
+ 	buf = pci_map_single(card->pdev, descr->skb->data,
+ 			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
+ 	descr->buf_addr = buf;
+@@ -424,7 +423,7 @@ spider_net_prepare_rx_descr(struct spide
  					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
  	}
+ 
+-	return error;
++	return 0;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
