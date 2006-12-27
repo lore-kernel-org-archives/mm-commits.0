@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + m25p80-build-fixes-with-mtd-debug.patch added to -mm tree
-Date: Wed, 27 Dec 2006 01:11:01 -0800
-Message-ID: <200612270911.kBR9B1vc006466@shell0.pdx.osdl.net>
+Subject: + spi-mtd-mtd_dataflash-oops-prevention.patch added to -mm tree
+Date: Wed, 27 Dec 2006 01:11:33 -0800
+Message-ID: <200612270911.kBR9BXF6006479@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42867 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42921 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754684AbWL0JLP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 04:11:15 -0500
+	id S1754688AbWL0JLo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 04:11:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,55 +15,48 @@ Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, dwmw2@infradead.org
 
 
 The patch titled
-     m25p80 build fixes (with MTD debug)
+     SPI/MTD: mtd_dataflash oops prevention
 has been added to the -mm tree.  Its filename is
-     m25p80-build-fixes-with-mtd-debug.patch
+     spi-mtd-mtd_dataflash-oops-prevention.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m25p80 build fixes (with MTD debug)
+Subject: SPI/MTD: mtd_dataflash oops prevention
 From: David Brownell <david-b@pacbell.net>
 
-Fix build issues that show up with the m25p80 SPI flash driver when
-building with MTD debug enabled.
+Return a fault code if the Dataflash driver runs into a "no device present"
+error when the MISO line has a pulldown (it currently expects a pullup), so
+that rmmod won't oops.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/devices/m25p80.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/devices/mtd_dataflash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~m25p80-build-fixes-with-mtd-debug drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~m25p80-build-fixes-with-mtd-debug
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -437,7 +437,7 @@ static int __devinit m25p_probe(struct s
- 		 * or JEDEC get-id commands.  Try them ...
- 		 */
- 		DEBUG(MTD_DEBUG_LEVEL1, "%s: no chip id\n",
--				flash->spi->dev.bus_id);
-+				spi->dev.bus_id);
- 		return -ENODEV;
+diff -puN drivers/mtd/devices/mtd_dataflash.c~spi-mtd-mtd_dataflash-oops-prevention drivers/mtd/devices/mtd_dataflash.c
+--- a/drivers/mtd/devices/mtd_dataflash.c~spi-mtd-mtd_dataflash-oops-prevention
++++ a/drivers/mtd/devices/mtd_dataflash.c
+@@ -536,7 +536,7 @@ static int __devinit dataflash_probe(str
+ 	if (status <= 0 || status == 0xff) {
+ 		DEBUG(MTD_DEBUG_LEVEL1, "%s: status error %d\n",
+ 				spi->dev.bus_id, status);
+-		if (status == 0xff)
++		if (status == 0 || status == 0xff)
+ 			status = -ENODEV;
+ 		return status;
  	}
- 
-@@ -447,7 +447,7 @@ static int __devinit m25p_probe(struct s
- 	}
- 	if (i == ARRAY_SIZE(m25p_data)) {
- 		DEBUG(MTD_DEBUG_LEVEL1, "%s: unrecognized id %s\n",
--				flash->spi->dev.bus_id, data->type);
-+				spi->dev.bus_id, data->type);
- 		return -ENODEV;
- 	}
- 
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
 
 spi-define-null-tx_buf-to-mean-shift-out-zeroes.patch
 m25p80-build-fixes-with-mtd-debug.patch
+spi-mtd-mtd_dataflash-oops-prevention.patch
 spi-kconfig-fix.patch
 spi-controller-driver-for-omap-microwire.patch
 gpio-core.patch
