@@ -1,4198 +1,2381 @@
 From: akpm@osdl.org
-Subject: + char-serial167-cleanup.patch added to -mm tree
-Date: Wed, 27 Dec 2006 00:00:12 -0800
-Message-ID: <200612270800.kBR80Chx005039@shell0.pdx.osdl.net>
+Subject: + char-n_r3964-cleanup.patch added to -mm tree
+Date: Wed, 27 Dec 2006 00:00:49 -0800
+Message-ID: <200612270800.kBR80nSl005051@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38159 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38179 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932959AbWL0IAZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 03:00:25 -0500
+	id S932987AbWL0IBE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 03:01:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: jirislaby@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     Char: serial167, cleanup
+     Char: n_r3964, cleanup
 has been added to the -mm tree.  Its filename is
-     char-serial167-cleanup.patch
+     char-n_r3964-cleanup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: serial167, cleanup
+Subject: Char: n_r3964, cleanup
 From: Jiri Slaby <jirislaby@gmail.com>
 
-serial167, cleanup
-
 - Lindent the code
-- remove 3 pointers from paranoia_check
+- allow semicolons after macros by 'do {} while (0)'
+- eliminate C++ comments
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/serial167.c | 3324 ++++++++++++++++++-------------------
- 1 file changed, 1646 insertions(+), 1678 deletions(-)
+ drivers/char/n_r3964.c | 2117 ++++++++++++++++++---------------------
+ 1 file changed, 991 insertions(+), 1126 deletions(-)
 
-diff -puN drivers/char/serial167.c~char-serial167-cleanup drivers/char/serial167.c
---- a/drivers/char/serial167.c~char-serial167-cleanup
-+++ a/drivers/char/serial167.c
-@@ -111,12 +111,13 @@ u_char initial_console_speed;
+diff -puN drivers/char/n_r3964.c~char-n_r3964-cleanup drivers/char/n_r3964.c
+--- a/drivers/char/n_r3964.c~char-n_r3964-cleanup
++++ a/drivers/char/n_r3964.c
+@@ -60,62 +60,56 @@
+ #include <linux/slab.h>
+ #include <linux/tty.h>
+ #include <linux/errno.h>
+-#include <linux/string.h>   /* used in new tty drivers */
+-#include <linux/signal.h>   /* used in new tty drivers */
++#include <linux/string.h>	/* used in new tty drivers */
++#include <linux/signal.h>	/* used in new tty drivers */
+ #include <linux/ioctl.h>
+ #include <linux/n_r3964.h>
+ #include <linux/poll.h>
+ #include <linux/init.h>
+ #include <asm/uaccess.h>
  
- /* This is the per-port data structure */
- struct cyclades_port cy_port[] = {
--      /* CARD#  */
--        {-1 },      /* ttyS0 */
--        {-1 },      /* ttyS1 */
--        {-1 },      /* ttyS2 */
--        {-1 },      /* ttyS3 */
-+	/* CARD#  */
-+	{-1},			/* ttyS0 */
-+	{-1},			/* ttyS1 */
-+	{-1},			/* ttyS2 */
-+	{-1},			/* ttyS3 */
+-
+-//#define DEBUG_QUEUE
++/*#define DEBUG_QUEUE*/
+ 
+ /* Log successful handshake and protocol operations  */
+-//#define DEBUG_PROTO_S
++/*#define DEBUG_PROTO_S*/
+ 
+ /* Log handshake and protocol errors: */
+-//#define DEBUG_PROTO_E
++/*#define DEBUG_PROTO_E*/
+ 
+ /* Log Linediscipline operations (open, close, read, write...): */
+-//#define DEBUG_LDISC
++/*#define DEBUG_LDISC*/
+ 
+ /* Log module and memory operations (init, cleanup; kmalloc, kfree): */
+-//#define DEBUG_MODUL
++/*#define DEBUG_MODUL*/
+ 
+ /* Macro helpers for debug output: */
+-#define TRACE(format, args...) printk("r3964: " format "\n" , ## args);
++#define TRACE(format, args...) printk("r3964: " format "\n" , ## args)
+ 
+ #ifdef DEBUG_MODUL
+-#define TRACE_M(format, args...) printk("r3964: " format "\n" , ## args);
++#define TRACE_M(format, args...) printk("r3964: " format "\n" , ## args)
+ #else
+-#define TRACE_M(fmt, arg...) /**/
++#define TRACE_M(fmt, arg...) do {} while (0)
+ #endif
+-
+ #ifdef DEBUG_PROTO_S
+-#define TRACE_PS(format, args...) printk("r3964: " format "\n" , ## args);
++#define TRACE_PS(format, args...) printk("r3964: " format "\n" , ## args)
+ #else
+-#define TRACE_PS(fmt, arg...) /**/
++#define TRACE_PS(fmt, arg...) do {} while (0)
+ #endif
+-
+ #ifdef DEBUG_PROTO_E
+-#define TRACE_PE(format, args...) printk("r3964: " format "\n" , ## args);
++#define TRACE_PE(format, args...) printk("r3964: " format "\n" , ## args)
+ #else
+-#define TRACE_PE(fmt, arg...) /**/
++#define TRACE_PE(fmt, arg...) do {} while (0)
+ #endif
+-
+ #ifdef DEBUG_LDISC
+-#define TRACE_L(format, args...) printk("r3964: " format "\n" , ## args);
++#define TRACE_L(format, args...) printk("r3964: " format "\n" , ## args)
+ #else
+-#define TRACE_L(fmt, arg...) /**/
++#define TRACE_L(fmt, arg...) do {} while (0)
+ #endif
+-
+ #ifdef DEBUG_QUEUE
+-#define TRACE_Q(format, args...) printk("r3964: " format "\n" , ## args);
++#define TRACE_Q(format, args...) printk("r3964: " format "\n" , ## args)
+ #else
+-#define TRACE_Q(fmt, arg...) /**/
++#define TRACE_Q(fmt, arg...) do {} while (0)
+ #endif
+-
+ static void add_tx_queue(struct r3964_info *, struct r3964_block_header *);
+ static void remove_from_tx_queue(struct r3964_info *pInfo, int error_code);
+ static void put_char(struct r3964_info *pInfo, unsigned char ch);
+@@ -126,937 +120,830 @@ static void receive_char(struct r3964_in
+ static void receive_error(struct r3964_info *pInfo, const char flag);
+ static void on_timeout(unsigned long priv);
+ static int enable_signals(struct r3964_info *pInfo, struct pid *pid, int arg);
+-static int read_telegram(struct r3964_info *pInfo, struct pid *pid, unsigned char __user *buf);
++static int read_telegram(struct r3964_info *pInfo, struct pid *pid,
++		unsigned char __user * buf);
+ static void add_msg(struct r3964_client_info *pClient, int msg_id, int arg,
+-             int error_code, struct r3964_block_header *pBlock);
+-static struct r3964_message* remove_msg(struct r3964_info *pInfo, 
+-             struct r3964_client_info *pClient);
+-static void remove_client_block(struct r3964_info *pInfo, 
+-                struct r3964_client_info *pClient);
++		int error_code, struct r3964_block_header *pBlock);
++static struct r3964_message *remove_msg(struct r3964_info *pInfo,
++		struct r3964_client_info *pClient);
++static void remove_client_block(struct r3964_info *pInfo,
++		struct r3964_client_info *pClient);
+ 
+-static int  r3964_open(struct tty_struct *tty);
++static int r3964_open(struct tty_struct *tty);
+ static void r3964_close(struct tty_struct *tty);
+ static ssize_t r3964_read(struct tty_struct *tty, struct file *file,
+-                     unsigned char __user *buf, size_t nr);
+-static ssize_t r3964_write(struct tty_struct * tty, struct file * file,
+-                      const unsigned char * buf, size_t nr);
+-static int r3964_ioctl(struct tty_struct * tty, struct file * file,
+-                       unsigned int cmd, unsigned long arg);
+-static void r3964_set_termios(struct tty_struct *tty, struct ktermios * old);
+-static unsigned int r3964_poll(struct tty_struct * tty, struct file * file,
+-		      struct poll_table_struct  *wait);
++		unsigned char __user * buf, size_t nr);
++static ssize_t r3964_write(struct tty_struct *tty, struct file *file,
++		const unsigned char *buf, size_t nr);
++static int r3964_ioctl(struct tty_struct *tty, struct file *file,
++		unsigned int cmd, unsigned long arg);
++static void r3964_set_termios(struct tty_struct *tty, struct ktermios *old);
++static unsigned int r3964_poll(struct tty_struct *tty, struct file *file,
++		struct poll_table_struct *wait);
+ static void r3964_receive_buf(struct tty_struct *tty, const unsigned char *cp,
+-                              char *fp, int count);
++		char *fp, int count);
+ 
+ static struct tty_ldisc tty_ldisc_N_R3964 = {
+-	.owner	 = THIS_MODULE,
+-	.magic	= TTY_LDISC_MAGIC, 
+-	.name	= "R3964",
+-	.open	= r3964_open,
+-	.close	= r3964_close,
+-	.read	= r3964_read,
+-	.write	= r3964_write,
+-	.ioctl	= r3964_ioctl,
++	.owner = THIS_MODULE,
++	.magic = TTY_LDISC_MAGIC,
++	.name = "R3964",
++	.open = r3964_open,
++	.close = r3964_close,
++	.read = r3964_read,
++	.write = r3964_write,
++	.ioctl = r3964_ioctl,
+ 	.set_termios = r3964_set_termios,
+-	.poll	= r3964_poll,            
++	.poll = r3964_poll,
+ 	.receive_buf = r3964_receive_buf,
  };
-+
- #define NR_PORTS        ARRAY_SIZE(cy_port)
  
- /*
-@@ -128,42 +129,46 @@ struct cyclades_port cy_port[] = {
-  *                                                  HI            VHI
-  */
- static int baud_table[] = {
--           0,    50,    75,   110,   134,   150,   200,   300,   600,  1200,
--        1800,  2400,  4800,  9600, 19200, 38400, 57600, 76800,115200,150000,
--        0};
-+	0, 50, 75, 110, 134, 150, 200, 300, 600, 1200,
-+	1800, 2400, 4800, 9600, 19200, 38400, 57600, 76800, 115200, 150000,
-+	0
-+};
- 
- #if 0
--static char baud_co[] = {  /* 25 MHz clock option table */
--        /* value =>    00    01   02    03    04 */
--        /* divide by    8    32   128   512  2048 */
--        0x00,  0x04,  0x04,  0x04,  0x04,  0x04,  0x03,  0x03,  0x03,  0x02,
--        0x02,  0x02,  0x01,  0x01,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00};
 -
--static char baud_bpr[] = {  /* 25 MHz baud rate period table */
--        0x00,  0xf5,  0xa3,  0x6f,  0x5c,  0x51,  0xf5,  0xa3,  0x51,  0xa3,
--        0x6d,  0x51,  0xa3,  0x51,  0xa3,  0x51,  0x36,  0x29,  0x1b,  0x15};
-+static char baud_co[] = {	/* 25 MHz clock option table */
-+	/* value =>    00    01   02    03    04 */
-+	/* divide by    8    32   128   512  2048 */
-+	0x00, 0x04, 0x04, 0x04, 0x04, 0x04, 0x03, 0x03, 0x03, 0x02,
-+	0x02, 0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-+};
-+
-+static char baud_bpr[] = {	/* 25 MHz baud rate period table */
-+	0x00, 0xf5, 0xa3, 0x6f, 0x5c, 0x51, 0xf5, 0xa3, 0x51, 0xa3,
-+	0x6d, 0x51, 0xa3, 0x51, 0xa3, 0x51, 0x36, 0x29, 0x1b, 0x15
-+};
- #endif
- 
- /* I think 166 brd clocks 2401 at 20MHz.... */
- 
- /* These values are written directly to tcor, and >> 5 for writing to rcor */
--static u_char baud_co[] = {  /* 20 MHz clock option table */
--        0x00,  0x80,  0x80,  0x80,  0x80,  0x80,  0x80,  0x60,  0x60,  0x40,
--        0x40,  0x40,  0x20,  0x20,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00};
-+static u_char baud_co[] = {	/* 20 MHz clock option table */
-+	0x00, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x60, 0x60, 0x40,
-+	0x40, 0x40, 0x20, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-+};
- 
- /* These values written directly to tbpr/rbpr */
--static u_char baud_bpr[] = {  /* 20 MHz baud rate period table */
--        0x00,  0xc0,  0x80,  0x58,  0x6c,  0x40,  0xc0,  0x81,  0x40,  0x81,
--        0x57,  0x40,  0x81,  0x40,  0x81,  0x40,  0x2b,  0x20,  0x15,  0x10};
 -
--static u_char baud_cor4[] = {  /* receive threshold */
--        0x0a,  0x0a,  0x0a,  0x0a,  0x0a,  0x0a,  0x0a,  0x0a,  0x0a,  0x0a,
--        0x0a,  0x0a,  0x0a,  0x09,  0x09,  0x08,  0x08,  0x08,  0x08,  0x07};
--
-+static u_char baud_bpr[] = {	/* 20 MHz baud rate period table */
-+	0x00, 0xc0, 0x80, 0x58, 0x6c, 0x40, 0xc0, 0x81, 0x40, 0x81,
-+	0x57, 0x40, 0x81, 0x40, 0x81, 0x40, 0x2b, 0x20, 0x15, 0x10
-+};
- 
-+static u_char baud_cor4[] = {	/* receive threshold */
-+	0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
-+	0x0a, 0x0a, 0x0a, 0x09, 0x09, 0x08, 0x08, 0x08, 0x08, 0x07
-+};
- 
- static void shutdown(struct cyclades_port *);
--static int startup (struct cyclades_port *);
-+static int startup(struct cyclades_port *);
- static void cy_throttle(struct tty_struct *);
- static void cy_unthrottle(struct tty_struct *);
- static void config_setup(struct cyclades_port *);
-@@ -174,16 +179,16 @@ static void show_status(int);
- 
- #ifdef CONFIG_REMOTE_DEBUG
- static void debug_setup(void);
--void queueDebugChar (int c);
-+void queueDebugChar(int c);
- int getDebugChar(void);
- 
- #define DEBUG_PORT	1
- #define DEBUG_LEN	256
- 
- typedef struct {
--	int	in;
--	int	out;
--	unsigned char	buf[DEBUG_LEN];
-+	int in;
-+	int out;
-+	unsigned char buf[DEBUG_LEN];
- } debugq;
- 
- debugq debugiq;
-@@ -196,7 +201,7 @@ debugq debugiq;
-  * delay, but this wild guess will do for now.
-  */
- 
--void my_udelay (long us)
-+void my_udelay(long us)
+ static void dump_block(const unsigned char *block, unsigned int length)
  {
- 	u_char x;
- 	volatile u_char *p = &x;
-@@ -207,62 +212,73 @@ void my_udelay (long us)
- 			x |= *p;
- }
- 
--static inline int
--serial_paranoia_check(struct cyclades_port *info, char *name,
--		      const char *routine)
-+static inline int serial_paranoia_check(struct cyclades_port *info, char *name,
-+		const char *routine)
- {
- #ifdef SERIAL_PARANOIA_CHECK
--    static const char *badmagic =
--	"Warning: bad magic number for serial struct (%s) in %s\n";
--    static const char *badinfo =
--	"Warning: null cyclades_port for (%s) in %s\n";
--    static const char *badrange =
--	"Warning: cyclades_port out of range for (%s) in %s\n";
+-   unsigned int i,j;
+-   char linebuf[16*3+1];
+-   
+-   for(i=0;i<length;i+=16)
+-   {
+-      for(j=0;(j<16) && (j+i<length);j++)
+-      {
+-         sprintf(linebuf+3*j,"%02x ",block[i+j]);
+-      }
+-      linebuf[3*j]='\0';
+-      TRACE_PS("%s",linebuf);
+-   }
+-}
 -
--    if (!info) {
--	printk(badinfo, name, routine);
--	return 1;
--    }
--
--    if( (long)info < (long)(&cy_port[0])
--    || (long)(&cy_port[NR_PORTS]) < (long)info ){
--	printk(badrange, name, routine);
--	return 1;
--    }
--
--    if (info->magic != CYCLADES_MAGIC) {
--	printk(badmagic, name, routine);
--	return 1;
--    }
-+	if (!info) {
-+		printk("Warning: null cyclades_port for (%s) in %s\n", name,
-+				routine);
-+		return 1;
-+	}
-+
-+	if ((long)info < (long)(&cy_port[0])
-+	    || (long)(&cy_port[NR_PORTS]) < (long)info) {
-+		printk("Warning: cyclades_port out of range for (%s) in %s\n",
-+				name, routine);
-+		return 1;
-+	}
-+
-+	if (info->magic != CYCLADES_MAGIC) {
-+		printk("Warning: bad magic number for serial struct (%s) in "
-+				"%s\n", name, routine);
-+		return 1;
-+	}
- #endif
- 	return 0;
--} /* serial_paranoia_check */
-+}				/* serial_paranoia_check */
+-         
++	unsigned int i, j;
++	char linebuf[16 * 3 + 1];
  
- #if 0
- /* The following diagnostic routines allow the driver to spew
-    information on the screen, even (especially!) during interrupts.
-  */
--void
--SP(char *data){
--  unsigned long flags;
--    local_irq_save(flags);
--        console_print(data);
--    local_irq_restore(flags);
-+void SP(char *data)
-+{
-+	unsigned long flags;
-+	local_irq_save(flags);
-+	console_print(data);
-+	local_irq_restore(flags);
- }
-+
- char scrn[2];
--void
--CP(char data){
--  unsigned long flags;
--    local_irq_save(flags);
--        scrn[0] = data;
--        console_print(scrn);
--    local_irq_restore(flags);
--}/* CP */
--
--void CP1(int data) { (data<10)?  CP(data+'0'): CP(data+'A'-10); }/* CP1 */
--void CP2(int data) { CP1((data>>4) & 0x0f); CP1( data & 0x0f); }/* CP2 */
--void CP4(int data) { CP2((data>>8) & 0xff); CP2(data & 0xff); }/* CP4 */
--void CP8(long data) { CP4((data>>16) & 0xffff); CP4(data & 0xffff); }/* CP8 */
-+void CP(char data)
-+{
-+	unsigned long flags;
-+	local_irq_save(flags);
-+	scrn[0] = data;
-+	console_print(scrn);
-+	local_irq_restore(flags);
-+}				/* CP */
-+
-+void CP1(int data)
-+{
-+	(data < 10) ? CP(data + '0') : CP(data + 'A' - 10);
-+}				/* CP1 */
-+void CP2(int data)
-+{
-+	CP1((data >> 4) & 0x0f);
-+	CP1(data & 0x0f);
-+}				/* CP2 */
-+void CP4(int data)
-+{
-+	CP2((data >> 8) & 0xff);
-+	CP2(data & 0xff);
-+}				/* CP4 */
-+void CP8(long data)
-+{
-+	CP4((data >> 16) & 0xffff);
-+	CP4(data & 0xffff);
-+}				/* CP8 */
- #endif
- 
- /* This routine waits up to 1000 micro-seconds for the previous
-@@ -270,87 +286,78 @@ void CP8(long data) { CP4((data>>16) & 0
-    new command.  An error is returned if the previous command
-    didn't finish within the time limit.
-  */
--u_short
--write_cy_cmd(volatile u_char *base_addr, u_char cmd)
-+u_short write_cy_cmd(volatile u_char * base_addr, u_char cmd)
- {
--  unsigned long flags;
--  volatile int  i;
-+	unsigned long flags;
-+	volatile int i;
- 
--    local_irq_save(flags);
-+	local_irq_save(flags);
- 	/* Check to see that the previous command has completed */
--	for(i = 0 ; i < 100 ; i++){
--	    if (base_addr[CyCCR] == 0){
--		break;
--	    }
--	    my_udelay(10L);
-+	for (i = 0; i < 100; i++) {
-+		if (base_addr[CyCCR] == 0) {
-+			break;
++	for (i = 0; i < length; i += 16) {
++		for (j = 0; (j < 16) && (j + i < length); j++) {
++			sprintf(linebuf + 3 * j, "%02x ", block[i + j]);
 +		}
-+		my_udelay(10L);
- 	}
- 	/* if the CCR never cleared, the previous command
--	    didn't finish within the "reasonable time" */
--	if ( i == 10 ) {
--	    local_irq_restore(flags);
--	    return (-1);
-+	   didn't finish within the "reasonable time" */
-+	if (i == 10) {
-+		local_irq_restore(flags);
-+		return (-1);
- 	}
- 
- 	/* Issue the new command */
- 	base_addr[CyCCR] = cmd;
--    local_irq_restore(flags);
--    return(0);
--} /* write_cy_cmd */
--
-+	local_irq_restore(flags);
-+	return (0);
-+}				/* write_cy_cmd */
- 
- /* cy_start and cy_stop provide software output flow control as a
-    function of XON/XOFF, software CTS, and other such stuff. */
- 
--static void
--cy_stop(struct tty_struct *tty)
-+static void cy_stop(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
--  int channel;
--  unsigned long flags;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
-+	int channel;
-+	unsigned long flags;
- 
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_stop %s\n", tty->name); /* */
-+	printk("cy_stop %s\n", tty->name);	/* */
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_stop"))
--	return;
--	
--    channel = info->line;
-+	if (serial_paranoia_check(info, tty->name, "cy_stop"))
-+		return;
- 
--    local_irq_save(flags);
--        base_addr[CyCAR] = (u_char)(channel); /* index channel */
--        base_addr[CyIER] &= ~(CyTxMpty|CyTxRdy);
--    local_irq_restore(flags);
-+	channel = info->line;
- 
--    return;
--} /* cy_stop */
-+	local_irq_save(flags);
-+	base_addr[CyCAR] = (u_char) (channel);	/* index channel */
-+	base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
-+	local_irq_restore(flags);
-+}				/* cy_stop */
- 
--static void
--cy_start(struct tty_struct *tty)
-+static void cy_start(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
--  int channel;
--  unsigned long flags;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
-+	int channel;
-+	unsigned long flags;
- 
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_start %s\n", tty->name); /* */
-+	printk("cy_start %s\n", tty->name);	/* */
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_start"))
--	return;
--	
--    channel = info->line;
--
--    local_irq_save(flags);
--        base_addr[CyCAR] = (u_char)(channel);
--        base_addr[CyIER] |= CyTxMpty;
--    local_irq_restore(flags);
-+	if (serial_paranoia_check(info, tty->name, "cy_start"))
-+		return;
- 
--    return;
--} /* cy_start */
-+	channel = info->line;
- 
-+	local_irq_save(flags);
-+	base_addr[CyCAR] = (u_char) (channel);
-+	base_addr[CyIER] |= CyTxMpty;
-+	local_irq_restore(flags);
-+}				/* cy_start */
- 
- /*
-  * This routine is used by the interrupt handler to schedule
-@@ -358,332 +365,332 @@ cy_start(struct tty_struct *tty)
-  * (also known as the "bottom half").  This can be called any
-  * number of times for any channel without harm.
-  */
--static inline void
--cy_sched_event(struct cyclades_port *info, int event)
-+static inline void cy_sched_event(struct cyclades_port *info, int event)
- {
--    info->event |= 1 << event; /* remember what kind of event and who */
--    schedule_work(&info->tqueue);
--} /* cy_sched_event */
--
-+	info->event |= 1 << event;	/* remember what kind of event and who */
-+	schedule_work(&info->tqueue);
-+}				/* cy_sched_event */
- 
- /* The real interrupt service routines are called
-    whenever the card wants its hand held--chars
-    received, out buffer empty, modem change, etc.
-  */
--static irqreturn_t
--cd2401_rxerr_interrupt(int irq, void *dev_id)
-+static irqreturn_t cd2401_rxerr_interrupt(int irq, void *dev_id)
- {
--    struct tty_struct *tty;
--    struct cyclades_port *info;
--    volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
--    unsigned char err, rfoc;
--    int channel;
--    char data;
--
--    /* determine the channel and change to that context */
--    channel = (u_short ) (base_addr[CyLICR] >> 2);
--    info = &cy_port[channel];
--    info->last_active = jiffies;
--
--    if ((err = base_addr[CyRISR]) & CyTIMEOUT) {
--	/* This is a receive timeout interrupt, ignore it */
--	base_addr[CyREOIR] = CyNOTRANS;
--	return IRQ_HANDLED;
--    }
-+	struct tty_struct *tty;
-+	struct cyclades_port *info;
-+	volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
-+	unsigned char err, rfoc;
-+	int channel;
-+	char data;
-+
-+	/* determine the channel and change to that context */
-+	channel = (u_short) (base_addr[CyLICR] >> 2);
-+	info = &cy_port[channel];
-+	info->last_active = jiffies;
-+
-+	if ((err = base_addr[CyRISR]) & CyTIMEOUT) {
-+		/* This is a receive timeout interrupt, ignore it */
-+		base_addr[CyREOIR] = CyNOTRANS;
-+		return IRQ_HANDLED;
++		linebuf[3 * j] = '\0';
++		TRACE_PS("%s", linebuf);
 +	}
++}
  
--    /* Read a byte of data if there is any - assume the error
--     * is associated with this character */
-+	/* Read a byte of data if there is any - assume the error
-+	 * is associated with this character */
+ /*************************************************************
+  * Driver initialisation
+  *************************************************************/
  
--    if ((rfoc = base_addr[CyRFOC]) != 0)
--	data = base_addr[CyRDR];
--    else
--	data = 0;
-+	if ((rfoc = base_addr[CyRFOC]) != 0)
-+		data = base_addr[CyRDR];
-+	else
-+		data = 0;
+-
+ /*************************************************************
+  * Module support routines
+  *************************************************************/
  
--    /* if there is nowhere to put the data, discard it */
--    if(info->tty == 0) {
-+	/* if there is nowhere to put the data, discard it */
-+	if (info->tty == 0) {
-+		base_addr[CyREOIR] = rfoc ? 0 : CyNOTRANS;
-+		return IRQ_HANDLED;
-+	} else {		/* there is an open port for this data */
-+		tty = info->tty;
-+		if (err & info->ignore_status_mask) {
-+			base_addr[CyREOIR] = rfoc ? 0 : CyNOTRANS;
-+			return IRQ_HANDLED;
-+		}
-+		if (tty_buffer_request_room(tty, 1) != 0) {
-+			if (err & info->read_status_mask) {
-+				if (err & CyBREAK) {
-+					tty_insert_flip_char(tty, data,
-+							     TTY_BREAK);
-+					if (info->flags & ASYNC_SAK) {
-+						do_SAK(tty);
-+					}
-+				} else if (err & CyFRAME) {
-+					tty_insert_flip_char(tty, data,
-+							     TTY_FRAME);
-+				} else if (err & CyPARITY) {
-+					tty_insert_flip_char(tty, data,
-+							     TTY_PARITY);
-+				} else if (err & CyOVERRUN) {
-+					tty_insert_flip_char(tty, 0,
-+							     TTY_OVERRUN);
-+					/*
-+					   If the flip buffer itself is
-+					   overflowing, we still loose
-+					   the next incoming character.
-+					 */
-+					if (tty_buffer_request_room(tty, 1) !=
-+					    0) {
-+						tty_insert_flip_char(tty, data,
-+								     TTY_FRAME);
-+					}
-+					/* These two conditions may imply */
-+					/* a normal read should be done. */
-+					/* else if(data & CyTIMEOUT) */
-+					/* else if(data & CySPECHAR) */
-+				} else {
-+					tty_insert_flip_char(tty, 0,
-+							     TTY_NORMAL);
-+				}
-+			} else {
-+				tty_insert_flip_char(tty, data, TTY_NORMAL);
-+			}
-+		} else {
-+			/* there was a software buffer overrun
-+			   and nothing could be done about it!!! */
-+		}
-+	}
-+	tty_schedule_flip(tty);
-+	/* end of service */
- 	base_addr[CyREOIR] = rfoc ? 0 : CyNOTRANS;
- 	return IRQ_HANDLED;
--    }
--    else { /* there is an open port for this data */
--	tty = info->tty;
--	if(err & info->ignore_status_mask){
--	    base_addr[CyREOIR] = rfoc ? 0 : CyNOTRANS;
--	    return IRQ_HANDLED;
--	}
--	if (tty_buffer_request_room(tty, 1) != 0){
--	    if (err & info->read_status_mask){
--		if(err & CyBREAK){
--		    tty_insert_flip_char(tty, data, TTY_BREAK);
--		    if (info->flags & ASYNC_SAK){
--			do_SAK(tty);
--		    }
--		}else if(err & CyFRAME){
--		    tty_insert_flip_char(tty, data, TTY_FRAME);
--		}else if(err & CyPARITY){
--		    tty_insert_flip_char(tty, data, TTY_PARITY);
--		}else if(err & CyOVERRUN){
--		    tty_insert_flip_char(tty, 0, TTY_OVERRUN);
--		    /*
--		       If the flip buffer itself is
--		       overflowing, we still loose
--		       the next incoming character.
--		     */
--		    if (tty_buffer_request_room(tty, 1) != 0){
--			tty_insert_flip_char(tty, data, TTY_FRAME);
--		    }
--		/* These two conditions may imply */
--		/* a normal read should be done. */
--		/* else if(data & CyTIMEOUT) */
--		/* else if(data & CySPECHAR) */
--		}else{
--		    tty_insert_flip_char(tty, 0, TTY_NORMAL);
--		}
--	    }else{
--		tty_insert_flip_char(tty, data, TTY_NORMAL);
--	    }
--	}else{
--	    /* there was a software buffer overrun
--	       and nothing could be done about it!!! */
--	}
--    }
--    tty_schedule_flip(tty);
--    /* end of service */
--    base_addr[CyREOIR] = rfoc ? 0 : CyNOTRANS;
--    return IRQ_HANDLED;
--} /* cy_rxerr_interrupt */
+ static void __exit r3964_exit(void)
+ {
+-   int status;
+-   
+-   TRACE_M ("cleanup_module()");
 -
--static irqreturn_t
--cd2401_modem_interrupt(int irq, void *dev_id)
--{
--    struct cyclades_port *info;
--    volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
--    int channel;
--    int mdm_change;
--    int mdm_status;
--
--
--    /* determine the channel and change to that context */
--    channel = (u_short ) (base_addr[CyLICR] >> 2);
--    info = &cy_port[channel];
--    info->last_active = jiffies;
--
--    mdm_change = base_addr[CyMISR];
--    mdm_status = base_addr[CyMSVR1];
--
--    if(info->tty == 0){ /* nowhere to put the data, ignore it */
--	;
--    }else{
--	if((mdm_change & CyDCD)
--	&& (info->flags & ASYNC_CHECK_CD)){
--	    if(mdm_status & CyDCD){
-+}				/* cy_rxerr_interrupt */
+-   status=tty_unregister_ldisc(N_R3964);
+-   
+-   if(status!=0)
+-   {
+-      printk(KERN_ERR "r3964: error unregistering linediscipline: %d\n", status);
+-   }
+-   else
+-   {
+-      TRACE_L("linediscipline successfully unregistered");
+-   }
+-   
++	int status;
 +
-+static irqreturn_t cd2401_modem_interrupt(int irq, void *dev_id)
-+{
-+	struct cyclades_port *info;
-+	volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
-+	int channel;
-+	int mdm_change;
-+	int mdm_status;
++	TRACE_M("cleanup_module()");
 +
-+	/* determine the channel and change to that context */
-+	channel = (u_short) (base_addr[CyLICR] >> 2);
-+	info = &cy_port[channel];
-+	info->last_active = jiffies;
++	status = tty_unregister_ldisc(N_R3964);
 +
-+	mdm_change = base_addr[CyMISR];
-+	mdm_status = base_addr[CyMSVR1];
-+
-+	if (info->tty == 0) {	/* nowhere to put the data, ignore it */
-+		;
++	if (status != 0) {
++		printk(KERN_ERR "r3964: error unregistering linediscipline: "
++				"%d\n", status);
 +	} else {
-+		if ((mdm_change & CyDCD)
-+		    && (info->flags & ASYNC_CHECK_CD)) {
-+			if (mdm_status & CyDCD) {
- /* CP('!'); */
--		cy_sched_event(info, Cy_EVENT_OPEN_WAKEUP);
--	    } else {
-+				cy_sched_event(info, Cy_EVENT_OPEN_WAKEUP);
-+			} else {
- /* CP('@'); */
--		cy_sched_event(info, Cy_EVENT_HANGUP);
--	    }
-+				cy_sched_event(info, Cy_EVENT_HANGUP);
-+			}
-+		}
-+		if ((mdm_change & CyCTS)
-+		    && (info->flags & ASYNC_CTS_FLOW)) {
-+			if (info->tty->stopped) {
-+				if (mdm_status & CyCTS) {
-+					/* !!! cy_start isn't used because... */
-+					info->tty->stopped = 0;
-+					base_addr[CyIER] |= CyTxMpty;
-+					cy_sched_event(info,
-+						       Cy_EVENT_WRITE_WAKEUP);
-+				}
-+			} else {
-+				if (!(mdm_status & CyCTS)) {
-+					/* !!! cy_stop isn't used because... */
-+					info->tty->stopped = 1;
-+					base_addr[CyIER] &=
-+					    ~(CyTxMpty | CyTxRdy);
-+				}
-+			}
-+		}
-+		if (mdm_status & CyDSR) {
-+		}
- 	}
--	if((mdm_change & CyCTS)
--	&& (info->flags & ASYNC_CTS_FLOW)){
--	    if(info->tty->stopped){
--		if(mdm_status & CyCTS){
--		    /* !!! cy_start isn't used because... */
--		    info->tty->stopped = 0;
--        	    base_addr[CyIER] |= CyTxMpty;
--		    cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
--		}
--	    }else{
--		if(!(mdm_status & CyCTS)){
--		    /* !!! cy_stop isn't used because... */
--		    info->tty->stopped = 1;
--        	    base_addr[CyIER] &= ~(CyTxMpty|CyTxRdy);
--		}
--	    }
--	}
--	if(mdm_status & CyDSR){
--	}
--    }
--    base_addr[CyMEOIR] = 0;
--    return IRQ_HANDLED;
--} /* cy_modem_interrupt */
--
--static irqreturn_t
--cd2401_tx_interrupt(int irq, void *dev_id)
--{
--    struct cyclades_port *info;
--    volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
--    int channel;
--    int char_count, saved_cnt;
--    int outch;
-+	base_addr[CyMEOIR] = 0;
-+	return IRQ_HANDLED;
-+}				/* cy_modem_interrupt */
-+
-+static irqreturn_t cd2401_tx_interrupt(int irq, void *dev_id)
-+{
-+	struct cyclades_port *info;
-+	volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
-+	int channel;
-+	int char_count, saved_cnt;
-+	int outch;
- 
--    /* determine the channel and change to that context */
--    channel = (u_short ) (base_addr[CyLICR] >> 2);
-+	/* determine the channel and change to that context */
-+	channel = (u_short) (base_addr[CyLICR] >> 2);
- 
- #ifdef CONFIG_REMOTE_DEBUG
--    if (channel == DEBUG_PORT) {
--	panic ("TxInt on debug port!!!");
--    }
-+	if (channel == DEBUG_PORT) {
-+		panic("TxInt on debug port!!!");
++		TRACE_L("linediscipline successfully unregistered");
 +	}
+ }
+ 
+ static int __init r3964_init(void)
+ {
+-   int status;
+-   
+-   printk ("r3964: Philips r3964 Driver $Revision: 1.10 $\n");
+-
+-   /*
+-    * Register the tty line discipline
+-    */
+-   
+-   status = tty_register_ldisc (N_R3964, &tty_ldisc_N_R3964);
+-   if (status == 0)
+-     {
+-       TRACE_L("line discipline %d registered", N_R3964);
+-       TRACE_L("flags=%x num=%x", tty_ldisc_N_R3964.flags, 
+-               tty_ldisc_N_R3964.num);
+-       TRACE_L("open=%p", tty_ldisc_N_R3964.open);
+-       TRACE_L("tty_ldisc_N_R3964 = %p", &tty_ldisc_N_R3964);
+-     }
+-   else
+-     {
+-       printk (KERN_ERR "r3964: error registering line discipline: %d\n", status);
+-     }
+-   return status;
++	int status;
++
++	printk("r3964: Philips r3964 Driver $Revision: 1.10 $\n");
++
++	/*
++	 * Register the tty line discipline
++	 */
++
++	status = tty_register_ldisc(N_R3964, &tty_ldisc_N_R3964);
++	if (status == 0) {
++		TRACE_L("line discipline %d registered", N_R3964);
++		TRACE_L("flags=%x num=%x", tty_ldisc_N_R3964.flags,
++			tty_ldisc_N_R3964.num);
++		TRACE_L("open=%p", tty_ldisc_N_R3964.open);
++		TRACE_L("tty_ldisc_N_R3964 = %p", &tty_ldisc_N_R3964);
++	} else {
++		printk(KERN_ERR "r3964: error registering line discipline: "
++				"%d\n", status);
++	}
++	return status;
+ }
+ 
+ module_init(r3964_init);
+ module_exit(r3964_exit);
+ 
+-
+ /*************************************************************
+  * Protocol implementation routines
+  *************************************************************/
+ 
+-static void add_tx_queue(struct r3964_info *pInfo, struct r3964_block_header *pHeader)
++static void add_tx_queue(struct r3964_info *pInfo,
++			 struct r3964_block_header *pHeader)
+ {
+-   unsigned long flags;
+-   
+-   spin_lock_irqsave(&pInfo->lock, flags);
+-
+-   pHeader->next = NULL;
+-
+-   if(pInfo->tx_last == NULL)
+-   {
+-      pInfo->tx_first = pInfo->tx_last = pHeader;
+-   }
+-   else
+-   {
+-      pInfo->tx_last->next = pHeader;
+-      pInfo->tx_last = pHeader;
+-   }
+-   
+-   spin_unlock_irqrestore(&pInfo->lock, flags);
++	unsigned long flags;
++
++	spin_lock_irqsave(&pInfo->lock, flags);
+ 
+-   TRACE_Q("add_tx_queue %p, length %d, tx_first = %p", 
+-          pHeader, pHeader->length, pInfo->tx_first );
++	pHeader->next = NULL;
++
++	if (pInfo->tx_last == NULL) {
++		pInfo->tx_first = pInfo->tx_last = pHeader;
++	} else {
++		pInfo->tx_last->next = pHeader;
++		pInfo->tx_last = pHeader;
++	}
++
++	spin_unlock_irqrestore(&pInfo->lock, flags);
++
++	TRACE_Q("add_tx_queue %p, length %d, tx_first = %p",
++		pHeader, pHeader->length, pInfo->tx_first);
+ }
+ 
+ static void remove_from_tx_queue(struct r3964_info *pInfo, int error_code)
+ {
+-   struct r3964_block_header *pHeader;
+-   unsigned long flags;
++	struct r3964_block_header *pHeader;
++	unsigned long flags;
+ #ifdef DEBUG_QUEUE
+-   struct r3964_block_header *pDump;
++	struct r3964_block_header *pDump;
+ #endif
+-   
+-   pHeader = pInfo->tx_first;
+ 
+-   if(pHeader==NULL)
+-      return;
++	pHeader = pInfo->tx_first;
++
++	if (pHeader == NULL)
++		return;
+ 
+ #ifdef DEBUG_QUEUE
+-   printk("r3964: remove_from_tx_queue: %p, length %u - ",
+-          pHeader, pHeader->length );
+-   for(pDump=pHeader;pDump;pDump=pDump->next)
+-	 printk("%p ", pDump);
+-   printk("\n");
++	printk("r3964: remove_from_tx_queue: %p, length %u - ",
++		pHeader, pHeader->length);
++	for (pDump = pHeader; pDump; pDump = pDump->next)
++		printk("%p ", pDump);
++	printk("\n");
  #endif
  
--    info = &cy_port[channel];
-+	info = &cy_port[channel];
- 
--    /* validate the port number (as configured and open) */
--    if( (channel < 0) || (NR_PORTS <= channel) ){
--	base_addr[CyIER] &= ~(CyTxMpty|CyTxRdy);
--	base_addr[CyTEOIR] = CyNOTRANS;
--	return IRQ_HANDLED;
--    }
--    info->last_active = jiffies;
--    if(info->tty == 0){
--	base_addr[CyIER] &= ~(CyTxMpty|CyTxRdy);
--        if (info->xmit_cnt < WAKEUP_CHARS) {
--	    cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
--        }
--	base_addr[CyTEOIR] = CyNOTRANS;
--	return IRQ_HANDLED;
--    }
-+	/* validate the port number (as configured and open) */
-+	if ((channel < 0) || (NR_PORTS <= channel)) {
-+		base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
-+		base_addr[CyTEOIR] = CyNOTRANS;
-+		return IRQ_HANDLED;
-+	}
-+	info->last_active = jiffies;
-+	if (info->tty == 0) {
-+		base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
-+		if (info->xmit_cnt < WAKEUP_CHARS) {
-+			cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
-+		}
-+		base_addr[CyTEOIR] = CyNOTRANS;
-+		return IRQ_HANDLED;
-+	}
- 
--    /* load the on-chip space available for outbound data */
--    saved_cnt = char_count = base_addr[CyTFTC];
-+	/* load the on-chip space available for outbound data */
-+	saved_cnt = char_count = base_addr[CyTFTC];
- 
--    if(info->x_char) { /* send special char */
--	outch = info->x_char;
--	base_addr[CyTDR] = outch;
--	char_count--;
--	info->x_char = 0;
--    }
--
--    if (info->x_break){
--	/*  The Cirrus chip requires the "Embedded Transmit
--	    Commands" of start break, delay, and end break
--	    sequences to be sent.  The duration of the
--	    break is given in TICs, which runs at HZ
--	    (typically 100) and the PPR runs at 200 Hz,
--	    so the delay is duration * 200/HZ, and thus a
--	    break can run from 1/100 sec to about 5/4 sec.
--	    Need to check these values - RGH 141095.
--	 */
--	base_addr[CyTDR] = 0; /* start break */
--	base_addr[CyTDR] = 0x81;
--	base_addr[CyTDR] = 0; /* delay a bit */
--	base_addr[CyTDR] = 0x82;
--	base_addr[CyTDR] = info->x_break*200/HZ;
--	base_addr[CyTDR] = 0; /* terminate break */
--	base_addr[CyTDR] = 0x83;
--	char_count -= 7;
--	info->x_break = 0;
--    }
--
--    while (char_count > 0){
--	if (!info->xmit_cnt){
--	    base_addr[CyIER] &= ~(CyTxMpty|CyTxRdy);
--	    break;
--	}
--	if (info->xmit_buf == 0){
--	    base_addr[CyIER] &= ~(CyTxMpty|CyTxRdy);
--	    break;
--	}
--	if (info->tty->stopped || info->tty->hw_stopped){
--	    base_addr[CyIER] &= ~(CyTxMpty|CyTxRdy);
--	    break;
--	}
--	/* Because the Embedded Transmit Commands have been
--	   enabled, we must check to see if the escape
--	   character, NULL, is being sent.  If it is, we
--	   must ensure that there is room for it to be
--	   doubled in the output stream.  Therefore we
--	   no longer advance the pointer when the character
--	   is fetched, but rather wait until after the check
--	   for a NULL output character. (This is necessary
--	   because there may not be room for the two chars
--	   needed to send a NULL.
--	 */
--	outch = info->xmit_buf[info->xmit_tail];
--	if( outch ){
--	    info->xmit_cnt--;
--	    info->xmit_tail = (info->xmit_tail + 1)
--				      & (PAGE_SIZE - 1);
--	    base_addr[CyTDR] = outch;
--	    char_count--;
--	}else{
--	    if(char_count > 1){
--		info->xmit_cnt--;
--		info->xmit_tail = (info->xmit_tail + 1)
--					  & (PAGE_SIZE - 1);
-+	if (info->x_char) {	/* send special char */
-+		outch = info->x_char;
- 		base_addr[CyTDR] = outch;
--		base_addr[CyTDR] = 0;
--		char_count--;
- 		char_count--;
--	    }else{
--		break;
--	    }
-+		info->x_char = 0;
-+	}
-+
-+	if (info->x_break) {
-+		/*  The Cirrus chip requires the "Embedded Transmit
-+		   Commands" of start break, delay, and end break
-+		   sequences to be sent.  The duration of the
-+		   break is given in TICs, which runs at HZ
-+		   (typically 100) and the PPR runs at 200 Hz,
-+		   so the delay is duration * 200/HZ, and thus a
-+		   break can run from 1/100 sec to about 5/4 sec.
-+		   Need to check these values - RGH 141095.
-+		 */
-+		base_addr[CyTDR] = 0;	/* start break */
-+		base_addr[CyTDR] = 0x81;
-+		base_addr[CyTDR] = 0;	/* delay a bit */
-+		base_addr[CyTDR] = 0x82;
-+		base_addr[CyTDR] = info->x_break * 200 / HZ;
-+		base_addr[CyTDR] = 0;	/* terminate break */
-+		base_addr[CyTDR] = 0x83;
-+		char_count -= 7;
-+		info->x_break = 0;
-+	}
-+
-+	while (char_count > 0) {
-+		if (!info->xmit_cnt) {
-+			base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
-+			break;
-+		}
-+		if (info->xmit_buf == 0) {
-+			base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
-+			break;
-+		}
-+		if (info->tty->stopped || info->tty->hw_stopped) {
-+			base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
-+			break;
-+		}
-+		/* Because the Embedded Transmit Commands have been
-+		   enabled, we must check to see if the escape
-+		   character, NULL, is being sent.  If it is, we
-+		   must ensure that there is room for it to be
-+		   doubled in the output stream.  Therefore we
-+		   no longer advance the pointer when the character
-+		   is fetched, but rather wait until after the check
-+		   for a NULL output character. (This is necessary
-+		   because there may not be room for the two chars
-+		   needed to send a NULL.
-+		 */
-+		outch = info->xmit_buf[info->xmit_tail];
-+		if (outch) {
-+			info->xmit_cnt--;
-+			info->xmit_tail = (info->xmit_tail + 1)
-+			    & (PAGE_SIZE - 1);
-+			base_addr[CyTDR] = outch;
-+			char_count--;
++	if (pHeader->owner) {
++		if (error_code) {
++			add_msg(pHeader->owner, R3964_MSG_ACK, 0,
++				error_code, NULL);
 +		} else {
-+			if (char_count > 1) {
-+				info->xmit_cnt--;
-+				info->xmit_tail = (info->xmit_tail + 1)
-+				    & (PAGE_SIZE - 1);
-+				base_addr[CyTDR] = outch;
-+				base_addr[CyTDR] = 0;
-+				char_count--;
-+				char_count--;
-+			} else {
++			add_msg(pHeader->owner, R3964_MSG_ACK, pHeader->length,
++				error_code, NULL);
++		}
++		wake_up_interruptible(&pInfo->read_wait);
++	}
++
++	spin_lock_irqsave(&pInfo->lock, flags);
++
++	pInfo->tx_first = pHeader->next;
++	if (pInfo->tx_first == NULL) {
++		pInfo->tx_last = NULL;
++	}
++
++	spin_unlock_irqrestore(&pInfo->lock, flags);
+ 
+-   if(pHeader->owner)
+-   {
+-      if(error_code)
+-      {
+-          add_msg(pHeader->owner, R3964_MSG_ACK, 0, 
+-                  error_code, NULL);
+-      }
+-      else
+-      {
+-          add_msg(pHeader->owner, R3964_MSG_ACK, pHeader->length, 
+-                  error_code, NULL);
+-      }
+-      wake_up_interruptible (&pInfo->read_wait);
+-   }
+-
+-   spin_lock_irqsave(&pInfo->lock, flags);
+-
+-   pInfo->tx_first = pHeader->next;
+-   if(pInfo->tx_first==NULL)
+-   {
+-      pInfo->tx_last = NULL;
+-   }
+-
+-   spin_unlock_irqrestore(&pInfo->lock, flags);
+-
+-   kfree(pHeader);
+-   TRACE_M("remove_from_tx_queue - kfree %p",pHeader);
+-
+-   TRACE_Q("remove_from_tx_queue: tx_first = %p, tx_last = %p",
+-          pInfo->tx_first, pInfo->tx_last );
+-}
+-
+-static void add_rx_queue(struct r3964_info *pInfo, struct r3964_block_header *pHeader)
+-{
+-   unsigned long flags;
+-   
+-   spin_lock_irqsave(&pInfo->lock, flags);
+-
+-   pHeader->next = NULL;
+-
+-   if(pInfo->rx_last == NULL)
+-   {
+-      pInfo->rx_first = pInfo->rx_last = pHeader;
+-   }
+-   else
+-   {
+-      pInfo->rx_last->next = pHeader;
+-      pInfo->rx_last = pHeader;
+-   }
+-   pInfo->blocks_in_rx_queue++;
+-   
+-   spin_unlock_irqrestore(&pInfo->lock, flags);
+-
+-   TRACE_Q("add_rx_queue: %p, length = %d, rx_first = %p, count = %d",
+-          pHeader, pHeader->length,
+-          pInfo->rx_first, pInfo->blocks_in_rx_queue);
++	kfree(pHeader);
++	TRACE_M("remove_from_tx_queue - kfree %p", pHeader);
++
++	TRACE_Q("remove_from_tx_queue: tx_first = %p, tx_last = %p",
++		pInfo->tx_first, pInfo->tx_last);
++}
++
++static void add_rx_queue(struct r3964_info *pInfo,
++			 struct r3964_block_header *pHeader)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&pInfo->lock, flags);
++
++	pHeader->next = NULL;
++
++	if (pInfo->rx_last == NULL) {
++		pInfo->rx_first = pInfo->rx_last = pHeader;
++	} else {
++		pInfo->rx_last->next = pHeader;
++		pInfo->rx_last = pHeader;
++	}
++	pInfo->blocks_in_rx_queue++;
++
++	spin_unlock_irqrestore(&pInfo->lock, flags);
++
++	TRACE_Q("add_rx_queue: %p, length = %d, rx_first = %p, count = %d",
++		pHeader, pHeader->length,
++		pInfo->rx_first, pInfo->blocks_in_rx_queue);
+ }
+ 
+ static void remove_from_rx_queue(struct r3964_info *pInfo,
+-                 struct r3964_block_header *pHeader)
++				 struct r3964_block_header *pHeader)
+ {
+-   unsigned long flags;
+-   struct r3964_block_header *pFind;
+-   
+-   if(pHeader==NULL)
+-      return;
+-
+-   TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
+-          pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue );
+-   TRACE_Q("remove_from_rx_queue: %p, length %u",
+-          pHeader, pHeader->length );
+-
+-   spin_lock_irqsave(&pInfo->lock, flags);
+-
+-   if(pInfo->rx_first == pHeader)
+-   {
+-      /* Remove the first block in the linked list: */
+-      pInfo->rx_first = pHeader->next;
+-      
+-      if(pInfo->rx_first==NULL)
+-      {
+-         pInfo->rx_last = NULL;
+-      }
+-      pInfo->blocks_in_rx_queue--;
+-   }
+-   else 
+-   {
+-      /* Find block to remove: */
+-      for(pFind=pInfo->rx_first; pFind; pFind=pFind->next)
+-      {
+-         if(pFind->next == pHeader) 
+-         {
+-            /* Got it. */
+-            pFind->next = pHeader->next;
+-            pInfo->blocks_in_rx_queue--;
+-            if(pFind->next==NULL)
+-            {
+-               /* Oh, removed the last one! */
+-               pInfo->rx_last = pFind;
+-            }
+-            break;
+-         }
+-      }
+-   }
++	unsigned long flags;
++	struct r3964_block_header *pFind;
++
++	if (pHeader == NULL)
++		return;
++
++	TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
++		pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue);
++	TRACE_Q("remove_from_rx_queue: %p, length %u",
++		pHeader, pHeader->length);
++
++	spin_lock_irqsave(&pInfo->lock, flags);
++
++	if (pInfo->rx_first == pHeader) {
++		/* Remove the first block in the linked list: */
++		pInfo->rx_first = pHeader->next;
++
++		if (pInfo->rx_first == NULL) {
++			pInfo->rx_last = NULL;
++		}
++		pInfo->blocks_in_rx_queue--;
++	} else {
++		/* Find block to remove: */
++		for (pFind = pInfo->rx_first; pFind; pFind = pFind->next) {
++			if (pFind->next == pHeader) {
++				/* Got it. */
++				pFind->next = pHeader->next;
++				pInfo->blocks_in_rx_queue--;
++				if (pFind->next == NULL) {
++					/* Oh, removed the last one! */
++					pInfo->rx_last = pFind;
++				}
 +				break;
 +			}
 +		}
- 	}
--    }
- 
--    if (info->xmit_cnt < WAKEUP_CHARS) {
--	cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
--    }
--    base_addr[CyTEOIR] = (char_count != saved_cnt) ? 0 : CyNOTRANS;
--    return IRQ_HANDLED;
--} /* cy_tx_interrupt */
--
--static irqreturn_t
--cd2401_rx_interrupt(int irq, void *dev_id)
--{
--    struct tty_struct *tty;
--    struct cyclades_port *info;
--    volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
--    int channel;
--    char data;
--    int char_count;
--    int save_cnt;
--    int len;
--
--    /* determine the channel and change to that context */
--    channel = (u_short ) (base_addr[CyLICR] >> 2);
--    info = &cy_port[channel];
--    info->last_active = jiffies;
--    save_cnt = char_count = base_addr[CyRFOC];
-+	if (info->xmit_cnt < WAKEUP_CHARS) {
-+		cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
 +	}
-+	base_addr[CyTEOIR] = (char_count != saved_cnt) ? 0 : CyNOTRANS;
-+	return IRQ_HANDLED;
-+}				/* cy_tx_interrupt */
-+
-+static irqreturn_t cd2401_rx_interrupt(int irq, void *dev_id)
-+{
-+	struct tty_struct *tty;
-+	struct cyclades_port *info;
-+	volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
-+	int channel;
-+	char data;
-+	int char_count;
-+	int save_cnt;
-+	int len;
-+
-+	/* determine the channel and change to that context */
-+	channel = (u_short) (base_addr[CyLICR] >> 2);
-+	info = &cy_port[channel];
-+	info->last_active = jiffies;
-+	save_cnt = char_count = base_addr[CyRFOC];
  
- #ifdef CONFIG_REMOTE_DEBUG
--    if (channel == DEBUG_PORT) {
--	while (char_count--) {
--            data = base_addr[CyRDR];
--	    queueDebugChar(data);
--	}
--    }
--    else
--#endif
--    /* if there is nowhere to put the data, discard it */
--    if(info->tty == 0){
--	while(char_count--){
--	    data = base_addr[CyRDR];
--	}
--    }else{ /* there is an open port for this data */
--	tty = info->tty;
--	/* load # characters available from the chip */
-+	if (channel == DEBUG_PORT) {
-+		while (char_count--) {
-+			data = base_addr[CyRDR];
-+			queueDebugChar(data);
-+		}
-+	} else
-+#endif
-+		/* if there is nowhere to put the data, discard it */
-+	if (info->tty == 0) {
-+		while (char_count--) {
-+			data = base_addr[CyRDR];
-+		}
-+	} else {		/* there is an open port for this data */
-+		tty = info->tty;
-+		/* load # characters available from the chip */
+-   spin_unlock_irqrestore(&pInfo->lock, flags);
++	spin_unlock_irqrestore(&pInfo->lock, flags);
  
- #ifdef CYCLOM_ENABLE_MONITORING
--	++info->mon.int_count;
--	info->mon.char_count += char_count;
--	if (char_count > info->mon.char_max)
--	    info->mon.char_max = char_count;
--	info->mon.char_last = char_count;
--#endif
--	len = tty_buffer_request_room(tty, char_count);
--	while(len--){
--	    data = base_addr[CyRDR];
--	    tty_insert_flip_char(tty, data, TTY_NORMAL);
-+		++info->mon.int_count;
-+		info->mon.char_count += char_count;
-+		if (char_count > info->mon.char_max)
-+			info->mon.char_max = char_count;
-+		info->mon.char_last = char_count;
-+#endif
-+		len = tty_buffer_request_room(tty, char_count);
-+		while (len--) {
-+			data = base_addr[CyRDR];
-+			tty_insert_flip_char(tty, data, TTY_NORMAL);
- #ifdef CYCLOM_16Y_HACK
--	    udelay(10L);
-+			udelay(10L);
- #endif
--        }
--	tty_schedule_flip(tty);
--    }
--    /* end of service */
--    base_addr[CyREOIR] = save_cnt ? 0 : CyNOTRANS;
--    return IRQ_HANDLED;
--} /* cy_rx_interrupt */
-+		}
-+		tty_schedule_flip(tty);
-+	}
-+	/* end of service */
-+	base_addr[CyREOIR] = save_cnt ? 0 : CyNOTRANS;
-+	return IRQ_HANDLED;
-+}				/* cy_rx_interrupt */
+-   kfree(pHeader);
+-   TRACE_M("remove_from_rx_queue - kfree %p",pHeader);
++	kfree(pHeader);
++	TRACE_M("remove_from_rx_queue - kfree %p", pHeader);
  
- /*
-  * This routine is used to handle the "bottom half" processing for the
-@@ -705,192 +712,188 @@ cd2401_rx_interrupt(int irq, void *dev_i
-  * structure) to the bottom half of the driver.  Previous kernels
-  * had to poll every port to see if that port needed servicing.
-  */
--static void
--do_softint(struct work_struct *ugly_api)
-+static void do_softint(struct work_struct *ugly_api)
+-   TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
+-          pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue );
++	TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
++		pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue);
+ }
+ 
+ static void put_char(struct r3964_info *pInfo, unsigned char ch)
  {
--  struct cyclades_port *info = container_of(ugly_api, struct cyclades_port, tqueue);
--  struct tty_struct    *tty;
--
--    tty = info->tty;
--    if (!tty)
--	return;
-+	struct cyclades_port *info =
-+	    container_of(ugly_api, struct cyclades_port, tqueue);
-+	struct tty_struct *tty;
+-   struct tty_struct *tty = pInfo->tty;
++	struct tty_struct *tty = pInfo->tty;
  
--    if (test_and_clear_bit(Cy_EVENT_HANGUP, &info->event)) {
--	tty_hangup(info->tty);
--	wake_up_interruptible(&info->open_wait);
--	info->flags &= ~ASYNC_NORMAL_ACTIVE;
--    }
--    if (test_and_clear_bit(Cy_EVENT_OPEN_WAKEUP, &info->event)) {
--	wake_up_interruptible(&info->open_wait);
--    }
--    if (test_and_clear_bit(Cy_EVENT_WRITE_WAKEUP, &info->event)) {
--    	tty_wakeup(tty);
--    }
--} /* do_softint */
-+	tty = info->tty;
-+	if (!tty)
+-   if(tty==NULL)
+-      return;
++	if (tty == NULL)
 +		return;
  
-+	if (test_and_clear_bit(Cy_EVENT_HANGUP, &info->event)) {
-+		tty_hangup(info->tty);
-+		wake_up_interruptible(&info->open_wait);
-+		info->flags &= ~ASYNC_NORMAL_ACTIVE;
+-   if(tty->driver->put_char)
+-   {
+-      tty->driver->put_char(tty, ch);
+-   }
+-   pInfo->bcc ^= ch;
++	if (tty->driver->put_char) {
++		tty->driver->put_char(tty, ch);
 +	}
-+	if (test_and_clear_bit(Cy_EVENT_OPEN_WAKEUP, &info->event)) {
-+		wake_up_interruptible(&info->open_wait);
-+	}
-+	if (test_and_clear_bit(Cy_EVENT_WRITE_WAKEUP, &info->event)) {
-+		tty_wakeup(tty);
-+	}
-+}				/* do_softint */
++	pInfo->bcc ^= ch;
+ }
  
- /* This is called whenever a port becomes active;
-    interrupts are enabled and DTR & RTS are turned on.
-  */
--static int
--startup(struct cyclades_port * info)
-+static int startup(struct cyclades_port *info)
+ static void flush(struct r3964_info *pInfo)
  {
--  unsigned long flags;
--  volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
--  int channel;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (unsigned char *)BASE_ADDR;
-+	int channel;
+-   struct tty_struct *tty = pInfo->tty;
++	struct tty_struct *tty = pInfo->tty;
  
--    if (info->flags & ASYNC_INITIALIZED){
--	return 0;
--    }
-+	if (info->flags & ASYNC_INITIALIZED) {
-+		return 0;
-+	}
- 
--    if (!info->type){
--	if (info->tty){
--	    set_bit(TTY_IO_ERROR, &info->tty->flags);
-+	if (!info->type) {
-+		if (info->tty) {
-+			set_bit(TTY_IO_ERROR, &info->tty->flags);
-+		}
-+		return 0;
- 	}
--	return 0;
--    }
--    if (!info->xmit_buf){
--	info->xmit_buf = (unsigned char *) get_zeroed_page (GFP_KERNEL);
--	if (!info->xmit_buf){
--	    return -ENOMEM;
-+	if (!info->xmit_buf) {
-+		info->xmit_buf = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-+		if (!info->xmit_buf) {
-+			return -ENOMEM;
-+		}
- 	}
--    }
- 
--    config_setup(info);
-+	config_setup(info);
- 
--    channel = info->line;
-+	channel = info->line;
- 
- #ifdef SERIAL_DEBUG_OPEN
--    printk("startup channel %d\n", channel);
-+	printk("startup channel %d\n", channel);
- #endif
- 
--    local_irq_save(flags);
--	base_addr[CyCAR] = (u_char)channel;
--	write_cy_cmd(base_addr,CyENB_RCVR|CyENB_XMTR);
-+	local_irq_save(flags);
-+	base_addr[CyCAR] = (u_char) channel;
-+	write_cy_cmd(base_addr, CyENB_RCVR | CyENB_XMTR);
- 
--	base_addr[CyCAR] = (u_char)channel; /* !!! Is this needed? */
-+	base_addr[CyCAR] = (u_char) channel;	/* !!! Is this needed? */
- 	base_addr[CyMSVR1] = CyRTS;
- /* CP('S');CP('1'); */
- 	base_addr[CyMSVR2] = CyDTR;
- 
- #ifdef SERIAL_DEBUG_DTR
--        printk("cyc: %d: raising DTR\n", __LINE__);
--        printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1], base_addr[CyMSVR2]);
-+	printk("cyc: %d: raising DTR\n", __LINE__);
-+	printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1],
-+	       base_addr[CyMSVR2]);
- #endif
- 
- 	base_addr[CyIER] |= CyRxData;
- 	info->flags |= ASYNC_INITIALIZED;
- 
--	if (info->tty){
--	    clear_bit(TTY_IO_ERROR, &info->tty->flags);
-+	if (info->tty) {
-+		clear_bit(TTY_IO_ERROR, &info->tty->flags);
- 	}
- 	info->xmit_cnt = info->xmit_head = info->xmit_tail = 0;
- 
--    local_irq_restore(flags);
-+	local_irq_restore(flags);
- 
- #ifdef SERIAL_DEBUG_OPEN
--    printk(" done\n");
-+	printk(" done\n");
- #endif
--    return 0;
--} /* startup */
-+	return 0;
-+}				/* startup */
- 
--void
--start_xmit( struct cyclades_port *info )
-+void start_xmit(struct cyclades_port *info)
- {
--  unsigned long flags;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int channel;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
- 
--    channel = info->line;
--    local_irq_save(flags);
-+	channel = info->line;
-+	local_irq_save(flags);
- 	base_addr[CyCAR] = channel;
- 	base_addr[CyIER] |= CyTxMpty;
--    local_irq_restore(flags);
--} /* start_xmit */
-+	local_irq_restore(flags);
-+}				/* start_xmit */
- 
- /*
-  * This routine shuts down a serial port; interrupts are disabled,
-  * and DTR is dropped if the hangup on close termio flag is on.
-  */
--static void
--shutdown(struct cyclades_port * info)
-+static void shutdown(struct cyclades_port *info)
- {
--  unsigned long flags;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int channel;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
- 
--    if (!(info->flags & ASYNC_INITIALIZED)){
-+	if (!(info->flags & ASYNC_INITIALIZED)) {
- /* CP('$'); */
--	return;
--    }
+-   if(tty==NULL)
+-      return;
++	if (tty == NULL)
 +		return;
+ 
+-   if(tty->driver->flush_chars)
+-   {
+-      tty->driver->flush_chars(tty);
+-   }
++	if (tty->driver->flush_chars) {
++		tty->driver->flush_chars(tty);
 +	}
+ }
  
--    channel = info->line;
-+	channel = info->line;
- 
- #ifdef SERIAL_DEBUG_OPEN
--    printk("shutdown channel %d\n", channel);
-+	printk("shutdown channel %d\n", channel);
- #endif
- 
--    /* !!! REALLY MUST WAIT FOR LAST CHARACTER TO BE
--       SENT BEFORE DROPPING THE LINE !!!  (Perhaps
--       set some flag that is read when XMTY happens.)
--       Other choices are to delay some fixed interval
--       or schedule some later processing.
--     */
--    local_irq_save(flags);
--	if (info->xmit_buf){
--	    free_page((unsigned long) info->xmit_buf);
--	    info->xmit_buf = NULL;
-+	/* !!! REALLY MUST WAIT FOR LAST CHARACTER TO BE
-+	   SENT BEFORE DROPPING THE LINE !!!  (Perhaps
-+	   set some flag that is read when XMTY happens.)
-+	   Other choices are to delay some fixed interval
-+	   or schedule some later processing.
-+	 */
-+	local_irq_save(flags);
-+	if (info->xmit_buf) {
-+		free_page((unsigned long)info->xmit_buf);
-+		info->xmit_buf = NULL;
- 	}
- 
--	base_addr[CyCAR] = (u_char)channel;
-+	base_addr[CyCAR] = (u_char) channel;
- 	if (!info->tty || (info->tty->termios->c_cflag & HUPCL)) {
--	    base_addr[CyMSVR1] = 0;
-+		base_addr[CyMSVR1] = 0;
- /* CP('C');CP('1'); */
--	    base_addr[CyMSVR2] = 0;
-+		base_addr[CyMSVR2] = 0;
- #ifdef SERIAL_DEBUG_DTR
--            printk("cyc: %d: dropping DTR\n", __LINE__);
--            printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1], base_addr[CyMSVR2]);
-+		printk("cyc: %d: dropping DTR\n", __LINE__);
-+		printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1],
-+		       base_addr[CyMSVR2]);
- #endif
--        }
--	write_cy_cmd(base_addr,CyDIS_RCVR);
--         /* it may be appropriate to clear _XMIT at
--           some later date (after testing)!!! */
-+	}
-+	write_cy_cmd(base_addr, CyDIS_RCVR);
-+	/* it may be appropriate to clear _XMIT at
-+	   some later date (after testing)!!! */
- 
--	if (info->tty){
--	    set_bit(TTY_IO_ERROR, &info->tty->flags);
-+	if (info->tty) {
-+		set_bit(TTY_IO_ERROR, &info->tty->flags);
- 	}
- 	info->flags &= ~ASYNC_INITIALIZED;
--    local_irq_restore(flags);
-+	local_irq_restore(flags);
- 
- #ifdef SERIAL_DEBUG_OPEN
--    printk(" done\n");
-+	printk(" done\n");
- #endif
--    return;
--} /* shutdown */
-+}				/* shutdown */
- 
- /*
-  * This routine finds or computes the various line characteristics.
-  */
--static void
--config_setup(struct cyclades_port * info)
-+static void config_setup(struct cyclades_port *info)
+ static void trigger_transmit(struct r3964_info *pInfo)
  {
--  unsigned long flags;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int channel;
--  unsigned cflag;
--  int   i;
--  unsigned char ti, need_init_chan = 0;
+-   unsigned long flags;
+-   
++	unsigned long flags;
+ 
+-   spin_lock_irqsave(&pInfo->lock, flags);
++	spin_lock_irqsave(&pInfo->lock, flags);
+ 
+-   if((pInfo->state == R3964_IDLE) && (pInfo->tx_first!=NULL))
+-   {
+-      pInfo->state = R3964_TX_REQUEST;
+-      pInfo->nRetry=0;
+-      pInfo->flags &= ~R3964_ERROR;
+-      mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
 -
--    if (!info->tty || !info->tty->termios){
--        return;
--    }
--    if (info->line == -1){
--        return;
--    }
--    cflag = info->tty->termios->c_cflag;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
-+	unsigned cflag;
-+	int i;
-+	unsigned char ti, need_init_chan = 0;
- 
--    /* baud rate */
--    i = cflag & CBAUD;
-+	if (!info->tty || !info->tty->termios) {
-+		return;
-+	}
-+	if (info->line == -1) {
-+		return;
-+	}
-+	cflag = info->tty->termios->c_cflag;
+-      spin_unlock_irqrestore(&pInfo->lock, flags);
+-
+-      TRACE_PS("trigger_transmit - sent STX");
+-
+-      put_char(pInfo, STX);
+-      flush(pInfo);
+-
+-      pInfo->bcc = 0;
+-   }
+-   else
+-   {
+-      spin_unlock_irqrestore(&pInfo->lock, flags);
+-   }
++	if ((pInfo->state == R3964_IDLE) && (pInfo->tx_first != NULL)) {
++		pInfo->state = R3964_TX_REQUEST;
++		pInfo->nRetry = 0;
++		pInfo->flags &= ~R3964_ERROR;
++		mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
 +
-+	/* baud rate */
-+	i = cflag & CBAUD;
- #ifdef CBAUDEX
- /* Starting with kernel 1.1.65, there is direct support for
-    higher baud rates.  The following code supports those
-@@ -900,120 +903,123 @@ config_setup(struct cyclades_port * info
-    is still the possibility of supporting 75 kbit/sec with
-    the Cyclades board.)
-  */
--    if (i & CBAUDEX) {
--	if (i == B57600)
--	    i = 16;
--	else if(i == B115200) 
--	    i = 18;
-+	if (i & CBAUDEX) {
-+		if (i == B57600)
-+			i = 16;
-+		else if (i == B115200)
-+			i = 18;
- #ifdef B78600
--	else if(i == B78600) 
--	    i = 17;
-+		else if (i == B78600)
-+			i = 17;
- #endif
--	else
--	    info->tty->termios->c_cflag &= ~CBAUDEX;
--    }
-+		else
-+			info->tty->termios->c_cflag &= ~CBAUDEX;
-+	}
- #endif
--    if (i == 15) {
--	    if ((info->flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
--		    i += 1;
--	    if ((info->flags & ASYNC_SPD_MASK) == ASYNC_SPD_VHI)
--		    i += 3;
--    }
--    /* Don't ever change the speed of the console port.  It will
--     * run at the speed specified in bootinfo, or at 19.2K */
--    /* Actually, it should run at whatever speed 166Bug was using */
--    /* Note info->timeout isn't used at present */
--    if (info != serial_console_info) {
--	info->tbpr = baud_bpr[i]; /* Tx BPR */
--	info->tco = baud_co[i]; /* Tx CO */
--	info->rbpr = baud_bpr[i]; /* Rx BPR */
--	info->rco = baud_co[i] >> 5; /* Rx CO */
--	if (baud_table[i] == 134) {
--            info->timeout = (info->xmit_fifo_size*HZ*30/269) + 2;
--            /* get it right for 134.5 baud */
--	} else if (baud_table[i]) {
--            info->timeout = (info->xmit_fifo_size*HZ*15/baud_table[i]) + 2;
--        /* this needs to be propagated into the card info */
-+	if (i == 15) {
-+		if ((info->flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
-+			i += 1;
-+		if ((info->flags & ASYNC_SPD_MASK) == ASYNC_SPD_VHI)
-+			i += 3;
-+	}
-+	/* Don't ever change the speed of the console port.  It will
-+	 * run at the speed specified in bootinfo, or at 19.2K */
-+	/* Actually, it should run at whatever speed 166Bug was using */
-+	/* Note info->timeout isn't used at present */
-+	if (info != serial_console_info) {
-+		info->tbpr = baud_bpr[i];	/* Tx BPR */
-+		info->tco = baud_co[i];	/* Tx CO */
-+		info->rbpr = baud_bpr[i];	/* Rx BPR */
-+		info->rco = baud_co[i] >> 5;	/* Rx CO */
-+		if (baud_table[i] == 134) {
-+			info->timeout =
-+			    (info->xmit_fifo_size * HZ * 30 / 269) + 2;
-+			/* get it right for 134.5 baud */
-+		} else if (baud_table[i]) {
-+			info->timeout =
-+			    (info->xmit_fifo_size * HZ * 15 / baud_table[i]) +
-+			    2;
-+			/* this needs to be propagated into the card info */
-+		} else {
-+			info->timeout = 0;
-+		}
-+	}
-+	/* By tradition (is it a standard?) a baud rate of zero
-+	   implies the line should be/has been closed.  A bit
-+	   later in this routine such a test is performed. */
++		spin_unlock_irqrestore(&pInfo->lock, flags);
 +
-+	/* byte size and parity */
-+	info->cor7 = 0;
-+	info->cor6 = 0;
-+	info->cor5 = 0;
-+	info->cor4 = (info->default_threshold ? info->default_threshold : baud_cor4[i]);	/* receive threshold */
-+	/* Following two lines added 101295, RGH. */
-+	/* It is obviously wrong to access CyCORx, and not info->corx here,
-+	 * try and remember to fix it later! */
-+	channel = info->line;
-+	base_addr[CyCAR] = (u_char) channel;
-+	if (C_CLOCAL(info->tty)) {
-+		if (base_addr[CyIER] & CyMdmCh)
-+			base_addr[CyIER] &= ~CyMdmCh;	/* without modem intr */
-+		/* ignore 1->0 modem transitions */
-+		if (base_addr[CyCOR4] & (CyDSR | CyCTS | CyDCD))
-+			base_addr[CyCOR4] &= ~(CyDSR | CyCTS | CyDCD);
-+		/* ignore 0->1 modem transitions */
-+		if (base_addr[CyCOR5] & (CyDSR | CyCTS | CyDCD))
-+			base_addr[CyCOR5] &= ~(CyDSR | CyCTS | CyDCD);
- 	} else {
--            info->timeout = 0;
-+		if ((base_addr[CyIER] & CyMdmCh) != CyMdmCh)
-+			base_addr[CyIER] |= CyMdmCh;	/* with modem intr */
-+		/* act on 1->0 modem transitions */
-+		if ((base_addr[CyCOR4] & (CyDSR | CyCTS | CyDCD)) !=
-+		    (CyDSR | CyCTS | CyDCD))
-+			base_addr[CyCOR4] |= CyDSR | CyCTS | CyDCD;
-+		/* act on 0->1 modem transitions */
-+		if ((base_addr[CyCOR5] & (CyDSR | CyCTS | CyDCD)) !=
-+		    (CyDSR | CyCTS | CyDCD))
-+			base_addr[CyCOR5] |= CyDSR | CyCTS | CyDCD;
-+	}
-+	info->cor3 = (cflag & CSTOPB) ? Cy_2_STOP : Cy_1_STOP;
-+	info->cor2 = CyETC;
-+	switch (cflag & CSIZE) {
-+	case CS5:
-+		info->cor1 = Cy_5_BITS;
-+		break;
-+	case CS6:
-+		info->cor1 = Cy_6_BITS;
-+		break;
-+	case CS7:
-+		info->cor1 = Cy_7_BITS;
-+		break;
-+	case CS8:
-+		info->cor1 = Cy_8_BITS;
-+		break;
-+	}
-+	if (cflag & PARENB) {
-+		if (cflag & PARODD) {
-+			info->cor1 |= CyPARITY_O;
-+		} else {
-+			info->cor1 |= CyPARITY_E;
-+		}
++		TRACE_PS("trigger_transmit - sent STX");
++
++		put_char(pInfo, STX);
++		flush(pInfo);
++
++		pInfo->bcc = 0;
 +	} else {
-+		info->cor1 |= CyPARITY_NONE;
- 	}
--    }
--    /* By tradition (is it a standard?) a baud rate of zero
--       implies the line should be/has been closed.  A bit
--       later in this routine such a test is performed. */
++		spin_unlock_irqrestore(&pInfo->lock, flags);
++	}
+ }
+ 
+ static void retry_transmit(struct r3964_info *pInfo)
+ {
+-   if(pInfo->nRetry<R3964_MAX_RETRIES)
+-   {
+-      TRACE_PE("transmission failed. Retry #%d", 
+-             pInfo->nRetry);
+-      pInfo->bcc = 0;
+-      put_char(pInfo, STX);
+-      flush(pInfo);
+-      pInfo->state = R3964_TX_REQUEST;
+-      pInfo->nRetry++;
+-      mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
+-   }
+-   else
+-   {
+-      TRACE_PE("transmission failed after %d retries", 
+-             R3964_MAX_RETRIES);
 -
--    /* byte size and parity */
--    info->cor7 = 0;
--    info->cor6 = 0;
--    info->cor5 = 0;
--    info->cor4 = (info->default_threshold
--		  ? info->default_threshold
--		  : baud_cor4[i]); /* receive threshold */
--    /* Following two lines added 101295, RGH. */
--    /* It is obviously wrong to access CyCORx, and not info->corx here,
--     * try and remember to fix it later! */
--    channel = info->line;
--    base_addr[CyCAR] = (u_char)channel;
--    if (C_CLOCAL(info->tty)) {
--	if (base_addr[CyIER] & CyMdmCh)
--	    base_addr[CyIER] &= ~CyMdmCh; /* without modem intr */
--			       /* ignore 1->0 modem transitions */
--	if (base_addr[CyCOR4] & (CyDSR|CyCTS|CyDCD))
--	    base_addr[CyCOR4] &= ~(CyDSR|CyCTS|CyDCD);
--			       /* ignore 0->1 modem transitions */
--	if (base_addr[CyCOR5] & (CyDSR|CyCTS|CyDCD))
--	    base_addr[CyCOR5] &= ~(CyDSR|CyCTS|CyDCD);
--    } else {
--	if ((base_addr[CyIER] & CyMdmCh) != CyMdmCh)
--	    base_addr[CyIER] |= CyMdmCh; /* with modem intr */
--			       /* act on 1->0 modem transitions */
--	if ((base_addr[CyCOR4] & (CyDSR|CyCTS|CyDCD)) != (CyDSR|CyCTS|CyDCD))
--	    base_addr[CyCOR4] |= CyDSR|CyCTS|CyDCD;
--			       /* act on 0->1 modem transitions */
--	if ((base_addr[CyCOR5] & (CyDSR|CyCTS|CyDCD)) != (CyDSR|CyCTS|CyDCD))
--	    base_addr[CyCOR5] |= CyDSR|CyCTS|CyDCD;
--    }
--    info->cor3 = (cflag & CSTOPB) ? Cy_2_STOP : Cy_1_STOP;
--    info->cor2 = CyETC;
--    switch(cflag & CSIZE){
--    case CS5:
--        info->cor1 = Cy_5_BITS;
--        break;
--    case CS6:
--        info->cor1 = Cy_6_BITS;
--        break;
--    case CS7:
--        info->cor1 = Cy_7_BITS;
--        break;
--    case CS8:
--        info->cor1 = Cy_8_BITS;
--        break;
--    }
--    if (cflag & PARENB){
--        if (cflag & PARODD){
--            info->cor1 |= CyPARITY_O;
--        }else{
--            info->cor1 |= CyPARITY_E;
--        }
--    }else{
--        info->cor1 |= CyPARITY_NONE;
--    }
--	
--    /* CTS flow control flag */
-+
-+	/* CTS flow control flag */
- #if 0
--    /* Don't complcate matters for now! RGH 141095 */
--    if (cflag & CRTSCTS){
--	info->flags |= ASYNC_CTS_FLOW;
--	info->cor2 |= CyCtsAE;
--    }else{
--	info->flags &= ~ASYNC_CTS_FLOW;
--	info->cor2 &= ~CyCtsAE;
--    }
--#endif
--    if (cflag & CLOCAL)
--	info->flags &= ~ASYNC_CHECK_CD;
--    else
--	info->flags |= ASYNC_CHECK_CD;
-+	/* Don't complcate matters for now! RGH 141095 */
-+	if (cflag & CRTSCTS) {
-+		info->flags |= ASYNC_CTS_FLOW;
-+		info->cor2 |= CyCtsAE;
+-      remove_from_tx_queue(pInfo, R3964_TX_FAIL);
+-      
+-      put_char(pInfo, NAK);
+-      flush(pInfo);
+-      pInfo->state = R3964_IDLE;
++	if (pInfo->nRetry < R3964_MAX_RETRIES) {
++		TRACE_PE("transmission failed. Retry #%d", pInfo->nRetry);
++		pInfo->bcc = 0;
++		put_char(pInfo, STX);
++		flush(pInfo);
++		pInfo->state = R3964_TX_REQUEST;
++		pInfo->nRetry++;
++		mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
 +	} else {
-+		info->flags &= ~ASYNC_CTS_FLOW;
-+		info->cor2 &= ~CyCtsAE;
-+	}
-+#endif
-+	if (cflag & CLOCAL)
-+		info->flags &= ~ASYNC_CHECK_CD;
-+	else
-+		info->flags |= ASYNC_CHECK_CD;
- 
-      /***********************************************
- 	The hardware option, CyRtsAO, presents RTS when
-@@ -1025,149 +1031,146 @@ config_setup(struct cyclades_port * info
- 	cable.  Contact Marcio Saito for details.
-      ***********************************************/
- 
--    channel = info->line;
-+	channel = info->line;
- 
--    local_irq_save(flags);
--	base_addr[CyCAR] = (u_char)channel;
-+	local_irq_save(flags);
-+	base_addr[CyCAR] = (u_char) channel;
- 
- 	/* CyCMR set once only in mvme167_init_serial() */
- 	if (base_addr[CyLICR] != channel << 2)
--	    base_addr[CyLICR] = channel << 2;
-+		base_addr[CyLICR] = channel << 2;
- 	if (base_addr[CyLIVR] != 0x5c)
--	    base_addr[CyLIVR] = 0x5c;
-+		base_addr[CyLIVR] = 0x5c;
- 
--       /* tx and rx baud rate */
-+	/* tx and rx baud rate */
- 
- 	if (base_addr[CyCOR1] != info->cor1)
--	    need_init_chan = 1;
-+		need_init_chan = 1;
- 	if (base_addr[CyTCOR] != info->tco)
--	    base_addr[CyTCOR] = info->tco;
-+		base_addr[CyTCOR] = info->tco;
- 	if (base_addr[CyTBPR] != info->tbpr)
--	    base_addr[CyTBPR] = info->tbpr;
-+		base_addr[CyTBPR] = info->tbpr;
- 	if (base_addr[CyRCOR] != info->rco)
--	    base_addr[CyRCOR] = info->rco;
-+		base_addr[CyRCOR] = info->rco;
- 	if (base_addr[CyRBPR] != info->rbpr)
--	    base_addr[CyRBPR] = info->rbpr;
-+		base_addr[CyRBPR] = info->rbpr;
- 
- 	/* set line characteristics  according configuration */
- 
- 	if (base_addr[CySCHR1] != START_CHAR(info->tty))
--	    base_addr[CySCHR1] = START_CHAR(info->tty);
-+		base_addr[CySCHR1] = START_CHAR(info->tty);
- 	if (base_addr[CySCHR2] != STOP_CHAR(info->tty))
--	    base_addr[CySCHR2] = STOP_CHAR(info->tty);
-+		base_addr[CySCHR2] = STOP_CHAR(info->tty);
- 	if (base_addr[CySCRL] != START_CHAR(info->tty))
--	    base_addr[CySCRL] = START_CHAR(info->tty);
-+		base_addr[CySCRL] = START_CHAR(info->tty);
- 	if (base_addr[CySCRH] != START_CHAR(info->tty))
--	    base_addr[CySCRH] = START_CHAR(info->tty);
-+		base_addr[CySCRH] = START_CHAR(info->tty);
- 	if (base_addr[CyCOR1] != info->cor1)
--	    base_addr[CyCOR1] = info->cor1;
-+		base_addr[CyCOR1] = info->cor1;
- 	if (base_addr[CyCOR2] != info->cor2)
--	    base_addr[CyCOR2] = info->cor2;
-+		base_addr[CyCOR2] = info->cor2;
- 	if (base_addr[CyCOR3] != info->cor3)
--	    base_addr[CyCOR3] = info->cor3;
-+		base_addr[CyCOR3] = info->cor3;
- 	if (base_addr[CyCOR4] != info->cor4)
--	    base_addr[CyCOR4] = info->cor4;
-+		base_addr[CyCOR4] = info->cor4;
- 	if (base_addr[CyCOR5] != info->cor5)
--	    base_addr[CyCOR5] = info->cor5;
-+		base_addr[CyCOR5] = info->cor5;
- 	if (base_addr[CyCOR6] != info->cor6)
--	    base_addr[CyCOR6] = info->cor6;
-+		base_addr[CyCOR6] = info->cor6;
- 	if (base_addr[CyCOR7] != info->cor7)
--	    base_addr[CyCOR7] = info->cor7;
-+		base_addr[CyCOR7] = info->cor7;
- 
- 	if (need_init_chan)
--	    write_cy_cmd(base_addr,CyINIT_CHAN);
-+		write_cy_cmd(base_addr, CyINIT_CHAN);
- 
--	base_addr[CyCAR] = (u_char)channel; /* !!! Is this needed? */
-+	base_addr[CyCAR] = (u_char) channel;	/* !!! Is this needed? */
- 
- 	/* 2ms default rx timeout */
- 	ti = info->default_timeout ? info->default_timeout : 0x02;
- 	if (base_addr[CyRTPRL] != ti)
--	    base_addr[CyRTPRL] = ti;
-+		base_addr[CyRTPRL] = ti;
- 	if (base_addr[CyRTPRH] != 0)
--	    base_addr[CyRTPRH] = 0;
-+		base_addr[CyRTPRH] = 0;
- 
- 	/* Set up RTS here also ????? RGH 141095 */
--	if(i == 0){ /* baud rate is zero, turn off line */
--	    if ((base_addr[CyMSVR2] & CyDTR) == CyDTR)
--	        base_addr[CyMSVR2] = 0;
-+	if (i == 0) {		/* baud rate is zero, turn off line */
-+		if ((base_addr[CyMSVR2] & CyDTR) == CyDTR)
-+			base_addr[CyMSVR2] = 0;
- #ifdef SERIAL_DEBUG_DTR
--            printk("cyc: %d: dropping DTR\n", __LINE__);
--            printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1], base_addr[CyMSVR2]);
-+		printk("cyc: %d: dropping DTR\n", __LINE__);
-+		printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1],
-+		       base_addr[CyMSVR2]);
- #endif
--	}else{
--	    if ((base_addr[CyMSVR2] & CyDTR) != CyDTR)
--	        base_addr[CyMSVR2] = CyDTR;
-+	} else {
-+		if ((base_addr[CyMSVR2] & CyDTR) != CyDTR)
-+			base_addr[CyMSVR2] = CyDTR;
- #ifdef SERIAL_DEBUG_DTR
--            printk("cyc: %d: raising DTR\n", __LINE__);
--            printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1], base_addr[CyMSVR2]);
-+		printk("cyc: %d: raising DTR\n", __LINE__);
-+		printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1],
-+		       base_addr[CyMSVR2]);
- #endif
- 	}
- 
--	if (info->tty){
--	    clear_bit(TTY_IO_ERROR, &info->tty->flags);
-+	if (info->tty) {
-+		clear_bit(TTY_IO_ERROR, &info->tty->flags);
- 	}
- 
--    local_irq_restore(flags);
--
--} /* config_setup */
-+	local_irq_restore(flags);
- 
-+}				/* config_setup */
- 
--static void
--cy_put_char(struct tty_struct *tty, unsigned char ch)
-+static void cy_put_char(struct tty_struct *tty, unsigned char ch)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  unsigned long flags;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	unsigned long flags;
- 
- #ifdef SERIAL_DEBUG_IO
--    printk("cy_put_char %s(0x%02x)\n", tty->name, ch);
-+	printk("cy_put_char %s(0x%02x)\n", tty->name, ch);
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_put_char"))
--	return;
-+	if (serial_paranoia_check(info, tty->name, "cy_put_char"))
-+		return;
- 
--    if (!info->xmit_buf)
--	return;
-+	if (!info->xmit_buf)
-+		return;
- 
--    local_irq_save(flags);
-+	local_irq_save(flags);
- 	if (info->xmit_cnt >= PAGE_SIZE - 1) {
--	    local_irq_restore(flags);
--	    return;
-+		local_irq_restore(flags);
-+		return;
- 	}
- 
- 	info->xmit_buf[info->xmit_head++] = ch;
- 	info->xmit_head &= PAGE_SIZE - 1;
- 	info->xmit_cnt++;
--    local_irq_restore(flags);
--} /* cy_put_char */
--
-+	local_irq_restore(flags);
-+}				/* cy_put_char */
- 
--static void
--cy_flush_chars(struct tty_struct *tty)
-+static void cy_flush_chars(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  unsigned long flags;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int channel;
--				
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
++		TRACE_PE("transmission failed after %d retries",
++			 R3964_MAX_RETRIES);
 +
- #ifdef SERIAL_DEBUG_IO
--    printk("cy_flush_chars %s\n", tty->name); /* */
-+	printk("cy_flush_chars %s\n", tty->name);	/* */
- #endif
++		remove_from_tx_queue(pInfo, R3964_TX_FAIL);
++
++		put_char(pInfo, NAK);
++		flush(pInfo);
++		pInfo->state = R3964_IDLE;
  
--    if (serial_paranoia_check(info, tty->name, "cy_flush_chars"))
--	return;
-+	if (serial_paranoia_check(info, tty->name, "cy_flush_chars"))
-+		return;
+-      trigger_transmit(pInfo);
+-   }
++		trigger_transmit(pInfo);
++	}
+ }
  
--    if (info->xmit_cnt <= 0 || tty->stopped
--    || tty->hw_stopped || !info->xmit_buf)
--	return;
-+	if (info->xmit_cnt <= 0 || tty->stopped
-+	    || tty->hw_stopped || !info->xmit_buf)
-+		return;
- 
--    channel = info->line;
-+	channel = info->line;
- 
--    local_irq_save(flags);
-+	local_irq_save(flags);
- 	base_addr[CyCAR] = channel;
- 	base_addr[CyIER] |= CyTxMpty;
--    local_irq_restore(flags);
--} /* cy_flush_chars */
 -
-+	local_irq_restore(flags);
-+}				/* cy_flush_chars */
- 
- /* This routine gets called when tty_write has put something into
-     the write_queue.  If the port is not already transmitting stuff,
-@@ -1175,650 +1178,616 @@ cy_flush_chars(struct tty_struct *tty)
-     routine will then ensure that the characters are sent.  If the
-     port is already active, there is no need to kick it.
-  */
--static int
--cy_write(struct tty_struct * tty,
--           const unsigned char *buf, int count)
-+static int cy_write(struct tty_struct *tty, const unsigned char *buf, int count)
+ static void transmit_block(struct r3964_info *pInfo)
  {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  unsigned long flags;
--  int c, total = 0;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	unsigned long flags;
-+	int c, total = 0;
- 
- #ifdef SERIAL_DEBUG_IO
--    printk("cy_write %s\n", tty->name); /* */
-+	printk("cy_write %s\n", tty->name);	/* */
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_write")){
--	return 0;
--    }
--	
--    if (!info->xmit_buf){
--        return 0;
--    }
+-   struct tty_struct *tty = pInfo->tty;
+-   struct r3964_block_header *pBlock = pInfo->tx_first;
+-   int room=0;
 -
--    while (1) {
--	    local_irq_save(flags);
--	    c = min_t(int, count, min(SERIAL_XMIT_SIZE - info->xmit_cnt - 1,
--				      SERIAL_XMIT_SIZE - info->xmit_head));
--	    if (c <= 0) {
--		    local_irq_restore(flags);
--		    break;
--	    }
+-   if((tty==NULL) || (pBlock==NULL))
+-   {
+-      return;
+-   }
 -
--	    memcpy(info->xmit_buf + info->xmit_head, buf, c);
--	    info->xmit_head = (info->xmit_head + c) & (SERIAL_XMIT_SIZE-1);
--	    info->xmit_cnt += c;
--	    local_irq_restore(flags);
+-   if(tty->driver->write_room)
+-      room=tty->driver->write_room(tty);
 -
--	    buf += c;
--	    count -= c;
--	    total += c;
--    }
+-   TRACE_PS("transmit_block %p, room %d, length %d", 
+-          pBlock, room, pBlock->length);
+-   
+-   while(pInfo->tx_position < pBlock->length)
+-   {
+-      if(room<2)
+-         break;
+- 
+-      if(pBlock->data[pInfo->tx_position]==DLE)
+-      {
+-         /* send additional DLE char: */
+-         put_char(pInfo, DLE);
+-      }
+-      put_char(pInfo, pBlock->data[pInfo->tx_position++]);
+-      
+-      room--;
+-   }
 -
--    if (info->xmit_cnt
--    && !tty->stopped
--    && !tty->hw_stopped ) {
--        start_xmit(info);
--    }
--    return total;
--} /* cy_write */
-+	if (serial_paranoia_check(info, tty->name, "cy_write")) {
-+		return 0;
+-   if((pInfo->tx_position == pBlock->length) && (room>=3))
+-   {
+-      put_char(pInfo, DLE);
+-      put_char(pInfo, ETX);
+-      if(pInfo->flags & R3964_BCC)
+-      {
+-         put_char(pInfo, pInfo->bcc);
+-      }
+-      pInfo->state = R3964_WAIT_FOR_TX_ACK;
+-      mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
+-   }
+-   flush(pInfo);
++	struct tty_struct *tty = pInfo->tty;
++	struct r3964_block_header *pBlock = pInfo->tx_first;
++	int room = 0;
++
++	if ((tty == NULL) || (pBlock == NULL)) {
++		return;
 +	}
 +
-+	if (!info->xmit_buf) {
-+		return 0;
-+	}
++	if (tty->driver->write_room)
++		room = tty->driver->write_room(tty);
 +
-+	while (1) {
-+		local_irq_save(flags);
-+		c = min_t(int, count, min(SERIAL_XMIT_SIZE - info->xmit_cnt - 1,
-+					  SERIAL_XMIT_SIZE - info->xmit_head));
-+		if (c <= 0) {
-+			local_irq_restore(flags);
++	TRACE_PS("transmit_block %p, room %d, length %d",
++		 pBlock, room, pBlock->length);
++
++	while (pInfo->tx_position < pBlock->length) {
++		if (room < 2)
 +			break;
++
++		if (pBlock->data[pInfo->tx_position] == DLE) {
++			/* send additional DLE char: */
++			put_char(pInfo, DLE);
 +		}
- 
-+		memcpy(info->xmit_buf + info->xmit_head, buf, c);
-+		info->xmit_head =
-+		    (info->xmit_head + c) & (SERIAL_XMIT_SIZE - 1);
-+		info->xmit_cnt += c;
-+		local_irq_restore(flags);
- 
--static int
--cy_write_room(struct tty_struct *tty)
-+		buf += c;
-+		count -= c;
-+		total += c;
++		put_char(pInfo, pBlock->data[pInfo->tx_position++]);
++
++		room--;
 +	}
 +
-+	if (info->xmit_cnt && !tty->stopped && !tty->hw_stopped) {
-+		start_xmit(info);
-+	}
-+	return total;
-+}				/* cy_write */
-+
-+static int cy_write_room(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  int	ret;
--				
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	int ret;
-+
- #ifdef SERIAL_DEBUG_IO
--    printk("cy_write_room %s\n", tty->name); /* */
-+	printk("cy_write_room %s\n", tty->name);	/* */
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_write_room"))
--	return 0;
--    ret = PAGE_SIZE - info->xmit_cnt - 1;
--    if (ret < 0)
--	ret = 0;
--    return ret;
--} /* cy_write_room */
--
-+	if (serial_paranoia_check(info, tty->name, "cy_write_room"))
-+		return 0;
-+	ret = PAGE_SIZE - info->xmit_cnt - 1;
-+	if (ret < 0)
-+		ret = 0;
-+	return ret;
-+}				/* cy_write_room */
- 
--static int
--cy_chars_in_buffer(struct tty_struct *tty)
-+static int cy_chars_in_buffer(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--				
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+
- #ifdef SERIAL_DEBUG_IO
--    printk("cy_chars_in_buffer %s %d\n", tty->name, info->xmit_cnt); /* */
-+	printk("cy_chars_in_buffer %s %d\n", tty->name, info->xmit_cnt);	/* */
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_chars_in_buffer"))
--	return 0;
--
--    return info->xmit_cnt;
--} /* cy_chars_in_buffer */
-+	if (serial_paranoia_check(info, tty->name, "cy_chars_in_buffer"))
-+		return 0;
- 
-+	return info->xmit_cnt;
-+}				/* cy_chars_in_buffer */
- 
--static void
--cy_flush_buffer(struct tty_struct *tty)
-+static void cy_flush_buffer(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  unsigned long flags;
--				
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	unsigned long flags;
-+
- #ifdef SERIAL_DEBUG_IO
--    printk("cy_flush_buffer %s\n", tty->name); /* */
-+	printk("cy_flush_buffer %s\n", tty->name);	/* */
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_flush_buffer"))
--	return;
--    local_irq_save(flags);
-+	if (serial_paranoia_check(info, tty->name, "cy_flush_buffer"))
-+		return;
-+	local_irq_save(flags);
- 	info->xmit_cnt = info->xmit_head = info->xmit_tail = 0;
--    local_irq_restore(flags);
--    tty_wakeup(tty);
--} /* cy_flush_buffer */
--
-+	local_irq_restore(flags);
-+	tty_wakeup(tty);
-+}				/* cy_flush_buffer */
- 
- /* This routine is called by the upper-layer tty layer to signal
-    that incoming characters should be throttled or that the
-    throttle should be released.
-  */
--static void
--cy_throttle(struct tty_struct * tty)
-+static void cy_throttle(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  unsigned long flags;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int channel;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
- 
- #ifdef SERIAL_DEBUG_THROTTLE
--  char buf[64];
--	
--    printk("throttle %s: %d....\n", tty_name(tty, buf),
--	   tty->ldisc.chars_in_buffer(tty));
--    printk("cy_throttle %s\n", tty->name);
--#endif
--
--    if (serial_paranoia_check(info, tty->name, "cy_nthrottle")){
--	    return;
--    }
--
--    if (I_IXOFF(tty)) {
--	info->x_char = STOP_CHAR(tty);
--	    /* Should use the "Send Special Character" feature!!! */
--    }
-+	char buf[64];
- 
--    channel = info->line;
-+	printk("throttle %s: %d....\n", tty_name(tty, buf),
-+	       tty->ldisc.chars_in_buffer(tty));
-+	printk("cy_throttle %s\n", tty->name);
-+#endif
- 
--    local_irq_save(flags);
--	base_addr[CyCAR] = (u_char)channel;
--	base_addr[CyMSVR1] = 0;
--    local_irq_restore(flags);
-+	if (serial_paranoia_check(info, tty->name, "cy_nthrottle")) {
-+		return;
-+	}
-+
-+	if (I_IXOFF(tty)) {
-+		info->x_char = STOP_CHAR(tty);
-+		/* Should use the "Send Special Character" feature!!! */
-+	}
- 
--    return;
--} /* cy_throttle */
-+	channel = info->line;
- 
-+	local_irq_save(flags);
-+	base_addr[CyCAR] = (u_char) channel;
-+	base_addr[CyMSVR1] = 0;
-+	local_irq_restore(flags);
-+}				/* cy_throttle */
- 
--static void
--cy_unthrottle(struct tty_struct * tty)
-+static void cy_unthrottle(struct tty_struct *tty)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
--  unsigned long flags;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int channel;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
- 
- #ifdef SERIAL_DEBUG_THROTTLE
--  char buf[64];
--	
--    printk("throttle %s: %d....\n", tty_name(tty, buf),
--	   tty->ldisc.chars_in_buffer(tty));
--    printk("cy_unthrottle %s\n", tty->name);
--#endif
--
--    if (serial_paranoia_check(info, tty->name, "cy_nthrottle")){
--	    return;
--    }
--
--    if (I_IXOFF(tty)) {
--	info->x_char = START_CHAR(tty);
--	/* Should use the "Send Special Character" feature!!! */
--    }
-+	char buf[64];
- 
--    channel = info->line;
-+	printk("throttle %s: %d....\n", tty_name(tty, buf),
-+	       tty->ldisc.chars_in_buffer(tty));
-+	printk("cy_unthrottle %s\n", tty->name);
-+#endif
- 
--    local_irq_save(flags);
--	base_addr[CyCAR] = (u_char)channel;
--	base_addr[CyMSVR1] = CyRTS;
--    local_irq_restore(flags);
-+	if (serial_paranoia_check(info, tty->name, "cy_nthrottle")) {
-+		return;
-+	}
- 
--    return;
--} /* cy_unthrottle */
-+	if (I_IXOFF(tty)) {
-+		info->x_char = START_CHAR(tty);
-+		/* Should use the "Send Special Character" feature!!! */
-+	}
-+
-+	channel = info->line;
-+
-+	local_irq_save(flags);
-+	base_addr[CyCAR] = (u_char) channel;
-+	base_addr[CyMSVR1] = CyRTS;
-+	local_irq_restore(flags);
-+}				/* cy_unthrottle */
- 
- static int
--get_serial_info(struct cyclades_port * info,
--                           struct serial_struct __user * retinfo)
-+get_serial_info(struct cyclades_port *info,
-+		struct serial_struct __user * retinfo)
- {
--  struct serial_struct tmp;
-+	struct serial_struct tmp;
- 
- /* CP('g'); */
--    if (!retinfo)
--            return -EFAULT;
--    memset(&tmp, 0, sizeof(tmp));
--    tmp.type = info->type;
--    tmp.line = info->line;
--    tmp.port = info->line;
--    tmp.irq = 0;
--    tmp.flags = info->flags;
--    tmp.baud_base = 0;          /*!!!*/
--    tmp.close_delay = info->close_delay;
--    tmp.custom_divisor = 0;     /*!!!*/
--    tmp.hub6 = 0;               /*!!!*/
--    return copy_to_user(retinfo,&tmp,sizeof(*retinfo)) ? -EFAULT : 0;
--} /* get_serial_info */
-+	if (!retinfo)
-+		return -EFAULT;
-+	memset(&tmp, 0, sizeof(tmp));
-+	tmp.type = info->type;
-+	tmp.line = info->line;
-+	tmp.port = info->line;
-+	tmp.irq = 0;
-+	tmp.flags = info->flags;
-+	tmp.baud_base = 0;	/*!!! */
-+	tmp.close_delay = info->close_delay;
-+	tmp.custom_divisor = 0;	/*!!! */
-+	tmp.hub6 = 0;		/*!!! */
-+	return copy_to_user(retinfo, &tmp, sizeof(*retinfo)) ? -EFAULT : 0;
-+}				/* get_serial_info */
- 
- static int
--set_serial_info(struct cyclades_port * info,
--                           struct serial_struct __user * new_info)
-+set_serial_info(struct cyclades_port *info,
-+		struct serial_struct __user * new_info)
- {
--  struct serial_struct new_serial;
--  struct cyclades_port old_info;
-+	struct serial_struct new_serial;
-+	struct cyclades_port old_info;
- 
- /* CP('s'); */
--    if (!new_info)
--	    return -EFAULT;
--    if (copy_from_user(&new_serial,new_info,sizeof(new_serial)))
--	    return -EFAULT;
--    old_info = *info;
--
--    if (!capable(CAP_SYS_ADMIN)) {
--	    if ((new_serial.close_delay != info->close_delay) ||
--		((new_serial.flags & ASYNC_FLAGS & ~ASYNC_USR_MASK) !=
--		 (info->flags & ASYNC_FLAGS & ~ASYNC_USR_MASK)))
--		    return -EPERM;
--	    info->flags = ((info->flags & ~ASYNC_USR_MASK) |
--			   (new_serial.flags & ASYNC_USR_MASK));
--	    goto check_and_exit;
--    }
--
--
--    /*
--     * OK, past this point, all the error checking has been done.
--     * At this point, we start making changes.....
--     */
--
--    info->flags = ((info->flags & ~ASYNC_FLAGS) |
--		    (new_serial.flags & ASYNC_FLAGS));
--    info->close_delay = new_serial.close_delay;
-+	if (!new_info)
-+		return -EFAULT;
-+	if (copy_from_user(&new_serial, new_info, sizeof(new_serial)))
-+		return -EFAULT;
-+	old_info = *info;
-+
-+	if (!capable(CAP_SYS_ADMIN)) {
-+		if ((new_serial.close_delay != info->close_delay) ||
-+		    ((new_serial.flags & ASYNC_FLAGS & ~ASYNC_USR_MASK) !=
-+		     (info->flags & ASYNC_FLAGS & ~ASYNC_USR_MASK)))
-+			return -EPERM;
-+		info->flags = ((info->flags & ~ASYNC_USR_MASK) |
-+			       (new_serial.flags & ASYNC_USR_MASK));
-+		goto check_and_exit;
-+	}
- 
-+	/*
-+	 * OK, past this point, all the error checking has been done.
-+	 * At this point, we start making changes.....
-+	 */
-+
-+	info->flags = ((info->flags & ~ASYNC_FLAGS) |
-+		       (new_serial.flags & ASYNC_FLAGS));
-+	info->close_delay = new_serial.close_delay;
- 
- check_and_exit:
--    if (info->flags & ASYNC_INITIALIZED){
--	config_setup(info);
--	return 0;
--    }else{
--        return startup(info);
--    }
--} /* set_serial_info */
-+	if (info->flags & ASYNC_INITIALIZED) {
-+		config_setup(info);
-+		return 0;
-+	}
-+	return startup(info);
-+}				/* set_serial_info */
-+
-+static int cy_tiocmget(struct tty_struct *tty, struct file *file)
-+{
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	int channel;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	unsigned long flags;
-+	unsigned char status;
- 
--static int
--cy_tiocmget(struct tty_struct *tty, struct file *file)
--{
--  struct cyclades_port * info = (struct cyclades_port *)tty->driver_data;
--  int channel;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  unsigned long flags;
--  unsigned char status;
--
--    channel = info->line;
--
--    local_irq_save(flags);
--        base_addr[CyCAR] = (u_char)channel;
--        status = base_addr[CyMSVR1] | base_addr[CyMSVR2];
--    local_irq_restore(flags);
--
--    return    ((status  & CyRTS) ? TIOCM_RTS : 0)
--            | ((status  & CyDTR) ? TIOCM_DTR : 0)
--            | ((status  & CyDCD) ? TIOCM_CAR : 0)
--            | ((status  & CyDSR) ? TIOCM_DSR : 0)
--            | ((status  & CyCTS) ? TIOCM_CTS : 0);
--} /* cy_tiocmget */
-+	channel = info->line;
-+
-+	local_irq_save(flags);
-+	base_addr[CyCAR] = (u_char) channel;
-+	status = base_addr[CyMSVR1] | base_addr[CyMSVR2];
-+	local_irq_restore(flags);
-+
-+	return ((status & CyRTS) ? TIOCM_RTS : 0)
-+	    | ((status & CyDTR) ? TIOCM_DTR : 0)
-+	    | ((status & CyDCD) ? TIOCM_CAR : 0)
-+	    | ((status & CyDSR) ? TIOCM_DSR : 0)
-+	    | ((status & CyCTS) ? TIOCM_CTS : 0);
-+}				/* cy_tiocmget */
- 
- static int
- cy_tiocmset(struct tty_struct *tty, struct file *file,
- 	    unsigned int set, unsigned int clear)
- {
--  struct cyclades_port * info = (struct cyclades_port *)tty->driver_data;
--  int channel;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  unsigned long flags;
--	  
--    channel = info->line;
--
--	if (set & TIOCM_RTS){
--	    local_irq_save(flags);
--		base_addr[CyCAR] = (u_char)channel;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	int channel;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	unsigned long flags;
-+
-+	channel = info->line;
-+
-+	if (set & TIOCM_RTS) {
-+		local_irq_save(flags);
-+		base_addr[CyCAR] = (u_char) channel;
- 		base_addr[CyMSVR1] = CyRTS;
--	    local_irq_restore(flags);
-+		local_irq_restore(flags);
- 	}
--	if (set & TIOCM_DTR){
--	    local_irq_save(flags);
--	    base_addr[CyCAR] = (u_char)channel;
-+	if (set & TIOCM_DTR) {
-+		local_irq_save(flags);
-+		base_addr[CyCAR] = (u_char) channel;
- /* CP('S');CP('2'); */
--	    base_addr[CyMSVR2] = CyDTR;
-+		base_addr[CyMSVR2] = CyDTR;
- #ifdef SERIAL_DEBUG_DTR
--            printk("cyc: %d: raising DTR\n", __LINE__);
--            printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1], base_addr[CyMSVR2]);
-+		printk("cyc: %d: raising DTR\n", __LINE__);
-+		printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1],
-+		       base_addr[CyMSVR2]);
- #endif
--	    local_irq_restore(flags);
-+		local_irq_restore(flags);
- 	}
- 
--	if (clear & TIOCM_RTS){
--	    local_irq_save(flags);
--		base_addr[CyCAR] = (u_char)channel;
-+	if (clear & TIOCM_RTS) {
-+		local_irq_save(flags);
-+		base_addr[CyCAR] = (u_char) channel;
- 		base_addr[CyMSVR1] = 0;
--	    local_irq_restore(flags);
-+		local_irq_restore(flags);
- 	}
--	if (clear & TIOCM_DTR){
--	    local_irq_save(flags);
--	    base_addr[CyCAR] = (u_char)channel;
-+	if (clear & TIOCM_DTR) {
-+		local_irq_save(flags);
-+		base_addr[CyCAR] = (u_char) channel;
- /* CP('C');CP('2'); */
--	    base_addr[CyMSVR2] = 0;
-+		base_addr[CyMSVR2] = 0;
- #ifdef SERIAL_DEBUG_DTR
--            printk("cyc: %d: dropping DTR\n", __LINE__);
--            printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1], base_addr[CyMSVR2]);
-+		printk("cyc: %d: dropping DTR\n", __LINE__);
-+		printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1],
-+		       base_addr[CyMSVR2]);
- #endif
--	    local_irq_restore(flags);
-+		local_irq_restore(flags);
- 	}
- 
--    return 0;
--} /* set_modem_info */
-+	return 0;
-+}				/* set_modem_info */
- 
--static void
--send_break( struct cyclades_port * info, int duration)
--{ /* Let the transmit ISR take care of this (since it
--     requires stuffing characters into the output stream).
--   */
--    info->x_break = duration;
--    if (!info->xmit_cnt ) {
--	start_xmit(info);
--    }
--} /* send_break */
-+static void send_break(struct cyclades_port *info, int duration)
-+{				/* Let the transmit ISR take care of this (since it
-+				   requires stuffing characters into the output stream).
-+				 */
-+	info->x_break = duration;
-+	if (!info->xmit_cnt) {
-+		start_xmit(info);
-+	}
-+}				/* send_break */
- 
- static int
--get_mon_info(struct cyclades_port * info, struct cyclades_monitor __user * mon)
-+get_mon_info(struct cyclades_port *info, struct cyclades_monitor __user * mon)
- {
- 
--   if (copy_to_user(mon, &info->mon, sizeof(struct cyclades_monitor)))
--	   return -EFAULT;
--   info->mon.int_count  = 0;
--   info->mon.char_count = 0;
--   info->mon.char_max   = 0;
--   info->mon.char_last  = 0;
--   return 0;
-+	if (copy_to_user(mon, &info->mon, sizeof(struct cyclades_monitor)))
-+		return -EFAULT;
-+	info->mon.int_count = 0;
-+	info->mon.char_count = 0;
-+	info->mon.char_max = 0;
-+	info->mon.char_last = 0;
-+	return 0;
- }
- 
--static int
--set_threshold(struct cyclades_port * info, unsigned long __user *arg)
-+static int set_threshold(struct cyclades_port *info, unsigned long __user * arg)
- {
--   volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--   unsigned long value;
--   int channel;
--   
--   if (get_user(value, arg))
--	   return -EFAULT;
--
--   channel = info->line;
--   info->cor4 &= ~CyREC_FIFO;
--   info->cor4 |= value & CyREC_FIFO;
--   base_addr[CyCOR4] = info->cor4;
--   return 0;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	unsigned long value;
-+	int channel;
-+
-+	if (get_user(value, arg))
-+		return -EFAULT;
-+
-+	channel = info->line;
-+	info->cor4 &= ~CyREC_FIFO;
-+	info->cor4 |= value & CyREC_FIFO;
-+	base_addr[CyCOR4] = info->cor4;
-+	return 0;
- }
- 
- static int
--get_threshold(struct cyclades_port * info, unsigned long __user *value)
-+get_threshold(struct cyclades_port *info, unsigned long __user * value)
- {
--   volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--   int channel;
--   unsigned long tmp;
--   
--   channel = info->line;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
-+	unsigned long tmp;
-+
-+	channel = info->line;
- 
--   tmp = base_addr[CyCOR4] & CyREC_FIFO;
--   return put_user(tmp,value);
-+	tmp = base_addr[CyCOR4] & CyREC_FIFO;
-+	return put_user(tmp, value);
- }
- 
- static int
--set_default_threshold(struct cyclades_port * info, unsigned long __user *arg)
-+set_default_threshold(struct cyclades_port *info, unsigned long __user * arg)
- {
--   unsigned long value;
-+	unsigned long value;
- 
--   if (get_user(value, arg))
--	return -EFAULT;
-+	if (get_user(value, arg))
-+		return -EFAULT;
- 
--   info->default_threshold = value & 0x0f;
--   return 0;
-+	info->default_threshold = value & 0x0f;
-+	return 0;
- }
- 
- static int
--get_default_threshold(struct cyclades_port * info, unsigned long __user *value)
-+get_default_threshold(struct cyclades_port *info, unsigned long __user * value)
- {
--   return put_user(info->default_threshold,value);
-+	return put_user(info->default_threshold, value);
- }
- 
--static int
--set_timeout(struct cyclades_port * info, unsigned long __user *arg)
-+static int set_timeout(struct cyclades_port *info, unsigned long __user * arg)
- {
--   volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--   int channel;
--   unsigned long value;
--
--   if (get_user(value, arg))
--	   return -EFAULT;
--   
--   channel = info->line;
--
--   base_addr[CyRTPRL] = value & 0xff;
--   base_addr[CyRTPRH] = (value >> 8) & 0xff;
--   return 0;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
-+	unsigned long value;
-+
-+	if (get_user(value, arg))
-+		return -EFAULT;
-+
-+	channel = info->line;
-+
-+	base_addr[CyRTPRL] = value & 0xff;
-+	base_addr[CyRTPRH] = (value >> 8) & 0xff;
-+	return 0;
- }
- 
--static int
--get_timeout(struct cyclades_port * info, unsigned long __user *value)
-+static int get_timeout(struct cyclades_port *info, unsigned long __user * value)
- {
--   volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--   int channel;
--   unsigned long tmp;
--   
--   channel = info->line;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
-+	unsigned long tmp;
-+
-+	channel = info->line;
- 
--   tmp = base_addr[CyRTPRL];
--   return put_user(tmp,value);
-+	tmp = base_addr[CyRTPRL];
-+	return put_user(tmp, value);
- }
- 
--static int
--set_default_timeout(struct cyclades_port * info, unsigned long value)
-+static int set_default_timeout(struct cyclades_port *info, unsigned long value)
- {
--   info->default_timeout = value & 0xff;
--   return 0;
-+	info->default_timeout = value & 0xff;
-+	return 0;
- }
- 
- static int
--get_default_timeout(struct cyclades_port * info, unsigned long __user *value)
-+get_default_timeout(struct cyclades_port *info, unsigned long __user * value)
- {
--   return put_user(info->default_timeout,value);
-+	return put_user(info->default_timeout, value);
- }
- 
- static int
--cy_ioctl(struct tty_struct *tty, struct file * file,
--            unsigned int cmd, unsigned long arg)
-+cy_ioctl(struct tty_struct *tty, struct file *file,
-+	 unsigned int cmd, unsigned long arg)
- {
--  unsigned long val;
--  struct cyclades_port * info = (struct cyclades_port *)tty->driver_data;
--  int ret_val = 0;
--  void __user *argp = (void __user *)arg;
-+	unsigned long val;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	int ret_val = 0;
-+	void __user *argp = (void __user *)arg;
- 
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_ioctl %s, cmd = %x arg = %lx\n", tty->name, cmd, arg); /* */
-+	printk("cy_ioctl %s, cmd = %x arg = %lx\n", tty->name, cmd, arg);	/* */
- #endif
- 
--    switch (cmd) {
--        case CYGETMON:
--            ret_val = get_mon_info(info, argp);
--	    break;
--        case CYGETTHRESH:
--	    ret_val = get_threshold(info, argp);
-- 	    break;
--        case CYSETTHRESH:
--            ret_val = set_threshold(info, argp);
--	    break;
--        case CYGETDEFTHRESH:
--	    ret_val = get_default_threshold(info, argp);
-- 	    break;
--        case CYSETDEFTHRESH:
--            ret_val = set_default_threshold(info, argp);
--	    break;
--        case CYGETTIMEOUT:
--	    ret_val = get_timeout(info, argp);
-- 	    break;
--        case CYSETTIMEOUT:
--            ret_val = set_timeout(info, argp);
--	    break;
--        case CYGETDEFTIMEOUT:
--	    ret_val = get_default_timeout(info, argp);
-- 	    break;
--        case CYSETDEFTIMEOUT:
--            ret_val = set_default_timeout(info, (unsigned long)arg);
--	    break;
--        case TCSBRK:    /* SVID version: non-zero arg --> no break */
--	    ret_val = tty_check_change(tty);
--	    if (ret_val)
--		    break;
--            tty_wait_until_sent(tty,0);
--            if (!arg)
--                send_break(info, HZ/4); /* 1/4 second */
--            break;
--        case TCSBRKP:   /* support for POSIX tcsendbreak() */
--	    ret_val = tty_check_change(tty);
--	    if (ret_val)
--		break;
--            tty_wait_until_sent(tty,0);
--            send_break(info, arg ? arg*(HZ/10) : HZ/4);
--            break;
-+	switch (cmd) {
-+	case CYGETMON:
-+		ret_val = get_mon_info(info, argp);
-+		break;
-+	case CYGETTHRESH:
-+		ret_val = get_threshold(info, argp);
-+		break;
-+	case CYSETTHRESH:
-+		ret_val = set_threshold(info, argp);
-+		break;
-+	case CYGETDEFTHRESH:
-+		ret_val = get_default_threshold(info, argp);
-+		break;
-+	case CYSETDEFTHRESH:
-+		ret_val = set_default_threshold(info, argp);
-+		break;
-+	case CYGETTIMEOUT:
-+		ret_val = get_timeout(info, argp);
-+		break;
-+	case CYSETTIMEOUT:
-+		ret_val = set_timeout(info, argp);
-+		break;
-+	case CYGETDEFTIMEOUT:
-+		ret_val = get_default_timeout(info, argp);
-+		break;
-+	case CYSETDEFTIMEOUT:
-+		ret_val = set_default_timeout(info, (unsigned long)arg);
-+		break;
-+	case TCSBRK:		/* SVID version: non-zero arg --> no break */
-+		ret_val = tty_check_change(tty);
-+		if (ret_val)
-+			break;
-+		tty_wait_until_sent(tty, 0);
-+		if (!arg)
-+			send_break(info, HZ / 4);	/* 1/4 second */
-+		break;
-+	case TCSBRKP:		/* support for POSIX tcsendbreak() */
-+		ret_val = tty_check_change(tty);
-+		if (ret_val)
-+			break;
-+		tty_wait_until_sent(tty, 0);
-+		send_break(info, arg ? arg * (HZ / 10) : HZ / 4);
-+		break;
- 
- /* The following commands are incompletely implemented!!! */
--        case TIOCGSOFTCAR:
--            ret_val = put_user(C_CLOCAL(tty) ? 1 : 0, (unsigned long __user *) argp);
--            break;
--        case TIOCSSOFTCAR:
--            ret_val = get_user(val, (unsigned long __user *) argp);
--	    if (ret_val)
--		    break;
--            tty->termios->c_cflag =
--                    ((tty->termios->c_cflag & ~CLOCAL) | (val ? CLOCAL : 0));
--            break;
--        case TIOCGSERIAL:
--            ret_val = get_serial_info(info, argp);
--            break;
--        case TIOCSSERIAL:
--            ret_val = set_serial_info(info, argp);
--            break;
--        default:
--	    ret_val = -ENOIOCTLCMD;
--    }
-+	case TIOCGSOFTCAR:
-+		ret_val =
-+		    put_user(C_CLOCAL(tty) ? 1 : 0,
-+			     (unsigned long __user *)argp);
-+		break;
-+	case TIOCSSOFTCAR:
-+		ret_val = get_user(val, (unsigned long __user *)argp);
-+		if (ret_val)
-+			break;
-+		tty->termios->c_cflag =
-+		    ((tty->termios->c_cflag & ~CLOCAL) | (val ? CLOCAL : 0));
-+		break;
-+	case TIOCGSERIAL:
-+		ret_val = get_serial_info(info, argp);
-+		break;
-+	case TIOCSSERIAL:
-+		ret_val = set_serial_info(info, argp);
-+		break;
-+	default:
-+		ret_val = -ENOIOCTLCMD;
-+	}
- 
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_ioctl done\n");
-+	printk("cy_ioctl done\n");
- #endif
- 
--    return ret_val;
--} /* cy_ioctl */
--
--
-+	return ret_val;
-+}				/* cy_ioctl */
- 
--
--static void
--cy_set_termios(struct tty_struct *tty, struct ktermios * old_termios)
-+static void cy_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
- {
--  struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
- 
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_set_termios %s\n", tty->name);
-+	printk("cy_set_termios %s\n", tty->name);
- #endif
- 
--    if (tty->termios->c_cflag == old_termios->c_cflag)
--        return;
--    config_setup(info);
--
--    if ((old_termios->c_cflag & CRTSCTS) &&
--        !(tty->termios->c_cflag & CRTSCTS)) {
--            tty->stopped = 0;
--            cy_start(tty);
--    }
-+	if (tty->termios->c_cflag == old_termios->c_cflag)
-+		return;
-+	config_setup(info);
-+
-+	if ((old_termios->c_cflag & CRTSCTS) &&
-+	    !(tty->termios->c_cflag & CRTSCTS)) {
-+		tty->stopped = 0;
-+		cy_start(tty);
-+	}
- #ifdef tytso_patch_94Nov25_1726
--    if (!(old_termios->c_cflag & CLOCAL) &&
--        (tty->termios->c_cflag & CLOCAL))
--            wake_up_interruptible(&info->open_wait);
-+	if (!(old_termios->c_cflag & CLOCAL) &&
-+	    (tty->termios->c_cflag & CLOCAL))
-+		wake_up_interruptible(&info->open_wait);
- #endif
-+}				/* cy_set_termios */
- 
--    return;
--} /* cy_set_termios */
--
--
--static void
--cy_close(struct tty_struct * tty, struct file * filp)
-+static void cy_close(struct tty_struct *tty, struct file *filp)
- {
--  struct cyclades_port * info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
- 
- /* CP('C'); */
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_close %s\n", tty->name);
-+	printk("cy_close %s\n", tty->name);
- #endif
- 
--    if (!info
--    || serial_paranoia_check(info, tty->name, "cy_close")){
--        return;
--    }
-+	if (!info || serial_paranoia_check(info, tty->name, "cy_close")) {
-+		return;
-+	}
- #ifdef SERIAL_DEBUG_OPEN
--    printk("cy_close %s, count = %d\n", tty->name, info->count);
-+	printk("cy_close %s, count = %d\n", tty->name, info->count);
- #endif
- 
--    if ((tty->count == 1) && (info->count != 1)) {
--	/*
--	 * Uh, oh.  tty->count is 1, which means that the tty
--	 * structure will be freed.  Info->count should always
--	 * be one in these conditions.  If it's greater than
--	 * one, we've got real problems, since it means the
--	 * serial port won't be shutdown.
--	 */
--	printk("cy_close: bad serial port count; tty->count is 1, "
--	   "info->count is %d\n", info->count);
--	info->count = 1;
--    }
-+	if ((tty->count == 1) && (info->count != 1)) {
-+		/*
-+		 * Uh, oh.  tty->count is 1, which means that the tty
-+		 * structure will be freed.  Info->count should always
-+		 * be one in these conditions.  If it's greater than
-+		 * one, we've got real problems, since it means the
-+		 * serial port won't be shutdown.
-+		 */
-+		printk("cy_close: bad serial port count; tty->count is 1, "
-+		       "info->count is %d\n", info->count);
-+		info->count = 1;
-+	}
- #ifdef SERIAL_DEBUG_COUNT
--    printk("cyc: %d: decrementing count to %d\n", __LINE__, info->count - 1);
-+	printk("cyc: %d: decrementing count to %d\n", __LINE__,
-+	       info->count - 1);
- #endif
--    if (--info->count < 0) {
--	printk("cy_close: bad serial port count for ttys%d: %d\n",
--	       info->line, info->count);
-+	if (--info->count < 0) {
-+		printk("cy_close: bad serial port count for ttys%d: %d\n",
-+		       info->line, info->count);
- #ifdef SERIAL_DEBUG_COUNT
--    printk("cyc: %d: setting count to 0\n", __LINE__);
-+		printk("cyc: %d: setting count to 0\n", __LINE__);
- #endif
--	info->count = 0;
--    }
--    if (info->count)
--	return;
--    info->flags |= ASYNC_CLOSING;
--    if (info->flags & ASYNC_INITIALIZED)
--	tty_wait_until_sent(tty, 3000); /* 30 seconds timeout */
--    shutdown(info);
--    if (tty->driver->flush_buffer)
--	tty->driver->flush_buffer(tty);
--    tty_ldisc_flush(tty);
--    info->event = 0;
--    info->tty = NULL;
--    if (info->blocked_open) {
--	if (info->close_delay) {
--	    msleep_interruptible(jiffies_to_msecs(info->close_delay));
-+		info->count = 0;
- 	}
--	wake_up_interruptible(&info->open_wait);
--    }
--    info->flags &= ~(ASYNC_NORMAL_ACTIVE|ASYNC_CLOSING);
--    wake_up_interruptible(&info->close_wait);
-+	if (info->count)
-+		return;
-+	info->flags |= ASYNC_CLOSING;
-+	if (info->flags & ASYNC_INITIALIZED)
-+		tty_wait_until_sent(tty, 3000);	/* 30 seconds timeout */
-+	shutdown(info);
-+	if (tty->driver->flush_buffer)
-+		tty->driver->flush_buffer(tty);
-+	tty_ldisc_flush(tty);
-+	info->event = 0;
-+	info->tty = NULL;
-+	if (info->blocked_open) {
-+		if (info->close_delay) {
-+			msleep_interruptible(jiffies_to_msecs
-+					     (info->close_delay));
++	if ((pInfo->tx_position == pBlock->length) && (room >= 3)) {
++		put_char(pInfo, DLE);
++		put_char(pInfo, ETX);
++		if (pInfo->flags & R3964_BCC) {
++			put_char(pInfo, pInfo->bcc);
 +		}
-+		wake_up_interruptible(&info->open_wait);
++		pInfo->state = R3964_WAIT_FOR_TX_ACK;
++		mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
 +	}
-+	info->flags &= ~(ASYNC_NORMAL_ACTIVE | ASYNC_CLOSING);
-+	wake_up_interruptible(&info->close_wait);
++	flush(pInfo);
+ }
  
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_close done\n");
-+	printk("cy_close done\n");
- #endif
--
--    return;
--} /* cy_close */
-+}				/* cy_close */
- 
- /*
-  * cy_hangup() --- called by tty_hangup() when a hangup is signaled.
-  */
--void
--cy_hangup(struct tty_struct *tty)
-+void cy_hangup(struct tty_struct *tty)
+ static void on_receive_block(struct r3964_info *pInfo)
  {
--  struct cyclades_port * info = (struct cyclades_port *)tty->driver_data;
--	
-+	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
+-   unsigned int length;
+-   struct r3964_client_info *pClient;
+-   struct r3964_block_header *pBlock;
+-   
+-   length=pInfo->rx_position;
+-
+-   /* compare byte checksum characters: */
+-   if(pInfo->flags & R3964_BCC)
+-   {
+-      if(pInfo->bcc!=pInfo->last_rx)
+-      {
+-         TRACE_PE("checksum error - got %x but expected %x",
+-                pInfo->last_rx, pInfo->bcc);
+-         pInfo->flags |= R3964_CHECKSUM;
+-      }
+-   }
+-
+-   /* check for errors (parity, overrun,...): */
+-   if(pInfo->flags & R3964_ERROR)
+-   {
+-      TRACE_PE("on_receive_block - transmission failed error %x",
+-             pInfo->flags & R3964_ERROR);
+-      
+-      put_char(pInfo, NAK);
+-      flush(pInfo);
+-      if(pInfo->nRetry<R3964_MAX_RETRIES)
+-      {
+-         pInfo->state=R3964_WAIT_FOR_RX_REPEAT;
+-         pInfo->nRetry++;
+-	 mod_timer(&pInfo->tmr, jiffies + R3964_TO_RX_PANIC);
+-      }
+-      else
+-      {
+-         TRACE_PE("on_receive_block - failed after max retries");
+-         pInfo->state=R3964_IDLE;
+-      }
+-      return;
+-   }
+-
+-   
+-   /* received block; submit DLE: */
+-   put_char(pInfo, DLE);
+-   flush(pInfo);
+-   del_timer_sync(&pInfo->tmr);
+-   TRACE_PS(" rx success: got %d chars", length);
+-
+-   /* prepare struct r3964_block_header: */
+-   pBlock = kmalloc(length+sizeof(struct r3964_block_header), GFP_KERNEL);
+-   TRACE_M("on_receive_block - kmalloc %p",pBlock);
+-
+-   if(pBlock==NULL)
+-      return;
+-
+-   pBlock->length = length;
+-   pBlock->data   = ((unsigned char*)pBlock)+sizeof(struct r3964_block_header);
+-   pBlock->locks  = 0;
+-   pBlock->next   = NULL;
+-   pBlock->owner  = NULL;
+-
+-   memcpy(pBlock->data, pInfo->rx_buf, length);
+-
+-   /* queue block into rx_queue: */
+-   add_rx_queue(pInfo, pBlock);
+-
+-   /* notify attached client processes: */
+-   for(pClient=pInfo->firstClient; pClient; pClient=pClient->next)
+-   {
+-      if(pClient->sig_flags & R3964_SIG_DATA)
+-      {
+-         add_msg(pClient, R3964_MSG_DATA, length, R3964_OK, pBlock);
+-      }
+-   }
+-   wake_up_interruptible (&pInfo->read_wait);
+-   
+-   pInfo->state = R3964_IDLE;
++	unsigned int length;
++	struct r3964_client_info *pClient;
++	struct r3964_block_header *pBlock;
 +
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_hangup %s\n", tty->name); /* */
-+	printk("cy_hangup %s\n", tty->name);	/* */
- #endif
- 
--    if (serial_paranoia_check(info, tty->name, "cy_hangup"))
--	return;
--    
--    shutdown(info);
-+	if (serial_paranoia_check(info, tty->name, "cy_hangup"))
-+		return;
++	length = pInfo->rx_position;
 +
-+	shutdown(info);
- #if 0
--    info->event = 0;
--    info->count = 0;
-+	info->event = 0;
-+	info->count = 0;
- #ifdef SERIAL_DEBUG_COUNT
--    printk("cyc: %d: setting count to 0\n", __LINE__);
-+	printk("cyc: %d: setting count to 0\n", __LINE__);
- #endif
--    info->tty = 0;
-+	info->tty = 0;
- #endif
--    info->flags &= ~ASYNC_NORMAL_ACTIVE;
--    wake_up_interruptible(&info->open_wait);
--} /* cy_hangup */
--
--
-+	info->flags &= ~ASYNC_NORMAL_ACTIVE;
-+	wake_up_interruptible(&info->open_wait);
-+}				/* cy_hangup */
++	/* compare byte checksum characters: */
++	if (pInfo->flags & R3964_BCC) {
++		if (pInfo->bcc != pInfo->last_rx) {
++			TRACE_PE("checksum error - got %x but expected %x",
++				 pInfo->last_rx, pInfo->bcc);
++			pInfo->flags |= R3964_CHECKSUM;
++		}
++	}
  
- /*
-  * ------------------------------------------------------------
-@@ -1827,177 +1796,180 @@ cy_hangup(struct tty_struct *tty)
-  */
- 
- static int
--block_til_ready(struct tty_struct *tty, struct file * filp,
--                           struct cyclades_port *info)
-+block_til_ready(struct tty_struct *tty, struct file *filp,
-+		struct cyclades_port *info)
- {
--  DECLARE_WAITQUEUE(wait, current);
--  unsigned long flags;
--  int channel;
--  int retval;
--  volatile u_char *base_addr = (u_char *)BASE_ADDR;
--
--    /*
--     * If the device is in the middle of being closed, then block
--     * until it's done, and then try again.
--     */
--    if (info->flags & ASYNC_CLOSING) {
--	interruptible_sleep_on(&info->close_wait);
--	if (info->flags & ASYNC_HUP_NOTIFY){
--	    return -EAGAIN;
--	}else{
--	    return -ERESTARTSYS;
--	}
--    }
--
--    /*
--     * If non-blocking mode is set, then make the check up front
--     * and then exit.
--     */
--    if (filp->f_flags & O_NONBLOCK) {
--	info->flags |= ASYNC_NORMAL_ACTIVE;
--	return 0;
--    }
-+	DECLARE_WAITQUEUE(wait, current);
-+	unsigned long flags;
-+	int channel;
-+	int retval;
-+	volatile u_char *base_addr = (u_char *) BASE_ADDR;
+-   trigger_transmit(pInfo);
+-}
++	/* check for errors (parity, overrun,...): */
++	if (pInfo->flags & R3964_ERROR) {
++		TRACE_PE("on_receive_block - transmission failed error %x",
++			 pInfo->flags & R3964_ERROR);
 +
-+	/*
-+	 * If the device is in the middle of being closed, then block
-+	 * until it's done, and then try again.
-+	 */
-+	if (info->flags & ASYNC_CLOSING) {
-+		interruptible_sleep_on(&info->close_wait);
-+		if (info->flags & ASYNC_HUP_NOTIFY) {
-+			return -EAGAIN;
++		put_char(pInfo, NAK);
++		flush(pInfo);
++		if (pInfo->nRetry < R3964_MAX_RETRIES) {
++			pInfo->state = R3964_WAIT_FOR_RX_REPEAT;
++			pInfo->nRetry++;
++			mod_timer(&pInfo->tmr, jiffies + R3964_TO_RX_PANIC);
 +		} else {
-+			return -ERESTARTSYS;
++			TRACE_PE("on_receive_block - failed after max retries");
++			pInfo->state = R3964_IDLE;
 +		}
-+	}
- 
--    /*
--     * Block waiting for the carrier detect and the line to become
--     * free (i.e., not in use by the callout).  While we are in
--     * this loop, info->count is dropped by one, so that
--     * cy_close() knows when to free things.  We restore it upon
--     * exit, either normal or abnormal.
--     */
--    retval = 0;
--    add_wait_queue(&info->open_wait, &wait);
-+	/*
-+	 * If non-blocking mode is set, then make the check up front
-+	 * and then exit.
-+	 */
-+	if (filp->f_flags & O_NONBLOCK) {
-+		info->flags |= ASYNC_NORMAL_ACTIVE;
-+		return 0;
-+	}
-+
-+	/*
-+	 * Block waiting for the carrier detect and the line to become
-+	 * free (i.e., not in use by the callout).  While we are in
-+	 * this loop, info->count is dropped by one, so that
-+	 * cy_close() knows when to free things.  We restore it upon
-+	 * exit, either normal or abnormal.
-+	 */
-+	retval = 0;
-+	add_wait_queue(&info->open_wait, &wait);
- #ifdef SERIAL_DEBUG_OPEN
--    printk("block_til_ready before block: %s, count = %d\n",
--	   tty->name, info->count);/**/
-+	printk("block_til_ready before block: %s, count = %d\n",
-+	       tty->name, info->count);
-+	/**/
- #endif
--    info->count--;
-+	    info->count--;
- #ifdef SERIAL_DEBUG_COUNT
--    printk("cyc: %d: decrementing count to %d\n", __LINE__, info->count);
-+	printk("cyc: %d: decrementing count to %d\n", __LINE__, info->count);
- #endif
--    info->blocked_open++;
-+	info->blocked_open++;
- 
--    channel = info->line;
-+	channel = info->line;
- 
--    while (1) {
--	local_irq_save(flags);
--	base_addr[CyCAR] = (u_char)channel;
--	base_addr[CyMSVR1] = CyRTS;
-+	while (1) {
-+		local_irq_save(flags);
-+		base_addr[CyCAR] = (u_char) channel;
-+		base_addr[CyMSVR1] = CyRTS;
- /* CP('S');CP('4'); */
--	base_addr[CyMSVR2] = CyDTR;
-+		base_addr[CyMSVR2] = CyDTR;
- #ifdef SERIAL_DEBUG_DTR
--	printk("cyc: %d: raising DTR\n", __LINE__);
--	printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1], base_addr[CyMSVR2]);
--#endif
--	local_irq_restore(flags);
--	set_current_state(TASK_INTERRUPTIBLE);
--	if (tty_hung_up_p(filp)
--	|| !(info->flags & ASYNC_INITIALIZED) ){
--	    if (info->flags & ASYNC_HUP_NOTIFY) {
--		retval = -EAGAIN;
--	    }else{
--		retval = -ERESTARTSYS;
--	    }
--	    break;
--	}
--	local_irq_save(flags);
--	    base_addr[CyCAR] = (u_char)channel;
-+		printk("cyc: %d: raising DTR\n", __LINE__);
-+		printk("     status: 0x%x, 0x%x\n", base_addr[CyMSVR1],
-+		       base_addr[CyMSVR2]);
-+#endif
-+		local_irq_restore(flags);
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		if (tty_hung_up_p(filp)
-+		    || !(info->flags & ASYNC_INITIALIZED)) {
-+			if (info->flags & ASYNC_HUP_NOTIFY) {
-+				retval = -EAGAIN;
-+			} else {
-+				retval = -ERESTARTSYS;
-+			}
-+			break;
-+		}
-+		local_irq_save(flags);
-+		base_addr[CyCAR] = (u_char) channel;
- /* CP('L');CP1(1 && C_CLOCAL(tty)); CP1(1 && (base_addr[CyMSVR1] & CyDCD) ); */
--	    if (!(info->flags & ASYNC_CLOSING)
--	    && (C_CLOCAL(tty)
--	        || (base_addr[CyMSVR1] & CyDCD))) {
--		    local_irq_restore(flags);
--		    break;
--	    }
--	local_irq_restore(flags);
--	if (signal_pending(current)) {
--	    retval = -ERESTARTSYS;
--	    break;
--	}
-+		if (!(info->flags & ASYNC_CLOSING)
-+		    && (C_CLOCAL(tty)
-+			|| (base_addr[CyMSVR1] & CyDCD))) {
-+			local_irq_restore(flags);
-+			break;
-+		}
-+		local_irq_restore(flags);
-+		if (signal_pending(current)) {
-+			retval = -ERESTARTSYS;
-+			break;
-+		}
- #ifdef SERIAL_DEBUG_OPEN
--	printk("block_til_ready blocking: %s, count = %d\n",
--	       tty->name, info->count);/**/
--#endif
--	schedule();
--    }
--    current->state = TASK_RUNNING;
--    remove_wait_queue(&info->open_wait, &wait);
--    if (!tty_hung_up_p(filp)){
--	info->count++;
-+		printk("block_til_ready blocking: %s, count = %d\n",
-+		       tty->name, info->count);
-+		/**/
-+#endif
-+		    schedule();
-+	}
-+	current->state = TASK_RUNNING;
-+	remove_wait_queue(&info->open_wait, &wait);
-+	if (!tty_hung_up_p(filp)) {
-+		info->count++;
- #ifdef SERIAL_DEBUG_COUNT
--    printk("cyc: %d: incrementing count to %d\n", __LINE__, info->count);
-+		printk("cyc: %d: incrementing count to %d\n", __LINE__,
-+		       info->count);
- #endif
--    }
--    info->blocked_open--;
-+	}
-+	info->blocked_open--;
- #ifdef SERIAL_DEBUG_OPEN
--    printk("block_til_ready after blocking: %s, count = %d\n",
--	   tty->name, info->count);/**/
-+	printk("block_til_ready after blocking: %s, count = %d\n",
-+	       tty->name, info->count);
-+	/**/
- #endif
--    if (retval)
--	    return retval;
--    info->flags |= ASYNC_NORMAL_ACTIVE;
--    return 0;
--} /* block_til_ready */
-+	    if (retval)
-+		return retval;
-+	info->flags |= ASYNC_NORMAL_ACTIVE;
-+	return 0;
-+}				/* block_til_ready */
- 
- /*
-  * This routine is called whenever a serial port is opened.  It
-  * performs the serial-specific initialization for the tty structure.
-  */
--int
--cy_open(struct tty_struct *tty, struct file * filp)
-+int cy_open(struct tty_struct *tty, struct file *filp)
- {
--  struct cyclades_port  *info;
--  int retval, line;
-+	struct cyclades_port *info;
-+	int retval, line;
- 
- /* CP('O'); */
--    line = tty->index;
--    if ((line < 0) || (NR_PORTS <= line)){
--        return -ENODEV;
--    }
--    info = &cy_port[line];
--    if (info->line < 0){
--        return -ENODEV;
--    }
-+	line = tty->index;
-+	if ((line < 0) || (NR_PORTS <= line)) {
-+		return -ENODEV;
-+	}
-+	info = &cy_port[line];
-+	if (info->line < 0) {
-+		return -ENODEV;
-+	}
- #ifdef SERIAL_DEBUG_OTHER
--    printk("cy_open %s\n", tty->name); /* */
-+	printk("cy_open %s\n", tty->name);	/* */
- #endif
--    if (serial_paranoia_check(info, tty->name, "cy_open")){
--        return -ENODEV;
--    }
-+	if (serial_paranoia_check(info, tty->name, "cy_open")) {
-+		return -ENODEV;
-+	}
- #ifdef SERIAL_DEBUG_OPEN
--    printk("cy_open %s, count = %d\n", tty->name, info->count);/**/
-+	printk("cy_open %s, count = %d\n", tty->name, info->count);
-+	/**/
- #endif
--    info->count++;
-+	    info->count++;
- #ifdef SERIAL_DEBUG_COUNT
--    printk("cyc: %d: incrementing count to %d\n", __LINE__, info->count);
-+	printk("cyc: %d: incrementing count to %d\n", __LINE__, info->count);
- #endif
--    tty->driver_data = info;
--    info->tty = tty;
-+	tty->driver_data = info;
-+	info->tty = tty;
- 
--    /*
--     * Start up serial port
--     */
--    retval = startup(info);
--    if (retval){
--	return retval;
--    }
-+	/*
-+	 * Start up serial port
-+	 */
-+	retval = startup(info);
-+	if (retval) {
-+		return retval;
-+	}
- 
--    retval = block_til_ready(tty, filp, info);
--    if (retval) {
-+	retval = block_til_ready(tty, filp, info);
-+	if (retval) {
- #ifdef SERIAL_DEBUG_OPEN
--	printk("cy_open returning after block_til_ready with %d\n",
--	       retval);
-+		printk("cy_open returning after block_til_ready with %d\n",
-+		       retval);
- #endif
--	return retval;
--    }
--
-+		return retval;
-+	}
- #ifdef SERIAL_DEBUG_OPEN
--    printk("cy_open done\n");/**/
-+	printk("cy_open done\n");
-+	/**/
- #endif
--    return 0;
--} /* cy_open */
--
--
-+	    return 0;
-+}				/* cy_open */
- 
- /*
-  * ---------------------------------------------------------------------
-@@ -2012,11 +1984,10 @@ cy_open(struct tty_struct *tty, struct f
-  * number, and identifies which options were configured into this
-  * driver.
-  */
--static void
--show_version(void)
-+static void show_version(void)
- {
--    printk("MVME166/167 cd2401 driver\n");
--} /* show_version */
-+	printk("MVME166/167 cd2401 driver\n");
-+}				/* show_version */
- 
- /* initialize chips on card -- return number of valid
-    chips (which is number of ports/4) */
-@@ -2030,10 +2001,9 @@ show_version(void)
-  * ... I wonder what I should do if this fails ...
-  */
- 
--void
--mvme167_serial_console_setup(int cflag)
-+void mvme167_serial_console_setup(int cflag)
- {
--	volatile unsigned char* base_addr = (u_char *)BASE_ADDR;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
- 	int ch;
- 	u_char spd;
- 	u_char rcor, rbpr, badspeed = 0;
-@@ -2062,21 +2032,21 @@ mvme167_serial_console_setup(int cflag)
- 
- 	/* OK, we have chosen a speed, now reset and reinitialise */
- 
--        my_udelay(20000L);	/* Allow time for any active o/p to complete */
--        if(base_addr[CyCCR] != 0x00){
--            local_irq_restore(flags);
--            /* printk(" chip is never idle (CCR != 0)\n"); */
--            return;
--        }
--
--        base_addr[CyCCR] = CyCHIP_RESET;	/* Reset the chip */
--        my_udelay(1000L);
--
--        if(base_addr[CyGFRCR] == 0x00){
--            local_irq_restore(flags);
--            /* printk(" chip is not responding (GFRCR stayed 0)\n"); */
--            return;
--        }
-+	my_udelay(20000L);	/* Allow time for any active o/p to complete */
-+	if (base_addr[CyCCR] != 0x00) {
-+		local_irq_restore(flags);
-+		/* printk(" chip is never idle (CCR != 0)\n"); */
-+		return;
-+	}
-+
-+	base_addr[CyCCR] = CyCHIP_RESET;	/* Reset the chip */
-+	my_udelay(1000L);
-+
-+	if (base_addr[CyGFRCR] == 0x00) {
-+		local_irq_restore(flags);
-+		/* printk(" chip is not responding (GFRCR stayed 0)\n"); */
 +		return;
 +	}
  
- 	/*
- 	 * System clock is 20Mhz, divided by 2048, so divide by 10 for a 1.0ms
-@@ -2085,9 +2055,9 @@ mvme167_serial_console_setup(int cflag)
- 
- 	base_addr[CyTPR] = 10;
- 
--	base_addr[CyPILR1] = 0x01;    /* Interrupt level for modem change */
--	base_addr[CyPILR2] = 0x02;    /* Interrupt level for tx ints */
--	base_addr[CyPILR3] = 0x03;    /* Interrupt level for rx ints */
-+	base_addr[CyPILR1] = 0x01;	/* Interrupt level for modem change */
-+	base_addr[CyPILR2] = 0x02;	/* Interrupt level for tx ints */
-+	base_addr[CyPILR3] = 0x03;	/* Interrupt level for rx ints */
- 
- 	/*
- 	 * Attempt to set up all channels to something reasonable, and
-@@ -2095,11 +2065,11 @@ mvme167_serial_console_setup(int cflag)
- 	 * the ammount of fiddling we have to do in normal running.
- 	 */
- 
--	for (ch = 3; ch >= 0 ; ch--) {
--		base_addr[CyCAR] = (u_char)ch;
-+	for (ch = 3; ch >= 0; ch--) {
-+		base_addr[CyCAR] = (u_char) ch;
- 		base_addr[CyIER] = 0;
- 		base_addr[CyCMR] = CyASYNC;
--		base_addr[CyLICR] = (u_char)ch << 2;
-+		base_addr[CyLICR] = (u_char) ch << 2;
- 		base_addr[CyLIVR] = 0x5c;
- 		base_addr[CyTCOR] = baud_co[spd];
- 		base_addr[CyTBPR] = baud_bpr[spd];
-@@ -2118,29 +2088,30 @@ mvme167_serial_console_setup(int cflag)
- 		base_addr[CyCOR7] = 0;
- 		base_addr[CyRTPRL] = 2;
- 		base_addr[CyRTPRH] = 0;
--	        base_addr[CyMSVR1] = 0;
--	        base_addr[CyMSVR2] = 0;
--		write_cy_cmd(base_addr,CyINIT_CHAN|CyDIS_RCVR|CyDIS_XMTR);
-+		base_addr[CyMSVR1] = 0;
-+		base_addr[CyMSVR2] = 0;
-+		write_cy_cmd(base_addr, CyINIT_CHAN | CyDIS_RCVR | CyDIS_XMTR);
- 	}
- 
- 	/*
- 	 * Now do specials for channel zero....
- 	 */
- 
--        base_addr[CyMSVR1] = CyRTS;
--        base_addr[CyMSVR2] = CyDTR;
-+	base_addr[CyMSVR1] = CyRTS;
-+	base_addr[CyMSVR2] = CyDTR;
- 	base_addr[CyIER] = CyRxData;
--	write_cy_cmd(base_addr,CyENB_RCVR|CyENB_XMTR);
-+	write_cy_cmd(base_addr, CyENB_RCVR | CyENB_XMTR);
- 
- 	local_irq_restore(flags);
- 
- 	my_udelay(20000L);	/* Let it all settle down */
- 
--        printk("CD2401 initialised,  chip is rev 0x%02x\n", base_addr[CyGFRCR]);
-+	printk("CD2401 initialised,  chip is rev 0x%02x\n", base_addr[CyGFRCR]);
- 	if (badspeed)
--        	printk("  WARNING:  Failed to identify line speed, rcor=%02x,rbpr=%02x\n",
--					rcor >> 5, rbpr);
--} /* serial_console_init */
-+		printk
-+		    ("  WARNING:  Failed to identify line speed, rcor=%02x,rbpr=%02x\n",
-+		     rcor >> 5, rbpr);
-+}				/* serial_console_init */
- 
- static const struct tty_operations cy_ops = {
- 	.open = cy_open,
-@@ -2161,6 +2132,7 @@ static const struct tty_operations cy_op
- 	.tiocmget = cy_tiocmget,
- 	.tiocmset = cy_tiocmset,
- };
++	/* received block; submit DLE: */
++	put_char(pInfo, DLE);
++	flush(pInfo);
++	del_timer_sync(&pInfo->tmr);
++	TRACE_PS(" rx success: got %d chars", length);
 +
- /* The serial driver boot-time initialization code!
-     Hardware I/O ports are mapped to character special devices on a
-     first found, first allocated manner.  That is, this code searches
-@@ -2177,214 +2149,214 @@ static const struct tty_operations cy_op
-     If there are more cards with more ports than have been statically
-     allocated above, a warning is printed and the extra ports are ignored.
-  */
--static int __init
--serial167_init(void)
-+static int __init serial167_init(void)
++	/* prepare struct r3964_block_header: */
++	pBlock = kmalloc(length + sizeof(struct r3964_block_header),
++			GFP_KERNEL);
++	TRACE_M("on_receive_block - kmalloc %p", pBlock);
++
++	if (pBlock == NULL)
++		return;
++
++	pBlock->length = length;
++	pBlock->data = ((unsigned char *)pBlock) +
++			sizeof(struct r3964_block_header);
++	pBlock->locks = 0;
++	pBlock->next = NULL;
++	pBlock->owner = NULL;
++
++	memcpy(pBlock->data, pInfo->rx_buf, length);
++
++	/* queue block into rx_queue: */
++	add_rx_queue(pInfo, pBlock);
++
++	/* notify attached client processes: */
++	for (pClient = pInfo->firstClient; pClient; pClient = pClient->next) {
++		if (pClient->sig_flags & R3964_SIG_DATA) {
++			add_msg(pClient, R3964_MSG_DATA, length, R3964_OK,
++				pBlock);
++		}
++	}
++	wake_up_interruptible(&pInfo->read_wait);
++
++	pInfo->state = R3964_IDLE;
++
++	trigger_transmit(pInfo);
++}
+ 
+ static void receive_char(struct r3964_info *pInfo, const unsigned char c)
  {
--  struct cyclades_port *info;
--  int ret = 0;
--  int good_ports = 0;
--  int port_num = 0;
--  int index;
--  int DefSpeed;
-+	struct cyclades_port *info;
-+	int ret = 0;
-+	int good_ports = 0;
-+	int port_num = 0;
-+	int index;
-+	int DefSpeed;
- #ifdef notyet
--  struct sigaction sa;
-+	struct sigaction sa;
- #endif
- 
--    if (!(mvme16x_config &MVME16x_CONFIG_GOT_CD2401))
--	return 0;
-+	if (!(mvme16x_config & MVME16x_CONFIG_GOT_CD2401))
-+		return 0;
- 
--    cy_serial_driver = alloc_tty_driver(NR_PORTS);
--    if (!cy_serial_driver)
--	return -ENOMEM;
-+	cy_serial_driver = alloc_tty_driver(NR_PORTS);
-+	if (!cy_serial_driver)
-+		return -ENOMEM;
- 
- #if 0
--scrn[1] = '\0';
-+	scrn[1] = '\0';
- #endif
- 
--    show_version();
-+	show_version();
- 
--    /* Has "console=0,9600n8" been used in bootinfo to change speed? */
--    if (serial_console_cflag)
--	DefSpeed = serial_console_cflag & 0017;
--    else {
--	DefSpeed = initial_console_speed;
--	serial_console_info = &cy_port[0];
--	serial_console_cflag = DefSpeed | CS8;
-+	/* Has "console=0,9600n8" been used in bootinfo to change speed? */
-+	if (serial_console_cflag)
-+		DefSpeed = serial_console_cflag & 0017;
-+	else {
-+		DefSpeed = initial_console_speed;
-+		serial_console_info = &cy_port[0];
-+		serial_console_cflag = DefSpeed | CS8;
- #if 0
--	serial_console = 64; /*callout_driver.minor_start*/
-+		serial_console = 64;	/*callout_driver.minor_start */
- #endif
--    }
-+	}
-+
-+	/* Initialize the tty_driver structure */
- 
--    /* Initialize the tty_driver structure */
--    
--    cy_serial_driver->owner = THIS_MODULE;
--    cy_serial_driver->name = "ttyS";
--    cy_serial_driver->major = TTY_MAJOR;
--    cy_serial_driver->minor_start = 64;
--    cy_serial_driver->type = TTY_DRIVER_TYPE_SERIAL;
--    cy_serial_driver->subtype = SERIAL_TYPE_NORMAL;
--    cy_serial_driver->init_termios = tty_std_termios;
--    cy_serial_driver->init_termios.c_cflag =
-+	cy_serial_driver->owner = THIS_MODULE;
-+	cy_serial_driver->name = "ttyS";
-+	cy_serial_driver->major = TTY_MAJOR;
-+	cy_serial_driver->minor_start = 64;
-+	cy_serial_driver->type = TTY_DRIVER_TYPE_SERIAL;
-+	cy_serial_driver->subtype = SERIAL_TYPE_NORMAL;
-+	cy_serial_driver->init_termios = tty_std_termios;
-+	cy_serial_driver->init_termios.c_cflag =
- 	    B9600 | CS8 | CREAD | HUPCL | CLOCAL;
--    cy_serial_driver->flags = TTY_DRIVER_REAL_RAW;
--    tty_set_operations(cy_serial_driver, &cy_ops);
-+	cy_serial_driver->flags = TTY_DRIVER_REAL_RAW;
-+	tty_set_operations(cy_serial_driver, &cy_ops);
- 
--    ret = tty_register_driver(cy_serial_driver);
--    if (ret) {
--	    printk(KERN_ERR "Couldn't register MVME166/7 serial driver\n");
--	    put_tty_driver(cy_serial_driver);
--	    return ret;
--    }
+-   switch(pInfo->state)
+-   {
+-      case R3964_TX_REQUEST:
+-         if(c==DLE)
+-         {
+-            TRACE_PS("TX_REQUEST - got DLE");
 -
--    port_num = 0;
--    info = cy_port;
--    for (index = 0; index < 1; index++) {
-+	ret = tty_register_driver(cy_serial_driver);
-+	if (ret) {
-+		printk(KERN_ERR "Couldn't register MVME166/7 serial driver\n");
-+		put_tty_driver(cy_serial_driver);
-+		return ret;
-+	}
+-            pInfo->state = R3964_TRANSMITTING;
+-            pInfo->tx_position = 0;
+-            
+-            transmit_block(pInfo);
+-         }
+-         else if(c==STX)
+-         {
+-            if(pInfo->nRetry==0)
+-            {
+-               TRACE_PE("TX_REQUEST - init conflict");
+-               if(pInfo->priority == R3964_SLAVE)
+-               {
+-                  goto start_receiving;
+-               }
+-            } 
+-            else 
+-            {
+-               TRACE_PE("TX_REQUEST - secondary init conflict!?"
+-                        " Switching to SLAVE mode for next rx.");
+-               goto start_receiving;
+-            }
+-         }
+-         else
+-         {
+-            TRACE_PE("TX_REQUEST - char != DLE: %x", c);
+-            retry_transmit(pInfo);
+-         }
+-         break;
+-      case R3964_TRANSMITTING:
+-         if(c==NAK)
+-         {
+-            TRACE_PE("TRANSMITTING - got NAK");
+-            retry_transmit(pInfo);
+-         }
+-         else
+-         {
+-            TRACE_PE("TRANSMITTING - got invalid char");
+- 
+-            pInfo->state = R3964_WAIT_ZVZ_BEFORE_TX_RETRY;
+-	    mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
+-         }
+-         break;
+-      case R3964_WAIT_FOR_TX_ACK:
+-         if(c==DLE)
+-         {
+-            TRACE_PS("WAIT_FOR_TX_ACK - got DLE");
+-            remove_from_tx_queue(pInfo, R3964_OK);
+-            
+-            pInfo->state = R3964_IDLE;
+-            trigger_transmit(pInfo);
+-         }
+-         else
+-         {
+-            retry_transmit(pInfo);
+-         }
+-         break;
+-      case R3964_WAIT_FOR_RX_REPEAT:
+-         /* FALLTROUGH */
+-      case R3964_IDLE:
+-         if(c==STX)
+-         {
+-            /* Prevent rx_queue from overflow: */
+-            if(pInfo->blocks_in_rx_queue >= R3964_MAX_BLOCKS_IN_RX_QUEUE)
+-            {
+-               TRACE_PE("IDLE - got STX but no space in rx_queue!");
+-               pInfo->state=R3964_WAIT_FOR_RX_BUF;
+-	       mod_timer(&pInfo->tmr, jiffies + R3964_TO_NO_BUF);
+-               break;
+-            }
++	switch (pInfo->state) {
++	case R3964_TX_REQUEST:
++		if (c == DLE) {
++			TRACE_PS("TX_REQUEST - got DLE");
 +
-+	port_num = 0;
-+	info = cy_port;
-+	for (index = 0; index < 1; index++) {
- 
--	good_ports = 4;
-+		good_ports = 4;
- 
--	if(port_num < NR_PORTS){
--	    while( good_ports-- && port_num < NR_PORTS){
-+		if (port_num < NR_PORTS) {
-+			while (good_ports-- && port_num < NR_PORTS) {
- 		/*** initialize port ***/
--		info->magic = CYCLADES_MAGIC;
--		info->type = PORT_CIRRUS;
--		info->card = index;
--		info->line = port_num;
--		info->flags = STD_COM_FLAGS;
--		info->tty = NULL;
--		info->xmit_fifo_size = 12;
--		info->cor1 = CyPARITY_NONE|Cy_8_BITS;
--		info->cor2 = CyETC;
--		info->cor3 = Cy_1_STOP;
--		info->cor4 = 0x08; /* _very_ small receive threshold */
--		info->cor5 = 0;
--		info->cor6 = 0;
--		info->cor7 = 0;
--		info->tbpr = baud_bpr[DefSpeed]; /* Tx BPR */
--		info->tco = baud_co[DefSpeed]; /* Tx CO */
--		info->rbpr = baud_bpr[DefSpeed]; /* Rx BPR */
--		info->rco = baud_co[DefSpeed] >> 5; /* Rx CO */
--		info->close_delay = 0;
--		info->x_char = 0;
--		info->event = 0;
--		info->count = 0;
-+				info->magic = CYCLADES_MAGIC;
-+				info->type = PORT_CIRRUS;
-+				info->card = index;
-+				info->line = port_num;
-+				info->flags = STD_COM_FLAGS;
-+				info->tty = NULL;
-+				info->xmit_fifo_size = 12;
-+				info->cor1 = CyPARITY_NONE | Cy_8_BITS;
-+				info->cor2 = CyETC;
-+				info->cor3 = Cy_1_STOP;
-+				info->cor4 = 0x08;	/* _very_ small receive threshold */
-+				info->cor5 = 0;
-+				info->cor6 = 0;
-+				info->cor7 = 0;
-+				info->tbpr = baud_bpr[DefSpeed];	/* Tx BPR */
-+				info->tco = baud_co[DefSpeed];	/* Tx CO */
-+				info->rbpr = baud_bpr[DefSpeed];	/* Rx BPR */
-+				info->rco = baud_co[DefSpeed] >> 5;	/* Rx CO */
-+				info->close_delay = 0;
-+				info->x_char = 0;
-+				info->event = 0;
-+				info->count = 0;
- #ifdef SERIAL_DEBUG_COUNT
--    printk("cyc: %d: setting count to 0\n", __LINE__);
-+				printk("cyc: %d: setting count to 0\n",
-+				       __LINE__);
- #endif
--		info->blocked_open = 0;
--		info->default_threshold = 0;
--		info->default_timeout = 0;
--		INIT_WORK(&info->tqueue, do_softint);
--		init_waitqueue_head(&info->open_wait);
--		init_waitqueue_head(&info->close_wait);
--		/* info->session */
--		/* info->pgrp */
-+				info->blocked_open = 0;
-+				info->default_threshold = 0;
-+				info->default_timeout = 0;
-+				INIT_WORK(&info->tqueue, do_softint);
-+				init_waitqueue_head(&info->open_wait);
-+				init_waitqueue_head(&info->close_wait);
-+				/* info->session */
-+				/* info->pgrp */
- /*** !!!!!!!! this may expose new bugs !!!!!!!!! *********/
--		info->read_status_mask = CyTIMEOUT| CySPECHAR| CyBREAK
--                                       | CyPARITY| CyFRAME| CyOVERRUN;
--		/* info->timeout */
--
--		printk("ttyS%d ", info->line);
--		port_num++;info++;
--		if(!(port_num & 7)){
--		    printk("\n               ");
--		}
--	    }
--	}
--	printk("\n");
--    }
--    while( port_num < NR_PORTS){
--	info->line = -1;
--	port_num++;info++;
--    }
-+				info->read_status_mask =
-+				    CyTIMEOUT | CySPECHAR | CyBREAK | CyPARITY |
-+				    CyFRAME | CyOVERRUN;
-+				/* info->timeout */
++			pInfo->state = R3964_TRANSMITTING;
++			pInfo->tx_position = 0;
 +
-+				printk("ttyS%d ", info->line);
-+				port_num++;
-+				info++;
-+				if (!(port_num & 7)) {
-+					printk("\n               ");
++			transmit_block(pInfo);
++		} else if (c == STX) {
++			if (pInfo->nRetry == 0) {
++				TRACE_PE("TX_REQUEST - init conflict");
++				if (pInfo->priority == R3964_SLAVE) {
++					goto start_receiving;
 +				}
++			} else {
++				TRACE_PE("TX_REQUEST - secondary init "
++					"conflict!? Switching to SLAVE mode "
++					"for next rx.");
++				goto start_receiving;
++			}
++		} else {
++			TRACE_PE("TX_REQUEST - char != DLE: %x", c);
++			retry_transmit(pInfo);
++		}
++		break;
++	case R3964_TRANSMITTING:
++		if (c == NAK) {
++			TRACE_PE("TRANSMITTING - got NAK");
++			retry_transmit(pInfo);
++		} else {
++			TRACE_PE("TRANSMITTING - got invalid char");
++
++			pInfo->state = R3964_WAIT_ZVZ_BEFORE_TX_RETRY;
++			mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
++		}
++		break;
++	case R3964_WAIT_FOR_TX_ACK:
++		if (c == DLE) {
++			TRACE_PS("WAIT_FOR_TX_ACK - got DLE");
++			remove_from_tx_queue(pInfo, R3964_OK);
++
++			pInfo->state = R3964_IDLE;
++			trigger_transmit(pInfo);
++		} else {
++			retry_transmit(pInfo);
++		}
++		break;
++	case R3964_WAIT_FOR_RX_REPEAT:
++		/* FALLTROUGH */
++	case R3964_IDLE:
++		if (c == STX) {
++			/* Prevent rx_queue from overflow: */
++			if (pInfo->blocks_in_rx_queue >=
++			    R3964_MAX_BLOCKS_IN_RX_QUEUE) {
++				TRACE_PE("IDLE - got STX but no space in "
++						"rx_queue!");
++				pInfo->state = R3964_WAIT_FOR_RX_BUF;
++				mod_timer(&pInfo->tmr,
++					  jiffies + R3964_TO_NO_BUF);
++				break;
++			}
+ start_receiving:
+-            /* Ok, start receiving: */
+-            TRACE_PS("IDLE - got STX");
+-            pInfo->rx_position = 0;
+-            pInfo->last_rx = 0;
+-            pInfo->flags &= ~R3964_ERROR;
+-            pInfo->state=R3964_RECEIVING;
+-	    mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
+-	    pInfo->nRetry = 0;
+-            put_char(pInfo, DLE);
+-            flush(pInfo);
+-            pInfo->bcc = 0;
+-         }
+-         break;
+-      case R3964_RECEIVING:
+-         if(pInfo->rx_position < RX_BUF_SIZE)
+-         {
+-            pInfo->bcc ^= c;
+-            
+-            if(c==DLE)
+-            {
+-               if(pInfo->last_rx==DLE)
+-               {
+-                  pInfo->last_rx = 0;
+-                  goto char_to_buf;
+-               }
+-               pInfo->last_rx = DLE;
+-               break;
+-            } 
+-            else if((c==ETX) && (pInfo->last_rx==DLE))
+-            {
+-               if(pInfo->flags & R3964_BCC)
+-               {
+-                  pInfo->state = R3964_WAIT_FOR_BCC;
+-		  mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
+-               }
+-               else 
+-               {
+-                  on_receive_block(pInfo);
+-               }
+-            }
+-            else
+-            {
+-               pInfo->last_rx = c;
++			/* Ok, start receiving: */
++			TRACE_PS("IDLE - got STX");
++			pInfo->rx_position = 0;
++			pInfo->last_rx = 0;
++			pInfo->flags &= ~R3964_ERROR;
++			pInfo->state = R3964_RECEIVING;
++			mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
++			pInfo->nRetry = 0;
++			put_char(pInfo, DLE);
++			flush(pInfo);
++			pInfo->bcc = 0;
++		}
++		break;
++	case R3964_RECEIVING:
++		if (pInfo->rx_position < RX_BUF_SIZE) {
++			pInfo->bcc ^= c;
++
++			if (c == DLE) {
++				if (pInfo->last_rx == DLE) {
++					pInfo->last_rx = 0;
++					goto char_to_buf;
++				}
++				pInfo->last_rx = DLE;
++				break;
++			} else if ((c == ETX) && (pInfo->last_rx == DLE)) {
++				if (pInfo->flags & R3964_BCC) {
++					pInfo->state = R3964_WAIT_FOR_BCC;
++					mod_timer(&pInfo->tmr,
++						  jiffies + R3964_TO_ZVZ);
++				} else {
++					on_receive_block(pInfo);
++				}
++			} else {
++				pInfo->last_rx = c;
+ char_to_buf:
+-               pInfo->rx_buf[pInfo->rx_position++] = c;
+-	       mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
+-            }
+-         }
+-        /* else: overflow-msg? BUF_SIZE>MTU; should not happen? */ 
+-         break;
+-      case R3964_WAIT_FOR_BCC:
+-         pInfo->last_rx = c;
+-         on_receive_block(pInfo);
+-         break;
+-   }
++				pInfo->rx_buf[pInfo->rx_position++] = c;
++				mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
 +			}
 +		}
-+		printk("\n");
++		/* else: overflow-msg? BUF_SIZE>MTU; should not happen? */
++		break;
++	case R3964_WAIT_FOR_BCC:
++		pInfo->last_rx = c;
++		on_receive_block(pInfo);
++		break;
 +	}
-+	while (port_num < NR_PORTS) {
-+		info->line = -1;
-+		port_num++;
-+		info++;
+ }
+ 
+ static void receive_error(struct r3964_info *pInfo, const char flag)
+ {
+-    switch (flag) 
+-    {
+-    case TTY_NORMAL:
+-        break;
+-    case TTY_BREAK:
+-        TRACE_PE("received break")
+-        pInfo->flags |= R3964_BREAK;
+-        break;
+-    case TTY_PARITY:
+-        TRACE_PE("parity error")
+-        pInfo->flags |= R3964_PARITY;
+-        break;
+-    case TTY_FRAME:
+-        TRACE_PE("frame error")
+-        pInfo->flags |= R3964_FRAME;
+-        break;
+-    case TTY_OVERRUN:
+-        TRACE_PE("frame overrun")
+-        pInfo->flags |= R3964_OVERRUN;
+-        break;
+-    default:
+-        TRACE_PE("receive_error - unknown flag %d", flag);
+-        pInfo->flags |= R3964_UNKNOWN;
+-        break;
+-    }
++	switch (flag) {
++	case TTY_NORMAL:
++		break;
++	case TTY_BREAK:
++		TRACE_PE("received break");
++		pInfo->flags |= R3964_BREAK;
++		break;
++	case TTY_PARITY:
++		TRACE_PE("parity error");
++		pInfo->flags |= R3964_PARITY;
++		break;
++	case TTY_FRAME:
++		TRACE_PE("frame error");
++		pInfo->flags |= R3964_FRAME;
++		break;
++	case TTY_OVERRUN:
++		TRACE_PE("frame overrun");
++		pInfo->flags |= R3964_OVERRUN;
++		break;
++	default:
++		TRACE_PE("receive_error - unknown flag %d", flag);
++		pInfo->flags |= R3964_UNKNOWN;
++		break;
 +	}
- #ifdef CONFIG_REMOTE_DEBUG
--    debug_setup();
-+	debug_setup();
- #endif
--    ret = request_irq(MVME167_IRQ_SER_ERR, cd2401_rxerr_interrupt, 0,
--				"cd2401_errors", cd2401_rxerr_interrupt);
--    if (ret) {
--	    printk(KERN_ERR "Could't get cd2401_errors IRQ");
--	    goto cleanup_serial_driver;
--    }
--
--    ret = request_irq(MVME167_IRQ_SER_MODEM, cd2401_modem_interrupt, 0,
--				"cd2401_modem", cd2401_modem_interrupt);
--    if (ret) {
--	    printk(KERN_ERR "Could't get cd2401_modem IRQ");
--	    goto cleanup_irq_cd2401_errors;
--    }
--
--    ret = request_irq(MVME167_IRQ_SER_TX, cd2401_tx_interrupt, 0,
--				"cd2401_txints", cd2401_tx_interrupt);
--    if (ret) {
--	    printk(KERN_ERR "Could't get cd2401_txints IRQ");
--	    goto cleanup_irq_cd2401_modem;
--    }
--
--    ret = request_irq(MVME167_IRQ_SER_RX, cd2401_rx_interrupt, 0,
--				"cd2401_rxints", cd2401_rx_interrupt);
--    if (ret) {
--	    printk(KERN_ERR "Could't get cd2401_rxints IRQ");
--	    goto cleanup_irq_cd2401_txints;
--    }
--
--    /* Now we have registered the interrupt handlers, allow the interrupts */
--
--    pcc2chip[PccSCCMICR] = 0x15;		/* Serial ints are level 5 */
--    pcc2chip[PccSCCTICR] = 0x15;
--    pcc2chip[PccSCCRICR] = 0x15;
-+	ret = request_irq(MVME167_IRQ_SER_ERR, cd2401_rxerr_interrupt, 0,
-+			  "cd2401_errors", cd2401_rxerr_interrupt);
-+	if (ret) {
-+		printk(KERN_ERR "Could't get cd2401_errors IRQ");
-+		goto cleanup_serial_driver;
-+	}
+ }
+ 
+ static void on_timeout(unsigned long priv)
+ {
+-   struct r3964_info *pInfo = (void *)priv;
++	struct r3964_info *pInfo = (void *)priv;
 +
-+	ret = request_irq(MVME167_IRQ_SER_MODEM, cd2401_modem_interrupt, 0,
-+			  "cd2401_modem", cd2401_modem_interrupt);
-+	if (ret) {
-+		printk(KERN_ERR "Could't get cd2401_modem IRQ");
-+		goto cleanup_irq_cd2401_errors;
++	switch (pInfo->state) {
++	case R3964_TX_REQUEST:
++		TRACE_PE("TX_REQUEST - timeout");
++		retry_transmit(pInfo);
++		break;
++	case R3964_WAIT_ZVZ_BEFORE_TX_RETRY:
++		put_char(pInfo, NAK);
++		flush(pInfo);
++		retry_transmit(pInfo);
++		break;
++	case R3964_WAIT_FOR_TX_ACK:
++		TRACE_PE("WAIT_FOR_TX_ACK - timeout");
++		retry_transmit(pInfo);
++		break;
++	case R3964_WAIT_FOR_RX_BUF:
++		TRACE_PE("WAIT_FOR_RX_BUF - timeout");
++		put_char(pInfo, NAK);
++		flush(pInfo);
++		pInfo->state = R3964_IDLE;
++		break;
++	case R3964_RECEIVING:
++		TRACE_PE("RECEIVING - timeout after %d chars",
++			 pInfo->rx_position);
++		put_char(pInfo, NAK);
++		flush(pInfo);
++		pInfo->state = R3964_IDLE;
++		break;
++	case R3964_WAIT_FOR_RX_REPEAT:
++		TRACE_PE("WAIT_FOR_RX_REPEAT - timeout");
++		pInfo->state = R3964_IDLE;
++		break;
++	case R3964_WAIT_FOR_BCC:
++		TRACE_PE("WAIT_FOR_BCC - timeout");
++		put_char(pInfo, NAK);
++		flush(pInfo);
++		pInfo->state = R3964_IDLE;
++		break;
 +	}
++}
 +
-+	ret = request_irq(MVME167_IRQ_SER_TX, cd2401_tx_interrupt, 0,
-+			  "cd2401_txints", cd2401_tx_interrupt);
-+	if (ret) {
-+		printk(KERN_ERR "Could't get cd2401_txints IRQ");
-+		goto cleanup_irq_cd2401_modem;
++static struct r3964_client_info *findClient(struct r3964_info *pInfo,
++		struct pid *pid)
++{
++	struct r3964_client_info *pClient;
+ 
+-   switch(pInfo->state)
+-   {
+-      case R3964_TX_REQUEST:
+-         TRACE_PE("TX_REQUEST - timeout");
+-         retry_transmit(pInfo);
+-         break;
+-      case R3964_WAIT_ZVZ_BEFORE_TX_RETRY:
+-         put_char(pInfo, NAK);
+-         flush(pInfo);
+-         retry_transmit(pInfo);
+-         break;
+-      case R3964_WAIT_FOR_TX_ACK:
+-         TRACE_PE("WAIT_FOR_TX_ACK - timeout");
+-         retry_transmit(pInfo);
+-         break;
+-      case R3964_WAIT_FOR_RX_BUF:
+-         TRACE_PE("WAIT_FOR_RX_BUF - timeout");
+-         put_char(pInfo, NAK);
+-         flush(pInfo);
+-         pInfo->state=R3964_IDLE;
+-         break;
+-      case R3964_RECEIVING:
+-         TRACE_PE("RECEIVING - timeout after %d chars", 
+-                  pInfo->rx_position);
+-         put_char(pInfo, NAK);
+-         flush(pInfo);
+-         pInfo->state=R3964_IDLE;
+-         break;
+-      case R3964_WAIT_FOR_RX_REPEAT:
+-         TRACE_PE("WAIT_FOR_RX_REPEAT - timeout");
+-         pInfo->state=R3964_IDLE;
+-         break;
+-      case R3964_WAIT_FOR_BCC:
+-         TRACE_PE("WAIT_FOR_BCC - timeout");
+-         put_char(pInfo, NAK);
+-         flush(pInfo);
+-         pInfo->state=R3964_IDLE;
+-         break;
+-   }
+-}
+-
+-static struct r3964_client_info *findClient(
+-  struct r3964_info *pInfo, struct pid *pid)
+-{
+-   struct r3964_client_info *pClient;
+-   
+-   for(pClient=pInfo->firstClient; pClient; pClient=pClient->next)
+-   {
+-      if(pClient->pid == pid)
+-      {
+-         return pClient;
+-      }
+-   }
+-   return NULL;
++	for (pClient = pInfo->firstClient; pClient; pClient = pClient->next) {
++		if (pClient->pid == pid) {
++			return pClient;
++		}
 +	}
++	return NULL;
+ }
+ 
+ static int enable_signals(struct r3964_info *pInfo, struct pid *pid, int arg)
+ {
+-   struct r3964_client_info *pClient;
+-   struct r3964_client_info **ppClient;
+-   struct r3964_message *pMsg;
+-   
+-   if((arg & R3964_SIG_ALL)==0)
+-   {
+-      /* Remove client from client list */
+-      for(ppClient=&pInfo->firstClient; *ppClient; ppClient=&(*ppClient)->next)
+-      {
+-         pClient = *ppClient;
+-         
+-         if(pClient->pid == pid)
+-         {
+-            TRACE_PS("removing client %d from client list", pid_nr(pid));
+-            *ppClient = pClient->next;
+-            while(pClient->msg_count)
+-            {
+-               pMsg=remove_msg(pInfo, pClient);
+-               if(pMsg)
+-               {
+-                  kfree(pMsg);
+-                  TRACE_M("enable_signals - msg kfree %p",pMsg);
+-               }
+-            }
+-	    put_pid(pClient->pid);
+-            kfree(pClient);
+-            TRACE_M("enable_signals - kfree %p",pClient);
+-            return 0;
+-         }
+-      }
+-      return -EINVAL;
+-   }
+-   else
+-   {
+-      pClient=findClient(pInfo, pid);
+-      if(pClient)
+-      {
+-         /* update signal options */
+-         pClient->sig_flags=arg;
+-      } 
+-      else 
+-      {
+-         /* add client to client list */
+-         pClient=kmalloc(sizeof(struct r3964_client_info), GFP_KERNEL);
+-         TRACE_M("enable_signals - kmalloc %p",pClient);
+-         if(pClient==NULL)
+-            return -ENOMEM;
+-
+-         TRACE_PS("add client %d to client list", pid_nr(pid));
+-	 spin_lock_init(&pClient->lock);
+-         pClient->sig_flags=arg;
+-         pClient->pid = get_pid(pid);
+-         pClient->next=pInfo->firstClient;
+-         pClient->first_msg = NULL;
+-         pClient->last_msg = NULL;
+-         pClient->next_block_to_read = NULL;
+-         pClient->msg_count = 0;
+-         pInfo->firstClient=pClient;
+-      }
+-   }
+-
+-   return 0;
+-}
+-
+-static int read_telegram(struct r3964_info *pInfo, struct pid *pid, unsigned char __user *buf)
+-{
+-    struct r3964_client_info *pClient;
+-    struct r3964_block_header *block;
+-
+-    if(!buf)
+-    {
+-        return -EINVAL;
+-    }
+-
+-    pClient=findClient(pInfo,pid);
+-    if(pClient==NULL)
+-    {
+-       return -EINVAL;
+-    }
+-    
+-    block=pClient->next_block_to_read;
+-    if(!block)
+-    {
+-       return 0;
+-    }
+-    else
+-    {
+-      if (copy_to_user (buf, block->data, block->length))
+-	return -EFAULT;
+-
+-       remove_client_block(pInfo, pClient);
+-       return block->length;
+-    }
++	struct r3964_client_info *pClient;
++	struct r3964_client_info **ppClient;
++	struct r3964_message *pMsg;
 +
-+	ret = request_irq(MVME167_IRQ_SER_RX, cd2401_rx_interrupt, 0,
-+			  "cd2401_rxints", cd2401_rx_interrupt);
-+	if (ret) {
-+		printk(KERN_ERR "Could't get cd2401_rxints IRQ");
-+		goto cleanup_irq_cd2401_txints;
++	if ((arg & R3964_SIG_ALL) == 0) {
++		/* Remove client from client list */
++		for (ppClient = &pInfo->firstClient; *ppClient;
++		     ppClient = &(*ppClient)->next) {
++			pClient = *ppClient;
++
++			if (pClient->pid == pid) {
++				TRACE_PS("removing client %d from client list",
++					 pid_nr(pid));
++				*ppClient = pClient->next;
++				while (pClient->msg_count) {
++					pMsg = remove_msg(pInfo, pClient);
++					if (pMsg) {
++						kfree(pMsg);
++						TRACE_M("enable_signals - msg "
++							"kfree %p", pMsg);
++					}
++				}
++				put_pid(pClient->pid);
++				kfree(pClient);
++				TRACE_M("enable_signals - kfree %p", pClient);
++				return 0;
++			}
++		}
++		return -EINVAL;
++	} else {
++		pClient = findClient(pInfo, pid);
++		if (pClient) {
++			/* update signal options */
++			pClient->sig_flags = arg;
++		} else {
++			/* add client to client list */
++			pClient = kmalloc(sizeof(struct r3964_client_info),
++					GFP_KERNEL);
++			TRACE_M("enable_signals - kmalloc %p", pClient);
++			if (pClient == NULL)
++				return -ENOMEM;
++
++			TRACE_PS("add client %d to client list", pid_nr(pid));
++			spin_lock_init(&pClient->lock);
++			pClient->sig_flags = arg;
++			pClient->pid = get_pid(pid);
++			pClient->next = pInfo->firstClient;
++			pClient->first_msg = NULL;
++			pClient->last_msg = NULL;
++			pClient->next_block_to_read = NULL;
++			pClient->msg_count = 0;
++			pInfo->firstClient = pClient;
++		}
 +	}
  
--    pcc2chip[PccIMLR] = 3;			/* Allow PCC2 ints above 3!? */
-+	/* Now we have registered the interrupt handlers, allow the interrupts */
- 
--    return 0;
-+	pcc2chip[PccSCCMICR] = 0x15;	/* Serial ints are level 5 */
-+	pcc2chip[PccSCCTICR] = 0x15;
-+	pcc2chip[PccSCCRICR] = 0x15;
+-    return -EINVAL;
++	return 0;
++}
 +
-+	pcc2chip[PccIMLR] = 3;	/* Allow PCC2 ints above 3!? */
++static int read_telegram(struct r3964_info *pInfo, struct pid *pid,
++			 unsigned char __user * buf)
++{
++	struct r3964_client_info *pClient;
++	struct r3964_block_header *block;
++
++	if (!buf) {
++		return -EINVAL;
++	}
++
++	pClient = findClient(pInfo, pid);
++	if (pClient == NULL) {
++		return -EINVAL;
++	}
++
++	block = pClient->next_block_to_read;
++	if (!block) {
++		return 0;
++	} else {
++		if (copy_to_user(buf, block->data, block->length))
++			return -EFAULT;
++
++		remove_client_block(pInfo, pClient);
++		return block->length;
++	}
++
++	return -EINVAL;
+ }
+ 
+ static void add_msg(struct r3964_client_info *pClient, int msg_id, int arg,
+-             int error_code, struct r3964_block_header *pBlock)
++		int error_code, struct r3964_block_header *pBlock)
+ {
+-   struct r3964_message *pMsg;
+-   unsigned long flags;
+-   
+-   if(pClient->msg_count<R3964_MAX_MSG_COUNT-1)
+-   {
++	struct r3964_message *pMsg;
++	unsigned long flags;
++
++	if (pClient->msg_count < R3964_MAX_MSG_COUNT - 1) {
+ queue_the_message:
+ 
+-      pMsg = kmalloc(sizeof(struct r3964_message),
+-		     error_code?GFP_ATOMIC:GFP_KERNEL);
+-      TRACE_M("add_msg - kmalloc %p",pMsg);
+-      if(pMsg==NULL) {
+-         return;
+-      }
+-
+-      spin_lock_irqsave(&pClient->lock, flags);
+-
+-      pMsg->msg_id = msg_id;
+-      pMsg->arg    = arg;
+-      pMsg->error_code = error_code;
+-      pMsg->block  = pBlock;
+-      pMsg->next   = NULL;
+-      
+-      if(pClient->last_msg==NULL)
+-      {
+-         pClient->first_msg=pClient->last_msg=pMsg;
+-      }
+-      else
+-      {
+-         pClient->last_msg->next = pMsg;
+-         pClient->last_msg=pMsg;
+-      }
+-
+-      pClient->msg_count++;
+-
+-      if(pBlock!=NULL)
+-      {
+-         pBlock->locks++;
+-      }
+-      spin_unlock_irqrestore(&pClient->lock, flags);
+-   }
+-   else
+-   {
+-      if((pClient->last_msg->msg_id == R3964_MSG_ACK)
+-		 && (pClient->last_msg->error_code==R3964_OVERFLOW))
+-      {
+-         pClient->last_msg->arg++;
+-		 TRACE_PE("add_msg - inc prev OVERFLOW-msg");
+-      }
+-      else
+-      {
+-         msg_id = R3964_MSG_ACK;
+-         arg = 0;
+-		 error_code = R3964_OVERFLOW;
+-         pBlock = NULL;
+-		 TRACE_PE("add_msg - queue OVERFLOW-msg");
+-         goto queue_the_message;
+-      }
+-   }
+-   /* Send SIGIO signal to client process: */
+-   if(pClient->sig_flags & R3964_USE_SIGIO)
+-   {
+-      kill_pid(pClient->pid, SIGIO, 1);
+-   }
++		pMsg = kmalloc(sizeof(struct r3964_message),
++				error_code ? GFP_ATOMIC : GFP_KERNEL);
++		TRACE_M("add_msg - kmalloc %p", pMsg);
++		if (pMsg == NULL) {
++			return;
++		}
++
++		spin_lock_irqsave(&pClient->lock, flags);
++
++		pMsg->msg_id = msg_id;
++		pMsg->arg = arg;
++		pMsg->error_code = error_code;
++		pMsg->block = pBlock;
++		pMsg->next = NULL;
++
++		if (pClient->last_msg == NULL) {
++			pClient->first_msg = pClient->last_msg = pMsg;
++		} else {
++			pClient->last_msg->next = pMsg;
++			pClient->last_msg = pMsg;
++		}
++
++		pClient->msg_count++;
++
++		if (pBlock != NULL) {
++			pBlock->locks++;
++		}
++		spin_unlock_irqrestore(&pClient->lock, flags);
++	} else {
++		if ((pClient->last_msg->msg_id == R3964_MSG_ACK)
++		    && (pClient->last_msg->error_code == R3964_OVERFLOW)) {
++			pClient->last_msg->arg++;
++			TRACE_PE("add_msg - inc prev OVERFLOW-msg");
++		} else {
++			msg_id = R3964_MSG_ACK;
++			arg = 0;
++			error_code = R3964_OVERFLOW;
++			pBlock = NULL;
++			TRACE_PE("add_msg - queue OVERFLOW-msg");
++			goto queue_the_message;
++		}
++	}
++	/* Send SIGIO signal to client process: */
++	if (pClient->sig_flags & R3964_USE_SIGIO) {
++		kill_pid(pClient->pid, SIGIO, 1);
++	}
+ }
+ 
+ static struct r3964_message *remove_msg(struct r3964_info *pInfo,
+-                       struct r3964_client_info *pClient)
++					struct r3964_client_info *pClient)
+ {
+-   struct r3964_message *pMsg=NULL;
+-   unsigned long flags;
++	struct r3964_message *pMsg = NULL;
++	unsigned long flags;
+ 
+-   if(pClient->first_msg)
+-   {
+-      spin_lock_irqsave(&pClient->lock, flags);
+-
+-      pMsg = pClient->first_msg;
+-      pClient->first_msg = pMsg->next;
+-      if(pClient->first_msg==NULL)
+-      {
+-         pClient->last_msg = NULL;
+-      }
+-      
+-      pClient->msg_count--;
+-      if(pMsg->block)
+-      {
+-        remove_client_block(pInfo, pClient);
+-        pClient->next_block_to_read = pMsg->block;
+-      }
+-      spin_unlock_irqrestore(&pClient->lock, flags);
+-   }
+-   return pMsg;
+-}
+-
+-static void remove_client_block(struct r3964_info *pInfo, 
+-                struct r3964_client_info *pClient)
+-{
+-    struct r3964_block_header *block;
+-
+-    TRACE_PS("remove_client_block PID %d", pid_nr(pClient->pid));
+-
+-    block=pClient->next_block_to_read;
+-    if(block)
+-    {
+-        block->locks--;
+-        if(block->locks==0)
+-        {
+-            remove_from_rx_queue(pInfo, block);
+-        }
+-    }
+-    pClient->next_block_to_read = NULL;
++	if (pClient->first_msg) {
++		spin_lock_irqsave(&pClient->lock, flags);
++
++		pMsg = pClient->first_msg;
++		pClient->first_msg = pMsg->next;
++		if (pClient->first_msg == NULL) {
++			pClient->last_msg = NULL;
++		}
++
++		pClient->msg_count--;
++		if (pMsg->block) {
++			remove_client_block(pInfo, pClient);
++			pClient->next_block_to_read = pMsg->block;
++		}
++		spin_unlock_irqrestore(&pClient->lock, flags);
++	}
++	return pMsg;
+ }
+ 
++static void remove_client_block(struct r3964_info *pInfo,
++				struct r3964_client_info *pClient)
++{
++	struct r3964_block_header *block;
++
++	TRACE_PS("remove_client_block PID %d", pid_nr(pClient->pid));
++
++	block = pClient->next_block_to_read;
++	if (block) {
++		block->locks--;
++		if (block->locks == 0) {
++			remove_from_rx_queue(pInfo, block);
++		}
++	}
++	pClient->next_block_to_read = NULL;
++}
+ 
+ /*************************************************************
+  * Line discipline routines
+@@ -1064,342 +951,320 @@ static void remove_client_block(struct r
+ 
+ static int r3964_open(struct tty_struct *tty)
+ {
+-   struct r3964_info *pInfo;
+-   
+-   TRACE_L("open");
+-   TRACE_L("tty=%p, PID=%d, disc_data=%p", 
+-          tty, current->pid, tty->disc_data);
+-   
+-   pInfo=kmalloc(sizeof(struct r3964_info), GFP_KERNEL); 
+-   TRACE_M("r3964_open - info kmalloc %p",pInfo);
+-
+-   if(!pInfo)
+-   {
+-      printk(KERN_ERR "r3964: failed to alloc info structure\n");
+-      return -ENOMEM;
+-   }
+-
+-   pInfo->rx_buf = kmalloc(RX_BUF_SIZE, GFP_KERNEL);
+-   TRACE_M("r3964_open - rx_buf kmalloc %p",pInfo->rx_buf);
+-
+-   if(!pInfo->rx_buf)
+-   {
+-      printk(KERN_ERR "r3964: failed to alloc receive buffer\n");
+-      kfree(pInfo);
+-      TRACE_M("r3964_open - info kfree %p",pInfo);
+-      return -ENOMEM;
+-   }
+-   
+-   pInfo->tx_buf = kmalloc(TX_BUF_SIZE, GFP_KERNEL);
+-   TRACE_M("r3964_open - tx_buf kmalloc %p",pInfo->tx_buf);
+-
+-   if(!pInfo->tx_buf)
+-   {
+-      printk(KERN_ERR "r3964: failed to alloc transmit buffer\n");
+-      kfree(pInfo->rx_buf);
+-      TRACE_M("r3964_open - rx_buf kfree %p",pInfo->rx_buf);
+-      kfree(pInfo);
+-      TRACE_M("r3964_open - info kfree %p",pInfo);
+-      return -ENOMEM;
+-   }
+-
+-   spin_lock_init(&pInfo->lock);
+-   pInfo->tty = tty;
+-   init_waitqueue_head (&pInfo->read_wait);
+-   pInfo->priority = R3964_MASTER;
+-   pInfo->rx_first = pInfo->rx_last = NULL;
+-   pInfo->tx_first = pInfo->tx_last = NULL;
+-   pInfo->rx_position = 0;
+-   pInfo->tx_position = 0;
+-   pInfo->last_rx = 0;
+-   pInfo->blocks_in_rx_queue = 0;
+-   pInfo->firstClient=NULL;
+-   pInfo->state=R3964_IDLE;
+-   pInfo->flags = R3964_DEBUG;
+-   pInfo->nRetry = 0;
+-   
+-   tty->disc_data = pInfo;
+-   tty->receive_room = 65536;
+-
+-   init_timer(&pInfo->tmr);
+-   pInfo->tmr.data = (unsigned long)pInfo;
+-   pInfo->tmr.function = on_timeout;
++	struct r3964_info *pInfo;
++
++	TRACE_L("open");
++	TRACE_L("tty=%p, PID=%d, disc_data=%p",
++		tty, current->pid, tty->disc_data);
++
++	pInfo = kmalloc(sizeof(struct r3964_info), GFP_KERNEL);
++	TRACE_M("r3964_open - info kmalloc %p", pInfo);
++
++	if (!pInfo) {
++		printk(KERN_ERR "r3964: failed to alloc info structure\n");
++		return -ENOMEM;
++	}
++
++	pInfo->rx_buf = kmalloc(RX_BUF_SIZE, GFP_KERNEL);
++	TRACE_M("r3964_open - rx_buf kmalloc %p", pInfo->rx_buf);
++
++	if (!pInfo->rx_buf) {
++		printk(KERN_ERR "r3964: failed to alloc receive buffer\n");
++		kfree(pInfo);
++		TRACE_M("r3964_open - info kfree %p", pInfo);
++		return -ENOMEM;
++	}
++
++	pInfo->tx_buf = kmalloc(TX_BUF_SIZE, GFP_KERNEL);
++	TRACE_M("r3964_open - tx_buf kmalloc %p", pInfo->tx_buf);
++
++	if (!pInfo->tx_buf) {
++		printk(KERN_ERR "r3964: failed to alloc transmit buffer\n");
++		kfree(pInfo->rx_buf);
++		TRACE_M("r3964_open - rx_buf kfree %p", pInfo->rx_buf);
++		kfree(pInfo);
++		TRACE_M("r3964_open - info kfree %p", pInfo);
++		return -ENOMEM;
++	}
+ 
+-   return 0;
++	spin_lock_init(&pInfo->lock);
++	pInfo->tty = tty;
++	init_waitqueue_head(&pInfo->read_wait);
++	pInfo->priority = R3964_MASTER;
++	pInfo->rx_first = pInfo->rx_last = NULL;
++	pInfo->tx_first = pInfo->tx_last = NULL;
++	pInfo->rx_position = 0;
++	pInfo->tx_position = 0;
++	pInfo->last_rx = 0;
++	pInfo->blocks_in_rx_queue = 0;
++	pInfo->firstClient = NULL;
++	pInfo->state = R3964_IDLE;
++	pInfo->flags = R3964_DEBUG;
++	pInfo->nRetry = 0;
++
++	tty->disc_data = pInfo;
++	tty->receive_room = 65536;
++
++	init_timer(&pInfo->tmr);
++	pInfo->tmr.data = (unsigned long)pInfo;
++	pInfo->tmr.function = on_timeout;
 +
 +	return 0;
- cleanup_irq_cd2401_txints:
--    free_irq(MVME167_IRQ_SER_TX, cd2401_tx_interrupt);
-+	free_irq(MVME167_IRQ_SER_TX, cd2401_tx_interrupt);
- cleanup_irq_cd2401_modem:
--    free_irq(MVME167_IRQ_SER_MODEM, cd2401_modem_interrupt);
-+	free_irq(MVME167_IRQ_SER_MODEM, cd2401_modem_interrupt);
- cleanup_irq_cd2401_errors:
--    free_irq(MVME167_IRQ_SER_ERR, cd2401_rxerr_interrupt);
-+	free_irq(MVME167_IRQ_SER_ERR, cd2401_rxerr_interrupt);
- cleanup_serial_driver:
--    if (tty_unregister_driver(cy_serial_driver))
--	    printk(KERN_ERR "Couldn't unregister MVME166/7 serial driver\n");
--    put_tty_driver(cy_serial_driver);
--    return ret;
--} /* serial167_init */
-+	if (tty_unregister_driver(cy_serial_driver))
-+		printk(KERN_ERR
-+		       "Couldn't unregister MVME166/7 serial driver\n");
-+	put_tty_driver(cy_serial_driver);
-+	return ret;
-+}				/* serial167_init */
- 
- module_init(serial167_init);
- 
--
- #ifdef CYCLOM_SHOW_STATUS
--static void
--show_status(int line_num)
-+static void show_status(int line_num)
- {
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int channel;
--  struct cyclades_port * info;
--  unsigned long flags;
--
--    info = &cy_port[line_num];
--    channel = info->line;
--    printk("  channel %d\n", channel);/**/
--
--    printk(" cy_port\n");
--    printk("  card line flags = %d %d %x\n",
--                 info->card, info->line, info->flags);
--    printk("  *tty read_status_mask timeout xmit_fifo_size = %lx %x %x %x\n",
--                 (long)info->tty, info->read_status_mask,
--                 info->timeout, info->xmit_fifo_size);
--    printk("  cor1,cor2,cor3,cor4,cor5,cor6,cor7 = %x %x %x %x %x %x %x\n",
--             info->cor1, info->cor2, info->cor3, info->cor4, info->cor5,
--			info->cor6, info->cor7);
--    printk("  tbpr,tco,rbpr,rco = %d %d %d %d\n",
--             info->tbpr, info->tco, info->rbpr, info->rco);
--    printk("  close_delay event count = %d %d %d\n",
--             info->close_delay, info->event, info->count);
--    printk("  x_char blocked_open = %x %x\n",
--             info->x_char, info->blocked_open);
--    printk("  open_wait = %lx %lx %lx\n",
--             (long)info->open_wait);
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int channel;
-+	struct cyclades_port *info;
-+	unsigned long flags;
- 
-+	info = &cy_port[line_num];
-+	channel = info->line;
-+	printk("  channel %d\n", channel);
-+	/**/ printk(" cy_port\n");
-+	printk("  card line flags = %d %d %x\n",
-+	       info->card, info->line, info->flags);
-+	printk
-+	    ("  *tty read_status_mask timeout xmit_fifo_size = %lx %x %x %x\n",
-+	     (long)info->tty, info->read_status_mask, info->timeout,
-+	     info->xmit_fifo_size);
-+	printk("  cor1,cor2,cor3,cor4,cor5,cor6,cor7 = %x %x %x %x %x %x %x\n",
-+	       info->cor1, info->cor2, info->cor3, info->cor4, info->cor5,
-+	       info->cor6, info->cor7);
-+	printk("  tbpr,tco,rbpr,rco = %d %d %d %d\n", info->tbpr, info->tco,
-+	       info->rbpr, info->rco);
-+	printk("  close_delay event count = %d %d %d\n", info->close_delay,
-+	       info->event, info->count);
-+	printk("  x_char blocked_open = %x %x\n", info->x_char,
-+	       info->blocked_open);
-+	printk("  open_wait = %lx %lx %lx\n", (long)info->open_wait);
- 
--    local_irq_save(flags);
-+	local_irq_save(flags);
- 
- /* Global Registers */
- 
-@@ -2398,7 +2370,7 @@ show_status(int line_num)
- 	printk(" CyMIR %x\n", base_addr[CyMIR]);
- 	printk(" CyTPR %x\n", base_addr[CyTPR]);
- 
--	base_addr[CyCAR] = (u_char)channel;
-+	base_addr[CyCAR] = (u_char) channel;
- 
- /* Virtual Registers */
- 
-@@ -2442,11 +2414,10 @@ show_status(int line_num)
- 	printk(" CyTBPR %x\n", base_addr[CyTBPR]);
- 	printk(" CyTCOR %x\n", base_addr[CyTCOR]);
- 
--    local_irq_restore(flags);
--} /* show_status */
-+	local_irq_restore(flags);
-+}				/* show_status */
- #endif
- 
--
- #if 0
- /* Dummy routine in mvme16x/config.c for now */
- 
-@@ -2459,61 +2430,67 @@ void console_setup(char *str, int *ints)
- 	int cflag = 0;
- 
- 	/* Sanity check. */
--	if (ints[0] > 3 || ints[1] > 3) return;
-+	if (ints[0] > 3 || ints[1] > 3)
-+		return;
- 
- 	/* Get baud, bits and parity */
- 	baud = 2400;
- 	bits = 8;
- 	parity = 'n';
--	if (ints[2]) baud = ints[2];
-+	if (ints[2])
-+		baud = ints[2];
- 	if ((s = strchr(str, ','))) {
- 		do {
- 			s++;
--		} while(*s >= '0' && *s <= '9');
--		if (*s) parity = *s++;
--		if (*s) bits   = *s - '0';
-+		} while (*s >= '0' && *s <= '9');
-+		if (*s)
-+			parity = *s++;
-+		if (*s)
-+			bits = *s - '0';
- 	}
- 
- 	/* Now construct a cflag setting. */
--	switch(baud) {
--		case 1200:
--			cflag |= B1200;
--			break;
--		case 9600:
--			cflag |= B9600;
--			break;
--		case 19200:
--			cflag |= B19200;
--			break;
--		case 38400:
--			cflag |= B38400;
--			break;
--		case 2400:
--		default:
--			cflag |= B2400;
--			break;
-+	switch (baud) {
-+	case 1200:
-+		cflag |= B1200;
-+		break;
-+	case 9600:
-+		cflag |= B9600;
-+		break;
-+	case 19200:
-+		cflag |= B19200;
-+		break;
-+	case 38400:
-+		cflag |= B38400;
-+		break;
-+	case 2400:
-+	default:
-+		cflag |= B2400;
-+		break;
- 	}
--	switch(bits) {
--		case 7:
--			cflag |= CS7;
--			break;
--		default:
--		case 8:
--			cflag |= CS8;
--			break;
-+	switch (bits) {
-+	case 7:
-+		cflag |= CS7;
-+		break;
-+	default:
-+	case 8:
-+		cflag |= CS8;
-+		break;
- 	}
--	switch(parity) {
--		case 'o': case 'O':
--			cflag |= PARODD;
--			break;
--		case 'e': case 'E':
--			cflag |= PARENB;
--			break;
-+	switch (parity) {
-+	case 'o':
-+	case 'O':
-+		cflag |= PARODD;
-+		break;
-+	case 'e':
-+	case 'E':
-+		cflag |= PARENB;
-+		break;
- 	}
- 
- 	serial_console_info = &cy_port[ints[1]];
- 	serial_console_cflag = cflag;
--	serial_console = ints[1] + 64; /*callout_driver.minor_start*/
-+	serial_console = ints[1] + 64;	/*callout_driver.minor_start */
  }
- #endif
  
-@@ -2532,9 +2509,10 @@ void console_setup(char *str, int *ints)
-  * The console must be locked when we get here.
+ static void r3964_close(struct tty_struct *tty)
+ {
+-   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
+-   struct r3964_client_info *pClient, *pNext;
+-   struct r3964_message *pMsg;
+-   struct r3964_block_header *pHeader, *pNextHeader;
+-   unsigned long flags;
+-
+-   TRACE_L("close");
+-
+-    /*
+-     * Make sure that our task queue isn't activated.  If it
+-     * is, take it out of the linked list.
+-     */
+-    del_timer_sync(&pInfo->tmr);
+-
+-   /* Remove client-structs and message queues: */
+-    pClient=pInfo->firstClient;
+-    while(pClient)
+-    {
+-       pNext=pClient->next;
+-       while(pClient->msg_count)
+-       {
+-          pMsg=remove_msg(pInfo, pClient);
+-          if(pMsg)
+-          {
+-             kfree(pMsg);
+-             TRACE_M("r3964_close - msg kfree %p",pMsg);
+-          }
+-       }
+-       put_pid(pClient->pid);
+-       kfree(pClient);
+-       TRACE_M("r3964_close - client kfree %p",pClient);
+-       pClient=pNext;
+-    }
+-    /* Remove jobs from tx_queue: */
+-        spin_lock_irqsave(&pInfo->lock, flags);
+-	pHeader=pInfo->tx_first;
+-	pInfo->tx_first=pInfo->tx_last=NULL;
++	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
++	struct r3964_client_info *pClient, *pNext;
++	struct r3964_message *pMsg;
++	struct r3964_block_header *pHeader, *pNextHeader;
++	unsigned long flags;
++
++	TRACE_L("close");
++
++	/*
++	 * Make sure that our task queue isn't activated.  If it
++	 * is, take it out of the linked list.
++	 */
++	del_timer_sync(&pInfo->tmr);
++
++	/* Remove client-structs and message queues: */
++	pClient = pInfo->firstClient;
++	while (pClient) {
++		pNext = pClient->next;
++		while (pClient->msg_count) {
++			pMsg = remove_msg(pInfo, pClient);
++			if (pMsg) {
++				kfree(pMsg);
++				TRACE_M("r3964_close - msg kfree %p", pMsg);
++			}
++		}
++		put_pid(pClient->pid);
++		kfree(pClient);
++		TRACE_M("r3964_close - client kfree %p", pClient);
++		pClient = pNext;
++	}
++	/* Remove jobs from tx_queue: */
++	spin_lock_irqsave(&pInfo->lock, flags);
++	pHeader = pInfo->tx_first;
++	pInfo->tx_first = pInfo->tx_last = NULL;
+ 	spin_unlock_irqrestore(&pInfo->lock, flags);
+-	
+-    while(pHeader)
+-	{
+-	   pNextHeader=pHeader->next;
+-	   kfree(pHeader);
+-	   pHeader=pNextHeader;
+-	}
+-
+-    /* Free buffers: */
+-    wake_up_interruptible(&pInfo->read_wait);
+-    kfree(pInfo->rx_buf);
+-    TRACE_M("r3964_close - rx_buf kfree %p",pInfo->rx_buf);
+-    kfree(pInfo->tx_buf);
+-    TRACE_M("r3964_close - tx_buf kfree %p",pInfo->tx_buf);
+-    kfree(pInfo);
+-    TRACE_M("r3964_close - info kfree %p",pInfo);
++
++	while (pHeader) {
++		pNextHeader = pHeader->next;
++		kfree(pHeader);
++		pHeader = pNextHeader;
++	}
++
++	/* Free buffers: */
++	wake_up_interruptible(&pInfo->read_wait);
++	kfree(pInfo->rx_buf);
++	TRACE_M("r3964_close - rx_buf kfree %p", pInfo->rx_buf);
++	kfree(pInfo->tx_buf);
++	TRACE_M("r3964_close - tx_buf kfree %p", pInfo->tx_buf);
++	kfree(pInfo);
++	TRACE_M("r3964_close - info kfree %p", pInfo);
+ }
+ 
+ static ssize_t r3964_read(struct tty_struct *tty, struct file *file,
+-			  unsigned char __user *buf, size_t nr)
++			  unsigned char __user * buf, size_t nr)
+ {
+-   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
+-   struct r3964_client_info *pClient;
+-   struct r3964_message *pMsg;
+-   struct r3964_client_message theMsg;
+-   DECLARE_WAITQUEUE (wait, current);
+-   
+-   int count;
+-   
+-   TRACE_L("read()");
+- 
+-   pClient=findClient(pInfo, task_pid(current));
+-   if(pClient)
+-   {
+-      pMsg = remove_msg(pInfo, pClient);
+-      if(pMsg==NULL)
+-      {
+-		 /* no messages available. */
+-         if (file->f_flags & O_NONBLOCK)
+-		 {
+-            return -EAGAIN;
+-		 }
+-         /* block until there is a message: */
+-         add_wait_queue(&pInfo->read_wait, &wait);
++	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
++	struct r3964_client_info *pClient;
++	struct r3964_message *pMsg;
++	struct r3964_client_message theMsg;
++	DECLARE_WAITQUEUE(wait, current);
++
++	int count;
++
++	TRACE_L("read()");
++
++	pClient = findClient(pInfo, task_pid(current));
++	if (pClient) {
++		pMsg = remove_msg(pInfo, pClient);
++		if (pMsg == NULL) {
++			/* no messages available. */
++			if (file->f_flags & O_NONBLOCK) {
++				return -EAGAIN;
++			}
++			/* block until there is a message: */
++			add_wait_queue(&pInfo->read_wait, &wait);
+ repeat:
+-         current->state = TASK_INTERRUPTIBLE;
+-         pMsg = remove_msg(pInfo, pClient);
+-	 if (!pMsg && !signal_pending(current))
+-		 {
+-            schedule();
+-            goto repeat;
+-         }
+-         current->state = TASK_RUNNING;
+-         remove_wait_queue(&pInfo->read_wait, &wait);
+-      }
+-      
+-      /* If we still haven't got a message, we must have been signalled */
+-
+-      if (!pMsg) return -EINTR;
+-
+-      /* deliver msg to client process: */
+-      theMsg.msg_id = pMsg->msg_id;
+-      theMsg.arg    = pMsg->arg;
+-      theMsg.error_code = pMsg->error_code;
+-      count = sizeof(struct r3964_client_message);
+-
+-      kfree(pMsg);
+-      TRACE_M("r3964_read - msg kfree %p",pMsg);
+-
+-      if (copy_to_user(buf,&theMsg, count))
+-	return -EFAULT;
+-
+-      TRACE_PS("read - return %d", count);
+-      return count;
+-   }
+-   return -EPERM;
++			current->state = TASK_INTERRUPTIBLE;
++			pMsg = remove_msg(pInfo, pClient);
++			if (!pMsg && !signal_pending(current)) {
++				schedule();
++				goto repeat;
++			}
++			current->state = TASK_RUNNING;
++			remove_wait_queue(&pInfo->read_wait, &wait);
++		}
++
++		/* If we still haven't got a message, we must have been signalled */
++
++		if (!pMsg)
++			return -EINTR;
++
++		/* deliver msg to client process: */
++		theMsg.msg_id = pMsg->msg_id;
++		theMsg.arg = pMsg->arg;
++		theMsg.error_code = pMsg->error_code;
++		count = sizeof(struct r3964_client_message);
++
++		kfree(pMsg);
++		TRACE_M("r3964_read - msg kfree %p", pMsg);
++
++		if (copy_to_user(buf, &theMsg, count))
++			return -EFAULT;
++
++		TRACE_PS("read - return %d", count);
++		return count;
++	}
++	return -EPERM;
+ }
+ 
+-static ssize_t r3964_write(struct tty_struct * tty, struct file * file,
++static ssize_t r3964_write(struct tty_struct *tty, struct file *file,
+ 			   const unsigned char *data, size_t count)
+ {
+-   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
+-   struct r3964_block_header *pHeader;
+-   struct r3964_client_info *pClient;
+-   unsigned char *new_data;
+-   
+-   TRACE_L("write request, %d characters", count);
++	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
++	struct r3964_block_header *pHeader;
++	struct r3964_client_info *pClient;
++	unsigned char *new_data;
++
++	TRACE_L("write request, %d characters", count);
+ /* 
+  * Verify the pointers 
   */
  
--void serial167_console_write(struct console *co, const char *str, unsigned count)
-+void serial167_console_write(struct console *co, const char *str,
-+			     unsigned count)
- {
--	volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
- 	unsigned long flags;
- 	volatile u_char sink;
- 	u_char ier;
-@@ -2547,7 +2525,7 @@ void serial167_console_write(struct cons
- 	/* Ensure transmitter is enabled! */
+-   if(!pInfo)
+-      return -EIO;
++	if (!pInfo)
++		return -EIO;
  
- 	port = 0;
--	base_addr[CyCAR] = (u_char)port;
-+	base_addr[CyCAR] = (u_char) port;
- 	while (base_addr[CyCCR])
- 		;
- 	base_addr[CyCCR] = CyENB_XMTR;
-@@ -2556,8 +2534,7 @@ void serial167_console_write(struct cons
- 	base_addr[CyIER] = CyTxMpty;
- 
- 	while (1) {
--		if (pcc2chip[PccSCCTICR] & 0x20)
--		{
-+		if (pcc2chip[PccSCCTICR] & 0x20) {
- 			/* We have a Tx int. Acknowledge it */
- 			sink = pcc2chip[PccTPIACKR];
- 			if ((base_addr[CyLICR] >> 2) == port) {
-@@ -2571,18 +2548,15 @@ void serial167_console_write(struct cons
- 					str++;
- 					i++;
- 					do_lf = 0;
--				}
--				else if (*str == '\n') {
-+				} else if (*str == '\n') {
- 					base_addr[CyTDR] = '\r';
- 					do_lf = 1;
--				}
--				else {
-+				} else {
- 					base_addr[CyTDR] = *str++;
- 					i++;
- 				}
- 				base_addr[CyTEOIR] = 0;
--			}
--			else
-+			} else
- 				base_addr[CyTEOIR] = CyNOTRANS;
- 		}
- 	}
-@@ -2592,45 +2566,44 @@ void serial167_console_write(struct cons
- 	local_irq_restore(flags);
- }
- 
--static struct tty_driver *serial167_console_device(struct console *c, int *index)
-+static struct tty_driver *serial167_console_device(struct console *c,
-+						   int *index)
- {
- 	*index = c->index;
- 	return cy_serial_driver;
- }
- 
+ /*
+  * Ensure that the caller does not wish to send too much.
+  */
+-   if (count > R3964_MTU) 
+-   {
+-      if (pInfo->flags & R3964_DEBUG)
+-      {
+-         TRACE_L (KERN_WARNING
+-                 "r3964_write: truncating user packet "
+-                 "from %u to mtu %d", count, R3964_MTU);
+-      }
+-      count = R3964_MTU;
+-   }
++	if (count > R3964_MTU) {
++		if (pInfo->flags & R3964_DEBUG) {
++			TRACE_L(KERN_WARNING "r3964_write: truncating user "
++				"packet from %u to mtu %d", count, R3964_MTU);
++		}
++		count = R3964_MTU;
++	}
+ /*
+  * Allocate a buffer for the data and copy it from the buffer with header prepended
+  */
+-   new_data = kmalloc (count+sizeof(struct r3964_block_header), GFP_KERNEL);
+-   TRACE_M("r3964_write - kmalloc %p",new_data);
+-   if (new_data == NULL) {
+-      if (pInfo->flags & R3964_DEBUG)
+-      {
+-         printk (KERN_ERR
+-               "r3964_write: no memory\n");
+-      }
+-      return -ENOSPC;
+-   }
+-   
+-   pHeader = (struct r3964_block_header *)new_data;
+-   pHeader->data = new_data + sizeof(struct r3964_block_header);
+-   pHeader->length = count;
+-   pHeader->locks = 0;
+-   pHeader->owner = NULL;
+-   
+-   pClient=findClient(pInfo, task_pid(current));
+-   if(pClient)
+-   {
+-      pHeader->owner = pClient;
+-   }
 -
- static int __init serial167_console_setup(struct console *co, char *options)
- {
- 	return 0;
- }
- 
+-   memcpy(pHeader->data, data, count); /* We already verified this */
 -
- static struct console sercons = {
--	.name		= "ttyS",
--	.write		= serial167_console_write,
--	.device		= serial167_console_device,
--	.setup		= serial167_console_setup,
--	.flags		= CON_PRINTBUFFER,
--	.index		= -1,
-+	.name = "ttyS",
-+	.write = serial167_console_write,
-+	.device = serial167_console_device,
-+	.setup = serial167_console_setup,
-+	.flags = CON_PRINTBUFFER,
-+	.index = -1,
- };
- 
--
- static int __init serial167_console_init(void)
- {
- 	if (vme_brdtype == VME_TYPE_MVME166 ||
--			vme_brdtype == VME_TYPE_MVME167 ||
--			vme_brdtype == VME_TYPE_MVME177) {
-+	    vme_brdtype == VME_TYPE_MVME167 ||
-+	    vme_brdtype == VME_TYPE_MVME177) {
- 		mvme167_serial_console_setup(0);
- 		register_console(&sercons);
- 	}
- 	return 0;
- }
+-   if(pInfo->flags & R3964_DEBUG)
+-   {
+-      dump_block(pHeader->data, count);
+-   }
++	new_data = kmalloc(count + sizeof(struct r3964_block_header),
++			GFP_KERNEL);
++	TRACE_M("r3964_write - kmalloc %p", new_data);
++	if (new_data == NULL) {
++		if (pInfo->flags & R3964_DEBUG) {
++			printk(KERN_ERR "r3964_write: no memory\n");
++		}
++		return -ENOSPC;
++	}
 +
- console_initcall(serial167_console_init);
- 
- #ifdef CONFIG_REMOTE_DEBUG
--void putDebugChar (int c)
-+void putDebugChar(int c)
- {
--	volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
- 	unsigned long flags;
- 	volatile u_char sink;
- 	u_char ier;
-@@ -2641,7 +2614,7 @@ void putDebugChar (int c)
- 	/* Ensure transmitter is enabled! */
- 
- 	port = DEBUG_PORT;
--	base_addr[CyCAR] = (u_char)port;
-+	base_addr[CyCAR] = (u_char) port;
- 	while (base_addr[CyCCR])
- 		;
- 	base_addr[CyCCR] = CyENB_XMTR;
-@@ -2650,16 +2623,14 @@ void putDebugChar (int c)
- 	base_addr[CyIER] = CyTxMpty;
- 
- 	while (1) {
--		if (pcc2chip[PccSCCTICR] & 0x20)
--		{
-+		if (pcc2chip[PccSCCTICR] & 0x20) {
- 			/* We have a Tx int. Acknowledge it */
- 			sink = pcc2chip[PccTPIACKR];
- 			if ((base_addr[CyLICR] >> 2) == port) {
- 				base_addr[CyTDR] = c;
- 				base_addr[CyTEOIR] = 0;
- 				break;
--			}
--			else
-+			} else
- 				base_addr[CyTEOIR] = CyNOTRANS;
- 		}
- 	}
-@@ -2671,7 +2642,7 @@ void putDebugChar (int c)
- 
- int getDebugChar()
- {
--	volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
- 	unsigned long flags;
- 	volatile u_char sink;
- 	u_char ier;
-@@ -2693,7 +2664,7 @@ int getDebugChar()
- 	/* Ensure receiver is enabled! */
- 
- 	port = DEBUG_PORT;
--	base_addr[CyCAR] = (u_char)port;
-+	base_addr[CyCAR] = (u_char) port;
- #if 0
- 	while (base_addr[CyCCR])
- 		;
-@@ -2703,31 +2674,30 @@ int getDebugChar()
- 	base_addr[CyIER] = CyRxData;
- 
- 	while (1) {
--		if (pcc2chip[PccSCCRICR] & 0x20)
--		{
-+		if (pcc2chip[PccSCCRICR] & 0x20) {
- 			/* We have a Rx int. Acknowledge it */
- 			sink = pcc2chip[PccRPIACKR];
- 			if ((base_addr[CyLICR] >> 2) == port) {
- 				int cnt = base_addr[CyRFOC];
--				while (cnt-- > 0)
--				{
-+				while (cnt-- > 0) {
- 					c = base_addr[CyRDR];
- 					if (c == 0)
--						printk ("!! debug char is null (cnt=%d) !!", cnt);
-+						printk
-+						    ("!! debug char is null (cnt=%d) !!",
-+						     cnt);
- 					else
--						queueDebugChar (c);
-+						queueDebugChar(c);
- 				}
- 				base_addr[CyREOIR] = 0;
- 				i = debugiq.out;
- 				if (i == debugiq.in)
--					panic ("Debug input queue empty!");
-+					panic("Debug input queue empty!");
- 				c = debugiq.buf[i];
- 				if (++i == DEBUG_LEN)
- 					i = 0;
- 				debugiq.out = i;
- 				break;
--			}
--			else
-+			} else
- 				base_addr[CyREOIR] = CyNOTRANS;
- 		}
- 	}
-@@ -2739,7 +2709,7 @@ int getDebugChar()
- 	return (c);
- }
- 
--void queueDebugChar (int c)
-+void queueDebugChar(int c)
- {
- 	int i;
- 
-@@ -2751,73 +2721,71 @@ void queueDebugChar (int c)
- 		debugiq.in = i;
- }
- 
--static void
--debug_setup()
-+static void debug_setup()
- {
--  unsigned long flags;
--  volatile unsigned char *base_addr = (u_char *)BASE_ADDR;
--  int   i, cflag;
-+	unsigned long flags;
-+	volatile unsigned char *base_addr = (u_char *) BASE_ADDR;
-+	int i, cflag;
- 
--    cflag = B19200;
-+	cflag = B19200;
- 
--    local_irq_save(flags);
-+	local_irq_save(flags);
- 
--    for (i = 0; i < 4; i++)
--    {
--	base_addr[CyCAR] = i;
--	base_addr[CyLICR] = i << 2;
--    }
-+	for (i = 0; i < 4; i++) {
-+		base_addr[CyCAR] = i;
-+		base_addr[CyLICR] = i << 2;
++	pHeader = (struct r3964_block_header *)new_data;
++	pHeader->data = new_data + sizeof(struct r3964_block_header);
++	pHeader->length = count;
++	pHeader->locks = 0;
++	pHeader->owner = NULL;
++
++	pClient = findClient(pInfo, task_pid(current));
++	if (pClient) {
++		pHeader->owner = pClient;
++	}
++
++	memcpy(pHeader->data, data, count);	/* We already verified this */
++
++	if (pInfo->flags & R3964_DEBUG) {
++		dump_block(pHeader->data, count);
 +	}
  
--    debugiq.in = debugiq.out = 0;
-+	debugiq.in = debugiq.out = 0;
+ /*
+  * Add buffer to transmit-queue:
+  */
+-   add_tx_queue(pInfo, pHeader);
+-   trigger_transmit(pInfo);
+-   
+-   return 0;
+-}
+-
+-static int r3964_ioctl(struct tty_struct * tty, struct file * file,
+-               unsigned int cmd, unsigned long arg)
+-{
+-   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
+-   if(pInfo==NULL)
+-      return -EINVAL;
+-   switch(cmd)
+-   {
+-      case R3964_ENABLE_SIGNALS:
+-         return enable_signals(pInfo, task_pid(current), arg);
+-      case R3964_SETPRIORITY:
+-         if(arg<R3964_MASTER || arg>R3964_SLAVE)
+-            return -EINVAL;
+-         pInfo->priority = arg & 0xff;
+-         return 0;
+-      case R3964_USE_BCC:
+-             if(arg)
+-            pInfo->flags |= R3964_BCC;
+-         else
+-            pInfo->flags &= ~R3964_BCC;
+-         return 0;
+-      case R3964_READ_TELEGRAM:
+-         return read_telegram(pInfo, task_pid(current), (unsigned char __user *)arg);
+-      default:
+-         return -ENOIOCTLCMD;
+-   }
++	add_tx_queue(pInfo, pHeader);
++	trigger_transmit(pInfo);
++
++	return 0;
++}
++
++static int r3964_ioctl(struct tty_struct *tty, struct file *file,
++		unsigned int cmd, unsigned long arg)
++{
++	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
++	if (pInfo == NULL)
++		return -EINVAL;
++	switch (cmd) {
++	case R3964_ENABLE_SIGNALS:
++		return enable_signals(pInfo, task_pid(current), arg);
++	case R3964_SETPRIORITY:
++		if (arg < R3964_MASTER || arg > R3964_SLAVE)
++			return -EINVAL;
++		pInfo->priority = arg & 0xff;
++		return 0;
++	case R3964_USE_BCC:
++		if (arg)
++			pInfo->flags |= R3964_BCC;
++		else
++			pInfo->flags &= ~R3964_BCC;
++		return 0;
++	case R3964_READ_TELEGRAM:
++		return read_telegram(pInfo, task_pid(current),
++				(unsigned char __user *)arg);
++	default:
++		return -ENOIOCTLCMD;
++	}
+ }
  
--    base_addr[CyCAR] = DEBUG_PORT;
-+	base_addr[CyCAR] = DEBUG_PORT;
+-static void r3964_set_termios(struct tty_struct *tty, struct ktermios * old)
++static void r3964_set_termios(struct tty_struct *tty, struct ktermios *old)
+ {
+-   TRACE_L("set_termios");
++	TRACE_L("set_termios");
+ }
  
--    /* baud rate */
--    i = cflag & CBAUD;
-+	/* baud rate */
-+	i = cflag & CBAUD;
+ /* Called without the kernel lock held - fine */
+-static unsigned int r3964_poll(struct tty_struct * tty, struct file * file,
+-		      struct poll_table_struct *wait)
++static unsigned int r3964_poll(struct tty_struct *tty, struct file *file,
++			struct poll_table_struct *wait)
+ {
+-   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
+-   struct r3964_client_info *pClient;
+-   struct r3964_message *pMsg=NULL;
+-   unsigned long flags;
+-   int result = POLLOUT;
+-
+-   TRACE_L("POLL");
+-
+-   pClient=findClient(pInfo, task_pid(current));
+-   if(pClient)
+-     {
+-       poll_wait(file, &pInfo->read_wait, wait);
+-       spin_lock_irqsave(&pInfo->lock, flags);
+-       pMsg=pClient->first_msg;
+-       spin_unlock_irqrestore(&pInfo->lock, flags);
+-       if(pMsg)
+-	   result |= POLLIN | POLLRDNORM;
+-     }
+-   else
+-     {
+-       result = -EINVAL;
+-     }
+-   return result;
++	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
++	struct r3964_client_info *pClient;
++	struct r3964_message *pMsg = NULL;
++	unsigned long flags;
++	int result = POLLOUT;
++
++	TRACE_L("POLL");
++
++	pClient = findClient(pInfo, task_pid(current));
++	if (pClient) {
++		poll_wait(file, &pInfo->read_wait, wait);
++		spin_lock_irqsave(&pInfo->lock, flags);
++		pMsg = pClient->first_msg;
++		spin_unlock_irqrestore(&pInfo->lock, flags);
++		if (pMsg)
++			result |= POLLIN | POLLRDNORM;
++	} else {
++		result = -EINVAL;
++	}
++	return result;
+ }
  
--    base_addr[CyIER] = 0;
-+	base_addr[CyIER] = 0;
+ static void r3964_receive_buf(struct tty_struct *tty, const unsigned char *cp,
+-                              char *fp, int count)
++			char *fp, int count)
+ {
+-   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
+-    const unsigned char *p;
+-    char *f, flags = 0;
+-    int i;
+-
+-    for (i=count, p = cp, f = fp; i; i--, p++) {
+-        if (f)
+-            flags = *f++;
+-        if(flags==TTY_NORMAL)
+-        {
+-            receive_char(pInfo, *p);
+-        }
+-        else
+-        {
+-            receive_error(pInfo, flags);
+-        }
+-        
+-    }
++	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
++	const unsigned char *p;
++	char *f, flags = 0;
++	int i;
++
++	for (i = count, p = cp, f = fp; i; i--, p++) {
++		if (f)
++			flags = *f++;
++		if (flags == TTY_NORMAL) {
++			receive_char(pInfo, *p);
++		} else {
++			receive_error(pInfo, flags);
++		}
++
++	}
+ }
  
--    base_addr[CyCMR] = CyASYNC;
--    base_addr[CyLICR] = DEBUG_PORT << 2;
--    base_addr[CyLIVR] = 0x5c;
-+	base_addr[CyCMR] = CyASYNC;
-+	base_addr[CyLICR] = DEBUG_PORT << 2;
-+	base_addr[CyLIVR] = 0x5c;
- 
--    /* tx and rx baud rate */
-+	/* tx and rx baud rate */
- 
--    base_addr[CyTCOR] = baud_co[i];
--    base_addr[CyTBPR] = baud_bpr[i];
--    base_addr[CyRCOR] = baud_co[i] >> 5;
--    base_addr[CyRBPR] = baud_bpr[i];
-+	base_addr[CyTCOR] = baud_co[i];
-+	base_addr[CyTBPR] = baud_bpr[i];
-+	base_addr[CyRCOR] = baud_co[i] >> 5;
-+	base_addr[CyRBPR] = baud_bpr[i];
- 
--    /* set line characteristics  according configuration */
-+	/* set line characteristics  according configuration */
- 
--    base_addr[CySCHR1] = 0;
--    base_addr[CySCHR2] = 0;
--    base_addr[CySCRL] = 0;
--    base_addr[CySCRH] = 0;
--    base_addr[CyCOR1] = Cy_8_BITS | CyPARITY_NONE;
--    base_addr[CyCOR2] = 0;
--    base_addr[CyCOR3] = Cy_1_STOP;
--    base_addr[CyCOR4] = baud_cor4[i];
--    base_addr[CyCOR5] = 0;
--    base_addr[CyCOR6] = 0;
--    base_addr[CyCOR7] = 0;
-+	base_addr[CySCHR1] = 0;
-+	base_addr[CySCHR2] = 0;
-+	base_addr[CySCRL] = 0;
-+	base_addr[CySCRH] = 0;
-+	base_addr[CyCOR1] = Cy_8_BITS | CyPARITY_NONE;
-+	base_addr[CyCOR2] = 0;
-+	base_addr[CyCOR3] = Cy_1_STOP;
-+	base_addr[CyCOR4] = baud_cor4[i];
-+	base_addr[CyCOR5] = 0;
-+	base_addr[CyCOR6] = 0;
-+	base_addr[CyCOR7] = 0;
- 
--    write_cy_cmd(base_addr,CyINIT_CHAN);
--    write_cy_cmd(base_addr,CyENB_RCVR);
-+	write_cy_cmd(base_addr, CyINIT_CHAN);
-+	write_cy_cmd(base_addr, CyENB_RCVR);
- 
--    base_addr[CyCAR] = DEBUG_PORT; /* !!! Is this needed? */
-+	base_addr[CyCAR] = DEBUG_PORT;	/* !!! Is this needed? */
- 
--    base_addr[CyRTPRL] = 2;
--    base_addr[CyRTPRH] = 0;
-+	base_addr[CyRTPRL] = 2;
-+	base_addr[CyRTPRH] = 0;
- 
--    base_addr[CyMSVR1] = CyRTS;
--    base_addr[CyMSVR2] = CyDTR;
-+	base_addr[CyMSVR1] = CyRTS;
-+	base_addr[CyMSVR2] = CyDTR;
- 
--    base_addr[CyIER] = CyRxData;
-+	base_addr[CyIER] = CyRxData;
- 
--    local_irq_restore(flags);
-+	local_irq_restore(flags);
- 
--} /* debug_setup */
-+}				/* debug_setup */
- 
- #endif
- 
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
@@ -4213,5 +2396,6 @@ char-tty_wakeup-cleanup.patch
 char-mxser_new-mark-init-functions.patch
 char-mxser_new-remove-useless-spinlock.patch
 char-serial167-cleanup.patch
+char-n_r3964-cleanup.patch
 shrink_slab-handle-bad-shrinkers.patch
 
