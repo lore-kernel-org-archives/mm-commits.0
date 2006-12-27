@@ -1,57 +1,58 @@
 From: akpm@osdl.org
-Subject: + buglet-in-vmscanc.patch added to -mm tree
-Date: Wed, 27 Dec 2006 01:16:40 -0800
-Message-ID: <200612270916.kBR9Ge3h006602@shell0.pdx.osdl.net>
+Subject: - linux-preempth-needs-linux-thread_infoh.patch removed from -mm tree
+Date: Wed, 27 Dec 2006 01:57:07 -0800
+Message-ID: <200612270957.kBR9v7iU007311@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43267 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:45762 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754707AbWL0JRX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 04:17:23 -0500
+	id S1753632AbWL0J5Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 04:57:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sgoel01@yahoo.com, clameter@engr.sgi.com, stable@kernel.org
+To: horms@verge.net.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Buglet in vmscan.c
-has been added to the -mm tree.  Its filename is
-     buglet-in-vmscanc.patch
+     linux/preempt.h needs linux/thread_info.h
+has been removed from the -mm tree.  Its filename was
+     linux-preempth-needs-linux-thread_infoh.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Buglet in vmscan.c
-From: Shantanu Goel <sgoel01@yahoo.com>
+Subject: linux/preempt.h needs linux/thread_info.h
+From: Horms <horms@verge.net.au>
 
-Fix a rather obvious buglet.  Noticed while instrumenting the VM using
-/proc/vmstat.
+It seems that linux/preempt.h needs to include linux/thread_info.h in order
+to access current_thread_info(), which is used in preempt_count().
 
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: <stable@kernel.org>
+I guess that all callers of preempt_count() must include both
+linux/thread_info.h and linux/preempt.h directly or indirectly, as this
+does not cause a compile error.  I noticed the problem while working on an
+unrelated issue in xen-land.
+
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/preempt.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~buglet-in-vmscanc mm/vmscan.c
---- a/mm/vmscan.c~buglet-in-vmscanc
-+++ a/mm/vmscan.c
-@@ -692,7 +692,7 @@ static unsigned long shrink_inactive_lis
- 			__count_vm_events(KSWAPD_STEAL, nr_freed);
- 		} else
- 			__count_zone_vm_events(PGSCAN_DIRECT, zone, nr_scan);
--		__count_vm_events(PGACTIVATE, nr_freed);
-+		__count_zone_vm_events(PGSTEAL, zone, nr_freed);
+diff -puN include/linux/preempt.h~linux-preempth-needs-linux-thread_infoh include/linux/preempt.h
+--- a/include/linux/preempt.h~linux-preempth-needs-linux-thread_infoh
++++ a/include/linux/preempt.h
+@@ -8,6 +8,7 @@
  
- 		if (nr_taken == 0)
- 			goto done;
+ #include <linux/thread_info.h>
+ #include <linux/linkage.h>
++#include <linux/thread_info.h>
+ 
+ #ifdef CONFIG_DEBUG_PREEMPT
+   extern void fastcall add_preempt_count(int val);
 _
 
-Patches currently in -mm which might be from sgoel01@yahoo.com are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-buglet-in-vmscanc.patch
+linux-preempth-needs-linux-thread_infoh.patch
 
