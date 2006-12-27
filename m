@@ -1,72 +1,110 @@
 From: akpm@osdl.org
-Subject: + ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch added to -mm tree
-Date: Tue, 26 Dec 2006 22:51:36 -0800
-Message-ID: <200612270651.kBR6paWY003674@shell0.pdx.osdl.net>
+Subject: + pciehp-remove-unused-pci_bus-from-struct-controller.patch added to -mm tree
+Date: Tue, 26 Dec 2006 22:56:19 -0800
+Message-ID: <200612270656.kBR6uJnS003768@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34183 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34640 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932940AbWL0Gvn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 01:51:43 -0500
+	id S932944AbWL0G4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 01:56:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com
+Cc: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     ext2: skip pages past number of blocks in ext2_find_entry
+     pciehp: remove unused pci_bus from struct controller
 has been added to the -mm tree.  Its filename is
-     ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch
+     pciehp-remove-unused-pci_bus-from-struct-controller.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext2: skip pages past number of blocks in ext2_find_entry
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: pciehp: remove unused pci_bus from struct controller
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-This one was pointed out on the MOKB site:
-http://kernelfun.blogspot.com/2006/11/mokb-09-11-2006-linux-26x-ext2checkpage.html
+Remove unused pci_bus member from struct controller.
 
-If a directory's i_size is corrupted, ext2_find_entry() will keep
-processing pages until the i_size is reached, even if there are no more
-blocks associated with the directory inode.  This patch puts in some
-minimal sanity-checking so that we don't keep checking pages (and issuing
-errors) if we know there can be no more data to read, based on the block
-count of the directory inode.
-
-This is somewhat similar in approach to the ext3 patch I sent earlier this
-year.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext2/dir.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/pci/hotplug/pciehp.h      |    1 -
+ drivers/pci/hotplug/pciehp_core.c |   14 ++------------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN fs/ext2/dir.c~ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry
-+++ a/fs/ext2/dir.c
-@@ -368,6 +368,14 @@ struct ext2_dir_entry_2 * ext2_find_entr
- 		}
- 		if (++n >= npages)
- 			n = 0;
-+		/* next page is past the blocks we've got */
-+		if (unlikely(n > (dir->i_blocks >> (PAGE_CACHE_SHIFT - 9)))) {
-+			ext2_error(dir->i_sb, __FUNCTION__,
-+				"dir %lu size %lld exceeds block count %llu",
-+				dir->i_ino, dir->i_size,
-+				(unsigned long long)dir->i_blocks);
-+			goto out;
-+		}
- 	} while (n != start);
- out:
- 	return NULL;
+diff -puN drivers/pci/hotplug/pciehp.h~pciehp-remove-unused-pci_bus-from-struct-controller drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pciehp-remove-unused-pci_bus-from-struct-controller
++++ a/drivers/pci/hotplug/pciehp.h
+@@ -78,7 +78,6 @@ struct controller {
+ 	int num_slots;			/* Number of slots on ctlr */
+ 	int slot_num_inc;		/* 1 or -1 */
+ 	struct pci_dev *pci_dev;
+-	struct pci_bus *pci_bus;
+ 	struct list_head slot_list;
+ 	struct event_info event_queue[MAX_EVENTS];
+ 	struct slot *slot;
+diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-remove-unused-pci_bus-from-struct-controller drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pciehp-remove-unused-pci_bus-from-struct-controller
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -346,13 +346,6 @@ static int pciehp_probe(struct pcie_devi
+ 
+ 	pci_set_drvdata(pdev, ctrl);
+ 
+-	ctrl->pci_bus = kmalloc(sizeof(*ctrl->pci_bus), GFP_KERNEL);
+-	if (!ctrl->pci_bus) {
+-		err("%s: out of memory\n", __FUNCTION__);
+-		rc = -ENOMEM;
+-		goto err_out_unmap_mmio_region;
+-	}
+-	memcpy (ctrl->pci_bus, pdev->bus, sizeof (*ctrl->pci_bus));
+ 	ctrl->bus = pdev->bus->number;  /* ctrl bus */
+ 	ctrl->slot_bus = pdev->subordinate->number;  /* bus controlled by this HPC */
+ 
+@@ -365,7 +358,7 @@ static int pciehp_probe(struct pcie_devi
+ 	rc = init_slots(ctrl);
+ 	if (rc) {
+ 		err(msg_initialization_err, 6);
+-		goto err_out_free_ctrl_slot;
++		goto err_out_release_ctlr;
+ 	}
+ 
+ 	t_slot = pciehp_find_slot(ctrl, ctrl->slot_device_offset);
+@@ -404,8 +397,7 @@ static int pciehp_probe(struct pcie_devi
+ 
+ err_out_free_ctrl_slot:
+ 	cleanup_slots(ctrl);
+-	kfree(ctrl->pci_bus);
+-err_out_unmap_mmio_region:
++err_out_release_ctlr:
+ 	ctrl->hpc_ops->release_ctlr(ctrl);
+ err_out_free_ctrl:
+ 	kfree(ctrl);
+@@ -439,8 +431,6 @@ static void __exit unload_pciehpd(void)
+ 	while (ctrl) {
+ 		cleanup_slots(ctrl);
+ 
+-		kfree (ctrl->pci_bus);
+-
+ 		ctrl->hpc_ops->release_ctlr(ctrl);
+ 
+ 		tctrl = ctrl;
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
 
-ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch
+pciehp-cleanup-init_slot.patch
+pciehp-cleanup-slot-list.patch
+pciehp-remove-unnecessary-php_ctlr.patch
+pciehp-remove-unused-pci_bus-from-struct-controller.patch
+pciehp-cleanup-register-access.patch
+pciehp-cleanup-pciehph.patch
+pciehp-remove-unused-pcie_cap_base.patch
+pciehp-cleanup-wait-command-completion.patch
+pciehp-fix-wait-command-completion.patch
 
