@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sched-improve-sched_clock-on-i686-fix.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:24:40 -0800
-Message-ID: <200612270724.kBR7OeN2004303@shell0.pdx.osdl.net>
+Subject: + sched-improve-sched_clock-on-i686.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:24:35 -0800
+Message-ID: <200612270724.kBR7OZMp004300@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36138 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36129 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932957AbWL0HYn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:24:43 -0500
+	id S932946AbWL0HYj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:24:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,37 +15,91 @@ Cc: mingo@elte.hu
 
 
 The patch titled
-     sched-improve-sched_clock-on-i686 fix
+     sched: improve sched_clock() on i686
 has been added to the -mm tree.  Its filename is
-     sched-improve-sched_clock-on-i686-fix.patch
+     sched-improve-sched_clock-on-i686.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched-improve-sched_clock-on-i686 fix
+Subject: sched: improve sched_clock() on i686
 From: Ingo Molnar <mingo@elte.hu>
 
+Clean up sched_clock() on i686: it will use the TSC if available and falls
+back to jiffies only if the user asked for it to be disabled via notsc or
+the CPU calibration code didnt figure out the right cpu_khz.
 
+This generally makes the scheduler timestamps more finegrained, on all
+hardware.  (the current scheduler is pretty resistant against asynchronous
+sched_clock() values on different CPUs, it will allow at most up to a jiffy
+of jitter.)
 
+Also simplify sched_clock()'s check for TSC availability: propagate the
+desire and ability to use the TSC into the tsc_disable flag, previously
+this flag only indicated whether the notsc option was passed.  This makes
+the rare low-res sched_clock() codepath a single branch off a read-mostly
+flag.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-i386/bugs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/tsc.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-i386/bugs.h~sched-improve-sched_clock-on-i686-fix include/asm-i386/bugs.h
---- a/include/asm-i386/bugs.h~sched-improve-sched_clock-on-i686-fix
-+++ a/include/asm-i386/bugs.h
-@@ -160,7 +160,7 @@ static void __init check_config(void)
-  * If we configured ourselves for a TSC, we'd better have one!
-  */
- #ifdef CONFIG_X86_TSC
--	if (!cpu_has_tsc)
-+	if (!cpu_has_tsc && !tsc_disable)
- 		panic("Kernel compiled for Pentium+, requires TSC feature!");
- #endif
+diff -puN arch/i386/kernel/tsc.c~sched-improve-sched_clock-on-i686 arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~sched-improve-sched_clock-on-i686
++++ a/arch/i386/kernel/tsc.c
+@@ -112,13 +112,10 @@ unsigned long long sched_clock(void)
+ 		return (*custom_sched_clock)();
  
+ 	/*
+-	 * in the NUMA case we dont use the TSC as they are not
+-	 * synchronized across all CPUs.
++	 * Fall back to jiffies if there's no TSC available:
+ 	 */
+-#ifndef CONFIG_NUMA
+-	if (!cpu_khz || check_tsc_unstable())
+-#endif
+-		/* no locking but a rare wrong value is not a big deal */
++	if (unlikely(tsc_disable))
++		/* No locking but a rare wrong value is not a big deal: */
+ 		return (jiffies_64 - INITIAL_JIFFIES) * (1000000000 / HZ);
+ 
+ 	/* read the Time Stamp Counter: */
+@@ -198,13 +195,13 @@ EXPORT_SYMBOL(recalibrate_cpu_khz);
+ void __init tsc_init(void)
+ {
+ 	if (!cpu_has_tsc || tsc_disable)
+-		return;
++		goto out_no_tsc;
+ 
+ 	cpu_khz = calculate_cpu_khz();
+ 	tsc_khz = cpu_khz;
+ 
+ 	if (!cpu_khz)
+-		return;
++		goto out_no_tsc;
+ 
+ 	printk("Detected %lu.%03lu MHz processor.\n",
+ 				(unsigned long)cpu_khz / 1000,
+@@ -212,6 +209,15 @@ void __init tsc_init(void)
+ 
+ 	set_cyc2ns_scale(cpu_khz);
+ 	use_tsc_delay();
++	return;
++
++out_no_tsc:
++	/*
++	 * Set the tsc_disable flag if there's no TSC support, this
++	 * makes it a fast flag for the kernel to see whether it
++	 * should be using the TSC.
++	 */
++	tsc_disable = 1;
+ }
+ 
+ #ifdef CONFIG_CPU_FREQ
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
