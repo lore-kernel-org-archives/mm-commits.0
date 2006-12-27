@@ -1,82 +1,135 @@
 From: akpm@osdl.org
-Subject: + char-mxser-fix-oops-when-removing-opened.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:42:19 -0800
-Message-ID: <200612270742.kBR7gJZx004637@shell0.pdx.osdl.net>
+Subject: + mmconfig-fix-x86_64-ioremap-base_address.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:45:59 -0800
+Message-ID: <200612270745.kBR7jxGb004705@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37201 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37378 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932973AbWL0Hma (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:42:30 -0500
+	id S932956AbWL0Hqh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:46:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, osv@javad.com
+Cc: hogawa@miraclelinux.com, ak@suse.de, arjan@linux.intel.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Char: mxser, fix oops when removing opened
+     MMCONFIG: Fix x86_64 ioremap base_address
 has been added to the -mm tree.  Its filename is
-     char-mxser-fix-oops-when-removing-opened.patch
+     mmconfig-fix-x86_64-ioremap-base_address.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser, fix oops when removing opened
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: MMCONFIG: Fix x86_64 ioremap base_address
+From: OGAWA Hirofumi <hogawa@miraclelinux.com>
 
-tty_driver->owner is not set, so if somebody remove mxser_module, it might
-oops (and doesn't tell the user: no way, it's in use). Set the .owner value.
+Current mmconfig has some problems of remapped range.
 
-Cc: <osv@javad.com>
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+a) In the case of broken MCFG tables on Asus etc., we need to remap 256M
+   range, but currently only remap 1M.
+
+b) The base address always corresponds to bus number 0, but currently we
+   are assuming it corresponds to start bus number.
+
+This patch fixes the above problems.
+
+(akpm: Arjan suggests that if the MCFG table is broken we just shouldn't use
+it, rather than try to work around things).
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser.c     |    1 +
- drivers/char/mxser_new.c |    1 +
- 2 files changed, 2 insertions(+)
+ arch/x86_64/pci/mmconfig.c |   48 +++++++++++++++++++++++++----------
+ 1 file changed, 35 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/mxser.c~char-mxser-fix-oops-when-removing-opened drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-mxser-fix-oops-when-removing-opened
-+++ a/drivers/char/mxser.c
-@@ -717,6 +717,7 @@ static int mxser_init(void)
+diff -puN arch/x86_64/pci/mmconfig.c~mmconfig-fix-x86_64-ioremap-base_address arch/x86_64/pci/mmconfig.c
+--- a/arch/x86_64/pci/mmconfig.c~mmconfig-fix-x86_64-ioremap-base_address
++++ a/arch/x86_64/pci/mmconfig.c
+@@ -24,6 +24,39 @@ struct mmcfg_virt {
+ };
+ static struct mmcfg_virt *pci_mmcfg_virt;
  
- 	/* Initialize the tty_driver structure */
- 	memset(mxvar_sdriver, 0, sizeof(struct tty_driver));
-+	mxvar_sdriver->owner = THIS_MODULE;
- 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
- 	mxvar_sdriver->name = "ttyMI";
- 	mxvar_sdriver->major = ttymajor;
-diff -puN drivers/char/mxser_new.c~char-mxser-fix-oops-when-removing-opened drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser-fix-oops-when-removing-opened
-+++ a/drivers/char/mxser_new.c
-@@ -2690,6 +2690,7 @@ static int __init mxser_module_init(void
- 		MXSER_VERSION);
++static inline int mcfg_broken(void)
++{
++	struct acpi_table_mcfg_config *cfg = &pci_mmcfg_config[0];
++
++	/* Handle more broken MCFG tables on Asus etc.
++	   They only contain a single entry for bus 0-0. Assume
++ 	   this applies to all busses. */
++	if (pci_mmcfg_config_num == 1 &&
++	    cfg->pci_segment_group_number == 0 &&
++	    (cfg->start_bus_number | cfg->end_bus_number) == 0)
++		return 1;
++	return 0;
++}
++
++static void __iomem *mcfg_ioremap(struct acpi_table_mcfg_config *cfg)
++{
++	void __iomem *addr;
++	u32 size;
++
++	if (mcfg_broken())
++		size = 256 << 20;
++	else
++		size = (cfg->end_bus_number + 1) << 20;
++
++	addr = ioremap_nocache(cfg->base_address, size);
++	if (addr) {
++		printk(KERN_INFO "PCI: Using MMCONFIG at %x - %x\n",
++		       cfg->base_address,
++		       cfg->base_address + size - 1);
++	}
++	return addr;
++}
++
+ static char __iomem *get_virt(unsigned int seg, unsigned bus)
+ {
+ 	int cfg_num = -1;
+@@ -41,13 +74,7 @@ static char __iomem *get_virt(unsigned i
+ 			return pci_mmcfg_virt[cfg_num].virt;
+ 	}
  
- 	/* Initialize the tty_driver structure */
-+	mxvar_sdriver->owner = THIS_MODULE;
- 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
- 	mxvar_sdriver->name = "ttyMI";
- 	mxvar_sdriver->major = ttymajor;
+-	/* Handle more broken MCFG tables on Asus etc.
+-	   They only contain a single entry for bus 0-0. Assume
+- 	   this applies to all busses. */
+-	cfg = &pci_mmcfg_config[0];
+-	if (pci_mmcfg_config_num == 1 &&
+-		cfg->pci_segment_group_number == 0 &&
+-		(cfg->start_bus_number | cfg->end_bus_number) == 0)
++	if (mcfg_broken())
+ 		return pci_mmcfg_virt[0].virt;
+ 
+ 	/* Fall back to type 0 */
+@@ -139,19 +166,14 @@ int __init pci_mmcfg_arch_init(void)
+ 	}
+ 
+ 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
+-		u32 size = (pci_mmcfg_config[0].end_bus_number - pci_mmcfg_config[0].start_bus_number + 1) << 20;
+ 		pci_mmcfg_virt[i].cfg = &pci_mmcfg_config[i];
+-		pci_mmcfg_virt[i].virt = ioremap_nocache(pci_mmcfg_config[i].base_address,
+-							 size);
++		pci_mmcfg_virt[i].virt = mcfg_ioremap(&pci_mmcfg_config[i]);
+ 		if (!pci_mmcfg_virt[i].virt) {
+ 			printk(KERN_ERR "PCI: Cannot map mmconfig aperture for "
+ 					"segment %d\n",
+ 			       pci_mmcfg_config[i].pci_segment_group_number);
+ 			return 0;
+ 		}
+-		printk(KERN_INFO "PCI: Using MMCONFIG at %x-%x\n",
+-		       pci_mmcfg_config[i].base_address,
+-		       pci_mmcfg_config[i].base_address + size - 1);
+ 	}
+ 
+ 	raw_pci_ops = &pci_mmcfg;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from hogawa@miraclelinux.com are
 
-git-input.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-isicom-remove-tty_hangwakeup-bottomhalves.patch
-mxser-remove-ambiguous-redefinition-of-init_work.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-char-isicom-fix-locking-in-isr.patch
-char-isicom-augment-card_reset.patch
-char-isicom-check-card-state-in-isr.patch
-char-isicom-support-higher-rates.patch
-char-isicom-correct-probing-removing.patch
-char-tty_wakeup-cleanup.patch
-char-mxser-fix-oops-when-removing-opened.patch
-char-mxser_new-mark-init-functions.patch
-char-mxser_new-remove-useless-spinlock.patch
-shrink_slab-handle-bad-shrinkers.patch
+mmconfig-fix-x86_64-ioremap-base_address.patch
 
