@@ -1,49 +1,61 @@
 From: akpm@osdl.org
-Subject: + add-gitignore-file-for-relocs-in-arch-i386.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:29:23 -0800
-Message-ID: <200612270729.kBR7TNeK004370@shell0.pdx.osdl.net>
+Subject: + make-mkcompile_h-use-lang=c-and-lc_all=c-for-cc-v.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:30:23 -0800
+Message-ID: <200612270730.kBR7UNvw004417@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36351 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36437 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932940AbWL0H3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:29:39 -0500
+	id S932944AbWL0Hac (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:30:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas@m3y3r.de
+Cc: situert@yahoo.com, sam@ravnborg.org
 
 
 The patch titled
-     Add .gitignore file for relocs in arch/i386
+     Make mkcompile_h use LANG=C and LC_ALL=C for $CC -v
 has been added to the -mm tree.  Its filename is
-     add-gitignore-file-for-relocs-in-arch-i386.patch
+     make-mkcompile_h-use-lang=c-and-lc_all=c-for-cc-v.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add .gitignore file for relocs in arch/i386
-From: Thomas Meyer <thomas@m3y3r.de>
+Subject: Make mkcompile_h use LANG=C and LC_ALL=C for $CC -v
+From: s s <situert@yahoo.com>
 
-Due to the changes to make the kernel relocateable a new file is created
-during the build process.
+Fix a minor bug in mkcompile_h.  As one can see, the current locale is used
+while getting the version of gcc.  This produces problems when a locale
+other than C or en_US is used.  As an example, my /proc/version contains
+Turkish characters in iso-8859-9 encoding.
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+This patch fixes this issue by making sure that the C locale is used to get
+gcc's version.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- i386/boot/compressed/.gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/mkcompile_h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null i386/boot/compressed/.gitignore
---- /dev/null
-+++ a/i386/boot/compressed/.gitignore
-@@ -0,0 +1 @@
-+relocs
+diff -puN scripts/mkcompile_h~make-mkcompile_h-use-lang=c-and-lc_all=c-for-cc-v scripts/mkcompile_h
+--- a/scripts/mkcompile_h~make-mkcompile_h-use-lang=c-and-lc_all=c-for-cc-v
++++ a/scripts/mkcompile_h
+@@ -58,7 +58,7 @@ UTS_TRUNCATE="sed -e s/\(.\{1,$UTS_LEN\}
+     echo \#define LINUX_COMPILE_DOMAIN
+   fi
+ 
+-  echo \#define LINUX_COMPILER \"`$CC -v 2>&1 | tail -n 1`\"
++  echo \#define LINUX_COMPILER \"`LC_ALL=C LANG=C $CC -v 2>&1 | tail -n 1`\"
+ ) > .tmpcompile
+ 
+ # Only replace the real compile.h if the new one is different,
 _
 
-Patches currently in -mm which might be from thomas@m3y3r.de are
+Patches currently in -mm which might be from situert@yahoo.com are
 
-add-gitignore-file-for-relocs-in-arch-i386.patch
+make-mkcompile_h-use-lang=c-and-lc_all=c-for-cc-v.patch
 
