@@ -1,187 +1,127 @@
 From: akpm@osdl.org
-Subject: + cpuset-procfs-warning-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:08:55 -0800
-Message-ID: <200612272109.kBRL9BJP020260@shell0.pdx.osdl.net>
+Subject: + i386-restore-config_physical_start-option.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:12:19 -0800
+Message-ID: <200612272112.kBRLCJc8020320@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34962 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35114 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754750AbWL0VJP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:09:15 -0500
+	id S1754750AbWL0VMf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:12:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, pj@sgi.com
+Cc: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com
 
 
 The patch titled
-     cpuset procfs warning fix
+     i386: Restore CONFIG_PHYSICAL_START option
 has been added to the -mm tree.  Its filename is
-     cpuset-procfs-warning-fix.patch
+     i386-restore-config_physical_start-option.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpuset procfs warning fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: i386: Restore CONFIG_PHYSICAL_START option
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
-fs/proc/base.c:1869: warning: initialization discards qualifiers from pointer target type
-fs/proc/base.c:2150: warning: initialization discards qualifiers from pointer target type
+o Relocatable bzImage support had got rid of CONFIG_PHYSICAL_START option
+  thinking that now this option is not required as people can build a
+  second kernel as relocatable and load it anywhere. So need of compiling
+  the kernel for a custom address was gone. But Magnus uses vmlinux images
+  for second kernel in Xen environment and he wants to continue to use
+  it.
 
-Cc: Paul Jackson <pj@sgi.com>
+o Restoring the CONFIG_PHYSICAL_START option for the time being. I think
+  down the line we can get rid of it.
+
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/cpuset.h |    2 +-
- kernel/cpuset.c        |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/Kconfig       |   41 ++++++++++++++++++++++++++++++++++++++
+ include/asm-i386/boot.h |    3 +-
+ 2 files changed, 43 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cpuset.h~cpuset-procfs-warning-fix include/linux/cpuset.h
---- a/include/linux/cpuset.h~cpuset-procfs-warning-fix
-+++ a/include/linux/cpuset.h
-@@ -55,7 +55,7 @@ extern int cpuset_excl_nodes_overlap(con
- extern int cpuset_memory_pressure_enabled;
- extern void __cpuset_memory_pressure_bump(void);
+diff -puN arch/i386/Kconfig~i386-restore-config_physical_start-option arch/i386/Kconfig
+--- a/arch/i386/Kconfig~i386-restore-config_physical_start-option
++++ a/arch/i386/Kconfig
+@@ -786,6 +786,47 @@ config CRASH_DUMP
+           PHYSICAL_START.
+ 	  For more details see Documentation/kdump/kdump.txt
  
--extern const struct file_operations proc_cpuset_operations;
-+extern struct file_operations proc_cpuset_operations;
- extern char *cpuset_task_status_allowed(struct task_struct *task, char *buffer);
++config PHYSICAL_START
++	hex "Physical address where the kernel is loaded" if (EMBEDDED || CRASH_DUMP)
++	default "0x100000"
++	help
++	  This gives the physical address where the kernel is loaded.
++
++	  If kernel is a not relocatable (CONFIG_RELOCATABLE=n) then
++	  bzImage will decompress itself to above physical address and
++	  run from there. Otherwise, bzImage will run from the address where
++	  it has been loaded by the boot loader and will ignore above physical
++	  address.
++
++	  In normal kdump cases one does not have to set/change this option
++	  as now bzImage can be compiled as a completely relocatable image
++	  (CONFIG_RELOCATABLE=y) and be used to load and run from a different
++	  address. This option is mainly useful for the folks who don't want
++	  to use a bzImage for capturing the crash dump and want to use a
++	  vmlinux instead. vmlinux is not relocatable hence a kernel needs
++	  to be specifically compiled to run from a specific memory area
++	  (normally a reserved region) and this option comes handy.
++
++	  So if you are using bzImage for capturing the crash dump, leave
++	  the value here unchanged to 0x100000 and set CONFIG_RELOCATABLE=y.
++	  Otherwise if you plan to use vmlinux for capturing the crash dump
++	  change this value to start of the reserved region (Typically 16MB
++	  0x1000000). In other words, it can be set based on the "X" value as
++	  specified in the "crashkernel=YM@XM" command line boot parameter
++	  passed to the panic-ed kernel. Typically this parameter is set as
++	  crashkernel=64M@16M. Please take a look at
++	  Documentation/kdump/kdump.txt for more details about crash dumps.
++
++	  Usage of bzImage for capturing the crash dump is recommended as
++	  one does not have to build two kernels. Same kernel can be used
++	  as production kernel and capture kernel. Above option should have
++	  gone away after relocatable bzImage support is introduced. But it
++	  is present because there are users out there who continue to use
++	  vmlinux for dump capture. This option should go away down the
++	  line.
++
++	  Don't change this unless you know what you are doing.
++
+ config RELOCATABLE
+ 	bool "Build a relocatable kernel(EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+diff -puN include/asm-i386/boot.h~i386-restore-config_physical_start-option include/asm-i386/boot.h
+--- a/include/asm-i386/boot.h~i386-restore-config_physical_start-option
++++ a/include/asm-i386/boot.h
+@@ -13,7 +13,8 @@
+ #define ASK_VGA		0xfffd		/* ask for it at bootup */
  
- extern void cpuset_lock(void);
-diff -puN kernel/cpuset.c~cpuset-procfs-warning-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-procfs-warning-fix
-+++ a/kernel/cpuset.c
-@@ -2656,7 +2656,7 @@ static int cpuset_open(struct inode *ino
- 	return single_open(file, proc_cpuset_show, pid);
- }
+ /* Physical address where kenrel should be loaded. */
+-#define LOAD_PHYSICAL_ADDR ((0x100000 + CONFIG_PHYSICAL_ALIGN - 1) \
++#define LOAD_PHYSICAL_ADDR ((CONFIG_PHYSICAL_START \
++				+ (CONFIG_PHYSICAL_ALIGN - 1)) \
+ 				& ~(CONFIG_PHYSICAL_ALIGN - 1))
  
--const struct file_operations proc_cpuset_operations = {
-+struct file_operations proc_cpuset_operations = {
- 	.open		= cpuset_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
+ #endif /* _LINUX_BOOT_H */
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
 
-cpuset-procfs-warning-fix.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-agpgart.patch
-cifs-sprintf-fix.patch
-git-cpufreq.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-input.patch
-git-libata-all.patch
-git-libata-all-fixup.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-revert-gregkh-usb-usb-implement-support-for-split-endian-ohci.patch
-revert-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-add-i386-idle-notifier-take-3-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-bluetooth-blacklist-lenovo-r60e.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
+i386-cpu-hotplug-smpboot-misc-modpost-warning-fixes.patch
+convert-some-functions-to-__init-to-avoid-modpost-warnings.patch
+i386-move-startup_32-in-texthead-section.patch
+break-init-in-two-parts-to-avoid-modpost-warnings.patch
+i386-fix-memory-hotplug-related-modpost-generated-warning.patch
+i386-restore-config_physical_start-option.patch
+i386-make-apic-probe-function-non-init.patch
+modpost-add-more-symbols-to-whitelist-pattern2.patch
+modpost-whitelist-reference-to-more-symbols-pattern-3.patch
 clockevents-i386-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
 
