@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + pciehp-cleanup-init_slot.patch added to -mm tree
-Date: Tue, 26 Dec 2006 22:56:13 -0800
-Message-ID: <200612270656.kBR6uDD0003759@shell0.pdx.osdl.net>
+Subject: + pciehp-cleanup-slot-list.patch added to -mm tree
+Date: Tue, 26 Dec 2006 22:56:15 -0800
+Message-ID: <200612270656.kBR6uF8A003762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34600 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34604 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932939AbWL0G4T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 01:56:19 -0500
+	id S932940AbWL0G4U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 01:56:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,18 @@ Cc: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     pciehp: cleanup init_slot()
+     pciehp: cleanup slot list
 has been added to the -mm tree.  Its filename is
-     pciehp-cleanup-init_slot.patch
+     pciehp-cleanup-slot-list.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pciehp: cleanup init_slot()
+Subject: pciehp: cleanup slot list
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Clean up init_slots() in pciehp_core.c based on pcihp_skeleton.c.  This has no
-functional change.
+Clean up slot list handling (use list_head).  This has no functional change.
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
@@ -35,184 +34,109 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/hotplug/pciehp.h      |   10 ---
- drivers/pci/hotplug/pciehp_core.c |   90 ++++++++++------------------
- 2 files changed, 37 insertions(+), 63 deletions(-)
+ drivers/pci/hotplug/pciehp.h      |   19 +++++++------------
+ drivers/pci/hotplug/pciehp_core.c |   27 +++++++++++----------------
+ 2 files changed, 18 insertions(+), 28 deletions(-)
 
-diff -puN drivers/pci/hotplug/pciehp.h~pciehp-cleanup-init_slot drivers/pci/hotplug/pciehp.h
---- a/drivers/pci/hotplug/pciehp.h~pciehp-cleanup-init_slot
+diff -puN drivers/pci/hotplug/pciehp.h~pciehp-cleanup-slot-list drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pciehp-cleanup-slot-list
 +++ a/drivers/pci/hotplug/pciehp.h
-@@ -50,7 +50,7 @@ extern int pciehp_force;
- #define info(format, arg...) printk(KERN_INFO "%s: " format, MY_NAME , ## arg)
- #define warn(format, arg...) printk(KERN_WARNING "%s: " format, MY_NAME , ## arg)
+@@ -52,7 +52,6 @@ extern int pciehp_force;
  
--
-+#define SLOT_NAME_SIZE 10
+ #define SLOT_NAME_SIZE 10
  struct slot {
- 	struct slot *next;
+-	struct slot *next;
  	u8 bus;
-@@ -63,6 +63,7 @@ struct slot {
- 	struct hpc_ops *hpc_ops;
- 	struct hotplug_slot *hotplug_slot;
- 	struct list_head	slot_list;
-+	char name[SLOT_NAME_SIZE];
- };
- 
- struct event_info {
-@@ -233,13 +234,6 @@ static inline int wait_for_ctrl_irq(stru
- 	return retval;
- }
- 
--#define SLOT_NAME_SIZE 10
--
--static inline void make_slot_name(char *buffer, int buffer_size, struct slot *slot)
--{
--	snprintf(buffer, buffer_size, "%04d_%04d", slot->bus, slot->number);
--}
--
- enum php_ctlr_type {
- 	PCI,
- 	ISA,
-diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-init_slot drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-init_slot
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -98,101 +98,81 @@ static void release_slot(struct hotplug_
- 	dbg("%s - physical_slot = %s\n", __FUNCTION__, hotplug_slot->name);
- 
- 	kfree(slot->hotplug_slot->info);
--	kfree(slot->hotplug_slot->name);
- 	kfree(slot->hotplug_slot);
- 	kfree(slot);
- }
- 
-+static void make_slot_name(struct slot *slot)
-+{
-+	snprintf(slot->hotplug_slot->name, SLOT_NAME_SIZE, "%04d_%04d",
-+		 slot->bus, slot->number);
-+}
-+
- static int init_slots(struct controller *ctrl)
- {
+ 	u8 device;
+ 	u32 number;
+@@ -99,6 +98,7 @@ struct controller {
+ 	int slot_num_inc;		/* 1 or -1 */
+ 	struct pci_dev *pci_dev;
+ 	struct pci_bus *pci_bus;
++	struct list_head slot_list;
+ 	struct event_info event_queue[MAX_EVENTS];
  	struct slot *slot;
--	struct hpc_ops *hpc_ops;
- 	struct hotplug_slot *hotplug_slot;
--	struct hotplug_slot_info *hotplug_slot_info;
--	u8 number_of_slots;
--	u8 slot_device;
--	u32 slot_number;
--	int result = -ENOMEM;
+ 	struct hpc_ops *hpc_ops;
+@@ -198,20 +198,15 @@ extern struct controller *pciehp_ctrl_li
+ 
+ static inline struct slot *pciehp_find_slot(struct controller *ctrl, u8 device)
+ {
+-	struct slot *p_slot, *tmp_slot = NULL;
 -
--	number_of_slots = ctrl->num_slots;
--	slot_device = ctrl->slot_device_offset;
--	slot_number = ctrl->first_slot;
-+	struct hotplug_slot_info *info;
-+	int retval = -ENOMEM;
-+	int i;
+-	p_slot = ctrl->slot;
++	struct slot *slot;
  
--	while (number_of_slots) {
-+	for (i = 0; i < ctrl->num_slots; i++) {
- 		slot = kzalloc(sizeof(*slot), GFP_KERNEL);
- 		if (!slot)
- 			goto error;
+-	while (p_slot && (p_slot->device != device)) {
+-		tmp_slot = p_slot;
+-		p_slot = p_slot->next;
+-	}
+-	if (p_slot == NULL) {
+-		err("ERROR: pciehp_find_slot device=0x%x\n", device);
+-		p_slot = tmp_slot;
++	list_for_each_entry(slot, &ctrl->slot_list, slot_list) {
++		if (slot->device == device)
++			return slot;
+ 	}
  
--		slot->hotplug_slot =
--				kzalloc(sizeof(*(slot->hotplug_slot)),
--						GFP_KERNEL);
--		if (!slot->hotplug_slot)
-+		hotplug_slot = kzalloc(sizeof(*hotplug_slot), GFP_KERNEL);
-+		if (!hotplug_slot)
- 			goto error_slot;
--		hotplug_slot = slot->hotplug_slot;
-+		slot->hotplug_slot = hotplug_slot;
+-	return p_slot;
++	err("%s: slot (device=0x%x) not found\n", __FUNCTION__, device);
++	return NULL;
+ }
  
--		hotplug_slot->info =
--			kzalloc(sizeof(*(hotplug_slot->info)),
--						GFP_KERNEL);
--		if (!hotplug_slot->info)
-+		info = kzalloc(sizeof(*info), GFP_KERNEL);
-+		if (!info)
- 			goto error_hpslot;
--		hotplug_slot_info = hotplug_slot->info;
--		hotplug_slot->name = kmalloc(SLOT_NAME_SIZE, GFP_KERNEL);
--		if (!hotplug_slot->name)
--			goto error_info;
-+		hotplug_slot->info = info;
- 
--		slot->ctrl = ctrl;
--		slot->bus = ctrl->slot_bus;
--		slot->device = slot_device;
--		slot->hpc_ops = hpc_ops = ctrl->hpc_ops;
-+		hotplug_slot->name = slot->name;
- 
-+		slot->hp_slot = i;
-+		slot->ctrl = ctrl;
-+		slot->bus = ctrl->pci_dev->subordinate->number;
-+		slot->device = ctrl->slot_device_offset + i;
-+		slot->hpc_ops = ctrl->hpc_ops;
- 		slot->number = ctrl->first_slot;
--		slot->hp_slot = slot_device - ctrl->slot_device_offset;
- 
- 		/* register this slot with the hotplug pci core */
- 		hotplug_slot->private = slot;
- 		hotplug_slot->release = &release_slot;
--		make_slot_name(hotplug_slot->name, SLOT_NAME_SIZE, slot);
-+		make_slot_name(slot);
- 		hotplug_slot->ops = &pciehp_hotplug_slot_ops;
- 
--		hpc_ops->get_power_status(slot,
--			&(hotplug_slot_info->power_status));
--		hpc_ops->get_attention_status(slot,
--			&(hotplug_slot_info->attention_status));
--		hpc_ops->get_latch_status(slot,
--			&(hotplug_slot_info->latch_status));
--		hpc_ops->get_adapter_status(slot,
--			&(hotplug_slot_info->adapter_status));
-+		get_power_status(hotplug_slot, &info->power_status);
-+		get_attention_status(hotplug_slot, &info->attention_status);
-+		get_latch_status(hotplug_slot, &info->latch_status);
-+		get_adapter_status(hotplug_slot, &info->adapter_status);
- 
- 		dbg("Registering bus=%x dev=%x hp_slot=%x sun=%x "
--			"slot_device_offset=%x\n",
--			slot->bus, slot->device, slot->hp_slot, slot->number,
--			ctrl->slot_device_offset);
--		result = pci_hp_register(hotplug_slot);
--		if (result) {
--			err ("pci_hp_register failed with error %d\n", result);
--			goto error_name;
-+		    "slot_device_offset=%x\n", slot->bus, slot->device,
-+		    slot->hp_slot, slot->number, ctrl->slot_device_offset);
-+		retval = pci_hp_register(hotplug_slot);
-+		if (retval) {
-+			err ("pci_hp_register failed with error %d\n", retval);
-+			goto error_info;
+ static inline int wait_for_ctrl_irq(struct controller *ctrl)
+diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-slot-list drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-slot-list
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -160,8 +160,7 @@ static int init_slots(struct controller 
+ 			goto error_info;
  		}
  
- 		slot->next = ctrl->slot;
- 		ctrl->slot = slot;
--
--		number_of_slots--;
--		slot_device++;
--		slot_number += ctrl->slot_num_inc;
+-		slot->next = ctrl->slot;
+-		ctrl->slot = slot;
++		list_add(&slot->slot_list, &ctrl->slot_list);
  	}
  
  	return 0;
--
--error_name:
--	kfree(hotplug_slot->name);
- error_info:
--	kfree(hotplug_slot_info);
-+	kfree(info);
- error_hpslot:
- 	kfree(hotplug_slot);
- error_slot:
- 	kfree(slot);
- error:
--	return result;
-+	return retval;
+@@ -175,22 +174,17 @@ error:
+ 	return retval;
  }
  
+-
+-static int cleanup_slots (struct controller * ctrl)
++static void cleanup_slots(struct controller *ctrl)
+ {
+-	struct slot *old_slot, *next_slot;
+-
+-	old_slot = ctrl->slot;
+-	ctrl->slot = NULL;
+-
+-	while (old_slot) {
+-		next_slot = old_slot->next;
+-		pci_hp_deregister (old_slot->hotplug_slot);
+-		old_slot = next_slot;
++	struct list_head *tmp;
++	struct list_head *next;
++	struct slot *slot;
++
++	list_for_each_safe(tmp, next, &ctrl->slot_list) {
++		slot = list_entry(tmp, struct slot, slot_list);
++		list_del(&slot->slot_list);
++		pci_hp_deregister(slot->hotplug_slot);
+ 	}
+-
+-
+-	return(0);
+ }
  
+ static int get_ctlr_slot_config(struct controller *ctrl)
+@@ -368,6 +362,7 @@ static int pciehp_probe(struct pcie_devi
+ 		err("%s : out of memory\n", __FUNCTION__);
+ 		goto err_out_none;
+ 	}
++	INIT_LIST_HEAD(&ctrl->slot_list);
+ 
+ 	pdev = dev->port;
+ 	ctrl->pci_dev = pdev;
 _
 
 Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
