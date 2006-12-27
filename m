@@ -1,17 +1,17 @@
 From: akpm@osdl.org
 Subject: + mmc-add-support-for-sdhc-cards.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:36:43 -0800
-Message-ID: <200612270736.kBR7ahJj004532@shell0.pdx.osdl.net>
+Date: Tue, 26 Dec 2006 23:37:02 -0800
+Message-ID: <200612270737.kBR7b2GZ004540@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36858 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36869 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932965AbWL0Hh1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:37:27 -0500
+	id S932967AbWL0Hho (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:37:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: plangdale@vmware.com, drzeus@drzeus.cx, philipl@overt.org
+Cc: philipl@overt.org, drzeus@drzeus.cx
 
 
 The patch titled
@@ -24,7 +24,7 @@ out what to do about this
 
 ------------------------------------------------------
 Subject: mmc: Add support for SDHC cards
-From: Philip Langdale <plangdale@vmware.com>
+From: Philip Langdale <philipl@overt.org>
 
 Thanks to the generous donation of an SDHC card by John Gilmore, and the
 surprisingly enlightened decision by the SD Card Association to publish
@@ -243,7 +243,7 @@ diff -puN include/linux/mmc/protocol.h~mmc-add-support-for-sdhc-cards include/li
    	e : error bit
 _
 
-Patches currently in -mm which might be from plangdale@vmware.com are
+Patches currently in -mm which might be from philipl@overt.org are
 
 mmc-add-support-for-sdhc-cards.patch
 
