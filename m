@@ -1,368 +1,53 @@
 From: akpm@osdl.org
-Subject: + revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:21:06 -0800
-Message-ID: <200612272121.kBRLLMSH020516@shell0.pdx.osdl.net>
+Subject: + reiser4-test_clear_page_dirty.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:30:13 -0800
+Message-ID: <200612272130.kBRLUUbN020675@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35635 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36035 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932763AbWL0VV1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:21:27 -0500
+	id S932663AbWL0Vaj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:30:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, benh@kernel.crashing.org, greg@kroah.com
+Cc: akpm@osdl.org, edward@namesys.com, vs@namesys.com
 
 
 The patch titled
-     revert gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
+     reiser4-test_clear_page_dirty
 has been added to the -mm tree.  Its filename is
-     revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus.patch
+     reiser4-test_clear_page_dirty.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
+Subject: reiser4-test_clear_page_dirty
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/usb/host/Kconfig:121:warning: 'select' used by config symbol 'USB_OHCI_HCD_PPC_OF_BE' refer to undefined symbol 'USB_OHCI_BIG_ENDIAN_DESC'
-drivers/usb/host/Kconfig:122:warning: 'select' used by config symbol 'USB_OHCI_HCD_PPC_OF_BE' refer to undefined symbol 'USB_OHCI_BIG_ENDIAN_MMIO'
+This is wrong.  cancel_dirty_page() doesn't clear radix-tree tags.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Vladimir Saveliev <vs@namesys.com>
+Cc: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/host/Kconfig       |   23 ---
- drivers/usb/host/ohci-hcd.c    |   20 --
- drivers/usb/host/ohci-ppc-of.c |  232 -------------------------------
- 3 files changed, 1 insertion(+), 274 deletions(-)
+ fs/reiser4/plugin/file/cryptcompress.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/Kconfig~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus drivers/usb/host/Kconfig
---- a/drivers/usb/host/Kconfig~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
-+++ a/drivers/usb/host/Kconfig
-@@ -106,30 +106,9 @@ config USB_OHCI_HCD_PPC_SOC
- 	  Enables support for the USB controller on the MPC52xx or
- 	  STB03xxx processor chip.  If unsure, say Y.
- 
--config USB_OHCI_HCD_PPC_OF
--	bool "OHCI support for PPC USB controller on OF platform bus"
--	depends on USB_OHCI_HCD && PPC_OF
--	default y
--	---help---
--	  Enables support for the USB controller PowerPC present on the
--	  OpenFirmware platform bus.
--
--config USB_OHCI_HCD_PPC_OF_BE
--	bool "Support big endian HC"
--	depends on USB_OHCI_HCD_PPC_OF
--	default y
--	select USB_OHCI_BIG_ENDIAN_DESC
--	select USB_OHCI_BIG_ENDIAN_MMIO
--
--config USB_OHCI_HCD_PPC_OF_LE
--	bool "Support little endian HC"
--	depends on USB_OHCI_HCD_PPC_OF
--	default n
--	select USB_OHCI_LITTLE_ENDIAN
--
- config USB_OHCI_HCD_PCI
- 	bool "OHCI support for PCI-bus USB controllers"
--	depends on USB_OHCI_HCD && PCI && (STB03xxx || PPC_MPC52xx || USB_OHCI_HCD_PPC_OF)
-+	depends on USB_OHCI_HCD && PCI && (STB03xxx || PPC_MPC52xx)
- 	default y
- 	select USB_OHCI_LITTLE_ENDIAN
- 	---help---
-diff -puN drivers/usb/host/ohci-hcd.c~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus drivers/usb/host/ohci-hcd.c
---- a/drivers/usb/host/ohci-hcd.c~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
-+++ a/drivers/usb/host/ohci-hcd.c
-@@ -914,14 +914,8 @@ MODULE_LICENSE ("GPL");
- #endif
- 
- 
--#ifdef CONFIG_USB_OHCI_HCD_PPC_OF
--#include "ohci-ppc-of.c"
--#define OF_PLATFORM_DRIVER	ohci_hcd_ppc_of_driver
--#endif
--
- #if	!defined(PCI_DRIVER) &&		\
- 	!defined(PLATFORM_DRIVER) &&	\
--	!defined(OF_PLATFORM_DRIVER) &&	\
- 	!defined(SA1111_DRIVER)
- #error "missing bus glue for ohci-hcd"
- #endif
-@@ -945,13 +939,6 @@ static int __init ohci_hcd_mod_init(void
- 	ls++;
- #endif
- 
--#ifdef OF_PLATFORM_DRIVER
--	retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
--	if (retval < 0)
--		goto error;
--	ls++;
--#endif
--
- #ifdef SA1111_DRIVER
- 	retval = sa1111_driver_register(&SA1111_DRIVER);
- 	if (retval < 0)
-@@ -974,10 +961,6 @@ error:
- 	if (ls--)
- 		platform_driver_unregister(&PLATFORM_DRIVER);
- #endif
--#ifdef OF_PLATFORM_DRIVER
--	if (ls--)
--		of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
--#endif
- #ifdef SA1111_DRIVER
- 	if (ls--)
- 		sa1111_driver_unregister(&SA1111_DRIVER);
-@@ -994,9 +977,6 @@ static void __exit ohci_hcd_mod_exit(voi
- #ifdef SA1111_DRIVER
- 	sa1111_driver_unregister(&SA1111_DRIVER);
- #endif
--#ifdef OF_PLATFORM_DRIVER
--	of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
--#endif
- #ifdef PLATFORM_DRIVER
- 	platform_driver_unregister(&PLATFORM_DRIVER);
- #endif
-diff -puN drivers/usb/host/ohci-ppc-of.c~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus /dev/null
---- a/drivers/usb/host/ohci-ppc-of.c
-+++ /dev/null
-@@ -1,232 +0,0 @@
--/*
-- * OHCI HCD (Host Controller Driver) for USB.
-- *
-- * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
-- * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
-- * (C) Copyright 2002 Hewlett-Packard Company
-- * (C) Copyright 2006 Sylvain Munaut <tnt@246tNt.com>
-- *
-- * Bus glue for OHCI HC on the of_platform bus
-- *
-- * Modified for of_platform bus from ohci-sa1111.c
-- *
-- * This file is licenced under the GPL.
-- */
--
--#include <linux/signal.h>
--
--#include <asm/of_platform.h>
--#include <asm/prom.h>
--
--
--static int __devinit
--ohci_ppc_of_start(struct usb_hcd *hcd)
--{
--	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
--	int		ret;
--
--	if ((ret = ohci_init(ohci)) < 0)
--		return ret;
--
--	if ((ret = ohci_run(ohci)) < 0) {
--		err("can't start %s", ohci_to_hcd(ohci)->self.bus_name);
--		ohci_stop(hcd);
--		return ret;
--	}
--
--	return 0;
--}
--
--static const struct hc_driver ohci_ppc_of_hc_driver = {
--	.description =		hcd_name,
--	.product_desc =		"OF OHCI",
--	.hcd_priv_size =	sizeof(struct ohci_hcd),
--
--	/*
--	 * generic hardware linkage
--	 */
--	.irq =			ohci_irq,
--	.flags =		HCD_USB11 | HCD_MEMORY,
--
--	/*
--	 * basic lifecycle operations
--	 */
--	.start =		ohci_ppc_of_start,
--	.stop =			ohci_stop,
--	.shutdown = 		ohci_shutdown,
--
--	/*
--	 * managing i/o requests and associated device resources
--	 */
--	.urb_enqueue =		ohci_urb_enqueue,
--	.urb_dequeue =		ohci_urb_dequeue,
--	.endpoint_disable =	ohci_endpoint_disable,
--
--	/*
--	 * scheduling support
--	 */
--	.get_frame_number =	ohci_get_frame,
--
--	/*
--	 * root hub support
--	 */
--	.hub_status_data =	ohci_hub_status_data,
--	.hub_control =		ohci_hub_control,
--	.hub_irq_enable =	ohci_rhsc_enable,
--#ifdef	CONFIG_PM
--	.bus_suspend =		ohci_bus_suspend,
--	.bus_resume =		ohci_bus_resume,
--#endif
--	.start_port_reset =	ohci_start_port_reset,
--};
--
--
--static int __devinit
--ohci_hcd_ppc_of_probe(struct of_device *op, const struct of_device_id *match)
--{
--	struct device_node *dn = op->node;
--	struct usb_hcd *hcd;
--	struct ohci_hcd	*ohci;
--	struct resource res;
--	int irq;
--
--	int rv;
--	int is_bigendian;
--
--	if (usb_disabled())
--		return -ENODEV;
--
--	is_bigendian =
--		device_is_compatible(dn, "ohci-bigendian") ||
--		device_is_compatible(dn, "ohci-be");;
--
--	dev_dbg(&op->dev, "initializing PPC-OF USB Controller\n");
--
--	rv = of_address_to_resource(dn, 0, &res);
--	if (rv)
--		return rv;
--
--	hcd = usb_create_hcd(&ohci_ppc_of_hc_driver, &op->dev, "PPC-OF USB");
--	if (!hcd)
--		return -ENOMEM;
--
--	hcd->rsrc_start = res.start;
--	hcd->rsrc_len = res.end - res.start + 1;
--
--	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name)) {
--		printk(KERN_ERR __FILE__ ": request_mem_region failed\n");
--		rv = -EBUSY;
--		goto err_rmr;
--	}
--
--	irq = irq_of_parse_and_map(dn, 0);
--	if (irq == NO_IRQ) {
--		printk(KERN_ERR __FILE__ ": irq_of_parse_and_map failed\n");
--		rv = -EBUSY;
--		goto err_irq;
--	}
--
--	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
--	if (!hcd->regs) {
--		printk(KERN_ERR __FILE__ ": ioremap failed\n");
--		rv = -ENOMEM;
--		goto err_ioremap;
--	}
--
--	ohci = hcd_to_ohci(hcd);
--	if (is_bigendian)
--		ohci->flags |= OHCI_QUIRK_BE_MMIO | OHCI_QUIRK_BE_DESC;
--
--	ohci_hcd_init(ohci);
--
--	rv = usb_add_hcd(hcd, irq, 0);
--	if (rv == 0)
--		return 0;
--
--	iounmap(hcd->regs);
--err_ioremap:
--	irq_dispose_mapping(irq);
--err_irq:
--	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
--err_rmr:
-- 	usb_put_hcd(hcd);
--
--	return rv;
--}
--
--static int ohci_hcd_ppc_of_remove(struct of_device *op)
--{
--	struct usb_hcd *hcd = dev_get_drvdata(&op->dev);
--	dev_set_drvdata(&op->dev, NULL);
--
--	dev_dbg(&op->dev, "stopping PPC-OF USB Controller\n");
--
--	usb_remove_hcd(hcd);
--
--	iounmap(hcd->regs);
--	irq_dispose_mapping(hcd->irq);
--	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
--
--	usb_put_hcd(hcd);
--
--	return 0;
--}
--
--static int ohci_hcd_ppc_of_shutdown(struct of_device *op)
--{
--	struct usb_hcd *hcd = dev_get_drvdata(&op->dev);
--
--        if (hcd->driver->shutdown)
--                hcd->driver->shutdown(hcd);
--
--	return 0;
--}
--
--
--static struct of_device_id ohci_hcd_ppc_of_match[] = {
--#ifdef CONFIG_USB_OHCI_HCD_PPC_OF_BE
--	{
--		.name = "usb",
--		.compatible = "ohci-bigendian",
--	},
--	{
--		.name = "usb",
--		.compatible = "ohci-be",
--	},
--#endif
--#ifdef CONFIG_USB_OHCI_HCD_PPC_OF_LE
--	{
--		.name = "usb",
--		.compatible = "ohci-littledian",
--	},
--	{
--		.name = "usb",
--		.compatible = "ohci-le",
--	},
--#endif
--	{},
--};
--MODULE_DEVICE_TABLE(of, ohci_hcd_ppc_of_match);
--
--#if	!defined(CONFIG_USB_OHCI_HCD_PPC_OF_BE) && \
--	!defined(CONFIG_USB_OHCI_HCD_PPC_OF_LE)
--#error "No endianess selected for ppc-of-ohci"
--#endif
--
--
--static struct of_platform_driver ohci_hcd_ppc_of_driver = {
--	.name		= "ppc-of-ohci",
--	.match_table	= ohci_hcd_ppc_of_match,
--	.probe		= ohci_hcd_ppc_of_probe,
--	.remove		= ohci_hcd_ppc_of_remove,
--	.shutdown 	= ohci_hcd_ppc_of_shutdown,
--#ifdef CONFIG_PM
--	/*.suspend	= ohci_hcd_ppc_soc_drv_suspend,*/
--	/*.resume	= ohci_hcd_ppc_soc_drv_resume,*/
--#endif
--	.driver		= {
--		.name	= "ppc-of-ohci",
--		.owner	= THIS_MODULE,
--	},
--};
--
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-test_clear_page_dirty fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-test_clear_page_dirty
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -1313,7 +1313,7 @@ static void clear_cluster_pages_dirty(re
+ 		lock_page(clust->pages[i]);
+ 		if (PageDirty(clust->pages[i])) {
+ 			assert("edward-1277", PageUptodate(clust->pages[i]));
+-			test_clear_page_dirty(clust->pages[i]);
++			cancel_dirty_page(clust->pages[i], PAGE_CACHE_SIZE);
+ 		}
+ #if REISER4_DEBUG
+ 		else
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
