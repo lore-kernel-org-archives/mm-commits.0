@@ -1,70 +1,105 @@
 From: akpm@osdl.org
-Subject: + x86-64-system-crashes-when-no-memory-populating-node-0.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:32:27 -0800
-Message-ID: <200612270732.kBR7WRkV004462@shell0.pdx.osdl.net>
+Subject: + altix-acpi-_prt-support.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:33:33 -0800
+Message-ID: <200612270733.kBR7XXuZ004474@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36629 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932950AbWL0Hcf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:32:35 -0500
+	id S932959AbWL0HeU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:34:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: James.Puthukattukaran@sun.com, ak@suse.de
+Cc: jpk@sgi.com, lenb@kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     x86-64 system crashes when no memory populating Node 0
+     Altix: ACPI _PRT support
 has been added to the -mm tree.  Its filename is
-     x86-64-system-crashes-when-no-memory-populating-node-0.patch
+     altix-acpi-_prt-support.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-64 system crashes when no memory populating Node 0
-From: James Puthukattukaran <James.Puthukattukaran@sun.com>
+Subject: Altix: ACPI _PRT support
+From: John Keller <jpk@sgi.com>
 
-I have a 4 socket AMD Operton system. The 2.6.18 kernel I have crashes
-when there is no memory in node0.
+Provide ACPI _PRT support for SN Altix systems.
 
-Cc: Andi Kleen <ak@suse.de>
+The SN Altix platform does not conform to the IOSAPIC IRQ routing model, so
+a new acpi_irq_model (ACPI_IRQ_MODEL_PLATFORM) has been defined.  The SN
+platform specific code sets acpi_irq_model to this new value, and keys off
+of it in acpi_register_gsi() to avoid the iosapic code path.
+
+Signed-off-by: John Keller <jpk@sgi.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/aperture.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/acpi.c            |    3 +++
+ arch/ia64/sn/kernel/io_acpi_init.c |    3 +++
+ drivers/acpi/bus.c                 |    3 +++
+ include/linux/acpi.h               |    1 +
+ 4 files changed, 10 insertions(+)
 
-diff -puN arch/x86_64/kernel/aperture.c~x86-64-system-crashes-when-no-memory-populating-node-0 arch/x86_64/kernel/aperture.c
---- a/arch/x86_64/kernel/aperture.c~x86-64-system-crashes-when-no-memory-populating-node-0
-+++ a/arch/x86_64/kernel/aperture.c
-@@ -51,7 +51,6 @@ static void __init insert_aperture_resou
- 
- static u32 __init allocate_aperture(void) 
+diff -puN arch/ia64/kernel/acpi.c~altix-acpi-_prt-support arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c~altix-acpi-_prt-support
++++ a/arch/ia64/kernel/acpi.c
+@@ -590,6 +590,9 @@ void __init acpi_numa_arch_fixup(void)
+  */
+ int acpi_register_gsi(u32 gsi, int triggering, int polarity)
  {
--	pg_data_t *nd0 = NODE_DATA(0);
- 	u32 aper_size;
- 	void *p; 
++	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
++		return gsi;
++
+ 	if (has_8259 && gsi < 16)
+ 		return isa_irq_to_vector(gsi);
  
-@@ -65,12 +64,12 @@ static u32 __init allocate_aperture(void
- 	 * Unfortunately we cannot move it up because that would make the
- 	 * IOMMU useless.
- 	 */
--	p = __alloc_bootmem_node(nd0, aper_size, aper_size, 0); 
-+	p = __alloc_bootmem(aper_size, aper_size, 0);
- 	if (!p || __pa(p)+aper_size > 0xffffffff) {
- 		printk("Cannot allocate aperture memory hole (%p,%uK)\n",
- 		       p, aper_size>>10);
- 		if (p)
--			free_bootmem_node(nd0, __pa(p), aper_size); 
-+			free_bootmem(__pa(p), aper_size);
- 		return 0;
- 	}
- 	printk("Mapping aperture over %d KB of RAM @ %lx\n",
+diff -puN arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support arch/ia64/sn/kernel/io_acpi_init.c
+--- a/arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support
++++ a/arch/ia64/sn/kernel/io_acpi_init.c
+@@ -489,6 +489,9 @@ sn_io_acpi_init(void)
+ 	u64 result;
+ 	s64 status;
+ 
++	/* SN Altix does not follow the IOSAPIC IRQ routing model */
++	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
++
+ 	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
+ 	status = sal_ioif_init(&result);
+ 	if (status || result)
+diff -puN drivers/acpi/bus.c~altix-acpi-_prt-support drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~altix-acpi-_prt-support
++++ a/drivers/acpi/bus.c
+@@ -561,6 +561,9 @@ static int __init acpi_bus_init_irq(void
+ 	case ACPI_IRQ_MODEL_IOSAPIC:
+ 		message = "IOSAPIC";
+ 		break;
++	case ACPI_IRQ_MODEL_PLATFORM:
++		message = "platform specific model";
++		break;
+ 	default:
+ 		printk(KERN_WARNING PREFIX "Unknown interrupt routing model\n");
+ 		return -ENODEV;
+diff -puN include/linux/acpi.h~altix-acpi-_prt-support include/linux/acpi.h
+--- a/include/linux/acpi.h~altix-acpi-_prt-support
++++ a/include/linux/acpi.h
+@@ -47,6 +47,7 @@ enum acpi_irq_model_id {
+ 	ACPI_IRQ_MODEL_PIC = 0,
+ 	ACPI_IRQ_MODEL_IOAPIC,
+ 	ACPI_IRQ_MODEL_IOSAPIC,
++	ACPI_IRQ_MODEL_PLATFORM,
+ 	ACPI_IRQ_MODEL_COUNT
+ };
+ 
 _
 
-Patches currently in -mm which might be from James.Puthukattukaran@sun.com are
+Patches currently in -mm which might be from jpk@sgi.com are
 
-x86-64-system-crashes-when-no-memory-populating-node-0.patch
+altix-acpi-ssdt-pci-device-support.patch
+altix-add-acpi-ssdt-pci-device-support-hotplug.patch
+altix-acpi-_prt-support.patch
 
