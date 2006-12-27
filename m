@@ -1,79 +1,65 @@
 From: akpm@osdl.org
-Subject: + char-mxser_new-mark-init-functions.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:42:21 -0800
-Message-ID: <200612270742.kBR7gLpx004640@shell0.pdx.osdl.net>
+Subject: + char-mxser-fix-oops-when-removing-opened.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:42:19 -0800
+Message-ID: <200612270742.kBR7gJZx004637@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37193 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37201 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932949AbWL0HmX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:42:23 -0500
+	id S932973AbWL0Hma (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:42:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: jirislaby@gmail.com, osv@javad.com
 
 
 The patch titled
-     Char: mxser_new, mark init functions
+     Char: mxser, fix oops when removing opened
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-mark-init-functions.patch
+     char-mxser-fix-oops-when-removing-opened.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, mark init functions
+Subject: Char: mxser, fix oops when removing opened
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Mark some funcions with __init and __devinit.
+tty_driver->owner is not set, so if somebody remove mxser_module, it might
+oops (and doesn't tell the user: no way, it's in use). Set the .owner value.
 
+Cc: <osv@javad.com>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/mxser.c     |    1 +
+ drivers/char/mxser_new.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-mark-init-functions drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-mark-init-functions
+diff -puN drivers/char/mxser.c~char-mxser-fix-oops-when-removing-opened drivers/char/mxser.c
+--- a/drivers/char/mxser.c~char-mxser-fix-oops-when-removing-opened
++++ a/drivers/char/mxser.c
+@@ -717,6 +717,7 @@ static int mxser_init(void)
+ 
+ 	/* Initialize the tty_driver structure */
+ 	memset(mxvar_sdriver, 0, sizeof(struct tty_driver));
++	mxvar_sdriver->owner = THIS_MODULE;
+ 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
+ 	mxvar_sdriver->name = "ttyMI";
+ 	mxvar_sdriver->major = ttymajor;
+diff -puN drivers/char/mxser_new.c~char-mxser-fix-oops-when-removing-opened drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser-fix-oops-when-removing-opened
 +++ a/drivers/char/mxser_new.c
-@@ -316,7 +316,7 @@ static int mxser_set_baud_method[MXSER_P
- static spinlock_t gm_lock;
+@@ -2690,6 +2690,7 @@ static int __init mxser_module_init(void
+ 		MXSER_VERSION);
  
- #ifdef CONFIG_PCI
--static int CheckIsMoxaMust(int io)
-+static int __devinit CheckIsMoxaMust(int io)
- {
- 	u8 oldmcr, hwid;
- 	int i;
-@@ -1373,7 +1373,7 @@ static int mxser_tiocmset(struct tty_str
- 	return 0;
- }
- 
--static int mxser_program_mode(int port)
-+static int __init mxser_program_mode(int port)
- {
- 	int id, i, j, n;
- 
-@@ -1410,7 +1410,7 @@ static int mxser_program_mode(int port)
- 	return id;
- }
- 
--static void mxser_normal_mode(int port)
-+static void __init mxser_normal_mode(int port)
- {
- 	int i, n;
- 
-@@ -1443,7 +1443,7 @@ static void mxser_normal_mode(int port)
- #define EN0_PORT	0x010	/* Rcv missed frame error counter RD */
- #define ENC_PAGE0	0x000	/* Select page 0 of chip registers   */
- #define ENC_PAGE3	0x0C0	/* Select page 3 of chip registers   */
--static int mxser_read_register(int port, unsigned short *regs)
-+static int __init mxser_read_register(int port, unsigned short *regs)
- {
- 	int i, k, value, id;
- 	unsigned int j;
+ 	/* Initialize the tty_driver structure */
++	mxvar_sdriver->owner = THIS_MODULE;
+ 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
+ 	mxvar_sdriver->name = "ttyMI";
+ 	mxvar_sdriver->major = ttymajor;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
