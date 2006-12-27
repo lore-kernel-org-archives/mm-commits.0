@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + i386-restore-config_physical_start-option.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:12:19 -0800
-Message-ID: <200612272112.kBRLCJc8020320@shell0.pdx.osdl.net>
+Subject: + i386-make-apic-probe-function-non-init.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:12:23 -0800
+Message-ID: <200612272112.kBRLCNNT020323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35114 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35152 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754750AbWL0VMf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:12:35 -0500
+	id S1754747AbWL0VMu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:12:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,26 +15,35 @@ Cc: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com
 
 
 The patch titled
-     i386: Restore CONFIG_PHYSICAL_START option
+     i386: make apic probe function non-init
 has been added to the -mm tree.  Its filename is
-     i386-restore-config_physical_start-option.patch
+     i386-make-apic-probe-function-non-init.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: Restore CONFIG_PHYSICAL_START option
+Subject: i386: make apic probe function non-init
 From: Vivek Goyal <vgoyal@in.ibm.com>
 
-o Relocatable bzImage support had got rid of CONFIG_PHYSICAL_START option
-  thinking that now this option is not required as people can build a
-  second kernel as relocatable and load it anywhere. So need of compiling
-  the kernel for a custom address was gone. But Magnus uses vmlinux images
-  for second kernel in Xen environment and he wants to continue to use
-  it.
+o struct genapic contains pointer to probe() function which is of type
+  __init. Hence MODPOST generates warning if kernel is compiled with
+  CONFIG_RELOCATABLE=y for i386.
 
-o Restoring the CONFIG_PHYSICAL_START option for the time being. I think
-  down the line we can get rid of it.
+WARNING: vmlinux - Section mismatch: reference to .init.text: from .data between 'apic_summit' (at offset 0xc058b504) and 'apic_bigsmp'
+WARNING: vmlinux - Section mismatch: reference to .init.text: from .data between 'apic_bigsmp' (at offset 0xc058b5a4) and 'cpu.4471'
+WARNING: vmlinux - Section mismatch: reference to .init.text: from .data between 'apic_es7000' (at offset 0xc058b644) and 'apic_default'
+WARNING: vmlinux - Section mismatch: reference to .init.text: from .data between 'apic_default' (at offset 0xc058b6e4) and 'interrupt'
+
+o One of the possible options is to put special case check in MODPOST to
+  not emit warnings for this case but I think it is not a very good option
+  in terms of maintenance.
+
+o Another option is to make probe() function non __init. Anyway this function
+  is really small so not freeing this memory after init is not a big deal.
+  Secondly, from a programming perspective, probably genapic should not
+  provide pointers to functions which have been freed as genapic is non
+  __init and is used even after initialization is complete.
 
 Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -42,74 +51,60 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/Kconfig       |   41 ++++++++++++++++++++++++++++++++++++++
- include/asm-i386/boot.h |    3 +-
- 2 files changed, 43 insertions(+), 1 deletion(-)
+ arch/i386/mach-generic/bigsmp.c  |    2 +-
+ arch/i386/mach-generic/default.c |    2 +-
+ arch/i386/mach-generic/es7000.c  |    2 +-
+ arch/i386/mach-generic/summit.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/Kconfig~i386-restore-config_physical_start-option arch/i386/Kconfig
---- a/arch/i386/Kconfig~i386-restore-config_physical_start-option
-+++ a/arch/i386/Kconfig
-@@ -786,6 +786,47 @@ config CRASH_DUMP
-           PHYSICAL_START.
- 	  For more details see Documentation/kdump/kdump.txt
+diff -puN arch/i386/mach-generic/bigsmp.c~i386-make-apic-probe-function-non-init arch/i386/mach-generic/bigsmp.c
+--- a/arch/i386/mach-generic/bigsmp.c~i386-make-apic-probe-function-non-init
++++ a/arch/i386/mach-generic/bigsmp.c
+@@ -45,7 +45,7 @@ static struct dmi_system_id __initdata b
+ };
  
-+config PHYSICAL_START
-+	hex "Physical address where the kernel is loaded" if (EMBEDDED || CRASH_DUMP)
-+	default "0x100000"
-+	help
-+	  This gives the physical address where the kernel is loaded.
-+
-+	  If kernel is a not relocatable (CONFIG_RELOCATABLE=n) then
-+	  bzImage will decompress itself to above physical address and
-+	  run from there. Otherwise, bzImage will run from the address where
-+	  it has been loaded by the boot loader and will ignore above physical
-+	  address.
-+
-+	  In normal kdump cases one does not have to set/change this option
-+	  as now bzImage can be compiled as a completely relocatable image
-+	  (CONFIG_RELOCATABLE=y) and be used to load and run from a different
-+	  address. This option is mainly useful for the folks who don't want
-+	  to use a bzImage for capturing the crash dump and want to use a
-+	  vmlinux instead. vmlinux is not relocatable hence a kernel needs
-+	  to be specifically compiled to run from a specific memory area
-+	  (normally a reserved region) and this option comes handy.
-+
-+	  So if you are using bzImage for capturing the crash dump, leave
-+	  the value here unchanged to 0x100000 and set CONFIG_RELOCATABLE=y.
-+	  Otherwise if you plan to use vmlinux for capturing the crash dump
-+	  change this value to start of the reserved region (Typically 16MB
-+	  0x1000000). In other words, it can be set based on the "X" value as
-+	  specified in the "crashkernel=YM@XM" command line boot parameter
-+	  passed to the panic-ed kernel. Typically this parameter is set as
-+	  crashkernel=64M@16M. Please take a look at
-+	  Documentation/kdump/kdump.txt for more details about crash dumps.
-+
-+	  Usage of bzImage for capturing the crash dump is recommended as
-+	  one does not have to build two kernels. Same kernel can be used
-+	  as production kernel and capture kernel. Above option should have
-+	  gone away after relocatable bzImage support is introduced. But it
-+	  is present because there are users out there who continue to use
-+	  vmlinux for dump capture. This option should go away down the
-+	  line.
-+
-+	  Don't change this unless you know what you are doing.
-+
- config RELOCATABLE
- 	bool "Build a relocatable kernel(EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-diff -puN include/asm-i386/boot.h~i386-restore-config_physical_start-option include/asm-i386/boot.h
---- a/include/asm-i386/boot.h~i386-restore-config_physical_start-option
-+++ a/include/asm-i386/boot.h
-@@ -13,7 +13,8 @@
- #define ASK_VGA		0xfffd		/* ask for it at bootup */
  
- /* Physical address where kenrel should be loaded. */
--#define LOAD_PHYSICAL_ADDR ((0x100000 + CONFIG_PHYSICAL_ALIGN - 1) \
-+#define LOAD_PHYSICAL_ADDR ((CONFIG_PHYSICAL_START \
-+				+ (CONFIG_PHYSICAL_ALIGN - 1)) \
- 				& ~(CONFIG_PHYSICAL_ALIGN - 1))
+-static __init int probe_bigsmp(void)
++static int probe_bigsmp(void)
+ { 
+ 	if (def_to_bigsmp)
+         	dmi_bigsmp = 1;
+diff -puN arch/i386/mach-generic/default.c~i386-make-apic-probe-function-non-init arch/i386/mach-generic/default.c
+--- a/arch/i386/mach-generic/default.c~i386-make-apic-probe-function-non-init
++++ a/arch/i386/mach-generic/default.c
+@@ -18,7 +18,7 @@
+ #include <asm/mach-default/mach_mpparse.h>
  
- #endif /* _LINUX_BOOT_H */
+ /* should be called last. */
+-static __init int probe_default(void)
++static int probe_default(void)
+ { 
+ 	return 1;
+ } 
+diff -puN arch/i386/mach-generic/es7000.c~i386-make-apic-probe-function-non-init arch/i386/mach-generic/es7000.c
+--- a/arch/i386/mach-generic/es7000.c~i386-make-apic-probe-function-non-init
++++ a/arch/i386/mach-generic/es7000.c
+@@ -19,7 +19,7 @@
+ #include <asm/mach-es7000/mach_mpparse.h>
+ #include <asm/mach-es7000/mach_wakecpu.h>
+ 
+-static __init int probe_es7000(void)
++static int probe_es7000(void)
+ {
+ 	/* probed later in mptable/ACPI hooks */
+ 	return 0;
+diff -puN arch/i386/mach-generic/summit.c~i386-make-apic-probe-function-non-init arch/i386/mach-generic/summit.c
+--- a/arch/i386/mach-generic/summit.c~i386-make-apic-probe-function-non-init
++++ a/arch/i386/mach-generic/summit.c
+@@ -18,7 +18,7 @@
+ #include <asm/mach-summit/mach_ipi.h>
+ #include <asm/mach-summit/mach_mpparse.h>
+ 
+-static __init int probe_summit(void)
++static int probe_summit(void)
+ { 
+ 	/* probed later in mptable/ACPI hooks */
+ 	return 0;
 _
 
 Patches currently in -mm which might be from vgoyal@in.ibm.com are
