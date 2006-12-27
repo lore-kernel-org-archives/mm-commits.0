@@ -1,190 +1,177 @@
 From: akpm@osdl.org
-Subject: + sched-improve-sched_clock-on-i686.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:24:35 -0800
-Message-ID: <200612270724.kBR7OZMp004300@shell0.pdx.osdl.net>
+Subject: + bluetooth-blacklist-lenovo-r60e.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:28:10 -0800
+Message-ID: <200612270728.kBR7SAHD004359@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36129 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36327 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932946AbWL0HYj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:24:39 -0500
+	id S932939AbWL0H2d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:28:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+Cc: akpm@osdl.org, enrico.binder@njl.ee, marcel@holtmann.org
 
 
 The patch titled
-     sched: improve sched_clock() on i686
+     bluetooth: blacklist Lenovo r60e
 has been added to the -mm tree.  Its filename is
-     sched-improve-sched_clock-on-i686.patch
+     bluetooth-blacklist-lenovo-r60e.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched: improve sched_clock() on i686
-From: Ingo Molnar <mingo@elte.hu>
+Subject: bluetooth: blacklist Lenovo r60e
+From: Andrew Morton <akpm@osdl.org>
 
-Clean up sched_clock() on i686: it will use the TSC if available and falls
-back to jiffies only if the user asked for it to be disabled via notsc or
-the CPU calibration code didnt figure out the right cpu_khz.
+Enrico says this fixed his headsets:
 
-This generally makes the scheduler timestamps more finegrained, on all
-hardware.  (the current scheduler is pretty resistant against asynchronous
-sched_clock() values on different CPUs, it will allow at most up to a jiffy
-of jitter.)
+without it hciconfig shows wrong mtu value :
+BD Address: 00:16:CE:E9:A4:2F ACL MTU: 1017:8 SCO MTU: 64:0
 
-Also simplify sched_clock()'s check for TSC availability: propagate the
-desire and ability to use the TSC into the tsc_disable flag, previously
-this flag only indicated whether the notsc option was passed.  This makes
-the rare low-res sched_clock() codepath a single branch off a read-mostly
-flag.
+with the fix i get
+BD Address: 00:16:CE:E9:A4:2F ACL MTU: 1017:8 SCO MTU: 64:8
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+after fix the headset works with receiving and sending voice !
+
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: "binder" <enrico.binder@njl.ee>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/tsc.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ drivers/bluetooth/hci_usb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/i386/kernel/tsc.c~sched-improve-sched_clock-on-i686 arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~sched-improve-sched_clock-on-i686
-+++ a/arch/i386/kernel/tsc.c
-@@ -112,13 +112,10 @@ unsigned long long sched_clock(void)
- 		return (*custom_sched_clock)();
+diff -puN drivers/bluetooth/hci_usb.c~bluetooth-blacklist-lenovo-r60e drivers/bluetooth/hci_usb.c
+--- a/drivers/bluetooth/hci_usb.c~bluetooth-blacklist-lenovo-r60e
++++ a/drivers/bluetooth/hci_usb.c
+@@ -149,6 +149,9 @@ static struct usb_device_id blacklist_id
+ 	/* Frontline ComProbe Bluetooth Sniffer */
+ 	{ USB_DEVICE(0x16d3, 0x0002), .driver_info = HCI_SNIFFER },
  
- 	/*
--	 * in the NUMA case we dont use the TSC as they are not
--	 * synchronized across all CPUs.
-+	 * Fall back to jiffies if there's no TSC available:
- 	 */
--#ifndef CONFIG_NUMA
--	if (!cpu_khz || check_tsc_unstable())
--#endif
--		/* no locking but a rare wrong value is not a big deal */
-+	if (unlikely(tsc_disable))
-+		/* No locking but a rare wrong value is not a big deal: */
- 		return (jiffies_64 - INITIAL_JIFFIES) * (1000000000 / HZ);
- 
- 	/* read the Time Stamp Counter: */
-@@ -198,13 +195,13 @@ EXPORT_SYMBOL(recalibrate_cpu_khz);
- void __init tsc_init(void)
- {
- 	if (!cpu_has_tsc || tsc_disable)
--		return;
-+		goto out_no_tsc;
- 
- 	cpu_khz = calculate_cpu_khz();
- 	tsc_khz = cpu_khz;
- 
- 	if (!cpu_khz)
--		return;
-+		goto out_no_tsc;
- 
- 	printk("Detected %lu.%03lu MHz processor.\n",
- 				(unsigned long)cpu_khz / 1000,
-@@ -212,6 +209,15 @@ void __init tsc_init(void)
- 
- 	set_cyc2ns_scale(cpu_khz);
- 	use_tsc_delay();
-+	return;
++	/* Lenevo r60e bluetooth adapter */
++	{ USB_DEVICE(0x0a5c, 0x2110), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
 +
-+out_no_tsc:
-+	/*
-+	 * Set the tsc_disable flag if there's no TSC support, this
-+	 * makes it a fast flag for the kernel to see whether it
-+	 * should be using the TSC.
-+	 */
-+	tsc_disable = 1;
- }
+ 	{ }	/* Terminating entry */
+ };
  
- #ifdef CONFIG_CPU_FREQ
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-change-warn_on-back-to-bug-at.patch
-rcu-rcutorture-suspend-fix.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-input.patch
+git-libata-all.patch
+git-libata-all-fixup.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-sched-improve-sched_clock-on-i686.patch
-sched-improve-sched_clock-on-i686-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
 schedule_on_each_cpu-use-preempt_disable.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
 gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
 clockevents-i386-drivers.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-sysrq-q-to-print-timers.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
 time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+bluetooth-blacklist-lenovo-r60e.patch
 
