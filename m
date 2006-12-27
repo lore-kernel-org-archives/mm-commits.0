@@ -1,60 +1,103 @@
 From: akpm@osdl.org
-Subject: + maintainers-email-addr-change-for-eric-moore.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:47:46 -0800
-Message-ID: <200612270747.kBR7lk12004749@shell0.pdx.osdl.net>
+Subject: + make-fn_keys-work-again-on-power-macbooks.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:50:23 -0800
+Message-ID: <200612270750.kBR7oNrX004792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37459 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37618 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932981AbWL0Hrx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:47:53 -0500
+	id S932960AbWL0Hvd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:51:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.moore@lsil.com
+Cc: kernel@nn7.de, benh@kernel.crashing.org, dtor@mail.ru, greg@kroah.com, jkosina@suse.cz, marcel@holtmann.org
 
 
 The patch titled
-     MAINTAINERS: email addr change for Eric Moore
+     make fn_keys work again on power/macbooks
 has been added to the -mm tree.  Its filename is
-     maintainers-email-addr-change-for-eric-moore.patch
+     make-fn_keys-work-again-on-power-macbooks.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MAINTAINERS: email addr change for Eric Moore
-From: Eric Moore <eric.moore@lsil.com>
+Subject: make fn_keys work again on power/macbooks
+From: Soeren Sonnenburg <kernel@nn7.de>
 
-Update to maintainers list.
-My employer has changed the domain from lsil to lsi.
+The apple fn keys don't work anymore with 2.6.20-rc1.
 
+The reason is that USB_HID_POWERBOOK appears in several files although
+USB_HIDINPUT_POWERBOOK is the thing to be used.
 
+The patch fixes this.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- MAINTAINERS |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/defconfig       |    2 +-
+ arch/sparc64/defconfig    |    2 +-
+ arch/x86_64/defconfig     |    2 +-
+ drivers/usb/input/Kconfig |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-email-addr-change-for-eric-moore MAINTAINERS
---- a/MAINTAINERS~maintainers-email-addr-change-for-eric-moore
-+++ a/MAINTAINERS
-@@ -1931,9 +1931,9 @@ S:	Maintained
+diff -puN arch/i386/defconfig~make-fn_keys-work-again-on-power-macbooks arch/i386/defconfig
+--- a/arch/i386/defconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/arch/i386/defconfig
+@@ -1167,7 +1167,7 @@ CONFIG_USB_STORAGE=y
+ # USB Input Devices
+ #
+ CONFIG_USB_HID=y
+-# CONFIG_USB_HID_POWERBOOK is not set
++# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+ # CONFIG_HID_FF is not set
+ # CONFIG_USB_HIDDEV is not set
+ # CONFIG_USB_AIPTEK is not set
+diff -puN arch/sparc64/defconfig~make-fn_keys-work-again-on-power-macbooks arch/sparc64/defconfig
+--- a/arch/sparc64/defconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/arch/sparc64/defconfig
+@@ -1103,7 +1103,7 @@ CONFIG_USB_UHCI_HCD=m
+ # USB Input Devices
+ #
+ CONFIG_USB_HID=y
+-# CONFIG_USB_HID_POWERBOOK is not set
++# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+ # CONFIG_HID_FF is not set
+ CONFIG_USB_HIDDEV=y
+ # CONFIG_USB_AIPTEK is not set
+diff -puN arch/x86_64/defconfig~make-fn_keys-work-again-on-power-macbooks arch/x86_64/defconfig
+--- a/arch/x86_64/defconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/arch/x86_64/defconfig
+@@ -1191,7 +1191,7 @@ CONFIG_USB_STORAGE=y
+ # USB Input Devices
+ #
+ CONFIG_USB_HID=y
+-# CONFIG_USB_HID_POWERBOOK is not set
++# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+ # CONFIG_HID_FF is not set
+ # CONFIG_USB_HIDDEV is not set
+ # CONFIG_USB_AIPTEK is not set
+diff -puN drivers/usb/input/Kconfig~make-fn_keys-work-again-on-power-macbooks drivers/usb/input/Kconfig
+--- a/drivers/usb/input/Kconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/drivers/usb/input/Kconfig
+@@ -29,7 +29,7 @@ config USB_HID
+ comment "Input core support is needed for USB HID input layer or HIDBP support"
+ 	depends on USB_HID && INPUT=n
  
- LSILOGIC MPT FUSION DRIVERS (FC/SAS/SPI)
- P:	Eric Moore
--M:	Eric.Moore@lsil.com
--M:	support@lsil.com
--L:	mpt_linux_developer@lsil.com
-+M:	Eric.Moore@lsi.com
-+M:	support@lsi.com
-+L:	mpt_linux_developer@lsi.com
- L:	linux-scsi@vger.kernel.org
- W:	http://www.lsilogic.com/support
- S:	Supported
+-config USB_HID_POWERBOOK
++config USB_HIDINPUT_POWERBOOK
+ 	bool "Enable support for iBook/PowerBook special keys"
+ 	default n
+ 	depends on USB_HID
 _
 
-Patches currently in -mm which might be from eric.moore@lsil.com are
+Patches currently in -mm which might be from kernel@nn7.de are
 
-maintainers-email-addr-change-for-eric-moore.patch
+make-fn_keys-work-again-on-power-macbooks.patch
 
