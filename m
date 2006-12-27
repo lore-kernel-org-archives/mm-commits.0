@@ -1,53 +1,56 @@
 From: akpm@osdl.org
-Subject: + reiser4-test_clear_page_dirty.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:30:13 -0800
-Message-ID: <200612272130.kBRLUUbN020675@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:46:02 -0800
+Message-ID: <200612272146.kBRLkIKM021014@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36035 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36961 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932663AbWL0Vaj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:30:39 -0500
+	id S1754788AbWL0Vq2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:46:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, edward@namesys.com, vs@namesys.com
+Cc: akpm@osdl.org, gregkh@suse.de, oliver@neukum.org
 
 
 The patch titled
-     reiser4-test_clear_page_dirty
+     fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
 has been added to the -mm tree.  Its filename is
-     reiser4-test_clear_page_dirty.patch
+     fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiser4-test_clear_page_dirty
+Subject: fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
 From: Andrew Morton <akpm@osdl.org>
 
-This is wrong.  cancel_dirty_page() doesn't clear radix-tree tags.
+In file included from fs/sysfs/group.c:16:
+fs/sysfs/sysfs.h:42: error: field 'sem' has incomplete type
 
-Cc: Vladimir Saveliev <vs@namesys.com>
-Cc: Edward Shishkin <edward@namesys.com>
+Cc: Oliver Neukum <oliver@neukum.org>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/plugin/file/cryptcompress.c |    2 +-
+ fs/sysfs/group.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-test_clear_page_dirty fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-test_clear_page_dirty
-+++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -1313,7 +1313,7 @@ static void clear_cluster_pages_dirty(re
- 		lock_page(clust->pages[i]);
- 		if (PageDirty(clust->pages[i])) {
- 			assert("edward-1277", PageUptodate(clust->pages[i]));
--			test_clear_page_dirty(clust->pages[i]);
-+			cancel_dirty_page(clust->pages[i], PAGE_CACHE_SIZE);
- 		}
- #if REISER4_DEBUG
- 		else
+diff -puN fs/sysfs/group.c~fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write fs/sysfs/group.c
+--- a/fs/sysfs/group.c~fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
++++ a/fs/sysfs/group.c
+@@ -13,9 +13,9 @@
+ #include <linux/dcache.h>
+ #include <linux/namei.h>
+ #include <linux/err.h>
++#include <asm/semaphore.h>
+ #include "sysfs.h"
+ 
+-
+ static void remove_files(struct dentry * dir, 
+ 			 const struct attribute_group * grp)
+ {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -64,6 +67,7 @@ git-alsa.patch
 git-agpgart.patch
 cifs-sprintf-fix.patch
 git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
 git-dvb.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
