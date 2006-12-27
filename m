@@ -1,51 +1,60 @@
 From: akpm@osdl.org
-Subject: + git-ubi-build-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:58:12 -0800
-Message-ID: <200612272158.kBRLwSfv021210@shell0.pdx.osdl.net>
+Subject: + time-x86_64-split-x86_64-kernel-timec-up-fix.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:56:30 -0800
+Message-ID: <200612272156.kBRLukwu021179@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37661 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37873 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754803AbWL0V6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:58:34 -0500
+	id S1754804AbWL0WBb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 17:01:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dedekind@infradead.org
+Cc: akpm@osdl.org, ak@muc.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     git-ubi build fix
+     time-x86_64-split-x86_64-kernel-timec-up-fix
 has been added to the -mm tree.  Its filename is
-     git-ubi-build-fix.patch
+     time-x86_64-split-x86_64-kernel-timec-up-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ubi build fix
+Subject: time-x86_64-split-x86_64-kernel-timec-up-fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/mtd/ubi/cdev.c:356: warning: implicit declaration of function 'cond_resched'
+kernel/tsacct.c:26:1: warning: "USEC_PER_TICK" redefined
+In file included from include/linux/timex.h:187,
+                 from include/linux/sched.h:50,
+                 from kernel/tsacct.c:20:
+include/asm/timex.h:47:1: warning: this is the location of the previous definition
 
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/ubi/cdev.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/tsacct.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/mtd/ubi/cdev.c~git-ubi-build-fix drivers/mtd/ubi/cdev.c
---- a/drivers/mtd/ubi/cdev.c~git-ubi-build-fix
-+++ a/drivers/mtd/ubi/cdev.c
-@@ -22,6 +22,7 @@
- #include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/stat.h>
-+#include <linux/sched.h>
- #include <linux/ioctl.h>
- #include <linux/cdev.h>
- #include <linux/capability.h>
+diff -puN kernel/tsacct.c~time-x86_64-split-x86_64-kernel-timec-up-fix kernel/tsacct.c
+--- a/kernel/tsacct.c~time-x86_64-split-x86_64-kernel-timec-up-fix
++++ a/kernel/tsacct.c
+@@ -22,8 +22,6 @@
+ #include <linux/acct.h>
+ #include <linux/jiffies.h>
+ 
+-
+-#define USEC_PER_TICK	(USEC_PER_SEC/HZ)
+ /*
+  * fill in basic accounting fields
+  */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -173,5 +182,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-ubi-build-fix.patch
 
