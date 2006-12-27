@@ -1,291 +1,532 @@
 From: akpm@osdl.org
-Subject: + add-emi-support-to-pciehp.patch added to -mm tree
-Date: Tue, 26 Dec 2006 22:56:32 -0800
-Message-ID: <200612270656.kBR6uW8U003786@shell0.pdx.osdl.net>
+Subject: + pciehp-cleanup-wait-command-completion.patch added to -mm tree
+Date: Tue, 26 Dec 2006 22:56:27 -0800
+Message-ID: <200612270656.kBR6uSOt003780@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34720 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34726 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932956AbWL0G4e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 01:56:34 -0500
+	id S932958AbWL0G4i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 01:56:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristen.c.accardi@intel.com
+Cc: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     From: kristen.c.accardi@intel.com
+     pciehp: cleanup wait command completion
 has been added to the -mm tree.  Its filename is
-     add-emi-support-to-pciehp.patch
+     pciehp-cleanup-wait-command-completion.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: From: kristen.c.accardi@intel.com
-From: kristen.c.accardi@intel.com <kristen.c.accardi@intel.com>
+Subject: pciehp: cleanup wait command completion
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
+Clean up the code to wait for command completion.
 
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
-
-index 927dba9..d19fcae 100644
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/hotplug/pciehp.h      |    5 +
- drivers/pci/hotplug/pciehp_core.c |   81 ++++++++++++++++++++++++++++
- drivers/pci/hotplug/pciehp_hpc.c  |   55 +++++++++++++++++++
- 3 files changed, 141 insertions(+)
+ drivers/pci/hotplug/pciehp.h      |   18 --
+ drivers/pci/hotplug/pciehp_core.c |   14 -
+ drivers/pci/hotplug/pciehp_ctrl.c |  205 ++++++----------------------
+ drivers/pci/hotplug/pciehp_hpc.c  |   38 ++++-
+ 4 files changed, 82 insertions(+), 193 deletions(-)
 
-diff -puN drivers/pci/hotplug/pciehp.h~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp.h
---- a/drivers/pci/hotplug/pciehp.h~add-emi-support-to-pciehp
+diff -puN drivers/pci/hotplug/pciehp.h~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pciehp-cleanup-wait-command-completion
 +++ a/drivers/pci/hotplug/pciehp.h
-@@ -69,6 +69,7 @@ struct slot {
- 	struct hotplug_slot *hotplug_slot;
- 	struct list_head	slot_list;
- 	char name[SLOT_NAME_SIZE];
-+	unsigned long last_emi_toggle;
- };
+@@ -173,24 +173,6 @@ static inline struct slot *pciehp_find_s
+ 	return NULL;
+ }
  
- struct event_info {
-@@ -138,6 +139,7 @@ struct controller {
- #define ATTN_LED_PRSN	0x00000008
- #define PWR_LED_PRSN	0x00000010
- #define HP_SUPR_RM_SUP	0x00000020
-+#define EMI_PRSN	0x00020000
- 
- #define ATTN_BUTTN(cap)		(cap & ATTN_BUTTN_PRSN)
- #define POWER_CTRL(cap)		(cap & PWR_CTRL_PRSN)
-@@ -145,6 +147,7 @@ struct controller {
- #define ATTN_LED(cap)		(cap & ATTN_LED_PRSN)
- #define PWR_LED(cap)		(cap & PWR_LED_PRSN) 
- #define HP_SUPR_RM(cap)		(cap & HP_SUPR_RM_SUP)
-+#define EMI(cap)		(cap & EMI_PRSN)
- 
- extern int pciehp_event_start_thread(void);
- extern void pciehp_event_stop_thread(void);
-@@ -182,6 +185,8 @@ struct hpc_ops {
- 	int (*set_attention_status)(struct slot *slot, u8 status);
- 	int (*get_latch_status)(struct slot *slot, u8 *status);
- 	int (*get_adapter_status)(struct slot *slot, u8 *status);
-+	int (*get_emi_status)(struct slot *slot, u8 *status);
-+	int (*toggle_emi)(struct slot *slot);
- 	int (*get_max_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
- 	int (*get_cur_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
- 	int (*get_max_lnk_width)(struct slot *slot, enum pcie_link_width *val);
-diff -puN drivers/pci/hotplug/pciehp_core.c~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~add-emi-support-to-pciehp
+-static inline int wait_for_ctrl_irq(struct controller *ctrl)
+-{
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	add_wait_queue(&ctrl->queue, &wait);
+-	if (!pciehp_poll_mode)
+-		/* Sleep for up to 1 second */
+-		msleep_interruptible(1000);
+-	else
+-		msleep_interruptible(2500);
+-	
+-	remove_wait_queue(&ctrl->queue, &wait);
+-	if (signal_pending(current))
+-		return -EINTR;
+-
+-	return 0;
+-}
+-
+ struct hpc_ops {
+ 	int (*power_on_slot)(struct slot *slot);
+ 	int (*power_off_slot)(struct slot *slot);
+diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-wait-command-completion
 +++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -34,6 +34,7 @@
- #include <linux/pci.h>
- #include "pciehp.h"
- #include <linux/interrupt.h>
-+#include <linux/time.h>
+@@ -374,25 +374,13 @@ static int pciehp_probe(struct pcie_devi
+ 		pciehp_ctrl_list = ctrl;
+ 	}
  
- /* Global variables */
- int pciehp_debug;
-@@ -87,6 +88,76 @@ static struct hotplug_slot_ops pciehp_ho
-   	.get_cur_bus_speed =	get_cur_bus_speed,
- };
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	t_slot->hpc_ops->get_adapter_status(t_slot, &value); /* Check if slot is occupied */
+-	
+ 	if ((POWER_CTRL(ctrl->ctrlcap)) && !value) {
+ 		rc = t_slot->hpc_ops->power_off_slot(t_slot); /* Power off slot if not occupied*/
+-		if (rc) {
+-			/* Done with exclusive hardware access */
+-			mutex_unlock(&ctrl->ctrl_lock);
++		if (rc)
+ 			goto err_out_free_ctrl_slot;
+-		} else
+-			/* Wait for the command to complete */
+-			wait_for_ctrl_irq (ctrl);
+ 	}
  
-+static int get_lock_status(struct hotplug_slot *hotplug_slot, u8 *value)
-+{
-+	struct slot *slot = hotplug_slot->private;
-+	return (slot->hpc_ops->get_emi_status(slot, value));
-+}
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+-
+ 	return 0;
+ 
+ err_out_free_ctrl_slot:
+diff -puN drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp_ctrl.c
+--- a/drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-wait-command-completion
++++ a/drivers/pci/hotplug/pciehp_ctrl.c
+@@ -229,35 +229,25 @@ u8 pciehp_handle_power_fault(u8 hp_slot,
+ 
+ static void set_slot_off(struct controller *ctrl, struct slot * pslot)
+ {
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	/* turn off slot, turn on Amber LED, turn off Green LED if supported*/
+ 	if (POWER_CTRL(ctrl->ctrlcap)) {
+ 		if (pslot->hpc_ops->power_off_slot(pslot)) {   
+-			err("%s: Issue of Slot Power Off command failed\n", __FUNCTION__);
+-			mutex_unlock(&ctrl->ctrl_lock);
++			err("%s: Issue of Slot Power Off command failed\n",
++			    __FUNCTION__);
+ 			return;
+ 		}
+-		wait_for_ctrl_irq (ctrl);
+ 	}
+ 
+-	if (PWR_LED(ctrl->ctrlcap)) {
++	if (PWR_LED(ctrl->ctrlcap))
+ 		pslot->hpc_ops->green_led_off(pslot);   
+-		wait_for_ctrl_irq (ctrl);
+-	}
+ 
+-	if (ATTN_LED(ctrl->ctrlcap)) { 
+-		if (pslot->hpc_ops->set_attention_status(pslot, 1)) {   
+-			err("%s: Issue of Set Attention Led command failed\n", __FUNCTION__);
+-			mutex_unlock(&ctrl->ctrl_lock);
++	if (ATTN_LED(ctrl->ctrlcap)) {
++		if (pslot->hpc_ops->set_attention_status(pslot, 1)) {
++			err("%s: Issue of Set Attention Led command failed\n",
++			    __FUNCTION__);
+ 			return;
+ 		}
+-		wait_for_ctrl_irq (ctrl);
+ 	}
+-
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+ }
+ 
+ /**
+@@ -270,7 +260,7 @@ static void set_slot_off(struct controll
+ static int board_added(struct slot *p_slot)
+ {
+ 	u8 hp_slot;
+-	int rc = 0;
++	int retval = 0;
+ 	struct controller *ctrl = p_slot->ctrl;
+ 
+ 	hp_slot = p_slot->device - ctrl->slot_device_offset;
+@@ -279,53 +269,38 @@ static int board_added(struct slot *p_sl
+ 			__FUNCTION__, p_slot->device,
+ 			ctrl->slot_device_offset, hp_slot);
+ 
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	if (POWER_CTRL(ctrl->ctrlcap)) {
+ 		/* Power on slot */
+-		rc = p_slot->hpc_ops->power_on_slot(p_slot);
+-		if (rc) {
+-			mutex_unlock(&ctrl->ctrl_lock);
+-			return -1;
+-		}
+-
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
++		retval = p_slot->hpc_ops->power_on_slot(p_slot);
++		if (retval)
++			return retval;
+ 	}
+ 	
+-	if (PWR_LED(ctrl->ctrlcap)) {
++	if (PWR_LED(ctrl->ctrlcap))
+ 		p_slot->hpc_ops->green_led_blink(p_slot);
+-			
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
+-	}
+-
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+ 
+ 	/* Wait for ~1 second */
+-	wait_for_ctrl_irq (ctrl);
++	msleep(1000);
+ 
+-	/*  Check link training status */
+-	rc = p_slot->hpc_ops->check_lnk_status(ctrl);  
+-	if (rc) {
++	/* Check link training status */
++	retval = p_slot->hpc_ops->check_lnk_status(ctrl);
++	if (retval) {
+ 		err("%s: Failed to check link status\n", __FUNCTION__);
+ 		set_slot_off(ctrl, p_slot);
+-		return rc;
++		return retval;
+ 	}
+ 
+ 	/* Check for a power fault */
+ 	if (p_slot->hpc_ops->query_power_fault(p_slot)) {
+ 		dbg("%s: power fault detected\n", __FUNCTION__);
+-		rc = POWER_FAILURE;
++		retval = POWER_FAILURE;
+ 		goto err_exit;
+ 	}
+ 
+-	rc = pciehp_configure_device(p_slot);
+-	if (rc) {
++	retval = pciehp_configure_device(p_slot);
++	if (retval) {
+ 		err("Cannot add device 0x%x:%x\n", p_slot->bus,
+-				p_slot->device);
++		    p_slot->device);
+ 		goto err_exit;
+ 	}
+ 
+@@ -334,26 +309,16 @@ static int board_added(struct slot *p_sl
+ 	 */
+ 	if (pcie_mch_quirk)
+ 		pci_fixup_device(pci_fixup_final, ctrl->pci_dev);
+-	if (PWR_LED(ctrl->ctrlcap)) {
+-		/* Wait for exclusive access to hardware */
+-  		mutex_lock(&ctrl->ctrl_lock);
+-
++	if (PWR_LED(ctrl->ctrlcap))
+   		p_slot->hpc_ops->green_led_on(p_slot);
+-  
+-  		/* Wait for the command to complete */
+-  		wait_for_ctrl_irq (ctrl);
+-  	
+-  		/* Done with exclusive hardware access */
+-  		mutex_unlock(&ctrl->ctrl_lock);
+-  	}
 +
-+static ssize_t lock_read_file (struct hotplug_slot *slot, char *buf)
-+{
-+	int retval;
-+	u8 value;
-+
-+	retval = get_lock_status(slot, &value);
-+	if (retval)
-+		goto lock_read_exit;
-+	retval = sprintf (buf, "%d\n", value);
-+
-+lock_read_exit:
+ 	return 0;
+ 
+ err_exit:
+ 	set_slot_off(ctrl, p_slot);
+-	return -1;
 +	return retval;
-+}
-+
-+static int set_lock_status(struct hotplug_slot *hotplug_slot, u8 status)
+ }
+ 
+-
+ /**
+  * remove_board - Turns off slot and LED's
+  *
+@@ -362,44 +327,32 @@ static int remove_board(struct slot *p_s
+ {
+ 	u8 device;
+ 	u8 hp_slot;
+-	int rc;
++	int retval = 0;
+ 	struct controller *ctrl = p_slot->ctrl;
+ 
+-	if (pciehp_unconfigure_device(p_slot))
+-		return 1;
++	retval = pciehp_unconfigure_device(p_slot);
++	if (retval)
++		return retval;
+ 
+ 	device = p_slot->device;
+-
+ 	hp_slot = p_slot->device - ctrl->slot_device_offset;
+ 	p_slot = pciehp_find_slot(ctrl, hp_slot + ctrl->slot_device_offset);
+ 
+ 	dbg("In %s, hp_slot = %d\n", __FUNCTION__, hp_slot);
+ 
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	if (POWER_CTRL(ctrl->ctrlcap)) {
+ 		/* power off slot */
+-		rc = p_slot->hpc_ops->power_off_slot(p_slot);
+-		if (rc) {
+-			err("%s: Issue of Slot Disable command failed\n", __FUNCTION__);
+-			mutex_unlock(&ctrl->ctrl_lock);
+-			return rc;
++		retval = p_slot->hpc_ops->power_off_slot(p_slot);
++		if (retval) {
++			err("%s: Issue of Slot Disable command failed\n",
++			    __FUNCTION__);
++			return retval;
+ 		}
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
+ 	}
+ 
+-	if (PWR_LED(ctrl->ctrlcap)) {
++	if (PWR_LED(ctrl->ctrlcap))
+ 		/* turn off Green LED */
+ 		p_slot->hpc_ops->green_led_off(p_slot);
+-	
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
+-	}
+-
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+ 
+ 	return 0;
+ }
+@@ -444,18 +397,10 @@ static void pciehp_pushbutton_thread(uns
+ 		dbg("%s: adding bus:device(%x:%x)\n", __FUNCTION__,
+ 				p_slot->bus, p_slot->device);
+ 
+-		if (pciehp_enable_slot(p_slot) && PWR_LED(p_slot->ctrl->ctrlcap)) {
+-			/* Wait for exclusive access to hardware */
+-			mutex_lock(&p_slot->ctrl->ctrl_lock);
+-
++		if (pciehp_enable_slot(p_slot) &&
++		    PWR_LED(p_slot->ctrl->ctrlcap))
+ 			p_slot->hpc_ops->green_led_off(p_slot);
+ 
+-			/* Wait for the command to complete */
+-			wait_for_ctrl_irq (p_slot->ctrl);
+-
+-			/* Done with exclusive hardware access */
+-			mutex_unlock(&p_slot->ctrl->ctrl_lock);
+-		}
+ 		p_slot->state = STATIC_STATE;
+ 	}
+ 
+@@ -494,18 +439,10 @@ static void pciehp_surprise_rm_thread(un
+ 		dbg("%s: adding bus:device(%x:%x)\n",
+ 				__FUNCTION__, p_slot->bus, p_slot->device);
+ 
+-		if (pciehp_enable_slot(p_slot) && PWR_LED(p_slot->ctrl->ctrlcap)) {
+-			/* Wait for exclusive access to hardware */
+-			mutex_lock(&p_slot->ctrl->ctrl_lock);
+-
++		if (pciehp_enable_slot(p_slot) &&
++		    PWR_LED(p_slot->ctrl->ctrlcap))
+ 			p_slot->hpc_ops->green_led_off(p_slot);
+ 
+-			/* Wait for the command to complete */
+-			wait_for_ctrl_irq (p_slot->ctrl);
+-
+-			/* Done with exclusive hardware access */
+-			mutex_unlock(&p_slot->ctrl->ctrl_lock);
+-		}
+ 		p_slot->state = STATIC_STATE;
+ 	}
+ 
+@@ -616,40 +553,18 @@ static void interrupt_event_handler(stru
+ 
+ 					switch (p_slot->state) {
+ 					case BLINKINGOFF_STATE:
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-						
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_on(p_slot);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						if (ATTN_LED(ctrl->ctrlcap)) {
+-							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
++						if (ATTN_LED(ctrl->ctrlcap))
++							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 						break;
+ 					case BLINKINGON_STATE:
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_off(p_slot);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						if (ATTN_LED(ctrl->ctrlcap)){
+-							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
+ 
++						if (ATTN_LED(ctrl->ctrlcap))
++							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 						break;
+ 					default:
+ 						warn("Not a valid state\n");
+@@ -676,26 +591,13 @@ static void interrupt_event_handler(stru
+ 							info("PCI slot #%s - powering on due to button press.\n", slot_name(p_slot));
+ 						}
+ 
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-
+ 						/* blink green LED and turn off amber */
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_blink(p_slot);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+ 
+-						if (ATTN_LED(ctrl->ctrlcap)) {
++						if (ATTN_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
+-
+ 						init_timer(&p_slot->task_event);
+ 						p_slot->task_event.expires = jiffies + 5 * HZ;   /* 5 second delay */
+ 						p_slot->task_event.function = (void (*)(unsigned long)) pushbutton_helper_thread;
+@@ -708,21 +610,11 @@ static void interrupt_event_handler(stru
+ 				else if (ctrl->event_queue[loop].event_type == INT_POWER_FAULT) {
+ 					if (POWER_CTRL(ctrl->ctrlcap)) {
+ 						dbg("power fault\n");
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-
+-						if (ATTN_LED(ctrl->ctrlcap)) {
++						if (ATTN_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->set_attention_status(p_slot, 1);
+-							wait_for_ctrl_irq (ctrl);
+-						}
+ 
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_off(p_slot);
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
+ 					}
+ 				}
+ 				/***********SURPRISE REMOVAL********************/
+@@ -750,7 +642,6 @@ static void interrupt_event_handler(stru
+ 	}
+ }
+ 
+-
+ int pciehp_enable_slot(struct slot *p_slot)
+ {
+ 	u8 getstatus = 0;
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~pciehp-cleanup-wait-command-completion
++++ a/drivers/pci/hotplug/pciehp_hpc.c
+@@ -249,6 +249,24 @@ static void start_int_poll_timer(struct 
+ 	add_timer(&ctrl->poll_timer);
+ }
+ 
++static inline int pcie_wait_cmd(struct controller *ctrl)
 +{
-+	struct slot *slot = hotplug_slot->private;
-+	int retval;
-+	u8 value;
++	DECLARE_WAITQUEUE(wait, current);
 +
-+	/* has it been >1 sec since our last toggle? */
-+	if ((get_seconds() - slot->last_emi_toggle) < 1)
-+		return -EINVAL;
++	add_wait_queue(&ctrl->queue, &wait);
++	if (!pciehp_poll_mode)
++		/* Sleep for up to 1 second */
++		msleep_interruptible(1000);
++	else
++		msleep_interruptible(2500);
 +
-+	/* see what our current state is */
-+	retval = get_lock_status(hotplug_slot, &value);
-+	if (retval || (value == status))
-+		goto set_lock_exit;
++	remove_wait_queue(&ctrl->queue, &wait);
++	if (signal_pending(current))
++		return -EINTR;
 +
-+	slot->hpc_ops->toggle_emi(slot);
-+set_lock_exit:
 +	return 0;
 +}
 +
-+static ssize_t lock_write_file (struct hotplug_slot *slot, const char *buf,
-+		size_t count)
-+{
-+	unsigned long llock;
-+	u8 lock;
-+	int retval = 0;
-+
-+	llock = simple_strtoul (buf, NULL, 10);
-+	lock = (u8)(llock & 0xff);
-+
-+	switch (lock) {
-+		case 0:
-+		case 1:
-+			retval = set_lock_status(slot, lock);
-+			break;
-+		default:
-+			err ("%d is an invalid lock value\n", lock);
-+			retval = -EINVAL;
-+	}
-+	if (retval)
-+		return retval;
-+	return count;
-+}
-+
-+static struct hotplug_slot_attribute hotplug_slot_attr_lock = {
-+	.attr = {.name = "lock", .mode = S_IFREG | S_IRUGO | S_IWUSR},
-+	.show = lock_read_file,
-+	.store = lock_write_file
-+};
-+
- /**
-  * release_slot - free up the memory used by a slot
-  * @hotplug_slot: slot to free
-@@ -159,6 +230,16 @@ static int init_slots(struct controller 
- 			err ("pci_hp_register failed with error %d\n", retval);
- 			goto error_info;
- 		}
-+		/* create additional sysfs entries */
-+		if (EMI(ctrl->ctrlcap)) {
-+			retval = sysfs_create_file(&hotplug_slot->kobj,
-+				&hotplug_slot_attr_lock.attr);
-+			if (retval) {
-+				pci_hp_deregister(hotplug_slot);
-+				err("cannot create additional sysfs entries\n");
-+				goto error_info;
-+			}
-+		}
- 
- 		list_add(&slot->slot_list, &ctrl->slot_list);
- 	}
-diff -puN drivers/pci/hotplug/pciehp_hpc.c~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp_hpc.c
---- a/drivers/pci/hotplug/pciehp_hpc.c~add-emi-support-to-pciehp
-+++ a/drivers/pci/hotplug/pciehp_hpc.c
-@@ -35,6 +35,7 @@
- #include <linux/timer.h>
- #include <linux/pci.h>
- #include <linux/interrupt.h>
-+#include <linux/time.h>
- 
- #include "../pci.h"
- #include "pciehp.h"
-@@ -192,6 +193,7 @@ static inline int pciehp_writel(struct c
- #define ATTN_LED_CTRL			0x00C0
- #define PWR_LED_CTRL			0x0300
- #define PWR_CTRL			0x0400
-+#define EMI_CTRL			0x0800
- 
- /* Attention indicator and Power indicator states */
- #define LED_ON		0x01
-@@ -202,6 +204,10 @@ static inline int pciehp_writel(struct c
- #define POWER_ON	0
- #define POWER_OFF	0x0400
- 
-+/* EMI Status defines */
-+#define EMI_DISENGAGED	0
-+#define EMI_ENGAGED	1
-+
- /* Field definitions in Slot Status Register */
- #define ATTN_BUTTN_PRESSED	0x0001
- #define PWR_FAULT_DETECTED	0x0002
-@@ -210,6 +216,8 @@ static inline int pciehp_writel(struct c
- #define CMD_COMPLETED		0x0010
- #define MRL_STATE		0x0020
- #define PRSN_STATE		0x0040
-+#define EMI_STATE		0x0080
-+#define EMI_STATUS_BIT		7
- 
- static spinlock_t hpc_event_lock;
- 
-@@ -474,6 +482,51 @@ static int hpc_query_power_fault(struct 
- 	return pwr_fault;
- }
- 
-+static int hpc_get_emi_status(struct slot * slot, u8* status)
-+{
-+	struct controller *ctrl = slot->ctrl;
-+	u16 slot_status;
-+	int retval = 0;
-+
-+	DBG_ENTER_ROUTINE
-+
-+	retval = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
-+	if (retval) {
-+		err("%s : Cannot check EMI status\n", __FUNCTION__);
-+		return retval;
-+	}
-+	*status = (slot_status & EMI_STATE) >> EMI_STATUS_BIT;
-+
-+	DBG_LEAVE_ROUTINE
-+	return retval;
-+}
-+
-+static int hpc_toggle_emi(struct slot *slot)
-+{
-+	struct controller *ctrl = slot->ctrl;
-+	u16 slot_cmd = 0;
-+	u16 slot_ctrl;
-+	int rc = 0;
-+
-+	DBG_ENTER_ROUTINE
-+
-+	rc = pciehp_readw(ctrl, SLOTCTRL, &slot_ctrl);
-+	if (rc) {
-+		err("%s : hp_register_read_word SLOT_CTRL failed\n",
-+			__FUNCTION__);
-+		return rc;
-+	}
-+
-+	slot_cmd = (slot_ctrl | EMI_CTRL);
-+	if (!pciehp_poll_mode)
-+		slot_cmd = slot_cmd | HP_INTR_ENABLE;
-+
-+	pcie_write_cmd(slot, slot_cmd);
-+	slot->last_emi_toggle = get_seconds();
-+	DBG_LEAVE_ROUTINE
-+	return rc;
-+}
-+
- static int hpc_set_attention_status(struct slot *slot, u8 value)
+ static int pcie_write_cmd(struct slot *slot, u16 cmd)
  {
  	struct controller *ctrl = slot->ctrl;
-@@ -1009,6 +1062,8 @@ static struct hpc_ops pciehp_hpc_ops = {
- 	.get_attention_status		= hpc_get_attention_status,
- 	.get_latch_status		= hpc_get_latch_status,
- 	.get_adapter_status		= hpc_get_adapter_status,
-+	.get_emi_status			= hpc_get_emi_status,
-+	.toggle_emi			= hpc_toggle_emi,
+@@ -257,24 +275,34 @@ static int pcie_write_cmd(struct slot *s
  
- 	.get_max_bus_speed		= hpc_get_max_lnk_speed,
- 	.get_cur_bus_speed		= hpc_get_cur_lnk_speed,
+ 	DBG_ENTER_ROUTINE 
+ 
++	mutex_lock(&ctrl->ctrl_lock);
++
+ 	retval = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
+ 	if (retval) {
+ 		err("%s: Cannot read SLOTSTATUS register\n", __FUNCTION__);
+-		return retval;
++		goto out;
+ 	}
+ 
+ 	if ((slot_status & CMD_COMPLETED) == CMD_COMPLETED ) { 
+-		/* After 1 sec and CMD_COMPLETED still not set, just proceed forward to issue 
+-		   the next command according to spec.  Just print out the error message */
+-		dbg("%s : CMD_COMPLETED not clear after 1 sec.\n", __FUNCTION__);
++		/* After 1 sec and CMD_COMPLETED still not set, just
++		   proceed forward to issue the next command according
++		   to spec.  Just print out the error message */
++		dbg("%s: CMD_COMPLETED not clear after 1 sec.\n",
++		    __FUNCTION__);
+ 	}
+ 
+ 	retval = pciehp_writew(ctrl, SLOTCTRL, (cmd | CMD_CMPL_INTR_ENABLE));
+ 	if (retval) {
+ 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
+-		return retval;
++		goto out;
+ 	}
+ 
++	/*
++	 * Wait for command completion.
++	 */
++	retval = pcie_wait_cmd(ctrl);
++ out:
++	mutex_unlock(&ctrl->ctrl_lock);
+ 	DBG_LEAVE_ROUTINE 
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
 
-git-acpi.patch
-git-libata-all.patch
 pciehp-cleanup-init_slot.patch
 pciehp-cleanup-slot-list.patch
 pciehp-remove-unnecessary-php_ctlr.patch
@@ -295,5 +536,4 @@ pciehp-cleanup-pciehph.patch
 pciehp-remove-unused-pcie_cap_base.patch
 pciehp-cleanup-wait-command-completion.patch
 pciehp-fix-wait-command-completion.patch
-add-emi-support-to-pciehp.patch
 
