@@ -1,56 +1,55 @@
 From: akpm@osdl.org
-Subject: + fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:46:02 -0800
-Message-ID: <200612272146.kBRLkIKM021014@shell0.pdx.osdl.net>
+Subject: + git-iee1394-printk-warning-fix.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:51:57 -0800
+Message-ID: <200612272152.kBRLqDPd021108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36961 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37239 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754788AbWL0Vq2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:46:28 -0500
+	id S1754780AbWL0Vw1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:52:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, gregkh@suse.de, oliver@neukum.org
+Cc: akpm@osdl.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
+     git-iee1394-printk-warning-fix
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+     git-iee1394-printk-warning-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
+Subject: git-iee1394-printk-warning-fix
 From: Andrew Morton <akpm@osdl.org>
 
-In file included from fs/sysfs/group.c:16:
-fs/sysfs/sysfs.h:42: error: field 'sem' has incomplete type
+drivers/firewire/fw-ohci.c: In function 'ar_context_init':
+drivers/firewire/fw-ohci.c:288: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'dma_addr_t'
 
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: Greg KH <gregkh@suse.de>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/sysfs/group.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firewire/fw-ohci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/sysfs/group.c~fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write fs/sysfs/group.c
---- a/fs/sysfs/group.c~fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
-+++ a/fs/sysfs/group.c
-@@ -13,9 +13,9 @@
- #include <linux/dcache.h>
- #include <linux/namei.h>
- #include <linux/err.h>
-+#include <asm/semaphore.h>
- #include "sysfs.h"
+diff -puN drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix drivers/firewire/fw-ohci.c
+--- a/drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix
++++ a/drivers/firewire/fw-ohci.c
+@@ -285,8 +285,8 @@ ar_context_init(struct ar_context *ctx, 
+ 		return -ENOMEM;
  
--
- static void remove_files(struct dentry * dir, 
- 			 const struct attribute_group * grp)
- {
+ 	if (ctx->descriptor_bus & 0xf)
+-		fw_notify("descriptor not 16-byte aligned: 0x%08x\n",
+-			  ctx->descriptor_bus);
++		fw_notify("descriptor not 16-byte aligned: 0x%08lx\n",
++			  (unsigned long)ctx->descriptor_bus);
+ 
+ 	ctx->buffer_bus =
+ 		dma_map_single(ohci->card.device, ctx->buffer,
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -176,4 +175,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-iee1394-printk-warning-fix.patch
 
