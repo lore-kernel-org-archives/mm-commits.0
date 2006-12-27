@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + lockdep-printk-warning-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 15:29:11 -0800
-Message-ID: <200612272329.kBRNTSR3022638@shell0.pdx.osdl.net>
+Subject: + debugging-feature-proc-timer_list-warning-fix.patch added to -mm tree
+Date: Wed, 27 Dec 2006 15:34:13 -0800
+Message-ID: <200612272334.kBRNYU9F022724@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42575 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43017 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964785AbWL0X3d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 18:29:33 -0500
+	id S964785AbWL0Xei (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 18:34:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,55 +15,74 @@ Cc: akpm@osdl.org, mingo@elte.hu
 
 
 The patch titled
-     lockdep: printk warning fix
+     debugging-feature-proc-timer_list-warning-fix
 has been added to the -mm tree.  Its filename is
-     lockdep-printk-warning-fix.patch
+     debugging-feature-proc-timer_list-warning-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep: printk warning fix
+Subject: debugging-feature-proc-timer_list-warning-fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/lockdep.c: In function `lookup_chain_cache':
-kernel/lockdep.c:1339: warning: long long unsigned int format, u64 arg (arg 2)
-kernel/lockdep.c:1344: warning: long long unsigned int format, u64 arg (arg 2)
+kernel/time/timer_list.c: In function `print_timer':
+kernel/time/timer_list.c:72: warning: long long int format, s64 arg (arg 3)
+kernel/time/timer_list.c:72: warning: long long int format, long unsigned int arg (arg 4)
+kernel/time/timer_list.c:72: warning: long long int format, s64 arg (arg 2)
+kernel/time/timer_list.c:72: warning: long long int format, long unsigned int arg (arg 3)
+kernel/time/timer_list.c: In function `print_base':
+kernel/time/timer_list.c:118: warning: long long int format, s64 arg (arg 3)
+kernel/time/timer_list.c:118: warning: long long int format, s64 arg (arg 2)
+kernel/time/timer_list.c: In function `timer_list_show':
+kernel/time/timer_list.c:201: warning: long long int format, u64 arg (arg 3)
+kernel/time/timer_list.c:201: warning: long long int format, u64 arg (arg 2)
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/time/timer_list.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-printk-warning-fix kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-printk-warning-fix
-+++ a/kernel/lockdep.c
-@@ -1318,12 +1318,16 @@ static inline int lookup_chain_cache(u64
- cache_hit:
- 			debug_atomic_inc(&chain_lookup_hits);
- 			if (very_verbose(class))
--				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
-+				printk("\nhash chain already cached, key: "
-+					"%016Lx tail class: [%p] %s\n",
-+					(unsigned long long)chain_key,
-+					class->key, class->name);
- 			return 0;
- 		}
- 	}
- 	if (very_verbose(class))
--		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
-+		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n",
-+			(unsigned long long)chain_key, class->key, class->name);
- 	/*
- 	 * Allocate a new chain entry from the static array, and add
- 	 * it to the hash:
+diff -puN kernel/time/timer_list.c~debugging-feature-proc-timer_list-warning-fix kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~debugging-feature-proc-timer_list-warning-fix
++++ a/kernel/time/timer_list.c
+@@ -70,8 +70,8 @@ print_timer(struct seq_file *m, struct h
+ #endif
+ 	SEQ_printf(m, "\n");
+ 	SEQ_printf(m, " # expires at %Ld nsecs [in %Ld nsecs]\n",
+-		ktime_to_ns(timer->expires),
+-		ktime_to_ns(timer->expires) - now);
++		(unsigned long long)ktime_to_ns(timer->expires),
++		(unsigned long long)(ktime_to_ns(timer->expires) - now));
+ }
+ 
+ static void
+@@ -116,7 +116,7 @@ print_base(struct seq_file *m, struct hr
+ 	SEQ_printf(m, "  .index:      %d\n",
+ 			base->index);
+ 	SEQ_printf(m, "  .resolution: %Ld nsecs\n",
+-			ktime_to_ns(base->resolution));
++			(unsigned long long)ktime_to_ns(base->resolution));
+ 	SEQ_printf(m,   "  .get_time:   ");
+ 	print_name_offset(m, base->get_time);
+ 	SEQ_printf(m,   "\n");
+@@ -198,7 +198,7 @@ static int timer_list_show(struct seq_fi
+ 
+ 	SEQ_printf(m, "Timer List Version: v0.1\n");
+ 	SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n", HRTIMER_MAX_CLOCK_BASES);
+-	SEQ_printf(m, "now at %Ld nsecs\n", now);
++	SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
+ 
+ 	for_each_online_cpu(cpu)
+ 		print_cpu(m, cpu, now);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 cpuset-procfs-warning-fix.patch
+lockdep-printk-warning-fix.patch
 down_write-preserve-local-irqs.patch
 shrink_all_memory-fix-lru_pages-handling.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
@@ -136,6 +155,7 @@ gtod-persistent-clock-support-i386.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
 clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
 time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
 time-x86_64-split-x86_64-kernel-timec-up-fix.patch
@@ -193,5 +213,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-lockdep-printk-warning-fix.patch
 
