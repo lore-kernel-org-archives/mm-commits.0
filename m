@@ -1,44 +1,163 @@
 From: akpm@osdl.org
-Subject: - add-emi-support-to-pciehp.patch removed from -mm tree
-Date: Tue, 26 Dec 2006 23:38:07 -0800
-Message-ID: <200612270738.kBR7c7Yh004554@shell0.pdx.osdl.net>
+Subject: + pciehp-add-emi-support.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:39:57 -0800
+Message-ID: <200612270739.kBR7dvQE004584@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36905 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37054 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932968AbWL0HiK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:38:10 -0500
+	id S932970AbWL0HkB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:40:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kristen.c.accardi@intel.com, greg@kroah.com
 
 
 The patch titled
-     From: kristen.c.accardi@intel.com
-has been removed from the -mm tree.  Its filename was
-     add-emi-support-to-pciehp.patch
+     pciehp: add EMI support
+has been added to the -mm tree.  Its filename is
+     pciehp-add-emi-support.patch
 
-This patch was dropped because an updated version will be merged
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: From: kristen.c.accardi@intel.com
-From: kristen.c.accardi@intel.com <kristen.c.accardi@intel.com>
+Subject: pciehp: add EMI support
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
+Add EMI support for PCIE hotplug.  ("Electromechanical Interlock", we think).
 
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
-
-index 927dba9..d19fcae 100644
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  drivers/pci/hotplug/pciehp.h      |    5 +
- drivers/pci/hotplug/pciehp_core.c |   81 ++++++++++++++++++++++++++++
- drivers/pci/hotplug/pciehp_hpc.c  |   55 +++++++++++++++++++
- 3 files changed, 141 insertions(+)
+ drivers/pci/hotplug/pciehp_core.c |   87 ++++++++++++++++++++++++++++
+ drivers/pci/hotplug/pciehp_hpc.c  |   55 +++++++++++++++++
+ 3 files changed, 147 insertions(+)
 
-diff -puN drivers/pci/hotplug/pciehp.h~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp.h
---- a/drivers/pci/hotplug/pciehp.h~add-emi-support-to-pciehp
+diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-add-emi-support drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pciehp-add-emi-support
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -34,6 +34,7 @@
+ #include <linux/pci.h>
+ #include "pciehp.h"
+ #include <linux/interrupt.h>
++#include <linux/time.h>
+ 
+ /* Global variables */
+ int pciehp_debug;
+@@ -87,6 +88,79 @@ static struct hotplug_slot_ops pciehp_ho
+   	.get_cur_bus_speed =	get_cur_bus_speed,
+ };
+ 
++static int get_lock_status(struct hotplug_slot *hotplug_slot, u8 *value)
++{
++	struct slot *slot = hotplug_slot->private;
++	return (slot->hpc_ops->get_emi_status(slot, value));
++}
++
++static ssize_t lock_read_file(struct hotplug_slot *slot, char *buf)
++{
++	int retval;
++	u8 value;
++
++	retval = get_lock_status(slot, &value);
++	if (retval)
++		goto lock_read_exit;
++	retval = sprintf (buf, "%d\n", value);
++
++lock_read_exit:
++	return retval;
++}
++
++static int set_lock_status(struct hotplug_slot *hotplug_slot, u8 status)
++{
++	struct slot *slot = hotplug_slot->private;
++	int retval;
++	u8 value;
++
++	/* has it been >1 sec since our last toggle? */
++	if ((get_seconds() - slot->last_emi_toggle) < 1)
++		return -EINVAL;
++
++	mutex_lock(&slot->ctrl->crit_sect);
++
++	/* see what our current state is */
++	retval = get_lock_status(hotplug_slot, &value);
++	if (retval || (value == status))
++		goto set_lock_exit;
++
++	slot->hpc_ops->toggle_emi(slot);
++set_lock_exit:
++	mutex_unlock(&slot->ctrl->crit_sect);
++	return 0;
++}
++
++static ssize_t lock_write_file(struct hotplug_slot *slot, const char *buf,
++		size_t count)
++{
++	unsigned long llock;
++	u8 lock;
++	int retval = 0;
++
++	llock = simple_strtoul(buf, NULL, 10);
++	lock = (u8)(llock & 0xff);
++
++	switch (lock) {
++		case 0:
++		case 1:
++			retval = set_lock_status(slot, lock);
++			break;
++		default:
++			err ("%d is an invalid lock value\n", lock);
++			retval = -EINVAL;
++	}
++	if (retval)
++		return retval;
++	return count;
++}
++
++static struct hotplug_slot_attribute hotplug_slot_attr_lock = {
++	.attr = {.name = "lock", .mode = S_IFREG | S_IRUGO | S_IWUSR},
++	.show = lock_read_file,
++	.store = lock_write_file
++};
++
+ /**
+  * release_slot - free up the memory used by a slot
+  * @hotplug_slot: slot to free
+@@ -159,6 +233,16 @@ static int init_slots(struct controller 
+ 			err ("pci_hp_register failed with error %d\n", retval);
+ 			goto error_info;
+ 		}
++		/* create additional sysfs entries */
++		if (EMI(ctrl->ctrlcap)) {
++			retval = sysfs_create_file(&hotplug_slot->kobj,
++				&hotplug_slot_attr_lock.attr);
++			if (retval) {
++				pci_hp_deregister(hotplug_slot);
++				err("cannot create additional sysfs entries\n");
++				goto error_info;
++			}
++		}
+ 
+ 		list_add(&slot->slot_list, &ctrl->slot_list);
+ 	}
+@@ -183,6 +267,9 @@ static void cleanup_slots(struct control
+ 	list_for_each_safe(tmp, next, &ctrl->slot_list) {
+ 		slot = list_entry(tmp, struct slot, slot_list);
+ 		list_del(&slot->slot_list);
++		if (EMI(ctrl->ctrlcap))
++			sysfs_remove_file(&slot->hotplug_slot->kobj,
++				&hotplug_slot_attr_lock.attr);
+ 		pci_hp_deregister(slot->hotplug_slot);
+ 	}
+ }
+diff -puN drivers/pci/hotplug/pciehp.h~pciehp-add-emi-support drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pciehp-add-emi-support
 +++ a/drivers/pci/hotplug/pciehp.h
 @@ -69,6 +69,7 @@ struct slot {
  	struct hotplug_slot *hotplug_slot;
@@ -73,113 +192,8 @@ diff -puN drivers/pci/hotplug/pciehp.h~add-emi-support-to-pciehp drivers/pci/hot
  	int (*get_max_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
  	int (*get_cur_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
  	int (*get_max_lnk_width)(struct slot *slot, enum pcie_link_width *val);
-diff -puN drivers/pci/hotplug/pciehp_core.c~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~add-emi-support-to-pciehp
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -34,6 +34,7 @@
- #include <linux/pci.h>
- #include "pciehp.h"
- #include <linux/interrupt.h>
-+#include <linux/time.h>
- 
- /* Global variables */
- int pciehp_debug;
-@@ -87,6 +88,76 @@ static struct hotplug_slot_ops pciehp_ho
-   	.get_cur_bus_speed =	get_cur_bus_speed,
- };
- 
-+static int get_lock_status(struct hotplug_slot *hotplug_slot, u8 *value)
-+{
-+	struct slot *slot = hotplug_slot->private;
-+	return (slot->hpc_ops->get_emi_status(slot, value));
-+}
-+
-+static ssize_t lock_read_file (struct hotplug_slot *slot, char *buf)
-+{
-+	int retval;
-+	u8 value;
-+
-+	retval = get_lock_status(slot, &value);
-+	if (retval)
-+		goto lock_read_exit;
-+	retval = sprintf (buf, "%d\n", value);
-+
-+lock_read_exit:
-+	return retval;
-+}
-+
-+static int set_lock_status(struct hotplug_slot *hotplug_slot, u8 status)
-+{
-+	struct slot *slot = hotplug_slot->private;
-+	int retval;
-+	u8 value;
-+
-+	/* has it been >1 sec since our last toggle? */
-+	if ((get_seconds() - slot->last_emi_toggle) < 1)
-+		return -EINVAL;
-+
-+	/* see what our current state is */
-+	retval = get_lock_status(hotplug_slot, &value);
-+	if (retval || (value == status))
-+		goto set_lock_exit;
-+
-+	slot->hpc_ops->toggle_emi(slot);
-+set_lock_exit:
-+	return 0;
-+}
-+
-+static ssize_t lock_write_file (struct hotplug_slot *slot, const char *buf,
-+		size_t count)
-+{
-+	unsigned long llock;
-+	u8 lock;
-+	int retval = 0;
-+
-+	llock = simple_strtoul (buf, NULL, 10);
-+	lock = (u8)(llock & 0xff);
-+
-+	switch (lock) {
-+		case 0:
-+		case 1:
-+			retval = set_lock_status(slot, lock);
-+			break;
-+		default:
-+			err ("%d is an invalid lock value\n", lock);
-+			retval = -EINVAL;
-+	}
-+	if (retval)
-+		return retval;
-+	return count;
-+}
-+
-+static struct hotplug_slot_attribute hotplug_slot_attr_lock = {
-+	.attr = {.name = "lock", .mode = S_IFREG | S_IRUGO | S_IWUSR},
-+	.show = lock_read_file,
-+	.store = lock_write_file
-+};
-+
- /**
-  * release_slot - free up the memory used by a slot
-  * @hotplug_slot: slot to free
-@@ -159,6 +230,16 @@ static int init_slots(struct controller 
- 			err ("pci_hp_register failed with error %d\n", retval);
- 			goto error_info;
- 		}
-+		/* create additional sysfs entries */
-+		if (EMI(ctrl->ctrlcap)) {
-+			retval = sysfs_create_file(&hotplug_slot->kobj,
-+				&hotplug_slot_attr_lock.attr);
-+			if (retval) {
-+				pci_hp_deregister(hotplug_slot);
-+				err("cannot create additional sysfs entries\n");
-+				goto error_info;
-+			}
-+		}
- 
- 		list_add(&slot->slot_list, &ctrl->slot_list);
- 	}
-diff -puN drivers/pci/hotplug/pciehp_hpc.c~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp_hpc.c
---- a/drivers/pci/hotplug/pciehp_hpc.c~add-emi-support-to-pciehp
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~pciehp-add-emi-support drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~pciehp-add-emi-support
 +++ a/drivers/pci/hotplug/pciehp_hpc.c
 @@ -35,6 +35,7 @@
  #include <linux/timer.h>
@@ -221,7 +235,7 @@ diff -puN drivers/pci/hotplug/pciehp_hpc.c~add-emi-support-to-pciehp drivers/pci
  	return pwr_fault;
  }
  
-+static int hpc_get_emi_status(struct slot * slot, u8* status)
++static int hpc_get_emi_status(struct slot *slot, u8 *status)
 +{
 +	struct controller *ctrl = slot->ctrl;
 +	u16 slot_status;
@@ -293,5 +307,5 @@ pciehp-cleanup-pciehph.patch
 pciehp-remove-unused-pcie_cap_base.patch
 pciehp-cleanup-wait-command-completion.patch
 pciehp-fix-wait-command-completion.patch
-add-emi-support-to-pciehp.patch
+pciehp-add-emi-support.patch
 
