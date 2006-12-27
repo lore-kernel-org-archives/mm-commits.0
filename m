@@ -1,249 +1,297 @@
 From: akpm@osdl.org
-Subject: + mmc-add-support-for-sdhc-cards.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:37:02 -0800
-Message-ID: <200612270737.kBR7b2GZ004540@shell0.pdx.osdl.net>
+Subject: - add-emi-support-to-pciehp.patch removed from -mm tree
+Date: Tue, 26 Dec 2006 23:38:07 -0800
+Message-ID: <200612270738.kBR7c7Yh004554@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36869 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36905 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932967AbWL0Hho (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:37:44 -0500
+	id S932968AbWL0HiK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:38:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: philipl@overt.org, drzeus@drzeus.cx
+To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: Add support for SDHC cards
-has been added to the -mm tree.  Its filename is
-     mmc-add-support-for-sdhc-cards.patch
+     From: kristen.c.accardi@intel.com
+has been removed from the -mm tree.  Its filename was
+     add-emi-support-to-pciehp.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mmc: Add support for SDHC cards
-From: Philip Langdale <philipl@overt.org>
+Subject: From: kristen.c.accardi@intel.com
+From: kristen.c.accardi@intel.com <kristen.c.accardi@intel.com>
 
-Thanks to the generous donation of an SDHC card by John Gilmore, and the
-surprisingly enlightened decision by the SD Card Association to publish
-useful specs, I've been able to bash out support for SDHC.  The changes are
-not too profound:
 
-i) Add a card flag indicating the card uses block level addressing and
-   check it in the block driver.  As we never took advantage of byte-level
-   addressing, this simply involves skipping the block -> byte translation
-   when sending commands.
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+---
 
-ii) The layout of the CSD is changed - a set of fields are discarded to
-    make space for a larger C_SIZE.  We did not reference any of the
-    discarded fields except those related to the C_SIZE.
-
-iii) Read and write timeouts are fixed values and not calculated from
-     CSD values.
-
-iv) Before invoking SEND_APP_OP_COND, we must invoke the new
-    SEND_IF_COND to inform the card we support SDHC.
-
-I've done some basic read and write tests and everything seems to work fine
-but one should obviously use caution in case it eats your data.
-
-Addendum: Similar spec changes were introduced by the MMC Association in
-version 4.2 to switch to block addressing.  We do not have access to the
-4.2 spec or even a change summary as we did for 3 -> 4.  My guess as to
-what's changed looks something like the following:
-
-i) A new field is added to the ext_csd to store the capacity that cannot
-   be described using existing csd fields.
-
-ii) A new field is added to the ext_csd to indicate the need for block
-    addressing.
-
-iii) A new write-only field is added to the ext_csd which has to be
-     toggled to tell the card that the host supports block-addressing.  But
-     perhaps compatibility requires that a new command be used like for
-     SDHC...
-
-If someone has access to the spec and can shed some light on the subject in
-a legal way, please let us know.  Of course, I don't think there are any
-MMC HC cards on the market yet, but one was announced last month.
-
-Signed-off-by: Philipl Langdale <philipl@overt.org>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+index 927dba9..d19fcae 100644
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mmc/mmc.c            |   40 ++++++++++++++++++++++++++++-----
- drivers/mmc/mmc_block.c      |    4 ++-
- include/linux/mmc/card.h     |    3 ++
- include/linux/mmc/mmc.h      |    1 
- include/linux/mmc/protocol.h |   13 +++++++++-
- 5 files changed, 54 insertions(+), 7 deletions(-)
+ drivers/pci/hotplug/pciehp.h      |    5 +
+ drivers/pci/hotplug/pciehp_core.c |   81 ++++++++++++++++++++++++++++
+ drivers/pci/hotplug/pciehp_hpc.c  |   55 +++++++++++++++++++
+ 3 files changed, 141 insertions(+)
 
-diff -puN drivers/mmc/mmc_block.c~mmc-add-support-for-sdhc-cards drivers/mmc/mmc_block.c
---- a/drivers/mmc/mmc_block.c~mmc-add-support-for-sdhc-cards
-+++ a/drivers/mmc/mmc_block.c
-@@ -237,7 +237,9 @@ static int mmc_blk_issue_rq(struct mmc_q
- 		brq.mrq.cmd = &brq.cmd;
- 		brq.mrq.data = &brq.data;
+diff -puN drivers/pci/hotplug/pciehp.h~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~add-emi-support-to-pciehp
++++ a/drivers/pci/hotplug/pciehp.h
+@@ -69,6 +69,7 @@ struct slot {
+ 	struct hotplug_slot *hotplug_slot;
+ 	struct list_head	slot_list;
+ 	char name[SLOT_NAME_SIZE];
++	unsigned long last_emi_toggle;
+ };
  
--		brq.cmd.arg = req->sector << 9;
-+		brq.cmd.arg = req->sector;
-+		if (!mmc_card_blockaddr(card))
-+			brq.cmd.arg <<= 9;
- 		brq.cmd.flags = MMC_RSP_R1 | MMC_CMD_ADTC;
- 		brq.data.blksz = 1 << md->block_bits;
- 		brq.stop.opcode = MMC_STOP_TRANSMISSION;
-diff -puN drivers/mmc/mmc.c~mmc-add-support-for-sdhc-cards drivers/mmc/mmc.c
---- a/drivers/mmc/mmc.c~mmc-add-support-for-sdhc-cards
-+++ a/drivers/mmc/mmc.c
-@@ -294,7 +294,10 @@ void mmc_set_data_timeout(struct mmc_dat
- 		else
- 			limit_us = 100000;
+ struct event_info {
+@@ -138,6 +139,7 @@ struct controller {
+ #define ATTN_LED_PRSN	0x00000008
+ #define PWR_LED_PRSN	0x00000010
+ #define HP_SUPR_RM_SUP	0x00000020
++#define EMI_PRSN	0x00020000
  
--		if (timeout_us > limit_us) {
-+		/*
-+		 * SDHC cards always use these fixed values.
-+		 */
-+		if (timeout_us > limit_us || mmc_card_blockaddr(card)) {
- 			data->timeout_ns = limit_us * 1000;
- 			data->timeout_clks = 0;
- 		}
-@@ -593,12 +596,15 @@ static void mmc_decode_csd(struct mmc_ca
+ #define ATTN_BUTTN(cap)		(cap & ATTN_BUTTN_PRSN)
+ #define POWER_CTRL(cap)		(cap & PWR_CTRL_PRSN)
+@@ -145,6 +147,7 @@ struct controller {
+ #define ATTN_LED(cap)		(cap & ATTN_LED_PRSN)
+ #define PWR_LED(cap)		(cap & PWR_LED_PRSN) 
+ #define HP_SUPR_RM(cap)		(cap & HP_SUPR_RM_SUP)
++#define EMI(cap)		(cap & EMI_PRSN)
  
- 	if (mmc_card_sd(card)) {
- 		csd_struct = UNSTUFF_BITS(resp, 126, 2);
--		if (csd_struct != 0) {
-+		if (csd_struct != 0 && csd_struct != 1) {
- 			printk("%s: unrecognised CSD structure version %d\n",
- 				mmc_hostname(card->host), csd_struct);
- 			mmc_card_set_bad(card);
- 			return;
- 		}
-+		if (csd_struct == 1) {
-+			mmc_card_set_blockaddr(card);
-+		}
+ extern int pciehp_event_start_thread(void);
+ extern void pciehp_event_stop_thread(void);
+@@ -182,6 +185,8 @@ struct hpc_ops {
+ 	int (*set_attention_status)(struct slot *slot, u8 status);
+ 	int (*get_latch_status)(struct slot *slot, u8 *status);
+ 	int (*get_adapter_status)(struct slot *slot, u8 *status);
++	int (*get_emi_status)(struct slot *slot, u8 *status);
++	int (*toggle_emi)(struct slot *slot);
+ 	int (*get_max_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
+ 	int (*get_cur_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
+ 	int (*get_max_lnk_width)(struct slot *slot, enum pcie_link_width *val);
+diff -puN drivers/pci/hotplug/pciehp_core.c~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~add-emi-support-to-pciehp
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -34,6 +34,7 @@
+ #include <linux/pci.h>
+ #include "pciehp.h"
+ #include <linux/interrupt.h>
++#include <linux/time.h>
  
- 		m = UNSTUFF_BITS(resp, 115, 4);
- 		e = UNSTUFF_BITS(resp, 112, 3);
-@@ -610,9 +616,14 @@ static void mmc_decode_csd(struct mmc_ca
- 		csd->max_dtr	  = tran_exp[e] * tran_mant[m];
- 		csd->cmdclass	  = UNSTUFF_BITS(resp, 84, 12);
+ /* Global variables */
+ int pciehp_debug;
+@@ -87,6 +88,76 @@ static struct hotplug_slot_ops pciehp_ho
+   	.get_cur_bus_speed =	get_cur_bus_speed,
+ };
  
--		e = UNSTUFF_BITS(resp, 47, 3);
--		m = UNSTUFF_BITS(resp, 62, 12);
--		csd->capacity	  = (1 + m) << (e + 2);
-+		if (csd_struct == 0) {
-+			e = UNSTUFF_BITS(resp, 47, 3);
-+			m = UNSTUFF_BITS(resp, 62, 12);
-+			csd->capacity	  = (1 + m) << (e + 2);
-+		} else if (csd_struct == 1) {
-+			m = UNSTUFF_BITS(resp, 48, 22);
-+			csd->capacity     = (1 + m) << 10;
-+		}
- 
- 		csd->read_blkbits = UNSTUFF_BITS(resp, 80, 4);
- 		csd->read_partial = UNSTUFF_BITS(resp, 79, 1);
-@@ -829,6 +840,25 @@ static int mmc_send_app_op_cond(struct m
- {
- 	struct mmc_command cmd;
- 	int i, err = 0;
-+	static const u8 test_pattern = 0xAA;
++static int get_lock_status(struct hotplug_slot *hotplug_slot, u8 *value)
++{
++	struct slot *slot = hotplug_slot->private;
++	return (slot->hpc_ops->get_emi_status(slot, value));
++}
 +
-+	/*
-+	 * To support SD 2.0 cards, we must always invoke SD_SEND_IF_COND
-+	 * before SD_APP_OP_COND. This command will harmlessly fail for
-+	 * SD 1.0 and MMC cards (fortunately including MMC 4 cards).
-+	 */
-+	cmd.opcode = SD_SEND_IF_COND;
-+	cmd.arg = ((host->ocr_avail & 0xFF8000) != 0) << 8 | test_pattern;
-+	cmd.flags = MMC_RSP_R7 | MMC_CMD_BCR;
++static ssize_t lock_read_file (struct hotplug_slot *slot, char *buf)
++{
++	int retval;
++	u8 value;
 +
-+	err = mmc_wait_for_cmd(host, &cmd, 0);
-+	if (err == MMC_ERR_NONE) {
-+		if ((cmd.resp[0] & 0xFF) != test_pattern) {
-+			return MMC_ERR_FAILED;
-+		} else if (ocr != 0) {
-+			ocr |= 1 << 30;
-+		}
++	retval = get_lock_status(slot, &value);
++	if (retval)
++		goto lock_read_exit;
++	retval = sprintf (buf, "%d\n", value);
++
++lock_read_exit:
++	return retval;
++}
++
++static int set_lock_status(struct hotplug_slot *hotplug_slot, u8 status)
++{
++	struct slot *slot = hotplug_slot->private;
++	int retval;
++	u8 value;
++
++	/* has it been >1 sec since our last toggle? */
++	if ((get_seconds() - slot->last_emi_toggle) < 1)
++		return -EINVAL;
++
++	/* see what our current state is */
++	retval = get_lock_status(hotplug_slot, &value);
++	if (retval || (value == status))
++		goto set_lock_exit;
++
++	slot->hpc_ops->toggle_emi(slot);
++set_lock_exit:
++	return 0;
++}
++
++static ssize_t lock_write_file (struct hotplug_slot *slot, const char *buf,
++		size_t count)
++{
++	unsigned long llock;
++	u8 lock;
++	int retval = 0;
++
++	llock = simple_strtoul (buf, NULL, 10);
++	lock = (u8)(llock & 0xff);
++
++	switch (lock) {
++		case 0:
++		case 1:
++			retval = set_lock_status(slot, lock);
++			break;
++		default:
++			err ("%d is an invalid lock value\n", lock);
++			retval = -EINVAL;
 +	}
- 
- 	cmd.opcode = SD_APP_OP_COND;
- 	cmd.arg = ocr;
-diff -puN include/linux/mmc/card.h~mmc-add-support-for-sdhc-cards include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~mmc-add-support-for-sdhc-cards
-+++ a/include/linux/mmc/card.h
-@@ -71,6 +71,7 @@ struct mmc_card {
- #define MMC_STATE_SDCARD	(1<<3)		/* is an SD card */
- #define MMC_STATE_READONLY	(1<<4)		/* card is read-only */
- #define MMC_STATE_HIGHSPEED	(1<<5)		/* card is in high speed mode */
-+#define MMC_STATE_BLOCKADDR	(1<<6)		/* card uses block-addressing */
- 	u32			raw_cid[4];	/* raw card CID */
- 	u32			raw_csd[4];	/* raw card CSD */
- 	u32			raw_scr[2];	/* raw card SCR */
-@@ -87,6 +88,7 @@ struct mmc_card {
- #define mmc_card_sd(c)		((c)->state & MMC_STATE_SDCARD)
- #define mmc_card_readonly(c)	((c)->state & MMC_STATE_READONLY)
- #define mmc_card_highspeed(c)	((c)->state & MMC_STATE_HIGHSPEED)
-+#define mmc_card_blockaddr(c)	((c)->state & MMC_STATE_BLOCKADDR)
- 
- #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
- #define mmc_card_set_dead(c)	((c)->state |= MMC_STATE_DEAD)
-@@ -94,6 +96,7 @@ struct mmc_card {
- #define mmc_card_set_sd(c)	((c)->state |= MMC_STATE_SDCARD)
- #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
- #define mmc_card_set_highspeed(c) ((c)->state |= MMC_STATE_HIGHSPEED)
-+#define mmc_card_set_blockaddr(c) ((c)->state |= MMC_STATE_BLOCKADDR)
- 
- #define mmc_card_name(c)	((c)->cid.prod_name)
- #define mmc_card_id(c)		((c)->dev.bus_id)
-diff -puN include/linux/mmc/mmc.h~mmc-add-support-for-sdhc-cards include/linux/mmc/mmc.h
---- a/include/linux/mmc/mmc.h~mmc-add-support-for-sdhc-cards
-+++ a/include/linux/mmc/mmc.h
-@@ -43,6 +43,7 @@ struct mmc_command {
- #define MMC_RSP_R2	(MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC)
- #define MMC_RSP_R3	(MMC_RSP_PRESENT)
- #define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC)
-+#define MMC_RSP_R7	(MMC_RSP_PRESENT|MMC_RSP_CRC)
- 
- #define mmc_resp_type(cmd)	((cmd)->flags & (MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC|MMC_RSP_BUSY|MMC_RSP_OPCODE))
- 
-diff -puN include/linux/mmc/protocol.h~mmc-add-support-for-sdhc-cards include/linux/mmc/protocol.h
---- a/include/linux/mmc/protocol.h~mmc-add-support-for-sdhc-cards
-+++ a/include/linux/mmc/protocol.h
-@@ -79,9 +79,12 @@
- #define MMC_GEN_CMD              56   /* adtc [0] RD/WR          R1  */
- 
- /* SD commands                           type  argument     response */
--  /* class 8 */
-+  /* class 0 */
- /* This is basically the same command as for MMC with some quirks. */
- #define SD_SEND_RELATIVE_ADDR     3   /* bcr                     R6  */
-+#define SD_SEND_IF_COND           8   /* bcr  [11:0] See below   R7  */
++	if (retval)
++		return retval;
++	return count;
++}
 +
-+  /* class 10 */
- #define SD_SWITCH                 6   /* adtc [31:0] See below   R1  */
- 
-   /* Application commands */
-@@ -115,6 +118,14 @@
-  */
- 
- /*
-+ * SD_SEND_IF_COND argument format:
-+ *
-+ *	[31:12] Reserved (0)
-+ *	[11:8] Host Voltage Supply Flags
-+ *	[7:0] Check Pattern (0xAA)
-+ */
++static struct hotplug_slot_attribute hotplug_slot_attr_lock = {
++	.attr = {.name = "lock", .mode = S_IFREG | S_IRUGO | S_IWUSR},
++	.show = lock_read_file,
++	.store = lock_write_file
++};
 +
-+/*
-   MMC status in R1
-   Type
-   	e : error bit
+ /**
+  * release_slot - free up the memory used by a slot
+  * @hotplug_slot: slot to free
+@@ -159,6 +230,16 @@ static int init_slots(struct controller 
+ 			err ("pci_hp_register failed with error %d\n", retval);
+ 			goto error_info;
+ 		}
++		/* create additional sysfs entries */
++		if (EMI(ctrl->ctrlcap)) {
++			retval = sysfs_create_file(&hotplug_slot->kobj,
++				&hotplug_slot_attr_lock.attr);
++			if (retval) {
++				pci_hp_deregister(hotplug_slot);
++				err("cannot create additional sysfs entries\n");
++				goto error_info;
++			}
++		}
+ 
+ 		list_add(&slot->slot_list, &ctrl->slot_list);
+ 	}
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~add-emi-support-to-pciehp drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~add-emi-support-to-pciehp
++++ a/drivers/pci/hotplug/pciehp_hpc.c
+@@ -35,6 +35,7 @@
+ #include <linux/timer.h>
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
++#include <linux/time.h>
+ 
+ #include "../pci.h"
+ #include "pciehp.h"
+@@ -192,6 +193,7 @@ static inline int pciehp_writel(struct c
+ #define ATTN_LED_CTRL			0x00C0
+ #define PWR_LED_CTRL			0x0300
+ #define PWR_CTRL			0x0400
++#define EMI_CTRL			0x0800
+ 
+ /* Attention indicator and Power indicator states */
+ #define LED_ON		0x01
+@@ -202,6 +204,10 @@ static inline int pciehp_writel(struct c
+ #define POWER_ON	0
+ #define POWER_OFF	0x0400
+ 
++/* EMI Status defines */
++#define EMI_DISENGAGED	0
++#define EMI_ENGAGED	1
++
+ /* Field definitions in Slot Status Register */
+ #define ATTN_BUTTN_PRESSED	0x0001
+ #define PWR_FAULT_DETECTED	0x0002
+@@ -210,6 +216,8 @@ static inline int pciehp_writel(struct c
+ #define CMD_COMPLETED		0x0010
+ #define MRL_STATE		0x0020
+ #define PRSN_STATE		0x0040
++#define EMI_STATE		0x0080
++#define EMI_STATUS_BIT		7
+ 
+ static spinlock_t hpc_event_lock;
+ 
+@@ -474,6 +482,51 @@ static int hpc_query_power_fault(struct 
+ 	return pwr_fault;
+ }
+ 
++static int hpc_get_emi_status(struct slot * slot, u8* status)
++{
++	struct controller *ctrl = slot->ctrl;
++	u16 slot_status;
++	int retval = 0;
++
++	DBG_ENTER_ROUTINE
++
++	retval = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
++	if (retval) {
++		err("%s : Cannot check EMI status\n", __FUNCTION__);
++		return retval;
++	}
++	*status = (slot_status & EMI_STATE) >> EMI_STATUS_BIT;
++
++	DBG_LEAVE_ROUTINE
++	return retval;
++}
++
++static int hpc_toggle_emi(struct slot *slot)
++{
++	struct controller *ctrl = slot->ctrl;
++	u16 slot_cmd = 0;
++	u16 slot_ctrl;
++	int rc = 0;
++
++	DBG_ENTER_ROUTINE
++
++	rc = pciehp_readw(ctrl, SLOTCTRL, &slot_ctrl);
++	if (rc) {
++		err("%s : hp_register_read_word SLOT_CTRL failed\n",
++			__FUNCTION__);
++		return rc;
++	}
++
++	slot_cmd = (slot_ctrl | EMI_CTRL);
++	if (!pciehp_poll_mode)
++		slot_cmd = slot_cmd | HP_INTR_ENABLE;
++
++	pcie_write_cmd(slot, slot_cmd);
++	slot->last_emi_toggle = get_seconds();
++	DBG_LEAVE_ROUTINE
++	return rc;
++}
++
+ static int hpc_set_attention_status(struct slot *slot, u8 value)
+ {
+ 	struct controller *ctrl = slot->ctrl;
+@@ -1009,6 +1062,8 @@ static struct hpc_ops pciehp_hpc_ops = {
+ 	.get_attention_status		= hpc_get_attention_status,
+ 	.get_latch_status		= hpc_get_latch_status,
+ 	.get_adapter_status		= hpc_get_adapter_status,
++	.get_emi_status			= hpc_get_emi_status,
++	.toggle_emi			= hpc_toggle_emi,
+ 
+ 	.get_max_bus_speed		= hpc_get_max_lnk_speed,
+ 	.get_cur_bus_speed		= hpc_get_cur_lnk_speed,
 _
 
-Patches currently in -mm which might be from philipl@overt.org are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-mmc-add-support-for-sdhc-cards.patch
+git-acpi.patch
+git-libata-all.patch
+pciehp-cleanup-init_slot.patch
+pciehp-cleanup-slot-list.patch
+pciehp-remove-unnecessary-php_ctlr.patch
+pciehp-remove-unused-pci_bus-from-struct-controller.patch
+pciehp-cleanup-register-access.patch
+pciehp-cleanup-pciehph.patch
+pciehp-remove-unused-pcie_cap_base.patch
+pciehp-cleanup-wait-command-completion.patch
+pciehp-fix-wait-command-completion.patch
+add-emi-support-to-pciehp.patch
 
