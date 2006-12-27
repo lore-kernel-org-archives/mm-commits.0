@@ -1,43 +1,41 @@
 From: akpm@osdl.org
-Subject: + ubi-missing-include.patch added to -mm tree
-Date: Wed, 27 Dec 2006 14:21:11 -0800
-Message-ID: <200612272221.kBRMLREY021594@shell0.pdx.osdl.net>
+Subject: - ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch removed from -mm tree
+Date: Wed, 27 Dec 2006 14:22:07 -0800
+Message-ID: <200612272222.kBRMMOlR021609@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38909 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38969 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964785AbWL0WVc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 17:21:32 -0500
+	id S964793AbWL0WW0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 17:22:26 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id kBRMMO2J030731
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2006 14:22:24 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dedekind@infradead.org
+To: akpm@osdl.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ubi-missing-include
-has been added to the -mm tree.  Its filename is
-     ubi-missing-include.patch
+     ubi-versus-add-include-linux-freezerh-and-move-definitions-from
+has been removed from the -mm tree.  Its filename was
+     ubi-versus-add-include-linux-freezerh-and-move-definitions-from.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ubi-missing-include
+Subject: ubi-versus-add-include-linux-freezerh-and-move-definitions-from
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/mtd/ubi/background.c: In function 'ubi_thread':
-drivers/mtd/ubi/background.c:228: warning: implicit declaration of function 'try_to_freeze'
-
-Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  drivers/mtd/ubi/background.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN drivers/mtd/ubi/background.c~ubi-missing-include drivers/mtd/ubi/background.c
---- a/drivers/mtd/ubi/background.c~ubi-missing-include
+diff -puN drivers/mtd/ubi/background.c~ubi-versus-add-include-linux-freezerh-and-move-definitions-from drivers/mtd/ubi/background.c
+--- a/drivers/mtd/ubi/background.c~ubi-versus-add-include-linux-freezerh-and-move-definitions-from
 +++ a/drivers/mtd/ubi/background.c
 @@ -23,6 +23,8 @@
  #include <linux/sched.h>
