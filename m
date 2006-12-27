@@ -1,128 +1,182 @@
 From: akpm@osdl.org
-Subject: + modpost-whitelist-reference-to-more-symbols-pattern-3.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:12:27 -0800
-Message-ID: <200612272112.kBRLCR2N020329@shell0.pdx.osdl.net>
+Subject: + pktcdvd-cleanup.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:13:45 -0800
+Message-ID: <200612272113.kBRLDjYE020342@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35168 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35223 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754788AbWL0VMx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:12:53 -0500
+	id S932642AbWL0VOA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:14:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com
+Cc: balagi@justmail.de, petero2@telia.com
 
 
 The patch titled
-     Modpost whitelist reference to more symbols (pattern 3)
+     pktcdvd: cleanup
 has been added to the -mm tree.  Its filename is
-     modpost-whitelist-reference-to-more-symbols-pattern-3.patch
+     pktcdvd-cleanup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Modpost whitelist reference to more symbols (pattern 3)
-From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: pktcdvd: cleanup
+From: "Thomas Maier" <balagi@justmail.de>
 
-o MODPOST generates warning on i386 if kernel is compiled with
-  CONFIG_RELOCATABLE=y.
+- update documentation
 
-WARNING: vmlinux - Section mismatch: reference to .init.text:__init_begin from .text between 'free_initmem' (at offset 0xc0114fd3) and 'do_test_wp_bit'
-WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'core_kernel_text' (at offset 0xc012aeae) and 'kernel_text_address'
-WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'core_kernel_text' (at offset 0xc012aeb7) and 'kernel_text_address'
-WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'get_symbol_pos' (at offset 0xc0135776) and 'reset_iter'
-WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'get_symbol_pos' (at offset 0xc013577d) and 'reset_iter'
+- use clear_bdi_congested/set_bdi_congested functions directly instead of
+  old wrappers
 
-o These symbols (__init_begin, _sinittext, _einittext) belong to init
-  section and generally represent a section boundary. These are special
-  symbols in the sense that their size is zero and no memory is allocated
-  for them in init section. Their addr and value are same. So even if
-  we free the init section, it is ok to reference them.
+- removed DECLARE_BUF_AS_STRING macro
 
-o Whitelist access to such select symbols in MODPOST.
-
-Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Thomas Maier <balagi@justmail.de>
+Cc: Peter Osterlund <petero2@telia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/mod/modpost.c |   26 ++++++++++++++++++++++++--
- 1 files changed, 24 insertions(+), 2 deletions(-)
+ Documentation/ABI/testing/debugfs-pktcdvd     |    5 +--
+ Documentation/ABI/testing/sysfs-class-pktcdvd |    2 -
+ Documentation/cdrom/packet-writing.txt        |    2 -
+ drivers/block/pktcdvd.c                       |   26 ++++------------
+ 4 files changed, 11 insertions(+), 24 deletions(-)
 
-diff -puN scripts/mod/modpost.c~modpost-whitelist-reference-to-more-symbols-pattern-3 scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~modpost-whitelist-reference-to-more-symbols-pattern-3
-+++ a/scripts/mod/modpost.c
-@@ -582,9 +582,19 @@ static int strrcmp(const char *s, const 
-  *   tosec   = .init.text | .exit.text | .init.data
-  *   fromsec = .data
-  *   atsym = *driver, *_template, *_sht, *_ops, *_probe, *probe_one
-+ *
-+ * Pattern 3:
-+ *   Some symbols belong to init section but still it is ok to reference
-+ *   these from non-init sections as these symbols don't have any memory
-+ *   allocated for them and symbol address and value are same. So even
-+ *   if init section is freed, its ok to reference those symbols.
-+ *   For ex. symbols marking the init section boundaries.
-+ *   This pattern is identified by
-+ *   refsymname = __init_begin, _sinittext, _einittext
-  **/
- static int secref_whitelist(const char *modname, const char *tosec,
--			    const char *fromsec, const char *atsym)
-+			    const char *fromsec, const char *atsym,
-+			    const char *refsymname)
+diff -puN Documentation/ABI/testing/debugfs-pktcdvd~pktcdvd-cleanup Documentation/ABI/testing/debugfs-pktcdvd
+--- a/Documentation/ABI/testing/debugfs-pktcdvd~pktcdvd-cleanup
++++ a/Documentation/ABI/testing/debugfs-pktcdvd
+@@ -1,6 +1,6 @@
+ What:           /debug/pktcdvd/pktcdvd[0-7]
+ Date:           Oct. 2006
+-KernelVersion:  2.6.19
++KernelVersion:  2.6.20
+ Contact:        Thomas Maier <balagi@justmail.de>
+ Description:
+ 
+@@ -11,8 +11,7 @@ The pktcdvd module (packet writing drive
+ these files in debugfs:
+ 
+ /debug/pktcdvd/pktcdvd[0-7]/
+-    info            (0444) Lots of human readable driver
+-                           statistics and infos. Multiple lines!
++    info            (0444) Lots of driver statistics and infos.
+ 
+ Example:
+ -------
+diff -puN Documentation/ABI/testing/sysfs-class-pktcdvd~pktcdvd-cleanup Documentation/ABI/testing/sysfs-class-pktcdvd
+--- a/Documentation/ABI/testing/sysfs-class-pktcdvd~pktcdvd-cleanup
++++ a/Documentation/ABI/testing/sysfs-class-pktcdvd
+@@ -1,6 +1,6 @@
+ What:           /sys/class/pktcdvd/
+ Date:           Oct. 2006
+-KernelVersion:  2.6.19
++KernelVersion:  2.6.20
+ Contact:        Thomas Maier <balagi@justmail.de>
+ Description:
+ 
+diff -puN Documentation/cdrom/packet-writing.txt~pktcdvd-cleanup Documentation/cdrom/packet-writing.txt
+--- a/Documentation/cdrom/packet-writing.txt~pktcdvd-cleanup
++++ a/Documentation/cdrom/packet-writing.txt
+@@ -93,7 +93,7 @@ Notes
+ Using the pktcdvd sysfs interface
+ ---------------------------------
+ 
+-Since Linux 2.6.19, the pktcdvd module has a sysfs interface
++Since Linux 2.6.20, the pktcdvd module has a sysfs interface
+ and can be controlled by it. For example the "pktcdvd" tool uses
+ this interface. (see http://people.freenet.de/BalaGi#pktcdvd )
+ 
+diff -puN drivers/block/pktcdvd.c~pktcdvd-cleanup drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-cleanup
++++ a/drivers/block/pktcdvd.c
+@@ -190,15 +190,6 @@ static struct attribute *kobj_pkt_attrs_
+ 	NULL
+ };
+ 
+-/* declares a char buffer[64] _dbuf, copies data from
+- * _b with length _l into it and ensures that _dbuf ends
+- * with a \0 character.
+- */
+-#define DECLARE_BUF_AS_STRING(_dbuf, _b, _l) \
+-	char _dbuf[64]; int dlen = (_l) < 0 ? 0 : (_l); \
+-	if (dlen >= sizeof(_dbuf)) dlen = sizeof(_dbuf)-1; \
+-	memcpy(_dbuf, _b, dlen); _dbuf[dlen] = 0
+-
+ static ssize_t kobj_pkt_show(struct kobject *kobj,
+ 			struct attribute *attr, char *data)
  {
- 	int f1 = 1, f2 = 1;
- 	const char **s;
-@@ -599,6 +609,13 @@ static int secref_whitelist(const char *
- 		NULL
- 	};
+@@ -264,9 +255,8 @@ static ssize_t kobj_pkt_store(struct kob
+ {
+ 	struct pktcdvd_device *pd = to_pktcdvdkobj(kobj)->pd;
+ 	int val;
+-	DECLARE_BUF_AS_STRING(dbuf, data, len); /* ensure sscanf scans a string */
  
-+	const char *pat3refsym[] = {
-+		"__init_begin",
-+		"_sinittext",
-+		"_einittext",
-+		NULL
-+	};
-+
- 	/* Check for pattern 1 */
- 	if (strcmp(tosec, ".init.data") != 0)
- 		f1 = 0;
-@@ -637,6 +654,11 @@ static int secref_whitelist(const char *
- 			((strcmp(tosec, ".init.data") == 0) ||
- 			(strcmp(tosec, ".init.text") == 0)))
- 		return 1;
-+
-+		/* Check for pattern 3 */
-+		for (s = pat3refsym; *s; s++)
-+			if (strcmp(refsymname, *s) == 0)
-+				return 1;
+-	if (strcmp(attr->name, "reset") == 0 && dlen > 0) {
++	if (strcmp(attr->name, "reset") == 0 && len > 0) {
+ 		pd->stats.pkt_started = 0;
+ 		pd->stats.pkt_ended = 0;
+ 		pd->stats.secs_w = 0;
+@@ -274,7 +264,7 @@ static ssize_t kobj_pkt_store(struct kob
+ 		pd->stats.secs_r = 0;
+ 
+ 	} else if (strcmp(attr->name, "congestion_off") == 0
+-		   && sscanf(dbuf, "%d", &val) == 1) {
++		   && sscanf(data, "%d", &val) == 1) {
+ 		spin_lock(&pd->lock);
+ 		pd->write_congestion_off = val;
+ 		init_write_congestion_marks(&pd->write_congestion_off,
+@@ -282,7 +272,7 @@ static ssize_t kobj_pkt_store(struct kob
+ 		spin_unlock(&pd->lock);
+ 
+ 	} else if (strcmp(attr->name, "congestion_on") == 0
+-		   && sscanf(dbuf, "%d", &val) == 1) {
++		   && sscanf(data, "%d", &val) == 1) {
+ 		spin_lock(&pd->lock);
+ 		pd->write_congestion_on = val;
+ 		init_write_congestion_marks(&pd->write_congestion_off,
+@@ -369,8 +359,7 @@ static ssize_t class_pktcdvd_store_add(s
+ 					size_t count)
+ {
+ 	unsigned int major, minor;
+-	DECLARE_BUF_AS_STRING(dbuf, buf, count);
+-	if (sscanf(dbuf, "%u:%u", &major, &minor) == 2) {
++	if (sscanf(buf, "%u:%u", &major, &minor) == 2) {
+ 		pkt_setup_dev(MKDEV(major, minor), NULL);
+ 		return count;
  	}
- 	return 0;
- }
-@@ -746,7 +768,7 @@ static void warn_sec_mismatch(const char
- 	/* check whitelist - we may ignore it */
- 	if (before &&
- 	    secref_whitelist(modname, secname, fromsec,
--			     elf->strtab + before->st_name))
-+			     elf->strtab + before->st_name, refsymname))
- 		return;
+@@ -381,8 +370,7 @@ static ssize_t class_pktcdvd_store_remov
+ 					size_t count)
+ {
+ 	unsigned int major, minor;
+-	DECLARE_BUF_AS_STRING(dbuf, buf, count);
+-	if (sscanf(dbuf, "%u:%u", &major, &minor) == 2) {
++	if (sscanf(buf, "%u:%u", &major, &minor) == 2) {
+ 		pkt_remove_dev(MKDEV(major, minor));
+ 		return count;
+ 	}
+@@ -1390,7 +1378,7 @@ try_next_bio:
+ 	 		&& pd->bio_queue_size <= pd->write_congestion_off);
+ 	spin_unlock(&pd->lock);
+ 	if (wakeup)
+-		blk_clear_queue_congested(pd->disk->queue, WRITE);
++		clear_bdi_congested(&pd->disk->queue->backing_dev_info, WRITE);
  
- 	if (before && after) {
+ 	pkt->sleep_time = max(PACKET_WAIT_TIME, 1);
+ 	pkt_set_state(pkt, PACKET_WAITING_STATE);
+@@ -2611,7 +2599,7 @@ static int pkt_make_request(request_queu
+ 	spin_lock(&pd->lock);
+ 	if (pd->write_congestion_on > 0
+ 	    && pd->bio_queue_size >= pd->write_congestion_on) {
+-		blk_set_queue_congested(q, WRITE);
++		set_bdi_congested(&q->backing_dev_info, WRITE);
+ 		do {
+ 			spin_unlock(&pd->lock);
+ 			congestion_wait(WRITE, HZ);
 _
 
-Patches currently in -mm which might be from vgoyal@in.ibm.com are
+Patches currently in -mm which might be from balagi@justmail.de are
 
-i386-cpu-hotplug-smpboot-misc-modpost-warning-fixes.patch
-convert-some-functions-to-__init-to-avoid-modpost-warnings.patch
-i386-move-startup_32-in-texthead-section.patch
-break-init-in-two-parts-to-avoid-modpost-warnings.patch
-i386-fix-memory-hotplug-related-modpost-generated-warning.patch
-i386-restore-config_physical_start-option.patch
-i386-make-apic-probe-function-non-init.patch
-modpost-add-more-symbols-to-whitelist-pattern2.patch
-modpost-whitelist-reference-to-more-symbols-pattern-3.patch
-clockevents-i386-drivers.patch
+pktcdvd-cleanup.patch
 
