@@ -1,60 +1,61 @@
 From: akpm@osdl.org
-Subject: + ehca-fix-memleak-on-module-unloading.patch added to -mm tree
-Date: Wed, 27 Dec 2006 00:06:09 -0800
-Message-ID: <200612270806.kBR869FM005157@shell0.pdx.osdl.net>
+Subject: + module-fix-mod_sysfs_setup-return-value.patch added to -mm tree
+Date: Wed, 27 Dec 2006 00:06:48 -0800
+Message-ID: <200612270806.kBR86mqa005164@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38504 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:38558 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932944AbWL0IGQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 03:06:16 -0500
+	id S932974AbWL0IGv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 03:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, heiko.carstens@de.ibm.com, hnguyen@de.ibm.com, raisch@de.ibm.com, rolandd@cisco.com
+Cc: akinobu.mita@gmail.com, greg@kroah.com
 
 
 The patch titled
-     ehca: fix memleak on module unloading
+     module: fix mod_sysfs_setup() return value
 has been added to the -mm tree.  Its filename is
-     ehca-fix-memleak-on-module-unloading.patch
+     module-fix-mod_sysfs_setup-return-value.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehca: fix memleak on module unloading
+Subject: module: fix mod_sysfs_setup() return value
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Percpu data is not freed on module unloading.
+mod_sysfs_setup() doesn't return error when kobject_add_dir() failed.
 
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_irq.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/module.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~ehca-fix-memleak-on-module-unloading drivers/infiniband/hw/ehca/ehca_irq.c
---- a/drivers/infiniband/hw/ehca/ehca_irq.c~ehca-fix-memleak-on-module-unloading
-+++ a/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -785,6 +785,8 @@ void ehca_destroy_comp_pool(void)
- 		if (cpu_online(i))
- 			destroy_comp_task(pool, i);
- 	}
-+	free_percpu(pool->cpu_comp_tasks);
-+	kfree(pool);
- #endif
+diff -puN kernel/module.c~module-fix-mod_sysfs_setup-return-value kernel/module.c
+--- a/kernel/module.c~module-fix-mod_sysfs_setup-return-value
++++ a/kernel/module.c
+@@ -1132,8 +1132,10 @@ static int mod_sysfs_setup(struct module
+ 		goto out;
  
- 	return;
+ 	mod->drivers_dir = kobject_add_dir(&mod->mkobj.kobj, "drivers");
+-	if (!mod->drivers_dir)
++	if (!mod->drivers_dir) {
++		err = -ENOMEM;
+ 		goto out_unreg;
++	}
+ 
+ 	err = module_param_sysfs_setup(mod, kparam, num_params);
+ 	if (err)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
+module-fix-mod_sysfs_setup-return-value.patch
 powerpc-use-is_init.patch
 git-dvb.patch
 ehca-fix-kthread_create-error-check.patch
