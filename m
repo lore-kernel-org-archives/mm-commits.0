@@ -1,51 +1,53 @@
 From: akpm@osdl.org
-Subject: + add-i386-idle-notifier-take-3-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 12:39:15 -0800
-Message-ID: <200612272039.kBRKdWPU019657@shell0.pdx.osdl.net>
+Subject: + reiser4-test_clear_page_dirty.patch added to -mm tree
+Date: Wed, 27 Dec 2006 12:59:10 -0800
+Message-ID: <200612272059.kBRKxQH1020088@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33986 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34673 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932684AbWL0UqE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 15:46:04 -0500
+	id S1754757AbWL0U7j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 15:59:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, eranian@hpl.hp.com
+Cc: akpm@osdl.org, edward@namesys.com, vs@namesys.com
 
 
 The patch titled
-     add-i386-idle-notifier-take-3-fix
+     reiser4-test_clear_page_dirty
 has been added to the -mm tree.  Its filename is
-     add-i386-idle-notifier-take-3-fix.patch
+     reiser4-test_clear_page_dirty.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-i386-idle-notifier-take-3-fix
+Subject: reiser4-test_clear_page_dirty
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Stephane Eranian <eranian@hpl.hp.com>
-Cc: Andi Kleen <ak@suse.de>
+This is wrong.  cancel_dirty_page() doesn't clear radix-tree tags.
+
+Cc: Vladimir Saveliev <vs@namesys.com>
+Cc: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/process.c |    2 +-
+ fs/reiser4/plugin/file/cryptcompress.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/process.c~add-i386-idle-notifier-take-3-fix arch/i386/kernel/process.c
---- a/arch/i386/kernel/process.c~add-i386-idle-notifier-take-3-fix
-+++ a/arch/i386/kernel/process.c
-@@ -103,7 +103,7 @@ void enter_idle(void)
- 	atomic_notifier_call_chain(&idle_notifier, IDLE_START, NULL);
- }
- 
--static void __exit_idle()
-+static void __exit_idle(void)
- {
- 	/* needs to be atomic w.r.t. interrupts, not against other CPUs */
- 	if (__test_and_clear_bit(0, &__get_cpu_var(idle_state)) == 0)
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-test_clear_page_dirty fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-test_clear_page_dirty
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -1313,7 +1313,7 @@ static void clear_cluster_pages_dirty(re
+ 		lock_page(clust->pages[i]);
+ 		if (PageDirty(clust->pages[i])) {
+ 			assert("edward-1277", PageUptodate(clust->pages[i]));
+-			test_clear_page_dirty(clust->pages[i]);
++			cancel_dirty_page(clust->pages[i]);
+ 		}
+ #if REISER4_DEBUG
+ 		else
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -81,12 +83,14 @@ ioat-warning-fix.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-qla3xxx-fixup.patch
+revert-gregkh-usb-usb-implement-support-for-split-endian-ohci.patch
 nokia-e70-is-an-unusual-device.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 revert-x86_64-mm-copy-user-nocache.patch
 add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
 touchkit-ps-2-touchscreen-driver.patch
 lumpy-reclaim-v2-page_to_pfn-fix.patch
 lumpy-reclaim-v2-tidy.patch
@@ -164,5 +168,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-add-i386-idle-notifier-take-3-fix.patch
+reiser4-test_clear_page_dirty.patch
 
