@@ -1,134 +1,151 @@
 From: akpm@osdl.org
-Subject: + pciehp-fix-wait-command-completion.patch added to -mm tree
-Date: Tue, 26 Dec 2006 22:56:30 -0800
-Message-ID: <200612270656.kBR6uUOU003783@shell0.pdx.osdl.net>
+Subject: + rcu-rcutorture-suspend-fix.patch added to -mm tree
+Date: Tue, 26 Dec 2006 22:52:59 -0800
+Message-ID: <200612270652.kBR6qxVr003689@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34724 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34820 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932957AbWL0G4f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 01:56:35 -0500
+	id S932939AbWL0G5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 01:57:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com
+Cc: mingo@elte.hu, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     pciehp: fix wait command completion
+     rcu: rcutorture suspend fix
 has been added to the -mm tree.  Its filename is
-     pciehp-fix-wait-command-completion.patch
+     rcu-rcutorture-suspend-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pciehp: fix wait command completion
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: rcu: rcutorture suspend fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Fix the problem that pciehp driver will sleep unnecessarily long when waiting
-for command completion.  With this patch, modprobe pciehp driver becomes very
-faster as follows for instance.
+Fix suspend hang: rcutorture threads need to be nofreeze.
 
-  o Without this patch
-    # time /sbin/modprobe pciehp
-
-    real    0m4.976s
-    user    0m0.000s
-    sys     0m0.004s
-
-  o With this patch
-    # time /sbin/modprobe pciehp
-
-    real    0m0.640s
-    user    0m0.000s
-    sys     0m0.004s
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/hotplug/pciehp.h     |    1 +
- drivers/pci/hotplug/pciehp_hpc.c |   27 +++++++++++++++------------
- 2 files changed, 16 insertions(+), 12 deletions(-)
+ kernel/rcutorture.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/pci/hotplug/pciehp.h~pciehp-fix-wait-command-completion drivers/pci/hotplug/pciehp.h
---- a/drivers/pci/hotplug/pciehp.h~pciehp-fix-wait-command-completion
-+++ a/drivers/pci/hotplug/pciehp.h
-@@ -100,6 +100,7 @@ struct controller {
- 	u16 vendor_id;
- 	u8 cap_base;
- 	struct timer_list poll_timer;
-+	volatile int cmd_busy;
- };
+diff -puN kernel/rcutorture.c~rcu-rcutorture-suspend-fix kernel/rcutorture.c
+--- a/kernel/rcutorture.c~rcu-rcutorture-suspend-fix
++++ a/kernel/rcutorture.c
+@@ -522,6 +522,7 @@ rcu_torture_writer(void *arg)
  
- #define INT_BUTTON_IGNORE		0
-diff -puN drivers/pci/hotplug/pciehp_hpc.c~pciehp-fix-wait-command-completion drivers/pci/hotplug/pciehp_hpc.c
---- a/drivers/pci/hotplug/pciehp_hpc.c~pciehp-fix-wait-command-completion
-+++ a/drivers/pci/hotplug/pciehp_hpc.c
-@@ -251,20 +251,21 @@ static void start_int_poll_timer(struct 
+ 	VERBOSE_PRINTK_STRING("rcu_torture_writer task started");
+ 	set_user_nice(current, 19);
++	current->flags |= PF_NOFREEZE;
  
- static inline int pcie_wait_cmd(struct controller *ctrl)
- {
--	DECLARE_WAITQUEUE(wait, current);
--
--	add_wait_queue(&ctrl->queue, &wait);
--	if (!pciehp_poll_mode)
--		/* Sleep for up to 1 second */
--		msleep_interruptible(1000);
--	else
--		msleep_interruptible(2500);
-+	int retval = 0;
-+	unsigned int msecs = pciehp_poll_mode ? 2500 : 1000;
-+	unsigned long timeout = msecs_to_jiffies(msecs);
-+	int rc;
+ 	do {
+ 		schedule_timeout_uninterruptible(1);
+@@ -561,6 +562,7 @@ rcu_torture_fakewriter(void *arg)
  
--	remove_wait_queue(&ctrl->queue, &wait);
--	if (signal_pending(current))
--		return -EINTR;
-+	rc = wait_event_interruptible_timeout(ctrl->queue,
-+					      !ctrl->cmd_busy, timeout);
-+	if (!rc)
-+		dbg("Command not completed in 1000 msec\n");
-+	else if (rc < 0) {
-+		retval = -EINTR;
-+		info("Command was interrupted by a signal\n");
-+	}
+ 	VERBOSE_PRINTK_STRING("rcu_torture_fakewriter task started");
+ 	set_user_nice(current, 19);
++	current->flags |= PF_NOFREEZE;
  
--	return 0;
-+	return retval;
- }
+ 	do {
+ 		schedule_timeout_uninterruptible(1 + rcu_random(&rand)%10);
+@@ -591,6 +593,7 @@ rcu_torture_reader(void *arg)
  
- static int pcie_write_cmd(struct slot *slot, u16 cmd)
-@@ -291,6 +292,7 @@ static int pcie_write_cmd(struct slot *s
- 		    __FUNCTION__);
- 	}
+ 	VERBOSE_PRINTK_STRING("rcu_torture_reader task started");
+ 	set_user_nice(current, 19);
++	current->flags |= PF_NOFREEZE;
  
-+	ctrl->cmd_busy = 1;
- 	retval = pciehp_writew(ctrl, SLOTCTRL, (cmd | CMD_CMPL_INTR_ENABLE));
- 	if (retval) {
- 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
-@@ -773,6 +775,7 @@ static irqreturn_t pcie_isr(int irq, voi
- 		/* 
- 		 * Command Complete Interrupt Pending 
- 		 */
-+		ctrl->cmd_busy = 0;
- 		wake_up_interruptible(&ctrl->queue);
- 	}
- 
+ 	do {
+ 		idx = cur_ops->readlock();
 _
 
-Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-pciehp-cleanup-init_slot.patch
-pciehp-cleanup-slot-list.patch
-pciehp-remove-unnecessary-php_ctlr.patch
-pciehp-remove-unused-pci_bus-from-struct-controller.patch
-pciehp-cleanup-register-access.patch
-pciehp-cleanup-pciehph.patch
-pciehp-remove-unused-pcie_cap_base.patch
-pciehp-cleanup-wait-command-completion.patch
-pciehp-fix-wait-command-completion.patch
+change-warn_on-back-to-bug-at.patch
+rcu-rcutorture-suspend-fix.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
 
