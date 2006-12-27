@@ -1,13 +1,13 @@
 From: akpm@osdl.org
 Subject: + ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch added to -mm tree
-Date: Tue, 26 Dec 2006 22:51:18 -0800
-Message-ID: <200612270651.kBR6pItE003671@shell0.pdx.osdl.net>
+Date: Tue, 26 Dec 2006 22:51:36 -0800
+Message-ID: <200612270651.kBR6paWY003674@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34177 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34183 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932937AbWL0Gv1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 01:51:27 -0500
+	id S932940AbWL0Gvn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 01:51:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -59,7 +59,7 @@ diff -puN fs/ext2/dir.c~ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry
 +				"dir %lu size %lld exceeds block count %llu",
 +				dir->i_ino, dir->i_size,
 +				(unsigned long long)dir->i_blocks);
-+				goto out;
++			goto out;
 +		}
  	} while (n != start);
  out:
