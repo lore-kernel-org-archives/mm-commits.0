@@ -1,54 +1,64 @@
 From: akpm@osdl.org
-Subject: + consolidate-line-discipline-number-definitions-v2-fix-2.patch added to -mm tree
-Date: Wed, 27 Dec 2006 15:26:46 -0800
-Message-ID: <200612272327.kBRNR3Af022609@shell0.pdx.osdl.net>
+Subject: + lockdep-printk-warning-fix.patch added to -mm tree
+Date: Wed, 27 Dec 2006 15:29:11 -0800
+Message-ID: <200612272329.kBRNTSR3022638@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42462 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42575 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754804AbWL0X1G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 18:27:06 -0500
+	id S964785AbWL0X3d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 18:29:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, tilman@imap.cc
+Cc: akpm@osdl.org, mingo@elte.hu
 
 
 The patch titled
-     consolidate-line-discipline-number-definitions-v2-fix-2
+     lockdep: printk warning fix
 has been added to the -mm tree.  Its filename is
-     consolidate-line-discipline-number-definitions-v2-fix-2.patch
+     lockdep-printk-warning-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: consolidate-line-discipline-number-definitions-v2-fix-2
+Subject: lockdep: printk warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/sparc64/kernel/sunos_ioctl32.c: In function `sunos_ioctl':
-arch/sparc64/kernel/sunos_ioctl32.c:98: error: `N_TTY' undeclared (first use in this function)
-arch/sparc64/kernel/sunos_ioctl32.c:98: error: (Each undeclared identifier is reported only once
-arch/sparc64/kernel/sunos_ioctl32.c:98: error: for each function it appears in.)
+kernel/lockdep.c: In function `lookup_chain_cache':
+kernel/lockdep.c:1339: warning: long long unsigned int format, u64 arg (arg 2)
+kernel/lockdep.c:1344: warning: long long unsigned int format, u64 arg (arg 2)
 
-Cc: Tilman Schmidt <tilman@imap.cc>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc64/kernel/sunos_ioctl32.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/lockdep.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/sparc64/kernel/sunos_ioctl32.c~consolidate-line-discipline-number-definitions-v2-fix-2 arch/sparc64/kernel/sunos_ioctl32.c
---- a/arch/sparc64/kernel/sunos_ioctl32.c~consolidate-line-discipline-number-definitions-v2-fix-2
-+++ a/arch/sparc64/kernel/sunos_ioctl32.c
-@@ -11,6 +11,7 @@
- #include <linux/errno.h>
- #include <linux/string.h>
- #include <linux/termios.h>
-+#include <linux/tty.h>
- #include <linux/ioctl.h>
- #include <linux/route.h>
- #include <linux/sockios.h>
+diff -puN kernel/lockdep.c~lockdep-printk-warning-fix kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-printk-warning-fix
++++ a/kernel/lockdep.c
+@@ -1318,12 +1318,16 @@ static inline int lookup_chain_cache(u64
+ cache_hit:
+ 			debug_atomic_inc(&chain_lookup_hits);
+ 			if (very_verbose(class))
+-				printk("\nhash chain already cached, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
++				printk("\nhash chain already cached, key: "
++					"%016Lx tail class: [%p] %s\n",
++					(unsigned long long)chain_key,
++					class->key, class->name);
+ 			return 0;
+ 		}
+ 	}
+ 	if (very_verbose(class))
+-		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n", chain_key, class->key, class->name);
++		printk("\nnew hash chain, key: %016Lx tail class: [%p] %s\n",
++			(unsigned long long)chain_key, class->key, class->name);
+ 	/*
+ 	 * Allocate a new chain entry from the static array, and add
+ 	 * it to the hash:
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -183,4 +193,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+lockdep-printk-warning-fix.patch
 
