@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + git-ieee1394-build-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 14:36:37 -0800
-Message-ID: <200612272236.kBRMas8X021831@shell0.pdx.osdl.net>
+Subject: + git-ieee1394-build-fix-2.patch added to -mm tree
+Date: Wed, 27 Dec 2006 14:49:23 -0800
+Message-ID: <200612272249.kBRMne3T022058@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39743 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40311 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964788AbWL0WhB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 17:37:01 -0500
+	id S964788AbWL0Wtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 17:49:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,49 +15,43 @@ Cc: akpm@osdl.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     git-ieee1394-build-fix
+     git-ieee1394-build-fix-2
 has been added to the -mm tree.  Its filename is
-     git-ieee1394-build-fix.patch
+     git-ieee1394-build-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ieee1394-build-fix
+Subject: git-ieee1394-build-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-alpha:
+ia64:
 
-drivers/firewire/fw-ohci.c: In function 'ar_context_tasklet':
-drivers/firewire/fw-ohci.c:266: warning: implicit declaration of function 'dma_sync_single_for_device'
-drivers/firewire/fw-ohci.c:267: error: 'DMA_TO_DEVICE' undeclared (first use in this function)
-drivers/firewire/fw-ohci.c:267: error: (Each undeclared identifier is reported only once
-drivers/firewire/fw-ohci.c:267: error: for each function it appears in.)
-drivers/firewire/fw-ohci.c: In function 'ar_context_init':
-drivers/firewire/fw-ohci.c:282: warning: implicit declaration of function 'dma_map_single'
-drivers/firewire/fw-ohci.c:283: error: 'DMA_TO_DEVICE' undeclared (first use in this function)
-drivers/firewire/fw-ohci.c:293: error: 'DMA_FROM_DEVICE' undeclared (first use in this function)
-etc.
+drivers/firewire/fw-sbp2.c: In function `sbp2_command_orb_map_scatterlist':
+drivers/firewire/fw-sbp2.c:826: warning: implicit declaration of function `sg_dma_len'
+drivers/firewire/fw-sbp2.c:828: warning: implicit declaration of function `sg_dma_address'
+drivers/firewire/fw-sbp2.c:837: error: invalid use of undefined type `struct scatterlist'
+drivers/firewire/fw-sbp2.c:838: error: invalid use of undefined type `struct scatterlist'
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-ohci.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/firewire/fw-sbp2.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-ohci.c~git-ieee1394-build-fix drivers/firewire/fw-ohci.c
---- a/drivers/firewire/fw-ohci.c~git-ieee1394-build-fix
-+++ a/drivers/firewire/fw-ohci.c
-@@ -25,6 +25,8 @@
- #include <linux/pci.h>
- #include <linux/delay.h>
- #include <linux/poll.h>
-+#include <linux/dma-mapping.h>
-+
- #include <asm/uaccess.h>
- #include <asm/semaphore.h>
+diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2 drivers/firewire/fw-sbp2.c
+--- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2
++++ a/drivers/firewire/fw-sbp2.c
+@@ -21,6 +21,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/device.h>
++#include <linux/scatterlist.h>
+ #include <linux/dma-mapping.h>
  
+ #include <scsi/scsi.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -79,6 +73,7 @@ git-dvb.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-iee1394-printk-warning-fix.patch
+git-ieee1394-build-fix.patch
 git-input.patch
 git-libata-all.patch
 git-libata-all-fixup.patch
@@ -187,5 +182,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-ieee1394-build-fix.patch
+git-ieee1394-build-fix-2.patch
 
