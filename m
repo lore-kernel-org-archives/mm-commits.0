@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + modpost-add-more-symbols-to-whitelist-pattern2.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:12:25 -0800
-Message-ID: <200612272112.kBRLCPFe020326@shell0.pdx.osdl.net>
+Subject: + modpost-whitelist-reference-to-more-symbols-pattern-3.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:12:27 -0800
+Message-ID: <200612272112.kBRLCR2N020329@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35168 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754791AbWL0VMy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:12:54 -0500
+	id S1754788AbWL0VMx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:12:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,30 +15,33 @@ Cc: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com
 
 
 The patch titled
-     modpost add more symbols to whitelist pattern2
+     Modpost whitelist reference to more symbols (pattern 3)
 has been added to the -mm tree.  Its filename is
-     modpost-add-more-symbols-to-whitelist-pattern2.patch
+     modpost-whitelist-reference-to-more-symbols-pattern-3.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: modpost add more symbols to whitelist pattern2
+Subject: Modpost whitelist reference to more symbols (pattern 3)
 From: Vivek Goyal <vgoyal@in.ibm.com>
 
-o MODPOST generates warning for i386 if compiled with CONFIG_RELOCATABLE=y
-  and serial console support is enabled.
+o MODPOST generates warning on i386 if kernel is compiled with
+  CONFIG_RELOCATABLE=y.
 
-o Serial console setup function, serial8250_console_setup(), is a non __init
-  function and it calls functions which are of type __init().
-  (uart_parse_options() and uart_set_options()). Assuming, setup will
-  be called during init time, changing serial8250_console_setup() to __init.
+WARNING: vmlinux - Section mismatch: reference to .init.text:__init_begin from .text between 'free_initmem' (at offset 0xc0114fd3) and 'do_test_wp_bit'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'core_kernel_text' (at offset 0xc012aeae) and 'kernel_text_address'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'core_kernel_text' (at offset 0xc012aeb7) and 'kernel_text_address'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_sinittext from .text between 'get_symbol_pos' (at offset 0xc0135776) and 'reset_iter'
+WARNING: vmlinux - Section mismatch: reference to .init.text:_einittext from .text between 'get_symbol_pos' (at offset 0xc013577d) and 'reset_iter'
 
-o Adding one more pattern to modpost whitelist. Console drivers might
-  have *_console structures containing references to setup functions which
-  can be of __init type. Don't generate warnings for those.
+o These symbols (__init_begin, _sinittext, _einittext) belong to init
+  section and generally represent a section boundary. These are special
+  symbols in the sense that their size is zero and no memory is allocated
+  for them in init section. Their addr and value are same. So even if
+  we free the init section, it is ok to reference them.
 
-WARNING: vmlinux - Section mismatch: reference to .init.text: from .data between 'serial8250_console' (at offset 0xc05a33d8) and 'serial8250_reg'
+o Whitelist access to such select symbols in MODPOST.
 
 Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -46,33 +49,68 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/8250.c |    2 +-
- scripts/mod/modpost.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ scripts/mod/modpost.c |   26 ++++++++++++++++++++++++--
+ 1 files changed, 24 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250.c~modpost-add-more-symbols-to-whitelist-pattern2 drivers/serial/8250.c
---- a/drivers/serial/8250.c~modpost-add-more-symbols-to-whitelist-pattern2
-+++ a/drivers/serial/8250.c
-@@ -2394,7 +2394,7 @@ serial8250_console_write(struct console 
- 	local_irq_restore(flags);
- }
- 
--static int serial8250_console_setup(struct console *co, char *options)
-+static int __init serial8250_console_setup(struct console *co, char *options)
- {
- 	struct uart_port *port;
- 	int baud = 9600;
-diff -puN scripts/mod/modpost.c~modpost-add-more-symbols-to-whitelist-pattern2 scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~modpost-add-more-symbols-to-whitelist-pattern2
+diff -puN scripts/mod/modpost.c~modpost-whitelist-reference-to-more-symbols-pattern-3 scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~modpost-whitelist-reference-to-more-symbols-pattern-3
 +++ a/scripts/mod/modpost.c
-@@ -595,6 +595,7 @@ static int secref_whitelist(const char *
- 		"_ops",
- 		"_probe",
- 		"_probe_one",
-+		"_console",
+@@ -582,9 +582,19 @@ static int strrcmp(const char *s, const 
+  *   tosec   = .init.text | .exit.text | .init.data
+  *   fromsec = .data
+  *   atsym = *driver, *_template, *_sht, *_ops, *_probe, *probe_one
++ *
++ * Pattern 3:
++ *   Some symbols belong to init section but still it is ok to reference
++ *   these from non-init sections as these symbols don't have any memory
++ *   allocated for them and symbol address and value are same. So even
++ *   if init section is freed, its ok to reference those symbols.
++ *   For ex. symbols marking the init section boundaries.
++ *   This pattern is identified by
++ *   refsymname = __init_begin, _sinittext, _einittext
+  **/
+ static int secref_whitelist(const char *modname, const char *tosec,
+-			    const char *fromsec, const char *atsym)
++			    const char *fromsec, const char *atsym,
++			    const char *refsymname)
+ {
+ 	int f1 = 1, f2 = 1;
+ 	const char **s;
+@@ -599,6 +609,13 @@ static int secref_whitelist(const char *
  		NULL
  	};
  
++	const char *pat3refsym[] = {
++		"__init_begin",
++		"_sinittext",
++		"_einittext",
++		NULL
++	};
++
+ 	/* Check for pattern 1 */
+ 	if (strcmp(tosec, ".init.data") != 0)
+ 		f1 = 0;
+@@ -637,6 +654,11 @@ static int secref_whitelist(const char *
+ 			((strcmp(tosec, ".init.data") == 0) ||
+ 			(strcmp(tosec, ".init.text") == 0)))
+ 		return 1;
++
++		/* Check for pattern 3 */
++		for (s = pat3refsym; *s; s++)
++			if (strcmp(refsymname, *s) == 0)
++				return 1;
+ 	}
+ 	return 0;
+ }
+@@ -746,7 +768,7 @@ static void warn_sec_mismatch(const char
+ 	/* check whitelist - we may ignore it */
+ 	if (before &&
+ 	    secref_whitelist(modname, secname, fromsec,
+-			     elf->strtab + before->st_name))
++			     elf->strtab + before->st_name, refsymname))
+ 		return;
+ 
+ 	if (before && after) {
 _
 
 Patches currently in -mm which might be from vgoyal@in.ibm.com are
