@@ -1,52 +1,54 @@
 From: akpm@osdl.org
-Subject: + git-ieee1394-build-fix-3.patch added to -mm tree
-Date: Wed, 27 Dec 2006 14:51:35 -0800
-Message-ID: <200612272251.kBRMpqK2022087@shell0.pdx.osdl.net>
+Subject: + consolidate-line-discipline-number-definitions-v2-sparc-fix.patch added to -mm tree
+Date: Wed, 27 Dec 2006 15:10:40 -0800
+Message-ID: <200612272310.kBRNAvvH022357@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40448 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41532 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964784AbWL0Wv6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 17:51:58 -0500
+	id S1754777AbWL0XLA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 18:11:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, stefanr@s5r6.in-berlin.de
+Cc: akpm@osdl.org, tilman@imap.cc
 
 
 The patch titled
-     git-ieee1394-build-fix-3
+     consolidate-line-discipline-number-definitions-v2-sparc-fix
 has been added to the -mm tree.  Its filename is
-     git-ieee1394-build-fix-3.patch
+     consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ieee1394-build-fix-3
+Subject: consolidate-line-discipline-number-definitions-v2-sparc-fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/firewire/fw-sbp2.c: At top level:
-drivers/firewire/fw-sbp2.c:1060: error: storage size of '__mod_ieee1394_device_table' isn't known
+arch/sparc/kernel/sunos_ioctl.c: In function 'sunos_ioctl':
+arch/sparc/kernel/sunos_ioctl.c:45: error: 'N_TTY' undeclared (first use in this function)
+arch/sparc/kernel/sunos_ioctl.c:45: error: (Each undeclared identifier is reported only once
+arch/sparc/kernel/sunos_ioctl.c:45: error: for each function it appears in.)
 
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-sbp2.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/sparc/kernel/sunos_ioctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3 drivers/firewire/fw-sbp2.c
---- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3
-+++ a/drivers/firewire/fw-sbp2.c
-@@ -1058,7 +1058,6 @@ static void remove_scsi_devices(struct f
- MODULE_AUTHOR("Kristian Hoegsberg <krh@bitplanet.net>");
- MODULE_DESCRIPTION("SCSI over IEEE1394");
- MODULE_LICENSE("GPL");
--MODULE_DEVICE_TABLE(ieee1394, sbp2_id_table);
- 
- static int __init sbp2_init(void)
- {
+diff -puN arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix arch/sparc/kernel/sunos_ioctl.c
+--- a/arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix
++++ a/arch/sparc/kernel/sunos_ioctl.c
+@@ -11,6 +11,7 @@
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include <linux/termios.h>
++#include <linux/tty.h>
+ #include <linux/ioctl.h>
+ #include <linux/route.h>
+ #include <linux/sockios.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -70,6 +72,7 @@ ia64-enable-config_debug_spinlock_sleep.patch
 git-iee1394-printk-warning-fix.patch
 git-ieee1394-build-fix.patch
 git-ieee1394-build-fix-2.patch
+git-ieee1394-build-fix-3.patch
 git-input.patch
 git-libata-all.patch
 git-libata-all-fixup.patch
@@ -115,6 +118,7 @@ count_vm_events-warning-fix.patch
 toshiba-tc86c001-ide-driver-take-2-fix-2.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
 schedule_on_each_cpu-use-preempt_disable.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 vmi-versus-hrtimers.patch
 gtod-persistent-clock-support-i386.patch
@@ -178,5 +182,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-ieee1394-build-fix-3.patch
 
