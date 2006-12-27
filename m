@@ -1,59 +1,55 @@
 From: akpm@osdl.org
-Subject: + sched-fix-cond_resched_softirq-offset.patch added to -mm tree
-Date: Wed, 27 Dec 2006 00:53:47 -0800
-Message-ID: <200612270853.kBR8rlH6006130@shell0.pdx.osdl.net>
+Subject: - sched-remove-__resched_legal-and-fix-cond_resched_softirq.patch removed from -mm tree
+Date: Wed, 27 Dec 2006 00:53:59 -0800
+Message-ID: <200612270853.kBR8rxq2006134@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41448 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41464 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753632AbWL0Ixv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 03:53:51 -0500
+	id S1753712AbWL0IyH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 03:54:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+To: mingo@elte.hu, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix cond_resched_softirq() offset
-has been added to the -mm tree.  Its filename is
-     sched-fix-cond_resched_softirq-offset.patch
+     sched: remove __resched_legal() and fix cond_resched_softirq()
+has been removed from the -mm tree.  Its filename was
+     sched-remove-__resched_legal-and-fix-cond_resched_softirq.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sched: fix cond_resched_softirq() offset
+Subject: sched: remove __resched_legal() and fix cond_resched_softirq()
 From: Ingo Molnar <mingo@elte.hu>
 
 Remove the __resched_legal() check: it is conceptually broken.  The biggest
 problem it had is that it can mask buggy cond_resched() calls.  A
-cond_resched() call is only legal if we are not in an atomic context, with
-two narrow exceptions:
+cond_resched() call is only legal if we are not in an atomic context.  But
+__resched_legal() hid this fact.  Same goes for cond_resched_locked() and
+cond_resched_softirq().
 
- - if the system is booting
- - a reacquire_kernel_lock() down() done while PREEMPT_ACTIVE is set
+Furthermore, the __legal_resched(0) call was buggy in
+cond_resched_softirq() and caused unnecessary long softirq latencies!
 
-But __resched_legal() hid this and just silently returned whenever
-these primitives were called from invalid contexts. (Same goes for
-cond_resched_locked() and cond_resched_softirq()).
+The fix is to preserve the only valid inhibitor to voluntary preemption: if
+the system is still booting.  None of the other behavior of
+__resched_legal() made any sense.
 
-Furthermore, the __legal_resched(0) call was buggy in that it caused
-unnecessarily long softirq latencies via cond_resched_softirq().  (which is
-only called from softirq-off sections, hence the code did nothing.)
-
-The fix is to resurrect the efficiency of the might_sleep checks and to
-only allow the narrow exceptions.
+The effect of this fix should be more real bugs exposed, and shorter
+softirq latencies.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ kernel/sched.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN kernel/sched.c~sched-fix-cond_resched_softirq-offset kernel/sched.c
---- a/kernel/sched.c~sched-fix-cond_resched_softirq-offset
+diff -puN kernel/sched.c~sched-remove-__resched_legal-and-fix-cond_resched_softirq kernel/sched.c
+--- a/kernel/sched.c~sched-remove-__resched_legal-and-fix-cond_resched_softirq
 +++ a/kernel/sched.c
 @@ -4617,17 +4617,6 @@ asmlinkage long sys_sched_yield(void)
  	return 0;
@@ -73,17 +69,16 @@ diff -puN kernel/sched.c~sched-fix-cond_resched_softirq-offset kernel/sched.c
  static void __cond_resched(void)
  {
  #ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
-@@ -4647,7 +4636,8 @@ static void __cond_resched(void)
+@@ -4647,7 +4636,7 @@ static void __cond_resched(void)
  
  int __sched cond_resched(void)
  {
 -	if (need_resched() && __resched_legal(0)) {
-+	if (need_resched() && !(preempt_count() & PREEMPT_ACTIVE) &&
-+					system_state == SYSTEM_RUNNING) {
++	if (need_resched() && system_state == SYSTEM_RUNNING) {
  		__cond_resched();
  		return 1;
  	}
-@@ -4673,7 +4663,7 @@ int cond_resched_lock(spinlock_t *lock)
+@@ -4673,7 +4662,7 @@ int cond_resched_lock(spinlock_t *lock)
  		ret = 1;
  		spin_lock(lock);
  	}
@@ -92,7 +87,7 @@ diff -puN kernel/sched.c~sched-fix-cond_resched_softirq-offset kernel/sched.c
  		spin_release(&lock->dep_map, 1, _THIS_IP_);
  		_raw_spin_unlock(lock);
  		preempt_enable_no_resched();
-@@ -4689,7 +4679,7 @@ int __sched cond_resched_softirq(void)
+@@ -4689,7 +4678,7 @@ int __sched cond_resched_softirq(void)
  {
  	BUG_ON(!in_softirq());
  
