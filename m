@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + consolidate-line-discipline-number-definitions-v2-sparc-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 15:10:40 -0800
-Message-ID: <200612272310.kBRNAvvH022357@shell0.pdx.osdl.net>
+Subject: + consolidate-line-discipline-number-definitions-v2-fix-2.patch added to -mm tree
+Date: Wed, 27 Dec 2006 15:26:46 -0800
+Message-ID: <200612272327.kBRNR3Af022609@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41532 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42462 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754777AbWL0XLA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 18:11:00 -0500
+	id S1754804AbWL0X1G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 18:27:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,32 +15,32 @@ Cc: akpm@osdl.org, tilman@imap.cc
 
 
 The patch titled
-     consolidate-line-discipline-number-definitions-v2-sparc-fix
+     consolidate-line-discipline-number-definitions-v2-fix-2
 has been added to the -mm tree.  Its filename is
-     consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+     consolidate-line-discipline-number-definitions-v2-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: consolidate-line-discipline-number-definitions-v2-sparc-fix
+Subject: consolidate-line-discipline-number-definitions-v2-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-arch/sparc/kernel/sunos_ioctl.c: In function 'sunos_ioctl':
-arch/sparc/kernel/sunos_ioctl.c:45: error: 'N_TTY' undeclared (first use in this function)
-arch/sparc/kernel/sunos_ioctl.c:45: error: (Each undeclared identifier is reported only once
-arch/sparc/kernel/sunos_ioctl.c:45: error: for each function it appears in.)
+arch/sparc64/kernel/sunos_ioctl32.c: In function `sunos_ioctl':
+arch/sparc64/kernel/sunos_ioctl32.c:98: error: `N_TTY' undeclared (first use in this function)
+arch/sparc64/kernel/sunos_ioctl32.c:98: error: (Each undeclared identifier is reported only once
+arch/sparc64/kernel/sunos_ioctl32.c:98: error: for each function it appears in.)
 
 Cc: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc/kernel/sunos_ioctl.c |    1 +
+ arch/sparc64/kernel/sunos_ioctl32.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix arch/sparc/kernel/sunos_ioctl.c
---- a/arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix
-+++ a/arch/sparc/kernel/sunos_ioctl.c
+diff -puN arch/sparc64/kernel/sunos_ioctl32.c~consolidate-line-discipline-number-definitions-v2-fix-2 arch/sparc64/kernel/sunos_ioctl32.c
+--- a/arch/sparc64/kernel/sunos_ioctl32.c~consolidate-line-discipline-number-definitions-v2-fix-2
++++ a/arch/sparc64/kernel/sunos_ioctl32.c
 @@ -11,6 +11,7 @@
  #include <linux/errno.h>
  #include <linux/string.h>
@@ -119,6 +119,7 @@ toshiba-tc86c001-ide-driver-take-2-fix-2.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
 schedule_on_each_cpu-use-preempt_disable.patch
 consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 vmi-versus-hrtimers.patch
 gtod-persistent-clock-support-i386.patch
