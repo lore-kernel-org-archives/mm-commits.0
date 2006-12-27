@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-mxser_new-remove-useless-spinlock.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:42:22 -0800
-Message-ID: <200612270742.kBR7gMfX004643@shell0.pdx.osdl.net>
+Subject: + char-mxser_new-mark-init-functions.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:42:21 -0800
+Message-ID: <200612270742.kBR7gLpx004640@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37194 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37193 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932975AbWL0HmY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:42:24 -0500
+	id S932949AbWL0HmX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:42:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,62 +15,65 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: mxser_new, remove useless spinlock
+     Char: mxser_new, mark init functions
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-remove-useless-spinlock.patch
+     char-mxser_new-mark-init-functions.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, remove useless spinlock
+Subject: Char: mxser_new, mark init functions
 From: Jiri Slaby <jirislaby@gmail.com>
 
-gm_lock is useless, since ISA is configured at init time and there it's
-serialized.
+Mark some funcions with __init and __devinit.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/char/mxser_new.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-remove-useless-spinlock drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-remove-useless-spinlock
+diff -puN drivers/char/mxser_new.c~char-mxser_new-mark-init-functions drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-mark-init-functions
 +++ a/drivers/char/mxser_new.c
-@@ -313,7 +313,6 @@ static int mxvar_diagflag;
- static unsigned char mxser_msr[MXSER_PORTS + 1];
- static struct mxser_mon_ext mon_data_ext;
- static int mxser_set_baud_method[MXSER_PORTS + 1];
--static spinlock_t gm_lock;
+@@ -316,7 +316,7 @@ static int mxser_set_baud_method[MXSER_P
+ static spinlock_t gm_lock;
  
  #ifdef CONFIG_PCI
- static int __devinit CheckIsMoxaMust(int io)
-@@ -1377,7 +1376,6 @@ static int __init mxser_program_mode(int
+-static int CheckIsMoxaMust(int io)
++static int __devinit CheckIsMoxaMust(int io)
+ {
+ 	u8 oldmcr, hwid;
+ 	int i;
+@@ -1373,7 +1373,7 @@ static int mxser_tiocmset(struct tty_str
+ 	return 0;
+ }
+ 
+-static int mxser_program_mode(int port)
++static int __init mxser_program_mode(int port)
  {
  	int id, i, j, n;
  
--	spin_lock(&gm_lock);
- 	outb(0, port);
- 	outb(0, port);
- 	outb(0, port);
-@@ -1385,7 +1383,6 @@ static int __init mxser_program_mode(int
- 	(void)inb(port);
- 	outb(0, port);
- 	(void)inb(port);
--	spin_unlock(&gm_lock);
+@@ -1410,7 +1410,7 @@ static int mxser_program_mode(int port)
+ 	return id;
+ }
  
- 	id = inb(port + 1) & 0x1F;
- 	if ((id != C168_ASIC_ID) &&
-@@ -2684,7 +2681,6 @@ static int __init mxser_module_init(void
- 	mxvar_sdriver = alloc_tty_driver(MXSER_PORTS + 1);
- 	if (!mxvar_sdriver)
- 		return -ENOMEM;
--	spin_lock_init(&gm_lock);
+-static void mxser_normal_mode(int port)
++static void __init mxser_normal_mode(int port)
+ {
+ 	int i, n;
  
- 	printk(KERN_INFO "MOXA Smartio/Industio family driver version %s\n",
- 		MXSER_VERSION);
+@@ -1443,7 +1443,7 @@ static void mxser_normal_mode(int port)
+ #define EN0_PORT	0x010	/* Rcv missed frame error counter RD */
+ #define ENC_PAGE0	0x000	/* Select page 0 of chip registers   */
+ #define ENC_PAGE3	0x0C0	/* Select page 3 of chip registers   */
+-static int mxser_read_register(int port, unsigned short *regs)
++static int __init mxser_read_register(int port, unsigned short *regs)
+ {
+ 	int i, k, value, id;
+ 	unsigned int j;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
