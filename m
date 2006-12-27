@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + git-ieee1394-build-fix-2.patch added to -mm tree
-Date: Wed, 27 Dec 2006 14:49:23 -0800
-Message-ID: <200612272249.kBRMne3T022058@shell0.pdx.osdl.net>
+Subject: + git-ieee1394-build-fix-3.patch added to -mm tree
+Date: Wed, 27 Dec 2006 14:51:35 -0800
+Message-ID: <200612272251.kBRMpqK2022087@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40311 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40448 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964788AbWL0Wtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 17:49:47 -0500
+	id S964784AbWL0Wv6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 17:51:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,43 +15,38 @@ Cc: akpm@osdl.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     git-ieee1394-build-fix-2
+     git-ieee1394-build-fix-3
 has been added to the -mm tree.  Its filename is
-     git-ieee1394-build-fix-2.patch
+     git-ieee1394-build-fix-3.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ieee1394-build-fix-2
+Subject: git-ieee1394-build-fix-3
 From: Andrew Morton <akpm@osdl.org>
 
-ia64:
-
-drivers/firewire/fw-sbp2.c: In function `sbp2_command_orb_map_scatterlist':
-drivers/firewire/fw-sbp2.c:826: warning: implicit declaration of function `sg_dma_len'
-drivers/firewire/fw-sbp2.c:828: warning: implicit declaration of function `sg_dma_address'
-drivers/firewire/fw-sbp2.c:837: error: invalid use of undefined type `struct scatterlist'
-drivers/firewire/fw-sbp2.c:838: error: invalid use of undefined type `struct scatterlist'
+drivers/firewire/fw-sbp2.c: At top level:
+drivers/firewire/fw-sbp2.c:1060: error: storage size of '__mod_ieee1394_device_table' isn't known
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-sbp2.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/firewire/fw-sbp2.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2 drivers/firewire/fw-sbp2.c
---- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2
+diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3 drivers/firewire/fw-sbp2.c
+--- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3
 +++ a/drivers/firewire/fw-sbp2.c
-@@ -21,6 +21,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/device.h>
-+#include <linux/scatterlist.h>
- #include <linux/dma-mapping.h>
+@@ -1058,7 +1058,6 @@ static void remove_scsi_devices(struct f
+ MODULE_AUTHOR("Kristian Hoegsberg <krh@bitplanet.net>");
+ MODULE_DESCRIPTION("SCSI over IEEE1394");
+ MODULE_LICENSE("GPL");
+-MODULE_DEVICE_TABLE(ieee1394, sbp2_id_table);
  
- #include <scsi/scsi.h>
+ static int __init sbp2_init(void)
+ {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -74,6 +69,7 @@ git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-iee1394-printk-warning-fix.patch
 git-ieee1394-build-fix.patch
+git-ieee1394-build-fix-2.patch
 git-input.patch
 git-libata-all.patch
 git-libata-all-fixup.patch
@@ -182,5 +178,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-ieee1394-build-fix-2.patch
+git-ieee1394-build-fix-3.patch
 
