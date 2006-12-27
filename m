@@ -1,105 +1,143 @@
 From: akpm@osdl.org
-Subject: + altix-acpi-_prt-support.patch added to -mm tree
-Date: Tue, 26 Dec 2006 23:33:33 -0800
-Message-ID: <200612270733.kBR7XXuZ004474@shell0.pdx.osdl.net>
+Subject: + usb-interrupt-endpoint-support-for-keyspan-usb-to-serial.patch added to -mm tree
+Date: Tue, 26 Dec 2006 23:35:05 -0800
+Message-ID: <200612270735.kBR7Z5F6004503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36708 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36769 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932959AbWL0HeU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 02:34:20 -0500
+	id S932964AbWL0HfP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 02:35:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jpk@sgi.com, lenb@kernel.org, tony.luck@intel.com
+Cc: rweikusat@sncag.com, greg@kroah.com
 
 
 The patch titled
-     Altix: ACPI _PRT support
+     usb: interrupt endpoint support for keyspan USB-to-serial
 has been added to the -mm tree.  Its filename is
-     altix-acpi-_prt-support.patch
+     usb-interrupt-endpoint-support-for-keyspan-usb-to-serial.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Altix: ACPI _PRT support
-From: John Keller <jpk@sgi.com>
+Subject: usb: interrupt endpoint support for keyspan USB-to-serial
+From: Rainer Weikusat <rweikusat@sncag.com>
 
-Provide ACPI _PRT support for SN Altix systems.
+At least the Keyspan USA-19HS USB-to-serial converter supports two
+different configurations, one where the input endpoints have interrupt
+transfer type and one where they are bulk endpoints.
 
-The SN Altix platform does not conform to the IOSAPIC IRQ routing model, so
-a new acpi_irq_model (ACPI_IRQ_MODEL_PLATFORM) has been defined.  The SN
-platform specific code sets acpi_irq_model to this new value, and keys off
-of it in acpi_register_gsi() to avoid the iosapic code path.
+The default configuration uses the interrupt input endpoints.  The keyspan
+driver, OTOH, assumes that the device has only bulk endpoints (all URBs are
+initialized by calling usb_fill_bulk_urb in keyspan.c/ keyspan_setup_urb). 
+This causes the interval field of the input URBs to have a value of zero
+instead of one, which 'accidentally' worked with Linux at least up to
+2.6.17.11 but stopped to with 2.6.18, which changed the code handling URBs
+for interrupt endpoints.
 
-Signed-off-by: John Keller <jpk@sgi.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+The patch modifies to driver to initialize its input URBs either as
+interrupt or as bulk URBs, depending on the transfertype contained in the
+associated endpoint descriptor (only tested with the default configuration)
+enabling the driver to again receive data from the serial converter.
+
+Signed-off-by: Rainer Weikusat <rweikusat@sncag.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/kernel/acpi.c            |    3 +++
- arch/ia64/sn/kernel/io_acpi_init.c |    3 +++
- drivers/acpi/bus.c                 |    3 +++
- include/linux/acpi.h               |    1 +
- 4 files changed, 10 insertions(+)
+ drivers/usb/serial/keyspan.c |   55 ++++++++++++++++++++++++++++++---
+ 1 file changed, 51 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/acpi.c~altix-acpi-_prt-support arch/ia64/kernel/acpi.c
---- a/arch/ia64/kernel/acpi.c~altix-acpi-_prt-support
-+++ a/arch/ia64/kernel/acpi.c
-@@ -590,6 +590,9 @@ void __init acpi_numa_arch_fixup(void)
-  */
- int acpi_register_gsi(u32 gsi, int triggering, int polarity)
+diff -puN drivers/usb/serial/keyspan.c~usb-interrupt-endpoint-support-for-keyspan-usb-to-serial drivers/usb/serial/keyspan.c
+--- a/drivers/usb/serial/keyspan.c~usb-interrupt-endpoint-support-for-keyspan-usb-to-serial
++++ a/drivers/usb/serial/keyspan.c
+@@ -95,6 +95,7 @@
+ */
+ 
+ 
++#include <linux/compiler.h>
+ #include <linux/kernel.h>
+ #include <linux/jiffies.h>
+ #include <linux/errno.h>
+@@ -1275,11 +1276,35 @@ static int keyspan_fake_startup (struct 
+ }
+ 
+ /* Helper functions used by keyspan_setup_urbs */
++static struct usb_endpoint_descriptor const *
++find_ep_desc_for(struct usb_serial const *serial, int endpoint)
++{
++	struct usb_host_interface const *setting;
++	struct usb_endpoint_descriptor const *ep_desc;
++	int n;
++
++	setting = serial->interface->cur_altsetting;
++	n = setting->desc.bNumEndpoints - 1;
++	do
++		ep_desc = &setting->endpoint[n].desc;
++	while (ep_desc->bEndpointAddress != endpoint && --n >= 0);
++
++	if (unlikely(n == -1)) {
++		printk(KERN_ERR "no endpoint descriptor found\n");
++		BUG();
++	}
++
++	dbg("%s - found endpoint descriptor @ %p", __func__, ep_desc);
++	return ep_desc;
++}
++
+ static struct urb *keyspan_setup_urb (struct usb_serial *serial, int endpoint,
+ 				      int dir, void *ctx, char *buf, int len,
+ 				      void (*callback)(struct urb *))
  {
-+	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
-+		return gsi;
-+
- 	if (has_8259 && gsi < 16)
- 		return isa_irq_to_vector(gsi);
++	struct usb_endpoint_descriptor const *ep_desc;
+ 	struct urb *urb;
++	unsigned ep_type;
  
-diff -puN arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support arch/ia64/sn/kernel/io_acpi_init.c
---- a/arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support
-+++ a/arch/ia64/sn/kernel/io_acpi_init.c
-@@ -489,6 +489,9 @@ sn_io_acpi_init(void)
- 	u64 result;
- 	s64 status;
+ 	if (endpoint == -1)
+ 		return NULL;		/* endpoint not needed */
+@@ -1291,10 +1316,32 @@ static struct urb *keyspan_setup_urb (st
+ 		return NULL;
+ 	}
  
-+	/* SN Altix does not follow the IOSAPIC IRQ routing model */
-+	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
+-		/* Fill URB using supplied data. */
+-	usb_fill_bulk_urb(urb, serial->dev,
+-		      usb_sndbulkpipe(serial->dev, endpoint) | dir,
+-		      buf, len, callback, ctx);
++	ep_desc = find_ep_desc_for(serial, endpoint);
++	ep_type = ep_desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
++	switch (ep_type) {
++	case USB_ENDPOINT_XFER_INT:
++		dbg("%s - filling urb %p for int endpoint",
++		    __func__, urb);
 +
- 	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
- 	status = sal_ioif_init(&result);
- 	if (status || result)
-diff -puN drivers/acpi/bus.c~altix-acpi-_prt-support drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~altix-acpi-_prt-support
-+++ a/drivers/acpi/bus.c
-@@ -561,6 +561,9 @@ static int __init acpi_bus_init_irq(void
- 	case ACPI_IRQ_MODEL_IOSAPIC:
- 		message = "IOSAPIC";
- 		break;
-+	case ACPI_IRQ_MODEL_PLATFORM:
-+		message = "platform specific model";
++		usb_fill_int_urb(urb, serial->dev,
++				 usb_sndintpipe(serial->dev, endpoint) | dir,
++				 buf, len, callback, ctx,
++				 ep_desc->bInterval);
 +		break;
- 	default:
- 		printk(KERN_WARNING PREFIX "Unknown interrupt routing model\n");
- 		return -ENODEV;
-diff -puN include/linux/acpi.h~altix-acpi-_prt-support include/linux/acpi.h
---- a/include/linux/acpi.h~altix-acpi-_prt-support
-+++ a/include/linux/acpi.h
-@@ -47,6 +47,7 @@ enum acpi_irq_model_id {
- 	ACPI_IRQ_MODEL_PIC = 0,
- 	ACPI_IRQ_MODEL_IOAPIC,
- 	ACPI_IRQ_MODEL_IOSAPIC,
-+	ACPI_IRQ_MODEL_PLATFORM,
- 	ACPI_IRQ_MODEL_COUNT
- };
++
++	case USB_ENDPOINT_XFER_BULK:
++		dbg("%s - filling urb %p for bulk endpoint",
++		    __func__, urb);
++
++		usb_fill_bulk_urb(urb, serial->dev,
++				  usb_sndbulkpipe(serial->dev, endpoint) | dir,
++				  buf, len, callback, ctx);
++		break;
++
++	default:
++		printk(KERN_ERR "unexpected endpoint type %d", ep_type);
++		BUG();
++	}
  
+ 	return urb;
+ }
 _
 
-Patches currently in -mm which might be from jpk@sgi.com are
+Patches currently in -mm which might be from rweikusat@sncag.com are
 
-altix-acpi-ssdt-pci-device-support.patch
-altix-add-acpi-ssdt-pci-device-support-hotplug.patch
-altix-acpi-_prt-support.patch
+usb-interrupt-endpoint-support-for-keyspan-usb-to-serial.patch
 
