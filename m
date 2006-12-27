@@ -1,55 +1,51 @@
 From: akpm@osdl.org
-Subject: + git-iee1394-printk-warning-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 13:51:57 -0800
-Message-ID: <200612272152.kBRLqDPd021108@shell0.pdx.osdl.net>
+Subject: + git-ubi-build-fix.patch added to -mm tree
+Date: Wed, 27 Dec 2006 13:58:12 -0800
+Message-ID: <200612272158.kBRLwSfv021210@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37239 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37661 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754780AbWL0Vw1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 16:52:27 -0500
+	id S1754803AbWL0V6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 16:58:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, stefanr@s5r6.in-berlin.de
+Cc: akpm@osdl.org, dedekind@infradead.org
 
 
 The patch titled
-     git-iee1394-printk-warning-fix
+     git-ubi build fix
 has been added to the -mm tree.  Its filename is
-     git-iee1394-printk-warning-fix.patch
+     git-ubi-build-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-iee1394-printk-warning-fix
+Subject: git-ubi build fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/firewire/fw-ohci.c: In function 'ar_context_init':
-drivers/firewire/fw-ohci.c:288: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'dma_addr_t'
+drivers/mtd/ubi/cdev.c:356: warning: implicit declaration of function 'cond_resched'
 
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-ohci.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/ubi/cdev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix drivers/firewire/fw-ohci.c
---- a/drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix
-+++ a/drivers/firewire/fw-ohci.c
-@@ -285,8 +285,8 @@ ar_context_init(struct ar_context *ctx, 
- 		return -ENOMEM;
- 
- 	if (ctx->descriptor_bus & 0xf)
--		fw_notify("descriptor not 16-byte aligned: 0x%08x\n",
--			  ctx->descriptor_bus);
-+		fw_notify("descriptor not 16-byte aligned: 0x%08lx\n",
-+			  (unsigned long)ctx->descriptor_bus);
- 
- 	ctx->buffer_bus =
- 		dma_map_single(ohci->card.device, ctx->buffer,
+diff -puN drivers/mtd/ubi/cdev.c~git-ubi-build-fix drivers/mtd/ubi/cdev.c
+--- a/drivers/mtd/ubi/cdev.c~git-ubi-build-fix
++++ a/drivers/mtd/ubi/cdev.c
+@@ -22,6 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/stat.h>
++#include <linux/sched.h>
+ #include <linux/ioctl.h>
+ #include <linux/cdev.h>
+ #include <linux/capability.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -70,6 +66,7 @@ fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-re
 git-dvb.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
+git-iee1394-printk-warning-fix.patch
 git-input.patch
 git-libata-all.patch
 git-libata-all-fixup.patch
@@ -121,6 +118,7 @@ hrtimers-add-state-tracking.patch
 clockevents-i386-drivers.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
 time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
@@ -175,5 +173,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-iee1394-printk-warning-fix.patch
+git-ubi-build-fix.patch
 
