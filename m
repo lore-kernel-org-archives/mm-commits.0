@@ -1,144 +1,145 @@
 From: akpm@osdl.org
-Subject: + char-mxser_new-remove-tty_wakeup-bottomhalf.patch added to -mm tree
-Date: Thu, 28 Dec 2006 15:22:52 -0800
-Message-ID: <200612282322.kBSNMq8q015994@shell0.pdx.osdl.net>
+Subject: + dvb-fix-compile-error.patch added to -mm tree
+Date: Thu, 28 Dec 2006 15:23:35 -0800
+Message-ID: <200612282323.kBSNNZxJ016003@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41041 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41250 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755009AbWL1XWz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 18:22:55 -0500
+	id S1753916AbWL1X04 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 18:26:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: bunk@stusta.de, mchehab@infradead.org
 
 
 The patch titled
-     Char: mxser_new, remove tty_wakeup bottomhalf
+     DVB: fix compile error
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-remove-tty_wakeup-bottomhalf.patch
+     dvb-fix-compile-error.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, remove tty_wakeup bottomhalf
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: DVB: fix compile error
+From: Adrian Bunk <bunk@stusta.de>
 
-It's safe to call tty_wakeup from irq context. Do not schedule it for later
-calling.
+  LD      drivers/media/video/built-in.o
+drivers/media/video/saa7134/built-in.o:(.data+0x85ec): multiple definition of `ir_rc5_remote_gap'
+drivers/media/video/bt8xx/built-in.o:(.data+0x734c): first defined here
+drivers/media/video/saa7134/built-in.o:(.data+0x85f0): multiple definition of `ir_rc5_key_timeout'
+drivers/media/video/bt8xx/built-in.o:(.data+0x7350): first defined here
+make[4]: *** [drivers/media/video/built-in.o] Error 1
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Since these variables were needlessly global, this patch implements the
+trivial fix of making them static.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |   26 ++++++--------------------
- 1 files changed, 6 insertions(+), 20 deletions(-)
+ drivers/media/video/bt8xx/bttv-input.c      |    4 ++--
+ drivers/media/video/saa7134/saa7134-input.c |    4 ++--
+ include/media/ir-common.h                   |    3 ---
+ 3 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-remove-tty_wakeup-bottomhalf drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-remove-tty_wakeup-bottomhalf
-+++ a/drivers/char/mxser_new.c
-@@ -269,7 +269,6 @@ struct mxser_port {
- 	struct mxser_mon mon_data;
+diff -puN drivers/media/video/bt8xx/bttv-input.c~dvb-fix-compile-error drivers/media/video/bt8xx/bttv-input.c
+--- a/drivers/media/video/bt8xx/bttv-input.c~dvb-fix-compile-error
++++ a/drivers/media/video/bt8xx/bttv-input.c
+@@ -36,9 +36,9 @@ module_param(repeat_delay, int, 0644);
+ static int repeat_period = 33;
+ module_param(repeat_period, int, 0644);
  
- 	spinlock_t slock;
--	struct work_struct tqueue;
- 	wait_queue_head_t open_wait;
- 	wait_queue_head_t delta_msr_wait;
- };
-@@ -355,15 +354,6 @@ static void process_txrx_fifo(struct mxs
- 			}
- }
+-int ir_rc5_remote_gap = 885;
++static int ir_rc5_remote_gap = 885;
+ module_param(ir_rc5_remote_gap, int, 0644);
+-int ir_rc5_key_timeout = 200;
++static int ir_rc5_key_timeout = 200;
+ module_param(ir_rc5_key_timeout, int, 0644);
  
--static void mxser_do_softint(struct work_struct *work)
--{
--	struct mxser_port *info = container_of(work, struct mxser_port, tqueue);
--	struct tty_struct *tty = info->tty;
+ #define DEVNAME "bttv-input"
+diff -puN drivers/media/video/saa7134/saa7134-input.c~dvb-fix-compile-error drivers/media/video/saa7134/saa7134-input.c
+--- a/drivers/media/video/saa7134/saa7134-input.c~dvb-fix-compile-error
++++ a/drivers/media/video/saa7134/saa7134-input.c
+@@ -41,9 +41,9 @@ static int pinnacle_remote = 0;
+ module_param(pinnacle_remote, int, 0644);    /* Choose Pinnacle PCTV remote */
+ MODULE_PARM_DESC(pinnacle_remote, "Specify Pinnacle PCTV remote: 0=coloured, 1=grey (defaults to 0)");
+ 
+-int ir_rc5_remote_gap = 885;
++static int ir_rc5_remote_gap = 885;
+ module_param(ir_rc5_remote_gap, int, 0644);
+-int ir_rc5_key_timeout = 115;
++static int ir_rc5_key_timeout = 115;
+ module_param(ir_rc5_key_timeout, int, 0644);
+ 
+ #define dprintk(fmt, arg...)	if (ir_debug) \
+diff -puN include/media/ir-common.h~dvb-fix-compile-error include/media/ir-common.h
+--- a/include/media/ir-common.h~dvb-fix-compile-error
++++ a/include/media/ir-common.h
+@@ -36,9 +36,6 @@
+ #define IR_KEYCODE(tab,code)	(((unsigned)code < IR_KEYTAB_SIZE) \
+ 				 ? tab[code] : KEY_RESERVED)
+ 
+-extern int ir_rc5_remote_gap;
+-extern int ir_rc5_key_timeout;
 -
--	if (test_and_clear_bit(MXSER_EVENT_TXLOW, &info->event))
--		tty_wakeup(tty);
--}
--
- static unsigned char mxser_get_msr(int baseaddr, int mode, int port)
- {
- 	unsigned char status = 0;
-@@ -607,8 +597,8 @@ static int mxser_change_speed(struct mxs
- 						outb(info->IER, info->ioaddr +
- 								UART_IER);
- 					}
--					set_bit(MXSER_EVENT_TXLOW, &info->event);
--					schedule_work(&info->tqueue);				}
-+					tty_wakeup(info->tty);
-+				}
- 			} else {
- 				if (!(status & UART_MSR_CTS)) {
- 					info->tty->hw_stopped = 1;
-@@ -703,7 +693,6 @@ static void mxser_check_modem_status(str
- 	if ((port->flags & ASYNC_CHECK_CD) && (status & UART_MSR_DDCD)) {
- 		if (status & UART_MSR_DCD)
- 			wake_up_interruptible(&port->open_wait);
--		schedule_work(&port->tqueue);
- 	}
- 
- 	if (port->flags & ASYNC_CTS_FLOW) {
-@@ -719,8 +708,7 @@ static void mxser_check_modem_status(str
- 					outb(port->IER, port->ioaddr +
- 							UART_IER);
- 				}
--				set_bit(MXSER_EVENT_TXLOW, &port->event);
--				schedule_work(&port->tqueue);
-+				tty_wakeup(port->tty);
- 			}
- 		} else {
- 			if (!(status & UART_MSR_CTS)) {
-@@ -2220,10 +2208,9 @@ static void mxser_transmit_chars(struct 
- 	port->mon_data.up_txcnt += (cnt - port->xmit_cnt);
- 	port->icount.tx += (cnt - port->xmit_cnt);
- 
--	if (port->xmit_cnt < WAKEUP_CHARS) {
--		set_bit(MXSER_EVENT_TXLOW, &port->event);
--		schedule_work(&port->tqueue);
--	}
-+	if (port->xmit_cnt < WAKEUP_CHARS)
-+		tty_wakeup(port->tty);
-+
- 	if (port->xmit_cnt <= 0) {
- 		port->IER &= ~UART_IER_THRI;
- 		outb(port->IER, port->ioaddr + UART_IER);
-@@ -2400,7 +2387,6 @@ static int __devinit mxser_initbrd(struc
- 		info->custom_divisor = info->baud_base * 16;
- 		info->close_delay = 5 * HZ / 10;
- 		info->closing_wait = 30 * HZ;
--		INIT_WORK(&info->tqueue, mxser_do_softint);
- 		info->normal_termios = mxvar_sdriver->init_termios;
- 		init_waitqueue_head(&info->open_wait);
- 		init_waitqueue_head(&info->delta_msr_wait);
+ #define RC5_START(x)	(((x)>>12)&3)
+ #define RC5_TOGGLE(x)	(((x)>>11)&1)
+ #define RC5_ADDR(x)	(((x)>>6)&31)
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-add-gitignore-file-for-relocs-in-arch-i386-fix.patch
-char-mxser-fix-oops-when-removing-opened.patch
-char-isicom-eliminate-spinlock-recursion.patch
-git-input.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-isicom-remove-tty_hangwakeup-bottomhalves.patch
-mxser-remove-ambiguous-redefinition-of-init_work.patch
+git-acpi.patch
+git-alsa.patch
+git-dvb.patch
+dvb-fix-compile-error.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-netdev-all.patch
+net-irda-proper-prototypes.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+arch-i386-kernel-e820c-should-include-asm-setuph.patch
+arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch
+lumpy-reclaim-cleanup.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+toshiba-tc86c001-ide-driver-take-2-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
 make-drivers-char-mxser_newcmxser_hangup-static.patch
-char-isicom-fix-locking-in-isr.patch
-char-isicom-augment-card_reset.patch
-char-isicom-check-card-state-in-isr.patch
-char-isicom-support-higher-rates.patch
-char-isicom-correct-probing-removing.patch
-char-tty_wakeup-cleanup.patch
-char-mxser_new-mark-init-functions.patch
-char-mxser_new-remove-useless-spinlock.patch
-char-serial167-cleanup.patch
-char-n_r3964-cleanup.patch
-char-mxser_new-remove-unused-stuff.patch
-char-mxser-obsolete-old-nonexperimental-new.patch
-char-mxser_new-remove-tty_wakeup-bottomhalf.patch
-char-mxser_new-clean-request_irq-call.patch
-shrink_slab-handle-bad-shrinkers.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i386-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
