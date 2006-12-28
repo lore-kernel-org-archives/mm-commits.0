@@ -1,190 +1,275 @@
 From: akpm@osdl.org
-Subject: + time-x86_64-convert-x86_64-to-use-generic_time-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 17:23:09 -0800
-Message-ID: <200612280123.kBS1NTxi024693@shell0.pdx.osdl.net>
+Subject: + cxgb3-vs-gregkh-driver-network-device.patch added to -mm tree
+Date: Wed, 27 Dec 2006 20:10:43 -0800
+Message-ID: <200612280410.kBS4AkpN027429@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49149 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:56477 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964856AbWL1Bar (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 20:30:47 -0500
+	id S964913AbWL1ELd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 23:11:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@muc.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: divy@chelsio.com, greg@kroah.com
 
 
 The patch titled
-     time-x86_64-convert-x86_64-to-use-generic_time-fix
+     cxgb3: sysfs attributes in -mm tree
 has been added to the -mm tree.  Its filename is
-     time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+     cxgb3-vs-gregkh-driver-network-device.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time-x86_64-convert-x86_64-to-use-generic_time-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: cxgb3: sysfs attributes in -mm tree
+From: Divy Le Ray <divy@chelsio.com>
 
-printk timestamps are all zero.  Someone needs to call set_cyc2ns_scale().  
+This patch fixes the usage of sysfs attributes in cxgb3 for the -mm tree.
+It is built against the driver commited in the -mm tree.
 
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Divy Le Ray <divy@chelsio.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/time.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/cxgb3/cxgb3_main.c |   86 ++++++++++++++++---------------
+ 1 file changed, 45 insertions(+), 41 deletions(-)
 
-diff -puN arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time-fix arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time-fix
-+++ a/arch/x86_64/kernel/time.c
-@@ -361,6 +361,7 @@ void __init time_init(void)
- 	else
- 		vgetcpu_mode = VGETCPU_LSL;
+diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -54,8 +54,6 @@ enum {
  
-+	set_cyc2ns_scale(cpu_khz);
- 	printk(KERN_INFO "time.c: Detected %d.%03d MHz processor.\n",
- 		cpu_khz / 1000, cpu_khz % 1000);
- 	setup_irq(0, &irq0);
+ #define EEPROM_MAGIC 0x38E2F10C
+ 
+-#define to_net_dev(class) container_of(class, struct net_device, class_dev)
+-
+ #define CH_DEVICE(devid, ssid, idx) \
+ 	{ PCI_VENDOR_ID_CHELSIO, devid, PCI_ANY_ID, ssid, 0, 0, idx }
+ 
+@@ -414,11 +412,12 @@ static int setup_sge_qsets(struct adapte
+ 	return 0;
+ }
+ 
+-static ssize_t attr_show(struct class_device *cd, char *buf,
++static ssize_t attr_show(struct device *d, struct device_attribute *attr,
++			 char *buf,
+ 			 ssize_t(*format) (struct adapter *, char *))
+ {
+ 	ssize_t len;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	/* Synchronize with ioctls that may shut down the device */
+ 	rtnl_lock();
+@@ -427,14 +426,15 @@ static ssize_t attr_show(struct class_de
+ 	return len;
+ }
+ 
+-static ssize_t attr_store(struct class_device *cd, const char *buf, size_t len,
++static ssize_t attr_store(struct device *d, struct device_attribute *attr,
++			  const char *buf, size_t len,
+ 			  ssize_t(*set) (struct adapter *, unsigned int),
+ 			  unsigned int min_val, unsigned int max_val)
+ {
+ 	char *endp;
+ 	ssize_t ret;
+ 	unsigned int val;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	if (!capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+@@ -456,9 +456,10 @@ static ssize_t format_##name(struct adap
+ { \
+ 	return sprintf(buf, "%u\n", val_expr); \
+ } \
+-static ssize_t show_##name(struct class_device *cd, char *buf) \
++static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
++			   char *buf) \
+ { \
+-	return attr_show(cd, buf, format_##name); \
++	return attr_show(d, attr, buf, format_##name); \
+ }
+ 
+ static ssize_t set_nfilters(struct adapter *adap, unsigned int val)
+@@ -473,10 +474,10 @@ static ssize_t set_nfilters(struct adapt
+ 	return 0;
+ }
+ 
+-static ssize_t store_nfilters(struct class_device *cd, const char *buf,
+-			      size_t len)
++static ssize_t store_nfilters(struct device *d, struct device_attribute *attr,
++			      const char *buf, size_t len)
+ {
+-	return attr_store(cd, buf, len, set_nfilters, 0, ~0);
++	return attr_store(d, attr, buf, len, set_nfilters, 0, ~0);
+ }
+ 
+ static ssize_t set_nservers(struct adapter *adap, unsigned int val)
+@@ -489,38 +490,39 @@ static ssize_t set_nservers(struct adapt
+ 	return 0;
+ }
+ 
+-static ssize_t store_nservers(struct class_device *cd, const char *buf,
+-			      size_t len)
++static ssize_t store_nservers(struct device *d, struct device_attribute *attr,
++			      const char *buf, size_t len)
+ {
+-	return attr_store(cd, buf, len, set_nservers, 0, ~0);
++	return attr_store(d, attr, buf, len, set_nservers, 0, ~0);
+ }
+ 
+ #define CXGB3_ATTR_R(name, val_expr) \
+ CXGB3_SHOW(name, val_expr) \
+-static CLASS_DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
++static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
+ 
+ #define CXGB3_ATTR_RW(name, val_expr, store_method) \
+ CXGB3_SHOW(name, val_expr) \
+-static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
++static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
+ 
+ CXGB3_ATTR_R(cam_size, t3_mc5_size(&adap->mc5));
+ CXGB3_ATTR_RW(nfilters, adap->params.mc5.nfilters, store_nfilters);
+ CXGB3_ATTR_RW(nservers, adap->params.mc5.nservers, store_nservers);
+ 
+ static struct attribute *cxgb3_attrs[] = {
+-	&class_device_attr_cam_size.attr,
+-	&class_device_attr_nfilters.attr,
+-	&class_device_attr_nservers.attr,
++	&dev_attr_cam_size.attr,
++	&dev_attr_nfilters.attr,
++	&dev_attr_nservers.attr,
+ 	NULL
+ };
+ 
+ static struct attribute_group cxgb3_attr_group = {.attrs = cxgb3_attrs };
+ 
+-static ssize_t tm_attr_show(struct class_device *cd, char *buf, int sched)
++static ssize_t tm_attr_show(struct device *d, struct device_attribute *attr,
++			    char *buf, int sched)
+ {
+ 	ssize_t len;
+ 	unsigned int v, addr, bpt, cpt;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	addr = A_TP_TX_MOD_Q1_Q0_RATE_LIMIT - sched / 2;
+ 	rtnl_lock();
+@@ -540,13 +542,13 @@ static ssize_t tm_attr_show(struct class
+ 	return len;
+ }
+ 
+-static ssize_t tm_attr_store(struct class_device *cd, const char *buf,
+-			     size_t len, int sched)
++static ssize_t tm_attr_store(struct device *d, struct device_attribute *attr,
++			     const char *buf, size_t len, int sched)
+ {
+ 	char *endp;
+ 	ssize_t ret;
+ 	unsigned int val;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	if (!capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+@@ -564,15 +566,17 @@ static ssize_t tm_attr_store(struct clas
+ }
+ 
+ #define TM_ATTR(name, sched) \
+-static ssize_t show_##name(struct class_device *cd, char *buf) \
++static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
++			   char *buf) \
+ { \
+-	return tm_attr_show(cd, buf, sched); \
++	return tm_attr_show(d, attr, buf, sched); \
+ } \
+-static ssize_t store_##name(struct class_device *cd, const char *buf, size_t len) \
++static ssize_t store_##name(struct device *d, struct device_attribute *attr, \
++			    const char *buf, size_t len) \
+ { \
+-	return tm_attr_store(cd, buf, len, sched); \
++	return tm_attr_store(d, attr, buf, len, sched); \
+ } \
+-static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
++static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
+ 
+ TM_ATTR(sched0, 0);
+ TM_ATTR(sched1, 1);
+@@ -584,14 +588,14 @@ TM_ATTR(sched6, 6);
+ TM_ATTR(sched7, 7);
+ 
+ static struct attribute *offload_attrs[] = {
+-	&class_device_attr_sched0.attr,
+-	&class_device_attr_sched1.attr,
+-	&class_device_attr_sched2.attr,
+-	&class_device_attr_sched3.attr,
+-	&class_device_attr_sched4.attr,
+-	&class_device_attr_sched5.attr,
+-	&class_device_attr_sched6.attr,
+-	&class_device_attr_sched7.attr,
++	&dev_attr_sched0.attr,
++	&dev_attr_sched1.attr,
++	&dev_attr_sched2.attr,
++	&dev_attr_sched3.attr,
++	&dev_attr_sched4.attr,
++	&dev_attr_sched5.attr,
++	&dev_attr_sched6.attr,
++	&dev_attr_sched7.attr,
+ 	NULL
+ };
+ 
+@@ -783,7 +787,7 @@ static int offload_open(struct net_devic
+ 	init_smt(adapter);
+ 
+ 	/* Never mind if the next step fails */
+-	sysfs_create_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
++	sysfs_create_group(&tdev->lldev->dev.kobj, &offload_attr_group);
+ 
+ 	/* Call back all registered clients */
+ 	cxgb3_add_clients(tdev);
+@@ -808,7 +812,7 @@ static int offload_close(struct t3cdev *
+ 	/* Call back all registered clients */
+ 	cxgb3_remove_clients(tdev);
+ 
+-	sysfs_remove_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
++	sysfs_remove_group(&tdev->lldev->dev.kobj, &offload_attr_group);
+ 
+ 	tdev->lldev = NULL;
+ 	cxgb3_set_dummy_ops(tdev);
+@@ -2379,7 +2383,7 @@ static int __devinit init_one(struct pci
+ 	else if (msi > 0 && pci_enable_msi(pdev) == 0)
+ 		adapter->flags |= USING_MSI;
+ 
+-	err = sysfs_create_group(&adapter->port[0]->class_dev.kobj,
++	err = sysfs_create_group(&adapter->port[0]->dev.kobj,
+ 				 &cxgb3_attr_group);
+ 
+ 	print_port_info(adapter, ai);
+@@ -2411,7 +2415,7 @@ static void __devexit remove_one(struct 
+ 		struct adapter *adapter = dev->priv;
+ 
+ 		t3_sge_stop(adapter);
+-		sysfs_remove_group(&adapter->port[0]->class_dev.kobj,
++		sysfs_remove_group(&adapter->port[0]->dev.kobj,
+ 				   &cxgb3_attr_group);
+ 
+ 		for_each_port(adapter, i)
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from divy@chelsio.com are
 
-cpuset-procfs-warning-fix.patch
-lockdep-printk-warning-fix.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-agpgart.patch
-cifs-sprintf-fix.patch
-git-cpufreq.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-iee1394-printk-warning-fix.patch
-git-ieee1394-build-fix.patch
-git-ieee1394-build-fix-2.patch
-git-ieee1394-build-fix-3.patch
-git-input.patch
-git-libata-all.patch
-git-libata-all-fixup.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-git-ubi-build-fix.patch
-git-ubi-mtd_read-arg-fix.patch
-ubi-missing-include.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-revert-gregkh-usb-usb-implement-support-for-split-endian-ohci.patch
-revert-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio.patch
-revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-add-i386-idle-notifier-take-3-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-bluetooth-blacklist-lenovo-r60e.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+cxgb3-main-header-files.patch
+cxgb3-main-source-file.patch
+cxgb3-hw-access-routines.patch
+cxgb3-scatter-gather-engine.patch
+cxgb3-on-board-memory-mac-and-phy.patch
+cxgb3-offload-header-files.patch
+cxgb3-offload-capabilities.patch
+cxgb3-register-definitions.patch
+cxgb3-build-files-and-versioning.patch
+cxgb3-vs-gregkh-driver-network-device.patch
 
