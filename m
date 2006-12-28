@@ -1,59 +1,60 @@
 From: akpm@osdl.org
-Subject: + fuse-fix-typo.patch added to -mm tree
-Date: Thu, 28 Dec 2006 15:26:25 -0800
-Message-ID: <200612282326.kBSNQPS5016062@shell0.pdx.osdl.net>
+Subject: + sparc32-add-offset-in-pci_map_sg.patch added to -mm tree
+Date: Thu, 28 Dec 2006 15:25:18 -0800
+Message-ID: <200612282325.kBSNPIMt016039@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41254 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41374 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755012AbWL1X05 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 18:26:57 -0500
+	id S1753823AbWL1X2s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 18:28:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, miklos@szeredi.hu, t.hisch@gmail.com
+Cc: jan.andersson@ieee.org, davem@davemloft.net, wli@holomorphy.com
 
 
 The patch titled
-     fuse: fix typo
+     sparc32: add offset in pci_map_sg()
 has been added to the -mm tree.  Its filename is
-     fuse-fix-typo.patch
+     sparc32-add-offset-in-pci_map_sg.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: fix typo
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: sparc32: add offset in pci_map_sg()
+From: Jan Andersson jan.andersson@ieee.org
 
-Signed-off-by: Thomas Hisch <t.hisch@gmail.com>
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Add sg->offset to sg->dvma_address in pci_map_sg() on sparc32.  Without the
+offset, transfers to buffers that do not begin on a page boundary will not
+work as expected.
+
+Signed-off-by: Jan Andersson <jan.andersson@ieee.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/filesystems/fuse.txt |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/ioport.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/fuse.txt~fuse-fix-typo Documentation/filesystems/fuse.txt
---- a/Documentation/filesystems/fuse.txt~fuse-fix-typo
-+++ a/Documentation/filesystems/fuse.txt
-@@ -94,8 +94,8 @@ Mount options
-   filesystem is free to implement it's access policy or leave it to
-   the underlying file access mechanism (e.g. in case of network
-   filesystems).  This option enables permission checking, restricting
--  access based on file mode.  This is option is usually useful
--  together with the 'allow_other' mount option.
-+  access based on file mode.  It is usually useful together with the
-+  'allow_other' mount option.
- 
- 'allow_other'
- 
+diff -puN arch/sparc/kernel/ioport.c~sparc32-add-offset-in-pci_map_sg arch/sparc/kernel/ioport.c
+--- a/arch/sparc/kernel/ioport.c~sparc32-add-offset-in-pci_map_sg
++++ a/arch/sparc/kernel/ioport.c
+@@ -726,7 +726,8 @@ int pci_map_sg(struct pci_dev *hwdev, st
+ 	/* IIep is write-through, not flushing. */
+ 	for (n = 0; n < nents; n++) {
+ 		BUG_ON(page_address(sg->page) == NULL);
+-		sg->dvma_address = virt_to_phys(page_address(sg->page));
++		sg->dvma_address =
++			virt_to_phys(page_address(sg->page)) + sg->offset;
+ 		sg->dvma_length = sg->length;
+ 		sg++;
+ 	}
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from jan.andersson@ieee.org are
 
-fuse-fix-typo.patch
-git-mtd.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
+sparc32-add-offset-in-pci_map_sg.patch
 
