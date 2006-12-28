@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-mxser-obsolete-old-nonexperimental-new.patch added to -mm tree
-Date: Thu, 28 Dec 2006 15:22:50 -0800
-Message-ID: <200612282322.kBSNMo9w015991@shell0.pdx.osdl.net>
+Subject: + char-mxser_new-clean-request_irq-call.patch added to -mm tree
+Date: Thu, 28 Dec 2006 15:22:54 -0800
+Message-ID: <200612282322.kBSNMsM2015997@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41038 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41043 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753924AbWL1XWx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 18:22:53 -0500
+	id S1755012AbWL1XW5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 18:22:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,47 +15,47 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: mxser, obsolete old, nonexperimental new
+     Char: mxser_new, clean request_irq call
 has been added to the -mm tree.  Its filename is
-     char-mxser-obsolete-old-nonexperimental-new.patch
+     char-mxser_new-clean-request_irq-call.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser, obsolete old, nonexperimental new
+Subject: Char: mxser_new, clean request_irq call
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Mark v 1.x as obsolete and v 2.x as non-experimental in Kconfig.
+We always set ASYNC_SHARE_IRQ, so do not test against this flag and request
+shared irq directly.  Also remove nonsense comment.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/mxser_new.c |   10 +++-------
+ 1 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/Kconfig~char-mxser-obsolete-old-nonexperimental-new drivers/char/Kconfig
---- a/drivers/char/Kconfig~char-mxser-obsolete-old-nonexperimental-new
-+++ a/drivers/char/Kconfig
-@@ -191,7 +191,7 @@ config MOXA_INTELLIO
- 	  module will be called moxa.
- 
- config MOXA_SMARTIO
--	tristate "Moxa SmartIO support"
-+	tristate "Moxa SmartIO support (OBSOLETE)"
- 	depends on SERIAL_NONSTANDARD
- 	help
- 	  Say Y here if you have a Moxa SmartIO multiport serial card.
-@@ -202,7 +202,7 @@ config MOXA_SMARTIO
- 	  here.
- 
- config MOXA_SMARTIO_NEW
--	tristate "Moxa SmartIO support v. 2.0 (EXPERIMENTAL)"
-+	tristate "Moxa SmartIO support v. 2.0"
- 	depends on SERIAL_NONSTANDARD && (PCI || EISA || ISA)
- 	help
- 	  Say Y here if you have a Moxa SmartIO multiport serial card and/or
+diff -puN drivers/char/mxser_new.c~char-mxser_new-clean-request_irq-call drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-clean-request_irq-call
++++ a/drivers/char/mxser_new.c
+@@ -2398,13 +2398,9 @@ static int __devinit mxser_initbrd(struc
+ 		outb(inb(info->ioaddr + UART_IER) & 0xf0,
+ 			info->ioaddr + UART_IER);
+ 	}
+-	/*
+-	 * Allocate the IRQ if necessary
+-	 */
+-
+-	retval = request_irq(brd->irq, mxser_interrupt,
+-			(brd->ports[0].flags & ASYNC_SHARE_IRQ) ? IRQF_SHARED :
+-			IRQF_DISABLED, "mxser", brd);
++
++	retval = request_irq(brd->irq, mxser_interrupt, IRQF_SHARED, "mxser",
++			brd);
+ 	if (retval) {
+ 		printk(KERN_ERR "Board %s: Request irq failed, IRQ (%d) may "
+ 			"conflict with another device.\n",
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
