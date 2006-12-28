@@ -1,38 +1,33 @@
 From: akpm@osdl.org
-Subject: + fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch added to -mm tree
-Date: Thu, 28 Dec 2006 14:53:56 -0800
-Message-ID: <200612282253.kBSMruAM015365@shell0.pdx.osdl.net>
+Subject: + fsaio-filesystem-aio-read-tidy.patch added to -mm tree
+Date: Thu, 28 Dec 2006 14:58:11 -0800
+Message-ID: <200612282258.kBSMwBjo015448@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39239 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39567 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965044AbWL1WzK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 17:55:10 -0500
+	id S965049AbWL1W7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 17:59:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, zach.brown@oracle.com
+Cc: akpm@osdl.org, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, suparna@in.ibm.com, zach.brown@oracle.com
 
 
 The patch titled
-     fsaio: add a default io wait bit field in task struct
+     fsaio-filesystem-aio-read-tidy
 has been added to the -mm tree.  Its filename is
-     fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+     fsaio-filesystem-aio-read-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio: add a default io wait bit field in task struct
-From: Suparna Bhattacharya <suparna@in.ibm.com>
+Subject: fsaio-filesystem-aio-read-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-Allocates space for the default io wait queue entry (actually a wait bit
-entry) in the task struct.  Doing so simplifies the patches for AIO wait page
-allowing for cleaner and more efficient implementation, at the cost of 28
-additional bytes in task struct vs allocation on demand on-stack.
-
-Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Zach Brown <zach.brown@oracle.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
@@ -40,56 +35,185 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h |   11 +++++++----
- kernel/fork.c         |    3 ++-
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ mm/filemap.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/sched.h~fsaio-add-a-default-io-wait-bit-field-in-task-struct include/linux/sched.h
---- a/include/linux/sched.h~fsaio-add-a-default-io-wait-bit-field-in-task-struct
-+++ a/include/linux/sched.h
-@@ -1003,11 +1003,14 @@ struct task_struct {
+diff -puN mm/filemap.c~fsaio-filesystem-aio-read-tidy mm/filemap.c
+--- a/mm/filemap.c~fsaio-filesystem-aio-read-tidy
++++ a/mm/filemap.c
+@@ -984,9 +984,9 @@ page_ok:
+ page_not_up_to_date:
+ 		/* Get exclusive access to the page ... */
  
- 	unsigned long ptrace_message;
- 	siginfo_t *last_siginfo; /* For ptrace use.  */
-+
-+/* Space for default IO wait bit entry used for synchronous IO waits */
-+	struct wait_bit_queue __wait;
- /*
-- * current io wait handle: wait queue entry to use for io waits
-- * If this thread is processing aio, this points at the waitqueue
-- * inside the currently handled kiocb. It may be NULL (i.e. default
-- * to a stack based synchronous wait) if its doing sync IO.
-+ * Current IO wait handle: wait queue entry to use for IO waits
-+ * If this thread is processing AIO, this points at the waitqueue
-+ * inside the currently handled kiocb. Otherwise, points to the
-+ * default IO wait field (i.e &__wait.wait above).
-  */
- 	wait_queue_t *io_wait;
- /* i/o counters(bytes read/written, #syscalls */
-diff -puN kernel/fork.c~fsaio-add-a-default-io-wait-bit-field-in-task-struct kernel/fork.c
---- a/kernel/fork.c~fsaio-add-a-default-io-wait-bit-field-in-task-struct
-+++ a/kernel/fork.c
-@@ -1056,7 +1056,8 @@ static struct task_struct *copy_process(
- 	do_posix_clock_monotonic_gettime(&p->start_time);
- 	p->security = NULL;
- 	p->io_context = NULL;
--	p->io_wait = NULL;
-+	init_wait_bit_task(&p->__wait, p);
-+	p->io_wait = &p->__wait.wait;
- 	p->audit_context = NULL;
- 	cpuset_fork(p);
- #ifdef CONFIG_NUMA
+-		if ((error = __lock_page(page, current->io_wait))) {
++		error = __lock_page(page, current->io_wait);
++		if (error)
+ 			goto readpage_error;
+-		}
+ 
+ 		/* Did it get truncated before we got the lock? */
+ 		if (!page->mapping) {
+@@ -1014,7 +1014,8 @@ readpage:
+ 		}
+ 
+ 		if (!PageUptodate(page)) {
+-			if ((error = __lock_page(page, current->io_wait)))
++			error = __lock_page(page, current->io_wait);
++			if (error)
+ 				goto readpage_error;
+ 			if (!PageUptodate(page)) {
+ 				if (page->mapping == NULL) {
+@@ -1061,10 +1062,10 @@ readpage:
+ 		goto page_ok;
+ 
+ readpage_error:
+-		/* We don't have uptodate data in the page yet */
+-		/* Could be due to an error or because we need to
+-		 * retry when we get an async i/o notification.
+-		 * Report the reason.
++		/*
++		 * We don't have uptodate data in the page yet.  This could be
++		 * due to an error or because we need to retry when we get an
++		 * async i/o notification.  Report the reason.
+ 		 */
+ 		desc->error = error;
+ 		page_cache_release(page);
 _
 
-Patches currently in -mm which might be from suparna@in.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-fix-lock-inversion-aio_kick_handler.patch
-fsaio-add-a-wait-queue-parameter-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_slow.patch
-fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
+cpuset-procfs-warning-fix.patch
+lockdep-printk-warning-fix.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-iee1394-printk-warning-fix.patch
+git-ieee1394-build-fix.patch
+git-ieee1394-build-fix-2.patch
+git-ieee1394-build-fix-3.patch
+git-input.patch
+git-libata-all.patch
+git-libata-all-fixup.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-build-fix.patch
+git-ubi-mtd_read-arg-fix.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+revert-gregkh-usb-usb-implement-support-for-split-endian-ohci.patch
+revert-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio.patch
+revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+fsaio-filesystem-aio-read-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
