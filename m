@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-more-msr-misery.patch added to -mm tree
-Date: Thu, 28 Dec 2006 15:15:55 -0800
-Message-ID: <200612282315.kBSNFtnW015860@shell0.pdx.osdl.net>
+Subject: + kvm-implement-a-few-system-configuration-msrs.patch added to -mm tree
+Date: Thu, 28 Dec 2006 15:15:51 -0800
+Message-ID: <200612282315.kBSNFpAj015854@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40712 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40703 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753823AbWL1XP7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 18:15:59 -0500
+	id S1753836AbWL1XPz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 18:15:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,46 +15,53 @@ Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: More msr misery
+     KVM: Implement a few system configuration msrs
 has been added to the -mm tree.  Its filename is
-     kvm-more-msr-misery.patch
+     kvm-implement-a-few-system-configuration-msrs.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: More msr misery
+Subject: KVM: Implement a few system configuration msrs
 From: Avi Kivity <avi@qumranet.com>
 
-These msrs are referenced by benchmarking software when pretending to be an
-Intel cpu.
+Resolves sourceforge bug 1622229 (guest crashes running benchmark software).
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ drivers/kvm/svm.c |    3 +++
+ drivers/kvm/vmx.c |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-more-msr-misery drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-more-msr-misery
-+++ a/drivers/kvm/kvm_main.c
-@@ -1122,11 +1122,15 @@ int kvm_get_msr_common(struct kvm_vcpu *
- 	case MSR_IA32_MC0_MISC+12:
- 	case MSR_IA32_MC0_MISC+16:
- 	case MSR_IA32_UCODE_REV:
-+	case MSR_IA32_PERF_STATUS:
- 		/* MTRR registers */
- 	case 0xfe:
- 	case 0x200 ... 0x2ff:
- 		data = 0;
+diff -puN drivers/kvm/svm.c~kvm-implement-a-few-system-configuration-msrs drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-implement-a-few-system-configuration-msrs
++++ a/drivers/kvm/svm.c
+@@ -1068,6 +1068,9 @@ static int emulate_on_interception(struc
+ static int svm_get_msr(struct kvm_vcpu *vcpu, unsigned ecx, u64 *data)
+ {
+ 	switch (ecx) {
++	case 0xc0010010: /* SYSCFG */
++	case 0xc0010015: /* HWCR */
++	case MSR_IA32_PLATFORM_ID:
+ 	case MSR_IA32_P5_MC_ADDR:
+ 	case MSR_IA32_P5_MC_TYPE:
+ 	case MSR_IA32_MC0_CTL:
+diff -puN drivers/kvm/vmx.c~kvm-implement-a-few-system-configuration-msrs drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-implement-a-few-system-configuration-msrs
++++ a/drivers/kvm/vmx.c
+@@ -359,6 +359,9 @@ static int vmx_get_msr(struct kvm_vcpu *
+ 	case MSR_IA32_SYSENTER_ESP:
+ 		data = vmcs_read32(GUEST_SYSENTER_ESP);
  		break;
-+	case 0xcd: /* fsb frequency */
-+		data = 3;
-+		break;
- 	case MSR_IA32_APICBASE:
- 		data = vcpu->apic_base;
- 		break;
++	case 0xc0010010: /* SYSCFG */
++	case 0xc0010015: /* HWCR */
++	case MSR_IA32_PLATFORM_ID:
+ 	case MSR_IA32_P5_MC_ADDR:
+ 	case MSR_IA32_P5_MC_TYPE:
+ 	case MSR_IA32_MC0_CTL:
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
