@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fsaio-enable-asynchronous-wait-page-and-lock-page.patch added to -mm tree
-Date: Thu, 28 Dec 2006 14:54:00 -0800
-Message-ID: <200612282254.kBSMs0DV015371@shell0.pdx.osdl.net>
+Subject: + fsaio-rename-__lock_page-to-lock_page_slow.patch added to -mm tree
+Date: Thu, 28 Dec 2006 14:53:52 -0800
+Message-ID: <200612282253.kBSMrqR8015354@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39217 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39216 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965042AbWL1Wyz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 17:54:55 -0500
+	id S965042AbWL1Wyx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 17:54:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,28 +15,23 @@ Cc: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@el
 
 
 The patch titled
-     fsaio: enable asynchronous wait page and lock page
+     fsaio: rename __lock_page to lock_page_blocking
 has been added to the -mm tree.  Its filename is
-     fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+     fsaio-rename-__lock_page-to-lock_page_slow.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio: enable asynchronous wait page and lock page
+Subject: fsaio: rename __lock_page to lock_page_blocking
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-Define low-level page wait and lock page routines which take a wait queue
-entry pointer as an additional parameter and return status (which may be
-non-zero when the wait queue parameter signifies an asynchronous wait,
-typically during AIO).
-
-Synchronous IO waits become a special case where the wait queue parameter is
-the running task's default io wait context.  Asynchronous IO waits happen when
-the wait queue parameter is the io wait context of a kiocb.  Code paths which
-choose to execute synchronous or asynchronous behaviour depending on the
-called context specify the current io wait context (which points to sync or
-async context as the case may be) as the wait parameter.
+In order to allow for interruptible and asynchronous versions of lock_page in
+conjunction with the wait_on_bit changes, we need to define low-level lock
+page routines which take an additional argument, i.e a wait queue entry and
+may return non-zero status, e.g -EINTR, -EIOCBRETRY, -EWOULDBLOCK etc.  This
+patch renames __lock_page to lock_page_blocking, so that __lock_page and
+__lock_page_blocking can denote the versions which take a wait queue parameter.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
@@ -47,198 +42,69 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/pagemap.h |   30 ++++++++++++++++++++++--------
- include/linux/sched.h   |    1 +
- kernel/sched.c          |   14 ++++++++++++++
- mm/filemap.c            |   31 ++++++++++++++++++-------------
- 4 files changed, 55 insertions(+), 21 deletions(-)
+ include/linux/pagemap.h |    4 ++--
+ mm/filemap.c            |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/pagemap.h
---- a/include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page
+diff -puN include/linux/pagemap.h~fsaio-rename-__lock_page-to-lock_page_slow include/linux/pagemap.h
+--- a/include/linux/pagemap.h~fsaio-rename-__lock_page-to-lock_page_slow
 +++ a/include/linux/pagemap.h
-@@ -133,20 +133,24 @@ static inline pgoff_t linear_page_index(
+@@ -133,7 +133,7 @@ static inline pgoff_t linear_page_index(
  	return pgoff >> (PAGE_CACHE_SHIFT - PAGE_SHIFT);
  }
  
--extern void FASTCALL(lock_page_blocking(struct page *page));
-+extern int FASTCALL(__lock_page_blocking(struct page *page, wait_queue_t *wait));
+-extern void FASTCALL(__lock_page(struct page *page));
++extern void FASTCALL(lock_page_blocking(struct page *page));
  extern void FASTCALL(__lock_page_nosync(struct page *page));
  extern void FASTCALL(unlock_page(struct page *page));
  
- /*
-  * lock_page may only be called if we have the page's inode pinned.
-  */
--static inline void lock_page(struct page *page)
-+static inline int __lock_page(struct page *page, wait_queue_t *wait)
+@@ -144,7 +144,7 @@ static inline void lock_page(struct page
  {
  	might_sleep();
  	if (TestSetPageLocked(page))
--		lock_page_blocking(page);
-+		return __lock_page_blocking(page, wait);
-+	return 0;
+-		__lock_page(page);
++		lock_page_blocking(page);
  }
- 
-+#define lock_page(page)		__lock_page(page, &current->__wait.wait)
-+#define lock_page_blocking(page)	__lock_page_blocking(page, &current->__wait.wait)
-+
- /*
-  * lock_page_nosync should only be used if we can't pin the page's inode.
-  * Doesn't play quite so well with block device plugging.
-@@ -162,7 +166,8 @@ static inline void lock_page_nosync(stru
-  * This is exported only for wait_on_page_locked/wait_on_page_writeback.
-  * Never use this directly!
-  */
--extern void FASTCALL(wait_on_page_bit(struct page *page, int bit_nr));
-+extern int FASTCALL(wait_on_page_bit(struct page *page, int bit_nr,
-+			wait_queue_t *wait));
- 
- /* 
-  * Wait for a page to be unlocked.
-@@ -171,21 +176,30 @@ extern void FASTCALL(wait_on_page_bit(st
-  * ie with increased "page->count" so that the page won't
-  * go away during the wait..
-  */
--static inline void wait_on_page_locked(struct page *page)
-+static inline int __wait_on_page_locked(struct page *page, wait_queue_t *wait)
- {
- 	if (PageLocked(page))
--		wait_on_page_bit(page, PG_locked);
-+		return wait_on_page_bit(page, PG_locked, wait);
-+	return 0;
- }
- 
-+#define wait_on_page_locked(page) \
-+	__wait_on_page_locked(page, &current->__wait.wait)
-+
- /* 
-  * Wait for a page to complete writeback
-  */
--static inline void wait_on_page_writeback(struct page *page)
-+static inline int __wait_on_page_writeback(struct page *page,
-+					wait_queue_t *wait)
- {
- 	if (PageWriteback(page))
--		wait_on_page_bit(page, PG_writeback);
-+		return wait_on_page_bit(page, PG_writeback, wait);
-+	return 0;
- }
- 
-+#define wait_on_page_writeback(page) \
-+	__wait_on_page_writeback(page, &current->__wait.wait)
-+
- extern void end_page_writeback(struct page *page);
  
  /*
-diff -puN include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/sched.h
---- a/include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/include/linux/sched.h
-@@ -216,6 +216,7 @@ extern void show_stack(struct task_struc
- 
- void io_schedule(void);
- long io_schedule_timeout(long timeout);
-+int io_wait_schedule(wait_queue_t *wait);
- 
- extern void cpu_init (void);
- extern void trap_init(void);
-diff -puN kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page kernel/sched.c
---- a/kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/kernel/sched.c
-@@ -4753,6 +4753,20 @@ long __sched io_schedule_timeout(long ti
- 	return ret;
- }
- 
-+/*
-+ * Sleep only if the wait context passed is not async,
-+ * otherwise return so that a retry can be issued later.
-+ */
-+int __sched io_wait_schedule(wait_queue_t *wait)
-+{
-+	if (!is_sync_wait(wait))
-+		return -EIOCBRETRY;
-+	io_schedule();
-+	return 0;
-+}
-+
-+EXPORT_SYMBOL(io_wait_schedule);
-+
- /**
-  * sys_sched_get_priority_max - return maximum RT priority.
-  * @policy: scheduling class.
-diff -puN mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page mm/filemap.c
---- a/mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page
+diff -puN mm/filemap.c~fsaio-rename-__lock_page-to-lock_page_slow mm/filemap.c
+--- a/mm/filemap.c~fsaio-rename-__lock_page-to-lock_page_slow
 +++ a/mm/filemap.c
-@@ -165,8 +165,7 @@ static int sync_page(void *word, wait_qu
- 	mapping = page_mapping(page);
- 	if (mapping && mapping->a_ops && mapping->a_ops->sync_page)
- 		mapping->a_ops->sync_page(page);
--	io_schedule();
--	return 0;
-+	return io_wait_schedule(wait);
- }
- 
- /**
-@@ -478,7 +477,7 @@ struct page *__page_cache_alloc(gfp_t gf
- EXPORT_SYMBOL(__page_cache_alloc);
- #endif
- 
--static int __sleep_on_page_lock(void *word)
-+static int __sleep_on_page_lock(void *word, wait_queue_t *wait)
- {
- 	io_schedule();
- 	return 0;
-@@ -506,13 +505,17 @@ static inline void wake_up_page(struct p
- 	__wake_up_bit(page_waitqueue(page), &page->flags, bit);
- }
- 
--void fastcall wait_on_page_bit(struct page *page, int bit_nr)
-+int fastcall wait_on_page_bit(struct page *page, int bit_nr,
-+					wait_queue_t *wait)
- {
--	DEFINE_WAIT_BIT(wait, &page->flags, bit_nr);
--
--	if (test_bit(bit_nr, &page->flags))
--		__wait_on_bit(page_waitqueue(page), &wait, sync_page,
-+	if (test_bit(bit_nr, &page->flags)) {
-+		struct wait_bit_queue *wait_bit
-+			= container_of(wait, struct wait_bit_queue, wait);
-+		init_wait_bit_key(wait_bit, &page->flags, bit_nr);
-+		return __wait_on_bit(page_waitqueue(page), wait_bit, sync_page,
- 							TASK_UNINTERRUPTIBLE);
-+	}
-+	return 0;
- }
- EXPORT_SYMBOL(wait_on_page_bit);
- 
-@@ -556,7 +559,7 @@ void end_page_writeback(struct page *pag
+@@ -556,7 +556,7 @@ void end_page_writeback(struct page *pag
  EXPORT_SYMBOL(end_page_writeback);
  
  /**
-- * lock_page_blocking - get a lock on the page, assuming we need to sleep to get it
-+ * __lock_page_blocking: get a lock on the page, assuming we need to wait to get it
+- * __lock_page - get a lock on the page, assuming we need to sleep to get it
++ * lock_page_blocking - get a lock on the page, assuming we need to sleep to get it
   * @page: the page to lock
   *
   * Ugly. Running sync_page() in state TASK_UNINTERRUPTIBLE is scary.  If some
-@@ -564,14 +567,16 @@ EXPORT_SYMBOL(end_page_writeback);
+@@ -564,14 +564,14 @@ EXPORT_SYMBOL(end_page_writeback);
   * chances are that on the second loop, the block layer's plug list is empty,
   * so sync_page() will then return in state TASK_UNINTERRUPTIBLE.
   */
--void fastcall lock_page_blocking(struct page *page)
-+int fastcall __lock_page_blocking(struct page *page, wait_queue_t *wait)
+-void fastcall __lock_page(struct page *page)
++void fastcall lock_page_blocking(struct page *page)
  {
--	DEFINE_WAIT_BIT(wait, &page->flags, PG_locked);
-+	struct wait_bit_queue *wait_bit
-+		= container_of(wait, struct wait_bit_queue, wait);
+ 	DEFINE_WAIT_BIT(wait, &page->flags, PG_locked);
  
--	__wait_on_bit_lock(page_waitqueue(page), &wait, sync_page,
-+	init_wait_bit_key(wait_bit, &page->flags, PG_locked);
-+	return __wait_on_bit_lock(page_waitqueue(page), wait_bit, sync_page,
+ 	__wait_on_bit_lock(page_waitqueue(page), &wait, sync_page,
  							TASK_UNINTERRUPTIBLE);
  }
--EXPORT_SYMBOL(lock_page_blocking);
-+EXPORT_SYMBOL(__lock_page_blocking);
+-EXPORT_SYMBOL(__lock_page);
++EXPORT_SYMBOL(lock_page_blocking);
  
  /*
   * Variant of lock_page that does not require the caller to hold a reference
+@@ -647,7 +647,7 @@ repeat:
+ 		page_cache_get(page);
+ 		if (TestSetPageLocked(page)) {
+ 			read_unlock_irq(&mapping->tree_lock);
+-			__lock_page(page);
++			lock_page_blocking(page);
+ 			read_lock_irq(&mapping->tree_lock);
+ 
+ 			/* Has the page been truncated while we slept? */
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
