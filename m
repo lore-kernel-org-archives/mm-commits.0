@@ -1,82 +1,55 @@
 From: akpm@osdl.org
-Subject: + debugging-feature-proc-timer_list-warning-fix.patch added to -mm tree
-Date: Wed, 27 Dec 2006 15:34:13 -0800
-Message-ID: <200612272334.kBRNYU9F022724@shell0.pdx.osdl.net>
+Subject: + time-x86_64-convert-x86_64-to-use-generic_time-fix.patch added to -mm tree
+Date: Wed, 27 Dec 2006 17:23:09 -0800
+Message-ID: <200612280123.kBS1NTxi024693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43017 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:49149 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964785AbWL0Xei (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 18:34:38 -0500
+	id S964856AbWL1Bar (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 27 Dec 2006 20:30:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mingo@elte.hu
+Cc: akpm@osdl.org, ak@muc.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     debugging-feature-proc-timer_list-warning-fix
+     time-x86_64-convert-x86_64-to-use-generic_time-fix
 has been added to the -mm tree.  Its filename is
-     debugging-feature-proc-timer_list-warning-fix.patch
+     time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: debugging-feature-proc-timer_list-warning-fix
+Subject: time-x86_64-convert-x86_64-to-use-generic_time-fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/time/timer_list.c: In function `print_timer':
-kernel/time/timer_list.c:72: warning: long long int format, s64 arg (arg 3)
-kernel/time/timer_list.c:72: warning: long long int format, long unsigned int arg (arg 4)
-kernel/time/timer_list.c:72: warning: long long int format, s64 arg (arg 2)
-kernel/time/timer_list.c:72: warning: long long int format, long unsigned int arg (arg 3)
-kernel/time/timer_list.c: In function `print_base':
-kernel/time/timer_list.c:118: warning: long long int format, s64 arg (arg 3)
-kernel/time/timer_list.c:118: warning: long long int format, s64 arg (arg 2)
-kernel/time/timer_list.c: In function `timer_list_show':
-kernel/time/timer_list.c:201: warning: long long int format, u64 arg (arg 3)
-kernel/time/timer_list.c:201: warning: long long int format, u64 arg (arg 2)
+printk timestamps are all zero.  Someone needs to call set_cyc2ns_scale().  
 
+Cc: John Stultz <johnstul@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/timer_list.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86_64/kernel/time.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/time/timer_list.c~debugging-feature-proc-timer_list-warning-fix kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~debugging-feature-proc-timer_list-warning-fix
-+++ a/kernel/time/timer_list.c
-@@ -70,8 +70,8 @@ print_timer(struct seq_file *m, struct h
- #endif
- 	SEQ_printf(m, "\n");
- 	SEQ_printf(m, " # expires at %Ld nsecs [in %Ld nsecs]\n",
--		ktime_to_ns(timer->expires),
--		ktime_to_ns(timer->expires) - now);
-+		(unsigned long long)ktime_to_ns(timer->expires),
-+		(unsigned long long)(ktime_to_ns(timer->expires) - now));
- }
+diff -puN arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time-fix arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time-fix
++++ a/arch/x86_64/kernel/time.c
+@@ -361,6 +361,7 @@ void __init time_init(void)
+ 	else
+ 		vgetcpu_mode = VGETCPU_LSL;
  
- static void
-@@ -116,7 +116,7 @@ print_base(struct seq_file *m, struct hr
- 	SEQ_printf(m, "  .index:      %d\n",
- 			base->index);
- 	SEQ_printf(m, "  .resolution: %Ld nsecs\n",
--			ktime_to_ns(base->resolution));
-+			(unsigned long long)ktime_to_ns(base->resolution));
- 	SEQ_printf(m,   "  .get_time:   ");
- 	print_name_offset(m, base->get_time);
- 	SEQ_printf(m,   "\n");
-@@ -198,7 +198,7 @@ static int timer_list_show(struct seq_fi
- 
- 	SEQ_printf(m, "Timer List Version: v0.1\n");
- 	SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n", HRTIMER_MAX_CLOCK_BASES);
--	SEQ_printf(m, "now at %Ld nsecs\n", now);
-+	SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
- 
- 	for_each_online_cpu(cpu)
- 		print_cpu(m, cpu, now);
++	set_cyc2ns_scale(cpu_khz);
+ 	printk(KERN_INFO "time.c: Detected %d.%03d MHz processor.\n",
+ 		cpu_khz / 1000, cpu_khz % 1000);
+ 	setup_irq(0, &irq0);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -159,6 +132,7 @@ debugging-feature-proc-timer_list-warning-fix.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
 time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
 time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
