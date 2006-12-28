@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fsaio-filesystem-aio-read.patch added to -mm tree
-Date: Thu, 28 Dec 2006 14:54:02 -0800
-Message-ID: <200612282254.kBSMs22U015375@shell0.pdx.osdl.net>
+Subject: + fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch added to -mm tree
+Date: Thu, 28 Dec 2006 14:53:56 -0800
+Message-ID: <200612282253.kBSMruAM015365@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39245 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39239 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965043AbWL1WzQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 17:55:16 -0500
+	id S965044AbWL1WzK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 17:55:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,25 +15,21 @@ Cc: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@el
 
 
 The patch titled
-     fsaio: filesystem AIO read
+     fsaio: add a default io wait bit field in task struct
 has been added to the -mm tree.  Its filename is
-     fsaio-filesystem-aio-read.patch
+     fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio: filesystem AIO read
+Subject: fsaio: add a default io wait bit field in task struct
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-Converts the wait for page to become uptodate (lock page) after
-readahead/readpage (in do_generic_mapping_read) to a retry exit, to make
-buffered filesystem AIO reads actually synchronous.
-
-The patch avoids exclusive wakeups with AIO, a problem originally spotted by
-Chris Mason, though the reasoning for why it is an issue is now much clearer
-(see explanation in the comment below in aio.c), and the solution is perhaps
-slightly simpler.
+Allocates space for the default io wait queue entry (actually a wait bit
+entry) in the task struct.  Doing so simplifies the patches for AIO wait page
+allowing for cleaner and more efficient implementation, at the cost of 28
+additional bytes in task struct vs allocation on demand on-stack.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
@@ -44,112 +40,45 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c            |   11 ++++++++++-
- include/linux/aio.h |    5 +++++
- mm/filemap.c        |   19 ++++++++++++++++---
- 3 files changed, 31 insertions(+), 4 deletions(-)
+ include/linux/sched.h |   11 +++++++----
+ kernel/fork.c         |    3 ++-
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/aio.c~fsaio-filesystem-aio-read fs/aio.c
---- a/fs/aio.c~fsaio-filesystem-aio-read
-+++ a/fs/aio.c
-@@ -1523,7 +1523,16 @@ static int aio_wake_function(wait_queue_
+diff -puN include/linux/sched.h~fsaio-add-a-default-io-wait-bit-field-in-task-struct include/linux/sched.h
+--- a/include/linux/sched.h~fsaio-add-a-default-io-wait-bit-field-in-task-struct
++++ a/include/linux/sched.h
+@@ -1003,11 +1003,14 @@ struct task_struct {
  
- 	list_del_init(&wait->task_list);
- 	kick_iocb(iocb);
--	return 1;
-+	/*
-+	 * Avoid exclusive wakeups with retries since an exclusive wakeup
-+	 * may involve implicit expectations of waking up the next waiter
-+	 * and there is no guarantee that the retry will take a path that
-+	 * would do so. For example if a page has become up-to-date, then
-+	 * a retried read may end up straightaway performing a copyout
-+	 * and not go through a lock_page - unlock_page that would have
-+	 * passed the baton to the next waiter.
-+	 */
-+	return 0;
- }
- 
- int fastcall io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
-diff -puN include/linux/aio.h~fsaio-filesystem-aio-read include/linux/aio.h
---- a/include/linux/aio.h~fsaio-filesystem-aio-read
-+++ a/include/linux/aio.h
-@@ -34,21 +34,26 @@ struct kioctx;
- /* #define KIF_LOCKED		0 */
- #define KIF_KICKED		1
- #define KIF_CANCELLED		2
-+#define KIF_RESTARTED		3
- 
- #define kiocbTryLock(iocb)	test_and_set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbTryKick(iocb)	test_and_set_bit(KIF_KICKED, &(iocb)->ki_flags)
-+#define kiocbTryRestart(iocb)	test_and_set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbSetLocked(iocb)	set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbSetKicked(iocb)	set_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbSetRestarted(iocb)	set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbClearLocked(iocb)	clear_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbClearKicked(iocb)	clear_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbClearRestarted(iocb)	clear_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbIsLocked(iocb)	test_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbIsKicked(iocb)	test_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbIsRestarted(iocb)	test_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- /* is there a better place to document function pointer methods? */
- /**
-diff -puN mm/filemap.c~fsaio-filesystem-aio-read mm/filemap.c
---- a/mm/filemap.c~fsaio-filesystem-aio-read
-+++ a/mm/filemap.c
-@@ -909,6 +909,11 @@ void do_generic_mapping_read(struct addr
- 	if (!isize)
- 		goto out;
- 
-+	if (in_aio()) {
-+		/* Avoid repeat readahead */
-+		if (kiocbTryRestart(io_wait_to_kiocb(current->io_wait)))
-+			next_index = last_index;
-+	}
- 	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
- 	for (;;) {
- 		struct page *page;
-@@ -978,7 +983,10 @@ page_ok:
- 
- page_not_up_to_date:
- 		/* Get exclusive access to the page ... */
--		lock_page(page);
+ 	unsigned long ptrace_message;
+ 	siginfo_t *last_siginfo; /* For ptrace use.  */
 +
-+		if ((error = __lock_page(page, current->io_wait))) {
-+			goto readpage_error;
-+		}
- 
- 		/* Did it get truncated before we got the lock? */
- 		if (!page->mapping) {
-@@ -1006,7 +1014,8 @@ readpage:
- 		}
- 
- 		if (!PageUptodate(page)) {
--			lock_page(page);
-+			if ((error = __lock_page(page, current->io_wait)))
-+				goto readpage_error;
- 			if (!PageUptodate(page)) {
- 				if (page->mapping == NULL) {
- 					/*
-@@ -1052,7 +1061,11 @@ readpage:
- 		goto page_ok;
- 
- readpage_error:
--		/* UHHUH! A synchronous read error occurred. Report it */
-+		/* We don't have uptodate data in the page yet */
-+		/* Could be due to an error or because we need to
-+		 * retry when we get an async i/o notification.
-+		 * Report the reason.
-+		 */
- 		desc->error = error;
- 		page_cache_release(page);
- 		goto out;
++/* Space for default IO wait bit entry used for synchronous IO waits */
++	struct wait_bit_queue __wait;
+ /*
+- * current io wait handle: wait queue entry to use for io waits
+- * If this thread is processing aio, this points at the waitqueue
+- * inside the currently handled kiocb. It may be NULL (i.e. default
+- * to a stack based synchronous wait) if its doing sync IO.
++ * Current IO wait handle: wait queue entry to use for IO waits
++ * If this thread is processing AIO, this points at the waitqueue
++ * inside the currently handled kiocb. Otherwise, points to the
++ * default IO wait field (i.e &__wait.wait above).
+  */
+ 	wait_queue_t *io_wait;
+ /* i/o counters(bytes read/written, #syscalls */
+diff -puN kernel/fork.c~fsaio-add-a-default-io-wait-bit-field-in-task-struct kernel/fork.c
+--- a/kernel/fork.c~fsaio-add-a-default-io-wait-bit-field-in-task-struct
++++ a/kernel/fork.c
+@@ -1056,7 +1056,8 @@ static struct task_struct *copy_process(
+ 	do_posix_clock_monotonic_gettime(&p->start_time);
+ 	p->security = NULL;
+ 	p->io_context = NULL;
+-	p->io_wait = NULL;
++	init_wait_bit_task(&p->__wait, p);
++	p->io_wait = &p->__wait.wait;
+ 	p->audit_context = NULL;
+ 	cpuset_fork(p);
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
