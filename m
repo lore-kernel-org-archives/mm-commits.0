@@ -1,275 +1,123 @@
 From: akpm@osdl.org
-Subject: + cxgb3-vs-gregkh-driver-network-device.patch added to -mm tree
-Date: Wed, 27 Dec 2006 20:10:43 -0800
-Message-ID: <200612280410.kBS4AkpN027429@shell0.pdx.osdl.net>
+Subject: + fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch added to -mm tree
+Date: Thu, 28 Dec 2006 14:53:54 -0800
+Message-ID: <200612282253.kBSMrs2r015359@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:56477 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39210 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964913AbWL1ELd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Dec 2006 23:11:33 -0500
+	id S965034AbWL1Wyt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 17:54:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: divy@chelsio.com, greg@kroah.com
+Cc: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, zach.brown@oracle.com
 
 
 The patch titled
-     cxgb3: sysfs attributes in -mm tree
+     fsaio: routines to initialize and test a wait bit key
 has been added to the -mm tree.  Its filename is
-     cxgb3-vs-gregkh-driver-network-device.patch
+     fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cxgb3: sysfs attributes in -mm tree
-From: Divy Le Ray <divy@chelsio.com>
+Subject: fsaio: routines to initialize and test a wait bit key
+From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-This patch fixes the usage of sysfs attributes in cxgb3 for the -mm tree.
-It is built against the driver commited in the -mm tree.
+init_wait_bit_key() initializes the key field in an already allocated wait bit
+structure, useful for async wait bit support.  Also separate out the wait bit
+test to a common routine which can be used by different kinds of wakeup
+callbacks.
 
-Signed-off-by: Divy Le Ray <divy@chelsio.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |   86 ++++++++++++++++---------------
- 1 file changed, 45 insertions(+), 41 deletions(-)
+ include/linux/wait.h |   24 ++++++++++++++++++++++++
+ kernel/wait.c        |   11 ++---------
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -54,8 +54,6 @@ enum {
+diff -puN include/linux/wait.h~fsaio-routines-to-initialize-and-test-a-wait-bit-key include/linux/wait.h
+--- a/include/linux/wait.h~fsaio-routines-to-initialize-and-test-a-wait-bit-key
++++ a/include/linux/wait.h
+@@ -108,6 +108,17 @@ static inline int waitqueue_active(wait_
+ 	return !list_empty(&q->task_list);
+ }
  
- #define EEPROM_MAGIC 0x38E2F10C
++static inline int test_wait_bit_key(wait_queue_t *wait,
++				struct wait_bit_key *key)
++{
++	struct wait_bit_queue *wait_bit
++		= container_of(wait, struct wait_bit_queue, wait);
++
++	return (wait_bit->key.flags == key->flags &&
++			wait_bit->key.bit_nr == key->bit_nr &&
++			!test_bit(key->bit_nr, key->flags));
++}
++
+ /*
+  * Used to distinguish between sync and async io wait context:
+  * sync i/o typically specifies a NULL wait queue entry or a wait
+@@ -416,6 +427,19 @@ int wake_bit_function(wait_queue_t *wait
+ 		INIT_LIST_HEAD(&(wait)->task_list);			\
+ 	} while (0)
  
--#define to_net_dev(class) container_of(class, struct net_device, class_dev)
++#define init_wait_bit_key(waitbit, word, bit)				\
++	do {								\
++		(waitbit)->key.flags = word;				\
++		(waitbit)->key.bit_nr = bit;				\
++	} while (0)
++
++#define init_wait_bit_task(waitbit, tsk)				\
++	do {								\
++		(waitbit)->wait.private = tsk;				\
++		(waitbit)->wait.func = wake_bit_function;		\
++		INIT_LIST_HEAD(&(waitbit)->wait.task_list);		\
++	} while (0)
++
+ /**
+  * wait_on_bit - wait for a bit to be cleared
+  * @word: the word being waited on, a kernel virtual address
+diff -puN kernel/wait.c~fsaio-routines-to-initialize-and-test-a-wait-bit-key kernel/wait.c
+--- a/kernel/wait.c~fsaio-routines-to-initialize-and-test-a-wait-bit-key
++++ a/kernel/wait.c
+@@ -139,16 +139,9 @@ EXPORT_SYMBOL(autoremove_wake_function);
+ 
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
+ {
+-	struct wait_bit_key *key = arg;
+-	struct wait_bit_queue *wait_bit
+-		= container_of(wait, struct wait_bit_queue, wait);
 -
- #define CH_DEVICE(devid, ssid, idx) \
- 	{ PCI_VENDOR_ID_CHELSIO, devid, PCI_ANY_ID, ssid, 0, 0, idx }
- 
-@@ -414,11 +412,12 @@ static int setup_sge_qsets(struct adapte
- 	return 0;
+-	if (wait_bit->key.flags != key->flags ||
+-			wait_bit->key.bit_nr != key->bit_nr ||
+-			test_bit(key->bit_nr, key->flags))
++	if (!test_wait_bit_key(wait, arg))
+ 		return 0;
+-	else
+-		return autoremove_wake_function(wait, mode, sync, key);
++	return autoremove_wake_function(wait, mode, sync, arg);
  }
+ EXPORT_SYMBOL(wake_bit_function);
  
--static ssize_t attr_show(struct class_device *cd, char *buf,
-+static ssize_t attr_show(struct device *d, struct device_attribute *attr,
-+			 char *buf,
- 			 ssize_t(*format) (struct adapter *, char *))
- {
- 	ssize_t len;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
- 
- 	/* Synchronize with ioctls that may shut down the device */
- 	rtnl_lock();
-@@ -427,14 +426,15 @@ static ssize_t attr_show(struct class_de
- 	return len;
- }
- 
--static ssize_t attr_store(struct class_device *cd, const char *buf, size_t len,
-+static ssize_t attr_store(struct device *d, struct device_attribute *attr,
-+			  const char *buf, size_t len,
- 			  ssize_t(*set) (struct adapter *, unsigned int),
- 			  unsigned int min_val, unsigned int max_val)
- {
- 	char *endp;
- 	ssize_t ret;
- 	unsigned int val;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
-@@ -456,9 +456,10 @@ static ssize_t format_##name(struct adap
- { \
- 	return sprintf(buf, "%u\n", val_expr); \
- } \
--static ssize_t show_##name(struct class_device *cd, char *buf) \
-+static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
-+			   char *buf) \
- { \
--	return attr_show(cd, buf, format_##name); \
-+	return attr_show(d, attr, buf, format_##name); \
- }
- 
- static ssize_t set_nfilters(struct adapter *adap, unsigned int val)
-@@ -473,10 +474,10 @@ static ssize_t set_nfilters(struct adapt
- 	return 0;
- }
- 
--static ssize_t store_nfilters(struct class_device *cd, const char *buf,
--			      size_t len)
-+static ssize_t store_nfilters(struct device *d, struct device_attribute *attr,
-+			      const char *buf, size_t len)
- {
--	return attr_store(cd, buf, len, set_nfilters, 0, ~0);
-+	return attr_store(d, attr, buf, len, set_nfilters, 0, ~0);
- }
- 
- static ssize_t set_nservers(struct adapter *adap, unsigned int val)
-@@ -489,38 +490,39 @@ static ssize_t set_nservers(struct adapt
- 	return 0;
- }
- 
--static ssize_t store_nservers(struct class_device *cd, const char *buf,
--			      size_t len)
-+static ssize_t store_nservers(struct device *d, struct device_attribute *attr,
-+			      const char *buf, size_t len)
- {
--	return attr_store(cd, buf, len, set_nservers, 0, ~0);
-+	return attr_store(d, attr, buf, len, set_nservers, 0, ~0);
- }
- 
- #define CXGB3_ATTR_R(name, val_expr) \
- CXGB3_SHOW(name, val_expr) \
--static CLASS_DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
-+static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
- 
- #define CXGB3_ATTR_RW(name, val_expr, store_method) \
- CXGB3_SHOW(name, val_expr) \
--static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
-+static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
- 
- CXGB3_ATTR_R(cam_size, t3_mc5_size(&adap->mc5));
- CXGB3_ATTR_RW(nfilters, adap->params.mc5.nfilters, store_nfilters);
- CXGB3_ATTR_RW(nservers, adap->params.mc5.nservers, store_nservers);
- 
- static struct attribute *cxgb3_attrs[] = {
--	&class_device_attr_cam_size.attr,
--	&class_device_attr_nfilters.attr,
--	&class_device_attr_nservers.attr,
-+	&dev_attr_cam_size.attr,
-+	&dev_attr_nfilters.attr,
-+	&dev_attr_nservers.attr,
- 	NULL
- };
- 
- static struct attribute_group cxgb3_attr_group = {.attrs = cxgb3_attrs };
- 
--static ssize_t tm_attr_show(struct class_device *cd, char *buf, int sched)
-+static ssize_t tm_attr_show(struct device *d, struct device_attribute *attr,
-+			    char *buf, int sched)
- {
- 	ssize_t len;
- 	unsigned int v, addr, bpt, cpt;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
- 
- 	addr = A_TP_TX_MOD_Q1_Q0_RATE_LIMIT - sched / 2;
- 	rtnl_lock();
-@@ -540,13 +542,13 @@ static ssize_t tm_attr_show(struct class
- 	return len;
- }
- 
--static ssize_t tm_attr_store(struct class_device *cd, const char *buf,
--			     size_t len, int sched)
-+static ssize_t tm_attr_store(struct device *d, struct device_attribute *attr,
-+			     const char *buf, size_t len, int sched)
- {
- 	char *endp;
- 	ssize_t ret;
- 	unsigned int val;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
-@@ -564,15 +566,17 @@ static ssize_t tm_attr_store(struct clas
- }
- 
- #define TM_ATTR(name, sched) \
--static ssize_t show_##name(struct class_device *cd, char *buf) \
-+static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
-+			   char *buf) \
- { \
--	return tm_attr_show(cd, buf, sched); \
-+	return tm_attr_show(d, attr, buf, sched); \
- } \
--static ssize_t store_##name(struct class_device *cd, const char *buf, size_t len) \
-+static ssize_t store_##name(struct device *d, struct device_attribute *attr, \
-+			    const char *buf, size_t len) \
- { \
--	return tm_attr_store(cd, buf, len, sched); \
-+	return tm_attr_store(d, attr, buf, len, sched); \
- } \
--static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
-+static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
- 
- TM_ATTR(sched0, 0);
- TM_ATTR(sched1, 1);
-@@ -584,14 +588,14 @@ TM_ATTR(sched6, 6);
- TM_ATTR(sched7, 7);
- 
- static struct attribute *offload_attrs[] = {
--	&class_device_attr_sched0.attr,
--	&class_device_attr_sched1.attr,
--	&class_device_attr_sched2.attr,
--	&class_device_attr_sched3.attr,
--	&class_device_attr_sched4.attr,
--	&class_device_attr_sched5.attr,
--	&class_device_attr_sched6.attr,
--	&class_device_attr_sched7.attr,
-+	&dev_attr_sched0.attr,
-+	&dev_attr_sched1.attr,
-+	&dev_attr_sched2.attr,
-+	&dev_attr_sched3.attr,
-+	&dev_attr_sched4.attr,
-+	&dev_attr_sched5.attr,
-+	&dev_attr_sched6.attr,
-+	&dev_attr_sched7.attr,
- 	NULL
- };
- 
-@@ -783,7 +787,7 @@ static int offload_open(struct net_devic
- 	init_smt(adapter);
- 
- 	/* Never mind if the next step fails */
--	sysfs_create_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
-+	sysfs_create_group(&tdev->lldev->dev.kobj, &offload_attr_group);
- 
- 	/* Call back all registered clients */
- 	cxgb3_add_clients(tdev);
-@@ -808,7 +812,7 @@ static int offload_close(struct t3cdev *
- 	/* Call back all registered clients */
- 	cxgb3_remove_clients(tdev);
- 
--	sysfs_remove_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
-+	sysfs_remove_group(&tdev->lldev->dev.kobj, &offload_attr_group);
- 
- 	tdev->lldev = NULL;
- 	cxgb3_set_dummy_ops(tdev);
-@@ -2379,7 +2383,7 @@ static int __devinit init_one(struct pci
- 	else if (msi > 0 && pci_enable_msi(pdev) == 0)
- 		adapter->flags |= USING_MSI;
- 
--	err = sysfs_create_group(&adapter->port[0]->class_dev.kobj,
-+	err = sysfs_create_group(&adapter->port[0]->dev.kobj,
- 				 &cxgb3_attr_group);
- 
- 	print_port_info(adapter, ai);
-@@ -2411,7 +2415,7 @@ static void __devexit remove_one(struct 
- 		struct adapter *adapter = dev->priv;
- 
- 		t3_sge_stop(adapter);
--		sysfs_remove_group(&adapter->port[0]->class_dev.kobj,
-+		sysfs_remove_group(&adapter->port[0]->dev.kobj,
- 				   &cxgb3_attr_group);
- 
- 		for_each_port(adapter, i)
 _
 
-Patches currently in -mm which might be from divy@chelsio.com are
+Patches currently in -mm which might be from suparna@in.ibm.com are
 
-cxgb3-main-header-files.patch
-cxgb3-main-source-file.patch
-cxgb3-hw-access-routines.patch
-cxgb3-scatter-gather-engine.patch
-cxgb3-on-board-memory-mac-and-phy.patch
-cxgb3-offload-header-files.patch
-cxgb3-offload-capabilities.patch
-cxgb3-register-definitions.patch
-cxgb3-build-files-and-versioning.patch
-cxgb3-vs-gregkh-driver-network-device.patch
+fix-lock-inversion-aio_kick_handler.patch
+fsaio-add-a-wait-queue-parameter-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_slow.patch
+fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
 
