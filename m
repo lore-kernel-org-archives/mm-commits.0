@@ -1,99 +1,61 @@
 From: akpm@osdl.org
-Subject: + pci-avoid-taking-pci_bus_sem-early-in-boot.patch added to -mm tree
-Date: Thu, 28 Dec 2006 15:52:24 -0800
-Message-ID: <200612282352.kBSNqO69016601@shell0.pdx.osdl.net>
+Subject: + use-correct-macros-in-raid-code-not-raw-asm-include.patch added to -mm tree
+Date: Thu, 28 Dec 2006 15:57:24 -0800
+Message-ID: <200612282357.kBSNvOWX016704@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:43303 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:43627 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753888AbWL1Xwp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 18:52:45 -0500
+	id S1753923AbWL1X6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 18:58:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, 76306.1226@compuserve.com, agalanin@mera.ru, ard@telegraafnet.nl, ebiederm@xmission.com, greg@kroah.com, take@libero.it, yanmin.zhang@intel.com, yinghai.lu@amd.com
+Cc: akpm@osdl.org, ak@muc.de, mingo@elte.hu, neilb@suse.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     pci-avoid-taking-pci_bus_sem-early-in-boot
+     use-correct-macros-in-raid-code-not-raw-asm-include
 has been added to the -mm tree.  Its filename is
-     pci-avoid-taking-pci_bus_sem-early-in-boot.patch
+     use-correct-macros-in-raid-code-not-raw-asm-include.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci-avoid-taking-pci_bus_sem-early-in-boot
+Subject: use-correct-macros-in-raid-code-not-raw-asm-include
 From: Andrew Morton <akpm@osdl.org>
 
-Various people have reported machines failing to boot since pci_bus_sem was
-switched from a spinlock to an rwsem.
-
-The reason for this is that these people had "ide=" on the kernel command
-line, and ide_setup() can end up calling PCI functions which do
-down_read(&pci_bus_sem).
-
-
-Ard has worked out the call tree:
-
-init/main.c         start_kernel
-kernel/params.c      parse_args("Booting kernel"
-kernel/params.c       parse_one
-drivers/ide/ide.c      ide_setup
-drivers/ide/ide.c       init_ide_data
-drivers/ide/ide.c        init_hwif_default
-include/asm-i386/ide.h    ide_default_io_base(index)
-drivers/pci/search.c       pci_find_device
-drivers/pci/search.c        pci_find_subsys
-                             down_read(&pci_bus_sem);
-
-
-down_read() will unconditionally enable interrupts and some early interrupt
-(source unknown) comes in and whacks the machine, apparently because the LDT
-isn't set up yet.
-
-Fix that by avoiding taking the semaphore in the PCI code in this situation.
-
-Cc: Ard -kwaak- van Breemen <ard@telegraafnet.nl>
-Cc: "Zhang, Yanmin" <yanmin.zhang@intel.com>
-Cc: Chuck Ebbert <76306.1226@compuserve.com>
-Cc: Yinghai Lu <yinghai.lu@amd.com>
-Cc: <take@libero.it>
-Cc: <agalanin@mera.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/search.c |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+ drivers/md/raid6x86.h |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/pci/search.c~pci-avoid-taking-pci_bus_sem-early-in-boot drivers/pci/search.c
---- a/drivers/pci/search.c~pci-avoid-taking-pci_bus_sem-early-in-boot
-+++ a/drivers/pci/search.c
-@@ -259,6 +259,16 @@ pci_get_subsys(unsigned int vendor, unsi
- 	struct pci_dev *dev;
+diff -puN drivers/md/raid6x86.h~use-correct-macros-in-raid-code-not-raw-asm-include drivers/md/raid6x86.h
+--- a/drivers/md/raid6x86.h~use-correct-macros-in-raid-code-not-raw-asm-include
++++ a/drivers/md/raid6x86.h
+@@ -21,6 +21,8 @@
  
- 	WARN_ON(in_interrupt());
-+
-+	/*
-+	 * pci_get_subsys() can be called on the ide_setup() path, super-early
-+	 * in boot.  But the down_read() will enable local interrupts, which
-+	 * can cause some machines to crash.  So here we detect that situation
-+	 * and bail out early.
-+	 */
-+	if (unlikely(list_empty(pci_devices)))
-+		return NULL;
-+
- 	down_read(&pci_bus_sem);
- 	n = from ? from->global_list.next : pci_devices.next;
+ #if defined(__i386__) || defined(__x86_64__)
  
++#include <asm/system.h>
++
+ #ifdef __x86_64__
+ 
+ typedef struct {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 cpuset-procfs-warning-fix.patch
 lockdep-printk-warning-fix.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+pci-avoid-taking-pci_bus_sem-early-in-boot.patch
 down_write-preserve-local-irqs.patch
 shrink_all_memory-fix-lru_pages-handling.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
@@ -224,5 +186,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-pci-avoid-taking-pci_bus_sem-early-in-boot.patch
 
