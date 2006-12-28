@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fsaio-filesystem-aio-read-tidy.patch added to -mm tree
-Date: Thu, 28 Dec 2006 14:58:11 -0800
-Message-ID: <200612282258.kBSMwBjo015448@shell0.pdx.osdl.net>
+Subject: + aio-is-unlikely.patch added to -mm tree
+Date: Thu, 28 Dec 2006 15:01:50 -0800
+Message-ID: <200612282301.kBSN1oEQ015542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39567 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39996 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965049AbWL1W7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 17:59:06 -0500
+	id S965051AbWL1XCq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 18:02:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,16 +15,18 @@ Cc: akpm@osdl.org, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu
 
 
 The patch titled
-     fsaio-filesystem-aio-read-tidy
+     aio is unlikely
 has been added to the -mm tree.  Its filename is
-     fsaio-filesystem-aio-read-tidy.patch
+     aio-is-unlikely.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio-filesystem-aio-read-tidy
+Subject: aio is unlikely
 From: Andrew Morton <akpm@osdl.org>
+
+Stick an unlikely() around is_aio(): I assert that most IO is synchronous.
 
 Cc: Suparna Bhattacharya <suparna@in.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -35,49 +37,22 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/filemap.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ include/linux/aio.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~fsaio-filesystem-aio-read-tidy mm/filemap.c
---- a/mm/filemap.c~fsaio-filesystem-aio-read-tidy
-+++ a/mm/filemap.c
-@@ -984,9 +984,9 @@ page_ok:
- page_not_up_to_date:
- 		/* Get exclusive access to the page ... */
+diff -puN include/linux/aio.h~aio-is-unlikely include/linux/aio.h
+--- a/include/linux/aio.h~aio-is-unlikely
++++ a/include/linux/aio.h
+@@ -231,7 +231,8 @@ int FASTCALL(io_submit_one(struct kioctx
+ 		__put_ioctx(kioctx);					\
+ } while (0)
  
--		if ((error = __lock_page(page, current->io_wait))) {
-+		error = __lock_page(page, current->io_wait);
-+		if (error)
- 			goto readpage_error;
--		}
- 
- 		/* Did it get truncated before we got the lock? */
- 		if (!page->mapping) {
-@@ -1014,7 +1014,8 @@ readpage:
- 		}
- 
- 		if (!PageUptodate(page)) {
--			if ((error = __lock_page(page, current->io_wait)))
-+			error = __lock_page(page, current->io_wait);
-+			if (error)
- 				goto readpage_error;
- 			if (!PageUptodate(page)) {
- 				if (page->mapping == NULL) {
-@@ -1061,10 +1062,10 @@ readpage:
- 		goto page_ok;
- 
- readpage_error:
--		/* We don't have uptodate data in the page yet */
--		/* Could be due to an error or because we need to
--		 * retry when we get an async i/o notification.
--		 * Report the reason.
-+		/*
-+		 * We don't have uptodate data in the page yet.  This could be
-+		 * due to an error or because we need to retry when we get an
-+		 * async i/o notification.  Report the reason.
- 		 */
- 		desc->error = error;
- 		page_cache_release(page);
+-#define in_aio() !is_sync_wait(current->io_wait)
++#define in_aio() (unlikely(!is_sync_wait(current->io_wait)))
++
+ /* may be used for debugging */
+ #define warn_if_async()							\
+ do {									\
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -171,6 +146,7 @@ edac-new-opteron-athlon64-memory-controller-driver.patch
 omap-gpio-wrappers-tidy.patch
 at91-gpio-wrappers-tidy.patch
 fsaio-filesystem-aio-read-tidy.patch
+aio-is-unlikely.patch
 sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
 swap_prefetch-vs-zoned-counters.patch
