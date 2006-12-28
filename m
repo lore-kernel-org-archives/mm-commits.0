@@ -1,381 +1,366 @@
 From: akpm@osdl.org
-Subject: - revert-gregkh-usb-usb-implement-support-for-split-endian-ohci.patch removed from -mm tree
-Date: Thu, 28 Dec 2006 15:10:25 -0800
-Message-ID: <200612282310.kBSNAQnL015720@shell0.pdx.osdl.net>
+Subject: - revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus.patch removed from -mm tree
+Date: Thu, 28 Dec 2006 15:10:36 -0800
+Message-ID: <200612282310.kBSNAa17015728@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40439 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40447 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965060AbWL1XKd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 18:10:33 -0500
+	id S965066AbWL1XKn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 18:10:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, benh@kernel.crashing.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-usb-usb-implement-support-for-split-endian-ohci
+     revert gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-usb-usb-implement-support-for-split-endian-ohci.patch
+     revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert gregkh-usb-usb-implement-support-for-split-endian-ohci
+Subject: revert gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
 From: Andrew Morton <akpm@osdl.org>
 
-i386 allmodconfig:
-
-In file included from drivers/usb/host/ohci-hcd.c:78:
-drivers/usb/host/ohci.h: In function '_ohci_readl':
-drivers/usb/host/ohci.h:509: warning: implicit declaration of function 'readl_be'
-drivers/usb/host/ohci.h: In function '_ohci_writel':
-drivers/usb/host/ohci.h:517: warning: implicit declaration of function 'writel_be'
+drivers/usb/host/Kconfig:121:warning: 'select' used by config symbol 'USB_OHCI_HCD_PPC_OF_BE' refer to undefined symbol 'USB_OHCI_BIG_ENDIAN_DESC'
+drivers/usb/host/Kconfig:122:warning: 'select' used by config symbol 'USB_OHCI_HCD_PPC_OF_BE' refer to undefined symbol 'USB_OHCI_BIG_ENDIAN_MMIO'
 
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/host/Kconfig        |   10 --
- drivers/usb/host/ohci-pci.c     |   26 -----
- drivers/usb/host/ohci-ppc-soc.c |    2 
- drivers/usb/host/ohci.h         |  147 ++++++++++--------------------
- 4 files changed, 55 insertions(+), 130 deletions(-)
+ drivers/usb/host/Kconfig       |   23 ---
+ drivers/usb/host/ohci-hcd.c    |   20 --
+ drivers/usb/host/ohci-ppc-of.c |  232 -------------------------------
+ 3 files changed, 1 insertion(+), 274 deletions(-)
 
-diff -puN drivers/usb/host/Kconfig~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci drivers/usb/host/Kconfig
---- a/drivers/usb/host/Kconfig~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci
+diff -puN drivers/usb/host/Kconfig~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus drivers/usb/host/Kconfig
+--- a/drivers/usb/host/Kconfig~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
 +++ a/drivers/usb/host/Kconfig
-@@ -106,8 +106,7 @@ config USB_OHCI_HCD_PPC_SOC
- 	bool "OHCI support for on-chip PPC USB controller"
- 	depends on USB_OHCI_HCD && (STB03xxx || PPC_MPC52xx)
- 	default y
--	select USB_OHCI_BIG_ENDIAN_DESC
--	select USB_OHCI_BIG_ENDIAN_MMIO
-+	select USB_OHCI_BIG_ENDIAN
- 	---help---
+@@ -106,30 +106,9 @@ config USB_OHCI_HCD_PPC_SOC
  	  Enables support for the USB controller on the MPC52xx or
  	  STB03xxx processor chip.  If unsure, say Y.
-@@ -142,12 +141,7 @@ config USB_OHCI_HCD_PCI
- 	  Enables support for PCI-bus plug-in USB controller cards.
- 	  If unsure, say Y.
  
--config USB_OHCI_BIG_ENDIAN_DESC
--	bool
--	depends on USB_OHCI_HCD
+-config USB_OHCI_HCD_PPC_OF
+-	bool "OHCI support for PPC USB controller on OF platform bus"
+-	depends on USB_OHCI_HCD && PPC_OF
+-	default y
+-	---help---
+-	  Enables support for the USB controller PowerPC present on the
+-	  OpenFirmware platform bus.
+-
+-config USB_OHCI_HCD_PPC_OF_BE
+-	bool "Support big endian HC"
+-	depends on USB_OHCI_HCD_PPC_OF
+-	default y
+-	select USB_OHCI_BIG_ENDIAN_DESC
+-	select USB_OHCI_BIG_ENDIAN_MMIO
+-
+-config USB_OHCI_HCD_PPC_OF_LE
+-	bool "Support little endian HC"
+-	depends on USB_OHCI_HCD_PPC_OF
 -	default n
+-	select USB_OHCI_LITTLE_ENDIAN
 -
--config USB_OHCI_BIG_ENDIAN_MMIO
-+config USB_OHCI_BIG_ENDIAN
- 	bool
- 	depends on USB_OHCI_HCD
- 	default n
-diff -puN drivers/usb/host/ohci-pci.c~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci drivers/usb/host/ohci-pci.c
---- a/drivers/usb/host/ohci-pci.c~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci
-+++ a/drivers/usb/host/ohci-pci.c
-@@ -85,27 +85,6 @@ static int __devinit ohci_quirk_zfmicro(
- 	return 0;
- }
+ config USB_OHCI_HCD_PCI
+ 	bool "OHCI support for PCI-bus USB controllers"
+-	depends on USB_OHCI_HCD && PCI && (STB03xxx || PPC_MPC52xx || USB_OHCI_HCD_PPC_OF)
++	depends on USB_OHCI_HCD && PCI && (STB03xxx || PPC_MPC52xx)
+ 	default y
+ 	select USB_OHCI_LITTLE_ENDIAN
+ 	---help---
+diff -puN drivers/usb/host/ohci-hcd.c~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus drivers/usb/host/ohci-hcd.c
+--- a/drivers/usb/host/ohci-hcd.c~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus
++++ a/drivers/usb/host/ohci-hcd.c
+@@ -914,14 +914,8 @@ MODULE_LICENSE ("GPL");
+ #endif
  
--/* Check for Toshiba SCC OHCI which has big endian registers
-- * and little endian in memory data structures
+ 
+-#ifdef CONFIG_USB_OHCI_HCD_PPC_OF
+-#include "ohci-ppc-of.c"
+-#define OF_PLATFORM_DRIVER	ohci_hcd_ppc_of_driver
+-#endif
+-
+ #if	!defined(PCI_DRIVER) &&		\
+ 	!defined(PLATFORM_DRIVER) &&	\
+-	!defined(OF_PLATFORM_DRIVER) &&	\
+ 	!defined(SA1111_DRIVER)
+ #error "missing bus glue for ohci-hcd"
+ #endif
+@@ -945,13 +939,6 @@ static int __init ohci_hcd_mod_init(void
+ 	ls++;
+ #endif
+ 
+-#ifdef OF_PLATFORM_DRIVER
+-	retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
+-	if (retval < 0)
+-		goto error;
+-	ls++;
+-#endif
+-
+ #ifdef SA1111_DRIVER
+ 	retval = sa1111_driver_register(&SA1111_DRIVER);
+ 	if (retval < 0)
+@@ -974,10 +961,6 @@ error:
+ 	if (ls--)
+ 		platform_driver_unregister(&PLATFORM_DRIVER);
+ #endif
+-#ifdef OF_PLATFORM_DRIVER
+-	if (ls--)
+-		of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
+-#endif
+ #ifdef SA1111_DRIVER
+ 	if (ls--)
+ 		sa1111_driver_unregister(&SA1111_DRIVER);
+@@ -994,9 +977,6 @@ static void __exit ohci_hcd_mod_exit(voi
+ #ifdef SA1111_DRIVER
+ 	sa1111_driver_unregister(&SA1111_DRIVER);
+ #endif
+-#ifdef OF_PLATFORM_DRIVER
+-	of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
+-#endif
+ #ifdef PLATFORM_DRIVER
+ 	platform_driver_unregister(&PLATFORM_DRIVER);
+ #endif
+diff -puN drivers/usb/host/ohci-ppc-of.c~revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus /dev/null
+--- a/drivers/usb/host/ohci-ppc-of.c
++++ /dev/null
+@@ -1,232 +0,0 @@
+-/*
+- * OHCI HCD (Host Controller Driver) for USB.
+- *
+- * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
+- * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
+- * (C) Copyright 2002 Hewlett-Packard Company
+- * (C) Copyright 2006 Sylvain Munaut <tnt@246tNt.com>
+- *
+- * Bus glue for OHCI HC on the of_platform bus
+- *
+- * Modified for of_platform bus from ohci-sa1111.c
+- *
+- * This file is licenced under the GPL.
 - */
--static int __devinit ohci_quirk_toshiba_scc(struct usb_hcd *hcd)
+-
+-#include <linux/signal.h>
+-
+-#include <asm/of_platform.h>
+-#include <asm/prom.h>
+-
+-
+-static int __devinit
+-ohci_ppc_of_start(struct usb_hcd *hcd)
 -{
--	struct ohci_hcd	*ohci = hcd_to_ohci (hcd);
+-	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
+-	int		ret;
 -
--	/* That chip is only present in the southbridge of some
--	 * cell based platforms which are supposed to select
--	 * CONFIG_USB_OHCI_BIG_ENDIAN_MMIO. We verify here if
--	 * that was the case though.
--	 */
--#ifdef CONFIG_USB_OHCI_BIG_ENDIAN_MMIO
--	ohci->flags |= OHCI_QUIRK_BE_MMIO;
--	ohci_dbg (ohci, "enabled big endian Toshiba quirk\n");
+-	if ((ret = ohci_init(ohci)) < 0)
+-		return ret;
+-
+-	if ((ret = ohci_run(ohci)) < 0) {
+-		err("can't start %s", ohci_to_hcd(ohci)->self.bus_name);
+-		ohci_stop(hcd);
+-		return ret;
+-	}
+-
 -	return 0;
--#else
--	ohci_err (ohci, "unsupported big endian Toshiba quirk\n");
--	return -ENXIO;
--#endif
 -}
- 
- /* List of quirks for OHCI */
- static const struct pci_device_id ohci_pci_quirks[] = {
-@@ -125,14 +104,9 @@ static const struct pci_device_id ohci_p
- 		PCI_DEVICE(PCI_VENDOR_ID_COMPAQ, 0xa0f8),
- 		.driver_data = (unsigned long)ohci_quirk_zfmicro,
- 	},
--	{
--		PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA_2, 0x01b6),
--		.driver_data = (unsigned long)ohci_quirk_toshiba_scc,
--	},
- 	/* FIXME for some of the early AMD 760 southbridges, OHCI
- 	 * won't work at all.  blacklist them.
- 	 */
 -
- 	{},
- };
- 
-diff -puN drivers/usb/host/ohci-ppc-soc.c~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci drivers/usb/host/ohci-ppc-soc.c
---- a/drivers/usb/host/ohci-ppc-soc.c~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci
-+++ a/drivers/usb/host/ohci-ppc-soc.c
-@@ -72,7 +72,7 @@ static int usb_hcd_ppc_soc_probe(const s
- 	}
- 
- 	ohci = hcd_to_ohci(hcd);
--	ohci->flags |= OHCI_QUIRK_BE_MMIO | OHCI_QUIRK_BE_DESC;
-+	ohci->flags |= OHCI_BIG_ENDIAN;
- 	ohci_hcd_init(ohci);
- 
- 	retval = usb_add_hcd(hcd, irq, IRQF_DISABLED);
-diff -puN drivers/usb/host/ohci.h~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci drivers/usb/host/ohci.h
---- a/drivers/usb/host/ohci.h~revert-gregkh-usb-usb-implement-support-for-split-endian-ohci
-+++ a/drivers/usb/host/ohci.h
-@@ -394,9 +394,8 @@ struct ohci_hcd {
- #define	OHCI_QUIRK_AMD756	0x01			/* erratum #4 */
- #define	OHCI_QUIRK_SUPERIO	0x02			/* natsemi */
- #define	OHCI_QUIRK_INITRESET	0x04			/* SiS, OPTi, ... */
--#define	OHCI_QUIRK_BE_DESC	0x08			/* BE descriptors */
--#define	OHCI_QUIRK_BE_MMIO	0x10			/* BE registers */
--#define	OHCI_QUIRK_ZFMICRO	0x20			/* Compaq ZFMicro chipset*/
-+#define	OHCI_BIG_ENDIAN		0x08			/* big endian HC */
-+#define	OHCI_QUIRK_ZFMICRO	0x10			/* Compaq ZFMicro chipset*/
- 	// there are also chip quirks/bugs in init logic
- 
- };
-@@ -440,156 +439,117 @@ static inline struct usb_hcd *ohci_to_hc
-  * a minority (notably the IBM STB04XXX and the Motorola MPC5200
-  * processors) implement them in big endian format.
-  *
-- * In addition some more exotic implementations like the Toshiba
-- * Spider (aka SCC) cell southbridge are "mixed" endian, that is,
-- * they have a different endianness for registers vs. in-memory
-- * descriptors.
-- *
-  * This attempts to support either format at compile time without a
-  * runtime penalty, or both formats with the additional overhead
-  * of checking a flag bit.
-- *
-- * That leads to some tricky Kconfig rules howevber. There are
-- * different defaults based on some arch/ppc platforms, though
-- * the basic rules are:
-- *
-- * Controller type              Kconfig options needed
-- * ---------------              ----------------------
-- * little endian                CONFIG_USB_OHCI_LITTLE_ENDIAN
-- *
-- * fully big endian             CONFIG_USB_OHCI_BIG_ENDIAN_DESC _and_
-- *                              CONFIG_USB_OHCI_BIG_ENDIAN_MMIO
-- *
-- * mixed endian                 CONFIG_USB_OHCI_LITTLE_ENDIAN _and_
-- *                              CONFIG_USB_OHCI_BIG_ENDIAN_{MMIO,DESC}
-- *
-- * (If you have a mixed endian controller, you -must- also define
-- * CONFIG_USB_OHCI_LITTLE_ENDIAN or things will not work when building
-- * both your mixed endian and a fully big endian controller support in
-- * the same kernel image).
-  */
- 
--#ifdef CONFIG_USB_OHCI_BIG_ENDIAN_DESC
--#ifdef CONFIG_USB_OHCI_LITTLE_ENDIAN
--#define big_endian_desc(ohci)	(ohci->flags & OHCI_QUIRK_BE_DESC)
--#else
--#define big_endian_desc(ohci)	1		/* only big endian */
+-static const struct hc_driver ohci_ppc_of_hc_driver = {
+-	.description =		hcd_name,
+-	.product_desc =		"OF OHCI",
+-	.hcd_priv_size =	sizeof(struct ohci_hcd),
+-
+-	/*
+-	 * generic hardware linkage
+-	 */
+-	.irq =			ohci_irq,
+-	.flags =		HCD_USB11 | HCD_MEMORY,
+-
+-	/*
+-	 * basic lifecycle operations
+-	 */
+-	.start =		ohci_ppc_of_start,
+-	.stop =			ohci_stop,
+-	.shutdown = 		ohci_shutdown,
+-
+-	/*
+-	 * managing i/o requests and associated device resources
+-	 */
+-	.urb_enqueue =		ohci_urb_enqueue,
+-	.urb_dequeue =		ohci_urb_dequeue,
+-	.endpoint_disable =	ohci_endpoint_disable,
+-
+-	/*
+-	 * scheduling support
+-	 */
+-	.get_frame_number =	ohci_get_frame,
+-
+-	/*
+-	 * root hub support
+-	 */
+-	.hub_status_data =	ohci_hub_status_data,
+-	.hub_control =		ohci_hub_control,
+-	.hub_irq_enable =	ohci_rhsc_enable,
+-#ifdef	CONFIG_PM
+-	.bus_suspend =		ohci_bus_suspend,
+-	.bus_resume =		ohci_bus_resume,
 -#endif
--#else
--#define big_endian_desc(ohci)	0		/* only little endian */
+-	.start_port_reset =	ohci_start_port_reset,
+-};
+-
+-
+-static int __devinit
+-ohci_hcd_ppc_of_probe(struct of_device *op, const struct of_device_id *match)
+-{
+-	struct device_node *dn = op->node;
+-	struct usb_hcd *hcd;
+-	struct ohci_hcd	*ohci;
+-	struct resource res;
+-	int irq;
+-
+-	int rv;
+-	int is_bigendian;
+-
+-	if (usb_disabled())
+-		return -ENODEV;
+-
+-	is_bigendian =
+-		device_is_compatible(dn, "ohci-bigendian") ||
+-		device_is_compatible(dn, "ohci-be");;
+-
+-	dev_dbg(&op->dev, "initializing PPC-OF USB Controller\n");
+-
+-	rv = of_address_to_resource(dn, 0, &res);
+-	if (rv)
+-		return rv;
+-
+-	hcd = usb_create_hcd(&ohci_ppc_of_hc_driver, &op->dev, "PPC-OF USB");
+-	if (!hcd)
+-		return -ENOMEM;
+-
+-	hcd->rsrc_start = res.start;
+-	hcd->rsrc_len = res.end - res.start + 1;
+-
+-	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name)) {
+-		printk(KERN_ERR __FILE__ ": request_mem_region failed\n");
+-		rv = -EBUSY;
+-		goto err_rmr;
+-	}
+-
+-	irq = irq_of_parse_and_map(dn, 0);
+-	if (irq == NO_IRQ) {
+-		printk(KERN_ERR __FILE__ ": irq_of_parse_and_map failed\n");
+-		rv = -EBUSY;
+-		goto err_irq;
+-	}
+-
+-	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
+-	if (!hcd->regs) {
+-		printk(KERN_ERR __FILE__ ": ioremap failed\n");
+-		rv = -ENOMEM;
+-		goto err_ioremap;
+-	}
+-
+-	ohci = hcd_to_ohci(hcd);
+-	if (is_bigendian)
+-		ohci->flags |= OHCI_QUIRK_BE_MMIO | OHCI_QUIRK_BE_DESC;
+-
+-	ohci_hcd_init(ohci);
+-
+-	rv = usb_add_hcd(hcd, irq, 0);
+-	if (rv == 0)
+-		return 0;
+-
+-	iounmap(hcd->regs);
+-err_ioremap:
+-	irq_dispose_mapping(irq);
+-err_irq:
+-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+-err_rmr:
+- 	usb_put_hcd(hcd);
+-
+-	return rv;
+-}
+-
+-static int ohci_hcd_ppc_of_remove(struct of_device *op)
+-{
+-	struct usb_hcd *hcd = dev_get_drvdata(&op->dev);
+-	dev_set_drvdata(&op->dev, NULL);
+-
+-	dev_dbg(&op->dev, "stopping PPC-OF USB Controller\n");
+-
+-	usb_remove_hcd(hcd);
+-
+-	iounmap(hcd->regs);
+-	irq_dispose_mapping(hcd->irq);
+-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+-
+-	usb_put_hcd(hcd);
+-
+-	return 0;
+-}
+-
+-static int ohci_hcd_ppc_of_shutdown(struct of_device *op)
+-{
+-	struct usb_hcd *hcd = dev_get_drvdata(&op->dev);
+-
+-        if (hcd->driver->shutdown)
+-                hcd->driver->shutdown(hcd);
+-
+-	return 0;
+-}
+-
+-
+-static struct of_device_id ohci_hcd_ppc_of_match[] = {
+-#ifdef CONFIG_USB_OHCI_HCD_PPC_OF_BE
+-	{
+-		.name = "usb",
+-		.compatible = "ohci-bigendian",
+-	},
+-	{
+-		.name = "usb",
+-		.compatible = "ohci-be",
+-	},
 -#endif
-+#ifdef CONFIG_USB_OHCI_BIG_ENDIAN
- 
--#ifdef CONFIG_USB_OHCI_BIG_ENDIAN_MMIO
- #ifdef CONFIG_USB_OHCI_LITTLE_ENDIAN
--#define big_endian_mmio(ohci)	(ohci->flags & OHCI_QUIRK_BE_MMIO)
--#else
--#define big_endian_mmio(ohci)	1		/* only big endian */
+-#ifdef CONFIG_USB_OHCI_HCD_PPC_OF_LE
+-	{
+-		.name = "usb",
+-		.compatible = "ohci-littledian",
+-	},
+-	{
+-		.name = "usb",
+-		.compatible = "ohci-le",
+-	},
 -#endif
-+#define big_endian(ohci)	(ohci->flags & OHCI_BIG_ENDIAN) /* either */
- #else
--#define big_endian_mmio(ohci)	0		/* only little endian */
-+#define big_endian(ohci)	1		/* only big endian */
- #endif
- 
- /*
-  * Big-endian read/write functions are arch-specific.
-  * Other arches can be added if/when they're needed.
-- *
-- * REVISIT: arch/powerpc now has readl/writel_be, so the
-- * definition below can die once the STB04xxx support is
-- * finally ported over.
-  */
--#if defined(CONFIG_PPC) && !defined(CONFIG_PPC_MERGE)
-+#if defined(CONFIG_PPC)
- #define readl_be(addr)		in_be32((__force unsigned *)addr)
- #define writel_be(val, addr)	out_be32((__force unsigned *)addr, val)
- #endif
- 
--static inline unsigned int _ohci_readl (const struct ohci_hcd *ohci,
--					__hc32 __iomem * regs)
-+static inline unsigned int ohci_readl (const struct ohci_hcd *ohci,
-+							__hc32 __iomem * regs)
- {
--	return big_endian_mmio(ohci) ?
--		readl_be ((__force u32 *)regs) :
--		readl ((__force u32 *)regs);
-+	return big_endian(ohci) ? readl_be (regs) : readl ((__force u32 *)regs);
- }
- 
--static inline void _ohci_writel (const struct ohci_hcd *ohci,
--				 const unsigned int val, __hc32 __iomem *regs)
-+static inline void ohci_writel (const struct ohci_hcd *ohci,
-+				const unsigned int val, __hc32 __iomem *regs)
- {
--	big_endian_mmio(ohci) ?
--		writel_be (val, (__force u32 *)regs) :
--		writel (val, (__force u32 *)regs);
-+	big_endian(ohci) ? writel_be (val, regs) :
-+			   writel (val, (__force u32 *)regs);
- }
- 
-+#else	/* !CONFIG_USB_OHCI_BIG_ENDIAN */
-+
-+#define big_endian(ohci)	0		/* only little endian */
-+
- #ifdef CONFIG_ARCH_LH7A404
--/* Marc Singer: at the time this code was written, the LH7A404
-- * had a problem reading the USB host registers.  This
-- * implementation of the ohci_readl function performs the read
-- * twice as a work-around.
-- */
--#define ohci_readl(o,r)		(_ohci_readl(o,r),_ohci_readl(o,r))
--#define ohci_writel(o,v,r)	_ohci_writel(o,v,r)
-+	/* Marc Singer: at the time this code was written, the LH7A404
-+	 * had a problem reading the USB host registers.  This
-+	 * implementation of the ohci_readl function performs the read
-+	 * twice as a work-around.
-+	 */
-+static inline unsigned int
-+ohci_readl (const struct ohci_hcd *ohci, const __hc32 *regs)
-+{
-+	*(volatile __force unsigned int*) regs;
-+	return *(volatile __force unsigned int*) regs;
-+}
- #else
--#define ohci_readl(o,r)		_ohci_readl(o,r)
--#define ohci_writel(o,v,r)	_ohci_writel(o,v,r)
-+	/* Standard version of ohci_readl uses standard, platform
-+	 * specific implementation. */
-+static inline unsigned int
-+ohci_readl (const struct ohci_hcd *ohci, __hc32 __iomem * regs)
-+{
-+	return readl(regs);
-+}
- #endif
- 
-+static inline void ohci_writel (const struct ohci_hcd *ohci,
-+				const unsigned int val, __hc32 __iomem *regs)
-+{
-+	writel (val, regs);
-+}
-+
-+#endif	/* !CONFIG_USB_OHCI_BIG_ENDIAN */
- 
- /*-------------------------------------------------------------------------*/
- 
- /* cpu to ohci */
- static inline __hc16 cpu_to_hc16 (const struct ohci_hcd *ohci, const u16 x)
- {
--	return big_endian_desc(ohci) ?
--		(__force __hc16)cpu_to_be16(x) :
--		(__force __hc16)cpu_to_le16(x);
-+	return big_endian(ohci) ? (__force __hc16)cpu_to_be16(x) : (__force __hc16)cpu_to_le16(x);
- }
- 
- static inline __hc16 cpu_to_hc16p (const struct ohci_hcd *ohci, const u16 *x)
- {
--	return big_endian_desc(ohci) ?
--		cpu_to_be16p(x) :
--		cpu_to_le16p(x);
-+	return big_endian(ohci) ? cpu_to_be16p(x) : cpu_to_le16p(x);
- }
- 
- static inline __hc32 cpu_to_hc32 (const struct ohci_hcd *ohci, const u32 x)
- {
--	return big_endian_desc(ohci) ?
--		(__force __hc32)cpu_to_be32(x) :
--		(__force __hc32)cpu_to_le32(x);
-+	return big_endian(ohci) ? (__force __hc32)cpu_to_be32(x) : (__force __hc32)cpu_to_le32(x);
- }
- 
- static inline __hc32 cpu_to_hc32p (const struct ohci_hcd *ohci, const u32 *x)
- {
--	return big_endian_desc(ohci) ?
--		cpu_to_be32p(x) :
--		cpu_to_le32p(x);
-+	return big_endian(ohci) ? cpu_to_be32p(x) : cpu_to_le32p(x);
- }
- 
- /* ohci to cpu */
- static inline u16 hc16_to_cpu (const struct ohci_hcd *ohci, const __hc16 x)
- {
--	return big_endian_desc(ohci) ?
--		be16_to_cpu((__force __be16)x) :
--		le16_to_cpu((__force __le16)x);
-+	return big_endian(ohci) ? be16_to_cpu((__force __be16)x) : le16_to_cpu((__force __le16)x);
- }
- 
- static inline u16 hc16_to_cpup (const struct ohci_hcd *ohci, const __hc16 *x)
- {
--	return big_endian_desc(ohci) ?
--		be16_to_cpup((__force __be16 *)x) :
--		le16_to_cpup((__force __le16 *)x);
-+	return big_endian(ohci) ? be16_to_cpup((__force __be16 *)x) : le16_to_cpup((__force __le16 *)x);
- }
- 
- static inline u32 hc32_to_cpu (const struct ohci_hcd *ohci, const __hc32 x)
- {
--	return big_endian_desc(ohci) ?
--		be32_to_cpu((__force __be32)x) :
--		le32_to_cpu((__force __le32)x);
-+	return big_endian(ohci) ? be32_to_cpu((__force __be32)x) : le32_to_cpu((__force __le32)x);
- }
- 
- static inline u32 hc32_to_cpup (const struct ohci_hcd *ohci, const __hc32 *x)
- {
--	return big_endian_desc(ohci) ?
--		be32_to_cpup((__force __be32 *)x) :
--		le32_to_cpup((__force __le32 *)x);
-+	return big_endian(ohci) ? be32_to_cpup((__force __be32 *)x) : le32_to_cpup((__force __le32 *)x);
- }
- 
- /*-------------------------------------------------------------------------*/
-@@ -597,9 +557,6 @@ static inline u32 hc32_to_cpup (const st
- /* HCCA frame number is 16 bits, but is accessed as 32 bits since not all
-  * hardware handles 16 bit reads.  That creates a different confusion on
-  * some big-endian SOC implementations.  Same thing happens with PSW access.
-- *
-- * FIXME: Deal with that as a runtime quirk when STB03xxx is ported over
-- * to arch/powerpc
-  */
- 
- #ifdef CONFIG_STB03xxx
-@@ -611,7 +568,7 @@ static inline u32 hc32_to_cpup (const st
- static inline u16 ohci_frame_no(const struct ohci_hcd *ohci)
- {
- 	u32 tmp;
--	if (big_endian_desc(ohci)) {
-+	if (big_endian(ohci)) {
- 		tmp = be32_to_cpup((__force __be32 *)&ohci->hcca->frame_no);
- 		tmp >>= OHCI_BE_FRAME_NO_SHIFT;
- 	} else
-@@ -623,7 +580,7 @@ static inline u16 ohci_frame_no(const st
- static inline __hc16 *ohci_hwPSWp(const struct ohci_hcd *ohci,
-                                  const struct td *td, int index)
- {
--	return (__hc16 *)(big_endian_desc(ohci) ?
-+	return (__hc16 *)(big_endian(ohci) ?
- 			&td->hwPSW[index ^ 1] : &td->hwPSW[index]);
- }
- 
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, ohci_hcd_ppc_of_match);
+-
+-#if	!defined(CONFIG_USB_OHCI_HCD_PPC_OF_BE) && \
+-	!defined(CONFIG_USB_OHCI_HCD_PPC_OF_LE)
+-#error "No endianess selected for ppc-of-ohci"
+-#endif
+-
+-
+-static struct of_platform_driver ohci_hcd_ppc_of_driver = {
+-	.name		= "ppc-of-ohci",
+-	.match_table	= ohci_hcd_ppc_of_match,
+-	.probe		= ohci_hcd_ppc_of_probe,
+-	.remove		= ohci_hcd_ppc_of_remove,
+-	.shutdown 	= ohci_hcd_ppc_of_shutdown,
+-#ifdef CONFIG_PM
+-	/*.suspend	= ohci_hcd_ppc_soc_drv_suspend,*/
+-	/*.resume	= ohci_hcd_ppc_soc_drv_resume,*/
+-#endif
+-	.driver		= {
+-		.name	= "ppc-of-ohci",
+-		.owner	= THIS_MODULE,
+-	},
+-};
+-
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -420,8 +405,6 @@ ioat-warning-fix.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-qla3xxx-fixup.patch
-revert-gregkh-usb-usb-implement-support-for-split-endian-ohci.patch
-revert-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio.patch
 revert-gregkh-usb-ohci-add-support-for-ohci-controller-on-the-of_platform-bus.patch
 nokia-e70-is-an-unusual-device.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
