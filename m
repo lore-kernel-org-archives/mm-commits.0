@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fsaio-aio-o_sync-filesystem-write.patch added to -mm tree
-Date: Thu, 28 Dec 2006 14:54:04 -0800
-Message-ID: <200612282254.kBSMs4Hb015381@shell0.pdx.osdl.net>
+Subject: + fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch added to -mm tree
+Date: Thu, 28 Dec 2006 14:53:58 -0800
+Message-ID: <200612282253.kBSMrwZg015368@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:39212 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39219 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965039AbWL1Wyw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 17:54:52 -0500
+	id S965040AbWL1Wy6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 28 Dec 2006 17:54:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,29 +15,24 @@ Cc: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@el
 
 
 The patch titled
-     fsaio: AIO O_SYNC filesystem write
+     fsaio: enable wait bit based filtered wakeups to work for AIO
 has been added to the -mm tree.  Its filename is
-     fsaio-aio-o_sync-filesystem-write.patch
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio: AIO O_SYNC filesystem write
+Subject: fsaio: enable wait bit based filtered wakeups to work for AIO
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-AIO support for O_SYNC buffered writes, built over O_SYNC-speedup.  It uses
-the tagged radix tree lookups to writeout just the pages pertaining to this
-request, and retries instead of blocking for writeback to complete on the same
-range.  All the writeout is issued at the time of io submission, and there is
-a check to make sure that retries skip over straight to the
-wait_on_page_writeback_range.
-
-Limitations: Extending file writes or hole overwrites with O_SYNC may still
-block because we have yet to convert generic_osync_inode to be asynchronous. 
-For non O_SYNC writes, writeout happens in the background and so typically
-appears async to the caller except for memory throttling and non-block aligned
-writes involving read-modify-write.
+Enable wait bit based filtered wakeups to work for AIO.  Replaces the wait
+queue entry in the kiocb with a wait bit structure, to allow enough space for
+the wait bit key.  This adds an extra level of indirection in references to
+the wait queue entry in the iocb.  Also, an extra check had to be added in
+aio_wake_function to allow for other kinds of waiters which do not require
+wait bit, based on the assumption that the key passed in would be NULL in such
+cases.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
@@ -48,187 +43,139 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs.h |   13 +++++++--
- mm/filemap.c       |   61 ++++++++++++++++++++++++++++++-------------
- 2 files changed, 54 insertions(+), 20 deletions(-)
+ fs/aio.c            |   21 ++++++++++++++-------
+ include/linux/aio.h |    7 ++++---
+ kernel/wait.c       |   17 ++++++++++++++---
+ 3 files changed, 32 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/fs.h~fsaio-aio-o_sync-filesystem-write include/linux/fs.h
---- a/include/linux/fs.h~fsaio-aio-o_sync-filesystem-write
-+++ a/include/linux/fs.h
-@@ -280,6 +280,7 @@ extern int dir_notify_enable;
- #include <linux/prio_tree.h>
- #include <linux/init.h>
- #include <linux/pid.h>
-+#include <linux/sched.h>
- #include <linux/mutex.h>
- 
- #include <asm/atomic.h>
-@@ -1589,8 +1590,16 @@ extern int filemap_fdatawait(struct addr
- extern int filemap_write_and_wait(struct address_space *mapping);
- extern int filemap_write_and_wait_range(struct address_space *mapping,
- 				        loff_t lstart, loff_t lend);
--extern int wait_on_page_writeback_range(struct address_space *mapping,
--				pgoff_t start, pgoff_t end);
-+extern int __wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, wait_queue_t *wait);
-+
-+static inline int wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end)
-+{
-+	return __wait_on_page_writeback_range(mapping, start, end,
-+		&current->__wait.wait);
-+}
-+
- extern int __filemap_fdatawrite_range(struct address_space *mapping,
- 				loff_t start, loff_t end, int sync_mode);
- 
-diff -puN mm/filemap.c~fsaio-aio-o_sync-filesystem-write mm/filemap.c
---- a/mm/filemap.c~fsaio-aio-o_sync-filesystem-write
-+++ a/mm/filemap.c
-@@ -239,10 +239,11 @@ EXPORT_SYMBOL(filemap_flush);
-  * @end:	ending page index
-  *
-  * Wait for writeback to complete against pages indexed by start->end
-- * inclusive
-+ * inclusive. In AIO context, this may queue an async notification
-+ * and retry callback and return, instead of blocking the caller.
-  */
--int wait_on_page_writeback_range(struct address_space *mapping,
--				pgoff_t start, pgoff_t end)
-+int __wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, wait_queue_t *wait)
- {
- 	struct pagevec pvec;
- 	int nr_pages;
-@@ -254,20 +255,20 @@ int wait_on_page_writeback_range(struct 
- 
- 	pagevec_init(&pvec, 0);
- 	index = start;
--	while ((index <= end) &&
-+	while (!ret && (index <= end) &&
- 			(nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
- 			PAGECACHE_TAG_WRITEBACK,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1)) != 0) {
- 		unsigned i;
- 
--		for (i = 0; i < nr_pages; i++) {
-+		for (i = 0; !ret && (i < nr_pages); i++) {
- 			struct page *page = pvec.pages[i];
- 
- 			/* until radix tree lookup accepts end_index */
- 			if (page->index > end)
- 				continue;
- 
--			wait_on_page_writeback(page);
-+			ret = __wait_on_page_writeback(page, wait);
- 			if (PageError(page))
- 				ret = -EIO;
- 		}
-@@ -303,18 +304,27 @@ int sync_page_range(struct inode *inode,
- {
- 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
- 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
--	int ret;
-+	int ret = 0;
- 
- 	if (!mapping_cap_writeback_dirty(mapping) || !count)
- 		return 0;
-+	if (in_aio()) {
-+		/* Already issued writeouts for this iocb ? */
-+		if (kiocbTryRestart(io_wait_to_kiocb(current->io_wait)))
-+			goto do_wait; /* just need to check if done */
-+	}
- 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
--	if (ret == 0) {
-+
-+	if (ret >= 0) {
- 		mutex_lock(&inode->i_mutex);
- 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
- 		mutex_unlock(&inode->i_mutex);
- 	}
--	if (ret == 0)
--		ret = wait_on_page_writeback_range(mapping, start, end);
-+do_wait:
-+	if (ret >= 0) {
-+		ret = __wait_on_page_writeback_range(mapping, start, end,
-+			current->io_wait);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(sync_page_range);
-@@ -335,15 +345,23 @@ int sync_page_range_nolock(struct inode 
- {
- 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
- 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
--	int ret;
-+	int ret = 0;
- 
- 	if (!mapping_cap_writeback_dirty(mapping) || !count)
- 		return 0;
-+	if (in_aio()) {
-+		/* Already issued writeouts for this iocb ? */
-+		if (kiocbTryRestart(io_wait_to_kiocb(current->io_wait)))
-+			goto do_wait; /* just need to check if done */
-+	}
- 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
--	if (ret == 0)
-+	if (ret >= 0)
- 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
--	if (ret == 0)
--		ret = wait_on_page_writeback_range(mapping, start, end);
-+do_wait:
-+	if (ret >= 0) {
-+		ret = __wait_on_page_writeback_range(mapping, start, end,
-+			current->io_wait);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(sync_page_range_nolock);
-@@ -2215,7 +2233,7 @@ zero_length_segment:
+diff -puN fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fs/aio.c
+--- a/fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio
++++ a/fs/aio.c
+@@ -713,13 +713,13 @@ static ssize_t aio_run_iocb(struct kiocb
+ 	 * cause the iocb to be kicked for continuation (through
+ 	 * the aio_wake_function callback).
  	 */
- 	if (likely(status >= 0)) {
- 		if (unlikely((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
--			if (!a_ops->writepage || !is_sync_kiocb(iocb))
-+			if (!a_ops->writepage)
- 				status = generic_osync_inode(inode, mapping,
- 						OSYNC_METADATA|OSYNC_DATA);
+-	BUG_ON(current->io_wait != NULL);
+-	current->io_wait = &iocb->ki_wait;
++	BUG_ON(!is_sync_wait(current->io_wait));
++	current->io_wait = &iocb->ki_wait.wait;
+ 	ret = retry(iocb);
+ 	current->io_wait = NULL;
+ 
+ 	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED) {
+-		BUG_ON(!list_empty(&iocb->ki_wait.task_list));
++		BUG_ON(!list_empty(&iocb->ki_wait.wait.task_list));
+ 		aio_complete(iocb, ret, 0);
+ 	}
+ out:
+@@ -878,7 +878,7 @@ static void try_queue_kicked_iocb(struct
+ 	 * than retry has happened before we could queue the iocb.  This also
+ 	 * means that the retry could have completed and freed our iocb, no
+ 	 * good. */
+-	BUG_ON((!list_empty(&iocb->ki_wait.task_list)));
++	BUG_ON((!list_empty(&iocb->ki_wait.wait.task_list)));
+ 
+ 	spin_lock_irqsave(&ctx->ctx_lock, flags);
+ 	/* set this inside the lock so that we can't race with aio_run_iocb()
+@@ -1513,7 +1513,13 @@ static ssize_t aio_setup_iocb(struct kio
+ static int aio_wake_function(wait_queue_t *wait, unsigned mode,
+ 			     int sync, void *key)
+ {
+-	struct kiocb *iocb = container_of(wait, struct kiocb, ki_wait);
++	struct wait_bit_queue *wait_bit
++		= container_of(wait, struct wait_bit_queue, wait);
++	struct kiocb *iocb = container_of(wait_bit, struct kiocb, ki_wait);
++
++	/* Assumes that a non-NULL key implies wait bit filtering */
++	if (key && !test_wait_bit_key(wait, key))
++		return 0;
+ 
+ 	list_del_init(&wait->task_list);
+ 	kick_iocb(iocb);
+@@ -1568,8 +1574,9 @@ int fastcall io_submit_one(struct kioctx
+ 	req->ki_buf = (char __user *)(unsigned long)iocb->aio_buf;
+ 	req->ki_left = req->ki_nbytes = iocb->aio_nbytes;
+ 	req->ki_opcode = iocb->aio_lio_opcode;
+-	init_waitqueue_func_entry(&req->ki_wait, aio_wake_function);
+-	INIT_LIST_HEAD(&req->ki_wait.task_list);
++	init_waitqueue_func_entry(&req->ki_wait.wait, aio_wake_function);
++	INIT_LIST_HEAD(&req->ki_wait.wait.task_list);
++ 	req->ki_run_list.next = req->ki_run_list.prev = NULL;
+ 
+ 	ret = aio_setup_iocb(req);
+ 
+diff -puN include/linux/aio.h~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio include/linux/aio.h
+--- a/include/linux/aio.h~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio
++++ a/include/linux/aio.h
+@@ -102,7 +102,7 @@ struct kiocb {
+ 	} ki_obj;
+ 
+ 	__u64			ki_user_data;	/* user's data for completion */
+-	wait_queue_t		ki_wait;
++	struct wait_bit_queue	ki_wait;
+ 	loff_t			ki_pos;
+ 
+ 	atomic_t		ki_bio_count;	/* num bio used for this iocb */
+@@ -135,7 +135,7 @@ struct kiocb {
+ 		(x)->ki_dtor = NULL;			\
+ 		(x)->ki_obj.tsk = tsk;			\
+ 		(x)->ki_user_data = 0;                  \
+-		init_wait((&(x)->ki_wait));             \
++		init_wait_bit_task((&(x)->ki_wait), current);\
+ 	} while (0)
+ 
+ #define AIO_RING_MAGIC			0xa10a10a1
+@@ -237,7 +237,8 @@ do {									\
+ 	}								\
+ } while (0)
+ 
+-#define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
++#define io_wait_to_kiocb(io_wait) container_of(container_of(io_wait,	\
++	struct wait_bit_queue, wait), struct kiocb, ki_wait)
+ 
+ #include <linux/aio_abi.h>
+ 
+diff -puN kernel/wait.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio kernel/wait.c
+--- a/kernel/wait.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio
++++ a/kernel/wait.c
+@@ -139,7 +139,8 @@ EXPORT_SYMBOL(autoremove_wake_function);
+ 
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
+ {
+-	if (!test_wait_bit_key(wait, arg))
++	/* Assumes that a non-NULL key implies wait bit filtering */
++	if (arg && !test_wait_bit_key(wait, arg))
+ 		return 0;
+ 	return autoremove_wake_function(wait, mode, sync, arg);
+ }
+@@ -161,7 +162,12 @@ __wait_on_bit(wait_queue_head_t *wq, str
+ 		if (test_bit(q->key.bit_nr, q->key.flags))
+ 			ret = (*action)(q->key.flags, &q->wait);
+ 	} while (test_bit(q->key.bit_nr, q->key.flags) && !ret);
+-	finish_wait(wq, &q->wait);
++	/*
++	 * AIO retries require the wait queue entry to remain queued
++	 * for async notification
++	 */
++	if (ret != -EIOCBRETRY)
++		finish_wait(wq, &q->wait);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(__wait_on_bit);
+@@ -190,7 +196,12 @@ __wait_on_bit_lock(wait_queue_head_t *wq
+ 				break;
  		}
-@@ -2267,7 +2285,10 @@ __generic_file_aio_write_nolock(struct k
- 		ocount -= iv->iov_len;	/* This segment is no good */
- 		break;
- 	}
--
-+	if (!is_sync_kiocb(iocb) && kiocbIsRestarted(iocb)) {
-+		/* nothing to transfer, may just need to sync data */
-+		return ocount;
-+	}
- 	count = ocount;
- 	pos = *ppos;
- 
-@@ -2367,8 +2388,10 @@ ssize_t generic_file_aio_write_nolock(st
- 		ssize_t err;
- 
- 		err = sync_page_range_nolock(inode, mapping, pos, ret);
--		if (err < 0)
-+		if (err < 0) {
- 			ret = err;
-+			iocb->ki_pos = pos;
-+		}
- 	}
+ 	} while (test_and_set_bit(q->key.bit_nr, q->key.flags));
+-	finish_wait(wq, &q->wait);
++	/*
++	 * AIO retries require the wait queue entry to remain queued
++	 * for async notification
++	 */
++	if (ret != -EIOCBRETRY)
++		finish_wait(wq, &q->wait);
  	return ret;
  }
-@@ -2393,8 +2416,10 @@ ssize_t generic_file_aio_write(struct ki
- 		ssize_t err;
- 
- 		err = sync_page_range(inode, mapping, pos, ret);
--		if (err < 0)
-+		if (err < 0) {
- 			ret = err;
-+			iocb->ki_pos = pos;
-+		}
- 	}
- 	return ret;
- }
+ EXPORT_SYMBOL(__wait_on_bit_lock);
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
