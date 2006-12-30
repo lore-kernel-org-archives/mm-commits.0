@@ -1,53 +1,61 @@
 From: akpm@osdl.org
-Subject: - git-iee1394-printk-warning-fix.patch removed from -mm tree
-Date: Fri, 29 Dec 2006 16:22:59 -0800
-Message-ID: <200612300023.kBU0MxLg007693@shell0.pdx.osdl.net>
+Subject: - git-ieee1394-build-fix.patch removed from -mm tree
+Date: Fri, 29 Dec 2006 16:23:04 -0800
+Message-ID: <200612300023.kBU0N4Z6007696@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35915 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35918 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753176AbWL3AXM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Dec 2006 19:23:12 -0500
+	id S1755114AbWL3AXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 29 Dec 2006 19:23:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-iee1394-printk-warning-fix
+     git-ieee1394-build-fix
 has been removed from the -mm tree.  Its filename was
-     git-iee1394-printk-warning-fix.patch
+     git-ieee1394-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-iee1394-printk-warning-fix
+Subject: git-ieee1394-build-fix
 From: Andrew Morton <akpm@osdl.org>
 
+alpha:
+
+drivers/firewire/fw-ohci.c: In function 'ar_context_tasklet':
+drivers/firewire/fw-ohci.c:266: warning: implicit declaration of function 'dma_sync_single_for_device'
+drivers/firewire/fw-ohci.c:267: error: 'DMA_TO_DEVICE' undeclared (first use in this function)
+drivers/firewire/fw-ohci.c:267: error: (Each undeclared identifier is reported only once
+drivers/firewire/fw-ohci.c:267: error: for each function it appears in.)
 drivers/firewire/fw-ohci.c: In function 'ar_context_init':
-drivers/firewire/fw-ohci.c:288: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'dma_addr_t'
+drivers/firewire/fw-ohci.c:282: warning: implicit declaration of function 'dma_map_single'
+drivers/firewire/fw-ohci.c:283: error: 'DMA_TO_DEVICE' undeclared (first use in this function)
+drivers/firewire/fw-ohci.c:293: error: 'DMA_FROM_DEVICE' undeclared (first use in this function)
+etc.
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-ohci.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/firewire/fw-ohci.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix drivers/firewire/fw-ohci.c
---- a/drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix
+diff -puN drivers/firewire/fw-ohci.c~git-ieee1394-build-fix drivers/firewire/fw-ohci.c
+--- a/drivers/firewire/fw-ohci.c~git-ieee1394-build-fix
 +++ a/drivers/firewire/fw-ohci.c
-@@ -285,8 +285,8 @@ ar_context_init(struct ar_context *ctx, 
- 		return -ENOMEM;
+@@ -25,6 +25,8 @@
+ #include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/poll.h>
++#include <linux/dma-mapping.h>
++
+ #include <asm/uaccess.h>
+ #include <asm/semaphore.h>
  
- 	if (ctx->descriptor_bus & 0xf)
--		fw_notify("descriptor not 16-byte aligned: 0x%08x\n",
--			  ctx->descriptor_bus);
-+		fw_notify("descriptor not 16-byte aligned: 0x%08lx\n",
-+			  (unsigned long)ctx->descriptor_bus);
- 
- 	ctx->buffer_bus =
- 		dma_map_single(ohci->card.device, ctx->buffer,
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
