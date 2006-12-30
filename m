@@ -1,260 +1,186 @@
 From: akpm@osdl.org
-Subject: + fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch added to -mm tree
-Date: Thu, 28 Dec 2006 16:48:04 -0800
-Message-ID: <200612290048.kBT0m4W1017879@shell0.pdx.osdl.net>
+Subject: - git-ieee1394-build-fix-3.patch removed from -mm tree
+Date: Fri, 29 Dec 2006 16:17:04 -0800
+Message-ID: <200612300017.kBU0H48a007626@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:46929 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35734 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753961AbWL2AsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Dec 2006 19:48:21 -0500
+	id S1755107AbWL3ARU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 29 Dec 2006 19:17:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rohitseth@google.com, ak@suse.de, menage@google.com, reintjes@google.com
+To: akpm@osdl.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix fake numa for x86_64 machines with big IO hole
-has been added to the -mm tree.  Its filename is
-     fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+     git-ieee1394-build-fix-3
+has been removed from the -mm tree.  Its filename was
+     git-ieee1394-build-fix-3.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Fix fake numa for x86_64 machines with big IO hole
-From: Rohit Seth <rohitseth@google.com>
+Subject: git-ieee1394-build-fix-3
+From: Andrew Morton <akpm@osdl.org>
 
-This patch resolves the issue of running with numa=fake=X on kernel command
-line on x86_64 machines that have big IO hole.  While calculating the size
-of each node now we look at the total hole size in that range.
+drivers/firewire/fw-sbp2.c: At top level:
+drivers/firewire/fw-sbp2.c:1060: error: storage size of '__mod_ieee1394_device_table' isn't known
 
-Previously there were nodes that only had IO holes in them causing kernel
-boot problems.  We now use the NODE_MIN_SIZE (64MB) as the minimum size of
-memory that any node must have.  We reduce the number of allocated nodes if
-the number of nodes specified on kernel command line results in any node
-getting memory smaller than NODE_MIN_SIZE.
-
-This change allows the extra memory to be incremented in NODE_MIN_SIZE
-granule and uniformly distribute among as many nodes (called big nodes) as
-possible.
-
-Signed-off-by: David Rientjes <reintjes@google.com>
-Signed-off-by: Paul Menage <menage@google.com>
-Signed-off-by: Rohit Seth <rohitseth@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/e820.c   |   31 +++++++++
- arch/x86_64/mm/numa.c       |  108 +++++++++++++++++++++++++++++-----
- include/asm-x86_64/e820.h   |    1 
- include/asm-x86_64/mmzone.h |    5 +
- 4 files changed, 131 insertions(+), 14 deletions(-)
+ drivers/firewire/fw-sbp2.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/e820.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole
-+++ a/arch/x86_64/kernel/e820.c
-@@ -191,6 +191,37 @@ unsigned long __init e820_end_of_ram(voi
- }
+diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3 drivers/firewire/fw-sbp2.c
+--- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3
++++ a/drivers/firewire/fw-sbp2.c
+@@ -1058,7 +1058,6 @@ static void remove_scsi_devices(struct f
+ MODULE_AUTHOR("Kristian Hoegsberg <krh@bitplanet.net>");
+ MODULE_DESCRIPTION("SCSI over IEEE1394");
+ MODULE_LICENSE("GPL");
+-MODULE_DEVICE_TABLE(ieee1394, sbp2_id_table);
  
- /*
-+ * Find the hole size in the range.
-+ */
-+unsigned long __init e820_hole_size(unsigned long start, unsigned long end)
-+{
-+	unsigned long ram = 0;
-+	int i;
-+
-+	for (i = 0; i < e820.nr_map; i++) {
-+		struct e820entry *ei = &e820.map[i];
-+		unsigned long last, addr;
-+
-+		if (ei->type != E820_RAM ||
-+		    ei->addr+ei->size <= start ||
-+		    ei->addr >= end)
-+			continue;
-+
-+		addr = round_up(ei->addr, PAGE_SIZE);
-+		if (addr < start)
-+			addr = start;
-+
-+		last = round_down(ei->addr + ei->size, PAGE_SIZE);
-+		if (last >= end)
-+			last = end;
-+
-+		if (last > addr)
-+			ram += last - addr;
-+	}
-+	return ((end - start) - ram);
-+}
-+
-+/*
-  * Mark e820 reserved areas as busy for the resource manager.
-  */
- void __init e820_reserve_resources(void)
-diff -puN arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole
-+++ a/arch/x86_64/mm/numa.c
-@@ -272,31 +272,111 @@ void __init numa_init_array(void)
- }
- 
- #ifdef CONFIG_NUMA_EMU
-+/* Numa emulation */
- int numa_fake __initdata = 0;
- 
--/* Numa emulation */
-+/*
-+ * This function is used to find out if the start and end correspond to
-+ * different zones.
-+ */
-+int zone_cross_over(unsigned long start, unsigned long end)
-+{
-+	if ((start < (MAX_DMA32_PFN << PAGE_SHIFT)) &&
-+			(end >= (MAX_DMA32_PFN << PAGE_SHIFT)))
-+		return 1;
-+	return 0;
-+}
-+
- static int __init numa_emulation(unsigned long start_pfn, unsigned long end_pfn)
+ static int __init sbp2_init(void)
  {
-- 	int i;
-+ 	int i, big;
-  	struct bootnode nodes[MAX_NUMNODES];
-- 	unsigned long sz = ((end_pfn - start_pfn)<<PAGE_SHIFT) / numa_fake;
-+ 	unsigned long sz, old_sz;
-+	unsigned long hole_size;
-+	unsigned long start, end;
-+	unsigned long max_addr = (end_pfn << PAGE_SHIFT);
-+
-+	start = (start_pfn << PAGE_SHIFT);
-+	hole_size = e820_hole_size(start, max_addr);
-+	sz = (max_addr - start - hole_size) / numa_fake;
- 
-  	/* Kludge needed for the hash function */
-- 	if (hweight64(sz) > 1) {
-- 		unsigned long x = 1;
-- 		while ((x << 1) < sz)
-- 			x <<= 1;
-- 		if (x < sz/2)
-- 			printk(KERN_ERR "Numa emulation unbalanced. Complain to maintainer\n");
-- 		sz = x;
-- 	}
- 
-+	old_sz = sz;
-+	/*
-+	 * Round down to the nearest NODE_MIN_SIZE.
-+	 */
-+	sz &= NODE_MIN_HASH_MASK;
-+
-+	/*
-+	 * We ensure that each node is at least 64MB big.  Smaller than this
-+	 * size can cause VM hiccups.
-+	 */
-+	if (sz == 0) {
-+		printk(KERN_INFO"Not enough memory for %d nodes.  Reducing "
-+				"the number of nodes\n", numa_fake);
-+		numa_fake = (max_addr - start - hole_size) / NODE_MIN_SIZE;
-+		printk(KERN_INFO"Number of fake nodes will be = %d\n", numa_fake);
-+		sz = NODE_MIN_SIZE;
-+	}
-+	/*
-+	 * Find out how many nodes can get an extra NODE_MIN_SIZE granule.
-+	 * This logic ensures the extra memory gets distributed among as many
-+	 * nodes as possible (as compared to one single node getting all that
-+	 * extra memory.
-+	 */
-+	big = ((old_sz - sz) * numa_fake) / NODE_MIN_SIZE;
-+	printk(KERN_INFO"Fake node Size: %luMB hole_size: %luMB big nodes: %d\n",
-+			(sz >> 20), (hole_size >> 20), big);
-  	memset(&nodes,0,sizeof(nodes));
-+	end = start;
-  	for (i = 0; i < numa_fake; i++) {
-- 		nodes[i].start = (start_pfn<<PAGE_SHIFT) + i*sz;
-+		/*
-+		 * In case we are not able to allocate enough memory for all
-+		 * the nodes, we reduce the number of fake nodes.
-+		 */
-+		if (end >= max_addr) {
-+			numa_fake = i - 1;
-+			break;
-+		}
-+ 		start = nodes[i].start = end;
-+		/*
-+		 * Final node can have all the remaining memory.
-+		 */
-  		if (i == numa_fake-1)
-- 			sz = (end_pfn<<PAGE_SHIFT) - nodes[i].start;
-- 		nodes[i].end = nodes[i].start + sz;
-+ 			sz = max_addr - start;
-+ 		end = nodes[i].start + sz;
-+		/*
-+		 * Fir "big" number of nodes get extra granule.
-+		 */
-+		if (i < big)
-+			end += NODE_MIN_SIZE;
-+		/*
-+		 * Iterate over the range to ensure that this node gets at
-+		 * least sz amount of RAM (excluding holes)
-+		 */
-+		while ((end - start - e820_hole_size(start, end)) < sz) {
-+			end += NODE_MIN_SIZE;
-+			if (end >= max_addr)
-+				break;
-+		}
-+		/*
-+		 * Look at the next node to make sure there is some real memory
-+		 * to map.  Bad things happen when the only memory present
-+		 * in a zone on a fake node is IO hole.
-+		 */
-+		while (e820_hole_size(end, end + NODE_MIN_SIZE) > 0) {
-+			if (zone_cross_over(start, end + sz)) {
-+				end = (MAX_DMA32_PFN << PAGE_SHIFT);
-+				break;
-+			}
-+			if (end >= max_addr)
-+				break;
-+			end += NODE_MIN_SIZE;
-+		}
-+		if (end > max_addr)
-+			end = max_addr;
-+		nodes[i].end = end;
-  		printk(KERN_INFO "Faking node %d at %016Lx-%016Lx (%LuMB)\n",
-  		       i,
-  		       nodes[i].start, nodes[i].end,
-diff -puN include/asm-x86_64/e820.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole include/asm-x86_64/e820.h
---- a/include/asm-x86_64/e820.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole
-+++ a/include/asm-x86_64/e820.h
-@@ -46,6 +46,7 @@ extern void e820_mark_nosave_regions(voi
- extern void e820_print_map(char *who);
- extern int e820_any_mapped(unsigned long start, unsigned long end, unsigned type);
- extern int e820_all_mapped(unsigned long start, unsigned long end, unsigned type);
-+extern unsigned long e820_hole_size(unsigned long start, unsigned long end);
- 
- extern void e820_setup_gap(void);
- extern void e820_register_active_regions(int nid,
-diff -puN include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole include/asm-x86_64/mmzone.h
---- a/include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole
-+++ a/include/asm-x86_64/mmzone.h
-@@ -47,5 +47,10 @@ static inline __attribute__((pure)) int 
- extern int pfn_valid(unsigned long pfn);
- #endif
- 
-+#ifdef CONFIG_NUMA_EMU
-+#define NODE_MIN_SIZE	(64*1024*1024)
-+#define NODE_MIN_HASH_MASK	(~(NODE_MIN_SIZE - 1ul))
-+#endif
-+
- #endif
- #endif
 _
 
-Patches currently in -mm which might be from rohitseth@google.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-x86_64-make-the-numa-hash-function-nodemap-allocation-fix-2.patch
-fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-dynticks-i386-prepare-nmi-watchdog.patch
+origin.patch
+cpuset-procfs-warning-fix.patch
+lockdep-printk-warning-fix.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+pci-avoid-taking-pci_bus_sem-early-in-boot.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-ieee1394-build-fix-3.patch
+git-input.patch
+git-libata-all.patch
+git-libata-all-fixup.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-build-fix.patch
+git-ubi-mtd_read-arg-fix.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+fsaio-filesystem-aio-read-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
 
