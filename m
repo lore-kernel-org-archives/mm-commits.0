@@ -1,183 +1,143 @@
 From: akpm@osdl.org
-Subject: - git-ubi-build-fix.patch removed from -mm tree
-Date: Fri, 29 Dec 2006 16:23:14 -0800
-Message-ID: <200612300023.kBU0NEs6007703@shell0.pdx.osdl.net>
+Subject: - dvb-fix-compile-error.patch removed from -mm tree
+Date: Fri, 29 Dec 2006 16:22:53 -0800
+Message-ID: <200612300022.kBU0Msa0007690@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35929 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36007 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755118AbWL3AX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Dec 2006 19:23:28 -0500
+	id S1755106AbWL3A0T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 29 Dec 2006 19:26:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, dedekind@infradead.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ubi build fix
+     DVB: fix compile error
 has been removed from the -mm tree.  Its filename was
-     git-ubi-build-fix.patch
+     dvb-fix-compile-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-ubi build fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: DVB: fix compile error
+From: Adrian Bunk <bunk@stusta.de>
 
-drivers/mtd/ubi/cdev.c:356: warning: implicit declaration of function 'cond_resched'
+  LD      drivers/media/video/built-in.o
+drivers/media/video/saa7134/built-in.o:(.data+0x85ec): multiple definition of `ir_rc5_remote_gap'
+drivers/media/video/bt8xx/built-in.o:(.data+0x734c): first defined here
+drivers/media/video/saa7134/built-in.o:(.data+0x85f0): multiple definition of `ir_rc5_key_timeout'
+drivers/media/video/bt8xx/built-in.o:(.data+0x7350): first defined here
+make[4]: *** [drivers/media/video/built-in.o] Error 1
 
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+Since these variables were needlessly global, this patch implements the
+trivial fix of making them static.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/ubi/cdev.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/bt8xx/bttv-input.c      |    4 ++--
+ drivers/media/video/saa7134/saa7134-input.c |    4 ++--
+ include/media/ir-common.h                   |    3 ---
+ 3 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/mtd/ubi/cdev.c~git-ubi-build-fix drivers/mtd/ubi/cdev.c
---- a/drivers/mtd/ubi/cdev.c~git-ubi-build-fix
-+++ a/drivers/mtd/ubi/cdev.c
-@@ -22,6 +22,7 @@
- #include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/stat.h>
-+#include <linux/sched.h>
- #include <linux/ioctl.h>
- #include <linux/cdev.h>
- #include <linux/capability.h>
+diff -puN drivers/media/video/bt8xx/bttv-input.c~dvb-fix-compile-error drivers/media/video/bt8xx/bttv-input.c
+--- a/drivers/media/video/bt8xx/bttv-input.c~dvb-fix-compile-error
++++ a/drivers/media/video/bt8xx/bttv-input.c
+@@ -36,9 +36,9 @@ module_param(repeat_delay, int, 0644);
+ static int repeat_period = 33;
+ module_param(repeat_period, int, 0644);
+ 
+-int ir_rc5_remote_gap = 885;
++static int ir_rc5_remote_gap = 885;
+ module_param(ir_rc5_remote_gap, int, 0644);
+-int ir_rc5_key_timeout = 200;
++static int ir_rc5_key_timeout = 200;
+ module_param(ir_rc5_key_timeout, int, 0644);
+ 
+ #define DEVNAME "bttv-input"
+diff -puN drivers/media/video/saa7134/saa7134-input.c~dvb-fix-compile-error drivers/media/video/saa7134/saa7134-input.c
+--- a/drivers/media/video/saa7134/saa7134-input.c~dvb-fix-compile-error
++++ a/drivers/media/video/saa7134/saa7134-input.c
+@@ -41,9 +41,9 @@ static int pinnacle_remote = 0;
+ module_param(pinnacle_remote, int, 0644);    /* Choose Pinnacle PCTV remote */
+ MODULE_PARM_DESC(pinnacle_remote, "Specify Pinnacle PCTV remote: 0=coloured, 1=grey (defaults to 0)");
+ 
+-int ir_rc5_remote_gap = 885;
++static int ir_rc5_remote_gap = 885;
+ module_param(ir_rc5_remote_gap, int, 0644);
+-int ir_rc5_key_timeout = 115;
++static int ir_rc5_key_timeout = 115;
+ module_param(ir_rc5_key_timeout, int, 0644);
+ 
+ #define dprintk(fmt, arg...)	if (ir_debug) \
+diff -puN include/media/ir-common.h~dvb-fix-compile-error include/media/ir-common.h
+--- a/include/media/ir-common.h~dvb-fix-compile-error
++++ a/include/media/ir-common.h
+@@ -36,9 +36,6 @@
+ #define IR_KEYCODE(tab,code)	(((unsigned)code < IR_KEYTAB_SIZE) \
+ 				 ? tab[code] : KEY_RESERVED)
+ 
+-extern int ir_rc5_remote_gap;
+-extern int ir_rc5_key_timeout;
+-
+ #define RC5_START(x)	(((x)>>12)&3)
+ #define RC5_TOGGLE(x)	(((x)>>11)&1)
+ #define RC5_ADDR(x)	(((x)>>6)&31)
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-cpuset-procfs-warning-fix.patch
-lockdep-printk-warning-fix.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-pci-avoid-taking-pci_bus_sem-early-in-boot.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
-git-agpgart.patch
-cifs-sprintf-fix.patch
-git-cpufreq.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
 git-dvb.patch
 git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-git-libata-all-fixup.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
 git-mtd.patch
-git-ubi.patch
-git-ubi-mtd_read-arg-fix.patch
-ubi-missing-include.patch
 git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-add-i386-idle-notifier-take-3-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-bluetooth-blacklist-lenovo-r60e.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
+net-irda-proper-prototypes.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+arch-i386-kernel-e820c-should-include-asm-setuph.patch
+arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch
+lumpy-reclaim-cleanup.patch
+remove-drivers-pci-searchcpci_find_device_reverse.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+toshiba-tc86c001-ide-driver-take-2-fix.patch
 toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-vmi-versus-hrtimers.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+gtod-persistent-clock-support-core.patch
 gtod-persistent-clock-support-i386.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-fsaio-filesystem-aio-read-tidy.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
 
