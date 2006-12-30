@@ -1,58 +1,62 @@
 From: akpm@osdl.org
-Subject: - add-gitignore-file-for-relocs-in-arch-i386-fix.patch removed from -mm tree
-Date: Fri, 29 Dec 2006 16:39:47 -0800
-Message-ID: <200612300040.kBU0e7ov007936@shell0.pdx.osdl.net>
+Subject: + add-afs_super_magic-to-magich.patch added to -mm tree
+Date: Fri, 29 Dec 2006 16:51:25 -0800
+Message-ID: <200612300051.kBU0pQnD008289@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36462 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36967 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755122AbWL3AkY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Dec 2006 19:40:24 -0500
+	id S965233AbWL3Avs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 29 Dec 2006 19:51:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, thomas@m3y3r.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: megacz@cs.berkeley.edu, jaltman@secure-endpoints.com
 
 
 The patch titled
-     Arch: add gitignore file for relocs in arch i386 fix
-has been removed from the -mm tree.  Its filename was
-     add-gitignore-file-for-relocs-in-arch-i386-fix.patch
+     Add AFS_SUPER_MAGIC to magic.h
+has been added to the -mm tree.  Its filename is
+     add-afs_super_magic-to-magich.patch
 
-This patch was dropped because it was folded into add-gitignore-file-for-relocs-in-arch-i386.patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Arch: add gitignore file for relocs in arch i386 fix
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Add AFS_SUPER_MAGIC to magic.h
+From: Adam Megacz <megacz@cs.berkeley.edu>
 
-add gitignore file for relocs in arch i386 fix
+Jeffrey Altman, one of the gatekeepers of OpenAFS (the open source project
+which inherited the Transarc/IBM AFS codebase) has requested that the magic
+number 0x5346414F (little endian 'OAFS') be allocated for the f_type field
+of the fsinfo structure on Linux:
 
-The .gitigonre was intended to be in arch/ subtree.
+  https://lists.openafs.org/pipermail/openafs-info/2006-December/024829.html
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Thomas Meyer <thomas@m3y3r.de>
+Add it to include/linux/magic.h, mostly as a way of publishing this number
+and ensuring that no other filesystem accidentally uses it.
+
+Cc: Jeffrey Altman <jaltman@secure-endpoints.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/boot/compressed/.gitignore |    1 +
- i386/boot/compressed/.gitignore      |    1 -
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/magic.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN /dev/null arch/i386/boot/compressed/.gitignore
---- /dev/null
-+++ a/arch/i386/boot/compressed/.gitignore
-@@ -0,0 +1 @@
-+relocs
-diff -puN i386/boot/compressed/.gitignore~add-gitignore-file-for-relocs-in-arch-i386-fix /dev/null
---- a/i386/boot/compressed/.gitignore
-+++ /dev/null
-@@ -1 +0,0 @@
--relocs
+diff -puN include/linux/magic.h~add-afs_super_magic-to-magich include/linux/magic.h
+--- a/include/linux/magic.h~add-afs_super_magic-to-magich
++++ a/include/linux/magic.h
+@@ -3,6 +3,7 @@
+ 
+ #define ADFS_SUPER_MAGIC	0xadf5
+ #define AFFS_SUPER_MAGIC	0xadff
++#define AFS_SUPER_MAGIC                0x5346414F
+ #define AUTOFS_SUPER_MAGIC	0x0187
+ #define CODA_SUPER_MAGIC	0x73757245
+ #define EFS_SUPER_MAGIC		0x414A53
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from megacz@cs.berkeley.edu are
 
-add-gitignore-file-for-relocs-in-arch-i386.patch
-add-gitignore-file-for-relocs-in-arch-i386-fix.patch
-char-mxser-fix-oops-when-removing-opened.patch
-char-isicom-eliminate-spinlock-recursion.patch
+add-afs_super_magic-to-magich.patch
 
