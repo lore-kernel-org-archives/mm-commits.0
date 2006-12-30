@@ -1,61 +1,55 @@
 From: akpm@osdl.org
-Subject: - git-ieee1394-build-fix.patch removed from -mm tree
-Date: Fri, 29 Dec 2006 16:23:04 -0800
-Message-ID: <200612300023.kBU0N4Z6007696@shell0.pdx.osdl.net>
+Subject: - git-ieee1394-build-fix-2.patch removed from -mm tree
+Date: Fri, 29 Dec 2006 16:23:09 -0800
+Message-ID: <200612300023.kBU0N94c007699@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35918 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35924 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755114AbWL3AXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Dec 2006 19:23:15 -0500
+	id S1755110AbWL3AXZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 29 Dec 2006 19:23:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ieee1394-build-fix
+     git-ieee1394-build-fix-2
 has been removed from the -mm tree.  Its filename was
-     git-ieee1394-build-fix.patch
+     git-ieee1394-build-fix-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-ieee1394-build-fix
+Subject: git-ieee1394-build-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-alpha:
+ia64:
 
-drivers/firewire/fw-ohci.c: In function 'ar_context_tasklet':
-drivers/firewire/fw-ohci.c:266: warning: implicit declaration of function 'dma_sync_single_for_device'
-drivers/firewire/fw-ohci.c:267: error: 'DMA_TO_DEVICE' undeclared (first use in this function)
-drivers/firewire/fw-ohci.c:267: error: (Each undeclared identifier is reported only once
-drivers/firewire/fw-ohci.c:267: error: for each function it appears in.)
-drivers/firewire/fw-ohci.c: In function 'ar_context_init':
-drivers/firewire/fw-ohci.c:282: warning: implicit declaration of function 'dma_map_single'
-drivers/firewire/fw-ohci.c:283: error: 'DMA_TO_DEVICE' undeclared (first use in this function)
-drivers/firewire/fw-ohci.c:293: error: 'DMA_FROM_DEVICE' undeclared (first use in this function)
-etc.
+drivers/firewire/fw-sbp2.c: In function `sbp2_command_orb_map_scatterlist':
+drivers/firewire/fw-sbp2.c:826: warning: implicit declaration of function `sg_dma_len'
+drivers/firewire/fw-sbp2.c:828: warning: implicit declaration of function `sg_dma_address'
+drivers/firewire/fw-sbp2.c:837: error: invalid use of undefined type `struct scatterlist'
+drivers/firewire/fw-sbp2.c:838: error: invalid use of undefined type `struct scatterlist'
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-ohci.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/firewire/fw-sbp2.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-ohci.c~git-ieee1394-build-fix drivers/firewire/fw-ohci.c
---- a/drivers/firewire/fw-ohci.c~git-ieee1394-build-fix
-+++ a/drivers/firewire/fw-ohci.c
-@@ -25,6 +25,8 @@
- #include <linux/pci.h>
- #include <linux/delay.h>
- #include <linux/poll.h>
-+#include <linux/dma-mapping.h>
-+
- #include <asm/uaccess.h>
- #include <asm/semaphore.h>
+diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2 drivers/firewire/fw-sbp2.c
+--- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2
++++ a/drivers/firewire/fw-sbp2.c
+@@ -21,6 +21,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/device.h>
++#include <linux/scatterlist.h>
+ #include <linux/dma-mapping.h>
  
+ #include <scsi/scsi.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
