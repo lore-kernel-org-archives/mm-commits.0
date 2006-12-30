@@ -1,50 +1,53 @@
 From: akpm@osdl.org
-Subject: - git-ieee1394-build-fix-3.patch removed from -mm tree
-Date: Fri, 29 Dec 2006 16:17:04 -0800
-Message-ID: <200612300017.kBU0H48a007626@shell0.pdx.osdl.net>
+Subject: - git-iee1394-printk-warning-fix.patch removed from -mm tree
+Date: Fri, 29 Dec 2006 16:22:59 -0800
+Message-ID: <200612300023.kBU0MxLg007693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35734 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35915 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755107AbWL3ARU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Dec 2006 19:17:20 -0500
+	id S1753176AbWL3AXM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 29 Dec 2006 19:23:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ieee1394-build-fix-3
+     git-iee1394-printk-warning-fix
 has been removed from the -mm tree.  Its filename was
-     git-ieee1394-build-fix-3.patch
+     git-iee1394-printk-warning-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-ieee1394-build-fix-3
+Subject: git-iee1394-printk-warning-fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/firewire/fw-sbp2.c: At top level:
-drivers/firewire/fw-sbp2.c:1060: error: storage size of '__mod_ieee1394_device_table' isn't known
+drivers/firewire/fw-ohci.c: In function 'ar_context_init':
+drivers/firewire/fw-ohci.c:288: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'dma_addr_t'
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-sbp2.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/firewire/fw-ohci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3 drivers/firewire/fw-sbp2.c
---- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-3
-+++ a/drivers/firewire/fw-sbp2.c
-@@ -1058,7 +1058,6 @@ static void remove_scsi_devices(struct f
- MODULE_AUTHOR("Kristian Hoegsberg <krh@bitplanet.net>");
- MODULE_DESCRIPTION("SCSI over IEEE1394");
- MODULE_LICENSE("GPL");
--MODULE_DEVICE_TABLE(ieee1394, sbp2_id_table);
+diff -puN drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix drivers/firewire/fw-ohci.c
+--- a/drivers/firewire/fw-ohci.c~git-iee1394-printk-warning-fix
++++ a/drivers/firewire/fw-ohci.c
+@@ -285,8 +285,8 @@ ar_context_init(struct ar_context *ctx, 
+ 		return -ENOMEM;
  
- static int __init sbp2_init(void)
- {
+ 	if (ctx->descriptor_bus & 0xf)
+-		fw_notify("descriptor not 16-byte aligned: 0x%08x\n",
+-			  ctx->descriptor_bus);
++		fw_notify("descriptor not 16-byte aligned: 0x%08lx\n",
++			  (unsigned long)ctx->descriptor_bus);
+ 
+ 	ctx->buffer_bus =
+ 		dma_map_single(ohci->card.device, ctx->buffer,
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -70,7 +73,6 @@ git-dvb.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
-git-ieee1394-build-fix-3.patch
 git-input.patch
 git-libata-all.patch
 git-libata-all-fixup.patch
@@ -78,7 +80,6 @@ git-lxdialog-fixup.patch
 git-mmc.patch
 git-mtd.patch
 git-ubi.patch
-git-ubi-build-fix.patch
 git-ubi-mtd_read-arg-fix.patch
 ubi-missing-include.patch
 git-netdev-all.patch
