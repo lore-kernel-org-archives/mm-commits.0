@@ -1,55 +1,49 @@
 From: akpm@osdl.org
-Subject: - git-ieee1394-build-fix-2.patch removed from -mm tree
-Date: Fri, 29 Dec 2006 16:23:09 -0800
-Message-ID: <200612300023.kBU0N94c007699@shell0.pdx.osdl.net>
+Subject: - git-ubi-build-fix.patch removed from -mm tree
+Date: Fri, 29 Dec 2006 16:23:14 -0800
+Message-ID: <200612300023.kBU0NEs6007703@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35924 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35929 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755110AbWL3AXZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Dec 2006 19:23:25 -0500
+	id S1755118AbWL3AX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 29 Dec 2006 19:23:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, dedekind@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ieee1394-build-fix-2
+     git-ubi build fix
 has been removed from the -mm tree.  Its filename was
-     git-ieee1394-build-fix-2.patch
+     git-ubi-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-ieee1394-build-fix-2
+Subject: git-ubi build fix
 From: Andrew Morton <akpm@osdl.org>
 
-ia64:
+drivers/mtd/ubi/cdev.c:356: warning: implicit declaration of function 'cond_resched'
 
-drivers/firewire/fw-sbp2.c: In function `sbp2_command_orb_map_scatterlist':
-drivers/firewire/fw-sbp2.c:826: warning: implicit declaration of function `sg_dma_len'
-drivers/firewire/fw-sbp2.c:828: warning: implicit declaration of function `sg_dma_address'
-drivers/firewire/fw-sbp2.c:837: error: invalid use of undefined type `struct scatterlist'
-drivers/firewire/fw-sbp2.c:838: error: invalid use of undefined type `struct scatterlist'
-
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firewire/fw-sbp2.c |    1 +
+ drivers/mtd/ubi/cdev.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2 drivers/firewire/fw-sbp2.c
---- a/drivers/firewire/fw-sbp2.c~git-ieee1394-build-fix-2
-+++ a/drivers/firewire/fw-sbp2.c
-@@ -21,6 +21,7 @@
- #include <linux/kernel.h>
+diff -puN drivers/mtd/ubi/cdev.c~git-ubi-build-fix drivers/mtd/ubi/cdev.c
+--- a/drivers/mtd/ubi/cdev.c~git-ubi-build-fix
++++ a/drivers/mtd/ubi/cdev.c
+@@ -22,6 +22,7 @@
  #include <linux/module.h>
- #include <linux/device.h>
-+#include <linux/scatterlist.h>
- #include <linux/dma-mapping.h>
- 
- #include <scsi/scsi.h>
+ #include <linux/fs.h>
+ #include <linux/stat.h>
++#include <linux/sched.h>
+ #include <linux/ioctl.h>
+ #include <linux/cdev.h>
+ #include <linux/capability.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
