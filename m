@@ -1,407 +1,160 @@
 From: akpm@osdl.org
-Subject: + qconf-make-xconfig-search-dialog.patch added to -mm tree
-Date: Tue, 02 Jan 2007 13:58:16 -0800
-Message-ID: <200701022158.l02LwHws031149@shell0.pdx.osdl.net>
+Subject: + kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch added to -mm tree
+Date: Tue, 02 Jan 2007 14:05:48 -0800
+Message-ID: <200701022205.l02M5mlY031381@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36420 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36863 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754922AbXABV7A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 16:59:00 -0500
+	id S932914AbXABWGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 17:06:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shlomif@iglu.org.il, sam@ravnborg.org, zippel@linux-m68k.org
+Cc: mingo@elte.hu, avi@qumranet.com
 
 
 The patch titled
-     qconf: "make xconfig" Search Dialog
+     KVM: Use raw_smp_processor_id() instead of smp_processor_id() where applicable
 has been added to the -mm tree.  Its filename is
-     qconf-make-xconfig-search-dialog.patch
+     kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: qconf: "make xconfig" Search Dialog
-From: Shlomi Fish <shlomif@iglu.org.il>
+Subject: KVM: Use raw_smp_processor_id() instead of smp_processor_id() where applicable
+From: Ingo Molnar <mingo@elte.hu>
 
-This patch is a reworked version of:
-
-http://www.ussg.iu.edu/hypermail/linux/kernel/0603.3/0990.html
-
-It adds a search dialog to the kernel's "make xconfig" configuration
-applet.
-
-Changes in this release include:
-
-1. Fixed formatting.
-
-2. The items are now displayed in a tree instead of in a flat list. 
-   (With all the necessary changes).
-
-3. Updated to apply against the recent kernel version.
-
-The To do is:
-
-1. Implemented more sophisticated querying.
-
-2. Fix the fact that the top categories in the QListView do not have a
-   visible [+] sign next to them to expand them.  (Albeit they are expanded
-   upon a double click).
-
-3. Make sure double clicking an end-item opens and highlights it in the
-   main application.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/kconfig/qconf.cc |  238 +++++++++++++++++++++++++++++++++++++
- scripts/kconfig/qconf.h  |   48 +++++++
- 2 files changed, 286 insertions(+)
+ drivers/kvm/vmx.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kconfig/qconf.cc~qconf-make-xconfig-search-dialog scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~qconf-make-xconfig-search-dialog
-+++ a/scripts/kconfig/qconf.cc
-@@ -21,6 +21,10 @@
- #include <qfiledialog.h>
- #include <qdragobject.h>
- #include <qregexp.h>
-+#include <qdialog.h>
-+#include <qlayout.h>
-+#include <qlabel.h>
-+#include <qpushbutton.h>
+diff -puN drivers/kvm/vmx.c~kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable
++++ a/drivers/kvm/vmx.c
+@@ -116,7 +116,7 @@ static void vmcs_clear(struct vmcs *vmcs
+ static void __vcpu_clear(void *arg)
+ {
+ 	struct kvm_vcpu *vcpu = arg;
+-	int cpu = smp_processor_id();
++	int cpu = raw_smp_processor_id();
  
- #include <stdlib.h>
+ 	if (vcpu->cpu == cpu)
+ 		vmcs_clear(vcpu->vmcs);
+@@ -541,7 +541,7 @@ static struct vmcs *alloc_vmcs_cpu(int c
  
-@@ -1325,6 +1329,8 @@ ConfigMainWindow::ConfigMainWindow(void)
- 	  connect(splitViewAction, SIGNAL(activated()), SLOT(showSplitView()));
- 	QAction *fullViewAction = new QAction("Full View", QPixmap(xpm_tree_view), "Full View", 0, this);
- 	  connect(fullViewAction, SIGNAL(activated()), SLOT(showFullView()));
-+	QAction *findAction = new QAction("Find", QPixmap(xpm_save), "&Find", CTRL+Key_F, this);
-+	  connect(findAction, SIGNAL(activated()), SLOT(findEntries()));
- 
- 	QAction *showNameAction = new QAction(NULL, "Show Name", 0, this);
- 	  showNameAction->setToggleAction(TRUE);
-@@ -1378,6 +1384,11 @@ ConfigMainWindow::ConfigMainWindow(void)
- 	config->insertSeparator();
- 	quitAction->addTo(config);
- 
-+	// create file menu
-+	QPopupMenu* editMenu = new QPopupMenu(this);
-+	menu->insertItem("&Edit", editMenu);
-+	findAction->addTo(editMenu);
-+
- 	// create options menu
- 	QPopupMenu* optionMenu = new QPopupMenu(this);
- 	menu->insertItem("&Option", optionMenu);
-@@ -1449,6 +1460,233 @@ void ConfigMainWindow::saveConfig(void)
- 		QMessageBox::information(this, "qconf", "Unable to save configuration!");
+ static struct vmcs *alloc_vmcs(void)
+ {
+-	return alloc_vmcs_cpu(smp_processor_id());
++	return alloc_vmcs_cpu(raw_smp_processor_id());
  }
  
-+
-+FindDialog::FindDialog( QWidget* parent, const char* name, bool modal, WFlags fl )
-+	: QDialog( parent, name, modal, fl )
-+{
-+	main_layout = new QVBoxLayout(this, 11, 6, "main_layout");
-+	main_layout->addWidget(new QLabel("Query:", this, "label1"));
-+	queryLineEdit = new QLineEdit(this, "queryLineEdit");
-+	main_layout->addWidget(queryLineEdit);
-+	findButton = new QPushButton("Find", this, "findButton");
-+	main_layout->addWidget(findButton);
-+	connect( findButton, SIGNAL( clicked() ), this, SLOT( performQuery() ) );
-+	results = new QListView(this, "results");
-+	results->addColumn("Item");
-+	main_layout->addWidget(results);
-+}
-+
-+FindDialog::~FindDialog()
-+{
-+}
-+
-+static QString * get_parent_disp(struct menu * menu)
-+{
-+	QString s;
-+	if (menu->sym)
-+	{
-+		if (menu->prompt)
-+		{
-+			s += menu->prompt->text;
-+			if (menu->sym->name)
-+			{
-+				s += " (";
-+				s += menu->sym->name;
-+				s += ")";
-+			}
-+		}
-+		else if (menu->sym->name)
-+		{
-+			s += menu->sym->name;
-+		}
-+	}
-+	else if (menu->prompt)
-+	{
-+		s += menu->prompt->text;
-+	}
-+	return new QString(s);
-+}
-+
-+QString * get_parent_string(struct menu * menu, int depth)
-+{
-+	QString * parent_disp = get_parent_disp(menu);
-+	QString s;
-+
-+	/*
-+	 * Append 'depth' tabs.
-+	 * */
-+	for(int i=0;i<depth;i++)
-+	{
-+		s += "\t";
-+	}
-+	s += *parent_disp;
-+	s += "\n";
-+
-+	delete parent_disp;
-+
-+	return new QString(s);
-+}
-+
-+static QString * get_item_display(MenuList * parents, struct menu * mymenu)
-+{
-+	MenuList::iterator it;
-+	QString * item;
-+#if 0
-+	int depth;
-+#else
-+	int depth=0;
-+#endif
-+
-+	item = new QString();
-+
-+#if 0
-+	for (depth=0, it = parents->begin(); it != parents->end() ; ++it, ++depth)
-+	{
-+		QString * parent_string = get_parent_string(*it, depth);
-+		*item += *parent_string;
-+		delete parent_string;
-+	}
-+#endif
-+
-+	QString * string = get_parent_string(mymenu, depth);
-+	*item += *string;
-+	delete string;
-+
-+	return item;
-+}
-+
-+QListViewItem * ListViewBranch::newItem(QString & s)
-+{
-+	if (which == ISNULL)
-+	{
-+		// Shouldn't happen.
-+		throw "Hello";
-+	}
-+	else if (which == ITEM)
-+	{
-+		return new QListViewItem(item, s);
-+	}
-+	else
-+	{
-+		return new QListViewItem(view, s);
-+	}
-+
-+}
-+
-+ListViewBranch ListViewBranch::insertItem(QString & s)
-+{
-+	return ListViewBranch(newItem(s));
-+}
-+
-+bool FindDialog::matches(struct menu * mymenu, QString & query)
-+{
-+	struct symbol * sym = mymenu->sym;
-+
-+	if (!sym)
-+	{
-+		return false;
-+	}
-+
-+	QString help(sym->help);
-+	QString name(sym->name);
-+
-+	return (help.contains(query, FALSE) || name.contains(query, FALSE));
-+}
-+
-+void FindDialog::handle_match(MenuList * parents, ListViewMenuList * * last_branch)
-+{
-+	// TODO : Name to something more meaningful than
-+	// it2
-+	MenuList::iterator it;
-+	ListViewMenuList::iterator it2;
-+
-+	// Find the last branch that was allocated
-+	it = parents->begin();
-+	it2 = (*last_branch)->begin();
-+
-+	for (;(*it2).menu == *it ; ++it, ++it2)
-+	{
-+	}
-+
-+	ListViewMenuList * new_branch = new ListViewMenuList;
-+	MenuList new_menu;
-+
-+	ListViewMenuList::iterator copy_branches;
-+	MenuList::iterator copy_menu;
-+	for (copy_branches = (*last_branch)->begin(),copy_menu = parents->begin();
-+		copy_branches != it2;
-+		++copy_branches, ++copy_menu)
-+	{
-+		new_branch->append(*copy_branches);
-+		new_menu.append(*copy_menu);
-+	}
-+
-+	for (; it != parents->end(); ++it)
-+	{
-+		ListViewMenuItem new_item;
-+		new_item.menu = *it;
-+
-+		QString * str = get_item_display(&new_menu, *it);
-+		new_item.branch = new_branch->back().branch.insertItem(*str);
-+
-+		new_branch->append(new_item);
-+		new_menu.append(*it);
-+		delete str;
-+	}
-+
-+	// Update to the the new branch
-+	delete *last_branch;
-+	*last_branch = new_branch;
-+}
-+
-+void FindDialog::search(QString & query, MenuList * parents, ListViewMenuList * * last_branch)
-+{
-+	struct menu * child;
-+
-+	struct menu * mymenu = parents->back();
-+
-+	if (matches(mymenu, query))
-+	{
-+		handle_match(parents, last_branch);
-+	}
-+
-+	for (child = mymenu->list; child ; child = child->next)
-+	{
-+		MenuList new_parents(*parents);
-+		new_parents.append(child);
-+		search(query, &new_parents, last_branch);
-+	}
-+}
-+
-+void FindDialog::performQuery(void)
-+{
-+	QString query = queryLineEdit->text();
-+	results->clear();
-+
-+	MenuList parents;
-+	ListViewMenuList * mybranch = new ListViewMenuList;
-+
-+	{
-+		ListViewMenuItem i;
-+		i.branch = ListViewBranch(results);
-+		i.menu = &rootmenu;
-+		mybranch->append(i);
-+	}
-+
-+	parents.append(&rootmenu);
-+
-+	search(query, &parents, &mybranch);
-+
-+	delete mybranch;
-+	// printf("Query for \"%s\"\n", (const char *)queryLineEdit->text());
-+}
-+
-+void ConfigMainWindow::findEntries(void)
-+{
-+	FindDialog * dlg = new FindDialog(this, "dialog", TRUE);
-+	dlg->exec();
-+}
-+
- void ConfigMainWindow::saveConfigAs(void)
- {
- 	QString s = QFileDialog::getSaveFileName(".config", NULL, this);
-diff -puN scripts/kconfig/qconf.h~qconf-make-xconfig-search-dialog scripts/kconfig/qconf.h
---- a/scripts/kconfig/qconf.h~qconf-make-xconfig-search-dialog
-+++ a/scripts/kconfig/qconf.h
-@@ -4,6 +4,7 @@
-  */
- 
- #include <qlistview.h>
-+#include <qlistbox.h>
- #if QT_VERSION >= 300
- #include <qsettings.h>
- #else
-@@ -304,6 +305,7 @@ public:
- 	ConfigMainWindow(void);
- public slots:
- 	void changeMenu(struct menu *);
-+	void findEntries(void);
- 	void setMenuLink(struct menu *);
- 	void listFocusChanged(void);
- 	void goBack(void);
-@@ -332,3 +334,49 @@ protected:
- 	QSplitter* split1;
- 	QSplitter* split2;
- };
-+
-+typedef QValueList<struct menu *> MenuList;
-+
-+struct ListViewBranch
-+{
-+	enum { ISNULL, ITEM, VIEW } which;
-+	union
-+	{
-+		QListViewItem * item;
-+		QListView * view;
-+	};
-+	ListViewBranch() { which = ISNULL; item = NULL; }
-+	ListViewBranch(QListView * v) { view = v; which = VIEW; }
-+	ListViewBranch(QListViewItem * i) { item = i; which = ITEM; }
-+	QListViewItem * newItem(QString & s);
-+	ListViewBranch insertItem(QString & s);
-+};
-+
-+struct ListViewMenuItem
-+{
-+	ListViewBranch branch;
-+	struct menu * menu;
-+};
-+
-+typedef QValueList<struct ListViewMenuItem> ListViewMenuList;
-+
-+class FindDialog : public QDialog
-+{
-+	Q_OBJECT
-+	public:
-+	FindDialog( QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
-+	~FindDialog();
-+	QVBoxLayout * main_layout;
-+	QLineEdit * queryLineEdit;
-+	QPushButton * findButton;
-+	QListView * results;
-+public slots:
-+	void performQuery();
-+public:
-+	bool matches(struct menu * mymenu, QString & query);
-+	void search(QString & query, MenuList * parents,
-+			ListViewMenuList * * last_branch);
-+	void handle_match(MenuList * parents,
-+			ListViewMenuList * * last_branch);
-+};
-+
+ static void free_vmcs(struct vmcs *vmcs)
 _
 
-Patches currently in -mm which might be from shlomif@iglu.org.il are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-qconf-make-xconfig-search-dialog.patch
+kvm-fix-gfp_kernel-alloc-in-atomic-section-bug.patch
+kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+fix-for-crash-in-adummy_init.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+sched-improve-sched_clock-on-i686.patch
+sched-improve-sched_clock-on-i686-fix.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+consolidate-default-sched_clock.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+fsaio-add-a-wait-queue-parameter-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_slow.patch
+fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-filesystem-aio-read-tidy.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
