@@ -1,53 +1,102 @@
 From: akpm@osdl.org
-Subject: - powerpc-iseries-link-error-in-allmodconfig.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:23:48 -0800
-Message-ID: <200701020723.l027Nmgj012897@shell0.pdx.osdl.net>
+Subject: - fix-lock-inversion-aio_kick_handler.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:23:45 -0800
+Message-ID: <200701020723.l027NjA1012894@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37246 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37249 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932702AbXABHYD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 02:24:03 -0500
+	id S932722AbXABHYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 02:24:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: judith@osdl.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: zach.brown@oracle.com, bcrl@kvack.org, kenneth.w.chen@intel.com, suparna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc iseries link error in allmodconfig
+     Fix lock inversion aio_kick_handler()
 has been removed from the -mm tree.  Its filename was
-     powerpc-iseries-link-error-in-allmodconfig.patch
+     fix-lock-inversion-aio_kick_handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc iseries link error in allmodconfig
-From: Judith Lebzelter <judith@osdl.org>
+Subject: Fix lock inversion aio_kick_handler()
+From: Zach Brown <zach.brown@oracle.com>
 
-Choose rpa_vscsi.c over iseries_vscsi.c when building both pseries and
-iseries.  This fixes a link error.
+lockdep found a AB BC CA lock inversion in retry-based AIO:
 
-Signed-off-by: Judith Lebzelter <judith@osdl.org>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+1) The task struct's alloc_lock (A) is acquired in process context with
+   interrupts enabled.  An interrupt might arrive and call wake_up() which
+   grabs the wait queue's q->lock (B).
+
+2) When performing retry-based AIO the AIO core registers
+   aio_wake_function() as the wake funtion for iocb->ki_wait.  It is called
+   with the wait queue's q->lock (B) held and then tries to add the iocb to
+   the run list after acquiring the ctx_lock (C).
+
+3) aio_kick_handler() holds the ctx_lock (C) while acquiring the
+   alloc_lock (A) via lock_task() and unuse_mm().  Lockdep emits a warning
+   saying that we're trying to connect the irq-safe q->lock to the
+   irq-unsafe alloc_lock via ctx_lock.
+
+This fixes the inversion by calling unuse_mm() in the AIO kick handing path
+after we've released the ctx_lock.  As Ben LaHaise pointed out __put_ioctx
+could set ctx->mm to NULL, so we must only access ctx->mm while we have the
+lock.
+
+Signed-off-by: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/ibmvscsi/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/aio.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/ibmvscsi/Makefile~powerpc-iseries-link-error-in-allmodconfig drivers/scsi/ibmvscsi/Makefile
---- a/drivers/scsi/ibmvscsi/Makefile~powerpc-iseries-link-error-in-allmodconfig
-+++ a/drivers/scsi/ibmvscsi/Makefile
-@@ -1,7 +1,9 @@
- obj-$(CONFIG_SCSI_IBMVSCSI)	+= ibmvscsic.o
+diff -puN fs/aio.c~fix-lock-inversion-aio_kick_handler fs/aio.c
+--- a/fs/aio.c~fix-lock-inversion-aio_kick_handler
++++ a/fs/aio.c
+@@ -597,9 +597,6 @@ static void use_mm(struct mm_struct *mm)
+  *	by the calling kernel thread
+  *	(Note: this routine is intended to be called only
+  *	from a kernel thread context)
+- *
+- * Comments: Called with ctx->ctx_lock held. This nests
+- * task_lock instead ctx_lock.
+  */
+ static void unuse_mm(struct mm_struct *mm)
+ {
+@@ -847,14 +844,16 @@ static void aio_kick_handler(struct work
+ {
+ 	struct kioctx *ctx = container_of(work, struct kioctx, wq.work);
+ 	mm_segment_t oldfs = get_fs();
++	struct mm_struct *mm;
+ 	int requeue;
  
- ibmvscsic-y			+= ibmvscsi.o
-+ifndef CONFIG_PPC_PSERIES
- ibmvscsic-$(CONFIG_PPC_ISERIES)	+= iseries_vscsi.o 
-+endif
- ibmvscsic-$(CONFIG_PPC_PSERIES)	+= rpa_vscsi.o 
- 
- obj-$(CONFIG_SCSI_IBMVSCSIS)	+= ibmvstgt.o
+ 	set_fs(USER_DS);
+ 	use_mm(ctx->mm);
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 	requeue =__aio_run_iocbs(ctx);
+- 	unuse_mm(ctx->mm);
++	mm = ctx->mm;
+ 	spin_unlock_irq(&ctx->ctx_lock);
++ 	unuse_mm(mm);
+ 	set_fs(oldfs);
+ 	/*
+ 	 * we're in a worker thread already, don't use queue_delayed_work,
 _
 
-Patches currently in -mm which might be from judith@osdl.org are
+Patches currently in -mm which might be from zach.brown@oracle.com are
+
+fsaio-add-a-wait-queue-parameter-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_slow.patch
+fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-filesystem-aio-read-tidy.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
