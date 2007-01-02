@@ -1,267 +1,491 @@
 From: akpm@osdl.org
-Subject: + via82cxxx-fix-cable-detection.patch added to -mm tree
-Date: Tue, 02 Jan 2007 14:04:15 -0800
-Message-ID: <200701022204.l02M4Gbm031339@shell0.pdx.osdl.net>
+Subject: + kvm-improve-interrupt-response.patch added to -mm tree
+Date: Tue, 02 Jan 2007 14:07:20 -0800
+Message-ID: <200701022207.l02M7L7s031446@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36993 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36998 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754893AbXABWHq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 17:07:46 -0500
+	id S1754963AbXABWHv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 17:07:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, htejun@gmail.com
+Cc: dor.laor@qumranet.com, avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     via82cxxx: fix cable detection
+     KVM: Improve interrupt response
 has been added to the -mm tree.  Its filename is
-     via82cxxx-fix-cable-detection.patch
+     kvm-improve-interrupt-response.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: via82cxxx: fix cable detection
-From: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+Subject: KVM: Improve interrupt response
+From: Dor Laor <dor.laor@qumranet.com>
 
-This patch fixes 2.6.15 regression, is straightforward and tested.
+The current interrupt injection mechanism might delay an interrupt under
+the following circumstances:
 
-Cable detection got broken probably while converting the driver to support
-multiple controllers.  Cable detection is done by examining how BIOS
-configured the attached devices.  The current code is broken in that it
-examines the status *after* modifying Clk66 configuration ending up
-detecting 40c cables as 80c.  This patch fixes it.
+ - if injection fails because the guest is not interruptible (rflags.IF clear,
+   or after a 'mov ss' or 'sti' instruction).  Userspace can check rflags,
+   but the other cases or not testable under the current API.
+ - if injection fails because of a fault during delivery.  This probably
+   never happens under normal guests.
+ - if injection fails due to a physical interrupt causing a vmexit so that
+   it can be handled by the host.
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+In all cases the guest proceeds without processing the interrupt, reducing
+the interactive feel and interrupt throughput of the guest.
+
+This patch fixes the situation by allowing userspace to request an exit
+when the 'interrupt window' opens, so that it can re-inject the interrupt
+at the right time.  Guest interactivity is very visibly improved.
+
+Signed-off-by: Dor Laor <dor.laor@qumranet.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/via82cxxx.c |  138 ++++++++++++++++------------------
- 1 files changed, 65 insertions(+), 73 deletions(-)
+ drivers/kvm/kvm.h      |    4 +
+ drivers/kvm/kvm_main.c |   11 ++--
+ drivers/kvm/svm.c      |   94 ++++++++++++++++++++++++++++++++++++---
+ drivers/kvm/vmx.c      |   88 +++++++++++++++++++++++++++++-------
+ include/linux/kvm.h    |   11 ++++
+ 5 files changed, 180 insertions(+), 28 deletions(-)
 
-diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-fix-cable-detection drivers/ide/pci/via82cxxx.c
---- a/drivers/ide/pci/via82cxxx.c~via82cxxx-fix-cable-detection
-+++ a/drivers/ide/pci/via82cxxx.c
-@@ -123,7 +123,7 @@ struct via82cxxx_dev
- static void via_set_speed(ide_hwif_t *hwif, u8 dn, struct ide_timing *timing)
- {
- 	struct pci_dev *dev = hwif->pci_dev;
--	struct via82cxxx_dev *vdev = ide_get_hwifdata(hwif);
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(hwif->pci_dev);
- 	u8 t;
+diff -puN drivers/kvm/kvm.h~kvm-improve-interrupt-response drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-improve-interrupt-response
++++ a/drivers/kvm/kvm.h
+@@ -173,6 +173,7 @@ struct kvm_vcpu {
+ 	struct mutex mutex;
+ 	int   cpu;
+ 	int   launched;
++	int interrupt_window_open;
+ 	unsigned long irq_summary; /* bit vector: 1 per word in irq_pending */
+ #define NR_IRQ_WORDS KVM_IRQ_BITMAP_SIZE(unsigned long)
+ 	unsigned long irq_pending[NR_IRQ_WORDS];
+@@ -247,6 +248,9 @@ struct kvm_stat {
+ 	u32 io_exits;
+ 	u32 mmio_exits;
+ 	u32 signal_exits;
++	u32 irq_window_exits;
++	u32 halt_exits;
++	u32 request_irq_exits;
+ 	u32 irq_exits;
+ };
  
- 	if (~vdev->via_config->flags & VIA_BAD_AST) {
-@@ -162,7 +162,7 @@ static void via_set_speed(ide_hwif_t *hw
- static int via_set_drive(ide_drive_t *drive, u8 speed)
- {
- 	ide_drive_t *peer = HWIF(drive)->drives + (~drive->dn & 1);
--	struct via82cxxx_dev *vdev = ide_get_hwifdata(drive->hwif);
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(drive->hwif->pci_dev);
- 	struct ide_timing t, p;
- 	unsigned int T, UT;
+diff -puN drivers/kvm/kvm_main.c~kvm-improve-interrupt-response drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-improve-interrupt-response
++++ a/drivers/kvm/kvm_main.c
+@@ -58,6 +58,9 @@ static struct kvm_stats_debugfs_item {
+ 	{ "io_exits", &kvm_stat.io_exits },
+ 	{ "mmio_exits", &kvm_stat.mmio_exits },
+ 	{ "signal_exits", &kvm_stat.signal_exits },
++	{ "irq_window", &kvm_stat.irq_window_exits },
++	{ "halt_exits", &kvm_stat.halt_exits },
++	{ "request_irq", &kvm_stat.request_irq_exits },
+ 	{ "irq_exits", &kvm_stat.irq_exits },
+ 	{ 0, 0 }
+ };
+@@ -1693,12 +1696,12 @@ static long kvm_dev_ioctl(struct file *f
+ 		if (copy_from_user(&kvm_run, (void *)arg, sizeof kvm_run))
+ 			goto out;
+ 		r = kvm_dev_ioctl_run(kvm, &kvm_run);
+-		if (r < 0)
++		if (r < 0 &&  r != -EINTR)
+ 			goto out;
+-		r = -EFAULT;
+-		if (copy_to_user((void *)arg, &kvm_run, sizeof kvm_run))
++		if (copy_to_user((void *)arg, &kvm_run, sizeof kvm_run)) {
++			r = -EFAULT;
+ 			goto out;
+-		r = 0;
++		}
+ 		break;
+ 	}
+ 	case KVM_GET_REGS: {
+diff -puN drivers/kvm/svm.c~kvm-improve-interrupt-response drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-improve-interrupt-response
++++ a/drivers/kvm/svm.c
+@@ -235,6 +235,8 @@ static void skip_emulated_instruction(st
  
-@@ -225,7 +225,7 @@ static void via82cxxx_tune_drive(ide_dri
- static int via82cxxx_ide_dma_check (ide_drive_t *drive)
- {
- 	ide_hwif_t *hwif = HWIF(drive);
--	struct via82cxxx_dev *vdev = ide_get_hwifdata(hwif);
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(hwif->pci_dev);
- 	u16 w80 = hwif->udma_four;
- 
- 	u16 speed = ide_find_best_mode(drive,
-@@ -262,6 +262,53 @@ static struct via_isa_bridge *via_config
- 	return via_config;
+ 	vcpu->rip = vcpu->svm->vmcb->save.rip = vcpu->svm->next_rip;
+ 	vcpu->svm->vmcb->control.int_state &= ~SVM_INTERRUPT_SHADOW_MASK;
++
++	vcpu->interrupt_window_open = 1;
  }
  
-+/*
-+ * Check and handle 80-wire cable presence
-+ */
-+static void __devinit via_cable_detect(struct via82cxxx_dev *vdev, u32 u)
-+{
-+	int i;
-+
-+	switch (vdev->via_config->flags & VIA_UDMA) {
-+		case VIA_UDMA_66:
-+			for (i = 24; i >= 0; i -= 8)
-+				if (((u >> (i & 16)) & 8) &&
-+				    ((u >> i) & 0x20) &&
-+				     (((u >> i) & 7) < 2)) {
-+					/*
-+					 * 2x PCI clock and
-+					 * UDMA w/ < 3T/cycle
-+					 */
-+					vdev->via_80w |= (1 << (1 - (i >> 4)));
-+				}
-+			break;
-+
-+		case VIA_UDMA_100:
-+			for (i = 24; i >= 0; i -= 8)
-+				if (((u >> i) & 0x10) ||
-+				    (((u >> i) & 0x20) &&
-+				     (((u >> i) & 7) < 4))) {
-+					/* BIOS 80-wire bit or
-+					 * UDMA w/ < 60ns/cycle
-+					 */
-+					vdev->via_80w |= (1 << (1 - (i >> 4)));
-+				}
-+			break;
-+
-+		case VIA_UDMA_133:
-+			for (i = 24; i >= 0; i -= 8)
-+				if (((u >> i) & 0x10) ||
-+				    (((u >> i) & 0x20) &&
-+				     (((u >> i) & 7) < 6))) {
-+					/* BIOS 80-wire bit or
-+					 * UDMA w/ < 60ns/cycle
-+					 */
-+					vdev->via_80w |= (1 << (1 - (i >> 4)));
-+				}
-+			break;
-+	}
-+}
-+
- /**
-  *	init_chipset_via82cxxx	-	initialization handler
-  *	@dev: PCI device
-@@ -274,14 +321,22 @@ static struct via_isa_bridge *via_config
- static unsigned int __devinit init_chipset_via82cxxx(struct pci_dev *dev, const char *name)
+ static int has_svm(void)
+@@ -1031,10 +1033,11 @@ static int halt_interception(struct kvm_
  {
- 	struct pci_dev *isa = NULL;
-+	struct via82cxxx_dev *vdev;
- 	struct via_isa_bridge *via_config;
- 	u8 t, v;
--	unsigned int u;
-+	u32 u;
-+
-+	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
-+	if (!vdev) {
-+		printk(KERN_ERR "VP_IDE: out of memory :(\n");
-+		return -ENOMEM;
-+	}
-+	pci_set_drvdata(dev, vdev);
+ 	vcpu->svm->next_rip = vcpu->svm->vmcb->save.rip + 1;
+ 	skip_emulated_instruction(vcpu);
+-	if (vcpu->irq_summary && (vcpu->svm->vmcb->save.rflags & X86_EFLAGS_IF))
++	if (vcpu->irq_summary)
+ 		return 1;
  
- 	/*
- 	 * Find the ISA bridge to see how good the IDE is.
- 	 */
--	via_config = via_config_find(&isa);
-+	vdev->via_config = via_config = via_config_find(&isa);
- 
- 	/* We checked this earlier so if it fails here deeep badness
- 	   is involved */
-@@ -289,16 +344,17 @@ static unsigned int __devinit init_chips
- 	BUG_ON(!via_config->id);
- 
- 	/*
--	 * Setup or disable Clk66 if appropriate
-+	 * Detect cable and configure Clk66
- 	 */
-+	pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
-+
-+	via_cable_detect(vdev, u);
- 
- 	if ((via_config->flags & VIA_UDMA) == VIA_UDMA_66) {
- 		/* Enable Clk66 */
--		pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
- 		pci_write_config_dword(dev, VIA_UDMA_TIMING, u|0x80008);
- 	} else if (via_config->flags & VIA_BAD_CLK66) {
- 		/* Would cause trouble on 596a and 686 */
--		pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
- 		pci_write_config_dword(dev, VIA_UDMA_TIMING, u & ~0x80008);
- 	}
- 
-@@ -367,75 +423,11 @@ static unsigned int __devinit init_chips
+ 	kvm_run->exit_reason = KVM_EXIT_HLT;
++	++kvm_stat.halt_exits;
  	return 0;
  }
  
--/*
-- * Check and handle 80-wire cable presence
-- */
--static void __devinit via_cable_detect(struct pci_dev *dev, struct via82cxxx_dev *vdev)
--{
--	unsigned int u;
--	int i;
--	pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
--
--	switch (vdev->via_config->flags & VIA_UDMA) {
--
--		case VIA_UDMA_66:
--			for (i = 24; i >= 0; i -= 8)
--				if (((u >> (i & 16)) & 8) &&
--				    ((u >> i) & 0x20) &&
--				     (((u >> i) & 7) < 2)) {
--					/*
--					 * 2x PCI clock and
--					 * UDMA w/ < 3T/cycle
--					 */
--					vdev->via_80w |= (1 << (1 - (i >> 4)));
--				}
--			break;
--
--		case VIA_UDMA_100:
--			for (i = 24; i >= 0; i -= 8)
--				if (((u >> i) & 0x10) ||
--				    (((u >> i) & 0x20) &&
--				     (((u >> i) & 7) < 4))) {
--					/* BIOS 80-wire bit or
--					 * UDMA w/ < 60ns/cycle
--					 */
--					vdev->via_80w |= (1 << (1 - (i >> 4)));
--				}
--			break;
--
--		case VIA_UDMA_133:
--			for (i = 24; i >= 0; i -= 8)
--				if (((u >> i) & 0x10) ||
--				    (((u >> i) & 0x20) &&
--				     (((u >> i) & 7) < 6))) {
--					/* BIOS 80-wire bit or
--					 * UDMA w/ < 60ns/cycle
--					 */
--					vdev->via_80w |= (1 << (1 - (i >> 4)));
--				}
--			break;
--
--	}
--}
--
- static void __devinit init_hwif_via82cxxx(ide_hwif_t *hwif)
+@@ -1186,6 +1189,24 @@ static int msr_interception(struct kvm_v
+ 		return rdmsr_interception(vcpu, kvm_run);
+ }
+ 
++static int interrupt_window_interception(struct kvm_vcpu *vcpu,
++				   struct kvm_run *kvm_run)
++{
++	/*
++	 * If the user space waits to inject interrupts, exit as soon as
++	 * possible
++	 */
++	if (kvm_run->request_interrupt_window &&
++	    !vcpu->irq_summary &&
++	    (vcpu->svm->vmcb->save.rflags & X86_EFLAGS_IF)) {
++		++kvm_stat.irq_window_exits;
++		kvm_run->exit_reason = KVM_EXIT_IRQ_WINDOW_OPEN;
++		return 0;
++	}
++
++	return 1;
++}
++
+ static int (*svm_exit_handlers[])(struct kvm_vcpu *vcpu,
+ 				      struct kvm_run *kvm_run) = {
+ 	[SVM_EXIT_READ_CR0]           		= emulate_on_interception,
+@@ -1210,6 +1231,7 @@ static int (*svm_exit_handlers[])(struct
+ 	[SVM_EXIT_NMI]				= nop_on_interception,
+ 	[SVM_EXIT_SMI]				= nop_on_interception,
+ 	[SVM_EXIT_INIT]				= nop_on_interception,
++	[SVM_EXIT_VINTR]			= interrupt_window_interception,
+ 	/* [SVM_EXIT_CR0_SEL_WRITE]		= emulate_on_interception, */
+ 	[SVM_EXIT_CPUID]			= cpuid_interception,
+ 	[SVM_EXIT_HLT]				= halt_interception,
+@@ -1278,15 +1300,11 @@ static void pre_svm_run(struct kvm_vcpu 
+ }
+ 
+ 
+-static inline void kvm_try_inject_irq(struct kvm_vcpu *vcpu)
++static inline void kvm_do_inject_irq(struct kvm_vcpu *vcpu)
  {
--	struct via82cxxx_dev *vdev = kmalloc(sizeof(struct via82cxxx_dev),
--		GFP_KERNEL);
--	struct pci_dev *isa = NULL;
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(hwif->pci_dev);
- 	int i;
+ 	struct vmcb_control_area *control;
  
--	if (vdev == NULL) {
--		printk(KERN_ERR "VP_IDE: out of memory :(\n");
+-	if (!vcpu->irq_summary)
 -		return;
--	}
 -
--	memset(vdev, 0, sizeof(struct via82cxxx_dev));
--	ide_set_hwifdata(hwif, vdev);
+ 	control = &vcpu->svm->vmcb->control;
 -
--	vdev->via_config = via_config_find(&isa);
--	via_cable_detect(hwif->pci_dev, vdev);
--
- 	hwif->autodma = 0;
+ 	control->int_vector = pop_irq(vcpu);
+ 	control->int_ctl &= ~V_INTR_PRIO_MASK;
+ 	control->int_ctl |= V_IRQ_MASK |
+@@ -1301,6 +1319,59 @@ static void kvm_reput_irq(struct kvm_vcp
+ 		control->int_ctl &= ~V_IRQ_MASK;
+ 		push_irq(vcpu, control->int_vector);
+ 	}
++
++	vcpu->interrupt_window_open =
++		!(control->int_state & SVM_INTERRUPT_SHADOW_MASK);
++}
++
++static void do_interrupt_requests(struct kvm_vcpu *vcpu,
++				       struct kvm_run *kvm_run)
++{
++	struct vmcb_control_area *control = &vcpu->svm->vmcb->control;
++
++	vcpu->interrupt_window_open =
++		(!(control->int_state & SVM_INTERRUPT_SHADOW_MASK) &&
++		 (vcpu->svm->vmcb->save.rflags & X86_EFLAGS_IF));
++
++	if (vcpu->interrupt_window_open && vcpu->irq_summary)
++		/*
++		 * If interrupts enabled, and not blocked by sti or mov ss. Good.
++		 */
++		kvm_do_inject_irq(vcpu);
++
++	/*
++	 * Interrupts blocked.  Wait for unblock.
++	 */
++	if (!vcpu->interrupt_window_open &&
++	    (vcpu->irq_summary || kvm_run->request_interrupt_window)) {
++		control->intercept |= 1ULL << INTERCEPT_VINTR;
++	} else
++		control->intercept &= ~(1ULL << INTERCEPT_VINTR);
++}
++
++static void post_kvm_run_save(struct kvm_vcpu *vcpu,
++			      struct kvm_run *kvm_run)
++{
++	kvm_run->ready_for_interrupt_injection = (vcpu->interrupt_window_open &&
++						  vcpu->irq_summary == 0);
++	kvm_run->if_flag = (vcpu->svm->vmcb->save.rflags & X86_EFLAGS_IF) != 0;
++	kvm_run->cr8 = vcpu->cr8;
++	kvm_run->apic_base = vcpu->apic_base;
++}
++
++/*
++ * Check if userspace requested an interrupt window, and that the
++ * interrupt window is open.
++ *
++ * No need to exit to userspace if we already have an interrupt queued.
++ */
++static int dm_request_for_irq_injection(struct kvm_vcpu *vcpu,
++					  struct kvm_run *kvm_run)
++{
++	return (!vcpu->irq_summary &&
++		kvm_run->request_interrupt_window &&
++		vcpu->interrupt_window_open &&
++		(vcpu->svm->vmcb->save.rflags & X86_EFLAGS_IF));
+ }
  
- 	hwif->tuneproc = &via82cxxx_tune_drive;
+ static void save_db_regs(unsigned long *db_regs)
+@@ -1326,7 +1397,7 @@ static int svm_vcpu_run(struct kvm_vcpu 
+ 	u16 ldt_selector;
+ 
+ again:
+-	kvm_try_inject_irq(vcpu);
++	do_interrupt_requests(vcpu, kvm_run);
+ 
+ 	clgi();
+ 
+@@ -1487,17 +1558,26 @@ again:
+ 	if (vcpu->svm->vmcb->control.exit_code == SVM_EXIT_ERR) {
+ 		kvm_run->exit_type = KVM_EXIT_TYPE_FAIL_ENTRY;
+ 		kvm_run->exit_reason = vcpu->svm->vmcb->control.exit_code;
++		post_kvm_run_save(vcpu, kvm_run);
+ 		return 0;
+ 	}
+ 
+ 	if (handle_exit(vcpu, kvm_run)) {
+ 		if (signal_pending(current)) {
+ 			++kvm_stat.signal_exits;
++			post_kvm_run_save(vcpu, kvm_run);
++			return -EINTR;
++		}
++
++		if (dm_request_for_irq_injection(vcpu, kvm_run)) {
++			++kvm_stat.request_irq_exits;
++			post_kvm_run_save(vcpu, kvm_run);
+ 			return -EINTR;
+ 		}
+ 		kvm_resched(vcpu);
+ 		goto again;
+ 	}
++	post_kvm_run_save(vcpu, kvm_run);
+ 	return 0;
+ }
+ 
+diff -puN drivers/kvm/vmx.c~kvm-improve-interrupt-response drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-improve-interrupt-response
++++ a/drivers/kvm/vmx.c
+@@ -263,6 +263,7 @@ static void skip_emulated_instruction(st
+ 	if (interruptibility & 3)
+ 		vmcs_write32(GUEST_INTERRUPTIBILITY_INFO,
+ 			     interruptibility & ~3);
++	vcpu->interrupt_window_open = 1;
+ }
+ 
+ static void vmx_inject_gp(struct kvm_vcpu *vcpu, unsigned error_code)
+@@ -1214,21 +1215,34 @@ static void kvm_do_inject_irq(struct kvm
+ 			irq | INTR_TYPE_EXT_INTR | INTR_INFO_VALID_MASK);
+ }
+ 
+-static void kvm_try_inject_irq(struct kvm_vcpu *vcpu)
++
++static void do_interrupt_requests(struct kvm_vcpu *vcpu,
++				       struct kvm_run *kvm_run)
+ {
+-	if ((vmcs_readl(GUEST_RFLAGS) & X86_EFLAGS_IF)
+-	    && (vmcs_read32(GUEST_INTERRUPTIBILITY_INFO) & 3) == 0)
++	u32 cpu_based_vm_exec_control;
++
++	vcpu->interrupt_window_open =
++		((vmcs_readl(GUEST_RFLAGS) & X86_EFLAGS_IF) &&
++		 (vmcs_read32(GUEST_INTERRUPTIBILITY_INFO) & 3) == 0);
++
++	if (vcpu->interrupt_window_open &&
++	    vcpu->irq_summary &&
++	    !(vmcs_read32(VM_ENTRY_INTR_INFO_FIELD) & INTR_INFO_VALID_MASK))
+ 		/*
+-		 * Interrupts enabled, and not blocked by sti or mov ss. Good.
++		 * If interrupts enabled, and not blocked by sti or mov ss. Good.
+ 		 */
+ 		kvm_do_inject_irq(vcpu);
+-	else
++
++	cpu_based_vm_exec_control = vmcs_read32(CPU_BASED_VM_EXEC_CONTROL);
++	if (!vcpu->interrupt_window_open &&
++	    (vcpu->irq_summary || kvm_run->request_interrupt_window))
+ 		/*
+ 		 * Interrupts blocked.  Wait for unblock.
+ 		 */
+-		vmcs_write32(CPU_BASED_VM_EXEC_CONTROL,
+-			     vmcs_read32(CPU_BASED_VM_EXEC_CONTROL)
+-			     | CPU_BASED_VIRTUAL_INTR_PENDING);
++		cpu_based_vm_exec_control |= CPU_BASED_VIRTUAL_INTR_PENDING;
++	else
++		cpu_based_vm_exec_control &= ~CPU_BASED_VIRTUAL_INTR_PENDING;
++	vmcs_write32(CPU_BASED_VM_EXEC_CONTROL, cpu_based_vm_exec_control);
+ }
+ 
+ static void kvm_guest_debug_pre(struct kvm_vcpu *vcpu)
+@@ -1565,23 +1579,41 @@ static int handle_wrmsr(struct kvm_vcpu 
+ 	return 1;
+ }
+ 
++static void post_kvm_run_save(struct kvm_vcpu *vcpu,
++			      struct kvm_run *kvm_run)
++{
++	kvm_run->if_flag = (vmcs_readl(GUEST_RFLAGS) & X86_EFLAGS_IF) != 0;
++	kvm_run->cr8 = vcpu->cr8;
++	kvm_run->apic_base = vcpu->apic_base;
++	kvm_run->ready_for_interrupt_injection = (vcpu->interrupt_window_open &&
++						  vcpu->irq_summary == 0);
++}
++
+ static int handle_interrupt_window(struct kvm_vcpu *vcpu,
+ 				   struct kvm_run *kvm_run)
+ {
+-	/* Turn off interrupt window reporting. */
+-	vmcs_write32(CPU_BASED_VM_EXEC_CONTROL,
+-		     vmcs_read32(CPU_BASED_VM_EXEC_CONTROL)
+-		     & ~CPU_BASED_VIRTUAL_INTR_PENDING);
++	/*
++	 * If the user space waits to inject interrupts, exit as soon as
++	 * possible
++	 */
++	if (kvm_run->request_interrupt_window &&
++	    !vcpu->irq_summary &&
++	    (vmcs_readl(GUEST_RFLAGS) & X86_EFLAGS_IF)) {
++		kvm_run->exit_reason = KVM_EXIT_IRQ_WINDOW_OPEN;
++		++kvm_stat.irq_window_exits;
++		return 0;
++	}
+ 	return 1;
+ }
+ 
+ static int handle_halt(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+ {
+ 	skip_emulated_instruction(vcpu);
+-	if (vcpu->irq_summary && (vmcs_readl(GUEST_RFLAGS) & X86_EFLAGS_IF))
++	if (vcpu->irq_summary)
+ 		return 1;
+ 
+ 	kvm_run->exit_reason = KVM_EXIT_HLT;
++	++kvm_stat.halt_exits;
+ 	return 0;
+ }
+ 
+@@ -1632,6 +1664,21 @@ static int kvm_handle_exit(struct kvm_ru
+ 	return 0;
+ }
+ 
++/*
++ * Check if userspace requested an interrupt window, and that the
++ * interrupt window is open.
++ *
++ * No need to exit to userspace if we already have an interrupt queued.
++ */
++static int dm_request_for_irq_injection(struct kvm_vcpu *vcpu,
++					  struct kvm_run *kvm_run)
++{
++	return (!vcpu->irq_summary &&
++		kvm_run->request_interrupt_window &&
++		vcpu->interrupt_window_open &&
++		(vmcs_readl(GUEST_RFLAGS) & X86_EFLAGS_IF));
++}
++
+ static int vmx_vcpu_run(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+ {
+ 	u8 fail;
+@@ -1663,9 +1710,7 @@ again:
+ 	vmcs_writel(HOST_GS_BASE, segment_base(gs_sel));
+ #endif
+ 
+-	if (vcpu->irq_summary &&
+-	    !(vmcs_read32(VM_ENTRY_INTR_INFO_FIELD) & INTR_INFO_VALID_MASK))
+-		kvm_try_inject_irq(vcpu);
++	do_interrupt_requests(vcpu, kvm_run);
+ 
+ 	if (vcpu->guest_debug.enabled)
+ 		kvm_guest_debug_pre(vcpu);
+@@ -1802,6 +1847,7 @@ again:
+ 
+ 	fx_save(vcpu->guest_fx_image);
+ 	fx_restore(vcpu->host_fx_image);
++	vcpu->interrupt_window_open = (vmcs_read32(GUEST_INTERRUPTIBILITY_INFO) & 3) == 0;
+ 
+ #ifndef CONFIG_X86_64
+ 	asm ("mov %0, %%ds; mov %0, %%es" : : "r"(__USER_DS));
+@@ -1834,12 +1880,22 @@ again:
+ 			/* Give scheduler a change to reschedule. */
+ 			if (signal_pending(current)) {
+ 				++kvm_stat.signal_exits;
++				post_kvm_run_save(vcpu, kvm_run);
++				return -EINTR;
++			}
++
++			if (dm_request_for_irq_injection(vcpu, kvm_run)) {
++				++kvm_stat.request_irq_exits;
++				post_kvm_run_save(vcpu, kvm_run);
+ 				return -EINTR;
+ 			}
++
+ 			kvm_resched(vcpu);
+ 			goto again;
+ 		}
+ 	}
++
++	post_kvm_run_save(vcpu, kvm_run);
+ 	return 0;
+ }
+ 
+diff -puN include/linux/kvm.h~kvm-improve-interrupt-response include/linux/kvm.h
+--- a/include/linux/kvm.h~kvm-improve-interrupt-response
++++ a/include/linux/kvm.h
+@@ -11,7 +11,7 @@
+ #include <asm/types.h>
+ #include <linux/ioctl.h>
+ 
+-#define KVM_API_VERSION 1
++#define KVM_API_VERSION 2
+ 
+ /*
+  * Architectural interrupt line count, and the size of the bitmap needed
+@@ -45,6 +45,7 @@ enum kvm_exit_reason {
+ 	KVM_EXIT_DEBUG            = 4,
+ 	KVM_EXIT_HLT              = 5,
+ 	KVM_EXIT_MMIO             = 6,
++	KVM_EXIT_IRQ_WINDOW_OPEN  = 7,
+ };
+ 
+ /* for KVM_RUN */
+@@ -53,11 +54,19 @@ struct kvm_run {
+ 	__u32 vcpu;
+ 	__u32 emulated;  /* skip current instruction */
+ 	__u32 mmio_completed; /* mmio request completed */
++	__u8 request_interrupt_window;
++	__u8 padding1[3];
+ 
+ 	/* out */
+ 	__u32 exit_type;
+ 	__u32 exit_reason;
+ 	__u32 instruction_length;
++	__u8 ready_for_interrupt_injection;
++	__u8 if_flag;
++	__u16 padding2;
++	__u64 cr8;
++	__u64 apic_base;
++
+ 	union {
+ 		/* KVM_EXIT_UNKNOWN */
+ 		struct {
 _
 
-Patches currently in -mm which might be from B.Zolnierkiewicz@elka.pw.edu.pl are
+Patches currently in -mm which might be from dor.laor@qumranet.com are
 
-via82cxxx-fix-cable-detection.patch
-toshiba-tc86c001-ide-driver-take-2.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-piix-fix-82371mx-enablebits.patch
+kvm-improve-interrupt-response.patch
