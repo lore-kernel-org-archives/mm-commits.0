@@ -1,83 +1,61 @@
 From: akpm@osdl.org
-Subject: + export-invalidate_mapping_pages-to-modules.patch added to -mm tree
-Date: Tue, 02 Jan 2007 15:00:56 -0800
-Message-ID: <200701022301.l02N0voF000378@shell0.pdx.osdl.net>
+Subject: + net-ifb-error-path-loop-fix.patch added to -mm tree
+Date: Tue, 02 Jan 2007 15:02:47 -0800
+Message-ID: <200701022302.l02N2mQ9000440@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41711 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41913 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965017AbXABXBR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 18:01:17 -0500
+	id S932919AbXABXD0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 18:03:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aia21@cam.ac.uk, aia21@cantab.net
+Cc: m.kozlowski@tuxland.pl, jeff@garzik.org
 
 
 The patch titled
-     Export invalidate_mapping_pages() to modules
+     net: ifb error path loop fix
 has been added to the -mm tree.  Its filename is
-     export-invalidate_mapping_pages-to-modules.patch
+     net-ifb-error-path-loop-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Export invalidate_mapping_pages() to modules
-From: Anton Altaparmakov <aia21@cam.ac.uk>
+Subject: net: ifb error path loop fix
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-It makes no sense to me to export invalidate_inode_pages() and not
-invalidate_mapping_pages() and I actually need invalidate_mapping_pages()
-because of its range specification ability...
+On error we should start freeing resources at [i-1] not [i-2].
 
-akpm: also remove the export of invalidate_inode_pages() by aking it an
-inlined wrapper.
-
-Signed-off-by: Anton Altaparmakov <aia21@cantab.net>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs.h |    8 +++++++-
- mm/truncate.c      |    7 +------
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/net/ifb.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/truncate.c~export-invalidate_mapping_pages-to-modules mm/truncate.c
---- a/mm/truncate.c~export-invalidate_mapping_pages-to-modules
-+++ a/mm/truncate.c
-@@ -303,12 +303,7 @@ unlock:
+diff -puN drivers/net/ifb.c~net-ifb-error-path-loop-fix drivers/net/ifb.c
+--- a/drivers/net/ifb.c~net-ifb-error-path-loop-fix
++++ a/drivers/net/ifb.c
+@@ -271,8 +271,7 @@ static int __init ifb_init_module(void)
+ 	for (i = 0; i < numifbs && !err; i++)
+ 		err = ifb_init_one(i);
+ 	if (err) {
+-		i--;
+-		while (--i >= 0)
++		while (i--)
+ 			ifb_free_one(i);
  	}
- 	return ret;
- }
--
--unsigned long invalidate_inode_pages(struct address_space *mapping)
--{
--	return invalidate_mapping_pages(mapping, 0, ~0UL);
--}
--EXPORT_SYMBOL(invalidate_inode_pages);
-+EXPORT_SYMBOL(invalidate_mapping_pages);
  
- /*
-  * This is like invalidate_complete_page(), except it ignores the page's
-diff -puN include/linux/fs.h~export-invalidate_mapping_pages-to-modules include/linux/fs.h
---- a/include/linux/fs.h~export-invalidate_mapping_pages-to-modules
-+++ a/include/linux/fs.h
-@@ -1571,7 +1571,13 @@ extern int invalidate_partition(struct g
- extern int invalidate_inodes(struct super_block *);
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
--unsigned long invalidate_inode_pages(struct address_space *mapping);
-+
-+static inline unsigned long
-+invalidate_inode_pages(struct address_space *mapping)
-+{
-+	return invalidate_mapping_pages(mapping, 0, ~0UL);
-+}
-+
- static inline void invalidate_remote_inode(struct inode *inode)
- {
- 	if (S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
 _
 
-Patches currently in -mm which might be from aia21@cam.ac.uk are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-export-invalidate_mapping_pages-to-modules.patch
+ppc-cs4218_tdm-remove-extra-brace.patch
+mips-dbg_io-stray-brackets-fix.patch
+git-mtd.patch
+net-ifb-error-path-loop-fix.patch
+scsi-sic7xxx-stray-bracket-fix.patch
+scsi-53c7xx-brackets-fix.patch
