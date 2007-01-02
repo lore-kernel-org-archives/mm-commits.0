@@ -1,74 +1,59 @@
 From: akpm@osdl.org
-Subject: + fix-implicit-declarations-in-i386-processc.patch added to -mm tree
-Date: Tue, 02 Jan 2007 12:50:52 -0800
-Message-ID: <200701022050.l02KoqTl029245@shell0.pdx.osdl.net>
+Subject: + fix-implicit-declarations-in-via-pmu.patch added to -mm tree
+Date: Tue, 02 Jan 2007 12:51:52 -0800
+Message-ID: <200701022051.l02Kpqwm029281@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59560 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754966AbXABUvR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 15:51:17 -0500
+	id S1754965AbXABUwQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 15:52:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, ak@suse.de
+Cc: davej@redhat.com
 
 
 The patch titled
-     Fix implicit declarations in i386 process.c
+     Fix implicit declarations in via-pmu
 has been added to the -mm tree.  Its filename is
-     fix-implicit-declarations-in-i386-processc.patch
+     fix-implicit-declarations-in-via-pmu.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix implicit declarations in i386 process.c
+Subject: Fix implicit declarations in via-pmu
 From: Dave Jones <davej@redhat.com>
 
-Building the kernel with -Werror-implicit fails pretty fast with this..
-
-arch/i386/kernel/process.c: In function '__switch_to':
-arch/i386/kernel/process.c:645: error: implicit declaration of function 'load_user_cs_desc'
-arch/i386/kernel/process.c: In function 'arch_add_exec_range':
-arch/i386/kernel/process.c:915: error: implicit declaration of function 'set_user_cs'
+drivers/macintosh/via-pmu.c: In function 'pmac_suspend_devices':
+drivers/macintosh/via-pmu.c:2014: error: implicit declaration of function 'pm_prepare_console'
+drivers/macintosh/via-pmu.c: In function 'pmac_wakeup_devices':
+drivers/macintosh/via-pmu.c:2139: error: implicit declaration of function 'pm_restore_console'
 
 Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-i386/desc.h |   14 ++++++++++++++
- 1 files changed, 14 insertions(+)
+ drivers/macintosh/via-pmu.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/asm-i386/desc.h~fix-implicit-declarations-in-i386-processc include/asm-i386/desc.h
---- a/include/asm-i386/desc.h~fix-implicit-declarations-in-i386-processc
-+++ a/include/asm-i386/desc.h
-@@ -185,6 +185,20 @@ static inline unsigned long get_desc_bas
- 	return base;
- }
- 
-+static inline void set_user_cs(struct desc_struct *desc, unsigned long limit)
-+{
-+	limit = (limit - 1) / PAGE_SIZE;
-+	desc->a = limit & 0xffff;
-+	desc->b = (limit & 0xf0000) | 0x00c0fb00;
-+}
-+
-+#define load_user_cs_desc(cpu, mm) \
-+	get_cpu_gdt_table(cpu)[GDT_ENTRY_DEFAULT_USER_CS] = (mm)->context.user_cs
-+
-+extern void arch_add_exec_range(struct mm_struct *mm, unsigned long limit);
-+extern void arch_remove_exec_range(struct mm_struct *mm, unsigned long limit);
-+extern void arch_flush_exec_range(struct mm_struct *mm);
-+
- #else /* __ASSEMBLY__ */
- 
- /*
+diff -puN drivers/macintosh/via-pmu.c~fix-implicit-declarations-in-via-pmu drivers/macintosh/via-pmu.c
+--- a/drivers/macintosh/via-pmu.c~fix-implicit-declarations-in-via-pmu
++++ a/drivers/macintosh/via-pmu.c
+@@ -44,6 +44,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/freezer.h>
+ #include <linux/syscalls.h>
++#include <linux/suspend.h>
+ #include <linux/cpu.h>
+ #include <asm/prom.h>
+ #include <asm/machdep.h>
 _
 
 Patches currently in -mm which might be from davej@redhat.com are
 
+fix-implicit-declarations-in-via-pmu.patch
 git-agpgart.patch
 git-cpufreq.patch
 remove-hotplug-cpu-crap-from-cpufreq.patch
