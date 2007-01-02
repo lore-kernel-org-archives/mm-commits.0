@@ -1,61 +1,98 @@
 From: akpm@osdl.org
-Subject: - ib-mthca-fix-fmr-breakage-caused-by-kmemdup-conversion.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:24:06 -0800
-Message-ID: <200701020724.l027O6JF012919@shell0.pdx.osdl.net>
+Subject: - make-fn_keys-work-again-on-power-macbooks.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:24:11 -0800
+Message-ID: <200701020724.l027OBPI012927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37293 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37319 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932767AbXABHYX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 02:24:23 -0500
+	id S932777AbXABHYc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 02:24:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mst@mellanox.co.il, dotanb@mellanox.co.il, roland@digitalvampire.org, mm-commits@vger.kernel.org
+To: kernel@nn7.de, benh@kernel.crashing.org, dtor@mail.ru, greg@kroah.com, jkosina@suse.cz, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IB/mthca: Fix FMR breakage caused by kmemdup() conversion
+     make fn_keys work again on power/macbooks
 has been removed from the -mm tree.  Its filename was
-     ib-mthca-fix-fmr-breakage-caused-by-kmemdup-conversion.patch
+     make-fn_keys-work-again-on-power-macbooks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IB/mthca: Fix FMR breakage caused by kmemdup() conversion
-From: Michael S. Tsirkin <mst@mellanox.co.il>
+Subject: make fn_keys work again on power/macbooks
+From: Soeren Sonnenburg <kernel@nn7.de>
 
-Commit bed8bdfd ("IB: kmemdup() cleanup") introduced one bad conversion to
-kmemdup() in mthca_alloc_fmr(), where the structure allocated and the
-structure copied are not the same size.  Revert this back to the original
-kmalloc()/memcpy() code.
+The apple fn keys don't work anymore with 2.6.20-rc1.
 
-Reported-by: Dotan Barak <dotanb@mellanox.co.il>.
-Signed-off-by: Michael S. Tsirkin <mst@mellanox.co.il>
-Signed-off-by: Roland Dreier <roland@digitalvampire.org>
+The reason is that USB_HID_POWERBOOK appears in several files although
+USB_HIDINPUT_POWERBOOK is the thing to be used.
+
+The patch fixes this.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/hw/mthca/mthca_provider.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/i386/defconfig       |    2 +-
+ arch/sparc64/defconfig    |    2 +-
+ arch/x86_64/defconfig     |    2 +-
+ drivers/usb/input/Kconfig |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/infiniband/hw/mthca/mthca_provider.c~ib-mthca-fix-fmr-breakage-caused-by-kmemdup-conversion drivers/infiniband/hw/mthca/mthca_provider.c
---- a/drivers/infiniband/hw/mthca/mthca_provider.c~ib-mthca-fix-fmr-breakage-caused-by-kmemdup-conversion
-+++ a/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -1100,10 +1100,11 @@ static struct ib_fmr *mthca_alloc_fmr(st
- 	struct mthca_fmr *fmr;
- 	int err;
+diff -puN arch/i386/defconfig~make-fn_keys-work-again-on-power-macbooks arch/i386/defconfig
+--- a/arch/i386/defconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/arch/i386/defconfig
+@@ -1167,7 +1167,7 @@ CONFIG_USB_STORAGE=y
+ # USB Input Devices
+ #
+ CONFIG_USB_HID=y
+-# CONFIG_USB_HID_POWERBOOK is not set
++# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+ # CONFIG_HID_FF is not set
+ # CONFIG_USB_HIDDEV is not set
+ # CONFIG_USB_AIPTEK is not set
+diff -puN arch/sparc64/defconfig~make-fn_keys-work-again-on-power-macbooks arch/sparc64/defconfig
+--- a/arch/sparc64/defconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/arch/sparc64/defconfig
+@@ -1103,7 +1103,7 @@ CONFIG_USB_UHCI_HCD=m
+ # USB Input Devices
+ #
+ CONFIG_USB_HID=y
+-# CONFIG_USB_HID_POWERBOOK is not set
++# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+ # CONFIG_HID_FF is not set
+ CONFIG_USB_HIDDEV=y
+ # CONFIG_USB_AIPTEK is not set
+diff -puN arch/x86_64/defconfig~make-fn_keys-work-again-on-power-macbooks arch/x86_64/defconfig
+--- a/arch/x86_64/defconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/arch/x86_64/defconfig
+@@ -1191,7 +1191,7 @@ CONFIG_USB_STORAGE=y
+ # USB Input Devices
+ #
+ CONFIG_USB_HID=y
+-# CONFIG_USB_HID_POWERBOOK is not set
++# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+ # CONFIG_HID_FF is not set
+ # CONFIG_USB_HIDDEV is not set
+ # CONFIG_USB_AIPTEK is not set
+diff -puN drivers/usb/input/Kconfig~make-fn_keys-work-again-on-power-macbooks drivers/usb/input/Kconfig
+--- a/drivers/usb/input/Kconfig~make-fn_keys-work-again-on-power-macbooks
++++ a/drivers/usb/input/Kconfig
+@@ -29,7 +29,7 @@ config USB_HID
+ comment "Input core support is needed for USB HID input layer or HIDBP support"
+ 	depends on USB_HID && INPUT=n
  
--	fmr = kmemdup(fmr_attr, sizeof *fmr, GFP_KERNEL);
-+	fmr = kmalloc(sizeof *fmr, GFP_KERNEL);
- 	if (!fmr)
- 		return ERR_PTR(-ENOMEM);
- 
-+	memcpy(&fmr->attr, fmr_attr, sizeof *fmr_attr);
- 	err = mthca_fmr_alloc(to_mdev(pd->device), to_mpd(pd)->pd_num,
- 			     convert_access(mr_access_flags), fmr);
- 
+-config USB_HID_POWERBOOK
++config USB_HIDINPUT_POWERBOOK
+ 	bool "Enable support for iBook/PowerBook special keys"
+ 	default n
+ 	depends on USB_HID
 _
 
-Patches currently in -mm which might be from mst@mellanox.co.il are
-
-git-infiniband.patch
+Patches currently in -mm which might be from kernel@nn7.de are
