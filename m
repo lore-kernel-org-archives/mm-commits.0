@@ -1,64 +1,76 @@
 From: akpm@osdl.org
-Subject: + usb-usbmixer-error-path-fix.patch added to -mm tree
-Date: Tue, 02 Jan 2007 15:04:48 -0800
-Message-ID: <200701022304.l02N4n9l000508@shell0.pdx.osdl.net>
+Subject: + cdrom-longer-timeout-for-read-track-info-command.patch added to -mm tree
+Date: Tue, 02 Jan 2007 15:06:19 -0800
+Message-ID: <200701022306.l02N6JHU000560@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42056 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:42140 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965026AbXABXFK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 18:05:10 -0500
+	id S965021AbXABXG2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 18:06:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, greg@kroah.com
+Cc: jeremy@sgi.com, alan@lxorguk.ukuu.org.uk, jens.axboe@oracle.com
 
 
 The patch titled
-     usb: usbmixer error path fix
+     cdrom: longer timeout for "Read Track Info" command
 has been added to the -mm tree.  Its filename is
-     usb-usbmixer-error-path-fix.patch
+     cdrom-longer-timeout-for-read-track-info-command.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: usbmixer error path fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: cdrom: longer timeout for "Read Track Info" command
+From: Jeremy Higdon <jeremy@sgi.com>,
+      Jens Axboe <jens.axboe@oracle.com>
 
+I have a DVD combo drive and a CD in which the "READ TRACK INFORMATION"
+command (implemented in the cdrom_get_track_info() function) takes about 7
+seconds to run.  The current implementation of cdrom_get_track_info() uses the
+default timeout of 5 seconds.  So here's a patch that increases the timeout
+from 5 to 15 seconds.
 
-Without the patch below namelist[0] will not be freed in case of kmalloc
-error.
+The drive in question is a TSSTcorpCD/DVDW SN-S082D, and I have a Silicon
+Image 680A adapter, in case that's of interest.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/usb/usbmixer.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/cdrom/cdrom.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN sound/usb/usbmixer.c~usb-usbmixer-error-path-fix sound/usb/usbmixer.c
---- a/sound/usb/usbmixer.c~usb-usbmixer-error-path-fix
-+++ a/sound/usb/usbmixer.c
-@@ -1526,7 +1526,7 @@ static int parse_audio_selector_unit(str
- 		namelist[i] = kmalloc(MAX_ITEM_NAME_LEN, GFP_KERNEL);
- 		if (! namelist[i]) {
- 			snd_printk(KERN_ERR "cannot malloc\n");
--			while (--i > 0)
-+			while (i--)
- 				kfree(namelist[i]);
- 			kfree(namelist);
- 			kfree(cval);
+diff -puN drivers/cdrom/cdrom.c~cdrom-longer-timeout-for-read-track-info-command drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~cdrom-longer-timeout-for-read-track-info-command
++++ a/drivers/cdrom/cdrom.c
+@@ -337,6 +337,12 @@ static const char *mrw_address_space[] =
+ /* used in the audio ioctls */
+ #define CHECKAUDIO if ((ret=check_for_audio_disc(cdi, cdo))) return ret
+ 
++/*
++ * Another popular OS uses 7 seconds as the hard timeout for default
++ * commands, so it is a good choice for us as well.
++ */
++#define CDROM_DEF_TIMEOUT	(7 * HZ)
++
+ /* Not-exported routines. */
+ static int open_for_data(struct cdrom_device_info * cdi);
+ static int check_for_audio_disc(struct cdrom_device_info * cdi,
+@@ -1528,7 +1534,7 @@ void init_cdrom_command(struct packet_co
+ 	cgc->buffer = (char *) buf;
+ 	cgc->buflen = len;
+ 	cgc->data_direction = type;
+-	cgc->timeout = 5*HZ;
++	cgc->timeout = CDROM_DEF_TIMEOUT;
+ }
+ 
+ /* DVD handling */
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from jeremy@sgi.com are
 
-ppc-cs4218_tdm-remove-extra-brace.patch
-mips-dbg_io-stray-brackets-fix.patch
-git-mtd.patch
-net-ifb-error-path-loop-fix.patch
-scsi-sic7xxx-stray-bracket-fix.patch
-scsi-53c7xx-brackets-fix.patch
-scsi-lpfc-error-path-fix.patch
-usb-usbmixer-error-path-fix.patch
+cdrom-longer-timeout-for-read-track-info-command.patch
