@@ -1,66 +1,50 @@
 From: akpm@osdl.org
-Subject: - module-fix-mod_sysfs_setup-return-value.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:24:26 -0800
-Message-ID: <200701020724.l027OQuZ012946@shell0.pdx.osdl.net>
+Subject: - fix-compilation-of-via-pmu-backlight.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:24:24 -0800
+Message-ID: <200701020724.l027OOns012943@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37312 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37313 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932762AbXABHYa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932744AbXABHYa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 2 Jan 2007 02:24:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: schwab@suse.de, benh@kernel.crashing.org, luming.yu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     module: fix mod_sysfs_setup() return value
+     Fix compilation of via-pmu-backlight
 has been removed from the -mm tree.  Its filename was
-     module-fix-mod_sysfs_setup-return-value.patch
+     fix-compilation-of-via-pmu-backlight.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: module: fix mod_sysfs_setup() return value
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Fix compilation of via-pmu-backlight
+From: Andreas Schwab <schwab@suse.de>
 
-mod_sysfs_setup() doesn't return error when kobject_add_dir() failed.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Andreas Schwab <schwab@suse.de>
+Cc: "Yu, Luming" <luming.yu@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/module.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/macintosh/via-pmu-backlight.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/module.c~module-fix-mod_sysfs_setup-return-value kernel/module.c
---- a/kernel/module.c~module-fix-mod_sysfs_setup-return-value
-+++ a/kernel/module.c
-@@ -1132,8 +1132,10 @@ static int mod_sysfs_setup(struct module
- 		goto out;
+diff -puN drivers/macintosh/via-pmu-backlight.c~fix-compilation-of-via-pmu-backlight drivers/macintosh/via-pmu-backlight.c
+--- a/drivers/macintosh/via-pmu-backlight.c~fix-compilation-of-via-pmu-backlight
++++ a/drivers/macintosh/via-pmu-backlight.c
+@@ -147,7 +147,7 @@ void __init pmu_backlight_init()
  
- 	mod->drivers_dir = kobject_add_dir(&mod->mkobj.kobj, "drivers");
--	if (!mod->drivers_dir)
-+	if (!mod->drivers_dir) {
-+		err = -ENOMEM;
- 		goto out_unreg;
-+	}
+ 	snprintf(name, sizeof(name), "pmubl");
  
- 	err = module_param_sysfs_setup(mod, kparam, num_params);
- 	if (err)
+-	bd = backlight_device_register(name, NULL, &pmu_backlight_data);
++	bd = backlight_device_register(name, NULL, NULL, &pmu_backlight_data);
+ 	if (IS_ERR(bd)) {
+ 		printk("pmubl: Backlight registration failed\n");
+ 		goto error;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-powerpc-use-is_init.patch
-git-dvb.patch
-ehca-fix-do_mmap-error-check.patch
-ehca-avoid-crash-on-kthread_create-failure.patch
-ehca-fix-memleak-on-module-unloading.patch
-git-input.patch
-git-mtd.patch
-net-use-bitrev8.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-iscsi-fix-crypto_alloc_hash-error-check.patch
-git-watchdog.patch
+Patches currently in -mm which might be from schwab@suse.de are
