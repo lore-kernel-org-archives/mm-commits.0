@@ -1,102 +1,84 @@
 From: akpm@osdl.org
-Subject: - fix-lock-inversion-aio_kick_handler.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:23:45 -0800
-Message-ID: <200701020723.l027NjA1012894@shell0.pdx.osdl.net>
+Subject: - char-mxser-fix-oops-when-removing-opened.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:24:03 -0800
+Message-ID: <200701020724.l027O3m7012916@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37249 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37265 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932722AbXABHYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 02:24:04 -0500
+	id S932732AbXABHYN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 02:24:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach.brown@oracle.com, bcrl@kvack.org, kenneth.w.chen@intel.com, suparna@in.ibm.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, osv@javad.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix lock inversion aio_kick_handler()
+     Char: mxser, fix oops when removing opened
 has been removed from the -mm tree.  Its filename was
-     fix-lock-inversion-aio_kick_handler.patch
+     char-mxser-fix-oops-when-removing-opened.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix lock inversion aio_kick_handler()
-From: Zach Brown <zach.brown@oracle.com>
+Subject: Char: mxser, fix oops when removing opened
+From: Jiri Slaby <jirislaby@gmail.com>
 
-lockdep found a AB BC CA lock inversion in retry-based AIO:
+tty_driver->owner is not set, so if somebody remove mxser_module, it might
+oops (and doesn't tell the user: no way, it's in use). Set the .owner value.
 
-1) The task struct's alloc_lock (A) is acquired in process context with
-   interrupts enabled.  An interrupt might arrive and call wake_up() which
-   grabs the wait queue's q->lock (B).
-
-2) When performing retry-based AIO the AIO core registers
-   aio_wake_function() as the wake funtion for iocb->ki_wait.  It is called
-   with the wait queue's q->lock (B) held and then tries to add the iocb to
-   the run list after acquiring the ctx_lock (C).
-
-3) aio_kick_handler() holds the ctx_lock (C) while acquiring the
-   alloc_lock (A) via lock_task() and unuse_mm().  Lockdep emits a warning
-   saying that we're trying to connect the irq-safe q->lock to the
-   irq-unsafe alloc_lock via ctx_lock.
-
-This fixes the inversion by calling unuse_mm() in the AIO kick handing path
-after we've released the ctx_lock.  As Ben LaHaise pointed out __put_ioctx
-could set ctx->mm to NULL, so we must only access ctx->mm while we have the
-lock.
-
-Signed-off-by: Zach Brown <zach.brown@oracle.com>
-Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Cc: <osv@javad.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/char/mxser.c     |    1 +
+ drivers/char/mxser_new.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN fs/aio.c~fix-lock-inversion-aio_kick_handler fs/aio.c
---- a/fs/aio.c~fix-lock-inversion-aio_kick_handler
-+++ a/fs/aio.c
-@@ -597,9 +597,6 @@ static void use_mm(struct mm_struct *mm)
-  *	by the calling kernel thread
-  *	(Note: this routine is intended to be called only
-  *	from a kernel thread context)
-- *
-- * Comments: Called with ctx->ctx_lock held. This nests
-- * task_lock instead ctx_lock.
-  */
- static void unuse_mm(struct mm_struct *mm)
- {
-@@ -847,14 +844,16 @@ static void aio_kick_handler(struct work
- {
- 	struct kioctx *ctx = container_of(work, struct kioctx, wq.work);
- 	mm_segment_t oldfs = get_fs();
-+	struct mm_struct *mm;
- 	int requeue;
+diff -puN drivers/char/mxser.c~char-mxser-fix-oops-when-removing-opened drivers/char/mxser.c
+--- a/drivers/char/mxser.c~char-mxser-fix-oops-when-removing-opened
++++ a/drivers/char/mxser.c
+@@ -717,6 +717,7 @@ static int mxser_init(void)
  
- 	set_fs(USER_DS);
- 	use_mm(ctx->mm);
- 	spin_lock_irq(&ctx->ctx_lock);
- 	requeue =__aio_run_iocbs(ctx);
-- 	unuse_mm(ctx->mm);
-+	mm = ctx->mm;
- 	spin_unlock_irq(&ctx->ctx_lock);
-+ 	unuse_mm(mm);
- 	set_fs(oldfs);
- 	/*
- 	 * we're in a worker thread already, don't use queue_delayed_work,
+ 	/* Initialize the tty_driver structure */
+ 	memset(mxvar_sdriver, 0, sizeof(struct tty_driver));
++	mxvar_sdriver->owner = THIS_MODULE;
+ 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
+ 	mxvar_sdriver->name = "ttyMI";
+ 	mxvar_sdriver->major = ttymajor;
+diff -puN drivers/char/mxser_new.c~char-mxser-fix-oops-when-removing-opened drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser-fix-oops-when-removing-opened
++++ a/drivers/char/mxser_new.c
+@@ -2690,6 +2690,7 @@ static int __init mxser_module_init(void
+ 		MXSER_VERSION);
+ 
+ 	/* Initialize the tty_driver structure */
++	mxvar_sdriver->owner = THIS_MODULE;
+ 	mxvar_sdriver->magic = TTY_DRIVER_MAGIC;
+ 	mxvar_sdriver->name = "ttyMI";
+ 	mxvar_sdriver->major = ttymajor;
 _
 
-Patches currently in -mm which might be from zach.brown@oracle.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-fsaio-add-a-wait-queue-parameter-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_slow.patch
-fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-filesystem-aio-read-tidy.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
+git-input.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-isicom-remove-tty_hangwakeup-bottomhalves.patch
+mxser-remove-ambiguous-redefinition-of-init_work.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+char-isicom-fix-locking-in-isr.patch
+char-isicom-augment-card_reset.patch
+char-isicom-check-card-state-in-isr.patch
+char-isicom-support-higher-rates.patch
+char-isicom-correct-probing-removing.patch
+char-tty_wakeup-cleanup.patch
+char-mxser_new-mark-init-functions.patch
+char-mxser_new-remove-useless-spinlock.patch
+char-serial167-cleanup.patch
+char-n_r3964-cleanup.patch
+char-mxser_new-remove-unused-stuff.patch
+char-mxser-obsolete-old-nonexperimental-new.patch
+char-mxser_new-remove-tty_wakeup-bottomhalf.patch
+char-mxser_new-clean-request_irq-call.patch
+shrink_slab-handle-bad-shrinkers.patch
