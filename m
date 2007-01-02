@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-moxa-devids-cleanup.patch added to -mm tree
-Date: Tue, 02 Jan 2007 13:53:05 -0800
-Message-ID: <200701022153.l02Lr78k031018@shell0.pdx.osdl.net>
+Subject: + char-moxa-use-pci_device.patch added to -mm tree
+Date: Tue, 02 Jan 2007 13:53:09 -0800
+Message-ID: <200701022153.l02Lr9ro031021@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35917 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35925 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754984AbXABVxO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 16:53:14 -0500
+	id S1754982AbXABVxT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 16:53:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,78 +15,48 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: moxa, devids cleanup
+     Char: moxa, use PCI_DEVICE
 has been added to the -mm tree.  Its filename is
-     char-moxa-devids-cleanup.patch
+     char-moxa-use-pci_device.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: moxa, devids cleanup
+Subject: Char: moxa, use PCI_DEVICE
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Move them to pci_ids.h
+Use PCI_DEVICE macro in pci_device_id list.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/moxa.c     |   19 +++----------------
- include/linux/pci_ids.h |    3 +++
- 2 files changed, 6 insertions(+), 16 deletions(-)
+ drivers/char/moxa.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-devids-cleanup drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-devids-cleanup
+diff -puN drivers/char/moxa.c~char-moxa-use-pci_device drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-use-pci_device
 +++ a/drivers/char/moxa.c
-@@ -64,19 +64,6 @@
- #define MOXA_BUS_TYPE_ISA		0
- #define MOXA_BUS_TYPE_PCI		1
- 
--#ifndef	PCI_VENDOR_ID_MOXA
--#define	PCI_VENDOR_ID_MOXA	0x1393
--#endif
--#ifndef PCI_DEVICE_ID_CP204J
--#define PCI_DEVICE_ID_CP204J	0x2040
--#endif
--#ifndef PCI_DEVICE_ID_C218
--#define PCI_DEVICE_ID_C218	0x2180
--#endif
--#ifndef PCI_DEVICE_ID_C320
--#define PCI_DEVICE_ID_C320	0x3200
--#endif
--
- enum {
- 	MOXA_BOARD_C218_PCI = 1,
- 	MOXA_BOARD_C218_ISA,
-@@ -96,11 +83,11 @@ static char *moxa_brdname[] =
+@@ -83,12 +83,12 @@ static char *moxa_brdname[] =
  
  #ifdef CONFIG_PCI
  static struct pci_device_id moxa_pcibrds[] = {
--	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_C218, PCI_ANY_ID, PCI_ANY_ID, 
-+	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C218, PCI_ANY_ID, PCI_ANY_ID,
- 	  0, 0, MOXA_BOARD_C218_PCI },
--	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_C320, PCI_ANY_ID, PCI_ANY_ID, 
-+	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C320, PCI_ANY_ID, PCI_ANY_ID,
- 	  0, 0, MOXA_BOARD_C320_PCI },
--	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_CP204J, PCI_ANY_ID, PCI_ANY_ID, 
-+	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP204J, PCI_ANY_ID, PCI_ANY_ID,
- 	  0, 0, MOXA_BOARD_CP204J },
+-	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C218, PCI_ANY_ID, PCI_ANY_ID,
+-	  0, 0, MOXA_BOARD_C218_PCI },
+-	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C320, PCI_ANY_ID, PCI_ANY_ID,
+-	  0, 0, MOXA_BOARD_C320_PCI },
+-	{ PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP204J, PCI_ANY_ID, PCI_ANY_ID,
+-	  0, 0, MOXA_BOARD_CP204J },
++	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C218),
++		.driver_data = MOXA_BOARD_C218_PCI },
++	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C320),
++		.driver_data = MOXA_BOARD_C320_PCI },
++	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP204J),
++		.driver_data = MOXA_BOARD_CP204J },
  	{ 0 }
  };
-diff -puN include/linux/pci_ids.h~char-moxa-devids-cleanup include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~char-moxa-devids-cleanup
-+++ a/include/linux/pci_ids.h
-@@ -1809,6 +1809,9 @@
- #define PCI_DEVICE_ID_MOXA_C168		0x1680
- #define PCI_DEVICE_ID_MOXA_CP168U	0x1681
- #define PCI_DEVICE_ID_MOXA_CP168EL	0x1682
-+#define PCI_DEVICE_ID_MOXA_CP204J	0x2040
-+#define PCI_DEVICE_ID_MOXA_C218		0x2180
-+#define PCI_DEVICE_ID_MOXA_C320		0x3200
- 
- #define PCI_VENDOR_ID_CCD		0x1397
- #define PCI_DEVICE_ID_CCD_2BD0		0x2bd0
+ MODULE_DEVICE_TABLE(pci, moxa_pcibrds);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
