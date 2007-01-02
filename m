@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-moxa-do-not-initialize-global-static.patch added to -mm tree
-Date: Tue, 02 Jan 2007 13:52:46 -0800
-Message-ID: <200701022152.l02Lqk1i030995@shell0.pdx.osdl.net>
+Subject: + char-moxa-remove-hangup-bottomhalf.patch added to -mm tree
+Date: Tue, 02 Jan 2007 13:52:54 -0800
+Message-ID: <200701022152.l02Lqski031005@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35896 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35909 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754959AbXABVwy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 16:52:54 -0500
+	id S1754973AbXABVxG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 16:53:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,97 +15,96 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: moxa, do not initialize global static
+     Char: moxa, remove hangup bottomhalf
 has been added to the -mm tree.  Its filename is
-     char-moxa-do-not-initialize-global-static.patch
+     char-moxa-remove-hangup-bottomhalf.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: moxa, do not initialize global static
+Subject: Char: moxa, remove hangup bottomhalf
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Remove useless initialization of variables a) statically b) dynamically at
-module_init c) dynamically after kzalloc (those with '= 0/NULL')
+call tty_hangup directly, we do not need a bottomhalf for this.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/moxa.c |   24 ++++--------------------
- 1 files changed, 4 insertions(+), 20 deletions(-)
+ drivers/char/moxa.c |   25 +++----------------------
+ 1 files changed, 3 insertions(+), 22 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-do-not-initialize-global-static drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-do-not-initialize-global-static
+diff -puN drivers/char/moxa.c~char-moxa-remove-hangup-bottomhalf drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-remove-hangup-bottomhalf
 +++ a/drivers/char/moxa.c
-@@ -194,9 +194,9 @@ static int verbose = 0;
- static int ttymajor = MOXAMAJOR;
- /* Variables for insmod */
- #ifdef MODULE
--static int baseaddr[] 	= 	{0, 0, 0, 0};
--static int type[]	=	{0, 0, 0, 0};
--static int numports[] 	=	{0, 0, 0, 0};
-+static int baseaddr[4];
-+static int type[4];
-+static int numports[4];
- #endif
+@@ -159,7 +159,6 @@ struct moxa_str {
+ 	int cflag;
+ 	wait_queue_head_t open_wait;
+ 	wait_queue_head_t close_wait;
+-	struct work_struct tqueue;
+ };
  
- MODULE_AUTHOR("William Chen");
-@@ -348,10 +348,7 @@ static int __init moxa_init(void)
- 	moxaDriver->type = TTY_DRIVER_TYPE_SERIAL;
- 	moxaDriver->subtype = SERIAL_TYPE_NORMAL;
- 	moxaDriver->init_termios = tty_std_termios;
--	moxaDriver->init_termios.c_iflag = 0;
--	moxaDriver->init_termios.c_oflag = 0;
- 	moxaDriver->init_termios.c_cflag = B9600 | CS8 | CREAD | CLOCAL | HUPCL;
--	moxaDriver->init_termios.c_lflag = 0;
- 	moxaDriver->init_termios.c_ispeed = 9600;
- 	moxaDriver->init_termios.c_ospeed = 9600;
- 	moxaDriver->flags = TTY_DRIVER_REAL_RAW;
-@@ -361,25 +358,13 @@ static int __init moxa_init(void)
+ struct mxser_mstatus {
+@@ -178,9 +177,6 @@ static struct mxser_mstatus GMStatus[MAX
+ #define EMPTYWAIT	0x4
+ #define THROTTLE	0x8
+ 
+-/* event */
+-#define MOXA_EVENT_HANGUP	1
+-
+ #define SERIAL_DO_RESTART
+ 
+ 
+@@ -213,7 +209,6 @@ module_param(verbose, bool, 0644);
+ /*
+  * static functions:
+  */
+-static void do_moxa_softint(struct work_struct *);
+ static int moxa_open(struct tty_struct *, struct file *);
+ static void moxa_close(struct tty_struct *, struct file *);
+ static int moxa_write(struct tty_struct *, const unsigned char *, int);
+@@ -354,7 +349,6 @@ static int __init moxa_init(void)
+ 	for (i = 0, ch = moxaChannels; i < MAX_PORTS; i++, ch++) {
  		ch->type = PORT_16550A;
  		ch->port = i;
- 		INIT_WORK(&ch->tqueue, do_moxa_softint);
--		ch->tty = NULL;
+-		INIT_WORK(&ch->tqueue, do_moxa_softint);
  		ch->close_delay = 5 * HZ / 10;
  		ch->closing_wait = 30 * HZ;
--		ch->count = 0;
--		ch->blocked_open = 0;
  		ch->cflag = B9600 | CS8 | CREAD | CLOCAL | HUPCL;
- 		init_waitqueue_head(&ch->open_wait);
- 		init_waitqueue_head(&ch->close_wait);
- 	}
+@@ -482,20 +476,6 @@ static void __exit moxa_exit(void)
+ module_init(moxa_init);
+ module_exit(moxa_exit);
  
--	for (i = 0; i < MAX_BOARDS; i++) {
--		moxa_boards[i].boardType = 0;
--		moxa_boards[i].numPorts = 0;
--		moxa_boards[i].baseAddr = 0;
--		moxa_boards[i].busType = 0;
--		moxa_boards[i].pciInfo.busNum = 0;
--		moxa_boards[i].pciInfo.devNum = 0;
+-static void do_moxa_softint(struct work_struct *work)
+-{
+-	struct moxa_str *ch = container_of(work, struct moxa_str, tqueue);
+-	struct tty_struct *tty;
+-
+-	if (ch && (tty = ch->tty)) {
+-		if (test_and_clear_bit(MOXA_EVENT_HANGUP, &ch->event)) {
+-			tty_hangup(tty);	/* FIXME: module removal race here - AKPM */
+-			wake_up_interruptible(&ch->open_wait);
+-			ch->asyncflags &= ~ASYNC_NORMAL_ACTIVE;
+-		}
 -	}
--	MoxaDriverInit();
- 	printk("Tty devices major number = %d\n", ttymajor);
- 
- 	if (tty_register_driver(moxaDriver)) {
-@@ -391,7 +376,6 @@ static int __init moxa_init(void)
- 		init_timer(&moxaEmptyTimer[i]);
- 		moxaEmptyTimer[i].function = check_xmit_empty;
- 		moxaEmptyTimer[i].data = (unsigned long) & moxaChannels[i];
--		moxaEmptyTimer_on[i] = 0;
- 	}
- 
- 	init_timer(&moxaTimer);
-@@ -1470,7 +1454,7 @@ static char moxaLowChkFlag[MAX_PORTS];
- static int moxaLowWaterChk;
- static int moxaCard;
- static mon_st moxaLog;
--static int moxaFuncTout;
-+static int moxaFuncTout = HZ / 2;
- static ushort moxaBreakCnt[MAX_PORTS];
- 
- static void moxadelay(int);
+-}
+-
+ static int moxa_open(struct tty_struct *tty, struct file *filp)
+ {
+ 	struct moxa_str *ch;
+@@ -908,8 +888,9 @@ static void moxa_poll(unsigned long igno
+ 					if (MoxaPortDCDON(ch->port))
+ 						wake_up_interruptible(&ch->open_wait);
+ 					else {
+-						set_bit(MOXA_EVENT_HANGUP, &ch->event);
+-						schedule_work(&ch->tqueue);
++						tty_hangup(tp);
++						wake_up_interruptible(&ch->open_wait);
++						ch->asyncflags &= ~ASYNC_NORMAL_ACTIVE;
+ 					}
+ 				}
+ 			}
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
