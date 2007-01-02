@@ -1,69 +1,53 @@
 From: akpm@osdl.org
-Subject: - fix-oom-killer-kills-current-every-time-if-there-is.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:23:56 -0800
-Message-ID: <200701020723.l027Nu8k012907@shell0.pdx.osdl.net>
+Subject: - powerpc-iseries-link-error-in-allmodconfig.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:23:48 -0800
+Message-ID: <200701020723.l027Nmgj012897@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37245 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37246 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932701AbXABHYD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932702AbXABHYD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 2 Jan 2007 02:24:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, clameter@engr.sgi.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: judith@osdl.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix oom killer kills current every time if there is memory-less-node take2
+     powerpc iseries link error in allmodconfig
 has been removed from the -mm tree.  Its filename was
-     fix-oom-killer-kills-current-every-time-if-there-is.patch
+     powerpc-iseries-link-error-in-allmodconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix oom killer kills current every time if there is memory-less-node take2
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: powerpc iseries link error in allmodconfig
+From: Judith Lebzelter <judith@osdl.org>
 
-constrained_alloc(), which is called to detect where oom is from, checks
-passed zone_list().  If zone_list doesn't include all nodes, it thinks oom
-is from mempolicy.
+Choose rpa_vscsi.c over iseries_vscsi.c when building both pseries and
+iseries.  This fixes a link error.
 
-But there is memory-less-node.  memory-less-node's zones are never included
-in zonelist[].
-
-contstrained_alloc() should get memory_less_node into count.  Otherwise, it
-always thinks 'oom is from mempolicy'.  This means that current process
-dies at any time.  This patch fix it.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Signed-off-by: Judith Lebzelter <judith@osdl.org>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/oom_kill.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/scsi/ibmvscsi/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/oom_kill.c~fix-oom-killer-kills-current-every-time-if-there-is mm/oom_kill.c
---- a/mm/oom_kill.c~fix-oom-killer-kills-current-every-time-if-there-is
-+++ a/mm/oom_kill.c
-@@ -174,7 +174,12 @@ static inline int constrained_alloc(stru
- {
- #ifdef CONFIG_NUMA
- 	struct zone **z;
--	nodemask_t nodes = node_online_map;
-+	nodemask_t nodes;
-+	int node;
-+	/* node has memory ? */
-+	for_each_online_node(node)
-+		if (NODE_DATA(node)->node_present_pages)
-+			node_set(node, nodes);
+diff -puN drivers/scsi/ibmvscsi/Makefile~powerpc-iseries-link-error-in-allmodconfig drivers/scsi/ibmvscsi/Makefile
+--- a/drivers/scsi/ibmvscsi/Makefile~powerpc-iseries-link-error-in-allmodconfig
++++ a/drivers/scsi/ibmvscsi/Makefile
+@@ -1,7 +1,9 @@
+ obj-$(CONFIG_SCSI_IBMVSCSI)	+= ibmvscsic.o
  
- 	for (z = zonelist->zones; *z; z++)
- 		if (cpuset_zone_allowed_softwall(*z, gfp_mask))
+ ibmvscsic-y			+= ibmvscsi.o
++ifndef CONFIG_PPC_PSERIES
+ ibmvscsic-$(CONFIG_PPC_ISERIES)	+= iseries_vscsi.o 
++endif
+ ibmvscsic-$(CONFIG_PPC_PSERIES)	+= rpa_vscsi.o 
+ 
+ obj-$(CONFIG_SCSI_IBMVSCSIS)	+= ibmvstgt.o
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
-
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-reiser4-hardirq-include-fix.patch
+Patches currently in -mm which might be from judith@osdl.org are
