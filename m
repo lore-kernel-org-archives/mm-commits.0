@@ -1,104 +1,82 @@
 From: akpm@osdl.org
-Subject: + mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again.patch added to -mm tree
-Date: Tue, 02 Jan 2007 14:25:30 -0800
-Message-ID: <200701022225.l02MPUMK031891@shell0.pdx.osdl.net>
+Subject: + profile-likely-unlikely-macros-x86_64-fix.patch added to -mm tree
+Date: Tue, 02 Jan 2007 14:27:35 -0800
+Message-ID: <200701022227.l02MRaHU031947@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:38466 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:39249 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964986AbXABWZw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 17:25:52 -0500
+	id S964996AbXABWbN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 17:31:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@youmustbejoking.demon.co.uk, drzeus@drzeus.cx
+Cc: dwalker@mvista.com, johnstul@us.ibm.com
 
 
 The patch titled
-     mmc: add a quirk to allow ENE PCI SD card readers to work again
+     profile-likely-unlikely-macros x86_64 fix
 has been added to the -mm tree.  Its filename is
-     mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again.patch
+     profile-likely-unlikely-macros-x86_64-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmc: add a quirk to allow ENE PCI SD card readers to work again
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Subject: profile-likely-unlikely-macros x86_64 fix
+From: Daniel Walker <dwalker@mvista.com>
 
-Support for these devices was broken for 2.6.18-rc1 and later by commit
-146ad66eac836c0b976c98f428d73e1f6a75270d, which added voltage level
-support.
+On Sun, 2006-12-31 at 23:04 +0800, Fengguang Wu wrote:
+> Hi,
+>
+> The following messages keeps popping up when CONFIG_PROFILE_LIKELY=y:
+>
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+> init[1]: segfault at ffffffff8118c110 rip ffffffff8118c110 rsp 00007fff9a9d14d8 error 15
+>
 
-This restores the previous behaviour for these devices by ensuring that
-when the voltage is changed, only one write to set the voltage is
-performed.
-
-It may be that both writes are needed if the voltage is being changed
-between two non-zero values or that it's safe to ensure that only one write
-is done if the hardware only supports one voltage; I don't know whether
-either is the case nor can I test since I have only the one SD reader
-(1524:0550), and it supports just the one voltage.
-
-Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Acked-by: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mmc/sdhci.c |   18 +++++++++++++++---
- 1 files changed, 15 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/vsyscall.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/sdhci.c~mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again drivers/mmc/sdhci.c
---- a/drivers/mmc/sdhci.c~mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again
-+++ a/drivers/mmc/sdhci.c
-@@ -37,6 +37,7 @@ static unsigned int debug_quirks = 0;
- #define SDHCI_QUIRK_FORCE_DMA				(1<<1)
- /* Controller doesn't like some resets when there is no card inserted. */
- #define SDHCI_QUIRK_NO_CARD_NO_RESET			(1<<2)
-+#define SDHCI_QUIRK_SINGLE_POWER_WRITE			(1<<3)
+diff -puN arch/x86_64/kernel/vsyscall.c~profile-likely-unlikely-macros-x86_64-fix arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~profile-likely-unlikely-macros-x86_64-fix
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -111,7 +111,7 @@ static __always_inline void do_vgettimeo
+ 		seq = read_seqbegin(&__vsyscall_gtod_data.lock);
  
- static const struct pci_device_id pci_ids[] __devinitdata = {
- 	{
-@@ -65,6 +66,16 @@ static const struct pci_device_id pci_id
- 		.driver_data	= SDHCI_QUIRK_FORCE_DMA,
- 	},
- 
-+	{
-+		.class		= PCI_CLASS_SYSTEM_SDHCI << 8,
-+		.class_mask	= 0xFFFF00,
-+		.vendor		= PCI_VENDOR_ID_ENE,
-+		.device		= PCI_ANY_ID,
-+		.subvendor	= PCI_ANY_ID,
-+		.subdevice	= PCI_ANY_ID,
-+		.driver_data	= SDHCI_QUIRK_SINGLE_POWER_WRITE,
-+	},
-+
- 	{	/* Generic SD host controller */
- 		PCI_DEVICE_CLASS((PCI_CLASS_SYSTEM_SDHCI << 8), 0xFFFF00)
- 	},
-@@ -669,16 +680,17 @@ out:
- 
- static void sdhci_set_power(struct sdhci_host *host, unsigned short power)
+ 		vread = __vsyscall_gtod_data.clock.vread;
+-		if (unlikely(!__vsyscall_gtod_data.sysctl_enabled || !vread)) {
++		if (!__vsyscall_gtod_data.sysctl_enabled || !vread) {
+ 			gettimeofday(tv,0);
+ 			return;
+ 		}
+@@ -151,7 +151,7 @@ int __vsyscall(0) vgettimeofday(struct t
+  * unlikely */
+ time_t __vsyscall(1) vtime(time_t *t)
  {
--	u8 pwr;
-+	u8 pwr = 0;
- 
- 	if (host->power == power)
- 		return;
- 
--	writeb(0, host->ioaddr + SDHCI_POWER_CONTROL);
--
- 	if (power == (unsigned short)-1)
- 		goto out;
- 
-+	if ((host->chip->quirks & SDHCI_QUIRK_SINGLE_POWER_WRITE) == 0)
-+		writeb(0, host->ioaddr + SDHCI_POWER_CONTROL);
-+
- 	pwr = SDHCI_POWER_ON;
- 
- 	switch (power) {
+-	if (unlikely(!__vsyscall_gtod_data.sysctl_enabled))
++	if (!__vsyscall_gtod_data.sysctl_enabled)
+ 		return time_syscall(t);
+ 	else if (t)
+ 		*t = __vsyscall_gtod_data.wall_time_tv.tv_sec;
 _
 
-Patches currently in -mm which might be from linux@youmustbejoking.demon.co.uk are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again.patch
+fix-for-crash-in-adummy_init.patch
+panic-on-slim-selinux.patch
+profile-likely-unlikely-macros.patch
+profile_likely-export-do_check_likely.patch
+profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
+profile-likely-unlikely-macros-x86_64-fix.patch
