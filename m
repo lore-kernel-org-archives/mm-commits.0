@@ -1,173 +1,242 @@
 From: akpm@osdl.org
-Subject: - kvm-simplify-is_long_mode.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:25:09 -0800
-Message-ID: <200701020725.l027P90n013013@shell0.pdx.osdl.net>
+Subject: - update-credits-and-maintainers-entries-for-lennert-buytenhek.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:25:05 -0800
+Message-ID: <200701020725.l027P5Ms013007@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37405 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37403 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932884AbXABHZM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 02:25:12 -0500
+	id S932888AbXABHZL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 02:25:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: buytenh@wantstofly.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Simplify is_long_mode()
+     Update CREDITS and MAINTAINERS entries for Lennert Buytenhek
 has been removed from the -mm tree.  Its filename was
-     kvm-simplify-is_long_mode.patch
+     update-credits-and-maintainers-entries-for-lennert-buytenhek.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Simplify is_long_mode()
-From: Avi Kivity <avi@qumranet.com>
+Subject: Update CREDITS and MAINTAINERS entries for Lennert Buytenhek
+From: Lennert Buytenhek <buytenh@wantstofly.org>
 
-Instead of doing tricky stuff with the arch dependent virtualization
-registers, take a peek at the guest's efer.
-
-This simlifies some code, and fixes some confusion in the mmu branch.
-
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Lennert Buytenhek <buytenh@wantstofly.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h         |   10 +++++++++-
- drivers/kvm/kvm_main.c    |    4 ++--
- drivers/kvm/mmu.c         |    2 +-
- drivers/kvm/paging_tmpl.h |    4 ++--
- drivers/kvm/svm.c         |    6 ------
- drivers/kvm/vmx.c         |    6 ------
- 6 files changed, 14 insertions(+), 18 deletions(-)
+ CREDITS     |    7 +-
+ MAINTAINERS |  126 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 130 insertions(+), 3 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-simplify-is_long_mode drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-simplify-is_long_mode
-+++ a/drivers/kvm/kvm.h
-@@ -278,7 +278,6 @@ struct kvm_arch_ops {
- 			    struct kvm_segment *var, int seg);
- 	void (*set_segment)(struct kvm_vcpu *vcpu,
- 			    struct kvm_segment *var, int seg);
--	int (*is_long_mode)(struct kvm_vcpu *vcpu);
- 	void (*get_cs_db_l_bits)(struct kvm_vcpu *vcpu, int *db, int *l);
- 	void (*set_cr0)(struct kvm_vcpu *vcpu, unsigned long cr0);
- 	void (*set_cr0_no_modeswitch)(struct kvm_vcpu *vcpu,
-@@ -403,6 +402,15 @@ static inline struct page *_gfn_to_page(
- 	return (slot) ? slot->phys_mem[gfn - slot->base_gfn] : NULL;
- }
+diff -puN CREDITS~update-credits-and-maintainers-entries-for-lennert-buytenhek CREDITS
+--- a/CREDITS~update-credits-and-maintainers-entries-for-lennert-buytenhek
++++ a/CREDITS
+@@ -516,9 +516,10 @@ S: Orlando, Florida
+ S: USA
  
-+static inline int is_long_mode(struct kvm_vcpu *vcpu)
-+{
-+#ifdef CONFIG_X86_64
-+	return vcpu->shadow_efer & EFER_LME;
-+#else
-+	return 0;
-+#endif
-+}
+ N: Lennert Buytenhek
+-E: buytenh@gnu.org
+-D: Rewrite of the ethernet bridging code
+-S: Ravenhorst 58B
++E: kernel@wantstofly.org
++D: Original (2.4) rewrite of the ethernet bridging code
++D: Various ARM bits and pieces
++S: Ravenhorst 58
+ S: 2317 AK Leiden
+ S: The Netherlands
+ 
+diff -puN MAINTAINERS~update-credits-and-maintainers-entries-for-lennert-buytenhek MAINTAINERS
+--- a/MAINTAINERS~update-credits-and-maintainers-entries-for-lennert-buytenhek
++++ a/MAINTAINERS
+@@ -355,6 +355,24 @@ P:	Ian Molton
+ M:	spyro@f2s.com
+ S:	Maintained
+ 
++ARM/ADI ROADRUNNER MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
 +
- static inline int is_pae(struct kvm_vcpu *vcpu)
- {
- 	return vcpu->cr4 & CR4_PAE_MASK;
-diff -puN drivers/kvm/kvm_main.c~kvm-simplify-is_long_mode drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-simplify-is_long_mode
-+++ a/drivers/kvm/kvm_main.c
-@@ -398,7 +398,7 @@ void set_cr4(struct kvm_vcpu *vcpu, unsi
- 		return;
- 	}
++ARM/ADS SPHERE MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/AJECO 1ARM MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
+ ARM/ATMEL AT91RM9200 ARM ARCHITECTURE
+ P:      Andrew Victor
+ M:      andrew@sanpeople.com
+@@ -362,17 +380,89 @@ L:      linux-arm-kernel@lists.arm.linux
+ W:      http://maxim.org.za/at91_26.html
+ S:      Maintained
  
--	if (kvm_arch_ops->is_long_mode(vcpu)) {
-+	if (is_long_mode(vcpu)) {
- 		if (!(cr4 & CR4_PAE_MASK)) {
- 			printk(KERN_DEBUG "set_cr4: #GP, clearing PAE while "
- 			       "in long mode\n");
-@@ -425,7 +425,7 @@ EXPORT_SYMBOL_GPL(set_cr4);
++ARM/CIRRUS LOGIC EP93XX ARM ARCHITECTURE
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/CIRRUS LOGIC EDB9315A MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
+ ARM/CORGI MACHINE SUPPORT
+ P:	Richard Purdie
+ M:	rpurdie@rpsys.net
+ S:	Maintained
  
- void set_cr3(struct kvm_vcpu *vcpu, unsigned long cr3)
- {
--	if (kvm_arch_ops->is_long_mode(vcpu)) {
-+	if (is_long_mode(vcpu)) {
- 		if ( cr3 & CR3_L_MODE_RESEVED_BITS) {
- 			printk(KERN_DEBUG "set_cr3: #GP, reserved bits\n");
- 			inject_gp(vcpu);
-diff -puN drivers/kvm/mmu.c~kvm-simplify-is_long_mode drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-simplify-is_long_mode
-+++ a/drivers/kvm/mmu.c
-@@ -578,7 +578,7 @@ static int init_kvm_mmu(struct kvm_vcpu 
++ARM/GLOMATION GESBC9312SX MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
+ ARM/HP JORNADA 7XX MACHINE SUPPORT
+ P:      Kristoffer Ericson
+ M:      kristoffer_e1@hotmail.com
+ W:      www.jlime.com
+ S:      Maintained
  
- 	if (!is_paging(vcpu))
- 		return nonpaging_init_context(vcpu);
--	else if (kvm_arch_ops->is_long_mode(vcpu))
-+	else if (is_long_mode(vcpu))
- 		return paging64_init_context(vcpu);
- 	else if (is_pae(vcpu))
- 		return paging32E_init_context(vcpu);
-diff -puN drivers/kvm/paging_tmpl.h~kvm-simplify-is_long_mode drivers/kvm/paging_tmpl.h
---- a/drivers/kvm/paging_tmpl.h~kvm-simplify-is_long_mode
-+++ a/drivers/kvm/paging_tmpl.h
-@@ -68,7 +68,7 @@ static void FNAME(init_walker)(struct gu
- 	hpa = safe_gpa_to_hpa(vcpu, vcpu->cr3 & PT64_BASE_ADDR_MASK);
- 	walker->table = kmap_atomic(pfn_to_page(hpa >> PAGE_SHIFT), KM_USER0);
++ARM/INTEL IOP32X ARM ARCHITECTURE
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/INTEL IOP13XX ARM ARCHITECTURE
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/INTEL IQ81342EX MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/INTEL IXP2000 ARM ARCHITECTURE
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/INTEL IXDP2850 MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/INTEL IXP23XX ARM ARCHITECTURE
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/INTEL XSC3 (MANZANO) ARM CORE
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/IP FABRICS DOUBLE ESPRESSO MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/LOGICPD PXA270 MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
+ ARM/TOSA MACHINE SUPPORT
+ P:	Dirk Opfer
+ M:	dirk@opfer-online.de
+@@ -391,6 +481,12 @@ L:	linux-arm-kernel@lists.arm.linux.org.
+ W:	http://www.arm.linux.org.uk/
+ S:	Maintained
  
--	ASSERT((!kvm_arch_ops->is_long_mode(vcpu) && is_pae(vcpu)) ||
-+	ASSERT((!is_long_mode(vcpu) && is_pae(vcpu)) ||
- 	       (vcpu->cr3 & ~(PAGE_MASK | CR3_FLAGS_MASK)) == 0);
++ARM/RADISYS ENP2611 MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
+ ARM/SHARK MACHINE SUPPORT
+ P:	Alexander Schulz
+ M:	alex@shark-linux.de
+@@ -418,6 +514,18 @@ L:	linux-arm-kernel@lists.arm.linux.org.
+ W:	http://www.fluff.org/ben/linux/
+ S:	Maintained
  
- 	walker->table = (pt_element_t *)( (unsigned long)walker->table |
-@@ -131,7 +131,7 @@ static pt_element_t *FNAME(fetch_guest)(
- 		     (walker->table[index] & PT_PAGE_SIZE_MASK) &&
- 		     (PTTYPE == 64 || is_pse(vcpu))))
- 			return &walker->table[index];
--		if (walker->level != 3 || kvm_arch_ops->is_long_mode(vcpu))
-+		if (walker->level != 3 || is_long_mode(vcpu))
- 			walker->inherited_ar &= walker->table[index];
- 		paddr = safe_gpa_to_hpa(vcpu, walker->table[index] & PT_BASE_ADDR_MASK);
- 		kunmap_atomic(walker->table, KM_USER0);
-diff -puN drivers/kvm/svm.c~kvm-simplify-is_long_mode drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-simplify-is_long_mode
-+++ a/drivers/kvm/svm.c
-@@ -166,11 +166,6 @@ static inline void write_dr7(unsigned lo
- 	asm volatile ("mov %0, %%dr7" :: "r" (val));
- }
++ARM/TECHNOLOGIC SYSTEMS TS7250 MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
++ARM/THECUS N2100 MACHINE SUPPORT
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
++S:	Maintained
++
+ ARPD SUPPORT
+ P:	Jonathan Layes
+ L:	netdev@vger.kernel.org
+@@ -688,12 +796,24 @@ M:	joel.becker@oracle.com
+ L:	linux-kernel@vger.kernel.org
+ S:	Supported
  
--static inline int svm_is_long_mode(struct kvm_vcpu *vcpu)
--{
--	return vcpu->svm->vmcb->save.efer & KVM_EFER_LMA;
--}
--
- static inline void force_new_asid(struct kvm_vcpu *vcpu)
- {
- 	vcpu->svm->asid_generation--;
-@@ -1609,7 +1604,6 @@ static struct kvm_arch_ops svm_arch_ops 
- 	.get_segment_base = svm_get_segment_base,
- 	.get_segment = svm_get_segment,
- 	.set_segment = svm_set_segment,
--	.is_long_mode = svm_is_long_mode,
- 	.get_cs_db_l_bits = svm_get_cs_db_l_bits,
- 	.set_cr0 = svm_set_cr0,
- 	.set_cr0_no_modeswitch = svm_set_cr0,
-diff -puN drivers/kvm/vmx.c~kvm-simplify-is_long_mode drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-simplify-is_long_mode
-+++ a/drivers/kvm/vmx.c
-@@ -900,11 +900,6 @@ static void vmx_set_segment(struct kvm_v
- 	vmcs_write32(sf->ar_bytes, ar);
- }
++CIRRUS LOGIC EP93XX ETHERNET DRIVER
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	netdev@vger.kernel.org
++S:	Maintained
++
+ CIRRUS LOGIC GENERIC FBDEV DRIVER
+ P:	Jeff Garzik
+ M:	jgarzik@pobox.com
+ L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
+ S:	Odd Fixes
  
--static int vmx_is_long_mode(struct kvm_vcpu *vcpu)
--{
--	return vmcs_read32(VM_ENTRY_CONTROLS) & VM_ENTRY_CONTROLS_IA32E_MASK;
--}
--
- static void vmx_get_cs_db_l_bits(struct kvm_vcpu *vcpu, int *db, int *l)
- {
- 	u32 ar = vmcs_read32(GUEST_CS_AR_BYTES);
-@@ -1975,7 +1970,6 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.get_segment_base = vmx_get_segment_base,
- 	.get_segment = vmx_get_segment,
- 	.set_segment = vmx_set_segment,
--	.is_long_mode = vmx_is_long_mode,
- 	.get_cs_db_l_bits = vmx_get_cs_db_l_bits,
- 	.set_cr0 = vmx_set_cr0,
- 	.set_cr0_no_modeswitch = vmx_set_cr0_no_modeswitch,
++CIRRUS LOGIC EP93XX OHCI USB HOST DRIVER
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	linux-usb-devel@lists.sourceforge.net
++S:	Maintained
++
+ CIRRUS LOGIC CS4280/CS461x SOUNDDRIVER
+ P:	Cirrus Logic Corporation (kernel 2.2 driver)
+ M:	Cirrus Logic Corporation, Thomas Woller <twoller@crystal.cirrus.com>
+@@ -1563,6 +1683,12 @@ P:	Deepak Saxena
+ M:	dsaxena@plexity.net
+ S:	Maintained
+ 
++INTEL IXP2000 ETHERNET DRIVER
++P:	Lennert Buytenhek
++M:	kernel@wantstofly.org
++L:	netdev@vger.kernel.org
++S:	Maintained
++
+ INTEL PRO/100 ETHERNET SUPPORT
+ P:	John Ronciak
+ M:	john.ronciak@intel.com
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from buytenh@wantstofly.org are
