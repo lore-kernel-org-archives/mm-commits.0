@@ -1,85 +1,67 @@
 From: akpm@osdl.org
-Subject: + x86-64-calgary-tighten-up-printks.patch added to -mm tree
-Date: Tue, 02 Jan 2007 14:46:31 -0800
-Message-ID: <200701022246.l02MkWgS032471@shell0.pdx.osdl.net>
+Subject: + rtc-at91rm9200-build-fix.patch added to -mm tree
+Date: Tue, 02 Jan 2007 14:45:27 -0800
+Message-ID: <200701022245.l02MjS6T032434@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:40702 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:40838 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932907AbXABWrA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 17:47:00 -0500
+	id S964963AbXABWtS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 17:49:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: muli@il.ibm.com, ak@suse.de
+Cc: david-b@pacbell.net, alessandro.zummo@towertech.it, andrew@sanpeople.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     x86-64 Calgary: tighten up printks
+     rtc-at91rm9200 build fix
 has been added to the -mm tree.  Its filename is
-     x86-64-calgary-tighten-up-printks.patch
+     rtc-at91rm9200-build-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-64 Calgary: tighten up printks
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: rtc-at91rm9200 build fix
+From: David Brownell <david-b@pacbell.net>
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+The at91rm9200 RTC driver needs some assistance to build, because of recent
+header file rearrangement.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tighten-up-printks arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tighten-up-printks
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -1068,6 +1068,8 @@ void __init detect_calgary(void)
- 	if (!early_pci_allowed())
- 		return;
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-build-fix drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-build-fix
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -33,6 +33,8 @@
  
-+	printk(KERN_DEBUG "Calgary: detecting Calgary via BIOS EBDA area\n");
+ #include <asm/mach/time.h>
+ 
++#include <asm/arch/at91_rtc.h>
 +
- 	ptr = (unsigned long)phys_to_virt(get_bios_ebda());
  
- 	rio_table_hdr = NULL;
-@@ -1088,14 +1090,14 @@ void __init detect_calgary(void)
- 		offset = *((unsigned short *)(ptr + offset));
- 	}
- 	if (!rio_table_hdr) {
--		printk(KERN_ERR "Calgary: Unable to locate "
--				"Rio Grande Table in EBDA - bailing!\n");
-+		printk(KERN_DEBUG "Calgary: Unable to locate Rio Grande table "
-+		       "in EBDA - bailing!\n");
- 		return;
- 	}
- 
- 	ret = build_detail_arrays();
- 	if (ret) {
--		printk(KERN_ERR "Calgary: build_detail_arrays ret %d\n", ret);
-+		printk(KERN_DEBUG "Calgary: build_detail_arrays ret %d\n", ret);
- 		return;
- 	}
- 
-@@ -1128,6 +1130,9 @@ void __init detect_calgary(void)
- 		}
- 	}
- 
-+	printk(KERN_DEBUG "Calgary: finished detection, Calgary %s\n",
-+	       calgary_found ? "found" : "not found");
-+
- 	if (calgary_found) {
- 		iommu_detected = 1;
- 		calgary_detected = 1;
+ #define AT91_RTC_FREQ		1
+ #define AT91_RTC_EPOCH		1900UL	/* just like arch/arm/common/rtctime.c */
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-ehca-avoid-crash-on-kthread_create-failure.patch
-git-pciseg.patch
-x86_64-improved-iommu-documentation.patch
-x86-64-calgary-tighten-up-printks.patch
-x86-64-calgary-enabled_by_default-should-default-to-y.patch
+rtc-at91rm9200-build-fix.patch
+git-dvb.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+spi-kconfig-fix.patch
+spi-controller-driver-for-omap-microwire.patch
+spi-controller-driver-for-omap-microwire-update.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+pnp-export-pnp_bus_type.patch
+gpio-core.patch
+omap-gpio-wrappers.patch
+at91-gpio-wrappers.patch
