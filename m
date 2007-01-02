@@ -1,53 +1,53 @@
 From: akpm@osdl.org
-Subject: - spi_s3c24xx_gpio-use-right-header.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:24:55 -0800
-Message-ID: <200701020724.l027Ot23012992@shell0.pdx.osdl.net>
+Subject: - kvm-use-boot_cpu_data-instead-of-current_cpu_data.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:25:07 -0800
+Message-ID: <200701020725.l027P7Y1013010@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37392 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37401 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932883AbXABHZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 02:25:07 -0500
+	id S932872AbXABHZL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 02:25:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnaud.patard@rtp-net.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_s3c24xx_gpio: use right header
+     KVM: Use boot_cpu_data instead of current_cpu_data
 has been removed from the -mm tree.  Its filename was
-     spi_s3c24xx_gpio-use-right-header.patch
+     kvm-use-boot_cpu_data-instead-of-current_cpu_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi_s3c24xx_gpio: use right header
-From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: KVM: Use boot_cpu_data instead of current_cpu_data
+From: Avi Kivity <avi@qumranet.com>
 
-Russel King recently reminded us that one shouldn't use asm/arch/hardware.h
-but one should use asm/hardware.h.  Unfortunately, the spi_s3c24xx_gpio
-driver is using the wrong header.  This patch is fixing that.
+current_cpu_data invokes smp_processor_id(), which is inadvisable when
+preemption is enabled.  Switch to boot_cpu_data instead.
 
-Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Resolves sourceforge bug 1621401.
+
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/spi_s3c24xx_gpio.c |    2 +-
+ drivers/kvm/svm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi_s3c24xx_gpio-use-right-header drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~spi_s3c24xx_gpio-use-right-header
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -23,7 +23,7 @@
+diff -puN drivers/kvm/svm.c~kvm-use-boot_cpu_data-instead-of-current_cpu_data drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-use-boot_cpu_data-instead-of-current_cpu_data
++++ a/drivers/kvm/svm.c
+@@ -246,7 +246,7 @@ static int has_svm(void)
+ {
+ 	uint32_t eax, ebx, ecx, edx;
  
- #include <asm/arch/regs-gpio.h>
- #include <asm/arch/spi-gpio.h>
--#include <asm/arch/hardware.h>
-+#include <asm/hardware.h>
- 
- struct s3c2410_spigpio {
- 	struct spi_bitbang		 bitbang;
+-	if (current_cpu_data.x86_vendor != X86_VENDOR_AMD) {
++	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD) {
+ 		printk(KERN_INFO "has_svm: not amd\n");
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from arnaud.patard@rtp-net.org are
+Patches currently in -mm which might be from avi@qumranet.com are
