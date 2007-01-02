@@ -1,132 +1,180 @@
 From: akpm@osdl.org
-Subject: + fix-bug-at-drivers-scsi-scsi_libc1118-caused-by-pktsetup-dvd-dev-sr0.patch added to -mm tree
-Date: Tue, 02 Jan 2007 15:30:17 -0800
-Message-ID: <200701022330.l02NUHW2001194@shell0.pdx.osdl.net>
+Subject: + atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang.patch added to -mm tree
+Date: Tue, 02 Jan 2007 15:31:18 -0800
+Message-ID: <200701022331.l02NVJbr001213@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:44257 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:44354 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752410AbXABXao (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 18:30:44 -0500
+	id S1752334AbXABXbu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 18:31:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, petero2@telia.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bzolnier@gmail.com
 
 
 The patch titled
-     Fix BUG at drivers/scsi/scsi_lib.c:1118 caused by "pktsetup dvd /dev/sr0"
+     atiixp: Old drivers/ide layer driver for the ATIIXP hang fix
 has been added to the -mm tree.  Its filename is
-     fix-bug-at-drivers-scsi-scsi_libc1118-caused-by-pktsetup-dvd-dev-sr0.patch
+     atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix BUG at drivers/scsi/scsi_lib.c:1118 caused by "pktsetup dvd /dev/sr0"
-From: Christoph Hellwig <hch@lst.de>
+Subject: atiixp: Old drivers/ide layer driver for the ATIIXP hang fix
+From: Alan <alan@lxorguk.ukuu.org.uk>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=7667
+When the old IDE layer calls into methods in the driver during error
+handling it is essentially random whether ide_lock is already held.  This
+causes a deadlock in the atiixp driver which also uses ide_lock internally
+for locking.
 
-This is because the packet driver tries to send down read/write BLOCK_PC
-commands that don't use a bio and do not use sg lists.
+Switch to a private lock instead.
 
-The right fix is to replace all the packet_command stuff in the packet
-driver by scsi_execute() which needs to be lifted from scsi code to
-the block code for that.
-
-Fix the bug for now.  It's not the full way to a generic execute block pc
-infrastcuture but fixes the bug for the time being.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Peter Osterlund <petero2@telia.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/pktcdvd.c |   49 +++++++++++++-------------------------
- 1 files changed, 18 insertions(+), 31 deletions(-)
+ drivers/ide/pci/atiixp.c |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~fix-bug-at-drivers-scsi-scsi_libc1118-caused-by-pktsetup-dvd-dev-sr0 drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~fix-bug-at-drivers-scsi-scsi_libc1118-caused-by-pktsetup-dvd-dev-sr0
-+++ a/drivers/block/pktcdvd.c
-@@ -765,47 +765,34 @@ static inline struct bio *pkt_get_list_f
-  */
- static int pkt_generic_packet(struct pktcdvd_device *pd, struct packet_command *cgc)
- {
--	char sense[SCSI_SENSE_BUFFERSIZE];
--	request_queue_t *q;
-+	request_queue_t *q = bdev_get_queue(pd->bdev);
- 	struct request *rq;
--	DECLARE_COMPLETION_ONSTACK(wait);
--	int err = 0;
-+	int ret = 0;
+diff -puN drivers/ide/pci/atiixp.c~atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang drivers/ide/pci/atiixp.c
+--- a/drivers/ide/pci/atiixp.c~atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang
++++ a/drivers/ide/pci/atiixp.c
+@@ -46,6 +46,8 @@ static atiixp_ide_timing mdma_timing[] =
  
--	q = bdev_get_queue(pd->bdev);
-+	rq = blk_get_request(q, (cgc->data_direction == CGC_DATA_WRITE) ?
-+			     WRITE : READ, __GFP_WAIT);
+ static int save_mdma_mode[4];
+ 
++static spinlock_t atiixp_lock;
 +
-+	if (cgc->buflen) {
-+		if (blk_rq_map_kern(q, rq, cgc->buffer, cgc->buflen, __GFP_WAIT))
-+			goto out;
-+	}
-+
-+	rq->cmd_len = COMMAND_SIZE(rq->cmd[0]);
-+	memcpy(rq->cmd, cgc->cmd, CDROM_PACKET_SIZE);
-+	if (sizeof(rq->cmd) > CDROM_PACKET_SIZE)
-+		memset(rq->cmd + CDROM_PACKET_SIZE, 0, sizeof(rq->cmd) - CDROM_PACKET_SIZE);
+ /**
+  *	atiixp_ratemask		-	compute rate mask for ATIIXP IDE
+  *	@drive: IDE drive to compute for
+@@ -105,7 +107,7 @@ static int atiixp_ide_dma_host_on(ide_dr
+ 	unsigned long flags;
+ 	u16 tmp16;
  
--	rq = blk_get_request(q, (cgc->data_direction == CGC_DATA_WRITE) ? WRITE : READ,
--			     __GFP_WAIT);
--	rq->errors = 0;
--	rq->rq_disk = pd->bdev->bd_disk;
--	rq->bio = NULL;
--	rq->buffer = NULL;
- 	rq->timeout = 60*HZ;
--	rq->data = cgc->buffer;
--	rq->data_len = cgc->buflen;
--	rq->sense = sense;
--	memset(sense, 0, sizeof(sense));
--	rq->sense_len = 0;
- 	rq->cmd_type = REQ_TYPE_BLOCK_PC;
- 	rq->cmd_flags |= REQ_HARDBARRIER;
- 	if (cgc->quiet)
- 		rq->cmd_flags |= REQ_QUIET;
--	memcpy(rq->cmd, cgc->cmd, CDROM_PACKET_SIZE);
--	if (sizeof(rq->cmd) > CDROM_PACKET_SIZE)
--		memset(rq->cmd + CDROM_PACKET_SIZE, 0, sizeof(rq->cmd) - CDROM_PACKET_SIZE);
--	rq->cmd_len = COMMAND_SIZE(rq->cmd[0]);
--
--	rq->ref_count++;
--	rq->end_io_data = &wait;
--	rq->end_io = blk_end_sync_rq;
--	elv_add_request(q, rq, ELEVATOR_INSERT_BACK, 1);
--	generic_unplug_device(q);
--	wait_for_completion(&wait);
--
--	if (rq->errors)
--		err = -EIO;
+-	spin_lock_irqsave(&ide_lock, flags);
++	spin_lock_irqsave(&atiixp_lock, flags);
  
-+	blk_execute_rq(rq->q, pd->bdev->bd_disk, rq, 0);
-+	ret = rq->errors;
-+out:
- 	blk_put_request(rq);
--	return err;
-+	return ret;
+ 	pci_read_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, &tmp16);
+ 	if (save_mdma_mode[drive->dn])
+@@ -114,7 +116,7 @@ static int atiixp_ide_dma_host_on(ide_dr
+ 		tmp16 |= (1 << drive->dn);
+ 	pci_write_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, tmp16);
+ 
+-	spin_unlock_irqrestore(&ide_lock, flags);
++	spin_unlock_irqrestore(&atiixp_lock, flags);
+ 
+ 	return __ide_dma_host_on(drive);
+ }
+@@ -125,13 +127,13 @@ static int atiixp_ide_dma_host_off(ide_d
+ 	unsigned long flags;
+ 	u16 tmp16;
+ 
+-	spin_lock_irqsave(&ide_lock, flags);
++	spin_lock_irqsave(&atiixp_lock, flags);
+ 
+ 	pci_read_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, &tmp16);
+ 	tmp16 &= ~(1 << drive->dn);
+ 	pci_write_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, tmp16);
+ 
+-	spin_unlock_irqrestore(&ide_lock, flags);
++	spin_unlock_irqrestore(&atiixp_lock, flags);
+ 
+ 	return __ide_dma_host_off(drive);
+ }
+@@ -152,7 +154,7 @@ static void atiixp_tuneproc(ide_drive_t 
+ 	u32 pio_timing_data;
+ 	u16 pio_mode_data;
+ 
+-	spin_lock_irqsave(&ide_lock, flags);
++	spin_lock_irqsave(&atiixp_lock, flags);
+ 
+ 	pci_read_config_word(dev, ATIIXP_IDE_PIO_MODE, &pio_mode_data);
+ 	pio_mode_data &= ~(0x07 << (drive->dn * 4));
+@@ -165,7 +167,7 @@ static void atiixp_tuneproc(ide_drive_t 
+ 		 (pio_timing[pio].command_width << (timing_shift + 4));
+ 	pci_write_config_dword(dev, ATIIXP_IDE_PIO_TIMING, pio_timing_data);
+ 
+-	spin_unlock_irqrestore(&ide_lock, flags);
++	spin_unlock_irqrestore(&atiixp_lock, flags);
  }
  
- /*
+ /**
+@@ -189,7 +191,7 @@ static int atiixp_speedproc(ide_drive_t 
+ 
+ 	speed = ide_rate_filter(atiixp_ratemask(drive), xferspeed);
+ 
+-	spin_lock_irqsave(&ide_lock, flags);
++	spin_lock_irqsave(&atiixp_lock, flags);
+ 
+ 	save_mdma_mode[drive->dn] = 0;
+ 	if (speed >= XFER_UDMA_0) {
+@@ -208,7 +210,7 @@ static int atiixp_speedproc(ide_drive_t 
+ 		}
+ 	}
+ 
+-	spin_unlock_irqrestore(&ide_lock, flags);
++	spin_unlock_irqrestore(&atiixp_lock, flags);
+ 
+ 	if (speed >= XFER_SW_DMA_0)
+ 		pio = atiixp_dma_2_pio(speed);
+@@ -380,6 +382,7 @@ static struct pci_driver driver = {
+ 
+ static int atiixp_ide_init(void)
+ {
++	spin_lock_init(&atiixp_lock);
+ 	return ide_pci_register_driver(&driver);
+ }
+ 
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-fix-bug-at-drivers-scsi-scsi_libc1118-caused-by-pktsetup-dvd-dev-sr0.patch
-fsaio-add-a-wait-queue-parameter-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_slow.patch
-fsaio-routines-to-initialize-and-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-filesystem-aio-read-tidy.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
+via82cxxx-fix-cable-detection.patch
+atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang.patch
+git-libata-all.patch
+pci-quirks-fix-the-festering-mess-that-claims-to-handle-ide-quirks-ide-fix.patch
+git-mtd.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+cdrom-longer-timeout-for-read-track-info-command.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-tty_wakeup-cleanup.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+piix-fix-82371mx-enablebits.patch
+pdc202xx_new-remove-useless-code.patch
+pdc202xx_-remove-check_in_drive_lists-abomination.patch
+piix-tuneproc-fixes-cleanups.patch
+slc90e66-carry-over-fixes-from-piix-driver.patch
+hpt36x-pci-clock-detection-fix.patch
