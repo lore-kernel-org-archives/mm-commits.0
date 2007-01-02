@@ -1,90 +1,105 @@
 From: akpm@osdl.org
-Subject: + kobject-kobj-k_name-verification-fix.patch added to -mm tree
-Date: Tue, 02 Jan 2007 13:28:10 -0800
-Message-ID: <200701022128.l02LSAx8030240@shell0.pdx.osdl.net>
+Subject: + uml-add-locking-to-network-transport-registration.patch added to -mm tree
+Date: Tue, 02 Jan 2007 13:32:04 -0800
+Message-ID: <200701022132.l02LW5pO030398@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33636 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34309 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754932AbXABV2X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 16:28:23 -0500
+	id S1754984AbXABVfT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 16:35:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mstoilov@odesys.com, greg@kroah.com
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     kobject: kobj->k_name verification fix
+     uml: add locking to network transport registration
 has been added to the -mm tree.  Its filename is
-     kobject-kobj-k_name-verification-fix.patch
+     uml-add-locking-to-network-transport-registration.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kobject: kobj->k_name verification fix
-From: Martin Stoilov <mstoilov@odesys.com>
+Subject: uml: add locking to network transport registration
+From: Jeff Dike <jdike@addtoit.com>
 
-The function 'kobject_add' tries to verify the name of
-a new kobject instance is properly set before continuing.
-    if (!kobj->k_name)
-        kobj->k_name = kobj->name;
-    if (!kobj->k_name) {
-        pr_debug("kobject attempted to be registered with no name!\n");
-        WARN_ON(1);
-        return -EINVAL;
-    }
-The statement:
-    if (!kobj->k_name) {
-        pr_debug("kobject attempted to be registered with no name!\n");
-        WARN_ON(1);
-        return -EINVAL;
-    }
-is useless the way it is right now, because it can never be true. I
-think the
-code was intended to be:
-    if (!kobj->k_name)
-        kobj->k_name = kobj->name;
-    if (!*kobj->k_name) {
-        pr_debug("kobject attempted to be registered with no name!\n");
-        WARN_ON(1);
-        return -EINVAL;
-    }
-because this would make sure the kobj->name buffer has something in it.
-So the missing '*' is just a typo. Although, I would much prefer
-expression like:
-    if (*kobj->k_name == '\0') {
-        pr_debug("kobject attempted to be registered with no name!\n");
-        WARN_ON(1);
-        return -EINVAL;
-    }
+The registration of host network transports needed some locking.  The
+transport list itself is locked, but calls to the registration routines are
+not.  This is compensated for by checking that a transport structure is not
+yet on any list.
 
-because this would've made the intention clear, in this patch I just restore
-the missing '*' without changing the coding style of the function.
+I also took the opportunity to const all fields in the transport structure
+except the list, which obviously can be modified.
 
-Signed-off-by: Martin Stoilov <mstoilov@odesys.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/kobject.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/um/drivers/net_kern.c |    9 +++++----
+ arch/um/include/net_kern.h |    8 ++++----
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN lib/kobject.c~kobject-kobj-k_name-verification-fix lib/kobject.c
---- a/lib/kobject.c~kobject-kobj-k_name-verification-fix
-+++ a/lib/kobject.c
-@@ -211,7 +211,7 @@ int kobject_add(struct kobject * kobj)
- 		return -ENOENT;
- 	if (!kobj->k_name)
- 		kobj->k_name = kobj->name;
--	if (!kobj->k_name) {
-+	if (!*kobj->k_name) {
- 		pr_debug("kobject attempted to be registered with no name!\n");
- 		WARN_ON(1);
- 		return -EINVAL;
+diff -puN arch/um/drivers/net_kern.c~uml-add-locking-to-network-transport-registration arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-add-locking-to-network-transport-registration
++++ a/arch/um/drivers/net_kern.c
+@@ -498,10 +498,8 @@ struct eth_init {
+ 	int index;
+ };
+ 
+-/* Filled in at boot time.  Will need locking if the transports become
+- * modular.
+- */
+-struct list_head transports = LIST_HEAD_INIT(transports);
++static DEFINE_SPINLOCK(transports_lock);
++static LIST_HEAD(transports);
+ 
+ /* Filled in during early boot */
+ struct list_head eth_cmd_line = LIST_HEAD_INIT(eth_cmd_line);
+@@ -540,7 +538,10 @@ void register_transport(struct transport
+ 	char *mac = NULL;
+ 	int match;
+ 
++	spin_lock(&transports_lock);
++	BUG_ON(!list_empty(&new->list));
+ 	list_add(&new->list, &transports);
++	spin_unlock(&transports_lock);
+ 
+ 	list_for_each_safe(ele, next, &eth_cmd_line){
+ 		eth = list_entry(ele, struct eth_init, list);
+diff -puN arch/um/include/net_kern.h~uml-add-locking-to-network-transport-registration arch/um/include/net_kern.h
+--- a/arch/um/include/net_kern.h~uml-add-locking-to-network-transport-registration
++++ a/arch/um/include/net_kern.h
+@@ -52,12 +52,12 @@ struct net_kern_info {
+ 
+ struct transport {
+ 	struct list_head list;
+-	char *name;
+-	int (*setup)(char *, char **, void *);
++	const char *name;
++	int (* const setup)(char *, char **, void *);
+ 	const struct net_user_info *user;
+ 	const struct net_kern_info *kern;
+-	int private_size;
+-	int setup_size;
++	const int private_size;
++	const int setup_size;
+ };
+ 
+ extern struct net_device *ether_init(int);
 _
 
-Patches currently in -mm which might be from mstoilov@odesys.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-kobject-kobj-k_name-verification-fix.patch
+x86_64-i386-kernel-mode-faults-pollute-current-thead.patch
+uml-console-locking-fixes.patch
+uml-return-hotplug-errors-to-host.patch
+uml-console-whitespace-and-comment-tidying.patch
+uml-lock-the-irqs_to_free-list.patch
+uml-add-locking-to-network-transport-registration.patch
+uml-network-driver-whitespace-and-style-fixes.patch
+uml-fix-prototypes.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
