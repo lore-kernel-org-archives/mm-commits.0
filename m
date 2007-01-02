@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-watchdog-driver-locking.patch added to -mm tree
-Date: Tue, 02 Jan 2007 14:55:25 -0800
-Message-ID: <200701022255.l02MtQBs032686@shell0.pdx.osdl.net>
+Subject: + uml-audio-driver-locking.patch added to -mm tree
+Date: Tue, 02 Jan 2007 14:55:51 -0800
+Message-ID: <200701022255.l02MtqXn032702@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41254 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41275 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964998AbXABWzr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 17:55:47 -0500
+	id S965024AbXABW4H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 17:56:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,100 +15,46 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: watchdog driver locking
+     uml: audio driver locking
 has been added to the -mm tree.  Its filename is
-     uml-watchdog-driver-locking.patch
+     uml-audio-driver-locking.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: watchdog driver locking
+Subject: uml: audio driver locking
 From: Jeff Dike <jdike@addtoit.com>
 
-Replace BKL use with a spinlock.
-
-Also fix the control so that open doesn't return holding a lock.
+Comment the lack of locking and make a couple of variables static.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/drivers/harddog_kern.c |   23 +++++++++++++++--------
- 1 files changed, 15 insertions(+), 8 deletions(-)
+ arch/um/drivers/hostaudio_kern.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/drivers/harddog_kern.c~uml-watchdog-driver-locking arch/um/drivers/harddog_kern.c
---- a/arch/um/drivers/harddog_kern.c~uml-watchdog-driver-locking
-+++ a/arch/um/drivers/harddog_kern.c
-@@ -44,12 +44,13 @@
- #include <linux/reboot.h>
- #include <linux/smp_lock.h>
- #include <linux/init.h>
-+#include <linux/spinlock.h>
- #include <asm/uaccess.h>
- #include "mconsole.h"
+diff -puN arch/um/drivers/hostaudio_kern.c~uml-audio-driver-locking arch/um/drivers/hostaudio_kern.c
+--- a/arch/um/drivers/hostaudio_kern.c~uml-audio-driver-locking
++++ a/arch/um/drivers/hostaudio_kern.c
+@@ -25,9 +25,12 @@ struct hostmixer_state {
+ #define HOSTAUDIO_DEV_DSP "/dev/sound/dsp"
+ #define HOSTAUDIO_DEV_MIXER "/dev/sound/mixer"
  
- MODULE_LICENSE("GPL");
+-/* Only changed from linux_main at boot time */
+-char *dsp = HOSTAUDIO_DEV_DSP;
+-char *mixer = HOSTAUDIO_DEV_MIXER;
++/* Changed either at boot time or module load time.  At boot, this is
++ * single-threaded; at module load, multiple modules would each have
++ * their own copy of these variables.
++ */
++static char *dsp = HOSTAUDIO_DEV_DSP;
++static char *mixer = HOSTAUDIO_DEV_MIXER;
  
--/* Locked by the BKL in harddog_open and harddog_release */
-+static DEFINE_SPINLOCK(lock);
- static int timer_alive;
- static int harddog_in_fd = -1;
- static int harddog_out_fd = -1;
-@@ -62,12 +63,12 @@ extern int start_watchdog(int *in_fd_ret
- 
- static int harddog_open(struct inode *inode, struct file *file)
- {
--	int err;
-+	int err = -EBUSY;
- 	char *sock = NULL;
- 
--	lock_kernel();
-+	spin_lock(&lock);
- 	if(timer_alive)
--		return -EBUSY;
-+		goto err;
- #ifdef CONFIG_HARDDOG_NOWAYOUT	 
- 	__module_get(THIS_MODULE);
- #endif
-@@ -76,11 +77,15 @@ static int harddog_open(struct inode *in
- 	sock = mconsole_notify_socket();
- #endif
- 	err = start_watchdog(&harddog_in_fd, &harddog_out_fd, sock);
--	if(err) return(err);
-+	if(err)
-+		goto err;
- 
- 	timer_alive = 1;
--	unlock_kernel();
-+	spin_unlock(&lock);
- 	return nonseekable_open(inode, file);
-+err:
-+	spin_unlock(&lock);
-+	return err;
- }
- 
- extern void stop_watchdog(int in_fd, int out_fd);
-@@ -90,14 +95,16 @@ static int harddog_release(struct inode 
- 	/*
- 	 *	Shut off the timer.
- 	 */
--	lock_kernel();
-+
-+	spin_lock(&lock);
- 
- 	stop_watchdog(harddog_in_fd, harddog_out_fd);
- 	harddog_in_fd = -1;
- 	harddog_out_fd = -1;
- 
- 	timer_alive=0;
--	unlock_kernel();
-+	spin_unlock(&lock);
-+
- 	return 0;
- }
- 
+ #define DSP_HELP \
+ "    This is used to specify the host dsp device to the hostaudio driver.\n" \
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
