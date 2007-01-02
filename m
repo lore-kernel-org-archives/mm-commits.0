@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + aio-streamline-read-events-after-woken-up.patch added to -mm tree
-Date: Tue, 02 Jan 2007 13:34:16 -0800
-Message-ID: <200701022134.l02LYG0P030471@shell0.pdx.osdl.net>
+Subject: + aio-add-per-task-aio-wait-event-condition.patch added to -mm tree
+Date: Tue, 02 Jan 2007 13:34:12 -0800
+Message-ID: <200701022134.l02LYDbJ030467@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34556 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34582 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932914AbXABVh4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 16:37:56 -0500
+	id S1755424AbXABViX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 16:38:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,35 +15,51 @@ Cc: kenneth.w.chen@intel.com, bcrl@kvack.org, pbadari@us.ibm.com, suparna@in.ibm
 
 
 The patch titled
-     aio: streamline read events after woken up
+     aio: add per task aio wait event condition
 has been added to the -mm tree.  Its filename is
-     aio-streamline-read-events-after-woken-up.patch
+     aio-add-per-task-aio-wait-event-condition.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aio: streamline read events after woken up
+Subject: aio: add per task aio wait event condition
 From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 
-The read event loop in the blocking path is also inefficient. For every
-event it reap (if not blocking), it does the following in a loop:
+The AIO wake-up notification from aio_complete is really inefficient
+in current AIO implementation in the presence of process waiting in
+io_getevents().
 
-      while (i < nr) {
-            prepare_to_wait_exclusive
-            aio_read_evt
-            finish_wait
-            ...
-      }
+For example, if app calls io_getevents with min_nr > 1, and aio event
+queue doesn't have enough completed aio event, the process will block
+in read_events().  However, aio_complete() will wake up the waiting
+process for *each* complete I/O even though number of events that an
+app is waiting for is much larger than 1.  This makes excessive and
+unnecessary context switch because the waiting process will just reap
+one single event and goes back to sleep again.  It is much more efficient
+to wake up the waiting process when there are enough events for it to
+reap.
 
-Given the previous patch "aio: add per task aio wait event condition"
-that we properly wake up event waiting process knowing that we have
-enough events to reap, it's just plain waste of time to insert itself
-into a wait queue, and then immediately remove itself from the wait
-queue for *every* event reap iteration.
+This patch adds a wait condition to the wait queue and only wake-up
+process when that condition meets.  And this condition is added on a
+per task base for handling multi-threaded app that shares single ioctx.
 
-This patch factors out the wait queue insertion/deletion out of the event
-reap loop, streamlines the event reaping after the process wakes up.
+To show the effect of this patch, here is an vmstat output before and
+after the patch. The app does random O_DIRECT AIO on 60 disks. Context
+switch is reduced from 13 thousand+ down to just 40+, an significant
+improvement.
+
+Before:
+procs -----------memory---------- ---swap-- -----io---- --system-- ----cpu----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in    cs us sy id wa
+ 0  0      0 3972608   7056  31312    0    0 14000     0 7840 13715  0  2 98  0
+ 0  0      0 3972608   7056  31312    0    0 14300     0 7793 13641  0  2 98  0
+ 0  0      0 3972608   7056  31312    0    0 14100     0 7885 13747  0  2 98  0
+
+After:
+ 0  0      0 3972608   7056  31312    0    0 14000     0 7840    49  0  2 98  0
+ 0  0      0 3972608   7056  31312    0    0 13800     0 7793    53  0  2 98  0
+ 0  0      0 3972608   7056  31312    0    0 13800     0 7885    42  0  2 98  0
 
 Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
 Cc: Zach Brown <zach.brown@oracle.com>
@@ -53,85 +69,13 @@ Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c      |   54 +++++++++++++++++++++++-------------------------
- fs/aio.c.orig |   43 ++++++++++++++++++++++++++++----------
- 2 files changed, 58 insertions(+), 39 deletions(-)
+ fs/aio.c      |   43 ++++++++++++++++++++++++++++++++-----------
+ fs/aio.c.orig |   20 +++++++++-----------
+ 2 files changed, 41 insertions(+), 22 deletions(-)
 
-diff -puN fs/aio.c~aio-streamline-read-events-after-woken-up fs/aio.c
---- a/fs/aio.c~aio-streamline-read-events-after-woken-up
+diff -puN fs/aio.c~aio-add-per-task-aio-wait-event-condition fs/aio.c
+--- a/fs/aio.c~aio-add-per-task-aio-wait-event-condition
 +++ a/fs/aio.c
-@@ -1172,42 +1172,40 @@ retry:
- 	}
- 
- 	aio_init_wait(&wait);
-+wait:
-+	prepare_to_wait_exclusive(&ctx->wait, &wait.wait, TASK_INTERRUPTIBLE);
-+	ret = aio_read_evt(ctx, &ent);
-+	if (!ret) {
-+		wait.nr_wait = min_nr - i;
-+		schedule();
-+		if (signal_pending(tsk))
-+			ret = -EINTR;
-+	}
-+	finish_wait(&ctx->wait, &wait.wait);
-+
-+	if (ret < 0)
-+		goto out_cleanup;
-+
- 	while (likely(i < nr)) {
--		do {
--			prepare_to_wait_exclusive(&ctx->wait, &wait.wait,
--						  TASK_INTERRUPTIBLE);
--			ret = aio_read_evt(ctx, &ent);
--			if (ret)
--				break;
--			if (min_nr <= i)
--				break;
--			ret = 0;
--			if (to.timed_out)	/* Only check after read evt */
--				break;
--			wait.nr_wait = min_nr - i;
--			schedule();
--			if (signal_pending(tsk)) {
--				ret = -EINTR;
-+		if (ret) {
-+			if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
-+				dprintk("aio: lost an event due to EFAULT.\n");
-+				ret = -EFAULT;
- 				break;
- 			}
--			/*ret = aio_read_evt(ctx, &ent);*/
--		} while (1) ;
--		finish_wait(&ctx->wait, &wait.wait);
--
--		if (unlikely(ret <= 0))
--			break;
-+			event++;
-+			i++;
-+		}
- 
--		ret = -EFAULT;
--		if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
--			dprintk("aio: lost an event due to EFAULT.\n");
-+		ret = aio_read_evt(ctx, &ent);
-+		if (unlikely(!ret)) {
-+			if (i < min_nr && !to.timed_out)
-+				goto wait;
- 			break;
- 		}
--
--		/* Good, event copied to userland, update counts. */
--		event ++;
--		i ++;
- 	}
- 
-+out_cleanup:
- 	if (timeout)
- 		clear_timeout(&to);
- out:
-diff -puN fs/aio.c.orig~aio-streamline-read-events-after-woken-up fs/aio.c.orig
---- a/fs/aio.c.orig~aio-streamline-read-events-after-woken-up
-+++ a/fs/aio.c.orig
 @@ -193,6 +193,17 @@ static int aio_setup_ring(struct kioctx 
  	kunmap_atomic((void *)((unsigned long)__event & PAGE_MASK), km); \
  } while(0)
@@ -252,6 +196,77 @@ diff -puN fs/aio.c.orig~aio-streamline-read-events-after-woken-up fs/aio.c.orig
  
  		if (unlikely(ret <= 0))
  			break;
+diff -puN fs/aio.c.orig~aio-add-per-task-aio-wait-event-condition fs/aio.c.orig
+--- a/fs/aio.c.orig~aio-add-per-task-aio-wait-event-condition
++++ a/fs/aio.c.orig
+@@ -297,17 +297,23 @@ static void wait_for_all_aios(struct kio
+ 	struct task_struct *tsk = current;
+ 	DECLARE_WAITQUEUE(wait, tsk);
+ 
++	spin_lock_irq(&ctx->ctx_lock);
+ 	if (!ctx->reqs_active)
+-		return;
++		goto out;
+ 
+ 	add_wait_queue(&ctx->wait, &wait);
+ 	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
+ 	while (ctx->reqs_active) {
++		spin_unlock_irq(&ctx->ctx_lock);
+ 		schedule();
+ 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++		spin_lock_irq(&ctx->ctx_lock);
+ 	}
+ 	__set_task_state(tsk, TASK_RUNNING);
+ 	remove_wait_queue(&ctx->wait, &wait);
++
++out:
++	spin_unlock_irq(&ctx->ctx_lock);
+ }
+ 
+ /* wait_on_sync_kiocb:
+@@ -423,7 +429,6 @@ static struct kiocb fastcall *__aio_get_
+ 	ring = kmap_atomic(ctx->ring_info.ring_pages[0], KM_USER0);
+ 	if (ctx->reqs_active < aio_ring_avail(&ctx->ring_info, ring)) {
+ 		list_add(&req->ki_list, &ctx->active_reqs);
+-		get_ioctx(ctx);
+ 		ctx->reqs_active++;
+ 		okay = 1;
+ 	}
+@@ -535,8 +540,6 @@ int fastcall aio_put_req(struct kiocb *r
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 	ret = __aio_put_req(ctx, req);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+-	if (ret)
+-		put_ioctx(ctx);
+ 	return ret;
+ }
+ 
+@@ -778,8 +781,7 @@ static int __aio_run_iocbs(struct kioctx
+ 		 */
+ 		iocb->ki_users++;       /* grab extra reference */
+ 		aio_run_iocb(iocb);
+-		if (__aio_put_req(ctx, iocb))  /* drop extra ref */
+-			put_ioctx(ctx);
++		__aio_put_req(ctx, iocb);
+  	}
+ 	if (!list_empty(&ctx->run_list))
+ 		return 1;
+@@ -996,14 +998,10 @@ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	ret = __aio_put_req(ctx, iocb);
+ 
+-	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
+-
+ 	if (waitqueue_active(&ctx->wait))
+ 		wake_up(&ctx->wait);
+ 
+-	if (ret)
+-		put_ioctx(ctx);
+-
++	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from kenneth.w.chen@intel.com are
