@@ -1,71 +1,58 @@
 From: akpm@osdl.org
-Subject: - m25p80-build-fixes-with-mtd-debug.patch removed from -mm tree
-Date: Mon, 01 Jan 2007 23:24:40 -0800
-Message-ID: <200701020724.l027OeoE012966@shell0.pdx.osdl.net>
+Subject: - respect-srctree-objtree-in-documentation-docbook-makefile.patch removed from -mm tree
+Date: Mon, 01 Jan 2007 23:24:53 -0800
+Message-ID: <200701020724.l027Orub012989@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:37372 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:37370 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932853AbXABHY4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 02:24:56 -0500
+	id S932838AbXABHYz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 02:24:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m25p80 build fixes (with MTD debug)
+     respect srctree/objtree in Documentation/DocBook/Makefile
 has been removed from the -mm tree.  Its filename was
-     m25p80-build-fixes-with-mtd-debug.patch
+     respect-srctree-objtree-in-documentation-docbook-makefile.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m25p80 build fixes (with MTD debug)
-From: David Brownell <david-b@pacbell.net>
+Subject: respect srctree/objtree in Documentation/DocBook/Makefile
+From: "Mike Frysinger" <vapier.adi@gmail.com>
 
-Fix build issues that show up with the m25p80 SPI flash driver when
-building with MTD debug enabled.
+The KERNELDOC and DOCPROC variables are relative to the
+$(srctree)/$(objtree) and expect to be run only from there ...  attached
+patch adds proper srctree/objtree prefixes to both variables.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Acked-by: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/devices/m25p80.c |    4 ++--
+ Documentation/DocBook/Makefile |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~m25p80-build-fixes-with-mtd-debug drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~m25p80-build-fixes-with-mtd-debug
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -437,7 +437,7 @@ static int __devinit m25p_probe(struct s
- 		 * or JEDEC get-id commands.  Try them ...
- 		 */
- 		DEBUG(MTD_DEBUG_LEVEL1, "%s: no chip id\n",
--				flash->spi->dev.bus_id);
-+				spi->dev.bus_id);
- 		return -ENODEV;
- 	}
+diff -puN Documentation/DocBook/Makefile~respect-srctree-objtree-in-documentation-docbook-makefile Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~respect-srctree-objtree-in-documentation-docbook-makefile
++++ a/Documentation/DocBook/Makefile
+@@ -53,8 +53,8 @@ installmandocs: mandocs
  
-@@ -447,7 +447,7 @@ static int __devinit m25p_probe(struct s
- 	}
- 	if (i == ARRAY_SIZE(m25p_data)) {
- 		DEBUG(MTD_DEBUG_LEVEL1, "%s: unrecognized id %s\n",
--				flash->spi->dev.bus_id, data->type);
-+				spi->dev.bus_id, data->type);
- 		return -ENODEV;
- 	}
+ ###
+ #External programs used
+-KERNELDOC = scripts/kernel-doc
+-DOCPROC   = scripts/basic/docproc
++KERNELDOC = $(srctree)/scripts/kernel-doc
++DOCPROC   = $(objtree)/scripts/basic/docproc
  
+ XMLTOFLAGS = -m $(srctree)/Documentation/DocBook/stylesheet.xsl
+ #XMLTOFLAGS += --skip-validation
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-git-dvb.patch
-spi-kconfig-fix.patch
-spi-controller-driver-for-omap-microwire.patch
-spi-controller-driver-for-omap-microwire-update.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-pnp-export-pnp_bus_type.patch
-gpio-core.patch
-omap-gpio-wrappers.patch
-at91-gpio-wrappers.patch
+fix-typo-in-i2c-smbus-documentation.patch
+search-a-little-harder-for-mkimage.patch
+scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch
