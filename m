@@ -1,54 +1,69 @@
 From: akpm@osdl.org
-Subject: + net-ifb-error-path-loop-fix.patch added to -mm tree
-Date: Tue, 02 Jan 2007 15:02:47 -0800
-Message-ID: <200701022302.l02N2mQ9000440@shell0.pdx.osdl.net>
+Subject: + scsi-lpfc-error-path-fix.patch added to -mm tree
+Date: Tue, 02 Jan 2007 15:03:55 -0800
+Message-ID: <200701022303.l02N3uuj000476@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:41913 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:41989 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932919AbXABXD0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 18:03:26 -0500
+	id S932910AbXABXE3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 18:04:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, jeff@garzik.org
+Cc: m.kozlowski@tuxland.pl, James.Bottomley@steeleye.com, james.smart@emulex.com
 
 
 The patch titled
-     net: ifb error path loop fix
+     scsi: lpfc error path fix
 has been added to the -mm tree.  Its filename is
-     net-ifb-error-path-loop-fix.patch
+     scsi-lpfc-error-path-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net: ifb error path loop fix
+Subject: scsi: lpfc error path fix
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-On error we should start freeing resources at [i-1] not [i-2].
+Add kmalloc failure check and fix the loop on error path.  Without the
+patch pool element at index [0] will not be freed.
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <james.smart@emulex.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/ifb.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/lpfc/lpfc_mem.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/ifb.c~net-ifb-error-path-loop-fix drivers/net/ifb.c
---- a/drivers/net/ifb.c~net-ifb-error-path-loop-fix
-+++ a/drivers/net/ifb.c
-@@ -271,8 +271,7 @@ static int __init ifb_init_module(void)
- 	for (i = 0; i < numifbs && !err; i++)
- 		err = ifb_init_one(i);
- 	if (err) {
--		i--;
--		while (--i >= 0)
-+		while (i--)
- 			ifb_free_one(i);
- 	}
+diff -puN drivers/scsi/lpfc/lpfc_mem.c~scsi-lpfc-error-path-fix drivers/scsi/lpfc/lpfc_mem.c
+--- a/drivers/scsi/lpfc/lpfc_mem.c~scsi-lpfc-error-path-fix
++++ a/drivers/scsi/lpfc/lpfc_mem.c
+@@ -56,6 +56,9 @@ lpfc_mem_alloc(struct lpfc_hba * phba)
  
+ 	pool->elements = kmalloc(sizeof(struct lpfc_dmabuf) *
+ 					 LPFC_MBUF_POOL_SIZE, GFP_KERNEL);
++	if (!pool->elements)
++		goto fail_free_lpfc_mbuf_pool;
++
+ 	pool->max_count = 0;
+ 	pool->current_count = 0;
+ 	for ( i = 0; i < LPFC_MBUF_POOL_SIZE; i++) {
+@@ -82,10 +85,11 @@ lpfc_mem_alloc(struct lpfc_hba * phba)
+  fail_free_mbox_pool:
+ 	mempool_destroy(phba->mbox_mem_pool);
+  fail_free_mbuf_pool:
+-	while (--i)
++	while (i--)
+ 		pci_pool_free(phba->lpfc_mbuf_pool, pool->elements[i].virt,
+ 						 pool->elements[i].phys);
+ 	kfree(pool->elements);
++ fail_free_lpfc_mbuf_pool:
+ 	pci_pool_destroy(phba->lpfc_mbuf_pool);
+  fail_free_dma_buf_pool:
+ 	pci_pool_destroy(phba->lpfc_scsi_dma_buf_pool);
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
@@ -59,3 +74,4 @@ git-mtd.patch
 net-ifb-error-path-loop-fix.patch
 scsi-sic7xxx-stray-bracket-fix.patch
 scsi-53c7xx-brackets-fix.patch
+scsi-lpfc-error-path-fix.patch
