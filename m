@@ -1,152 +1,196 @@
 From: akpm@osdl.org
-Subject: + factor-outstanding-i-o-error-handling.patch added to -mm tree
-Date: Tue, 02 Jan 2007 13:15:30 -0800
-Message-ID: <200701022115.l02LFUvC029927@shell0.pdx.osdl.net>
+Subject: + factor-outstanding-i-o-error-handling-tidy.patch added to -mm tree
+Date: Tue, 02 Jan 2007 13:16:50 -0800
+Message-ID: <200701022116.l02LGoEQ029979@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:32864 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:32939 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755414AbXABVPo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 16:15:44 -0500
+	id S1755411AbXABVRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 16:17:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: guichaz@yahoo.fr, swhiteho@redhat.com
+Cc: akpm@osdl.org, guichaz@yahoo.fr, swhiteho@redhat.com
 
 
 The patch titled
-     Factor outstanding I/O error handling
+     factor-outstanding-i-o-error-handling-tidy
 has been added to the -mm tree.  Its filename is
-     factor-outstanding-i-o-error-handling.patch
+     factor-outstanding-i-o-error-handling-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Factor outstanding I/O error handling
-From: Guillaume Chazarain <guichaz@yahoo.fr>
+Subject: factor-outstanding-i-o-error-handling-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-Cleanup: setting an outstanding error on a mapping was open coded too many
-times.  Factor it out in mapping_set_error().
-
-Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
+Cc: Guillaume Chazarain <guichaz@yahoo.fr>
 Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/gfs2/glops.c         |    5 +----
- fs/mpage.c              |   16 ++--------------
- include/linux/pagemap.h |   10 ++++++++++
- mm/page-writeback.c     |    7 +------
- mm/vmscan.c             |    8 ++------
- 5 files changed, 16 insertions(+), 30 deletions(-)
+ include/linux/pagemap.h |    3 ++-
+ vmscan.c                |    0 
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/gfs2/glops.c~factor-outstanding-i-o-error-handling fs/gfs2/glops.c
---- a/fs/gfs2/glops.c~factor-outstanding-i-o-error-handling
-+++ a/fs/gfs2/glops.c
-@@ -213,10 +213,7 @@ static void inode_go_sync(struct gfs2_gl
- 		if (ip) {
- 			struct address_space *mapping = ip->i_inode.i_mapping;
- 			int error = filemap_fdatawait(mapping);
--			if (error == -ENOSPC)
--				set_bit(AS_ENOSPC, &mapping->flags);
--			else if (error)
--				set_bit(AS_EIO, &mapping->flags);
-+			mapping_set_error(mapping, error);
- 		}
- 		clear_bit(GLF_DIRTY, &gl->gl_flags);
- 		gfs2_ail_empty_gl(gl);
-diff -puN fs/mpage.c~factor-outstanding-i-o-error-handling fs/mpage.c
---- a/fs/mpage.c~factor-outstanding-i-o-error-handling
-+++ a/fs/mpage.c
-@@ -663,12 +663,7 @@ confused:
- 	/*
- 	 * The caller has a ref on the inode, so *mapping is stable
- 	 */
--	if (*ret) {
--		if (*ret == -ENOSPC)
--			set_bit(AS_ENOSPC, &mapping->flags);
--		else
--			set_bit(AS_EIO, &mapping->flags);
--	}
-+	mapping_set_error(mapping, *ret);
- out:
- 	return bio;
- }
-@@ -776,14 +771,7 @@ retry:
- 
- 			if (writepage) {
- 				ret = (*writepage)(page, wbc);
--				if (ret) {
--					if (ret == -ENOSPC)
--						set_bit(AS_ENOSPC,
--							&mapping->flags);
--					else
--						set_bit(AS_EIO,
--							&mapping->flags);
--				}
-+				mapping_set_error(mapping, ret);
- 			} else {
- 				bio = __mpage_writepage(bio, page, get_block,
- 						&last_block_in_bio, &ret, wbc,
-diff -puN include/linux/pagemap.h~factor-outstanding-i-o-error-handling include/linux/pagemap.h
---- a/include/linux/pagemap.h~factor-outstanding-i-o-error-handling
+diff -puN fs/gfs2/glops.c~factor-outstanding-i-o-error-handling-tidy fs/gfs2/glops.c
+diff -puN fs/mpage.c~factor-outstanding-i-o-error-handling-tidy fs/mpage.c
+diff -puN include/linux/pagemap.h~factor-outstanding-i-o-error-handling-tidy include/linux/pagemap.h
+--- a/include/linux/pagemap.h~factor-outstanding-i-o-error-handling-tidy
 +++ a/include/linux/pagemap.h
-@@ -19,6 +19,16 @@
+@@ -11,6 +11,7 @@
+ #include <linux/compiler.h>
+ #include <asm/uaccess.h>
+ #include <linux/gfp.h>
++#include <linux/bitops.h>
+ 
+ /*
+  * Bits in mapping->flags.  The lower __GFP_BITS_SHIFT bits are the page
+@@ -19,7 +20,7 @@
  #define	AS_EIO		(__GFP_BITS_SHIFT + 0)	/* IO error on async write */
  #define AS_ENOSPC	(__GFP_BITS_SHIFT + 1)	/* ENOSPC on async write */
  
-+static inline void mapping_set_error(struct address_space * mapping, int error)
-+{
-+	if (error) {
-+		if (error == -ENOSPC)
-+			set_bit(AS_ENOSPC, &mapping->flags);
-+		else
-+			set_bit(AS_EIO, &mapping->flags);
-+	}
-+}
-+
- static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
+-static inline void mapping_set_error(struct address_space * mapping, int error)
++static inline void mapping_set_error(struct address_space *mapping, int error)
  {
- 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
-diff -puN mm/page-writeback.c~factor-outstanding-i-o-error-handling mm/page-writeback.c
---- a/mm/page-writeback.c~factor-outstanding-i-o-error-handling
-+++ a/mm/page-writeback.c
-@@ -651,12 +651,7 @@ retry:
- 			}
- 
- 			ret = (*writepage)(page, wbc);
--			if (ret) {
--				if (ret == -ENOSPC)
--					set_bit(AS_ENOSPC, &mapping->flags);
--				else
--					set_bit(AS_EIO, &mapping->flags);
--			}
-+			mapping_set_error(mapping, ret);
- 
- 			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE))
- 				unlock_page(page);
-diff -puN mm/vmscan.c~factor-outstanding-i-o-error-handling mm/vmscan.c
---- a/mm/vmscan.c~factor-outstanding-i-o-error-handling
-+++ a/mm/vmscan.c
-@@ -286,12 +286,8 @@ static void handle_write_error(struct ad
- 				struct page *page, int error)
- {
- 	lock_page(page);
--	if (page_mapping(page) == mapping) {
--		if (error == -ENOSPC)
--			set_bit(AS_ENOSPC, &mapping->flags);
--		else
--			set_bit(AS_EIO, &mapping->flags);
--	}
-+	if (page_mapping(page) == mapping)
-+		mapping_set_error(mapping, error);
- 	unlock_page(page);
- }
- 
+ 	if (error) {
+ 		if (error == -ENOSPC)
+diff -puN mm/page-writeback.c~factor-outstanding-i-o-error-handling-tidy mm/page-writeback.c
+diff -puN mm/vmscan.c~factor-outstanding-i-o-error-handling-tidy mm/vmscan.c
 _
 
-Patches currently in -mm which might be from guichaz@yahoo.fr are
+Patches currently in -mm which might be from akpm@osdl.org are
 
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+pci-avoid-taking-pci_bus_sem-early-in-boot.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
-factor-outstanding-i-o-error-handling.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-libata-all-fixup.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-mtd_read-arg-fix.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+fsaio-filesystem-aio-read-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
