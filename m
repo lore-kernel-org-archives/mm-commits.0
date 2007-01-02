@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch added to -mm tree
-Date: Tue, 02 Jan 2007 14:05:48 -0800
-Message-ID: <200701022205.l02M5mlY031381@shell0.pdx.osdl.net>
+Subject: + kvm-fix-gfp_kernel-alloc-in-atomic-section-bug.patch added to -mm tree
+Date: Tue, 02 Jan 2007 14:05:31 -0800
+Message-ID: <200701022205.l02M5WPl031366@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36863 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36857 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932914AbXABWGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 17:06:09 -0500
+	id S932684AbXABWGD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 17:06:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,51 +15,100 @@ Cc: mingo@elte.hu, avi@qumranet.com
 
 
 The patch titled
-     KVM: Use raw_smp_processor_id() instead of smp_processor_id() where applicable
+     KVM: Fix GFP_KERNEL alloc in atomic section bug
 has been added to the -mm tree.  Its filename is
-     kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch
+     kvm-fix-gfp_kernel-alloc-in-atomic-section-bug.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Use raw_smp_processor_id() instead of smp_processor_id() where applicable
+Subject: KVM: Fix GFP_KERNEL alloc in atomic section bug
 From: Ingo Molnar <mingo@elte.hu>
 
+KVM does kmalloc() in an atomic section while having preemption disabled via
+vcpu_load().  Fix this by moving the ->*_msr setup from the vcpu_setup method
+to the vcpu_create method.
+
+(This is also a small speedup for setting up a vcpu, which can in theory be
+more frequent than the vcpu_create method).
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/kvm/vmx.c |   32 +++++++++++++++++++++-----------
+ 1 files changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable
+diff -puN drivers/kvm/vmx.c~kvm-fix-gfp_kernel-alloc-in-atomic-section-bug drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-fix-gfp_kernel-alloc-in-atomic-section-bug
 +++ a/drivers/kvm/vmx.c
-@@ -116,7 +116,7 @@ static void vmcs_clear(struct vmcs *vmcs
- static void __vcpu_clear(void *arg)
- {
- 	struct kvm_vcpu *vcpu = arg;
--	int cpu = smp_processor_id();
-+	int cpu = raw_smp_processor_id();
+@@ -1094,14 +1094,6 @@ static int vmx_vcpu_setup(struct kvm_vcp
+ 	rdmsrl(MSR_IA32_SYSENTER_EIP, a);
+ 	vmcs_writel(HOST_IA32_SYSENTER_EIP, a);   /* 22.2.3 */
  
- 	if (vcpu->cpu == cpu)
- 		vmcs_clear(vcpu->vmcs);
-@@ -541,7 +541,7 @@ static struct vmcs *alloc_vmcs_cpu(int c
+-	ret = -ENOMEM;
+-	vcpu->guest_msrs = kmalloc(PAGE_SIZE, GFP_KERNEL);
+-	if (!vcpu->guest_msrs)
+-		goto out;
+-	vcpu->host_msrs = kmalloc(PAGE_SIZE, GFP_KERNEL);
+-	if (!vcpu->host_msrs)
+-		goto out_free_guest_msrs;
+-
+ 	for (i = 0; i < NR_VMX_MSR; ++i) {
+ 		u32 index = vmx_msr_index[i];
+ 		u32 data_low, data_high;
+@@ -1155,8 +1147,6 @@ static int vmx_vcpu_setup(struct kvm_vcp
  
- static struct vmcs *alloc_vmcs(void)
+ 	return 0;
+ 
+-out_free_guest_msrs:
+-	kfree(vcpu->guest_msrs);
+ out:
+ 	return ret;
+ }
+@@ -1906,13 +1896,33 @@ static int vmx_create_vcpu(struct kvm_vc
  {
--	return alloc_vmcs_cpu(smp_processor_id());
-+	return alloc_vmcs_cpu(raw_smp_processor_id());
+ 	struct vmcs *vmcs;
+ 
++	vcpu->guest_msrs = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!vcpu->guest_msrs)
++		return -ENOMEM;
++
++	vcpu->host_msrs = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!vcpu->host_msrs)
++		goto out_free_guest_msrs;
++
+ 	vmcs = alloc_vmcs();
+ 	if (!vmcs)
+-		return -ENOMEM;
++		goto out_free_msrs;
++
+ 	vmcs_clear(vmcs);
+ 	vcpu->vmcs = vmcs;
+ 	vcpu->launched = 0;
++
+ 	return 0;
++
++out_free_msrs:
++	kfree(vcpu->host_msrs);
++	vcpu->host_msrs = NULL;
++
++out_free_guest_msrs:
++	kfree(vcpu->guest_msrs);
++	vcpu->guest_msrs = NULL;
++
++	return -ENOMEM;
  }
  
- static void free_vmcs(struct vmcs *vmcs)
+ static struct kvm_arch_ops vmx_arch_ops = {
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
 
 kvm-fix-gfp_kernel-alloc-in-atomic-section-bug.patch
-kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch
+kvm-use-raw_smp_processor_id-instead-of.patch
 use-correct-macros-in-raid-code-not-raw-asm.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
