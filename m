@@ -1,50 +1,225 @@
 From: akpm@osdl.org
-Subject: + implement-flush_work-sanity.patch added to -mm tree
-Date: Tue, 02 Jan 2007 16:09:45 -0800
-Message-ID: <200701030009.l0309jYE002105@shell0.pdx.osdl.net>
+Subject: - implement-flush_work.patch removed from -mm tree
+Date: Tue, 02 Jan 2007 16:07:00 -0800
+Message-ID: <200701030007.l03070QX002032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47821 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:47898 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752139AbXACAJ4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:09:56 -0500
+	id S1752532AbXACAKo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 19:10:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, oleg@tv-sign.ru
+To: akpm@osdl.org, auke-jan.h.kok@intel.com, axboe@suse.de, bcrl@kvack.org, davem@davemloft.net, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, mchan@broadcom.com, nickpiggin@yahoo.com.au, torvalds@osdl.org, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     implement-flush_work-sanity
-has been added to the -mm tree.  Its filename is
-     implement-flush_work-sanity.patch
+     implement flush_work() and flush_keventd_work()
+has been removed from the -mm tree.  Its filename was
+     implement-flush_work.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: implement-flush_work-sanity
+Subject: implement flush_work() and flush_keventd_work()
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+A basic problem with flush_scheduled_work() is that it blocks behind _all_
+presently-queued works, rather than just the work whcih the caller wants to
+flush.  If the caller holds some lock, and if one of the queued work happens
+to want that lock as well then accidental deadlocks can occur.
+
+One example of this is the phy layer: it wants to flush work while holding
+rtnl_lock().  But if a linkwatch event happens to be queued, the phy code will
+deadlock because the linkwatch callback function takes rtnl_lock.
+
+So we implement a new function which will flush a *single* work - just the one
+which the caller wants to free up.  Thus we avoid the accidental deadlocks
+which can arise from unrelated subsystems' callbacks taking shared locks.
+
+It plays games with workqueue_mutex to avoid deadlocks which can occur when a
+work callback itself wants to run flush_scheduled_work.  scsi does this when
+tearing down a request_queue.
+
+It might well explode when used in combination with no-auto-release
+work_structs.  But they need to go away...
+
+(Various patches which use this new facility in various popular places
+follow..)
+
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Linus Torvalds <torvalds@osdl.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Jens Axboe <axboe@suse.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Michael Chan <mchan@broadcom.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/workqueue.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/workqueue.h |    4 +
+ kernel/workqueue.c        |   89 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 90 insertions(+), 3 deletions(-)
 
-diff -puN kernel/workqueue.c~implement-flush_work-sanity kernel/workqueue.c
---- a/kernel/workqueue.c~implement-flush_work-sanity
+diff -puN kernel/workqueue.c~implement-flush_work kernel/workqueue.c
+--- a/kernel/workqueue.c~implement-flush_work
 +++ a/kernel/workqueue.c
-@@ -169,7 +169,7 @@ int fastcall run_scheduled_work(struct w
- }
- EXPORT_SYMBOL(run_scheduled_work);
+@@ -56,6 +56,7 @@ struct cpu_workqueue_struct {
  
--static inline void insert_work(struct cpu_workqueue_struct *cwq,
-+static void insert_work(struct cpu_workqueue_struct *cwq,
- 				struct work_struct *work, int tail)
+ 	struct workqueue_struct *wq;
+ 	struct task_struct *thread;
++	struct work_struct *current_work;
+ 
+ 	int run_depth;		/* Detect run_workqueue() recursion depth */
+ 
+@@ -78,6 +79,7 @@ static DEFINE_MUTEX(workqueue_mutex);
+ static LIST_HEAD(workqueues);
+ 
+ static int singlethread_cpu;
++static struct workqueue_struct *keventd_wq;
+ 
+ /* If it's single threaded, it isn't in the list of workqueues. */
+ static inline int is_single_threaded(struct workqueue_struct *wq)
+@@ -319,6 +321,7 @@ static void run_workqueue(struct cpu_wor
+ 		work_func_t f = work->func;
+ 
+ 		list_del_init(cwq->worklist.next);
++		cwq->current_work = work;
+ 		spin_unlock_irqrestore(&cwq->lock, flags);
+ 
+ 		BUG_ON(get_wq_data(work) != cwq);
+@@ -338,6 +341,7 @@ static void run_workqueue(struct cpu_wor
+ 		}
+ 
+ 		spin_lock_irqsave(&cwq->lock, flags);
++		cwq->current_work = NULL;
+ 		cwq->remove_sequence++;
+ 		wake_up(&cwq->work_done);
+ 	}
+@@ -436,6 +440,89 @@ static void flush_cpu_workqueue(struct c
+ 	}
+ }
+ 
++static void wait_on_work(struct cpu_workqueue_struct *cwq,
++				struct work_struct *work, int cpu)
++{
++	DEFINE_WAIT(wait);
++
++	spin_lock_irq(&cwq->lock);
++	while (cwq->current_work == work) {
++		prepare_to_wait(&cwq->work_done, &wait, TASK_UNINTERRUPTIBLE);
++		spin_unlock_irq(&cwq->lock);
++		if (cpu != -1)
++			mutex_unlock(&workqueue_mutex);
++		schedule();
++		if (cpu != -1) {
++			mutex_lock(&workqueue_mutex);
++			if (!cpu_online(cpu))	/* oops, CPU got unplugged */
++				goto bail;
++		}
++		spin_lock_irq(&cwq->lock);
++	}
++	spin_unlock_irq(&cwq->lock);
++bail:
++	finish_wait(&cwq->work_done, &wait);
++}
++
++/**
++ * flush_work - block until a work_struct's callback has terminated
++ * @wq: the workqueue on which the work is queued
++ * @work: the work which is to be flushed
++ *
++ * flush_work() will attempt to cancel the work if it is queued.  If the work's
++ * callback appears to be running, flush_work() will block until it has
++ * completed.
++ *
++ * flush_work() is designed to be used when the caller is tearing down data
++ * structures which the callback function operates upon.  It is expected that,
++ * prior to calling flush_work(), the caller has arranged for the work to not
++ * be requeued.
++ */
++void flush_work(struct workqueue_struct *wq, struct work_struct *work)
++{
++	for ( ; ; ) {
++		struct cpu_workqueue_struct *cwq;
++
++		cwq = get_wq_data(work);
++		if (!cwq) {
++			/*
++			 * It has never been queued.  And the flush_work()
++			 * caller is required to guarantee that a queueing is
++			 * not in progress now, and cannot occur in the future.
++			 * So we're done.
++			 */
++			return;
++		}
++
++
++	if (is_single_threaded(wq)) {
++		/* Always use first cpu's area. */
++		flush_one_work(per_cpu_ptr(wq->cpu_wq, singlethread_cpu), work,
++				-1);
++	} else {
++		int cpu;
++
++		mutex_lock(&workqueue_mutex);
++		for_each_online_cpu(cpu)
++			flush_one_work(per_cpu_ptr(wq->cpu_wq, cpu), work, cpu);
++		mutex_unlock(&workqueue_mutex);
++	}
++}
++EXPORT_SYMBOL_GPL(flush_work);
++
++/**
++ * flush_keventd_work - block until a keventd-owned work_struct's callback has terminated
++ * @work: the work whcih is to be flushed
++ *
++ * flush_keventd_work() runs flush_work() against a work_struct which is handled
++ * by keventd.
++ */
++void flush_keventd_work(struct work_struct *work)
++{
++	flush_work(keventd_wq, work);
++}
++EXPORT_SYMBOL_GPL(flush_keventd_work);
++
+ /**
+  * flush_workqueue - ensure that any scheduled work has run to completion.
+  * @wq: workqueue to flush
+@@ -588,8 +675,6 @@ void destroy_workqueue(struct workqueue_
+ }
+ EXPORT_SYMBOL_GPL(destroy_workqueue);
+ 
+-static struct workqueue_struct *keventd_wq;
+-
+ /**
+  * schedule_work - put work task in global workqueue
+  * @work: job to be done
+diff -puN include/linux/workqueue.h~implement-flush_work include/linux/workqueue.h
+--- a/include/linux/workqueue.h~implement-flush_work
++++ a/include/linux/workqueue.h
+@@ -160,6 +160,8 @@ extern int FASTCALL(queue_delayed_work(s
+ extern int queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
+ 	struct delayed_work *work, unsigned long delay);
+ extern void FASTCALL(flush_workqueue(struct workqueue_struct *wq));
++extern void flush_work(struct workqueue_struct *wq, struct work_struct *work);
++extern void flush_keventd_work(struct work_struct *work);
+ 
+ extern int FASTCALL(schedule_work(struct work_struct *work));
+ extern int FASTCALL(run_scheduled_work(struct work_struct *work));
+@@ -180,7 +182,7 @@ int execute_in_process_context(work_func
+ /*
+  * Kill off a pending schedule_delayed_work().  Note that the work callback
+  * function may still be running on return from cancel_delayed_work().  Run
+- * flush_scheduled_work() to wait on it.
++ * flush_scheduled_work() or flush_work() to wait on it.
+  */
+ static inline int cancel_delayed_work(struct delayed_work *work)
  {
- 	set_wq_data(work, cwq);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -118,6 +293,7 @@ consolidate-line-discipline-number-definitions-v2-fix-2.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 spi-controller-driver-for-omap-microwire-update-fix.patch
 factor-outstanding-i-o-error-handling-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
 vmi-versus-hrtimers.patch
 gtod-persistent-clock-support-i386.patch
 hrtimers-clean-up-locking.patch
@@ -130,8 +306,6 @@ time-x86_64-split-x86_64-kernel-timec-up-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
 move-page-writeback-acounting-out-of-macros.patch
 per-backing_dev-dirty-and-writeback-page-accounting.patch
 ext2-reservations.patch
