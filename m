@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + reiser4-vs-git-block.patch added to -mm tree
-Date: Wed, 03 Jan 2007 15:25:08 -0800
-Message-ID: <200701032325.l03NPW8W002654@shell0.pdx.osdl.net>
+Subject: + reiser4-vs-git-block-2.patch added to -mm tree
+Date: Wed, 03 Jan 2007 15:37:10 -0800
+Message-ID: <200701032337.l03NbY5k002925@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:59752 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:60546 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932117AbXACX0B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 18:26:01 -0500
+	id S932191AbXACXiB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 18:38:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,16 @@ Cc: akpm@osdl.org, edward@namesys.com, jens.axboe@oracle.com, vs@namesys.com
 
 
 The patch titled
-     reiser4-vs-git-block
+     reiser4-vs-git-block-2
 has been added to the -mm tree.  Its filename is
-     reiser4-vs-git-block.patch
+     reiser4-vs-git-block-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiser4-vs-git-block
+Subject: reiser4-vs-git-block-2
 From: Andrew Morton <akpm@osdl.org>
-
-Attempt to fix reiser4 for git-block changes.  And for some changes I made to
-fs-writeback.c return values.
 
 Cc: Vladimir Saveliev <vs@namesys.com>
 Cc: Edward Shishkin <edward@namesys.com>
@@ -35,121 +32,44 @@ Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/flush_queue.c  |    3 ---
- fs/reiser4/page_cache.c   |    8 --------
- fs/reiser4/status_flags.c |    2 --
- fs/reiser4/super_ops.c    |   10 ++++++----
- fs/reiser4/vfs_ops.c      |    1 -
- 5 files changed, 6 insertions(+), 18 deletions(-)
+ fs/reiser4/plugin/object.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/reiser4/page_cache.c~reiser4-vs-git-block fs/reiser4/page_cache.c
---- a/fs/reiser4/page_cache.c~reiser4-vs-git-block
-+++ a/fs/reiser4/page_cache.c
-@@ -569,14 +569,6 @@ static struct address_space_operations f
- 	.writepage = reiser4_writepage,
- 	/* this is called to read formatted node */
- 	.readpage = formatted_readpage,
--	/* ->sync_page() method of fake inode address space operations. Called
--	   from wait_on_page() and lock_page().
--
--	   This is most annoyingly misnomered method. Actually it is called
--	   from wait_on_page_bit() and lock_page() and its purpose is to
--	   actually start io by jabbing device drivers.
--	 */
--	.sync_page = block_sync_page,
- 	/* Write back some dirty pages from this mapping. Called from sync.
- 	   called during sync (pdflush) */
- 	.writepages = writepages_fake,
-diff -puN fs/reiser4/flush_queue.c~reiser4-vs-git-block fs/reiser4/flush_queue.c
---- a/fs/reiser4/flush_queue.c~reiser4-vs-git-block
-+++ a/fs/reiser4/flush_queue.c
-@@ -236,9 +236,6 @@ static int wait_io(flush_queue_t * fq, i
- 
- 		super = reiser4_get_current_sb();
- 
--		/* FIXME: this is instead of blk_run_queues() */
--		blk_run_address_space(reiser4_get_super_fake(super)->i_mapping);
--
- 		if (!(super->s_flags & MS_RDONLY))
- 			wait_event(fq->wait, atomic_read(&fq->nr_submitted) == 0);
- 
-diff -puN fs/reiser4/super_ops.c~reiser4-vs-git-block fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~reiser4-vs-git-block
-+++ a/fs/reiser4/super_ops.c
-@@ -394,15 +394,16 @@ static void reiser4_clear_inode(struct i
-  * mapping - dirty pages get into atoms. Writeout is called to flush some
-  * atoms.
-  */
--static void reiser4_sync_inodes(struct super_block *super,
-+static int reiser4_sync_inodes(struct super_block *super,
- 				struct writeback_control *wbc)
- {
- 	reiser4_context *ctx;
- 	long to_write;
-+	int ret;
- 
- 	if (wbc->for_kupdate)
- 		/* reiser4 has its own means of periodical write-out */
--		return;
-+		return 0;
- 
- 	to_write = wbc->nr_to_write;
- 	assert("vs-49", wbc->older_than_this == NULL);
-@@ -410,14 +411,14 @@ static void reiser4_sync_inodes(struct s
- 	ctx = reiser4_init_context(super);
- 	if (IS_ERR(ctx)) {
- 		warning("vs-13", "failed to init context");
--		return;
-+		return PTR_ERR(ctx);
- 	}
- 
- 	/*
- 	 * call reiser4_writepages for each of dirty inodes to turn dirty pages
- 	 * into transactions if they were not yet.
- 	 */
--	generic_sync_sb_inodes(super, wbc);
-+	ret = generic_sync_sb_inodes(super, wbc);
- 
- 	/* flush goes here */
- 	wbc->nr_to_write = to_write;
-@@ -426,6 +427,7 @@ static void reiser4_sync_inodes(struct s
- 	/* avoid recursive calls to ->sync_inodes */
- 	context_set_commit_async(ctx);
- 	reiser4_exit_context(ctx);
-+	return ret;
- }
- 
- /**
-diff -puN fs/reiser4/status_flags.c~reiser4-vs-git-block fs/reiser4/status_flags.c
---- a/fs/reiser4/status_flags.c~reiser4-vs-git-block
-+++ a/fs/reiser4/status_flags.c
-@@ -63,7 +63,6 @@ int reiser4_status_init(reiser4_block_nr
- 	}
- 	lock_page(page);
- 	submit_bio(READ, bio);
--	blk_run_address_space(reiser4_get_super_fake(sb)->i_mapping);
- 	wait_on_page_locked(page);
- 	if (!PageUptodate(page)) {
- 		warning("green-2007",
-@@ -158,7 +157,6 @@ int reiser4_status_write(__u64 status, _
- 	lock_page(get_super_private(sb)->status_page);	// Safe as nobody should touch our page.
- 	/* We can block now, but we have no other choice anyway */
- 	submit_bio(WRITE, bio);
--	blk_run_address_space(reiser4_get_super_fake(sb)->i_mapping);
- 	return 0;		// We do not wait for io to finish.
- }
- 
-diff -puN fs/reiser4/vfs_ops.c~reiser4-vs-git-block fs/reiser4/vfs_ops.c
---- a/fs/reiser4/vfs_ops.c~reiser4-vs-git-block
-+++ a/fs/reiser4/vfs_ops.c
-@@ -168,7 +168,6 @@ void reiser4_writeout(struct super_block
- 		/* do not put more requests to overload write queue */
- 		if (wbc->nonblocking &&
- 		    bdi_write_congested(mapping->backing_dev_info)) {
--			blk_run_address_space(mapping);
- 			wbc->encountered_congestion = 1;
- 			break;
- 		}
+diff -puN fs/reiser4/plugin/object.c~reiser4-vs-git-block-2 fs/reiser4/plugin/object.c
+--- a/fs/reiser4/plugin/object.c~reiser4-vs-git-block-2
++++ a/fs/reiser4/plugin/object.c
+@@ -119,7 +119,6 @@ file_plugin file_plugins[LAST_FILE_PLUGI
+ 		.as_ops = {
+ 			.writepage = reiser4_writepage,
+ 			.readpage = readpage_unix_file,
+-			.sync_page = block_sync_page,
+ 			.writepages = writepages_unix_file,
+ 			.set_page_dirty = reiser4_set_page_dirty,
+ 			.readpages = readpages_unix_file,
+@@ -326,7 +325,6 @@ file_plugin file_plugins[LAST_FILE_PLUGI
+ 		.as_ops = {
+ 			.writepage = reiser4_writepage,
+ 			.readpage = readpage_cryptcompress,
+-			.sync_page = block_sync_page,
+ 			.writepages = writepages_cryptcompress,
+ 			.set_page_dirty = reiser4_set_page_dirty,
+ 			.readpages = readpages_cryptcompress,
+@@ -417,7 +415,6 @@ dir_plugin dir_plugins[LAST_DIR_ID] = {
+ 		},
+ 		.as_ops = {
+ 			.writepage = bugop,
+-			.sync_page = bugop,
+ 			.writepages = dummyop,
+ 			.set_page_dirty = bugop,
+ 			.readpages = bugop,
+@@ -477,7 +474,6 @@ dir_plugin dir_plugins[LAST_DIR_ID] = {
+ 		},
+ 		.as_ops = {
+ 			.writepage = bugop,
+-			.sync_page = bugop,
+ 			.writepages = dummyop,
+ 			.set_page_dirty = bugop,
+ 			.readpages = bugop,
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -279,6 +199,7 @@ reiser4-temp-fix.patch
 reiser4-kmem_cache_t-removal.patch
 reiser4-test_clear_page_dirty.patch
 reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
 hpt3xx-rework-rate-filtering-tidy.patch
 jmicron-warning-fix.patch
 statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
