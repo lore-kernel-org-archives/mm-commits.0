@@ -1,44 +1,31 @@
 From: akpm@osdl.org
-Subject: - fsaio-aio-o_sync-filesystem-write.patch removed from -mm tree
-Date: Wed, 03 Jan 2007 14:16:46 -0800
-Message-ID: <200701032216.l03MGkGY000616@shell0.pdx.osdl.net>
+Subject: - fsaio-filesystem-aio-read-tidy.patch removed from -mm tree
+Date: Wed, 03 Jan 2007 14:16:43 -0800
+Message-ID: <200701032216.l03MGh9I000613@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55364 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55378 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932157AbXACWRk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 17:17:40 -0500
+	id S932159AbXACWSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 17:18:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio: AIO O_SYNC filesystem write
+     fsaio-filesystem-aio-read-tidy
 has been removed from the -mm tree.  Its filename was
-     fsaio-aio-o_sync-filesystem-write.patch
+     fsaio-filesystem-aio-read-tidy.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fsaio: AIO O_SYNC filesystem write
-From: Suparna Bhattacharya <suparna@in.ibm.com>
+Subject: fsaio-filesystem-aio-read-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-AIO support for O_SYNC buffered writes, built over O_SYNC-speedup.  It uses
-the tagged radix tree lookups to writeout just the pages pertaining to this
-request, and retries instead of blocking for writeback to complete on the same
-range.  All the writeout is issued at the time of io submission, and there is
-a check to make sure that retries skip over straight to the
-wait_on_page_writeback_range.
-
-Limitations: Extending file writes or hole overwrites with O_SYNC may still
-block because we have yet to convert generic_osync_inode to be asynchronous. 
-For non O_SYNC writes, writeout happens in the background and so typically
-appears async to the caller except for memory throttling and non-block aligned
-writes involving read-modify-write.
-
-Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Zach Brown <zach.brown@oracle.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
@@ -46,191 +33,195 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs.h |   13 +++++++--
- mm/filemap.c       |   61 ++++++++++++++++++++++++++++++-------------
- 2 files changed, 54 insertions(+), 20 deletions(-)
+ mm/filemap.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/fs.h~fsaio-aio-o_sync-filesystem-write include/linux/fs.h
---- a/include/linux/fs.h~fsaio-aio-o_sync-filesystem-write
-+++ a/include/linux/fs.h
-@@ -280,6 +280,7 @@ extern int dir_notify_enable;
- #include <linux/prio_tree.h>
- #include <linux/init.h>
- #include <linux/pid.h>
-+#include <linux/sched.h>
- #include <linux/mutex.h>
- 
- #include <asm/atomic.h>
-@@ -1589,8 +1590,16 @@ extern int filemap_fdatawait(struct addr
- extern int filemap_write_and_wait(struct address_space *mapping);
- extern int filemap_write_and_wait_range(struct address_space *mapping,
- 				        loff_t lstart, loff_t lend);
--extern int wait_on_page_writeback_range(struct address_space *mapping,
--				pgoff_t start, pgoff_t end);
-+extern int __wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, wait_queue_t *wait);
-+
-+static inline int wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end)
-+{
-+	return __wait_on_page_writeback_range(mapping, start, end,
-+		&current->__wait.wait);
-+}
-+
- extern int __filemap_fdatawrite_range(struct address_space *mapping,
- 				loff_t start, loff_t end, int sync_mode);
- 
-diff -puN mm/filemap.c~fsaio-aio-o_sync-filesystem-write mm/filemap.c
---- a/mm/filemap.c~fsaio-aio-o_sync-filesystem-write
+diff -puN mm/filemap.c~fsaio-filesystem-aio-read-tidy mm/filemap.c
+--- a/mm/filemap.c~fsaio-filesystem-aio-read-tidy
 +++ a/mm/filemap.c
-@@ -239,10 +239,11 @@ EXPORT_SYMBOL(filemap_flush);
-  * @end:	ending page index
-  *
-  * Wait for writeback to complete against pages indexed by start->end
-- * inclusive
-+ * inclusive. In AIO context, this may queue an async notification
-+ * and retry callback and return, instead of blocking the caller.
-  */
--int wait_on_page_writeback_range(struct address_space *mapping,
--				pgoff_t start, pgoff_t end)
-+int __wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, wait_queue_t *wait)
- {
- 	struct pagevec pvec;
- 	int nr_pages;
-@@ -254,20 +255,20 @@ int wait_on_page_writeback_range(struct 
+@@ -984,9 +984,9 @@ page_ok:
+ page_not_up_to_date:
+ 		/* Get exclusive access to the page ... */
  
- 	pagevec_init(&pvec, 0);
- 	index = start;
--	while ((index <= end) &&
-+	while (!ret && (index <= end) &&
- 			(nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
- 			PAGECACHE_TAG_WRITEBACK,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1)) != 0) {
- 		unsigned i;
+-		if ((error = __lock_page(page, current->io_wait))) {
++		error = __lock_page(page, current->io_wait);
++		if (error)
+ 			goto readpage_error;
+-		}
  
--		for (i = 0; i < nr_pages; i++) {
-+		for (i = 0; !ret && (i < nr_pages); i++) {
- 			struct page *page = pvec.pages[i];
- 
- 			/* until radix tree lookup accepts end_index */
- 			if (page->index > end)
- 				continue;
- 
--			wait_on_page_writeback(page);
-+			ret = __wait_on_page_writeback(page, wait);
- 			if (PageError(page))
- 				ret = -EIO;
+ 		/* Did it get truncated before we got the lock? */
+ 		if (!page->mapping) {
+@@ -1014,7 +1014,8 @@ readpage:
  		}
-@@ -303,18 +304,27 @@ int sync_page_range(struct inode *inode,
- {
- 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
- 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
--	int ret;
-+	int ret = 0;
  
- 	if (!mapping_cap_writeback_dirty(mapping) || !count)
- 		return 0;
-+	if (in_aio()) {
-+		/* Already issued writeouts for this iocb ? */
-+		if (kiocbTryRestart(io_wait_to_kiocb(current->io_wait)))
-+			goto do_wait; /* just need to check if done */
-+	}
- 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
--	if (ret == 0) {
-+
-+	if (ret >= 0) {
- 		mutex_lock(&inode->i_mutex);
- 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
- 		mutex_unlock(&inode->i_mutex);
- 	}
--	if (ret == 0)
--		ret = wait_on_page_writeback_range(mapping, start, end);
-+do_wait:
-+	if (ret >= 0) {
-+		ret = __wait_on_page_writeback_range(mapping, start, end,
-+			current->io_wait);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(sync_page_range);
-@@ -335,15 +345,23 @@ int sync_page_range_nolock(struct inode 
- {
- 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
- 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
--	int ret;
-+	int ret = 0;
+ 		if (!PageUptodate(page)) {
+-			if ((error = __lock_page(page, current->io_wait)))
++			error = __lock_page(page, current->io_wait);
++			if (error)
+ 				goto readpage_error;
+ 			if (!PageUptodate(page)) {
+ 				if (page->mapping == NULL) {
+@@ -1061,10 +1062,10 @@ readpage:
+ 		goto page_ok;
  
- 	if (!mapping_cap_writeback_dirty(mapping) || !count)
- 		return 0;
-+	if (in_aio()) {
-+		/* Already issued writeouts for this iocb ? */
-+		if (kiocbTryRestart(io_wait_to_kiocb(current->io_wait)))
-+			goto do_wait; /* just need to check if done */
-+	}
- 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
--	if (ret == 0)
-+	if (ret >= 0)
- 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
--	if (ret == 0)
--		ret = wait_on_page_writeback_range(mapping, start, end);
-+do_wait:
-+	if (ret >= 0) {
-+		ret = __wait_on_page_writeback_range(mapping, start, end,
-+			current->io_wait);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(sync_page_range_nolock);
-@@ -2215,7 +2233,7 @@ zero_length_segment:
- 	 */
- 	if (likely(status >= 0)) {
- 		if (unlikely((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
--			if (!a_ops->writepage || !is_sync_kiocb(iocb))
-+			if (!a_ops->writepage)
- 				status = generic_osync_inode(inode, mapping,
- 						OSYNC_METADATA|OSYNC_DATA);
- 		}
-@@ -2267,7 +2285,10 @@ __generic_file_aio_write_nolock(struct k
- 		ocount -= iv->iov_len;	/* This segment is no good */
- 		break;
- 	}
--
-+	if (!is_sync_kiocb(iocb) && kiocbIsRestarted(iocb)) {
-+		/* nothing to transfer, may just need to sync data */
-+		return ocount;
-+	}
- 	count = ocount;
- 	pos = *ppos;
- 
-@@ -2367,8 +2388,10 @@ ssize_t generic_file_aio_write_nolock(st
- 		ssize_t err;
- 
- 		err = sync_page_range_nolock(inode, mapping, pos, ret);
--		if (err < 0)
-+		if (err < 0) {
- 			ret = err;
-+			iocb->ki_pos = pos;
-+		}
- 	}
- 	return ret;
- }
-@@ -2393,8 +2416,10 @@ ssize_t generic_file_aio_write(struct ki
- 		ssize_t err;
- 
- 		err = sync_page_range(inode, mapping, pos, ret);
--		if (err < 0)
-+		if (err < 0) {
- 			ret = err;
-+			iocb->ki_pos = pos;
-+		}
- 	}
- 	return ret;
- }
+ readpage_error:
+-		/* We don't have uptodate data in the page yet */
+-		/* Could be due to an error or because we need to
+-		 * retry when we get an async i/o notification.
+-		 * Report the reason.
++		/*
++		 * We don't have uptodate data in the page yet.  This could be
++		 * due to an error or because we need to retry when we get an
++		 * async i/o notification.  Report the reason.
+ 		 */
+ 		desc->error = error;
+ 		page_cache_release(page);
 _
 
-Patches currently in -mm which might be from suparna@in.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
-fsaio-aio-o_sync-filesystem-write.patch
+start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
+kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
+pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
+atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+pci-avoid-taking-pci_bus_sem-early-in-boot.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+remove-invalidate_inode_pages.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+fsaio-filesystem-aio-read-tidy.patch
 aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
