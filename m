@@ -1,31 +1,39 @@
 From: akpm@osdl.org
-Subject: - fsaio-filesystem-aio-read-tidy.patch removed from -mm tree
-Date: Wed, 03 Jan 2007 14:16:43 -0800
-Message-ID: <200701032216.l03MGh9I000613@shell0.pdx.osdl.net>
+Subject: - fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch removed from -mm tree
+Date: Wed, 03 Jan 2007 14:16:34 -0800
+Message-ID: <200701032216.l03MGY7c000604@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55378 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55416 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932159AbXACWSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 17:18:00 -0500
+	id S932151AbXACWSV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 17:18:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio-filesystem-aio-read-tidy
+     fsaio: enable wait bit based filtered wakeups to work for AIO
 has been removed from the -mm tree.  Its filename was
-     fsaio-filesystem-aio-read-tidy.patch
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fsaio-filesystem-aio-read-tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: fsaio: enable wait bit based filtered wakeups to work for AIO
+From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Enable wait bit based filtered wakeups to work for AIO.  Replaces the wait
+queue entry in the kiocb with a wait bit structure, to allow enough space for
+the wait bit key.  This adds an extra level of indirection in references to
+the wait queue entry in the iocb.  Also, an extra check had to be added in
+aio_wake_function to allow for other kinds of waiters which do not require
+wait bit, based on the assumption that the key passed in would be NULL in such
+cases.
+
+Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Zach Brown <zach.brown@oracle.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
@@ -33,195 +41,147 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/filemap.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ fs/aio.c            |   21 ++++++++++++++-------
+ include/linux/aio.h |    7 ++++---
+ kernel/wait.c       |   17 ++++++++++++++---
+ 3 files changed, 32 insertions(+), 13 deletions(-)
 
-diff -puN mm/filemap.c~fsaio-filesystem-aio-read-tidy mm/filemap.c
---- a/mm/filemap.c~fsaio-filesystem-aio-read-tidy
-+++ a/mm/filemap.c
-@@ -984,9 +984,9 @@ page_ok:
- page_not_up_to_date:
- 		/* Get exclusive access to the page ... */
+diff -puN fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fs/aio.c
+--- a/fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio
++++ a/fs/aio.c
+@@ -713,13 +713,13 @@ static ssize_t aio_run_iocb(struct kiocb
+ 	 * cause the iocb to be kicked for continuation (through
+ 	 * the aio_wake_function callback).
+ 	 */
+-	BUG_ON(current->io_wait != NULL);
+-	current->io_wait = &iocb->ki_wait;
++	BUG_ON(!is_sync_wait(current->io_wait));
++	current->io_wait = &iocb->ki_wait.wait;
+ 	ret = retry(iocb);
+ 	current->io_wait = NULL;
  
--		if ((error = __lock_page(page, current->io_wait))) {
-+		error = __lock_page(page, current->io_wait);
-+		if (error)
- 			goto readpage_error;
--		}
+ 	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED) {
+-		BUG_ON(!list_empty(&iocb->ki_wait.task_list));
++		BUG_ON(!list_empty(&iocb->ki_wait.wait.task_list));
+ 		aio_complete(iocb, ret, 0);
+ 	}
+ out:
+@@ -878,7 +878,7 @@ static void try_queue_kicked_iocb(struct
+ 	 * than retry has happened before we could queue the iocb.  This also
+ 	 * means that the retry could have completed and freed our iocb, no
+ 	 * good. */
+-	BUG_ON((!list_empty(&iocb->ki_wait.task_list)));
++	BUG_ON((!list_empty(&iocb->ki_wait.wait.task_list)));
  
- 		/* Did it get truncated before we got the lock? */
- 		if (!page->mapping) {
-@@ -1014,7 +1014,8 @@ readpage:
+ 	spin_lock_irqsave(&ctx->ctx_lock, flags);
+ 	/* set this inside the lock so that we can't race with aio_run_iocb()
+@@ -1513,7 +1513,13 @@ static ssize_t aio_setup_iocb(struct kio
+ static int aio_wake_function(wait_queue_t *wait, unsigned mode,
+ 			     int sync, void *key)
+ {
+-	struct kiocb *iocb = container_of(wait, struct kiocb, ki_wait);
++	struct wait_bit_queue *wait_bit
++		= container_of(wait, struct wait_bit_queue, wait);
++	struct kiocb *iocb = container_of(wait_bit, struct kiocb, ki_wait);
++
++	/* Assumes that a non-NULL key implies wait bit filtering */
++	if (key && !test_wait_bit_key(wait, key))
++		return 0;
+ 
+ 	list_del_init(&wait->task_list);
+ 	kick_iocb(iocb);
+@@ -1568,8 +1574,9 @@ int fastcall io_submit_one(struct kioctx
+ 	req->ki_buf = (char __user *)(unsigned long)iocb->aio_buf;
+ 	req->ki_left = req->ki_nbytes = iocb->aio_nbytes;
+ 	req->ki_opcode = iocb->aio_lio_opcode;
+-	init_waitqueue_func_entry(&req->ki_wait, aio_wake_function);
+-	INIT_LIST_HEAD(&req->ki_wait.task_list);
++	init_waitqueue_func_entry(&req->ki_wait.wait, aio_wake_function);
++	INIT_LIST_HEAD(&req->ki_wait.wait.task_list);
++ 	req->ki_run_list.next = req->ki_run_list.prev = NULL;
+ 
+ 	ret = aio_setup_iocb(req);
+ 
+diff -puN include/linux/aio.h~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio include/linux/aio.h
+--- a/include/linux/aio.h~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio
++++ a/include/linux/aio.h
+@@ -102,7 +102,7 @@ struct kiocb {
+ 	} ki_obj;
+ 
+ 	__u64			ki_user_data;	/* user's data for completion */
+-	wait_queue_t		ki_wait;
++	struct wait_bit_queue	ki_wait;
+ 	loff_t			ki_pos;
+ 
+ 	atomic_t		ki_bio_count;	/* num bio used for this iocb */
+@@ -135,7 +135,7 @@ struct kiocb {
+ 		(x)->ki_dtor = NULL;			\
+ 		(x)->ki_obj.tsk = tsk;			\
+ 		(x)->ki_user_data = 0;                  \
+-		init_wait((&(x)->ki_wait));             \
++		init_wait_bit_task((&(x)->ki_wait), current);\
+ 	} while (0)
+ 
+ #define AIO_RING_MAGIC			0xa10a10a1
+@@ -237,7 +237,8 @@ do {									\
+ 	}								\
+ } while (0)
+ 
+-#define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
++#define io_wait_to_kiocb(io_wait) container_of(container_of(io_wait,	\
++	struct wait_bit_queue, wait), struct kiocb, ki_wait)
+ 
+ #include <linux/aio_abi.h>
+ 
+diff -puN kernel/wait.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio kernel/wait.c
+--- a/kernel/wait.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio
++++ a/kernel/wait.c
+@@ -139,7 +139,8 @@ EXPORT_SYMBOL(autoremove_wake_function);
+ 
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
+ {
+-	if (!test_wait_bit_key(wait, arg))
++	/* Assumes that a non-NULL key implies wait bit filtering */
++	if (arg && !test_wait_bit_key(wait, arg))
+ 		return 0;
+ 	return autoremove_wake_function(wait, mode, sync, arg);
+ }
+@@ -161,7 +162,12 @@ __wait_on_bit(wait_queue_head_t *wq, str
+ 		if (test_bit(q->key.bit_nr, q->key.flags))
+ 			ret = (*action)(q->key.flags, &q->wait);
+ 	} while (test_bit(q->key.bit_nr, q->key.flags) && !ret);
+-	finish_wait(wq, &q->wait);
++	/*
++	 * AIO retries require the wait queue entry to remain queued
++	 * for async notification
++	 */
++	if (ret != -EIOCBRETRY)
++		finish_wait(wq, &q->wait);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(__wait_on_bit);
+@@ -190,7 +196,12 @@ __wait_on_bit_lock(wait_queue_head_t *wq
+ 				break;
  		}
- 
- 		if (!PageUptodate(page)) {
--			if ((error = __lock_page(page, current->io_wait)))
-+			error = __lock_page(page, current->io_wait);
-+			if (error)
- 				goto readpage_error;
- 			if (!PageUptodate(page)) {
- 				if (page->mapping == NULL) {
-@@ -1061,10 +1062,10 @@ readpage:
- 		goto page_ok;
- 
- readpage_error:
--		/* We don't have uptodate data in the page yet */
--		/* Could be due to an error or because we need to
--		 * retry when we get an async i/o notification.
--		 * Report the reason.
-+		/*
-+		 * We don't have uptodate data in the page yet.  This could be
-+		 * due to an error or because we need to retry when we get an
-+		 * async i/o notification.  Report the reason.
- 		 */
- 		desc->error = error;
- 		page_cache_release(page);
+ 	} while (test_and_set_bit(q->key.bit_nr, q->key.flags));
+-	finish_wait(wq, &q->wait);
++	/*
++	 * AIO retries require the wait queue entry to remain queued
++	 * for async notification
++	 */
++	if (ret != -EIOCBRETRY)
++		finish_wait(wq, &q->wait);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(__wait_on_bit_lock);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from suparna@in.ibm.com are
 
-start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
-kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
-pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
-atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-pci-avoid-taking-pci_bus_sem-early-in-boot.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
-git-agpgart.patch
-cifs-sprintf-fix.patch
-git-cpufreq.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-missing-include.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-add-i386-idle-notifier-take-3-fix.patch
-fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-bluetooth-blacklist-lenovo-r60e.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-remove-invalidate_inode_pages.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
+aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
 fsaio-filesystem-aio-read-tidy.patch
+fsaio-aio-o_sync-filesystem-write.patch
 aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
