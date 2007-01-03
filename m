@@ -1,58 +1,74 @@
 From: akpm@osdl.org
-Subject: + e1000-use-flush_keventd_work.patch added to -mm tree
-Date: Tue, 02 Jan 2007 16:21:13 -0800
-Message-ID: <200701030021.l030LDef002397@shell0.pdx.osdl.net>
+Subject: + libata-use-flush_work.patch added to -mm tree
+Date: Tue, 02 Jan 2007 16:21:26 -0800
+Message-ID: <200701030021.l030LRWD002406@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48776 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48797 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750939AbXACAVo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:21:44 -0500
+	id S1751079AbXACAWF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 19:22:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, auke-jan.h.kok@intel.com, davem@davemloft.net, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, oleg@tv-sign.ru
+Cc: akpm@osdl.org, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, oleg@tv-sign.ru
 
 
 The patch titled
-     e1000: use flush_work_keventd()
+     libata: use flush_work()
 has been added to the -mm tree.  Its filename is
-     e1000-use-flush_keventd_work.patch
+     libata-use-flush_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: e1000: use flush_work_keventd()
+Subject: libata: use flush_work()
 From: Andrew Morton <akpm@osdl.org>
-
-Switch e1000 over to flush_work_keventd().  This probably fixes a netdev-close
-versus linkwatch rtnl_lock() deadlock which nobody knew about.
 
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Cc: David Howells <dhowells@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/e1000/e1000_main.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-core.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_main.c~e1000-use-flush_keventd_work drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~e1000-use-flush_keventd_work
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -1222,7 +1222,7 @@ e1000_remove(struct pci_dev *pdev)
- 	int i;
- #endif
+diff -puN drivers/ata/libata-core.c~libata-use-flush_work drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-use-flush_work
++++ a/drivers/ata/libata-core.c
+@@ -1138,7 +1138,7 @@ void ata_port_flush_task(struct ata_port
+ 	spin_unlock_irqrestore(ap->lock, flags);
  
--	flush_scheduled_work();
-+	flush_work_keventd(&adapter->reset_task);
+ 	DPRINTK("flush #1\n");
+-	flush_workqueue(ata_wq);
++	flush_work(ata_wq, &ap->port_task.work); /* akpm: seems unneeded */
  
- 	e1000_release_manageability(adapter);
+ 	/*
+ 	 * At this point, if a task is running, it's guaranteed to see
+@@ -1149,7 +1149,7 @@ void ata_port_flush_task(struct ata_port
+ 		if (ata_msg_ctl(ap))
+ 			ata_port_printk(ap, KERN_DEBUG, "%s: flush #2\n",
+ 					__FUNCTION__);
+-		flush_workqueue(ata_wq);
++		flush_work(ata_wq, &ap->port_task.work);
+ 	}
  
+ 	spin_lock_irqsave(ap->lock, flags);
+@@ -6021,9 +6021,9 @@ void ata_port_detach(struct ata_port *ap
+ 	/* Flush hotplug task.  The sequence is similar to
+ 	 * ata_port_flush_task().
+ 	 */
+-	flush_workqueue(ata_aux_wq);
++	flush_work(ata_aux_wq, &ap->hotplug_task.work); /* akpm: why? */
+ 	cancel_delayed_work(&ap->hotplug_task);
+-	flush_workqueue(ata_aux_wq);
++	flush_work(ata_aux_wq, &ap->hotplug_task.work);
+ 
+  skip_eh:
+ 	/* remove the associated SCSI host */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
