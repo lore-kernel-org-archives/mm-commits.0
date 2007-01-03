@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + libata-use-flush_work.patch added to -mm tree
-Date: Tue, 02 Jan 2007 16:21:26 -0800
-Message-ID: <200701030021.l030LRWD002406@shell0.pdx.osdl.net>
+Subject: + phy-use-flush_work.patch added to -mm tree
+Date: Tue, 02 Jan 2007 16:22:12 -0800
+Message-ID: <200701030022.l030MD2S002442@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48797 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48867 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751079AbXACAWF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:22:05 -0500
+	id S1751561AbXACAWw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 19:22:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,15 +15,15 @@ Cc: akpm@osdl.org, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, o
 
 
 The patch titled
-     libata: use flush_work()
+     phy: use flush_work_keventd()
 has been added to the -mm tree.  Its filename is
-     libata-use-flush_work.patch
+     phy-use-flush_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: use flush_work()
+Subject: phy: use flush_work_keventd()
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
@@ -33,42 +33,26 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-core.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/phy/phy.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-use-flush_work drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-use-flush_work
-+++ a/drivers/ata/libata-core.c
-@@ -1138,7 +1138,7 @@ void ata_port_flush_task(struct ata_port
- 	spin_unlock_irqrestore(ap->lock, flags);
- 
- 	DPRINTK("flush #1\n");
--	flush_workqueue(ata_wq);
-+	flush_work(ata_wq, &ap->port_task.work); /* akpm: seems unneeded */
+diff -puN drivers/net/phy/phy.c~phy-use-flush_work drivers/net/phy/phy.c
+--- a/drivers/net/phy/phy.c~phy-use-flush_work
++++ a/drivers/net/phy/phy.c
+@@ -584,10 +584,10 @@ int phy_stop_interrupts(struct phy_devic
+ 		phy_error(phydev);
  
  	/*
- 	 * At this point, if a task is running, it's guaranteed to see
-@@ -1149,7 +1149,7 @@ void ata_port_flush_task(struct ata_port
- 		if (ata_msg_ctl(ap))
- 			ata_port_printk(ap, KERN_DEBUG, "%s: flush #2\n",
- 					__FUNCTION__);
--		flush_workqueue(ata_wq);
-+		flush_work(ata_wq, &ap->port_task.work);
- 	}
- 
- 	spin_lock_irqsave(ap->lock, flags);
-@@ -6021,9 +6021,9 @@ void ata_port_detach(struct ata_port *ap
- 	/* Flush hotplug task.  The sequence is similar to
- 	 * ata_port_flush_task().
+-	 * Finish any pending work; we might have been scheduled
+-	 * to be called from keventd ourselves, though.
++	 * Finish any pending work; we might have been scheduled to be called
++	 * from keventd ourselves, but flush_work_keventd() handles that.
  	 */
--	flush_workqueue(ata_aux_wq);
-+	flush_work(ata_aux_wq, &ap->hotplug_task.work); /* akpm: why? */
- 	cancel_delayed_work(&ap->hotplug_task);
--	flush_workqueue(ata_aux_wq);
-+	flush_work(ata_aux_wq, &ap->hotplug_task.work);
+-	run_scheduled_work(&phydev->phy_queue);
++	flush_work_keventd(&phydev->phy_queue);
  
-  skip_eh:
- 	/* remove the associated SCSI host */
+ 	free_irq(phydev->irq, phydev);
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
