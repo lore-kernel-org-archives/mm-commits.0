@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + i386-modpost-smpboot-code-warning-fix.patch added to -mm tree
-Date: Wed, 03 Jan 2007 13:16:13 -0800
-Message-ID: <200701032116.l03LGDkj031517@shell0.pdx.osdl.net>
+Subject: + i386-fix-modpost-warning-in-smp-trampoline-code.patch added to -mm tree
+Date: Wed, 03 Jan 2007 13:16:09 -0800
+Message-ID: <200701032116.l03LG96Y031508@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50904 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50999 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932136AbXACVQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 16:16:42 -0500
+	id S932141AbXACVRz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 16:17:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,28 +15,25 @@ Cc: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com
 
 
 The patch titled
-     i386: modpost smpboot code warning fix
+     i386: fix modpost warning in SMP trampoline code
 has been added to the -mm tree.  Its filename is
-     i386-modpost-smpboot-code-warning-fix.patch
+     i386-fix-modpost-warning-in-smp-trampoline-code.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: modpost smpboot code warning fix
+Subject: i386: fix modpost warning in SMP trampoline code
 From: Vivek Goyal <vgoyal@in.ibm.com>
 
-o Currently synchronize_tsc_ap() is of type __init. It is called by
-  smp_callin() which is of type __cpuinit. So synchronize_tsc_ap()
-  should be of type __cpuinit.
+o MODPOST generates warning for i386 if kernel is compiled with
+  CONFIG_RELOCATABLE=y
 
-o Modpost generates warnings for i386 if CONFIG_RELOCATABLE=y and
-  CONFIG_HOTPLUG_CPU=y
+WARNING: vmlinux - Section mismatch: reference to .init.text:startup_32_smp
+from .data between 'trampoline_data' (at offset 0xc0519cf8) and 'boot_gdt'
 
-WARNING: vmlinux - Section mismatch: reference to .init.data: from .text between 'start_secondary' (at offset 0xc01164dc) and 'initialize_secondary'
-WARNING: vmlinux - Section mismatch: reference to .init.data: from .text between 'start_secondary' (at offset 0xc01164e8) and 'initialize_secondary'
-
-o tsc is of type __initdata. It should be of type __cpuinitdata.
+o trampoline code/data can go into init section is CPU hotplug is not
+  enabled.
 
 Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -44,30 +41,24 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/smpboot.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/trampoline.S |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN arch/i386/kernel/smpboot.c~i386-modpost-smpboot-code-warning-fix arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~i386-modpost-smpboot-code-warning-fix
-+++ a/arch/i386/kernel/smpboot.c
-@@ -227,7 +227,7 @@ static struct {
- 	atomic_t count_start;
- 	atomic_t count_stop;
- 	unsigned long long values[NR_CPUS];
--} tsc __initdata = {
-+} tsc __cpuinitdata = {
- 	.start_flag = ATOMIC_INIT(0),
- 	.count_start = ATOMIC_INIT(0),
- 	.count_stop = ATOMIC_INIT(0),
-@@ -332,7 +332,7 @@ static void __init synchronize_tsc_bp(vo
- 		printk("passed.\n");
- }
+diff -puN arch/i386/kernel/trampoline.S~i386-fix-modpost-warning-in-smp-trampoline-code arch/i386/kernel/trampoline.S
+--- a/arch/i386/kernel/trampoline.S~i386-fix-modpost-warning-in-smp-trampoline-code
++++ a/arch/i386/kernel/trampoline.S
+@@ -38,6 +38,11 @@
  
--static void __init synchronize_tsc_ap(void)
-+static void __cpuinit synchronize_tsc_ap(void)
- {
- 	int i;
+ .data
  
++/* We can free up trampoline after bootup if cpu hotplug is not supported. */
++#ifndef CONFIG_HOTPLUG_CPU
++.section ".init.data","aw",@progbits
++#endif
++
+ .code16
+ 
+ ENTRY(trampoline_data)
 _
 
 Patches currently in -mm which might be from vgoyal@in.ibm.com are
