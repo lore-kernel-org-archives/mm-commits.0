@@ -1,77 +1,70 @@
 From: akpm@osdl.org
-Subject: + implement-flush_work_keventd.patch added to -mm tree
-Date: Tue, 02 Jan 2007 16:18:21 -0800
-Message-ID: <200701030018.l030ILU6002322@shell0.pdx.osdl.net>
+Subject: + aio-use-flush_work.patch added to -mm tree
+Date: Tue, 02 Jan 2007 16:19:29 -0800
+Message-ID: <200701030019.l030JTh5002335@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48500 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48632 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770AbXACASa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:18:30 -0500
+	id S1750804AbXACAUD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 19:20:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, oleg@tv-sign.ru
+Cc: akpm@osdl.org, bcrl@kvack.org, dhowells@redhat.com, macro@linux-mips.org, oleg@tv-sign.ru, torvalds@osdl.org, zach.brown@oracle.com
 
 
 The patch titled
-     implement flush_work_keventd()
+     aio: use flush_work()
 has been added to the -mm tree.  Its filename is
-     implement-flush_work_keventd.patch
+     aio-use-flush_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: implement flush_work_keventd()
+Subject: aio: use flush_work()
 From: Andrew Morton <akpm@osdl.org>
 
-flush_work() requires that the caller pass in the workqueue to be flushed. 
-But for keventd-based works, callers require access to keventd_wq, which is
-provate to workqueue.c.
+Migrate AIO over to use flush_work().
 
-Add the new flush_work_keventd() wrapper to handle this.
-
-The naming in there is insane.  We should come up with some consistent scheme
-to distinguish the things which operate on keventd_wq from the things which
-operate upon caller-owned workqueues.  I'd propose "name of the function with
-_keventd" appended, as in this patch.
-
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Linus Torvalds <torvalds@osdl.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/workqueue.h |    1 +
- kernel/workqueue.c        |    6 ++++++
- 2 files changed, 7 insertions(+)
+ fs/aio.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN kernel/workqueue.c~implement-flush_work_keventd kernel/workqueue.c
---- a/kernel/workqueue.c~implement-flush_work_keventd
-+++ a/kernel/workqueue.c
-@@ -733,6 +733,12 @@ void flush_scheduled_work(void)
- }
- EXPORT_SYMBOL(flush_scheduled_work);
+diff -puN fs/aio.c~aio-use-flush_work fs/aio.c
+--- a/fs/aio.c~aio-use-flush_work
++++ a/fs/aio.c
+@@ -361,10 +361,9 @@ void fastcall exit_aio(struct mm_struct 
  
-+void keventd_flush_work(struct work_struct *work)
-+{
-+	flush_work(keventd_wq, work);
-+}
-+EXPORT_SYMBOL(keventd_flush_work);
-+
- /**
-  * cancel_rearming_delayed_workqueue - reliably kill off a delayed
-  *			work whose handler rearms the delayed work.
-diff -puN include/linux/workqueue.h~implement-flush_work_keventd include/linux/workqueue.h
---- a/include/linux/workqueue.h~implement-flush_work_keventd
-+++ a/include/linux/workqueue.h
-@@ -173,6 +173,7 @@ extern int queue_delayed_work_on(int cpu
- 	struct delayed_work *work, unsigned long delay);
- extern void FASTCALL(flush_workqueue(struct workqueue_struct *wq));
- extern void flush_work(struct workqueue_struct *wq, struct work_struct *work);
-+extern void keventd_flush_work(struct work_struct *work);
+ 		wait_for_all_aios(ctx);
+ 		/*
+-		 * this is an overkill, but ensures we don't leave
+-		 * the ctx on the aio_wq
++		 * Ensure we don't leave the ctx on the aio_wq
+ 		 */
+-		flush_workqueue(aio_wq);
++		flush_workqueue(aio_wq, &ctx->wq.work);
  
- extern int FASTCALL(schedule_work(struct work_struct *work));
- extern int FASTCALL(run_scheduled_work(struct work_struct *work));
+ 		if (1 != atomic_read(&ctx->users))
+ 			printk(KERN_DEBUG
+@@ -387,7 +386,7 @@ void fastcall __put_ioctx(struct kioctx 
+ 	BUG_ON(ctx->reqs_active);
+ 
+ 	cancel_delayed_work(&ctx->wq);
+-	flush_workqueue(aio_wq);
++	flush_work(aio_wq, &ctx->wq.work);
+ 	aio_free_ring(ctx);
+ 	mmdrop(ctx->mm);
+ 	ctx->mm = NULL;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
