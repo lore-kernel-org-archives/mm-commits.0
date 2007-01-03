@@ -1,206 +1,195 @@
 From: akpm@osdl.org
-Subject: - aio-add-per-task-aio-wait-event-condition.patch removed from -mm tree
-Date: Tue, 02 Jan 2007 17:10:10 -0800
-Message-ID: <200701030110.l031AXxT003703@shell0.pdx.osdl.net>
+Subject: + ia64-make-swiotlb-use-bus_to_virt-virt_to_bus.patch added to -mm tree
+Date: Wed, 03 Jan 2007 12:47:58 -0800
+Message-ID: <200701032047.l03KlwRm030794@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54384 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48632 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752883AbXACBRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 20:17:11 -0500
+	id S932103AbXACUsI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 15:48:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenneth.w.chen@intel.com, bcrl@kvack.org, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jbeulich@novell.com, muli@il.ibm.com, tony.luck@intel.com
 
 
 The patch titled
-     aio: add per task aio wait event condition
-has been removed from the -mm tree.  Its filename was
-     aio-add-per-task-aio-wait-event-condition.patch
+     ia64: make swiotlb use bus_to_virt/virt_to_bus
+has been added to the -mm tree.  Its filename is
+     ia64-make-swiotlb-use-bus_to_virt-virt_to_bus.patch
 
-This patch was dropped because it was nacked by the maintainer
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: aio: add per task aio wait event condition
-From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Subject: ia64: make swiotlb use bus_to_virt/virt_to_bus
+From: "Jan Beulich" <jbeulich@novell.com>
 
-The AIO wake-up notification from aio_complete is really inefficient
-in current AIO implementation in the presence of process waiting in
-io_getevents().
+Convert all phys_to_virt/virt_to_phys uses to bus_to_virt/virt_to_bus, as is
+what is meant and what is needed in (at least) some virtualized environments
+like Xen.
 
-For example, if app calls io_getevents with min_nr > 1, and aio event
-queue doesn't have enough completed aio event, the process will block
-in read_events().  However, aio_complete() will wake up the waiting
-process for *each* complete I/O even though number of events that an
-app is waiting for is much larger than 1.  This makes excessive and
-unnecessary context switch because the waiting process will just reap
-one single event and goes back to sleep again.  It is much more efficient
-to wake up the waiting process when there are enough events for it to
-reap.
-
-This patch adds a wait condition to the wait queue and only wake-up
-process when that condition meets.  And this condition is added on a
-per task base for handling multi-threaded app that shares single ioctx.
-
-To show the effect of this patch, here is an vmstat output before and
-after the patch. The app does random O_DIRECT AIO on 60 disks. Context
-switch is reduced from 13 thousand+ down to just 40+, an significant
-improvement.
-
-Before:
-procs -----------memory---------- ---swap-- -----io---- --system-- ----cpu----
- r  b   swpd   free   buff  cache   si   so    bi    bo   in    cs us sy id wa
- 0  0      0 3972608   7056  31312    0    0 14000     0 7840 13715  0  2 98  0
- 0  0      0 3972608   7056  31312    0    0 14300     0 7793 13641  0  2 98  0
- 0  0      0 3972608   7056  31312    0    0 14100     0 7885 13747  0  2 98  0
-
-After:
- 0  0      0 3972608   7056  31312    0    0 14000     0 7840    49  0  2 98  0
- 0  0      0 3972608   7056  31312    0    0 13800     0 7793    53  0  2 98  0
- 0  0      0 3972608   7056  31312    0    0 13800     0 7885    42  0  2 98  0
-
-Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |   43 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 11 deletions(-)
+ lib/swiotlb.c |   33 +++++++++++++++++----------------
+ 1 files changed, 17 insertions(+), 16 deletions(-)
 
-diff -puN fs/aio.c~aio-add-per-task-aio-wait-event-condition fs/aio.c
---- a/fs/aio.c~aio-add-per-task-aio-wait-event-condition
-+++ a/fs/aio.c
-@@ -193,6 +193,17 @@ static int aio_setup_ring(struct kioctx 
- 	kunmap_atomic((void *)((unsigned long)__event & PAGE_MASK), km); \
- } while(0)
+diff -puN lib/swiotlb.c~ia64-make-swiotlb-use-bus_to_virt-virt_to_bus lib/swiotlb.c
+--- a/lib/swiotlb.c~ia64-make-swiotlb-use-bus_to_virt-virt_to_bus
++++ a/lib/swiotlb.c
+@@ -36,7 +36,7 @@
+ 	                   ( (val) & ( (align) - 1)))
  
-+struct aio_wait_queue {
-+	int		nr_wait;	/* wake-up condition */
-+	wait_queue_t	wait;
-+};
-+
-+static inline void aio_init_wait(struct aio_wait_queue *wait)
-+{
-+	wait->nr_wait = 0;
-+	init_wait(&wait->wait);
-+}
-+
- /* ioctx_alloc
-  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
-  */
-@@ -295,13 +306,14 @@ static void aio_cancel_all(struct kioctx
- static void wait_for_all_aios(struct kioctx *ctx)
- {
- 	struct task_struct *tsk = current;
--	DECLARE_WAITQUEUE(wait, tsk);
-+	struct aio_wait_queue wait;
+ #define SG_ENT_VIRT_ADDRESS(sg)	(page_address((sg)->page) + (sg)->offset)
+-#define SG_ENT_PHYS_ADDRESS(SG)	virt_to_phys(SG_ENT_VIRT_ADDRESS(SG))
++#define SG_ENT_PHYS_ADDRESS(sg)	virt_to_bus(SG_ENT_VIRT_ADDRESS(sg))
  
- 	spin_lock_irq(&ctx->ctx_lock);
- 	if (!ctx->reqs_active)
- 		goto out;
+ /*
+  * Maximum allowable number of contiguous slabs to map,
+@@ -163,7 +163,7 @@ swiotlb_init_with_default_size (size_t d
+ 	 */
+ 	io_tlb_overflow_buffer = alloc_bootmem_low(io_tlb_overflow);
+ 	printk(KERN_INFO "Placing software IO TLB between 0x%lx - 0x%lx\n",
+-	       virt_to_phys(io_tlb_start), virt_to_phys(io_tlb_end));
++	       virt_to_bus(io_tlb_start), virt_to_bus(io_tlb_end));
+ }
  
--	add_wait_queue(&ctx->wait, &wait);
-+	aio_init_wait(&wait);
-+	add_wait_queue(&ctx->wait, &wait.wait);
- 	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
- 	while (ctx->reqs_active) {
- 		spin_unlock_irq(&ctx->ctx_lock);
-@@ -310,7 +322,7 @@ static void wait_for_all_aios(struct kio
- 		spin_lock_irq(&ctx->ctx_lock);
+ void
+@@ -244,7 +244,7 @@ swiotlb_late_init_with_default_size (siz
+ 
+ 	printk(KERN_INFO "Placing %ldMB software IO TLB between 0x%lx - "
+ 	       "0x%lx\n", (io_tlb_nslabs * (1 << IO_TLB_SHIFT)) >> 20,
+-	       virt_to_phys(io_tlb_start), virt_to_phys(io_tlb_end));
++	       virt_to_bus(io_tlb_start), virt_to_bus(io_tlb_end));
+ 
+ 	return 0;
+ 
+@@ -445,7 +445,7 @@ swiotlb_alloc_coherent(struct device *hw
+ 	flags |= GFP_DMA;
+ 
+ 	ret = (void *)__get_free_pages(flags, order);
+-	if (ret && address_needs_mapping(hwdev, virt_to_phys(ret))) {
++	if (ret && address_needs_mapping(hwdev, virt_to_bus(ret))) {
+ 		/*
+ 		 * The allocated memory isn't reachable by the device.
+ 		 * Fall back on swiotlb_map_single().
+@@ -465,11 +465,11 @@ swiotlb_alloc_coherent(struct device *hw
+ 		if (swiotlb_dma_mapping_error(handle))
+ 			return NULL;
+ 
+-		ret = phys_to_virt(handle);
++		ret = bus_to_virt(handle);
  	}
- 	__set_task_state(tsk, TASK_RUNNING);
--	remove_wait_queue(&ctx->wait, &wait);
-+	remove_wait_queue(&ctx->wait, &wait.wait);
  
- out:
- 	spin_unlock_irq(&ctx->ctx_lock);
-@@ -930,6 +942,7 @@ int fastcall aio_complete(struct kiocb *
- 	unsigned long	flags;
- 	unsigned long	tail;
- 	int		ret;
-+	int		nr_evt = 0;
+ 	memset(ret, 0, size);
+-	dev_addr = virt_to_phys(ret);
++	dev_addr = virt_to_bus(ret);
+ 
+ 	/* Confirm address can be DMA'd by device */
+ 	if (address_needs_mapping(hwdev, dev_addr)) {
+@@ -525,7 +525,7 @@ swiotlb_full(struct device *dev, size_t 
+ dma_addr_t
+ swiotlb_map_single(struct device *hwdev, void *ptr, size_t size, int dir)
+ {
+-	unsigned long dev_addr = virt_to_phys(ptr);
++	unsigned long dev_addr = virt_to_bus(ptr);
+ 	void *map;
+ 
+ 	BUG_ON(dir == DMA_NONE);
+@@ -546,7 +546,7 @@ swiotlb_map_single(struct device *hwdev,
+ 		map = io_tlb_overflow_buffer;
+ 	}
+ 
+-	dev_addr = virt_to_phys(map);
++	dev_addr = virt_to_bus(map);
  
  	/*
- 	 * Special case handling for sync iocbs:
-@@ -990,6 +1003,9 @@ int fastcall aio_complete(struct kiocb *
- 	info->tail = tail;
- 	ring->tail = tail;
- 
-+	nr_evt = ring->tail - ring->head;
-+	if (nr_evt < 0)
-+		nr_evt += info->nr;
- 	put_aio_ring_event(event, KM_IRQ0);
- 	kunmap_atomic(ring, KM_IRQ1);
- 
-@@ -998,8 +1014,13 @@ put_rq:
- 	/* everything turned out well, dispose of the aiocb. */
- 	ret = __aio_put_req(ctx, iocb);
- 
--	if (waitqueue_active(&ctx->wait))
--		wake_up(&ctx->wait);
-+	if (waitqueue_active(&ctx->wait)) {
-+		struct aio_wait_queue *wait;
-+		wait = container_of(ctx->wait.task_list.next,
-+				    struct aio_wait_queue, wait.task_list);
-+		if (nr_evt >= wait->nr_wait)
-+			wake_up(&ctx->wait);
-+	}
- 
- 	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
- 	return ret;
-@@ -1092,7 +1113,7 @@ static int read_events(struct kioctx *ct
+ 	 * Ensure that the address returned is DMA'ble
+@@ -569,7 +569,7 @@ void
+ swiotlb_unmap_single(struct device *hwdev, dma_addr_t dev_addr, size_t size,
+ 		     int dir)
  {
- 	long			start_jiffies = jiffies;
- 	struct task_struct	*tsk = current;
--	DECLARE_WAITQUEUE(wait, tsk);
-+	struct aio_wait_queue	wait;
- 	int			ret;
- 	int			i = 0;
- 	struct io_event		ent;
-@@ -1150,10 +1171,11 @@ retry:
- 		set_timeout(start_jiffies, &to, &ts);
- 	}
+-	char *dma_addr = phys_to_virt(dev_addr);
++	char *dma_addr = bus_to_virt(dev_addr);
  
-+	aio_init_wait(&wait);
- 	while (likely(i < nr)) {
--		add_wait_queue_exclusive(&ctx->wait, &wait);
- 		do {
--			set_task_state(tsk, TASK_INTERRUPTIBLE);
-+			prepare_to_wait_exclusive(&ctx->wait, &wait.wait,
-+						  TASK_INTERRUPTIBLE);
- 			ret = aio_read_evt(ctx, &ent);
- 			if (ret)
- 				break;
-@@ -1162,6 +1184,7 @@ retry:
- 			ret = 0;
- 			if (to.timed_out)	/* Only check after read evt */
- 				break;
-+			wait.nr_wait = min_nr - i;
- 			schedule();
- 			if (signal_pending(tsk)) {
- 				ret = -EINTR;
-@@ -1169,9 +1192,7 @@ retry:
- 			}
- 			/*ret = aio_read_evt(ctx, &ent);*/
- 		} while (1) ;
--
--		set_task_state(tsk, TASK_RUNNING);
--		remove_wait_queue(&ctx->wait, &wait);
-+		finish_wait(&ctx->wait, &wait.wait);
+ 	BUG_ON(dir == DMA_NONE);
+ 	if (dma_addr >= io_tlb_start && dma_addr < io_tlb_end)
+@@ -592,7 +592,7 @@ static inline void
+ swiotlb_sync_single(struct device *hwdev, dma_addr_t dev_addr,
+ 		    size_t size, int dir, int target)
+ {
+-	char *dma_addr = phys_to_virt(dev_addr);
++	char *dma_addr = bus_to_virt(dev_addr);
  
- 		if (unlikely(ret <= 0))
- 			break;
+ 	BUG_ON(dir == DMA_NONE);
+ 	if (dma_addr >= io_tlb_start && dma_addr < io_tlb_end)
+@@ -623,7 +623,7 @@ swiotlb_sync_single_range(struct device 
+ 			  unsigned long offset, size_t size,
+ 			  int dir, int target)
+ {
+-	char *dma_addr = phys_to_virt(dev_addr) + offset;
++	char *dma_addr = bus_to_virt(dev_addr) + offset;
+ 
+ 	BUG_ON(dir == DMA_NONE);
+ 	if (dma_addr >= io_tlb_start && dma_addr < io_tlb_end)
+@@ -676,7 +676,7 @@ swiotlb_map_sg(struct device *hwdev, str
+ 
+ 	for (i = 0; i < nelems; i++, sg++) {
+ 		addr = SG_ENT_VIRT_ADDRESS(sg);
+-		dev_addr = virt_to_phys(addr);
++		dev_addr = virt_to_bus(addr);
+ 		if (swiotlb_force || address_needs_mapping(hwdev, dev_addr)) {
+ 			void *map = map_single(hwdev, addr, sg->length, dir);
+ 			if (!map) {
+@@ -709,7 +709,8 @@ swiotlb_unmap_sg(struct device *hwdev, s
+ 
+ 	for (i = 0; i < nelems; i++, sg++)
+ 		if (sg->dma_address != SG_ENT_PHYS_ADDRESS(sg))
+-			unmap_single(hwdev, (void *) phys_to_virt(sg->dma_address), sg->dma_length, dir);
++			unmap_single(hwdev, bus_to_virt(sg->dma_address),
++				     sg->dma_length, dir);
+ 		else if (dir == DMA_FROM_DEVICE)
+ 			dma_mark_clean(SG_ENT_VIRT_ADDRESS(sg), sg->dma_length);
+ }
+@@ -731,7 +732,7 @@ swiotlb_sync_sg(struct device *hwdev, st
+ 
+ 	for (i = 0; i < nelems; i++, sg++)
+ 		if (sg->dma_address != SG_ENT_PHYS_ADDRESS(sg))
+-			sync_single(hwdev, phys_to_virt(sg->dma_address),
++			sync_single(hwdev, bus_to_virt(sg->dma_address),
+ 				    sg->dma_length, dir, target);
+ 		else if (dir == DMA_FROM_DEVICE)
+ 			dma_mark_clean(SG_ENT_VIRT_ADDRESS(sg), sg->dma_length);
+@@ -754,7 +755,7 @@ swiotlb_sync_sg_for_device(struct device
+ int
+ swiotlb_dma_mapping_error(dma_addr_t dma_addr)
+ {
+-	return (dma_addr == virt_to_phys(io_tlb_overflow_buffer));
++	return (dma_addr == virt_to_bus(io_tlb_overflow_buffer));
+ }
+ 
+ /*
+@@ -766,7 +767,7 @@ swiotlb_dma_mapping_error(dma_addr_t dma
+ int
+ swiotlb_dma_supported (struct device *hwdev, u64 mask)
+ {
+-	return virt_to_phys(io_tlb_end - 1) <= mask;
++	return virt_to_bus(io_tlb_end - 1) <= mask;
+ }
+ 
+ EXPORT_SYMBOL(swiotlb_init);
 _
 
-Patches currently in -mm which might be from kenneth.w.chen@intel.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-ia64-alignment-bug-in-ldscript.patch
-aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
-aio-add-per-task-aio-wait-event-condition.patch
-aio-streamline-read-events-after-woken-up.patch
-aio-remove-spurious-ring-head-index-modulo-info-nr.patch
-aio-make-aio_ring_info-nr_pages-an-unsigned-int.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
+ia64-swiotlb-bug-fixes.patch
+ia64-make-swiotlb-use-bus_to_virt-virt_to_bus.patch
+ia64-swiotlb-cleanup.patch
+ia64-swiotlb-abstraction-eg-for-xen.patch
+ia64-missing-exports-hwsw_sync_.patch
+x86_64-do-not-always-end-the-stack-trace-with-ulong_max.patch
