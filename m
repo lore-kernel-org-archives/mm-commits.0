@@ -1,308 +1,303 @@
 From: akpm@osdl.org
-Subject: - mmc-add-support-for-sdhc-cards-take-2.patch removed from -mm tree
-Date: Wed, 03 Jan 2007 15:06:16 -0800
-Message-ID: <200701032306.l03N6gBr002162@shell0.pdx.osdl.net>
+Subject: + reiser4-vs-git-block.patch added to -mm tree
+Date: Wed, 03 Jan 2007 15:25:08 -0800
+Message-ID: <200701032325.l03NPW8W002654@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:58851 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:59752 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932165AbXACXHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 18:07:20 -0500
+	id S932117AbXACX0B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 18:26:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipl@overt.org, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, edward@namesys.com, jens.axboe@oracle.com, vs@namesys.com
 
 
 The patch titled
-     mmc: Add support for SDHC cards
-has been removed from the -mm tree.  Its filename was
-     mmc-add-support-for-sdhc-cards-take-2.patch
+     reiser4-vs-git-block
+has been added to the -mm tree.  Its filename is
+     reiser4-vs-git-block.patch
 
-This patch was dropped because it had testing failures
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mmc: Add support for SDHC cards
-From: Philip Langdale <philipl@overt.org>
+Subject: reiser4-vs-git-block
+From: Andrew Morton <akpm@osdl.org>
 
-Thanks to the generous donation of an SDHC card by John Gilmore, and the
-surprisingly enlightened decision by the SD Card Association to publish useful
-specs, I've been able to bash out support for SDHC.  The changes are not too
-profound:
+Attempt to fix reiser4 for git-block changes.  And for some changes I made to
+fs-writeback.c return values.
 
-i) Add a card flag indicating the card uses block level addressing and
-   check it in the block driver.  As we never took advantage of byte-level
-   addressing, this simply involves skipping the block -> byte translation
-   when sending commands.
-
-ii) The layout of the CSD is changed - a set of fields are discarded to
-   make space for a larger C_SIZE.  We did not reference any of the discarded
-   fields except those related to the C_SIZE.
-
-iii) Read and write timeouts are fixed values and not calculated from CSD
-   values.
-
-iv) Before invoking SEND_APP_OP_COND, we must invoke the new SEND_IF_COND
-   to inform the card we support SDHC.
-
-I've done some basic read and write tests and everything seems to work fine
-but one should obviously use caution in case it eats your data.
-
-Signed-off-by: Philipl Langdale <philipl@overt.org>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: Vladimir Saveliev <vs@namesys.com>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mmc/mmc.c            |  115 +++++++++++++++++++++++++--------
- drivers/mmc/mmc_block.c      |    8 ++
- include/linux/mmc/card.h     |    3 
- include/linux/mmc/mmc.h      |    3 
- include/linux/mmc/protocol.h |   13 +++
- 5 files changed, 112 insertions(+), 30 deletions(-)
+ fs/reiser4/flush_queue.c  |    3 ---
+ fs/reiser4/page_cache.c   |    8 --------
+ fs/reiser4/status_flags.c |    2 --
+ fs/reiser4/super_ops.c    |   10 ++++++----
+ fs/reiser4/vfs_ops.c      |    1 -
+ 5 files changed, 6 insertions(+), 18 deletions(-)
 
-diff -puN drivers/mmc/mmc.c~mmc-add-support-for-sdhc-cards-take-2 drivers/mmc/mmc.c
---- a/drivers/mmc/mmc.c~mmc-add-support-for-sdhc-cards-take-2
-+++ a/drivers/mmc/mmc.c
-@@ -294,7 +294,10 @@ void mmc_set_data_timeout(struct mmc_dat
- 		else
- 			limit_us = 100000;
- 
--		if (timeout_us > limit_us) {
-+		/*
-+		 * SDHC cards always use these fixed values.
-+		 */
-+		if (timeout_us > limit_us || mmc_card_blockaddr(card)) {
- 			data->timeout_ns = limit_us * 1000;
- 			data->timeout_clks = 0;
- 		}
-@@ -593,34 +596,65 @@ static void mmc_decode_csd(struct mmc_ca
- 
- 	if (mmc_card_sd(card)) {
- 		csd_struct = UNSTUFF_BITS(resp, 126, 2);
--		if (csd_struct != 0) {
-+
-+		switch (csd_struct) {
-+		case 0:
-+			m = UNSTUFF_BITS(resp, 115, 4);
-+			e = UNSTUFF_BITS(resp, 112, 3);
-+			csd->tacc_ns	 = (tacc_exp[e] * tacc_mant[m] + 9) / 10;
-+			csd->tacc_clks	 = UNSTUFF_BITS(resp, 104, 8) * 100;
-+
-+			m = UNSTUFF_BITS(resp, 99, 4);
-+			e = UNSTUFF_BITS(resp, 96, 3);
-+			csd->max_dtr	  = tran_exp[e] * tran_mant[m];
-+			csd->cmdclass	  = UNSTUFF_BITS(resp, 84, 12);
-+
-+			e = UNSTUFF_BITS(resp, 47, 3);
-+			m = UNSTUFF_BITS(resp, 62, 12);
-+			csd->capacity	  = (1 + m) << (e + 2);
-+
-+			csd->read_blkbits = UNSTUFF_BITS(resp, 80, 4);
-+			csd->read_partial = UNSTUFF_BITS(resp, 79, 1);
-+			csd->write_misalign = UNSTUFF_BITS(resp, 78, 1);
-+			csd->read_misalign = UNSTUFF_BITS(resp, 77, 1);
-+			csd->r2w_factor = UNSTUFF_BITS(resp, 26, 3);
-+			csd->write_blkbits = UNSTUFF_BITS(resp, 22, 4);
-+			csd->write_partial = UNSTUFF_BITS(resp, 21, 1);
-+			break;
-+		case 1:
-+			/*
-+			 * This is a block-addressed SDHC card. Most
-+			 * interesting fields are unused and have fixed
-+			 * values. To avoid getting tripped by buggy cards,
-+			 * we assume those fixed values ourselves.
-+			 */
-+			mmc_card_set_blockaddr(card);
-+
-+			csd->tacc_ns	 = 0; /* Unused */
-+			csd->tacc_clks	 = 0; /* Unused */
-+
-+			m = UNSTUFF_BITS(resp, 99, 4);
-+			e = UNSTUFF_BITS(resp, 96, 3);
-+			csd->max_dtr	  = tran_exp[e] * tran_mant[m];
-+			csd->cmdclass	  = UNSTUFF_BITS(resp, 84, 12);
-+
-+			m = UNSTUFF_BITS(resp, 48, 22);
-+			csd->capacity     = (1 + m) << 10;
-+
-+			csd->read_blkbits = 9;
-+			csd->read_partial = 0;
-+			csd->write_misalign = 0;
-+			csd->read_misalign = 0;
-+			csd->r2w_factor = 4; /* Unused */
-+			csd->write_blkbits = 9;
-+			csd->write_partial = 0;
-+			break;
-+		default:
- 			printk("%s: unrecognised CSD structure version %d\n",
- 				mmc_hostname(card->host), csd_struct);
- 			mmc_card_set_bad(card);
- 			return;
- 		}
+diff -puN fs/reiser4/page_cache.c~reiser4-vs-git-block fs/reiser4/page_cache.c
+--- a/fs/reiser4/page_cache.c~reiser4-vs-git-block
++++ a/fs/reiser4/page_cache.c
+@@ -569,14 +569,6 @@ static struct address_space_operations f
+ 	.writepage = reiser4_writepage,
+ 	/* this is called to read formatted node */
+ 	.readpage = formatted_readpage,
+-	/* ->sync_page() method of fake inode address space operations. Called
+-	   from wait_on_page() and lock_page().
 -
--		m = UNSTUFF_BITS(resp, 115, 4);
--		e = UNSTUFF_BITS(resp, 112, 3);
--		csd->tacc_ns	 = (tacc_exp[e] * tacc_mant[m] + 9) / 10;
--		csd->tacc_clks	 = UNSTUFF_BITS(resp, 104, 8) * 100;
+-	   This is most annoyingly misnomered method. Actually it is called
+-	   from wait_on_page_bit() and lock_page() and its purpose is to
+-	   actually start io by jabbing device drivers.
+-	 */
+-	.sync_page = block_sync_page,
+ 	/* Write back some dirty pages from this mapping. Called from sync.
+ 	   called during sync (pdflush) */
+ 	.writepages = writepages_fake,
+diff -puN fs/reiser4/flush_queue.c~reiser4-vs-git-block fs/reiser4/flush_queue.c
+--- a/fs/reiser4/flush_queue.c~reiser4-vs-git-block
++++ a/fs/reiser4/flush_queue.c
+@@ -236,9 +236,6 @@ static int wait_io(flush_queue_t * fq, i
+ 
+ 		super = reiser4_get_current_sb();
+ 
+-		/* FIXME: this is instead of blk_run_queues() */
+-		blk_run_address_space(reiser4_get_super_fake(super)->i_mapping);
 -
--		m = UNSTUFF_BITS(resp, 99, 4);
--		e = UNSTUFF_BITS(resp, 96, 3);
--		csd->max_dtr	  = tran_exp[e] * tran_mant[m];
--		csd->cmdclass	  = UNSTUFF_BITS(resp, 84, 12);
--
--		e = UNSTUFF_BITS(resp, 47, 3);
--		m = UNSTUFF_BITS(resp, 62, 12);
--		csd->capacity	  = (1 + m) << (e + 2);
--
--		csd->read_blkbits = UNSTUFF_BITS(resp, 80, 4);
--		csd->read_partial = UNSTUFF_BITS(resp, 79, 1);
--		csd->write_misalign = UNSTUFF_BITS(resp, 78, 1);
--		csd->read_misalign = UNSTUFF_BITS(resp, 77, 1);
--		csd->r2w_factor = UNSTUFF_BITS(resp, 26, 3);
--		csd->write_blkbits = UNSTUFF_BITS(resp, 22, 4);
--		csd->write_partial = UNSTUFF_BITS(resp, 21, 1);
- 	} else {
- 		/*
- 		 * We only understand CSD structure v1.1 and v1.2.
-@@ -1391,10 +1425,37 @@ static void mmc_setup(struct mmc_host *h
- 	 * all get the idea that they should be ready for CMD2.
- 	 * (My SanDisk card seems to need this.)
- 	 */
--	if (host->mode == MMC_MODE_SD)
--		mmc_send_app_op_cond(host, host->ocr, NULL);
--	else
-+	if (host->mode == MMC_MODE_SD) {
-+		struct mmc_command cmd;
-+		int err, ocr = host->ocr;
-+		static const u8 test_pattern = 0xAA;
-+
-+		/*
-+	 	* To support SD 2.0 cards, we must always invoke SD_SEND_IF_COND
-+	 	* before SD_APP_OP_COND. This command will harmlessly fail for
-+	 	* SD 1.0 cards.
-+	 	*/
-+		cmd.opcode = SD_SEND_IF_COND;
-+		cmd.arg = ((host->ocr & 0xFF8000) != 0) << 8 | test_pattern;
-+		cmd.flags = MMC_RSP_R7 | MMC_CMD_BCR;
-+
-+		err = mmc_wait_for_cmd(host, &cmd, 0);
-+		if (err != MMC_ERR_NONE ||
-+		    (cmd.resp[0] & 0xFF) == test_pattern) {
-+			if (err == MMC_ERR_NONE) {
-+				/*
-+				 * If SD_SEND_IF_COND succeeded, we are dealing
-+				 * with an SD 2.0 compliant card and we should
-+				 * set bit 30 of the ocr to indicate that we
-+				 * can handle block-addressed SDHC cards.
-+				 */
-+				ocr |= 1 << 30;
-+			}
-+			mmc_send_app_op_cond(host, ocr, NULL);
-+		}
-+	} else {
- 		mmc_send_op_cond(host, host->ocr, NULL);
-+	}
+ 		if (!(super->s_flags & MS_RDONLY))
+ 			wait_event(fq->wait, atomic_read(&fq->nr_submitted) == 0);
  
- 	mmc_discover_cards(host);
- 
-diff -puN drivers/mmc/mmc_block.c~mmc-add-support-for-sdhc-cards-take-2 drivers/mmc/mmc_block.c
---- a/drivers/mmc/mmc_block.c~mmc-add-support-for-sdhc-cards-take-2
-+++ a/drivers/mmc/mmc_block.c
-@@ -237,7 +237,9 @@ static int mmc_blk_issue_rq(struct mmc_q
- 		brq.mrq.cmd = &brq.cmd;
- 		brq.mrq.data = &brq.data;
- 
--		brq.cmd.arg = req->sector << 9;
-+		brq.cmd.arg = req->sector;
-+		if (!mmc_card_blockaddr(card))
-+			brq.cmd.arg <<= 9;
- 		brq.cmd.flags = MMC_RSP_R1 | MMC_CMD_ADTC;
- 		brq.data.blksz = 1 << md->block_bits;
- 		brq.stop.opcode = MMC_STOP_TRANSMISSION;
-@@ -496,6 +498,10 @@ mmc_blk_set_blksize(struct mmc_blk_data 
- 	struct mmc_command cmd;
- 	int err;
- 
-+	/* Block-addressed cards ignore MMC_SET_BLOCKLEN. */
-+	if (mmc_card_blockaddr(card))
-+		return 0;
-+
- 	mmc_card_claim_host(card);
- 	cmd.opcode = MMC_SET_BLOCKLEN;
- 	cmd.arg = 1 << md->block_bits;
-diff -puN include/linux/mmc/card.h~mmc-add-support-for-sdhc-cards-take-2 include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~mmc-add-support-for-sdhc-cards-take-2
-+++ a/include/linux/mmc/card.h
-@@ -71,6 +71,7 @@ struct mmc_card {
- #define MMC_STATE_SDCARD	(1<<3)		/* is an SD card */
- #define MMC_STATE_READONLY	(1<<4)		/* card is read-only */
- #define MMC_STATE_HIGHSPEED	(1<<5)		/* card is in high speed mode */
-+#define MMC_STATE_BLOCKADDR	(1<<6)		/* card uses block-addressing */
- 	u32			raw_cid[4];	/* raw card CID */
- 	u32			raw_csd[4];	/* raw card CSD */
- 	u32			raw_scr[2];	/* raw card SCR */
-@@ -87,6 +88,7 @@ struct mmc_card {
- #define mmc_card_sd(c)		((c)->state & MMC_STATE_SDCARD)
- #define mmc_card_readonly(c)	((c)->state & MMC_STATE_READONLY)
- #define mmc_card_highspeed(c)	((c)->state & MMC_STATE_HIGHSPEED)
-+#define mmc_card_blockaddr(c)	((c)->state & MMC_STATE_BLOCKADDR)
- 
- #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
- #define mmc_card_set_dead(c)	((c)->state |= MMC_STATE_DEAD)
-@@ -94,6 +96,7 @@ struct mmc_card {
- #define mmc_card_set_sd(c)	((c)->state |= MMC_STATE_SDCARD)
- #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
- #define mmc_card_set_highspeed(c) ((c)->state |= MMC_STATE_HIGHSPEED)
-+#define mmc_card_set_blockaddr(c) ((c)->state |= MMC_STATE_BLOCKADDR)
- 
- #define mmc_card_name(c)	((c)->cid.prod_name)
- #define mmc_card_id(c)		((c)->dev.bus_id)
-diff -puN include/linux/mmc/mmc.h~mmc-add-support-for-sdhc-cards-take-2 include/linux/mmc/mmc.h
---- a/include/linux/mmc/mmc.h~mmc-add-support-for-sdhc-cards-take-2
-+++ a/include/linux/mmc/mmc.h
-@@ -42,7 +42,8 @@ struct mmc_command {
- #define MMC_RSP_R1B	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE|MMC_RSP_BUSY)
- #define MMC_RSP_R2	(MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC)
- #define MMC_RSP_R3	(MMC_RSP_PRESENT)
--#define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC)
-+#define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
-+#define MMC_RSP_R7	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
- 
- #define mmc_resp_type(cmd)	((cmd)->flags & (MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC|MMC_RSP_BUSY|MMC_RSP_OPCODE))
- 
-diff -puN include/linux/mmc/protocol.h~mmc-add-support-for-sdhc-cards-take-2 include/linux/mmc/protocol.h
---- a/include/linux/mmc/protocol.h~mmc-add-support-for-sdhc-cards-take-2
-+++ a/include/linux/mmc/protocol.h
-@@ -79,9 +79,12 @@
- #define MMC_GEN_CMD              56   /* adtc [0] RD/WR          R1  */
- 
- /* SD commands                           type  argument     response */
--  /* class 8 */
-+  /* class 0 */
- /* This is basically the same command as for MMC with some quirks. */
- #define SD_SEND_RELATIVE_ADDR     3   /* bcr                     R6  */
-+#define SD_SEND_IF_COND           8   /* bcr  [11:0] See below   R7  */
-+
-+  /* class 10 */
- #define SD_SWITCH                 6   /* adtc [31:0] See below   R1  */
- 
-   /* Application commands */
-@@ -115,6 +118,14 @@
+diff -puN fs/reiser4/super_ops.c~reiser4-vs-git-block fs/reiser4/super_ops.c
+--- a/fs/reiser4/super_ops.c~reiser4-vs-git-block
++++ a/fs/reiser4/super_ops.c
+@@ -394,15 +394,16 @@ static void reiser4_clear_inode(struct i
+  * mapping - dirty pages get into atoms. Writeout is called to flush some
+  * atoms.
   */
+-static void reiser4_sync_inodes(struct super_block *super,
++static int reiser4_sync_inodes(struct super_block *super,
+ 				struct writeback_control *wbc)
+ {
+ 	reiser4_context *ctx;
+ 	long to_write;
++	int ret;
  
- /*
-+ * SD_SEND_IF_COND argument format:
-+ *
-+ *	[31:12] Reserved (0)
-+ *	[11:8] Host Voltage Supply Flags
-+ *	[7:0] Check Pattern (0xAA)
-+ */
-+
-+/*
-   MMC status in R1
-   Type
-   	e : error bit
+ 	if (wbc->for_kupdate)
+ 		/* reiser4 has its own means of periodical write-out */
+-		return;
++		return 0;
+ 
+ 	to_write = wbc->nr_to_write;
+ 	assert("vs-49", wbc->older_than_this == NULL);
+@@ -410,14 +411,14 @@ static void reiser4_sync_inodes(struct s
+ 	ctx = reiser4_init_context(super);
+ 	if (IS_ERR(ctx)) {
+ 		warning("vs-13", "failed to init context");
+-		return;
++		return PTR_ERR(ctx);
+ 	}
+ 
+ 	/*
+ 	 * call reiser4_writepages for each of dirty inodes to turn dirty pages
+ 	 * into transactions if they were not yet.
+ 	 */
+-	generic_sync_sb_inodes(super, wbc);
++	ret = generic_sync_sb_inodes(super, wbc);
+ 
+ 	/* flush goes here */
+ 	wbc->nr_to_write = to_write;
+@@ -426,6 +427,7 @@ static void reiser4_sync_inodes(struct s
+ 	/* avoid recursive calls to ->sync_inodes */
+ 	context_set_commit_async(ctx);
+ 	reiser4_exit_context(ctx);
++	return ret;
+ }
+ 
+ /**
+diff -puN fs/reiser4/status_flags.c~reiser4-vs-git-block fs/reiser4/status_flags.c
+--- a/fs/reiser4/status_flags.c~reiser4-vs-git-block
++++ a/fs/reiser4/status_flags.c
+@@ -63,7 +63,6 @@ int reiser4_status_init(reiser4_block_nr
+ 	}
+ 	lock_page(page);
+ 	submit_bio(READ, bio);
+-	blk_run_address_space(reiser4_get_super_fake(sb)->i_mapping);
+ 	wait_on_page_locked(page);
+ 	if (!PageUptodate(page)) {
+ 		warning("green-2007",
+@@ -158,7 +157,6 @@ int reiser4_status_write(__u64 status, _
+ 	lock_page(get_super_private(sb)->status_page);	// Safe as nobody should touch our page.
+ 	/* We can block now, but we have no other choice anyway */
+ 	submit_bio(WRITE, bio);
+-	blk_run_address_space(reiser4_get_super_fake(sb)->i_mapping);
+ 	return 0;		// We do not wait for io to finish.
+ }
+ 
+diff -puN fs/reiser4/vfs_ops.c~reiser4-vs-git-block fs/reiser4/vfs_ops.c
+--- a/fs/reiser4/vfs_ops.c~reiser4-vs-git-block
++++ a/fs/reiser4/vfs_ops.c
+@@ -168,7 +168,6 @@ void reiser4_writeout(struct super_block
+ 		/* do not put more requests to overload write queue */
+ 		if (wbc->nonblocking &&
+ 		    bdi_write_congested(mapping->backing_dev_info)) {
+-			blk_run_address_space(mapping);
+ 			wbc->encountered_congestion = 1;
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from philipl@overt.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-mmc-add-support-for-sdhc-cards-take-2.patch
+start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
+kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
+pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
+atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+pci-avoid-taking-pci_bus_sem-early-in-boot.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
