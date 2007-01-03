@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + i386-fix-another-modpost-warning.patch added to -mm tree
-Date: Wed, 03 Jan 2007 13:16:11 -0800
-Message-ID: <200701032116.l03LGBQU031511@shell0.pdx.osdl.net>
+Subject: + i386-modpost-smpboot-code-warning-fix.patch added to -mm tree
+Date: Wed, 03 Jan 2007 13:16:13 -0800
+Message-ID: <200701032116.l03LGDkj031517@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50901 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50904 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932134AbXACVQk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 16:16:40 -0500
+	id S932136AbXACVQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 16:16:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,23 +15,28 @@ Cc: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com
 
 
 The patch titled
-     i386: fix another modpost warning
+     i386: modpost smpboot code warning fix
 has been added to the -mm tree.  Its filename is
-     i386-fix-another-modpost-warning.patch
+     i386-modpost-smpboot-code-warning-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: fix another modpost warning
+Subject: i386: modpost smpboot code warning fix
 From: Vivek Goyal <vgoyal@in.ibm.com>
 
-o MODPOST generates warning for i386 if kernel is compiled with
-  CONFIG_RELOCATABLE=y
+o Currently synchronize_tsc_ap() is of type __init. It is called by
+  smp_callin() which is of type __cpuinit. So synchronize_tsc_ap()
+  should be of type __cpuinit.
 
-WARNING: vmlinux - Section mismatch: reference to .init.data: from .data between 'this_cpu' (at offset 0xc05194d0) and 'cpuinfo_op'
+o Modpost generates warnings for i386 if CONFIG_RELOCATABLE=y and
+  CONFIG_HOTPLUG_CPU=y
 
-o this_cpu pointer should be of type __cpuinitdata.
+WARNING: vmlinux - Section mismatch: reference to .init.data: from .text between 'start_secondary' (at offset 0xc01164dc) and 'initialize_secondary'
+WARNING: vmlinux - Section mismatch: reference to .init.data: from .text between 'start_secondary' (at offset 0xc01164e8) and 'initialize_secondary'
+
+o tsc is of type __initdata. It should be of type __cpuinitdata.
 
 Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -39,21 +44,30 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/common.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/smpboot.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/common.c~i386-fix-another-modpost-warning arch/i386/kernel/cpu/common.c
---- a/arch/i386/kernel/cpu/common.c~i386-fix-another-modpost-warning
-+++ a/arch/i386/kernel/cpu/common.c
-@@ -54,7 +54,7 @@ static struct cpu_dev __cpuinitdata defa
- 	.c_init	= default_init,
- 	.c_vendor = "Unknown",
- };
--static struct cpu_dev * this_cpu = &default_cpu;
-+static struct cpu_dev * this_cpu __cpuinitdata = &default_cpu;
+diff -puN arch/i386/kernel/smpboot.c~i386-modpost-smpboot-code-warning-fix arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~i386-modpost-smpboot-code-warning-fix
++++ a/arch/i386/kernel/smpboot.c
+@@ -227,7 +227,7 @@ static struct {
+ 	atomic_t count_start;
+ 	atomic_t count_stop;
+ 	unsigned long long values[NR_CPUS];
+-} tsc __initdata = {
++} tsc __cpuinitdata = {
+ 	.start_flag = ATOMIC_INIT(0),
+ 	.count_start = ATOMIC_INIT(0),
+ 	.count_stop = ATOMIC_INIT(0),
+@@ -332,7 +332,7 @@ static void __init synchronize_tsc_bp(vo
+ 		printk("passed.\n");
+ }
  
- static int __init cachesize_setup(char *str)
+-static void __init synchronize_tsc_ap(void)
++static void __cpuinit synchronize_tsc_ap(void)
  {
+ 	int i;
+ 
 _
 
 Patches currently in -mm which might be from vgoyal@in.ibm.com are
