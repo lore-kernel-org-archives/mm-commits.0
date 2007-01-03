@@ -1,162 +1,89 @@
 From: akpm@osdl.org
-Subject: + fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch added to -mm tree
-Date: Tue, 02 Jan 2007 17:01:59 -0800
-Message-ID: <200701030102.l0312Oe8003522@shell0.pdx.osdl.net>
+Subject: + hrtimers-namespace-and-enum-cleanup-vs-git-input.patch added to -mm tree
+Date: Tue, 02 Jan 2007 17:09:46 -0800
+Message-ID: <200701030110.l031A9rt003700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:53029 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53924 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751839AbXACBCg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 20:02:36 -0500
+	id S1752708AbXACBKa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 20:10:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, menage@google.com, reintjes@google.com, rohitseth@google.com
+Cc: akpm@osdl.org, dtor@mail.ru, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     fix-fake-numa-for-x86_64-machines-with-big-io-hole fix
+     hrtimers-namespace-and-enum-cleanup vs git-input
 has been added to the -mm tree.  Its filename is
-     fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
+     hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-fake-numa-for-x86_64-machines-with-big-io-hole fix
+Subject: hrtimers-namespace-and-enum-cleanup vs git-input
 From: Andrew Morton <akpm@osdl.org>
 
-arch/x86_64/mm/srat.c:36:1: warning: "NODE_MIN_SIZE" redefined
-In file included from include/linux/mmzone.h:555,
-                 from include/linux/gfp.h:4,
-                 from include/linux/slab.h:14,
-                 from include/linux/percpu.h:5,
-                 from include/asm/local.h:4,
-                 from include/linux/module.h:19,
-                 from include/acpi/platform/aclinux.h:54,
-                 from include/acpi/platform/acenv.h:140,
-                 from include/acpi/acpi.h:54,
-                 from include/linux/acpi.h:37,
-                 from arch/x86_64/mm/srat.c:13:
-include/asm/mmzone.h:51:1: warning: this is the location of the previous definition
-arch/x86_64/mm/srat.c:36:1: warning: "NODE_MIN_SIZE" redefined
-In file included from include/linux/mmzone.h:555,
-                 from include/linux/gfp.h:4,
-                 from include/linux/slab.h:14,
-                 from include/linux/percpu.h:5,
-                 from include/asm/local.h:4,
-                 from include/linux/module.h:19,
-                 from include/acpi/platform/aclinux.h:54,
-                 from include/acpi/platform/acenv.h:140,
-                 from include/acpi/acpi.h:54,
-                 from include/linux/acpi.h:37,
-                 from arch/x86_64/mm/srat.c:13:
-include/asm/mmzone.h:51:1: warning: this is the location of the previous definition
-
-Cc: Rohit Seth <rohitseth@google.com>
-Cc: David Rientjes <reintjes@google.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Rohit Seth <rohitseth@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/mm/numa.c       |   26 ++++++++++++++------------
- include/asm-x86_64/mmzone.h |    4 ++--
- 2 files changed, 16 insertions(+), 14 deletions(-)
+ drivers/input/touchscreen/ads7846.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86_64/kernel/e820.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix arch/x86_64/kernel/e820.c
-diff -puN arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix
-+++ a/arch/x86_64/mm/numa.c
-@@ -304,20 +304,21 @@ static int __init numa_emulation(unsigne
- 
- 	old_sz = sz;
- 	/*
--	 * Round down to the nearest NODE_MIN_SIZE.
-+	 * Round down to the nearest FAKE_NODE_MIN_SIZE.
- 	 */
--	sz &= NODE_MIN_HASH_MASK;
-+	sz &= FAKE_NODE_MIN_HASH_MASK;
- 
- 	/*
- 	 * We ensure that each node is at least 64MB big.  Smaller than this
- 	 * size can cause VM hiccups.
- 	 */
- 	if (sz == 0) {
--		printk(KERN_INFO"Not enough memory for %d nodes.  Reducing "
-+		printk(KERN_INFO "Not enough memory for %d nodes.  Reducing "
- 				"the number of nodes\n", numa_fake);
--		numa_fake = (max_addr - start - hole_size) / NODE_MIN_SIZE;
--		printk(KERN_INFO"Number of fake nodes will be = %d\n", numa_fake);
--		sz = NODE_MIN_SIZE;
-+		numa_fake = (max_addr - start - hole_size) / FAKE_NODE_MIN_SIZE;
-+		printk(KERN_INFO "Number of fake nodes will be = %d\n",
-+				numa_fake);
-+		sz = FAKE_NODE_MIN_SIZE;
+diff -puN drivers/input/touchscreen/ads7846.c~hrtimers-namespace-and-enum-cleanup-vs-git-input drivers/input/touchscreen/ads7846.c
+--- a/drivers/input/touchscreen/ads7846.c~hrtimers-namespace-and-enum-cleanup-vs-git-input
++++ a/drivers/input/touchscreen/ads7846.c
+@@ -546,7 +546,7 @@ static void ads7846_rx(void *ads)
+ 			ts->spi->dev.bus_id, ts->tc.ignore, Rt);
+ #endif
+ 		hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
+-			      HRTIMER_REL);
++			      HRTIMER_MODE_REL);
+ 		return;
  	}
- 	/*
- 	 * Find out how many nodes can get an extra NODE_MIN_SIZE granule.
-@@ -325,8 +326,9 @@ static int __init numa_emulation(unsigne
- 	 * nodes as possible (as compared to one single node getting all that
- 	 * extra memory.
- 	 */
--	big = ((old_sz - sz) * numa_fake) / NODE_MIN_SIZE;
--	printk(KERN_INFO"Fake node Size: %luMB hole_size: %luMB big nodes: %d\n",
-+	big = ((old_sz - sz) * numa_fake) / FAKE_NODE_MIN_SIZE;
-+	printk(KERN_INFO "Fake node Size: %luMB hole_size: %luMB big nodes: "
-+			"%d\n",
- 			(sz >> 20), (hole_size >> 20), big);
-  	memset(&nodes,0,sizeof(nodes));
- 	end = start;
-@@ -350,13 +352,13 @@ static int __init numa_emulation(unsigne
- 		 * Fir "big" number of nodes get extra granule.
- 		 */
- 		if (i < big)
--			end += NODE_MIN_SIZE;
-+			end += FAKE_NODE_MIN_SIZE;
- 		/*
- 		 * Iterate over the range to ensure that this node gets at
- 		 * least sz amount of RAM (excluding holes)
- 		 */
- 		while ((end - start - e820_hole_size(start, end)) < sz) {
--			end += NODE_MIN_SIZE;
-+			end += FAKE_NODE_MIN_SIZE;
- 			if (end >= max_addr)
- 				break;
- 		}
-@@ -365,14 +367,14 @@ static int __init numa_emulation(unsigne
- 		 * to map.  Bad things happen when the only memory present
- 		 * in a zone on a fake node is IO hole.
- 		 */
--		while (e820_hole_size(end, end + NODE_MIN_SIZE) > 0) {
-+		while (e820_hole_size(end, end + FAKE_NODE_MIN_SIZE) > 0) {
- 			if (zone_cross_over(start, end + sz)) {
- 				end = (MAX_DMA32_PFN << PAGE_SHIFT);
- 				break;
- 			}
- 			if (end >= max_addr)
- 				break;
--			end += NODE_MIN_SIZE;
-+			end += FAKE_NODE_MIN_SIZE;
- 		}
- 		if (end > max_addr)
- 			end = max_addr;
-diff -puN include/asm-x86_64/e820.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix include/asm-x86_64/e820.h
-diff -puN include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix include/asm-x86_64/mmzone.h
---- a/include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix
-+++ a/include/asm-x86_64/mmzone.h
-@@ -48,8 +48,8 @@ extern int pfn_valid(unsigned long pfn);
- #endif
  
- #ifdef CONFIG_NUMA_EMU
--#define NODE_MIN_SIZE	(64*1024*1024)
--#define NODE_MIN_HASH_MASK	(~(NODE_MIN_SIZE - 1ul))
-+#define FAKE_NODE_MIN_SIZE	(64*1024*1024)
-+#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1ul))
+@@ -578,7 +578,8 @@ static void ads7846_rx(void *ads)
  #endif
+ 	}
  
- #endif
+-	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD), HRTIMER_REL);
++	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
++			HRTIMER_MODE_REL);
+ }
+ 
+ static int ads7846_debounce(void *ads, int data_idx, int *val)
+@@ -667,7 +668,7 @@ static void ads7846_rx_val(void *ads)
+ 				status);
+ }
+ 
+-static int ads7846_timer(struct hrtimer *handle)
++static enum hrtimer_restart ads7846_timer(struct hrtimer *handle)
+ {
+ 	struct ads7846	*ts = container_of(handle, struct ads7846, timer);
+ 	int		status = 0;
+@@ -724,7 +725,7 @@ static irqreturn_t ads7846_irq(int irq, 
+ 			disable_irq(ts->spi->irq);
+ 			ts->pending = 1;
+ 			hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_DELAY),
+-					HRTIMER_REL);
++					HRTIMER_MODE_REL);
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(&ts->lock, flags);
+@@ -862,7 +863,7 @@ static int __devinit ads7846_probe(struc
+ 	ts->spi = spi;
+ 	ts->input = input_dev;
+ 
+-	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_REL);
++	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	ts->timer.function = ads7846_timer;
+ 
+ 	spin_lock_init(&ts->lock);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -306,3 +233,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
