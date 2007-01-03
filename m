@@ -1,96 +1,58 @@
 From: akpm@osdl.org
-Subject: + tg3-use-flush_keventd_work.patch added to -mm tree
-Date: Tue, 02 Jan 2007 16:20:33 -0800
-Message-ID: <200701030020.l030KY1w002373@shell0.pdx.osdl.net>
+Subject: + e1000-use-flush_keventd_work.patch added to -mm tree
+Date: Tue, 02 Jan 2007 16:21:13 -0800
+Message-ID: <200701030021.l030LDef002397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:48736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:48776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751083AbXACAVK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:21:10 -0500
+	id S1750939AbXACAVo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 19:21:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, davem@davemloft.net, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, mchan@broadcom.com, oleg@tv-sign.ru
+Cc: akpm@osdl.org, auke-jan.h.kok@intel.com, davem@davemloft.net, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, oleg@tv-sign.ru
 
 
 The patch titled
-     tg3: use flush_work_keventd()
+     e1000: use flush_work_keventd()
 has been added to the -mm tree.  Its filename is
-     tg3-use-flush_keventd_work.patch
+     e1000-use-flush_keventd_work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tg3: use flush_work_keventd()
+Subject: e1000: use flush_work_keventd()
 From: Andrew Morton <akpm@osdl.org>
 
-Convert tg3 over to flush_work_keventd().  Remove nasty now-unneeded deadlock
-avoidance logic.
+Switch e1000 over to flush_work_keventd().  This probably fixes a netdev-close
+versus linkwatch rtnl_lock() deadlock which nobody knew about.
 
 Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Cc: David Howells <dhowells@redhat.com>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Michael Chan <mchan@broadcom.com>
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/tg3.c |   11 +----------
- drivers/net/tg3.h |    2 +-
- 2 files changed, 2 insertions(+), 11 deletions(-)
+ drivers/net/e1000/e1000_main.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/tg3.c~tg3-use-flush_keventd_work drivers/net/tg3.c
---- a/drivers/net/tg3.c~tg3-use-flush_keventd_work
-+++ a/drivers/net/tg3.c
-@@ -3680,10 +3680,8 @@ static void tg3_reset_task(struct work_s
- 	unsigned int restart_timer;
+diff -puN drivers/net/e1000/e1000_main.c~e1000-use-flush_keventd_work drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~e1000-use-flush_keventd_work
++++ a/drivers/net/e1000/e1000_main.c
+@@ -1222,7 +1222,7 @@ e1000_remove(struct pci_dev *pdev)
+ 	int i;
+ #endif
  
- 	tg3_full_lock(tp, 0);
--	tp->tg3_flags |= TG3_FLAG_IN_RESET_TASK;
+-	flush_scheduled_work();
++	flush_work_keventd(&adapter->reset_task);
  
- 	if (!netif_running(tp->dev)) {
--		tp->tg3_flags &= ~TG3_FLAG_IN_RESET_TASK;
- 		tg3_full_unlock(tp);
- 		return;
- 	}
-@@ -3714,8 +3712,6 @@ static void tg3_reset_task(struct work_s
- 		mod_timer(&tp->timer, jiffies + 1);
+ 	e1000_release_manageability(adapter);
  
- out:
--	tp->tg3_flags &= ~TG3_FLAG_IN_RESET_TASK;
--
- 	tg3_full_unlock(tp);
- }
- 
-@@ -7335,12 +7331,7 @@ static int tg3_close(struct net_device *
- {
- 	struct tg3 *tp = netdev_priv(dev);
- 
--	/* Calling flush_scheduled_work() may deadlock because
--	 * linkwatch_event() may be on the workqueue and it will try to get
--	 * the rtnl_lock which we are holding.
--	 */
--	while (tp->tg3_flags & TG3_FLAG_IN_RESET_TASK)
--		msleep(1);
-+	flush_work_keventd(&tp->reset_task);
- 
- 	netif_stop_queue(dev);
- 
-diff -puN drivers/net/tg3.h~tg3-use-flush_keventd_work drivers/net/tg3.h
---- a/drivers/net/tg3.h~tg3-use-flush_keventd_work
-+++ a/drivers/net/tg3.h
-@@ -2215,7 +2215,7 @@ struct tg3 {
- #define TG3_FLAG_JUMBO_RING_ENABLE	0x00800000
- #define TG3_FLAG_10_100_ONLY		0x01000000
- #define TG3_FLAG_PAUSE_AUTONEG		0x02000000
--#define TG3_FLAG_IN_RESET_TASK		0x04000000
-+
- #define TG3_FLAG_40BIT_DMA_BUG		0x08000000
- #define TG3_FLAG_BROKEN_CHECKSUMS	0x10000000
- #define TG3_FLAG_GOT_SERDES_FLOWCTL	0x20000000
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
