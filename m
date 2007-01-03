@@ -1,164 +1,225 @@
 From: akpm@osdl.org
-Subject: - workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch removed from -mm tree
-Date: Tue, 02 Jan 2007 16:01:10 -0800
-Message-ID: <200701030001.l0301A91001911@shell0.pdx.osdl.net>
+Subject: + reimplement-flush_workqueue.patch added to -mm tree
+Date: Tue, 02 Jan 2007 16:06:35 -0800
+Message-ID: <200701030006.l0306ZlV002010@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:47128 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:47568 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753846AbXACABs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:01:48 -0500
+	id S1752313AbXACAGn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 19:06:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, clameter@sgi.com, rmk@arm.linux.org.uk, torvalds@osdl.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru
 
 
 The patch titled
-     WorkStruct: Implement generic UP cmpxchg() where an arch doesn't support it
-has been removed from the -mm tree.  Its filename was
-     workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
+     reimplement flush_workqueue()
+has been added to the -mm tree.  Its filename is
+     reimplement-flush_workqueue.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: WorkStruct: Implement generic UP cmpxchg() where an arch doesn't support it
-From: David Howells <dhowells@redhat.com>
+Subject: reimplement flush_workqueue()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Implement generic UP cmpxchg() where an arch doesn't otherwise support it. 
-This assuming that the arch doesn't have support SMP without providing its
-own cmpxchg() implementation.
+Remove ->remove_sequence, ->insert_sequence, and ->work_done from struct
+cpu_workqueue_struct.  To implement flush_workqueue() we can queue a
+barrier work on each CPU and wait for its completition.
 
-This is required because cmpxchg() is used by the reduced work queue
-patches to adjust the management data in a work_struct.
+The barrier is queued under workqueue_mutex to ensure that per cpu
+wq->cpu_wq is alive, we drop this mutex before going to sleep.  If CPU goes
+down while we are waiting for completition, take_over_work() will move the
+barrier on another CPU, and the handler will wake up us eventually.
 
-Also provide ARMv6 with a cmpxchg() implementation using LDREX/STREXEQ. 
-Pre-v6 ARM doesn't support SMP according to ARM's atomic.h, so the generic
-IRQ-disablement based cmpxchg() is entirely adequate there (if it isn't,
-then atomic_cmpxchg() is also broken on ARM).
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Linus Torvalds <torvalds@osdl.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-arm/system.h      |   40 +++++++++++++++++++++++++++
- include/asm-generic/cmpxchg.h |   46 ++++++++++++++++++++++++++++++++
- 2 files changed, 86 insertions(+)
+ kernel/workqueue.c |   70 +++++++++++++++++++------------------------
+ 1 files changed, 31 insertions(+), 39 deletions(-)
 
-diff -puN include/asm-arm/system.h~workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it include/asm-arm/system.h
---- a/include/asm-arm/system.h~workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it
-+++ a/include/asm-arm/system.h
-@@ -361,6 +361,46 @@ static inline unsigned long __xchg(unsig
- extern void disable_hlt(void);
- extern void enable_hlt(void);
+diff -puN kernel/workqueue.c~reimplement-flush_workqueue kernel/workqueue.c
+--- a/kernel/workqueue.c~reimplement-flush_workqueue
++++ a/kernel/workqueue.c
+@@ -36,23 +36,13 @@
+ /*
+  * The per-CPU workqueue (if single thread, we always use the first
+  * possible cpu).
+- *
+- * The sequence counters are for flush_scheduled_work().  It wants to wait
+- * until all currently-scheduled works are completed, but it doesn't
+- * want to be livelocked by new, incoming ones.  So it waits until
+- * remove_sequence is >= the insert_sequence which pertained when
+- * flush_scheduled_work() was called.
+  */
+ struct cpu_workqueue_struct {
  
-+/*
-+ * We only implement cmpxchg in ASM on ARMv6 where we have LDREX/STREX
-+ * available, and we only implement it for word-sized exchanges
-+ */
-+#if __LINUX_ARM_ARCH__ >= 6
-+extern void __bad_cmpxchg(volatile void *, int);
-+
-+#define cmpxchg(ptr, old, new)						\
-+({									\
-+	__typeof__ (ptr) ____p = (ptr);					\
-+	__typeof__(*ptr) ____old = (old);				\
-+	__typeof__(*ptr) ____new = (new);				\
-+	__typeof__(*ptr) ____oldval;					\
-+	__typeof__(*ptr) ____res;					\
-+									\
-+	switch (sizeof(____res)) {					\
-+	case 4:								\
-+		do {							\
-+			__asm__ __volatile__("@ cmpxchg\n"		\
-+			"ldrex	%1, [%2]\n"				\
-+			"mov	%0, #0\n"				\
-+			"teq	%1, %3\n"				\
-+			"strexeq %0, %4, [%2]\n"			\
-+			: "=&r" (____res), "=&r" (____oldval)		\
-+			: "r" (____p), "Ir" (____old), "r" (____new)	\
-+			: "cc");					\
-+		} while(____res);					\
-+		break;							\
-+	default:							\
-+		__bad_cmpxchg(____p, sizeof(____res));			\
-+		____oldval = 0;						\
-+		break;							\
-+	}								\
-+	____oldval;							\
-+})
-+
-+#else
-+#include <asm-generic/cmpxchg.h>
-+#endif
-+
- #endif /* __ASSEMBLY__ */
+ 	spinlock_t lock;
  
- #define arch_align_stack(x) (x)
-diff -puN /dev/null include/asm-generic/cmpxchg.h
---- /dev/null
-+++ a/include/asm-generic/cmpxchg.h
-@@ -0,0 +1,46 @@
-+/* Generic cmpxchg for those arches that don't implement it themselves
-+ *
-+ * Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
+-	long remove_sequence;	/* Least-recently added (next to run) */
+-	long insert_sequence;	/* Next to add */
+-
+ 	struct list_head worklist;
+ 	wait_queue_head_t more_work;
+-	wait_queue_head_t work_done;
+ 
+ 	struct workqueue_struct *wq;
+ 	struct task_struct *thread;
+@@ -138,8 +128,6 @@ static int __run_work(struct cpu_workque
+ 		f(work);
+ 
+ 		spin_lock_irqsave(&cwq->lock, flags);
+-		cwq->remove_sequence++;
+-		wake_up(&cwq->work_done);
+ 		ret = 1;
+ 	}
+ 	spin_unlock_irqrestore(&cwq->lock, flags);
+@@ -187,7 +175,6 @@ static void __queue_work(struct cpu_work
+ 	spin_lock_irqsave(&cwq->lock, flags);
+ 	set_wq_data(work, cwq);
+ 	list_add_tail(&work->entry, &cwq->worklist);
+-	cwq->insert_sequence++;
+ 	wake_up(&cwq->more_work);
+ 	spin_unlock_irqrestore(&cwq->lock, flags);
+ }
+@@ -337,8 +324,6 @@ static void run_workqueue(struct cpu_wor
+ 		}
+ 
+ 		spin_lock_irqsave(&cwq->lock, flags);
+-		cwq->remove_sequence++;
+-		wake_up(&cwq->work_done);
+ 	}
+ 	cwq->run_depth--;
+ 	spin_unlock_irqrestore(&cwq->lock, flags);
+@@ -393,6 +378,25 @@ static int worker_thread(void *__cwq)
+ 	return 0;
+ }
+ 
++struct wq_barrier {
++	struct work_struct	work;
++	struct completion	done;
++};
 +
-+#ifndef _ASM_GENERIC_CMPXCHG_H
-+#define _ASM_GENERIC_CMPXCHG_H
++static void wq_barrier_func(struct work_struct *work)
++{
++	struct wq_barrier *barr = container_of(work, struct wq_barrier, work);
++	complete(&barr->done);
++}
 +
-+#if !defined(cmpxchg) && !defined(CONFIG_SMP)
++static inline void init_wq_barrier(struct wq_barrier *barr)
++{
++	INIT_WORK(&barr->work, wq_barrier_func);
++	__set_bit(WORK_STRUCT_PENDING, work_data_bits(&barr->work));
 +
-+/**
-+ * cmpxchg - Atomically conditionally exchange one value for another.
-+ * @ptr - Pointer to the value to be altered.
-+ * @old - The value to change from.
-+ * @new - The value to change to.
-+ *
-+ * This function atomically compares the current value at the word pointed to
-+ * by @ptr, and if it's the same as @old, changes it to @new.  If it's not the
-+ * same then it's left unchanged.
-+ *
-+ * The value that was in the word pointed to by @ptr is returned, whether or
-+ * not it was changed to @new.
-+ */
-+#define cmpxchg(ptr, old, new)			\
-+({						\
-+	unsigned long ____flags;		\
-+	__typeof__ (ptr) ____p = (ptr);		\
-+	__typeof__(*ptr) ____old = (old);	\
-+	__typeof__(*ptr) ____new = (new);	\
-+	__typeof__(*ptr) ____res;		\
-+	raw_local_irq_save(____flags);		\
-+	____res = *____p;			\
-+	if (likely(____res == (____old)))	\
-+		*____p = (____new);		\
-+	raw_local_irq_restore(____flags);	\
-+	____res;				\
-+})
++	init_completion(&barr->done);
++}
 +
-+#endif /* !cmpxchg && !SMP */
-+#endif /* _ASM_GENERIC_CMPXCHG_H */
+ static void flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
+ {
+ 	if (cwq->thread == current) {
+@@ -400,23 +404,18 @@ static void flush_cpu_workqueue(struct c
+ 		 * Probably keventd trying to flush its own queue. So simply run
+ 		 * it by hand rather than deadlocking.
+ 		 */
++		mutex_unlock(&workqueue_mutex);
+ 		run_workqueue(cwq);
++		mutex_lock(&workqueue_mutex);
+ 	} else {
+-		DEFINE_WAIT(wait);
+-		long sequence_needed;
++		struct wq_barrier barr;
+ 
+-		spin_lock_irq(&cwq->lock);
+-		sequence_needed = cwq->insert_sequence;
++		init_wq_barrier(&barr);
++		__queue_work(cwq, &barr.work);
+ 
+-		while (sequence_needed - cwq->remove_sequence > 0) {
+-			prepare_to_wait(&cwq->work_done, &wait,
+-					TASK_UNINTERRUPTIBLE);
+-			spin_unlock_irq(&cwq->lock);
+-			schedule();
+-			spin_lock_irq(&cwq->lock);
+-		}
+-		finish_wait(&cwq->work_done, &wait);
+-		spin_unlock_irq(&cwq->lock);
++		mutex_unlock(&workqueue_mutex);
++		wait_for_completion(&barr.done);
++		mutex_lock(&workqueue_mutex);
+ 	}
+ }
+ 
+@@ -427,29 +426,25 @@ static void flush_cpu_workqueue(struct c
+  * Forces execution of the workqueue and blocks until its completion.
+  * This is typically used in driver shutdown handlers.
+  *
+- * This function will sample each workqueue's current insert_sequence number and
+- * will sleep until the head sequence is greater than or equal to that.  This
+- * means that we sleep until all works which were queued on entry have been
+- * handled, but we are not livelocked by new incoming ones.
++ * We sleep until all works which were queued on entry have been handled,
++ * but we are not livelocked by new incoming ones.
+  *
+  * This function used to run the workqueues itself.  Now we just wait for the
+  * helper threads to do it.
+  */
+ void fastcall flush_workqueue(struct workqueue_struct *wq)
+ {
+-	might_sleep();
+-
++	mutex_lock(&workqueue_mutex);
+ 	if (is_single_threaded(wq)) {
+ 		/* Always use first cpu's area. */
+ 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
+ 	} else {
+ 		int cpu;
+ 
+-		mutex_lock(&workqueue_mutex);
+ 		for_each_online_cpu(cpu)
+ 			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
+-		mutex_unlock(&workqueue_mutex);
+ 	}
++	mutex_unlock(&workqueue_mutex);
+ }
+ EXPORT_SYMBOL_GPL(flush_workqueue);
+ 
+@@ -462,12 +457,9 @@ static struct task_struct *create_workqu
+ 	spin_lock_init(&cwq->lock);
+ 	cwq->wq = wq;
+ 	cwq->thread = NULL;
+-	cwq->insert_sequence = 0;
+-	cwq->remove_sequence = 0;
+ 	cwq->freezeable = freezeable;
+ 	INIT_LIST_HEAD(&cwq->worklist);
+ 	init_waitqueue_head(&cwq->more_work);
+-	init_waitqueue_head(&cwq->work_done);
+ 
+ 	if (is_single_threaded(wq))
+ 		p = kthread_create(worker_thread, cwq, "%s", wq->name);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-alsa.patch
-infiniband-work-around-gcc-bug-on-sparc64.patch
-nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch
-git-cryptodev.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
 doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-ecryptfs-public-key-transport-mechanism.patch
-ecryptfs-public-key-packet-management.patch
-workstruct-implement-generic-up-cmpxchg-where-an-arch-doesnt-support-it.patch
-workqueue-dont-hold-workqueue_mutex-in-flush_scheduled_work.patch
-reiser4-get_sb_dev-fix.patch
-mutex-subsystem-synchro-test-module.patch
+vt-refactor-console-sak-processing.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+kill_pid_info-kill-acquired_tasklist_lock.patch
+reimplement-flush_workqueue.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
