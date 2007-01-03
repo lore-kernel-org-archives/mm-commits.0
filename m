@@ -1,260 +1,189 @@
 From: akpm@osdl.org
-Subject: + forcedeth-sideband-management-fix.patch added to -mm tree
-Date: Wed, 03 Jan 2007 14:17:23 -0800
-Message-ID: <200701032217.l03MHNxQ000646@shell0.pdx.osdl.net>
+Subject: - fsaio-enable-asynchronous-wait-page-and-lock-page.patch removed from -mm tree
+Date: Wed, 03 Jan 2007 14:16:37 -0800
+Message-ID: <200701032216.l03MGbpX000607@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:55346 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:55345 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932163AbXACWR2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 17:17:28 -0500
+	id S932160AbXACWR0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 17:17:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aabdulla@nvidia.com
+To: suparna@in.ibm.com, bcrl@kvack.org, drepper@redhat.com, hch@lst.de, mingo@elte.hu, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: sideband management fix
-has been added to the -mm tree.  Its filename is
-     forcedeth-sideband-management-fix.patch
+     fsaio: enable asynchronous wait page and lock page
+has been removed from the -mm tree.  Its filename was
+     fsaio-enable-asynchronous-wait-page-and-lock-page.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: forcedeth: sideband management fix
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: fsaio: enable asynchronous wait page and lock page
+From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-A fix that implements proper communication with the sideband management
-unit.  Also, it makes sure that the speed is correctly set for gigabit phys
-in the case where sideband mgmt unit initialized the phy.  Refer to bug
-#7684 for more details.
+Define low-level page wait and lock page routines which take a wait queue
+entry pointer as an additional parameter and return status (which may be
+non-zero when the wait queue parameter signifies an asynchronous wait,
+typically during AIO).
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Synchronous IO waits become a special case where the wait queue parameter is
+the running task's default io wait context.  Asynchronous IO waits happen when
+the wait queue parameter is the io wait context of a kiocb.  Code paths which
+choose to execute synchronous or asynchronous behaviour depending on the
+called context specify the current io wait context (which points to sync or
+async context as the case may be) as the wait parameter.
+
+Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |  111 +++++++++++++++++++-------------------
- 1 files changed, 56 insertions(+), 55 deletions(-)
+ include/linux/pagemap.h |   38 ++++++++++++++++++++++++++++++--------
+ include/linux/sched.h   |    1 +
+ kernel/sched.c          |   13 +++++++++++++
+ mm/filemap.c            |    2 +-
+ 4 files changed, 45 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-sideband-management-fix drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-sideband-management-fix
-+++ a/drivers/net/forcedeth.c
-@@ -234,6 +234,7 @@ enum {
- #define NVREG_XMITCTL_HOST_SEMA_MASK	0x0000f000
- #define NVREG_XMITCTL_HOST_SEMA_ACQ	0x0000f000
- #define NVREG_XMITCTL_HOST_LOADED	0x00004000
-+#define NVREG_XMITCTL_TX_PATH_EN	0x01000000
- 	NvRegTransmitterStatus = 0x088,
- #define NVREG_XMITSTAT_BUSY	0x01
- 
-@@ -249,6 +250,7 @@ enum {
- #define NVREG_OFFLOAD_NORMAL	RX_NIC_BUFSIZE
- 	NvRegReceiverControl = 0x094,
- #define NVREG_RCVCTL_START	0x01
-+#define NVREG_RCVCTL_RX_PATH_EN	0x01000000
- 	NvRegReceiverStatus = 0x98,
- #define NVREG_RCVSTAT_BUSY	0x01
- 
-@@ -1169,16 +1171,21 @@ static void nv_start_rx(struct net_devic
- {
- 	struct fe_priv *np = netdev_priv(dev);
- 	u8 __iomem *base = get_hwbase(dev);
-+	u32 rx_ctrl = readl(base + NvRegReceiverControl);
- 
- 	dprintk(KERN_DEBUG "%s: nv_start_rx\n", dev->name);
- 	/* Already running? Stop it. */
--	if (readl(base + NvRegReceiverControl) & NVREG_RCVCTL_START) {
--		writel(0, base + NvRegReceiverControl);
-+	if ((readl(base + NvRegReceiverControl) & NVREG_RCVCTL_START) && !np->mac_in_use) {
-+		rx_ctrl &= ~NVREG_RCVCTL_START;
-+		writel(rx_ctrl, base + NvRegReceiverControl);
- 		pci_push(base);
- 	}
- 	writel(np->linkspeed, base + NvRegLinkSpeed);
- 	pci_push(base);
--	writel(NVREG_RCVCTL_START, base + NvRegReceiverControl);
-+        rx_ctrl |= NVREG_RCVCTL_START;
-+        if (np->mac_in_use)
-+		rx_ctrl &= ~NVREG_RCVCTL_RX_PATH_EN;
-+	writel(rx_ctrl, base + NvRegReceiverControl);
- 	dprintk(KERN_DEBUG "%s: nv_start_rx to duplex %d, speed 0x%08x.\n",
- 				dev->name, np->duplex, np->linkspeed);
- 	pci_push(base);
-@@ -1186,39 +1193,59 @@ static void nv_start_rx(struct net_devic
- 
- static void nv_stop_rx(struct net_device *dev)
- {
-+	struct fe_priv *np = netdev_priv(dev);
- 	u8 __iomem *base = get_hwbase(dev);
-+	u32 rx_ctrl = readl(base + NvRegReceiverControl);
- 
- 	dprintk(KERN_DEBUG "%s: nv_stop_rx\n", dev->name);
--	writel(0, base + NvRegReceiverControl);
-+	if (!np->mac_in_use)
-+		rx_ctrl &= ~NVREG_RCVCTL_START;
-+	else
-+		rx_ctrl |= NVREG_RCVCTL_RX_PATH_EN;
-+	writel(rx_ctrl, base + NvRegReceiverControl);
- 	reg_delay(dev, NvRegReceiverStatus, NVREG_RCVSTAT_BUSY, 0,
- 			NV_RXSTOP_DELAY1, NV_RXSTOP_DELAY1MAX,
- 			KERN_INFO "nv_stop_rx: ReceiverStatus remained busy");
- 
- 	udelay(NV_RXSTOP_DELAY2);
--	writel(0, base + NvRegLinkSpeed);
-+	if (!np->mac_in_use)
-+		writel(0, base + NvRegLinkSpeed);
+diff -puN include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/pagemap.h
+--- a/include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page
++++ a/include/linux/pagemap.h
+@@ -144,24 +144,37 @@ static inline pgoff_t linear_page_index(
+ 	return pgoff >> (PAGE_CACHE_SHIFT - PAGE_SHIFT);
  }
  
- static void nv_start_tx(struct net_device *dev)
- {
-+	struct fe_priv *np = netdev_priv(dev);
- 	u8 __iomem *base = get_hwbase(dev);
-+	u32 tx_ctrl = readl(base + NvRegTransmitterControl);
+-extern void FASTCALL(lock_page_blocking(struct page *page));
++extern int FASTCALL(__lock_page_blocking(struct page *page,
++					wait_queue_t *wait));
+ extern void FASTCALL(unlock_page(struct page *page));
  
- 	dprintk(KERN_DEBUG "%s: nv_start_tx\n", dev->name);
--	writel(NVREG_XMITCTL_START, base + NvRegTransmitterControl);
-+	tx_ctrl |= NVREG_XMITCTL_START;
-+	if (np->mac_in_use)
-+		tx_ctrl &= ~NVREG_XMITCTL_TX_PATH_EN;
-+	writel(tx_ctrl, base + NvRegTransmitterControl);
- 	pci_push(base);
+ /*
+  * lock_page may only be called if we have the page's inode pinned.
+  */
+-static inline void lock_page(struct page *page)
++static inline int __lock_page(struct page *page, wait_queue_t *wait)
+ {
+ 	might_sleep();
+ 	if (TestSetPageLocked(page))
+-		lock_page_blocking(page);
++		return __lock_page_blocking(page, wait);
++	return 0;
++}
++
++static inline int lock_page(struct page *page)
++{
++	return __lock_page(page, &current->__wait.wait);
++}
++
++static inline int lock_page_blocking(struct page *page)
++{
++	return __lock_page_blocking(page, &current->__wait.wait);
  }
  
- static void nv_stop_tx(struct net_device *dev)
+ /*
+  * This is exported only for wait_on_page_locked/wait_on_page_writeback.
+  * Never use this directly!
+  */
+-extern void FASTCALL(wait_on_page_bit(struct page *page, int bit_nr));
++extern int FASTCALL(wait_on_page_bit(struct page *page, int bit_nr,
++			wait_queue_t *wait));
+ 
+ /* 
+  * Wait for a page to be unlocked.
+@@ -170,21 +183,30 @@ extern void FASTCALL(wait_on_page_bit(st
+  * ie with increased "page->count" so that the page won't
+  * go away during the wait..
+  */
+-static inline void wait_on_page_locked(struct page *page)
++static inline int __wait_on_page_locked(struct page *page, wait_queue_t *wait)
  {
-+	struct fe_priv *np = netdev_priv(dev);
- 	u8 __iomem *base = get_hwbase(dev);
-+	u32 tx_ctrl = readl(base + NvRegTransmitterControl);
- 
- 	dprintk(KERN_DEBUG "%s: nv_stop_tx\n", dev->name);
--	writel(0, base + NvRegTransmitterControl);
-+	if (!np->mac_in_use)
-+		tx_ctrl &= ~NVREG_XMITCTL_START;
-+	else
-+		tx_ctrl |= NVREG_XMITCTL_TX_PATH_EN;
-+	writel(tx_ctrl, base + NvRegTransmitterControl);
- 	reg_delay(dev, NvRegTransmitterStatus, NVREG_XMITSTAT_BUSY, 0,
- 			NV_TXSTOP_DELAY1, NV_TXSTOP_DELAY1MAX,
- 			KERN_INFO "nv_stop_tx: TransmitterStatus remained busy");
- 
- 	udelay(NV_TXSTOP_DELAY2);
--	writel(readl(base + NvRegTransmitPoll) & NVREG_TRANSMITPOLL_MAC_ADDR_REV, base + NvRegTransmitPoll);
-+	if (!np->mac_in_use)
-+		writel(readl(base + NvRegTransmitPoll) & NVREG_TRANSMITPOLL_MAC_ADDR_REV,
-+		       base + NvRegTransmitPoll);
+ 	if (PageLocked(page))
+-		wait_on_page_bit(page, PG_locked);
++		return wait_on_page_bit(page, PG_locked, wait);
++	return 0;
  }
  
- static void nv_txrx_reset(struct net_device *dev)
-@@ -4146,20 +4173,6 @@ static int nv_mgmt_acquire_sema(struct n
- 	return 0;
++#define wait_on_page_locked(page) \
++	__wait_on_page_locked(page, &current->__wait.wait)
++
+ /* 
+  * Wait for a page to complete writeback
+  */
+-static inline void wait_on_page_writeback(struct page *page)
++static inline int __wait_on_page_writeback(struct page *page,
++					wait_queue_t *wait)
+ {
+ 	if (PageWriteback(page))
+-		wait_on_page_bit(page, PG_writeback);
++		return wait_on_page_bit(page, PG_writeback, wait);
++	return 0;
  }
  
--/* Indicate to mgmt unit whether driver is loaded or not */
--static void nv_mgmt_driver_loaded(struct net_device *dev, int loaded)
--{
--	u8 __iomem *base = get_hwbase(dev);
--	u32 tx_ctrl;
--
--	tx_ctrl = readl(base + NvRegTransmitterControl);
--	if (loaded)
--		tx_ctrl |= NVREG_XMITCTL_HOST_LOADED;
--	else
--		tx_ctrl &= ~NVREG_XMITCTL_HOST_LOADED;
--	writel(tx_ctrl, base + NvRegTransmitterControl);
--}
--
- static int nv_open(struct net_device *dev)
- {
- 	struct fe_priv *np = netdev_priv(dev);
-@@ -4655,33 +4668,24 @@ static int __devinit nv_probe(struct pci
- 	writel(NVREG_MIISTAT_MASK, base + NvRegMIIStatus);
++#define wait_on_page_writeback(page) \
++	__wait_on_page_writeback(page, &current->__wait.wait)
++
+ extern void end_page_writeback(struct page *page);
  
- 	if (id->driver_data & DEV_HAS_MGMT_UNIT) {
--		writel(0x1, base + 0x204); pci_push(base);
--		msleep(500);
- 		/* management unit running on the mac? */
--		np->mac_in_use = readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_MGMT_ST;
--		if (np->mac_in_use) {
--			u32 mgmt_sync;
--			/* management unit setup the phy already? */
--			mgmt_sync = readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK;
--			if (mgmt_sync == NVREG_XMITCTL_SYNC_NOT_READY) {
--				if (!nv_mgmt_acquire_sema(dev)) {
--					for (i = 0; i < 5000; i++) {
--						msleep(1);
--						mgmt_sync = readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK;
--						if (mgmt_sync == NVREG_XMITCTL_SYNC_NOT_READY)
--							continue;
--						if (mgmt_sync == NVREG_XMITCTL_SYNC_PHY_INIT)
--							phyinitialized = 1;
--						break;
-+		if (readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_PHY_INIT) {
-+			np->mac_in_use = readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_MGMT_ST;
-+			dprintk(KERN_INFO "%s: mgmt unit is running. mac in use %x.\n", pci_name(pci_dev), np->mac_in_use);
-+			for (i = 0; i < 5000; i++) {
-+				msleep(1);
-+				if (nv_mgmt_acquire_sema(dev)) {
-+					/* management unit setup the phy already? */
-+					if ((readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK) ==
-+					    NVREG_XMITCTL_SYNC_PHY_INIT) {
-+						/* phy is inited by mgmt unit */
-+						phyinitialized = 1;
-+						dprintk(KERN_INFO "%s: Phy already initialized by mgmt unit.\n", pci_name(pci_dev));
-+					} else {
-+						/* we need to init the phy */
- 					}
--				} else {
--					/* we need to init the phy */
-+					break;
- 				}
--			} else if (mgmt_sync == NVREG_XMITCTL_SYNC_PHY_INIT) {
--				/* phy is inited by SMU */
--				phyinitialized = 1;
--			} else {
--				/* we need to init the phy */
- 			}
- 		}
- 	}
-@@ -4720,10 +4724,12 @@ static int __devinit nv_probe(struct pci
- 	if (!phyinitialized) {
- 		/* reset it */
- 		phy_init(dev);
--	}
--
--	if (id->driver_data & DEV_HAS_MGMT_UNIT) {
--		nv_mgmt_driver_loaded(dev, 1);
-+	} else {
-+		/* see if it is a gigabit phy */
-+		u32 mii_status = mii_rw(dev, np->phyaddr, MII_BMSR, MII_READ);
-+		if (mii_status & PHY_GIGABIT) {
-+			np->gigabit = PHY_GIGABIT;
-+		}
- 	}
+ /*
+diff -puN include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/sched.h
+--- a/include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page
++++ a/include/linux/sched.h
+@@ -216,6 +216,7 @@ extern void show_stack(struct task_struc
  
- 	/* set default link speed settings */
-@@ -4745,8 +4751,6 @@ static int __devinit nv_probe(struct pci
- out_error:
- 	if (phystate_orig)
- 		writel(phystate|NVREG_ADAPTCTL_RUNNING, base + NvRegAdapterControl);
--	if (np->mac_in_use)
--		nv_mgmt_driver_loaded(dev, 0);
- 	pci_set_drvdata(pci_dev, NULL);
- out_freering:
- 	free_rings(dev);
-@@ -4776,9 +4780,6 @@ static void __devexit nv_remove(struct p
- 	writel(np->orig_mac[0], base + NvRegMacAddrA);
- 	writel(np->orig_mac[1], base + NvRegMacAddrB);
+ void io_schedule(void);
+ long io_schedule_timeout(long timeout);
++int io_wait_schedule(wait_queue_t *wait);
  
--	if (np->mac_in_use)
--		nv_mgmt_driver_loaded(dev, 0);
--
- 	/* free all structures */
- 	free_rings(dev);
- 	iounmap(get_hwbase(dev));
+ extern void cpu_init (void);
+ extern void trap_init(void);
+diff -puN kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page kernel/sched.c
+--- a/kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page
++++ a/kernel/sched.c
+@@ -4754,6 +4754,19 @@ long __sched io_schedule_timeout(long ti
+ 	return ret;
+ }
+ 
++/*
++ * Sleep only if the wait context passed is not async,
++ * otherwise return so that a retry can be issued later.
++ */
++int __sched io_wait_schedule(wait_queue_t *wait)
++{
++	if (!is_sync_wait(wait))
++		return -EIOCBRETRY;
++	io_schedule();
++	return 0;
++}
++EXPORT_SYMBOL(io_wait_schedule);
++
+ /**
+  * sys_sched_get_priority_max - return maximum RT priority.
+  * @policy: scheduling class.
+diff -puN mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page mm/filemap.c
+--- a/mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page
++++ a/mm/filemap.c
+@@ -520,7 +520,7 @@ void end_page_writeback(struct page *pag
+ EXPORT_SYMBOL(end_page_writeback);
+ 
+ /**
+- * lock_page_blocking - get a lock on the page, assuming we need to sleep to get it
++ * __lock_page_blocking: get a lock on the page, assuming we need to wait to get it
+  * @page: the page to lock
+  */
+ void fastcall lock_page_blocking(struct page *page)
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from suparna@in.ibm.com are
 
-forcedeth-sideband-management-fix.patch
+aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-filesystem-aio-read-tidy.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
