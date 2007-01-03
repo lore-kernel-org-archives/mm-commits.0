@@ -1,224 +1,141 @@
 From: akpm@osdl.org
-Subject: + reiser4-vs-git-block-2.patch added to -mm tree
-Date: Wed, 03 Jan 2007 15:37:10 -0800
-Message-ID: <200701032337.l03NbY5k002925@shell0.pdx.osdl.net>
+Subject: - usb-interrupt-endpoint-support-for-keyspan-usb-to-serial.patch removed from -mm tree
+Date: Wed, 03 Jan 2007 15:49:30 -0800
+Message-ID: <200701032349.l03NnUh7003285@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:60546 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33067 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932191AbXACXiB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 18:38:01 -0500
+	id S932199AbXACXtg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 18:49:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, edward@namesys.com, jens.axboe@oracle.com, vs@namesys.com
+To: rweikusat@sncag.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4-vs-git-block-2
-has been added to the -mm tree.  Its filename is
-     reiser4-vs-git-block-2.patch
+     usb: interrupt endpoint support for keyspan USB-to-serial
+has been removed from the -mm tree.  Its filename was
+     usb-interrupt-endpoint-support-for-keyspan-usb-to-serial.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: reiser4-vs-git-block-2
-From: Andrew Morton <akpm@osdl.org>
+Subject: usb: interrupt endpoint support for keyspan USB-to-serial
+From: Rainer Weikusat <rweikusat@sncag.com>
 
-Cc: Vladimir Saveliev <vs@namesys.com>
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+At least the Keyspan USA-19HS USB-to-serial converter supports two
+different configurations, one where the input endpoints have interrupt
+transfer type and one where they are bulk endpoints.
+
+The default configuration uses the interrupt input endpoints.  The keyspan
+driver, OTOH, assumes that the device has only bulk endpoints (all URBs are
+initialized by calling usb_fill_bulk_urb in keyspan.c/ keyspan_setup_urb). 
+This causes the interval field of the input URBs to have a value of zero
+instead of one, which 'accidentally' worked with Linux at least up to
+2.6.17.11 but stopped to with 2.6.18, which changed the code handling URBs
+for interrupt endpoints.
+
+The patch modifies to driver to initialize its input URBs either as
+interrupt or as bulk URBs, depending on the transfertype contained in the
+associated endpoint descriptor (only tested with the default configuration)
+enabling the driver to again receive data from the serial converter.
+
+Signed-off-by: Rainer Weikusat <rweikusat@sncag.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/plugin/object.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/usb/serial/keyspan.c |   55 ++++++++++++++++++++++++++++++---
+ 1 file changed, 51 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiser4/plugin/object.c~reiser4-vs-git-block-2 fs/reiser4/plugin/object.c
---- a/fs/reiser4/plugin/object.c~reiser4-vs-git-block-2
-+++ a/fs/reiser4/plugin/object.c
-@@ -119,7 +119,6 @@ file_plugin file_plugins[LAST_FILE_PLUGI
- 		.as_ops = {
- 			.writepage = reiser4_writepage,
- 			.readpage = readpage_unix_file,
--			.sync_page = block_sync_page,
- 			.writepages = writepages_unix_file,
- 			.set_page_dirty = reiser4_set_page_dirty,
- 			.readpages = readpages_unix_file,
-@@ -326,7 +325,6 @@ file_plugin file_plugins[LAST_FILE_PLUGI
- 		.as_ops = {
- 			.writepage = reiser4_writepage,
- 			.readpage = readpage_cryptcompress,
--			.sync_page = block_sync_page,
- 			.writepages = writepages_cryptcompress,
- 			.set_page_dirty = reiser4_set_page_dirty,
- 			.readpages = readpages_cryptcompress,
-@@ -417,7 +415,6 @@ dir_plugin dir_plugins[LAST_DIR_ID] = {
- 		},
- 		.as_ops = {
- 			.writepage = bugop,
--			.sync_page = bugop,
- 			.writepages = dummyop,
- 			.set_page_dirty = bugop,
- 			.readpages = bugop,
-@@ -477,7 +474,6 @@ dir_plugin dir_plugins[LAST_DIR_ID] = {
- 		},
- 		.as_ops = {
- 			.writepage = bugop,
--			.sync_page = bugop,
- 			.writepages = dummyop,
- 			.set_page_dirty = bugop,
- 			.readpages = bugop,
+diff -puN drivers/usb/serial/keyspan.c~usb-interrupt-endpoint-support-for-keyspan-usb-to-serial drivers/usb/serial/keyspan.c
+--- a/drivers/usb/serial/keyspan.c~usb-interrupt-endpoint-support-for-keyspan-usb-to-serial
++++ a/drivers/usb/serial/keyspan.c
+@@ -95,6 +95,7 @@
+ */
+ 
+ 
++#include <linux/compiler.h>
+ #include <linux/kernel.h>
+ #include <linux/jiffies.h>
+ #include <linux/errno.h>
+@@ -1275,11 +1276,35 @@ static int keyspan_fake_startup (struct 
+ }
+ 
+ /* Helper functions used by keyspan_setup_urbs */
++static struct usb_endpoint_descriptor const *
++find_ep_desc_for(struct usb_serial const *serial, int endpoint)
++{
++	struct usb_host_interface const *setting;
++	struct usb_endpoint_descriptor const *ep_desc;
++	int n;
++
++	setting = serial->interface->cur_altsetting;
++	n = setting->desc.bNumEndpoints - 1;
++	do
++		ep_desc = &setting->endpoint[n].desc;
++	while (ep_desc->bEndpointAddress != endpoint && --n >= 0);
++
++	if (unlikely(n == -1)) {
++		printk(KERN_ERR "no endpoint descriptor found\n");
++		BUG();
++	}
++
++	dbg("%s - found endpoint descriptor @ %p", __func__, ep_desc);
++	return ep_desc;
++}
++
+ static struct urb *keyspan_setup_urb (struct usb_serial *serial, int endpoint,
+ 				      int dir, void *ctx, char *buf, int len,
+ 				      void (*callback)(struct urb *))
+ {
++	struct usb_endpoint_descriptor const *ep_desc;
+ 	struct urb *urb;
++	unsigned ep_type;
+ 
+ 	if (endpoint == -1)
+ 		return NULL;		/* endpoint not needed */
+@@ -1291,10 +1316,32 @@ static struct urb *keyspan_setup_urb (st
+ 		return NULL;
+ 	}
+ 
+-		/* Fill URB using supplied data. */
+-	usb_fill_bulk_urb(urb, serial->dev,
+-		      usb_sndbulkpipe(serial->dev, endpoint) | dir,
+-		      buf, len, callback, ctx);
++	ep_desc = find_ep_desc_for(serial, endpoint);
++	ep_type = ep_desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
++	switch (ep_type) {
++	case USB_ENDPOINT_XFER_INT:
++		dbg("%s - filling urb %p for int endpoint",
++		    __func__, urb);
++
++		usb_fill_int_urb(urb, serial->dev,
++				 usb_sndintpipe(serial->dev, endpoint) | dir,
++				 buf, len, callback, ctx,
++				 ep_desc->bInterval);
++		break;
++
++	case USB_ENDPOINT_XFER_BULK:
++		dbg("%s - filling urb %p for bulk endpoint",
++		    __func__, urb);
++
++		usb_fill_bulk_urb(urb, serial->dev,
++				  usb_sndbulkpipe(serial->dev, endpoint) | dir,
++				  buf, len, callback, ctx);
++		break;
++
++	default:
++		printk(KERN_ERR "unexpected endpoint type %d", ep_type);
++		BUG();
++	}
+ 
+ 	return urb;
+ }
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from rweikusat@sncag.com are
 
-start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
-kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
-pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
-atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-pci-avoid-taking-pci_bus_sem-early-in-boot.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
-git-agpgart.patch
-cifs-sprintf-fix.patch
-git-cpufreq.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-missing-include.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-add-i386-idle-notifier-take-3-fix.patch
-fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-bluetooth-blacklist-lenovo-r60e.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-remove-invalidate_inode_pages.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+usb-interrupt-endpoint-support-for-keyspan-usb-to-serial.patch
+fix-for-bugzilla-7544-keyspan-usb-to-serial-converter.patch
