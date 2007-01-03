@@ -1,113 +1,192 @@
 From: akpm@osdl.org
-Subject: + fix-flush_workqueue-vs-cpu_dead-race.patch added to -mm tree
-Date: Tue, 02 Jan 2007 16:26:26 -0800
-Message-ID: <200701030026.l030QQjf002534@shell0.pdx.osdl.net>
+Subject: + edac-k8-driver-coding-tidy.patch added to -mm tree
+Date: Tue, 02 Jan 2007 16:38:37 -0800
+Message-ID: <200701030038.l030cbjc002901@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:49098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:50286 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751079AbXACA0k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:26:40 -0500
+	id S1751949AbXACAio (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 19:38:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ego@in.ibm.com
+Cc: norsk5@yahoo.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, norsk5@xmission.com
 
 
 The patch titled
-     fix flush_workqueue() vs CPU_DEAD race
+     EDAC: K8 driver coding tidy
 has been added to the -mm tree.  Its filename is
-     fix-flush_workqueue-vs-cpu_dead-race.patch
+     edac-k8-driver-coding-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix flush_workqueue() vs CPU_DEAD race
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: EDAC: K8 driver coding tidy
+From: Doug Thompson <norsk5@yahoo.com>
 
-"[PATCH 1/2] reimplement flush_workqueue()" fixed one race when CPU goes
-down while flush_cpu_workqueue() plays with it.  But there is another
-problem, CPU can die before flush_workqueue() has a chance to call
-flush_cpu_workqueue().  In that case pending work_structs can migrate to
-CPU which was already checked, so we should redo the
-"for_each_online_cpu(cpu)" loop.
+Various coding tidyings as suggested by Andrew Morton on the k8_edac.c file
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Doug Thompson <norsk5@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/workqueue.c |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ drivers/edac/k8_edac.c |   69 ++++++++++++++++++++++-----------------
+ 1 files changed, 39 insertions(+), 30 deletions(-)
 
-diff -puN kernel/workqueue.c~fix-flush_workqueue-vs-cpu_dead-race kernel/workqueue.c
---- a/kernel/workqueue.c~fix-flush_workqueue-vs-cpu_dead-race
-+++ a/kernel/workqueue.c
-@@ -65,6 +65,7 @@ struct workqueue_struct {
+diff -puN drivers/edac/k8_edac.c~edac-k8-driver-coding-tidy drivers/edac/k8_edac.c
+--- a/drivers/edac/k8_edac.c~edac-k8-driver-coding-tidy
++++ a/drivers/edac/k8_edac.c
+@@ -1131,7 +1131,7 @@ static u64 dram_addr_to_sys_addr(struct 
+ 	 */
+ 	sys_addr |= ~((sys_addr & (1ull << 39)) - 1);
  
- /* All the per-cpu workqueues on the system, for hotplug cpu to add/remove
-    threads to each one as cpus come/go. */
-+static long hotplug_sequence __read_mostly;
- static DEFINE_MUTEX(workqueue_mutex);
- static LIST_HEAD(workqueues);
+-	debugf1("Using DRAM Base register for node %d to translate "
++	debugf1("Using DRAM Base reg on node %d to translate "
+ 		"DramAddr 0x%lx to SysAddr 0x%lx\n", pvt->node_id,
+ 		(unsigned long) dram_addr, (unsigned long) sys_addr);
+ 	return sys_addr;
+@@ -1339,8 +1339,10 @@ static void k8_handle_ce(struct mem_ctl_
+ 	log_mci = mci;
+ 	pvt = mci->pvt_info;
  
-@@ -454,10 +455,16 @@ void fastcall flush_workqueue(struct wor
- 		/* Always use first cpu's area. */
- 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
- 	} else {
-+		long sequence;
- 		int cpu;
-+again:
-+		sequence = hotplug_sequence;
+-	if ((info->error_info.nbsh & BIT(26)) == 0)
+-		goto no_info;  /* error address not valid */
++	if ((info->error_info.nbsh & BIT(26)) == 0) {
++		edac_mc_handle_ce_no_info(log_mci,EDAC_MOD_STR);
++		return;
++	}
  
- 		for_each_online_cpu(cpu)
- 			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
-+
-+		if (unlikely(sequence != hotplug_sequence))
-+			goto again;
+ 	error_address = error_address_from_k8_error_info(info);
+ 	syndrome = ((info->error_info.nbsh >> 15) & 0xff);
+@@ -1360,7 +1362,8 @@ static void k8_handle_ce(struct mem_ctl_
+ 			k8_mc_printk(mci, KERN_WARNING,
+ 				     "unknown syndrome 0x%x - possible error "
+ 				     "reporting race\n", syndrome);
+-			goto no_info;
++			edac_mc_handle_ce_no_info(log_mci,EDAC_MOD_STR);
++			return;
+ 		}
+ 	} else
+ 		/* non-chipkill ecc mode
+@@ -1374,25 +1377,25 @@ static void k8_handle_ce(struct mem_ctl_
+ 	/* Find out which node the error address belongs to.  This may be
+ 	 * different from the node that detected the error.
+ 	 */
+-	if ((src_mci = find_mc_by_sys_addr(mci, error_address)) == NULL) {
++	src_mci = find_mc_by_sys_addr(mci, error_address);
++	if (src_mci == NULL) {
+ 		k8_mc_printk(mci, KERN_ERR,
+ 			     "failed to map error address 0x%lx to a node\n",
+ 			     (unsigned long) error_address);
+-		goto no_info;
++		edac_mc_handle_ce_no_info(log_mci,EDAC_MOD_STR);
++		return;
  	}
- 	mutex_unlock(&workqueue_mutex);
- }
-@@ -880,6 +887,7 @@ static int __devinit workqueue_cpu_callb
- 			cleanup_workqueue_thread(wq, hotcpu);
- 		list_for_each_entry(wq, &workqueues, list)
- 			take_over_work(wq, hotcpu);
-+		hotplug_sequence++;
- 		break;
  
- 	case CPU_LOCK_RELEASE:
+ 	log_mci = src_mci;
+ 
+-	if ((csrow = sys_addr_to_csrow(log_mci, error_address)) < 0)
+-		goto no_info;
+-
+-	error_address_to_page_and_offset(error_address, &page, &offset);
+-	edac_mc_handle_ce(log_mci, page, offset, syndrome, csrow, channel,
+-			  EDAC_MOD_STR);
+-	return;
+-
+-no_info:
+-	edac_mc_handle_ce_no_info(log_mci,EDAC_MOD_STR);
++	csrow = sys_addr_to_csrow(log_mci, error_address);
++	if (csrow < 0) {
++		edac_mc_handle_ce_no_info(log_mci,EDAC_MOD_STR);
++	} else {
++		error_address_to_page_and_offset(error_address, &page, &offset);
++		edac_mc_handle_ce(log_mci, page, offset, syndrome, csrow,
++			channel, EDAC_MOD_STR);
++	}
+ }
+ 
+ static void k8_handle_ue(struct mem_ctl_info *mci, struct k8_error_info *info)
+@@ -1404,8 +1407,9 @@ static void k8_handle_ue(struct mem_ctl_
+ 
+ 	log_mci = mci;
+ 
+-	if ((info->error_info.nbsh & BIT(26)) == 0)
+-		goto no_info;  /* error address not valid */
++	if ((info->error_info.nbsh & BIT(26)) == 0) {
++		edac_mc_handle_ue_no_info(log_mci, EDAC_MOD_STR);
++	}
+ 
+ 	error_address = error_address_from_k8_error_info(info);
+ 
+@@ -1416,20 +1420,19 @@ static void k8_handle_ue(struct mem_ctl_
+ 		k8_mc_printk(mci, KERN_ERR,
+ 			     "failed to map error address 0x%lx to a node\n",
+ 			     (unsigned long) error_address);
+-		goto no_info;
++		edac_mc_handle_ue_no_info(log_mci, EDAC_MOD_STR);
++		return;
+ 	}
+ 
+ 	log_mci = src_mci;
+ 
+-	if ((csrow = sys_addr_to_csrow(log_mci, error_address)) < 0)
+-		goto no_info;
+-
+-	error_address_to_page_and_offset(error_address, &page, &offset);
+-	edac_mc_handle_ue(log_mci, page, offset, csrow, EDAC_MOD_STR);
+-	return;
+-
+-no_info:
+-	edac_mc_handle_ue_no_info(log_mci, EDAC_MOD_STR);
++	csrow = sys_addr_to_csrow(log_mci, error_address);
++	if (csrow < 0) {
++		edac_mc_handle_ue_no_info(log_mci, EDAC_MOD_STR);
++	} else {
++		error_address_to_page_and_offset(error_address, &page, &offset);
++		edac_mc_handle_ue(log_mci, page, offset, csrow, EDAC_MOD_STR);
++	}
+ }
+ 
+ static void decode_bus_error(struct mem_ctl_info *mci,
+@@ -1550,6 +1553,9 @@ static int k8_process_error_info(struct 
+ 	return 1;
+ }
+ 
++/* The main 'check' function to be called by the helper thread
++ * for this hardware.  Get the error information, then process any errors
++ */
+ static void k8_check(struct mem_ctl_info *mci)
+ {
+ 	struct k8_error_info info;
+@@ -1559,6 +1565,9 @@ static void k8_check(struct mem_ctl_info
+ 	k8_process_error_info(mci, &info, 1);
+ }
+ 
++/* 'get' (reserve) the various PCI devices composing the memory controller
++ * which we need to retrieve data from in the processing of errors
++ */
+ static int k8_get_devs(struct mem_ctl_info *mci, int dev_idx)
+ {
+ 	const struct k8_dev_info *k8_dev = &k8_devs[dev_idx];
+@@ -1701,8 +1710,8 @@ static int k8_init_csrows(struct mem_ctl
+ 		csrow->dtype = ((pvt->dcl >> (20 + (i / 2))) & 0x01) ?
+ 			       DEV_X4 : DEV_UNKNOWN;
+ 		debugf1("for node %d csrow %d:\n    nr_pages: %u "
+-			"input_addr_min: 0x%lx input_addr_max: 0x%lx "
+-			"sys_addr: 0x%lx first_page: 0x%lx last_page: 0x%lx "
++			"input_addr_min: 0x%lx input_addr_max: 0x%lx\n"
++			"    sys_addr: 0x%lx first_page: 0x%lx last_page: 0x%lx "
+ 			"page_mask: 0x%lx\n", pvt->node_id, i,
+ 			(unsigned) csrow->nr_pages,
+ 			(unsigned long) input_addr_min,
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from norsk5@yahoo.com are
 
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-vt-refactor-console-sak-processing.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-fix-flush_workqueue-vs-cpu_dead-race.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
