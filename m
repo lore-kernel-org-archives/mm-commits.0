@@ -1,405 +1,201 @@
 From: akpm@osdl.org
-Subject: - qconf-make-xconfig-search-dialog.patch removed from -mm tree
-Date: Wed, 03 Jan 2007 15:50:04 -0800
-Message-ID: <200701032350.l03No5SB003302@shell0.pdx.osdl.net>
+Subject: + ubiioc-needs-schedh.patch added to -mm tree
+Date: Wed, 03 Jan 2007 15:53:51 -0800
+Message-ID: <200701032354.l03NsF9O003400@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33109 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:33239 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932199AbXACXut (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 18:50:49 -0500
+	id S932194AbXACXyX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 18:54:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shlomif@iglu.org.il, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, dedekind@infradead.org
 
 
 The patch titled
-     qconf: "make xconfig" Search Dialog
-has been removed from the -mm tree.  Its filename was
-     qconf-make-xconfig-search-dialog.patch
+     ubi/io.c needs sched.h
+has been added to the -mm tree.  Its filename is
+     ubiioc-needs-schedh.patch
 
-This patch was dropped because an updated version will be merged
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: qconf: "make xconfig" Search Dialog
-From: Shlomi Fish <shlomif@iglu.org.il>
+Subject: ubi/io.c needs sched.h
+From: Andrew Morton <akpm@osdl.org>
 
-This patch is a reworked version of:
+drivers/mtd/ubi/io.c: In function 'erase_callback':                             drivers/mtd/ubi/io.c:210: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)                                                                   drivers/mtd/ubi/io.c:210: error: (Each undeclared identifier is reported only on
 
-http://www.ussg.iu.edu/hypermail/linux/kernel/0603.3/0990.html
-
-It adds a search dialog to the kernel's "make xconfig" configuration
-applet.
-
-Changes in this release include:
-
-1. Fixed formatting.
-
-2. The items are now displayed in a tree instead of in a flat list. 
-   (With all the necessary changes).
-
-3. Updated to apply against the recent kernel version.
-
-The To do is:
-
-1. Implemented more sophisticated querying.
-
-2. Fix the fact that the top categories in the QListView do not have a
-   visible [+] sign next to them to expand them.  (Albeit they are expanded
-   upon a double click).
-
-3. Make sure double clicking an end-item opens and highlights it in the
-   main application.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/kconfig/qconf.cc |  238 +++++++++++++++++++++++++++++++++++++
- scripts/kconfig/qconf.h  |   48 +++++++
- 2 files changed, 286 insertions(+)
+ drivers/mtd/ubi/io.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/kconfig/qconf.cc~qconf-make-xconfig-search-dialog scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~qconf-make-xconfig-search-dialog
-+++ a/scripts/kconfig/qconf.cc
-@@ -21,6 +21,10 @@
- #include <qfiledialog.h>
- #include <qdragobject.h>
- #include <qregexp.h>
-+#include <qdialog.h>
-+#include <qlayout.h>
-+#include <qlabel.h>
-+#include <qpushbutton.h>
- 
- #include <stdlib.h>
- 
-@@ -1325,6 +1329,8 @@ ConfigMainWindow::ConfigMainWindow(void)
- 	  connect(splitViewAction, SIGNAL(activated()), SLOT(showSplitView()));
- 	QAction *fullViewAction = new QAction("Full View", QPixmap(xpm_tree_view), "Full View", 0, this);
- 	  connect(fullViewAction, SIGNAL(activated()), SLOT(showFullView()));
-+	QAction *findAction = new QAction("Find", QPixmap(xpm_save), "&Find", CTRL+Key_F, this);
-+	  connect(findAction, SIGNAL(activated()), SLOT(findEntries()));
- 
- 	QAction *showNameAction = new QAction(NULL, "Show Name", 0, this);
- 	  showNameAction->setToggleAction(TRUE);
-@@ -1378,6 +1384,11 @@ ConfigMainWindow::ConfigMainWindow(void)
- 	config->insertSeparator();
- 	quitAction->addTo(config);
- 
-+	// create file menu
-+	QPopupMenu* editMenu = new QPopupMenu(this);
-+	menu->insertItem("&Edit", editMenu);
-+	findAction->addTo(editMenu);
-+
- 	// create options menu
- 	QPopupMenu* optionMenu = new QPopupMenu(this);
- 	menu->insertItem("&Option", optionMenu);
-@@ -1449,6 +1460,233 @@ void ConfigMainWindow::saveConfig(void)
- 		QMessageBox::information(this, "qconf", "Unable to save configuration!");
- }
- 
-+
-+FindDialog::FindDialog( QWidget* parent, const char* name, bool modal, WFlags fl )
-+	: QDialog( parent, name, modal, fl )
-+{
-+	main_layout = new QVBoxLayout(this, 11, 6, "main_layout");
-+	main_layout->addWidget(new QLabel("Query:", this, "label1"));
-+	queryLineEdit = new QLineEdit(this, "queryLineEdit");
-+	main_layout->addWidget(queryLineEdit);
-+	findButton = new QPushButton("Find", this, "findButton");
-+	main_layout->addWidget(findButton);
-+	connect( findButton, SIGNAL( clicked() ), this, SLOT( performQuery() ) );
-+	results = new QListView(this, "results");
-+	results->addColumn("Item");
-+	main_layout->addWidget(results);
-+}
-+
-+FindDialog::~FindDialog()
-+{
-+}
-+
-+static QString * get_parent_disp(struct menu * menu)
-+{
-+	QString s;
-+	if (menu->sym)
-+	{
-+		if (menu->prompt)
-+		{
-+			s += menu->prompt->text;
-+			if (menu->sym->name)
-+			{
-+				s += " (";
-+				s += menu->sym->name;
-+				s += ")";
-+			}
-+		}
-+		else if (menu->sym->name)
-+		{
-+			s += menu->sym->name;
-+		}
-+	}
-+	else if (menu->prompt)
-+	{
-+		s += menu->prompt->text;
-+	}
-+	return new QString(s);
-+}
-+
-+QString * get_parent_string(struct menu * menu, int depth)
-+{
-+	QString * parent_disp = get_parent_disp(menu);
-+	QString s;
-+
-+	/*
-+	 * Append 'depth' tabs.
-+	 * */
-+	for(int i=0;i<depth;i++)
-+	{
-+		s += "\t";
-+	}
-+	s += *parent_disp;
-+	s += "\n";
-+
-+	delete parent_disp;
-+
-+	return new QString(s);
-+}
-+
-+static QString * get_item_display(MenuList * parents, struct menu * mymenu)
-+{
-+	MenuList::iterator it;
-+	QString * item;
-+#if 0
-+	int depth;
-+#else
-+	int depth=0;
-+#endif
-+
-+	item = new QString();
-+
-+#if 0
-+	for (depth=0, it = parents->begin(); it != parents->end() ; ++it, ++depth)
-+	{
-+		QString * parent_string = get_parent_string(*it, depth);
-+		*item += *parent_string;
-+		delete parent_string;
-+	}
-+#endif
-+
-+	QString * string = get_parent_string(mymenu, depth);
-+	*item += *string;
-+	delete string;
-+
-+	return item;
-+}
-+
-+QListViewItem * ListViewBranch::newItem(QString & s)
-+{
-+	if (which == ISNULL)
-+	{
-+		// Shouldn't happen.
-+		throw "Hello";
-+	}
-+	else if (which == ITEM)
-+	{
-+		return new QListViewItem(item, s);
-+	}
-+	else
-+	{
-+		return new QListViewItem(view, s);
-+	}
-+
-+}
-+
-+ListViewBranch ListViewBranch::insertItem(QString & s)
-+{
-+	return ListViewBranch(newItem(s));
-+}
-+
-+bool FindDialog::matches(struct menu * mymenu, QString & query)
-+{
-+	struct symbol * sym = mymenu->sym;
-+
-+	if (!sym)
-+	{
-+		return false;
-+	}
-+
-+	QString help(sym->help);
-+	QString name(sym->name);
-+
-+	return (help.contains(query, FALSE) || name.contains(query, FALSE));
-+}
-+
-+void FindDialog::handle_match(MenuList * parents, ListViewMenuList * * last_branch)
-+{
-+	// TODO : Name to something more meaningful than
-+	// it2
-+	MenuList::iterator it;
-+	ListViewMenuList::iterator it2;
-+
-+	// Find the last branch that was allocated
-+	it = parents->begin();
-+	it2 = (*last_branch)->begin();
-+
-+	for (;(*it2).menu == *it ; ++it, ++it2)
-+	{
-+	}
-+
-+	ListViewMenuList * new_branch = new ListViewMenuList;
-+	MenuList new_menu;
-+
-+	ListViewMenuList::iterator copy_branches;
-+	MenuList::iterator copy_menu;
-+	for (copy_branches = (*last_branch)->begin(),copy_menu = parents->begin();
-+		copy_branches != it2;
-+		++copy_branches, ++copy_menu)
-+	{
-+		new_branch->append(*copy_branches);
-+		new_menu.append(*copy_menu);
-+	}
-+
-+	for (; it != parents->end(); ++it)
-+	{
-+		ListViewMenuItem new_item;
-+		new_item.menu = *it;
-+
-+		QString * str = get_item_display(&new_menu, *it);
-+		new_item.branch = new_branch->back().branch.insertItem(*str);
-+
-+		new_branch->append(new_item);
-+		new_menu.append(*it);
-+		delete str;
-+	}
-+
-+	// Update to the the new branch
-+	delete *last_branch;
-+	*last_branch = new_branch;
-+}
-+
-+void FindDialog::search(QString & query, MenuList * parents, ListViewMenuList * * last_branch)
-+{
-+	struct menu * child;
-+
-+	struct menu * mymenu = parents->back();
-+
-+	if (matches(mymenu, query))
-+	{
-+		handle_match(parents, last_branch);
-+	}
-+
-+	for (child = mymenu->list; child ; child = child->next)
-+	{
-+		MenuList new_parents(*parents);
-+		new_parents.append(child);
-+		search(query, &new_parents, last_branch);
-+	}
-+}
-+
-+void FindDialog::performQuery(void)
-+{
-+	QString query = queryLineEdit->text();
-+	results->clear();
-+
-+	MenuList parents;
-+	ListViewMenuList * mybranch = new ListViewMenuList;
-+
-+	{
-+		ListViewMenuItem i;
-+		i.branch = ListViewBranch(results);
-+		i.menu = &rootmenu;
-+		mybranch->append(i);
-+	}
-+
-+	parents.append(&rootmenu);
-+
-+	search(query, &parents, &mybranch);
-+
-+	delete mybranch;
-+	// printf("Query for \"%s\"\n", (const char *)queryLineEdit->text());
-+}
-+
-+void ConfigMainWindow::findEntries(void)
-+{
-+	FindDialog * dlg = new FindDialog(this, "dialog", TRUE);
-+	dlg->exec();
-+}
-+
- void ConfigMainWindow::saveConfigAs(void)
- {
- 	QString s = QFileDialog::getSaveFileName(".config", NULL, this);
-diff -puN scripts/kconfig/qconf.h~qconf-make-xconfig-search-dialog scripts/kconfig/qconf.h
---- a/scripts/kconfig/qconf.h~qconf-make-xconfig-search-dialog
-+++ a/scripts/kconfig/qconf.h
-@@ -4,6 +4,7 @@
-  */
- 
- #include <qlistview.h>
-+#include <qlistbox.h>
- #if QT_VERSION >= 300
- #include <qsettings.h>
- #else
-@@ -304,6 +305,7 @@ public:
- 	ConfigMainWindow(void);
- public slots:
- 	void changeMenu(struct menu *);
-+	void findEntries(void);
- 	void setMenuLink(struct menu *);
- 	void listFocusChanged(void);
- 	void goBack(void);
-@@ -332,3 +334,49 @@ protected:
- 	QSplitter* split1;
- 	QSplitter* split2;
- };
-+
-+typedef QValueList<struct menu *> MenuList;
-+
-+struct ListViewBranch
-+{
-+	enum { ISNULL, ITEM, VIEW } which;
-+	union
-+	{
-+		QListViewItem * item;
-+		QListView * view;
-+	};
-+	ListViewBranch() { which = ISNULL; item = NULL; }
-+	ListViewBranch(QListView * v) { view = v; which = VIEW; }
-+	ListViewBranch(QListViewItem * i) { item = i; which = ITEM; }
-+	QListViewItem * newItem(QString & s);
-+	ListViewBranch insertItem(QString & s);
-+};
-+
-+struct ListViewMenuItem
-+{
-+	ListViewBranch branch;
-+	struct menu * menu;
-+};
-+
-+typedef QValueList<struct ListViewMenuItem> ListViewMenuList;
-+
-+class FindDialog : public QDialog
-+{
-+	Q_OBJECT
-+	public:
-+	FindDialog( QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
-+	~FindDialog();
-+	QVBoxLayout * main_layout;
-+	QLineEdit * queryLineEdit;
-+	QPushButton * findButton;
-+	QListView * results;
-+public slots:
-+	void performQuery();
-+public:
-+	bool matches(struct menu * mymenu, QString & query);
-+	void search(QString & query, MenuList * parents,
-+			ListViewMenuList * * last_branch);
-+	void handle_match(MenuList * parents,
-+			ListViewMenuList * * last_branch);
-+};
-+
+diff -puN drivers/mtd/ubi/io.c~ubiioc-needs-schedh drivers/mtd/ubi/io.c
+--- a/drivers/mtd/ubi/io.c~ubiioc-needs-schedh
++++ a/drivers/mtd/ubi/io.c
+@@ -21,6 +21,7 @@
+ #include <linux/init.h>
+ #include <linux/crc32.h>
+ #include <linux/wait.h>
++#include <linux/sched.h>
+ #include <linux/err.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/types.h>
 _
 
-Patches currently in -mm which might be from shlomif@iglu.org.il are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-qconf-make-xconfig-search-dialog.patch
+start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
+kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
+pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
+atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+pci-avoid-taking-pci_bus_sem-early-in-boot.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+ubiioc-needs-schedh.patch
