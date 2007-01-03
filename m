@@ -1,69 +1,308 @@
 From: akpm@osdl.org
-Subject: + edac-e752x-byte-access-fix.patch added to -mm tree
-Date: Tue, 02 Jan 2007 16:38:31 -0800
-Message-ID: <200701030038.l030cV6u002898@shell0.pdx.osdl.net>
+Subject: + fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch added to -mm tree
+Date: Tue, 02 Jan 2007 17:01:59 -0800
+Message-ID: <200701030102.l0312Oe8003522@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50298 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:53029 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752394AbXACAis (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 2 Jan 2007 19:38:48 -0500
+	id S1751839AbXACBCg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 2 Jan 2007 20:02:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bapper@mvista.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, djiang@mvista.com, ebiederm@xmission.com, norsk5@xmission.com
+Cc: akpm@osdl.org, ak@suse.de, menage@google.com, reintjes@google.com, rohitseth@google.com
 
 
 The patch titled
-     EDAC: e752x byte access fix
+     fix-fake-numa-for-x86_64-machines-with-big-io-hole fix
 has been added to the -mm tree.  Its filename is
-     edac-e752x-byte-access-fix.patch
+     fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: EDAC: e752x byte access fix
-From: Brian Pomerantz <bapper@mvista.com>
+Subject: fix-fake-numa-for-x86_64-machines-with-big-io-hole fix
+From: Andrew Morton <akpm@osdl.org>
 
-The reading of the DRA registers should be a byte at a time (one register at a
-time) instead of 4 bytes at a time (four registers).  Reading a dword at a
-time retrieves erroneous information from all but the first register.  A
-change was made to read in each register in a loop prior to using the data in
-those registers.
+arch/x86_64/mm/srat.c:36:1: warning: "NODE_MIN_SIZE" redefined
+In file included from include/linux/mmzone.h:555,
+                 from include/linux/gfp.h:4,
+                 from include/linux/slab.h:14,
+                 from include/linux/percpu.h:5,
+                 from include/asm/local.h:4,
+                 from include/linux/module.h:19,
+                 from include/acpi/platform/aclinux.h:54,
+                 from include/acpi/platform/acenv.h:140,
+                 from include/acpi/acpi.h:54,
+                 from include/linux/acpi.h:37,
+                 from arch/x86_64/mm/srat.c:13:
+include/asm/mmzone.h:51:1: warning: this is the location of the previous definition
+arch/x86_64/mm/srat.c:36:1: warning: "NODE_MIN_SIZE" redefined
+In file included from include/linux/mmzone.h:555,
+                 from include/linux/gfp.h:4,
+                 from include/linux/slab.h:14,
+                 from include/linux/percpu.h:5,
+                 from include/asm/local.h:4,
+                 from include/linux/module.h:19,
+                 from include/acpi/platform/aclinux.h:54,
+                 from include/acpi/platform/acenv.h:140,
+                 from include/acpi/acpi.h:54,
+                 from include/linux/acpi.h:37,
+                 from arch/x86_64/mm/srat.c:13:
+include/asm/mmzone.h:51:1: warning: this is the location of the previous definition
 
-Signed-off-by: Brian Pomerantz <bapper@mvista.com>
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Doug Thompson <norsk5@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Rohit Seth <rohitseth@google.com>
+Cc: David Rientjes <reintjes@google.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Rohit Seth <rohitseth@google.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/edac/e752x_edac.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletion(-)
+ arch/x86_64/mm/numa.c       |   26 ++++++++++++++------------
+ include/asm-x86_64/mmzone.h |    4 ++--
+ 2 files changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN drivers/edac/e752x_edac.c~edac-e752x-byte-access-fix drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~edac-e752x-byte-access-fix
-+++ a/drivers/edac/e752x_edac.c
-@@ -782,7 +782,12 @@ static void e752x_init_csrows(struct mem
- 	u8 value;
- 	u32 dra, drc, cumul_size;
+diff -puN arch/x86_64/kernel/e820.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix arch/x86_64/kernel/e820.c
+diff -puN arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix
++++ a/arch/x86_64/mm/numa.c
+@@ -304,20 +304,21 @@ static int __init numa_emulation(unsigne
  
--	pci_read_config_dword(pdev, E752X_DRA, &dra);
-+	dra = 0;
-+	for (index=0; index < 4; index++) {
-+		u8 dra_reg;
-+		pci_read_config_byte(pdev, E752X_DRA+index, &dra_reg);
-+		dra |= dra_reg << (index * 8);
-+	}
- 	pci_read_config_dword(pdev, E752X_DRC, &drc);
- 	drc_chan = dual_channel_active(ddrcsr);
- 	drc_drbg = drc_chan + 1;  /* 128 in dual mode, 64 in single */
+ 	old_sz = sz;
+ 	/*
+-	 * Round down to the nearest NODE_MIN_SIZE.
++	 * Round down to the nearest FAKE_NODE_MIN_SIZE.
+ 	 */
+-	sz &= NODE_MIN_HASH_MASK;
++	sz &= FAKE_NODE_MIN_HASH_MASK;
+ 
+ 	/*
+ 	 * We ensure that each node is at least 64MB big.  Smaller than this
+ 	 * size can cause VM hiccups.
+ 	 */
+ 	if (sz == 0) {
+-		printk(KERN_INFO"Not enough memory for %d nodes.  Reducing "
++		printk(KERN_INFO "Not enough memory for %d nodes.  Reducing "
+ 				"the number of nodes\n", numa_fake);
+-		numa_fake = (max_addr - start - hole_size) / NODE_MIN_SIZE;
+-		printk(KERN_INFO"Number of fake nodes will be = %d\n", numa_fake);
+-		sz = NODE_MIN_SIZE;
++		numa_fake = (max_addr - start - hole_size) / FAKE_NODE_MIN_SIZE;
++		printk(KERN_INFO "Number of fake nodes will be = %d\n",
++				numa_fake);
++		sz = FAKE_NODE_MIN_SIZE;
+ 	}
+ 	/*
+ 	 * Find out how many nodes can get an extra NODE_MIN_SIZE granule.
+@@ -325,8 +326,9 @@ static int __init numa_emulation(unsigne
+ 	 * nodes as possible (as compared to one single node getting all that
+ 	 * extra memory.
+ 	 */
+-	big = ((old_sz - sz) * numa_fake) / NODE_MIN_SIZE;
+-	printk(KERN_INFO"Fake node Size: %luMB hole_size: %luMB big nodes: %d\n",
++	big = ((old_sz - sz) * numa_fake) / FAKE_NODE_MIN_SIZE;
++	printk(KERN_INFO "Fake node Size: %luMB hole_size: %luMB big nodes: "
++			"%d\n",
+ 			(sz >> 20), (hole_size >> 20), big);
+  	memset(&nodes,0,sizeof(nodes));
+ 	end = start;
+@@ -350,13 +352,13 @@ static int __init numa_emulation(unsigne
+ 		 * Fir "big" number of nodes get extra granule.
+ 		 */
+ 		if (i < big)
+-			end += NODE_MIN_SIZE;
++			end += FAKE_NODE_MIN_SIZE;
+ 		/*
+ 		 * Iterate over the range to ensure that this node gets at
+ 		 * least sz amount of RAM (excluding holes)
+ 		 */
+ 		while ((end - start - e820_hole_size(start, end)) < sz) {
+-			end += NODE_MIN_SIZE;
++			end += FAKE_NODE_MIN_SIZE;
+ 			if (end >= max_addr)
+ 				break;
+ 		}
+@@ -365,14 +367,14 @@ static int __init numa_emulation(unsigne
+ 		 * to map.  Bad things happen when the only memory present
+ 		 * in a zone on a fake node is IO hole.
+ 		 */
+-		while (e820_hole_size(end, end + NODE_MIN_SIZE) > 0) {
++		while (e820_hole_size(end, end + FAKE_NODE_MIN_SIZE) > 0) {
+ 			if (zone_cross_over(start, end + sz)) {
+ 				end = (MAX_DMA32_PFN << PAGE_SHIFT);
+ 				break;
+ 			}
+ 			if (end >= max_addr)
+ 				break;
+-			end += NODE_MIN_SIZE;
++			end += FAKE_NODE_MIN_SIZE;
+ 		}
+ 		if (end > max_addr)
+ 			end = max_addr;
+diff -puN include/asm-x86_64/e820.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix include/asm-x86_64/e820.h
+diff -puN include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix include/asm-x86_64/mmzone.h
+--- a/include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix
++++ a/include/asm-x86_64/mmzone.h
+@@ -48,8 +48,8 @@ extern int pfn_valid(unsigned long pfn);
+ #endif
+ 
+ #ifdef CONFIG_NUMA_EMU
+-#define NODE_MIN_SIZE	(64*1024*1024)
+-#define NODE_MIN_HASH_MASK	(~(NODE_MIN_SIZE - 1ul))
++#define FAKE_NODE_MIN_SIZE	(64*1024*1024)
++#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1ul))
+ #endif
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from bapper@mvista.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
+start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
+kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
+pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
+atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+pci-avoid-taking-pci_bus_sem-early-in-boot.patch
+down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
+git-agpgart.patch
+cifs-sprintf-fix.patch
+git-cpufreq.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-libata-all-fixup.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-mtd_read-arg-fix.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-qla3xxx-fixup.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+add-i386-idle-notifier-take-3-fix.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+fsaio-filesystem-aio-read-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
