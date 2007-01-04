@@ -1,102 +1,526 @@
 From: akpm@osdl.org
-Subject: - altix-acpi-_prt-support.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 15:42:39 -0800
-Message-ID: <200701042342.l04NgdnO002824@shell0.pdx.osdl.net>
+Subject: - pciehp-cleanup-wait-command-completion.patch removed from -mm tree
+Date: Thu, 04 Jan 2007 15:43:05 -0800
+Message-ID: <200701042343.l04Nh5ig002869@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36810 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36809 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030274AbXADXnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030273AbXADXnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 4 Jan 2007 18:43:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpk@sgi.com, lenb@kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Altix: ACPI _PRT support
+     pciehp: cleanup wait command completion
 has been removed from the -mm tree.  Its filename was
-     altix-acpi-_prt-support.patch
+     pciehp-cleanup-wait-command-completion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Altix: ACPI _PRT support
-From: John Keller <jpk@sgi.com>
+Subject: pciehp: cleanup wait command completion
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Provide ACPI _PRT support for SN Altix systems.
+Clean up the code to wait for command completion.
 
-The SN Altix platform does not conform to the IOSAPIC IRQ routing model, so
-a new acpi_irq_model (ACPI_IRQ_MODEL_PLATFORM) has been defined.  The SN
-platform specific code sets acpi_irq_model to this new value, and keys off
-of it in acpi_register_gsi() to avoid the iosapic code path.
-
-Signed-off-by: John Keller <jpk@sgi.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/kernel/acpi.c            |    3 +++
- arch/ia64/sn/kernel/io_acpi_init.c |    3 +++
- drivers/acpi/bus.c                 |    3 +++
- include/linux/acpi.h               |    1 +
- 4 files changed, 10 insertions(+)
+ drivers/pci/hotplug/pciehp.h      |   18 --
+ drivers/pci/hotplug/pciehp_core.c |   14 -
+ drivers/pci/hotplug/pciehp_ctrl.c |  205 ++++++----------------------
+ drivers/pci/hotplug/pciehp_hpc.c  |   38 ++++-
+ 4 files changed, 82 insertions(+), 193 deletions(-)
 
-diff -puN arch/ia64/kernel/acpi.c~altix-acpi-_prt-support arch/ia64/kernel/acpi.c
---- a/arch/ia64/kernel/acpi.c~altix-acpi-_prt-support
-+++ a/arch/ia64/kernel/acpi.c
-@@ -590,6 +590,9 @@ void __init acpi_numa_arch_fixup(void)
-  */
- int acpi_register_gsi(u32 gsi, int triggering, int polarity)
+diff -puN drivers/pci/hotplug/pciehp.h~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pciehp-cleanup-wait-command-completion
++++ a/drivers/pci/hotplug/pciehp.h
+@@ -173,24 +173,6 @@ static inline struct slot *pciehp_find_s
+ 	return NULL;
+ }
+ 
+-static inline int wait_for_ctrl_irq(struct controller *ctrl)
+-{
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	add_wait_queue(&ctrl->queue, &wait);
+-	if (!pciehp_poll_mode)
+-		/* Sleep for up to 1 second */
+-		msleep_interruptible(1000);
+-	else
+-		msleep_interruptible(2500);
+-	
+-	remove_wait_queue(&ctrl->queue, &wait);
+-	if (signal_pending(current))
+-		return -EINTR;
+-
+-	return 0;
+-}
+-
+ struct hpc_ops {
+ 	int (*power_on_slot)(struct slot *slot);
+ 	int (*power_off_slot)(struct slot *slot);
+diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-wait-command-completion
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -374,25 +374,13 @@ static int pciehp_probe(struct pcie_devi
+ 		pciehp_ctrl_list = ctrl;
+ 	}
+ 
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	t_slot->hpc_ops->get_adapter_status(t_slot, &value); /* Check if slot is occupied */
+-	
+ 	if ((POWER_CTRL(ctrl->ctrlcap)) && !value) {
+ 		rc = t_slot->hpc_ops->power_off_slot(t_slot); /* Power off slot if not occupied*/
+-		if (rc) {
+-			/* Done with exclusive hardware access */
+-			mutex_unlock(&ctrl->ctrl_lock);
++		if (rc)
+ 			goto err_out_free_ctrl_slot;
+-		} else
+-			/* Wait for the command to complete */
+-			wait_for_ctrl_irq (ctrl);
+ 	}
+ 
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+-
+ 	return 0;
+ 
+ err_out_free_ctrl_slot:
+diff -puN drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp_ctrl.c
+--- a/drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-wait-command-completion
++++ a/drivers/pci/hotplug/pciehp_ctrl.c
+@@ -229,35 +229,25 @@ u8 pciehp_handle_power_fault(u8 hp_slot,
+ 
+ static void set_slot_off(struct controller *ctrl, struct slot * pslot)
  {
-+	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
-+		return gsi;
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	/* turn off slot, turn on Amber LED, turn off Green LED if supported*/
+ 	if (POWER_CTRL(ctrl->ctrlcap)) {
+ 		if (pslot->hpc_ops->power_off_slot(pslot)) {   
+-			err("%s: Issue of Slot Power Off command failed\n", __FUNCTION__);
+-			mutex_unlock(&ctrl->ctrl_lock);
++			err("%s: Issue of Slot Power Off command failed\n",
++			    __FUNCTION__);
+ 			return;
+ 		}
+-		wait_for_ctrl_irq (ctrl);
+ 	}
+ 
+-	if (PWR_LED(ctrl->ctrlcap)) {
++	if (PWR_LED(ctrl->ctrlcap))
+ 		pslot->hpc_ops->green_led_off(pslot);   
+-		wait_for_ctrl_irq (ctrl);
+-	}
+ 
+-	if (ATTN_LED(ctrl->ctrlcap)) { 
+-		if (pslot->hpc_ops->set_attention_status(pslot, 1)) {   
+-			err("%s: Issue of Set Attention Led command failed\n", __FUNCTION__);
+-			mutex_unlock(&ctrl->ctrl_lock);
++	if (ATTN_LED(ctrl->ctrlcap)) {
++		if (pslot->hpc_ops->set_attention_status(pslot, 1)) {
++			err("%s: Issue of Set Attention Led command failed\n",
++			    __FUNCTION__);
+ 			return;
+ 		}
+-		wait_for_ctrl_irq (ctrl);
+ 	}
+-
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+ }
+ 
+ /**
+@@ -270,7 +260,7 @@ static void set_slot_off(struct controll
+ static int board_added(struct slot *p_slot)
+ {
+ 	u8 hp_slot;
+-	int rc = 0;
++	int retval = 0;
+ 	struct controller *ctrl = p_slot->ctrl;
+ 
+ 	hp_slot = p_slot->device - ctrl->slot_device_offset;
+@@ -279,53 +269,38 @@ static int board_added(struct slot *p_sl
+ 			__FUNCTION__, p_slot->device,
+ 			ctrl->slot_device_offset, hp_slot);
+ 
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	if (POWER_CTRL(ctrl->ctrlcap)) {
+ 		/* Power on slot */
+-		rc = p_slot->hpc_ops->power_on_slot(p_slot);
+-		if (rc) {
+-			mutex_unlock(&ctrl->ctrl_lock);
+-			return -1;
+-		}
+-
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
++		retval = p_slot->hpc_ops->power_on_slot(p_slot);
++		if (retval)
++			return retval;
+ 	}
+ 	
+-	if (PWR_LED(ctrl->ctrlcap)) {
++	if (PWR_LED(ctrl->ctrlcap))
+ 		p_slot->hpc_ops->green_led_blink(p_slot);
+-			
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
+-	}
+-
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+ 
+ 	/* Wait for ~1 second */
+-	wait_for_ctrl_irq (ctrl);
++	msleep(1000);
+ 
+-	/*  Check link training status */
+-	rc = p_slot->hpc_ops->check_lnk_status(ctrl);  
+-	if (rc) {
++	/* Check link training status */
++	retval = p_slot->hpc_ops->check_lnk_status(ctrl);
++	if (retval) {
+ 		err("%s: Failed to check link status\n", __FUNCTION__);
+ 		set_slot_off(ctrl, p_slot);
+-		return rc;
++		return retval;
+ 	}
+ 
+ 	/* Check for a power fault */
+ 	if (p_slot->hpc_ops->query_power_fault(p_slot)) {
+ 		dbg("%s: power fault detected\n", __FUNCTION__);
+-		rc = POWER_FAILURE;
++		retval = POWER_FAILURE;
+ 		goto err_exit;
+ 	}
+ 
+-	rc = pciehp_configure_device(p_slot);
+-	if (rc) {
++	retval = pciehp_configure_device(p_slot);
++	if (retval) {
+ 		err("Cannot add device 0x%x:%x\n", p_slot->bus,
+-				p_slot->device);
++		    p_slot->device);
+ 		goto err_exit;
+ 	}
+ 
+@@ -334,26 +309,16 @@ static int board_added(struct slot *p_sl
+ 	 */
+ 	if (pcie_mch_quirk)
+ 		pci_fixup_device(pci_fixup_final, ctrl->pci_dev);
+-	if (PWR_LED(ctrl->ctrlcap)) {
+-		/* Wait for exclusive access to hardware */
+-  		mutex_lock(&ctrl->ctrl_lock);
+-
++	if (PWR_LED(ctrl->ctrlcap))
+   		p_slot->hpc_ops->green_led_on(p_slot);
+-  
+-  		/* Wait for the command to complete */
+-  		wait_for_ctrl_irq (ctrl);
+-  	
+-  		/* Done with exclusive hardware access */
+-  		mutex_unlock(&ctrl->ctrl_lock);
+-  	}
 +
- 	if (has_8259 && gsi < 16)
- 		return isa_irq_to_vector(gsi);
+ 	return 0;
  
-diff -puN arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support arch/ia64/sn/kernel/io_acpi_init.c
---- a/arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support
-+++ a/arch/ia64/sn/kernel/io_acpi_init.c
-@@ -489,6 +489,9 @@ sn_io_acpi_init(void)
- 	u64 result;
- 	s64 status;
+ err_exit:
+ 	set_slot_off(ctrl, p_slot);
+-	return -1;
++	return retval;
+ }
  
-+	/* SN Altix does not follow the IOSAPIC IRQ routing model */
-+	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
+-
+ /**
+  * remove_board - Turns off slot and LED's
+  *
+@@ -362,44 +327,32 @@ static int remove_board(struct slot *p_s
+ {
+ 	u8 device;
+ 	u8 hp_slot;
+-	int rc;
++	int retval = 0;
+ 	struct controller *ctrl = p_slot->ctrl;
+ 
+-	if (pciehp_unconfigure_device(p_slot))
+-		return 1;
++	retval = pciehp_unconfigure_device(p_slot);
++	if (retval)
++		return retval;
+ 
+ 	device = p_slot->device;
+-
+ 	hp_slot = p_slot->device - ctrl->slot_device_offset;
+ 	p_slot = pciehp_find_slot(ctrl, hp_slot + ctrl->slot_device_offset);
+ 
+ 	dbg("In %s, hp_slot = %d\n", __FUNCTION__, hp_slot);
+ 
+-	/* Wait for exclusive access to hardware */
+-	mutex_lock(&ctrl->ctrl_lock);
+-
+ 	if (POWER_CTRL(ctrl->ctrlcap)) {
+ 		/* power off slot */
+-		rc = p_slot->hpc_ops->power_off_slot(p_slot);
+-		if (rc) {
+-			err("%s: Issue of Slot Disable command failed\n", __FUNCTION__);
+-			mutex_unlock(&ctrl->ctrl_lock);
+-			return rc;
++		retval = p_slot->hpc_ops->power_off_slot(p_slot);
++		if (retval) {
++			err("%s: Issue of Slot Disable command failed\n",
++			    __FUNCTION__);
++			return retval;
+ 		}
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
+ 	}
+ 
+-	if (PWR_LED(ctrl->ctrlcap)) {
++	if (PWR_LED(ctrl->ctrlcap))
+ 		/* turn off Green LED */
+ 		p_slot->hpc_ops->green_led_off(p_slot);
+-	
+-		/* Wait for the command to complete */
+-		wait_for_ctrl_irq (ctrl);
+-	}
+-
+-	/* Done with exclusive hardware access */
+-	mutex_unlock(&ctrl->ctrl_lock);
+ 
+ 	return 0;
+ }
+@@ -444,18 +397,10 @@ static void pciehp_pushbutton_thread(uns
+ 		dbg("%s: adding bus:device(%x:%x)\n", __FUNCTION__,
+ 				p_slot->bus, p_slot->device);
+ 
+-		if (pciehp_enable_slot(p_slot) && PWR_LED(p_slot->ctrl->ctrlcap)) {
+-			/* Wait for exclusive access to hardware */
+-			mutex_lock(&p_slot->ctrl->ctrl_lock);
+-
++		if (pciehp_enable_slot(p_slot) &&
++		    PWR_LED(p_slot->ctrl->ctrlcap))
+ 			p_slot->hpc_ops->green_led_off(p_slot);
+ 
+-			/* Wait for the command to complete */
+-			wait_for_ctrl_irq (p_slot->ctrl);
+-
+-			/* Done with exclusive hardware access */
+-			mutex_unlock(&p_slot->ctrl->ctrl_lock);
+-		}
+ 		p_slot->state = STATIC_STATE;
+ 	}
+ 
+@@ -494,18 +439,10 @@ static void pciehp_surprise_rm_thread(un
+ 		dbg("%s: adding bus:device(%x:%x)\n",
+ 				__FUNCTION__, p_slot->bus, p_slot->device);
+ 
+-		if (pciehp_enable_slot(p_slot) && PWR_LED(p_slot->ctrl->ctrlcap)) {
+-			/* Wait for exclusive access to hardware */
+-			mutex_lock(&p_slot->ctrl->ctrl_lock);
+-
++		if (pciehp_enable_slot(p_slot) &&
++		    PWR_LED(p_slot->ctrl->ctrlcap))
+ 			p_slot->hpc_ops->green_led_off(p_slot);
+ 
+-			/* Wait for the command to complete */
+-			wait_for_ctrl_irq (p_slot->ctrl);
+-
+-			/* Done with exclusive hardware access */
+-			mutex_unlock(&p_slot->ctrl->ctrl_lock);
+-		}
+ 		p_slot->state = STATIC_STATE;
+ 	}
+ 
+@@ -616,40 +553,18 @@ static void interrupt_event_handler(stru
+ 
+ 					switch (p_slot->state) {
+ 					case BLINKINGOFF_STATE:
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-						
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_on(p_slot);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						if (ATTN_LED(ctrl->ctrlcap)) {
+-							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
++						if (ATTN_LED(ctrl->ctrlcap))
++							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 						break;
+ 					case BLINKINGON_STATE:
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_off(p_slot);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						if (ATTN_LED(ctrl->ctrlcap)){
+-							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
+ 
++						if (ATTN_LED(ctrl->ctrlcap))
++							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 						break;
+ 					default:
+ 						warn("Not a valid state\n");
+@@ -676,26 +591,13 @@ static void interrupt_event_handler(stru
+ 							info("PCI slot #%s - powering on due to button press.\n", slot_name(p_slot));
+ 						}
+ 
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-
+ 						/* blink green LED and turn off amber */
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_blink(p_slot);
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+ 
+-						if (ATTN_LED(ctrl->ctrlcap)) {
++						if (ATTN_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 
+-							/* Wait for the command to complete */
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
+-
+ 						init_timer(&p_slot->task_event);
+ 						p_slot->task_event.expires = jiffies + 5 * HZ;   /* 5 second delay */
+ 						p_slot->task_event.function = (void (*)(unsigned long)) pushbutton_helper_thread;
+@@ -708,21 +610,11 @@ static void interrupt_event_handler(stru
+ 				else if (ctrl->event_queue[loop].event_type == INT_POWER_FAULT) {
+ 					if (POWER_CTRL(ctrl->ctrlcap)) {
+ 						dbg("power fault\n");
+-						/* Wait for exclusive access to hardware */
+-						mutex_lock(&ctrl->ctrl_lock);
+-
+-						if (ATTN_LED(ctrl->ctrlcap)) {
++						if (ATTN_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->set_attention_status(p_slot, 1);
+-							wait_for_ctrl_irq (ctrl);
+-						}
+ 
+-						if (PWR_LED(ctrl->ctrlcap)) {
++						if (PWR_LED(ctrl->ctrlcap))
+ 							p_slot->hpc_ops->green_led_off(p_slot);
+-							wait_for_ctrl_irq (ctrl);
+-						}
+-
+-						/* Done with exclusive hardware access */
+-						mutex_unlock(&ctrl->ctrl_lock);
+ 					}
+ 				}
+ 				/***********SURPRISE REMOVAL********************/
+@@ -750,7 +642,6 @@ static void interrupt_event_handler(stru
+ 	}
+ }
+ 
+-
+ int pciehp_enable_slot(struct slot *p_slot)
+ {
+ 	u8 getstatus = 0;
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~pciehp-cleanup-wait-command-completion drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~pciehp-cleanup-wait-command-completion
++++ a/drivers/pci/hotplug/pciehp_hpc.c
+@@ -249,6 +249,24 @@ static void start_int_poll_timer(struct 
+ 	add_timer(&ctrl->poll_timer);
+ }
+ 
++static inline int pcie_wait_cmd(struct controller *ctrl)
++{
++	DECLARE_WAITQUEUE(wait, current);
 +
- 	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
- 	status = sal_ioif_init(&result);
- 	if (status || result)
-diff -puN drivers/acpi/bus.c~altix-acpi-_prt-support drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~altix-acpi-_prt-support
-+++ a/drivers/acpi/bus.c
-@@ -561,6 +561,9 @@ static int __init acpi_bus_init_irq(void
- 	case ACPI_IRQ_MODEL_IOSAPIC:
- 		message = "IOSAPIC";
- 		break;
-+	case ACPI_IRQ_MODEL_PLATFORM:
-+		message = "platform specific model";
-+		break;
- 	default:
- 		printk(KERN_WARNING PREFIX "Unknown interrupt routing model\n");
- 		return -ENODEV;
-diff -puN include/linux/acpi.h~altix-acpi-_prt-support include/linux/acpi.h
---- a/include/linux/acpi.h~altix-acpi-_prt-support
-+++ a/include/linux/acpi.h
-@@ -47,6 +47,7 @@ enum acpi_irq_model_id {
- 	ACPI_IRQ_MODEL_PIC = 0,
- 	ACPI_IRQ_MODEL_IOAPIC,
- 	ACPI_IRQ_MODEL_IOSAPIC,
-+	ACPI_IRQ_MODEL_PLATFORM,
- 	ACPI_IRQ_MODEL_COUNT
- };
++	add_wait_queue(&ctrl->queue, &wait);
++	if (!pciehp_poll_mode)
++		/* Sleep for up to 1 second */
++		msleep_interruptible(1000);
++	else
++		msleep_interruptible(2500);
++
++	remove_wait_queue(&ctrl->queue, &wait);
++	if (signal_pending(current))
++		return -EINTR;
++
++	return 0;
++}
++
+ static int pcie_write_cmd(struct slot *slot, u16 cmd)
+ {
+ 	struct controller *ctrl = slot->ctrl;
+@@ -257,24 +275,34 @@ static int pcie_write_cmd(struct slot *s
  
+ 	DBG_ENTER_ROUTINE 
+ 
++	mutex_lock(&ctrl->ctrl_lock);
++
+ 	retval = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
+ 	if (retval) {
+ 		err("%s: Cannot read SLOTSTATUS register\n", __FUNCTION__);
+-		return retval;
++		goto out;
+ 	}
+ 
+ 	if ((slot_status & CMD_COMPLETED) == CMD_COMPLETED ) { 
+-		/* After 1 sec and CMD_COMPLETED still not set, just proceed forward to issue 
+-		   the next command according to spec.  Just print out the error message */
+-		dbg("%s : CMD_COMPLETED not clear after 1 sec.\n", __FUNCTION__);
++		/* After 1 sec and CMD_COMPLETED still not set, just
++		   proceed forward to issue the next command according
++		   to spec.  Just print out the error message */
++		dbg("%s: CMD_COMPLETED not clear after 1 sec.\n",
++		    __FUNCTION__);
+ 	}
+ 
+ 	retval = pciehp_writew(ctrl, SLOTCTRL, (cmd | CMD_CMPL_INTR_ENABLE));
+ 	if (retval) {
+ 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
+-		return retval;
++		goto out;
+ 	}
+ 
++	/*
++	 * Wait for command completion.
++	 */
++	retval = pcie_wait_cmd(ctrl);
++ out:
++	mutex_unlock(&ctrl->ctrl_lock);
+ 	DBG_LEAVE_ROUTINE 
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from jpk@sgi.com are
-
-git-acpi.patch
-altix-acpi-ssdt-pci-device-support.patch
-altix-add-acpi-ssdt-pci-device-support-hotplug.patch
+Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
