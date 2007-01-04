@@ -1,315 +1,221 @@
 From: akpm@osdl.org
-Subject: - fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 14:19:34 -0800
-Message-ID: <200701042219.l04MJYgT000670@shell0.pdx.osdl.net>
+Subject: + user-ns-implement-shared-mounts.patch added to -mm tree
+Date: Thu, 04 Jan 2007 14:10:34 -0800
+Message-ID: <200701042210.l04MAYTA000445@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59004 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59031 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965101AbXADWUP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 17:20:15 -0500
+	id S965101AbXADWUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 17:20:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ak@suse.de, menage@google.com, reintjes@google.com, rohitseth@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
 
 
 The patch titled
-     fix-fake-numa-for-x86_64-machines-with-big-io-hole fix
-has been removed from the -mm tree.  Its filename was
-     fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
+     user ns: implement shared mounts
+has been added to the -mm tree.  Its filename is
+     user-ns-implement-shared-mounts.patch
 
-This patch was dropped because it was folded into fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix-fake-numa-for-x86_64-machines-with-big-io-hole fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: user ns: implement shared mounts
 
-arch/x86_64/mm/srat.c:36:1: warning: "NODE_MIN_SIZE" redefined
-In file included from include/linux/mmzone.h:555,
-                 from include/linux/gfp.h:4,
-                 from include/linux/slab.h:14,
-                 from include/linux/percpu.h:5,
-                 from include/asm/local.h:4,
-                 from include/linux/module.h:19,
-                 from include/acpi/platform/aclinux.h:54,
-                 from include/acpi/platform/acenv.h:140,
-                 from include/acpi/acpi.h:54,
-                 from include/linux/acpi.h:37,
-                 from arch/x86_64/mm/srat.c:13:
-include/asm/mmzone.h:51:1: warning: this is the location of the previous definition
-arch/x86_64/mm/srat.c:36:1: warning: "NODE_MIN_SIZE" redefined
-In file included from include/linux/mmzone.h:555,
-                 from include/linux/gfp.h:4,
-                 from include/linux/slab.h:14,
-                 from include/linux/percpu.h:5,
-                 from include/asm/local.h:4,
-                 from include/linux/module.h:19,
-                 from include/acpi/platform/aclinux.h:54,
-                 from include/acpi/platform/acenv.h:140,
-                 from include/acpi/acpi.h:54,
-                 from include/linux/acpi.h:37,
-                 from arch/x86_64/mm/srat.c:13:
-include/asm/mmzone.h:51:1: warning: this is the location of the previous definition
 
-Cc: Rohit Seth <rohitseth@google.com>
-Cc: David Rientjes <reintjes@google.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Rohit Seth <rohitseth@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Implement shared-ns mounts, which allow containers in different user
+namespaces to share mounts.  Without this, containers can obviously never even
+be started.
+
+Here is a sample smount.c (based on Miklos' version) which only does a bind
+mount of arg1 onto arg2, but making the destination a shared-ns mount.
+
+int main(int argc, char *argv[])
+{
+	int type;
+	if(argc != 3) {
+		fprintf(stderr, "usage: %s src dest", argv[0]);
+		return 1;
+	}
+
+	fprintf(stdout, "%s %s %s\n", argv[0], argv[1], argv[2]);
+
+	type = MS_SHARE_NS | MS_BIND;
+	setfsuid(getuid());
+
+	if(mount(argv[1], argv[2], "none", type, "") == -1) {
+		perror("mount");
+		return 1;
+	}
+	return 0;
+}
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/mm/numa.c       |   26 ++++++++++++++------------
- include/asm-x86_64/mmzone.h |    4 ++--
- 2 files changed, 16 insertions(+), 14 deletions(-)
+ fs/namespace.c        |   30 ++++++++++++++++++++++++------
+ fs/pnode.h            |    1 +
+ include/linux/fs.h    |    1 +
+ include/linux/mount.h |    1 +
+ include/linux/sched.h |    2 ++
+ 5 files changed, 29 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/e820.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix arch/x86_64/kernel/e820.c
-diff -puN arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix
-+++ a/arch/x86_64/mm/numa.c
-@@ -304,20 +304,21 @@ static int __init numa_emulation(unsigne
+diff -puN fs/namespace.c~user-ns-implement-shared-mounts fs/namespace.c
+--- a/fs/namespace.c~user-ns-implement-shared-mounts
++++ a/fs/namespace.c
+@@ -234,7 +234,14 @@ static struct vfsmount *clone_mnt(struct
+ 					int flag)
+ {
+ 	struct super_block *sb = old->mnt_sb;
+-	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
++	struct vfsmount *mnt;
++
++	if (!(old->mnt_flags & MNT_SHARE_NS)) {
++		if (old->mnt_user_ns != current->nsproxy->user_ns)
++			return ERR_PTR(-EPERM);
++	}
++
++	mnt = alloc_vfsmnt(old->mnt_devname);
  
- 	old_sz = sz;
- 	/*
--	 * Round down to the nearest NODE_MIN_SIZE.
-+	 * Round down to the nearest FAKE_NODE_MIN_SIZE.
- 	 */
--	sz &= NODE_MIN_HASH_MASK;
-+	sz &= FAKE_NODE_MIN_HASH_MASK;
- 
- 	/*
- 	 * We ensure that each node is at least 64MB big.  Smaller than this
- 	 * size can cause VM hiccups.
- 	 */
- 	if (sz == 0) {
--		printk(KERN_INFO"Not enough memory for %d nodes.  Reducing "
-+		printk(KERN_INFO "Not enough memory for %d nodes.  Reducing "
- 				"the number of nodes\n", numa_fake);
--		numa_fake = (max_addr - start - hole_size) / NODE_MIN_SIZE;
--		printk(KERN_INFO"Number of fake nodes will be = %d\n", numa_fake);
--		sz = NODE_MIN_SIZE;
-+		numa_fake = (max_addr - start - hole_size) / FAKE_NODE_MIN_SIZE;
-+		printk(KERN_INFO "Number of fake nodes will be = %d\n",
-+				numa_fake);
-+		sz = FAKE_NODE_MIN_SIZE;
+ 	if (!mnt)
+ 		return ERR_PTR(-ENOMEM);
+@@ -259,6 +266,10 @@ static struct vfsmount *clone_mnt(struct
  	}
- 	/*
- 	 * Find out how many nodes can get an extra NODE_MIN_SIZE granule.
-@@ -325,8 +326,9 @@ static int __init numa_emulation(unsigne
- 	 * nodes as possible (as compared to one single node getting all that
- 	 * extra memory.
- 	 */
--	big = ((old_sz - sz) * numa_fake) / NODE_MIN_SIZE;
--	printk(KERN_INFO"Fake node Size: %luMB hole_size: %luMB big nodes: %d\n",
-+	big = ((old_sz - sz) * numa_fake) / FAKE_NODE_MIN_SIZE;
-+	printk(KERN_INFO "Fake node Size: %luMB hole_size: %luMB big nodes: "
-+			"%d\n",
- 			(sz >> 20), (hole_size >> 20), big);
-  	memset(&nodes,0,sizeof(nodes));
- 	end = start;
-@@ -350,13 +352,13 @@ static int __init numa_emulation(unsigne
- 		 * Fir "big" number of nodes get extra granule.
- 		 */
- 		if (i < big)
--			end += NODE_MIN_SIZE;
-+			end += FAKE_NODE_MIN_SIZE;
- 		/*
- 		 * Iterate over the range to ensure that this node gets at
- 		 * least sz amount of RAM (excluding holes)
- 		 */
- 		while ((end - start - e820_hole_size(start, end)) < sz) {
--			end += NODE_MIN_SIZE;
-+			end += FAKE_NODE_MIN_SIZE;
- 			if (end >= max_addr)
- 				break;
- 		}
-@@ -365,14 +367,14 @@ static int __init numa_emulation(unsigne
- 		 * to map.  Bad things happen when the only memory present
- 		 * in a zone on a fake node is IO hole.
- 		 */
--		while (e820_hole_size(end, end + NODE_MIN_SIZE) > 0) {
-+		while (e820_hole_size(end, end + FAKE_NODE_MIN_SIZE) > 0) {
- 			if (zone_cross_over(start, end + sz)) {
- 				end = (MAX_DMA32_PFN << PAGE_SHIFT);
- 				break;
- 			}
- 			if (end >= max_addr)
- 				break;
--			end += NODE_MIN_SIZE;
-+			end += FAKE_NODE_MIN_SIZE;
- 		}
- 		if (end > max_addr)
- 			end = max_addr;
-diff -puN include/asm-x86_64/e820.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix include/asm-x86_64/e820.h
-diff -puN include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix include/asm-x86_64/mmzone.h
---- a/include/asm-x86_64/mmzone.h~fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix
-+++ a/include/asm-x86_64/mmzone.h
-@@ -48,8 +48,8 @@ extern int pfn_valid(unsigned long pfn);
- #endif
+ 	if (flag & CL_MAKE_SHARED)
+ 		set_mnt_shared(mnt);
++	if (flag & CL_SHARE_NS)
++		mnt->mnt_flags |= MNT_SHARE_NS;
++	else
++		mnt->mnt_flags &= ~MNT_SHARE_NS;
  
- #ifdef CONFIG_NUMA_EMU
--#define NODE_MIN_SIZE	(64*1024*1024)
--#define NODE_MIN_HASH_MASK	(~(NODE_MIN_SIZE - 1ul))
-+#define FAKE_NODE_MIN_SIZE	(64*1024*1024)
-+#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1ul))
- #endif
+ 	/* stick the duplicate mount on the same expiry list
+ 	 * as the original if that was on one */
+@@ -370,6 +381,7 @@ static int show_vfsmnt(struct seq_file *
+ 		{ MNT_NOSUID, ",nosuid" },
+ 		{ MNT_NODEV, ",nodev" },
+ 		{ MNT_NOEXEC, ",noexec" },
++		{ MNT_SHARE_NS, ",share_userns" },
+ 		{ MNT_NOATIME, ",noatime" },
+ 		{ MNT_NODIRATIME, ",nodiratime" },
+ 		{ MNT_RELATIME, ",relatime" },
+@@ -902,11 +914,14 @@ static int do_change_type(struct nameida
+ /*
+  * do loopback mount.
+  */
+-static int do_loopback(struct nameidata *nd, char *old_name, int recurse)
++static int do_loopback(struct nameidata *nd, char *old_name, int recurse,
++							 int uidns_share)
+ {
+ 	struct nameidata old_nd;
+ 	struct vfsmount *mnt = NULL;
+ 	int err = mount_is_safe(nd);
++	int flag = (uidns_share ? CL_SHARE_NS : 0);
++
+ 	if (err)
+ 		return err;
+ 	if (!old_name || !*old_name)
+@@ -925,9 +940,9 @@ static int do_loopback(struct nameidata 
  
- #endif
+ 	err = -ENOMEM;
+ 	if (recurse)
+-		mnt = copy_tree(old_nd.mnt, old_nd.dentry, 0);
++		mnt = copy_tree(old_nd.mnt, old_nd.dentry, flag);
+ 	else
+-		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, 0);
++		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, flag);
+ 
+ 	if (!mnt || IS_ERR(mnt)) {
+ 		err = mnt ? PTR_ERR(mnt) : -ENOMEM;
+@@ -1414,9 +1429,11 @@ long do_mount(char *dev_name, char *dir_
+ 		mnt_flags |= MNT_NODIRATIME;
+ 	if (flags & MS_RELATIME)
+ 		mnt_flags |= MNT_RELATIME;
++	if (flags & MS_SHARE_NS)
++		mnt_flags |= MNT_SHARE_NS;
+ 
+ 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE |
+-		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME);
++		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME | MS_SHARE_NS);
+ 
+ 	/* ... and get the mountpoint */
+ 	retval = path_lookup(dir_name, LOOKUP_FOLLOW, &nd);
+@@ -1431,7 +1448,8 @@ long do_mount(char *dev_name, char *dir_
+ 		retval = do_remount(&nd, flags & ~MS_REMOUNT, mnt_flags,
+ 				    data_page);
+ 	else if (flags & MS_BIND)
+-		retval = do_loopback(&nd, dev_name, flags & MS_REC);
++		retval = do_loopback(&nd, dev_name, flags & MS_REC,
++						 mnt_flags & MNT_SHARE_NS);
+ 	else if (flags & (MS_SHARED | MS_PRIVATE | MS_SLAVE | MS_UNBINDABLE))
+ 		retval = do_change_type(&nd, flags);
+ 	else if (flags & MS_MOVE)
+diff -puN fs/pnode.h~user-ns-implement-shared-mounts fs/pnode.h
+--- a/fs/pnode.h~user-ns-implement-shared-mounts
++++ a/fs/pnode.h
+@@ -22,6 +22,7 @@
+ #define CL_COPY_ALL 		0x04
+ #define CL_MAKE_SHARED 		0x08
+ #define CL_PROPAGATION 		0x10
++#define CL_SHARE_NS 		0x20
+ 
+ static inline void set_mnt_shared(struct vfsmount *mnt)
+ {
+diff -puN include/linux/fs.h~user-ns-implement-shared-mounts include/linux/fs.h
+--- a/include/linux/fs.h~user-ns-implement-shared-mounts
++++ a/include/linux/fs.h
+@@ -121,6 +121,7 @@ extern int dir_notify_enable;
+ #define MS_SLAVE	(1<<19)	/* change to slave */
+ #define MS_SHARED	(1<<20)	/* change to shared */
+ #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
++#define MS_SHARE_NS	(1<<22) /* ignore user namespaces for permission */
+ #define MS_ACTIVE	(1<<30)
+ #define MS_NOUSER	(1<<31)
+ 
+diff -puN include/linux/mount.h~user-ns-implement-shared-mounts include/linux/mount.h
+--- a/include/linux/mount.h~user-ns-implement-shared-mounts
++++ a/include/linux/mount.h
+@@ -35,6 +35,7 @@ struct user_namespace;
+ #define MNT_SHARED	0x1000	/* if the vfsmount is a shared mount */
+ #define MNT_UNBINDABLE	0x2000	/* if the vfsmount is a unbindable mount */
+ #define MNT_PNODE_MASK	0x3000	/* propogation flag mask */
++#define MNT_SHARE_NS	0x4000  /* ignore user namespaces for permission */
+ 
+ struct vfsmount {
+ 	struct list_head mnt_hash;
+diff -puN include/linux/sched.h~user-ns-implement-shared-mounts include/linux/sched.h
+--- a/include/linux/sched.h~user-ns-implement-shared-mounts
++++ a/include/linux/sched.h
+@@ -1596,6 +1596,8 @@ static inline int task_mnt_same_uidns(st
+ {
+ 	if (tsk->nsproxy == init_task.nsproxy)
+ 		return 1;
++ 	if (mnt->mnt_flags & MNT_SHARE_NS)
++ 		return 1;
+ 	if (mnt->mnt_user_ns == tsk->nsproxy->user_ns)
+ 		return 1;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
-kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
-pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
-atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
-ip2-warning-fix.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-pci-avoid-taking-pci_bus_sem-early-in-boot.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
-git-agpgart.patch
-cifs-sprintf-fix.patch
-git-cpufreq.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-missing-include.patch
-ubiioc-needs-schedh.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-r8169-warning-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-sisusb_con-warning-fixes.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
-fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-bluetooth-blacklist-lenovo-r60e.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-remove-invalidate_inode_pages.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+implement-file-posix-capabilities.patch
+file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+file-capabilities-honor-secure_noroot.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fix.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user_ns-handle-file-sigio.patch
+user-ns-implement-user-ns-unshare.patch
 user-ns-implement-user-ns-unshare-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
