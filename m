@@ -1,201 +1,434 @@
 From: akpm@osdl.org
-Subject: + ubiioc-needs-schedh.patch added to -mm tree
-Date: Wed, 03 Jan 2007 15:53:51 -0800
-Message-ID: <200701032354.l03NsF9O003400@shell0.pdx.osdl.net>
+Subject: + fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch added to -mm tree
+Date: Wed, 03 Jan 2007 16:27:07 -0800
+Message-ID: <200701040027.l040R7rr004353@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:33239 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:35230 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932194AbXACXyX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 18:54:23 -0500
+	id S932210AbXADA1S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 19:27:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dedekind@infradead.org
+Cc: sandeen@redhat.com
 
 
 The patch titled
-     ubi/io.c needs sched.h
+     fix memory corruption from misinterpreted bad_inode_ops return values
 has been added to the -mm tree.  Its filename is
-     ubiioc-needs-schedh.patch
+     fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ubi/io.c needs sched.h
-From: Andrew Morton <akpm@osdl.org>
+Subject: fix memory corruption from misinterpreted bad_inode_ops return values
+From: Eric Sandeen <sandeen@redhat.com>
 
-drivers/mtd/ubi/io.c: In function 'erase_callback':                             drivers/mtd/ubi/io.c:210: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)                                                                   drivers/mtd/ubi/io.c:210: error: (Each undeclared identifier is reported only on
+CVE-2006-5753 is for a case where an inode can be marked bad, switching
+the ops to bad_inode_ops, which are all connected as:
 
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+static int return_EIO(void)
+{
+        return -EIO;
+}
+
+#define EIO_ERROR ((void *) (return_EIO))
+
+static struct inode_operations bad_inode_ops =
+{
+        .create         = bad_inode_create
+...etc...
+
+The problem here is that the void cast causes return types to not be
+promoted, and for ops such as listxattr which expect more than 32 bits of
+return value, the 32-bit -EIO is interpreted as a large positive 64-bit
+number, i.e. 0x00000000fffffffa instead of 0xfffffffa.
+
+This goes particularly badly when the return value is taken as a number of
+bytes to copy into, say, a user's buffer for example...
+
+I originally had coded up the fix by creating a return_EIO_<TYPE> macro
+for each return type, like this:
+
+static int return_EIO_int(void)
+{
+	return -EIO;
+}
+#define EIO_ERROR_INT ((void *) (return_EIO_int))
+
+static struct inode_operations bad_inode_ops =
+{
+	.create		= EIO_ERROR_INT,
+...etc...
+
+but Al felt that it was probably better to create an EIO-returner for each
+actual op signature.  Since so few ops share a signature, I just went ahead
+& created an EIO function for each individual file & inode op that returns
+a value.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/ubi/io.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/bad_inode.c |  327 +++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 288 insertions(+), 39 deletions(-)
 
-diff -puN drivers/mtd/ubi/io.c~ubiioc-needs-schedh drivers/mtd/ubi/io.c
---- a/drivers/mtd/ubi/io.c~ubiioc-needs-schedh
-+++ a/drivers/mtd/ubi/io.c
-@@ -21,6 +21,7 @@
- #include <linux/init.h>
- #include <linux/crc32.h>
- #include <linux/wait.h>
-+#include <linux/sched.h>
- #include <linux/err.h>
- #include <linux/mtd/mtd.h>
- #include <linux/types.h>
+diff -puN fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops fs/bad_inode.c
+--- a/fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops
++++ a/fs/bad_inode.c
+@@ -14,59 +14,308 @@
+ #include <linux/time.h>
+ #include <linux/smp_lock.h>
+ #include <linux/namei.h>
++#include <linux/poll.h>
+ 
+-static int return_EIO(void)
++
++static loff_t bad_file_llseek(struct file *file, loff_t offset, int origin)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_read(struct file *filp, char __user *buf,
++			size_t size, loff_t *ppos)
++{
++        return -EIO;
++}
++
++static ssize_t bad_file_write(struct file *filp, const char __user *buf,
++			size_t siz, loff_t *ppos)
++{
++        return -EIO;
++}
++
++static ssize_t bad_file_aio_read(struct kiocb *iocb, const struct iovec *iov,
++			unsigned long nr_segs, loff_t pos)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
++			unsigned long nr_segs, loff_t pos)
++{
++	return -EIO;
++}
++
++static int bad_file_readdir(struct file * filp, void * dirent,
++			filldir_t filldir)
++{
++	return -EIO;
++}
++
++static unsigned int bad_file_poll(struct file *filp, poll_table *wait)
++{
++	return -EIO;
++}
++
++static int bad_file_ioctl (struct inode * inode, struct file * filp,
++			unsigned int cmd, unsigned long arg)
+ {
+ 	return -EIO;
+ }
+ 
+-#define EIO_ERROR ((void *) (return_EIO))
++static long bad_file_unlocked_ioctl(struct file *file, unsigned cmd,
++			unsigned long arg)
++{
++	return -EIO;
++}
++
++static long bad_file_compat_ioctl(struct file *file, unsigned int cmd,
++			unsigned long arg)
++{
++	return -EIO;
++}
++
++static int bad_file_mmap(struct file * file, struct vm_area_struct * vma)
++{
++	return -EIO;
++}
++
++static int bad_file_open(struct inode * inode, struct file * filp)
++{
++	return -EIO;
++}
++
++static int bad_file_flush(struct file *file, fl_owner_t id)
++{
++	return -EIO;
++}
++
++static int bad_file_release(struct inode * inode, struct file * filp)
++{
++	return -EIO;
++}
++
++static int bad_file_fsync(struct file * file, struct dentry *dentry,
++			int datasync)
++{
++	return -EIO;
++}
++
++static int bad_file_aio_fsync(struct kiocb *iocb, int datasync)
++{
++	return -EIO;
++}
++
++static int bad_file_fasync(int fd, struct file *filp, int on)
++{
++	return -EIO;
++}
++
++static int bad_file_lock(struct file *file, int cmd, struct file_lock *fl)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_sendfile(struct file *in_file, loff_t *ppos,
++			size_t count, read_actor_t actor, void *target)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_sendpage(struct file *file, struct page *page,
++			int off, size_t len, loff_t *pos, int more)
++{
++	return -EIO;
++}
++
++static unsigned long bad_file_get_unmapped_area(struct file *file,
++				unsigned long addr, unsigned long len,
++				unsigned long pgoff, unsigned long flags)
++{
++	return -EIO;
++}
++
++static int bad_file_check_flags(int flags)
++{
++	return -EIO;
++}
++
++static int bad_file_dir_notify(struct file * file, unsigned long arg)
++{
++	return -EIO;
++}
++
++static int bad_file_flock(struct file *filp, int cmd, struct file_lock *fl)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_splice_write(struct pipe_inode_info *pipe,
++			struct file *out, loff_t *ppos, size_t len,
++			unsigned int flags)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_splice_read(struct file *in, loff_t *ppos,
++			struct pipe_inode_info *pipe, size_t len,
++			unsigned int flags)
++{
++	return -EIO;
++}
+ 
+ static const struct file_operations bad_file_ops =
+ {
+-	.llseek		= EIO_ERROR,
+-	.aio_read	= EIO_ERROR,
+-	.read		= EIO_ERROR,
+-	.write		= EIO_ERROR,
+-	.aio_write	= EIO_ERROR,
+-	.readdir	= EIO_ERROR,
+-	.poll		= EIO_ERROR,
+-	.ioctl		= EIO_ERROR,
+-	.mmap		= EIO_ERROR,
+-	.open		= EIO_ERROR,
+-	.flush		= EIO_ERROR,
+-	.release	= EIO_ERROR,
+-	.fsync		= EIO_ERROR,
+-	.aio_fsync	= EIO_ERROR,
+-	.fasync		= EIO_ERROR,
+-	.lock		= EIO_ERROR,
+-	.sendfile	= EIO_ERROR,
+-	.sendpage	= EIO_ERROR,
+-	.get_unmapped_area = EIO_ERROR,
++	.llseek		= bad_file_llseek,
++	.read		= bad_file_read,
++	.write		= bad_file_write,
++	.aio_read	= bad_file_aio_read,
++	.aio_write	= bad_file_aio_write,
++	.readdir	= bad_file_readdir,
++	.poll		= bad_file_poll,
++	.ioctl		= bad_file_ioctl,
++	.unlocked_ioctl	= bad_file_unlocked_ioctl,
++	.compat_ioctl	= bad_file_compat_ioctl,
++	.mmap		= bad_file_mmap,
++	.open		= bad_file_open,
++	.flush		= bad_file_flush,
++	.release	= bad_file_release,
++	.fsync		= bad_file_fsync,
++	.aio_fsync	= bad_file_aio_fsync,
++	.fasync		= bad_file_fasync,
++	.lock		= bad_file_lock,
++	.sendfile	= bad_file_sendfile,
++	.sendpage	= bad_file_sendpage,
++	.get_unmapped_area = bad_file_get_unmapped_area,
++	.check_flags	= bad_file_check_flags,
++	.dir_notify	= bad_file_dir_notify,
++	.flock		= bad_file_flock,
++	.splice_write	= bad_file_splice_write,
++	.splice_read	= bad_file_splice_read,
+ };
+ 
++static int bad_inode_create (struct inode * dir, struct dentry * dentry,
++		int mode, struct nameidata *nd)
++{
++	return -EIO;
++}
++
++static struct dentry *bad_inode_lookup(struct inode * dir,
++			struct dentry *dentry, struct nameidata *nd)
++{
++	return ERR_PTR(-EIO);
++}
++
++static int bad_inode_link (struct dentry * old_dentry, struct inode * dir,
++		struct dentry *dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_unlink(struct inode * dir, struct dentry *dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_symlink (struct inode * dir, struct dentry *dentry,
++		const char * symname)
++{
++	return -EIO;
++}
++
++static int bad_inode_mkdir(struct inode * dir, struct dentry * dentry,
++			int mode)
++{
++	return -EIO;
++}
++
++static int bad_inode_rmdir (struct inode * dir, struct dentry *dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_mknod (struct inode * dir, struct dentry *dentry,
++			int mode, dev_t rdev)
++{
++	return -EIO;
++}
++
++static int bad_inode_rename (struct inode * old_dir, struct dentry *old_dentry,
++		struct inode * new_dir, struct dentry *new_dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_readlink(struct dentry *dentry, char __user *buffer,
++		int buflen)
++{
++	return -EIO;
++}
++
++static int bad_inode_permission(struct inode *inode, int mask,
++			struct nameidata *nd)
++{
++	return -EIO;
++}
++
++static int bad_inode_getattr(struct vfsmount *mnt, struct dentry *dentry,
++			struct kstat *stat)
++{
++	return -EIO;
++}
++
++static int bad_inode_setattr(struct dentry *direntry, struct iattr *attrs)
++{
++	return -EIO;
++}
++
++static int bad_inode_setxattr(struct dentry *dentry, const char *name,
++		const void *value, size_t size, int flags)
++{
++	return -EIO;
++}
++
++static ssize_t bad_inode_getxattr(struct dentry *dentry, const char *name,
++			void *buffer, size_t size)
++{
++	return -EIO;
++}
++
++static ssize_t bad_inode_listxattr(struct dentry *dentry, char *buffer,
++			size_t buffer_size)
++{
++	return -EIO;
++}
++
++static int bad_inode_removexattr(struct dentry *dentry, const char *name)
++{
++	return -EIO;
++}
++
+ static struct inode_operations bad_inode_ops =
+ {
+-	.create		= EIO_ERROR,
+-	.lookup		= EIO_ERROR,
+-	.link		= EIO_ERROR,
+-	.unlink		= EIO_ERROR,
+-	.symlink	= EIO_ERROR,
+-	.mkdir		= EIO_ERROR,
+-	.rmdir		= EIO_ERROR,
+-	.mknod		= EIO_ERROR,
+-	.rename		= EIO_ERROR,
+-	.readlink	= EIO_ERROR,
++	.create		= bad_inode_create,
++	.lookup		= bad_inode_lookup,
++	.link		= bad_inode_link,
++	.unlink		= bad_inode_unlink,
++	.symlink	= bad_inode_symlink,
++	.mkdir		= bad_inode_mkdir,
++	.rmdir		= bad_inode_rmdir,
++	.mknod		= bad_inode_mknod,
++	.rename		= bad_inode_rename,
++	.readlink	= bad_inode_readlink,
+ 	/* follow_link must be no-op, otherwise unmounting this inode
+ 	   won't work */
+-	.truncate	= EIO_ERROR,
+-	.permission	= EIO_ERROR,
+-	.getattr	= EIO_ERROR,
+-	.setattr	= EIO_ERROR,
+-	.setxattr	= EIO_ERROR,
+-	.getxattr	= EIO_ERROR,
+-	.listxattr	= EIO_ERROR,
+-	.removexattr	= EIO_ERROR,
++	/* put_link returns void */
++	/* truncate returns void */
++	.permission	= bad_inode_permission,
++	.getattr	= bad_inode_getattr,
++	.setattr	= bad_inode_setattr,
++	.setxattr	= bad_inode_setxattr,
++	.getxattr	= bad_inode_getxattr,
++	.listxattr	= bad_inode_listxattr,
++	.removexattr	= bad_inode_removexattr,
++	/* truncate_range returns void */
+ };
+ 
+ 
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
-kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
-pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
-atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-pci-avoid-taking-pci_bus_sem-early-in-boot.patch
-down_write-preserve-local-irqs.patch
-shrink_all_memory-fix-lru_pages-handling.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
-git-agpgart.patch
-cifs-sprintf-fix.patch
-git-cpufreq.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-missing-include.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-qla3xxx-fixup.patch
-nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-revert-x86_64-mm-copy-user-nocache.patch
-add-memcpy_uncached_read.patch
-add-i386-idle-notifier-take-3-fix.patch
-fix-fake-numa-for-x86_64-machines-with-big-io-hole-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-bluetooth-blacklist-lenovo-r60e.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-remove-invalidate_inode_pages.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
-ubiioc-needs-schedh.patch
+fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch
+ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch
