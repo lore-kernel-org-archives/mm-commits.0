@@ -1,88 +1,105 @@
 From: akpm@osdl.org
-Subject: + ipmi-fix-some-rcu-problems-update.patch added to -mm tree
-Date: Thu, 04 Jan 2007 10:59:14 -0800
-Message-ID: <200701041859.l04IxEiq027924@shell0.pdx.osdl.net>
+Subject: + relax-check-for-aix-in-msdos-partition-table.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:01:13 -0800
+Message-ID: <200701041901.l04J1D30028010@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:43919 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44062 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932122AbXADS7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 13:59:22 -0500
+	id S932241AbXADTBz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:01:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minyard@acm.org
+Cc: olh@suse.de, anton@samba.org, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     IPMI: Fix some RCU problems (update)
+     relax check for AIX in msdos partition table
 has been added to the -mm tree.  Its filename is
-     ipmi-fix-some-rcu-problems-update.patch
+     relax-check-for-aix-in-msdos-partition-table.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IPMI: Fix some RCU problems (update)
-From: Corey Minyard <minyard@acm.org>
+Subject: relax check for AIX in msdos partition table
+From: Olaf Hering <olh@suse.de>
 
-Andrew asked that the open-coded barriers be commented, so here it
-is.  I also realized that one of the read barriers was in an area
-where the protecting mutex was held, so no read barrier was needed.
+The patch to identify AIX disks and ignore them has caused at least one
+machine to fail to find the root partition on 2.6.19. The patch is:
 
-Signed-off-by: Corey Minyard <minyard@acm.org>
+http://lkml.org/lkml/2006/7/31/117
+
+The problem is some disk formatters do not blow away the first 4 bytes
+of the disk. If the disk we are installing to used to have AIX on it,
+then the first 4 bytes will still have IBMA in EBCDIC.
+
+The install in question was debian etch. Im not sure what the best fix
+is, perhaps the AIX detection code could check more than the first 4
+bytes.
+
+The whole partition info for primary partitions is in this block:
+
+  dd if=/dev/sdb count=$(( 4 * 16 )) bs=1 skip=$(( 0x1be ))
+
+All other data do not matter, beside the 0x55aa marker at the end of the
+first block.
+
+Signed-off-by: Olaf Hering <olh@suse.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Anton Blanchard <anton@samba.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+ fs/partitions/msdos.c |   12 +++++++++++-
+ include/linux/genhd.h |    2 ++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -839,7 +839,6 @@ int ipmi_create_user(unsigned int       
- 	goto out_kfree;
+diff -puN fs/partitions/msdos.c~relax-check-for-aix-in-msdos-partition-table fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~relax-check-for-aix-in-msdos-partition-table
++++ a/fs/partitions/msdos.c
+@@ -63,15 +63,25 @@ msdos_magic_present(unsigned char *p)
+ #define AIX_LABEL_MAGIC4	0xC1
+ static int aix_magic_present(unsigned char *p, struct block_device *bdev)
+ {
++	struct partition *pt = (struct partition *) (p + 0x1be);
+ 	Sector sect;
+ 	unsigned char *d;
+-	int ret = 0;
++	int slot, ret = 0;
  
-  found:
--	smp_rmb();
- 	/* Note that each existing user holds a refcount to the interface. */
- 	kref_get(&intf->refcount);
+ 	if (p[0] != AIX_LABEL_MAGIC1 &&
+ 		p[1] != AIX_LABEL_MAGIC2 &&
+ 		p[2] != AIX_LABEL_MAGIC3 &&
+ 		p[3] != AIX_LABEL_MAGIC4)
+ 		return 0;
++	/* Assume the partition table is valid if Linux partitions exists */
++	for (slot = 1; slot <= 4; slot++, pt++) {
++		if (pt->sys_ind == LINUX_SWAP_PARTITION ||
++			pt->sys_ind == LINUX_RAID_PARTITION ||
++			pt->sys_ind == LINUX_DATA_PARTITION ||
++			pt->sys_ind == LINUX_LVM_PARTITION ||
++			is_extended_partition(pt))
++			return 0;
++	}
+ 	d = read_dev_sector(bdev, 7, &sect);
+ 	if (d) {
+ 		if (d[0] == '_' && d[1] == 'L' && d[2] == 'V' && d[3] == 'M')
+diff -puN include/linux/genhd.h~relax-check-for-aix-in-msdos-partition-table include/linux/genhd.h
+--- a/include/linux/genhd.h~relax-check-for-aix-in-msdos-partition-table
++++ a/include/linux/genhd.h
+@@ -21,6 +21,8 @@ enum {
+ 	WIN98_EXTENDED_PARTITION = 0x0f,
  
-@@ -2762,10 +2761,15 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 		synchronize_rcu();
- 		kref_put(&intf->refcount, intf_free);
- 	} else {
--		/* After this point the interface is legal to use. */
--		smp_wmb(); /* Keep memory order straight for RCU readers. */
-+		/*
-+		 * Keep memory order straight for RCU readers.  Make
-+		 * sure everything else is committed to memory before
-+		 * setting intf_num to mark the interface valid.
-+		 */
-+		smp_wmb();
- 		intf->intf_num = i;
- 		mutex_unlock(&ipmi_interfaces_mutex);
-+		/* After this point the interface is legal to use. */
- 		call_smi_watchers(i, intf->si_dev);
- 		mutex_unlock(&smi_watchers_mutex);
- 	}
-@@ -3927,6 +3931,12 @@ static void send_panic_events(char *str)
- 			/* Interface was not ready yet. */
- 			continue;
+ 	LINUX_SWAP_PARTITION = 0x82,
++	LINUX_DATA_PARTITION = 0x83,
++	LINUX_LVM_PARTITION = 0x8e,
+ 	LINUX_RAID_PARTITION = 0xfd,	/* autodetect RAID partition */
  
-+		/*
-+		 * intf_num is used as an marker to tell if the
-+		 * interface is valid.  Thus we need a read barrier to
-+		 * make sure data fetched before checking intf_num
-+		 * won't be used.
-+		 */
- 		smp_rmb();
- 
- 		/* First job here is to figure out where to send the
+ 	SOLARIS_X86_PARTITION =	LINUX_SWAP_PARTITION,
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from olh@suse.de are
 
-add-an-rcu-version-of-list-splicing.patch
-ipmi-fix-some-rcu-problems.patch
-ipmi-fix-some-rcu-problems-update.patch
+relax-check-for-aix-in-msdos-partition-table.patch
