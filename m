@@ -1,30 +1,30 @@
 From: akpm@osdl.org
-Subject: - pciehp-remove-unused-pcie_cap_base.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 15:43:03 -0800
-Message-ID: <200701042343.l04Nh3Q3002866@shell0.pdx.osdl.net>
+Subject: - pciehp-cleanup-pciehph.patch removed from -mm tree
+Date: Thu, 04 Jan 2007 15:43:01 -0800
+Message-ID: <200701042343.l04Nh1Mg002861@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36799 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:36808 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030264AbXADXnH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 18:43:07 -0500
+	id S1030272AbXADXnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 18:43:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pciehp: remove unused pcie_cap_base
+     pciehp: cleanup pciehp.h
 has been removed from the -mm tree.  Its filename was
-     pciehp-remove-unused-pcie_cap_base.patch
+     pciehp-cleanup-pciehph.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pciehp: remove unused pcie_cap_base
+Subject: pciehp: cleanup pciehp.h
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Remove unused pcie_cap_base variable.
+Clean up pciehp.h. This has no functional change.
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
@@ -32,56 +32,216 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/hotplug/pciehp_hpc.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/pci/hotplug/pciehp.h      |  101 ++++++++++------------------
+ drivers/pci/hotplug/pciehp_core.c |    2 
+ drivers/pci/hotplug/pciehp_ctrl.c |    6 -
+ 3 files changed, 42 insertions(+), 67 deletions(-)
 
-diff -puN drivers/pci/hotplug/pciehp_hpc.c~pciehp-remove-unused-pcie_cap_base drivers/pci/hotplug/pciehp_hpc.c
---- a/drivers/pci/hotplug/pciehp_hpc.c~pciehp-remove-unused-pcie_cap_base
-+++ a/drivers/pci/hotplug/pciehp_hpc.c
-@@ -105,7 +105,6 @@ enum ctrl_offsets {
- 	ROOTCTRL	=	offsetof(struct ctrl_reg, root_ctrl),
- 	ROOTSTATUS	=	offsetof(struct ctrl_reg, root_status),
- };
--static int pcie_cap_base = 0;		/* Base of the PCI Express capability item structure */ 
+diff -puN drivers/pci/hotplug/pciehp.h~pciehp-cleanup-pciehph drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pciehp-cleanup-pciehph
++++ a/drivers/pci/hotplug/pciehp.h
+@@ -44,11 +44,17 @@ extern int pciehp_poll_time;
+ extern int pciehp_debug;
+ extern int pciehp_force;
  
- static inline int pciehp_readw(struct controller *ctrl, int reg, u16 *value)
+-/*#define dbg(format, arg...) do { if (pciehp_debug) printk(KERN_DEBUG "%s: " format, MY_NAME , ## arg); } while (0)*/
+-#define dbg(format, arg...) do { if (pciehp_debug) printk("%s: " format, MY_NAME , ## arg); } while (0)
+-#define err(format, arg...) printk(KERN_ERR "%s: " format, MY_NAME , ## arg)
+-#define info(format, arg...) printk(KERN_INFO "%s: " format, MY_NAME , ## arg)
+-#define warn(format, arg...) printk(KERN_WARNING "%s: " format, MY_NAME , ## arg)
++#define dbg(format, arg...)						\
++	do {								\
++		if (pciehp_debug)					\
++			printk("%s: " format, MY_NAME , ## arg);	\
++	} while (0)
++#define err(format, arg...)						\
++	printk(KERN_ERR "%s: " format, MY_NAME , ## arg)
++#define info(format, arg...)						\
++	printk(KERN_INFO "%s: " format, MY_NAME , ## arg)
++#define warn(format, arg...)						\
++	printk(KERN_WARNING "%s: " format, MY_NAME , ## arg)
+ 
+ #define SLOT_NAME_SIZE 10
+ struct slot {
+@@ -113,8 +119,6 @@ struct controller {
+ #define POWERON_STATE			3
+ #define POWEROFF_STATE			4
+ 
+-#define PCI_TO_PCI_BRIDGE_CLASS		0x00060400
+-
+ /* Error messages */
+ #define INTERLOCK_OPEN			0x00000002
+ #define ADD_NOT_SUPPORTED		0x00000003
+@@ -126,10 +130,6 @@ struct controller {
+ #define WRONG_BUS_FREQUENCY		0x0000000D
+ #define POWER_FAILURE			0x0000000E
+ 
+-#define REMOVE_NOT_SUPPORTED		0x00000003
+-
+-#define DISABLE_CARD			1
+-
+ /* Field definitions in Slot Capabilities Register */
+ #define ATTN_BUTTN_PRSN	0x00000001
+ #define	PWR_CTRL_PRSN	0x00000002
+@@ -145,38 +145,21 @@ struct controller {
+ #define PWR_LED(cap)		(cap & PWR_LED_PRSN) 
+ #define HP_SUPR_RM(cap)		(cap & HP_SUPR_RM_SUP)
+ 
+-/*
+- * error Messages
+- */
+-#define msg_initialization_err	"Initialization failure, error=%d\n"
+-#define msg_button_on		"PCI slot #%s - powering on due to button press.\n"
+-#define msg_button_off		"PCI slot #%s - powering off due to button press.\n"
+-#define msg_button_cancel	"PCI slot #%s - action canceled due to button press.\n"
+-#define msg_button_ignore	"PCI slot #%s - button press ignored.  (action in progress...)\n"
+-
+-/* controller functions */
+-extern int	pciehp_event_start_thread	(void);
+-extern void	pciehp_event_stop_thread	(void);
+-extern int	pciehp_enable_slot		(struct slot *slot);
+-extern int	pciehp_disable_slot		(struct slot *slot);
+-
++extern int pciehp_event_start_thread(void);
++extern void pciehp_event_stop_thread(void);
++extern int pciehp_enable_slot(struct slot *slot);
++extern int pciehp_disable_slot(struct slot *slot);
+ extern u8 pciehp_handle_attention_button(u8 hp_slot, struct controller *ctrl);
+ extern u8 pciehp_handle_switch_change(u8 hp_slot, struct controller *ctrl);
+ extern u8 pciehp_handle_presence_change(u8 hp_slot, struct controller *ctrl);
+ extern u8 pciehp_handle_power_fault(u8 hp_slot, struct controller *ctrl);
+-/* extern void	long_delay (int delay); */
+-
+-/* pci functions */
+-extern int	pciehp_configure_device		(struct slot *p_slot);
+-extern int	pciehp_unconfigure_device	(struct slot *p_slot);
+-
+-
++extern int pciehp_configure_device(struct slot *p_slot);
++extern int pciehp_unconfigure_device(struct slot *p_slot);
++int pcie_init(struct controller *ctrl, struct pcie_device *dev);
+ 
+ /* Global variables */
+ extern struct controller *pciehp_ctrl_list;
+ 
+-/* Inline functions */
+-
+ static inline struct slot *pciehp_find_slot(struct controller *ctrl, u8 device)
  {
-@@ -1072,7 +1071,7 @@ int pcie_init(struct controller * ctrl, 
- 	u16 cap_reg;
- 	u16 intr_enable = 0;
- 	u32 slot_cap;
--	int cap_base, saved_cap_base;
-+	int cap_base;
- 	u16 slot_status, slot_ctrl;
- 	struct pci_dev *pdev;
+ 	struct slot *slot;
+@@ -192,8 +175,6 @@ static inline struct slot *pciehp_find_s
  
-@@ -1084,8 +1083,6 @@ int pcie_init(struct controller * ctrl, 
- 	dbg("%s: hotplug controller vendor id 0x%x device id 0x%x\n",
- 			__FUNCTION__, pdev->vendor, pdev->device);
- 
--	saved_cap_base = pcie_cap_base;
+ static inline int wait_for_ctrl_irq(struct controller *ctrl)
+ {
+-	int retval = 0;
 -
- 	if ((cap_base = pci_find_capability(pdev, PCI_CAP_ID_EXP)) == 0) {
- 		dbg("%s: Can't find PCI_CAP_ID_EXP (0x10)\n", __FUNCTION__);
- 		goto abort_free_ctlr;
-@@ -1093,7 +1090,7 @@ int pcie_init(struct controller * ctrl, 
+ 	DECLARE_WAITQUEUE(wait, current);
  
- 	ctrl->cap_base = cap_base;
+ 	add_wait_queue(&ctrl->queue, &wait);
+@@ -205,44 +186,38 @@ static inline int wait_for_ctrl_irq(stru
+ 	
+ 	remove_wait_queue(&ctrl->queue, &wait);
+ 	if (signal_pending(current))
+-		retval =  -EINTR;
++		return -EINTR;
  
--	dbg("%s: pcie_cap_base %x\n", __FUNCTION__, pcie_cap_base);
-+	dbg("%s: pcie_cap_base %x\n", __FUNCTION__, cap_base);
- 
- 	rc = pciehp_readw(ctrl, CAPREG, &cap_reg);
- 	if (rc) {
-@@ -1289,8 +1286,6 @@ abort_free_irq:
- 		free_irq(ctrl->pci_dev->irq, ctrl);
- 
- abort_free_ctlr:
--	pcie_cap_base = saved_cap_base;
--
- 	DBG_LEAVE_ROUTINE
- 	return -1;
+-	return retval;
++	return 0;
  }
+ 
+-int pcie_init(struct controller *ctrl, struct pcie_device *dev);
+-
+ struct hpc_ops {
+-	int	(*power_on_slot)	(struct slot *slot);
+-	int	(*power_off_slot)	(struct slot *slot);
+-	int	(*get_power_status)	(struct slot *slot, u8 *status);
+-	int	(*get_attention_status)	(struct slot *slot, u8 *status);
+-	int	(*set_attention_status)	(struct slot *slot, u8 status);
+-	int	(*get_latch_status)	(struct slot *slot, u8 *status);
+-	int	(*get_adapter_status)	(struct slot *slot, u8 *status);
+-
+-	int	(*get_max_bus_speed)	(struct slot *slot, enum pci_bus_speed *speed);
+-	int	(*get_cur_bus_speed)	(struct slot *slot, enum pci_bus_speed *speed);
+-
+-	int	(*get_max_lnk_width)	(struct slot *slot, enum pcie_link_width *value);
+-	int	(*get_cur_lnk_width)	(struct slot *slot, enum pcie_link_width *value);
+-	
+-	int	(*query_power_fault)	(struct slot *slot);
+-	void	(*green_led_on)		(struct slot *slot);
+-	void	(*green_led_off)	(struct slot *slot);
+-	void	(*green_led_blink)	(struct slot *slot);
+-	void	(*release_ctlr)		(struct controller *ctrl);
+-	int	(*check_lnk_status)	(struct controller *ctrl);
++	int (*power_on_slot)(struct slot *slot);
++	int (*power_off_slot)(struct slot *slot);
++	int (*get_power_status)(struct slot *slot, u8 *status);
++	int (*get_attention_status)(struct slot *slot, u8 *status);
++	int (*set_attention_status)(struct slot *slot, u8 status);
++	int (*get_latch_status)(struct slot *slot, u8 *status);
++	int (*get_adapter_status)(struct slot *slot, u8 *status);
++	int (*get_max_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
++	int (*get_cur_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
++	int (*get_max_lnk_width)(struct slot *slot, enum pcie_link_width *val);
++	int (*get_cur_lnk_width)(struct slot *slot, enum pcie_link_width *val);
++	int (*query_power_fault)(struct slot *slot);
++	void (*green_led_on)(struct slot *slot);
++	void (*green_led_off)(struct slot *slot);
++	void (*green_led_blink)(struct slot *slot);
++	void (*release_ctlr)(struct controller *ctrl);
++	int (*check_lnk_status)(struct controller *ctrl);
+ };
+ 
+-
+ #ifdef CONFIG_ACPI
+ #include <acpi/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/actypes.h>
+ #include <linux/pci-acpi.h>
+ 
+-#define pciehp_get_hp_hw_control_from_firmware(dev) \
++#define pciehp_get_hp_hw_control_from_firmware(dev)			\
+ 	pciehp_acpi_get_hp_hw_control_from_firmware(dev)
+ static inline int pciehp_get_hp_params_from_firmware(struct pci_dev *dev,
+ 			struct hotplug_params *hpp)
+diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-pciehph drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-pciehph
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -357,7 +357,7 @@ static int pciehp_probe(struct pcie_devi
+ 	/* Setup the slot information structures */
+ 	rc = init_slots(ctrl);
+ 	if (rc) {
+-		err(msg_initialization_err, 6);
++		err("%s: slot initialization failed\n", PCIE_MODULE_NAME);
+ 		goto err_out_release_ctlr;
+ 	}
+ 
+diff -puN drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-pciehph drivers/pci/hotplug/pciehp_ctrl.c
+--- a/drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-pciehph
++++ a/drivers/pci/hotplug/pciehp_ctrl.c
+@@ -655,7 +655,7 @@ static void interrupt_event_handler(stru
+ 						warn("Not a valid state\n");
+ 						return;
+ 					}
+-					info(msg_button_cancel, slot_name(p_slot));
++					info("PCI slot #%s - action canceled due to button press.\n", slot_name(p_slot));
+ 					p_slot->state = STATIC_STATE;
+ 				}
+ 				/* ***********Button Pressed (No action on 1st press...) */
+@@ -668,12 +668,12 @@ static void interrupt_event_handler(stru
+ 							/* slot is on */
+ 							dbg("slot is on\n");
+ 							p_slot->state = BLINKINGOFF_STATE;
+-							info(msg_button_off, slot_name(p_slot));
++							info("PCI slot #%s - powering off due to button press.\n", slot_name(p_slot));
+ 						} else {
+ 							/* slot is off */
+ 							dbg("slot is off\n");
+ 							p_slot->state = BLINKINGON_STATE;
+-							info(msg_button_on, slot_name(p_slot));
++							info("PCI slot #%s - powering on due to button press.\n", slot_name(p_slot));
+ 						}
+ 
+ 						/* Wait for exclusive access to hardware */
 _
 
 Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
