@@ -1,64 +1,88 @@
 From: akpm@osdl.org
-Subject: + ip2-warning-fix.patch added to -mm tree
-Date: Wed, 03 Jan 2007 17:05:14 -0800
-Message-ID: <200701040105.l0415cLX005468@shell0.pdx.osdl.net>
+Subject: + flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch added to -mm tree
+Date: Thu, 04 Jan 2007 09:19:28 -0800
+Message-ID: <200701041719.l04HJShx025176@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:37417 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:37779 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932228AbXADBFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 20:05:42 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0415cJi020225
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 3 Jan 2007 17:05:39 -0800
+	id S965041AbXADRT4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 12:19:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, ego@in.ibm.com, oleg@tv-sign.ru, vatsa@in.ibm.com
 
 
 The patch titled
-     ip2 warning fix
+     flush_workqueue(): use preempt_disable to hold off cpu hotplug
 has been added to the -mm tree.  Its filename is
-     ip2-warning-fix.patch
+     flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ip2 warning fix
+Subject: flush_workqueue(): use preempt_disable to hold off cpu hotplug
 From: Andrew Morton <akpm@osdl.org>
 
-Make this:
-
-drivers/char/ip2/ip2main.c: In function 'ip2_loadmain':
-drivers/char/ip2/ip2main.c:654: warning: control may reach end of non-void function 'iiSetAddress' being inlined
-drivers/char/ip2/ip2main.c:808: warning: control may reach end of non-void function 'iiInitialize' being inlined
-
-go away.
-
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Gautham Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ip2/i2ellis.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/workqueue.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/ip2/i2ellis.h~ip2-warning-fix drivers/char/ip2/i2ellis.h
---- a/drivers/char/ip2/i2ellis.h~ip2-warning-fix
-+++ a/drivers/char/ip2/i2ellis.h
-@@ -606,9 +606,9 @@ static int iiDownloadAll(i2eBordStrPtr, 
- // code and returning.
- //
- #define COMPLETE(pB,code) \
--	if(1){ \
-+	do { \
- 		 pB->i2eError = code; \
- 		 return (code == I2EE_GOOD);\
--	}
-+	} while (0)
+diff -puN kernel/workqueue.c~flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug kernel/workqueue.c
+--- a/kernel/workqueue.c~flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug
++++ a/kernel/workqueue.c
+@@ -419,18 +419,22 @@ static void flush_cpu_workqueue(struct c
+ 		 * Probably keventd trying to flush its own queue. So simply run
+ 		 * it by hand rather than deadlocking.
+ 		 */
+-		mutex_unlock(&workqueue_mutex);
++		preempt_enable();
++		/*
++		 * We can still touch *cwq here because we are keventd, and
++		 * hot-unplug will be waiting us to exit.
++		 */
+ 		run_workqueue(cwq);
+-		mutex_lock(&workqueue_mutex);
++		preempt_disable();
+ 	} else {
+ 		struct wq_barrier barr;
  
- #endif   // I2ELLIS_H
+ 		init_wq_barrier(&barr);
+ 		__queue_work(cwq, &barr.work);
+ 
+-		mutex_unlock(&workqueue_mutex);
++		preempt_enable();	/* Can no longer touch *cwq */
+ 		wait_for_completion(&barr.done);
+-		mutex_lock(&workqueue_mutex);
++		preempt_disable();
+ 	}
+ }
+ 
+@@ -449,7 +453,7 @@ static void flush_cpu_workqueue(struct c
+  */
+ void fastcall flush_workqueue(struct workqueue_struct *wq)
+ {
+-	mutex_lock(&workqueue_mutex);
++	preempt_disable();		/* CPU hotplug */
+ 	if (is_single_threaded(wq)) {
+ 		/* Always use first cpu's area. */
+ 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
+@@ -459,7 +463,7 @@ void fastcall flush_workqueue(struct wor
+ 		for_each_online_cpu(cpu)
+ 			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
+ 	}
+-	mutex_unlock(&workqueue_mutex);
++	preempt_enable();
+ }
+ EXPORT_SYMBOL_GPL(flush_workqueue);
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -67,6 +91,7 @@ start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patc
 kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
 pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
 atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
+ip2-warning-fix.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 pci-avoid-taking-pci_bus_sem-early-in-boot.patch
 down_write-preserve-local-irqs.patch
@@ -153,6 +178,7 @@ time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 schedule_on_each_cpu-use-preempt_disable.patch
 implement-flush_work-sanity.patch
 implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
 aio-use-flush_work.patch
 kblockd-use-flush_work.patch
 relayfs-use-flush_keventd_work.patch
@@ -214,4 +240,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-ip2-warning-fix.patch
