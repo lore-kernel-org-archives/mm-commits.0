@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-remove-release_pt_page_64.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:06 -0800
-Message-ID: <200701041912.l04JC6Qo028344@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:10 -0800
+Message-ID: <200701041912.l04JCAqX028364@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45000 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:44996 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965081AbXADTMT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:19 -0500
+	id S965092AbXADTMS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,66 +15,62 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Remove release_pt_page_64()
+     KVM: MMU: <ove is_empty_shadow_page() above kvm_mmu_free_page()
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-remove-release_pt_page_64.patch
+     kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Remove release_pt_page_64()
+Subject: KVM: MMU: <ove is_empty_shadow_page() above kvm_mmu_free_page()
 From: Avi Kivity <avi@qumranet.com>
-
-Unused.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c |   29 -----------------------------
- 1 files changed, 29 deletions(-)
+ drivers/kvm/mmu.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/kvm/mmu.c~kvm-mmu-remove-release_pt_page_64 drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-remove-release_pt_page_64
+diff -puN drivers/kvm/mmu.c~kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page
 +++ a/drivers/kvm/mmu.c
-@@ -609,35 +609,6 @@ hpa_t gva_to_hpa(struct kvm_vcpu *vcpu, 
- 	return gpa_to_hpa(vcpu, gpa);
+@@ -303,16 +303,6 @@ static void rmap_write_protect(struct kv
+ 	}
  }
  
--
--static void release_pt_page_64(struct kvm_vcpu *vcpu, hpa_t page_hpa,
--			       int level)
+-static void kvm_mmu_free_page(struct kvm_vcpu *vcpu, hpa_t page_hpa)
 -{
--	u64 *pos;
--	u64 *end;
+-	struct kvm_mmu_page *page_head = page_header(page_hpa);
 -
--	ASSERT(vcpu);
--	ASSERT(VALID_PAGE(page_hpa));
--	ASSERT(level <= PT64_ROOT_LEVEL && level > 0);
--
--	for (pos = __va(page_hpa), end = pos + PT64_ENT_PER_PAGE;
--	     pos != end; pos++) {
--		u64 current_ent = *pos;
--
--		if (is_present_pte(current_ent)) {
--			if (level != 1)
--				release_pt_page_64(vcpu,
--						  current_ent &
--						  PT64_BASE_ADDR_MASK,
--						  level - 1);
--			else
--				rmap_remove(vcpu->kvm, pos);
--		}
--		*pos = 0;
--	}
--	kvm_mmu_free_page(vcpu, page_hpa);
+-	list_del(&page_head->link);
+-	page_head->page_hpa = page_hpa;
+-	list_add(&page_head->link, &vcpu->free_pages);
+-	++vcpu->kvm->n_free_mmu_pages;
 -}
 -
- static void nonpaging_new_cr3(struct kvm_vcpu *vcpu)
+ static int is_empty_shadow_page(hpa_t page_hpa)
  {
+ 	u32 *pos;
+@@ -324,6 +314,16 @@ static int is_empty_shadow_page(hpa_t pa
+ 	return 1;
  }
+ 
++static void kvm_mmu_free_page(struct kvm_vcpu *vcpu, hpa_t page_hpa)
++{
++	struct kvm_mmu_page *page_head = page_header(page_hpa);
++
++	list_del(&page_head->link);
++	page_head->page_hpa = page_hpa;
++	list_add(&page_head->link, &vcpu->free_pages);
++	++vcpu->kvm->n_free_mmu_pages;
++}
++
+ static unsigned kvm_page_table_hashfn(gfn_t gfn)
+ {
+ 	return gfn;
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
