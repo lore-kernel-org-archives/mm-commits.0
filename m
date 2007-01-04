@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:18 -0800
-Message-ID: <200701041912.l04JCIuY028378@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:22 -0800
+Message-ID: <200701041912.l04JCMvJ028388@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45034 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:45043 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965096AbXADTMa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:30 -0500
+	id S965099AbXADTMe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,111 +15,55 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Never free a shadow page actively serving as a root
+     KVM: MMU: Treat user-mode faults as a hint that a page is no longer a page table
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root.patch
+     kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Never free a shadow page actively serving as a root
+Subject: KVM: MMU: Treat user-mode faults as a hint that a page is no longer a page table
 From: Avi Kivity <avi@qumranet.com>
-
-We always need cr3 to point to something valid, so if we detect that we're
-freeing a root page, simply push it back to the top of the active list.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h |    1 +
- drivers/kvm/mmu.c |   20 ++++++++++++++++++--
- 2 files changed, 19 insertions(+), 2 deletions(-)
+ drivers/kvm/paging_tmpl.h |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root
-+++ a/drivers/kvm/kvm.h
-@@ -134,6 +134,7 @@ struct kvm_mmu_page {
- 				    */
- 	int global;              /* Set if all ptes in this page are global */
- 	int multimapped;         /* More than one parent_pte? */
-+	int root_count;          /* Currently serving as active root */
- 	union {
- 		u64 *parent_pte;               /* !multimapped */
- 		struct hlist_head parent_ptes; /* multimapped, kvm_pte_chain */
-diff -puN drivers/kvm/mmu.c~kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root
-+++ a/drivers/kvm/mmu.c
-@@ -550,8 +550,13 @@ static void kvm_mmu_zap_page(struct kvm_
- 		*parent_pte = 0;
- 	}
- 	kvm_mmu_page_unlink_children(vcpu, page);
--	hlist_del(&page->hash_link);
--	kvm_mmu_free_page(vcpu, page->page_hpa);
-+	if (!page->root_count) {
-+		hlist_del(&page->hash_link);
-+		kvm_mmu_free_page(vcpu, page->page_hpa);
-+	} else {
-+		list_del(&page->link);
-+		list_add(&page->link, &vcpu->kvm->active_mmu_pages);
-+	}
- }
- 
- static int kvm_mmu_unprotect_page(struct kvm_vcpu *vcpu, gfn_t gfn)
-@@ -667,12 +672,15 @@ static int nonpaging_map(struct kvm_vcpu
- static void mmu_free_roots(struct kvm_vcpu *vcpu)
- {
- 	int i;
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table
++++ a/drivers/kvm/paging_tmpl.h
+@@ -271,6 +271,7 @@ static int FNAME(fix_write_pf)(struct kv
+ 	pt_element_t *guest_ent;
+ 	int writable_shadow;
+ 	gfn_t gfn;
 +	struct kvm_mmu_page *page;
  
- #ifdef CONFIG_X86_64
- 	if (vcpu->mmu.shadow_root_level == PT64_ROOT_LEVEL) {
- 		hpa_t root = vcpu->mmu.root_hpa;
- 
- 		ASSERT(VALID_PAGE(root));
-+		page = page_header(root);
-+		--page->root_count;
- 		vcpu->mmu.root_hpa = INVALID_PAGE;
- 		return;
+ 	if (is_writeble_pte(*shadow_ent))
+ 		return 0;
+@@ -303,7 +304,17 @@ static int FNAME(fix_write_pf)(struct kv
  	}
-@@ -682,6 +690,8 @@ static void mmu_free_roots(struct kvm_vc
  
- 		ASSERT(VALID_PAGE(root));
- 		root &= PT64_BASE_ADDR_MASK;
-+		page = page_header(root);
-+		--page->root_count;
- 		vcpu->mmu.pae_root[i] = INVALID_PAGE;
- 	}
- 	vcpu->mmu.root_hpa = INVALID_PAGE;
-@@ -691,6 +701,8 @@ static void mmu_alloc_roots(struct kvm_v
- {
- 	int i;
- 	gfn_t root_gfn;
-+	struct kvm_mmu_page *page;
+ 	gfn = walker->gfn;
+-	if (kvm_mmu_lookup_page(vcpu, gfn)) {
 +
- 	root_gfn = vcpu->cr3 >> PAGE_SHIFT;
- 
- #ifdef CONFIG_X86_64
-@@ -700,6 +712,8 @@ static void mmu_alloc_roots(struct kvm_v
- 		ASSERT(!VALID_PAGE(root));
- 		root = kvm_mmu_get_page(vcpu, root_gfn, 0,
- 					PT64_ROOT_LEVEL, 0, NULL)->page_hpa;
-+		page = page_header(root);
-+		++page->root_count;
- 		vcpu->mmu.root_hpa = root;
- 		return;
- 	}
-@@ -715,6 +729,8 @@ static void mmu_alloc_roots(struct kvm_v
- 		root = kvm_mmu_get_page(vcpu, root_gfn, i << 30,
- 					PT32_ROOT_LEVEL, !is_paging(vcpu),
- 					NULL)->page_hpa;
-+		page = page_header(root);
-+		++page->root_count;
- 		vcpu->mmu.pae_root[i] = root | PT_PRESENT_MASK;
- 	}
- 	vcpu->mmu.root_hpa = __pa(vcpu->mmu.pae_root);
++	if (user) {
++		/*
++		 * Usermode page faults won't be for page table updates.
++		 */
++		while ((page = kvm_mmu_lookup_page(vcpu, gfn)) != NULL) {
++			pgprintk("%s: zap %lx %x\n",
++				 __FUNCTION__, gfn, page->role.word);
++			kvm_mmu_zap_page(vcpu, page);
++		}
++	} else if (kvm_mmu_lookup_page(vcpu, gfn)) {
+ 		pgprintk("%s: found shadow page for %lx, marking ro\n",
+ 			 __FUNCTION__, gfn);
+ 		*write_pt = 1;
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
