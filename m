@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:11:44 -0800
-Message-ID: <200701041911.l04JBi6Y028302@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:11:40 -0800
+Message-ID: <200701041911.l04JBeLN028292@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:44922 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44910 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030186AbXADTLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:11:55 -0500
+	id S1030181AbXADTLt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:11:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,123 +15,101 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Make kvm_mmu_alloc_page() return a kvm_mmu_page pointer
+     KVM: MMU: Use the guest pdptrs instead of mapping cr3 in pae mode
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer.patch
+     kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Make kvm_mmu_alloc_page() return a kvm_mmu_page pointer
+Subject: KVM: MMU: Use the guest pdptrs instead of mapping cr3 in pae mode
 From: Avi Kivity <avi@qumranet.com>
 
-This allows further manipulation on the shadow page table.
+This lets us not write protect a partial page, and is anyway what a real
+processor does.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c         |   24 +++++++++++-------------
- drivers/kvm/paging_tmpl.h |    6 ++++--
- 2 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/kvm/kvm_main.c    |    2 ++
+ drivers/kvm/paging_tmpl.h |   28 ++++++++++++++++++----------
+ 2 files changed, 20 insertions(+), 10 deletions(-)
 
-diff -puN drivers/kvm/mmu.c~kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer
-+++ a/drivers/kvm/mmu.c
-@@ -292,12 +292,13 @@ static int is_empty_shadow_page(hpa_t pa
- 	return 1;
- }
+diff -puN drivers/kvm/kvm_main.c~kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode
++++ a/drivers/kvm/kvm_main.c
+@@ -1491,6 +1491,8 @@ static int kvm_dev_ioctl_set_sregs(struc
  
--static hpa_t kvm_mmu_alloc_page(struct kvm_vcpu *vcpu, u64 *parent_pte)
-+static struct kvm_mmu_page *kvm_mmu_alloc_page(struct kvm_vcpu *vcpu,
-+					       u64 *parent_pte)
- {
- 	struct kvm_mmu_page *page;
+ 	mmu_reset_needed |= vcpu->cr4 != sregs->cr4;
+ 	kvm_arch_ops->set_cr4(vcpu, sregs->cr4);
++	if (!is_long_mode(vcpu) && is_pae(vcpu))
++		load_pdptrs(vcpu, vcpu->cr3);
  
- 	if (list_empty(&vcpu->free_pages))
--		return INVALID_PAGE;
-+		return NULL;
- 
- 	page = list_entry(vcpu->free_pages.next, struct kvm_mmu_page, link);
- 	list_del(&page->link);
-@@ -306,7 +307,7 @@ static hpa_t kvm_mmu_alloc_page(struct k
- 	page->slot_bitmap = 0;
- 	page->global = 1;
- 	page->parent_pte = parent_pte;
--	return page->page_hpa;
-+	return page;
- }
- 
- static void page_header_update_slot(struct kvm *kvm, void *pte, gpa_t gpa)
-@@ -402,19 +403,16 @@ static int nonpaging_map(struct kvm_vcpu
- 		}
- 
- 		if (table[index] == 0) {
--			hpa_t new_table = kvm_mmu_alloc_page(vcpu,
--							     &table[index]);
-+			struct kvm_mmu_page *new_table;
- 
--			if (!VALID_PAGE(new_table)) {
-+			new_table = kvm_mmu_alloc_page(vcpu, &table[index]);
-+			if (!new_table) {
- 				pgprintk("nonpaging_map: ENOMEM\n");
- 				return -ENOMEM;
- 			}
- 
--			if (level == PT32E_ROOT_LEVEL)
--				table[index] = new_table | PT_PRESENT_MASK;
--			else
--				table[index] = new_table | PT_PRESENT_MASK |
--						PT_WRITABLE_MASK | PT_USER_MASK;
-+			table[index] = new_table->page_hpa | PT_PRESENT_MASK
-+				| PT_WRITABLE_MASK | PT_USER_MASK;
- 		}
- 		table_addr = table[index] & PT64_BASE_ADDR_MASK;
- 	}
-@@ -454,7 +452,7 @@ static void mmu_alloc_roots(struct kvm_v
- 		hpa_t root = vcpu->mmu.root_hpa;
- 
- 		ASSERT(!VALID_PAGE(root));
--		root = kvm_mmu_alloc_page(vcpu, NULL);
-+		root = kvm_mmu_alloc_page(vcpu, NULL)->page_hpa;
- 		vcpu->mmu.root_hpa = root;
- 		return;
- 	}
-@@ -463,7 +461,7 @@ static void mmu_alloc_roots(struct kvm_v
- 		hpa_t root = vcpu->mmu.pae_root[i];
- 
- 		ASSERT(!VALID_PAGE(root));
--		root = kvm_mmu_alloc_page(vcpu, NULL);
-+		root = kvm_mmu_alloc_page(vcpu, NULL)->page_hpa;
- 		vcpu->mmu.pae_root[i] = root | PT_PRESENT_MASK;
- 	}
- 	vcpu->mmu.root_hpa = __pa(vcpu->mmu.pae_root);
-diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer drivers/kvm/paging_tmpl.h
---- a/drivers/kvm/paging_tmpl.h~kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer
+ 	if (mmu_reset_needed)
+ 		kvm_mmu_reset_context(vcpu);
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode
 +++ a/drivers/kvm/paging_tmpl.h
-@@ -179,6 +179,7 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
- 	for (; ; level--) {
- 		u32 index = SHADOW_PT_INDEX(addr, level);
- 		u64 *shadow_ent = ((u64 *)__va(shadow_addr)) + index;
-+		struct kvm_mmu_page *shadow_page;
- 		u64 shadow_pte;
+@@ -67,18 +67,28 @@ static void FNAME(walk_addr)(struct gues
+ 	hpa_t hpa;
+ 	struct kvm_memory_slot *slot;
+ 	pt_element_t *ptep;
++	pt_element_t root;
  
- 		if (is_present_pte(*shadow_ent) || is_io_pte(*shadow_ent)) {
-@@ -204,9 +205,10 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
- 			return shadow_ent;
- 		}
+ 	walker->level = vcpu->mmu.root_level;
+-	walker->table_gfn = (vcpu->cr3 & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT;
++	walker->table = NULL;
++	root = vcpu->cr3;
++#if PTTYPE == 64
++	if (!is_long_mode(vcpu)) {
++		walker->ptep = &vcpu->pdptrs[(addr >> 30) & 3];
++		root = *walker->ptep;
++		if (!(root & PT_PRESENT_MASK))
++			return;
++		--walker->level;
++	}
++#endif
++	walker->table_gfn = (root & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT;
+ 	slot = gfn_to_memslot(vcpu->kvm, walker->table_gfn);
+-	hpa = safe_gpa_to_hpa(vcpu, vcpu->cr3 & PT64_BASE_ADDR_MASK);
++	hpa = safe_gpa_to_hpa(vcpu, root & PT64_BASE_ADDR_MASK);
+ 	walker->table = kmap_atomic(pfn_to_page(hpa >> PAGE_SHIFT), KM_USER0);
  
--		shadow_addr = kvm_mmu_alloc_page(vcpu, shadow_ent);
--		if (!VALID_PAGE(shadow_addr))
-+		shadow_page = kvm_mmu_alloc_page(vcpu, shadow_ent);
-+		if (!shadow_page)
- 			return ERR_PTR(-ENOMEM);
-+		shadow_addr = shadow_page->page_hpa;
- 		shadow_pte = shadow_addr | PT_PRESENT_MASK | PT_ACCESSED_MASK
- 			| PT_WRITABLE_MASK | PT_USER_MASK;
- 		*shadow_ent = shadow_pte;
+ 	ASSERT((!is_long_mode(vcpu) && is_pae(vcpu)) ||
+ 	       (vcpu->cr3 & ~(PAGE_MASK | CR3_FLAGS_MASK)) == 0);
+ 
+-	walker->table = (pt_element_t *)( (unsigned long)walker->table |
+-		(unsigned long)(vcpu->cr3 & ~(PAGE_MASK | CR3_FLAGS_MASK)) );
+ 	walker->inherited_ar = PT_USER_MASK | PT_WRITABLE_MASK;
+ 
+ 	for (;;) {
+@@ -89,11 +99,8 @@ static void FNAME(walk_addr)(struct gues
+ 		ASSERT(((unsigned long)walker->table & PAGE_MASK) ==
+ 		       ((unsigned long)ptep & PAGE_MASK));
+ 
+-		/* Don't set accessed bit on PAE PDPTRs */
+-		if (vcpu->mmu.root_level != 3 || walker->level != 3)
+-			if ((*ptep & (PT_PRESENT_MASK | PT_ACCESSED_MASK))
+-			    == PT_PRESENT_MASK)
+-				*ptep |= PT_ACCESSED_MASK;
++		if (is_present_pte(*ptep) && !(*ptep &  PT_ACCESSED_MASK))
++			*ptep |= PT_ACCESSED_MASK;
+ 
+ 		if (!is_present_pte(*ptep) ||
+ 		    walker->level == PT_PAGE_TABLE_LEVEL ||
+@@ -116,7 +123,8 @@ static void FNAME(walk_addr)(struct gues
+ 
+ static void FNAME(release_walker)(struct guest_walker *walker)
+ {
+-	kunmap_atomic(walker->table, KM_USER0);
++	if (walker->table)
++		kunmap_atomic(walker->table, KM_USER0);
+ }
+ 
+ static void FNAME(set_pte)(struct kvm_vcpu *vcpu, u64 guest_pte,
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
