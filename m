@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-ensure-freed-shadow-pages-are-clean.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:12 -0800
-Message-ID: <200701041912.l04JCCZO028367@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-handle-misaligned-accesses-to-write-protected-guest-page-tables.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:08 -0800
+Message-ID: <200701041912.l04JC8Hg028348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:45029 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:45011 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965095AbXADTM2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:28 -0500
+	id S965092AbXADTMW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,36 +15,72 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Ensure freed shadow pages are clean
+     KVM: MMU: Handle misaligned accesses to write protected guest page tables
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-ensure-freed-shadow-pages-are-clean.patch
+     kvm-mmu-handle-misaligned-accesses-to-write-protected-guest-page-tables.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Ensure freed shadow pages are clean
+Subject: KVM: MMU: Handle misaligned accesses to write protected guest page tables
 From: Avi Kivity <avi@qumranet.com>
+
+A misaligned access affects two shadow ptes instead of just one.
+
+Since a misaligned access is unlikely to occur on a real page table, just zap
+the page out of existence, avoiding further trouble.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/kvm/mmu.c |   19 +++++++++++++++++--
+ 1 files changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN drivers/kvm/mmu.c~kvm-mmu-ensure-freed-shadow-pages-are-clean drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-ensure-freed-shadow-pages-are-clean
+diff -puN drivers/kvm/mmu.c~kvm-mmu-handle-misaligned-accesses-to-write-protected-guest-page-tables drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-handle-misaligned-accesses-to-write-protected-guest-page-tables
 +++ a/drivers/kvm/mmu.c
-@@ -318,6 +318,7 @@ static void kvm_mmu_free_page(struct kvm
- {
- 	struct kvm_mmu_page *page_head = page_header(page_hpa);
+@@ -954,21 +954,36 @@ void kvm_mmu_pre_write(struct kvm_vcpu *
+ 	gfn_t gfn = gpa >> PAGE_SHIFT;
+ 	struct kvm_mmu_page *page;
+ 	struct kvm_mmu_page *child;
+-	struct hlist_node *node;
++	struct hlist_node *node, *n;
+ 	struct hlist_head *bucket;
+ 	unsigned index;
+ 	u64 *spte;
+ 	u64 pte;
+ 	unsigned offset = offset_in_page(gpa);
++	unsigned pte_size;
+ 	unsigned page_offset;
++	unsigned misaligned;
+ 	int level;
  
-+	ASSERT(is_empty_shadow_page(page_hpa));
- 	list_del(&page_head->link);
- 	page_head->page_hpa = page_hpa;
- 	list_add(&page_head->link, &vcpu->free_pages);
+ 	pgprintk("%s: gpa %llx bytes %d\n", __FUNCTION__, gpa, bytes);
+ 	index = kvm_page_table_hashfn(gfn) % KVM_NUM_MMU_PAGES;
+ 	bucket = &vcpu->kvm->mmu_page_hash[index];
+-	hlist_for_each_entry(page, node, bucket, hash_link) {
++	hlist_for_each_entry_safe(page, node, n, bucket, hash_link) {
+ 		if (page->gfn != gfn || page->role.metaphysical)
+ 			continue;
++		pte_size = page->role.glevels == PT32_ROOT_LEVEL ? 4 : 8;
++		misaligned = (offset ^ (offset + bytes - 1)) & ~(pte_size - 1);
++		if (misaligned) {
++			/*
++			 * Misaligned accesses are too much trouble to fix
++			 * up; also, they usually indicate a page is not used
++			 * as a page table.
++			 */
++			pgprintk("misaligned: gpa %llx bytes %d role %x\n",
++				 gpa, bytes, page->role.word);
++			kvm_mmu_zap_page(vcpu, page);
++			continue;
++		}
+ 		page_offset = offset;
+ 		level = page->role.level;
+ 		if (page->role.glevels == PT32_ROOT_LEVEL) {
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
