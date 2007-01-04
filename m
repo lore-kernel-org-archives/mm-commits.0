@@ -1,79 +1,132 @@
 From: akpm@osdl.org
-Subject: + user-ns-hook-permission.patch added to -mm tree
-Date: Thu, 04 Jan 2007 14:10:28 -0800
-Message-ID: <200701042210.l04MASSM000436@shell0.pdx.osdl.net>
+Subject: - simplify-some-code-to-use-the-container_of-macro.patch removed from -mm tree
+Date: Thu, 04 Jan 2007 14:42:18 -0800
+Message-ID: <200701042242.l04MgIrK001393@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60804 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60933 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965111AbXADWlg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 17:41:36 -0500
+	id S965113AbXADWoV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 17:44:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
+To: rpjday@mindspring.com, davem@davemloft.net, heiko.carstens@de.ibm.com, jmorris@namei.org, kaber@trash.net, mchehab@infradead.org, paulus@samba.org, schwidefsky@de.ibm.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     user ns: hook permission
-has been added to the -mm tree.  Its filename is
-     user-ns-hook-permission.patch
+     Simplify some code to use the container_of() macro
+has been removed from the -mm tree.  Its filename was
+     simplify-some-code-to-use-the-container_of-macro.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: user ns: hook permission
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: Simplify some code to use the container_of() macro
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Hook permission to check vfsmnt->user_ns against current.
+Simplify a number of code snippets in source and header files to use the
+kernel.h "container_of()" macro.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/namei.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ drivers/net/ppp_generic.c |    2 +-
+ drivers/s390/net/lcs.c    |    6 ++----
+ drivers/video/sa1100fb.h  |    4 +---
+ include/linux/security.h  |    2 +-
+ security/selinux/hooks.c  |    2 +-
+ 5 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN fs/namei.c~user-ns-hook-permission fs/namei.c
---- a/fs/namei.c~user-ns-hook-permission
-+++ a/fs/namei.c
-@@ -246,6 +246,8 @@ int permission(struct inode *inode, int 
- 			return -EACCES;
+diff -puN drivers/net/ppp_generic.c~simplify-some-code-to-use-the-container_of-macro drivers/net/ppp_generic.c
+--- a/drivers/net/ppp_generic.c~simplify-some-code-to-use-the-container_of-macro
++++ a/drivers/net/ppp_generic.c
+@@ -83,7 +83,7 @@ struct ppp_file {
+ 	int		dead;		/* unit/channel has been shut down */
+ };
+ 
+-#define PF_TO_X(pf, X)		((X *)((char *)(pf) - offsetof(X, file)))
++#define PF_TO_X(pf, X)		container_of(pf, X, file)
+ 
+ #define PF_TO_PPP(pf)		PF_TO_X(pf, struct ppp)
+ #define PF_TO_CHANNEL(pf)	PF_TO_X(pf, struct channel)
+diff -puN drivers/s390/net/lcs.c~simplify-some-code-to-use-the-container_of-macro drivers/s390/net/lcs.c
+--- a/drivers/s390/net/lcs.c~simplify-some-code-to-use-the-container_of-macro
++++ a/drivers/s390/net/lcs.c
+@@ -1511,8 +1511,7 @@ lcs_txbuffer_cb(struct lcs_channel *chan
+ 	LCS_DBF_TEXT(5, trace, "txbuffcb");
+ 	/* Put buffer back to pool. */
+ 	lcs_release_buffer(channel, buffer);
+-	card = (struct lcs_card *)
+-		((char *) channel - offsetof(struct lcs_card, write));
++	card = container_of(channel, struct lcs_card, write);
+ 	if (netif_queue_stopped(card->dev) && netif_carrier_ok(card->dev))
+ 		netif_wake_queue(card->dev);
+ 	spin_lock(&card->lock);
+@@ -1810,8 +1809,7 @@ lcs_get_frames_cb(struct lcs_channel *ch
+ 		LCS_DBF_TEXT(4, trace, "-eiogpkt");
+ 		return;
  	}
+-	card = (struct lcs_card *)
+-		((char *) channel - offsetof(struct lcs_card, read));
++	card = container_of(channel, struct lcs_card, write);
+ 	offset = 0;
+ 	while (lcs_hdr->offset != 0) {
+ 		if (lcs_hdr->offset <= 0 ||
+diff -puN drivers/video/sa1100fb.h~simplify-some-code-to-use-the-container_of-macro drivers/video/sa1100fb.h
+--- a/drivers/video/sa1100fb.h~simplify-some-code-to-use-the-container_of-macro
++++ a/drivers/video/sa1100fb.h
+@@ -110,9 +110,7 @@ struct sa1100fb_info {
+ #endif
+ };
  
-+	if (nd && !task_mnt_same_uidns(current, nd->mnt))
-+		return -EACCES;
+-#define __type_entry(ptr,type,member) ((type *)((char *)(ptr)-offsetof(type,member)))
+-
+-#define TO_INF(ptr,member)	__type_entry(ptr,struct sa1100fb_info,member)
++#define TO_INF(ptr,member)	container_of(ptr,struct sa1100fb_info,member)
  
- 	/*
- 	 * MAY_EXEC on regular files requires special handling: We override
-@@ -433,6 +435,8 @@ static int exec_permission_lite(struct i
- {
- 	umode_t	mode = inode->i_mode;
+ #define SA1100_PALETTE_MODE_VAL(bpp)    (((bpp) & 0x018) << 9)
  
-+	if (!task_mnt_same_uidns(current, nd->mnt))
-+		return -EACCES;
- 	if (inode->i_op && inode->i_op->permission)
- 		return -EAGAIN;
+diff -puN include/linux/security.h~simplify-some-code-to-use-the-container_of-macro include/linux/security.h
+--- a/include/linux/security.h~simplify-some-code-to-use-the-container_of-macro
++++ a/include/linux/security.h
+@@ -496,7 +496,7 @@ struct request_sock;
+  *	Note that the fown_struct, @fown, is never outside the context of a
+  *	struct file, so the file structure (and associated security information)
+  *	can always be obtained:
+- *		(struct file *)((long)fown - offsetof(struct file,f_owner));
++ *		container_of(fown, struct file, f_owner)
+  * 	@tsk contains the structure of task receiving signal.
+  *	@fown contains the file owner information.
+  *	@sig is the signal that will be sent.  When 0, kernel sends SIGIO.
+diff -puN security/selinux/hooks.c~simplify-some-code-to-use-the-container_of-macro security/selinux/hooks.c
+--- a/security/selinux/hooks.c~simplify-some-code-to-use-the-container_of-macro
++++ a/security/selinux/hooks.c
+@@ -2654,7 +2654,7 @@ static int selinux_file_send_sigiotask(s
+ 	struct file_security_struct *fsec;
  
+ 	/* struct fown_struct is never outside the context of a struct file */
+-        file = (struct file *)((long)fown - offsetof(struct file,f_owner));
++        file = container_of(fown, struct file, f_owner);
+ 
+ 	tsec = tsk->security;
+ 	fsec = file->f_security;
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-nsproxy-externalizes-exit_task_namespaces.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-the-framework-fix.patch
-user-ns-add-user_namespace-ptr-to-vfsmount.patch
-user-ns-hook-permission.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-shared-mounts.patch
-user_ns-handle-file-sigio.patch
-user-ns-implement-user-ns-unshare.patch
-user-ns-implement-user-ns-unshare-tidy.patch
+git-alsa.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+simplify-some-code-to-use-the-container_of-macro.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
