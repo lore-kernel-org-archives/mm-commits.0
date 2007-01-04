@@ -1,93 +1,67 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:32 -0800
-Message-ID: <200701041912.l04JCW1E028403@shell0.pdx.osdl.net>
+Subject: + add-const-for-timespecval_compare-arguments.patch added to -mm tree
+Date: Thu, 04 Jan 2007 13:32:43 -0800
+Message-ID: <200701042132.l04LWhVw031905@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45063 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:55463 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030186AbXADTMp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:45 -0500
+	id S964885AbXADVcz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 16:32:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com, mingo@elte.hu
+Cc: eike-kernel@sf-tec.de
 
 
 The patch titled
-     KVM: MMU: Destroy mmu while we still have a vcpu left
+     Add const for time{spec,val}_compare arguments
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left.patch
+     add-const-for-timespecval_compare-arguments.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Destroy mmu while we still have a vcpu left
-From: Avi Kivity <avi@qumranet.com>
+Subject: Add const for time{spec,val}_compare arguments
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
 
-mmu_destroy flushes the guest tlb (indirectly), which needs a valid vcpu.
+The arguments are really const.  Mark them const to allow these functions
+being called from places where the arguments are const without getting
+useless compiler warnings.
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/time.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left
-+++ a/drivers/kvm/kvm_main.c
-@@ -271,8 +271,8 @@ static void kvm_free_physmem(struct kvm 
- 
- static void kvm_free_vcpu(struct kvm_vcpu *vcpu)
+diff -puN include/linux/time.h~add-const-for-timespecval_compare-arguments include/linux/time.h
+--- a/include/linux/time.h~add-const-for-timespecval_compare-arguments
++++ a/include/linux/time.h
+@@ -46,7 +46,7 @@ static inline int timespec_equal(struct 
+  * lhs == rhs: return 0
+  * lhs > rhs:  return >0
+  */
+-static inline int timespec_compare(struct timespec *lhs, struct timespec *rhs)
++static inline int timespec_compare(const struct timespec *lhs, const struct timespec *rhs)
  {
--	kvm_arch_ops->vcpu_free(vcpu);
- 	kvm_mmu_destroy(vcpu);
-+	kvm_arch_ops->vcpu_free(vcpu);
+ 	if (lhs->tv_sec < rhs->tv_sec)
+ 		return -1;
+@@ -55,7 +55,7 @@ static inline int timespec_compare(struc
+ 	return lhs->tv_nsec - rhs->tv_nsec;
  }
  
- static void kvm_free_vcpus(struct kvm *kvm)
+-static inline int timeval_compare(struct timeval *lhs, struct timeval *rhs)
++static inline int timeval_compare(const struct timeval *lhs, const struct timeval *rhs)
+ {
+ 	if (lhs->tv_sec < rhs->tv_sec)
+ 		return -1;
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from eike-kernel@sf-tec.de are
 
-kvm-fix-gfp_kernel-alloc-in-atomic-section-bug.patch
-kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch
-kvm-recover-after-an-arch-module-load-failure.patch
-kvm-improve-interrupt-response.patch
-kvm-prevent-stale-bits-in-cr0-and-cr4.patch
-kvm-mmu-implement-simple-reverse-mapping.patch
-kvm-mmu-teach-the-page-table-walker-to-track-guest-page-table-gfns.patch
-kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does.patch
-kvm-mmu-fold-fetch_guest-into-init_walker.patch
-kvm-mu-special-treatment-for-shadow-pae-root-pages.patch
-kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode.patch
-kvm-mmu-make-the-shadow-page-tables-also-special-case-pae.patch
-kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer.patch
-kvm-mmu-shadow-page-table-caching.patch
-kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them.patch
-kvm-mmu-let-the-walker-extract-the-target-page-gfn-from-the-pte.patch
-kvm-mmu-support-emulated-writes-into-ram.patch
-kvm-mmu-zap-shadow-page-table-entries-on-writes-to-guest-page-tables.patch
-kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page.patch
-kvm-mmu-implement-child-shadow-unlinking.patch
-kvm-mmu-kvm_mmu_put_page-only-removes-one-link-to-the-page.patch
-kvm-mmu-oom-handling.patch
-kvm-mmu-remove-invlpg-interception.patch
-kvm-mmu-remove-release_pt_page_64.patch
-kvm-mmu-handle-misaligned-accesses-to-write-protected-guest-page-tables.patch
-kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page.patch
-kvm-mmu-ensure-freed-shadow-pages-are-clean.patch
-kvm-mmu-if-an-empty-shadow-page-is-not-empty-report-more-info.patch
-kvm-mmu-page-table-write-flood-protection.patch
-kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root.patch
-kvm-mmu-fix-cmpxchg8b-emulation.patch
-kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table.patch
-kvm-mmu-free-pages-on-kvm-destruction.patch
-kvm-mmu-replace-atomic-allocations-by-preallocated-objects.patch
-kvm-mmu-detect-oom-conditions-and-propagate-error-to-userspace.patch
-kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte.patch
-kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left.patch
-kvm-mmu-add-audit-code-to-check-mappings-etc-are-correct.patch
+remove-extra-newline-from-info-message.patch
+fix-scsi-scsi_transporth-compile-error.patch
+add-const-for-timespecval_compare-arguments.patch
