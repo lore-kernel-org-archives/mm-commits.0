@@ -1,160 +1,170 @@
 From: akpm@osdl.org
-Subject: + kvm-prevent-stale-bits-in-cr0-and-cr4.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:11:28 -0800
-Message-ID: <200701041911.l04JBSAm028271@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:11:48 -0800
+Message-ID: <200701041911.l04JBmfj028308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:44893 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:44931 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965063AbXADTLn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:11:43 -0500
+	id S965081AbXADTL6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:11:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com
+Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: Prevent stale bits in cr0 and cr4
+     KVM: MMU: Write protect guest pages when a shadow is created for them
 has been added to the -mm tree.  Its filename is
-     kvm-prevent-stale-bits-in-cr0-and-cr4.patch
+     kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Prevent stale bits in cr0 and cr4
+Subject: KVM: MMU: Write protect guest pages when a shadow is created for them
 From: Avi Kivity <avi@qumranet.com>
 
-Hardware virtualization implementations allow the guests to freely change some
-of the bits in cr0 and cr4, but trap when changing the other bits.  This is
-useful to avoid excessive exits due to changing, for example, the ts flag.
-
-It also means the kvm's copy of cr0 and cr4 may be stale with respect to these
-bits.  most of the time this doesn't matter as these bits are not very
-interesting.  Other times, however (for example when returning cr0 to
-userspace), they are, so get the fresh contents of these bits from the guest
-by means of a new arch operation.
+When we cache a guest page table into a shadow page table, we need to prevent
+further access to that page by the guest, as that would render the cache
+incoherent.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    1 +
- drivers/kvm/kvm_main.c |   10 ++++++++--
- drivers/kvm/svm.c      |    5 +++++
- drivers/kvm/vmx.c      |   10 ++++++++++
- 4 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/kvm/mmu.c         |   72 +++++++++++++++++++++++++++---------
+ drivers/kvm/paging_tmpl.h |    1 
+ 2 files changed, 55 insertions(+), 18 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/kvm.h
-@@ -283,6 +283,7 @@ struct kvm_arch_ops {
- 	void (*set_segment)(struct kvm_vcpu *vcpu,
- 			    struct kvm_segment *var, int seg);
- 	void (*get_cs_db_l_bits)(struct kvm_vcpu *vcpu, int *db, int *l);
-+	void (*decache_cr0_cr4_guest_bits)(struct kvm_vcpu *vcpu);
- 	void (*set_cr0)(struct kvm_vcpu *vcpu, unsigned long cr0);
- 	void (*set_cr0_no_modeswitch)(struct kvm_vcpu *vcpu,
- 				      unsigned long cr0);
-diff -puN drivers/kvm/kvm_main.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/kvm_main.c
-@@ -390,6 +390,7 @@ EXPORT_SYMBOL_GPL(set_cr0);
- 
- void lmsw(struct kvm_vcpu *vcpu, unsigned long msw)
- {
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
- 	set_cr0(vcpu, (vcpu->cr0 & ~0x0ful) | (msw & 0x0f));
- }
- EXPORT_SYMBOL_GPL(lmsw);
-@@ -917,9 +918,10 @@ int emulate_invlpg(struct kvm_vcpu *vcpu
- 
- int emulate_clts(struct kvm_vcpu *vcpu)
- {
--	unsigned long cr0 = vcpu->cr0;
-+	unsigned long cr0;
- 
--	cr0 &= ~CR0_TS_MASK;
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
-+	cr0 = vcpu->cr0 & ~CR0_TS_MASK;
- 	kvm_arch_ops->set_cr0(vcpu, cr0);
- 	return X86EMUL_CONTINUE;
- }
-@@ -1072,6 +1074,7 @@ void realmode_lmsw(struct kvm_vcpu *vcpu
- 
- unsigned long realmode_get_cr(struct kvm_vcpu *vcpu, int cr)
- {
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
- 	switch (cr) {
- 	case 0:
- 		return vcpu->cr0;
-@@ -1406,6 +1409,7 @@ static int kvm_dev_ioctl_get_sregs(struc
- 	sregs->gdt.limit = dt.limit;
- 	sregs->gdt.base = dt.base;
- 
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
- 	sregs->cr0 = vcpu->cr0;
- 	sregs->cr2 = vcpu->cr2;
- 	sregs->cr3 = vcpu->cr3;
-@@ -1470,6 +1474,8 @@ static int kvm_dev_ioctl_set_sregs(struc
- #endif
- 	vcpu->apic_base = sregs->apic_base;
- 
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
-+
- 	mmu_reset_needed |= vcpu->cr0 != sregs->cr0;
- 	kvm_arch_ops->set_cr0_no_modeswitch(vcpu, sregs->cr0);
- 
-diff -puN drivers/kvm/svm.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/svm.c
-@@ -702,6 +702,10 @@ static void svm_set_gdt(struct kvm_vcpu 
- 	vcpu->svm->vmcb->save.gdtr.base = dt->base ;
+diff -puN drivers/kvm/mmu.c~kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them
++++ a/drivers/kvm/mmu.c
+@@ -274,6 +274,35 @@ static void rmap_remove(struct kvm *kvm,
+ 	}
  }
  
-+static void svm_decache_cr0_cr4_guest_bits(struct kvm_vcpu *vcpu)
++static void rmap_write_protect(struct kvm *kvm, u64 gfn)
 +{
++	struct page *page;
++	struct kvm_memory_slot *slot;
++	struct kvm_rmap_desc *desc;
++	u64 *spte;
++
++	slot = gfn_to_memslot(kvm, gfn);
++	BUG_ON(!slot);
++	page = gfn_to_page(slot, gfn);
++
++	while (page->private) {
++		if (!(page->private & 1))
++			spte = (u64 *)page->private;
++		else {
++			desc = (struct kvm_rmap_desc *)(page->private & ~1ul);
++			spte = desc->shadow_ptes[0];
++		}
++		BUG_ON(!spte);
++		BUG_ON((*spte & PT64_BASE_ADDR_MASK) !=
++		       page_to_pfn(page) << PAGE_SHIFT);
++		BUG_ON(!(*spte & PT_PRESENT_MASK));
++		BUG_ON(!(*spte & PT_WRITABLE_MASK));
++		rmap_printk("rmap_write_protect: spte %p %llx\n", spte, *spte);
++		rmap_remove(kvm, spte);
++		*spte &= ~(u64)PT_WRITABLE_MASK;
++	}
 +}
 +
- static void svm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+ static void kvm_mmu_free_page(struct kvm_vcpu *vcpu, hpa_t page_hpa)
  {
- #ifdef CONFIG_X86_64
-@@ -1645,6 +1649,7 @@ static struct kvm_arch_ops svm_arch_ops 
- 	.get_segment = svm_get_segment,
- 	.set_segment = svm_set_segment,
- 	.get_cs_db_l_bits = svm_get_cs_db_l_bits,
-+	.decache_cr0_cr4_guest_bits = svm_decache_cr0_cr4_guest_bits,
- 	.set_cr0 = svm_set_cr0,
- 	.set_cr0_no_modeswitch = svm_set_cr0,
- 	.set_cr3 = svm_set_cr3,
-diff -puN drivers/kvm/vmx.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/vmx.c
-@@ -737,6 +737,15 @@ static void exit_lmode(struct kvm_vcpu *
+ 	struct kvm_mmu_page *page_head = page_header(page_hpa);
+@@ -444,6 +473,8 @@ static struct kvm_mmu_page *kvm_mmu_get_
+ 	page->gfn = gfn;
+ 	page->role = role;
+ 	hlist_add_head(&page->hash_link, bucket);
++	if (!metaphysical)
++		rmap_write_protect(vcpu->kvm, gfn);
+ 	return page;
+ }
  
- #endif
+@@ -705,6 +736,7 @@ static void kvm_mmu_flush_tlb(struct kvm
  
-+static void vmx_decache_cr0_cr4_guest_bits(struct kvm_vcpu *vcpu)
-+{
-+	vcpu->cr0 &= KVM_GUEST_CR0_MASK;
-+	vcpu->cr0 |= vmcs_readl(GUEST_CR0) & ~KVM_GUEST_CR0_MASK;
-+
-+	vcpu->cr4 &= KVM_GUEST_CR4_MASK;
-+	vcpu->cr4 |= vmcs_readl(GUEST_CR4) & ~KVM_GUEST_CR4_MASK;
-+}
-+
- static void vmx_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+ static void paging_new_cr3(struct kvm_vcpu *vcpu)
  {
- 	if (vcpu->rmode.active && (cr0 & CR0_PE_MASK))
-@@ -2002,6 +2011,7 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.get_segment = vmx_get_segment,
- 	.set_segment = vmx_set_segment,
- 	.get_cs_db_l_bits = vmx_get_cs_db_l_bits,
-+	.decache_cr0_cr4_guest_bits = vmx_decache_cr0_cr4_guest_bits,
- 	.set_cr0 = vmx_set_cr0,
- 	.set_cr0_no_modeswitch = vmx_set_cr0_no_modeswitch,
- 	.set_cr3 = vmx_set_cr3,
++	pgprintk("%s: cr3 %lx\n", __FUNCTION__, vcpu->cr3);
+ 	mmu_free_roots(vcpu);
+ 	mmu_alloc_roots(vcpu);
+ 	kvm_mmu_flush_tlb(vcpu);
+@@ -727,24 +759,11 @@ static inline void set_pte_common(struct
+ 	*shadow_pte |= access_bits << PT_SHADOW_BITS_OFFSET;
+ 	if (!dirty)
+ 		access_bits &= ~PT_WRITABLE_MASK;
+-	if (access_bits & PT_WRITABLE_MASK) {
+-		struct kvm_mmu_page *shadow;
+ 
+-		shadow = kvm_mmu_lookup_page(vcpu, gaddr >> PAGE_SHIFT);
+-		if (shadow)
+-			pgprintk("%s: found shadow page for %lx, marking ro\n",
+-				 __FUNCTION__, (gfn_t)(gaddr >> PAGE_SHIFT));
+-		if (shadow)
+-			access_bits &= ~PT_WRITABLE_MASK;
+-	}
+-
+-	if (access_bits & PT_WRITABLE_MASK)
+-		mark_page_dirty(vcpu->kvm, gaddr >> PAGE_SHIFT);
++	paddr = gpa_to_hpa(vcpu, gaddr & PT64_BASE_ADDR_MASK);
+ 
+ 	*shadow_pte |= access_bits;
+ 
+-	paddr = gpa_to_hpa(vcpu, gaddr & PT64_BASE_ADDR_MASK);
+-
+ 	if (!(*shadow_pte & PT_GLOBAL_MASK))
+ 		mark_pagetable_nonglobal(shadow_pte);
+ 
+@@ -752,11 +771,28 @@ static inline void set_pte_common(struct
+ 		*shadow_pte |= gaddr;
+ 		*shadow_pte |= PT_SHADOW_IO_MARK;
+ 		*shadow_pte &= ~PT_PRESENT_MASK;
+-	} else {
+-		*shadow_pte |= paddr;
+-		page_header_update_slot(vcpu->kvm, shadow_pte, gaddr);
+-		rmap_add(vcpu->kvm, shadow_pte);
++		return;
++	}
++
++	*shadow_pte |= paddr;
++
++	if (access_bits & PT_WRITABLE_MASK) {
++		struct kvm_mmu_page *shadow;
++
++		shadow = kvm_mmu_lookup_page(vcpu, gaddr >> PAGE_SHIFT);
++		if (shadow) {
++			pgprintk("%s: found shadow page for %lx, marking ro\n",
++				 __FUNCTION__, (gfn_t)(gaddr >> PAGE_SHIFT));
++			access_bits &= ~PT_WRITABLE_MASK;
++			*shadow_pte &= ~PT_WRITABLE_MASK;
++		}
+ 	}
++
++	if (access_bits & PT_WRITABLE_MASK)
++		mark_page_dirty(vcpu->kvm, gaddr >> PAGE_SHIFT);
++
++	page_header_update_slot(vcpu->kvm, shadow_pte, gaddr);
++	rmap_add(vcpu->kvm, shadow_pte);
+ }
+ 
+ static void inject_page_fault(struct kvm_vcpu *vcpu,
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them
++++ a/drivers/kvm/paging_tmpl.h
+@@ -133,6 +133,7 @@ static void FNAME(walk_addr)(struct gues
+ 			 walker->level - 1, table_gfn);
+ 	}
+ 	walker->ptep = ptep;
++	pgprintk("%s: pte %llx\n", __FUNCTION__, (u64)*ptep);
+ }
+ 
+ static void FNAME(release_walker)(struct guest_walker *walker)
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
