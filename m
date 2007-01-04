@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-fold-fetch_guest-into-init_walker.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:11:36 -0800
-Message-ID: <200701041911.l04JBa1n028286@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:11:34 -0800
+Message-ID: <200701041911.l04JBYQ8028281@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:44895 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44925 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965066AbXADTLo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:11:44 -0500
+	id S1030184AbXADTL6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:11:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,209 +15,119 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Fold fetch_guest() into init_walker()
+     KVM: MMU: Load the pae pdptrs on cr3 change like the processor does
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-fold-fetch_guest-into-init_walker.patch
+     kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Fold fetch_guest() into init_walker()
+Subject: KVM: MMU: Load the pae pdptrs on cr3 change like the processor does
 From: Avi Kivity <avi@qumranet.com>
 
-It is never necessary to fetch a guest entry from an intermediate page table
-level (except for large pages), so avoid some confusion by always descending
-into the lowest possible level.
-
-Rename init_walker() to walk_addr() as it is no longer restricted to
-initialization.
+In pae mode, a load of cr3 loads the four third-level page table entries in
+addition to cr3 itself.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/paging_tmpl.h |  105 ++++++++++++++++--------------------
- 1 files changed, 47 insertions(+), 58 deletions(-)
+ drivers/kvm/kvm.h      |    1 +
+ drivers/kvm/kvm_main.c |   29 +++++++++++++++++++----------
+ 2 files changed, 20 insertions(+), 10 deletions(-)
 
-diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-fold-fetch_guest-into-init_walker drivers/kvm/paging_tmpl.h
---- a/drivers/kvm/paging_tmpl.h~kvm-mmu-fold-fetch_guest-into-init_walker
-+++ a/drivers/kvm/paging_tmpl.h
-@@ -54,14 +54,19 @@ struct guest_walker {
- 	int level;
- 	gfn_t table_gfn;
- 	pt_element_t *table;
-+	pt_element_t *ptep;
- 	pt_element_t inherited_ar;
- };
+diff -puN drivers/kvm/kvm.h~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does
++++ a/drivers/kvm/kvm.h
+@@ -185,6 +185,7 @@ struct kvm_vcpu {
+ 	unsigned long cr3;
+ 	unsigned long cr4;
+ 	unsigned long cr8;
++	u64 pdptrs[4]; /* pae */
+ 	u64 shadow_efer;
+ 	u64 apic_base;
+ 	int nmsrs;
+diff -puN drivers/kvm/kvm_main.c~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does
++++ a/drivers/kvm/kvm_main.c
+@@ -298,14 +298,17 @@ static void inject_gp(struct kvm_vcpu *v
+ 	kvm_arch_ops->inject_gp(vcpu, 0);
+ }
  
--static void FNAME(init_walker)(struct guest_walker *walker,
--			       struct kvm_vcpu *vcpu)
+-static int pdptrs_have_reserved_bits_set(struct kvm_vcpu *vcpu,
+-					 unsigned long cr3)
 +/*
-+ * Fetch a guest pte for a guest virtual address
++ * Load the pae pdptrs.  Return true is they are all valid.
 + */
-+static void FNAME(walk_addr)(struct guest_walker *walker,
-+			     struct kvm_vcpu *vcpu, gva_t addr)
++static int load_pdptrs(struct kvm_vcpu *vcpu, unsigned long cr3)
  {
- 	hpa_t hpa;
- 	struct kvm_memory_slot *slot;
-+	pt_element_t *ptep;
+ 	gfn_t pdpt_gfn = cr3 >> PAGE_SHIFT;
+-	unsigned offset = (cr3 & (PAGE_SIZE-1)) >> 5;
++	unsigned offset = ((cr3 & (PAGE_SIZE-1)) >> 5) << 2;
+ 	int i;
+ 	u64 pdpte;
+ 	u64 *pdpt;
++	int ret;
+ 	struct kvm_memory_slot *memslot;
  
- 	walker->level = vcpu->mmu.root_level;
- 	walker->table_gfn = (vcpu->cr3 & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT;
-@@ -75,6 +80,38 @@ static void FNAME(init_walker)(struct gu
- 	walker->table = (pt_element_t *)( (unsigned long)walker->table |
- 		(unsigned long)(vcpu->cr3 & ~(PAGE_MASK | CR3_FLAGS_MASK)) );
- 	walker->inherited_ar = PT_USER_MASK | PT_WRITABLE_MASK;
+ 	spin_lock(&vcpu->kvm->lock);
+@@ -313,16 +316,23 @@ static int pdptrs_have_reserved_bits_set
+ 	/* FIXME: !memslot - emulate? 0xff? */
+ 	pdpt = kmap_atomic(gfn_to_page(memslot, pdpt_gfn), KM_USER0);
+ 
++	ret = 1;
+ 	for (i = 0; i < 4; ++i) {
+ 		pdpte = pdpt[offset + i];
+-		if ((pdpte & 1) && (pdpte & 0xfffffff0000001e6ull))
+-			break;
++		if ((pdpte & 1) && (pdpte & 0xfffffff0000001e6ull)) {
++			ret = 0;
++			goto out;
++		}
+ 	}
+ 
++	for (i = 0; i < 4; ++i)
++		vcpu->pdptrs[i] = pdpt[offset + i];
 +
-+	for (;;) {
-+		int index = PT_INDEX(addr, walker->level);
-+		hpa_t paddr;
-+
-+		ptep = &walker->table[index];
-+		ASSERT(((unsigned long)walker->table & PAGE_MASK) ==
-+		       ((unsigned long)ptep & PAGE_MASK));
-+
-+		/* Don't set accessed bit on PAE PDPTRs */
-+		if (vcpu->mmu.root_level != 3 || walker->level != 3)
-+			if ((*ptep & (PT_PRESENT_MASK | PT_ACCESSED_MASK))
-+			    == PT_PRESENT_MASK)
-+				*ptep |= PT_ACCESSED_MASK;
-+
-+		if (!is_present_pte(*ptep) ||
-+		    walker->level == PT_PAGE_TABLE_LEVEL ||
-+		    (walker->level == PT_DIRECTORY_LEVEL &&
-+		     (*ptep & PT_PAGE_SIZE_MASK) &&
-+		     (PTTYPE == 64 || is_pse(vcpu))))
-+			break;
-+
-+		if (walker->level != 3 || is_long_mode(vcpu))
-+			walker->inherited_ar &= walker->table[index];
-+		walker->table_gfn = (*ptep & PT_BASE_ADDR_MASK) >> PAGE_SHIFT;
-+		paddr = safe_gpa_to_hpa(vcpu, *ptep & PT_BASE_ADDR_MASK);
-+		kunmap_atomic(walker->table, KM_USER0);
-+		walker->table = kmap_atomic(pfn_to_page(paddr >> PAGE_SHIFT),
-+					    KM_USER0);
-+		--walker->level;
-+	}
-+	walker->ptep = ptep;
++out:
+ 	kunmap_atomic(pdpt, KM_USER0);
+ 	spin_unlock(&vcpu->kvm->lock);
+ 
+-	return i != 4;
++	return ret;
  }
  
- static void FNAME(release_walker)(struct guest_walker *walker)
-@@ -110,41 +147,6 @@ static void FNAME(set_pde)(struct kvm_vc
- }
- 
- /*
-- * Fetch a guest pte from a specific level in the paging hierarchy.
-- */
--static pt_element_t *FNAME(fetch_guest)(struct kvm_vcpu *vcpu,
--					struct guest_walker *walker,
--					int level,
--					gva_t addr)
--{
--
--	ASSERT(level > 0  && level <= walker->level);
--
--	for (;;) {
--		int index = PT_INDEX(addr, walker->level);
--		hpa_t paddr;
--
--		ASSERT(((unsigned long)walker->table & PAGE_MASK) ==
--		       ((unsigned long)&walker->table[index] & PAGE_MASK));
--		if (level == walker->level ||
--		    !is_present_pte(walker->table[index]) ||
--		    (walker->level == PT_DIRECTORY_LEVEL &&
--		     (walker->table[index] & PT_PAGE_SIZE_MASK) &&
--		     (PTTYPE == 64 || is_pse(vcpu))))
--			return &walker->table[index];
--		if (walker->level != 3 || is_long_mode(vcpu))
--			walker->inherited_ar &= walker->table[index];
--		walker->table_gfn = (walker->table[index] & PT_BASE_ADDR_MASK)
--			>> PAGE_SHIFT;
--		paddr = safe_gpa_to_hpa(vcpu, walker->table[index] & PT_BASE_ADDR_MASK);
--		kunmap_atomic(walker->table, KM_USER0);
--		walker->table = kmap_atomic(pfn_to_page(paddr >> PAGE_SHIFT),
--					    KM_USER0);
--		--walker->level;
--	}
--}
--
--/*
-  * Fetch a shadow pte for a specific level in the paging hierarchy.
-  */
- static u64 *FNAME(fetch)(struct kvm_vcpu *vcpu, gva_t addr,
-@@ -153,6 +155,10 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
- 	hpa_t shadow_addr;
- 	int level;
- 	u64 *prev_shadow_ent = NULL;
-+	pt_element_t *guest_ent = walker->ptep;
-+
-+	if (!is_present_pte(*guest_ent))
-+		return NULL;
- 
- 	shadow_addr = vcpu->mmu.root_hpa;
- 	level = vcpu->mmu.shadow_root_level;
-@@ -160,7 +166,6 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
- 	for (; ; level--) {
- 		u32 index = SHADOW_PT_INDEX(addr, level);
- 		u64 *shadow_ent = ((u64 *)__va(shadow_addr)) + index;
--		pt_element_t *guest_ent;
- 		u64 shadow_pte;
- 
- 		if (is_present_pte(*shadow_ent) || is_io_pte(*shadow_ent)) {
-@@ -171,21 +176,6 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
- 			continue;
+ void set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+@@ -368,8 +378,7 @@ void set_cr0(struct kvm_vcpu *vcpu, unsi
+ 			}
+ 		} else
+ #endif
+-		if (is_pae(vcpu) &&
+-			    pdptrs_have_reserved_bits_set(vcpu, vcpu->cr3)) {
++		if (is_pae(vcpu) && !load_pdptrs(vcpu, vcpu->cr3)) {
+ 			printk(KERN_DEBUG "set_cr0: #GP, pdptrs "
+ 			       "reserved bits\n");
+ 			inject_gp(vcpu);
+@@ -411,7 +420,7 @@ void set_cr4(struct kvm_vcpu *vcpu, unsi
+ 			return;
  		}
- 
--		if (PTTYPE == 32 && level > PT32_ROOT_LEVEL) {
--			ASSERT(level == PT32E_ROOT_LEVEL);
--			guest_ent = FNAME(fetch_guest)(vcpu, walker,
--						       PT32_ROOT_LEVEL, addr);
--		} else
--			guest_ent = FNAME(fetch_guest)(vcpu, walker,
--						       level, addr);
--
--		if (!is_present_pte(*guest_ent))
--			return NULL;
--
--		/* Don't set accessed bit on PAE PDPTRs */
--		if (vcpu->mmu.root_level != 3 || walker->level != 3)
--			*guest_ent |= PT_ACCESSED_MASK;
--
- 		if (level == PT_PAGE_TABLE_LEVEL) {
- 
- 			if (walker->level == PT_DIRECTORY_LEVEL) {
-@@ -253,7 +243,7 @@ static int FNAME(fix_write_pf)(struct kv
- 			*shadow_ent &= ~PT_USER_MASK;
+ 	} else if (is_paging(vcpu) && !is_pae(vcpu) && (cr4 & CR4_PAE_MASK)
+-		   && pdptrs_have_reserved_bits_set(vcpu, vcpu->cr3)) {
++		   && !load_pdptrs(vcpu, vcpu->cr3)) {
+ 		printk(KERN_DEBUG "set_cr4: #GP, pdptrs reserved bits\n");
+ 		inject_gp(vcpu);
+ 	}
+@@ -443,7 +452,7 @@ void set_cr3(struct kvm_vcpu *vcpu, unsi
+ 			return;
  		}
- 
--	guest_ent = FNAME(fetch_guest)(vcpu, walker, PT_PAGE_TABLE_LEVEL, addr);
-+	guest_ent = walker->ptep;
- 
- 	if (!is_present_pte(*guest_ent)) {
- 		*shadow_ent = 0;
-@@ -296,7 +286,7 @@ static int FNAME(page_fault)(struct kvm_
- 	 * Look up the shadow pte for the faulting address.
- 	 */
- 	for (;;) {
--		FNAME(init_walker)(&walker, vcpu);
-+		FNAME(walk_addr)(&walker, vcpu, addr);
- 		shadow_pte = FNAME(fetch)(vcpu, addr, &walker);
- 		if (IS_ERR(shadow_pte)) {  /* must be -ENOMEM */
- 			nonpaging_flush(vcpu);
-@@ -357,9 +347,8 @@ static gpa_t FNAME(gva_to_gpa)(struct kv
- 	pt_element_t guest_pte;
- 	gpa_t gpa;
- 
--	FNAME(init_walker)(&walker, vcpu);
--	guest_pte = *FNAME(fetch_guest)(vcpu, &walker, PT_PAGE_TABLE_LEVEL,
--					vaddr);
-+	FNAME(walk_addr)(&walker, vcpu, vaddr);
-+	guest_pte = *walker.ptep;
- 	FNAME(release_walker)(&walker);
- 
- 	if (!is_present_pte(guest_pte))
+ 		if (is_paging(vcpu) && is_pae(vcpu) &&
+-		    pdptrs_have_reserved_bits_set(vcpu, cr3)) {
++		    !load_pdptrs(vcpu, cr3)) {
+ 			printk(KERN_DEBUG "set_cr3: #GP, pdptrs "
+ 			       "reserved bits\n");
+ 			inject_gp(vcpu);
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
