@@ -1,97 +1,102 @@
 From: akpm@osdl.org
-Subject: - pciehp-remove-unused-pci_bus-from-struct-controller.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 15:42:57 -0800
-Message-ID: <200701042342.l04NgvFc002855@shell0.pdx.osdl.net>
+Subject: - altix-acpi-_prt-support.patch removed from -mm tree
+Date: Thu, 04 Jan 2007 15:42:39 -0800
+Message-ID: <200701042342.l04NgdnO002824@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36787 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36810 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965104AbXADXnD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 18:43:03 -0500
+	id S1030274AbXADXnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 18:43:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: jpk@sgi.com, lenb@kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pciehp: remove unused pci_bus from struct controller
+     Altix: ACPI _PRT support
 has been removed from the -mm tree.  Its filename was
-     pciehp-remove-unused-pci_bus-from-struct-controller.patch
+     altix-acpi-_prt-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pciehp: remove unused pci_bus from struct controller
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Altix: ACPI _PRT support
+From: John Keller <jpk@sgi.com>
 
-Remove unused pci_bus member from struct controller.
+Provide ACPI _PRT support for SN Altix systems.
 
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
+The SN Altix platform does not conform to the IOSAPIC IRQ routing model, so
+a new acpi_irq_model (ACPI_IRQ_MODEL_PLATFORM) has been defined.  The SN
+platform specific code sets acpi_irq_model to this new value, and keys off
+of it in acpi_register_gsi() to avoid the iosapic code path.
+
+Signed-off-by: John Keller <jpk@sgi.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/hotplug/pciehp.h      |    1 -
- drivers/pci/hotplug/pciehp_core.c |   14 ++------------
- 2 files changed, 2 insertions(+), 13 deletions(-)
+ arch/ia64/kernel/acpi.c            |    3 +++
+ arch/ia64/sn/kernel/io_acpi_init.c |    3 +++
+ drivers/acpi/bus.c                 |    3 +++
+ include/linux/acpi.h               |    1 +
+ 4 files changed, 10 insertions(+)
 
-diff -puN drivers/pci/hotplug/pciehp.h~pciehp-remove-unused-pci_bus-from-struct-controller drivers/pci/hotplug/pciehp.h
---- a/drivers/pci/hotplug/pciehp.h~pciehp-remove-unused-pci_bus-from-struct-controller
-+++ a/drivers/pci/hotplug/pciehp.h
-@@ -78,7 +78,6 @@ struct controller {
- 	int num_slots;			/* Number of slots on ctlr */
- 	int slot_num_inc;		/* 1 or -1 */
- 	struct pci_dev *pci_dev;
--	struct pci_bus *pci_bus;
- 	struct list_head slot_list;
- 	struct event_info event_queue[MAX_EVENTS];
- 	struct slot *slot;
-diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-remove-unused-pci_bus-from-struct-controller drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pciehp-remove-unused-pci_bus-from-struct-controller
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -346,13 +346,6 @@ static int pciehp_probe(struct pcie_devi
+diff -puN arch/ia64/kernel/acpi.c~altix-acpi-_prt-support arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c~altix-acpi-_prt-support
++++ a/arch/ia64/kernel/acpi.c
+@@ -590,6 +590,9 @@ void __init acpi_numa_arch_fixup(void)
+  */
+ int acpi_register_gsi(u32 gsi, int triggering, int polarity)
+ {
++	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
++		return gsi;
++
+ 	if (has_8259 && gsi < 16)
+ 		return isa_irq_to_vector(gsi);
  
- 	pci_set_drvdata(pdev, ctrl);
+diff -puN arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support arch/ia64/sn/kernel/io_acpi_init.c
+--- a/arch/ia64/sn/kernel/io_acpi_init.c~altix-acpi-_prt-support
++++ a/arch/ia64/sn/kernel/io_acpi_init.c
+@@ -489,6 +489,9 @@ sn_io_acpi_init(void)
+ 	u64 result;
+ 	s64 status;
  
--	ctrl->pci_bus = kmalloc(sizeof(*ctrl->pci_bus), GFP_KERNEL);
--	if (!ctrl->pci_bus) {
--		err("%s: out of memory\n", __FUNCTION__);
--		rc = -ENOMEM;
--		goto err_out_unmap_mmio_region;
--	}
--	memcpy (ctrl->pci_bus, pdev->bus, sizeof (*ctrl->pci_bus));
- 	ctrl->bus = pdev->bus->number;  /* ctrl bus */
- 	ctrl->slot_bus = pdev->subordinate->number;  /* bus controlled by this HPC */
++	/* SN Altix does not follow the IOSAPIC IRQ routing model */
++	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
++
+ 	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
+ 	status = sal_ioif_init(&result);
+ 	if (status || result)
+diff -puN drivers/acpi/bus.c~altix-acpi-_prt-support drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~altix-acpi-_prt-support
++++ a/drivers/acpi/bus.c
+@@ -561,6 +561,9 @@ static int __init acpi_bus_init_irq(void
+ 	case ACPI_IRQ_MODEL_IOSAPIC:
+ 		message = "IOSAPIC";
+ 		break;
++	case ACPI_IRQ_MODEL_PLATFORM:
++		message = "platform specific model";
++		break;
+ 	default:
+ 		printk(KERN_WARNING PREFIX "Unknown interrupt routing model\n");
+ 		return -ENODEV;
+diff -puN include/linux/acpi.h~altix-acpi-_prt-support include/linux/acpi.h
+--- a/include/linux/acpi.h~altix-acpi-_prt-support
++++ a/include/linux/acpi.h
+@@ -47,6 +47,7 @@ enum acpi_irq_model_id {
+ 	ACPI_IRQ_MODEL_PIC = 0,
+ 	ACPI_IRQ_MODEL_IOAPIC,
+ 	ACPI_IRQ_MODEL_IOSAPIC,
++	ACPI_IRQ_MODEL_PLATFORM,
+ 	ACPI_IRQ_MODEL_COUNT
+ };
  
-@@ -365,7 +358,7 @@ static int pciehp_probe(struct pcie_devi
- 	rc = init_slots(ctrl);
- 	if (rc) {
- 		err(msg_initialization_err, 6);
--		goto err_out_free_ctrl_slot;
-+		goto err_out_release_ctlr;
- 	}
- 
- 	t_slot = pciehp_find_slot(ctrl, ctrl->slot_device_offset);
-@@ -404,8 +397,7 @@ static int pciehp_probe(struct pcie_devi
- 
- err_out_free_ctrl_slot:
- 	cleanup_slots(ctrl);
--	kfree(ctrl->pci_bus);
--err_out_unmap_mmio_region:
-+err_out_release_ctlr:
- 	ctrl->hpc_ops->release_ctlr(ctrl);
- err_out_free_ctrl:
- 	kfree(ctrl);
-@@ -439,8 +431,6 @@ static void __exit unload_pciehpd(void)
- 	while (ctrl) {
- 		cleanup_slots(ctrl);
- 
--		kfree (ctrl->pci_bus);
--
- 		ctrl->hpc_ops->release_ctlr(ctrl);
- 
- 		tctrl = ctrl;
 _
 
-Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
+Patches currently in -mm which might be from jpk@sgi.com are
+
+git-acpi.patch
+altix-acpi-ssdt-pci-device-support.patch
+altix-add-acpi-ssdt-pci-device-support-hotplug.patch
