@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-zap-shadow-page-table-entries-on-writes-to-guest-page-tables.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:11:54 -0800
-Message-ID: <200701041911.l04JBsGl028321@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-remove-release_pt_page_64.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:06 -0800
+Message-ID: <200701041912.l04JC6Qo028344@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44937 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45000 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965081AbXADTMD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:03 -0500
+	id S965081AbXADTMT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,77 +15,66 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Zap shadow page table entries on writes to guest page tables
+     KVM: MMU: Remove release_pt_page_64()
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-zap-shadow-page-table-entries-on-writes-to-guest-page-tables.patch
+     kvm-mmu-remove-release_pt_page_64.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Zap shadow page table entries on writes to guest page tables
+Subject: KVM: MMU: Remove release_pt_page_64()
 From: Avi Kivity <avi@qumranet.com>
 
-Iterate over all shadow pages which correspond to a the given guest page table
-and remove the mappings.
-
-A subsequent page fault will reestablish the new mapping.
+Unused.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+)
+ drivers/kvm/mmu.c |   29 -----------------------------
+ 1 files changed, 29 deletions(-)
 
-diff -puN drivers/kvm/mmu.c~kvm-mmu-zap-shadow-page-table-entries-on-writes-to-guest-page-tables drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-zap-shadow-page-table-entries-on-writes-to-guest-page-tables
+diff -puN drivers/kvm/mmu.c~kvm-mmu-remove-release_pt_page_64 drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-remove-release_pt_page_64
 +++ a/drivers/kvm/mmu.c
-@@ -958,7 +958,43 @@ int kvm_mmu_reset_context(struct kvm_vcp
- 
- void kvm_mmu_pre_write(struct kvm_vcpu *vcpu, gpa_t gpa, int bytes)
- {
-+	gfn_t gfn = gpa >> PAGE_SHIFT;
-+	struct kvm_mmu_page *page;
-+	struct kvm_mmu_page *child;
-+	struct hlist_node *node;
-+	struct hlist_head *bucket;
-+	unsigned index;
-+	u64 *spte;
-+	u64 pte;
-+	unsigned offset = offset_in_page(gpa);
-+	unsigned page_offset;
-+	int level;
-+
- 	pgprintk("%s: gpa %llx bytes %d\n", __FUNCTION__, gpa, bytes);
-+	index = kvm_page_table_hashfn(gfn) % KVM_NUM_MMU_PAGES;
-+	bucket = &vcpu->kvm->mmu_page_hash[index];
-+	hlist_for_each_entry(page, node, bucket, hash_link) {
-+		if (page->gfn != gfn || page->role.metaphysical)
-+			continue;
-+		page_offset = offset;
-+		level = page->role.level;
-+		if (page->role.glevels == PT32_ROOT_LEVEL) {
-+			page_offset <<= 1;          /* 32->64 */
-+			page_offset &= ~PAGE_MASK;
-+		}
-+		spte = __va(page->page_hpa);
-+		spte += page_offset / sizeof(*spte);
-+		pte = *spte;
-+		if (is_present_pte(pte)) {
-+			if (level == PT_PAGE_TABLE_LEVEL)
-+				rmap_remove(vcpu->kvm, spte);
-+			else {
-+				child = page_header(pte & PT64_BASE_ADDR_MASK);
-+				mmu_page_remove_parent_pte(child, spte);
-+			}
-+		}
-+		*spte = 0;
-+	}
+@@ -609,35 +609,6 @@ hpa_t gva_to_hpa(struct kvm_vcpu *vcpu, 
+ 	return gpa_to_hpa(vcpu, gpa);
  }
  
- void kvm_mmu_post_write(struct kvm_vcpu *vcpu, gpa_t gpa, int bytes)
+-
+-static void release_pt_page_64(struct kvm_vcpu *vcpu, hpa_t page_hpa,
+-			       int level)
+-{
+-	u64 *pos;
+-	u64 *end;
+-
+-	ASSERT(vcpu);
+-	ASSERT(VALID_PAGE(page_hpa));
+-	ASSERT(level <= PT64_ROOT_LEVEL && level > 0);
+-
+-	for (pos = __va(page_hpa), end = pos + PT64_ENT_PER_PAGE;
+-	     pos != end; pos++) {
+-		u64 current_ent = *pos;
+-
+-		if (is_present_pte(current_ent)) {
+-			if (level != 1)
+-				release_pt_page_64(vcpu,
+-						  current_ent &
+-						  PT64_BASE_ADDR_MASK,
+-						  level - 1);
+-			else
+-				rmap_remove(vcpu->kvm, pos);
+-		}
+-		*pos = 0;
+-	}
+-	kvm_mmu_free_page(vcpu, page_hpa);
+-}
+-
+ static void nonpaging_new_cr3(struct kvm_vcpu *vcpu)
+ {
+ }
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
