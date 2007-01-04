@@ -1,30 +1,46 @@
 From: akpm@osdl.org
-Subject: - pciehp-cleanup-pciehph.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 15:43:01 -0800
-Message-ID: <200701042343.l04Nh1Mg002861@shell0.pdx.osdl.net>
+Subject: - pciehp-fix-wait-command-completion.patch removed from -mm tree
+Date: Thu, 04 Jan 2007 15:43:07 -0800
+Message-ID: <200701042343.l04Nh7xi002872@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:36808 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:36826 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030272AbXADXnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 18:43:11 -0500
+	id S1030271AbXADXnS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 18:43:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kaneshige.kenji@jp.fujitsu.com, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pciehp: cleanup pciehp.h
+     pciehp: fix wait command completion
 has been removed from the -mm tree.  Its filename was
-     pciehp-cleanup-pciehph.patch
+     pciehp-fix-wait-command-completion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pciehp: cleanup pciehp.h
+Subject: pciehp: fix wait command completion
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Clean up pciehp.h. This has no functional change.
+Fix the problem that pciehp driver will sleep unnecessarily long when waiting
+for command completion.  With this patch, modprobe pciehp driver becomes very
+faster as follows for instance.
+
+  o Without this patch
+    # time /sbin/modprobe pciehp
+
+    real    0m4.976s
+    user    0m0.000s
+    sys     0m0.004s
+
+  o With this patch
+    # time /sbin/modprobe pciehp
+
+    real    0m0.640s
+    user    0m0.000s
+    sys     0m0.004s
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
@@ -32,216 +48,74 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/hotplug/pciehp.h      |  101 ++++++++++------------------
- drivers/pci/hotplug/pciehp_core.c |    2 
- drivers/pci/hotplug/pciehp_ctrl.c |    6 -
- 3 files changed, 42 insertions(+), 67 deletions(-)
+ drivers/pci/hotplug/pciehp.h     |    1 +
+ drivers/pci/hotplug/pciehp_hpc.c |   27 +++++++++++++++------------
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN drivers/pci/hotplug/pciehp.h~pciehp-cleanup-pciehph drivers/pci/hotplug/pciehp.h
---- a/drivers/pci/hotplug/pciehp.h~pciehp-cleanup-pciehph
+diff -puN drivers/pci/hotplug/pciehp.h~pciehp-fix-wait-command-completion drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pciehp-fix-wait-command-completion
 +++ a/drivers/pci/hotplug/pciehp.h
-@@ -44,11 +44,17 @@ extern int pciehp_poll_time;
- extern int pciehp_debug;
- extern int pciehp_force;
- 
--/*#define dbg(format, arg...) do { if (pciehp_debug) printk(KERN_DEBUG "%s: " format, MY_NAME , ## arg); } while (0)*/
--#define dbg(format, arg...) do { if (pciehp_debug) printk("%s: " format, MY_NAME , ## arg); } while (0)
--#define err(format, arg...) printk(KERN_ERR "%s: " format, MY_NAME , ## arg)
--#define info(format, arg...) printk(KERN_INFO "%s: " format, MY_NAME , ## arg)
--#define warn(format, arg...) printk(KERN_WARNING "%s: " format, MY_NAME , ## arg)
-+#define dbg(format, arg...)						\
-+	do {								\
-+		if (pciehp_debug)					\
-+			printk("%s: " format, MY_NAME , ## arg);	\
-+	} while (0)
-+#define err(format, arg...)						\
-+	printk(KERN_ERR "%s: " format, MY_NAME , ## arg)
-+#define info(format, arg...)						\
-+	printk(KERN_INFO "%s: " format, MY_NAME , ## arg)
-+#define warn(format, arg...)						\
-+	printk(KERN_WARNING "%s: " format, MY_NAME , ## arg)
- 
- #define SLOT_NAME_SIZE 10
- struct slot {
-@@ -113,8 +119,6 @@ struct controller {
- #define POWERON_STATE			3
- #define POWEROFF_STATE			4
- 
--#define PCI_TO_PCI_BRIDGE_CLASS		0x00060400
--
- /* Error messages */
- #define INTERLOCK_OPEN			0x00000002
- #define ADD_NOT_SUPPORTED		0x00000003
-@@ -126,10 +130,6 @@ struct controller {
- #define WRONG_BUS_FREQUENCY		0x0000000D
- #define POWER_FAILURE			0x0000000E
- 
--#define REMOVE_NOT_SUPPORTED		0x00000003
--
--#define DISABLE_CARD			1
--
- /* Field definitions in Slot Capabilities Register */
- #define ATTN_BUTTN_PRSN	0x00000001
- #define	PWR_CTRL_PRSN	0x00000002
-@@ -145,38 +145,21 @@ struct controller {
- #define PWR_LED(cap)		(cap & PWR_LED_PRSN) 
- #define HP_SUPR_RM(cap)		(cap & HP_SUPR_RM_SUP)
- 
--/*
-- * error Messages
-- */
--#define msg_initialization_err	"Initialization failure, error=%d\n"
--#define msg_button_on		"PCI slot #%s - powering on due to button press.\n"
--#define msg_button_off		"PCI slot #%s - powering off due to button press.\n"
--#define msg_button_cancel	"PCI slot #%s - action canceled due to button press.\n"
--#define msg_button_ignore	"PCI slot #%s - button press ignored.  (action in progress...)\n"
--
--/* controller functions */
--extern int	pciehp_event_start_thread	(void);
--extern void	pciehp_event_stop_thread	(void);
--extern int	pciehp_enable_slot		(struct slot *slot);
--extern int	pciehp_disable_slot		(struct slot *slot);
--
-+extern int pciehp_event_start_thread(void);
-+extern void pciehp_event_stop_thread(void);
-+extern int pciehp_enable_slot(struct slot *slot);
-+extern int pciehp_disable_slot(struct slot *slot);
- extern u8 pciehp_handle_attention_button(u8 hp_slot, struct controller *ctrl);
- extern u8 pciehp_handle_switch_change(u8 hp_slot, struct controller *ctrl);
- extern u8 pciehp_handle_presence_change(u8 hp_slot, struct controller *ctrl);
- extern u8 pciehp_handle_power_fault(u8 hp_slot, struct controller *ctrl);
--/* extern void	long_delay (int delay); */
--
--/* pci functions */
--extern int	pciehp_configure_device		(struct slot *p_slot);
--extern int	pciehp_unconfigure_device	(struct slot *p_slot);
--
--
-+extern int pciehp_configure_device(struct slot *p_slot);
-+extern int pciehp_unconfigure_device(struct slot *p_slot);
-+int pcie_init(struct controller *ctrl, struct pcie_device *dev);
- 
- /* Global variables */
- extern struct controller *pciehp_ctrl_list;
- 
--/* Inline functions */
--
- static inline struct slot *pciehp_find_slot(struct controller *ctrl, u8 device)
- {
- 	struct slot *slot;
-@@ -192,8 +175,6 @@ static inline struct slot *pciehp_find_s
- 
- static inline int wait_for_ctrl_irq(struct controller *ctrl)
- {
--	int retval = 0;
--
- 	DECLARE_WAITQUEUE(wait, current);
- 
- 	add_wait_queue(&ctrl->queue, &wait);
-@@ -205,44 +186,38 @@ static inline int wait_for_ctrl_irq(stru
- 	
- 	remove_wait_queue(&ctrl->queue, &wait);
- 	if (signal_pending(current))
--		retval =  -EINTR;
-+		return -EINTR;
- 
--	return retval;
-+	return 0;
- }
- 
--int pcie_init(struct controller *ctrl, struct pcie_device *dev);
--
- struct hpc_ops {
--	int	(*power_on_slot)	(struct slot *slot);
--	int	(*power_off_slot)	(struct slot *slot);
--	int	(*get_power_status)	(struct slot *slot, u8 *status);
--	int	(*get_attention_status)	(struct slot *slot, u8 *status);
--	int	(*set_attention_status)	(struct slot *slot, u8 status);
--	int	(*get_latch_status)	(struct slot *slot, u8 *status);
--	int	(*get_adapter_status)	(struct slot *slot, u8 *status);
--
--	int	(*get_max_bus_speed)	(struct slot *slot, enum pci_bus_speed *speed);
--	int	(*get_cur_bus_speed)	(struct slot *slot, enum pci_bus_speed *speed);
--
--	int	(*get_max_lnk_width)	(struct slot *slot, enum pcie_link_width *value);
--	int	(*get_cur_lnk_width)	(struct slot *slot, enum pcie_link_width *value);
--	
--	int	(*query_power_fault)	(struct slot *slot);
--	void	(*green_led_on)		(struct slot *slot);
--	void	(*green_led_off)	(struct slot *slot);
--	void	(*green_led_blink)	(struct slot *slot);
--	void	(*release_ctlr)		(struct controller *ctrl);
--	int	(*check_lnk_status)	(struct controller *ctrl);
-+	int (*power_on_slot)(struct slot *slot);
-+	int (*power_off_slot)(struct slot *slot);
-+	int (*get_power_status)(struct slot *slot, u8 *status);
-+	int (*get_attention_status)(struct slot *slot, u8 *status);
-+	int (*set_attention_status)(struct slot *slot, u8 status);
-+	int (*get_latch_status)(struct slot *slot, u8 *status);
-+	int (*get_adapter_status)(struct slot *slot, u8 *status);
-+	int (*get_max_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
-+	int (*get_cur_bus_speed)(struct slot *slot, enum pci_bus_speed *speed);
-+	int (*get_max_lnk_width)(struct slot *slot, enum pcie_link_width *val);
-+	int (*get_cur_lnk_width)(struct slot *slot, enum pcie_link_width *val);
-+	int (*query_power_fault)(struct slot *slot);
-+	void (*green_led_on)(struct slot *slot);
-+	void (*green_led_off)(struct slot *slot);
-+	void (*green_led_blink)(struct slot *slot);
-+	void (*release_ctlr)(struct controller *ctrl);
-+	int (*check_lnk_status)(struct controller *ctrl);
+@@ -100,6 +100,7 @@ struct controller {
+ 	u16 vendor_id;
+ 	u8 cap_base;
+ 	struct timer_list poll_timer;
++	volatile int cmd_busy;
  };
  
--
- #ifdef CONFIG_ACPI
- #include <acpi/acpi.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/actypes.h>
- #include <linux/pci-acpi.h>
+ #define INT_BUTTON_IGNORE		0
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~pciehp-fix-wait-command-completion drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~pciehp-fix-wait-command-completion
++++ a/drivers/pci/hotplug/pciehp_hpc.c
+@@ -251,20 +251,21 @@ static void start_int_poll_timer(struct 
  
--#define pciehp_get_hp_hw_control_from_firmware(dev) \
-+#define pciehp_get_hp_hw_control_from_firmware(dev)			\
- 	pciehp_acpi_get_hp_hw_control_from_firmware(dev)
- static inline int pciehp_get_hp_params_from_firmware(struct pci_dev *dev,
- 			struct hotplug_params *hpp)
-diff -puN drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-pciehph drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pciehp-cleanup-pciehph
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -357,7 +357,7 @@ static int pciehp_probe(struct pcie_devi
- 	/* Setup the slot information structures */
- 	rc = init_slots(ctrl);
- 	if (rc) {
--		err(msg_initialization_err, 6);
-+		err("%s: slot initialization failed\n", PCIE_MODULE_NAME);
- 		goto err_out_release_ctlr;
+ static inline int pcie_wait_cmd(struct controller *ctrl)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	add_wait_queue(&ctrl->queue, &wait);
+-	if (!pciehp_poll_mode)
+-		/* Sleep for up to 1 second */
+-		msleep_interruptible(1000);
+-	else
+-		msleep_interruptible(2500);
++	int retval = 0;
++	unsigned int msecs = pciehp_poll_mode ? 2500 : 1000;
++	unsigned long timeout = msecs_to_jiffies(msecs);
++	int rc;
+ 
+-	remove_wait_queue(&ctrl->queue, &wait);
+-	if (signal_pending(current))
+-		return -EINTR;
++	rc = wait_event_interruptible_timeout(ctrl->queue,
++					      !ctrl->cmd_busy, timeout);
++	if (!rc)
++		dbg("Command not completed in 1000 msec\n");
++	else if (rc < 0) {
++		retval = -EINTR;
++		info("Command was interrupted by a signal\n");
++	}
+ 
+-	return 0;
++	return retval;
+ }
+ 
+ static int pcie_write_cmd(struct slot *slot, u16 cmd)
+@@ -291,6 +292,7 @@ static int pcie_write_cmd(struct slot *s
+ 		    __FUNCTION__);
  	}
  
-diff -puN drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-pciehph drivers/pci/hotplug/pciehp_ctrl.c
---- a/drivers/pci/hotplug/pciehp_ctrl.c~pciehp-cleanup-pciehph
-+++ a/drivers/pci/hotplug/pciehp_ctrl.c
-@@ -655,7 +655,7 @@ static void interrupt_event_handler(stru
- 						warn("Not a valid state\n");
- 						return;
- 					}
--					info(msg_button_cancel, slot_name(p_slot));
-+					info("PCI slot #%s - action canceled due to button press.\n", slot_name(p_slot));
- 					p_slot->state = STATIC_STATE;
- 				}
- 				/* ***********Button Pressed (No action on 1st press...) */
-@@ -668,12 +668,12 @@ static void interrupt_event_handler(stru
- 							/* slot is on */
- 							dbg("slot is on\n");
- 							p_slot->state = BLINKINGOFF_STATE;
--							info(msg_button_off, slot_name(p_slot));
-+							info("PCI slot #%s - powering off due to button press.\n", slot_name(p_slot));
- 						} else {
- 							/* slot is off */
- 							dbg("slot is off\n");
- 							p_slot->state = BLINKINGON_STATE;
--							info(msg_button_on, slot_name(p_slot));
-+							info("PCI slot #%s - powering on due to button press.\n", slot_name(p_slot));
- 						}
++	ctrl->cmd_busy = 1;
+ 	retval = pciehp_writew(ctrl, SLOTCTRL, (cmd | CMD_CMPL_INTR_ENABLE));
+ 	if (retval) {
+ 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
+@@ -773,6 +775,7 @@ static irqreturn_t pcie_isr(int irq, voi
+ 		/* 
+ 		 * Command Complete Interrupt Pending 
+ 		 */
++		ctrl->cmd_busy = 0;
+ 		wake_up_interruptible(&ctrl->queue);
+ 	}
  
- 						/* Wait for exclusive access to hardware */
 _
 
 Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
