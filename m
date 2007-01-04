@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:10 -0800
-Message-ID: <200701041912.l04JCAqX028364@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-if-an-empty-shadow-page-is-not-empty-report-more-info.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:14 -0800
+Message-ID: <200701041912.l04JCEUF028370@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:44996 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45002 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965092AbXADTMS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:18 -0500
+	id S965094AbXADTMT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,15 +15,15 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: <ove is_empty_shadow_page() above kvm_mmu_free_page()
+     KVM: MMU: If an empty shadow page is not empty, report more info
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page.patch
+     kvm-mmu-if-an-empty-shadow-page-is-not-empty-report-more-info.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: <ove is_empty_shadow_page() above kvm_mmu_free_page()
+Subject: KVM: MMU: If an empty shadow page is not empty, report more info
 From: Avi Kivity <avi@qumranet.com>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
@@ -31,46 +31,33 @@ Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/kvm/mmu.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/kvm/mmu.c~kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page
+diff -puN drivers/kvm/mmu.c~kvm-mmu-if-an-empty-shadow-page-is-not-empty-report-more-info drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-if-an-empty-shadow-page-is-not-empty-report-more-info
 +++ a/drivers/kvm/mmu.c
-@@ -303,16 +303,6 @@ static void rmap_write_protect(struct kv
- 	}
- }
+@@ -305,12 +305,16 @@ static void rmap_write_protect(struct kv
  
--static void kvm_mmu_free_page(struct kvm_vcpu *vcpu, hpa_t page_hpa)
--{
--	struct kvm_mmu_page *page_head = page_header(page_hpa);
--
--	list_del(&page_head->link);
--	page_head->page_hpa = page_hpa;
--	list_add(&page_head->link, &vcpu->free_pages);
--	++vcpu->kvm->n_free_mmu_pages;
--}
--
  static int is_empty_shadow_page(hpa_t page_hpa)
  {
- 	u32 *pos;
-@@ -324,6 +314,16 @@ static int is_empty_shadow_page(hpa_t pa
+-	u32 *pos;
+-	u32 *end;
+-	for (pos = __va(page_hpa), end = pos + PAGE_SIZE / sizeof(u32);
++	u64 *pos;
++	u64 *end;
++
++	for (pos = __va(page_hpa), end = pos + PAGE_SIZE / sizeof(u64);
+ 		      pos != end; pos++)
+-		if (*pos != 0)
++		if (*pos != 0) {
++			printk(KERN_ERR "%s: %p %llx\n", __FUNCTION__,
++			       pos, *pos);
+ 			return 0;
++		}
  	return 1;
  }
  
-+static void kvm_mmu_free_page(struct kvm_vcpu *vcpu, hpa_t page_hpa)
-+{
-+	struct kvm_mmu_page *page_head = page_header(page_hpa);
-+
-+	list_del(&page_head->link);
-+	page_head->page_hpa = page_hpa;
-+	list_add(&page_head->link, &vcpu->free_pages);
-+	++vcpu->kvm->n_free_mmu_pages;
-+}
-+
- static unsigned kvm_page_table_hashfn(gfn_t gfn)
- {
- 	return gfn;
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
