@@ -1,132 +1,54 @@
 From: akpm@osdl.org
-Subject: - mmconfig-fix-x86_64-ioremap-base_address.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 15:14:42 -0800
-Message-ID: <200701042314.l04NEgUc002140@shell0.pdx.osdl.net>
+Subject: + i2c-m41t00-do-not-forget-to-write-year.patch added to -mm tree
+Date: Thu, 04 Jan 2007 15:29:24 -0800
+Message-ID: <200701042329.l04NTOTT002506@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35105 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:35954 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030260AbXADXOt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 18:14:49 -0500
+	id S1030272AbXADX3l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 18:29:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hogawa@miraclelinux.com, ak@suse.de, arjan@linux.intel.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: phdm@macqel.be, khali@linux-fr.org
 
 
 The patch titled
-     MMCONFIG: Fix x86_64 ioremap base_address
-has been removed from the -mm tree.  Its filename was
-     mmconfig-fix-x86_64-ioremap-base_address.patch
+     i2c/m41t00 do not forget to write year
+has been added to the -mm tree.  Its filename is
+     i2c-m41t00-do-not-forget-to-write-year.patch
 
-This patch was dropped because it was nacked by the maintainer
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: MMCONFIG: Fix x86_64 ioremap base_address
-From: OGAWA Hirofumi <hogawa@miraclelinux.com>
+Subject: i2c/m41t00 do not forget to write year
+From: Philippe De Muyter <phdm@macqel.be>
 
-Current mmconfig has some problems of remapped range.
+m41t00.c forgets to set the year field in set_rtc_time; fix that.
 
-a) In the case of broken MCFG tables on Asus etc., we need to remap 256M
-   range, but currently only remap 1M.
-
-b) The base address always corresponds to bus number 0, but currently we
-   are assuming it corresponds to start bus number.
-
-This patch fixes the above problems.
-
-(akpm: Arjan suggests that if the MCFG table is broken we just shouldn't use
-it, rather than try to work around things).
-
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/pci/mmconfig.c |   48 +++++++++++++++++++++++++----------
- 1 files changed, 35 insertions(+), 13 deletions(-)
+ drivers/i2c/chips/m41t00.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/x86_64/pci/mmconfig.c~mmconfig-fix-x86_64-ioremap-base_address arch/x86_64/pci/mmconfig.c
---- a/arch/x86_64/pci/mmconfig.c~mmconfig-fix-x86_64-ioremap-base_address
-+++ a/arch/x86_64/pci/mmconfig.c
-@@ -24,6 +24,39 @@ struct mmcfg_virt {
- };
- static struct mmcfg_virt *pci_mmcfg_virt;
+diff -puN drivers/i2c/chips/m41t00.c~i2c-m41t00-do-not-forget-to-write-year drivers/i2c/chips/m41t00.c
+--- a/drivers/i2c/chips/m41t00.c~i2c-m41t00-do-not-forget-to-write-year
++++ a/drivers/i2c/chips/m41t00.c
+@@ -209,6 +209,7 @@ m41t00_set(void *arg)
+ 	buf[m41t00_chip->hour] = (buf[m41t00_chip->hour] & ~0x3f) | (hour& 0x3f);
+ 	buf[m41t00_chip->day] = (buf[m41t00_chip->day] & ~0x3f) | (day & 0x3f);
+ 	buf[m41t00_chip->mon] = (buf[m41t00_chip->mon] & ~0x1f) | (mon & 0x1f);
++	buf[m41t00_chip->year] = year;
  
-+static inline int mcfg_broken(void)
-+{
-+	struct acpi_table_mcfg_config *cfg = &pci_mmcfg_config[0];
-+
-+	/* Handle more broken MCFG tables on Asus etc.
-+	   They only contain a single entry for bus 0-0. Assume
-+ 	   this applies to all busses. */
-+	if (pci_mmcfg_config_num == 1 &&
-+	    cfg->pci_segment_group_number == 0 &&
-+	    (cfg->start_bus_number | cfg->end_bus_number) == 0)
-+		return 1;
-+	return 0;
-+}
-+
-+static void __iomem *mcfg_ioremap(struct acpi_table_mcfg_config *cfg)
-+{
-+	void __iomem *addr;
-+	u32 size;
-+
-+	if (mcfg_broken())
-+		size = 256 << 20;
-+	else
-+		size = (cfg->end_bus_number + 1) << 20;
-+
-+	addr = ioremap_nocache(cfg->base_address, size);
-+	if (addr) {
-+		printk(KERN_INFO "PCI: Using MMCONFIG at %x - %x\n",
-+		       cfg->base_address,
-+		       cfg->base_address + size - 1);
-+	}
-+	return addr;
-+}
-+
- static char __iomem *get_virt(unsigned int seg, unsigned bus)
- {
- 	int cfg_num = -1;
-@@ -41,13 +74,7 @@ static char __iomem *get_virt(unsigned i
- 			return pci_mmcfg_virt[cfg_num].virt;
- 	}
- 
--	/* Handle more broken MCFG tables on Asus etc.
--	   They only contain a single entry for bus 0-0. Assume
-- 	   this applies to all busses. */
--	cfg = &pci_mmcfg_config[0];
--	if (pci_mmcfg_config_num == 1 &&
--		cfg->pci_segment_group_number == 0 &&
--		(cfg->start_bus_number | cfg->end_bus_number) == 0)
-+	if (mcfg_broken())
- 		return pci_mmcfg_virt[0].virt;
- 
- 	/* Fall back to type 0 */
-@@ -139,19 +166,14 @@ int __init pci_mmcfg_arch_init(void)
- 	}
- 
- 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
--		u32 size = (pci_mmcfg_config[0].end_bus_number - pci_mmcfg_config[0].start_bus_number + 1) << 20;
- 		pci_mmcfg_virt[i].cfg = &pci_mmcfg_config[i];
--		pci_mmcfg_virt[i].virt = ioremap_nocache(pci_mmcfg_config[i].base_address,
--							 size);
-+		pci_mmcfg_virt[i].virt = mcfg_ioremap(&pci_mmcfg_config[i]);
- 		if (!pci_mmcfg_virt[i].virt) {
- 			printk(KERN_ERR "PCI: Cannot map mmconfig aperture for "
- 					"segment %d\n",
- 			       pci_mmcfg_config[i].pci_segment_group_number);
- 			return 0;
- 		}
--		printk(KERN_INFO "PCI: Using MMCONFIG at %x-%x\n",
--		       pci_mmcfg_config[i].base_address,
--		       pci_mmcfg_config[i].base_address + size - 1);
- 	}
- 
- 	raw_pci_ops = &pci_mmcfg;
+ 	if (i2c_master_send(save_client, wbuf, 9) < 0)
+ 		dev_err(&save_client->dev, "m41t00_set: Write error\n");
 _
 
-Patches currently in -mm which might be from hogawa@miraclelinux.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
-mmconfig-fix-x86_64-ioremap-base_address.patch
+i2c-m41t00-do-not-forget-to-write-year.patch
