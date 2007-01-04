@@ -1,75 +1,74 @@
 From: akpm@osdl.org
-Subject: - fix-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 15:43:23 -0800
-Message-ID: <200701042343.l04NhNB4002898@shell0.pdx.osdl.net>
+Subject: - scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch removed from -mm tree
+Date: Thu, 04 Jan 2007 15:43:11 -0800
+Message-ID: <200701042343.l04NhBkX002881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:36848 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:36879 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030279AbXADXn0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 18:43:26 -0500
+	id S1030283AbXADXnb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 18:43:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, bobf@advansys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: Fix EHCI warning
+     SCSI: advansys, wrap PCI table inside ifdef CONFIG_PCI
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio.patch
+     scsi-advansys-wrap-pci-table-inside-ifdef-config_pci.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb: Fix EHCI warning
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: SCSI: advansys, wrap PCI table inside ifdef CONFIG_PCI
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This patch fixes a warning introduced by the big endian MMIO EHCI support
-patch on platforms that don't have readl_be/writel_be variants (though
-mostly harmless as those are called in an if (0) statement, but gcc still
-warns).
+The Advansys ISA/EISA/PCI driver has a compile error when CONFIG_PCI=n, so
+wrap the pci_device_id table inside ifdef CONFIG_PCI.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
+drivers/scsi/advansys.c: At top level:
+drivers/scsi/advansys.c:18219: error: array type has incomplete element type
+drivers/scsi/advansys.c:18221: error: 'PCI_ANY_ID' undeclared here (not in a function)
+make[2]: *** [drivers/scsi/advansys.o] Error 1
+make[1]: *** [drivers/scsi] Error 2
+make: *** [drivers] Error 2
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <bobf@advansys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/host/ehci.h |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ drivers/scsi/advansys.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/ehci.h~fix-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio drivers/usb/host/ehci.h
---- a/drivers/usb/host/ehci.h~fix-gregkh-usb-usb-implement-support-for-ehci-with-big-endian-mmio
-+++ a/drivers/usb/host/ehci.h
-@@ -671,17 +671,25 @@ ehci_port_speed(struct ehci_hcd *ehci, u
- static inline unsigned int ehci_readl (const struct ehci_hcd *ehci,
- 				       __u32 __iomem * regs)
- {
-+#ifdef CONFIG_USB_EHCI_BIG_ENDIAN_MMIO
- 	return ehci_big_endian_mmio(ehci) ?
- 		readl_be((__force u32 *)regs) :
- 		readl((__force u32 *)regs);
-+#else
-+	return readl((__force u32 *)regs);
-+#endif
+diff -puN drivers/scsi/advansys.c~scsi-advansys-wrap-pci-table-inside-ifdef-config_pci drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~scsi-advansys-wrap-pci-table-inside-ifdef-config_pci
++++ a/drivers/scsi/advansys.c
+@@ -18133,6 +18133,7 @@ AdvInquiryHandling(
  }
+ MODULE_LICENSE("Dual BSD/GPL");
  
- static inline void ehci_writel (const struct ehci_hcd *ehci,
- 				const unsigned int val, __u32 __iomem *regs)
- {
-+#ifdef CONFIG_USB_EHCI_BIG_ENDIAN_MMIO
- 	ehci_big_endian_mmio(ehci) ?
- 		writel_be(val, (__force u32 *)regs) :
- 		writel(val, (__force u32 *)regs);
-+#else
-+	writel(val, (__force u32 *)regs);
-+#endif
- }
- 
- /*-------------------------------------------------------------------------*/
++#ifdef CONFIG_PCI
+ /* PCI Devices supported by this driver */
+ static struct pci_device_id advansys_pci_tbl[] __devinitdata = {
+ 	{ PCI_VENDOR_ID_ASP, PCI_DEVICE_ID_ASP_1200A,
+@@ -18150,4 +18151,4 @@ static struct pci_device_id advansys_pci
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(pci, advansys_pci_tbl);
+-
++#endif /* CONFIG_PCI */
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+git-alsa.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display.patch
+git-mtd.patch
+parisc-fix-module_param-iommu-permission.patch
+git-scsi-rc-fixes.patch
+reiser4-use-null-for-pointers.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+profile_likely-export-do_check_likely.patch
