@@ -1,88 +1,71 @@
 From: akpm@osdl.org
-Subject: - i386-move-startup_32-in-texthead-section-specify-section-flags-while-creating-new-sections.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 14:18:07 -0800
-Message-ID: <200701042218.l04MI8dR000611@shell0.pdx.osdl.net>
+Subject: + user-namespace-add-the-framework-fix.patch added to -mm tree
+Date: Thu, 04 Jan 2007 14:10:24 -0800
+Message-ID: <200701042210.l04MAOSu000427@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:58922 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58954 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965103AbXADWS3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 17:18:29 -0500
+	id S965105AbXADWTM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 17:19:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
 
 
 The patch titled
-     i386: specify section flags while creating new sections
-has been removed from the -mm tree.  Its filename was
-     i386-move-startup_32-in-texthead-section-specify-section-flags-while-creating-new-sections.patch
+     user namespace: add the framework fix
+has been added to the -mm tree.  Its filename is
+     user-namespace-add-the-framework-fix.patch
 
-This patch was dropped because it was folded into i386-move-startup_32-in-texthead-section.patch
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: i386: specify section flags while creating new sections
-From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: user namespace: add the framework fix
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-o Older binutils (older than 2.6.15) require explicit flags to be set
-  for section. (if a section has been defined using "section" directive).
-  Otherwise a section which should have been allocatable and executable
-  (AX) will not have properties as per intention.
+For i386, an include of utsname.h by asm/elf.h hides the fact that
+user_namespace needs sched.h.  To fix compilation for x86_64, just include
+sched.h explicitly.
 
-o I had put a patch in -mm which will break the things if used with
-  older binutils. Hence this is the fix on top of that patch.
-
-http://kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.20-rc2/2.6.20-rc2-mm1/broken-out/i386-move-startup_32-in-texthead-section.patch
-
-Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/head.S |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/user_namespace.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/head.S~i386-move-startup_32-in-texthead-section-specify-section-flags-while-creating-new-sections arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~i386-move-startup_32-in-texthead-section-specify-section-flags-while-creating-new-sections
-+++ a/arch/i386/kernel/head.S
-@@ -53,7 +53,7 @@
-  * any particular GDT layout, because we load our own as soon as we
-  * can.
-  */
--.section .text.head
-+.section .text.head,"ax",@progbits
- ENTRY(startup_32)
+diff -puN include/linux/user_namespace.h~user-namespace-add-the-framework-fix include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~user-namespace-add-the-framework-fix
++++ a/include/linux/user_namespace.h
+@@ -3,6 +3,7 @@
  
- #ifdef CONFIG_PARAVIRT
-@@ -155,9 +155,9 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
-  */
+ #include <linux/kref.h>
+ #include <linux/nsproxy.h>
++#include <linux/sched.h>
  
- #ifdef CONFIG_HOTPLUG_CPU
--.section .text
-+.section .text,"ax",@progbits
- #else
--.section .init.text
-+.section .init.text,"ax",@progbits
- #endif
- 
- #ifdef CONFIG_SMP
+ #define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 8)
+ #define UIDHASH_SZ	(1 << UIDHASH_BITS)
 _
 
-Patches currently in -mm which might be from vgoyal@in.ibm.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-origin.patch
-i386-restore-config_physical_start-option.patch
-i386-fix-modpost-warning-in-smp-trampoline-code.patch
-i386-fix-another-modpost-warning.patch
-i386-modpost-smpboot-code-warning-fix.patch
-i386-cpu-hotplug-smpboot-misc-modpost-warning-fixes.patch
-convert-some-functions-to-__init-to-avoid-modpost-warnings.patch
-i386-move-startup_32-in-texthead-section.patch
-i386-move-startup_32-in-texthead-section-specify-section-flags-while-creating-new-sections.patch
-break-init-in-two-parts-to-avoid-modpost-warnings.patch
-i386-fix-memory-hotplug-related-modpost-generated-warning.patch
-i386-make-apic-probe-function-non-init.patch
-modpost-add-more-symbols-to-whitelist-pattern2.patch
-modpost-whitelist-reference-to-more-symbols-pattern-3.patch
-clockevents-i386-drivers.patch
+implement-file-posix-capabilities.patch
+file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+file-capabilities-honor-secure_noroot.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fix.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user_ns-handle-file-sigio.patch
+user-ns-implement-user-ns-unshare.patch
+user-ns-implement-user-ns-unshare-tidy.patch
