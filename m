@@ -1,144 +1,90 @@
 From: akpm@osdl.org
-Subject: + user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch added to -mm tree
-Date: Thu, 04 Jan 2007 14:10:30 -0800
-Message-ID: <200701042210.l04MAUcd000439@shell0.pdx.osdl.net>
+Subject: + check-for-populated-zone-in-__drain_pages.patch added to -mm tree
+Date: Thu, 04 Jan 2007 14:11:46 -0800
+Message-ID: <200701042211.l04MBlgH000470@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:58241 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:58259 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965084AbXADWLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 17:11:45 -0500
+	id S965081AbXADWL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 17:11:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
+Cc: clameter@sgi.com
 
 
 The patch titled
-     user ns: prepare copy_tree, copy_mnt, and their callers to handle errs
+     Check for populated zone in __drain_pages
 has been added to the -mm tree.  Its filename is
-     user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+     check-for-populated-zone-in-__drain_pages.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user ns: prepare copy_tree, copy_mnt, and their callers to handle errs
+Subject: Check for populated zone in __drain_pages
+From: Christoph Lameter <clameter@sgi.com>
 
+Both process_zones() and drain_node_pages() check for populated zones
+before touching pagesets.  However, __drain_pages does not do so,
 
-With shareduserns and non-shareduserns mounts, it will be possible for
-clone_mnt to return -EPERM if a namespace tries to bind mount a
-non-shareduserns vfsmnt from another user namespace.  But currently they only
-return NULL, which is interpreted as -ENOMEM.  Update the callers to handle
-other errors.
+This may result in a NULL pointer dereference for pagesets in unpopulated
+zones if a NUMA setup is combined with cpu hotplug.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Initially the unpopulated zone has the pcp pointers pointing to the boot
+pagesets.  Since the zone is not populated the boot pageset pointers will
+not be changed during page allocator and slab bootstrap.
+
+If a cpu is later brought down (first call to __drain_pages()) then the pcp
+pointers for cpus in unpopulated zones are set to NULL since __drain_pages
+does not first check for an unpopulated zone.
+
+If the cpu is then brought up again then we call process_zones() which will
+ignore the unpopulated zone.  So the pageset pointers will still be NULL.
+
+If the cpu is then again brought down then __drain_pages will attempt to
+drain pages by following the NULL pageset pointer for unpopulated zones.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/namespace.c |   20 ++++++++++++--------
- fs/pnode.c     |    5 +++--
- 2 files changed, 15 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN fs/namespace.c~user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs fs/namespace.c
---- a/fs/namespace.c~user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs
-+++ a/fs/namespace.c
-@@ -708,8 +708,9 @@ struct vfsmount *copy_tree(struct vfsmou
- 		return NULL;
+diff -puN mm/page_alloc.c~check-for-populated-zone-in-__drain_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~check-for-populated-zone-in-__drain_pages
++++ a/mm/page_alloc.c
+@@ -715,6 +715,9 @@ static void __drain_pages(unsigned int c
+ 	for_each_zone(zone) {
+ 		struct per_cpu_pageset *pset;
  
- 	res = q = clone_mnt(mnt, dentry, flag);
--	if (!q)
--		goto Enomem;
-+	if (!q || IS_ERR(q)) {
-+		return q;
-+	}
- 	q->mnt_mountpoint = mnt->mnt_mountpoint;
- 
- 	p = mnt;
-@@ -730,8 +731,9 @@ struct vfsmount *copy_tree(struct vfsmou
- 			nd.mnt = q;
- 			nd.dentry = p->mnt_mountpoint;
- 			q = clone_mnt(p, p->mnt_root, flag);
--			if (!q)
--				goto Enomem;
-+			if (!q || IS_ERR(q)) {
-+				goto Error;
-+			}
- 			spin_lock(&vfsmount_lock);
- 			list_add_tail(&q->mnt_list, &res->mnt_list);
- 			attach_mnt(q, &nd);
-@@ -739,7 +741,7 @@ struct vfsmount *copy_tree(struct vfsmou
- 		}
- 	}
- 	return res;
--Enomem:
-+Error:
- 	if (res) {
- 		LIST_HEAD(umount_list);
- 		spin_lock(&vfsmount_lock);
-@@ -747,7 +749,7 @@ Enomem:
- 		spin_unlock(&vfsmount_lock);
- 		release_mounts(&umount_list);
- 	}
--	return NULL;
-+	return q;
- }
- 
- /*
-@@ -927,8 +929,10 @@ static int do_loopback(struct nameidata 
- 	else
- 		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, 0);
- 
--	if (!mnt)
-+	if (!mnt || IS_ERR(mnt)) {
-+		err = mnt ? PTR_ERR(mnt) : -ENOMEM;
- 		goto out;
-+	}
- 
- 	err = graft_tree(mnt, nd);
- 	if (err) {
-@@ -1465,7 +1469,7 @@ struct mnt_namespace *dup_mnt_ns(struct 
- 	/* First pass: copy the tree topology */
- 	new_ns->root = copy_tree(mnt_ns->root, mnt_ns->root->mnt_root,
- 					CL_COPY_ALL | CL_EXPIRE);
--	if (!new_ns->root) {
-+	if (!new_ns->root || IS_ERR(new_ns->root)) {
- 		up_write(&namespace_sem);
- 		kfree(new_ns);
- 		return NULL;
-diff -puN fs/pnode.c~user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs fs/pnode.c
---- a/fs/pnode.c~user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs
-+++ a/fs/pnode.c
-@@ -187,8 +187,9 @@ int propagate_mnt(struct vfsmount *dest_
- 
- 		source =  get_source(m, prev_dest_mnt, prev_src_mnt, &type);
- 
--		if (!(child = copy_tree(source, source->mnt_root, type))) {
--			ret = -ENOMEM;
-+		child = copy_tree(source, source->mnt_root, type);
-+		if (!child || IS_ERR(child)) {
-+			ret = child ? PTR_ERR(child) : -ENOMEM;
- 			list_splice(tree_list, tmp_list.prev);
- 			goto out;
- 		}
++		if (!populated_zone(zone))
++			continue;
++
+ 		pset = zone_pcp(zone, cpu);
+ 		for (i = 0; i < ARRAY_SIZE(pset->pcp); i++) {
+ 			struct per_cpu_pages *pcp;
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-nsproxy-externalizes-exit_task_namespaces.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-the-framework-fix.patch
-user-ns-add-user_namespace-ptr-to-vfsmount.patch
-user-ns-hook-permission.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-shared-mounts.patch
-user_ns-handle-file-sigio.patch
-user-ns-implement-user-ns-unshare.patch
-user-ns-implement-user-ns-unshare-tidy.patch
+fix-bug_onpageslab-from-fallback_alloc.patch
+check-for-populated-zone-in-__drain_pages.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
