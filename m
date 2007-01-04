@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-remove-invlpg-interception.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:04 -0800
-Message-ID: <200701041912.l04JC4Mx028341@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-page-table-write-flood-protection.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:16 -0800
+Message-ID: <200701041912.l04JCGgn028374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:45015 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:45018 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965095AbXADTMX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:23 -0500
+	id S1030186AbXADTMY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,187 +15,85 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Remove invlpg interception
+     KVM: MMU: Page table write flood protection
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-remove-invlpg-interception.patch
+     kvm-mmu-page-table-write-flood-protection.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Remove invlpg interception
+Subject: KVM: MMU: Page table write flood protection
 From: Avi Kivity <avi@qumranet.com>
 
-Since we write protect shadowed guest page tables, there is no need to trap
-page invalidations (the guest will always change the mapping before issuing
-the invlpg instruction).
+In fork() (or when we protect a page that is no longer a page table), we can
+experience floods of writes to a page, which have to be emulated.  This is
+expensive.
+
+So, if we detect such a flood, zap the page so subsequent writes can proceed
+natively.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    1 
- drivers/kvm/kvm_main.c |    4 ---
- drivers/kvm/mmu.c      |   43 ---------------------------------------
- drivers/kvm/svm.c      |    1 
- drivers/kvm/vmx.c      |   13 -----------
- 5 files changed, 62 deletions(-)
+ drivers/kvm/kvm.h |    3 +++
+ drivers/kvm/mmu.c |   16 +++++++++++++++-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-mmu-remove-invlpg-interception drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-mmu-remove-invlpg-interception
+diff -puN drivers/kvm/kvm.h~kvm-mmu-page-table-write-flood-protection drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-mmu-page-table-write-flood-protection
 +++ a/drivers/kvm/kvm.h
-@@ -158,7 +158,6 @@ struct kvm_vcpu;
- struct kvm_mmu {
- 	void (*new_cr3)(struct kvm_vcpu *vcpu);
- 	int (*page_fault)(struct kvm_vcpu *vcpu, gva_t gva, u32 err);
--	void (*inval_page)(struct kvm_vcpu *vcpu, gva_t gva);
- 	void (*free)(struct kvm_vcpu *vcpu);
- 	gpa_t (*gva_to_gpa)(struct kvm_vcpu *vcpu, gva_t gva);
- 	hpa_t root_hpa;
-diff -puN drivers/kvm/kvm_main.c~kvm-mmu-remove-invlpg-interception drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-mmu-remove-invlpg-interception
-+++ a/drivers/kvm/kvm_main.c
-@@ -943,10 +943,6 @@ static unsigned long get_segment_base(st
+@@ -238,6 +238,9 @@ struct kvm_vcpu {
+ 	struct kvm_mmu_page page_header_buf[KVM_NUM_MMU_PAGES];
+ 	struct kvm_mmu mmu;
  
- int emulate_invlpg(struct kvm_vcpu *vcpu, gva_t address)
- {
--	spin_lock(&vcpu->kvm->lock);
--	vcpu->mmu.inval_page(vcpu, address);
--	spin_unlock(&vcpu->kvm->lock);
--	kvm_arch_ops->invlpg(vcpu, address);
- 	return X86EMUL_CONTINUE;
- }
++	gfn_t last_pt_write_gfn;
++	int   last_pt_write_count;
++
+ 	struct kvm_guest_debug guest_debug;
  
-diff -puN drivers/kvm/mmu.c~kvm-mmu-remove-invlpg-interception drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-remove-invlpg-interception
+ 	char fx_buf[FX_BUF_SIZE];
+diff -puN drivers/kvm/mmu.c~kvm-mmu-page-table-write-flood-protection drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-page-table-write-flood-protection
 +++ a/drivers/kvm/mmu.c
-@@ -767,10 +767,6 @@ static int nonpaging_page_fault(struct k
- 	return nonpaging_map(vcpu, addr & PAGE_MASK, paddr);
- }
+@@ -969,8 +969,17 @@ void kvm_mmu_pre_write(struct kvm_vcpu *
+ 	unsigned page_offset;
+ 	unsigned misaligned;
+ 	int level;
++	int flooded = 0;
  
--static void nonpaging_inval_page(struct kvm_vcpu *vcpu, gva_t addr)
--{
--}
--
- static void nonpaging_free(struct kvm_vcpu *vcpu)
- {
- 	mmu_free_roots(vcpu);
-@@ -782,7 +778,6 @@ static int nonpaging_init_context(struct
- 
- 	context->new_cr3 = nonpaging_new_cr3;
- 	context->page_fault = nonpaging_page_fault;
--	context->inval_page = nonpaging_inval_page;
- 	context->gva_to_gpa = nonpaging_gva_to_gpa;
- 	context->free = nonpaging_free;
- 	context->root_level = 0;
-@@ -895,42 +890,6 @@ static int may_access(u64 pte, int write
- 	return 1;
- }
- 
--/*
-- * Remove a shadow pte.
-- */
--static void paging_inval_page(struct kvm_vcpu *vcpu, gva_t addr)
--{
--	hpa_t page_addr = vcpu->mmu.root_hpa;
--	int level = vcpu->mmu.shadow_root_level;
--
--	++kvm_stat.invlpg;
--
--	for (; ; level--) {
--		u32 index = PT64_INDEX(addr, level);
--		u64 *table = __va(page_addr);
--
--		if (level == PT_PAGE_TABLE_LEVEL ) {
--			rmap_remove(vcpu->kvm, &table[index]);
--			table[index] = 0;
--			return;
--		}
--
--		if (!is_present_pte(table[index]))
--			return;
--
--		page_addr = table[index] & PT64_BASE_ADDR_MASK;
--
--		if (level == PT_DIRECTORY_LEVEL &&
--			  (table[index] & PT_SHADOW_PS_MARK)) {
--			table[index] = 0;
--			release_pt_page_64(vcpu, page_addr, PT_PAGE_TABLE_LEVEL);
--
--			kvm_arch_ops->tlb_flush(vcpu);
--			return;
--		}
--	}
--}
--
- static void paging_free(struct kvm_vcpu *vcpu)
- {
- 	nonpaging_free(vcpu);
-@@ -951,7 +910,6 @@ static int paging64_init_context_common(
- 	ASSERT(is_pae(vcpu));
- 	context->new_cr3 = paging_new_cr3;
- 	context->page_fault = paging64_page_fault;
--	context->inval_page = paging_inval_page;
- 	context->gva_to_gpa = paging64_gva_to_gpa;
- 	context->free = paging_free;
- 	context->root_level = level;
-@@ -974,7 +932,6 @@ static int paging32_init_context(struct 
- 
- 	context->new_cr3 = paging_new_cr3;
- 	context->page_fault = paging32_page_fault;
--	context->inval_page = paging_inval_page;
- 	context->gva_to_gpa = paging32_gva_to_gpa;
- 	context->free = paging_free;
- 	context->root_level = PT32_ROOT_LEVEL;
-diff -puN drivers/kvm/svm.c~kvm-mmu-remove-invlpg-interception drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-mmu-remove-invlpg-interception
-+++ a/drivers/kvm/svm.c
-@@ -497,7 +497,6 @@ static void init_vmcb(struct vmcb *vmcb)
- 		/*              (1ULL << INTERCEPT_SELECTIVE_CR0) | */
- 				(1ULL << INTERCEPT_CPUID) |
- 				(1ULL << INTERCEPT_HLT) |
--				(1ULL << INTERCEPT_INVLPG) |
- 				(1ULL << INTERCEPT_INVLPGA) |
- 				(1ULL << INTERCEPT_IOIO_PROT) |
- 				(1ULL << INTERCEPT_MSR_PROT) |
-diff -puN drivers/kvm/vmx.c~kvm-mmu-remove-invlpg-interception drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-mmu-remove-invlpg-interception
-+++ a/drivers/kvm/vmx.c
-@@ -1059,7 +1059,6 @@ static int vmx_vcpu_setup(struct kvm_vcp
- 			       | CPU_BASED_CR8_LOAD_EXITING    /* 20.6.2 */
- 			       | CPU_BASED_CR8_STORE_EXITING   /* 20.6.2 */
- 			       | CPU_BASED_UNCOND_IO_EXITING   /* 20.6.2 */
--			       | CPU_BASED_INVDPG_EXITING
- 			       | CPU_BASED_MOV_DR_EXITING
- 			       | CPU_BASED_USE_TSC_OFFSETING   /* 21.3 */
- 			);
-@@ -1438,17 +1437,6 @@ static int handle_io(struct kvm_vcpu *vc
- 	return 0;
- }
- 
--static int handle_invlpg(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
--{
--	u64 address = vmcs_read64(EXIT_QUALIFICATION);
--	int instruction_length = vmcs_read32(VM_EXIT_INSTRUCTION_LEN);
--	spin_lock(&vcpu->kvm->lock);
--	vcpu->mmu.inval_page(vcpu, address);
--	spin_unlock(&vcpu->kvm->lock);
--	vmcs_writel(GUEST_RIP, vmcs_readl(GUEST_RIP) + instruction_length);
--	return 1;
--}
--
- static int handle_cr(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
- {
- 	u64 exit_qualification;
-@@ -1636,7 +1624,6 @@ static int (*kvm_vmx_exit_handlers[])(st
- 	[EXIT_REASON_EXCEPTION_NMI]           = handle_exception,
- 	[EXIT_REASON_EXTERNAL_INTERRUPT]      = handle_external_interrupt,
- 	[EXIT_REASON_IO_INSTRUCTION]          = handle_io,
--	[EXIT_REASON_INVLPG]                  = handle_invlpg,
- 	[EXIT_REASON_CR_ACCESS]               = handle_cr,
- 	[EXIT_REASON_DR_ACCESS]               = handle_dr,
- 	[EXIT_REASON_CPUID]                   = handle_cpuid,
+ 	pgprintk("%s: gpa %llx bytes %d\n", __FUNCTION__, gpa, bytes);
++	if (gfn == vcpu->last_pt_write_gfn) {
++		++vcpu->last_pt_write_count;
++		if (vcpu->last_pt_write_count >= 3)
++			flooded = 1;
++	} else {
++		vcpu->last_pt_write_gfn = gfn;
++		vcpu->last_pt_write_count = 1;
++	}
+ 	index = kvm_page_table_hashfn(gfn) % KVM_NUM_MMU_PAGES;
+ 	bucket = &vcpu->kvm->mmu_page_hash[index];
+ 	hlist_for_each_entry_safe(page, node, n, bucket, hash_link) {
+@@ -978,11 +987,16 @@ void kvm_mmu_pre_write(struct kvm_vcpu *
+ 			continue;
+ 		pte_size = page->role.glevels == PT32_ROOT_LEVEL ? 4 : 8;
+ 		misaligned = (offset ^ (offset + bytes - 1)) & ~(pte_size - 1);
+-		if (misaligned) {
++		if (misaligned || flooded) {
+ 			/*
+ 			 * Misaligned accesses are too much trouble to fix
+ 			 * up; also, they usually indicate a page is not used
+ 			 * as a page table.
++			 *
++			 * If we're seeing too many writes to a page,
++			 * it may no longer be a page table, or we may be
++			 * forking, in which case it is better to unmap the
++			 * page.
+ 			 */
+ 			pgprintk("misaligned: gpa %llx bytes %d role %x\n",
+ 				 gpa, bytes, page->role.word);
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
