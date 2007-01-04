@@ -1,133 +1,160 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:11:34 -0800
-Message-ID: <200701041911.l04JBYQ8028281@shell0.pdx.osdl.net>
+Subject: + kvm-prevent-stale-bits-in-cr0-and-cr4.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:11:28 -0800
+Message-ID: <200701041911.l04JBSAm028271@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44925 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:44893 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030184AbXADTL6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:11:58 -0500
+	id S965063AbXADTLn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:11:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com, mingo@elte.hu
+Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: MMU: Load the pae pdptrs on cr3 change like the processor does
+     KVM: Prevent stale bits in cr0 and cr4
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does.patch
+     kvm-prevent-stale-bits-in-cr0-and-cr4.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Load the pae pdptrs on cr3 change like the processor does
+Subject: KVM: Prevent stale bits in cr0 and cr4
 From: Avi Kivity <avi@qumranet.com>
 
-In pae mode, a load of cr3 loads the four third-level page table entries in
-addition to cr3 itself.
+Hardware virtualization implementations allow the guests to freely change some
+of the bits in cr0 and cr4, but trap when changing the other bits.  This is
+useful to avoid excessive exits due to changing, for example, the ts flag.
+
+It also means the kvm's copy of cr0 and cr4 may be stale with respect to these
+bits.  most of the time this doesn't matter as these bits are not very
+interesting.  Other times, however (for example when returning cr0 to
+userspace), they are, so get the fresh contents of these bits from the guest
+by means of a new arch operation.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  drivers/kvm/kvm.h      |    1 +
- drivers/kvm/kvm_main.c |   29 +++++++++++++++++++----------
- 2 files changed, 20 insertions(+), 10 deletions(-)
+ drivers/kvm/kvm_main.c |   10 ++++++++--
+ drivers/kvm/svm.c      |    5 +++++
+ drivers/kvm/vmx.c      |   10 ++++++++++
+ 4 files changed, 24 insertions(+), 2 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does
+diff -puN drivers/kvm/kvm.h~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-prevent-stale-bits-in-cr0-and-cr4
 +++ a/drivers/kvm/kvm.h
-@@ -185,6 +185,7 @@ struct kvm_vcpu {
- 	unsigned long cr3;
- 	unsigned long cr4;
- 	unsigned long cr8;
-+	u64 pdptrs[4]; /* pae */
- 	u64 shadow_efer;
- 	u64 apic_base;
- 	int nmsrs;
-diff -puN drivers/kvm/kvm_main.c~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does
+@@ -283,6 +283,7 @@ struct kvm_arch_ops {
+ 	void (*set_segment)(struct kvm_vcpu *vcpu,
+ 			    struct kvm_segment *var, int seg);
+ 	void (*get_cs_db_l_bits)(struct kvm_vcpu *vcpu, int *db, int *l);
++	void (*decache_cr0_cr4_guest_bits)(struct kvm_vcpu *vcpu);
+ 	void (*set_cr0)(struct kvm_vcpu *vcpu, unsigned long cr0);
+ 	void (*set_cr0_no_modeswitch)(struct kvm_vcpu *vcpu,
+ 				      unsigned long cr0);
+diff -puN drivers/kvm/kvm_main.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-prevent-stale-bits-in-cr0-and-cr4
 +++ a/drivers/kvm/kvm_main.c
-@@ -298,14 +298,17 @@ static void inject_gp(struct kvm_vcpu *v
- 	kvm_arch_ops->inject_gp(vcpu, 0);
- }
+@@ -390,6 +390,7 @@ EXPORT_SYMBOL_GPL(set_cr0);
  
--static int pdptrs_have_reserved_bits_set(struct kvm_vcpu *vcpu,
--					 unsigned long cr3)
-+/*
-+ * Load the pae pdptrs.  Return true is they are all valid.
-+ */
-+static int load_pdptrs(struct kvm_vcpu *vcpu, unsigned long cr3)
+ void lmsw(struct kvm_vcpu *vcpu, unsigned long msw)
  {
- 	gfn_t pdpt_gfn = cr3 >> PAGE_SHIFT;
--	unsigned offset = (cr3 & (PAGE_SIZE-1)) >> 5;
-+	unsigned offset = ((cr3 & (PAGE_SIZE-1)) >> 5) << 2;
- 	int i;
- 	u64 pdpte;
- 	u64 *pdpt;
-+	int ret;
- 	struct kvm_memory_slot *memslot;
++	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
+ 	set_cr0(vcpu, (vcpu->cr0 & ~0x0ful) | (msw & 0x0f));
+ }
+ EXPORT_SYMBOL_GPL(lmsw);
+@@ -917,9 +918,10 @@ int emulate_invlpg(struct kvm_vcpu *vcpu
  
- 	spin_lock(&vcpu->kvm->lock);
-@@ -313,16 +316,23 @@ static int pdptrs_have_reserved_bits_set
- 	/* FIXME: !memslot - emulate? 0xff? */
- 	pdpt = kmap_atomic(gfn_to_page(memslot, pdpt_gfn), KM_USER0);
+ int emulate_clts(struct kvm_vcpu *vcpu)
+ {
+-	unsigned long cr0 = vcpu->cr0;
++	unsigned long cr0;
  
-+	ret = 1;
- 	for (i = 0; i < 4; ++i) {
- 		pdpte = pdpt[offset + i];
--		if ((pdpte & 1) && (pdpte & 0xfffffff0000001e6ull))
--			break;
-+		if ((pdpte & 1) && (pdpte & 0xfffffff0000001e6ull)) {
-+			ret = 0;
-+			goto out;
-+		}
- 	}
+-	cr0 &= ~CR0_TS_MASK;
++	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
++	cr0 = vcpu->cr0 & ~CR0_TS_MASK;
+ 	kvm_arch_ops->set_cr0(vcpu, cr0);
+ 	return X86EMUL_CONTINUE;
+ }
+@@ -1072,6 +1074,7 @@ void realmode_lmsw(struct kvm_vcpu *vcpu
  
-+	for (i = 0; i < 4; ++i)
-+		vcpu->pdptrs[i] = pdpt[offset + i];
+ unsigned long realmode_get_cr(struct kvm_vcpu *vcpu, int cr)
+ {
++	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
+ 	switch (cr) {
+ 	case 0:
+ 		return vcpu->cr0;
+@@ -1406,6 +1409,7 @@ static int kvm_dev_ioctl_get_sregs(struc
+ 	sregs->gdt.limit = dt.limit;
+ 	sregs->gdt.base = dt.base;
+ 
++	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
+ 	sregs->cr0 = vcpu->cr0;
+ 	sregs->cr2 = vcpu->cr2;
+ 	sregs->cr3 = vcpu->cr3;
+@@ -1470,6 +1474,8 @@ static int kvm_dev_ioctl_set_sregs(struc
+ #endif
+ 	vcpu->apic_base = sregs->apic_base;
+ 
++	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
 +
-+out:
- 	kunmap_atomic(pdpt, KM_USER0);
- 	spin_unlock(&vcpu->kvm->lock);
+ 	mmu_reset_needed |= vcpu->cr0 != sregs->cr0;
+ 	kvm_arch_ops->set_cr0_no_modeswitch(vcpu, sregs->cr0);
  
--	return i != 4;
-+	return ret;
+diff -puN drivers/kvm/svm.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-prevent-stale-bits-in-cr0-and-cr4
++++ a/drivers/kvm/svm.c
+@@ -702,6 +702,10 @@ static void svm_set_gdt(struct kvm_vcpu 
+ 	vcpu->svm->vmcb->save.gdtr.base = dt->base ;
  }
  
- void set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
-@@ -368,8 +378,7 @@ void set_cr0(struct kvm_vcpu *vcpu, unsi
- 			}
- 		} else
++static void svm_decache_cr0_cr4_guest_bits(struct kvm_vcpu *vcpu)
++{
++}
++
+ static void svm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+ {
+ #ifdef CONFIG_X86_64
+@@ -1645,6 +1649,7 @@ static struct kvm_arch_ops svm_arch_ops 
+ 	.get_segment = svm_get_segment,
+ 	.set_segment = svm_set_segment,
+ 	.get_cs_db_l_bits = svm_get_cs_db_l_bits,
++	.decache_cr0_cr4_guest_bits = svm_decache_cr0_cr4_guest_bits,
+ 	.set_cr0 = svm_set_cr0,
+ 	.set_cr0_no_modeswitch = svm_set_cr0,
+ 	.set_cr3 = svm_set_cr3,
+diff -puN drivers/kvm/vmx.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-prevent-stale-bits-in-cr0-and-cr4
++++ a/drivers/kvm/vmx.c
+@@ -737,6 +737,15 @@ static void exit_lmode(struct kvm_vcpu *
+ 
  #endif
--		if (is_pae(vcpu) &&
--			    pdptrs_have_reserved_bits_set(vcpu, vcpu->cr3)) {
-+		if (is_pae(vcpu) && !load_pdptrs(vcpu, vcpu->cr3)) {
- 			printk(KERN_DEBUG "set_cr0: #GP, pdptrs "
- 			       "reserved bits\n");
- 			inject_gp(vcpu);
-@@ -411,7 +420,7 @@ void set_cr4(struct kvm_vcpu *vcpu, unsi
- 			return;
- 		}
- 	} else if (is_paging(vcpu) && !is_pae(vcpu) && (cr4 & CR4_PAE_MASK)
--		   && pdptrs_have_reserved_bits_set(vcpu, vcpu->cr3)) {
-+		   && !load_pdptrs(vcpu, vcpu->cr3)) {
- 		printk(KERN_DEBUG "set_cr4: #GP, pdptrs reserved bits\n");
- 		inject_gp(vcpu);
- 	}
-@@ -443,7 +452,7 @@ void set_cr3(struct kvm_vcpu *vcpu, unsi
- 			return;
- 		}
- 		if (is_paging(vcpu) && is_pae(vcpu) &&
--		    pdptrs_have_reserved_bits_set(vcpu, cr3)) {
-+		    !load_pdptrs(vcpu, cr3)) {
- 			printk(KERN_DEBUG "set_cr3: #GP, pdptrs "
- 			       "reserved bits\n");
- 			inject_gp(vcpu);
+ 
++static void vmx_decache_cr0_cr4_guest_bits(struct kvm_vcpu *vcpu)
++{
++	vcpu->cr0 &= KVM_GUEST_CR0_MASK;
++	vcpu->cr0 |= vmcs_readl(GUEST_CR0) & ~KVM_GUEST_CR0_MASK;
++
++	vcpu->cr4 &= KVM_GUEST_CR4_MASK;
++	vcpu->cr4 |= vmcs_readl(GUEST_CR4) & ~KVM_GUEST_CR4_MASK;
++}
++
+ static void vmx_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+ {
+ 	if (vcpu->rmode.active && (cr0 & CR0_PE_MASK))
+@@ -2002,6 +2011,7 @@ static struct kvm_arch_ops vmx_arch_ops 
+ 	.get_segment = vmx_get_segment,
+ 	.set_segment = vmx_set_segment,
+ 	.get_cs_db_l_bits = vmx_get_cs_db_l_bits,
++	.decache_cr0_cr4_guest_bits = vmx_decache_cr0_cr4_guest_bits,
+ 	.set_cr0 = vmx_set_cr0,
+ 	.set_cr0_no_modeswitch = vmx_set_cr0_no_modeswitch,
+ 	.set_cr3 = vmx_set_cr3,
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
