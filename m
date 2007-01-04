@@ -1,57 +1,92 @@
 From: akpm@osdl.org
-Subject: + user-namespace-add-the-framework.patch added to -mm tree
-Date: Thu, 04 Jan 2007 14:10:22 -0800
-Message-ID: <200701042210.l04MAMml000424@shell0.pdx.osdl.net>
+Subject: + user-ns-implement-user-ns-unshare.patch added to -mm tree
+Date: Thu, 04 Jan 2007 14:10:40 -0800
+Message-ID: <200701042210.l04MAfLi000451@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:59334 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:59345 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965112AbXADWXJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 17:23:09 -0500
+	id S965109AbXADWXT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 17:23:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
+Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
 
 
 The patch titled
-     user namespace: add the framework
+     /8] user ns: implement user ns unshare
 has been added to the -mm tree.  Its filename is
-     user-namespace-add-the-framework.patch
+     user-ns-implement-user-ns-unshare.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user namespace: add the framework
+Subject: /8] user ns: implement user ns unshare
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
+Quoting Frederik Deweerdt (deweerdt@free.fr):
+> On Thu, Jan 04, 2007 at 12:13:10PM -0600, Serge E. Hallyn wrote:
+> > From: Serge E. Hallyn <serue@us.ibm.com>
+> > Subject: [PATCH -mm 8/8] user ns: implement user ns unshare
+> >
+> > Implement CLONE_NEWUSER flag useable at clone/unshare.
+> >
+> > Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+> > ---
+>
+> >  int copy_user_ns(int flags, struct task_struct *tsk)
+> >  {
+> > -	struct user_namespace *old_ns = tsk->nsproxy->user_ns;
+> > +	struct user_namespace *new_ns, *old_ns = tsk->nsproxy->user_ns;
+> >  	int err = 0;
+>         ^^^^^^^^^^^^
+> The "= 0" is superfluous here.
 
-Add the user namespace struct and framework
+Ah, since I set it anyway, good point.
 
-Basically, it will allow a process to unshare its user_struct table, resetting
-at the same time its own user_struct and all the associated accounting.
+> >
+> >  	if (!old_ns)
+> >  		return 0;
+> >
+> >  	get_user_ns(old_ns);
+> > -	return err;
+> > +	if (!(flags & CLONE_NEWUSER))
+> > +		return 0;
+> > +	err = -EPERM;
+> > +	if (!capable(CAP_SYS_ADMIN))
+> > +		goto out;
+> > +	err = -ENOMEM;
+> > +	new_ns = clone_user_ns(old_ns);
+> > +	if (!new_ns)
+> > +		goto out;
+> > +
+> > +	tsk->nsproxy->user_ns = new_ns;
+> > +	err = 0;
+> > +out:
+> > +	put_user_ns(old_ns);
+> > +	return 0;
+>         ^^^^^^^^^
+> Should be "return err;"
 
-A new root user (uid == 0) is added to the user namespace upon creation.  Such
-root users have full privileges and it seems that theses privileges should be
-controlled through some means (process capabilities ?)
+Yes it should.
 
-The unshare is not included in this patch.
+New patch attached.
 
-Changes since [try #4]:
-	- Updated get_user_ns and put_user_ns to accept NULL, and
-	  get_user_ns to return the namespace.
+(I suppose the testcase should check for the CAP_SYS_ADMIN
+error case...)
 
-Changes since [try #3]:
-	- moved struct user_namespace to files user_namespace.{c,h}
+Thanks for the close review!
 
-Changes since [try #2]:
-	- removed struct user_namespace* argument from find_user()
+-serge
 
-Changes since [try #1]:
-	- removed struct user_namespace* argument from find_user()
-	- added a root_user per user namespace
+Subject: [PATCH 8/8] user ns: implement user ns unshare
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Implement CLONE_NEWUSER flag useable at clone/unshare.
+
+Changes:
+	Jan 4: return the actual error value in copy_user_ns().
 
 Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
@@ -60,352 +95,245 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/init_task.h      |    2 +
- include/linux/nsproxy.h        |    1 
- include/linux/sched.h          |    3 +
- include/linux/user_namespace.h |   53 +++++++++++++++++++++++++++++++
- init/Kconfig                   |    8 ++++
- kernel/Makefile                |    2 -
- kernel/fork.c                  |    2 -
- kernel/nsproxy.c               |   12 +++++++
- kernel/sys.c                   |    5 +-
- kernel/user.c                  |   18 +++++-----
- kernel/user_namespace.c        |   44 +++++++++++++++++++++++++
- 11 files changed, 136 insertions(+), 14 deletions(-)
+ include/linux/sched.h          |    1 
+ include/linux/user_namespace.h |   10 ++++
+ kernel/fork.c                  |   22 +++++++--
+ kernel/nsproxy.c               |    2 
+ kernel/user_namespace.c        |   74 ++++++++++++++++++++++++++++++-
+ 5 files changed, 102 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/init_task.h~user-namespace-add-the-framework include/linux/init_task.h
---- a/include/linux/init_task.h~user-namespace-add-the-framework
-+++ a/include/linux/init_task.h
-@@ -8,6 +8,7 @@
- #include <linux/lockdep.h>
- #include <linux/ipc.h>
- #include <linux/pid_namespace.h>
-+#include <linux/user_namespace.h>
+diff -puN include/linux/sched.h~user-ns-implement-user-ns-unshare include/linux/sched.h
+--- a/include/linux/sched.h~user-ns-implement-user-ns-unshare
++++ a/include/linux/sched.h
+@@ -26,6 +26,7 @@
+ #define CLONE_STOPPED		0x02000000	/* Start in stopped state */
+ #define CLONE_NEWUTS		0x04000000	/* New utsname group? */
+ #define CLONE_NEWIPC		0x08000000	/* New ipcs */
++#define CLONE_NEWUSER		0x10000000	/* New user namespace */
  
- #define INIT_FDTABLE \
- {							\
-@@ -78,6 +79,7 @@ extern struct nsproxy init_nsproxy;
- 	.uts_ns		= &init_uts_ns,					\
- 	.mnt_ns		= NULL,						\
- 	INIT_IPC_NS(ipc_ns)						\
-+	.user_ns	= &init_user_ns,				\
+ /*
+  * Scheduling policies
+diff -puN include/linux/user_namespace.h~user-ns-implement-user-ns-unshare include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~user-ns-implement-user-ns-unshare
++++ a/include/linux/user_namespace.h
+@@ -26,6 +26,7 @@ static inline struct user_namespace *get
  }
  
- #define INIT_SIGHAND(sighand) {						\
-diff -puN include/linux/nsproxy.h~user-namespace-add-the-framework include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~user-namespace-add-the-framework
-+++ a/include/linux/nsproxy.h
-@@ -29,6 +29,7 @@ struct nsproxy {
- 	struct ipc_namespace *ipc_ns;
- 	struct mnt_namespace *mnt_ns;
- 	struct pid_namespace *pid_ns;
-+	struct user_namespace *user_ns;
- };
- extern struct nsproxy init_nsproxy;
+ extern int copy_user_ns(int flags, struct task_struct *tsk);
++extern int unshare_user_ns(unsigned long flags, struct user_namespace **new_user);
+ extern void free_user_ns(struct kref *kref);
  
-diff -puN include/linux/sched.h~user-namespace-add-the-framework include/linux/sched.h
---- a/include/linux/sched.h~user-namespace-add-the-framework
-+++ a/include/linux/sched.h
-@@ -251,6 +251,7 @@ extern signed long schedule_timeout_unin
- asmlinkage void schedule(void);
+ static inline void put_user_ns(struct user_namespace *ns)
+@@ -41,6 +42,15 @@ static inline struct user_namespace *get
+ 	return NULL;
+ }
  
- struct nsproxy;
-+struct user_namespace;
- 
- /* Maximum number of active map areas.. This is a random (large) number */
- #define DEFAULT_MAX_MAP_COUNT	65536
-@@ -1282,7 +1283,7 @@ extern struct task_struct *find_task_by_
- extern void __set_special_pids(pid_t session, pid_t pgrp);
- 
- /* per-UID process charging. */
--extern struct user_struct * alloc_uid(uid_t);
-+extern struct user_struct * alloc_uid(struct user_namespace *, uid_t);
- static inline struct user_struct *get_uid(struct user_struct *u)
- {
- 	atomic_inc(&u->__count);
-diff -puN /dev/null include/linux/user_namespace.h
---- /dev/null
-+++ a/include/linux/user_namespace.h
-@@ -0,0 +1,53 @@
-+#ifndef _LINUX_USER_NAMESPACE_H
-+#define _LINUX_USER_NAMESPACE_H
-+
-+#include <linux/kref.h>
-+#include <linux/nsproxy.h>
-+
-+#define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 8)
-+#define UIDHASH_SZ	(1 << UIDHASH_BITS)
-+
-+struct user_namespace {
-+	struct kref		kref;
-+	struct list_head	uidhash_table[UIDHASH_SZ];
-+	struct user_struct	*root_user;
-+};
-+
-+extern struct user_namespace init_user_ns;
-+
-+#ifdef CONFIG_USER_NS
-+
-+static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
++static inline int unshare_user_ns(unsigned long flags,
++			 struct user_namespace **new_user)
 +{
-+	if (ns)
-+		kref_get(&ns->kref);
-+	return ns;
-+}
++	if (flags & CLONE_NEWUSER)
++		return -EINVAL;
 +
-+extern int copy_user_ns(int flags, struct task_struct *tsk);
-+extern void free_user_ns(struct kref *kref);
-+
-+static inline void put_user_ns(struct user_namespace *ns)
-+{
-+	if (ns)
-+		kref_put(&ns->kref, free_user_ns);
-+}
-+
-+#else
-+
-+static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
-+{
-+	return NULL;
-+}
-+
-+static inline int copy_user_ns(int flags, struct task_struct *tsk)
-+{
 +	return 0;
 +}
 +
-+static inline void put_user_ns(struct user_namespace *ns)
-+{
-+}
-+#endif
-+
-+#endif /* _LINUX_USER_H */
-diff -puN init/Kconfig~user-namespace-add-the-framework init/Kconfig
---- a/init/Kconfig~user-namespace-add-the-framework
-+++ a/init/Kconfig
-@@ -222,6 +222,14 @@ config UTS_NS
- 	  vservers, to use uts namespaces to provide different
- 	  uts info for different servers.  If unsure, say N.
- 
-+config USER_NS
-+	bool "User Namespaces"
-+	default n
-+	help
-+	  Support user namespaces.  This allows containers, i.e.
-+	  vservers, to use user namespaces to provide different
-+	  user info for different servers.  If unsure, say N.
-+
- config AUDIT
- 	bool "Auditing support"
- 	depends on NET
-diff -puN kernel/Makefile~user-namespace-add-the-framework kernel/Makefile
---- a/kernel/Makefile~user-namespace-add-the-framework
-+++ a/kernel/Makefile
-@@ -4,7 +4,7 @@
- 
- obj-y     = sched.o fork.o exec_domain.o panic.o printk.o profile.o \
- 	    exit.o itimer.o time.o softirq.o resource.o \
--	    sysctl.o capability.o ptrace.o timer.o user.o \
-+	    sysctl.o capability.o ptrace.o timer.o user.o user_namespace.o \
- 	    signal.o sys.o kmod.o workqueue.o pid.o \
- 	    rcupdate.o extable.o params.o posix-timers.o \
- 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
-diff -puN kernel/fork.c~user-namespace-add-the-framework kernel/fork.c
---- a/kernel/fork.c~user-namespace-add-the-framework
-+++ a/kernel/fork.c
-@@ -996,7 +996,7 @@ static struct task_struct *copy_process(
- 	if (atomic_read(&p->user->processes) >=
- 			p->signal->rlim[RLIMIT_NPROC].rlim_cur) {
- 		if (!capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_RESOURCE) &&
--				p->user != &root_user)
-+		    p->user != current->nsproxy->user_ns->root_user)
- 			goto bad_fork_free;
- 	}
- 
-diff -puN kernel/nsproxy.c~user-namespace-add-the-framework kernel/nsproxy.c
---- a/kernel/nsproxy.c~user-namespace-add-the-framework
-+++ a/kernel/nsproxy.c
-@@ -80,6 +80,8 @@ struct nsproxy *dup_namespaces(struct ns
- 			get_ipc_ns(ns->ipc_ns);
- 		if (ns->pid_ns)
- 			get_pid_ns(ns->pid_ns);
-+		if (ns->user_ns)
-+			get_user_ns(ns->user_ns);
- 	}
- 
- 	return ns;
-@@ -127,10 +129,18 @@ int copy_namespaces(int flags, struct ta
- 	if (err)
- 		goto out_pid;
- 
-+	err = copy_user_ns(flags, tsk);
-+	if (err)
-+		goto out_user;
-+
- out:
- 	put_nsproxy(old_ns);
- 	return err;
- 
-+out_user:
-+	if (new_ns->pid_ns)
-+		put_pid_ns(new_ns->pid_ns);
-+
- out_pid:
- 	if (new_ns->ipc_ns)
- 		put_ipc_ns(new_ns->ipc_ns);
-@@ -156,5 +166,7 @@ void free_nsproxy(struct nsproxy *ns)
- 		put_ipc_ns(ns->ipc_ns);
- 	if (ns->pid_ns)
- 		put_pid_ns(ns->pid_ns);
-+	if (ns->user_ns)
-+		put_user_ns(ns->user_ns);
- 	kfree(ns);
- }
-diff -puN kernel/sys.c~user-namespace-add-the-framework kernel/sys.c
---- a/kernel/sys.c~user-namespace-add-the-framework
-+++ a/kernel/sys.c
-@@ -33,6 +33,7 @@
- #include <linux/compat.h>
- #include <linux/syscalls.h>
- #include <linux/kprobes.h>
-+#include <linux/user_namespace.h>
- 
- #include <asm/uaccess.h>
- #include <asm/io.h>
-@@ -1009,13 +1010,13 @@ static int set_user(uid_t new_ruid, int 
+ static inline int copy_user_ns(int flags, struct task_struct *tsk)
  {
- 	struct user_struct *new_user;
- 
--	new_user = alloc_uid(new_ruid);
-+	new_user = alloc_uid(current->nsproxy->user_ns, new_ruid);
- 	if (!new_user)
- 		return -EAGAIN;
- 
- 	if (atomic_read(&new_user->processes) >=
- 				current->signal->rlim[RLIMIT_NPROC].rlim_cur &&
--			new_user != &root_user) {
-+			new_user != current->nsproxy->user_ns->root_user) {
- 		free_uid(new_user);
- 		return -EAGAIN;
- 	}
-diff -puN kernel/user.c~user-namespace-add-the-framework kernel/user.c
---- a/kernel/user.c~user-namespace-add-the-framework
-+++ a/kernel/user.c
-@@ -14,20 +14,19 @@
- #include <linux/bitops.h>
- #include <linux/key.h>
- #include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/user_namespace.h>
- 
- /*
-  * UID task count cache, to get fast user lookup in "alloc_uid"
-  * when changing user ID's (ie setuid() and friends).
-  */
- 
--#define UIDHASH_BITS (CONFIG_BASE_SMALL ? 3 : 8)
--#define UIDHASH_SZ		(1 << UIDHASH_BITS)
- #define UIDHASH_MASK		(UIDHASH_SZ - 1)
- #define __uidhashfn(uid)	(((uid >> UIDHASH_BITS) + uid) & UIDHASH_MASK)
--#define uidhashentry(uid)	(uidhash_table + __uidhashfn((uid)))
-+#define uidhashentry(ns, uid)	((ns)->uidhash_table + __uidhashfn((uid)))
- 
- static struct kmem_cache *uid_cachep;
--static struct list_head uidhash_table[UIDHASH_SZ];
- 
- /*
-  * The uidhash_lock is mostly taken from process context, but it is
-@@ -94,9 +93,10 @@ struct user_struct *find_user(uid_t uid)
- {
- 	struct user_struct *ret;
- 	unsigned long flags;
-+	struct user_namespace *ns = current->nsproxy->user_ns;
- 
- 	spin_lock_irqsave(&uidhash_lock, flags);
--	ret = uid_hash_find(uid, uidhashentry(uid));
-+	ret = uid_hash_find(uid, uidhashentry(ns, uid));
- 	spin_unlock_irqrestore(&uidhash_lock, flags);
- 	return ret;
- }
-@@ -120,9 +120,9 @@ void free_uid(struct user_struct *up)
- 	}
- }
- 
--struct user_struct * alloc_uid(uid_t uid)
-+struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
- {
--	struct list_head *hashent = uidhashentry(uid);
-+	struct list_head *hashent = uidhashentry(ns, uid);
- 	struct user_struct *up;
- 
- 	spin_lock_irq(&uidhash_lock);
-@@ -211,11 +211,11 @@ static int __init uid_cache_init(void)
- 			0, SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL, NULL);
- 
- 	for(n = 0; n < UIDHASH_SZ; ++n)
--		INIT_LIST_HEAD(uidhash_table + n);
-+		INIT_LIST_HEAD(init_user_ns.uidhash_table + n);
- 
- 	/* Insert the root user immediately (init already runs as root) */
- 	spin_lock_irq(&uidhash_lock);
--	uid_hash_insert(&root_user, uidhashentry(0));
-+	uid_hash_insert(&root_user, uidhashentry(&init_user_ns, 0));
- 	spin_unlock_irq(&uidhash_lock);
- 
  	return 0;
-diff -puN /dev/null kernel/user_namespace.c
---- /dev/null
-+++ a/kernel/user_namespace.c
-@@ -0,0 +1,44 @@
-+/*
-+ *  This program is free software; you can redistribute it and/or
-+ *  modify it under the terms of the GNU General Public License as
-+ *  published by the Free Software Foundation, version 2 of the
-+ *  License.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/version.h>
-+#include <linux/nsproxy.h>
+diff -puN kernel/fork.c~user-ns-implement-user-ns-unshare kernel/fork.c
+--- a/kernel/fork.c~user-ns-implement-user-ns-unshare
++++ a/kernel/fork.c
+@@ -49,6 +49,7 @@
+ #include <linux/delayacct.h>
+ #include <linux/taskstats_kern.h>
+ #include <linux/random.h>
 +#include <linux/user_namespace.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -1623,6 +1624,7 @@ asmlinkage long sys_unshare(unsigned lon
+ 	struct nsproxy *new_nsproxy = NULL, *old_nsproxy = NULL;
+ 	struct uts_namespace *uts, *new_uts = NULL;
+ 	struct ipc_namespace *ipc, *new_ipc = NULL;
++	struct user_namespace *user, *new_user = NULL;
+ 
+ 	check_unshare_flags(&unshare_flags);
+ 
+@@ -1630,7 +1632,7 @@ asmlinkage long sys_unshare(unsigned lon
+ 	err = -EINVAL;
+ 	if (unshare_flags & ~(CLONE_THREAD|CLONE_FS|CLONE_NEWNS|CLONE_SIGHAND|
+ 				CLONE_VM|CLONE_FILES|CLONE_SYSVSEM|
+-				CLONE_NEWUTS|CLONE_NEWIPC))
++				CLONE_NEWUTS|CLONE_NEWIPC|CLONE_NEWUSER))
+ 		goto bad_unshare_out;
+ 
+ 	if ((err = unshare_thread(unshare_flags)))
+@@ -1651,18 +1653,20 @@ asmlinkage long sys_unshare(unsigned lon
+ 		goto bad_unshare_cleanup_semundo;
+ 	if ((err = unshare_ipcs(unshare_flags, &new_ipc)))
+ 		goto bad_unshare_cleanup_uts;
++	if ((err = unshare_user_ns(unshare_flags, &new_user)))
++		goto bad_unshare_cleanup_ipc;
+ 
+-	if (new_ns || new_uts || new_ipc) {
++	if (new_ns || new_uts || new_ipc || new_user) {
+ 		old_nsproxy = current->nsproxy;
+ 		new_nsproxy = dup_namespaces(old_nsproxy);
+ 		if (!new_nsproxy) {
+ 			err = -ENOMEM;
+-			goto bad_unshare_cleanup_ipc;
++			goto bad_unshare_cleanup_user;
+ 		}
+ 	}
+ 
+ 	if (new_fs || new_ns || new_mm || new_fd || new_ulist ||
+-				new_uts || new_ipc) {
++				new_uts || new_ipc || new_user) {
+ 
+ 		task_lock(current);
+ 
+@@ -1710,12 +1714,22 @@ asmlinkage long sys_unshare(unsigned lon
+ 			new_ipc = ipc;
+ 		}
+ 
++		if (new_user) {
++			user = current->nsproxy->user_ns;
++			current->nsproxy->user_ns = new_user;
++			new_user = user;
++		}
 +
-+struct user_namespace init_user_ns = {
-+	.kref = {
-+		.refcount	= ATOMIC_INIT(2),
-+	},
-+	.root_user = &root_user,
-+};
+ 		task_unlock(current);
+ 	}
+ 
+ 	if (new_nsproxy)
+ 		put_nsproxy(new_nsproxy);
+ 
++bad_unshare_cleanup_user:
++	if (new_user)
++		put_user_ns(new_user);
 +
-+EXPORT_SYMBOL_GPL(init_user_ns);
-+
-+#ifdef CONFIG_USER_NS
-+
-+int copy_user_ns(int flags, struct task_struct *tsk)
+ bad_unshare_cleanup_ipc:
+ 	if (new_ipc)
+ 		put_ipc_ns(new_ipc);
+diff -puN kernel/nsproxy.c~user-ns-implement-user-ns-unshare kernel/nsproxy.c
+--- a/kernel/nsproxy.c~user-ns-implement-user-ns-unshare
++++ a/kernel/nsproxy.c
+@@ -102,7 +102,7 @@ int copy_namespaces(int flags, struct ta
+ 
+ 	get_nsproxy(old_ns);
+ 
+-	if (!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
++	if (!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC | CLONE_NEWUSER)))
+ 		return 0;
+ 
+ 	new_ns = clone_namespaces(old_ns);
+diff -puN kernel/user_namespace.c~user-ns-implement-user-ns-unshare kernel/user_namespace.c
+--- a/kernel/user_namespace.c~user-ns-implement-user-ns-unshare
++++ a/kernel/user_namespace.c
+@@ -20,16 +20,86 @@ struct user_namespace init_user_ns = {
+ EXPORT_SYMBOL_GPL(init_user_ns);
+ 
+ #ifdef CONFIG_USER_NS
++/*
++ * Clone a new ns copying an original user ns, setting refcount to 1
++ * @old_ns: namespace to clone
++ * Return NULL on error (failure to kmalloc), new ns otherwise
++ */
++static struct user_namespace *clone_user_ns(struct user_namespace *old_ns)
 +{
-+	struct user_namespace *old_ns = tsk->nsproxy->user_ns;
-+	int err = 0;
++       struct user_namespace *ns;
++       struct user_struct *new_user;
++       int n;
 +
-+	if (!old_ns)
++       ns = kmalloc(sizeof(struct user_namespace), GFP_KERNEL);
++       if (!ns)
++               return NULL;
++
++       kref_init(&ns->kref);
++
++       for(n = 0; n < UIDHASH_SZ; ++n)
++               INIT_LIST_HEAD(ns->uidhash_table + n);
++
++       /* Insert new root user.  */
++       ns->root_user = alloc_uid(ns, 0);
++       if (!ns->root_user) {
++               kfree(ns);
++               return NULL;
++       }
++
++       /* Reset current->user with a new one */
++       new_user = alloc_uid(ns, current->uid);
++       if (!new_user) {
++               free_uid(ns->root_user);
++               kfree(ns);
++               return NULL;
++       }
++
++       switch_uid(new_user);
++       return ns;
++}
++
++/*
++ * unshare the current process' user namespace.
++ */
++int unshare_user_ns(unsigned long flags,
++			struct user_namespace **new_user)
++{
++       if (flags & CLONE_NEWUSER) {
++               if (!capable(CAP_SYS_ADMIN))
++                       return -EPERM;
++
++               *new_user = clone_user_ns(current->nsproxy->user_ns);
++               if (!*new_user)
++                       return -ENOMEM;
++       }
++
++       return 0;
++}
+ 
+ int copy_user_ns(int flags, struct task_struct *tsk)
+ {
+-	struct user_namespace *old_ns = tsk->nsproxy->user_ns;
+-	int err = 0;
++	struct user_namespace *new_ns, *old_ns = tsk->nsproxy->user_ns;
++	int err;
+ 
+ 	if (!old_ns)
+ 		return 0;
+ 
+ 	get_user_ns(old_ns);
++	if (!(flags & CLONE_NEWUSER))
 +		return 0;
++	err = -EPERM;
++	if (!capable(CAP_SYS_ADMIN))
++		goto out;
++	err = -ENOMEM;
++	new_ns = clone_user_ns(old_ns);
++	if (!new_ns)
++		goto out;
 +
-+	get_user_ns(old_ns);
-+	return err;
-+}
-+
-+void free_user_ns(struct kref *kref)
-+{
-+	struct user_namespace *ns;
-+
-+	ns = container_of(kref, struct user_namespace, kref);
-+	kfree(ns);
-+}
-+
-+#endif /* CONFIG_USER_NS */
++	tsk->nsproxy->user_ns = new_ns;
++	err = 0;
++out:
++	put_user_ns(old_ns);
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
+implement-file-posix-capabilities.patch
+file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+file-capabilities-honor-secure_noroot.patch
 nsproxy-externalizes-exit_task_namespaces.patch
 user-namespace-add-the-framework.patch
-statistics-replace-inode-ugeneric_ip-with-i_private.patch
+user-namespace-add-the-framework-fix.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user_ns-handle-file-sigio.patch
+user-ns-implement-user-ns-unshare.patch
+user-ns-implement-user-ns-unshare-tidy.patch
