@@ -1,90 +1,155 @@
 From: akpm@osdl.org
-Subject: + check-for-populated-zone-in-__drain_pages.patch added to -mm tree
-Date: Thu, 04 Jan 2007 14:11:46 -0800
-Message-ID: <200701042211.l04MBlgH000470@shell0.pdx.osdl.net>
+Subject: + user_ns-handle-file-sigio.patch added to -mm tree
+Date: Thu, 04 Jan 2007 14:10:36 -0800
+Message-ID: <200701042210.l04MAbrK000448@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:58259 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:58339 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965081AbXADWL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 17:11:57 -0500
+	id S965088AbXADWNN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 17:13:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
 
 
 The patch titled
-     Check for populated zone in __drain_pages
+     user_ns: handle file sigio
 has been added to the -mm tree.  Its filename is
-     check-for-populated-zone-in-__drain_pages.patch
+     user_ns-handle-file-sigio.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Check for populated zone in __drain_pages
-From: Christoph Lameter <clameter@sgi.com>
+Subject: user_ns: handle file sigio
 
-Both process_zones() and drain_node_pages() check for populated zones
-before touching pagesets.  However, __drain_pages does not do so,
 
-This may result in a NULL pointer dereference for pagesets in unpopulated
-zones if a NUMA setup is combined with cpu hotplug.
+A process in one user namespace could set a fowner and sigio on a file in a
+shared vfsmount, ending up killing a task in another user namespace.
 
-Initially the unpopulated zone has the pcp pointers pointing to the boot
-pagesets.  Since the zone is not populated the boot pageset pointers will
-not be changed during page allocator and slab bootstrap.
+Prevent this by adding a user namespace pointer to the fown_struct, and
+enforcing that a process causing a signal to be sent be in the same user
+namespace as the file owner.
 
-If a cpu is later brought down (first call to __drain_pages()) then the pcp
-pointers for cpus in unpopulated zones are set to NULL since __drain_pages
-does not first check for an unpopulated zone.
-
-If the cpu is then brought up again then we call process_zones() which will
-ignore the unpopulated zone.  So the pageset pointers will still be NULL.
-
-If the cpu is then again brought down then __drain_pages will attempt to
-drain pages by following the NULL pageset pointer for unpopulated zones.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 files changed, 3 insertions(+)
+ fs/fcntl.c         |   14 +++++++++++---
+ fs/file_table.c    |    2 ++
+ include/linux/fs.h |    1 +
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~check-for-populated-zone-in-__drain_pages mm/page_alloc.c
---- a/mm/page_alloc.c~check-for-populated-zone-in-__drain_pages
-+++ a/mm/page_alloc.c
-@@ -715,6 +715,9 @@ static void __drain_pages(unsigned int c
- 	for_each_zone(zone) {
- 		struct per_cpu_pageset *pset;
+diff -puN fs/fcntl.c~user_ns-handle-file-sigio fs/fcntl.c
+--- a/fs/fcntl.c~user_ns-handle-file-sigio
++++ a/fs/fcntl.c
+@@ -18,6 +18,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/signal.h>
+ #include <linux/rcupdate.h>
++#include <linux/user_namespace.h>
  
-+		if (!populated_zone(zone))
-+			continue;
-+
- 		pset = zone_pcp(zone, cpu);
- 		for (i = 0; i < ARRAY_SIZE(pset->pcp); i++) {
- 			struct per_cpu_pages *pcp;
+ #include <asm/poll.h>
+ #include <asm/siginfo.h>
+@@ -250,15 +251,18 @@ static int setfl(int fd, struct file * f
+ }
+ 
+ static void f_modown(struct file *filp, struct pid *pid, enum pid_type type,
+-                     uid_t uid, uid_t euid, int force)
++		     uid_t uid, uid_t euid, struct user_namespace *user_ns,
++								 int force)
+ {
+ 	write_lock_irq(&filp->f_owner.lock);
+ 	if (force || !filp->f_owner.pid) {
+ 		put_pid(filp->f_owner.pid);
++		put_user_ns(filp->f_owner.user_ns);
+ 		filp->f_owner.pid = get_pid(pid);
+ 		filp->f_owner.pid_type = type;
+ 		filp->f_owner.uid = uid;
+ 		filp->f_owner.euid = euid;
++		filp->f_owner.user_ns = get_user_ns(user_ns);
+ 	}
+ 	write_unlock_irq(&filp->f_owner.lock);
+ }
+@@ -272,7 +276,8 @@ int __f_setown(struct file *filp, struct
+ 	if (err)
+ 		return err;
+ 
+-	f_modown(filp, pid, type, current->uid, current->euid, force);
++	f_modown(filp, pid, type, current->uid, current->euid,
++				 current->nsproxy->user_ns, force);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(__f_setown);
+@@ -298,7 +303,7 @@ EXPORT_SYMBOL(f_setown);
+ 
+ void f_delown(struct file *filp)
+ {
+-	f_modown(filp, NULL, PIDTYPE_PID, 0, 0, 1);
++	f_modown(filp, NULL, PIDTYPE_PID, 0, 0, NULL, 1);
+ }
+ 
+ pid_t f_getown(struct file *filp)
+@@ -455,6 +460,9 @@ static const long band_table[NSIGPOLL] =
+ static inline int sigio_perm(struct task_struct *p,
+                              struct fown_struct *fown, int sig)
+ {
++	if (fown->user_ns != init_task.nsproxy->user_ns &&
++				fown->user_ns != p->nsproxy->user_ns)
++		return 0;
+ 	return (((fown->euid == 0) ||
+ 		 (fown->euid == p->suid) || (fown->euid == p->uid) ||
+ 		 (fown->uid == p->suid) || (fown->uid == p->uid)) &&
+diff -puN fs/file_table.c~user_ns-handle-file-sigio fs/file_table.c
+--- a/fs/file_table.c~user_ns-handle-file-sigio
++++ a/fs/file_table.c
+@@ -21,6 +21,7 @@
+ #include <linux/fsnotify.h>
+ #include <linux/sysctl.h>
+ #include <linux/percpu_counter.h>
++#include <linux/user_namespace.h>
+ 
+ #include <asm/atomic.h>
+ 
+@@ -175,6 +176,7 @@ void fastcall __fput(struct file *file)
+ 	if (file->f_mode & FMODE_WRITE)
+ 		put_write_access(inode);
+ 	put_pid(file->f_owner.pid);
++	put_user_ns(file->f_owner.user_ns);
+ 	file_kill(file);
+ 	file->f_path.dentry = NULL;
+ 	file->f_path.mnt = NULL;
+diff -puN include/linux/fs.h~user_ns-handle-file-sigio include/linux/fs.h
+--- a/include/linux/fs.h~user_ns-handle-file-sigio
++++ a/include/linux/fs.h
+@@ -684,6 +684,7 @@ struct fown_struct {
+ 	struct pid *pid;	/* pid or -pgrp where SIGIO should be sent */
+ 	enum pid_type pid_type;	/* Kind of process group SIGIO should be sent to */
+ 	uid_t uid, euid;	/* uid/euid of process setting the owner */
++	struct user_namespace *user_ns; /* namespace to which uid belongs */
+ 	int signum;		/* posix.1b rt signal to be delivered on IO */
+ };
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-fix-bug_onpageslab-from-fallback_alloc.patch
-check-for-populated-zone-in-__drain_pages.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
-optional-zone_dma-for-ia64.patch
-remove-zone_dma-remains-from-parisc.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-set-config_zone_dma-for-arches-with-generic_isa_dma.patch
-zoneid-fix-up-calculations-for-zoneid_pgshift.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
+implement-file-posix-capabilities.patch
+file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+file-capabilities-honor-secure_noroot.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fix.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user_ns-handle-file-sigio.patch
+user-ns-implement-user-ns-unshare.patch
+user-ns-implement-user-ns-unshare-tidy.patch
