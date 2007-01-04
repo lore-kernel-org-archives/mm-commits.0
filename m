@@ -1,111 +1,64 @@
 From: akpm@osdl.org
-Subject: + sisusb_con-warning-fixes.patch added to -mm tree
-Date: Wed, 03 Jan 2007 16:45:21 -0800
-Message-ID: <200701040045.l040jjPO004950@shell0.pdx.osdl.net>
+Subject: + ip2-warning-fix.patch added to -mm tree
+Date: Wed, 03 Jan 2007 17:05:14 -0800
+Message-ID: <200701040105.l0415cLX005468@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36207 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:37417 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932214AbXADApy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 19:45:54 -0500
+	id S932228AbXADBFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 20:05:42 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0415cJi020225
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 3 Jan 2007 17:05:39 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, gregkh@suse.de, thomas@winischhofer.net
+Cc: akpm@osdl.org
 
 
 The patch titled
-     sisusb_con warning fixes
+     ip2 warning fix
 has been added to the -mm tree.  Its filename is
-     sisusb_con-warning-fixes.patch
+     ip2-warning-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sisusb_con warning fixes
+Subject: ip2 warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-x86_64:
+Make this:
 
-drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_putc':
-drivers/usb/misc/sisusbvga/sisusb_con.c:405: warning: cast from pointer to integer of different size
-drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_putcs':
-drivers/usb/misc/sisusbvga/sisusb_con.c:440: warning: cast from pointer to integer of different size
-drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_clear':
-drivers/usb/misc/sisusbvga/sisusb_con.c:494: warning: cast from pointer to integer of different size
-drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_bmove':
-drivers/usb/misc/sisusbvga/sisusb_con.c:566: warning: cast from pointer to integer of different size
-drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_switch':
-drivers/usb/misc/sisusbvga/sisusb_con.c:614: warning: cast from pointer to integer of different size
-drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_scroll_area':
-drivers/usb/misc/sisusbvga/sisusb_con.c:941: warning: cast from pointer to integer of different size
+drivers/char/ip2/ip2main.c: In function 'ip2_loadmain':
+drivers/char/ip2/ip2main.c:654: warning: control may reach end of non-void function 'iiSetAddress' being inlined
+drivers/char/ip2/ip2main.c:808: warning: control may reach end of non-void function 'iiInitialize' being inlined
 
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Thomas Winischhofer <thomas@winischhofer.net>
+go away.
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/misc/sisusbvga/sisusb_con.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/char/ip2/i2ellis.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/misc/sisusbvga/sisusb_con.c~sisusb_con-warning-fixes drivers/usb/misc/sisusbvga/sisusb_con.c
---- a/drivers/usb/misc/sisusbvga/sisusb_con.c~sisusb_con-warning-fixes
-+++ a/drivers/usb/misc/sisusbvga/sisusb_con.c
-@@ -402,7 +402,7 @@ sisusbcon_putc(struct vc_data *c, int ch
+diff -puN drivers/char/ip2/i2ellis.h~ip2-warning-fix drivers/char/ip2/i2ellis.h
+--- a/drivers/char/ip2/i2ellis.h~ip2-warning-fix
++++ a/drivers/char/ip2/i2ellis.h
+@@ -606,9 +606,9 @@ static int iiDownloadAll(i2eBordStrPtr, 
+ // code and returning.
+ //
+ #define COMPLETE(pB,code) \
+-	if(1){ \
++	do { \
+ 		 pB->i2eError = code; \
+ 		 return (code == I2EE_GOOD);\
+-	}
++	} while (0)
  
- 
- 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(x, y),
--				(u32)SISUSB_HADDR(x, y), 2, &written);
-+				(long)SISUSB_HADDR(x, y), 2, &written);
- 
- 	mutex_unlock(&sisusb->lock);
- }
-@@ -437,7 +437,7 @@ sisusbcon_putcs(struct vc_data *c, const
- 	}
- 
- 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(x, y),
--				(u32)SISUSB_HADDR(x, y), count * 2, &written);
-+				(long)SISUSB_HADDR(x, y), count * 2, &written);
- 
- 	mutex_unlock(&sisusb->lock);
- }
-@@ -491,7 +491,7 @@ sisusbcon_clear(struct vc_data *c, int y
- 
- 
- 	sisusb_copy_memory(sisusb, (unsigned char *)SISUSB_VADDR(x, y),
--				(u32)SISUSB_HADDR(x, y), length, &written);
-+				(long)SISUSB_HADDR(x, y), length, &written);
- 
- 	mutex_unlock(&sisusb->lock);
- }
-@@ -563,7 +563,7 @@ sisusbcon_bmove(struct vc_data *c, int s
- 
- 
- 	sisusb_copy_memory(sisusb, (unsigned char *)SISUSB_VADDR(dx, dy),
--				(u32)SISUSB_HADDR(dx, dy), length, &written);
-+				(long)SISUSB_HADDR(dx, dy), length, &written);
- 
- 	mutex_unlock(&sisusb->lock);
- }
-@@ -611,7 +611,7 @@ sisusbcon_switch(struct vc_data *c)
- 								length);
- 
- 	sisusb_copy_memory(sisusb, (unsigned char *)c->vc_origin,
--				(u32)SISUSB_HADDR(0, 0),
-+				(long)SISUSB_HADDR(0, 0),
- 				length, &written);
- 
- 	mutex_unlock(&sisusb->lock);
-@@ -938,7 +938,7 @@ sisusbcon_scroll_area(struct vc_data *c,
- 	}
- 
- 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(0, t),
--				(u32)SISUSB_HADDR(0, t), length, &written);
-+				(long)SISUSB_HADDR(0, t), length, &written);
- 
- 	mutex_unlock(&sisusb->lock);
- 
+ #endif   // I2ELLIS_H
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -153,6 +106,7 @@ drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-qla3xxx-fixup.patch
 nokia-e70-is-an-unusual-device.patch
+sisusb_con-warning-fixes.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
@@ -260,4 +214,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-sisusb_con-warning-fixes.patch
+ip2-warning-fix.patch
