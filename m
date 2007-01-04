@@ -1,221 +1,159 @@
 From: akpm@osdl.org
-Subject: + user-ns-implement-shared-mounts.patch added to -mm tree
-Date: Thu, 04 Jan 2007 14:10:34 -0800
-Message-ID: <200701042210.l04MAYTA000445@shell0.pdx.osdl.net>
+Subject: + schedule-obsolete-oss-drivers-for-removal-3rd-round.patch added to -mm tree
+Date: Thu, 04 Jan 2007 14:14:38 -0800
+Message-ID: <200701042214.l04MEcIQ000545@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59031 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:59067 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965101AbXADWUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 17:20:34 -0500
+	id S965114AbXADWVW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 17:21:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
+Cc: bunk@stusta.de, sailer@ife.ee.ethz.ch
 
 
 The patch titled
-     user ns: implement shared mounts
+     schedule obsolete OSS drivers for removal, 3rd round
 has been added to the -mm tree.  Its filename is
-     user-ns-implement-shared-mounts.patch
+     schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user ns: implement shared mounts
+Subject: schedule obsolete OSS drivers for removal, 3rd round
+From: Adrian Bunk <bunk@stusta.de>
 
+Schedule obsolete OSS drivers (with ALSA drivers that support the same
+hardware) for removal.
 
-Implement shared-ns mounts, which allow containers in different user
-namespaces to share mounts.  Without this, containers can obviously never even
-be started.
+A rationale of the patch is in
+  http://lkml.org/lkml/2006/12/18/305
 
-Here is a sample smount.c (based on Miklos' version) which only does a bind
-mount of arg1 onto arg2, but making the destination a shared-ns mount.
-
-int main(int argc, char *argv[])
-{
-	int type;
-	if(argc != 3) {
-		fprintf(stderr, "usage: %s src dest", argv[0]);
-		return 1;
-	}
-
-	fprintf(stdout, "%s %s %s\n", argv[0], argv[1], argv[2]);
-
-	type = MS_SHARE_NS | MS_BIND;
-	setfsuid(getuid());
-
-	if(mount(argv[1], argv[2], "none", type, "") == -1) {
-		perror("mount");
-		return 1;
-	}
-	return 0;
-}
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-By: Thomas Sailer <sailer@ife.ee.ethz.ch>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/namespace.c        |   30 ++++++++++++++++++++++++------
- fs/pnode.h            |    1 +
- include/linux/fs.h    |    1 +
- include/linux/mount.h |    1 +
- include/linux/sched.h |    2 ++
- 5 files changed, 29 insertions(+), 6 deletions(-)
+ Documentation/feature-removal-schedule.txt |    7 +++++++
+ sound/oss/Kconfig                          |   16 +++++++++++++++-
+ sound/oss/dmasound/Kconfig                 |    2 +-
+ 3 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~user-ns-implement-shared-mounts fs/namespace.c
---- a/fs/namespace.c~user-ns-implement-shared-mounts
-+++ a/fs/namespace.c
-@@ -234,7 +234,14 @@ static struct vfsmount *clone_mnt(struct
- 					int flag)
- {
- 	struct super_block *sb = old->mnt_sb;
--	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
-+	struct vfsmount *mnt;
+diff -puN Documentation/feature-removal-schedule.txt~schedule-obsolete-oss-drivers-for-removal-3rd-round Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~schedule-obsolete-oss-drivers-for-removal-3rd-round
++++ a/Documentation/feature-removal-schedule.txt
+@@ -257,3 +257,10 @@ Why:	Speedstep-centrino driver with ACPI
+ Who:	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+ 
+ ---------------------------
 +
-+	if (!(old->mnt_flags & MNT_SHARE_NS)) {
-+		if (old->mnt_user_ns != current->nsproxy->user_ns)
-+			return ERR_PTR(-EPERM);
-+	}
++What:  drivers depending on OBSOLETE_OSS
++When:  options in 2.6.22, code in 2.6.24
++Why:   OSS drivers with ALSA replacements
++Who:   Adrian Bunk <bunk@stusta.de>
 +
-+	mnt = alloc_vfsmnt(old->mnt_devname);
++---------------------------
+diff -puN sound/oss/Kconfig~schedule-obsolete-oss-drivers-for-removal-3rd-round sound/oss/Kconfig
+--- a/sound/oss/Kconfig~schedule-obsolete-oss-drivers-for-removal-3rd-round
++++ a/sound/oss/Kconfig
+@@ -5,6 +5,20 @@
+ #
+ # Prompt user for primary drivers.
  
- 	if (!mnt)
- 		return ERR_PTR(-ENOMEM);
-@@ -259,6 +266,10 @@ static struct vfsmount *clone_mnt(struct
- 	}
- 	if (flag & CL_MAKE_SHARED)
- 		set_mnt_shared(mnt);
-+	if (flag & CL_SHARE_NS)
-+		mnt->mnt_flags |= MNT_SHARE_NS;
-+	else
-+		mnt->mnt_flags &= ~MNT_SHARE_NS;
- 
- 	/* stick the duplicate mount on the same expiry list
- 	 * as the original if that was on one */
-@@ -370,6 +381,7 @@ static int show_vfsmnt(struct seq_file *
- 		{ MNT_NOSUID, ",nosuid" },
- 		{ MNT_NODEV, ",nodev" },
- 		{ MNT_NOEXEC, ",noexec" },
-+		{ MNT_SHARE_NS, ",share_userns" },
- 		{ MNT_NOATIME, ",noatime" },
- 		{ MNT_NODIRATIME, ",nodiratime" },
- 		{ MNT_RELATIME, ",relatime" },
-@@ -902,11 +914,14 @@ static int do_change_type(struct nameida
- /*
-  * do loopback mount.
-  */
--static int do_loopback(struct nameidata *nd, char *old_name, int recurse)
-+static int do_loopback(struct nameidata *nd, char *old_name, int recurse,
-+							 int uidns_share)
- {
- 	struct nameidata old_nd;
- 	struct vfsmount *mnt = NULL;
- 	int err = mount_is_safe(nd);
-+	int flag = (uidns_share ? CL_SHARE_NS : 0);
++config OBSOLETE_OSS
++	bool "Obsolete OSS drivers"
++	depends on SOUND_PRIME
++	help
++	  This option enables support for obsolete OSS drivers that
++	  are scheduled for removal in the near future since there
++	  are ALSA drivers for the same hardware.
 +
- 	if (err)
- 		return err;
- 	if (!old_name || !*old_name)
-@@ -925,9 +940,9 @@ static int do_loopback(struct nameidata 
++	  Please contact Adrian Bunk <bunk@stusta.de> if you had to
++	  say Y here because your soundcard is not properly supported
++	  by ALSA.
++
++	  If unsure, say N.
++
+ config SOUND_BT878
+ 	tristate "BT878 audio dma"
+ 	depends on SOUND_PRIME && PCI
+@@ -33,7 +47,7 @@ config SOUND_BCM_CS4297A
  
- 	err = -ENOMEM;
- 	if (recurse)
--		mnt = copy_tree(old_nd.mnt, old_nd.dentry, 0);
-+		mnt = copy_tree(old_nd.mnt, old_nd.dentry, flag);
- 	else
--		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, 0);
-+		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, flag);
+ config SOUND_ES1371
+ 	tristate "Creative Ensoniq AudioPCI 97 (ES1371)"
+-	depends on SOUND_PRIME && PCI
++	depends on SOUND_PRIME && PCI && OBSOLETE_OSS
+ 	help
+ 	  Say Y or M if you have a PCI sound card utilizing the Ensoniq
+ 	  ES1371 chipset, such as Ensoniq's AudioPCI97. To find out if
+diff -puN sound/oss/dmasound/Kconfig~schedule-obsolete-oss-drivers-for-removal-3rd-round sound/oss/dmasound/Kconfig
+--- a/sound/oss/dmasound/Kconfig~schedule-obsolete-oss-drivers-for-removal-3rd-round
++++ a/sound/oss/dmasound/Kconfig
+@@ -14,7 +14,7 @@ config DMASOUND_ATARI
  
- 	if (!mnt || IS_ERR(mnt)) {
- 		err = mnt ? PTR_ERR(mnt) : -ENOMEM;
-@@ -1414,9 +1429,11 @@ long do_mount(char *dev_name, char *dir_
- 		mnt_flags |= MNT_NODIRATIME;
- 	if (flags & MS_RELATIME)
- 		mnt_flags |= MNT_RELATIME;
-+	if (flags & MS_SHARE_NS)
-+		mnt_flags |= MNT_SHARE_NS;
- 
- 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE |
--		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME);
-+		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME | MS_SHARE_NS);
- 
- 	/* ... and get the mountpoint */
- 	retval = path_lookup(dir_name, LOOKUP_FOLLOW, &nd);
-@@ -1431,7 +1448,8 @@ long do_mount(char *dev_name, char *dir_
- 		retval = do_remount(&nd, flags & ~MS_REMOUNT, mnt_flags,
- 				    data_page);
- 	else if (flags & MS_BIND)
--		retval = do_loopback(&nd, dev_name, flags & MS_REC);
-+		retval = do_loopback(&nd, dev_name, flags & MS_REC,
-+						 mnt_flags & MNT_SHARE_NS);
- 	else if (flags & (MS_SHARED | MS_PRIVATE | MS_SLAVE | MS_UNBINDABLE))
- 		retval = do_change_type(&nd, flags);
- 	else if (flags & MS_MOVE)
-diff -puN fs/pnode.h~user-ns-implement-shared-mounts fs/pnode.h
---- a/fs/pnode.h~user-ns-implement-shared-mounts
-+++ a/fs/pnode.h
-@@ -22,6 +22,7 @@
- #define CL_COPY_ALL 		0x04
- #define CL_MAKE_SHARED 		0x08
- #define CL_PROPAGATION 		0x10
-+#define CL_SHARE_NS 		0x20
- 
- static inline void set_mnt_shared(struct vfsmount *mnt)
- {
-diff -puN include/linux/fs.h~user-ns-implement-shared-mounts include/linux/fs.h
---- a/include/linux/fs.h~user-ns-implement-shared-mounts
-+++ a/include/linux/fs.h
-@@ -121,6 +121,7 @@ extern int dir_notify_enable;
- #define MS_SLAVE	(1<<19)	/* change to slave */
- #define MS_SHARED	(1<<20)	/* change to shared */
- #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
-+#define MS_SHARE_NS	(1<<22) /* ignore user namespaces for permission */
- #define MS_ACTIVE	(1<<30)
- #define MS_NOUSER	(1<<31)
- 
-diff -puN include/linux/mount.h~user-ns-implement-shared-mounts include/linux/mount.h
---- a/include/linux/mount.h~user-ns-implement-shared-mounts
-+++ a/include/linux/mount.h
-@@ -35,6 +35,7 @@ struct user_namespace;
- #define MNT_SHARED	0x1000	/* if the vfsmount is a shared mount */
- #define MNT_UNBINDABLE	0x2000	/* if the vfsmount is a unbindable mount */
- #define MNT_PNODE_MASK	0x3000	/* propogation flag mask */
-+#define MNT_SHARE_NS	0x4000  /* ignore user namespaces for permission */
- 
- struct vfsmount {
- 	struct list_head mnt_hash;
-diff -puN include/linux/sched.h~user-ns-implement-shared-mounts include/linux/sched.h
---- a/include/linux/sched.h~user-ns-implement-shared-mounts
-+++ a/include/linux/sched.h
-@@ -1596,6 +1596,8 @@ static inline int task_mnt_same_uidns(st
- {
- 	if (tsk->nsproxy == init_task.nsproxy)
- 		return 1;
-+ 	if (mnt->mnt_flags & MNT_SHARE_NS)
-+ 		return 1;
- 	if (mnt->mnt_user_ns == tsk->nsproxy->user_ns)
- 		return 1;
- 	return 0;
+ config DMASOUND_PMAC
+ 	tristate "PowerMac DMA sound support"
+-	depends on PPC32 && PPC_PMAC && SOUND && I2C
++	depends on PPC32 && PPC_PMAC && SOUND && I2C && OBSOLETE_OSS
+  	select DMASOUND
+ 	help
+ 	  If you want to use the internal audio of your PowerMac in Linux,
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-nsproxy-externalizes-exit_task_namespaces.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-the-framework-fix.patch
-user-ns-add-user_namespace-ptr-to-vfsmount.patch
-user-ns-hook-permission.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-shared-mounts.patch
-user_ns-handle-file-sigio.patch
-user-ns-implement-user-ns-unshare.patch
-user-ns-implement-user-ns-unshare-tidy.patch
+git-acpi.patch
+git-alsa.patch
+git-dvb.patch
+make-usbvision_rvfree-static.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-mtd.patch
+drivers-mtd-ubi-vtblc-make-2-functions-static.patch
+git-netdev-all.patch
+git-net.patch
+net-irda-proper-prototypes.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+make-qla2x00_reg_remote_port-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+arch-i386-kernel-e820c-should-include-asm-setuph.patch
+arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+toshiba-tc86c001-ide-driver-take-2-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i386-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
