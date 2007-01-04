@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-page-table-write-flood-protection.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:16 -0800
-Message-ID: <200701041912.l04JCGgn028374@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-fix-cmpxchg8b-emulation.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:20 -0800
+Message-ID: <200701041912.l04JCKdA028383@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:45018 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:45031 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030186AbXADTMY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:24 -0500
+	id S965083AbXADTM2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,85 +15,89 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Page table write flood protection
+     KVM: MMU: Fix cmpxchg8b emulation
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-page-table-write-flood-protection.patch
+     kvm-mmu-fix-cmpxchg8b-emulation.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Page table write flood protection
+Subject: KVM: MMU: Fix cmpxchg8b emulation
 From: Avi Kivity <avi@qumranet.com>
 
-In fork() (or when we protect a page that is no longer a page table), we can
-experience floods of writes to a page, which have to be emulated.  This is
-expensive.
+cmpxchg8b uses edx:eax as the compare operand, not edi:eax.
 
-So, if we detect such a flood, zap the page so subsequent writes can proceed
-natively.
+cmpxchg8b is used by 32-bit pae guests to set page table entries atomically,
+and this is emulated touching shadowed guest page tables.
+
+Also, implement it for 32-bit hosts.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h |    3 +++
- drivers/kvm/mmu.c |   16 +++++++++++++++-
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ drivers/kvm/kvm_main.c    |   27 +++++++++++++++++++++++++++
+ drivers/kvm/x86_emulate.c |    2 +-
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-mmu-page-table-write-flood-protection drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-mmu-page-table-write-flood-protection
-+++ a/drivers/kvm/kvm.h
-@@ -238,6 +238,9 @@ struct kvm_vcpu {
- 	struct kvm_mmu_page page_header_buf[KVM_NUM_MMU_PAGES];
- 	struct kvm_mmu mmu;
+diff -puN drivers/kvm/kvm_main.c~kvm-mmu-fix-cmpxchg8b-emulation drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-mmu-fix-cmpxchg8b-emulation
++++ a/drivers/kvm/kvm_main.c
+@@ -936,6 +936,30 @@ static int emulator_cmpxchg_emulated(uns
+ 	return emulator_write_emulated(addr, new, bytes, ctxt);
+ }
  
-+	gfn_t last_pt_write_gfn;
-+	int   last_pt_write_count;
++#ifdef CONFIG_X86_32
 +
- 	struct kvm_guest_debug guest_debug;
- 
- 	char fx_buf[FX_BUF_SIZE];
-diff -puN drivers/kvm/mmu.c~kvm-mmu-page-table-write-flood-protection drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-page-table-write-flood-protection
-+++ a/drivers/kvm/mmu.c
-@@ -969,8 +969,17 @@ void kvm_mmu_pre_write(struct kvm_vcpu *
- 	unsigned page_offset;
- 	unsigned misaligned;
- 	int level;
-+	int flooded = 0;
- 
- 	pgprintk("%s: gpa %llx bytes %d\n", __FUNCTION__, gpa, bytes);
-+	if (gfn == vcpu->last_pt_write_gfn) {
-+		++vcpu->last_pt_write_count;
-+		if (vcpu->last_pt_write_count >= 3)
-+			flooded = 1;
-+	} else {
-+		vcpu->last_pt_write_gfn = gfn;
-+		vcpu->last_pt_write_count = 1;
++static int emulator_cmpxchg8b_emulated(unsigned long addr,
++				       unsigned long old_lo,
++				       unsigned long old_hi,
++				       unsigned long new_lo,
++				       unsigned long new_hi,
++				       struct x86_emulate_ctxt *ctxt)
++{
++	static int reported;
++	int r;
++
++	if (!reported) {
++		reported = 1;
++		printk(KERN_WARNING "kvm: emulating exchange8b as write\n");
 +	}
- 	index = kvm_page_table_hashfn(gfn) % KVM_NUM_MMU_PAGES;
- 	bucket = &vcpu->kvm->mmu_page_hash[index];
- 	hlist_for_each_entry_safe(page, node, n, bucket, hash_link) {
-@@ -978,11 +987,16 @@ void kvm_mmu_pre_write(struct kvm_vcpu *
- 			continue;
- 		pte_size = page->role.glevels == PT32_ROOT_LEVEL ? 4 : 8;
- 		misaligned = (offset ^ (offset + bytes - 1)) & ~(pte_size - 1);
--		if (misaligned) {
-+		if (misaligned || flooded) {
- 			/*
- 			 * Misaligned accesses are too much trouble to fix
- 			 * up; also, they usually indicate a page is not used
- 			 * as a page table.
-+			 *
-+			 * If we're seeing too many writes to a page,
-+			 * it may no longer be a page table, or we may be
-+			 * forking, in which case it is better to unmap the
-+			 * page.
- 			 */
- 			pgprintk("misaligned: gpa %llx bytes %d role %x\n",
- 				 gpa, bytes, page->role.word);
++	r = emulator_write_emulated(addr, new_lo, 4, ctxt);
++	if (r != X86EMUL_CONTINUE)
++		return r;
++	return emulator_write_emulated(addr+4, new_hi, 4, ctxt);
++}
++
++#endif
++
+ static unsigned long get_segment_base(struct kvm_vcpu *vcpu, int seg)
+ {
+ 	return kvm_arch_ops->get_segment_base(vcpu, seg);
+@@ -1010,6 +1034,9 @@ struct x86_emulate_ops emulate_ops = {
+ 	.read_emulated       = emulator_read_emulated,
+ 	.write_emulated      = emulator_write_emulated,
+ 	.cmpxchg_emulated    = emulator_cmpxchg_emulated,
++#ifdef CONFIG_X86_32
++	.cmpxchg8b_emulated  = emulator_cmpxchg8b_emulated,
++#endif
+ };
+ 
+ int emulate_instruction(struct kvm_vcpu *vcpu,
+diff -puN drivers/kvm/x86_emulate.c~kvm-mmu-fix-cmpxchg8b-emulation drivers/kvm/x86_emulate.c
+--- a/drivers/kvm/x86_emulate.c~kvm-mmu-fix-cmpxchg8b-emulation
++++ a/drivers/kvm/x86_emulate.c
+@@ -1323,7 +1323,7 @@ twobyte_special_insn:
+ 							 ctxt)) != 0))
+ 				goto done;
+ 			if ((old_lo != _regs[VCPU_REGS_RAX])
+-			    || (old_hi != _regs[VCPU_REGS_RDI])) {
++			    || (old_hi != _regs[VCPU_REGS_RDX])) {
+ 				_regs[VCPU_REGS_RAX] = old_lo;
+ 				_regs[VCPU_REGS_RDX] = old_hi;
+ 				_eflags &= ~EFLG_ZF;
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
