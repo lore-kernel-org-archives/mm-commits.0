@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table.patch added to -mm tree
-Date: Thu, 04 Jan 2007 11:12:22 -0800
-Message-ID: <200701041912.l04JCMvJ028388@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte.patch added to -mm tree
+Date: Thu, 04 Jan 2007 11:12:30 -0800
+Message-ID: <200701041912.l04JCUPB028400@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:45043 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45049 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965099AbXADTMe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 14:12:34 -0500
+	id S965100AbXADTMh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 14:12:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,55 +15,62 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: MMU: Treat user-mode faults as a hint that a page is no longer a page table
+     KVM: MMU: Flush guest tlb when reducing permissions on a pte
 has been added to the -mm tree.  Its filename is
-     kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table.patch
+     kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: MMU: Treat user-mode faults as a hint that a page is no longer a page table
+Subject: KVM: MMU: Flush guest tlb when reducing permissions on a pte
 From: Avi Kivity <avi@qumranet.com>
+
+If we reduce permissions on a pte, we must flush the cached copy of the pte
+from the guest's tlb.
+
+This is implemented at the moment by flushing the entire guest tlb, and can be
+improved by flushing just the relevant virtual address, if it is known.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/paging_tmpl.h |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletion(-)
+ drivers/kvm/mmu.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table drivers/kvm/paging_tmpl.h
---- a/drivers/kvm/paging_tmpl.h~kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table
-+++ a/drivers/kvm/paging_tmpl.h
-@@ -271,6 +271,7 @@ static int FNAME(fix_write_pf)(struct kv
- 	pt_element_t *guest_ent;
- 	int writable_shadow;
- 	gfn_t gfn;
-+	struct kvm_mmu_page *page;
- 
- 	if (is_writeble_pte(*shadow_ent))
- 		return 0;
-@@ -303,7 +304,17 @@ static int FNAME(fix_write_pf)(struct kv
+diff -puN drivers/kvm/mmu.c~kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte
++++ a/drivers/kvm/mmu.c
+@@ -383,6 +383,7 @@ static void rmap_write_protect(struct kv
+ 		BUG_ON(!(*spte & PT_WRITABLE_MASK));
+ 		rmap_printk("rmap_write_protect: spte %p %llx\n", spte, *spte);
+ 		rmap_remove(vcpu, spte);
++		kvm_arch_ops->tlb_flush(vcpu);
+ 		*spte &= ~(u64)PT_WRITABLE_MASK;
+ 	}
+ }
+@@ -594,6 +595,7 @@ static void kvm_mmu_page_unlink_children
+ 				rmap_remove(vcpu, &pt[i]);
+ 			pt[i] = 0;
+ 		}
++		kvm_arch_ops->tlb_flush(vcpu);
+ 		return;
  	}
  
- 	gfn = walker->gfn;
--	if (kvm_mmu_lookup_page(vcpu, gfn)) {
-+
-+	if (user) {
-+		/*
-+		 * Usermode page faults won't be for page table updates.
-+		 */
-+		while ((page = kvm_mmu_lookup_page(vcpu, gfn)) != NULL) {
-+			pgprintk("%s: zap %lx %x\n",
-+				 __FUNCTION__, gfn, page->role.word);
-+			kvm_mmu_zap_page(vcpu, page);
-+		}
-+	} else if (kvm_mmu_lookup_page(vcpu, gfn)) {
- 		pgprintk("%s: found shadow page for %lx, marking ro\n",
- 			 __FUNCTION__, gfn);
- 		*write_pt = 1;
+@@ -927,7 +929,10 @@ static inline void set_pte_common(struct
+ 			pgprintk("%s: found shadow page for %lx, marking ro\n",
+ 				 __FUNCTION__, gfn);
+ 			access_bits &= ~PT_WRITABLE_MASK;
+-			*shadow_pte &= ~PT_WRITABLE_MASK;
++			if (is_writeble_pte(*shadow_pte)) {
++				    *shadow_pte &= ~PT_WRITABLE_MASK;
++				    kvm_arch_ops->tlb_flush(vcpu);
++			}
+ 		}
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
