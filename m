@@ -1,87 +1,88 @@
 From: akpm@osdl.org
-Subject: + get-rid-of-double-zeroing-of-allocated-pages.patch added to -mm tree
-Date: Thu, 04 Jan 2007 10:57:51 -0800
-Message-ID: <200701041857.l04Ivprf027857@shell0.pdx.osdl.net>
+Subject: + ipmi-fix-some-rcu-problems-update.patch added to -mm tree
+Date: Thu, 04 Jan 2007 10:59:14 -0800
+Message-ID: <200701041859.l04IxEiq027924@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43870 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:43919 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932086AbXADS61 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 13:58:27 -0500
+	id S932122AbXADS7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 13:59:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, James.Bottomley@steeleye.com, chas@cmf.nrl.navy.mil, mchehab@infradead.org
+Cc: minyard@acm.org
 
 
 The patch titled
-     Get rid of "double zeroing" of allocated pages
+     IPMI: Fix some RCU problems (update)
 has been added to the -mm tree.  Its filename is
-     get-rid-of-double-zeroing-of-allocated-pages.patch
+     ipmi-fix-some-rcu-problems-update.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Get rid of "double zeroing" of allocated pages
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: IPMI: Fix some RCU problems (update)
+From: Corey Minyard <minyard@acm.org>
 
-Simplify the few instances where a call to "get_zeroed_page()" is closely
-followed by an unnecessary call to memset() to clear that page.
+Andrew asked that the open-coded barriers be commented, so here it
+is.  I also realized that one of the read barriers was in an area
+where the protecting mutex was held, so no read barrier was needed.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: chas williams <chas@cmf.nrl.navy.mil>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/atm/eni.c                  |    1 -
- drivers/media/video/zoran_driver.c |    1 -
- drivers/scsi/53c7xx.c              |    1 -
- 3 files changed, 3 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN drivers/atm/eni.c~get-rid-of-double-zeroing-of-allocated-pages drivers/atm/eni.c
---- a/drivers/atm/eni.c~get-rid-of-double-zeroing-of-allocated-pages
-+++ a/drivers/atm/eni.c
-@@ -912,7 +912,6 @@ static int start_rx(struct atm_dev *dev)
- 		free_page((unsigned long) eni_dev->free_list);
- 		return -ENOMEM;
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -839,7 +839,6 @@ int ipmi_create_user(unsigned int       
+ 	goto out_kfree;
+ 
+  found:
+-	smp_rmb();
+ 	/* Note that each existing user holds a refcount to the interface. */
+ 	kref_get(&intf->refcount);
+ 
+@@ -2762,10 +2761,15 @@ int ipmi_register_smi(struct ipmi_smi_ha
+ 		synchronize_rcu();
+ 		kref_put(&intf->refcount, intf_free);
+ 	} else {
+-		/* After this point the interface is legal to use. */
+-		smp_wmb(); /* Keep memory order straight for RCU readers. */
++		/*
++		 * Keep memory order straight for RCU readers.  Make
++		 * sure everything else is committed to memory before
++		 * setting intf_num to mark the interface valid.
++		 */
++		smp_wmb();
+ 		intf->intf_num = i;
+ 		mutex_unlock(&ipmi_interfaces_mutex);
++		/* After this point the interface is legal to use. */
+ 		call_smi_watchers(i, intf->si_dev);
+ 		mutex_unlock(&smi_watchers_mutex);
  	}
--	memset(eni_dev->rx_map,0,PAGE_SIZE);
- 	eni_dev->rx_mult = DEFAULT_RX_MULT;
- 	eni_dev->fast = eni_dev->last_fast = NULL;
- 	eni_dev->slow = eni_dev->last_slow = NULL;
-diff -puN drivers/media/video/zoran_driver.c~get-rid-of-double-zeroing-of-allocated-pages drivers/media/video/zoran_driver.c
---- a/drivers/media/video/zoran_driver.c~get-rid-of-double-zeroing-of-allocated-pages
-+++ a/drivers/media/video/zoran_driver.c
-@@ -562,7 +562,6 @@ jpg_fbuffer_alloc (struct file *file)
- 			jpg_fbuffer_free(file);
- 			return -ENOBUFS;
- 		}
--		memset((void *) mem, 0, PAGE_SIZE);
- 		fh->jpg_buffers.buffer[i].frag_tab = (u32 *) mem;
- 		fh->jpg_buffers.buffer[i].frag_tab_bus =
- 		    virt_to_bus((void *) mem);
-diff -puN drivers/scsi/53c7xx.c~get-rid-of-double-zeroing-of-allocated-pages drivers/scsi/53c7xx.c
---- a/drivers/scsi/53c7xx.c~get-rid-of-double-zeroing-of-allocated-pages
-+++ a/drivers/scsi/53c7xx.c
-@@ -3099,7 +3099,6 @@ allocate_cmd (Scsi_Cmnd *cmd) {
-         real = get_zeroed_page(GFP_ATOMIC);
-         if (real == 0)
-         	return NULL;
--        memset((void *)real, 0, 4096);
-         cache_push(virt_to_phys((void *)real), 4096);
-         cache_clear(virt_to_phys((void *)real), 4096);
-         kernel_set_cachemode((void *)real, 4096, IOMAP_NOCACHE_SER);
+@@ -3927,6 +3931,12 @@ static void send_panic_events(char *str)
+ 			/* Interface was not ready yet. */
+ 			continue;
+ 
++		/*
++		 * intf_num is used as an marker to tell if the
++		 * interface is valid.  Thus we need a read barrier to
++		 * make sure data fetched before checking intf_num
++		 * won't be used.
++		 */
+ 		smp_rmb();
+ 
+ 		/* First job here is to figure out where to send the
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from minyard@acm.org are
 
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-simplify-some-code-to-use-the-container_of-macro.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+add-an-rcu-version-of-list-splicing.patch
+ipmi-fix-some-rcu-problems.patch
+ipmi-fix-some-rcu-problems-update.patch
