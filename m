@@ -1,64 +1,111 @@
 From: akpm@osdl.org
-Subject: + r8169-warning-fixes.patch added to -mm tree
-Date: Wed, 03 Jan 2007 16:42:13 -0800
-Message-ID: <200701040042.l040gbNO004807@shell0.pdx.osdl.net>
+Subject: + sisusb_con-warning-fixes.patch added to -mm tree
+Date: Wed, 03 Jan 2007 16:45:21 -0800
+Message-ID: <200701040045.l040jjPO004950@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:36073 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:36207 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932209AbXADAms (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 3 Jan 2007 19:42:48 -0500
+	id S932214AbXADApy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 3 Jan 2007 19:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, romieu@fr.zoreil.com
+Cc: akpm@osdl.org, gregkh@suse.de, thomas@winischhofer.net
 
 
 The patch titled
-     r8169 warning fixes
+     sisusb_con warning fixes
 has been added to the -mm tree.  Its filename is
-     r8169-warning-fixes.patch
+     sisusb_con-warning-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r8169 warning fixes
+Subject: sisusb_con warning fixes
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/net/r8169.c: In function 'rtl8169_alloc_rx_skb':
-drivers/net/r8169.c:2019: warning: cast from pointer to integer of different size
-drivers/net/r8169.c: In function 'rtl8169_try_rx_copy':
-drivers/net/r8169.c:2490: warning: cast from pointer to integer of different size
+x86_64:
 
-Cc: Francois Romieu <romieu@fr.zoreil.com>
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_putc':
+drivers/usb/misc/sisusbvga/sisusb_con.c:405: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_putcs':
+drivers/usb/misc/sisusbvga/sisusb_con.c:440: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_clear':
+drivers/usb/misc/sisusbvga/sisusb_con.c:494: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_bmove':
+drivers/usb/misc/sisusbvga/sisusb_con.c:566: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_switch':
+drivers/usb/misc/sisusbvga/sisusb_con.c:614: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_scroll_area':
+drivers/usb/misc/sisusbvga/sisusb_con.c:941: warning: cast from pointer to integer of different size
+
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/r8169.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/misc/sisusbvga/sisusb_con.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/r8169.c~r8169-warning-fixes drivers/net/r8169.c
---- a/drivers/net/r8169.c~r8169-warning-fixes
-+++ a/drivers/net/r8169.c
-@@ -2016,7 +2016,7 @@ static int rtl8169_alloc_rx_skb(struct p
- 	if (!skb)
- 		goto err_out;
+diff -puN drivers/usb/misc/sisusbvga/sisusb_con.c~sisusb_con-warning-fixes drivers/usb/misc/sisusbvga/sisusb_con.c
+--- a/drivers/usb/misc/sisusbvga/sisusb_con.c~sisusb_con-warning-fixes
++++ a/drivers/usb/misc/sisusbvga/sisusb_con.c
+@@ -402,7 +402,7 @@ sisusbcon_putc(struct vc_data *c, int ch
  
--	skb_reserve(skb, (align - 1) & (u32)skb->data);
-+	skb_reserve(skb, (align - 1) & (long)skb->data);
- 	*sk_buff = skb;
  
- 	mapping = pci_map_single(pdev, skb->data, rx_buf_sz,
-@@ -2487,7 +2487,7 @@ static inline int rtl8169_try_rx_copy(st
+ 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(x, y),
+-				(u32)SISUSB_HADDR(x, y), 2, &written);
++				(long)SISUSB_HADDR(x, y), 2, &written);
  
- 		skb = dev_alloc_skb(pkt_size + align);
- 		if (skb) {
--			skb_reserve(skb, (align - 1) & (u32)skb->data);
-+			skb_reserve(skb, (align - 1) & (long)skb->data);
- 			eth_copy_and_sum(skb, sk_buff[0]->data, pkt_size, 0);
- 			*sk_buff = skb;
- 			rtl8169_mark_to_asic(desc, rx_buf_sz);
+ 	mutex_unlock(&sisusb->lock);
+ }
+@@ -437,7 +437,7 @@ sisusbcon_putcs(struct vc_data *c, const
+ 	}
+ 
+ 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(x, y),
+-				(u32)SISUSB_HADDR(x, y), count * 2, &written);
++				(long)SISUSB_HADDR(x, y), count * 2, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+ }
+@@ -491,7 +491,7 @@ sisusbcon_clear(struct vc_data *c, int y
+ 
+ 
+ 	sisusb_copy_memory(sisusb, (unsigned char *)SISUSB_VADDR(x, y),
+-				(u32)SISUSB_HADDR(x, y), length, &written);
++				(long)SISUSB_HADDR(x, y), length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+ }
+@@ -563,7 +563,7 @@ sisusbcon_bmove(struct vc_data *c, int s
+ 
+ 
+ 	sisusb_copy_memory(sisusb, (unsigned char *)SISUSB_VADDR(dx, dy),
+-				(u32)SISUSB_HADDR(dx, dy), length, &written);
++				(long)SISUSB_HADDR(dx, dy), length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+ }
+@@ -611,7 +611,7 @@ sisusbcon_switch(struct vc_data *c)
+ 								length);
+ 
+ 	sisusb_copy_memory(sisusb, (unsigned char *)c->vc_origin,
+-				(u32)SISUSB_HADDR(0, 0),
++				(long)SISUSB_HADDR(0, 0),
+ 				length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+@@ -938,7 +938,7 @@ sisusbcon_scroll_area(struct vc_data *c,
+ 	}
+ 
+ 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(0, t),
+-				(u32)SISUSB_HADDR(0, t), length, &written);
++				(long)SISUSB_HADDR(0, t), length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -101,6 +148,7 @@ drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 net-use-bitrev8.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
+r8169-warning-fixes.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-qla3xxx-fixup.patch
@@ -212,4 +260,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-r8169-warning-fixes.patch
+sisusb_con-warning-fixes.patch
