@@ -1,194 +1,80 @@
 From: akpm@osdl.org
-Subject: + fix-memory-corruption-from-misinterpreted-bad_inode_ops-tidy.patch added to -mm tree
-Date: Thu, 04 Jan 2007 15:42:01 -0800
-Message-ID: <200701042342.l04Ng1CY002813@shell0.pdx.osdl.net>
+Subject: - pci-quirk-1k-i-o-space-iobl_adr-fix-on-p64h2.patch removed from -mm tree
+Date: Thu, 04 Jan 2007 15:42:48 -0800
+Message-ID: <200701042342.l04Ngmxh002836@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36683 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36760 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965103AbXADXmJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 18:42:09 -0500
+	id S965101AbXADXmy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 18:42:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com
+To: dan.yeisley@unisys.com, ak@suse.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-memory-corruption-from-misinterpreted-bad_inode_ops tidy
-has been added to the -mm tree.  Its filename is
-     fix-memory-corruption-from-misinterpreted-bad_inode_ops-tidy.patch
+     PCI Quirk: 1k I/O space IOBL_ADR fix on P64H2
+has been removed from the -mm tree.  Its filename was
+     pci-quirk-1k-i-o-space-iobl_adr-fix-on-p64h2.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-memory-corruption-from-misinterpreted-bad_inode_ops tidy
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: PCI Quirk: 1k I/O space IOBL_ADR fix on P64H2
+From: Daniel Yeisley <dan.yeisley@unisys.com>
 
-Mostly cosmetic, making placement of * for pointers consistently " *foo"
-not "* foo," (was a mishmash before, from cut-n-paste), but also making
-.poll return POLLERR.
+There's an existing quirk for the kernel to use 1k IO space granularity on
+the Intel P64H2.  It turns out however that pci_setup_bridge() in
+drivers/pci/setup-bus.c reads in the IO base and limit address register
+masks it off to the nearest 4k, and writes it back.  This causes the kernel
+to be on 1k boundaries and the hardware to be 4k aligned.  The patch below
+fixes the problem.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Dan Yeisley <dan.yeisley@unisys.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/bad_inode.c |   43 +++++++++++++++++++++----------------------
- 1 files changed, 21 insertions(+), 22 deletions(-)
+ drivers/pci/quirks.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+)
 
-diff -puN fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops-tidy fs/bad_inode.c
---- a/fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops-tidy
-+++ a/fs/bad_inode.c
-@@ -46,18 +46,17 @@ static ssize_t bad_file_aio_write(struct
- 	return -EIO;
+diff -puN drivers/pci/quirks.c~pci-quirk-1k-i-o-space-iobl_adr-fix-on-p64h2 drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-quirk-1k-i-o-space-iobl_adr-fix-on-p64h2
++++ a/drivers/pci/quirks.c
+@@ -1592,6 +1592,31 @@ static void __devinit quirk_p64h2_1k_io(
  }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	0x1460,		quirk_p64h2_1k_io);
  
--static int bad_file_readdir(struct file * filp, void * dirent,
--			filldir_t filldir)
-+static int bad_file_readdir(struct file *filp, void *dirent, filldir_t filldir)
- {
- 	return -EIO;
- }
- 
- static unsigned int bad_file_poll(struct file *filp, poll_table *wait)
- {
--	return -EIO;
-+	return POLLERR;
- }
- 
--static int bad_file_ioctl (struct inode * inode, struct file * filp,
-+static int bad_file_ioctl (struct inode *inode, struct file *filp,
- 			unsigned int cmd, unsigned long arg)
- {
- 	return -EIO;
-@@ -75,12 +74,12 @@ static long bad_file_compat_ioctl(struct
- 	return -EIO;
- }
- 
--static int bad_file_mmap(struct file * file, struct vm_area_struct * vma)
-+static int bad_file_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	return -EIO;
- }
- 
--static int bad_file_open(struct inode * inode, struct file * filp)
-+static int bad_file_open(struct inode *inode, struct file *filp)
- {
- 	return -EIO;
- }
-@@ -90,12 +89,12 @@ static int bad_file_flush(struct file *f
- 	return -EIO;
- }
- 
--static int bad_file_release(struct inode * inode, struct file * filp)
-+static int bad_file_release(struct inode *inode, struct file *filp)
- {
- 	return -EIO;
- }
- 
--static int bad_file_fsync(struct file * file, struct dentry *dentry,
-+static int bad_file_fsync(struct file *file, struct dentry *dentry,
- 			int datasync)
- {
- 	return -EIO;
-@@ -140,7 +139,7 @@ static int bad_file_check_flags(int flag
- 	return -EIO;
- }
- 
--static int bad_file_dir_notify(struct file * file, unsigned long arg)
-+static int bad_file_dir_notify(struct file *file, unsigned long arg)
- {
- 	return -EIO;
- }
-@@ -194,54 +193,54 @@ static const struct file_operations bad_
- 	.splice_read	= bad_file_splice_read,
- };
- 
--static int bad_inode_create (struct inode * dir, struct dentry * dentry,
-+static int bad_inode_create (struct inode *dir, struct dentry *dentry,
- 		int mode, struct nameidata *nd)
- {
- 	return -EIO;
- }
- 
--static struct dentry *bad_inode_lookup(struct inode * dir,
-+static struct dentry *bad_inode_lookup(struct inode *dir,
- 			struct dentry *dentry, struct nameidata *nd)
- {
- 	return ERR_PTR(-EIO);
- }
- 
--static int bad_inode_link (struct dentry * old_dentry, struct inode * dir,
-+static int bad_inode_link (struct dentry *old_dentry, struct inode *dir,
- 		struct dentry *dentry)
- {
- 	return -EIO;
- }
- 
--static int bad_inode_unlink(struct inode * dir, struct dentry *dentry)
-+static int bad_inode_unlink(struct inode *dir, struct dentry *dentry)
- {
- 	return -EIO;
- }
- 
--static int bad_inode_symlink (struct inode * dir, struct dentry *dentry,
--		const char * symname)
-+static int bad_inode_symlink (struct inode *dir, struct dentry *dentry,
-+		const char *symname)
- {
- 	return -EIO;
- }
- 
--static int bad_inode_mkdir(struct inode * dir, struct dentry * dentry,
-+static int bad_inode_mkdir(struct inode *dir, struct dentry *dentry,
- 			int mode)
- {
- 	return -EIO;
- }
- 
--static int bad_inode_rmdir (struct inode * dir, struct dentry *dentry)
-+static int bad_inode_rmdir (struct inode *dir, struct dentry *dentry)
- {
- 	return -EIO;
- }
- 
--static int bad_inode_mknod (struct inode * dir, struct dentry *dentry,
-+static int bad_inode_mknod (struct inode *dir, struct dentry *dentry,
- 			int mode, dev_t rdev)
- {
- 	return -EIO;
- }
- 
--static int bad_inode_rename (struct inode * old_dir, struct dentry *old_dentry,
--		struct inode * new_dir, struct dentry *new_dentry)
-+static int bad_inode_rename (struct inode *old_dir, struct dentry *old_dentry,
-+		struct inode *new_dir, struct dentry *new_dentry)
- {
- 	return -EIO;
- }
-@@ -337,7 +336,7 @@ static struct inode_operations bad_inode
-  *	on it to fail from this point on.
-  */
-  
--void make_bad_inode(struct inode * inode) 
-+void make_bad_inode(struct inode *inode)
- {
- 	remove_inode_hash(inode);
- 
-@@ -362,7 +361,7 @@ EXPORT_SYMBOL(make_bad_inode);
-  *	Returns true if the inode in question has been marked as bad.
-  */
-  
--int is_bad_inode(struct inode * inode) 
-+int is_bad_inode(struct inode *inode)
- {
- 	return (inode->i_op == &bad_inode_ops);	
- }
++/* Fix the IOBL_ADR for 1k I/O space granularity on the Intel P64H2
++ * The IOBL_ADR gets re-written to 4k boundaries in pci_setup_bridge()
++ * in drivers/pci/setup-bus.c
++ */
++static void __devinit quirk_p64h2_1k_io_fix_iobl(struct pci_dev *dev)
++{
++	u16 en1k, iobl_adr, iobl_adr_1k;
++	struct resource *res = dev->resource + PCI_BRIDGE_RESOURCES;
++
++	pci_read_config_word(dev, 0x40, &en1k);
++
++	if (en1k & 0x200) {
++		pci_read_config_word(dev, PCI_IO_BASE, &iobl_adr);
++
++		iobl_adr_1k = iobl_adr | (res->start >> 8) | (res->end & 0xfc00);
++
++		if (iobl_adr != iobl_adr_1k) {
++			printk(KERN_INFO "PCI: Fixing P64H2 IOBL_ADR from 0x%x to 0x%x for 1 KB Granularity\n",
++				iobl_adr,iobl_adr_1k);
++			pci_write_config_word(dev, PCI_IO_BASE, iobl_adr_1k);
++		}
++	}
++}
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	0x1460,		quirk_p64h2_1k_io_fix_iobl);
++
+ /* Under some circumstances, AER is not linked with extended capabilities.
+  * Force it to be linked by setting the corresponding control bit in the
+  * config space.
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
-
-fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch
-fix-memory-corruption-from-misinterpreted-bad_inode_ops-tidy.patch
-ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch
+Patches currently in -mm which might be from dan.yeisley@unisys.com are
