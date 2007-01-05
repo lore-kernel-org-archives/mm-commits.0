@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-add-missing-break.patch added to -mm tree
-Date: Fri, 05 Jan 2007 01:22:41 -0800
-Message-ID: <200701050922.l059Mg27015106@shell0.pdx.osdl.net>
+Subject: + kvm-dont-set-guest-cr3-from-vmx_vcpu_setup.patch added to -mm tree
+Date: Fri, 05 Jan 2007 01:22:49 -0800
+Message-ID: <200701050922.l059MnLH015109@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38490 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38501 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965138AbXAEJWx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 04:22:53 -0500
+	id S965139AbXAEJXB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 04:23:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,35 +15,39 @@ Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: Add missing 'break'
+     KVM: Don't set guest cr3 from vmx_vcpu_setup()
 has been added to the -mm tree.  Its filename is
-     kvm-add-missing-break.patch
+     kvm-dont-set-guest-cr3-from-vmx_vcpu_setup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Add missing 'break'
+Subject: KVM: Don't set guest cr3 from vmx_vcpu_setup()
 From: Avi Kivity <avi@qumranet.com>
+
+It overwrites the right cr3 set from mmu setup.  Happens only with the test
+harness.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/kvm/vmx.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-add-missing-break drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-add-missing-break
-+++ a/drivers/kvm/kvm_main.c
-@@ -1922,6 +1922,7 @@ static long kvm_dev_ioctl(struct file *f
- 				 num_msrs_to_save * sizeof(u32)))
- 			goto out;
- 		r = 0;
-+		break;
- 	}
- 	default:
- 		;
+diff -puN drivers/kvm/vmx.c~kvm-dont-set-guest-cr3-from-vmx_vcpu_setup drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-dont-set-guest-cr3-from-vmx_vcpu_setup
++++ a/drivers/kvm/vmx.c
+@@ -1027,8 +1027,6 @@ static int vmx_vcpu_setup(struct kvm_vcp
+ 	vmcs_writel(GUEST_RIP, 0xfff0);
+ 	vmcs_writel(GUEST_RSP, 0);
+ 
+-	vmcs_writel(GUEST_CR3, 0);
+-
+ 	//todo: dr0 = dr1 = dr2 = dr3 = 0; dr6 = 0xffff0ff0
+ 	vmcs_writel(GUEST_DR7, 0x400);
+ 
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
