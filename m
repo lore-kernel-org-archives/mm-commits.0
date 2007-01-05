@@ -1,118 +1,95 @@
 From: akpm@osdl.org
-Subject: + uml-locking-comments-in-iomem-driver.patch added to -mm tree
-Date: Fri, 05 Jan 2007 12:13:31 -0800
-Message-ID: <200701052013.l05KDVch031090@shell0.pdx.osdl.net>
+Subject: + arm-imx-serial-fix-tx-buffer-overflows.patch added to -mm tree
+Date: Fri, 05 Jan 2007 12:22:48 -0800
+Message-ID: <200701052022.l05KMmEj031336@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57173 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57940 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750729AbXAEUNe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 15:13:34 -0500
+	id S1750734AbXAEUXO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 15:23:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it
+Cc: s.hauer@pengutronix.de, pisa@cmp.felk.cvut.cz, rmk@arm.linux.org.uk
 
 
 The patch titled
-     uml: locking comments in iomem driver
+     ARM i.MX serial: fix tx buffer overflows
 has been added to the -mm tree.  Its filename is
-     uml-locking-comments-in-iomem-driver.patch
+     arm-imx-serial-fix-tx-buffer-overflows.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: locking comments in iomem driver
-From: Jeff Dike <jdike@addtoit.com>
+Subject: ARM i.MX serial: fix tx buffer overflows
+From: Sascha Hauer <s.hauer@pengutronix.de>
 
-Comment some lack of locking in the iomem driver.
+Fix occasional tx buffer overflows in the i.MX serial driver which came
+from the fact that space in the buffer was checked after sending the first
+byte.  Also, fifosize is 32 bytes, not 8.
 
-Also, a couple of variables are in the wrong place, so they are moved.
-
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de
+Cc: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/kernel/mem.c     |   10 ----------
- arch/um/kernel/physmem.c |   17 +++++++++++++++++
- 2 files changed, 17 insertions(+), 10 deletions(-)
+ drivers/serial/imx.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/kernel/mem.c~uml-locking-comments-in-iomem-driver arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-locking-comments-in-iomem-driver
-+++ a/arch/um/kernel/mem.c
-@@ -367,16 +367,6 @@ struct page *pte_alloc_one(struct mm_str
- 	return pte;
+diff -puN drivers/serial/imx.c~arm-imx-serial-fix-tx-buffer-overflows drivers/serial/imx.c
+--- a/drivers/serial/imx.c~arm-imx-serial-fix-tx-buffer-overflows
++++ a/drivers/serial/imx.c
+@@ -154,7 +154,7 @@ static inline void imx_transmit_buffer(s
+ {
+ 	struct circ_buf *xmit = &sport->port.info->xmit;
+ 
+-	do {
++	while (!(UTS((u32)sport->port.membase) & UTS_TXFULL)) {
+ 		/* send xmit->buf[xmit->tail]
+ 		 * out the port here */
+ 		URTX0((u32)sport->port.membase) = xmit->buf[xmit->tail];
+@@ -163,7 +163,7 @@ static inline void imx_transmit_buffer(s
+ 		sport->port.icount.tx++;
+ 		if (uart_circ_empty(xmit))
+ 			break;
+-	} while (!(UTS((u32)sport->port.membase) & UTS_TXFULL));
++	}
+ 
+ 	if (uart_circ_empty(xmit))
+ 		imx_stop_tx(&sport->port);
+@@ -178,8 +178,7 @@ static void imx_start_tx(struct uart_por
+ 
+ 	UCR1((u32)sport->port.membase) |= UCR1_TXMPTYEN;
+ 
+-	if(UTS((u32)sport->port.membase) & UTS_TXEMPTY)
+-		imx_transmit_buffer(sport);
++	imx_transmit_buffer(sport);
  }
  
--struct iomem_region *iomem_regions = NULL;
--int iomem_size = 0;
--
--extern int parse_iomem(char *str, int *add) __init;
--
--__uml_setup("iomem=", parse_iomem,
--"iomem=<name>,<file>\n"
--"    Configure <file> as an IO memory region named <name>.\n\n"
--);
--
- /*
-  * Overrides for Emacs so that we follow Linus's tabbing style.
-  * Emacs will notice this stuff at the end of the file and automatically
-diff -puN arch/um/kernel/physmem.c~uml-locking-comments-in-iomem-driver arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-locking-comments-in-iomem-driver
-+++ a/arch/um/kernel/physmem.c
-@@ -398,6 +398,23 @@ __uml_setup("mem=", uml_mem_setup,
- "	Example: mem=64M\n\n"
- );
- 
-+extern int __init parse_iomem(char *str, int *add);
-+
-+__uml_setup("iomem=", parse_iomem,
-+"iomem=<name>,<file>\n"
-+"    Configure <file> as an IO memory region named <name>.\n\n"
-+);
-+
-+/*
-+ * This list is constructed in parse_iomem and addresses filled in in
-+ * setup_iomem, both of which run during early boot.  Afterwards, it's
-+ * unchanged.
-+ */
-+struct iomem_region *iomem_regions = NULL;
-+
-+/* Initialized in parse_iomem */
-+int iomem_size = 0;
-+
- unsigned long find_iomem(char *driver, unsigned long *len_out)
- {
- 	struct iomem_region *region = iomem_regions;
+ static irqreturn_t imx_rtsint(int irq, void *dev_id)
+@@ -678,7 +677,7 @@ static struct imx_port imx_ports[] = {
+ 		.mapbase	= IMX_UART1_BASE, /* FIXME */
+ 		.irq		= UART1_MINT_RX,
+ 		.uartclk	= 16000000,
+-		.fifosize	= 8,
++		.fifosize	= 32,
+ 		.flags		= UPF_BOOT_AUTOCONF,
+ 		.ops		= &imx_pops,
+ 		.line		= 0,
+@@ -694,7 +693,7 @@ static struct imx_port imx_ports[] = {
+ 		.mapbase	= IMX_UART2_BASE, /* FIXME */
+ 		.irq		= UART2_MINT_RX,
+ 		.uartclk	= 16000000,
+-		.fifosize	= 8,
++		.fifosize	= 32,
+ 		.flags		= UPF_BOOT_AUTOCONF,
+ 		.ops		= &imx_pops,
+ 		.line		= 1,
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from s.hauer@pengutronix.de are
 
-x86_64-i386-kernel-mode-faults-pollute-current-thead.patch
-uml-console-locking-fixes.patch
-uml-return-hotplug-errors-to-host.patch
-uml-console-whitespace-and-comment-tidying.patch
-uml-lock-the-irqs_to_free-list.patch
-uml-add-locking-to-network-transport-registration.patch
-uml-network-driver-whitespace-and-style-fixes.patch
-uml-watchdog-driver-locking.patch
-uml-watchdog-driver-formatting.patch
-uml-audio-driver-locking.patch
-uml-audio-driver-formatting.patch
-uml-mconsole-locking.patch
-uml-make-two-variables-static.patch
-uml-port-driver-formatting.patch
-uml-kill-a-compilation-warning.patch
-uml-network-driver-locking-and-code-cleanup.patch
-uml-use-list_head-where-possible.patch
-uml-locking-commentary-in-the-random-driver.patch
-uml-mostly-const-a-structure.patch
-uml-chan_userh-formatting-fices.patch
-uml-console-locking-commentary-and-code-cleanup.patch
-uml-fix-previous-console-locking.patch
-uml-locking-comments-in-iomem-driver.patch
-uml-memc-and-physmemc-formatting-fixes.patch
-uml-fix-prototypes.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+arm-imx-serial-fix-tx-buffer-overflows.patch
