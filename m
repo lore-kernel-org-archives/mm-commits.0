@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + user-namespace-add-the-framework-fixes.patch added to -mm tree
-Date: Fri, 05 Jan 2007 00:11:25 -0800
-Message-ID: <200701050811.l058BPaj013751@shell0.pdx.osdl.net>
+Subject: + user-ns-implement-shared-mounts-fixes.patch added to -mm tree
+Date: Fri, 05 Jan 2007 00:11:46 -0800
+Message-ID: <200701050811.l058Bk4B013760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34864 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35144 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030364AbXAEILo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 03:11:44 -0500
+	id S1161000AbXAEIPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 03:15:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: serue@us.ibm.com
 The patch titled
      user ns fixes
 has been added to the -mm tree.  Its filename is
-     user-namespace-add-the-framework-fixes.patch
+     user-ns-implement-shared-mounts-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
@@ -32,67 +32,25 @@ Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h          |    8 ++++++++
- include/linux/user_namespace.h |   15 +++++++++++++++
- 2 files changed, 23 insertions(+)
+ fs/namespace.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/sched.h~user-namespace-add-the-framework-fixes include/linux/sched.h
---- a/include/linux/sched.h~user-namespace-add-the-framework-fixes
-+++ a/include/linux/sched.h
-@@ -1582,6 +1582,7 @@ extern int cond_resched(void);
- extern int cond_resched_lock(spinlock_t * lock);
- extern int cond_resched_softirq(void);
+diff -puN fs/namespace.c~user-ns-implement-shared-mounts-fixes fs/namespace.c
+--- a/fs/namespace.c~user-ns-implement-shared-mounts-fixes
++++ a/fs/namespace.c
+@@ -236,10 +236,8 @@ static struct vfsmount *clone_mnt(struct
+ 	struct super_block *sb = old->mnt_sb;
+ 	struct vfsmount *mnt;
  
-+#ifdef CONFIG_USER_NS
- /*
-  * Does a critical section need to be broken due to another
-  * task waiting?:
-@@ -1602,6 +1603,13 @@ static inline int lock_need_resched(spin
- 		return 1;
- 	return 0;
- }
-+#else
-+static inline int task_mnt_same_uidns(struct task_struct *tsk,
-+					struct vfsmount *mnt)
-+{
-+	return 1;
-+}
-+#endif
+-	if (!(old->mnt_flags & MNT_SHARE_NS)) {
+-		if (old->mnt_user_ns != current->nsproxy->user_ns)
+-			return ERR_PTR(-EPERM);
+-	}
++	if (!clone_mnt_userns_permission(old))
++		return ERR_PTR(-EPERM);
  
- /* Reevaluate whether the task has signals pending delivery.
-    This is required every time the blocked sigset_t changes.
-diff -puN include/linux/user_namespace.h~user-namespace-add-the-framework-fixes include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~user-namespace-add-the-framework-fixes
-+++ a/include/linux/user_namespace.h
-@@ -34,6 +34,16 @@ static inline void put_user_ns(struct us
- 		kref_put(&ns->kref, free_user_ns);
- }
+ 	mnt = alloc_vfsmnt(old->mnt_devname);
  
-+static inline int clone_mnt_userns_permission(struct vfsmount *old)
-+{
-+	if (!(old->mnt_flags & MNT_SHARE_NS)) {
-+		if (old->mnt_user_ns != current->nsproxy->user_ns)
-+			return 0;
-+	}
-+
-+	return 1;
-+}
-+
- #else
- 
- static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
-@@ -49,6 +59,11 @@ static inline int copy_user_ns(int flags
- static inline void put_user_ns(struct user_namespace *ns)
- {
- }
-+
-+static inline int clone_mnt_userns_permission(struct vfsmount *old)
-+{
-+	return 1;
-+}
- #endif
- 
- #endif /* _LINUX_USER_H */
 _
 
 Patches currently in -mm which might be from serue@us.ibm.com are
