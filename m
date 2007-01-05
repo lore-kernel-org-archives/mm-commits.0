@@ -1,67 +1,215 @@
 From: akpm@osdl.org
-Subject: - ebtables-dont-compute-gap-before-checking-struct.patch removed from -mm tree
-Date: Thu, 04 Jan 2007 15:42:42 -0800
-Message-ID: <200701042342.l04Ngg76002827@shell0.pdx.osdl.net>
+Subject: + sysctl-warning-fix.patch added to -mm tree
+Date: Thu, 04 Jan 2007 16:08:05 -0800
+Message-ID: <200701050008.l0508Vre003616@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:37266 "EHLO smtp.osdl.org"
+Received: from smtp0.osdl.org ([65.172.181.24]:38486 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030288AbXADXtF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 18:49:05 -0500
+	id S965101AbXAEAIe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 19:08:34 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0508WWi005259
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 4 Jan 2007 16:08:32 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 76306.1226@compuserve.com, davem@davemloft.net, kaber@trash.net, manty@manty.net, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org
 
 
 The patch titled
-     ebtables: don't compute gap before checking struct   type
-has been removed from the -mm tree.  Its filename was
-     ebtables-dont-compute-gap-before-checking-struct.patch
+     sysctl warning fix
+has been added to the -mm tree.  Its filename is
+     sysctl-warning-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ebtables: don't compute gap before checking struct   type
-From: Chuck Ebbert <76306.1226@compuserve.com>
+Subject: sysctl warning fix
+From: Andrew Morton <akpm@osdl.org>
 
-We cannot compute the gap until we know we have a 'struct ebt_entry' and
-not 'struct ebt_entries'.  Failure to check can cause crash.
+kernel/sysctl.c:2816: warning: 'sysctl_ipc_data' defined but not used
 
-Tested-by: Santiago Garcia Mantinan <manty@manty.net>
-Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <stable@kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/bridge/netfilter/ebtables.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN net/bridge/netfilter/ebtables.c~ebtables-dont-compute-gap-before-checking-struct net/bridge/netfilter/ebtables.c
---- a/net/bridge/netfilter/ebtables.c~ebtables-dont-compute-gap-before-checking-struct
-+++ a/net/bridge/netfilter/ebtables.c
-@@ -610,7 +610,7 @@ ebt_check_entry(struct ebt_entry *e, str
- 	struct ebt_entry_target *t;
- 	struct ebt_target *target;
- 	unsigned int i, j, hook = 0, hookmask = 0;
--	size_t gap = e->next_offset - e->target_offset;
-+	size_t gap;
- 	int ret;
+diff -puN kernel/sysctl.c~sysctl-warning-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-warning-fix
++++ a/kernel/sysctl.c
+@@ -2810,12 +2810,14 @@ static int sysctl_uts_string(ctl_table *
+ {
+ 	return -ENOSYS;
+ }
++#ifdef CONFIG_SYSVIPC
+ static int sysctl_ipc_data(ctl_table *table, int __user *name, int nlen,
+ 		void __user *oldval, size_t __user *oldlenp,
+ 		void __user *newval, size_t newlen)
+ {
+ 	return -ENOSYS;
+ }
++#endif
+ #endif /* CONFIG_SYSCTL_SYSCALL */
  
- 	/* don't mess with the struct ebt_entries */
-@@ -660,6 +660,7 @@ ebt_check_entry(struct ebt_entry *e, str
- 	if (ret != 0)
- 		goto cleanup_watchers;
- 	t = (struct ebt_entry_target *)(((char *)e) + e->target_offset);
-+	gap = e->next_offset - e->target_offset;
- 	target = find_target_lock(t->u.name, &ret, &ebt_mutex);
- 	if (!target)
- 		goto cleanup_watchers;
+ /*
 _
 
-Patches currently in -mm which might be from 76306.1226@compuserve.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again-fix.patch
+kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs-fix.patch
+pci-prevent-down_read-when-pci_devices-is-empty-fix.patch
+atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang-tidy.patch
+ip2-warning-fix.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
 pci-avoid-taking-pci_bus_sem-early-in-boot.patch
 down_write-preserve-local-irqs.patch
+shrink_all_memory-fix-lru_pages-handling.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
+cifs-sprintf-fix.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+ubiioc-needs-schedh.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+nokia-e70-is-an-unusual-device.patch
+sisusb_con-warning-fixes.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
