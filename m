@@ -1,61 +1,68 @@
 From: akpm@osdl.org
-Subject: + user-ns-always-on.patch added to -mm tree
-Date: Thu, 04 Jan 2007 20:03:28 -0800
-Message-ID: <200701050403.l0543TDs008852@shell0.pdx.osdl.net>
+Subject: + git-block-atomicity-fix.patch added to -mm tree
+Date: Thu, 04 Jan 2007 20:39:09 -0800
+Message-ID: <200701050439.l054d91d009568@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50991 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52321 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030330AbXAEENM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 23:13:12 -0500
+	id S1030328AbXAEEjS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 23:39:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
+Cc: akpm@osdl.org, jens.axboe@oracle.com
 
 
 The patch titled
-     user-ns-always-on
+     git-block: atomicity fix
 has been added to the -mm tree.  Its filename is
-     user-ns-always-on.patch
+     git-block-atomicity-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user-ns-always-on
+Subject: git-block: atomicity fix
 From: Andrew Morton <akpm@osdl.org>
 
-CONFIG_USER_NS=n is scrwwed.
+BUG: using smp_processor_id() in preemptible [00000001] code: khelper/972
+caller is drive_stat_acct+0x37/0x5e
 
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Call Trace:
+ [<ffffffff80343f8d>] debug_smp_processor_id+0xb1/0xc4
+ [<ffffffff80331eac>] drive_stat_acct+0x37/0x5e
+ [<ffffffff80334d49>] bio_attempt_back_merge+0x87/0x91
+ [<ffffffff803351c9>] __make_request+0xb9/0x2ed
+ [<ffffffff803329cc>] generic_make_request+0x1e9/0x222
+ [<ffffffff80333a9c>] submit_bio+0xfb/0x108
+ [<ffffffff802a1276>] mpage_bio_submit+0x22/0x26
+ [<ffffffff802a1836>] do_mpage_readpage+0x44a/0x4e2
+ [<ffffffff8033f85b>] radix_tree_insert+0x69/0x1dc
+ [<ffffffff80264d81>] __inc_zone_state+0x11/0x6d
+ ...
+
+<sadly points at Documentation/SubmitChecklist>
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- init/Kconfig |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ block/ll_rw_blk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/Kconfig~user-ns-always-on init/Kconfig
---- a/init/Kconfig~user-ns-always-on
-+++ a/init/Kconfig
-@@ -223,12 +223,8 @@ config UTS_NS
- 	  uts info for different servers.  If unsure, say N.
+diff -puN block/ll_rw_blk.c~git-block-atomicity-fix block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~git-block-atomicity-fix
++++ a/block/ll_rw_blk.c
+@@ -2577,7 +2577,7 @@ static void drive_stat_acct(struct reque
+ 		return;
  
- config USER_NS
--	bool "User Namespaces"
--	default n
--	help
--	  Support user namespaces.  This allows containers, i.e.
--	  vservers, to use user namespaces to provide different
--	  user info for different servers.  If unsure, say N.
-+	bool
-+	default y
- 
- config AUDIT
- 	bool "Auditing support"
+ 	if (!new_io) {
+-		__disk_stat_inc(rq->rq_disk, merges[rw]);
++		disk_stat_inc(rq->rq_disk, merges[rw]);
+ 	} else {
+ 		disk_round_stats(rq->rq_disk);
+ 		rq->rq_disk->in_flight++;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -215,3 +222,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-block-atomicity-fix.patch
