@@ -1,72 +1,59 @@
 From: akpm@osdl.org
-Subject: + proc_misc-warning-fix.patch added to -mm tree
-Date: Thu, 04 Jan 2007 16:09:21 -0800
-Message-ID: <200701050009.l0509kah003676@shell0.pdx.osdl.net>
+Subject: + add-an-rcu-version-of-list-splicing-fix.patch added to -mm tree
+Date: Thu, 04 Jan 2007 16:28:20 -0800
+Message-ID: <200701050028.l050Sj4C004103@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp0.osdl.org ([65.172.181.24]:38543 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39431 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965103AbXAEAJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 4 Jan 2007 19:09:48 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0509kWi005285
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 4 Jan 2007 16:09:46 -0800
+	id S965117AbXAEA2z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 4 Jan 2007 19:28:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, minyard@acm.org, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     proc_misc warning fix
+     add-an-rcu-version-of-list-splicing-fix
 has been added to the -mm tree.  Its filename is
-     proc_misc-warning-fix.patch
+     add-an-rcu-version-of-list-splicing-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc_misc warning fix
+Subject: add-an-rcu-version-of-list-splicing-fix
 From: Andrew Morton <akpm@osdl.org>
 
-fs/proc/proc_misc.c: In function 'proc_misc_init':
-fs/proc/proc_misc.c:764: warning: unused variable 'entry'
+arm:
 
+In file included from include/linux/wait.h:22,
+                 from include/linux/fs.h:271,
+                 from fs/jfs/jfs_imap.c:44:
+include/linux/list.h: In function `list_splice_init_rcu':
+include/linux/list.h:387: warning: implicit declaration of function `might_sleep'
+Fix it the easy way ;)
 
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/proc_misc.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/list.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~proc_misc-warning-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~proc_misc-warning-fix
-+++ a/fs/proc/proc_misc.c
-@@ -761,7 +761,6 @@ void create_seq_entry(char *name, mode_t
+diff -puN include/linux/list.h~add-an-rcu-version-of-list-splicing-fix include/linux/list.h
+--- a/include/linux/list.h~add-an-rcu-version-of-list-splicing-fix
++++ a/include/linux/list.h
+@@ -384,7 +384,6 @@ static inline void list_splice_init_rcu(
+ 	struct list_head *last = list->prev;
+ 	struct list_head *at = head->next;
  
- void __init proc_misc_init(void)
- {
--	struct proc_dir_entry *entry;
- 	static struct {
- 		char *name;
- 		int (*read_proc)(char*,char**,off_t,int,int*,void*);
-@@ -789,9 +788,12 @@ void __init proc_misc_init(void)
+-	might_sleep();
+ 	if (list_empty(head))
+ 		return;
  
- 	/* And now for trickier ones */
- #ifdef CONFIG_PRINTK
--	entry = create_proc_entry("kmsg", S_IRUSR, &proc_root);
--	if (entry)
--		entry->proc_fops = &proc_kmsg_operations;
-+	{
-+		struct proc_dir_entry *entry;
-+		entry = create_proc_entry("kmsg", S_IRUSR, &proc_root);
-+		if (entry)
-+			entry->proc_fops = &proc_kmsg_operations;
-+	}
- #endif
- 	create_seq_entry("devices", 0, &proc_devinfo_operations);
- 	create_seq_entry("cpuinfo", 0, &proc_cpuinfo_operations);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -140,10 +127,12 @@ consolidate-line-discipline-number-definitions-v2-fix-2.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 spi-controller-driver-for-omap-microwire-update-fix.patch
 remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
 factor-outstanding-i-o-error-handling-tidy.patch
 sync_sb_inodes-propagate-errors.patch
 block_write_full_page-handle-enospc.patch
 sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
 vmi-versus-hrtimers.patch
 gtod-persistent-clock-support-i386.patch
 hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
@@ -223,4 +212,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-proc_misc-warning-fix.patch
