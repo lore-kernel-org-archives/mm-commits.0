@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-initialize-vcpu-kvm-a-little-earlier.patch added to -mm tree
-Date: Fri, 05 Jan 2007 01:22:25 -0800
-Message-ID: <200701050922.l059MPJP015100@shell0.pdx.osdl.net>
+Subject: + kvm-improve-reporting-of-vmwrite-errors.patch added to -mm tree
+Date: Fri, 05 Jan 2007 01:22:17 -0800
+Message-ID: <200701050922.l059MHST015097@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38483 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38479 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965137AbXAEJWh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 04:22:37 -0500
+	id S965132AbXAEJWc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 04:22:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,45 +15,54 @@ Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: Initialize vcpu->kvm a little earlier
+     KVM: Improve reporting of vmwrite errors
 has been added to the -mm tree.  Its filename is
-     kvm-initialize-vcpu-kvm-a-little-earlier.patch
+     kvm-improve-reporting-of-vmwrite-errors.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Initialize vcpu->kvm a little earlier
+Subject: KVM: Improve reporting of vmwrite errors
 From: Avi Kivity <avi@qumranet.com>
 
-Fixes oops on early close of /dev/kvm.
+This will allow us to see the root cause when a vmwrite error happens.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/kvm/vmx.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-initialize-vcpu-kvm-a-little-earlier drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-initialize-vcpu-kvm-a-little-earlier
-+++ a/drivers/kvm/kvm_main.c
-@@ -230,6 +230,7 @@ static int kvm_dev_open(struct inode *in
- 		struct kvm_vcpu *vcpu = &kvm->vcpus[i];
+diff -puN drivers/kvm/vmx.c~kvm-improve-reporting-of-vmwrite-errors drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-improve-reporting-of-vmwrite-errors
++++ a/drivers/kvm/vmx.c
+@@ -152,15 +152,21 @@ static u64 vmcs_read64(unsigned long fie
+ #endif
+ }
  
- 		mutex_init(&vcpu->mutex);
-+		vcpu->kvm = kvm;
- 		vcpu->mmu.root_hpa = INVALID_PAGE;
- 		INIT_LIST_HEAD(&vcpu->free_pages);
- 	}
-@@ -530,7 +531,6 @@ static int kvm_dev_ioctl_create_vcpu(str
- 	vcpu->guest_fx_image = vcpu->host_fx_image + FX_IMAGE_SIZE;
++static noinline void vmwrite_error(unsigned long field, unsigned long value)
++{
++	printk(KERN_ERR "vmwrite error: reg %lx value %lx (err %d)\n",
++	       field, value, vmcs_read32(VM_INSTRUCTION_ERROR));
++	dump_stack();
++}
++
+ static void vmcs_writel(unsigned long field, unsigned long value)
+ {
+ 	u8 error;
  
- 	vcpu->cpu = -1;  /* First load will set up TR */
--	vcpu->kvm = kvm;
- 	r = kvm_arch_ops->vcpu_create(vcpu);
- 	if (r < 0)
- 		goto out_free_vcpus;
+ 	asm volatile (ASM_VMX_VMWRITE_RAX_RDX "; setna %0"
+ 		       : "=q"(error) : "a"(value), "d"(field) : "cc" );
+-	if (error)
+-		printk(KERN_ERR "vmwrite error: reg %lx value %lx (err %d)\n",
+-		       field, value, vmcs_read32(VM_INSTRUCTION_ERROR));
++	if (unlikely(error))
++		vmwrite_error(field, value);
+ }
+ 
+ static void vmcs_write16(unsigned long field, u16 value)
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
