@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-moxa-macros-cleanup.patch added to -mm tree
-Date: Fri, 05 Jan 2007 12:09:48 -0800
-Message-ID: <200701052009.l05K9mZl030990@shell0.pdx.osdl.net>
+Subject: + char-moxa-pci_probing-prepare.patch added to -mm tree
+Date: Fri, 05 Jan 2007 12:09:58 -0800
+Message-ID: <200701052009.l05K9wTG031008@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56843 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56865 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750696AbXAEUJv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 15:09:51 -0500
+	id S1750718AbXAEUKA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 15:10:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,138 +15,128 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: moxa, macros cleanup
+     Char: moxa, pci_probing prepare
 has been added to the -mm tree.  Its filename is
-     char-moxa-macros-cleanup.patch
+     char-moxa-pci_probing-prepare.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: moxa, macros cleanup
+Subject: Char: moxa, pci_probing prepare
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Remove yet defined or unused macros and whitespace cleanup around the rest.
+- change pci conf prototype and rename it to moxa_pci_probe
+- move some code to moxa_pci_probe
+- create moxa_pci_remove
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/moxa.c |   37 +++++++++++++------------------------
- 1 files changed, 13 insertions(+), 24 deletions(-)
+ drivers/char/moxa.c |   64 ++++++++++++++++++++++++++++++------------
+ 1 files changed, 46 insertions(+), 18 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-macros-cleanup drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-macros-cleanup
+diff -puN drivers/char/moxa.c~char-moxa-pci_probing-prepare drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-pci_probing-prepare
 +++ a/drivers/char/moxa.c
-@@ -46,23 +46,20 @@
- #include <asm/io.h>
- #include <asm/uaccess.h>
+@@ -275,10 +275,35 @@ static DEFINE_TIMER(moxaTimer, moxa_poll
+ static DEFINE_SPINLOCK(moxa_lock);
  
--#define		MOXA_VERSION		"5.1k"
-+#define MOXA_VERSION		"5.1k"
- 
--#define MOXAMAJOR       172
--#define MOXACUMAJOR     173
-+#define MOXAMAJOR		172
-+#define MOXACUMAJOR		173
- 
--#define put_to_user(arg1, arg2) put_user(arg1, (unsigned long *)arg2)
--#define get_from_user(arg1, arg2) get_user(arg1, (unsigned int *)arg2)
--
--#define MAX_BOARDS 		4	/* Don't change this value */
-+#define MAX_BOARDS		4	/* Don't change this value */
- #define MAX_PORTS_PER_BOARD	32	/* Don't change this value */
--#define MAX_PORTS 		128	/* Don't change this value */
-+#define MAX_PORTS		(MAX_BOARDS * MAX_PORTS_PER_BOARD)
- 
- /*
-  *    Define the Moxa PCI vendor and device IDs.
-  */
--#define MOXA_BUS_TYPE_ISA		0
--#define MOXA_BUS_TYPE_PCI		1
-+#define MOXA_BUS_TYPE_ISA	0
-+#define MOXA_BUS_TYPE_PCI	1
- 
- enum {
- 	MOXA_BOARD_C218_PCI = 1,
-@@ -157,13 +154,8 @@ static struct mxser_mstatus GMStatus[MAX
- 
- #define SERIAL_DO_RESTART
- 
--
--#define SERIAL_TYPE_NORMAL	1
--
- #define WAKEUP_CHARS		256
- 
--#define PORTNO(x)		((x)->index)
--
- static int verbose = 0;
- static int ttymajor = MOXAMAJOR;
- /* Variables for insmod */
-@@ -461,7 +453,7 @@ static int moxa_open(struct tty_struct *
- 	int port;
- 	int retval;
- 
--	port = PORTNO(tty);
-+	port = tty->index;
- 	if (port == MAX_PORTS) {
- 		return (0);
+ #ifdef CONFIG_PCI
+-static int moxa_get_PCI_conf(struct pci_dev *p, int board_type,
+-		struct moxa_board_conf *board)
++static int __devinit moxa_pci_probe(struct pci_dev *pdev,
++		const struct pci_device_id *ent)
+ {
+-	board->baseAddr = pci_resource_start (p, 2);
++	struct moxa_board_conf *board;
++	unsigned int i;
++	int board_type = ent->driver_data;
++	int retval;
++
++	retval = pci_enable_device(pdev);
++	if (retval)
++		goto err;
++
++	for (i = 0; i < MAX_BOARDS; i++)
++		if (moxa_boards[i].basemem == NULL)
++			break;
++
++	retval = -ENODEV;
++	if (i >= MAX_BOARDS) {
++		if (verbose)
++			printk("More than %d MOXA Intellio family boards "
++				"found. Board is ignored.\n", MAX_BOARDS);
++		goto err;
++	}
++
++	board = &moxa_boards[i];
++	board->basemem = pci_iomap(pdev, 2, 0x4000);
++	if (board->basemem == NULL)
++		goto err;
++
+ 	board->boardType = board_type;
+ 	switch (board_type) {
+ 	case MOXA_BOARD_C218_ISA:
+@@ -295,9 +320,21 @@ static int moxa_get_PCI_conf(struct pci_
  	}
-@@ -499,7 +491,7 @@ static void moxa_close(struct tty_struct
- 	struct moxa_str *ch;
- 	int port;
+ 	board->busType = MOXA_BUS_TYPE_PCI;
+ 	/* don't lose the reference in the next pci_get_device iteration */
+-	board->pdev = pci_dev_get(p);
++	board->pdev = pci_dev_get(pdev);
++	pci_set_drvdata(pdev, board);
  
--	port = PORTNO(tty);
-+	port = tty->index;
- 	if (port == MAX_PORTS) {
- 		return;
+ 	return (0);
++err:
++	return retval;
++}
++
++static void __devexit moxa_pci_remove(struct pci_dev *pdev)
++{
++	struct moxa_board_conf *brd = pci_get_drvdata(pdev);
++
++	pci_iounmap(pdev, brd->basemem);
++	brd->basemem = NULL;
++	pci_dev_put(pdev);
+ }
+ #endif /* CONFIG_PCI */
+ 
+@@ -401,18 +438,7 @@ static int __init moxa_init(void)
+ 		i = 0;
+ 		while (i < n) {
+ 			while ((p = pci_get_device(moxa_pcibrds[i].vendor, moxa_pcibrds[i].device, p))!=NULL)
+-			{
+-				if (pci_enable_device(p))
+-					continue;
+-				if (numBoards >= MAX_BOARDS) {
+-					if (verbose)
+-						printk("More than %d MOXA Intellio family boards found. Board is ignored.", MAX_BOARDS);
+-				} else {
+-					moxa_get_PCI_conf(p, moxa_pcibrds[i].driver_data,
+-						&moxa_boards[numBoards]);
+-					numBoards++;
+-				}
+-			}
++				moxa_pci_probe(p, &moxa_pcibrds[i]);
+ 			i++;
+ 		}
  	}
-@@ -663,7 +655,7 @@ static int moxa_tiocmget(struct tty_stru
- 	int port;
- 	int flag = 0, dtr, rts;
+@@ -442,10 +468,12 @@ static void __exit moxa_exit(void)
+ 	put_tty_driver(moxaDriver);
  
--	port = PORTNO(tty);
-+	port = tty->index;
- 	if ((port != MAX_PORTS) && (!ch))
- 		return (-EINVAL);
+ 	for (i = 0; i < MAX_BOARDS; i++) {
++#ifdef CONFIG_PCI
++		if (moxa_boards[i].busType == MOXA_BUS_TYPE_PCI)
++			moxa_pci_remove(moxa_boards[i].pdev);
++#endif
+ 		if (moxa_boards[i].basemem)
+ 			iounmap(moxa_boards[i].basemem);
+-		if (moxa_boards[i].busType == MOXA_BUS_TYPE_PCI)
+-			pci_dev_put(moxa_boards[i].pdev);
+ 	}
  
-@@ -689,7 +681,7 @@ static int moxa_tiocmset(struct tty_stru
- 	int port;
- 	int dtr, rts;
- 
--	port = PORTNO(tty);
-+	port = tty->index;
- 	if ((port != MAX_PORTS) && (!ch))
- 		return (-EINVAL);
- 
-@@ -714,7 +706,7 @@ static int moxa_ioctl(struct tty_struct 
- 	void __user *argp = (void __user *)arg;
- 	int retval;
- 
--	port = PORTNO(tty);
-+	port = tty->index;
- 	if ((port != MAX_PORTS) && (!ch))
- 		return (-EINVAL);
- 
-@@ -1361,9 +1353,6 @@ static void receive_data(struct moxa_str
- /*
-  *    Query
-  */
--#define QueryPort	MAX_PORTS
--
--
- 
- struct mon_str {
- 	int tick;
-@@ -1475,7 +1464,7 @@ int MoxaDriverIoctl(unsigned int cmd, un
- 	int MoxaPortTxQueue(int), MoxaPortRxQueue(int);
- 	void __user *argp = (void __user *)arg;
- 
--	if (port == QueryPort) {
-+	if (port == MAX_PORTS) {
- 		if ((cmd != MOXA_GET_CONF) && (cmd != MOXA_INIT_DRIVER) &&
- 		    (cmd != MOXA_LOAD_BIOS) && (cmd != MOXA_FIND_BOARD) && (cmd != MOXA_LOAD_C320B) &&
- 		 (cmd != MOXA_LOAD_CODE) && (cmd != MOXA_GETDATACOUNT) &&
+ 	if (verbose)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
