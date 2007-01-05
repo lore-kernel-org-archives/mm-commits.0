@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-fix-previous-console-locking.patch added to -mm tree
-Date: Fri, 05 Jan 2007 12:13:29 -0800
-Message-ID: <200701052013.l05KDTVC031087@shell0.pdx.osdl.net>
+Subject: + uml-mostly-const-a-structure.patch added to -mm tree
+Date: Fri, 05 Jan 2007 12:13:23 -0800
+Message-ID: <200701052013.l05KDNER031078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57169 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57154 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750732AbXAEUNc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 15:13:32 -0500
+	id S1750723AbXAEUN0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 15:13:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,135 +15,130 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: fix previous console locking
+     uml: mostly const a structure
 has been added to the -mm tree.  Its filename is
-     uml-fix-previous-console-locking.patch
+     uml-mostly-const-a-structure.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix previous console locking
+Subject: uml: mostly const a structure
 From: Jeff Dike <jdike@addtoit.com>
 
-Eliminate the open_mutex after complaints from Blaisorblade.  It turns out
-that the tty count provides the information needed to tell whether we are the
-first opener or last closer.
+The chan_opts structure is mostly const, and needs no locking.  Comment the
+lack of locking on the one field that can change.
+
+Make all the other fields const.  It turned out that console_open_chan didn't
+use its chan_opts argument, so that is deleted from the function and its
+callers.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/drivers/line.c |   48 ++++++---------------------------------
- arch/um/include/line.h |    1 
- 2 files changed, 8 insertions(+), 41 deletions(-)
+ arch/um/drivers/chan_kern.c     |    5 ++---
+ arch/um/drivers/ssl.c           |    3 ++-
+ arch/um/drivers/stdio_console.c |    3 ++-
+ arch/um/include/chan_kern.h     |    3 +--
+ arch/um/include/chan_user.h     |    8 ++++----
+ 5 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/um/drivers/line.c~uml-fix-previous-console-locking arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-fix-previous-console-locking
-+++ a/arch/um/drivers/line.c
-@@ -425,42 +425,15 @@ int line_setup_irq(int fd, int input, in
-  * However, in this case, mconsole requests can come in "from the
-  * side", and race with opens and closes.
-  *
-- * The problem comes from line_setup not wanting to sleep if
-- * the device is open or being opened.  This can happen because the
-- * first opener of a device is responsible for setting it up on the
-- * host, and that can sleep.  The open of a port device will sleep
-- * until someone telnets to it.
-+ * mconsole config requests will want to be sure the device isn't in
-+ * use, and get_config, open, and close will want a stable
-+ * configuration.  The checking and modification of the configuration
-+ * is done under a spinlock.  Checking whether the device is in use is
-+ * line->tty->count > 1, also under the spinlock.
-  *
-- * The obvious solution of putting everything under a mutex fails
-- * because then trying (and failing) to change the configuration of an
-- * open(ing) device will block until the open finishes.  The right
-- * thing to happen is for it to fail immediately.
-- *
-- * We can put the opening (and closing) of the host device under a
-- * separate lock, but that has to be taken before the count lock is
-- * released.  Otherwise, you open a window in which another open can
-- * come through and assume that the host side is opened and working.
-- *
-- * So, if the tty count is one, open will take the open mutex
-- * inside the count lock.  Otherwise, it just returns. This will sleep
-- * if the last close is pending, and will block a setup or get_config,
-- * but that should not last long.
-- *
-- * So, what we end up with is that open and close take the count lock.
-- * If the first open or last close are happening, then the open mutex
-- * is taken inside the count lock and the host opening or closing is done.
-- *
-- * setup and get_config only take the count lock.  setup modifies the
-- * device configuration only if the open count is zero.  Arbitrarily
-- * long blocking of setup doesn't happen because something would have to be
-- * waiting for an open to happen.  However, a second open with
-- * tty->count == 1 can't happen, and a close can't happen until the open
-- * had finished.
-- *
-- * We can't maintain our own count here because the tty layer doesn't
-- * match opens and closes.  It will call close if an open failed, and
-- * a tty hangup will result in excess closes.  So, we rely on
-- * tty->count instead.  It is one on both the first open and last close.
-+ * tty->count serves to decide whether the device should be enabled or
-+ * disabled on the host.  If it's equal to 1, then we are doing the
-+ * first open or last close.  Otherwise, open and close just return.
-  */
+diff -puN arch/um/drivers/chan_kern.c~uml-mostly-const-a-structure arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~uml-mostly-const-a-structure
++++ a/arch/um/drivers/chan_kern.c
+@@ -354,8 +354,7 @@ int console_write_chan(struct list_head 
+ 	return ret;
+ }
  
- int line_open(struct line *lines, struct tty_struct *tty)
-@@ -476,7 +449,6 @@ int line_open(struct line *lines, struct
- 	if(tty->count > 1)
- 		goto out_unlock;
+-int console_open_chan(struct line *line, struct console *co,
+-		      const struct chan_opts *opts)
++int console_open_chan(struct line *line, struct console *co)
+ {
+ 	int err;
  
--	mutex_lock(&line->open_mutex);
- 	spin_unlock(&line->count_lock);
+@@ -363,7 +362,7 @@ int console_open_chan(struct line *line,
+ 	if(err)
+ 		return err;
  
- 	tty->driver_data = line;
-@@ -493,7 +465,6 @@ int line_open(struct line *lines, struct
- 	chan_window_size(&line->chan_list, &tty->winsize.ws_row,
- 			 &tty->winsize.ws_col);
+-	printk("Console initialized on /dev/%s%d\n",co->name,co->index);
++	printk("Console initialized on /dev/%s%d\n", co->name, co->index);
+ 	return 0;
+ }
  
--	mutex_unlock(&line->open_mutex);
- 	return err;
+diff -puN arch/um/drivers/ssl.c~uml-mostly-const-a-structure arch/um/drivers/ssl.c
+--- a/arch/um/drivers/ssl.c~uml-mostly-const-a-structure
++++ a/arch/um/drivers/ssl.c
+@@ -38,6 +38,7 @@ static void ssl_announce(char *dev_name,
+ 	       dev_name);
+ }
  
- out_unlock:
-@@ -523,7 +494,6 @@ void line_close(struct tty_struct *tty, 
- 	if(tty->count > 1)
- 		goto out_unlock;
++/* Almost const, except that xterm_title may be changed in an initcall */
+ static struct chan_opts opts = {
+ 	.announce 	= ssl_announce,
+ 	.xterm_title	= "Serial Line #%d",
+@@ -171,7 +172,7 @@ static int ssl_console_setup(struct cons
+ {
+ 	struct line *line = &serial_lines[co->index];
  
--	mutex_lock(&line->open_mutex);
- 	spin_unlock(&line->count_lock);
+-	return console_open_chan(line, co, &opts);
++	return console_open_chan(line, co);
+ }
  
- 	line->tty = NULL;
-@@ -534,7 +504,6 @@ void line_close(struct tty_struct *tty, 
- 		line->sigio = 0;
-         }
+ static struct console ssl_cons = {
+diff -puN arch/um/drivers/stdio_console.c~uml-mostly-const-a-structure arch/um/drivers/stdio_console.c
+--- a/arch/um/drivers/stdio_console.c~uml-mostly-const-a-structure
++++ a/arch/um/drivers/stdio_console.c
+@@ -42,6 +42,7 @@ void stdio_announce(char *dev_name, int 
+ 	       dev_name);
+ }
  
--	mutex_unlock(&line->open_mutex);
- 	return;
++/* Almost const, except that xterm_title may be changed in an initcall */
+ static struct chan_opts opts = {
+ 	.announce 	= stdio_announce,
+ 	.xterm_title	= "Virtual Console #%d",
+@@ -144,7 +145,7 @@ static int uml_console_setup(struct cons
+ {
+ 	struct line *line = &vts[co->index];
  
- out_unlock:
-@@ -755,7 +724,6 @@ void lines_init(struct line *lines, int 
- 	for(i = 0; i < nlines; i++){
- 		line = &lines[i];
- 		INIT_LIST_HEAD(&line->chan_list);
--		mutex_init(&line->open_mutex);
+-	return console_open_chan(line, co, &opts);
++	return console_open_chan(line, co);
+ }
  
- 		if(line->init_str == NULL)
- 			continue;
-diff -puN arch/um/include/line.h~uml-fix-previous-console-locking arch/um/include/line.h
---- a/arch/um/include/line.h~uml-fix-previous-console-locking
-+++ a/arch/um/include/line.h
-@@ -35,7 +35,6 @@ struct line {
- 	spinlock_t count_lock;
- 	int valid;
+ static struct console stdiocons = {
+diff -puN arch/um/include/chan_kern.h~uml-mostly-const-a-structure arch/um/include/chan_kern.h
+--- a/arch/um/include/chan_kern.h~uml-mostly-const-a-structure
++++ a/arch/um/include/chan_kern.h
+@@ -36,8 +36,7 @@ extern int write_chan(struct list_head *
+ 			     int write_irq);
+ extern int console_write_chan(struct list_head *chans, const char *buf, 
+ 			      int len);
+-extern int console_open_chan(struct line *line, struct console *co,
+-			     const struct chan_opts *opts);
++extern int console_open_chan(struct line *line, struct console *co);
+ extern void deactivate_chan(struct list_head *chans, int irq);
+ extern void reactivate_chan(struct list_head *chans, int irq);
+ extern void chan_enable_winch(struct list_head *chans, struct tty_struct *tty);
+diff -puN arch/um/include/chan_user.h~uml-mostly-const-a-structure arch/um/include/chan_user.h
+--- a/arch/um/include/chan_user.h~uml-mostly-const-a-structure
++++ a/arch/um/include/chan_user.h
+@@ -9,11 +9,11 @@
+ #include "init.h"
  
--	struct mutex open_mutex;
- 	char *init_str;
- 	int init_pri;
- 	struct list_head chan_list;
+ struct chan_opts {
+-	void (*announce)(char *dev_name, int dev);
++	void (*const announce)(char *dev_name, int dev);
+ 	char *xterm_title;
+-	int raw;
+-	unsigned long tramp_stack;
+-	int in_kernel;
++	const int raw;
++	const unsigned long tramp_stack;
++	const int in_kernel;
+ };
+ 
+ enum chan_init_pri { INIT_STATIC, INIT_ALL, INIT_ONE };
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
