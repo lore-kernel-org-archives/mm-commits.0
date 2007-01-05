@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-mostly-const-a-structure.patch added to -mm tree
-Date: Fri, 05 Jan 2007 12:13:23 -0800
-Message-ID: <200701052013.l05KDNER031078@shell0.pdx.osdl.net>
+Subject: + uml-locking-commentary-in-the-random-driver.patch added to -mm tree
+Date: Fri, 05 Jan 2007 12:13:21 -0800
+Message-ID: <200701052013.l05KDLFA031075@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57154 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57142 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750723AbXAEUN0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 15:13:26 -0500
+	id S1750718AbXAEUNY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 15:13:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,130 +15,38 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: mostly const a structure
+     uml: locking commentary in the random driver
 has been added to the -mm tree.  Its filename is
-     uml-mostly-const-a-structure.patch
+     uml-locking-commentary-in-the-random-driver.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: mostly const a structure
+Subject: uml: locking commentary in the random driver
 From: Jeff Dike <jdike@addtoit.com>
 
-The chan_opts structure is mostly const, and needs no locking.  Comment the
-lack of locking on the one field that can change.
-
-Make all the other fields const.  It turned out that console_open_chan didn't
-use its chan_opts argument, so that is deleted from the function and its
-callers.
+Comment the lack of locking.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/drivers/chan_kern.c     |    5 ++---
- arch/um/drivers/ssl.c           |    3 ++-
- arch/um/drivers/stdio_console.c |    3 ++-
- arch/um/include/chan_kern.h     |    3 +--
- arch/um/include/chan_user.h     |    8 ++++----
- 5 files changed, 11 insertions(+), 11 deletions(-)
+ arch/um/drivers/random.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/um/drivers/chan_kern.c~uml-mostly-const-a-structure arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~uml-mostly-const-a-structure
-+++ a/arch/um/drivers/chan_kern.c
-@@ -354,8 +354,7 @@ int console_write_chan(struct list_head 
- 	return ret;
- }
- 
--int console_open_chan(struct line *line, struct console *co,
--		      const struct chan_opts *opts)
-+int console_open_chan(struct line *line, struct console *co)
- {
- 	int err;
- 
-@@ -363,7 +362,7 @@ int console_open_chan(struct line *line,
- 	if(err)
- 		return err;
- 
--	printk("Console initialized on /dev/%s%d\n",co->name,co->index);
-+	printk("Console initialized on /dev/%s%d\n", co->name, co->index);
- 	return 0;
- }
- 
-diff -puN arch/um/drivers/ssl.c~uml-mostly-const-a-structure arch/um/drivers/ssl.c
---- a/arch/um/drivers/ssl.c~uml-mostly-const-a-structure
-+++ a/arch/um/drivers/ssl.c
-@@ -38,6 +38,7 @@ static void ssl_announce(char *dev_name,
- 	       dev_name);
- }
- 
-+/* Almost const, except that xterm_title may be changed in an initcall */
- static struct chan_opts opts = {
- 	.announce 	= ssl_announce,
- 	.xterm_title	= "Serial Line #%d",
-@@ -171,7 +172,7 @@ static int ssl_console_setup(struct cons
- {
- 	struct line *line = &serial_lines[co->index];
- 
--	return console_open_chan(line, co, &opts);
-+	return console_open_chan(line, co);
- }
- 
- static struct console ssl_cons = {
-diff -puN arch/um/drivers/stdio_console.c~uml-mostly-const-a-structure arch/um/drivers/stdio_console.c
---- a/arch/um/drivers/stdio_console.c~uml-mostly-const-a-structure
-+++ a/arch/um/drivers/stdio_console.c
-@@ -42,6 +42,7 @@ void stdio_announce(char *dev_name, int 
- 	       dev_name);
- }
- 
-+/* Almost const, except that xterm_title may be changed in an initcall */
- static struct chan_opts opts = {
- 	.announce 	= stdio_announce,
- 	.xterm_title	= "Virtual Console #%d",
-@@ -144,7 +145,7 @@ static int uml_console_setup(struct cons
- {
- 	struct line *line = &vts[co->index];
- 
--	return console_open_chan(line, co, &opts);
-+	return console_open_chan(line, co);
- }
- 
- static struct console stdiocons = {
-diff -puN arch/um/include/chan_kern.h~uml-mostly-const-a-structure arch/um/include/chan_kern.h
---- a/arch/um/include/chan_kern.h~uml-mostly-const-a-structure
-+++ a/arch/um/include/chan_kern.h
-@@ -36,8 +36,7 @@ extern int write_chan(struct list_head *
- 			     int write_irq);
- extern int console_write_chan(struct list_head *chans, const char *buf, 
- 			      int len);
--extern int console_open_chan(struct line *line, struct console *co,
--			     const struct chan_opts *opts);
-+extern int console_open_chan(struct line *line, struct console *co);
- extern void deactivate_chan(struct list_head *chans, int irq);
- extern void reactivate_chan(struct list_head *chans, int irq);
- extern void chan_enable_winch(struct list_head *chans, struct tty_struct *tty);
-diff -puN arch/um/include/chan_user.h~uml-mostly-const-a-structure arch/um/include/chan_user.h
---- a/arch/um/include/chan_user.h~uml-mostly-const-a-structure
-+++ a/arch/um/include/chan_user.h
-@@ -9,11 +9,11 @@
- #include "init.h"
- 
- struct chan_opts {
--	void (*announce)(char *dev_name, int dev);
-+	void (*const announce)(char *dev_name, int dev);
- 	char *xterm_title;
--	int raw;
--	unsigned long tramp_stack;
--	int in_kernel;
-+	const int raw;
-+	const unsigned long tramp_stack;
-+	const int in_kernel;
+diff -puN arch/um/drivers/random.c~uml-locking-commentary-in-the-random-driver arch/um/drivers/random.c
+--- a/arch/um/drivers/random.c~uml-locking-commentary-in-the-random-driver
++++ a/arch/um/drivers/random.c
+@@ -78,6 +78,7 @@ static const struct file_operations rng_
+ 	.read		= rng_dev_read,
  };
  
- enum chan_init_pri { INIT_STATIC, INIT_ALL, INIT_ONE };
++/* rng_init shouldn't be called more than once at boot time */
+ static struct miscdevice rng_miscdev = {
+ 	RNG_MISCDEV_MINOR,
+ 	RNG_MODULE_NAME,
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
