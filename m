@@ -1,207 +1,105 @@
 From: akpm@osdl.org
-Subject: + kvm-simplify-mmu_alloc_roots.patch added to -mm tree
-Date: Fri, 05 Jan 2007 01:23:12 -0800
-Message-ID: <200701050923.l059NDI9015121@shell0.pdx.osdl.net>
+Subject: + reiser4-sb_sync_inodes-fix.patch added to -mm tree
+Date: Fri, 05 Jan 2007 01:55:59 -0800
+Message-ID: <200701050956.l059twxG015761@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38521 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40439 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965132AbXAEJX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 04:23:28 -0500
+	id S1161031AbXAEJ4c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 04:56:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, avi@qumranet.com
+Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com
 
 
 The patch titled
-     KVM: Simplify mmu_alloc_roots()
+     lockdep: unbalance at generic_sync_sb_inodes
 has been added to the -mm tree.  Its filename is
-     kvm-simplify-mmu_alloc_roots.patch
+     reiser4-sb_sync_inodes-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Simplify mmu_alloc_roots()
-From: Ingo Molnar <mingo@elte.hu>
+Subject: lockdep: unbalance at generic_sync_sb_inodes
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Small optimization/cleanup:
+On Thu, Jan 04, 2007 at 10:02:00PM -0800, Andrew Morton wrote:
 
-    page == page_header(page->page_hpa)
+> 	ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.20-rc3/2.6.20-rc3-mm1/
+Hi,
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+The reiser4-sb_sync_inodes.patch, which goal is to:
+"This patch moves spin_lock/spin_unlock down to sync_sb_inodes."
+Only really moved the spin_unlock, thus triggering the following
+lockdep message:
+[   65.267402] =====================================
+[   65.267508] [ BUG: bad unlock balance detected! ]
+[   65.267563] -------------------------------------
+[   65.267619] swapper/0 is trying to release lock (inode_lock) at:
+[   65.267751] [<c018f573>] generic_sync_sb_inodes+0xa6/0x2e8
+[   65.267853] but there are no more locks to release!
+[   65.267908]
+[   65.267909] other info that might help us debug this:
+[   65.268014] 1 lock held by swapper/0:
+[   65.268068]  #0:  (&type->s_umount_key){--..}, at: [<c0174c18>] alloc_super+0xe8/0x1a5
+[   65.268330]
+[   65.268330] stack backtrace:
+[   65.268433]  [<c010390d>] show_trace_log_lvl+0x1a/0x30
+[   65.268528]  [<c0103935>] show_trace+0x12/0x14
+[   65.268621]  [<c0103a2f>] dump_stack+0x16/0x18
+[   65.268714]  [<c013b2a0>] print_unlock_inbalance_bug+0xce/0xd8
+[   65.268811]  [<c013b39b>] lock_release_non_nested+0x6f/0x172
+[   65.268907]  [<c013b4d2>] lock_release_nested+0x34/0xdc
+[   65.269001]  [<c013b5ce>] __lock_release+0x54/0x56
+[   65.269095]  [<c013b809>] lock_release+0x46/0x60
+[   65.269188]  [<c03e8660>] _spin_unlock+0x16/0x40
+[   65.269284]  [<c018f573>] generic_sync_sb_inodes+0xa6/0x2e8
+[   65.269379]  [<c018f7d5>] sync_sb_inodes+0x20/0x23
+[   65.269472]  [<c018f937>] sync_inodes_sb+0x82/0x8a
+[   65.269566]  [<c0174eab>] __fsync_super+0xd/0x84
+[   65.269659]  [<c0174f2d>] fsync_super+0xb/0x19
+[   65.269753]  [<c017558a>] do_remount_sb+0x30/0xee
+[   65.269846]  [<c0175aa2>] get_sb_single+0x66/0x8b
+[   65.269940]  [<c01b45c1>] sysfs_get_sb+0x1d/0x2c
+[   65.270036]  [<c0175b49>] vfs_kern_mount+0x82/0xfb
+[   65.270130]  [<c0175c19>] kern_mount+0x16/0x1d
+[   65.270223]  [<c055ddb6>] sysfs_init+0x57/0xad
+[   65.270319]  [<c055c8d2>] mnt_init+0xbf/0x13b
+[   65.270412]  [<c055c555>] vfs_caches_init+0x97/0xa7
+[   65.270506]  [<c0544bd4>] start_kernel+0x1ca/0x261
+[   65.270600]  [<00000000>] 0x0
+[   65.270691]  =======================
+
+Regards,
+Frederik
+
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/fs-writeback.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/kvm/mmu.c~kvm-simplify-mmu_alloc_roots drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-simplify-mmu_alloc_roots
-+++ a/drivers/kvm/mmu.c
-@@ -820,9 +820,9 @@ static void mmu_alloc_roots(struct kvm_v
- 		hpa_t root = vcpu->mmu.root_hpa;
+diff -puN fs/fs-writeback.c~reiser4-sb_sync_inodes-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~reiser4-sb_sync_inodes-fix
++++ a/fs/fs-writeback.c
+@@ -306,6 +306,8 @@ int generic_sync_sb_inodes(struct super_
+ 	const unsigned long start = jiffies;	/* livelock avoidance */
+ 	int ret = 0;
  
- 		ASSERT(!VALID_PAGE(root));
--		root = kvm_mmu_get_page(vcpu, root_gfn, 0,
--					PT64_ROOT_LEVEL, 0, NULL)->page_hpa;
--		page = page_header(root);
-+		page = kvm_mmu_get_page(vcpu, root_gfn, 0,
-+					PT64_ROOT_LEVEL, 0, NULL);
-+		root = page->page_hpa;
- 		++page->root_count;
- 		vcpu->mmu.root_hpa = root;
- 		return;
-@@ -836,10 +836,10 @@ static void mmu_alloc_roots(struct kvm_v
- 			root_gfn = vcpu->pdptrs[i] >> PAGE_SHIFT;
- 		else if (vcpu->mmu.root_level == 0)
- 			root_gfn = 0;
--		root = kvm_mmu_get_page(vcpu, root_gfn, i << 30,
-+		page = kvm_mmu_get_page(vcpu, root_gfn, i << 30,
- 					PT32_ROOT_LEVEL, !is_paging(vcpu),
--					NULL)->page_hpa;
--		page = page_header(root);
-+					NULL);
-+		root = page->page_hpa;
- 		++page->root_count;
- 		vcpu->mmu.pae_root[i] = root | PT_PRESENT_MASK;
- 	}
++	spin_lock(&inode_lock);
++
+ 	if (!wbc->for_kupdate || list_empty(&sb->s_io))
+ 		list_splice_init(&sb->s_dirty, &sb->s_io);
+ 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-origin.patch
-kvm-fix-gfp_kernel-alloc-in-atomic-section-bug.patch
-kvm-use-raw_smp_processor_id-instead-of-smp_processor_id-where-applicable.patch
-kvm-improve-interrupt-response.patch
-profiling-fix-sched-profiling-typo.patch
-kvm-mmu-implement-simple-reverse-mapping.patch
-kvm-mmu-teach-the-page-table-walker-to-track-guest-page-table-gfns.patch
-kvm-mmu-load-the-pae-pdptrs-on-cr3-change-like-the-processor-does.patch
-kvm-mmu-fold-fetch_guest-into-init_walker.patch
-kvm-mu-special-treatment-for-shadow-pae-root-pages.patch
-kvm-mmu-use-the-guest-pdptrs-instead-of-mapping-cr3-in-pae-mode.patch
-kvm-mmu-make-the-shadow-page-tables-also-special-case-pae.patch
-kvm-mmu-make-kvm_mmu_alloc_page-return-a-kvm_mmu_page-pointer.patch
-kvm-mmu-shadow-page-table-caching.patch
-kvm-mmu-write-protect-guest-pages-when-a-shadow-is-created-for-them.patch
-kvm-mmu-let-the-walker-extract-the-target-page-gfn-from-the-pte.patch
-kvm-mmu-support-emulated-writes-into-ram.patch
-kvm-mmu-zap-shadow-page-table-entries-on-writes-to-guest-page-tables.patch
-kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page.patch
-kvm-mmu-implement-child-shadow-unlinking.patch
-kvm-mmu-kvm_mmu_put_page-only-removes-one-link-to-the-page.patch
-kvm-mmu-oom-handling.patch
-kvm-mmu-remove-invlpg-interception.patch
-kvm-mmu-remove-release_pt_page_64.patch
-kvm-mmu-handle-misaligned-accesses-to-write-protected-guest-page-tables.patch
-kvm-mmu-ove-is_empty_shadow_page-above-kvm_mmu_free_page.patch
-kvm-mmu-ensure-freed-shadow-pages-are-clean.patch
-kvm-mmu-if-an-empty-shadow-page-is-not-empty-report-more-info.patch
-kvm-mmu-page-table-write-flood-protection.patch
-kvm-mmu-never-free-a-shadow-page-actively-serving-as-a-root.patch
-kvm-mmu-fix-cmpxchg8b-emulation.patch
-kvm-mmu-treat-user-mode-faults-as-a-hint-that-a-page-is-no-longer-a-page-table.patch
-kvm-mmu-free-pages-on-kvm-destruction.patch
-kvm-mmu-replace-atomic-allocations-by-preallocated-objects.patch
-kvm-mmu-detect-oom-conditions-and-propagate-error-to-userspace.patch
-kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte.patch
-kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left.patch
-kvm-mmu-add-audit-code-to-check-mappings-etc-are-correct.patch
-kvm-avoid-oom-on-cr3-switch.patch
-kvm-make-loading-cr3-more-robust.patch
-kvm-simplify-mmu_alloc_roots.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-fix-for-crash-in-adummy_init.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-sched-improve-sched_clock-on-i686.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-debugging-feature-sysrq-q-to-print-timers.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-aio-is-unlikely.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+disable-init-initramfsc-updated-fix.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-user-ns-unshare.patch
+reiser4-sb_sync_inodes-fix.patch
