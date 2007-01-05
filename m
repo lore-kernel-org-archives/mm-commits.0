@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-dont-set-guest-cr3-from-vmx_vcpu_setup.patch added to -mm tree
-Date: Fri, 05 Jan 2007 01:22:49 -0800
-Message-ID: <200701050922.l059MnLH015109@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-add-missing-dirty-bit.patch added to -mm tree
+Date: Fri, 05 Jan 2007 01:22:56 -0800
+Message-ID: <200701050922.l059Muwi015115@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38501 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38506 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965139AbXAEJXB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 04:23:01 -0500
+	id S965140AbXAEJXI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 04:23:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,39 +15,40 @@ Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: Don't set guest cr3 from vmx_vcpu_setup()
+     KVM: MMU: Add missing dirty bit
 has been added to the -mm tree.  Its filename is
-     kvm-dont-set-guest-cr3-from-vmx_vcpu_setup.patch
+     kvm-mmu-add-missing-dirty-bit.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Don't set guest cr3 from vmx_vcpu_setup()
+Subject: KVM: MMU: Add missing dirty bit
 From: Avi Kivity <avi@qumranet.com>
 
-It overwrites the right cr3 set from mmu setup.  Happens only with the test
-harness.
+If we emulate a write, we fail to set the dirty bit on the guest pte, leading
+the guest to believe the page is clean, and thus lose data.  Bad.
+
+Fix by setting the guest pte dirty bit under such conditions.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/kvm/paging_tmpl.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/kvm/vmx.c~kvm-dont-set-guest-cr3-from-vmx_vcpu_setup drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-dont-set-guest-cr3-from-vmx_vcpu_setup
-+++ a/drivers/kvm/vmx.c
-@@ -1027,8 +1027,6 @@ static int vmx_vcpu_setup(struct kvm_vcp
- 	vmcs_writel(GUEST_RIP, 0xfff0);
- 	vmcs_writel(GUEST_RSP, 0);
- 
--	vmcs_writel(GUEST_CR3, 0);
--
- 	//todo: dr0 = dr1 = dr2 = dr3 = 0; dr6 = 0xffff0ff0
- 	vmcs_writel(GUEST_DR7, 0x400);
- 
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-add-missing-dirty-bit drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-add-missing-dirty-bit
++++ a/drivers/kvm/paging_tmpl.h
+@@ -317,6 +317,7 @@ static int FNAME(fix_write_pf)(struct kv
+ 	} else if (kvm_mmu_lookup_page(vcpu, gfn)) {
+ 		pgprintk("%s: found shadow page for %lx, marking ro\n",
+ 			 __FUNCTION__, gfn);
++		*guest_ent |= PT_DIRTY_MASK;
+ 		*write_pt = 1;
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
