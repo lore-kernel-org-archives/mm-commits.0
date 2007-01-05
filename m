@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-moxa-use-del_timer_sync.patch added to -mm tree
-Date: Fri, 05 Jan 2007 12:09:50 -0800
-Message-ID: <200701052009.l05K9obr030996@shell0.pdx.osdl.net>
+Subject: + char-moxa-macros-cleanup.patch added to -mm tree
+Date: Fri, 05 Jan 2007 12:09:48 -0800
+Message-ID: <200701052009.l05K9mZl030990@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56848 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56843 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750710AbXAEUJx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 15:09:53 -0500
+	id S1750696AbXAEUJv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 15:09:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,61 +15,138 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: moxa, use del_timer_sync
+     Char: moxa, macros cleanup
 has been added to the -mm tree.  Its filename is
-     char-moxa-use-del_timer_sync.patch
+     char-moxa-macros-cleanup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: moxa, use del_timer_sync
+Subject: Char: moxa, macros cleanup
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Use del_timer_sync in most timer deletions, we don't want to oops in the timer
-function.
+Remove yet defined or unused macros and whitespace cleanup around the rest.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/moxa.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/moxa.c |   37 +++++++++++++------------------------
+ 1 files changed, 13 insertions(+), 24 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-use-del_timer_sync drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-use-del_timer_sync
+diff -puN drivers/char/moxa.c~char-moxa-macros-cleanup drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-macros-cleanup
 +++ a/drivers/char/moxa.c
-@@ -424,10 +424,10 @@ static void __exit moxa_exit(void)
- 	if (verbose)
- 		printk("Unloading module moxa ...\n");
+@@ -46,23 +46,20 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
  
--	del_timer(&moxaTimer);
-+	del_timer_sync(&moxaTimer);
+-#define		MOXA_VERSION		"5.1k"
++#define MOXA_VERSION		"5.1k"
  
- 	for (i = 0; i < MAX_PORTS; i++)
--		del_timer(&moxaEmptyTimer[i]);
-+		del_timer_sync(&moxaEmptyTimer[i]);
+-#define MOXAMAJOR       172
+-#define MOXACUMAJOR     173
++#define MOXAMAJOR		172
++#define MOXACUMAJOR		173
  
- 	if (tty_unregister_driver(moxaDriver))
- 		printk("Couldn't unregister MOXA Intellio family serial driver\n");
-@@ -529,7 +529,7 @@ static void moxa_close(struct tty_struct
- 	if (ch->asyncflags & ASYNC_INITIALIZED) {
- 		setup_empty_event(tty);
- 		tty_wait_until_sent(tty, 30 * HZ);	/* 30 seconds timeout */
--		del_timer(&moxaEmptyTimer[ch->port]);
-+		del_timer_sync(&moxaEmptyTimer[ch->port]);
+-#define put_to_user(arg1, arg2) put_user(arg1, (unsigned long *)arg2)
+-#define get_from_user(arg1, arg2) get_user(arg1, (unsigned int *)arg2)
+-
+-#define MAX_BOARDS 		4	/* Don't change this value */
++#define MAX_BOARDS		4	/* Don't change this value */
+ #define MAX_PORTS_PER_BOARD	32	/* Don't change this value */
+-#define MAX_PORTS 		128	/* Don't change this value */
++#define MAX_PORTS		(MAX_BOARDS * MAX_PORTS_PER_BOARD)
+ 
+ /*
+  *    Define the Moxa PCI vendor and device IDs.
+  */
+-#define MOXA_BUS_TYPE_ISA		0
+-#define MOXA_BUS_TYPE_PCI		1
++#define MOXA_BUS_TYPE_ISA	0
++#define MOXA_BUS_TYPE_PCI	1
+ 
+ enum {
+ 	MOXA_BOARD_C218_PCI = 1,
+@@ -157,13 +154,8 @@ static struct mxser_mstatus GMStatus[MAX
+ 
+ #define SERIAL_DO_RESTART
+ 
+-
+-#define SERIAL_TYPE_NORMAL	1
+-
+ #define WAKEUP_CHARS		256
+ 
+-#define PORTNO(x)		((x)->index)
+-
+ static int verbose = 0;
+ static int ttymajor = MOXAMAJOR;
+ /* Variables for insmod */
+@@ -461,7 +453,7 @@ static int moxa_open(struct tty_struct *
+ 	int port;
+ 	int retval;
+ 
+-	port = PORTNO(tty);
++	port = tty->index;
+ 	if (port == MAX_PORTS) {
+ 		return (0);
  	}
- 	shut_down(ch);
- 	MoxaPortFlushData(port, 2);
-@@ -1004,7 +1004,7 @@ static void check_xmit_empty(unsigned lo
+@@ -499,7 +491,7 @@ static void moxa_close(struct tty_struct
  	struct moxa_str *ch;
+ 	int port;
  
- 	ch = (struct moxa_str *) data;
--	del_timer(&moxaEmptyTimer[ch->port]);
-+	del_timer_sync(&moxaEmptyTimer[ch->port]);
- 	if (ch->tty && (ch->statusflags & EMPTYWAIT)) {
- 		if (MoxaPortTxQueue(ch->port) == 0) {
- 			ch->statusflags &= ~EMPTYWAIT;
+-	port = PORTNO(tty);
++	port = tty->index;
+ 	if (port == MAX_PORTS) {
+ 		return;
+ 	}
+@@ -663,7 +655,7 @@ static int moxa_tiocmget(struct tty_stru
+ 	int port;
+ 	int flag = 0, dtr, rts;
+ 
+-	port = PORTNO(tty);
++	port = tty->index;
+ 	if ((port != MAX_PORTS) && (!ch))
+ 		return (-EINVAL);
+ 
+@@ -689,7 +681,7 @@ static int moxa_tiocmset(struct tty_stru
+ 	int port;
+ 	int dtr, rts;
+ 
+-	port = PORTNO(tty);
++	port = tty->index;
+ 	if ((port != MAX_PORTS) && (!ch))
+ 		return (-EINVAL);
+ 
+@@ -714,7 +706,7 @@ static int moxa_ioctl(struct tty_struct 
+ 	void __user *argp = (void __user *)arg;
+ 	int retval;
+ 
+-	port = PORTNO(tty);
++	port = tty->index;
+ 	if ((port != MAX_PORTS) && (!ch))
+ 		return (-EINVAL);
+ 
+@@ -1361,9 +1353,6 @@ static void receive_data(struct moxa_str
+ /*
+  *    Query
+  */
+-#define QueryPort	MAX_PORTS
+-
+-
+ 
+ struct mon_str {
+ 	int tick;
+@@ -1475,7 +1464,7 @@ int MoxaDriverIoctl(unsigned int cmd, un
+ 	int MoxaPortTxQueue(int), MoxaPortRxQueue(int);
+ 	void __user *argp = (void __user *)arg;
+ 
+-	if (port == QueryPort) {
++	if (port == MAX_PORTS) {
+ 		if ((cmd != MOXA_GET_CONF) && (cmd != MOXA_INIT_DRIVER) &&
+ 		    (cmd != MOXA_LOAD_BIOS) && (cmd != MOXA_FIND_BOARD) && (cmd != MOXA_LOAD_C320B) &&
+ 		 (cmd != MOXA_LOAD_CODE) && (cmd != MOXA_GETDATACOUNT) &&
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
