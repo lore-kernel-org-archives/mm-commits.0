@@ -1,95 +1,115 @@
 From: akpm@osdl.org
-Subject: + remove-unnecessary-memset0-calls-after-kzalloc-calls.patch added to -mm tree
-Date: Fri, 05 Jan 2007 11:52:33 -0800
-Message-ID: <200701051952.l05JqXrT030573@shell0.pdx.osdl.net>
+Subject: + fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch added to -mm tree
+Date: Fri, 05 Jan 2007 12:04:33 -0800
+Message-ID: <200701052004.l05K4X88030881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55174 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56379 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750974AbXAETx2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 5 Jan 2007 14:53:28 -0500
+	id S1750696AbXAEUFD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 5 Jan 2007 15:05:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, ak@suse.de, ambx1@neo.rr.com, dtor@mail.ru
+Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com, greg@kroah.com, oliver@neukum.org
 
 
 The patch titled
-     Remove unnecessary memset(0) calls after kzalloc() calls.
+     sysfs: suppress lockdep warnings
 has been added to the -mm tree.  Its filename is
-     remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+     fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unnecessary memset(0) calls after kzalloc() calls.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: sysfs: suppress lockdep warnings
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Delete the few remaining unnecessary calls to memset(0) after a call to
-kzalloc().
+Lockdep issues the following warning:
+[    9.064000] =============================================
+[    9.064000] [ INFO: possible recursive locking detected ]
+[    9.064000] 2.6.20-rc3-mm1 #3
+[    9.064000] ---------------------------------------------
+[    9.064000] init/1 is trying to acquire lock:
+[    9.064000]  (&sysfs_inode_imutex_key){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
+[    9.064000]
+[    9.064000] but task is already holding lock:
+[    9.064000]  (&sysfs_inode_imutex_key){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
+[    9.065000]
+[    9.065000] other info that might help us debug this:
+[    9.065000] 2 locks held by init/1:
+[    9.065000]  #0:  (tty_mutex){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
+[    9.065000]  #1:  (&sysfs_inode_imutex_key){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
+[    9.065000]
+[    9.065000] stack backtrace:
+[    9.065000]  [<c010390d>] show_trace_log_lvl+0x1a/0x30
+[    9.066000]  [<c0103935>] show_trace+0x12/0x14
+[    9.066000]  [<c0103a2f>] dump_stack+0x16/0x18
+[    9.066000]  [<c0138cb8>] print_deadlock_bug+0xb9/0xc3
+[    9.066000]  [<c0138d17>] check_deadlock+0x55/0x5a
+[    9.066000]  [<c013a953>] __lock_acquire+0x371/0xbf0
+[    9.066000]  [<c013b7a9>] lock_acquire+0x69/0x83
+[    9.066000]  [<c03e6b7e>] __mutex_lock_slowpath+0x75/0x2d1
+[    9.066000]  [<c03e6afc>] mutex_lock+0x1c/0x1f
+[    9.066000]  [<c01b249c>] sysfs_drop_dentry+0xb1/0x133
+[    9.066000]  [<c01b25d1>] sysfs_hash_and_remove+0xb3/0x142
+[    9.066000]  [<c01b30ed>] sysfs_remove_file+0xd/0x10
+[    9.067000]  [<c02849e0>] device_remove_file+0x23/0x2e
+[    9.067000]  [<c02850b2>] device_del+0x188/0x1e6
+[    9.067000]  [<c028511b>] device_unregister+0xb/0x15
+[    9.067000]  [<c0285318>] device_destroy+0x9c/0xa9
+[    9.067000]  [<c0261431>] vcs_remove_sysfs+0x1c/0x3b
+[    9.067000]  [<c0267a08>] con_close+0x5e/0x6b
+[    9.067000]  [<c02598f2>] release_dev+0x4c4/0x6e5
+[    9.067000]  [<c0259faa>] tty_release+0x12/0x1c
+[    9.067000]  [<c0174872>] __fput+0x177/0x1a0
+[    9.067000]  [<c01746f5>] fput+0x3b/0x41
+[    9.068000]  [<c0172ee1>] filp_close+0x36/0x65
+[    9.068000]  [<c0172f73>] sys_close+0x63/0xa4
+[    9.068000]  [<c0102a96>] sysenter_past_esp+0x5f/0x99
+[    9.068000]  =======================
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Adam Belay <ambx1@neo.rr.com>
+This is due to sysfs_hash_and_remove() holding dir->d_inode->i_mutex
+before calling sysfs_drop_dentry() which calls orphan_all_buffers()
+which in turn takes node->i_mutex.
+
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/mce_amd.c   |    2 --
- drivers/input/gameport/ns558.c |    1 -
- drivers/pnp/pnpbios/rsparser.c |    1 -
- 3 files changed, 4 deletions(-)
+ fs/sysfs/inode.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/mce_amd.c~remove-unnecessary-memset0-calls-after-kzalloc-calls arch/x86_64/kernel/mce_amd.c
---- a/arch/x86_64/kernel/mce_amd.c~remove-unnecessary-memset0-calls-after-kzalloc-calls
-+++ a/arch/x86_64/kernel/mce_amd.c
-@@ -401,7 +401,6 @@ static __cpuinit int allocate_threshold_
- 	b = kzalloc(sizeof(struct threshold_block), GFP_KERNEL);
- 	if (!b)
- 		return -ENOMEM;
--	memset(b, 0, sizeof(struct threshold_block));
+diff -puN fs/sysfs/inode.c~fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
++++ a/fs/sysfs/inode.c
+@@ -214,7 +214,7 @@ static inline void orphan_all_buffers(st
+ 	struct sysfs_buffer_collection *set = node->i_private;
+ 	struct sysfs_buffer *buf;
  
- 	b->block = block;
- 	b->bank = bank;
-@@ -490,7 +489,6 @@ static __cpuinit int threshold_create_ba
- 		err = -ENOMEM;
- 		goto out;
- 	}
--	memset(b, 0, sizeof(struct threshold_bank));
+-	mutex_lock(&node->i_mutex);
++	mutex_lock_nested(&node->i_mutex, I_MUTEX_CHILD);
+ 	if (node->i_private) {
+ 		list_for_each_entry(buf, &set->associates, associates) {
+ 			down(&buf->sem);
+@@ -271,7 +271,7 @@ int sysfs_hash_and_remove(struct dentry 
+ 		return -ENOENT;
  
- 	kobject_set_name(&b->kobj, "threshold_bank%i", bank);
- 	b->kobj.parent = &per_cpu(device_mce, cpu).kobj;
-diff -puN drivers/input/gameport/ns558.c~remove-unnecessary-memset0-calls-after-kzalloc-calls drivers/input/gameport/ns558.c
---- a/drivers/input/gameport/ns558.c~remove-unnecessary-memset0-calls-after-kzalloc-calls
-+++ a/drivers/input/gameport/ns558.c
-@@ -151,7 +151,6 @@ static int ns558_isa_probe(int io)
- 		return -ENOMEM;
- 	}
- 
--	memset(ns558, 0, sizeof(struct ns558));
- 	ns558->io = io;
- 	ns558->size = 1 << i;
- 	ns558->gameport = port;
-diff -puN drivers/pnp/pnpbios/rsparser.c~remove-unnecessary-memset0-calls-after-kzalloc-calls drivers/pnp/pnpbios/rsparser.c
---- a/drivers/pnp/pnpbios/rsparser.c~remove-unnecessary-memset0-calls-after-kzalloc-calls
-+++ a/drivers/pnp/pnpbios/rsparser.c
-@@ -530,7 +530,6 @@ pnpbios_parse_compatible_ids(unsigned ch
- 			dev_id =  kzalloc(sizeof (struct pnp_id), GFP_KERNEL);
- 			if (!dev_id)
- 				return NULL;
--			memset(dev_id, 0, sizeof(struct pnp_id));
- 			pnpid32_to_pnpid(p[1] | p[2] << 8 | p[3] << 16 | p[4] << 24,id);
- 			memcpy(&dev_id->id, id, 7);
- 			pnp_add_id(dev_id, dev);
+ 	parent_sd = dir->d_fsdata;
+-	mutex_lock(&dir->d_inode->i_mutex);
++	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
+ 	list_for_each_entry(sd, &parent_sd->s_children, s_sibling) {
+ 		if (!sd->s_element)
+ 			continue;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+disable-init-initramfsc-updated-fix.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-user-ns-unshare.patch
+reiser4-sb_sync_inodes-fix.patch
