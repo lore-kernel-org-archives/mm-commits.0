@@ -1,65 +1,57 @@
 From: akpm@osdl.org
-Subject: - kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:04 -0800
-Message-ID: <200701070758.l077w4Zn012930@shell0.pdx.osdl.net>
+Subject: - add-afs_super_magic-to-magich.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:57:54 -0800
+Message-ID: <200701070757.l077vsfo012918@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40699 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40690 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932433AbXAGH6I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:58:08 -0500
+	id S932421AbXAGH6D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard@telegraafnet.nl, mm-commits@vger.kernel.org
+To: megacz@cs.berkeley.edu, jaltman@secure-endpoints.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernelparams: detect if and which parameter parsing enabled irq's
+     Add AFS_SUPER_MAGIC to magic.h
 has been removed from the -mm tree.  Its filename was
-     kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs.patch
+     add-afs_super_magic-to-magich.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernelparams: detect if and which parameter parsing enabled irq's
-From: Ard van Breemen <ard@telegraafnet.nl>
+Subject: Add AFS_SUPER_MAGIC to magic.h
+From: Adam Megacz <megacz@cs.berkeley.edu>
 
-The parsing of some kernel parameters seem to enable irq's at a stage that
-irq's are not supposed to be enabled (Particularly the ide kernel parameters).
+Jeffrey Altman, one of the gatekeepers of OpenAFS (the open source project
+which inherited the Transarc/IBM AFS codebase) has requested that the magic
+number 0x5346414F (little endian 'OAFS') be allocated for the f_type field
+of the fsinfo structure on Linux:
 
-Having irq's enabled before the irq controller is initialized might lead to a
-kernel panic.  This patch only detects this behaviour and warns about wich
-parameter caused it.
+  https://lists.openafs.org/pipermail/openafs-info/2006-December/024829.html
 
-[akpm@osdl.org: cleanups]
-Signed-off-by: Ard van Breemen <ard@telegraafnet.nl>
+Add it to include/linux/magic.h, mostly as a way of publishing this number
+and ensuring that no other filesystem accidentally uses it.
+
+Cc: Jeffrey Altman <jaltman@secure-endpoints.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/params.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/magic.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/params.c~kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs kernel/params.c
---- a/kernel/params.c~kernelparams-detect-if-and-which-parameter-parsing-enabled-irqs
-+++ a/kernel/params.c
-@@ -143,9 +143,15 @@ int parse_args(const char *name,
+diff -puN include/linux/magic.h~add-afs_super_magic-to-magich include/linux/magic.h
+--- a/include/linux/magic.h~add-afs_super_magic-to-magich
++++ a/include/linux/magic.h
+@@ -3,6 +3,7 @@
  
- 	while (*args) {
- 		int ret;
-+		int irq_was_disabled;
- 
- 		args = next_arg(args, &param, &val);
-+		irq_was_disabled = irqs_disabled();
- 		ret = parse_one(param, val, params, num, unknown);
-+		if (irq_was_disabled && !irqs_disabled()) {
-+			printk(KERN_WARNING "parse_args(): option '%s' enabled "
-+					"irq's!\n", param);
-+		}
- 		switch (ret) {
- 		case -ENOENT:
- 			printk(KERN_ERR "%s: Unknown parameter `%s'\n",
+ #define ADFS_SUPER_MAGIC	0xadf5
+ #define AFFS_SUPER_MAGIC	0xadff
++#define AFS_SUPER_MAGIC                0x5346414F
+ #define AUTOFS_SUPER_MAGIC	0x0187
+ #define CODA_SUPER_MAGIC	0x73757245
+ #define EFS_SUPER_MAGIC		0x414A53
 _
 
-Patches currently in -mm which might be from ard@telegraafnet.nl are
-
-pci-prevent-down_read-when-pci_devices-is-empty.patch
+Patches currently in -mm which might be from megacz@cs.berkeley.edu are
