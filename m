@@ -1,67 +1,118 @@
 From: akpm@osdl.org
-Subject: - kvm-simplify-test-for-interrupt-window.patch removed from -mm tree
-Date: Sun, 07 Jan 2007 00:00:27 -0800
-Message-ID: <200701070800.l0780RfE013192@shell0.pdx.osdl.net>
+Subject: - hpt37x-two-important-bug-fixes.patch removed from -mm tree
+Date: Sun, 07 Jan 2007 00:00:32 -0800
+Message-ID: <200701070800.l0780WEW013200@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41035 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41065 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932488AbXAGIA3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 03:00:29 -0500
+	id S932491AbXAGIAl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 03:00:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dor.laor@qumranet.com, avi@qumranet.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Simplify test for interrupt window
+     hpt37x: Two important bug fixes
 has been removed from the -mm tree.  Its filename was
-     kvm-simplify-test-for-interrupt-window.patch
+     hpt37x-two-important-bug-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Simplify test for interrupt window
-From: Dor Laor <dor.laor@qumranet.com>
+Subject: hpt37x: Two important bug fixes
+From: Alan <alan@lxorguk.ukuu.org.uk>
 
-No need to test for rflags.if as both VT and SVM specs assure us that on exit
-caused from interrupt window opening, 'if' is set.
+The HPT37x driver very carefully handles DMA completions and the needed
+fixups are done on pci registers 0x50 and 0x52.  This is unfortunate
+because the actual registers are 0x50 and 0x54.  Fixing this offset cures
+the second channel problems reported.
 
-Signed-off-by: Dor Laor <dor.laor@qumranet.com>
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Secondly there are some problems with the HPT370 and certain ATA drives. 
+The filter code however only filters ATAPI devices due to a reversed type
+check.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c |    3 +--
- drivers/kvm/vmx.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/ata/pata_hpt37x.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/kvm/svm.c~kvm-simplify-test-for-interrupt-window drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-simplify-test-for-interrupt-window
-+++ a/drivers/kvm/svm.c
-@@ -1206,8 +1206,7 @@ static int interrupt_window_interception
- 	 * possible
- 	 */
- 	if (kvm_run->request_interrupt_window &&
--	    !vcpu->irq_summary &&
--	    (vcpu->svm->vmcb->save.rflags & X86_EFLAGS_IF)) {
-+	    !vcpu->irq_summary) {
- 		++kvm_stat.irq_window_exits;
- 		kvm_run->exit_reason = KVM_EXIT_IRQ_WINDOW_OPEN;
- 		return 0;
-diff -puN drivers/kvm/vmx.c~kvm-simplify-test-for-interrupt-window drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-simplify-test-for-interrupt-window
-+++ a/drivers/kvm/vmx.c
-@@ -1604,8 +1604,7 @@ static int handle_interrupt_window(struc
- 	 * possible
- 	 */
- 	if (kvm_run->request_interrupt_window &&
--	    !vcpu->irq_summary &&
--	    (vmcs_readl(GUEST_RFLAGS) & X86_EFLAGS_IF)) {
-+	    !vcpu->irq_summary) {
- 		kvm_run->exit_reason = KVM_EXIT_IRQ_WINDOW_OPEN;
- 		++kvm_stat.irq_window_exits;
- 		return 0;
+diff -puN drivers/ata/pata_hpt37x.c~hpt37x-two-important-bug-fixes drivers/ata/pata_hpt37x.c
+--- a/drivers/ata/pata_hpt37x.c~hpt37x-two-important-bug-fixes
++++ a/drivers/ata/pata_hpt37x.c
+@@ -25,7 +25,7 @@
+ #include <linux/libata.h>
+ 
+ #define DRV_NAME	"pata_hpt37x"
+-#define DRV_VERSION	"0.5.1"
++#define DRV_VERSION	"0.5.2"
+ 
+ struct hpt_clock {
+ 	u8	xfer_speed;
+@@ -416,7 +416,7 @@ static const char *bad_ata100_5[] = {
+ 
+ static unsigned long hpt370_filter(const struct ata_port *ap, struct ata_device *adev, unsigned long mask)
+ {
+-	if (adev->class != ATA_DEV_ATA) {
++	if (adev->class == ATA_DEV_ATA) {
+ 		if (hpt_dma_blacklisted(adev, "UDMA", bad_ata33))
+ 			mask &= ~ATA_MASK_UDMA;
+ 		if (hpt_dma_blacklisted(adev, "UDMA100", bad_ata100_5))
+@@ -749,7 +749,7 @@ static void hpt37x_bmdma_stop(struct ata
+ {
+ 	struct ata_port *ap = qc->ap;
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+-	int mscreg = 0x50 + 2 * ap->port_no;
++	int mscreg = 0x50 + 4 * ap->port_no;
+ 	u8 bwsr_stat, msc_stat;
+ 
+ 	pci_read_config_byte(pdev, 0x6A, &bwsr_stat);
 _
 
-Patches currently in -mm which might be from dor.laor@qumranet.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+
+git-libata-all.patch
+git-mtd.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-tty_wakeup-cleanup.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+piix-fix-82371mx-enablebits.patch
+pdc202xx_new-remove-useless-code.patch
+pdc202xx_-remove-check_in_drive_lists-abomination.patch
+piix-tuneproc-fixes-cleanups.patch
+slc90e66-carry-over-fixes-from-piix-driver.patch
+hpt36x-pci-clock-detection-fix.patch
