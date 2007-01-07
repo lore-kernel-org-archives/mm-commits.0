@@ -1,170 +1,124 @@
 From: akpm@osdl.org
-Subject: - atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:27 -0800
-Message-ID: <200701070758.l077wRQm012954@shell0.pdx.osdl.net>
+Subject: - i386-restore-config_physical_start-option.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:58:36 -0800
+Message-ID: <200701070758.l077wa0G012966@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40761 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40764 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932442AbXAGH6o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:58:44 -0500
+	id S932444AbXAGH6q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:58:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atiixp: Old drivers/ide layer driver for the ATIIXP hang fix
+     i386: Restore CONFIG_PHYSICAL_START option
 has been removed from the -mm tree.  Its filename was
-     atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang.patch
+     i386-restore-config_physical_start-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atiixp: Old drivers/ide layer driver for the ATIIXP hang fix
-From: Alan <alan@lxorguk.ukuu.org.uk>
+Subject: i386: Restore CONFIG_PHYSICAL_START option
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
-When the old IDE layer calls into methods in the driver during error
-handling it is essentially random whether ide_lock is already held.  This
-causes a deadlock in the atiixp driver which also uses ide_lock internally
-for locking.
+o Relocatable bzImage support had got rid of CONFIG_PHYSICAL_START option
+  thinking that now this option is not required as people can build a
+  second kernel as relocatable and load it anywhere. So need of compiling
+  the kernel for a custom address was gone. But Magnus uses vmlinux images
+  for second kernel in Xen environment and he wants to continue to use
+  it.
 
-Switch to a private lock instead.
+o Restoring the CONFIG_PHYSICAL_START option for the time being. I think
+  down the line we can get rid of it.
 
-[akpm@osl.org: cleanup]
-Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/atiixp.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ arch/i386/Kconfig       |   41 ++++++++++++++++++++++++++++++++++++++
+ include/asm-i386/boot.h |    3 +-
+ 2 files changed, 43 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ide/pci/atiixp.c~atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang drivers/ide/pci/atiixp.c
---- a/drivers/ide/pci/atiixp.c~atiixp-old-drivers-ide-layer-driver-for-the-atiixp-hang
-+++ a/drivers/ide/pci/atiixp.c
-@@ -46,6 +46,8 @@ static atiixp_ide_timing mdma_timing[] =
+diff -puN arch/i386/Kconfig~i386-restore-config_physical_start-option arch/i386/Kconfig
+--- a/arch/i386/Kconfig~i386-restore-config_physical_start-option
++++ a/arch/i386/Kconfig
+@@ -777,6 +777,47 @@ config CRASH_DUMP
+           PHYSICAL_START.
+ 	  For more details see Documentation/kdump/kdump.txt
  
- static int save_mdma_mode[4];
- 
-+static DEFINE_SPINLOCK(atiixp_lock);
++config PHYSICAL_START
++	hex "Physical address where the kernel is loaded" if (EMBEDDED || CRASH_DUMP)
++	default "0x100000"
++	help
++	  This gives the physical address where the kernel is loaded.
 +
- /**
-  *	atiixp_ratemask		-	compute rate mask for ATIIXP IDE
-  *	@drive: IDE drive to compute for
-@@ -105,7 +107,7 @@ static int atiixp_ide_dma_host_on(ide_dr
- 	unsigned long flags;
- 	u16 tmp16;
++	  If kernel is a not relocatable (CONFIG_RELOCATABLE=n) then
++	  bzImage will decompress itself to above physical address and
++	  run from there. Otherwise, bzImage will run from the address where
++	  it has been loaded by the boot loader and will ignore above physical
++	  address.
++
++	  In normal kdump cases one does not have to set/change this option
++	  as now bzImage can be compiled as a completely relocatable image
++	  (CONFIG_RELOCATABLE=y) and be used to load and run from a different
++	  address. This option is mainly useful for the folks who don't want
++	  to use a bzImage for capturing the crash dump and want to use a
++	  vmlinux instead. vmlinux is not relocatable hence a kernel needs
++	  to be specifically compiled to run from a specific memory area
++	  (normally a reserved region) and this option comes handy.
++
++	  So if you are using bzImage for capturing the crash dump, leave
++	  the value here unchanged to 0x100000 and set CONFIG_RELOCATABLE=y.
++	  Otherwise if you plan to use vmlinux for capturing the crash dump
++	  change this value to start of the reserved region (Typically 16MB
++	  0x1000000). In other words, it can be set based on the "X" value as
++	  specified in the "crashkernel=YM@XM" command line boot parameter
++	  passed to the panic-ed kernel. Typically this parameter is set as
++	  crashkernel=64M@16M. Please take a look at
++	  Documentation/kdump/kdump.txt for more details about crash dumps.
++
++	  Usage of bzImage for capturing the crash dump is recommended as
++	  one does not have to build two kernels. Same kernel can be used
++	  as production kernel and capture kernel. Above option should have
++	  gone away after relocatable bzImage support is introduced. But it
++	  is present because there are users out there who continue to use
++	  vmlinux for dump capture. This option should go away down the
++	  line.
++
++	  Don't change this unless you know what you are doing.
++
+ config RELOCATABLE
+ 	bool "Build a relocatable kernel(EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+diff -puN include/asm-i386/boot.h~i386-restore-config_physical_start-option include/asm-i386/boot.h
+--- a/include/asm-i386/boot.h~i386-restore-config_physical_start-option
++++ a/include/asm-i386/boot.h
+@@ -13,7 +13,8 @@
+ #define ASK_VGA		0xfffd		/* ask for it at bootup */
  
--	spin_lock_irqsave(&ide_lock, flags);
-+	spin_lock_irqsave(&atiixp_lock, flags);
+ /* Physical address where kenrel should be loaded. */
+-#define LOAD_PHYSICAL_ADDR ((0x100000 + CONFIG_PHYSICAL_ALIGN - 1) \
++#define LOAD_PHYSICAL_ADDR ((CONFIG_PHYSICAL_START \
++				+ (CONFIG_PHYSICAL_ALIGN - 1)) \
+ 				& ~(CONFIG_PHYSICAL_ALIGN - 1))
  
- 	pci_read_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, &tmp16);
- 	if (save_mdma_mode[drive->dn])
-@@ -114,7 +116,7 @@ static int atiixp_ide_dma_host_on(ide_dr
- 		tmp16 |= (1 << drive->dn);
- 	pci_write_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, tmp16);
- 
--	spin_unlock_irqrestore(&ide_lock, flags);
-+	spin_unlock_irqrestore(&atiixp_lock, flags);
- 
- 	return __ide_dma_host_on(drive);
- }
-@@ -125,13 +127,13 @@ static int atiixp_ide_dma_host_off(ide_d
- 	unsigned long flags;
- 	u16 tmp16;
- 
--	spin_lock_irqsave(&ide_lock, flags);
-+	spin_lock_irqsave(&atiixp_lock, flags);
- 
- 	pci_read_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, &tmp16);
- 	tmp16 &= ~(1 << drive->dn);
- 	pci_write_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, tmp16);
- 
--	spin_unlock_irqrestore(&ide_lock, flags);
-+	spin_unlock_irqrestore(&atiixp_lock, flags);
- 
- 	return __ide_dma_host_off(drive);
- }
-@@ -152,7 +154,7 @@ static void atiixp_tuneproc(ide_drive_t 
- 	u32 pio_timing_data;
- 	u16 pio_mode_data;
- 
--	spin_lock_irqsave(&ide_lock, flags);
-+	spin_lock_irqsave(&atiixp_lock, flags);
- 
- 	pci_read_config_word(dev, ATIIXP_IDE_PIO_MODE, &pio_mode_data);
- 	pio_mode_data &= ~(0x07 << (drive->dn * 4));
-@@ -165,7 +167,7 @@ static void atiixp_tuneproc(ide_drive_t 
- 		 (pio_timing[pio].command_width << (timing_shift + 4));
- 	pci_write_config_dword(dev, ATIIXP_IDE_PIO_TIMING, pio_timing_data);
- 
--	spin_unlock_irqrestore(&ide_lock, flags);
-+	spin_unlock_irqrestore(&atiixp_lock, flags);
- }
- 
- /**
-@@ -189,7 +191,7 @@ static int atiixp_speedproc(ide_drive_t 
- 
- 	speed = ide_rate_filter(atiixp_ratemask(drive), xferspeed);
- 
--	spin_lock_irqsave(&ide_lock, flags);
-+	spin_lock_irqsave(&atiixp_lock, flags);
- 
- 	save_mdma_mode[drive->dn] = 0;
- 	if (speed >= XFER_UDMA_0) {
-@@ -208,7 +210,7 @@ static int atiixp_speedproc(ide_drive_t 
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&ide_lock, flags);
-+	spin_unlock_irqrestore(&atiixp_lock, flags);
- 
- 	if (speed >= XFER_SW_DMA_0)
- 		pio = atiixp_dma_2_pio(speed);
+ #endif /* _LINUX_BOOT_H */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
 
-git-libata-all.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pnx8550-uart-driver.patch
-pnx8550-uart-driver-fixes.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-tty_wakeup-cleanup.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-piix-fix-82371mx-enablebits.patch
-pdc202xx_new-remove-useless-code.patch
-pdc202xx_-remove-check_in_drive_lists-abomination.patch
-piix-tuneproc-fixes-cleanups.patch
-slc90e66-carry-over-fixes-from-piix-driver.patch
-hpt36x-pci-clock-detection-fix.patch
+scsi-megaraid_mmmbox-init-fix-for-kdump.patch
+i386-cpu-hotplug-smpboot-misc-modpost-warning-fixes.patch
+convert-some-functions-to-__init-to-avoid-modpost-warnings.patch
+i386-move-startup_32-in-texthead-section.patch
+break-init-in-two-parts-to-avoid-modpost-warnings.patch
+i386-fix-memory-hotplug-related-modpost-generated-warning.patch
+i386-make-apic-probe-function-non-init.patch
+modpost-add-more-symbols-to-whitelist-pattern2.patch
+modpost-whitelist-reference-to-more-symbols-pattern-3.patch
+clockevents-i386-drivers.patch
