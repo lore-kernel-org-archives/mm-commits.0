@@ -1,264 +1,217 @@
 From: akpm@osdl.org
-Subject: - via82cxxx-fix-cable-detection.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:06 -0800
-Message-ID: <200701070758.l077w6SQ012933@shell0.pdx.osdl.net>
+Subject: + git-block-fixup.patch added to -mm tree
+Date: Sun, 07 Jan 2007 00:19:11 -0800
+Message-ID: <200701070819.l078JfRE013514@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41142 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41847 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932504AbXAGIB2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 03:01:28 -0500
+	id S932430AbXAGITs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 03:19:48 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l078JhWi000567
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 7 Jan 2007 00:19:44 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org
 
 
 The patch titled
-     via82cxxx: fix cable detection
-has been removed from the -mm tree.  Its filename was
-     via82cxxx-fix-cable-detection.patch
+     git-block-fixup
+has been added to the -mm tree.  Its filename is
+     git-block-fixup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: via82cxxx: fix cable detection
-From: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+Subject: git-block-fixup
+From: Andrew Morton <akpm@osdl.org>
 
-This patch fixes 2.6.15 regression, is straightforward and tested.
-
-Cable detection got broken probably while converting the driver to support
-multiple controllers.  Cable detection is done by examining how BIOS
-configured the attached devices.  The current code is broken in that it
-examines the status *after* modifying Clk66 configuration ending up
-detecting 40c cables as 80c.  This patch fixes it.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/via82cxxx.c |  138 ++++++++++++++++------------------
- 1 file changed, 65 insertions(+), 73 deletions(-)
+ drivers/block/pktcdvd.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-fix-cable-detection drivers/ide/pci/via82cxxx.c
---- a/drivers/ide/pci/via82cxxx.c~via82cxxx-fix-cable-detection
-+++ a/drivers/ide/pci/via82cxxx.c
-@@ -123,7 +123,7 @@ struct via82cxxx_dev
- static void via_set_speed(ide_hwif_t *hwif, u8 dn, struct ide_timing *timing)
- {
- 	struct pci_dev *dev = hwif->pci_dev;
--	struct via82cxxx_dev *vdev = ide_get_hwifdata(hwif);
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(hwif->pci_dev);
- 	u8 t;
- 
- 	if (~vdev->via_config->flags & VIA_BAD_AST) {
-@@ -162,7 +162,7 @@ static void via_set_speed(ide_hwif_t *hw
- static int via_set_drive(ide_drive_t *drive, u8 speed)
- {
- 	ide_drive_t *peer = HWIF(drive)->drives + (~drive->dn & 1);
--	struct via82cxxx_dev *vdev = ide_get_hwifdata(drive->hwif);
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(drive->hwif->pci_dev);
- 	struct ide_timing t, p;
- 	unsigned int T, UT;
- 
-@@ -225,7 +225,7 @@ static void via82cxxx_tune_drive(ide_dri
- static int via82cxxx_ide_dma_check (ide_drive_t *drive)
- {
- 	ide_hwif_t *hwif = HWIF(drive);
--	struct via82cxxx_dev *vdev = ide_get_hwifdata(hwif);
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(hwif->pci_dev);
- 	u16 w80 = hwif->udma_four;
- 
- 	u16 speed = ide_find_best_mode(drive,
-@@ -262,6 +262,53 @@ static struct via_isa_bridge *via_config
- 	return via_config;
- }
- 
-+/*
-+ * Check and handle 80-wire cable presence
-+ */
-+static void __devinit via_cable_detect(struct via82cxxx_dev *vdev, u32 u)
-+{
-+	int i;
-+
-+	switch (vdev->via_config->flags & VIA_UDMA) {
-+		case VIA_UDMA_66:
-+			for (i = 24; i >= 0; i -= 8)
-+				if (((u >> (i & 16)) & 8) &&
-+				    ((u >> i) & 0x20) &&
-+				     (((u >> i) & 7) < 2)) {
-+					/*
-+					 * 2x PCI clock and
-+					 * UDMA w/ < 3T/cycle
-+					 */
-+					vdev->via_80w |= (1 << (1 - (i >> 4)));
-+				}
-+			break;
-+
-+		case VIA_UDMA_100:
-+			for (i = 24; i >= 0; i -= 8)
-+				if (((u >> i) & 0x10) ||
-+				    (((u >> i) & 0x20) &&
-+				     (((u >> i) & 7) < 4))) {
-+					/* BIOS 80-wire bit or
-+					 * UDMA w/ < 60ns/cycle
-+					 */
-+					vdev->via_80w |= (1 << (1 - (i >> 4)));
-+				}
-+			break;
-+
-+		case VIA_UDMA_133:
-+			for (i = 24; i >= 0; i -= 8)
-+				if (((u >> i) & 0x10) ||
-+				    (((u >> i) & 0x20) &&
-+				     (((u >> i) & 7) < 6))) {
-+					/* BIOS 80-wire bit or
-+					 * UDMA w/ < 60ns/cycle
-+					 */
-+					vdev->via_80w |= (1 << (1 - (i >> 4)));
-+				}
-+			break;
-+	}
-+}
-+
- /**
-  *	init_chipset_via82cxxx	-	initialization handler
-  *	@dev: PCI device
-@@ -274,14 +321,22 @@ static struct via_isa_bridge *via_config
- static unsigned int __devinit init_chipset_via82cxxx(struct pci_dev *dev, const char *name)
- {
- 	struct pci_dev *isa = NULL;
-+	struct via82cxxx_dev *vdev;
- 	struct via_isa_bridge *via_config;
- 	u8 t, v;
--	unsigned int u;
-+	u32 u;
-+
-+	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
-+	if (!vdev) {
-+		printk(KERN_ERR "VP_IDE: out of memory :(\n");
-+		return -ENOMEM;
-+	}
-+	pci_set_drvdata(dev, vdev);
- 
- 	/*
- 	 * Find the ISA bridge to see how good the IDE is.
- 	 */
--	via_config = via_config_find(&isa);
-+	vdev->via_config = via_config = via_config_find(&isa);
- 
- 	/* We checked this earlier so if it fails here deeep badness
- 	   is involved */
-@@ -289,16 +344,17 @@ static unsigned int __devinit init_chips
- 	BUG_ON(!via_config->id);
- 
- 	/*
--	 * Setup or disable Clk66 if appropriate
-+	 * Detect cable and configure Clk66
- 	 */
-+	pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
-+
-+	via_cable_detect(vdev, u);
- 
- 	if ((via_config->flags & VIA_UDMA) == VIA_UDMA_66) {
- 		/* Enable Clk66 */
--		pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
- 		pci_write_config_dword(dev, VIA_UDMA_TIMING, u|0x80008);
- 	} else if (via_config->flags & VIA_BAD_CLK66) {
- 		/* Would cause trouble on 596a and 686 */
--		pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
- 		pci_write_config_dword(dev, VIA_UDMA_TIMING, u & ~0x80008);
- 	}
- 
-@@ -367,75 +423,11 @@ static unsigned int __devinit init_chips
- 	return 0;
- }
- 
--/*
-- * Check and handle 80-wire cable presence
-- */
--static void __devinit via_cable_detect(struct pci_dev *dev, struct via82cxxx_dev *vdev)
--{
--	unsigned int u;
--	int i;
--	pci_read_config_dword(dev, VIA_UDMA_TIMING, &u);
+diff -puN drivers/block/pktcdvd.c~git-block-fixup drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~git-block-fixup
++++ a/drivers/block/pktcdvd.c
+@@ -787,22 +787,6 @@ static int pkt_generic_packet(struct pkt
+ 	rq->cmd_flags |= REQ_HARDBARRIER;
+ 	if (cgc->quiet)
+ 		rq->cmd_flags |= REQ_QUIET;
+-<<<<<<< HEAD/drivers/block/pktcdvd.c
+-=======
+-	memcpy(rq->cmd, cgc->cmd, CDROM_PACKET_SIZE);
+-	if (sizeof(rq->cmd) > CDROM_PACKET_SIZE)
+-		memset(rq->cmd + CDROM_PACKET_SIZE, 0, sizeof(rq->cmd) - CDROM_PACKET_SIZE);
+-	rq->cmd_len = COMMAND_SIZE(rq->cmd[0]);
 -
--	switch (vdev->via_config->flags & VIA_UDMA) {
+-	rq->ref_count++;
+-	rq->end_io_data = &wait;
+-	rq->end_io = blk_end_sync_rq;
+-	elv_add_request(q, rq, ELEVATOR_INSERT_BACK);
+-	wait_for_completion(&wait);
 -
--		case VIA_UDMA_66:
--			for (i = 24; i >= 0; i -= 8)
--				if (((u >> (i & 16)) & 8) &&
--				    ((u >> i) & 0x20) &&
--				     (((u >> i) & 7) < 2)) {
--					/*
--					 * 2x PCI clock and
--					 * UDMA w/ < 3T/cycle
--					 */
--					vdev->via_80w |= (1 << (1 - (i >> 4)));
--				}
--			break;
--
--		case VIA_UDMA_100:
--			for (i = 24; i >= 0; i -= 8)
--				if (((u >> i) & 0x10) ||
--				    (((u >> i) & 0x20) &&
--				     (((u >> i) & 7) < 4))) {
--					/* BIOS 80-wire bit or
--					 * UDMA w/ < 60ns/cycle
--					 */
--					vdev->via_80w |= (1 << (1 - (i >> 4)));
--				}
--			break;
--
--		case VIA_UDMA_133:
--			for (i = 24; i >= 0; i -= 8)
--				if (((u >> i) & 0x10) ||
--				    (((u >> i) & 0x20) &&
--				     (((u >> i) & 7) < 6))) {
--					/* BIOS 80-wire bit or
--					 * UDMA w/ < 60ns/cycle
--					 */
--					vdev->via_80w |= (1 << (1 - (i >> 4)));
--				}
--			break;
--
--	}
--}
--
- static void __devinit init_hwif_via82cxxx(ide_hwif_t *hwif)
- {
--	struct via82cxxx_dev *vdev = kmalloc(sizeof(struct via82cxxx_dev),
--		GFP_KERNEL);
--	struct pci_dev *isa = NULL;
-+	struct via82cxxx_dev *vdev = pci_get_drvdata(hwif->pci_dev);
- 	int i;
+-	if (rq->errors)
+-		err = -EIO;
+->>>>>>> /drivers/block/pktcdvd.c
  
--	if (vdev == NULL) {
--		printk(KERN_ERR "VP_IDE: out of memory :(\n");
--		return;
--	}
--
--	memset(vdev, 0, sizeof(struct via82cxxx_dev));
--	ide_set_hwifdata(hwif, vdev);
--
--	vdev->via_config = via_config_find(&isa);
--	via_cable_detect(hwif->pci_dev, vdev);
--
- 	hwif->autodma = 0;
- 
- 	hwif->tuneproc = &via82cxxx_tune_drive;
+ 	blk_execute_rq(rq->q, pd->bdev->bd_disk, rq, 0);
+ 	ret = rq->errors;
 _
 
-Patches currently in -mm which might be from B.Zolnierkiewicz@elka.pw.edu.pl are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-toshiba-tc86c001-ide-driver-take-2.patch
-hpt3xx-rework-rate-filtering.patch
+pci-prevent-down_read-when-pci_devices-is-empty.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
+cifs-sprintf-fix.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+git-scsi-rc-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
 hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-piix-fix-82371mx-enablebits.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+git-block-fixup.patch
