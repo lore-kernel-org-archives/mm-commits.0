@@ -1,76 +1,104 @@
 From: akpm@osdl.org
-Subject: - scsi-lpfc-error-path-fix.patch removed from -mm tree
-Date: Sun, 07 Jan 2007 00:01:00 -0800
-Message-ID: <200701070801.l07810rS013240@shell0.pdx.osdl.net>
+Subject: - connector-some-fixes-for-ia64-unaligned-access-errors.patch removed from -mm tree
+Date: Sun, 07 Jan 2007 00:00:47 -0800
+Message-ID: <200701070800.l0780l3d013222@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41120 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41141 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932502AbXAGIBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 03:01:09 -0500
+	id S932501AbXAGIB1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 03:01:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, James.Bottomley@steeleye.com, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
+To: erikj@sgi.com, davem@davemloft.net, johnpol@2ka.mipt.ru, stable@kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: lpfc error path fix
+     connector: some fixes for ia64 unaligned access errors
 has been removed from the -mm tree.  Its filename was
-     scsi-lpfc-error-path-fix.patch
+     connector-some-fixes-for-ia64-unaligned-access-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: lpfc error path fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: connector: some fixes for ia64 unaligned access errors
+From: Erik Jacobson <erikj@sgi.com>
 
-Add kmalloc failure check and fix the loop on error path.  Without the
-patch pool element at index [0] will not be freed.
+On ia64, the various functions that make up cn_proc.c cause kernel
+unaligned access errors.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: <james.smart@emulex.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+If you are using these, for example, to get notification about all tasks
+forking and exiting, you get multiple unaligned access errors per process.
+
+Use put_unaligned() in the appropriate palces to fix this.
+
+Signed-off-by: Erik Jacobson <erikj@sgi.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: <stable@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/lpfc/lpfc_mem.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/connector/cn_proc.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_mem.c~scsi-lpfc-error-path-fix drivers/scsi/lpfc/lpfc_mem.c
---- a/drivers/scsi/lpfc/lpfc_mem.c~scsi-lpfc-error-path-fix
-+++ a/drivers/scsi/lpfc/lpfc_mem.c
-@@ -56,6 +56,9 @@ lpfc_mem_alloc(struct lpfc_hba * phba)
+diff -puN drivers/connector/cn_proc.c~connector-some-fixes-for-ia64-unaligned-access-errors drivers/connector/cn_proc.c
+--- a/drivers/connector/cn_proc.c~connector-some-fixes-for-ia64-unaligned-access-errors
++++ a/drivers/connector/cn_proc.c
+@@ -28,6 +28,7 @@
+ #include <linux/init.h>
+ #include <linux/connector.h>
+ #include <asm/atomic.h>
++#include <asm/unaligned.h>
  
- 	pool->elements = kmalloc(sizeof(struct lpfc_dmabuf) *
- 					 LPFC_MBUF_POOL_SIZE, GFP_KERNEL);
-+	if (!pool->elements)
-+		goto fail_free_lpfc_mbuf_pool;
-+
- 	pool->max_count = 0;
- 	pool->current_count = 0;
- 	for ( i = 0; i < LPFC_MBUF_POOL_SIZE; i++) {
-@@ -82,10 +85,11 @@ lpfc_mem_alloc(struct lpfc_hba * phba)
-  fail_free_mbox_pool:
- 	mempool_destroy(phba->mbox_mem_pool);
-  fail_free_mbuf_pool:
--	while (--i)
-+	while (i--)
- 		pci_pool_free(phba->lpfc_mbuf_pool, pool->elements[i].virt,
- 						 pool->elements[i].phys);
- 	kfree(pool->elements);
-+ fail_free_lpfc_mbuf_pool:
- 	pci_pool_destroy(phba->lpfc_mbuf_pool);
-  fail_free_dma_buf_pool:
- 	pci_pool_destroy(phba->lpfc_scsi_dma_buf_pool);
+ #include <linux/cn_proc.h>
+ 
+@@ -60,7 +61,7 @@ void proc_fork_connector(struct task_str
+ 	ev = (struct proc_event*)msg->data;
+ 	get_seq(&msg->seq, &ev->cpu);
+ 	ktime_get_ts(&ts); /* get high res monotonic timestamp */
+-	ev->timestamp_ns = timespec_to_ns(&ts);
++	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
+ 	ev->what = PROC_EVENT_FORK;
+ 	ev->event_data.fork.parent_pid = task->real_parent->pid;
+ 	ev->event_data.fork.parent_tgid = task->real_parent->tgid;
+@@ -88,7 +89,7 @@ void proc_exec_connector(struct task_str
+ 	ev = (struct proc_event*)msg->data;
+ 	get_seq(&msg->seq, &ev->cpu);
+ 	ktime_get_ts(&ts); /* get high res monotonic timestamp */
+-	ev->timestamp_ns = timespec_to_ns(&ts);
++	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
+ 	ev->what = PROC_EVENT_EXEC;
+ 	ev->event_data.exec.process_pid = task->pid;
+ 	ev->event_data.exec.process_tgid = task->tgid;
+@@ -124,7 +125,7 @@ void proc_id_connector(struct task_struc
+ 	     	return;
+ 	get_seq(&msg->seq, &ev->cpu);
+ 	ktime_get_ts(&ts); /* get high res monotonic timestamp */
+-	ev->timestamp_ns = timespec_to_ns(&ts);
++	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
+ 
+ 	memcpy(&msg->id, &cn_proc_event_id, sizeof(msg->id));
+ 	msg->ack = 0; /* not used */
+@@ -146,7 +147,7 @@ void proc_exit_connector(struct task_str
+ 	ev = (struct proc_event*)msg->data;
+ 	get_seq(&msg->seq, &ev->cpu);
+ 	ktime_get_ts(&ts); /* get high res monotonic timestamp */
+-	ev->timestamp_ns = timespec_to_ns(&ts);
++	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
+ 	ev->what = PROC_EVENT_EXIT;
+ 	ev->event_data.exit.process_pid = task->pid;
+ 	ev->event_data.exit.process_tgid = task->tgid;
+@@ -181,7 +182,7 @@ static void cn_proc_ack(int err, int rcv
+ 	ev = (struct proc_event*)msg->data;
+ 	msg->seq = rcvd_seq;
+ 	ktime_get_ts(&ts); /* get high res monotonic timestamp */
+-	ev->timestamp_ns = timespec_to_ns(&ts);
++	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
+ 	ev->cpu = -1;
+ 	ev->what = PROC_EVENT_NONE;
+ 	ev->event_data.ack.err = err;
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
-
-ppc-cs4218_tdm-remove-extra-brace.patch
-mips-dbg_io-stray-brackets-fix.patch
-git-mtd.patch
-net-ifb-error-path-loop-fix.patch
-git-scsi-rc-fixes.patch
-scsi-sic7xxx-stray-bracket-fix.patch
-scsi-53c7xx-brackets-fix.patch
-usb-usbmixer-error-path-fix.patch
+Patches currently in -mm which might be from erikj@sgi.com are
