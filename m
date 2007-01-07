@@ -1,158 +1,449 @@
 From: akpm@osdl.org
-Subject: - kvm-prevent-stale-bits-in-cr0-and-cr4.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:59 -0800
-Message-ID: <200701070758.l077wxs1012998@shell0.pdx.osdl.net>
+Subject: - fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:58:50 -0800
+Message-ID: <200701070758.l077wohE012984@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40809 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40799 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932452AbXAGH7D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:59:03 -0500
+	id S932450AbXAGH7A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:59:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Prevent stale bits in cr0 and cr4
+     fix memory corruption from misinterpreted bad_inode_ops return values
 has been removed from the -mm tree.  Its filename was
-     kvm-prevent-stale-bits-in-cr0-and-cr4.patch
+     fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Prevent stale bits in cr0 and cr4
-From: Avi Kivity <avi@qumranet.com>
+Subject: fix memory corruption from misinterpreted bad_inode_ops return values
+From: Eric Sandeen <sandeen@redhat.com>
 
-Hardware virtualization implementations allow the guests to freely change some
-of the bits in cr0 and cr4, but trap when changing the other bits.  This is
-useful to avoid excessive exits due to changing, for example, the ts flag.
+CVE-2006-5753 is for a case where an inode can be marked bad, switching
+the ops to bad_inode_ops, which are all connected as:
 
-It also means the kvm's copy of cr0 and cr4 may be stale with respect to these
-bits.  most of the time this doesn't matter as these bits are not very
-interesting.  Other times, however (for example when returning cr0 to
-userspace), they are, so get the fresh contents of these bits from the guest
-by means of a new arch operation.
+static int return_EIO(void)
+{
+        return -EIO;
+}
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+#define EIO_ERROR ((void *) (return_EIO))
+
+static struct inode_operations bad_inode_ops =
+{
+        .create         = bad_inode_create
+...etc...
+
+The problem here is that the void cast causes return types to not be
+promoted, and for ops such as listxattr which expect more than 32 bits of
+return value, the 32-bit -EIO is interpreted as a large positive 64-bit
+number, i.e. 0x00000000fffffffa instead of 0xfffffffa.
+
+This goes particularly badly when the return value is taken as a number of
+bytes to copy into, say, a user's buffer for example...
+
+I originally had coded up the fix by creating a return_EIO_<TYPE> macro
+for each return type, like this:
+
+static int return_EIO_int(void)
+{
+	return -EIO;
+}
+#define EIO_ERROR_INT ((void *) (return_EIO_int))
+
+static struct inode_operations bad_inode_ops =
+{
+	.create		= EIO_ERROR_INT,
+...etc...
+
+but Al felt that it was probably better to create an EIO-returner for each
+actual op signature.  Since so few ops share a signature, I just went ahead
+& created an EIO function for each individual file & inode op that returns
+a value.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    1 +
- drivers/kvm/kvm_main.c |   10 ++++++++--
- drivers/kvm/svm.c      |    5 +++++
- drivers/kvm/vmx.c      |   10 ++++++++++
- 4 files changed, 24 insertions(+), 2 deletions(-)
+ fs/bad_inode.c |  330 +++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 289 insertions(+), 41 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/kvm.h
-@@ -283,6 +283,7 @@ struct kvm_arch_ops {
- 	void (*set_segment)(struct kvm_vcpu *vcpu,
- 			    struct kvm_segment *var, int seg);
- 	void (*get_cs_db_l_bits)(struct kvm_vcpu *vcpu, int *db, int *l);
-+	void (*decache_cr0_cr4_guest_bits)(struct kvm_vcpu *vcpu);
- 	void (*set_cr0)(struct kvm_vcpu *vcpu, unsigned long cr0);
- 	void (*set_cr0_no_modeswitch)(struct kvm_vcpu *vcpu,
- 				      unsigned long cr0);
-diff -puN drivers/kvm/kvm_main.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/kvm_main.c
-@@ -390,6 +390,7 @@ EXPORT_SYMBOL_GPL(set_cr0);
+diff -puN fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops fs/bad_inode.c
+--- a/fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops
++++ a/fs/bad_inode.c
+@@ -14,59 +14,307 @@
+ #include <linux/time.h>
+ #include <linux/smp_lock.h>
+ #include <linux/namei.h>
++#include <linux/poll.h>
  
- void lmsw(struct kvm_vcpu *vcpu, unsigned long msw)
- {
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
- 	set_cr0(vcpu, (vcpu->cr0 & ~0x0ful) | (msw & 0x0f));
- }
- EXPORT_SYMBOL_GPL(lmsw);
-@@ -917,9 +918,10 @@ int emulate_invlpg(struct kvm_vcpu *vcpu
- 
- int emulate_clts(struct kvm_vcpu *vcpu)
- {
--	unsigned long cr0 = vcpu->cr0;
-+	unsigned long cr0;
- 
--	cr0 &= ~CR0_TS_MASK;
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
-+	cr0 = vcpu->cr0 & ~CR0_TS_MASK;
- 	kvm_arch_ops->set_cr0(vcpu, cr0);
- 	return X86EMUL_CONTINUE;
- }
-@@ -1072,6 +1074,7 @@ void realmode_lmsw(struct kvm_vcpu *vcpu
- 
- unsigned long realmode_get_cr(struct kvm_vcpu *vcpu, int cr)
- {
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
- 	switch (cr) {
- 	case 0:
- 		return vcpu->cr0;
-@@ -1406,6 +1409,7 @@ static int kvm_dev_ioctl_get_sregs(struc
- 	sregs->gdt.limit = dt.limit;
- 	sregs->gdt.base = dt.base;
- 
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
- 	sregs->cr0 = vcpu->cr0;
- 	sregs->cr2 = vcpu->cr2;
- 	sregs->cr3 = vcpu->cr3;
-@@ -1470,6 +1474,8 @@ static int kvm_dev_ioctl_set_sregs(struc
- #endif
- 	vcpu->apic_base = sregs->apic_base;
- 
-+	kvm_arch_ops->decache_cr0_cr4_guest_bits(vcpu);
+-static int return_EIO(void)
 +
- 	mmu_reset_needed |= vcpu->cr0 != sregs->cr0;
- 	kvm_arch_ops->set_cr0_no_modeswitch(vcpu, sregs->cr0);
- 
-diff -puN drivers/kvm/svm.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/svm.c
-@@ -702,6 +702,10 @@ static void svm_set_gdt(struct kvm_vcpu 
- 	vcpu->svm->vmcb->save.gdtr.base = dt->base ;
- }
- 
-+static void svm_decache_cr0_cr4_guest_bits(struct kvm_vcpu *vcpu)
++static loff_t bad_file_llseek(struct file *file, loff_t offset, int origin)
 +{
++	return -EIO;
 +}
 +
- static void svm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
- {
- #ifdef CONFIG_X86_64
-@@ -1645,6 +1649,7 @@ static struct kvm_arch_ops svm_arch_ops 
- 	.get_segment = svm_get_segment,
- 	.set_segment = svm_set_segment,
- 	.get_cs_db_l_bits = svm_get_cs_db_l_bits,
-+	.decache_cr0_cr4_guest_bits = svm_decache_cr0_cr4_guest_bits,
- 	.set_cr0 = svm_set_cr0,
- 	.set_cr0_no_modeswitch = svm_set_cr0,
- 	.set_cr3 = svm_set_cr3,
-diff -puN drivers/kvm/vmx.c~kvm-prevent-stale-bits-in-cr0-and-cr4 drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-prevent-stale-bits-in-cr0-and-cr4
-+++ a/drivers/kvm/vmx.c
-@@ -737,6 +737,15 @@ static void exit_lmode(struct kvm_vcpu *
- 
- #endif
- 
-+static void vmx_decache_cr0_cr4_guest_bits(struct kvm_vcpu *vcpu)
++static ssize_t bad_file_read(struct file *filp, char __user *buf,
++			size_t size, loff_t *ppos)
 +{
-+	vcpu->cr0 &= KVM_GUEST_CR0_MASK;
-+	vcpu->cr0 |= vmcs_readl(GUEST_CR0) & ~KVM_GUEST_CR0_MASK;
-+
-+	vcpu->cr4 &= KVM_GUEST_CR4_MASK;
-+	vcpu->cr4 |= vmcs_readl(GUEST_CR4) & ~KVM_GUEST_CR4_MASK;
++        return -EIO;
 +}
 +
- static void vmx_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
++static ssize_t bad_file_write(struct file *filp, const char __user *buf,
++			size_t siz, loff_t *ppos)
++{
++        return -EIO;
++}
++
++static ssize_t bad_file_aio_read(struct kiocb *iocb, const struct iovec *iov,
++			unsigned long nr_segs, loff_t pos)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
++			unsigned long nr_segs, loff_t pos)
++{
++	return -EIO;
++}
++
++static int bad_file_readdir(struct file *filp, void *dirent, filldir_t filldir)
++{
++	return -EIO;
++}
++
++static unsigned int bad_file_poll(struct file *filp, poll_table *wait)
++{
++	return POLLERR;
++}
++
++static int bad_file_ioctl (struct inode *inode, struct file *filp,
++			unsigned int cmd, unsigned long arg)
++{
++	return -EIO;
++}
++
++static long bad_file_unlocked_ioctl(struct file *file, unsigned cmd,
++			unsigned long arg)
++{
++	return -EIO;
++}
++
++static long bad_file_compat_ioctl(struct file *file, unsigned int cmd,
++			unsigned long arg)
++{
++	return -EIO;
++}
++
++static int bad_file_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	return -EIO;
++}
++
++static int bad_file_open(struct inode *inode, struct file *filp)
++{
++	return -EIO;
++}
++
++static int bad_file_flush(struct file *file, fl_owner_t id)
++{
++	return -EIO;
++}
++
++static int bad_file_release(struct inode *inode, struct file *filp)
++{
++	return -EIO;
++}
++
++static int bad_file_fsync(struct file *file, struct dentry *dentry,
++			int datasync)
++{
++	return -EIO;
++}
++
++static int bad_file_aio_fsync(struct kiocb *iocb, int datasync)
++{
++	return -EIO;
++}
++
++static int bad_file_fasync(int fd, struct file *filp, int on)
++{
++	return -EIO;
++}
++
++static int bad_file_lock(struct file *file, int cmd, struct file_lock *fl)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_sendfile(struct file *in_file, loff_t *ppos,
++			size_t count, read_actor_t actor, void *target)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_sendpage(struct file *file, struct page *page,
++			int off, size_t len, loff_t *pos, int more)
++{
++	return -EIO;
++}
++
++static unsigned long bad_file_get_unmapped_area(struct file *file,
++				unsigned long addr, unsigned long len,
++				unsigned long pgoff, unsigned long flags)
++{
++	return -EIO;
++}
++
++static int bad_file_check_flags(int flags)
  {
- 	if (vcpu->rmode.active && (cr0 & CR0_PE_MASK))
-@@ -2002,6 +2011,7 @@ static struct kvm_arch_ops vmx_arch_ops 
- 	.get_segment = vmx_get_segment,
- 	.set_segment = vmx_set_segment,
- 	.get_cs_db_l_bits = vmx_get_cs_db_l_bits,
-+	.decache_cr0_cr4_guest_bits = vmx_decache_cr0_cr4_guest_bits,
- 	.set_cr0 = vmx_set_cr0,
- 	.set_cr0_no_modeswitch = vmx_set_cr0_no_modeswitch,
- 	.set_cr3 = vmx_set_cr3,
+ 	return -EIO;
+ }
+ 
+-#define EIO_ERROR ((void *) (return_EIO))
++static int bad_file_dir_notify(struct file *file, unsigned long arg)
++{
++	return -EIO;
++}
++
++static int bad_file_flock(struct file *filp, int cmd, struct file_lock *fl)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_splice_write(struct pipe_inode_info *pipe,
++			struct file *out, loff_t *ppos, size_t len,
++			unsigned int flags)
++{
++	return -EIO;
++}
++
++static ssize_t bad_file_splice_read(struct file *in, loff_t *ppos,
++			struct pipe_inode_info *pipe, size_t len,
++			unsigned int flags)
++{
++	return -EIO;
++}
+ 
+ static const struct file_operations bad_file_ops =
+ {
+-	.llseek		= EIO_ERROR,
+-	.aio_read	= EIO_ERROR,
+-	.read		= EIO_ERROR,
+-	.write		= EIO_ERROR,
+-	.aio_write	= EIO_ERROR,
+-	.readdir	= EIO_ERROR,
+-	.poll		= EIO_ERROR,
+-	.ioctl		= EIO_ERROR,
+-	.mmap		= EIO_ERROR,
+-	.open		= EIO_ERROR,
+-	.flush		= EIO_ERROR,
+-	.release	= EIO_ERROR,
+-	.fsync		= EIO_ERROR,
+-	.aio_fsync	= EIO_ERROR,
+-	.fasync		= EIO_ERROR,
+-	.lock		= EIO_ERROR,
+-	.sendfile	= EIO_ERROR,
+-	.sendpage	= EIO_ERROR,
+-	.get_unmapped_area = EIO_ERROR,
++	.llseek		= bad_file_llseek,
++	.read		= bad_file_read,
++	.write		= bad_file_write,
++	.aio_read	= bad_file_aio_read,
++	.aio_write	= bad_file_aio_write,
++	.readdir	= bad_file_readdir,
++	.poll		= bad_file_poll,
++	.ioctl		= bad_file_ioctl,
++	.unlocked_ioctl	= bad_file_unlocked_ioctl,
++	.compat_ioctl	= bad_file_compat_ioctl,
++	.mmap		= bad_file_mmap,
++	.open		= bad_file_open,
++	.flush		= bad_file_flush,
++	.release	= bad_file_release,
++	.fsync		= bad_file_fsync,
++	.aio_fsync	= bad_file_aio_fsync,
++	.fasync		= bad_file_fasync,
++	.lock		= bad_file_lock,
++	.sendfile	= bad_file_sendfile,
++	.sendpage	= bad_file_sendpage,
++	.get_unmapped_area = bad_file_get_unmapped_area,
++	.check_flags	= bad_file_check_flags,
++	.dir_notify	= bad_file_dir_notify,
++	.flock		= bad_file_flock,
++	.splice_write	= bad_file_splice_write,
++	.splice_read	= bad_file_splice_read,
+ };
+ 
++static int bad_inode_create (struct inode *dir, struct dentry *dentry,
++		int mode, struct nameidata *nd)
++{
++	return -EIO;
++}
++
++static struct dentry *bad_inode_lookup(struct inode *dir,
++			struct dentry *dentry, struct nameidata *nd)
++{
++	return ERR_PTR(-EIO);
++}
++
++static int bad_inode_link (struct dentry *old_dentry, struct inode *dir,
++		struct dentry *dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_unlink(struct inode *dir, struct dentry *dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_symlink (struct inode *dir, struct dentry *dentry,
++		const char *symname)
++{
++	return -EIO;
++}
++
++static int bad_inode_mkdir(struct inode *dir, struct dentry *dentry,
++			int mode)
++{
++	return -EIO;
++}
++
++static int bad_inode_rmdir (struct inode *dir, struct dentry *dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_mknod (struct inode *dir, struct dentry *dentry,
++			int mode, dev_t rdev)
++{
++	return -EIO;
++}
++
++static int bad_inode_rename (struct inode *old_dir, struct dentry *old_dentry,
++		struct inode *new_dir, struct dentry *new_dentry)
++{
++	return -EIO;
++}
++
++static int bad_inode_readlink(struct dentry *dentry, char __user *buffer,
++		int buflen)
++{
++	return -EIO;
++}
++
++static int bad_inode_permission(struct inode *inode, int mask,
++			struct nameidata *nd)
++{
++	return -EIO;
++}
++
++static int bad_inode_getattr(struct vfsmount *mnt, struct dentry *dentry,
++			struct kstat *stat)
++{
++	return -EIO;
++}
++
++static int bad_inode_setattr(struct dentry *direntry, struct iattr *attrs)
++{
++	return -EIO;
++}
++
++static int bad_inode_setxattr(struct dentry *dentry, const char *name,
++		const void *value, size_t size, int flags)
++{
++	return -EIO;
++}
++
++static ssize_t bad_inode_getxattr(struct dentry *dentry, const char *name,
++			void *buffer, size_t size)
++{
++	return -EIO;
++}
++
++static ssize_t bad_inode_listxattr(struct dentry *dentry, char *buffer,
++			size_t buffer_size)
++{
++	return -EIO;
++}
++
++static int bad_inode_removexattr(struct dentry *dentry, const char *name)
++{
++	return -EIO;
++}
++
+ static struct inode_operations bad_inode_ops =
+ {
+-	.create		= EIO_ERROR,
+-	.lookup		= EIO_ERROR,
+-	.link		= EIO_ERROR,
+-	.unlink		= EIO_ERROR,
+-	.symlink	= EIO_ERROR,
+-	.mkdir		= EIO_ERROR,
+-	.rmdir		= EIO_ERROR,
+-	.mknod		= EIO_ERROR,
+-	.rename		= EIO_ERROR,
+-	.readlink	= EIO_ERROR,
++	.create		= bad_inode_create,
++	.lookup		= bad_inode_lookup,
++	.link		= bad_inode_link,
++	.unlink		= bad_inode_unlink,
++	.symlink	= bad_inode_symlink,
++	.mkdir		= bad_inode_mkdir,
++	.rmdir		= bad_inode_rmdir,
++	.mknod		= bad_inode_mknod,
++	.rename		= bad_inode_rename,
++	.readlink	= bad_inode_readlink,
+ 	/* follow_link must be no-op, otherwise unmounting this inode
+ 	   won't work */
+-	.truncate	= EIO_ERROR,
+-	.permission	= EIO_ERROR,
+-	.getattr	= EIO_ERROR,
+-	.setattr	= EIO_ERROR,
+-	.setxattr	= EIO_ERROR,
+-	.getxattr	= EIO_ERROR,
+-	.listxattr	= EIO_ERROR,
+-	.removexattr	= EIO_ERROR,
++	/* put_link returns void */
++	/* truncate returns void */
++	.permission	= bad_inode_permission,
++	.getattr	= bad_inode_getattr,
++	.setattr	= bad_inode_setattr,
++	.setxattr	= bad_inode_setxattr,
++	.getxattr	= bad_inode_getxattr,
++	.listxattr	= bad_inode_listxattr,
++	.removexattr	= bad_inode_removexattr,
++	/* truncate_range returns void */
+ };
+ 
+ 
+@@ -88,7 +336,7 @@ static struct inode_operations bad_inode
+  *	on it to fail from this point on.
+  */
+  
+-void make_bad_inode(struct inode * inode) 
++void make_bad_inode(struct inode *inode)
+ {
+ 	remove_inode_hash(inode);
+ 
+@@ -113,7 +361,7 @@ EXPORT_SYMBOL(make_bad_inode);
+  *	Returns true if the inode in question has been marked as bad.
+  */
+  
+-int is_bad_inode(struct inode * inode) 
++int is_bad_inode(struct inode *inode)
+ {
+ 	return (inode->i_op == &bad_inode_ops);	
+ }
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
+
+ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch
