@@ -1,67 +1,55 @@
 From: akpm@osdl.org
-Subject: + git-block-fixup.patch added to -mm tree
-Date: Sun, 07 Jan 2007 00:19:11 -0800
-Message-ID: <200701070819.l078JfRE013514@shell0.pdx.osdl.net>
+Subject: + rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch added to -mm tree
+Date: Sun, 07 Jan 2007 00:29:37 -0800
+Message-ID: <200701070830.l078U5If013673@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41847 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42173 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932430AbXAGITs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 03:19:48 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l078JhWi000567
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 7 Jan 2007 00:19:44 -0800
+	id S932430AbXAGIaZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 03:30:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, davej@codemonkey.org.uk, ego@in.ibm.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     git-block-fixup
+     rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2
 has been added to the -mm tree.  Its filename is
-     git-block-fixup.patch
+     rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-fixup
+Subject: rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
+Update for git-cpufreq changes.  Might be wrong.
+
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/block/pktcdvd.c |   16 ----------------
- 1 file changed, 16 deletions(-)
+ drivers/cpufreq/cpufreq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/pktcdvd.c~git-block-fixup drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~git-block-fixup
-+++ a/drivers/block/pktcdvd.c
-@@ -787,22 +787,6 @@ static int pkt_generic_packet(struct pkt
- 	rq->cmd_flags |= REQ_HARDBARRIER;
- 	if (cgc->quiet)
- 		rq->cmd_flags |= REQ_QUIET;
--<<<<<<< HEAD/drivers/block/pktcdvd.c
--=======
--	memcpy(rq->cmd, cgc->cmd, CDROM_PACKET_SIZE);
--	if (sizeof(rq->cmd) > CDROM_PACKET_SIZE)
--		memset(rq->cmd + CDROM_PACKET_SIZE, 0, sizeof(rq->cmd) - CDROM_PACKET_SIZE);
--	rq->cmd_len = COMMAND_SIZE(rq->cmd[0]);
--
--	rq->ref_count++;
--	rq->end_io_data = &wait;
--	rq->end_io = blk_end_sync_rq;
--	elv_add_request(q, rq, ELEVATOR_INSERT_BACK);
--	wait_for_completion(&wait);
--
--	if (rq->errors)
--		err = -EIO;
-->>>>>>> /drivers/block/pktcdvd.c
+diff -puN drivers/cpufreq/cpufreq.c~rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2 drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2
++++ a/drivers/cpufreq/cpufreq.c
+@@ -797,7 +797,7 @@ static int cpufreq_add_dev (struct sys_d
+ 						&managed_policy->kobj,
+ 						"cpufreq");
+ 			if (ret) {
+-				mutex_unlock(&policy->lock);
++				unlock_policy_rwsem_write(cpu);
+ 				goto err_out_driver_exit;
+ 			}
  
- 	blk_execute_rq(rq->q, pd->bdev->bd_disk, rq, 0);
- 	ret = rq->errors;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -78,6 +66,7 @@ git-alsa.patch
 git-alsa-fixup.patch
 sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
 cifs-sprintf-fix.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
 fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
 git-dvb.patch
 git-gfs2-nmw.patch
@@ -100,6 +89,7 @@ r8169-warning-fixes.patch
 git-scsi-rc-fixes.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-fixup.patch
 git-block-atomicity-fix.patch
 nokia-e70-is-an-unusual-device.patch
 revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
@@ -214,4 +204,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-block-fixup.patch
