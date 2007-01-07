@@ -1,57 +1,62 @@
 From: akpm@osdl.org
-Subject: - add-afs_super_magic-to-magich.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:57:54 -0800
-Message-ID: <200701070757.l077vsfo012918@shell0.pdx.osdl.net>
+Subject: - start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:58:02 -0800
+Message-ID: <200701070758.l077w2GB012927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40690 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40694 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932421AbXAGH6D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:58:03 -0500
+	id S932426AbXAGH6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: megacz@cs.berkeley.edu, jaltman@secure-endpoints.com, mm-commits@vger.kernel.org
+To: ard@telegraafnet.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add AFS_SUPER_MAGIC to magic.h
+     start_kernel: test if irq's got enabled early, barf, and disable them again
 has been removed from the -mm tree.  Its filename was
-     add-afs_super_magic-to-magich.patch
+     start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add AFS_SUPER_MAGIC to magic.h
-From: Adam Megacz <megacz@cs.berkeley.edu>
+Subject: start_kernel: test if irq's got enabled early, barf, and disable them again
+From: Ard van Breemen <ard@telegraafnet.nl>
 
-Jeffrey Altman, one of the gatekeepers of OpenAFS (the open source project
-which inherited the Transarc/IBM AFS codebase) has requested that the magic
-number 0x5346414F (little endian 'OAFS') be allocated for the f_type field
-of the fsinfo structure on Linux:
+The calls made by parse_parms to other initialization code might enable
+interrupts again way too early.
 
-  https://lists.openafs.org/pipermail/openafs-info/2006-December/024829.html
+Having interrupts on this early can make systems PANIC when they initialize
+the IRQ controllers (which happens later in the code).  This patch detects
+that irq's are enabled again, barfs about it and disables them again as a
+safety net.
 
-Add it to include/linux/magic.h, mostly as a way of publishing this number
-and ensuring that no other filesystem accidentally uses it.
-
-Cc: Jeffrey Altman <jaltman@secure-endpoints.com>
+[akpm@osdl.org: cleanups]
+Signed-off-by: Ard van Breemen <ard@telegraafnet.nl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/magic.h |    1 +
- 1 file changed, 1 insertion(+)
+ init/main.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/magic.h~add-afs_super_magic-to-magich include/linux/magic.h
---- a/include/linux/magic.h~add-afs_super_magic-to-magich
-+++ a/include/linux/magic.h
-@@ -3,6 +3,7 @@
- 
- #define ADFS_SUPER_MAGIC	0xadf5
- #define AFFS_SUPER_MAGIC	0xadff
-+#define AFS_SUPER_MAGIC                0x5346414F
- #define AUTOFS_SUPER_MAGIC	0x0187
- #define CODA_SUPER_MAGIC	0x73757245
- #define EFS_SUPER_MAGIC		0x414A53
+diff -puN init/main.c~start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again init/main.c
+--- a/init/main.c~start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again
++++ a/init/main.c
+@@ -538,6 +538,11 @@ asmlinkage void __init start_kernel(void
+ 	parse_args("Booting kernel", command_line, __start___param,
+ 		   __stop___param - __start___param,
+ 		   &unknown_bootoption);
++	if (!irqs_disabled()) {
++		printk(KERN_WARNING "start_kernel(): bug: interrupts were "
++				"enabled *very* early, fixing it\n");
++		local_irq_disable();
++	}
+ 	sort_main_extable();
+ 	trap_init();
+ 	rcu_init();
 _
 
-Patches currently in -mm which might be from megacz@cs.berkeley.edu are
+Patches currently in -mm which might be from ard@telegraafnet.nl are
+
+pci-prevent-down_read-when-pci_devices-is-empty.patch
