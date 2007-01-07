@@ -1,118 +1,158 @@
 From: akpm@osdl.org
-Subject: - hpt37x-two-important-bug-fixes.patch removed from -mm tree
-Date: Sun, 07 Jan 2007 00:00:32 -0800
-Message-ID: <200701070800.l0780WEW013200@shell0.pdx.osdl.net>
+Subject: - kvm-make-loading-cr3-more-robust.patch removed from -mm tree
+Date: Sun, 07 Jan 2007 00:00:23 -0800
+Message-ID: <200701070800.l0780NZp013184@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41065 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41049 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932491AbXAGIAl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 03:00:41 -0500
+	id S932490AbXAGIAf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 03:00:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: mingo@elte.hu, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpt37x: Two important bug fixes
+     KVM: Make loading cr3 more robust
 has been removed from the -mm tree.  Its filename was
-     hpt37x-two-important-bug-fixes.patch
+     kvm-make-loading-cr3-more-robust.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hpt37x: Two important bug fixes
-From: Alan <alan@lxorguk.ukuu.org.uk>
+Subject: KVM: Make loading cr3 more robust
+From: Ingo Molnar <mingo@elte.hu>
 
-The HPT37x driver very carefully handles DMA completions and the needed
-fixups are done on pci registers 0x50 and 0x52.  This is unfortunate
-because the actual registers are 0x50 and 0x54.  Fixing this offset cures
-the second channel problems reported.
+Prevent the guest's loading of a corrupt cr3 (pointing at no guest phsyical
+page) from crashing the host.
 
-Secondly there are some problems with the HPT370 and certain ATA drives. 
-The filter code however only filters ATAPI devices due to a reversed type
-check.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/pata_hpt37x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/kvm/kvm_main.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_hpt37x.c~hpt37x-two-important-bug-fixes drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~hpt37x-two-important-bug-fixes
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -25,7 +25,7 @@
- #include <linux/libata.h>
+diff -puN drivers/kvm/kvm_main.c~kvm-make-loading-cr3-more-robust drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-make-loading-cr3-more-robust
++++ a/drivers/kvm/kvm_main.c
+@@ -463,7 +463,19 @@ void set_cr3(struct kvm_vcpu *vcpu, unsi
  
- #define DRV_NAME	"pata_hpt37x"
--#define DRV_VERSION	"0.5.1"
-+#define DRV_VERSION	"0.5.2"
- 
- struct hpt_clock {
- 	u8	xfer_speed;
-@@ -416,7 +416,7 @@ static const char *bad_ata100_5[] = {
- 
- static unsigned long hpt370_filter(const struct ata_port *ap, struct ata_device *adev, unsigned long mask)
- {
--	if (adev->class != ATA_DEV_ATA) {
-+	if (adev->class == ATA_DEV_ATA) {
- 		if (hpt_dma_blacklisted(adev, "UDMA", bad_ata33))
- 			mask &= ~ATA_MASK_UDMA;
- 		if (hpt_dma_blacklisted(adev, "UDMA100", bad_ata100_5))
-@@ -749,7 +749,7 @@ static void hpt37x_bmdma_stop(struct ata
- {
- 	struct ata_port *ap = qc->ap;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--	int mscreg = 0x50 + 2 * ap->port_no;
-+	int mscreg = 0x50 + 4 * ap->port_no;
- 	u8 bwsr_stat, msc_stat;
- 
- 	pci_read_config_byte(pdev, 0x6A, &bwsr_stat);
+ 	vcpu->cr3 = cr3;
+ 	spin_lock(&vcpu->kvm->lock);
+-	vcpu->mmu.new_cr3(vcpu);
++	/*
++	 * Does the new cr3 value map to physical memory? (Note, we
++	 * catch an invalid cr3 even in real-mode, because it would
++	 * cause trouble later on when we turn on paging anyway.)
++	 *
++	 * A real CPU would silently accept an invalid cr3 and would
++	 * attempt to use it - with largely undefined (and often hard
++	 * to debug) behavior on the guest side.
++	 */
++	if (unlikely(!gfn_to_memslot(vcpu->kvm, cr3 >> PAGE_SHIFT)))
++		inject_gp(vcpu);
++	else
++		vcpu->mmu.new_cr3(vcpu);
+ 	spin_unlock(&vcpu->kvm->lock);
+ }
+ EXPORT_SYMBOL_GPL(set_cr3);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-git-libata-all.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pnx8550-uart-driver.patch
-pnx8550-uart-driver-fixes.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+fix-for-crash-in-adummy_init.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
 x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-tty_wakeup-cleanup.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-piix-fix-82371mx-enablebits.patch
-pdc202xx_new-remove-useless-code.patch
-pdc202xx_-remove-check_in_drive_lists-abomination.patch
-piix-tuneproc-fixes-cleanups.patch
-slc90e66-carry-over-fixes-from-piix-driver.patch
-hpt36x-pci-clock-detection-fix.patch
+sched-improve-sched_clock-on-i686.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+consolidate-default-sched_clock.patch
+use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+aio-is-unlikely.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
