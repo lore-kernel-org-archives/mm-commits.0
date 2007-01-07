@@ -1,62 +1,55 @@
 From: akpm@osdl.org
-Subject: - start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:02 -0800
-Message-ID: <200701070758.l077w2GB012927@shell0.pdx.osdl.net>
+Subject: - fix-implicit-declarations-in-via-pmu.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:57:57 -0800
+Message-ID: <200701070757.l077vvHq012921@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40694 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40695 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932426AbXAGH6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:58:05 -0500
+	id S932421AbXAGH6G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:58:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard@telegraafnet.nl, mm-commits@vger.kernel.org
+To: davej@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     start_kernel: test if irq's got enabled early, barf, and disable them again
+     Fix implicit declarations in via-pmu
 has been removed from the -mm tree.  Its filename was
-     start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again.patch
+     fix-implicit-declarations-in-via-pmu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: start_kernel: test if irq's got enabled early, barf, and disable them again
-From: Ard van Breemen <ard@telegraafnet.nl>
+Subject: Fix implicit declarations in via-pmu
+From: Dave Jones <davej@redhat.com>
 
-The calls made by parse_parms to other initialization code might enable
-interrupts again way too early.
+drivers/macintosh/via-pmu.c: In function 'pmac_suspend_devices':
+drivers/macintosh/via-pmu.c:2014: error: implicit declaration of function 'pm_prepare_console'
+drivers/macintosh/via-pmu.c: In function 'pmac_wakeup_devices':
+drivers/macintosh/via-pmu.c:2139: error: implicit declaration of function 'pm_restore_console'
 
-Having interrupts on this early can make systems PANIC when they initialize
-the IRQ controllers (which happens later in the code).  This patch detects
-that irq's are enabled again, barfs about it and disables them again as a
-safety net.
-
-[akpm@osdl.org: cleanups]
-Signed-off-by: Ard van Breemen <ard@telegraafnet.nl>
+Signed-off-by: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- init/main.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/macintosh/via-pmu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN init/main.c~start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again init/main.c
---- a/init/main.c~start_kernel-test-if-irqs-got-enabled-early-barf-and-disable-them-again
-+++ a/init/main.c
-@@ -538,6 +538,11 @@ asmlinkage void __init start_kernel(void
- 	parse_args("Booting kernel", command_line, __start___param,
- 		   __stop___param - __start___param,
- 		   &unknown_bootoption);
-+	if (!irqs_disabled()) {
-+		printk(KERN_WARNING "start_kernel(): bug: interrupts were "
-+				"enabled *very* early, fixing it\n");
-+		local_irq_disable();
-+	}
- 	sort_main_extable();
- 	trap_init();
- 	rcu_init();
+diff -puN drivers/macintosh/via-pmu.c~fix-implicit-declarations-in-via-pmu drivers/macintosh/via-pmu.c
+--- a/drivers/macintosh/via-pmu.c~fix-implicit-declarations-in-via-pmu
++++ a/drivers/macintosh/via-pmu.c
+@@ -44,6 +44,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/freezer.h>
+ #include <linux/syscalls.h>
++#include <linux/suspend.h>
+ #include <linux/cpu.h>
+ #include <asm/prom.h>
+ #include <asm/machdep.h>
 _
 
-Patches currently in -mm which might be from ard@telegraafnet.nl are
+Patches currently in -mm which might be from davej@redhat.com are
 
-pci-prevent-down_read-when-pci_devices-is-empty.patch
+git-cpufreq.patch
+remove-hotplug-cpu-crap-from-cpufreq.patch
