@@ -1,72 +1,71 @@
 From: akpm@osdl.org
-Subject: - fix-bug_onpageslab-from-fallback_alloc.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:53 -0800
-Message-ID: <200701070758.l077wr81012987@shell0.pdx.osdl.net>
+Subject: - kvm-mmu-teach-the-page-table-walker-to-track-guest-page-table-gfns.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:59:03 -0800
+Message-ID: <200701070759.l077x32o013004@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40815 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40826 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932451AbXAGH7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:59:06 -0500
+	id S932421AbXAGH7K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:59:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix BUG_ON(!PageSlab) from fallback_alloc
+     KVM: MMU: Teach the page table walker to track guest page table gfns
 has been removed from the -mm tree.  Its filename was
-     fix-bug_onpageslab-from-fallback_alloc.patch
+     kvm-mmu-teach-the-page-table-walker-to-track-guest-page-table-gfns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix BUG_ON(!PageSlab) from fallback_alloc
-From: Hugh Dickins <hugh@veritas.com>
+Subject: KVM: MMU: Teach the page table walker to track guest page table gfns
+From: Avi Kivity <avi@qumranet.com>
 
-pdflush hit the BUG_ON(!PageSlab(page)) in kmem_freepages called from
-fallback_alloc: cache_grow already freed those pages when alloc_slabmgmt
-failed.  But it wouldn't have freed them if __GFP_NO_GROW, so make sure
-fallback_alloc doesn't waste its time on that case.
+Saving the table gfns removes the need to walk the guest and host page tables
+in lockstep.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Pekka J Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/kvm/paging_tmpl.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~fix-bug_onpageslab-from-fallback_alloc mm/slab.c
---- a/mm/slab.c~fix-bug_onpageslab-from-fallback_alloc
-+++ a/mm/slab.c
-@@ -3281,7 +3281,7 @@ retry:
- 					flags | GFP_THISNODE, nid);
- 	}
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-teach-the-page-table-walker-to-track-guest-page-table-gfns drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-teach-the-page-table-walker-to-track-guest-page-table-gfns
++++ a/drivers/kvm/paging_tmpl.h
+@@ -52,6 +52,7 @@
+  */
+ struct guest_walker {
+ 	int level;
++	gfn_t table_gfn;
+ 	pt_element_t *table;
+ 	pt_element_t inherited_ar;
+ };
+@@ -63,8 +64,8 @@ static void FNAME(init_walker)(struct gu
+ 	struct kvm_memory_slot *slot;
  
--	if (!obj) {
-+	if (!obj && !(flags & __GFP_NO_GROW)) {
- 		/*
- 		 * This allocation will be performed within the constraints
- 		 * of the current cpuset / memory policy requirements.
-@@ -3310,7 +3310,7 @@ retry:
- 					 */
- 					goto retry;
- 			} else {
--				kmem_freepages(cache, obj);
-+				/* cache_grow already freed obj */
- 				obj = NULL;
- 			}
- 		}
+ 	walker->level = vcpu->mmu.root_level;
+-	slot = gfn_to_memslot(vcpu->kvm,
+-			      (vcpu->cr3 & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT);
++	walker->table_gfn = (vcpu->cr3 & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT;
++	slot = gfn_to_memslot(vcpu->kvm, walker->table_gfn);
+ 	hpa = safe_gpa_to_hpa(vcpu, vcpu->cr3 & PT64_BASE_ADDR_MASK);
+ 	walker->table = kmap_atomic(pfn_to_page(hpa >> PAGE_SHIFT), KM_USER0);
+ 
+@@ -133,6 +134,8 @@ static pt_element_t *FNAME(fetch_guest)(
+ 			return &walker->table[index];
+ 		if (walker->level != 3 || is_long_mode(vcpu))
+ 			walker->inherited_ar &= walker->table[index];
++		walker->table_gfn = (walker->table[index] & PT_BASE_ADDR_MASK)
++			>> PAGE_SHIFT;
+ 		paddr = safe_gpa_to_hpa(vcpu, walker->table[index] & PT_BASE_ADDR_MASK);
+ 		kunmap_atomic(walker->table, KM_USER0);
+ 		walker->table = kmap_atomic(pfn_to_page(paddr >> PAGE_SHIFT),
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
-
-ext2-reservations.patch
-ext2-balloc-fix-_with_rsv-freeze.patch
-ext2-balloc-reset-windowsz-when-full.patch
-ext2-balloc-fix-off-by-one-against-rsv_end.patch
-ext2-balloc-fix-off-by-one-against-grp_goal.patch
-ext2-balloc-say-rb_entry-not-list_entry.patch
-ext2-balloc-use-io_error-label.patch
+Patches currently in -mm which might be from avi@qumranet.com are
