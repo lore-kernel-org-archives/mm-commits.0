@@ -1,74 +1,52 @@
 From: akpm@osdl.org
-Subject: - kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte.patch removed from -mm tree
-Date: Sun, 07 Jan 2007 00:00:02 -0800
-Message-ID: <200701070800.l07802kX013151@shell0.pdx.osdl.net>
+Subject: - kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left.patch removed from -mm tree
+Date: Sun, 07 Jan 2007 00:00:07 -0800
+Message-ID: <200701070800.l078077R013159@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40980 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40983 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932479AbXAGIAL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 03:00:11 -0500
+	id S932480AbXAGIAM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 03:00:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: MMU: Flush guest tlb when reducing permissions on a pte
+     KVM: MMU: Destroy mmu while we still have a vcpu left
 has been removed from the -mm tree.  Its filename was
-     kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte.patch
+     kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: MMU: Flush guest tlb when reducing permissions on a pte
+Subject: KVM: MMU: Destroy mmu while we still have a vcpu left
 From: Avi Kivity <avi@qumranet.com>
 
-If we reduce permissions on a pte, we must flush the cached copy of the pte
-from the guest's tlb.
-
-This is implemented at the moment by flushing the entire guest tlb, and can be
-improved by flushing just the relevant virtual address, if it is known.
+mmu_destroy flushes the guest tlb (indirectly), which needs a valid vcpu.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/mmu.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/kvm/kvm_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/kvm/mmu.c~kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-flush-guest-tlb-when-reducing-permissions-on-a-pte
-+++ a/drivers/kvm/mmu.c
-@@ -383,6 +383,7 @@ static void rmap_write_protect(struct kv
- 		BUG_ON(!(*spte & PT_WRITABLE_MASK));
- 		rmap_printk("rmap_write_protect: spte %p %llx\n", spte, *spte);
- 		rmap_remove(vcpu, spte);
-+		kvm_arch_ops->tlb_flush(vcpu);
- 		*spte &= ~(u64)PT_WRITABLE_MASK;
- 	}
+diff -puN drivers/kvm/kvm_main.c~kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-mmu-destroy-mmu-while-we-still-have-a-vcpu-left
++++ a/drivers/kvm/kvm_main.c
+@@ -271,8 +271,8 @@ static void kvm_free_physmem(struct kvm 
+ 
+ static void kvm_free_vcpu(struct kvm_vcpu *vcpu)
+ {
+-	kvm_arch_ops->vcpu_free(vcpu);
+ 	kvm_mmu_destroy(vcpu);
++	kvm_arch_ops->vcpu_free(vcpu);
  }
-@@ -594,6 +595,7 @@ static void kvm_mmu_page_unlink_children
- 				rmap_remove(vcpu, &pt[i]);
- 			pt[i] = 0;
- 		}
-+		kvm_arch_ops->tlb_flush(vcpu);
- 		return;
- 	}
  
-@@ -927,7 +929,10 @@ static inline void set_pte_common(struct
- 			pgprintk("%s: found shadow page for %lx, marking ro\n",
- 				 __FUNCTION__, gfn);
- 			access_bits &= ~PT_WRITABLE_MASK;
--			*shadow_pte &= ~PT_WRITABLE_MASK;
-+			if (is_writeble_pte(*shadow_pte)) {
-+				    *shadow_pte &= ~PT_WRITABLE_MASK;
-+				    kvm_arch_ops->tlb_flush(vcpu);
-+			}
- 		}
- 	}
- 
+ static void kvm_free_vcpus(struct kvm *kvm)
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
