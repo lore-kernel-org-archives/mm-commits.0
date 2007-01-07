@@ -1,55 +1,114 @@
 From: akpm@osdl.org
-Subject: + spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch added to -mm tree
-Date: Sun, 07 Jan 2007 12:04:39 -0800
-Message-ID: <200701072004.l07K4d9P024422@shell0.pdx.osdl.net>
+Subject: + fix-mangled-patch-in-pci-searchc.patch added to -mm tree
+Date: Sun, 07 Jan 2007 12:15:21 -0800
+Message-ID: <200701072015.l07KFLD9024614@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44447 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44962 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965073AbXAGUFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 15:05:24 -0500
+	id S965136AbXAGUP0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 15:15:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, dwalker@mvista.com, kiran@scalex86.org, md@google.com, mingo@elte.hu, pravin.shelar@calsoftinc.com, shai@scalex86.org
+Cc: akpm@osdl.org, ard@telegraafnet.nl, greg@kroah.com
 
 
 The patch titled
-     spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix
+     fix mangled patch in pci/search.c
 has been added to the -mm tree.  Its filename is
-     spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+     fix-mangled-patch-in-pci-searchc.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix
+Subject: fix mangled patch in pci/search.c
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Ravikiran Thirumalai <kiran@scalex86.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Michael Davidson <md@google.com>
-Cc: Pravin B. Shelar <pravin.shelar@calsoftinc.com>
-Cc: Shai Fultheim <shai@scalex86.org>
-Cc: Daniel Walker <dwalker@mvista.com>
+We somehow managed to get both hunks to land in the wrong function.  Put them
+where they should be.
+
+Cc: Ard van Breemen <ard@telegraafnet.nl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-i386/spinlock.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/search.c |   48 ++++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN include/asm-i386/spinlock.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix include/asm-i386/spinlock.h
---- a/include/asm-i386/spinlock.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix
-+++ a/include/asm-i386/spinlock.h
-@@ -14,6 +14,7 @@
- #define STI_STRING	"sti"
- #define CLI_STI_CLOBBERS
- #define CLI_STI_INPUT_ARGS
-+#define __CLI_STI_INPUT_ARGS
- #endif /* CONFIG_PARAVIRT */
+diff -puN drivers/pci/search.c~fix-mangled-patch-in-pci-searchc drivers/pci/search.c
+--- a/drivers/pci/search.c~fix-mangled-patch-in-pci-searchc
++++ a/drivers/pci/search.c
+@@ -193,6 +193,18 @@ static struct pci_dev * pci_find_subsys(
+ 	struct pci_dev *dev;
  
- /*
+ 	WARN_ON(in_interrupt());
++
++	/*
++	 * pci_find_subsys() can be called on the ide_setup() path, super-early
++	 * in boot.  But the down_read() will enable local interrupts, which
++	 * can cause some machines to crash.  So here we detect and flag that
++	 * situation and bail out early.
++	 */
++	if (unlikely(list_empty(&pci_devices))) {
++		printk(KERN_INFO "pci_find_subsys() called while pci_devices "
++				"is still empty\n");
++		return NULL;
++	}
+ 	down_read(&pci_bus_sem);
+ 	n = from ? from->global_list.next : pci_devices.next;
+ 
+@@ -259,6 +271,18 @@ pci_get_subsys(unsigned int vendor, unsi
+ 	struct pci_dev *dev;
+ 
+ 	WARN_ON(in_interrupt());
++
++	/*
++	 * pci_get_subsys() can potentially be called by drivers super-early
++	 * in boot.  But the down_read() will enable local interrupts, which
++	 * can cause some machines to crash.  So here we detect and flag that
++	 * situation and bail out early.
++	 */
++	if (unlikely(list_empty(&pci_devices))) {
++		printk(KERN_NOTICE "pci_get_subsys() called while pci_devices "
++				"is still empty\n");
++		return NULL;
++	}
+ 	down_read(&pci_bus_sem);
+ 	n = from ? from->global_list.next : pci_devices.next;
+ 
+@@ -396,30 +420,6 @@ struct pci_dev *pci_get_class(unsigned i
+ 	struct pci_dev *dev;
+ 
+ 	WARN_ON(in_interrupt());
+-
+-	/*
+-	 * pci_find_subsys() can be called on the ide_setup() path, super-early
+-	 * in boot.  But the down_read() will enable local interrupts, which
+-	 * can cause some machines to crash.  So here we detect and flag that
+-	 * situation and bail out early.
+-	 */
+-	if (unlikely(list_empty(&pci_devices))) {
+-		printk(KERN_INFO "pci_find_subsys() called while pci_devices "
+-				"is still empty\n");
+-		return NULL;
+-	}
+-
+-	/*
+-	 * pci_get_subsys() can potentially be called by drivers super-early
+-	 * in boot.  But the down_read() will enable local interrupts, which
+-	 * can cause some machines to crash.  So here we detect and flag that
+-	 * situation and bail out early.
+-	 */
+-	if (unlikely(list_empty(&pci_devices))) {
+-		printk(KERN_NOTICE "pci_get_subsys() called while pci_devices "
+-				"is still empty\n");
+-		return NULL;
+-	}
+ 	down_read(&pci_bus_sem);
+ 	n = from ? from->global_list.next : pci_devices.next;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -205,3 +264,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+fix-mangled-patch-in-pci-searchc.patch
