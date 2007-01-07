@@ -1,449 +1,152 @@
 From: akpm@osdl.org
-Subject: - fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:50 -0800
-Message-ID: <200701070758.l077wohE012984@shell0.pdx.osdl.net>
+Subject: - swsusp-do-not-fail-if-resume-device-is-not-set.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:58:31 -0800
+Message-ID: <200701070758.l077wVDx012960@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40799 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40789 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932450AbXAGH7A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:59:00 -0500
+	id S932448AbXAGH64 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:58:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix memory corruption from misinterpreted bad_inode_ops return values
+     swsusp: Do not fail if resume device is not set
 has been removed from the -mm tree.  Its filename was
-     fix-memory-corruption-from-misinterpreted-bad_inode_ops.patch
+     swsusp-do-not-fail-if-resume-device-is-not-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix memory corruption from misinterpreted bad_inode_ops return values
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: swsusp: Do not fail if resume device is not set
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-CVE-2006-5753 is for a case where an inode can be marked bad, switching
-the ops to bad_inode_ops, which are all connected as:
+In the kernels later than 2.6.19 there is a regression that makes swsusp
+fail if the resume device is not explicitly specified.
 
-static int return_EIO(void)
-{
-        return -EIO;
-}
+It can be fixed by adding an additional parameter to
+mm/swapfile.c:swap_type_of() allowing us to pass the (struct block_device
+*) corresponding to the first available swap back to the caller.
 
-#define EIO_ERROR ((void *) (return_EIO))
-
-static struct inode_operations bad_inode_ops =
-{
-        .create         = bad_inode_create
-...etc...
-
-The problem here is that the void cast causes return types to not be
-promoted, and for ops such as listxattr which expect more than 32 bits of
-return value, the 32-bit -EIO is interpreted as a large positive 64-bit
-number, i.e. 0x00000000fffffffa instead of 0xfffffffa.
-
-This goes particularly badly when the return value is taken as a number of
-bytes to copy into, say, a user's buffer for example...
-
-I originally had coded up the fix by creating a return_EIO_<TYPE> macro
-for each return type, like this:
-
-static int return_EIO_int(void)
-{
-	return -EIO;
-}
-#define EIO_ERROR_INT ((void *) (return_EIO_int))
-
-static struct inode_operations bad_inode_ops =
-{
-	.create		= EIO_ERROR_INT,
-...etc...
-
-but Al felt that it was probably better to create an EIO-returner for each
-actual op signature.  Since so few ops share a signature, I just went ahead
-& created an EIO function for each individual file & inode op that returns
-a value.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/bad_inode.c |  330 +++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 289 insertions(+), 41 deletions(-)
+ include/linux/swap.h |    2 +-
+ kernel/power/swap.c  |    9 +++++----
+ kernel/power/user.c  |    7 ++++---
+ mm/swapfile.c        |    8 +++++++-
+ 4 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops fs/bad_inode.c
---- a/fs/bad_inode.c~fix-memory-corruption-from-misinterpreted-bad_inode_ops
-+++ a/fs/bad_inode.c
-@@ -14,59 +14,307 @@
- #include <linux/time.h>
- #include <linux/smp_lock.h>
- #include <linux/namei.h>
-+#include <linux/poll.h>
- 
--static int return_EIO(void)
-+
-+static loff_t bad_file_llseek(struct file *file, loff_t offset, int origin)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_file_read(struct file *filp, char __user *buf,
-+			size_t size, loff_t *ppos)
-+{
-+        return -EIO;
-+}
-+
-+static ssize_t bad_file_write(struct file *filp, const char __user *buf,
-+			size_t siz, loff_t *ppos)
-+{
-+        return -EIO;
-+}
-+
-+static ssize_t bad_file_aio_read(struct kiocb *iocb, const struct iovec *iov,
-+			unsigned long nr_segs, loff_t pos)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
-+			unsigned long nr_segs, loff_t pos)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_readdir(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	return -EIO;
-+}
-+
-+static unsigned int bad_file_poll(struct file *filp, poll_table *wait)
-+{
-+	return POLLERR;
-+}
-+
-+static int bad_file_ioctl (struct inode *inode, struct file *filp,
-+			unsigned int cmd, unsigned long arg)
-+{
-+	return -EIO;
-+}
-+
-+static long bad_file_unlocked_ioctl(struct file *file, unsigned cmd,
-+			unsigned long arg)
-+{
-+	return -EIO;
-+}
-+
-+static long bad_file_compat_ioctl(struct file *file, unsigned int cmd,
-+			unsigned long arg)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_open(struct inode *inode, struct file *filp)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_flush(struct file *file, fl_owner_t id)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_release(struct inode *inode, struct file *filp)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_fsync(struct file *file, struct dentry *dentry,
-+			int datasync)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_aio_fsync(struct kiocb *iocb, int datasync)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_fasync(int fd, struct file *filp, int on)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_lock(struct file *file, int cmd, struct file_lock *fl)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_file_sendfile(struct file *in_file, loff_t *ppos,
-+			size_t count, read_actor_t actor, void *target)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_file_sendpage(struct file *file, struct page *page,
-+			int off, size_t len, loff_t *pos, int more)
-+{
-+	return -EIO;
-+}
-+
-+static unsigned long bad_file_get_unmapped_area(struct file *file,
-+				unsigned long addr, unsigned long len,
-+				unsigned long pgoff, unsigned long flags)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_check_flags(int flags)
+diff -puN include/linux/swap.h~swsusp-do-not-fail-if-resume-device-is-not-set include/linux/swap.h
+--- a/include/linux/swap.h~swsusp-do-not-fail-if-resume-device-is-not-set
++++ a/include/linux/swap.h
+@@ -245,7 +245,7 @@ extern int swap_duplicate(swp_entry_t);
+ extern int valid_swaphandles(swp_entry_t, unsigned long *);
+ extern void swap_free(swp_entry_t);
+ extern void free_swap_and_cache(swp_entry_t);
+-extern int swap_type_of(dev_t, sector_t);
++extern int swap_type_of(dev_t, sector_t, struct block_device **);
+ extern unsigned int count_swap_pages(int, int);
+ extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
+ extern sector_t swapdev_block(int, pgoff_t);
+diff -puN kernel/power/swap.c~swsusp-do-not-fail-if-resume-device-is-not-set kernel/power/swap.c
+--- a/kernel/power/swap.c~swsusp-do-not-fail-if-resume-device-is-not-set
++++ a/kernel/power/swap.c
+@@ -165,14 +165,15 @@ static int swsusp_swap_check(void) /* Th
  {
- 	return -EIO;
- }
+ 	int res;
  
--#define EIO_ERROR ((void *) (return_EIO))
-+static int bad_file_dir_notify(struct file *file, unsigned long arg)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_file_flock(struct file *filp, int cmd, struct file_lock *fl)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_file_splice_write(struct pipe_inode_info *pipe,
-+			struct file *out, loff_t *ppos, size_t len,
-+			unsigned int flags)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_file_splice_read(struct file *in, loff_t *ppos,
-+			struct pipe_inode_info *pipe, size_t len,
-+			unsigned int flags)
-+{
-+	return -EIO;
-+}
+-	res = swap_type_of(swsusp_resume_device, swsusp_resume_block);
++	res = swap_type_of(swsusp_resume_device, swsusp_resume_block,
++			&resume_bdev);
+ 	if (res < 0)
+ 		return res;
  
- static const struct file_operations bad_file_ops =
- {
--	.llseek		= EIO_ERROR,
--	.aio_read	= EIO_ERROR,
--	.read		= EIO_ERROR,
--	.write		= EIO_ERROR,
--	.aio_write	= EIO_ERROR,
--	.readdir	= EIO_ERROR,
--	.poll		= EIO_ERROR,
--	.ioctl		= EIO_ERROR,
--	.mmap		= EIO_ERROR,
--	.open		= EIO_ERROR,
--	.flush		= EIO_ERROR,
--	.release	= EIO_ERROR,
--	.fsync		= EIO_ERROR,
--	.aio_fsync	= EIO_ERROR,
--	.fasync		= EIO_ERROR,
--	.lock		= EIO_ERROR,
--	.sendfile	= EIO_ERROR,
--	.sendpage	= EIO_ERROR,
--	.get_unmapped_area = EIO_ERROR,
-+	.llseek		= bad_file_llseek,
-+	.read		= bad_file_read,
-+	.write		= bad_file_write,
-+	.aio_read	= bad_file_aio_read,
-+	.aio_write	= bad_file_aio_write,
-+	.readdir	= bad_file_readdir,
-+	.poll		= bad_file_poll,
-+	.ioctl		= bad_file_ioctl,
-+	.unlocked_ioctl	= bad_file_unlocked_ioctl,
-+	.compat_ioctl	= bad_file_compat_ioctl,
-+	.mmap		= bad_file_mmap,
-+	.open		= bad_file_open,
-+	.flush		= bad_file_flush,
-+	.release	= bad_file_release,
-+	.fsync		= bad_file_fsync,
-+	.aio_fsync	= bad_file_aio_fsync,
-+	.fasync		= bad_file_fasync,
-+	.lock		= bad_file_lock,
-+	.sendfile	= bad_file_sendfile,
-+	.sendpage	= bad_file_sendpage,
-+	.get_unmapped_area = bad_file_get_unmapped_area,
-+	.check_flags	= bad_file_check_flags,
-+	.dir_notify	= bad_file_dir_notify,
-+	.flock		= bad_file_flock,
-+	.splice_write	= bad_file_splice_write,
-+	.splice_read	= bad_file_splice_read,
- };
+ 	root_swap = res;
+-	resume_bdev = open_by_devnum(swsusp_resume_device, FMODE_WRITE);
+-	if (IS_ERR(resume_bdev))
+-		return PTR_ERR(resume_bdev);
++	res = blkdev_get(resume_bdev, FMODE_WRITE, O_RDWR);
++	if (res)
++		return res;
  
-+static int bad_inode_create (struct inode *dir, struct dentry *dentry,
-+		int mode, struct nameidata *nd)
-+{
-+	return -EIO;
-+}
-+
-+static struct dentry *bad_inode_lookup(struct inode *dir,
-+			struct dentry *dentry, struct nameidata *nd)
-+{
-+	return ERR_PTR(-EIO);
-+}
-+
-+static int bad_inode_link (struct dentry *old_dentry, struct inode *dir,
-+		struct dentry *dentry)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_unlink(struct inode *dir, struct dentry *dentry)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_symlink (struct inode *dir, struct dentry *dentry,
-+		const char *symname)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_mkdir(struct inode *dir, struct dentry *dentry,
-+			int mode)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_rmdir (struct inode *dir, struct dentry *dentry)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_mknod (struct inode *dir, struct dentry *dentry,
-+			int mode, dev_t rdev)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_rename (struct inode *old_dir, struct dentry *old_dentry,
-+		struct inode *new_dir, struct dentry *new_dentry)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_readlink(struct dentry *dentry, char __user *buffer,
-+		int buflen)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_permission(struct inode *inode, int mask,
-+			struct nameidata *nd)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_getattr(struct vfsmount *mnt, struct dentry *dentry,
-+			struct kstat *stat)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_setattr(struct dentry *direntry, struct iattr *attrs)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_setxattr(struct dentry *dentry, const char *name,
-+		const void *value, size_t size, int flags)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_inode_getxattr(struct dentry *dentry, const char *name,
-+			void *buffer, size_t size)
-+{
-+	return -EIO;
-+}
-+
-+static ssize_t bad_inode_listxattr(struct dentry *dentry, char *buffer,
-+			size_t buffer_size)
-+{
-+	return -EIO;
-+}
-+
-+static int bad_inode_removexattr(struct dentry *dentry, const char *name)
-+{
-+	return -EIO;
-+}
-+
- static struct inode_operations bad_inode_ops =
- {
--	.create		= EIO_ERROR,
--	.lookup		= EIO_ERROR,
--	.link		= EIO_ERROR,
--	.unlink		= EIO_ERROR,
--	.symlink	= EIO_ERROR,
--	.mkdir		= EIO_ERROR,
--	.rmdir		= EIO_ERROR,
--	.mknod		= EIO_ERROR,
--	.rename		= EIO_ERROR,
--	.readlink	= EIO_ERROR,
-+	.create		= bad_inode_create,
-+	.lookup		= bad_inode_lookup,
-+	.link		= bad_inode_link,
-+	.unlink		= bad_inode_unlink,
-+	.symlink	= bad_inode_symlink,
-+	.mkdir		= bad_inode_mkdir,
-+	.rmdir		= bad_inode_rmdir,
-+	.mknod		= bad_inode_mknod,
-+	.rename		= bad_inode_rename,
-+	.readlink	= bad_inode_readlink,
- 	/* follow_link must be no-op, otherwise unmounting this inode
- 	   won't work */
--	.truncate	= EIO_ERROR,
--	.permission	= EIO_ERROR,
--	.getattr	= EIO_ERROR,
--	.setattr	= EIO_ERROR,
--	.setxattr	= EIO_ERROR,
--	.getxattr	= EIO_ERROR,
--	.listxattr	= EIO_ERROR,
--	.removexattr	= EIO_ERROR,
-+	/* put_link returns void */
-+	/* truncate returns void */
-+	.permission	= bad_inode_permission,
-+	.getattr	= bad_inode_getattr,
-+	.setattr	= bad_inode_setattr,
-+	.setxattr	= bad_inode_setxattr,
-+	.getxattr	= bad_inode_getxattr,
-+	.listxattr	= bad_inode_listxattr,
-+	.removexattr	= bad_inode_removexattr,
-+	/* truncate_range returns void */
- };
- 
- 
-@@ -88,7 +336,7 @@ static struct inode_operations bad_inode
-  *	on it to fail from this point on.
+ 	res = set_blocksize(resume_bdev, PAGE_SIZE);
+ 	if (res < 0)
+diff -puN kernel/power/user.c~swsusp-do-not-fail-if-resume-device-is-not-set kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-do-not-fail-if-resume-device-is-not-set
++++ a/kernel/power/user.c
+@@ -57,7 +57,7 @@ static int snapshot_open(struct inode *i
+ 	memset(&data->handle, 0, sizeof(struct snapshot_handle));
+ 	if ((filp->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		data->swap = swsusp_resume_device ?
+-				swap_type_of(swsusp_resume_device, 0) : -1;
++			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
+ 		data->mode = O_RDONLY;
+ 	} else {
+ 		data->swap = -1;
+@@ -268,7 +268,8 @@ static int snapshot_ioctl(struct inode *
+ 			 * so we need to recode them
+ 			 */
+ 			if (old_decode_dev(arg)) {
+-				data->swap = swap_type_of(old_decode_dev(arg), 0);
++				data->swap = swap_type_of(old_decode_dev(arg),
++							0, NULL);
+ 				if (data->swap < 0)
+ 					error = -ENODEV;
+ 			} else {
+@@ -365,7 +366,7 @@ static int snapshot_ioctl(struct inode *
+ 			swdev = old_decode_dev(swap_area.dev);
+ 			if (swdev) {
+ 				offset = swap_area.offset;
+-				data->swap = swap_type_of(swdev, offset);
++				data->swap = swap_type_of(swdev, offset, NULL);
+ 				if (data->swap < 0)
+ 					error = -ENODEV;
+ 			} else {
+diff -puN mm/swapfile.c~swsusp-do-not-fail-if-resume-device-is-not-set mm/swapfile.c
+--- a/mm/swapfile.c~swsusp-do-not-fail-if-resume-device-is-not-set
++++ a/mm/swapfile.c
+@@ -434,7 +434,7 @@ void free_swap_and_cache(swp_entry_t ent
+  *
+  * This is needed for the suspend to disk (aka swsusp).
   */
-  
--void make_bad_inode(struct inode * inode) 
-+void make_bad_inode(struct inode *inode)
+-int swap_type_of(dev_t device, sector_t offset)
++int swap_type_of(dev_t device, sector_t offset, struct block_device **bdev_p)
  {
- 	remove_inode_hash(inode);
+ 	struct block_device *bdev = NULL;
+ 	int i;
+@@ -450,6 +450,9 @@ int swap_type_of(dev_t device, sector_t 
+ 			continue;
  
-@@ -113,7 +361,7 @@ EXPORT_SYMBOL(make_bad_inode);
-  *	Returns true if the inode in question has been marked as bad.
-  */
-  
--int is_bad_inode(struct inode * inode) 
-+int is_bad_inode(struct inode *inode)
- {
- 	return (inode->i_op == &bad_inode_ops);	
- }
+ 		if (!bdev) {
++			if (bdev_p)
++				*bdev_p = sis->bdev;
++
+ 			spin_unlock(&swap_lock);
+ 			return i;
+ 		}
+@@ -459,6 +462,9 @@ int swap_type_of(dev_t device, sector_t 
+ 			se = list_entry(sis->extent_list.next,
+ 					struct swap_extent, list);
+ 			if (se->start_block == offset) {
++				if (bdev_p)
++					*bdev_p = sis->bdev;
++
+ 				spin_unlock(&swap_lock);
+ 				bdput(bdev);
+ 				return i;
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch
+pm-change-code-ordering-in-mainc.patch
+swsusp-change-code-ordering-in-diskc.patch
+swsusp-change-code-ordering-in-userc.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+swsusp-change-pm_ops-handling-by-userland-interface.patch
+shrink_slab-handle-bad-shrinkers.patch
