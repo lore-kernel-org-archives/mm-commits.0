@@ -1,146 +1,245 @@
 From: akpm@osdl.org
-Subject: - kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:59:28 -0800
-Message-ID: <200701070759.l077xSQl013057@shell0.pdx.osdl.net>
+Subject: - kvm-mmu-oom-handling.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:59:34 -0800
+Message-ID: <200701070759.l077xYfl013071@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40879 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40896 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932462AbXAGH7d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:59:33 -0500
+	id S932465AbXAGH7m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:59:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: MMU: If emulating an instruction fails, try unprotecting the page
+     KVM: MMU: oom handling
 has been removed from the -mm tree.  Its filename was
-     kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page.patch
+     kvm-mmu-oom-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: MMU: If emulating an instruction fails, try unprotecting the page
+Subject: KVM: MMU: oom handling
 From: Avi Kivity <avi@qumranet.com>
 
-A page table may have been recycled into a regular page, and so any
-instruction can be executed on it.  Unprotect the page and let the cpu do its
-thing.
+When beginning to process a page fault, make sure we have enough shadow pages
+available to service the fault.  If not, free some pages.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm.h      |    1 
- drivers/kvm/kvm_main.c |    2 +
- drivers/kvm/mmu.c      |   58 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 61 insertions(+)
+ drivers/kvm/kvm.h         |   12 ++++++++
+ drivers/kvm/mmu.c         |   49 +++++++++++++++---------------------
+ drivers/kvm/paging_tmpl.h |   15 +----------
+ drivers/kvm/svm.c         |    2 -
+ drivers/kvm/vmx.c         |    2 -
+ 5 files changed, 37 insertions(+), 43 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page
+diff -puN drivers/kvm/kvm.h~kvm-mmu-oom-handling drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-mmu-oom-handling
 +++ a/drivers/kvm/kvm.h
-@@ -450,6 +450,7 @@ unsigned long segment_base(u16 selector)
+@@ -52,6 +52,8 @@
+ #define KVM_MAX_VCPUS 1
+ #define KVM_MEMORY_SLOTS 4
+ #define KVM_NUM_MMU_PAGES 256
++#define KVM_MIN_FREE_MMU_PAGES 5
++#define KVM_REFILL_PAGES 25
  
+ #define FX_IMAGE_SIZE 512
+ #define FX_IMAGE_ALIGN 16
+@@ -278,6 +280,7 @@ struct kvm {
+ 	 * Hash table of struct kvm_mmu_page.
+ 	 */
+ 	struct list_head active_mmu_pages;
++	int n_free_mmu_pages;
+ 	struct hlist_head mmu_page_hash[KVM_NUM_MMU_PAGES];
+ 	struct kvm_vcpu vcpus[KVM_MAX_VCPUS];
+ 	int memory_config_version;
+@@ -451,6 +454,15 @@ unsigned long segment_base(u16 selector)
  void kvm_mmu_pre_write(struct kvm_vcpu *vcpu, gpa_t gpa, int bytes);
  void kvm_mmu_post_write(struct kvm_vcpu *vcpu, gpa_t gpa, int bytes);
-+int kvm_mmu_unprotect_page_virt(struct kvm_vcpu *vcpu, gva_t gva);
+ int kvm_mmu_unprotect_page_virt(struct kvm_vcpu *vcpu, gva_t gva);
++void kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu);
++
++static inline int kvm_mmu_page_fault(struct kvm_vcpu *vcpu, gva_t gva,
++				     u32 error_code)
++{
++	if (unlikely(vcpu->kvm->n_free_mmu_pages < KVM_MIN_FREE_MMU_PAGES))
++		kvm_mmu_free_some_pages(vcpu);
++	return vcpu->mmu.page_fault(vcpu, gva, error_code);
++}
  
  static inline struct page *_gfn_to_page(struct kvm *kvm, gfn_t gfn)
  {
-diff -puN drivers/kvm/kvm_main.c~kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page
-+++ a/drivers/kvm/kvm_main.c
-@@ -1063,6 +1063,8 @@ int emulate_instruction(struct kvm_vcpu 
- 	}
- 
- 	if (r) {
-+		if (kvm_mmu_unprotect_page_virt(vcpu, cr2))
-+			return EMULATE_DONE;
- 		if (!vcpu->mmio_needed) {
- 			report_emulation_failure(&emulate_ctxt);
- 			return EMULATE_FAIL;
-diff -puN drivers/kvm/mmu.c~kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-mmu-if-emulating-an-instruction-fails-try-unprotecting-the-page
+diff -puN drivers/kvm/mmu.c~kvm-mmu-oom-handling drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-oom-handling
 +++ a/drivers/kvm/mmu.c
-@@ -478,11 +478,62 @@ static struct kvm_mmu_page *kvm_mmu_get_
+@@ -310,6 +310,7 @@ static void kvm_mmu_free_page(struct kvm
+ 	list_del(&page_head->link);
+ 	page_head->page_hpa = page_hpa;
+ 	list_add(&page_head->link, &vcpu->free_pages);
++	++vcpu->kvm->n_free_mmu_pages;
+ }
+ 
+ static int is_empty_shadow_page(hpa_t page_hpa)
+@@ -344,6 +345,7 @@ static struct kvm_mmu_page *kvm_mmu_allo
+ 	page->global = 1;
+ 	page->multimapped = 0;
+ 	page->parent_pte = parent_pte;
++	--vcpu->kvm->n_free_mmu_pages;
  	return page;
  }
  
-+static void kvm_mmu_page_unlink_children(struct kvm_vcpu *vcpu,
-+					 struct kvm_mmu_page *page)
-+{
-+	BUG();
-+}
-+
- static void kvm_mmu_put_page(struct kvm_vcpu *vcpu,
- 			     struct kvm_mmu_page *page,
- 			     u64 *parent_pte)
+@@ -544,8 +546,7 @@ static void kvm_mmu_zap_page(struct kvm_
+ 	}
+ 	kvm_mmu_page_unlink_children(vcpu, page);
+ 	hlist_del(&page->hash_link);
+-	list_del(&page->link);
+-	list_add(&page->link, &vcpu->free_pages);
++	kvm_mmu_free_page(vcpu, page->page_hpa);
+ }
+ 
+ static int kvm_mmu_unprotect_page(struct kvm_vcpu *vcpu, gfn_t gfn)
+@@ -743,18 +744,6 @@ static void mmu_alloc_roots(struct kvm_v
+ 	vcpu->mmu.root_hpa = __pa(vcpu->mmu.pae_root);
+ }
+ 
+-static void nonpaging_flush(struct kvm_vcpu *vcpu)
+-{
+-	hpa_t root = vcpu->mmu.root_hpa;
+-
+-	++kvm_stat.tlb_flush;
+-	pgprintk("nonpaging_flush\n");
+-	mmu_free_roots(vcpu);
+-	mmu_alloc_roots(vcpu);
+-	kvm_arch_ops->set_cr3(vcpu, root);
+-	kvm_arch_ops->tlb_flush(vcpu);
+-}
+-
+ static gpa_t nonpaging_gva_to_gpa(struct kvm_vcpu *vcpu, gva_t vaddr)
  {
- 	mmu_page_remove_parent_pte(page, parent_pte);
-+	if (page->role.level > PT_PAGE_TABLE_LEVEL)
-+		kvm_mmu_page_unlink_children(vcpu, page);
-+	hlist_del(&page->hash_link);
-+	list_del(&page->link);
-+	list_add(&page->link, &vcpu->free_pages);
-+}
-+
-+static void kvm_mmu_zap_page(struct kvm_vcpu *vcpu,
-+			     struct kvm_mmu_page *page)
+ 	return vaddr;
+@@ -763,28 +752,19 @@ static gpa_t nonpaging_gva_to_gpa(struct
+ static int nonpaging_page_fault(struct kvm_vcpu *vcpu, gva_t gva,
+ 			       u32 error_code)
+ {
+-	int ret;
+ 	gpa_t addr = gva;
++	hpa_t paddr;
+ 
+ 	ASSERT(vcpu);
+ 	ASSERT(VALID_PAGE(vcpu->mmu.root_hpa));
+ 
+-	for (;;) {
+-	     hpa_t paddr;
+ 
+-	     paddr = gpa_to_hpa(vcpu , addr & PT64_BASE_ADDR_MASK);
++	paddr = gpa_to_hpa(vcpu , addr & PT64_BASE_ADDR_MASK);
+ 
+-	     if (is_error_hpa(paddr))
+-		     return 1;
++	if (is_error_hpa(paddr))
++		return 1;
+ 
+-	     ret = nonpaging_map(vcpu, addr & PAGE_MASK, paddr);
+-	     if (ret) {
+-		     nonpaging_flush(vcpu);
+-		     continue;
+-	     }
+-	     break;
+-	}
+-	return ret;
++	return nonpaging_map(vcpu, addr & PAGE_MASK, paddr);
+ }
+ 
+ static void nonpaging_inval_page(struct kvm_vcpu *vcpu, gva_t addr)
+@@ -1093,6 +1073,18 @@ int kvm_mmu_unprotect_page_virt(struct k
+ 	return kvm_mmu_unprotect_page(vcpu, gpa >> PAGE_SHIFT);
+ }
+ 
++void kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu)
 +{
-+	u64 *parent_pte;
++	while (vcpu->kvm->n_free_mmu_pages < KVM_REFILL_PAGES) {
++		struct kvm_mmu_page *page;
 +
-+	while (page->multimapped || page->parent_pte) {
-+		if (!page->multimapped)
-+			parent_pte = page->parent_pte;
-+		else {
-+			struct kvm_pte_chain *chain;
-+
-+			chain = container_of(page->parent_ptes.first,
-+					     struct kvm_pte_chain, link);
-+			parent_pte = chain->parent_ptes[0];
-+		}
-+		kvm_mmu_put_page(vcpu, page, parent_pte);
-+		*parent_pte = 0;
++		page = container_of(vcpu->kvm->active_mmu_pages.prev,
++				    struct kvm_mmu_page, link);
++		kvm_mmu_zap_page(vcpu, page);
 +	}
 +}
-+
-+static int kvm_mmu_unprotect_page(struct kvm_vcpu *vcpu, gfn_t gfn)
-+{
-+	unsigned index;
-+	struct hlist_head *bucket;
-+	struct kvm_mmu_page *page;
-+	struct hlist_node *node, *n;
-+	int r;
-+
-+	pgprintk("%s: looking for gfn %lx\n", __FUNCTION__, gfn);
-+	r = 0;
-+	index = kvm_page_table_hashfn(gfn) % KVM_NUM_MMU_PAGES;
-+	bucket = &vcpu->kvm->mmu_page_hash[index];
-+	hlist_for_each_entry_safe(page, node, n, bucket, hash_link)
-+		if (page->gfn == gfn && !page->role.metaphysical) {
-+			kvm_mmu_zap_page(vcpu, page);
-+			r = 1;
-+		}
-+	return r;
- }
- 
- static void page_header_update_slot(struct kvm *kvm, void *pte, gpa_t gpa)
-@@ -1001,6 +1052,13 @@ void kvm_mmu_post_write(struct kvm_vcpu 
- {
- }
- 
-+int kvm_mmu_unprotect_page_virt(struct kvm_vcpu *vcpu, gva_t gva)
-+{
-+	gpa_t gpa = vcpu->mmu.gva_to_gpa(vcpu, gva);
-+
-+	return kvm_mmu_unprotect_page(vcpu, gpa >> PAGE_SHIFT);
-+}
++EXPORT_SYMBOL_GPL(kvm_mmu_free_some_pages);
 +
  static void free_mmu_pages(struct kvm_vcpu *vcpu)
  {
  	while (!list_empty(&vcpu->free_pages)) {
+@@ -1124,6 +1116,7 @@ static int alloc_mmu_pages(struct kvm_vc
+ 		page_header->page_hpa = (hpa_t)page_to_pfn(page) << PAGE_SHIFT;
+ 		memset(__va(page_header->page_hpa), 0, PAGE_SIZE);
+ 		list_add(&page_header->link, &vcpu->free_pages);
++		++vcpu->kvm->n_free_mmu_pages;
+ 	}
+ 
+ 	/*
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-oom-handling drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-oom-handling
++++ a/drivers/kvm/paging_tmpl.h
+@@ -246,8 +246,6 @@ static u64 *FNAME(fetch)(struct kvm_vcpu
+ 		}
+ 		shadow_page = kvm_mmu_get_page(vcpu, table_gfn, addr, level-1,
+ 					       metaphysical, shadow_ent);
+-		if (!shadow_page)
+-			return ERR_PTR(-ENOMEM);
+ 		shadow_addr = shadow_page->page_hpa;
+ 		shadow_pte = shadow_addr | PT_PRESENT_MASK | PT_ACCESSED_MASK
+ 			| PT_WRITABLE_MASK | PT_USER_MASK;
+@@ -347,17 +345,8 @@ static int FNAME(page_fault)(struct kvm_
+ 	/*
+ 	 * Look up the shadow pte for the faulting address.
+ 	 */
+-	for (;;) {
+-		FNAME(walk_addr)(&walker, vcpu, addr);
+-		shadow_pte = FNAME(fetch)(vcpu, addr, &walker);
+-		if (IS_ERR(shadow_pte)) {  /* must be -ENOMEM */
+-			printk("%s: oom\n", __FUNCTION__);
+-			nonpaging_flush(vcpu);
+-			FNAME(release_walker)(&walker);
+-			continue;
+-		}
+-		break;
+-	}
++	FNAME(walk_addr)(&walker, vcpu, addr);
++	shadow_pte = FNAME(fetch)(vcpu, addr, &walker);
+ 
+ 	/*
+ 	 * The page is not mapped by the guest.  Let the guest handle it.
+diff -puN drivers/kvm/svm.c~kvm-mmu-oom-handling drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-mmu-oom-handling
++++ a/drivers/kvm/svm.c
+@@ -861,7 +861,7 @@ static int pf_interception(struct kvm_vc
+ 
+ 	fault_address  = vcpu->svm->vmcb->control.exit_info_2;
+ 	error_code = vcpu->svm->vmcb->control.exit_info_1;
+-	if (!vcpu->mmu.page_fault(vcpu, fault_address, error_code)) {
++	if (!kvm_mmu_page_fault(vcpu, fault_address, error_code)) {
+ 		spin_unlock(&vcpu->kvm->lock);
+ 		return 1;
+ 	}
+diff -puN drivers/kvm/vmx.c~kvm-mmu-oom-handling drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-mmu-oom-handling
++++ a/drivers/kvm/vmx.c
+@@ -1318,7 +1318,7 @@ static int handle_exception(struct kvm_v
+ 		cr2 = vmcs_readl(EXIT_QUALIFICATION);
+ 
+ 		spin_lock(&vcpu->kvm->lock);
+-		if (!vcpu->mmu.page_fault(vcpu, cr2, error_code)) {
++		if (!kvm_mmu_page_fault(vcpu, cr2, error_code)) {
+ 			spin_unlock(&vcpu->kvm->lock);
+ 			return 1;
+ 		}
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
