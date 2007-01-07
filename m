@@ -1,73 +1,65 @@
 From: akpm@osdl.org
-Subject: - i386-fix-modpost-warning-in-smp-trampoline-code.patch removed from -mm tree
-Date: Sat, 06 Jan 2007 23:58:42 -0800
-Message-ID: <200701070758.l077wgth012972@shell0.pdx.osdl.net>
+Subject: - rtc-at91rm9200-build-fix.patch removed from -mm tree
+Date: Sat, 06 Jan 2007 23:58:20 -0800
+Message-ID: <200701070758.l077wK36012948@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40774 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40769 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932443AbXAGH6u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 02:58:50 -0500
+	id S932445AbXAGH6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 02:58:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, alessandro.zummo@towertech.it, andrew@sanpeople.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: fix modpost warning in SMP trampoline code
+     rtc-at91rm9200 build fix
 has been removed from the -mm tree.  Its filename was
-     i386-fix-modpost-warning-in-smp-trampoline-code.patch
+     rtc-at91rm9200-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: fix modpost warning in SMP trampoline code
-From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: rtc-at91rm9200 build fix
+From: David Brownell <david-b@pacbell.net>
 
-o MODPOST generates warning for i386 if kernel is compiled with
-  CONFIG_RELOCATABLE=y
+The at91rm9200 RTC driver needs some assistance to build, because of recent
+header file rearrangement.
 
-WARNING: vmlinux - Section mismatch: reference to .init.text:startup_32_smp
-from .data between 'trampoline_data' (at offset 0xc0519cf8) and 'boot_gdt'
-
-o trampoline code/data can go into init section is CPU hotplug is not
-  enabled.
-
-Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/trampoline.S |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/rtc/rtc-at91rm9200.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/kernel/trampoline.S~i386-fix-modpost-warning-in-smp-trampoline-code arch/i386/kernel/trampoline.S
---- a/arch/i386/kernel/trampoline.S~i386-fix-modpost-warning-in-smp-trampoline-code
-+++ a/arch/i386/kernel/trampoline.S
-@@ -38,6 +38,11 @@
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-build-fix drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-build-fix
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -33,6 +33,8 @@
  
- .data
+ #include <asm/mach/time.h>
  
-+/* We can free up trampoline after bootup if cpu hotplug is not supported. */
-+#ifndef CONFIG_HOTPLUG_CPU
-+.section ".init.data","aw",@progbits
-+#endif
++#include <asm/arch/at91_rtc.h>
 +
- .code16
  
- ENTRY(trampoline_data)
+ #define AT91_RTC_FREQ		1
+ #define AT91_RTC_EPOCH		1900UL	/* just like arch/arm/common/rtctime.c */
 _
 
-Patches currently in -mm which might be from vgoyal@in.ibm.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-scsi-megaraid_mmmbox-init-fix-for-kdump.patch
-i386-cpu-hotplug-smpboot-misc-modpost-warning-fixes.patch
-convert-some-functions-to-__init-to-avoid-modpost-warnings.patch
-i386-move-startup_32-in-texthead-section.patch
-break-init-in-two-parts-to-avoid-modpost-warnings.patch
-i386-fix-memory-hotplug-related-modpost-generated-warning.patch
-i386-make-apic-probe-function-non-init.patch
-modpost-add-more-symbols-to-whitelist-pattern2.patch
-modpost-whitelist-reference-to-more-symbols-pattern-3.patch
-clockevents-i386-drivers.patch
+git-dvb.patch
+git-mmc.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+spi-kconfig-fix.patch
+spi-controller-driver-for-omap-microwire.patch
+spi-controller-driver-for-omap-microwire-update.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+pnp-export-pnp_bus_type.patch
+gpio-core.patch
+omap-gpio-wrappers.patch
+at91-gpio-wrappers.patch
