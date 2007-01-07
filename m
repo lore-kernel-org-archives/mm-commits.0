@@ -1,65 +1,258 @@
 From: akpm@osdl.org
-Subject: - fix-the-toshiba_acpi-write_lcd-return-value.patch removed from -mm tree
-Date: Sun, 07 Jan 2007 00:00:39 -0800
-Message-ID: <200701070800.l0780dgC013209@shell0.pdx.osdl.net>
+Subject: - sisusb_con-warning-fixes.patch removed from -mm tree
+Date: Sun, 07 Jan 2007 00:01:06 -0800
+Message-ID: <200701070801.l07816JZ013246@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41112 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41125 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932496AbXAGIBH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 03:01:07 -0500
+	id S932502AbXAGIBN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 7 Jan 2007 03:01:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thotter@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, gregkh@suse.de, thomas@winischhofer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix the toshiba_acpi write_lcd return value
+     sisusb_con warning fixes
 has been removed from the -mm tree.  Its filename was
-     fix-the-toshiba_acpi-write_lcd-return-value.patch
+     sisusb_con-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix the toshiba_acpi write_lcd return value
-From: Matthijs van Otterdijk <thotter@gmail.com>
+Subject: sisusb_con warning fixes
+From: Andrew Morton <akpm@osdl.org>
 
-write_lcd() in toshiba_acpi returns 0 on success since the big ACPI patch
-merged in 2.6.20-rc2.  It should return count.
+x86_64:
 
-Signed-off-by: Matthijs van Otterdijk <thotter@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_putc':
+drivers/usb/misc/sisusbvga/sisusb_con.c:405: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_putcs':
+drivers/usb/misc/sisusbvga/sisusb_con.c:440: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_clear':
+drivers/usb/misc/sisusbvga/sisusb_con.c:494: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_bmove':
+drivers/usb/misc/sisusbvga/sisusb_con.c:566: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_switch':
+drivers/usb/misc/sisusbvga/sisusb_con.c:614: warning: cast from pointer to integer of different size
+drivers/usb/misc/sisusbvga/sisusb_con.c: In function 'sisusbcon_scroll_area':
+drivers/usb/misc/sisusbvga/sisusb_con.c:941: warning: cast from pointer to integer of different size
+
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/toshiba_acpi.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/usb/misc/sisusbvga/sisusb_con.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/toshiba_acpi.c~fix-the-toshiba_acpi-write_lcd-return-value drivers/acpi/toshiba_acpi.c
---- a/drivers/acpi/toshiba_acpi.c~fix-the-toshiba_acpi-write_lcd-return-value
-+++ a/drivers/acpi/toshiba_acpi.c
-@@ -321,13 +321,16 @@ static int set_lcd_status(struct backlig
- static unsigned long write_lcd(const char *buffer, unsigned long count)
- {
- 	int value;
--	int ret = count;
-+	int ret;
+diff -puN drivers/usb/misc/sisusbvga/sisusb_con.c~sisusb_con-warning-fixes drivers/usb/misc/sisusbvga/sisusb_con.c
+--- a/drivers/usb/misc/sisusbvga/sisusb_con.c~sisusb_con-warning-fixes
++++ a/drivers/usb/misc/sisusbvga/sisusb_con.c
+@@ -402,7 +402,7 @@ sisusbcon_putc(struct vc_data *c, int ch
  
- 	if (sscanf(buffer, " brightness : %i", &value) == 1 &&
--	    value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS)
-+	    value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS) {
- 		ret = set_lcd(value);
--	else
-+		if (ret == 0)
-+			ret = count;
-+	} else {
- 		ret = -EINVAL;
-+	}
- 	return ret;
+ 
+ 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(x, y),
+-				(u32)SISUSB_HADDR(x, y), 2, &written);
++				(long)SISUSB_HADDR(x, y), 2, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
  }
+@@ -437,7 +437,7 @@ sisusbcon_putcs(struct vc_data *c, const
+ 	}
+ 
+ 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(x, y),
+-				(u32)SISUSB_HADDR(x, y), count * 2, &written);
++				(long)SISUSB_HADDR(x, y), count * 2, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+ }
+@@ -491,7 +491,7 @@ sisusbcon_clear(struct vc_data *c, int y
+ 
+ 
+ 	sisusb_copy_memory(sisusb, (unsigned char *)SISUSB_VADDR(x, y),
+-				(u32)SISUSB_HADDR(x, y), length, &written);
++				(long)SISUSB_HADDR(x, y), length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+ }
+@@ -563,7 +563,7 @@ sisusbcon_bmove(struct vc_data *c, int s
+ 
+ 
+ 	sisusb_copy_memory(sisusb, (unsigned char *)SISUSB_VADDR(dx, dy),
+-				(u32)SISUSB_HADDR(dx, dy), length, &written);
++				(long)SISUSB_HADDR(dx, dy), length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+ }
+@@ -611,7 +611,7 @@ sisusbcon_switch(struct vc_data *c)
+ 								length);
+ 
+ 	sisusb_copy_memory(sisusb, (unsigned char *)c->vc_origin,
+-				(u32)SISUSB_HADDR(0, 0),
++				(long)SISUSB_HADDR(0, 0),
+ 				length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
+@@ -938,7 +938,7 @@ sisusbcon_scroll_area(struct vc_data *c,
+ 	}
+ 
+ 	sisusb_copy_memory(sisusb, (char *)SISUSB_VADDR(0, t),
+-				(u32)SISUSB_HADDR(0, t), length, &written);
++				(long)SISUSB_HADDR(0, t), length, &written);
+ 
+ 	mutex_unlock(&sisusb->lock);
  
 _
 
-Patches currently in -mm which might be from thotter@gmail.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
+pci-prevent-down_read-when-pci_devices-is-empty.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-hda-detect-alc883-on-msi-k9a-platinum-motherboards.patch
+cifs-sprintf-fix.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+git-scsi-rc-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
