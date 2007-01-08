@@ -1,100 +1,134 @@
 From: akpm@osdl.org
-Subject: - unionfs-kconfig-and-makefile.patch removed from -mm tree
-Date: Mon, 08 Jan 2007 13:10:20 -0800
-Message-ID: <200701082110.l08LAK3P019070@shell0.pdx.osdl.net>
+Subject: + x86_64-io_apic-implement-remove_pin_to_irq.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:35:01 -0800
+Message-ID: <200701082135.l08LZ1So019623@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43715 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45204 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750879AbXAHVLA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:11:00 -0500
+	id S932120AbXAHVfL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:35:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ebiederm@xmission.com, ak@suse.de, yinghai.lu@amd.com
 
 
 The patch titled
-     unionfs: Kconfig and Makefile
-has been removed from the -mm tree.  Its filename was
-     unionfs-kconfig-and-makefile.patch
+     x86_64 io_apic: Implement remove_pin_to_irq
+has been added to the -mm tree.  Its filename is
+     x86_64-io_apic-implement-remove_pin_to_irq.patch
 
-This patch was dropped because I'll use the git tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: unionfs: Kconfig and Makefile
-From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+Subject: x86_64 io_apic: Implement remove_pin_to_irq
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-The changes to fs Kconfig file, Makefiles, and Maintainers file for Unionfs.
+To try different irq routing combinations so we can make an informed guess as
+to how to route irqs when the BIOS gets it wrong we need the ability to modify
+our irq routing data structures.
 
-Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
-Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
-Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
+This adds remove_pin_to_irq which removes the mapping from and apic pin to an
+irq.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "Yinghai Lu" <yinghai.lu@amd.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- MAINTAINERS         |    7 +++++++
- fs/Kconfig          |   10 ++++++++++
- fs/Makefile         |    1 +
- fs/unionfs/Makefile |    5 +++++
- 4 files changed, 23 insertions(+)
+ arch/x86_64/kernel/io_apic.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+)
 
-diff -puN MAINTAINERS~unionfs-kconfig-and-makefile MAINTAINERS
---- a/MAINTAINERS~unionfs-kconfig-and-makefile
-+++ a/MAINTAINERS
-@@ -3294,6 +3294,13 @@ L:	linux-kernel@vger.kernel.org
- W:	http://www.kernel.dk
- S:	Maintained
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-remove_pin_to_irq arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-remove_pin_to_irq
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -286,6 +286,29 @@ static void add_pin_to_irq(unsigned int 
+ 	entry->pin = pin;
+ }
  
-+UNIONFS
-+P:	Josef "Jeff" Sipek
-+M:	jsipek@cs.sunysb.edu
-+L:	unionfs@filesystems.org
-+W:	http://www.unionfs.org
-+S:	Maintained
++static void remove_pin_to_irq(unsigned int irq, int apic, int pin)
++{
++	struct irq_pin_list *entry = irq_2_pin + irq;
 +
- USB ACM DRIVER
- P:	Oliver Neukum
- M:	oliver@neukum.name
-diff -puN fs/Kconfig~unionfs-kconfig-and-makefile fs/Kconfig
---- a/fs/Kconfig~unionfs-kconfig-and-makefile
-+++ a/fs/Kconfig
-@@ -1554,6 +1554,16 @@ config UFS_DEBUG
- 	  Y here.  This will result in _many_ additional debugging messages to be
- 	  written to the system log.
++	BUG_ON(irq >= NR_IRQS);
++
++	while (entry->next && ((entry->apic != apic) || (entry->pin != pin)))
++		entry = irq_2_pin + entry->next;
++
++	if (entry->pin == apic && entry->pin == pin) {
++		if (entry->next) {
++			struct irq_pin_list *next = irq_2_pin + entry->next;
++			*entry = *next;
++			next->pin = -1;
++			next->apic = -1;
++			next->next = 0;
++		} else {
++			entry->pin = -1;
++			entry->apic = -1;
++		}
++	}
++}
++
  
-+config UNION_FS
-+	tristate "Union file system (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL
-+	help
-+	  Unionfs is a stackable unification file system, which appears to
-+	  merge the contents of several directories (branches), while keeping
-+	  their physical content separate.
-+
-+	  See <http://www.unionfs.org> for details
-+
- endmenu
- 
- menu "Network File Systems"
-diff -puN fs/Makefile~unionfs-kconfig-and-makefile fs/Makefile
---- a/fs/Makefile~unionfs-kconfig-and-makefile
-+++ a/fs/Makefile
-@@ -115,3 +115,4 @@ obj-$(CONFIG_HPPFS)		+= hppfs/
- obj-$(CONFIG_DEBUG_FS)		+= debugfs/
- obj-$(CONFIG_OCFS2_FS)		+= ocfs2/
- obj-$(CONFIG_GFS2_FS)           += gfs2/
-+obj-$(CONFIG_UNION_FS)		+= unionfs/
-diff -puN /dev/null fs/unionfs/Makefile
---- /dev/null
-+++ a/fs/unionfs/Makefile
-@@ -0,0 +1,5 @@
-+obj-$(CONFIG_UNION_FS) += unionfs.o
-+
-+unionfs-y := subr.o dentry.o file.o inode.o main.o super.o \
-+	stale_inode.o branchman.o rdstate.o copyup.o dirhelper.o \
-+	rename.o unlink.o lookup.o commonfops.o dirfops.o sioq.o
+ #define DO_ACTION(name,R,ACTION, FINAL)					\
+ 									\
 _
 
-Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-unionfs-kconfig-and-makefile.patch
-unionfs-extended-attributes-support.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+i386-make-apic-probe-function-non-init.patch
+modpost-add-more-symbols-to-whitelist-pattern2.patch
+modpost-whitelist-reference-to-more-symbols-pattern-3.patch
+x86_64-io_apic-implement-remove_pin_to_irq.patch
+x86_64-io_apic-implement-irq_from_pin.patch
+x86_64-io_apic-implment-update_irq0_entry.patch
+x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails.patch
+vt-refactor-console-sak-processing.patch
+sysctl_ms_jiffies-fix-oldlen-semantics.patch
+9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+kill_pid_info-kill-acquired_tasklist_lock.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-k8-driver-coding-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fix.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user_ns-handle-file-sigio.patch
+user-ns-implement-user-ns-unshare.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
