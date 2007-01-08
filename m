@@ -1,86 +1,111 @@
 From: akpm@osdl.org
-Subject: + libata-sff-dont-try-and-activate-channels-which-are-not.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:06:17 -0800
-Message-ID: <200701082306.l08N6HsG022021@shell0.pdx.osdl.net>
+Subject: + ahci-remove-jmicron-fixup.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:06:15 -0800
+Message-ID: <200701082306.l08N6FBW022018@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51867 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51868 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161098AbXAHXGZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1161111AbXAHXGZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Mon, 8 Jan 2007 18:06:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorgukCox, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata-sff: Don't try and activate channels which are not  in use
+     ahci: remove jmicron fixup
 has been added to the -mm tree.  Its filename is
-     libata-sff-dont-try-and-activate-channels-which-are-not.patch
+     ahci-remove-jmicron-fixup.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-sff: Don't try and activate channels which are not  in use
-From: Alan <alan@lxorgukCox .ukuu.org.uk>
+Subject: ahci: remove jmicron fixup
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-An ATA controller in native mode may have one or more channels disabled and
-not assigned resources.  In that case the existing code crashes trying to
-access I/O ports 0-7.
-
-Add the neccessary check.
+The AHCI set up is handled properly along with the other bits in the JMICRON
+quirk.  Remove the code whacking it in ahci.c as its un-needed and also
+blindly fiddles with bits it doesn't own.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-sff.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+)
+ drivers/ata/ahci.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-dont-try-and-activate-channels-which-are-not drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-dont-try-and-activate-channels-which-are-not
-+++ a/drivers/ata/libata-sff.c
-@@ -831,6 +831,21 @@ void ata_bmdma_post_internal_cmd(struct 
- }
+diff -puN drivers/ata/ahci.c~ahci-remove-jmicron-fixup drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahci-remove-jmicron-fixup
++++ a/drivers/ata/ahci.c
+@@ -1660,13 +1660,9 @@ static int ahci_init_one (struct pci_dev
+ 	if (!printed_version++)
+ 		dev_printk(KERN_DEBUG, &pdev->dev, "version " DRV_VERSION "\n");
  
- #ifdef CONFIG_PCI
-+
-+static int ata_resources_present(struct pci_dev *pdev, int port)
-+{
-+	int i;
-+
-+	/* Check the PCI resources for this channel are enabled */
-+	port = port * 2;
-+	for (i = 0; i < 2; i ++) {
-+		if (pci_resource_start(pdev, port + i) == 0 ||
-+			pci_resource_len(pdev, port + i) == 0)
-+		return 0;
-+	}
-+	return 1;
-+}
-+
- /**
-  *	ata_pci_init_native_mode - Initialize native-mode driver
-  *	@pdev:  pci device to be initialized
-@@ -863,6 +878,13 @@ ata_pci_init_native_mode(struct pci_dev 
- 	probe_ent->irq = pdev->irq;
- 	probe_ent->irq_flags = IRQF_SHARED;
- 
-+	/* Discard disabled ports. Some controllers show their
-+	   unused channels this way */
-+	if (ata_resources_present(pdev, 0) == 0)
-+		ports &= ~ATA_PORT_PRIMARY;
-+	if (ata_resources_present(pdev, 1) == 0)
-+		ports &= ~ATA_PORT_SECONDARY;
-+
- 	if (ports & ATA_PORT_PRIMARY) {
- 		probe_ent->port[p].cmd_addr = pci_resource_start(pdev, 0);
- 		probe_ent->port[p].altstatus_addr =
+-	/* JMicron-specific fixup: make sure we're in AHCI mode */
+-	/* This is protected from races with ata_jmicron by the pci probe
+-	   locking */
+ 	if (pdev->vendor == PCI_VENDOR_ID_JMICRON) {
+-		/* AHCI enable, AHCI on function 0 */
+-		pci_write_config_byte(pdev, 0x41, 0xa1);
+-		/* Function 1 is the PATA controller */
++		/* Function 1 is the PATA controller except on the 368, where
++		   we are not AHCI anyway */
+ 		if (PCI_FUNC(pdev->devfn))
+ 			return -ENODEV;
+ 	}
 _
 
-Patches currently in -mm which might be from alan@lxorgukCox are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-libata-sff-dont-try-and-activate-channels-which-are-not.patch
-ide-generic-jmicron-has-its-own-drivers-now.patch
+git-libata-all.patch
+add-suport-for-marvell-88se6121-in-pata_marvell.patch
+ahci-remove-jmicron-fixup.patch
+git-mtd.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-tty_wakeup-cleanup.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+piix-fix-82371mx-enablebits.patch
+pdc202xx_new-remove-useless-code.patch
+pdc202xx_-remove-check_in_drive_lists-abomination.patch
+piix-tuneproc-fixes-cleanups.patch
+slc90e66-carry-over-fixes-from-piix-driver.patch
+hpt36x-pci-clock-detection-fix.patch
+atiixpc-remove-unused-code.patch
+atiixpc-sb600-ide-only-has-one-channel.patch
+atiixpc-add-cable-detection-support-for-ati-ide.patch
+tty-improve-encode_baud_rate-logic.patch
