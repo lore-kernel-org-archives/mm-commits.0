@@ -1,286 +1,171 @@
 From: akpm@osdl.org
-Subject: + simplify-the-stacktrace-code.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:20:48 -0800
-Message-ID: <200701082320.l08NKmlU022475@shell0.pdx.osdl.net>
+Subject: + nfs-fix-race-in-nfs_release_page.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:22:55 -0800
+Message-ID: <200701082322.l08NMtFC022509@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53241 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53363 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161280AbXAHXVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 18:21:35 -0500
+	id S1161287AbXAHXXB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 18:23:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, ak@suse.de, akinobu.mita@gmail.com, davem@davemloft.net, lethal@linux-sh.org, mingo@elte.hu, ralf@linux-mips.org, schwidefsky@de.ibm.com
+Cc: Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     simplify the stacktrace code
+     NFS: Fix race in nfs_release_page()
 has been added to the -mm tree.  Its filename is
-     simplify-the-stacktrace-code.patch
+     nfs-fix-race-in-nfs_release_page.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: simplify the stacktrace code
-From: Christoph Hellwig <hch@lst.de>
+Subject: NFS: Fix race in nfs_release_page()
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-Simplify the stacktrace code:
+    NFS: Fix race in nfs_release_page()
 
- - remove the unused task argument to save_stack_trace, it's always
-   current
- - remove the all_contexts flag, it's alwasy 0
+    invalidate_inode_pages2() may find the dirty bit has been set on a page
+    owing to the fact that the page may still be mapped after it was locked.
+    Only after the call to unmap_mapping_range() are we sure that the page
+    can no longer be dirtied.
+    In order to fix this, NFS has hooked the releasepage() method and tries
+    to write the page out between the call to unmap_mapping_range() and the
+    call to remove_mapping(). This, however leads to deadlocks in the page
+    reclaim code, where the page may be locked without holding a reference
+    to the inode or dentry.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+    Fix is to add a new address_space_operation, launder_page(), which will
+    attempt to write out a dirty page without releasing the page lock.
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+
+    Also, the bare SetPageDirty() can skew all sort of accounting leading to
+    other nasties.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/mips/kernel/stacktrace.c    |   22 ++++++----------------
- arch/s390/kernel/stacktrace.c    |   18 +++++++-----------
- arch/sh/kernel/stacktrace.c      |    9 +--------
- arch/sparc64/kernel/stacktrace.c |   20 +++++++-------------
- arch/x86_64/kernel/stacktrace.c  |    8 +++-----
- include/linux/stacktrace.h       |    6 ++----
- kernel/lockdep.c                 |    3 +--
- lib/fault-inject.c               |    3 +--
- 8 files changed, 28 insertions(+), 61 deletions(-)
+ Documentation/filesystems/Locking |    8 ++++++++
+ fs/nfs/file.c                     |   16 ++++++++--------
+ include/linux/fs.h                |    1 +
+ mm/truncate.c                     |   13 ++++++++++++-
+ 4 files changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN arch/mips/kernel/stacktrace.c~simplify-the-stacktrace-code arch/mips/kernel/stacktrace.c
---- a/arch/mips/kernel/stacktrace.c~simplify-the-stacktrace-code
-+++ a/arch/mips/kernel/stacktrace.c
-@@ -31,8 +31,7 @@ static void save_raw_context_stack(struc
- 	}
- }
+diff -puN Documentation/filesystems/Locking~nfs-fix-race-in-nfs_release_page Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~nfs-fix-race-in-nfs_release_page
++++ a/Documentation/filesystems/Locking
+@@ -171,6 +171,7 @@ prototypes:
+ 	int (*releasepage) (struct page *, int);
+ 	int (*direct_IO)(int, struct kiocb *, const struct iovec *iov,
+ 			loff_t offset, unsigned long nr_segs);
++	int (*launder_page) (struct page *);
  
--static void save_context_stack(struct stack_trace *trace,
--	struct task_struct *task, struct pt_regs *regs)
-+static void save_context_stack(struct stack_trace *trace, struct pt_regs *regs)
- {
- 	unsigned long sp = regs->regs[29];
- #ifdef CONFIG_KALLSYMS
-@@ -41,7 +40,7 @@ static void save_context_stack(struct st
+ locking rules:
+ 	All except set_page_dirty may block
+@@ -188,6 +189,7 @@ bmap:			yes
+ invalidatepage:		no	yes
+ releasepage:		no	yes
+ direct_IO:		no
++launder_page:		no	yes
  
- 	if (raw_show_trace || !__kernel_text_address(pc)) {
- 		unsigned long stack_page =
--			(unsigned long)task_stack_page(task);
-+			(unsigned long)task_stack_page(current);
- 		if (stack_page && sp >= stack_page &&
- 		    sp <= stack_page + THREAD_SIZE - 32)
- 			save_raw_context_stack(trace, sp);
-@@ -54,7 +53,7 @@ static void save_context_stack(struct st
- 			trace->entries[trace->nr_entries++] = pc;
- 		if (trace->nr_entries >= trace->max_entries)
- 			break;
--		pc = unwind_stack(task, &sp, pc, &ra);
-+		pc = unwind_stack(current, &sp, pc, &ra);
- 	} while (pc);
- #else
- 	save_raw_context_stack(trace, sp);
-@@ -64,22 +63,13 @@ static void save_context_stack(struct st
- /*
-  * Save stack-backtrace addresses into a stack_trace buffer.
-  */
--void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
-+void save_stack_trace(struct stack_trace *trace)
- {
- 	struct pt_regs dummyregs;
- 	struct pt_regs *regs = &dummyregs;
+ 	->prepare_write(), ->commit_write(), ->sync_page() and ->readpage()
+ may be called from the request handler (/dev/loop).
+@@ -281,6 +283,12 @@ buffers from the page in preparation for
+ indicate that the buffers are (or may be) freeable.  If ->releasepage is zero,
+ the kernel assumes that the fs has no private interest in the buffers.
  
- 	WARN_ON(trace->nr_entries || !trace->max_entries);
- 
--	if (task && task != current) {
--		regs->regs[29] = task->thread.reg29;
--		regs->regs[31] = 0;
--		regs->cp0_epc = task->thread.reg31;
--	} else {
--		if (!task)
--			task = current;
--		prepare_frametrace(regs);
--	}
--
--	save_context_stack(trace, task, regs);
-+	prepare_frametrace(regs);
-+	save_context_stack(trace, regs);
- }
-diff -puN arch/s390/kernel/stacktrace.c~simplify-the-stacktrace-code arch/s390/kernel/stacktrace.c
---- a/arch/s390/kernel/stacktrace.c~simplify-the-stacktrace-code
-+++ a/arch/s390/kernel/stacktrace.c
-@@ -59,7 +59,7 @@ static inline unsigned long save_context
- 	}
- }
- 
--void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
-+void save_stack_trace(struct stack_trace *trace)
- {
- 	register unsigned long sp asm ("15");
- 	unsigned long orig_sp, new_sp;
-@@ -69,20 +69,16 @@ void save_stack_trace(struct stack_trace
- 	new_sp = save_context_stack(trace, &trace->skip, orig_sp,
- 				S390_lowcore.panic_stack - PAGE_SIZE,
- 				S390_lowcore.panic_stack);
--	if ((new_sp != orig_sp) && !trace->all_contexts)
-+	if (new_sp != orig_sp)
- 		return;
- 	new_sp = save_context_stack(trace, &trace->skip, new_sp,
- 				S390_lowcore.async_stack - ASYNC_SIZE,
- 				S390_lowcore.async_stack);
--	if ((new_sp != orig_sp) && !trace->all_contexts)
-+	if (new_sp != orig_sp)
- 		return;
--	if (task)
--		save_context_stack(trace, &trace->skip, new_sp,
--				   (unsigned long) task_stack_page(task),
--				   (unsigned long) task_stack_page(task) + THREAD_SIZE);
--	else
--		save_context_stack(trace, &trace->skip, new_sp,
--				   S390_lowcore.thread_info,
--				   S390_lowcore.thread_info + THREAD_SIZE);
++	->launder_page() may be called prior to releasing a page if
++it is still found to be dirty. It returns zero if the page was successfully
++cleaned, or an error value if not. Note that in order to prevent the page
++getting mapped back in and redirtied, it needs to be kept locked
++across the entire operation.
 +
-+	save_context_stack(trace, &trace->skip, new_sp,
-+			   S390_lowcore.thread_info,
-+			   S390_lowcore.thread_info + THREAD_SIZE);
- 	return;
- }
-diff -puN arch/sh/kernel/stacktrace.c~simplify-the-stacktrace-code arch/sh/kernel/stacktrace.c
---- a/arch/sh/kernel/stacktrace.c~simplify-the-stacktrace-code
-+++ a/arch/sh/kernel/stacktrace.c
-@@ -19,14 +19,7 @@
-  */
- void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
+ 	Note: currently almost all instances of address_space methods are
+ using BKL for internal serialization and that's one of the worst sources
+ of contention. Normally they are calling library functions (in fs/buffer.c)
+diff -puN fs/nfs/file.c~nfs-fix-race-in-nfs_release_page fs/nfs/file.c
+--- a/fs/nfs/file.c~nfs-fix-race-in-nfs_release_page
++++ a/fs/nfs/file.c
+@@ -315,14 +315,13 @@ static void nfs_invalidate_page(struct p
+ 
+ static int nfs_release_page(struct page *page, gfp_t gfp)
  {
--	unsigned long *sp;
--
--	if (!task)
--		task = current;
--	if (task == current)
--		sp = (unsigned long *)current_stack_pointer;
--	else
--		sp = (unsigned long *)task->thread.sp;
-+	unsigned long *sp = (unsigned long *)current_stack_pointer;
- 
- 	while (!kstack_end(sp)) {
- 		unsigned long addr = *sp++;
-diff -puN arch/sparc64/kernel/stacktrace.c~simplify-the-stacktrace-code arch/sparc64/kernel/stacktrace.c
---- a/arch/sparc64/kernel/stacktrace.c~simplify-the-stacktrace-code
-+++ a/arch/sparc64/kernel/stacktrace.c
-@@ -3,22 +3,16 @@
- #include <linux/thread_info.h>
- #include <asm/ptrace.h>
- 
--void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
-+void save_stack_trace(struct stack_trace *trace)
- {
- 	unsigned long ksp, fp, thread_base;
--	struct thread_info *tp;
-+	struct thread_info *tp = task_thread_info(current);
- 
--	if (!task)
--		task = current;
--	tp = task_thread_info(task);
--	if (task == current) {
--		flushw_all();
--		__asm__ __volatile__(
--			"mov	%%fp, %0"
--			: "=r" (ksp)
--		);
--	} else
--		ksp = tp->ksp;
-+	flushw_all();
-+	__asm__ __volatile__(
-+		"mov	%%fp, %0"
-+		: "=r" (ksp)
-+	);
- 
- 	fp = ksp + STACK_BIAS;
- 	thread_base = (unsigned long) tp;
-diff -puN arch/x86_64/kernel/stacktrace.c~simplify-the-stacktrace-code arch/x86_64/kernel/stacktrace.c
---- a/arch/x86_64/kernel/stacktrace.c~simplify-the-stacktrace-code
-+++ a/arch/x86_64/kernel/stacktrace.c
-@@ -21,8 +21,7 @@ save_stack_warning_symbol(void *data, ch
- 
- static int save_stack_stack(void *data, char *name)
- {
--	struct stack_trace *trace = (struct stack_trace *)data;
--	return trace->all_contexts ? 0 : -1;
-+	return -1;
+-	/*
+-	 * Avoid deadlock on nfs_wait_on_request().
+-	 */
+-	if (!(gfp & __GFP_FS))
+-		return 0;
+-	/* Hack... Force nfs_wb_page() to write out the page */
+-	SetPageDirty(page);
+-	return !nfs_wb_page(page->mapping->host, page);
++	/* If PagePrivate() is set, then the page is not freeable */
++	return 0;
++}
++
++static int nfs_launder_page(struct page *page)
++{
++	return nfs_wb_page(page->mapping->host, page);
  }
  
- static void save_stack_address(void *data, unsigned long addr)
-@@ -46,11 +45,10 @@ static struct stacktrace_ops save_stack_
- /*
-  * Save stack-backtrace addresses into a stack_trace buffer.
-  */
--void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
-+void save_stack_trace(struct stack_trace *trace)
- {
--	dump_trace(task, NULL, NULL, &save_stack_ops, trace);
-+	dump_trace(current, NULL, NULL, &save_stack_ops, trace);
- 	if (trace->nr_entries < trace->max_entries)
- 		trace->entries[trace->nr_entries++] = ULONG_MAX;
- }
- EXPORT_SYMBOL(save_stack_trace);
--
-diff -puN include/linux/stacktrace.h~simplify-the-stacktrace-code include/linux/stacktrace.h
---- a/include/linux/stacktrace.h~simplify-the-stacktrace-code
-+++ a/include/linux/stacktrace.h
-@@ -6,15 +6,13 @@ struct stack_trace {
- 	unsigned int nr_entries, max_entries;
- 	unsigned long *entries;
- 	int skip;	/* input argument: How many entries to skip */
--	int all_contexts; /* input argument: if true do than one stack */
+ const struct address_space_operations nfs_file_aops = {
+@@ -338,6 +337,7 @@ const struct address_space_operations nf
+ #ifdef CONFIG_NFS_DIRECTIO
+ 	.direct_IO = nfs_direct_IO,
+ #endif
++	.launder_page = nfs_launder_page,
  };
  
--extern void save_stack_trace(struct stack_trace *trace,
--			     struct task_struct *task);
-+extern void save_stack_trace(struct stack_trace *trace);
+ static ssize_t nfs_file_write(struct kiocb *iocb, const struct iovec *iov,
+diff -puN include/linux/fs.h~nfs-fix-race-in-nfs_release_page include/linux/fs.h
+--- a/include/linux/fs.h~nfs-fix-race-in-nfs_release_page
++++ a/include/linux/fs.h
+@@ -426,6 +426,7 @@ struct address_space_operations {
+ 	/* migrate the contents of a page to the specified target */
+ 	int (*migratepage) (struct address_space *,
+ 			struct page *, struct page *);
++	int (*launder_page) (struct page *);
+ };
  
- extern void print_stack_trace(struct stack_trace *trace, int spaces);
- #else
--# define save_stack_trace(trace, task)			do { } while (0)
-+# define save_stack_trace(trace)			do { } while (0)
- # define print_stack_trace(trace)			do { } while (0)
- #endif
+ struct backing_dev_info;
+diff -puN mm/truncate.c~nfs-fix-race-in-nfs_release_page mm/truncate.c
+--- a/mm/truncate.c~nfs-fix-race-in-nfs_release_page
++++ a/mm/truncate.c
+@@ -341,6 +341,16 @@ failed:
+ 	return 0;
+ }
  
-diff -puN kernel/lockdep.c~simplify-the-stacktrace-code kernel/lockdep.c
---- a/kernel/lockdep.c~simplify-the-stacktrace-code
-+++ a/kernel/lockdep.c
-@@ -257,9 +257,8 @@ static int save_trace(struct stack_trace
- 	trace->entries = stack_trace + nr_stack_trace_entries;
- 
- 	trace->skip = 3;
--	trace->all_contexts = 0;
- 
--	save_stack_trace(trace, NULL);
-+	save_stack_trace(trace);
- 
- 	trace->max_entries = trace->nr_entries;
- 
-diff -puN lib/fault-inject.c~simplify-the-stacktrace-code lib/fault-inject.c
---- a/lib/fault-inject.c~simplify-the-stacktrace-code
-+++ a/lib/fault-inject.c
-@@ -72,9 +72,8 @@ static bool fail_stacktrace(struct fault
- 	trace.entries = entries;
- 	trace.max_entries = depth;
- 	trace.skip = 1;
--	trace.all_contexts = 0;
- 
--	save_stack_trace(&trace, NULL);
-+	save_stack_trace(&trace);
- 	for (n = 0; n < trace.nr_entries; n++) {
- 		if (attr->reject_start <= entries[n] &&
- 			       entries[n] < attr->reject_end)
++static int
++do_launder_page(struct address_space *mapping, struct page *page)
++{
++	if (!PageDirty(page))
++		return 0;
++	if (page->mapping != mapping || mapping->a_ops->launder_page == NULL)
++		return 0;
++	return mapping->a_ops->launder_page(page);
++}
++
+ /**
+  * invalidate_inode_pages2_range - remove range of pages from an address_space
+  * @mapping: the address_space
+@@ -405,7 +415,8 @@ int invalidate_inode_pages2_range(struct
+ 					  PAGE_CACHE_SIZE, 0);
+ 				}
+ 			}
+-			if (!invalidate_complete_page2(mapping, page))
++			ret = do_launder_page(mapping, page);
++			if (ret == 0 && !invalidate_complete_page2(mapping, page))
+ 				ret = -EIO;
+ 			unlock_page(page);
+ 		}
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
-slab-cache-alloc-cleanups.patch
-simplify-the-stacktrace-code.patch
-aio-is-unlikely.patch
+nfs-fix-race-in-nfs_release_page.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+nfs-kill-the-obsolete-nfs_paranoia.patch
