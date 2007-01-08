@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-min-max-sizes-remove-get_readahead_bounds.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:17:00 -0800
-Message-ID: <200701082217.l08MH09P020525@shell0.pdx.osdl.net>
+Subject: + readahead-nfsd-case-remove-ra_min.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:17:20 -0800
+Message-ID: <200701082217.l08MHKkH020542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48042 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48073 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030283AbXAHWRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:17:10 -0500
+	id S1030290AbXAHWR2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:17:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,64 +15,41 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: min/max sizes: remove get_readahead_bounds()
+     readahead: nfsd case: remove ra_min
 has been added to the -mm tree.  Its filename is
-     readahead-min-max-sizes-remove-get_readahead_bounds.patch
+     readahead-nfsd-case-remove-ra_min.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: min/max sizes: remove get_readahead_bounds()
+Subject: readahead: nfsd case: remove ra_min
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Remove get_readahead_bounds():
-- ra_max: we already have get_max_readahead() for it
-- ra_min: is only used by context based readahead, and will be moved there
-          and set to a more reasonable value
+ra_min => req_size.
+Now it is for try_context_based_readahead() to compute ra_min from req_size.
+
+Please fold it into readahead-nfsd-case.patch to avoid a compiling error.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |   24 ------------------------
- 1 files changed, 24 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-min-max-sizes-remove-get_readahead_bounds mm/readahead.c
---- a/mm/readahead.c~readahead-min-max-sizes-remove-get_readahead_bounds
+diff -puN mm/readahead.c~readahead-nfsd-case-remove-ra_min mm/readahead.c
+--- a/mm/readahead.c~readahead-nfsd-case-remove-ra_min
 +++ a/mm/readahead.c
-@@ -780,30 +780,6 @@ out:
- 	return nr_pages;
- }
- 
--/*
-- * ra_min is mainly determined by the size of cache memory. Reasonable?
-- *
-- * Table of concrete numbers for 4KB page size:
-- *   inactive + free (MB):    4   8   16   32   64  128  256  512 1024
-- *            ra_min (KB):   16  16   16   16   20   24   32   48   64
-- */
--static inline void get_readahead_bounds(struct file_ra_state *ra,
--					unsigned long *ra_min,
--					unsigned long *ra_max)
--{
--	unsigned long active;
--	unsigned long inactive;
--	unsigned long free;
--
--	__get_zone_counts(&active, &inactive, &free, NODE_DATA(numa_node_id()));
--
--	free += inactive;
--	*ra_max = min(min(ra->ra_pages, 0xFFFFUL), free / 2);
--	*ra_min = min(min(MIN_RA_PAGES + (free >> 14),
--			  DIV_ROUND_UP(64*1024, PAGE_CACHE_SIZE)),
--			  *ra_max / 8);
--}
--
- #endif /* CONFIG_ADAPTIVE_READAHEAD */
- 
- /*
+@@ -1712,7 +1712,7 @@ readit:
+ 		   !probe_page(mapping, ra_index)) {
+ 			ra->prev_page = ra_index - 1;
+ 			ret = try_context_based_readahead(mapping, ra, NULL,
+-						 ra_index, ra_min, ra_max);
++						 ra_index, req_size, ra_max);
+ 			if (ret > 0)
+ 				ra_size += ra_submit(ra, mapping, filp);
+ 		}
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
