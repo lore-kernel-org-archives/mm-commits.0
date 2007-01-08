@@ -1,44 +1,50 @@
 From: akpm@osdl.org
-Subject: - romsignature-checksum-cleanup.patch removed from -mm tree
-Date: Mon, 08 Jan 2007 14:51:17 -0800
-Message-ID: <200701082251.l08MpHf6021532@shell0.pdx.osdl.net>
+Subject: + romsignature-checksum-cleanup-2.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:52:33 -0800
+Message-ID: <200701082252.l08MqXKZ021589@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50949 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932177AbXAHWvX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:51:23 -0500
+	id S932169AbXAHWwq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:52:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rene.herman@gmail.com, ak@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rene.herman@gmail.com, ak@suse.de, jeremy@goop.org, rusty@rustcorp.com.au, zach@vmware.com
 
 
 The patch titled
      romsignature/checksum cleanup
-has been removed from the -mm tree.  Its filename was
-     romsignature-checksum-cleanup.patch
+has been added to the -mm tree.  Its filename is
+     romsignature-checksum-cleanup-2.patch
 
-This patch was dropped because an updated version will be merged
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: romsignature/checksum cleanup
 From: Rene Herman <rene.herman@gmail.com>
 
-Use adding __init to romsignature() (it's only called from probe_roms()
-which is itself __init) as an excuse to submit a pedantic cleanup.
+Remove the assumption that if the first page of an ISA ROM is mapped, it'll
+all be mapped.  This'll also stop people reading this code from wondering
+if they're looking at a bug.
 
 Signed-off-by: Rene Herman <rene.herman@gmail.com>
+Not-strongly-objected-to-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/e820.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+ arch/i386/kernel/e820.c |   36 ++++++++++++++++++++++--------------
+ 1 files changed, 22 insertions(+), 14 deletions(-)
 
-diff -puN arch/i386/kernel/e820.c~romsignature-checksum-cleanup arch/i386/kernel/e820.c
---- a/arch/i386/kernel/e820.c~romsignature-checksum-cleanup
+diff -puN arch/i386/kernel/e820.c~romsignature-checksum-cleanup-2 arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~romsignature-checksum-cleanup-2
 +++ a/arch/i386/kernel/e820.c
-@@ -157,21 +157,22 @@ static struct resource standard_io_resou
+@@ -157,29 +157,31 @@ static struct resource standard_io_resou
  	.flags	= IORESOURCE_BUSY | IORESOURCE_IO
  } };
  
@@ -47,30 +53,69 @@ diff -puN arch/i386/kernel/e820.c~romsignature-checksum-cleanup arch/i386/kernel
 +
 +static int __init romsignature(const unsigned char *rom)
  {
++	const unsigned short * const ptr = (const unsigned short *)rom;
  	unsigned short sig;
 -	int ret = 0;
 -	if (probe_kernel_address((const unsigned short *)x, sig) == 0)
 -		ret = (sig == 0xaa55);
 -	return ret;
 +
-+	return probe_kernel_address((const unsigned short *)rom, sig) == 0 &&
-+	       sig == ROMSIGNATURE;
++	return probe_kernel_address(ptr, sig) == 0 && sig == ROMSIGNATURE;
  }
  
- static int __init romchecksum(unsigned char *rom, unsigned long length)
+-static int __init romchecksum(unsigned char *rom, unsigned long length)
++static int __init romchecksum(const unsigned char *rom, unsigned long length)
  {
 -	unsigned char *p, sum = 0;
-+	unsigned char sum;
++	unsigned char sum, c;
  
 -	for (p = rom; p < rom + length; p++)
 -		sum += *p;
-+	for (sum = 0; length; length--)
-+		sum += *rom++;
- 	return sum == 0;
+-	return sum == 0;
++	for (sum = 0; length && probe_kernel_address(rom++, c) == 0; length--)
++		sum += c;
++	return !length && !sum;
  }
  
+ static void __init probe_roms(void)
+ {
++	const unsigned char *rom;
+ 	unsigned long start, length, upper;
+-	unsigned char *rom;
+-	int	      i;
++	unsigned char c;
++	int i;
+ 
+ 	/* video rom */
+ 	upper = adapter_rom_resources[0].start;
+@@ -190,8 +192,11 @@ static void __init probe_roms(void)
+ 
+ 		video_rom_resource.start = start;
+ 
++		if (probe_kernel_address(rom + 2, c) != 0)
++			continue;
++
+ 		/* 0 < length <= 0x7f * 512, historically */
+-		length = rom[2] * 512;
++		length = c * 512;
+ 
+ 		/* if checksum okay, trust length byte */
+ 		if (length && romchecksum(rom, length))
+@@ -225,8 +230,11 @@ static void __init probe_roms(void)
+ 		if (!romsignature(rom))
+ 			continue;
+ 
++		if (probe_kernel_address(rom + 2, c) != 0)
++			continue;
++
+ 		/* 0 < length <= 0x7f * 512, historically */
+-		length = rom[2] * 512;
++		length = c * 512;
+ 
+ 		/* but accept any length that fits if checksum okay */
+ 		if (!length || start + length > upper || !romchecksum(rom, length))
 _
 
 Patches currently in -mm which might be from rene.herman@gmail.com are
 
-romsignature-checksum-cleanup.patch
+romsignature-checksum-cleanup-2.patch
