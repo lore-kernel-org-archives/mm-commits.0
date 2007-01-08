@@ -1,91 +1,119 @@
 From: akpm@osdl.org
-Subject: + jsm_tty-kmalloc-kzalloc-casting-cleanups.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:29:13 -0800
-Message-ID: <200701082229.l08MTDYI020819@shell0.pdx.osdl.net>
+Subject: + s390-kmalloc-kzalloc-casting-cleanups.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:29:20 -0800
+Message-ID: <200701082229.l08MTKHb020833@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49210 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964956AbXAHW3Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:29:16 -0500
+	id S964956AbXAHW31 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:29:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com
+Cc: darwish.07@gmail.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     JSM_TTY: kmalloc->kzalloc/Casting cleanups
+     S390: kmalloc->kzalloc/casting cleanups
 has been added to the -mm tree.  Its filename is
-     jsm_tty-kmalloc-kzalloc-casting-cleanups.patch
+     s390-kmalloc-kzalloc-casting-cleanups.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: JSM_TTY: kmalloc->kzalloc/Casting cleanups
+Subject: S390: kmalloc->kzalloc/casting cleanups
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
+A patch for the CTC / ESCON network driver.  Switch from kmalloc to kzalloc
+when appropriate, remove some unnecessary kmalloc casts too.  Since I have no
+s390 machine, I didn't compile it but I examined it carefully.
+
 Signed-off-by: Ahmed Darwish <darwish.07@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/s390/net/ctcmain.c |   23 +++++++++--------------
+ 1 files changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~jsm_tty-kmalloc-kzalloc-casting-cleanups drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~jsm_tty-kmalloc-kzalloc-casting-cleanups
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -194,31 +194,28 @@ static int jsm_tty_open(struct uart_port
- 	/* Drop locks, as malloc with GFP_KERNEL can sleep */
+diff -puN drivers/s390/net/ctcmain.c~s390-kmalloc-kzalloc-casting-cleanups drivers/s390/net/ctcmain.c
+--- a/drivers/s390/net/ctcmain.c~s390-kmalloc-kzalloc-casting-cleanups
++++ a/drivers/s390/net/ctcmain.c
+@@ -1639,21 +1639,19 @@ add_channel(struct ccw_device *cdev, enu
+ 	struct channel *ch;
  
- 	if (!channel->ch_rqueue) {
--		channel->ch_rqueue = (u8 *) kmalloc(RQUEUESIZE, GFP_KERNEL);
-+		channel->ch_rqueue = kzalloc(RQUEUESIZE, GFP_KERNEL);
- 		if (!channel->ch_rqueue) {
- 			jsm_printk(INIT, ERR, &channel->ch_bd->pci_dev,
- 				"unable to allocate read queue buf");
- 			return -ENOMEM;
- 		}
--		memset(channel->ch_rqueue, 0, RQUEUESIZE);
+ 	DBF_TEXT(trace, 2, __FUNCTION__);
+-	if ((ch =
+-	     (struct channel *) kmalloc(sizeof (struct channel),
+-					GFP_KERNEL)) == NULL) {
++	ch = kzalloc(sizeof (struct channel), GFP_KERNEL);
++	if (!ch) {
+ 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
+ 		return -1;
  	}
- 	if (!channel->ch_equeue) {
--		channel->ch_equeue = (u8 *) kmalloc(EQUEUESIZE, GFP_KERNEL);
-+		channel->ch_equeue = kzalloc(EQUEUESIZE, GFP_KERNEL);
- 		if (!channel->ch_equeue) {
- 			jsm_printk(INIT, ERR, &channel->ch_bd->pci_dev,
- 				"unable to allocate error queue buf");
- 			return -ENOMEM;
- 		}
--		memset(channel->ch_equeue, 0, EQUEUESIZE);
- 	}
- 	if (!channel->ch_wqueue) {
--		channel->ch_wqueue = (u8 *) kmalloc(WQUEUESIZE, GFP_KERNEL);
-+		channel->ch_wqueue = kzalloc(WQUEUESIZE, GFP_KERNEL);
- 		if (!channel->ch_wqueue) {
- 			jsm_printk(INIT, ERR, &channel->ch_bd->pci_dev,
- 				"unable to allocate write queue buf");
- 			return -ENOMEM;
- 		}
--		memset(channel->ch_wqueue, 0, WQUEUESIZE);
+-	memset(ch, 0, sizeof (struct channel));
+-	if ((ch->ccw = kmalloc(8*sizeof(struct ccw1),
+-					       GFP_KERNEL | GFP_DMA)) == NULL) {
++	/* assure all flags and counters are reset */
++	ch->ccw = kzalloc(8 * sizeof(struct ccw1), GFP_KERNEL | GFP_DMA);
++	if (!ch->ccw) {
+ 		kfree(ch);
+ 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
+ 		return -1;
  	}
  
- 	channel->ch_flags &= ~(CH_OPENING);
-@@ -392,13 +389,12 @@ int jsm_tty_init(struct jsm_board *brd)
- 			 * Okay to malloc with GFP_KERNEL, we are not at
- 			 * interrupt context, and there are no locks held.
- 			 */
--			brd->channels[i] = kmalloc(sizeof(struct jsm_channel), GFP_KERNEL);
-+			brd->channels[i] = kzalloc(sizeof(struct jsm_channel), GFP_KERNEL);
- 			if (!brd->channels[i]) {
- 				jsm_printk(CORE, ERR, &brd->pci_dev,
- 					"%s:%d Unable to allocate memory for channel struct\n",
- 							 __FILE__, __LINE__);
- 			}
--			memset(brd->channels[i], 0, sizeof(struct jsm_channel));
- 		}
+-	memset(ch->ccw, 0, 8*sizeof(struct ccw1));	// assure all flags and counters are reset
+ 
+ 	/**
+ 	 * "static" ccws are used in the following way:
+@@ -1693,15 +1691,14 @@ add_channel(struct ccw_device *cdev, enu
+ 		return -1;
+ 	}
+ 	fsm_newstate(ch->fsm, CH_STATE_IDLE);
+-	if ((ch->irb = kmalloc(sizeof (struct irb),
+-					      GFP_KERNEL)) == NULL) {
++	ch->irb = kzalloc(sizeof (struct irb), GFP_KERNEL);
++	if (!ch->irb) {
+ 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
+ 		kfree_fsm(ch->fsm);
+ 		kfree(ch->ccw);
+ 		kfree(ch);
+ 		return -1;
+ 	}
+-	memset(ch->irb, 0, sizeof (struct irb));
+ 	while (*c && less_than((*c)->id, ch->id))
+ 		c = &(*c)->next;
+ 	if (*c && (!strncmp((*c)->id, ch->id, CTC_ID_SIZE))) {
+@@ -2746,14 +2743,13 @@ ctc_probe_device(struct ccwgroup_device 
+ 	if (!get_device(&cgdev->dev))
+ 		return -ENODEV;
+ 
+-	priv = kmalloc(sizeof (struct ctc_priv), GFP_KERNEL);
++	priv = kzalloc(sizeof (struct ctc_priv), GFP_KERNEL);
+ 	if (!priv) {
+ 		ctc_pr_err("%s: Out of memory\n", __func__);
+ 		put_device(&cgdev->dev);
+ 		return -ENOMEM;
  	}
  
+-	memset(priv, 0, sizeof (struct ctc_priv));
+ 	rc = ctc_add_files(&cgdev->dev);
+ 	if (rc) {
+ 		kfree(priv);
+@@ -2794,10 +2790,9 @@ ctc_init_netdevice(struct net_device * d
+ 	DBF_TEXT(setup, 3, __FUNCTION__);
+ 
+ 	if (alloc_device) {
+-		dev = kmalloc(sizeof (struct net_device), GFP_KERNEL);
++		dev = kzalloc(sizeof (struct net_device), GFP_KERNEL);
+ 		if (!dev)
+ 			return NULL;
+-		memset(dev, 0, sizeof (struct net_device));
+ 	}
+ 
+ 	dev->priv = privptr;
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
