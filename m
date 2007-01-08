@@ -1,30 +1,31 @@
 From: akpm@osdl.org
-Subject: - unionfs-directory-manipulation-helper-functions.patch removed from -mm tree
-Date: Mon, 08 Jan 2007 13:09:49 -0800
-Message-ID: <200701082109.l08L9n0j019013@shell0.pdx.osdl.net>
+Subject: - unionfs-privileged-operations-workqueue.patch removed from -mm tree
+Date: Mon, 08 Jan 2007 13:10:02 -0800
+Message-ID: <200701082110.l08LA3qt019037@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43561 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43615 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750896AbXAHVKD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:10:03 -0500
+	id S1750860AbXAHVKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:10:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unionfs: directory manipulation helper functions
+     unionfs: privileged operations workqueue
 has been removed from the -mm tree.  Its filename was
-     unionfs-directory-manipulation-helper-functions.patch
+     unionfs-privileged-operations-workqueue.patch
 
 This patch was dropped because I'll use the git tree
 
 ------------------------------------------------------
-Subject: unionfs: directory manipulation helper functions
+Subject: unionfs: privileged operations workqueue
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Directory manipulation helper functions.
+Workqueue & helper functions used to perform privileged operations on behalf
+of the user process.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -32,13 +33,14 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/dirhelper.c |  270 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 270 insertions(+)
+ fs/unionfs/sioq.c |  122 ++++++++++++++++++++++++++++++++++++++++++++
+ fs/unionfs/sioq.h |   79 ++++++++++++++++++++++++++++
+ 2 files changed, 201 insertions(+)
 
-diff -puN /dev/null fs/unionfs/dirhelper.c
+diff -puN /dev/null fs/unionfs/sioq.c
 --- /dev/null
-+++ a/fs/unionfs/dirhelper.c
-@@ -0,0 +1,270 @@
++++ a/fs/unionfs/sioq.c
+@@ -0,0 +1,122 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
@@ -59,266 +61,195 @@ diff -puN /dev/null fs/unionfs/dirhelper.c
 +
 +#include "union.h"
 +
-+/* Delete all of the whiteouts in a given directory for rmdir.
-+ *
-+ * hidden directory inode should be locked
++/* Super-user IO work Queue - sometimes we need to perform actions which
++ * would fail due to the unix permissions on the parent directory (e.g.,
++ * rmdir a directory which appears empty, but in reality contains
++ * whiteouts).
 + */
-+int do_delete_whiteouts(struct dentry *dentry, int bindex,
-+		     struct unionfs_dir_state *namelist)
++
++struct workqueue_struct *sioq;
++
++int __init init_sioq(void)
 +{
-+	int err = 0;
-+	struct dentry *hidden_dir_dentry = NULL;
-+	struct dentry *hidden_dentry;
-+	char *name = NULL, *p;
-+	struct inode *hidden_dir;
++	int err;
 +
-+	int i;
-+	struct list_head *pos;
-+	struct filldir_node *cursor;
++	sioq = create_workqueue("unionfs_siod");
++	if (!IS_ERR(sioq))
++		return 0;
 +
-+	/* Find out hidden parent dentry */
-+	hidden_dir_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+	BUG_ON(!S_ISDIR(hidden_dir_dentry->d_inode->i_mode));
-+	hidden_dir = hidden_dir_dentry->d_inode;
-+	BUG_ON(!S_ISDIR(hidden_dir->i_mode));
-+
-+	err = -ENOMEM;
-+	name = __getname();
-+	if (!name)
-+		goto out;
-+	strcpy(name, UNIONFS_WHPFX);
-+	p = name + UNIONFS_WHLEN;
-+
-+	err = 0;
-+	for (i = 0; !err && i < namelist->size; i++) {
-+		list_for_each(pos, &namelist->list[i]) {
-+			cursor =
-+			    list_entry(pos, struct filldir_node, file_list);
-+			/* Only operate on whiteouts in this branch. */
-+			if (cursor->bindex != bindex)
-+				continue;
-+			if (!cursor->whiteout)
-+				continue;
-+
-+			strcpy(p, cursor->name);
-+			hidden_dentry =
-+			    lookup_one_len(name, hidden_dir_dentry,
-+					   cursor->namelen + UNIONFS_WHLEN);
-+			if (IS_ERR(hidden_dentry)) {
-+				err = PTR_ERR(hidden_dentry);
-+				break;
-+			}
-+			if (hidden_dentry->d_inode)
-+				err = vfs_unlink(hidden_dir, hidden_dentry);
-+			dput(hidden_dentry);
-+			if (err)
-+				break;
-+		}
-+	}
-+
-+	__putname(name);
-+
-+	/* After all of the removals, we should copy the attributes once. */
-+	fsstack_copy_attr_times(dentry->d_inode, hidden_dir_dentry->d_inode);
-+
-+out:
++	err = PTR_ERR(sioq);
++	printk(KERN_ERR "create_workqueue failed %d\n", err);
++	sioq = NULL;
 +	return err;
 +}
 +
-+/* delete whiteouts in a dir (for rmdir operation) using sioq if necessary */
-+int delete_whiteouts(struct dentry *dentry, int bindex,
-+		     struct unionfs_dir_state *namelist)
++void __exit stop_sioq(void)
 +{
-+	int err;
-+	struct super_block *sb;
-+	struct dentry *hidden_dir_dentry;
-+	struct inode *hidden_dir;
-+
-+	struct sioq_args args;
-+
-+	sb = dentry->d_sb;
-+	unionfs_read_lock(sb);
-+
-+	BUG_ON(!S_ISDIR(dentry->d_inode->i_mode));
-+	BUG_ON(bindex < dbstart(dentry));
-+	BUG_ON(bindex > dbend(dentry));
-+	err = is_robranch_super(sb, bindex);
-+	if (err)
-+		goto out;
-+
-+	hidden_dir_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+	BUG_ON(!S_ISDIR(hidden_dir_dentry->d_inode->i_mode));
-+	hidden_dir = hidden_dir_dentry->d_inode;
-+	BUG_ON(!S_ISDIR(hidden_dir->i_mode));
-+
-+	mutex_lock(&hidden_dir->i_mutex);
-+	if (!permission(hidden_dir, MAY_WRITE | MAY_EXEC, NULL))
-+		err = do_delete_whiteouts(dentry, bindex, namelist);
-+	else {
-+		args.deletewh.namelist = namelist;
-+		args.deletewh.dentry = dentry;
-+		args.deletewh.bindex = bindex;
-+		run_sioq(__delete_whiteouts, &args);
-+		err = args.err;
-+	}
-+	mutex_unlock(&hidden_dir->i_mutex);
-+
-+out:
-+	unionfs_read_unlock(sb);
-+	return err;
++	if (sioq)
++		destroy_workqueue(sioq);
 +}
 +
-+#define RD_NONE 0
-+#define RD_CHECK_EMPTY 1
-+/* The callback structure for check_empty. */
-+struct unionfs_rdutil_callback {
-+	int err;
-+	int filldir_called;
-+	struct unionfs_dir_state *rdstate;
-+	int mode;
++void run_sioq(work_func_t func, struct sioq_args *args)
++{
++	INIT_WORK(&args->work, func);
++
++	init_completion(&args->comp);
++	while (!queue_work(sioq, &args->work)) {
++		/* TODO: do accounting if needed */
++		schedule();
++	}
++	wait_for_completion(&args->comp);
++}
++
++void __unionfs_create(struct work_struct *work)
++{
++	struct sioq_args *args = container_of(work, struct sioq_args, work);
++	struct create_args *c = &args->create;
++
++	args->err = vfs_create(c->parent, c->dentry, c->mode, c->nd);
++	complete(&args->comp);
++}
++
++void __unionfs_mkdir(struct work_struct *work)
++{
++	struct sioq_args *args = container_of(work, struct sioq_args, work);
++	struct mkdir_args *m = &args->mkdir;
++
++	args->err = vfs_mkdir(m->parent, m->dentry, m->mode);
++	complete(&args->comp);
++}
++
++void __unionfs_mknod(struct work_struct *work)
++{
++	struct sioq_args *args = container_of(work, struct sioq_args, work);
++	struct mknod_args *m = &args->mknod;
++
++	args->err = vfs_mknod(m->parent, m->dentry, m->mode, m->dev);
++	complete(&args->comp);
++}
++
++void __unionfs_symlink(struct work_struct *work)
++{
++	struct sioq_args *args = container_of(work, struct sioq_args, work);
++	struct symlink_args *s = &args->symlink;
++
++	args->err = vfs_symlink(s->parent, s->dentry, s->symbuf, s->mode);
++	complete(&args->comp);
++}
++
++void __unionfs_unlink(struct work_struct *work)
++{
++	struct sioq_args *args = container_of(work, struct sioq_args, work);
++	struct unlink_args *u = &args->unlink;
++
++	args->err = vfs_unlink(u->parent, u->dentry);
++	complete(&args->comp);
++}
++
++void __delete_whiteouts(struct work_struct *work) {
++	struct sioq_args *args = container_of(work, struct sioq_args, work);
++	struct deletewh_args *d = &args->deletewh;
++
++	args->err = do_delete_whiteouts(d->dentry, d->bindex, d->namelist);
++	complete(&args->comp);
++}
++
++void __is_opaque_dir(struct work_struct *work)
++{
++	struct sioq_args *args = container_of(work, struct sioq_args, work);
++
++	args->ret = lookup_one_len(UNIONFS_DIR_OPAQUE, args->is_opaque.dentry,
++				sizeof(UNIONFS_DIR_OPAQUE) - 1);
++	complete(&args->comp);
++}
++
+diff -puN /dev/null fs/unionfs/sioq.h
+--- /dev/null
++++ a/fs/unionfs/sioq.h
+@@ -0,0 +1,79 @@
++#ifndef _SIOQ_H
++#define _SIOQ_H
++
++struct deletewh_args {
++	struct unionfs_dir_state *namelist;
++	struct dentry *dentry;
++	int bindex;
 +};
 +
-+/* This filldir function makes sure only whiteouts exist within a directory. */
-+static int readdir_util_callback(void *dirent, const char *name, int namelen,
-+				 loff_t offset, u64 ino, unsigned int d_type)
-+{
-+	int err = 0;
-+	struct unionfs_rdutil_callback *buf = dirent;
-+	int whiteout = 0;
-+	struct filldir_node *found;
++struct is_opaque_args {
++	struct dentry *dentry;
++};
 +
-+	buf->filldir_called = 1;
++struct create_args {
++	struct inode *parent;
++	struct dentry *dentry;
++	umode_t mode;
++	struct nameidata *nd;
++};
 +
-+	if (name[0] == '.' && (namelen == 1 || (name[1] == '.' && namelen == 2)))
-+		goto out;
++struct mkdir_args {
++	struct inode *parent;
++	struct dentry *dentry;
++	umode_t mode;
++};
 +
-+	if (namelen > UNIONFS_WHLEN &&
-+	    !strncmp(name, UNIONFS_WHPFX, UNIONFS_WHLEN)) {
-+		namelen -= UNIONFS_WHLEN;
-+		name += UNIONFS_WHLEN;
-+		whiteout = 1;
-+	}
++struct mknod_args {
++	struct inode *parent;
++	struct dentry *dentry;
++	umode_t mode;
++	dev_t dev;
++};
 +
-+	found = find_filldir_node(buf->rdstate, name, namelen);
-+	/* If it was found in the table there was a previous whiteout. */
-+	if (found)
-+		goto out;
++struct symlink_args {
++	struct inode *parent;
++	struct dentry *dentry;
++	char *symbuf;
++	umode_t mode;
++};
 +
-+	/* If it wasn't found and isn't a whiteout, the directory isn't empty. */
-+	err = -ENOTEMPTY;
-+	if ((buf->mode == RD_CHECK_EMPTY) && !whiteout)
-+		goto out;
++struct unlink_args {
++	struct inode *parent;
++	struct dentry *dentry;
++};
 +
-+	err = add_filldir_node(buf->rdstate, name, namelen,
-+			       buf->rdstate->bindex, whiteout);
 +
-+out:
-+	buf->err = err;
-+	return err;
-+}
++struct sioq_args {
++	struct completion comp;
++	struct work_struct work;
++	int err;
++	void *ret;
 +
-+/* Is a directory logically empty? */
-+int check_empty(struct dentry *dentry, struct unionfs_dir_state **namelist)
-+{
-+	int err = 0;
-+	struct dentry *hidden_dentry = NULL;
-+	struct super_block *sb;
-+	struct file *hidden_file;
-+	struct unionfs_rdutil_callback *buf = NULL;
-+	int bindex, bstart, bend, bopaque;
++	union {
++		struct deletewh_args deletewh;
++		struct is_opaque_args is_opaque;
++		struct create_args create;
++		struct mkdir_args mkdir;
++		struct mknod_args mknod;
++		struct symlink_args symlink;
++		struct unlink_args unlink;
++	};
++};
 +
-+	sb = dentry->d_sb;
++extern struct workqueue_struct *sioq;
++extern int __init init_sioq(void);
++extern __exit void stop_sioq(void);
++extern void run_sioq(work_func_t func, struct sioq_args *args);
 +
-+	unionfs_read_lock(sb);
++/* Extern definitions for our privlege escalation helpers */
++extern void __unionfs_create(struct work_struct *work);
++extern void __unionfs_mkdir(struct work_struct *work);
++extern void __unionfs_mknod(struct work_struct *work);
++extern void __unionfs_symlink(struct work_struct *work);
++extern void __unionfs_unlink(struct work_struct *work);
++extern void __delete_whiteouts(struct work_struct *work);
++extern void __is_opaque_dir(struct work_struct *work);
 +
-+	BUG_ON(!S_ISDIR(dentry->d_inode->i_mode));
-+
-+	if ((err = unionfs_partial_lookup(dentry)))
-+		goto out;
-+
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+	bopaque = dbopaque(dentry);
-+	if (0 <= bopaque && bopaque < bend)
-+		bend = bopaque;
-+
-+	buf = kmalloc(sizeof(struct unionfs_rdutil_callback), GFP_KERNEL);
-+	if (!buf) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+	buf->err = 0;
-+	buf->mode = RD_CHECK_EMPTY;
-+	buf->rdstate = alloc_rdstate(dentry->d_inode, bstart);
-+	if (!buf->rdstate) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* Process the hidden directories with rdutil_callback as a filldir. */
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+		if (!hidden_dentry)
-+			continue;
-+		if (!hidden_dentry->d_inode)
-+			continue;
-+		if (!S_ISDIR(hidden_dentry->d_inode->i_mode))
-+			continue;
-+
-+		dget(hidden_dentry);
-+		mntget(unionfs_lower_mnt_idx(dentry, bindex));
-+		branchget(sb, bindex);
-+		hidden_file =
-+		    dentry_open(hidden_dentry, unionfs_lower_mnt_idx(dentry, bindex),
-+				O_RDONLY);
-+		if (IS_ERR(hidden_file)) {
-+			err = PTR_ERR(hidden_file);
-+			dput(hidden_dentry);
-+			branchput(sb, bindex);
-+			goto out;
-+		}
-+
-+		do {
-+			buf->filldir_called = 0;
-+			buf->rdstate->bindex = bindex;
-+			err = vfs_readdir(hidden_file,
-+					  readdir_util_callback, buf);
-+			if (buf->err)
-+				err = buf->err;
-+		} while ((err >= 0) && buf->filldir_called);
-+
-+		/* fput calls dput for hidden_dentry */
-+		fput(hidden_file);
-+		branchput(sb, bindex);
-+
-+		if (err < 0)
-+			goto out;
-+	}
-+
-+out:
-+	if (buf) {
-+		if (namelist && !err)
-+			*namelist = buf->rdstate;
-+		else if (buf->rdstate)
-+			free_rdstate(buf->rdstate);
-+		kfree(buf);
-+	}
-+
-+	unionfs_read_unlock(sb);
-+
-+	return err;
-+}
++#endif /* _SIOQ_H */
 +
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-unionfs-directory-manipulation-helper-functions.patch
-unionfs-inode-operations.patch
-unionfs-lookup-helper-functions.patch
-unionfs-main-module-functions.patch
-unionfs-readdir-state.patch
-unionfs-rename.patch
 unionfs-privileged-operations-workqueue.patch
 unionfs-handling-of-stale-inodes.patch
 unionfs-miscellaneous-helper-functions.patch
