@@ -1,80 +1,180 @@
 From: akpm@osdl.org
-Subject: + make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:58:53 -0800
-Message-ID: <200701082258.l08MwrGf021723@shell0.pdx.osdl.net>
+Subject: + md-pass-down-bio_rw_sync-in-raid110.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:02:46 -0800
+Message-ID: <200701082302.l08N2kIF021918@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51739 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161039AbXAHW7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:59:22 -0500
+	id S1161051AbXAHXEX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 18:04:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vgoyal@in.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: Lars.Ellenberg@linbit.com, jens.axboe@oracle.com, lars@linbit.com, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     Make noirqdebug_setup function non init to fix modpost warning
+     md: pass down BIO_RW_SYNC in raid{1,10}
 has been added to the -mm tree.  Its filename is
-     make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch
+     md-pass-down-bio_rw_sync-in-raid110.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make noirqdebug_setup function non init to fix modpost warning
-From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: md: pass down BIO_RW_SYNC in raid{1,10}
+From: Lars Ellenberg <Lars.Ellenberg@linbit.com>
 
-o noirqdebug_setup() is __init but it is being called by
-  quirk_intel_irqbalance() which if of type __devinit. If CONFIG_HOTPLUG=y,
-  quirk_intel_irqbalance() is put into text section and it is wrong to
-  call a function in __init section.
+md raidX make_request functions strip off the BIO_RW_SYNC flag, thus
+introducing additional latency.
 
-o MODPOST flags this on i386 if CONFIG_RELOCATABLE=y
+Fixing this in raid1 and raid10 seems to be straightforward enough.
 
-WARNING: vmlinux - Section mismatch: reference to .init.text:noirqdebug_setup from .text between 'quirk_intel_irqbalance' (at offset 0xc010969e) and 'i8237A_suspend'
+For our particular usage case in DRBD, passing this flag improved some
+initialization time from ~5 minutes to ~5 seconds.
 
-o Make noirqdebug_setup() non-init.
-
-Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Lars Ellenberg <lars@linbit.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/irq/spurious.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid1.c  |   13 +++++++++----
+ drivers/md/raid10.c |   11 ++++++++---
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff -puN kernel/irq/spurious.c~make-noirqdebug_setup-function-non-init-to-fix-modpost-warning kernel/irq/spurious.c
---- a/kernel/irq/spurious.c~make-noirqdebug_setup-function-non-init-to-fix-modpost-warning
-+++ a/kernel/irq/spurious.c
-@@ -176,7 +176,7 @@ void note_interrupt(unsigned int irq, st
+diff -puN drivers/md/raid1.c~md-pass-down-bio_rw_sync-in-raid110 drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-pass-down-bio_rw_sync-in-raid110
++++ a/drivers/md/raid1.c
+@@ -775,6 +775,7 @@ static int make_request(request_queue_t 
+ 	struct bio_list bl;
+ 	struct page **behind_pages = NULL;
+ 	const int rw = bio_data_dir(bio);
++	const int do_sync = bio_sync(bio);
+ 	int do_barriers;
  
- int noirqdebug __read_mostly;
+ 	/*
+@@ -835,7 +836,7 @@ static int make_request(request_queue_t 
+ 		read_bio->bi_sector = r1_bio->sector + mirror->rdev->data_offset;
+ 		read_bio->bi_bdev = mirror->rdev->bdev;
+ 		read_bio->bi_end_io = raid1_end_read_request;
+-		read_bio->bi_rw = READ;
++		read_bio->bi_rw = READ | do_sync;
+ 		read_bio->bi_private = r1_bio;
  
--int __init noirqdebug_setup(char *str)
-+int noirqdebug_setup(char *str)
- {
- 	noirqdebug = 1;
- 	printk(KERN_INFO "IRQ lockup detection disabled\n");
+ 		generic_make_request(read_bio);
+@@ -906,7 +907,7 @@ static int make_request(request_queue_t 
+ 		mbio->bi_sector	= r1_bio->sector + conf->mirrors[i].rdev->data_offset;
+ 		mbio->bi_bdev = conf->mirrors[i].rdev->bdev;
+ 		mbio->bi_end_io	= raid1_end_write_request;
+-		mbio->bi_rw = WRITE | do_barriers;
++		mbio->bi_rw = WRITE | do_barriers | do_sync;
+ 		mbio->bi_private = r1_bio;
+ 
+ 		if (behind_pages) {
+@@ -941,6 +942,8 @@ static int make_request(request_queue_t 
+ 	blk_plug_device(mddev->queue);
+ 	spin_unlock_irqrestore(&conf->device_lock, flags);
+ 
++	if (do_sync)
++		md_wakeup_thread(mddev->thread);
+ #if 0
+ 	while ((bio = bio_list_pop(&bl)) != NULL)
+ 		generic_make_request(bio);
+@@ -1541,6 +1544,7 @@ static void raid1d(mddev_t *mddev)
+ 			 * We already have a nr_pending reference on these rdevs.
+ 			 */
+ 			int i;
++			const int do_sync = bio_sync(r1_bio->master_bio);
+ 			clear_bit(R1BIO_BarrierRetry, &r1_bio->state);
+ 			clear_bit(R1BIO_Barrier, &r1_bio->state);
+ 			for (i=0; i < conf->raid_disks; i++)
+@@ -1561,7 +1565,7 @@ static void raid1d(mddev_t *mddev)
+ 						conf->mirrors[i].rdev->data_offset;
+ 					bio->bi_bdev = conf->mirrors[i].rdev->bdev;
+ 					bio->bi_end_io = raid1_end_write_request;
+-					bio->bi_rw = WRITE;
++					bio->bi_rw = WRITE | do_sync;
+ 					bio->bi_private = r1_bio;
+ 					r1_bio->bios[i] = bio;
+ 					generic_make_request(bio);
+@@ -1593,6 +1597,7 @@ static void raid1d(mddev_t *mddev)
+ 				       (unsigned long long)r1_bio->sector);
+ 				raid_end_bio_io(r1_bio);
+ 			} else {
++				const int do_sync = bio_sync(r1_bio->master_bio);
+ 				r1_bio->bios[r1_bio->read_disk] =
+ 					mddev->ro ? IO_BLOCKED : NULL;
+ 				r1_bio->read_disk = disk;
+@@ -1608,7 +1613,7 @@ static void raid1d(mddev_t *mddev)
+ 				bio->bi_sector = r1_bio->sector + rdev->data_offset;
+ 				bio->bi_bdev = rdev->bdev;
+ 				bio->bi_end_io = raid1_end_read_request;
+-				bio->bi_rw = READ;
++				bio->bi_rw = READ | do_sync;
+ 				bio->bi_private = r1_bio;
+ 				unplug = 1;
+ 				generic_make_request(bio);
+diff -puN drivers/md/raid10.c~md-pass-down-bio_rw_sync-in-raid110 drivers/md/raid10.c
+--- a/drivers/md/raid10.c~md-pass-down-bio_rw_sync-in-raid110
++++ a/drivers/md/raid10.c
+@@ -782,6 +782,7 @@ static int make_request(request_queue_t 
+ 	int i;
+ 	int chunk_sects = conf->chunk_mask + 1;
+ 	const int rw = bio_data_dir(bio);
++	const int do_sync = bio_sync(bio);
+ 	struct bio_list bl;
+ 	unsigned long flags;
+ 
+@@ -863,7 +864,7 @@ static int make_request(request_queue_t 
+ 			mirror->rdev->data_offset;
+ 		read_bio->bi_bdev = mirror->rdev->bdev;
+ 		read_bio->bi_end_io = raid10_end_read_request;
+-		read_bio->bi_rw = READ;
++		read_bio->bi_rw = READ | do_sync;
+ 		read_bio->bi_private = r10_bio;
+ 
+ 		generic_make_request(read_bio);
+@@ -909,7 +910,7 @@ static int make_request(request_queue_t 
+ 			conf->mirrors[d].rdev->data_offset;
+ 		mbio->bi_bdev = conf->mirrors[d].rdev->bdev;
+ 		mbio->bi_end_io	= raid10_end_write_request;
+-		mbio->bi_rw = WRITE;
++		mbio->bi_rw = WRITE | do_sync;
+ 		mbio->bi_private = r10_bio;
+ 
+ 		atomic_inc(&r10_bio->remaining);
+@@ -922,6 +923,9 @@ static int make_request(request_queue_t 
+ 	blk_plug_device(mddev->queue);
+ 	spin_unlock_irqrestore(&conf->device_lock, flags);
+ 
++	if (do_sync)
++		md_wakeup_thread(mddev->thread);
++
+ 	return 0;
+ }
+ 
+@@ -1563,6 +1567,7 @@ static void raid10d(mddev_t *mddev)
+ 				       (unsigned long long)r10_bio->sector);
+ 				raid_end_bio_io(r10_bio);
+ 			} else {
++				const int do_sync = bio_sync(r10_bio->master_bio);
+ 				rdev = conf->mirrors[mirror].rdev;
+ 				if (printk_ratelimit())
+ 					printk(KERN_ERR "raid10: %s: redirecting sector %llu to"
+@@ -1574,7 +1579,7 @@ static void raid10d(mddev_t *mddev)
+ 				bio->bi_sector = r10_bio->devs[r10_bio->read_slot].addr
+ 					+ rdev->data_offset;
+ 				bio->bi_bdev = rdev->bdev;
+-				bio->bi_rw = READ;
++				bio->bi_rw = READ | do_sync;
+ 				bio->bi_private = r10_bio;
+ 				bio->bi_end_io = raid10_end_read_request;
+ 				unplug = 1;
 _
 
-Patches currently in -mm which might be from vgoyal@in.ibm.com are
+Patches currently in -mm which might be from Lars.Ellenberg@linbit.com are
 
-change-cpu_up-and-co-from-__devinit-to-__cpuinit.patch
-kdump-documentation-update-for-2620.patch
-pci-quirks-modpost-warning-fix.patch
-make-initkmem_list3-non-init-data-to-fix-modpost-warning.patch
-i386-sched_clock-using-init-data-tsc_disable-fix.patch
-make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch
-scsi-megaraid_mmmbox-init-fix-for-kdump.patch
-i386-cpu-hotplug-smpboot-misc-modpost-warning-fixes.patch
-convert-some-functions-to-__init-to-avoid-modpost-warnings.patch
-i386-move-startup_32-in-texthead-section.patch
-break-init-in-two-parts-to-avoid-modpost-warnings.patch
-i386-fix-memory-hotplug-related-modpost-generated-warning.patch
-i386-make-apic-probe-function-non-init.patch
-modpost-add-more-symbols-to-whitelist-pattern2.patch
-modpost-whitelist-reference-to-more-symbols-pattern-3.patch
-clockevents-i386-drivers.patch
+md-pass-down-bio_rw_sync-in-raid110.patch
