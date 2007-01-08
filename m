@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + x86_64-io_apic-implement-irq_from_pin.patch added to -mm tree
-Date: Mon, 08 Jan 2007 13:35:03 -0800
-Message-ID: <200701082135.l08LZ4Yx019626@shell0.pdx.osdl.net>
+Subject: + x86_64-io_apic-implment-update_irq0_entry.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:35:06 -0800
+Message-ID: <200701082135.l08LZ6hL019629@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45208 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45211 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932111AbXAHVfM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:35:12 -0500
+	id S932120AbXAHVfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:35:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,27 +15,22 @@ Cc: ebiederm@xmission.com, ak@suse.de, yinghai.lu@amd.com
 
 
 The patch titled
-     x86_64 io_apic: Implement irq_from_pin
+     x86_64 io_apic: Implment update_irq0_entry
 has been added to the -mm tree.  Its filename is
-     x86_64-io_apic-implement-irq_from_pin.patch
+     x86_64-io_apic-implment-update_irq0_entry.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64 io_apic: Implement irq_from_pin
+Subject: x86_64 io_apic: Implment update_irq0_entry
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Another helper needed for guessing the routing of the timer irq.
+To guess different irq routing strategies for irq 0 we need the ability to
+update our data structures to reflect our guess.
 
-irq_from_pin looks at the irq_2_pin mapping and figures out which irq is
-connected to a given apic and pin combination.
-
-We need to know this to avoid guessing an apic pin that is already in use by
-another irq.
-
-Despite the nested loops this is O(N) walk through the irq_2_pin data
-structure.
+update_irq0_entry updates the mp routing table information to reflect our
+current guess as to the routing of the timer irq.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: "Yinghai Lu" <yinghai.lu@amd.com>
@@ -43,33 +38,50 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+)
+ arch/x86_64/kernel/io_apic.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implment-update_irq0_entry arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implment-update_irq0_entry
 +++ a/arch/x86_64/kernel/io_apic.c
-@@ -262,6 +262,20 @@ static void set_ioapic_affinity_irq(unsi
+@@ -446,6 +446,37 @@ static int __init find_isa_irq_apic(int 
+ 	return -1;
  }
- #endif
  
-+static int irq_from_pin(int apic, int pin)
++static int update_irq0_entry(int apic, int pin)
 +{
-+	int irq;
-+	for (irq = 0; irq < NR_IRQS; irq++) {
-+		struct irq_pin_list *entry = irq_2_pin + irq;
-+		while (entry->next && ((entry->apic != apic) || (entry->pin != pin)))
-+			entry = irq_2_pin + entry->next;
++	int irq = 0;
++	int idx;
++	int isa_bus;
 +
-+		if ((entry->pin == pin) && (entry->apic == apic))
-+			return irq;
++	/* Figure out the isa bus, by convention it is bus 0,
++	 * but be prepared for someone being creative.
++	 */
++	for (isa_bus = 0; isa_bus < MAX_MP_BUSSES; isa_bus++)
++		if (test_bit(isa_bus, mp_bus_not_pci))
++			break;
++	if (isa_bus >= MAX_MP_BUSSES)
++		isa_bus = 0;
++
++	idx = find_irq_entry(apic, pin, mp_INT);
++	if (idx == -1) {
++		idx = mp_irq_entries;
++		if (++mp_irq_entries >= MAX_IRQ_SOURCES)
++			panic("MAX # of irq sources exceeded!!!\n");
 +	}
-+	return -1;
++	mp_irqs[idx].mpc_type = MP_INTSRC;
++	mp_irqs[idx].mpc_irqtype = mp_INT;
++	mp_irqs[idx].mpc_irqflag = 0;	/* Use bus defaults */
++	mp_irqs[idx].mpc_srcbus = isa_bus;
++	mp_irqs[idx].mpc_srcbusirq = irq;
++	mp_irqs[idx].mpc_dstapic = mp_ioapics[apic].mpc_apicid;
++	mp_irqs[idx].mpc_dstirq = pin;
++	return idx;
 +}
 +
  /*
-  * The common case is 1:1 IRQ<->pin mappings. Sometimes there are
-  * shared ISA-space IRQs, so we have to support them. We are super
+  * Find a specific PCI IRQ entry.
+  * Not an __init, possibly needed by modules
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
