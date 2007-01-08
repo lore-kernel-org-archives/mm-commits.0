@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-sysctl-parameters-set-readahead_hit_rate=1.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:16:55 -0800
-Message-ID: <200701082216.l08MGutp020522@shell0.pdx.osdl.net>
+Subject: + readahead-context-based-method-remove-readahead_ratio.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:17:07 -0800
+Message-ID: <200701082217.l08MH70V020533@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48041 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48046 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030282AbXAHWRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:17:10 -0500
+	id S1030283AbXAHWRM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:17:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,48 +15,52 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: sysctl parameters: set readahead_hit_rate=1
+     readahead: context based method: remove readahead_ratio
 has been added to the -mm tree.  Its filename is
-     readahead-sysctl-parameters-set-readahead_hit_rate=1.patch
+     readahead-context-based-method-remove-readahead_ratio.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: sysctl parameters: set readahead_hit_rate=1
+Subject: readahead: context based method: remove readahead_ratio
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Set default readahead_hit_rate to 1 for the majority users.
+The context based readahead is pretty conservative by nature,
+so do not apply readahead_ratio here.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/sysctl/vm.txt |    2 +-
- mm/readahead.c              |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/readahead.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~readahead-sysctl-parameters-set-readahead_hit_rate=1 Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~readahead-sysctl-parameters-set-readahead_hit_rate=1
-+++ a/Documentation/sysctl/vm.txt
-@@ -261,4 +261,4 @@ Possible values can be:
- 
- The larger value, the more capabilities, with more possible overheads.
- 
--The default value is 0.
-+The default value is 1.
-diff -puN mm/readahead.c~readahead-sysctl-parameters-set-readahead_hit_rate=1 mm/readahead.c
---- a/mm/readahead.c~readahead-sysctl-parameters-set-readahead_hit_rate=1
+diff -puN mm/readahead.c~readahead-context-based-method-remove-readahead_ratio mm/readahead.c
+--- a/mm/readahead.c~readahead-context-based-method-remove-readahead_ratio
 +++ a/mm/readahead.c
-@@ -42,7 +42,7 @@ int readahead_ratio = 50;
- EXPORT_SYMBOL_GPL(readahead_ratio);
- 
- /* Readahead as long as cache hit ratio keeps above 1/##. */
--int readahead_hit_rate = 0;
-+int readahead_hit_rate = 1;
- #endif /* CONFIG_ADAPTIVE_READAHEAD */
- 
- /*
+@@ -1236,9 +1236,7 @@ static unsigned long count_history_pages
+ 	 * Check the far pages coarsely.
+ 	 * The enlarged count will contribute to the look-ahead size.
+ 	 */
+-	lookback = ra_max * (LOOKAHEAD_RATIO + 1) *
+-						100 / (readahead_ratio | 1);
+-
++	lookback = ra_max * LOOKAHEAD_RATIO;
+ 	for (count += ra_max; count < lookback; count += ra_max)
+ 		if (!__probe_page(mapping, offset - count))
+ 			break;
+@@ -1384,7 +1382,8 @@ has_history_pages:
+ 		adjust_rala_aggressive(ra_max, &ra_size, &la_size);
+ 		ra_set_class(ra, RA_CLASS_CONTEXT_AGGRESSIVE);
+ 	} else {
+-		ra_size = max(ra_min, ra_size * readahead_ratio / 100);
++		if (ra_size < ra_min)
++		    ra_size = ra_min;
+ 		if (!adjust_rala(ra_max, &ra_size, &la_size))
+ 			return -1;
+ 		ra_set_class(ra, RA_CLASS_CONTEXT);
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
