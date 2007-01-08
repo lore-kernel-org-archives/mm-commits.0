@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + x86_64-io_apic-implement-remove_pin_to_irq.patch added to -mm tree
-Date: Mon, 08 Jan 2007 13:35:01 -0800
-Message-ID: <200701082135.l08LZ1So019623@shell0.pdx.osdl.net>
+Subject: + x86_64-io_apic-implement-irq_from_pin.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:35:03 -0800
+Message-ID: <200701082135.l08LZ4Yx019626@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45204 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45208 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932120AbXAHVfL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:35:11 -0500
+	id S932111AbXAHVfM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:35:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,23 +15,27 @@ Cc: ebiederm@xmission.com, ak@suse.de, yinghai.lu@amd.com
 
 
 The patch titled
-     x86_64 io_apic: Implement remove_pin_to_irq
+     x86_64 io_apic: Implement irq_from_pin
 has been added to the -mm tree.  Its filename is
-     x86_64-io_apic-implement-remove_pin_to_irq.patch
+     x86_64-io_apic-implement-irq_from_pin.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64 io_apic: Implement remove_pin_to_irq
+Subject: x86_64 io_apic: Implement irq_from_pin
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-To try different irq routing combinations so we can make an informed guess as
-to how to route irqs when the BIOS gets it wrong we need the ability to modify
-our irq routing data structures.
+Another helper needed for guessing the routing of the timer irq.
 
-This adds remove_pin_to_irq which removes the mapping from and apic pin to an
-irq.
+irq_from_pin looks at the irq_2_pin mapping and figures out which irq is
+connected to a given apic and pin combination.
+
+We need to know this to avoid guessing an apic pin that is already in use by
+another irq.
+
+Despite the nested loops this is O(N) walk through the irq_2_pin data
+structure.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: "Yinghai Lu" <yinghai.lu@amd.com>
@@ -39,42 +43,33 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+)
+ arch/x86_64/kernel/io_apic.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-remove_pin_to_irq arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-remove_pin_to_irq
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin
 +++ a/arch/x86_64/kernel/io_apic.c
-@@ -286,6 +286,29 @@ static void add_pin_to_irq(unsigned int 
- 	entry->pin = pin;
+@@ -262,6 +262,20 @@ static void set_ioapic_affinity_irq(unsi
  }
+ #endif
  
-+static void remove_pin_to_irq(unsigned int irq, int apic, int pin)
++static int irq_from_pin(int apic, int pin)
 +{
-+	struct irq_pin_list *entry = irq_2_pin + irq;
++	int irq;
++	for (irq = 0; irq < NR_IRQS; irq++) {
++		struct irq_pin_list *entry = irq_2_pin + irq;
++		while (entry->next && ((entry->apic != apic) || (entry->pin != pin)))
++			entry = irq_2_pin + entry->next;
 +
-+	BUG_ON(irq >= NR_IRQS);
-+
-+	while (entry->next && ((entry->apic != apic) || (entry->pin != pin)))
-+		entry = irq_2_pin + entry->next;
-+
-+	if (entry->pin == apic && entry->pin == pin) {
-+		if (entry->next) {
-+			struct irq_pin_list *next = irq_2_pin + entry->next;
-+			*entry = *next;
-+			next->pin = -1;
-+			next->apic = -1;
-+			next->next = 0;
-+		} else {
-+			entry->pin = -1;
-+			entry->apic = -1;
-+		}
++		if ((entry->pin == pin) && (entry->apic == apic))
++			return irq;
 +	}
++	return -1;
 +}
 +
- 
- #define DO_ACTION(name,R,ACTION, FINAL)					\
- 									\
+ /*
+  * The common case is 1:1 IRQ<->pin mappings. Sometimes there are
+  * shared ISA-space IRQs, so we have to support them. We are super
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
