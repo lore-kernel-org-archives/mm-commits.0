@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-context-based-method-remove-readahead_ratio.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:17:07 -0800
-Message-ID: <200701082217.l08MH70V020533@shell0.pdx.osdl.net>
+Subject: + readahead-min-max-sizes-remove-get_readahead_bounds.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:17:00 -0800
+Message-ID: <200701082217.l08MH09P020525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48046 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48042 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030283AbXAHWRM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:17:12 -0500
+	id S1030283AbXAHWRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:17:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,52 +15,64 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: context based method: remove readahead_ratio
+     readahead: min/max sizes: remove get_readahead_bounds()
 has been added to the -mm tree.  Its filename is
-     readahead-context-based-method-remove-readahead_ratio.patch
+     readahead-min-max-sizes-remove-get_readahead_bounds.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: context based method: remove readahead_ratio
+Subject: readahead: min/max sizes: remove get_readahead_bounds()
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-The context based readahead is pretty conservative by nature,
-so do not apply readahead_ratio here.
+Remove get_readahead_bounds():
+- ra_max: we already have get_max_readahead() for it
+- ra_min: is only used by context based readahead, and will be moved there
+          and set to a more reasonable value
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ mm/readahead.c |   24 ------------------------
+ 1 files changed, 24 deletions(-)
 
-diff -puN mm/readahead.c~readahead-context-based-method-remove-readahead_ratio mm/readahead.c
---- a/mm/readahead.c~readahead-context-based-method-remove-readahead_ratio
+diff -puN mm/readahead.c~readahead-min-max-sizes-remove-get_readahead_bounds mm/readahead.c
+--- a/mm/readahead.c~readahead-min-max-sizes-remove-get_readahead_bounds
 +++ a/mm/readahead.c
-@@ -1236,9 +1236,7 @@ static unsigned long count_history_pages
- 	 * Check the far pages coarsely.
- 	 * The enlarged count will contribute to the look-ahead size.
- 	 */
--	lookback = ra_max * (LOOKAHEAD_RATIO + 1) *
--						100 / (readahead_ratio | 1);
+@@ -780,30 +780,6 @@ out:
+ 	return nr_pages;
+ }
+ 
+-/*
+- * ra_min is mainly determined by the size of cache memory. Reasonable?
+- *
+- * Table of concrete numbers for 4KB page size:
+- *   inactive + free (MB):    4   8   16   32   64  128  256  512 1024
+- *            ra_min (KB):   16  16   16   16   20   24   32   48   64
+- */
+-static inline void get_readahead_bounds(struct file_ra_state *ra,
+-					unsigned long *ra_min,
+-					unsigned long *ra_max)
+-{
+-	unsigned long active;
+-	unsigned long inactive;
+-	unsigned long free;
 -
-+	lookback = ra_max * LOOKAHEAD_RATIO;
- 	for (count += ra_max; count < lookback; count += ra_max)
- 		if (!__probe_page(mapping, offset - count))
- 			break;
-@@ -1384,7 +1382,8 @@ has_history_pages:
- 		adjust_rala_aggressive(ra_max, &ra_size, &la_size);
- 		ra_set_class(ra, RA_CLASS_CONTEXT_AGGRESSIVE);
- 	} else {
--		ra_size = max(ra_min, ra_size * readahead_ratio / 100);
-+		if (ra_size < ra_min)
-+		    ra_size = ra_min;
- 		if (!adjust_rala(ra_max, &ra_size, &la_size))
- 			return -1;
- 		ra_set_class(ra, RA_CLASS_CONTEXT);
+-	__get_zone_counts(&active, &inactive, &free, NODE_DATA(numa_node_id()));
+-
+-	free += inactive;
+-	*ra_max = min(min(ra->ra_pages, 0xFFFFUL), free / 2);
+-	*ra_min = min(min(MIN_RA_PAGES + (free >> 14),
+-			  DIV_ROUND_UP(64*1024, PAGE_CACHE_SIZE)),
+-			  *ra_max / 8);
+-}
+-
+ #endif /* CONFIG_ADAPTIVE_READAHEAD */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
