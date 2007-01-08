@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + unionfs-unlink.patch added to -mm tree
-Date: Mon, 08 Jan 2007 13:08:57 -0800
-Message-ID: <200701082108.l08L8v7a018937@shell0.pdx.osdl.net>
+Subject: + unionfs-miscellaneous-helper-functions.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:08:47 -0800
+Message-ID: <200701082108.l08L8lNI018920@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43445 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43392 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750831AbXAHVJL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:09:11 -0500
+	id S1750831AbXAHVI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:08:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,18 +15,18 @@ Cc: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu
 
 
 The patch titled
-     unionfs: unlink
+     unionfs: miscellaneous helper functions
 has been added to the -mm tree.  Its filename is
-     unionfs-unlink.patch
+     unionfs-miscellaneous-helper-functions.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unionfs: unlink
+Subject: unionfs: miscellaneous helper functions
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Unlink functionality for Unionfs.
+This patch contains miscellaneous helper functions used thoughout Unionfs.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -34,13 +34,13 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/unlink.c |  162 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 162 insertions(+)
+ fs/unionfs/subr.c |  172 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 172 insertions(+)
 
-diff -puN /dev/null fs/unionfs/unlink.c
+diff -puN /dev/null fs/unionfs/subr.c
 --- /dev/null
-+++ a/fs/unionfs/unlink.c
-@@ -0,0 +1,162 @@
++++ a/fs/unionfs/subr.c
+@@ -0,0 +1,172 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
@@ -61,145 +61,155 @@ diff -puN /dev/null fs/unionfs/unlink.c
 +
 +#include "union.h"
 +
-+/* unlink a file by creating a whiteout */
-+static int unionfs_unlink_whiteout(struct inode *dir, struct dentry *dentry)
++/* Pass an unionfs dentry and an index.  It will try to create a whiteout
++ * for the filename in dentry, and will try in branch 'index'.  On error,
++ * it will proceed to a branch to the left.
++ */
++int create_whiteout(struct dentry *dentry, int start)
 +{
-+	struct dentry *hidden_dentry;
++	int bstart, bend, bindex;
 +	struct dentry *hidden_dir_dentry;
-+	int bindex;
-+	int err = 0;
-+
-+	if ((err = unionfs_partial_lookup(dentry)))
-+		goto out;
-+
-+	bindex = dbstart(dentry);
-+
-+	hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+	if (!hidden_dentry)
-+		goto out;
-+
-+	hidden_dir_dentry = lock_parent(hidden_dentry);
-+
-+	/* avoid destroying the hidden inode if the file is in use */
-+	dget(hidden_dentry);
-+	if (!(err = is_robranch_super(dentry->d_sb, bindex)))
-+		err = vfs_unlink(hidden_dir_dentry->d_inode, hidden_dentry);
-+	dput(hidden_dentry);
-+	fsstack_copy_attr_times(dir, hidden_dir_dentry->d_inode);
-+	unlock_dir(hidden_dir_dentry);
-+
-+	if (err && !IS_COPYUP_ERR(err))
-+		goto out;
-+
-+	if (err) {
-+		if (dbstart(dentry) == 0)
-+			goto out;
-+
-+		err = create_whiteout(dentry, dbstart(dentry) - 1);
-+	} else if (dbopaque(dentry) != -1)
-+		/* There is a hidden lower-priority file with the same name. */
-+		err = create_whiteout(dentry, dbopaque(dentry));
-+	else
-+		err = create_whiteout(dentry, dbstart(dentry));
-+
-+out:
-+	if (!err)
-+		dentry->d_inode->i_nlink--;
-+
-+	/* We don't want to leave negative leftover dentries for revalidate. */
-+	if (!err && (dbopaque(dentry) != -1))
-+		update_bstart(dentry);
-+
-+	return err;
-+}
-+
-+int unionfs_unlink(struct inode *dir, struct dentry *dentry)
-+{
-+	int err = 0;
-+
-+	lock_dentry(dentry);
-+
-+	err = unionfs_unlink_whiteout(dir, dentry);
-+	/* call d_drop so the system "forgets" about us */
-+	if (!err)
-+		d_drop(dentry);
-+
-+	unlock_dentry(dentry);
-+	return err;
-+}
-+
-+static int unionfs_rmdir_first(struct inode *dir, struct dentry *dentry,
-+			       struct unionfs_dir_state *namelist)
-+{
-+	int err;
 +	struct dentry *hidden_dentry;
-+	struct dentry *hidden_dir_dentry = NULL;
++	struct dentry *hidden_wh_dentry;
++	char *name = NULL;
++	int err = -EINVAL;
 +
-+	/* Here we need to remove whiteout entries. */
-+	err = delete_whiteouts(dentry, dbstart(dentry), namelist);
-+	if (err)
++	verify_locked(dentry);
++
++	bstart = dbstart(dentry);
++	bend = dbend(dentry);
++
++	/* create dentry's whiteout equivalent */
++	name = alloc_whname(dentry->d_name.name, dentry->d_name.len);
++	if (IS_ERR(name)) {
++		err = PTR_ERR(name);
 +		goto out;
++	}
 +
-+	hidden_dentry = unionfs_lower_dentry(dentry);
++	for (bindex = start; bindex >= 0; bindex--) {
++		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
 +
-+	hidden_dir_dentry = lock_parent(hidden_dentry);
++		if (!hidden_dentry) {
++			/* if hidden dentry is not present, create the entire
++			 * hidden dentry directory structure and go ahead.
++			 * Since we want to just create whiteout, we only want
++			 * the parent dentry, and hence get rid of this dentry.
++			 */
++			hidden_dentry = create_parents(dentry->d_inode,
++						       dentry, bindex);
++			if (!hidden_dentry || IS_ERR(hidden_dentry)) {
++				printk(KERN_DEBUG "create_parents failed for "
++						"bindex = %d\n", bindex);
++				continue;
++			}
++		}
 +
-+	/* avoid destroying the hidden inode if the file is in use */
-+	dget(hidden_dentry);
-+	if (!(err = is_robranch(dentry)))
-+		err = vfs_rmdir(hidden_dir_dentry->d_inode, hidden_dentry);
-+	dput(hidden_dentry);
++		hidden_wh_dentry = lookup_one_len(name, hidden_dentry->d_parent,
++					dentry->d_name.len + UNIONFS_WHLEN);
++		if (IS_ERR(hidden_wh_dentry))
++			continue;
 +
-+	fsstack_copy_attr_times(dir, hidden_dir_dentry->d_inode);
-+	/* propagate number of hard-links */
-+	dentry->d_inode->i_nlink = unionfs_get_nlinks(dentry->d_inode);
++		/* The whiteout already exists. This used to be impossible, but
++		 * now is possible because of opaqueness.
++		 */
++		if (hidden_wh_dentry->d_inode) {
++			dput(hidden_wh_dentry);
++			err = 0;
++			goto out;
++		}
++
++		hidden_dir_dentry = lock_parent(hidden_wh_dentry);
++		if (!(err = is_robranch_super(dentry->d_sb, bindex))) {
++			err = vfs_create(hidden_dir_dentry->d_inode,
++				       hidden_wh_dentry,
++				       ~current->fs->umask & S_IRWXUGO, NULL);
++
++		}
++		unlock_dir(hidden_dir_dentry);
++		dput(hidden_wh_dentry);
++
++		if (!err || !IS_COPYUP_ERR(err))
++			break;
++	}
++
++	/* set dbopaque  so that lookup will not proceed after this branch */
++	if (!err)
++		set_dbopaque(dentry, bindex);
 +
 +out:
-+	if (hidden_dir_dentry)
-+		unlock_dir(hidden_dir_dentry);
++	kfree(name);
 +	return err;
 +}
 +
-+int unionfs_rmdir(struct inode *dir, struct dentry *dentry)
++/* This is a helper function for rename, which ends up with hosed over dentries
++ * when it needs to revert.
++ */
++int unionfs_refresh_hidden_dentry(struct dentry *dentry, int bindex)
 +{
++	struct dentry *hidden_dentry;
++	struct dentry *hidden_parent;
 +	int err = 0;
-+	struct unionfs_dir_state *namelist = NULL;
 +
-+	lock_dentry(dentry);
++	verify_locked(dentry);
 +
-+	/* check if this unionfs directory is empty or not */
-+	err = check_empty(dentry, &namelist);
-+	if (err)
++	lock_dentry(dentry->d_parent);
++	hidden_parent = unionfs_lower_dentry_idx(dentry->d_parent, bindex);
++	unlock_dentry(dentry->d_parent);
++
++	BUG_ON(!S_ISDIR(hidden_parent->d_inode->i_mode));
++
++	hidden_dentry = lookup_one_len(dentry->d_name.name, hidden_parent,
++				dentry->d_name.len);
++	if (IS_ERR(hidden_dentry)) {
++		err = PTR_ERR(hidden_dentry);
 +		goto out;
++	}
 +
-+	err = unionfs_rmdir_first(dir, dentry, namelist);
-+	/* create whiteout */
-+	if (!err)
-+		err = create_whiteout(dentry, dbstart(dentry));
-+	else {
-+		int new_err;
++	dput(unionfs_lower_dentry_idx(dentry, bindex));
++	iput(unionfs_lower_inode_idx(dentry->d_inode, bindex));
++	unionfs_set_lower_inode_idx(dentry->d_inode, bindex, NULL);
 +
-+		if (dbstart(dentry) == 0)
-+			goto out;
-+
-+		/* exit if the error returned was NOT -EROFS */
-+		if (!IS_COPYUP_ERR(err))
-+			goto out;
-+
-+		new_err = create_whiteout(dentry, dbstart(dentry) - 1);
-+		if (new_err != -EEXIST)
-+			err = new_err;
++	if (!hidden_dentry->d_inode) {
++		dput(hidden_dentry);
++		unionfs_set_lower_dentry_idx(dentry, bindex, NULL);
++	} else {
++		unionfs_set_lower_dentry_idx(dentry, bindex, hidden_dentry);
++		unionfs_set_lower_inode_idx(dentry->d_inode, bindex,
++				igrab(hidden_dentry->d_inode));
 +	}
 +
 +out:
-+	/* call d_drop so the system "forgets" about us */
++	return err;
++}
++
++int make_dir_opaque(struct dentry *dentry, int bindex)
++{
++	int err = 0;
++	struct dentry *hidden_dentry, *diropq;
++	struct inode *hidden_dir;
++
++	hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
++	hidden_dir = hidden_dentry->d_inode;
++	BUG_ON(!S_ISDIR(dentry->d_inode->i_mode) ||
++	       !S_ISDIR(hidden_dir->i_mode));
++
++	mutex_lock(&hidden_dir->i_mutex);
++	diropq = lookup_one_len(UNIONFS_DIR_OPAQUE, hidden_dentry,
++				sizeof(UNIONFS_DIR_OPAQUE) - 1);
++	if (IS_ERR(diropq)) {
++		err = PTR_ERR(diropq);
++		goto out;
++	}
++
++	if (!diropq->d_inode)
++		err = vfs_create(hidden_dir, diropq, S_IRUGO, NULL);
 +	if (!err)
-+		d_drop(dentry);
++		set_dbopaque(dentry, bindex);
 +
-+	if (namelist)
-+		free_rdstate(namelist);
++	dput(diropq);
 +
-+	unlock_dentry(dentry);
++out:
++	mutex_unlock(&hidden_dir->i_mutex);
 +	return err;
 +}
 +
