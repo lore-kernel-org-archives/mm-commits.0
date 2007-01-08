@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + unionfs-directory-manipulation-helper-functions.patch added to -mm tree
-Date: Mon, 08 Jan 2007 13:08:31 -0800
-Message-ID: <200701082108.l08L8VaB018895@shell0.pdx.osdl.net>
+Subject: + unionfs-directory-file-operations.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:08:29 -0800
+Message-ID: <200701082108.l08L8TCh018892@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43358 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43352 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbXAHVIp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:08:45 -0500
+	id S1750754AbXAHVIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:08:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,18 +15,18 @@ Cc: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu
 
 
 The patch titled
-     unionfs: directory manipulation helper functions
+     unionfs: directory file operations
 has been added to the -mm tree.  Its filename is
-     unionfs-directory-manipulation-helper-functions.patch
+     unionfs-directory-file-operations.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unionfs: directory manipulation helper functions
+Subject: unionfs: directory file operations
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Directory manipulation helper functions.
+Directory file operations.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -34,13 +34,13 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/dirhelper.c |  270 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 270 insertions(+)
+ fs/unionfs/dirfops.c |  263 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 263 insertions(+)
 
-diff -puN /dev/null fs/unionfs/dirhelper.c
+diff -puN /dev/null fs/unionfs/dirfops.c
 --- /dev/null
-+++ a/fs/unionfs/dirhelper.c
-@@ -0,0 +1,270 @@
++++ a/fs/unionfs/dirfops.c
+@@ -0,0 +1,263 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
@@ -61,255 +61,248 @@ diff -puN /dev/null fs/unionfs/dirhelper.c
 +
 +#include "union.h"
 +
-+/* Delete all of the whiteouts in a given directory for rmdir.
-+ *
-+ * hidden directory inode should be locked
-+ */
-+int do_delete_whiteouts(struct dentry *dentry, int bindex,
-+		     struct unionfs_dir_state *namelist)
++/* Make sure our rdstate is playing by the rules. */
++static void verify_rdstate_offset(struct unionfs_dir_state *rdstate)
 +{
-+	int err = 0;
-+	struct dentry *hidden_dir_dentry = NULL;
-+	struct dentry *hidden_dentry;
-+	char *name = NULL, *p;
-+	struct inode *hidden_dir;
-+
-+	int i;
-+	struct list_head *pos;
-+	struct filldir_node *cursor;
-+
-+	/* Find out hidden parent dentry */
-+	hidden_dir_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+	BUG_ON(!S_ISDIR(hidden_dir_dentry->d_inode->i_mode));
-+	hidden_dir = hidden_dir_dentry->d_inode;
-+	BUG_ON(!S_ISDIR(hidden_dir->i_mode));
-+
-+	err = -ENOMEM;
-+	name = __getname();
-+	if (!name)
-+		goto out;
-+	strcpy(name, UNIONFS_WHPFX);
-+	p = name + UNIONFS_WHLEN;
-+
-+	err = 0;
-+	for (i = 0; !err && i < namelist->size; i++) {
-+		list_for_each(pos, &namelist->list[i]) {
-+			cursor =
-+			    list_entry(pos, struct filldir_node, file_list);
-+			/* Only operate on whiteouts in this branch. */
-+			if (cursor->bindex != bindex)
-+				continue;
-+			if (!cursor->whiteout)
-+				continue;
-+
-+			strcpy(p, cursor->name);
-+			hidden_dentry =
-+			    lookup_one_len(name, hidden_dir_dentry,
-+					   cursor->namelen + UNIONFS_WHLEN);
-+			if (IS_ERR(hidden_dentry)) {
-+				err = PTR_ERR(hidden_dentry);
-+				break;
-+			}
-+			if (hidden_dentry->d_inode)
-+				err = vfs_unlink(hidden_dir, hidden_dentry);
-+			dput(hidden_dentry);
-+			if (err)
-+				break;
-+		}
-+	}
-+
-+	__putname(name);
-+
-+	/* After all of the removals, we should copy the attributes once. */
-+	fsstack_copy_attr_times(dentry->d_inode, hidden_dir_dentry->d_inode);
-+
-+out:
-+	return err;
++	BUG_ON(rdstate->offset >= DIREOF);
++	BUG_ON(rdstate->cookie >= MAXRDCOOKIE);
 +}
 +
-+/* delete whiteouts in a dir (for rmdir operation) using sioq if necessary */
-+int delete_whiteouts(struct dentry *dentry, int bindex,
-+		     struct unionfs_dir_state *namelist)
-+{
-+	int err;
-+	struct super_block *sb;
-+	struct dentry *hidden_dir_dentry;
-+	struct inode *hidden_dir;
-+
-+	struct sioq_args args;
-+
-+	sb = dentry->d_sb;
-+	unionfs_read_lock(sb);
-+
-+	BUG_ON(!S_ISDIR(dentry->d_inode->i_mode));
-+	BUG_ON(bindex < dbstart(dentry));
-+	BUG_ON(bindex > dbend(dentry));
-+	err = is_robranch_super(sb, bindex);
-+	if (err)
-+		goto out;
-+
-+	hidden_dir_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+	BUG_ON(!S_ISDIR(hidden_dir_dentry->d_inode->i_mode));
-+	hidden_dir = hidden_dir_dentry->d_inode;
-+	BUG_ON(!S_ISDIR(hidden_dir->i_mode));
-+
-+	mutex_lock(&hidden_dir->i_mutex);
-+	if (!permission(hidden_dir, MAY_WRITE | MAY_EXEC, NULL))
-+		err = do_delete_whiteouts(dentry, bindex, namelist);
-+	else {
-+		args.deletewh.namelist = namelist;
-+		args.deletewh.dentry = dentry;
-+		args.deletewh.bindex = bindex;
-+		run_sioq(__delete_whiteouts, &args);
-+		err = args.err;
-+	}
-+	mutex_unlock(&hidden_dir->i_mutex);
-+
-+out:
-+	unionfs_read_unlock(sb);
-+	return err;
-+}
-+
-+#define RD_NONE 0
-+#define RD_CHECK_EMPTY 1
-+/* The callback structure for check_empty. */
-+struct unionfs_rdutil_callback {
-+	int err;
-+	int filldir_called;
++struct unionfs_getdents_callback {
 +	struct unionfs_dir_state *rdstate;
-+	int mode;
++	void *dirent;
++	int entries_written;
++	int filldir_called;
++	int filldir_error;
++	filldir_t filldir;
++	struct super_block *sb;
 +};
 +
-+/* This filldir function makes sure only whiteouts exist within a directory. */
-+static int readdir_util_callback(void *dirent, const char *name, int namelen,
-+				 loff_t offset, u64 ino, unsigned int d_type)
++/* based on generic filldir in fs/readir.c */
++static int unionfs_filldir(void *dirent, const char *name, int namelen,
++			   loff_t offset, u64 ino, unsigned int d_type)
 +{
++	struct unionfs_getdents_callback *buf = dirent;
++	struct filldir_node *found = NULL;
 +	int err = 0;
-+	struct unionfs_rdutil_callback *buf = dirent;
-+	int whiteout = 0;
-+	struct filldir_node *found;
++	int is_wh_entry = 0;
 +
-+	buf->filldir_called = 1;
++	buf->filldir_called++;
 +
-+	if (name[0] == '.' && (namelen == 1 || (name[1] == '.' && namelen == 2)))
-+		goto out;
-+
-+	if (namelen > UNIONFS_WHLEN &&
++	if ((namelen > UNIONFS_WHLEN) &&
 +	    !strncmp(name, UNIONFS_WHPFX, UNIONFS_WHLEN)) {
-+		namelen -= UNIONFS_WHLEN;
 +		name += UNIONFS_WHLEN;
-+		whiteout = 1;
++		namelen -= UNIONFS_WHLEN;
++		is_wh_entry = 1;
 +	}
 +
 +	found = find_filldir_node(buf->rdstate, name, namelen);
-+	/* If it was found in the table there was a previous whiteout. */
++
 +	if (found)
 +		goto out;
 +
-+	/* If it wasn't found and isn't a whiteout, the directory isn't empty. */
-+	err = -ENOTEMPTY;
-+	if ((buf->mode == RD_CHECK_EMPTY) && !whiteout)
-+		goto out;
++	/* if 'name' isn't a whiteout, filldir it. */
++	if (!is_wh_entry) {
++		off_t pos = rdstate2offset(buf->rdstate);
++		u64 unionfs_ino = ino;
 +
-+	err = add_filldir_node(buf->rdstate, name, namelen,
-+			       buf->rdstate->bindex, whiteout);
++		if (!err) {
++			err = buf->filldir(buf->dirent, name, namelen, pos,
++					   unionfs_ino, d_type);
++			buf->rdstate->offset++;
++			verify_rdstate_offset(buf->rdstate);
++		}
++	}
++	/* If we did fill it, stuff it in our hash, otherwise return an error */
++	if (err) {
++		buf->filldir_error = err;
++		goto out;
++	}
++	buf->entries_written++;
++	if ((err = add_filldir_node(buf->rdstate, name, namelen,
++				    buf->rdstate->bindex, is_wh_entry)))
++		buf->filldir_error = err;
 +
 +out:
-+	buf->err = err;
 +	return err;
 +}
 +
-+/* Is a directory logically empty? */
-+int check_empty(struct dentry *dentry, struct unionfs_dir_state **namelist)
++static int unionfs_readdir(struct file *file, void *dirent, filldir_t filldir)
 +{
 +	int err = 0;
-+	struct dentry *hidden_dentry = NULL;
-+	struct super_block *sb;
-+	struct file *hidden_file;
-+	struct unionfs_rdutil_callback *buf = NULL;
-+	int bindex, bstart, bend, bopaque;
++	struct file *hidden_file = NULL;
++	struct inode *inode = NULL;
++	struct unionfs_getdents_callback buf;
++	struct unionfs_dir_state *uds;
++	int bend;
++	loff_t offset;
 +
-+	sb = dentry->d_sb;
-+
-+	unionfs_read_lock(sb);
-+
-+	BUG_ON(!S_ISDIR(dentry->d_inode->i_mode));
-+
-+	if ((err = unionfs_partial_lookup(dentry)))
++	if ((err = unionfs_file_revalidate(file, 0)))
 +		goto out;
 +
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+	bopaque = dbopaque(dentry);
-+	if (0 <= bopaque && bopaque < bend)
-+		bend = bopaque;
++	inode = file->f_dentry->d_inode;
 +
-+	buf = kmalloc(sizeof(struct unionfs_rdutil_callback), GFP_KERNEL);
-+	if (!buf) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+	buf->err = 0;
-+	buf->mode = RD_CHECK_EMPTY;
-+	buf->rdstate = alloc_rdstate(dentry->d_inode, bstart);
-+	if (!buf->rdstate) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* Process the hidden directories with rdutil_callback as a filldir. */
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+		if (!hidden_dentry)
-+			continue;
-+		if (!hidden_dentry->d_inode)
-+			continue;
-+		if (!S_ISDIR(hidden_dentry->d_inode->i_mode))
-+			continue;
-+
-+		dget(hidden_dentry);
-+		mntget(unionfs_lower_mnt_idx(dentry, bindex));
-+		branchget(sb, bindex);
-+		hidden_file =
-+		    dentry_open(hidden_dentry, unionfs_lower_mnt_idx(dentry, bindex),
-+				O_RDONLY);
-+		if (IS_ERR(hidden_file)) {
-+			err = PTR_ERR(hidden_file);
-+			dput(hidden_dentry);
-+			branchput(sb, bindex);
++	uds = UNIONFS_F(file)->rdstate;
++	if (!uds) {
++		if (file->f_pos == DIREOF) {
 +			goto out;
++		} else if (file->f_pos > 0) {
++			uds = find_rdstate(inode, file->f_pos);
++			if (!uds) {
++				err = -ESTALE;
++				goto out;
++			}
++			UNIONFS_F(file)->rdstate = uds;
++		} else {
++			init_rdstate(file);
++			uds = UNIONFS_F(file)->rdstate;
++		}
++	}
++	bend = fbend(file);
++
++	while (uds->bindex <= bend) {
++		hidden_file = unionfs_lower_file_idx(file, uds->bindex);
++		if (!hidden_file) {
++			uds->bindex++;
++			uds->dirpos = 0;
++			continue;
 +		}
 +
-+		do {
-+			buf->filldir_called = 0;
-+			buf->rdstate->bindex = bindex;
-+			err = vfs_readdir(hidden_file,
-+					  readdir_util_callback, buf);
-+			if (buf->err)
-+				err = buf->err;
-+		} while ((err >= 0) && buf->filldir_called);
++		/* prepare callback buffer */
++		buf.filldir_called = 0;
++		buf.filldir_error = 0;
++		buf.entries_written = 0;
++		buf.dirent = dirent;
++		buf.filldir = filldir;
++		buf.rdstate = uds;
++		buf.sb = inode->i_sb;
 +
-+		/* fput calls dput for hidden_dentry */
-+		fput(hidden_file);
-+		branchput(sb, bindex);
++		/* Read starting from where we last left off. */
++		offset = vfs_llseek(hidden_file, uds->dirpos, 0);
++		if (offset < 0) {
++			err = offset;
++			goto out;
++		}
++		err = vfs_readdir(hidden_file, unionfs_filldir, &buf);
++		/* Save the position for when we continue. */
++
++		offset = vfs_llseek(hidden_file, 0, 1);
++		if (offset < 0) {
++			err = offset;
++			goto out;
++		}
++		uds->dirpos = offset;
++
++		/* Copy the atime. */
++		fsstack_copy_attr_atime(inode, hidden_file->f_dentry->d_inode);
 +
 +		if (err < 0)
 +			goto out;
++
++		if (buf.filldir_error)
++			break;
++
++		if (!buf.entries_written) {
++			uds->bindex++;
++			uds->dirpos = 0;
++		}
++	}
++
++	if (!buf.filldir_error && uds->bindex >= bend) {
++		/* Save the number of hash entries for next time. */
++		UNIONFS_I(inode)->hashsize = uds->hashentries;
++		free_rdstate(uds);
++		UNIONFS_F(file)->rdstate = NULL;
++		file->f_pos = DIREOF;
++	} else
++		file->f_pos = rdstate2offset(uds);
++
++out:
++	return err;
++}
++
++/* This is not meant to be a generic repositioning function.  If you do
++ * things that aren't supported, then we return EINVAL.
++ *
++ * What is allowed:
++ *  (1) seeking to the same position that you are currently at
++ *	This really has no effect, but returns where you are.
++ *  (2) seeking to the beginning of the file
++ *	This throws out all state, and lets you begin again.
++ */
++static loff_t unionfs_dir_llseek(struct file *file, loff_t offset, int origin)
++{
++	struct unionfs_dir_state *rdstate;
++	loff_t err;
++
++	if ((err = unionfs_file_revalidate(file, 0)))
++		goto out;
++
++	rdstate = UNIONFS_F(file)->rdstate;
++
++	/* We let users seek to their current position, but not anywhere else. */
++	if (!offset) {
++		switch (origin) {
++		case SEEK_SET:
++			if (rdstate) {
++				free_rdstate(rdstate);
++				UNIONFS_F(file)->rdstate = NULL;
++			}
++			init_rdstate(file);
++			err = 0;
++			break;
++		case SEEK_CUR:
++			err = file->f_pos;
++			break;
++		case SEEK_END:
++			/* Unsupported, because we would break everything.  */
++			err = -EINVAL;
++			break;
++		}
++	} else {
++		switch (origin) {
++		case SEEK_SET:
++			if (rdstate) {
++				if (offset == rdstate2offset(rdstate))
++					err = offset;
++				else if (file->f_pos == DIREOF)
++					err = DIREOF;
++				else
++					err = -EINVAL;
++			} else {
++				rdstate = find_rdstate(file->f_dentry->d_inode,
++							offset);
++				if (rdstate) {
++					UNIONFS_F(file)->rdstate = rdstate;
++					err = rdstate->offset;
++				} else
++					err = -EINVAL;
++			}
++			break;
++		case SEEK_CUR:
++		case SEEK_END:
++			/* Unsupported, because we would break everything.  */
++			err = -EINVAL;
++			break;
++		}
 +	}
 +
 +out:
-+	if (buf) {
-+		if (namelist && !err)
-+			*namelist = buf->rdstate;
-+		else if (buf->rdstate)
-+			free_rdstate(buf->rdstate);
-+		kfree(buf);
-+	}
-+
-+	unionfs_read_unlock(sb);
-+
 +	return err;
 +}
++
++/* Trimmed directory options, we shouldn't pass everything down since
++ * we don't want to operate on partial directories.
++ */
++struct file_operations unionfs_dir_fops = {
++	.llseek		= unionfs_dir_llseek,
++	.read		= generic_read_dir,
++	.readdir	= unionfs_readdir,
++	.unlocked_ioctl	= unionfs_ioctl,
++	.open		= unionfs_open,
++	.release	= unionfs_file_release,
++	.flush		= unionfs_flush,
++};
 +
 _
 
