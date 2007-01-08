@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + unionfs-readdir-state.patch added to -mm tree
-Date: Mon, 08 Jan 2007 13:08:39 -0800
-Message-ID: <200701082108.l08L8dqP018907@shell0.pdx.osdl.net>
+Subject: + unionfs-lookup-helper-functions.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:08:35 -0800
+Message-ID: <200701082108.l08L8ZrZ018901@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43374 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43367 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750743AbXAHVIw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:08:52 -0500
+	id S1750734AbXAHVIs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:08:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,18 +15,18 @@ Cc: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu
 
 
 The patch titled
-     unionfs: readdir state
+     unionfs: lookup helper functions
 has been added to the -mm tree.  Its filename is
-     unionfs-readdir-state.patch
+     unionfs-lookup-helper-functions.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unionfs: readdir state
+Subject: unionfs: lookup helper functions
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-This file contains the routines for maintaining readdir state.
+Helper functions for the lookup operations in Unionfs.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -34,13 +34,13 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/rdstate.c |  288 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 288 insertions(+)
+ fs/unionfs/lookup.c |  516 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 516 insertions(+)
 
-diff -puN /dev/null fs/unionfs/rdstate.c
+diff -puN /dev/null fs/unionfs/lookup.c
 --- /dev/null
-+++ a/fs/unionfs/rdstate.c
-@@ -0,0 +1,288 @@
++++ a/fs/unionfs/lookup.c
+@@ -0,0 +1,516 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
@@ -61,272 +61,500 @@ diff -puN /dev/null fs/unionfs/rdstate.c
 +
 +#include "union.h"
 +
-+/* This file contains the routines for maintaining readdir state. */
++static int is_opaque_dir(struct dentry *dentry, int bindex);
++static int is_validname(const char *name);
 +
-+/* There are two structures here, rdstate which is a hash table
-+ * of the second structure which is a filldir_node.
-+ */
-+
-+/* This is a struct kmem_cache for filldir nodes, because we allocate a lot
-+ * of them and they shouldn't waste memory.  If the node has a small name
-+ * (as defined by the dentry structure), then we use an inline name to
-+ * preserve kmalloc space.
-+ */
-+static struct kmem_cache *unionfs_filldir_cachep;
-+
-+int unionfs_init_filldir_cache(void)
++struct dentry *unionfs_lookup_backend(struct dentry *dentry, struct nameidata *nd,
++				      int lookupmode)
 +{
-+	unionfs_filldir_cachep =
-+	    kmem_cache_create("unionfs_filldir", sizeof(struct filldir_node), 0,
-+			      SLAB_RECLAIM_ACCOUNT, NULL, NULL);
-+
-+	return (unionfs_filldir_cachep ? 0 : -ENOMEM);
-+}
-+
-+void unionfs_destroy_filldir_cache(void)
-+{
-+	if (unionfs_filldir_cachep)
-+		kmem_cache_destroy(unionfs_filldir_cachep);
-+}
-+
-+/* This is a tuning parameter that tells us roughly how big to make the
-+ * hash table in directory entries per page.  This isn't perfect, but
-+ * at least we get a hash table size that shouldn't be too overloaded.
-+ * The following averages are based on my home directory.
-+ * 14.44693	Overall
-+ * 12.29	Single Page Directories
-+ * 117.93	Multi-page directories
-+ */
-+#define DENTPAGE 4096
-+#define DENTPERONEPAGE 12
-+#define DENTPERPAGE 118
-+#define MINHASHSIZE 1
-+static int guesstimate_hash_size(struct inode *inode)
-+{
-+	struct inode *hidden_inode;
-+	int bindex;
-+	int hashsize = MINHASHSIZE;
-+
-+	if (UNIONFS_I(inode)->hashsize > 0)
-+		return UNIONFS_I(inode)->hashsize;
-+
-+	for (bindex = ibstart(inode); bindex <= ibend(inode); bindex++) {
-+		if (!(hidden_inode = unionfs_lower_inode_idx(inode, bindex)))
-+			continue;
-+
-+		if (hidden_inode->i_size == DENTPAGE)
-+			hashsize += DENTPERONEPAGE;
-+		else
-+			hashsize += (hidden_inode->i_size / DENTPAGE) * DENTPERPAGE;
-+	}
-+
-+	return hashsize;
-+}
-+
-+int init_rdstate(struct file *file)
-+{
-+	BUG_ON(sizeof(loff_t) != (sizeof(unsigned int) + sizeof(unsigned int)));
-+	BUG_ON(UNIONFS_F(file)->rdstate != NULL);
-+
-+	UNIONFS_F(file)->rdstate = alloc_rdstate(file->f_dentry->d_inode,
-+						 fbstart(file));
-+
-+	return (UNIONFS_F(file)->rdstate ? 0 : -ENOMEM);
-+}
-+
-+struct unionfs_dir_state *find_rdstate(struct inode *inode, loff_t fpos)
-+{
-+	struct unionfs_dir_state *rdstate = NULL;
-+	struct list_head *pos;
-+
-+	spin_lock(&UNIONFS_I(inode)->rdlock);
-+	list_for_each(pos, &UNIONFS_I(inode)->readdircache) {
-+		struct unionfs_dir_state *r =
-+		    list_entry(pos, struct unionfs_dir_state, cache);
-+		if (fpos == rdstate2offset(r)) {
-+			UNIONFS_I(inode)->rdcount--;
-+			list_del(&r->cache);
-+			rdstate = r;
-+			break;
-+		}
-+	}
-+	spin_unlock(&UNIONFS_I(inode)->rdlock);
-+	return rdstate;
-+}
-+
-+struct unionfs_dir_state *alloc_rdstate(struct inode *inode, int bindex)
-+{
-+	int i = 0;
-+	int hashsize;
-+	int mallocsize = sizeof(struct unionfs_dir_state);
-+	struct unionfs_dir_state *rdstate;
-+
-+	hashsize = guesstimate_hash_size(inode);
-+	mallocsize += hashsize * sizeof(struct list_head);
-+	/* Round it up to the next highest power of two. */
-+	mallocsize--;
-+	mallocsize |= mallocsize >> 1;
-+	mallocsize |= mallocsize >> 2;
-+	mallocsize |= mallocsize >> 4;
-+	mallocsize |= mallocsize >> 8;
-+	mallocsize |= mallocsize >> 16;
-+	mallocsize++;
-+
-+	/* This should give us about 500 entries anyway. */
-+	if (mallocsize > PAGE_SIZE)
-+		mallocsize = PAGE_SIZE;
-+
-+	hashsize = (mallocsize -
-+	     sizeof(struct unionfs_dir_state)) / sizeof(struct list_head);
-+
-+	rdstate = kmalloc(mallocsize, GFP_KERNEL);
-+	if (!rdstate)
-+		return NULL;
-+
-+	spin_lock(&UNIONFS_I(inode)->rdlock);
-+	if (UNIONFS_I(inode)->cookie >= (MAXRDCOOKIE - 1))
-+		UNIONFS_I(inode)->cookie = 1;
-+	else
-+		UNIONFS_I(inode)->cookie++;
-+
-+	rdstate->cookie = UNIONFS_I(inode)->cookie;
-+	spin_unlock(&UNIONFS_I(inode)->rdlock);
-+	rdstate->offset = 1;
-+	rdstate->access = jiffies;
-+	rdstate->bindex = bindex;
-+	rdstate->dirpos = 0;
-+	rdstate->hashentries = 0;
-+	rdstate->size = hashsize;
-+	for (i = 0; i < rdstate->size; i++)
-+		INIT_LIST_HEAD(&rdstate->list[i]);
-+
-+	return rdstate;
-+}
-+
-+static void free_filldir_node(struct filldir_node *node)
-+{
-+	if (node->namelen >= DNAME_INLINE_LEN_MIN)
-+		kfree(node->name);
-+	kmem_cache_free(unionfs_filldir_cachep, node);
-+}
-+
-+void free_rdstate(struct unionfs_dir_state *state)
-+{
-+	struct filldir_node *tmp;
-+	int i;
-+
-+	for (i = 0; i < state->size; i++) {
-+		struct list_head *head = &(state->list[i]);
-+		struct list_head *pos, *n;
-+
-+		/* traverse the list and deallocate space */
-+		list_for_each_safe(pos, n, head) {
-+			tmp = list_entry(pos, struct filldir_node, file_list);
-+			list_del(&tmp->file_list);
-+			free_filldir_node(tmp);
-+		}
-+	}
-+
-+	kfree(state);
-+}
-+
-+struct filldir_node *find_filldir_node(struct unionfs_dir_state *rdstate,
-+				       const char *name, int namelen)
-+{
-+	int index;
-+	unsigned int hash;
-+	struct list_head *head;
-+	struct list_head *pos;
-+	struct filldir_node *cursor = NULL;
-+	int found = 0;
-+
-+	BUG_ON(namelen <= 0);
-+
-+	hash = full_name_hash(name, namelen);
-+	index = hash % rdstate->size;
-+
-+	head = &(rdstate->list[index]);
-+	list_for_each(pos, head) {
-+		cursor = list_entry(pos, struct filldir_node, file_list);
-+
-+		if (cursor->namelen == namelen && cursor->hash == hash &&
-+		    !strncmp(cursor->name, name, namelen)) {
-+			/* a duplicate exists, and hence no need to create
-+			 * entry to the list
-+			 */
-+			found = 1;
-+
-+			/* if the duplicate is in this branch, then the file
-+			 * system is corrupted.
-+			 */
-+			if (cursor->bindex == rdstate->bindex) {
-+				printk(KERN_DEBUG "Possible I/O error "
-+					"unionfs_filldir: a file is duplicated "
-+					"in the same branch %d: %s\n",
-+					rdstate->bindex, cursor->name);
-+			}
-+			break;
-+		}
-+	}
-+
-+	if (!found)
-+		cursor = NULL;
-+
-+	return cursor;
-+}
-+
-+inline struct filldir_node *alloc_filldir_node(const char *name, int namelen,
-+					       unsigned int hash, int bindex)
-+{
-+	return kmem_cache_alloc(unionfs_filldir_cachep, GFP_KERNEL);
-+}
-+
-+int add_filldir_node(struct unionfs_dir_state *rdstate, const char *name,
-+		     int namelen, int bindex, int whiteout)
-+{
-+	struct filldir_node *new;
-+	unsigned int hash;
-+	int index;
 +	int err = 0;
-+	struct list_head *head;
++	struct dentry *hidden_dentry = NULL;
++	struct dentry *wh_hidden_dentry = NULL;
++	struct dentry *hidden_dir_dentry = NULL;
++	struct dentry *parent_dentry = NULL;
++	int bindex, bstart, bend, bopaque;
++	int dentry_count = 0;	/* Number of positive dentries. */
++	int first_dentry_offset = -1;
++	struct dentry *first_hidden_dentry = NULL;
++	struct vfsmount *first_hidden_mnt = NULL;
++	int locked_parent = 0;
++	int locked_child = 0;
 +
-+	BUG_ON(namelen <= 0);
++	int opaque;
++	char *whname = NULL;
++	const char *name;
++	int namelen;
 +
-+	hash = full_name_hash(name, namelen);
-+	index = hash % rdstate->size;
-+	head = &(rdstate->list[index]);
++	/* We should already have a lock on this dentry in the case of a
++	 * partial lookup, or a revalidation. Otherwise it is returned from
++	 * new_dentry_private_data already locked.
++	 */
++	if (lookupmode == INTERPOSE_PARTIAL || lookupmode == INTERPOSE_REVAL ||
++	    lookupmode == INTERPOSE_REVAL_NEG)
++		verify_locked(dentry);
++	else {
++		BUG_ON(UNIONFS_D(dentry) != NULL);
++		locked_child = 1;
++	}
++	if (lookupmode != INTERPOSE_PARTIAL)
++		if ((err = new_dentry_private_data(dentry)))
++			goto out;
++	/* must initialize dentry operations */
++	dentry->d_op = &unionfs_dops;
 +
-+	new = alloc_filldir_node(name, namelen, hash, bindex);
-+	if (!new) {
-+		err = -ENOMEM;
++	parent_dentry = dget_parent(dentry);
++	/* We never partial lookup the root directory. */
++	if (parent_dentry != dentry) {
++		lock_dentry(parent_dentry);
++		locked_parent = 1;
++	} else {
++		dput(parent_dentry);
++		parent_dentry = NULL;
 +		goto out;
 +	}
 +
-+	INIT_LIST_HEAD(&new->file_list);
-+	new->namelen = namelen;
-+	new->hash = hash;
-+	new->bindex = bindex;
-+	new->whiteout = whiteout;
++	name = dentry->d_name.name;
++	namelen = dentry->d_name.len;
 +
-+	if (namelen < DNAME_INLINE_LEN_MIN)
-+		new->name = new->iname;
-+	else {
-+		new->name = kmalloc(namelen + 1, GFP_KERNEL);
-+		if (!new->name) {
-+			kmem_cache_free(unionfs_filldir_cachep, new);
-+			new = NULL;
-+			goto out;
++	/* No dentries should get created for possible whiteout names. */
++	if (!is_validname(name)) {
++		err = -EPERM;
++		goto out_free;
++	}
++
++	/* Now start the actual lookup procedure. */
++	bstart = dbstart(parent_dentry);
++	bend = dbend(parent_dentry);
++	bopaque = dbopaque(parent_dentry);
++	BUG_ON(bstart < 0);
++
++	/* It would be ideal if we could convert partial lookups to only have
++	 * to do this work when they really need to.  It could probably improve
++	 * performance quite a bit, and maybe simplify the rest of the code.
++	 */
++	if (lookupmode == INTERPOSE_PARTIAL) {
++		bstart++;
++		if ((bopaque != -1) && (bopaque < bend))
++			bend = bopaque;
++	}
++
++	for (bindex = bstart; bindex <= bend; bindex++) {
++		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
++		if (lookupmode == INTERPOSE_PARTIAL && hidden_dentry)
++			continue;
++		BUG_ON(hidden_dentry != NULL);
++
++		hidden_dir_dentry = unionfs_lower_dentry_idx(parent_dentry, bindex);
++
++		/* if the parent hidden dentry does not exist skip this */
++		if (!(hidden_dir_dentry && hidden_dir_dentry->d_inode))
++			continue;
++
++		/* also skip it if the parent isn't a directory. */
++		if (!S_ISDIR(hidden_dir_dentry->d_inode->i_mode))
++			continue;
++
++		/* Reuse the whiteout name because its value doesn't change. */
++		if (!whname) {
++			whname = alloc_whname(name, namelen);
++			if (IS_ERR(whname)) {
++				err = PTR_ERR(whname);
++				goto out_free;
++			}
++		}
++
++		/* check if whiteout exists in this branch: lookup .wh.foo */
++		wh_hidden_dentry = lookup_one_len(whname, hidden_dir_dentry,
++						  namelen + UNIONFS_WHLEN);
++		if (IS_ERR(wh_hidden_dentry)) {
++			dput(first_hidden_dentry);
++			mntput(first_hidden_mnt);
++			err = PTR_ERR(wh_hidden_dentry);
++			goto out_free;
++		}
++
++		if (wh_hidden_dentry->d_inode) {
++			/* We found a whiteout so lets give up. */
++			if (S_ISREG(wh_hidden_dentry->d_inode->i_mode)) {
++				set_dbend(dentry, bindex);
++				set_dbopaque(dentry, bindex);
++				dput(wh_hidden_dentry);
++				break;
++			}
++			err = -EIO;
++			printk(KERN_NOTICE "EIO: Invalid whiteout entry type"
++			       " %d.\n", wh_hidden_dentry->d_inode->i_mode);
++			dput(wh_hidden_dentry);
++			dput(first_hidden_dentry);
++			mntput(first_hidden_mnt);
++			goto out_free;
++		}
++
++		dput(wh_hidden_dentry);
++		wh_hidden_dentry = NULL;
++
++		/* Now do regular lookup; lookup foo */
++		nd->dentry = unionfs_lower_dentry_idx(dentry, bindex);
++		/* FIXME: fix following line for mount point crossing */
++		nd->mnt = unionfs_lower_mnt_idx(parent_dentry, bindex);
++
++		hidden_dentry = lookup_one_len_nd(name, hidden_dir_dentry,
++					       namelen, nd);
++		if (IS_ERR(hidden_dentry)) {
++			dput(first_hidden_dentry);
++			mntput(first_hidden_mnt);
++			err = PTR_ERR(hidden_dentry);
++			goto out_free;
++		}
++
++		/* Store the first negative dentry specially, because if they
++		 * are all negative we need this for future creates.
++		 */
++		if (!hidden_dentry->d_inode) {
++			if (!first_hidden_dentry && (dbstart(dentry) == -1)) {
++				first_hidden_dentry = hidden_dentry;
++				/* FIXME: following line needs to be changed
++				 * to allow mountpoint crossing
++				 */
++				first_hidden_mnt = mntget(
++					unionfs_lower_mnt_idx(parent_dentry,
++								bindex));
++				first_dentry_offset = bindex;
++			} else
++				dput(hidden_dentry);
++
++			continue;
++		}
++
++		/* number of positive dentries */
++		dentry_count++;
++
++		/* store underlying dentry */
++		if (dbstart(dentry) == -1)
++			set_dbstart(dentry, bindex);
++		unionfs_set_lower_dentry_idx(dentry, bindex, hidden_dentry);
++		/* FIXME: the following line needs to get fixed to allow
++		 * mountpoint crossing
++		 */
++		unionfs_set_lower_mnt_idx(dentry, bindex,
++			mntget(unionfs_lower_mnt_idx(parent_dentry, bindex)));
++		set_dbend(dentry, bindex);
++
++		/* update parent directory's atime with the bindex */
++		fsstack_copy_attr_atime(parent_dentry->d_inode,
++				     hidden_dir_dentry->d_inode);
++
++		/* We terminate file lookups here. */
++		if (!S_ISDIR(hidden_dentry->d_inode->i_mode)) {
++			if (lookupmode == INTERPOSE_PARTIAL)
++				continue;
++			if (dentry_count == 1)
++				goto out_positive;
++			/* This can only happen with mixed D-*-F-* */
++			BUG_ON(!S_ISDIR(unionfs_lower_dentry(dentry)->d_inode->i_mode));
++			continue;
++		}
++
++		opaque = is_opaque_dir(dentry, bindex);
++		if (opaque < 0) {
++			dput(first_hidden_dentry);
++			mntput(first_hidden_mnt);
++			err = opaque;
++			goto out_free;
++		} else if (opaque) {
++			set_dbend(dentry, bindex);
++			set_dbopaque(dentry, bindex);
++			break;
 +		}
 +	}
 +
-+	memcpy(new->name, name, namelen);
-+	new->name[namelen] = '\0';
++	if (dentry_count)
++		goto out_positive;
++	else
++		goto out_negative;
 +
-+	rdstate->hashentries++;
++out_negative:
++	if (lookupmode == INTERPOSE_PARTIAL)
++		goto out;
 +
-+	list_add(&(new->file_list), head);
++	/* If we've only got negative dentries, then use the leftmost one. */
++	if (lookupmode == INTERPOSE_REVAL) {
++		if (dentry->d_inode)
++			UNIONFS_I(dentry->d_inode)->stale = 1;
++
++		goto out;
++	}
++	/* This should only happen if we found a whiteout. */
++	if (first_dentry_offset == -1) {
++		nd->dentry = dentry;
++		/* FIXME: fix following line for mount point crossing */
++		nd->mnt = unionfs_lower_mnt_idx(parent_dentry, bindex);
++
++		first_hidden_dentry = lookup_one_len_nd(name, hidden_dir_dentry,
++						     namelen, nd);
++		first_dentry_offset = bindex;
++		if (IS_ERR(first_hidden_dentry)) {
++			err = PTR_ERR(first_hidden_dentry);
++			goto out;
++		}
++
++		/* FIXME: the following line needs to be changed to allow
++		 * mountpoint crossing
++		 */
++		first_hidden_mnt = mntget(unionfs_lower_mnt_idx(dentry, bindex));
++	}
++	unionfs_set_lower_dentry_idx(dentry, first_dentry_offset, first_hidden_dentry);
++	unionfs_set_lower_mnt_idx(dentry, first_dentry_offset, first_hidden_mnt);
++	set_dbstart(dentry, first_dentry_offset);
++	set_dbend(dentry, first_dentry_offset);
++
++	if (lookupmode == INTERPOSE_REVAL_NEG)
++		BUG_ON(dentry->d_inode != NULL);
++	else
++		d_add(dentry, NULL);
++	goto out;
++
++/* This part of the code is for positive dentries. */
++out_positive:
++	BUG_ON(dentry_count <= 0);
++
++	/* If we're holding onto the first negative dentry & corresponding
++	 * vfsmount - throw it out.
++	 */
++	dput(first_hidden_dentry);
++	mntput(first_hidden_mnt);
++
++	/* Partial lookups need to reinterpose, or throw away older negs. */
++	if (lookupmode == INTERPOSE_PARTIAL) {
++		if (dentry->d_inode) {
++			unionfs_reinterpose(dentry);
++			goto out;
++		}
++
++		/* This somehow turned positive, so it is as if we had a
++		 * negative revalidation.
++		 */
++		lookupmode = INTERPOSE_REVAL_NEG;
++
++		update_bstart(dentry);
++		bstart = dbstart(dentry);
++		bend = dbend(dentry);
++	}
++
++	err = unionfs_interpose(dentry, dentry->d_sb, lookupmode);
++	if (err)
++		goto out_drop;
++
++	goto out;
++
++out_drop:
++	d_drop(dentry);
++
++out_free:
++	/* should dput all the underlying dentries on error condition */
++	bstart = dbstart(dentry);
++	if (bstart >= 0) {
++		bend = dbend(dentry);
++		for (bindex = bstart; bindex <= bend; bindex++) {
++			dput(unionfs_lower_dentry_idx(dentry, bindex));
++			mntput(unionfs_lower_mnt_idx(dentry, bindex));
++		}
++	}
++	kfree(UNIONFS_D(dentry)->lower_paths);
++	UNIONFS_D(dentry)->lower_paths = NULL;
++	set_dbstart(dentry, -1);
++	set_dbend(dentry, -1);
++
++out:
++	if (!err && UNIONFS_D(dentry)) {
++		BUG_ON(dbend(dentry) > UNIONFS_D(dentry)->bcount);
++		BUG_ON(dbend(dentry) > sbmax(dentry->d_sb));
++		BUG_ON(dbstart(dentry) < 0);
++	}
++	kfree(whname);
++	if (locked_parent)
++		unlock_dentry(parent_dentry);
++	dput(parent_dentry);
++	if (locked_child)
++		unlock_dentry(dentry);
++	return ERR_PTR(err);
++}
++
++/* This is a utility function that fills in a unionfs dentry.*/
++int unionfs_partial_lookup(struct dentry *dentry)
++{
++	struct dentry *tmp;
++	struct nameidata nd = { .flags = 0 };
++
++	tmp = unionfs_lookup_backend(dentry, &nd, INTERPOSE_PARTIAL);
++	if (!tmp)
++		return 0;
++	if (IS_ERR(tmp))
++		return PTR_ERR(tmp);
++	/* need to change the interface */
++	BUG_ON(tmp != dentry);
++	return -ENOSYS;
++}
++
++/* The rest of these are utility functions for lookup. */
++static int is_opaque_dir(struct dentry *dentry, int bindex)
++{
++	int err = 0;
++	struct dentry *hidden_dentry;
++	struct dentry *wh_hidden_dentry;
++	struct inode *hidden_inode;
++	struct sioq_args args;
++
++	hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
++	hidden_inode = hidden_dentry->d_inode;
++
++	BUG_ON(!S_ISDIR(hidden_inode->i_mode));
++
++	mutex_lock(&hidden_inode->i_mutex);
++
++	if (!permission(hidden_inode, MAY_EXEC, NULL))
++		wh_hidden_dentry = lookup_one_len(UNIONFS_DIR_OPAQUE, hidden_dentry,
++					sizeof(UNIONFS_DIR_OPAQUE) - 1);
++	else {
++		args.is_opaque.dentry = hidden_dentry;
++		run_sioq(__is_opaque_dir, &args);
++		wh_hidden_dentry = args.ret;
++	}
++
++	mutex_unlock(&hidden_inode->i_mutex);
++
++	if (IS_ERR(wh_hidden_dentry)) {
++		err = PTR_ERR(wh_hidden_dentry);
++		goto out;
++	}
++
++	/* This is an opaque dir iff wh_hidden_dentry is positive */
++	err = !!wh_hidden_dentry->d_inode;
++
++	dput(wh_hidden_dentry);
 +out:
 +	return err;
++}
++
++/* is the filename valid == !(whiteout for a file or opaque dir marker) */
++static int is_validname(const char *name)
++{
++	if (!strncmp(name, UNIONFS_WHPFX, UNIONFS_WHLEN))
++		return 0;
++	if (!strncmp(name, UNIONFS_DIR_OPAQUE_NAME,
++		     sizeof(UNIONFS_DIR_OPAQUE_NAME) - 1))
++		return 0;
++	return 1;
++}
++
++/* The dentry cache is just so we have properly sized dentries. */
++static struct kmem_cache *unionfs_dentry_cachep;
++int unionfs_init_dentry_cache(void)
++{
++	unionfs_dentry_cachep = kmem_cache_create("unionfs_dentry",
++					sizeof(struct unionfs_dentry_info), 0,
++					SLAB_RECLAIM_ACCOUNT, NULL, NULL);
++
++	return (unionfs_dentry_cachep ? 0 : -ENOMEM);
++}
++
++void unionfs_destroy_dentry_cache(void)
++{
++	if (unionfs_dentry_cachep)
++		kmem_cache_destroy(unionfs_dentry_cachep);
++}
++
++void free_dentry_private_data(struct unionfs_dentry_info *udi)
++{
++	if (!udi)
++		return;
++	kmem_cache_free(unionfs_dentry_cachep, udi);
++}
++
++/* allocate new dentry private data, free old one if necessary */
++int new_dentry_private_data(struct dentry *dentry)
++{
++	int newsize;
++	int oldsize = 0;
++	struct unionfs_dentry_info *info = UNIONFS_D(dentry);
++
++	spin_lock(&dentry->d_lock);
++	if (!info) {
++		dentry->d_fsdata = kmem_cache_alloc(unionfs_dentry_cachep,
++						GFP_ATOMIC);
++		info = UNIONFS_D(dentry);
++
++		if (!info)
++			goto out;
++		init_MUTEX_LOCKED(&info->sem);
++
++		info->lower_paths = NULL;
++	} else
++		oldsize = sizeof(struct path) * info->bcount;
++
++	info->bstart = -1;
++	info->bend = -1;
++	info->bopaque = -1;
++	info->bcount = sbmax(dentry->d_sb);
++	atomic_set(&info->generation,
++		   atomic_read(&UNIONFS_SB(dentry->d_sb)->generation));
++	newsize = sizeof(struct path) * sbmax(dentry->d_sb);
++
++	/* Don't reallocate when we already have enough space. */
++	/* It would be ideal if we could actually use the slab macros to
++	 * determine what our object sizes is, but those are not exported.
++	 */
++	if (oldsize) {
++		int minsize = malloc_sizes[0].cs_size;
++
++		if (!newsize || ((oldsize < newsize) && (newsize > minsize))) {
++			kfree(info->lower_paths);
++			info->lower_paths = NULL;
++		}
++	}
++
++	if (!info->lower_paths && newsize) {
++		info->lower_paths = kmalloc(newsize, GFP_ATOMIC);
++		if (!info->lower_paths)
++			goto out_free;
++	}
++
++	memset(info->lower_paths, 0, (oldsize > newsize ? oldsize : newsize));
++
++	spin_unlock(&dentry->d_lock);
++	return 0;
++
++out_free:
++	kfree(info->lower_paths);
++
++out:
++	free_dentry_private_data(info);
++	dentry->d_fsdata = NULL;
++	spin_unlock(&dentry->d_lock);
++	return -ENOMEM;
++}
++
++/* scan through the lower dentry objects, and set bstart to reflect the
++ * starting branch
++ */
++void update_bstart(struct dentry *dentry)
++{
++	int bindex;
++	int bstart = dbstart(dentry);
++	int bend = dbend(dentry);
++	struct dentry *hidden_dentry;
++
++	for (bindex = bstart; bindex <= bend; bindex++) {
++		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
++		if (!hidden_dentry)
++			continue;
++		if (hidden_dentry->d_inode) {
++			set_dbstart(dentry, bindex);
++			break;
++		}
++		dput(hidden_dentry);
++		unionfs_set_lower_dentry_idx(dentry, bindex, NULL);
++	}
 +}
 +
 _
