@@ -1,264 +1,286 @@
 From: akpm@osdl.org
-Subject: + kvm-add-vm-exit-profiling.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:14:58 -0800
-Message-ID: <200701082314.l08NEwCD022321@shell0.pdx.osdl.net>
+Subject: + simplify-the-stacktrace-code.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:20:48 -0800
+Message-ID: <200701082320.l08NKmlU022475@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52808 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53241 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161242AbXAHXP6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 18:15:58 -0500
+	id S1161280AbXAHXVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 18:21:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, avi@qumranet.com
+Cc: hch@lst.de, ak@suse.de, akinobu.mita@gmail.com, davem@davemloft.net, lethal@linux-sh.org, mingo@elte.hu, ralf@linux-mips.org, schwidefsky@de.ibm.com
 
 
 The patch titled
-     KVM: add VM-exit profiling
+     simplify the stacktrace code
 has been added to the -mm tree.  Its filename is
-     kvm-add-vm-exit-profiling.patch
+     simplify-the-stacktrace-code.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: add VM-exit profiling
-From: Ingo Molnar <mingo@elte.hu>
+Subject: simplify the stacktrace code
+From: Christoph Hellwig <hch@lst.de>
 
-This adds the profile=kvm boot option, which enables KVM to profile VM
-exits.
+Simplify the stacktrace code:
 
-Use: "readprofile -m ./System.map | sort -n" to see the resulting
-output:
+ - remove the unused task argument to save_stack_trace, it's always
+   current
+ - remove the all_contexts flag, it's alwasy 0
 
-   [...]
-   18246 serial_out                               148.3415
-   18945 native_flush_tlb                         378.9000
-   23618 serial_in                                212.7748
-   29279 __spin_unlock_irq                        622.9574
-   43447 native_apic_write                        2068.9048
-   52702 enable_8259A_irq                         742.2817
-   54250 vgacon_scroll                             89.3740
-   67394 ide_inb                                  6126.7273
-   79514 copy_page_range                           98.1654
-   84868 do_wp_page                                86.6000
-  140266 pit_read                                 783.6089
-  151436 ide_outb                                 25239.3333
-  152668 native_io_delay                          21809.7143
-  174783 mask_and_ack_8259A                       783.7803
-  362404 native_set_pte_at                        36240.4000
- 1688747 total                                      0.5009
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c       |    8 ++++++++
- drivers/kvm/vmx.c       |    7 +++++++
- include/linux/profile.h |    1 +
- kernel/profile.c        |   13 +++++++++++++
- 4 files changed, 29 insertions(+)
+ arch/mips/kernel/stacktrace.c    |   22 ++++++----------------
+ arch/s390/kernel/stacktrace.c    |   18 +++++++-----------
+ arch/sh/kernel/stacktrace.c      |    9 +--------
+ arch/sparc64/kernel/stacktrace.c |   20 +++++++-------------
+ arch/x86_64/kernel/stacktrace.c  |    8 +++-----
+ include/linux/stacktrace.h       |    6 ++----
+ kernel/lockdep.c                 |    3 +--
+ lib/fault-inject.c               |    3 +--
+ 8 files changed, 28 insertions(+), 61 deletions(-)
 
-diff -puN drivers/kvm/svm.c~kvm-add-vm-exit-profiling drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-add-vm-exit-profiling
-+++ a/drivers/kvm/svm.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/vmalloc.h>
- #include <linux/highmem.h>
-+#include <linux/profile.h>
- #include <asm/desc.h>
+diff -puN arch/mips/kernel/stacktrace.c~simplify-the-stacktrace-code arch/mips/kernel/stacktrace.c
+--- a/arch/mips/kernel/stacktrace.c~simplify-the-stacktrace-code
++++ a/arch/mips/kernel/stacktrace.c
+@@ -31,8 +31,7 @@ static void save_raw_context_stack(struc
+ 	}
+ }
  
- #include "kvm_svm.h"
-@@ -1558,6 +1559,13 @@ again:
+-static void save_context_stack(struct stack_trace *trace,
+-	struct task_struct *task, struct pt_regs *regs)
++static void save_context_stack(struct stack_trace *trace, struct pt_regs *regs)
+ {
+ 	unsigned long sp = regs->regs[29];
+ #ifdef CONFIG_KALLSYMS
+@@ -41,7 +40,7 @@ static void save_context_stack(struct st
  
- 	reload_tss(vcpu);
+ 	if (raw_show_trace || !__kernel_text_address(pc)) {
+ 		unsigned long stack_page =
+-			(unsigned long)task_stack_page(task);
++			(unsigned long)task_stack_page(current);
+ 		if (stack_page && sp >= stack_page &&
+ 		    sp <= stack_page + THREAD_SIZE - 32)
+ 			save_raw_context_stack(trace, sp);
+@@ -54,7 +53,7 @@ static void save_context_stack(struct st
+ 			trace->entries[trace->nr_entries++] = pc;
+ 		if (trace->nr_entries >= trace->max_entries)
+ 			break;
+-		pc = unwind_stack(task, &sp, pc, &ra);
++		pc = unwind_stack(current, &sp, pc, &ra);
+ 	} while (pc);
+ #else
+ 	save_raw_context_stack(trace, sp);
+@@ -64,22 +63,13 @@ static void save_context_stack(struct st
+ /*
+  * Save stack-backtrace addresses into a stack_trace buffer.
+  */
+-void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
++void save_stack_trace(struct stack_trace *trace)
+ {
+ 	struct pt_regs dummyregs;
+ 	struct pt_regs *regs = &dummyregs;
  
-+	/*
-+	 * Profile KVM exit RIPs:
-+	 */
-+	if (unlikely(prof_on == KVM_PROFILING))
-+		profile_hit(KVM_PROFILING,
-+			(void *)(unsigned long)vcpu->svm->vmcb->save.rip);
+ 	WARN_ON(trace->nr_entries || !trace->max_entries);
+ 
+-	if (task && task != current) {
+-		regs->regs[29] = task->thread.reg29;
+-		regs->regs[31] = 0;
+-		regs->cp0_epc = task->thread.reg31;
+-	} else {
+-		if (!task)
+-			task = current;
+-		prepare_frametrace(regs);
+-	}
+-
+-	save_context_stack(trace, task, regs);
++	prepare_frametrace(regs);
++	save_context_stack(trace, regs);
+ }
+diff -puN arch/s390/kernel/stacktrace.c~simplify-the-stacktrace-code arch/s390/kernel/stacktrace.c
+--- a/arch/s390/kernel/stacktrace.c~simplify-the-stacktrace-code
++++ a/arch/s390/kernel/stacktrace.c
+@@ -59,7 +59,7 @@ static inline unsigned long save_context
+ 	}
+ }
+ 
+-void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
++void save_stack_trace(struct stack_trace *trace)
+ {
+ 	register unsigned long sp asm ("15");
+ 	unsigned long orig_sp, new_sp;
+@@ -69,20 +69,16 @@ void save_stack_trace(struct stack_trace
+ 	new_sp = save_context_stack(trace, &trace->skip, orig_sp,
+ 				S390_lowcore.panic_stack - PAGE_SIZE,
+ 				S390_lowcore.panic_stack);
+-	if ((new_sp != orig_sp) && !trace->all_contexts)
++	if (new_sp != orig_sp)
+ 		return;
+ 	new_sp = save_context_stack(trace, &trace->skip, new_sp,
+ 				S390_lowcore.async_stack - ASYNC_SIZE,
+ 				S390_lowcore.async_stack);
+-	if ((new_sp != orig_sp) && !trace->all_contexts)
++	if (new_sp != orig_sp)
+ 		return;
+-	if (task)
+-		save_context_stack(trace, &trace->skip, new_sp,
+-				   (unsigned long) task_stack_page(task),
+-				   (unsigned long) task_stack_page(task) + THREAD_SIZE);
+-	else
+-		save_context_stack(trace, &trace->skip, new_sp,
+-				   S390_lowcore.thread_info,
+-				   S390_lowcore.thread_info + THREAD_SIZE);
 +
- 	stgi();
++	save_context_stack(trace, &trace->skip, new_sp,
++			   S390_lowcore.thread_info,
++			   S390_lowcore.thread_info + THREAD_SIZE);
+ 	return;
+ }
+diff -puN arch/sh/kernel/stacktrace.c~simplify-the-stacktrace-code arch/sh/kernel/stacktrace.c
+--- a/arch/sh/kernel/stacktrace.c~simplify-the-stacktrace-code
++++ a/arch/sh/kernel/stacktrace.c
+@@ -19,14 +19,7 @@
+  */
+ void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
+ {
+-	unsigned long *sp;
+-
+-	if (!task)
+-		task = current;
+-	if (task == current)
+-		sp = (unsigned long *)current_stack_pointer;
+-	else
+-		sp = (unsigned long *)task->thread.sp;
++	unsigned long *sp = (unsigned long *)current_stack_pointer;
  
- 	kvm_reput_irq(vcpu);
-diff -puN drivers/kvm/vmx.c~kvm-add-vm-exit-profiling drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-add-vm-exit-profiling
-+++ a/drivers/kvm/vmx.c
-@@ -21,6 +21,7 @@
- #include <linux/module.h>
- #include <linux/mm.h>
- #include <linux/highmem.h>
-+#include <linux/profile.h>
- #include <asm/io.h>
- #include <asm/desc.h>
+ 	while (!kstack_end(sp)) {
+ 		unsigned long addr = *sp++;
+diff -puN arch/sparc64/kernel/stacktrace.c~simplify-the-stacktrace-code arch/sparc64/kernel/stacktrace.c
+--- a/arch/sparc64/kernel/stacktrace.c~simplify-the-stacktrace-code
++++ a/arch/sparc64/kernel/stacktrace.c
+@@ -3,22 +3,16 @@
+ #include <linux/thread_info.h>
+ #include <asm/ptrace.h>
  
-@@ -1859,6 +1860,12 @@ again:
- 	asm ("mov %0, %%ds; mov %0, %%es" : : "r"(__USER_DS));
+-void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
++void save_stack_trace(struct stack_trace *trace)
+ {
+ 	unsigned long ksp, fp, thread_base;
+-	struct thread_info *tp;
++	struct thread_info *tp = task_thread_info(current);
+ 
+-	if (!task)
+-		task = current;
+-	tp = task_thread_info(task);
+-	if (task == current) {
+-		flushw_all();
+-		__asm__ __volatile__(
+-			"mov	%%fp, %0"
+-			: "=r" (ksp)
+-		);
+-	} else
+-		ksp = tp->ksp;
++	flushw_all();
++	__asm__ __volatile__(
++		"mov	%%fp, %0"
++		: "=r" (ksp)
++	);
+ 
+ 	fp = ksp + STACK_BIAS;
+ 	thread_base = (unsigned long) tp;
+diff -puN arch/x86_64/kernel/stacktrace.c~simplify-the-stacktrace-code arch/x86_64/kernel/stacktrace.c
+--- a/arch/x86_64/kernel/stacktrace.c~simplify-the-stacktrace-code
++++ a/arch/x86_64/kernel/stacktrace.c
+@@ -21,8 +21,7 @@ save_stack_warning_symbol(void *data, ch
+ 
+ static int save_stack_stack(void *data, char *name)
+ {
+-	struct stack_trace *trace = (struct stack_trace *)data;
+-	return trace->all_contexts ? 0 : -1;
++	return -1;
+ }
+ 
+ static void save_stack_address(void *data, unsigned long addr)
+@@ -46,11 +45,10 @@ static struct stacktrace_ops save_stack_
+ /*
+  * Save stack-backtrace addresses into a stack_trace buffer.
+  */
+-void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
++void save_stack_trace(struct stack_trace *trace)
+ {
+-	dump_trace(task, NULL, NULL, &save_stack_ops, trace);
++	dump_trace(current, NULL, NULL, &save_stack_ops, trace);
+ 	if (trace->nr_entries < trace->max_entries)
+ 		trace->entries[trace->nr_entries++] = ULONG_MAX;
+ }
+ EXPORT_SYMBOL(save_stack_trace);
+-
+diff -puN include/linux/stacktrace.h~simplify-the-stacktrace-code include/linux/stacktrace.h
+--- a/include/linux/stacktrace.h~simplify-the-stacktrace-code
++++ a/include/linux/stacktrace.h
+@@ -6,15 +6,13 @@ struct stack_trace {
+ 	unsigned int nr_entries, max_entries;
+ 	unsigned long *entries;
+ 	int skip;	/* input argument: How many entries to skip */
+-	int all_contexts; /* input argument: if true do than one stack */
+ };
+ 
+-extern void save_stack_trace(struct stack_trace *trace,
+-			     struct task_struct *task);
++extern void save_stack_trace(struct stack_trace *trace);
+ 
+ extern void print_stack_trace(struct stack_trace *trace, int spaces);
+ #else
+-# define save_stack_trace(trace, task)			do { } while (0)
++# define save_stack_trace(trace)			do { } while (0)
+ # define print_stack_trace(trace)			do { } while (0)
  #endif
  
-+	/*
-+	 * Profile KVM exit RIPs:
-+	 */
-+	if (unlikely(prof_on == KVM_PROFILING))
-+		profile_hit(KVM_PROFILING, (void *)vmcs_readl(GUEST_RIP));
-+
- 	kvm_run->exit_type = 0;
- 	if (fail) {
- 		kvm_run->exit_type = KVM_EXIT_TYPE_FAIL_ENTRY;
-diff -puN include/linux/profile.h~kvm-add-vm-exit-profiling include/linux/profile.h
---- a/include/linux/profile.h~kvm-add-vm-exit-profiling
-+++ a/include/linux/profile.h
-@@ -15,6 +15,7 @@ extern int prof_on __read_mostly;
- #define CPU_PROFILING	1
- #define SCHED_PROFILING	2
- #define SLEEP_PROFILING	3
-+#define KVM_PROFILING	4
+diff -puN kernel/lockdep.c~simplify-the-stacktrace-code kernel/lockdep.c
+--- a/kernel/lockdep.c~simplify-the-stacktrace-code
++++ a/kernel/lockdep.c
+@@ -257,9 +257,8 @@ static int save_trace(struct stack_trace
+ 	trace->entries = stack_trace + nr_stack_trace_entries;
  
- struct proc_dir_entry;
- struct pt_regs;
-diff -puN kernel/profile.c~kvm-add-vm-exit-profiling kernel/profile.c
---- a/kernel/profile.c~kvm-add-vm-exit-profiling
-+++ a/kernel/profile.c
-@@ -40,7 +40,10 @@ int (*timer_hook)(struct pt_regs *) __re
+ 	trace->skip = 3;
+-	trace->all_contexts = 0;
  
- static atomic_t *prof_buffer;
- static unsigned long prof_len, prof_shift;
-+
- int prof_on __read_mostly;
-+EXPORT_SYMBOL_GPL(prof_on);
-+
- static cpumask_t prof_cpu_mask = CPU_MASK_ALL;
- #ifdef CONFIG_SMP
- static DEFINE_PER_CPU(struct profile_hit *[2], cpu_profile_hits);
-@@ -52,6 +55,7 @@ static int __init profile_setup(char * s
- {
- 	static char __initdata schedstr[] = "schedule";
- 	static char __initdata sleepstr[] = "sleep";
-+	static char __initdata kvmstr[] = "kvm";
- 	int par;
+-	save_stack_trace(trace, NULL);
++	save_stack_trace(trace);
  
- 	if (!strncmp(str, sleepstr, strlen(sleepstr))) {
-@@ -72,6 +76,15 @@ static int __init profile_setup(char * s
- 		printk(KERN_INFO
- 			"kernel schedule profiling enabled (shift: %ld)\n",
- 			prof_shift);
-+	} else if (!strncmp(str, kvmstr, strlen(kvmstr))) {
-+		prof_on = KVM_PROFILING;
-+		if (str[strlen(kvmstr)] == ',')
-+			str += strlen(kvmstr) + 1;
-+		if (get_option(&str, &par))
-+			prof_shift = par;
-+		printk(KERN_INFO
-+			"kernel KVM profiling enabled (shift: %ld)\n",
-+			prof_shift);
- 	} else if (get_option(&str, &par)) {
- 		prof_shift = par;
- 		prof_on = CPU_PROFILING;
+ 	trace->max_entries = trace->nr_entries;
+ 
+diff -puN lib/fault-inject.c~simplify-the-stacktrace-code lib/fault-inject.c
+--- a/lib/fault-inject.c~simplify-the-stacktrace-code
++++ a/lib/fault-inject.c
+@@ -72,9 +72,8 @@ static bool fail_stacktrace(struct fault
+ 	trace.entries = entries;
+ 	trace.max_entries = depth;
+ 	trace.skip = 1;
+-	trace.all_contexts = 0;
+ 
+-	save_stack_trace(&trace, NULL);
++	save_stack_trace(&trace);
+ 	for (n = 0; n < trace.nr_entries; n++) {
+ 		if (attr->reject_start <= entries[n] &&
+ 			       entries[n] < attr->reject_end)
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from hch@lst.de are
 
-sched-tasks-cannot-run-on-cpus-onlined-after-boot.patch
-i386-sched_clock-using-init-data-tsc_disable-fix.patch
-make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch
-kvm-add-vm-exit-profiling.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-fix-for-crash-in-adummy_init.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
-convert-i386-pda-code-to-use-%fs.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-sched-improve-sched_clock-on-i686.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-debugging-feature-proc-timer_list.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-debugging-feature-sysrq-q-to-print-timers.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
+slab-cache-alloc-cleanups.patch
+simplify-the-stacktrace-code.patch
 aio-is-unlikely.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
