@@ -1,30 +1,30 @@
 From: akpm@osdl.org
-Subject: - unionfs-helper-macros-inlines.patch removed from -mm tree
-Date: Mon, 08 Jan 2007 13:10:12 -0800
-Message-ID: <200701082110.l08LAClF019052@shell0.pdx.osdl.net>
+Subject: - unionfs-readdir-state.patch removed from -mm tree
+Date: Mon, 08 Jan 2007 13:09:58 -0800
+Message-ID: <200701082109.l08L9wEj019025@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43631 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43606 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750891AbXAHVK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:10:28 -0500
+	id S1750891AbXAHVKM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:10:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unionfs: helper macros/inlines
+     unionfs: readdir state
 has been removed from the -mm tree.  Its filename was
-     unionfs-helper-macros-inlines.patch
+     unionfs-readdir-state.patch
 
 This patch was dropped because I'll use the git tree
 
 ------------------------------------------------------
-Subject: unionfs: helper macros/inlines
+Subject: unionfs: readdir state
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-This patch contains many macros and inline functions used thoughout Unionfs.
+This file contains the routines for maintaining readdir state.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -32,17 +32,18 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/fanout.h |  177 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 177 insertions(+)
+ fs/unionfs/rdstate.c |  288 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 288 insertions(+)
 
-diff -puN /dev/null fs/unionfs/fanout.h
+diff -puN /dev/null fs/unionfs/rdstate.c
 --- /dev/null
-+++ a/fs/unionfs/fanout.h
-@@ -0,0 +1,177 @@
++++ a/fs/unionfs/rdstate.c
+@@ -0,0 +1,288 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
-+ * Copyright (c) 2005-2006 Josef Sipek
++ * Copyright (c) 2005-2006 Josef 'Jeff' Sipek
++ * Copyright (c) 2005-2006 Junjiro Okajima
 + * Copyright (c) 2005      Arun M. Krishnakumar
 + * Copyright (c) 2004-2006 David P. Quigley
 + * Copyright (c) 2003-2004 Mohammad Nayyer Zubair
@@ -56,170 +57,286 @@ diff -puN /dev/null fs/unionfs/fanout.h
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef _FANOUT_H_
-+#define _FANOUT_H_
++#include "union.h"
 +
-+/* Inode to private data */
-+static inline struct unionfs_inode_info *UNIONFS_I(const struct inode *inode)
++/* This file contains the routines for maintaining readdir state. */
++
++/* There are two structures here, rdstate which is a hash table
++ * of the second structure which is a filldir_node.
++ */
++
++/* This is a struct kmem_cache for filldir nodes, because we allocate a lot
++ * of them and they shouldn't waste memory.  If the node has a small name
++ * (as defined by the dentry structure), then we use an inline name to
++ * preserve kmalloc space.
++ */
++static struct kmem_cache *unionfs_filldir_cachep;
++
++int unionfs_init_filldir_cache(void)
 +{
-+	return container_of(inode, struct unionfs_inode_info, vfs_inode);
++	unionfs_filldir_cachep =
++	    kmem_cache_create("unionfs_filldir", sizeof(struct filldir_node), 0,
++			      SLAB_RECLAIM_ACCOUNT, NULL, NULL);
++
++	return (unionfs_filldir_cachep ? 0 : -ENOMEM);
 +}
 +
-+#define ibstart(ino) (UNIONFS_I(ino)->bstart)
-+#define ibend(ino) (UNIONFS_I(ino)->bend)
-+
-+/* Superblock to private data */
-+#define UNIONFS_SB(super) ((struct unionfs_sb_info *)(super)->s_fs_info)
-+#define sbstart(sb) 0
-+#define sbend(sb) (UNIONFS_SB(sb)->bend)
-+#define sbmax(sb) (UNIONFS_SB(sb)->bend + 1)
-+
-+/* File to private Data */
-+#define UNIONFS_F(file) ((struct unionfs_file_info *)((file)->private_data))
-+#define fbstart(file) (UNIONFS_F(file)->bstart)
-+#define fbend(file) (UNIONFS_F(file)->bend)
-+
-+/* File to lower file. */
-+static inline struct file *unionfs_lower_file(const struct file *f)
++void unionfs_destroy_filldir_cache(void)
 +{
-+	return UNIONFS_F(f)->lower_files[fbstart(f)];
++	if (unionfs_filldir_cachep)
++		kmem_cache_destroy(unionfs_filldir_cachep);
 +}
 +
-+static inline struct file *unionfs_lower_file_idx(const struct file *f, int index)
++/* This is a tuning parameter that tells us roughly how big to make the
++ * hash table in directory entries per page.  This isn't perfect, but
++ * at least we get a hash table size that shouldn't be too overloaded.
++ * The following averages are based on my home directory.
++ * 14.44693	Overall
++ * 12.29	Single Page Directories
++ * 117.93	Multi-page directories
++ */
++#define DENTPAGE 4096
++#define DENTPERONEPAGE 12
++#define DENTPERPAGE 118
++#define MINHASHSIZE 1
++static int guesstimate_hash_size(struct inode *inode)
 +{
-+	return UNIONFS_F(f)->lower_files[index];
++	struct inode *hidden_inode;
++	int bindex;
++	int hashsize = MINHASHSIZE;
++
++	if (UNIONFS_I(inode)->hashsize > 0)
++		return UNIONFS_I(inode)->hashsize;
++
++	for (bindex = ibstart(inode); bindex <= ibend(inode); bindex++) {
++		if (!(hidden_inode = unionfs_lower_inode_idx(inode, bindex)))
++			continue;
++
++		if (hidden_inode->i_size == DENTPAGE)
++			hashsize += DENTPERONEPAGE;
++		else
++			hashsize += (hidden_inode->i_size / DENTPAGE) * DENTPERPAGE;
++	}
++
++	return hashsize;
 +}
 +
-+static inline void unionfs_set_lower_file_idx(struct file *f, int index, struct file *val)
++int init_rdstate(struct file *file)
 +{
-+	UNIONFS_F(f)->lower_files[index] = val;
++	BUG_ON(sizeof(loff_t) != (sizeof(unsigned int) + sizeof(unsigned int)));
++	BUG_ON(UNIONFS_F(file)->rdstate != NULL);
++
++	UNIONFS_F(file)->rdstate = alloc_rdstate(file->f_dentry->d_inode,
++						 fbstart(file));
++
++	return (UNIONFS_F(file)->rdstate ? 0 : -ENOMEM);
 +}
 +
-+static inline void unionfs_set_lower_file(struct file *f, struct file *val)
++struct unionfs_dir_state *find_rdstate(struct inode *inode, loff_t fpos)
 +{
-+	UNIONFS_F(f)->lower_files[fbstart(f)] = val;
++	struct unionfs_dir_state *rdstate = NULL;
++	struct list_head *pos;
++
++	spin_lock(&UNIONFS_I(inode)->rdlock);
++	list_for_each(pos, &UNIONFS_I(inode)->readdircache) {
++		struct unionfs_dir_state *r =
++		    list_entry(pos, struct unionfs_dir_state, cache);
++		if (fpos == rdstate2offset(r)) {
++			UNIONFS_I(inode)->rdcount--;
++			list_del(&r->cache);
++			rdstate = r;
++			break;
++		}
++	}
++	spin_unlock(&UNIONFS_I(inode)->rdlock);
++	return rdstate;
 +}
 +
-+/* Inode to lower inode. */
-+static inline struct inode *unionfs_lower_inode(const struct inode *i)
++struct unionfs_dir_state *alloc_rdstate(struct inode *inode, int bindex)
 +{
-+	return UNIONFS_I(i)->lower_inodes[ibstart(i)];
++	int i = 0;
++	int hashsize;
++	int mallocsize = sizeof(struct unionfs_dir_state);
++	struct unionfs_dir_state *rdstate;
++
++	hashsize = guesstimate_hash_size(inode);
++	mallocsize += hashsize * sizeof(struct list_head);
++	/* Round it up to the next highest power of two. */
++	mallocsize--;
++	mallocsize |= mallocsize >> 1;
++	mallocsize |= mallocsize >> 2;
++	mallocsize |= mallocsize >> 4;
++	mallocsize |= mallocsize >> 8;
++	mallocsize |= mallocsize >> 16;
++	mallocsize++;
++
++	/* This should give us about 500 entries anyway. */
++	if (mallocsize > PAGE_SIZE)
++		mallocsize = PAGE_SIZE;
++
++	hashsize = (mallocsize -
++	     sizeof(struct unionfs_dir_state)) / sizeof(struct list_head);
++
++	rdstate = kmalloc(mallocsize, GFP_KERNEL);
++	if (!rdstate)
++		return NULL;
++
++	spin_lock(&UNIONFS_I(inode)->rdlock);
++	if (UNIONFS_I(inode)->cookie >= (MAXRDCOOKIE - 1))
++		UNIONFS_I(inode)->cookie = 1;
++	else
++		UNIONFS_I(inode)->cookie++;
++
++	rdstate->cookie = UNIONFS_I(inode)->cookie;
++	spin_unlock(&UNIONFS_I(inode)->rdlock);
++	rdstate->offset = 1;
++	rdstate->access = jiffies;
++	rdstate->bindex = bindex;
++	rdstate->dirpos = 0;
++	rdstate->hashentries = 0;
++	rdstate->size = hashsize;
++	for (i = 0; i < rdstate->size; i++)
++		INIT_LIST_HEAD(&rdstate->list[i]);
++
++	return rdstate;
 +}
 +
-+static inline struct inode *unionfs_lower_inode_idx(const struct inode *i, int index)
++static void free_filldir_node(struct filldir_node *node)
 +{
-+	return UNIONFS_I(i)->lower_inodes[index];
++	if (node->namelen >= DNAME_INLINE_LEN_MIN)
++		kfree(node->name);
++	kmem_cache_free(unionfs_filldir_cachep, node);
 +}
 +
-+static inline void unionfs_set_lower_inode_idx(struct inode *i, int index,
-+				   struct inode *val)
++void free_rdstate(struct unionfs_dir_state *state)
 +{
-+	UNIONFS_I(i)->lower_inodes[index] = val;
++	struct filldir_node *tmp;
++	int i;
++
++	for (i = 0; i < state->size; i++) {
++		struct list_head *head = &(state->list[i]);
++		struct list_head *pos, *n;
++
++		/* traverse the list and deallocate space */
++		list_for_each_safe(pos, n, head) {
++			tmp = list_entry(pos, struct filldir_node, file_list);
++			list_del(&tmp->file_list);
++			free_filldir_node(tmp);
++		}
++	}
++
++	kfree(state);
 +}
 +
-+static inline void unionfs_set_lower_inode(struct inode *i, struct inode *val)
++struct filldir_node *find_filldir_node(struct unionfs_dir_state *rdstate,
++				       const char *name, int namelen)
 +{
-+	UNIONFS_I(i)->lower_inodes[ibstart(i)] = val;
++	int index;
++	unsigned int hash;
++	struct list_head *head;
++	struct list_head *pos;
++	struct filldir_node *cursor = NULL;
++	int found = 0;
++
++	BUG_ON(namelen <= 0);
++
++	hash = full_name_hash(name, namelen);
++	index = hash % rdstate->size;
++
++	head = &(rdstate->list[index]);
++	list_for_each(pos, head) {
++		cursor = list_entry(pos, struct filldir_node, file_list);
++
++		if (cursor->namelen == namelen && cursor->hash == hash &&
++		    !strncmp(cursor->name, name, namelen)) {
++			/* a duplicate exists, and hence no need to create
++			 * entry to the list
++			 */
++			found = 1;
++
++			/* if the duplicate is in this branch, then the file
++			 * system is corrupted.
++			 */
++			if (cursor->bindex == rdstate->bindex) {
++				printk(KERN_DEBUG "Possible I/O error "
++					"unionfs_filldir: a file is duplicated "
++					"in the same branch %d: %s\n",
++					rdstate->bindex, cursor->name);
++			}
++			break;
++		}
++	}
++
++	if (!found)
++		cursor = NULL;
++
++	return cursor;
 +}
 +
-+/* Superblock to lower superblock. */
-+static inline struct super_block *unionfs_lower_super(const struct super_block *sb)
++inline struct filldir_node *alloc_filldir_node(const char *name, int namelen,
++					       unsigned int hash, int bindex)
 +{
-+	return UNIONFS_SB(sb)->data[sbstart(sb)].sb;
++	return kmem_cache_alloc(unionfs_filldir_cachep, GFP_KERNEL);
 +}
 +
-+static inline struct super_block *unionfs_lower_super_idx(const struct super_block *sb, int index)
++int add_filldir_node(struct unionfs_dir_state *rdstate, const char *name,
++		     int namelen, int bindex, int whiteout)
 +{
-+	return UNIONFS_SB(sb)->data[index].sb;
++	struct filldir_node *new;
++	unsigned int hash;
++	int index;
++	int err = 0;
++	struct list_head *head;
++
++	BUG_ON(namelen <= 0);
++
++	hash = full_name_hash(name, namelen);
++	index = hash % rdstate->size;
++	head = &(rdstate->list[index]);
++
++	new = alloc_filldir_node(name, namelen, hash, bindex);
++	if (!new) {
++		err = -ENOMEM;
++		goto out;
++	}
++
++	INIT_LIST_HEAD(&new->file_list);
++	new->namelen = namelen;
++	new->hash = hash;
++	new->bindex = bindex;
++	new->whiteout = whiteout;
++
++	if (namelen < DNAME_INLINE_LEN_MIN)
++		new->name = new->iname;
++	else {
++		new->name = kmalloc(namelen + 1, GFP_KERNEL);
++		if (!new->name) {
++			kmem_cache_free(unionfs_filldir_cachep, new);
++			new = NULL;
++			goto out;
++		}
++	}
++
++	memcpy(new->name, name, namelen);
++	new->name[namelen] = '\0';
++
++	rdstate->hashentries++;
++
++	list_add(&(new->file_list), head);
++out:
++	return err;
 +}
 +
-+static inline void unionfs_set_lower_super_idx(struct super_block *sb, int index,
-+				   struct super_block *val)
-+{
-+	UNIONFS_SB(sb)->data[index].sb = val;
-+}
-+
-+static inline void unionfs_set_lower_super(struct super_block *sb, struct super_block *val)
-+{
-+	UNIONFS_SB(sb)->data[sbstart(sb)].sb = val;
-+}
-+
-+/* Branch count macros. */
-+static inline int branch_count(const struct super_block *sb, int index)
-+{
-+	return atomic_read(&UNIONFS_SB(sb)->data[index].sbcount);
-+}
-+
-+static inline void set_branch_count(struct super_block *sb, int index, int val)
-+{
-+	atomic_set(&UNIONFS_SB(sb)->data[index].sbcount, val);
-+}
-+
-+static inline void branchget(struct super_block *sb, int index)
-+{
-+	atomic_inc(&UNIONFS_SB(sb)->data[index].sbcount);
-+}
-+
-+static inline void branchput(struct super_block *sb, int index)
-+{
-+	atomic_dec(&UNIONFS_SB(sb)->data[index].sbcount);
-+}
-+
-+/* Dentry macros */
-+static inline struct unionfs_dentry_info *UNIONFS_D(const struct dentry *dent)
-+{
-+	return dent->d_fsdata;
-+}
-+
-+#define dbstart(dent) (UNIONFS_D(dent)->bstart)
-+#define set_dbstart(dent, val) do { UNIONFS_D(dent)->bstart = val; } while(0)
-+#define dbend(dent) (UNIONFS_D(dent)->bend)
-+#define set_dbend(dent, val) do { UNIONFS_D(dent)->bend = val; } while(0)
-+#define dbopaque(dent) (UNIONFS_D(dent)->bopaque)
-+#define set_dbopaque(dent, val) do { UNIONFS_D(dent)->bopaque = val; } while (0)
-+
-+static inline void unionfs_set_lower_dentry_idx(struct dentry *dent, int index,
-+				   struct dentry *val)
-+{
-+	UNIONFS_D(dent)->lower_paths[index].dentry = val;
-+}
-+
-+static inline struct dentry *unionfs_lower_dentry_idx(const struct dentry *dent, int index)
-+{
-+	return UNIONFS_D(dent)->lower_paths[index].dentry;
-+}
-+
-+static inline struct dentry *unionfs_lower_dentry(const struct dentry *dent)
-+{
-+	return unionfs_lower_dentry_idx(dent, dbstart(dent));
-+}
-+
-+static inline void unionfs_set_lower_mnt_idx(struct dentry *dent, int index,
-+				   struct vfsmount *mnt)
-+{
-+	UNIONFS_D(dent)->lower_paths[index].mnt = mnt;
-+}
-+
-+static inline struct vfsmount *unionfs_lower_mnt_idx(const struct dentry *dent, int index)
-+{
-+	return UNIONFS_D(dent)->lower_paths[index].mnt;
-+}
-+
-+static inline struct vfsmount *unionfs_lower_mnt(const struct dentry *dent)
-+{
-+	return unionfs_lower_mnt_idx(dent,dbstart(dent));
-+}
-+
-+/* Macros for locking a dentry. */
-+#define lock_dentry(d)		down(&UNIONFS_D(d)->sem)
-+#define unlock_dentry(d)	up(&UNIONFS_D(d)->sem)
-+#define verify_locked(d)
-+
-+#endif	/* _FANOUT_H */
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
+unionfs-readdir-state.patch
+unionfs-rename.patch
+unionfs-privileged-operations-workqueue.patch
+unionfs-handling-of-stale-inodes.patch
+unionfs-miscellaneous-helper-functions.patch
+unionfs-superblock-operations.patch
 unionfs-helper-macros-inlines.patch
 unionfs-internal-include-file.patch
 unionfs-include-file.patch
