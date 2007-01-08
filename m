@@ -1,30 +1,30 @@
 From: akpm@osdl.org
-Subject: - unionfs-main-module-functions.patch removed from -mm tree
-Date: Mon, 08 Jan 2007 13:09:56 -0800
-Message-ID: <200701082109.l08L9uDS019022@shell0.pdx.osdl.net>
+Subject: - unionfs-helper-macros-inlines.patch removed from -mm tree
+Date: Mon, 08 Jan 2007 13:10:12 -0800
+Message-ID: <200701082110.l08LAClF019052@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43598 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43631 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750946AbXAHVKL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:10:11 -0500
+	id S1750891AbXAHVK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:10:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unionfs: main module functions
+     unionfs: helper macros/inlines
 has been removed from the -mm tree.  Its filename was
-     unionfs-main-module-functions.patch
+     unionfs-helper-macros-inlines.patch
 
 This patch was dropped because I'll use the git tree
 
 ------------------------------------------------------
-Subject: unionfs: main module functions
+Subject: unionfs: helper macros/inlines
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Module init & cleanup code, as well as interposition functions.
+This patch contains many macros and inline functions used thoughout Unionfs.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -32,18 +32,17 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/main.c |  687 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 687 insertions(+)
+ fs/unionfs/fanout.h |  177 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 177 insertions(+)
 
-diff -puN /dev/null fs/unionfs/main.c
+diff -puN /dev/null fs/unionfs/fanout.h
 --- /dev/null
-+++ a/fs/unionfs/main.c
-@@ -0,0 +1,687 @@
++++ a/fs/unionfs/fanout.h
+@@ -0,0 +1,177 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
-+ * Copyright (c) 2005-2006 Josef 'Jeff' Sipek
-+ * Copyright (c) 2005-2006 Junjiro Okajima
++ * Copyright (c) 2005-2006 Josef Sipek
 + * Copyright (c) 2005      Arun M. Krishnakumar
 + * Copyright (c) 2004-2006 David P. Quigley
 + * Copyright (c) 2003-2004 Mohammad Nayyer Zubair
@@ -57,686 +56,170 @@ diff -puN /dev/null fs/unionfs/main.c
 + * published by the Free Software Foundation.
 + */
 +
-+#include "union.h"
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
++#ifndef _FANOUT_H_
++#define _FANOUT_H_
 +
-+/* sb we pass is unionfs's super_block */
-+int unionfs_interpose(struct dentry *dentry, struct super_block *sb, int flag)
++/* Inode to private data */
++static inline struct unionfs_inode_info *UNIONFS_I(const struct inode *inode)
 +{
-+	struct inode *hidden_inode;
-+	struct dentry *hidden_dentry;
-+	int err = 0;
-+	struct inode *inode;
-+	int is_negative_dentry = 1;
-+	int bindex, bstart, bend;
-+
-+	verify_locked(dentry);
-+
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+
-+	/* Make sure that we didn't get a negative dentry. */
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		if (unionfs_lower_dentry_idx(dentry, bindex) &&
-+		    unionfs_lower_dentry_idx(dentry, bindex)->d_inode) {
-+			is_negative_dentry = 0;
-+			break;
-+		}
-+	}
-+	BUG_ON(is_negative_dentry);
-+
-+	/* We allocate our new inode below, by calling iget.
-+	 * iget will call our read_inode which will initialize some
-+	 * of the new inode's fields
-+	 */
-+
-+	/* On revalidate we've already got our own inode and just need
-+	 * to fix it up.
-+	 */
-+	if (flag == INTERPOSE_REVAL) {
-+		inode = dentry->d_inode;
-+		UNIONFS_I(inode)->bstart = -1;
-+		UNIONFS_I(inode)->bend = -1;
-+		atomic_set(&UNIONFS_I(inode)->generation,
-+			   atomic_read(&UNIONFS_SB(sb)->generation));
-+
-+		UNIONFS_I(inode)->lower_inodes =
-+		    kcalloc(sbmax(sb), sizeof(struct inode *), GFP_KERNEL);
-+		if (!UNIONFS_I(inode)->lower_inodes) {
-+			err = -ENOMEM;
-+			goto out;
-+		}
-+		mutex_lock(&inode->i_mutex);
-+	} else {
-+		ino_t ino;
-+		/* get unique inode number for unionfs */
-+		ino = iunique(sb, UNIONFS_ROOT_INO);
-+
-+		inode = iget(sb, ino);
-+		if (!inode) {
-+			err = -EACCES;	/* should be impossible??? */
-+			goto out;
-+		}
-+
-+		mutex_lock(&inode->i_mutex);
-+		if (atomic_read(&inode->i_count) > 1)
-+			goto skip;
-+	}
-+
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+		if (!hidden_dentry) {
-+			unionfs_set_lower_inode_idx(inode, bindex, NULL);
-+			continue;
-+		}
-+
-+		/* Initialize the hidden inode to the new hidden inode. */
-+		if (!hidden_dentry->d_inode)
-+			continue;
-+
-+		unionfs_set_lower_inode_idx(inode, bindex,
-+				igrab(hidden_dentry->d_inode));
-+	}
-+
-+	ibstart(inode) = dbstart(dentry);
-+	ibend(inode) = dbend(dentry);
-+
-+	/* Use attributes from the first branch. */
-+	hidden_inode = unionfs_lower_inode(inode);
-+
-+	/* Use different set of inode ops for symlinks & directories */
-+	if (S_ISLNK(hidden_inode->i_mode))
-+		inode->i_op = &unionfs_symlink_iops;
-+	else if (S_ISDIR(hidden_inode->i_mode))
-+		inode->i_op = &unionfs_dir_iops;
-+
-+	/* Use different set of file ops for directories */
-+	if (S_ISDIR(hidden_inode->i_mode))
-+		inode->i_fop = &unionfs_dir_fops;
-+
-+	/* properly initialize special inodes */
-+	if (S_ISBLK(hidden_inode->i_mode) || S_ISCHR(hidden_inode->i_mode) ||
-+	    S_ISFIFO(hidden_inode->i_mode) || S_ISSOCK(hidden_inode->i_mode))
-+		init_special_inode(inode, hidden_inode->i_mode,
-+				   hidden_inode->i_rdev);
-+	/* Fix our inode's address operations to that of the lower inode
-+	 * (Unionfs is FiST-Lite)
-+	 */
-+	if (inode->i_mapping->a_ops != hidden_inode->i_mapping->a_ops)
-+		inode->i_mapping->a_ops = hidden_inode->i_mapping->a_ops;
-+
-+	/* all well, copy inode attributes */
-+	fsstack_copy_attr_all(inode, hidden_inode, unionfs_get_nlinks);
-+	fsstack_copy_inode_size(inode, hidden_inode);
-+
-+skip:
-+	/* only (our) lookup wants to do a d_add */
-+	switch (flag) {
-+		case INTERPOSE_DEFAULT:
-+		case INTERPOSE_REVAL_NEG:
-+			d_instantiate(dentry, inode);
-+			break;
-+		case INTERPOSE_LOOKUP:
-+			err = PTR_ERR(d_splice_alias(inode, dentry));
-+			break;
-+		case INTERPOSE_REVAL:
-+			/* Do nothing. */
-+			break;
-+		default:
-+			printk(KERN_ERR "Invalid interpose flag passed!");
-+			BUG();
-+	}
-+
-+	mutex_unlock(&inode->i_mutex);
-+
-+out:
-+	return err;
++	return container_of(inode, struct unionfs_inode_info, vfs_inode);
 +}
 +
-+void unionfs_reinterpose(struct dentry *dentry)
++#define ibstart(ino) (UNIONFS_I(ino)->bstart)
++#define ibend(ino) (UNIONFS_I(ino)->bend)
++
++/* Superblock to private data */
++#define UNIONFS_SB(super) ((struct unionfs_sb_info *)(super)->s_fs_info)
++#define sbstart(sb) 0
++#define sbend(sb) (UNIONFS_SB(sb)->bend)
++#define sbmax(sb) (UNIONFS_SB(sb)->bend + 1)
++
++/* File to private Data */
++#define UNIONFS_F(file) ((struct unionfs_file_info *)((file)->private_data))
++#define fbstart(file) (UNIONFS_F(file)->bstart)
++#define fbend(file) (UNIONFS_F(file)->bend)
++
++/* File to lower file. */
++static inline struct file *unionfs_lower_file(const struct file *f)
 +{
-+	struct dentry *hidden_dentry;
-+	struct inode *inode;
-+	int bindex, bstart, bend;
-+
-+	verify_locked(dentry);
-+
-+	/* This is pre-allocated inode */
-+	inode = dentry->d_inode;
-+
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+		if (!hidden_dentry)
-+			continue;
-+
-+		if (!hidden_dentry->d_inode)
-+			continue;
-+		if (unionfs_lower_inode_idx(inode, bindex))
-+			continue;
-+		unionfs_set_lower_inode_idx(inode, bindex,
-+				igrab(hidden_dentry->d_inode));
-+	}
-+	ibstart(inode) = dbstart(dentry);
-+	ibend(inode) = dbend(dentry);
++	return UNIONFS_F(f)->lower_files[fbstart(f)];
 +}
 +
-+/* make sure the branch we just looked up (nd) makes sense:
-+ *
-+ * 1) we're not trying to stack unionfs on top of unionfs
-+ * 2) it exists
-+ * 3) is a directory
-+ */
-+int check_branch(struct nameidata *nd)
++static inline struct file *unionfs_lower_file_idx(const struct file *f, int index)
 +{
-+	if (!strcmp(nd->dentry->d_sb->s_type->name, "unionfs"))
-+		return -EINVAL;
-+	if (!nd->dentry->d_inode)
-+		return -ENOENT;
-+	if (!S_ISDIR(nd->dentry->d_inode->i_mode))
-+		return -ENOTDIR;
-+	return 0;
++	return UNIONFS_F(f)->lower_files[index];
 +}
 +
-+/* checks if two hidden_dentries have overlapping branches */
-+int is_branch_overlap(struct dentry *dent1, struct dentry *dent2)
++static inline void unionfs_set_lower_file_idx(struct file *f, int index, struct file *val)
 +{
-+	struct dentry *dent = NULL;
-+
-+	dent = dent1;
-+	while ((dent != dent2) && (dent->d_parent != dent))
-+		dent = dent->d_parent;
-+
-+	if (dent == dent2)
-+		return 1;
-+
-+	dent = dent2;
-+	while ((dent != dent1) && (dent->d_parent != dent))
-+		dent = dent->d_parent;
-+
-+	return (dent == dent1);
++	UNIONFS_F(f)->lower_files[index] = val;
 +}
 +
-+/* parse branch mode */
-+static int parse_branch_mode(char *name)
++static inline void unionfs_set_lower_file(struct file *f, struct file *val)
 +{
-+	int perms;
-+	int l = strlen(name);
-+	if (!strcmp(name + l - 3, "=ro")) {
-+		perms = MAY_READ;
-+		name[l - 3] = '\0';
-+	} else if (!strcmp(name + l - 3, "=rw")) {
-+		perms = MAY_READ | MAY_WRITE;
-+		name[l - 3] = '\0';
-+	} else
-+		perms = MAY_READ | MAY_WRITE;
-+
-+	return perms;
++	UNIONFS_F(f)->lower_files[fbstart(f)] = val;
 +}
 +
-+/* parse the dirs= mount argument */
-+static int parse_dirs_option(struct super_block *sb, struct unionfs_dentry_info
-+			     *hidden_root_info, char *options)
++/* Inode to lower inode. */
++static inline struct inode *unionfs_lower_inode(const struct inode *i)
 +{
-+	struct nameidata nd;
-+	char *name;
-+	int err = 0;
-+	int branches = 1;
-+	int bindex = 0;
-+	int i = 0;
-+	int j = 0;
-+
-+	struct dentry *dent1;
-+	struct dentry *dent2;
-+
-+	if (options[0] == '\0') {
-+		printk(KERN_WARNING "unionfs: no branches specified\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	/* Each colon means we have a separator, this is really just a rough
-+	 * guess, since strsep will handle empty fields for us.
-+	 */
-+	for (i = 0; options[i]; i++)
-+		if (options[i] == ':')
-+			branches++;
-+
-+	/* allocate space for underlying pointers to hidden dentry */
-+	UNIONFS_SB(sb)->data = kcalloc(branches,
-+			sizeof(struct unionfs_data), GFP_KERNEL);
-+	if (!UNIONFS_SB(sb)->data) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	hidden_root_info->lower_paths = kcalloc(branches,
-+			sizeof(struct path), GFP_KERNEL);
-+	if (!hidden_root_info->lower_paths) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* now parsing the string b1:b2=rw:b3=ro:b4 */
-+	branches = 0;
-+	while ((name = strsep(&options, ":")) != NULL) {
-+		int perms;
-+
-+		if (!*name)
-+			continue;
-+
-+		branches++;
-+
-+		/* strip off =rw or =ro if it is specified. */
-+		perms = parse_branch_mode(name);
-+		if (!bindex && !(perms & MAY_WRITE)) {
-+			err = -EINVAL;
-+			goto out;
-+		}
-+
-+		err = path_lookup(name, LOOKUP_FOLLOW, &nd);
-+		if (err) {
-+			printk(KERN_WARNING "unionfs: error accessing "
-+			       "hidden directory '%s' (error %d)\n", name, err);
-+			goto out;
-+		}
-+
-+		if ((err = check_branch(&nd))) {
-+			printk(KERN_WARNING "unionfs: hidden directory "
-+			       "'%s' is not a valid branch\n", name);
-+			path_release(&nd);
-+			goto out;
-+		}
-+
-+		hidden_root_info->lower_paths[bindex].dentry = nd.dentry;
-+		hidden_root_info->lower_paths[bindex].mnt = nd.mnt;
-+
-+		set_branchperms(sb, bindex, perms);
-+		set_branch_count(sb, bindex, 0);
-+
-+		if (hidden_root_info->bstart < 0)
-+			hidden_root_info->bstart = bindex;
-+		hidden_root_info->bend = bindex;
-+		bindex++;
-+	}
-+
-+	if (branches == 0) {
-+		printk(KERN_WARNING "unionfs: no branches specified\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	BUG_ON(branches != (hidden_root_info->bend + 1));
-+
-+	/* ensure that no overlaps exist in the branches */
-+	for (i = 0; i < branches; i++) {
-+		for (j = i + 1; j < branches; j++) {
-+			dent1 = hidden_root_info->lower_paths[i].dentry;
-+			dent2 = hidden_root_info->lower_paths[j].dentry;
-+
-+			if (is_branch_overlap(dent1, dent2)) {
-+				printk(KERN_WARNING "unionfs: branches %d and "
-+					"%d overlap\n", i, j);
-+				err = -EINVAL;
-+				goto out;
-+			}
-+		}
-+	}
-+
-+out:
-+	if (err) {
-+		for (i = 0; i < branches; i++)
-+			if (hidden_root_info->lower_paths[i].dentry) {
-+				dput(hidden_root_info->lower_paths[i].dentry);
-+				mntput(hidden_root_info->lower_paths[i].mnt);
-+			}
-+
-+		kfree(hidden_root_info->lower_paths);
-+		kfree(UNIONFS_SB(sb)->data);
-+
-+		/* MUST clear the pointers to prevent potential double free if
-+		 * the caller dies later on
-+		 */
-+		hidden_root_info->lower_paths = NULL;
-+		UNIONFS_SB(sb)->data = NULL;
-+	}
-+	return err;
++	return UNIONFS_I(i)->lower_inodes[ibstart(i)];
 +}
 +
-+/*
-+ * Parse mount options.  See the manual page for usage instructions.
-+ *
-+ * Returns the dentry object of the lower-level (hidden) directory;
-+ * We want to mount our stackable file system on top of that hidden directory.
-+ */
-+static struct unionfs_dentry_info *unionfs_parse_options(struct super_block *sb,
-+							 char *options)
++static inline struct inode *unionfs_lower_inode_idx(const struct inode *i, int index)
 +{
-+	struct unionfs_dentry_info *hidden_root_info;
-+	char *optname;
-+	int err = 0;
-+	int bindex;
-+	int dirsfound = 0;
-+
-+	/* allocate private data area */
-+	err = -ENOMEM;
-+	hidden_root_info =
-+	    kzalloc(sizeof(struct unionfs_dentry_info), GFP_KERNEL);
-+	if (!hidden_root_info)
-+		goto out_error;
-+	hidden_root_info->bstart = -1;
-+	hidden_root_info->bend = -1;
-+	hidden_root_info->bopaque = -1;
-+
-+	while ((optname = strsep(&options, ",")) != NULL) {
-+		char *optarg;
-+		char *endptr;
-+		int intval;
-+
-+		if (!*optname)
-+			continue;
-+
-+		optarg = strchr(optname, '=');
-+		if (optarg)
-+			*optarg++ = '\0';
-+
-+		/* All of our options take an argument now. Insert ones that
-+		 * don't, above this check.
-+		 */
-+		if (!optarg) {
-+			printk("unionfs: %s requires an argument.\n", optname);
-+			err = -EINVAL;
-+			goto out_error;
-+		}
-+
-+		if (!strcmp("dirs", optname)) {
-+			if (++dirsfound > 1) {
-+				printk(KERN_WARNING
-+				       "unionfs: multiple dirs specified\n");
-+				err = -EINVAL;
-+				goto out_error;
-+			}
-+			err = parse_dirs_option(sb, hidden_root_info, optarg);
-+			if (err)
-+				goto out_error;
-+			continue;
-+		}
-+
-+		/* All of these options require an integer argument. */
-+		intval = simple_strtoul(optarg, &endptr, 0);
-+		if (*endptr) {
-+			printk(KERN_WARNING
-+			       "unionfs: invalid %s option '%s'\n",
-+			       optname, optarg);
-+			err = -EINVAL;
-+			goto out_error;
-+		}
-+
-+		err = -EINVAL;
-+		printk(KERN_WARNING
-+		       "unionfs: unrecognized option '%s'\n", optname);
-+		goto out_error;
-+	}
-+	if (dirsfound != 1) {
-+		printk(KERN_WARNING "unionfs: dirs option required\n");
-+		err = -EINVAL;
-+		goto out_error;
-+	}
-+	goto out;
-+
-+out_error:
-+	if (hidden_root_info && hidden_root_info->lower_paths) {
-+		for (bindex = hidden_root_info->bstart;
-+		     bindex >= 0 && bindex <= hidden_root_info->bend;
-+		     bindex++) {
-+			struct dentry *d;
-+			struct vfsmount *m;
-+
-+			d = hidden_root_info->lower_paths[bindex].dentry;
-+			m = hidden_root_info->lower_paths[bindex].mnt;
-+
-+			dput(d);
-+
-+			if (m)
-+				mntput(m);
-+		}
-+	}
-+
-+	kfree(hidden_root_info->lower_paths);
-+	kfree(hidden_root_info);
-+
-+	kfree(UNIONFS_SB(sb)->data);
-+	UNIONFS_SB(sb)->data = NULL;
-+
-+	hidden_root_info = ERR_PTR(err);
-+out:
-+	return hidden_root_info;
++	return UNIONFS_I(i)->lower_inodes[index];
 +}
 +
-+/* our custom d_alloc_root workalike
-+ *
-+ * we can't use d_alloc_root if we want to use our own interpose function
-+ * unchanged, so we simply call our own "fake" d_alloc_root
-+ */
-+static struct dentry *unionfs_d_alloc_root(struct super_block *sb)
++static inline void unionfs_set_lower_inode_idx(struct inode *i, int index,
++				   struct inode *val)
 +{
-+	struct dentry *ret = NULL;
-+
-+	if (sb) {
-+		static const struct qstr name = {.name = "/",.len = 1 };
-+
-+		ret = d_alloc(NULL, &name);
-+		if (ret) {
-+			ret->d_op = &unionfs_dops;
-+			ret->d_sb = sb;
-+			ret->d_parent = ret;
-+		}
-+	}
-+	return ret;
++	UNIONFS_I(i)->lower_inodes[index] = val;
 +}
 +
-+static int unionfs_read_super(struct super_block *sb, void *raw_data,
-+			      int silent)
++static inline void unionfs_set_lower_inode(struct inode *i, struct inode *val)
 +{
-+	int err = 0;
-+
-+	struct unionfs_dentry_info *hidden_root_info = NULL;
-+	int bindex, bstart, bend;
-+
-+	if (!raw_data) {
-+		printk(KERN_WARNING
-+		       "unionfs_read_super: missing data argument\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	/* Allocate superblock private data */
-+	sb->s_fs_info = kzalloc(sizeof(struct unionfs_sb_info), GFP_KERNEL);
-+	if (!UNIONFS_SB(sb)) {
-+		printk(KERN_WARNING "%s: out of memory\n", __FUNCTION__);
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	UNIONFS_SB(sb)->bend = -1;
-+	atomic_set(&UNIONFS_SB(sb)->generation, 1);
-+	init_rwsem(&UNIONFS_SB(sb)->rwsem);
-+
-+	hidden_root_info = unionfs_parse_options(sb, raw_data);
-+	if (IS_ERR(hidden_root_info)) {
-+		printk(KERN_WARNING
-+		       "unionfs_read_super: error while parsing options "
-+		       "(err = %ld)\n", PTR_ERR(hidden_root_info));
-+		err = PTR_ERR(hidden_root_info);
-+		hidden_root_info = NULL;
-+		goto out_free;
-+	}
-+	if (hidden_root_info->bstart == -1) {
-+		err = -ENOENT;
-+		goto out_free;
-+	}
-+
-+	/* set the hidden superblock field of upper superblock */
-+	bstart = hidden_root_info->bstart;
-+	BUG_ON(bstart != 0);
-+	sbend(sb) = bend = hidden_root_info->bend;
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		struct dentry *d;
-+
-+		d = hidden_root_info->lower_paths[bindex].dentry;
-+
-+		unionfs_set_lower_super_idx(sb, bindex, d->d_sb);
-+	}
-+
-+	/* Unionfs: Max Bytes is the maximum bytes from highest priority branch */
-+	sb->s_maxbytes = unionfs_lower_super_idx(sb, 0)->s_maxbytes;
-+
-+	sb->s_op = &unionfs_sops;
-+
-+	/* See comment next to the definition of unionfs_d_alloc_root */
-+	sb->s_root = unionfs_d_alloc_root(sb);
-+	if (!sb->s_root) {
-+		err = -ENOMEM;
-+		goto out_dput;
-+	}
-+
-+	/* link the upper and lower dentries */
-+	sb->s_root->d_fsdata = NULL;
-+	if ((err = new_dentry_private_data(sb->s_root)))
-+		goto out_freedpd;
-+
-+	/* Set the hidden dentries for s_root */
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		struct dentry *d;
-+		struct vfsmount *m;
-+
-+		d = hidden_root_info->lower_paths[bindex].dentry;
-+		m = hidden_root_info->lower_paths[bindex].mnt;
-+
-+		unionfs_set_lower_dentry_idx(sb->s_root, bindex, d);
-+		unionfs_set_lower_mnt_idx(sb->s_root, bindex, m);
-+	}
-+	set_dbstart(sb->s_root, bstart);
-+	set_dbend(sb->s_root, bend);
-+
-+	/* Set the generation number to one, since this is for the mount. */
-+	atomic_set(&UNIONFS_D(sb->s_root)->generation, 1);
-+
-+	/* call interpose to create the upper level inode */
-+	if ((err = unionfs_interpose(sb->s_root, sb, 0)))
-+		goto out_freedpd;
-+	unlock_dentry(sb->s_root);
-+	goto out;
-+
-+out_freedpd:
-+	if (UNIONFS_D(sb->s_root)) {
-+		kfree(UNIONFS_D(sb->s_root)->lower_paths);
-+		free_dentry_private_data(UNIONFS_D(sb->s_root));
-+	}
-+	dput(sb->s_root);
-+
-+out_dput:
-+	if (hidden_root_info && !IS_ERR(hidden_root_info)) {
-+		for (bindex = hidden_root_info->bstart;
-+		     bindex <= hidden_root_info->bend; bindex++) {
-+			struct dentry *d;
-+			struct vfsmount *m;
-+
-+			d = hidden_root_info->lower_paths[bindex].dentry;
-+			m = hidden_root_info->lower_paths[bindex].mnt;
-+
-+			dput(d);
-+			mntput(m);
-+		}
-+		kfree(hidden_root_info->lower_paths);
-+		kfree(hidden_root_info);
-+		hidden_root_info = NULL;
-+	}
-+
-+out_free:
-+	kfree(UNIONFS_SB(sb)->data);
-+	kfree(UNIONFS_SB(sb));
-+	sb->s_fs_info = NULL;
-+
-+out:
-+	if (hidden_root_info && !IS_ERR(hidden_root_info)) {
-+		kfree(hidden_root_info->lower_paths);
-+		kfree(hidden_root_info);
-+	}
-+	return err;
++	UNIONFS_I(i)->lower_inodes[ibstart(i)] = val;
 +}
 +
-+static int unionfs_get_sb(struct file_system_type *fs_type,
-+			  int flags, const char *dev_name,
-+			  void *raw_data, struct vfsmount *mnt)
++/* Superblock to lower superblock. */
++static inline struct super_block *unionfs_lower_super(const struct super_block *sb)
 +{
-+	return get_sb_nodev(fs_type, flags, raw_data, unionfs_read_super, mnt);
++	return UNIONFS_SB(sb)->data[sbstart(sb)].sb;
 +}
 +
-+static struct file_system_type unionfs_fs_type = {
-+	.owner		= THIS_MODULE,
-+	.name		= "unionfs",
-+	.get_sb		= unionfs_get_sb,
-+	.kill_sb	= generic_shutdown_super,
-+	.fs_flags	= FS_REVAL_DOT,
-+};
-+
-+static int __init init_unionfs_fs(void)
++static inline struct super_block *unionfs_lower_super_idx(const struct super_block *sb, int index)
 +{
-+	int err;
-+	printk("Registering unionfs " UNIONFS_VERSION "\n");
-+
-+	if ((err = unionfs_init_filldir_cache()))
-+		goto out;
-+	if ((err = unionfs_init_inode_cache()))
-+		goto out;
-+	if ((err = unionfs_init_dentry_cache()))
-+		goto out;
-+	if ((err = init_sioq()))
-+		goto out;
-+	err = register_filesystem(&unionfs_fs_type);
-+out:
-+	if (err) {
-+		stop_sioq();
-+		unionfs_destroy_filldir_cache();
-+		unionfs_destroy_inode_cache();
-+		unionfs_destroy_dentry_cache();
-+	}
-+	return err;
++	return UNIONFS_SB(sb)->data[index].sb;
 +}
 +
-+static void __exit exit_unionfs_fs(void)
++static inline void unionfs_set_lower_super_idx(struct super_block *sb, int index,
++				   struct super_block *val)
 +{
-+	stop_sioq();
-+	unionfs_destroy_filldir_cache();
-+	unionfs_destroy_inode_cache();
-+	unionfs_destroy_dentry_cache();
-+	unregister_filesystem(&unionfs_fs_type);
-+	printk("Completed unionfs module unload.\n");
++	UNIONFS_SB(sb)->data[index].sb = val;
 +}
 +
-+MODULE_AUTHOR("Erez Zadok, Filesystems and Storage Lab, Stony Brook University"
-+		" (http://www.fsl.cs.sunysb.edu)");
-+MODULE_DESCRIPTION("Unionfs " UNIONFS_VERSION
-+		" (http://www.unionfs.org)");
-+MODULE_LICENSE("GPL");
++static inline void unionfs_set_lower_super(struct super_block *sb, struct super_block *val)
++{
++	UNIONFS_SB(sb)->data[sbstart(sb)].sb = val;
++}
 +
-+module_init(init_unionfs_fs);
-+module_exit(exit_unionfs_fs);
++/* Branch count macros. */
++static inline int branch_count(const struct super_block *sb, int index)
++{
++	return atomic_read(&UNIONFS_SB(sb)->data[index].sbcount);
++}
 +
++static inline void set_branch_count(struct super_block *sb, int index, int val)
++{
++	atomic_set(&UNIONFS_SB(sb)->data[index].sbcount, val);
++}
++
++static inline void branchget(struct super_block *sb, int index)
++{
++	atomic_inc(&UNIONFS_SB(sb)->data[index].sbcount);
++}
++
++static inline void branchput(struct super_block *sb, int index)
++{
++	atomic_dec(&UNIONFS_SB(sb)->data[index].sbcount);
++}
++
++/* Dentry macros */
++static inline struct unionfs_dentry_info *UNIONFS_D(const struct dentry *dent)
++{
++	return dent->d_fsdata;
++}
++
++#define dbstart(dent) (UNIONFS_D(dent)->bstart)
++#define set_dbstart(dent, val) do { UNIONFS_D(dent)->bstart = val; } while(0)
++#define dbend(dent) (UNIONFS_D(dent)->bend)
++#define set_dbend(dent, val) do { UNIONFS_D(dent)->bend = val; } while(0)
++#define dbopaque(dent) (UNIONFS_D(dent)->bopaque)
++#define set_dbopaque(dent, val) do { UNIONFS_D(dent)->bopaque = val; } while (0)
++
++static inline void unionfs_set_lower_dentry_idx(struct dentry *dent, int index,
++				   struct dentry *val)
++{
++	UNIONFS_D(dent)->lower_paths[index].dentry = val;
++}
++
++static inline struct dentry *unionfs_lower_dentry_idx(const struct dentry *dent, int index)
++{
++	return UNIONFS_D(dent)->lower_paths[index].dentry;
++}
++
++static inline struct dentry *unionfs_lower_dentry(const struct dentry *dent)
++{
++	return unionfs_lower_dentry_idx(dent, dbstart(dent));
++}
++
++static inline void unionfs_set_lower_mnt_idx(struct dentry *dent, int index,
++				   struct vfsmount *mnt)
++{
++	UNIONFS_D(dent)->lower_paths[index].mnt = mnt;
++}
++
++static inline struct vfsmount *unionfs_lower_mnt_idx(const struct dentry *dent, int index)
++{
++	return UNIONFS_D(dent)->lower_paths[index].mnt;
++}
++
++static inline struct vfsmount *unionfs_lower_mnt(const struct dentry *dent)
++{
++	return unionfs_lower_mnt_idx(dent,dbstart(dent));
++}
++
++/* Macros for locking a dentry. */
++#define lock_dentry(d)		down(&UNIONFS_D(d)->sem)
++#define unlock_dentry(d)	up(&UNIONFS_D(d)->sem)
++#define verify_locked(d)
++
++#endif	/* _FANOUT_H */
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-unionfs-main-module-functions.patch
-unionfs-readdir-state.patch
-unionfs-rename.patch
-unionfs-privileged-operations-workqueue.patch
-unionfs-handling-of-stale-inodes.patch
-unionfs-miscellaneous-helper-functions.patch
-unionfs-superblock-operations.patch
 unionfs-helper-macros-inlines.patch
 unionfs-internal-include-file.patch
 unionfs-include-file.patch
