@@ -1,58 +1,63 @@
 From: akpm@osdl.org
-Subject: + i386-sched_clock-using-init-data-tsc_disable-fix.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:58:51 -0800
-Message-ID: <200701082258.l08MwpXe021720@shell0.pdx.osdl.net>
+Subject: + make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:58:53 -0800
+Message-ID: <200701082258.l08MwrGf021723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51270 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51268 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161045AbXAHW7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:59:23 -0500
+	id S1161039AbXAHW7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:59:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vgoyal@in.ibm.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
+Cc: vgoyal@in.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     i386: sched_clock using init data tsc_disable fix
+     Make noirqdebug_setup function non init to fix modpost warning
 has been added to the -mm tree.  Its filename is
-     i386-sched_clock-using-init-data-tsc_disable-fix.patch
+     make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: sched_clock using init data tsc_disable fix
+Subject: Make noirqdebug_setup function non init to fix modpost warning
 From: Vivek Goyal <vgoyal@in.ibm.com>
 
-o sched_clock() a non-init function is using init data tsc_disable. This
-  is flagged by MODPOST on i386 if CONFIG_RELOCATABLE=y
+o noirqdebug_setup() is __init but it is being called by
+  quirk_intel_irqbalance() which if of type __devinit. If CONFIG_HOTPLUG=y,
+  quirk_intel_irqbalance() is put into text section and it is wrong to
+  call a function in __init section.
 
-WARNING: vmlinux - Section mismatch: reference to .init.data:tsc_disable from .text between 'sched_clock' (at offset 0xc0109d58) and 'tsc_update_callback'
+o MODPOST flags this on i386 if CONFIG_RELOCATABLE=y
+
+WARNING: vmlinux - Section mismatch: reference to .init.text:noirqdebug_setup from .text between 'quirk_intel_irqbalance' (at offset 0xc010969e) and 'i8237A_suspend'
+
+o Make noirqdebug_setup() non-init.
 
 Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/tsc.c |    2 +-
+ kernel/irq/spurious.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/tsc.c~i386-sched_clock-using-init-data-tsc_disable-fix arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~i386-sched_clock-using-init-data-tsc_disable-fix
-+++ a/arch/i386/kernel/tsc.c
-@@ -24,7 +24,7 @@
-  */
- unsigned int tsc_khz;
+diff -puN kernel/irq/spurious.c~make-noirqdebug_setup-function-non-init-to-fix-modpost-warning kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~make-noirqdebug_setup-function-non-init-to-fix-modpost-warning
++++ a/kernel/irq/spurious.c
+@@ -176,7 +176,7 @@ void note_interrupt(unsigned int irq, st
  
--int tsc_disable __cpuinitdata = 0;
-+int tsc_disable = 0;
+ int noirqdebug __read_mostly;
  
- #ifdef CONFIG_X86_TSC
- static int __init tsc_setup(char *str)
+-int __init noirqdebug_setup(char *str)
++int noirqdebug_setup(char *str)
+ {
+ 	noirqdebug = 1;
+ 	printk(KERN_INFO "IRQ lockup detection disabled\n");
 _
 
 Patches currently in -mm which might be from vgoyal@in.ibm.com are
