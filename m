@@ -1,255 +1,264 @@
 From: akpm@osdl.org
-Subject: + sata_via-pata-support-resubmit.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:12:31 -0800
-Message-ID: <200701082312.l08NCVYf022227@shell0.pdx.osdl.net>
+Subject: + kvm-add-vm-exit-profiling.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:14:58 -0800
+Message-ID: <200701082314.l08NEwCD022321@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52478 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52808 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161209AbXAHXMo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 18:12:44 -0500
+	id S1161242AbXAHXP6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 18:15:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jgarzik@pobox.com
+Cc: mingo@elte.hu, avi@qumranet.com
 
 
 The patch titled
-     sata_via: PATA support
+     KVM: add VM-exit profiling
 has been added to the -mm tree.  Its filename is
-     sata_via-pata-support-resubmit.patch
+     kvm-add-vm-exit-profiling.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_via: PATA support
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: KVM: add VM-exit profiling
+From: Ingo Molnar <mingo@elte.hu>
 
-This is a clean version of the PATA support for the sata_via hardware.
+This adds the profile=kvm boot option, which enables KVM to profile VM
+exits.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
+Use: "readprofile -m ./System.map | sort -n" to see the resulting
+output:
+
+   [...]
+   18246 serial_out                               148.3415
+   18945 native_flush_tlb                         378.9000
+   23618 serial_in                                212.7748
+   29279 __spin_unlock_irq                        622.9574
+   43447 native_apic_write                        2068.9048
+   52702 enable_8259A_irq                         742.2817
+   54250 vgacon_scroll                             89.3740
+   67394 ide_inb                                  6126.7273
+   79514 copy_page_range                           98.1654
+   84868 do_wp_page                                86.6000
+  140266 pit_read                                 783.6089
+  151436 ide_outb                                 25239.3333
+  152668 native_io_delay                          21809.7143
+  174783 mask_and_ack_8259A                       783.7803
+  362404 native_set_pte_at                        36240.4000
+ 1688747 total                                      0.5009
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/sata_via.c |  108 ++++++++++++++++++++++++++++++++++++---
- 1 files changed, 102 insertions(+), 6 deletions(-)
+ drivers/kvm/svm.c       |    8 ++++++++
+ drivers/kvm/vmx.c       |    7 +++++++
+ include/linux/profile.h |    1 +
+ kernel/profile.c        |   13 +++++++++++++
+ 4 files changed, 29 insertions(+)
 
-diff -puN drivers/ata/sata_via.c~sata_via-pata-support-resubmit drivers/ata/sata_via.c
---- a/drivers/ata/sata_via.c~sata_via-pata-support-resubmit
-+++ a/drivers/ata/sata_via.c
-@@ -59,11 +59,14 @@ enum {
- 	SATA_INT_GATE		= 0x41, /* SATA interrupt gating */
- 	SATA_NATIVE_MODE	= 0x42, /* Native mode enable */
- 	SATA_PATA_SHARING	= 0x49, /* PATA/SATA sharing func ctrl */
--
-+	PATA_UDMA_TIMING	= 0xB3, /* PATA timing for DMA/ cable detect */
-+	PATA_PIO_TIMING		= 0xAB, /* PATA timing register */
-+	
- 	PORT0			= (1 << 1),
- 	PORT1			= (1 << 0),
- 	ALL_PORTS		= PORT0 | PORT1,
--	N_PORTS			= 2,
-+	PATA_PORT		= 2,	/* PATA is port 2 */
-+	N_PORTS			= 3,
+diff -puN drivers/kvm/svm.c~kvm-add-vm-exit-profiling drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-add-vm-exit-profiling
++++ a/drivers/kvm/svm.c
+@@ -17,6 +17,7 @@
+ #include <linux/module.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
++#include <linux/profile.h>
+ #include <asm/desc.h>
  
- 	NATIVE_MODE_ALL		= (1 << 7) | (1 << 6) | (1 << 5) | (1 << 4),
+ #include "kvm_svm.h"
+@@ -1558,6 +1559,13 @@ again:
  
-@@ -75,6 +78,11 @@ static int svia_init_one (struct pci_dev
- static u32 svia_scr_read (struct ata_port *ap, unsigned int sc_reg);
- static void svia_scr_write (struct ata_port *ap, unsigned int sc_reg, u32 val);
- static void vt6420_error_handler(struct ata_port *ap);
-+static void vt6421_sata_error_handler(struct ata_port *ap);
-+static void vt6421_pata_error_handler(struct ata_port *ap);
-+static void vt6421_set_pio_mode(struct ata_port *ap, struct ata_device *adev);
-+static void vt6421_set_dma_mode(struct ata_port *ap, struct ata_device *adev);
-+static int vt6421_port_start(struct ata_port *ap);
+ 	reload_tss(vcpu);
  
- static const struct pci_device_id svia_pci_tbl[] = {
- 	{ PCI_VDEVICE(VIA, 0x0591), vt6420 },
-@@ -140,9 +148,43 @@ static const struct ata_port_operations 
- 	.host_stop		= ata_host_stop,
- };
++	/*
++	 * Profile KVM exit RIPs:
++	 */
++	if (unlikely(prof_on == KVM_PROFILING))
++		profile_hit(KVM_PROFILING,
++			(void *)(unsigned long)vcpu->svm->vmcb->save.rip);
++
+ 	stgi();
  
--static const struct ata_port_operations vt6421_sata_ops = {
-+static const struct ata_port_operations vt6421_pata_ops = {
- 	.port_disable		= ata_port_disable,
-+	
-+	.set_piomode		= vt6421_set_pio_mode,
-+	.set_dmamode		= vt6421_set_dma_mode,
-+
-+	.tf_load		= ata_tf_load,
-+	.tf_read		= ata_tf_read,
-+	.check_status		= ata_check_status,
-+	.exec_command		= ata_exec_command,
-+	.dev_select		= ata_std_dev_select,
-+
-+	.bmdma_setup            = ata_bmdma_setup,
-+	.bmdma_start            = ata_bmdma_start,
-+	.bmdma_stop		= ata_bmdma_stop,
-+	.bmdma_status		= ata_bmdma_status,
-+
-+	.qc_prep		= ata_qc_prep,
-+	.qc_issue		= ata_qc_issue_prot,
-+	.data_xfer		= ata_pio_data_xfer,
-+
-+	.freeze			= ata_bmdma_freeze,
-+	.thaw			= ata_bmdma_thaw,
-+	.error_handler		= vt6421_pata_error_handler,
-+	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
+ 	kvm_reput_irq(vcpu);
+diff -puN drivers/kvm/vmx.c~kvm-add-vm-exit-profiling drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-add-vm-exit-profiling
++++ a/drivers/kvm/vmx.c
+@@ -21,6 +21,7 @@
+ #include <linux/module.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
++#include <linux/profile.h>
+ #include <asm/io.h>
+ #include <asm/desc.h>
  
-+	.irq_handler		= ata_interrupt,
-+	.irq_clear		= ata_bmdma_irq_clear,
-+
-+	.port_start		= vt6421_port_start,
-+	.port_stop		= ata_port_stop,
-+	.host_stop		= ata_host_stop,
-+};
-+
-+static const struct ata_port_operations vt6421_sata_ops = {
-+	.port_disable		= ata_port_disable,
-+	
- 	.tf_load		= ata_tf_load,
- 	.tf_read		= ata_tf_read,
- 	.check_status		= ata_check_status,
-@@ -160,7 +202,7 @@ static const struct ata_port_operations 
+@@ -1859,6 +1860,12 @@ again:
+ 	asm ("mov %0, %%ds; mov %0, %%es" : : "r"(__USER_DS));
+ #endif
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= ata_bmdma_error_handler,
-+	.error_handler		= vt6421_sata_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	/*
++	 * Profile KVM exit RIPs:
++	 */
++	if (unlikely(prof_on == KVM_PROFILING))
++		profile_hit(KVM_PROFILING, (void *)vmcs_readl(GUEST_RIP));
++
+ 	kvm_run->exit_type = 0;
+ 	if (fail) {
+ 		kvm_run->exit_type = KVM_EXIT_TYPE_FAIL_ENTRY;
+diff -puN include/linux/profile.h~kvm-add-vm-exit-profiling include/linux/profile.h
+--- a/include/linux/profile.h~kvm-add-vm-exit-profiling
++++ a/include/linux/profile.h
+@@ -15,6 +15,7 @@ extern int prof_on __read_mostly;
+ #define CPU_PROFILING	1
+ #define SCHED_PROFILING	2
+ #define SLEEP_PROFILING	3
++#define KVM_PROFILING	4
  
- 	.irq_handler		= ata_interrupt,
-@@ -169,7 +211,7 @@ static const struct ata_port_operations 
- 	.scr_read		= svia_scr_read,
- 	.scr_write		= svia_scr_write,
+ struct proc_dir_entry;
+ struct pt_regs;
+diff -puN kernel/profile.c~kvm-add-vm-exit-profiling kernel/profile.c
+--- a/kernel/profile.c~kvm-add-vm-exit-profiling
++++ a/kernel/profile.c
+@@ -40,7 +40,10 @@ int (*timer_hook)(struct pt_regs *) __re
  
--	.port_start		= ata_port_start,
-+	.port_start		= vt6421_port_start,
- 	.port_stop		= ata_port_stop,
- 	.host_stop		= ata_host_stop,
- };
-@@ -278,6 +320,61 @@ static void vt6420_error_handler(struct 
- 				  NULL, ata_std_postreset);
- }
+ static atomic_t *prof_buffer;
+ static unsigned long prof_len, prof_shift;
++
+ int prof_on __read_mostly;
++EXPORT_SYMBOL_GPL(prof_on);
++
+ static cpumask_t prof_cpu_mask = CPU_MASK_ALL;
+ #ifdef CONFIG_SMP
+ static DEFINE_PER_CPU(struct profile_hit *[2], cpu_profile_hits);
+@@ -52,6 +55,7 @@ static int __init profile_setup(char * s
+ {
+ 	static char __initdata schedstr[] = "schedule";
+ 	static char __initdata sleepstr[] = "sleep";
++	static char __initdata kvmstr[] = "kvm";
+ 	int par;
  
-+static int vt6421_pata_prereset(struct ata_port *ap)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	u8 tmp;
-+
-+	pci_read_config_byte(pdev, PATA_UDMA_TIMING, &tmp);
-+	if (tmp & 0x10)
-+		ap->cbl = ATA_CBL_PATA40;
-+	else
-+		ap->cbl = ATA_CBL_PATA80;
-+	return 0;
-+}
-+
-+static void vt6421_pata_error_handler(struct ata_port *ap)
-+{
-+	return ata_bmdma_drive_eh(ap, vt6421_pata_prereset, ata_std_softreset,
-+				  NULL, ata_std_postreset);
-+}
-+
-+static int vt6421_sata_prereset(struct ata_port *ap)
-+{
-+	ap->cbl = ATA_CBL_SATA;
-+	return 0;
-+}
-+
-+static void vt6421_sata_error_handler(struct ata_port *ap)
-+{
-+	return ata_bmdma_drive_eh(ap, vt6421_sata_prereset, ata_std_softreset,
-+				  NULL, ata_std_postreset);
-+}
-+
-+static void vt6421_set_pio_mode(struct ata_port *ap, struct ata_device *adev)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	static const u8 pio_bits[] = { 0xA8, 0x65, 0x65, 0x31, 0x20 };
-+	pci_write_config_byte(pdev, PATA_PIO_TIMING, pio_bits[adev->pio_mode - XFER_PIO_0]);
-+}
-+
-+static void vt6421_set_dma_mode(struct ata_port *ap, struct ata_device *adev)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	static const u8 udma_bits[] = { 0xEE, 0xE8, 0xE6, 0xE4, 0xE2, 0xE1, 0xE0, 0xE0 };
-+	pci_write_config_byte(pdev, PATA_UDMA_TIMING, udma_bits[adev->pio_mode - XFER_UDMA_0]);
-+}
-+
-+static int vt6421_port_start(struct ata_port *ap)
-+{
-+	if (ap->port_no == PATA_PORT) {
-+		ap->ops = &vt6421_pata_ops;
-+		ap->mwdma_mask = 0;
-+		ap->flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_NO_LEGACY | ATA_FLAG_SRST;
-+	}
-+	return ata_port_start(ap);
-+}
-+
- static const unsigned int svia_bar_sizes[] = {
- 	8, 4, 8, 4, 16, 256
- };
-@@ -500,4 +597,3 @@ static void __exit svia_exit(void)
- 
- module_init(svia_init);
- module_exit(svia_exit);
--
+ 	if (!strncmp(str, sleepstr, strlen(sleepstr))) {
+@@ -72,6 +76,15 @@ static int __init profile_setup(char * s
+ 		printk(KERN_INFO
+ 			"kernel schedule profiling enabled (shift: %ld)\n",
+ 			prof_shift);
++	} else if (!strncmp(str, kvmstr, strlen(kvmstr))) {
++		prof_on = KVM_PROFILING;
++		if (str[strlen(kvmstr)] == ',')
++			str += strlen(kvmstr) + 1;
++		if (get_option(&str, &par))
++			prof_shift = par;
++		printk(KERN_INFO
++			"kernel KVM profiling enabled (shift: %ld)\n",
++			prof_shift);
+ 	} else if (get_option(&str, &par)) {
+ 		prof_shift = par;
+ 		prof_on = CPU_PROFILING;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-git-libata-all.patch
-add-suport-for-marvell-88se6121-in-pata_marvell.patch
-ahci-remove-jmicron-fixup.patch
-sata_via-pata-support-resubmit.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pnx8550-uart-driver.patch
-pnx8550-uart-driver-fixes.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+sched-tasks-cannot-run-on-cpus-onlined-after-boot.patch
+i386-sched_clock-using-init-data-tsc_disable-fix.patch
+make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch
+kvm-add-vm-exit-profiling.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+fix-for-crash-in-adummy_init.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+convert-i386-pda-code-to-use-%fs.patch
+genapic-optimize-fix-apic-mode-setup-2.patch
+genapic-always-use-physical-delivery-mode-on-8-cpus.patch
+genapic-remove-es7000-workaround.patch
+genapic-remove-clustered-apic-mode.patch
+genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
 x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-tty_wakeup-cleanup.patch
+sched-improve-sched_clock-on-i686.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+consolidate-default-sched_clock.patch
+use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-tty-improve-encode_baud_rate-logic.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-hpt3xx-rework-rate-filtering.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-hpt3xx-print-the-real-chip-name-at-startup.patch
-hpt3xx-switch-to-using-pci_get_slot.patch
-hpt3xx-cache-channels-mcr-address.patch
-hpt3x7-merge-speedproc-handlers.patch
-hpt370-clean-up-dma-timeout-handling.patch
-hpt3xx-init-code-rewrite.patch
-piix-fix-82371mx-enablebits.patch
-pdc202xx_new-remove-useless-code.patch
-pdc202xx_-remove-check_in_drive_lists-abomination.patch
-piix-tuneproc-fixes-cleanups.patch
-slc90e66-carry-over-fixes-from-piix-driver.patch
-hpt36x-pci-clock-detection-fix.patch
-atiixpc-remove-unused-code.patch
-atiixpc-sb600-ide-only-has-one-channel.patch
-atiixpc-add-cable-detection-support-for-ati-ide.patch
-jmicron-warning-fix.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+debugging-feature-proc-timer_list.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+aio-is-unlikely.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
