@@ -1,223 +1,99 @@
 From: akpm@osdl.org
-Subject: + unionfs-miscellaneous-helper-functions.patch added to -mm tree
-Date: Mon, 08 Jan 2007 13:08:47 -0800
-Message-ID: <200701082108.l08L8lNI018920@shell0.pdx.osdl.net>
+Subject: - lookup_one_len_nd-lookup_one_len-with-nameidata-argument.patch removed from -mm tree
+Date: Mon, 08 Jan 2007 13:09:32 -0800
+Message-ID: <200701082109.l08L9WS0018966@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43392 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43526 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750831AbXAHVI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:08:59 -0500
+	id S1750831AbXAHVJl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:09:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu
+To: jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unionfs: miscellaneous helper functions
-has been added to the -mm tree.  Its filename is
-     unionfs-miscellaneous-helper-functions.patch
+     lookup_one_len_nd - lookup_one_len with nameidata argument
+has been removed from the -mm tree.  Its filename was
+     lookup_one_len_nd-lookup_one_len-with-nameidata-argument.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because I'll use the git tree
 
 ------------------------------------------------------
-Subject: unionfs: miscellaneous helper functions
+Subject: lookup_one_len_nd - lookup_one_len with nameidata argument
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-This patch contains miscellaneous helper functions used thoughout Unionfs.
+Rename lookup_one_len to lookup_one_len_nd, and adds a nameidata argument.  An
+inline function, lookup_one_len (which calls lookup_one_len_nd with nd ==
+NULL) preserves original behavior.
+
+The following Unionfs patches depend on this one.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
-Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
-Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/subr.c |  172 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 172 insertions(+)
+ fs/namei.c            |    8 ++++----
+ include/linux/namei.h |   10 +++++++++-
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN /dev/null fs/unionfs/subr.c
---- /dev/null
-+++ a/fs/unionfs/subr.c
-@@ -0,0 +1,172 @@
-+/*
-+ * Copyright (c) 2003-2006 Erez Zadok
-+ * Copyright (c) 2003-2006 Charles P. Wright
-+ * Copyright (c) 2005-2006 Josef 'Jeff' Sipek
-+ * Copyright (c) 2005-2006 Junjiro Okajima
-+ * Copyright (c) 2005      Arun M. Krishnakumar
-+ * Copyright (c) 2004-2006 David P. Quigley
-+ * Copyright (c) 2003-2004 Mohammad Nayyer Zubair
-+ * Copyright (c) 2003      Puja Gupta
-+ * Copyright (c) 2003      Harikesavan Krishnan
-+ * Copyright (c) 2003-2006 Stony Brook University
-+ * Copyright (c) 2003-2006 The Research Foundation of State University of New York
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff -puN fs/namei.c~lookup_one_len_nd-lookup_one_len-with-nameidata-argument fs/namei.c
+--- a/fs/namei.c~lookup_one_len_nd-lookup_one_len-with-nameidata-argument
++++ a/fs/namei.c
+@@ -1296,8 +1296,8 @@ static struct dentry *lookup_hash(struct
+ 	return __lookup_hash(&nd->last, nd->dentry, nd);
+ }
+ 
+-/* SMP-safe */
+-struct dentry * lookup_one_len(const char * name, struct dentry * base, int len)
++struct dentry *lookup_one_len_nd(const char *name, struct dentry *base,
++				  int len, struct nameidata *nd)
+ {
+ 	unsigned long hash;
+ 	struct qstr this;
+@@ -1317,7 +1317,7 @@ struct dentry * lookup_one_len(const cha
+ 	}
+ 	this.hash = end_name_hash(hash);
+ 
+-	return __lookup_hash(&this, base, NULL);
++	return __lookup_hash(&this, base, nd);
+ access:
+ 	return ERR_PTR(-EACCES);
+ }
+@@ -2761,7 +2761,7 @@ EXPORT_SYMBOL(follow_up);
+ EXPORT_SYMBOL(get_write_access); /* binfmt_aout */
+ EXPORT_SYMBOL(getname);
+ EXPORT_SYMBOL(lock_rename);
+-EXPORT_SYMBOL(lookup_one_len);
++EXPORT_SYMBOL(lookup_one_len_nd);
+ EXPORT_SYMBOL(page_follow_link_light);
+ EXPORT_SYMBOL(page_put_link);
+ EXPORT_SYMBOL(page_readlink);
+diff -puN include/linux/namei.h~lookup_one_len_nd-lookup_one_len-with-nameidata-argument include/linux/namei.h
+--- a/include/linux/namei.h~lookup_one_len_nd-lookup_one_len-with-nameidata-argument
++++ a/include/linux/namei.h
+@@ -81,7 +81,15 @@ extern struct file *lookup_instantiate_f
+ extern struct file *nameidata_to_filp(struct nameidata *nd, int flags);
+ extern void release_open_intent(struct nameidata *);
+ 
+-extern struct dentry * lookup_one_len(const char *, struct dentry *, int);
++extern struct dentry *lookup_one_len_nd(const char *,
++			struct dentry *, int, struct nameidata *);
 +
-+#include "union.h"
-+
-+/* Pass an unionfs dentry and an index.  It will try to create a whiteout
-+ * for the filename in dentry, and will try in branch 'index'.  On error,
-+ * it will proceed to a branch to the left.
-+ */
-+int create_whiteout(struct dentry *dentry, int start)
++/* SMP-safe */
++static inline struct dentry *lookup_one_len(const char *name,
++			struct dentry *dir, int len)
 +{
-+	int bstart, bend, bindex;
-+	struct dentry *hidden_dir_dentry;
-+	struct dentry *hidden_dentry;
-+	struct dentry *hidden_wh_dentry;
-+	char *name = NULL;
-+	int err = -EINVAL;
-+
-+	verify_locked(dentry);
-+
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+
-+	/* create dentry's whiteout equivalent */
-+	name = alloc_whname(dentry->d_name.name, dentry->d_name.len);
-+	if (IS_ERR(name)) {
-+		err = PTR_ERR(name);
-+		goto out;
-+	}
-+
-+	for (bindex = start; bindex >= 0; bindex--) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+
-+		if (!hidden_dentry) {
-+			/* if hidden dentry is not present, create the entire
-+			 * hidden dentry directory structure and go ahead.
-+			 * Since we want to just create whiteout, we only want
-+			 * the parent dentry, and hence get rid of this dentry.
-+			 */
-+			hidden_dentry = create_parents(dentry->d_inode,
-+						       dentry, bindex);
-+			if (!hidden_dentry || IS_ERR(hidden_dentry)) {
-+				printk(KERN_DEBUG "create_parents failed for "
-+						"bindex = %d\n", bindex);
-+				continue;
-+			}
-+		}
-+
-+		hidden_wh_dentry = lookup_one_len(name, hidden_dentry->d_parent,
-+					dentry->d_name.len + UNIONFS_WHLEN);
-+		if (IS_ERR(hidden_wh_dentry))
-+			continue;
-+
-+		/* The whiteout already exists. This used to be impossible, but
-+		 * now is possible because of opaqueness.
-+		 */
-+		if (hidden_wh_dentry->d_inode) {
-+			dput(hidden_wh_dentry);
-+			err = 0;
-+			goto out;
-+		}
-+
-+		hidden_dir_dentry = lock_parent(hidden_wh_dentry);
-+		if (!(err = is_robranch_super(dentry->d_sb, bindex))) {
-+			err = vfs_create(hidden_dir_dentry->d_inode,
-+				       hidden_wh_dentry,
-+				       ~current->fs->umask & S_IRWXUGO, NULL);
-+
-+		}
-+		unlock_dir(hidden_dir_dentry);
-+		dput(hidden_wh_dentry);
-+
-+		if (!err || !IS_COPYUP_ERR(err))
-+			break;
-+	}
-+
-+	/* set dbopaque  so that lookup will not proceed after this branch */
-+	if (!err)
-+		set_dbopaque(dentry, bindex);
-+
-+out:
-+	kfree(name);
-+	return err;
++	return lookup_one_len_nd(name, dir, len, NULL);
 +}
-+
-+/* This is a helper function for rename, which ends up with hosed over dentries
-+ * when it needs to revert.
-+ */
-+int unionfs_refresh_hidden_dentry(struct dentry *dentry, int bindex)
-+{
-+	struct dentry *hidden_dentry;
-+	struct dentry *hidden_parent;
-+	int err = 0;
-+
-+	verify_locked(dentry);
-+
-+	lock_dentry(dentry->d_parent);
-+	hidden_parent = unionfs_lower_dentry_idx(dentry->d_parent, bindex);
-+	unlock_dentry(dentry->d_parent);
-+
-+	BUG_ON(!S_ISDIR(hidden_parent->d_inode->i_mode));
-+
-+	hidden_dentry = lookup_one_len(dentry->d_name.name, hidden_parent,
-+				dentry->d_name.len);
-+	if (IS_ERR(hidden_dentry)) {
-+		err = PTR_ERR(hidden_dentry);
-+		goto out;
-+	}
-+
-+	dput(unionfs_lower_dentry_idx(dentry, bindex));
-+	iput(unionfs_lower_inode_idx(dentry->d_inode, bindex));
-+	unionfs_set_lower_inode_idx(dentry->d_inode, bindex, NULL);
-+
-+	if (!hidden_dentry->d_inode) {
-+		dput(hidden_dentry);
-+		unionfs_set_lower_dentry_idx(dentry, bindex, NULL);
-+	} else {
-+		unionfs_set_lower_dentry_idx(dentry, bindex, hidden_dentry);
-+		unionfs_set_lower_inode_idx(dentry->d_inode, bindex,
-+				igrab(hidden_dentry->d_inode));
-+	}
-+
-+out:
-+	return err;
-+}
-+
-+int make_dir_opaque(struct dentry *dentry, int bindex)
-+{
-+	int err = 0;
-+	struct dentry *hidden_dentry, *diropq;
-+	struct inode *hidden_dir;
-+
-+	hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+	hidden_dir = hidden_dentry->d_inode;
-+	BUG_ON(!S_ISDIR(dentry->d_inode->i_mode) ||
-+	       !S_ISDIR(hidden_dir->i_mode));
-+
-+	mutex_lock(&hidden_dir->i_mutex);
-+	diropq = lookup_one_len(UNIONFS_DIR_OPAQUE, hidden_dentry,
-+				sizeof(UNIONFS_DIR_OPAQUE) - 1);
-+	if (IS_ERR(diropq)) {
-+		err = PTR_ERR(diropq);
-+		goto out;
-+	}
-+
-+	if (!diropq->d_inode)
-+		err = vfs_create(hidden_dir, diropq, S_IRUGO, NULL);
-+	if (!err)
-+		set_dbopaque(dentry, bindex);
-+
-+	dput(diropq);
-+
-+out:
-+	mutex_unlock(&hidden_dir->i_mutex);
-+	return err;
-+}
-+
+ 
+ extern int follow_down(struct vfsmount **, struct dentry **);
+ extern int follow_up(struct vfsmount **, struct dentry **);
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-unionfs-documentation.patch
 lookup_one_len_nd-lookup_one_len-with-nameidata-argument.patch
 unionfs-branch-management-functionality.patch
 unionfs-common-file-operations.patch
