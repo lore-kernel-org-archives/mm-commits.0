@@ -1,31 +1,30 @@
 From: akpm@osdl.org
-Subject: - unionfs-internal-include-file.patch removed from -mm tree
-Date: Mon, 08 Jan 2007 13:10:14 -0800
-Message-ID: <200701082110.l08LAEuP019057@shell0.pdx.osdl.net>
+Subject: - unionfs-extended-attributes-support.patch removed from -mm tree
+Date: Mon, 08 Jan 2007 13:10:22 -0800
+Message-ID: <200701082110.l08LAMw3019073@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43637 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43714 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750946AbXAHVKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:10:34 -0500
+	id S1750875AbXAHVLA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:11:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unionfs: internal include file
+     unionfs: extended Attributes support
 has been removed from the -mm tree.  Its filename was
-     unionfs-internal-include-file.patch
+     unionfs-extended-attributes-support.patch
 
 This patch was dropped because I'll use the git tree
 
 ------------------------------------------------------
-Subject: unionfs: internal include file
+Subject: unionfs: extended Attributes support
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-An internal Unionfs include file.  The include file is specific to kernel code
-only, and therefore is separate from include/linux/unionfs.h.
+Extended attribute support.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -33,514 +32,321 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/union.h |  495 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 495 insertions(+)
+ fs/Kconfig          |    9 +++
+ fs/unionfs/Makefile |    2 
+ fs/unionfs/copyup.c |   75 +++++++++++++++++++++++++
+ fs/unionfs/inode.c  |   12 ++++
+ fs/unionfs/union.h  |   15 +++++
+ fs/unionfs/xattr.c  |  123 ++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 236 insertions(+)
 
-diff -puN /dev/null fs/unionfs/union.h
---- /dev/null
+diff -puN fs/Kconfig~unionfs-extended-attributes-support fs/Kconfig
+--- a/fs/Kconfig~unionfs-extended-attributes-support
++++ a/fs/Kconfig
+@@ -1564,6 +1564,15 @@ config UNION_FS
+ 
+ 	  See <http://www.unionfs.org> for details
+ 
++config UNION_FS_XATTR
++	bool "Unionfs extended attributes"
++	depends on UNION_FS
++	help
++	  Extended attributes are name:value pairs associated with inodes by
++	  the kernel or by users (see the attr(5) manual page).
++
++	  If unsure, say N.
++
+ endmenu
+ 
+ menu "Network File Systems"
+diff -puN fs/unionfs/Makefile~unionfs-extended-attributes-support fs/unionfs/Makefile
+--- a/fs/unionfs/Makefile~unionfs-extended-attributes-support
++++ a/fs/unionfs/Makefile
+@@ -3,3 +3,5 @@ obj-$(CONFIG_UNION_FS) += unionfs.o
+ unionfs-y := subr.o dentry.o file.o inode.o main.o super.o \
+ 	stale_inode.o branchman.o rdstate.o copyup.o dirhelper.o \
+ 	rename.o unlink.o lookup.o commonfops.o dirfops.o sioq.o
++
++unionfs-$(CONFIG_UNION_FS_XATTR) += xattr.o
+diff -puN fs/unionfs/copyup.c~unionfs-extended-attributes-support fs/unionfs/copyup.c
+--- a/fs/unionfs/copyup.c~unionfs-extended-attributes-support
++++ a/fs/unionfs/copyup.c
+@@ -18,6 +18,75 @@
+ 
+ #include "union.h"
+ 
++#ifdef CONFIG_UNION_FS_XATTR
++/* copyup all extended attrs for a given dentry */
++static int copyup_xattrs(struct dentry *old_hidden_dentry,
++			 struct dentry *new_hidden_dentry)
++{
++	int err = 0;
++	ssize_t list_size = -1;
++	char *name_list = NULL;
++	char *attr_value = NULL;
++	char *name_list_orig = NULL;
++
++	list_size = vfs_listxattr(old_hidden_dentry, NULL, 0);
++
++	if (list_size <= 0) {
++		err = list_size;
++		goto out;
++	}
++
++	name_list = unionfs_xattr_alloc(list_size + 1, XATTR_LIST_MAX);
++	if (!name_list || IS_ERR(name_list)) {
++		err = PTR_ERR(name_list);
++		goto out;
++	}
++	list_size = vfs_listxattr(old_hidden_dentry, name_list, list_size);
++	attr_value = unionfs_xattr_alloc(XATTR_SIZE_MAX, XATTR_SIZE_MAX);
++	if (!attr_value || IS_ERR(attr_value)) {
++		err = PTR_ERR(name_list);
++		goto out;
++	}
++	name_list_orig = name_list;
++	while (*name_list) {
++		ssize_t size;
++
++		/* Lock here since vfs_getxattr doesn't lock for us */
++		mutex_lock(&old_hidden_dentry->d_inode->i_mutex);
++		size = vfs_getxattr(old_hidden_dentry, name_list,
++				    attr_value, XATTR_SIZE_MAX);
++		mutex_unlock(&old_hidden_dentry->d_inode->i_mutex);
++		if (size < 0) {
++			err = size;
++			goto out;
++		}
++
++		if (size > XATTR_SIZE_MAX) {
++			err = -E2BIG;
++			goto out;
++		}
++		/* Don't lock here since vfs_setxattr does it for us. */
++		err = vfs_setxattr(new_hidden_dentry, name_list, attr_value,
++				   size, 0);
++
++		if (err < 0)
++			goto out;
++		name_list += strlen(name_list) + 1;
++	}
++      out:
++	name_list = name_list_orig;
++
++	if (name_list)
++		unionfs_xattr_free(name_list, list_size + 1);
++	if (attr_value)
++		unionfs_xattr_free(attr_value, XATTR_SIZE_MAX);
++	/* It is no big deal if this fails, we just roll with the punches. */
++	if (err == -ENOTSUPP || err == -EOPNOTSUPP)
++		err = 0;
++	return err;
++}
++#endif /* CONFIG_UNION_FS_XATTR */
++
+ /* Determine the mode based on the copyup flags, and the existing dentry. */
+ static int copyup_permissions(struct super_block *sb,
+ 			      struct dentry *old_hidden_dentry,
+@@ -344,6 +413,12 @@ int copyup_named_dentry(struct inode *di
+ 	if ((err = copyup_permissions(sb, old_hidden_dentry, new_hidden_dentry)))
+ 		goto out_unlink;
+ 
++#ifdef CONFIG_UNION_FS_XATTR
++	/* Selinux uses extended attributes for permissions. */
++	if ((err = copyup_xattrs(old_hidden_dentry, new_hidden_dentry)))
++		goto out_unlink;
++#endif
++
+ 	/* do not allow files getting deleted to be reinterposed */
+ 	if (!d_deleted(dentry))
+ 		unionfs_reinterpose(dentry);
+diff -puN fs/unionfs/inode.c~unionfs-extended-attributes-support fs/unionfs/inode.c
+--- a/fs/unionfs/inode.c~unionfs-extended-attributes-support
++++ a/fs/unionfs/inode.c
+@@ -930,10 +930,22 @@ struct inode_operations unionfs_dir_iops
+ 	.rename		= unionfs_rename,
+ 	.permission	= unionfs_permission,
+ 	.setattr	= unionfs_setattr,
++#ifdef CONFIG_UNION_FS_XATTR
++	.setxattr	= unionfs_setxattr,
++	.getxattr	= unionfs_getxattr,
++	.removexattr	= unionfs_removexattr,
++	.listxattr	= unionfs_listxattr,
++#endif
+ };
+ 
+ struct inode_operations unionfs_main_iops = {
+ 	.permission	= unionfs_permission,
+ 	.setattr	= unionfs_setattr,
++#ifdef CONFIG_UNION_FS_XATTR
++	.setxattr	= unionfs_setxattr,
++	.getxattr	= unionfs_getxattr,
++	.removexattr	= unionfs_removexattr,
++	.listxattr	= unionfs_listxattr,
++#endif
+ };
+ 
+diff -puN fs/unionfs/union.h~unionfs-extended-attributes-support fs/unionfs/union.h
+--- a/fs/unionfs/union.h~unionfs-extended-attributes-support
 +++ a/fs/unionfs/union.h
-@@ -0,0 +1,495 @@
+@@ -38,6 +38,7 @@
+ #include <linux/string.h>
+ #include <linux/vmalloc.h>
+ #include <linux/writeback.h>
++#include <linux/xattr.h>
+ #include <linux/fs_stack.h>
+ #include <linux/magic.h>
+ 
+@@ -327,6 +328,20 @@ int unionfs_ioctl_queryfile(struct file 
+ /* Verify that a branch is valid. */
+ int check_branch(struct nameidata *nd);
+ 
++#ifdef CONFIG_UNION_FS_XATTR
++/* Extended attribute functions. */
++extern void *unionfs_xattr_alloc(size_t size, size_t limit);
++extern void unionfs_xattr_free(void *ptr, size_t size);
++
++extern ssize_t unionfs_getxattr(struct dentry *dentry, const char *name,
++		void *value, size_t size);
++extern int unionfs_removexattr(struct dentry *dentry, const char *name);
++extern ssize_t unionfs_listxattr(struct dentry *dentry, char *list,
++		size_t size);
++extern int unionfs_setxattr(struct dentry *dentry, const char *name,
++		const void *value, size_t size, int flags);
++#endif /* CONFIG_UNION_FS_XATTR */
++
+ /* The root directory is unhashed, but isn't deleted. */
+ static inline int d_deleted(struct dentry *d)
+ {
+diff -puN /dev/null fs/unionfs/xattr.c
+--- /dev/null
++++ a/fs/unionfs/xattr.c
+@@ -0,0 +1,123 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
-+ * Copyright (c) 2005-2006 Josef Sipek
++ * Copyright (c) 2005-2006 Josef 'Jeff' Sipek
++ * Copyright (c) 2005-2006 Junjiro Okajima
 + * Copyright (c) 2005      Arun M. Krishnakumar
 + * Copyright (c) 2004-2006 David P. Quigley
 + * Copyright (c) 2003-2004 Mohammad Nayyer Zubair
 + * Copyright (c) 2003      Puja Gupta
 + * Copyright (c) 2003      Harikesavan Krishnan
 + * Copyright (c) 2003-2006 Stony Brook University
-+ * Copyright (c) 2003-2006 The Research Foundation of State University of New York
++ * Copyright (c) 2003-2006 The Research Foundation of State University of New York*
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef _UNION_H_
-+#define _UNION_H_
++#include "union.h"
 +
-+#include <linux/dcache.h>
-+#include <linux/file.h>
-+#include <linux/list.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/mount.h>
-+#include <linux/namei.h>
-+#include <linux/page-flags.h>
-+#include <linux/pagemap.h>
-+#include <linux/poll.h>
-+#include <linux/security.h>
-+#include <linux/seq_file.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/smp_lock.h>
-+#include <linux/statfs.h>
-+#include <linux/string.h>
-+#include <linux/vmalloc.h>
-+#include <linux/writeback.h>
-+#include <linux/fs_stack.h>
-+#include <linux/magic.h>
++/* This is lifted from fs/xattr.c */
++void *unionfs_xattr_alloc(size_t size, size_t limit)
++{
++	void *ptr;
 +
-+#include <asm/mman.h>
-+#include <asm/system.h>
++	if (size > limit)
++		return ERR_PTR(-E2BIG);
 +
-+#include <linux/union_fs.h>
++	if (!size)		/* size request, no buffer is needed */
++		return NULL;
++	else if (size <= PAGE_SIZE)
++		ptr = kmalloc(size, GFP_KERNEL);
++	else
++		ptr = vmalloc(size);
++	if (!ptr)
++		return ERR_PTR(-ENOMEM);
++	return ptr;
++}
 +
-+/* the file system name */
-+#define UNIONFS_NAME "unionfs"
++void unionfs_xattr_free(void *ptr, size_t size)
++{
++	if (!size)		/* size request, no buffer was needed */
++		return;
++	else if (size <= PAGE_SIZE)
++		kfree(ptr);
++	else
++		vfree(ptr);
++}
 +
-+/* unionfs root inode number */
-+#define UNIONFS_ROOT_INO     1
-+
-+/* Mount time flags */
-+#define MOUNT_FLAG(sb)     (UNIONFS_SB(sb)->mount_flag)
-+
-+/* number of characters while generating unique temporary file names */
-+#define	UNIONFS_TMPNAM_LEN	12
-+
-+/* number of times we try to get a unique temporary file name */
-+#define GET_TMPNAM_MAX_RETRY	5
-+
-+/* Operations vectors defined in specific files. */
-+extern struct file_operations unionfs_main_fops;
-+extern struct file_operations unionfs_dir_fops;
-+extern struct inode_operations unionfs_main_iops;
-+extern struct inode_operations unionfs_dir_iops;
-+extern struct inode_operations unionfs_symlink_iops;
-+extern struct super_operations unionfs_sops;
-+extern struct dentry_operations unionfs_dops;
-+
-+/* How long should an entry be allowed to persist */
-+#define RDCACHE_JIFFIES	(5*HZ)
-+
-+/* file private data. */
-+struct unionfs_file_info {
-+	int bstart;
-+	int bend;
-+	atomic_t generation;
-+
-+	struct unionfs_dir_state *rdstate;
-+	struct file **lower_files;
-+};
-+
-+/* unionfs inode data in memory */
-+struct unionfs_inode_info {
-+	int bstart;
-+	int bend;
-+	atomic_t generation;
-+	int stale;
-+	/* Stuff for readdir over NFS. */
-+	spinlock_t rdlock;
-+	struct list_head readdircache;
-+	int rdcount;
-+	int hashsize;
-+	int cookie;
-+
-+	/* The hidden inodes */
-+	struct inode **lower_inodes;
-+	/* to keep track of reads/writes for unlinks before closes */
-+	atomic_t totalopens;
-+
-+	struct inode vfs_inode;
-+};
-+
-+/* unionfs dentry data in memory */
-+struct unionfs_dentry_info {
-+	/* The semaphore is used to lock the dentry as soon as we get into a
-+	 * unionfs function from the VFS.  Our lock ordering is that children
-+	 * go before their parents.
-+	 */
-+	struct semaphore sem;
-+	int bstart;
-+	int bend;
-+	int bopaque;
-+	int bcount;
-+	atomic_t generation;
-+	struct path *lower_paths;
-+};
-+
-+/* These are the pointers to our various objects. */
-+struct unionfs_data {
-+	struct super_block *sb;
-+	struct vfsmount *hidden_mnt;
-+	atomic_t sbcount;
-+	int branchperms;
-+};
-+
-+/* unionfs super-block data in memory */
-+struct unionfs_sb_info {
-+	int bend;
-+
-+	atomic_t generation;
-+	unsigned long mount_flag;
-+	struct rw_semaphore rwsem;
-+
-+	struct unionfs_data *data;
-+};
-+
-+/*
-+ * structure for making the linked list of entries by readdir on left branch
-+ * to compare with entries on right branch
++/* BKL held by caller.
++ * dentry->d_inode->i_mutex locked
 + */
-+struct filldir_node {
-+	struct list_head file_list;	/* list for directory entries */
-+	char *name;		/* name entry */
-+	int hash;		/* name hash */
-+	int namelen;		/* name len since name is not 0 terminated */
-+
-+	/* we can check for duplicate whiteouts and files in the same branch
-+	 * in order to return -EIO.
-+	 */
-+	int bindex;
-+
-+	/* is this a whiteout entry? */
-+	int whiteout;
-+
-+	/* Inline name, so we don't need to separately kmalloc small ones */
-+	char iname[DNAME_INLINE_LEN_MIN];
-+};
-+
-+/* Directory hash table. */
-+struct unionfs_dir_state {
-+	unsigned int cookie;	/* The cookie, which is based off of rdversion */
-+	unsigned int offset;	/* The entry we have returned. */
-+	int bindex;
-+	loff_t dirpos;		/* The offset within the lower level directory. */
-+	int size;		/* How big is the hash table? */
-+	int hashentries;	/* How many entries have been inserted? */
-+	unsigned long access;
-+
-+	/* This cache list is used when the inode keeps us around. */
-+	struct list_head cache;
-+	struct list_head list[0];
-+};
-+
-+/* include miscellaneous macros */
-+#include "fanout.h"
-+#include "sioq.h"
-+
-+/* Cache creation/deletion routines. */
-+void unionfs_destroy_filldir_cache(void);
-+int unionfs_init_filldir_cache(void);
-+int unionfs_init_inode_cache(void);
-+void unionfs_destroy_inode_cache(void);
-+int unionfs_init_dentry_cache(void);
-+void unionfs_destroy_dentry_cache(void);
-+
-+/* Initialize and free readdir-specific  state. */
-+int init_rdstate(struct file *file);
-+struct unionfs_dir_state *alloc_rdstate(struct inode *inode, int bindex);
-+struct unionfs_dir_state *find_rdstate(struct inode *inode, loff_t fpos);
-+void free_rdstate(struct unionfs_dir_state *state);
-+int add_filldir_node(struct unionfs_dir_state *rdstate, const char *name,
-+		     int namelen, int bindex, int whiteout);
-+struct filldir_node *find_filldir_node(struct unionfs_dir_state *rdstate,
-+				       const char *name, int namelen);
-+
-+struct dentry **alloc_new_dentries(int objs);
-+struct unionfs_data *alloc_new_data(int objs);
-+
-+/* We can only use 32-bits of offset for rdstate --- blech! */
-+#define DIREOF (0xfffff)
-+#define RDOFFBITS 20		/* This is the number of bits in DIREOF. */
-+#define MAXRDCOOKIE (0xfff)
-+/* Turn an rdstate into an offset. */
-+static inline off_t rdstate2offset(struct unionfs_dir_state *buf)
++ssize_t unionfs_getxattr(struct dentry * dentry, const char *name, void *value,
++		size_t size)
 +{
-+	off_t tmp;
-+	tmp = ((buf->cookie & MAXRDCOOKIE) << RDOFFBITS)
-+		| (buf->offset & DIREOF);
-+	return tmp;
-+}
++	struct dentry *hidden_dentry = NULL;
++	int err = -EOPNOTSUPP;
 +
-+#define unionfs_read_lock(sb)	 down_read(&UNIONFS_SB(sb)->rwsem)
-+#define unionfs_read_unlock(sb)	 up_read(&UNIONFS_SB(sb)->rwsem)
-+#define unionfs_write_lock(sb)	 down_write(&UNIONFS_SB(sb)->rwsem)
-+#define unionfs_write_unlock(sb) up_write(&UNIONFS_SB(sb)->rwsem)
++	lock_dentry(dentry);
 +
-+static inline void double_lock_dentry(struct dentry *d1, struct dentry *d2)
-+{
-+	if (d2 < d1) {
-+		struct dentry *tmp = d1;
-+		d1 = d2;
-+		d2 = tmp;
-+	}
-+	lock_dentry(d1);
-+	lock_dentry(d2);
-+}
++	hidden_dentry = unionfs_lower_dentry(dentry);
 +
-+extern int new_dentry_private_data(struct dentry *dentry);
-+void free_dentry_private_data(struct unionfs_dentry_info *udi);
-+void update_bstart(struct dentry *dentry);
++	err = vfs_getxattr(hidden_dentry, (char*) name, value, size);
 +
-+/*
-+ * EXTERNALS:
-+ */
-+
-+/* replicates the directory structure upto given dentry in given branch */
-+extern struct dentry *create_parents(struct inode *dir, struct dentry *dentry,
-+				     int bindex);
-+struct dentry *create_parents_named(struct inode *dir, struct dentry *dentry,
-+				    const char *name, int bindex);
-+
-+/* check if two branches overlap */
-+extern int is_branch_overlap(struct dentry *dent1, struct dentry *dent2);
-+
-+/* partial lookup */
-+extern int unionfs_partial_lookup(struct dentry *dentry);
-+
-+/* Pass an unionfs dentry and an index and it will try to create a whiteout
-+ * in branch 'index'.
-+ *
-+ * On error, it will proceed to a branch to the left
-+ */
-+extern int create_whiteout(struct dentry *dentry, int start);
-+/* copies a file from dbstart to newbindex branch */
-+extern int copyup_file(struct inode *dir, struct file *file, int bstart,
-+		       int newbindex, loff_t size);
-+extern int copyup_named_file(struct inode *dir, struct file *file,
-+			     char *name, int bstart, int new_bindex,
-+			     loff_t len);
-+/* copies a dentry from dbstart to newbindex branch */
-+extern int copyup_dentry(struct inode *dir, struct dentry *dentry, int bstart,
-+			 int new_bindex, struct file **copyup_file, loff_t len);
-+extern int copyup_named_dentry(struct inode *dir, struct dentry *dentry,
-+			       int bstart, int new_bindex, const char *name,
-+			       int namelen, struct file **copyup_file,
-+			       loff_t len);
-+
-+extern int remove_whiteouts(struct dentry *dentry, struct dentry *hidden_dentry,
-+			    int bindex);
-+
-+extern int do_delete_whiteouts(struct dentry *dentry, int bindex,
-+		     struct unionfs_dir_state *namelist);
-+
-+/* Is this directory empty: 0 if it is empty, -ENOTEMPTY if not. */
-+extern int check_empty(struct dentry *dentry,
-+		       struct unionfs_dir_state **namelist);
-+/* Delete whiteouts from this directory in branch bindex. */
-+extern int delete_whiteouts(struct dentry *dentry, int bindex,
-+			    struct unionfs_dir_state *namelist);
-+
-+/* Re-lookup a hidden dentry. */
-+extern int unionfs_refresh_hidden_dentry(struct dentry *dentry, int bindex);
-+
-+extern void unionfs_reinterpose(struct dentry *this_dentry);
-+extern struct super_block *unionfs_duplicate_super(struct super_block *sb);
-+
-+/* Locking functions. */
-+extern int unionfs_setlk(struct file *file, int cmd, struct file_lock *fl);
-+extern int unionfs_getlk(struct file *file, struct file_lock *fl);
-+
-+/* Common file operations. */
-+extern int unionfs_file_revalidate(struct file *file, int willwrite);
-+extern int unionfs_open(struct inode *inode, struct file *file);
-+extern int unionfs_file_release(struct inode *inode, struct file *file);
-+extern int unionfs_flush(struct file *file, fl_owner_t id);
-+extern long unionfs_ioctl(struct file *file, unsigned int cmd,
-+			  unsigned long arg);
-+
-+/* Inode operations */
-+extern int unionfs_rename(struct inode *old_dir, struct dentry *old_dentry,
-+			  struct inode *new_dir, struct dentry *new_dentry);
-+int unionfs_unlink(struct inode *dir, struct dentry *dentry);
-+int unionfs_rmdir(struct inode *dir, struct dentry *dentry);
-+
-+int unionfs_d_revalidate(struct dentry *dentry, struct nameidata *nd);
-+
-+/* The values for unionfs_interpose's flag. */
-+#define INTERPOSE_DEFAULT	0
-+#define INTERPOSE_LOOKUP	1
-+#define INTERPOSE_REVAL		2
-+#define INTERPOSE_REVAL_NEG	3
-+#define INTERPOSE_PARTIAL	4
-+
-+extern int unionfs_interpose(struct dentry *this_dentry, struct super_block *sb,
-+			     int flag);
-+
-+/* Branch management ioctls. */
-+int unionfs_ioctl_incgen(struct file *file, unsigned int cmd,
-+			 unsigned long arg);
-+int unionfs_ioctl_queryfile(struct file *file, unsigned int cmd,
-+			    unsigned long arg);
-+
-+/* Verify that a branch is valid. */
-+int check_branch(struct nameidata *nd);
-+
-+/* The root directory is unhashed, but isn't deleted. */
-+static inline int d_deleted(struct dentry *d)
-+{
-+	return d_unhashed(d) && (d != d->d_sb->s_root);
-+}
-+
-+/* returns the sum of the n_link values of all the underlying inodes of the
-+ * passed inode
-+ */
-+static inline int unionfs_get_nlinks(struct inode *inode)
-+{
-+	int sum_nlinks = 0;
-+	int dirs = 0;
-+	int bindex;
-+	struct inode *hidden_inode;
-+
-+	/* don't bother to do all the work since we're unlinked */
-+	if (inode->i_nlink == 0)
-+		return 0;
-+
-+	if (!S_ISDIR(inode->i_mode))
-+		return unionfs_lower_inode(inode)->i_nlink;
-+
-+	for (bindex = ibstart(inode); bindex <= ibend(inode); bindex++) {
-+		hidden_inode = unionfs_lower_inode_idx(inode, bindex);
-+
-+		/* ignore files */
-+		if (!hidden_inode || !S_ISDIR(hidden_inode->i_mode))
-+			continue;
-+
-+		BUG_ON(hidden_inode->i_nlink < 0);
-+
-+		/* A deleted directory. */
-+		if (hidden_inode->i_nlink == 0)
-+			continue;
-+		dirs++;
-+
-+		/*
-+		 * A broken directory...
-+		 *
-+		 * Some filesystems don't properly set the number of links
-+		 * on empty directories
-+		 */
-+		if (hidden_inode->i_nlink == 1)
-+			sum_nlinks += 2;
-+		else
-+			sum_nlinks += (hidden_inode->i_nlink - 2);
-+	}
-+
-+	return (!dirs ? 0 : sum_nlinks + 2);
-+}
-+
-+struct dentry *unionfs_lookup_backend(struct dentry *dentry, struct nameidata *nd, int lookupmode);
-+int is_stale_inode(struct inode *inode);
-+void make_stale_inode(struct inode *inode);
-+
-+#define IS_SET(sb, check_flag) ((check_flag) & MOUNT_FLAG(sb))
-+
-+/* unionfs_permission, check if we should bypass error to facilitate copyup */
-+#define IS_COPYUP_ERR(err) ((err) == -EROFS)
-+
-+/* unionfs_open, check if we need to copyup the file */
-+#define OPEN_WRITE_FLAGS (O_WRONLY | O_RDWR | O_APPEND)
-+#define IS_WRITE_FLAG(flag) ((flag) & OPEN_WRITE_FLAGS)
-+
-+static inline int branchperms(const struct super_block *sb, int index)
-+{
-+	BUG_ON(index < 0);
-+
-+	return UNIONFS_SB(sb)->data[index].branchperms;
-+}
-+
-+static inline int set_branchperms(struct super_block *sb, int index, int perms)
-+{
-+	BUG_ON(index < 0);
-+
-+	UNIONFS_SB(sb)->data[index].branchperms = perms;
-+
-+	return perms;
-+}
-+
-+/* Is this file on a read-only branch? */
-+static inline int is_robranch_super(const struct super_block *sb, int index)
-+{
-+	return (!(branchperms(sb, index) & MAY_WRITE)) ? -EROFS : 0;
-+}
-+
-+/* Is this file on a read-only branch? */
-+static inline int is_robranch_idx(const struct dentry *dentry, int index)
-+{
-+	int err = 0;
-+
-+	BUG_ON(index < 0);
-+
-+	if ((!(branchperms(dentry->d_sb, index) & MAY_WRITE)) ||
-+	    IS_RDONLY(unionfs_lower_dentry_idx(dentry, index)->d_inode))
-+		err = -EROFS;
-+
++	unlock_dentry(dentry);
 +	return err;
 +}
 +
-+static inline int is_robranch(const struct dentry *dentry)
-+{
-+	int index;
-+
-+	index = UNIONFS_D(dentry)->bstart;
-+	BUG_ON(index < 0);
-+
-+	return is_robranch_idx(dentry, index);
-+}
-+
-+/* What do we use for whiteouts. */
-+#define UNIONFS_WHPFX ".wh."
-+#define UNIONFS_WHLEN 4
-+/* If a directory contains this file, then it is opaque.  We start with the
-+ * .wh. flag so that it is blocked by lookup.
++/* BKL held by caller.
++ * dentry->d_inode->i_mutex locked
 + */
-+#define UNIONFS_DIR_OPAQUE_NAME "__dir_opaque"
-+#define UNIONFS_DIR_OPAQUE UNIONFS_WHPFX UNIONFS_DIR_OPAQUE_NAME
-+
-+/* construct whiteout filename */
-+static inline char *alloc_whname(const char *name, int len)
++int unionfs_setxattr(struct dentry *dentry, const char *name, const void *value,
++		size_t size, int flags)
 +{
-+	char *buf;
++	struct dentry *hidden_dentry = NULL;
++	int err = -EOPNOTSUPP;
 +
-+	buf = kmalloc(len + UNIONFS_WHLEN + 1, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
++	lock_dentry(dentry);
++	hidden_dentry = unionfs_lower_dentry(dentry);
 +
-+	strcpy(buf, UNIONFS_WHPFX);
-+	strlcat(buf, name, len + UNIONFS_WHLEN + 1);
++	err = vfs_setxattr(hidden_dentry, (char*) name, (void*) value, size, flags);
 +
-+	return buf;
++	unlock_dentry(dentry);
++	return err;
 +}
 +
-+#define VALID_MOUNT_FLAGS (0)
-+
-+#ifndef DEFAULT_POLLMASK
-+#define DEFAULT_POLLMASK (POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM)
-+#endif
-+
-+/*
-+ * EXTERNALS:
++/* BKL held by caller.
++ * dentry->d_inode->i_mutex locked
 + */
++int unionfs_removexattr(struct dentry *dentry, const char *name)
++{
++	struct dentry *hidden_dentry = NULL;
++	int err = -EOPNOTSUPP;
 +
-+/* These two functions are here because it is kind of daft to copy and paste the
-+ * contents of the two functions to 32+ places in unionfs
++	lock_dentry(dentry);
++	hidden_dentry = unionfs_lower_dentry(dentry);
++
++	err = vfs_removexattr(hidden_dentry, (char*) name);
++
++	unlock_dentry(dentry);
++	return err;
++}
++
++/* BKL held by caller.
++ * dentry->d_inode->i_mutex locked
 + */
-+static inline struct dentry *lock_parent(struct dentry *dentry)
++ssize_t unionfs_listxattr(struct dentry * dentry, char *list, size_t size)
 +{
-+	struct dentry *dir = dget(dentry->d_parent);
++	struct dentry *hidden_dentry = NULL;
++	int err = -EOPNOTSUPP;
++	char *encoded_list = NULL;
 +
-+	mutex_lock(&dir->d_inode->i_mutex);
-+	return dir;
++	lock_dentry(dentry);
++
++	hidden_dentry = unionfs_lower_dentry(dentry);
++
++	encoded_list = list;
++	err = vfs_listxattr(hidden_dentry, encoded_list, size);
++
++	unlock_dentry(dentry);
++	return err;
 +}
-+
-+static inline void unlock_dir(struct dentry *dir)
-+{
-+	mutex_unlock(&dir->d_inode->i_mutex);
-+	dput(dir);
-+}
-+
-+extern int make_dir_opaque(struct dentry *dir, int bindex);
-+
-+#endif	/* not _UNION_H_ */
 +
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-unionfs-internal-include-file.patch
-unionfs-include-file.patch
-unionfs-unlink.patch
-unionfs-kconfig-and-makefile.patch
 unionfs-extended-attributes-support.patch
