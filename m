@@ -1,197 +1,293 @@
 From: akpm@osdl.org
-Subject: + change-cpu_up-and-co-from-__devinit-to-__cpuinit.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:44:35 -0800
-Message-ID: <200701082244.l08MiZUS021326@shell0.pdx.osdl.net>
+Subject: + proc-remove-useless-and-buggy-nlink-settings.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:49:13 -0800
+Message-ID: <200701082249.l08MnDmQ021429@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50342 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50679 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932156AbXAHWpK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:45:10 -0500
+	id S1750864AbXAHWub (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:50:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ego@in.ibm.com, benh@kernel.crashing.org, davem@davemloft.net, kyle@mcmartin.ca, paulus@samba.org, ralf@linux-mips.org, starvik@axis.com, vgoyal@in.ibm.com
+Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, greg@kroah.com, jdike@addtoit.com, kyle@mcmartin.ca, mingo@elte.hu, minyard@acm.org, paulus@samba.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     Change cpu_up and co from __devinit to __cpuinit
+     proc: remove useless (and buggy) ->nlink settings
 has been added to the -mm tree.  Its filename is
-     change-cpu_up-and-co-from-__devinit-to-__cpuinit.patch
+     proc-remove-useless-and-buggy-nlink-settings.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Change cpu_up and co from __devinit to __cpuinit
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: proc: remove useless (and buggy) ->nlink settings
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Compiling the kernel with CONFIG_HOTPLUG = y and CONFIG_HOTPLUG_CPU = n
-with CONFIG_RELOCATABLE = y generates the following modpost warnings
+Bug: pnx8550 code creates directory but resets ->nlink to 1.
 
-WARNING: vmlinux - Section mismatch: reference to .init.data: from
-.text between '_cpu_up' (at offset 0xc0141b7d) and 'cpu_up'
-WARNING: vmlinux - Section mismatch: reference to .init.data: from
-.text between '_cpu_up' (at offset 0xc0141b9c) and 'cpu_up'
-WARNING: vmlinux - Section mismatch: reference to .init.text:__cpu_up
-from .text between '_cpu_up' (at offset 0xc0141bd8) and 'cpu_up'
-WARNING: vmlinux - Section mismatch: reference to .init.data: from
-.text between '_cpu_up' (at offset 0xc0141c05) and 'cpu_up'
-WARNING: vmlinux - Section mismatch: reference to .init.data: from
-.text between '_cpu_up' (at offset 0xc0141c26) and 'cpu_up'
-WARNING: vmlinux - Section mismatch: reference to .init.data: from
-.text between '_cpu_up' (at offset 0xc0141c37) and 'cpu_up'
+create_proc_entry() et al will correctly set ->nlink for you.
 
-This is because cpu_up, _cpu_up and __cpu_up (in some architectures) are
-defined as __devinit
-AND
-__cpu_up calls some __cpuinit functions.
-
-Since __cpuinit would map to __init with this kind of a configuration,
-we get a .text refering .init.data warning.
-
-This patch solves the problem by converting all of __cpu_up, _cpu_up
-and cpu_up from __devinit to __cpuinit. The approach is justified since
-the callers of cpu_up are either dependent on CONFIG_HOTPLUG_CPU or
-are of __init type.
-
-Thus when CONFIG_HOTPLUG_CPU=y, all these cpu up functions would land up
-in .text section, and when CONFIG_HOTPLUG_CPU=n, all these functions would
-land up in .init section.
-
-Tested on a i386 SMP machine running linux-2.6.20-rc3-mm1.
-
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/cris/arch-v32/kernel/smp.c |    2 +-
- arch/m32r/kernel/smpboot.c      |    2 +-
- arch/mips/kernel/smp.c          |    2 +-
- arch/parisc/kernel/smp.c        |    2 +-
- arch/powerpc/kernel/smp.c       |    2 +-
- arch/sparc64/kernel/smp.c       |    2 +-
- kernel/cpu.c                    |    4 ++--
- 7 files changed, 8 insertions(+), 8 deletions(-)
+ arch/mips/philips/pnx8550/common/proc.c   |    7 +------
+ arch/powerpc/kernel/proc_ppc64.c          |    1 -
+ arch/powerpc/kernel/rtas_flash.c          |    1 -
+ arch/powerpc/platforms/iseries/mf.c       |    4 ----
+ arch/powerpc/platforms/pseries/reconfig.c |    1 -
+ arch/um/drivers/ubd_kern.c                |    1 -
+ drivers/char/ipmi/ipmi_msghandler.c       |    1 -
+ drivers/ide/ide-proc.c                    |    1 -
+ drivers/macintosh/via-pmu.c               |    1 -
+ drivers/misc/hdpuftrs/hdpu_nexus.c        |    2 --
+ drivers/parisc/led.c                      |    2 --
+ drivers/s390/crypto/zcrypt_api.c          |    1 -
+ drivers/usb/gadget/rndis.c                |    1 -
+ kernel/irq/proc.c                         |    1 -
+ kernel/profile.c                          |    1 -
+ 15 files changed, 1 insertion(+), 25 deletions(-)
 
-diff -puN arch/cris/arch-v32/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit arch/cris/arch-v32/kernel/smp.c
---- a/arch/cris/arch-v32/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit
-+++ a/arch/cris/arch-v32/kernel/smp.c
-@@ -195,7 +195,7 @@ int setup_profiling_timer(unsigned int m
-  */
- unsigned long cache_decay_ticks = 1;
+diff -puN arch/mips/philips/pnx8550/common/proc.c~proc-remove-useless-and-buggy-nlink-settings arch/mips/philips/pnx8550/common/proc.c
+--- a/arch/mips/philips/pnx8550/common/proc.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/mips/philips/pnx8550/common/proc.c
+@@ -79,10 +79,7 @@ static int pnx8550_proc_init( void )
  
--int __devinit __cpu_up(unsigned int cpu)
-+int __cpuinit __cpu_up(unsigned int cpu)
- {
- 	smp_boot_one_cpu(cpu);
- 	return cpu_online(cpu) ? 0 : -ENOSYS;
-diff -puN arch/m32r/kernel/smpboot.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit arch/m32r/kernel/smpboot.c
---- a/arch/m32r/kernel/smpboot.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit
-+++ a/arch/m32r/kernel/smpboot.c
-@@ -351,7 +351,7 @@ static void __init do_boot_cpu(int phys_
+ 	// Create /proc/pnx8550
+         pnx8550_dir = create_proc_entry("pnx8550", S_IFDIR|S_IRUGO, NULL);
+-        if (pnx8550_dir){
+-                pnx8550_dir->nlink = 1;
+-        }
+-        else {
++        if (!pnx8550_dir) {
+                 printk(KERN_ERR "Can't create pnx8550 proc dir\n");
+                 return -1;
+         }
+@@ -90,7 +87,6 @@ static int pnx8550_proc_init( void )
+ 	// Create /proc/pnx8550/timers
+         pnx8550_timers = create_proc_entry("timers", S_IFREG|S_IRUGO, pnx8550_dir );
+         if (pnx8550_timers){
+-                pnx8550_timers->nlink = 1;
+                 pnx8550_timers->read_proc = pnx8550_timers_read;
+         }
+         else {
+@@ -100,7 +96,6 @@ static int pnx8550_proc_init( void )
+ 	// Create /proc/pnx8550/registers
+         pnx8550_registers = create_proc_entry("registers", S_IFREG|S_IRUGO, pnx8550_dir );
+         if (pnx8550_registers){
+-                pnx8550_registers->nlink = 1;
+                 pnx8550_registers->read_proc = pnx8550_registers_read;
+         }
+         else {
+diff -puN arch/powerpc/kernel/proc_ppc64.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/kernel/proc_ppc64.c
+--- a/arch/powerpc/kernel/proc_ppc64.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/kernel/proc_ppc64.c
+@@ -71,7 +71,6 @@ static int __init proc_ppc64_init(void)
+ 	pde = create_proc_entry("ppc64/systemcfg", S_IFREG|S_IRUGO, NULL);
+ 	if (!pde)
+ 		return 1;
+-	pde->nlink = 1;
+ 	pde->data = vdso_data;
+ 	pde->size = PAGE_SIZE;
+ 	pde->proc_fops = &page_map_fops;
+diff -puN arch/powerpc/kernel/rtas_flash.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/kernel/rtas_flash.c
+--- a/arch/powerpc/kernel/rtas_flash.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/kernel/rtas_flash.c
+@@ -708,7 +708,6 @@ static struct proc_dir_entry *create_fla
+ 
+ 	ent = create_proc_entry(filename, S_IRUSR | S_IWUSR, NULL);
+ 	if (ent != NULL) {
+-		ent->nlink = 1;
+ 		ent->proc_fops = fops;
+ 		ent->owner = THIS_MODULE;
  	}
+diff -puN arch/powerpc/platforms/iseries/mf.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/platforms/iseries/mf.c
+--- a/arch/powerpc/platforms/iseries/mf.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/platforms/iseries/mf.c
+@@ -1249,7 +1249,6 @@ static int __init mf_proc_init(void)
+ 		ent = create_proc_entry("cmdline", S_IFREG|S_IRUSR|S_IWUSR, mf);
+ 		if (!ent)
+ 			return 1;
+-		ent->nlink = 1;
+ 		ent->data = (void *)(long)i;
+ 		ent->read_proc = proc_mf_dump_cmdline;
+ 		ent->write_proc = proc_mf_change_cmdline;
+@@ -1260,7 +1259,6 @@ static int __init mf_proc_init(void)
+ 		ent = create_proc_entry("vmlinux", S_IFREG|S_IWUSR, mf);
+ 		if (!ent)
+ 			return 1;
+-		ent->nlink = 1;
+ 		ent->data = (void *)(long)i;
+ 		ent->proc_fops = &proc_vmlinux_operations;
+ 	}
+@@ -1268,7 +1266,6 @@ static int __init mf_proc_init(void)
+ 	ent = create_proc_entry("side", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
+ 	if (!ent)
+ 		return 1;
+-	ent->nlink = 1;
+ 	ent->data = (void *)0;
+ 	ent->read_proc = proc_mf_dump_side;
+ 	ent->write_proc = proc_mf_change_side;
+@@ -1276,7 +1273,6 @@ static int __init mf_proc_init(void)
+ 	ent = create_proc_entry("src", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
+ 	if (!ent)
+ 		return 1;
+-	ent->nlink = 1;
+ 	ent->data = (void *)0;
+ 	ent->read_proc = proc_mf_dump_src;
+ 	ent->write_proc = proc_mf_change_src;
+diff -puN arch/powerpc/platforms/pseries/reconfig.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/platforms/pseries/reconfig.c
+--- a/arch/powerpc/platforms/pseries/reconfig.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/platforms/pseries/reconfig.c
+@@ -513,7 +513,6 @@ static int proc_ppc64_create_ofdt(void)
+ 
+ 	ent = create_proc_entry("ppc64/ofdt", S_IWUSR, NULL);
+ 	if (ent) {
+-		ent->nlink = 1;
+ 		ent->data = NULL;
+ 		ent->size = 0;
+ 		ent->proc_fops = &ofdt_fops;
+diff -puN arch/um/drivers/ubd_kern.c~proc-remove-useless-and-buggy-nlink-settings arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/um/drivers/ubd_kern.c
+@@ -242,7 +242,6 @@ static void make_ide_entries(char *dev_n
+ 
+ 	ent = create_proc_entry("media", S_IFREG|S_IRUGO, dir);
+ 	if(!ent) return;
+-	ent->nlink = 1;
+ 	ent->data = NULL;
+ 	ent->read_proc = proc_ide_read_media;
+ 	ent->write_proc = NULL;
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~proc-remove-useless-and-buggy-nlink-settings drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -1887,7 +1887,6 @@ int ipmi_smi_add_proc_entry(ipmi_smi_t s
+ 		kfree(entry);
+ 		rv = -ENOMEM;
+ 	} else {
+-		file->nlink = 1;
+ 		file->data = data;
+ 		file->read_proc = read_proc;
+ 		file->write_proc = write_proc;
+diff -puN drivers/ide/ide-proc.c~proc-remove-useless-and-buggy-nlink-settings drivers/ide/ide-proc.c
+--- a/drivers/ide/ide-proc.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/ide/ide-proc.c
+@@ -413,7 +413,6 @@ void ide_add_proc_entries(struct proc_di
+ 	while (p->name != NULL) {
+ 		ent = create_proc_entry(p->name, p->mode, dir);
+ 		if (!ent) return;
+-		ent->nlink = 1;
+ 		ent->data = data;
+ 		ent->read_proc = p->read_proc;
+ 		ent->write_proc = p->write_proc;
+diff -puN drivers/macintosh/via-pmu.c~proc-remove-useless-and-buggy-nlink-settings drivers/macintosh/via-pmu.c
+--- a/drivers/macintosh/via-pmu.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/macintosh/via-pmu.c
+@@ -516,7 +516,6 @@ static int __init via_pmu_dev_init(void)
+ 					proc_get_irqstats, NULL);
+ 		proc_pmu_options = create_proc_entry("options", 0600, proc_pmu_root);
+ 		if (proc_pmu_options) {
+-			proc_pmu_options->nlink = 1;
+ 			proc_pmu_options->read_proc = proc_read_options;
+ 			proc_pmu_options->write_proc = proc_write_options;
+ 		}
+diff -puN drivers/misc/hdpuftrs/hdpu_nexus.c~proc-remove-useless-and-buggy-nlink-settings drivers/misc/hdpuftrs/hdpu_nexus.c
+--- a/drivers/misc/hdpuftrs/hdpu_nexus.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/misc/hdpuftrs/hdpu_nexus.c
+@@ -72,11 +72,9 @@ static int hdpu_nexus_probe(struct platf
+ 		printk("Could not map slot id\n");
+ 	hdpu_slot_id = create_proc_entry("sky_slot_id", 0666, &proc_root);
+ 	hdpu_slot_id->read_proc = hdpu_slot_id_read;
+-	hdpu_slot_id->nlink = 1;
+ 
+ 	hdpu_chassis_id = create_proc_entry("sky_chassis_id", 0666, &proc_root);
+ 	hdpu_chassis_id->read_proc = hdpu_chassis_id_read;
+-	hdpu_chassis_id->nlink = 1;
+ 	return 0;
  }
  
--int __devinit __cpu_up(unsigned int cpu_id)
-+int __cpuinit __cpu_up(unsigned int cpu_id)
- {
- 	int timeout;
+diff -puN drivers/parisc/led.c~proc-remove-useless-and-buggy-nlink-settings drivers/parisc/led.c
+--- a/drivers/parisc/led.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/parisc/led.c
+@@ -252,7 +252,6 @@ static int __init led_create_procfs(void
+ 	proc_pdc_root->owner = THIS_MODULE;
+ 	ent = create_proc_entry("led", S_IFREG|S_IRUGO|S_IWUSR, proc_pdc_root);
+ 	if (!ent) return -1;
+-	ent->nlink = 1;
+ 	ent->data = (void *)LED_NOLCD; /* LED */
+ 	ent->read_proc = led_proc_read;
+ 	ent->write_proc = led_proc_write;
+@@ -262,7 +261,6 @@ static int __init led_create_procfs(void
+ 	{
+ 		ent = create_proc_entry("lcd", S_IFREG|S_IRUGO|S_IWUSR, proc_pdc_root);
+ 		if (!ent) return -1;
+-		ent->nlink = 1;
+ 		ent->data = (void *)LED_HASLCD; /* LCD */
+ 		ent->read_proc = led_proc_read;
+ 		ent->write_proc = led_proc_write;
+diff -puN drivers/s390/crypto/zcrypt_api.c~proc-remove-useless-and-buggy-nlink-settings drivers/s390/crypto/zcrypt_api.c
+--- a/drivers/s390/crypto/zcrypt_api.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/s390/crypto/zcrypt_api.c
+@@ -1063,7 +1063,6 @@ int __init zcrypt_api_init(void)
+ 		rc = -ENOMEM;
+ 		goto out_misc;
+ 	}
+-	zcrypt_entry->nlink = 1;
+ 	zcrypt_entry->data = NULL;
+ 	zcrypt_entry->read_proc = zcrypt_status_read;
+ 	zcrypt_entry->write_proc = zcrypt_status_write;
+diff -puN drivers/usb/gadget/rndis.c~proc-remove-useless-and-buggy-nlink-settings drivers/usb/gadget/rndis.c
+--- a/drivers/usb/gadget/rndis.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/usb/gadget/rndis.c
+@@ -1419,7 +1419,6 @@ int __devinit rndis_init (void)
+ 			return -EIO;
+ 		}
  
-diff -puN arch/mips/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit arch/mips/kernel/smp.c
---- a/arch/mips/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit
-+++ a/arch/mips/kernel/smp.c
-@@ -271,7 +271,7 @@ void __devinit smp_prepare_boot_cpu(void
-  * and keep control until "cpu_online(cpu)" is set.  Note: cpu is
-  * physical, not logical.
-  */
--int __devinit __cpu_up(unsigned int cpu)
-+int __cpuinit __cpu_up(unsigned int cpu)
- {
- 	struct task_struct *idle;
+-		rndis_connect_state [i]->nlink = 1;
+ 		rndis_connect_state [i]->write_proc = rndis_proc_write;
+ 		rndis_connect_state [i]->read_proc = rndis_proc_read;
+ 		rndis_connect_state [i]->data = (void *)
+diff -puN kernel/irq/proc.c~proc-remove-useless-and-buggy-nlink-settings kernel/irq/proc.c
+--- a/kernel/irq/proc.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/kernel/irq/proc.c
+@@ -136,7 +136,6 @@ void register_irq_proc(unsigned int irq)
+ 		entry = create_proc_entry("smp_affinity", 0600, irq_desc[irq].dir);
  
-diff -puN arch/parisc/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit arch/parisc/kernel/smp.c
---- a/arch/parisc/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit
-+++ a/arch/parisc/kernel/smp.c
-@@ -608,7 +608,7 @@ void smp_cpus_done(unsigned int cpu_max)
- }
- 
- 
--int __devinit __cpu_up(unsigned int cpu)
-+int __cpuinit __cpu_up(unsigned int cpu)
- {
- 	if (cpu != 0 && cpu < parisc_max_cpus)
- 		smp_boot_one_cpu(cpu);
-diff -puN arch/powerpc/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit arch/powerpc/kernel/smp.c
---- a/arch/powerpc/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit
-+++ a/arch/powerpc/kernel/smp.c
-@@ -468,7 +468,7 @@ static int __devinit cpu_enable(unsigned
- 	return -ENOSYS;
- }
- 
--int __devinit __cpu_up(unsigned int cpu)
-+int __cpuinit __cpu_up(unsigned int cpu)
- {
- 	int c;
- 
-diff -puN arch/sparc64/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit arch/sparc64/kernel/smp.c
---- a/arch/sparc64/kernel/smp.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit
-+++ a/arch/sparc64/kernel/smp.c
-@@ -1388,7 +1388,7 @@ void __devinit smp_prepare_boot_cpu(void
- {
- }
- 
--int __devinit __cpu_up(unsigned int cpu)
-+int __cpuinit __cpu_up(unsigned int cpu)
- {
- 	int ret = smp_boot_one_cpu(cpu);
- 
-diff -puN kernel/cpu.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit kernel/cpu.c
---- a/kernel/cpu.c~change-cpu_up-and-co-from-__devinit-to-__cpuinit
-+++ a/kernel/cpu.c
-@@ -204,7 +204,7 @@ int cpu_down(unsigned int cpu)
- #endif /*CONFIG_HOTPLUG_CPU*/
- 
- /* Requires cpu_add_remove_lock to be held */
--static int __devinit _cpu_up(unsigned int cpu)
-+static int __cpuinit _cpu_up(unsigned int cpu)
- {
- 	int ret;
- 	void *hcpu = (void *)(long)cpu;
-@@ -239,7 +239,7 @@ out_notify:
- 	return ret;
- }
- 
--int __devinit cpu_up(unsigned int cpu)
-+int __cpuinit cpu_up(unsigned int cpu)
- {
- 	int err = 0;
- 
+ 		if (entry) {
+-			entry->nlink = 1;
+ 			entry->data = (void *)(long)irq;
+ 			entry->read_proc = irq_affinity_read_proc;
+ 			entry->write_proc = irq_affinity_write_proc;
+diff -puN kernel/profile.c~proc-remove-useless-and-buggy-nlink-settings kernel/profile.c
+--- a/kernel/profile.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/kernel/profile.c
+@@ -434,7 +434,6 @@ void create_prof_cpu_mask(struct proc_di
+ 	/* create /proc/irq/prof_cpu_mask */
+ 	if (!(entry = create_proc_entry("prof_cpu_mask", 0600, root_irq_dir)))
+ 		return;
+-	entry->nlink = 1;
+ 	entry->data = (void *)&prof_cpu_mask;
+ 	entry->read_proc = prof_cpu_mask_read_proc;
+ 	entry->write_proc = prof_cpu_mask_write_proc;
 _
 
-Patches currently in -mm which might be from ego@in.ibm.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-change-cpu_up-and-co-from-__devinit-to-__cpuinit.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-3.patch
-ondemand-governor-restructure-the-work-callback.patch
-ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-handle-cpu_lock_acquire-and-cpu_lock_release-in-workqueue_cpu_callback.patch
-fix-flush_workqueue-vs-cpu_dead-race.patch
+git-dvb.patch
+git-mtd.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
