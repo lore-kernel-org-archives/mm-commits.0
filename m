@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + unionfs-main-module-functions.patch added to -mm tree
-Date: Mon, 08 Jan 2007 13:08:37 -0800
-Message-ID: <200701082108.l08L8bL3018904@shell0.pdx.osdl.net>
+Subject: + unionfs-readdir-state.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:08:39 -0800
+Message-ID: <200701082108.l08L8dqP018907@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43372 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43374 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750780AbXAHVIv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:08:51 -0500
+	id S1750743AbXAHVIw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:08:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,18 +15,18 @@ Cc: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu
 
 
 The patch titled
-     unionfs: main module functions
+     unionfs: readdir state
 has been added to the -mm tree.  Its filename is
-     unionfs-main-module-functions.patch
+     unionfs-readdir-state.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unionfs: main module functions
+Subject: unionfs: readdir state
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-Module init & cleanup code, as well as interposition functions.
+This file contains the routines for maintaining readdir state.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -34,13 +34,13 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/main.c |  687 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 687 insertions(+)
+ fs/unionfs/rdstate.c |  288 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 288 insertions(+)
 
-diff -puN /dev/null fs/unionfs/main.c
+diff -puN /dev/null fs/unionfs/rdstate.c
 --- /dev/null
-+++ a/fs/unionfs/main.c
-@@ -0,0 +1,687 @@
++++ a/fs/unionfs/rdstate.c
+@@ -0,0 +1,288 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
@@ -60,673 +60,274 @@ diff -puN /dev/null fs/unionfs/main.c
 + */
 +
 +#include "union.h"
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
 +
-+/* sb we pass is unionfs's super_block */
-+int unionfs_interpose(struct dentry *dentry, struct super_block *sb, int flag)
++/* This file contains the routines for maintaining readdir state. */
++
++/* There are two structures here, rdstate which is a hash table
++ * of the second structure which is a filldir_node.
++ */
++
++/* This is a struct kmem_cache for filldir nodes, because we allocate a lot
++ * of them and they shouldn't waste memory.  If the node has a small name
++ * (as defined by the dentry structure), then we use an inline name to
++ * preserve kmalloc space.
++ */
++static struct kmem_cache *unionfs_filldir_cachep;
++
++int unionfs_init_filldir_cache(void)
++{
++	unionfs_filldir_cachep =
++	    kmem_cache_create("unionfs_filldir", sizeof(struct filldir_node), 0,
++			      SLAB_RECLAIM_ACCOUNT, NULL, NULL);
++
++	return (unionfs_filldir_cachep ? 0 : -ENOMEM);
++}
++
++void unionfs_destroy_filldir_cache(void)
++{
++	if (unionfs_filldir_cachep)
++		kmem_cache_destroy(unionfs_filldir_cachep);
++}
++
++/* This is a tuning parameter that tells us roughly how big to make the
++ * hash table in directory entries per page.  This isn't perfect, but
++ * at least we get a hash table size that shouldn't be too overloaded.
++ * The following averages are based on my home directory.
++ * 14.44693	Overall
++ * 12.29	Single Page Directories
++ * 117.93	Multi-page directories
++ */
++#define DENTPAGE 4096
++#define DENTPERONEPAGE 12
++#define DENTPERPAGE 118
++#define MINHASHSIZE 1
++static int guesstimate_hash_size(struct inode *inode)
 +{
 +	struct inode *hidden_inode;
-+	struct dentry *hidden_dentry;
-+	int err = 0;
-+	struct inode *inode;
-+	int is_negative_dentry = 1;
-+	int bindex, bstart, bend;
-+
-+	verify_locked(dentry);
-+
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+
-+	/* Make sure that we didn't get a negative dentry. */
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		if (unionfs_lower_dentry_idx(dentry, bindex) &&
-+		    unionfs_lower_dentry_idx(dentry, bindex)->d_inode) {
-+			is_negative_dentry = 0;
-+			break;
-+		}
-+	}
-+	BUG_ON(is_negative_dentry);
-+
-+	/* We allocate our new inode below, by calling iget.
-+	 * iget will call our read_inode which will initialize some
-+	 * of the new inode's fields
-+	 */
-+
-+	/* On revalidate we've already got our own inode and just need
-+	 * to fix it up.
-+	 */
-+	if (flag == INTERPOSE_REVAL) {
-+		inode = dentry->d_inode;
-+		UNIONFS_I(inode)->bstart = -1;
-+		UNIONFS_I(inode)->bend = -1;
-+		atomic_set(&UNIONFS_I(inode)->generation,
-+			   atomic_read(&UNIONFS_SB(sb)->generation));
-+
-+		UNIONFS_I(inode)->lower_inodes =
-+		    kcalloc(sbmax(sb), sizeof(struct inode *), GFP_KERNEL);
-+		if (!UNIONFS_I(inode)->lower_inodes) {
-+			err = -ENOMEM;
-+			goto out;
-+		}
-+		mutex_lock(&inode->i_mutex);
-+	} else {
-+		ino_t ino;
-+		/* get unique inode number for unionfs */
-+		ino = iunique(sb, UNIONFS_ROOT_INO);
-+
-+		inode = iget(sb, ino);
-+		if (!inode) {
-+			err = -EACCES;	/* should be impossible??? */
-+			goto out;
-+		}
-+
-+		mutex_lock(&inode->i_mutex);
-+		if (atomic_read(&inode->i_count) > 1)
-+			goto skip;
-+	}
-+
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+		if (!hidden_dentry) {
-+			unionfs_set_lower_inode_idx(inode, bindex, NULL);
-+			continue;
-+		}
-+
-+		/* Initialize the hidden inode to the new hidden inode. */
-+		if (!hidden_dentry->d_inode)
-+			continue;
-+
-+		unionfs_set_lower_inode_idx(inode, bindex,
-+				igrab(hidden_dentry->d_inode));
-+	}
-+
-+	ibstart(inode) = dbstart(dentry);
-+	ibend(inode) = dbend(dentry);
-+
-+	/* Use attributes from the first branch. */
-+	hidden_inode = unionfs_lower_inode(inode);
-+
-+	/* Use different set of inode ops for symlinks & directories */
-+	if (S_ISLNK(hidden_inode->i_mode))
-+		inode->i_op = &unionfs_symlink_iops;
-+	else if (S_ISDIR(hidden_inode->i_mode))
-+		inode->i_op = &unionfs_dir_iops;
-+
-+	/* Use different set of file ops for directories */
-+	if (S_ISDIR(hidden_inode->i_mode))
-+		inode->i_fop = &unionfs_dir_fops;
-+
-+	/* properly initialize special inodes */
-+	if (S_ISBLK(hidden_inode->i_mode) || S_ISCHR(hidden_inode->i_mode) ||
-+	    S_ISFIFO(hidden_inode->i_mode) || S_ISSOCK(hidden_inode->i_mode))
-+		init_special_inode(inode, hidden_inode->i_mode,
-+				   hidden_inode->i_rdev);
-+	/* Fix our inode's address operations to that of the lower inode
-+	 * (Unionfs is FiST-Lite)
-+	 */
-+	if (inode->i_mapping->a_ops != hidden_inode->i_mapping->a_ops)
-+		inode->i_mapping->a_ops = hidden_inode->i_mapping->a_ops;
-+
-+	/* all well, copy inode attributes */
-+	fsstack_copy_attr_all(inode, hidden_inode, unionfs_get_nlinks);
-+	fsstack_copy_inode_size(inode, hidden_inode);
-+
-+skip:
-+	/* only (our) lookup wants to do a d_add */
-+	switch (flag) {
-+		case INTERPOSE_DEFAULT:
-+		case INTERPOSE_REVAL_NEG:
-+			d_instantiate(dentry, inode);
-+			break;
-+		case INTERPOSE_LOOKUP:
-+			err = PTR_ERR(d_splice_alias(inode, dentry));
-+			break;
-+		case INTERPOSE_REVAL:
-+			/* Do nothing. */
-+			break;
-+		default:
-+			printk(KERN_ERR "Invalid interpose flag passed!");
-+			BUG();
-+	}
-+
-+	mutex_unlock(&inode->i_mutex);
-+
-+out:
-+	return err;
-+}
-+
-+void unionfs_reinterpose(struct dentry *dentry)
-+{
-+	struct dentry *hidden_dentry;
-+	struct inode *inode;
-+	int bindex, bstart, bend;
-+
-+	verify_locked(dentry);
-+
-+	/* This is pre-allocated inode */
-+	inode = dentry->d_inode;
-+
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+		if (!hidden_dentry)
-+			continue;
-+
-+		if (!hidden_dentry->d_inode)
-+			continue;
-+		if (unionfs_lower_inode_idx(inode, bindex))
-+			continue;
-+		unionfs_set_lower_inode_idx(inode, bindex,
-+				igrab(hidden_dentry->d_inode));
-+	}
-+	ibstart(inode) = dbstart(dentry);
-+	ibend(inode) = dbend(dentry);
-+}
-+
-+/* make sure the branch we just looked up (nd) makes sense:
-+ *
-+ * 1) we're not trying to stack unionfs on top of unionfs
-+ * 2) it exists
-+ * 3) is a directory
-+ */
-+int check_branch(struct nameidata *nd)
-+{
-+	if (!strcmp(nd->dentry->d_sb->s_type->name, "unionfs"))
-+		return -EINVAL;
-+	if (!nd->dentry->d_inode)
-+		return -ENOENT;
-+	if (!S_ISDIR(nd->dentry->d_inode->i_mode))
-+		return -ENOTDIR;
-+	return 0;
-+}
-+
-+/* checks if two hidden_dentries have overlapping branches */
-+int is_branch_overlap(struct dentry *dent1, struct dentry *dent2)
-+{
-+	struct dentry *dent = NULL;
-+
-+	dent = dent1;
-+	while ((dent != dent2) && (dent->d_parent != dent))
-+		dent = dent->d_parent;
-+
-+	if (dent == dent2)
-+		return 1;
-+
-+	dent = dent2;
-+	while ((dent != dent1) && (dent->d_parent != dent))
-+		dent = dent->d_parent;
-+
-+	return (dent == dent1);
-+}
-+
-+/* parse branch mode */
-+static int parse_branch_mode(char *name)
-+{
-+	int perms;
-+	int l = strlen(name);
-+	if (!strcmp(name + l - 3, "=ro")) {
-+		perms = MAY_READ;
-+		name[l - 3] = '\0';
-+	} else if (!strcmp(name + l - 3, "=rw")) {
-+		perms = MAY_READ | MAY_WRITE;
-+		name[l - 3] = '\0';
-+	} else
-+		perms = MAY_READ | MAY_WRITE;
-+
-+	return perms;
-+}
-+
-+/* parse the dirs= mount argument */
-+static int parse_dirs_option(struct super_block *sb, struct unionfs_dentry_info
-+			     *hidden_root_info, char *options)
-+{
-+	struct nameidata nd;
-+	char *name;
-+	int err = 0;
-+	int branches = 1;
-+	int bindex = 0;
-+	int i = 0;
-+	int j = 0;
-+
-+	struct dentry *dent1;
-+	struct dentry *dent2;
-+
-+	if (options[0] == '\0') {
-+		printk(KERN_WARNING "unionfs: no branches specified\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	/* Each colon means we have a separator, this is really just a rough
-+	 * guess, since strsep will handle empty fields for us.
-+	 */
-+	for (i = 0; options[i]; i++)
-+		if (options[i] == ':')
-+			branches++;
-+
-+	/* allocate space for underlying pointers to hidden dentry */
-+	UNIONFS_SB(sb)->data = kcalloc(branches,
-+			sizeof(struct unionfs_data), GFP_KERNEL);
-+	if (!UNIONFS_SB(sb)->data) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	hidden_root_info->lower_paths = kcalloc(branches,
-+			sizeof(struct path), GFP_KERNEL);
-+	if (!hidden_root_info->lower_paths) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* now parsing the string b1:b2=rw:b3=ro:b4 */
-+	branches = 0;
-+	while ((name = strsep(&options, ":")) != NULL) {
-+		int perms;
-+
-+		if (!*name)
-+			continue;
-+
-+		branches++;
-+
-+		/* strip off =rw or =ro if it is specified. */
-+		perms = parse_branch_mode(name);
-+		if (!bindex && !(perms & MAY_WRITE)) {
-+			err = -EINVAL;
-+			goto out;
-+		}
-+
-+		err = path_lookup(name, LOOKUP_FOLLOW, &nd);
-+		if (err) {
-+			printk(KERN_WARNING "unionfs: error accessing "
-+			       "hidden directory '%s' (error %d)\n", name, err);
-+			goto out;
-+		}
-+
-+		if ((err = check_branch(&nd))) {
-+			printk(KERN_WARNING "unionfs: hidden directory "
-+			       "'%s' is not a valid branch\n", name);
-+			path_release(&nd);
-+			goto out;
-+		}
-+
-+		hidden_root_info->lower_paths[bindex].dentry = nd.dentry;
-+		hidden_root_info->lower_paths[bindex].mnt = nd.mnt;
-+
-+		set_branchperms(sb, bindex, perms);
-+		set_branch_count(sb, bindex, 0);
-+
-+		if (hidden_root_info->bstart < 0)
-+			hidden_root_info->bstart = bindex;
-+		hidden_root_info->bend = bindex;
-+		bindex++;
-+	}
-+
-+	if (branches == 0) {
-+		printk(KERN_WARNING "unionfs: no branches specified\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	BUG_ON(branches != (hidden_root_info->bend + 1));
-+
-+	/* ensure that no overlaps exist in the branches */
-+	for (i = 0; i < branches; i++) {
-+		for (j = i + 1; j < branches; j++) {
-+			dent1 = hidden_root_info->lower_paths[i].dentry;
-+			dent2 = hidden_root_info->lower_paths[j].dentry;
-+
-+			if (is_branch_overlap(dent1, dent2)) {
-+				printk(KERN_WARNING "unionfs: branches %d and "
-+					"%d overlap\n", i, j);
-+				err = -EINVAL;
-+				goto out;
-+			}
-+		}
-+	}
-+
-+out:
-+	if (err) {
-+		for (i = 0; i < branches; i++)
-+			if (hidden_root_info->lower_paths[i].dentry) {
-+				dput(hidden_root_info->lower_paths[i].dentry);
-+				mntput(hidden_root_info->lower_paths[i].mnt);
-+			}
-+
-+		kfree(hidden_root_info->lower_paths);
-+		kfree(UNIONFS_SB(sb)->data);
-+
-+		/* MUST clear the pointers to prevent potential double free if
-+		 * the caller dies later on
-+		 */
-+		hidden_root_info->lower_paths = NULL;
-+		UNIONFS_SB(sb)->data = NULL;
-+	}
-+	return err;
-+}
-+
-+/*
-+ * Parse mount options.  See the manual page for usage instructions.
-+ *
-+ * Returns the dentry object of the lower-level (hidden) directory;
-+ * We want to mount our stackable file system on top of that hidden directory.
-+ */
-+static struct unionfs_dentry_info *unionfs_parse_options(struct super_block *sb,
-+							 char *options)
-+{
-+	struct unionfs_dentry_info *hidden_root_info;
-+	char *optname;
-+	int err = 0;
 +	int bindex;
-+	int dirsfound = 0;
++	int hashsize = MINHASHSIZE;
 +
-+	/* allocate private data area */
-+	err = -ENOMEM;
-+	hidden_root_info =
-+	    kzalloc(sizeof(struct unionfs_dentry_info), GFP_KERNEL);
-+	if (!hidden_root_info)
-+		goto out_error;
-+	hidden_root_info->bstart = -1;
-+	hidden_root_info->bend = -1;
-+	hidden_root_info->bopaque = -1;
++	if (UNIONFS_I(inode)->hashsize > 0)
++		return UNIONFS_I(inode)->hashsize;
 +
-+	while ((optname = strsep(&options, ",")) != NULL) {
-+		char *optarg;
-+		char *endptr;
-+		int intval;
-+
-+		if (!*optname)
++	for (bindex = ibstart(inode); bindex <= ibend(inode); bindex++) {
++		if (!(hidden_inode = unionfs_lower_inode_idx(inode, bindex)))
 +			continue;
 +
-+		optarg = strchr(optname, '=');
-+		if (optarg)
-+			*optarg++ = '\0';
++		if (hidden_inode->i_size == DENTPAGE)
++			hashsize += DENTPERONEPAGE;
++		else
++			hashsize += (hidden_inode->i_size / DENTPAGE) * DENTPERPAGE;
++	}
 +
-+		/* All of our options take an argument now. Insert ones that
-+		 * don't, above this check.
-+		 */
-+		if (!optarg) {
-+			printk("unionfs: %s requires an argument.\n", optname);
-+			err = -EINVAL;
-+			goto out_error;
++	return hashsize;
++}
++
++int init_rdstate(struct file *file)
++{
++	BUG_ON(sizeof(loff_t) != (sizeof(unsigned int) + sizeof(unsigned int)));
++	BUG_ON(UNIONFS_F(file)->rdstate != NULL);
++
++	UNIONFS_F(file)->rdstate = alloc_rdstate(file->f_dentry->d_inode,
++						 fbstart(file));
++
++	return (UNIONFS_F(file)->rdstate ? 0 : -ENOMEM);
++}
++
++struct unionfs_dir_state *find_rdstate(struct inode *inode, loff_t fpos)
++{
++	struct unionfs_dir_state *rdstate = NULL;
++	struct list_head *pos;
++
++	spin_lock(&UNIONFS_I(inode)->rdlock);
++	list_for_each(pos, &UNIONFS_I(inode)->readdircache) {
++		struct unionfs_dir_state *r =
++		    list_entry(pos, struct unionfs_dir_state, cache);
++		if (fpos == rdstate2offset(r)) {
++			UNIONFS_I(inode)->rdcount--;
++			list_del(&r->cache);
++			rdstate = r;
++			break;
 +		}
++	}
++	spin_unlock(&UNIONFS_I(inode)->rdlock);
++	return rdstate;
++}
 +
-+		if (!strcmp("dirs", optname)) {
-+			if (++dirsfound > 1) {
-+				printk(KERN_WARNING
-+				       "unionfs: multiple dirs specified\n");
-+				err = -EINVAL;
-+				goto out_error;
++struct unionfs_dir_state *alloc_rdstate(struct inode *inode, int bindex)
++{
++	int i = 0;
++	int hashsize;
++	int mallocsize = sizeof(struct unionfs_dir_state);
++	struct unionfs_dir_state *rdstate;
++
++	hashsize = guesstimate_hash_size(inode);
++	mallocsize += hashsize * sizeof(struct list_head);
++	/* Round it up to the next highest power of two. */
++	mallocsize--;
++	mallocsize |= mallocsize >> 1;
++	mallocsize |= mallocsize >> 2;
++	mallocsize |= mallocsize >> 4;
++	mallocsize |= mallocsize >> 8;
++	mallocsize |= mallocsize >> 16;
++	mallocsize++;
++
++	/* This should give us about 500 entries anyway. */
++	if (mallocsize > PAGE_SIZE)
++		mallocsize = PAGE_SIZE;
++
++	hashsize = (mallocsize -
++	     sizeof(struct unionfs_dir_state)) / sizeof(struct list_head);
++
++	rdstate = kmalloc(mallocsize, GFP_KERNEL);
++	if (!rdstate)
++		return NULL;
++
++	spin_lock(&UNIONFS_I(inode)->rdlock);
++	if (UNIONFS_I(inode)->cookie >= (MAXRDCOOKIE - 1))
++		UNIONFS_I(inode)->cookie = 1;
++	else
++		UNIONFS_I(inode)->cookie++;
++
++	rdstate->cookie = UNIONFS_I(inode)->cookie;
++	spin_unlock(&UNIONFS_I(inode)->rdlock);
++	rdstate->offset = 1;
++	rdstate->access = jiffies;
++	rdstate->bindex = bindex;
++	rdstate->dirpos = 0;
++	rdstate->hashentries = 0;
++	rdstate->size = hashsize;
++	for (i = 0; i < rdstate->size; i++)
++		INIT_LIST_HEAD(&rdstate->list[i]);
++
++	return rdstate;
++}
++
++static void free_filldir_node(struct filldir_node *node)
++{
++	if (node->namelen >= DNAME_INLINE_LEN_MIN)
++		kfree(node->name);
++	kmem_cache_free(unionfs_filldir_cachep, node);
++}
++
++void free_rdstate(struct unionfs_dir_state *state)
++{
++	struct filldir_node *tmp;
++	int i;
++
++	for (i = 0; i < state->size; i++) {
++		struct list_head *head = &(state->list[i]);
++		struct list_head *pos, *n;
++
++		/* traverse the list and deallocate space */
++		list_for_each_safe(pos, n, head) {
++			tmp = list_entry(pos, struct filldir_node, file_list);
++			list_del(&tmp->file_list);
++			free_filldir_node(tmp);
++		}
++	}
++
++	kfree(state);
++}
++
++struct filldir_node *find_filldir_node(struct unionfs_dir_state *rdstate,
++				       const char *name, int namelen)
++{
++	int index;
++	unsigned int hash;
++	struct list_head *head;
++	struct list_head *pos;
++	struct filldir_node *cursor = NULL;
++	int found = 0;
++
++	BUG_ON(namelen <= 0);
++
++	hash = full_name_hash(name, namelen);
++	index = hash % rdstate->size;
++
++	head = &(rdstate->list[index]);
++	list_for_each(pos, head) {
++		cursor = list_entry(pos, struct filldir_node, file_list);
++
++		if (cursor->namelen == namelen && cursor->hash == hash &&
++		    !strncmp(cursor->name, name, namelen)) {
++			/* a duplicate exists, and hence no need to create
++			 * entry to the list
++			 */
++			found = 1;
++
++			/* if the duplicate is in this branch, then the file
++			 * system is corrupted.
++			 */
++			if (cursor->bindex == rdstate->bindex) {
++				printk(KERN_DEBUG "Possible I/O error "
++					"unionfs_filldir: a file is duplicated "
++					"in the same branch %d: %s\n",
++					rdstate->bindex, cursor->name);
 +			}
-+			err = parse_dirs_option(sb, hidden_root_info, optarg);
-+			if (err)
-+				goto out_error;
-+			continue;
-+		}
-+
-+		/* All of these options require an integer argument. */
-+		intval = simple_strtoul(optarg, &endptr, 0);
-+		if (*endptr) {
-+			printk(KERN_WARNING
-+			       "unionfs: invalid %s option '%s'\n",
-+			       optname, optarg);
-+			err = -EINVAL;
-+			goto out_error;
-+		}
-+
-+		err = -EINVAL;
-+		printk(KERN_WARNING
-+		       "unionfs: unrecognized option '%s'\n", optname);
-+		goto out_error;
-+	}
-+	if (dirsfound != 1) {
-+		printk(KERN_WARNING "unionfs: dirs option required\n");
-+		err = -EINVAL;
-+		goto out_error;
-+	}
-+	goto out;
-+
-+out_error:
-+	if (hidden_root_info && hidden_root_info->lower_paths) {
-+		for (bindex = hidden_root_info->bstart;
-+		     bindex >= 0 && bindex <= hidden_root_info->bend;
-+		     bindex++) {
-+			struct dentry *d;
-+			struct vfsmount *m;
-+
-+			d = hidden_root_info->lower_paths[bindex].dentry;
-+			m = hidden_root_info->lower_paths[bindex].mnt;
-+
-+			dput(d);
-+
-+			if (m)
-+				mntput(m);
++			break;
 +		}
 +	}
 +
-+	kfree(hidden_root_info->lower_paths);
-+	kfree(hidden_root_info);
++	if (!found)
++		cursor = NULL;
 +
-+	kfree(UNIONFS_SB(sb)->data);
-+	UNIONFS_SB(sb)->data = NULL;
-+
-+	hidden_root_info = ERR_PTR(err);
-+out:
-+	return hidden_root_info;
++	return cursor;
 +}
 +
-+/* our custom d_alloc_root workalike
-+ *
-+ * we can't use d_alloc_root if we want to use our own interpose function
-+ * unchanged, so we simply call our own "fake" d_alloc_root
-+ */
-+static struct dentry *unionfs_d_alloc_root(struct super_block *sb)
++inline struct filldir_node *alloc_filldir_node(const char *name, int namelen,
++					       unsigned int hash, int bindex)
 +{
-+	struct dentry *ret = NULL;
-+
-+	if (sb) {
-+		static const struct qstr name = {.name = "/",.len = 1 };
-+
-+		ret = d_alloc(NULL, &name);
-+		if (ret) {
-+			ret->d_op = &unionfs_dops;
-+			ret->d_sb = sb;
-+			ret->d_parent = ret;
-+		}
-+	}
-+	return ret;
++	return kmem_cache_alloc(unionfs_filldir_cachep, GFP_KERNEL);
 +}
 +
-+static int unionfs_read_super(struct super_block *sb, void *raw_data,
-+			      int silent)
++int add_filldir_node(struct unionfs_dir_state *rdstate, const char *name,
++		     int namelen, int bindex, int whiteout)
 +{
++	struct filldir_node *new;
++	unsigned int hash;
++	int index;
 +	int err = 0;
++	struct list_head *head;
 +
-+	struct unionfs_dentry_info *hidden_root_info = NULL;
-+	int bindex, bstart, bend;
++	BUG_ON(namelen <= 0);
 +
-+	if (!raw_data) {
-+		printk(KERN_WARNING
-+		       "unionfs_read_super: missing data argument\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
++	hash = full_name_hash(name, namelen);
++	index = hash % rdstate->size;
++	head = &(rdstate->list[index]);
 +
-+	/* Allocate superblock private data */
-+	sb->s_fs_info = kzalloc(sizeof(struct unionfs_sb_info), GFP_KERNEL);
-+	if (!UNIONFS_SB(sb)) {
-+		printk(KERN_WARNING "%s: out of memory\n", __FUNCTION__);
++	new = alloc_filldir_node(name, namelen, hash, bindex);
++	if (!new) {
 +		err = -ENOMEM;
 +		goto out;
 +	}
 +
-+	UNIONFS_SB(sb)->bend = -1;
-+	atomic_set(&UNIONFS_SB(sb)->generation, 1);
-+	init_rwsem(&UNIONFS_SB(sb)->rwsem);
++	INIT_LIST_HEAD(&new->file_list);
++	new->namelen = namelen;
++	new->hash = hash;
++	new->bindex = bindex;
++	new->whiteout = whiteout;
 +
-+	hidden_root_info = unionfs_parse_options(sb, raw_data);
-+	if (IS_ERR(hidden_root_info)) {
-+		printk(KERN_WARNING
-+		       "unionfs_read_super: error while parsing options "
-+		       "(err = %ld)\n", PTR_ERR(hidden_root_info));
-+		err = PTR_ERR(hidden_root_info);
-+		hidden_root_info = NULL;
-+		goto out_free;
-+	}
-+	if (hidden_root_info->bstart == -1) {
-+		err = -ENOENT;
-+		goto out_free;
-+	}
-+
-+	/* set the hidden superblock field of upper superblock */
-+	bstart = hidden_root_info->bstart;
-+	BUG_ON(bstart != 0);
-+	sbend(sb) = bend = hidden_root_info->bend;
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		struct dentry *d;
-+
-+		d = hidden_root_info->lower_paths[bindex].dentry;
-+
-+		unionfs_set_lower_super_idx(sb, bindex, d->d_sb);
-+	}
-+
-+	/* Unionfs: Max Bytes is the maximum bytes from highest priority branch */
-+	sb->s_maxbytes = unionfs_lower_super_idx(sb, 0)->s_maxbytes;
-+
-+	sb->s_op = &unionfs_sops;
-+
-+	/* See comment next to the definition of unionfs_d_alloc_root */
-+	sb->s_root = unionfs_d_alloc_root(sb);
-+	if (!sb->s_root) {
-+		err = -ENOMEM;
-+		goto out_dput;
-+	}
-+
-+	/* link the upper and lower dentries */
-+	sb->s_root->d_fsdata = NULL;
-+	if ((err = new_dentry_private_data(sb->s_root)))
-+		goto out_freedpd;
-+
-+	/* Set the hidden dentries for s_root */
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		struct dentry *d;
-+		struct vfsmount *m;
-+
-+		d = hidden_root_info->lower_paths[bindex].dentry;
-+		m = hidden_root_info->lower_paths[bindex].mnt;
-+
-+		unionfs_set_lower_dentry_idx(sb->s_root, bindex, d);
-+		unionfs_set_lower_mnt_idx(sb->s_root, bindex, m);
-+	}
-+	set_dbstart(sb->s_root, bstart);
-+	set_dbend(sb->s_root, bend);
-+
-+	/* Set the generation number to one, since this is for the mount. */
-+	atomic_set(&UNIONFS_D(sb->s_root)->generation, 1);
-+
-+	/* call interpose to create the upper level inode */
-+	if ((err = unionfs_interpose(sb->s_root, sb, 0)))
-+		goto out_freedpd;
-+	unlock_dentry(sb->s_root);
-+	goto out;
-+
-+out_freedpd:
-+	if (UNIONFS_D(sb->s_root)) {
-+		kfree(UNIONFS_D(sb->s_root)->lower_paths);
-+		free_dentry_private_data(UNIONFS_D(sb->s_root));
-+	}
-+	dput(sb->s_root);
-+
-+out_dput:
-+	if (hidden_root_info && !IS_ERR(hidden_root_info)) {
-+		for (bindex = hidden_root_info->bstart;
-+		     bindex <= hidden_root_info->bend; bindex++) {
-+			struct dentry *d;
-+			struct vfsmount *m;
-+
-+			d = hidden_root_info->lower_paths[bindex].dentry;
-+			m = hidden_root_info->lower_paths[bindex].mnt;
-+
-+			dput(d);
-+			mntput(m);
++	if (namelen < DNAME_INLINE_LEN_MIN)
++		new->name = new->iname;
++	else {
++		new->name = kmalloc(namelen + 1, GFP_KERNEL);
++		if (!new->name) {
++			kmem_cache_free(unionfs_filldir_cachep, new);
++			new = NULL;
++			goto out;
 +		}
-+		kfree(hidden_root_info->lower_paths);
-+		kfree(hidden_root_info);
-+		hidden_root_info = NULL;
 +	}
 +
-+out_free:
-+	kfree(UNIONFS_SB(sb)->data);
-+	kfree(UNIONFS_SB(sb));
-+	sb->s_fs_info = NULL;
++	memcpy(new->name, name, namelen);
++	new->name[namelen] = '\0';
 +
++	rdstate->hashentries++;
++
++	list_add(&(new->file_list), head);
 +out:
-+	if (hidden_root_info && !IS_ERR(hidden_root_info)) {
-+		kfree(hidden_root_info->lower_paths);
-+		kfree(hidden_root_info);
-+	}
 +	return err;
 +}
-+
-+static int unionfs_get_sb(struct file_system_type *fs_type,
-+			  int flags, const char *dev_name,
-+			  void *raw_data, struct vfsmount *mnt)
-+{
-+	return get_sb_nodev(fs_type, flags, raw_data, unionfs_read_super, mnt);
-+}
-+
-+static struct file_system_type unionfs_fs_type = {
-+	.owner		= THIS_MODULE,
-+	.name		= "unionfs",
-+	.get_sb		= unionfs_get_sb,
-+	.kill_sb	= generic_shutdown_super,
-+	.fs_flags	= FS_REVAL_DOT,
-+};
-+
-+static int __init init_unionfs_fs(void)
-+{
-+	int err;
-+	printk("Registering unionfs " UNIONFS_VERSION "\n");
-+
-+	if ((err = unionfs_init_filldir_cache()))
-+		goto out;
-+	if ((err = unionfs_init_inode_cache()))
-+		goto out;
-+	if ((err = unionfs_init_dentry_cache()))
-+		goto out;
-+	if ((err = init_sioq()))
-+		goto out;
-+	err = register_filesystem(&unionfs_fs_type);
-+out:
-+	if (err) {
-+		stop_sioq();
-+		unionfs_destroy_filldir_cache();
-+		unionfs_destroy_inode_cache();
-+		unionfs_destroy_dentry_cache();
-+	}
-+	return err;
-+}
-+
-+static void __exit exit_unionfs_fs(void)
-+{
-+	stop_sioq();
-+	unionfs_destroy_filldir_cache();
-+	unionfs_destroy_inode_cache();
-+	unionfs_destroy_dentry_cache();
-+	unregister_filesystem(&unionfs_fs_type);
-+	printk("Completed unionfs module unload.\n");
-+}
-+
-+MODULE_AUTHOR("Erez Zadok, Filesystems and Storage Lab, Stony Brook University"
-+		" (http://www.fsl.cs.sunysb.edu)");
-+MODULE_DESCRIPTION("Unionfs " UNIONFS_VERSION
-+		" (http://www.unionfs.org)");
-+MODULE_LICENSE("GPL");
-+
-+module_init(init_unionfs_fs);
-+module_exit(exit_unionfs_fs);
 +
 _
 
