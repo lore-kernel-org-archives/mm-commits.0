@@ -1,333 +1,161 @@
 From: akpm@osdl.org
-Subject: + sata_promise-atapi-support.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:31:21 -0800
-Message-ID: <200701082331.l08NVMjs022709@shell0.pdx.osdl.net>
+Subject: + make-isa_bridge-alpha-only.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:32:24 -0800
+Message-ID: <200701082332.l08NWO9Z022730@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54067 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54363 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755AbXAHXbi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 18:31:38 -0500
+	id S1750792AbXAHXfs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 18:35:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikpe@it.uu.se
+Cc: bunk@stusta.de, greg@kroah.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     sata_promise: ATAPI support
+     make isa_bridge Alpha-only
 has been added to the -mm tree.  Its filename is
-     sata_promise-atapi-support.patch
+     make-isa_bridge-alpha-only.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_promise: ATAPI support
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: make isa_bridge Alpha-only
+From: Adrian Bunk <bunk@stusta.de>
 
-This patch adds ATAPI support to the sata_promise driver.  This has been
-tested on both first- and second-generation chips (20378 and 20575), and with
-both SATAPI and PATAPI devices.  CD-writing works, and bulk data transfers use
-DMA.
+Since isa_bridge is neither assigned any value !NULL nor used on !Alpha,
+there's no reason for providing it.
 
-SATAPI works on second-generation chips, but not on first-generation chips due
-to HW limitations.  PATAPI works on both first- and second-generation chips,
-but requires the PATA support patch as well (which needs an update due to a
-conflict in the board_2037x definition).
-
-The functional changes to the driver are:
-- remove ATA_FLAG_NO_ATAPI from PDC_COMMON_FLAGS, and add it
-  back to the boards that cannot support SATAPI (20319, 2037x)
-- add ->check_atapi() operation to enable DMA for bulk data
-  transfers but force PIO for other ATAPI commands; this filter
-  is taken from Promise's driver and pata_pdc207x.c
-- add handling of ATAPI protocols to pdc_qc_prep(), pdc_host_intr(),
-  and pdc_qc_issue_prot(): ATAPI_DMA is handled by the driver
-  while non-DMA protocols are handed over to libata generic code
-- add pdc_issue_atapi_pkt_cmd() to handle the initial steps in
-  issuing ATAPI DMA commands before sending the actual CDB;
-  this procedure was ported from Promise's driver
-
-With this patch ATAPI will work on SATA ports on second-generation chips, and
-on the first-generation PATA-only 20619.  ATAPI on the 2057x' PATA port will
-work automatically when #promise-sata-pata is updated.  ATAPI on the 2037x'
-PATA port is enabled by a followup patch for the #promise-sata-pata branch.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/sata_promise.c |  167 +++++++++++++++++++++++++++++++++--
- 1 files changed, 160 insertions(+), 7 deletions(-)
+ arch/alpha/kernel/pci.c |    4 ++++
+ drivers/pci/pci.c       |    6 ------
+ include/asm-alpha/pci.h |    2 ++
+ include/linux/pci.h     |    6 ------
+ 4 files changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-atapi-support drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-atapi-support
-+++ a/drivers/ata/sata_promise.c
-@@ -39,6 +39,7 @@
- #include <linux/interrupt.h>
- #include <linux/sched.h>
- #include <linux/device.h>
-+#include <scsi/scsi.h>
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_cmnd.h>
- #include <linux/libata.h>
-@@ -77,7 +78,7 @@ enum {
- 	PDC_RESET		= (1 << 11), /* HDMA reset */
+diff -puN arch/alpha/kernel/pci.c~make-isa_bridge-alpha-only arch/alpha/kernel/pci.c
+--- a/arch/alpha/kernel/pci.c~make-isa_bridge-alpha-only
++++ a/arch/alpha/kernel/pci.c
+@@ -575,3 +575,7 @@ void pci_iounmap(struct pci_dev *dev, vo
  
- 	PDC_COMMON_FLAGS	= ATA_FLAG_NO_LEGACY |
--				  ATA_FLAG_MMIO | ATA_FLAG_NO_ATAPI |
-+				  ATA_FLAG_MMIO |
- 				  ATA_FLAG_PIO_POLLING,
+ EXPORT_SYMBOL(pci_iomap);
+ EXPORT_SYMBOL(pci_iounmap);
++
++/* FIXME: Some boxes have multiple ISA bridges! */
++struct pci_dev *isa_bridge;
++EXPORT_SYMBOL(isa_bridge);
+diff -puN drivers/pci/pci.c~make-isa_bridge-alpha-only drivers/pci/pci.c
+--- a/drivers/pci/pci.c~make-isa_bridge-alpha-only
++++ a/drivers/pci/pci.c
+@@ -1224,12 +1224,6 @@ early_param("pci", pci_setup);
  
- 	/* hp->flags bits */
-@@ -105,6 +106,7 @@ static void pdc_pata_phy_reset(struct at
- static void pdc_qc_prep(struct ata_queued_cmd *qc);
- static void pdc_tf_load_mmio(struct ata_port *ap, const struct ata_taskfile *tf);
- static void pdc_exec_command_mmio(struct ata_port *ap, const struct ata_taskfile *tf);
-+static int pdc_check_atapi_dma(struct ata_queued_cmd *qc);
- static void pdc_irq_clear(struct ata_port *ap);
- static unsigned int pdc_qc_issue_prot(struct ata_queued_cmd *qc);
- static void pdc_host_stop(struct ata_host *host);
-@@ -139,6 +141,7 @@ static const struct ata_port_operations 
- 	.check_status		= ata_check_status,
- 	.exec_command		= pdc_exec_command_mmio,
- 	.dev_select		= ata_std_dev_select,
-+	.check_atapi_dma	= pdc_check_atapi_dma,
+ device_initcall(pci_init);
  
- 	.qc_prep		= pdc_qc_prep,
- 	.qc_issue		= pdc_qc_issue_prot,
-@@ -164,6 +167,7 @@ static const struct ata_port_operations 
- 	.check_status		= ata_check_status,
- 	.exec_command		= pdc_exec_command_mmio,
- 	.dev_select		= ata_std_dev_select,
-+	.check_atapi_dma	= pdc_check_atapi_dma,
- 
- 	.phy_reset		= pdc_pata_phy_reset,
- 
-@@ -193,7 +197,7 @@ static const struct ata_port_info pdc_po
- 	/* board_20319 */
- 	{
- 		.sht		= &pdc_ata_sht,
--		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_SATA,
-+		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_NO_ATAPI | ATA_FLAG_SATA,
- 		.pio_mask	= 0x1f, /* pio0-4 */
- 		.mwdma_mask	= 0x07, /* mwdma0-2 */
- 		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
-@@ -223,7 +227,7 @@ static const struct ata_port_info pdc_po
- 	/* board_40518 */
- 	{
- 		.sht		= &pdc_ata_sht,
--		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_SATA,
-+		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_NO_ATAPI | ATA_FLAG_SATA,
- 		.pio_mask	= 0x1f, /* pio0-4 */
- 		.mwdma_mask	= 0x07, /* mwdma0-2 */
- 		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
-@@ -392,6 +396,30 @@ static void pdc_sata_scr_write (struct a
- 	writel(val, (void __iomem *) ap->ioaddr.scr_addr + (sc_reg * 4));
- }
- 
-+static void pdc_atapi_dma_pkt(struct ata_taskfile *tf,
-+			      dma_addr_t sg_table,
-+			      unsigned int cdb_len, u8 *cdb,
-+			      u8 *buf)
-+{
-+	u32 *buf32 = (u32 *) buf;
-+
-+	/* set control bits (byte 0), zero delay seq id (byte 3),
-+	 * and seq id (byte 2)
-+	 */
-+	if (!(tf->flags & ATA_TFLAG_WRITE))
-+		buf32[0] = cpu_to_le32(PDC_PKT_READ);
-+	else
-+		buf32[0] = 0;
-+	buf32[1] = cpu_to_le32(sg_table);	/* S/G table addr */
-+	buf32[2] = 0;				/* no next-packet */
-+
-+	/* we can represent cdb lengths 2/4/6/8/10/12/14/16 */
-+	BUG_ON(cdb_len & ~0x1E);
-+
-+	buf[12] = (((cdb_len >> 1) & 7) << 5) | ATA_REG_DATA | PDC_LAST_REG;
-+	memcpy(buf+13, cdb, cdb_len);
-+}
-+
- static void pdc_qc_prep(struct ata_queued_cmd *qc)
- {
- 	struct pdc_port_priv *pp = qc->ap->private_data;
-@@ -416,6 +444,16 @@ static void pdc_qc_prep(struct ata_queue
- 		pdc_pkt_footer(&qc->tf, pp->pkt, i);
- 		break;
- 
-+	case ATA_PROT_ATAPI:
-+	case ATA_PROT_ATAPI_NODATA:
-+		ata_qc_prep(qc);
-+		break;
-+
-+	case ATA_PROT_ATAPI_DMA:
-+		ata_qc_prep(qc);
-+		pdc_atapi_dma_pkt(&qc->tf, qc->ap->prd_dma, qc->dev->cdb_len, qc->cdb, pp->pkt);
-+		break;
-+
- 	default:
- 		break;
- 	}
-@@ -529,6 +567,7 @@ static inline unsigned int pdc_host_intr
- 	switch (qc->tf.protocol) {
- 	case ATA_PROT_DMA:
- 	case ATA_PROT_NODATA:
-+	case ATA_PROT_ATAPI_DMA:
- 		qc->err_mask |= ac_err_mask(ata_wait_idle(ap));
- 		ata_qc_complete(qc);
- 		handled = 1;
-@@ -625,18 +664,106 @@ static inline void pdc_packet_start(stru
- 	readl((void __iomem *) ap->ioaddr.cmd_addr + PDC_PKT_SUBMIT); /* flush */
- }
- 
-+static unsigned int pdc_wait_for_drq(struct ata_port *ap)
-+{
-+	void __iomem *port_mmio = (void __iomem *) ap->ioaddr.cmd_addr;
-+	unsigned int i;
-+	unsigned int status;
-+
-+	/* Following pdc-ultra's WaitForDrq() we loop here until BSY
-+	 * is clear and DRQ is set in altstatus. We could possibly call
-+	 * ata_busy_wait() and loop until DRQ is set, but since we don't
-+	 * know how much time a call to ata_busy_wait() took, we don't
-+	 * know when to time out the outer loop.
-+	 */
-+	for(i = 0; i < 1000; ++i) {
-+		status = readb(port_mmio + 0x38); /* altstatus */
-+		if (status == 0xFF)
-+			break;
-+		if (status & ATA_BUSY)
-+			;
-+		else if (status & (ATA_DRQ | ATA_ERR))
-+			break;
-+		mdelay(1);
-+	}
-+	if (i >= 1000)
-+		ata_port_printk(ap, KERN_WARNING, "%s timed out", __FUNCTION__);
-+	return status;
-+}
-+
-+static void pdc_issue_atapi_pkt_cmd(struct ata_queued_cmd *qc)
-+{
-+	struct ata_port *ap = qc->ap;
-+	void __iomem *port_mmio = (void __iomem *) ap->ioaddr.cmd_addr;
-+	void __iomem *host_mmio = ap->host->mmio_base;
-+	unsigned int nbytes;
-+	unsigned int tmp;
-+
-+	/* disable INTA here, it will be re-enable when CAM use SEQ 0 for packets */
-+	writeb(0x00, port_mmio + PDC_CTLSTAT); /* that the drive INT pass to SEQ 0*/
-+	writeb(0x20, host_mmio + 0); /* but mask SEQ 0 INT */
-+
-+	/* select drive */
-+	if (sata_scr_valid(ap)) {
-+		tmp = 0xE0;
-+	} else {
-+		tmp = ATA_DEVICE_OBS;
-+		if (qc->dev->devno != 0)
-+			tmp |= ATA_DEV1;
-+	}
-+	writeb(tmp, port_mmio + 0x18); /* device/head */
-+	ata_busy_wait(ap, ATA_BUSY, 1000);
-+
-+	writeb(0x00, port_mmio + 0x08); /* sector count */
-+	writeb(0x00, port_mmio + 0x0c); /* sector number */
-+
-+	/* set feature register */
-+	if (qc->tf.protocol != ATA_PROT_ATAPI_DMA) {
-+		tmp = 0x00; /* data xfer by PIO ! */
-+		/* set real transfer byte count to byte counter register (cylinder low/high) */
-+		nbytes = qc->nbytes;
-+		if (!nbytes)
-+			nbytes = qc->nsect << 9;
-+		if (nbytes > 0xffff)
-+			nbytes = 0xffff;
-+	} else {
-+		tmp = 0x01; /* set DMA bit */
-+		/* byte counter register (cylinder low/high) , set to 0 */
-+		nbytes = 0;
-+	}
-+	writeb(tmp, port_mmio + 0x04); /* feature */
-+	writeb(nbytes & 0xFF, port_mmio + 0x10); /* cylinder low */
-+	writeb((nbytes >> 8) & 0xFF, port_mmio + 0x14); /* cylinder high */
-+
-+	/* send ATAPI packet command 0xA0 */
-+	writeb(ATA_CMD_PACKET, port_mmio + 0x1c); /* command/status */
-+
-+	/*
-+	 * At this point in the issuing of a packet command, the Promise
-+	 * driver busy-waits for INT (CTLSTAT bit 27) if it detected
-+	 * (at port init time) that the device interrupts with assertion
-+	 * of DRQ after receiving a packet command.
-+	 *
-+	 * XXX: Do we need to handle this case as well? Does libata detect
-+	 * this case for us, or do we have to do our own per-port init?
-+	 */
-+
-+	pdc_wait_for_drq(ap);
-+
-+	/* now device wait CDB only */
-+}
-+
- static unsigned int pdc_qc_issue_prot(struct ata_queued_cmd *qc)
- {
- 	switch (qc->tf.protocol) {
-+	case ATA_PROT_ATAPI_DMA:
-+		pdc_issue_atapi_pkt_cmd(qc);
-+		/*FALLTHROUGH*/
- 	case ATA_PROT_DMA:
- 	case ATA_PROT_NODATA:
- 		pdc_packet_start(qc);
- 		return 0;
- 
--	case ATA_PROT_ATAPI_DMA:
--		BUG();
--		break;
+-#if defined(CONFIG_ISA) || defined(CONFIG_EISA)
+-/* FIXME: Some boxes have multiple ISA bridges! */
+-struct pci_dev *isa_bridge;
+-EXPORT_SYMBOL(isa_bridge);
+-#endif
 -
- 	default:
- 		break;
- 	}
-@@ -659,6 +786,32 @@ static void pdc_exec_command_mmio(struct
- 	ata_exec_command(ap, tf);
- }
+ EXPORT_SYMBOL_GPL(pci_restore_bars);
+ EXPORT_SYMBOL(pci_enable_device_bars);
+ EXPORT_SYMBOL(pci_enable_device);
+diff -puN include/asm-alpha/pci.h~make-isa_bridge-alpha-only include/asm-alpha/pci.h
+--- a/include/asm-alpha/pci.h~make-isa_bridge-alpha-only
++++ a/include/asm-alpha/pci.h
+@@ -293,4 +293,6 @@ struct pci_dev *alpha_gendev_to_pci(stru
+ #define IOBASE_ROOT_BUS		5
+ #define IOBASE_FROM_HOSE	0x10000
  
-+static int pdc_check_atapi_dma(struct ata_queued_cmd *qc)
-+{
-+	u8 *scsicmd = qc->scsicmd->cmnd;
-+	int pio = 1; /* atapi dma off by default */
++extern struct pci_dev *isa_bridge;
 +
-+	/* Whitelist commands that may use DMA. */
-+	switch (scsicmd[0]) {
-+	case WRITE_12:
-+	case WRITE_10:
-+	case WRITE_6:
-+	case READ_12:
-+	case READ_10:
-+	case READ_6:
-+	case 0xad: /* READ_DVD_STRUCTURE */
-+	case 0xbe: /* READ_CD */
-+		pio = 0;
-+	}
-+	/* -45150 (FFFF4FA2) to -1 (FFFFFFFF) shall use PIO mode */
-+	if (scsicmd[0] == WRITE_10) {
-+		unsigned int lba;
-+		lba = (scsicmd[2] << 24) | (scsicmd[3] << 16) | (scsicmd[4] << 8) | scsicmd[5];
-+		if (lba >= 0xFFFF4FA2)
-+			pio = 1;
-+	}
-+	return pio;
-+}
+ #endif /* __ALPHA_PCI_H */
+diff -puN include/linux/pci.h~make-isa_bridge-alpha-only include/linux/pci.h
+--- a/include/linux/pci.h~make-isa_bridge-alpha-only
++++ a/include/linux/pci.h
+@@ -616,10 +616,6 @@ enum pci_dma_burst_strategy {
+ 				   strategy_parameter byte boundaries */
+ };
  
- static void pdc_ata_setup_port(struct ata_ioports *port, unsigned long base)
- {
+-#if defined(CONFIG_ISA) || defined(CONFIG_EISA)
+-extern struct pci_dev *isa_bridge;
+-#endif
+-
+ struct msix_entry {
+ 	u16 	vector;	/* kernel uses to write allocated vector */
+ 	u16	entry;	/* driver uses to specify entry, OS writes */
+@@ -727,8 +723,6 @@ static inline int pci_set_power_state(st
+ static inline pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state) { return PCI_D0; }
+ static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable) { return 0; }
+ 
+-#define	isa_bridge	((struct pci_dev *)NULL)
+-
+ #define pci_dma_burst_advice(pdev, strat, strategy_parameter) do { } while (0)
+ 
+ static inline void pci_block_user_cfg_access(struct pci_dev *dev) { }
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-libata-all.patch
-sata_promise-atapi-support.patch
-sata_promise-unbreak-20619.patch
-sata_promise-2037x-patapi-support.patch
+git-acpi.patch
+git-alsa.patch
+git-dvb.patch
+make-usbvision_rvfree-static.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-mtd.patch
+drivers-mtd-ubi-vtblc-make-2-functions-static.patch
+git-netdev-all.patch
+net-irda-proper-prototypes.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+make-isa_bridge-alpha-only.patch
+git-scsi-rc-fixes.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+arch-i386-kernel-e820c-should-include-asm-setuph.patch
+arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+toshiba-tc86c001-ide-driver-take-2-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i386-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
