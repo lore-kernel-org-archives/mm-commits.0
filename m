@@ -1,86 +1,97 @@
 From: akpm@osdl.org
-Subject: + atiixpc-remove-unused-code.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:23:22 -0800
-Message-ID: <200701082223.l08MNM1R020666@shell0.pdx.osdl.net>
+Subject: + add-suport-for-marvell-88se6121-in-pata_marvell.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:26:41 -0800
+Message-ID: <200701082226.l08MQfvn020750@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48666 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48936 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030320AbXAHWXl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:23:41 -0500
+	id S964773AbXAHW1A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:27:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: conke.hu@gmail.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, conke.hu@amd.com, greg@kroah.com
+Cc: jareguero@telefonica.net, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     atiixp.c: remove unused code
+     Add suport for Marvell 88SE6121 in pata_marvell
 has been added to the -mm tree.  Its filename is
-     atiixpc-remove-unused-code.patch
+     add-suport-for-marvell-88se6121-in-pata_marvell.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atiixp.c: remove unused code
-From: "Conke Hu" <conke.hu@gmail.com>
+Subject: Add suport for Marvell 88SE6121 in pata_marvell
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 
-A previous patch to atiixp.c was removed but some code has not been
-cleaned. Now we remove these code sine they are no use any longer.
+Marvell 88SE6121 is a ahci controller, but I can't make it work with the achi
+driver.
+This part:
 
-Signed-off-by: Conke Hu <conke.hu@amd.com>
++       else if (pdev->device == 0x6121) {
++               mmio_base = pci_iomap(pdev, 5, 0);
++               if (mmio_base == NULL) {
++                       return -ENOMEM;
++               }
++               /* turn on legacy mode */
++               writel(0, mmio_base + 0x04);
++               (void) readl(mmio_base + 0x04); /* flush */
++       }
+
+put the ahci in legacy mode and work with pata_marvell.
+Perhaps someone else can make it work whith the ahci driver.
+
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/atiixp.c |   21 +--------------------
- 1 files changed, 1 insertion(+), 20 deletions(-)
+ drivers/ata/pata_marvell.c |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ide/pci/atiixp.c~atiixpc-remove-unused-code drivers/ide/pci/atiixp.c
---- a/drivers/ide/pci/atiixp.c~atiixpc-remove-unused-code
-+++ a/drivers/ide/pci/atiixp.c
-@@ -320,19 +320,6 @@ static void __devinit init_hwif_atiixp(i
- 	hwif->drives[0].autodma = hwif->autodma;
+diff -puN drivers/ata/pata_marvell.c~add-suport-for-marvell-88se6121-in-pata_marvell drivers/ata/pata_marvell.c
+--- a/drivers/ata/pata_marvell.c~add-suport-for-marvell-88se6121-in-pata_marvell
++++ a/drivers/ata/pata_marvell.c
+@@ -49,7 +49,7 @@ static int marvell_pre_reset(struct ata_
+ 	devices = readl(barp + 0x0C);
+ 	pci_iounmap(pdev, barp);
+ 
+-	if ((pdev->device == 0x6145) && (ap->port_no == 0) &&
++	if (((pdev->device == 0x6145) || (pdev->device == 0x6121)) && (ap->port_no == 0) &&
+ 	    (!(devices & 0x10)))	/* PATA enable ? */
+ 		return -ENOENT;
+ 
+@@ -184,6 +184,16 @@ static int marvell_init_one (struct pci_
+ 
+ 	if (pdev->device == 0x6101)
+ 		n_port = 1;
++	else if (pdev->device == 0x6121) {
++		void __iomem *mmio_base = pci_iomap(pdev, 5, 0);
++
++		if (mmio_base == NULL)
++			return -ENOMEM;
++
++		/* turn on legacy mode */
++		writel(0, mmio_base + 0x04);
++		readl(mmio_base + 0x04);	/* flush */
++	}
+ 
+ 	return ata_pci_init_one(pdev, port_info, n_port);
  }
- 
--static void __devinit init_hwif_sb600_legacy(ide_hwif_t *hwif)
--{
--
--	hwif->atapi_dma = 1;
--	hwif->ultra_mask = 0x7f;
--	hwif->mwdma_mask = 0x07;
--	hwif->swdma_mask = 0x07;
--
--	if (!noautodma)
--		hwif->autodma = 1;
--	hwif->drives[0].autodma = hwif->autodma;
--	hwif->drives[1].autodma = hwif->autodma;
--}
- 
- static ide_pci_device_t atiixp_pci_info[] __devinitdata = {
- 	{	/* 0 */
-@@ -342,13 +329,7 @@ static ide_pci_device_t atiixp_pci_info[
- 		.autodma	= AUTODMA,
- 		.enablebits	= {{0x48,0x01,0x00}, {0x48,0x08,0x00}},
- 		.bootable	= ON_BOARD,
--	},{	/* 1 */
--		.name		= "ATI SB600 SATA Legacy IDE",
--		.init_hwif	= init_hwif_sb600_legacy,
--		.channels	= 2,
--		.autodma	= AUTODMA,
--		.bootable	= ON_BOARD,
--	}
-+	},
+@@ -191,6 +201,7 @@ static int marvell_init_one (struct pci_
+ static const struct pci_device_id marvell_pci_tbl[] = {
+ 	{ PCI_DEVICE(0x11AB, 0x6101), },
+ 	{ PCI_DEVICE(0x11AB, 0x6145), },
++	{ PCI_DEVICE(0x11AB, 0x6121), },
+ 	{ }	/* terminate list */
  };
  
- /**
 _
 
-Patches currently in -mm which might be from conke.hu@gmail.com are
+Patches currently in -mm which might be from jareguero@telefonica.net are
 
-atiixpc-remove-unused-code.patch
-atiixpc-sb600-ide-only-has-one-channel.patch
-atiixpc-add-cable-detection-support-for-ati-ide.patch
+add-suport-for-marvell-88se6121-in-pata_marvell.patch
