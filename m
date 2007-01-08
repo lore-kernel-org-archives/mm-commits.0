@@ -1,107 +1,67 @@
 From: akpm@osdl.org
-Subject: + make-isa_bridge-alpha-only.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:32:24 -0800
-Message-ID: <200701082332.l08NWO9Z022730@shell0.pdx.osdl.net>
+Subject: + remove-bogus-con_is_present-prototypes.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:33:41 -0800
+Message-ID: <200701082333.l08NXfRJ022751@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54363 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54427 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750792AbXAHXfs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 18:35:48 -0500
+	id S1750780AbXAHXhW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 18:37:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, greg@kroah.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: bunk@stusta.de, adaplas@pol.net, jsimmons@infradead.org
 
 
 The patch titled
-     make isa_bridge Alpha-only
+     remove bogus con_is_present() prototypes
 has been added to the -mm tree.  Its filename is
-     make-isa_bridge-alpha-only.patch
+     remove-bogus-con_is_present-prototypes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make isa_bridge Alpha-only
+Subject: remove bogus con_is_present() prototypes
 From: Adrian Bunk <bunk@stusta.de>
 
-Since isa_bridge is neither assigned any value !NULL nor used on !Alpha,
-there's no reason for providing it.
+Although gcc seems to accept "extern" prototypes after it has seen the
+"static inline" function, that's not really correct.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/alpha/kernel/pci.c |    4 ++++
- drivers/pci/pci.c       |    6 ------
- include/asm-alpha/pci.h |    2 ++
- include/linux/pci.h     |    6 ------
- 4 files changed, 6 insertions(+), 12 deletions(-)
+ drivers/video/aty/atyfb_base.c |    2 --
+ drivers/video/igafb.c          |    1 -
+ 2 files changed, 3 deletions(-)
 
-diff -puN arch/alpha/kernel/pci.c~make-isa_bridge-alpha-only arch/alpha/kernel/pci.c
---- a/arch/alpha/kernel/pci.c~make-isa_bridge-alpha-only
-+++ a/arch/alpha/kernel/pci.c
-@@ -575,3 +575,7 @@ void pci_iounmap(struct pci_dev *dev, vo
- 
- EXPORT_SYMBOL(pci_iomap);
- EXPORT_SYMBOL(pci_iounmap);
-+
-+/* FIXME: Some boxes have multiple ISA bridges! */
-+struct pci_dev *isa_bridge;
-+EXPORT_SYMBOL(isa_bridge);
-diff -puN drivers/pci/pci.c~make-isa_bridge-alpha-only drivers/pci/pci.c
---- a/drivers/pci/pci.c~make-isa_bridge-alpha-only
-+++ a/drivers/pci/pci.c
-@@ -1224,12 +1224,6 @@ early_param("pci", pci_setup);
- 
- device_initcall(pci_init);
- 
--#if defined(CONFIG_ISA) || defined(CONFIG_EISA)
--/* FIXME: Some boxes have multiple ISA bridges! */
--struct pci_dev *isa_bridge;
--EXPORT_SYMBOL(isa_bridge);
--#endif
+diff -puN drivers/video/aty/atyfb_base.c~remove-bogus-con_is_present-prototypes drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~remove-bogus-con_is_present-prototypes
++++ a/drivers/video/aty/atyfb_base.c
+@@ -2957,8 +2957,6 @@ extern void (*prom_palette) (int);
+ static int __devinit atyfb_setup_sparc(struct pci_dev *pdev,
+ 			struct fb_info *info, unsigned long addr)
+ {
+-	extern int con_is_present(void);
 -
- EXPORT_SYMBOL_GPL(pci_restore_bars);
- EXPORT_SYMBOL(pci_enable_device_bars);
- EXPORT_SYMBOL(pci_enable_device);
-diff -puN include/asm-alpha/pci.h~make-isa_bridge-alpha-only include/asm-alpha/pci.h
---- a/include/asm-alpha/pci.h~make-isa_bridge-alpha-only
-+++ a/include/asm-alpha/pci.h
-@@ -293,4 +293,6 @@ struct pci_dev *alpha_gendev_to_pci(stru
- #define IOBASE_ROOT_BUS		5
- #define IOBASE_FROM_HOSE	0x10000
+ 	struct atyfb_par *par = info->par;
+ 	struct pcidev_cookie *pcp;
+ 	char prop[128];
+diff -puN drivers/video/igafb.c~remove-bogus-con_is_present-prototypes drivers/video/igafb.c
+--- a/drivers/video/igafb.c~remove-bogus-con_is_present-prototypes
++++ a/drivers/video/igafb.c
+@@ -370,7 +370,6 @@ static int __init iga_init(struct fb_inf
  
-+extern struct pci_dev *isa_bridge;
-+
- #endif /* __ALPHA_PCI_H */
-diff -puN include/linux/pci.h~make-isa_bridge-alpha-only include/linux/pci.h
---- a/include/linux/pci.h~make-isa_bridge-alpha-only
-+++ a/include/linux/pci.h
-@@ -616,10 +616,6 @@ enum pci_dma_burst_strategy {
- 				   strategy_parameter byte boundaries */
- };
- 
--#if defined(CONFIG_ISA) || defined(CONFIG_EISA)
--extern struct pci_dev *isa_bridge;
--#endif
--
- struct msix_entry {
- 	u16 	vector;	/* kernel uses to write allocated vector */
- 	u16	entry;	/* driver uses to specify entry, OS writes */
-@@ -727,8 +723,6 @@ static inline int pci_set_power_state(st
- static inline pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state) { return PCI_D0; }
- static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable) { return 0; }
- 
--#define	isa_bridge	((struct pci_dev *)NULL)
--
- #define pci_dma_burst_advice(pdev, strat, strategy_parameter) do { } while (0)
- 
- static inline void pci_block_user_cfg_access(struct pci_dev *dev) { }
+ int __init igafb_init(void)
+ {
+-        extern int con_is_present(void);
+         struct fb_info *info;
+         struct pci_dev *pdev;
+         struct iga_par *par;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -154,6 +114,7 @@ fs-reiser4-possible-cleanups-2.patch
 fs-reiser4-more-possible-cleanups.patch
 fbdev-driver-for-s3-trio-virge-cleanups.patch
 remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
 slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
 slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
 debug-shared-irqs-kconfig-fix.patch
