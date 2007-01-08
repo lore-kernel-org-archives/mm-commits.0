@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + atiixpc-add-cable-detection-support-for-ati-ide.patch added to -mm tree
-Date: Mon, 08 Jan 2007 14:23:26 -0800
-Message-ID: <200701082223.l08MNQm8020672@shell0.pdx.osdl.net>
+Subject: + atiixpc-remove-unused-code.patch added to -mm tree
+Date: Mon, 08 Jan 2007 14:23:22 -0800
+Message-ID: <200701082223.l08MNM1R020666@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48654 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48666 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030332AbXAHWXg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 17:23:36 -0500
+	id S1030320AbXAHWXl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 17:23:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,19 +15,19 @@ Cc: conke.hu@gmail.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, conke.hu@a
 
 
 The patch titled
-     atiixp.c: add cable detection support for ATI IDE
+     atiixp.c: remove unused code
 has been added to the -mm tree.  Its filename is
-     atiixpc-add-cable-detection-support-for-ati-ide.patch
+     atiixpc-remove-unused-code.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atiixp.c: add cable detection support for ATI IDE
+Subject: atiixp.c: remove unused code
 From: "Conke Hu" <conke.hu@gmail.com>
 
-IDE HDD does not work if it uses a 40-pin PATA cable on ATI chipset.
-This patch fixes the bug.
+A previous patch to atiixp.c was removed but some code has not been
+cleaned. Now we remove these code sine they are no use any longer.
 
 Signed-off-by: Conke Hu <conke.hu@amd.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -36,41 +36,47 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/atiixp.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/ide/pci/atiixp.c |   21 +--------------------
+ 1 files changed, 1 insertion(+), 20 deletions(-)
 
-diff -puN drivers/ide/pci/atiixp.c~atiixpc-add-cable-detection-support-for-ati-ide drivers/ide/pci/atiixp.c
---- a/drivers/ide/pci/atiixp.c~atiixpc-add-cable-detection-support-for-ati-ide
+diff -puN drivers/ide/pci/atiixp.c~atiixpc-remove-unused-code drivers/ide/pci/atiixp.c
+--- a/drivers/ide/pci/atiixp.c~atiixpc-remove-unused-code
 +++ a/drivers/ide/pci/atiixp.c
-@@ -291,8 +291,12 @@ fast_ata_pio:
+@@ -320,19 +320,6 @@ static void __devinit init_hwif_atiixp(i
+ 	hwif->drives[0].autodma = hwif->autodma;
+ }
  
- static void __devinit init_hwif_atiixp(ide_hwif_t *hwif)
- {
-+	u8 udma_mode = 0;
-+	u8 ch = hwif->channel;
-+	struct pci_dev *pdev = hwif->pci_dev;
-+
- 	if (!hwif->irq)
--		hwif->irq = hwif->channel ? 15 : 14;
-+		hwif->irq = ch ? 15 : 14;
+-static void __devinit init_hwif_sb600_legacy(ide_hwif_t *hwif)
+-{
+-
+-	hwif->atapi_dma = 1;
+-	hwif->ultra_mask = 0x7f;
+-	hwif->mwdma_mask = 0x07;
+-	hwif->swdma_mask = 0x07;
+-
+-	if (!noautodma)
+-		hwif->autodma = 1;
+-	hwif->drives[0].autodma = hwif->autodma;
+-	hwif->drives[1].autodma = hwif->autodma;
+-}
  
- 	hwif->autodma = 0;
- 	hwif->tuneproc = &atiixp_tuneproc;
-@@ -308,8 +312,12 @@ static void __devinit init_hwif_atiixp(i
- 	hwif->mwdma_mask = 0x06;
- 	hwif->swdma_mask = 0x04;
+ static ide_pci_device_t atiixp_pci_info[] __devinitdata = {
+ 	{	/* 0 */
+@@ -342,13 +329,7 @@ static ide_pci_device_t atiixp_pci_info[
+ 		.autodma	= AUTODMA,
+ 		.enablebits	= {{0x48,0x01,0x00}, {0x48,0x08,0x00}},
+ 		.bootable	= ON_BOARD,
+-	},{	/* 1 */
+-		.name		= "ATI SB600 SATA Legacy IDE",
+-		.init_hwif	= init_hwif_sb600_legacy,
+-		.channels	= 2,
+-		.autodma	= AUTODMA,
+-		.bootable	= ON_BOARD,
+-	}
++	},
+ };
  
--	/* FIXME: proper cable detection needed */
--	hwif->udma_four = 1;
-+	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ch, &udma_mode);
-+	if ((udma_mode & 0x07) >= 0x04 || (udma_mode & 0x70) >= 0x40)
-+		hwif->udma_four = 1;
-+	else
-+		hwif->udma_four = 0;
-+
- 	hwif->ide_dma_host_on = &atiixp_ide_dma_host_on;
- 	hwif->ide_dma_host_off = &atiixp_ide_dma_host_off;
- 	hwif->ide_dma_check = &atiixp_dma_check;
+ /**
 _
 
 Patches currently in -mm which might be from conke.hu@gmail.com are
