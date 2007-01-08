@@ -1,180 +1,86 @@
 From: akpm@osdl.org
-Subject: + md-pass-down-bio_rw_sync-in-raid110.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:02:46 -0800
-Message-ID: <200701082302.l08N2kIF021918@shell0.pdx.osdl.net>
+Subject: + libata-sff-dont-try-and-activate-channels-which-are-not.patch added to -mm tree
+Date: Mon, 08 Jan 2007 15:06:17 -0800
+Message-ID: <200701082306.l08N6HsG022021@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51739 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51867 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161051AbXAHXEX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 18:04:23 -0500
+	id S1161098AbXAHXGZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 18:06:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lars.Ellenberg@linbit.com, jens.axboe@oracle.com, lars@linbit.com, neilb@suse.de, stable@kernel.org
+Cc: alan@lxorgukCox, alan@redhat.com
 
 
 The patch titled
-     md: pass down BIO_RW_SYNC in raid{1,10}
+     libata-sff: Don't try and activate channels which are not  in use
 has been added to the -mm tree.  Its filename is
-     md-pass-down-bio_rw_sync-in-raid110.patch
+     libata-sff-dont-try-and-activate-channels-which-are-not.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: pass down BIO_RW_SYNC in raid{1,10}
-From: Lars Ellenberg <Lars.Ellenberg@linbit.com>
+Subject: libata-sff: Don't try and activate channels which are not  in use
+From: Alan <alan@lxorgukCox .ukuu.org.uk>
 
-md raidX make_request functions strip off the BIO_RW_SYNC flag, thus
-introducing additional latency.
+An ATA controller in native mode may have one or more channels disabled and
+not assigned resources.  In that case the existing code crashes trying to
+access I/O ports 0-7.
 
-Fixing this in raid1 and raid10 seems to be straightforward enough.
+Add the neccessary check.
 
-For our particular usage case in DRBD, passing this flag improved some
-initialization time from ~5 minutes to ~5 seconds.
-
-Acked-by: NeilBrown <neilb@suse.de>
-Signed-off-by: Lars Ellenberg <lars@linbit.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/raid1.c  |   13 +++++++++----
- drivers/md/raid10.c |   11 ++++++++---
- 2 files changed, 17 insertions(+), 7 deletions(-)
+ drivers/ata/libata-sff.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+)
 
-diff -puN drivers/md/raid1.c~md-pass-down-bio_rw_sync-in-raid110 drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-pass-down-bio_rw_sync-in-raid110
-+++ a/drivers/md/raid1.c
-@@ -775,6 +775,7 @@ static int make_request(request_queue_t 
- 	struct bio_list bl;
- 	struct page **behind_pages = NULL;
- 	const int rw = bio_data_dir(bio);
-+	const int do_sync = bio_sync(bio);
- 	int do_barriers;
- 
- 	/*
-@@ -835,7 +836,7 @@ static int make_request(request_queue_t 
- 		read_bio->bi_sector = r1_bio->sector + mirror->rdev->data_offset;
- 		read_bio->bi_bdev = mirror->rdev->bdev;
- 		read_bio->bi_end_io = raid1_end_read_request;
--		read_bio->bi_rw = READ;
-+		read_bio->bi_rw = READ | do_sync;
- 		read_bio->bi_private = r1_bio;
- 
- 		generic_make_request(read_bio);
-@@ -906,7 +907,7 @@ static int make_request(request_queue_t 
- 		mbio->bi_sector	= r1_bio->sector + conf->mirrors[i].rdev->data_offset;
- 		mbio->bi_bdev = conf->mirrors[i].rdev->bdev;
- 		mbio->bi_end_io	= raid1_end_write_request;
--		mbio->bi_rw = WRITE | do_barriers;
-+		mbio->bi_rw = WRITE | do_barriers | do_sync;
- 		mbio->bi_private = r1_bio;
- 
- 		if (behind_pages) {
-@@ -941,6 +942,8 @@ static int make_request(request_queue_t 
- 	blk_plug_device(mddev->queue);
- 	spin_unlock_irqrestore(&conf->device_lock, flags);
- 
-+	if (do_sync)
-+		md_wakeup_thread(mddev->thread);
- #if 0
- 	while ((bio = bio_list_pop(&bl)) != NULL)
- 		generic_make_request(bio);
-@@ -1541,6 +1544,7 @@ static void raid1d(mddev_t *mddev)
- 			 * We already have a nr_pending reference on these rdevs.
- 			 */
- 			int i;
-+			const int do_sync = bio_sync(r1_bio->master_bio);
- 			clear_bit(R1BIO_BarrierRetry, &r1_bio->state);
- 			clear_bit(R1BIO_Barrier, &r1_bio->state);
- 			for (i=0; i < conf->raid_disks; i++)
-@@ -1561,7 +1565,7 @@ static void raid1d(mddev_t *mddev)
- 						conf->mirrors[i].rdev->data_offset;
- 					bio->bi_bdev = conf->mirrors[i].rdev->bdev;
- 					bio->bi_end_io = raid1_end_write_request;
--					bio->bi_rw = WRITE;
-+					bio->bi_rw = WRITE | do_sync;
- 					bio->bi_private = r1_bio;
- 					r1_bio->bios[i] = bio;
- 					generic_make_request(bio);
-@@ -1593,6 +1597,7 @@ static void raid1d(mddev_t *mddev)
- 				       (unsigned long long)r1_bio->sector);
- 				raid_end_bio_io(r1_bio);
- 			} else {
-+				const int do_sync = bio_sync(r1_bio->master_bio);
- 				r1_bio->bios[r1_bio->read_disk] =
- 					mddev->ro ? IO_BLOCKED : NULL;
- 				r1_bio->read_disk = disk;
-@@ -1608,7 +1613,7 @@ static void raid1d(mddev_t *mddev)
- 				bio->bi_sector = r1_bio->sector + rdev->data_offset;
- 				bio->bi_bdev = rdev->bdev;
- 				bio->bi_end_io = raid1_end_read_request;
--				bio->bi_rw = READ;
-+				bio->bi_rw = READ | do_sync;
- 				bio->bi_private = r1_bio;
- 				unplug = 1;
- 				generic_make_request(bio);
-diff -puN drivers/md/raid10.c~md-pass-down-bio_rw_sync-in-raid110 drivers/md/raid10.c
---- a/drivers/md/raid10.c~md-pass-down-bio_rw_sync-in-raid110
-+++ a/drivers/md/raid10.c
-@@ -782,6 +782,7 @@ static int make_request(request_queue_t 
- 	int i;
- 	int chunk_sects = conf->chunk_mask + 1;
- 	const int rw = bio_data_dir(bio);
-+	const int do_sync = bio_sync(bio);
- 	struct bio_list bl;
- 	unsigned long flags;
- 
-@@ -863,7 +864,7 @@ static int make_request(request_queue_t 
- 			mirror->rdev->data_offset;
- 		read_bio->bi_bdev = mirror->rdev->bdev;
- 		read_bio->bi_end_io = raid10_end_read_request;
--		read_bio->bi_rw = READ;
-+		read_bio->bi_rw = READ | do_sync;
- 		read_bio->bi_private = r10_bio;
- 
- 		generic_make_request(read_bio);
-@@ -909,7 +910,7 @@ static int make_request(request_queue_t 
- 			conf->mirrors[d].rdev->data_offset;
- 		mbio->bi_bdev = conf->mirrors[d].rdev->bdev;
- 		mbio->bi_end_io	= raid10_end_write_request;
--		mbio->bi_rw = WRITE;
-+		mbio->bi_rw = WRITE | do_sync;
- 		mbio->bi_private = r10_bio;
- 
- 		atomic_inc(&r10_bio->remaining);
-@@ -922,6 +923,9 @@ static int make_request(request_queue_t 
- 	blk_plug_device(mddev->queue);
- 	spin_unlock_irqrestore(&conf->device_lock, flags);
- 
-+	if (do_sync)
-+		md_wakeup_thread(mddev->thread);
-+
- 	return 0;
+diff -puN drivers/ata/libata-sff.c~libata-sff-dont-try-and-activate-channels-which-are-not drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~libata-sff-dont-try-and-activate-channels-which-are-not
++++ a/drivers/ata/libata-sff.c
+@@ -831,6 +831,21 @@ void ata_bmdma_post_internal_cmd(struct 
  }
  
-@@ -1563,6 +1567,7 @@ static void raid10d(mddev_t *mddev)
- 				       (unsigned long long)r10_bio->sector);
- 				raid_end_bio_io(r10_bio);
- 			} else {
-+				const int do_sync = bio_sync(r10_bio->master_bio);
- 				rdev = conf->mirrors[mirror].rdev;
- 				if (printk_ratelimit())
- 					printk(KERN_ERR "raid10: %s: redirecting sector %llu to"
-@@ -1574,7 +1579,7 @@ static void raid10d(mddev_t *mddev)
- 				bio->bi_sector = r10_bio->devs[r10_bio->read_slot].addr
- 					+ rdev->data_offset;
- 				bio->bi_bdev = rdev->bdev;
--				bio->bi_rw = READ;
-+				bio->bi_rw = READ | do_sync;
- 				bio->bi_private = r10_bio;
- 				bio->bi_end_io = raid10_end_read_request;
- 				unplug = 1;
+ #ifdef CONFIG_PCI
++
++static int ata_resources_present(struct pci_dev *pdev, int port)
++{
++	int i;
++
++	/* Check the PCI resources for this channel are enabled */
++	port = port * 2;
++	for (i = 0; i < 2; i ++) {
++		if (pci_resource_start(pdev, port + i) == 0 ||
++			pci_resource_len(pdev, port + i) == 0)
++		return 0;
++	}
++	return 1;
++}
++
+ /**
+  *	ata_pci_init_native_mode - Initialize native-mode driver
+  *	@pdev:  pci device to be initialized
+@@ -863,6 +878,13 @@ ata_pci_init_native_mode(struct pci_dev 
+ 	probe_ent->irq = pdev->irq;
+ 	probe_ent->irq_flags = IRQF_SHARED;
+ 
++	/* Discard disabled ports. Some controllers show their
++	   unused channels this way */
++	if (ata_resources_present(pdev, 0) == 0)
++		ports &= ~ATA_PORT_PRIMARY;
++	if (ata_resources_present(pdev, 1) == 0)
++		ports &= ~ATA_PORT_SECONDARY;
++
+ 	if (ports & ATA_PORT_PRIMARY) {
+ 		probe_ent->port[p].cmd_addr = pci_resource_start(pdev, 0);
+ 		probe_ent->port[p].altstatus_addr =
 _
 
-Patches currently in -mm which might be from Lars.Ellenberg@linbit.com are
+Patches currently in -mm which might be from alan@lxorgukCox are
 
-md-pass-down-bio_rw_sync-in-raid110.patch
+libata-sff-dont-try-and-activate-channels-which-are-not.patch
+ide-generic-jmicron-has-its-own-drivers-now.patch
