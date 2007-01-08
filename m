@@ -1,93 +1,122 @@
 From: akpm@osdl.org
-Subject: - pci-prevent-down_read-when-pci_devices-is-empty.patch removed from -mm tree
-Date: Sun, 07 Jan 2007 12:59:02 -0800
-Message-ID: <200701072059.l07Kx2aW025252@shell0.pdx.osdl.net>
+Subject: + lookup_one_len_nd-lookup_one_len-with-nameidata-argument.patch added to -mm tree
+Date: Mon, 08 Jan 2007 13:08:17 -0800
+Message-ID: <200701082108.l08L8H0D018874@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47925 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43316 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965164AbXAGU7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 7 Jan 2007 15:59:06 -0500
+	id S1750722AbXAHVI1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:08:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard@telegraafnet.nl, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jsipek@cs.sunysb.edu
 
 
 The patch titled
-     PCI: prevent down_read when pci_devices is empty
-has been removed from the -mm tree.  Its filename was
-     pci-prevent-down_read-when-pci_devices-is-empty.patch
+     lookup_one_len_nd - lookup_one_len with nameidata argument
+has been added to the -mm tree.  Its filename is
+     lookup_one_len_nd-lookup_one_len-with-nameidata-argument.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: PCI: prevent down_read when pci_devices is empty
-From: Ard van Breemen <ard@telegraafnet.nl>
+Subject: lookup_one_len_nd - lookup_one_len with nameidata argument
+From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-The pci_find_subsys gets called very early by obsolete ide setup parameters. 
-This is a bogus call since pci is not initialized yet, so the list is empty. 
-But in the mean time, interrupts get enabled by down_read.  This can result in
-a kernel panic when the irq controller gets initialized.
+Rename lookup_one_len to lookup_one_len_nd, and adds a nameidata argument.  An
+inline function, lookup_one_len (which calls lookup_one_len_nd with nd ==
+NULL) preserves original behavior.
 
-This patch checks if the device list is empty before taking the semaphore, and
-hence will not enable irq's.  Furthermore it will inform that it is called
-while pci_devices is empty as a reminder that the ide code needs to be fixed.
+The following Unionfs patches depend on this one.
 
-The pci_get_subsys can get called in the same manner, and as such is patched
-in the same manner.
-
-[akpm@osdl.org: cleanups]
-Signed-off-by: Ard van Breemen <ard@telegraafnet.nl>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/search.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ fs/namei.c            |    8 ++++----
+ include/linux/namei.h |   10 +++++++++-
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pci/search.c~pci-prevent-down_read-when-pci_devices-is-empty drivers/pci/search.c
---- a/drivers/pci/search.c~pci-prevent-down_read-when-pci_devices-is-empty
-+++ a/drivers/pci/search.c
-@@ -193,6 +193,18 @@ static struct pci_dev * pci_find_subsys(
- 	struct pci_dev *dev;
+diff -puN fs/namei.c~lookup_one_len_nd-lookup_one_len-with-nameidata-argument fs/namei.c
+--- a/fs/namei.c~lookup_one_len_nd-lookup_one_len-with-nameidata-argument
++++ a/fs/namei.c
+@@ -1296,8 +1296,8 @@ static struct dentry *lookup_hash(struct
+ 	return __lookup_hash(&nd->last, nd->dentry, nd);
+ }
  
- 	WARN_ON(in_interrupt());
+-/* SMP-safe */
+-struct dentry * lookup_one_len(const char * name, struct dentry * base, int len)
++struct dentry *lookup_one_len_nd(const char *name, struct dentry *base,
++				  int len, struct nameidata *nd)
+ {
+ 	unsigned long hash;
+ 	struct qstr this;
+@@ -1317,7 +1317,7 @@ struct dentry * lookup_one_len(const cha
+ 	}
+ 	this.hash = end_name_hash(hash);
+ 
+-	return __lookup_hash(&this, base, NULL);
++	return __lookup_hash(&this, base, nd);
+ access:
+ 	return ERR_PTR(-EACCES);
+ }
+@@ -2761,7 +2761,7 @@ EXPORT_SYMBOL(follow_up);
+ EXPORT_SYMBOL(get_write_access); /* binfmt_aout */
+ EXPORT_SYMBOL(getname);
+ EXPORT_SYMBOL(lock_rename);
+-EXPORT_SYMBOL(lookup_one_len);
++EXPORT_SYMBOL(lookup_one_len_nd);
+ EXPORT_SYMBOL(page_follow_link_light);
+ EXPORT_SYMBOL(page_put_link);
+ EXPORT_SYMBOL(page_readlink);
+diff -puN include/linux/namei.h~lookup_one_len_nd-lookup_one_len-with-nameidata-argument include/linux/namei.h
+--- a/include/linux/namei.h~lookup_one_len_nd-lookup_one_len-with-nameidata-argument
++++ a/include/linux/namei.h
+@@ -81,7 +81,15 @@ extern struct file *lookup_instantiate_f
+ extern struct file *nameidata_to_filp(struct nameidata *nd, int flags);
+ extern void release_open_intent(struct nameidata *);
+ 
+-extern struct dentry * lookup_one_len(const char *, struct dentry *, int);
++extern struct dentry *lookup_one_len_nd(const char *,
++			struct dentry *, int, struct nameidata *);
 +
-+	/*
-+	 * pci_find_subsys() can be called on the ide_setup() path, super-early
-+	 * in boot.  But the down_read() will enable local interrupts, which
-+	 * can cause some machines to crash.  So here we detect and flag that
-+	 * situation and bail out early.
-+	 */
-+	if (unlikely(list_empty(&pci_devices))) {
-+		printk(KERN_INFO "pci_find_subsys() called while pci_devices "
-+				"is still empty\n");
-+		return NULL;
-+	}
- 	down_read(&pci_bus_sem);
- 	n = from ? from->global_list.next : pci_devices.next;
++/* SMP-safe */
++static inline struct dentry *lookup_one_len(const char *name,
++			struct dentry *dir, int len)
++{
++	return lookup_one_len_nd(name, dir, len, NULL);
++}
  
-@@ -259,6 +271,18 @@ pci_get_subsys(unsigned int vendor, unsi
- 	struct pci_dev *dev;
- 
- 	WARN_ON(in_interrupt());
-+
-+	/*
-+	 * pci_get_subsys() can potentially be called by drivers super-early
-+	 * in boot.  But the down_read() will enable local interrupts, which
-+	 * can cause some machines to crash.  So here we detect and flag that
-+	 * situation and bail out early.
-+	 */
-+	if (unlikely(list_empty(&pci_devices))) {
-+		printk(KERN_NOTICE "pci_get_subsys() called while pci_devices "
-+				"is still empty\n");
-+		return NULL;
-+	}
- 	down_read(&pci_bus_sem);
- 	n = from ? from->global_list.next : pci_devices.next;
- 
+ extern int follow_down(struct vfsmount **, struct dentry **);
+ extern int follow_up(struct vfsmount **, struct dentry **);
 _
 
-Patches currently in -mm which might be from ard@telegraafnet.nl are
+Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-pci-prevent-down_read-when-pci_devices-is-empty.patch
+unionfs-documentation.patch
+lookup_one_len_nd-lookup_one_len-with-nameidata-argument.patch
+unionfs-branch-management-functionality.patch
+unionfs-common-file-operations.patch
+unionfs-copyup-functionality.patch
+unionfs-dentry-operations.patch
+unionfs-file-operations.patch
+unionfs-directory-file-operations.patch
+unionfs-directory-manipulation-helper-functions.patch
+unionfs-inode-operations.patch
+unionfs-lookup-helper-functions.patch
+unionfs-main-module-functions.patch
+unionfs-readdir-state.patch
+unionfs-rename.patch
+unionfs-privileged-operations-workqueue.patch
+unionfs-handling-of-stale-inodes.patch
+unionfs-miscellaneous-helper-functions.patch
+unionfs-superblock-operations.patch
+unionfs-helper-macros-inlines.patch
+unionfs-internal-include-file.patch
+unionfs-include-file.patch
+unionfs-unlink.patch
+unionfs-kconfig-and-makefile.patch
+unionfs-extended-attributes-support.patch
