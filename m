@@ -1,30 +1,30 @@
 From: akpm@osdl.org
-Subject: - unionfs-dentry-operations.patch removed from -mm tree
-Date: Mon, 08 Jan 2007 13:09:41 -0800
-Message-ID: <200701082109.l08L9fUA018991@shell0.pdx.osdl.net>
+Subject: - unionfs-file-operations.patch removed from -mm tree
+Date: Mon, 08 Jan 2007 13:09:43 -0800
+Message-ID: <200701082109.l08L9hqn018994@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43546 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43549 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750851AbXAHVJw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 16:09:52 -0500
+	id S1750878AbXAHVJz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 16:09:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jsipek@cs.sunysb.edu, dquigley@fsl.cs.sunysb.edu, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unionfs: dentry operations
+     unionfs: file operations
 has been removed from the -mm tree.  Its filename was
-     unionfs-dentry-operations.patch
+     unionfs-file-operations.patch
 
 This patch was dropped because I'll use the git tree
 
 ------------------------------------------------------
-Subject: unionfs: dentry operations
+Subject: unionfs: file operations
 From: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 
-The dentry operations for Unionfs.
+The file operations for Unionfs.
 
 Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: David Quigley <dquigley@fsl.cs.sunysb.edu>
@@ -32,13 +32,13 @@ Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/unionfs/dentry.c |  243 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 243 insertions(+)
+ fs/unionfs/file.c |  257 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 257 insertions(+)
 
-diff -puN /dev/null fs/unionfs/dentry.c
+diff -puN /dev/null fs/unionfs/file.c
 --- /dev/null
-+++ a/fs/unionfs/dentry.c
-@@ -0,0 +1,243 @@
++++ a/fs/unionfs/file.c
+@@ -0,0 +1,257 @@
 +/*
 + * Copyright (c) 2003-2006 Erez Zadok
 + * Copyright (c) 2003-2006 Charles P. Wright
@@ -59,234 +59,247 @@ diff -puN /dev/null fs/unionfs/dentry.c
 +
 +#include "union.h"
 +
-+/* declarations added for "sparse" */
-+extern int unionfs_d_revalidate_wrap(struct dentry *dentry,
-+				     struct nameidata *nd);
-+extern void unionfs_d_release(struct dentry *dentry);
-+extern void unionfs_d_iput(struct dentry *dentry, struct inode *inode);
++/* declarations for sparse */
++extern ssize_t unionfs_read(struct file *, char __user *, size_t, loff_t *);
++extern ssize_t unionfs_write(struct file *, const char __user *, size_t,
++			     loff_t *);
 +
-+/*
-+ * returns 1 if valid, 0 otherwise.
-+ */
-+int unionfs_d_revalidate(struct dentry *dentry, struct nameidata *nd)
++/*******************
++ * File Operations *
++ *******************/
++
++static loff_t unionfs_llseek(struct file *file, loff_t offset, int origin)
 +{
-+	int valid = 1;		/* default is valid (1); invalid is 0. */
-+	struct dentry *hidden_dentry;
-+	int bindex, bstart, bend;
-+	int sbgen, dgen;
-+	int positive = 0;
-+	int locked = 0;
-+	int restart = 0;
-+	int interpose_flag;
++	loff_t err;
++	struct file *hidden_file = NULL;
 +
-+	struct nameidata lowernd; /* TODO: be gentler to the stack */
++	if ((err = unionfs_file_revalidate(file, 0)))
++		goto out;
 +
-+	if (nd)
-+		memcpy(&lowernd, nd, sizeof(struct nameidata));
++	hidden_file = unionfs_lower_file(file);
++	/* always set hidden position to this one */
++	hidden_file->f_pos = file->f_pos;
++
++	memcpy(&hidden_file->f_ra, &file->f_ra, sizeof(struct file_ra_state));
++
++	if (hidden_file->f_op && hidden_file->f_op->llseek)
++		err = hidden_file->f_op->llseek(hidden_file, offset, origin);
 +	else
-+		memset(&lowernd, 0, sizeof(struct nameidata));
++		err = generic_file_llseek(hidden_file, offset, origin);
 +
-+restart:
-+	verify_locked(dentry);
-+
-+	/* if the dentry is unhashed, do NOT revalidate */
-+	if (d_deleted(dentry)) {
-+		printk(KERN_DEBUG "unhashed dentry being revalidated: %*s\n",
-+		       dentry->d_name.len, dentry->d_name.name);
++	if (err < 0)
 +		goto out;
++	if (err != file->f_pos) {
++		file->f_pos = err;
++		file->f_version++;
 +	}
-+
-+	BUG_ON(dbstart(dentry) == -1);
-+	if (dentry->d_inode)
-+		positive = 1;
-+	dgen = atomic_read(&UNIONFS_D(dentry)->generation);
-+	sbgen = atomic_read(&UNIONFS_SB(dentry->d_sb)->generation);
-+	/* If we are working on an unconnected dentry, then there is no
-+	 * revalidation to be done, because this file does not exist within the
-+	 * namespace, and Unionfs operates on the namespace, not data.
-+	 */
-+	if (sbgen != dgen) {
-+		struct dentry *result;
-+		int pdgen;
-+
-+		unionfs_read_lock(dentry->d_sb);
-+		locked = 1;
-+
-+		/* The root entry should always be valid */
-+		BUG_ON(IS_ROOT(dentry));
-+
-+		/* We can't work correctly if our parent isn't valid. */
-+		pdgen = atomic_read(&UNIONFS_D(dentry->d_parent)->generation);
-+		if (!restart && (pdgen != sbgen)) {
-+			unionfs_read_unlock(dentry->d_sb);
-+			locked = 0;
-+			/* We must be locked before our parent. */
-+			if (!
-+			    (dentry->d_parent->d_op->
-+			     d_revalidate(dentry->d_parent, nd))) {
-+				valid = 0;
-+				goto out;
-+			}
-+			restart = 1;
-+			goto restart;
-+		}
-+		BUG_ON(pdgen != sbgen);
-+
-+		/* Free the pointers for our inodes and this dentry. */
-+		bstart = dbstart(dentry);
-+		bend = dbend(dentry);
-+		if (bstart >= 0) {
-+			struct dentry *hidden_dentry;
-+			for (bindex = bstart; bindex <= bend; bindex++) {
-+				hidden_dentry =
-+				    unionfs_lower_dentry_idx(dentry, bindex);
-+				dput(hidden_dentry);
-+			}
-+		}
-+		set_dbstart(dentry, -1);
-+		set_dbend(dentry, -1);
-+
-+		interpose_flag = INTERPOSE_REVAL_NEG;
-+		if (positive) {
-+			interpose_flag = INTERPOSE_REVAL;
-+			mutex_lock(&dentry->d_inode->i_mutex);
-+			bstart = ibstart(dentry->d_inode);
-+			bend = ibend(dentry->d_inode);
-+			if (bstart >= 0) {
-+				struct inode *hidden_inode;
-+				for (bindex = bstart; bindex <= bend; bindex++) {
-+					hidden_inode =
-+					    unionfs_lower_inode_idx(dentry->d_inode,
-+							bindex);
-+					iput(hidden_inode);
-+				}
-+			}
-+			kfree(UNIONFS_I(dentry->d_inode)->lower_inodes);
-+			UNIONFS_I(dentry->d_inode)->lower_inodes = NULL;
-+			ibstart(dentry->d_inode) = -1;
-+			ibend(dentry->d_inode) = -1;
-+			mutex_unlock(&dentry->d_inode->i_mutex);
-+		}
-+
-+		result = unionfs_lookup_backend(dentry, &lowernd, interpose_flag);
-+		if (result) {
-+			if (IS_ERR(result)) {
-+				valid = 0;
-+				goto out;
-+			}
-+			/* current unionfs_lookup_backend() doesn't return
-+			 * a valid dentry
-+			 */
-+			dput(dentry);
-+			dentry = result;
-+		}
-+
-+		if (positive && UNIONFS_I(dentry->d_inode)->stale) {
-+			make_stale_inode(dentry->d_inode);
-+			d_drop(dentry);
-+			valid = 0;
-+			goto out;
-+		}
-+		goto out;
-+	}
-+
-+	/* The revalidation must occur across all branches */
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+	BUG_ON(bstart == -1);
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		hidden_dentry = unionfs_lower_dentry_idx(dentry, bindex);
-+		if (!hidden_dentry || !hidden_dentry->d_op
-+		    || !hidden_dentry->d_op->d_revalidate)
-+			continue;
-+
-+		if (!hidden_dentry->d_op->d_revalidate(hidden_dentry, nd))
-+			valid = 0;
-+	}
-+
-+	if (!dentry->d_inode)
-+		valid = 0;
-+
-+	if (valid) {
-+		fsstack_copy_attr_all(dentry->d_inode,
-+				unionfs_lower_inode(dentry->d_inode),
-+				unionfs_get_nlinks);
-+		fsstack_copy_inode_size(dentry->d_inode,
-+				unionfs_lower_inode(dentry->d_inode));
-+	}
-+
 +out:
-+	if (locked)
-+		unionfs_read_unlock(dentry->d_sb);
-+	return valid;
-+}
-+
-+int unionfs_d_revalidate_wrap(struct dentry *dentry, struct nameidata *nd)
-+{
-+	int err;
-+
-+	lock_dentry(dentry);
-+	err = unionfs_d_revalidate(dentry, nd);
-+	unlock_dentry(dentry);
-+
 +	return err;
 +}
 +
-+void unionfs_d_release(struct dentry *dentry)
++ssize_t unionfs_read(struct file * file, char __user * buf, size_t count,
++		     loff_t * ppos)
 +{
-+	int bindex, bstart, bend;
++	struct file *hidden_file;
++	loff_t pos = *ppos;
++	int err;
 +
-+	/* There is no reason to lock the dentry, because we have the only
-+	 * reference, but the printing functions verify that we have a lock
-+	 * on the dentry before calling dbstart, etc.
-+	 */
-+	lock_dentry(dentry);
-+
-+	/* this could be a negative dentry, so check first */
-+	if (!UNIONFS_D(dentry)) {
-+		printk(KERN_DEBUG "dentry without private data: %.*s",
-+		       dentry->d_name.len, dentry->d_name.name);
++	if ((err = unionfs_file_revalidate(file, 0)))
 +		goto out;
-+	} else if (dbstart(dentry) < 0) {
-+		/* this is due to a failed lookup */
-+		printk(KERN_DEBUG "dentry without hidden dentries : %.*s",
-+		       dentry->d_name.len, dentry->d_name.name);
-+		goto out_free;
-+	}
 +
-+	/* Release all the hidden dentries */
-+	bstart = dbstart(dentry);
-+	bend = dbend(dentry);
-+	for (bindex = bstart; bindex <= bend; bindex++) {
-+		dput(unionfs_lower_dentry_idx(dentry, bindex));
-+		mntput(unionfs_lower_mnt_idx(dentry, bindex));
++	err = -EINVAL;
++	hidden_file = unionfs_lower_file(file);
++	if (!hidden_file->f_op || !hidden_file->f_op->read)
++		goto out;
 +
-+		unionfs_set_lower_dentry_idx(dentry, bindex, NULL);
-+		unionfs_set_lower_mnt_idx(dentry, bindex, NULL);
-+	}
-+	/* free private data (unionfs_dentry_info) here */
-+	kfree(UNIONFS_D(dentry)->lower_paths);
-+	UNIONFS_D(dentry)->lower_paths = NULL;
-+
-+out_free:
-+	/* No need to unlock it, because it is disappeared. */
-+	free_dentry_private_data(UNIONFS_D(dentry));
-+	dentry->d_fsdata = NULL;	/* just to be safe */
++	err = hidden_file->f_op->read(hidden_file, buf, count, &pos);
++	*ppos = pos;
 +
 +out:
-+	return;
++	return err;
 +}
 +
-+struct dentry_operations unionfs_dops = {
-+	.d_revalidate	= unionfs_d_revalidate_wrap,
-+	.d_release	= unionfs_d_release,
++ssize_t __unionfs_write(struct file * file, const char __user * buf,
++			size_t count, loff_t * ppos)
++{
++	int err = -EINVAL;
++	struct file *hidden_file = NULL;
++	struct inode *inode;
++	struct inode *hidden_inode;
++	loff_t pos = *ppos;
++	int bstart, bend;
++
++	inode = file->f_dentry->d_inode;
++
++	bstart = fbstart(file);
++	bend = fbend(file);
++
++	BUG_ON(bstart == -1);
++
++	hidden_file = unionfs_lower_file(file);
++	hidden_inode = hidden_file->f_dentry->d_inode;
++
++	if (!hidden_file->f_op || !hidden_file->f_op->write)
++		goto out;
++
++	/* adjust for append -- seek to the end of the file */
++	if (file->f_flags & O_APPEND)
++		pos = inode->i_size;
++
++	err = hidden_file->f_op->write(hidden_file, buf, count, &pos);
++
++	/*
++	 * copy ctime and mtime from lower layer attributes
++	 * atime is unchanged for both layers
++	 */
++	if (err >= 0)
++		fsstack_copy_attr_times(inode, hidden_inode);
++
++	*ppos = pos;
++
++	/* update this inode's size */
++	if (pos > inode->i_size)
++		inode->i_size = pos;
++out:
++	return err;
++}
++
++ssize_t unionfs_write(struct file * file, const char __user * buf, size_t count,
++		      loff_t * ppos)
++{
++	int err = 0;
++
++	if ((err = unionfs_file_revalidate(file, 1)))
++		goto out;
++
++	err = __unionfs_write(file, buf, count, ppos);
++
++out:
++	return err;
++}
++
++static int unionfs_file_readdir(struct file *file, void *dirent,
++				filldir_t filldir)
++{
++	return -ENOTDIR;
++}
++
++static unsigned int unionfs_poll(struct file *file, poll_table * wait)
++{
++	unsigned int mask = DEFAULT_POLLMASK;
++	struct file *hidden_file = NULL;
++
++	if (unionfs_file_revalidate(file, 0)) {
++		/* We should pretend an error happend. */
++		mask = POLLERR | POLLIN | POLLOUT;
++		goto out;
++	}
++
++	hidden_file = unionfs_lower_file(file);
++
++	if (!hidden_file->f_op || !hidden_file->f_op->poll)
++		goto out;
++
++	mask = hidden_file->f_op->poll(hidden_file, wait);
++
++out:
++	return mask;
++}
++
++static int __do_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	int err;
++	struct file *hidden_file;
++
++	hidden_file = unionfs_lower_file(file);
++
++	err = -ENODEV;
++	if (!hidden_file->f_op || !hidden_file->f_op->mmap)
++		goto out;
++
++	vma->vm_file = hidden_file;
++	err = hidden_file->f_op->mmap(hidden_file, vma);
++	get_file(hidden_file);	/* make sure it doesn't get freed on us */
++	fput(file);		/* no need to keep extra ref on ours */
++out:
++	return err;
++}
++
++static int unionfs_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	int err = 0;
++	int willwrite;
++
++	/* This might could be deferred to mmap's writepage. */
++	willwrite = ((vma->vm_flags | VM_SHARED | VM_WRITE) == vma->vm_flags);
++	if ((err = unionfs_file_revalidate(file, willwrite)))
++		goto out;
++
++	err = __do_mmap(file, vma);
++
++out:
++	return err;
++}
++
++static int unionfs_fsync(struct file *file, struct dentry *dentry, int datasync)
++{
++	int err;
++	struct file *hidden_file = NULL;
++
++	if ((err = unionfs_file_revalidate(file, 1)))
++		goto out;
++
++	hidden_file = unionfs_lower_file(file);
++
++	err = -EINVAL;
++	if (!hidden_file->f_op || !hidden_file->f_op->fsync)
++		goto out;
++
++	mutex_lock(&hidden_file->f_dentry->d_inode->i_mutex);
++	err = hidden_file->f_op->fsync(hidden_file, hidden_file->f_dentry,
++				       datasync);
++	mutex_unlock(&hidden_file->f_dentry->d_inode->i_mutex);
++
++out:
++	return err;
++}
++
++static int unionfs_fasync(int fd, struct file *file, int flag)
++{
++	int err = 0;
++	struct file *hidden_file = NULL;
++
++	if ((err = unionfs_file_revalidate(file, 1)))
++		goto out;
++
++	hidden_file = unionfs_lower_file(file);
++
++	if (hidden_file->f_op && hidden_file->f_op->fasync)
++		err = hidden_file->f_op->fasync(fd, hidden_file, flag);
++
++out:
++	return err;
++}
++
++struct file_operations unionfs_main_fops = {
++	.llseek		= unionfs_llseek,
++	.read		= unionfs_read,
++	.write		= unionfs_write,
++	.readdir	= unionfs_file_readdir,
++	.poll		= unionfs_poll,
++	.unlocked_ioctl	= unionfs_ioctl,
++	.mmap		= unionfs_mmap,
++	.open		= unionfs_open,
++	.flush		= unionfs_flush,
++	.release	= unionfs_file_release,
++	.fsync		= unionfs_fsync,
++	.fasync		= unionfs_fasync,
 +};
 +
 _
 
 Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
-unionfs-dentry-operations.patch
 unionfs-file-operations.patch
 unionfs-directory-file-operations.patch
 unionfs-directory-manipulation-helper-functions.patch
