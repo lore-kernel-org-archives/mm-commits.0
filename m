@@ -1,43 +1,39 @@
 From: akpm@osdl.org
-Subject: - x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails-fix.patch removed from -mm tree
-Date: Tue, 09 Jan 2007 12:11:52 -0800
-Message-ID: <200701092011.l09KBqF0013962@shell0.pdx.osdl.net>
+Subject: - x86_64-io_apic-implement-irq_from_pin.patch removed from -mm tree
+Date: Tue, 09 Jan 2007 12:11:36 -0800
+Message-ID: <200701092011.l09KBaqp013953@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39898 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39875 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932372AbXAIUMC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:12:02 -0500
+	id S932371AbXAIUL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:11:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, ak@suse.de, yinghai.lu@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 ioapic: check_timer_pin Don't add_pin_to_irq if it is already there
+     x86_64 io_apic: Implement irq_from_pin
 has been removed from the -mm tree.  Its filename was
-     x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails-fix.patch
+     x86_64-io_apic-implement-irq_from_pin.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: x86_64 ioapic: check_timer_pin Don't add_pin_to_irq if it is already there
+Subject: x86_64 io_apic: Implement irq_from_pin
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-"Lu, Yinghai" <yinghai.lu@amd.com> writes:
+Another helper needed for guessing the routing of the timer irq.
 
->>Any updates to add_pin_to_irq are wrong.  It works fine.  If there
->>is something wrong we need to fix remove_pin_to_irq.
->
->>What is the problem you see?  Sorry I'm dense at the moment.
+irq_from_pin looks at the irq_2_pin mapping and figures out which irq is
+connected to a given apic and pin combination.
 
-> In the check_timer_pin, irq_from_pin could return 0, it mean some entry
-> is for IRQ0 already.
-> The add_pin_to_irq could add another same entry for it again.
+We need to know this to avoid guessing an apic pin that is already in use by
+another irq.
 
-Yep.  My oversight.  Here is the trivial patch to fix it.  I don't
-see how we could hit this case but if we are going to allow for it
-we should handle it correctly.
+Despite the nested loops this is O(N) walk through the irq_2_pin data
+structure.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: "Yinghai Lu" <yinghai.lu@amd.com>
@@ -45,22 +41,33 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/io_apic.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails-fix arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails-fix
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin
 +++ a/arch/x86_64/kernel/io_apic.c
-@@ -1686,7 +1686,8 @@ static int check_timer_pin(int apic, int
- 	idx = update_irq0_entry(apic, pin);
+@@ -262,6 +262,20 @@ static void set_ioapic_affinity_irq(unsi
+ }
+ #endif
  
- 	/* Add an entry in irq_to_pin */
--	add_pin_to_irq(0, apic, pin);
-+	if (irq != 0)
-+		add_pin_to_irq(0, apic, pin);
- 
- 	/* Now setup the irq */
- 	setup_IO_APIC_irq(apic, pin, idx, 0);
++static int irq_from_pin(int apic, int pin)
++{
++	int irq;
++	for (irq = 0; irq < NR_IRQS; irq++) {
++		struct irq_pin_list *entry = irq_2_pin + irq;
++		while (entry->next && ((entry->apic != apic) || (entry->pin != pin)))
++			entry = irq_2_pin + entry->next;
++
++		if ((entry->pin == pin) && (entry->apic == apic))
++			return irq;
++	}
++	return -1;
++}
++
+ /*
+  * The common case is 1:1 IRQ<->pin mappings. Sometimes there are
+  * shared ISA-space IRQs, so we have to support them. We are super
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -75,6 +82,9 @@ genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
 i386-make-apic-probe-function-non-init.patch
 modpost-add-more-symbols-to-whitelist-pattern2.patch
 modpost-whitelist-reference-to-more-symbols-pattern-3.patch
+x86_64-io_apic-implement-irq_from_pin.patch
+x86_64-io_apic-implment-update_irq0_entry.patch
+x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails.patch
 x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails-fix.patch
 vt-refactor-console-sak-processing.patch
 sysctl_ms_jiffies-fix-oldlen-semantics.patch
