@@ -1,148 +1,54 @@
 From: akpm@osdl.org
-Subject: + x86-simplify-notify_page_fault.patch added to -mm tree
-Date: Mon, 08 Jan 2007 20:19:39 -0800
-Message-ID: <200701090419.l094JdTH028181@shell0.pdx.osdl.net>
+Subject: + x25-add-missing-sock_put-in-x25_receive_data.patch added to -mm tree
+Date: Mon, 08 Jan 2007 20:31:24 -0800
+Message-ID: <200701090431.l094VOZX028441@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39488 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39988 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751028AbXAIETq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 23:19:46 -0500
+	id S1750783AbXAIEbr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 23:31:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, ak@muc.de
+Cc: ahendry@tusc.com.au, andrew.hendry@gmail.com
 
 
 The patch titled
-     x86: simplify notify_page_fault()
+     X.25 Add missing sock_put in x25_receive_data
 has been added to the -mm tree.  Its filename is
-     x86-simplify-notify_page_fault.patch
+     x25-add-missing-sock_put-in-x25_receive_data.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: simplify notify_page_fault()
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: X.25 Add missing sock_put in x25_receive_data
+From: ahendry <ahendry@tusc.com.au>
 
-Remove all parameters from this function that aren't really variable.
+__x25_find_socket does a sock_hold.  This adds a missing sock_put in
+x25_receive_data.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Andrew Hendry <andrew.hendry@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/mm/fault.c   |   18 ++++++++----------
- arch/x86_64/mm/fault.c |   18 ++++++++----------
- 2 files changed, 16 insertions(+), 20 deletions(-)
+ net/x25/x25_dev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/mm/fault.c~x86-simplify-notify_page_fault arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~x86-simplify-notify_page_fault
-+++ a/arch/i386/mm/fault.c
-@@ -46,17 +46,17 @@ int unregister_page_fault_notifier(struc
- }
- EXPORT_SYMBOL_GPL(unregister_page_fault_notifier);
- 
--static inline int notify_page_fault(enum die_val val, const char *str,
--			struct pt_regs *regs, long err, int trap, int sig)
-+static inline int notify_page_fault(struct pt_regs *regs, long err)
- {
- 	struct die_args args = {
- 		.regs = regs,
--		.str = str,
-+		.str = "page fault",
- 		.err = err,
--		.trapnr = trap,
--		.signr = sig
-+		.trapnr = 14,
-+		.signr = SIGSEGV
- 	};
--	return atomic_notifier_call_chain(&notify_page_fault_chain, val, &args);
-+	return atomic_notifier_call_chain(&notify_page_fault_chain,
-+	                                  DIE_PAGE_FAULT, &args);
- }
- 
- /*
-@@ -352,8 +352,7 @@ fastcall void __kprobes do_page_fault(st
- 	if (unlikely(address >= TASK_SIZE)) {
- 		if (!(error_code & 0x0000000d) && vmalloc_fault(address) >= 0)
- 			return;
--		if (notify_page_fault(DIE_PAGE_FAULT, "page fault", regs, error_code, 14,
--						SIGSEGV) == NOTIFY_STOP)
-+		if (notify_page_fault(regs, error_code) == NOTIFY_STOP)
- 			return;
- 		/*
- 		 * Don't take the mm semaphore here. If we fixup a prefetch
-@@ -362,8 +361,7 @@ fastcall void __kprobes do_page_fault(st
- 		goto bad_area_nosemaphore;
- 	}
- 
--	if (notify_page_fault(DIE_PAGE_FAULT, "page fault", regs, error_code, 14,
--					SIGSEGV) == NOTIFY_STOP)
-+	if (notify_page_fault(regs, error_code) == NOTIFY_STOP)
- 		return;
- 
- 	/* It's safe to allow irq's after cr2 has been saved and the vmalloc
-diff -puN arch/x86_64/mm/fault.c~x86-simplify-notify_page_fault arch/x86_64/mm/fault.c
---- a/arch/x86_64/mm/fault.c~x86-simplify-notify_page_fault
-+++ a/arch/x86_64/mm/fault.c
-@@ -56,17 +56,17 @@ int unregister_page_fault_notifier(struc
- }
- EXPORT_SYMBOL_GPL(unregister_page_fault_notifier);
- 
--static inline int notify_page_fault(enum die_val val, const char *str,
--			struct pt_regs *regs, long err, int trap, int sig)
-+static inline int notify_page_fault(struct pt_regs *regs, long err)
- {
- 	struct die_args args = {
- 		.regs = regs,
--		.str = str,
-+		.str = "page fault",
- 		.err = err,
--		.trapnr = trap,
--		.signr = sig
-+		.trapnr = 14,
-+		.signr = SIGSEGV
- 	};
--	return atomic_notifier_call_chain(&notify_page_fault_chain, val, &args);
-+	return atomic_notifier_call_chain(&notify_page_fault_chain,
-+	                                  DIE_PAGE_FAULT, &args);
- }
- 
- void bust_spinlocks(int yes)
-@@ -376,8 +376,7 @@ asmlinkage void __kprobes do_page_fault(
- 			if (vmalloc_fault(address) >= 0)
- 				return;
+diff -puN net/x25/x25_dev.c~x25-add-missing-sock_put-in-x25_receive_data net/x25/x25_dev.c
+--- a/net/x25/x25_dev.c~x25-add-missing-sock_put-in-x25_receive_data
++++ a/net/x25/x25_dev.c
+@@ -56,6 +56,7 @@ static int x25_receive_data(struct sk_bu
+ 			sk_add_backlog(sk, skb);
  		}
--		if (notify_page_fault(DIE_PAGE_FAULT, "page fault", regs, error_code, 14,
--						SIGSEGV) == NOTIFY_STOP)
-+		if (notify_page_fault(regs, error_code) == NOTIFY_STOP)
- 			return;
- 		/*
- 		 * Don't take the mm semaphore here. If we fixup a prefetch
-@@ -386,8 +385,7 @@ asmlinkage void __kprobes do_page_fault(
- 		goto bad_area_nosemaphore;
+ 		bh_unlock_sock(sk);
++		sock_put(sk);
+ 		return queued;
  	}
  
--	if (notify_page_fault(DIE_PAGE_FAULT, "page fault", regs, error_code, 14,
--					SIGSEGV) == NOTIFY_STOP)
-+	if (notify_page_fault(regs, error_code) == NOTIFY_STOP)
- 		return;
- 
- 	if (likely(regs->eflags & X86_EFLAGS_IF))
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from ahendry@tusc.com.au are
 
-intel-rng-workarounds.patch
-fix-hwrng-built-in-initcalls-priority.patch
-ia64-swiotlb-bug-fixes.patch
-ia64-make-swiotlb-use-bus_to_virt-virt_to_bus.patch
-ia64-swiotlb-cleanup.patch
-ia64-swiotlb-abstraction-eg-for-xen.patch
-ia64-missing-exports-hwsw_sync_.patch
-ia64-enable-swiotlb-only-when-needed.patch
-x86_64-do-not-always-end-the-stack-trace-with-ulong_max.patch
-i386-adjustments-to-page-table-dump-during-oops.patch
-x86-simplify-notify_page_fault.patch
+x25-add-missing-sock_put-in-x25_receive_data.patch
