@@ -1,328 +1,110 @@
 From: akpm@osdl.org
-Subject: - sata_promise-atapi-support.patch removed from -mm tree
-Date: Tue, 09 Jan 2007 12:28:56 -0800
-Message-ID: <200701092028.l09KSudx014341@shell0.pdx.osdl.net>
+Subject: - ahci-remove-jmicron-fixup.patch removed from -mm tree
+Date: Tue, 09 Jan 2007 12:28:48 -0800
+Message-ID: <200701092028.l09KSmqI014330@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41081 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41071 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932401AbXAIU3F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:29:05 -0500
+	id S932397AbXAIU3B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:29:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikpe@it.uu.se, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_promise: ATAPI support
+     ahci: remove jmicron fixup
 has been removed from the -mm tree.  Its filename was
-     sata_promise-atapi-support.patch
+     ahci-remove-jmicron-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sata_promise: ATAPI support
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: ahci: remove jmicron fixup
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This patch adds ATAPI support to the sata_promise driver.  This has been
-tested on both first- and second-generation chips (20378 and 20575), and with
-both SATAPI and PATAPI devices.  CD-writing works, and bulk data transfers use
-DMA.
+The AHCI set up is handled properly along with the other bits in the JMICRON
+quirk.  Remove the code whacking it in ahci.c as its un-needed and also
+blindly fiddles with bits it doesn't own.
 
-SATAPI works on second-generation chips, but not on first-generation chips due
-to HW limitations.  PATAPI works on both first- and second-generation chips,
-but requires the PATA support patch as well (which needs an update due to a
-conflict in the board_2037x definition).
-
-The functional changes to the driver are:
-- remove ATA_FLAG_NO_ATAPI from PDC_COMMON_FLAGS, and add it
-  back to the boards that cannot support SATAPI (20319, 2037x)
-- add ->check_atapi() operation to enable DMA for bulk data
-  transfers but force PIO for other ATAPI commands; this filter
-  is taken from Promise's driver and pata_pdc207x.c
-- add handling of ATAPI protocols to pdc_qc_prep(), pdc_host_intr(),
-  and pdc_qc_issue_prot(): ATAPI_DMA is handled by the driver
-  while non-DMA protocols are handed over to libata generic code
-- add pdc_issue_atapi_pkt_cmd() to handle the initial steps in
-  issuing ATAPI DMA commands before sending the actual CDB;
-  this procedure was ported from Promise's driver
-
-With this patch ATAPI will work on SATA ports on second-generation chips, and
-on the first-generation PATA-only 20619.  ATAPI on the 2057x' PATA port will
-work automatically when #promise-sata-pata is updated.  ATAPI on the 2037x'
-PATA port is enabled by a followup patch for the #promise-sata-pata branch.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/sata_promise.c |  167 +++++++++++++++++++++++++++++++++--
- 1 files changed, 160 insertions(+), 7 deletions(-)
+ drivers/ata/ahci.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-atapi-support drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-atapi-support
-+++ a/drivers/ata/sata_promise.c
-@@ -39,6 +39,7 @@
- #include <linux/interrupt.h>
- #include <linux/sched.h>
- #include <linux/device.h>
-+#include <scsi/scsi.h>
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_cmnd.h>
- #include <linux/libata.h>
-@@ -77,7 +78,7 @@ enum {
- 	PDC_RESET		= (1 << 11), /* HDMA reset */
+diff -puN drivers/ata/ahci.c~ahci-remove-jmicron-fixup drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahci-remove-jmicron-fixup
++++ a/drivers/ata/ahci.c
+@@ -1660,13 +1660,9 @@ static int ahci_init_one (struct pci_dev
+ 	if (!printed_version++)
+ 		dev_printk(KERN_DEBUG, &pdev->dev, "version " DRV_VERSION "\n");
  
- 	PDC_COMMON_FLAGS	= ATA_FLAG_NO_LEGACY |
--				  ATA_FLAG_MMIO | ATA_FLAG_NO_ATAPI |
-+				  ATA_FLAG_MMIO |
- 				  ATA_FLAG_PIO_POLLING,
- 
- 	/* hp->flags bits */
-@@ -105,6 +106,7 @@ static void pdc_pata_phy_reset(struct at
- static void pdc_qc_prep(struct ata_queued_cmd *qc);
- static void pdc_tf_load_mmio(struct ata_port *ap, const struct ata_taskfile *tf);
- static void pdc_exec_command_mmio(struct ata_port *ap, const struct ata_taskfile *tf);
-+static int pdc_check_atapi_dma(struct ata_queued_cmd *qc);
- static void pdc_irq_clear(struct ata_port *ap);
- static unsigned int pdc_qc_issue_prot(struct ata_queued_cmd *qc);
- static void pdc_host_stop(struct ata_host *host);
-@@ -139,6 +141,7 @@ static const struct ata_port_operations 
- 	.check_status		= ata_check_status,
- 	.exec_command		= pdc_exec_command_mmio,
- 	.dev_select		= ata_std_dev_select,
-+	.check_atapi_dma	= pdc_check_atapi_dma,
- 
- 	.qc_prep		= pdc_qc_prep,
- 	.qc_issue		= pdc_qc_issue_prot,
-@@ -164,6 +167,7 @@ static const struct ata_port_operations 
- 	.check_status		= ata_check_status,
- 	.exec_command		= pdc_exec_command_mmio,
- 	.dev_select		= ata_std_dev_select,
-+	.check_atapi_dma	= pdc_check_atapi_dma,
- 
- 	.phy_reset		= pdc_pata_phy_reset,
- 
-@@ -193,7 +197,7 @@ static const struct ata_port_info pdc_po
- 	/* board_20319 */
- 	{
- 		.sht		= &pdc_ata_sht,
--		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_SATA,
-+		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_NO_ATAPI | ATA_FLAG_SATA,
- 		.pio_mask	= 0x1f, /* pio0-4 */
- 		.mwdma_mask	= 0x07, /* mwdma0-2 */
- 		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
-@@ -223,7 +227,7 @@ static const struct ata_port_info pdc_po
- 	/* board_40518 */
- 	{
- 		.sht		= &pdc_ata_sht,
--		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_SATA,
-+		.flags		= PDC_COMMON_FLAGS | ATA_FLAG_NO_ATAPI | ATA_FLAG_SATA,
- 		.pio_mask	= 0x1f, /* pio0-4 */
- 		.mwdma_mask	= 0x07, /* mwdma0-2 */
- 		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
-@@ -392,6 +396,30 @@ static void pdc_sata_scr_write (struct a
- 	writel(val, (void __iomem *) ap->ioaddr.scr_addr + (sc_reg * 4));
- }
- 
-+static void pdc_atapi_dma_pkt(struct ata_taskfile *tf,
-+			      dma_addr_t sg_table,
-+			      unsigned int cdb_len, u8 *cdb,
-+			      u8 *buf)
-+{
-+	u32 *buf32 = (u32 *) buf;
-+
-+	/* set control bits (byte 0), zero delay seq id (byte 3),
-+	 * and seq id (byte 2)
-+	 */
-+	if (!(tf->flags & ATA_TFLAG_WRITE))
-+		buf32[0] = cpu_to_le32(PDC_PKT_READ);
-+	else
-+		buf32[0] = 0;
-+	buf32[1] = cpu_to_le32(sg_table);	/* S/G table addr */
-+	buf32[2] = 0;				/* no next-packet */
-+
-+	/* we can represent cdb lengths 2/4/6/8/10/12/14/16 */
-+	BUG_ON(cdb_len & ~0x1E);
-+
-+	buf[12] = (((cdb_len >> 1) & 7) << 5) | ATA_REG_DATA | PDC_LAST_REG;
-+	memcpy(buf+13, cdb, cdb_len);
-+}
-+
- static void pdc_qc_prep(struct ata_queued_cmd *qc)
- {
- 	struct pdc_port_priv *pp = qc->ap->private_data;
-@@ -416,6 +444,16 @@ static void pdc_qc_prep(struct ata_queue
- 		pdc_pkt_footer(&qc->tf, pp->pkt, i);
- 		break;
- 
-+	case ATA_PROT_ATAPI:
-+	case ATA_PROT_ATAPI_NODATA:
-+		ata_qc_prep(qc);
-+		break;
-+
-+	case ATA_PROT_ATAPI_DMA:
-+		ata_qc_prep(qc);
-+		pdc_atapi_dma_pkt(&qc->tf, qc->ap->prd_dma, qc->dev->cdb_len, qc->cdb, pp->pkt);
-+		break;
-+
- 	default:
- 		break;
+-	/* JMicron-specific fixup: make sure we're in AHCI mode */
+-	/* This is protected from races with ata_jmicron by the pci probe
+-	   locking */
+ 	if (pdev->vendor == PCI_VENDOR_ID_JMICRON) {
+-		/* AHCI enable, AHCI on function 0 */
+-		pci_write_config_byte(pdev, 0x41, 0xa1);
+-		/* Function 1 is the PATA controller */
++		/* Function 1 is the PATA controller except on the 368, where
++		   we are not AHCI anyway */
+ 		if (PCI_FUNC(pdev->devfn))
+ 			return -ENODEV;
  	}
-@@ -529,6 +567,7 @@ static inline unsigned int pdc_host_intr
- 	switch (qc->tf.protocol) {
- 	case ATA_PROT_DMA:
- 	case ATA_PROT_NODATA:
-+	case ATA_PROT_ATAPI_DMA:
- 		qc->err_mask |= ac_err_mask(ata_wait_idle(ap));
- 		ata_qc_complete(qc);
- 		handled = 1;
-@@ -625,18 +664,106 @@ static inline void pdc_packet_start(stru
- 	readl((void __iomem *) ap->ioaddr.cmd_addr + PDC_PKT_SUBMIT); /* flush */
- }
- 
-+static unsigned int pdc_wait_for_drq(struct ata_port *ap)
-+{
-+	void __iomem *port_mmio = (void __iomem *) ap->ioaddr.cmd_addr;
-+	unsigned int i;
-+	unsigned int status;
-+
-+	/* Following pdc-ultra's WaitForDrq() we loop here until BSY
-+	 * is clear and DRQ is set in altstatus. We could possibly call
-+	 * ata_busy_wait() and loop until DRQ is set, but since we don't
-+	 * know how much time a call to ata_busy_wait() took, we don't
-+	 * know when to time out the outer loop.
-+	 */
-+	for(i = 0; i < 1000; ++i) {
-+		status = readb(port_mmio + 0x38); /* altstatus */
-+		if (status == 0xFF)
-+			break;
-+		if (status & ATA_BUSY)
-+			;
-+		else if (status & (ATA_DRQ | ATA_ERR))
-+			break;
-+		mdelay(1);
-+	}
-+	if (i >= 1000)
-+		ata_port_printk(ap, KERN_WARNING, "%s timed out", __FUNCTION__);
-+	return status;
-+}
-+
-+static void pdc_issue_atapi_pkt_cmd(struct ata_queued_cmd *qc)
-+{
-+	struct ata_port *ap = qc->ap;
-+	void __iomem *port_mmio = (void __iomem *) ap->ioaddr.cmd_addr;
-+	void __iomem *host_mmio = ap->host->mmio_base;
-+	unsigned int nbytes;
-+	unsigned int tmp;
-+
-+	/* disable INTA here, it will be re-enable when CAM use SEQ 0 for packets */
-+	writeb(0x00, port_mmio + PDC_CTLSTAT); /* that the drive INT pass to SEQ 0*/
-+	writeb(0x20, host_mmio + 0); /* but mask SEQ 0 INT */
-+
-+	/* select drive */
-+	if (sata_scr_valid(ap)) {
-+		tmp = 0xE0;
-+	} else {
-+		tmp = ATA_DEVICE_OBS;
-+		if (qc->dev->devno != 0)
-+			tmp |= ATA_DEV1;
-+	}
-+	writeb(tmp, port_mmio + 0x18); /* device/head */
-+	ata_busy_wait(ap, ATA_BUSY, 1000);
-+
-+	writeb(0x00, port_mmio + 0x08); /* sector count */
-+	writeb(0x00, port_mmio + 0x0c); /* sector number */
-+
-+	/* set feature register */
-+	if (qc->tf.protocol != ATA_PROT_ATAPI_DMA) {
-+		tmp = 0x00; /* data xfer by PIO ! */
-+		/* set real transfer byte count to byte counter register (cylinder low/high) */
-+		nbytes = qc->nbytes;
-+		if (!nbytes)
-+			nbytes = qc->nsect << 9;
-+		if (nbytes > 0xffff)
-+			nbytes = 0xffff;
-+	} else {
-+		tmp = 0x01; /* set DMA bit */
-+		/* byte counter register (cylinder low/high) , set to 0 */
-+		nbytes = 0;
-+	}
-+	writeb(tmp, port_mmio + 0x04); /* feature */
-+	writeb(nbytes & 0xFF, port_mmio + 0x10); /* cylinder low */
-+	writeb((nbytes >> 8) & 0xFF, port_mmio + 0x14); /* cylinder high */
-+
-+	/* send ATAPI packet command 0xA0 */
-+	writeb(ATA_CMD_PACKET, port_mmio + 0x1c); /* command/status */
-+
-+	/*
-+	 * At this point in the issuing of a packet command, the Promise
-+	 * driver busy-waits for INT (CTLSTAT bit 27) if it detected
-+	 * (at port init time) that the device interrupts with assertion
-+	 * of DRQ after receiving a packet command.
-+	 *
-+	 * XXX: Do we need to handle this case as well? Does libata detect
-+	 * this case for us, or do we have to do our own per-port init?
-+	 */
-+
-+	pdc_wait_for_drq(ap);
-+
-+	/* now device wait CDB only */
-+}
-+
- static unsigned int pdc_qc_issue_prot(struct ata_queued_cmd *qc)
- {
- 	switch (qc->tf.protocol) {
-+	case ATA_PROT_ATAPI_DMA:
-+		pdc_issue_atapi_pkt_cmd(qc);
-+		/*FALLTHROUGH*/
- 	case ATA_PROT_DMA:
- 	case ATA_PROT_NODATA:
- 		pdc_packet_start(qc);
- 		return 0;
- 
--	case ATA_PROT_ATAPI_DMA:
--		BUG();
--		break;
--
- 	default:
- 		break;
- 	}
-@@ -659,6 +786,32 @@ static void pdc_exec_command_mmio(struct
- 	ata_exec_command(ap, tf);
- }
- 
-+static int pdc_check_atapi_dma(struct ata_queued_cmd *qc)
-+{
-+	u8 *scsicmd = qc->scsicmd->cmnd;
-+	int pio = 1; /* atapi dma off by default */
-+
-+	/* Whitelist commands that may use DMA. */
-+	switch (scsicmd[0]) {
-+	case WRITE_12:
-+	case WRITE_10:
-+	case WRITE_6:
-+	case READ_12:
-+	case READ_10:
-+	case READ_6:
-+	case 0xad: /* READ_DVD_STRUCTURE */
-+	case 0xbe: /* READ_CD */
-+		pio = 0;
-+	}
-+	/* -45150 (FFFF4FA2) to -1 (FFFFFFFF) shall use PIO mode */
-+	if (scsicmd[0] == WRITE_10) {
-+		unsigned int lba;
-+		lba = (scsicmd[2] << 24) | (scsicmd[3] << 16) | (scsicmd[4] << 8) | scsicmd[5];
-+		if (lba >= 0xFFFF4FA2)
-+			pio = 1;
-+	}
-+	return pio;
-+}
- 
- static void pdc_ata_setup_port(struct ata_ioports *port, unsigned long base)
- {
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 git-libata-all.patch
+add-suport-for-marvell-88se6121-in-pata_marvell.patch
+git-mtd.patch
+z85230-spinlock-logic.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-tty_wakeup-cleanup.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+tty-improve-encode_baud_rate-logic.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+hpt3xx-rework-rate-filtering.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+hpt3xx-print-the-real-chip-name-at-startup.patch
+hpt3xx-switch-to-using-pci_get_slot.patch
+hpt3xx-cache-channels-mcr-address.patch
+hpt3x7-merge-speedproc-handlers.patch
+hpt370-clean-up-dma-timeout-handling.patch
+hpt3xx-init-code-rewrite.patch
+piix-fix-82371mx-enablebits.patch
+pdc202xx_new-remove-useless-code.patch
+pdc202xx_-remove-check_in_drive_lists-abomination.patch
+piix-tuneproc-fixes-cleanups.patch
+slc90e66-carry-over-fixes-from-piix-driver.patch
+hpt36x-pci-clock-detection-fix.patch
+atiixpc-remove-unused-code.patch
+atiixpc-sb600-ide-only-has-one-channel.patch
+atiixpc-add-cable-detection-support-for-ati-ide.patch
+jmicron-warning-fix.patch
