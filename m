@@ -1,128 +1,211 @@
 From: akpm@osdl.org
-Subject: - x86_64-io_apic-implement-irq_from_pin.patch removed from -mm tree
-Date: Tue, 09 Jan 2007 12:11:36 -0800
-Message-ID: <200701092011.l09KBaqp013953@shell0.pdx.osdl.net>
+Subject: + git-mips-fixup.patch added to -mm tree
+Date: Tue, 09 Jan 2007 12:13:19 -0800
+Message-ID: <200701092013.l09KDJTO013990@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39875 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39974 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932371AbXAIUL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:11:57 -0500
+	id S932231AbXAIUNZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:13:25 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l09KDLWi018491
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 9 Jan 2007 12:13:21 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, ak@suse.de, yinghai.lu@amd.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org
 
 
 The patch titled
-     x86_64 io_apic: Implement irq_from_pin
-has been removed from the -mm tree.  Its filename was
-     x86_64-io_apic-implement-irq_from_pin.patch
+     git-mips-fixup
+has been added to the -mm tree.  Its filename is
+     git-mips-fixup.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64 io_apic: Implement irq_from_pin
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: git-mips-fixup
+From: Andrew Morton <akpm@osdl.org>
 
-Another helper needed for guessing the routing of the timer irq.
-
-irq_from_pin looks at the irq_2_pin mapping and figures out which irq is
-connected to a given apic and pin combination.
-
-We need to know this to avoid guessing an apic pin that is already in use by
-another irq.
-
-Despite the nested loops this is O(N) walk through the irq_2_pin data
-structure.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "Yinghai Lu" <yinghai.lu@amd.com>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+)
+ arch/mips/lib/Makefile   |    4 ----
+ mips/lib/Makefile~origin |    0 
+ 2 files changed, 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-irq_from_pin
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -262,6 +262,20 @@ static void set_ioapic_affinity_irq(unsi
- }
- #endif
+diff -puN arch/mips/lib/Makefile~git-mips-fixup arch/mips/lib/Makefile
+--- a/arch/mips/lib/Makefile~git-mips-fixup
++++ a/arch/mips/lib/Makefile
+@@ -2,11 +2,7 @@
+ # Makefile for MIPS-specific library files..
+ #
  
-+static int irq_from_pin(int apic, int pin)
-+{
-+	int irq;
-+	for (irq = 0; irq < NR_IRQS; irq++) {
-+		struct irq_pin_list *entry = irq_2_pin + irq;
-+		while (entry->next && ((entry->apic != apic) || (entry->pin != pin)))
-+			entry = irq_2_pin + entry->next;
-+
-+		if ((entry->pin == pin) && (entry->apic == apic))
-+			return irq;
-+	}
-+	return -1;
-+}
-+
- /*
-  * The common case is 1:1 IRQ<->pin mappings. Sometimes there are
-  * shared ISA-space IRQs, so we have to support them. We are super
+-<<<<<<< HEAD/arch/mips/lib/Makefile
+-lib-y	+= csum_partial.o memcpy.o promlib.o \
+-=======
+ lib-y	+= csum_partial.o csum_partial_copy.o memcpy.o memset.o promlib.o \
+->>>>>>> /arch/mips/lib/Makefile
+ 	   strlen_user.o strncpy_user.o strnlen_user.o uncached.o
+ 
+ obj-y	+= iomap.o
+diff -puN arch/mips/lib/Makefile~git-mips~git-mips-fixup arch/mips/lib/Makefile~git-mips
+diff -puN arch/mips/lib/Makefile~origin~git-mips-fixup arch/mips/lib/Makefile~origin
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
-genapic-optimize-fix-apic-mode-setup-2.patch
-genapic-always-use-physical-delivery-mode-on-8-cpus.patch
-genapic-remove-es7000-workaround.patch
-genapic-remove-clustered-apic-mode.patch
-genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
-i386-make-apic-probe-function-non-init.patch
-modpost-add-more-symbols-to-whitelist-pattern2.patch
-modpost-whitelist-reference-to-more-symbols-pattern-3.patch
-x86_64-io_apic-implement-irq_from_pin.patch
-x86_64-io_apic-implment-update_irq0_entry.patch
-x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails.patch
-x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails-fix.patch
-vt-refactor-console-sak-processing.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+nfs-fix-race-in-nfs_release_page-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+cifs-sprintf-fix.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+git-scsi-rc-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-fixup.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+bluetooth-blacklist-lenovo-r60e.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-k8-driver-coding-tidy.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
 sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-nsproxy-externalizes-exit_task_namespaces.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-the-framework-fix.patch
-user-ns-add-user_namespace-ptr-to-vfsmount.patch
-user-ns-hook-permission.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-shared-mounts.patch
-user_ns-handle-file-sigio.patch
-user-ns-implement-user-ns-unshare.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 user-ns-implement-user-ns-unshare-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
 readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
