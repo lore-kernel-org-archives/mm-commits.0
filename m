@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-make-time-data-per-cpu.patch added to -mm tree
-Date: Tue, 09 Jan 2007 12:57:45 -0800
-Message-ID: <200701092057.l09KvjGa015069@shell0.pdx.osdl.net>
+Subject: + uml-delete-unused-file.patch added to -mm tree
+Date: Tue, 09 Jan 2007 12:57:49 -0800
+Message-ID: <200701092057.l09KvnNh015072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43438 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43447 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932436AbXAIU5x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:57:53 -0500
+	id S932440AbXAIU55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:57:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,83 +15,67 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: make time data per-cpu
+     uml: delete unused file
 has been added to the -mm tree.  Its filename is
-     uml-make-time-data-per-cpu.patch
+     uml-delete-unused-file.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: make time data per-cpu
+Subject: uml: delete unused file
 From: Jeff Dike <jdike@addtoit.com>
 
-prev_nsecs and delta need to be arrays, and indexed by CPU number.
+It turns out that resource.c isn't needed.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/kernel/time.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+ arch/um/kernel/Makefile   |    2 +-
+ arch/um/kernel/resource.c |   23 -----------------------
+ 2 files changed, 1 insertion(+), 24 deletions(-)
 
-diff -puN arch/um/kernel/time.c~uml-make-time-data-per-cpu arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-make-time-data-per-cpu
-+++ a/arch/um/kernel/time.c
-@@ -35,31 +35,31 @@ unsigned long long sched_clock(void)
- 	return (unsigned long long)jiffies_64 * (1000000000 / HZ);
- }
+diff -puN arch/um/kernel/Makefile~uml-delete-unused-file arch/um/kernel/Makefile
+--- a/arch/um/kernel/Makefile~uml-delete-unused-file
++++ a/arch/um/kernel/Makefile
+@@ -7,7 +7,7 @@ extra-y := vmlinux.lds
+ clean-files :=
  
--static unsigned long long prev_nsecs;
-+static unsigned long long prev_nsecs[NR_CPUS];
- #ifdef CONFIG_UML_REAL_TIME_CLOCK
--static long long delta;   		/* Deviation per interval */
-+static long long delta[NR_CPUS];		/* Deviation per interval */
- #endif
+ obj-y = config.o exec.o exitcode.o init_task.o irq.o ksyms.o mem.o \
+-	physmem.o process.o ptrace.o reboot.o resource.o sigio.o \
++	physmem.o process.o ptrace.o reboot.o sigio.o \
+ 	signal.o smp.o syscall.o sysrq.o time.o tlb.o trap.o uaccess.o \
+ 	um_arch.o umid.o
  
- void timer_irq(union uml_pt_regs *regs)
- {
- 	unsigned long long ticks = 0;
+diff -puN arch/um/kernel/resource.c~uml-delete-unused-file /dev/null
+--- a/arch/um/kernel/resource.c
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* 
+- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
 -
- #ifdef CONFIG_UML_REAL_TIME_CLOCK
--	if(prev_nsecs){
-+	int c = cpu();
-+	if(prev_nsecs[c]){
- 		/* We've had 1 tick */
- 		unsigned long long nsecs = os_nsecs();
- 
--		delta += nsecs - prev_nsecs;
--		prev_nsecs = nsecs;
-+		delta[c] += nsecs - prev_nsecs[c];
-+		prev_nsecs[c] = nsecs;
- 
- 		/* Protect against the host clock being set backwards */
--		if(delta < 0)
--			delta = 0;
-+		if(delta[c] < 0)
-+			delta[c] = 0;
- 
--		ticks += (delta * HZ) / BILLION;
--		delta -= (ticks * BILLION) / HZ;
-+		ticks += (delta[c] * HZ) / BILLION;
-+		delta[c] -= (ticks * BILLION) / HZ;
- 	}
--	else prev_nsecs = os_nsecs();
-+	else prev_nsecs[c] = os_nsecs();
- #else
- 	ticks = 1;
- #endif
-@@ -69,8 +69,8 @@ void timer_irq(union uml_pt_regs *regs)
- 	}
- }
- 
-+/* Protects local_offset */
- static DEFINE_SPINLOCK(timer_spinlock);
+-#include "linux/pci.h"
 -
- static unsigned long long local_offset = 0;
- 
- static inline unsigned long long get_time(void)
+-unsigned long resource_fixup(struct pci_dev * dev, struct resource * res,
+-			     unsigned long start, unsigned long size)
+-{
+-	return start;
+-}
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
