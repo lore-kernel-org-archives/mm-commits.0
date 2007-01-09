@@ -1,35 +1,34 @@
 From: akpm@osdl.org
-Subject: - x86_64-io_apic-implement-remove_pin_to_irq.patch removed from -mm tree
-Date: Tue, 09 Jan 2007 12:11:31 -0800
-Message-ID: <200701092011.l09KBWG2013950@shell0.pdx.osdl.net>
+Subject: - x86_64-io_apic-implment-update_irq0_entry.patch removed from -mm tree
+Date: Tue, 09 Jan 2007 12:11:41 -0800
+Message-ID: <200701092011.l09KBfa8013956@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39867 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39873 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932227AbXAIULr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:11:47 -0500
+	id S932368AbXAIULy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:11:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, ak@suse.de, yinghai.lu@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 io_apic: Implement remove_pin_to_irq
+     x86_64 io_apic: Implment update_irq0_entry
 has been removed from the -mm tree.  Its filename was
-     x86_64-io_apic-implement-remove_pin_to_irq.patch
+     x86_64-io_apic-implment-update_irq0_entry.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: x86_64 io_apic: Implement remove_pin_to_irq
+Subject: x86_64 io_apic: Implment update_irq0_entry
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-To try different irq routing combinations so we can make an informed guess as
-to how to route irqs when the BIOS gets it wrong we need the ability to modify
-our irq routing data structures.
+To guess different irq routing strategies for irq 0 we need the ability to
+update our data structures to reflect our guess.
 
-This adds remove_pin_to_irq which removes the mapping from and apic pin to an
-irq.
+update_irq0_entry updates the mp routing table information to reflect our
+current guess as to the routing of the timer irq.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: "Yinghai Lu" <yinghai.lu@amd.com>
@@ -37,42 +36,50 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+)
+ arch/x86_64/kernel/io_apic.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-remove_pin_to_irq arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implement-remove_pin_to_irq
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implment-update_irq0_entry arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-io_apic-implment-update_irq0_entry
 +++ a/arch/x86_64/kernel/io_apic.c
-@@ -286,6 +286,29 @@ static void add_pin_to_irq(unsigned int 
- 	entry->pin = pin;
+@@ -446,6 +446,37 @@ static int __init find_isa_irq_apic(int 
+ 	return -1;
  }
  
-+static void remove_pin_to_irq(unsigned int irq, int apic, int pin)
++static int update_irq0_entry(int apic, int pin)
 +{
-+	struct irq_pin_list *entry = irq_2_pin + irq;
++	int irq = 0;
++	int idx;
++	int isa_bus;
 +
-+	BUG_ON(irq >= NR_IRQS);
++	/* Figure out the isa bus, by convention it is bus 0,
++	 * but be prepared for someone being creative.
++	 */
++	for (isa_bus = 0; isa_bus < MAX_MP_BUSSES; isa_bus++)
++		if (test_bit(isa_bus, mp_bus_not_pci))
++			break;
++	if (isa_bus >= MAX_MP_BUSSES)
++		isa_bus = 0;
 +
-+	while (entry->next && ((entry->apic != apic) || (entry->pin != pin)))
-+		entry = irq_2_pin + entry->next;
-+
-+	if (entry->pin == apic && entry->pin == pin) {
-+		if (entry->next) {
-+			struct irq_pin_list *next = irq_2_pin + entry->next;
-+			*entry = *next;
-+			next->pin = -1;
-+			next->apic = -1;
-+			next->next = 0;
-+		} else {
-+			entry->pin = -1;
-+			entry->apic = -1;
-+		}
++	idx = find_irq_entry(apic, pin, mp_INT);
++	if (idx == -1) {
++		idx = mp_irq_entries;
++		if (++mp_irq_entries >= MAX_IRQ_SOURCES)
++			panic("MAX # of irq sources exceeded!!!\n");
 +	}
++	mp_irqs[idx].mpc_type = MP_INTSRC;
++	mp_irqs[idx].mpc_irqtype = mp_INT;
++	mp_irqs[idx].mpc_irqflag = 0;	/* Use bus defaults */
++	mp_irqs[idx].mpc_srcbus = isa_bus;
++	mp_irqs[idx].mpc_srcbusirq = irq;
++	mp_irqs[idx].mpc_dstapic = mp_ioapics[apic].mpc_apicid;
++	mp_irqs[idx].mpc_dstirq = pin;
++	return idx;
 +}
 +
- 
- #define DO_ACTION(name,R,ACTION, FINAL)					\
- 									\
+ /*
+  * Find a specific PCI IRQ entry.
+  * Not an __init, possibly needed by modules
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -87,8 +94,6 @@ genapic-default-to-physical-mode-on-hotplug-cpu-kernels.patch
 i386-make-apic-probe-function-non-init.patch
 modpost-add-more-symbols-to-whitelist-pattern2.patch
 modpost-whitelist-reference-to-more-symbols-pattern-3.patch
-x86_64-io_apic-implement-remove_pin_to_irq.patch
-x86_64-io_apic-implement-irq_from_pin.patch
 x86_64-io_apic-implment-update_irq0_entry.patch
 x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails.patch
 x86_64-ioapic-improve-the-heuristics-for-when-check_timer-fails-fix.patch
