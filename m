@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-delete-unused-file.patch added to -mm tree
-Date: Tue, 09 Jan 2007 12:57:49 -0800
-Message-ID: <200701092057.l09KvnNh015072@shell0.pdx.osdl.net>
+Subject: + uml-remove-unused-variable-and-function.patch added to -mm tree
+Date: Tue, 09 Jan 2007 12:57:53 -0800
+Message-ID: <200701092057.l09Kvrms015079@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43447 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43458 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932440AbXAIU55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:57:57 -0500
+	id S932441AbXAIU6B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:58:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,67 +15,65 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: delete unused file
+     uml: remove unused variable and function
 has been added to the -mm tree.  Its filename is
-     uml-delete-unused-file.patch
+     uml-remove-unused-variable-and-function.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: delete unused file
+Subject: uml: remove unused variable and function
 From: Jeff Dike <jdike@addtoit.com>
 
-It turns out that resource.c isn't needed.
+syscall_index and next_syscall_index turn out not to be used.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/kernel/Makefile   |    2 +-
- arch/um/kernel/resource.c |   23 -----------------------
- 2 files changed, 1 insertion(+), 24 deletions(-)
+ arch/um/include/kern_util.h |    1 -
+ arch/um/kernel/syscall.c    |   16 ----------------
+ 2 files changed, 17 deletions(-)
 
-diff -puN arch/um/kernel/Makefile~uml-delete-unused-file arch/um/kernel/Makefile
---- a/arch/um/kernel/Makefile~uml-delete-unused-file
-+++ a/arch/um/kernel/Makefile
-@@ -7,7 +7,7 @@ extra-y := vmlinux.lds
- clean-files :=
+diff -puN arch/um/include/kern_util.h~uml-remove-unused-variable-and-function arch/um/include/kern_util.h
+--- a/arch/um/include/kern_util.h~uml-remove-unused-variable-and-function
++++ a/arch/um/include/kern_util.h
+@@ -61,7 +61,6 @@ extern int set_signals(int enable);
+ extern void force_sigbus(void);
+ extern int pid_to_processor_id(int pid);
+ extern void deliver_signals(void *t);
+-extern int next_syscall_index(int max);
+ extern int next_trap_index(int max);
+ extern void default_idle(void);
+ extern void finish_fork(void);
+diff -puN arch/um/kernel/syscall.c~uml-remove-unused-variable-and-function arch/um/kernel/syscall.c
+--- a/arch/um/kernel/syscall.c~uml-remove-unused-variable-and-function
++++ a/arch/um/kernel/syscall.c
+@@ -149,22 +149,6 @@ long sys_olduname(struct oldold_utsname 
+ 	return error;
+ }
  
- obj-y = config.o exec.o exitcode.o init_task.o irq.o ksyms.o mem.o \
--	physmem.o process.o ptrace.o reboot.o resource.o sigio.o \
-+	physmem.o process.o ptrace.o reboot.o sigio.o \
- 	signal.o smp.o syscall.o sysrq.o time.o tlb.o trap.o uaccess.o \
- 	um_arch.o umid.o
- 
-diff -puN arch/um/kernel/resource.c~uml-delete-unused-file /dev/null
---- a/arch/um/kernel/resource.c
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/* 
-- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-- * Licensed under the GPL
-- */
+-DEFINE_SPINLOCK(syscall_lock);
 -
--#include "linux/pci.h"
+-static int syscall_index = 0;
 -
--unsigned long resource_fixup(struct pci_dev * dev, struct resource * res,
--			     unsigned long start, unsigned long size)
+-int next_syscall_index(int limit)
 -{
--	return start;
+-	int ret;
+-
+-	spin_lock(&syscall_lock);
+-	ret = syscall_index;
+-	if(++syscall_index == limit)
+-		syscall_index = 0;
+-	spin_unlock(&syscall_lock);
+-	return(ret);
 -}
 -
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
+ int kernel_execve(const char *filename, char *const argv[], char *const envp[])
+ {
+ 	mm_segment_t fs;
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
