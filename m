@@ -1,57 +1,55 @@
 From: akpm@osdl.org
-Subject: + acpi-make-bay-depend-on-dock.patch added to -mm tree
-Date: Mon, 08 Jan 2007 16:21:26 -0800
-Message-ID: <200701090021.l090LQ0d023803@shell0.pdx.osdl.net>
+Subject: + netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation.patch added to -mm tree
+Date: Mon, 08 Jan 2007 20:06:28 -0800
+Message-ID: <200701090406.l0946St2027965@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57026 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39168 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750772AbXAIAV2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 19:21:28 -0500
+	id S1751010AbXAIEGd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 23:06:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristen.c.accardi@intel.com
+Cc: kaber@trash.net
 
 
 The patch titled
-     ACPI: Make bay depend on dock
+     netfilter: nf_conntrack_netbios_ns: fix uninitialized member in expectation
 has been added to the -mm tree.  Its filename is
-     acpi-make-bay-depend-on-dock.patch
+     netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: Make bay depend on dock
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: netfilter: nf_conntrack_netbios_ns: fix uninitialized member in expectation
+From: Patrick McHardy <kaber@trash.net>
 
-Since the bay driver depends on the dock driver for proper notification, make
-this driver depend on the dock driver.
+->helper is uninitialized in the expectation registered by the netbios_ns
+helper and it later copied to the expected connection, which causes invalid
+memory dereferences when trying to call the helper.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/Kconfig |    1 +
- 1 files changed, 1 insertion(+)
+ net/netfilter/nf_conntrack_netbios_ns.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock
-+++ a/drivers/acpi/Kconfig
-@@ -133,6 +133,7 @@ config ACPI_DOCK
- config ACPI_BAY
- 	tristate "Removable Drive Bay"
- 	depends on EXPERIMENTAL
-+	depends on ACPI_DOCK
- 	help
- 	  This driver adds support for ACPI controlled removable drive
- 	  bays such as the IBM ultrabay or the Dell Module Bay.
+diff -puN net/netfilter/nf_conntrack_netbios_ns.c~netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation net/netfilter/nf_conntrack_netbios_ns.c
+--- a/net/netfilter/nf_conntrack_netbios_ns.c~netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation
++++ a/net/netfilter/nf_conntrack_netbios_ns.c
+@@ -89,6 +89,7 @@ static int help(struct sk_buff **pskb, u
+ 
+ 	exp->expectfn             = NULL;
+ 	exp->flags                = NF_CT_EXPECT_PERMANENT;
++	exp->helper               = NULL;
+ 
+ 	nf_conntrack_expect_related(exp);
+ 	nf_conntrack_expect_put(exp);
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from kaber@trash.net are
 
-git-acpi.patch
-acpi-bay-remove-acpi-driver-struct.patch
-acpi-make-bay-depend-on-dock.patch
-git-libata-all.patch
+netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation.patch
