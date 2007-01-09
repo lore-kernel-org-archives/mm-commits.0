@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-remove-code-controlled-by-non-existent-config-option.patch added to -mm tree
-Date: Tue, 09 Jan 2007 12:58:05 -0800
-Message-ID: <200701092058.l09Kw5a3015088@shell0.pdx.osdl.net>
+Subject: + uml-make-signal-handlers-static.patch added to -mm tree
+Date: Tue, 09 Jan 2007 12:57:57 -0800
+Message-ID: <200701092057.l09KvvhR015082@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43484 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43466 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932442AbXAIU6M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:58:12 -0500
+	id S932443AbXAIU6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,44 +15,113 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: remove code controlled by non-existent config option
+     uml: make signal handlers static
 has been added to the -mm tree.  Its filename is
-     uml-remove-code-controlled-by-non-existent-config-option.patch
+     uml-make-signal-handlers-static.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: remove code controlled by non-existent config option
+Subject: uml: make signal handlers static
 From: Jeff Dike <jdike@addtoit.com>
 
-CONFIG_HOST_TASK_SIZE doesn't exist any more.
+A bunch of the signal handlers can be made static.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/kernel/skas/mem.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ arch/um/include/kern_util.h |    4 ----
+ arch/um/kernel/trap.c       |   28 ++++++++++++++--------------
+ 2 files changed, 14 insertions(+), 18 deletions(-)
 
-diff -puN arch/um/kernel/skas/mem.c~uml-remove-code-controlled-by-non-existent-config-option arch/um/kernel/skas/mem.c
---- a/arch/um/kernel/skas/mem.c~uml-remove-code-controlled-by-non-existent-config-option
-+++ a/arch/um/kernel/skas/mem.c
-@@ -14,13 +14,9 @@ unsigned long set_task_sizes_skas(unsign
- 	unsigned long host_task_size = ROUND_4M((unsigned long)
- 						&host_task_size);
+diff -puN arch/um/include/kern_util.h~uml-make-signal-handlers-static arch/um/include/kern_util.h
+--- a/arch/um/include/kern_util.h~uml-make-signal-handlers-static
++++ a/arch/um/include/kern_util.h
+@@ -87,7 +87,6 @@ extern void timer_irq(union uml_pt_regs 
+ extern void unprotect_stack(unsigned long stack);
+ extern void do_uml_exitcalls(void);
+ extern int attach_debugger(int idle_pid, int pid, int stop);
+-extern void bad_segv(struct faultinfo fi, unsigned long ip);
+ extern int config_gdb(char *str);
+ extern int remove_gdb(void);
+ extern char *uml_strdup(char *string);
+@@ -103,8 +102,6 @@ extern int clear_user_proc(void *buf, in
+ extern int copy_to_user_proc(void *to, void *from, int size);
+ extern int copy_from_user_proc(void *to, void *from, int size);
+ extern int strlen_user_proc(char *str);
+-extern void bus_handler(int sig, union uml_pt_regs *regs);
+-extern void winch(int sig, union uml_pt_regs *regs);
+ extern long execute_syscall(void *r);
+ extern int smp_sigio_handler(void);
+ extern void *get_current(void);
+@@ -119,7 +116,6 @@ extern void time_init_kern(void);
  
--#ifdef CONFIG_HOST_TASK_SIZE
--	*host_size_out = ROUND_4M(CONFIG_HOST_TASK_SIZE);
--	*task_size_out = CONFIG_HOST_TASK_SIZE;
--#else
- 	if (!skas_needs_stub)
- 		*task_size_out = host_task_size;
- 	else *task_size_out = CONFIG_STUB_START & PGDIR_MASK;
--#endif
+ /* Are we disallowed to sleep? Used to choose between GFP_KERNEL and GFP_ATOMIC. */
+ extern int __cant_sleep(void);
+-extern void segv_handler(int sig, union uml_pt_regs *regs);
+ extern void sigio_handler(int sig, union uml_pt_regs *regs);
+ 
+ #endif
+diff -puN arch/um/kernel/trap.c~uml-make-signal-handlers-static arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~uml-make-signal-handlers-static
++++ a/arch/um/kernel/trap.c
+@@ -128,7 +128,18 @@ out_of_memory:
+ 	goto out;
+ }
+ 
+-void segv_handler(int sig, union uml_pt_regs *regs)
++static void bad_segv(struct faultinfo fi, unsigned long ip)
++{
++	struct siginfo si;
 +
- 	return host_task_size;
++	si.si_signo = SIGSEGV;
++	si.si_code = SEGV_ACCERR;
++	si.si_addr = (void __user *) FAULT_ADDRESS(fi);
++	current->thread.arch.faultinfo = fi;
++	force_sig_info(SIGSEGV, &si, current);
++}
++
++static void segv_handler(int sig, union uml_pt_regs *regs)
+ {
+ 	struct faultinfo * fi = UPT_FAULTINFO(regs);
+ 
+@@ -205,17 +216,6 @@ unsigned long segv(struct faultinfo fi, 
+ 	return(0);
+ }
+ 
+-void bad_segv(struct faultinfo fi, unsigned long ip)
+-{
+-	struct siginfo si;
+-
+-	si.si_signo = SIGSEGV;
+-	si.si_code = SEGV_ACCERR;
+-	si.si_addr = (void __user *) FAULT_ADDRESS(fi);
+-	current->thread.arch.faultinfo = fi;
+-	force_sig_info(SIGSEGV, &si, current);
+-}
+-
+ void relay_signal(int sig, union uml_pt_regs *regs)
+ {
+ 	if(arch_handle_signal(sig, regs))
+@@ -232,14 +232,14 @@ void relay_signal(int sig, union uml_pt_
+ 	force_sig(sig, current);
+ }
+ 
+-void bus_handler(int sig, union uml_pt_regs *regs)
++static void bus_handler(int sig, union uml_pt_regs *regs)
+ {
+ 	if(current->thread.fault_catcher != NULL)
+ 		do_longjmp(current->thread.fault_catcher, 1);
+ 	else relay_signal(sig, regs);
+ }
+ 
+-void winch(int sig, union uml_pt_regs *regs)
++static void winch(int sig, union uml_pt_regs *regs)
+ {
+ 	do_IRQ(WINCH_IRQ, regs);
  }
 _
 
