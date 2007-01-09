@@ -1,136 +1,125 @@
 From: akpm@osdl.org
-Subject: + revert-bd_mount_mutex-back-to-a-semaphore.patch added to -mm tree
-Date: Mon, 08 Jan 2007 15:58:04 -0800
-Message-ID: <200701082358.l08Nw4Xv023307@shell0.pdx.osdl.net>
+Subject: + intel-rng-workarounds.patch added to -mm tree
+Date: Mon, 08 Jan 2007 16:01:02 -0800
+Message-ID: <200701090001.l09012jA023410@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55909 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56115 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750743AbXAHX6U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 18:58:20 -0500
+	id S1750696AbXAIABp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 19:01:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dgc@sgi.com, mingo@elte.hu
+Cc: jbeulich@novell.com, jeff@garzik.org, mb@bu3sch.de
 
 
 The patch titled
-     Revert bd_mount_mutex back to a semaphore
+     intel-rng workarounds
 has been added to the -mm tree.  Its filename is
-     revert-bd_mount_mutex-back-to-a-semaphore.patch
+     intel-rng-workarounds.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Revert bd_mount_mutex back to a semaphore
-From: David Chinner <dgc@sgi.com>
+Subject: intel-rng workarounds
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Revert bd_mount_mutex back to a semaphore so that xfs_freeze -f /mnt/newtest;
-xfs_freeze -u /mnt/newtest works safely and doesn't produce lockdep warnings.
+Add a load option to intel-rng to allow skipping the FWH detection,
+necessary in case the BIOS has locked read-only the firmware hub space. 
+Also prevent any attempt to write to firmware space if it cannot be write
+enabled (apparently caused hangs on some systems not having an FWH and thus
+also not having a respective RNG).
 
-(XFS unlocks the semaphore from a different task, by design.  The mutex
-code warns about this)
-
-Signed-off-by: Dave Chinner <dgc@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c       |    2 +-
- fs/buffer.c          |    6 +++---
- fs/gfs2/ops_fstype.c |    4 ++--
- fs/super.c           |    4 ++--
- include/linux/fs.h   |    2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/char/hw_random/intel-rng.c |   32 +++++++++++++++++++++++++--
+ 1 files changed, 30 insertions(+), 2 deletions(-)
 
-diff -puN fs/block_dev.c~revert-bd_mount_mutex-back-to-a-semaphore fs/block_dev.c
---- a/fs/block_dev.c~revert-bd_mount_mutex-back-to-a-semaphore
-+++ a/fs/block_dev.c
-@@ -411,7 +411,7 @@ static void init_once(void * foo, struct
- 	{
- 		memset(bdev, 0, sizeof(*bdev));
- 		mutex_init(&bdev->bd_mutex);
--		mutex_init(&bdev->bd_mount_mutex);
-+		sema_init(&bdev->bd_mount_sem, 1);
- 		INIT_LIST_HEAD(&bdev->bd_inodes);
- 		INIT_LIST_HEAD(&bdev->bd_list);
- #ifdef CONFIG_SYSFS
-diff -puN fs/buffer.c~revert-bd_mount_mutex-back-to-a-semaphore fs/buffer.c
---- a/fs/buffer.c~revert-bd_mount_mutex-back-to-a-semaphore
-+++ a/fs/buffer.c
-@@ -180,7 +180,7 @@ int fsync_bdev(struct block_device *bdev
-  * freeze_bdev  --  lock a filesystem and force it into a consistent state
-  * @bdev:	blockdevice to lock
-  *
-- * This takes the block device bd_mount_mutex to make sure no new mounts
-+ * This takes the block device bd_mount_sem to make sure no new mounts
-  * happen on bdev until thaw_bdev() is called.
-  * If a superblock is found on this device, we take the s_umount semaphore
-  * on it to make sure nobody unmounts until the snapshot creation is done.
-@@ -189,7 +189,7 @@ struct super_block *freeze_bdev(struct b
+diff -puN drivers/char/hw_random/intel-rng.c~intel-rng-workarounds drivers/char/hw_random/intel-rng.c
+--- a/drivers/char/hw_random/intel-rng.c~intel-rng-workarounds
++++ a/drivers/char/hw_random/intel-rng.c
+@@ -143,6 +143,11 @@ static const struct pci_device_id pci_tb
+ };
+ MODULE_DEVICE_TABLE(pci, pci_tbl);
+ 
++static __initdata int no_fwh_detect;
++module_param(no_fwh_detect, int, 0);
++MODULE_PARM_DESC(no_fwh_detect, "Skip FWH detection:\n"
++                                " positive value - skip if FWH space locked read-only\n"
++                                " negative value - skip always");
+ 
+ static inline u8 hwstatus_get(void __iomem *mem)
  {
- 	struct super_block *sb;
+@@ -240,6 +245,11 @@ static int __init mod_init(void)
+ 	if (!dev)
+ 		goto out; /* Device not found. */
  
--	mutex_lock(&bdev->bd_mount_mutex);
-+	down(&bdev->bd_mount_sem);
- 	sb = get_super(bdev);
- 	if (sb && !(sb->s_flags & MS_RDONLY)) {
- 		sb->s_frozen = SB_FREEZE_WRITE;
-@@ -231,7 +231,7 @@ void thaw_bdev(struct block_device *bdev
- 		drop_super(sb);
++	if (no_fwh_detect < 0) {
++		pci_dev_put(dev);
++		goto fwh_done;
++	}
++
+ 	/* Check for Intel 82802 */
+ 	if (dev->device < 0x2640) {
+ 		fwh_dec_en1_off = FWH_DEC_EN1_REG_OLD;
+@@ -252,6 +262,23 @@ static int __init mod_init(void)
+ 	pci_read_config_byte(dev, fwh_dec_en1_off, &fwh_dec_en1_val);
+ 	pci_read_config_byte(dev, bios_cntl_off, &bios_cntl_val);
+ 
++	if ((bios_cntl_val &
++	     (BIOS_CNTL_LOCK_ENABLE_MASK|BIOS_CNTL_WRITE_ENABLE_MASK))
++	    == BIOS_CNTL_LOCK_ENABLE_MASK) {
++		static __initdata /*const*/ char warning[] =
++			KERN_WARNING PFX "Firmware space is locked read-only. If you can't or\n"
++			KERN_WARNING PFX "don't want to disable this in firmware setup, and if\n"
++			KERN_WARNING PFX "you are certain that your system has a functional\n"
++			KERN_WARNING PFX "RNG, try using the 'no_fwh_detect' option.\n";
++
++		pci_dev_put(dev);
++		if (no_fwh_detect)
++			goto fwh_done;
++		printk(warning);
++		err = -EBUSY;
++		goto out;
++	}
++
+ 	mem = ioremap_nocache(INTEL_FWH_ADDR, INTEL_FWH_ADDR_LEN);
+ 	if (mem == NULL) {
+ 		pci_dev_put(dev);
+@@ -280,8 +307,7 @@ static int __init mod_init(void)
+ 		pci_write_config_byte(dev,
+ 		                      fwh_dec_en1_off,
+ 		                      fwh_dec_en1_val | FWH_F8_EN_MASK);
+-	if (!(bios_cntl_val &
+-	      (BIOS_CNTL_LOCK_ENABLE_MASK|BIOS_CNTL_WRITE_ENABLE_MASK)))
++	if (!(bios_cntl_val & BIOS_CNTL_WRITE_ENABLE_MASK))
+ 		pci_write_config_byte(dev,
+ 		                      bios_cntl_off,
+ 		                      bios_cntl_val | BIOS_CNTL_WRITE_ENABLE_MASK);
+@@ -315,6 +341,8 @@ static int __init mod_init(void)
+ 		goto out;
  	}
  
--	mutex_unlock(&bdev->bd_mount_mutex);
-+	up(&bdev->bd_mount_sem);
- }
- EXPORT_SYMBOL(thaw_bdev);
- 
-diff -puN fs/gfs2/ops_fstype.c~revert-bd_mount_mutex-back-to-a-semaphore fs/gfs2/ops_fstype.c
---- a/fs/gfs2/ops_fstype.c~revert-bd_mount_mutex-back-to-a-semaphore
-+++ a/fs/gfs2/ops_fstype.c
-@@ -867,9 +867,9 @@ static int gfs2_get_sb_meta(struct file_
- 		error = -EBUSY;
- 		goto error;
- 	}
--	mutex_lock(&sb->s_bdev->bd_mount_mutex);
-+	down(&sb->s_bdev->bd_mount_sem);
- 	new = sget(fs_type, test_bdev_super, set_bdev_super, sb->s_bdev);
--	mutex_unlock(&sb->s_bdev->bd_mount_mutex);
-+	up(&sb->s_bdev->bd_mount_sem);
- 	if (IS_ERR(new)) {
- 		error = PTR_ERR(new);
- 		goto error;
-diff -puN fs/super.c~revert-bd_mount_mutex-back-to-a-semaphore fs/super.c
---- a/fs/super.c~revert-bd_mount_mutex-back-to-a-semaphore
-+++ a/fs/super.c
-@@ -753,9 +753,9 @@ int get_sb_bdev(struct file_system_type 
- 	 * will protect the lockfs code from trying to start a snapshot
- 	 * while we are mounting
- 	 */
--	mutex_lock(&bdev->bd_mount_mutex);
-+	down(&bdev->bd_mount_sem);
- 	s = sget(fs_type, test_bdev_super, set_bdev_super, bdev);
--	mutex_unlock(&bdev->bd_mount_mutex);
-+	up(&bdev->bd_mount_sem);
- 	if (IS_ERR(s))
- 		goto error_s;
- 
-diff -puN include/linux/fs.h~revert-bd_mount_mutex-back-to-a-semaphore include/linux/fs.h
---- a/include/linux/fs.h~revert-bd_mount_mutex-back-to-a-semaphore
-+++ a/include/linux/fs.h
-@@ -459,7 +459,7 @@ struct block_device {
- 	struct inode *		bd_inode;	/* will die */
- 	int			bd_openers;
- 	struct mutex		bd_mutex;	/* open/close mutex */
--	struct mutex		bd_mount_mutex;	/* mount mutex */
-+	struct semaphore	bd_mount_sem;
- 	struct list_head	bd_inodes;
- 	void *			bd_holder;
- 	int			bd_holders;
++fwh_done:
++
+ 	err = -ENOMEM;
+ 	mem = ioremap(INTEL_RNG_ADDR, INTEL_RNG_ADDR_LEN);
+ 	if (!mem)
 _
 
-Patches currently in -mm which might be from dgc@sgi.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-revert-bd_mount_mutex-back-to-a-semaphore.patch
-xfs-remove-useless-wmb-memory-barrier.patch
+intel-rng-workarounds.patch
+ia64-swiotlb-bug-fixes.patch
+ia64-make-swiotlb-use-bus_to_virt-virt_to_bus.patch
+ia64-swiotlb-cleanup.patch
+ia64-swiotlb-abstraction-eg-for-xen.patch
+ia64-missing-exports-hwsw_sync_.patch
+ia64-enable-swiotlb-only-when-needed.patch
+x86_64-do-not-always-end-the-stack-trace-with-ulong_max.patch
