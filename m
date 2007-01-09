@@ -1,95 +1,137 @@
 From: akpm@osdl.org
-Subject: + handle-32-bit-perfmon-counter-writes-cleanly-in-oprofile.patch added to -mm tree
-Date: Tue, 09 Jan 2007 13:23:06 -0800
-Message-ID: <200701092123.l09LN6nI015645@shell0.pdx.osdl.net>
+Subject: + fix-the-reproducible-oops-in-scsi.patch added to -mm tree
+Date: Tue, 09 Jan 2007 13:33:57 -0800
+Message-ID: <200701092133.l09LXv6x016004@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45559 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45703 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932437AbXAIVaW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 16:30:22 -0500
+	id S932444AbXAIVeB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 16:34:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, ak@suse.de, eranian@hpl.hp.com, levon@movementarian.org, mingo@elte.hu, phil.el@wanadoo.fr
+Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Handle 32 bit PerfMon Counter writes cleanly in oprofile
+     Fix the reproducible oops in scsi
 has been added to the -mm tree.  Its filename is
-     handle-32-bit-perfmon-counter-writes-cleanly-in-oprofile.patch
+     fix-the-reproducible-oops-in-scsi.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Handle 32 bit PerfMon Counter writes cleanly in oprofile
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Fix the reproducible oops in scsi
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Handle these 32 bit perfmon counter MSR writes cleanly in oprofile.
+I got the oops after some hotplug events. And the similar oops can
+reproduce by the following step.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Philippe Elie <phil.el@wanadoo.fr>
-Cc: John Levon <levon@movementarian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+   plug usb-storage (e.g. scsi_host of usb is "host5", and device is sde)
+   # mount /dev/sde1 /mnt
+   # echo 1 > /sys/block/sde/device/delete
+   # echo - - - > /sys/class/scsi_host/host5/scan
+   # echo - - - > /sys/class/scsi_host/host5/scan
+   # echo - - - > /sys/class/scsi_host/host5/scan
+   unplug usb-storage
+   # umount /mnt
+
+general protection fault: 0000 [1] SMP
+CPU 1
+Modules linked in: nls_iso8859_1 nls_cp437 vfat fat nls_base nfsd exportfs p4_clockmod speedstep_lib cpufreq_ondemand freq_table thermal fan button processor ac battery autofs4 ipv6 nfs lockd nfs_acl sunrpc deflate zlib_deflate zlib_inflate twofish twofish_common serpent blowfish des cbc ecb blkcipher aes xcbc sha256 sha1 crypto_null hmac crypto_hash cryptomgr af_key binfmt_misc dm_snapshot dm_mirror dm_mod eth1394 usb_storage snd_hda_intel snd_hda_codec snd_pcm_oss snd_mixer_oss snd_pcm snd_timer r8169 snd i2c_i801 bitrev crc32 ehci_hcd uhci_hcd intel_agp ohci1394 ieee1394 rng_core usbcore soundcore snd_page_alloc i2c_core parport_pc parport evdev sg sr_mod cdrom floppy
+Pid: 3780, comm: umount Not tainted 2.6.20-rc4 #1
+RIP: 0010:[<ffffffff801af74b>]  [<ffffffff801af74b>] sysfs_remove_file+0x8/0x12
+RSP: 0018:ffff810059703b58  EFLAGS: 00010286
+RAX: ffff8100596bba50 RBX: ffff8100596bba50 RCX: ffff810059703b68
+RDX: ffff810059703b48 RSI: 6b6b6b6b6b6b6b6b RDI: 6b6b6b6b6b6b6b6b
+RBP: ffff810059703b58 R08: ffff8100596bbac8 R09: 0000000000000000
+R10: ffff8100596bba28 R11: 0000000000000400 R12: 6b6b6b6b6b6b6b6b
+R13: ffff81005e303650 R14: ffff81005e9cf1b8 R15: ffff8100596bba50
+FS:  00002af1e22111d0(0000) GS:ffff81005f7a9898(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00007fff3c0145e8 CR3: 0000000059600000 CR4: 00000000000006e0
+Process umount (pid: 3780, threadinfo ffff810059702000, task ffff81005f3997f0)
+Stack:  ffff810059703b78 ffffffff8023a07a ffff8100596bba50 ffff8100596bba50
+ ffff810059703ba8 ffffffff8023a110 ffff81005e303478 ffff8100596bba50
+ ffff8100596bba28 ffff81005e303478 ffff810059703bd8 ffffffff80249049
+Call Trace:
+ [<ffffffff8023a07a>] device_remove_file+0x26/0x33
+ [<ffffffff8023a110>] device_del+0x3a/0x1d1
+ [<ffffffff80249049>] scsi_target_reap_usercontext+0x54/0xbb
+ [<ffffffff80137f4e>] execute_in_process_context+0x27/0x56
+ [<ffffffff80247fdc>] scsi_target_reap+0x98/0xac
+ [<ffffffff80249290>] scsi_device_dev_release_usercontext+0xab/0xd8
+ [<ffffffff80137f4e>] execute_in_process_context+0x27/0x56
+ [<ffffffff802491e3>] scsi_device_dev_release+0x17/0x19
+ [<ffffffff80239d9f>] device_release+0x31/0x70
+ [<ffffffff801e411d>] kobject_cleanup+0x53/0x77
+ [<ffffffff801e4141>] kobject_release+0x0/0xf
+ [<ffffffff801e414e>] kobject_release+0xd/0xf
+ [<ffffffff801e4f3f>] kref_put+0x63/0x6d
+ [<ffffffff801e40c8>] kobject_put+0x19/0x1b
+ [<ffffffff80239ec2>] put_device+0x15/0x17
+ [<ffffffff80240610>] scsi_device_put+0x3d/0x42
+ [<ffffffff8024b821>] scsi_disk_put+0x2e/0x3f
+ [<ffffffff8024c21e>] sd_release+0x7b/0x82
+ [<ffffffff8019243a>] __blkdev_put+0x7c/0x15e
+ [<ffffffff801924e9>] __blkdev_put+0x12b/0x15e
+ [<ffffffff80192527>] blkdev_put+0xb/0xd
+ [<ffffffff80192542>] close_bdev_excl+0x19/0x1e
+ [<ffffffff80170e3b>] kill_block_super+0x36/0x3b
+ [<ffffffff80170f16>] deactivate_super+0x6f/0x84
+ [<ffffffff801838f8>] mntput_no_expire+0x56/0x87
+ [<ffffffff80175c02>] path_release_on_umount+0x1d/0x21
+ [<ffffffff8018412c>] sys_umount+0x21f/0x254
+ [<ffffffff80172361>] sys_newstat+0x22/0x3c
+ [<ffffffff80109c2e>] system_call+0x7e/0x83
+
+By "echo 1 > /sys/block/sde/device/delete", sdev->sdev_state became SDEV_DEL.
+
+The problem is in,
+    scsi_probe_and_add_lun()
+        -> scsi_device_lookup_by_target()
+	    -> __scsi_device_lookup_by_target()
+
+by "echo - - - > /sys/class/scsi_host/host5/scan".
+
+The first scan is still not problem.  Since founded existence device is
+already SDEV_DEL, it just adds a new device.
+
+The problem is second re-scan, it is looking a existence device up.  In
+this case it is SDEV_DEL device, not newly added device by first scan.
+
+This patch fixes the oops by excluding the SDEV_DEL devices in
+__scsi_device_lookup_by_target().
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/oprofile/op_model_ppro.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/scsi/scsi.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/i386/oprofile/op_model_ppro.c~handle-32-bit-perfmon-counter-writes-cleanly-in-oprofile arch/i386/oprofile/op_model_ppro.c
---- a/arch/i386/oprofile/op_model_ppro.c~handle-32-bit-perfmon-counter-writes-cleanly-in-oprofile
-+++ a/arch/i386/oprofile/op_model_ppro.c
-@@ -24,7 +24,8 @@
+diff -puN drivers/scsi/scsi.c~fix-the-reproducible-oops-in-scsi drivers/scsi/scsi.c
+--- a/drivers/scsi/scsi.c~fix-the-reproducible-oops-in-scsi
++++ a/drivers/scsi/scsi.c
+@@ -959,6 +959,8 @@ struct scsi_device *__scsi_device_lookup
+ 	struct scsi_device *sdev;
  
- #define CTR_IS_RESERVED(msrs,c) (msrs->counters[(c)].addr ? 1 : 0)
- #define CTR_READ(l,h,msrs,c) do {rdmsr(msrs->counters[(c)].addr, (l), (h));} while (0)
--#define CTR_WRITE(l,msrs,c) do {wrmsr(msrs->counters[(c)].addr, -(u32)(l), -1);} while (0)
-+#define CTR_32BIT_WRITE(l,msrs,c)	\
-+	do {wrmsr(msrs->counters[(c)].addr, -(u32)(l), 0);} while (0)
- #define CTR_OVERFLOWED(n) (!((n) & (1U<<31)))
- 
- #define CTRL_IS_RESERVED(msrs,c) (msrs->controls[(c)].addr ? 1 : 0)
-@@ -79,7 +80,7 @@ static void ppro_setup_ctrs(struct op_ms
- 	for (i = 0; i < NUM_COUNTERS; ++i) {
- 		if (unlikely(!CTR_IS_RESERVED(msrs,i)))
- 			continue;
--		CTR_WRITE(1, msrs, i);
-+		CTR_32BIT_WRITE(1, msrs, i);
+ 	list_for_each_entry(sdev, &starget->devices, same_target_siblings) {
++		if (sdev->sdev_state == SDEV_DEL)
++			continue;
+ 		if (sdev->lun ==lun)
+ 			return sdev;
  	}
- 
- 	/* enable active counters */
-@@ -87,7 +88,7 @@ static void ppro_setup_ctrs(struct op_ms
- 		if ((counter_config[i].enabled) && (CTR_IS_RESERVED(msrs,i))) {
- 			reset_value[i] = counter_config[i].count;
- 
--			CTR_WRITE(counter_config[i].count, msrs, i);
-+			CTR_32BIT_WRITE(counter_config[i].count, msrs, i);
- 
- 			CTRL_READ(low, high, msrs, i);
- 			CTRL_CLEAR(low);
-@@ -116,7 +117,7 @@ static int ppro_check_ctrs(struct pt_reg
- 		CTR_READ(low, high, msrs, i);
- 		if (CTR_OVERFLOWED(low)) {
- 			oprofile_add_sample(regs, i);
--			CTR_WRITE(reset_value[i], msrs, i);
-+			CTR_32BIT_WRITE(reset_value[i], msrs, i);
- 		}
- 	}
- 
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-3.patch
-ondemand-governor-restructure-the-work-callback.patch
-ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback.patch
-handle-32-bit-perfmon-counter-writes-cleanly-in-x86_64-nmi_watchdog.patch
-handle-32-bit-perfmon-counter-writes-cleanly-in-i386-nmi_watchdog.patch
-handle-32-bit-perfmon-counter-writes-cleanly-in-oprofile.patch
+fix-the-reproducible-oops-in-scsi.patch
+mmconfig-cleanup.patch
+mmconfig-reject-a-broken-mcfg-tables-on-asus-etc.patch
+mmconfig-fix-unreachable_devices.patch
+mmconfig-fix-x86_64-ioremap-base_address.patch
+relax-check-for-aix-in-msdos-partition-table.patch
+msdos-partitions-fix-logic-error-in-aix-detection.patch
