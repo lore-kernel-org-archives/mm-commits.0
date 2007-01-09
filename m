@@ -1,279 +1,205 @@
 From: akpm@osdl.org
-Subject: + ecryptfs-encrypted-passthrough.patch added to -mm tree
-Date: Tue, 09 Jan 2007 14:26:58 -0800
-Message-ID: <200701092226.l09MQwBM017148@shell0.pdx.osdl.net>
+Subject: - git-netdev-all-e1000-fix.patch removed from -mm tree
+Date: Tue, 09 Jan 2007 14:49:56 -0800
+Message-ID: <200701092249.l09MnuOD017691@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48895 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50237 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932460AbXAIWaO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 17:30:14 -0500
+	id S932485AbXAIWuE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 17:50:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com
+To: akpm@osdl.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: Encrypted passthrough
-has been added to the -mm tree.  Its filename is
-     ecryptfs-encrypted-passthrough.patch
+     git-netdev-all: e1000 fix
+has been removed from the -mm tree.  Its filename was
+     git-netdev-all-e1000-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: Encrypted passthrough
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: git-netdev-all: e1000 fix
+From: Andrew Morton <akpm@osdl.org>
 
-Provide an option to provide a view of the encrypted files such that the
-metadata is always in the header of the files, regardless of whether the
-metadata is actually in the header or in the extended attribute.  This mode of
-operation is useful for applications like incremental backup utilities that do
-not preserve the extended attributes when directly accessing the lower files.
+drivers/net/e1000/e1000_main.c:997:1: error: unterminated #ifdef                
 
-With this option enabled, the files under the eCryptfs mount point will be
-read-only.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ecryptfs/crypto.c          |   15 ++++--
- fs/ecryptfs/ecryptfs_kernel.h |    7 ++-
- fs/ecryptfs/file.c            |   13 ++++-
- fs/ecryptfs/inode.c           |   15 +++++-
- fs/ecryptfs/mmap.c            |   74 +++++++++++++++++++++++++++++++-
- 5 files changed, 113 insertions(+), 11 deletions(-)
+ drivers/net/e1000/e1000_main.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-encrypted-passthrough fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-encrypted-passthrough
-+++ a/fs/ecryptfs/crypto.c
-@@ -1258,9 +1258,10 @@ out:
- }
+diff -puN drivers/net/e1000/e1000_main.c~git-netdev-all-e1000-fix drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~git-netdev-all-e1000-fix
++++ a/drivers/net/e1000/e1000_main.c
+@@ -994,7 +994,6 @@ e1000_probe(struct pci_dev *pdev,
+ 	   (adapter->hw.mac_type != e1000_82547))
+ 		netdev->features |= NETIF_F_TSO;
  
- 
--static void
--write_header_metadata(char *virt, struct ecryptfs_crypt_stat *crypt_stat,
--		      size_t *written)
-+void
-+ecryptfs_write_header_metadata(char *virt,
-+			       struct ecryptfs_crypt_stat *crypt_stat,
-+			       size_t *written)
- {
- 	u32 header_extent_size;
- 	u16 num_header_extents_at_front;
-@@ -1322,7 +1323,8 @@ int ecryptfs_write_headers_virt(char *pa
- 	offset += written;
- 	write_ecryptfs_flags((page_virt + offset), crypt_stat, &written);
- 	offset += written;
--	write_header_metadata((page_virt + offset), crypt_stat, &written);
-+	ecryptfs_write_header_metadata((page_virt + offset), crypt_stat,
-+				       &written);
- 	offset += written;
- 	rc = ecryptfs_generate_key_packet_set((page_virt + offset), crypt_stat,
- 					      ecryptfs_dentry, &written,
-@@ -1608,7 +1610,12 @@ int ecryptfs_read_metadata(struct dentry
- 	ssize_t bytes_read;
- 	struct ecryptfs_crypt_stat *crypt_stat =
- 	    &ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->crypt_stat;
-+	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
-+		&ecryptfs_superblock_to_private(
-+			ecryptfs_dentry->d_sb)->mount_crypt_stat;
- 
-+	ecryptfs_copy_mount_wide_flags_to_inode_flags(crypt_stat,
-+						      mount_crypt_stat);
- 	/* Read the first page from the underlying file */
- 	page_virt = kmem_cache_alloc(ecryptfs_header_cache_1, GFP_USER);
- 	if (!page_virt) {
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-encrypted-passthrough fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-encrypted-passthrough
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -578,7 +578,7 @@ ssize_t ecryptfs_getxattr(struct dentry 
- int
- ecryptfs_setxattr(struct dentry *dentry, const char *name, const void *value,
- 		  size_t size, int flags);
--
-+int ecryptfs_read_xattr_region(char *page_virt, struct dentry *ecryptfs_dentry);
- int ecryptfs_process_helo(unsigned int transport, uid_t uid, pid_t pid);
- int ecryptfs_process_quit(uid_t uid, pid_t pid);
- int ecryptfs_process_response(struct ecryptfs_message *msg, uid_t uid,
-@@ -601,6 +601,9 @@ int ecryptfs_send_connector(char *data, 
- 			    u16 msg_flags, pid_t daemon_pid);
- int ecryptfs_init_connector(void);
- void ecryptfs_release_connector(void);
--
-+void
-+ecryptfs_write_header_metadata(char *virt,
-+			       struct ecryptfs_crypt_stat *crypt_stat,
-+			       size_t *written);
- 
- #endif /* #ifndef ECRYPTFS_KERNEL_H */
-diff -puN fs/ecryptfs/file.c~ecryptfs-encrypted-passthrough fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-encrypted-passthrough
-+++ a/fs/ecryptfs/file.c
-@@ -250,6 +250,17 @@ static int ecryptfs_open(struct inode *i
- 	struct ecryptfs_file_info *file_info;
- 	int lower_flags;
- 
-+	mount_crypt_stat = &ecryptfs_superblock_to_private(
-+		ecryptfs_dentry->d_sb)->mount_crypt_stat;
-+	if ((mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
-+	    && ((file->f_flags & O_WRONLY) || (file->f_flags & O_RDWR)
-+		|| (file->f_flags & O_CREAT) || (file->f_flags & O_TRUNC)
-+		|| (file->f_flags & O_APPEND))) {
-+		printk(KERN_WARNING "Mount has encrypted view enabled; "
-+		       "files may only be read\n");
-+		rc = -EPERM;
-+		goto out;
-+	}
- 	/* Released in ecryptfs_release or end of function if failure */
- 	file_info = kmem_cache_zalloc(ecryptfs_file_info_cache, GFP_KERNEL);
- 	ecryptfs_set_file_private(file, file_info);
-@@ -261,8 +272,6 @@ static int ecryptfs_open(struct inode *i
- 	}
- 	lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
- 	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
--	mount_crypt_stat = &ecryptfs_superblock_to_private(
--		ecryptfs_dentry->d_sb)->mount_crypt_stat;
- 	mutex_lock(&crypt_stat->cs_mutex);
- 	if (!ECRYPTFS_CHECK_FLAG(crypt_stat->flags, ECRYPTFS_POLICY_APPLIED)) {
- 		ecryptfs_printk(KERN_DEBUG, "Setting flags for stat...\n");
-diff -puN fs/ecryptfs/inode.c~ecryptfs-encrypted-passthrough fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-encrypted-passthrough
-+++ a/fs/ecryptfs/inode.c
-@@ -289,6 +289,7 @@ static struct dentry *ecryptfs_lookup(st
- 	char *encoded_name;
- 	unsigned int encoded_namelen;
- 	struct ecryptfs_crypt_stat *crypt_stat = NULL;
-+	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
- 	char *page_virt = NULL;
- 	struct inode *lower_inode;
- 	u64 file_size;
-@@ -388,8 +389,18 @@ static struct dentry *ecryptfs_lookup(st
- 		}
- 		crypt_stat->flags |= ECRYPTFS_METADATA_IN_XATTR;
- 	}
--	memcpy(&file_size, page_virt, sizeof(file_size));
--	file_size = be64_to_cpu(file_size);
-+	mount_crypt_stat = &ecryptfs_superblock_to_private(
-+		dentry->d_sb)->mount_crypt_stat;
-+	if (mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED) {
-+		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR)
-+			file_size = (crypt_stat->header_extent_size
-+				     + i_size_read(lower_dentry->d_inode));
-+		else
-+			file_size = i_size_read(lower_dentry->d_inode);
-+	} else {
-+		memcpy(&file_size, page_virt, sizeof(file_size));
-+		file_size = be64_to_cpu(file_size);
-+	}
- 	i_size_write(dentry->d_inode, (loff_t)file_size);
- 	kmem_cache_free(ecryptfs_header_cache_2, page_virt);
- 	goto out;
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-encrypted-passthrough fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-encrypted-passthrough
-+++ a/fs/ecryptfs/mmap.c
-@@ -260,6 +260,33 @@ out:
- 		ClearPageUptodate(page);
- 	return rc;
- }
-+/**
-+ *   Header Extent:
-+ *     Octets 0-7:        Unencrypted file size (big-endian)
-+ *     Octets 8-15:       eCryptfs special marker
-+ *     Octets 16-19:      Flags
-+ *      Octet 16:         File format version number (between 0 and 255)
-+ *      Octets 17-18:     Reserved
-+ *      Octet 19:         Bit 1 (lsb): Reserved
-+ *                        Bit 2: Encrypted?
-+ *                        Bits 3-8: Reserved
-+ *     Octets 20-23:      Header extent size (big-endian)
-+ *     Octets 24-25:      Number of header extents at front of file
-+ *                        (big-endian)
-+ *     Octet  26:         Begin RFC 2440 authentication token packet set
-+ */
-+static void set_header_info(char *page_virt,
-+			    struct ecryptfs_crypt_stat *crypt_stat)
-+{
-+	size_t written;
-+	int save_num_header_extents_at_front =
-+		crypt_stat->num_header_extents_at_front;
-+
-+	crypt_stat->num_header_extents_at_front = 1;
-+	ecryptfs_write_header_metadata(page_virt + 20, crypt_stat, &written);
-+	crypt_stat->num_header_extents_at_front =
-+		save_num_header_extents_at_front;
-+}
- 
- /**
-  * ecryptfs_readpage
-@@ -289,10 +316,55 @@ static int ecryptfs_readpage(struct file
- 					"[%d]\n", rc);
- 			goto out;
- 		}
-+	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
-+		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
-+			int num_pages_in_header_region =
-+				(crypt_stat->header_extent_size
-+				 / PAGE_CACHE_SIZE);
-+
-+			if (page->index < num_pages_in_header_region) {
-+				char *page_virt;
-+
-+				page_virt = (char *)kmap(page);
-+				if (!page_virt) {
-+					rc = -ENOMEM;
-+					printk(KERN_ERR "Error mapping page\n");
-+					goto out;
-+				}
-+				memset(page_virt, 0, PAGE_CACHE_SIZE);
-+				if (page->index == 0) {
-+					rc = ecryptfs_read_xattr_region(
-+						page_virt, file->f_path.dentry);
-+					set_header_info(page_virt, crypt_stat);
-+				}
-+				kunmap(page);
-+				if (rc) {
-+					printk(KERN_ERR "Error reading xattr "
-+					       "region\n");
-+					goto out;
-+				}
-+			} else {
-+				rc = ecryptfs_do_readpage(
-+					file, page,
-+					(page->index
-+					 - num_pages_in_header_region));
-+				if (rc) {
-+					printk(KERN_ERR "Error reading page; "
-+					       "rc = [%d]\n", rc);
-+					goto out;
-+				}
-+			}
-+		} else {
-+			rc = ecryptfs_do_readpage(file, page, page->index);
-+			if (rc) {
-+				printk(KERN_ERR "Error reading page; rc = "
-+				       "[%d]\n", rc);
-+				goto out;
-+			}
-+		}
- 	} else {
- 		rc = ecryptfs_decrypt_page(file, page);
- 		if (rc) {
--
- 			ecryptfs_printk(KERN_ERR, "Error decrypting page; "
- 					"rc = [%d]\n", rc);
- 			goto out;
+-#ifdef NETIF_F_TSO6
+ 	if (adapter->hw.mac_type > e1000_82547_rev_2)
+ 		netdev->features |= NETIF_F_TSO6;
+ 	if (pci_using_dac)
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-ecryptfs-public-key-transport-mechanism.patch
-ecryptfs-public-key-transport-mechanism-fix.patch
-ecryptfs-public-key-packet-management.patch
+origin.patch
+nfs-fix-race-in-nfs_release_page-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+git-alsa-patch_realtek-build-fix.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+cifs-sprintf-fix.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+git-netdev-all-e1000-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+git-scsi-rc-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-fixup.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
 ecryptfs-public-key-packet-management-slab-fix.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-ecryptfs-xattr-flags-and-mount-options.patch
-ecryptfs-generalize-metadata-read-write.patch
-ecryptfs-encrypted-passthrough.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
