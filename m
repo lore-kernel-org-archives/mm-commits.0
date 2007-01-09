@@ -1,53 +1,64 @@
 From: akpm@osdl.org
-Subject: - netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation.patch removed from -mm tree
-Date: Tue, 09 Jan 2007 12:29:20 -0800
-Message-ID: <200701092029.l09KTK5d014363@shell0.pdx.osdl.net>
+Subject: - usb-usbmixer-error-path-fix.patch removed from -mm tree
+Date: Tue, 09 Jan 2007 12:29:29 -0800
+Message-ID: <200701092029.l09KTTB5014375@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41112 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41123 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932416AbXAIU33 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:29:29 -0500
+	id S932391AbXAIU3m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:29:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kaber@trash.net, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netfilter: nf_conntrack_netbios_ns: fix uninitialized member in expectation
+     usb: usbmixer error path fix
 has been removed from the -mm tree.  Its filename was
-     netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation.patch
+     usb-usbmixer-error-path-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: netfilter: nf_conntrack_netbios_ns: fix uninitialized member in expectation
-From: Patrick McHardy <kaber@trash.net>
+Subject: usb: usbmixer error path fix
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-->helper is uninitialized in the expectation registered by the netbios_ns
-helper and it later copied to the expected connection, which causes invalid
-memory dereferences when trying to call the helper.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Without the patch below namelist[0] will not be freed in case of kmalloc
+error.
+
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/netfilter/nf_conntrack_netbios_ns.c |    1 +
- 1 file changed, 1 insertion(+)
+ sound/usb/usbmixer.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/netfilter/nf_conntrack_netbios_ns.c~netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation net/netfilter/nf_conntrack_netbios_ns.c
---- a/net/netfilter/nf_conntrack_netbios_ns.c~netfilter-nf_conntrack_netbios_ns-fix-uninitialized-member-in-expectation
-+++ a/net/netfilter/nf_conntrack_netbios_ns.c
-@@ -89,6 +89,7 @@ static int help(struct sk_buff **pskb, u
- 
- 	exp->expectfn             = NULL;
- 	exp->flags                = NF_CT_EXPECT_PERMANENT;
-+	exp->helper               = NULL;
- 
- 	nf_conntrack_expect_related(exp);
- 	nf_conntrack_expect_put(exp);
+diff -puN sound/usb/usbmixer.c~usb-usbmixer-error-path-fix sound/usb/usbmixer.c
+--- a/sound/usb/usbmixer.c~usb-usbmixer-error-path-fix
++++ a/sound/usb/usbmixer.c
+@@ -1526,7 +1526,7 @@ static int parse_audio_selector_unit(str
+ 		namelist[i] = kmalloc(MAX_ITEM_NAME_LEN, GFP_KERNEL);
+ 		if (! namelist[i]) {
+ 			snd_printk(KERN_ERR "cannot malloc\n");
+-			while (--i > 0)
++			while (i--)
+ 				kfree(namelist[i]);
+ 			kfree(namelist);
+ 			kfree(cval);
 _
 
-Patches currently in -mm which might be from kaber@trash.net are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
+git-alsa.patch
+ppc-cs4218_tdm-remove-extra-brace.patch
+git-dvb.patch
+mips-dbg_io-stray-brackets-fix.patch
+git-mtd.patch
+net-ifb-error-path-loop-fix.patch
+git-scsi-rc-fixes.patch
+scsi-sic7xxx-stray-bracket-fix.patch
+scsi-53c7xx-brackets-fix.patch
