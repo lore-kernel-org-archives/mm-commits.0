@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + forcedeth-statistics-optimization.patch added to -mm tree
-Date: Tue, 09 Jan 2007 13:36:54 -0800
-Message-ID: <200701092136.l09LasZQ016095@shell0.pdx.osdl.net>
+Subject: + forcedeth-tx-max-work.patch added to -mm tree
+Date: Tue, 09 Jan 2007 13:36:50 -0800
+Message-ID: <200701092136.l09Lao4N016089@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45895 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45887 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932465AbXAIVg7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 16:36:59 -0500
+	id S932460AbXAIVgw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 16:36:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,92 +15,75 @@ Cc: aabdulla@nvidia.com
 
 
 The patch titled
-     forcedeth: statistics optimization
+     forcedeth: tx max work
 has been added to the -mm tree.  Its filename is
-     forcedeth-statistics-optimization.patch
+     forcedeth-tx-max-work.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: statistics optimization
+Subject: forcedeth: tx max work
 From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-Optimize the data paths that can support hw counters.  It removes the sw
-counted statistics.
+Add a limit to how much tx work can be done in each iteration of tx
+processing.
 
 Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |   33 ++++++++++++++-------------------
- 1 files changed, 14 insertions(+), 19 deletions(-)
+ drivers/net/forcedeth.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-statistics-optimization drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-statistics-optimization
+diff -puN drivers/net/forcedeth.c~forcedeth-tx-max-work drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-tx-max-work
 +++ a/drivers/net/forcedeth.c
-@@ -1351,10 +1351,19 @@ static struct net_device_stats *nv_get_s
- {
- 	struct fe_priv *np = netdev_priv(dev);
- 
--	/* It seems that the nic always generates interrupts and doesn't
--	 * accumulate errors internally. Thus the current values in np->stats
--	 * are already up to date.
--	 */
-+	/* If the nic supports hw counters then retrieve latest values */
-+	if (np->driver_data & (DEV_HAS_STATISTICS_V1|DEV_HAS_STATISTICS_V2)) {
-+		nv_get_hw_stats(dev);
-+
-+		/* copy to net_device stats */
-+		np->stats.tx_bytes = np->estats.tx_bytes;
-+		np->stats.tx_fifo_errors = np->estats.tx_fifo_errors;
-+		np->stats.tx_carrier_errors = np->estats.tx_carrier_errors;
-+		np->stats.rx_crc_errors = np->estats.rx_crc_errors;
-+		np->stats.rx_over_errors = np->estats.rx_over_errors;
-+		np->stats.rx_errors = np->estats.rx_errors_total;
-+		np->stats.tx_errors = np->estats.tx_errors_total;
-+	}
- 	return &np->stats;
+@@ -1859,14 +1859,15 @@ static void nv_tx_done(struct net_device
+ 	}
  }
  
-@@ -1944,16 +1953,8 @@ static void nv_tx_done_optimized(struct 
- 		np->get_tx_ctx->dma = 0;
+-static void nv_tx_done_optimized(struct net_device *dev)
++static void nv_tx_done_optimized(struct net_device *dev, int limit)
+ {
+ 	struct fe_priv *np = netdev_priv(dev);
+ 	u32 flags;
+ 	struct ring_desc_ex* orig_get_tx = np->get_tx.ex;
  
- 		if (flags & NV_TX2_LASTPACKET) {
--			if (flags & NV_TX2_ERROR) {
--				if (flags & NV_TX2_UNDERFLOW)
--					np->stats.tx_fifo_errors++;
--				if (flags & NV_TX2_CARRIERLOST)
--					np->stats.tx_carrier_errors++;
--				np->stats.tx_errors++;
--			} else {
-+			if (!(flags & NV_TX2_ERROR))
- 				np->stats.tx_packets++;
--				np->stats.tx_bytes += np->get_tx_ctx->skb->len;
--			}
- 			dev_kfree_skb_any(np->get_tx_ctx->skb);
- 			np->get_tx_ctx->skb = NULL;
- 		}
-@@ -2290,7 +2291,6 @@ static int nv_rx_process_optimized(struc
- 				if (flags & NV_RX2_ERROR4) {
- 					len = nv_getlen(dev, skb->data, len);
- 					if (len < 0) {
--						np->stats.rx_errors++;
- 						dev_kfree_skb(skb);
- 						goto next_pkt;
- 					}
-@@ -2303,11 +2303,6 @@ static int nv_rx_process_optimized(struc
- 				}
- 				/* the rest are hard errors */
- 				else {
--					if (flags & NV_RX2_CRCERR)
--						np->stats.rx_crc_errors++;
--					if (flags & NV_RX2_OVERFLOW)
--						np->stats.rx_over_errors++;
--					np->stats.rx_errors++;
- 					dev_kfree_skb(skb);
- 					goto next_pkt;
- 				}
+ 	while ((np->get_tx.ex != np->put_tx.ex) &&
+-	       !((flags = le32_to_cpu(np->get_tx.ex->flaglen)) & NV_TX_VALID)) {
++	       !((flags = le32_to_cpu(np->get_tx.ex->flaglen)) & NV_TX_VALID) &&
++	       (limit-- > 0)) {
+ 
+ 		dprintk(KERN_DEBUG "%s: nv_tx_done_optimized: flags 0x%x.\n",
+ 					dev->name, flags);
+@@ -1973,7 +1974,7 @@ static void nv_tx_timeout(struct net_dev
+ 	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2)
+ 		nv_tx_done(dev);
+ 	else
+-		nv_tx_done_optimized(dev);
++		nv_tx_done_optimized(dev, np->tx_ring_size);
+ 
+ 	/* 3) if there are dead entries: clear everything */
+ 	if (np->get_tx_ctx != np->put_tx_ctx) {
+@@ -2899,7 +2900,7 @@ static irqreturn_t nv_nic_irq_optimized(
+ 			break;
+ 
+ 		spin_lock(&np->lock);
+-		nv_tx_done_optimized(dev);
++		nv_tx_done_optimized(dev, TX_WORK_PER_LOOP);
+ 		spin_unlock(&np->lock);
+ 
+ #ifdef CONFIG_FORCEDETH_NAPI
+@@ -3006,7 +3007,7 @@ static irqreturn_t nv_nic_irq_tx(int foo
+ 			break;
+ 
+ 		spin_lock_irqsave(&np->lock, flags);
+-		nv_tx_done_optimized(dev);
++		nv_tx_done_optimized(dev, TX_WORK_PER_LOOP);
+ 		spin_unlock_irqrestore(&np->lock, flags);
+ 
+ 		if (unlikely(events & (NVREG_IRQ_TX_ERR))) {
 _
 
 Patches currently in -mm which might be from aabdulla@nvidia.com are
