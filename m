@@ -1,94 +1,71 @@
 From: akpm@osdl.org
-Subject: + slab-use-cpu_lock_.patch added to -mm tree
-Date: Tue, 09 Jan 2007 13:20:25 -0800
-Message-ID: <200701092120.l09LKPQE015599@shell0.pdx.osdl.net>
+Subject: + add-i386-idle-notifier-take-3-fix.patch added to -mm tree
+Date: Tue, 09 Jan 2007 13:14:47 -0800
+Message-ID: <200701092114.l09LElXW015442@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44907 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44923 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932348AbXAIVUs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 16:20:48 -0500
+	id S932368AbXAIVVN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 16:21:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, ego@in.ibm.com, oleg@tv-sign.ru, penberg@cs.helsinki.fi, vatsa@in.ibm.com
+Cc: eranian@hpl.hp.com
 
 
 The patch titled
-     slab: use CPU_LOCK_[ACQUIRE|RELEASE]
+     add i386 idle notifier (take 3) (fix)
 has been added to the -mm tree.  Its filename is
-     slab-use-cpu_lock_.patch
+     add-i386-idle-notifier-take-3-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab: use CPU_LOCK_[ACQUIRE|RELEASE]
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: add i386 idle notifier (take 3) (fix)
+From: Stephane Eranian <eranian@hpl.hp.com>
 
-Looks like this was forgotten when CPU_LOCK_[ACQUIRE|RELEASE] was
-introduced.
+- do not export i386 idle notification registration entry points because
+  there is currently no user for this
 
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: Gautham Shenoy <ego@in.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+- make it more explicit that the store to idle_state must be atomic
+
+Signed-off-by: stephane eranian <eranian@hpl.hp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slab.c |   13 +++++--------
- 1 files changed, 5 insertions(+), 8 deletions(-)
+ arch/i386/kernel/process.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~slab-use-cpu_lock_ mm/slab.c
---- a/mm/slab.c~slab-use-cpu_lock_
-+++ a/mm/slab.c
-@@ -1177,8 +1177,10 @@ static int __cpuinit cpuup_callback(stru
- 	int memsize = sizeof(struct kmem_list3);
+diff -puN arch/i386/kernel/process.c~add-i386-idle-notifier-take-3-fix arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~add-i386-idle-notifier-take-3-fix
++++ a/arch/i386/kernel/process.c
+@@ -87,19 +87,18 @@ void idle_notifier_register(struct notif
+ {
+ 	atomic_notifier_chain_register(&idle_notifier, n);
+ }
+-EXPORT_SYMBOL_GPL(idle_notifier_register);
  
- 	switch (action) {
--	case CPU_UP_PREPARE:
-+	case CPU_LOCK_ACQUIRE:
- 		mutex_lock(&cache_chain_mutex);
-+		break;
-+	case CPU_UP_PREPARE:
- 		/*
- 		 * We need to do this right in the beginning since
- 		 * alloc_arraycache's are going to use this list.
-@@ -1264,16 +1266,9 @@ static int __cpuinit cpuup_callback(stru
- 		}
- 		break;
- 	case CPU_ONLINE:
--		mutex_unlock(&cache_chain_mutex);
- 		start_cpu_timer(cpu);
- 		break;
- #ifdef CONFIG_HOTPLUG_CPU
--	case CPU_DOWN_PREPARE:
--		mutex_lock(&cache_chain_mutex);
--		break;
--	case CPU_DOWN_FAILED:
--		mutex_unlock(&cache_chain_mutex);
--		break;
- 	case CPU_DEAD:
- 		/*
- 		 * Even if all the cpus of a node are down, we don't free the
-@@ -1344,6 +1339,8 @@ free_array_cache:
- 				continue;
- 			drain_freelist(cachep, l3, l3->free_objects);
- 		}
-+		break;
-+	case CPU_LOCK_RELEASE:
- 		mutex_unlock(&cache_chain_mutex);
- 		break;
- 	}
+ void idle_notifier_unregister(struct notifier_block *n)
+ {
+ 	atomic_notifier_chain_unregister(&idle_notifier, n);
+ }
+-EXPORT_SYMBOL(idle_notifier_unregister);
+ 
+ static DEFINE_PER_CPU(volatile unsigned long, idle_state);
+ 
+ void enter_idle(void)
+ {
+-	__get_cpu_var(idle_state) = 1;
++	/* needs to be atomic w.r.t. interrupts, not against other CPUs */
++	__set_bit(0, &__get_cpu_var(idle_state));
+ 	atomic_notifier_call_chain(&idle_notifier, IDLE_START, NULL);
+ }
+ 
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from eranian@hpl.hp.com are
 
-origin.patch
-fix-sparsemem-on-cell.patch
-ehca-avoid-crash-on-kthread_create-failure.patch
-ehca-fix-memleak-on-module-unloading.patch
-git-s390.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
+add-i386-idle-notifier-take-3.patch
+add-i386-idle-notifier-take-3-fix.patch
