@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + forcedeth-statistics-supported.patch added to -mm tree
-Date: Tue, 09 Jan 2007 13:36:52 -0800
-Message-ID: <200701092136.l09Laqa5016092@shell0.pdx.osdl.net>
+Subject: + forcedeth-tx-data-path-optimization.patch added to -mm tree
+Date: Tue, 09 Jan 2007 13:36:44 -0800
+Message-ID: <200701092136.l09Lai4w016080@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45894 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45884 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932460AbXAIVg7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 16:36:59 -0500
+	id S932459AbXAIVgv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 16:36:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,368 +15,327 @@ Cc: aabdulla@nvidia.com
 
 
 The patch titled
-     forcedeth: statistics supported
+     forcedeth: tx data path optimization
 has been added to the -mm tree.  Its filename is
-     forcedeth-statistics-supported.patch
+     forcedeth-tx-data-path-optimization.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: statistics supported
+Subject: forcedeth: tx data path optimization
 From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-Introduce hw statistics for older devices that supported it.  It breaks up the
-counters supported into separate versions.
+Optimize the tx data paths and cleans up the code (removes vlan from descr1/2
+since only valid for desc3, changes to make code easier to read, etc).
 
 Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |  189 ++++++++++++++++++++++----------------
- 1 files changed, 110 insertions(+), 79 deletions(-)
+ drivers/net/forcedeth.c |  115 +++++++++++++++++++-------------------
+ 1 files changed, 58 insertions(+), 57 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-statistics-supported drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-statistics-supported
+diff -puN drivers/net/forcedeth.c~forcedeth-tx-data-path-optimization drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-tx-data-path-optimization
 +++ a/drivers/net/forcedeth.c
-@@ -173,9 +173,10 @@
- #define DEV_HAS_MSI_X           0x0080  /* device supports MSI-X */
- #define DEV_HAS_POWER_CNTRL     0x0100  /* device supports power savings */
- #define DEV_HAS_PAUSEFRAME_TX   0x0200  /* device supports tx pause frames */
--#define DEV_HAS_STATISTICS      0x0400  /* device supports hw statistics */
--#define DEV_HAS_TEST_EXTENDED   0x0800  /* device supports extended diagnostic test */
--#define DEV_HAS_MGMT_UNIT       0x1000  /* device supports management unit */
-+#define DEV_HAS_STATISTICS_V1   0x0400  /* device supports hw statistics version 1 */
-+#define DEV_HAS_STATISTICS_V2   0x0800  /* device supports hw statistics version 2 */
-+#define DEV_HAS_TEST_EXTENDED   0x1000  /* device supports extended diagnostic test */
-+#define DEV_HAS_MGMT_UNIT       0x2000  /* device supports management unit */
+@@ -1563,7 +1563,6 @@ static int nv_start_xmit(struct sk_buff 
+ 	u32 size = skb->len-skb->data_len;
+ 	u32 entries = (size >> NV_TX2_TSO_MAX_SHIFT) + ((size & (NV_TX2_TSO_MAX_SIZE-1)) ? 1 : 0);
+ 	u32 empty_slots;
+-	u32 tx_flags_vlan = 0;
+ 	struct ring_desc* put_tx;
+ 	struct ring_desc* start_tx;
+ 	struct ring_desc* prev_tx;
+@@ -1576,7 +1575,7 @@ static int nv_start_xmit(struct sk_buff 
+ 	}
  
- enum {
- 	NvRegIrqStatus = 0x000,
-@@ -487,7 +488,8 @@ union ring_type {
- 
- /* Miscelaneous hardware related defines: */
- #define NV_PCI_REGSZ_VER1      	0x270
--#define NV_PCI_REGSZ_VER2      	0x604
-+#define NV_PCI_REGSZ_VER2      	0x2d4
-+#define NV_PCI_REGSZ_VER3      	0x604
- 
- /* various timeout delays: all in usec */
- #define NV_TXRX_RESET_DELAY	4
-@@ -605,9 +607,6 @@ static const struct nv_ethtool_str nv_es
- 	{ "tx_carrier_errors" },
- 	{ "tx_excess_deferral" },
- 	{ "tx_retry_error" },
--	{ "tx_deferral" },
--	{ "tx_packets" },
--	{ "tx_pause" },
- 	{ "rx_frame_error" },
- 	{ "rx_extra_byte" },
- 	{ "rx_late_collision" },
-@@ -620,11 +619,17 @@ static const struct nv_ethtool_str nv_es
- 	{ "rx_unicast" },
- 	{ "rx_multicast" },
- 	{ "rx_broadcast" },
-+	{ "rx_packets" },
-+	{ "rx_errors_total" },
-+	{ "tx_errors_total" },
+ 	empty_slots = nv_get_empty_tx_slots(np);
+-	if (empty_slots <= entries) {
++	if (unlikely(empty_slots <= entries)) {
+ 		spin_lock_irq(&np->lock);
+ 		netif_stop_queue(dev);
+ 		np->tx_stop = 1;
+@@ -1596,12 +1595,13 @@ static int nv_start_xmit(struct sk_buff 
+ 		np->put_tx_ctx->dma_len = bcnt;
+ 		put_tx->buf = cpu_to_le32(np->put_tx_ctx->dma);
+ 		put_tx->flaglen = cpu_to_le32((bcnt-1) | tx_flags);
 +
-+	/* version 2 stats */
-+	{ "tx_deferral" },
-+	{ "tx_packets" },
- 	{ "rx_bytes" },
-+	{ "tx_pause" },
- 	{ "rx_pause" },
--	{ "rx_drop_frame" },
--	{ "rx_packets" },
--	{ "rx_errors_total" }
-+	{ "rx_drop_frame" }
- };
+ 		tx_flags = np->tx_flags;
+ 		offset += bcnt;
+ 		size -= bcnt;
+-		if (put_tx++ == np->last_tx.orig)
++		if (unlikely(put_tx++ == np->last_tx.orig))
+ 			put_tx = np->first_tx.orig;
+-		if (np->put_tx_ctx++ == np->last_tx_ctx)
++		if (unlikely(np->put_tx_ctx++ == np->last_tx_ctx))
+ 			np->put_tx_ctx = np->first_tx_ctx;
+ 	} while (size);
  
- struct nv_ethtool_stats {
-@@ -637,9 +642,6 @@ struct nv_ethtool_stats {
- 	u64 tx_carrier_errors;
- 	u64 tx_excess_deferral;
- 	u64 tx_retry_error;
--	u64 tx_deferral;
--	u64 tx_packets;
--	u64 tx_pause;
- 	u64 rx_frame_error;
- 	u64 rx_extra_byte;
- 	u64 rx_late_collision;
-@@ -652,13 +654,22 @@ struct nv_ethtool_stats {
- 	u64 rx_unicast;
- 	u64 rx_multicast;
- 	u64 rx_broadcast;
-+	u64 rx_packets;
-+	u64 rx_errors_total;
-+	u64 tx_errors_total;
+@@ -1618,14 +1618,14 @@ static int nv_start_xmit(struct sk_buff 
+ 			np->put_tx_ctx->dma = pci_map_page(np->pci_dev, frag->page, frag->page_offset+offset, bcnt,
+ 							   PCI_DMA_TODEVICE);
+ 			np->put_tx_ctx->dma_len = bcnt;
+-
+ 			put_tx->buf = cpu_to_le32(np->put_tx_ctx->dma);
+ 			put_tx->flaglen = cpu_to_le32((bcnt-1) | tx_flags);
 +
-+	/* version 2 stats */
-+	u64 tx_deferral;
-+	u64 tx_packets;
- 	u64 rx_bytes;
-+	u64 tx_pause;
- 	u64 rx_pause;
- 	u64 rx_drop_frame;
--	u64 rx_packets;
--	u64 rx_errors_total;
- };
+ 			offset += bcnt;
+ 			size -= bcnt;
+-			if (put_tx++ == np->last_tx.orig)
++			if (unlikely(put_tx++ == np->last_tx.orig))
+ 				put_tx = np->first_tx.orig;
+-			if (np->put_tx_ctx++ == np->last_tx_ctx)
++			if (unlikely(np->put_tx_ctx++ == np->last_tx_ctx))
+ 				np->put_tx_ctx = np->first_tx_ctx;
+ 		} while (size);
+ 	}
+@@ -1642,11 +1642,6 @@ static int nv_start_xmit(struct sk_buff 
+ 		tx_flags_extra = skb->ip_summed == CHECKSUM_PARTIAL ?
+ 			 NV_TX2_CHECKSUM_L3 | NV_TX2_CHECKSUM_L4 : 0;
  
-+#define NV_DEV_STATISTICS_V2_COUNT (sizeof(struct nv_ethtool_stats)/sizeof(u64))
-+#define NV_DEV_STATISTICS_V1_COUNT (NV_DEV_STATISTICS_V2_COUNT - 6)
-+
- /* diagnostics */
- #define NV_TEST_COUNT_BASE 3
- #define NV_TEST_COUNT_EXTENDED 4
-@@ -1275,6 +1286,61 @@ static void nv_mac_reset(struct net_devi
- 	pci_push(base);
+-	/* vlan tag */
+-	if (np->vlangrp && vlan_tx_tag_present(skb)) {
+-		tx_flags_vlan = NV_TX3_VLAN_TAG_PRESENT | vlan_tx_tag_get(skb);
+-	}
+-
+ 	spin_lock_irq(&np->lock);
+ 
+ 	/* set tx flags */
+@@ -1669,7 +1664,6 @@ static int nv_start_xmit(struct sk_buff 
+ 
+ 	dev->trans_start = jiffies;
+ 	writel(NVREG_TXRXCTL_KICK|np->txrxctl_bits, get_hwbase(dev) + NvRegTxRxControl);
+-	pci_push(get_hwbase(dev));
+ 	return NETDEV_TX_OK;
  }
  
-+static void nv_get_hw_stats(struct net_device *dev)
-+{
-+	struct fe_priv *np = netdev_priv(dev);
-+	u8 __iomem *base = get_hwbase(dev);
-+
-+	np->estats.tx_bytes += readl(base + NvRegTxCnt);
-+	np->estats.tx_zero_rexmt += readl(base + NvRegTxZeroReXmt);
-+	np->estats.tx_one_rexmt += readl(base + NvRegTxOneReXmt);
-+	np->estats.tx_many_rexmt += readl(base + NvRegTxManyReXmt);
-+	np->estats.tx_late_collision += readl(base + NvRegTxLateCol);
-+	np->estats.tx_fifo_errors += readl(base + NvRegTxUnderflow);
-+	np->estats.tx_carrier_errors += readl(base + NvRegTxLossCarrier);
-+	np->estats.tx_excess_deferral += readl(base + NvRegTxExcessDef);
-+	np->estats.tx_retry_error += readl(base + NvRegTxRetryErr);
-+	np->estats.rx_frame_error += readl(base + NvRegRxFrameErr);
-+	np->estats.rx_extra_byte += readl(base + NvRegRxExtraByte);
-+	np->estats.rx_late_collision += readl(base + NvRegRxLateCol);
-+	np->estats.rx_runt += readl(base + NvRegRxRunt);
-+	np->estats.rx_frame_too_long += readl(base + NvRegRxFrameTooLong);
-+	np->estats.rx_over_errors += readl(base + NvRegRxOverflow);
-+	np->estats.rx_crc_errors += readl(base + NvRegRxFCSErr);
-+	np->estats.rx_frame_align_error += readl(base + NvRegRxFrameAlignErr);
-+	np->estats.rx_length_error += readl(base + NvRegRxLenErr);
-+	np->estats.rx_unicast += readl(base + NvRegRxUnicast);
-+	np->estats.rx_multicast += readl(base + NvRegRxMulticast);
-+	np->estats.rx_broadcast += readl(base + NvRegRxBroadcast);
-+	np->estats.rx_packets =
-+		np->estats.rx_unicast +
-+		np->estats.rx_multicast +
-+		np->estats.rx_broadcast;
-+	np->estats.rx_errors_total =
-+		np->estats.rx_crc_errors +
-+		np->estats.rx_over_errors +
-+		np->estats.rx_frame_error +
-+		(np->estats.rx_frame_align_error - np->estats.rx_extra_byte) +
-+		np->estats.rx_late_collision +
-+		np->estats.rx_runt +
-+		np->estats.rx_frame_too_long;
-+	np->estats.tx_errors_total =
-+		np->estats.tx_late_collision +
-+		np->estats.tx_fifo_errors +
-+		np->estats.tx_carrier_errors +
-+		np->estats.tx_excess_deferral +
-+		np->estats.tx_retry_error;
-+
-+	if (np->driver_data & DEV_HAS_STATISTICS_V2) {
-+		np->estats.tx_deferral += readl(base + NvRegTxDef);
-+		np->estats.tx_packets += readl(base + NvRegTxFrame);
-+		np->estats.rx_bytes += readl(base + NvRegRxCnt);
-+		np->estats.tx_pause += readl(base + NvRegTxPause);
-+		np->estats.rx_pause += readl(base + NvRegRxPause);
-+		np->estats.rx_drop_frame += readl(base + NvRegRxDropFrame);
-+	}
-+}
-+
- /*
-  * nv_get_stats: dev->get_stats function
-  * Get latest stats value from the nic.
-@@ -3497,47 +3563,8 @@ static void nv_do_stats_poll(unsigned lo
- {
- 	struct net_device *dev = (struct net_device *) data;
- 	struct fe_priv *np = netdev_priv(dev);
--	u8 __iomem *base = get_hwbase(dev);
- 
--	np->estats.tx_bytes += readl(base + NvRegTxCnt);
--	np->estats.tx_zero_rexmt += readl(base + NvRegTxZeroReXmt);
--	np->estats.tx_one_rexmt += readl(base + NvRegTxOneReXmt);
--	np->estats.tx_many_rexmt += readl(base + NvRegTxManyReXmt);
--	np->estats.tx_late_collision += readl(base + NvRegTxLateCol);
--	np->estats.tx_fifo_errors += readl(base + NvRegTxUnderflow);
--	np->estats.tx_carrier_errors += readl(base + NvRegTxLossCarrier);
--	np->estats.tx_excess_deferral += readl(base + NvRegTxExcessDef);
--	np->estats.tx_retry_error += readl(base + NvRegTxRetryErr);
--	np->estats.tx_deferral += readl(base + NvRegTxDef);
--	np->estats.tx_packets += readl(base + NvRegTxFrame);
--	np->estats.tx_pause += readl(base + NvRegTxPause);
--	np->estats.rx_frame_error += readl(base + NvRegRxFrameErr);
--	np->estats.rx_extra_byte += readl(base + NvRegRxExtraByte);
--	np->estats.rx_late_collision += readl(base + NvRegRxLateCol);
--	np->estats.rx_runt += readl(base + NvRegRxRunt);
--	np->estats.rx_frame_too_long += readl(base + NvRegRxFrameTooLong);
--	np->estats.rx_over_errors += readl(base + NvRegRxOverflow);
--	np->estats.rx_crc_errors += readl(base + NvRegRxFCSErr);
--	np->estats.rx_frame_align_error += readl(base + NvRegRxFrameAlignErr);
--	np->estats.rx_length_error += readl(base + NvRegRxLenErr);
--	np->estats.rx_unicast += readl(base + NvRegRxUnicast);
--	np->estats.rx_multicast += readl(base + NvRegRxMulticast);
--	np->estats.rx_broadcast += readl(base + NvRegRxBroadcast);
--	np->estats.rx_bytes += readl(base + NvRegRxCnt);
--	np->estats.rx_pause += readl(base + NvRegRxPause);
--	np->estats.rx_drop_frame += readl(base + NvRegRxDropFrame);
--	np->estats.rx_packets =
--		np->estats.rx_unicast +
--		np->estats.rx_multicast +
--		np->estats.rx_broadcast;
--	np->estats.rx_errors_total =
--		np->estats.rx_crc_errors +
--		np->estats.rx_over_errors +
--		np->estats.rx_frame_error +
--		(np->estats.rx_frame_align_error - np->estats.rx_extra_byte) +
--		np->estats.rx_late_collision +
--		np->estats.rx_runt +
--		np->estats.rx_frame_too_long;
-+	nv_get_hw_stats(dev);
- 
- 	if (!np->in_shutdown)
- 		mod_timer(&np->stats_poll, jiffies + STATS_INTERVAL);
-@@ -4156,8 +4183,10 @@ static int nv_get_stats_count(struct net
+@@ -1677,7 +1671,7 @@ static int nv_start_xmit_optimized(struc
  {
  	struct fe_priv *np = netdev_priv(dev);
+ 	u32 tx_flags = 0;
+-	u32 tx_flags_extra = NV_TX2_LASTPACKET;
++	u32 tx_flags_extra;
+ 	unsigned int fragments = skb_shinfo(skb)->nr_frags;
+ 	unsigned int i;
+ 	u32 offset = 0;
+@@ -1685,7 +1679,6 @@ static int nv_start_xmit_optimized(struc
+ 	u32 size = skb->len-skb->data_len;
+ 	u32 entries = (size >> NV_TX2_TSO_MAX_SHIFT) + ((size & (NV_TX2_TSO_MAX_SIZE-1)) ? 1 : 0);
+ 	u32 empty_slots;
+-	u32 tx_flags_vlan = 0;
+ 	struct ring_desc_ex* put_tx;
+ 	struct ring_desc_ex* start_tx;
+ 	struct ring_desc_ex* prev_tx;
+@@ -1698,7 +1691,7 @@ static int nv_start_xmit_optimized(struc
+ 	}
  
--	if (np->driver_data & DEV_HAS_STATISTICS)
--		return sizeof(struct nv_ethtool_stats)/sizeof(u64);
-+	if (np->driver_data & DEV_HAS_STATISTICS_V1)
-+		return NV_DEV_STATISTICS_V1_COUNT;
-+	else if (np->driver_data & DEV_HAS_STATISTICS_V2)
-+		return NV_DEV_STATISTICS_V2_COUNT;
- 	else
- 		return 0;
+ 	empty_slots = nv_get_empty_tx_slots(np);
+-	if (empty_slots <= entries) {
++	if (unlikely(empty_slots <= entries)) {
+ 		spin_lock_irq(&np->lock);
+ 		netif_stop_queue(dev);
+ 		np->tx_stop = 1;
+@@ -1719,12 +1712,13 @@ static int nv_start_xmit_optimized(struc
+ 		put_tx->bufhigh = cpu_to_le64(np->put_tx_ctx->dma) >> 32;
+ 		put_tx->buflow = cpu_to_le64(np->put_tx_ctx->dma) & 0x0FFFFFFFF;
+ 		put_tx->flaglen = cpu_to_le32((bcnt-1) | tx_flags);
+-		tx_flags = np->tx_flags;
++
++		tx_flags = NV_TX2_VALID;
+ 		offset += bcnt;
+ 		size -= bcnt;
+-		if (put_tx++ == np->last_tx.ex)
++		if (unlikely(put_tx++ == np->last_tx.ex))
+ 			put_tx = np->first_tx.ex;
+-		if (np->put_tx_ctx++ == np->last_tx_ctx)
++		if (unlikely(np->put_tx_ctx++ == np->last_tx_ctx))
+ 			np->put_tx_ctx = np->first_tx_ctx;
+ 	} while (size);
+ 
+@@ -1741,21 +1735,21 @@ static int nv_start_xmit_optimized(struc
+ 			np->put_tx_ctx->dma = pci_map_page(np->pci_dev, frag->page, frag->page_offset+offset, bcnt,
+ 							   PCI_DMA_TODEVICE);
+ 			np->put_tx_ctx->dma_len = bcnt;
+-
+ 			put_tx->bufhigh = cpu_to_le64(np->put_tx_ctx->dma) >> 32;
+ 			put_tx->buflow = cpu_to_le64(np->put_tx_ctx->dma) & 0x0FFFFFFFF;
+ 			put_tx->flaglen = cpu_to_le32((bcnt-1) | tx_flags);
++
+ 			offset += bcnt;
+ 			size -= bcnt;
+-			if (put_tx++ == np->last_tx.ex)
++			if (unlikely(put_tx++ == np->last_tx.ex))
+ 				put_tx = np->first_tx.ex;
+-			if (np->put_tx_ctx++ == np->last_tx_ctx)
++			if (unlikely(np->put_tx_ctx++ == np->last_tx_ctx))
+ 				np->put_tx_ctx = np->first_tx_ctx;
+ 		} while (size);
+ 	}
+ 
+ 	/* set last fragment flag  */
+-	prev_tx->flaglen |= cpu_to_le32(tx_flags_extra);
++	prev_tx->flaglen |= cpu_to_le32(NV_TX2_LASTPACKET);
+ 
+ 	/* save skb in this slot's context area */
+ 	prev_tx_ctx->skb = skb;
+@@ -1767,14 +1761,18 @@ static int nv_start_xmit_optimized(struc
+ 			 NV_TX2_CHECKSUM_L3 | NV_TX2_CHECKSUM_L4 : 0;
+ 
+ 	/* vlan tag */
+-	if (np->vlangrp && vlan_tx_tag_present(skb)) {
+-		tx_flags_vlan = NV_TX3_VLAN_TAG_PRESENT | vlan_tx_tag_get(skb);
++	if (likely(!np->vlangrp)) {
++		start_tx->txvlan = 0;
++	} else {
++		if (vlan_tx_tag_present(skb))
++			start_tx->txvlan = cpu_to_le32(NV_TX3_VLAN_TAG_PRESENT | vlan_tx_tag_get(skb));
++		else
++			start_tx->txvlan = 0;
+ 	}
+ 
+ 	spin_lock_irq(&np->lock);
+ 
+ 	/* set tx flags */
+-	start_tx->txvlan = cpu_to_le32(tx_flags_vlan);
+ 	start_tx->flaglen |= cpu_to_le32(tx_flags | tx_flags_extra);
+ 	np->put_tx.ex = put_tx;
+ 
+@@ -1794,7 +1792,6 @@ static int nv_start_xmit_optimized(struc
+ 
+ 	dev->trans_start = jiffies;
+ 	writel(NVREG_TXRXCTL_KICK|np->txrxctl_bits, get_hwbase(dev) + NvRegTxRxControl);
+-	pci_push(get_hwbase(dev));
+ 	return NETDEV_TX_OK;
  }
-@@ -4744,7 +4773,7 @@ static int nv_open(struct net_device *de
- 		mod_timer(&np->oom_kick, jiffies + OOM_REFILL);
  
- 	/* start statistics timer */
--	if (np->driver_data & DEV_HAS_STATISTICS)
-+	if (np->driver_data & (DEV_HAS_STATISTICS_V1|DEV_HAS_STATISTICS_V2))
- 		mod_timer(&np->stats_poll, jiffies + STATS_INTERVAL);
+@@ -1807,21 +1804,22 @@ static void nv_tx_done(struct net_device
+ {
+ 	struct fe_priv *np = netdev_priv(dev);
+ 	u32 flags;
+-	struct sk_buff *skb;
+ 	struct ring_desc* orig_get_tx = np->get_tx.orig;
  
- 	spin_unlock_irq(&np->lock);
-@@ -4841,7 +4870,9 @@ static int __devinit nv_probe(struct pci
- 	if (err < 0)
- 		goto out_disable;
+- 	while (np->get_tx.orig != np->put_tx.orig) {
+-		flags = le32_to_cpu(np->get_tx.orig->flaglen);
++	while ((np->get_tx.orig != np->put_tx.orig) &&
++	       !((flags = le32_to_cpu(np->get_tx.orig->flaglen)) & NV_TX_VALID)) {
  
--	if (id->driver_data & (DEV_HAS_VLAN|DEV_HAS_MSI_X|DEV_HAS_POWER_CNTRL|DEV_HAS_STATISTICS))
-+	if (id->driver_data & (DEV_HAS_VLAN|DEV_HAS_MSI_X|DEV_HAS_POWER_CNTRL|DEV_HAS_STATISTICS_V2))
-+		np->register_size = NV_PCI_REGSZ_VER3;
-+	else if (id->driver_data & DEV_HAS_STATISTICS_V1)
- 		np->register_size = NV_PCI_REGSZ_VER2;
- 	else
- 		np->register_size = NV_PCI_REGSZ_VER1;
-@@ -5290,83 +5321,83 @@ static struct pci_device_id pci_tbl[] = 
- 	},
- 	{	/* CK804 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_8),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_STATISTICS_V1,
- 	},
- 	{	/* CK804 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_9),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_STATISTICS_V1,
- 	},
- 	{	/* MCP04 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_10),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_STATISTICS_V1,
- 	},
- 	{	/* MCP04 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_11),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_STATISTICS_V1,
- 	},
- 	{	/* MCP51 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_12),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_STATISTICS_V1,
- 	},
- 	{	/* MCP51 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_13),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_STATISTICS_V1,
- 	},
- 	{	/* MCP55 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_14),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_VLAN|DEV_HAS_MSI|DEV_HAS_MSI_X|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_VLAN|DEV_HAS_MSI|DEV_HAS_MSI_X|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP55 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_15),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_VLAN|DEV_HAS_MSI|DEV_HAS_MSI_X|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_VLAN|DEV_HAS_MSI|DEV_HAS_MSI_X|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP61 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_16),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP61 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_17),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP61 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_18),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP61 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_19),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP65 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_20),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP65 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_21),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP65 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_22),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP65 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_23),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP67 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_24),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP67 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_25),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP67 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_26),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP67 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_27),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{0,},
- };
+ 		dprintk(KERN_DEBUG "%s: nv_tx_done: flags 0x%x.\n",
+ 					dev->name, flags);
+-		if (flags & NV_TX_VALID)
+-			break;
++
++		pci_unmap_page(np->pci_dev, np->get_tx_ctx->dma,
++			       np->get_tx_ctx->dma_len,
++			       PCI_DMA_TODEVICE);
++		np->get_tx_ctx->dma = 0;
++
+ 		if (np->desc_ver == DESC_VER_1) {
+ 			if (flags & NV_TX_LASTPACKET) {
+-				skb = np->get_tx_ctx->skb;
+-				if (flags & (NV_TX_RETRYERROR|NV_TX_CARRIERLOST|NV_TX_LATECOLLISION|
+-					     NV_TX_UNDERFLOW|NV_TX_ERROR)) {
++				if (flags & NV_TX_ERROR) {
+ 					if (flags & NV_TX_UNDERFLOW)
+ 						np->stats.tx_fifo_errors++;
+ 					if (flags & NV_TX_CARRIERLOST)
+@@ -1829,14 +1827,14 @@ static void nv_tx_done(struct net_device
+ 					np->stats.tx_errors++;
+ 				} else {
+ 					np->stats.tx_packets++;
+-					np->stats.tx_bytes += skb->len;
++					np->stats.tx_bytes += np->get_tx_ctx->skb->len;
+ 				}
++				dev_kfree_skb_any(np->get_tx_ctx->skb);
++				np->get_tx_ctx->skb = NULL;
+ 			}
+ 		} else {
+ 			if (flags & NV_TX2_LASTPACKET) {
+-				skb = np->get_tx_ctx->skb;
+-				if (flags & (NV_TX2_RETRYERROR|NV_TX2_CARRIERLOST|NV_TX2_LATECOLLISION|
+-					     NV_TX2_UNDERFLOW|NV_TX2_ERROR)) {
++				if (flags & NV_TX2_ERROR) {
+ 					if (flags & NV_TX2_UNDERFLOW)
+ 						np->stats.tx_fifo_errors++;
+ 					if (flags & NV_TX2_CARRIERLOST)
+@@ -1844,17 +1842,18 @@ static void nv_tx_done(struct net_device
+ 					np->stats.tx_errors++;
+ 				} else {
+ 					np->stats.tx_packets++;
+-					np->stats.tx_bytes += skb->len;
++					np->stats.tx_bytes += np->get_tx_ctx->skb->len;
+ 				}
++				dev_kfree_skb_any(np->get_tx_ctx->skb);
++				np->get_tx_ctx->skb = NULL;
+ 			}
+ 		}
+-		nv_release_txskb(dev, np->get_tx_ctx);
+-		if (np->get_tx.orig++ == np->last_tx.orig)
++		if (unlikely(np->get_tx.orig++ == np->last_tx.orig))
+ 			np->get_tx.orig = np->first_tx.orig;
+-		if (np->get_tx_ctx++ == np->last_tx_ctx)
++		if (unlikely(np->get_tx_ctx++ == np->last_tx_ctx))
+ 			np->get_tx_ctx = np->first_tx_ctx;
+ 	}
+-	if ((np->tx_stop == 1) && (np->get_tx.orig != orig_get_tx)) {
++	if (unlikely((np->tx_stop == 1) && (np->get_tx.orig != orig_get_tx))) {
+ 		np->tx_stop = 0;
+ 		netif_wake_queue(dev);
+ 	}
+@@ -1864,20 +1863,21 @@ static void nv_tx_done_optimized(struct 
+ {
+ 	struct fe_priv *np = netdev_priv(dev);
+ 	u32 flags;
+-	struct sk_buff *skb;
+ 	struct ring_desc_ex* orig_get_tx = np->get_tx.ex;
+ 
+- 	while (np->get_tx.ex == np->put_tx.ex) {
+-		flags = le32_to_cpu(np->get_tx.ex->flaglen);
++	while ((np->get_tx.ex != np->put_tx.ex) &&
++	       !((flags = le32_to_cpu(np->get_tx.ex->flaglen)) & NV_TX_VALID)) {
+ 
+ 		dprintk(KERN_DEBUG "%s: nv_tx_done_optimized: flags 0x%x.\n",
+ 					dev->name, flags);
+-		if (flags & NV_TX_VALID)
+-			break;
++
++		pci_unmap_page(np->pci_dev, np->get_tx_ctx->dma,
++			       np->get_tx_ctx->dma_len,
++			       PCI_DMA_TODEVICE);
++		np->get_tx_ctx->dma = 0;
++
+ 		if (flags & NV_TX2_LASTPACKET) {
+-			skb = np->get_tx_ctx->skb;
+-			if (flags & (NV_TX2_RETRYERROR|NV_TX2_CARRIERLOST|NV_TX2_LATECOLLISION|
+-				     NV_TX2_UNDERFLOW|NV_TX2_ERROR)) {
++			if (flags & NV_TX2_ERROR) {
+ 				if (flags & NV_TX2_UNDERFLOW)
+ 					np->stats.tx_fifo_errors++;
+ 				if (flags & NV_TX2_CARRIERLOST)
+@@ -1885,16 +1885,17 @@ static void nv_tx_done_optimized(struct 
+ 				np->stats.tx_errors++;
+ 			} else {
+ 				np->stats.tx_packets++;
+-				np->stats.tx_bytes += skb->len;
++				np->stats.tx_bytes += np->get_tx_ctx->skb->len;
+ 			}
++			dev_kfree_skb_any(np->get_tx_ctx->skb);
++			np->get_tx_ctx->skb = NULL;
+ 		}
+-		nv_release_txskb(dev, np->get_tx_ctx);
+-		if (np->get_tx.ex++ == np->last_tx.ex)
++		if (unlikely(np->get_tx.ex++ == np->last_tx.ex))
+ 			np->get_tx.ex = np->first_tx.ex;
+-		if (np->get_tx_ctx++ == np->last_tx_ctx)
++		if (unlikely(np->get_tx_ctx++ == np->last_tx_ctx))
+ 			np->get_tx_ctx = np->first_tx_ctx;
+ 	}
+-	if ((np->tx_stop == 1) && (np->get_tx.ex != orig_get_tx)) {
++	if (unlikely((np->tx_stop == 1) && (np->get_tx.ex != orig_get_tx))) {
+ 		np->tx_stop = 0;
+ 		netif_wake_queue(dev);
+ 	}
 _
 
 Patches currently in -mm which might be from aabdulla@nvidia.com are
