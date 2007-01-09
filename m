@@ -1,83 +1,86 @@
 From: akpm@osdl.org
-Subject: - libata-sff-dont-try-and-activate-channels-which-are-not.patch removed from -mm tree
-Date: Tue, 09 Jan 2007 12:28:53 -0800
-Message-ID: <200701092028.l09KSrL3014336@shell0.pdx.osdl.net>
+Subject: - sata_promise-unbreak-20619.patch removed from -mm tree
+Date: Tue, 09 Jan 2007 12:29:01 -0800
+Message-ID: <200701092029.l09KT1PK014344@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41073 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41087 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932389AbXAIU3C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:29:02 -0500
+	id S932400AbXAIU3J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:29:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorgukCox, alan@redhat.com, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-sff: Don't try and activate channels which are not  in use
+     sata_promise: unbreak 20619
 has been removed from the -mm tree.  Its filename was
-     libata-sff-dont-try-and-activate-channels-which-are-not.patch
+     sata_promise-unbreak-20619.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata-sff: Don't try and activate channels which are not  in use
-From: Alan <alan@lxorgukCox .ukuu.org.uk>
+Subject: sata_promise: unbreak 20619
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-An ATA controller in native mode may have one or more channels disabled and
-not assigned resources.  In that case the existing code crashes trying to
-access I/O ports 0-7.
+The PATA support patch for sata_promise appears, from code inspection, to
+break the PATA-only 20619 chip.
 
-Add the neccessary check.
+The patch removes the SATA flag from the TX2plus SATA+PATA boards' common
+flags, with the intention of adding it back via the _port_flags[] entries for
+those boards' SATA ports.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+However, it unconditionally marks ports 0 and 1 as SATA for all boards.  This
+causes the 20619 (TX4000) to announce its first two PATA ports as SATA |
+ATA_FLAG_SLAVE_POSS.
+
+I don't have a TX4000 so I don't know what the actual consequences of this bug
+are, but surely this isn't Ok.
+
+Fixed by moving the port 0 and 1 settings as SATA into the TX4 and TX2plus
+specific initialisation code.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-sff.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+)
+ drivers/ata/sata_promise.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-dont-try-and-activate-channels-which-are-not drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-dont-try-and-activate-channels-which-are-not
-+++ a/drivers/ata/libata-sff.c
-@@ -831,6 +831,21 @@ void ata_bmdma_post_internal_cmd(struct 
- }
+diff -puN drivers/ata/sata_promise.c~sata_promise-unbreak-20619 drivers/ata/sata_promise.c
+--- a/drivers/ata/sata_promise.c~sata_promise-unbreak-20619
++++ a/drivers/ata/sata_promise.c
+@@ -957,9 +957,6 @@ static int pdc_ata_init_one (struct pci_
+ 	probe_ent->port[0].scr_addr = base + 0x400;
+ 	probe_ent->port[1].scr_addr = base + 0x500;
  
- #ifdef CONFIG_PCI
-+
-+static int ata_resources_present(struct pci_dev *pdev, int port)
-+{
-+	int i;
-+
-+	/* Check the PCI resources for this channel are enabled */
-+	port = port * 2;
-+	for (i = 0; i < 2; i ++) {
-+		if (pci_resource_start(pdev, port + i) == 0 ||
-+			pci_resource_len(pdev, port + i) == 0)
-+		return 0;
-+	}
-+	return 1;
-+}
-+
- /**
-  *	ata_pci_init_native_mode - Initialize native-mode driver
-  *	@pdev:  pci device to be initialized
-@@ -863,6 +878,13 @@ ata_pci_init_native_mode(struct pci_dev 
- 	probe_ent->irq = pdev->irq;
- 	probe_ent->irq_flags = IRQF_SHARED;
- 
-+	/* Discard disabled ports. Some controllers show their
-+	   unused channels this way */
-+	if (ata_resources_present(pdev, 0) == 0)
-+		ports &= ~ATA_PORT_PRIMARY;
-+	if (ata_resources_present(pdev, 1) == 0)
-+		ports &= ~ATA_PORT_SECONDARY;
-+
- 	if (ports & ATA_PORT_PRIMARY) {
- 		probe_ent->port[p].cmd_addr = pci_resource_start(pdev, 0);
- 		probe_ent->port[p].altstatus_addr =
+-	probe_ent->_port_flags[0] = ATA_FLAG_SATA;
+-	probe_ent->_port_flags[1] = ATA_FLAG_SATA;
+-	
+ 	/* notice 4-port boards */
+ 	switch (board_idx) {
+ 	case board_40518:
+@@ -974,6 +971,8 @@ static int pdc_ata_init_one (struct pci_
+ 		probe_ent->port[2].scr_addr = base + 0x600;
+ 		probe_ent->port[3].scr_addr = base + 0x700;
+ 	
++		probe_ent->_port_flags[0] = ATA_FLAG_SATA;
++		probe_ent->_port_flags[1] = ATA_FLAG_SATA;
+ 		probe_ent->_port_flags[2] = ATA_FLAG_SATA;
+ 		probe_ent->_port_flags[3] = ATA_FLAG_SATA;
+ 		break;
+@@ -995,6 +994,8 @@ static int pdc_ata_init_one (struct pci_
+ 		}
+ 		else
+        			probe_ent->n_ports = 2;
++		probe_ent->_port_flags[0] = ATA_FLAG_SATA;
++		probe_ent->_port_flags[1] = ATA_FLAG_SATA;
+ 		break;
+ 	case board_20619:
+ 		probe_ent->n_ports = 4;
 _
 
-Patches currently in -mm which might be from alan@lxorgukCox are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
-ide-generic-jmicron-has-its-own-drivers-now.patch
+git-libata-all.patch
