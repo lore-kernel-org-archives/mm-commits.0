@@ -1,131 +1,81 @@
 From: akpm@osdl.org
-Subject: + mmconfig-reject-a-broken-mcfg-tables-on-asus-etc.patch added to -mm tree
-Date: Tue, 09 Jan 2007 13:24:23 -0800
-Message-ID: <200701092124.l09LONk2015685@shell0.pdx.osdl.net>
+Subject: + cpiac-buffer-overflow.patch added to -mm tree
+Date: Tue, 09 Jan 2007 13:25:03 -0800
+Message-ID: <200701092125.l09LP3wl015751@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45270 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45335 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932417AbXAIVYa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 16:24:30 -0500
+	id S932421AbXAIVZf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 16:25:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hirofumi@mail.parknet.co.jp, ak@suse.de, arjan@linux.intel.com
+Cc: adobriyan@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     MMCONFIG: Reject a broken MCFG tables on Asus etc
+     cpia.c: buffer overflow
 has been added to the -mm tree.  Its filename is
-     mmconfig-reject-a-broken-mcfg-tables-on-asus-etc.patch
+     cpiac-buffer-overflow.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MMCONFIG: Reject a broken MCFG tables on Asus etc
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: cpia.c: buffer overflow
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-This rejects a broken MCFG tables on Asus etc.  Arjan and Andi suggest this.
+If assigned minor is 10 or greater, terminator will be put beyound the end.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/pci/mmconfig-shared.c |   24 +++++++++++++++++++++++-
- arch/i386/pci/mmconfig.c        |    9 ---------
- arch/x86_64/pci/mmconfig.c      |    9 ---------
- 3 files changed, 23 insertions(+), 19 deletions(-)
+ drivers/media/video/cpia.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-reject-a-broken-mcfg-tables-on-asus-etc arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~mmconfig-reject-a-broken-mcfg-tables-on-asus-etc
-+++ a/arch/i386/pci/mmconfig-shared.c
-@@ -184,6 +184,26 @@ static void __init pci_mmcfg_insert_reso
- 	}
- }
+diff -puN drivers/media/video/cpia.c~cpiac-buffer-overflow drivers/media/video/cpia.c
+--- a/drivers/media/video/cpia.c~cpiac-buffer-overflow
++++ a/drivers/media/video/cpia.c
+@@ -1350,13 +1350,13 @@ out:
  
-+static void __init pci_mmcfg_reject_broken(void)
-+{
-+	struct acpi_table_mcfg_config *cfg = &pci_mmcfg_config[0];
-+
-+	/*
-+	 * Handle more broken MCFG tables on Asus etc.
-+	 * They only contain a single entry for bus 0-0.
-+	 */
-+	if (pci_mmcfg_config_num == 1 &&
-+	    cfg->pci_segment_group_number == 0 &&
-+	    (cfg->start_bus_number | cfg->end_bus_number) == 0) {
-+		kfree(pci_mmcfg_config);
-+		pci_mmcfg_config = NULL;
-+		pci_mmcfg_config_num = 0;
-+
-+		printk(KERN_ERR "PCI: start and end of bus number is 0. "
-+		       "Rejected as broken MCFG.");
-+	}
-+}
-+
- void __init pci_mmcfg_init(int type)
+ static void create_proc_cpia_cam(struct cam_data *cam)
  {
- 	int known_bridge = 0;
-@@ -194,8 +214,10 @@ void __init pci_mmcfg_init(int type)
- 	if (type == 1 && pci_mmcfg_check_hostbridge())
- 		known_bridge = 1;
+-	char name[7];
++	char name[5 + 1 + 10 + 1];
+ 	struct proc_dir_entry *ent;
  
--	if (!known_bridge)
-+	if (!known_bridge) {
- 		acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
-+		pci_mmcfg_reject_broken();
-+	}
+ 	if (!cpia_proc_root || !cam)
+ 		return;
  
- 	if ((pci_mmcfg_config_num == 0) ||
- 	    (pci_mmcfg_config == NULL) ||
-diff -puN arch/i386/pci/mmconfig.c~mmconfig-reject-a-broken-mcfg-tables-on-asus-etc arch/i386/pci/mmconfig.c
---- a/arch/i386/pci/mmconfig.c~mmconfig-reject-a-broken-mcfg-tables-on-asus-etc
-+++ a/arch/i386/pci/mmconfig.c
-@@ -42,15 +42,6 @@ static u32 get_base_addr(unsigned int se
- 			return cfg->base_address;
- 	}
+-	sprintf(name, "video%d", cam->vdev.minor);
++	snprintf(name, sizeof(name), "video%d", cam->vdev.minor);
  
--	/* Handle more broken MCFG tables on Asus etc.
--	   They only contain a single entry for bus 0-0. Assume
-- 	   this applies to all busses. */
--	cfg = &pci_mmcfg_config[0];
--	if (pci_mmcfg_config_num == 1 &&
--		cfg->pci_segment_group_number == 0 &&
--		(cfg->start_bus_number | cfg->end_bus_number) == 0)
--		return cfg->base_address;
--
- 	/* Fall back to type 0 */
- 	return 0;
- }
-diff -puN arch/x86_64/pci/mmconfig.c~mmconfig-reject-a-broken-mcfg-tables-on-asus-etc arch/x86_64/pci/mmconfig.c
---- a/arch/x86_64/pci/mmconfig.c~mmconfig-reject-a-broken-mcfg-tables-on-asus-etc
-+++ a/arch/x86_64/pci/mmconfig.c
-@@ -33,15 +33,6 @@ static char __iomem *get_virt(unsigned i
- 			return pci_mmcfg_virt[cfg_num].virt;
- 	}
+ 	ent = create_proc_entry(name, S_IFREG|S_IRUGO|S_IWUSR, cpia_proc_root);
+ 	if (!ent)
+@@ -1376,12 +1376,12 @@ static void create_proc_cpia_cam(struct 
  
--	/* Handle more broken MCFG tables on Asus etc.
--	   They only contain a single entry for bus 0-0. Assume
-- 	   this applies to all busses. */
--	cfg = &pci_mmcfg_config[0];
--	if (pci_mmcfg_config_num == 1 &&
--		cfg->pci_segment_group_number == 0 &&
--		(cfg->start_bus_number | cfg->end_bus_number) == 0)
--		return pci_mmcfg_virt[0].virt;
--
- 	/* Fall back to type 0 */
- 	return NULL;
+ static void destroy_proc_cpia_cam(struct cam_data *cam)
+ {
+-	char name[7];
++	char name[5 + 1 + 10 + 1];
+ 
+ 	if (!cam || !cam->proc_entry)
+ 		return;
+ 
+-	sprintf(name, "video%d", cam->vdev.minor);
++	snprintf(name, sizeof(name), "video%d", cam->vdev.minor);
+ 	remove_proc_entry(name, cpia_proc_root);
+ 	cam->proc_entry = NULL;
  }
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mmconfig-cleanup.patch
-mmconfig-reject-a-broken-mcfg-tables-on-asus-etc.patch
-mmconfig-fix-unreachable_devices.patch
-mmconfig-fix-x86_64-ioremap-base_address.patch
-relax-check-for-aix-in-msdos-partition-table.patch
-msdos-partitions-fix-logic-error-in-aix-detection.patch
+git-dvb.patch
+cpiac-buffer-overflow.patch
+git-mtd.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
