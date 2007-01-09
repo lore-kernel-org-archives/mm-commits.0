@@ -1,52 +1,149 @@
 From: akpm@osdl.org
-Subject: + bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch added to -mm tree
-Date: Tue, 09 Jan 2007 13:04:59 -0800
-Message-ID: <200701092104.l09L4xpj015276@shell0.pdx.osdl.net>
+Subject: + agpgart-allow-drm-populated-agp-memory-types-tidy.patch added to -mm tree
+Date: Tue, 09 Jan 2007 13:11:11 -0800
+Message-ID: <200701092111.l09LBBuS015385@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44427 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932330AbXAIVFD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 16:05:03 -0500
+	id S932227AbXAIVL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 16:11:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, lkmaillist@gmail.com
+Cc: akpm@osdl.org, airlied@linux.ie, davej@codemonkey.org.uk, thomas@tungstengraphics.com
 
 
 The patch titled
-     bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix
+     agpgart-allow-drm-populated-agp-memory-types-tidy
 has been added to the -mm tree.  Its filename is
-     bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+     agpgart-allow-drm-populated-agp-memory-types-tidy.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix
+Subject: agpgart-allow-drm-populated-agp-memory-types-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-That one wasn't needed.
-
-Cc: Joe Jin <lkmaillist@gmail.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Thomas Hellstrom <thomas@tungstengraphics.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/bonding/bond_alb.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/agp/generic.c   |   23 ++++++-----------------
+ drivers/char/agp/intel-agp.c |    1 -
+ 2 files changed, 6 insertions(+), 18 deletions(-)
 
-diff -puN drivers/net/bonding/bond_alb.c~bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix drivers/net/bonding/bond_alb.c
---- a/drivers/net/bonding/bond_alb.c~bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix
-+++ a/drivers/net/bonding/bond_alb.c
-@@ -786,7 +786,7 @@ static int rlb_initialize(struct bonding
+diff -puN drivers/char/agp/generic.c~agpgart-allow-drm-populated-agp-memory-types-tidy drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~agpgart-allow-drm-populated-agp-memory-types-tidy
++++ a/drivers/char/agp/generic.c
+@@ -113,9 +113,8 @@ void agp_vkmalloc(size_t size, unsigned 
  
- 	spin_lock_init(&(bond_info->rx_hashtbl_lock));
+ 	*vmalloc_flag = 0;
  
--	new_hashtbl = kzalloc(size, GFP_KERNEL);
-+	new_hashtbl = kmalloc(size, GFP_KERNEL);
- 	if (!new_hashtbl) {
- 		printk(KERN_ERR DRV_NAME
- 		       ": %s: Error: Failed to allocate RLB hash table\n",
+-	if (size <= 2*PAGE_SIZE) {
++	if (size <= 2*PAGE_SIZE)
+ 		tmp = kmalloc(size, GFP_KERNEL);
+-	}
+ 	if (tmp == NULL) {
+ 		tmp = vmalloc(size);
+ 		*vmalloc_flag = 1;
+@@ -127,26 +126,22 @@ EXPORT_SYMBOL(agp_vkmalloc);
+ 
+ void agp_vkfree(unsigned long *addr, u8 vmalloc_flag)
+ {
+-	if (vmalloc_flag) {
++	if (vmalloc_flag)
+ 		vfree(addr);
+-	} else {
++	else
+ 		kfree(addr);
+-	}
+ }
+ EXPORT_SYMBOL(agp_vkfree);
+ 
+-
+ static struct agp_memory *agp_create_user_memory(unsigned long num_agp_pages)
+ {
+ 	struct agp_memory *new;
+ 	unsigned long alloc_size = num_agp_pages*sizeof(struct page *);
+ 
+-	new = kmalloc(sizeof(struct agp_memory), GFP_KERNEL);
+-
++	new = kzalloc(sizeof(struct agp_memory), GFP_KERNEL);
+ 	if (new == NULL)
+ 		return NULL;
+ 
+-	memset(new, 0, sizeof(struct agp_memory));
+ 	new->key = agp_get_key();
+ 
+ 	if (new->key < 0) {
+@@ -165,7 +160,6 @@ static struct agp_memory *agp_create_use
+ 	return new;
+ }
+ 
+-
+ struct agp_memory *agp_create_memory(int scratch_pages)
+ {
+ 	struct agp_memory *new;
+@@ -1074,9 +1068,8 @@ int agp_generic_insert_memory(struct agp
+ 	num_entries -= agp_memory_reserved/PAGE_SIZE;
+ 	if (num_entries < 0) num_entries = 0;
+ 
+-	if (type != mem->type) {
++	if (type != mem->type)
+ 		return -EINVAL;
+-	}
+ 
+ 	mask_type = bridge->driver->agp_type_to_mask_type(bridge, type);
+ 	if (mask_type != 0) {
+@@ -1146,14 +1139,12 @@ int agp_generic_remove_memory(struct agp
+ }
+ EXPORT_SYMBOL(agp_generic_remove_memory);
+ 
+-
+ struct agp_memory *agp_generic_alloc_by_type(size_t page_count, int type)
+ {
+ 	return NULL;
+ }
+ EXPORT_SYMBOL(agp_generic_alloc_by_type);
+ 
+-
+ void agp_generic_free_by_type(struct agp_memory *curr)
+ {
+ 	agp_vkfree(curr->memory, curr->vmalloc_flag);
+@@ -1173,9 +1164,8 @@ struct agp_memory *agp_generic_alloc_use
+ 	if (new == NULL)
+ 		return NULL;
+ 
+-	for (i = 0; i < page_count; i++) {
++	for (i = 0; i < page_count; i++)
+ 		new->memory[i] = 0;
+-	}
+ 	new->page_count = 0;
+ 	new->type = type;
+ 	new->num_scratch_pages = pages;
+@@ -1184,7 +1174,6 @@ struct agp_memory *agp_generic_alloc_use
+ }
+ EXPORT_SYMBOL(agp_generic_alloc_user);
+ 
+-
+ /*
+  * Basic Page Allocation Routines -
+  * These routines handle page allocation and by default they reserve the allocated
+diff -puN drivers/char/agp/intel-agp.c~agpgart-allow-drm-populated-agp-memory-types-tidy drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~agpgart-allow-drm-populated-agp-memory-types-tidy
++++ a/drivers/char/agp/intel-agp.c
+@@ -88,7 +88,6 @@ static struct _intel_i810_private {
+ 	int num_dcache_entries;
+ } intel_i810_private;
+ 
+-
+ static int intel_i810_fetch_size(void)
+ {
+ 	u32 smram_miscc;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -61,6 +158,7 @@ sony_apci-resume.patch
 sony_apci-resume-fix.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
 cifs-sprintf-fix.patch
 rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
 fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
