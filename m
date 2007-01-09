@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-const-a-variable.patch added to -mm tree
-Date: Tue, 09 Jan 2007 12:58:01 -0800
-Message-ID: <200701092058.l09Kw1Mk015085@shell0.pdx.osdl.net>
+Subject: + uml-remove-code-controlled-by-non-existent-config-option.patch added to -mm tree
+Date: Tue, 09 Jan 2007 12:58:05 -0800
+Message-ID: <200701092058.l09Kw5a3015088@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43476 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43484 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932445AbXAIU6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 15:58:09 -0500
+	id S932442AbXAIU6M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 15:58:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,39 +15,45 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: const a variable
+     uml: remove code controlled by non-existent config option
 has been added to the -mm tree.  Its filename is
-     uml-const-a-variable.patch
+     uml-remove-code-controlled-by-non-existent-config-option.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: const a variable
+Subject: uml: remove code controlled by non-existent config option
 From: Jeff Dike <jdike@addtoit.com>
 
-kstack_depth_to_print can be made const.
+CONFIG_HOST_TASK_SIZE doesn't exist any more.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/kernel/sysrq.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/um/kernel/skas/mem.c |    6 +-----
+ 1 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/um/kernel/sysrq.c~uml-const-a-variable arch/um/kernel/sysrq.c
---- a/arch/um/kernel/sysrq.c~uml-const-a-variable
-+++ a/arch/um/kernel/sysrq.c
-@@ -50,7 +50,7 @@ void dump_stack(void)
- EXPORT_SYMBOL(dump_stack);
+diff -puN arch/um/kernel/skas/mem.c~uml-remove-code-controlled-by-non-existent-config-option arch/um/kernel/skas/mem.c
+--- a/arch/um/kernel/skas/mem.c~uml-remove-code-controlled-by-non-existent-config-option
++++ a/arch/um/kernel/skas/mem.c
+@@ -14,13 +14,9 @@ unsigned long set_task_sizes_skas(unsign
+ 	unsigned long host_task_size = ROUND_4M((unsigned long)
+ 						&host_task_size);
  
- /*Stolen from arch/i386/kernel/traps.c */
--static int kstack_depth_to_print = 24;
-+static const int kstack_depth_to_print = 24;
- 
- /* This recently started being used in arch-independent code too, as in
-  * kernel/sched.c.*/
+-#ifdef CONFIG_HOST_TASK_SIZE
+-	*host_size_out = ROUND_4M(CONFIG_HOST_TASK_SIZE);
+-	*task_size_out = CONFIG_HOST_TASK_SIZE;
+-#else
+ 	if (!skas_needs_stub)
+ 		*task_size_out = host_task_size;
+ 	else *task_size_out = CONFIG_STUB_START & PGDIR_MASK;
+-#endif
++
+ 	return host_task_size;
+ }
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
