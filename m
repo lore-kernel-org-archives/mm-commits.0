@@ -1,492 +1,205 @@
 From: akpm@osdl.org
-Subject: + forcedeth-rx-data-path-optimization.patch added to -mm tree
-Date: Tue, 09 Jan 2007 13:36:46 -0800
-Message-ID: <200701092136.l09LakWN016083@shell0.pdx.osdl.net>
+Subject: + git-alsa-patch_realtek-build-fix.patch added to -mm tree
+Date: Tue, 09 Jan 2007 13:59:35 -0800
+Message-ID: <200701092200.l09M07kL016558@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45888 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47166 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932463AbXAIVgw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 16:36:52 -0500
+	id S932421AbXAIWAV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 17:00:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aabdulla@nvidia.com
+Cc: akpm@osdl.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     forcedeth: rx data path optimization
+     git-alsa: patch_realtek build fix
 has been added to the -mm tree.  Its filename is
-     forcedeth-rx-data-path-optimization.patch
+     git-alsa-patch_realtek-build-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: rx data path optimization
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: git-alsa: patch_realtek build fix
+From: Andrew Morton <akpm@osdl.org>
 
-Optimize the rx data paths and cleans up the code.
-
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |  334 +++++++++++++++++---------------------
- 1 files changed, 150 insertions(+), 184 deletions(-)
+ sound/pci/hda/patch_realtek.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-rx-data-path-optimization drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-rx-data-path-optimization
-+++ a/drivers/net/forcedeth.c
-@@ -1317,9 +1317,9 @@ static int nv_alloc_rx(struct net_device
- 			np->put_rx.orig->buf = cpu_to_le32(np->put_rx_ctx->dma);
- 			wmb();
- 			np->put_rx.orig->flaglen = cpu_to_le32(np->rx_buf_sz | NV_RX_AVAIL);
--			if (np->put_rx.orig++ == np->last_rx.orig)
-+			if (unlikely(np->put_rx.orig++ == np->last_rx.orig))
- 				np->put_rx.orig = np->first_rx.orig;
--			if (np->put_rx_ctx++ == np->last_rx_ctx)
-+			if (unlikely(np->put_rx_ctx++ == np->last_rx_ctx))
- 				np->put_rx_ctx = np->first_rx_ctx;
- 		} else {
- 			return 1;
-@@ -1349,9 +1349,9 @@ static int nv_alloc_rx_optimized(struct 
- 			np->put_rx.ex->buflow = cpu_to_le64(np->put_rx_ctx->dma) & 0x0FFFFFFFF;
- 			wmb();
- 			np->put_rx.ex->flaglen = cpu_to_le32(np->rx_buf_sz | NV_RX2_AVAIL);
--			if (np->put_rx.ex++ == np->last_rx.ex)
-+			if (unlikely(np->put_rx.ex++ == np->last_rx.ex))
- 				np->put_rx.ex = np->first_rx.ex;
--			if (np->put_rx_ctx++ == np->last_rx_ctx)
-+			if (unlikely(np->put_rx_ctx++ == np->last_rx_ctx))
- 				np->put_rx_ctx = np->first_rx_ctx;
- 		} else {
- 			return 1;
-@@ -2046,24 +2046,17 @@ static int nv_rx_process(struct net_devi
- {
- 	struct fe_priv *np = netdev_priv(dev);
- 	u32 flags;
--	u32 vlanflags = 0;
--	int count;
--
-- 	for (count = 0; count < limit; ++count) {
--		struct sk_buff *skb;
--		int len;
--
--		if (np->get_rx.orig == np->put_rx.orig)
--			break;	/* we scanned the whole ring - do not continue */
--		flags = le32_to_cpu(np->get_rx.orig->flaglen);
--		len = nv_descr_getlength(np->get_rx.orig, np->desc_ver);
-+	u32 rx_processed_cnt = 0;
-+	struct sk_buff *skb;
-+	int len;
-+
-+	while((np->get_rx.orig != np->put_rx.orig) &&
-+	      !((flags = le32_to_cpu(np->get_rx.orig->flaglen)) & NV_RX_AVAIL) &&
-+		(rx_processed_cnt++ < limit)) {
+diff -puN sound/pci/hda/patch_realtek.c~git-alsa-patch_realtek-build-fix sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~git-alsa-patch_realtek-build-fix
++++ a/sound/pci/hda/patch_realtek.c
+@@ -7589,7 +7589,7 @@ static const char *alc861_models[ALC861_
+ };
  
- 		dprintk(KERN_DEBUG "%s: nv_rx_process: flags 0x%x.\n",
- 					dev->name, flags);
- 
--		if (flags & NV_RX_AVAIL)
--			break;	/* still owned by hardware, */
--
- 		/*
- 		 * the packet is for us - immediately tear down the pci mapping.
- 		 * TODO: check if a prefetch of the first cacheline improves
-@@ -2087,99 +2080,80 @@ static int nv_rx_process(struct net_devi
- 		}
- 		/* look at what we actually got: */
- 		if (np->desc_ver == DESC_VER_1) {
--			if (!(flags & NV_RX_DESCRIPTORVALID)) {
--				dev_kfree_skb(skb);
--				goto next_pkt;
--			}
--
--			if (flags & NV_RX_ERROR) {
--				if (flags & NV_RX_MISSEDFRAME) {
--					np->stats.rx_missed_errors++;
--					np->stats.rx_errors++;
--					dev_kfree_skb(skb);
--					goto next_pkt;
--				}
--				if (flags & (NV_RX_ERROR1|NV_RX_ERROR2|NV_RX_ERROR3)) {
--					np->stats.rx_errors++;
--					dev_kfree_skb(skb);
--					goto next_pkt;
--				}
--				if (flags & NV_RX_CRCERR) {
--					np->stats.rx_crc_errors++;
--					np->stats.rx_errors++;
--					dev_kfree_skb(skb);
--					goto next_pkt;
--				}
--				if (flags & NV_RX_OVERFLOW) {
--					np->stats.rx_over_errors++;
--					np->stats.rx_errors++;
--					dev_kfree_skb(skb);
--					goto next_pkt;
--				}
--				if (flags & NV_RX_ERROR4) {
--					len = nv_getlen(dev, skb->data, len);
--					if (len < 0) {
-+			if (likely(flags & NV_RX_DESCRIPTORVALID)) {
-+				len = flags & LEN_MASK_V1;
-+				if (unlikely(flags & NV_RX_ERROR)) {
-+					if (flags & NV_RX_ERROR4) {
-+						len = nv_getlen(dev, skb->data, len);
-+						if (len < 0) {
-+							np->stats.rx_errors++;
-+							dev_kfree_skb(skb);
-+							goto next_pkt;
-+						}
-+					}
-+					/* framing errors are soft errors */
-+					else if (flags & NV_RX_FRAMINGERR) {
-+						if (flags & NV_RX_SUBSTRACT1) {
-+							len--;
-+						}
-+					}
-+					/* the rest are hard errors */
-+					else {
-+						if (flags & NV_RX_MISSEDFRAME)
-+							np->stats.rx_missed_errors++;
-+						if (flags & NV_RX_CRCERR)
-+							np->stats.rx_crc_errors++;
-+						if (flags & NV_RX_OVERFLOW)
-+							np->stats.rx_over_errors++;
- 						np->stats.rx_errors++;
- 						dev_kfree_skb(skb);
- 						goto next_pkt;
- 					}
- 				}
--				/* framing errors are soft errors. */
--				if (flags & NV_RX_FRAMINGERR) {
--					if (flags & NV_RX_SUBSTRACT1) {
--						len--;
--					}
--				}
--			}
--		} else {
--			if (!(flags & NV_RX2_DESCRIPTORVALID)) {
-+			} else {
- 				dev_kfree_skb(skb);
- 				goto next_pkt;
- 			}
--
--			if (flags & NV_RX2_ERROR) {
--				if (flags & (NV_RX2_ERROR1|NV_RX2_ERROR2|NV_RX2_ERROR3)) {
--					np->stats.rx_errors++;
--					dev_kfree_skb(skb);
--					goto next_pkt;
--				}
--				if (flags & NV_RX2_CRCERR) {
--					np->stats.rx_crc_errors++;
--					np->stats.rx_errors++;
--					dev_kfree_skb(skb);
--					goto next_pkt;
--				}
--				if (flags & NV_RX2_OVERFLOW) {
--					np->stats.rx_over_errors++;
--					np->stats.rx_errors++;
--					dev_kfree_skb(skb);
--					goto next_pkt;
--				}
--				if (flags & NV_RX2_ERROR4) {
--					len = nv_getlen(dev, skb->data, len);
--					if (len < 0) {
-+		} else {
-+			if (likely(flags & NV_RX2_DESCRIPTORVALID)) {
-+				len = flags & LEN_MASK_V2;
-+				if (unlikely(flags & NV_RX2_ERROR)) {
-+					if (flags & NV_RX2_ERROR4) {
-+						len = nv_getlen(dev, skb->data, len);
-+						if (len < 0) {
-+							np->stats.rx_errors++;
-+							dev_kfree_skb(skb);
-+							goto next_pkt;
-+						}
-+					}
-+					/* framing errors are soft errors */
-+					else if (flags & NV_RX2_FRAMINGERR) {
-+						if (flags & NV_RX2_SUBSTRACT1) {
-+							len--;
-+						}
-+					}
-+					/* the rest are hard errors */
-+					else {
-+						if (flags & NV_RX2_CRCERR)
-+							np->stats.rx_crc_errors++;
-+						if (flags & NV_RX2_OVERFLOW)
-+							np->stats.rx_over_errors++;
- 						np->stats.rx_errors++;
- 						dev_kfree_skb(skb);
- 						goto next_pkt;
- 					}
- 				}
--				/* framing errors are soft errors */
--				if (flags & NV_RX2_FRAMINGERR) {
--					if (flags & NV_RX2_SUBSTRACT1) {
--						len--;
--					}
--				}
--			}
--			if (np->rx_csum) {
--				flags &= NV_RX2_CHECKSUMMASK;
--				if (flags == NV_RX2_CHECKSUMOK1 ||
--				    flags == NV_RX2_CHECKSUMOK2 ||
--				    flags == NV_RX2_CHECKSUMOK3) {
--					dprintk(KERN_DEBUG "%s: hw checksum hit!.\n", dev->name);
-+				if ((flags & NV_RX2_CHECKSUMMASK) == NV_RX2_CHECKSUMOK2)/*ip and tcp */ {
- 					skb->ip_summed = CHECKSUM_UNNECESSARY;
- 				} else {
--					dprintk(KERN_DEBUG "%s: hwchecksum miss!.\n", dev->name);
-+					if ((flags & NV_RX2_CHECKSUMMASK) == NV_RX2_CHECKSUMOK1 ||
-+					    (flags & NV_RX2_CHECKSUMMASK) == NV_RX2_CHECKSUMOK3) {
-+						skb->ip_summed = CHECKSUM_UNNECESSARY;
-+					}
- 				}
-+			} else {
-+				dev_kfree_skb(skb);
-+				goto next_pkt;
- 			}
- 		}
- 		/* got a valid packet - forward it to the network core */
-@@ -2188,29 +2162,21 @@ static int nv_rx_process(struct net_devi
- 		dprintk(KERN_DEBUG "%s: nv_rx_process: %d bytes, proto %d accepted.\n",
- 					dev->name, len, skb->protocol);
- #ifdef CONFIG_FORCEDETH_NAPI
--		if (np->vlangrp && (vlanflags & NV_RX3_VLAN_TAG_PRESENT))
--			vlan_hwaccel_receive_skb(skb, np->vlangrp,
--						 vlanflags & NV_RX3_VLAN_TAG_MASK);
--		else
--			netif_receive_skb(skb);
-+		netif_receive_skb(skb);
- #else
--		if (np->vlangrp && (vlanflags & NV_RX3_VLAN_TAG_PRESENT))
--			vlan_hwaccel_rx(skb, np->vlangrp,
--					vlanflags & NV_RX3_VLAN_TAG_MASK);
--		else
--			netif_rx(skb);
-+		netif_rx(skb);
- #endif
- 		dev->last_rx = jiffies;
- 		np->stats.rx_packets++;
- 		np->stats.rx_bytes += len;
- next_pkt:
--		if (np->get_rx.orig++ == np->last_rx.orig)
-+		if (unlikely(np->get_rx.orig++ == np->last_rx.orig))
- 			np->get_rx.orig = np->first_rx.orig;
--		if (np->get_rx_ctx++ == np->last_rx_ctx)
-+		if (unlikely(np->get_rx_ctx++ == np->last_rx_ctx))
- 			np->get_rx_ctx = np->first_rx_ctx;
- 	}
- 
--	return count;
-+	return rx_processed_cnt;
- }
- 
- static int nv_rx_process_optimized(struct net_device *dev, int limit)
-@@ -2218,24 +2184,17 @@ static int nv_rx_process_optimized(struc
- 	struct fe_priv *np = netdev_priv(dev);
- 	u32 flags;
- 	u32 vlanflags = 0;
--	int count;
--
-- 	for (count = 0; count < limit; ++count) {
--		struct sk_buff *skb;
--		int len;
--
--		if (np->get_rx.ex == np->put_rx.ex)
--			break;	/* we scanned the whole ring - do not continue */
--		flags = le32_to_cpu(np->get_rx.ex->flaglen);
--		len = nv_descr_getlength_ex(np->get_rx.ex, np->desc_ver);
--		vlanflags = le32_to_cpu(np->get_rx.ex->buflow);
-+	u32 rx_processed_cnt = 0;
-+	struct sk_buff *skb;
-+	int len;
-+
-+	while((np->get_rx.ex != np->put_rx.ex) &&
-+	      !((flags = le32_to_cpu(np->get_rx.ex->flaglen)) & NV_RX2_AVAIL) &&
-+	      (rx_processed_cnt++ < limit)) {
- 
- 		dprintk(KERN_DEBUG "%s: nv_rx_process_optimized: flags 0x%x.\n",
- 					dev->name, flags);
- 
--		if (flags & NV_RX_AVAIL)
--			break;	/* still owned by hardware, */
--
- 		/*
- 		 * the packet is for us - immediately tear down the pci mapping.
- 		 * TODO: check if a prefetch of the first cacheline improves
-@@ -2258,84 +2217,91 @@ static int nv_rx_process_optimized(struc
- 			dprintk("\n");
- 		}
- 		/* look at what we actually got: */
--		if (!(flags & NV_RX2_DESCRIPTORVALID)) {
--			dev_kfree_skb(skb);
--			goto next_pkt;
--		}
--
--		if (flags & NV_RX2_ERROR) {
--			if (flags & (NV_RX2_ERROR1|NV_RX2_ERROR2|NV_RX2_ERROR3)) {
--				np->stats.rx_errors++;
--				dev_kfree_skb(skb);
--				goto next_pkt;
--			}
--			if (flags & NV_RX2_CRCERR) {
--				np->stats.rx_crc_errors++;
--				np->stats.rx_errors++;
--				dev_kfree_skb(skb);
--				goto next_pkt;
--			}
--			if (flags & NV_RX2_OVERFLOW) {
--				np->stats.rx_over_errors++;
--				np->stats.rx_errors++;
--				dev_kfree_skb(skb);
--				goto next_pkt;
--			}
--			if (flags & NV_RX2_ERROR4) {
--				len = nv_getlen(dev, skb->data, len);
--				if (len < 0) {
-+		if (likely(flags & NV_RX2_DESCRIPTORVALID)) {
-+			len = flags & LEN_MASK_V2;
-+			if (unlikely(flags & NV_RX2_ERROR)) {
-+				if (flags & NV_RX2_ERROR4) {
-+					len = nv_getlen(dev, skb->data, len);
-+					if (len < 0) {
-+						np->stats.rx_errors++;
-+						dev_kfree_skb(skb);
-+						goto next_pkt;
-+					}
-+				}
-+				/* framing errors are soft errors */
-+				else if (flags & NV_RX2_FRAMINGERR) {
-+					if (flags & NV_RX2_SUBSTRACT1) {
-+						len--;
-+					}
-+				}
-+				/* the rest are hard errors */
-+				else {
-+					if (flags & NV_RX2_CRCERR)
-+						np->stats.rx_crc_errors++;
-+					if (flags & NV_RX2_OVERFLOW)
-+						np->stats.rx_over_errors++;
- 					np->stats.rx_errors++;
- 					dev_kfree_skb(skb);
- 					goto next_pkt;
- 				}
- 			}
--			/* framing errors are soft errors */
--			if (flags & NV_RX2_FRAMINGERR) {
--				if (flags & NV_RX2_SUBSTRACT1) {
--					len--;
--				}
--			}
--		}
--		if (np->rx_csum) {
--			flags &= NV_RX2_CHECKSUMMASK;
--			if (flags == NV_RX2_CHECKSUMOK1 ||
--			    flags == NV_RX2_CHECKSUMOK2 ||
--			    flags == NV_RX2_CHECKSUMOK3) {
--				dprintk(KERN_DEBUG "%s: hw checksum hit!.\n", dev->name);
-+
-+			if ((flags & NV_RX2_CHECKSUMMASK) == NV_RX2_CHECKSUMOK2)/*ip and tcp */ {
- 				skb->ip_summed = CHECKSUM_UNNECESSARY;
- 			} else {
--				dprintk(KERN_DEBUG "%s: hwchecksum miss!.\n", dev->name);
-+				if ((flags & NV_RX2_CHECKSUMMASK) == NV_RX2_CHECKSUMOK1 ||
-+				    (flags & NV_RX2_CHECKSUMMASK) == NV_RX2_CHECKSUMOK3) {
-+					skb->ip_summed = CHECKSUM_UNNECESSARY;
-+				}
- 			}
--		}
--		/* got a valid packet - forward it to the network core */
--		skb_put(skb, len);
--		skb->protocol = eth_type_trans(skb, dev);
--		dprintk(KERN_DEBUG "%s: nv_rx_process: %d bytes, proto %d accepted.\n",
--					dev->name, len, skb->protocol);
-+
-+			/* got a valid packet - forward it to the network core */
-+			skb_put(skb, len);
-+			skb->protocol = eth_type_trans(skb, dev);
-+			prefetch(skb->data);
-+
-+			dprintk(KERN_DEBUG "%s: nv_rx_process_optimized: %d bytes, proto %d accepted.\n",
-+				dev->name, len, skb->protocol);
-+
-+			if (likely(!np->vlangrp)) {
- #ifdef CONFIG_FORCEDETH_NAPI
--		if (np->vlangrp && (vlanflags & NV_RX3_VLAN_TAG_PRESENT))
--			vlan_hwaccel_receive_skb(skb, np->vlangrp,
--						 vlanflags & NV_RX3_VLAN_TAG_MASK);
--		else
--			netif_receive_skb(skb);
-+				netif_receive_skb(skb);
- #else
--		if (np->vlangrp && (vlanflags & NV_RX3_VLAN_TAG_PRESENT))
--			vlan_hwaccel_rx(skb, np->vlangrp,
--					vlanflags & NV_RX3_VLAN_TAG_MASK);
--		else
--			netif_rx(skb);
-+				netif_rx(skb);
- #endif
--		dev->last_rx = jiffies;
--		np->stats.rx_packets++;
--		np->stats.rx_bytes += len;
-+			} else {
-+				vlanflags = le32_to_cpu(np->get_rx.ex->buflow);
-+				if (vlanflags & NV_RX3_VLAN_TAG_PRESENT) {
-+#ifdef CONFIG_FORCEDETH_NAPI
-+					vlan_hwaccel_receive_skb(skb, np->vlangrp,
-+								 vlanflags & NV_RX3_VLAN_TAG_MASK);
-+#else
-+					vlan_hwaccel_rx(skb, np->vlangrp,
-+							vlanflags & NV_RX3_VLAN_TAG_MASK);
-+#endif
-+				} else {
-+#ifdef CONFIG_FORCEDETH_NAPI
-+					netif_receive_skb(skb);
-+#else
-+					netif_rx(skb);
-+#endif
-+				}
-+			}
-+
-+			dev->last_rx = jiffies;
-+			np->stats.rx_packets++;
-+			np->stats.rx_bytes += len;
-+		} else {
-+			dev_kfree_skb(skb);
-+		}
- next_pkt:
--		if (np->get_rx.ex++ == np->last_rx.ex)
-+		if (unlikely(np->get_rx.ex++ == np->last_rx.ex))
- 			np->get_rx.ex = np->first_rx.ex;
--		if (np->get_rx_ctx++ == np->last_rx_ctx)
-+		if (unlikely(np->get_rx_ctx++ == np->last_rx_ctx))
- 			np->get_rx_ctx = np->first_rx_ctx;
- 	}
- 
--	return count;
-+	return rx_processed_cnt;
- }
- 
- static void set_bufsize(struct net_device *dev)
+ static struct snd_pci_quirk alc861_cfg_tbl[] = {
+-	SND_PCI_QUIRK(0x1043, 0x1205, "ASUS W7J", ALC861_3ST},
++	SND_PCI_QUIRK(0x1043, 0x1205, "ASUS W7J", ALC861_3ST),
+ 	SND_PCI_QUIRK(0x1043, 0x1335, "ASUS F2/3", ALC861_ASUS_LAPTOP),
+ 	SND_PCI_QUIRK(0x1043, 0x1338, "ASUS F2/3", ALC861_ASUS_LAPTOP),
+ 	SND_PCI_QUIRK(0x1043, 0x1393, "ASUS", ALC861_ASUS),
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-forcedeth-dma-access.patch
-forcedeth-ring-access.patch
-forcedeth-tx-locking.patch
-forcedeth-rx-skb-recycle.patch
-forcedeth-optimized-routines.patch
-forcedeth-tx-limiting.patch
-forcedeth-tx-data-path-optimization.patch
-forcedeth-rx-data-path-optimization.patch
-forcedeth-irq-data-path-optimization.patch
-forcedeth-tx-max-work.patch
-forcedeth-statistics-supported.patch
-forcedeth-statistics-optimization.patch
+nfs-fix-race-in-nfs_release_page-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+cifs-sprintf-fix.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-ubi.patch
+ubi-missing-include.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+git-scsi-rc-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-fixup.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+revert-x86_64-mm-add-genapic_force.patch
+revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+revert-x86_64-mm-copy-user-nocache.patch
+add-memcpy_uncached_read.patch
+fix-fake-numa-for-x86_64-machines-with-big-io-hole.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+git-alsa-patch_realtek-build-fix.patch
