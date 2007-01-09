@@ -1,54 +1,54 @@
 From: akpm@osdl.org
-Subject: + x25-add-missing-sock_put-in-x25_receive_data.patch added to -mm tree
-Date: Mon, 08 Jan 2007 20:31:24 -0800
-Message-ID: <200701090431.l094VOZX028441@shell0.pdx.osdl.net>
+Subject: + scsi-scan-fix-logging-message-for-pq3-devices.patch added to -mm tree
+Date: Mon, 08 Jan 2007 20:36:48 -0800
+Message-ID: <200701090436.l094am2v028525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40232 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750783AbXAIEbr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 8 Jan 2007 23:31:47 -0500
+	id S1751010AbXAIEgy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 8 Jan 2007 23:36:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ahendry@tusc.com.au, andrew.hendry@gmail.com
+Cc: kurt@garloff.de, garloff@suse.de
 
 
 The patch titled
-     X.25 Add missing sock_put in x25_receive_data
+     SCSI scan: fix logging message for PQ3 devices
 has been added to the -mm tree.  Its filename is
-     x25-add-missing-sock_put-in-x25_receive_data.patch
+     scsi-scan-fix-logging-message-for-pq3-devices.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: X.25 Add missing sock_put in x25_receive_data
-From: ahendry <ahendry@tusc.com.au>
+Subject: SCSI scan: fix logging message for PQ3 devices
+From: Kurt Garloff <kurt@garloff.de>
 
-__x25_find_socket does a sock_hold.  This adds a missing sock_put in
-x25_receive_data.
+The blacklist flags BLIST_ATTACH_PQ3 has value 0x1000000, not 0x800000.
 
-Signed-off-by: Andrew Hendry <andrew.hendry@gmail.com>
+Signed-off-by: Kurt Garloff <garloff@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/x25/x25_dev.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/scsi_scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/x25/x25_dev.c~x25-add-missing-sock_put-in-x25_receive_data net/x25/x25_dev.c
---- a/net/x25/x25_dev.c~x25-add-missing-sock_put-in-x25_receive_data
-+++ a/net/x25/x25_dev.c
-@@ -56,6 +56,7 @@ static int x25_receive_data(struct sk_bu
- 			sk_add_backlog(sk, skb);
- 		}
- 		bh_unlock_sock(sk);
-+		sock_put(sk);
- 		return queued;
- 	}
+diff -puN drivers/scsi/scsi_scan.c~scsi-scan-fix-logging-message-for-pq3-devices drivers/scsi/scsi_scan.c
+--- a/drivers/scsi/scsi_scan.c~scsi-scan-fix-logging-message-for-pq3-devices
++++ a/drivers/scsi/scsi_scan.c
+@@ -1029,7 +1029,7 @@ static int scsi_probe_and_add_lun(struct
  
+ 				sdev_printk(KERN_INFO, sdev,
+ 					"scsi scan: consider passing scsi_mod."
+-					"dev_flags=%s:%s:0x240 or 0x800240\n",
++					"dev_flags=%s:%s:0x240 or 0x1000240\n",
+ 					scsi_inq_str(vend, result, 8, 16),
+ 					scsi_inq_str(mod, result, 16, 32));
+ 			});
 _
 
-Patches currently in -mm which might be from ahendry@tusc.com.au are
+Patches currently in -mm which might be from kurt@garloff.de are
 
-x25-add-missing-sock_put-in-x25_receive_data.patch
+scsi-scan-fix-logging-message-for-pq3-devices.patch
