@@ -1,276 +1,141 @@
 From: akpm@osdl.org
-Subject: - add-i386-idle-notifier-take-3.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 15:03:30 -0800
-Message-ID: <200701102303.l0AN3UQV010829@shell0.pdx.osdl.net>
+Subject: - handle-32-bit-perfmon-counter-writes-cleanly-in-x86_64-nmi_watchdog.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:03:54 -0800
+Message-ID: <200701102303.l0AN3sWd010868@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34059 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34188 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965237AbXAJXJ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:09:57 -0500
+	id S965227AbXAJXKy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:10:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eranian@hpl.hp.com, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, ak@suse.de, eranian@hpl.hp.com, levon@movementarian.org, mingo@elte.hu, phil.el@wanadoo.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: add idle notifier
+     Handle 32 bit PerfMon Counter writes cleanly in x86_64 nmi_watchdog
 has been removed from the -mm tree.  Its filename was
-     add-i386-idle-notifier-take-3.patch
+     handle-32-bit-perfmon-counter-writes-cleanly-in-x86_64-nmi_watchdog.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: add idle notifier
-From: Stephane Eranian <eranian@hpl.hp.com>
+Subject: Handle 32 bit PerfMon Counter writes cleanly in x86_64 nmi_watchdog
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Add a notifier mechanism to the low level idle loop.  You can register a
-callback function which gets invoked on entry and exit from the low level idle
-loop.  The low level idle loop is defined as the polling loop, low-power call,
-or the mwait instruction.  Interrupts processed by the idle thread are not
-considered part of the low level loop.
+P6 CPUs and Core/Core 2 CPUs which has 'architectural perf mon' feature, only
+supports write of low 32 bits in Performance Monitoring Counters.  Bits 32..39
+are sign extended based on bit 31 and bits 40..63 are reserved and should be
+zero.
 
-The notifier can be used to measure precisely how much is spent in useless
-execution (or low power mode).  The perfmon subsystem uses it to turn on/off
-monitoring.
+This patch:
 
-Signed-off-by: stephane eranian <eranian@hpl.hp.com>
+Change x86_64 nmi handler to handle this case cleanly.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Stephane Eranian <eranian@hpl.hp.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Philippe Elie <phil.el@wanadoo.fr>
+Cc: John Levon <levon@movementarian.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/apic.c          |    4 ++
- arch/i386/kernel/cpu/mcheck/p4.c |    2 +
- arch/i386/kernel/irq.c           |    3 +
- arch/i386/kernel/process.c       |   54 ++++++++++++++++++++++++++++-
- arch/i386/kernel/smp.c           |    2 +
- include/asm-i386/idle.h          |   14 +++++++
- include/asm-i386/processor.h     |    8 ++++
- 7 files changed, 86 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/nmi.c |   46 +++++++++++++++++++++++++------------
+ 1 files changed, 32 insertions(+), 14 deletions(-)
 
-diff -puN arch/i386/kernel/apic.c~add-i386-idle-notifier-take-3 arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~add-i386-idle-notifier-take-3
-+++ a/arch/i386/kernel/apic.c
-@@ -36,6 +36,7 @@
- #include <asm/hpet.h>
- #include <asm/i8253.h>
- #include <asm/nmi.h>
-+#include <asm/idle.h>
- 
- #include <mach_apic.h>
- #include <mach_apicdef.h>
-@@ -1255,6 +1256,7 @@ fastcall void smp_apic_timer_interrupt(s
- 	 * Besides, if we don't timer interrupts ignore the global
- 	 * interrupt lock, which is the WrongThing (tm) to do.
- 	 */
-+	exit_idle();
- 	irq_enter();
- 	smp_local_timer_interrupt();
- 	irq_exit();
-@@ -1305,6 +1307,7 @@ fastcall void smp_spurious_interrupt(str
- {
- 	unsigned long v;
- 
-+	exit_idle();
- 	irq_enter();
- 	/*
- 	 * Check if this really is a spurious interrupt and ACK it
-@@ -1329,6 +1332,7 @@ fastcall void smp_error_interrupt(struct
- {
- 	unsigned long v, v1;
- 
-+	exit_idle();
- 	irq_enter();
- 	/* First tickle the hardware, only then report what went on. -- REW */
- 	v = apic_read(APIC_ESR);
-diff -puN arch/i386/kernel/cpu/mcheck/p4.c~add-i386-idle-notifier-take-3 arch/i386/kernel/cpu/mcheck/p4.c
---- a/arch/i386/kernel/cpu/mcheck/p4.c~add-i386-idle-notifier-take-3
-+++ a/arch/i386/kernel/cpu/mcheck/p4.c
-@@ -12,6 +12,7 @@
- #include <asm/system.h>
- #include <asm/msr.h>
- #include <asm/apic.h>
-+#include <asm/idle.h>
- 
- #include <asm/therm_throt.h>
- 
-@@ -59,6 +60,7 @@ static void (*vendor_thermal_interrupt)(
- 
- fastcall void smp_thermal_interrupt(struct pt_regs *regs)
- {
-+	exit_idle();
- 	irq_enter();
- 	vendor_thermal_interrupt(regs);
- 	irq_exit();
-diff -puN arch/i386/kernel/irq.c~add-i386-idle-notifier-take-3 arch/i386/kernel/irq.c
---- a/arch/i386/kernel/irq.c~add-i386-idle-notifier-take-3
-+++ a/arch/i386/kernel/irq.c
-@@ -19,6 +19,8 @@
- #include <linux/cpu.h>
- #include <linux/delay.h>
- 
-+#include <asm/idle.h>
-+
- DEFINE_PER_CPU(irq_cpustat_t, irq_stat) ____cacheline_internodealigned_in_smp;
- EXPORT_PER_CPU_SYMBOL(irq_stat);
- 
-@@ -61,6 +63,7 @@ fastcall unsigned int do_IRQ(struct pt_r
- 	union irq_ctx *curctx, *irqctx;
- 	u32 *isp;
- #endif
-+	exit_idle();
- 
- 	if (unlikely((unsigned)irq >= NR_IRQS)) {
- 		printk(KERN_EMERG "%s: cannot handle IRQ %d\n",
-diff -puN arch/i386/kernel/process.c~add-i386-idle-notifier-take-3 arch/i386/kernel/process.c
---- a/arch/i386/kernel/process.c~add-i386-idle-notifier-take-3
-+++ a/arch/i386/kernel/process.c
-@@ -48,6 +48,7 @@
- #include <asm/i387.h>
- #include <asm/desc.h>
- #include <asm/vm86.h>
-+#include <asm/idle.h>
- #ifdef CONFIG_MATH_EMULATION
- #include <asm/math_emu.h>
- #endif
-@@ -80,6 +81,43 @@ void (*pm_idle)(void);
- EXPORT_SYMBOL(pm_idle);
- static DEFINE_PER_CPU(unsigned int, cpu_idle_state);
- 
-+static ATOMIC_NOTIFIER_HEAD(idle_notifier);
-+
-+void idle_notifier_register(struct notifier_block *n)
-+{
-+	atomic_notifier_chain_register(&idle_notifier, n);
-+}
-+EXPORT_SYMBOL_GPL(idle_notifier_register);
-+
-+void idle_notifier_unregister(struct notifier_block *n)
-+{
-+	atomic_notifier_chain_unregister(&idle_notifier, n);
-+}
-+EXPORT_SYMBOL(idle_notifier_unregister);
-+
-+static DEFINE_PER_CPU(volatile unsigned long, idle_state);
-+
-+void enter_idle(void)
-+{
-+	__get_cpu_var(idle_state) = 1;
-+	atomic_notifier_call_chain(&idle_notifier, IDLE_START, NULL);
-+}
-+
-+static void __exit_idle(void)
-+{
-+	/* needs to be atomic w.r.t. interrupts, not against other CPUs */
-+	if (__test_and_clear_bit(0, &__get_cpu_var(idle_state)) == 0)
-+		return;
-+	atomic_notifier_call_chain(&idle_notifier, IDLE_END, NULL);
-+}
-+
-+void exit_idle(void)
-+{
-+	if (current->pid)
-+		return;
-+	__exit_idle();
-+}
-+
- void disable_hlt(void)
- {
- 	hlt_counter++;
-@@ -130,6 +168,7 @@ EXPORT_SYMBOL(default_idle);
-  */
- static void poll_idle (void)
- {
-+	local_irq_enable();
- 	cpu_relax();
+diff -puN arch/x86_64/kernel/nmi.c~handle-32-bit-perfmon-counter-writes-cleanly-in-x86_64-nmi_watchdog arch/x86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~handle-32-bit-perfmon-counter-writes-cleanly-in-x86_64-nmi_watchdog
++++ a/arch/x86_64/kernel/nmi.c
+@@ -214,6 +214,23 @@ static __init void nmi_cpu_busy(void *da
  }
+ #endif
  
-@@ -189,7 +228,16 @@ void cpu_idle(void)
- 				play_dead();
- 
- 			__get_cpu_var(irq_stat).idle_timestamp = jiffies;
++static unsigned int adjust_for_32bit_ctr(unsigned int hz)
++{
++	unsigned int retval = hz;
 +
-+			/*
-+			 * Idle routines should keep interrupts disabled
-+			 * from here on, until they go to idle.
-+			 * Otherwise, idle callbacks can misfire.
-+			 */
-+			local_irq_disable();
-+			enter_idle();
- 			idle();
-+			__exit_idle();
- 		}
- 		preempt_enable_no_resched();
- 		schedule();
-@@ -243,7 +291,11 @@ void mwait_idle_with_hints(unsigned long
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
- 		smp_mb();
- 		if (!need_resched())
--			__mwait(eax, ecx);
-+			__sti_mwait(eax, ecx);
-+		else
-+			local_irq_enable();
-+	} else {
-+		local_irq_enable();
++	/*
++	 * On Intel CPUs with ARCH_PERFMON only 32 bits in the counter
++	 * are writable, with higher bits sign extending from bit 31.
++	 * So, we can only program the counter with 31 bit values and
++	 * 32nd bit should be 1, for 33.. to be 1.
++	 * Find the appropriate nmi_hz
++	 */
++ 	if ((((u64)cpu_khz * 1000) / retval) > 0x7fffffffULL) {
++		retval = ((u64)cpu_khz * 1000) / 0x7fffffffUL + 1;
++	}
++	return retval;
++}
++
+ int __init check_nmi_watchdog (void)
+ {
+ 	int *counts;
+@@ -268,17 +285,8 @@ int __init check_nmi_watchdog (void)
+ 		struct nmi_watchdog_ctlblk *wd = &__get_cpu_var(nmi_watchdog_ctlblk);
+ 
+ 		nmi_hz = 1;
+-		/*
+-		 * On Intel CPUs with ARCH_PERFMON only 32 bits in the counter
+-		 * are writable, with higher bits sign extending from bit 31.
+-		 * So, we can only program the counter with 31 bit values and
+-		 * 32nd bit should be 1, for 33.. to be 1.
+-		 * Find the appropriate nmi_hz
+-		 */
+-	 	if (wd->perfctr_msr == MSR_ARCH_PERFMON_PERFCTR0 &&
+-			((u64)cpu_khz * 1000) > 0x7fffffffULL) {
+-			nmi_hz = ((u64)cpu_khz * 1000) / 0x7fffffffUL + 1;
+-		}
++	 	if (wd->perfctr_msr == MSR_ARCH_PERFMON_PERFCTR0)
++			nmi_hz = adjust_for_32bit_ctr(nmi_hz);
  	}
- }
  
-diff -puN arch/i386/kernel/smp.c~add-i386-idle-notifier-take-3 arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~add-i386-idle-notifier-take-3
-+++ a/arch/i386/kernel/smp.c
-@@ -23,6 +23,7 @@
+ 	kfree(counts);
+@@ -663,7 +671,9 @@ static int setup_intel_arch_watchdog(voi
  
- #include <asm/mtrr.h>
- #include <asm/tlbflush.h>
-+#include <asm/idle.h>
- #include <mach_apic.h>
+ 	/* setup the timer */
+ 	wrmsr(evntsel_msr, evntsel, 0);
+-	wrmsrl(perfctr_msr, -((u64)cpu_khz * 1000 / nmi_hz));
++
++	nmi_hz = adjust_for_32bit_ctr(nmi_hz);
++	wrmsr(perfctr_msr, (u32)(-((u64)cpu_khz * 1000 / nmi_hz)), 0);
  
- /*
-@@ -624,6 +625,7 @@ fastcall void smp_call_function_interrup
- 	/*
- 	 * At this point the info structure may be out of scope unless wait==1
- 	 */
-+	exit_idle();
- 	irq_enter();
- 	(*func)(info);
- 	irq_exit();
-diff -puN /dev/null include/asm-i386/idle.h
---- /dev/null
-+++ a/include/asm-i386/idle.h
-@@ -0,0 +1,14 @@
-+#ifndef _ASM_I386_IDLE_H
-+#define _ASM_I386_IDLE_H 1
-+
-+#define IDLE_START 1
-+#define IDLE_END 2
-+
-+struct notifier_block;
-+void idle_notifier_register(struct notifier_block *n);
-+void idle_notifier_unregister(struct notifier_block *n);
-+
-+void exit_idle(void);
-+void enter_idle(void);
-+
-+#endif
-diff -puN include/asm-i386/processor.h~add-i386-idle-notifier-take-3 include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~add-i386-idle-notifier-take-3
-+++ a/include/asm-i386/processor.h
-@@ -257,6 +257,14 @@ static inline void __mwait(unsigned long
- 		: :"a" (eax), "c" (ecx));
- }
- 
-+static inline void __sti_mwait(unsigned long eax, unsigned long ecx)
-+{
-+	/* "mwait %eax,%ecx;" */
-+	asm volatile(
-+		"sti; .byte 0x0f,0x01,0xc9;"
-+		: :"a" (eax), "c" (ecx));
-+}
-+
- extern void mwait_idle_with_hints(unsigned long eax, unsigned long ecx);
- 
- /* from system description table in BIOS.  Mostly for MCA use, but
+ 	apic_write(APIC_LVTPC, APIC_DM_NMI);
+ 	evntsel |= ARCH_PERFMON_EVENTSEL0_ENABLE;
+@@ -884,15 +894,23 @@ int __kprobes nmi_watchdog_tick(struct p
+ 				dummy &= ~P4_CCCR_OVF;
+ 	 			wrmsrl(wd->cccr_msr, dummy);
+ 	 			apic_write(APIC_LVTPC, APIC_DM_NMI);
++				/* start the cycle over again */
++				wrmsrl(wd->perfctr_msr,
++				       -((u64)cpu_khz * 1000 / nmi_hz));
+ 	 		} else if (wd->perfctr_msr == MSR_ARCH_PERFMON_PERFCTR0) {
+ 				/*
+ 				 * ArchPerfom/Core Duo needs to re-unmask
+ 				 * the apic vector
+ 				 */
+ 				apic_write(APIC_LVTPC, APIC_DM_NMI);
++				/* ARCH_PERFMON has 32 bit counter writes */
++				wrmsr(wd->perfctr_msr,
++				     (u32)(-((u64)cpu_khz * 1000 / nmi_hz)), 0);
++			} else {
++				/* start the cycle over again */
++				wrmsrl(wd->perfctr_msr,
++				       -((u64)cpu_khz * 1000 / nmi_hz));
+ 			}
+-			/* start the cycle over again */
+-			wrmsrl(wd->perfctr_msr, -((u64)cpu_khz * 1000 / nmi_hz));
+ 			rc = 1;
+ 		} else 	if (nmi_watchdog == NMI_IO_APIC) {
+ 			/* don't know how to accurately check for this.
 _
 
-Patches currently in -mm which might be from eranian@hpl.hp.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-add-i386-idle-notifier-take-3-fix.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-3.patch
+ondemand-governor-restructure-the-work-callback.patch
+ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback.patch
