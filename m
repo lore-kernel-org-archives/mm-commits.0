@@ -1,198 +1,160 @@
 From: akpm@osdl.org
-Subject: - git-alsa-patch_realtek-build-fix.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 15:02:00 -0800
-Message-ID: <200701102302.l0AN20d7010706@shell0.pdx.osdl.net>
+Subject: - x86_64-i386-kernel-mode-faults-pollute-current-thead.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:02:06 -0800
+Message-ID: <200701102302.l0AN26mb010712@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33055 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33068 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965168AbXAJXCL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:02:11 -0500
+	id S965161AbXAJXCQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:02:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa: patch_realtek build fix
+     x86_64/i386: kernel-mode faults pollute current->thead
 has been removed from the -mm tree.  Its filename was
-     git-alsa-patch_realtek-build-fix.patch
+     x86_64-i386-kernel-mode-faults-pollute-current-thead.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-alsa: patch_realtek build fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: x86_64/i386: kernel-mode faults pollute current->thead
+From: Jeff Dike <jdike@addtoit.com>
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Kernel-mode traps on x86_64 can pollute the trap information for a previous
+userspace trap for which the signal has not yet been delivered to the
+process.
+
+do_trap and do_general_protection set task->thread.error_code and .trapno
+for kernel traps.  If a kernel-mode trap arrives between the arrival of a
+userspace trap and the delivery of the associated SISGEGV to the process,
+the process will get the kernel trap information in its sigcontext.
+
+This causes UML process segfaults, as the trapno that the UML kernel sees
+is 13, rather than the 14 for normal page faults.  So, the UML kernel
+passes the SIGSEGV along to its process.
+
+I don't claim to fully understand the problem.  On the one hand, a check in
+do_general_protection for a pending SIGSEGV turned up nothing.  On the
+other hand, this patch fixed the UML process segfault problem.
+
+The patch below moves the setting of error_code and trapno so that that
+only happens in the case of userspace faults.  As a side-effect, this
+should speed up kernel-mode fault handling a tiny bit.
+
+I looked at i386, and there is a similar situation.  In this case, there is
+duplicate code setting task->thread.error_code and trapno.  I deleted one,
+leaving the copy that runs in the case of a userspace fault.
+
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/pci/hda/patch_realtek.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/traps.c   |    8 +++-----
+ arch/x86_64/kernel/traps.c |   12 ++++++------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN sound/pci/hda/patch_realtek.c~git-alsa-patch_realtek-build-fix sound/pci/hda/patch_realtek.c
---- a/sound/pci/hda/patch_realtek.c~git-alsa-patch_realtek-build-fix
-+++ a/sound/pci/hda/patch_realtek.c
-@@ -7589,7 +7589,7 @@ static const char *alc861_models[ALC861_
- };
+diff -puN arch/i386/kernel/traps.c~x86_64-i386-kernel-mode-faults-pollute-current-thead arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~x86_64-i386-kernel-mode-faults-pollute-current-thead
++++ a/arch/i386/kernel/traps.c
+@@ -475,8 +475,6 @@ static void __kprobes do_trap(int trapnr
+ 			      siginfo_t *info)
+ {
+ 	struct task_struct *tsk = current;
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = trapnr;
  
- static struct snd_pci_quirk alc861_cfg_tbl[] = {
--	SND_PCI_QUIRK(0x1043, 0x1205, "ASUS W7J", ALC861_3ST},
-+	SND_PCI_QUIRK(0x1043, 0x1205, "ASUS W7J", ALC861_3ST),
- 	SND_PCI_QUIRK(0x1043, 0x1335, "ASUS F2/3", ALC861_ASUS_LAPTOP),
- 	SND_PCI_QUIRK(0x1043, 0x1338, "ASUS F2/3", ALC861_ASUS_LAPTOP),
- 	SND_PCI_QUIRK(0x1043, 0x1393, "ASUS", ALC861_ASUS),
+ 	if (regs->eflags & VM_MASK) {
+ 		if (vm86)
+@@ -488,6 +486,9 @@ static void __kprobes do_trap(int trapnr
+ 		goto kernel_trap;
+ 
+ 	trap_signal: {
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = trapnr;
++
+ 		if (info)
+ 			force_sig_info(signr, info, tsk);
+ 		else
+@@ -602,9 +603,6 @@ fastcall void __kprobes do_general_prote
+ 	}
+ 	put_cpu();
+ 
+-	current->thread.error_code = error_code;
+-	current->thread.trap_no = 13;
+-
+ 	if (regs->eflags & VM_MASK)
+ 		goto gp_in_vm86;
+ 
+diff -puN arch/x86_64/kernel/traps.c~x86_64-i386-kernel-mode-faults-pollute-current-thead arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~x86_64-i386-kernel-mode-faults-pollute-current-thead
++++ a/arch/x86_64/kernel/traps.c
+@@ -582,10 +582,10 @@ static void __kprobes do_trap(int trapnr
+ {
+ 	struct task_struct *tsk = current;
+ 
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = trapnr;
+-
+ 	if (user_mode(regs)) {
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = trapnr;
++
+ 		if (exception_trace && unhandled_signal(tsk, signr))
+ 			printk(KERN_INFO
+ 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
+@@ -683,10 +683,10 @@ asmlinkage void __kprobes do_general_pro
+ 
+ 	conditional_sti(regs);
+ 
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = 13;
+-
+ 	if (user_mode(regs)) {
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = 13;
++
+ 		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
+ 			printk(KERN_INFO
+ 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-origin.patch
-nfs-fix-race-in-nfs_release_page-tidy.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-cifs-sprintf-fix.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-missing-include.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-r8169-warning-fixes.patch
-git-scsi-rc-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-atomicity-fix.patch
-nokia-e70-is-an-unusual-device.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+uml-console-locking-fixes.patch
+uml-return-hotplug-errors-to-host.patch
+uml-console-whitespace-and-comment-tidying.patch
+uml-lock-the-irqs_to_free-list.patch
+uml-add-locking-to-network-transport-registration.patch
+uml-network-driver-whitespace-and-style-fixes.patch
+uml-watchdog-driver-locking.patch
+uml-watchdog-driver-formatting.patch
+uml-audio-driver-locking.patch
+uml-audio-driver-formatting.patch
+uml-mconsole-locking.patch
+uml-make-two-variables-static.patch
+uml-port-driver-formatting.patch
+uml-kill-a-compilation-warning.patch
+uml-network-driver-locking-and-code-cleanup.patch
+uml-use-list_head-where-possible.patch
+uml-locking-commentary-in-the-random-driver.patch
+uml-mostly-const-a-structure.patch
+uml-chan_userh-formatting-fices.patch
+uml-console-locking-commentary-and-code-cleanup.patch
+uml-fix-previous-console-locking.patch
+uml-locking-comments-in-iomem-driver.patch
+uml-memc-and-physmemc-formatting-fixes.patch
+uml-initialize-a-list-head.patch
+uml-make-time-data-per-cpu.patch
+uml-delete-unused-file.patch
+uml-remove-unused-variable-and-function.patch
+uml-make-signal-handlers-static.patch
+uml-const-a-variable.patch
+uml-remove-code-controlled-by-non-existent-config-option.patch
+uml-fix-prototypes.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
