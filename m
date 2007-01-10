@@ -1,79 +1,86 @@
 From: akpm@osdl.org
-Subject: - revert-x86_64-mm-add-genapic_force.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 14:43:49 -0800
-Message-ID: <200701102243.l0AMhnC1010171@shell0.pdx.osdl.net>
+Subject: - revert-i386-fix-the-verify_quirk_intel_irqbalance.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 14:43:42 -0800
+Message-ID: <200701102243.l0AMhg2F010165@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59966 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59951 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965175AbXAJWoi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 17:44:38 -0500
+	id S965168AbXAJWod (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 17:44:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ak@suse.de, mingo@elte.hu, shaohua.li@intel.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, ak@suse.de, mingo@elte.hu, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert x86_64-mm-add-genapic_force
+     revert i386-fix-the-verify_quirk_intel_irqbalance
 has been removed from the -mm tree.  Its filename was
-     revert-x86_64-mm-add-genapic_force.patch
+     revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-add-genapic_force
+Subject: revert i386-fix-the-verify_quirk_intel_irqbalance
 From: Andrew Morton <akpm@osdl.org>
 
-This is obsoleted by new Ingo genapic patches.
+This is unneeded with Ingo's genapic rework.
 
 Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Li, Shaohua" <shaohua.li@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/genapic.c |    9 +--------
- include/asm-x86_64/genapic.h |    2 +-
- 2 files changed, 2 insertions(+), 9 deletions(-)
+ arch/i386/kernel/quirks.c |   33 ++++-----------------------------
+ 1 files changed, 4 insertions(+), 29 deletions(-)
 
-diff -puN arch/x86_64/kernel/genapic.c~revert-x86_64-mm-add-genapic_force arch/x86_64/kernel/genapic.c
---- a/arch/x86_64/kernel/genapic.c~revert-x86_64-mm-add-genapic_force
-+++ a/arch/x86_64/kernel/genapic.c
-@@ -33,7 +33,7 @@ extern struct genapic apic_flat;
- extern struct genapic apic_physflat;
- 
- struct genapic *genapic = &apic_flat;
--struct genapic *genapic_force;
-+
- 
- /*
-  * Check the APIC IDs in bios_cpu_apicid and choose the APIC mode.
-@@ -46,13 +46,6 @@ void __init clustered_apic_check(void)
- 	u8 cluster_cnt[NUM_APIC_CLUSTERS];
- 	int max_apic = 0;
- 
--	/* genapic selection can be forced because of certain quirks.
+diff -puN arch/i386/kernel/quirks.c~revert-i386-fix-the-verify_quirk_intel_irqbalance arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~revert-i386-fix-the-verify_quirk_intel_irqbalance
++++ a/arch/i386/kernel/quirks.c
+@@ -10,38 +10,13 @@
+ #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
+ static void __devinit verify_quirk_intel_irqbalance(struct pci_dev *dev)
+ {
+-	u8 config, rev;
+-	u32 word;
+-
+-	/* BIOS may enable hardware IRQ balancing for
+-	 * E7520/E7320/E7525(revision ID 0x9 and below)
+-	 * based platforms.
+-	 * For those platforms, make sure that the genapic is set to 'flat'
 -	 */
--	if (genapic_force) {
--		genapic = genapic_force;
--		goto print;
+-	pci_read_config_byte(dev, PCI_CLASS_REVISION, &rev);
+-	if (rev > 0x9)
+-		return;
+-
+-	/* enable access to config space*/
+-	pci_read_config_byte(dev, 0xf4, &config);
+-	pci_write_config_byte(dev, 0xf4, config|0x2);
+-
+-	/* read xTPR register */
+-	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
+-
+-	if (!(word & (1 << 13))) {
+ #ifdef CONFIG_X86_64
+-		if (genapic !=  &apic_flat)
+-			panic("APIC mode must be flat on this system\n");
++	if (genapic !=  &apic_flat)
++		panic("APIC mode must be flat on this system\n");
+ #elif defined(CONFIG_X86_GENERICARCH)
+-		if (genapic != &apic_default)
+-			panic("APIC mode must be default(flat) on this system. Use apic=default\n");
++	if (genapic != &apic_default)
++		panic("APIC mode must be default(flat) on this system. Use apic=default\n");
+ #endif
 -	}
 -
- #if defined(CONFIG_ACPI)
- 	/*
- 	 * Some x86_64 machines use physical APIC mode regardless of how many
-diff -puN include/asm-x86_64/genapic.h~revert-x86_64-mm-add-genapic_force include/asm-x86_64/genapic.h
---- a/include/asm-x86_64/genapic.h~revert-x86_64-mm-add-genapic_force
-+++ a/include/asm-x86_64/genapic.h
-@@ -30,6 +30,6 @@ struct genapic {
- };
+-	/* put back the original value for config space*/
+-	if (!(config & 0x2))
+-		pci_write_config_byte(dev, 0xf4, config);
+ }
  
- 
--extern struct genapic *genapic, *genapic_force, apic_flat;
-+extern struct genapic *genapic;
- 
- #endif
+ void __init quirk_intel_irqbalance(void)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -117,6 +124,7 @@ scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-block-fixup.patch
 git-block-atomicity-fix.patch
 nokia-e70-is-an-unusual-device.patch
+revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
 revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
