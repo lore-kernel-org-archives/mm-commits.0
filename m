@@ -1,50 +1,50 @@
 From: akpm@osdl.org
-Subject: - arch-i386-kernel-e820c-should-include-asm-setuph.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 15:02:51 -0800
-Message-ID: <200701102302.l0AN2pW4010770@shell0.pdx.osdl.net>
+Subject: - arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:03:28 -0800
+Message-ID: <200701102303.l0AN3SUU010826@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33700 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33734 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965171AbXAJXGG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:06:06 -0500
+	id S965166AbXAJXGm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:06:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/i386/kernel/e820.c should #include <asm/setup.h
+     arch/i386/kernel/cpu/mcheck/mce.c should #include <asm/mce.h>
 has been removed from the -mm tree.  Its filename was
-     arch-i386-kernel-e820c-should-include-asm-setuph.patch
+     arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/i386/kernel/e820.c should #include <asm/setup.h
+Subject: arch/i386/kernel/cpu/mcheck/mce.c should #include <asm/mce.h>
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should #include the headers containing the prototypes for
-its global functions.
+Every file should include the headers containing the prototypes for
+it's global functions.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/e820.c |    1 +
+ arch/i386/kernel/cpu/mcheck/mce.c |    1 +
  1 files changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/e820.c~arch-i386-kernel-e820c-should-include-asm-setuph arch/i386/kernel/e820.c
---- a/arch/i386/kernel/e820.c~arch-i386-kernel-e820c-should-include-asm-setuph
-+++ a/arch/i386/kernel/e820.c
-@@ -14,6 +14,7 @@
- #include <asm/pgtable.h>
- #include <asm/page.h>
- #include <asm/e820.h>
-+#include <asm/setup.h>
+diff -puN arch/i386/kernel/cpu/mcheck/mce.c~arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh arch/i386/kernel/cpu/mcheck/mce.c
+--- a/arch/i386/kernel/cpu/mcheck/mce.c~arch-i386-kernel-cpu-mcheck-mcec-should-include-asm-mceh
++++ a/arch/i386/kernel/cpu/mcheck/mce.c
+@@ -12,6 +12,7 @@
  
- #ifdef CONFIG_EFI
- int efi_enabled = 0;
+ #include <asm/processor.h> 
+ #include <asm/system.h>
++#include <asm/mce.h>
+ 
+ #include "mce.h"
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
