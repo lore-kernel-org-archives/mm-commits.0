@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch added to -mm tree
-Date: Wed, 10 Jan 2007 15:00:27 -0800
-Message-ID: <200701102300.l0AN0RnS010692@shell0.pdx.osdl.net>
+Subject: + reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch added to -mm tree
+Date: Wed, 10 Jan 2007 15:00:53 -0800
+Message-ID: <200701102300.l0AN0rTN010700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32998 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33042 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965226AbXAJXBe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:01:34 -0500
+	id S965227AbXAJXCA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:02:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,75 +15,73 @@ Cc: akpm@osdl.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutron
 
 
 The patch titled
-     revert x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
+     reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+     reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
+Subject: reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
 From: Andrew Morton <akpm@osdl.org>
 
-This makes an unholy mess of time-x86_64-split-x86_64-kernel-timec-up.patch
+Put it back in the right place.
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: John Stultz <johnstul@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/time.c |   25 ++++---------------------
- 1 file changed, 4 insertions(+), 21 deletions(-)
+ arch/x86_64/kernel/hpet.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/time.c~revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
-+++ a/arch/x86_64/kernel/time.c
-@@ -658,25 +658,6 @@ core_initcall(cpufreq_tsc);
+diff -puN arch/x86_64/kernel/hpet.c~reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration arch/x86_64/kernel/hpet.c
+--- a/arch/x86_64/kernel/hpet.c~reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
++++ a/arch/x86_64/kernel/hpet.c
+@@ -152,6 +152,24 @@ int hpet_reenable(void)
   */
  
  #define TICK_COUNT 100000000
--#define TICK_MIN   5000
--
--/*
-- * Some platforms take periodic SMI interrupts with 5ms duration. Make sure none
-- * occurs between the reads of the hpet & TSC.
-- */
--static void __init read_hpet_tsc(int *hpet, int *tsc)
--{
--	int tsc1, tsc2, hpet1;
--
--	do {
--		tsc1 = get_cycles_sync();
--		hpet1 = hpet_readl(HPET_COUNTER);
--		tsc2 = get_cycles_sync();
--	} while (tsc2 - tsc1 > TICK_MIN);
--	*hpet = hpet1;
--	*tsc = tsc2;
--}
--
++#define TICK_MIN   5000
++
++/*
++ * Some platforms take periodic SMI interrupts with 5ms duration. Make sure none
++ * occurs between the reads of the hpet & TSC.
++ */
++static void __init read_hpet_tsc(int *hpet, int *tsc)
++{
++	int tsc1, tsc2, hpet1;
++
++	do {
++		tsc1 = get_cycles_sync();
++		hpet1 = hpet_readl(HPET_COUNTER);
++		tsc2 = get_cycles_sync();
++	} while (tsc2 - tsc1 > TICK_MIN);
++	*hpet = hpet1;
++	*tsc = tsc2;
++}
  
- static unsigned int __init hpet_calibrate_tsc(void)
+ unsigned int __init hpet_calibrate_tsc(void)
  {
-@@ -687,11 +668,13 @@ static unsigned int __init hpet_calibrat
- 	local_irq_save(flags);
- 	local_irq_disable();
+@@ -161,13 +179,11 @@ unsigned int __init hpet_calibrate_tsc(v
  
--	read_hpet_tsc(&hpet_start, &tsc_start);
-+	hpet_start = hpet_readl(HPET_COUNTER);
-+	rdtscl(tsc_start);
+ 	local_irq_save(flags);
+ 
+-	hpet_start = hpet_readl(HPET_COUNTER);
+-	rdtscl(tsc_start);
++	read_hpet_tsc(&hpet_start, &tsc_start);
  
  	do {
  		local_irq_disable();
--		read_hpet_tsc(&hpet_now, &tsc_now);
-+		hpet_now = hpet_readl(HPET_COUNTER);
-+		tsc_now = get_cycles_sync();
+-		hpet_now = hpet_readl(HPET_COUNTER);
+-		tsc_now = get_cycles_sync();
++		read_hpet_tsc(&hpet_now, &tsc_now);
  		local_irq_restore(flags);
  	} while ((tsc_now - tsc_start) < TICK_COUNT &&
- 		 (hpet_now - hpet_start) < TICK_COUNT);
+ 		(hpet_now - hpet_start) < TICK_COUNT);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
