@@ -1,78 +1,197 @@
 From: akpm@osdl.org
-Subject: - pci-mmconfig-only-map-whats-necessary.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 15:02:31 -0800
-Message-ID: <200701102302.l0AN2Vep010744@shell0.pdx.osdl.net>
+Subject: - paravirt-paravirt-cpu-hypercall-batching-mode.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:02:56 -0800
+Message-ID: <200701102302.l0AN2uit010777@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33311 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33378 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965245AbXAJXDR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:03:17 -0500
+	id S965250AbXAJXDd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:03:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: galibert@pobox.com, ak@suse.de, mm-commits@vger.kernel.org
+To: zach@vmware.com, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI MMConfig: Only map what's necessary.
+     paravirt: paravirt CPU hypercall batching mode
 has been removed from the -mm tree.  Its filename was
-     pci-mmconfig-only-map-whats-necessary.patch
+     paravirt-paravirt-cpu-hypercall-batching-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PCI MMConfig: Only map what's necessary.
-From: Olivier Galibert <galibert@pobox.com>
+Subject: paravirt: paravirt CPU hypercall batching mode
+From: Zachary Amsden <zach@vmware.com>
 
-The x86-64 mmconfig code always map a range of MMCONFIG_APER_MAX bytes, i.e. 
-256MB, whatever the number of accessible busses is.  Fix it, and add the end
-of the zone in the printk while we're at it.
+The VMI ROM has a mode where hypercalls can be queued and batched.  This turns
+out to be a significant win during context switch, but must be done at a
+specific point before side effects to CPU state are visible to subsequent
+instructions.  This is similar to the MMU batching hooks already provided. 
+The same hooks could be used by the Xen backend to implement a context switch
+multicall.
 
-Signed-off-by: Olivier Galibert <galibert@pobox.com>
+To explain a bit more about lazy modes in the paravirt patches, basically, the
+idea is that only one of lazy CPU or MMU mode can be active at any given time.
+ Lazy MMU mode is similar to this lazy CPU mode, and allows for batching of
+multiple PTE updates (say, inside a remap loop), but to avoid keeping some
+kind of state machine about when to flush cpu or mmu updates, we just allow
+one or the other to be active.  Although there is no real reason a more
+comprehensive scheme could not be implemented, there is also no demonstrated
+need for this extra complexity.
+
+Signed-off-by: Zachary Amsden <zach@vmware.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/pci/mmconfig.c |   12 +++++-------
- 1 files changed, 5 insertions(+), 7 deletions(-)
+ arch/i386/kernel/paravirt.c   |    1 +
+ arch/i386/kernel/process.c    |   25 +++++++++++++++++--------
+ include/asm-generic/pgtable.h |   13 +++++++++++++
+ include/asm-i386/paravirt.h   |   15 +++++++++++++++
+ kernel/sched.c                |    7 +++++++
+ 5 files changed, 53 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/pci/mmconfig.c~pci-mmconfig-only-map-whats-necessary arch/x86_64/pci/mmconfig.c
---- a/arch/x86_64/pci/mmconfig.c~pci-mmconfig-only-map-whats-necessary
-+++ a/arch/x86_64/pci/mmconfig.c
-@@ -13,10 +13,6 @@
+diff -puN arch/i386/kernel/paravirt.c~paravirt-paravirt-cpu-hypercall-batching-mode arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt-paravirt-cpu-hypercall-batching-mode
++++ a/arch/i386/kernel/paravirt.c
+@@ -545,6 +545,7 @@ struct paravirt_ops paravirt_ops = {
+ 	.apic_write_atomic = native_apic_write_atomic,
+ 	.apic_read = native_apic_read,
+ #endif
++	.set_lazy_mode = (void *)native_nop,
  
- #include "pci.h"
+ 	.flush_tlb_user = native_flush_tlb,
+ 	.flush_tlb_kernel = native_flush_tlb_global,
+diff -puN arch/i386/kernel/process.c~paravirt-paravirt-cpu-hypercall-batching-mode arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~paravirt-paravirt-cpu-hypercall-batching-mode
++++ a/arch/i386/kernel/process.c
+@@ -670,14 +670,6 @@ struct task_struct fastcall * __switch_t
+ 	load_TLS(next, cpu);
  
--/* aperture is up to 256MB but BIOS may reserve less */
--#define MMCONFIG_APER_MIN	(2 * 1024*1024)
--#define MMCONFIG_APER_MAX	(256 * 1024*1024)
+ 	/*
+-	 * Restore %gs if needed (which is common)
+-	 */
+-	if (prev->gs | next->gs)
+-		loadsegment(gs, next->gs);
 -
- /* Verify the first 16 busses. We assume that systems with more busses
-    get MCFG right. */
- #define PCI_MMCFG_MAX_CHECK_BUS 16
-@@ -143,17 +139,19 @@ int __init pci_mmcfg_arch_init(void)
- 	}
+-	write_pda(pcurrent, next_p);
+-
+-	/*
+ 	 * Now maybe handle debug registers and/or IO bitmaps
+ 	 */
+ 	if (unlikely((task_thread_info(next_p)->flags & _TIF_WORK_CTXSW)
+@@ -686,6 +678,15 @@ struct task_struct fastcall * __switch_t
  
- 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
-+		u32 size = (pci_mmcfg_config[0].end_bus_number - pci_mmcfg_config[0].start_bus_number + 1) << 20;
- 		pci_mmcfg_virt[i].cfg = &pci_mmcfg_config[i];
- 		pci_mmcfg_virt[i].virt = ioremap_nocache(pci_mmcfg_config[i].base_address,
--							 MMCONFIG_APER_MAX);
-+							 size);
- 		if (!pci_mmcfg_virt[i].virt) {
- 			printk(KERN_ERR "PCI: Cannot map mmconfig aperture for "
- 					"segment %d\n",
- 			       pci_mmcfg_config[i].pci_segment_group_number);
- 			return 0;
- 		}
--		printk(KERN_INFO "PCI: Using MMCONFIG at %x\n",
--		       pci_mmcfg_config[i].base_address);
-+		printk(KERN_INFO "PCI: Using MMCONFIG at %x-%x\n",
-+		       pci_mmcfg_config[i].base_address,
-+		       pci_mmcfg_config[i].base_address + size - 1);
- 	}
+ 	disable_tsc(prev_p, next_p);
  
- 	raw_pci_ops = &pci_mmcfg;
++	/*
++	 * Leave lazy mode, flushing any hypercalls made here.
++	 * This must be done before restoring TLS segments so
++	 * the GDT and LDT are properly updated, and must be
++	 * done before math_state_restore, so the TS bit is up
++	 * to date.
++	 */
++	arch_leave_lazy_cpu_mode();
++
+ 	/* If the task has used fpu the last 5 timeslices, just do a full
+ 	 * restore of the math state immediately to avoid the trap; the
+ 	 * chances of needing FPU soon are obviously high now
+@@ -693,6 +694,14 @@ struct task_struct fastcall * __switch_t
+ 	if (next_p->fpu_counter > 5)
+ 		math_state_restore();
+ 
++	/*
++	 * Restore %gs if needed (which is common)
++	 */
++	if (prev->gs | next->gs)
++		loadsegment(gs, next->gs);
++
++	write_pda(pcurrent, next_p);
++
+ 	return prev_p;
+ }
+ 
+diff -puN include/asm-generic/pgtable.h~paravirt-paravirt-cpu-hypercall-batching-mode include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~paravirt-paravirt-cpu-hypercall-batching-mode
++++ a/include/asm-generic/pgtable.h
+@@ -183,6 +183,19 @@ static inline void ptep_set_wrprotect(st
+ #endif
+ 
+ /*
++ * A facility to provide batching of the reload of page tables with the
++ * actual context switch code for paravirtualized guests.  By convention,
++ * only one of the lazy modes (CPU, MMU) should be active at any given
++ * time, entry should never be nested, and entry and exits should always
++ * be paired.  This is for sanity of maintaining and reasoning about the
++ * kernel code.
++ */
++#ifndef __HAVE_ARCH_ENTER_LAZY_CPU_MODE
++#define arch_enter_lazy_cpu_mode()	do {} while (0)
++#define arch_leave_lazy_cpu_mode()	do {} while (0)
++#endif
++
++/*
+  * When walking page tables, get the address of the next boundary,
+  * or the end address of the range if that comes earlier.  Although no
+  * vma end wraps to 0, rounded up __boundary may wrap to 0 throughout.
+diff -puN include/asm-i386/paravirt.h~paravirt-paravirt-cpu-hypercall-batching-mode include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt-paravirt-cpu-hypercall-batching-mode
++++ a/include/asm-i386/paravirt.h
+@@ -146,6 +146,8 @@ struct paravirt_ops
+ 	void (fastcall *pmd_clear)(pmd_t *pmdp);
+ #endif
+ 
++	void (fastcall *set_lazy_mode)(int mode);
++
+ 	/* These two are jmp to, not actually called. */
+ 	void (fastcall *irq_enable_sysexit)(void);
+ 	void (fastcall *iret)(void);
+@@ -386,6 +388,19 @@ static inline void pmd_clear(pmd_t *pmdp
+ }
+ #endif
+ 
++/* Lazy mode for batching updates / context switch */
++#define PARAVIRT_LAZY_NONE 0
++#define PARAVIRT_LAZY_MMU  1
++#define PARAVIRT_LAZY_CPU  2
++
++#define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
++#define arch_enter_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_CPU)
++#define arch_leave_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
++
++#define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
++#define arch_enter_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_MMU)
++#define arch_leave_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
++
+ /* These all sit in the .parainstructions section to tell us what to patch. */
+ struct paravirt_patch {
+ 	u8 *instr; 		/* original instructions */
+diff -puN kernel/sched.c~paravirt-paravirt-cpu-hypercall-batching-mode kernel/sched.c
+--- a/kernel/sched.c~paravirt-paravirt-cpu-hypercall-batching-mode
++++ a/kernel/sched.c
+@@ -1843,6 +1843,13 @@ context_switch(struct rq *rq, struct tas
+ 	struct mm_struct *mm = next->mm;
+ 	struct mm_struct *oldmm = prev->active_mm;
+ 
++	/*
++	 * For paravirt, this is coupled with an exit in switch_to to
++	 * combine the page table reload and the switch backend into
++	 * one hypercall.
++	 */
++	arch_enter_lazy_cpu_mode();
++
+ 	if (!mm) {
+ 		next->active_mm = oldmm;
+ 		atomic_inc(&oldmm->mm_count);
 _
 
-Patches currently in -mm which might be from galibert@pobox.com are
+Patches currently in -mm which might be from zach@vmware.com are
+
+vmi-versus-hrtimers.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+dynticks-i386-prepare-nmi-watchdog.patch
