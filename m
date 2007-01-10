@@ -1,260 +1,249 @@
 From: akpm@osdl.org
-Subject: - add-memcpy_uncached_read.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 15:02:39 -0800
-Message-ID: <200701102302.l0AN2dE1010757@shell0.pdx.osdl.net>
+Subject: - x86_64-improved-iommu-documentation.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:02:44 -0800
+Message-ID: <200701102302.l0AN2iGq010763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33264 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33253 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965241AbXAJXDG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:03:06 -0500
+	id S965239AbXAJXDE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:03:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bos@pathscale.com, ak@suse.de, bryan.osullivan@qlogic.com, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: K.Weiss@science-computing.de, ak@suse.de, knweiss@science-computing.de, muli@il.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add memcpy_uncached_read(): a memcpy that tries to reduce cache pressure
+     x86_64: improved iommu documentation
 has been removed from the -mm tree.  Its filename was
-     add-memcpy_uncached_read.patch
+     x86_64-improved-iommu-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add memcpy_uncached_read(): a memcpy that tries to reduce cache pressure
-From: "Bryan O'Sullivan" <bos@pathscale.com>
+Subject: x86_64: improved iommu documentation
+From: Karsten Weiss <K.Weiss@science-computing.de>
 
-This copy routine is memcpy-compatible, but on some architectures will use
-cache-bypassing loads to avoid bringing the source data into the cache.
+- add SWIOTLB config help text
+- mention Documentation/x86_64/boot-options.txt in
+  Documentation/kernel-parameters.txt
+- remove the duplication of the iommu kernel parameter documentation.
+- Better explanation of some of the iommu kernel parameter options.
+- "32MB<<order" instead of "32MB^order".
+- Mention the default "order" value.
+- list the four existing PCI-DMA mapping implementations of arch x86_64
+- group the iommu= option keywords by PCI-DMA mapping implementation.
+- Distinguish iommu= option keywords from number arguments.
+- Explain the meaning of DAC and SAC.
 
-One case where this is useful is when a device issues a DMA to a memory
-region, and the CPU must copy the DMAed data elsewhere before doing any work
-with it.  Since the source data is read-once, write-never from the CPU's
-perspective, caching the data at those addresses can only evict potentially
-useful data.
-
-We provide an x86_64 implementation that uses SSE non-temporal loads, and a
-generic version that falls back to plain memcpy.
-
-Implementors for other arches should not use cache-bypassing stores to the
-destination, as in most cases, the destination is accessed almost immediately
-after a copy finishes.
-
-[akpm@osdl.org: add module export]
-[akpm@osdl.org: remove an ARCH_HAS_foo]
-Signed-off-by: Bryan O'Sullivan <bryan.osullivan@qlogic.com>
+Signed-off-by: Karsten Weiss <knweiss@science-computing.de>
+Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/x8664_ksyms.c       |    2 
- arch/x86_64/lib/Makefile               |    3 
- arch/x86_64/lib/memcpy_uncached_read.S |  142 +++++++++++++++++++++++
- include/asm-x86_64/string.h            |    2 
- include/linux/string.h                 |    3 
- 5 files changed, 151 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt   |    3 
+ Documentation/x86_64/boot-options.txt |  107 ++++++++++++++++--------
+ arch/x86_64/Kconfig                   |   10 +-
+ arch/x86_64/kernel/pci-dma.c          |   28 ------
+ 4 files changed, 89 insertions(+), 59 deletions(-)
 
-diff -puN arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read arch/x86_64/kernel/x8664_ksyms.c
---- a/arch/x86_64/kernel/x8664_ksyms.c~add-memcpy_uncached_read
-+++ a/arch/x86_64/kernel/x8664_ksyms.c
-@@ -8,6 +8,7 @@
- #include <asm/processor.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
-+#include <asm/string.h>
+diff -puN Documentation/kernel-parameters.txt~x86_64-improved-iommu-documentation Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~x86_64-improved-iommu-documentation
++++ a/Documentation/kernel-parameters.txt
+@@ -105,6 +105,9 @@ loader, and have no meaning to the kerne
+ Do not modify the syntax of boot loader parameters without extreme
+ need or coordination with <Documentation/i386/boot.txt>.
  
- EXPORT_SYMBOL(kernel_thread);
- 
-@@ -53,6 +54,7 @@ extern void * __memcpy(void *,const void
- EXPORT_SYMBOL(memset);
- EXPORT_SYMBOL(memcpy);
- EXPORT_SYMBOL(__memcpy);
-+EXPORT_SYMBOL(memcpy_uncached_read);
- 
- EXPORT_SYMBOL(empty_zero_page);
- EXPORT_SYMBOL(init_level4_pgt);
-diff -puN arch/x86_64/lib/Makefile~add-memcpy_uncached_read arch/x86_64/lib/Makefile
---- a/arch/x86_64/lib/Makefile~add-memcpy_uncached_read
-+++ a/arch/x86_64/lib/Makefile
-@@ -9,4 +9,5 @@ obj-y := io.o iomap_copy.o
- lib-y := csum-partial.o csum-copy.o csum-wrappers.o delay.o \
- 	usercopy.o getuser.o putuser.o  \
- 	thunk.o clear_page.o copy_page.o bitstr.o bitops.o
--lib-y += memcpy.o memmove.o memset.o copy_user.o rwlock.o
-+lib-y += memcpy.o memmove.o memset.o copy_user.o rwlock.o \
-+	memcpy_uncached_read.o
-diff -puN /dev/null arch/x86_64/lib/memcpy_uncached_read.S
---- /dev/null
-+++ a/arch/x86_64/lib/memcpy_uncached_read.S
-@@ -0,0 +1,142 @@
-+/*
-+ * Copyright (c) 2006 QLogic Corporation.  All Rights Reserved.
-+ *
-+ * This file is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License
-+ * as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software Foundation,
-+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-+ */
++There are also arch-specific kernel-parameters not documented here.
++See for example <Documentation/x86_64/boot-options.txt>.
 +
+ Note that ALL kernel parameters listed below are CASE SENSITIVE, and that
+ a trailing = on the name of any parameter states that that parameter will
+ be entered as an environment variable, whereas its absence indicates that
+diff -puN Documentation/x86_64/boot-options.txt~x86_64-improved-iommu-documentation Documentation/x86_64/boot-options.txt
+--- a/Documentation/x86_64/boot-options.txt~x86_64-improved-iommu-documentation
++++ a/Documentation/x86_64/boot-options.txt
+@@ -176,40 +176,81 @@ PCI
+   pci=lastbus=NUMBER	       Scan upto NUMBER busses, no matter what the mptable says.
+   pci=noacpi		Don't use ACPI to set up PCI interrupt routing.
+ 
+-IOMMU
++IOMMU (input/output memory management unit)
+ 
+- iommu=[size][,noagp][,off][,force][,noforce][,leak][,memaper[=order]][,merge]
+-         [,forcesac][,fullflush][,nomerge][,noaperture][,calgary]
+-   size  set size of iommu (in bytes)
+-   noagp don't initialize the AGP driver and use full aperture.
+-   off   don't use the IOMMU
+-   leak  turn on simple iommu leak tracing (only when CONFIG_IOMMU_LEAK is on)
+-   memaper[=order] allocate an own aperture over RAM with size 32MB^order.
+-   noforce don't force IOMMU usage. Default.
+-   force  Force IOMMU.
+-   merge  Do SG merging. Implies force (experimental)
+-   nomerge Don't do SG merging.
+-   forcesac For SAC mode for masks <40bits  (experimental)
+-   fullflush Flush IOMMU on each allocation (default)
+-   nofullflush Don't use IOMMU fullflush
+-   allowed  overwrite iommu off workarounds for specific chipsets.
+-   soft	 Use software bounce buffering (default for Intel machines)
+-   noaperture Don't touch the aperture for AGP.
+-   allowdac Allow DMA >4GB
+-	    When off all DMA over >4GB is forced through an IOMMU or bounce
+-	    buffering.
+-   nodac    Forbid DMA >4GB
+-   panic    Always panic when IOMMU overflows
+-   calgary  Use the Calgary IOMMU if it is available
+-
+-  swiotlb=pages[,force]
+-
+-  pages  Prereserve that many 128K pages for the software IO bounce buffering.
+-  force  Force all IO through the software TLB.
+-
+-  calgary=[64k,128k,256k,512k,1M,2M,4M,8M]
+-  calgary=[translate_empty_slots]
+-  calgary=[disable=<PCI bus number>]
++ Currently four x86-64 PCI-DMA mapping implementations exist:
++
++   1. <arch/x86_64/kernel/pci-nommu.c>: use no hardware/software IOMMU at all
++      (e.g. because you have < 3 GB memory).
++      Kernel boot message: "PCI-DMA: Disabling IOMMU"
++
++   2. <arch/x86_64/kernel/pci-gart.c>: AMD GART based hardware IOMMU.
++      Kernel boot message: "PCI-DMA: using GART IOMMU"
++
++   3. <arch/x86_64/kernel/pci-swiotlb.c> : Software IOMMU implementation. Used
++      e.g. if there is no hardware IOMMU in the system and it is need because
++      you have >3GB memory or told the kernel to us it (iommu=soft))
++      Kernel boot message: "PCI-DMA: Using software bounce buffering
++      for IO (SWIOTLB)"
++
++   4. <arch/x86_64/pci-calgary.c> : IBM Calgary hardware IOMMU. Used in IBM
++      pSeries and xSeries servers. This hardware IOMMU supports DMA address
++      mapping with memory protection, etc.
++      Kernel boot message: "PCI-DMA: Using Calgary IOMMU"
++
++ iommu=[<size>][,noagp][,off][,force][,noforce][,leak[=<nr_of_leak_pages>]
++	[,memaper[=<order>]][,merge][,forcesac][,fullflush][,nomerge]
++	[,noaperture][,calgary]
++
++  General iommu options:
++    off                Don't initialize and use any kind of IOMMU.
++    noforce            Don't force hardware IOMMU usage when it is not needed.
++                       (default).
++    force              Force the use of the hardware IOMMU even when it is
++                       not actually needed (e.g. because < 3 GB memory).
++    soft               Use software bounce buffering (SWIOTLB) (default for
++                       Intel machines). This can be used to prevent the usage
++                       of an available hardware IOMMU.
++
++  iommu options only relevant to the AMD GART hardware IOMMU:
++    <size>             Set the size of the remapping area in bytes.
++    allowed            Overwrite iommu off workarounds for specific chipsets.
++    fullflush          Flush IOMMU on each allocation (default).
++    nofullflush        Don't use IOMMU fullflush.
++    leak               Turn on simple iommu leak tracing (only when
++                       CONFIG_IOMMU_LEAK is on). Default number of leak pages
++                       is 20.
++    memaper[=<order>]  Allocate an own aperture over RAM with size 32MB<<order.
++                       (default: order=1, i.e. 64MB)
++    merge              Do scather-gather (SG) merging. Implies "force"
++                       (experimental).
++    nomerge            Don't do scather-gather (SG) merging.
++    noaperture         Ask the IOMMU not to touch the aperture for AGP.
++    forcesac           Force single-address cycle (SAC) mode for masks <40bits
++                       (experimental).
++    noagp              Don't initialize the AGP driver and use full aperture.
++    allowdac           Allow double-address cycle (DAC) mode, i.e. DMA >4GB.
++                       DAC is used with 32-bit PCI to push a 64-bit address in
++                       two cycles. When off all DMA over >4GB is forced through
++                       an IOMMU or software bounce buffering.
++    nodac              Forbid DAC mode, i.e. DMA >4GB.
++    panic              Always panic when IOMMU overflows.
++    calgary            Use the Calgary IOMMU if it is available
++
++  iommu options only relevant to the software bounce buffering (SWIOTLB) IOMMU
++  implementation:
++    swiotlb=<pages>[,force]
++    <pages>            Prereserve that many 128K pages for the software IO
++                       bounce buffering.
++    force              Force all IO through the software TLB.
++
++  Settings for the IBM Calgary hardware IOMMU currently found in IBM
++  pSeries and xSeries machines:
++
++    calgary=[64k,128k,256k,512k,1M,2M,4M,8M]
++    calgary=[translate_empty_slots]
++    calgary=[disable=<PCI bus number>]
++    panic              Always panic when IOMMU overflows
+ 
+     64k,...,8M - Set the size of each PCI slot's translation table
+     when using the Calgary IOMMU. This is the size of the translation
+diff -puN arch/x86_64/Kconfig~x86_64-improved-iommu-documentation arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~x86_64-improved-iommu-documentation
++++ a/arch/x86_64/Kconfig
+@@ -454,8 +454,8 @@ config IOMMU
+ 	  on systems with more than 3GB. This is usually needed for USB,
+ 	  sound, many IDE/SATA chipsets and some other devices.
+ 	  Provides a driver for the AMD Athlon64/Opteron/Turion/Sempron GART
+-	  based IOMMU and a software bounce buffer based IOMMU used on Intel
+-	  systems and as fallback.
++	  based hardware IOMMU and a software bounce buffer based IOMMU used
++	  on Intel systems and as fallback.
+ 	  The code is only active when needed (enough memory and limited
+ 	  device) unless CONFIG_IOMMU_DEBUG or iommu=force is specified
+ 	  too.
+@@ -492,6 +492,12 @@ config CALGARY_IOMMU_ENABLED_BY_DEFAULT
+ # need this always selected by IOMMU for the VIA workaround
+ config SWIOTLB
+ 	bool
++	help
++	  Support for software bounce buffers used on x86-64 systems
++	  which don't have a hardware IOMMU (e.g. the current generation
++	  of Intel's x86-64 CPUs). Using this PCI devices which can only
++	  access 32-bits of memory can be used on systems with more than
++	  3 GB of memory. If unsure, say Y.
+ 
+ config X86_MCE
+ 	bool "Machine check support" if EMBEDDED
+diff -puN arch/x86_64/kernel/pci-dma.c~x86_64-improved-iommu-documentation arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86_64/kernel/pci-dma.c~x86_64-improved-iommu-documentation
++++ a/arch/x86_64/kernel/pci-dma.c
+@@ -223,30 +223,10 @@ int dma_set_mask(struct device *dev, u64
+ }
+ EXPORT_SYMBOL(dma_set_mask);
+ 
+-/* iommu=[size][,noagp][,off][,force][,noforce][,leak][,memaper[=order]][,merge]
+-         [,forcesac][,fullflush][,nomerge][,biomerge]
+-   size  set size of iommu (in bytes)
+-   noagp don't initialize the AGP driver and use full aperture.
+-   off   don't use the IOMMU
+-   leak  turn on simple iommu leak tracing (only when CONFIG_IOMMU_LEAK is on)
+-   memaper[=order] allocate an own aperture over RAM with size 32MB^order.
+-   noforce don't force IOMMU usage. Default.
+-   force  Force IOMMU.
+-   merge  Do lazy merging. This may improve performance on some block devices.
+-          Implies force (experimental)
+-   biomerge Do merging at the BIO layer. This is more efficient than merge,
+-            but should be only done with very big IOMMUs. Implies merge,force.
+-   nomerge Don't do SG merging.
+-   forcesac For SAC mode for masks <40bits  (experimental)
+-   fullflush Flush IOMMU on each allocation (default)
+-   nofullflush Don't use IOMMU fullflush
+-   allowed  overwrite iommu off workarounds for specific chipsets.
+-   soft	 Use software bounce buffering (default for Intel machines)
+-   noaperture Don't touch the aperture for AGP.
+-   allowdac Allow DMA >4GB
+-   nodac    Forbid DMA >4GB
+-   panic    Force panic when IOMMU overflows
+-*/
 +/*
-+ * memcpy_uncached_read - memcpy-compatible copy routine, using streaming loads
-+ * @dest: destination address
-+ * @src: source address (will not be cached)
-+ * @count: number of bytes to copy
-+ *
-+ * Use streaming loads and normal stores for a special-case copy where
-+ * we know we won't be reading the source again, but will be reading the
-+ * destination again soon.
++ * See <Documentation/x86_64/boot-options.txt> for the iommu kernel parameter
++ * documentation.
 + */
-+	.text
-+	.p2align 4,,15
-+	/* rdi  destination, rsi source, rdx count */
-+	.globl	memcpy_uncached_read
-+	.type	memcpy_uncached_read, @function
-+memcpy_uncached_read:
-+	movq	%rdi, %rax
-+.L5:
-+	cmpq	$15, %rdx
-+	ja	.L34
-+.L3:
-+	cmpl	$8, %edx	/* rdx is 0..15 */
-+	jbe	.L9
-+.L6:
-+	testb	$8, %dxl	/* rdx is 3,5,6,7,9..15 */
-+	je	.L13
-+	movq	(%rsi), %rcx
-+	addq	$8, %rsi
-+	movq	%rcx, (%rdi)
-+	addq	$8, %rdi
-+.L13:
-+	testb	$4, %dxl
-+	je	.L15
-+	movl	(%rsi), %ecx
-+	addq	$4, %rsi
-+	movl	%ecx, (%rdi)
-+	addq	$4, %rdi
-+.L15:
-+	testb	$2, %dxl
-+	je	.L17
-+	movzwl	(%rsi), %ecx
-+	addq	$2, %rsi
-+	movw	%cx, (%rdi)
-+	addq	$2, %rdi
-+.L17:
-+	testb	$1, %dxl
-+	je	.L33
-+.L1:
-+	movzbl	(%rsi), %ecx
-+	movb	%cl, (%rdi)
-+.L33:
-+	ret
-+.L34:
-+	cmpq	$63, %rdx	/* rdx is > 15 */
-+	ja	.L64
-+	movl	$16, %ecx	/* rdx is 16..63 */
-+.L25:
-+	movq	8(%rsi), %r8
-+	movq	(%rsi), %r9
-+	addq	%rcx, %rsi
-+	movq	%r8, 8(%rdi)
-+	movq	%r9, (%rdi)
-+	addq	%rcx, %rdi
-+	subq	%rcx, %rdx
-+	cmpl	%edx, %ecx	/* is rdx >= 16? */
-+	jbe	.L25
-+	jmp	.L3		/* rdx is 0..15 */
-+	.p2align 4,,7
-+.L64:
-+	movl	$64, %ecx
-+.L42:
-+	prefetchnta	128(%rsi)
-+	movq	(%rsi), %r8
-+	movq	8(%rsi), %r9
-+	movq	16(%rsi), %r10
-+	movq	24(%rsi), %r11
-+	subq	%rcx, %rdx
-+	movq	%r8, (%rdi)
-+	movq	32(%rsi), %r8
-+	movq	%r9, 8(%rdi)
-+	movq	40(%rsi), %r9
-+	movq	%r10, 16(%rdi)
-+	movq	48(%rsi), %r10
-+	movq	%r11, 24(%rdi)
-+	movq	56(%rsi), %r11
-+	addq	%rcx, %rsi
-+	movq	%r8, 32(%rdi)
-+	movq	%r9, 40(%rdi)
-+	movq	%r10, 48(%rdi)
-+	movq	%r11, 56(%rdi)
-+	addq	%rcx, %rdi
-+	cmpq	%rdx, %rcx	/* is rdx >= 64? */
-+	jbe	.L42
-+	sfence
-+	orl	%edx, %edx
-+	je	.L33
-+	jmp	.L5
-+.L9:
-+	jmp	*.L12(,%rdx,8)	/* rdx is 0..8 */
-+	.section	.rodata
-+	.align 8
-+	.align 4
-+.L12:
-+	.quad	.L33
-+	.quad	.L1
-+	.quad	.L2
-+	.quad	.L6
-+	.quad	.L4
-+	.quad	.L6
-+	.quad	.L6
-+	.quad	.L6
-+	.quad	.L8
-+	.text
-+.L2:
-+	movzwl	(%rsi), %ecx
-+	movw	%cx, (%rdi)
-+	ret
-+.L4:
-+	movl	(%rsi), %ecx
-+	movl	%ecx, (%rdi)
-+	ret
-+.L8:
-+	movq	(%rsi), %rcx
-+	movq	%rcx, (%rdi)
-+	ret
-diff -puN include/asm-x86_64/string.h~add-memcpy_uncached_read include/asm-x86_64/string.h
---- a/include/asm-x86_64/string.h~add-memcpy_uncached_read
-+++ a/include/asm-x86_64/string.h
-@@ -39,6 +39,8 @@ extern void *__memcpy(void *to, const vo
- 		 __ret = __builtin_memcpy((dst),(src),__len);	\
- 	   __ret; }) 
- 
-+extern void *memcpy_uncached_read(void *to, const void *from, size_t len);
-+#define memcpy_uncached_read memcpy_uncached_read
- 
- #define __HAVE_ARCH_MEMSET
- void *memset(void *s, int c, size_t n);
-diff -puN include/linux/string.h~add-memcpy_uncached_read include/linux/string.h
---- a/include/linux/string.h~add-memcpy_uncached_read
-+++ a/include/linux/string.h
-@@ -85,6 +85,9 @@ extern void * memset(void *,int,__kernel
- #ifndef __HAVE_ARCH_MEMCPY
- extern void * memcpy(void *,const void *,__kernel_size_t);
- #endif
-+#ifndef memcpy_uncached_read
-+#define memcpy_uncached_read(dest, src, count) memcpy((dest), (src), (count))
-+#endif
- #ifndef __HAVE_ARCH_MEMMOVE
- extern void * memmove(void *,const void *,__kernel_size_t);
- #endif
+ __init int iommu_setup(char *p)
+ {
+ 	iommu_merge = 1;
 _
 
-Patches currently in -mm which might be from bos@pathscale.com are
+Patches currently in -mm which might be from K.Weiss@science-computing.de are
