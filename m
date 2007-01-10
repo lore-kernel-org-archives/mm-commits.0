@@ -1,70 +1,162 @@
 From: akpm@osdl.org
-Subject: - convert-some-functions-to-__init-to-avoid-modpost-warnings.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 15:03:20 -0800
-Message-ID: <200701102303.l0AN3KhY010811@shell0.pdx.osdl.net>
+Subject: - i386-move-startup_32-in-texthead-section.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:03:22 -0800
+Message-ID: <200701102303.l0AN3Max010814@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33356 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33366 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965248AbXAJXDZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:03:25 -0500
+	id S965246AbXAJXD2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:03:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Convert some functions to __init to avoid MODPOST warnings
+     i386: move startup_32() in text.head section
 has been removed from the -mm tree.  Its filename was
-     convert-some-functions-to-__init-to-avoid-modpost-warnings.patch
+     i386-move-startup_32-in-texthead-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Convert some functions to __init to avoid MODPOST warnings
+Subject: i386: move startup_32() in text.head section
 From: Vivek Goyal <vgoyal@in.ibm.com>
 
-o Some functions which should have been in init sections as they are called
-  only once. Put them in init sections. Otherwise MODPOST generates warning
-  as these functions are placed in .text and they end up accessing something
-  in init sections.
+o Entry startup_32 was in .text section but it was accessing some init
+  data too and it prompts MODPOST to generate compilation warnings.
 
-WARNING: vmlinux - Section mismatch: reference to .init.text:migration_init
-from .text between 'do_pre_smp_initcalls' (at offset 0xc01000d1) and
-'run_init_process'
+WARNING: vmlinux - Section mismatch: reference to .init.data:boot_params from
+.text between '_text' (at offset 0xc0100029) and 'startup_32_smp'
+WARNING: vmlinux - Section mismatch: reference to .init.data:boot_params from
+.text between '_text' (at offset 0xc0100037) and 'startup_32_smp'
+WARNING: vmlinux - Section mismatch: reference to
+.init.data:init_pg_tables_end from .text between '_text' (at offset
+0xc0100099) and 'startup_32_smp'
+
+o Can't move startup_32 to .init.text as this entry point has to be at the
+  start of bzImage. Hence moved startup_32 to a new section .text.head and
+  instructed MODPOST to not to generate warnings if init data is being
+  accessed from .text.head section. This code has been audited.
+
+o SMP boot up code (startup_32_smp) can go into .init.text if CPU hotplug
+  is not supported. Otherwise it generates more warnings
+
+WARNING: vmlinux - Section mismatch: reference to .init.data:new_cpu_data from
+.text between 'checkCPUtype' (at offset 0xc0100126) and 'is486'
+WARNING: vmlinux - Section mismatch: reference to .init.data:new_cpu_data from
+.text between 'checkCPUtype' (at offset 0xc0100130) and 'is486'
 
 Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/setup.c |    2 +-
- init/main.c              |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/head.S        |   17 ++++++++++++++---
+ arch/i386/kernel/vmlinux.lds.S |    7 ++++++-
+ scripts/mod/modpost.c          |   10 +++++++++-
+ 3 files changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/setup.c~convert-some-functions-to-__init-to-avoid-modpost-warnings arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~convert-some-functions-to-__init-to-avoid-modpost-warnings
-+++ a/arch/i386/kernel/setup.c
-@@ -496,7 +496,7 @@ static void set_mca_bus(int x) { }
+diff -puN arch/i386/kernel/head.S~i386-move-startup_32-in-texthead-section arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~i386-move-startup_32-in-texthead-section
++++ a/arch/i386/kernel/head.S
+@@ -53,6 +53,7 @@
+  * any particular GDT layout, because we load our own as soon as we
+  * can.
+  */
++.section .text.head,"ax",@progbits
+ ENTRY(startup_32)
+ 
+ #ifdef CONFIG_PARAVIRT
+@@ -141,16 +142,25 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
+ 	jb 10b
+ 	movl %edi,(init_pg_tables_end - __PAGE_OFFSET)
+ 
+-#ifdef CONFIG_SMP
+ 	xorl %ebx,%ebx				/* This is the boot CPU (BSP) */
+ 	jmp 3f
+-
+ /*
+  * Non-boot CPU entry point; entered from trampoline.S
+  * We can't lgdt here, because lgdt itself uses a data segment, but
+  * we know the trampoline has already loaded the boot_gdt_table GDT
+  * for us.
++ *
++ * If cpu hotplug is not supported then this code can go in init section
++ * which will be freed later
+  */
++
++#ifdef CONFIG_HOTPLUG_CPU
++.section .text,"ax",@progbits
++#else
++.section .init.text,"ax",@progbits
++#endif
++
++#ifdef CONFIG_SMP
+ ENTRY(startup_32_smp)
+ 	cld
+ 	movl $(__BOOT_DS),%eax
+@@ -208,8 +218,8 @@ ENTRY(startup_32_smp)
+ 	xorl %ebx,%ebx
+ 	incl %ebx
+ 
+-3:
+ #endif /* CONFIG_SMP */
++3:
+ 
+ /*
+  * Enable paging
+@@ -492,6 +502,7 @@ ignore_int:
  #endif
+ 	iret
  
- /* Overridden in paravirt.c if CONFIG_PARAVIRT */
--char * __attribute__((weak)) memory_setup(void)
-+char * __init __attribute__((weak)) memory_setup(void)
++.section .text
+ #ifdef CONFIG_PARAVIRT
+ startup_paravirt:
+ 	cld
+diff -puN arch/i386/kernel/vmlinux.lds.S~i386-move-startup_32-in-texthead-section arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~i386-move-startup_32-in-texthead-section
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -37,9 +37,14 @@ SECTIONS
  {
- 	return machine_specific_memory_setup();
- }
-diff -puN init/main.c~convert-some-functions-to-__init-to-avoid-modpost-warnings init/main.c
---- a/init/main.c~convert-some-functions-to-__init-to-avoid-modpost-warnings
-+++ a/init/main.c
-@@ -703,7 +703,7 @@ static void __init do_basic_setup(void)
- 	do_initcalls();
- }
+   . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;
+   phys_startup_32 = startup_32 - LOAD_OFFSET;
++
++  .text.head : AT(ADDR(.text.head) - LOAD_OFFSET) {
++  	_text = .;			/* Text and read-only data */
++	*(.text.head)
++  } :text = 0x9090
++
+   /* read-only */
+   .text : AT(ADDR(.text) - LOAD_OFFSET) {
+-  	_text = .;			/* Text and read-only data */
+ 	*(.text)
+ 	SCHED_TEXT
+ 	LOCK_TEXT
+diff -puN scripts/mod/modpost.c~i386-move-startup_32-in-texthead-section scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~i386-move-startup_32-in-texthead-section
++++ a/scripts/mod/modpost.c
+@@ -623,11 +623,19 @@ static int secref_whitelist(const char *
+ 	if (f1 && f2)
+ 		return 1;
  
--static void do_pre_smp_initcalls(void)
-+static void __init do_pre_smp_initcalls(void)
- {
- 	extern int spawn_ksoftirqd(void);
- #ifdef CONFIG_SMP
+-	/* Whitelist all references from .pci_fixup section if vmlinux */
++	/* Whitelist all references from .pci_fixup section if vmlinux
++	 * Whitelist all refereces from .text.head to .init.data if vmlinux
++	 * Whitelist all refereces from .text.head to .init.text if vmlinux
++	 */
+ 	if (is_vmlinux(modname)) {
+ 		if ((strcmp(fromsec, ".pci_fixup") == 0) &&
+ 		    (strcmp(tosec, ".init.text") == 0))
+ 		return 1;
++
++		if ((strcmp(fromsec, ".text.head") == 0) &&
++			((strcmp(tosec, ".init.data") == 0) ||
++			(strcmp(tosec, ".init.text") == 0)))
++		return 1;
+ 	}
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from vgoyal@in.ibm.com are
