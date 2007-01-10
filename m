@@ -1,62 +1,121 @@
 From: akpm@osdl.org
-Subject: + git-s390-build-fix.patch added to -mm tree
-Date: Tue, 09 Jan 2007 16:31:39 -0800
-Message-ID: <200701100032.l0A0WAqQ019691@shell0.pdx.osdl.net>
+Subject: + fd_zero-build-fix.patch added to -mm tree
+Date: Tue, 09 Jan 2007 16:44:54 -0800
+Message-ID: <200701100045.l0A0jQPA019997@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58620 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59500 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932589AbXAJAcV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 9 Jan 2007 19:32:21 -0500
+	id S932552AbXAJAqm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 9 Jan 2007 19:46:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@osdl.org, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, jsipek@cs.sunysb.edu, paulus@samba.org, rth@twiddle.net, schwidefsky@de.ibm.com, tony.luck@intel.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     git-s390 build fix
+     FD_ZERO build fix
 has been added to the -mm tree.  Its filename is
-     git-s390-build-fix.patch
+     fd_zero-build-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-s390 build fix
+Subject: FD_ZERO build fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/s390/lib/uaccess_mvcos.c:174: error: 'futex_atomic_op' undeclared here (not in a function)
-arch/s390/lib/uaccess_mvcos.c:175: error: 'futex_atomic_cmpxchg' undeclared here (not in a function)
+unionfs managed to hit this on s390.  Some architectures use __ptr_t in their
+FD_ZERO implementation.  We don't have a __ptr_t.  Switch them over to plain
+old void*.
 
-This might be correct:
-
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/s390/lib/uaccess_mvcos.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-alpha/posix_types.h   |    2 +-
+ include/asm-ia64/posix_types.h    |    2 +-
+ include/asm-powerpc/posix_types.h |    2 +-
+ include/asm-s390/posix_types.h    |    2 +-
+ include/asm-xtensa/posix_types.h  |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/s390/lib/uaccess_mvcos.c~git-s390-build-fix arch/s390/lib/uaccess_mvcos.c
---- a/arch/s390/lib/uaccess_mvcos.c~git-s390-build-fix
-+++ a/arch/s390/lib/uaccess_mvcos.c
-@@ -171,6 +171,6 @@ struct uaccess_ops uaccess_mvcos = {
- 	.clear_user = clear_user_mvcos,
- 	.strnlen_user = strnlen_user_std,
- 	.strncpy_from_user = strncpy_from_user_std,
--	.futex_atomic_op = futex_atomic_op,
--	.futex_atomic_cmpxchg = futex_atomic_cmpxchg,
-+	.futex_atomic_op = futex_atomic_op_std,
-+	.futex_atomic_cmpxchg = futex_atomic_cmpxchg_std,
- };
+diff -puN include/asm-alpha/posix_types.h~fd_zero-build-fix include/asm-alpha/posix_types.h
+--- a/include/asm-alpha/posix_types.h~fd_zero-build-fix
++++ a/include/asm-alpha/posix_types.h
+@@ -49,7 +49,7 @@ typedef unsigned int	__kernel_old_dev_t;
+ #define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+ #define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
+ #define	__FD_ZERO(set)	\
+-  ((void) memset ((__ptr_t) (set), 0, sizeof (__kernel_fd_set)))
++  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
+ 
+ #else /* __GNUC__ */
+ 
+diff -puN include/asm-powerpc/posix_types.h~fd_zero-build-fix include/asm-powerpc/posix_types.h
+--- a/include/asm-powerpc/posix_types.h~fd_zero-build-fix
++++ a/include/asm-powerpc/posix_types.h
+@@ -60,7 +60,7 @@ typedef struct {
+ #define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+ #define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
+ #define	__FD_ZERO(set)	\
+-  ((void) memset ((__ptr_t) (set), 0, sizeof (__kernel_fd_set)))
++  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
+ 
+ #else /* __GNUC__ */
+ 
+diff -puN include/asm-xtensa/posix_types.h~fd_zero-build-fix include/asm-xtensa/posix_types.h
+--- a/include/asm-xtensa/posix_types.h~fd_zero-build-fix
++++ a/include/asm-xtensa/posix_types.h
+@@ -60,7 +60,7 @@ typedef struct {
+ #define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+ #define	__FD_ISSET(d, set)	((set)->fds_bits[__FDELT(d)] & __FDMASK(d))
+ #define	__FD_ZERO(set)	\
+-  ((void) memset ((__ptr_t) (set), 0, sizeof (__kernel_fd_set)))
++  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
+ 
+ #else /* __GNUC__ */
+ 
+diff -puN include/asm-s390/posix_types.h~fd_zero-build-fix include/asm-s390/posix_types.h
+--- a/include/asm-s390/posix_types.h~fd_zero-build-fix
++++ a/include/asm-s390/posix_types.h
+@@ -104,7 +104,7 @@ static inline int __FD_ISSET(unsigned lo
+ 
+ #undef  __FD_ZERO
+ #define __FD_ZERO(fdsetp) \
+-	((void) memset ((__ptr_t) (fdsetp), 0, sizeof (__kernel_fd_set)))
++	((void) memset ((void *) (fdsetp), 0, sizeof (__kernel_fd_set)))
+ 
+ #endif     /* __KERNEL__ */
+ 
+diff -puN include/asm-ia64/posix_types.h~fd_zero-build-fix include/asm-ia64/posix_types.h
+--- a/include/asm-ia64/posix_types.h~fd_zero-build-fix
++++ a/include/asm-ia64/posix_types.h
+@@ -54,7 +54,7 @@ typedef unsigned int	__kernel_old_dev_t;
+ #define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+ #define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
+ #define	__FD_ZERO(set)	\
+-  ((void) memset ((__ptr_t) (set), 0, sizeof (__kernel_fd_set)))
++  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
+ 
+ #  else /* !__GNUC__ */
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
 nfs-fix-race-in-nfs_release_page-tidy.patch
+fd_zero-build-fix.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
@@ -90,6 +149,7 @@ bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patc
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
 r8169-warning-fixes.patch
+git-s390-build-fix.patch
 git-scsi-rc-fixes.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
@@ -209,4 +269,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-s390-build-fix.patch
