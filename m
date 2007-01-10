@@ -1,70 +1,69 @@
 From: akpm@osdl.org
-Subject: - i386-fix-memory-hotplug-related-modpost-generated-warning.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 15:03:26 -0800
-Message-ID: <200701102303.l0AN3Qh1010822@shell0.pdx.osdl.net>
+Subject: - paravirt-iopl-handling-for-paravirt-guests.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:02:59 -0800
+Message-ID: <200701102302.l0AN2xPJ010781@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33373 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33395 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965249AbXAJXDb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:03:31 -0500
+	id S965253AbXAJXDh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:03:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: zach@vmware.com, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: Fix memory hotplug related MODPOST generated warning
+     paravirt: iOPL handling for paravirt guests
 has been removed from the -mm tree.  Its filename was
-     i386-fix-memory-hotplug-related-modpost-generated-warning.patch
+     paravirt-iopl-handling-for-paravirt-guests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: Fix memory hotplug related MODPOST generated warning
-From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: paravirt: iOPL handling for paravirt guests
+From: Zachary Amsden <zach@vmware.com>
 
-o Fix modpost generated warning.
+I found a clever way to make the extra IOPL switching invisible to
+non-paravirt compiles - since kernel_rpl is statically defined to be zero
+there, and only non-zero rpl kernel have a problem restoring IOPL, as popf
+does not restore IOPL flags unless run at CPL-0.
 
-WARNING: vmlinux - Section mismatch: reference to .init.text: from .text
-between 'add_one_highpage_hotplug' (at offset 0xc0113d3f) and 'online_page'
-
-Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/mm/init.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/process.c |    9 +++++++++
+ 1 files changed, 9 insertions(+)
 
-diff -puN arch/i386/mm/init.c~i386-fix-memory-hotplug-related-modpost-generated-warning arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~i386-fix-memory-hotplug-related-modpost-generated-warning
-+++ a/arch/i386/mm/init.c
-@@ -285,7 +285,7 @@ void __init add_one_highpage_init(struct
- 		SetPageReserved(page);
- }
+diff -puN arch/i386/kernel/process.c~paravirt-iopl-handling-for-paravirt-guests arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~paravirt-iopl-handling-for-paravirt-guests
++++ a/arch/i386/kernel/process.c
+@@ -670,6 +670,15 @@ struct task_struct fastcall * __switch_t
+ 	load_TLS(next, cpu);
  
--static int add_one_highpage_hotplug(struct page *page, unsigned long pfn)
-+static int __meminit add_one_highpage_hotplug(struct page *page, unsigned long pfn)
- {
- 	free_new_highpage(page);
- 	totalram_pages++;
-@@ -302,7 +302,7 @@ static int add_one_highpage_hotplug(stru
-  * has been added dynamically that would be
-  * onlined here is in HIGHMEM
-  */
--void online_page(struct page *page)
-+void __meminit online_page(struct page *page)
- {
- 	ClearPageReserved(page);
- 	add_one_highpage_hotplug(page, page_to_pfn(page));
+ 	/*
++	 * Restore IOPL if needed.  In normal use, the flags restore
++	 * in the switch assembly will handle this.  But if the kernel
++	 * is running virtualized at a non-zero CPL, the popf will
++	 * not restore flags, so it must be done in a separate step.
++	 */
++	if (get_kernel_rpl() && unlikely(prev->iopl != next->iopl))
++		set_iopl_mask(next->iopl);
++
++	/*
+ 	 * Now maybe handle debug registers and/or IO bitmaps
+ 	 */
+ 	if (unlikely((task_thread_info(next_p)->flags & _TIF_WORK_CTXSW)
 _
 
-Patches currently in -mm which might be from vgoyal@in.ibm.com are
+Patches currently in -mm which might be from zach@vmware.com are
 
-change-cpu_up-and-co-from-__devinit-to-__cpuinit.patch
-kdump-documentation-update-for-2620.patch
-pci-quirks-modpost-warning-fix.patch
-i386-sched_clock-using-init-data-tsc_disable-fix.patch
-make-noirqdebug_setup-function-non-init-to-fix-modpost-warning.patch
-scsi-megaraid_mmmbox-init-fix-for-kdump.patch
-clockevents-i386-drivers.patch
+vmi-versus-hrtimers.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+dynticks-i386-prepare-nmi-watchdog.patch
