@@ -1,86 +1,288 @@
 From: akpm@osdl.org
-Subject: - revert-i386-fix-the-verify_quirk_intel_irqbalance.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 14:43:42 -0800
-Message-ID: <200701102243.l0AMhg2F010165@shell0.pdx.osdl.net>
+Subject: - revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 14:43:51 -0800
+Message-ID: <200701102243.l0AMhpqa010174@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59951 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59953 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965168AbXAJWod (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 17:44:33 -0500
+	id S965171AbXAJWoe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 17:44:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ak@suse.de, mingo@elte.hu, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, ak@suse.de, mingo@elte.hu, shaohua.li@intel.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert i386-fix-the-verify_quirk_intel_irqbalance
+     revert x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
 has been removed from the -mm tree.  Its filename was
-     revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+     revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert i386-fix-the-verify_quirk_intel_irqbalance
+Subject: revert x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
 From: Andrew Morton <akpm@osdl.org>
 
-This is unneeded with Ingo's genapic rework.
+Obsoleted by Ingo's genapic stuff.
 
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/quirks.c |   33 ++++-----------------------------
- 1 files changed, 4 insertions(+), 29 deletions(-)
+ arch/i386/kernel/acpi/earlyquirk.c |   21 ------------
+ arch/i386/kernel/quirks.c          |   46 ++++++---------------------
+ arch/i386/kernel/smpboot.c         |    7 ----
+ arch/x86_64/kernel/early-quirks.c  |   13 -------
+ arch/x86_64/kernel/smpboot.c       |    8 ----
+ include/asm-i386/genapic.h         |    2 -
+ include/asm-i386/irq.h             |    2 -
+ include/asm-x86_64/proto.h         |    1 
+ 8 files changed, 12 insertions(+), 88 deletions(-)
 
-diff -puN arch/i386/kernel/quirks.c~revert-i386-fix-the-verify_quirk_intel_irqbalance arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~revert-i386-fix-the-verify_quirk_intel_irqbalance
-+++ a/arch/i386/kernel/quirks.c
-@@ -10,38 +10,13 @@
- #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
- static void __devinit verify_quirk_intel_irqbalance(struct pci_dev *dev)
- {
--	u8 config, rev;
--	u32 word;
--
--	/* BIOS may enable hardware IRQ balancing for
--	 * E7520/E7320/E7525(revision ID 0x9 and below)
--	 * based platforms.
--	 * For those platforms, make sure that the genapic is set to 'flat'
--	 */
--	pci_read_config_byte(dev, PCI_CLASS_REVISION, &rev);
--	if (rev > 0x9)
--		return;
--
--	/* enable access to config space*/
--	pci_read_config_byte(dev, 0xf4, &config);
--	pci_write_config_byte(dev, 0xf4, config|0x2);
--
--	/* read xTPR register */
--	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
--
--	if (!(word & (1 << 13))) {
- #ifdef CONFIG_X86_64
--		if (genapic !=  &apic_flat)
--			panic("APIC mode must be flat on this system\n");
-+	if (genapic !=  &apic_flat)
-+		panic("APIC mode must be flat on this system\n");
- #elif defined(CONFIG_X86_GENERICARCH)
--		if (genapic != &apic_default)
--			panic("APIC mode must be default(flat) on this system. Use apic=default\n");
-+	if (genapic != &apic_default)
-+		panic("APIC mode must be default(flat) on this system. Use apic=default\n");
- #endif
--	}
--
--	/* put back the original value for config space*/
--	if (!(config & 0x2))
--		pci_write_config_byte(dev, 0xf4, config);
+diff -puN arch/i386/kernel/acpi/earlyquirk.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 arch/i386/kernel/acpi/earlyquirk.c
+--- a/arch/i386/kernel/acpi/earlyquirk.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/arch/i386/kernel/acpi/earlyquirk.c
+@@ -10,7 +10,6 @@
+ #include <asm/pci-direct.h>
+ #include <asm/acpi.h>
+ #include <asm/apic.h>
+-#include <asm/irq.h>
+ 
+ #ifdef CONFIG_ACPI
+ 
+@@ -50,24 +49,6 @@ static int __init check_bridge(int vendo
+ 	return 0;
  }
  
- void __init quirk_intel_irqbalance(void)
+-static void check_intel(void)
+-{
+-	u16 vendor, device;
+-
+-	vendor = read_pci_config_16(0, 0, 0, PCI_VENDOR_ID);
+-
+-	if (vendor != PCI_VENDOR_ID_INTEL)
+-		return;
+-
+-	device = read_pci_config_16(0, 0, 0, PCI_DEVICE_ID);
+-#ifdef CONFIG_SMP
+-	if (device == PCI_DEVICE_ID_INTEL_E7320_MCH ||
+-	    device == PCI_DEVICE_ID_INTEL_E7520_MCH ||
+-	    device == PCI_DEVICE_ID_INTEL_E7525_MCH)
+-		quirk_intel_irqbalance();
+-#endif
+-}
+-
+ void __init check_acpi_pci(void)
+ {
+ 	int num, slot, func;
+@@ -79,8 +60,6 @@ void __init check_acpi_pci(void)
+ 	if (!early_pci_allowed())
+ 		return;
+ 
+-	check_intel();
+-
+ 	/* Poor man's PCI discovery */
+ 	for (num = 0; num < 32; num++) {
+ 		for (slot = 0; slot < 32; slot++) {
+diff -puN arch/i386/kernel/quirks.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/arch/i386/kernel/quirks.c
+@@ -3,23 +3,10 @@
+  */
+ #include <linux/pci.h>
+ #include <linux/irq.h>
+-#include <asm/pci-direct.h>
+-#include <asm/genapic.h>
+-#include <asm/cpu.h>
+ 
+ #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
+-static void __devinit verify_quirk_intel_irqbalance(struct pci_dev *dev)
+-{
+-#ifdef CONFIG_X86_64
+-	if (genapic !=  &apic_flat)
+-		panic("APIC mode must be flat on this system\n");
+-#elif defined(CONFIG_X86_GENERICARCH)
+-	if (genapic != &apic_default)
+-		panic("APIC mode must be default(flat) on this system. Use apic=default\n");
+-#endif
+-}
+ 
+-void __init quirk_intel_irqbalance(void)
++static void __devinit quirk_intel_irqbalance(struct pci_dev *dev)
+ {
+ 	u8 config, rev;
+ 	u32 word;
+@@ -29,18 +16,18 @@ void __init quirk_intel_irqbalance(void)
+ 	 * based platforms.
+ 	 * Disable SW irqbalance/affinity on those platforms.
+ 	 */
+-	rev = read_pci_config_byte(0, 0, 0, PCI_CLASS_REVISION);
++	pci_read_config_byte(dev, PCI_CLASS_REVISION, &rev);
+ 	if (rev > 0x9)
+ 		return;
+ 
+ 	printk(KERN_INFO "Intel E7520/7320/7525 detected.");
+ 
+-	/* enable access to config space */
+-	config = read_pci_config_byte(0, 0, 0, 0xf4);
+-	write_pci_config_byte(0, 0, 0, 0xf4, config|0x2);
++	/* enable access to config space*/
++	pci_read_config_byte(dev, 0xf4, &config);
++	pci_write_config_byte(dev, 0xf4, config|0x2);
+ 
+ 	/* read xTPR register */
+-	word = read_pci_config_16(0, 0, 0x40, 0x4c);
++	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
+ 
+ 	if (!(word & (1 << 13))) {
+ 		printk(KERN_INFO "Disabling irq balancing and affinity\n");
+@@ -51,24 +38,13 @@ void __init quirk_intel_irqbalance(void)
+ #ifdef CONFIG_PROC_FS
+ 		no_irq_affinity = 1;
+ #endif
+-#ifdef CONFIG_HOTPLUG_CPU
+-		printk(KERN_INFO "Disabling cpu hotplug control\n");
+-		enable_cpu_hotplug = 0;
+-#endif
+-#ifdef CONFIG_X86_64
+-		/* force the genapic selection to flat mode so that
+-		 * interrupts can be redirected to more than one CPU.
+-		 */
+-		genapic_force = &apic_flat;
+-#endif
+ 	}
+ 
+-	/* put back the original value for config space */
++	/* put back the original value for config space*/
+ 	if (!(config & 0x2))
+-		write_pci_config_byte(0, 0, 0, 0xf4, config);
++		pci_write_config_byte(dev, 0xf4, config);
+ }
+-DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,   PCI_DEVICE_ID_INTEL_E7320_MCH,  verify_quirk_intel_irqbalance);
+-DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,   PCI_DEVICE_ID_INTEL_E7525_MCH,  verify_quirk_intel_irqbalance);
+-DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,   PCI_DEVICE_ID_INTEL_E7520_MCH,  verify_quirk_intel_irqbalance);
+-
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7320_MCH,	quirk_intel_irqbalance);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7525_MCH,	quirk_intel_irqbalance);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7520_MCH,	quirk_intel_irqbalance);
+ #endif
+diff -puN arch/i386/kernel/smpboot.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/arch/i386/kernel/smpboot.c
+@@ -58,7 +58,6 @@
+ #include <asm/arch_hooks.h>
+ #include <asm/nmi.h>
+ #include <asm/pda.h>
+-#include <asm/genapic.h>
+ 
+ #include <mach_apic.h>
+ #include <mach_wakecpu.h>
+@@ -1463,12 +1462,6 @@ int __devinit __cpu_up(unsigned int cpu)
+ 	cpu_set(cpu, smp_commenced_mask);
+ 	while (!cpu_isset(cpu, cpu_online_map))
+ 		cpu_relax();
+-
+-#ifdef CONFIG_X86_GENERICARCH
+-	if (num_online_cpus() > 8 && genapic == &apic_default)
+-		panic("Default flat APIC routing can't be used with > 8 cpus\n");
+-#endif
+-
+ 	return 0;
+ }
+ 
+diff -puN arch/x86_64/kernel/early-quirks.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 arch/x86_64/kernel/early-quirks.c
+--- a/arch/x86_64/kernel/early-quirks.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/arch/x86_64/kernel/early-quirks.c
+@@ -71,18 +71,6 @@ static void ati_bugs(void)
+ {
+ }
+ 
+-static void intel_bugs(void)
+-{
+-	u16 device = read_pci_config_16(0, 0, 0, PCI_DEVICE_ID);
+-
+-#ifdef CONFIG_SMP
+-	if (device == PCI_DEVICE_ID_INTEL_E7320_MCH ||
+-	    device == PCI_DEVICE_ID_INTEL_E7520_MCH ||
+-	    device == PCI_DEVICE_ID_INTEL_E7525_MCH)
+-		quirk_intel_irqbalance();
+-#endif
+-}
+-
+ struct chipset {
+ 	u16 vendor;
+ 	void (*f)(void);
+@@ -92,7 +80,6 @@ static struct chipset early_qrk[] = {
+ 	{ PCI_VENDOR_ID_NVIDIA, nvidia_bugs },
+ 	{ PCI_VENDOR_ID_VIA, via_bugs },
+ 	{ PCI_VENDOR_ID_ATI, ati_bugs },
+-	{ PCI_VENDOR_ID_INTEL, intel_bugs},
+ 	{}
+ };
+ 
+diff -puN arch/x86_64/kernel/smpboot.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -60,7 +60,6 @@
+ #include <asm/irq.h>
+ #include <asm/hw_irq.h>
+ #include <asm/numa.h>
+-#include <asm/genapic.h>
+ 
+ /* Number of siblings per CPU package */
+ int smp_num_siblings = 1;
+@@ -1170,13 +1169,6 @@ int __cpuinit __cpu_up(unsigned int cpu)
+ 
+ 	while (!cpu_isset(cpu, cpu_online_map))
+ 		cpu_relax();
+-
+-	if (num_online_cpus() > 8 && genapic == &apic_flat) {
+-		printk(KERN_WARNING
+-		       "flat APIC routing can't be used with > 8 cpus\n");
+-		BUG();
+-	}
+-
+ 	err = 0;
+ 
+ 	return err;
+diff -puN include/asm-i386/genapic.h~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 include/asm-i386/genapic.h
+--- a/include/asm-i386/genapic.h~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/include/asm-i386/genapic.h
+@@ -122,6 +122,6 @@ struct genapic { 
+ 	APICFUNC(phys_pkg_id) \
+ 	}
+ 
+-extern struct genapic *genapic, apic_default;
++extern struct genapic *genapic;
+ 
+ #endif
+diff -puN include/asm-i386/irq.h~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 include/asm-i386/irq.h
+--- a/include/asm-i386/irq.h~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/include/asm-i386/irq.h
+@@ -37,8 +37,6 @@ static __inline__ int irq_canonicalize(i
+ extern int irqbalance_disable(char *str);
+ #endif
+ 
+-extern void quirk_intel_irqbalance(void);
+-
+ #ifdef CONFIG_HOTPLUG_CPU
+ extern void fixup_irqs(cpumask_t map);
+ #endif
+diff -puN include/asm-x86_64/proto.h~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525 include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525
++++ a/include/asm-x86_64/proto.h
+@@ -87,7 +87,6 @@ extern void syscall32_cpu_init(void);
+ extern void setup_node_bootmem(int nodeid, unsigned long start, unsigned long end);
+ 
+ extern void early_quirks(void);
+-extern void quirk_intel_irqbalance(void);
+ extern void check_efer(void);
+ 
+ extern int unhandled_signal(struct task_struct *tsk, int sig);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -124,8 +326,6 @@ scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-block-fixup.patch
 git-block-atomicity-fix.patch
 nokia-e70-is-an-unusual-device.patch
-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
-revert-x86_64-mm-add-genapic_force.patch
 revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
