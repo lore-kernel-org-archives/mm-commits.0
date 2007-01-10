@@ -1,87 +1,49 @@
 From: akpm@osdl.org
-Subject: + reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch added to -mm tree
-Date: Wed, 10 Jan 2007 15:00:53 -0800
-Message-ID: <200701102300.l0AN0rTN010700@shell0.pdx.osdl.net>
+Subject: - git-alsa-patch_realtek-build-fix.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 15:02:00 -0800
+Message-ID: <200701102302.l0AN20d7010706@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33042 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33055 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965227AbXAJXCA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 18:02:00 -0500
+	id S965168AbXAJXCL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 18:02:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+To: akpm@osdl.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
-has been added to the -mm tree.  Its filename is
-     reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+     git-alsa: patch_realtek build fix
+has been removed from the -mm tree.  Its filename was
+     git-alsa-patch_realtek-build-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
+Subject: git-alsa: patch_realtek build fix
 From: Andrew Morton <akpm@osdl.org>
 
-Put it back in the right place.
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/hpet.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ sound/pci/hda/patch_realtek.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/hpet.c~reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration
-+++ a/arch/x86_64/kernel/hpet.c
-@@ -152,6 +152,24 @@ int hpet_reenable(void)
-  */
+diff -puN sound/pci/hda/patch_realtek.c~git-alsa-patch_realtek-build-fix sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~git-alsa-patch_realtek-build-fix
++++ a/sound/pci/hda/patch_realtek.c
+@@ -7589,7 +7589,7 @@ static const char *alc861_models[ALC861_
+ };
  
- #define TICK_COUNT 100000000
-+#define TICK_MIN   5000
-+
-+/*
-+ * Some platforms take periodic SMI interrupts with 5ms duration. Make sure none
-+ * occurs between the reads of the hpet & TSC.
-+ */
-+static void __init read_hpet_tsc(int *hpet, int *tsc)
-+{
-+	int tsc1, tsc2, hpet1;
-+
-+	do {
-+		tsc1 = get_cycles_sync();
-+		hpet1 = hpet_readl(HPET_COUNTER);
-+		tsc2 = get_cycles_sync();
-+	} while (tsc2 - tsc1 > TICK_MIN);
-+	*hpet = hpet1;
-+	*tsc = tsc2;
-+}
- 
- unsigned int __init hpet_calibrate_tsc(void)
- {
-@@ -161,13 +179,11 @@ unsigned int __init hpet_calibrate_tsc(v
- 
- 	local_irq_save(flags);
- 
--	hpet_start = hpet_readl(HPET_COUNTER);
--	rdtscl(tsc_start);
-+	read_hpet_tsc(&hpet_start, &tsc_start);
- 
- 	do {
- 		local_irq_disable();
--		hpet_now = hpet_readl(HPET_COUNTER);
--		tsc_now = get_cycles_sync();
-+		read_hpet_tsc(&hpet_now, &tsc_now);
- 		local_irq_restore(flags);
- 	} while ((tsc_now - tsc_start) < TICK_COUNT &&
- 		(hpet_now - hpet_start) < TICK_COUNT);
+ static struct snd_pci_quirk alc861_cfg_tbl[] = {
+-	SND_PCI_QUIRK(0x1043, 0x1205, "ASUS W7J", ALC861_3ST},
++	SND_PCI_QUIRK(0x1043, 0x1205, "ASUS W7J", ALC861_3ST),
+ 	SND_PCI_QUIRK(0x1043, 0x1335, "ASUS F2/3", ALC861_ASUS_LAPTOP),
+ 	SND_PCI_QUIRK(0x1043, 0x1338, "ASUS F2/3", ALC861_ASUS_LAPTOP),
+ 	SND_PCI_QUIRK(0x1043, 0x1393, "ASUS", ALC861_ASUS),
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
