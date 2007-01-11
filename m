@@ -1,166 +1,65 @@
 From: akpm@osdl.org
-Subject: + reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch added to -mm tree
-Date: Wed, 10 Jan 2007 17:30:37 -0800
-Message-ID: <200701110130.l0B1Ub8w013745@shell0.pdx.osdl.net>
+Subject: - pci-quirks-modpost-warning-fix.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 23:06:27 -0800
+Message-ID: <200701110706.l0B76RLJ018983@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44240 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37209 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030189AbXAKBd1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 20:33:27 -0500
+	id S965311AbXAKHHe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 02:07:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: vs@namesys.com, jeffm@suse.com, mason@suse.com
+To: vgoyal@in.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     resierfs: avoid tail packing if an inode was ever mmapped
-has been added to the -mm tree.  Its filename is
-     reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch
+     pci quirks MODPOST warning fix
+has been removed from the -mm tree.  Its filename was
+     pci-quirks-modpost-warning-fix.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: resierfs: avoid tail packing if an inode was ever mmapped
-From: Vladimir Saveliev <vs@namesys.com>
+Subject: pci quirks MODPOST warning fix
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
-This patch fixes a confusion reiserfs has for a long time.
+o MODPOST generates warnings for i386 if kernel is compiled with
+  CONFIG_RELOCATABLE=y
 
-On release file operation reiserfs used to try to pack file data stored in
-last incomplete page of some files into metadata blocks.  After packing the
-page got cleared with clear_page_dirty.  It did not take into account that
-the page may be mmaped into other process's address space.  Recent
-replacement for clear_page_dirty cancel_dirty_page found the confusion with
-sanity check that page has to be not mapped.
+WARNING: vmlinux - Section mismatch: reference to .init.data: from .text between 'asus_hides_smbus_lpc_ich6' (at offset 0xc0217d58) and 'quirk_cardbus_legacy'
+WARNING: vmlinux - Section mismatch: reference to .init.data: from .text between 'asus_hides_smbus_lpc' (at offset 0xc0217fd9) and 'pci_match_id'
 
-The patch fixes the confusion by making reiserfs avoid tail packing if an
-inode was ever mmapped.  reiserfs_mmap and reiserfs_file_release are
-serialized with mutex in reiserfs specific inode.  reiserfs_mmap locks the
-mutex and sets a bit in reiserfs specific inode flags. 
-reiserfs_file_release checks the bit having the mutex locked.  If bit is
-set - tail packing is avoided.  This eliminates a possibility that mmapped
-page gets cancel_page_dirty-ed.
+o Two quirk functions which are non __init, are accessing data which is
+  of type __init.
 
-Signed-off-by: Vladimir Saveliev <vs@namesys.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <mason@suse.com>
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiserfs/file.c            |   20 +++++++++++++++++++-
- fs/reiserfs/inode.c           |    2 ++
- include/linux/reiserfs_fs_i.h |    2 ++
- 3 files changed, 23 insertions(+), 1 deletion(-)
+ drivers/pci/quirks.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/file.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
-+++ a/fs/reiserfs/file.c
-@@ -48,6 +48,11 @@ static int reiserfs_file_release(struct 
- 	}
+diff -puN drivers/pci/quirks.c~pci-quirks-modpost-warning-fix drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-quirks-modpost-warning-fix
++++ a/drivers/pci/quirks.c
+@@ -955,7 +955,7 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_V
+  * becomes necessary to do this tweak in two steps -- I've chosen the Host
+  * bridge as trigger.
+  */
+-static int __initdata asus_hides_smbus;
++static int asus_hides_smbus;
  
- 	mutex_lock(&inode->i_mutex);
-+
-+	mutex_lock(&(REISERFS_I(inode)->i_mmap));
-+	if (REISERFS_I(inode)->i_flags & i_ever_mapped)
-+		REISERFS_I(inode)->i_flags &= ~i_pack_on_close_mask;
-+
- 	reiserfs_write_lock(inode->i_sb);
- 	/* freeing preallocation only involves relogging blocks that
- 	 * are already in the current transaction.  preallocation gets
-@@ -100,11 +105,24 @@ static int reiserfs_file_release(struct 
- 		err = reiserfs_truncate_file(inode, 0);
- 	}
-       out:
-+	mutex_unlock(&(REISERFS_I(inode)->i_mmap));
- 	mutex_unlock(&inode->i_mutex);
- 	reiserfs_write_unlock(inode->i_sb);
- 	return err;
- }
- 
-+static int reiserfs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct inode *inode;
-+
-+	inode = file->f_path.dentry->d_inode;
-+	mutex_lock(&(REISERFS_I(inode)->i_mmap));
-+	REISERFS_I(inode)->i_flags |= i_ever_mapped;
-+	mutex_unlock(&(REISERFS_I(inode)->i_mmap));
-+
-+	return generic_file_mmap(file, vma);
-+}
-+
- static void reiserfs_vfs_truncate_file(struct inode *inode)
+ static void __init asus_hides_smbus_hostbridge(struct pci_dev *dev)
  {
- 	reiserfs_truncate_file(inode, 1);
-@@ -1527,7 +1545,7 @@ const struct file_operations reiserfs_fi
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl = reiserfs_compat_ioctl,
- #endif
--	.mmap = generic_file_mmap,
-+	.mmap = reiserfs_file_mmap,
- 	.open = generic_file_open,
- 	.release = reiserfs_file_release,
- 	.fsync = reiserfs_sync_file,
-diff -puN fs/reiserfs/inode.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
-+++ a/fs/reiserfs/inode.c
-@@ -1125,6 +1125,7 @@ static void init_inode(struct inode *ino
- 	REISERFS_I(inode)->i_prealloc_count = 0;
- 	REISERFS_I(inode)->i_trans_id = 0;
- 	REISERFS_I(inode)->i_jl = NULL;
-+	mutex_init(&(REISERFS_I(inode)->i_mmap));
- 	reiserfs_init_acl_access(inode);
- 	reiserfs_init_acl_default(inode);
- 	reiserfs_init_xattr_rwsem(inode);
-@@ -1832,6 +1833,7 @@ int reiserfs_new_inode(struct reiserfs_t
- 	REISERFS_I(inode)->i_attrs =
- 	    REISERFS_I(dir)->i_attrs & REISERFS_INHERIT_MASK;
- 	sd_attrs_to_i_attrs(REISERFS_I(inode)->i_attrs, inode);
-+	mutex_init(&(REISERFS_I(inode)->i_mmap));
- 	reiserfs_init_acl_access(inode);
- 	reiserfs_init_acl_default(inode);
- 	reiserfs_init_xattr_rwsem(inode);
-diff -puN include/linux/reiserfs_fs_i.h~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped include/linux/reiserfs_fs_i.h
---- a/include/linux/reiserfs_fs_i.h~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
-+++ a/include/linux/reiserfs_fs_i.h
-@@ -25,6 +25,7 @@ typedef enum {
- 	i_link_saved_truncate_mask = 0x0020,
- 	i_has_xattr_dir = 0x0040,
- 	i_data_log = 0x0080,
-+	i_ever_mapped = 0x0100
- } reiserfs_inode_flags;
- 
- struct reiserfs_inode_info {
-@@ -52,6 +53,7 @@ struct reiserfs_inode_info {
- 	 ** flushed */
- 	unsigned long i_trans_id;
- 	struct reiserfs_journal_list *i_jl;
-+	struct mutex i_mmap;
- #ifdef CONFIG_REISERFS_FS_POSIX_ACL
- 	struct posix_acl *i_acl_access;
- 	struct posix_acl *i_acl_default;
 _
 
-Patches currently in -mm which might be from vs@namesys.com are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
 
-reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch
-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-fix-trivial-tyops-which-were-hard-to-hit.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-bug-fixes.patch
-reiser4-fix-gcc-ws-compains.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-vs-streamline-generic_file_-interfaces-and-filemap.patch
-reiser4-rename-generic_sounding_globalspatch.patch
-reiser4-possible-cleanups-2.patch
-reiser4-temp-fix.patch
-fs-reiser4-more-possible-cleanups.patch
-reiser4-use-null-for-pointers.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
+origin.patch
+change-cpu_up-and-co-from-__devinit-to-__cpuinit.patch
+kdump-documentation-update-for-2620.patch
+i386-sched_clock-using-init-data-tsc_disable-fix.patch
+scsi-megaraid_mmmbox-init-fix-for-kdump.patch
+clockevents-i386-drivers.patch
