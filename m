@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fsaio-enable-asynchronous-wait-page-and-lock-page.patch added to -mm tree
-Date: Wed, 10 Jan 2007 23:21:26 -0800
-Message-ID: <200701110721.l0B7LQR8019302@shell0.pdx.osdl.net>
+Subject: + fsaio-aio-o_sync-filesystem-write.patch added to -mm tree
+Date: Wed, 10 Jan 2007 23:21:30 -0800
+Message-ID: <200701110721.l0B7LUXb019308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38180 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38191 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965317AbXAKHV6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 02:21:58 -0500
+	id S965319AbXAKHWG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 02:22:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,224 +15,214 @@ Cc: suparna@in.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     fsaio: enable asynchronous wait page and lock page
+     fsaio: AIO O_SYNC filesystem write
 has been added to the -mm tree.  Its filename is
-     fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+     fsaio-aio-o_sync-filesystem-write.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio: enable asynchronous wait page and lock page
+Subject: fsaio: AIO O_SYNC filesystem write
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-Define low-level page wait and lock page routines which take a wait queue
-entry pointer as an additional parameter and return status (which may be
-non-zero when the wait queue parameter signifies an asynchronous wait,
-typically during AIO).
+AIO support for O_SYNC buffered writes, built over O_SYNC-speedup.  It uses
+the tagged radix tree lookups to writeout just the pages pertaining to this
+request, and retries instead of blocking for writeback to complete on the same
+range.  All the writeout is issued at the time of io submission, and there is
+a check to make sure that retries skip over straight to the
+wait_on_page_writeback_range.
 
-Synchronous IO waits become a special case where the wait queue parameter is
-the running task's default io wait context.  Asynchronous IO waits happen when
-the wait queue parameter is the io wait context of a kiocb.  Code paths which
-choose to execute synchronous or asynchronous behaviour depending on the
-called context specify the current io wait context (which points to sync or
-async context as the case may be) as the wait parameter.  
+Limitations: Extending file writes or hole overwrites with O_SYNC may still
+block because we have yet to convert generic_osync_inode to be asynchronous. 
+For non O_SYNC writes, writeout happens in the background and so typically
+appears async to the caller except for memory throttling and non-block aligned
+writes involving read-modify-write.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/pagemap.h |   36 ++++++++++++++++++++++++++++--------
- include/linux/sched.h   |    1 +
- kernel/sched.c          |   14 ++++++++++++++
- mm/filemap.c            |   36 ++++++++++++++++++++++++------------
- 4 files changed, 67 insertions(+), 20 deletions(-)
+ include/linux/fs.h |   13 ++++++++-
+ mm/filemap.c       |   59 +++++++++++++++++++++++++++++--------------
+ 2 files changed, 52 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/pagemap.h
---- a/include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/include/linux/pagemap.h
-@@ -144,24 +144,31 @@ static inline pgoff_t linear_page_index(
- 	return pgoff >> (PAGE_CACHE_SHIFT - PAGE_SHIFT);
- }
+diff -puN include/linux/fs.h~fsaio-aio-o_sync-filesystem-write include/linux/fs.h
+--- a/include/linux/fs.h~fsaio-aio-o_sync-filesystem-write
++++ a/include/linux/fs.h
+@@ -280,6 +280,7 @@ extern int dir_notify_enable;
+ #include <linux/prio_tree.h>
+ #include <linux/init.h>
+ #include <linux/pid.h>
++#include <linux/sched.h>
+ #include <linux/mutex.h>
  
--extern void FASTCALL(lock_page_blocking(struct page *page));
-+extern int FASTCALL(lock_page_blocking(struct page *page, wait_queue_t *wait));
- extern void FASTCALL(unlock_page(struct page *page));
- 
- /*
-  * lock_page may only be called if we have the page's inode pinned.
-  */
--static inline void lock_page(struct page *page)
-+static inline int lock_page_async(struct page *page, wait_queue_t *wait)
- {
- 	might_sleep();
- 	if (TestSetPageLocked(page))
--		lock_page_blocking(page);
-+		return lock_page_blocking(page, wait);
-+	return 0;
+ #include <asm/atomic.h>
+@@ -1595,8 +1596,16 @@ extern int filemap_fdatawait(struct addr
+ extern int filemap_write_and_wait(struct address_space *mapping);
+ extern int filemap_write_and_wait_range(struct address_space *mapping,
+ 				        loff_t lstart, loff_t lend);
+-extern int wait_on_page_writeback_range(struct address_space *mapping,
+-				pgoff_t start, pgoff_t end);
++extern int __wait_on_page_writeback_range(struct address_space *mapping,
++				pgoff_t start, pgoff_t end, wait_queue_t *wait);
++
++static inline int wait_on_page_writeback_range(struct address_space *mapping,
++				pgoff_t start, pgoff_t end)
++{
++	return __wait_on_page_writeback_range(mapping, start, end,
++		&current->__wait.wait);
 +}
 +
-+static inline void lock_page(struct page *page)
-+{
-+	lock_page_async(page, &current->__wait.wait);
- }
+ extern int __filemap_fdatawrite_range(struct address_space *mapping,
+ 				loff_t start, loff_t end, int sync_mode);
  
- /*
-  * This is exported only for wait_on_page_locked/wait_on_page_writeback.
-  * Never use this directly!
+diff -puN mm/filemap.c~fsaio-aio-o_sync-filesystem-write mm/filemap.c
+--- a/mm/filemap.c~fsaio-aio-o_sync-filesystem-write
++++ a/mm/filemap.c
+@@ -209,10 +209,11 @@ EXPORT_SYMBOL(filemap_flush);
+  * @end:	ending page index
+  *
+  * Wait for writeback to complete against pages indexed by start->end
+- * inclusive
++ * inclusive. In AIO context, this may queue an async notification
++ * and retry callback and return, instead of blocking the caller.
   */
--extern void FASTCALL(wait_on_page_bit(struct page *page, int bit_nr));
-+extern int FASTCALL(wait_on_page_bit(struct page *page, int bit_nr,
-+			wait_queue_t *wait));
- 
- /* 
-  * Wait for a page to be unlocked.
-@@ -170,19 +177,32 @@ extern void FASTCALL(wait_on_page_bit(st
-  * ie with increased "page->count" so that the page won't
-  * go away during the wait..
-  */
--static inline void wait_on_page_locked(struct page *page)
-+static inline int __wait_on_page_locked(struct page *page, wait_queue_t *wait)
+-int wait_on_page_writeback_range(struct address_space *mapping,
+-				pgoff_t start, pgoff_t end)
++int __wait_on_page_writeback_range(struct address_space *mapping,
++				pgoff_t start, pgoff_t end, wait_queue_t *wait)
  {
- 	if (PageLocked(page))
--		wait_on_page_bit(page, PG_locked);
-+		return wait_on_page_bit(page, PG_locked, wait);
-+	return 0;
-+}
-+
-+static inline void wait_on_page_locked(struct page *page)
-+{
-+	__wait_on_page_locked(page, &current->__wait.wait);
- }
+ 	struct pagevec pvec;
+ 	int nr_pages;
+@@ -224,20 +225,20 @@ int wait_on_page_writeback_range(struct 
  
- /* 
-  * Wait for a page to complete writeback
-  */
--static inline void wait_on_page_writeback(struct page *page)
-+static inline int __wait_on_page_writeback(struct page *page,
-+					wait_queue_t *wait)
+ 	pagevec_init(&pvec, 0);
+ 	index = start;
+-	while ((index <= end) &&
++	while (!ret && (index <= end) &&
+ 			(nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
+ 			PAGECACHE_TAG_WRITEBACK,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1)) != 0) {
+ 		unsigned i;
+ 
+-		for (i = 0; i < nr_pages; i++) {
++		for (i = 0; !ret && (i < nr_pages); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+ 			/* until radix tree lookup accepts end_index */
+ 			if (page->index > end)
+ 				continue;
+ 
+-			wait_on_page_writeback(page);
++			ret = __wait_on_page_writeback(page, wait);
+ 			if (PageError(page))
+ 				ret = -EIO;
+ 		}
+@@ -273,18 +274,26 @@ int sync_page_range(struct inode *inode,
  {
- 	if (PageWriteback(page))
--		wait_on_page_bit(page, PG_writeback);
-+		return wait_on_page_bit(page, PG_writeback, wait);
-+	return 0;
-+}
+ 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
+ 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
+-	int ret;
++	int ret = 0;
+ 
+ 	if (!mapping_cap_writeback_dirty(mapping) || !count)
+ 		return 0;
++	/* Already issued writeouts for this iocb ? */
++	if (unlikely(aio_restarted())) {
++		goto do_wait; /* just need to check if done */
++	}
+ 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
+-	if (ret == 0) {
 +
-+static inline void wait_on_page_writeback(struct page *page)
-+{
-+	__wait_on_page_writeback(page, &current->__wait.wait);
- }
- 
- extern void end_page_writeback(struct page *page);
-diff -puN include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/sched.h
---- a/include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/include/linux/sched.h
-@@ -216,6 +216,7 @@ extern void show_stack(struct task_struc
- 
- void io_schedule(void);
- long io_schedule_timeout(long timeout);
-+int io_wait_schedule(wait_queue_t *wait);
- 
- extern void cpu_init (void);
- extern void trap_init(void);
-diff -puN kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page kernel/sched.c
---- a/kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/kernel/sched.c
-@@ -4754,6 +4754,20 @@ long __sched io_schedule_timeout(long ti
++	if (ret >= 0) {
+ 		mutex_lock(&inode->i_mutex);
+ 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
+ 		mutex_unlock(&inode->i_mutex);
+ 	}
+-	if (ret == 0)
+-		ret = wait_on_page_writeback_range(mapping, start, end);
++do_wait:
++	if (ret >= 0) {
++		ret = __wait_on_page_writeback_range(mapping, start, end,
++			current->io_wait);
++	}
  	return ret;
  }
- 
-+/*
-+ * Sleep only if the wait context passed is not async,
-+ * otherwise return so that a retry can be issued later.
-+ */
-+int __sched io_wait_schedule(wait_queue_t *wait)
-+{
-+	if (!is_sync_wait(wait))
-+		return -EIOCBRETRY;
-+	io_schedule();
-+	return 0;
-+}
-+
-+EXPORT_SYMBOL(io_wait_schedule);
-+
- /**
-  * sys_sched_get_priority_max - return maximum RT priority.
-  * @policy: scheduling class.
-diff -puN mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page mm/filemap.c
---- a/mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/mm/filemap.c
-@@ -135,8 +135,7 @@ void remove_from_page_cache(struct page 
- 
- static int sleep_on_page(void *word, wait_queue_t *wait)
+ EXPORT_SYMBOL(sync_page_range);
+@@ -305,15 +314,22 @@ int sync_page_range_nolock(struct inode 
  {
--	io_schedule();
--	return 0;
-+	return io_wait_schedule(wait);
- }
+ 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
+ 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
+-	int ret;
++	int ret = 0;
  
- /**
-@@ -470,13 +469,17 @@ static inline void wake_up_page(struct p
- 	__wake_up_bit(page_waitqueue(page), &page->flags, bit);
- }
- 
--void fastcall wait_on_page_bit(struct page *page, int bit_nr)
-+int fastcall wait_on_page_bit(struct page *page, int bit_nr,
-+					wait_queue_t *wait)
- {
--	DEFINE_WAIT_BIT(wait, &page->flags, bit_nr);
--
--	if (test_bit(bit_nr, &page->flags))
--		__wait_on_bit(page_waitqueue(page), &wait, sleep_on_page,
-+	if (test_bit(bit_nr, &page->flags)) {
-+		struct wait_bit_queue *wait_bit
-+			= container_of(wait, struct wait_bit_queue, wait);
-+		init_wait_bit_key(wait_bit, &page->flags, bit_nr);
-+		return __wait_on_bit(page_waitqueue(page), wait_bit, sleep_on_page,
- 							TASK_UNINTERRUPTIBLE);
+ 	if (!mapping_cap_writeback_dirty(mapping) || !count)
+ 		return 0;
++	/* Already issued writeouts for this iocb ? */
++	if (unlikely(aio_restarted())) {
++		goto do_wait; /* just need to check if done */
 +	}
-+	return 0;
+ 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
+-	if (ret == 0)
++	if (ret >= 0)
+ 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
+-	if (ret == 0)
+-		ret = wait_on_page_writeback_range(mapping, start, end);
++do_wait:
++	if (ret >= 0) {
++		ret = __wait_on_page_writeback_range(mapping, start, end,
++			current->io_wait);
++	}
+ 	return ret;
  }
- EXPORT_SYMBOL(wait_on_page_bit);
+ EXPORT_SYMBOL(sync_page_range_nolock);
+@@ -2177,7 +2193,7 @@ zero_length_segment:
+ 	 */
+ 	if (likely(status >= 0)) {
+ 		if (unlikely((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
+-			if (!a_ops->writepage || !is_sync_kiocb(iocb))
++			if (!a_ops->writepage)
+ 				status = generic_osync_inode(inode, mapping,
+ 						OSYNC_METADATA|OSYNC_DATA);
+ 		}
+@@ -2229,7 +2245,10 @@ __generic_file_aio_write_nolock(struct k
+ 		ocount -= iv->iov_len;	/* This segment is no good */
+ 		break;
+ 	}
+-
++	if (unlikely(aio_restarted())) {
++		/* nothing to transfer, may just need to sync data */
++		return ocount;
++	}
+ 	count = ocount;
+ 	pos = *ppos;
  
-@@ -520,14 +523,23 @@ void end_page_writeback(struct page *pag
- EXPORT_SYMBOL(end_page_writeback);
+@@ -2329,8 +2348,10 @@ ssize_t generic_file_aio_write_nolock(st
+ 		ssize_t err;
  
- /**
-- * lock_page_blocking - get a lock on the page, assuming we need to sleep to get it
-+ * lock_page_blocking: get a lock on the page, assuming we need to wait to get it
-  * @page: the page to lock
-+ * @wait: wait queue entry to notify when lock is available; if this is a
-+ * synchronous wait queue entry then the routine blocks until the lock is
-+ * obtained.
-+ * The wait queue entry is expected to be embedded in a wait bit structure.
-+ *
-+ * Returns 0 if the lock has been acquired, -EIOCBRETRY if an async wakeup
-+ * has been queued for activation when the lock will be available.
-  */
--void fastcall lock_page_blocking(struct page *page)
-+int fastcall lock_page_blocking(struct page *page, wait_queue_t *wait)
- {
--	DEFINE_WAIT_BIT(wait, &page->flags, PG_locked);
-+	struct wait_bit_queue *wait_bit
-+		= container_of(wait, struct wait_bit_queue, wait);
- 
--	__wait_on_bit_lock(page_waitqueue(page), &wait, sleep_on_page,
-+	init_wait_bit_key(wait_bit, &page->flags, PG_locked);
-+	return __wait_on_bit_lock(page_waitqueue(page), wait_bit, sleep_on_page,
- 							TASK_UNINTERRUPTIBLE);
+ 		err = sync_page_range_nolock(inode, mapping, pos, ret);
+-		if (err < 0)
++		if (err < 0) {
+ 			ret = err;
++			iocb->ki_pos = pos;
++		}
+ 	}
+ 	return ret;
  }
- EXPORT_SYMBOL(lock_page_blocking);
-@@ -595,7 +607,7 @@ repeat:
- 		page_cache_get(page);
- 		if (TestSetPageLocked(page)) {
- 			read_unlock_irq(&mapping->tree_lock);
--			lock_page_blocking(page);
-+			lock_page_blocking(page, &current->__wait.wait);
- 			read_lock_irq(&mapping->tree_lock);
+@@ -2355,8 +2376,10 @@ ssize_t generic_file_aio_write(struct ki
+ 		ssize_t err;
  
- 			/* Has the page been truncated while we slept? */
+ 		err = sync_page_range(inode, mapping, pos, ret);
+-		if (err < 0)
++		if (err < 0) {
+ 			ret = err;
++			iocb->ki_pos = pos;
++		}
+ 	}
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
