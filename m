@@ -1,55 +1,53 @@
 From: akpm@osdl.org
-Subject: - nfs-fix-race-in-nfs_release_page-tidy.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 23:08:18 -0800
-Message-ID: <200701110708.l0B78IGf019011@shell0.pdx.osdl.net>
+Subject: - kvm-add-vm-exit-profiling-fix.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 23:08:07 -0800
+Message-ID: <200701110708.l0B787UU019008@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37250 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37264 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965314AbXAKHI0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 02:08:26 -0500
+	id S965315AbXAKHIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 02:08:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: mingo@elte.hu, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs-fix-race-in-nfs_release_page-tidy
+     kvm-add-vm-exit-profiling fix
 has been removed from the -mm tree.  Its filename was
-     nfs-fix-race-in-nfs_release_page-tidy.patch
+     kvm-add-vm-exit-profiling-fix.patch
 
-This patch was dropped because it was folded into nfs-fix-race-in-nfs_release_page.patch
+This patch was dropped because it was folded into kvm-add-vm-exit-profiling.patch
 
 ------------------------------------------------------
-Subject: nfs-fix-race-in-nfs_release_page-tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: kvm-add-vm-exit-profiling fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/truncate.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/profile.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/truncate.c~nfs-fix-race-in-nfs_release_page-tidy mm/truncate.c
---- a/mm/truncate.c~nfs-fix-race-in-nfs_release_page-tidy
-+++ a/mm/truncate.c
-@@ -341,8 +341,7 @@ failed:
- 	return 0;
+diff -puN kernel/profile.c~kvm-add-vm-exit-profiling-fix kernel/profile.c
+--- a/kernel/profile.c~kvm-add-vm-exit-profiling-fix
++++ a/kernel/profile.c
+@@ -331,6 +331,7 @@ out:
+ 	local_irq_restore(flags);
+ 	put_cpu();
  }
++EXPORT_SYMBOL_GPL(profile_hits);
  
--static int
--do_launder_page(struct address_space *mapping, struct page *page)
-+static int do_launder_page(struct address_space *mapping, struct page *page)
- {
- 	if (!PageDirty(page))
- 		return 0;
+ static int __devinit profile_cpu_callback(struct notifier_block *info,
+ 					unsigned long action, void *__cpu)
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-origin.patch
-nfs-fix-race-in-nfs_release_page.patch
-nfs-fix-race-in-nfs_release_page-tidy.patch
-fd_zero-build-fix.patch
+sched-tasks-cannot-run-on-cpus-onlined-after-boot.patch
+i386-sched_clock-using-init-data-tsc_disable-fix.patch
+kvm-add-vm-exit-profiling.patch
+kvm-add-vm-exit-profiling-fix.patch
+revert-bd_mount_mutex-back-to-a-semaphore.patch
