@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fsaio-lock_page_blocking.patch added to -mm tree
-Date: Wed, 10 Jan 2007 17:06:30 -0800
-Message-ID: <200701110106.l0B16Usb013306@shell0.pdx.osdl.net>
+Subject: + fsaio-init-wait-bit-key.patch added to -mm tree
+Date: Wed, 10 Jan 2007 17:06:32 -0800
+Message-ID: <200701110106.l0B16WMQ013309@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42702 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42691 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750973AbXAKBIA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 20:08:00 -0500
+	id S1750992AbXAKBHs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 20:07:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,87 +15,96 @@ Cc: suparna@in.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     fsaio: lock_page_blocking()
+     fsaio: init wait bit key
 has been added to the -mm tree.  Its filename is
-     fsaio-lock_page_blocking.patch
+     fsaio-init-wait-bit-key.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio: lock_page_blocking()
+Subject: fsaio: init wait bit key
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-In order to allow for interruptible and asynchronous versions of lock_page in
-conjunction with the wait_on_bit changes, we need to define low-level lock
-page routines which take an additional argument, i.e a wait queue entry and
-may return non-zero status, e.g -EINTR, -EIOCBRETRY, -EWOULDBLOCK etc.  This
-patch renames __lock_page to lock_page_blocking, so that it can be later
-modified to denote a version which takes a wait queue parameter.
+init_wait_bit_key() initializes the key field in an already allocated wait bit
+structure, useful for async wait bit support.  Also separate out the wait bit
+test to a common routine which can be used by different kinds of wakeup
+callbacks.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/pagemap.h |    4 ++--
- mm/filemap.c            |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/wait.h |   26 ++++++++++++++++++++++++++
+ kernel/wait.c        |   11 ++---------
+ 2 files changed, 28 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/pagemap.h~fsaio-lock_page_blocking include/linux/pagemap.h
---- a/include/linux/pagemap.h~fsaio-lock_page_blocking
-+++ a/include/linux/pagemap.h
-@@ -144,7 +144,7 @@ static inline pgoff_t linear_page_index(
- 	return pgoff >> (PAGE_CACHE_SHIFT - PAGE_SHIFT);
+diff -puN include/linux/wait.h~fsaio-init-wait-bit-key include/linux/wait.h
+--- a/include/linux/wait.h~fsaio-init-wait-bit-key
++++ a/include/linux/wait.h
+@@ -108,6 +108,17 @@ static inline int waitqueue_active(wait_
+ 	return !list_empty(&q->task_list);
  }
  
--extern void FASTCALL(__lock_page(struct page *page));
-+extern void FASTCALL(lock_page_blocking(struct page *page));
- extern void FASTCALL(unlock_page(struct page *page));
- 
++static inline int test_wait_bit_key(wait_queue_t *wait,
++				struct wait_bit_key *key)
++{
++	struct wait_bit_queue *wait_bit
++		= container_of(wait, struct wait_bit_queue, wait);
++
++	return (wait_bit->key.flags == key->flags &&
++			wait_bit->key.bit_nr == key->bit_nr &&
++			!test_bit(key->bit_nr, key->flags));
++}
++
  /*
-@@ -154,7 +154,7 @@ static inline void lock_page(struct page
- {
- 	might_sleep();
- 	if (TestSetPageLocked(page))
--		__lock_page(page);
-+		lock_page_blocking(page);
- }
+  * Used to distinguish between sync and async io wait context:
+  * sync i/o typically specifies a NULL wait queue entry or a wait
+@@ -416,6 +427,21 @@ int wake_bit_function(wait_queue_t *wait
+ 		INIT_LIST_HEAD(&(wait)->task_list);			\
+ 	} while (0)
  
- /*
-diff -puN mm/filemap.c~fsaio-lock_page_blocking mm/filemap.c
---- a/mm/filemap.c~fsaio-lock_page_blocking
-+++ a/mm/filemap.c
-@@ -520,17 +520,17 @@ void end_page_writeback(struct page *pag
- EXPORT_SYMBOL(end_page_writeback);
- 
++static inline void init_wait_bit_key(struct wait_bit_queue *waitbit,
++					void *word, int bit)
++{
++	waitbit->key.flags = word;
++	waitbit->key.bit_nr = bit;
++}
++
++static inline void init_wait_bit_task(struct wait_bit_queue *waitbit,
++					struct task_struct *tsk)
++{
++	waitbit->wait.private = tsk;
++	waitbit->wait.func = wake_bit_function;
++	INIT_LIST_HEAD(&waitbit->wait.task_list);
++}
++
  /**
-- * __lock_page - get a lock on the page, assuming we need to sleep to get it
-+ * lock_page_blocking - get a lock on the page, assuming we need to sleep to get it
-  * @page: the page to lock
-  */
--void fastcall __lock_page(struct page *page)
-+void fastcall lock_page_blocking(struct page *page)
+  * wait_on_bit - wait for a bit to be cleared
+  * @word: the word being waited on, a kernel virtual address
+diff -puN kernel/wait.c~fsaio-init-wait-bit-key kernel/wait.c
+--- a/kernel/wait.c~fsaio-init-wait-bit-key
++++ a/kernel/wait.c
+@@ -139,16 +139,9 @@ EXPORT_SYMBOL(autoremove_wake_function);
+ 
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
  {
- 	DEFINE_WAIT_BIT(wait, &page->flags, PG_locked);
- 
- 	__wait_on_bit_lock(page_waitqueue(page), &wait, sleep_on_page,
- 							TASK_UNINTERRUPTIBLE);
+-	struct wait_bit_key *key = arg;
+-	struct wait_bit_queue *wait_bit
+-		= container_of(wait, struct wait_bit_queue, wait);
+-
+-	if (wait_bit->key.flags != key->flags ||
+-			wait_bit->key.bit_nr != key->bit_nr ||
+-			test_bit(key->bit_nr, key->flags))
++	if (!test_wait_bit_key(wait, arg))
+ 		return 0;
+-	else
+-		return autoremove_wake_function(wait, mode, sync, key);
++	return autoremove_wake_function(wait, mode, sync, arg);
  }
--EXPORT_SYMBOL(__lock_page);
-+EXPORT_SYMBOL(lock_page_blocking);
+ EXPORT_SYMBOL(wake_bit_function);
  
- /**
-  * find_get_page - find and get a page reference
-@@ -595,7 +595,7 @@ repeat:
- 		page_cache_get(page);
- 		if (TestSetPageLocked(page)) {
- 			read_unlock_irq(&mapping->tree_lock);
--			__lock_page(page);
-+			lock_page_blocking(page);
- 			read_lock_irq(&mapping->tree_lock);
- 
- 			/* Has the page been truncated while we slept? */
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
