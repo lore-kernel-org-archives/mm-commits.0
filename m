@@ -1,80 +1,194 @@
 From: akpm@osdl.org
-Subject: - fix-flush_workqueue-vs-cpu_dead-race.patch removed from -mm tree
-Date: Thu, 11 Jan 2007 15:58:31 -0800
-Message-ID: <200701112358.l0BNwVii007081@shell0.pdx.osdl.net>
+Subject: + workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch added to -mm tree
+Date: Thu, 11 Jan 2007 15:58:46 -0800
+Message-ID: <200701112358.l0BNwkuv007094@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44761 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751447AbXAKX6v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 18:58:51 -0500
+	id S1751523AbXAKX7E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 18:59:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ego@in.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     fix flush_workqueue() vs CPU_DEAD race
-has been removed from the -mm tree.  Its filename was
-     fix-flush_workqueue-vs-cpu_dead-race.patch
+     workqueue: fix flush_workqueue() vs CPU_DEAD race
+has been added to the -mm tree.  Its filename is
+     workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix flush_workqueue() vs CPU_DEAD race
+Subject: workqueue: fix flush_workqueue() vs CPU_DEAD race
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-"[PATCH 1/2] reimplement flush_workqueue()" fixed one race when CPU goes
-down while flush_cpu_workqueue() plays with it.  But there is another
-problem, CPU can die before flush_workqueue() has a chance to call
-flush_cpu_workqueue().  In that case pending work_structs can migrate to
-CPU which was already checked, so we should redo the
-"for_each_online_cpu(cpu)" loop.
+Many thanks to Srivatsa Vaddagiri for the helpful discussion and for spotting
+the bug in my previous attempt.
+
+work->func() (and thus flush_workqueue()) must not use workqueue_mutex,
+this leads to deadlock when CPU_DEAD does kthread_stop(). However without
+this mutex held we can't detect CPU_DEAD in progress, which can move pending
+works to another CPU while the dead one is not on cpu_online_map.
+
+Change flush_workqueue() to use for_each_possible_cpu(). This means that
+flush_cpu_workqueue() may hit CPU which is already dead. However in that
+case
+
+	!list_empty(&cwq->worklist) || cwq->current_work != NULL
+
+means that CPU_DEAD in progress, it will do kthread_stop() + take_over_work()
+so we can proceed and insert a barrier. We hold cwq->lock, so we are safe.
+
+Also, add migrate_sequence incremented by take_over_work() under cwq->lock.
+If take_over_work() happened before we checked this CPU, we should see the
+new value after spin_unlock().
+
+Further possible changes:
+
+	remove CPU_DEAD handling (along with take_over_work, migrate_sequence)
+	from workqueue.c. CPU_DEAD just sets cwq->please_exit_after_flush flag.
+
+	CPU_UP_PREPARE->create_workqueue_thread() clears this flag, and creates
+	the new thread if cwq->thread == NULL.
+
+This way the workqueue/cpu-hotplug interaction is almost zero, workqueue_mutex
+just protects "workqueues" list, CPU_LOCK_ACQUIRE/CPU_LOCK_RELEASE go away.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Gautham shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/workqueue.c |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ kernel/workqueue.c |   44 ++++++++++++++++++++++++-------------------
+ 1 files changed, 25 insertions(+), 19 deletions(-)
 
-diff -puN kernel/workqueue.c~fix-flush_workqueue-vs-cpu_dead-race kernel/workqueue.c
---- a/kernel/workqueue.c~fix-flush_workqueue-vs-cpu_dead-race
+diff -puN kernel/workqueue.c~workqueue-fix-flush_workqueue-vs-cpu_dead-race kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-fix-flush_workqueue-vs-cpu_dead-race
 +++ a/kernel/workqueue.c
-@@ -65,6 +65,7 @@ struct workqueue_struct {
+@@ -64,6 +64,7 @@ struct workqueue_struct {
  
  /* All the per-cpu workqueues on the system, for hotplug cpu to add/remove
     threads to each one as cpus come/go. */
-+static long hotplug_sequence __read_mostly;
++static long migrate_sequence __read_mostly;
  static DEFINE_MUTEX(workqueue_mutex);
  static LIST_HEAD(workqueues);
  
-@@ -468,10 +469,16 @@ void fastcall flush_workqueue(struct wor
+@@ -421,13 +422,7 @@ static void flush_cpu_workqueue(struct c
+ 		 * Probably keventd trying to flush its own queue. So simply run
+ 		 * it by hand rather than deadlocking.
+ 		 */
+-		preempt_enable();
+-		/*
+-		 * We can still touch *cwq here because we are keventd, and
+-		 * hot-unplug will be waiting us to exit.
+-		 */
+ 		run_workqueue(cwq);
+-		preempt_disable();
+ 	} else {
+ 		struct wq_barrier barr;
+ 		int active = 0;
+@@ -439,11 +434,8 @@ static void flush_cpu_workqueue(struct c
+ 		}
+ 		spin_unlock_irq(&cwq->lock);
+ 
+-		if (active) {
+-			preempt_enable();
++		if (active)
+ 			wait_for_completion(&barr.done);
+-			preempt_disable();
+-		}
+ 	}
+ }
+ 
+@@ -462,17 +454,21 @@ static void flush_cpu_workqueue(struct c
+  */
+ void fastcall flush_workqueue(struct workqueue_struct *wq)
+ {
+-	preempt_disable();		/* CPU hotplug */
+ 	if (is_single_threaded(wq)) {
  		/* Always use first cpu's area. */
  		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
  	} else {
 +		long sequence;
  		int cpu;
 +again:
-+		sequence = hotplug_sequence;
++		sequence = migrate_sequence;
  
- 		for_each_online_cpu(cpu)
+-		for_each_online_cpu(cpu)
++		for_each_possible_cpu(cpu)
  			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
 +
-+		if (unlikely(sequence != hotplug_sequence))
++		if (unlikely(sequence != migrate_sequence))
 +			goto again;
  	}
- 	preempt_enable();
+-	preempt_enable();
  }
-@@ -891,6 +898,7 @@ static int __devinit workqueue_cpu_callb
- 			cleanup_workqueue_thread(wq, hotcpu);
- 		list_for_each_entry(wq, &workqueues, list)
- 			take_over_work(wq, hotcpu);
-+		hotplug_sequence++;
- 		break;
+ EXPORT_SYMBOL_GPL(flush_workqueue);
  
- 	case CPU_LOCK_RELEASE:
+@@ -544,17 +540,21 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(flush_work);
+ 
+-static struct task_struct *create_workqueue_thread(struct workqueue_struct *wq,
+-							int cpu)
++static void init_cpu_workqueue(struct workqueue_struct *wq, int cpu)
+ {
+ 	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+-	struct task_struct *p;
+ 
+-	spin_lock_init(&cwq->lock);
+ 	cwq->wq = wq;
+-	cwq->thread = NULL;
++	spin_lock_init(&cwq->lock);
+ 	INIT_LIST_HEAD(&cwq->worklist);
+ 	init_waitqueue_head(&cwq->more_work);
++}
++
++static struct task_struct *create_workqueue_thread(struct workqueue_struct *wq,
++							int cpu)
++{
++	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
++	struct task_struct *p;
+ 
+ 	if (is_single_threaded(wq))
+ 		p = kthread_create(worker_thread, cwq, "%s", wq->name);
+@@ -589,6 +589,7 @@ struct workqueue_struct *__create_workqu
+ 	mutex_lock(&workqueue_mutex);
+ 	if (singlethread) {
+ 		INIT_LIST_HEAD(&wq->list);
++		init_cpu_workqueue(wq, singlethread_cpu);
+ 		p = create_workqueue_thread(wq, singlethread_cpu);
+ 		if (!p)
+ 			destroy = 1;
+@@ -596,7 +597,11 @@ struct workqueue_struct *__create_workqu
+ 			wake_up_process(p);
+ 	} else {
+ 		list_add(&wq->list, &workqueues);
+-		for_each_online_cpu(cpu) {
++		for_each_possible_cpu(cpu) {
++			init_cpu_workqueue(wq, cpu);
++			if (!cpu_online(cpu))
++				continue;
++
+ 			p = create_workqueue_thread(wq, cpu);
+ 			if (p) {
+ 				kthread_bind(p, cpu);
+@@ -831,6 +836,7 @@ static void take_over_work(struct workqu
+ 
+ 	spin_lock_irq(&cwq->lock);
+ 	list_replace_init(&cwq->worklist, &list);
++	migrate_sequence++;
+ 
+ 	while (!list_empty(&list)) {
+ 		printk("Taking work for %s\n", wq->name);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -111,7 +225,6 @@ tg3-use-flush_keventd_work.patch
 e1000-use-flush_keventd_work.patch
 libata-use-flush_work.patch
 phy-use-flush_work.patch
-fix-flush_workqueue-vs-cpu_dead-race.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
 slab-use-cpu_lock_.patch
 workqueue-fix-freezeable-workqueues-implementation.patch
