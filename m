@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kernel-doc-fix-some-odd-spacing-issues.patch added to -mm tree
-Date: Wed, 10 Jan 2007 16:54:28 -0800
-Message-ID: <200701110054.l0B0sS0q013007@shell0.pdx.osdl.net>
+Subject: + megaraid-more-kernel-doc-fixes.patch added to -mm tree
+Date: Wed, 10 Jan 2007 16:54:24 -0800
+Message-ID: <200701110054.l0B0sOm5012998@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41877 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41875 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965289AbXAKAyc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 19:54:32 -0500
+	id S965285AbXAKAya (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 19:54:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,102 +15,51 @@ Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     kernel-doc: fix some odd spacing issues
+     megaraid: more kernel-doc fixes
 has been added to the -mm tree.  Its filename is
-     kernel-doc-fix-some-odd-spacing-issues.patch
+     megaraid-more-kernel-doc-fixes.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel-doc: fix some odd spacing issues
+Subject: megaraid: more kernel-doc fixes
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-- in man and text mode output, if the function return type is empty (like it
-  is for macros), don't print the return type and a following space; this
-  fixes an output malalignment;
-
-- in the function short description, strip leading, trailing, and multiple
-  embedded spaces (to one space); this makes function name/description output
-  spacing consistent;
-
-- fix a comment typo;
+More megaraid kernel-doc fixes.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/kernel-doc |   24 ++++++++++++++++++++----
- 1 files changed, 20 insertions(+), 4 deletions(-)
+ drivers/scsi/megaraid/mbox_defs.h   |    2 +-
+ drivers/scsi/megaraid/mega_common.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-fix-some-odd-spacing-issues scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-fix-some-odd-spacing-issues
-+++ a/scripts/kernel-doc
-@@ -365,7 +365,7 @@ sub dump_section {
- #  parameterlist => @list of parameters
- #  parameterdescs => %parameter descriptions
- #  sectionlist => @list of sections
--#  sections => %descriont descriptions
-+#  sections => %section descriptions
- #
+diff -puN drivers/scsi/megaraid/mbox_defs.h~megaraid-more-kernel-doc-fixes drivers/scsi/megaraid/mbox_defs.h
+--- a/drivers/scsi/megaraid/mbox_defs.h~megaraid-more-kernel-doc-fixes
++++ a/drivers/scsi/megaraid/mbox_defs.h
+@@ -748,7 +748,7 @@ typedef struct {
  
- sub output_highlight {
-@@ -953,7 +953,11 @@ sub output_function_man(%) {
-     print $args{'function'}." \\- ".$args{'purpose'}."\n";
  
-     print ".SH SYNOPSIS\n";
--    print ".B \"".$args{'functiontype'}."\" ".$args{'function'}."\n";
-+    if ($args{'functiontype'} ne "") {
-+	print ".B \"".$args{'functiontype'}."\" ".$args{'function'}."\n";
-+    } else {
-+	print ".B \"".$args{'function'}."\n";
-+    }
-     $count = 0;
-     my $parenth = "(";
-     my $post = ",";
-@@ -1118,13 +1122,19 @@ sub output_intro_man(%) {
- sub output_function_text(%) {
-     my %args = %{$_[0]};
-     my ($parameter, $section);
-+    my $start;
+ /**
+- * private_bios_data - bios private data for boot devices
++ * struct private_bios_data - bios private data for boot devices
+  * @geometry	: bits 0-3 - BIOS geometry, 0x0001 - 1GB, 0x0010 - 2GB,
+  *		0x1000 - 8GB, Others values are invalid
+  * @unused	: bits 4-7 are unused
+diff -puN drivers/scsi/megaraid/mega_common.h~megaraid-more-kernel-doc-fixes drivers/scsi/megaraid/mega_common.h
+--- a/drivers/scsi/megaraid/mega_common.h~megaraid-more-kernel-doc-fixes
++++ a/drivers/scsi/megaraid/mega_common.h
+@@ -271,7 +271,7 @@ typedef struct {
+ #define ASSERT(expression)
+ #endif
  
-     print "Name:\n\n";
-     print $args{'function'}." - ".$args{'purpose'}."\n";
- 
-     print "\nSynopsis:\n\n";
--    my $start=$args{'functiontype'}." ".$args{'function'}." (";
-+    if ($args{'functiontype'} ne "") {
-+	$start = $args{'functiontype'}." ".$args{'function'}." (";
-+    } else {
-+	$start = $args{'function'}." (";
-+    }
-     print $start;
-+
-     my $count = 0;
-     foreach my $parameter (@{$args{'parameterlist'}}) {
- 	$type = $args{'parametertypes'}{$parameter};
-@@ -1710,6 +1720,7 @@ sub process_file($) {
-     my $file;
-     my $identifier;
-     my $func;
-+    my $descr;
-     my $initial_section_counter = $section_counter;
- 
-     if (defined($ENV{'SRCTREE'})) {
-@@ -1753,7 +1764,12 @@ sub process_file($) {
- 
- 		$state = 2;
- 		if (/-(.*)/) {
--		    $declaration_purpose = xml_escape($1);
-+		    # strip leading/trailing/multiple spaces #RDD:T:
-+		    $descr= $1;
-+		    $descr =~ s/^\s*//;
-+		    $descr =~ s/\s*$//;
-+		    $descr =~ s/\s+/ /;
-+		    $declaration_purpose = xml_escape($descr);
- 		} else {
- 		    $declaration_purpose = "";
- 		}
+-/*
++/**
+  * struct mraid_pci_blk - structure holds DMA memory block info
+  * @vaddr		: virtual address to a memory block
+  * @dma_addr		: DMA handle to a memory block
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
