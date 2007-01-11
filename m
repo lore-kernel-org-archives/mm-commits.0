@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + rename-attach_pid-to-find_attach_pid.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:13:04 -0800
-Message-ID: <200701112113.l0BLD48x003157@shell0.pdx.osdl.net>
+Subject: + attach_pid-with-struct-pid-parameter.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:13:09 -0800
+Message-ID: <200701112113.l0BLD93Z003160@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35320 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35324 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751492AbXAKVN3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:13:29 -0500
+	id S932071AbXAKVNb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:13:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, haveblue@us.i
 
 
 The patch titled
-     Rename attach_pid() to find_attach_pid()
+     attach_pid() with struct pid parameter
 has been added to the -mm tree.  Its filename is
-     rename-attach_pid-to-find_attach_pid.patch
+     attach_pid-with-struct-pid-parameter.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,16 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Rename attach_pid() to find_attach_pid()
+Subject: attach_pid() with struct pid parameter
 From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-attach_pid() currently takes a pid_t parameter and uses find_pid() to find the
-struct pid associated with the pid_t.  With containers, we sometimes already
-have the struct pid and could skip the find_pid() - if we have a version of
-attach_pid() that takes a struct pid parameter.
-
-This patch renames the attach_pid() to find_attach_pid().  My next patch
-defines attach_pid() to take a struct pid.
+Implement a new version of attach_pid() with a struct pid parameter and wrap
+find_attach_pid() around it.  attach_pid() would also be used in subsequent
+container patches.
 
 Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
@@ -44,105 +40,76 @@ Cc: <containers@lists.osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/exec.c           |    2 +-
- include/linux/pid.h |    4 ++--
- kernel/exit.c       |    4 ++--
- kernel/fork.c       |    6 +++---
- kernel/pid.c        |    3 ++-
- kernel/sys.c        |    2 +-
- 6 files changed, 11 insertions(+), 10 deletions(-)
+ include/linux/pid.h |   28 +++++++++++++++++-----------
+ kernel/pid.c        |    7 +++----
+ 2 files changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN fs/exec.c~rename-attach_pid-to-find_attach_pid fs/exec.c
---- a/fs/exec.c~rename-attach_pid-to-find_attach_pid
-+++ a/fs/exec.c
-@@ -701,7 +701,7 @@ static int de_thread(struct task_struct 
- 		 */
- 		detach_pid(tsk, PIDTYPE_PID);
- 		tsk->pid = leader->pid;
--		attach_pid(tsk, PIDTYPE_PID,  tsk->pid);
-+		find_attach_pid(tsk, PIDTYPE_PID,  tsk->pid);
- 		transfer_pid(leader, tsk, PIDTYPE_PGID);
- 		transfer_pid(leader, tsk, PIDTYPE_SID);
- 		list_replace_rcu(&leader->tasks, &tsk->tasks);
-diff -puN include/linux/pid.h~rename-attach_pid-to-find_attach_pid include/linux/pid.h
---- a/include/linux/pid.h~rename-attach_pid-to-find_attach_pid
+diff -puN include/linux/pid.h~attach_pid-with-struct-pid-parameter include/linux/pid.h
+--- a/include/linux/pid.h~attach_pid-with-struct-pid-parameter
 +++ a/include/linux/pid.h
-@@ -72,10 +72,10 @@ extern struct task_struct *FASTCALL(get_
+@@ -72,17 +72,6 @@ extern struct task_struct *FASTCALL(get_
  extern struct pid *get_task_pid(struct task_struct *task, enum pid_type type);
  
  /*
-- * attach_pid() and detach_pid() must be called with the tasklist_lock
-+ * find_attach_pid() and detach_pid() must be called with the tasklist_lock
-  * write-held.
+- * find_attach_pid() and detach_pid() must be called with the tasklist_lock
+- * write-held.
+- */
+-extern int FASTCALL(find_attach_pid(struct task_struct *task,
+-				enum pid_type type, int nr));
+-
+-extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
+-extern void FASTCALL(transfer_pid(struct task_struct *old,
+-				  struct task_struct *new, enum pid_type));
+-
+-/*
+  * look up a PID in the hash table. Must be called with the tasklist_lock
+  * or rcu_read_lock() held.
   */
--extern int FASTCALL(attach_pid(struct task_struct *task,
-+extern int FASTCALL(find_attach_pid(struct task_struct *task,
- 				enum pid_type type, int nr));
+@@ -94,6 +83,23 @@ extern struct pid *FASTCALL(find_pid(int
+ extern struct pid *find_get_pid(int nr);
+ extern struct pid *find_ge_pid(int nr);
  
- extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
-diff -puN kernel/exit.c~rename-attach_pid-to-find_attach_pid kernel/exit.c
---- a/kernel/exit.c~rename-attach_pid-to-find_attach_pid
-+++ a/kernel/exit.c
-@@ -300,12 +300,12 @@ void __set_special_pids(pid_t session, p
- 	if (process_session(curr) != session) {
- 		detach_pid(curr, PIDTYPE_SID);
- 		set_signal_session(curr->signal, session);
--		attach_pid(curr, PIDTYPE_SID, session);
-+		find_attach_pid(curr, PIDTYPE_SID, session);
- 	}
- 	if (process_group(curr) != pgrp) {
- 		detach_pid(curr, PIDTYPE_PGID);
- 		curr->signal->pgrp = pgrp;
--		attach_pid(curr, PIDTYPE_PGID, pgrp);
-+		find_attach_pid(curr, PIDTYPE_PGID, pgrp);
- 	}
- }
++/*
++ * attach_pid(), find_attach_pid() and detach_pid() must be called with the
++ * tasklist_lock write-held.
++ */
++extern int FASTCALL(attach_pid(struct task_struct *task, enum pid_type type,
++				struct pid *pid));
++
++static inline int find_attach_pid(struct task_struct *task, enum pid_type type,
++				int nr)
++{
++	return attach_pid(task, type, find_pid(nr));
++}
++
++extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
++extern void FASTCALL(transfer_pid(struct task_struct *old,
++				  struct task_struct *new, enum pid_type));
++
+ extern struct pid *alloc_pid(void);
+ extern void FASTCALL(free_pid(struct pid *pid));
  
-diff -puN kernel/fork.c~rename-attach_pid-to-find_attach_pid kernel/fork.c
---- a/kernel/fork.c~rename-attach_pid-to-find_attach_pid
-+++ a/kernel/fork.c
-@@ -1246,13 +1246,13 @@ static struct task_struct *copy_process(
- 			p->signal->tty = current->signal->tty;
- 			p->signal->pgrp = process_group(current);
- 			set_signal_session(p->signal, process_session(current));
--			attach_pid(p, PIDTYPE_PGID, process_group(p));
--			attach_pid(p, PIDTYPE_SID, process_session(p));
-+			find_attach_pid(p, PIDTYPE_PGID, process_group(p));
-+			find_attach_pid(p, PIDTYPE_SID, process_session(p));
- 
- 			list_add_tail_rcu(&p->tasks, &init_task.tasks);
- 			__get_cpu_var(process_counts)++;
- 		}
--		attach_pid(p, PIDTYPE_PID, p->pid);
-+		find_attach_pid(p, PIDTYPE_PID, p->pid);
- 		nr_threads++;
- 	}
- 
-diff -puN kernel/pid.c~rename-attach_pid-to-find_attach_pid kernel/pid.c
---- a/kernel/pid.c~rename-attach_pid-to-find_attach_pid
+diff -puN kernel/pid.c~attach_pid-with-struct-pid-parameter kernel/pid.c
+--- a/kernel/pid.c~attach_pid-with-struct-pid-parameter
 +++ a/kernel/pid.c
-@@ -247,7 +247,8 @@ struct pid * fastcall find_pid(int nr)
+@@ -247,14 +247,13 @@ struct pid * fastcall find_pid(int nr)
  }
  EXPORT_SYMBOL_GPL(find_pid);
  
--int fastcall attach_pid(struct task_struct *task, enum pid_type type, int nr)
-+int fastcall find_attach_pid(struct task_struct *task, enum pid_type type,
-+				int nr)
+-int fastcall find_attach_pid(struct task_struct *task, enum pid_type type,
+-				int nr)
++int fastcall attach_pid(struct task_struct *task, enum pid_type type,
++				struct pid *pid)
  {
  	struct pid_link *link;
- 	struct pid *pid;
-diff -puN kernel/sys.c~rename-attach_pid-to-find_attach_pid kernel/sys.c
---- a/kernel/sys.c~rename-attach_pid-to-find_attach_pid
-+++ a/kernel/sys.c
-@@ -1481,7 +1481,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 	if (process_group(p) != pgid) {
- 		detach_pid(p, PIDTYPE_PGID);
- 		p->signal->pgrp = pgid;
--		attach_pid(p, PIDTYPE_PGID, pgid);
-+		find_attach_pid(p, PIDTYPE_PGID, pgid);
- 	}
+-	struct pid *pid;
  
- 	err = 0;
+ 	link = &task->pids[type];
+-	link->pid = pid = find_pid(nr);
++	link->pid = pid;
+ 	hlist_add_head_rcu(&link->node, &pid->tasks[type]);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from sukadev@us.ibm.com are
