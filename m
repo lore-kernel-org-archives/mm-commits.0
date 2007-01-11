@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + include-linux-nfsd-consth-remove-nfs_super_magic.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:17:36 -0800
-Message-ID: <200701112117.l0BLHaCo003276@shell0.pdx.osdl.net>
+Subject: + drivers-char-drm-drm_mmc-remove-unused-exports.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:17:30 -0800
+Message-ID: <200701112117.l0BLHU2f003267@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35563 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35755 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751453AbXAKVSG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:18:06 -0500
+	id S932094AbXAKVUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:20:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, neilb@suse.de
+Cc: bunk@stusta.de, airlied@linux.ie
 
 
 The patch titled
-     include/linux/nfsd/const.h: remove NFS_SUPER_MAGIC
+     drivers/char/drm/drm_mm.c: remove unused exports
 has been added to the -mm tree.  Its filename is
-     include-linux-nfsd-consth-remove-nfs_super_magic.patch
+     drivers-char-drm-drm_mmc-remove-unused-exports.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: include/linux/nfsd/const.h: remove NFS_SUPER_MAGIC
+Subject: drivers/char/drm/drm_mm.c: remove unused exports
 From: Adrian Bunk <bunk@stusta.de>
 
-NFS_SUPER_MAGIC is already defined in include/linux/magic.h
+This patch removes two unused exports.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfs/super.c             |    1 +
- include/linux/nfsd/const.h |    4 ----
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/char/drm/drm_mm.c |    4 ----
+ 1 files changed, 4 deletions(-)
 
-diff -puN fs/nfs/super.c~include-linux-nfsd-consth-remove-nfs_super_magic fs/nfs/super.c
---- a/fs/nfs/super.c~include-linux-nfsd-consth-remove-nfs_super_magic
-+++ a/fs/nfs/super.c
-@@ -44,6 +44,7 @@
- #include <linux/vfs.h>
- #include <linux/inet.h>
- #include <linux/nfs_xdr.h>
-+#include <linux/magic.h>
+diff -puN drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports drivers/char/drm/drm_mm.c
+--- a/drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports
++++ a/drivers/char/drm/drm_mm.c
+@@ -274,8 +274,6 @@ int drm_mm_init(drm_mm_t * mm, unsigned 
+ 	return drm_mm_create_tail_node(mm, start, size);
+ }
  
- #include <asm/system.h>
- #include <asm/uaccess.h>
-diff -puN include/linux/nfsd/const.h~include-linux-nfsd-consth-remove-nfs_super_magic include/linux/nfsd/const.h
---- a/include/linux/nfsd/const.h~include-linux-nfsd-consth-remove-nfs_super_magic
-+++ a/include/linux/nfsd/const.h
-@@ -30,10 +30,6 @@
- 
- #include <linux/sunrpc/msg_prot.h>
- 
--#ifndef NFS_SUPER_MAGIC
--# define NFS_SUPER_MAGIC	0x6969
--#endif
+-EXPORT_SYMBOL(drm_mm_init);
 -
- /*
-  * Largest number of bytes we need to allocate for an NFS
-  * call or reply.  Used to control buffer sizes.  We use
+ void drm_mm_takedown(drm_mm_t * mm)
+ {
+ 	struct list_head *bnode = mm->fl_entry.next;
+@@ -294,5 +292,3 @@ void drm_mm_takedown(drm_mm_t * mm)
+ 
+ 	drm_free(entry, sizeof(*entry), DRM_MEM_MM);
+ }
+-
+-EXPORT_SYMBOL(drm_mm_takedown);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
