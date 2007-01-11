@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + drivers-char-drm-drm_mmc-remove-unused-exports.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:17:30 -0800
-Message-ID: <200701112117.l0BLHU2f003267@shell0.pdx.osdl.net>
+Subject: + net-wanrouter-wanmainc-cleanups.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:17:38 -0800
+Message-ID: <200701112117.l0BLHcFW003279@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35755 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35761 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932094AbXAKVUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:20:49 -0500
+	id S932137AbXAKVUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:20:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, airlied@linux.ie
+Cc: bunk@stusta.de
 
 
 The patch titled
-     drivers/char/drm/drm_mm.c: remove unused exports
+     net/wanrouter/wanmain.c: cleanups
 has been added to the -mm tree.  Its filename is
-     drivers-char-drm-drm_mmc-remove-unused-exports.patch
+     net-wanrouter-wanmainc-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/char/drm/drm_mm.c: remove unused exports
+Subject: net/wanrouter/wanmain.c: cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch removes two unused exports.
+This patch contains the following cleanups:
+- make the following needlessly global functions static:
+  - lock_adapter_irq()
+  - unlock_adapter_irq()
+- #if 0 the following unused global functions:
+  - wanrouter_encapsulate()
+  - wanrouter_type_trans()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/drm/drm_mm.c |    4 ----
- 1 files changed, 4 deletions(-)
+ include/linux/wanrouter.h |    8 --------
+ net/wanrouter/wanmain.c   |   17 ++++++++---------
+ 2 files changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports drivers/char/drm/drm_mm.c
---- a/drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports
-+++ a/drivers/char/drm/drm_mm.c
-@@ -274,8 +274,6 @@ int drm_mm_init(drm_mm_t * mm, unsigned 
- 	return drm_mm_create_tail_node(mm, start, size);
+diff -puN include/linux/wanrouter.h~net-wanrouter-wanmainc-cleanups include/linux/wanrouter.h
+--- a/include/linux/wanrouter.h~net-wanrouter-wanmainc-cleanups
++++ a/include/linux/wanrouter.h
+@@ -516,9 +516,6 @@ struct wan_device {
+ /* Public functions available for device drivers */
+ extern int register_wan_device(struct wan_device *wandev);
+ extern int unregister_wan_device(char *name);
+-__be16 wanrouter_type_trans(struct sk_buff *skb, struct net_device *dev);
+-int wanrouter_encapsulate(struct sk_buff *skb, struct net_device *dev,
+-			  unsigned short type);
+ 
+ /* Proc interface functions. These must not be called by the drivers! */
+ extern int wanrouter_proc_init(void);
+@@ -527,11 +524,6 @@ extern int wanrouter_proc_add(struct wan
+ extern int wanrouter_proc_delete(struct wan_device *wandev);
+ extern int wanrouter_ioctl( struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg);
+ 
+-extern void lock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags);
+-extern void unlock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags);
+-
+-
+-
+ /* Public Data */
+ /* list of registered devices */
+ extern struct wan_device *wanrouter_router_devlist;
+diff -puN net/wanrouter/wanmain.c~net-wanrouter-wanmainc-cleanups net/wanrouter/wanmain.c
+--- a/net/wanrouter/wanmain.c~net-wanrouter-wanmainc-cleanups
++++ a/net/wanrouter/wanmain.c
+@@ -86,8 +86,8 @@ static int wanrouter_device_del_if(struc
+ 
+ static struct wan_device *wanrouter_find_device(char *name);
+ static int wanrouter_delete_interface(struct wan_device *wandev, char *name);
+-void lock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags);
+-void unlock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags);
++static void lock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags);
++static void unlock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags);
+ 
+ 
+ 
+@@ -104,8 +104,8 @@ struct wan_device* wanrouter_router_devl
+  *	Organize Unique Identifiers for encapsulation/decapsulation
+  */
+ 
+-static unsigned char wanrouter_oui_ether[] = { 0x00, 0x00, 0x00 };
+ #if 0
++static unsigned char wanrouter_oui_ether[] = { 0x00, 0x00, 0x00 };
+ static unsigned char wanrouter_oui_802_2[] = { 0x00, 0x80, 0xC2 };
+ #endif
+ 
+@@ -246,6 +246,8 @@ int unregister_wan_device(char *name)
+ 	return 0;
  }
  
--EXPORT_SYMBOL(drm_mm_init);
--
- void drm_mm_takedown(drm_mm_t * mm)
++#if 0
++
+ /*
+  *	Encapsulate packet.
+  *
+@@ -341,6 +343,7 @@ __be16 wanrouter_type_trans(struct sk_bu
+ 	return ethertype;
+ }
+ 
++#endif  /*  0  */
+ 
+ /*
+  *	WAN device IOCTL.
+@@ -799,23 +802,19 @@ static int wanrouter_delete_interface(st
+ 	return 0;
+ }
+ 
+-void lock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags)
++static void lock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags)
  {
- 	struct list_head *bnode = mm->fl_entry.next;
-@@ -294,5 +292,3 @@ void drm_mm_takedown(drm_mm_t * mm)
- 
- 	drm_free(entry, sizeof(*entry), DRM_MEM_MM);
+        	spin_lock_irqsave(lock, *smp_flags);
  }
--
--EXPORT_SYMBOL(drm_mm_takedown);
+ 
+ 
+-void unlock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags)
++static void unlock_adapter_irq(spinlock_t *lock, unsigned long *smp_flags)
+ {
+ 	spin_unlock_irqrestore(lock, *smp_flags);
+ }
+ 
+ EXPORT_SYMBOL(register_wan_device);
+ EXPORT_SYMBOL(unregister_wan_device);
+-EXPORT_SYMBOL(wanrouter_encapsulate);
+-EXPORT_SYMBOL(wanrouter_type_trans);
+-EXPORT_SYMBOL(lock_adapter_irq);
+-EXPORT_SYMBOL(unlock_adapter_irq);
+ 
+ MODULE_LICENSE("GPL");
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
