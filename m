@@ -1,17 +1,17 @@
 From: akpm@osdl.org
 Subject: + libata-piix3-support.patch added to -mm tree
-Date: Wed, 10 Jan 2007 17:18:12 -0800
-Message-ID: <200701110118.l0B1ICKp013522@shell0.pdx.osdl.net>
+Date: Wed, 10 Jan 2007 17:20:24 -0800
+Message-ID: <200701110120.l0B1KOwU013569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43355 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43497 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030183AbXAKBSX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 20:18:23 -0500
+	id S1030186AbXAKBUk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 20:20:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
@@ -33,6 +33,7 @@ and a new mode list.  It also fixes an erroneous access to PCI
 configuration 0x48 on non UDMA capable chips.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
