@@ -1,93 +1,166 @@
 From: akpm@osdl.org
-Subject: + revert-nmi_known_cpu-check-during-boot-option-parsing.patch added to -mm tree
-Date: Wed, 10 Jan 2007 17:25:02 -0800
-Message-ID: <200701110125.l0B1P3BN013628@shell0.pdx.osdl.net>
+Subject: + reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch added to -mm tree
+Date: Wed, 10 Jan 2007 17:30:37 -0800
+Message-ID: <200701110130.l0B1Ub8w013745@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44240 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213AbXAKBZu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 20:25:50 -0500
+	id S1030189AbXAKBd1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 20:33:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, ak@suse.de, dzickus@redhat.com, mingo@elte.hu
+Cc: vs@namesys.com, jeffm@suse.com, mason@suse.com
 
 
 The patch titled
-     Revert nmi_known_cpu() check during boot option parsing
+     resierfs: avoid tail packing if an inode was ever mmapped
 has been added to the -mm tree.  Its filename is
-     revert-nmi_known_cpu-check-during-boot-option-parsing.patch
+     reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Revert nmi_known_cpu() check during boot option parsing
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: resierfs: avoid tail packing if an inode was ever mmapped
+From: Vladimir Saveliev <vs@namesys.com>
 
-The patch
-http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f2802e7f571c05f9a901b1f5bd144aa730ccc88e
-and another subsequent patch adds nmi_known_cpu() check while parsing boot
-options in x86_64 and i386.  With that, "nmi_watchdog=2" stops working for
-me on Intel Core 2 CPU based system.
+This patch fixes a confusion reiserfs has for a long time.
 
-The problem is, setup_nmi_watchdog is called while parsing the boot option
-and identify_cpu is not done yet.  So, the return value of nmi_known_cpu()
-is not valid at this point.
+On release file operation reiserfs used to try to pack file data stored in
+last incomplete page of some files into metadata blocks.  After packing the
+page got cleared with clear_page_dirty.  It did not take into account that
+the page may be mmaped into other process's address space.  Recent
+replacement for clear_page_dirty cancel_dirty_page found the confusion with
+sanity check that page has to be not mapped.
 
-Revert that check.  Should not have any adverse effect as nmi_known_cpu()
-check is done again later in enable_lapic_nmi_watchdog().
+The patch fixes the confusion by making reiserfs avoid tail packing if an
+inode was ever mmapped.  reiserfs_mmap and reiserfs_file_release are
+serialized with mutex in reiserfs specific inode.  reiserfs_mmap locks the
+mutex and sets a bit in reiserfs specific inode flags. 
+reiserfs_file_release checks the bit having the mutex locked.  If bit is
+set - tail packing is avoided.  This eliminates a possibility that mmapped
+page gets cancel_page_dirty-ed.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Vladimir Saveliev <vs@namesys.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Chris Mason <mason@suse.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/nmi.c   |    8 +-------
- arch/x86_64/kernel/nmi.c |    2 --
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ fs/reiserfs/file.c            |   20 +++++++++++++++++++-
+ fs/reiserfs/inode.c           |    2 ++
+ include/linux/reiserfs_fs_i.h |    2 ++
+ 3 files changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing arch/i386/kernel/nmi.c
---- a/arch/i386/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing
-+++ a/arch/i386/kernel/nmi.c
-@@ -310,13 +310,7 @@ static int __init setup_nmi_watchdog(cha
+diff -puN fs/reiserfs/file.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
++++ a/fs/reiserfs/file.c
+@@ -48,6 +48,11 @@ static int reiserfs_file_release(struct 
+ 	}
  
- 	if ((nmi >= NMI_INVALID) || (nmi < NMI_NONE))
- 		return 0;
--	/*
--	 * If any other x86 CPU has a local APIC, then
--	 * please test the NMI stuff there and send me the
--	 * missing bits. Right now Intel P6/P4 and AMD K7 only.
--	 */
--	if ((nmi == NMI_LOCAL_APIC) && (nmi_known_cpu() == 0))
--		return 0;  /* no lapic support */
+ 	mutex_lock(&inode->i_mutex);
 +
- 	nmi_watchdog = nmi;
- 	return 1;
++	mutex_lock(&(REISERFS_I(inode)->i_mmap));
++	if (REISERFS_I(inode)->i_flags & i_ever_mapped)
++		REISERFS_I(inode)->i_flags &= ~i_pack_on_close_mask;
++
+ 	reiserfs_write_lock(inode->i_sb);
+ 	/* freeing preallocation only involves relogging blocks that
+ 	 * are already in the current transaction.  preallocation gets
+@@ -100,11 +105,24 @@ static int reiserfs_file_release(struct 
+ 		err = reiserfs_truncate_file(inode, 0);
+ 	}
+       out:
++	mutex_unlock(&(REISERFS_I(inode)->i_mmap));
+ 	mutex_unlock(&inode->i_mutex);
+ 	reiserfs_write_unlock(inode->i_sb);
+ 	return err;
  }
-diff -puN arch/x86_64/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing arch/x86_64/kernel/nmi.c
---- a/arch/x86_64/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing
-+++ a/arch/x86_64/kernel/nmi.c
-@@ -302,8 +302,6 @@ int __init setup_nmi_watchdog(char *str)
- 	if ((nmi >= NMI_INVALID) || (nmi < NMI_NONE))
- 		return 0;
  
--	if ((nmi == NMI_LOCAL_APIC) && (nmi_known_cpu() == 0))
--		return 0;  /* no lapic support */
- 	nmi_watchdog = nmi;
- 	return 1;
- }
++static int reiserfs_file_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct inode *inode;
++
++	inode = file->f_path.dentry->d_inode;
++	mutex_lock(&(REISERFS_I(inode)->i_mmap));
++	REISERFS_I(inode)->i_flags |= i_ever_mapped;
++	mutex_unlock(&(REISERFS_I(inode)->i_mmap));
++
++	return generic_file_mmap(file, vma);
++}
++
+ static void reiserfs_vfs_truncate_file(struct inode *inode)
+ {
+ 	reiserfs_truncate_file(inode, 1);
+@@ -1527,7 +1545,7 @@ const struct file_operations reiserfs_fi
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = reiserfs_compat_ioctl,
+ #endif
+-	.mmap = generic_file_mmap,
++	.mmap = reiserfs_file_mmap,
+ 	.open = generic_file_open,
+ 	.release = reiserfs_file_release,
+ 	.fsync = reiserfs_sync_file,
+diff -puN fs/reiserfs/inode.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
++++ a/fs/reiserfs/inode.c
+@@ -1125,6 +1125,7 @@ static void init_inode(struct inode *ino
+ 	REISERFS_I(inode)->i_prealloc_count = 0;
+ 	REISERFS_I(inode)->i_trans_id = 0;
+ 	REISERFS_I(inode)->i_jl = NULL;
++	mutex_init(&(REISERFS_I(inode)->i_mmap));
+ 	reiserfs_init_acl_access(inode);
+ 	reiserfs_init_acl_default(inode);
+ 	reiserfs_init_xattr_rwsem(inode);
+@@ -1832,6 +1833,7 @@ int reiserfs_new_inode(struct reiserfs_t
+ 	REISERFS_I(inode)->i_attrs =
+ 	    REISERFS_I(dir)->i_attrs & REISERFS_INHERIT_MASK;
+ 	sd_attrs_to_i_attrs(REISERFS_I(inode)->i_attrs, inode);
++	mutex_init(&(REISERFS_I(inode)->i_mmap));
+ 	reiserfs_init_acl_access(inode);
+ 	reiserfs_init_acl_default(inode);
+ 	reiserfs_init_xattr_rwsem(inode);
+diff -puN include/linux/reiserfs_fs_i.h~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped include/linux/reiserfs_fs_i.h
+--- a/include/linux/reiserfs_fs_i.h~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
++++ a/include/linux/reiserfs_fs_i.h
+@@ -25,6 +25,7 @@ typedef enum {
+ 	i_link_saved_truncate_mask = 0x0020,
+ 	i_has_xattr_dir = 0x0040,
+ 	i_data_log = 0x0080,
++	i_ever_mapped = 0x0100
+ } reiserfs_inode_flags;
+ 
+ struct reiserfs_inode_info {
+@@ -52,6 +53,7 @@ struct reiserfs_inode_info {
+ 	 ** flushed */
+ 	unsigned long i_trans_id;
+ 	struct reiserfs_journal_list *i_jl;
++	struct mutex i_mmap;
+ #ifdef CONFIG_REISERFS_FS_POSIX_ACL
+ 	struct posix_acl *i_acl_access;
+ 	struct posix_acl *i_acl_default;
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from vs@namesys.com are
 
-revert-nmi_known_cpu-check-during-boot-option-parsing.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-3.patch
-ondemand-governor-restructure-the-work-callback.patch
-ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback.patch
+reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch
+reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-fix-trivial-tyops-which-were-hard-to-hit.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-bug-fixes.patch
+reiser4-fix-gcc-ws-compains.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-vs-streamline-generic_file_-interfaces-and-filemap.patch
+reiser4-rename-generic_sounding_globalspatch.patch
+reiser4-possible-cleanups-2.patch
+reiser4-temp-fix.patch
+fs-reiser4-more-possible-cleanups.patch
+reiser4-use-null-for-pointers.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
