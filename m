@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + make-hdlc_setup-static-again.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:17:32 -0800
-Message-ID: <200701112117.l0BLHWaL003270@shell0.pdx.osdl.net>
+Subject: + cleanup-linux-byteorder-swabbh.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:17:42 -0800
+Message-ID: <200701112117.l0BLHg5T003285@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35754 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35768 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932081AbXAKVUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:20:49 -0500
+	id S932129AbXAKVU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:20:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, khc@pm.waw.pl
+Cc: bunk@stusta.de
 
 
 The patch titled
-     make hdlc_setup() static again
+     cleanup linux/byteorder/swabb.h
 has been added to the -mm tree.  Its filename is
-     make-hdlc_setup-static-again.patch
+     cleanup-linux-byteorder-swabbh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make hdlc_setup() static again
+Subject: cleanup linux/byteorder/swabb.h
 From: Adrian Bunk <bunk@stusta.de>
 
-hdlc_setup was exported, but this export was never used.
-
-If a driver using it actually shows up it can still be exported again.
+- no longer a userspace header
+- add #include <linux/types.h> for in-kernel compilation
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/wan/hdlc.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/byteorder/Kbuild  |    1 -
+ include/linux/byteorder/swabb.h |   13 ++++---------
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/wan/hdlc.c~make-hdlc_setup-static-again drivers/net/wan/hdlc.c
---- a/drivers/net/wan/hdlc.c~make-hdlc_setup-static-again
-+++ a/drivers/net/wan/hdlc.c
-@@ -222,7 +222,7 @@ int hdlc_ioctl(struct net_device *dev, s
- 	return -EINVAL;
- }
+diff -puN include/linux/byteorder/Kbuild~cleanup-linux-byteorder-swabbh include/linux/byteorder/Kbuild
+--- a/include/linux/byteorder/Kbuild~cleanup-linux-byteorder-swabbh
++++ a/include/linux/byteorder/Kbuild
+@@ -2,5 +2,4 @@ header-y += big_endian.h
+ header-y += little_endian.h
  
--void hdlc_setup(struct net_device *dev)
-+static void hdlc_setup(struct net_device *dev)
- {
- 	hdlc_device *hdlc = dev_to_hdlc(dev);
+ unifdef-y += generic.h
+-unifdef-y += swabb.h
+ unifdef-y += swab.h
+diff -puN include/linux/byteorder/swabb.h~cleanup-linux-byteorder-swabbh include/linux/byteorder/swabb.h
+--- a/include/linux/byteorder/swabb.h~cleanup-linux-byteorder-swabbh
++++ a/include/linux/byteorder/swabb.h
+@@ -25,6 +25,8 @@
+  *
+  */
  
-@@ -325,7 +325,6 @@ MODULE_LICENSE("GPL v2");
- EXPORT_SYMBOL(hdlc_open);
- EXPORT_SYMBOL(hdlc_close);
- EXPORT_SYMBOL(hdlc_ioctl);
--EXPORT_SYMBOL(hdlc_setup);
- EXPORT_SYMBOL(alloc_hdlcdev);
- EXPORT_SYMBOL(unregister_hdlc_device);
- EXPORT_SYMBOL(register_hdlc_protocol);
++#include <linux/types.h>
++
+ #define ___swahw32(x) \
+ ({ \
+ 	__u32 __x = (x); \
+@@ -77,19 +79,14 @@
+ /*
+  * Allow constant folding
+  */
+-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+-#  define __swahw32(x) \
++#define __swahw32(x) \
+ (__builtin_constant_p((__u32)(x)) ? \
+  ___swahw32((x)) : \
+  __fswahw32((x)))
+-#  define __swahb32(x) \
++#define __swahb32(x) \
+ (__builtin_constant_p((__u32)(x)) ? \
+  ___swahb32((x)) : \
+  __fswahb32((x)))
+-#else
+-#  define __swahw32(x) __fswahw32(x)
+-#  define __swahb32(x) __fswahb32(x)
+-#endif /* OPTIMIZE */
+ 
+ 
+ static inline __u32 __fswahw32(__u32 x)
+@@ -128,13 +125,11 @@ static inline void __swahb32s(__u32 *add
+  */
+ #endif /* __BYTEORDER_HAS_U64__ */
+ 
+-#if defined(__KERNEL__)
+ #define swahw32 __swahw32
+ #define swahb32 __swahb32
+ #define swahw32p __swahw32p
+ #define swahb32p __swahb32p
+ #define swahw32s __swahw32s
+ #define swahb32s __swahb32s
+-#endif
+ 
+ #endif /* _LINUX_BYTEORDER_SWABB_H */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
