@@ -1,108 +1,269 @@
 From: akpm@osdl.org
-Subject: - fsaio-init-wait-bit-key.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 23:22:11 -0800
-Message-ID: <200701110722.l0B7MB5t019326@shell0.pdx.osdl.net>
+Subject: - fsaio-modify-wait-bit-action-args.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 23:22:15 -0800
+Message-ID: <200701110722.l0B7MF8B019332@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38304 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38307 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965328AbXAKHXC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 02:23:02 -0500
+	id S965329AbXAKHXD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 02:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: suparna@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio: init wait bit key
+     fsaio: modify wait bit action args
 has been removed from the -mm tree.  Its filename was
-     fsaio-init-wait-bit-key.patch
+     fsaio-modify-wait-bit-action-args.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fsaio: init wait bit key
+Subject: fsaio: modify wait bit action args
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-init_wait_bit_key() initializes the key field in an already allocated wait bit
-structure, useful for async wait bit support.  Also separate out the wait bit
-test to a common routine which can be used by different kinds of wakeup
-callbacks.
+Add a wait queue parameter to the action routine called by __wait_on_bit to
+allow it to determine whether to block or not.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/wait.h |   26 ++++++++++++++++++++++++++
- kernel/wait.c        |   11 ++---------
- 2 files changed, 28 insertions(+), 9 deletions(-)
+ fs/buffer.c                  |    2 +-
+ fs/inode.c                   |    2 +-
+ fs/nfs/inode.c               |    2 +-
+ fs/nfs/nfs4proc.c            |    2 +-
+ fs/nfs/pagelist.c            |    2 +-
+ include/linux/sunrpc/sched.h |    3 ++-
+ include/linux/wait.h         |   18 ++++++++++++------
+ include/linux/writeback.h    |    2 +-
+ kernel/wait.c                |   14 ++++++++------
+ mm/filemap.c                 |    2 +-
+ net/sunrpc/sched.c           |    5 +++--
+ 11 files changed, 32 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/wait.h~fsaio-init-wait-bit-key include/linux/wait.h
---- a/include/linux/wait.h~fsaio-init-wait-bit-key
-+++ a/include/linux/wait.h
-@@ -108,6 +108,17 @@ static inline int waitqueue_active(wait_
- 	return !list_empty(&q->task_list);
+diff -puN fs/buffer.c~fsaio-modify-wait-bit-action-args fs/buffer.c
+--- a/fs/buffer.c~fsaio-modify-wait-bit-action-args
++++ a/fs/buffer.c
+@@ -55,7 +55,7 @@ init_buffer(struct buffer_head *bh, bh_e
+ 	bh->b_private = private;
  }
  
-+static inline int test_wait_bit_key(wait_queue_t *wait,
-+				struct wait_bit_key *key)
-+{
-+	struct wait_bit_queue *wait_bit
-+		= container_of(wait, struct wait_bit_queue, wait);
-+
-+	return (wait_bit->key.flags == key->flags &&
-+			wait_bit->key.bit_nr == key->bit_nr &&
-+			!test_bit(key->bit_nr, key->flags));
-+}
-+
- /*
-  * Used to distinguish between sync and async io wait context:
-  * sync i/o typically specifies a NULL wait queue entry or a wait
-@@ -416,6 +427,21 @@ int wake_bit_function(wait_queue_t *wait
- 		INIT_LIST_HEAD(&(wait)->task_list);			\
- 	} while (0)
- 
-+static inline void init_wait_bit_key(struct wait_bit_queue *waitbit,
-+					void *word, int bit)
-+{
-+	waitbit->key.flags = word;
-+	waitbit->key.bit_nr = bit;
-+}
-+
-+static inline void init_wait_bit_task(struct wait_bit_queue *waitbit,
-+					struct task_struct *tsk)
-+{
-+	waitbit->wait.private = tsk;
-+	waitbit->wait.func = wake_bit_function;
-+	INIT_LIST_HEAD(&waitbit->wait.task_list);
-+}
-+
- /**
-  * wait_on_bit - wait for a bit to be cleared
-  * @word: the word being waited on, a kernel virtual address
-diff -puN kernel/wait.c~fsaio-init-wait-bit-key kernel/wait.c
---- a/kernel/wait.c~fsaio-init-wait-bit-key
-+++ a/kernel/wait.c
-@@ -139,16 +139,9 @@ EXPORT_SYMBOL(autoremove_wake_function);
- 
- int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
+-static int sleep_on_buffer(void *word)
++static int sleep_on_buffer(void *word, wait_queue_t *wait)
  {
--	struct wait_bit_key *key = arg;
--	struct wait_bit_queue *wait_bit
--		= container_of(wait, struct wait_bit_queue, wait);
--
--	if (wait_bit->key.flags != key->flags ||
--			wait_bit->key.bit_nr != key->bit_nr ||
--			test_bit(key->bit_nr, key->flags))
-+	if (!test_wait_bit_key(wait, arg))
- 		return 0;
--	else
--		return autoremove_wake_function(wait, mode, sync, key);
-+	return autoremove_wake_function(wait, mode, sync, arg);
- }
- EXPORT_SYMBOL(wake_bit_function);
+ 	io_schedule();
+ 	return 0;
+diff -puN fs/inode.c~fsaio-modify-wait-bit-action-args fs/inode.c
+--- a/fs/inode.c~fsaio-modify-wait-bit-action-args
++++ a/fs/inode.c
+@@ -1278,7 +1278,7 @@ void remove_dquot_ref(struct super_block
  
+ #endif
+ 
+-int inode_wait(void *word)
++int inode_wait(void *word, wait_queue_t *wait)
+ {
+ 	schedule();
+ 	return 0;
+diff -puN fs/nfs/inode.c~fsaio-modify-wait-bit-action-args fs/nfs/inode.c
+--- a/fs/nfs/inode.c~fsaio-modify-wait-bit-action-args
++++ a/fs/nfs/inode.c
+@@ -376,7 +376,7 @@ void nfs_setattr_update_inode(struct ino
+ 	}
+ }
+ 
+-static int nfs_wait_schedule(void *word)
++static int nfs_wait_schedule(void *word, wait_queue_t *wait)
+ {
+ 	if (signal_pending(current))
+ 		return -ERESTARTSYS;
+diff -puN fs/nfs/nfs4proc.c~fsaio-modify-wait-bit-action-args fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~fsaio-modify-wait-bit-action-args
++++ a/fs/nfs/nfs4proc.c
+@@ -2738,7 +2738,7 @@ nfs4_async_handle_error(struct rpc_task 
+ 	return 0;
+ }
+ 
+-static int nfs4_wait_bit_interruptible(void *word)
++static int nfs4_wait_bit_interruptible(void *word, wait_queue_t *wait)
+ {
+ 	if (signal_pending(current))
+ 		return -ERESTARTSYS;
+diff -puN fs/nfs/pagelist.c~fsaio-modify-wait-bit-action-args fs/nfs/pagelist.c
+--- a/fs/nfs/pagelist.c~fsaio-modify-wait-bit-action-args
++++ a/fs/nfs/pagelist.c
+@@ -176,7 +176,7 @@ nfs_release_request(struct nfs_page *req
+ 	nfs_page_free(req);
+ }
+ 
+-static int nfs_wait_bit_interruptible(void *word)
++static int nfs_wait_bit_interruptible(void *word, wait_queue_t *wait)
+ {
+ 	int ret = 0;
+ 
+diff -puN include/linux/sunrpc/sched.h~fsaio-modify-wait-bit-action-args include/linux/sunrpc/sched.h
+--- a/include/linux/sunrpc/sched.h~fsaio-modify-wait-bit-action-args
++++ a/include/linux/sunrpc/sched.h
+@@ -268,7 +268,8 @@ void *		rpc_malloc(struct rpc_task *, si
+ void		rpc_free(struct rpc_task *);
+ int		rpciod_up(void);
+ void		rpciod_down(void);
+-int		__rpc_wait_for_completion_task(struct rpc_task *task, int (*)(void *));
++int		__rpc_wait_for_completion_task(struct rpc_task *task,
++				int (*)(void *, wait_queue_t *wait));
+ #ifdef RPC_DEBUG
+ void		rpc_show_tasks(void);
+ #endif
+diff -puN include/linux/wait.h~fsaio-modify-wait-bit-action-args include/linux/wait.h
+--- a/include/linux/wait.h~fsaio-modify-wait-bit-action-args
++++ a/include/linux/wait.h
+@@ -145,11 +145,15 @@ void FASTCALL(__wake_up(wait_queue_head_
+ extern void FASTCALL(__wake_up_locked(wait_queue_head_t *q, unsigned int mode));
+ extern void FASTCALL(__wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr));
+ void FASTCALL(__wake_up_bit(wait_queue_head_t *, void *, int));
+-int FASTCALL(__wait_on_bit(wait_queue_head_t *, struct wait_bit_queue *, int (*)(void *), unsigned));
+-int FASTCALL(__wait_on_bit_lock(wait_queue_head_t *, struct wait_bit_queue *, int (*)(void *), unsigned));
++int FASTCALL(__wait_on_bit(wait_queue_head_t *, struct wait_bit_queue *,
++	int (*)(void *, wait_queue_t *), unsigned));
++int FASTCALL(__wait_on_bit_lock(wait_queue_head_t *, struct wait_bit_queue *,
++	int (*)(void *, wait_queue_t *), unsigned));
+ void FASTCALL(wake_up_bit(void *, int));
+-int FASTCALL(out_of_line_wait_on_bit(void *, int, int (*)(void *), unsigned));
+-int FASTCALL(out_of_line_wait_on_bit_lock(void *, int, int (*)(void *), unsigned));
++int FASTCALL(out_of_line_wait_on_bit(void *, int, int (*)(void *,
++	wait_queue_t *), unsigned));
++int FASTCALL(out_of_line_wait_on_bit_lock(void *, int, int (*)(void *,
++	wait_queue_t *), unsigned));
+ wait_queue_head_t *FASTCALL(bit_waitqueue(void *, int));
+ 
+ #define wake_up(x)			__wake_up(x, TASK_UNINTERRUPTIBLE | TASK_INTERRUPTIBLE, 1, NULL)
+@@ -427,7 +431,8 @@ int wake_bit_function(wait_queue_t *wait
+  * but has no intention of setting it.
+  */
+ static inline int wait_on_bit(void *word, int bit,
+-				int (*action)(void *), unsigned mode)
++				int (*action)(void *, wait_queue_t *),
++				unsigned mode)
+ {
+ 	if (!test_bit(bit, word))
+ 		return 0;
+@@ -451,7 +456,8 @@ static inline int wait_on_bit(void *word
+  * clear with the intention of setting it, and when done, clearing it.
+  */
+ static inline int wait_on_bit_lock(void *word, int bit,
+-				int (*action)(void *), unsigned mode)
++				int (*action)(void *, wait_queue_t *),
++				unsigned mode)
+ {
+ 	if (!test_and_set_bit(bit, word))
+ 		return 0;
+diff -puN include/linux/writeback.h~fsaio-modify-wait-bit-action-args include/linux/writeback.h
+--- a/include/linux/writeback.h~fsaio-modify-wait-bit-action-args
++++ a/include/linux/writeback.h
+@@ -66,7 +66,7 @@ struct writeback_control {
+  */	
+ int writeback_inodes(struct writeback_control *wbc);
+ void wake_up_inode(struct inode *inode);
+-int inode_wait(void *);
++int inode_wait(void *, wait_queue_t *);
+ int sync_inodes_sb(struct super_block *, int wait);
+ int sync_inodes(int wait);
+ 
+diff -puN kernel/wait.c~fsaio-modify-wait-bit-action-args kernel/wait.c
+--- a/kernel/wait.c~fsaio-modify-wait-bit-action-args
++++ a/kernel/wait.c
+@@ -159,14 +159,14 @@ EXPORT_SYMBOL(wake_bit_function);
+  */
+ int __sched fastcall
+ __wait_on_bit(wait_queue_head_t *wq, struct wait_bit_queue *q,
+-			int (*action)(void *), unsigned mode)
++			int (*action)(void *, wait_queue_t *), unsigned mode)
+ {
+ 	int ret = 0;
+ 
+ 	do {
+ 		prepare_to_wait(wq, &q->wait, mode);
+ 		if (test_bit(q->key.bit_nr, q->key.flags))
+-			ret = (*action)(q->key.flags);
++			ret = (*action)(q->key.flags, &q->wait);
+ 	} while (test_bit(q->key.bit_nr, q->key.flags) && !ret);
+ 	finish_wait(wq, &q->wait);
+ 	return ret;
+@@ -174,7 +174,8 @@ __wait_on_bit(wait_queue_head_t *wq, str
+ EXPORT_SYMBOL(__wait_on_bit);
+ 
+ int __sched fastcall out_of_line_wait_on_bit(void *word, int bit,
+-					int (*action)(void *), unsigned mode)
++					int (*action)(void *, wait_queue_t *),
++					unsigned mode)
+ {
+ 	wait_queue_head_t *wq = bit_waitqueue(word, bit);
+ 	DEFINE_WAIT_BIT(wait, word, bit);
+@@ -185,14 +186,14 @@ EXPORT_SYMBOL(out_of_line_wait_on_bit);
+ 
+ int __sched fastcall
+ __wait_on_bit_lock(wait_queue_head_t *wq, struct wait_bit_queue *q,
+-			int (*action)(void *), unsigned mode)
++			int (*action)(void *, wait_queue_t *), unsigned mode)
+ {
+ 	int ret = 0;
+ 
+ 	do {
+ 		prepare_to_wait_exclusive(wq, &q->wait, mode);
+ 		if (test_bit(q->key.bit_nr, q->key.flags)) {
+-			if ((ret = (*action)(q->key.flags)))
++			if ((ret = (*action)(q->key.flags, &q->wait)))
+ 				break;
+ 		}
+ 	} while (test_and_set_bit(q->key.bit_nr, q->key.flags));
+@@ -202,7 +203,8 @@ __wait_on_bit_lock(wait_queue_head_t *wq
+ EXPORT_SYMBOL(__wait_on_bit_lock);
+ 
+ int __sched fastcall out_of_line_wait_on_bit_lock(void *word, int bit,
+-					int (*action)(void *), unsigned mode)
++				int (*action)(void *, wait_queue_t *wait),
++				unsigned mode)
+ {
+ 	wait_queue_head_t *wq = bit_waitqueue(word, bit);
+ 	DEFINE_WAIT_BIT(wait, word, bit);
+diff -puN mm/filemap.c~fsaio-modify-wait-bit-action-args mm/filemap.c
+--- a/mm/filemap.c~fsaio-modify-wait-bit-action-args
++++ a/mm/filemap.c
+@@ -133,7 +133,7 @@ void remove_from_page_cache(struct page 
+ 	write_unlock_irq(&mapping->tree_lock);
+ }
+ 
+-static int sleep_on_page(void *word)
++static int sleep_on_page(void *word, wait_queue_t *wait)
+ {
+ 	io_schedule();
+ 	return 0;
+diff -puN net/sunrpc/sched.c~fsaio-modify-wait-bit-action-args net/sunrpc/sched.c
+--- a/net/sunrpc/sched.c~fsaio-modify-wait-bit-action-args
++++ a/net/sunrpc/sched.c
+@@ -258,7 +258,7 @@ void rpc_init_wait_queue(struct rpc_wait
+ }
+ EXPORT_SYMBOL(rpc_init_wait_queue);
+ 
+-static int rpc_wait_bit_interruptible(void *word)
++static int rpc_wait_bit_interruptible(void *word, wait_queue_t *wait)
+ {
+ 	if (signal_pending(current))
+ 		return -ERESTARTSYS;
+@@ -294,7 +294,8 @@ static void rpc_mark_complete_task(struc
+ /*
+  * Allow callers to wait for completion of an RPC call
+  */
+-int __rpc_wait_for_completion_task(struct rpc_task *task, int (*action)(void *))
++int __rpc_wait_for_completion_task(struct rpc_task *task, int (*action)(
++			void *, wait_queue_t *wait))
+ {
+ 	if (action == NULL)
+ 		action = rpc_wait_bit_interruptible;
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
