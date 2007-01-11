@@ -1,80 +1,135 @@
 From: akpm@osdl.org
-Subject: + mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch added to -mm tree
-Date: Wed, 10 Jan 2007 16:53:11 -0800
-Message-ID: <200701110053.l0B0rB70012983@shell0.pdx.osdl.net>
+Subject: + kernel-doc-fix-some-odd-spacing-issues.patch added to -mm tree
+Date: Wed, 10 Jan 2007 16:54:28 -0800
+Message-ID: <200701110054.l0B0sS0q013007@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41815 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41877 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965281AbXAKAxT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 19:53:19 -0500
+	id S965289AbXAKAyc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 19:54:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, pj@sgi.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     mbind: restrict nodes to the currently allowed cpuset
+     kernel-doc: fix some odd spacing issues
 has been added to the -mm tree.  Its filename is
-     mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
+     kernel-doc-fix-some-odd-spacing-issues.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mbind: restrict nodes to the currently allowed cpuset
-From: Christoph Lameter <clameter@sgi.com>
+Subject: kernel-doc: fix some odd spacing issues
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Currently one can specify an arbitrary node mask to mbind that includes
-nodes not allowed.  If that is done with an interleave policy then we will
-go around all the nodes.  Those outside of the currently allowed cpuset
-will be redirected to the border nodes.  Interleave will then create
-imbalances at the borders of the cpuset.
+- in man and text mode output, if the function return type is empty (like it
+  is for macros), don't print the return type and a following space; this
+  fixes an output malalignment;
 
-This patch restricts the nodes to the currently allowed cpuset.
+- in the function short description, strip leading, trailing, and multiple
+  embedded spaces (to one space); this makes function name/description output
+  spacing consistent;
 
-The RFC for this patch was discussed at
-http://marc.theaimsgroup.com/?t=116793842100004&r=1&w=2
+- fix a comment typo;
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/mempolicy.c |    1 +
- 1 files changed, 1 insertion(+)
+ scripts/kernel-doc |   24 ++++++++++++++++++++----
+ 1 files changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset mm/mempolicy.c
---- a/mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset
-+++ a/mm/mempolicy.c
-@@ -882,6 +882,7 @@ asmlinkage long sys_mbind(unsigned long 
- 	int err;
+diff -puN scripts/kernel-doc~kernel-doc-fix-some-odd-spacing-issues scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-fix-some-odd-spacing-issues
++++ a/scripts/kernel-doc
+@@ -365,7 +365,7 @@ sub dump_section {
+ #  parameterlist => @list of parameters
+ #  parameterdescs => %parameter descriptions
+ #  sectionlist => @list of sections
+-#  sections => %descriont descriptions
++#  sections => %section descriptions
+ #
  
- 	err = get_nodes(&nodes, nmask, maxnode);
-+	nodes_and(nodes, nodes, current->mems_allowed);
- 	if (err)
- 		return err;
- 	return do_mbind(start, len, mode, &nodes, flags);
+ sub output_highlight {
+@@ -953,7 +953,11 @@ sub output_function_man(%) {
+     print $args{'function'}." \\- ".$args{'purpose'}."\n";
+ 
+     print ".SH SYNOPSIS\n";
+-    print ".B \"".$args{'functiontype'}."\" ".$args{'function'}."\n";
++    if ($args{'functiontype'} ne "") {
++	print ".B \"".$args{'functiontype'}."\" ".$args{'function'}."\n";
++    } else {
++	print ".B \"".$args{'function'}."\n";
++    }
+     $count = 0;
+     my $parenth = "(";
+     my $post = ",";
+@@ -1118,13 +1122,19 @@ sub output_intro_man(%) {
+ sub output_function_text(%) {
+     my %args = %{$_[0]};
+     my ($parameter, $section);
++    my $start;
+ 
+     print "Name:\n\n";
+     print $args{'function'}." - ".$args{'purpose'}."\n";
+ 
+     print "\nSynopsis:\n\n";
+-    my $start=$args{'functiontype'}." ".$args{'function'}." (";
++    if ($args{'functiontype'} ne "") {
++	$start = $args{'functiontype'}." ".$args{'function'}." (";
++    } else {
++	$start = $args{'function'}." (";
++    }
+     print $start;
++
+     my $count = 0;
+     foreach my $parameter (@{$args{'parameterlist'}}) {
+ 	$type = $args{'parametertypes'}{$parameter};
+@@ -1710,6 +1720,7 @@ sub process_file($) {
+     my $file;
+     my $identifier;
+     my $func;
++    my $descr;
+     my $initial_section_counter = $section_counter;
+ 
+     if (defined($ENV{'SRCTREE'})) {
+@@ -1753,7 +1764,12 @@ sub process_file($) {
+ 
+ 		$state = 2;
+ 		if (/-(.*)/) {
+-		    $declaration_purpose = xml_escape($1);
++		    # strip leading/trailing/multiple spaces #RDD:T:
++		    $descr= $1;
++		    $descr =~ s/^\s*//;
++		    $descr =~ s/\s*$//;
++		    $descr =~ s/\s+/ /;
++		    $declaration_purpose = xml_escape($descr);
+ 		} else {
+ 		    $declaration_purpose = "";
+ 		}
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
-optional-zone_dma-for-ia64.patch
-remove-zone_dma-remains-from-parisc.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-set-config_zone_dma-for-arches-with-generic_isa_dma.patch
-zoneid-fix-up-calculations-for-zoneid_pgshift.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
+git-alsa.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+git-mtd.patch
+parisc-fix-module_param-iommu-permission.patch
+git-scsi-rc-fixes.patch
+megaraid-fix-kernel-doc.patch
+math-emu-setcc-avoid-gcc-extension.patch
+kernel-doc-allow-a-little-whitespace.patch
+sysrq-showblockedtasks-is-sysrq-w.patch
+sysrq-alphabetize-command-keys-doc.patch
+kernel-doc-allow-more-whitespace.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+megaraid-more-kernel-doc-fixes.patch
+docbook-add-edd-firmware-interfaces.patch
+kernel-doc-fix-some-odd-spacing-issues.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
