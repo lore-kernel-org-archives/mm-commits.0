@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + workqueue-dont-clear-cwq-thread-until-it-exits.patch added to -mm tree
-Date: Thu, 11 Jan 2007 15:58:48 -0800
-Message-ID: <200701112358.l0BNwm0Y007097@shell0.pdx.osdl.net>
+Subject: + workqueue-fix-freezeable-workqueues-implementation.patch added to -mm tree
+Date: Thu, 11 Jan 2007 15:58:44 -0800
+Message-ID: <200701112358.l0BNwi9a007091@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44775 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932822AbXAKX7J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 18:59:09 -0500
+	id S1751487AbXAKX7M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 18:59:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, venkatesh.pallipadi@intel
 
 
 The patch titled
-     workqueue: don't clear cwq->thread until it exits
+     workqueue: fix freezeable workqueues implementation
 has been added to the -mm tree.  Its filename is
-     workqueue-dont-clear-cwq-thread-until-it-exits.patch
+     workqueue-fix-freezeable-workqueues-implementation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,17 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue: don't clear cwq->thread until it exits
+Subject: workqueue: fix freezeable workqueues implementation
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Pointed out by Srivatsa Vaddagiri.
-
-cleanup_workqueue_thread() sets cwq->thread = NULL and does kthread_stop().
-This breaks the "if (cwq->thread == current)" logic in flush_cpu_workqueue()
-and leads to deadlock.
-
-Kill the thead first, then clear cwq->thread. workqueue_mutex protects us
-from create_workqueue_thread() so we don't need cwq->lock.
+Currently ->freezeable is per-cpu, this is wrong. CPU_UP_PREPARE creates
+cwq->thread which is not freezeable. Move ->freezeable to workqueue_struct.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
@@ -44,35 +38,96 @@ Cc: Gautham shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/workqueue.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
+ kernel/workqueue.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-dont-clear-cwq-thread-until-it-exits kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-dont-clear-cwq-thread-until-it-exits
+diff -puN kernel/workqueue.c~workqueue-fix-freezeable-workqueues-implementation kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-fix-freezeable-workqueues-implementation
 +++ a/kernel/workqueue.c
-@@ -625,17 +625,12 @@ EXPORT_SYMBOL_GPL(__create_workqueue);
+@@ -49,8 +49,6 @@ struct cpu_workqueue_struct {
+ 	struct work_struct *current_work;
  
- static void cleanup_workqueue_thread(struct workqueue_struct *wq, int cpu)
+ 	int run_depth;		/* Detect run_workqueue() recursion depth */
+-
+-	int freezeable;		/* Freeze the thread during suspend */
+ } ____cacheline_aligned;
+ 
+ /*
+@@ -61,6 +59,7 @@ struct workqueue_struct {
+ 	struct cpu_workqueue_struct *cpu_wq;
+ 	const char *name;
+ 	struct list_head list; 	/* Empty if single thread */
++	int freezeable;		/* Freeze threads during suspend */
+ };
+ 
+ /* All the per-cpu workqueues on the system, for hotplug cpu to add/remove
+@@ -351,7 +350,7 @@ static int worker_thread(void *__cwq)
+ 	struct k_sigaction sa;
+ 	sigset_t blocked;
+ 
+-	if (!cwq->freezeable)
++	if (!cwq->wq->freezeable)
+ 		current->flags |= PF_NOFREEZE;
+ 
+ 	set_user_nice(current, -5);
+@@ -375,7 +374,7 @@ static int worker_thread(void *__cwq)
+ 
+ 	set_current_state(TASK_INTERRUPTIBLE);
+ 	while (!kthread_should_stop()) {
+-		if (cwq->freezeable)
++		if (cwq->wq->freezeable)
+ 			try_to_freeze();
+ 
+ 		add_wait_queue(&cwq->more_work, &wait);
+@@ -546,7 +545,7 @@ out:
+ EXPORT_SYMBOL_GPL(flush_work);
+ 
+ static struct task_struct *create_workqueue_thread(struct workqueue_struct *wq,
+-						   int cpu, int freezeable)
++							int cpu)
  {
--	struct cpu_workqueue_struct *cwq;
--	unsigned long flags;
--	struct task_struct *p;
-+	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+ 	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+ 	struct task_struct *p;
+@@ -554,7 +553,6 @@ static struct task_struct *create_workqu
+ 	spin_lock_init(&cwq->lock);
+ 	cwq->wq = wq;
+ 	cwq->thread = NULL;
+-	cwq->freezeable = freezeable;
+ 	INIT_LIST_HEAD(&cwq->worklist);
+ 	init_waitqueue_head(&cwq->more_work);
  
--	cwq = per_cpu_ptr(wq->cpu_wq, cpu);
--	spin_lock_irqsave(&cwq->lock, flags);
--	p = cwq->thread;
--	cwq->thread = NULL;
--	spin_unlock_irqrestore(&cwq->lock, flags);
--	if (p)
--		kthread_stop(p);
-+	if (cwq->thread) {
-+		kthread_stop(cwq->thread);
-+		cwq->thread = NULL;
-+	}
- }
+@@ -586,10 +584,12 @@ struct workqueue_struct *__create_workqu
+ 	}
  
- /**
+ 	wq->name = name;
++	wq->freezeable = freezeable;
++
+ 	mutex_lock(&workqueue_mutex);
+ 	if (singlethread) {
+ 		INIT_LIST_HEAD(&wq->list);
+-		p = create_workqueue_thread(wq, singlethread_cpu, freezeable);
++		p = create_workqueue_thread(wq, singlethread_cpu);
+ 		if (!p)
+ 			destroy = 1;
+ 		else
+@@ -597,7 +597,7 @@ struct workqueue_struct *__create_workqu
+ 	} else {
+ 		list_add(&wq->list, &workqueues);
+ 		for_each_online_cpu(cpu) {
+-			p = create_workqueue_thread(wq, cpu, freezeable);
++			p = create_workqueue_thread(wq, cpu);
+ 			if (p) {
+ 				kthread_bind(p, cpu);
+ 				wake_up_process(p);
+@@ -857,7 +857,7 @@ static int __devinit workqueue_cpu_callb
+ 	case CPU_UP_PREPARE:
+ 		/* Create a new workqueue thread for it. */
+ 		list_for_each_entry(wq, &workqueues, list) {
+-			if (!create_workqueue_thread(wq, hotcpu, 0)) {
++			if (!create_workqueue_thread(wq, hotcpu)) {
+ 				printk("workqueue for %i failed\n", hotcpu);
+ 				return NOTIFY_BAD;
+ 			}
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
