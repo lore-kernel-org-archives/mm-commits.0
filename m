@@ -1,13 +1,13 @@
 From: akpm@osdl.org
 Subject: + libata-piix3-support-warning-fix.patch added to -mm tree
-Date: Wed, 10 Jan 2007 17:20:34 -0800
-Message-ID: <200701110120.l0B1KYN6013572@shell0.pdx.osdl.net>
+Date: Wed, 10 Jan 2007 17:20:36 -0800
+Message-ID: <200701110120.l0B1KbTm013575@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43506 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43515 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030189AbXAKBUr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Jan 2007 20:20:47 -0500
+	id S1750973AbXAKBUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Jan 2007 20:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -26,6 +26,8 @@ out what to do about this
 Subject: libata-piix3-support-warning-fix
 From: Andrew Morton <akpm@osdl.org>
 
+Cc: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
