@@ -1,52 +1,53 @@
 From: akpm@osdl.org
-Subject: + blockdev-direct_io-fix-signedness-bug.patch added to -mm tree
-Date: Thu, 11 Jan 2007 11:30:10 -0800
-Message-ID: <200701111930.l0BJUANZ000971@shell0.pdx.osdl.net>
+Subject: + submitchecklist-update.patch added to -mm tree
+Date: Thu, 11 Jan 2007 11:32:44 -0800
+Message-ID: <200701111932.l0BJWi5s001038@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56776 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57199 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439AbXAKTaZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 14:30:25 -0500
+	id S1751440AbXAKTcx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 14:32:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, kenneth.w.chen@intel.com
+Cc: akpm@osdl.org, kenneth.w.chen@intel.com, rdunlap@xenotime.net
 
 
 The patch titled
-     blockdev direct_io: fix signedness bug
+     SubmitChecklist update
 has been added to the -mm tree.  Its filename is
-     blockdev-direct_io-fix-signedness-bug.patch
+     submitchecklist-update.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blockdev direct_io: fix signedness bug
+Subject: SubmitChecklist update
 From: Andrew Morton <akpm@osdl.org>
 
-size_t is unsigned.  IO errors aren't getting through.
+Sing the praises of `gcc -W'.  Would have prevented that blockdev direct-IO
+bug.
 
 Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/SubmitChecklist |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/block_dev.c~blockdev-direct_io-fix-signedness-bug fs/block_dev.c
---- a/fs/block_dev.c~blockdev-direct_io-fix-signedness-bug
-+++ a/fs/block_dev.c
-@@ -146,7 +146,7 @@ static int blk_end_aio(struct bio *bio, 
- 		iocb->ki_nbytes = -EIO;
+diff -puN Documentation/SubmitChecklist~submitchecklist-update Documentation/SubmitChecklist
+--- a/Documentation/SubmitChecklist~submitchecklist-update
++++ a/Documentation/SubmitChecklist
+@@ -72,3 +72,7 @@ kernel patches.
  
- 	if (atomic_dec_and_test(bio_count)) {
--		if (iocb->ki_nbytes < 0)
-+		if ((long)iocb->ki_nbytes < 0)
- 			aio_complete(iocb, iocb->ki_nbytes, 0);
- 		else
- 			aio_complete(iocb, iocb->ki_left, 0);
+     If the new code is substantial, addition of subsystem-specific fault
+     injection might be appropriate.
++
++22: Newly-added code has been compiled with `gcc -W'.  This will generate
++    lots of noise, but is good for finding bugs like "warning: comparison
++    between signed and unsigned".
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -54,6 +55,7 @@ Patches currently in -mm which might be from akpm@osdl.org are
 origin.patch
 nfs-fix-race-in-nfs_release_page.patch
 fd_zero-build-fix.patch
+blockdev-direct_io-fix-signedness-bug.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
@@ -200,4 +202,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-blockdev-direct_io-fix-signedness-bug.patch
+submitchecklist-update.patch
