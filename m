@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + attach_pid-with-struct-pid-parameter.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:13:09 -0800
-Message-ID: <200701112113.l0BLD93Z003160@shell0.pdx.osdl.net>
+Subject: + include-linux-nfsd-consth-remove-nfs_super_magic.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:17:36 -0800
+Message-ID: <200701112117.l0BLHaCo003276@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35324 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35563 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932071AbXAKVNb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:13:31 -0500
+	id S1751453AbXAKVSG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:18:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, haveblue@us.ibm.com, serue@us.ibm.com
+Cc: bunk@stusta.de, neilb@suse.de
 
 
 The patch titled
-     attach_pid() with struct pid parameter
+     include/linux/nfsd/const.h: remove NFS_SUPER_MAGIC
 has been added to the -mm tree.  Its filename is
-     attach_pid-with-struct-pid-parameter.patch
+     include-linux-nfsd-consth-remove-nfs_super_magic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,94 +25,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: attach_pid() with struct pid parameter
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: include/linux/nfsd/const.h: remove NFS_SUPER_MAGIC
+From: Adrian Bunk <bunk@stusta.de>
 
-Implement a new version of attach_pid() with a struct pid parameter and wrap
-find_attach_pid() around it.  attach_pid() would also be used in subsequent
-container patches.
+NFS_SUPER_MAGIC is already defined in include/linux/magic.h
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: <containers@lists.osdl.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/pid.h |   28 +++++++++++++++++-----------
- kernel/pid.c        |    7 +++----
- 2 files changed, 20 insertions(+), 15 deletions(-)
+ fs/nfs/super.c             |    1 +
+ include/linux/nfsd/const.h |    4 ----
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/pid.h~attach_pid-with-struct-pid-parameter include/linux/pid.h
---- a/include/linux/pid.h~attach_pid-with-struct-pid-parameter
-+++ a/include/linux/pid.h
-@@ -72,17 +72,6 @@ extern struct task_struct *FASTCALL(get_
- extern struct pid *get_task_pid(struct task_struct *task, enum pid_type type);
+diff -puN fs/nfs/super.c~include-linux-nfsd-consth-remove-nfs_super_magic fs/nfs/super.c
+--- a/fs/nfs/super.c~include-linux-nfsd-consth-remove-nfs_super_magic
++++ a/fs/nfs/super.c
+@@ -44,6 +44,7 @@
+ #include <linux/vfs.h>
+ #include <linux/inet.h>
+ #include <linux/nfs_xdr.h>
++#include <linux/magic.h>
  
+ #include <asm/system.h>
+ #include <asm/uaccess.h>
+diff -puN include/linux/nfsd/const.h~include-linux-nfsd-consth-remove-nfs_super_magic include/linux/nfsd/const.h
+--- a/include/linux/nfsd/const.h~include-linux-nfsd-consth-remove-nfs_super_magic
++++ a/include/linux/nfsd/const.h
+@@ -30,10 +30,6 @@
+ 
+ #include <linux/sunrpc/msg_prot.h>
+ 
+-#ifndef NFS_SUPER_MAGIC
+-# define NFS_SUPER_MAGIC	0x6969
+-#endif
+-
  /*
-- * find_attach_pid() and detach_pid() must be called with the tasklist_lock
-- * write-held.
-- */
--extern int FASTCALL(find_attach_pid(struct task_struct *task,
--				enum pid_type type, int nr));
--
--extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
--extern void FASTCALL(transfer_pid(struct task_struct *old,
--				  struct task_struct *new, enum pid_type));
--
--/*
-  * look up a PID in the hash table. Must be called with the tasklist_lock
-  * or rcu_read_lock() held.
-  */
-@@ -94,6 +83,23 @@ extern struct pid *FASTCALL(find_pid(int
- extern struct pid *find_get_pid(int nr);
- extern struct pid *find_ge_pid(int nr);
- 
-+/*
-+ * attach_pid(), find_attach_pid() and detach_pid() must be called with the
-+ * tasklist_lock write-held.
-+ */
-+extern int FASTCALL(attach_pid(struct task_struct *task, enum pid_type type,
-+				struct pid *pid));
-+
-+static inline int find_attach_pid(struct task_struct *task, enum pid_type type,
-+				int nr)
-+{
-+	return attach_pid(task, type, find_pid(nr));
-+}
-+
-+extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
-+extern void FASTCALL(transfer_pid(struct task_struct *old,
-+				  struct task_struct *new, enum pid_type));
-+
- extern struct pid *alloc_pid(void);
- extern void FASTCALL(free_pid(struct pid *pid));
- 
-diff -puN kernel/pid.c~attach_pid-with-struct-pid-parameter kernel/pid.c
---- a/kernel/pid.c~attach_pid-with-struct-pid-parameter
-+++ a/kernel/pid.c
-@@ -247,14 +247,13 @@ struct pid * fastcall find_pid(int nr)
- }
- EXPORT_SYMBOL_GPL(find_pid);
- 
--int fastcall find_attach_pid(struct task_struct *task, enum pid_type type,
--				int nr)
-+int fastcall attach_pid(struct task_struct *task, enum pid_type type,
-+				struct pid *pid)
- {
- 	struct pid_link *link;
--	struct pid *pid;
- 
- 	link = &task->pids[type];
--	link->pid = pid = find_pid(nr);
-+	link->pid = pid;
- 	hlist_add_head_rcu(&link->node, &pid->tasks[type]);
- 
- 	return 0;
+  * Largest number of bytes we need to allocate for an NFS
+  * call or reply.  Used to control buffer sizes.  We use
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-rename-attach_pid-to-find_attach_pid.patch
-attach_pid-with-struct-pid-parameter.patch
+origin.patch
+git-alsa.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-libata-all.patch
+git-mtd.patch
+drivers-mtd-ubi-vtblc-make-2-functions-static.patch
+git-netdev-all.patch
+net-irda-proper-prototypes.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+make-isa_bridge-alpha-only.patch
+git-scsi-rc-fixes.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+toshiba-tc86c001-ide-driver-take-2-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i386-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+make-hdlc_setup-static-again.patch
+voyager-remove-smp_tune_scheduling-fixme.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+net-wanrouter-wanmainc-cleanups.patch
+more-ftape-removal.patch
+cleanup-linux-byteorder-swabbh.patch
+mips-remove-smp_tune_scheduling.patch
