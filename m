@@ -1,13 +1,13 @@
 From: akpm@osdl.org
 Subject: + ext4-refuse-ro-to-rw-remount-of-fs-with-orphan.patch added to -mm tree
-Date: Thu, 11 Jan 2007 14:21:35 -0800
-Message-ID: <200701112221.l0BMLZsX004867@shell0.pdx.osdl.net>
+Date: Thu, 11 Jan 2007 14:22:13 -0800
+Message-ID: <200701112222.l0BMMDZw004892@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39150 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39201 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932108AbXAKWVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 17:21:43 -0500
+	id S932651AbXAKWWX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 17:22:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -58,7 +58,7 @@ diff -puN fs/ext4/super.c~ext4-refuse-ro-to-rw-remount-of-fs-with-orphan fs/ext4
 +			 * require a full umount/remount for now.
 +			 */
 +			if (es->s_last_orphan) {
-+				printk(KERN_WARNING "EXT3-fs: %s: couldn't "
++				printk(KERN_WARNING "EXT4-fs: %s: couldn't "
 +				       "remount RDWR because of unprocessed "
 +				       "orphan inode list.  Please "
 +				       "umount/remount instead.\n",
@@ -76,3 +76,4 @@ Patches currently in -mm which might be from sandeen@redhat.com are
 
 ext2-skip-pages-past-number-of-blocks-in-ext2_find_entry.patch
 ext3-refuse-ro-to-rw-remount-of-fs-with-orphan.patch
+ext4-refuse-ro-to-rw-remount-of-fs-with-orphan.patch
