@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + ext3-refuse-ro-to-rw-remount-of-fs-with-orphan.patch added to -mm tree
-Date: Thu, 11 Jan 2007 14:20:58 -0800
-Message-ID: <200701112220.l0BMKxpq004846@shell0.pdx.osdl.net>
+Subject: + ext4-refuse-ro-to-rw-remount-of-fs-with-orphan.patch added to -mm tree
+Date: Thu, 11 Jan 2007 14:21:35 -0800
+Message-ID: <200701112221.l0BMLZsX004867@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39136 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39150 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932154AbXAKWVK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 17:21:10 -0500
+	id S932108AbXAKWVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 17:21:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: sandeen@redhat.com, sct@redhat.com
 
 
 The patch titled
-     ext3: refuse ro to rw remount of fs with orphan inodes
+     ext4: refuse ro to rw remount of fs with orphan inodes
 has been added to the -mm tree.  Its filename is
-     ext3-refuse-ro-to-rw-remount-of-fs-with-orphan.patch
+     ext4-refuse-ro-to-rw-remount-of-fs-with-orphan.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: refuse ro to rw remount of fs with orphan inodes
+Subject: ext4: refuse ro to rw remount of fs with orphan inodes
 From: Eric Sandeen <sandeen@redhat.com>
 
 In the rare case where we have skipped orphan inode processing due to a
@@ -41,13 +41,13 @@ Cc: "Stephen C. Tweedie" <sct@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext3/super.c |   16 ++++++++++++++++
+ fs/ext4/super.c |   16 ++++++++++++++++
  1 files changed, 16 insertions(+)
 
-diff -puN fs/ext3/super.c~ext3-refuse-ro-to-rw-remount-of-fs-with-orphan fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-refuse-ro-to-rw-remount-of-fs-with-orphan
-+++ a/fs/ext3/super.c
-@@ -2344,6 +2344,22 @@ static int ext3_remount (struct super_bl
+diff -puN fs/ext4/super.c~ext4-refuse-ro-to-rw-remount-of-fs-with-orphan fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-refuse-ro-to-rw-remount-of-fs-with-orphan
++++ a/fs/ext4/super.c
+@@ -2419,6 +2419,22 @@ static int ext4_remount (struct super_bl
  				err = -EROFS;
  				goto restore_opts;
  			}
