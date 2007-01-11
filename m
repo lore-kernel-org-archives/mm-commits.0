@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + cpu_freq_table-shouldnt-be-a-def_tristate.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:17:28 -0800
-Message-ID: <200701112117.l0BLHSh3003264@shell0.pdx.osdl.net>
+Subject: + make-hdlc_setup-static-again.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:17:32 -0800
+Message-ID: <200701112117.l0BLHWaL003270@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35747 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35754 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932066AbXAKVUq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:20:46 -0500
+	id S932081AbXAKVUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:20:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, davej@codemonkey.org.uk
+Cc: bunk@stusta.de, khc@pm.waw.pl
 
 
 The patch titled
-     CPU_FREQ_TABLE shouldn't be a def_tristate
+     make hdlc_setup() static again
 has been added to the -mm tree.  Its filename is
-     cpu_freq_table-shouldnt-be-a-def_tristate.patch
+     make-hdlc_setup-static-again.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: CPU_FREQ_TABLE shouldn't be a def_tristate
+Subject: make hdlc_setup() static again
 From: Adrian Bunk <bunk@stusta.de>
 
-CPU_FREQ_TABLE enables helper code and gets select'ed when it's required.
+hdlc_setup was exported, but this export was never used.
 
-Building it as a module when it's not required doesn't seem to make much
-sense.
+If a driver using it actually shows up it can still be exported again.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Acked-by: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/cpufreq/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wan/hdlc.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate drivers/cpufreq/Kconfig
---- a/drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate
-+++ a/drivers/cpufreq/Kconfig
-@@ -16,7 +16,7 @@ config CPU_FREQ
- if CPU_FREQ
+diff -puN drivers/net/wan/hdlc.c~make-hdlc_setup-static-again drivers/net/wan/hdlc.c
+--- a/drivers/net/wan/hdlc.c~make-hdlc_setup-static-again
++++ a/drivers/net/wan/hdlc.c
+@@ -222,7 +222,7 @@ int hdlc_ioctl(struct net_device *dev, s
+ 	return -EINVAL;
+ }
  
- config CPU_FREQ_TABLE
--       def_tristate m
-+       tristate
+-void hdlc_setup(struct net_device *dev)
++static void hdlc_setup(struct net_device *dev)
+ {
+ 	hdlc_device *hdlc = dev_to_hdlc(dev);
  
- config CPU_FREQ_DEBUG
- 	bool "Enable CPUfreq debugging"
+@@ -325,7 +325,6 @@ MODULE_LICENSE("GPL v2");
+ EXPORT_SYMBOL(hdlc_open);
+ EXPORT_SYMBOL(hdlc_close);
+ EXPORT_SYMBOL(hdlc_ioctl);
+-EXPORT_SYMBOL(hdlc_setup);
+ EXPORT_SYMBOL(alloc_hdlcdev);
+ EXPORT_SYMBOL(unregister_hdlc_device);
+ EXPORT_SYMBOL(register_hdlc_protocol);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
