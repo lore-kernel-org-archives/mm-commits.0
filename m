@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + voyager-remove-smp_tune_scheduling-fixme.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:17:34 -0800
-Message-ID: <200701112117.l0BLHYaH003273@shell0.pdx.osdl.net>
+Subject: + cpu_freq_table-shouldnt-be-a-def_tristate.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:17:28 -0800
+Message-ID: <200701112117.l0BLHSh3003264@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35760 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35747 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932108AbXAKVUv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:20:51 -0500
+	id S932066AbXAKVUq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:20:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, James.Bottomley@steeleye.com
+Cc: bunk@stusta.de, davej@codemonkey.org.uk
 
 
 The patch titled
-     Voyager: remove smp_tune_scheduling() FIXME
+     CPU_FREQ_TABLE shouldn't be a def_tristate
 has been added to the -mm tree.  Its filename is
-     voyager-remove-smp_tune_scheduling-fixme.patch
+     cpu_freq_table-shouldnt-be-a-def_tristate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Voyager: remove smp_tune_scheduling() FIXME
+Subject: CPU_FREQ_TABLE shouldn't be a def_tristate
 From: Adrian Bunk <bunk@stusta.de>
 
-smp_tune_scheduling() does no longer do anything that might be required for
-Voyager.
+CPU_FREQ_TABLE enables helper code and gets select'ed when it's required.
+
+Building it as a module when it's not required doesn't seem to make much
+sense.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/mach-voyager/voyager_smp.c |    4 ----
- 1 files changed, 4 deletions(-)
+ drivers/cpufreq/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/mach-voyager/voyager_smp.c~voyager-remove-smp_tune_scheduling-fixme arch/i386/mach-voyager/voyager_smp.c
---- a/arch/i386/mach-voyager/voyager_smp.c~voyager-remove-smp_tune_scheduling-fixme
-+++ a/arch/i386/mach-voyager/voyager_smp.c
-@@ -709,10 +709,6 @@ smp_boot_cpus(void)
- 	 * schedule at the moment */
- 	//global_irq_holder = boot_cpu_id;
+diff -puN drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate drivers/cpufreq/Kconfig
+--- a/drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate
++++ a/drivers/cpufreq/Kconfig
+@@ -16,7 +16,7 @@ config CPU_FREQ
+ if CPU_FREQ
  
--	/* FIXME: Need to do something about this but currently only works
--	 * on CPUs with a tsc which none of mine have. 
--	smp_tune_scheduling();
--	 */
- 	smp_store_cpu_info(boot_cpu_id);
- 	printk("CPU%d: ", boot_cpu_id);
- 	print_cpu_info(&cpu_data[boot_cpu_id]);
+ config CPU_FREQ_TABLE
+-       def_tristate m
++       tristate
+ 
+ config CPU_FREQ_DEBUG
+ 	bool "Enable CPUfreq debugging"
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
