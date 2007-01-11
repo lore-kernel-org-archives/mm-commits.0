@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:07:43 -0800
-Message-ID: <200701112107.l0BL7h6O003058@shell0.pdx.osdl.net>
+Subject: + kvm-fix-bogus-pagefault-on-writable-pages.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:07:49 -0800
+Message-ID: <200701112107.l0BL7nrE003067@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34933 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34942 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751448AbXAKVIP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:08:15 -0500
+	id S1751453AbXAKVIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:08:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     KVM: fix race between mmio reads and injected interrupts
+     KVM: fix bogus pagefault on writable pages
 has been added to the -mm tree.  Its filename is
-     kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
+     kvm-fix-bogus-pagefault-on-writable-pages.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: fix race between mmio reads and injected interrupts
+Subject: KVM: fix bogus pagefault on writable pages
 From: Avi Kivity <avi@qumranet.com>
 
-The kvm mmio read path looks like:
+If a page is marked as dirty in the guest pte, set_pte_common() can set the
+writable bit on newly-instantiated shadow pte.  This optimization avoids
+a write fault after the initial read fault.
 
- 1. guest read faults
- 2. kvm emulates read, calls emulator_read_emulated()
- 3. fails as a read requires userspace help
- 4. exit to userspace
- 5. userspace emulates read, kvm sets vcpu->mmio_read_completed
- 6. re-enter guest, fault again
- 7. kvm emulates read, calls emulator_read_emulated()
- 8. succeeds as vcpu->mmio_read_emulated is set
- 9. instruction completes and guest is resumed
+However, if a write fault instantiates the pte, fix_write_pf() incorrectly
+reports the fault as a guest page fault, and the guest oopses on what appears
+to be a correctly-mapped page.
 
-A problem surfaces if the userspace exit (step 5) also requests an interrupt
-injection.  In that case, the guest does not re-execute the original
-instruction, but the interrupt handler.  The next time an mmio read is
-exectued (likely for a different address), step 3 will find
-vcpu->mmio_read_completed set and return the value read for the original
-instruction.
+Fix is to detect the condition and only report a guest page fault on a user
+access to a kernel page.
 
-The problem manifested itself in a few annoying ways:
-- little squares appear randomly on console when switching virtual terminals
-- ne2000 fails under nfs read load
-- rtl8139 complains about "pci errors" even though the device model is
-  incapable of issuing them.
-
-Fix by skipping interrupt injection if an mmio read is pending.
-
-A better fix is to avoid re-entry into the guest, and re-emulating immediately
-instead.  However that's a bit more complex.
+With the fix, a kvm guest can survive a whole night of running the kernel
+hacker's screensaver (make -j9 in a loop).
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c |    3 ++-
- drivers/kvm/vmx.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/kvm/paging_tmpl.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/kvm/svm.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts
-+++ a/drivers/kvm/svm.c
-@@ -1407,7 +1407,8 @@ static int svm_vcpu_run(struct kvm_vcpu 
- 	int r;
+diff -puN drivers/kvm/paging_tmpl.h~kvm-fix-bogus-pagefault-on-writable-pages drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-fix-bogus-pagefault-on-writable-pages
++++ a/drivers/kvm/paging_tmpl.h
+@@ -274,7 +274,7 @@ static int FNAME(fix_write_pf)(struct kv
+ 	struct kvm_mmu_page *page;
  
- again:
--	do_interrupt_requests(vcpu, kvm_run);
-+	if (!vcpu->mmio_read_completed)
-+		do_interrupt_requests(vcpu, kvm_run);
+ 	if (is_writeble_pte(*shadow_ent))
+-		return 0;
++		return !user || (*shadow_ent & PT_USER_MASK);
  
- 	clgi();
- 
-diff -puN drivers/kvm/vmx.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts
-+++ a/drivers/kvm/vmx.c
-@@ -1717,7 +1717,8 @@ again:
- 	vmcs_writel(HOST_GS_BASE, segment_base(gs_sel));
- #endif
- 
--	do_interrupt_requests(vcpu, kvm_run);
-+	if (!vcpu->mmio_read_completed)
-+		do_interrupt_requests(vcpu, kvm_run);
- 
- 	if (vcpu->guest_debug.enabled)
- 		kvm_guest_debug_pre(vcpu);
+ 	writable_shadow = *shadow_ent & PT_SHADOW_WRITABLE_MASK;
+ 	if (user) {
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
