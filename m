@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch added to -mm tree
-Date: Thu, 11 Jan 2007 13:08:35 -0800
-Message-ID: <200701112108.l0BL8ZA9003077@shell0.pdx.osdl.net>
+Subject: + rename-attach_pid-to-find_attach_pid.patch added to -mm tree
+Date: Thu, 11 Jan 2007 13:13:04 -0800
+Message-ID: <200701112113.l0BLD48x003157@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34998 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35320 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932094AbXAKVJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 16:09:04 -0500
+	id S1751492AbXAKVN3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 16:13:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lenehan@twibble.org, alessandro.zummo@towertech.it, david-b@pacbell.net, lethal@linux-sh.org
+Cc: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, haveblue@us.ibm.com, serue@us.ibm.com
 
 
 The patch titled
-     rtc-sh: act on rtc_wkalrm.enabled when setting an alarm
+     Rename attach_pid() to find_attach_pid()
 has been added to the -mm tree.  Its filename is
-     rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch
+     rename-attach_pid-to-find_attach_pid.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-sh: act on rtc_wkalrm.enabled when setting an alarm
-From: Jamie Lenehan <lenehan@twibble.org>
+Subject: Rename attach_pid() to find_attach_pid()
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-This fixes the SH rtc driver correctly act on the "enabled" flag when
-setting an alarm.
+attach_pid() currently takes a pid_t parameter and uses find_pid() to find the
+struct pid associated with the pid_t.  With containers, we sometimes already
+have the struct pid and could skip the find_pid() - if we have a version of
+attach_pid() that takes a struct pid parameter.
 
-Signed-off-by: Jamie Lenehan <lenehan@twibble.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: Paul Mundt <lethal@linux-sh.org>
+This patch renames the attach_pid() to find_attach_pid().  My next patch
+defines attach_pid() to take a struct pid.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: <containers@lists.osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/rtc-sh.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ fs/exec.c           |    2 +-
+ include/linux/pid.h |    4 ++--
+ kernel/exit.c       |    4 ++--
+ kernel/fork.c       |    6 +++---
+ kernel/pid.c        |    3 ++-
+ kernel/sys.c        |    2 +-
+ 6 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-sh.c~rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm
-+++ a/drivers/rtc/rtc-sh.c
-@@ -492,10 +492,10 @@ static int sh_rtc_set_alarm(struct devic
+diff -puN fs/exec.c~rename-attach_pid-to-find_attach_pid fs/exec.c
+--- a/fs/exec.c~rename-attach_pid-to-find_attach_pid
++++ a/fs/exec.c
+@@ -701,7 +701,7 @@ static int de_thread(struct task_struct 
+ 		 */
+ 		detach_pid(tsk, PIDTYPE_PID);
+ 		tsk->pid = leader->pid;
+-		attach_pid(tsk, PIDTYPE_PID,  tsk->pid);
++		find_attach_pid(tsk, PIDTYPE_PID,  tsk->pid);
+ 		transfer_pid(leader, tsk, PIDTYPE_PGID);
+ 		transfer_pid(leader, tsk, PIDTYPE_SID);
+ 		list_replace_rcu(&leader->tasks, &tsk->tasks);
+diff -puN include/linux/pid.h~rename-attach_pid-to-find_attach_pid include/linux/pid.h
+--- a/include/linux/pid.h~rename-attach_pid-to-find_attach_pid
++++ a/include/linux/pid.h
+@@ -72,10 +72,10 @@ extern struct task_struct *FASTCALL(get_
+ extern struct pid *get_task_pid(struct task_struct *task, enum pid_type type);
  
- 	spin_lock_irq(&rtc->lock);
+ /*
+- * attach_pid() and detach_pid() must be called with the tasklist_lock
++ * find_attach_pid() and detach_pid() must be called with the tasklist_lock
+  * write-held.
+  */
+-extern int FASTCALL(attach_pid(struct task_struct *task,
++extern int FASTCALL(find_attach_pid(struct task_struct *task,
+ 				enum pid_type type, int nr));
  
--	/* disable alarm interrupt and clear flag */
-+	/* disable alarm interrupt and clear the alarm flag */
- 	rcr1 = readb(rtc->regbase + RCR1);
--	rcr1 &= ~RCR1_AF;
--	writeb(rcr1 & ~RCR1_AIE, rtc->regbase + RCR1);
-+	rcr1 &= ~(RCR1_AF|RCR1_AIE);
-+	writeb(rcr1, rtc->regbase + RCR1);
+ extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
+diff -puN kernel/exit.c~rename-attach_pid-to-find_attach_pid kernel/exit.c
+--- a/kernel/exit.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/exit.c
+@@ -300,12 +300,12 @@ void __set_special_pids(pid_t session, p
+ 	if (process_session(curr) != session) {
+ 		detach_pid(curr, PIDTYPE_SID);
+ 		set_signal_session(curr->signal, session);
+-		attach_pid(curr, PIDTYPE_SID, session);
++		find_attach_pid(curr, PIDTYPE_SID, session);
+ 	}
+ 	if (process_group(curr) != pgrp) {
+ 		detach_pid(curr, PIDTYPE_PGID);
+ 		curr->signal->pgrp = pgrp;
+-		attach_pid(curr, PIDTYPE_PGID, pgrp);
++		find_attach_pid(curr, PIDTYPE_PGID, pgrp);
+ 	}
+ }
  
- 	rtc->rearm_aie = 0;
+diff -puN kernel/fork.c~rename-attach_pid-to-find_attach_pid kernel/fork.c
+--- a/kernel/fork.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/fork.c
+@@ -1246,13 +1246,13 @@ static struct task_struct *copy_process(
+ 			p->signal->tty = current->signal->tty;
+ 			p->signal->pgrp = process_group(current);
+ 			set_signal_session(p->signal, process_session(current));
+-			attach_pid(p, PIDTYPE_PGID, process_group(p));
+-			attach_pid(p, PIDTYPE_SID, process_session(p));
++			find_attach_pid(p, PIDTYPE_PGID, process_group(p));
++			find_attach_pid(p, PIDTYPE_SID, process_session(p));
  
-@@ -510,8 +510,10 @@ static int sh_rtc_set_alarm(struct devic
- 		mon += 1;
- 	sh_rtc_write_alarm_value(rtc, mon, RMONAR);
+ 			list_add_tail_rcu(&p->tasks, &init_task.tasks);
+ 			__get_cpu_var(process_counts)++;
+ 		}
+-		attach_pid(p, PIDTYPE_PID, p->pid);
++		find_attach_pid(p, PIDTYPE_PID, p->pid);
+ 		nr_threads++;
+ 	}
  
--	/* Restore interrupt activation status */
--	writeb(rcr1, rtc->regbase + RCR1);
-+	if (wkalrm->enabled) {
-+		rcr1 |= RCR1_AIE;
-+		writeb(rcr1, rtc->regbase + RCR1);
-+	}
+diff -puN kernel/pid.c~rename-attach_pid-to-find_attach_pid kernel/pid.c
+--- a/kernel/pid.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/pid.c
+@@ -247,7 +247,8 @@ struct pid * fastcall find_pid(int nr)
+ }
+ EXPORT_SYMBOL_GPL(find_pid);
  
- 	spin_unlock_irq(&rtc->lock);
+-int fastcall attach_pid(struct task_struct *task, enum pid_type type, int nr)
++int fastcall find_attach_pid(struct task_struct *task, enum pid_type type,
++				int nr)
+ {
+ 	struct pid_link *link;
+ 	struct pid *pid;
+diff -puN kernel/sys.c~rename-attach_pid-to-find_attach_pid kernel/sys.c
+--- a/kernel/sys.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/sys.c
+@@ -1481,7 +1481,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 	if (process_group(p) != pgid) {
+ 		detach_pid(p, PIDTYPE_PGID);
+ 		p->signal->pgrp = pgid;
+-		attach_pid(p, PIDTYPE_PGID, pgid);
++		find_attach_pid(p, PIDTYPE_PGID, pgid);
+ 	}
  
+ 	err = 0;
 _
 
-Patches currently in -mm which might be from lenehan@twibble.org are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch
-git-sh.patch
+rename-attach_pid-to-find_attach_pid.patch
+attach_pid-with-struct-pid-parameter.patch
