@@ -1,169 +1,108 @@
 From: akpm@osdl.org
-Subject: - fsaio-aio-fs-read.patch removed from -mm tree
-Date: Wed, 10 Jan 2007 23:22:02 -0800
-Message-ID: <200701110722.l0B7M2Tv019314@shell0.pdx.osdl.net>
+Subject: - fsaio-init-wait-bit-key.patch removed from -mm tree
+Date: Wed, 10 Jan 2007 23:22:11 -0800
+Message-ID: <200701110722.l0B7MB5t019326@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38240 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38304 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965323AbXAKHWk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 02:22:40 -0500
+	id S965328AbXAKHXC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 02:23:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: suparna@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio: aio fs read
+     fsaio: init wait bit key
 has been removed from the -mm tree.  Its filename was
-     fsaio-aio-fs-read.patch
+     fsaio-init-wait-bit-key.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fsaio: aio fs read
+Subject: fsaio: init wait bit key
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-Converts the wait for page to become uptodate (lock page)
-after readahead/readpage (in do_generic_mapping_read) to a retry
-exit, to make buffered filesystem AIO reads actually synchronous.
-
-The patch avoids exclusive wakeups with AIO, a problem originally
-spotted by Chris Mason, though the reasoning for why it is an
-issue is now much clearer (see explanation in the comment below
-in aio.c), and the solution is perhaps slightly simpler.
+init_wait_bit_key() initializes the key field in an already allocated wait bit
+structure, useful for async wait bit support.  Also separate out the wait bit
+test to a common routine which can be used by different kinds of wakeup
+callbacks.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c              |   11 ++++++++++-
- include/linux/aio.h   |    5 +++++
- include/linux/sched.h |   10 ++++++++++
- mm/filemap.c          |   18 +++++++++++++++---
- 4 files changed, 40 insertions(+), 4 deletions(-)
+ include/linux/wait.h |   26 ++++++++++++++++++++++++++
+ kernel/wait.c        |   11 ++---------
+ 2 files changed, 28 insertions(+), 9 deletions(-)
 
-diff -puN fs/aio.c~fsaio-aio-fs-read fs/aio.c
---- a/fs/aio.c~fsaio-aio-fs-read
-+++ a/fs/aio.c
-@@ -1525,7 +1525,16 @@ static int aio_wake_function(wait_queue_
- 
- 	list_del_init(&wait->task_list);
- 	kick_iocb(iocb);
--	return 1;
-+	/*
-+	 * Avoid exclusive wakeups with retries since an exclusive wakeup
-+	 * may involve implicit expectations of waking up the next waiter
-+	 * and there is no guarantee that the retry will take a path that
-+	 * would do so. For example if a page has become up-to-date, then
-+	 * a retried read may end up straightaway performing a copyout
-+	 * and not go through a lock_page - unlock_page that would have
-+	 * passed the baton to the next waiter.
-+	 */
-+	return 0;
+diff -puN include/linux/wait.h~fsaio-init-wait-bit-key include/linux/wait.h
+--- a/include/linux/wait.h~fsaio-init-wait-bit-key
++++ a/include/linux/wait.h
+@@ -108,6 +108,17 @@ static inline int waitqueue_active(wait_
+ 	return !list_empty(&q->task_list);
  }
  
- int fastcall io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
-diff -puN include/linux/aio.h~fsaio-aio-fs-read include/linux/aio.h
---- a/include/linux/aio.h~fsaio-aio-fs-read
-+++ a/include/linux/aio.h
-@@ -34,21 +34,26 @@ struct kioctx;
- /* #define KIF_LOCKED		0 */
- #define KIF_KICKED		1
- #define KIF_CANCELLED		2
-+#define KIF_RESTARTED		3
- 
- #define kiocbTryLock(iocb)	test_and_set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbTryKick(iocb)	test_and_set_bit(KIF_KICKED, &(iocb)->ki_flags)
-+#define kiocbTryRestart(iocb)	test_and_set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbSetLocked(iocb)	set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbSetKicked(iocb)	set_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbSetRestarted(iocb)	set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbClearLocked(iocb)	clear_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbClearKicked(iocb)	clear_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbClearRestarted(iocb)	clear_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbIsLocked(iocb)	test_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbIsKicked(iocb)	test_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbIsRestarted(iocb)	test_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- /* is there a better place to document function pointer methods? */
- /**
-diff -puN include/linux/sched.h~fsaio-aio-fs-read include/linux/sched.h
---- a/include/linux/sched.h~fsaio-aio-fs-read
-+++ a/include/linux/sched.h
-@@ -1281,6 +1281,16 @@ extern void switch_uid(struct user_struc
- 
- #include <asm/current.h>
- 
-+/* Are we in the context of a restarted AIO ? */
-+static inline int aio_restarted(void)
++static inline int test_wait_bit_key(wait_queue_t *wait,
++				struct wait_bit_key *key)
 +{
-+	wait_queue_t *wait = current->io_wait;
++	struct wait_bit_queue *wait_bit
++		= container_of(wait, struct wait_bit_queue, wait);
 +
-+	if (!is_sync_wait(wait) && kiocbTryRestart(io_wait_to_kiocb(wait)))
-+		return 1;
-+	return 0;
++	return (wait_bit->key.flags == key->flags &&
++			wait_bit->key.bit_nr == key->bit_nr &&
++			!test_bit(key->bit_nr, key->flags));
 +}
 +
- extern void do_timer(unsigned long ticks);
+ /*
+  * Used to distinguish between sync and async io wait context:
+  * sync i/o typically specifies a NULL wait queue entry or a wait
+@@ -416,6 +427,21 @@ int wake_bit_function(wait_queue_t *wait
+ 		INIT_LIST_HEAD(&(wait)->task_list);			\
+ 	} while (0)
  
- extern int FASTCALL(wake_up_state(struct task_struct * tsk, unsigned int state));
-diff -puN mm/filemap.c~fsaio-aio-fs-read mm/filemap.c
---- a/mm/filemap.c~fsaio-aio-fs-read
-+++ a/mm/filemap.c
-@@ -866,6 +866,9 @@ void do_generic_mapping_read(struct addr
- 	if (!isize)
- 		goto out;
- 
-+	if (unlikely(aio_restarted()))
-+		next_index = last_index; /* Avoid repeat readahead */
++static inline void init_wait_bit_key(struct wait_bit_queue *waitbit,
++					void *word, int bit)
++{
++	waitbit->key.flags = word;
++	waitbit->key.bit_nr = bit;
++}
 +
- 	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
- 	for (;;) {
- 		struct page *page;
-@@ -935,7 +938,10 @@ page_ok:
- 
- page_not_up_to_date:
- 		/* Get exclusive access to the page ... */
--		lock_page(page);
++static inline void init_wait_bit_task(struct wait_bit_queue *waitbit,
++					struct task_struct *tsk)
++{
++	waitbit->wait.private = tsk;
++	waitbit->wait.func = wake_bit_function;
++	INIT_LIST_HEAD(&waitbit->wait.task_list);
++}
 +
-+		error = lock_page_async(page, current->io_wait);
-+		if (error)
-+			goto readpage_error;
+ /**
+  * wait_on_bit - wait for a bit to be cleared
+  * @word: the word being waited on, a kernel virtual address
+diff -puN kernel/wait.c~fsaio-init-wait-bit-key kernel/wait.c
+--- a/kernel/wait.c~fsaio-init-wait-bit-key
++++ a/kernel/wait.c
+@@ -139,16 +139,9 @@ EXPORT_SYMBOL(autoremove_wake_function);
  
- 		/* Did it get truncated before we got the lock? */
- 		if (!page->mapping) {
-@@ -963,7 +969,9 @@ readpage:
- 		}
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
+ {
+-	struct wait_bit_key *key = arg;
+-	struct wait_bit_queue *wait_bit
+-		= container_of(wait, struct wait_bit_queue, wait);
+-
+-	if (wait_bit->key.flags != key->flags ||
+-			wait_bit->key.bit_nr != key->bit_nr ||
+-			test_bit(key->bit_nr, key->flags))
++	if (!test_wait_bit_key(wait, arg))
+ 		return 0;
+-	else
+-		return autoremove_wake_function(wait, mode, sync, key);
++	return autoremove_wake_function(wait, mode, sync, arg);
+ }
+ EXPORT_SYMBOL(wake_bit_function);
  
- 		if (!PageUptodate(page)) {
--			lock_page(page);
-+			error = lock_page_async(page, current->io_wait);
-+			if (error)
-+				goto readpage_error;
- 			if (!PageUptodate(page)) {
- 				if (page->mapping == NULL) {
- 					/*
-@@ -1009,7 +1017,11 @@ readpage:
- 		goto page_ok;
- 
- readpage_error:
--		/* UHHUH! A synchronous read error occurred. Report it */
-+		/* We don't have uptodate data in the page yet */
-+		/* Could be due to an error or because we need to
-+		 * retry when we get an async i/o notification.
-+		 * Report the reason.
-+		 */
- 		desc->error = error;
- 		page_cache_release(page);
- 		goto out;
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
