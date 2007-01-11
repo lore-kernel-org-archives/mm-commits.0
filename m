@@ -1,124 +1,119 @@
 From: akpm@osdl.org
-Subject: - remove-tcp-header-from-tcp_v4_check.patch removed from -mm tree
-Date: Thu, 11 Jan 2007 14:54:53 -0800
-Message-ID: <200701112255.l0BMtSTc005695@shell0.pdx.osdl.net>
+Subject: - fix-flush_workqueue-vs-cpu_dead-race.patch removed from -mm tree
+Date: Thu, 11 Jan 2007 15:58:31 -0800
+Message-ID: <200701112358.l0BNwVii007081@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40752 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44742 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932813AbXAKWzf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 17:55:35 -0500
+	id S1751447AbXAKX6v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 18:58:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deweerdt@free.fr, frederik.deweerdt@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, ego@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: remove tcp header from tcp_v4_check
+     fix flush_workqueue() vs CPU_DEAD race
 has been removed from the -mm tree.  Its filename was
-     remove-tcp-header-from-tcp_v4_check.patch
+     fix-flush_workqueue-vs-cpu_dead-race.patch
 
-This patch was dropped because it barfs in net/ipv4/netfilter/nf_nat_helper.c
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: net: remove tcp header from tcp_v4_check
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: fix flush_workqueue() vs CPU_DEAD race
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The tcphdr struct passed to tcp_v4_check is not used, the following patch
-removes it from the parameter list.
+"[PATCH 1/2] reimplement flush_workqueue()" fixed one race when CPU goes
+down while flush_cpu_workqueue() plays with it.  But there is another
+problem, CPU can die before flush_workqueue() has a chance to call
+flush_cpu_workqueue().  In that case pending work_structs can migrate to
+CPU which was already checked, so we should redo the
+"for_each_online_cpu(cpu)" loop.
 
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/net/tcp.h               |    5 ++---
- net/ipv4/netfilter/ipt_REJECT.c |    2 +-
- net/ipv4/tcp_ipv4.c             |   15 +++++++--------
- 3 files changed, 10 insertions(+), 12 deletions(-)
+ kernel/workqueue.c |    8 ++++++++
+ 1 files changed, 8 insertions(+)
 
-diff -puN include/net/tcp.h~remove-tcp-header-from-tcp_v4_check include/net/tcp.h
---- a/include/net/tcp.h~remove-tcp-header-from-tcp_v4_check
-+++ a/include/net/tcp.h
-@@ -802,9 +802,8 @@ static inline void tcp_update_wl(struct 
- /*
-  * Calculate(/check) TCP checksum
-  */
--static inline __sum16 tcp_v4_check(struct tcphdr *th, int len,
--			       __be32 saddr, __be32 daddr,
--			       __wsum base)
-+static inline __sum16 tcp_v4_check(int len, __be32 saddr,
-+				   __be32 daddr, __wsum base)
- {
- 	return csum_tcpudp_magic(saddr,daddr,len,IPPROTO_TCP,base);
- }
-diff -puN net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check net/ipv4/netfilter/ipt_REJECT.c
---- a/net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check
-+++ a/net/ipv4/netfilter/ipt_REJECT.c
-@@ -116,7 +116,7 @@ static void send_reset(struct sk_buff *o
+diff -puN kernel/workqueue.c~fix-flush_workqueue-vs-cpu_dead-race kernel/workqueue.c
+--- a/kernel/workqueue.c~fix-flush_workqueue-vs-cpu_dead-race
++++ a/kernel/workqueue.c
+@@ -65,6 +65,7 @@ struct workqueue_struct {
  
- 	/* Adjust TCP checksum */
- 	tcph->check = 0;
--	tcph->check = tcp_v4_check(tcph, sizeof(struct tcphdr),
-+	tcph->check = tcp_v4_check(sizeof(struct tcphdr),
- 				   nskb->nh.iph->saddr,
- 				   nskb->nh.iph->daddr,
- 				   csum_partial((char *)tcph,
-diff -puN net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check
-+++ a/net/ipv4/tcp_ipv4.c
-@@ -502,14 +502,13 @@ void tcp_v4_send_check(struct sock *sk, 
- 	struct tcphdr *th = skb->h.th;
+ /* All the per-cpu workqueues on the system, for hotplug cpu to add/remove
+    threads to each one as cpus come/go. */
++static long hotplug_sequence __read_mostly;
+ static DEFINE_MUTEX(workqueue_mutex);
+ static LIST_HEAD(workqueues);
  
- 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
--		th->check = ~tcp_v4_check(th, len,
--					  inet->saddr, inet->daddr, 0);
-+		th->check = ~tcp_v4_check(len, inet->saddr,
-+					  inet->daddr, 0);
- 		skb->csum_offset = offsetof(struct tcphdr, check);
+@@ -468,10 +469,16 @@ void fastcall flush_workqueue(struct wor
+ 		/* Always use first cpu's area. */
+ 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
  	} else {
--		th->check = tcp_v4_check(th, len, inet->saddr, inet->daddr,
-+		th->check = tcp_v4_check(len, inet->saddr, inet->daddr,
- 					 csum_partial((char *)th,
--						      th->doff << 2,
--						      skb->csum));
-+						th->doff << 2, skb->csum));
++		long sequence;
+ 		int cpu;
++again:
++		sequence = hotplug_sequence;
+ 
+ 		for_each_online_cpu(cpu)
+ 			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
++
++		if (unlikely(sequence != hotplug_sequence))
++			goto again;
  	}
+ 	preempt_enable();
  }
+@@ -891,6 +898,7 @@ static int __devinit workqueue_cpu_callb
+ 			cleanup_workqueue_thread(wq, hotcpu);
+ 		list_for_each_entry(wq, &workqueues, list)
+ 			take_over_work(wq, hotcpu);
++		hotplug_sequence++;
+ 		break;
  
-@@ -525,7 +524,7 @@ int tcp_v4_gso_send_check(struct sk_buff
- 	th = skb->h.th;
- 
- 	th->check = 0;
--	th->check = ~tcp_v4_check(th, skb->len, iph->saddr, iph->daddr, 0);
-+	th->check = ~tcp_v4_check(skb->len, iph->saddr, iph->daddr, 0);
- 	skb->csum_offset = offsetof(struct tcphdr, check);
- 	skb->ip_summed = CHECKSUM_PARTIAL;
- 	return 0;
-@@ -747,7 +746,7 @@ static int tcp_v4_send_synack(struct soc
- 	if (skb) {
- 		struct tcphdr *th = skb->h.th;
- 
--		th->check = tcp_v4_check(th, skb->len,
-+		th->check = tcp_v4_check(skb->len,
- 					 ireq->loc_addr,
- 					 ireq->rmt_addr,
- 					 csum_partial((char *)th, skb->len,
-@@ -1514,7 +1513,7 @@ static struct sock *tcp_v4_hnd_req(struc
- static __sum16 tcp_v4_checksum_init(struct sk_buff *skb)
- {
- 	if (skb->ip_summed == CHECKSUM_COMPLETE) {
--		if (!tcp_v4_check(skb->h.th, skb->len, skb->nh.iph->saddr,
-+		if (!tcp_v4_check(skb->len, skb->nh.iph->saddr,
- 				  skb->nh.iph->daddr, skb->csum)) {
- 			skb->ip_summed = CHECKSUM_UNNECESSARY;
- 			return 0;
+ 	case CPU_LOCK_RELEASE:
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-remove-tcp-header-from-tcp_v4_check.patch
-disable-init-initramfsc-updated-fix.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-user-ns-unshare.patch
-reiser4-sb_sync_inodes-fix.patch
+git-block.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+vt-refactor-console-sak-processing.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+kill_pid_info-kill-acquired_tasklist_lock.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+fix-flush_workqueue-vs-cpu_dead-race.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
