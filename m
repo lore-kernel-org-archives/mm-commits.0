@@ -1,88 +1,52 @@
 From: akpm@osdl.org
-Subject: + add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch added to -mm tree
-Date: Thu, 11 Jan 2007 16:44:48 -0800
-Message-ID: <200701120045.l0C0jPVV008209@shell0.pdx.osdl.net>
+Subject: + ubi-printk-fix.patch added to -mm tree
+Date: Thu, 11 Jan 2007 16:51:17 -0800
+Message-ID: <200701120051.l0C0ppY0008347@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48097 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48763 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751539AbXALAph (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 19:45:37 -0500
+	id S1751558AbXALAw0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 19:52:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, tytso@mit.edu
+Cc: akpm@osdl.org, dedekind@infradead.org
 
 
 The patch titled
-     add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2
+     ubi printk fix
 has been added to the -mm tree.  Its filename is
-     add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+     ubi-printk-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2
+Subject: ubi printk fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/built-in.o:(.data+0x44e8): undefined reference to `proc_dointvec_taint'
+drivers/mtd/ubi/sysfs.c:315: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sysctl.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/mtd/ubi/sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2 kernel/sysctl.c
---- a/kernel/sysctl.c~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2
-+++ a/kernel/sysctl.c
-@@ -151,6 +151,8 @@ static int sysctl_ipc_data(ctl_table *ta
- #ifdef CONFIG_PROC_SYSCTL
- static int proc_do_cad_pid(ctl_table *table, int write, struct file *filp,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos);
-+static int proc_dointvec_taint(ctl_table *table, int write, struct file *filp,
-+			       void __user *buffer, size_t *lenp, loff_t *ppos);
- #endif
- 
- static ctl_table root_table[];
-@@ -174,8 +176,6 @@ extern ctl_table inotify_table[];
- int sysctl_legacy_va_layout;
- #endif
- 
--static int proc_dointvec_taint(ctl_table *table, int write, struct file *filp,
--			       void __user *buffer, size_t *lenp, loff_t *ppos);
- 
- static void *get_uts(ctl_table *table, int write)
+diff -puN drivers/mtd/ubi/sysfs.c~ubi-printk-fix drivers/mtd/ubi/sysfs.c
+--- a/drivers/mtd/ubi/sysfs.c~ubi-printk-fix
++++ a/drivers/mtd/ubi/sysfs.c
+@@ -312,7 +312,7 @@ static ssize_t dev_eraseblock_size_show(
  {
-@@ -347,6 +347,7 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dostring,
- 		.strategy	= &sysctl_string,
- 	},
-+#ifdef CONFIG_PROC_SYSCTL
- 	{
- 		.ctl_name	= KERN_TAINTED,
- 		.procname	= "tainted",
-@@ -355,6 +356,7 @@ static ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec_taint,
- 	},
-+#endif
- 	{
- 		.ctl_name	= KERN_CAP_BSET,
- 		.procname	= "cap-bound",
-@@ -1983,9 +1985,8 @@ static int proc_dointvec_taint(ctl_table
- {
- 	int op;
+ 	const struct ubi_info *ubi = dev2ubi(dev);
  
--	if (!capable(CAP_SYS_ADMIN)) {
-+	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
--	}
+-	return sprintf(buf, "%d\n", ubi->io->leb_size);
++	return sprintf(buf, "%zd\n", ubi->io->leb_size);
+ }
  
- 	op = OP_OR;
- 	return do_proc_dointvec(table,write,filp,buffer,lenp,ppos,
+ static ssize_t dev_avail_eraseblocks_show(struct class_device *dev, char *buf)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -240,3 +204,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+ubi-printk-fix.patch
