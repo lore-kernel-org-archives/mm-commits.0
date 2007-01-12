@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + remove-find_attach_pid.patch added to -mm tree
-Date: Fri, 12 Jan 2007 14:40:38 -0800
-Message-ID: <200701122240.l0CMecBF031221@shell0.pdx.osdl.net>
+Subject: + remove-tcp-header-from-tcp_v4_check-take-2.patch added to -mm tree
+Date: Fri, 12 Jan 2007 14:54:47 -0800
+Message-ID: <200701122254.l0CMslY6031498@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42085 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42147 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161149AbXALWxa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 17:53:30 -0500
+	id S1161156AbXALWyw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 17:54:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, haveblue@us.ibm.com, serue@us.ibm.com
+Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com
 
 
 The patch titled
-     Remove find_attach_pid()
+     remove tcp header from tcp_v4_check
 has been added to the -mm tree.  Its filename is
-     remove-find_attach_pid.patch
+     remove-tcp-header-from-tcp_v4_check-take-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,150 +25,128 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove find_attach_pid()
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: remove tcp header from tcp_v4_check
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Remove find_attach_pid() interface and have callers of attach_pid() pass in
-a struct pid.
+The tcphdr struct passed to tcp_v4_check is not used, the following
+patch removes it from the parameter list.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: <containers@lists.osdl.org>
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/exec.c           |    2 +-
- include/linux/pid.h |   11 ++---------
- kernel/exit.c       |    4 ++--
- kernel/fork.c       |   13 ++++++++-----
- kernel/pid.c        |    6 ++++++
- kernel/sys.c        |    2 +-
- 6 files changed, 20 insertions(+), 18 deletions(-)
+ include/net/tcp.h                  |    5 ++---
+ net/ipv4/netfilter/ip_nat_helper.c |    2 +-
+ net/ipv4/netfilter/ipt_REJECT.c    |    2 +-
+ net/ipv4/netfilter/nf_nat_helper.c |    2 +-
+ net/ipv4/tcp_ipv4.c                |   12 ++++++------
+ 5 files changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN fs/exec.c~remove-find_attach_pid fs/exec.c
---- a/fs/exec.c~remove-find_attach_pid
-+++ a/fs/exec.c
-@@ -701,7 +701,7 @@ static int de_thread(struct task_struct 
- 		 */
- 		detach_pid(tsk, PIDTYPE_PID);
- 		tsk->pid = leader->pid;
--		find_attach_pid(tsk, PIDTYPE_PID,  tsk->pid);
-+		attach_pid(tsk, PIDTYPE_PID,  find_pid(tsk->pid));
- 		transfer_pid(leader, tsk, PIDTYPE_PGID);
- 		transfer_pid(leader, tsk, PIDTYPE_SID);
- 		list_replace_rcu(&leader->tasks, &tsk->tasks);
-diff -puN include/linux/pid.h~remove-find_attach_pid include/linux/pid.h
---- a/include/linux/pid.h~remove-find_attach_pid
-+++ a/include/linux/pid.h
-@@ -84,18 +84,11 @@ extern struct pid *find_get_pid(int nr);
- extern struct pid *find_ge_pid(int nr);
- 
+diff -puN include/net/tcp.h~remove-tcp-header-from-tcp_v4_check-take-2 include/net/tcp.h
+--- a/include/net/tcp.h~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/include/net/tcp.h
+@@ -802,9 +802,8 @@ static inline void tcp_update_wl(struct 
  /*
-- * attach_pid(), find_attach_pid() and detach_pid() must be called with the
-- * tasklist_lock write-held.
-+ * attach_pid() and detach_pid() must be called with the tasklist_lock
-+ * write-held.
+  * Calculate(/check) TCP checksum
   */
- extern int FASTCALL(attach_pid(struct task_struct *task, enum pid_type type,
- 				struct pid *pid));
--
--static inline int find_attach_pid(struct task_struct *task, enum pid_type type,
--				int nr)
--{
--	return attach_pid(task, type, find_pid(nr));
--}
--
- extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
- extern void FASTCALL(transfer_pid(struct task_struct *old,
- 				  struct task_struct *new, enum pid_type));
-diff -puN kernel/exit.c~remove-find_attach_pid kernel/exit.c
---- a/kernel/exit.c~remove-find_attach_pid
-+++ a/kernel/exit.c
-@@ -300,12 +300,12 @@ void __set_special_pids(pid_t session, p
- 	if (process_session(curr) != session) {
- 		detach_pid(curr, PIDTYPE_SID);
- 		set_signal_session(curr->signal, session);
--		find_attach_pid(curr, PIDTYPE_SID, session);
-+		attach_pid(curr, PIDTYPE_SID, find_pid(session));
- 	}
- 	if (process_group(curr) != pgrp) {
- 		detach_pid(curr, PIDTYPE_PGID);
- 		curr->signal->pgrp = pgrp;
--		find_attach_pid(curr, PIDTYPE_PGID, pgrp);
-+		attach_pid(curr, PIDTYPE_PGID, find_pid(pgrp));
- 	}
- }
- 
-diff -puN kernel/fork.c~remove-find_attach_pid kernel/fork.c
---- a/kernel/fork.c~remove-find_attach_pid
-+++ a/kernel/fork.c
-@@ -1243,16 +1243,19 @@ static struct task_struct *copy_process(
- 			__ptrace_link(p, current->parent);
- 
- 		if (thread_group_leader(p)) {
-+			pid_t pgid = process_group(current);
-+			pid_t sid = process_session(current);
-+
- 			p->signal->tty = current->signal->tty;
--			p->signal->pgrp = process_group(current);
--			set_signal_session(p->signal, process_session(current));
--			find_attach_pid(p, PIDTYPE_PGID, process_group(p));
--			find_attach_pid(p, PIDTYPE_SID, process_session(p));
-+			p->signal->pgrp = pgid;
-+			set_signal_session(p->signal, sid);
-+			attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
-+			attach_pid(p, PIDTYPE_SID, find_pid(sid));
- 
- 			list_add_tail_rcu(&p->tasks, &init_task.tasks);
- 			__get_cpu_var(process_counts)++;
- 		}
--		find_attach_pid(p, PIDTYPE_PID, p->pid);
-+		attach_pid(p, PIDTYPE_PID, find_pid(p->pid));
- 		nr_threads++;
- 	}
- 
-diff -puN kernel/pid.c~remove-find_attach_pid kernel/pid.c
---- a/kernel/pid.c~remove-find_attach_pid
-+++ a/kernel/pid.c
-@@ -247,6 +247,9 @@ struct pid * fastcall find_pid(int nr)
- }
- EXPORT_SYMBOL_GPL(find_pid);
- 
-+/*
-+ * attach_pid() must be called with the tasklist_lock write-held.
-+ */
- int fastcall attach_pid(struct task_struct *task, enum pid_type type,
- 				struct pid *pid)
+-static inline __sum16 tcp_v4_check(struct tcphdr *th, int len,
+-			       __be32 saddr, __be32 daddr,
+-			       __wsum base)
++static inline __sum16 tcp_v4_check(int len, __be32 saddr,
++				   __be32 daddr, __wsum base)
  {
-@@ -259,6 +262,9 @@ int fastcall attach_pid(struct task_stru
+ 	return csum_tcpudp_magic(saddr,daddr,len,IPPROTO_TCP,base);
+ }
+diff -puN net/ipv4/netfilter/ip_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/ip_nat_helper.c
+--- a/net/ipv4/netfilter/ip_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/netfilter/ip_nat_helper.c
+@@ -183,7 +183,7 @@ ip_nat_mangle_tcp_packet(struct sk_buff 
+ 	datalen = (*pskb)->len - iph->ihl*4;
+ 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
+ 		tcph->check = 0;
+-		tcph->check = tcp_v4_check(tcph, datalen,
++		tcph->check = tcp_v4_check(datalen,
+ 					   iph->saddr, iph->daddr,
+ 					   csum_partial((char *)tcph,
+ 					   		datalen, 0));
+diff -puN net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/ipt_REJECT.c
+--- a/net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/netfilter/ipt_REJECT.c
+@@ -116,7 +116,7 @@ static void send_reset(struct sk_buff *o
+ 
+ 	/* Adjust TCP checksum */
+ 	tcph->check = 0;
+-	tcph->check = tcp_v4_check(tcph, sizeof(struct tcphdr),
++	tcph->check = tcp_v4_check(sizeof(struct tcphdr),
+ 				   nskb->nh.iph->saddr,
+ 				   nskb->nh.iph->daddr,
+ 				   csum_partial((char *)tcph,
+diff -puN net/ipv4/netfilter/nf_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/nf_nat_helper.c
+--- a/net/ipv4/netfilter/nf_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/netfilter/nf_nat_helper.c
+@@ -176,7 +176,7 @@ nf_nat_mangle_tcp_packet(struct sk_buff 
+ 	datalen = (*pskb)->len - iph->ihl*4;
+ 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
+ 		tcph->check = 0;
+-		tcph->check = tcp_v4_check(tcph, datalen,
++		tcph->check = tcp_v4_check(datalen,
+ 					   iph->saddr, iph->daddr,
+ 					   csum_partial((char *)tcph,
+ 					   		datalen, 0));
+diff -puN net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/tcp_ipv4.c
+@@ -502,11 +502,11 @@ void tcp_v4_send_check(struct sock *sk, 
+ 	struct tcphdr *th = skb->h.th;
+ 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+-		th->check = ~tcp_v4_check(th, len,
+-					  inet->saddr, inet->daddr, 0);
++		th->check = ~tcp_v4_check(len, inet->saddr,
++					  inet->daddr, 0);
+ 		skb->csum_offset = offsetof(struct tcphdr, check);
+ 	} else {
+-		th->check = tcp_v4_check(th, len, inet->saddr, inet->daddr,
++		th->check = tcp_v4_check(len, inet->saddr, inet->daddr,
+ 					 csum_partial((char *)th,
+ 						      th->doff << 2,
+ 						      skb->csum));
+@@ -525,7 +525,7 @@ int tcp_v4_gso_send_check(struct sk_buff
+ 	th = skb->h.th;
+ 
+ 	th->check = 0;
+-	th->check = ~tcp_v4_check(th, skb->len, iph->saddr, iph->daddr, 0);
++	th->check = ~tcp_v4_check(skb->len, iph->saddr, iph->daddr, 0);
+ 	skb->csum_offset = offsetof(struct tcphdr, check);
+ 	skb->ip_summed = CHECKSUM_PARTIAL;
  	return 0;
- }
+@@ -747,7 +747,7 @@ static int tcp_v4_send_synack(struct soc
+ 	if (skb) {
+ 		struct tcphdr *th = skb->h.th;
  
-+/*
-+ * detach_pid() must be called with the tasklist_lock write-held.
-+ */
- void fastcall detach_pid(struct task_struct *task, enum pid_type type)
+-		th->check = tcp_v4_check(th, skb->len,
++		th->check = tcp_v4_check(skb->len,
+ 					 ireq->loc_addr,
+ 					 ireq->rmt_addr,
+ 					 csum_partial((char *)th, skb->len,
+@@ -1514,7 +1514,7 @@ static struct sock *tcp_v4_hnd_req(struc
+ static __sum16 tcp_v4_checksum_init(struct sk_buff *skb)
  {
- 	struct pid_link *link;
-diff -puN kernel/sys.c~remove-find_attach_pid kernel/sys.c
---- a/kernel/sys.c~remove-find_attach_pid
-+++ a/kernel/sys.c
-@@ -1481,7 +1481,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 	if (process_group(p) != pgid) {
- 		detach_pid(p, PIDTYPE_PGID);
- 		p->signal->pgrp = pgid;
--		find_attach_pid(p, PIDTYPE_PGID, pgid);
-+		attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
- 	}
- 
- 	err = 0;
+ 	if (skb->ip_summed == CHECKSUM_COMPLETE) {
+-		if (!tcp_v4_check(skb->h.th, skb->len, skb->nh.iph->saddr,
++		if (!tcp_v4_check(skb->len, skb->nh.iph->saddr,
+ 				  skb->nh.iph->daddr, skb->csum)) {
+ 			skb->ip_summed = CHECKSUM_UNNECESSARY;
+ 			return 0;
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-rename-attach_pid-to-find_attach_pid.patch
-attach_pid-with-struct-pid-parameter.patch
-remove-find_attach_pid.patch
+git-acpi-early-acpi-lockup.patch
+fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-mmc-build-fix.patch
+remove-tcp-header-from-tcp_v4_check-take-2.patch
+disable-init-initramfsc-updated-fix.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-user-ns-unshare.patch
+reiser4-sb_sync_inodes-fix.patch
