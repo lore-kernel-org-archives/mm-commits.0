@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + workqueue-fix-freezeable-workqueues-implementation.patch added to -mm tree
-Date: Thu, 11 Jan 2007 15:58:44 -0800
-Message-ID: <200701112358.l0BNwi9a007091@shell0.pdx.osdl.net>
+Subject: + tlclk-bug-fix-misc-fixes.patch added to -mm tree
+Date: Thu, 11 Jan 2007 16:00:48 -0800
+Message-ID: <200701120000.l0C00ntD007169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44776 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44969 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751487AbXAKX7M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 18:59:12 -0500
+	id S1751460AbXALAAv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 19:00:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, venkatesh.pallipadi@intel.com
+Cc: mgross@linux.intel.com, mark.gross@intel.com
 
 
 The patch titled
-     workqueue: fix freezeable workqueues implementation
+     tlclk: bug fix + misc fixes
 has been added to the -mm tree.  Its filename is
-     workqueue-fix-freezeable-workqueues-implementation.patch
+     tlclk-bug-fix-misc-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,147 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue: fix freezeable workqueues implementation
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: tlclk: bug fix + misc fixes
+From: Mark Gross <mgross@linux.intel.com>
 
-Currently ->freezeable is per-cpu, this is wrong. CPU_UP_PREPARE creates
-cwq->thread which is not freezeable. Move ->freezeable to workqueue_struct.
+The following patch fixes a few problems with the tlclk driver.
+* bug in the select_amcb1_transmit_clock
+* racy read sys call
+* racy open sys call
+* use of add_timer where mod_timer would be better
+* change to the timer data parameter use
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Gautham shenoy <ego@in.ibm.com>
+Signed-off-by: Mark Gross <mark.gross@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/workqueue.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/char/tlclk.c |   43 ++++++++++++++++++++++++++---------------
+ 1 files changed, 28 insertions(+), 15 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-fix-freezeable-workqueues-implementation kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-fix-freezeable-workqueues-implementation
-+++ a/kernel/workqueue.c
-@@ -49,8 +49,6 @@ struct cpu_workqueue_struct {
- 	struct work_struct *current_work;
+diff -puN drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes drivers/char/tlclk.c
+--- a/drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes
++++ a/drivers/char/tlclk.c
+@@ -186,6 +186,7 @@ static int got_event;		/* if events proc
+ static void switchover_timeout(unsigned long data);
+ static struct timer_list switchover_timer =
+ 	TIMER_INITIALIZER(switchover_timeout , 0, 0);
++static unsigned long tlclk_timer_data;
  
- 	int run_depth;		/* Detect run_workqueue() recursion depth */
--
--	int freezeable;		/* Freeze the thread during suspend */
- } ____cacheline_aligned;
+ static struct tlclk_alarms *alarm_events;
  
- /*
-@@ -61,6 +59,7 @@ struct workqueue_struct {
- 	struct cpu_workqueue_struct *cpu_wq;
- 	const char *name;
- 	struct list_head list; 	/* Empty if single thread */
-+	int freezeable;		/* Freeze threads during suspend */
- };
+@@ -197,10 +198,19 @@ static irqreturn_t tlclk_interrupt(int i
  
- /* All the per-cpu workqueues on the system, for hotplug cpu to add/remove
-@@ -351,7 +350,7 @@ static int worker_thread(void *__cwq)
- 	struct k_sigaction sa;
- 	sigset_t blocked;
+ static DECLARE_WAIT_QUEUE_HEAD(wq);
  
--	if (!cwq->freezeable)
-+	if (!cwq->wq->freezeable)
- 		current->flags |= PF_NOFREEZE;
- 
- 	set_user_nice(current, -5);
-@@ -375,7 +374,7 @@ static int worker_thread(void *__cwq)
- 
- 	set_current_state(TASK_INTERRUPTIBLE);
- 	while (!kthread_should_stop()) {
--		if (cwq->freezeable)
-+		if (cwq->wq->freezeable)
- 			try_to_freeze();
- 
- 		add_wait_queue(&cwq->more_work, &wait);
-@@ -546,7 +545,7 @@ out:
- EXPORT_SYMBOL_GPL(flush_work);
- 
- static struct task_struct *create_workqueue_thread(struct workqueue_struct *wq,
--						   int cpu, int freezeable)
-+							int cpu)
++static unsigned long useflags;
++static DEFINE_MUTEX(tlclk_mutex);
++
+ static int tlclk_open(struct inode *inode, struct file *filp)
  {
- 	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
- 	struct task_struct *p;
-@@ -554,7 +553,6 @@ static struct task_struct *create_workqu
- 	spin_lock_init(&cwq->lock);
- 	cwq->wq = wq;
- 	cwq->thread = NULL;
--	cwq->freezeable = freezeable;
- 	INIT_LIST_HEAD(&cwq->worklist);
- 	init_waitqueue_head(&cwq->more_work);
+ 	int result;
  
-@@ -586,10 +584,12 @@ struct workqueue_struct *__create_workqu
++	if (test_and_set_bit(0, &useflags))
++		return -EBUSY;
++		/* this legacy device is always one per system and it doesn't
++		 * know how to handle multiple concurrent clients.
++		 */
++
+ 	/* Make sure there is no interrupt pending while
+ 	 * initialising interrupt handler */
+ 	inb(TLCLK_REG6);
+@@ -221,6 +231,7 @@ static int tlclk_open(struct inode *inod
+ static int tlclk_release(struct inode *inode, struct file *filp)
+ {
+ 	free_irq(telclk_interrupt, tlclk_interrupt);
++	useflags &= ~0x1;
+ 
+ 	return 0;
+ }
+@@ -230,26 +241,25 @@ static ssize_t tlclk_read(struct file *f
+ {
+ 	if (count < sizeof(struct tlclk_alarms))
+ 		return -EIO;
++	if (mutex_lock_interruptible(&tlclk_mutex))
++		return -EINTR;
++
+ 
+ 	wait_event_interruptible(wq, got_event);
+-	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms)))
++	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms))) {
++		mutex_unlock(&tlclk_mutex);
+ 		return -EFAULT;
++	}
+ 
+ 	memset(alarm_events, 0, sizeof(struct tlclk_alarms));
+ 	got_event = 0;
+ 
++	mutex_unlock(&tlclk_mutex);
+ 	return  sizeof(struct tlclk_alarms);
+ }
+ 
+-static ssize_t tlclk_write(struct file *filp, const char __user *buf, size_t count,
+-	    loff_t *f_pos)
+-{
+-	return 0;
+-}
+-
+ static const struct file_operations tlclk_fops = {
+ 	.read = tlclk_read,
+-	.write = tlclk_write,
+ 	.open = tlclk_open,
+ 	.release = tlclk_release,
+ 
+@@ -540,7 +550,7 @@ static ssize_t store_select_amcb1_transm
+ 			SET_PORT_BITS(TLCLK_REG3, 0xf8, 0x7);
+ 			switch (val) {
+ 			case CLK_8_592MHz:
+-				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
++				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
+ 				break;
+ 			case CLK_11_184MHz:
+ 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 0);
+@@ -549,7 +559,7 @@ static ssize_t store_select_amcb1_transm
+ 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 3);
+ 				break;
+ 			case CLK_44_736MHz:
+-				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
++				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
+ 				break;
+ 			}
+ 		} else
+@@ -839,11 +849,13 @@ static void __exit tlclk_cleanup(void)
+ 
+ static void switchover_timeout(unsigned long data)
+ {
+-	if ((data & 1)) {
+-		if ((inb(TLCLK_REG1) & 0x08) != (data & 0x08))
++	unsigned long flags = *(unsigned long *) data;
++
++	if ((flags & 1)) {
++		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
+ 			alarm_events->switchover_primary++;
+ 	} else {
+-		if ((inb(TLCLK_REG1) & 0x08) != (data & 0x08))
++		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
+ 			alarm_events->switchover_secondary++;
  	}
  
- 	wq->name = name;
-+	wq->freezeable = freezeable;
-+
- 	mutex_lock(&workqueue_mutex);
- 	if (singlethread) {
- 		INIT_LIST_HEAD(&wq->list);
--		p = create_workqueue_thread(wq, singlethread_cpu, freezeable);
-+		p = create_workqueue_thread(wq, singlethread_cpu);
- 		if (!p)
- 			destroy = 1;
- 		else
-@@ -597,7 +597,7 @@ struct workqueue_struct *__create_workqu
+@@ -901,8 +913,9 @@ static irqreturn_t tlclk_interrupt(int i
+ 
+ 		/* TIMEOUT in ~10ms */
+ 		switchover_timer.expires = jiffies + msecs_to_jiffies(10);
+-		switchover_timer.data = inb(TLCLK_REG1);
+-		add_timer(&switchover_timer);
++		tlclk_timer_data = inb(TLCLK_REG1);
++		switchover_timer.data = (unsigned long) &tlclk_timer_data;
++		mod_timer(&switchover_timer, switchover_timer.expires);
  	} else {
- 		list_add(&wq->list, &workqueues);
- 		for_each_online_cpu(cpu) {
--			p = create_workqueue_thread(wq, cpu, freezeable);
-+			p = create_workqueue_thread(wq, cpu);
- 			if (p) {
- 				kthread_bind(p, cpu);
- 				wake_up_process(p);
-@@ -857,7 +857,7 @@ static int __devinit workqueue_cpu_callb
- 	case CPU_UP_PREPARE:
- 		/* Create a new workqueue thread for it. */
- 		list_for_each_entry(wq, &workqueues, list) {
--			if (!create_workqueue_thread(wq, hotcpu, 0)) {
-+			if (!create_workqueue_thread(wq, hotcpu)) {
- 				printk("workqueue for %i failed\n", hotcpu);
- 				return NOTIFY_BAD;
- 			}
+ 		got_event = 1;
+ 		wake_up(&wq);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-git-block.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-vt-refactor-console-sak-processing.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
+tlclk-bug-fix-misc-fixes.patch
