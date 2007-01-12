@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch added to -mm tree
-Date: Thu, 11 Jan 2007 20:53:50 -0800
-Message-ID: <200701120453.l0C4rore012323@shell0.pdx.osdl.net>
+Subject: + user-ns-always-on.patch added to -mm tree
+Date: Thu, 11 Jan 2007 21:20:00 -0800
+Message-ID: <200701120520.l0C5K0E8012720@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60748 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33870 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600AbXALEx7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 23:53:59 -0500
+	id S1030480AbXALFU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 00:20:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, suparna@in.ibm.com
+Cc: akpm@osdl.org, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
 
 
 The patch titled
-     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fix
+     user-ns-always-on
 has been added to the -mm tree.  Its filename is
-     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+     user-ns-always-on.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fix
+Subject: user-ns-always-on
 From: Andrew Morton <akpm@osdl.org>
 
-fs/aio.c:665: warning: initialization from incompatible pointer type
-fs/aio.c:724: warning: assignment from incompatible pointer type
+CONFIG_USER_NS=n is still screwed.
 
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix fs/aio.c
---- a/fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix
-+++ a/fs/aio.c
-@@ -662,7 +662,7 @@ static ssize_t aio_run_iocb(struct kiocb
- {
- 	struct kioctx	*ctx = iocb->ki_ctx;
- 	ssize_t (*retry)(struct kiocb *);
--	struct wait_queue_t *io_wait = current->io_wait;
-+	wait_queue_t *io_wait = current->io_wait;
- 	ssize_t ret;
+diff -puN init/Kconfig~user-ns-always-on init/Kconfig
+--- a/init/Kconfig~user-ns-always-on
++++ a/init/Kconfig
+@@ -223,12 +223,8 @@ config UTS_NS
+ 	  uts info for different servers.  If unsure, say N.
  
- 	if (!(retry = iocb->ki_retry)) {
+ config USER_NS
+-	bool "User Namespaces"
+-	default n
+-	help
+-	  Support user namespaces.  This allows containers, i.e.
+-	  vservers, to use user namespaces to provide different
+-	  user info for different servers.  If unsure, say N.
++	bool
++	default y
+ 
+ config AUDIT
+ 	bool "Auditing support"
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -169,6 +177,7 @@ mm-implement-swap-prefetching-use-ctl_unnumbered.patch
 swap_prefetch-vs-zoned-counters.patch
 add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 user-ns-implement-user-ns-unshare-tidy.patch
+user-ns-always-on.patch
 readahead-kconfig-options-fix.patch
 readahead-minmax_ra_pages.patch
 readahead-sysctl-parameters.patch
