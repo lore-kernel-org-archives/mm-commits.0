@@ -1,51 +1,59 @@
 From: akpm@osdl.org
-Subject: - fix-typo-in-geode_configre-cyrixc.patch removed from -mm tree
-Date: Fri, 12 Jan 2007 14:18:20 -0800
-Message-ID: <200701122218.l0CMIK0p030785@shell0.pdx.osdl.net>
+Subject: - i386-sched_clock-using-init-data-tsc_disable-fix.patch removed from -mm tree
+Date: Fri, 12 Jan 2007 14:17:55 -0800
+Message-ID: <200701122217.l0CMHtQe030760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39119 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161141AbXALWSf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 17:18:35 -0500
+	id S1161153AbXALWS4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 17:18:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takada@mbf.nifty.com, jordan.crouse@amd.com, mm-commits@vger.kernel.org
+To: vgoyal@in.ibm.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix typo in geode_configre()@cyrix.c
+     i386: sched_clock using init data tsc_disable fix
 has been removed from the -mm tree.  Its filename was
-     fix-typo-in-geode_configre-cyrixc.patch
+     i386-sched_clock-using-init-data-tsc_disable-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix typo in geode_configre()@cyrix.c
-From: takada <takada@mbf.nifty.com>
+Subject: i386: sched_clock using init data tsc_disable fix
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
-We write back the wrong register when configuring the Geode processor.
-Instead of storing to CCR4, it stores to CCR3.
+o sched_clock() a non-init function is using init data tsc_disable. This
+  is flagged by MODPOST on i386 if CONFIG_RELOCATABLE=y
 
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+WARNING: vmlinux - Section mismatch: reference to .init.data:tsc_disable from .text between 'sched_clock' (at offset 0xc0109d58) and 'tsc_update_callback'
+
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/cyrix.c |    2 +-
+ arch/i386/kernel/tsc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/cyrix.c~fix-typo-in-geode_configre-cyrixc arch/i386/kernel/cpu/cyrix.c
---- a/arch/i386/kernel/cpu/cyrix.c~fix-typo-in-geode_configre-cyrixc
-+++ a/arch/i386/kernel/cpu/cyrix.c
-@@ -173,7 +173,7 @@ static void __cpuinit geode_configure(vo
- 	ccr4 = getCx86(CX86_CCR4);
- 	ccr4 |= 0x38;		/* FPU fast, DTE cache, Mem bypass */
- 	
--	setCx86(CX86_CCR3, ccr3);
-+	setCx86(CX86_CCR4, ccr4);
- 	
- 	set_cx86_memwb();
- 	set_cx86_reorder();	
+diff -puN arch/i386/kernel/tsc.c~i386-sched_clock-using-init-data-tsc_disable-fix arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~i386-sched_clock-using-init-data-tsc_disable-fix
++++ a/arch/i386/kernel/tsc.c
+@@ -24,7 +24,7 @@
+  */
+ unsigned int tsc_khz;
+ 
+-int tsc_disable __cpuinitdata = 0;
++int tsc_disable;
+ 
+ #ifdef CONFIG_X86_TSC
+ static int __init tsc_setup(char *str)
 _
 
-Patches currently in -mm which might be from takada@mbf.nifty.com are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
+
+scsi-megaraid_mmmbox-init-fix-for-kdump.patch
+clockevents-i386-drivers.patch
