@@ -1,52 +1,55 @@
 From: akpm@osdl.org
-Subject: + ubi-printk-fix.patch added to -mm tree
-Date: Thu, 11 Jan 2007 16:51:17 -0800
-Message-ID: <200701120051.l0C0ppY0008347@shell0.pdx.osdl.net>
+Subject: + fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch added to -mm tree
+Date: Thu, 11 Jan 2007 20:53:50 -0800
+Message-ID: <200701120453.l0C4rore012323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48763 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60748 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751558AbXALAw0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Jan 2007 19:52:26 -0500
+	id S1751600AbXALEx7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 11 Jan 2007 23:53:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dedekind@infradead.org
+Cc: akpm@osdl.org, suparna@in.ibm.com
 
 
 The patch titled
-     ubi printk fix
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fix
 has been added to the -mm tree.  Its filename is
-     ubi-printk-fix.patch
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ubi printk fix
+Subject: fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/mtd/ubi/sysfs.c:315: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+fs/aio.c:665: warning: initialization from incompatible pointer type
+fs/aio.c:724: warning: assignment from incompatible pointer type
 
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/ubi/sysfs.c |    2 +-
+ fs/aio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/ubi/sysfs.c~ubi-printk-fix drivers/mtd/ubi/sysfs.c
---- a/drivers/mtd/ubi/sysfs.c~ubi-printk-fix
-+++ a/drivers/mtd/ubi/sysfs.c
-@@ -312,7 +312,7 @@ static ssize_t dev_eraseblock_size_show(
+diff -puN fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix fs/aio.c
+--- a/fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix
++++ a/fs/aio.c
+@@ -662,7 +662,7 @@ static ssize_t aio_run_iocb(struct kiocb
  {
- 	const struct ubi_info *ubi = dev2ubi(dev);
+ 	struct kioctx	*ctx = iocb->ki_ctx;
+ 	ssize_t (*retry)(struct kiocb *);
+-	struct wait_queue_t *io_wait = current->io_wait;
++	wait_queue_t *io_wait = current->io_wait;
+ 	ssize_t ret;
  
--	return sprintf(buf, "%d\n", ubi->io->leb_size);
-+	return sprintf(buf, "%zd\n", ubi->io->leb_size);
- }
- 
- static ssize_t dev_avail_eraseblocks_show(struct class_device *dev, char *buf)
+ 	if (!(retry = iocb->ki_retry)) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -80,6 +83,7 @@ git-mmc.patch
 git-mtd.patch
 git-ubi.patch
 ubi-missing-include.patch
+ubi-printk-fix.patch
 git-netdev-all.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
@@ -158,6 +162,7 @@ ext2-reservations.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 omap-gpio-wrappers-tidy.patch
 at91-gpio-wrappers-tidy.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
 aio-is-unlikely.patch
 sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
@@ -204,4 +209,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-ubi-printk-fix.patch
