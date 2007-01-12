@@ -1,28 +1,24 @@
 From: akpm@osdl.org
-Subject: + sys_mbind-use-cpuset-accessors-for-mems_allowed.patch added to -mm tree
-Date: Fri, 12 Jan 2007 12:34:45 -0800
-Message-ID: <200701122034.l0CKYkTW028172@shell0.pdx.osdl.net>
+Subject: - sys_mbind-use-cpuset-accessors-for-mems_allowed.patch removed from -mm tree
+Date: Fri, 12 Jan 2007 12:39:29 -0800
+Message-ID: <200701122039.l0CKdTiP028254@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59668 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60070 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030255AbXALUfD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 15:35:03 -0500
+	id S1030197AbXALUjd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 15:39:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, clameter@engr.sgi.com
+To: apw@shadowen.org, clameter@engr.sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      sys_mbind: use cpuset accessors for mems_allowed
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      sys_mbind-use-cpuset-accessors-for-mems_allowed.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: sys_mbind: use cpuset accessors for mems_allowed
