@@ -1,79 +1,176 @@
 From: akpm@osdl.org
-Subject: - mbind-restrict-nodes-to-the-currently-allowed-cpuset-fix.patch removed from -mm tree
-Date: Fri, 12 Jan 2007 14:20:04 -0800
-Message-ID: <200701122220.l0CMK4k6030819@shell0.pdx.osdl.net>
+Subject: - md-pass-down-bio_rw_sync-in-raid110.patch removed from -mm tree
+Date: Fri, 12 Jan 2007 14:17:57 -0800
+Message-ID: <200701122217.l0CMHvCV030763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39237 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39256 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161150AbXALWUS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 17:20:18 -0500
+	id S1161156AbXALWUd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 17:20:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, apw@shadowen.org, pj@sgi.com, mm-commits@vger.kernel.org
+To: Lars.Ellenberg@linbit.com, jens.axboe@oracle.com, lars@linbit.com, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mbind-restrict-nodes-to-the-currently-allowed-cpuset fix
+     md: pass down BIO_RW_SYNC in raid{1,10}
 has been removed from the -mm tree.  Its filename was
-     mbind-restrict-nodes-to-the-currently-allowed-cpuset-fix.patch
+     md-pass-down-bio_rw_sync-in-raid110.patch
 
-This patch was dropped because it was folded into mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mbind-restrict-nodes-to-the-currently-allowed-cpuset fix
-From: Christoph Lameter <clameter@sgi.com>
+Subject: md: pass down BIO_RW_SYNC in raid{1,10}
+From: Lars Ellenberg <Lars.Ellenberg@linbit.com>
 
-mems_allowed only exists if CONFIG_CPUSETS is set. So put an #ifdef around
-it. Also move the masking of the nodes behind the error check (looks
-better) and add a comment.
+md raidX make_request functions strip off the BIO_RW_SYNC flag, thus
+introducing additional latency.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Fixing this in raid1 and raid10 seems to be straightforward enough.
+
+For our particular usage case in DRBD, passing this flag improved some
+initialization time from ~5 minutes to ~5 seconds.
+
+Acked-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Lars Ellenberg <lars@linbit.com>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/mempolicy.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/md/raid1.c  |   13 +++++++++----
+ drivers/md/raid10.c |   11 ++++++++---
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff -puN mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset-fix mm/mempolicy.c
---- a/mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset-fix
-+++ a/mm/mempolicy.c
-@@ -882,9 +882,12 @@ asmlinkage long sys_mbind(unsigned long 
- 	int err;
+diff -puN drivers/md/raid1.c~md-pass-down-bio_rw_sync-in-raid110 drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-pass-down-bio_rw_sync-in-raid110
++++ a/drivers/md/raid1.c
+@@ -775,6 +775,7 @@ static int make_request(request_queue_t 
+ 	struct bio_list bl;
+ 	struct page **behind_pages = NULL;
+ 	const int rw = bio_data_dir(bio);
++	const int do_sync = bio_sync(bio);
+ 	int do_barriers;
  
- 	err = get_nodes(&nodes, nmask, maxnode);
--	nodes_and(nodes, nodes, current->mems_allowed);
- 	if (err)
- 		return err;
-+#ifdef CONFIG_CPUSETS
-+	/* Restrict the nodes to the allowed nodes in the cpuset */
-+	nodes_and(nodes, nodes, current->mems_allowed);
-+#endif
- 	return do_mbind(start, len, mode, &nodes, flags);
+ 	/*
+@@ -835,7 +836,7 @@ static int make_request(request_queue_t 
+ 		read_bio->bi_sector = r1_bio->sector + mirror->rdev->data_offset;
+ 		read_bio->bi_bdev = mirror->rdev->bdev;
+ 		read_bio->bi_end_io = raid1_end_read_request;
+-		read_bio->bi_rw = READ;
++		read_bio->bi_rw = READ | do_sync;
+ 		read_bio->bi_private = r1_bio;
+ 
+ 		generic_make_request(read_bio);
+@@ -906,7 +907,7 @@ static int make_request(request_queue_t 
+ 		mbio->bi_sector	= r1_bio->sector + conf->mirrors[i].rdev->data_offset;
+ 		mbio->bi_bdev = conf->mirrors[i].rdev->bdev;
+ 		mbio->bi_end_io	= raid1_end_write_request;
+-		mbio->bi_rw = WRITE | do_barriers;
++		mbio->bi_rw = WRITE | do_barriers | do_sync;
+ 		mbio->bi_private = r1_bio;
+ 
+ 		if (behind_pages) {
+@@ -941,6 +942,8 @@ static int make_request(request_queue_t 
+ 	blk_plug_device(mddev->queue);
+ 	spin_unlock_irqrestore(&conf->device_lock, flags);
+ 
++	if (do_sync)
++		md_wakeup_thread(mddev->thread);
+ #if 0
+ 	while ((bio = bio_list_pop(&bl)) != NULL)
+ 		generic_make_request(bio);
+@@ -1541,6 +1544,7 @@ static void raid1d(mddev_t *mddev)
+ 			 * We already have a nr_pending reference on these rdevs.
+ 			 */
+ 			int i;
++			const int do_sync = bio_sync(r1_bio->master_bio);
+ 			clear_bit(R1BIO_BarrierRetry, &r1_bio->state);
+ 			clear_bit(R1BIO_Barrier, &r1_bio->state);
+ 			for (i=0; i < conf->raid_disks; i++)
+@@ -1561,7 +1565,7 @@ static void raid1d(mddev_t *mddev)
+ 						conf->mirrors[i].rdev->data_offset;
+ 					bio->bi_bdev = conf->mirrors[i].rdev->bdev;
+ 					bio->bi_end_io = raid1_end_write_request;
+-					bio->bi_rw = WRITE;
++					bio->bi_rw = WRITE | do_sync;
+ 					bio->bi_private = r1_bio;
+ 					r1_bio->bios[i] = bio;
+ 					generic_make_request(bio);
+@@ -1593,6 +1597,7 @@ static void raid1d(mddev_t *mddev)
+ 				       (unsigned long long)r1_bio->sector);
+ 				raid_end_bio_io(r1_bio);
+ 			} else {
++				const int do_sync = bio_sync(r1_bio->master_bio);
+ 				r1_bio->bios[r1_bio->read_disk] =
+ 					mddev->ro ? IO_BLOCKED : NULL;
+ 				r1_bio->read_disk = disk;
+@@ -1608,7 +1613,7 @@ static void raid1d(mddev_t *mddev)
+ 				bio->bi_sector = r1_bio->sector + rdev->data_offset;
+ 				bio->bi_bdev = rdev->bdev;
+ 				bio->bi_end_io = raid1_end_read_request;
+-				bio->bi_rw = READ;
++				bio->bi_rw = READ | do_sync;
+ 				bio->bi_private = r1_bio;
+ 				unplug = 1;
+ 				generic_make_request(bio);
+diff -puN drivers/md/raid10.c~md-pass-down-bio_rw_sync-in-raid110 drivers/md/raid10.c
+--- a/drivers/md/raid10.c~md-pass-down-bio_rw_sync-in-raid110
++++ a/drivers/md/raid10.c
+@@ -782,6 +782,7 @@ static int make_request(request_queue_t 
+ 	int i;
+ 	int chunk_sects = conf->chunk_mask + 1;
+ 	const int rw = bio_data_dir(bio);
++	const int do_sync = bio_sync(bio);
+ 	struct bio_list bl;
+ 	unsigned long flags;
+ 
+@@ -863,7 +864,7 @@ static int make_request(request_queue_t 
+ 			mirror->rdev->data_offset;
+ 		read_bio->bi_bdev = mirror->rdev->bdev;
+ 		read_bio->bi_end_io = raid10_end_read_request;
+-		read_bio->bi_rw = READ;
++		read_bio->bi_rw = READ | do_sync;
+ 		read_bio->bi_private = r10_bio;
+ 
+ 		generic_make_request(read_bio);
+@@ -909,7 +910,7 @@ static int make_request(request_queue_t 
+ 			conf->mirrors[d].rdev->data_offset;
+ 		mbio->bi_bdev = conf->mirrors[d].rdev->bdev;
+ 		mbio->bi_end_io	= raid10_end_write_request;
+-		mbio->bi_rw = WRITE;
++		mbio->bi_rw = WRITE | do_sync;
+ 		mbio->bi_private = r10_bio;
+ 
+ 		atomic_inc(&r10_bio->remaining);
+@@ -922,6 +923,9 @@ static int make_request(request_queue_t 
+ 	blk_plug_device(mddev->queue);
+ 	spin_unlock_irqrestore(&conf->device_lock, flags);
+ 
++	if (do_sync)
++		md_wakeup_thread(mddev->thread);
++
+ 	return 0;
  }
  
+@@ -1563,6 +1567,7 @@ static void raid10d(mddev_t *mddev)
+ 				       (unsigned long long)r10_bio->sector);
+ 				raid_end_bio_io(r10_bio);
+ 			} else {
++				const int do_sync = bio_sync(r10_bio->master_bio);
+ 				rdev = conf->mirrors[mirror].rdev;
+ 				if (printk_ratelimit())
+ 					printk(KERN_ERR "raid10: %s: redirecting sector %llu to"
+@@ -1574,7 +1579,7 @@ static void raid10d(mddev_t *mddev)
+ 				bio->bi_sector = r10_bio->devs[r10_bio->read_slot].addr
+ 					+ rdev->data_offset;
+ 				bio->bi_bdev = rdev->bdev;
+-				bio->bi_rw = READ;
++				bio->bi_rw = READ | do_sync;
+ 				bio->bi_private = r10_bio;
+ 				bio->bi_end_io = raid10_end_read_request;
+ 				unplug = 1;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
-
-mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
-mbind-restrict-nodes-to-the-currently-allowed-cpuset-fix.patch
-slab-cache_grow-cleanup.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
-optional-zone_dma-for-ia64.patch
-remove-zone_dma-remains-from-parisc.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-set-config_zone_dma-for-arches-with-generic_isa_dma.patch
-zoneid-fix-up-calculations-for-zoneid_pgshift.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
+Patches currently in -mm which might be from Lars.Ellenberg@linbit.com are
