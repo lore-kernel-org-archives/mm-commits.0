@@ -1,74 +1,51 @@
 From: akpm@osdl.org
-Subject: - really-fix-funsoft-driver.patch removed from -mm tree
-Date: Fri, 12 Jan 2007 14:18:07 -0800
-Message-ID: <200701122218.l0CMI7Fi030772@shell0.pdx.osdl.net>
+Subject: - fix-typo-in-geode_configre-cyrixc.patch removed from -mm tree
+Date: Fri, 12 Jan 2007 14:18:20 -0800
+Message-ID: <200701122218.l0CMIK0p030785@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39093 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39098 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161144AbXALWSa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 17:18:30 -0500
+	id S1161141AbXALWSf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 17:18:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: takada@mbf.nifty.com, jordan.crouse@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     really fix funsoft driver
+     fix typo in geode_configre()@cyrix.c
 has been removed from the -mm tree.  Its filename was
-     really-fix-funsoft-driver.patch
+     fix-typo-in-geode_configre-cyrixc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: really fix funsoft driver
-From: David Miller <davem@davemloft.net>
+Subject: fix typo in geode_configre()@cyrix.c
+From: takada <takada@mbf.nifty.com>
 
-Fix void cast and re-enable on sparc.
+We write back the wrong register when configuring the Geode processor.
+Instead of storing to CCR4, it stores to CCR3.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/serial/Kconfig   |    2 +-
- drivers/usb/serial/funsoft.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/cpu/cyrix.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/Kconfig~really-fix-funsoft-driver drivers/usb/serial/Kconfig
---- a/drivers/usb/serial/Kconfig~really-fix-funsoft-driver
-+++ a/drivers/usb/serial/Kconfig
-@@ -170,7 +170,7 @@ config USB_SERIAL_FTDI_SIO
- 
- config USB_SERIAL_FUNSOFT
- 	tristate "USB Fundamental Software Dongle Driver"
--	depends on USB_SERIAL && !(SPARC || SPARC64)
-+	depends on USB_SERIAL
- 	---help---
- 	  Say Y here if you want to use the Fundamental Software dongle.
- 
-diff -puN drivers/usb/serial/funsoft.c~really-fix-funsoft-driver drivers/usb/serial/funsoft.c
---- a/drivers/usb/serial/funsoft.c~really-fix-funsoft-driver
-+++ a/drivers/usb/serial/funsoft.c
-@@ -32,7 +32,7 @@ static int funsoft_ioctl(struct usb_seri
- 	dbg("%s - port %d, cmd 0x%04x", __FUNCTION__, port->number, cmd);
- 
- 	if (cmd == TCSETSF) {
--		if (user_termios_to_kernel_termios(&t, (void __user *)arg))
-+		if (user_termios_to_kernel_termios(&t, (struct termios __user *)arg))
- 			return -EFAULT;
- 
- 		dbg("%s - iflag:%x oflag:%x cflag:%x lflag:%x", __FUNCTION__,
+diff -puN arch/i386/kernel/cpu/cyrix.c~fix-typo-in-geode_configre-cyrixc arch/i386/kernel/cpu/cyrix.c
+--- a/arch/i386/kernel/cpu/cyrix.c~fix-typo-in-geode_configre-cyrixc
++++ a/arch/i386/kernel/cpu/cyrix.c
+@@ -173,7 +173,7 @@ static void __cpuinit geode_configure(vo
+ 	ccr4 = getCx86(CX86_CCR4);
+ 	ccr4 |= 0x38;		/* FPU fast, DTE cache, Mem bypass */
+ 	
+-	setCx86(CX86_CCR3, ccr3);
++	setCx86(CX86_CCR4, ccr4);
+ 	
+ 	set_cx86_memwb();
+ 	set_cx86_reorder();	
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
-
-infiniband-work-around-gcc-bug-on-sparc64.patch
-git-net.patch
-z85230-spinlock-logic.patch
-resend-iphase-64bit-cleanup.patch
-scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-simplify-the-stacktrace-code.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
+Patches currently in -mm which might be from takada@mbf.nifty.com are
