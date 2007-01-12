@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + user-ns-always-on.patch added to -mm tree
-Date: Thu, 11 Jan 2007 21:20:00 -0800
-Message-ID: <200701120520.l0C5K0E8012720@shell0.pdx.osdl.net>
+Subject: + kvm-add-vm-exit-profiling-fix.patch added to -mm tree
+Date: Thu, 11 Jan 2007 23:32:04 -0800
+Message-ID: <200701120732.l0C7W48m014693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33870 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40021 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030480AbXALFU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 00:20:57 -0500
+	id S1161021AbXALHct (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 02:32:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
+Cc: akpm@osdl.org, avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     user-ns-always-on
+     kvm-add-vm-exit-profiling-fix
 has been added to the -mm tree.  Its filename is
-     user-ns-always-on.patch
+     kvm-add-vm-exit-profiling-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user-ns-always-on
+Subject: kvm-add-vm-exit-profiling-fix
 From: Andrew Morton <akpm@osdl.org>
 
-CONFIG_USER_NS=n is still screwed.
+export profile_hits() on !SMP too.
 
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- init/Kconfig |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ kernel/profile.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~user-ns-always-on init/Kconfig
---- a/init/Kconfig~user-ns-always-on
-+++ a/init/Kconfig
-@@ -223,12 +223,8 @@ config UTS_NS
- 	  uts info for different servers.  If unsure, say N.
+diff -puN kernel/profile.c~kvm-add-vm-exit-profiling-fix kernel/profile.c
+--- a/kernel/profile.c~kvm-add-vm-exit-profiling-fix
++++ a/kernel/profile.c
+@@ -331,7 +331,6 @@ out:
+ 	local_irq_restore(flags);
+ 	put_cpu();
+ }
+-EXPORT_SYMBOL_GPL(profile_hits);
  
- config USER_NS
--	bool "User Namespaces"
--	default n
--	help
--	  Support user namespaces.  This allows containers, i.e.
--	  vservers, to use user namespaces to provide different
--	  user info for different servers.  If unsure, say N.
-+	bool
-+	default y
+ static int __devinit profile_cpu_callback(struct notifier_block *info,
+ 					unsigned long action, void *__cpu)
+@@ -401,6 +400,8 @@ void profile_hits(int type, void *__pc, 
+ }
+ #endif /* !CONFIG_SMP */
  
- config AUDIT
- 	bool "Auditing support"
++EXPORT_SYMBOL_GPL(profile_hits);
++
+ void profile_tick(int type)
+ {
+ 	struct pt_regs *regs = get_irq_regs();
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+kvm-add-vm-exit-profiling-fix.patch
 nfs-fix-race-in-nfs_release_page.patch
 fd_zero-build-fix.patch
 blockdev-direct_io-fix-signedness-bug.patch
