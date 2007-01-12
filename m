@@ -1,207 +1,208 @@
 From: akpm@osdl.org
-Subject: - tlclk-bug-fix-misc-fixes-tidy.patch removed from -mm tree
-Date: Fri, 12 Jan 2007 14:19:45 -0800
-Message-ID: <200701122219.l0CMJjUv030803@shell0.pdx.osdl.net>
+Subject: - fix-sparsemem-on-cell.patch removed from -mm tree
+Date: Fri, 12 Jan 2007 14:17:34 -0800
+Message-ID: <200701122217.l0CMHYik030739@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39184 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39158 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161160AbXALWTv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 17:19:51 -0500
+	id S1161155AbXALWTr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 17:19:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mark.gross@intel.com, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, apw@shadowen.org, arndb@de.ibm.com, benh@kernel.crashing.org, clameter@engr.sgi.com, heiko.carstens@de.ibm.com, paulus@samba.org, schwidefsky@de.ibm.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tlclk-bug-fix-misc-fixes-tidy
+     Fix sparsemem on Cell
 has been removed from the -mm tree.  Its filename was
-     tlclk-bug-fix-misc-fixes-tidy.patch
+     fix-sparsemem-on-cell.patch
 
-This patch was dropped because it was folded into tlclk-bug-fix-misc-fixes.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tlclk-bug-fix-misc-fixes-tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: Fix sparsemem on Cell
+From: Dave Hansen <haveblue@us.ibm.com>
 
-It seems nicer?
+Fix an oops experienced on the Cell architecture when init-time functions,
+early_*(), are called at runtime.  It alters the call paths to make sure
+that the callers explicitly say whether the call is being made on behalf of
+a hotplug even, or happening at boot-time.
 
-Cc: Mark Gross <mark.gross@intel.com>
+It has been compile tested on ppc64, ia64, s390, i386 and x86_64.
+
+Acked-by: Arnd Bergmann <arndb@de.ibm.com>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/tlclk.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/mm/init.c    |    5 +++--
+ arch/s390/mm/vmem.c    |    3 ++-
+ include/linux/mm.h     |    3 ++-
+ include/linux/mmzone.h |    8 ++++++--
+ mm/memory_hotplug.c    |    6 ++++--
+ mm/page_alloc.c        |   25 +++++++++++++++++--------
+ 6 files changed, 34 insertions(+), 16 deletions(-)
 
-diff -puN drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes-tidy drivers/char/tlclk.c
---- a/drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes-tidy
-+++ a/drivers/char/tlclk.c
-@@ -231,7 +231,7 @@ static int tlclk_open(struct inode *inod
- static int tlclk_release(struct inode *inode, struct file *filp)
- {
- 	free_irq(telclk_interrupt, tlclk_interrupt);
--	useflags &= ~0x1;
-+	clear_bit(0, &useflags);
+diff -puN arch/ia64/mm/init.c~fix-sparsemem-on-cell arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~fix-sparsemem-on-cell
++++ a/arch/ia64/mm/init.c
+@@ -543,7 +543,8 @@ virtual_memmap_init (u64 start, u64 end,
  
+ 	if (map_start < map_end)
+ 		memmap_init_zone((unsigned long)(map_end - map_start),
+-				 args->nid, args->zone, page_to_pfn(map_start));
++				 args->nid, args->zone, page_to_pfn(map_start),
++				 MEMMAP_EARLY);
  	return 0;
  }
+ 
+@@ -552,7 +553,7 @@ memmap_init (unsigned long size, int nid
+ 	     unsigned long start_pfn)
+ {
+ 	if (!vmem_map)
+-		memmap_init_zone(size, nid, zone, start_pfn);
++		memmap_init_zone(size, nid, zone, start_pfn, MEMMAP_EARLY);
+ 	else {
+ 		struct page *start;
+ 		struct memmap_init_callback_data args;
+diff -puN arch/s390/mm/vmem.c~fix-sparsemem-on-cell arch/s390/mm/vmem.c
+--- a/arch/s390/mm/vmem.c~fix-sparsemem-on-cell
++++ a/arch/s390/mm/vmem.c
+@@ -61,7 +61,8 @@ void memmap_init(unsigned long size, int
+ 
+ 		if (map_start < map_end)
+ 			memmap_init_zone((unsigned long)(map_end - map_start),
+-					 nid, zone, page_to_pfn(map_start));
++					 nid, zone, page_to_pfn(map_start),
++					 MEMMAP_EARLY);
+ 	}
+ }
+ 
+diff -puN include/linux/mm.h~fix-sparsemem-on-cell include/linux/mm.h
+--- a/include/linux/mm.h~fix-sparsemem-on-cell
++++ a/include/linux/mm.h
+@@ -978,7 +978,8 @@ extern int early_pfn_to_nid(unsigned lon
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+-extern void memmap_init_zone(unsigned long, int, unsigned long, unsigned long);
++extern void memmap_init_zone(unsigned long, int, unsigned long,
++				unsigned long, enum memmap_context);
+ extern void setup_per_zone_pages_min(void);
+ extern void mem_init(void);
+ extern void show_mem(void);
+diff -puN include/linux/mmzone.h~fix-sparsemem-on-cell include/linux/mmzone.h
+--- a/include/linux/mmzone.h~fix-sparsemem-on-cell
++++ a/include/linux/mmzone.h
+@@ -450,9 +450,13 @@ void build_all_zonelists(void);
+ void wakeup_kswapd(struct zone *zone, int order);
+ int zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+ 		int classzone_idx, int alloc_flags);
+-
++enum memmap_context {
++	MEMMAP_EARLY,
++	MEMMAP_HOTPLUG,
++};
+ extern int init_currently_empty_zone(struct zone *zone, unsigned long start_pfn,
+-				     unsigned long size);
++				     unsigned long size,
++				     enum memmap_context context);
+ 
+ #ifdef CONFIG_HAVE_MEMORY_PRESENT
+ void memory_present(int nid, unsigned long start, unsigned long end);
+diff -puN mm/memory_hotplug.c~fix-sparsemem-on-cell mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~fix-sparsemem-on-cell
++++ a/mm/memory_hotplug.c
+@@ -67,11 +67,13 @@ static int __add_zone(struct zone *zone,
+ 	zone_type = zone - pgdat->node_zones;
+ 	if (!populated_zone(zone)) {
+ 		int ret = 0;
+-		ret = init_currently_empty_zone(zone, phys_start_pfn, nr_pages);
++		ret = init_currently_empty_zone(zone, phys_start_pfn,
++						nr_pages, MEMMAP_HOTPLUG);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-	memmap_init_zone(nr_pages, nid, zone_type, phys_start_pfn);
++	memmap_init_zone(nr_pages, nid, zone_type,
++			 phys_start_pfn, MEMMAP_HOTPLUG);
+ 	return 0;
+ }
+ 
+diff -puN mm/page_alloc.c~fix-sparsemem-on-cell mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-sparsemem-on-cell
++++ a/mm/page_alloc.c
+@@ -1956,17 +1956,24 @@ static inline unsigned long wait_table_b
+  * done. Non-atomic initialization, single-pass.
+  */
+ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+-		unsigned long start_pfn)
++		unsigned long start_pfn, enum memmap_context context)
+ {
+ 	struct page *page;
+ 	unsigned long end_pfn = start_pfn + size;
+ 	unsigned long pfn;
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+-		if (!early_pfn_valid(pfn))
+-			continue;
+-		if (!early_pfn_in_nid(pfn, nid))
+-			continue;
++		/*
++		 * There can be holes in boot-time mem_map[]s
++		 * handed to this function.  They do not
++		 * exist on hotplugged memory.
++		 */
++		if (context == MEMMAP_EARLY) {
++			if (!early_pfn_valid(pfn))
++				continue;
++			if (!early_pfn_in_nid(pfn, nid))
++				continue;
++		}
+ 		page = pfn_to_page(pfn);
+ 		set_page_links(page, zone, nid, pfn);
+ 		init_page_count(page);
+@@ -1993,7 +2000,7 @@ void zone_init_free_lists(struct pglist_
+ 
+ #ifndef __HAVE_ARCH_MEMMAP_INIT
+ #define memmap_init(size, nid, zone, start_pfn) \
+-	memmap_init_zone((size), (nid), (zone), (start_pfn))
++	memmap_init_zone((size), (nid), (zone), (start_pfn), MEMMAP_EARLY)
+ #endif
+ 
+ static int __cpuinit zone_batchsize(struct zone *zone)
+@@ -2239,7 +2246,8 @@ static __meminit void zone_pcp_init(stru
+ 
+ __meminit int init_currently_empty_zone(struct zone *zone,
+ 					unsigned long zone_start_pfn,
+-					unsigned long size)
++					unsigned long size,
++					enum memmap_context context)
+ {
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	int ret;
+@@ -2683,7 +2691,8 @@ static void __meminit free_area_init_cor
+ 		if (!size)
+ 			continue;
+ 
+-		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
++		ret = init_currently_empty_zone(zone, zone_start_pfn,
++						size, MEMMAP_EARLY);
+ 		BUG_ON(ret);
+ 		zone_start_pfn += size;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-kvm-add-vm-exit-profiling-fix.patch
-blockdev-direct_io-fix-signedness-bug.patch
-submitchecklist-update.patch
-tlclk-bug-fix-misc-fixes.patch
-tlclk-bug-fix-misc-fixes-tidy.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-cifs-sprintf-fix.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-libata-piix3-support-warning-fix.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-ubi.patch
-ubi-missing-include.patch
-ubi-printk-fix.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-r8169-warning-fixes.patch
-git-scsi-rc-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-atomicity-fix.patch
-nokia-e70-is-an-unusual-device.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-toshiba-tc86c001-ide-driver-take-2-fix-2.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-user-ns-always-on.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-hpt3xx-rework-rate-filtering-tidy.patch
-jmicron-warning-fix.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+rename-attach_pid-to-find_attach_pid.patch
+attach_pid-with-struct-pid-parameter.patch
+page-owner-tracking-leak-detector.patch
