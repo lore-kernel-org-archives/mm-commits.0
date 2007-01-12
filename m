@@ -1,169 +1,112 @@
 From: akpm@osdl.org
-Subject: - nfs-fix-race-in-nfs_release_page.patch removed from -mm tree
-Date: Fri, 12 Jan 2007 14:18:03 -0800
-Message-ID: <200701122218.l0CMI3a9030769@shell0.pdx.osdl.net>
+Subject: - fix-hwrng-built-in-initcalls-priority.patch removed from -mm tree
+Date: Fri, 12 Jan 2007 14:18:17 -0800
+Message-ID: <200701122218.l0CMIHjO030781@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39086 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39104 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161140AbXALWS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 17:18:26 -0500
+	id S1161143AbXALWSi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 12 Jan 2007 17:18:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: mb@bu3sch.de, greg@kroah.com, jbeulich@novell.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: Fix race in nfs_release_page()
+     Fix HWRNG built-in initcalls priority
 has been removed from the -mm tree.  Its filename was
-     nfs-fix-race-in-nfs_release_page.patch
+     fix-hwrng-built-in-initcalls-priority.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NFS: Fix race in nfs_release_page()
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Subject: Fix HWRNG built-in initcalls priority
+From: Michael Buesch <mb@bu3sch.de>
 
-    NFS: Fix race in nfs_release_page()
+This changes all HWRNG driver initcalls to module_init().  We must probe
+the RNGs after the major kernel subsystems are already up and running (like
+PCI).
 
-    invalidate_inode_pages2() may find the dirty bit has been set on a page
-    owing to the fact that the page may still be mapped after it was locked.
-    Only after the call to unmap_mapping_range() are we sure that the page
-    can no longer be dirtied.
-    In order to fix this, NFS has hooked the releasepage() method and tries
-    to write the page out between the call to unmap_mapping_range() and the
-    call to remove_mapping(). This, however leads to deadlocks in the page
-    reclaim code, where the page may be locked without holding a reference
-    to the inode or dentry.
+This fixes Bug 7730.
+http://bugzilla.kernel.org/show_bug.cgi?id=7730
 
-    Fix is to add a new address_space_operation, launder_page(), which will
-    attempt to write out a dirty page without releasing the page lock.
-
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
-
-    Also, the bare SetPageDirty() can skew all sort of accounting leading to
-    other nasties.
-
-[akpm@osdl.org: cleanup]
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/filesystems/Locking |    8 ++++++++
- fs/nfs/file.c                     |   16 ++++++++--------
- include/linux/fs.h                |    1 +
- mm/truncate.c                     |   12 +++++++++++-
- 4 files changed, 28 insertions(+), 9 deletions(-)
+ drivers/char/hw_random/amd-rng.c    |    2 +-
+ drivers/char/hw_random/geode-rng.c  |    2 +-
+ drivers/char/hw_random/intel-rng.c  |    2 +-
+ drivers/char/hw_random/ixp4xx-rng.c |    2 +-
+ drivers/char/hw_random/via-rng.c    |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/filesystems/Locking~nfs-fix-race-in-nfs_release_page Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~nfs-fix-race-in-nfs_release_page
-+++ a/Documentation/filesystems/Locking
-@@ -171,6 +171,7 @@ prototypes:
- 	int (*releasepage) (struct page *, int);
- 	int (*direct_IO)(int, struct kiocb *, const struct iovec *iov,
- 			loff_t offset, unsigned long nr_segs);
-+	int (*launder_page) (struct page *);
- 
- locking rules:
- 	All except set_page_dirty may block
-@@ -188,6 +189,7 @@ bmap:			yes
- invalidatepage:		no	yes
- releasepage:		no	yes
- direct_IO:		no
-+launder_page:		no	yes
- 
- 	->prepare_write(), ->commit_write(), ->sync_page() and ->readpage()
- may be called from the request handler (/dev/loop).
-@@ -281,6 +283,12 @@ buffers from the page in preparation for
- indicate that the buffers are (or may be) freeable.  If ->releasepage is zero,
- the kernel assumes that the fs has no private interest in the buffers.
- 
-+	->launder_page() may be called prior to releasing a page if
-+it is still found to be dirty. It returns zero if the page was successfully
-+cleaned, or an error value if not. Note that in order to prevent the page
-+getting mapped back in and redirtied, it needs to be kept locked
-+across the entire operation.
-+
- 	Note: currently almost all instances of address_space methods are
- using BKL for internal serialization and that's one of the worst sources
- of contention. Normally they are calling library functions (in fs/buffer.c)
-diff -puN fs/nfs/file.c~nfs-fix-race-in-nfs_release_page fs/nfs/file.c
---- a/fs/nfs/file.c~nfs-fix-race-in-nfs_release_page
-+++ a/fs/nfs/file.c
-@@ -315,14 +315,13 @@ static void nfs_invalidate_page(struct p
- 
- static int nfs_release_page(struct page *page, gfp_t gfp)
- {
--	/*
--	 * Avoid deadlock on nfs_wait_on_request().
--	 */
--	if (!(gfp & __GFP_FS))
--		return 0;
--	/* Hack... Force nfs_wb_page() to write out the page */
--	SetPageDirty(page);
--	return !nfs_wb_page(page->mapping->host, page);
-+	/* If PagePrivate() is set, then the page is not freeable */
-+	return 0;
-+}
-+
-+static int nfs_launder_page(struct page *page)
-+{
-+	return nfs_wb_page(page->mapping->host, page);
+diff -puN drivers/char/hw_random/amd-rng.c~fix-hwrng-built-in-initcalls-priority drivers/char/hw_random/amd-rng.c
+--- a/drivers/char/hw_random/amd-rng.c~fix-hwrng-built-in-initcalls-priority
++++ a/drivers/char/hw_random/amd-rng.c
+@@ -144,7 +144,7 @@ static void __exit mod_exit(void)
+ 	hwrng_unregister(&amd_rng);
  }
  
- const struct address_space_operations nfs_file_aops = {
-@@ -338,6 +337,7 @@ const struct address_space_operations nf
- #ifdef CONFIG_NFS_DIRECTIO
- 	.direct_IO = nfs_direct_IO,
- #endif
-+	.launder_page = nfs_launder_page,
- };
+-subsys_initcall(mod_init);
++module_init(mod_init);
+ module_exit(mod_exit);
  
- static ssize_t nfs_file_write(struct kiocb *iocb, const struct iovec *iov,
-diff -puN include/linux/fs.h~nfs-fix-race-in-nfs_release_page include/linux/fs.h
---- a/include/linux/fs.h~nfs-fix-race-in-nfs_release_page
-+++ a/include/linux/fs.h
-@@ -426,6 +426,7 @@ struct address_space_operations {
- 	/* migrate the contents of a page to the specified target */
- 	int (*migratepage) (struct address_space *,
- 			struct page *, struct page *);
-+	int (*launder_page) (struct page *);
- };
- 
- struct backing_dev_info;
-diff -puN mm/truncate.c~nfs-fix-race-in-nfs_release_page mm/truncate.c
---- a/mm/truncate.c~nfs-fix-race-in-nfs_release_page
-+++ a/mm/truncate.c
-@@ -341,6 +341,15 @@ failed:
- 	return 0;
+ MODULE_AUTHOR("The Linux Kernel team");
+diff -puN drivers/char/hw_random/geode-rng.c~fix-hwrng-built-in-initcalls-priority drivers/char/hw_random/geode-rng.c
+--- a/drivers/char/hw_random/geode-rng.c~fix-hwrng-built-in-initcalls-priority
++++ a/drivers/char/hw_random/geode-rng.c
+@@ -125,7 +125,7 @@ static void __exit mod_exit(void)
+ 	iounmap(mem);
  }
  
-+static int do_launder_page(struct address_space *mapping, struct page *page)
-+{
-+	if (!PageDirty(page))
-+		return 0;
-+	if (page->mapping != mapping || mapping->a_ops->launder_page == NULL)
-+		return 0;
-+	return mapping->a_ops->launder_page(page);
-+}
-+
- /**
-  * invalidate_inode_pages2_range - remove range of pages from an address_space
-  * @mapping: the address_space
-@@ -405,7 +414,8 @@ int invalidate_inode_pages2_range(struct
- 					  PAGE_CACHE_SIZE, 0);
- 				}
- 			}
--			if (!invalidate_complete_page2(mapping, page))
-+			ret = do_launder_page(mapping, page);
-+			if (ret == 0 && !invalidate_complete_page2(mapping, page))
- 				ret = -EIO;
- 			unlock_page(page);
- 		}
+-subsys_initcall(mod_init);
++module_init(mod_init);
+ module_exit(mod_exit);
+ 
+ MODULE_DESCRIPTION("H/W RNG driver for AMD Geode LX CPUs");
+diff -puN drivers/char/hw_random/intel-rng.c~fix-hwrng-built-in-initcalls-priority drivers/char/hw_random/intel-rng.c
+--- a/drivers/char/hw_random/intel-rng.c~fix-hwrng-built-in-initcalls-priority
++++ a/drivers/char/hw_random/intel-rng.c
+@@ -378,7 +378,7 @@ static void __exit mod_exit(void)
+ 	iounmap(mem);
+ }
+ 
+-subsys_initcall(mod_init);
++module_init(mod_init);
+ module_exit(mod_exit);
+ 
+ MODULE_DESCRIPTION("H/W RNG driver for Intel chipsets");
+diff -puN drivers/char/hw_random/ixp4xx-rng.c~fix-hwrng-built-in-initcalls-priority drivers/char/hw_random/ixp4xx-rng.c
+--- a/drivers/char/hw_random/ixp4xx-rng.c~fix-hwrng-built-in-initcalls-priority
++++ a/drivers/char/hw_random/ixp4xx-rng.c
+@@ -64,7 +64,7 @@ static void __exit ixp4xx_rng_exit(void)
+ 	iounmap(rng_base);
+ }
+ 
+-subsys_initcall(ixp4xx_rng_init);
++module_init(ixp4xx_rng_init);
+ module_exit(ixp4xx_rng_exit);
+ 
+ MODULE_AUTHOR("Deepak Saxena <dsaxena@plexity.net>");
+diff -puN drivers/char/hw_random/via-rng.c~fix-hwrng-built-in-initcalls-priority drivers/char/hw_random/via-rng.c
+--- a/drivers/char/hw_random/via-rng.c~fix-hwrng-built-in-initcalls-priority
++++ a/drivers/char/hw_random/via-rng.c
+@@ -176,7 +176,7 @@ static void __exit mod_exit(void)
+ 	hwrng_unregister(&via_rng);
+ }
+ 
+-subsys_initcall(mod_init);
++module_init(mod_init);
+ module_exit(mod_exit);
+ 
+ MODULE_DESCRIPTION("H/W RNG driver for VIA chipsets");
 _
 
-Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-nfs-kill-the-obsolete-nfs_paranoia.patch
+git-wireless.patch
