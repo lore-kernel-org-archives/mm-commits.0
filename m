@@ -1,17 +1,17 @@
 From: akpm@osdl.org
-Subject: + git-e1000-fixup.patch added to -mm tree
-Date: Mon, 22 Jan 2007 12:32:35 -0800
-Message-ID: <200701222032.l0MKWZmC001111@shell0.pdx.osdl.net>
+Subject: + git-mmc-fixup.patch added to -mm tree
+Date: Mon, 22 Jan 2007 12:40:51 -0800
+Message-ID: <200701222040.l0MKepCl001340@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49266 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49788 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932436AbXAVUch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:32:37 -0500
+	id S932489AbXAVUkx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:40:53 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0MKWZN8009114
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0MKepN8009303
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 22 Jan 2007 12:32:35 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 22 Jan 2007 12:40:52 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@osdl.org
 
 
 The patch titled
-     git-e1000-fixup
+     git-mmc-fixup
 has been added to the -mm tree.  Its filename is
-     git-e1000-fixup.patch
+     git-mmc-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,74 +29,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-e1000-fixup
+Subject: git-mmc-fixup
 From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/e1000/e1000_main.c |   37 +++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 6 deletions(-)
+ drivers/mmc/omap.c      |    6 ------
+ include/linux/mmc/mmc.h |    4 ----
+ 2 files changed, 10 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_main.c~git-e1000-fixup drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~git-e1000-fixup
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -979,24 +979,49 @@ e1000_probe(struct pci_dev *pdev,
- 			goto err_flashmap;
- 	}
+diff -puN drivers/mmc/omap.c~git-mmc-fixup drivers/mmc/omap.c
+--- a/drivers/mmc/omap.c~git-mmc-fixup
++++ a/drivers/mmc/omap.c
+@@ -203,18 +203,12 @@ mmc_omap_start_command(struct mmc_omap_h
+ 	cmdtype = 0;
  
--	if (e1000_check_phy_reset_block(&adapter->hw))
-+	if ((err = e1000_init_mac_params(&adapter->hw)))
-+		goto err_hw_init;
-+
-+	if ((err = e1000_init_nvm_params(&adapter->hw)))
-+		goto err_hw_init;
-+
-+	if ((err = e1000_init_phy_params(&adapter->hw)))
-+		goto err_hw_init;
-+
-+	e1000_get_bus_info(&adapter->hw);
-+
-+	e1000_init_script_state_82541(&adapter->hw, TRUE);
-+	e1000_set_tbi_compatibility_82543(&adapter->hw, TRUE);
-+
-+	adapter->hw.phy.wait_for_link = FALSE;
-+	adapter->hw.mac.adaptive_ifs = TRUE;
-+
-+	/* Copper options */
-+
-+	if (adapter->hw.media_type == e1000_media_type_copper) {
-+		adapter->hw.phy.mdix = AUTO_ALL_MODES;
-+		adapter->hw.phy.disable_polarity_correction = FALSE;
-+		adapter->hw.phy.ms_type = e1000_ms_hw_default;
-+	}
-+
-+	if (e1000_check_reset_block(&adapter->hw))
- 		DPRINTK(PROBE, INFO, "PHY reset is blocked due to SOL/IDER session.\n");
+ 	/* Our hardware needs to know exact type */
+-<<<<<<< HEAD/drivers/mmc/omap.c
+ 	switch (mmc_resp_type(cmd)) {
+ 	case MMC_RSP_NONE:
+ 		break;
+ 	case MMC_RSP_R1:
+ 	case MMC_RSP_R1B:
+ 		/* resp 1, 1b, 6, 7 */
+-=======
+-	switch (RSP_TYPE(mmc_resp_type(cmd))) {
+-	case RSP_TYPE(MMC_RSP_R1):
+-		/* resp 1, 1b, 6, 7 */
+->>>>>>> /drivers/mmc/omap.c
+ 		resptype = 1;
+ 		break;
+ 	case MMC_RSP_R2:
+diff -puN include/linux/mmc/mmc.h~git-mmc-fixup include/linux/mmc/mmc.h
+--- a/include/linux/mmc/mmc.h~git-mmc-fixup
++++ a/include/linux/mmc/mmc.h
+@@ -42,12 +42,8 @@ struct mmc_command {
+ #define MMC_RSP_R1B	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE|MMC_RSP_BUSY)
+ #define MMC_RSP_R2	(MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC)
+ #define MMC_RSP_R3	(MMC_RSP_PRESENT)
+-<<<<<<< HEAD/include/linux/mmc/mmc.h
+-#define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
+-=======
+ #define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
+ #define MMC_RSP_R7	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
+->>>>>>> /include/linux/mmc/mmc.h
  
--	if (adapter->hw.mac_type >= e1000_82543) {
-+	if (adapter->hw.mac.type >= e1000_82543) {
- 		netdev->features = NETIF_F_SG |
- 				   NETIF_F_HW_CSUM |
- 				   NETIF_F_HW_VLAN_TX |
- 				   NETIF_F_HW_VLAN_RX |
- 				   NETIF_F_HW_VLAN_FILTER;
--		if (adapter->hw.mac_type == e1000_ich8lan)
-+		if (adapter->hw.mac.type == e1000_ich8lan)
- 			netdev->features &= ~NETIF_F_HW_VLAN_FILTER;
- 	}
+ #define mmc_resp_type(cmd)	((cmd)->flags & (MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC|MMC_RSP_BUSY|MMC_RSP_OPCODE))
  
--	if ((adapter->hw.mac_type >= e1000_82544) &&
--	   (adapter->hw.mac_type != e1000_82547))
-+	if ((adapter->hw.mac.type >= e1000_82544) &&
-+	   (adapter->hw.mac.type != e1000_82547))
- 		netdev->features |= NETIF_F_TSO;
- 
--	if (adapter->hw.mac_type > e1000_82547_rev_2)
-+	if (adapter->hw.mac.type > e1000_82547_rev_2)
- 		netdev->features |= NETIF_F_TSO6;
- 	if (pci_using_dac)
- 		netdev->features |= NETIF_F_HIGHDMA;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -136,10 +116,8 @@ bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patc
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
 r8169-warning-fixes.patch
-git-scsi-rc-fixes.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
 git-block-atomicity-fix.patch
 nokia-e70-is-an-unusual-device.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
@@ -254,3 +232,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-mmc-fixup.patch
