@@ -1,247 +1,248 @@
 From: akpm@osdl.org
-Subject: - driver-core-allow-device_movedev-null.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:45:47 -0800
-Message-ID: <200701222045.l0MKjl8c001496@shell0.pdx.osdl.net>
+Subject: - input-atlas-button-driver.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:45:53 -0800
+Message-ID: <200701222045.l0MKjru3001505@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50190 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50239 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932524AbXAVUp7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:45:59 -0500
+	id S932528AbXAVUqF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:46:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: jayakumar.acpi@gmail.com, dtor@mail.ru, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver core: allow device_move(dev, NULL)
+     input: Atlas button driver
 has been removed from the -mm tree.  Its filename was
-     driver-core-allow-device_movedev-null.patch
+     input-atlas-button-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: driver core: allow device_move(dev, NULL)
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: input: Atlas button driver
+From: Jaya Kumar <jayakumar.acpi@gmail.com>
 
-If we allow NULL as the new parent in device_move(), we need to make sure that
-the device is placed into the same place as it would if it was newly
-registered:
+This patch adds support for the buttons on the Atlas wallmount touchscreen.
 
-- Consider the device virtual tree. In order to be able to reuse code,
-  setup_parent() has been tweaked a bit.
-- kobject_move() can fall back to the kset's kobject.
-- sysfs_move_dir() uses the sysfs root dir as fallback.
-
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
+Acked-by: Len Brown <len.brown@intel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/base/core.c |   76 +++++++++++++++++++++++++-----------------
- fs/sysfs/dir.c      |    6 +--
- lib/kobject.c       |    6 +--
- 3 files changed, 52 insertions(+), 36 deletions(-)
+ drivers/input/misc/Kconfig      |   10 +
+ drivers/input/misc/Makefile     |    1 
+ drivers/input/misc/atlas_btns.c |  170 ++++++++++++++++++++++++++++++
+ 3 files changed, 181 insertions(+)
 
-diff -puN drivers/base/core.c~driver-core-allow-device_movedev-null drivers/base/core.c
---- a/drivers/base/core.c~driver-core-allow-device_movedev-null
-+++ a/drivers/base/core.c
-@@ -390,22 +390,23 @@ void device_initialize(struct device *de
- }
+diff -puN drivers/input/misc/Kconfig~input-atlas-button-driver drivers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~input-atlas-button-driver
++++ a/drivers/input/misc/Kconfig
+@@ -50,6 +50,16 @@ config INPUT_WISTRON_BTNS
+ 	  To compile this driver as a module, choose M here: the module will
+ 	  be called wistron_btns.
  
- #ifdef CONFIG_SYSFS_DEPRECATED
--static int setup_parent(struct device *dev, struct device *parent)
-+static struct kobject * get_device_parent(struct device *dev,
-+					  struct device *parent)
- {
- 	/* Set the parent to the class, not the parent device */
- 	/* this keeps sysfs from having a symlink to make old udevs happy */
- 	if (dev->class)
--		dev->kobj.parent = &dev->class->subsys.kset.kobj;
-+		return &dev->class->subsys.kset.kobj;
- 	else if (parent)
--		dev->kobj.parent = &parent->kobj;
-+		return &parent->kobj;
- 
--	return 0;
-+	return NULL;
- }
- #else
--static int virtual_device_parent(struct device *dev)
-+static struct kobject * virtual_device_parent(struct device *dev)
- {
- 	if (!dev->class)
--		return -ENODEV;
-+		return ERR_PTR(-ENODEV);
- 
- 	if (!dev->class->virtual_dir) {
- 		static struct kobject *virtual_dir = NULL;
-@@ -415,25 +416,31 @@ static int virtual_device_parent(struct 
- 		dev->class->virtual_dir = kobject_add_dir(virtual_dir, dev->class->name);
- 	}
- 
--	dev->kobj.parent = dev->class->virtual_dir;
--	return 0;
-+	return dev->class->virtual_dir;
- }
- 
--static int setup_parent(struct device *dev, struct device *parent)
-+static struct kobject * get_device_parent(struct device *dev,
-+					  struct device *parent)
- {
--	int error;
--
- 	/* if this is a class device, and has no parent, create one */
- 	if ((dev->class) && (parent == NULL)) {
--		error = virtual_device_parent(dev);
--		if (error)
--			return error;
-+		return virtual_device_parent(dev);
- 	} else if (parent)
--		dev->kobj.parent = &parent->kobj;
-+		return &parent->kobj;
-+	return NULL;
-+}
- 
-+#endif
-+static int setup_parent(struct device *dev, struct device *parent)
++config INPUT_ATLAS_BTNS
++	tristate "x86 Atlas button interface"
++	depends on X86 && ACPI
++	help
++	  Say Y here for support of Atlas wallmount touchscreen buttons.
++	  The events will show up as scancodes F1 through F9 via evdev.
++
++	  To compile this driver as a module, choose M here: the module will
++	  be called atlas_btns.
++
+ config INPUT_IXP4XX_BEEPER
+ 	tristate "IXP4XX Beeper support"
+ 	depends on ARCH_IXP4XX
+diff -puN drivers/input/misc/Makefile~input-atlas-button-driver drivers/input/misc/Makefile
+--- a/drivers/input/misc/Makefile~input-atlas-button-driver
++++ a/drivers/input/misc/Makefile
+@@ -9,5 +9,6 @@ obj-$(CONFIG_INPUT_PCSPKR)		+= pcspkr.o
+ obj-$(CONFIG_INPUT_M68K_BEEP)		+= m68kspkr.o
+ obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
+ obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
++obj-$(CONFIG_INPUT_ATLAS_BTNS)		+= atlas_btns.o
+ obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
+ obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
+diff -puN /dev/null drivers/input/misc/atlas_btns.c
+--- /dev/null
++++ a/drivers/input/misc/atlas_btns.c
+@@ -0,0 +1,170 @@
++/*
++ *  atlas_btns.c - Atlas Wallmount Touchscreen ACPI Extras
++ *
++ *  Copyright (C) 2006 Jaya Kumar
++ *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
++ *  This work was sponsored by CIS(M) Sdn Bhd.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/input.h>
++#include <linux/types.h>
++#include <asm/uaccess.h>
++#include <acpi/acpi_drivers.h>
++
++#define ACPI_ATLAS_NAME			"Atlas ACPI"
++#define ACPI_ATLAS_CLASS		"Atlas"
++#define ACPI_ATLAS_BUTTON_HID		"ASIM0000"
++
++static struct input_dev *input_dev;
++
++/* button handling code */
++static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
++		    u32 function, void *handler_context, void **return_context)
 +{
-+	struct kobject *kobj;
-+	kobj = get_device_parent(dev, parent);
-+	if (IS_ERR(kobj))
-+		return PTR_ERR(kobj);
-+	if (kobj)
-+		dev->kobj.parent = kobj;
- 	return 0;
- }
--#endif
- 
- /**
-  *	device_add - add device to device hierarchy.
-@@ -979,12 +986,18 @@ static int device_move_class_links(struc
- 		sysfs_remove_link(&dev->kobj, "device");
- 		sysfs_remove_link(&old_parent->kobj, class_name);
- 	}
--	error = sysfs_create_link(&dev->kobj, &new_parent->kobj, "device");
--	if (error)
--		goto out;
--	error = sysfs_create_link(&new_parent->kobj, &dev->kobj, class_name);
--	if (error)
--		sysfs_remove_link(&dev->kobj, "device");
-+	if (new_parent) {
-+		error = sysfs_create_link(&dev->kobj, &new_parent->kobj,
-+					  "device");
-+		if (error)
-+			goto out;
-+		error = sysfs_create_link(&new_parent->kobj, &dev->kobj,
-+					  class_name);
-+		if (error)
-+			sysfs_remove_link(&dev->kobj, "device");
++	*return_context =
++		(function != ACPI_REGION_DEACTIVATE) ? handler_context : NULL;
++
++	return AE_OK;
++}
++
++static acpi_status acpi_atlas_button_handler(u32 function,
++		      acpi_physical_address address,
++		      u32 bit_width, acpi_integer *value,
++		      void *handler_context, void *region_context)
++{
++	acpi_status status;
++	int keycode;
++
++	if (function == ACPI_WRITE)  {
++		keycode = KEY_F1 + (address & 0x0F);
++		input_report_key(input_dev, keycode, !(address & 0x10));
++		input_sync(input_dev);
++		status = 0;
++	} else {
++		printk(KERN_WARNING "atlas: shrugged on unexpected function"
++			":function=%x,address=%lx,value=%x\n",
++			function, (unsigned long)address, (u32)*value);
++		status = -EINVAL;
 +	}
-+	else
-+		error = 0;
- out:
- 	kfree(class_name);
- 	return error;
-@@ -996,25 +1009,28 @@ out:
- /**
-  * device_move - moves a device to a new parent
-  * @dev: the pointer to the struct device to be moved
-- * @new_parent: the new parent of the device
-+ * @new_parent: the new parent of the device (can by NULL)
-  */
- int device_move(struct device *dev, struct device *new_parent)
- {
- 	int error;
- 	struct device *old_parent;
-+	struct kobject *new_parent_kobj;
- 
- 	dev = get_device(dev);
- 	if (!dev)
- 		return -EINVAL;
- 
- 	new_parent = get_device(new_parent);
--	if (!new_parent) {
--		error = -EINVAL;
-+	new_parent_kobj = get_device_parent (dev, new_parent);
-+	if (IS_ERR(new_parent_kobj)) {
-+		error = PTR_ERR(new_parent_kobj);
-+		put_device(new_parent);
- 		goto out;
- 	}
- 	pr_debug("DEVICE: moving '%s' to '%s'\n", dev->bus_id,
--		new_parent->bus_id);
--	error = kobject_move(&dev->kobj, &new_parent->kobj);
-+		 new_parent ? new_parent->bus_id : "<NULL>");
-+	error = kobject_move(&dev->kobj, new_parent_kobj);
- 	if (error) {
- 		put_device(new_parent);
- 		goto out;
-@@ -1023,7 +1039,8 @@ int device_move(struct device *dev, stru
- 	dev->parent = new_parent;
- 	if (old_parent)
- 		klist_remove(&dev->knode_parent);
--	klist_add_tail(&dev->knode_parent, &new_parent->klist_children);
-+	if (new_parent)
-+		klist_add_tail(&dev->knode_parent, &new_parent->klist_children);
- 	if (!dev->class)
- 		goto out_put;
- 	error = device_move_class_links(dev, old_parent, new_parent);
-@@ -1031,7 +1048,8 @@ int device_move(struct device *dev, stru
- 		/* We ignore errors on cleanup since we're hosed anyway... */
- 		device_move_class_links(dev, new_parent, old_parent);
- 		if (!kobject_move(&dev->kobj, &old_parent->kobj)) {
--			klist_remove(&dev->knode_parent);
-+			if (new_parent)
-+				klist_remove(&dev->knode_parent);
- 			if (old_parent)
- 				klist_add_tail(&dev->knode_parent,
- 					       &old_parent->klist_children);
-diff -puN fs/sysfs/dir.c~driver-core-allow-device_movedev-null fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~driver-core-allow-device_movedev-null
-+++ a/fs/sysfs/dir.c
-@@ -378,12 +378,10 @@ int sysfs_move_dir(struct kobject *kobj,
- 	struct sysfs_dirent *new_parent_sd, *sd;
- 	int error;
- 
--	if (!new_parent)
--		return -EINVAL;
--
- 	old_parent_dentry = kobj->parent ?
- 		kobj->parent->dentry : sysfs_mount->mnt_sb->s_root;
--	new_parent_dentry = new_parent->dentry;
-+	new_parent_dentry = new_parent ?
-+		new_parent->dentry : sysfs_mount->mnt_sb->s_root;
- 
- again:
- 	mutex_lock(&old_parent_dentry->d_inode->i_mutex);
-diff -puN lib/kobject.c~driver-core-allow-device_movedev-null lib/kobject.c
---- a/lib/kobject.c~driver-core-allow-device_movedev-null
-+++ a/lib/kobject.c
-@@ -355,7 +355,7 @@ int kobject_rename(struct kobject * kobj
- /**
-  *	kobject_move - move object to another parent
-  *	@kobj:	object in question.
-- *	@new_parent: object's new parent
-+ *	@new_parent: object's new parent (can be NULL)
-  */
- 
- int kobject_move(struct kobject *kobj, struct kobject *new_parent)
-@@ -371,8 +371,8 @@ int kobject_move(struct kobject *kobj, s
- 		return -EINVAL;
- 	new_parent = kobject_get(new_parent);
- 	if (!new_parent) {
--		error = -EINVAL;
--		goto out;
-+		if (kobj->kset)
-+			new_parent = kobject_get(&kobj->kset->kobj);
- 	}
- 	/* old object path */
- 	devpath = kobject_get_path(kobj, GFP_KERNEL);
++
++	return status;
++}
++
++static int atlas_acpi_button_add(struct acpi_device *device)
++{
++	acpi_status status;
++	int err;
++
++	input_dev = input_allocate_device();
++	if (!input_dev) {
++		printk(KERN_ERR "atlas: insufficient mem to allocate input "
++				"device\n");
++		return -ENOMEM;
++	}
++
++	input_dev->name = "Atlas ACPI button driver";
++	input_dev->phys = "ASIM0000/atlas/input0";
++	input_dev->id.bustype = BUS_HOST;
++	input_dev->evbit[LONG(EV_KEY)] = BIT(EV_KEY);
++
++	set_bit(KEY_F1, input_dev->keybit);
++	set_bit(KEY_F2, input_dev->keybit);
++	set_bit(KEY_F3, input_dev->keybit);
++	set_bit(KEY_F4, input_dev->keybit);
++	set_bit(KEY_F5, input_dev->keybit);
++	set_bit(KEY_F6, input_dev->keybit);
++	set_bit(KEY_F7, input_dev->keybit);
++	set_bit(KEY_F8, input_dev->keybit);
++	set_bit(KEY_F9, input_dev->keybit);
++
++	err = input_register_device(input_dev);
++	if (err) {
++		printk(KERN_ERR "atlas: couldn't register input device\n");
++		input_free_device(input_dev);
++		return err;
++	}
++
++	/* hookup button handler */
++	status = acpi_install_address_space_handler(device->handle,
++				0x81, &acpi_atlas_button_handler,
++				&acpi_atlas_button_setup, device);
++	if (ACPI_FAILURE(status)) {
++		printk(KERN_ERR "Atlas: Error installing addr spc handler\n");
++		input_unregister_device(input_dev);
++		status = -EINVAL;
++	}
++
++	return status;
++}
++
++static int atlas_acpi_button_remove(struct acpi_device *device, int type)
++{
++	acpi_status status;
++
++	status = acpi_remove_address_space_handler(device->handle,
++				0x81, &acpi_atlas_button_handler);
++	if (ACPI_FAILURE(status)) {
++		printk(KERN_ERR "Atlas: Error removing addr spc handler\n");
++		status = -EINVAL;
++	}
++
++	input_unregister_device(input_dev);
++	return status;
++}
++
++static struct acpi_driver atlas_acpi_driver = {
++	.name = ACPI_ATLAS_NAME,
++	.class = ACPI_ATLAS_CLASS,
++	.ids = ACPI_ATLAS_BUTTON_HID,
++	.ops = {
++		.add = atlas_acpi_button_add,
++		.remove = atlas_acpi_button_remove,
++	},
++};
++
++static int atlas_acpi_init(void)
++{
++	int result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	result = acpi_bus_register_driver(&atlas_acpi_driver);
++	if (result < 0) {
++		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static void atlas_acpi_exit(void)
++{
++	acpi_bus_unregister_driver(&atlas_acpi_driver);
++}
++
++module_init(atlas_acpi_init);
++module_exit(atlas_acpi_exit);
++
++MODULE_AUTHOR("Jaya Kumar");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Atlas button driver");
++
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from jayakumar.acpi@gmail.com are
 
-driver-core-per-subsystem-multithreaded-probing.patch
-driver-core-dont-fail-attaching-the-device-if-it.patch
-git-s390.patch
+git-input.patch
