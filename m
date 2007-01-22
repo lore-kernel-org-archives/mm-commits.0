@@ -1,316 +1,251 @@
 From: akpm@osdl.org
-Subject: - hpt3xx-print-the-real-chip-name-at-startup.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 13:10:49 -0800
-Message-ID: <200701222110.l0MLAnbX002183@shell0.pdx.osdl.net>
+Subject: - hpt3xx-rework-rate-filtering-tidy.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 13:10:47 -0800
+Message-ID: <200701222110.l0MLAlUI002180@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52973 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52967 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932737AbXAVVRU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 16:17:20 -0500
+	id S932671AbXAVVRS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 16:17:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sshtylyov@ru.mvista.com, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: akpm@osdl.org, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     HPT3xx: print the real chip name at startup
+     hpt3xx-rework-rate-filtering-tidy
 has been removed from the -mm tree.  Its filename was
-     hpt3xx-print-the-real-chip-name-at-startup.patch
+     hpt3xx-rework-rate-filtering-tidy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: HPT3xx: print the real chip name at startup
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: hpt3xx-rework-rate-filtering-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-- Rework the driver setup code so that it prefixes the driver startup
-  messages with the real chip name.
-
-- Print the measured f_CNT value and the DPLL setting for non-HPT3xx
-  chips as well.
-
-- Claim the extra 240 bytes of I/O space for all chips, not only for
-  those having PCI device ID of 0x0004.
-
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/hpt366.c |  104 +++++++++++++++++++++++--------------
- 1 file changed, 67 insertions(+), 37 deletions(-)
+ drivers/ide/pci/hpt366.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-diff -puN drivers/ide/pci/hpt366.c~hpt3xx-print-the-real-chip-name-at-startup drivers/ide/pci/hpt366.c
---- a/drivers/ide/pci/hpt366.c~hpt3xx-print-the-real-chip-name-at-startup
+diff -puN drivers/ide/pci/hpt366.c~hpt3xx-rework-rate-filtering-tidy drivers/ide/pci/hpt366.c
+--- a/drivers/ide/pci/hpt366.c~hpt3xx-rework-rate-filtering-tidy
 +++ a/drivers/ide/pci/hpt366.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/drivers/ide/pci/hpt366.c		Version 0.43	May 17, 2006
-+ * linux/drivers/ide/pci/hpt366.c		Version 0.44	May 20, 2006
-  *
-  * Copyright (C) 1999-2003		Andre Hedrick <andre@linux-ide.org>
-  * Portions Copyright (C) 2001	        Sun Microsystems, Inc.
-@@ -76,6 +76,8 @@
-  *   and for HPT36x the obsolete HDIO_TRISTATE_HWIF handler was called instead
-  * - pass to init_chipset() handlers a copy of the IDE PCI device structure as
-  *   they tamper with its fields
-+ * - prefix the driver startup messages with the real chip name
-+ * - claim the extra 240 bytes of I/O space for all chips
-  * - optimize the rate masking/filtering and the drive list lookup code
-  *		<source@mvista.com>
-  *
-@@ -994,8 +996,9 @@ static void __devinit hpt366_clocking(id
- 
- static void __devinit hpt37x_clocking(ide_hwif_t *hwif)
- {
--	struct hpt_info *info = ide_get_hwifdata(hwif);
--	struct pci_dev *dev = hwif->pci_dev;
-+	struct hpt_info *info	= ide_get_hwifdata(hwif);
-+	struct pci_dev  *dev	= hwif->pci_dev;
-+	char *name		= hwif->cds->name;
- 	int adjust, i;
- 	u16 freq = 0;
- 	u32 pll, temp = 0;
-@@ -1028,7 +1031,7 @@ static void __devinit hpt37x_clocking(id
- 	 */
- 	temp = inl(pci_resource_start(dev, 4) + 0x90);
- 	if ((temp & 0xFFFFF000) != 0xABCDE000) {
--		printk(KERN_WARNING "HPT37X: no clock data saved by BIOS\n");
-+		printk(KERN_WARNING "%s: no clock data saved by BIOS\n", name);
- 
- 		/* Calculate the average value of f_CNT */
- 		for (temp = i = 0; i < 128; i++) {
-@@ -1055,10 +1058,7 @@ static void __devinit hpt37x_clocking(id
- 		else
- 			pll = F_LOW_PCI_66;
- 
--		printk(KERN_INFO "HPT3xxN detected, FREQ: %d, PLL: %d\n", freq, pll);
--	}
--	else
--	{
-+	} else {
- 		if(freq < 0x9C)
- 			pll = F_LOW_PCI_33;
- 		else if(freq < 0xb0)
-@@ -1067,18 +1067,21 @@ static void __devinit hpt37x_clocking(id
- 			pll = F_LOW_PCI_50;
- 		else
- 			pll = F_LOW_PCI_66;
-+	}
-+	printk(KERN_INFO "%s: FREQ: %d, PLL: %d\n", name, freq, pll);
- 	
-+	if (!(info->flags & IS_3xxN)) {
- 		if (pll == F_LOW_PCI_33) {
- 			info->speed = thirty_three_base_hpt37x;
--			printk(KERN_DEBUG "HPT37X: using 33MHz PCI clock\n");
-+			printk(KERN_DEBUG "%s: using 33MHz PCI clock\n", name);
- 		} else if (pll == F_LOW_PCI_40) {
- 			/* Unsupported */
- 		} else if (pll == F_LOW_PCI_50) {
- 			info->speed = fifty_base_hpt37x;
--			printk(KERN_DEBUG "HPT37X: using 50MHz PCI clock\n");
-+			printk(KERN_DEBUG "%s: using 50MHz PCI clock\n", name);
- 		} else {
- 			info->speed = sixty_six_base_hpt37x;
--			printk(KERN_DEBUG "HPT37X: using 66MHz PCI clock\n");
-+			printk(KERN_DEBUG "%s: using 66MHz PCI clock\n", name);
- 		}
+@@ -379,15 +379,20 @@ static __devinit u8 hpt_revision(struct 
+ 	switch(dev->device) {
+ 		/* Remap new 372N onto 372 */
+ 		case PCI_DEVICE_ID_TTI_HPT372N:
+-			rev = PCI_DEVICE_ID_TTI_HPT372; break;
++			rev = PCI_DEVICE_ID_TTI_HPT372;
++			break;
+ 		case PCI_DEVICE_ID_TTI_HPT374:
+-			rev = PCI_DEVICE_ID_TTI_HPT374; break;
++			rev = PCI_DEVICE_ID_TTI_HPT374;
++			break;
+ 		case PCI_DEVICE_ID_TTI_HPT371:
+-			rev = PCI_DEVICE_ID_TTI_HPT371; break;
++			rev = PCI_DEVICE_ID_TTI_HPT371;
++			break;
+ 		case PCI_DEVICE_ID_TTI_HPT302:
+-			rev = PCI_DEVICE_ID_TTI_HPT302; break;
++			rev = PCI_DEVICE_ID_TTI_HPT302;
++			break;
+ 		case PCI_DEVICE_ID_TTI_HPT372:
+-			rev = PCI_DEVICE_ID_TTI_HPT372; break;
++			rev = PCI_DEVICE_ID_TTI_HPT372;
++			break;
+ 		default:
+ 			break;
  	}
- 
-@@ -1127,7 +1130,7 @@ static void __devinit hpt37x_clocking(id
- 				pci_write_config_byte(dev, 0x5b, 0x21);
- 
- 				info->speed = fifty_base_hpt37x;
--				printk("HPT37X: using 50MHz internal PLL\n");
-+				printk("%s: using 50MHz internal PLL\n", name);
- 				goto init_hpt37X_done;
- 			}
- 		}
-@@ -1140,8 +1143,8 @@ pll_recal:
- 
- init_hpt37X_done:
- 	if (!info->speed)
--		printk(KERN_ERR "HPT37x%s: unknown bus timing [%d %d].\n",
--		       (info->flags & IS_3xxN) ? "N" : "", pll, freq);
-+		printk(KERN_ERR "%s: unknown bus timing [%d %d].\n",
-+		       name, pll, freq);
+@@ -439,7 +444,7 @@ static u8 hpt3xx_ratefilter(ide_drive_t 
+ 				goto check_bad_ata33;
+ 			/* fall thru */
+ 		case 0x02:
+-			speed = min(speed, (u8)XFER_UDMA_4);
++			speed = min_t(u8, speed, XFER_UDMA_4);
  	/*
- 	 * Reset the state engines.
- 	 * NOTE: avoid accidentally enabling the primary channel on HPT371N.
-@@ -1334,7 +1337,8 @@ static void __devinit init_dma_hpt366(id
- 		return;
- 		
- 	if(info->speed == NULL) {
--		printk(KERN_WARNING "hpt366: no known IDE timings, disabling DMA.\n");
-+		printk(KERN_WARNING "%s: no known IDE timings, disabling DMA.\n",
-+		       hwif->cds->name);
- 		return;
- 	}
- 
-@@ -1369,7 +1373,7 @@ static void __devinit init_iops_hpt366(i
- 	u8 mode, rid		= 0;
- 
- 	if(info == NULL) {
--		printk(KERN_WARNING "hpt366: out of memory.\n");
-+		printk(KERN_WARNING "%s: out of memory.\n", hwif->cds->name);
- 		return;
- 	}
- 	ide_set_hwifdata(hwif, info);
-@@ -1434,14 +1438,19 @@ static int __devinit init_setup_hpt374(s
- 	return ide_setup_pci_device(dev, d);
- }
- 
--static int __devinit init_setup_hpt37x(struct pci_dev *dev, ide_pci_device_t *d)
-+static int __devinit init_setup_hpt372n(struct pci_dev *dev, ide_pci_device_t *d)
- {
- 	return ide_setup_pci_device(dev, d);
- }
- 
- static int __devinit init_setup_hpt371(struct pci_dev *dev, ide_pci_device_t *d)
- {
--	u8 mcr1 = 0;
-+	u8 rev = 0, mcr1 = 0;
-+
-+	pci_read_config_byte(dev, PCI_REVISION_ID, &rev);
-+
-+	if (rev > 1)
-+		d->name = "HPT371N";
- 
- 	/*
- 	 * HPT371 chips physically have only one channel, the secondary one,
-@@ -1451,7 +1460,31 @@ static int __devinit init_setup_hpt371(s
+ 	 * CHECK ME, Does this need to be set to 5 ??
  	 */
- 	pci_read_config_byte(dev, 0x50, &mcr1);
- 	if (mcr1 & 0x04)
--		pci_write_config_byte(dev, 0x50, (mcr1 & ~0x04));
-+		pci_write_config_byte(dev, 0x50, mcr1 & ~0x04);
-+
-+	return ide_setup_pci_device(dev, d);
-+}
-+
-+static int __devinit init_setup_hpt372a(struct pci_dev *dev, ide_pci_device_t *d)
-+{
-+	u8 rev = 0;
-+
-+	pci_read_config_byte(dev, PCI_REVISION_ID, &rev);
-+
-+	if (rev > 1)
-+		d->name = "HPT372N";
-+
-+	return ide_setup_pci_device(dev, d);
-+}
-+
-+static int __devinit init_setup_hpt302(struct pci_dev *dev, ide_pci_device_t *d)
-+{
-+	u8 rev = 0;
-+
-+	pci_read_config_byte(dev, PCI_REVISION_ID, &rev);
-+
-+	if (rev > 1)
-+		d->name = "HPT302N";
+@@ -449,13 +454,13 @@ static u8 hpt3xx_ratefilter(ide_drive_t 
+ 			    !check_in_drive_list(drive, bad_ata66_4))
+ 				goto check_bad_ata33;
  
- 	return ide_setup_pci_device(dev, d);
- }
-@@ -1460,30 +1493,22 @@ static int __devinit init_setup_hpt366(s
- {
- 	struct pci_dev *findev = NULL;
- 	u8 rev = 0, pin1 = 0, pin2 = 0;
--	char *chipset_names[] = {"HPT366", "HPT366",  "HPT368",
--				 "HPT370", "HPT370A", "HPT372",
--				 "HPT372N" };
-+	static char   *chipset_names[] = { "HPT366", "HPT366",  "HPT368",
-+					   "HPT370", "HPT370A", "HPT372",
-+					   "HPT372N" };
+-			speed = min(speed, (u8)XFER_UDMA_3);
++			speed = min_t(u8, speed, XFER_UDMA_3);
+ 			if (HPT366_ALLOW_ATA66_3 &&
+ 			    !check_in_drive_list(drive, bad_ata66_3))
+ 				goto check_bad_ata33;
+ 			/* fall thru */
+ 		case 0x01:
+-			speed = min(speed, (u8)XFER_UDMA_2);
++			speed = min_t(u8, speed, XFER_UDMA_2);
  
- 	if (PCI_FUNC(dev->devfn) & 1)
- 		return -ENODEV;
- 
- 	pci_read_config_byte(dev, PCI_REVISION_ID, &rev);
- 
--	if(dev->device == PCI_DEVICE_ID_TTI_HPT372N)
-+	if (rev > 6)
- 		rev = 6;
- 		
--	if(rev <= 6)
--		d->name = chipset_names[rev];
-+	d->name = chipset_names[rev];
- 
--	switch(rev) {
--		case 6:
--		case 5:
--		case 4:
--		case 3:
--			goto init_single;
--		default:
--			break;
--	}
-+	if (rev > 2)
-+		goto init_single;
- 
- 	d->channels = 1;
- 
-@@ -1521,7 +1546,7 @@ static ide_pci_device_t hpt366_chipsets[
- 		.extra		= 240
- 	},{	/* 1 */
- 		.name		= "HPT372A",
--		.init_setup	= init_setup_hpt37x,
-+		.init_setup	= init_setup_hpt372a,
- 		.init_chipset	= init_chipset_hpt366,
- 		.init_iops	= init_iops_hpt366,
- 		.init_hwif	= init_hwif_hpt366,
-@@ -1529,9 +1554,10 @@ static ide_pci_device_t hpt366_chipsets[
- 		.channels	= 2,
- 		.autodma	= AUTODMA,
- 		.bootable	= OFF_BOARD,
-+		.extra		= 240
- 	},{	/* 2 */
- 		.name		= "HPT302",
--		.init_setup	= init_setup_hpt37x,
-+		.init_setup	= init_setup_hpt302,
- 		.init_chipset	= init_chipset_hpt366,
- 		.init_iops	= init_iops_hpt366,
- 		.init_hwif	= init_hwif_hpt366,
-@@ -1539,6 +1565,7 @@ static ide_pci_device_t hpt366_chipsets[
- 		.channels	= 2,
- 		.autodma	= AUTODMA,
- 		.bootable	= OFF_BOARD,
-+		.extra		= 240
- 	},{	/* 3 */
- 		.name		= "HPT371",
- 		.init_setup	= init_setup_hpt371,
-@@ -1550,6 +1577,7 @@ static ide_pci_device_t hpt366_chipsets[
- 		.autodma	= AUTODMA,
- 		.enablebits	= {{0x50,0x04,0x04}, {0x54,0x04,0x04}},
- 		.bootable	= OFF_BOARD,
-+		.extra		= 240
- 	},{	/* 4 */
- 		.name		= "HPT374",
- 		.init_setup	= init_setup_hpt374,
-@@ -1560,9 +1588,10 @@ static ide_pci_device_t hpt366_chipsets[
- 		.channels	= 2,	/* 4 */
- 		.autodma	= AUTODMA,
- 		.bootable	= OFF_BOARD,
-+		.extra		= 240
- 	},{	/* 5 */
- 		.name		= "HPT372N",
--		.init_setup	= init_setup_hpt37x,
-+		.init_setup	= init_setup_hpt372n,
- 		.init_chipset	= init_chipset_hpt366,
- 		.init_iops	= init_iops_hpt366,
- 		.init_hwif	= init_hwif_hpt366,
-@@ -1570,6 +1599,7 @@ static ide_pci_device_t hpt366_chipsets[
- 		.channels	= 2,	/* 4 */
- 		.autodma	= AUTODMA,
- 		.bootable	= OFF_BOARD,
-+		.extra		= 240
+ 		check_bad_ata33:
+  			if (info->revision >= 4)
+@@ -465,7 +470,7 @@ static u8 hpt3xx_ratefilter(ide_drive_t 
+ 			/* fall thru */
+ 		case 0x00:
+ 		default:
+-			speed = min(speed, (u8)XFER_MW_DMA_2);
++			speed = min_t(u8, speed, XFER_MW_DMA_2);
+ 			break;
  	}
- };
- 
+ 	return speed;
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
+origin.patch
+kvm-add-vm-exit-profiling-fix.patch
+blockdev-direct_io-fix-signedness-bug.patch
+submitchecklist-update.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+git-cifs.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mmc-fixup.patch
 git-mtd.patch
-3x59x-fix-pci-resource-management.patch
+git-ubi.patch
+git-netdev-all.patch
+git-e1000-fixup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+user-ns-always-on.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
