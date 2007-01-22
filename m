@@ -1,173 +1,109 @@
 From: akpm@osdl.org
-Subject: - slc90e66-carry-over-fixes-from-piix-driver.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 13:11:12 -0800
-Message-ID: <200701222111.l0MLBCO0002231@shell0.pdx.osdl.net>
+Subject: - toshiba-tc86c001-ide-driver-take-2-fix.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 13:10:40 -0800
+Message-ID: <200701222110.l0MLAepq002166@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52255 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52207 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932667AbXAVVLX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 16:11:23 -0500
+	id S932664AbXAVVKx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 16:10:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sshtylyov@ru.mvista.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide: slc90e66: carry over fixes from piix driver
+     drivers/ide/pci/tc86c001.c: make a function static
 has been removed from the -mm tree.  Its filename was
-     slc90e66-carry-over-fixes-from-piix-driver.patch
+     toshiba-tc86c001-ide-driver-take-2-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ide: slc90e66: carry over fixes from piix driver
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: drivers/ide/pci/tc86c001.c: make a function static
+From: Adrian Bunk <bunk@stusta.de>
 
-Synchronize with version 0.46 of the Intel PIIX/ICH driver:
-
-- carry over Alan's and my own fixes in the tuneproc() method and my cleanups
-  both there and in the ratemask() method;
-
-- SLC90E66 only supports MW DMA modes 1/2 and SW DMA mode 2 (just like Intel
-  chips), so don't claim support for other MW/SW DMA modes;
-
-- don't check dor non-NULL drive->id in the ide_dma_check() method -- this is
-  assumed to be true in all other drivers;
-
-- do some coding/formatting cleanups while at it...
-
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Bartlomiej Zolnierkiewicz" <bzolnier@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/slc90e66.c |   55 +++++++++++++++++++++--------------
- 1 files changed, 34 insertions(+), 21 deletions(-)
+ drivers/ide/pci/tc86c001.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/pci/slc90e66.c~slc90e66-carry-over-fixes-from-piix-driver drivers/ide/pci/slc90e66.c
---- a/drivers/ide/pci/slc90e66.c~slc90e66-carry-over-fixes-from-piix-driver
-+++ a/drivers/ide/pci/slc90e66.c
-@@ -1,5 +1,5 @@
- /*
-- *  linux/drivers/ide/pci/slc90e66.c	Version 0.12	May 12, 2006
-+ *  linux/drivers/ide/pci/slc90e66.c	Version 0.13	December 30, 2006
-  *
-  *  Copyright (C) 2000-2002 Andre Hedrick <andre@linux-ide.org>
-  *  Copyright (C) 2006 MontaVista Software, Inc. <source@mvista.com>
-@@ -26,7 +26,7 @@ static u8 slc90e66_ratemask (ide_drive_t
- 	u8 mode	= 2;
- 
- 	if (!eighty_ninty_three(drive))
--		mode = min(mode, (u8)1);
-+		mode = min_t(u8, mode, 1);
- 	return mode;
+diff -puN drivers/ide/pci/tc86c001.c~toshiba-tc86c001-ide-driver-take-2-fix drivers/ide/pci/tc86c001.c
+--- a/drivers/ide/pci/tc86c001.c~toshiba-tc86c001-ide-driver-take-2-fix
++++ a/drivers/ide/pci/tc86c001.c
+@@ -204,7 +204,7 @@ fast_ata_pio:
+ 	return 0;
  }
  
-@@ -65,36 +65,47 @@ static void slc90e66_tune_drive (ide_dri
+-void __devinit init_hwif_tc86c001(ide_hwif_t *hwif)
++static void __devinit init_hwif_tc86c001(ide_hwif_t *hwif)
  {
- 	ide_hwif_t *hwif	= HWIF(drive);
- 	struct pci_dev *dev	= hwif->pci_dev;
--	int is_slave		= (&hwif->drives[1] == drive);
-+	int is_slave		= drive->dn & 1;
- 	int master_port		= hwif->channel ? 0x42 : 0x40;
- 	int slave_port		= 0x44;
- 	unsigned long flags;
- 	u16 master_data;
- 	u8 slave_data;
--				 /* ISP  RTC */
-+ 	int control = 0;
-+				     /* ISP  RTC */
- 	static const u8 timings[][2]= {
--				    { 0, 0 },
--				    { 0, 0 },
--				    { 1, 0 },
--				    { 2, 1 },
--				    { 2, 3 }, };
-+					{ 0, 0 },
-+					{ 0, 0 },
-+					{ 1, 0 },
-+					{ 2, 1 },
-+					{ 2, 3 }, };
- 
--	pio = ide_get_best_pio_mode(drive, pio, 5, NULL);
-+	pio = ide_get_best_pio_mode(drive, pio, 4, NULL);
- 	spin_lock_irqsave(&ide_lock, flags);
- 	pci_read_config_word(dev, master_port, &master_data);
-+
-+	if (pio > 1)
-+		control |= 1;	/* Programmable timing on */
-+	if (drive->media == ide_disk)
-+		control |= 4;	/* Prefetch, post write */
-+	if (pio > 2)
-+		control |= 2;	/* IORDY */
- 	if (is_slave) {
--		master_data = master_data | 0x4000;
--		if (pio > 1)
-+		master_data |=  0x4000;
-+		master_data &= ~0x0070;
-+		if (pio > 1) {
- 			/* enable PPE, IE and TIME */
--			master_data = master_data | 0x0070;
-+			master_data = master_data | (control << 4);
-+		}
- 		pci_read_config_byte(dev, slave_port, &slave_data);
- 		slave_data = slave_data & (hwif->channel ? 0x0f : 0xf0);
- 		slave_data = slave_data | (((timings[pio][0] << 2) | timings[pio][1]) << (hwif->channel ? 4 : 0));
- 	} else {
--		master_data = master_data & 0xccf8;
--		if (pio > 1)
-+		master_data &= ~0x3307;
-+		if (pio > 1) {
- 			/* enable PPE, IE and TIME */
--			master_data = master_data | 0x0007;
-+			master_data = master_data | control;
-+		}
- 		master_data = master_data | (timings[pio][0] << 12) | (timings[pio][1] << 8);
- 	}
- 	pci_write_config_word(dev, master_port, master_data);
-@@ -173,7 +184,7 @@ static int slc90e66_config_drive_xfer_ra
- 
- 	drive->init_speed = 0;
- 
--	if (id && (id->capability & 1) && drive->autodma) {
-+	if ((id->capability & 1) && drive->autodma) {
- 
- 		if (ide_use_dma(drive) && slc90e66_config_drive_for_dma(drive))
- 			return hwif->ide_dma_on(drive);
-@@ -201,7 +212,7 @@ static void __devinit init_hwif_slc90e66
- 		hwif->irq = hwif->channel ? 15 : 14;
- 
- 	hwif->speedproc = &slc90e66_tune_chipset;
--	hwif->tuneproc = &slc90e66_tune_drive;
-+	hwif->tuneproc	= &slc90e66_tune_drive;
- 
- 	pci_read_config_byte(hwif->pci_dev, 0x47, &reg47);
- 
-@@ -213,14 +224,16 @@ static void __devinit init_hwif_slc90e66
- 
- 	hwif->atapi_dma = 1;
- 	hwif->ultra_mask = 0x1f;
--	hwif->mwdma_mask = 0x07;
--	hwif->swdma_mask = 0x07;
-+	hwif->mwdma_mask = 0x06;
-+	hwif->swdma_mask = 0x04;
- 
--	if (!(hwif->udma_four))
-+	if (!hwif->udma_four) {
- 		/* bit[0(1)]: 0:80, 1:40 */
- 		hwif->udma_four = (reg47 & mask) ? 0 : 1;
-+	}
- 
- 	hwif->ide_dma_check = &slc90e66_config_drive_xfer_rate;
-+
- 	if (!noautodma)
- 		hwif->autodma = 1;
- 	hwif->drives[0].autodma = hwif->autodma;
+ 	unsigned long sc_base	= pci_resource_start(hwif->pci_dev, 5);
+ 	u16 scr1		= hwif->INW(sc_base + 0x00);;
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
+origin.patch
+git-acpi.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-add-pci_get_legacy_ide_irq.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+git-mmc.patch
 git-mtd.patch
-3x59x-fix-pci-resource-management.patch
+git-ubi.patch
+git-netdev-all.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+usb_rtl8150-must-select-mii.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+more-ftape-removal.patch
+cleanup-linux-byteorder-swabbh.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i386-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
