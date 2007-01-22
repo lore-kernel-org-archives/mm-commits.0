@@ -1,152 +1,114 @@
 From: akpm@osdl.org
-Subject: + remove-tcp-header-from-tcp_v4_check-take-2.patch added to -mm tree
-Date: Fri, 12 Jan 2007 14:54:47 -0800
-Message-ID: <200701122254.l0CMslY6031498@shell0.pdx.osdl.net>
+Subject: - sata_promise-atapi-cleanup.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:29:07 -0800
+Message-ID: <200701222029.l0MKT8N6001008@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42147 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161156AbXALWyw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Jan 2007 17:54:52 -0500
+	id S1751986AbXAVU3T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:29:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com
+To: mikpe@it.uu.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove tcp header from tcp_v4_check
-has been added to the -mm tree.  Its filename is
-     remove-tcp-header-from-tcp_v4_check-take-2.patch
+     sata_promise: ATAPI cleanup
+has been removed from the -mm tree.  Its filename was
+     sata_promise-atapi-cleanup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of rejects
 
 ------------------------------------------------------
-Subject: remove tcp header from tcp_v4_check
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: sata_promise: ATAPI cleanup
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-The tcphdr struct passed to tcp_v4_check is not used, the following
-patch removes it from the parameter list.
+Here's a cleanup for yesterday's sata_promise ATAPI patch:
+- add and use a symbolic constant for the altstatus register
+- check return status from ata_busy_wait()
+- add missing newline in a warning printk()
+- update comment in pdc_issue_atapi_pkt_cmd() to clarify
+  that the maybe-wait-for-INT issue cannot occur in the
+  current driver, but may occur if the driver starts issuing
+  ATAPI non-DMA commands as PDC packets
 
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/net/tcp.h                  |    5 ++---
- net/ipv4/netfilter/ip_nat_helper.c |    2 +-
- net/ipv4/netfilter/ipt_REJECT.c    |    2 +-
- net/ipv4/netfilter/nf_nat_helper.c |    2 +-
- net/ipv4/tcp_ipv4.c                |   12 ++++++------
- 5 files changed, 11 insertions(+), 12 deletions(-)
+ drivers/ata/sata_promise.c |   27 ++++++++++++++++-----------
+ 1 files changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN include/net/tcp.h~remove-tcp-header-from-tcp_v4_check-take-2 include/net/tcp.h
---- a/include/net/tcp.h~remove-tcp-header-from-tcp_v4_check-take-2
-+++ a/include/net/tcp.h
-@@ -802,9 +802,8 @@ static inline void tcp_update_wl(struct 
- /*
-  * Calculate(/check) TCP checksum
-  */
--static inline __sum16 tcp_v4_check(struct tcphdr *th, int len,
--			       __be32 saddr, __be32 daddr,
--			       __wsum base)
-+static inline __sum16 tcp_v4_check(int len, __be32 saddr,
-+				   __be32 daddr, __wsum base)
- {
- 	return csum_tcpudp_magic(saddr,daddr,len,IPPROTO_TCP,base);
+diff -puN drivers/ata/sata_promise.c~sata_promise-atapi-cleanup drivers/ata/sata_promise.c
+--- a/drivers/ata/sata_promise.c~sata_promise-atapi-cleanup
++++ a/drivers/ata/sata_promise.c
+@@ -59,6 +59,7 @@ enum {
+ 	PDC_CYLINDER_HIGH	= 0x14, /* Cylinder high reg (per port) */
+ 	PDC_DEVICE		= 0x18, /* Device/Head reg (per port) */
+ 	PDC_COMMAND		= 0x1C, /* Command/status reg (per port) */
++	PDC_ALTSTATUS		= 0x38, /* Alternate-status/device-control reg (per port) */
+ 	PDC_PKT_SUBMIT		= 0x40, /* Command packet pointer addr */
+ 	PDC_INT_SEQMASK		= 0x40,	/* Mask of asserted SEQ INTs */
+ 	PDC_FLASH_CTL		= 0x44, /* Flash control register */
+@@ -728,7 +729,7 @@ static unsigned int pdc_wait_for_drq(str
+ 	 * know when to time out the outer loop.
+ 	 */
+ 	for(i = 0; i < 1000; ++i) {
+-		status = readb(port_mmio + 0x38); /* altstatus */
++		status = readb(port_mmio + PDC_ALTSTATUS);
+ 		if (status == 0xFF)
+ 			break;
+ 		if (status & ATA_BUSY)
+@@ -738,7 +739,15 @@ static unsigned int pdc_wait_for_drq(str
+ 		mdelay(1);
+ 	}
+ 	if (i >= 1000)
+-		ata_port_printk(ap, KERN_WARNING, "%s timed out", __FUNCTION__);
++		ata_port_printk(ap, KERN_WARNING, "%s timed out\n", __FUNCTION__);
++	return status;
++}
++
++static unsigned int pdc_wait_on_busy(struct ata_port *ap)
++{
++	unsigned int status = ata_busy_wait(ap, ATA_BUSY, 1000);
++	if (status != 0xff && (status & ATA_BUSY))
++		ata_port_printk(ap, KERN_WARNING, "%s timed out\n", __FUNCTION__);
+ 	return status;
  }
-diff -puN net/ipv4/netfilter/ip_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/ip_nat_helper.c
---- a/net/ipv4/netfilter/ip_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2
-+++ a/net/ipv4/netfilter/ip_nat_helper.c
-@@ -183,7 +183,7 @@ ip_nat_mangle_tcp_packet(struct sk_buff 
- 	datalen = (*pskb)->len - iph->ihl*4;
- 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
- 		tcph->check = 0;
--		tcph->check = tcp_v4_check(tcph, datalen,
-+		tcph->check = tcp_v4_check(datalen,
- 					   iph->saddr, iph->daddr,
- 					   csum_partial((char *)tcph,
- 					   		datalen, 0));
-diff -puN net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/ipt_REJECT.c
---- a/net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check-take-2
-+++ a/net/ipv4/netfilter/ipt_REJECT.c
-@@ -116,7 +116,7 @@ static void send_reset(struct sk_buff *o
  
- 	/* Adjust TCP checksum */
- 	tcph->check = 0;
--	tcph->check = tcp_v4_check(tcph, sizeof(struct tcphdr),
-+	tcph->check = tcp_v4_check(sizeof(struct tcphdr),
- 				   nskb->nh.iph->saddr,
- 				   nskb->nh.iph->daddr,
- 				   csum_partial((char *)tcph,
-diff -puN net/ipv4/netfilter/nf_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/nf_nat_helper.c
---- a/net/ipv4/netfilter/nf_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2
-+++ a/net/ipv4/netfilter/nf_nat_helper.c
-@@ -176,7 +176,7 @@ nf_nat_mangle_tcp_packet(struct sk_buff 
- 	datalen = (*pskb)->len - iph->ihl*4;
- 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
- 		tcph->check = 0;
--		tcph->check = tcp_v4_check(tcph, datalen,
-+		tcph->check = tcp_v4_check(datalen,
- 					   iph->saddr, iph->daddr,
- 					   csum_partial((char *)tcph,
- 					   		datalen, 0));
-diff -puN net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check-take-2
-+++ a/net/ipv4/tcp_ipv4.c
-@@ -502,11 +502,11 @@ void tcp_v4_send_check(struct sock *sk, 
- 	struct tcphdr *th = skb->h.th;
+@@ -762,7 +771,7 @@ static void pdc_issue_atapi_pkt_cmd(stru
+ 			tmp |= ATA_DEV1;
+ 	}
+ 	writeb(tmp, port_mmio + PDC_DEVICE);
+-	ata_busy_wait(ap, ATA_BUSY, 1000);
++	pdc_wait_on_busy(ap);
  
- 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
--		th->check = ~tcp_v4_check(th, len,
--					  inet->saddr, inet->daddr, 0);
-+		th->check = ~tcp_v4_check(len, inet->saddr,
-+					  inet->daddr, 0);
- 		skb->csum_offset = offsetof(struct tcphdr, check);
- 	} else {
--		th->check = tcp_v4_check(th, len, inet->saddr, inet->daddr,
-+		th->check = tcp_v4_check(len, inet->saddr, inet->daddr,
- 					 csum_partial((char *)th,
- 						      th->doff << 2,
- 						      skb->csum));
-@@ -525,7 +525,7 @@ int tcp_v4_gso_send_check(struct sk_buff
- 	th = skb->h.th;
+ 	writeb(0x00, port_mmio + PDC_SECTOR_COUNT);
+ 	writeb(0x00, port_mmio + PDC_SECTOR_NUMBER);
+@@ -788,14 +797,10 @@ static void pdc_issue_atapi_pkt_cmd(stru
+ 	/* send ATAPI packet command 0xA0 */
+ 	writeb(ATA_CMD_PACKET, port_mmio + PDC_COMMAND);
  
- 	th->check = 0;
--	th->check = ~tcp_v4_check(th, skb->len, iph->saddr, iph->daddr, 0);
-+	th->check = ~tcp_v4_check(skb->len, iph->saddr, iph->daddr, 0);
- 	skb->csum_offset = offsetof(struct tcphdr, check);
- 	skb->ip_summed = CHECKSUM_PARTIAL;
- 	return 0;
-@@ -747,7 +747,7 @@ static int tcp_v4_send_synack(struct soc
- 	if (skb) {
- 		struct tcphdr *th = skb->h.th;
+-	/*
+-	 * At this point in the issuing of a packet command, the Promise
+-	 * driver busy-waits for INT (CTLSTAT bit 27) if it detected
+-	 * (at port init time) that the device interrupts with assertion
+-	 * of DRQ after receiving a packet command.
+-	 *
+-	 * XXX: Do we need to handle this case as well? Does libata detect
+-	 * this case for us, or do we have to do our own per-port init?
++	/* pdc_qc_issue_prot() currently sends ATAPI PIO packets back
++	 * to libata. If we start handling those packets ourselves,
++	 * then we must busy-wait for INT (CTLSTAT bit 27) at this point
++	 * if the device has ATA_DFLAG_CDB_INTR set.
+ 	 */
  
--		th->check = tcp_v4_check(th, skb->len,
-+		th->check = tcp_v4_check(skb->len,
- 					 ireq->loc_addr,
- 					 ireq->rmt_addr,
- 					 csum_partial((char *)th, skb->len,
-@@ -1514,7 +1514,7 @@ static struct sock *tcp_v4_hnd_req(struc
- static __sum16 tcp_v4_checksum_init(struct sk_buff *skb)
- {
- 	if (skb->ip_summed == CHECKSUM_COMPLETE) {
--		if (!tcp_v4_check(skb->h.th, skb->len, skb->nh.iph->saddr,
-+		if (!tcp_v4_check(skb->len, skb->nh.iph->saddr,
- 				  skb->nh.iph->daddr, skb->csum)) {
- 			skb->ip_summed = CHECKSUM_UNNECESSARY;
- 			return 0;
+ 	pdc_wait_for_drq(ap);
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
-git-acpi-early-acpi-lockup.patch
-fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-mmc-build-fix.patch
-remove-tcp-header-from-tcp_v4_check-take-2.patch
-disable-init-initramfsc-updated-fix.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-user-ns-unshare.patch
-reiser4-sb_sync_inodes-fix.patch
+git-libata-all.patch
+sata_promise-atapi-cleanup.patch
+git-net.patch
