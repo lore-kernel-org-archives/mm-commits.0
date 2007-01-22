@@ -1,114 +1,74 @@
 From: akpm@osdl.org
-Subject: - pdc202xx_new-remove-useless-code.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 13:11:06 -0800
-Message-ID: <200701222111.l0MLB6Qq002220@shell0.pdx.osdl.net>
+Subject: - atiixpc-add-cable-detection-support-for-ati-ide.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 13:11:21 -0800
+Message-ID: <200701222111.l0MLBLVU002243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52249 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52275 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932666AbXAVVLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 16:11:20 -0500
+	id S932729AbXAVVL3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 16:11:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sshtylyov@ru.mvista.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: conke.hu@gmail.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, conke.hu@amd.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pdc202xx_new: remove useless code
+     atiixp.c: add cable detection support for ATI IDE
 has been removed from the -mm tree.  Its filename was
-     pdc202xx_new-remove-useless-code.patch
+     atiixpc-add-cable-detection-support-for-ati-ide.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pdc202xx_new: remove useless code
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: atiixp.c: add cable detection support for ATI IDE
+From: "Conke Hu" <conke.hu@gmail.com>
 
-Remove the following useless fragments from the driver:
+IDE HDD does not work if it uses a 40-pin PATA cable on ATI chipset.
+This patch fixes the bug.
 
-- the ide_dma_lostirq() and ide_dma_timeout() handlers which boil down to just
-  printing the incoherent reset message and calling their default counterparts;
-
-- check for non-NULL drive->id in the ide_dma_check() handler -- this is assumed
-  to be true by all other handlers (also, get rid of unnecessary nesting of the
-  conditional statements there);
-
-- the comment before pdcnew_tune_drive() which has nothing to do with the code.
-
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Signed-off-by: Conke Hu <conke.hu@amd.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/pdc202xx_new.c |   31 +++----------------------------
- 1 file changed, 3 insertions(+), 28 deletions(-)
+ drivers/ide/pci/atiixp.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/pci/pdc202xx_new.c~pdc202xx_new-remove-useless-code drivers/ide/pci/pdc202xx_new.c
---- a/drivers/ide/pci/pdc202xx_new.c~pdc202xx_new-remove-useless-code
-+++ a/drivers/ide/pci/pdc202xx_new.c
-@@ -249,13 +249,6 @@ static int pdcnew_tune_chipset(ide_drive
- 	return err;
- }
+diff -puN drivers/ide/pci/atiixp.c~atiixpc-add-cable-detection-support-for-ati-ide drivers/ide/pci/atiixp.c
+--- a/drivers/ide/pci/atiixp.c~atiixpc-add-cable-detection-support-for-ati-ide
++++ a/drivers/ide/pci/atiixp.c
+@@ -291,8 +291,12 @@ fast_ata_pio:
  
--/*   0    1    2    3    4    5    6   7   8
-- * 960, 480, 390, 300, 240, 180, 120, 90, 60
-- *           180, 150, 120,  90,  60
-- * DMA_Speed
-- * 180, 120,  90,  90,  90,  60,  30
-- *  11,   5,   4,   3,   2,   1,   0
-- */
- static void pdcnew_tune_drive(ide_drive_t *drive, u8 pio)
+ static void __devinit init_hwif_atiixp(ide_hwif_t *hwif)
  {
- 	pio = ide_get_best_pio_mode(drive, pio, 4, NULL);
-@@ -313,12 +306,10 @@ static int pdcnew_config_drive_xfer_rate
++	u8 udma_mode = 0;
++	u8 ch = hwif->channel;
++	struct pci_dev *pdev = hwif->pci_dev;
++
+ 	if (!hwif->irq)
+-		hwif->irq = hwif->channel ? 15 : 14;
++		hwif->irq = ch ? 15 : 14;
  
- 	drive->init_speed = 0;
+ 	hwif->autodma = 0;
+ 	hwif->tuneproc = &atiixp_tuneproc;
+@@ -308,8 +312,12 @@ static void __devinit init_hwif_atiixp(i
+ 	hwif->mwdma_mask = 0x06;
+ 	hwif->swdma_mask = 0x04;
  
--	if (id && (id->capability & 1) && drive->autodma) {
-+	if ((id->capability & 1) && drive->autodma) {
- 
--		if (ide_use_dma(drive)) {
--			if (config_chipset_for_dma(drive))
--				return hwif->ide_dma_on(drive);
--		}
-+		if (ide_use_dma(drive) && config_chipset_for_dma(drive))
-+			return hwif->ide_dma_on(drive);
- 
- 		goto fast_ata_pio;
- 
-@@ -336,20 +327,6 @@ static int pdcnew_quirkproc(ide_drive_t 
- 	return check_in_drive_lists(drive, pdc_quirk_drives);
- }
- 
--static int pdcnew_ide_dma_lostirq(ide_drive_t *drive)
--{
--	if (HWIF(drive)->resetproc != NULL)
--		HWIF(drive)->resetproc(drive);
--	return __ide_dma_lostirq(drive);
--}
--
--static int pdcnew_ide_dma_timeout(ide_drive_t *drive)
--{
--	if (HWIF(drive)->resetproc != NULL)
--		HWIF(drive)->resetproc(drive);
--	return __ide_dma_timeout(drive);
--}
--
- static void pdcnew_reset(ide_drive_t *drive)
- {
- 	/*
-@@ -599,8 +576,6 @@ static void __devinit init_hwif_pdc202ne
- 	hwif->err_stops_fifo = 1;
- 
- 	hwif->ide_dma_check = &pdcnew_config_drive_xfer_rate;
--	hwif->ide_dma_lostirq = &pdcnew_ide_dma_lostirq;
--	hwif->ide_dma_timeout = &pdcnew_ide_dma_timeout;
- 
- 	if (!hwif->udma_four)
- 		hwif->udma_four = pdcnew_cable_detect(hwif) ? 0 : 1;
+-	/* FIXME: proper cable detection needed */
+-	hwif->udma_four = 1;
++	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ch, &udma_mode);
++	if ((udma_mode & 0x07) >= 0x04 || (udma_mode & 0x70) >= 0x40)
++		hwif->udma_four = 1;
++	else
++		hwif->udma_four = 0;
++
+ 	hwif->ide_dma_host_on = &atiixp_ide_dma_host_on;
+ 	hwif->ide_dma_host_off = &atiixp_ide_dma_host_off;
+ 	hwif->ide_dma_check = &atiixp_dma_check;
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
-
-git-mtd.patch
-3x59x-fix-pci-resource-management.patch
+Patches currently in -mm which might be from conke.hu@gmail.com are
