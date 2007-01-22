@@ -1,51 +1,49 @@
 From: akpm@osdl.org
-Subject: - cifs-sprintf-fix.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:45:34 -0800
-Message-ID: <200701222045.l0MKjYuW001484@shell0.pdx.osdl.net>
+Subject: - libata-piix3-support-warning-fix.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:46:00 -0800
+Message-ID: <200701222046.l0MKk0TU001511@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50302 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50282 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932509AbXAVUqY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:46:24 -0500
+	id S932545AbXAVUqQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:46:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, alert7@xfocus.org, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cifs sprintf fix
+     libata-piix3-support-warning-fix
 has been removed from the -mm tree.  Its filename was
-     cifs-sprintf-fix.patch
+     libata-piix3-support-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cifs sprintf fix
+Subject: libata-piix3-support-warning-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: <alert7@xfocus.org>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/cifs/cifs_debug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/ata_piix.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifs_debug.c~cifs-sprintf-fix fs/cifs/cifs_debug.c
---- a/fs/cifs/cifs_debug.c~cifs-sprintf-fix
-+++ a/fs/cifs/cifs_debug.c
-@@ -143,8 +143,8 @@ cifs_debug_data_read(char *buf, char **b
- 		ses = list_entry(tmp, struct cifsSesInfo, cifsSessionList);
- 		if((ses->serverDomain == NULL) || (ses->serverOS == NULL) ||
- 		   (ses->serverNOS == NULL)) {
--			buf += sprintf("\nentry for %s not fully displayed\n\t",
--					ses->serverName);
-+			buf += sprintf(buf, "\nentry for %s not fully "
-+					"displayed\n\t", ses->serverName);
- 			
- 		} else {
- 			length =
+diff -puN drivers/ata/ata_piix.c~libata-piix3-support-warning-fix drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~libata-piix3-support-warning-fix
++++ a/drivers/ata/ata_piix.c
+@@ -788,7 +788,7 @@ static void do_pata_set_dmamode (struct 
+ 	u16 master_data;
+ 	u8 speed		= adev->dma_mode;
+ 	int devid		= adev->devno + 2 * ap->port_no;
+-	u8 udma_enable;
++	u8 udma_enable		= 0;
+ 
+ 	static const	 /* ISP  RTC */
+ 	u8 timings[][2]	= { { 0, 0 },
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
