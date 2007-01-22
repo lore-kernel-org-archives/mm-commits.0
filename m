@@ -1,50 +1,51 @@
 From: akpm@osdl.org
-Subject: - ubi-printk-fix.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:46:13 -0800
-Message-ID: <200701222046.l0MKkDEu001526@shell0.pdx.osdl.net>
+Subject: - ubi-missing-include.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:46:07 -0800
+Message-ID: <200701222046.l0MKk7RV001520@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50437 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50394 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932546AbXAVUq6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:46:58 -0500
+	id S932497AbXAVUqv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:46:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, dedekind@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ubi printk fix
+     ubi-missing-include
 has been removed from the -mm tree.  Its filename was
-     ubi-printk-fix.patch
+     ubi-missing-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ubi printk fix
+Subject: ubi-missing-include
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/mtd/ubi/sysfs.c:315: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+drivers/mtd/ubi/background.c: In function 'ubi_thread':
+drivers/mtd/ubi/background.c:228: warning: implicit declaration of function 'try_to_freeze'
 
 Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/ubi/sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/ubi/background.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mtd/ubi/sysfs.c~ubi-printk-fix drivers/mtd/ubi/sysfs.c
---- a/drivers/mtd/ubi/sysfs.c~ubi-printk-fix
-+++ a/drivers/mtd/ubi/sysfs.c
-@@ -312,7 +312,7 @@ static ssize_t dev_eraseblock_size_show(
- {
- 	const struct ubi_info *ubi = dev2ubi(dev);
- 
--	return sprintf(buf, "%d\n", ubi->io->leb_size);
-+	return sprintf(buf, "%zd\n", ubi->io->leb_size);
- }
- 
- static ssize_t dev_avail_eraseblocks_show(struct class_device *dev, char *buf)
+diff -puN drivers/mtd/ubi/background.c~ubi-missing-include drivers/mtd/ubi/background.c
+--- a/drivers/mtd/ubi/background.c~ubi-missing-include
++++ a/drivers/mtd/ubi/background.c
+@@ -23,6 +23,8 @@
+ #include <linux/sched.h>
+ #include <linux/completion.h>
+ #include <linux/spinlock.h>
++#include <linux/freezer.h>
++
+ #include "ubi.h"
+ #include "alloc.h"
+ #include "debug.h"
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
