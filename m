@@ -1,248 +1,204 @@
 From: akpm@osdl.org
-Subject: - input-atlas-button-driver.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:45:53 -0800
-Message-ID: <200701222045.l0MKjru3001505@shell0.pdx.osdl.net>
+Subject: - cifs-sprintf-fix.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:45:34 -0800
+Message-ID: <200701222045.l0MKjYuW001484@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50239 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50302 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932528AbXAVUqF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:46:05 -0500
+	id S932509AbXAVUqY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:46:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jayakumar.acpi@gmail.com, dtor@mail.ru, len.brown@intel.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, alert7@xfocus.org, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: Atlas button driver
+     cifs sprintf fix
 has been removed from the -mm tree.  Its filename was
-     input-atlas-button-driver.patch
+     cifs-sprintf-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: input: Atlas button driver
-From: Jaya Kumar <jayakumar.acpi@gmail.com>
+Subject: cifs sprintf fix
+From: Andrew Morton <akpm@osdl.org>
 
-This patch adds support for the buttons on the Atlas wallmount touchscreen.
-
-Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
-Acked-by: Len Brown <len.brown@intel.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: <alert7@xfocus.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/input/misc/Kconfig      |   10 +
- drivers/input/misc/Makefile     |    1 
- drivers/input/misc/atlas_btns.c |  170 ++++++++++++++++++++++++++++++
- 3 files changed, 181 insertions(+)
+ fs/cifs/cifs_debug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/misc/Kconfig~input-atlas-button-driver drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~input-atlas-button-driver
-+++ a/drivers/input/misc/Kconfig
-@@ -50,6 +50,16 @@ config INPUT_WISTRON_BTNS
- 	  To compile this driver as a module, choose M here: the module will
- 	  be called wistron_btns.
- 
-+config INPUT_ATLAS_BTNS
-+	tristate "x86 Atlas button interface"
-+	depends on X86 && ACPI
-+	help
-+	  Say Y here for support of Atlas wallmount touchscreen buttons.
-+	  The events will show up as scancodes F1 through F9 via evdev.
-+
-+	  To compile this driver as a module, choose M here: the module will
-+	  be called atlas_btns.
-+
- config INPUT_IXP4XX_BEEPER
- 	tristate "IXP4XX Beeper support"
- 	depends on ARCH_IXP4XX
-diff -puN drivers/input/misc/Makefile~input-atlas-button-driver drivers/input/misc/Makefile
---- a/drivers/input/misc/Makefile~input-atlas-button-driver
-+++ a/drivers/input/misc/Makefile
-@@ -9,5 +9,6 @@ obj-$(CONFIG_INPUT_PCSPKR)		+= pcspkr.o
- obj-$(CONFIG_INPUT_M68K_BEEP)		+= m68kspkr.o
- obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
- obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
-+obj-$(CONFIG_INPUT_ATLAS_BTNS)		+= atlas_btns.o
- obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
- obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
-diff -puN /dev/null drivers/input/misc/atlas_btns.c
---- /dev/null
-+++ a/drivers/input/misc/atlas_btns.c
-@@ -0,0 +1,170 @@
-+/*
-+ *  atlas_btns.c - Atlas Wallmount Touchscreen ACPI Extras
-+ *
-+ *  Copyright (C) 2006 Jaya Kumar
-+ *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
-+ *  This work was sponsored by CIS(M) Sdn Bhd.
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/input.h>
-+#include <linux/types.h>
-+#include <asm/uaccess.h>
-+#include <acpi/acpi_drivers.h>
-+
-+#define ACPI_ATLAS_NAME			"Atlas ACPI"
-+#define ACPI_ATLAS_CLASS		"Atlas"
-+#define ACPI_ATLAS_BUTTON_HID		"ASIM0000"
-+
-+static struct input_dev *input_dev;
-+
-+/* button handling code */
-+static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
-+		    u32 function, void *handler_context, void **return_context)
-+{
-+	*return_context =
-+		(function != ACPI_REGION_DEACTIVATE) ? handler_context : NULL;
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_atlas_button_handler(u32 function,
-+		      acpi_physical_address address,
-+		      u32 bit_width, acpi_integer *value,
-+		      void *handler_context, void *region_context)
-+{
-+	acpi_status status;
-+	int keycode;
-+
-+	if (function == ACPI_WRITE)  {
-+		keycode = KEY_F1 + (address & 0x0F);
-+		input_report_key(input_dev, keycode, !(address & 0x10));
-+		input_sync(input_dev);
-+		status = 0;
-+	} else {
-+		printk(KERN_WARNING "atlas: shrugged on unexpected function"
-+			":function=%x,address=%lx,value=%x\n",
-+			function, (unsigned long)address, (u32)*value);
-+		status = -EINVAL;
-+	}
-+
-+	return status;
-+}
-+
-+static int atlas_acpi_button_add(struct acpi_device *device)
-+{
-+	acpi_status status;
-+	int err;
-+
-+	input_dev = input_allocate_device();
-+	if (!input_dev) {
-+		printk(KERN_ERR "atlas: insufficient mem to allocate input "
-+				"device\n");
-+		return -ENOMEM;
-+	}
-+
-+	input_dev->name = "Atlas ACPI button driver";
-+	input_dev->phys = "ASIM0000/atlas/input0";
-+	input_dev->id.bustype = BUS_HOST;
-+	input_dev->evbit[LONG(EV_KEY)] = BIT(EV_KEY);
-+
-+	set_bit(KEY_F1, input_dev->keybit);
-+	set_bit(KEY_F2, input_dev->keybit);
-+	set_bit(KEY_F3, input_dev->keybit);
-+	set_bit(KEY_F4, input_dev->keybit);
-+	set_bit(KEY_F5, input_dev->keybit);
-+	set_bit(KEY_F6, input_dev->keybit);
-+	set_bit(KEY_F7, input_dev->keybit);
-+	set_bit(KEY_F8, input_dev->keybit);
-+	set_bit(KEY_F9, input_dev->keybit);
-+
-+	err = input_register_device(input_dev);
-+	if (err) {
-+		printk(KERN_ERR "atlas: couldn't register input device\n");
-+		input_free_device(input_dev);
-+		return err;
-+	}
-+
-+	/* hookup button handler */
-+	status = acpi_install_address_space_handler(device->handle,
-+				0x81, &acpi_atlas_button_handler,
-+				&acpi_atlas_button_setup, device);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_ERR "Atlas: Error installing addr spc handler\n");
-+		input_unregister_device(input_dev);
-+		status = -EINVAL;
-+	}
-+
-+	return status;
-+}
-+
-+static int atlas_acpi_button_remove(struct acpi_device *device, int type)
-+{
-+	acpi_status status;
-+
-+	status = acpi_remove_address_space_handler(device->handle,
-+				0x81, &acpi_atlas_button_handler);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_ERR "Atlas: Error removing addr spc handler\n");
-+		status = -EINVAL;
-+	}
-+
-+	input_unregister_device(input_dev);
-+	return status;
-+}
-+
-+static struct acpi_driver atlas_acpi_driver = {
-+	.name = ACPI_ATLAS_NAME,
-+	.class = ACPI_ATLAS_CLASS,
-+	.ids = ACPI_ATLAS_BUTTON_HID,
-+	.ops = {
-+		.add = atlas_acpi_button_add,
-+		.remove = atlas_acpi_button_remove,
-+	},
-+};
-+
-+static int atlas_acpi_init(void)
-+{
-+	int result;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	result = acpi_bus_register_driver(&atlas_acpi_driver);
-+	if (result < 0) {
-+		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static void atlas_acpi_exit(void)
-+{
-+	acpi_bus_unregister_driver(&atlas_acpi_driver);
-+}
-+
-+module_init(atlas_acpi_init);
-+module_exit(atlas_acpi_exit);
-+
-+MODULE_AUTHOR("Jaya Kumar");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Atlas button driver");
-+
+diff -puN fs/cifs/cifs_debug.c~cifs-sprintf-fix fs/cifs/cifs_debug.c
+--- a/fs/cifs/cifs_debug.c~cifs-sprintf-fix
++++ a/fs/cifs/cifs_debug.c
+@@ -143,8 +143,8 @@ cifs_debug_data_read(char *buf, char **b
+ 		ses = list_entry(tmp, struct cifsSesInfo, cifsSessionList);
+ 		if((ses->serverDomain == NULL) || (ses->serverOS == NULL) ||
+ 		   (ses->serverNOS == NULL)) {
+-			buf += sprintf("\nentry for %s not fully displayed\n\t",
+-					ses->serverName);
++			buf += sprintf(buf, "\nentry for %s not fully "
++					"displayed\n\t", ses->serverName);
+ 			
+ 		} else {
+ 			length =
 _
 
-Patches currently in -mm which might be from jayakumar.acpi@gmail.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
+origin.patch
+kvm-add-vm-exit-profiling-fix.patch
+blockdev-direct_io-fix-signedness-bug.patch
+submitchecklist-update.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+git-cifs.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
 git-input.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mmc-fixup.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+git-e1000-fixup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+toshiba-tc86c001-ide-driver-take-2-fix-2.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+vmi-versus-hrtimers.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i386-drivers.patch
+debugging-feature-proc-timer_list-warning-fix.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+user-ns-always-on.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+hpt3xx-rework-rate-filtering-tidy.patch
+jmicron-warning-fix.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
