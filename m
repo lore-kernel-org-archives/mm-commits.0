@@ -1,127 +1,121 @@
 From: akpm@osdl.org
-Subject: - fix-for-bugzilla-7544-keyspan-usb-to-serial-converter.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:47:22 -0800
-Message-ID: <200701222047.l0MKlM2M001627@shell0.pdx.osdl.net>
+Subject: - seq_file-conversion-apm-on-i386.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:47:30 -0800
+Message-ID: <200701222047.l0MKlU8S001633@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50497 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50512 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932584AbXAVUr1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:47:27 -0500
+	id S932591AbXAVUrl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:47:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rainer.weikusat@sncag.com, rweikusat@sncag.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, ak@suse.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix for bugzilla #7544 (keyspan USB-to-serial converter)
+     seq_file conversion: APM on i386
 has been removed from the -mm tree.  Its filename was
-     fix-for-bugzilla-7544-keyspan-usb-to-serial-converter.patch
+     seq_file-conversion-apm-on-i386.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix for bugzilla #7544 (keyspan USB-to-serial converter)
-From: Rainer Weikusat <rainer.weikusat@sncag.com>
+Subject: seq_file conversion: APM on i386
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-At least the Keyspan USA-19HS USB-to-serial converter supports two
-different configurations, one where the input endpoints have interrupt
-transfer type and one where they are bulk endpoints.
+Byte-to-byte identical /proc/apm here.
 
-The default UHCI configuration uses the interrupt input endpoints.  The
-keyspan driver, OTOH, assumes that the device has only bulk endpoints (all
-URBs are initialized by calling usb_fill_bulk_urb in keyspan.c/
-keyspan_setup_urb).  This causes the interval field of the input URBs to
-have a value of zero instead of one, which 'accidentally' worked with Linux
-at least up to 2.6.17.11 but stopped to with 2.6.18, which changed the UHCI
-support code handling URBs for interrupt endpoints.
-
-The patch modifies the driver to initialize its input URBs either as
-interrupt or as bulk URBs, depending on the transfertype contained in the
-associated endpoint descriptor (only tested with the default configuration)
-enabling the driver to again receive data from the serial converter.
-
-Signed-off-by: Rainer Weikusat <rweikusat@sncag.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/serial/keyspan.c |   51 ++++++++++++++++++++++++++++++---
- 1 files changed, 47 insertions(+), 4 deletions(-)
+ arch/i386/kernel/apm.c |   26 ++++++++++++++++++--------
+ 1 files changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/keyspan.c~fix-for-bugzilla-7544-keyspan-usb-to-serial-converter drivers/usb/serial/keyspan.c
---- a/drivers/usb/serial/keyspan.c~fix-for-bugzilla-7544-keyspan-usb-to-serial-converter
-+++ a/drivers/usb/serial/keyspan.c
-@@ -1275,11 +1275,32 @@ static int keyspan_fake_startup (struct 
+diff -puN arch/i386/kernel/apm.c~seq_file-conversion-apm-on-i386 arch/i386/kernel/apm.c
+--- a/arch/i386/kernel/apm.c~seq_file-conversion-apm-on-i386
++++ a/arch/i386/kernel/apm.c
+@@ -211,6 +211,7 @@
+ #include <linux/slab.h>
+ #include <linux/stat.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/miscdevice.h>
+ #include <linux/apm_bios.h>
+ #include <linux/init.h>
+@@ -1636,9 +1637,8 @@ static int do_open(struct inode * inode,
+ 	return 0;
  }
  
- /* Helper functions used by keyspan_setup_urbs */
-+static struct usb_endpoint_descriptor const *
-+find_ep_desc_for(struct usb_serial const *serial, int endpoint)
-+{
-+	struct usb_host_endpoint const *p, *e;
-+
-+	p = serial->interface->cur_altsetting->endpoint;
-+	e = p + serial->interface->cur_altsetting->desc.bNumEndpoints;
-+	while (p < e && p->desc.bEndpointAddress != endpoint) ++p;
-+
-+	if (p == e) {
-+		printk(KERN_WARNING "%s - found no endpoint descriptor for "
-+		       "endpoint %d\n", __func__, endpoint);
-+		return NULL;
-+	}
-+
-+	return &p->desc;
-+}
-+
- static struct urb *keyspan_setup_urb (struct usb_serial *serial, int endpoint,
- 				      int dir, void *ctx, char *buf, int len,
- 				      void (*callback)(struct urb *))
+-static int apm_get_info(char *buf, char **start, off_t fpos, int length)
++static int proc_apm_show(struct seq_file *m, void *v)
  {
- 	struct urb *urb;
-+	struct usb_endpoint_descriptor const *ep_desc;
-+	char const *ep_type_name;
-+	unsigned ep_type;
+-	char *		p;
+ 	unsigned short	bx;
+ 	unsigned short	cx;
+ 	unsigned short	dx;
+@@ -1650,8 +1650,6 @@ static int apm_get_info(char *buf, char 
+ 	int             time_units     = -1;
+ 	char            *units         = "?";
  
- 	if (endpoint == -1)
- 		return NULL;		/* endpoint not needed */
-@@ -1291,11 +1312,33 @@ static struct urb *keyspan_setup_urb (st
- 		return NULL;
- 	}
+-	p = buf;
+-
+ 	if ((num_online_cpus() == 1) &&
+ 	    !(error = apm_get_power_status(&bx, &cx, &dx))) {
+ 		ac_line_status = (bx >> 8) & 0xff;
+@@ -1705,7 +1703,7 @@ static int apm_get_info(char *buf, char 
+ 	      -1: Unknown
+ 	   8) min = minutes; sec = seconds */
  
--		/* Fill URB using supplied data. */
--	usb_fill_bulk_urb(urb, serial->dev,
--		      usb_sndbulkpipe(serial->dev, endpoint) | dir,
--		      buf, len, callback, ctx);
-+	ep_desc = find_ep_desc_for(serial, endpoint);
-+	ep_type = ep_desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
-+	switch (ep_type) {
-+	case USB_ENDPOINT_XFER_INT:
-+		ep_type_name = "INT";
-+		usb_fill_int_urb(urb, serial->dev,
-+				 usb_sndintpipe(serial->dev, endpoint) | dir,
-+				 buf, len, callback, ctx,
-+				 ep_desc->bInterval);
-+		break;
-+
-+	case USB_ENDPOINT_XFER_BULK:
-+		ep_type_name = "BULK";
-+		usb_fill_bulk_urb(urb, serial->dev,
-+				  usb_sndbulkpipe(serial->dev, endpoint) | dir,
-+				  buf, len, callback, ctx);
-+		break;
-+
-+	default:
-+		printk(KERN_WARNING "%s - unsupported endpoint type %d\n",
-+		       __func__, ep_type);
-+		usb_free_urb(urb);
-+		return NULL;
-+	}
+-	p += sprintf(p, "%s %d.%d 0x%02x 0x%02x 0x%02x 0x%02x %d%% %d %s\n",
++	seq_printf(m, "%s %d.%d 0x%02x 0x%02x 0x%02x 0x%02x %d%% %d %s\n",
+ 		     driver_version,
+ 		     (apm_info.bios.version >> 8) & 0xff,
+ 		     apm_info.bios.version & 0xff,
+@@ -1716,10 +1714,22 @@ static int apm_get_info(char *buf, char 
+ 		     percentage,
+ 		     time_units,
+ 		     units);
++	return 0;
++}
  
-+	dbg("%s - using urb %p for %s endpoint %d",
-+	    __func__, urb, ep_type_name, endpoint);
- 	return urb;
+-	return p - buf;
++static int proc_apm_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, proc_apm_show, NULL);
  }
  
++static const struct file_operations apm_file_ops = {
++	.owner		= THIS_MODULE,
++	.open		= proc_apm_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ static int apm(void *unused)
+ {
+ 	unsigned short	bx;
+@@ -2341,9 +2351,9 @@ static int __init apm_init(void)
+ 	set_base(gdt[APM_DS >> 3],
+ 		 __va((unsigned long)apm_info.bios.dseg << 4));
+ 
+-	apm_proc = create_proc_info_entry("apm", 0, NULL, apm_get_info);
++	apm_proc = create_proc_entry("apm", 0, NULL);
+ 	if (apm_proc)
+-		apm_proc->owner = THIS_MODULE;
++		apm_proc->proc_fops = &apm_file_ops;
+ 
+ 	kapmd_task = kthread_create(apm, NULL, "kapmd");
+ 	if (IS_ERR(kapmd_task)) {
 _
 
-Patches currently in -mm which might be from rainer.weikusat@sncag.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+git-dvb.patch
+git-mtd.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
