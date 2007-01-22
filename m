@@ -1,91 +1,50 @@
 From: akpm@osdl.org
-Subject: - forcedeth-tx-locking.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:46:48 -0800
-Message-ID: <200701222046.l0MKkmn1001583@shell0.pdx.osdl.net>
+Subject: - x25-add-missing-sock_put-in-x25_receive_data.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:46:53 -0800
+Message-ID: <200701222046.l0MKkrO1001592@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50408 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50466 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932526AbXAVUqx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:46:53 -0500
+	id S932567AbXAVUrE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:47:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
+To: ahendry@tusc.com.au, andrew.hendry@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: tx locking
+     X.25 Add missing sock_put in x25_receive_data
 has been removed from the -mm tree.  Its filename was
-     forcedeth-tx-locking.patch
+     x25-add-missing-sock_put-in-x25_receive_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: forcedeth: tx locking
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: X.25 Add missing sock_put in x25_receive_data
+From: ahendry <ahendry@tusc.com.au>
 
-Reduce the amount of code within the lock to only the critical sections.
+__x25_find_socket does a sock_hold.  This adds a missing sock_put in
+x25_receive_data.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Signed-off-by: Andrew Hendry <andrew.hendry@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ net/x25/x25_dev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-tx-locking drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-tx-locking
-+++ a/drivers/net/forcedeth.c
-@@ -1569,12 +1569,11 @@ static int nv_start_xmit(struct sk_buff 
- 			   ((skb_shinfo(skb)->frags[i].size & (NV_TX2_TSO_MAX_SIZE-1)) ? 1 : 0);
+diff -puN net/x25/x25_dev.c~x25-add-missing-sock_put-in-x25_receive_data net/x25/x25_dev.c
+--- a/net/x25/x25_dev.c~x25-add-missing-sock_put-in-x25_receive_data
++++ a/net/x25/x25_dev.c
+@@ -56,6 +56,7 @@ static int x25_receive_data(struct sk_bu
+ 			sk_add_backlog(sk, skb);
+ 		}
+ 		bh_unlock_sock(sk);
++		sock_put(sk);
+ 		return queued;
  	}
  
--	spin_lock_irq(&np->lock);
--
- 	empty_slots = nv_get_empty_tx_slots(np);
- 	if ((empty_slots - np->tx_limit_stop) <= entries) {
--		spin_unlock_irq(&np->lock);
-+		spin_lock_irq(&np->lock);
- 		netif_stop_queue(dev);
-+		spin_unlock_irq(&np->lock);
- 		return NETDEV_TX_BUSY;
- 	}
- 
-@@ -1669,6 +1668,8 @@ static int nv_start_xmit(struct sk_buff 
- 		tx_flags_vlan = NV_TX3_VLAN_TAG_PRESENT | vlan_tx_tag_get(skb);
- 	}
- 
-+	spin_lock_irq(&np->lock);
-+
- 	/* set tx flags */
- 	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2) {
- 		start_tx.orig->flaglen |= cpu_to_le32(tx_flags | tx_flags_extra);
-@@ -1679,6 +1680,7 @@ static int nv_start_xmit(struct sk_buff 
- 		np->put_tx.ex = put_tx.ex;
- 	}
- 
-+	spin_unlock_irq(&np->lock);
- 
- 	dprintk(KERN_DEBUG "%s: nv_start_xmit: entries %d queued for transmission. tx_flags_extra: %x\n",
- 		dev->name, entries, tx_flags_extra);
-@@ -1693,7 +1695,6 @@ static int nv_start_xmit(struct sk_buff 
- 	}
- 
- 	dev->trans_start = jiffies;
--	spin_unlock_irq(&np->lock);
- 	writel(NVREG_TXRXCTL_KICK|np->txrxctl_bits, get_hwbase(dev) + NvRegTxRxControl);
- 	pci_push(get_hwbase(dev));
- 	return NETDEV_TX_OK;
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
-
-git-netdev-all.patch
-forcedeth-optimized-routines.patch
-forcedeth-tx-limiting.patch
-forcedeth-tx-data-path-optimization.patch
-forcedeth-rx-data-path-optimization.patch
-forcedeth-irq-data-path-optimization.patch
-forcedeth-tx-max-work.patch
-forcedeth-statistics-supported.patch
-forcedeth-statistics-optimization.patch
+Patches currently in -mm which might be from ahendry@tusc.com.au are
