@@ -1,430 +1,77 @@
 From: akpm@osdl.org
-Subject: - toshiba-tc86c001-ide-driver-take-2.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 13:10:36 -0800
-Message-ID: <200701222110.l0MLAagF002162@shell0.pdx.osdl.net>
+Subject: - piix-fix-82371mx-enablebits.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 13:11:03 -0800
+Message-ID: <200701222111.l0MLB3Ob002213@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52984 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52988 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932780AbXAVVR3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 16:17:29 -0500
+	id S932783AbXAVVRd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 16:17:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sshtylyov@ru.mvista.com, B.Zolnierkiewicz@elka.pw.edu.pl, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: sshtylyov@ru.mvista.com, B.Zolnierkiewicz@elka.pw.edu.pl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Toshiba TC86C001 IDE driver
+     PIIX: fix 82371MX enablebits
 has been removed from the -mm tree.  Its filename was
-     toshiba-tc86c001-ide-driver-take-2.patch
+     piix-fix-82371mx-enablebits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Toshiba TC86C001 IDE driver
+Subject: PIIX: fix 82371MX enablebits
 From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-This is the driver for the Toshiba TC86C001 GOKU-S PCI IDE controller,
-completely reworked from the original brain-damaged Toshiba's 2.4 version.
+According to the datasheet, Intel 82371MX (MPIIX) actually has only a
+single IDE channel mapped to the primary or secondary ports depending on
+the value of the bit 14 of the IDETIM register at PCI config.  offset 0x6C
+(the register at 0x6F which the driver refers to.  doesn't exist).  So,
+disguise the controller as dual channel and set enablebits masks/values
+such that only either primary or secondary channel is detected enabled. 
+Also, preclude the IDE probing code from reading PCI BARs, this controller
+just doesn't have them (it's not the separate PCI function like the other
+PCI controllers), it only decodes the legacy addresses.
 
-This single channel UltraDMA/66 controller is very simple in programming,
-yet Toshiba managed to plant many interesting bugs in it.  The particularly
-nasty "limitation 5" (as they call the errata) caused me to abuse the IDE
-core in a possibly most interesting way so far.  However, this is still
-better than the #ifdef mess in drivers/ide/ide-io.c that the original
-version included (well, it had much more mess)...
+(Alan sayeth " MPIIX does not work with or without the change.  It needs its
+own different driver and not to use setup-pci.  Huge job and since it works
+well with libata who cares.  Ditto the early PIIX chip.")
 
 Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Acked-by: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz@elka.pw.edu.pl>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/Kconfig        |    5 
- drivers/ide/pci/Makefile   |    1 
- drivers/ide/pci/tc86c001.c |  308 +++++++++++++++++++++++++++++++++++
- drivers/pci/quirks.c       |   18 ++
- include/linux/pci_ids.h    |    1 
- 5 files changed, 333 insertions(+)
+ drivers/ide/pci/piix.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ide/Kconfig~toshiba-tc86c001-ide-driver-take-2 drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~toshiba-tc86c001-ide-driver-take-2
-+++ a/drivers/ide/Kconfig
-@@ -742,6 +742,11 @@ config BLK_DEV_VIA82CXXX
- 	  This allows the kernel to change PIO, DMA and UDMA speeds and to
- 	  configure the chip to optimum performance.
+diff -puN drivers/ide/pci/piix.c~piix-fix-82371mx-enablebits drivers/ide/pci/piix.c
+--- a/drivers/ide/pci/piix.c~piix-fix-82371mx-enablebits
++++ a/drivers/ide/pci/piix.c
+@@ -539,13 +539,19 @@ static ide_pci_device_t piix_pci_info[] 
+ 	/*  0 */ DECLARE_PIIX_DEV("PIIXa"),
+ 	/*  1 */ DECLARE_PIIX_DEV("PIIXb"),
  
-+config BLK_DEV_TC86C001
-+	tristate "Toshiba TC86C001 support"
-+	help
-+	This driver adds support for Toshiba TC86C001 GOKU-S chip.
-+
- endif
- 
- config BLK_DEV_IDE_PMAC
-diff -puN drivers/ide/pci/Makefile~toshiba-tc86c001-ide-driver-take-2 drivers/ide/pci/Makefile
---- a/drivers/ide/pci/Makefile~toshiba-tc86c001-ide-driver-take-2
-+++ a/drivers/ide/pci/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_BLK_DEV_SIIMAGE)		+= siimag
- obj-$(CONFIG_BLK_DEV_SIS5513)		+= sis5513.o
- obj-$(CONFIG_BLK_DEV_SL82C105)		+= sl82c105.o
- obj-$(CONFIG_BLK_DEV_SLC90E66)		+= slc90e66.o
-+obj-$(CONFIG_BLK_DEV_TC86C001)		+= tc86c001.o
- obj-$(CONFIG_BLK_DEV_TRIFLEX)		+= triflex.o
- obj-$(CONFIG_BLK_DEV_TRM290)		+= trm290.o
- obj-$(CONFIG_BLK_DEV_VIA82CXXX)		+= via82cxxx.o
-diff -puN /dev/null drivers/ide/pci/tc86c001.c
---- /dev/null
-+++ a/drivers/ide/pci/tc86c001.c
-@@ -0,0 +1,308 @@
-+/*
-+ * drivers/ide/pci/tc86c001.c	Version 1.00	Dec 12, 2006
-+ *
-+ * Copyright (C) 2002 Toshiba Corporation
-+ * Copyright (C) 2005-2006 MontaVista Software, Inc. <source@mvista.com>
-+ *
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2.  This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/pci.h>
-+#include <linux/ide.h>
-+
-+static inline u8 tc86c001_ratemask(ide_drive_t *drive)
-+{
-+	return eighty_ninty_three(drive) ? 2 : 1;
-+}
-+
-+static int tc86c001_tune_chipset(ide_drive_t *drive, u8 speed)
-+{
-+	ide_hwif_t *hwif	= HWIF(drive);
-+	unsigned long scr_port	= hwif->config_data + (drive->dn ? 0x02 : 0x00);
-+	u16 mode, scr		= hwif->INW(scr_port);
-+
-+	speed = ide_rate_filter(tc86c001_ratemask(drive), speed);
-+
-+	switch (speed) {
-+		case XFER_UDMA_4:	mode = 0x00c0; break;
-+		case XFER_UDMA_3:	mode = 0x00b0; break;
-+		case XFER_UDMA_2:	mode = 0x00a0; break;
-+		case XFER_UDMA_1:	mode = 0x0090; break;
-+		case XFER_UDMA_0:	mode = 0x0080; break;
-+		case XFER_MW_DMA_2:	mode = 0x0070; break;
-+		case XFER_MW_DMA_1:	mode = 0x0060; break;
-+		case XFER_MW_DMA_0:	mode = 0x0050; break;
-+		case XFER_PIO_4:	mode = 0x0400; break;
-+		case XFER_PIO_3:	mode = 0x0300; break;
-+		case XFER_PIO_2:	mode = 0x0200; break;
-+		case XFER_PIO_1:	mode = 0x0100; break;
-+		case XFER_PIO_0:
-+		default:		mode = 0x0000; break;
-+	}
-+
-+	scr &= (speed < XFER_MW_DMA_0) ? 0xf8ff : 0xff0f;
-+	scr |= mode;
-+	hwif->OUTW(scr, scr_port);
-+
-+	return ide_config_drive_speed(drive, speed);
-+}
-+
-+static void tc86c001_tune_drive(ide_drive_t *drive, u8 pio)
-+{
-+	pio =  ide_get_best_pio_mode(drive, pio, 4, NULL);
-+	(void) tc86c001_tune_chipset(drive, XFER_PIO_0 + pio);
-+}
-+
-+/*
-+ * HACKITY HACK
-+ *
-+ * This is a workaround for the limitation 5 of the TC86C001 IDE controller:
-+ * if a DMA transfer terminates prematurely, the controller leaves the device's
-+ * interrupt request (INTRQ) pending and does not generate a PCI interrupt (or
-+ * set the interrupt bit in the DMA status register), thus no PCI interrupt
-+ * will occur until a DMA transfer has been successfully completed.
-+ *
-+ * We work around this by initiating dummy, zero-length DMA transfer on
-+ * a DMA timeout expiration. I found no better way to do this with the current
-+ * IDE core than to temporarily replace a higher level driver's timer expiry
-+ * handler with our own backing up to that handler in case our recovery fails.
-+ */
-+static int tc86c001_timer_expiry(ide_drive_t *drive)
-+{
-+	ide_hwif_t *hwif	= HWIF(drive);
-+	ide_expiry_t *expiry	= ide_get_hwifdata(hwif);
-+	ide_hwgroup_t *hwgroup	= HWGROUP(drive);
-+	u8 dma_stat		= hwif->INB(hwif->dma_status);
-+
-+	/* Restore a higher level driver's expiry handler first. */
-+	hwgroup->expiry	= expiry;
-+
-+	if ((dma_stat & 5) == 1) {	/* DMA active and no interrupt */
-+		unsigned long sc_base	= hwif->config_data;
-+		unsigned long twcr_port	= sc_base + (drive->dn ? 0x06 : 0x04);
-+		u8 dma_cmd		= hwif->INB(hwif->dma_command);
-+
-+		printk(KERN_WARNING "%s: DMA interrupt possibly stuck, "
-+		       "attempting recovery...\n", drive->name);
-+
-+		/* Stop DMA */
-+		hwif->OUTB(dma_cmd & ~0x01, hwif->dma_command);
-+
-+		/* Setup the dummy DMA transfer */
-+		hwif->OUTW(0, sc_base + 0x0a);	/* Sector Count */
-+		hwif->OUTW(0, twcr_port);	/* Transfer Word Count 1 or 2 */
-+
-+		/* Start the dummy DMA transfer */
-+		hwif->OUTB(0x00, hwif->dma_command); /* clear R_OR_WCTR for write */
-+		hwif->OUTB(0x01, hwif->dma_command); /* set START_STOPBM */
-+
-+		/*
-+		 * If an interrupt was pending, it should come thru shortly.
-+		 * If not, a higher level driver's expiry handler should
-+		 * eventually cause some kind of recovery from the DMA stall.
+-	{	/* 2 */
++	/*  2 */
++	{	/*
++		 * MPIIX actually has only a single IDE channel mapped to
++		 * the primary or secondary ports depending on the value
++		 * of the bit 14 of the IDETIM register at offset 0x6c
 +		 */
-+		return WAIT_MIN_SLEEP;
-+	}
-+
-+	/* Chain to the restored expiry handler if DMA wasn't active. */
-+	if (likely(expiry != NULL))
-+		return expiry(drive);
-+
-+	/* If there was no handler, "emulate" that for ide_timer_expiry()... */
-+	return -1;
-+}
-+
-+static void tc86c001_dma_start(ide_drive_t *drive)
-+{
-+	ide_hwif_t *hwif	= HWIF(drive);
-+	ide_hwgroup_t *hwgroup	= HWGROUP(drive);
-+	unsigned long sc_base	= hwif->config_data;
-+	unsigned long twcr_port	= sc_base + (drive->dn ? 0x06 : 0x04);
-+	unsigned long nsectors	= hwgroup->rq->nr_sectors;
-+
-+	/*
-+	 * We have to manually load the sector count and size into
-+	 * the appropriate system control registers for DMA to work
-+	 * with LBA48 and ATAPI devices...
-+	 */
-+	hwif->OUTW(nsectors, sc_base + 0x0a);	/* Sector Count */
-+	hwif->OUTW(SECTOR_SIZE / 2, twcr_port); /* Transfer Word Count 1/2 */
-+
-+	/* Install our timeout expiry hook, saving the current handler... */
-+	ide_set_hwifdata(hwif, hwgroup->expiry);
-+	hwgroup->expiry = &tc86c001_timer_expiry;
-+
-+	ide_dma_start(drive);
-+}
-+
-+static int tc86c001_busproc(ide_drive_t *drive, int state)
-+{
-+	ide_hwif_t *hwif	= HWIF(drive);
-+	unsigned long sc_base	= hwif->config_data;
-+	u16 scr1;
-+
-+	/* System Control 1 Register bit 11 (ATA Hard Reset) read */
-+	scr1 = hwif->INW(sc_base + 0x00);
-+
-+	switch (state) {
-+		case BUSSTATE_ON:
-+			if (!(scr1 & 0x0800))
-+				return 0;
-+			scr1 &= ~0x0800;
-+
-+			hwif->drives[0].failures = hwif->drives[1].failures = 0;
-+			break;
-+		case BUSSTATE_OFF:
-+			if (scr1 & 0x0800)
-+				return 0;
-+			scr1 |= 0x0800;
-+
-+			hwif->drives[0].failures = hwif->drives[0].max_failures + 1;
-+			hwif->drives[1].failures = hwif->drives[1].max_failures + 1;
-+			break;
-+		default:
-+			return -EINVAL;
-+	}
-+
-+	/* System Control 1 Register bit 11 (ATA Hard Reset) write */
-+	hwif->OUTW(scr1, sc_base + 0x00);
-+	return 0;
-+}
-+
-+static int config_chipset_for_dma(ide_drive_t *drive)
-+{
-+	u8 speed = ide_dma_speed(drive, tc86c001_ratemask(drive));
-+
-+	if (!speed)
-+		return 0;
-+
-+	(void) tc86c001_tune_chipset(drive, speed);
-+	return ide_dma_enable(drive);
-+}
-+
-+static int tc86c001_config_drive_xfer_rate(ide_drive_t *drive)
-+{
-+	ide_hwif_t *hwif	= HWIF(drive);
-+	struct hd_driveid *id	= drive->id;
-+
-+	if ((id->capability & 1) && drive->autodma) {
-+
-+		if (ide_use_dma(drive) && config_chipset_for_dma(drive))
-+			return hwif->ide_dma_on(drive);
-+
-+		goto fast_ata_pio;
-+
-+	} else if ((id->capability & 8) || (id->field_valid & 2)) {
-+fast_ata_pio:
-+		tc86c001_tune_drive(drive, 255);
-+		return hwif->ide_dma_off_quietly(drive);
-+	}
-+	/* IORDY not supported */
-+	return 0;
-+}
-+
-+void __devinit init_hwif_tc86c001(ide_hwif_t *hwif)
-+{
-+	unsigned long sc_base	= pci_resource_start(hwif->pci_dev, 5);
-+	u16 scr1		= hwif->INW(sc_base + 0x00);;
-+
-+	/* System Control 1 Register bit 15 (Soft Reset) set */
-+	hwif->OUTW(scr1 |  0x8000, sc_base + 0x00);
-+
-+	/* System Control 1 Register bit 14 (FIFO Reset) set */
-+	hwif->OUTW(scr1 |  0x4000, sc_base + 0x00);
-+
-+	/* System Control 1 Register: reset clear */
-+	hwif->OUTW(scr1 & ~0xc000, sc_base + 0x00);
-+
-+	/* Store the system control register base for convenience... */
-+	hwif->config_data = sc_base;
-+
-+	hwif->tuneproc	= &tc86c001_tune_drive;
-+	hwif->speedproc = &tc86c001_tune_chipset;
-+	hwif->busproc	= &tc86c001_busproc;
-+
-+	hwif->drives[0].autotune = hwif->drives[1].autotune = 1;
-+
-+	if (!hwif->dma_base)
-+		return;
-+
-+	/*
-+	 * Sector Count Control Register bits 0 and 1 set:
-+	 * software sets Sector Count Register for master and slave device
-+	 */
-+	hwif->OUTW(0x0003, sc_base + 0x0c);
-+
-+	/* Sector Count Register limit */
-+	hwif->rqsize	 = 0xffff;
-+
-+	hwif->atapi_dma  = 1;
-+	hwif->ultra_mask = 0x1f;
-+	hwif->mwdma_mask = 0x07;
-+
-+	hwif->ide_dma_check	= &tc86c001_config_drive_xfer_rate;
-+	hwif->dma_start 	= &tc86c001_dma_start;
-+
-+	if (!hwif->udma_four) {
-+		/*
-+		 * System Control  1 Register bit 13 (PDIAGN):
-+		 * 0=80-pin cable, 1=40-pin cable
-+		 */
-+		scr1 = hwif->INW(sc_base + 0x00);
-+		hwif->udma_four = (scr1 & 0x2000) ? 0 : 1;
-+	}
-+
-+	if (!noautodma)
-+		hwif->autodma = 1;
-+	hwif->drives[0].autodma = hwif->drives[1].autodma = hwif->autodma;
-+}
-+
-+static unsigned int init_chipset_tc86c001(struct pci_dev *dev, const char *name)
-+{
-+	int err = pci_request_region(dev, 5, name);
-+
-+	if (err)
-+		printk(KERN_ERR "%s: system control regs already in use", name);
-+	return err;
-+}
-+
-+static ide_pci_device_t tc86c001_chipset __devinitdata = {
-+	.name		= "TC86C001",
-+	.init_chipset	= init_chipset_tc86c001,
-+	.init_hwif	= init_hwif_tc86c001,
-+	.channels	= 1,
-+	.autodma	= AUTODMA,
-+	.bootable	= OFF_BOARD
-+};
-+
-+static int __devinit tc86c001_init_one(struct pci_dev *dev,
-+				       const struct pci_device_id *id)
-+{
-+	return ide_setup_pci_device(dev, &tc86c001_chipset);
-+}
-+
-+static struct pci_device_id tc86c001_pci_tbl[] = {
-+	{ PCI_VENDOR_ID_TOSHIBA_2, PCI_DEVICE_ID_TOSHIBA_TC86C001_IDE,
-+	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-+	{ 0, }
-+};
-+MODULE_DEVICE_TABLE(pci, tc86c001_pci_tbl);
-+
-+static struct pci_driver driver = {
-+	.name		= "TC86C001",
-+	.id_table	= tc86c001_pci_tbl,
-+	.probe		= tc86c001_init_one
-+};
-+
-+static int tc86c001_ide_init(void)
-+{
-+	return ide_pci_register_driver(&driver);
-+}
-+module_init(tc86c001_ide_init);
-+
-+MODULE_AUTHOR("MontaVista Software, Inc. <source@mvista.com>");
-+MODULE_DESCRIPTION("PCI driver module for TC86C001 IDE");
-+MODULE_LICENSE("GPL");
-diff -puN drivers/pci/quirks.c~toshiba-tc86c001-ide-driver-take-2 drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~toshiba-tc86c001-ide-driver-take-2
-+++ a/drivers/pci/quirks.c
-@@ -1462,6 +1462,24 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	0x260a, quirk_intel_pcie_pm);
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	0x260b, quirk_intel_pcie_pm);
+ 		.name		= "MPIIX",
+ 		.init_hwif	= init_hwif_piix,
+ 		.channels	= 2,
+ 		.autodma	= NODMA,
+-		.enablebits	= {{0x6D,0x80,0x80}, {0x6F,0x80,0x80}},
++		.enablebits	= {{0x6d,0xc0,0x80}, {0x6d,0xc0,0xc0}},
+ 		.bootable	= ON_BOARD,
++		.flags		= IDEPCI_FLAG_ISA_PORTS
+ 	},
  
-+/*
-+ * Toshiba TC86C001 IDE controller reports the standard 8-byte BAR0 size
-+ * but the PIO transfers won't work if BAR0 falls at the odd 8 bytes.
-+ * Re-allocate the region if needed...
-+ */
-+static void __init quirk_tc86c001_ide(struct pci_dev *dev)
-+{
-+	struct resource *r = &dev->resource[0];
-+
-+	if (r->start & 0x8) {
-+		r->start = 0;
-+		r->end = 0xf;
-+	}
-+}
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_TOSHIBA_2,
-+			 PCI_DEVICE_ID_TOSHIBA_TC86C001_IDE,
-+			 quirk_tc86c001_ide);
-+
- static void __devinit quirk_netmos(struct pci_dev *dev)
- {
- 	unsigned int num_parallel = (dev->subsystem_device & 0xf0) >> 4;
-diff -puN include/linux/pci_ids.h~toshiba-tc86c001-ide-driver-take-2 include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~toshiba-tc86c001-ide-driver-take-2
-+++ a/include/linux/pci_ids.h
-@@ -1455,6 +1455,7 @@
- 
- #define PCI_VENDOR_ID_TOSHIBA_2		0x102f
- #define PCI_DEVICE_ID_TOSHIBA_TC35815CF	0x0030
-+#define PCI_DEVICE_ID_TOSHIBA_TC86C001_IDE	0x0105
- #define PCI_DEVICE_ID_TOSHIBA_TC86C001_MISC	0x0108
- #define PCI_DEVICE_ID_TOSHIBA_SPIDER_NET 0x01b3
- 
+ 	/*  3 */ DECLARE_PIIX_DEV("PIIX3"),
 _
 
 Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
