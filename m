@@ -1,81 +1,127 @@
 From: akpm@osdl.org
-Subject: - megaraid-more-kernel-doc-fixes.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:47:19 -0800
-Message-ID: <200701222047.l0MKlJ8Z001621@shell0.pdx.osdl.net>
+Subject: - fix-for-bugzilla-7544-keyspan-usb-to-serial-converter.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:47:22 -0800
+Message-ID: <200701222047.l0MKlM2M001627@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50510 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50497 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932585AbXAVUrj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:47:39 -0500
+	id S932584AbXAVUr1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:47:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: rainer.weikusat@sncag.com, rweikusat@sncag.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     megaraid: more kernel-doc fixes
+     fix for bugzilla #7544 (keyspan USB-to-serial converter)
 has been removed from the -mm tree.  Its filename was
-     megaraid-more-kernel-doc-fixes.patch
+     fix-for-bugzilla-7544-keyspan-usb-to-serial-converter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: megaraid: more kernel-doc fixes
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: fix for bugzilla #7544 (keyspan USB-to-serial converter)
+From: Rainer Weikusat <rainer.weikusat@sncag.com>
 
-More megaraid kernel-doc fixes.
+At least the Keyspan USA-19HS USB-to-serial converter supports two
+different configurations, one where the input endpoints have interrupt
+transfer type and one where they are bulk endpoints.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+The default UHCI configuration uses the interrupt input endpoints.  The
+keyspan driver, OTOH, assumes that the device has only bulk endpoints (all
+URBs are initialized by calling usb_fill_bulk_urb in keyspan.c/
+keyspan_setup_urb).  This causes the interval field of the input URBs to
+have a value of zero instead of one, which 'accidentally' worked with Linux
+at least up to 2.6.17.11 but stopped to with 2.6.18, which changed the UHCI
+support code handling URBs for interrupt endpoints.
+
+The patch modifies the driver to initialize its input URBs either as
+interrupt or as bulk URBs, depending on the transfertype contained in the
+associated endpoint descriptor (only tested with the default configuration)
+enabling the driver to again receive data from the serial converter.
+
+Signed-off-by: Rainer Weikusat <rweikusat@sncag.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/megaraid/mbox_defs.h   |    2 +-
- drivers/scsi/megaraid/mega_common.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/serial/keyspan.c |   51 ++++++++++++++++++++++++++++++---
+ 1 files changed, 47 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/megaraid/mbox_defs.h~megaraid-more-kernel-doc-fixes drivers/scsi/megaraid/mbox_defs.h
---- a/drivers/scsi/megaraid/mbox_defs.h~megaraid-more-kernel-doc-fixes
-+++ a/drivers/scsi/megaraid/mbox_defs.h
-@@ -748,7 +748,7 @@ typedef struct {
+diff -puN drivers/usb/serial/keyspan.c~fix-for-bugzilla-7544-keyspan-usb-to-serial-converter drivers/usb/serial/keyspan.c
+--- a/drivers/usb/serial/keyspan.c~fix-for-bugzilla-7544-keyspan-usb-to-serial-converter
++++ a/drivers/usb/serial/keyspan.c
+@@ -1275,11 +1275,32 @@ static int keyspan_fake_startup (struct 
+ }
  
+ /* Helper functions used by keyspan_setup_urbs */
++static struct usb_endpoint_descriptor const *
++find_ep_desc_for(struct usb_serial const *serial, int endpoint)
++{
++	struct usb_host_endpoint const *p, *e;
++
++	p = serial->interface->cur_altsetting->endpoint;
++	e = p + serial->interface->cur_altsetting->desc.bNumEndpoints;
++	while (p < e && p->desc.bEndpointAddress != endpoint) ++p;
++
++	if (p == e) {
++		printk(KERN_WARNING "%s - found no endpoint descriptor for "
++		       "endpoint %d\n", __func__, endpoint);
++		return NULL;
++	}
++
++	return &p->desc;
++}
++
+ static struct urb *keyspan_setup_urb (struct usb_serial *serial, int endpoint,
+ 				      int dir, void *ctx, char *buf, int len,
+ 				      void (*callback)(struct urb *))
+ {
+ 	struct urb *urb;
++	struct usb_endpoint_descriptor const *ep_desc;
++	char const *ep_type_name;
++	unsigned ep_type;
  
- /**
-- * private_bios_data - bios private data for boot devices
-+ * struct private_bios_data - bios private data for boot devices
-  * @geometry	: bits 0-3 - BIOS geometry, 0x0001 - 1GB, 0x0010 - 2GB,
-  *		0x1000 - 8GB, Others values are invalid
-  * @unused	: bits 4-7 are unused
-diff -puN drivers/scsi/megaraid/mega_common.h~megaraid-more-kernel-doc-fixes drivers/scsi/megaraid/mega_common.h
---- a/drivers/scsi/megaraid/mega_common.h~megaraid-more-kernel-doc-fixes
-+++ a/drivers/scsi/megaraid/mega_common.h
-@@ -271,7 +271,7 @@ typedef struct {
- #define ASSERT(expression)
- #endif
+ 	if (endpoint == -1)
+ 		return NULL;		/* endpoint not needed */
+@@ -1291,11 +1312,33 @@ static struct urb *keyspan_setup_urb (st
+ 		return NULL;
+ 	}
  
--/*
-+/**
-  * struct mraid_pci_blk - structure holds DMA memory block info
-  * @vaddr		: virtual address to a memory block
-  * @dma_addr		: DMA handle to a memory block
+-		/* Fill URB using supplied data. */
+-	usb_fill_bulk_urb(urb, serial->dev,
+-		      usb_sndbulkpipe(serial->dev, endpoint) | dir,
+-		      buf, len, callback, ctx);
++	ep_desc = find_ep_desc_for(serial, endpoint);
++	ep_type = ep_desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
++	switch (ep_type) {
++	case USB_ENDPOINT_XFER_INT:
++		ep_type_name = "INT";
++		usb_fill_int_urb(urb, serial->dev,
++				 usb_sndintpipe(serial->dev, endpoint) | dir,
++				 buf, len, callback, ctx,
++				 ep_desc->bInterval);
++		break;
++
++	case USB_ENDPOINT_XFER_BULK:
++		ep_type_name = "BULK";
++		usb_fill_bulk_urb(urb, serial->dev,
++				  usb_sndbulkpipe(serial->dev, endpoint) | dir,
++				  buf, len, callback, ctx);
++		break;
++
++	default:
++		printk(KERN_WARNING "%s - unsupported endpoint type %d\n",
++		       __func__, ep_type);
++		usb_free_urb(urb);
++		return NULL;
++	}
+ 
++	dbg("%s - using urb %p for %s endpoint %d",
++	    __func__, urb, ep_type_name, endpoint);
+ 	return urb;
+ }
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-origin.patch
-git-alsa.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-git-mtd.patch
-parisc-fix-module_param-iommu-permission.patch
-git-scsi-misc.patch
-math-emu-setcc-avoid-gcc-extension.patch
-kernel-doc-allow-a-little-whitespace.patch
-sysrq-showblockedtasks-is-sysrq-w.patch
-sysrq-alphabetize-command-keys-doc.patch
-kernel-doc-allow-more-whitespace.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-docbook-add-edd-firmware-interfaces.patch
-kernel-doc-fix-some-odd-spacing-issues.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+Patches currently in -mm which might be from rainer.weikusat@sncag.com are
