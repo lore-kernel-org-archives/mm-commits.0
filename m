@@ -1,72 +1,78 @@
 From: akpm@osdl.org
-Subject: - cifs-remove-2-unneeded-kzalloc-casts.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:45:38 -0800
-Message-ID: <200701222045.l0MKjcVU001487@shell0.pdx.osdl.net>
+Subject: - cpiac-buffer-overflow.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:45:49 -0800
+Message-ID: <200701222045.l0MKjnu5001499@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50242 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50348 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932541AbXAVUqG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:46:06 -0500
+	id S932528AbXAVUqi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:46:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CIFS: Remove 2 unneeded kzalloc casts
+     cpia.c: buffer overflow
 has been removed from the -mm tree.  Its filename was
-     cifs-remove-2-unneeded-kzalloc-casts.patch
+     cpiac-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CIFS: Remove 2 unneeded kzalloc casts
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: cpia.c: buffer overflow
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-A patch to remove two unnecessary kzalloc casts.
+If assigned minor is 10 or greater, terminator will be put beyound the end.
 
-Signed-off-by: Ahmed Darwish <darwish.07@gmail.com>
-Cc: Steven French <sfrench@us.ibm.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/cifs/misc.c |    9 +++------
- 1 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/media/video/cpia.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/cifs/misc.c~cifs-remove-2-unneeded-kzalloc-casts fs/cifs/misc.c
---- a/fs/cifs/misc.c~cifs-remove-2-unneeded-kzalloc-casts
-+++ a/fs/cifs/misc.c
-@@ -71,9 +71,7 @@ sesInfoAlloc(void)
- {
- 	struct cifsSesInfo *ret_buf;
+diff -puN drivers/media/video/cpia.c~cpiac-buffer-overflow drivers/media/video/cpia.c
+--- a/drivers/media/video/cpia.c~cpiac-buffer-overflow
++++ a/drivers/media/video/cpia.c
+@@ -1350,13 +1350,13 @@ out:
  
--	ret_buf =
--	    (struct cifsSesInfo *) kzalloc(sizeof (struct cifsSesInfo),
--					   GFP_KERNEL);
-+	ret_buf = kzalloc(sizeof (struct cifsSesInfo), GFP_KERNEL);
- 	if (ret_buf) {
- 		write_lock(&GlobalSMBSeslock);
- 		atomic_inc(&sesInfoAllocCount);
-@@ -109,9 +107,8 @@ struct cifsTconInfo *
- tconInfoAlloc(void)
+ static void create_proc_cpia_cam(struct cam_data *cam)
  {
- 	struct cifsTconInfo *ret_buf;
--	ret_buf =
--	    (struct cifsTconInfo *) kzalloc(sizeof (struct cifsTconInfo),
--					    GFP_KERNEL);
-+	ret_buf = kzalloc(sizeof (struct cifsTconInfo),
-+			  GFP_KERNEL);
- 	if (ret_buf) {
- 		write_lock(&GlobalSMBSeslock);
- 		atomic_inc(&tconInfoAllocCount);
+-	char name[7];
++	char name[5 + 1 + 10 + 1];
+ 	struct proc_dir_entry *ent;
+ 
+ 	if (!cpia_proc_root || !cam)
+ 		return;
+ 
+-	sprintf(name, "video%d", cam->vdev.minor);
++	snprintf(name, sizeof(name), "video%d", cam->vdev.minor);
+ 
+ 	ent = create_proc_entry(name, S_IFREG|S_IRUGO|S_IWUSR, cpia_proc_root);
+ 	if (!ent)
+@@ -1376,12 +1376,12 @@ static void create_proc_cpia_cam(struct 
+ 
+ static void destroy_proc_cpia_cam(struct cam_data *cam)
+ {
+-	char name[7];
++	char name[5 + 1 + 10 + 1];
+ 
+ 	if (!cam || !cam->proc_entry)
+ 		return;
+ 
+-	sprintf(name, "video%d", cam->vdev.minor);
++	snprintf(name, sizeof(name), "video%d", cam->vdev.minor);
+ 	remove_proc_entry(name, cpia_proc_root);
+ 	cam->proc_entry = NULL;
+ }
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-git-cifs.patch
-git-cpufreq.patch
 git-dvb.patch
-ucc-ether-driver-kmalloc-casting-cleanups.patch
-s390-kmalloc-kzalloc-casting-cleanups.patch
-dac960-kmalloc-kzalloc-casting-cleanups.patch
+git-mtd.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
