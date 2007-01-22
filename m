@@ -1,109 +1,114 @@
 From: akpm@osdl.org
-Subject: - toshiba-tc86c001-ide-driver-take-2-fix.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 13:10:40 -0800
-Message-ID: <200701222110.l0MLAepq002166@shell0.pdx.osdl.net>
+Subject: - pdc202xx_new-remove-useless-code.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 13:11:06 -0800
+Message-ID: <200701222111.l0MLB6Qq002220@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52207 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52249 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932664AbXAVVKx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 16:10:53 -0500
+	id S932666AbXAVVLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 16:11:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
+To: sshtylyov@ru.mvista.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ide/pci/tc86c001.c: make a function static
+     pdc202xx_new: remove useless code
 has been removed from the -mm tree.  Its filename was
-     toshiba-tc86c001-ide-driver-take-2-fix.patch
+     pdc202xx_new-remove-useless-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/ide/pci/tc86c001.c: make a function static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: pdc202xx_new: remove useless code
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Remove the following useless fragments from the driver:
+
+- the ide_dma_lostirq() and ide_dma_timeout() handlers which boil down to just
+  printing the incoherent reset message and calling their default counterparts;
+
+- check for non-NULL drive->id in the ide_dma_check() handler -- this is assumed
+  to be true by all other handlers (also, get rid of unnecessary nesting of the
+  conditional statements there);
+
+- the comment before pdcnew_tune_drive() which has nothing to do with the code.
+
+Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/pci/tc86c001.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/pci/pdc202xx_new.c |   31 +++----------------------------
+ 1 file changed, 3 insertions(+), 28 deletions(-)
 
-diff -puN drivers/ide/pci/tc86c001.c~toshiba-tc86c001-ide-driver-take-2-fix drivers/ide/pci/tc86c001.c
---- a/drivers/ide/pci/tc86c001.c~toshiba-tc86c001-ide-driver-take-2-fix
-+++ a/drivers/ide/pci/tc86c001.c
-@@ -204,7 +204,7 @@ fast_ata_pio:
- 	return 0;
+diff -puN drivers/ide/pci/pdc202xx_new.c~pdc202xx_new-remove-useless-code drivers/ide/pci/pdc202xx_new.c
+--- a/drivers/ide/pci/pdc202xx_new.c~pdc202xx_new-remove-useless-code
++++ a/drivers/ide/pci/pdc202xx_new.c
+@@ -249,13 +249,6 @@ static int pdcnew_tune_chipset(ide_drive
+ 	return err;
  }
  
--void __devinit init_hwif_tc86c001(ide_hwif_t *hwif)
-+static void __devinit init_hwif_tc86c001(ide_hwif_t *hwif)
+-/*   0    1    2    3    4    5    6   7   8
+- * 960, 480, 390, 300, 240, 180, 120, 90, 60
+- *           180, 150, 120,  90,  60
+- * DMA_Speed
+- * 180, 120,  90,  90,  90,  60,  30
+- *  11,   5,   4,   3,   2,   1,   0
+- */
+ static void pdcnew_tune_drive(ide_drive_t *drive, u8 pio)
  {
- 	unsigned long sc_base	= pci_resource_start(hwif->pci_dev, 5);
- 	u16 scr1		= hwif->INW(sc_base + 0x00);;
+ 	pio = ide_get_best_pio_mode(drive, pio, 4, NULL);
+@@ -313,12 +306,10 @@ static int pdcnew_config_drive_xfer_rate
+ 
+ 	drive->init_speed = 0;
+ 
+-	if (id && (id->capability & 1) && drive->autodma) {
++	if ((id->capability & 1) && drive->autodma) {
+ 
+-		if (ide_use_dma(drive)) {
+-			if (config_chipset_for_dma(drive))
+-				return hwif->ide_dma_on(drive);
+-		}
++		if (ide_use_dma(drive) && config_chipset_for_dma(drive))
++			return hwif->ide_dma_on(drive);
+ 
+ 		goto fast_ata_pio;
+ 
+@@ -336,20 +327,6 @@ static int pdcnew_quirkproc(ide_drive_t 
+ 	return check_in_drive_lists(drive, pdc_quirk_drives);
+ }
+ 
+-static int pdcnew_ide_dma_lostirq(ide_drive_t *drive)
+-{
+-	if (HWIF(drive)->resetproc != NULL)
+-		HWIF(drive)->resetproc(drive);
+-	return __ide_dma_lostirq(drive);
+-}
+-
+-static int pdcnew_ide_dma_timeout(ide_drive_t *drive)
+-{
+-	if (HWIF(drive)->resetproc != NULL)
+-		HWIF(drive)->resetproc(drive);
+-	return __ide_dma_timeout(drive);
+-}
+-
+ static void pdcnew_reset(ide_drive_t *drive)
+ {
+ 	/*
+@@ -599,8 +576,6 @@ static void __devinit init_hwif_pdc202ne
+ 	hwif->err_stops_fifo = 1;
+ 
+ 	hwif->ide_dma_check = &pdcnew_config_drive_xfer_rate;
+-	hwif->ide_dma_lostirq = &pdcnew_ide_dma_lostirq;
+-	hwif->ide_dma_timeout = &pdcnew_ide_dma_timeout;
+ 
+ 	if (!hwif->udma_four)
+ 		hwif->udma_four = pdcnew_cable_detect(hwif) ? 0 : 1;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
 
-origin.patch
-git-acpi.patch
-git-alsa.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
-drivers-char-drm-drm_mmc-remove-unused-exports.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-add-pci_get_legacy_ide_irq.patch
-git-ieee1394.patch
-git-libata-all.patch
-mips-remove-smp_tune_scheduling.patch
-git-mmc.patch
 git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-net-irda-proper-prototypes.patch
-net-wanrouter-wanmainc-cleanups.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-usb_rtl8150-must-select-mii.patch
-x86_64-re-add-a-newline-to-restore_context.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-more-ftape-removal.patch
-cleanup-linux-byteorder-swabbh.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i386-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+3x59x-fix-pci-resource-management.patch
