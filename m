@@ -1,114 +1,72 @@
 From: akpm@osdl.org
-Subject: - fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch removed from -mm tree
-Date: Mon, 22 Jan 2007 12:45:42 -0800
-Message-ID: <200701222045.l0MKjgZ0001490@shell0.pdx.osdl.net>
+Subject: - cifs-remove-2-unneeded-kzalloc-casts.patch removed from -mm tree
+Date: Mon, 22 Jan 2007 12:45:38 -0800
+Message-ID: <200701222045.l0MKjcVU001487@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50273 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50242 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932539AbXAVUqM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 15:46:12 -0500
+	id S932541AbXAVUqG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 15:46:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deweerdt@free.fr, frederik.deweerdt@gmail.com, greg@kroah.com, oliver@neukum.org, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: suppress lockdep warnings
+     CIFS: Remove 2 unneeded kzalloc casts
 has been removed from the -mm tree.  Its filename was
-     fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+     cifs-remove-2-unneeded-kzalloc-casts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs: suppress lockdep warnings
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: CIFS: Remove 2 unneeded kzalloc casts
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Lockdep issues the following warning:
-[    9.064000] =============================================
-[    9.064000] [ INFO: possible recursive locking detected ]
-[    9.064000] 2.6.20-rc3-mm1 #3
-[    9.064000] ---------------------------------------------
-[    9.064000] init/1 is trying to acquire lock:
-[    9.064000]  (&sysfs_inode_imutex_key){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
-[    9.064000]
-[    9.064000] but task is already holding lock:
-[    9.064000]  (&sysfs_inode_imutex_key){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
-[    9.065000]
-[    9.065000] other info that might help us debug this:
-[    9.065000] 2 locks held by init/1:
-[    9.065000]  #0:  (tty_mutex){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
-[    9.065000]  #1:  (&sysfs_inode_imutex_key){--..}, at: [<c03e6afc>] mutex_lock+0x1c/0x1f
-[    9.065000]
-[    9.065000] stack backtrace:
-[    9.065000]  [<c010390d>] show_trace_log_lvl+0x1a/0x30
-[    9.066000]  [<c0103935>] show_trace+0x12/0x14
-[    9.066000]  [<c0103a2f>] dump_stack+0x16/0x18
-[    9.066000]  [<c0138cb8>] print_deadlock_bug+0xb9/0xc3
-[    9.066000]  [<c0138d17>] check_deadlock+0x55/0x5a
-[    9.066000]  [<c013a953>] __lock_acquire+0x371/0xbf0
-[    9.066000]  [<c013b7a9>] lock_acquire+0x69/0x83
-[    9.066000]  [<c03e6b7e>] __mutex_lock_slowpath+0x75/0x2d1
-[    9.066000]  [<c03e6afc>] mutex_lock+0x1c/0x1f
-[    9.066000]  [<c01b249c>] sysfs_drop_dentry+0xb1/0x133
-[    9.066000]  [<c01b25d1>] sysfs_hash_and_remove+0xb3/0x142
-[    9.066000]  [<c01b30ed>] sysfs_remove_file+0xd/0x10
-[    9.067000]  [<c02849e0>] device_remove_file+0x23/0x2e
-[    9.067000]  [<c02850b2>] device_del+0x188/0x1e6
-[    9.067000]  [<c028511b>] device_unregister+0xb/0x15
-[    9.067000]  [<c0285318>] device_destroy+0x9c/0xa9
-[    9.067000]  [<c0261431>] vcs_remove_sysfs+0x1c/0x3b
-[    9.067000]  [<c0267a08>] con_close+0x5e/0x6b
-[    9.067000]  [<c02598f2>] release_dev+0x4c4/0x6e5
-[    9.067000]  [<c0259faa>] tty_release+0x12/0x1c
-[    9.067000]  [<c0174872>] __fput+0x177/0x1a0
-[    9.067000]  [<c01746f5>] fput+0x3b/0x41
-[    9.068000]  [<c0172ee1>] filp_close+0x36/0x65
-[    9.068000]  [<c0172f73>] sys_close+0x63/0xa4
-[    9.068000]  [<c0102a96>] sysenter_past_esp+0x5f/0x99
-[    9.068000]  =======================
+A patch to remove two unnecessary kzalloc casts.
 
-This is due to sysfs_hash_and_remove() holding dir->d_inode->i_mutex
-before calling sysfs_drop_dentry() which calls orphan_all_buffers()
-which in turn takes node->i_mutex.
-
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Oliver Neukum <oliver@neukum.org>
+Signed-off-by: Ahmed Darwish <darwish.07@gmail.com>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/sysfs/inode.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/cifs/misc.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN fs/sysfs/inode.c~fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write fs/sysfs/inode.c
---- a/fs/sysfs/inode.c~fix2-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write
-+++ a/fs/sysfs/inode.c
-@@ -214,7 +214,7 @@ static inline void orphan_all_buffers(st
- 	struct sysfs_buffer_collection *set = node->i_private;
- 	struct sysfs_buffer *buf;
+diff -puN fs/cifs/misc.c~cifs-remove-2-unneeded-kzalloc-casts fs/cifs/misc.c
+--- a/fs/cifs/misc.c~cifs-remove-2-unneeded-kzalloc-casts
++++ a/fs/cifs/misc.c
+@@ -71,9 +71,7 @@ sesInfoAlloc(void)
+ {
+ 	struct cifsSesInfo *ret_buf;
  
--	mutex_lock(&node->i_mutex);
-+	mutex_lock_nested(&node->i_mutex, I_MUTEX_CHILD);
- 	if (node->i_private) {
- 		list_for_each_entry(buf, &set->associates, associates) {
- 			down(&buf->sem);
-@@ -271,7 +271,7 @@ int sysfs_hash_and_remove(struct dentry 
- 		return -ENOENT;
- 
- 	parent_sd = dir->d_fsdata;
--	mutex_lock(&dir->d_inode->i_mutex);
-+	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
- 	list_for_each_entry(sd, &parent_sd->s_children, s_sibling) {
- 		if (!sd->s_element)
- 			continue;
+-	ret_buf =
+-	    (struct cifsSesInfo *) kzalloc(sizeof (struct cifsSesInfo),
+-					   GFP_KERNEL);
++	ret_buf = kzalloc(sizeof (struct cifsSesInfo), GFP_KERNEL);
+ 	if (ret_buf) {
+ 		write_lock(&GlobalSMBSeslock);
+ 		atomic_inc(&sesInfoAllocCount);
+@@ -109,9 +107,8 @@ struct cifsTconInfo *
+ tconInfoAlloc(void)
+ {
+ 	struct cifsTconInfo *ret_buf;
+-	ret_buf =
+-	    (struct cifsTconInfo *) kzalloc(sizeof (struct cifsTconInfo),
+-					    GFP_KERNEL);
++	ret_buf = kzalloc(sizeof (struct cifsTconInfo),
++			  GFP_KERNEL);
+ 	if (ret_buf) {
+ 		write_lock(&GlobalSMBSeslock);
+ 		atomic_inc(&tconInfoAllocCount);
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-git-acpi-early-acpi-lockup.patch
-remove-tcp-header-from-tcp_v4_check-take-2.patch
-disable-init-initramfsc-updated-fix.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-user-ns-unshare.patch
-reiser4-sb_sync_inodes-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+git-dvb.patch
+ucc-ether-driver-kmalloc-casting-cleanups.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+dac960-kmalloc-kzalloc-casting-cleanups.patch
