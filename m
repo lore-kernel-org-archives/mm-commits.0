@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + powerpc-vdso-use-install_special_mapping.patch added to -mm tree
-Date: Tue, 23 Jan 2007 11:49:21 -0800
-Message-ID: <200701231949.l0NJnOH2029478@shell0.pdx.osdl.net>
+Subject: + scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch added to -mm tree
+Date: Tue, 23 Jan 2007 12:04:16 -0800
+Message-ID: <200701232004.l0NK4GSI029877@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51758 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52566 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965465AbXAWTuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 14:50:11 -0500
+	id S965481AbXAWUEx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 15:04:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org
+Cc: tglx@linutronix.de, mingo@elte.hu
 
 
 The patch titled
-     powerpc vDSO: use install_special_mapping
+     Scheduled removal of SA_xxx interrupt flags fixups 2
 has been added to the -mm tree.  Its filename is
-     powerpc-vdso-use-install_special_mapping.patch
+     scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,232 +25,176 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc vDSO: use install_special_mapping
-From: Roland McGrath <roland@redhat.com>
+Subject: Scheduled removal of SA_xxx interrupt flags fixups 2
+From: Thomas Gleixner <tglx@linutronix.de>
 
-This patch uses install_special_mapping for the powerpc vDSO setup,
-consolidating duplicated code.
+The obsolete SA_xxx interrupt flags have been used despite the scheduled
+removal.  Fixup the remaining users in -mm.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/powerpc/kernel/vdso.c |  104 +++++++++--------------------------
- 1 files changed, 27 insertions(+), 77 deletions(-)
+ arch/i386/kernel/vmitime.c         |   10 ++++------
+ drivers/char/nozomi.c              |    2 +-
+ drivers/firewire/fw-ohci.c         |    2 +-
+ drivers/input/keyboard/gpio_keys.c |    2 +-
+ drivers/mtd/nand/cafe.c            |    3 ++-
+ drivers/net/cxgb3/cxgb3_main.c     |    3 ++-
+ drivers/net/sc92031.c              |    2 +-
+ 7 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN arch/powerpc/kernel/vdso.c~powerpc-vdso-use-install_special_mapping arch/powerpc/kernel/vdso.c
---- a/arch/powerpc/kernel/vdso.c~powerpc-vdso-use-install_special_mapping
-+++ a/arch/powerpc/kernel/vdso.c
-@@ -49,9 +49,13 @@
- /* Max supported size for symbol names */
- #define MAX_SYMNAME	64
+diff -puN arch/i386/kernel/vmitime.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2 arch/i386/kernel/vmitime.c
+--- a/arch/i386/kernel/vmitime.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2
++++ a/arch/i386/kernel/vmitime.c
+@@ -121,12 +121,10 @@ static struct clocksource clocksource_vm
+ static irqreturn_t vmi_timer_interrupt(int irq, void *dev_id);
  
-+#define VDSO32_MAXPAGES	(((0x3000 + PAGE_MASK) >> PAGE_SHIFT) + 2)
-+#define VDSO64_MAXPAGES	(((0x3000 + PAGE_MASK) >> PAGE_SHIFT) + 2)
-+
- extern char vdso32_start, vdso32_end;
- static void *vdso32_kbase = &vdso32_start;
- unsigned int vdso32_pages;
-+static struct page *vdso32_pagelist[VDSO32_MAXPAGES];
- unsigned long vdso32_sigtramp;
- unsigned long vdso32_rt_sigtramp;
+ struct irqaction vmi_timer_irq  = {
+-	vmi_timer_interrupt,
+-	SA_INTERRUPT,
+-	CPU_MASK_NONE,
+-	"VMI-alarm",
+-	NULL,
+-	NULL
++	.handler = vmi_timer_interrupt,
++	.flags = IRQF_DISABLED,
++	.mask = CPU_MASK_NONE,
++	.name = "VMI-alarm",
+ };
  
-@@ -59,6 +63,7 @@ unsigned long vdso32_rt_sigtramp;
- extern char vdso64_start, vdso64_end;
- static void *vdso64_kbase = &vdso64_start;
- unsigned int vdso64_pages;
-+static struct page *vdso64_pagelist[VDSO64_MAXPAGES];
- unsigned long vdso64_rt_sigtramp;
- #endif /* CONFIG_PPC64 */
- 
-@@ -165,55 +170,6 @@ static void dump_vdso_pages(struct vm_ar
- #endif /* DEBUG */
- 
- /*
-- * Keep a dummy vma_close for now, it will prevent VMA merging.
-- */
--static void vdso_vma_close(struct vm_area_struct * vma)
--{
--}
--
--/*
-- * Our nopage() function, maps in the actual vDSO kernel pages, they will
-- * be mapped read-only by do_no_page(), and eventually COW'ed, either
-- * right away for an initial write access, or by do_wp_page().
-- */
--static struct page * vdso_vma_nopage(struct vm_area_struct * vma,
--				     unsigned long address, int *type)
--{
--	unsigned long offset = address - vma->vm_start;
--	struct page *pg;
--#ifdef CONFIG_PPC64
--	void *vbase = (vma->vm_mm->task_size > TASK_SIZE_USER32) ?
--		vdso64_kbase : vdso32_kbase;
--#else
--	void *vbase = vdso32_kbase;
--#endif
--
--	DBG("vdso_vma_nopage(current: %s, address: %016lx, off: %lx)\n",
--	    current->comm, address, offset);
--
--	if (address < vma->vm_start || address > vma->vm_end)
--		return NOPAGE_SIGBUS;
--
--	/*
--	 * Last page is systemcfg.
--	 */
--	if ((vma->vm_end - address) <= PAGE_SIZE)
--		pg = virt_to_page(vdso_data);
--	else
--		pg = virt_to_page(vbase + offset);
--
--	get_page(pg);
--	DBG(" ->page count: %d\n", page_count(pg));
--
--	return pg;
--}
--
--static struct vm_operations_struct vdso_vmops = {
--	.close	= vdso_vma_close,
--	.nopage	= vdso_vma_nopage,
--};
--
--/*
-  * This is called from binfmt_elf, we create the special vma for the
-  * vDSO and insert it into the mm struct tree
-  */
-@@ -221,20 +177,23 @@ int arch_setup_additional_pages(struct l
- 				int executable_stack)
+ /* Alarm rate */
+diff -puN drivers/char/nozomi.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2 drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2
++++ a/drivers/char/nozomi.c
+@@ -1378,7 +1378,7 @@ static int nozomi_setup_interrupt(struct
  {
- 	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
-+	struct page **vdso_pagelist;
- 	unsigned long vdso_pages;
- 	unsigned long vdso_base;
- 	int rc;
+ 	int rval;
  
- #ifdef CONFIG_PPC64
- 	if (test_thread_flag(TIF_32BIT)) {
-+		vdso_pagelist = vdso32_pagelist;
- 		vdso_pages = vdso32_pages;
- 		vdso_base = VDSO32_MBASE;
- 	} else {
-+		vdso_pagelist = vdso64_pagelist;
- 		vdso_pages = vdso64_pages;
- 		vdso_base = VDSO64_MBASE;
+-	rval = request_irq(dc->pdev->irq, &interrupt_handler, SA_SHIRQ,
++	rval = request_irq(dc->pdev->irq, &interrupt_handler, IRQF_SHARED,
+ 			   NOZOMI_NAME, dc);
+ 	if (rval)
+ 		dev_err(&dc->pdev->dev, "Cannot open because IRQ %d "
+diff -puN drivers/firewire/fw-ohci.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2 drivers/firewire/fw-ohci.c
+--- a/drivers/firewire/fw-ohci.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2
++++ a/drivers/firewire/fw-ohci.c
+@@ -714,7 +714,7 @@ static int ohci_enable(struct fw_card *c
+ 	reg_write(ohci, OHCI1394_AsReqFilterHiSet, 0x80000000);
+ 
+ 	if (request_irq(dev->irq, irq_handler,
+-			SA_SHIRQ, ohci_driver_name, ohci)) {
++			IRQF_SHARED, ohci_driver_name, ohci)) {
+ 		fw_error("Failed to allocate shared interrupt %d.\n",
+ 			 dev->irq);
+ 		dma_free_coherent(ohci->card.device, CONFIG_ROM_SIZE,
+diff -puN drivers/input/keyboard/gpio_keys.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2 drivers/input/keyboard/gpio_keys.c
+--- a/drivers/input/keyboard/gpio_keys.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2
++++ a/drivers/input/keyboard/gpio_keys.c
+@@ -78,7 +78,7 @@ static int __devinit gpio_keys_probe(str
+ 		int irq = IRQ_GPIO(pdata->buttons[i].gpio);
+ 
+ 		set_irq_type(irq, IRQ_TYPE_EDGE_BOTH);
+-		error = request_irq(irq, gpio_keys_isr, SA_SAMPLE_RANDOM,
++		error = request_irq(irq, gpio_keys_isr, IRQF_SAMPLE_RANDOM,
+ 				     pdata->buttons[i].desc ? pdata->buttons[i].desc : "gpio_keys",
+ 				     pdev);
+ 		if (error) {
+diff -puN drivers/mtd/nand/cafe.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2 drivers/mtd/nand/cafe.c
+--- a/drivers/mtd/nand/cafe.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2
++++ a/drivers/mtd/nand/cafe.c
+@@ -596,7 +596,8 @@ static int __devinit cafe_nand_probe(str
+ 		cafe_writel(cafe, 0xffffffff, NAND_TIMING3);
  	}
- #else
-+	vdso_pagelist = vdso32_pagelist;
- 	vdso_pages = vdso32_pages;
- 	vdso_base = VDSO32_MBASE;
- #endif
-@@ -262,17 +221,6 @@ int arch_setup_additional_pages(struct l
- 		goto fail_mmapsem;
- 	}
+ 	cafe_writel(cafe, 0xffffffff, NAND_IRQ_MASK);
+-	err = request_irq(pdev->irq, &cafe_nand_interrupt, SA_SHIRQ, "CAFE NAND", mtd);
++	err = request_irq(pdev->irq, &cafe_nand_interrupt, IRQF_SHARED,
++			  "CAFE NAND", mtd);
+ 	if (err) {
+ 		dev_warn(&pdev->dev, "Could not register IRQ %d\n", pdev->irq);
  
--
--	/* Allocate a VMA structure and fill it up */
--	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
--	if (vma == NULL) {
--		rc = -ENOMEM;
--		goto fail_mmapsem;
--	}
--	vma->vm_mm = mm;
--	vma->vm_start = vdso_base;
--	vma->vm_end = vma->vm_start + (vdso_pages << PAGE_SHIFT);
--
- 	/*
- 	 * our vma flags don't have VM_WRITE so by default, the process isn't
- 	 * allowed to write those pages.
-@@ -282,32 +230,26 @@ int arch_setup_additional_pages(struct l
- 	 * and your nice userland gettimeofday will be totally dead.
- 	 * It's fine to use that for setting breakpoints in the vDSO code
- 	 * pages though
--	 */
--	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC;
--	/*
-+	 *
- 	 * Make sure the vDSO gets into every core dump.
- 	 * Dumping its contents makes post-mortem fully interpretable later
- 	 * without matching up the same kernel and hardware config to see
- 	 * what PC values meant.
- 	 */
--	vma->vm_flags |= VM_ALWAYSDUMP;
--	vma->vm_flags |= mm->def_flags;
--	vma->vm_page_prot = protection_map[vma->vm_flags & 0x7];
--	vma->vm_ops = &vdso_vmops;
--
--	/* Insert new VMA */
--	rc = insert_vm_struct(mm, vma);
-+	rc = install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
-+				     VM_READ|VM_EXEC|
-+				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
-+				     VM_ALWAYSDUMP,
-+				     vdso_pagelist);
- 	if (rc)
--		goto fail_vma;
-+		goto fail_mmapsem;
+diff -puN drivers/net/cxgb3/cxgb3_main.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2 drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -709,7 +709,8 @@ static int cxgb_up(struct adapter *adap)
+ 				      t3_intr_handler(adap,
+ 						      adap->sge.qs[0].rspq.
+ 						      polling),
+-				      (adap->flags & USING_MSI) ? 0 : SA_SHIRQ,
++				      (adap->flags & USING_MSI) ?
++				       0 : IRQF_SHARED,
+ 				      adap->name, adap)))
+ 		goto irq_err;
  
--	/* Put vDSO base into mm struct and account for memory usage */
-+	/* Put vDSO base into mm struct */
- 	current->mm->context.vdso_base = vdso_base;
--	mm->total_vm += (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
-+
- 	up_write(&mm->mmap_sem);
- 	return 0;
+diff -puN drivers/net/sc92031.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2 drivers/net/sc92031.c
+--- a/drivers/net/sc92031.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2
++++ a/drivers/net/sc92031.c
+@@ -1035,7 +1035,7 @@ static int sc92031_open(struct net_devic
+ 	priv->tx_head = priv->tx_tail = 0;
  
-- fail_vma:
--	kmem_cache_free(vm_area_cachep, vma);
-  fail_mmapsem:
- 	up_write(&mm->mmap_sem);
- 	return rc;
-@@ -778,18 +720,26 @@ void __init vdso_init(void)
- 	}
+ 	err = request_irq(pdev->irq, sc92031_interrupt,
+-			SA_SHIRQ, dev->name, dev);
++			IRQF_SHARED, dev->name, dev);
+ 	if (unlikely(err < 0))
+ 		goto out_request_irq;
  
- 	/* Make sure pages are in the correct state */
-+	BUG_ON(vdso32_pages + 2 > VDSO32_MAXPAGES);
- 	for (i = 0; i < vdso32_pages; i++) {
- 		struct page *pg = virt_to_page(vdso32_kbase + i*PAGE_SIZE);
- 		ClearPageReserved(pg);
- 		get_page(pg);
--
-+		vdso32_pagelist[i] = pg;
- 	}
-+	vdso32_pagelist[i++] = virt_to_page(vdso_data);
-+	vdso32_pagelist[i] = NULL;
-+
- #ifdef CONFIG_PPC64
-+	BUG_ON(vdso64_pages + 2 > VDSO64_MAXPAGES);
- 	for (i = 0; i < vdso64_pages; i++) {
- 		struct page *pg = virt_to_page(vdso64_kbase + i*PAGE_SIZE);
- 		ClearPageReserved(pg);
- 		get_page(pg);
-+		vdso64_pagelist[i] = pg;
- 	}
-+	vdso64_pagelist[i++] = virt_to_page(vdso_data);
-+	vdso64_pagelist[i] = NULL;
- #endif /* CONFIG_PPC64 */
- 
- 	get_page(virt_to_page(vdso_data));
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-fix-config_compat_vdso.patch
-fix-gate_vmavm_flags.patch
-add-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump-tidy.patch
-x86_64-ia32-vdso-use-vm_alwaysdump.patch
-powerpc-vdso-use-vm_alwaysdump.patch
-x86_64-ia32-vdso-define-arch_vma_name.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+origin.patch
+git-block.patch
+use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+gtod-uninline-jiffiesh.patch
+gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+gtod-fix-timeout-overflow.patch
+gtod-persistent-clock-support-core.patch
+gtod-persistent-clock-support-i386.patch
+dynticks-uninline-irq_enter.patch
+dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-clean-up-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-include-fix.patch
+acpi-keep-track-of-timer-broadcast.patch
+acpi-add-state-propagation-for-dynamic-broadcasting.patch
+acpi-cleanups-allow-early-access-to-pmtimer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-core.patch
+clockevents-i386-drivers.patch
+clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
+clockevents-i386-hpet-driver.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+high-res-timers-core.patch
+high-res-timers-core-do-itimer-rearming-in-process-context.patch
+high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix.patch
+high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
+high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
+dynticks-core.patch
+dynticks-add-nohz-stats-to-proc-stat.patch
+dynticks-i386-support-idle-handler-callbacks.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
+debugging-feature-add-proc-timer_stat.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
+scheduled-removal-of-sa_xxx-interrupt-flags.patch
