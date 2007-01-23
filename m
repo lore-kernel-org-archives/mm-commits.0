@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + s3c24xx-fix-passing-spi-chipselect-to-select-routine.patch added to -mm tree
-Date: Tue, 23 Jan 2007 10:59:49 -0800
-Message-ID: <200701231859.l0NIxnb9027817@shell0.pdx.osdl.net>
+Subject: + spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch added to -mm tree
+Date: Tue, 23 Jan 2007 11:00:35 -0800
+Message-ID: <200701231900.l0NJ0Z1c028200@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48329 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48339 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965419AbXAWTAD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 14:00:03 -0500
+	id S965430AbXAWTAq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 14:00:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: justin@redfish-group.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     S3C24XX: fix passing spi chipselect to select routine
+     spi: fix error setting the spi mode in pxa2xx_spi.c
 has been added to the -mm tree.  Its filename is
-     s3c24xx-fix-passing-spi-chipselect-to-select-routine.patch
+     spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,106 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: S3C24XX: fix passing spi chipselect to select routine
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: spi: fix error setting the spi mode in pxa2xx_spi.c
+From: Justin Clacherty <justin@redfish-group.com>
 
-It turns out that the spi chipselect was not being passed to the set_cs
-routine if one was specified in the platform data.
+Currently the spi mode can be set to the wrong mode if you are switching
+from any mode other than mode 0.  This is because the mode is set using a
+bitwise or on uncleared bits.  The following patch clears the mode bits
+before setting the new mode.  I've also modified it to use the appropriate
+defines from pxa-regs.h for readability.
 
-As part of the fix, change to using a set_cs field in the controller state,
-and put a default gpio routine in if the data passed does not specify it.
-
-Also remove the //#define DEBUG
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Justin Clacherty <justin@redfish-group.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/spi_s3c24xx.c |   28 ++++++++++++++--------------
- 1 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/spi/pxa2xx_spi.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/spi_s3c24xx.c~s3c24xx-fix-passing-spi-chipselect-to-select-routine drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~s3c24xx-fix-passing-spi-chipselect-to-select-routine
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -10,9 +10,6 @@
-  *
- */
+diff -puN drivers/spi/pxa2xx_spi.c~spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -1169,8 +1169,9 @@ static int setup(struct spi_device *spi)
+ 				spi->bits_per_word - 16 : spi->bits_per_word)
+ 			| SSCR0_SSE
+ 			| (spi->bits_per_word > 16 ? SSCR0_EDSS : 0);
+-	chip->cr1 |= (((spi->mode & SPI_CPHA) != 0) << 4)
+-			| (((spi->mode & SPI_CPOL) != 0) << 3);
++	chip->cr1 &= ~(SSCR1_SPO | SSCR1_SPH);
++	chip->cr1 |= (((spi->mode & SPI_CPHA) != 0) ? SSCR1_SPH : 0)
++			| (((spi->mode & SPI_CPOL) != 0) ? SSCR1_SPO : 0);
  
--
--//#define DEBUG
--
- #include <linux/init.h>
- #include <linux/spinlock.h>
- #include <linux/workqueue.h>
-@@ -44,6 +41,9 @@ struct s3c24xx_spi {
- 	int			 len;
- 	int			 count;
- 
-+	int			(*set_cs)(struct s3c2410_spi_info *spi,
-+					  int cs, int pol);
-+
- 	/* data buffers */
- 	const unsigned char	*tx;
- 	unsigned char		*rx;
-@@ -64,6 +64,11 @@ static inline struct s3c24xx_spi *to_hw(
- 	return spi_master_get_devdata(sdev->master);
- }
- 
-+static void s3c24xx_spi_gpiocs(struct s3c2410_spi_info *spi, int cs, int pol)
-+{
-+	s3c2410_gpio_setpin(spi->pin_cs, pol);
-+}
-+
- static void s3c24xx_spi_chipsel(struct spi_device *spi, int value)
- {
- 	struct s3c24xx_spi *hw = to_hw(spi);
-@@ -72,10 +77,7 @@ static void s3c24xx_spi_chipsel(struct s
- 
- 	switch (value) {
- 	case BITBANG_CS_INACTIVE:
--		if (hw->pdata->set_cs)
--			hw->pdata->set_cs(hw->pdata, value, cspol);
--		else
--			s3c2410_gpio_setpin(hw->pdata->pin_cs, cspol ^ 1);
-+		hw->pdata->set_cs(hw->pdata, spi->chip_select, cspol^1);
- 		break;
- 
- 	case BITBANG_CS_ACTIVE:
-@@ -96,14 +98,9 @@ static void s3c24xx_spi_chipsel(struct s
- 		/* write new configration */
- 
- 		writeb(spcon, hw->regs + S3C2410_SPCON);
--
--		if (hw->pdata->set_cs)
--			hw->pdata->set_cs(hw->pdata, value, cspol);
--		else
--			s3c2410_gpio_setpin(hw->pdata->pin_cs, cspol);
-+		hw->pdata->set_cs(hw->pdata, spi->chip_select, cspol);
- 
- 		break;
--
- 	}
- }
- 
-@@ -330,9 +327,12 @@ static int s3c24xx_spi_probe(struct plat
- 	/* setup any gpio we can */
- 
- 	if (!hw->pdata->set_cs) {
-+		hw->set_cs = s3c24xx_spi_gpiocs;
-+
- 		s3c2410_gpio_setpin(hw->pdata->pin_cs, 1);
- 		s3c2410_gpio_cfgpin(hw->pdata->pin_cs, S3C2410_GPIO_OUTPUT);
--	}
-+	} else
-+		hw->set_cs = hw->pdata->set_cs;
- 
- 	/* register our spi controller */
- 
+ 	/* NOTE:  PXA25x_SSP _could_ use external clocking ... */
+ 	if (drv_data->ssp_type != PXA25x_SSP)
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from justin@redfish-group.com are
 
-s3c24xx-fix-passing-spi-chipselect-to-select-routine.patch
-git-arm.patch
-git-watchdog.patch
+spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch
