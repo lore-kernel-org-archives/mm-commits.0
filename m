@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch added to -mm tree
-Date: Tue, 23 Jan 2007 11:00:35 -0800
-Message-ID: <200701231900.l0NJ0Z1c028200@shell0.pdx.osdl.net>
+Subject: + fix-ppc64s-writing-to-struct-file_operations.patch added to -mm tree
+Date: Tue, 23 Jan 2007 11:28:15 -0800
+Message-ID: <200701231928.l0NJSFbg028867@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48339 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50530 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965430AbXAWTAq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 14:00:46 -0500
+	id S933108AbXAWT3O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 14:29:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: justin@redfish-group.com, dbrownell@users.sourceforge.net
+Cc: sfr@canb.auug.org.au, arjan@infradead.org, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     spi: fix error setting the spi mode in pxa2xx_spi.c
+     Fix ppc64's writing to struct file_operations
 has been added to the -mm tree.  Its filename is
-     spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch
+     fix-ppc64s-writing-to-struct-file_operations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi: fix error setting the spi mode in pxa2xx_spi.c
-From: Justin Clacherty <justin@redfish-group.com>
+Subject: Fix ppc64's writing to struct file_operations
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-Currently the spi mode can be set to the wrong mode if you are switching
-from any mode other than mode 0.  This is because the mode is set using a
-bitwise or on uncleared bits.  The following patch clears the mode bits
-before setting the new mode.  I've also modified it to use the appropriate
-defines from pxa-regs.h for readability.
+In preparation for marking file_operations as const.
 
-Signed-off-by: Justin Clacherty <justin@redfish-group.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/pxa2xx_spi.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/lparcfg.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/spi/pxa2xx_spi.c~spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -1169,8 +1169,9 @@ static int setup(struct spi_device *spi)
- 				spi->bits_per_word - 16 : spi->bits_per_word)
- 			| SSCR0_SSE
- 			| (spi->bits_per_word > 16 ? SSCR0_EDSS : 0);
--	chip->cr1 |= (((spi->mode & SPI_CPHA) != 0) << 4)
--			| (((spi->mode & SPI_CPOL) != 0) << 3);
-+	chip->cr1 &= ~(SSCR1_SPO | SSCR1_SPH);
-+	chip->cr1 |= (((spi->mode & SPI_CPHA) != 0) ? SSCR1_SPH : 0)
-+			| (((spi->mode & SPI_CPOL) != 0) ? SSCR1_SPO : 0);
+diff -puN arch/powerpc/kernel/lparcfg.c~fix-ppc64s-writing-to-struct-file_operations arch/powerpc/kernel/lparcfg.c
+--- a/arch/powerpc/kernel/lparcfg.c~fix-ppc64s-writing-to-struct-file_operations
++++ a/arch/powerpc/kernel/lparcfg.c
+@@ -439,6 +439,10 @@ static ssize_t lparcfg_write(struct file
  
- 	/* NOTE:  PXA25x_SSP _could_ use external clocking ... */
- 	if (drv_data->ssp_type != PXA25x_SSP)
+ 	ssize_t retval = -ENOMEM;
+ 
++	if (!firmware_has_feature(FW_FEATURE_SPLPAR) ||
++			firmware_has_feature(FW_FEATURE_ISERIES))
++		return -EINVAL;
++
+ 	kbuf = kmalloc(count, GFP_KERNEL);
+ 	if (!kbuf)
+ 		goto out;
+@@ -517,7 +521,7 @@ static int pseries_lparcfg_data(struct s
+ static ssize_t lparcfg_write(struct file *file, const char __user * buf,
+ 			     size_t count, loff_t * off)
+ {
+-	return count;
++	return -EINVAL;
+ }
+ 
+ #endif				/* CONFIG_PPC_PSERIES */
+@@ -570,6 +574,7 @@ static int lparcfg_open(struct inode *in
+ struct file_operations lparcfg_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.read		= seq_read,
++	.write		= lparcfg_write,
+ 	.open		= lparcfg_open,
+ 	.release	= single_release,
+ };
+@@ -581,10 +586,8 @@ int __init lparcfg_init(void)
+ 
+ 	/* Allow writing if we have FW_FEATURE_SPLPAR */
+ 	if (firmware_has_feature(FW_FEATURE_SPLPAR) &&
+-			!firmware_has_feature(FW_FEATURE_ISERIES)) {
+-		lparcfg_fops.write = lparcfg_write;
++			!firmware_has_feature(FW_FEATURE_ISERIES))
+ 		mode |= S_IWUSR;
+-	}
+ 
+ 	ent = create_proc_entry("ppc64/lparcfg", mode, NULL);
+ 	if (ent) {
 _
 
-Patches currently in -mm which might be from justin@redfish-group.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch
+fix-ppc64s-writing-to-struct-file_operations.patch
