@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + user-ns-implement-user-ns-unshare-remove-config_user_ns.patch added to -mm tree
-Date: Tue, 23 Jan 2007 12:23:47 -0800
-Message-ID: <200701232023.l0NKNlC7030260@shell0.pdx.osdl.net>
+Subject: + slip-replace-kmalloc-memset-pairs-with-the.patch added to -mm tree
+Date: Tue, 23 Jan 2007 12:51:08 -0800
+Message-ID: <200701232051.l0NKp8d9030924@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53725 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54659 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933133AbXAWUin (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 15:38:43 -0500
+	id S933134AbXAWUvM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 15:51:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
+Cc: joe.jin@oracle.com
 
 
 The patch titled
-     user_ns: remove CONFIG_USER_NS
+     slip: Replace kmalloc() + memset() pairs with the appropriate kzalloc() calls
 has been added to the -mm tree.  Its filename is
-     user-ns-implement-user-ns-unshare-remove-config_user_ns.patch
+     slip-replace-kmalloc-memset-pairs-with-the.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,145 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user_ns: remove CONFIG_USER_NS
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: slip: Replace kmalloc() + memset() pairs with the appropriate kzalloc() calls
+From: joe jin <joe.jin@oracle.com>
 
-It doesn't look that useful anyway, it just deactivates the unshare
-capability for the user namespace.
+This patch replace kmalloc() + memset() pairs with the appropriate
+kzalloc().
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Joe Jin <joe.jin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h          |    9 --------
- include/linux/user_namespace.h |   33 -------------------------------
- init/Kconfig                   |    8 -------
- kernel/user_namespace.c        |    3 --
- 4 files changed, 53 deletions(-)
+ drivers/net/slip.c |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/sched.h~user-ns-implement-user-ns-unshare-remove-config_user_ns include/linux/sched.h
---- a/include/linux/sched.h~user-ns-implement-user-ns-unshare-remove-config_user_ns
-+++ a/include/linux/sched.h
-@@ -1599,7 +1599,6 @@ extern int cond_resched(void);
- extern int cond_resched_lock(spinlock_t * lock);
- extern int cond_resched_softirq(void);
+diff -puN drivers/net/slip.c~slip-replace-kmalloc-memset-pairs-with-the drivers/net/slip.c
+--- a/drivers/net/slip.c~slip-replace-kmalloc-memset-pairs-with-the
++++ a/drivers/net/slip.c
+@@ -1343,15 +1343,12 @@ static int __init slip_init(void)
+ 	printk(KERN_INFO "SLIP linefill/keepalive option.\n");
+ #endif
  
--#ifdef CONFIG_USER_NS
- /*
-  * Check whether a task and a vfsmnt belong to the same uidns.
-  * Since the initial namespace is exempt from these checks,
-@@ -1618,14 +1617,6 @@ static inline int task_mnt_same_uidns(st
- 		return 1;
- 	return 0;
- }
--#else
--static inline int task_mnt_same_uidns(struct task_struct *tsk,
--					struct vfsmount *mnt)
--{
--	return 1;
--}
--#endif
--
+-	slip_devs = kmalloc(sizeof(struct net_device *)*slip_maxdev, GFP_KERNEL);
++	slip_devs = kzalloc(sizeof(struct net_device *)*slip_maxdev, GFP_KERNEL);
+ 	if (!slip_devs) {
+ 		printk(KERN_ERR "SLIP: Can't allocate slip devices array!  Uaargh! (-> No SLIP available)\n");
+ 		return -ENOMEM;
+ 	}
  
- /*
-  * Does a critical section need to be broken due to another
-diff -puN include/linux/user_namespace.h~user-ns-implement-user-ns-unshare-remove-config_user_ns include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~user-ns-implement-user-ns-unshare-remove-config_user_ns
-+++ a/include/linux/user_namespace.h
-@@ -16,8 +16,6 @@ struct user_namespace {
- 
- extern struct user_namespace init_user_ns;
- 
--#ifdef CONFIG_USER_NS
+-	/* Clear the pointer array, we allocate devices when we need them */
+-	memset(slip_devs, 0, sizeof(struct net_device *)*slip_maxdev);
 -
- static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
- {
- 	if (ns)
-@@ -45,35 +43,4 @@ static inline int clone_mnt_userns_permi
- 	return 1;
- }
- 
--#else
--
--static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
--{
--	return &init_user_ns;
--}
--
--static inline int unshare_user_ns(unsigned long flags,
--			 struct user_namespace **new_user)
--{
--	if (flags & CLONE_NEWUSER)
--		return -EINVAL;
--
--	return 0;
--}
--
--static inline int copy_user_ns(int flags, struct task_struct *tsk)
--{
--	return 0;
--}
--
--static inline void put_user_ns(struct user_namespace *ns)
--{
--}
--
--static inline int clone_mnt_userns_permission(struct vfsmount *old)
--{
--	return 1;
--}
--#endif
--
- #endif /* _LINUX_USER_H */
-diff -puN init/Kconfig~user-ns-implement-user-ns-unshare-remove-config_user_ns init/Kconfig
---- a/init/Kconfig~user-ns-implement-user-ns-unshare-remove-config_user_ns
-+++ a/init/Kconfig
-@@ -222,14 +222,6 @@ config UTS_NS
- 	  vservers, to use uts namespaces to provide different
- 	  uts info for different servers.  If unsure, say N.
- 
--config USER_NS
--	bool "User Namespaces"
--	default n
--	help
--	  Support user namespaces.  This allows containers, i.e.
--	  vservers, to use user namespaces to provide different
--	  user info for different servers.  If unsure, say N.
--
- config AUDIT
- 	bool "Auditing support"
- 	depends on NET
-diff -puN kernel/user_namespace.c~user-ns-implement-user-ns-unshare-remove-config_user_ns kernel/user_namespace.c
---- a/kernel/user_namespace.c~user-ns-implement-user-ns-unshare-remove-config_user_ns
-+++ a/kernel/user_namespace.c
-@@ -19,7 +19,6 @@ struct user_namespace init_user_ns = {
- 
- EXPORT_SYMBOL_GPL(init_user_ns);
- 
--#ifdef CONFIG_USER_NS
- /*
-  * Clone a new ns copying an original user ns, setting refcount to 1
-  * @old_ns: namespace to clone
-@@ -110,5 +109,3 @@ void free_user_ns(struct kref *kref)
- 	ns = container_of(kref, struct user_namespace, kref);
- 	kfree(ns);
- }
--
--#endif /* CONFIG_USER_NS */
+ 	/* Fill in our line protocol discipline, and register it */
+ 	if ((status = tty_register_ldisc(N_SLIP, &sl_ldisc)) != 0)  {
+ 		printk(KERN_ERR "SLIP: can't register line discipline (err = %d)\n", status);
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from joe.jin@oracle.com are
 
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
-nsproxy-externalizes-exit_task_namespaces.patch
-user-namespace-add-the-framework.patch
-user_ns-handle-file-sigio-fix.patch
-user-ns-implement-user-ns-unshare-remove-config_user_ns.patch
-rename-attach_pid-to-find_attach_pid.patch
-attach_pid-with-struct-pid-parameter.patch
-remove-find_attach_pid.patch
-statistics-replace-inode-ugeneric_ip-with-i_private.patch
+slip-replace-kmalloc-memset-pairs-with-the.patch
