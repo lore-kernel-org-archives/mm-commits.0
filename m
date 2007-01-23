@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + i386-vdso-use-vm_alwaysdump-tidy.patch added to -mm tree
-Date: Tue, 23 Jan 2007 12:34:46 -0800
-Message-ID: <200701232034.l0NKYkLY030544@shell0.pdx.osdl.net>
+Subject: + user-ns-implement-user-ns-unshare-remove-config_user_ns.patch added to -mm tree
+Date: Tue, 23 Jan 2007 12:23:47 -0800
+Message-ID: <200701232023.l0NKNlC7030260@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53596 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53725 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933132AbXAWUfe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 15:35:34 -0500
+	id S933133AbXAWUin (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 15:38:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, roland@redhat.com
+Cc: clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
 
 
 The patch titled
-     i386-vdso-use-vm_alwaysdump-tidy
+     user_ns: remove CONFIG_USER_NS
 has been added to the -mm tree.  Its filename is
-     i386-vdso-use-vm_alwaysdump-tidy.patch
+     user-ns-implement-user-ns-unshare-remove-config_user_ns.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,229 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-vdso-use-vm_alwaysdump-tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: user_ns: remove CONFIG_USER_NS
+From: Cedric Le Goater <clg@fr.ibm.com>
 
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Andi Kleen <ak@suse.de>
+It doesn't look that useful anyway, it just deactivates the unshare
+capability for the user namespace.
+
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/binfmt_elf.c |   34 ++++++++++++++++++++++++++++++----
- 1 files changed, 30 insertions(+), 4 deletions(-)
+ include/linux/sched.h          |    9 --------
+ include/linux/user_namespace.h |   33 -------------------------------
+ init/Kconfig                   |    8 -------
+ kernel/user_namespace.c        |    3 --
+ 4 files changed, 53 deletions(-)
 
-diff -puN fs/binfmt_elf.c~i386-vdso-use-vm_alwaysdump-tidy fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~i386-vdso-use-vm_alwaysdump-tidy
-+++ a/fs/binfmt_elf.c
-@@ -1428,6 +1428,32 @@ static int elf_dump_thread_status(long s
- 	return sz;
+diff -puN include/linux/sched.h~user-ns-implement-user-ns-unshare-remove-config_user_ns include/linux/sched.h
+--- a/include/linux/sched.h~user-ns-implement-user-ns-unshare-remove-config_user_ns
++++ a/include/linux/sched.h
+@@ -1599,7 +1599,6 @@ extern int cond_resched(void);
+ extern int cond_resched_lock(spinlock_t * lock);
+ extern int cond_resched_softirq(void);
+ 
+-#ifdef CONFIG_USER_NS
+ /*
+  * Check whether a task and a vfsmnt belong to the same uidns.
+  * Since the initial namespace is exempt from these checks,
+@@ -1618,14 +1617,6 @@ static inline int task_mnt_same_uidns(st
+ 		return 1;
+ 	return 0;
+ }
+-#else
+-static inline int task_mnt_same_uidns(struct task_struct *tsk,
+-					struct vfsmount *mnt)
+-{
+-	return 1;
+-}
+-#endif
+-
+ 
+ /*
+  * Does a critical section need to be broken due to another
+diff -puN include/linux/user_namespace.h~user-ns-implement-user-ns-unshare-remove-config_user_ns include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~user-ns-implement-user-ns-unshare-remove-config_user_ns
++++ a/include/linux/user_namespace.h
+@@ -16,8 +16,6 @@ struct user_namespace {
+ 
+ extern struct user_namespace init_user_ns;
+ 
+-#ifdef CONFIG_USER_NS
+-
+ static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
+ {
+ 	if (ns)
+@@ -45,35 +43,4 @@ static inline int clone_mnt_userns_permi
+ 	return 1;
  }
  
-+static struct vm_area_struct *first_vma(struct task_struct *tsk,
-+					struct vm_area_struct *gate_vma)
-+{
-+	struct vm_area_struct *ret = tsk->mm->mmap;
-+
-+	if (ret)
-+		return ret;
-+	return gate_vma;
-+}
-+/*
-+ * Helper function for iterating across a vma list.  It ensures that the caller
-+ * will visit `gate_vma' prior to terminating the search.
-+ */
-+static struct vm_area_struct *next_vma(struct vm_area_struct *this_vma,
-+					struct vm_area_struct *gate_vma)
-+{
-+	struct vm_area_struct *ret;
-+
-+	ret = this_vma->vm_next;
-+	if (ret)
-+		return ret;
-+	if (this_vma == gate_vma)
-+		return NULL;
-+	return gate_vma;
-+}
-+
+-#else
+-
+-static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
+-{
+-	return &init_user_ns;
+-}
+-
+-static inline int unshare_user_ns(unsigned long flags,
+-			 struct user_namespace **new_user)
+-{
+-	if (flags & CLONE_NEWUSER)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-static inline int copy_user_ns(int flags, struct task_struct *tsk)
+-{
+-	return 0;
+-}
+-
+-static inline void put_user_ns(struct user_namespace *ns)
+-{
+-}
+-
+-static inline int clone_mnt_userns_permission(struct vfsmount *old)
+-{
+-	return 1;
+-}
+-#endif
+-
+ #endif /* _LINUX_USER_H */
+diff -puN init/Kconfig~user-ns-implement-user-ns-unshare-remove-config_user_ns init/Kconfig
+--- a/init/Kconfig~user-ns-implement-user-ns-unshare-remove-config_user_ns
++++ a/init/Kconfig
+@@ -222,14 +222,6 @@ config UTS_NS
+ 	  vservers, to use uts namespaces to provide different
+ 	  uts info for different servers.  If unsure, say N.
+ 
+-config USER_NS
+-	bool "User Namespaces"
+-	default n
+-	help
+-	  Support user namespaces.  This allows containers, i.e.
+-	  vservers, to use user namespaces to provide different
+-	  user info for different servers.  If unsure, say N.
+-
+ config AUDIT
+ 	bool "Auditing support"
+ 	depends on NET
+diff -puN kernel/user_namespace.c~user-ns-implement-user-ns-unshare-remove-config_user_ns kernel/user_namespace.c
+--- a/kernel/user_namespace.c~user-ns-implement-user-ns-unshare-remove-config_user_ns
++++ a/kernel/user_namespace.c
+@@ -19,7 +19,6 @@ struct user_namespace init_user_ns = {
+ 
+ EXPORT_SYMBOL_GPL(init_user_ns);
+ 
+-#ifdef CONFIG_USER_NS
  /*
-  * Actual dumper
-  *
-@@ -1600,8 +1626,8 @@ static int elf_core_dump(long signr, str
- 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
- 
- 	/* Write program headers for segments dump */
--	for (vma = current->mm->mmap; vma != NULL;
--	     vma = vma->vm_next ?: vma == gate_vma ? NULL : gate_vma) {
-+	for (vma = first_vma(current, gate_vma); vma != NULL;
-+			vma = next_vma(vma, gate_vma)) {
- 		struct elf_phdr phdr;
- 		size_t sz;
- 
-@@ -1650,8 +1676,8 @@ static int elf_core_dump(long signr, str
- 	/* Align to page */
- 	DUMP_SEEK(dataoff - foffset);
- 
--	for (vma = current->mm->mmap; vma != NULL;
--	     vma = vma->vm_next ?: vma == gate_vma ? NULL : gate_vma) {
-+	for (vma = first_vma(current, gate_vma); vma != NULL;
-+			vma = next_vma(vma, gate_vma)) {
- 		unsigned long addr;
- 
- 		if (!maydump(vma))
+  * Clone a new ns copying an original user ns, setting refcount to 1
+  * @old_ns: namespace to clone
+@@ -110,5 +109,3 @@ void free_user_ns(struct kref *kref)
+ 	ns = container_of(kref, struct user_namespace, kref);
+ 	kfree(ns);
+ }
+-
+-#endif /* CONFIG_USER_NS */
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
-origin.patch
-kvm-add-vm-exit-profiling-fix.patch
-blockdev-direct_io-fix-signedness-bug.patch
-submitchecklist-update.patch
-i386-vdso-use-vm_alwaysdump-tidy.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-git-cifs.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mmc-fixup.patch
-git-ubi.patch
-git-netdev-all.patch
-git-e1000-fixup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-r8169-warning-fixes.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-atomicity-fix.patch
-nokia-e70-is-an-unusual-device.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-vmi-versus-hrtimers.patch
-gtod-persistent-clock-support-i386.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i386-drivers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+user-namespace-add-the-framework.patch
+user_ns-handle-file-sigio-fix.patch
+user-ns-implement-user-ns-unshare-remove-config_user_ns.patch
+rename-attach_pid-to-find_attach_pid.patch
+attach_pid-with-struct-pid-parameter.patch
+remove-find_attach_pid.patch
+statistics-replace-inode-ugeneric_ip-with-i_private.patch
