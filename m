@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + kvm-svm-fix-svm-idt-confusion.patch added to -mm tree
-Date: Tue, 23 Jan 2007 10:56:58 -0800
-Message-ID: <200701231856.l0NIuwPw027767@shell0.pdx.osdl.net>
+Subject: + kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch added to -mm tree
+Date: Tue, 23 Jan 2007 10:57:09 -0800
+Message-ID: <200701231857.l0NIv9R2027786@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48223 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48221 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965432AbXAWS5d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 13:57:33 -0500
+	id S965422AbXAWS5a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 13:57:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: leonard.norrgard@refactor.fi, avi@qumranet.com, uril@qumranet.com
+Cc: joerg.roedel@amd.com, avi@qumranet.com
 
 
 The patch titled
-     KVM: SVM: Fix SVM idt confusion
+     KVM: SVM: Propagate cpu shutdown events to userspace
 has been added to the -mm tree.  Its filename is
-     kvm-svm-fix-svm-idt-confusion.patch
+     kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: SVM: Fix SVM idt confusion
-From: Leonard Norrgard <leonard.norrgard@refactor.fi>
+Subject: KVM: SVM: Propagate cpu shutdown events to userspace
+From: Joerg Roedel <joerg.roedel@amd.com>
 
-There's an obvious typo in svm_{get,set}_idt, causing it to access the ldt
-instead.
+This patch implements forwarding of SHUTDOWN intercepts from the guest on to
+userspace on AMD SVM.  A SHUTDOWN event occurs when the guest produces a
+triple fault (e.g.  on reboot).  This also fixes the bug that a guest reboot
+actually causes a host reboot under some circumstances.
 
-Because these functions are only called for save/load on AMD, the bug does not
-impact normal operation.  With the fix, save/load works as expected on AMD
-hosts.
-
-Signed-off-by: Uri Lublin <uril@qumranet.com>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/kvm/svm.c   |   15 +++++++++++++++
+ include/linux/kvm.h |    1 +
+ 2 files changed, 16 insertions(+)
 
-diff -puN drivers/kvm/svm.c~kvm-svm-fix-svm-idt-confusion drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-svm-fix-svm-idt-confusion
+diff -puN drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace
 +++ a/drivers/kvm/svm.c
-@@ -680,14 +680,14 @@ static void svm_get_cs_db_l_bits(struct 
- 
- static void svm_get_idt(struct kvm_vcpu *vcpu, struct descriptor_table *dt)
- {
--	dt->limit = vcpu->svm->vmcb->save.ldtr.limit;
--	dt->base = vcpu->svm->vmcb->save.ldtr.base;
-+	dt->limit = vcpu->svm->vmcb->save.idtr.limit;
-+	dt->base = vcpu->svm->vmcb->save.idtr.base;
+@@ -502,6 +502,7 @@ static void init_vmcb(struct vmcb *vmcb)
+ 				(1ULL << INTERCEPT_IOIO_PROT) |
+ 				(1ULL << INTERCEPT_MSR_PROT) |
+ 				(1ULL << INTERCEPT_TASK_SWITCH) |
++				(1ULL << INTERCEPT_SHUTDOWN) |
+ 				(1ULL << INTERCEPT_VMRUN) |
+ 				(1ULL << INTERCEPT_VMMCALL) |
+ 				(1ULL << INTERCEPT_VMLOAD) |
+@@ -892,6 +893,19 @@ static int pf_interception(struct kvm_vc
+ 	return 0;
  }
  
- static void svm_set_idt(struct kvm_vcpu *vcpu, struct descriptor_table *dt)
- {
--	vcpu->svm->vmcb->save.ldtr.limit = dt->limit;
--	vcpu->svm->vmcb->save.ldtr.base = dt->base ;
-+	vcpu->svm->vmcb->save.idtr.limit = dt->limit;
-+	vcpu->svm->vmcb->save.idtr.base = dt->base ;
- }
++static int shutdown_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
++{
++	/*
++	 * VMCB is undefined after a SHUTDOWN intercept
++	 * so reinitialize it.
++	 */
++	memset(vcpu->svm->vmcb, 0, PAGE_SIZE);
++	init_vmcb(vcpu->svm->vmcb);
++
++	kvm_run->exit_reason = KVM_EXIT_SHUTDOWN;
++	return 0;
++}
++
+ static int io_get_override(struct kvm_vcpu *vcpu,
+ 			  struct vmcb_seg **seg,
+ 			  int *addr_override)
+@@ -1249,6 +1263,7 @@ static int (*svm_exit_handlers[])(struct
+ 	[SVM_EXIT_IOIO] 		  	= io_interception,
+ 	[SVM_EXIT_MSR]				= msr_interception,
+ 	[SVM_EXIT_TASK_SWITCH]			= task_switch_interception,
++	[SVM_EXIT_SHUTDOWN]			= shutdown_interception,
+ 	[SVM_EXIT_VMRUN]			= invalid_op_interception,
+ 	[SVM_EXIT_VMMCALL]			= invalid_op_interception,
+ 	[SVM_EXIT_VMLOAD]			= invalid_op_interception,
+diff -puN include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace include/linux/kvm.h
+--- a/include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace
++++ a/include/linux/kvm.h
+@@ -46,6 +46,7 @@ enum kvm_exit_reason {
+ 	KVM_EXIT_HLT              = 5,
+ 	KVM_EXIT_MMIO             = 6,
+ 	KVM_EXIT_IRQ_WINDOW_OPEN  = 7,
++	KVM_EXIT_SHUTDOWN         = 8,
+ };
  
- static void svm_get_gdt(struct kvm_vcpu *vcpu, struct descriptor_table *dt)
+ /* for KVM_RUN */
 _
 
-Patches currently in -mm which might be from leonard.norrgard@refactor.fi are
+Patches currently in -mm which might be from joerg.roedel@amd.com are
 
-kvm-svm-fix-svm-idt-confusion.patch
-git-alsa.patch
+kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
