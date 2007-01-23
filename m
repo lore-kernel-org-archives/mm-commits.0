@@ -1,17 +1,17 @@
 From: akpm@osdl.org
-Subject: + git-block-fixup.patch added to -mm tree
-Date: Mon, 22 Jan 2007 20:43:57 -0800
-Message-ID: <200701230443.l0N4hvO0011289@shell0.pdx.osdl.net>
+Subject: + git-hid-fixup.patch added to -mm tree
+Date: Mon, 22 Jan 2007 20:46:58 -0800
+Message-ID: <200701230446.l0N4kwmt011357@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49745 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49851 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932289AbXAWEn7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Jan 2007 23:43:59 -0500
+	id S933000AbXAWErD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 22 Jan 2007 23:47:03 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0N4hv3U022516
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0N4kw3U022617
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 22 Jan 2007 20:43:57 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 22 Jan 2007 20:47:00 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@osdl.org
 
 
 The patch titled
-     git-block-fixup
+     git-hid-fixup
 has been added to the -mm tree.  Its filename is
-     git-block-fixup.patch
+     git-hid-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,29 +29,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-fixup
+Subject: git-hid-fixup
 From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/usb/input/hid-core.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~git-block-fixup fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~git-block-fixup
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -208,9 +208,7 @@ static inline void o2hb_bio_wait_dec(str
- static void o2hb_wait_on_io(struct o2hb_region *reg,
- 			    struct o2hb_bio_wait_ctxt *wc)
- {
--	struct address_space *mapping = reg->hr_bdev->bd_inode->i_mapping;
--
--	blk_run_address_space(mapping);
-+	blk_replug_current_nested();
- 	o2hb_bio_wait_dec(wc, 1);
+diff -puN drivers/usb/input/hid-core.c~git-hid-fixup drivers/usb/input/hid-core.c
+--- a/drivers/usb/input/hid-core.c~git-hid-fixup
++++ a/drivers/usb/input/hid-core.c
+@@ -796,15 +796,12 @@ void usbhid_init_reports(struct hid_devi
+ #define USB_VENDOR_ID_LOGITECH		0x046d
+ #define USB_DEVICE_ID_LOGITECH_USB_RECEIVER	0xc101
  
- 	wait_for_completion(&wc->wc_io_complete);
+-<<<<<<< HEAD/drivers/usb/input/hid-core.c
+ #define USB_VENDOR_ID_IMATION		0x0718
+ #define USB_DEVICE_ID_DISC_STAKKA	0xd000
+ 
+-=======
+ #define USB_VENDOR_ID_PANTHERLORD	0x0810
+ #define USB_DEVICE_ID_PANTHERLORD_TWIN_USB_JOYSTICK	0x0001
+ 
+->>>>>>> /drivers/usb/input/hid-core.c
+ /*
+  * Alphabetically sorted blacklist by quirk type.
+  */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -74,6 +79,7 @@ rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
 fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
 git-dvb.patch
 git-gfs2-nmw.patch
+git-hid-fixup.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
 git-input.patch
