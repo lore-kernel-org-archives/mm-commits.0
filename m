@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch added to -mm tree
-Date: Tue, 23 Jan 2007 10:57:09 -0800
-Message-ID: <200701231857.l0NIv9R2027786@shell0.pdx.osdl.net>
+Subject: + kvm-mmu-perform-access-checks-in-walk_addr.patch added to -mm tree
+Date: Tue, 23 Jan 2007 10:57:05 -0800
+Message-ID: <200701231857.l0NIv5xj027775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48221 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48220 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965422AbXAWS5a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 13:57:30 -0500
+	id S965429AbXAWS51 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 13:57:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joerg.roedel@amd.com, avi@qumranet.com
+Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: SVM: Propagate cpu shutdown events to userspace
+     KVM: MMU: Perform access checks in walk_addr()
 has been added to the -mm tree.  Its filename is
-     kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
+     kvm-mmu-perform-access-checks-in-walk_addr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,75 +25,202 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: SVM: Propagate cpu shutdown events to userspace
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: KVM: MMU: Perform access checks in walk_addr()
+From: Avi Kivity <avi@qumranet.com>
 
-This patch implements forwarding of SHUTDOWN intercepts from the guest on to
-userspace on AMD SVM.  A SHUTDOWN event occurs when the guest produces a
-triple fault (e.g.  on reboot).  This also fixes the bug that a guest reboot
-actually causes a host reboot under some circumstances.
+Check pte permission bits in walk_addr(), instead of scattering the checks all
+over the code.  This has the following benefits:
 
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+1. We no longer set the accessed bit for accessed which fail permission checks.
+2. Setting the accessed bit is simplified.
+3. Under some circumstances, we used to pretend a page fault was fixed when
+   it would actually fail the access checks.  This caused an unnecessary
+   vmexit.
+4. The error code for guest page faults is now correct.
+
+The fix helps netbsd further along booting, and allows kvm to pass the new mmu
+testsuite.
+
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c   |   15 +++++++++++++++
- include/linux/kvm.h |    1 +
- 2 files changed, 16 insertions(+)
+ drivers/kvm/mmu.c         |   10 -----
+ drivers/kvm/paging_tmpl.h |   68 ++++++++++++++++++++----------------
+ 2 files changed, 38 insertions(+), 40 deletions(-)
 
-diff -puN drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace
-+++ a/drivers/kvm/svm.c
-@@ -502,6 +502,7 @@ static void init_vmcb(struct vmcb *vmcb)
- 				(1ULL << INTERCEPT_IOIO_PROT) |
- 				(1ULL << INTERCEPT_MSR_PROT) |
- 				(1ULL << INTERCEPT_TASK_SWITCH) |
-+				(1ULL << INTERCEPT_SHUTDOWN) |
- 				(1ULL << INTERCEPT_VMRUN) |
- 				(1ULL << INTERCEPT_VMMCALL) |
- 				(1ULL << INTERCEPT_VMLOAD) |
-@@ -892,6 +893,19 @@ static int pf_interception(struct kvm_vc
+diff -puN drivers/kvm/mmu.c~kvm-mmu-perform-access-checks-in-walk_addr drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-perform-access-checks-in-walk_addr
++++ a/drivers/kvm/mmu.c
+@@ -992,16 +992,6 @@ static inline int fix_read_pf(u64 *shado
  	return 0;
  }
  
-+static int shutdown_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
-+{
-+	/*
-+	 * VMCB is undefined after a SHUTDOWN intercept
-+	 * so reinitialize it.
-+	 */
-+	memset(vcpu->svm->vmcb, 0, PAGE_SIZE);
-+	init_vmcb(vcpu->svm->vmcb);
-+
-+	kvm_run->exit_reason = KVM_EXIT_SHUTDOWN;
-+	return 0;
-+}
-+
- static int io_get_override(struct kvm_vcpu *vcpu,
- 			  struct vmcb_seg **seg,
- 			  int *addr_override)
-@@ -1249,6 +1263,7 @@ static int (*svm_exit_handlers[])(struct
- 	[SVM_EXIT_IOIO] 		  	= io_interception,
- 	[SVM_EXIT_MSR]				= msr_interception,
- 	[SVM_EXIT_TASK_SWITCH]			= task_switch_interception,
-+	[SVM_EXIT_SHUTDOWN]			= shutdown_interception,
- 	[SVM_EXIT_VMRUN]			= invalid_op_interception,
- 	[SVM_EXIT_VMMCALL]			= invalid_op_interception,
- 	[SVM_EXIT_VMLOAD]			= invalid_op_interception,
-diff -puN include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace include/linux/kvm.h
---- a/include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace
-+++ a/include/linux/kvm.h
-@@ -46,6 +46,7 @@ enum kvm_exit_reason {
- 	KVM_EXIT_HLT              = 5,
- 	KVM_EXIT_MMIO             = 6,
- 	KVM_EXIT_IRQ_WINDOW_OPEN  = 7,
-+	KVM_EXIT_SHUTDOWN         = 8,
+-static int may_access(u64 pte, int write, int user)
+-{
+-
+-	if (user && !(pte & PT_USER_MASK))
+-		return 0;
+-	if (write && !(pte & PT_WRITABLE_MASK))
+-		return 0;
+-	return 1;
+-}
+-
+ static void paging_free(struct kvm_vcpu *vcpu)
+ {
+ 	nonpaging_free(vcpu);
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-perform-access-checks-in-walk_addr drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-perform-access-checks-in-walk_addr
++++ a/drivers/kvm/paging_tmpl.h
+@@ -63,13 +63,15 @@ struct guest_walker {
+ 	pt_element_t *ptep;
+ 	pt_element_t inherited_ar;
+ 	gfn_t gfn;
++	u32 error_code;
  };
  
- /* for KVM_RUN */
+ /*
+  * Fetch a guest pte for a guest virtual address
+  */
+-static void FNAME(walk_addr)(struct guest_walker *walker,
+-			     struct kvm_vcpu *vcpu, gva_t addr)
++static int FNAME(walk_addr)(struct guest_walker *walker,
++			    struct kvm_vcpu *vcpu, gva_t addr,
++			    int write_fault, int user_fault)
+ {
+ 	hpa_t hpa;
+ 	struct kvm_memory_slot *slot;
+@@ -86,7 +88,7 @@ static void FNAME(walk_addr)(struct gues
+ 		walker->ptep = &vcpu->pdptrs[(addr >> 30) & 3];
+ 		root = *walker->ptep;
+ 		if (!(root & PT_PRESENT_MASK))
+-			return;
++			goto not_present;
+ 		--walker->level;
+ 	}
+ #endif
+@@ -111,11 +113,18 @@ static void FNAME(walk_addr)(struct gues
+ 		ASSERT(((unsigned long)walker->table & PAGE_MASK) ==
+ 		       ((unsigned long)ptep & PAGE_MASK));
+ 
+-		if (is_present_pte(*ptep) && !(*ptep &  PT_ACCESSED_MASK))
+-			*ptep |= PT_ACCESSED_MASK;
+-
+ 		if (!is_present_pte(*ptep))
+-			break;
++			goto not_present;
++
++		if (write_fault && !is_writeble_pte(*ptep))
++			if (user_fault || is_write_protection(vcpu))
++				goto access_error;
++
++		if (user_fault && !(*ptep & PT_USER_MASK))
++			goto access_error;
++
++		if (!(*ptep & PT_ACCESSED_MASK))
++			*ptep |= PT_ACCESSED_MASK; 	/* avoid rmw */
+ 
+ 		if (walker->level == PT_PAGE_TABLE_LEVEL) {
+ 			walker->gfn = (*ptep & PT_BASE_ADDR_MASK)
+@@ -146,6 +155,21 @@ static void FNAME(walk_addr)(struct gues
+ 	}
+ 	walker->ptep = ptep;
+ 	pgprintk("%s: pte %llx\n", __FUNCTION__, (u64)*ptep);
++	return 1;
++
++not_present:
++	walker->error_code = 0;
++	goto err;
++
++access_error:
++	walker->error_code = PFERR_PRESENT_MASK;
++
++err:
++	if (write_fault)
++		walker->error_code |= PFERR_WRITE_MASK;
++	if (user_fault)
++		walker->error_code |= PFERR_USER_MASK;
++	return 0;
+ }
+ 
+ static void FNAME(release_walker)(struct guest_walker *walker)
+@@ -347,7 +371,6 @@ static int FNAME(page_fault)(struct kvm_
+ 			       u32 error_code)
+ {
+ 	int write_fault = error_code & PFERR_WRITE_MASK;
+-	int pte_present = error_code & PFERR_PRESENT_MASK;
+ 	int user_fault = error_code & PFERR_USER_MASK;
+ 	struct guest_walker walker;
+ 	u64 *shadow_pte;
+@@ -365,19 +388,19 @@ static int FNAME(page_fault)(struct kvm_
+ 	/*
+ 	 * Look up the shadow pte for the faulting address.
+ 	 */
+-	FNAME(walk_addr)(&walker, vcpu, addr);
+-	shadow_pte = FNAME(fetch)(vcpu, addr, &walker);
++	r = FNAME(walk_addr)(&walker, vcpu, addr, write_fault, user_fault);
+ 
+ 	/*
+ 	 * The page is not mapped by the guest.  Let the guest handle it.
+ 	 */
+-	if (!shadow_pte) {
+-		pgprintk("%s: not mapped\n", __FUNCTION__);
+-		inject_page_fault(vcpu, addr, error_code);
++	if (!r) {
++		pgprintk("%s: guest page fault\n", __FUNCTION__);
++		inject_page_fault(vcpu, addr, walker.error_code);
+ 		FNAME(release_walker)(&walker);
+ 		return 0;
+ 	}
+ 
++	shadow_pte = FNAME(fetch)(vcpu, addr, &walker);
+ 	pgprintk("%s: shadow pte %p %llx\n", __FUNCTION__,
+ 		 shadow_pte, *shadow_pte);
+ 
+@@ -399,22 +422,7 @@ static int FNAME(page_fault)(struct kvm_
+ 	 * mmio: emulate if accessible, otherwise its a guest fault.
+ 	 */
+ 	if (is_io_pte(*shadow_pte)) {
+-		if (may_access(*shadow_pte, write_fault, user_fault))
+-			return 1;
+-		pgprintk("%s: io work, no access\n", __FUNCTION__);
+-		inject_page_fault(vcpu, addr,
+-				  error_code | PFERR_PRESENT_MASK);
+-		kvm_mmu_audit(vcpu, "post page fault (io)");
+-		return 0;
+-	}
+-
+-	/*
+-	 * pte not present, guest page fault.
+-	 */
+-	if (pte_present && !fixed && !write_pt) {
+-		inject_page_fault(vcpu, addr, error_code);
+-		kvm_mmu_audit(vcpu, "post page fault (guest)");
+-		return 0;
++		return 1;
+ 	}
+ 
+ 	++kvm_stat.pf_fixed;
+@@ -429,7 +437,7 @@ static gpa_t FNAME(gva_to_gpa)(struct kv
+ 	pt_element_t guest_pte;
+ 	gpa_t gpa;
+ 
+-	FNAME(walk_addr)(&walker, vcpu, vaddr);
++	FNAME(walk_addr)(&walker, vcpu, vaddr, 0, 0);
+ 	guest_pte = *walker.ptep;
+ 	FNAME(release_walker)(&walker);
+ 
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from avi@qumranet.com are
 
+kvm-add-vm-exit-profiling-fix.patch
+kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
+kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
+kvm-x86-emulator-fix-bit-string-instructions.patch
+kvm-fix-bogus-pagefault-on-writable-pages.patch
+kvm-svm-fix-svm-idt-confusion.patch
+kvm-emulate-ia32_misc_enable-msr.patch
+kvm-mmu-perform-access-checks-in-walk_addr.patch
+kvm-mmu-report-nx-faults-to-the-guest.patch
 kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
