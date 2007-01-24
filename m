@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:26 -0800
-Message-ID: <200701240312.l0O3CQ3c006822@shell0.pdx.osdl.net>
+Subject: + sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:15 -0800
+Message-ID: <200701240312.l0O3CFjP006804@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49041 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49036 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030187AbXAXDMc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:32 -0500
+	id S1030183AbXAXDMb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, patrick@tykepenguin.com
+Cc: ebiederm@xmission.com, neilb@cse.unsw.edu.au, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     sysctl: decnet: remove unnecessary insert_at_head flag
+     sysctl: sunrpc: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: decnet: remove unnecessary insert_at_head flag
+Subject: sysctl: sunrpc: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The sysctl numbers used are unique so setting the insert_at_head flag does not
-succeed in overriding any sysctls, and is just confusing because it doesn't. 
-Clear the flag.
+Because the sunrpc sysctls don't conflict with any other sysctls the setting
+the insert at head flag to register_sysctl has no semantic meaning.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Patrick Caulfield <patrick@tykepenguin.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@cse.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/decnet/sysctl_net_decnet.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sunrpc/sysctl.c   |    2 +-
+ net/sunrpc/xprtsock.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/decnet/sysctl_net_decnet.c~sysctl-decnet-remove-unnecessary-insert_at_head-flag net/decnet/sysctl_net_decnet.c
---- a/net/decnet/sysctl_net_decnet.c~sysctl-decnet-remove-unnecessary-insert_at_head-flag
-+++ a/net/decnet/sysctl_net_decnet.c
-@@ -491,7 +491,7 @@ static ctl_table dn_root_table[] = {
- 
- void dn_register_sysctl(void)
+diff -puN net/sunrpc/sysctl.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag net/sunrpc/sysctl.c
+--- a/net/sunrpc/sysctl.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag
++++ a/net/sunrpc/sysctl.c
+@@ -36,7 +36,7 @@ void
+ rpc_register_sysctl(void)
  {
--	dn_table_header = register_sysctl_table(dn_root_table, 1);
-+	dn_table_header = register_sysctl_table(dn_root_table, 0);
- }
- 
- void dn_unregister_sysctl(void)
+ 	if (!sunrpc_table_header) {
+-		sunrpc_table_header = register_sysctl_table(sunrpc_table, 1);
++		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
+ #ifdef CONFIG_PROC_FS
+ 		if (sunrpc_table[0].de)
+ 			sunrpc_table[0].de->owner = THIS_MODULE;
+diff -puN net/sunrpc/xprtsock.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag
++++ a/net/sunrpc/xprtsock.c
+@@ -1629,7 +1629,7 @@ int init_socket_xprt(void)
+ {
+ #ifdef RPC_DEBUG
+ 	if (!sunrpc_table_header) {
+-		sunrpc_table_header = register_sysctl_table(sunrpc_table, 1);
++		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
+ #ifdef CONFIG_PROC_FS
+ 		if (sunrpc_table[0].de)
+ 			sunrpc_table[0].de->owner = THIS_MODULE;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
