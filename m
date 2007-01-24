@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:57 -0800
-Message-ID: <200701240313.l0O3DvT5007000@shell0.pdx.osdl.net>
+Subject: + sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:21 -0800
+Message-ID: <200701240312.l0O3CLuY006813@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49264 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49291 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030214AbXAXDN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:59 -0500
+	id S1030228AbXAXDPi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:15:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com
+Cc: ebiederm@xmission.com, ralf@linux-mips.org
 
 
 The patch titled
-     sysctl: remove the proc_dir_entry member for the sysctl tables
+     sysctl: netrom: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
+     sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: remove the proc_dir_entry member for the sysctl tables
+Subject: sysctl: netrom: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-It isn't needed anymore, all of the users are gone, and all of the ctl_table
-initializers have been converted to use explicit names of the fields they are
-initializing.
+The sysctl numbers used are unique so setting the insert_at_head flag serves
+no semantic purpose, so it is just confusing.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sysctl.h |    1 -
- net/decnet/dn_dev.c    |    5 -----
- net/ipv4/devinet.c     |    5 -----
- net/ipv6/addrconf.c    |    5 -----
- 4 files changed, 16 deletions(-)
+ net/netrom/sysctl_net_netrom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables
-+++ a/include/linux/sysctl.h
-@@ -1025,7 +1025,6 @@ struct ctl_table 
- 	ctl_table *child;
- 	proc_handler *proc_handler;	/* Callback for text formatting */
- 	ctl_handler *strategy;		/* Callback function for all r/w */
--	struct proc_dir_entry *de;	/* /proc control block */
- 	void *extra1;
- 	void *extra2;
- };
-diff -puN net/decnet/dn_dev.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables net/decnet/dn_dev.c
---- a/net/decnet/dn_dev.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables
-+++ a/net/decnet/dn_dev.c
-@@ -261,7 +261,6 @@ static void dn_dev_sysctl_register(struc
- 	for(i = 0; i < ARRAY_SIZE(t->dn_dev_vars) - 1; i++) {
- 		long offset = (long)t->dn_dev_vars[i].data;
- 		t->dn_dev_vars[i].data = ((char *)parms) + offset;
--		t->dn_dev_vars[i].de = NULL;
- 	}
+diff -puN net/netrom/sysctl_net_netrom.c~sysctl-netrom-remove-unnecessary-insert_at_head-flag net/netrom/sysctl_net_netrom.c
+--- a/net/netrom/sysctl_net_netrom.c~sysctl-netrom-remove-unnecessary-insert_at_head-flag
++++ a/net/netrom/sysctl_net_netrom.c
+@@ -192,7 +192,7 @@ static ctl_table nr_root_table[] = {
  
- 	if (dev) {
-@@ -273,13 +272,9 @@ static void dn_dev_sysctl_register(struc
- 	}
+ void __init nr_register_sysctl(void)
+ {
+-	nr_table_header = register_sysctl_table(nr_root_table, 1);
++	nr_table_header = register_sysctl_table(nr_root_table, 0);
+ }
  
- 	t->dn_dev_dev[0].child = t->dn_dev_vars;
--	t->dn_dev_dev[0].de = NULL;
- 	t->dn_dev_conf_dir[0].child = t->dn_dev_dev;
--	t->dn_dev_conf_dir[0].de = NULL;
- 	t->dn_dev_proto_dir[0].child = t->dn_dev_conf_dir;
--	t->dn_dev_proto_dir[0].de = NULL;
- 	t->dn_dev_root_dir[0].child = t->dn_dev_proto_dir;
--	t->dn_dev_root_dir[0].de = NULL;
- 	t->dn_dev_vars[0].extra1 = (void *)dev;
- 
- 	t->sysctl_header = register_sysctl_table(t->dn_dev_root_dir);
-diff -puN net/ipv4/devinet.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables net/ipv4/devinet.c
---- a/net/ipv4/devinet.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables
-+++ a/net/ipv4/devinet.c
-@@ -1572,7 +1572,6 @@ static void devinet_sysctl_register(stru
- 		return;
- 	for (i = 0; i < ARRAY_SIZE(t->devinet_vars) - 1; i++) {
- 		t->devinet_vars[i].data += (char *)p - (char *)&ipv4_devconf;
--		t->devinet_vars[i].de = NULL;
- 	}
- 
- 	if (dev) {
-@@ -1594,13 +1593,9 @@ static void devinet_sysctl_register(stru
- 
- 	t->devinet_dev[0].procname    = dev_name;
- 	t->devinet_dev[0].child	      = t->devinet_vars;
--	t->devinet_dev[0].de	      = NULL;
- 	t->devinet_conf_dir[0].child  = t->devinet_dev;
--	t->devinet_conf_dir[0].de     = NULL;
- 	t->devinet_proto_dir[0].child = t->devinet_conf_dir;
--	t->devinet_proto_dir[0].de    = NULL;
- 	t->devinet_root_dir[0].child  = t->devinet_proto_dir;
--	t->devinet_root_dir[0].de     = NULL;
- 
- 	t->sysctl_header = register_sysctl_table(t->devinet_root_dir);
- 	if (!t->sysctl_header)
-diff -puN net/ipv6/addrconf.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables net/ipv6/addrconf.c
---- a/net/ipv6/addrconf.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables
-+++ a/net/ipv6/addrconf.c
-@@ -3978,7 +3978,6 @@ static void addrconf_sysctl_register(str
- 		return;
- 	for (i=0; t->addrconf_vars[i].data; i++) {
- 		t->addrconf_vars[i].data += (char*)p - (char*)&ipv6_devconf;
--		t->addrconf_vars[i].de = NULL;
- 		t->addrconf_vars[i].extra1 = idev; /* embedded; no ref */
- 	}
- 	if (dev) {
-@@ -4001,13 +4000,9 @@ static void addrconf_sysctl_register(str
- 	t->addrconf_dev[0].procname = dev_name;
- 
- 	t->addrconf_dev[0].child = t->addrconf_vars;
--	t->addrconf_dev[0].de = NULL;
- 	t->addrconf_conf_dir[0].child = t->addrconf_dev;
--	t->addrconf_conf_dir[0].de = NULL;
- 	t->addrconf_proto_dir[0].child = t->addrconf_conf_dir;
--	t->addrconf_proto_dir[0].de = NULL;
- 	t->addrconf_root_dir[0].child = t->addrconf_proto_dir;
--	t->addrconf_root_dir[0].de = NULL;
- 
- 	t->sysctl_header = register_sysctl_table(t->addrconf_root_dir);
- 	if (t->sysctl_header == NULL)
+ void nr_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
