@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-cdrom-dont-set-de-owner.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:46 -0800
-Message-ID: <200701240312.l0O3CkTB006864@shell0.pdx.osdl.net>
+Subject: + sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:40 -0800
+Message-ID: <200701240312.l0O3CeCD006852@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49087 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49098 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030202AbXAXDMx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:53 -0500
+	id S1030208AbXAXDM5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, James.Bottomley@SteelEye.com, jens.axboe@oracle.com
+Cc: ebiederm@xmission.com, benh@kernel.crashing.org, dtor@mail.ru, jkosina@suse.cz
 
 
 The patch titled
-     sysctl: cdrom: don't set de->owner
+     sysctl: mac_hid: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-cdrom-dont-set-de-owner.patch
+     sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: cdrom: don't set de->owner
+Subject: sysctl: mac_hid: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-There is no need for open files in /proc/sys/XXX to hold a reference count on
-the module that provides the file to prevent module unload races.  While there
-is code active in the module p->used in the sysctl_table_header is
-incremented, preventing the sysctl from being unregisted.  Once the sysctl is
-unregistered it cannot be found.  Open files are also not a problem as they
-revalidate the sysctl information and bump p->used before accessing module
-code.
-
-So setting de->owner is unnecessary, makes for a bad example and gets in my
-way of removing ctl_table->de.
+With unique sysctl binary numbers setting insert_at_head is pointless.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/cdrom/cdrom.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/macintosh/mac_hid.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cdrom/cdrom.c~sysctl-cdrom-dont-set-de-owner drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~sysctl-cdrom-dont-set-de-owner
-+++ a/drivers/cdrom/cdrom.c
-@@ -3554,8 +3554,6 @@ static void cdrom_sysctl_register(void)
- 		return;
+diff -puN drivers/macintosh/mac_hid.c~sysctl-mac_hid-remove-unnecessary-insert_at_head-flag drivers/macintosh/mac_hid.c
+--- a/drivers/macintosh/mac_hid.c~sysctl-mac_hid-remove-unnecessary-insert_at_head-flag
++++ a/drivers/macintosh/mac_hid.c
+@@ -138,7 +138,7 @@ int __init mac_hid_init(void)
+ 		return err;
  
- 	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 0);
--	if (cdrom_root_table->ctl_name && cdrom_root_table->child->de)
--		cdrom_root_table->child->de->owner = THIS_MODULE;
+ #if defined(CONFIG_SYSCTL)
+-	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir, 1);
++	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir, 0);
+ #endif /* CONFIG_SYSCTL */
  
- 	/* set the defaults */
- 	cdrom_sysctl_settings.autoclose = autoclose;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
