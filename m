@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-remove-support-for-ctl_any.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:45 -0800
-Message-ID: <200701240313.l0O3DjqE006982@shell0.pdx.osdl.net>
+Subject: + sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:36 -0800
+Message-ID: <200701240313.l0O3DaNo006968@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49246 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49231 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965156AbXAXDNr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:47 -0500
+	id S1030262AbXAXDNi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: remove support for CTL_ANY
+     sysctl: move init_irq_proc into init/main where it belongs
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-support-for-ctl_any.patch
+     sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: remove support for CTL_ANY
+Subject: sysctl: move init_irq_proc into init/main where it belongs
 From: Eric W. Biederman <ebiederm@xmission.com>
-
-There are currently no users in the kernel for CTL_ANY and it only has effect
-on the binary interface which is practically unused.
-
-So this complicates sysctl lookups for no good reason so just remove it.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ init/main.c     |    3 +++
+ kernel/sysctl.c |    3 ---
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-remove-support-for-ctl_any include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-remove-support-for-ctl_any
-+++ a/include/linux/sysctl.h
-@@ -53,7 +53,6 @@ struct __sysctl_args {
- 
- /* For internal pattern-matching use only: */
- #ifdef __KERNEL__
--#define CTL_ANY		-1	/* Matches any name */
- #define CTL_NONE	0
- #define CTL_UNNUMBERED	CTL_NONE	/* sysctl without a binary number */
+diff -puN init/main.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs init/main.c
+--- a/init/main.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs
++++ a/init/main.c
+@@ -693,6 +693,9 @@ static void __init do_basic_setup(void)
+ #ifdef CONFIG_SYSCTL
+ 	sysctl_init();
  #endif
-diff -puN kernel/sysctl.c~sysctl-remove-support-for-ctl_any kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-remove-support-for-ctl_any
++#ifdef CONFIG_PROC_FS
++	init_irq_proc();
++#endif
+ 
+ 	do_initcalls();
+ }
+diff -puN kernel/sysctl.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs
 +++ a/kernel/sysctl.c
-@@ -1209,7 +1209,7 @@ repeat:
- 	for ( ; table->ctl_name || table->procname; table++) {
- 		if (!table->ctl_name)
- 			continue;
--		if (n == table->ctl_name || table->ctl_name == CTL_ANY) {
-+		if (n == table->ctl_name) {
- 			int error;
- 			if (table->child) {
- 				if (ctl_perm(table, 001))
+@@ -1215,8 +1215,6 @@ static ctl_table dev_table[] = {
+ 	{ .ctl_name = 0 }
+ };
+ 
+-extern void init_irq_proc (void);
+-
+ static DEFINE_SPINLOCK(sysctl_lock);
+ 
+ /* called under sysctl_lock */
+@@ -1262,7 +1260,6 @@ void __init sysctl_init(void)
+ {
+ #ifdef CONFIG_PROC_SYSCTL
+ 	register_proc_table(root_table, proc_sys_root, &root_table_header);
+-	init_irq_proc();
+ #endif
+ }
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
