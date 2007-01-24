@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fix-null-nsproxy-dereference-in-proc-mounts.patch added to -mm tree
-Date: Tue, 23 Jan 2007 13:00:10 -0800
-Message-ID: <200701232100.l0NL0BG3031147@shell0.pdx.osdl.net>
+Subject: + spi-add-spi_set_drvdata-and-spi_get_drvdata.patch added to -mm tree
+Date: Tue, 23 Jan 2007 16:12:38 -0800
+Message-ID: <200701240012.l0O0CclX003397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55155 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43008 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965015AbXAWVA3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 16:00:29 -0500
+	id S933149AbXAXAMv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 19:12:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@openvz.org, serue@us.ibm.com
+Cc: ben@fluff.org, ben-linux@fluff.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Fix NULL ->nsproxy dereference in /proc/*/mounts
+     spi: add spi_set_drvdata() and spi_get_drvdata()
 has been added to the -mm tree.  Its filename is
-     fix-null-nsproxy-dereference-in-proc-mounts.patch
+     spi-add-spi_set_drvdata-and-spi_get_drvdata.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix NULL ->nsproxy dereference in /proc/*/mounts
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: spi: add spi_set_drvdata() and spi_get_drvdata()
+From: Ben Dooks <ben@fluff.org>
 
-/proc/*/mounstats was fixed, all right, but...
+Add wrappers for getting and setting the driver data using spi_device
+instead of using dev_{get|set}_drvdata with &spi->dev, to mirror the
+platform_{get|set}_drvdata.
 
-To reproduce:
-
-	while true; do
-		find /proc -type f 2>/dev/null | xargs cat 1>/dev/null 2>/dev/null;
-	done
-
-BUG: unable to handle kernel NULL pointer dereference at virtual address 0000000c
- printing eip:
-c01754df
-*pde = 00000000
-Oops: 0000 [#28]
-Modules linked in: af_packet ohci_hcd e1000 ehci_hcd uhci_hcd usbcore xfs
-CPU:    0
-EIP:    0060:[<c01754df>]    Not tainted VLI
-EFLAGS: 00010286   (2.6.20-rc5 #1)
-EIP is at mounts_open+0x1c/0xac
-eax: 00000000   ebx: d5898ac0   ecx: d1d27b18   edx: d1d27a50
-esi: e6083e10   edi: d3c87f38   ebp: d5898ac0   esp: d3c87ef0
-ds: 007b   es: 007b   ss: 0068
-Process cat (pid: 18071, ti=d3c86000 task=f7d5f070 task.ti=d3c86000)
-Stack: d5898ac0 e6083e10 d3c87f38 c01754c3 c0147c91 c18c52c0 d343f314 d5898ac0
-       00008000 d3c87f38 ffffff9c c0147e09 d5898ac0 00000000 00000000 c0147e4b
-       00000000 d3c87f38 d343f314 c18c52c0 c015e53e 00001000 08051000 00000101
-Call Trace:
- [<c01754c3>] mounts_open+0x0/0xac
- [<c0147c91>] __dentry_open+0xa1/0x18c
- [<c0147e09>] nameidata_to_filp+0x31/0x3a
- [<c0147e4b>] do_filp_open+0x39/0x40
- [<c015e53e>] seq_read+0x128/0x2aa
- [<c0147e8c>] do_sys_open+0x3a/0x6d
- [<c0147efa>] sys_open+0x1c/0x20
- [<c0102b76>] sysenter_past_esp+0x5f/0x85
- [<c02a0033>] unix_stream_recvmsg+0x3bf/0x4bf
- =======================
-Code: 5d c3 89 d8 e8 06 e0 f9 ff eb bd 0f 0b eb fe 55 57 56 53 89 d5 8b 40 f0 31 d2 e8 02 c1 fa ff 89 c2 85 c0 74 5c 8b 80 48 04 00 00 <8b> 58 0c 85 db 74 02 ff 03 ff 4a 08 0f 94 c0 84 c0 75 74 85 db
-EIP: [<c01754df>] mounts_open+0x1c/0xac SS:ESP 0068:d3c87ef0
-
-A race with do_exit()'s call to exit_namespaces().
-
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/base.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ Documentation/spi/spi-summary |    2 +-
+ include/linux/spi/spi.h       |   11 +++++++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~fix-null-nsproxy-dereference-in-proc-mounts fs/proc/base.c
---- a/fs/proc/base.c~fix-null-nsproxy-dereference-in-proc-mounts
-+++ a/fs/proc/base.c
-@@ -371,9 +371,11 @@ static int mounts_open(struct inode *ino
+diff -puN Documentation/spi/spi-summary~spi-add-spi_set_drvdata-and-spi_get_drvdata Documentation/spi/spi-summary
+--- a/Documentation/spi/spi-summary~spi-add-spi_set_drvdata-and-spi_get_drvdata
++++ a/Documentation/spi/spi-summary
+@@ -312,7 +312,7 @@ might look like this unless you're creat
+ 		chip = kzalloc(sizeof *chip, GFP_KERNEL);
+ 		if (!chip)
+ 			return -ENOMEM;
+-		dev_set_drvdata(&spi->dev, chip);
++		spi_set_drvdata(spi, chip);
  
- 	if (task) {
- 		task_lock(task);
--		ns = task->nsproxy->mnt_ns;
--		if (ns)
--			get_mnt_ns(ns);
-+		if (task->nsproxy) {
-+			ns = task->nsproxy->mnt_ns;
-+			if (ns)
-+				get_mnt_ns(ns);
-+		}
- 		task_unlock(task);
- 		put_task_struct(task);
- 	}
+ 		... etc
+ 		return 0;
+diff -puN include/linux/spi/spi.h~spi-add-spi_set_drvdata-and-spi_get_drvdata include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spi-add-spi_set_drvdata-and-spi_get_drvdata
++++ a/include/linux/spi/spi.h
+@@ -114,6 +114,17 @@ static inline void spi_set_ctldata(struc
+ 	spi->controller_state = state;
+ }
+ 
++/* device driver data */
++
++static inline void spi_set_drvdata(struct spi_device *spi, void *data)
++{
++	dev_set_drvdata(&spi->dev, data);
++}
++
++static inline void *spi_get_drvdata(struct spi_device *spi)
++{
++	return dev_get_drvdata(&spi->dev);
++}
+ 
+ struct spi_message;
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from ben@fluff.org are
 
-fix-null-nsproxy-dereference-in-proc-mounts.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-consolidate-default-sched_clock.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
+spi-add-spi_set_drvdata-and-spi_get_drvdata.patch
