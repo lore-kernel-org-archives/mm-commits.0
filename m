@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:02 -0800
-Message-ID: <200701240313.l0O3D2gW006897@shell0.pdx.osdl.net>
+Subject: + sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:23 -0800
+Message-ID: <200701240313.l0O3DNlG006938@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49309 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49323 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030232AbXAXDQT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:16:19 -0500
+	id S1030247AbXAXDQp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:16:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ralf@linux-mips.org
+Cc: ebiederm@xmission.com, a.zummo@towertech.it, ralf@linux-mips.org
 
 
 The patch titled
-     sysctl: C99 convert the ctl_tables in arch/mips/au1000/common/power.c
+     sysctl: remove sys_sysctl support from drivers/char/rtc.c
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
+     sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert the ctl_tables in arch/mips/au1000/common/power.c
+Subject: sysctl: remove sys_sysctl support from drivers/char/rtc.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+The real time clock driver was using the binary number reserved for cdroms in
+the sysctl binary number interface, which is a no-no.  So since the sysctl
+binary interface is wrong remove it.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/mips/au1000/common/power.c |   38 +++++++++++++++++++++++++-----
- 1 file changed, 32 insertions(+), 6 deletions(-)
+ drivers/char/rtc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/mips/au1000/common/power.c~sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc arch/mips/au1000/common/power.c
---- a/arch/mips/au1000/common/power.c~sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc
-+++ a/arch/mips/au1000/common/power.c
-@@ -419,15 +419,41 @@ static int pm_do_freq(ctl_table * ctl, i
- 
- 
- static struct ctl_table pm_table[] = {
--	{CTL_UNNUMBERED, "suspend", NULL, 0, 0600, NULL, &pm_do_suspend},
--	{CTL_UNNUMBERED, "sleep", NULL, 0, 0600, NULL, &pm_do_sleep},
--	{CTL_UNNUMBERED, "freq", NULL, 0, 0600, NULL, &pm_do_freq},
--	{0}
-+	{
-+		.ctl_name 	= CTL_UNNUMBERED,
-+		.procname	= "suspend",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0600,
-+		.proc_handler	= &pm_do_suspend
-+	},
-+	{
+diff -puN drivers/char/rtc.c~sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc drivers/char/rtc.c
+--- a/drivers/char/rtc.c~sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc
++++ a/drivers/char/rtc.c
+@@ -282,7 +282,7 @@ irqreturn_t rtc_interrupt(int irq, void 
+  */
+ static ctl_table rtc_table[] = {
+ 	{
+-		.ctl_name	= 1,
 +		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "sleep",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0600,
-+		.proc_handler	= &pm_do_sleep
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "freq",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0600,
-+		.proc_handler	= &pm_do_freq
-+	},
-+	{}
- };
+ 		.procname	= "max-user-freq",
+ 		.data		= &rtc_max_user_freq,
+ 		.maxlen		= sizeof(int),
+@@ -294,9 +294,8 @@ static ctl_table rtc_table[] = {
  
- static struct ctl_table pm_dir_table[] = {
--	{CTL_UNNUMBERED, "pm", NULL, 0, 0555, pm_table},
--	{0}
-+	{
+ static ctl_table rtc_root[] = {
+ 	{
+-		.ctl_name	= 1,
 +		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "pm",
-+		.mode		= 0555,
-+		.child		= pm_table
-+	},
-+	{}
- };
- 
- /*
+ 		.procname	= "rtc",
+-		.maxlen		= 0,
+ 		.mode		= 0555,
+ 		.child		= rtc_table,
+ 	},
+@@ -307,7 +306,6 @@ static ctl_table dev_root[] = {
+ 	{
+ 		.ctl_name	= CTL_DEV,
+ 		.procname	= "dev",
+-		.maxlen		= 0,
+ 		.mode		= 0555,
+ 		.child		= rtc_root,
+ 	},
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
