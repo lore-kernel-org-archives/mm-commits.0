@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:20 -0800
-Message-ID: <200701240313.l0O3DKas006932@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:08 -0800
+Message-ID: <200701240313.l0O3D8FB006909@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49205 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49148 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030251AbXAXDN0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:26 -0500
+	id S1030235AbXAXDNP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ak@suse.de
+Cc: ebiederm@xmission.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables in arch/x86_64/mm/init.c
+     sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
+     sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables in arch/x86_64/mm/init.c
+Subject: sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+This was partially done already and there was no ABI breakage what a relief.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Andi Kleen <ak@suse.de>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/mm/init.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ arch/powerpc/kernel/idle.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/mm/init.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc arch/x86_64/mm/init.c
---- a/arch/x86_64/mm/init.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc
-+++ a/arch/x86_64/mm/init.c
-@@ -711,15 +711,25 @@ int kern_addr_valid(unsigned long addr) 
- extern int exception_trace, page_fault_trace;
- 
- static ctl_table debug_table2[] = {
--	{ 99, "exception-trace", &exception_trace, sizeof(int), 0644, NULL,
--	  proc_dointvec },
--	{ 0, }
+diff -puN arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec arch/powerpc/kernel/idle.c
+--- a/arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec
++++ a/arch/powerpc/kernel/idle.c
+@@ -110,11 +110,16 @@ static ctl_table powersave_nap_ctl_table
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+-	{ 0, },
++	{}
+ };
+ static ctl_table powersave_nap_sysctl_root[] = {
+-	{ 1, "kernel", NULL, 0, 0755, powersave_nap_ctl_table, },
+- 	{ 0,},
 +	{
-+		.ctl_name	= 99,
-+		.procname	= "exception-trace",
-+		.data		= &exception_trace,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec
++		.ctl_name	= CTL_KERN,
++		.procname	= "kernel",
++		.mode		= 0755,
++		.child		= powersave_nap_ctl_table,
 +	},
 +	{}
- }; 
+ };
  
- static ctl_table debug_root_table2[] = { 
--	{ .ctl_name = CTL_DEBUG, .procname = "debug", .mode = 0555, 
--	   .child = debug_table2 }, 
--	{ 0 }, 
-+	{
-+		.ctl_name = CTL_DEBUG,
-+		.procname = "debug",
-+		.mode = 0555,
-+		.child = debug_table2
-+	},
-+	{}
- }; 
- 
- static __init int x8664_sysctl_init(void)
+ static int __init
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
