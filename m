@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:13 -0800
-Message-ID: <200701240312.l0O3CDpd006801@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-xfs-ctl_tables-fixes.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:34 -0800
+Message-ID: <200701240312.l0O3CY4h006841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49046 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49057 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030189AbXAXDMe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:34 -0500
+	id S1030188AbXAXDMh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, neilb@cse.unsw.edu.au, trond.myklebust@fys.uio.no
+Cc: ebiederm@xmission.com, dgc@sgi.com
 
 
 The patch titled
-     sysctl: move CTL_SUNRPC to sysctl.h where it belongs
+     fixes for my C99 converion xfs ctl_tables
 has been added to the -mm tree.  Its filename is
-     sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
+     sysctl-c99-convert-xfs-ctl_tables-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: move CTL_SUNRPC to sysctl.h where it belongs
+Subject: fixes for my C99 converion xfs ctl_tables
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+This kills the extra NULLs and spaces, I missed.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@cse.unsw.edu.au>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sunrpc/debug.h |    1 -
- include/linux/sysctl.h       |    3 ++-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/xfs/linux-2.6/xfs_sysctl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sunrpc/debug.h
---- a/include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
-+++ a/include/linux/sunrpc/debug.h
-@@ -78,7 +78,6 @@ void		rpc_unregister_sysctl(void);
-  * module currently registers its sysctl table dynamically, the sysctl path
-  * for module FOO is <CTL_SUNRPC, CTL_FOODEBUG>.
-  */
--#define CTL_SUNRPC	7249	/* arbitrary and hopefully unused */
- 
- enum {
- 	CTL_RPCDEBUG = 1,
-diff -puN include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
-+++ a/include/linux/sysctl.h
-@@ -69,7 +69,8 @@ enum
- 	CTL_DEV=7,		/* Devices */
- 	CTL_BUS=8,		/* Busses */
- 	CTL_ABI=9,		/* Binary emulation */
--	CTL_CPU=10		/* CPU stuff (speed scaling, etc) */
-+	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
-+	CTL_SUNRPC=7249,	/* sunrpc debug */
- };
- 
- /* CTL_BUS names: */
+diff -puN fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-c99-convert-xfs-ctl_tables-fixes fs/xfs/linux-2.6/xfs_sysctl.c
+--- a/fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-c99-convert-xfs-ctl_tables-fixes
++++ a/fs/xfs/linux-2.6/xfs_sysctl.c
+@@ -94,7 +94,7 @@ STATIC ctl_table xfs_table[] = {
+ 		.data		= &xfs_params.panic_mask.val,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	=  &proc_dointvec_minmax,
++		.proc_handler	= &proc_dointvec_minmax,
+ 		.strategy	= &sysctl_intvec,
+ 		.extra1		= &xfs_params.panic_mask.min,
+ 		.extra2		= &xfs_params.panic_mask.max
+@@ -140,7 +140,7 @@ STATIC ctl_table xfs_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec_minmax,
+-		.strategy	= &sysctl_intvec, NULL,
++		.strategy	= &sysctl_intvec,
+ 		.extra1		= &xfs_params.inherit_nodump.min,
+ 		.extra2		= &xfs_params.inherit_nodump.max
+ 	},
+@@ -151,7 +151,7 @@ STATIC ctl_table xfs_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec_minmax,
+-		.strategy	= &sysctl_intvec, NULL,
++		.strategy	= &sysctl_intvec,
+ 		.extra1		= &xfs_params.inherit_noatim.min,
+ 		.extra2		= &xfs_params.inherit_noatim.max
+ 	},
+@@ -218,7 +218,7 @@ STATIC ctl_table xfs_table[] = {
+ 		.data		= &xfs_params.stats_clear.val,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	=  &xfs_stats_clear_proc_handler,
++		.proc_handler	= &xfs_stats_clear_proc_handler,
+ 		.strategy	= &sysctl_intvec,
+ 		.extra1		= &xfs_params.stats_clear.min,
+ 		.extra2		= &xfs_params.stats_clear.max
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
