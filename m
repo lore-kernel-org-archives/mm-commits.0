@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:49 -0800
-Message-ID: <200701240312.l0O3CnWb006870@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-arch-frv-kernel-sysctlc.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:54 -0800
+Message-ID: <200701240312.l0O3Cs5X006882@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49107 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49118 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030211AbXAXDNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:00 -0500
+	id S1030217AbXAXDNB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, dhowells@redhat.com
 
 
 The patch titled
-     sysctl: frv: pm remove unnecessary insert_at_head flag
+     sysctl: C99 convert arch/frv/kernel/sysctl.c
 has been added to the -mm tree.  Its filename is
-     sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: frv: pm remove unnecessary insert_at_head flag
+Subject: sysctl: C99 convert arch/frv/kernel/sysctl.c
 From: Eric W. Biederman <ebiederm@xmission.com>
-
-With unique binary numbers setting insert_at_head to insert yourself at the
-head of sysctl list and thus override existing sysctl entries serves no point.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/frv/kernel/pm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/kernel/sysctl.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/kernel/pm.c~sysctl-frv-pm-remove-unnecessary-insert_at_head-flag arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~sysctl-frv-pm-remove-unnecessary-insert_at_head-flag
-+++ a/arch/frv/kernel/pm.c
-@@ -419,7 +419,7 @@ static struct ctl_table pm_dir_table[] =
+diff -puN arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc arch/frv/kernel/sysctl.c
+--- a/arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc
++++ a/arch/frv/kernel/sysctl.c
+@@ -175,11 +175,25 @@ static int procctl_frv_pin_cxnr(ctl_tabl
   */
- static int __init pm_init(void)
+ static struct ctl_table frv_table[] =
  {
--	register_sysctl_table(pm_dir_table, 1);
-+	register_sysctl_table(pm_dir_table, 0);
- 	return 0;
- }
+-	{ 1, "cache-mode",	NULL, 0, 0644, NULL, &procctl_frv_cachemode },
++	{
++		.ctl_name 	= 1,
++		.procname 	= "cache-mode",
++		.data		= NULL,
++		.maxlen		= 0,
++		.mode		= 0644,
++		.proc_handler	= &procctl_frv_cachemode,
++	},
+ #ifdef CONFIG_MMU
+-	{ 2, "pin-cxnr",	NULL, 0, 0644, NULL, &procctl_frv_pin_cxnr },
++	{
++		.ctl_name	= 2,
++		.procname	= "pin-cxnr",
++		.data		= NULL,
++		.maxlen		= 0,
++		.mode		= 0644,
++		.proc_handler	= &procctl_frv_pin_cxnr
++	},
+ #endif
+-	{ 0 }
++	{}
+ };
  
+ /*
+@@ -188,8 +202,13 @@ static struct ctl_table frv_table[] =
+  */
+ static struct ctl_table frv_dir_table[] =
+ {
+-	{CTL_FRV, "frv", NULL, 0, 0555, frv_table},
+-	{0}
++	{
++		.ctl_name	= CTL_FRV,
++		.procname	= "frv",
++		.mode 		= 0555,
++		.child		= frv_table
++	},
++	{}
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
