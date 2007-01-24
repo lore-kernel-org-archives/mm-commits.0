@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + spi-alternative-fix-for-spi_busnum_to_master.patch added to -mm tree
-Date: Tue, 23 Jan 2007 18:14:51 -0800
-Message-ID: <200701240214.l0O2EpbN005856@shell0.pdx.osdl.net>
+Subject: + sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:17 -0800
+Message-ID: <200701240312.l0O3CHZN006807@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48065 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49045 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965615AbXAXCPB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 21:15:01 -0500
+	id S1030186AbXAXDMd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net
+Cc: ebiederm@xmission.com, neilb@cse.unsw.edu.au, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     SPI: alternative fix for spi_busnum_to_master
+     sysctl: sunrpc: don't unnecessarily set ctl_table->de
 has been added to the -mm tree.  Its filename is
-     spi-alternative-fix-for-spi_busnum_to_master.patch
+     sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,165 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPI: alternative fix for spi_busnum_to_master
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: sysctl: sunrpc: don't unnecessarily set ctl_table->de
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-If a SPI master device exists, udev (udevtrigger) causes kernel crash, due
-to wrong kobj pointer in kobject_uevent_env().  This problem was not in
-2.6.19.
+We don't need this to prevent module unload races so remove the unnecessary
+code.
 
-The backtrace (on MIPS) was:
-[<8024db6c>] kobject_uevent_env+0x54c/0x5e8
-[<802a8264>] store_uevent+0x1c/0x3c  (in drivers/class.c)
-[<801cb14c>] subsys_attr_store+0x2c/0x50
-[<801cb80c>] flush_write_buffer+0x38/0x5c
-[<801cb900>] sysfs_write_file+0xd0/0x190
-[<80181444>] vfs_write+0xc4/0x1a0
-[<80181cdc>] sys_write+0x54/0xa0
-[<8010dae4>] stack_done+0x20/0x3c
-
-flush_write_buffer() passes kobject of spi_master_class.subsys to
-subsys_addr_store(), then subsys_addr_store() passes a pointer to a struct
-subsystem to store_uevent() which expects a pointer to a struct
-class_device.  The problem seems subsys_attr_store() called instead of
-class_device_attr_store().
-
-This mismatch was caused by commit
-3bd0f6943520e459659d10f3282285e43d3990f1, which overrides kset of master
-class.  This made spi_master_class.subsys.kset.ktype NULL so
-subsys_sysfs_ops is used instead of class_dev_sysfs_ops.
-
-The commit was to fix spi_busnum_to_master().  Here is a patch fixes
-this function in other way, just searching children list of
-class_device.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@cse.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/spi.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ net/sunrpc/sysctl.c   |    8 +-------
+ net/sunrpc/xprtsock.c |    7 +------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN drivers/spi/spi.c~spi-alternative-fix-for-spi_busnum_to_master drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-alternative-fix-for-spi_busnum_to_master
-+++ a/drivers/spi/spi.c
-@@ -366,7 +366,6 @@ spi_alloc_master(struct device *dev, uns
- 
- 	class_device_initialize(&master->cdev);
- 	master->cdev.class = &spi_master_class;
--	kobj_set_kset_s(&master->cdev, spi_master_class.subsys);
- 	master->cdev.dev = get_device(dev);
- 	spi_master_set_devdata(master, &master[1]);
- 
-@@ -466,14 +465,20 @@ EXPORT_SYMBOL_GPL(spi_unregister_master)
-  */
- struct spi_master *spi_busnum_to_master(u16 bus_num)
+diff -puN net/sunrpc/sysctl.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de net/sunrpc/sysctl.c
+--- a/net/sunrpc/sysctl.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de
++++ a/net/sunrpc/sysctl.c
+@@ -35,14 +35,8 @@ static ctl_table		sunrpc_table[];
+ void
+ rpc_register_sysctl(void)
  {
--	char			name[9];
--	struct kobject		*bus;
--
--	snprintf(name, sizeof name, "spi%u", bus_num);
--	bus = kset_find_obj(&spi_master_class.subsys.kset, name);
--	if (bus)
--		return container_of(bus, struct spi_master, cdev.kobj);
--	return NULL;
-+	struct class_device	*cdev;
-+	struct spi_master	*master = NULL;
-+	struct spi_master	*m;
-+
-+	down(&spi_master_class.sem);
-+	list_for_each_entry(cdev, &spi_master_class.children, node) {
-+		m = container_of(cdev, struct spi_master, cdev);
-+		if (m->bus_num == bus_num) {
-+			master = spi_master_get(m);
-+			break;
-+		}
-+	}
-+	up(&spi_master_class.sem);
-+	return master;
+-	if (!sunrpc_table_header) {
++	if (!sunrpc_table_header)
+ 		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
+-#ifdef CONFIG_PROC_FS
+-		if (sunrpc_table[0].de)
+-			sunrpc_table[0].de->owner = THIS_MODULE;
+-#endif
+-	}
+-			
  }
- EXPORT_SYMBOL_GPL(spi_busnum_to_master);
  
+ void
+diff -puN net/sunrpc/xprtsock.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de
++++ a/net/sunrpc/xprtsock.c
+@@ -1628,13 +1628,8 @@ struct rpc_xprt *xs_setup_tcp(struct soc
+ int init_socket_xprt(void)
+ {
+ #ifdef RPC_DEBUG
+-	if (!sunrpc_table_header) {
++	if (!sunrpc_table_header)
+ 		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
+-#ifdef CONFIG_PROC_FS
+-		if (sunrpc_table[0].de)
+-			sunrpc_table[0].de->owner = THIS_MODULE;
+-#endif
+-	}
+ #endif
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-spi-alternative-fix-for-spi_busnum_to_master.patch
-git-mips.patch
-serial-serial_txx9-driver-update.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110.patch
+vt-refactor-console-sak-processing.patch
+sysctl_ms_jiffies-fix-oldlen-semantics.patch
+9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+kill_pid_info-kill-acquired_tasklist_lock.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-apic-rework-and-fix-local-apic-calibration.patch
+dynticks-i386-prepare-nmi-watchdog.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-k8-driver-coding-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fix.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user_ns-handle-file-sigio.patch
+user_ns-handle-file-sigio-fix.patch
+user-ns-implement-user-ns-unshare.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+user-ns-implement-user-ns-unshare-remove-config_user_ns.patch
+remove-find_attach_pid.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
+sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
+sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
+sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
+sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
+sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
+sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
+sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
+sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
+sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
+sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
+sysctl-c99-convert-xfs-ctl_tables.patch
+sysctl-c99-convert-xfs-ctl_tables-fixes.patch
+sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
+sysctl-md-remove-unnecessary-insert_at_head-flag.patch
+sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
+sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
+sysctl-cdrom-dont-set-de-owner.patch
+sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
+sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
+sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
+sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
+sysctl-c99-convert-arch-frv-kernel-pmc.patch
+sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
+sysctl-sn-remove-sysctl-abi-breakage.patch
+sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
+sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
+sysctl-mips-au1000-remove-sys_sysctl-support.patch
+sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
+sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
+sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
+sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
+sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
+sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
+sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
+sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
+sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
+sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
+sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
+sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
+sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
+sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
+sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
+sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
+sysctl-register-the-ocfs2-sysctl-numbers.patch
+sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
+sysctl-move-utsname-sysctls-to-their-own-file.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
+sysctl-remove-support-for-ctl_any.patch
+sysctl-remove-support-for-directory-strategy-routines.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
+sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
+sysctl-reimplement-the-sysctl-proc-support.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
