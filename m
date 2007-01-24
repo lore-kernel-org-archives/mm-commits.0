@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:21 -0800
-Message-ID: <200701240312.l0O3CLuY006813@shell0.pdx.osdl.net>
+Subject: + sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:11 -0800
+Message-ID: <200701240312.l0O3CBq1006795@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49291 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49285 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030228AbXAXDPi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:15:38 -0500
+	id S1030221AbXAXDP3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:15:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, ralf@linux-mips.org
 
 
 The patch titled
-     sysctl: netrom: remove unnecessary insert_at_head flag
+     sysctl: x25: remove unnecessary insert_at_head from register_sysctl_table
 has been added to the -mm tree.  Its filename is
-     sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: netrom: remove unnecessary insert_at_head flag
+Subject: sysctl: x25: remove unnecessary insert_at_head from register_sysctl_table
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The sysctl numbers used are unique so setting the insert_at_head flag serves
-no semantic purpose, so it is just confusing.
+Since x25 uses unique binary numbers inserting yourself at the head of the
+search list for sysctls so you can override already registered sysctls is
+pointless.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/netrom/sysctl_net_netrom.c |    2 +-
+ net/x25/sysctl_net_x25.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/netrom/sysctl_net_netrom.c~sysctl-netrom-remove-unnecessary-insert_at_head-flag net/netrom/sysctl_net_netrom.c
---- a/net/netrom/sysctl_net_netrom.c~sysctl-netrom-remove-unnecessary-insert_at_head-flag
-+++ a/net/netrom/sysctl_net_netrom.c
-@@ -192,7 +192,7 @@ static ctl_table nr_root_table[] = {
+diff -puN net/x25/sysctl_net_x25.c~sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table net/x25/sysctl_net_x25.c
+--- a/net/x25/sysctl_net_x25.c~sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table
++++ a/net/x25/sysctl_net_x25.c
+@@ -98,7 +98,7 @@ static struct ctl_table x25_root_table[]
  
- void __init nr_register_sysctl(void)
+ void __init x25_register_sysctl(void)
  {
--	nr_table_header = register_sysctl_table(nr_root_table, 1);
-+	nr_table_header = register_sysctl_table(nr_root_table, 0);
+-	x25_table_header = register_sysctl_table(x25_root_table, 1);
++	x25_table_header = register_sysctl_table(x25_root_table, 0);
  }
  
- void nr_unregister_sysctl(void)
+ void x25_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
