@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:53 -0800
-Message-ID: <200701240313.l0O3DrcV006994@shell0.pdx.osdl.net>
+Subject: + sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:43 -0800
+Message-ID: <200701240313.l0O3DhTN006979@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49258 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49243 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030216AbXAXDNz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:55 -0500
+	id S1030208AbXAXDNp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: allow sysctl_perm to be called from outside of sysctl.c
+     sysctl: create sys/fs/binfmt_misc as an ordinary sysctl entry
 has been added to the -mm tree.  Its filename is
-     sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
+     sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: allow sysctl_perm to be called from outside of sysctl.c
+Subject: sysctl: create sys/fs/binfmt_misc as an ordinary sysctl entry
 From: Eric W. Biederman <ebiederm@xmission.com>
+
+binfmt_misc has a mount point in the middle of the sysctl and that mount point
+is created as a proc_generic directory.
+
+Doing it that way gets in the way of cleaning up the sysctl proc support as it
+continues the existence of a horrible hack.  So instead simply create the
+directory as an ordinary sysctl directory.  At least that removes the magic
+special case.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sysctl.h |    2 ++
- kernel/sysctl.c        |   10 +++++-----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ fs/proc/root.c  |    4 ----
+ kernel/sysctl.c |   13 +++++++++++++
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc
-+++ a/include/linux/sysctl.h
-@@ -924,8 +924,10 @@ enum
- #include <linux/list.h>
- 
- /* For the /proc/sys support */
-+struct ctl_table;
- extern struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev);
- extern void sysctl_head_finish(struct ctl_table_header *prev);
-+extern int sysctl_perm(struct ctl_table *table, int op);
- 
- extern void sysctl_init(void);
- 
-diff -puN kernel/sysctl.c~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc
+diff -puN fs/proc/root.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry fs/proc/root.c
+--- a/fs/proc/root.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry
++++ a/fs/proc/root.c
+@@ -74,10 +74,6 @@ void __init proc_root_init(void)
+ #ifdef CONFIG_SYSCTL
+ 	proc_sys_root = proc_mkdir("sys", NULL);
+ #endif
+-#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+-	proc_mkdir("sys/fs", NULL);
+-	proc_mkdir("sys/fs/binfmt_misc", NULL);
+-#endif
+ 	proc_root_fs = proc_mkdir("fs", NULL);
+ 	proc_root_driver = proc_mkdir("driver", NULL);
+ 	proc_mkdir("fs/nfsd", NULL); /* somewhere for the nfsd filesystem to be mounted */
+diff -puN kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry
 +++ a/kernel/sysctl.c
-@@ -1197,7 +1197,7 @@ asmlinkage long sys_sysctl(struct __sysc
- #endif /* CONFIG_SYSCTL_SYSCALL */
+@@ -150,6 +150,7 @@ static struct ctl_table_header root_tabl
+ static ctl_table kern_table[];
+ static ctl_table vm_table[];
+ static ctl_table fs_table[];
++static ctl_table binfmt_misc_table[];
+ static ctl_table debug_table[];
+ static ctl_table dev_table[];
+ extern ctl_table random_table[];
+@@ -1044,6 +1045,18 @@ static ctl_table fs_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
++#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "binfmt_misc",
++		.mode		= 0555,
++		.child		= binfmt_misc_table,
++	},
++#endif
++	{ .ctl_name = 0 }
++};
++
++static ctl_table binfmt_misc_table[] = {
+ 	{ .ctl_name = 0 }
+ };
  
- /*
-- * ctl_perm does NOT grant the superuser all rights automatically, because
-+ * sysctl_perm does NOT grant the superuser all rights automatically, because
-  * some sysctl variables are readonly even to root.
-  */
- 
-@@ -1212,7 +1212,7 @@ static int test_perm(int mode, int op)
- 	return -EACCES;
- }
- 
--static inline int ctl_perm(ctl_table *table, int op)
-+int sysctl_perm(ctl_table *table, int op)
- {
- 	int error;
- 	error = security_sysctl(table, op);
-@@ -1239,7 +1239,7 @@ repeat:
- 		if (n == table->ctl_name) {
- 			int error;
- 			if (table->child) {
--				if (ctl_perm(table, 001))
-+				if (sysctl_perm(table, 001))
- 					return -EPERM;
- 				name++;
- 				nlen--;
-@@ -1268,7 +1268,7 @@ int do_sysctl_strategy (ctl_table *table
- 		op |= 004;
- 	if (newval) 
- 		op |= 002;
--	if (ctl_perm(table, op))
-+	if (sysctl_perm(table, op))
- 		return -EPERM;
- 
- 	if (table->strategy) {
-@@ -1538,7 +1538,7 @@ static ssize_t do_rw_proc(int write, str
- 			goto out;
- 		error = -EPERM;
- 		op = (write ? 002 : 004);
--		if (ctl_perm(table, op))
-+		if (sysctl_perm(table, op))
- 			goto out;
- 		
- 		/* careful: calling conventions are nasty here */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
