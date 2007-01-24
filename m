@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:30 -0800
-Message-ID: <200701240313.l0O3DU05006956@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:20 -0800
+Message-ID: <200701240313.l0O3DKas006932@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49228 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49205 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030259AbXAXDNg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:36 -0500
+	id S1030251AbXAXDN0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, jaharkes@cs.cmu.edu
+Cc: ebiederm@xmission.com, ak@suse.de
 
 
 The patch titled
-     sysctl: C99 convert coda ctl_tables and remove binary sysctls
+     sysctl: C99 convert ctl_tables in arch/x86_64/mm/init.c
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
+     sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert coda ctl_tables and remove binary sysctls
+Subject: sysctl: C99 convert ctl_tables in arch/x86_64/mm/init.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Will converting the coda sysctl initializers I discovered that it is yet
-another user of sysctl that was stomping CTL_KERN.  So off with it's
-sys_sysctl support since it wasn't done in a supportable way.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
+Acked-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/coda/sysctl.c |   58 +++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 48 insertions(+), 10 deletions(-)
+ arch/x86_64/mm/init.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-diff -puN fs/coda/sysctl.c~sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls fs/coda/sysctl.c
---- a/fs/coda/sysctl.c~sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls
-+++ a/fs/coda/sysctl.c
-@@ -33,8 +33,6 @@
+diff -puN arch/x86_64/mm/init.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc
++++ a/arch/x86_64/mm/init.c
+@@ -711,15 +711,25 @@ int kern_addr_valid(unsigned long addr) 
+ extern int exception_trace, page_fault_trace;
  
- static struct ctl_table_header *fs_table_header;
- 
--#define FS_CODA         1       /* Coda file system */
--
- #define CODA_TIMEOUT    3       /* timeout on upcalls to become intrble */
- #define CODA_HARD       5       /* mount type "hard" or "soft" */
- #define CODA_VFS 	 6       /* vfs statistics */
-@@ -183,17 +181,57 @@ static const struct file_operations proc
- };
- 
- static ctl_table coda_table[] = {
-- 	{CODA_TIMEOUT, "timeout", &coda_timeout, sizeof(int), 0644, NULL, &proc_dointvec},
-- 	{CODA_HARD, "hard", &coda_hard, sizeof(int), 0644, NULL, &proc_dointvec},
-- 	{CODA_VFS, "vfs_stats", NULL, 0, 0644, NULL, &do_reset_coda_vfs_stats},
-- 	{CODA_CACHE_INV, "cache_inv_stats", NULL, 0, 0644, NULL, &do_reset_coda_cache_inv_stats},
-- 	{CODA_FAKE_STATFS, "fake_statfs", &coda_fake_statfs, sizeof(int), 0600, NULL, &proc_dointvec},
--	{ 0 }
+ static ctl_table debug_table2[] = {
+-	{ 99, "exception-trace", &exception_trace, sizeof(int), 0644, NULL,
+-	  proc_dointvec },
+-	{ 0, }
 +	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "timeout",
-+		.data		= &coda_timeout,
++		.ctl_name	= 99,
++		.procname	= "exception-trace",
++		.data		= &exception_trace,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "hard",
-+		.data		= &coda_hard,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "vfs_stats",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0644,
-+		.proc_handler	= &do_reset_coda_vfs_stats
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "cache_inv_stats",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0644,
-+		.proc_handler	= &do_reset_coda_cache_inv_stats
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "fake_statfs",
-+		.data		= &coda_fake_statfs,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= &proc_dointvec
++		.proc_handler	= proc_dointvec
 +	},
 +	{}
- };
+ }; 
  
- static ctl_table fs_table[] = {
--       {FS_CODA, "coda",    NULL, 0, 0555, coda_table},
--       {0}
+ static ctl_table debug_root_table2[] = { 
+-	{ .ctl_name = CTL_DEBUG, .procname = "debug", .mode = 0555, 
+-	   .child = debug_table2 }, 
+-	{ 0 }, 
 +	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "coda",
-+		.mode		= 0555,
-+		.child		= coda_table
++		.ctl_name = CTL_DEBUG,
++		.procname = "debug",
++		.mode = 0555,
++		.child = debug_table2
 +	},
 +	{}
- };
+ }; 
  
- 
+ static __init int x8664_sysctl_init(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
