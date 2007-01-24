@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:10 -0800
-Message-ID: <200701240313.l0O3DAAX006912@shell0.pdx.osdl.net>
+Subject: + sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:07 -0800
+Message-ID: <200701240313.l0O3D72F006906@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49145 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49146 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030236AbXAXDNO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:14 -0500
+	id S1030238AbXAXDNP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: ebiederm@xmission.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables entries in arch/ppc/kernel/ppc_htab.c
+     sysctl: s390: remove unnecessary use of insert_at_head
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
+     sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables entries in arch/ppc/kernel/ppc_htab.c
+Subject: sysctl: s390: remove unnecessary use of insert_at_head
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-And make the mode of the kernel directory 0555 no one is allowed to write to
-sysctl directories.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ppc/kernel/ppc_htab.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ arch/s390/appldata/appldata_base.c |    4 ++--
+ arch/s390/kernel/debug.c           |    2 +-
+ arch/s390/mm/cmm.c                 |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/ppc/kernel/ppc_htab.c~sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc arch/ppc/kernel/ppc_htab.c
---- a/arch/ppc/kernel/ppc_htab.c~sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc
-+++ a/arch/ppc/kernel/ppc_htab.c
-@@ -442,11 +442,16 @@ static ctl_table htab_ctl_table[]={
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dol2crvec,
- 	},
--	{ 0, },
-+	{}
- };
- static ctl_table htab_sysctl_root[] = {
--	{ 1, "kernel", NULL, 0, 0755, htab_ctl_table, },
-- 	{ 0,},
-+	{
-+		.ctl_name	= CTL_KERN,
-+		.procname	= "kernel",
-+		.mode		= 0555,
-+		.child		= htab_ctl_table,
-+	},
-+	{}
- };
+diff -puN arch/s390/appldata/appldata_base.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/appldata/appldata_base.c
+--- a/arch/s390/appldata/appldata_base.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
++++ a/arch/s390/appldata/appldata_base.c
+@@ -506,7 +506,7 @@ int appldata_register_ops(struct appldat
  
- static int __init
+ 	ops->ctl_table[3].ctl_name = 0;
+ 
+-	ops->sysctl_header = register_sysctl_table(ops->ctl_table,1);
++	ops->sysctl_header = register_sysctl_table(ops->ctl_table,0);
+ 
+ 	P_INFO("%s-ops registered!\n", ops->name);
+ 	return 0;
+@@ -606,7 +606,7 @@ static int __init appldata_init(void)
+ 	/* Register cpu hotplug notifier */
+ 	register_hotcpu_notifier(&appldata_nb);
+ 
+-	appldata_sysctl_header = register_sysctl_table(appldata_dir_table, 1);
++	appldata_sysctl_header = register_sysctl_table(appldata_dir_table, 0);
+ #ifdef MODULE
+ 	appldata_dir_table[0].de->owner = THIS_MODULE;
+ 	appldata_table[0].de->owner = THIS_MODULE;
+diff -puN arch/s390/kernel/debug.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/kernel/debug.c
+--- a/arch/s390/kernel/debug.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
++++ a/arch/s390/kernel/debug.c
+@@ -1053,7 +1053,7 @@ __init debug_init(void)
+ {
+ 	int rc = 0;
+ 
+-	s390dbf_sysctl_header = register_sysctl_table(s390dbf_dir_table, 1);
++	s390dbf_sysctl_header = register_sysctl_table(s390dbf_dir_table, 0);
+ 	down(&debug_lock);
+ 	debug_debugfs_root_entry = debugfs_create_dir(DEBUG_DIR_ROOT,NULL);
+ 	printk(KERN_INFO "debug: Initialization complete\n");
+diff -puN arch/s390/mm/cmm.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/mm/cmm.c
+--- a/arch/s390/mm/cmm.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
++++ a/arch/s390/mm/cmm.c
+@@ -418,7 +418,7 @@ cmm_init (void)
+ 	int rc = -ENOMEM;
+ 
+ #ifdef CONFIG_CMM_PROC
+-	cmm_sysctl_header = register_sysctl_table(cmm_dir_table, 1);
++	cmm_sysctl_header = register_sysctl_table(cmm_dir_table, 0);
+ 	if (!cmm_sysctl_header)
+ 		goto out;
+ #endif
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
