@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:28 -0800
-Message-ID: <200701240312.l0O3CSHh006825@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:16 -0800
+Message-ID: <200701240313.l0O3DGQU006924@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49127 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49199 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030223AbXAXDNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:04 -0500
+	id S1030248AbXAXDNX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, acme@conectiva.com.br
+Cc: ebiederm@xmission.com, ak@suse.de
 
 
 The patch titled
-     sysctl: dccp: remove unnecessary insert_at_head flag
+     sysctl: C99 convert ctl_tables in arch/x86_64/ia32/ia32_binfmt.c
 has been added to the -mm tree.  Its filename is
-     sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: dccp: remove unnecessary insert_at_head flag
+Subject: sysctl: C99 convert ctl_tables in arch/x86_64/ia32/ia32_binfmt.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Acked-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/dccp/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/ia32/ia32_binfmt.c |   28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag net/dccp/sysctl.c
---- a/net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag
-+++ a/net/dccp/sysctl.c
-@@ -127,7 +127,7 @@ static struct ctl_table_header *dccp_tab
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -344,16 +344,26 @@ EXPORT_SYMBOL(ia32_setup_arg_pages);
+ #include <linux/sysctl.h>
  
- int __init dccp_sysctl_init(void)
- {
--	dccp_table_header = register_sysctl_table(dccp_root_table, 1);
-+	dccp_table_header = register_sysctl_table(dccp_root_table, 0);
+ static ctl_table abi_table2[] = {
+-	{ 99, "vsyscall32", &sysctl_vsyscall32, sizeof(int), 0644, NULL,
+-	  proc_dointvec },
+-	{ 0, }
+-}; 
++	{
++		.ctl_name	= 99,
++		.procname	= "vsyscall32",
++		.data		= &sysctl_vsyscall32,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec
++	},
++	{}
++};
  
- 	return dccp_table_header != NULL ? 0 : -ENOMEM;
- }
+-static ctl_table abi_root_table2[] = { 
+-	{ .ctl_name = CTL_ABI, .procname = "abi", .mode = 0555, 
+-	  .child = abi_table2 }, 
+-	{ 0 }, 
+-}; 
++static ctl_table abi_root_table2[] = {
++	{
++		.ctl_name = CTL_ABI,
++		.procname = "abi",
++		.mode = 0555,
++		.child = abi_table2
++	},
++	{}
++};
+ 
+ static __init int ia32_binfmt_init(void)
+ { 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
