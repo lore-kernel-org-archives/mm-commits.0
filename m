@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:18 -0800
-Message-ID: <200701240313.l0O3DIbm006927@shell0.pdx.osdl.net>
+Subject: + sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:21 -0800
+Message-ID: <200701240313.l0O3DLA5006935@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49204 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49211 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030248AbXAXDN0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:26 -0500
+	id S965640AbXAXDN2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ak@suse.de
+Cc: ebiederm@xmission.com, clemens@ladisch.de
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables in arch/x86_64/kernel/vsyscall.c
+     sysctl: remove sys_sysctl support from the hpet timer driver
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
+     sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables in arch/x86_64/kernel/vsyscall.c
+Subject: sysctl: remove sys_sysctl support from the hpet timer driver
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Basically everything was done but I removed all element initializers from the
-trailing entries to make it clear the entire last entry should be zero filled.
+In the binary sysctl interface the hpet driver was claiming to be the cdrom
+driver.  This is a no-no so remove support for the binary interface.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Andi Kleen <ak@suse.de>
+Acked-by: Clemens Ladisch <clemens@ladisch.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/vsyscall.c |    4 ++--
+ drivers/char/hpet.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/vsyscall.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc arch/x86_64/kernel/vsyscall.c
---- a/arch/x86_64/kernel/vsyscall.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc
-+++ a/arch/x86_64/kernel/vsyscall.c
-@@ -258,13 +258,13 @@ static ctl_table kernel_table2[] = {
- 	  .mode = 0644,
- 	  .strategy = vsyscall_sysctl_nostrat,
- 	  .proc_handler = vsyscall_sysctl_change },
--	{ 0, }
-+	{}
- };
+diff -puN drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver drivers/char/hpet.c
+--- a/drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver
++++ a/drivers/char/hpet.c
+@@ -703,7 +703,7 @@ int hpet_control(struct hpet_task *tp, u
  
- static ctl_table kernel_root_table2[] = {
- 	{ .ctl_name = CTL_KERN, .procname = "kernel", .mode = 0555,
- 	  .child = kernel_table2 },
--	{ 0 },
-+	{}
- };
+ static ctl_table hpet_table[] = {
+ 	{
+-	 .ctl_name = 1,
++	 .ctl_name = CTL_UNNUMBERED,
+ 	 .procname = "max-user-freq",
+ 	 .data = &hpet_max_freq,
+ 	 .maxlen = sizeof(int),
+@@ -715,7 +715,7 @@ static ctl_table hpet_table[] = {
  
- #endif
+ static ctl_table hpet_root[] = {
+ 	{
+-	 .ctl_name = 1,
++	 .ctl_name = CTL_UNNUMBERED,
+ 	 .procname = "hpet",
+ 	 .maxlen = 0,
+ 	 .mode = 0555,
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
