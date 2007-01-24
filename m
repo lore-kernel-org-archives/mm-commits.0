@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch added to -mm tree
-Date: Tue, 23 Jan 2007 22:52:46 -0800
-Message-ID: <200701240652.l0O6qkME010850@shell0.pdx.osdl.net>
+Subject: + knfsd-replace-some-warning-ins-nfsfhh-with-bug_on-or-warn_on.patch added to -mm tree
+Date: Tue, 23 Jan 2007 22:52:42 -0800
+Message-ID: <200701240652.l0O6qgSo010847@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54785 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54802 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933104AbXAXGxV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 01:53:21 -0500
+	id S933118AbXAXG4D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 01:56:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: staubach@redhat.com, neilb@suse.de
+Cc: neilb@suse.de, bunk@stusta.de
 
 
 The patch titled
-     knfsd: Don't mess with the 'mode' when storing a exclusive-create cookie
+     knfsd: replace some warning ins nfsfh.h with BUG_ON or WARN_ON
 has been added to the -mm tree.  Its filename is
-     knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
+     knfsd-replace-some-warning-ins-nfsfhh-with-bug_on-or-warn_on.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,101 +25,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: Don't mess with the 'mode' when storing a exclusive-create cookie
-From: Peter Staubach <staubach@redhat.com>
+Subject: knfsd: replace some warning ins nfsfh.h with BUG_ON or WARN_ON
+From: NeilBrown <neilb@suse.de>
 
-NFS V3 (and V4) support exclusive create by passing a 'cookie' which can get
-stored with the file.  If the file exists but has exactly the right cookie
-stored, then we assume this is a retransmit and the exclusive create was
-successful.
+A couple of the warnings will be followed by an Oops if they ever fire, so may
+as well be BUG_ON.  Another isn't obviously fatal but has never been known to
+fire, so make it a WARN_ON.
 
-The cookie is 64bits and is traditionally stored in the mtime and atime
-fields.  This causes a problem with Solaris7 as negative mtime or atime
-confuse it.  So we moved two bits into the mode word instead.
-
-But inherited ACLs sometimes overwrite the mode word on create, so this is a
-problem.
-
-So we give up and just store 62 of the 64 bits and assume that is close
-enough.
-
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/vfs.c |   21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ include/linux/nfsd/nfsfh.h |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN fs/nfsd/vfs.c~knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie
-+++ a/fs/nfsd/vfs.c
-@@ -1245,7 +1245,6 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
- 	__be32		err;
- 	int		host_err;
- 	__u32		v_mtime=0, v_atime=0;
--	int		v_mode=0;
+diff -puN include/linux/nfsd/nfsfh.h~knfsd-replace-some-warning-ins-nfsfhh-with-bug_on-or-warn_on include/linux/nfsd/nfsfh.h
+--- a/include/linux/nfsd/nfsfh.h~knfsd-replace-some-warning-ins-nfsfhh-with-bug_on-or-warn_on
++++ a/include/linux/nfsd/nfsfh.h
+@@ -217,11 +217,7 @@ void	fh_put(struct svc_fh *);
+ static __inline__ struct svc_fh *
+ fh_copy(struct svc_fh *dst, struct svc_fh *src)
+ {
+-	if (src->fh_dentry || src->fh_locked) {
+-		struct dentry *dentry = src->fh_dentry;
+-		printk(KERN_ERR "fh_copy: copying %s/%s, already verified!\n",
+-			dentry->d_parent->d_name.name, dentry->d_name.name);
+-	}
++	WARN_ON(src->fh_dentry || src->fh_locked);
+ 			
+ 	*dst = *src;
+ 	return dst;
+@@ -300,10 +296,8 @@ fh_lock_nested(struct svc_fh *fhp, unsig
+ 	dfprintk(FILEOP, "nfsd: fh_lock(%s) locked = %d\n",
+ 			SVCFH_fmt(fhp), fhp->fh_locked);
  
- 	err = nfserr_perm;
- 	if (!flen)
-@@ -1282,16 +1281,11 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
- 		goto out;
+-	if (!fhp->fh_dentry) {
+-		printk(KERN_ERR "fh_lock: fh not verified!\n");
+-		return;
+-	}
++	BUG_ON(!dentry);
++
+ 	if (fhp->fh_locked) {
+ 		printk(KERN_WARNING "fh_lock: %s/%s already locked!\n",
+ 			dentry->d_parent->d_name.name, dentry->d_name.name);
+@@ -328,8 +322,7 @@ fh_lock(struct svc_fh *fhp)
+ static inline void
+ fh_unlock(struct svc_fh *fhp)
+ {
+-	if (!fhp->fh_dentry)
+-		printk(KERN_ERR "fh_unlock: fh not verified!\n");
++	BUG_ON(!fhp->fh_dentry);
  
- 	if (createmode == NFS3_CREATE_EXCLUSIVE) {
--		/* while the verifier would fit in mtime+atime,
--		 * solaris7 gets confused (bugid 4218508) if these have
--		 * the high bit set, so we use the mode as well
-+		/* solaris7 gets confused (bugid 4218508) if these have
-+		 * the high bit set, so just clear the high bits.
- 		 */
- 		v_mtime = verifier[0]&0x7fffffff;
- 		v_atime = verifier[1]&0x7fffffff;
--		v_mode  = S_IFREG
--			| ((verifier[0]&0x80000000) >> (32-7)) /* u+x */
--			| ((verifier[1]&0x80000000) >> (32-9)) /* u+r */
--			;
- 	}
- 	
- 	if (dchild->d_inode) {
-@@ -1319,7 +1313,6 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
- 		case NFS3_CREATE_EXCLUSIVE:
- 			if (   dchild->d_inode->i_mtime.tv_sec == v_mtime
- 			    && dchild->d_inode->i_atime.tv_sec == v_atime
--			    && dchild->d_inode->i_mode  == v_mode
- 			    && dchild->d_inode->i_size  == 0 )
- 				break;
- 			 /* fallthru */
-@@ -1341,26 +1334,22 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
- 	}
- 
- 	if (createmode == NFS3_CREATE_EXCLUSIVE) {
--		/* Cram the verifier into atime/mtime/mode */
-+		/* Cram the verifier into atime/mtime */
- 		iap->ia_valid = ATTR_MTIME|ATTR_ATIME
--			| ATTR_MTIME_SET|ATTR_ATIME_SET
--			| ATTR_MODE;
-+			| ATTR_MTIME_SET|ATTR_ATIME_SET;
- 		/* XXX someone who knows this better please fix it for nsec */ 
- 		iap->ia_mtime.tv_sec = v_mtime;
- 		iap->ia_atime.tv_sec = v_atime;
- 		iap->ia_mtime.tv_nsec = 0;
- 		iap->ia_atime.tv_nsec = 0;
--		iap->ia_mode  = v_mode;
- 	}
- 
- 	/* Set file attributes.
--	 * Mode has already been set but we might need to reset it
--	 * for CREATE_EXCLUSIVE
- 	 * Irix appears to send along the gid when it tries to
- 	 * implement setgid directories via NFS. Clear out all that cruft.
- 	 */
-  set_attr:
--	if ((iap->ia_valid &= ~(ATTR_UID|ATTR_GID)) != 0) {
-+	if ((iap->ia_valid &= ~(ATTR_UID|ATTR_GID|ATTR_MODE)) != 0) {
-  		__be32 err2 = nfsd_setattr(rqstp, resfhp, iap, 0, (time_t)0);
- 		if (err2)
- 			err = err2;
+ 	if (fhp->fh_locked) {
+ 		fill_post_wcc(fhp);
 _
 
-Patches currently in -mm which might be from staubach@redhat.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
+knfsd-update-email-address-and-status-for-nfsd-in-maintainers.patch
+knfsd-fix-setting-of-acl-server-versions.patch
+knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads.patch
+knfsd-replace-some-warning-ins-nfsfhh-with-bug_on-or-warn_on.patch
 knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+igrab-should-check-for-i_clear.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
