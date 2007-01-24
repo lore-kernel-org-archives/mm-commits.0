@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:36 -0800
-Message-ID: <200701240312.l0O3CaMt006844@shell0.pdx.osdl.net>
+Subject: + sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:13 -0800
+Message-ID: <200701240312.l0O3CDpd006801@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49060 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49046 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030191AbXAXDMj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:39 -0500
+	id S1030189AbXAXDMe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, James.Bottomley@steeleye.com
+Cc: ebiederm@xmission.com, neilb@cse.unsw.edu.au, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     sysctl: scsi: remove unnecessary insert_at_head flag
+     sysctl: move CTL_SUNRPC to sysctl.h where it belongs
 has been added to the -mm tree.  Its filename is
-     sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: scsi: remove unnecessary insert_at_head flag
+Subject: sysctl: move CTL_SUNRPC to sysctl.h where it belongs
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@cse.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/scsi_sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sunrpc/debug.h |    1 -
+ include/linux/sysctl.h       |    3 ++-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/scsi_sysctl.c~sysctl-scsi-remove-unnecessary-insert_at_head-flag drivers/scsi/scsi_sysctl.c
---- a/drivers/scsi/scsi_sysctl.c~sysctl-scsi-remove-unnecessary-insert_at_head-flag
-+++ a/drivers/scsi/scsi_sysctl.c
-@@ -42,7 +42,7 @@ static struct ctl_table_header *scsi_tab
+diff -puN include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sunrpc/debug.h
+--- a/include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
++++ a/include/linux/sunrpc/debug.h
+@@ -78,7 +78,6 @@ void		rpc_unregister_sysctl(void);
+  * module currently registers its sysctl table dynamically, the sysctl path
+  * for module FOO is <CTL_SUNRPC, CTL_FOODEBUG>.
+  */
+-#define CTL_SUNRPC	7249	/* arbitrary and hopefully unused */
  
- int __init scsi_init_sysctl(void)
- {
--	scsi_table_header = register_sysctl_table(scsi_root_table, 1);
-+	scsi_table_header = register_sysctl_table(scsi_root_table, 0);
- 	if (!scsi_table_header)
- 		return -ENOMEM;
- 	return 0;
+ enum {
+ 	CTL_RPCDEBUG = 1,
+diff -puN include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
++++ a/include/linux/sysctl.h
+@@ -69,7 +69,8 @@ enum
+ 	CTL_DEV=7,		/* Devices */
+ 	CTL_BUS=8,		/* Busses */
+ 	CTL_ABI=9,		/* Binary emulation */
+-	CTL_CPU=10		/* CPU stuff (speed scaling, etc) */
++	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
++	CTL_SUNRPC=7249,	/* sunrpc debug */
+ };
+ 
+ /* CTL_BUS names: */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
