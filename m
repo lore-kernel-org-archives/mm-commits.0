@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t.patch added to -mm tree
-Date: Tue, 23 Jan 2007 23:04:06 -0800
-Message-ID: <200701240704.l0O746v5011093@shell0.pdx.osdl.net>
+Subject: + sata_nv-cleanup-adma-error-handling-v2.patch added to -mm tree
+Date: Tue, 23 Jan 2007 23:09:57 -0800
+Message-ID: <200701240709.l0O79vc1011225@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55131 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55456 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933180AbXAXHFh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 02:05:37 -0500
+	id S965446AbXAXHKQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 02:10:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paubert@iram.es, neilb@suse.de, stable@kernel.org
+Cc: hancockr@shaw.ca, AMartin@nvidia.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     nfsd: Fix mismatch between encode_dent_fn and filldir_t
+     sata_nv: cleanup ADMA error handling
 has been added to the -mm tree.  Its filename is
-     nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t.patch
+     sata_nv-cleanup-adma-error-handling-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,107 +25,256 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfsd: Fix mismatch between encode_dent_fn and filldir_t
-From: Gabriel Paubert <paubert@iram.es>
+Subject: sata_nv: cleanup ADMA error handling
+From: Robert Hancock <hancockr@shaw.ca>
 
-The 5th parameter of filldir_t function type used by vfs_readdir was
-changed from ino_t to u64 in October.  Unfortunately the patch missed some
-files in fs/nfsd where functions pointers of type encode_dent_fn are passed
-around and finally cast to filldir_t.
+This cleans up a few issues with the error handling in sata_nv in ADMA mode
+to make it more consistent with other NCQ-capable drivers like ahci and
+sata_sil24:
 
-The effect is only visible when an NFS server is run on a 32 bit big-endian
-machine (it would have been visible on all 32 bit architectures if the 6th
-parameter had been used).  The results are interesting: all files have an
-inode of 0 (unique you say?) from getdents(2) and even ls(1) does not find
-any files.
+- When a command failed, we would effectively set AC_ERR_DEV on the
+  queued command always.  In the case of NCQ commands this prevents libata
+  from doing a log page query to determine the details of the failed
+  command, since it thinks we've already analyzed.  Just set flags in the
+  port ehi->err_mask, then freeze or abort and let libata figure out what
+  went wrong.
 
-Signed-off-by: Gabriel Paubert <paubert@iram.es>
-Cc: Neil Brown <neilb@suse.de>
-Cc: <stable@kernel.org>
+- The code handled NV_ADMA_STAT_CPBERR as a "really bad error" which
+  caused it to set error flags on every queued command.  I don't know
+  exactly what this flag means (no docs, grr!) but from what I can guess
+  from the standard ADMA spec, it just means that one or more of the CPBs
+  had an error, so we just need to go through and do our normal checks in
+  this case.
+
+- In the error_handler function the code would always dump the state of
+  all the CPBs.  This output seems redundant at this point since libata
+  already dumps the state of all active commands on errors (and it also
+  triggers at times when it shouldn't, like when suspending).  Take this
+  out.
+
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Allen Martin <AMartin@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/nfs3xdr.c         |    4 ++--
- fs/nfsd/nfsxdr.c          |    2 +-
- include/linux/nfsd/nfsd.h |    2 +-
- include/linux/nfsd/xdr.h  |    2 +-
- include/linux/nfsd/xdr3.h |    4 ++--
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/ata/sata_nv.c |  143 +++++++++++++++++++---------------------
+ 1 file changed, 71 insertions(+), 72 deletions(-)
 
-diff -puN fs/nfsd/nfs3xdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t fs/nfsd/nfs3xdr.c
---- a/fs/nfsd/nfs3xdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/fs/nfsd/nfs3xdr.c
-@@ -991,14 +991,14 @@ encode_entry(struct readdir_cd *ccd, con
- 
- int
- nfs3svc_encode_entry(struct readdir_cd *cd, const char *name,
--		     int namlen, loff_t offset, ino_t ino, unsigned int d_type)
-+		     int namlen, loff_t offset, u64 ino, unsigned int d_type)
- {
- 	return encode_entry(cd, name, namlen, offset, ino, d_type, 0);
+diff -puN drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2 drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2
++++ a/drivers/ata/sata_nv.c
+@@ -646,53 +646,64 @@ static unsigned int nv_adma_tf_to_cpb(st
+ 	return idx;
  }
  
- int
- nfs3svc_encode_entry_plus(struct readdir_cd *cd, const char *name,
--			  int namlen, loff_t offset, ino_t ino, unsigned int d_type)
-+			  int namlen, loff_t offset, u64 ino, unsigned int d_type)
+-static void nv_adma_check_cpb(struct ata_port *ap, int cpb_num, int force_err)
++static int nv_adma_check_cpb(struct ata_port *ap, int cpb_num, int force_err)
  {
- 	return encode_entry(cd, name, namlen, offset, ino, d_type, 1);
+ 	struct nv_adma_port_priv *pp = ap->private_data;
+-	int complete = 0, have_err = 0;
+ 	u8 flags = pp->cpb[cpb_num].resp_flags;
+ 
+ 	VPRINTK("CPB %d, flags=0x%x\n", cpb_num, flags);
+ 
+-	if (flags & NV_CPB_RESP_DONE) {
+-		VPRINTK("CPB flags done, flags=0x%x\n", flags);
+-		complete = 1;
+-	}
+-	if (flags & NV_CPB_RESP_ATA_ERR) {
+-		ata_port_printk(ap, KERN_ERR, "CPB flags ATA err, flags=0x%x\n", flags);
+-		have_err = 1;
+-		complete = 1;
+-	}
+-	if (flags & NV_CPB_RESP_CMD_ERR) {
+-		ata_port_printk(ap, KERN_ERR, "CPB flags CMD err, flags=0x%x\n", flags);
+-		have_err = 1;
+-		complete = 1;
+-	}
+-	if (flags & NV_CPB_RESP_CPB_ERR) {
+-		ata_port_printk(ap, KERN_ERR, "CPB flags CPB err, flags=0x%x\n", flags);
+-		have_err = 1;
+-		complete = 1;
++	if(unlikely((force_err ||
++		     flags & (NV_CPB_RESP_ATA_ERR |
++			      NV_CPB_RESP_CMD_ERR |
++			      NV_CPB_RESP_CPB_ERR)))) {
++		struct ata_eh_info *ehi = &ap->eh_info;
++		int freeze = 0;
++		ata_ehi_clear_desc(ehi);
++		ata_ehi_push_desc(ehi, "CPB resp_flags 0x%x", flags );
++		if(flags & NV_CPB_RESP_ATA_ERR) {
++			ata_ehi_push_desc(ehi, ": ATA error");
++			ehi->err_mask |= AC_ERR_DEV;
++		}
++		else if(flags & NV_CPB_RESP_CMD_ERR) {
++			ata_ehi_push_desc(ehi, ": CMD error");
++			ehi->err_mask |= AC_ERR_DEV;
++		}
++		else if(flags & NV_CPB_RESP_CPB_ERR) {
++			ata_ehi_push_desc(ehi, ": CPB error");
++			ehi->err_mask |= AC_ERR_SYSTEM;
++			freeze = 1;
++		}
++		else {
++			/* notifier error, but no error in CPB flags? */
++			ehi->err_mask |= AC_ERR_OTHER;
++			freeze = 1;
++		}
++		/* Kill all commands. EH will determine what actually failed. */
++		if(freeze)
++			ata_port_freeze(ap);
++		else
++			ata_port_abort(ap);
++		return 1;
+ 	}
+-	if(complete || force_err)
+-	{
++
++	if (flags & NV_CPB_RESP_DONE) {
+ 		struct ata_queued_cmd *qc = ata_qc_from_tag(ap, cpb_num);
++		VPRINTK("CPB flags done, flags=0x%x\n", flags);
+ 		if(likely(qc)) {
+-			u8 ata_status = 0;
+-			/* Only use the ATA port status for non-NCQ commands.
++			/* Grab the ATA port status for non-NCQ commands.
+ 			   For NCQ commands the current status may have nothing to do with
+ 			   the command just completed. */
+-			if(qc->tf.protocol != ATA_PROT_NCQ)
+-				ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
+-
+-			if(have_err || force_err)
+-				ata_status |= ATA_ERR;
+-
+-			qc->err_mask |= ac_err_mask(ata_status);
++			if(qc->tf.protocol != ATA_PROT_NCQ) {
++				u8 ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
++				qc->err_mask |= ac_err_mask(ata_status);
++			}
+ 			DPRINTK("Completing qc from tag %d with err_mask %u\n",cpb_num,
+ 				qc->err_mask);
+ 			ata_qc_complete(qc);
+ 		}
+ 	}
++	return 0;
  }
-diff -puN fs/nfsd/nfsxdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t fs/nfsd/nfsxdr.c
---- a/fs/nfsd/nfsxdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/fs/nfsd/nfsxdr.c
-@@ -463,7 +463,7 @@ nfssvc_encode_statfsres(struct svc_rqst 
  
- int
- nfssvc_encode_entry(struct readdir_cd *ccd, const char *name,
--		    int namlen, loff_t offset, ino_t ino, unsigned int d_type)
-+		    int namlen, loff_t offset, u64 ino, unsigned int d_type)
- {
- 	struct nfsd_readdirres *cd = container_of(ccd, struct nfsd_readdirres, common);
- 	__be32	*p = cd->buffer;
-diff -puN include/linux/nfsd/nfsd.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/include/linux/nfsd/nfsd.h
-@@ -53,7 +53,7 @@ struct readdir_cd {
- 	__be32			err;	/* 0, nfserr, or nfserr_eof */
- };
- typedef int		(*encode_dent_fn)(struct readdir_cd *, const char *,
--						int, loff_t, ino_t, unsigned int);
-+						int, loff_t, u64, unsigned int);
- typedef int (*nfsd_dirop_t)(struct inode *, struct dentry *, int, int);
+ static int nv_host_intr(struct ata_port *ap, u8 irq_stat)
+@@ -743,7 +754,6 @@ static irqreturn_t nv_adma_interrupt(int
+ 			void __iomem *mmio = pp->ctl_block;
+ 			u16 status;
+ 			u32 gen_ctl;
+-			int have_global_err = 0;
+ 			u32 notifier, notifier_error;
  
- extern struct svc_program	nfsd_program;
-diff -puN include/linux/nfsd/xdr3.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t include/linux/nfsd/xdr3.h
---- a/include/linux/nfsd/xdr3.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/include/linux/nfsd/xdr3.h
-@@ -332,10 +332,10 @@ int nfs3svc_release_fhandle(struct svc_r
- int nfs3svc_release_fhandle2(struct svc_rqst *, __be32 *,
- 				struct nfsd3_fhandle_pair *);
- int nfs3svc_encode_entry(struct readdir_cd *, const char *name,
--				int namlen, loff_t offset, ino_t ino,
-+				int namlen, loff_t offset, u64 ino,
- 				unsigned int);
- int nfs3svc_encode_entry_plus(struct readdir_cd *, const char *name,
--				int namlen, loff_t offset, ino_t ino,
-+				int namlen, loff_t offset, u64 ino,
- 				unsigned int);
- /* Helper functions for NFSv3 ACL code */
- __be32 *nfs3svc_encode_post_op_attr(struct svc_rqst *rqstp, __be32 *p,
-diff -puN include/linux/nfsd/xdr.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t include/linux/nfsd/xdr.h
---- a/include/linux/nfsd/xdr.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/include/linux/nfsd/xdr.h
-@@ -166,7 +166,7 @@ int nfssvc_encode_statfsres(struct svc_r
- int nfssvc_encode_readdirres(struct svc_rqst *, __be32 *, struct nfsd_readdirres *);
+ 			/* if in ATA register mode, use standard ata interrupt handler */
+@@ -774,42 +784,50 @@ static irqreturn_t nv_adma_interrupt(int
+ 			readw(mmio + NV_ADMA_STAT); /* flush posted write */
+ 			rmb();
  
- int nfssvc_encode_entry(struct readdir_cd *, const char *name,
--				int namlen, loff_t offset, ino_t ino, unsigned int);
-+				int namlen, loff_t offset, u64 ino, unsigned int);
+-			/* freeze if hotplugged */
+-			if (unlikely(status & (NV_ADMA_STAT_HOTPLUG | NV_ADMA_STAT_HOTUNPLUG))) {
+-				ata_port_printk(ap, KERN_NOTICE, "Hotplug event, freezing\n");
++			handled++; /* irq handled if we got here */
++
++			/* freeze if hotplugged or controller error */
++			if (unlikely(status & (NV_ADMA_STAT_HOTPLUG |
++					       NV_ADMA_STAT_HOTUNPLUG |
++					       NV_ADMA_STAT_TIMEOUT))) {
++				struct ata_eh_info *ehi = &ap->eh_info;
++				ata_ehi_clear_desc(ehi);
++				ata_ehi_push_desc(ehi, "ADMA status 0x%08x", status );
++				if(status & NV_ADMA_STAT_TIMEOUT) {
++					ehi->err_mask |= AC_ERR_SYSTEM;
++					ata_ehi_push_desc(ehi, ": timeout");
++				}
++				else if(status & NV_ADMA_STAT_HOTPLUG) {
++					ata_ehi_hotplugged(ehi);
++					ata_ehi_push_desc(ehi, ": hotplug");
++				}
++				else if(status & NV_ADMA_STAT_HOTUNPLUG) {
++					ata_ehi_hotplugged(ehi);
++					ata_ehi_push_desc(ehi, ": hot unplug");
++				}
+ 				ata_port_freeze(ap);
+-				handled++;
+ 				continue;
+ 			}
  
- int nfssvc_release_fhandle(struct svc_rqst *, __be32 *, struct nfsd_fhandle *);
+-			if (status & NV_ADMA_STAT_TIMEOUT) {
+-				ata_port_printk(ap, KERN_ERR, "timeout, stat=0x%x\n", status);
+-				have_global_err = 1;
+-			}
+-			if (status & NV_ADMA_STAT_CPBERR) {
+-				ata_port_printk(ap, KERN_ERR, "CPB error, stat=0x%x\n", status);
+-				have_global_err = 1;
+-			}
+-			if ((status & NV_ADMA_STAT_DONE) || have_global_err) {
++			if (status & (NV_ADMA_STAT_DONE |
++				      NV_ADMA_STAT_CPBERR)) {
+ 				/** Check CPBs for completed commands */
  
+ 				if(ata_tag_valid(ap->active_tag))
+ 					/* Non-NCQ command */
+-					nv_adma_check_cpb(ap, ap->active_tag, have_global_err ||
+-						(notifier_error & (1 << ap->active_tag)));
++					nv_adma_check_cpb(ap, ap->active_tag,
++						notifier_error & (1 << ap->active_tag));
+ 				else {
+-					int pos;
++					int pos, error = 0;
+ 					u32 active = ap->sactive;
+-					while( (pos = ffs(active)) ) {
++					while( (pos = ffs(active)) && !error) {
+ 						pos--;
+-						nv_adma_check_cpb(ap, pos, have_global_err ||
+-							(notifier_error & (1 << pos)) );
++						error = nv_adma_check_cpb(ap, pos,
++							notifier_error & (1 << pos) );
+ 						active &= ~(1 << pos );
+ 					}
+ 				}
+ 			}
+-
+-			handled++; /* irq handled if we got here */
+ 		}
+ 	}
+ 
+@@ -1387,28 +1405,9 @@ static void nv_adma_error_handler(struct
+ 		int i;
+ 		u16 tmp;
+ 
+-		u32 notifier = readl(mmio + NV_ADMA_NOTIFIER);
+-		u32 notifier_error = readl(mmio + NV_ADMA_NOTIFIER_ERROR);
+-		u32 gen_ctl = readl(pp->gen_block + NV_ADMA_GEN_CTL);
+-		u32 status = readw(mmio + NV_ADMA_STAT);
+-
+-		ata_port_printk(ap, KERN_ERR, "EH in ADMA mode, notifier 0x%X "
+-			"notifier_error 0x%X gen_ctl 0x%X status 0x%X\n",
+-			notifier, notifier_error, gen_ctl, status);
+-
+-		for( i=0;i<NV_ADMA_MAX_CPBS;i++) {
+-			struct nv_adma_cpb *cpb = &pp->cpb[i];
+-			if( cpb->ctl_flags || cpb->resp_flags )
+-				ata_port_printk(ap, KERN_ERR,
+-					"CPB %d: ctl_flags 0x%x, resp_flags 0x%x\n",
+-					i, cpb->ctl_flags, cpb->resp_flags);
+-		}
+-
+ 		/* Push us back into port register mode for error handling. */
+ 		nv_adma_register_mode(ap);
+ 
+-		ata_port_printk(ap, KERN_ERR, "Resetting port\n");
+-
+ 		/* Mark all of the CPBs as invalid to prevent them from being executed */
+ 		for( i=0;i<NV_ADMA_MAX_CPBS;i++)
+ 			pp->cpb[i].ctl_flags &= ~NV_CPB_CTL_CPB_VALID;
 _
 
-Patches currently in -mm which might be from paubert@iram.es are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t.patch
+origin.patch
+git-dvb.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
