@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + x86_64-clean-up-sparsemem-memory_present-call.patch added to -mm tree
-Date: Tue, 23 Jan 2007 22:39:55 -0800
-Message-ID: <200701240639.l0O6dtms010637@shell0.pdx.osdl.net>
+Subject: + introduce-and-use-get_task_mnt_ns.patch added to -mm tree
+Date: Tue, 23 Jan 2007 22:43:20 -0800
+Message-ID: <200701240643.l0O6hKUl010694@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54455 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54580 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933093AbXAXGkI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 01:40:08 -0500
+	id S933104AbXAXGn6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 01:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bob.picco@hp.com, ak@muc.de, mel@csn.ul.ie
+Cc: adobriyan@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
 
 
 The patch titled
-     x86_64: clean up sparsemem memory_present call
+     Introduce and use get_task_mnt_ns()
 has been added to the -mm tree.  Its filename is
-     x86_64-clean-up-sparsemem-memory_present-call.patch
+     introduce-and-use-get_task_mnt_ns.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: clean up sparsemem memory_present call
-From: "Bob Picco" <bob.picco@hp.com>
+Subject: Introduce and use get_task_mnt_ns()
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-Eliminate arch specific memory_present call x86_64 NUMA by utilizing
-sparse_memory_present_with_active_regions.
+Similar to get_task_mm(): get a reference to task's mnt namespace if any.
+Suggested by Pavel Emelianov.
 
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: Bob Picco <bob.picco@hp.com>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/mm/numa.c |   17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ fs/proc/base.c          |   15 ++-------------
+ include/linux/nsproxy.h |    1 +
+ kernel/nsproxy.c        |   14 ++++++++++++++
+ 3 files changed, 17 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-clean-up-sparsemem-memory_present-call arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-clean-up-sparsemem-memory_present-call
-+++ a/arch/x86_64/mm/numa.c
-@@ -460,20 +460,6 @@ unsigned long __init numa_free_all_bootm
- 	return pages;
- } 
+diff -puN fs/proc/base.c~introduce-and-use-get_task_mnt_ns fs/proc/base.c
+--- a/fs/proc/base.c~introduce-and-use-get_task_mnt_ns
++++ a/fs/proc/base.c
+@@ -370,13 +370,7 @@ static int mounts_open(struct inode *ino
+ 	int ret = -EINVAL;
  
--#ifdef CONFIG_SPARSEMEM
--static void __init arch_sparse_init(void)
--{
--	int i;
--
--	for_each_online_node(i)
--		memory_present(i, node_start_pfn(i), node_end_pfn(i));
--
--	sparse_init();
--}
--#else
--#define arch_sparse_init() do {} while (0)
--#endif
--
- void __init paging_init(void)
- { 
- 	int i;
-@@ -483,7 +469,8 @@ void __init paging_init(void)
- 	max_zone_pfns[ZONE_DMA32] = MAX_DMA32_PFN;
- 	max_zone_pfns[ZONE_NORMAL] = end_pfn;
+ 	if (task) {
+-		task_lock(task);
+-		if (task->nsproxy) {
+-			ns = task->nsproxy->mnt_ns;
+-			if (ns)
+-				get_mnt_ns(ns);
+-		}
+-		task_unlock(task);
++		ns = get_task_mnt_ns(task);
+ 		put_task_struct(task);
+ 	}
  
--	arch_sparse_init();
-+	sparse_memory_present_with_active_regions(MAX_NUMNODES);
-+	sparse_init();
+@@ -443,12 +437,7 @@ static int mountstats_open(struct inode 
+ 		struct task_struct *task = get_proc_task(inode);
  
- 	for_each_online_node(i) {
- 		setup_node_zones(i); 
+ 		if (task) {
+-			task_lock(task);
+-			if (task->nsproxy)
+-				mnt_ns = task->nsproxy->mnt_ns;
+-			if (mnt_ns)
+-				get_mnt_ns(mnt_ns);
+-			task_unlock(task);
++			mnt_ns = get_task_mnt_ns(task);
+ 			put_task_struct(task);
+ 		}
+ 
+diff -puN include/linux/nsproxy.h~introduce-and-use-get_task_mnt_ns include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~introduce-and-use-get_task_mnt_ns
++++ a/include/linux/nsproxy.h
+@@ -35,6 +35,7 @@ struct nsproxy *dup_namespaces(struct ns
+ int copy_namespaces(int flags, struct task_struct *tsk);
+ void get_task_namespaces(struct task_struct *tsk);
+ void free_nsproxy(struct nsproxy *ns);
++struct mnt_namespace * get_task_mnt_ns(struct task_struct *tsk);
+ 
+ static inline void put_nsproxy(struct nsproxy *ns)
+ {
+diff -puN kernel/nsproxy.c~introduce-and-use-get_task_mnt_ns kernel/nsproxy.c
+--- a/kernel/nsproxy.c~introduce-and-use-get_task_mnt_ns
++++ a/kernel/nsproxy.c
+@@ -147,3 +147,17 @@ void free_nsproxy(struct nsproxy *ns)
+ 		put_pid_ns(ns->pid_ns);
+ 	kfree(ns);
+ }
++
++struct mnt_namespace * get_task_mnt_ns(struct task_struct *tsk)
++{
++	struct mnt_namespace *mnt_ns = NULL;
++
++	task_lock(tsk);
++	if (tsk->nsproxy)
++		mnt_ns = tsk->nsproxy->mnt_ns;
++	if (mnt_ns)
++		get_mnt_ns(mnt_ns);
++	task_unlock(tsk);
++
++	return mnt_ns;
++}
 _
 
-Patches currently in -mm which might be from bob.picco@hp.com are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
-ia64-register-memory-ranges-in-a-consistent-manner.patch
-ia64-clean-up-sparsemem-memory_present-calls.patch
-x86_64-clean-up-sparsemem-memory_present-call.patch
+fix-null-nsproxy-dereference-in-proc-mounts.patch
+sysctl_ms_jiffies-fix-oldlen-semantics.patch
+consolidate-default-sched_clock.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+introduce-and-use-get_task_mnt_ns.patch
+introduce-and-use-get_task_mnt_ns-tweaks.patch
