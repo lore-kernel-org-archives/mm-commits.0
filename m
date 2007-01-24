@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:58 -0800
-Message-ID: <200701240312.l0O3CwXB006891@shell0.pdx.osdl.net>
+Subject: + sysctl-move-utsname-sysctls-to-their-own-file.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:37 -0800
+Message-ID: <200701240313.l0O3DbxO006971@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49384 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49392 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030189AbXAXDTZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:19:25 -0500
+	id S1030192AbXAXDUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, eranian@hpl.hp.com, tony.luck@intel.com
+Cc: ebiederm@xmission.com, dev@sw.ru, herbert@13thfloor.at, serue@us.ibm.com
 
 
 The patch titled
-     sysctl: C99 convert arch/ia64/kernel/perfmon and remove ABI breakage
+     sysctl: move utsname sysctls to their own file
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
+     sysctl-move-utsname-sysctls-to-their-own-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,94 +25,353 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert arch/ia64/kernel/perfmon and remove ABI breakage
+Subject: sysctl: move utsname sysctls to their own file
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This convters the sysctl ctl_tables to use C99 initializers.  While I was
-looking at it I discovered it was using a portion of the sysctl binary
-addresses space under CTL_KERN KERN_OSTYPE which was completely inappropriate.
- So I completely removed all of the sysctl binary names, to remove and avoid
-the ABI conflict.
+This is just a simple cleanup to keep kernel/sysctl.c from getting to crowded
+with special cases, and by keeping all of the utsname logic to together it
+makes the code a little more readable.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/kernel/perfmon.c |   56 +++++++++++++++++++++++++++++------
- 1 file changed, 47 insertions(+), 9 deletions(-)
+ kernel/Makefile         |    1 
+ kernel/sysctl.c         |  115 -----------------------------
+ kernel/utsname_sysctl.c |  146 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 147 insertions(+), 115 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -521,19 +521,57 @@ pfm_sysctl_t pfm_sysctl;
- EXPORT_SYMBOL(pfm_sysctl);
+diff -puN kernel/Makefile~sysctl-move-utsname-sysctls-to-their-own-file kernel/Makefile
+--- a/kernel/Makefile~sysctl-move-utsname-sysctls-to-their-own-file
++++ a/kernel/Makefile
+@@ -53,6 +53,7 @@ obj-$(CONFIG_RCU_TRACE) += rcupreempt_tr
+ endif
+ obj-$(CONFIG_RELAY) += relay.o
+ obj-$(CONFIG_UTS_NS) += utsname.o
++obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
+ obj-$(CONFIG_TASK_DELAY_ACCT) += delayacct.o
+ obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
  
- static ctl_table pfm_ctl_table[]={
--	{1, "debug", &pfm_sysctl.debug, sizeof(int), 0666, NULL, &proc_dointvec, NULL,},
--	{2, "debug_ovfl", &pfm_sysctl.debug_ovfl, sizeof(int), 0666, NULL, &proc_dointvec, NULL,},
--	{3, "fastctxsw", &pfm_sysctl.fastctxsw, sizeof(int), 0600, NULL, &proc_dointvec, NULL,},
--	{4, "expert_mode", &pfm_sysctl.expert_mode, sizeof(int), 0600, NULL, &proc_dointvec, NULL,},
--	{ 0, },
+diff -puN kernel/sysctl.c~sysctl-move-utsname-sysctls-to-their-own-file kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-move-utsname-sysctls-to-their-own-file
++++ a/kernel/sysctl.c
+@@ -141,13 +141,6 @@ static int parse_table(int __user *, int
+ 		void __user *, size_t, ctl_table *);
+ #endif
+ 
+-static int proc_do_uts_string(ctl_table *table, int write, struct file *filp,
+-		  void __user *buffer, size_t *lenp, loff_t *ppos);
+-
+-static int sysctl_uts_string(ctl_table *table, int __user *name, int nlen,
+-		  void __user *oldval, size_t __user *oldlenp,
+-		  void __user *newval, size_t newlen);
+-
+ #ifdef CONFIG_SYSVIPC
+ static int sysctl_ipc_data(ctl_table *table, int __user *name, int nlen,
+ 		  void __user *oldval, size_t __user *oldlenp,
+@@ -183,27 +176,6 @@ int sysctl_legacy_va_layout;
+ #endif
+ 
+ 
+-static void *get_uts(ctl_table *table, int write)
+-{
+-	char *which = table->data;
+-#ifdef CONFIG_UTS_NS
+-	struct uts_namespace *uts_ns = current->nsproxy->uts_ns;
+-	which = (which - (char *)&init_uts_ns) + (char *)uts_ns;
+-#endif
+-	if (!write)
+-		down_read(&uts_sem);
+-	else
+-		down_write(&uts_sem);
+-	return which;
+-}
+-
+-static void put_uts(ctl_table *table, int write, void *which)
+-{
+-	if (!write)
+-		up_read(&uts_sem);
+-	else
+-		up_write(&uts_sem);
+-}
+ 
+ #ifdef CONFIG_SYSVIPC
+ static void *get_ipc(ctl_table *table, int write)
+@@ -284,51 +256,6 @@ static ctl_table root_table[] = {
+ 
+ static ctl_table kern_table[] = {
+ 	{
+-		.ctl_name	= KERN_OSTYPE,
+-		.procname	= "ostype",
+-		.data		= init_uts_ns.name.sysname,
+-		.maxlen		= sizeof(init_uts_ns.name.sysname),
+-		.mode		= 0444,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_uts_string,
+-	},
+-	{
+-		.ctl_name	= KERN_OSRELEASE,
+-		.procname	= "osrelease",
+-		.data		= init_uts_ns.name.release,
+-		.maxlen		= sizeof(init_uts_ns.name.release),
+-		.mode		= 0444,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_uts_string,
+-	},
+-	{
+-		.ctl_name	= KERN_VERSION,
+-		.procname	= "version",
+-		.data		= init_uts_ns.name.version,
+-		.maxlen		= sizeof(init_uts_ns.name.version),
+-		.mode		= 0444,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_uts_string,
+-	},
+-	{
+-		.ctl_name	= KERN_NODENAME,
+-		.procname	= "hostname",
+-		.data		= init_uts_ns.name.nodename,
+-		.maxlen		= sizeof(init_uts_ns.name.nodename),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_uts_string,
+-	},
+-	{
+-		.ctl_name	= KERN_DOMAINNAME,
+-		.procname	= "domainname",
+-		.data		= init_uts_ns.name.domainname,
+-		.maxlen		= sizeof(init_uts_ns.name.domainname),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_do_uts_string,
+-		.strategy	= &sysctl_uts_string,
+-	},
+-	{
+ 		.ctl_name	= KERN_PANIC,
+ 		.procname	= "panic",
+ 		.data		= &panic_timeout,
+@@ -1789,21 +1716,6 @@ int proc_dostring(ctl_table *table, int 
+ 			       buffer, lenp, ppos);
+ }
+ 
+-/*
+- *	Special case of dostring for the UTS structure. This has locks
+- *	to observe. Should this be in kernel/sys.c ????
+- */
+-
+-static int proc_do_uts_string(ctl_table *table, int write, struct file *filp,
+-		  void __user *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	int r;
+-	void *which;
+-	which = get_uts(table, write);
+-	r = _proc_do_string(which, table->maxlen,write,filp,buffer,lenp, ppos);
+-	put_uts(table, write, which);
+-	return r;
+-}
+ 
+ static int do_proc_dointvec_conv(int *negp, unsigned long *lvalp,
+ 				 int *valp,
+@@ -2440,12 +2352,6 @@ int proc_dostring(ctl_table *table, int 
+ 	return -ENOSYS;
+ }
+ 
+-static int proc_do_uts_string(ctl_table *table, int write, struct file *filp,
+-		void __user *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	return -ENOSYS;
+-}
+-
+ #ifdef CONFIG_SYSVIPC
+ static int proc_do_ipc_string(ctl_table *table, int write, struct file *filp,
+ 		void __user *buffer, size_t *lenp, loff_t *ppos)
+@@ -2675,21 +2581,6 @@ int sysctl_ms_jiffies(ctl_table *table, 
+ }
+ 
+ 
+-/* The generic string strategy routine: */
+-static int sysctl_uts_string(ctl_table *table, int __user *name, int nlen,
+-		  void __user *oldval, size_t __user *oldlenp,
+-		  void __user *newval, size_t newlen)
+-{
+-	struct ctl_table uts_table;
+-	int r, write;
+-	write = newval && newlen;
+-	memcpy(&uts_table, table, sizeof(uts_table));
+-	uts_table.data = get_uts(table, write);
+-	r = sysctl_string(&uts_table, name, nlen,
+-		oldval, oldlenp, newval, newlen);
+-	put_uts(table, write, uts_table.data);
+-	return r;
+-}
+ 
+ #ifdef CONFIG_SYSVIPC
+ /* The generic sysctl ipc data routine. */
+@@ -2796,12 +2687,6 @@ int sysctl_ms_jiffies(ctl_table *table, 
+ 	return -ENOSYS;
+ }
+ 
+-static int sysctl_uts_string(ctl_table *table, int __user *name, int nlen,
+-		  void __user *oldval, size_t __user *oldlenp,
+-		  void __user *newval, size_t newlen)
+-{
+-	return -ENOSYS;
+-}
+ #ifdef CONFIG_SYSVIPC
+ static int sysctl_ipc_data(ctl_table *table, int __user *name, int nlen,
+ 		void __user *oldval, size_t __user *oldlenp,
+diff -puN /dev/null kernel/utsname_sysctl.c
+--- /dev/null
++++ a/kernel/utsname_sysctl.c
+@@ -0,0 +1,146 @@
++/*
++ *  Copyright (C) 2007
++ *
++ *  Author: Eric Biederman <ebiederm@xmision.com>
++ *
++ *  This program is free software; you can redistribute it and/or
++ *  modify it under the terms of the GNU General Public License as
++ *  published by the Free Software Foundation, version 2 of the
++ *  License.
++ */
++
++#include <linux/module.h>
++#include <linux/uts.h>
++#include <linux/utsname.h>
++#include <linux/version.h>
++#include <linux/sysctl.h>
++
++static void *get_uts(ctl_table *table, int write)
++{
++	char *which = table->data;
++#ifdef CONFIG_UTS_NS
++	struct uts_namespace *uts_ns = current->nsproxy->uts_ns;
++	which = (which - (char *)&init_uts_ns) + (char *)uts_ns;
++#endif
++	if (!write)
++		down_read(&uts_sem);
++	else
++		down_write(&uts_sem);
++	return which;
++}
++
++static void put_uts(ctl_table *table, int write, void *which)
++{
++	if (!write)
++		up_read(&uts_sem);
++	else
++		up_write(&uts_sem);
++}
++
++#ifdef CONFIG_PROC_FS
++/*
++ *	Special case of dostring for the UTS structure. This has locks
++ *	to observe. Should this be in kernel/sys.c ????
++ */
++static int proc_do_uts_string(ctl_table *table, int write, struct file *filp,
++		  void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct ctl_table uts_table;
++	int r;
++	memcpy(&uts_table, table, sizeof(uts_table));
++	uts_table.data = get_uts(table, write);
++	r = proc_dostring(&uts_table,write,filp,buffer,lenp, ppos);
++	put_uts(table, write, uts_table.data);
++	return r;
++}
++#else
++#define proc_do_uts_string NULL
++#endif
++
++
++#ifdef CONFIG_SYSCTL_SYSCALL
++/* The generic string strategy routine: */
++static int sysctl_uts_string(ctl_table *table, int __user *name, int nlen,
++		  void __user *oldval, size_t __user *oldlenp,
++		  void __user *newval, size_t newlen)
++{
++	struct ctl_table uts_table;
++	int r, write;
++	write = newval && newlen;
++	memcpy(&uts_table, table, sizeof(uts_table));
++	uts_table.data = get_uts(table, write);
++	r = sysctl_string(&uts_table, name, nlen,
++		oldval, oldlenp, newval, newlen);
++	put_uts(table, write, uts_table.data);
++	return r;
++}
++#else
++#define sysctl_uts_string NULL
++#endif
++
++static struct ctl_table uts_kern_table[] = {
 +	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "debug",
-+		.data		= &pfm_sysctl.debug,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0666,
-+		.proc_handler	= &proc_dointvec,
++		.ctl_name	= KERN_OSTYPE,
++		.procname	= "ostype",
++		.data		= init_uts_ns.name.sysname,
++		.maxlen		= sizeof(init_uts_ns.name.sysname),
++		.mode		= 0444,
++		.proc_handler	= proc_do_uts_string,
++		.strategy	= sysctl_uts_string,
 +	},
 +	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "debug_ovfl",
-+		.data		= &pfm_sysctl.debug_ovfl,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0666,
-+		.proc_handler	= &proc_dointvec,
++		.ctl_name	= KERN_OSRELEASE,
++		.procname	= "osrelease",
++		.data		= init_uts_ns.name.release,
++		.maxlen		= sizeof(init_uts_ns.name.release),
++		.mode		= 0444,
++		.proc_handler	= proc_do_uts_string,
++		.strategy	= sysctl_uts_string,
 +	},
 +	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "fastctxsw",
-+		.data		= &pfm_sysctl.fastctxsw,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	=  &proc_dointvec,
++		.ctl_name	= KERN_VERSION,
++		.procname	= "version",
++		.data		= init_uts_ns.name.version,
++		.maxlen		= sizeof(init_uts_ns.name.version),
++		.mode		= 0444,
++		.proc_handler	= proc_do_uts_string,
++		.strategy	= sysctl_uts_string,
 +	},
 +	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "expert_mode",
-+		.data		= &pfm_sysctl.expert_mode,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= &proc_dointvec,
++		.ctl_name	= KERN_NODENAME,
++		.procname	= "hostname",
++		.data		= init_uts_ns.name.nodename,
++		.maxlen		= sizeof(init_uts_ns.name.nodename),
++		.mode		= 0644,
++		.proc_handler	= proc_do_uts_string,
++		.strategy	= sysctl_uts_string,
++	},
++	{
++		.ctl_name	= KERN_DOMAINNAME,
++		.procname	= "domainname",
++		.data		= init_uts_ns.name.domainname,
++		.maxlen		= sizeof(init_uts_ns.name.domainname),
++		.mode		= 0644,
++		.proc_handler	= proc_do_uts_string,
++		.strategy	= sysctl_uts_string,
 +	},
 +	{}
- };
- static ctl_table pfm_sysctl_dir[] = {
--	{1, "perfmon", NULL, 0, 0755, pfm_ctl_table, },
-- 	{0,},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "perfmon",
-+		.mode		= 0755,
-+		.child		= pfm_ctl_table,
-+	},
-+ 	{}
- };
- static ctl_table pfm_sysctl_root[] = {
--	{1, "kernel", NULL, 0, 0755, pfm_sysctl_dir, },
-- 	{0,},
++};
++
++static struct ctl_table uts_root_table[] = {
 +	{
 +		.ctl_name	= CTL_KERN,
 +		.procname	= "kernel",
-+		.mode		= 0755,
-+		.child		= pfm_sysctl_dir,
++		.mode		= 0555,
++		.child		= uts_kern_table,
 +	},
-+ 	{}
- };
- static struct ctl_table_header *pfm_sysctl_header;
- 
++	{}
++};
++
++static int __init utsname_sysctl_init(void)
++{
++	register_sysctl_table(uts_root_table, 0);
++	return 0;
++}
++
++__initcall(utsname_sysctl_init);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
