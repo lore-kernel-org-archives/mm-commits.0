@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + seq_file-conversion-toshibac.patch added to -mm tree
-Date: Tue, 23 Jan 2007 17:13:43 -0800
-Message-ID: <200701240113.l0O1DhMO004699@shell0.pdx.osdl.net>
+Subject: + spi-alternative-fix-for-spi_busnum_to_master.patch added to -mm tree
+Date: Tue, 23 Jan 2007 18:14:51 -0800
+Message-ID: <200701240214.l0O2EpbN005856@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46093 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48065 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965471AbXAXBNu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 20:13:50 -0500
+	id S965615AbXAXCPB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 21:15:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, dtor_core@ameritech.net
+Cc: anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     seq_file conversion: toshiba.c
+     SPI: alternative fix for spi_busnum_to_master
 has been added to the -mm tree.  Its filename is
-     seq_file-conversion-toshibac.patch
+     spi-alternative-fix-for-spi_busnum_to_master.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: seq_file conversion: toshiba.c
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: SPI: alternative fix for spi_busnum_to_master
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Dmitry Torokhov <dtor_core@ameritech.net>
+If a SPI master device exists, udev (udevtrigger) causes kernel crash, due
+to wrong kobj pointer in kobject_uevent_env().  This problem was not in
+2.6.19.
+
+The backtrace (on MIPS) was:
+[<8024db6c>] kobject_uevent_env+0x54c/0x5e8
+[<802a8264>] store_uevent+0x1c/0x3c  (in drivers/class.c)
+[<801cb14c>] subsys_attr_store+0x2c/0x50
+[<801cb80c>] flush_write_buffer+0x38/0x5c
+[<801cb900>] sysfs_write_file+0xd0/0x190
+[<80181444>] vfs_write+0xc4/0x1a0
+[<80181cdc>] sys_write+0x54/0xa0
+[<8010dae4>] stack_done+0x20/0x3c
+
+flush_write_buffer() passes kobject of spi_master_class.subsys to
+subsys_addr_store(), then subsys_addr_store() passes a pointer to a struct
+subsystem to store_uevent() which expects a pointer to a struct
+class_device.  The problem seems subsys_attr_store() called instead of
+class_device_attr_store().
+
+This mismatch was caused by commit
+3bd0f6943520e459659d10f3282285e43d3990f1, which overrides kset of master
+class.  This made spi_master_class.subsys.kset.ktype NULL so
+subsys_sysfs_ops is used instead of class_dev_sysfs_ops.
+
+The commit was to fix spi_busnum_to_master().  Here is a patch fixes
+this function in other way, just searching children list of
+class_device.
+
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/toshiba.c |   35 +++++++++++++++++++++++++----------
- 1 files changed, 25 insertions(+), 10 deletions(-)
+ drivers/spi/spi.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-diff -puN drivers/char/toshiba.c~seq_file-conversion-toshibac drivers/char/toshiba.c
---- a/drivers/char/toshiba.c~seq_file-conversion-toshibac
-+++ a/drivers/char/toshiba.c
-@@ -68,6 +68,7 @@
- #include <linux/init.h>
- #include <linux/stat.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
+diff -puN drivers/spi/spi.c~spi-alternative-fix-for-spi_busnum_to_master drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-alternative-fix-for-spi_busnum_to_master
++++ a/drivers/spi/spi.c
+@@ -366,7 +366,6 @@ spi_alloc_master(struct device *dev, uns
  
- #include <linux/toshiba.h>
+ 	class_device_initialize(&master->cdev);
+ 	master->cdev.class = &spi_master_class;
+-	kobj_set_kset_s(&master->cdev, spi_master_class.subsys);
+ 	master->cdev.dev = get_device(dev);
+ 	spi_master_set_devdata(master, &master[1]);
  
-@@ -298,12 +299,10 @@ static int tosh_ioctl(struct inode *ip, 
-  * Print the information for /proc/toshiba
+@@ -466,14 +465,20 @@ EXPORT_SYMBOL_GPL(spi_unregister_master)
   */
- #ifdef CONFIG_PROC_FS
--static int tosh_get_info(char *buffer, char **start, off_t fpos, int length)
-+static int proc_toshiba_show(struct seq_file *m, void *v)
+ struct spi_master *spi_busnum_to_master(u16 bus_num)
  {
--	char *temp;
- 	int key;
- 
--	temp = buffer;
- 	key = tosh_fn_status();
- 
- 	/* Arguments
-@@ -314,8 +313,7 @@ static int tosh_get_info(char *buffer, c
- 	     4) BIOS date (in SCI date format)
- 	     5) Fn Key status
- 	*/
+-	char			name[9];
+-	struct kobject		*bus;
 -
--	temp += sprintf(temp, "1.1 0x%04x %d.%d %d.%d 0x%04x 0x%02x\n",
-+	seq_printf(m, "1.1 0x%04x %d.%d %d.%d 0x%04x 0x%02x\n",
- 		tosh_id,
- 		(tosh_sci & 0xff00)>>8,
- 		tosh_sci & 0xff,
-@@ -323,9 +321,21 @@ static int tosh_get_info(char *buffer, c
- 		tosh_bios & 0xff,
- 		tosh_date,
- 		key);
-+	return 0;
-+}
- 
--	return temp-buffer;
-+static int proc_toshiba_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, proc_toshiba_show, NULL);
- }
+-	snprintf(name, sizeof name, "spi%u", bus_num);
+-	bus = kset_find_obj(&spi_master_class.subsys.kset, name);
+-	if (bus)
+-		return container_of(bus, struct spi_master, cdev.kobj);
+-	return NULL;
++	struct class_device	*cdev;
++	struct spi_master	*master = NULL;
++	struct spi_master	*m;
 +
-+static const struct file_operations proc_toshiba_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= proc_toshiba_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
- #endif
- 
- 
-@@ -508,10 +518,15 @@ static int __init toshiba_init(void)
- 		return retval;
- 
- #ifdef CONFIG_PROC_FS
--	/* register the proc entry */
--	if (create_proc_info_entry("toshiba", 0, NULL, tosh_get_info) == NULL) {
--		misc_deregister(&tosh_device);
--		return -ENOMEM;
-+	{
-+		struct proc_dir_entry *pde;
-+
-+		pde = create_proc_entry("toshiba", 0, NULL);
-+		if (!pde) {
-+			misc_deregister(&tosh_device);
-+			return -ENOMEM;
++	down(&spi_master_class.sem);
++	list_for_each_entry(cdev, &spi_master_class.children, node) {
++		m = container_of(cdev, struct spi_master, cdev);
++		if (m->bus_num == bus_num) {
++			master = spi_master_get(m);
++			break;
 +		}
-+		pde->proc_fops = &proc_toshiba_fops;
- 	}
- #endif
++	}
++	up(&spi_master_class.sem);
++	return master;
+ }
+ EXPORT_SYMBOL_GPL(spi_busnum_to_master);
  
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-origin.patch
-git-dvb.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-seq_file-conversion-coda.patch
-seq_file-conversion-toshibac.patch
+spi-alternative-fix-for-spi_busnum_to_master.patch
+git-mips.patch
+serial-serial_txx9-driver-update.patch
