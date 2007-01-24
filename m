@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-xfs-ctl_tables-fixes.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:34 -0800
-Message-ID: <200701240312.l0O3CY4h006841@shell0.pdx.osdl.net>
+Subject: + sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:44 -0800
+Message-ID: <200701240312.l0O3Ci8b006861@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49057 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49083 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030188AbXAXDMh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:37 -0500
+	id S1030197AbXAXDMv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, dgc@sgi.com
+Cc: ebiederm@xmission.com, James.Bottomley@SteelEye.com
 
 
 The patch titled
-     fixes for my C99 converion xfs ctl_tables
+     sysctl: cdrom: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-xfs-ctl_tables-fixes.patch
+     sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fixes for my C99 converion xfs ctl_tables
+Subject: sysctl: cdrom: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This kills the extra NULLs and spaces, I missed.
+With unique binary sysctl numbers setting insert_at_head to override other
+sysctl entries is pointless.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: David Chinner <dgc@sgi.com>
+Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/xfs/linux-2.6/xfs_sysctl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/cdrom/cdrom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-c99-convert-xfs-ctl_tables-fixes fs/xfs/linux-2.6/xfs_sysctl.c
---- a/fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-c99-convert-xfs-ctl_tables-fixes
-+++ a/fs/xfs/linux-2.6/xfs_sysctl.c
-@@ -94,7 +94,7 @@ STATIC ctl_table xfs_table[] = {
- 		.data		= &xfs_params.panic_mask.val,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	=  &proc_dointvec_minmax,
-+		.proc_handler	= &proc_dointvec_minmax,
- 		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.panic_mask.min,
- 		.extra2		= &xfs_params.panic_mask.max
-@@ -140,7 +140,7 @@ STATIC ctl_table xfs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec_minmax,
--		.strategy	= &sysctl_intvec, NULL,
-+		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.inherit_nodump.min,
- 		.extra2		= &xfs_params.inherit_nodump.max
- 	},
-@@ -151,7 +151,7 @@ STATIC ctl_table xfs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec_minmax,
--		.strategy	= &sysctl_intvec, NULL,
-+		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.inherit_noatim.min,
- 		.extra2		= &xfs_params.inherit_noatim.max
- 	},
-@@ -218,7 +218,7 @@ STATIC ctl_table xfs_table[] = {
- 		.data		= &xfs_params.stats_clear.val,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	=  &xfs_stats_clear_proc_handler,
-+		.proc_handler	= &xfs_stats_clear_proc_handler,
- 		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.stats_clear.min,
- 		.extra2		= &xfs_params.stats_clear.max
+diff -puN drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag
++++ a/drivers/cdrom/cdrom.c
+@@ -3553,7 +3553,7 @@ static void cdrom_sysctl_register(void)
+ 	if (initialized == 1)
+ 		return;
+ 
+-	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 1);
++	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 0);
+ 	if (cdrom_root_table->ctl_name && cdrom_root_table->child->de)
+ 		cdrom_root_table->child->de->owner = THIS_MODULE;
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
