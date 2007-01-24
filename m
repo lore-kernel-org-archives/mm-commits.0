@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + spi-documentation-does-not-need-to-set-drivers-bus_type-field.patch added to -mm tree
-Date: Tue, 23 Jan 2007 16:13:16 -0800
-Message-ID: <200701240013.l0O0DGDH003402@shell0.pdx.osdl.net>
+Subject: + rcu-fix-barriers.patch added to -mm tree
+Date: Tue, 23 Jan 2007 16:38:49 -0800
+Message-ID: <200701240038.l0O0cnGZ003953@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43111 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44693 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933114AbXAXANV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 19:13:21 -0500
+	id S965458AbXAXAiy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 19:38:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben@fluff.org, ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: dipankar@in.ibm.com, paulmck@in.ibm.com
 
 
 The patch titled
-     spi: documentation does not need to set driver's bus_type field
+     rcu: Fix barriers
 has been added to the -mm tree.  Its filename is
-     spi-documentation-does-not-need-to-set-drivers-bus_type-field.patch
+     rcu-fix-barriers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi: documentation does not need to set driver's bus_type field
-From: Ben Dooks <ben@fluff.org>
+Subject: rcu: Fix barriers
+From: Dipankar Sarma <dipankar@in.ibm.com>
 
-The spi_register_driver() sets the bus_type field of the spi_driver being
-registered, so there is no need to have it set in the driver itself.
+Fix rcu_barrier() to work properly in preemptive kernel environment.  Also,
+the ordering of callback must be preserved while moving callbacks to another
+CPU during CPU hotplug.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Dipankar Sarma <dipankar@in.ibm.com>
+Acked-by: Paul E. McKenney <paulmck@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/spi/spi-summary |    1 -
- 1 files changed, 1 deletion(-)
+ kernel/rcuclassic.c |    2 +-
+ kernel/rcupdate.c   |   11 +++++++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/spi/spi-summary~spi-documentation-does-not-need-to-set-drivers-bus_type-field Documentation/spi/spi-summary
---- a/Documentation/spi/spi-summary~spi-documentation-does-not-need-to-set-drivers-bus_type-field
-+++ a/Documentation/spi/spi-summary
-@@ -284,7 +284,6 @@ SPI protocol drivers somewhat resemble p
- 	static struct spi_driver CHIP_driver = {
- 		.driver = {
- 			.name		= "CHIP",
--			.bus		= &spi_bus_type,
- 			.owner		= THIS_MODULE,
- 		},
+diff -puN kernel/rcuclassic.c~rcu-fix-barriers kernel/rcuclassic.c
+--- a/kernel/rcuclassic.c~rcu-fix-barriers
++++ a/kernel/rcuclassic.c
+@@ -350,9 +350,9 @@ static void __rcu_offline_cpu(struct rcu
+ 	if (rcp->cur != rcp->completed)
+ 		cpu_quiet(rdp->cpu, rcp);
+ 	spin_unlock_bh(&rcp->lock);
++	rcu_move_batch(this_rdp, rdp->donelist, rdp->donetail);
+ 	rcu_move_batch(this_rdp, rdp->curlist, rdp->curtail);
+ 	rcu_move_batch(this_rdp, rdp->nxtlist, rdp->nxttail);
+-	rcu_move_batch(this_rdp, rdp->donelist, rdp->donetail);
+ }
  
+ static void rcu_offline_cpu(int cpu)
+diff -puN kernel/rcupdate.c~rcu-fix-barriers kernel/rcupdate.c
+--- a/kernel/rcupdate.c~rcu-fix-barriers
++++ a/kernel/rcupdate.c
+@@ -117,7 +117,18 @@ void rcu_barrier(void)
+ 	mutex_lock(&rcu_barrier_mutex);
+ 	init_completion(&rcu_barrier_completion);
+ 	atomic_set(&rcu_barrier_cpu_count, 0);
++	/*
++	 * The queueing of callbacks in all CPUs must be
++	 * atomic with respect to RCU, otherwise one cpu may
++	 * queue a callback, wait for a grace period, decrement
++	 * barrier count and call complete(), while other CPUs
++	 * haven't yet queued anything. So, we need to make sure
++	 * that no grace period happens until all the callbacks
++	 * are queued.
++	 */
++	rcu_read_lock();
+ 	on_each_cpu(rcu_barrier_func, NULL, 0, 1);
++	rcu_read_unlock();
+ 	wait_for_completion(&rcu_barrier_completion);
+ 	mutex_unlock(&rcu_barrier_mutex);
+ }
 _
 
-Patches currently in -mm which might be from ben@fluff.org are
+Patches currently in -mm which might be from dipankar@in.ibm.com are
 
-spi-add-spi_set_drvdata-and-spi_get_drvdata.patch
-spi-documentation-does-not-need-to-set-drivers-bus_type-field.patch
+rcu-split-classic-rcu.patch
+rcu-softirq-for-rcu.patch
+rcu-fix-barriers.patch
+rcu-preemptible-rcu.patch
+rcu-debug-trace-for-rcu.patch
+rcu-trivial-fixes.patch
