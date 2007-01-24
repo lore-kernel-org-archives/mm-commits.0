@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + extend-the-set-of-__attribute__-shortcut-macros.patch added to -mm tree
-Date: Tue, 23 Jan 2007 23:57:13 -0800
-Message-ID: <200701240757.l0O7vDpf012140@shell0.pdx.osdl.net>
+Subject: + documentation-rbtreetxt-updated.patch added to -mm tree
+Date: Wed, 24 Jan 2007 00:01:13 -0800
+Message-ID: <200701240801.l0O81D2R012243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56931 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56944 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933197AbXAXIAc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 03:00:32 -0500
+	id S933195AbXAXIBR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 03:01:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, ralf@linux-mips.org
+Cc: rob@landley.net, rdunlap@xenotime.net
 
 
 The patch titled
-     extend the set of "__attribute__" shortcut macros
+     Documentation/rbtree.txt
 has been added to the -mm tree.  Its filename is
-     extend-the-set-of-__attribute__-shortcut-macros.patch
+     documentation-rbtreetxt-updated.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,126 +25,218 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: extend the set of "__attribute__" shortcut macros
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Documentation/rbtree.txt
+From: Rob Landley <rob@landley.net>
 
-Extend the set of "__attribute__" shortcut macros, and remove identical
-(and now superfluous) definitions from a couple of source files.
+Documentation for lib/rbtree.c.
 
-based on a page at robert love's blog:
-
-	http://rlove.org/log/2005102601
-
-extend the set of shortcut macros defined in compiler-gcc.h with the
-following:
-
-#define __packed                       __attribute__((packed))
-#define __weak                         __attribute__((weak))
-#define __naked                        __attribute__((naked))
-#define __noreturn                     __attribute__((noreturn))
-#define __pure                         __attribute__((pure))
-#define __aligned(x)                   __attribute__((aligned(x)))
-#define __printf(a,b)                  __attribute__((format(printf,a,b)))
-
-Once these are in place, it's up to subsystem maintainers to decide if they
-want to take advantage of them.  there is already a strong precedent for
-using shortcuts like this in the source tree.
-
-The ones that might give people pause are "__aligned" and "__printf", but
-shortcuts for both of those are already in use, and in some ways very
-confusingly.  note the two very different definitions for a macro named
-"ALIGNED":
-
-  drivers/net/sgiseeq.c:#define ALIGNED(x) ((((unsigned long)(x)) + 0xf) & ~(0xf))
-  drivers/scsi/ultrastor.c:#define ALIGNED(x) __attribute__((aligned(x)))
-
-also:
-
-  include/acpi/platform/acgcc.h:
-    #define ACPI_PRINTF_LIKE(c) __attribute__ ((__format__ (__printf__, c, c+1)))
-
-Given the precedent, then, it seems logical to at least standardize on a
-consistent set of these macros.
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/mips/mm/cache.c         |    2 --
- fs/hfs/hfs.h                 |    2 --
- fs/hfsplus/hfsplus_raw.h     |    2 --
- include/linux/compiler-gcc.h |    7 +++++++
- 4 files changed, 7 insertions(+), 6 deletions(-)
+ Documentation/rbtree.txt |  192 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 192 insertions(+)
 
-diff -puN arch/mips/mm/cache.c~extend-the-set-of-__attribute__-shortcut-macros arch/mips/mm/cache.c
---- a/arch/mips/mm/cache.c~extend-the-set-of-__attribute__-shortcut-macros
-+++ a/arch/mips/mm/cache.c
-@@ -107,8 +107,6 @@ void __update_cache(struct vm_area_struc
- 	}
- }
- 
--#define __weak __attribute__((weak))
--
- static char cache_panic[] __initdata = "Yeee, unsupported cache architecture.";
- 
- void __init cpu_cache_init(void)
-diff -puN fs/hfs/hfs.h~extend-the-set-of-__attribute__-shortcut-macros fs/hfs/hfs.h
---- a/fs/hfs/hfs.h~extend-the-set-of-__attribute__-shortcut-macros
-+++ a/fs/hfs/hfs.h
-@@ -83,8 +83,6 @@
- 
- /*======== HFS structures as they appear on the disk ========*/
- 
--#define __packed __attribute__ ((packed))
--
- /* Pascal-style string of up to 31 characters */
- struct hfs_name {
- 	u8 len;
-diff -puN fs/hfsplus/hfsplus_raw.h~extend-the-set-of-__attribute__-shortcut-macros fs/hfsplus/hfsplus_raw.h
---- a/fs/hfsplus/hfsplus_raw.h~extend-the-set-of-__attribute__-shortcut-macros
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -15,8 +15,6 @@
- 
- #include <linux/types.h>
- 
--#define __packed __attribute__ ((packed))
--
- /* Some constants */
- #define HFSPLUS_SECTOR_SIZE        512
- #define HFSPLUS_SECTOR_SHIFT         9
-diff -puN include/linux/compiler-gcc.h~extend-the-set-of-__attribute__-shortcut-macros include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~extend-the-set-of-__attribute__-shortcut-macros
-+++ a/include/linux/compiler-gcc.h
-@@ -27,6 +27,13 @@
- #define __inline__	__inline__	__attribute__((always_inline))
- #define __inline	__inline	__attribute__((always_inline))
- #define __deprecated			__attribute__((deprecated))
-+#define __packed			__attribute__((packed))
-+#define __weak				__attribute__((weak))
-+#define __naked				__attribute__((naked))
-+#define __noreturn			__attribute__((noreturn))
-+#define __pure				__attribute__((pure))
-+#define __aligned(x)			__attribute__((aligned(x)))
-+#define __printf(a,b)			__attribute__((format(printf,a,b)))
- #define  noinline			__attribute__((noinline))
- #define __attribute_pure__		__attribute__((pure))
- #define __attribute_const__		__attribute__((__const__))
+diff -puN /dev/null Documentation/rbtree.txt
+--- /dev/null
++++ a/Documentation/rbtree.txt
+@@ -0,0 +1,192 @@
++Red-black Trees (rbtree) in Linux
++January 18, 2007
++Rob Landley <rob@landley.net>
++=============================
++
++What are red-black trees, and what are they for?
++------------------------------------------------
++
++Red-black trees are a type of self-balancing binary search tree, used for
++storing sortable key/value data pairs.  This differs from radix trees (which
++are used to efficiently store sparse arrays and thus use long integer indexes
++to insert/access/delete nodes) and hash tables (which are not kept sorted to
++be easily traversed in order, and must be tuned for a specific size and
++hash function where rbtrees scale gracefully storing arbitrary keys).
++
++Red-black trees are similar to AVL trees, but provide faster real-time bounded
++worst case performance for insertion and deletion (at most two rotations and
++three rotations, respectively, to balance the tree), with slightly slower
++(but still O(log n)) lookup time.
++
++To quote Linux Weekly News:
++
++    There are a number of red-black trees in use in the kernel.
++    The anticipatory, deadline, and CFQ I/O schedulers all employ
++    rbtrees to track requests; the packet CD/DVD driver does the same.
++    The high-resolution timer code uses an rbtree to organize outstanding
++    timer requests.  The ext3 filesystem tracks directory entries in a
++    red-black tree.  Virtual memory areas (VMAs) are tracked with red-black
++    trees, as are epoll file descriptors, cryptographic keys, and network
++    packets in the "hierarchical token bucket" scheduler.
++
++This document covers use of the Linux rbtree implementation.  For more
++information on the nature and implementation of Red Black Trees,  see:
++
++  Linux Weekly News article on red-black trees
++    http://lwn.net/Articles/184495/
++
++  Wikipedia entry on red-black trees
++    http://en.wikipedia.org/wiki/Red-black_tree
++
++Linux implementation of red-black trees
++---------------------------------------
++
++Linux's rbtree implementation lives in the file "lib/rbtree.c".  To use it,
++"#include <linux/rbtree.h>".
++
++The Linux rbtree implementation is optimized for speed, and thus has one
++less layer of indirection (and better cache locality) than more traditional
++tree implementations.  Instead of using pointers to separate rb_node and data
++structures, each instance of struct rb_node is embedded in the data structure
++it organizes.  And instead of using a comparison callback function pointer,
++users are expected to write their own tree search and insert functions
++which call the provided rbtree functions.  Locking is also left up to the
++user of the rbtree code.
++
++Creating a new rbtree
++---------------------
++
++Data nodes in an rbtree tree are structures containing a struct rb_node member:
++
++  struct mytype {
++  	struct rb_node node;
++  	char *keystring;
++  };
++
++When dealing with a pointer to the embedded struct rb_node, the containing data
++structure may be accessed with the standard container_of() macro.  In addition,
++individual members may be accessed directly via rb_entry(node, type, member).
++
++At the root of each rbtree is an rb_root structure, which is initialized to be
++empty via:
++
++  struct rb_root mytree = RB_ROOT;
++
++Searching for a value in an rbtree
++----------------------------------
++
++Writing a search function for your tree is fairly straightforward: start at the
++root, compare each value, and follow the left or right branch as necessary.
++
++Example:
++
++  struct mytype *my_search(struct rb_root *root, char *string)
++  {
++  	struct rb_node *node = root->rb_node;
++
++  	while (node) {
++  		struct mytype *data = container_of(node, struct mytype, node);
++		int result;
++
++		result = strcmp(string, data->keystring);
++
++		if (result < 0)
++  			node = node->rb_left;
++		else if (result > 0)
++  			node = node->rb_right;
++		else
++  			return data;
++	}
++	return NULL;
++  }
++
++Inserting data into an rbtree
++-----------------------------
++
++Inserting data in the tree involves first searching for the place to insert the
++new node, then inserting the node and rebalancing ("recoloring") the tree.
++
++The search for insertion differs from the previous search by finding the
++location of the pointer on which to graft the new node.  The new node also
++needs a link to its parent node for rebalancing purposes.
++
++Example:
++
++  int my_insert(struct rb_root *root, struct mytype *data)
++  {
++  	struct rb_node **new = &(root->rb_node), *parent = NULL;
++
++  	/* Figure out where to put new node */
++  	while (*new) {
++  		struct mytype *this = container_of(*new, struct mytype, node);
++  		int result = strcmp(data->keystring, this->keystring);
++
++		parent = *new;
++  		if (result < 0)
++  			new = &((*new)->rb_left);
++  		else if (result > 0)
++  			new = &((*new)->rb_right);
++  		else
++  			return FALSE;
++  	}
++
++  	/* Add new node and rebalance tree. */
++  	rb_link_node(data->node, parent, new);
++  	rb_insert_color(data->node, root);
++
++	return TRUE;
++  }
++
++Removing or replacing existing data in an rbtree
++------------------------------------------------
++
++To remove an existing node from a tree, call:
++
++  void rb_erase(struct rb_node *victim, struct rb_root *tree);
++
++Example:
++
++  struct mytype *data = mysearch(mytree, "walrus");
++
++  if (data) {
++  	rb_erase(data->node, mytree);
++  	myfree(data);
++  }
++
++To replace an existing node in a tree with a new one with the same key, call:
++
++  void rb_replace_node(struct rb_node *old, struct rb_node *new,
++  			struct rb_root *tree);
++
++Replacing a node this way does not re-sort the tree: If the new node doesn't
++have the same key as the old node, the rbtree will probably become corrupted.
++
++Iterating through the elements stored in an rbtree (in sort order)
++------------------------------------------------------------------
++
++Four functions are provided for iterating through an rbtree's contents in
++sorted order.  These work on arbitrary trees, and should not need to be
++modified or wrapped (except for locking purposes):
++
++  struct rb_node *rb_first(struct rb_root *tree);
++  struct rb_node *rb_last(struct rb_root *tree);
++  struct rb_node *rb_next(struct rb_node *node);
++  struct rb_node *rb_prev(struct rb_node *node);
++
++To start iterating, call rb_first() or rb_last() with a pointer to the root
++of the tree, which will return a pointer to the node structure contained in
++the first or last element in the tree.  To continue, fetch the next or previous
++node by calling rb_next() or rb_prev() on the current node.  This will return
++NULL when there are no more nodes left.
++
++The iterator functions return a pointer to the embedded struct rb_node, from
++which the containing data structure may be accessed with the container_of()
++macro, and individual members may be accessed directly via
++rb_entry(node, type, member).
++
++Example:
++
++  struct rb_node *node;
++  for (node = rb_first(&mytree); node; node = rb_next(node))
++  	printk("key=%s\n", rb_entry(node, int, keystring));
++
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from rob@landley.net are
 
-origin.patch
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+sed-s-gawk-awk-scripts-gen_init_ramfssh.patch
+documentation-rbtreetxt-updated.patch
