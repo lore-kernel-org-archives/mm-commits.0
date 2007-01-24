@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:30 -0800
-Message-ID: <200701240312.l0O3CUlF006831@shell0.pdx.osdl.net>
+Subject: + sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:49 -0800
+Message-ID: <200701240312.l0O3CnWb006870@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49124 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49107 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030218AbXAXDNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:04 -0500
+	id S1030211AbXAXDNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, acme@conectiva.com.br
+Cc: ebiederm@xmission.com, dhowells@redhat.com
 
 
 The patch titled
-     sysctl: atalk: remove unnecessary insert_at_head flag
+     sysctl: frv: pm remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: atalk: remove unnecessary insert_at_head flag
+Subject: sysctl: frv: pm remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+With unique binary numbers setting insert_at_head to insert yourself at the
+head of sysctl list and thus override existing sysctl entries serves no point.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/appletalk/sysctl_net_atalk.c |    2 +-
+ arch/frv/kernel/pm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/appletalk/sysctl_net_atalk.c~sysctl-atalk-remove-unnecessary-insert_at_head-flag net/appletalk/sysctl_net_atalk.c
---- a/net/appletalk/sysctl_net_atalk.c~sysctl-atalk-remove-unnecessary-insert_at_head-flag
-+++ a/net/appletalk/sysctl_net_atalk.c
-@@ -73,7 +73,7 @@ static struct ctl_table_header *atalk_ta
- 
- void atalk_register_sysctl(void)
+diff -puN arch/frv/kernel/pm.c~sysctl-frv-pm-remove-unnecessary-insert_at_head-flag arch/frv/kernel/pm.c
+--- a/arch/frv/kernel/pm.c~sysctl-frv-pm-remove-unnecessary-insert_at_head-flag
++++ a/arch/frv/kernel/pm.c
+@@ -419,7 +419,7 @@ static struct ctl_table pm_dir_table[] =
+  */
+ static int __init pm_init(void)
  {
--	atalk_table_header = register_sysctl_table(atalk_root_table, 1);
-+	atalk_table_header = register_sysctl_table(atalk_root_table, 0);
+-	register_sysctl_table(pm_dir_table, 1);
++	register_sysctl_table(pm_dir_table, 0);
+ 	return 0;
  }
  
- void atalk_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
