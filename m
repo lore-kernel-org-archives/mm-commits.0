@@ -1,28 +1,24 @@
 From: akpm@osdl.org
-Subject: + lockdep-missing-barrier.patch added to -mm tree
-Date: Tue, 23 Jan 2007 20:26:52 -0800
-Message-ID: <200701240426.l0O4QqGP008267@shell0.pdx.osdl.net>
+Subject: - lockdep-missing-barrier.patch removed from -mm tree
+Date: Tue, 23 Jan 2007 20:29:28 -0800
+Message-ID: <200701240429.l0O4TTn8008331@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50703 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50837 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965496AbXAXE1Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 23:27:24 -0500
+	id S965651AbXAXEa3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 23:30:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, mingo@elte.hu
+To: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
      lockdep: missing barrier()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      lockdep-missing-barrier.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it needs comments
 
 ------------------------------------------------------
 Subject: lockdep: missing barrier()
