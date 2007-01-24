@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:29 -0800
-Message-ID: <200701240313.l0O3DTMJ006953@shell0.pdx.osdl.net>
+Subject: + sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:51 -0800
+Message-ID: <200701240313.l0O3DpMw006991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49218 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49254 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030183AbXAXDNb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:31 -0500
+	id S1030199AbXAXDNx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables in drivers/parport/procfs.c
+     sysctl: factor out sysctl_head_next from do_sysctl
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
+     sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,323 +25,125 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables in drivers/parport/procfs.c
+Subject: sysctl: factor out sysctl_head_next from do_sysctl
 From: Eric W. Biederman <ebiederm@xmission.com>
+
+The current logic to walk through the list of sysctl table headers is slightly
+painful and implement in a way it cannot be used by code outside sysctl.c
+
+I am in the process of implementing a version of the sysctl proc support that
+instead of using the proc generic non-caching monster, just uses the existing
+sysctl data structure as backing store for building the dcache entries and for
+doing directory reads.  To use the existing data structures however I need a
+way to get at them.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/parport/procfs.c |  270 ++++++++++++++++++++++++++-----------
- 1 file changed, 192 insertions(+), 78 deletions(-)
+ include/linux/sysctl.h |    4 ++
+ kernel/sysctl.c        |   57 ++++++++++++++++++++++++++++-----------
+ 2 files changed, 46 insertions(+), 15 deletions(-)
 
-diff -puN drivers/parport/procfs.c~sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc drivers/parport/procfs.c
---- a/drivers/parport/procfs.c~sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc
-+++ a/drivers/parport/procfs.c
-@@ -233,12 +233,12 @@ static int do_hardware_modes (ctl_table 
- 	return copy_to_user(result, buffer, len) ? -EFAULT : 0;
+diff -puN include/linux/sysctl.h~sysctl-factor-out-sysctl_head_next-from-do_sysctl include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-factor-out-sysctl_head_next-from-do_sysctl
++++ a/include/linux/sysctl.h
+@@ -923,6 +923,10 @@ enum
+ #ifdef __KERNEL__
+ #include <linux/list.h>
+ 
++/* For the /proc/sys support */
++extern struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev);
++extern void sysctl_head_finish(struct ctl_table_header *prev);
++
+ extern void sysctl_init(void);
+ 
+ typedef struct ctl_table ctl_table;
+diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl
++++ a/kernel/sysctl.c
+@@ -1109,6 +1109,42 @@ static void start_unregistering(struct c
+ 	list_del_init(&p->ctl_entry);
  }
  
--#define PARPORT_PORT_DIR(child) { 0, NULL, NULL, 0, 0555, child }
--#define PARPORT_PARPORT_DIR(child) { DEV_PARPORT, "parport", \
--                                     NULL, 0, 0555, child }
--#define PARPORT_DEV_DIR(child) { CTL_DEV, "dev", NULL, 0, 0555, child }
--#define PARPORT_DEVICES_ROOT_DIR  { DEV_PARPORT_DEVICES, "devices", \
--                                    NULL, 0, 0555, NULL }
-+#define PARPORT_PORT_DIR(CHILD) { .ctl_name = 0, .procname = NULL, .mode = 0555, .child = CHILD }
-+#define PARPORT_PARPORT_DIR(CHILD) { .ctl_name = DEV_PARPORT, .procname = "parport", \
-+                                     .mode = 0555, .child = CHILD }
-+#define PARPORT_DEV_DIR(CHILD) { .ctl_name = CTL_DEV, .procname = "dev", .mode = 0555, .child = CHILD }
-+#define PARPORT_DEVICES_ROOT_DIR  { .ctl_name = DEV_PARPORT_DEVICES, .procname = "devices", \
-+                                    .mode = 0555, .child = NULL }
- 
- static const unsigned long parport_min_timeslice_value =
- PARPORT_MIN_TIMESLICE_VALUE;
-@@ -263,50 +263,118 @@ struct parport_sysctl_table {
- };
- 
- static const struct parport_sysctl_table parport_sysctl_template = {
--	NULL,
-+	.sysctl_header = NULL,
-         {
--		{ DEV_PARPORT_SPINTIME, "spintime",
--		  NULL, sizeof(int), 0644, NULL,
--		  &proc_dointvec_minmax, NULL, NULL,
--		  (void*) &parport_min_spintime_value,
--		  (void*) &parport_max_spintime_value },
--		{ DEV_PARPORT_BASE_ADDR, "base-addr",
--		  NULL, 0, 0444, NULL,
--		  &do_hardware_base_addr },
--		{ DEV_PARPORT_IRQ, "irq",
--		  NULL, 0, 0444, NULL,
--		  &do_hardware_irq },
--		{ DEV_PARPORT_DMA, "dma",
--		  NULL, 0, 0444, NULL,
--		  &do_hardware_dma },
--		{ DEV_PARPORT_MODES, "modes",
--		  NULL, 0, 0444, NULL,
--		  &do_hardware_modes },
-+		{
-+			.ctl_name	= DEV_PARPORT_SPINTIME,
-+			.procname	= "spintime",
-+			.data		= NULL,
-+			.maxlen		= sizeof(int),
-+			.mode		= 0644,
-+			.proc_handler	= &proc_dointvec_minmax,
-+			.extra1		= (void*) &parport_min_spintime_value,
-+			.extra2		= (void*) &parport_max_spintime_value
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_BASE_ADDR,
-+			.procname	= "base-addr",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_hardware_base_addr
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_IRQ,
-+			.procname	= "irq",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_hardware_irq
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_DMA,
-+			.procname	= "dma",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_hardware_dma
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_MODES,
-+			.procname	= "modes",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_hardware_modes
-+		},
- 		PARPORT_DEVICES_ROOT_DIR,
- #ifdef CONFIG_PARPORT_1284
--		{ DEV_PARPORT_AUTOPROBE, "autoprobe",
--		  NULL, 0, 0444, NULL,
--		  &do_autoprobe },
--		{ DEV_PARPORT_AUTOPROBE + 1, "autoprobe0",
--		 NULL, 0, 0444, NULL,
--		 &do_autoprobe },
--		{ DEV_PARPORT_AUTOPROBE + 2, "autoprobe1",
--		  NULL, 0, 0444, NULL,
--		  &do_autoprobe },
--		{ DEV_PARPORT_AUTOPROBE + 3, "autoprobe2",
--		  NULL, 0, 0444, NULL,
--		  &do_autoprobe },
--		{ DEV_PARPORT_AUTOPROBE + 4, "autoprobe3",
--		  NULL, 0, 0444, NULL,
--		  &do_autoprobe },
-+		{
-+			.ctl_name	= DEV_PARPORT_AUTOPROBE,
-+			.procname	= "autoprobe",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_autoprobe
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_AUTOPROBE + 1,
-+			.procname	= "autoprobe0",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.maxlen		= 0444,
-+			.proc_handler	=  &do_autoprobe
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_AUTOPROBE + 2,
-+			.procname	= "autoprobe1",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_autoprobe
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_AUTOPROBE + 3,
-+			.procname	= "autoprobe2",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_autoprobe
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_AUTOPROBE + 4,
-+			.procname	= "autoprobe3",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_autoprobe
-+		},
- #endif /* IEEE 1284 support */
--		{0}
-+		{}
- 	},
--	{ {DEV_PARPORT_DEVICES_ACTIVE, "active", NULL, 0, 0444, NULL,
--	  &do_active_device }, {0}},
--	{ PARPORT_PORT_DIR(NULL), {0}},
--	{ PARPORT_PARPORT_DIR(NULL), {0}},
--	{ PARPORT_DEV_DIR(NULL), {0}}
-+	{
-+		{
-+			.ctl_name	= DEV_PARPORT_DEVICES_ACTIVE,
-+			.procname	= "active",
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0444,
-+			.proc_handler	= &do_active_device
-+		},
-+		{}
-+	},
-+	{
-+		PARPORT_PORT_DIR(NULL),
-+		{}
-+	},
-+	{
-+		PARPORT_PARPORT_DIR(NULL),
-+		{}
-+	},
-+	{
-+		PARPORT_DEV_DIR(NULL),
-+		{}
++void sysctl_head_finish(struct ctl_table_header *head)
++{
++	if (!head)
++		return;
++	spin_lock(&sysctl_lock);
++	unuse_table(head);
++	spin_unlock(&sysctl_lock);
++}
++
++struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev)
++{
++	struct ctl_table_header *head;
++	struct list_head *tmp;
++	spin_lock(&sysctl_lock);
++	if (prev) {
++		tmp = &prev->ctl_entry;
++		unuse_table(prev);
++		goto next;
 +	}
- };
- 
- struct parport_device_sysctl_table
-@@ -322,19 +390,46 @@ struct parport_device_sysctl_table
- 
- static const struct parport_device_sysctl_table
- parport_device_sysctl_template = {
--	NULL,
-+	.sysctl_header = NULL,
-+	{
-+		{
-+			.ctl_name 	= DEV_PARPORT_DEVICE_TIMESLICE,
-+			.procname 	= "timeslice",
-+			.data		= NULL,
-+			.maxlen		= sizeof(int),
-+			.mode		= 0644,
-+			.proc_handler	= &proc_doulongvec_ms_jiffies_minmax,
-+			.extra1		= (void*) &parport_min_timeslice_value,
-+			.extra2		= (void*) &parport_max_timeslice_value
-+		},
-+	},
- 	{
--		{ DEV_PARPORT_DEVICE_TIMESLICE, "timeslice",
--		  NULL, sizeof(int), 0644, NULL,
--		  &proc_doulongvec_ms_jiffies_minmax, NULL, NULL,
--		  (void*) &parport_min_timeslice_value,
--		  (void*) &parport_max_timeslice_value },
--	},
--	{ {0, NULL, NULL, 0, 0555, NULL}, {0}},
--	{ PARPORT_DEVICES_ROOT_DIR, {0}},
--	{ PARPORT_PORT_DIR(NULL), {0}},
--	{ PARPORT_PARPORT_DIR(NULL), {0}},
--	{ PARPORT_DEV_DIR(NULL), {0}}
-+		{
-+			.ctl_name	= 0,
-+			.procname	= NULL,
-+			.data		= NULL,
-+			.maxlen		= 0,
-+			.mode		= 0555,
-+			.child		= NULL
-+		},
-+		{}
-+	},
-+	{
-+		PARPORT_DEVICES_ROOT_DIR,
-+		{}
-+	},
-+	{
-+		PARPORT_PORT_DIR(NULL),
-+		{}
-+	},
-+	{
-+		PARPORT_PARPORT_DIR(NULL),
-+		{}
-+	},
-+	{
-+		PARPORT_DEV_DIR(NULL),
-+		{}
++	tmp = &root_table_header.ctl_entry;
++	for (;;) {
++		head = list_entry(tmp, struct ctl_table_header, ctl_entry);
++
++		if (!use_table(head))
++			goto next;
++		spin_unlock(&sysctl_lock);
++		return head;
++	next:
++		tmp = tmp->next;
++		if (tmp == &root_table_header.ctl_entry)
++			break;
 +	}
- };
++	spin_unlock(&sysctl_lock);
++	return NULL;
++}
++
+ void __init sysctl_init(void)
+ {
+ #ifdef CONFIG_PROC_SYSCTL
+@@ -1120,6 +1156,7 @@ void __init sysctl_init(void)
+ int do_sysctl(int __user *name, int nlen, void __user *oldval, size_t __user *oldlenp,
+ 	       void __user *newval, size_t newlen)
+ {
++	struct ctl_table_header *head;
+ 	struct list_head *tmp;
+ 	int error = -ENOTDIR;
  
- struct parport_default_sysctl_table
-@@ -351,28 +446,47 @@ extern int parport_default_spintime;
+@@ -1130,26 +1167,16 @@ int do_sysctl(int __user *name, int nlen
+ 		if (!oldlenp || get_user(old_len, oldlenp))
+ 			return -EFAULT;
+ 	}
+-	spin_lock(&sysctl_lock);
+-	tmp = &root_table_header.ctl_entry;
+-	do {
+-		struct ctl_table_header *head =
+-			list_entry(tmp, struct ctl_table_header, ctl_entry);
  
- static struct parport_default_sysctl_table
- parport_default_sysctl_table = {
--	NULL,
-+	.sysctl_header	= NULL,
- 	{
--		{ DEV_PARPORT_DEFAULT_TIMESLICE, "timeslice",
--		  &parport_default_timeslice,
--		  sizeof(parport_default_timeslice), 0644, NULL,
--		  &proc_doulongvec_ms_jiffies_minmax, NULL, NULL,
--		  (void*) &parport_min_timeslice_value,
--		  (void*) &parport_max_timeslice_value },
--		{ DEV_PARPORT_DEFAULT_SPINTIME, "spintime",
--		  &parport_default_spintime,
--		  sizeof(parport_default_spintime), 0644, NULL,
--		  &proc_dointvec_minmax, NULL, NULL,
--		  (void*) &parport_min_spintime_value,
--		  (void*) &parport_max_spintime_value },
--		{0}
--	},
--	{ { DEV_PARPORT_DEFAULT, "default", NULL, 0, 0555,
--	    parport_default_sysctl_table.vars },{0}},
--	{
--	PARPORT_PARPORT_DIR(parport_default_sysctl_table.default_dir), 
--	{0}},
--	{ PARPORT_DEV_DIR(parport_default_sysctl_table.parport_dir), {0}}
-+		{
-+			.ctl_name	= DEV_PARPORT_DEFAULT_TIMESLICE,
-+			.procname	= "timeslice",
-+			.data		= &parport_default_timeslice,
-+			.maxlen		= sizeof(parport_default_timeslice),
-+			.mode		= 0644,
-+			.proc_handler	= &proc_doulongvec_ms_jiffies_minmax,
-+			.extra1		= (void*) &parport_min_timeslice_value,
-+			.extra2		= (void*) &parport_max_timeslice_value
-+		},
-+		{
-+			.ctl_name	= DEV_PARPORT_DEFAULT_SPINTIME,
-+			.procname	= "spintime",
-+			.data		= &parport_default_spintime,
-+			.maxlen		= sizeof(parport_default_spintime),
-+			.mode		= 0644,
-+			.proc_handler	= &proc_dointvec_minmax,
-+			.extra1		= (void*) &parport_min_spintime_value,
-+			.extra2		= (void*) &parport_max_spintime_value
-+		},
-+		{}
-+	},
-+	{
-+		{
-+			.ctl_name	= DEV_PARPORT_DEFAULT,
-+			.procname	= "default",
-+			.mode		= 0555,
-+			.child		= parport_default_sysctl_table.vars
-+		},
-+		{}
-+	},
-+	{
-+		PARPORT_PARPORT_DIR(parport_default_sysctl_table.default_dir),
-+		{}
-+	},
-+	{
-+		PARPORT_DEV_DIR(parport_default_sysctl_table.parport_dir),
-+		{}
+-		if (!use_table(head))
+-			continue;
+-
+-		spin_unlock(&sysctl_lock);
++	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
+ 
+ 		error = parse_table(name, nlen, oldval, oldlenp, 
+ 					newval, newlen, head->ctl_table);
+-
+-		spin_lock(&sysctl_lock);
+-		unuse_table(head);
+-		if (error != -ENOTDIR)
++		if (error != -ENOTDIR) {
++			sysctl_head_finish(head);
+ 			break;
+-	} while ((tmp = tmp->next) != &root_table_header.ctl_entry);
+-	spin_unlock(&sysctl_lock);
++		}
 +	}
- };
- 
+ 	return error;
+ }
  
 _
 
