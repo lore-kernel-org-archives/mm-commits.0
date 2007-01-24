@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-register-the-ocfs2-sysctl-numbers.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:34 -0800
-Message-ID: <200701240313.l0O3DYRI006965@shell0.pdx.osdl.net>
+Subject: + sysctl-remove-support-for-directory-strategy-routines.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:47 -0800
+Message-ID: <200701240313.l0O3Dltx006985@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49239 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49250 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030193AbXAXDNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:43 -0500
+	id S1030203AbXAXDNt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, mark.fasheh@oracle.com
+Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: register the ocfs2 sysctl numbers
+     sysctl: remove support for directory strategy routines
 has been added to the -mm tree.  Its filename is
-     sysctl-register-the-ocfs2-sysctl-numbers.patch
+     sysctl-remove-support-for-directory-strategy-routines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: register the ocfs2 sysctl numbers
+Subject: sysctl: remove support for directory strategy routines
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-ocfs2 was did not have the binary number it uses under CTL_FS registered in
-sysctl.h.  Register it to avoid future conflicts, and change the name of the
-definition to be in line with the rest of the sysctl numbers.
+parse_table has support for calling a strategy routine when descending into a
+directory.  To date no one has used this functionality and the /proc/sys
+interface has no analog to it.
+
+So no one is using this functionality kill it and make the binary sysctl code
+easier to follow.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ocfs2/cluster/nodemanager.c |    4 ++--
- fs/ocfs2/cluster/nodemanager.h |    3 +--
- include/linux/sysctl.h         |    1 +
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/sysctl.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/ocfs2/cluster/nodemanager.c~sysctl-register-the-ocfs2-sysctl-numbers fs/ocfs2/cluster/nodemanager.c
---- a/fs/ocfs2/cluster/nodemanager.c~sysctl-register-the-ocfs2-sysctl-numbers
-+++ a/fs/ocfs2/cluster/nodemanager.c
-@@ -55,7 +55,7 @@ static ctl_table ocfs2_nm_table[] = {
- 
- static ctl_table ocfs2_mod_table[] = {
- 	{
--		.ctl_name	= KERN_OCFS2_NM,
-+		.ctl_name	= FS_OCFS2_NM,
- 		.procname	= "nm",
- 		.data		= NULL,
- 		.maxlen		= 0,
-@@ -67,7 +67,7 @@ static ctl_table ocfs2_mod_table[] = {
- 
- static ctl_table ocfs2_kern_table[] = {
- 	{
--		.ctl_name	= KERN_OCFS2,
-+		.ctl_name	= FS_OCFS2,
- 		.procname	= "ocfs2",
- 		.data		= NULL,
- 		.maxlen		= 0,
-diff -puN fs/ocfs2/cluster/nodemanager.h~sysctl-register-the-ocfs2-sysctl-numbers fs/ocfs2/cluster/nodemanager.h
---- a/fs/ocfs2/cluster/nodemanager.h~sysctl-register-the-ocfs2-sysctl-numbers
-+++ a/fs/ocfs2/cluster/nodemanager.h
-@@ -33,8 +33,7 @@
- #include <linux/configfs.h>
- #include <linux/rbtree.h>
- 
--#define KERN_OCFS2		988
--#define KERN_OCFS2_NM		1
-+#define FS_OCFS2_NM		1
- 
- const char *o2nm_get_hb_ctl_path(void);
- 
-diff -puN include/linux/sysctl.h~sysctl-register-the-ocfs2-sysctl-numbers include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-register-the-ocfs2-sysctl-numbers
-+++ a/include/linux/sysctl.h
-@@ -813,6 +813,7 @@ enum
- 	FS_AIO_NR=18,	/* current system-wide number of aio requests */
- 	FS_AIO_MAX_NR=19,	/* system-wide maximum number of aio requests */
- 	FS_INOTIFY=20,	/* inotify submenu */
-+	FS_OCFS2=988,	/* ocfs2 */
- };
- 
- /* /proc/sys/fs/quota/ */
+diff -puN kernel/sysctl.c~sysctl-remove-support-for-directory-strategy-routines kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-remove-support-for-directory-strategy-routines
++++ a/kernel/sysctl.c
+@@ -1214,14 +1214,6 @@ repeat:
+ 			if (table->child) {
+ 				if (ctl_perm(table, 001))
+ 					return -EPERM;
+-				if (table->strategy) {
+-					error = table->strategy(
+-						table, name, nlen,
+-						oldval, oldlenp,
+-						newval, newlen);
+-					if (error)
+-						return error;
+-				}
+ 				name++;
+ 				nlen--;
+ 				table = table->child;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
