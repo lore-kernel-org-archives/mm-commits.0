@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:44 -0800
-Message-ID: <200701240312.l0O3Ci8b006861@shell0.pdx.osdl.net>
+Subject: + sysctl-cdrom-dont-set-de-owner.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:46 -0800
+Message-ID: <200701240312.l0O3CkTB006864@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49083 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49087 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030197AbXAXDMv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:51 -0500
+	id S1030202AbXAXDMx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, James.Bottomley@SteelEye.com
+Cc: ebiederm@xmission.com, James.Bottomley@SteelEye.com, jens.axboe@oracle.com
 
 
 The patch titled
-     sysctl: cdrom: remove unnecessary insert_at_head flag
+     sysctl: cdrom: don't set de->owner
 has been added to the -mm tree.  Its filename is
-     sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-cdrom-dont-set-de-owner.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: cdrom: remove unnecessary insert_at_head flag
+Subject: sysctl: cdrom: don't set de->owner
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-With unique binary sysctl numbers setting insert_at_head to override other
-sysctl entries is pointless.
+There is no need for open files in /proc/sys/XXX to hold a reference count on
+the module that provides the file to prevent module unload races.  While there
+is code active in the module p->used in the sysctl_table_header is
+incremented, preventing the sysctl from being unregisted.  Once the sysctl is
+unregistered it cannot be found.  Open files are also not a problem as they
+revalidate the sysctl information and bump p->used before accessing module
+code.
+
+So setting de->owner is unnecessary, makes for a bad example and gets in my
+way of removing ctl_table->de.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/cdrom/cdrom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/cdrom/cdrom.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag
+diff -puN drivers/cdrom/cdrom.c~sysctl-cdrom-dont-set-de-owner drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~sysctl-cdrom-dont-set-de-owner
 +++ a/drivers/cdrom/cdrom.c
-@@ -3553,7 +3553,7 @@ static void cdrom_sysctl_register(void)
- 	if (initialized == 1)
+@@ -3554,8 +3554,6 @@ static void cdrom_sysctl_register(void)
  		return;
  
--	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 1);
-+	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 0);
- 	if (cdrom_root_table->ctl_name && cdrom_root_table->child->de)
- 		cdrom_root_table->child->de->owner = THIS_MODULE;
+ 	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 0);
+-	if (cdrom_root_table->ctl_name && cdrom_root_table->child->de)
+-		cdrom_root_table->child->de->owner = THIS_MODULE;
  
+ 	/* set the defaults */
+ 	cdrom_sysctl_settings.autoclose = autoclose;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
