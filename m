@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-arch-frv-kernel-pmc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:53 -0800
-Message-ID: <200701240312.l0O3Crpt006879@shell0.pdx.osdl.net>
+Subject: + sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:25 -0800
+Message-ID: <200701240312.l0O3CPnt006819@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49110 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49126 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030215AbXAXDNB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:01 -0500
+	id S1030224AbXAXDNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, dhowells@redhat.com
+Cc: ebiederm@xmission.com, acme@conectiva.com.br
 
 
 The patch titled
-     sysctl: C99 convert arch/frv/kernel/pm.c
+     sysctl: ipx: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-arch-frv-kernel-pmc.patch
+     sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert arch/frv/kernel/pm.c
+Subject: sysctl: ipx: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+The sysctl numbers used are unique so setting the insert_at_head flag servers
+no semantic purpose and is just confusing.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/frv/kernel/pm.c |   50 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 43 insertions(+), 7 deletions(-)
+ net/ipx/sysctl_net_ipx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/kernel/pm.c~sysctl-c99-convert-arch-frv-kernel-pmc arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~sysctl-c99-convert-arch-frv-kernel-pmc
-+++ a/arch/frv/kernel/pm.c
-@@ -401,17 +401,53 @@ static int cm_sysctl(ctl_table *table, i
+diff -puN net/ipx/sysctl_net_ipx.c~sysctl-ipx-remove-unnecessary-insert_at_head-flag net/ipx/sysctl_net_ipx.c
+--- a/net/ipx/sysctl_net_ipx.c~sysctl-ipx-remove-unnecessary-insert_at_head-flag
++++ a/net/ipx/sysctl_net_ipx.c
+@@ -52,7 +52,7 @@ static struct ctl_table_header *ipx_tabl
  
- static struct ctl_table pm_table[] =
+ void ipx_register_sysctl(void)
  {
--	{CTL_PM_SUSPEND, "suspend", NULL, 0, 0200, NULL, &sysctl_pm_do_suspend},
--	{CTL_PM_CMODE, "cmode", &clock_cmode_current, sizeof(int), 0644, NULL, &cmode_procctl, &cmode_sysctl, NULL},
--	{CTL_PM_P0, "p0", &clock_p0_current, sizeof(int), 0644, NULL, &p0_procctl, &p0_sysctl, NULL},
--	{CTL_PM_CM, "cm", &clock_cm_current, sizeof(int), 0644, NULL, &cm_procctl, &cm_sysctl, NULL},
--	{0}
-+	{
-+		.ctl_name	= CTL_PM_SUSPEND,
-+		.procname	= "suspend",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0200,
-+		.proc_handler	= &sysctl_pm_do_suspend,
-+	},
-+	{
-+		.ctl_name	= CTL_PM_CMODE,
-+		.procname	= "cmode",
-+		.data		= &clock_cmode_current,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &cmode_procctl,
-+		.strategy	= &cmode_sysctl,
-+	},
-+	{
-+		.ctl_name	= CTL_PM_P0,
-+		.procname	= "p0",
-+		.data		= &clock_p0_current,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &p0_procctl,
-+		.strategy	= &p0_sysctl,
-+	},
-+	{
-+		.ctl_name	= CTL_PM_CM,
-+		.procname	= "cm",
-+		.data		= &clock_cm_current,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &cm_procctl,
-+		.strategy	= &cm_sysctl,
-+	},
-+	{ .ctl_name = 0}
- };
+-	ipx_table_header = register_sysctl_table(ipx_root_table, 1);
++	ipx_table_header = register_sysctl_table(ipx_root_table, 0);
+ }
  
- static struct ctl_table pm_dir_table[] =
- {
--	{CTL_PM, "pm", NULL, 0, 0555, pm_table},
--	{0}
-+	{
-+		.ctl_name	= CTL_PM,
-+		.procname	= "pm",
-+		.mode		= 0555,
-+		.child		= pm_table,
-+	},
-+	{ .ctl_name = 0}
- };
- 
- /*
+ void ipx_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
