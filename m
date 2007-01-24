@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + i386-entrys-end-endproc-annotations.patch added to -mm tree
-Date: Tue, 23 Jan 2007 21:12:11 -0800
-Message-ID: <200701240512.l0O5CBU0009070@shell0.pdx.osdl.net>
+Subject: + i386-adjustments-to-page-table-dump-during-oops-v2.patch added to -mm tree
+Date: Tue, 23 Jan 2007 21:13:30 -0800
+Message-ID: <200701240513.l0O5DUQV009099@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52147 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52196 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030202AbXAXFMR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 00:12:17 -0500
+	id S1030211AbXAXFNf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 00:13:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jbeulich@novell.com, ak@suse.de
 
 
 The patch titled
-     i386: entry.S END/ENDPROC annotations
+     i386: adjustments to page table dump during oops
 has been added to the -mm tree.  Its filename is
-     i386-entrys-end-endproc-annotations.patch
+     i386-adjustments-to-page-table-dump-during-oops-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,273 +25,128 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: entry.S END/ENDPROC annotations
+Subject: i386: adjustments to page table dump during oops
 From: "Jan Beulich" <jbeulich@novell.com>
 
-Annotate i386/kernel/entry.S with END/ENDPROC to assist disassemblers and
-other analysis tools.
+I'd like this to replace the previously sent patch under the same title,
+applied as i386-adjustments-to-page-table-dump-during-oops.patch in -mm.
+If an incremental patch on top of the previous one is absolutely
+required, I can certainly also generate that.
+
+- make the page table contents printing PAE capable
+- make sure the address stored in current->thread.cr2 is unmodified from
+  what was read from CR2
+- don't call oops_may_print() multiple times, when one time suffices
+- print pte even in highpte case, as long as the pte page isn't in
+  actually in high memory (which is specifically the case for all page
+  tables covering kernel space)
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/entry.S |   41 +++++++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 4 deletions(-)
+ arch/i386/mm/fault.c |   66 +++++++++++++++++++++++++++--------------
+ 1 file changed, 45 insertions(+), 21 deletions(-)
 
-diff -puN arch/i386/kernel/entry.S~i386-entrys-end-endproc-annotations arch/i386/kernel/entry.S
---- a/arch/i386/kernel/entry.S~i386-entrys-end-endproc-annotations
-+++ a/arch/i386/kernel/entry.S
-@@ -227,6 +227,7 @@ ENTRY(ret_from_fork)
- 	CFI_ADJUST_CFA_OFFSET -4
- 	jmp syscall_exit
- 	CFI_ENDPROC
-+END(ret_from_fork)
+diff -puN arch/i386/mm/fault.c~i386-adjustments-to-page-table-dump-during-oops-v2 arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~i386-adjustments-to-page-table-dump-during-oops-v2
++++ a/arch/i386/mm/fault.c
+@@ -327,7 +327,6 @@ fastcall void __kprobes do_page_fault(st
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct * vma;
+ 	unsigned long address;
+-	unsigned long page;
+ 	int write, si_code;
  
- /*
-  * Return to user mode is not as complex as all this looks,
-@@ -258,6 +259,7 @@ ENTRY(resume_userspace)
- 					# int/exception return?
- 	jne work_pending
- 	jmp restore_all
-+END(ret_from_exception)
+ 	/* get the address */
+@@ -536,7 +535,16 @@ no_context:
+ 	bust_spinlocks(1);
  
- #ifdef CONFIG_PREEMPT
- ENTRY(resume_kernel)
-@@ -272,6 +274,7 @@ need_resched:
- 	jz restore_all
- 	call preempt_schedule_irq
- 	jmp need_resched
-+END(resume_kernel)
- #endif
- 	CFI_ENDPROC
- 
-@@ -359,6 +362,7 @@ sysenter_past_esp:
- 	.align 4
- 	.long 1b,2b
- .popsection
-+ENDPROC(sysenter_entry)
- 
- 	# system call handler stub
- ENTRY(system_call)
-@@ -459,6 +463,7 @@ ldt_ss:
- 	CFI_ADJUST_CFA_OFFSET -8
- 	jmp restore_nocheck
- 	CFI_ENDPROC
-+ENDPROC(system_call)
- 
- 	# perform work that needs to be done immediately before resumption
- 	ALIGN
-@@ -504,6 +509,7 @@ work_notifysig_v86:
- 	xorl %edx, %edx
- 	call do_notify_resume
- 	jmp resume_userspace_sig
-+END(work_pending)
- 
- 	# perform syscall exit tracing
- 	ALIGN
-@@ -519,6 +525,7 @@ syscall_trace_entry:
- 	cmpl $(nr_syscalls), %eax
- 	jnae syscall_call
- 	jmp syscall_exit
-+END(syscall_trace_entry)
- 
- 	# perform syscall exit tracing
- 	ALIGN
-@@ -532,6 +539,7 @@ syscall_exit_work:
- 	movl $1, %edx
- 	call do_syscall_trace
- 	jmp resume_userspace
-+END(syscall_exit_work)
- 	CFI_ENDPROC
- 
- 	RING0_INT_FRAME			# can't unwind into user space anyway
-@@ -542,10 +550,12 @@ syscall_fault:
- 	GET_THREAD_INFO(%ebp)
- 	movl $-EFAULT,PT_EAX(%esp)
- 	jmp resume_userspace
-+END(syscall_fault)
- 
- syscall_badsys:
- 	movl $-ENOSYS,PT_EAX(%esp)
- 	jmp resume_userspace
-+END(syscall_badsys)
- 	CFI_ENDPROC
- 
- #define FIXUP_ESPFIX_STACK \
-@@ -581,9 +591,9 @@ syscall_badsys:
- ENTRY(interrupt)
- .text
- 
--vector=0
- ENTRY(irq_entries_start)
- 	RING0_INT_FRAME
-+vector=0
- .rept NR_IRQS
- 	ALIGN
-  .if vector
-@@ -592,11 +602,16 @@ ENTRY(irq_entries_start)
- 1:	pushl $~(vector)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp common_interrupt
--.data
-+ .previous
- 	.long 1b
--.text
-+ .text
- vector=vector+1
- .endr
-+END(irq_entries_start)
+ 	if (oops_may_print()) {
+-	#ifdef CONFIG_X86_PAE
++#ifndef CONFIG_X86_PAE
++		typedef unsigned long pgt_t;
++#define PRIpgt "08lx"
++#else
++		typedef unsigned long long pgt_t;
++#define PRIpgt "016Lx"
++#endif
++		pgt_t page;
 +
-+.previous
-+END(interrupt)
-+.previous
++#ifdef CONFIG_X86_PAE
+ 		if (error_code & 16) {
+ 			pte_t *pte = lookup_address(address);
  
- /*
-  * the CPU automatically disables interrupts when executing an IRQ vector,
-@@ -609,6 +624,7 @@ common_interrupt:
- 	movl %esp,%eax
- 	call do_IRQ
- 	jmp ret_from_intr
-+ENDPROC(common_interrupt)
- 	CFI_ENDPROC
- 
- #define BUILD_INTERRUPT(name, nr)	\
-@@ -621,7 +637,8 @@ ENTRY(name)				\
- 	movl %esp,%eax;			\
- 	call smp_/**/name;		\
- 	jmp ret_from_intr;		\
--	CFI_ENDPROC
-+	CFI_ENDPROC;			\
-+ENDPROC(name)
- 
- /* The include is where all of the SMP etc. interrupts come from */
- #include "entry_arch.h"
-@@ -697,6 +714,7 @@ ENTRY(coprocessor_error)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(coprocessor_error)
- 
- ENTRY(simd_coprocessor_error)
- 	RING0_INT_FRAME
-@@ -706,6 +724,7 @@ ENTRY(simd_coprocessor_error)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(simd_coprocessor_error)
- 
- ENTRY(device_not_available)
- 	RING0_INT_FRAME
-@@ -726,6 +745,7 @@ device_not_available_emulate:
- 	CFI_ADJUST_CFA_OFFSET -4
- 	jmp ret_from_exception
- 	CFI_ENDPROC
-+END(device_not_available)
- 
- /*
-  * Debug traps and NMI can happen at the one SYSENTER instruction
-@@ -869,10 +889,12 @@ ENTRY(native_iret)
- 	.align 4
- 	.long 1b,iret_exc
- .previous
-+END(native_iret)
- 
- ENTRY(native_irq_enable_sysexit)
- 	sti
- 	sysexit
-+END(native_irq_enable_sysexit)
+@@ -545,7 +553,7 @@ no_context:
+ 					"NX-protected page - exploit attempt? "
+ 					"(uid: %d)\n", current->uid);
+ 		}
+-	#endif
++#endif
+ 		if (address < PAGE_SIZE)
+ 			printk(KERN_ALERT "BUG: unable to handle kernel NULL "
+ 					"pointer dereference");
+@@ -555,25 +563,41 @@ no_context:
+ 		printk(" at virtual address %08lx\n",address);
+ 		printk(KERN_ALERT " printing eip:\n");
+ 		printk("%08lx\n", regs->eip);
+-	}
+-	page = read_cr3();
+-	page = ((unsigned long *) __va(page))[address >> 22];
+-	if (oops_may_print())
+-		printk(KERN_ALERT "*pde = %08lx\n", page);
+-	/*
+-	 * We must not directly access the pte in the highpte
+-	 * case, the page table might be allocated in highmem.
+-	 * And lets rather not kmap-atomic the pte, just in case
+-	 * it's allocated already.
+-	 */
+-#ifndef CONFIG_HIGHPTE
+-	if ((page & 1) && oops_may_print()) {
+-		page &= PAGE_MASK;
+-		address &= 0x003ff000;
+-		page = ((unsigned long *) __va(page))[address >> PAGE_SHIFT];
+-		printk(KERN_ALERT "*pte = %08lx\n", page);
+-	}
++
++		page = read_cr3();
++		page = ((pgt_t *) __va(page))[address >> PGDIR_SHIFT];
++#ifdef CONFIG_X86_PAE
++		printk(KERN_ALERT "*pdpt = %"PRIpgt"\n", page);
++		if (page & 1) {
++			page &= PAGE_MASK;
++			page = ((pgt_t *) __va(page))[(address >> PMD_SHIFT)
++			                              & (PTRS_PER_PMD - 1)];
++			printk(KERN_ALERT "*pde = %"PRIpgt"\n", page);
++			page &= ~_PAGE_NX;
++		}
++#else
++		printk(KERN_ALERT "*pde = %"PRIpgt"\n", page);
++#endif
++
++#ifdef CONFIG_HIGHPTE
++		/*
++		 * We must not directly access the pte in the highpte
++		 * case if the page table is located in highmem.
++		 * And lets rather not kmap-atomic the pte, just in case
++		 * it's allocated already.
++		 */
++		if ((page >> PAGE_SHIFT) >= highstart_pfn)
++			page = 0;
  #endif
- 
- KPROBE_ENTRY(int3)
-@@ -895,6 +917,7 @@ ENTRY(overflow)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(overflow)
- 
- ENTRY(bounds)
- 	RING0_INT_FRAME
-@@ -904,6 +927,7 @@ ENTRY(bounds)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(bounds)
- 
- ENTRY(invalid_op)
- 	RING0_INT_FRAME
-@@ -913,6 +937,7 @@ ENTRY(invalid_op)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(invalid_op)
- 
- ENTRY(coprocessor_segment_overrun)
- 	RING0_INT_FRAME
-@@ -922,6 +947,7 @@ ENTRY(coprocessor_segment_overrun)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(coprocessor_segment_overrun)
- 
- ENTRY(invalid_TSS)
- 	RING0_EC_FRAME
-@@ -929,6 +955,7 @@ ENTRY(invalid_TSS)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(invalid_TSS)
- 
- ENTRY(segment_not_present)
- 	RING0_EC_FRAME
-@@ -936,6 +963,7 @@ ENTRY(segment_not_present)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(segment_not_present)
- 
- ENTRY(stack_segment)
- 	RING0_EC_FRAME
-@@ -943,6 +971,7 @@ ENTRY(stack_segment)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(stack_segment)
- 
- KPROBE_ENTRY(general_protection)
- 	RING0_EC_FRAME
-@@ -958,6 +987,7 @@ ENTRY(alignment_check)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(alignment_check)
- 
- ENTRY(divide_error)
- 	RING0_INT_FRAME
-@@ -967,6 +997,7 @@ ENTRY(divide_error)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(divide_error)
- 
- #ifdef CONFIG_X86_MCE
- ENTRY(machine_check)
-@@ -977,6 +1008,7 @@ ENTRY(machine_check)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(machine_check)
- #endif
- 
- ENTRY(spurious_interrupt_bug)
-@@ -987,6 +1019,7 @@ ENTRY(spurious_interrupt_bug)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	jmp error_code
- 	CFI_ENDPROC
-+END(spurious_interrupt_bug)
- 
- ENTRY(kernel_thread_helper)
- 	pushl $0		# fake return address for unwinder
++		if (page & 1) {
++			page &= PAGE_MASK;
++			page = ((pgt_t *) __va(page))[(address >> PAGE_SHIFT)
++			                              & (PTRS_PER_PTE - 1)];
++			printk(KERN_ALERT "*pte = %"PRIpgt"\n", page);
++		}
++#undef PRIpgt
++	}
++
+ 	tsk->thread.cr2 = address;
+ 	tsk->thread.trap_no = 14;
+ 	tsk->thread.error_code = error_code;
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
@@ -302,5 +157,6 @@ ia64-swiotlb-cleanup.patch
 ia64-swiotlb-abstraction-eg-for-xen.patch
 ia64-missing-exports-hwsw_sync_.patch
 ia64-enable-swiotlb-only-when-needed.patch
+i386-adjustments-to-page-table-dump-during-oops-v2.patch
 i386-adjustments-to-page-table-dump-during-oops.patch
 i386-entrys-end-endproc-annotations.patch
