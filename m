@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:29 -0800
-Message-ID: <200701240312.l0O3CTmR006828@shell0.pdx.osdl.net>
+Subject: + sysctl-mips-au1000-remove-sys_sysctl-support.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:00 -0800
+Message-ID: <200701240313.l0O3D0iq006894@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49295 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49307 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030187AbXAXDPq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:15:46 -0500
+	id S1030227AbXAXDQR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:16:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, ralf@linux-mips.org
 
 
 The patch titled
-     sysctl: ax25: remove unnecessary insert_at_head flag
+     sysctl: mips/au1000: remove sys_sysctl support
 has been added to the -mm tree.  Its filename is
-     sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-mips-au1000-remove-sys_sysctl-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: ax25: remove unnecessary insert_at_head flag
+Subject: sysctl: mips/au1000: remove sys_sysctl support
 From: Eric W. Biederman <ebiederm@xmission.com>
+
+The assignment of binary numbers for sys_sysctl use was in shambles and
+despite requiring methods.  Nothing was implemented on the sys_sysctl side.
+
+So this patch gives a mercy killing to the sys_sysctl support for
+powermanagment on mips/au1000.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/ax25/sysctl_net_ax25.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/au1000/common/power.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN net/ax25/sysctl_net_ax25.c~sysctl-ax25-remove-unnecessary-insert_at_head-flag net/ax25/sysctl_net_ax25.c
---- a/net/ax25/sysctl_net_ax25.c~sysctl-ax25-remove-unnecessary-insert_at_head-flag
-+++ a/net/ax25/sysctl_net_ax25.c
-@@ -245,7 +245,7 @@ void ax25_register_sysctl(void)
+diff -puN arch/mips/au1000/common/power.c~sysctl-mips-au1000-remove-sys_sysctl-support arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~sysctl-mips-au1000-remove-sys_sysctl-support
++++ a/arch/mips/au1000/common/power.c
+@@ -62,12 +62,6 @@ extern unsigned long save_local_and_disa
+ extern void restore_local_and_enable(int controller, unsigned long mask);
+ extern void local_enable_irq(unsigned int irq_nr);
  
- 	ax25_dir_table[0].child = ax25_table;
+-/* Quick acpi hack. This will have to change! */
+-#define	CTL_ACPI 9999
+-#define	ACPI_S1_SLP_TYP 19
+-#define	ACPI_SLEEP 21
+-
+-
+ static DEFINE_SPINLOCK(pm_lock);
  
--	ax25_table_header = register_sysctl_table(ax25_root_table, 1);
-+	ax25_table_header = register_sysctl_table(ax25_root_table, 0);
+ /* We need to save/restore a bunch of core registers that are
+@@ -425,14 +419,14 @@ static int pm_do_freq(ctl_table * ctl, i
+ 
+ 
+ static struct ctl_table pm_table[] = {
+-	{ACPI_S1_SLP_TYP, "suspend", NULL, 0, 0600, NULL, &pm_do_suspend},
+-	{ACPI_SLEEP, "sleep", NULL, 0, 0600, NULL, &pm_do_sleep},
+-	{CTL_ACPI, "freq", NULL, 0, 0600, NULL, &pm_do_freq},
++	{CTL_UNNUMBERED, "suspend", NULL, 0, 0600, NULL, &pm_do_suspend},
++	{CTL_UNNUMBERED, "sleep", NULL, 0, 0600, NULL, &pm_do_sleep},
++	{CTL_UNNUMBERED, "freq", NULL, 0, 0600, NULL, &pm_do_freq},
+ 	{0}
+ };
+ 
+ static struct ctl_table pm_dir_table[] = {
+-	{CTL_ACPI, "pm", NULL, 0, 0555, pm_table},
++	{CTL_UNNUMBERED, "pm", NULL, 0, 0555, pm_table},
+ 	{0}
+ };
+ 
+@@ -441,7 +435,7 @@ static struct ctl_table pm_dir_table[] =
+  */
+ static int __init pm_init(void)
+ {
+-	register_sysctl_table(pm_dir_table, 1);
++	register_sysctl_table(pm_dir_table, 0);
+ 	return 0;
  }
  
- void ax25_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
