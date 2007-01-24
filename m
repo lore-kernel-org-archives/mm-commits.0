@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-rose-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:19 -0800
-Message-ID: <200701240312.l0O3CJJh006810@shell0.pdx.osdl.net>
+Subject: + sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:29 -0800
+Message-ID: <200701240312.l0O3CTmR006828@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49289 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49295 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030216AbXAXDPh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:15:37 -0500
+	id S1030187AbXAXDPq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:15:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, ralf@linux-mips.org
 
 
 The patch titled
-     sysctl: rose: remove unnecessary insert_at_head flag
+     sysctl: ax25: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: rose: remove unnecessary insert_at_head flag
+Subject: sysctl: ax25: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
-
-The sysctl numbers used are unique so setting the insert_at_head flag serves
-no semantic purpose.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/rose/sysctl_net_rose.c |    2 +-
+ net/ax25/sysctl_net_ax25.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/rose/sysctl_net_rose.c~sysctl-rose-remove-unnecessary-insert_at_head-flag net/rose/sysctl_net_rose.c
---- a/net/rose/sysctl_net_rose.c~sysctl-rose-remove-unnecessary-insert_at_head-flag
-+++ a/net/rose/sysctl_net_rose.c
-@@ -160,7 +160,7 @@ static ctl_table rose_root_table[] = {
+diff -puN net/ax25/sysctl_net_ax25.c~sysctl-ax25-remove-unnecessary-insert_at_head-flag net/ax25/sysctl_net_ax25.c
+--- a/net/ax25/sysctl_net_ax25.c~sysctl-ax25-remove-unnecessary-insert_at_head-flag
++++ a/net/ax25/sysctl_net_ax25.c
+@@ -245,7 +245,7 @@ void ax25_register_sysctl(void)
  
- void __init rose_register_sysctl(void)
- {
--	rose_table_header = register_sysctl_table(rose_root_table, 1);
-+	rose_table_header = register_sysctl_table(rose_root_table, 0);
+ 	ax25_dir_table[0].child = ax25_table;
+ 
+-	ax25_table_header = register_sysctl_table(ax25_root_table, 1);
++	ax25_table_header = register_sysctl_table(ax25_root_table, 0);
  }
  
- void rose_unregister_sysctl(void)
+ void ax25_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
