@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:07 -0800
-Message-ID: <200701240313.l0O3D72F006906@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:32 -0800
+Message-ID: <200701240313.l0O3DWbM006961@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49146 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49234 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030238AbXAXDNP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:15 -0500
+	id S1030261AbXAXDNk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, schwidefsky@de.ibm.com
+Cc: ebiederm@xmission.com, aia21@cantab.net
 
 
 The patch titled
-     sysctl: s390: remove unnecessary use of insert_at_head
+     sysctl: C99 convert ctl_tables in NTFS and remove sys_sysctl support
 has been added to the -mm tree.  Its filename is
-     sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
+     sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: s390: remove unnecessary use of insert_at_head
+Subject: sysctl: C99 convert ctl_tables in NTFS and remove sys_sysctl support
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+Putting ntfs-debug under FS_NRINODE was not a kosher thing to do so don't give
+it any binary number.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/s390/appldata/appldata_base.c |    4 ++--
- arch/s390/kernel/debug.c           |    2 +-
- arch/s390/mm/cmm.c                 |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ fs/ntfs/sysctl.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN arch/s390/appldata/appldata_base.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/appldata/appldata_base.c
---- a/arch/s390/appldata/appldata_base.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
-+++ a/arch/s390/appldata/appldata_base.c
-@@ -506,7 +506,7 @@ int appldata_register_ops(struct appldat
+diff -puN fs/ntfs/sysctl.c~sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support fs/ntfs/sysctl.c
+--- a/fs/ntfs/sysctl.c~sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support
++++ a/fs/ntfs/sysctl.c
+@@ -33,20 +33,28 @@
+ #include "sysctl.h"
+ #include "debug.h"
  
- 	ops->ctl_table[3].ctl_name = 0;
+-#define FS_NTFS	1
+-
+ /* Definition of the ntfs sysctl. */
+ static ctl_table ntfs_sysctls[] = {
+-	{ FS_NTFS, "ntfs-debug",		/* Binary and text IDs. */
+-	  &debug_msgs,sizeof(debug_msgs),	/* Data pointer and size. */
+-	  0644,	NULL, &proc_dointvec },		/* Mode, child, proc handler. */
+-	{ 0 }
++	{
++		.ctl_name	= CTL_UNUMBERED,	/* Binary and text IDs. */
++		.procname	= "ntfs-debug",
++		.data		= &debug_msgs,		/* Data pointer and size. */
++		.maxlen		= sizeof(debug_msgs),
++		.mode		= 0644,			/* Mode, proc handler. */
++		.proc_handler	= &proc_dointvec
++	},
++	{}
+ };
  
--	ops->sysctl_header = register_sysctl_table(ops->ctl_table,1);
-+	ops->sysctl_header = register_sysctl_table(ops->ctl_table,0);
+ /* Define the parent directory /proc/sys/fs. */
+ static ctl_table sysctls_root[] = {
+-	{ CTL_FS, "fs", NULL, 0, 0555, ntfs_sysctls },
+-	{ 0 }
++	{
++		.ctl_name	= CTL_FS,
++		.procname	= "fs",
++		.mode		= 0555,
++		.child		= ntfs_sysctls
++	},
++	{}
+ };
  
- 	P_INFO("%s-ops registered!\n", ops->name);
- 	return 0;
-@@ -606,7 +606,7 @@ static int __init appldata_init(void)
- 	/* Register cpu hotplug notifier */
- 	register_hotcpu_notifier(&appldata_nb);
- 
--	appldata_sysctl_header = register_sysctl_table(appldata_dir_table, 1);
-+	appldata_sysctl_header = register_sysctl_table(appldata_dir_table, 0);
- #ifdef MODULE
- 	appldata_dir_table[0].de->owner = THIS_MODULE;
- 	appldata_table[0].de->owner = THIS_MODULE;
-diff -puN arch/s390/kernel/debug.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/kernel/debug.c
---- a/arch/s390/kernel/debug.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
-+++ a/arch/s390/kernel/debug.c
-@@ -1053,7 +1053,7 @@ __init debug_init(void)
- {
- 	int rc = 0;
- 
--	s390dbf_sysctl_header = register_sysctl_table(s390dbf_dir_table, 1);
-+	s390dbf_sysctl_header = register_sysctl_table(s390dbf_dir_table, 0);
- 	down(&debug_lock);
- 	debug_debugfs_root_entry = debugfs_create_dir(DEBUG_DIR_ROOT,NULL);
- 	printk(KERN_INFO "debug: Initialization complete\n");
-diff -puN arch/s390/mm/cmm.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/mm/cmm.c
---- a/arch/s390/mm/cmm.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
-+++ a/arch/s390/mm/cmm.c
-@@ -418,7 +418,7 @@ cmm_init (void)
- 	int rc = -ENOMEM;
- 
- #ifdef CONFIG_CMM_PROC
--	cmm_sysctl_header = register_sysctl_table(cmm_dir_table, 1);
-+	cmm_sysctl_header = register_sysctl_table(cmm_dir_table, 0);
- 	if (!cmm_sysctl_header)
- 		goto out;
- #endif
+ /* Storage for the sysctls header. */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
