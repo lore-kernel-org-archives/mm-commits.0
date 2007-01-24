@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + knfsd-update-email-address-and-status-for-nfsd-in-maintainers.patch added to -mm tree
-Date: Tue, 23 Jan 2007 22:52:36 -0800
-Message-ID: <200701240652.l0O6qaYW010838@shell0.pdx.osdl.net>
+Subject: + knfsd-fix-setting-of-acl-server-versions.patch added to -mm tree
+Date: Tue, 23 Jan 2007 22:52:38 -0800
+Message-ID: <200701240652.l0O6qc6F010841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54780 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54779 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933004AbXAXGws (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 01:52:48 -0500
+	id S932968AbXAXGwr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 01:52:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     knfsd: update email address and status for NFSD in MAINTAINERS
+     knfsd: fix setting of ACL server versions
 has been added to the -mm tree.  Its filename is
-     knfsd-update-email-address-and-status-for-nfsd-in-maintainers.patch
+     knfsd-fix-setting-of-acl-server-versions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: update email address and status for NFSD in MAINTAINERS
+Subject: knfsd: fix setting of ACL server versions
 From: NeilBrown <neilb@suse.de>
+
+Due to silly typos, if the nfs versions are explicitly set, no NFSACL versions
+get enabled.
+
+Also improve an error message that would have made this bug a little easier to
+find.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- MAINTAINERS |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/nfsd/nfssvc.c |    8 ++++----
+ net/sunrpc/svc.c |    3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~knfsd-update-email-address-and-status-for-nfsd-in-maintainers MAINTAINERS
---- a/MAINTAINERS~knfsd-update-email-address-and-status-for-nfsd-in-maintainers
-+++ a/MAINTAINERS
-@@ -1928,11 +1928,10 @@ S:	Maintained
+diff -puN fs/nfsd/nfssvc.c~knfsd-fix-setting-of-acl-server-versions fs/nfsd/nfssvc.c
+--- a/fs/nfsd/nfssvc.c~knfsd-fix-setting-of-acl-server-versions
++++ a/fs/nfsd/nfssvc.c
+@@ -72,7 +72,7 @@ static struct svc_program	nfsd_acl_progr
+ 	.pg_prog		= NFS_ACL_PROGRAM,
+ 	.pg_nvers		= NFSD_ACL_NRVERS,
+ 	.pg_vers		= nfsd_acl_versions,
+-	.pg_name		= "nfsd",
++	.pg_name		= "nfsacl",
+ 	.pg_class		= "nfsd",
+ 	.pg_stats		= &nfsd_acl_svcstats,
+ 	.pg_authenticate	= &svc_set_client,
+@@ -118,16 +118,16 @@ int nfsd_vers(int vers, enum vers_op cha
+ 	switch(change) {
+ 	case NFSD_SET:
+ 		nfsd_versions[vers] = nfsd_version[vers];
+-		break;
+ #if defined(CONFIG_NFSD_V2_ACL) || defined(CONFIG_NFSD_V3_ACL)
+ 		if (vers < NFSD_ACL_NRVERS)
+-			nfsd_acl_version[vers] = nfsd_acl_version[vers];
++			nfsd_acl_versions[vers] = nfsd_acl_version[vers];
+ #endif
++		break;
+ 	case NFSD_CLEAR:
+ 		nfsd_versions[vers] = NULL;
+ #if defined(CONFIG_NFSD_V2_ACL) || defined(CONFIG_NFSD_V3_ACL)
+ 		if (vers < NFSD_ACL_NRVERS)
+-			nfsd_acl_version[vers] = NULL;
++			nfsd_acl_versions[vers] = NULL;
+ #endif
+ 		break;
+ 	case NFSD_TEST:
+diff -puN net/sunrpc/svc.c~knfsd-fix-setting-of-acl-server-versions net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~knfsd-fix-setting-of-acl-server-versions
++++ a/net/sunrpc/svc.c
+@@ -910,7 +910,8 @@ err_bad_prog:
  
- KERNEL NFSD
- P:	Neil Brown
--M:	neilb@cse.unsw.edu.au
-+M:	neilb@suse.de
- L:	nfs@lists.sourceforge.net
- W:	http://nfs.sourceforge.net/
--W:	http://www.cse.unsw.edu.au/~neilb/patches/linux-devel/
--S:	Maintained
-+S:	Supported
- 
- KERNEL VIRTUAL MACHINE (KVM)
- P:	Avi Kivity
+ err_bad_vers:
+ #ifdef RPC_PARANOIA
+-	printk("svc: unknown version (%d)\n", vers);
++	printk("svc: unknown version (%d for prog %d, %s)\n",
++	       vers, prog, progp->pg_name);
+ #endif
+ 	serv->sv_stats->rpcbadfmt++;
+ 	svc_putnl(resv, RPC_PROG_MISMATCH);
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
