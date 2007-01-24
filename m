@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:08 -0800
-Message-ID: <200701240313.l0O3D8FB006909@shell0.pdx.osdl.net>
+Subject: + sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:28 -0800
+Message-ID: <200701240312.l0O3CSHh006825@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49148 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49127 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030235AbXAXDNP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:15 -0500
+	id S1030223AbXAXDNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: ebiederm@xmission.com, acme@conectiva.com.br
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
+     sysctl: dccp: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
+     sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
+Subject: sysctl: dccp: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This was partially done already and there was no ABI breakage what a relief.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/powerpc/kernel/idle.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ net/dccp/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec arch/powerpc/kernel/idle.c
---- a/arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec
-+++ a/arch/powerpc/kernel/idle.c
-@@ -110,11 +110,16 @@ static ctl_table powersave_nap_ctl_table
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
--	{ 0, },
-+	{}
- };
- static ctl_table powersave_nap_sysctl_root[] = {
--	{ 1, "kernel", NULL, 0, 0755, powersave_nap_ctl_table, },
-- 	{ 0,},
-+	{
-+		.ctl_name	= CTL_KERN,
-+		.procname	= "kernel",
-+		.mode		= 0755,
-+		.child		= powersave_nap_ctl_table,
-+	},
-+	{}
- };
+diff -puN net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag net/dccp/sysctl.c
+--- a/net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag
++++ a/net/dccp/sysctl.c
+@@ -127,7 +127,7 @@ static struct ctl_table_header *dccp_tab
  
- static int __init
+ int __init dccp_sysctl_init(void)
+ {
+-	dccp_table_header = register_sysctl_table(dccp_root_table, 1);
++	dccp_table_header = register_sysctl_table(dccp_root_table, 0);
+ 
+ 	return dccp_table_header != NULL ? 0 : -ENOMEM;
+ }
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
