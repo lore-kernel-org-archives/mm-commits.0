@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:12 -0800
-Message-ID: <200701240313.l0O3DC4f006916@shell0.pdx.osdl.net>
+Subject: + sysctl-s390-move-sysctl-definitions-to-sysctlh.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:05 -0800
+Message-ID: <200701240313.l0O3D567006903@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49152 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49143 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030240AbXAXDNR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:17 -0500
+	id S1030231AbXAXDNN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, lethal@linux-sh.org
+Cc: ebiederm@xmission.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     sysctl: C99 convert arch/sh64/kernel/traps.c and remove ABI breakage
+     sysctl: s390: move sysctl definitions to sysctl.h
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
+     sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,91 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert arch/sh64/kernel/traps.c and remove ABI breakage
+Subject: sysctl: s390: move sysctl definitions to sysctl.h
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-While doing the C99 conversion I notices that the top level sh64 directory was
-using the binary number for CTL_KERN.  That is a no-no so I removed the
-support for the sysctl binary interface only leaving sysctl /proc support.
-
-At least the sysctl tables were placed at the end of the list so user space
-did not see this mistake.
+We need to have the the definition of all top level sysctl directories
+registers in sysctl.h so we don't conflict by accident and cause abi problems.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sh64/kernel/traps.c |   49 ++++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 11 deletions(-)
+ arch/s390/appldata/appldata.h |    3 +--
+ arch/s390/kernel/debug.c      |    1 -
+ arch/s390/mm/cmm.c            |    4 ----
+ include/linux/sysctl.h        |    7 +++++++
+ 4 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN arch/sh64/kernel/traps.c~sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage arch/sh64/kernel/traps.c
---- a/arch/sh64/kernel/traps.c~sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage
-+++ a/arch/sh64/kernel/traps.c
-@@ -910,25 +910,52 @@ static int misaligned_fixup(struct pt_re
+diff -puN arch/s390/appldata/appldata.h~sysctl-s390-move-sysctl-definitions-to-sysctlh arch/s390/appldata/appldata.h
+--- a/arch/s390/appldata/appldata.h~sysctl-s390-move-sysctl-definitions-to-sysctlh
++++ a/arch/s390/appldata/appldata.h
+@@ -21,8 +21,7 @@
+ #define APPLDATA_RECORD_NET_SUM_ID	0x03	/* must be < 256 !     */
+ #define APPLDATA_RECORD_PROC_ID		0x04
+ 
+-#define CTL_APPLDATA 		2120	/* sysctl IDs, must be unique */
+-#define CTL_APPLDATA_TIMER 	2121
++#define CTL_APPLDATA_TIMER 	2121	/* sysctl IDs, must be unique */
+ #define CTL_APPLDATA_INTERVAL 	2122
+ #define CTL_APPLDATA_MEM	2123
+ #define CTL_APPLDATA_OS		2124
+diff -puN arch/s390/kernel/debug.c~sysctl-s390-move-sysctl-definitions-to-sysctlh arch/s390/kernel/debug.c
+--- a/arch/s390/kernel/debug.c~sysctl-s390-move-sysctl-definitions-to-sysctlh
++++ a/arch/s390/kernel/debug.c
+@@ -852,7 +852,6 @@ debug_finish_entry(debug_info_t * id, de
+ static int debug_stoppable=1;
+ static int debug_active=1;
+ 
+-#define CTL_S390DBF 5677
+ #define CTL_S390DBF_STOPPABLE 5678
+ #define CTL_S390DBF_ACTIVE 5679
+ 
+diff -puN arch/s390/mm/cmm.c~sysctl-s390-move-sysctl-definitions-to-sysctlh arch/s390/mm/cmm.c
+--- a/arch/s390/mm/cmm.c~sysctl-s390-move-sysctl-definitions-to-sysctlh
++++ a/arch/s390/mm/cmm.c
+@@ -256,10 +256,6 @@ cmm_skip_blanks(char *cp, char **endp)
  }
  
- static ctl_table unaligned_table[] = {
--	{1, "kernel_reports", &kernel_mode_unaligned_fixup_count,
--		sizeof(int), 0644, NULL, &proc_dointvec},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "kernel_reports",
-+		.data		= &kernel_mode_unaligned_fixup_count,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec
-+	},
- #if defined(CONFIG_SH64_USER_MISALIGNED_FIXUP)
--	{2, "user_reports", &user_mode_unaligned_fixup_count,
--		sizeof(int), 0644, NULL, &proc_dointvec},
--	{3, "user_enable", &user_mode_unaligned_fixup_enable,
--		sizeof(int), 0644, NULL, &proc_dointvec},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "user_reports",
-+		.data		= &user_mode_unaligned_fixup_count,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "user_enable",
-+		.data		= &user_mode_unaligned_fixup_enable,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec},
- #endif
--	{0}
-+	{}
+ #ifdef CONFIG_CMM_PROC
+-/* These will someday get removed. */
+-#define VM_CMM_PAGES		1111
+-#define VM_CMM_TIMED_PAGES	1112
+-#define VM_CMM_TIMEOUT		1113
+ 
+ static struct ctl_table cmm_table[];
+ 
+diff -puN include/linux/sysctl.h~sysctl-s390-move-sysctl-definitions-to-sysctlh include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-s390-move-sysctl-definitions-to-sysctlh
++++ a/include/linux/sysctl.h
+@@ -73,6 +73,8 @@ enum
+ 	CTL_SUNRPC=7249,	/* sunrpc debug */
+ 	CTL_PM=9899,		/* frv power management */
+ 	CTL_FRV=9898,		/* frv specific sysctls */
++	CTL_S390DBF=5677,	/* s390 debug */
++	CTL_APPLDATA=2120,	/* s390 appldata */
  };
  
- static ctl_table unaligned_root[] = {
--	{1, "unaligned_fixup", NULL, 0, 0555, unaligned_table},
--	{0}
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "unaligned_fixup",
-+		.mode		= 0555,
-+		unaligned_table
-+	},
-+	{}
+ /* CTL_BUS names: */
+@@ -205,6 +207,11 @@ enum
+ 	VM_PANIC_ON_OOM=33,	/* panic at out-of-memory */
+ 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
+ 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
++
++	/* s390 vm cmm sysctls */
++	VM_CMM_PAGES=1111,
++	VM_CMM_TIMED_PAGES=1112,
++	VM_CMM_TIMEOUT=1113,
  };
  
- static ctl_table sh64_root[] = {
--	{1, "sh64", NULL, 0, 0555, unaligned_root},
--	{0}
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "sh64",
-+		.mode		= 0555,
-+		.child		= unaligned_root
-+	},
-+	{}
- };
- static struct ctl_table_header *sysctl_header;
- static int __init init_sysctl(void)
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
