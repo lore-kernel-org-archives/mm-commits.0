@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:57 -0800
-Message-ID: <200701240312.l0O3Cv51006888@shell0.pdx.osdl.net>
+Subject: + sysctl-sn-remove-sysctl-abi-breakage.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:55 -0800
+Message-ID: <200701240312.l0O3Ctqo006885@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49108 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49100 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030214AbXAXDNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:00 -0500
+	id S1030202AbXAXDM6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, tony.luck@intel.com
 
 
 The patch titled
-     sysctl: C99 Convert arch/ia64/sn/kernel/xpc_main.c
+     sysctl: sn: remove sysctl ABI BREAKAGE
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
+     sysctl-sn-remove-sysctl-abi-breakage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,126 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 Convert arch/ia64/sn/kernel/xpc_main.c
+Subject: sysctl: sn: remove sysctl ABI BREAKAGE
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+By not using the enumeration in sysctl.h (or even understanding it) the SN
+platform placed their arch specific xpc directory on top of CTL_KERN and only
+because they didn't have 4 entries in their xpc directory got lucky and didn't
+break glibc.
+
+This is totally irresponsible.  So this patch entirely removes sys_sysctl
+support from their sysctl code.  Hopefully they don't have ascii name
+conflicts as well.
+
+And now that they have no ABI numbers add them to the end instead of the
+sysctl list instead of the head so nothing else will be overridden.
+
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/sn/kernel/xpc_main.c |   86 +++++++++++++------------------
- 1 file changed, 38 insertions(+), 48 deletions(-)
+ arch/ia64/sn/kernel/xpc_main.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/sn/kernel/xpc_main.c~sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc arch/ia64/sn/kernel/xpc_main.c
---- a/arch/ia64/sn/kernel/xpc_main.c~sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc
+diff -puN arch/ia64/sn/kernel/xpc_main.c~sysctl-sn-remove-sysctl-abi-breakage arch/ia64/sn/kernel/xpc_main.c
+--- a/arch/ia64/sn/kernel/xpc_main.c~sysctl-sn-remove-sysctl-abi-breakage
 +++ a/arch/ia64/sn/kernel/xpc_main.c
-@@ -101,67 +101,57 @@ static int xpc_disengage_request_max_tim
+@@ -101,7 +101,7 @@ static int xpc_disengage_request_max_tim
  
  static ctl_table xpc_sys_xpc_hb_dir[] = {
  	{
--		CTL_UNNUMBERED,
--		"hb_interval",
--		&xpc_hb_interval,
--		sizeof(int),
--		0644,
--		NULL,
--		&proc_dointvec_minmax,
--		&sysctl_intvec,
--		NULL,
--		&xpc_hb_min_interval,
--		&xpc_hb_max_interval
-+		.ctl_name 	= CTL_UNNUMBERED,
-+		.procname	= "hb_interval",
-+		.data		= &xpc_hb_interval,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec_minmax,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &xpc_hb_min_interval,
-+		.extra2		= &xpc_hb_max_interval
+-		1,
++		CTL_UNNUMBERED,
+ 		"hb_interval",
+ 		&xpc_hb_interval,
+ 		sizeof(int),
+@@ -114,7 +114,7 @@ static ctl_table xpc_sys_xpc_hb_dir[] = 
+ 		&xpc_hb_max_interval
  	},
  	{
--		CTL_UNNUMBERED,
--		"hb_check_interval",
--		&xpc_hb_check_interval,
--		sizeof(int),
--		0644,
--		NULL,
--		&proc_dointvec_minmax,
--		&sysctl_intvec,
--		NULL,
--		&xpc_hb_check_min_interval,
--		&xpc_hb_check_max_interval
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "hb_check_interval",
-+		.data		= &xpc_hb_check_interval,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec_minmax,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &xpc_hb_check_min_interval,
-+		.extra2		= &xpc_hb_check_max_interval
- 	},
--	{0}
-+	{}
+-		2,
++		CTL_UNNUMBERED,
+ 		"hb_check_interval",
+ 		&xpc_hb_check_interval,
+ 		sizeof(int),
+@@ -130,7 +130,7 @@ static ctl_table xpc_sys_xpc_hb_dir[] = 
  };
  static ctl_table xpc_sys_xpc_dir[] = {
  	{
--		CTL_UNNUMBERED,
--		"hb",
--		NULL,
--		0,
--		0555,
--		xpc_sys_xpc_hb_dir
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "hb",
-+		.mode		= 0555,
-+		.child		= xpc_sys_xpc_hb_dir
+-		1,
++		CTL_UNNUMBERED,
+ 		"hb",
+ 		NULL,
+ 		0,
+@@ -138,7 +138,7 @@ static ctl_table xpc_sys_xpc_dir[] = {
+ 		xpc_sys_xpc_hb_dir
  	},
  	{
--		CTL_UNNUMBERED,
--		"disengage_request_timelimit",
--		&xpc_disengage_request_timelimit,
--		sizeof(int),
--		0644,
--		NULL,
--		&proc_dointvec_minmax,
--		&sysctl_intvec,
--		NULL,
--		&xpc_disengage_request_min_timelimit,
--		&xpc_disengage_request_max_timelimit
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "disengage_request_timelimit",
-+		.data		= &xpc_disengage_request_timelimit,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec_minmax,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &xpc_disengage_request_min_timelimit,
-+		.extra2		= &xpc_disengage_request_max_timelimit
- 	},
--	{0}
-+	{}
+-		2,
++		CTL_UNNUMBERED,
+ 		"disengage_request_timelimit",
+ 		&xpc_disengage_request_timelimit,
+ 		sizeof(int),
+@@ -154,7 +154,7 @@ static ctl_table xpc_sys_xpc_dir[] = {
  };
  static ctl_table xpc_sys_dir[] = {
  	{
--		CTL_UNNUMBERED,
--		"xpc",
--		NULL,
--		0,
--		0555,
--		xpc_sys_xpc_dir
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "xpc",
-+		.mode		= 0555,
-+		.child		= xpc_sys_xpc_dir
- 	},
--	{0}
-+	{}
- };
- static struct ctl_table_header *xpc_sysctl;
+-		1,
++		CTL_UNNUMBERED,
+ 		"xpc",
+ 		NULL,
+ 		0,
+@@ -1251,7 +1251,7 @@ xpc_init(void)
+ 	snprintf(xpc_part->bus_id, BUS_ID_SIZE, "part");
+ 	snprintf(xpc_chan->bus_id, BUS_ID_SIZE, "chan");
  
+-	xpc_sysctl = register_sysctl_table(xpc_sys_dir, 1);
++	xpc_sysctl = register_sysctl_table(xpc_sys_dir, 0);
+ 
+ 	/*
+ 	 * The first few fields of each entry of xpc_partitions[] need to
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
