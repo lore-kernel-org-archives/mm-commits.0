@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-s390-move-sysctl-definitions-to-sysctlh.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:05 -0800
-Message-ID: <200701240313.l0O3D567006903@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:18 -0800
+Message-ID: <200701240313.l0O3DIbm006927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49143 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49204 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030231AbXAXDNN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:13 -0500
+	id S1030248AbXAXDN0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, schwidefsky@de.ibm.com
+Cc: ebiederm@xmission.com, ak@suse.de
 
 
 The patch titled
-     sysctl: s390: move sysctl definitions to sysctl.h
+     sysctl: C99 convert ctl_tables in arch/x86_64/kernel/vsyscall.c
 has been added to the -mm tree.  Its filename is
-     sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
+     sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: s390: move sysctl definitions to sysctl.h
+Subject: sysctl: C99 convert ctl_tables in arch/x86_64/kernel/vsyscall.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-We need to have the the definition of all top level sysctl directories
-registers in sysctl.h so we don't conflict by accident and cause abi problems.
+Basically everything was done but I removed all element initializers from the
+trailing entries to make it clear the entire last entry should be zero filled.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Acked-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/s390/appldata/appldata.h |    3 +--
- arch/s390/kernel/debug.c      |    1 -
- arch/s390/mm/cmm.c            |    4 ----
- include/linux/sysctl.h        |    7 +++++++
- 4 files changed, 8 insertions(+), 7 deletions(-)
+ arch/x86_64/kernel/vsyscall.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/appldata/appldata.h~sysctl-s390-move-sysctl-definitions-to-sysctlh arch/s390/appldata/appldata.h
---- a/arch/s390/appldata/appldata.h~sysctl-s390-move-sysctl-definitions-to-sysctlh
-+++ a/arch/s390/appldata/appldata.h
-@@ -21,8 +21,7 @@
- #define APPLDATA_RECORD_NET_SUM_ID	0x03	/* must be < 256 !     */
- #define APPLDATA_RECORD_PROC_ID		0x04
- 
--#define CTL_APPLDATA 		2120	/* sysctl IDs, must be unique */
--#define CTL_APPLDATA_TIMER 	2121
-+#define CTL_APPLDATA_TIMER 	2121	/* sysctl IDs, must be unique */
- #define CTL_APPLDATA_INTERVAL 	2122
- #define CTL_APPLDATA_MEM	2123
- #define CTL_APPLDATA_OS		2124
-diff -puN arch/s390/kernel/debug.c~sysctl-s390-move-sysctl-definitions-to-sysctlh arch/s390/kernel/debug.c
---- a/arch/s390/kernel/debug.c~sysctl-s390-move-sysctl-definitions-to-sysctlh
-+++ a/arch/s390/kernel/debug.c
-@@ -852,7 +852,6 @@ debug_finish_entry(debug_info_t * id, de
- static int debug_stoppable=1;
- static int debug_active=1;
- 
--#define CTL_S390DBF 5677
- #define CTL_S390DBF_STOPPABLE 5678
- #define CTL_S390DBF_ACTIVE 5679
- 
-diff -puN arch/s390/mm/cmm.c~sysctl-s390-move-sysctl-definitions-to-sysctlh arch/s390/mm/cmm.c
---- a/arch/s390/mm/cmm.c~sysctl-s390-move-sysctl-definitions-to-sysctlh
-+++ a/arch/s390/mm/cmm.c
-@@ -256,10 +256,6 @@ cmm_skip_blanks(char *cp, char **endp)
- }
- 
- #ifdef CONFIG_CMM_PROC
--/* These will someday get removed. */
--#define VM_CMM_PAGES		1111
--#define VM_CMM_TIMED_PAGES	1112
--#define VM_CMM_TIMEOUT		1113
- 
- static struct ctl_table cmm_table[];
- 
-diff -puN include/linux/sysctl.h~sysctl-s390-move-sysctl-definitions-to-sysctlh include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-s390-move-sysctl-definitions-to-sysctlh
-+++ a/include/linux/sysctl.h
-@@ -73,6 +73,8 @@ enum
- 	CTL_SUNRPC=7249,	/* sunrpc debug */
- 	CTL_PM=9899,		/* frv power management */
- 	CTL_FRV=9898,		/* frv specific sysctls */
-+	CTL_S390DBF=5677,	/* s390 debug */
-+	CTL_APPLDATA=2120,	/* s390 appldata */
+diff -puN arch/x86_64/kernel/vsyscall.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -258,13 +258,13 @@ static ctl_table kernel_table2[] = {
+ 	  .mode = 0644,
+ 	  .strategy = vsyscall_sysctl_nostrat,
+ 	  .proc_handler = vsyscall_sysctl_change },
+-	{ 0, }
++	{}
  };
  
- /* CTL_BUS names: */
-@@ -205,6 +207,11 @@ enum
- 	VM_PANIC_ON_OOM=33,	/* panic at out-of-memory */
- 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
- 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
-+
-+	/* s390 vm cmm sysctls */
-+	VM_CMM_PAGES=1111,
-+	VM_CMM_TIMED_PAGES=1112,
-+	VM_CMM_TIMEOUT=1113,
+ static ctl_table kernel_root_table2[] = {
+ 	{ .ctl_name = CTL_KERN, .procname = "kernel", .mode = 0555,
+ 	  .child = kernel_table2 },
+-	{ 0 },
++	{}
  };
  
- 
+ #endif
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
