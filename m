@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + kexec-update-io-apic-dest-field-to-8-bit-for.patch added to -mm tree
-Date: Wed, 24 Jan 2007 00:37:39 -0800
-Message-ID: <200701240837.l0O8bdhl012864@shell0.pdx.osdl.net>
+Subject: + replace-highest_possible_node_id-with-nr_node_ids.patch added to -mm tree
+Date: Wed, 24 Jan 2007 00:39:57 -0800
+Message-ID: <200701240839.l0O8dvx4012904@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57860 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57901 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965224AbXAXIhv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 03:37:51 -0500
+	id S965391AbXAXIka (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 03:40:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benjamin.romer@unisys.com, ak@suse.de, ebiederm@xmission.com, vgoyal@in.ibm.com
+Cc: clameter@sgi.com, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     kexec: update IO-APIC dest field to 8-bit for xAPIC
+     Replace highest_possible_node_id() with nr_node_ids
 has been added to the -mm tree.  Its filename is
-     kexec-update-io-apic-dest-field-to-8-bit-for.patch
+     replace-highest_possible_node_id-with-nr_node_ids.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,153 +25,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kexec: update IO-APIC dest field to 8-bit for xAPIC
-From: Benjamin Romer <benjamin.romer@unisys.com>
+Subject: Replace highest_possible_node_id() with nr_node_ids
+From: Christoph Lameter <clameter@sgi.com>
 
-On the Unisys ES7000/ONE system, we encountered a problem where performing
-a kexec reboot or dump on any cell other than cell 0 causes the system
-timer to stop working, resulting in a hang during timer calibration in the
-new kernel.
+highest_possible_node_id() currently used to calculate the last possible
+node idso that the network subsystem can figure out how to size per node
+arrays.
 
-We traced the problem to one line of code in disable_IO_APIC(), which needs
-to restore the timer's IO-APIC configuration before rebooting.  The code is
-currently using the 4-bit physical destination field, rather than using the
-8-bit logical destination field, and it cuts off the upper 4 bits of the
-timer's APIC ID.  If we change this to use the logical destination field,
-the timer works and we can kexec on the upper cells.  This was tested on
-two different cells (0 and 2) in an ES7000/ONE system.
+I think having the ability to determine the maximum amount of nodes in a
+system at runtime is useful but then we should name this entry
+correspondingly, it should return the number of node_ids, and the the value
+needs to be setup only once on bootup.  The node_possible_map does not
+change after bootup.
 
-For reference, the relevant Intel xAPIC spec is kept at
-ftp://download.intel.com/design/chipsets/e8501/datashts/30962001.pdf,
-specifically on page 334.
+This patch introduces nr_node_ids and replaces the use of
+highest_possible_node_id().  nr_node_ids is calculated on bootup when the
+page allocators pagesets are initialized.
 
-Signed-off-by: Benjamin M Romer <benjamin.romer@unisys.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   24 +++++++++++-------------
- include/asm-x86_64/io_apic.h |   14 ++------------
- 2 files changed, 13 insertions(+), 25 deletions(-)
+ include/linux/nodemask.h |    4 ++--
+ mm/page_alloc.c          |   35 +++++++++++++++++++++--------------
+ net/sunrpc/svc.c         |    4 ++--
+ 3 files changed, 25 insertions(+), 18 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~kexec-update-io-apic-dest-field-to-8-bit-for arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~kexec-update-io-apic-dest-field-to-8-bit-for
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -831,7 +831,7 @@ static void __init setup_IO_APIC_irq(int
- 	entry.delivery_mode = INT_DELIVERY_MODE;
- 	entry.dest_mode = INT_DEST_MODE;
- 	entry.mask = 0;				/* enable IRQ */
--	entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+	entry.dest = cpu_mask_to_apicid(TARGET_CPUS);
+diff -puN include/linux/nodemask.h~replace-highest_possible_node_id-with-nr_node_ids include/linux/nodemask.h
+--- a/include/linux/nodemask.h~replace-highest_possible_node_id-with-nr_node_ids
++++ a/include/linux/nodemask.h
+@@ -352,7 +352,7 @@ extern nodemask_t node_possible_map;
+ #define node_possible(node)	node_isset((node), node_possible_map)
+ #define first_online_node	first_node(node_online_map)
+ #define next_online_node(nid)	next_node((nid), node_online_map)
+-int highest_possible_node_id(void);
++extern int nr_node_ids;
+ #else
+ #define num_online_nodes()	1
+ #define num_possible_nodes()	1
+@@ -360,7 +360,7 @@ int highest_possible_node_id(void);
+ #define node_possible(node)	((node) == 0)
+ #define first_online_node	0
+ #define next_online_node(nid)	(MAX_NUMNODES)
+-#define highest_possible_node_id()	0
++#define nr_node_ids		1
+ #endif
  
- 	entry.trigger = irq_trigger(idx);
- 	entry.polarity = irq_polarity(idx);
-@@ -839,7 +839,7 @@ static void __init setup_IO_APIC_irq(int
- 	if (irq_trigger(idx)) {
- 		entry.trigger = 1;
- 		entry.mask = 1;
--		entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+		entry.dest = cpu_mask_to_apicid(TARGET_CPUS);
- 	}
+ #define any_online_node(mask)			\
+diff -puN mm/page_alloc.c~replace-highest_possible_node_id-with-nr_node_ids mm/page_alloc.c
+--- a/mm/page_alloc.c~replace-highest_possible_node_id-with-nr_node_ids
++++ a/mm/page_alloc.c
+@@ -664,6 +664,26 @@ static int rmqueue_bulk(struct zone *zon
+ 	return i;
+ }
  
- 	if (!apic && !IO_APIC_IRQ(irq))
-@@ -851,7 +851,7 @@ static void __init setup_IO_APIC_irq(int
- 		if (vector < 0)
- 			return;
- 
--		entry.dest.logical.logical_dest = cpu_mask_to_apicid(mask);
-+		entry.dest = cpu_mask_to_apicid(mask);
- 		entry.vector = vector;
- 
- 		ioapic_register_intr(irq, vector, IOAPIC_AUTO);
-@@ -920,7 +920,7 @@ static void __init setup_ExtINT_IRQ0_pin
- 	 */
- 	entry.dest_mode = INT_DEST_MODE;
- 	entry.mask = 0;					/* unmask IRQ now */
--	entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+	entry.dest = cpu_mask_to_apicid(TARGET_CPUS);
- 	entry.delivery_mode = INT_DELIVERY_MODE;
- 	entry.polarity = 0;
- 	entry.trigger = 0;
-@@ -1020,18 +1020,17 @@ void __apicdebuginit print_IO_APIC(void)
- 
- 	printk(KERN_DEBUG ".... IRQ redirection table:\n");
- 
--	printk(KERN_DEBUG " NR Log Phy Mask Trig IRR Pol"
--			  " Stat Dest Deli Vect:   \n");
-+	printk(KERN_DEBUG " NR Dst Mask Trig IRR Pol"
-+			  " Stat Dmod Deli Vect:   \n");
- 
- 	for (i = 0; i <= reg_01.bits.entries; i++) {
- 		struct IO_APIC_route_entry entry;
- 
- 		entry = ioapic_read_entry(apic, i);
- 
--		printk(KERN_DEBUG " %02x %03X %02X  ",
-+		printk(KERN_DEBUG " %02x %03X ",
- 			i,
--			entry.dest.logical.logical_dest,
--			entry.dest.physical.physical_dest
-+			entry.dest
- 		);
- 
- 		printk("%1d    %1d    %1d   %1d   %1d    %1d    %1d    %02X\n",
-@@ -1293,8 +1292,7 @@ void disable_IO_APIC(void)
- 		entry.dest_mode       = 0; /* Physical */
- 		entry.delivery_mode   = dest_ExtINT; /* ExtInt */
- 		entry.vector          = 0;
--               entry.dest.logical.logical_dest =
--					GET_APIC_ID(apic_read(APIC_ID));
-+		entry.dest          = GET_APIC_ID(apic_read(APIC_ID));
- 
- 		/*
- 		 * Add it to the IO-APIC irq-routing table:
-@@ -1556,7 +1554,7 @@ static inline void unlock_ExtINT_logic(v
- 
- 	entry1.dest_mode = 0;			/* physical delivery */
- 	entry1.mask = 0;			/* unmask IRQ now */
--	entry1.dest.physical.physical_dest = hard_smp_processor_id();
-+	entry1.dest = hard_smp_processor_id();
- 	entry1.delivery_mode = dest_ExtINT;
- 	entry1.polarity = entry0.polarity;
- 	entry1.trigger = 0;
-@@ -2121,7 +2119,7 @@ int io_apic_set_pci_routing (int ioapic,
- 
- 	entry.delivery_mode = INT_DELIVERY_MODE;
- 	entry.dest_mode = INT_DEST_MODE;
--	entry.dest.logical.logical_dest = cpu_mask_to_apicid(mask);
-+	entry.dest = cpu_mask_to_apicid(mask);
- 	entry.trigger = triggering;
- 	entry.polarity = polarity;
- 	entry.mask = 1;					 /* Disabled (masked) */
-diff -puN include/asm-x86_64/io_apic.h~kexec-update-io-apic-dest-field-to-8-bit-for include/asm-x86_64/io_apic.h
---- a/include/asm-x86_64/io_apic.h~kexec-update-io-apic-dest-field-to-8-bit-for
-+++ a/include/asm-x86_64/io_apic.h
-@@ -85,18 +85,8 @@ struct IO_APIC_route_entry {
- 		mask		:  1,	/* 0: enabled, 1: disabled */
- 		__reserved_2	: 15;
- 
--	union {		struct { __u32
--					__reserved_1	: 24,
--					physical_dest	:  4,
--					__reserved_2	:  4;
--			} physical;
--
--			struct { __u32
--					__reserved_1	: 24,
--					logical_dest	:  8;
--			} logical;
--	} dest;
--
-+	__u32	__reserved_3	: 24,
-+		dest		:  8;
- } __attribute__ ((packed));
- 
++#if MAX_NUMNODES > 1
++int nr_node_ids __read_mostly;
++EXPORT_SYMBOL(nr_node_ids);
++
++/*
++ * Figure out the number of possible node ids.
++ */
++static void __init setup_nr_node_ids(void)
++{
++	unsigned int node;
++	unsigned int highest = 0;
++
++	for_each_node_mask(node, node_possible_map)
++		highest = node;
++	nr_node_ids = highest + 1;
++}
++#else
++static void __init setup_nr_node_ids(void) {}
++#endif
++
+ #ifdef CONFIG_NUMA
  /*
+  * Called from the slab reaper to drain pagesets on a particular node that
+@@ -3204,6 +3224,7 @@ static int __init init_per_zone_pages_mi
+ 		min_free_kbytes = 65536;
+ 	setup_per_zone_pages_min();
+ 	setup_per_zone_lowmem_reserve();
++	setup_nr_node_ids();
+ 	return 0;
+ }
+ module_init(init_per_zone_pages_min)
+@@ -3405,18 +3426,4 @@ EXPORT_SYMBOL(pfn_to_page);
+ EXPORT_SYMBOL(page_to_pfn);
+ #endif /* CONFIG_OUT_OF_LINE_PFN_TO_PAGE */
+ 
+-#if MAX_NUMNODES > 1
+-/*
+- * Find the highest possible node id.
+- */
+-int highest_possible_node_id(void)
+-{
+-	unsigned int node;
+-	unsigned int highest = 0;
+ 
+-	for_each_node_mask(node, node_possible_map)
+-		highest = node;
+-	return highest;
+-}
+-EXPORT_SYMBOL(highest_possible_node_id);
+-#endif
+diff -puN net/sunrpc/svc.c~replace-highest_possible_node_id-with-nr_node_ids net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~replace-highest_possible_node_id-with-nr_node_ids
++++ a/net/sunrpc/svc.c
+@@ -116,7 +116,7 @@ fail:
+ static int
+ svc_pool_map_init_percpu(struct svc_pool_map *m)
+ {
+-	unsigned int maxpools = highest_possible_processor_id()+1;
++	unsigned int maxpools = nr_node_ids;
+ 	unsigned int pidx = 0;
+ 	unsigned int cpu;
+ 	int err;
+@@ -144,7 +144,7 @@ svc_pool_map_init_percpu(struct svc_pool
+ static int
+ svc_pool_map_init_pernode(struct svc_pool_map *m)
+ {
+-	unsigned int maxpools = highest_possible_node_id()+1;
++	unsigned int maxpools = nr_node_ids;
+ 	unsigned int pidx = 0;
+ 	unsigned int node;
+ 	int err;
 _
 
-Patches currently in -mm which might be from benjamin.romer@unisys.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-kexec-update-io-apic-dest-field-to-8-bit-for.patch
+mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
+slab-cache_grow-cleanup.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
