@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:40 -0800
-Message-ID: <200701240312.l0O3CeCD006852@shell0.pdx.osdl.net>
+Subject: + sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:42 -0800
+Message-ID: <200701240312.l0O3CgQu006858@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49076 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030208AbXAXDM5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:57 -0500
+	id S1030195AbXAXDMt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, benh@kernel.crashing.org, dtor@mail.ru, jkosina@suse.cz
+Cc: ebiederm@xmission.com, benh@kernel.crashing.org, minyard@acm.org
 
 
 The patch titled
-     sysctl: mac_hid: remove unnecessary insert_at_head flag
+     sysctl: ipmi: remove unnecessary insert_at_head flag
 has been added to the -mm tree.  Its filename is
-     sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: mac_hid: remove unnecessary insert_at_head flag
+Subject: sysctl: ipmi: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 With unique sysctl binary numbers setting insert_at_head is pointless.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Corey Minyard <minyard@acm.org>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/macintosh/mac_hid.c |    2 +-
+ drivers/char/ipmi/ipmi_poweroff.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/macintosh/mac_hid.c~sysctl-mac_hid-remove-unnecessary-insert_at_head-flag drivers/macintosh/mac_hid.c
---- a/drivers/macintosh/mac_hid.c~sysctl-mac_hid-remove-unnecessary-insert_at_head-flag
-+++ a/drivers/macintosh/mac_hid.c
-@@ -138,7 +138,7 @@ int __init mac_hid_init(void)
- 		return err;
+diff -puN drivers/char/ipmi/ipmi_poweroff.c~sysctl-ipmi-remove-unnecessary-insert_at_head-flag drivers/char/ipmi/ipmi_poweroff.c
+--- a/drivers/char/ipmi/ipmi_poweroff.c~sysctl-ipmi-remove-unnecessary-insert_at_head-flag
++++ a/drivers/char/ipmi/ipmi_poweroff.c
+@@ -686,7 +686,7 @@ static int ipmi_poweroff_init (void)
+ 		printk(KERN_INFO PFX "Power cycle is enabled.\n");
  
- #if defined(CONFIG_SYSCTL)
--	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir, 1);
-+	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir, 0);
- #endif /* CONFIG_SYSCTL */
- 
- 	return 0;
+ #ifdef CONFIG_PROC_FS
+-	ipmi_table_header = register_sysctl_table(ipmi_root_table, 1);
++	ipmi_table_header = register_sysctl_table(ipmi_root_table, 0);
+ 	if (!ipmi_table_header) {
+ 		printk(KERN_ERR PFX "Unable to register powercycle sysctl\n");
+ 		rv = -ENOMEM;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
