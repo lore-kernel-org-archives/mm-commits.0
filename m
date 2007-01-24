@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:21 -0800
-Message-ID: <200701240313.l0O3DLA5006935@shell0.pdx.osdl.net>
+Subject: + sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:14 -0800
+Message-ID: <200701240313.l0O3DEE8006919@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49211 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49210 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965640AbXAXDN2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S965638AbXAXDN2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 23 Jan 2007 22:13:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, clemens@ladisch.de
+Cc: ebiederm@xmission.com, ak@suse.de
 
 
 The patch titled
-     sysctl: remove sys_sysctl support from the hpet timer driver
+     sysctl: x86_64: remove unnecessary use of insert_at_head
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
+     sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: remove sys_sysctl support from the hpet timer driver
+Subject: sysctl: x86_64: remove unnecessary use of insert_at_head
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-In the binary sysctl interface the hpet driver was claiming to be the cdrom
-driver.  This is a no-no so remove support for the binary interface.
+The only sysctl x86_64 provides are not provided elsewhere, so insert_at_head
+is unnecessary.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Clemens Ladisch <clemens@ladisch.de>
+Acked-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/hpet.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/ia32/ia32_binfmt.c |    2 +-
+ arch/x86_64/mm/init.c          |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver drivers/char/hpet.c
---- a/drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver
-+++ a/drivers/char/hpet.c
-@@ -703,7 +703,7 @@ int hpet_control(struct hpet_task *tp, u
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-use-of-insert_at_head arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-use-of-insert_at_head
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -357,7 +357,7 @@ static ctl_table abi_root_table2[] = { 
  
- static ctl_table hpet_table[] = {
- 	{
--	 .ctl_name = 1,
-+	 .ctl_name = CTL_UNNUMBERED,
- 	 .procname = "max-user-freq",
- 	 .data = &hpet_max_freq,
- 	 .maxlen = sizeof(int),
-@@ -715,7 +715,7 @@ static ctl_table hpet_table[] = {
+ static __init int ia32_binfmt_init(void)
+ { 
+-	register_sysctl_table(abi_root_table2, 1);
++	register_sysctl_table(abi_root_table2, 0);
+ 	return 0;
+ }
+ __initcall(ia32_binfmt_init);
+diff -puN arch/x86_64/mm/init.c~sysctl-x86_64-remove-unnecessary-use-of-insert_at_head arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~sysctl-x86_64-remove-unnecessary-use-of-insert_at_head
++++ a/arch/x86_64/mm/init.c
+@@ -724,7 +724,7 @@ static ctl_table debug_root_table2[] = {
  
- static ctl_table hpet_root[] = {
- 	{
--	 .ctl_name = 1,
-+	 .ctl_name = CTL_UNNUMBERED,
- 	 .procname = "hpet",
- 	 .maxlen = 0,
- 	 .mode = 0555,
+ static __init int x8664_sysctl_init(void)
+ { 
+-	register_sysctl_table(debug_root_table2, 1);
++	register_sysctl_table(debug_root_table2, 0);
+ 	return 0;
+ }
+ __initcall(x8664_sysctl_init);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
