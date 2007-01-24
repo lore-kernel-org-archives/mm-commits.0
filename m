@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:36 -0800
-Message-ID: <200701240313.l0O3DaNo006968@shell0.pdx.osdl.net>
+Subject: + sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:25 -0800
+Message-ID: <200701240313.l0O3DPk3006945@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49231 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49268 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030262AbXAXDNi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:38 -0500
+	id S1030227AbXAXDOD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:14:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com
+Cc: ebiederm@xmission.com, linville@tuxdriver.com
 
 
 The patch titled
-     sysctl: move init_irq_proc into init/main where it belongs
+     sysctl: register the sysctl number used by the arlan driver
 has been added to the -mm tree.  Its filename is
-     sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
+     sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: move init_irq_proc into init/main where it belongs
+Subject: sysctl: register the sysctl number used by the arlan driver
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- init/main.c     |    3 +++
- kernel/sysctl.c |    3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/wireless/arlan-proc.c |    2 +-
+ include/linux/sysctl.h            |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN init/main.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs init/main.c
---- a/init/main.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs
-+++ a/init/main.c
-@@ -693,6 +693,9 @@ static void __init do_basic_setup(void)
- #ifdef CONFIG_SYSCTL
- 	sysctl_init();
- #endif
-+#ifdef CONFIG_PROC_FS
-+	init_irq_proc();
-+#endif
- 
- 	do_initcalls();
- }
-diff -puN kernel/sysctl.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-move-init_irq_proc-into-init-main-where-it-belongs
-+++ a/kernel/sysctl.c
-@@ -1215,8 +1215,6 @@ static ctl_table dev_table[] = {
- 	{ .ctl_name = 0 }
- };
- 
--extern void init_irq_proc (void);
--
- static DEFINE_SPINLOCK(sysctl_lock);
- 
- /* called under sysctl_lock */
-@@ -1262,7 +1260,6 @@ void __init sysctl_init(void)
+diff -puN drivers/net/wireless/arlan-proc.c~sysctl-register-the-sysctl-number-used-by-the-arlan-driver drivers/net/wireless/arlan-proc.c
+--- a/drivers/net/wireless/arlan-proc.c~sysctl-register-the-sysctl-number-used-by-the-arlan-driver
++++ a/drivers/net/wireless/arlan-proc.c
+@@ -1216,7 +1216,7 @@ static ctl_table arlan_table[MAX_ARLANS 
+ static ctl_table arlan_root_table[] =
  {
- #ifdef CONFIG_PROC_SYSCTL
- 	register_proc_table(root_table, proc_sys_root, &root_table_header);
--	init_irq_proc();
- #endif
- }
- 
+ 	{
+-		.ctl_name	= 254,
++		.ctl_name	= CTL_ARLAN,
+ 		.procname	= "arlan",
+ 		.maxlen		= 0,
+ 		.mode		= 0555,
+diff -puN include/linux/sysctl.h~sysctl-register-the-sysctl-number-used-by-the-arlan-driver include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-register-the-sysctl-number-used-by-the-arlan-driver
++++ a/include/linux/sysctl.h
+@@ -70,6 +70,7 @@ enum
+ 	CTL_BUS=8,		/* Busses */
+ 	CTL_ABI=9,		/* Binary emulation */
+ 	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
++	CTL_ARLAN=254,		/* arlan wireless driver */
+ 	CTL_SUNRPC=7249,	/* sunrpc debug */
+ 	CTL_PM=9899,		/* frv power management */
+ 	CTL_FRV=9898,		/* frv specific sysctls */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
