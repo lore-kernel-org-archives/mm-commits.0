@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + buffer-memorder-fix.patch added to -mm tree
-Date: Wed, 24 Jan 2007 01:03:15 -0800
-Message-ID: <200701240903.l0O93F9e013391@shell0.pdx.osdl.net>
+Subject: + statically-initialize-struct-pid-for-swapper.patch added to -mm tree
+Date: Wed, 24 Jan 2007 01:00:39 -0800
+Message-ID: <200701240900.l0O90dgi013349@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58635 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58786 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030264AbXAXJDV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 04:03:21 -0500
+	id S933149AbXAXJJX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 04:09:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, serue@us.ibm.com
 
 
 The patch titled
-     buffer: memorder fix
+     Statically initialize struct pid for swapper
 has been added to the -mm tree.  Its filename is
-     buffer-memorder-fix.patch
+     statically-initialize-struct-pid-for-swapper.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: buffer: memorder fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: Statically initialize struct pid for swapper
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-unlock_buffer(), like unlock_page(), must not clear the lock without
-ensuring that the critical section is closed.
+Statically initialize a struct pid for the swapper process (pid_t == 0) and
+attach it to init_task.  This is needed so task_pid(), task_pgrp() and
+task_session() interfaces work on the swapper process also.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: <containers@lists.osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/buffer.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/init_task.h |   27 +++++++++++++++++++++++++++
+ include/linux/pid.h       |    2 ++
+ kernel/pid.c              |    2 ++
+ 3 files changed, 31 insertions(+)
 
-diff -puN fs/buffer.c~buffer-memorder-fix fs/buffer.c
---- a/fs/buffer.c~buffer-memorder-fix
-+++ a/fs/buffer.c
-@@ -70,6 +70,7 @@ EXPORT_SYMBOL(__lock_buffer);
+diff -puN include/linux/init_task.h~statically-initialize-struct-pid-for-swapper include/linux/init_task.h
+--- a/include/linux/init_task.h~statically-initialize-struct-pid-for-swapper
++++ a/include/linux/init_task.h
+@@ -90,6 +90,28 @@ extern struct nsproxy init_nsproxy;
  
- void fastcall unlock_buffer(struct buffer_head *bh)
+ extern struct group_info init_groups;
+ 
++#define INIT_STRUCT_PID {						\
++	.count 		= ATOMIC_INIT(1),				\
++	.nr		= 0, 						\
++	/* Don't put this struct pid in pid_hash */			\
++	.pid_chain	= { .next = NULL, .pprev = NULL },		\
++	.tasks		= {						\
++		{ .first = &init_task.pids[PIDTYPE_PID].node },		\
++		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
++		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
++	},								\
++	.rcu		= RCU_HEAD_INIT,				\
++}
++
++#define INIT_PID_LINK(type) 					\
++{								\
++	.node = {						\
++		.next = NULL,					\
++		.pprev = &init_struct_pid.tasks[type].first,	\
++	},							\
++	.pid = &init_struct_pid,				\
++}
++
+ /*
+  *  INIT_TASK is used to set up the first task table, touch at
+  * your own risk!. Base=0, limit=0x1fffff (=2MB)
+@@ -141,6 +163,11 @@ extern struct group_info init_groups;
+ 	.cpu_timers	= INIT_CPU_TIMERS(tsk.cpu_timers),		\
+ 	.fs_excl	= ATOMIC_INIT(0),				\
+ 	.pi_lock	= SPIN_LOCK_UNLOCKED,				\
++	.pids = {							\
++		[PIDTYPE_PID]  = INIT_PID_LINK(PIDTYPE_PID),		\
++		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),		\
++		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
++	},								\
+ 	INIT_TRACE_IRQFLAGS						\
+ 	INIT_LOCKDEP							\
+ }
+diff -puN include/linux/pid.h~statically-initialize-struct-pid-for-swapper include/linux/pid.h
+--- a/include/linux/pid.h~statically-initialize-struct-pid-for-swapper
++++ a/include/linux/pid.h
+@@ -51,6 +51,8 @@ struct pid
+ 	struct rcu_head rcu;
+ };
+ 
++extern struct pid init_struct_pid;
++
+ struct pid_link
  {
-+	smp_mb__before_clear_bit();
- 	clear_buffer_locked(bh);
- 	smp_mb__after_clear_bit();
- 	wake_up_bit(&bh->b_state, BH_Lock);
+ 	struct hlist_node node;
+diff -puN kernel/pid.c~statically-initialize-struct-pid-for-swapper kernel/pid.c
+--- a/kernel/pid.c~statically-initialize-struct-pid-for-swapper
++++ a/kernel/pid.c
+@@ -27,11 +27,13 @@
+ #include <linux/bootmem.h>
+ #include <linux/hash.h>
+ #include <linux/pid_namespace.h>
++#include <linux/init_task.h>
+ 
+ #define pid_hashfn(nr) hash_long((unsigned long)nr, pidhash_shift)
+ static struct hlist_head *pid_hash;
+ static int pidhash_shift;
+ static struct kmem_cache *pid_cachep;
++struct pid init_struct_pid = INIT_STRUCT_PID;
+ 
+ int pid_max = PID_MAX_DEFAULT;
+ 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-git-block.patch
-buffer-memorder-fix.patch
-sched-avoid-div-in-rebalance_tick.patch
+rename-attach_pid-to-find_attach_pid.patch
+attach_pid-with-struct-pid-parameter.patch
+remove-find_attach_pid.patch
+statically-initialize-struct-pid-for-swapper.patch
