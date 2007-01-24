@@ -1,17 +1,17 @@
 From: akpm@osdl.org
 Subject: + remove-__devinit-markings-from-rtc_sysfs_add_device.patch added to -mm tree
-Date: Wed, 24 Jan 2007 01:14:06 -0800
-Message-ID: <200701240914.l0O9E6MZ013587@shell0.pdx.osdl.net>
+Date: Wed, 24 Jan 2007 01:14:42 -0800
+Message-ID: <200701240914.l0O9Egp7013590@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58854 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58874 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933114AbXAXJOR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 04:14:17 -0500
+	id S933191AbXAXJQE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 04:16:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, a.zummo@towertech.it
+Cc: vapier@gentoo.org, a.zummo@towertech.it, stable@kernel.org
 
 
 The patch titled
@@ -32,6 +32,7 @@ rtc_sysfs_add_device is needed even after dev initialization, so drop __devinit.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
