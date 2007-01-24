@@ -1,17 +1,17 @@
 From: akpm@osdl.org
 Subject: + dm-multipath-fix-stall-on-noflush-suspend-resume.patch added to -mm tree
-Date: Wed, 24 Jan 2007 00:57:19 -0800
-Message-ID: <200701240857.l0O8vJth013266@shell0.pdx.osdl.net>
+Date: Wed, 24 Jan 2007 00:57:36 -0800
+Message-ID: <200701240857.l0O8vaRc013269@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58511 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58527 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030258AbXAXI5X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 03:57:23 -0500
+	id S1030261AbXAXI5p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 03:57:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: j-nomura@ce.jp.nec.com
+Cc: j-nomura@ce.jp.nec.com, agk@redhat.com
 
 
 The patch titled
@@ -54,6 +54,7 @@ Example of reproducer:
  4. Do dmsetup resume
 
 Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
+Acked-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
