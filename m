@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:42 -0800
-Message-ID: <200701240312.l0O3CgQu006858@shell0.pdx.osdl.net>
+Subject: + sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:48 -0800
+Message-ID: <200701240312.l0O3CmW4006867@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49076 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49079 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030195AbXAXDMt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:12:49 -0500
+	id S1030196AbXAXDMu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:12:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, benh@kernel.crashing.org, minyard@acm.org
+Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: ipmi: remove unnecessary insert_at_head flag
+     sysctl: move CTL_PM into sysctl.h where it belongs
 has been added to the -mm tree.  Its filename is
-     sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: ipmi: remove unnecessary insert_at_head flag
+Subject: sysctl: move CTL_PM into sysctl.h where it belongs
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-With unique sysctl binary numbers setting insert_at_head is pointless.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Corey Minyard <minyard@acm.org>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/ipmi/ipmi_poweroff.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/kernel/pm.c   |    1 -
+ include/linux/sysctl.h |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_poweroff.c~sysctl-ipmi-remove-unnecessary-insert_at_head-flag drivers/char/ipmi/ipmi_poweroff.c
---- a/drivers/char/ipmi/ipmi_poweroff.c~sysctl-ipmi-remove-unnecessary-insert_at_head-flag
-+++ a/drivers/char/ipmi/ipmi_poweroff.c
-@@ -686,7 +686,7 @@ static int ipmi_poweroff_init (void)
- 		printk(KERN_INFO PFX "Power cycle is enabled.\n");
+diff -puN arch/frv/kernel/pm.c~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs arch/frv/kernel/pm.c
+--- a/arch/frv/kernel/pm.c~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs
++++ a/arch/frv/kernel/pm.c
+@@ -125,7 +125,6 @@ unsigned long sleep_phys_sp(void *sp)
+  * Use a temporary sysctl number. Horrid, but will be cleaned up in 2.6
+  * when all the PM interfaces exist nicely.
+  */
+-#define CTL_PM 9899
+ #define CTL_PM_SUSPEND 1
+ #define CTL_PM_CMODE 2
+ #define CTL_PM_P0 4
+diff -puN include/linux/sysctl.h~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs
++++ a/include/linux/sysctl.h
+@@ -71,6 +71,7 @@ enum
+ 	CTL_ABI=9,		/* Binary emulation */
+ 	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
+ 	CTL_SUNRPC=7249,	/* sunrpc debug */
++	CTL_PM=9899,		/* frv power management */
+ };
  
- #ifdef CONFIG_PROC_FS
--	ipmi_table_header = register_sysctl_table(ipmi_root_table, 1);
-+	ipmi_table_header = register_sysctl_table(ipmi_root_table, 0);
- 	if (!ipmi_table_header) {
- 		printk(KERN_ERR PFX "Unable to register powercycle sysctl\n");
- 		rv = -ENOMEM;
+ /* CTL_BUS names: */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
