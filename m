@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:13:16 -0800
-Message-ID: <200701240313.l0O3DGQU006924@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:13:10 -0800
+Message-ID: <200701240313.l0O3DAAX006912@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49199 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49145 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030248AbXAXDNX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:23 -0500
+	id S1030236AbXAXDNO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ak@suse.de
+Cc: ebiederm@xmission.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables in arch/x86_64/ia32/ia32_binfmt.c
+     sysctl: C99 convert ctl_tables entries in arch/ppc/kernel/ppc_htab.c
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
+     sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables in arch/x86_64/ia32/ia32_binfmt.c
+Subject: sysctl: C99 convert ctl_tables entries in arch/ppc/kernel/ppc_htab.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+And make the mode of the kernel directory 0555 no one is allowed to write to
+sysctl directories.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Andi Kleen <ak@suse.de>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/ia32/ia32_binfmt.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ arch/ppc/kernel/ppc_htab.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/ia32/ia32_binfmt.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc arch/x86_64/ia32/ia32_binfmt.c
---- a/arch/x86_64/ia32/ia32_binfmt.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc
-+++ a/arch/x86_64/ia32/ia32_binfmt.c
-@@ -344,16 +344,26 @@ EXPORT_SYMBOL(ia32_setup_arg_pages);
- #include <linux/sysctl.h>
- 
- static ctl_table abi_table2[] = {
--	{ 99, "vsyscall32", &sysctl_vsyscall32, sizeof(int), 0644, NULL,
--	  proc_dointvec },
--	{ 0, }
--}; 
+diff -puN arch/ppc/kernel/ppc_htab.c~sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc arch/ppc/kernel/ppc_htab.c
+--- a/arch/ppc/kernel/ppc_htab.c~sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc
++++ a/arch/ppc/kernel/ppc_htab.c
+@@ -442,11 +442,16 @@ static ctl_table htab_ctl_table[]={
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dol2crvec,
+ 	},
+-	{ 0, },
++	{}
+ };
+ static ctl_table htab_sysctl_root[] = {
+-	{ 1, "kernel", NULL, 0, 0755, htab_ctl_table, },
+- 	{ 0,},
 +	{
-+		.ctl_name	= 99,
-+		.procname	= "vsyscall32",
-+		.data		= &sysctl_vsyscall32,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec
++		.ctl_name	= CTL_KERN,
++		.procname	= "kernel",
++		.mode		= 0555,
++		.child		= htab_ctl_table,
 +	},
 +	{}
-+};
+ };
  
--static ctl_table abi_root_table2[] = { 
--	{ .ctl_name = CTL_ABI, .procname = "abi", .mode = 0555, 
--	  .child = abi_table2 }, 
--	{ 0 }, 
--}; 
-+static ctl_table abi_root_table2[] = {
-+	{
-+		.ctl_name = CTL_ABI,
-+		.procname = "abi",
-+		.mode = 0555,
-+		.child = abi_table2
-+	},
-+	{}
-+};
- 
- static __init int ia32_binfmt_init(void)
- { 
+ static int __init
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
