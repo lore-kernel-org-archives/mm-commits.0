@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-arch-frv-kernel-sysctlc.patch added to -mm tree
-Date: Tue, 23 Jan 2007 19:12:54 -0800
-Message-ID: <200701240312.l0O3Cs5X006882@shell0.pdx.osdl.net>
+Subject: + sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch added to -mm tree
+Date: Tue, 23 Jan 2007 19:12:57 -0800
+Message-ID: <200701240312.l0O3Cv51006888@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49118 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49108 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030217AbXAXDNB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Jan 2007 22:13:01 -0500
+	id S1030214AbXAXDNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 23 Jan 2007 22:13:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, dhowells@redhat.com
+Cc: ebiederm@xmission.com, tony.luck@intel.com
 
 
 The patch titled
-     sysctl: C99 convert arch/frv/kernel/sysctl.c
+     sysctl: C99 Convert arch/ia64/sn/kernel/xpc_main.c
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
+     sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert arch/frv/kernel/sysctl.c
+Subject: sysctl: C99 Convert arch/ia64/sn/kernel/xpc_main.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/frv/kernel/sysctl.c |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ arch/ia64/sn/kernel/xpc_main.c |   86 +++++++++++++------------------
+ 1 file changed, 38 insertions(+), 48 deletions(-)
 
-diff -puN arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc arch/frv/kernel/sysctl.c
---- a/arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc
-+++ a/arch/frv/kernel/sysctl.c
-@@ -175,11 +175,25 @@ static int procctl_frv_pin_cxnr(ctl_tabl
-  */
- static struct ctl_table frv_table[] =
- {
--	{ 1, "cache-mode",	NULL, 0, 0644, NULL, &procctl_frv_cachemode },
-+	{
-+		.ctl_name 	= 1,
-+		.procname 	= "cache-mode",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0644,
-+		.proc_handler	= &procctl_frv_cachemode,
-+	},
- #ifdef CONFIG_MMU
--	{ 2, "pin-cxnr",	NULL, 0, 0644, NULL, &procctl_frv_pin_cxnr },
-+	{
-+		.ctl_name	= 2,
-+		.procname	= "pin-cxnr",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0644,
-+		.proc_handler	= &procctl_frv_pin_cxnr
-+	},
- #endif
--	{ 0 }
-+	{}
- };
+diff -puN arch/ia64/sn/kernel/xpc_main.c~sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc arch/ia64/sn/kernel/xpc_main.c
+--- a/arch/ia64/sn/kernel/xpc_main.c~sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc
++++ a/arch/ia64/sn/kernel/xpc_main.c
+@@ -101,67 +101,57 @@ static int xpc_disengage_request_max_tim
  
- /*
-@@ -188,8 +202,13 @@ static struct ctl_table frv_table[] =
-  */
- static struct ctl_table frv_dir_table[] =
- {
--	{CTL_FRV, "frv", NULL, 0, 0555, frv_table},
+ static ctl_table xpc_sys_xpc_hb_dir[] = {
+ 	{
+-		CTL_UNNUMBERED,
+-		"hb_interval",
+-		&xpc_hb_interval,
+-		sizeof(int),
+-		0644,
+-		NULL,
+-		&proc_dointvec_minmax,
+-		&sysctl_intvec,
+-		NULL,
+-		&xpc_hb_min_interval,
+-		&xpc_hb_max_interval
++		.ctl_name 	= CTL_UNNUMBERED,
++		.procname	= "hb_interval",
++		.data		= &xpc_hb_interval,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &xpc_hb_min_interval,
++		.extra2		= &xpc_hb_max_interval
+ 	},
+ 	{
+-		CTL_UNNUMBERED,
+-		"hb_check_interval",
+-		&xpc_hb_check_interval,
+-		sizeof(int),
+-		0644,
+-		NULL,
+-		&proc_dointvec_minmax,
+-		&sysctl_intvec,
+-		NULL,
+-		&xpc_hb_check_min_interval,
+-		&xpc_hb_check_max_interval
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "hb_check_interval",
++		.data		= &xpc_hb_check_interval,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &xpc_hb_check_min_interval,
++		.extra2		= &xpc_hb_check_max_interval
+ 	},
 -	{0}
-+	{
-+		.ctl_name	= CTL_FRV,
-+		.procname	= "frv",
-+		.mode 		= 0555,
-+		.child		= frv_table
-+	},
 +	{}
  };
+ static ctl_table xpc_sys_xpc_dir[] = {
+ 	{
+-		CTL_UNNUMBERED,
+-		"hb",
+-		NULL,
+-		0,
+-		0555,
+-		xpc_sys_xpc_hb_dir
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "hb",
++		.mode		= 0555,
++		.child		= xpc_sys_xpc_hb_dir
+ 	},
+ 	{
+-		CTL_UNNUMBERED,
+-		"disengage_request_timelimit",
+-		&xpc_disengage_request_timelimit,
+-		sizeof(int),
+-		0644,
+-		NULL,
+-		&proc_dointvec_minmax,
+-		&sysctl_intvec,
+-		NULL,
+-		&xpc_disengage_request_min_timelimit,
+-		&xpc_disengage_request_max_timelimit
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "disengage_request_timelimit",
++		.data		= &xpc_disengage_request_timelimit,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &xpc_disengage_request_min_timelimit,
++		.extra2		= &xpc_disengage_request_max_timelimit
+ 	},
+-	{0}
++	{}
+ };
+ static ctl_table xpc_sys_dir[] = {
+ 	{
+-		CTL_UNNUMBERED,
+-		"xpc",
+-		NULL,
+-		0,
+-		0555,
+-		xpc_sys_xpc_dir
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "xpc",
++		.mode		= 0555,
++		.child		= xpc_sys_xpc_dir
+ 	},
+-	{0}
++	{}
+ };
+ static struct ctl_table_header *xpc_sysctl;
  
- /*
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
