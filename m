@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-locking-fixes-in-the-ubd-driver.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:03:39 -0800
-Message-ID: <200701250603.l0P63dUJ007569@shell0.pdx.osdl.net>
+Subject: + uml-locking-comments-in-memory-and-tempfile-code.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:03:41 -0800
+Message-ID: <200701250603.l0P63f32007575@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48769 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48773 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965341AbXAYGDm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:03:42 -0500
+	id S965341AbXAYGDo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:03:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: locking fixes in the ubd driver
+     uml: locking comments in memory and tempfile code
 has been added to the -mm tree.  Its filename is
-     uml-locking-fixes-in-the-ubd-driver.patch
+     uml-locking-comments-in-memory-and-tempfile-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,160 +25,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: locking fixes in the ubd driver
+Subject: uml: locking comments in memory and tempfile code
 From: Jeff Dike <jdike@addtoit.com>
 
-Some small locking and formatting fixes in the ubd driver.
+Locking comments and emacs comment removal in the low-level memory and
+temp file code.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/drivers/ubd_kern.c |   35 +++++++++++++++--------------------
- 1 file changed, 15 insertions(+), 20 deletions(-)
+ arch/um/include/tempfile.h |   10 ----------
+ arch/um/kernel/mem.c       |    3 ++-
+ arch/um/os-Linux/mem.c     |    7 +++++++
+ 3 files changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN arch/um/drivers/ubd_kern.c~uml-locking-fixes-in-the-ubd-driver arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~uml-locking-fixes-in-the-ubd-driver
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -131,7 +131,6 @@ static struct block_device_operations ub
+diff -puN arch/um/include/tempfile.h~uml-locking-comments-in-memory-and-tempfile-code arch/um/include/tempfile.h
+--- a/arch/um/include/tempfile.h~uml-locking-comments-in-memory-and-tempfile-code
++++ a/arch/um/include/tempfile.h
+@@ -9,13 +9,3 @@
+ extern int make_tempfile(const char *template, char **tempname, int do_unlink);
  
- /* Protected by ubd_lock */
- static int fake_major = MAJOR_NR;
--
- static struct gendisk *ubd_gendisk[MAX_DEV];
- static struct gendisk *fake_gendisk[MAX_DEV];
- 
-@@ -142,10 +141,6 @@ static struct gendisk *fake_gendisk[MAX_
- #define OPEN_FLAGS ((struct openflags) { .r = 1, .w = 1, .s = 0, .c = 0, \
- 					 .cl = 1 })
  #endif
--
--/* Not protected - changed only in ubd_setup_common and then only to
-- * to enable O_SYNC.
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
 - */
- static struct openflags global_openflags = OPEN_FLAGS;
+diff -puN arch/um/kernel/mem.c~uml-locking-comments-in-memory-and-tempfile-code arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-locking-comments-in-memory-and-tempfile-code
++++ a/arch/um/kernel/mem.c
+@@ -24,8 +24,9 @@
+ #include "init.h"
+ #include "kern_constants.h"
  
- struct cow {
-@@ -197,6 +192,7 @@ struct ubd {
- 	.lock =			SPIN_LOCK_UNLOCKED,	\
- }
+-/* Changed during early boot */
++/* allocated in paging_init, zeroed in mem_init, and unchanged thereafter */
+ unsigned long *empty_zero_page = NULL;
++/* allocated in paging_init and unchanged thereafter */
+ unsigned long *empty_bad_page = NULL;
+ pgd_t swapper_pg_dir[PTRS_PER_PGD];
+ unsigned long long highmem;
+diff -puN arch/um/os-Linux/mem.c~uml-locking-comments-in-memory-and-tempfile-code arch/um/os-Linux/mem.c
+--- a/arch/um/os-Linux/mem.c~uml-locking-comments-in-memory-and-tempfile-code
++++ a/arch/um/os-Linux/mem.c
+@@ -20,7 +20,13 @@
  
-+/* Protected by ubd_lock */
- struct ubd ubd_devs[MAX_DEV] = { [ 0 ... MAX_DEV - 1 ] = DEFAULT_UBD };
+ #include <sys/param.h>
  
- /* Only changed by fake_ide_setup which is a setup */
-@@ -288,7 +284,7 @@ static int ubd_setup_common(char *str, i
- 	struct ubd *ubd_dev;
- 	struct openflags flags = global_openflags;
- 	char *backing_file;
--	int n, err, i;
-+	int n, err = 0, i;
- 
- 	if(index_out) *index_out = -1;
- 	n = *str;
-@@ -299,15 +295,16 @@ static int ubd_setup_common(char *str, i
- 		str++;
- 		if(!strcmp(str, "sync")){
- 			global_openflags = of_sync(global_openflags);
--			return 0;
-+			goto out1;
- 		}
++/* Modified by which_tmpdir, which is called during early boot */
+ static char *default_tmpdir = "/tmp";
 +
-+		err = -EINVAL;
- 		major = simple_strtoul(str, &end, 0);
- 		if((*end != '\0') || (end == str)){
- 			*error_out = "Didn't parse major number";
--			return -EINVAL;
-+			goto out1;
- 		}
++/*
++ *  Modified when creating the physical memory file and when checking
++ * the tmp filesystem for usability, both happening during early boot.
++ */
+ static char *tempdir = NULL;
  
--		err = -EINVAL;
- 		mutex_lock(&ubd_lock);
- 		if(fake_major != MAJOR_NR){
- 			*error_out = "Can't assign a fake major twice";
-@@ -473,12 +470,6 @@ static void do_ubd_request(request_queue
- /* Only changed by ubd_init, which is an initcall. */
- int thread_fd = -1;
- 
--/* Changed by ubd_handler, which is serialized because interrupts only
-- * happen on CPU 0.
-- * XXX: currently unused.
-- */
--static int intr_count = 0;
--
- /* call ubd_finish if you need to serialize */
- static void __ubd_finish(struct request *req, int error)
- {
-@@ -518,7 +509,6 @@ static void ubd_handler(void)
- 	int n;
- 
- 	do_ubd = 0;
--	intr_count++;
- 	n = os_read_file(thread_fd, &req, sizeof(req));
- 	if(n != sizeof(req)){
- 		printk(KERN_ERR "Pid %d - spurious interrupt in ubd_handler, "
-@@ -637,8 +627,7 @@ static int ubd_open_dev(struct ubd *ubd_
+ static void __init find_tempdir(void)
+@@ -83,6 +89,7 @@ static int next(int fd, char *buf, int s
+ 	return 1;
  }
  
- static int ubd_disk_register(int major, u64 size, int unit,
--			struct gendisk **disk_out)
--			
-+			     struct gendisk **disk_out)
- {
- 	struct gendisk *disk;
++/* which_tmpdir is called only during early boot */
+ static int checked_tmpdir = 0;
  
-@@ -840,7 +829,7 @@ out:
- }
- 
- /* All these are called by mconsole in process context and without
-- * ubd-specific locks.
-+ * ubd-specific locks.  The structure itself is const except for .list.
-  */
- static struct mc_device ubd_mc = {
- 	.list		= LIST_HEAD_INIT(ubd_mc.list),
-@@ -863,13 +852,17 @@ static int __init ubd0_init(void)
- {
- 	struct ubd *ubd_dev = &ubd_devs[0];
- 
-+	mutex_lock(&ubd_lock);
- 	if(ubd_dev->file == NULL)
- 		ubd_dev->file = "root_fs";
-+	mutex_unlock(&ubd_lock);
-+
- 	return(0);
- }
- 
- __initcall(ubd0_init);
- 
-+/* Used in ubd_init, which is an initcall */
- static struct platform_driver ubd_driver = {
- 	.driver = {
- 		.name  = DRIVER_NAME,
-@@ -892,12 +885,14 @@ static int __init ubd_init(void)
- 			return -1;
- 	}
- 	platform_driver_register(&ubd_driver);
-+ 	mutex_lock(&ubd_lock);
- 	for (i = 0; i < MAX_DEV; i++){
- 		err = ubd_add(i, &error);
- 		if(err)
- 			printk(KERN_ERR "Failed to initialize ubd device %d :"
- 			       "%s\n", i, error);
- 	}
-+ 	mutex_unlock(&ubd_lock);
- 	return 0;
- }
- 
-@@ -1129,7 +1124,7 @@ static int ubd_ioctl(struct inode * inod
- 				 sizeof(ubd_id)))
- 			return(-EFAULT);
- 		return(0);
--		
-+
- 	case CDROMVOLREAD:
- 		if(copy_from_user(&volume, (char __user *) arg, sizeof(volume)))
- 			return(-EFAULT);
+ /* Look for a tmpfs mounted at /dev/shm.  I couldn't find a cleaner
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
