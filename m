@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + clocksource-add-verification-watchdog-helper.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:36:13 -0800
-Message-ID: <200701250636.l0P6aDIc008312@shell0.pdx.osdl.net>
+Subject: + clockevents-add-core-functionality.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:45 -0800
+Message-ID: <200701250636.l0P6ajFh008367@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50286 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50369 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965556AbXAYGgt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:36:49 -0500
+	id S965559AbXAYGhT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:37:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     clocksource: Add verification (watchdog) helper
+     clockevents: add core functionality
 has been added to the -mm tree.  Its filename is
-     clocksource-add-verification-watchdog-helper.patch
+     clockevents-add-core-functionality.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,397 +25,623 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource: Add verification (watchdog) helper
+Subject: clockevents: add core functionality
 From: Thomas Gleixner <tglx@linutronix.de>
 
-The TSC needs to be verified against another clocksource.  Instead of using
-hardwired assumptions of available hardware, provide a generic verification
-mechanism.  The verification uses the best available clocksource and handles
-the usability for high resolution timers / dynticks of the clocksource which
-needs to be verified.
+Architectures register their clock event devices, in the clock events core. 
+Users of the clockevents core can get clock event devices for their use.  The
+clockevents core code provides notification mechanisms for various clock
+related management events.
 
+This allows to control the clock event devices without the architectures
+having to worry about the details of function assignment.  This is also a
+preliminary for high resolution timers and dynamic ticks to allow the core
+code to control the clock functionality without intrusive changes to the
+architecture code.
+
+[Fixes-by: Ingo Molnar <mingo@elte.hu>]
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/Kconfig           |    4 +
- arch/i386/kernel/tsc.c      |   49 -------------
- include/linux/clocksource.h |   15 +++-
- kernel/time/clocksource.c   |  125 ++++++++++++++++++++++++++++++++--
- kernel/timer.c              |   46 ++++++------
- 5 files changed, 161 insertions(+), 78 deletions(-)
+ include/linux/clockchips.h |  142 ++++++++++++++
+ include/linux/hrtimer.h    |    5 
+ kernel/hrtimer.c           |   12 -
+ kernel/time/Makefile       |    2 
+ kernel/time/clockevents.c  |  340 +++++++++++++++++++++++++++++++++++
+ kernel/timer.c             |    7 
+ 6 files changed, 493 insertions(+), 15 deletions(-)
 
-diff -puN arch/i386/Kconfig~clocksource-add-verification-watchdog-helper arch/i386/Kconfig
---- a/arch/i386/Kconfig~clocksource-add-verification-watchdog-helper
-+++ a/arch/i386/Kconfig
-@@ -18,6 +18,10 @@ config GENERIC_TIME
- 	bool
- 	default y
- 
-+config CLOCKSOURCE_WATCHDOG
-+	bool
-+	default y
+diff -puN /dev/null include/linux/clockchips.h
+--- /dev/null
++++ a/include/linux/clockchips.h
+@@ -0,0 +1,142 @@
++/*  linux/include/linux/clockchips.h
++ *
++ *  This file contains the structure definitions for clockchips.
++ *
++ *  If you are not a clockchip, or the time of day code, you should
++ *  not be including this file!
++ */
++#ifndef _LINUX_CLOCKCHIPS_H
++#define _LINUX_CLOCKCHIPS_H
 +
- config LOCKDEP_SUPPORT
- 	bool
- 	default y
-diff -puN arch/i386/kernel/tsc.c~clocksource-add-verification-watchdog-helper arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~clocksource-add-verification-watchdog-helper
-+++ a/arch/i386/kernel/tsc.c
-@@ -344,49 +344,6 @@ static struct dmi_system_id __initdata b
- 	 {}
- };
++#ifdef CONFIG_GENERIC_CLOCKEVENTS
++
++#include <linux/clocksource.h>
++#include <linux/cpumask.h>
++#include <linux/ktime.h>
++#include <linux/notifier.h>
++
++struct clock_event_device;
++
++/* Clock event mode commands */
++enum clock_event_mode {
++	CLOCK_EVT_MODE_UNUSED = 0,
++	CLOCK_EVT_MODE_SHUTDOWN,
++	CLOCK_EVT_MODE_PERIODIC,
++	CLOCK_EVT_MODE_ONESHOT,
++};
++
++/* Clock event notification values */
++enum clock_event_nofitiers {
++	CLOCK_EVT_NOTIFY_ADD,
++	CLOCK_EVT_NOTIFY_BROADCAST_ON,
++	CLOCK_EVT_NOTIFY_BROADCAST_OFF,
++	CLOCK_EVT_NOTIFY_BROADCAST_ENTER,
++	CLOCK_EVT_NOTIFY_BROADCAST_EXIT,
++	CLOCK_EVT_NOTIFY_SUSPEND,
++	CLOCK_EVT_NOTIFY_RESUME,
++};
++
++/*
++ * Clock event features
++ */
++#define CLOCK_EVT_FEAT_PERIODIC		0x000001
++#define CLOCK_EVT_FEAT_ONESHOT		0x000002
++/*
++ * x86(64) specific misfeatures:
++ *
++ * - Clockevent source stops in C3 State and needs broadcast support.
++ * - Local APIC timer is used as a dummy device.
++ */
++#define CLOCK_EVT_FEAT_C3STOP		0x000004
++#define CLOCK_EVT_FEAT_DUMMY		0x000008
++
++/**
++ * struct clock_event_device - clock event device descriptor
++ * @name:		ptr to clock event name
++ * @hints:		usage hints
++ * @max_delta_ns:	maximum delta value in ns
++ * @min_delta_ns:	minimum delta value in ns
++ * @mult:		nanosecond to cycles multiplier
++ * @shift:		nanoseconds to cycles divisor (power of two)
++ * @rating:		variable to rate clock event devices
++ * @irq:		irq number (only for non cpu local devices)
++ * @cpumask:		cpumask to indicate for which cpus this device works
++ * @set_next_event:	set next event
++ * @set_mode:		set mode function
++ * @evthandler:		Assigned by the framework to be called by the low
++ *			level handler of the event source
++ * @broadcast:		function to broadcast events
++ * @list:		list head for the management code
++ * @mode:		operating mode assigned by the management code
++ * @next_event:		local storage for the next event in oneshot mode
++ */
++struct clock_event_device {
++	const char		*name;
++	unsigned int		features;
++	unsigned long		max_delta_ns;
++	unsigned long		min_delta_ns;
++	unsigned long		mult;
++	int			shift;
++	int			rating;
++	int			irq;
++	cpumask_t		cpumask;
++	int			(*set_next_event)(unsigned long evt,
++						  struct clock_event_device *);
++	void			(*set_mode)(enum clock_event_mode mode,
++					    struct clock_event_device *);
++	void			(*event_handler)(struct clock_event_device *);
++	void			(*broadcast)(cpumask_t mask);
++	struct list_head	list;
++	enum clock_event_mode	mode;
++	ktime_t			next_event;
++};
++
++/*
++ * Calculate a multiplication factor for scaled math, which is used to convert
++ * nanoseconds based values to clock ticks:
++ *
++ * clock_ticks = (nanoseconds * factor) >> shift.
++ *
++ * div_sc is the rearranged equation to calculate a factor from a given clock
++ * ticks / nanoseconds ratio:
++ *
++ * factor = (clock_ticks << shift) / nanoseconds
++ */
++static inline unsigned long div_sc(unsigned long ticks, unsigned long nsec,
++				   int shift)
++{
++	uint64_t tmp = ((uint64_t)ticks) << shift;
++
++	do_div(tmp, nsec);
++	return (unsigned long) tmp;
++}
++
++/* Clock event layer functions */
++extern unsigned long clockevent_delta2ns(unsigned long latch,
++					 struct clock_event_device *evt);
++extern void clockevents_register_device(struct clock_event_device *dev);
++
++extern void clockevents_exchange_device(struct clock_event_device *old,
++					struct clock_event_device *new);
++extern
++struct clock_event_device *clockevents_request_device(unsigned int features,
++						      cpumask_t cpumask);
++extern void clockevents_release_device(struct clock_event_device *dev);
++extern void clockevents_set_mode(struct clock_event_device *dev,
++				 enum clock_event_mode mode);
++extern int clockevents_register_notifier(struct notifier_block *nb);
++extern void clockevents_unregister_notifier(struct notifier_block *nb);
++extern int clockevents_program_event(struct clock_event_device *dev,
++				     ktime_t expires);
++
++extern void clockevents_resume_events(void);
++extern void clockevents_notify(unsigned long reason, void *arg);
++
++#else
++
++static inline void clockevents_resume_events(void) { }
++static inline void clockevents_notify(unsigned long reason, void *arg) { }
++
++#endif
++
++#endif
+diff -puN include/linux/hrtimer.h~clockevents-add-core-functionality include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~clockevents-add-core-functionality
++++ a/include/linux/hrtimer.h
+@@ -144,6 +144,8 @@ struct hrtimer_cpu_base {
+  * is expired in the next softirq when the clock was advanced.
+  */
+ #define clock_was_set()		do { } while (0)
++extern ktime_t ktime_get(void);
++extern ktime_t ktime_get_real(void);
  
--#define TSC_FREQ_CHECK_INTERVAL (10*MSEC_PER_SEC) /* 10sec in MS */
--static struct timer_list verify_tsc_freq_timer;
+ /* Exported timer functions: */
+ 
+@@ -196,9 +198,6 @@ extern void hrtimer_init_sleeper(struct 
+ /* Soft interrupt function to run the hrtimer queues: */
+ extern void hrtimer_run_queues(void);
+ 
+-/* Resume notification */
+-void hrtimer_notify_resume(void);
 -
--/* XXX - Probably should add locking */
--static void verify_tsc_freq(unsigned long unused)
+ /* Bootup initialization: */
+ extern void __init hrtimers_init(void);
+ 
+diff -puN kernel/hrtimer.c~clockevents-add-core-functionality kernel/hrtimer.c
+--- a/kernel/hrtimer.c~clockevents-add-core-functionality
++++ a/kernel/hrtimer.c
+@@ -46,7 +46,7 @@
+  *
+  * returns the time in ktime_t format
+  */
+-static ktime_t ktime_get(void)
++ktime_t ktime_get(void)
+ {
+ 	struct timespec now;
+ 
+@@ -60,7 +60,7 @@ static ktime_t ktime_get(void)
+  *
+  * returns the time in ktime_t format
+  */
+-static ktime_t ktime_get_real(void)
++ktime_t ktime_get_real(void)
+ {
+ 	struct timespec now;
+ 
+@@ -311,14 +311,6 @@ static unsigned long ktime_divns(const k
+ #endif /* BITS_PER_LONG >= 64 */
+ 
+ /*
+- * Timekeeping resumed notification
+- */
+-void hrtimer_notify_resume(void)
 -{
--	static u64 last_tsc;
--	static unsigned long last_jiffies;
--
--	u64 now_tsc, interval_tsc;
--	unsigned long now_jiffies, interval_jiffies;
--
--
--	if (check_tsc_unstable())
--		return;
--
--	rdtscll(now_tsc);
--	now_jiffies = jiffies;
--
--	if (!last_jiffies) {
--		goto out;
--	}
--
--	interval_jiffies = now_jiffies - last_jiffies;
--	interval_tsc = now_tsc - last_tsc;
--	interval_tsc *= HZ;
--	do_div(interval_tsc, cpu_khz*1000);
--
--	if (interval_tsc < (interval_jiffies * 3 / 4)) {
--		printk("TSC appears to be running slowly. "
--			"Marking it as unstable\n");
--		mark_tsc_unstable();
--		return;
--	}
--
--out:
--	last_tsc = now_tsc;
--	last_jiffies = now_jiffies;
--	/* set us up to go off on the next interval: */
--	mod_timer(&verify_tsc_freq_timer,
--		jiffies + msecs_to_jiffies(TSC_FREQ_CHECK_INTERVAL));
+-	clock_was_set();
 -}
 -
- /*
-  * Make an educated guess if the TSC is trustworthy and synchronized
-  * over all CPUs.
-@@ -424,12 +381,6 @@ static int __init init_tsc_clocksource(v
- 			clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
- 		}
- 
--		init_timer(&verify_tsc_freq_timer);
--		verify_tsc_freq_timer.function = verify_tsc_freq;
--		verify_tsc_freq_timer.expires =
--			jiffies + msecs_to_jiffies(TSC_FREQ_CHECK_INTERVAL);
--		add_timer(&verify_tsc_freq_timer);
--
- 		return clocksource_register(&clocksource_tsc);
- 	}
- 
-diff -puN include/linux/clocksource.h~clocksource-add-verification-watchdog-helper include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-add-verification-watchdog-helper
-+++ a/include/linux/clocksource.h
-@@ -12,11 +12,13 @@
- #include <linux/timex.h>
- #include <linux/time.h>
- #include <linux/list.h>
-+#include <linux/timer.h>
- #include <asm/div64.h>
- #include <asm/io.h>
- 
- /* clocksource cycle base type */
- typedef u64 cycle_t;
-+struct clocksource;
- 
- /**
-  * struct clocksource - hardware abstraction for a free running counter
-@@ -62,13 +64,22 @@ struct clocksource {
- 	cycle_t cycle_last, cycle_interval;
- 	u64 xtime_nsec, xtime_interval;
- 	s64 error;
-+
-+#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
-+	/* Watchdog related data, used by the framework */
-+	struct list_head wd_list;
-+	cycle_t wd_last;
-+#endif
- };
- 
- /*
-  * Clock source flags bits::
+-/*
+  * Counterpart to lock_timer_base above:
   */
--#define CLOCK_SOURCE_IS_CONTINUOUS	0x01
--#define CLOCK_SOURCE_MUST_VERIFY	0x02
-+#define CLOCK_SOURCE_IS_CONTINUOUS		0x01
-+#define CLOCK_SOURCE_MUST_VERIFY		0x02
+ static inline
+diff -puN kernel/time/Makefile~clockevents-add-core-functionality kernel/time/Makefile
+--- a/kernel/time/Makefile~clockevents-add-core-functionality
++++ a/kernel/time/Makefile
+@@ -1 +1,3 @@
+ obj-y += ntp.o clocksource.o jiffies.o
 +
-+#define CLOCK_SOURCE_WATCHDOG			0x10
-+#define CLOCK_SOURCE_VALID_FOR_HRES		0x20
- 
- /* simplify initialization of mask field */
- #define CLOCKSOURCE_MASK(bits) (cycle_t)(bits<64 ? ((1ULL<<bits)-1) : -1)
-diff -puN kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper
-+++ a/kernel/time/clocksource.c
-@@ -62,9 +62,115 @@ static int __init clocksource_done_booti
- 	finished_booting = 1;
- 	return 0;
- }
--
- late_initcall(clocksource_done_booting);
- 
-+#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
-+static LIST_HEAD(watchdog_list);
-+static struct clocksource *watchdog;
-+static struct timer_list watchdog_timer;
-+static DEFINE_SPINLOCK(watchdog_lock);
-+static cycle_t watchdog_last;
++obj-$(CONFIG_GENERIC_CLOCKEVENTS) += clockevents.o
+diff -puN /dev/null kernel/time/clockevents.c
+--- /dev/null
++++ a/kernel/time/clockevents.c
+@@ -0,0 +1,340 @@
 +/*
-+ * Interval: 0.5sec Treshold: 0.0625s
++ * linux/kernel/time/clockevents.c
++ *
++ * This file contains functions which manage clock event devices.
++ *
++ * Copyright(C) 2005-2006, Thomas Gleixner <tglx@linutronix.de>
++ * Copyright(C) 2005-2007, Red Hat, Inc., Ingo Molnar
++ * Copyright(C) 2006-2007, Timesys Corp., Thomas Gleixner
++ *
++ * This code is licenced under the GPL version 2. For details see
++ * kernel-base/COPYING.
 + */
-+#define WATCHDOG_INTERVAL (HZ >> 1)
-+#define WATCHDOG_TRESHOLD (NSEC_PER_SEC >> 4)
 +
-+static void clocksource_ratewd(struct clocksource *cs, int64_t delta)
++#include <linux/clockchips.h>
++#include <linux/hrtimer.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/notifier.h>
++#include <linux/smp.h>
++#include <linux/sysdev.h>
++
++/* The registered clock event devices */
++static LIST_HEAD(clockevent_devices);
++static LIST_HEAD(clockevents_released);
++
++/* Notification for clock events */
++static RAW_NOTIFIER_HEAD(clockevents_chain);
++
++/* Protection for the above */
++static DEFINE_SPINLOCK(clockevents_lock);
++
++/**
++ * clockevents_delta2ns - Convert a latch value (device ticks) to nanoseconds
++ * @latch:	value to convert
++ * @evt:	pointer to clock event device descriptor
++ *
++ * Math helper, returns latch value converted to nanoseconds (bound checked)
++ */
++unsigned long clockevent_delta2ns(unsigned long latch,
++				  struct clock_event_device *evt)
 +{
-+	if (delta > -WATCHDOG_TRESHOLD && delta < WATCHDOG_TRESHOLD)
-+		return;
++	u64 clc = ((u64) latch << evt->shift);
 +
-+	printk(KERN_WARNING "Clocksource %s unstable (delta = %Ld ns)\n",
-+	       cs->name, delta);
-+	cs->flags &= ~(CLOCK_SOURCE_VALID_FOR_HRES | CLOCK_SOURCE_WATCHDOG);
-+	clocksource_change_rating(cs, 0);
-+	cs->flags &= ~CLOCK_SOURCE_WATCHDOG;
-+	list_del(&cs->wd_list);
++	do_div(clc, evt->mult);
++	if (clc < KTIME_MONOTONIC_RES.tv64)
++		clc = KTIME_MONOTONIC_RES.tv64;
++	if (clc > LONG_MAX)
++		clc = LONG_MAX;
++
++	return (unsigned long) clc;
 +}
 +
-+static void clocksource_watchdog(unsigned long data)
++/**
++ * clockevents_set_mode - set the operating mode of a clock event device
++ * @dev:	device to modify
++ * @mode:	new mode
++ *
++ * Must be called with interrupts disabled !
++ */
++void clockevents_set_mode(struct clock_event_device *dev,
++				 enum clock_event_mode mode)
 +{
-+	struct clocksource *cs, *tmp;
-+	cycle_t csnow, wdnow;
-+	int64_t wd_nsec, cs_nsec;
-+
-+	spin_lock(&watchdog_lock);
-+
-+	wdnow = watchdog->read();
-+	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
-+	watchdog_last = wdnow;
-+
-+	list_for_each_entry_safe(cs, tmp, &watchdog_list, wd_list) {
-+		csnow = cs->read();
-+		/* Initialized ? */
-+		if (!(cs->flags & CLOCK_SOURCE_WATCHDOG)) {
-+			if ((cs->flags & CLOCK_SOURCE_IS_CONTINUOUS) &&
-+			    (watchdog->flags & CLOCK_SOURCE_IS_CONTINUOUS))
-+				cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
-+			cs->flags |= CLOCK_SOURCE_WATCHDOG;
-+			cs->wd_last = csnow;
-+		} else {
-+			cs_nsec = cyc2ns(cs, (csnow - cs->wd_last) & cs->mask);
-+			cs->wd_last = csnow;
-+			/* Check the delta. Might remove from the list ! */
-+			clocksource_ratewd(cs, cs_nsec - wd_nsec);
-+		}
++	if (dev->mode != mode) {
++		dev->set_mode(mode, dev);
++		dev->mode = mode;
 +	}
-+
-+	if (!list_empty(&watchdog_list)) {
-+		__mod_timer(&watchdog_timer,
-+			    watchdog_timer.expires + WATCHDOG_INTERVAL);
-+	}
-+	spin_unlock(&watchdog_lock);
 +}
-+static void clocksource_check_watchdog(struct clocksource *cs)
++
++/**
++ * clockevents_program_event - Reprogram the clock event device.
++ * @expires:	absolute expiry time (monotonic clock)
++ *
++ * Returns 0 on success, -ETIME when the event is in the past.
++ */
++int clockevents_program_event(struct clock_event_device *dev, ktime_t expires)
 +{
-+	struct clocksource *cse;
++	unsigned long long clc;
++	int64_t delta;
++
++	delta = ktime_to_ns(ktime_sub(expires, ktime_get()));
++
++	if (delta <= 0)
++		return -ETIME;
++
++	dev->next_event = expires;
++
++	if (delta > dev->max_delta_ns)
++		delta = dev->max_delta_ns;
++	if (delta < dev->min_delta_ns)
++		delta = dev->min_delta_ns;
++
++	clc = delta * dev->mult;
++	clc >>= dev->shift;
++
++	return dev->set_next_event((unsigned long) clc, dev);
++}
++
++/**
++ * clockevents_register_notifier - register a clock events change listener
++ */
++int clockevents_register_notifier(struct notifier_block *nb)
++{
++	int ret;
++
++	spin_lock(&clockevents_lock);
++	ret = raw_notifier_chain_register(&clockevents_chain, nb);
++	spin_unlock(&clockevents_lock);
++
++	return ret;
++}
++
++/**
++ * clockevents_unregister_notifier - unregister a clock events change listener
++ */
++void clockevents_unregister_notifier(struct notifier_block *nb)
++{
++	spin_lock(&clockevents_lock);
++	raw_notifier_chain_unregister(&clockevents_chain, nb);
++	spin_unlock(&clockevents_lock);
++}
++
++/*
++ * Notify about a clock event change. Called with clockevents_lock
++ * held.
++ */
++static void clockevents_do_notify(unsigned long reason, void *dev)
++{
++	raw_notifier_call_chain(&clockevents_chain, reason, dev);
++}
++
++/*
++ * Called after a notify add to make devices availble which were
++ * released from the notifier call.
++ */
++static void clockevents_notify_released(void)
++{
++	struct clock_event_device *dev;
++
++	while (!list_empty(&clockevents_released)) {
++		dev = list_entry(clockevents_released.next,
++				 struct clock_event_device, list);
++		list_del(&dev->list);
++		list_add(&dev->list, &clockevent_devices);
++		clockevents_do_notify(CLOCK_EVT_NOTIFY_ADD, dev);
++	}
++}
++
++/**
++ * clockevents_register_device - register a clock event device
++ * @dev:	device to register
++ */
++void clockevents_register_device(struct clock_event_device *dev)
++{
++	BUG_ON(dev->mode != CLOCK_EVT_MODE_UNUSED);
++
++	spin_lock(&clockevents_lock);
++
++	list_add(&dev->list, &clockevent_devices);
++	clockevents_do_notify(CLOCK_EVT_NOTIFY_ADD, dev);
++	clockevents_notify_released();
++
++	spin_unlock(&clockevents_lock);
++}
++
++/*
++ * Noop handler when we shut down an event device
++ */
++static void clockevents_handle_noop(struct clock_event_device *dev)
++{
++}
++
++/**
++ * clockevents_exchange_device - release and request clock devices
++ * @old:	device to release (can be NULL)
++ * @new:	device to request (can be NULL)
++ *
++ * Called from the notifier chain. clockevents_lock is held already
++ */
++void clockevents_exchange_device(struct clock_event_device *old,
++				 struct clock_event_device *new)
++{
 +	unsigned long flags;
 +
-+	spin_lock_irqsave(&watchdog_lock, flags);
-+	if (cs->flags & CLOCK_SOURCE_MUST_VERIFY) {
-+		int started = !list_empty(&watchdog_list);
++	local_irq_save(flags);
++	/*
++	 * Caller releases a clock event device. We queue it into the
++	 * released list and do a notify add later.
++	 */
++	if (old) {
++		old->event_handler = clockevents_handle_noop;
++		clockevents_set_mode(old, CLOCK_EVT_MODE_UNUSED);
++		list_del(&old->list);
++		list_add(&old->list, &clockevents_released);
++	}
 +
-+		list_add(&cs->wd_list, &watchdog_list);
-+		if (!started && watchdog) {
-+			watchdog_last = watchdog->read();
-+			watchdog_timer.expires = jiffies + WATCHDOG_INTERVAL;
-+			add_timer(&watchdog_timer);
-+		}
-+	} else if (cs->flags & CLOCK_SOURCE_IS_CONTINUOUS) {
-+			cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
++	if (new) {
++		BUG_ON(new->mode != CLOCK_EVT_MODE_UNUSED);
++		clockevents_set_mode(new, CLOCK_EVT_MODE_SHUTDOWN);
++	}
++	local_irq_restore(flags);
++}
 +
-+		if (!watchdog || cs->rating > watchdog->rating) {
-+			if (watchdog)
-+				del_timer(&watchdog_timer);
-+			watchdog = cs;
-+			init_timer(&watchdog_timer);
-+			watchdog_timer.function = clocksource_watchdog;
++/**
++ * clockevents_request_device
++ */
++struct clock_event_device *clockevents_request_device(unsigned int features,
++						      cpumask_t cpumask)
++{
++	struct clock_event_device *cur, *dev = NULL;
++	struct list_head *tmp;
 +
-+			/* Reset watchdog cycles */
-+			list_for_each_entry(cse, &watchdog_list, wd_list)
-+				cse->flags &= ~CLOCK_SOURCE_WATCHDOG;
-+			/* Start if list is not empty */
-+			if (!list_empty(&watchdog_list)) {
-+				watchdog_last = watchdog->read();
-+				watchdog_timer.expires =
-+					jiffies + WATCHDOG_INTERVAL;
-+				add_timer(&watchdog_timer);
-+			}
++	spin_lock(&clockevents_lock);
++
++	list_for_each(tmp, &clockevent_devices) {
++		cur = list_entry(tmp, struct clock_event_device, list);
++
++		if ((cur->features & features) == features &&
++		    cpus_equal(cpumask, cur->cpumask)) {
++			if (!dev || dev->rating < cur->rating)
++				dev = cur;
 +		}
 +	}
-+	spin_unlock_irqrestore(&watchdog_lock, flags);
++
++	clockevents_exchange_device(NULL, dev);
++
++	spin_unlock(&clockevents_lock);
++
++	return dev;
 +}
-+#else
-+static void clocksource_check_watchdog(struct clocksource *cs)
++
++/**
++ * clockevents_release_device
++ */
++void clockevents_release_device(struct clock_event_device *dev)
 +{
-+	if (cs->flags & CLOCK_SOURCE_IS_CONTINUOUS)
-+		cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
++	spin_lock(&clockevents_lock);
++
++	clockevents_exchange_device(dev, NULL);
++	clockevents_notify_released();
++
++	spin_unlock(&clockevents_lock);
 +}
++
++/**
++ * clockevents_notify - notification about relevant events
++ */
++void clockevents_notify(unsigned long reason, void *arg)
++{
++	spin_lock(&clockevents_lock);
++	clockevents_do_notify(reason, arg);
++	spin_unlock(&clockevents_lock);
++}
++EXPORT_SYMBOL_GPL(clockevents_notify);
++
++void clockevents_do_resume_events(void *arg)
++{
++	spin_lock(&clockevents_lock);
++	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
++	spin_unlock(&clockevents_lock);
++}
++
++/**
++ * clockevents_resume_events - resume the active clock devices
++ *
++ * Called after timekeeping is functional again
++ */
++void clockevents_resume_events(void)
++{
++	on_each_cpu(clockevents_do_resume_events, NULL, 0, 1);
++}
++
++#ifdef CONFIG_SYSFS
++
++/**
++ * clockevents_show_registered - sysfs interface for listing clockevents
++ * @dev:	unused
++ * @buf:	char buffer to be filled with clock events list
++ *
++ * Provides sysfs interface for listing registered clock event devices
++ */
++static ssize_t clockevents_show_registered(struct sys_device *dev, char *buf)
++{
++	struct list_head *tmp;
++	char *p = buf;
++	int cpu;
++
++	spin_lock(&clockevents_lock);
++
++	list_for_each(tmp, &clockevent_devices) {
++		struct clock_event_device *ce;
++
++		ce = list_entry(tmp, struct clock_event_device, list);
++		p += sprintf(p, "%-20s F:%04x M:%d", ce->name,
++			     ce->features, ce->mode);
++		p += sprintf(p, " C:");
++		if (!cpus_equal(ce->cpumask, cpu_possible_map)) {
++			for_each_cpu_mask(cpu, ce->cpumask)
++				p += sprintf(p, " %d", cpu);
++		} else {
++			/*
++			 * FIXME: Add the cpu which is handling this sucker
++			 */
++		}
++		p += sprintf(p, "\n");
++	}
++
++	spin_unlock(&clockevents_lock);
++
++	return p - buf;
++}
++
++/*
++ * Sysfs setup bits:
++ */
++static SYSDEV_ATTR(registered, 0600,
++		   clockevents_show_registered, NULL);
++
++static struct sysdev_class clockevents_sysclass = {
++	set_kset_name("clockevents"),
++};
++
++static struct sys_device clockevents_sys_device = {
++	.id	= 0,
++	.cls	= &clockevents_sysclass,
++};
++
++static int __init clockevents_sysfs_init(void)
++{
++	int error = sysdev_class_register(&clockevents_sysclass);
++
++	if (!error)
++		error = sysdev_register(&clockevents_sys_device);
++	if (!error)
++		error = sysdev_create_file(
++				&clockevents_sys_device,
++				&attr_registered);
++	return error;
++}
++device_initcall(clockevents_sysfs_init);
 +#endif
-+
- /**
-  * clocksource_get_next - Returns the selected clocksource
-  *
-@@ -93,13 +199,21 @@ struct clocksource *clocksource_get_next
-  */
- static struct clocksource *select_clocksource(void)
- {
-+	struct clocksource *next;
-+
- 	if (list_empty(&clocksource_list))
- 		return NULL;
- 
- 	if (clocksource_override)
--		return clocksource_override;
-+		next = clocksource_override;
-+	else
-+		next = list_entry(clocksource_list.next, struct clocksource,
-+				  list);
- 
--	return list_entry(clocksource_list.next, struct clocksource, list);
-+	if (next == curr_clocksource)
-+		return NULL;
-+
-+	return next;
- }
- 
- /*
-@@ -137,13 +251,15 @@ static int clocksource_enqueue(struct cl
- int clocksource_register(struct clocksource *c)
- {
- 	unsigned long flags;
--	int ret = 0;
-+	int ret;
- 
- 	spin_lock_irqsave(&clocksource_lock, flags);
- 	ret = clocksource_enqueue(c);
- 	if (!ret)
- 		next_clocksource = select_clocksource();
- 	spin_unlock_irqrestore(&clocksource_lock, flags);
-+	if (!ret)
-+		clocksource_check_watchdog(c);
- 	return ret;
- }
- EXPORT_SYMBOL(clocksource_register);
-@@ -158,6 +274,7 @@ void clocksource_change_rating(struct cl
- 
- 	spin_lock_irqsave(&clocksource_lock, flags);
- 	list_del(&cs->list);
-+	cs->rating = rating;
- 	clocksource_enqueue(cs);
- 	next_clocksource = select_clocksource();
- 	spin_unlock_irqrestore(&clocksource_lock, flags);
-diff -puN kernel/timer.c~clocksource-add-verification-watchdog-helper kernel/timer.c
---- a/kernel/timer.c~clocksource-add-verification-watchdog-helper
+diff -puN kernel/timer.c~clockevents-add-core-functionality kernel/timer.c
+--- a/kernel/timer.c~clockevents-add-core-functionality
 +++ a/kernel/timer.c
-@@ -832,30 +832,34 @@ EXPORT_SYMBOL(do_settimeofday);
-  *
-  * Accumulates current time interval and initializes new clocksource
-  */
--static int change_clocksource(void)
-+static void change_clocksource(void)
- {
- 	struct clocksource *new;
- 	cycle_t now;
- 	u64 nsec;
+@@ -34,6 +34,7 @@
+ #include <linux/cpu.h>
+ #include <linux/syscalls.h>
+ #include <linux/delay.h>
++#include <linux/clockchips.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+@@ -873,7 +874,7 @@ static void change_clocksource(void)
+ 	clock->xtime_nsec = 0;
+ 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
+ 
+-	hrtimer_clock_notify();
 +
- 	new = clocksource_get_next();
--	if (clock != new) {
--		now = clocksource_read(new);
--		nsec =  __get_nsec_offset();
--		timespec_add_ns(&xtime, nsec);
--
--		clock = new;
--		clock->cycle_last = now;
--		printk(KERN_INFO "Time: %s clocksource has been installed.\n",
--		       clock->name);
--		return 1;
--	}
--	return 0;
-+
-+	if (clock == new)
-+		return;
-+
-+	now = clocksource_read(new);
-+	nsec =  __get_nsec_offset();
-+	timespec_add_ns(&xtime, nsec);
-+
-+	clock = new;
-+	clock->cycle_last = now;
-+
-+	clock->error = 0;
-+	clock->xtime_nsec = 0;
-+	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
-+
-+	hrtimer_clock_notify();
-+	printk(KERN_INFO "Time: %s clocksource has been installed.\n",
-+	       clock->name);
+ 	printk(KERN_INFO "Time: %s clocksource has been installed.\n",
+ 	       clock->name);
  }
- #else
--static inline int change_clocksource(void)
--{
--	return 0;
--}
-+static inline void change_clocksource(void) { }
- #endif
+@@ -969,7 +970,9 @@ static int timekeeping_resume(struct sys
+ 	timekeeping_suspended = 0;
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
  
- /**
-@@ -869,7 +873,7 @@ int timekeeping_is_continuous(void)
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
+-	hrtimer_notify_resume();
++	clockevents_resume_events();
++	/* Resume hrtimers */
++	clock_was_set();
  
--		ret = clock->flags & CLOCK_SOURCE_IS_CONTINUOUS;
-+		ret = clock->flags & CLOCK_SOURCE_VALID_FOR_HRES;
- 
- 	} while (read_seqretry(&xtime_lock, seq));
- 
-@@ -1122,11 +1126,7 @@ static void update_wall_time(void)
- 	clock->xtime_nsec -= (s64)xtime.tv_nsec << clock->shift;
- 
- 	/* check to see if there is a new clocksource to use */
--	if (change_clocksource()) {
--		clock->error = 0;
--		clock->xtime_nsec = 0;
--		clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
--	}
-+	change_clocksource();
+ 	return 0;
  }
- 
- /*
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
