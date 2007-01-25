@@ -1,60 +1,79 @@
 From: akpm@osdl.org
-Subject: - gtod-fix-timeout-overflow.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 22:11:42 -0800
-Message-ID: <200701250611.l0P6BgQL007706@shell0.pdx.osdl.net>
+Subject: - dynticks-uninline-irq_enter.patch removed from -mm tree
+Date: Wed, 24 Jan 2007 22:11:48 -0800
+Message-ID: <200701250611.l0P6Bm9L007718@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49054 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49058 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965375AbXAYGL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:11:57 -0500
+	id S965371AbXAYGL6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:11:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gtod: fix timeout overflow
+     dynticks: uninline irq_enter()
 has been removed from the -mm tree.  Its filename was
-     gtod-fix-timeout-overflow.patch
+     dynticks-uninline-irq_enter.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: gtod: fix timeout overflow
+Subject: dynticks: uninline irq_enter()
 From: Ingo Molnar <mingo@elte.hu>
 
-Prevent timeout overflow if timer ticks are behind jiffies (due to high
-softirq load or due to dyntick), by limiting the valid timeout range to
-MAX_LONG/2.
+Uninline irq_enter().  [dynticks adds more stuff to it]
+
+No functional changes.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/jiffies.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/hardirq.h |    7 +------
+ kernel/softirq.c        |   10 ++++++++++
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/jiffies.h~gtod-fix-timeout-overflow include/linux/jiffies.h
---- a/include/linux/jiffies.h~gtod-fix-timeout-overflow
-+++ a/include/linux/jiffies.h
-@@ -142,13 +142,13 @@ static inline u64 get_jiffies_64(void)
-  *
-  * And some not so obvious.
-  *
-- * Note that we don't want to return MAX_LONG, because
-+ * Note that we don't want to return LONG_MAX, because
-  * for various timeout reasons we often end up having
-  * to wait "jiffies+1" in order to guarantee that we wait
-  * at _least_ "jiffies" - so "jiffies+1" had better still
-  * be positive.
+diff -puN include/linux/hardirq.h~dynticks-uninline-irq_enter include/linux/hardirq.h
+--- a/include/linux/hardirq.h~dynticks-uninline-irq_enter
++++ a/include/linux/hardirq.h
+@@ -106,12 +106,7 @@ static inline void account_system_vtime(
+  * always balanced, so the interrupted value of ->hardirq_context
+  * will always be restored.
   */
--#define MAX_JIFFY_OFFSET ((~0UL >> 1)-1)
-+#define MAX_JIFFY_OFFSET ((LONG_MAX >> 1)-1)
+-#define irq_enter()					\
+-	do {						\
+-		account_system_vtime(current);		\
+-		add_preempt_count(HARDIRQ_OFFSET);	\
+-		trace_hardirq_enter();			\
+-	} while (0)
++extern void irq_enter(void);
  
  /*
-  * We want to do realistic conversions of time so we need to use the same
+  * Exit irq context without processing softirqs:
+diff -puN kernel/softirq.c~dynticks-uninline-irq_enter kernel/softirq.c
+--- a/kernel/softirq.c~dynticks-uninline-irq_enter
++++ a/kernel/softirq.c
+@@ -273,6 +273,16 @@ EXPORT_SYMBOL(do_softirq);
+ 
+ #endif
+ 
++/*
++ * Enter an interrupt context.
++ */
++void irq_enter(void)
++{
++	account_system_vtime(current);
++	add_preempt_count(HARDIRQ_OFFSET);
++	trace_hardirq_enter();
++}
++
+ #ifdef __ARCH_IRQ_EXIT_IRQS_DISABLED
+ # define invoke_softirq()	__do_softirq()
+ #else
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
@@ -102,9 +121,6 @@ proc-remove-useless-and-buggy-nlink-settings.patch
 simplify-the-stacktrace-code.patch
 audit-fix-audit_filter_user_rules-initialization-bug.patch
 remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
 dynticks-uninline-irq_enter.patch
 dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 hrtimers-namespace-and-enum-cleanup.patch
