@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-sh64.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:09:11 -0800
-Message-ID: <200701250509.l0P59Bqv006552@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-um.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:09:16 -0800
+Message-ID: <200701250509.l0P59G6P006564@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47199 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47228 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965320AbXAYFJP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:09:15 -0500
+	id S965321AbXAYFJT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:09:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, lethal@linux-sh.org
+Cc: alon.barlev@gmail.com, blaisorblade@yahoo.it, jdike@addtoit.com
 
 
 The patch titled
-     Dynamic kernel command-line: sh64
+     Dynamic kernel command-line: um
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-sh64.patch
+     dynamic-kernel-command-line-um.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: sh64
+Subject: Dynamic kernel command-line: um
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
 1. Rename saved_command_line into boot_command_line.
 2. Set command_line as __initdata.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sh64/kernel/setup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/um/include/user_util.h |    2 +-
+ arch/um/kernel/um_arch.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh64/kernel/setup.c~dynamic-kernel-command-line-sh64 arch/sh64/kernel/setup.c
---- a/arch/sh64/kernel/setup.c~dynamic-kernel-command-line-sh64
-+++ a/arch/sh64/kernel/setup.c
-@@ -83,7 +83,7 @@ extern int sh64_tlb_init(void);
- #define RAMDISK_PROMPT_FLAG		0x8000
- #define RAMDISK_LOAD_FLAG		0x4000
+diff -puN arch/um/include/user_util.h~dynamic-kernel-command-line-um arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~dynamic-kernel-command-line-um
++++ a/arch/um/include/user_util.h
+@@ -38,7 +38,7 @@ extern unsigned long long highmem;
  
--static char command_line[COMMAND_LINE_SIZE] = { 0, };
-+static char __initdata command_line[COMMAND_LINE_SIZE] = { 0, };
- unsigned long long memory_start = CONFIG_MEMORY_START;
- unsigned long long memory_end = CONFIG_MEMORY_START + (CONFIG_MEMORY_SIZE_IN_MB * 1024 * 1024);
+ extern char host_info[];
  
-@@ -95,8 +95,8 @@ static inline void parse_mem_cmdline (ch
- 	int len = 0;
+-extern char saved_command_line[];
++extern char __initdata boot_command_line[];
  
- 	/* Save unparsed command line copy for /proc/cmdline */
--	memcpy(saved_command_line, COMMAND_LINE, COMMAND_LINE_SIZE);
--	saved_command_line[COMMAND_LINE_SIZE-1] = '\0';
-+	memcpy(boot_command_line, COMMAND_LINE, COMMAND_LINE_SIZE);
-+	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
- 
- 	for (;;) {
- 	  /*
+ extern unsigned long _stext, _etext, _sdata, _edata, __bss_start, _end;
+ extern unsigned long _unprotected_end;
+diff -puN arch/um/kernel/um_arch.c~dynamic-kernel-command-line-um arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~dynamic-kernel-command-line-um
++++ a/arch/um/kernel/um_arch.c
+@@ -482,7 +482,7 @@ void __init setup_arch(char **cmdline_p)
+ 	atomic_notifier_chain_register(&panic_notifier_list,
+ 			&panic_exit_notifier);
+ 	paging_init();
+-        strlcpy(saved_command_line, command_line, COMMAND_LINE_SIZE);
++	strlcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
+  	*cmdline_p = command_line;
+ 	setup_hostinfo();
+ }
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
