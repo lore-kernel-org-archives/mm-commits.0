@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch added to -mm tree
-Date: Thu, 25 Jan 2007 00:05:30 -0800
-Message-ID: <200701250805.l0P85U5t009797@shell0.pdx.osdl.net>
+Subject: + sysctl-reimplement-the-sysctl-proc-support-fix.patch added to -mm tree
+Date: Thu, 25 Jan 2007 00:06:20 -0800
+Message-ID: <200701250806.l0P86Kf2009809@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53080 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53132 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965691AbXAYIFc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 03:05:32 -0500
+	id S965689AbXAYIGW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 03:06:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl-move-sysv-ipc-sysctls-to-their-own-file fix
+     sysctl-reimplement-the-sysctl-proc-support fix
 has been added to the -mm tree.  Its filename is
-     sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
+     sysctl-reimplement-the-sysctl-proc-support-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl-move-sysv-ipc-sysctls-to-their-own-file fix
+Subject: sysctl-reimplement-the-sysctl-proc-support fix
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Incremental fix to add uacces.h so ipc_sysctl.c compiles on all
-architectures.  Something that was caught in the review and should not be
-lost.
+This shuts up the stupid gcc warning the way the old sysctl code did, by
+casting away the const.  I don't think there is a good way to fix this in
+the short term, so we shouldn't clutter everyone' compile with a warning.
+
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- ipc/ipc_sysctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/proc_sysctl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix ipc/ipc_sysctl.c
---- a/ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix
-+++ a/ipc/ipc_sysctl.c
-@@ -13,6 +13,7 @@
- #include <linux/ipc.h>
- #include <linux/nsproxy.h>
- #include <linux/sysctl.h>
-+#include <linux/uaccess.h>
+diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix
++++ a/fs/proc/proc_sysctl.c
+@@ -230,7 +230,8 @@ static ssize_t proc_sys_write(struct fil
  
- #ifdef CONFIG_IPC_NS
- static void *get_ipc(ctl_table *table)
+ 	/* careful: calling conventions are nasty here */
+ 	res = count;
+-	error = table->proc_handler(table, 1, filp, buf, &res, ppos);
++	error = table->proc_handler(table, 1, filp, (char __user *)buf,
++				    &res, ppos);
+ 	if (!error)
+ 		error = res;
+ out:
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -165,5 +168,6 @@ sysctl-remove-insert_at_head-from-register_sysctl.patch
 sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
 sysctl-reimplement-the-sysctl-proc-support.patch
+sysctl-reimplement-the-sysctl-proc-support-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
