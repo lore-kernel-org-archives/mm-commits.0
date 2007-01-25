@@ -1,304 +1,570 @@
 From: akpm@osdl.org
-Subject: - hrtimers-namespace-and-enum-cleanup.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 22:11:53 -0800
-Message-ID: <200701250611.l0P6Bri8007728@shell0.pdx.osdl.net>
+Subject: - hrtimers-clean-up-locking.patch removed from -mm tree
+Date: Wed, 24 Jan 2007 22:11:57 -0800
+Message-ID: <200701250611.l0P6Bv0J007739@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49089 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49105 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965378AbXAYGMQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:12:16 -0500
+	id S965379AbXAYGMW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:12:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, akpm@osdl.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers: namespace and enum cleanup
+     hrtimers: clean up locking
 has been removed from the -mm tree.  Its filename was
-     hrtimers-namespace-and-enum-cleanup.patch
+     hrtimers-clean-up-locking.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: hrtimers: namespace and enum cleanup
+Subject: hrtimers: clean up locking
 From: Thomas Gleixner <tglx@linutronix.de>
 
-- hrtimers did not use the hrtimer_restart enum and relied on the implict
-  int representation. Fix the prototypes and the functions using the enums.
-- Use seperate name spaces for the enumerations
-- Convert hrtimer_restart macro to inline function
-- Add comments
+Improve kernel/hrtimers.c locking: use a per-CPU base with a lock to
+control locking of all clocks belonging to a CPU.  This simplifies code
+that needs to lock all clocks at once.  This makes life easier for
+high-res timers and dyntick.
 
 No functional changes.
+
+[ optimization change from Andrew Morton <akpm@osdl.org> ]
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/hrtimer.h |   20 ++++++++++++--------
- include/linux/timer.h   |    2 +-
- kernel/fork.c           |    2 +-
- kernel/futex.c          |    2 +-
- kernel/hrtimer.c        |   18 +++++++++---------
- kernel/itimer.c         |    4 ++--
- kernel/posix-timers.c   |   13 +++++++------
- kernel/rtmutex.c        |    2 +-
- 8 files changed, 34 insertions(+), 29 deletions(-)
+ include/linux/hrtimer.h |   43 +++++---
+ kernel/hrtimer.c        |  184 ++++++++++++++++++++------------------
+ 2 files changed, 126 insertions(+), 101 deletions(-)
 
-diff -puN include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup
+diff -puN include/linux/hrtimer.h~hrtimers-clean-up-locking include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimers-clean-up-locking
 +++ a/include/linux/hrtimer.h
-@@ -25,17 +25,18 @@
+@@ -21,6 +21,9 @@
+ #include <linux/list.h>
+ #include <linux/wait.h>
+ 
++struct hrtimer_clock_base;
++struct hrtimer_cpu_base;
++
+ /*
   * Mode arguments of xxx_hrtimer functions:
   */
- enum hrtimer_mode {
--	HRTIMER_ABS,	/* Time value is absolute */
--	HRTIMER_REL,	/* Time value is relative to now */
-+	HRTIMER_MODE_ABS,	/* Time value is absolute */
-+	HRTIMER_MODE_REL,	/* Time value is relative to now */
+@@ -37,8 +40,6 @@ enum hrtimer_restart {
+ 	HRTIMER_RESTART,	/* Timer must be restarted */
  };
  
-+/*
-+ * Return values for the callback function
-+ */
- enum hrtimer_restart {
--	HRTIMER_NORESTART,
--	HRTIMER_RESTART,
-+	HRTIMER_NORESTART,	/* Timer is not restarted */
-+	HRTIMER_RESTART,	/* Timer must be restarted */
- };
- 
--#define HRTIMER_INACTIVE	((void *)1UL)
+-struct hrtimer_base;
 -
- struct hrtimer_base;
+ /**
+  * struct hrtimer - the basic hrtimer structure
+  * @node:	red black tree node for time ordered insertion
+@@ -51,10 +52,10 @@ struct hrtimer_base;
+  * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
+  */
+ struct hrtimer {
+-	struct rb_node		node;
+-	ktime_t			expires;
+-	enum hrtimer_restart	(*function)(struct hrtimer *);
+-	struct hrtimer_base	*base;
++	struct rb_node			node;
++	ktime_t				expires;
++	enum hrtimer_restart		(*function)(struct hrtimer *);
++	struct hrtimer_clock_base	*base;
+ };
  
  /**
-@@ -52,7 +53,7 @@ struct hrtimer_base;
- struct hrtimer {
- 	struct rb_node		node;
- 	ktime_t			expires;
--	int			(*function)(struct hrtimer *);
-+	enum hrtimer_restart	(*function)(struct hrtimer *);
- 	struct hrtimer_base	*base;
+@@ -71,29 +72,41 @@ struct hrtimer_sleeper {
+ 
+ /**
+  * struct hrtimer_base - the timer base for a specific clock
+- * @index:		clock type index for per_cpu support when moving a timer
+- *			to a base on another cpu.
+- * @lock:		lock protecting the base and associated timers
++ * @index:		clock type index for per_cpu support when moving a
++ *			timer to a base on another cpu.
+  * @active:		red black tree root node for the active timers
+  * @first:		pointer to the timer node which expires first
+  * @resolution:		the resolution of the clock, in nanoseconds
+  * @get_time:		function to retrieve the current time of the clock
+  * @get_softirq_time:	function to retrieve the current time from the softirq
+- * @curr_timer:		the timer which is executing a callback right now
+  * @softirq_time:	the time when running the hrtimer queue in the softirq
+- * @lock_key:		the lock_class_key for use with lockdep
+  */
+-struct hrtimer_base {
++struct hrtimer_clock_base {
++	struct hrtimer_cpu_base	*cpu_base;
+ 	clockid_t		index;
+-	spinlock_t		lock;
+ 	struct rb_root		active;
+ 	struct rb_node		*first;
+ 	ktime_t			resolution;
+ 	ktime_t			(*get_time)(void);
+ 	ktime_t			(*get_softirq_time)(void);
+-	struct hrtimer		*curr_timer;
+ 	ktime_t			softirq_time;
+-	struct lock_class_key lock_key;
++};
++
++#define HRTIMER_MAX_CLOCK_BASES 2
++
++/*
++ * struct hrtimer_cpu_base - the per cpu clock bases
++ * @lock:		lock protecting the base and associated clock bases
++ *			and timers
++ * @lock_key:		the lock_class_key for use with lockdep
++ * @clock_base:		array of clock bases for this cpu
++ * @curr_timer:		the timer which is executing a callback right now
++ */
++struct hrtimer_cpu_base {
++	spinlock_t			lock;
++	struct lock_class_key		lock_key;
++	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
++	struct hrtimer			*curr_timer;
  };
  
-@@ -114,7 +115,10 @@ extern int hrtimer_start(struct hrtimer 
- extern int hrtimer_cancel(struct hrtimer *timer);
- extern int hrtimer_try_to_cancel(struct hrtimer *timer);
- 
--#define hrtimer_restart(timer) hrtimer_start((timer), (timer)->expires, HRTIMER_ABS)
-+static inline int hrtimer_restart(struct hrtimer *timer)
-+{
-+	return hrtimer_start(timer, timer->expires, HRTIMER_MODE_ABS);
-+}
- 
- /* Query timers: */
- extern ktime_t hrtimer_get_remaining(const struct hrtimer *timer);
-diff -puN include/linux/timer.h~hrtimers-namespace-and-enum-cleanup include/linux/timer.h
---- a/include/linux/timer.h~hrtimers-namespace-and-enum-cleanup
-+++ a/include/linux/timer.h
-@@ -106,7 +106,7 @@ static inline void add_timer(struct time
- extern void init_timers(void);
- extern void run_local_timers(void);
- struct hrtimer;
--extern int it_real_fn(struct hrtimer *);
-+extern enum hrtimer_restart it_real_fn(struct hrtimer *);
- 
- unsigned long __round_jiffies(unsigned long j, int cpu);
- unsigned long __round_jiffies_relative(unsigned long j, int cpu);
-diff -puN kernel/fork.c~hrtimers-namespace-and-enum-cleanup kernel/fork.c
---- a/kernel/fork.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/fork.c
-@@ -858,7 +858,7 @@ static inline int copy_signal(unsigned l
- 	init_sigpending(&sig->shared_pending);
- 	INIT_LIST_HEAD(&sig->posix_timers);
- 
--	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_REL);
-+	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 	sig->it_real_incr.tv64 = 0;
- 	sig->real_timer.function = it_real_fn;
- 	sig->tsk = tsk;
-diff -puN kernel/futex.c~hrtimers-namespace-and-enum-cleanup kernel/futex.c
---- a/kernel/futex.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/futex.c
-@@ -1134,7 +1134,7 @@ static int futex_lock_pi(u32 __user *uad
- 
- 	if (sec != MAX_SCHEDULE_TIMEOUT) {
- 		to = &timeout;
--		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_ABS);
-+		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
- 		hrtimer_init_sleeper(to, current);
- 		to->timer.expires = ktime_set(sec, nsec);
- 	}
-diff -puN kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup
+ /*
+diff -puN kernel/hrtimer.c~hrtimers-clean-up-locking kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-clean-up-locking
 +++ a/kernel/hrtimer.c
-@@ -439,7 +439,7 @@ hrtimer_start(struct hrtimer *timer, kti
- 	/* Switch the timer base, if necessary: */
- 	new_base = switch_hrtimer_base(timer, base);
+@@ -1,8 +1,9 @@
+ /*
+  *  linux/kernel/hrtimer.c
+  *
+- *  Copyright(C) 2005, Thomas Gleixner <tglx@linutronix.de>
+- *  Copyright(C) 2005, Red Hat, Inc., Ingo Molnar
++ *  Copyright(C) 2005-2006, Thomas Gleixner <tglx@linutronix.de>
++ *  Copyright(C) 2005-2006, Red Hat, Inc., Ingo Molnar
++ *  Copyright(C) 2006	    Timesys Corp., Thomas Gleixner <tglx@timesys.com>
+  *
+  *  High-resolution kernel timers
+  *
+@@ -79,21 +80,22 @@ EXPORT_SYMBOL_GPL(ktime_get_real);
+  * This ensures that we capture erroneous accesses to these clock ids
+  * rather than moving them into the range of valid clock id's.
+  */
+-
+-#define MAX_HRTIMER_BASES 2
+-
+-static DEFINE_PER_CPU(struct hrtimer_base, hrtimer_bases[MAX_HRTIMER_BASES]) =
++static DEFINE_PER_CPU(struct hrtimer_cpu_base, hrtimer_bases) =
+ {
++
++	.clock_base =
+ 	{
+-		.index = CLOCK_REALTIME,
+-		.get_time = &ktime_get_real,
+-		.resolution = KTIME_REALTIME_RES,
+-	},
+-	{
+-		.index = CLOCK_MONOTONIC,
+-		.get_time = &ktime_get,
+-		.resolution = KTIME_MONOTONIC_RES,
+-	},
++		{
++			.index = CLOCK_REALTIME,
++			.get_time = &ktime_get_real,
++			.resolution = KTIME_REALTIME_RES,
++		},
++		{
++			.index = CLOCK_MONOTONIC,
++			.get_time = &ktime_get,
++			.resolution = KTIME_MONOTONIC_RES,
++		},
++	}
+ };
  
--	if (mode == HRTIMER_REL) {
-+	if (mode == HRTIMER_MODE_REL) {
- 		tim = ktime_add(tim, new_base->get_time());
+ /**
+@@ -125,7 +127,7 @@ EXPORT_SYMBOL_GPL(ktime_get_ts);
+  * Get the coarse grained time at the softirq based on xtime and
+  * wall_to_monotonic.
+  */
+-static void hrtimer_get_softirq_time(struct hrtimer_base *base)
++static void hrtimer_get_softirq_time(struct hrtimer_cpu_base *base)
+ {
+ 	ktime_t xtim, tomono;
+ 	unsigned long seq;
+@@ -137,8 +139,9 @@ static void hrtimer_get_softirq_time(str
+ 
+ 	} while (read_seqretry(&xtime_lock, seq));
+ 
+-	base[CLOCK_REALTIME].softirq_time = xtim;
+-	base[CLOCK_MONOTONIC].softirq_time = ktime_add(xtim, tomono);
++	base->clock_base[CLOCK_REALTIME].softirq_time = xtim;
++	base->clock_base[CLOCK_MONOTONIC].softirq_time =
++		ktime_add(xtim, tomono);
+ }
+ 
+ /*
+@@ -161,19 +164,20 @@ static void hrtimer_get_softirq_time(str
+  * possible to set timer->base = NULL and drop the lock: the timer remains
+  * locked.
+  */
+-static struct hrtimer_base *lock_hrtimer_base(const struct hrtimer *timer,
+-					      unsigned long *flags)
++static
++struct hrtimer_clock_base *lock_hrtimer_base(const struct hrtimer *timer,
++					     unsigned long *flags)
+ {
+-	struct hrtimer_base *base;
++	struct hrtimer_clock_base *base;
+ 
+ 	for (;;) {
+ 		base = timer->base;
+ 		if (likely(base != NULL)) {
+-			spin_lock_irqsave(&base->lock, *flags);
++			spin_lock_irqsave(&base->cpu_base->lock, *flags);
+ 			if (likely(base == timer->base))
+ 				return base;
+ 			/* The timer has migrated to another CPU: */
+-			spin_unlock_irqrestore(&base->lock, *flags);
++			spin_unlock_irqrestore(&base->cpu_base->lock, *flags);
+ 		}
+ 		cpu_relax();
+ 	}
+@@ -182,12 +186,14 @@ static struct hrtimer_base *lock_hrtimer
+ /*
+  * Switch the timer base to the current CPU when possible.
+  */
+-static inline struct hrtimer_base *
+-switch_hrtimer_base(struct hrtimer *timer, struct hrtimer_base *base)
++static inline struct hrtimer_clock_base *
++switch_hrtimer_base(struct hrtimer *timer, struct hrtimer_clock_base *base)
+ {
+-	struct hrtimer_base *new_base;
++	struct hrtimer_clock_base *new_base;
++	struct hrtimer_cpu_base *new_cpu_base;
+ 
+-	new_base = &__get_cpu_var(hrtimer_bases)[base->index];
++	new_cpu_base = &__get_cpu_var(hrtimer_bases);
++	new_base = &new_cpu_base->clock_base[base->index];
+ 
+ 	if (base != new_base) {
  		/*
- 		 * CONFIG_TIME_LOW_RES is a temporary way for architectures
-@@ -578,7 +578,7 @@ void hrtimer_init(struct hrtimer *timer,
+@@ -199,13 +205,13 @@ switch_hrtimer_base(struct hrtimer *time
+ 		 * completed. There is no conflict as we hold the lock until
+ 		 * the timer is enqueued.
+ 		 */
+-		if (unlikely(base->curr_timer == timer))
++		if (unlikely(base->cpu_base->curr_timer == timer))
+ 			return base;
  
- 	bases = __raw_get_cpu_var(hrtimer_bases);
+ 		/* See the comment in lock_timer_base() */
+ 		timer->base = NULL;
+-		spin_unlock(&base->lock);
+-		spin_lock(&new_base->lock);
++		spin_unlock(&base->cpu_base->lock);
++		spin_lock(&new_base->cpu_base->lock);
+ 		timer->base = new_base;
+ 	}
+ 	return new_base;
+@@ -215,12 +221,12 @@ switch_hrtimer_base(struct hrtimer *time
  
--	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_ABS)
-+	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_MODE_ABS)
+ #define set_curr_timer(b, t)		do { } while (0)
+ 
+-static inline struct hrtimer_base *
++static inline struct hrtimer_clock_base *
+ lock_hrtimer_base(const struct hrtimer *timer, unsigned long *flags)
+ {
+-	struct hrtimer_base *base = timer->base;
++	struct hrtimer_clock_base *base = timer->base;
+ 
+-	spin_lock_irqsave(&base->lock, *flags);
++	spin_lock_irqsave(&base->cpu_base->lock, *flags);
+ 
+ 	return base;
+ }
+@@ -300,7 +306,7 @@ void hrtimer_notify_resume(void)
+ static inline
+ void unlock_hrtimer_base(const struct hrtimer *timer, unsigned long *flags)
+ {
+-	spin_unlock_irqrestore(&timer->base->lock, *flags);
++	spin_unlock_irqrestore(&timer->base->cpu_base->lock, *flags);
+ }
+ 
+ /**
+@@ -350,7 +356,8 @@ hrtimer_forward(struct hrtimer *timer, k
+  * The timer is inserted in expiry order. Insertion into the
+  * red black tree is O(log(n)). Must hold the base lock.
+  */
+-static void enqueue_hrtimer(struct hrtimer *timer, struct hrtimer_base *base)
++static void enqueue_hrtimer(struct hrtimer *timer,
++			    struct hrtimer_clock_base *base)
+ {
+ 	struct rb_node **link = &base->active.rb_node;
+ 	struct rb_node *parent = NULL;
+@@ -389,7 +396,8 @@ static void enqueue_hrtimer(struct hrtim
+  *
+  * Caller must hold the base lock.
+  */
+-static void __remove_hrtimer(struct hrtimer *timer, struct hrtimer_base *base)
++static void __remove_hrtimer(struct hrtimer *timer,
++			     struct hrtimer_clock_base *base)
+ {
+ 	/*
+ 	 * Remove the timer from the rbtree and replace the
+@@ -405,7 +413,7 @@ static void __remove_hrtimer(struct hrti
+  * remove hrtimer, called with base lock held
+  */
+ static inline int
+-remove_hrtimer(struct hrtimer *timer, struct hrtimer_base *base)
++remove_hrtimer(struct hrtimer *timer, struct hrtimer_clock_base *base)
+ {
+ 	if (hrtimer_active(timer)) {
+ 		__remove_hrtimer(timer, base);
+@@ -427,7 +435,7 @@ remove_hrtimer(struct hrtimer *timer, st
+ int
+ hrtimer_start(struct hrtimer *timer, ktime_t tim, const enum hrtimer_mode mode)
+ {
+-	struct hrtimer_base *base, *new_base;
++	struct hrtimer_clock_base *base, *new_base;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -474,13 +482,13 @@ EXPORT_SYMBOL_GPL(hrtimer_start);
+  */
+ int hrtimer_try_to_cancel(struct hrtimer *timer)
+ {
+-	struct hrtimer_base *base;
++	struct hrtimer_clock_base *base;
+ 	unsigned long flags;
+ 	int ret = -1;
+ 
+ 	base = lock_hrtimer_base(timer, &flags);
+ 
+-	if (base->curr_timer != timer)
++	if (base->cpu_base->curr_timer != timer)
+ 		ret = remove_hrtimer(timer, base);
+ 
+ 	unlock_hrtimer_base(timer, &flags);
+@@ -516,12 +524,12 @@ EXPORT_SYMBOL_GPL(hrtimer_cancel);
+  */
+ ktime_t hrtimer_get_remaining(const struct hrtimer *timer)
+ {
+-	struct hrtimer_base *base;
++	struct hrtimer_clock_base *base;
+ 	unsigned long flags;
+ 	ktime_t rem;
+ 
+ 	base = lock_hrtimer_base(timer, &flags);
+-	rem = ktime_sub(timer->expires, timer->base->get_time());
++	rem = ktime_sub(timer->expires, base->get_time());
+ 	unlock_hrtimer_base(timer, &flags);
+ 
+ 	return rem;
+@@ -537,26 +545,29 @@ EXPORT_SYMBOL_GPL(hrtimer_get_remaining)
+  */
+ ktime_t hrtimer_get_next_event(void)
+ {
+-	struct hrtimer_base *base = __get_cpu_var(hrtimer_bases);
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
++	struct hrtimer_clock_base *base = cpu_base->clock_base;
+ 	ktime_t delta, mindelta = { .tv64 = KTIME_MAX };
+ 	unsigned long flags;
+ 	int i;
+ 
+-	for (i = 0; i < MAX_HRTIMER_BASES; i++, base++) {
++	spin_lock_irqsave(&cpu_base->lock, flags);
++
++	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++, base++) {
+ 		struct hrtimer *timer;
+ 
+-		spin_lock_irqsave(&base->lock, flags);
+-		if (!base->first) {
+-			spin_unlock_irqrestore(&base->lock, flags);
++		if (!base->first)
+ 			continue;
+-		}
++
+ 		timer = rb_entry(base->first, struct hrtimer, node);
+ 		delta.tv64 = timer->expires.tv64;
+-		spin_unlock_irqrestore(&base->lock, flags);
+ 		delta = ktime_sub(delta, base->get_time());
+ 		if (delta.tv64 < mindelta.tv64)
+ 			mindelta.tv64 = delta.tv64;
+ 	}
++
++	spin_unlock_irqrestore(&cpu_base->lock, flags);
++
+ 	if (mindelta.tv64 < 0)
+ 		mindelta.tv64 = 0;
+ 	return mindelta;
+@@ -572,16 +583,16 @@ ktime_t hrtimer_get_next_event(void)
+ void hrtimer_init(struct hrtimer *timer, clockid_t clock_id,
+ 		  enum hrtimer_mode mode)
+ {
+-	struct hrtimer_base *bases;
++	struct hrtimer_cpu_base *cpu_base;
+ 
+ 	memset(timer, 0, sizeof(struct hrtimer));
+ 
+-	bases = __raw_get_cpu_var(hrtimer_bases);
++	cpu_base = &__raw_get_cpu_var(hrtimer_bases);
+ 
+ 	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_MODE_ABS)
  		clock_id = CLOCK_MONOTONIC;
  
- 	timer->base = &bases[clock_id];
-@@ -622,7 +622,7 @@ static inline void run_hrtimer_queue(str
+-	timer->base = &bases[clock_id];
++	timer->base = &cpu_base->clock_base[clock_id];
+ 	rb_set_parent(&timer->node, &timer->node);
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_init);
+@@ -596,10 +607,10 @@ EXPORT_SYMBOL_GPL(hrtimer_init);
+  */
+ int hrtimer_get_res(const clockid_t which_clock, struct timespec *tp)
+ {
+-	struct hrtimer_base *bases;
++	struct hrtimer_cpu_base *cpu_base;
+ 
+-	bases = __raw_get_cpu_var(hrtimer_bases);
+-	*tp = ktime_to_timespec(bases[which_clock].resolution);
++	cpu_base = &__raw_get_cpu_var(hrtimer_bases);
++	*tp = ktime_to_timespec(cpu_base->clock_base[which_clock].resolution);
+ 
+ 	return 0;
+ }
+@@ -608,9 +619,11 @@ EXPORT_SYMBOL_GPL(hrtimer_get_res);
+ /*
+  * Expire the per base hrtimer-queue:
+  */
+-static inline void run_hrtimer_queue(struct hrtimer_base *base)
++static inline void run_hrtimer_queue(struct hrtimer_cpu_base *cpu_base,
++				     int index)
+ {
+ 	struct rb_node *node;
++	struct hrtimer_clock_base *base = &cpu_base->clock_base[index];
+ 
+ 	if (!base->first)
+ 		return;
+@@ -618,7 +631,7 @@ static inline void run_hrtimer_queue(str
+ 	if (base->get_softirq_time)
+ 		base->softirq_time = base->get_softirq_time();
+ 
+-	spin_lock_irq(&base->lock);
++	spin_lock_irq(&cpu_base->lock);
  
  	while ((node = base->first)) {
  		struct hrtimer *timer;
--		int (*fn)(struct hrtimer *);
-+		enum hrtimer_restart (*fn)(struct hrtimer *);
- 		int restart;
+@@ -630,21 +643,21 @@ static inline void run_hrtimer_queue(str
+ 			break;
  
- 		timer = rb_entry(node, struct hrtimer, node);
-@@ -664,7 +664,7 @@ void hrtimer_run_queues(void)
- /*
-  * Sleep related functions:
-  */
--static int hrtimer_wakeup(struct hrtimer *timer)
-+static enum hrtimer_restart hrtimer_wakeup(struct hrtimer *timer)
- {
- 	struct hrtimer_sleeper *t =
- 		container_of(timer, struct hrtimer_sleeper, timer);
-@@ -694,7 +694,7 @@ static int __sched do_nanosleep(struct h
- 		schedule();
+ 		fn = timer->function;
+-		set_curr_timer(base, timer);
++		set_curr_timer(cpu_base, timer);
+ 		__remove_hrtimer(timer, base);
+-		spin_unlock_irq(&base->lock);
++		spin_unlock_irq(&cpu_base->lock);
  
- 		hrtimer_cancel(&t->timer);
--		mode = HRTIMER_ABS;
-+		mode = HRTIMER_MODE_ABS;
+ 		restart = fn(timer);
  
- 	} while (t->task && !signal_pending(current));
+-		spin_lock_irq(&base->lock);
++		spin_lock_irq(&cpu_base->lock);
  
-@@ -710,10 +710,10 @@ long __sched hrtimer_nanosleep_restart(s
- 
- 	restart->fn = do_no_restart_syscall;
- 
--	hrtimer_init(&t.timer, restart->arg0, HRTIMER_ABS);
-+	hrtimer_init(&t.timer, restart->arg0, HRTIMER_MODE_ABS);
- 	t.timer.expires.tv64 = ((u64)restart->arg3 << 32) | (u64) restart->arg2;
- 
--	if (do_nanosleep(&t, HRTIMER_ABS))
-+	if (do_nanosleep(&t, HRTIMER_MODE_ABS))
- 		return 0;
- 
- 	rmtp = (struct timespec __user *) restart->arg1;
-@@ -746,7 +746,7 @@ long hrtimer_nanosleep(struct timespec *
- 		return 0;
- 
- 	/* Absolute timers do not update the rmtp value and restart: */
--	if (mode == HRTIMER_ABS)
-+	if (mode == HRTIMER_MODE_ABS)
- 		return -ERESTARTNOHAND;
- 
- 	if (rmtp) {
-@@ -779,7 +779,7 @@ sys_nanosleep(struct timespec __user *rq
- 	if (!timespec_valid(&tu))
- 		return -EINVAL;
- 
--	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_REL, CLOCK_MONOTONIC);
-+	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_MODE_REL, CLOCK_MONOTONIC);
+ 		if (restart != HRTIMER_NORESTART) {
+ 			BUG_ON(hrtimer_active(timer));
+ 			enqueue_hrtimer(timer, base);
+ 		}
+ 	}
+-	set_curr_timer(base, NULL);
+-	spin_unlock_irq(&base->lock);
++	set_curr_timer(cpu_base, NULL);
++	spin_unlock_irq(&cpu_base->lock);
  }
  
  /*
-diff -puN kernel/itimer.c~hrtimers-namespace-and-enum-cleanup kernel/itimer.c
---- a/kernel/itimer.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/itimer.c
-@@ -128,7 +128,7 @@ asmlinkage long sys_getitimer(int which,
- /*
-  * The timer is automagically restarted, when interval != 0
+@@ -652,13 +665,13 @@ static inline void run_hrtimer_queue(str
   */
--int it_real_fn(struct hrtimer *timer)
-+enum hrtimer_restart it_real_fn(struct hrtimer *timer)
+ void hrtimer_run_queues(void)
  {
- 	struct signal_struct *sig =
- 	    container_of(timer, struct signal_struct, real_timer);
-@@ -235,7 +235,7 @@ again:
- 			timeval_to_ktime(value->it_interval);
- 		expires = timeval_to_ktime(value->it_value);
- 		if (expires.tv64 != 0)
--			hrtimer_start(timer, expires, HRTIMER_REL);
-+			hrtimer_start(timer, expires, HRTIMER_MODE_REL);
- 		spin_unlock_irq(&tsk->sighand->siglock);
- 		break;
- 	case ITIMER_VIRTUAL:
-diff -puN kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup kernel/posix-timers.c
---- a/kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/posix-timers.c
-@@ -145,7 +145,7 @@ static int common_timer_set(struct k_iti
- 			    struct itimerspec *, struct itimerspec *);
- static int common_timer_del(struct k_itimer *timer);
+-	struct hrtimer_base *base = __get_cpu_var(hrtimer_bases);
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
+ 	int i;
  
--static int posix_timer_fn(struct hrtimer *data);
-+static enum hrtimer_restart posix_timer_fn(struct hrtimer *data);
+-	hrtimer_get_softirq_time(base);
++	hrtimer_get_softirq_time(cpu_base);
  
- static struct k_itimer *lock_timer(timer_t timer_id, unsigned long *flags);
- 
-@@ -334,12 +334,12 @@ EXPORT_SYMBOL_GPL(posix_timer_event);
- 
-  * This code is for CLOCK_REALTIME* and CLOCK_MONOTONIC* timers.
-  */
--static int posix_timer_fn(struct hrtimer *timer)
-+static enum hrtimer_restart posix_timer_fn(struct hrtimer *timer)
- {
- 	struct k_itimer *timr;
- 	unsigned long flags;
- 	int si_private = 0;
--	int ret = HRTIMER_NORESTART;
-+	enum hrtimer_restart ret = HRTIMER_NORESTART;
- 
- 	timr = container_of(timer, struct k_itimer, it.real.timer);
- 	spin_lock_irqsave(&timr->it_lock, flags);
-@@ -722,7 +722,7 @@ common_timer_set(struct k_itimer *timr, 
- 	if (!new_setting->it_value.tv_sec && !new_setting->it_value.tv_nsec)
- 		return 0;
- 
--	mode = flags & TIMER_ABSTIME ? HRTIMER_ABS : HRTIMER_REL;
-+	mode = flags & TIMER_ABSTIME ? HRTIMER_MODE_ABS : HRTIMER_MODE_REL;
- 	hrtimer_init(&timr->it.real.timer, timr->it_clock, mode);
- 	timr->it.real.timer.function = posix_timer_fn;
- 
-@@ -734,7 +734,7 @@ common_timer_set(struct k_itimer *timr, 
- 	/* SIGEV_NONE timers are not queued ! See common_timer_get */
- 	if (((timr->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE)) {
- 		/* Setup correct expiry time for relative timers */
--		if (mode == HRTIMER_REL)
-+		if (mode == HRTIMER_MODE_REL)
- 			timer->expires = ktime_add(timer->expires,
- 						   timer->base->get_time());
- 		return 0;
-@@ -950,7 +950,8 @@ static int common_nsleep(const clockid_t
- 			 struct timespec *tsave, struct timespec __user *rmtp)
- {
- 	return hrtimer_nanosleep(tsave, rmtp, flags & TIMER_ABSTIME ?
--				 HRTIMER_ABS : HRTIMER_REL, which_clock);
-+				 HRTIMER_MODE_ABS : HRTIMER_MODE_REL,
-+				 which_clock);
+-	for (i = 0; i < MAX_HRTIMER_BASES; i++)
+-		run_hrtimer_queue(&base[i]);
++	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++)
++		run_hrtimer_queue(cpu_base, i);
  }
  
- asmlinkage long
-diff -puN kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup kernel/rtmutex.c
---- a/kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/rtmutex.c
-@@ -625,7 +625,7 @@ rt_mutex_slowlock(struct rt_mutex *lock,
- 	/* Setup the timer, when timeout != NULL */
- 	if (unlikely(timeout))
- 		hrtimer_start(&timeout->timer, timeout->timer.expires,
--			      HRTIMER_ABS);
-+			      HRTIMER_MODE_ABS);
+ /*
+@@ -787,19 +800,21 @@ sys_nanosleep(struct timespec __user *rq
+  */
+ static void __devinit init_hrtimers_cpu(int cpu)
+ {
+-	struct hrtimer_base *base = per_cpu(hrtimer_bases, cpu);
++	struct hrtimer_cpu_base *cpu_base = &per_cpu(hrtimer_bases, cpu);
+ 	int i;
  
- 	for (;;) {
- 		/* Try to acquire the lock: */
+-	for (i = 0; i < MAX_HRTIMER_BASES; i++, base++) {
+-		spin_lock_init(&base->lock);
+-		lockdep_set_class(&base->lock, &base->lock_key);
+-	}
++	spin_lock_init(&cpu_base->lock);
++	lockdep_set_class(&cpu_base->lock, &cpu_base->lock_key);
++
++	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++)
++		cpu_base->clock_base[i].cpu_base = cpu_base;
++
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+ 
+-static void migrate_hrtimer_list(struct hrtimer_base *old_base,
+-				struct hrtimer_base *new_base)
++static void migrate_hrtimer_list(struct hrtimer_clock_base *old_base,
++				struct hrtimer_clock_base *new_base)
+ {
+ 	struct hrtimer *timer;
+ 	struct rb_node *node;
+@@ -814,29 +829,26 @@ static void migrate_hrtimer_list(struct 
+ 
+ static void migrate_hrtimers(int cpu)
+ {
+-	struct hrtimer_base *old_base, *new_base;
++	struct hrtimer_cpu_base *old_base, *new_base;
+ 	int i;
+ 
+ 	BUG_ON(cpu_online(cpu));
+-	old_base = per_cpu(hrtimer_bases, cpu);
+-	new_base = get_cpu_var(hrtimer_bases);
++	old_base = &per_cpu(hrtimer_bases, cpu);
++	new_base = &get_cpu_var(hrtimer_bases);
+ 
+ 	local_irq_disable();
+ 
+-	for (i = 0; i < MAX_HRTIMER_BASES; i++) {
+-
+-		spin_lock(&new_base->lock);
+-		spin_lock(&old_base->lock);
++	spin_lock(&new_base->lock);
++	spin_lock(&old_base->lock);
+ 
++	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
+ 		BUG_ON(old_base->curr_timer);
+ 
+-		migrate_hrtimer_list(old_base, new_base);
+-
+-		spin_unlock(&old_base->lock);
+-		spin_unlock(&new_base->lock);
+-		old_base++;
+-		new_base++;
++		migrate_hrtimer_list(&old_base->clock_base[i],
++				     &new_base->clock_base[i]);
+ 	}
++	spin_unlock(&old_base->lock);
++	spin_unlock(&new_base->lock);
+ 
+ 	local_irq_enable();
+ 	put_cpu_var(hrtimer_bases);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
@@ -307,8 +573,6 @@ origin.patch
 git-block.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 hrtimers-clean-up-locking.patch
 hrtimers-add-state-tracking.patch
 hrtimers-clean-up-callback-tracking.patch
