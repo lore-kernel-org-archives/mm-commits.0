@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + tick-management-core-functionality.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:36:47 -0800
-Message-ID: <200701250636.l0P6alqE008370@shell0.pdx.osdl.net>
+Subject: + i386-use-gtod-persistent-clock-support.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:35:51 -0800
+Message-ID: <200701250635.l0P6ZpmF008277@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50762 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50763 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965623AbXAYGps (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:45:48 -0500
+	id S965640AbXAYGqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:46:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
+Cc: johnstul@us.ibm.com, akpm@osdl.org, bunk@stusta.de, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     tick-management: core functionality
+     i386: use GTOD persistent clock support
 has been added to the -mm tree.  Its filename is
-     tick-management-core-functionality.patch
+     i386-use-gtod-persistent-clock-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,369 +25,237 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tick-management: core functionality
-From: Thomas Gleixner <tglx@linutronix.de>,
-      Ingo Molnar <mingo@elte.hu>
+Subject: i386: use GTOD persistent clock support
+From: John Stultz <johnstul@us.ibm.com>
 
-The tick-management code is the first user of the clockevents layer.  It takes
-clock event devices from the clock events core and uses them to provide the
-periodic tick.
+Persistent clock support: do proper timekeeping across suspend/resume, i386
+arch support.
 
+[ cleanup from Adrian Bunk <bunk@stusta.de> ]
+
+Build-fixes-from: Andrew Morton <akpm@osdl.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/tick.h      |   25 +++
- init/main.c               |    2 
- kernel/time/Makefile      |    3 
- kernel/time/tick-common.c |  273 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 302 insertions(+), 1 deletion(-)
+ arch/i386/kernel/apm.c  |   44 ------------------------------
+ arch/i386/kernel/time.c |   54 --------------------------------------
+ 2 files changed, 1 insertion(+), 97 deletions(-)
 
-diff -puN /dev/null include/linux/tick.h
---- /dev/null
-+++ a/include/linux/tick.h
-@@ -0,0 +1,25 @@
-+/*  linux/include/linux/tick.h
-+ *
-+ *  This file contains the structure definitions for tick related functions
-+ *
-+ */
-+#ifndef _LINUX_TICK_H
-+#define _LINUX_TICK_H
-+
-+#include <linux/clockchips.h>
-+
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+
-+enum tick_device_mode {
-+	TICKDEV_MODE_PERIODIC,
-+	TICKDEV_MODE_ONESHOT,
-+};
-+
-+struct tick_device {
-+	struct clock_event_device *evtdev;
-+	enum tick_device_mode mode;
-+};
-+
-+extern void __init tick_init(void);
-+
-+#endif
-diff -puN init/main.c~tick-management-core-functionality init/main.c
---- a/init/main.c~tick-management-core-functionality
-+++ a/init/main.c
-@@ -40,6 +40,7 @@
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
- #include <linux/efi.h>
-+#include <linux/tick.h>
- #include <linux/taskstats_kern.h>
- #include <linux/delayacct.h>
- #include <linux/unistd.h>
-@@ -498,6 +499,7 @@ asmlinkage void __init start_kernel(void
-  * enable them
-  */
- 	lock_kernel();
-+	tick_init();
- 	boot_cpu_init();
- 	page_address_init();
- 	printk(KERN_NOTICE);
-diff -puN kernel/time/Makefile~tick-management-core-functionality kernel/time/Makefile
---- a/kernel/time/Makefile~tick-management-core-functionality
-+++ a/kernel/time/Makefile
-@@ -1,3 +1,4 @@
- obj-y += ntp.o clocksource.o jiffies.o
+diff -puN arch/i386/kernel/apm.c~i386-use-gtod-persistent-clock-support arch/i386/kernel/apm.c
+--- a/arch/i386/kernel/apm.c~i386-use-gtod-persistent-clock-support
++++ a/arch/i386/kernel/apm.c
+@@ -236,7 +236,6 @@
  
--obj-$(CONFIG_GENERIC_CLOCKEVENTS) += clockevents.o
-+obj-$(CONFIG_GENERIC_CLOCKEVENTS)	+= clockevents.o
-+obj-$(CONFIG_GENERIC_CLOCKEVENTS)	+= tick-common.o
-diff -puN /dev/null kernel/time/tick-common.c
---- /dev/null
-+++ a/kernel/time/tick-common.c
-@@ -0,0 +1,273 @@
-+/*
-+ * linux/kernel/time/tick-common.c
-+ *
-+ * This file contains the base functions to manage periodic tick
-+ * related events.
-+ *
-+ * Copyright(C) 2005-2006, Thomas Gleixner <tglx@linutronix.de>
-+ * Copyright(C) 2005-2007, Red Hat, Inc., Ingo Molnar
-+ * Copyright(C) 2006-2007, Timesys Corp., Thomas Gleixner
-+ *
-+ * This code is licenced under the GPL version 2. For details see
-+ * kernel-base/COPYING.
-+ */
-+#include <linux/cpu.h>
-+#include <linux/err.h>
-+#include <linux/hrtimer.h>
-+#include <linux/irq.h>
-+#include <linux/percpu.h>
-+#include <linux/profile.h>
-+#include <linux/sched.h>
-+#include <linux/tick.h>
-+
-+/*
-+ * Tick devices
-+ */
-+static DEFINE_PER_CPU(struct tick_device, tick_cpu_device);
-+/*
-+ * Tick next event: keeps track of the tick time
-+ */
-+static ktime_t tick_next_period;
-+static ktime_t tick_period;
-+static int tick_do_timer_cpu = -1;
-+static DEFINE_SPINLOCK(tick_device_lock);
-+
-+/*
-+ * Periodic tick
-+ */
-+static void tick_periodic(int cpu)
-+{
-+	if (tick_do_timer_cpu == cpu) {
-+		write_seqlock(&xtime_lock);
-+
-+		/* Keep track of the next tick event */
-+		tick_next_period = ktime_add(tick_next_period, tick_period);
-+
-+		do_timer(1);
-+		write_sequnlock(&xtime_lock);
-+	}
-+
-+	update_process_times(user_mode(get_irq_regs()));
-+	profile_tick(CPU_PROFILING);
-+}
-+
-+/*
-+ * Event handler for periodic ticks
-+ */
-+void tick_handle_periodic(struct clock_event_device *dev)
-+{
-+	int cpu = smp_processor_id();
-+
-+	tick_periodic(cpu);
-+
-+	if (dev->mode != CLOCK_EVT_MODE_ONESHOT)
-+		return;
-+	/*
-+	 * Setup the next period for devices, which do not have
-+	 * periodic mode:
-+	 */
-+	for (;;) {
-+		ktime_t next = ktime_add(dev->next_event, tick_period);
-+
-+		if (!clockevents_program_event(dev, next))
-+			return;
-+		tick_periodic(cpu);
-+	}
-+}
-+
-+/*
-+ * Setup the device for a periodic tick
-+ */
-+void tick_setup_periodic(struct clock_event_device *dev)
-+{
-+	dev->event_handler = tick_handle_periodic;
-+
-+	if (dev->features & CLOCK_EVT_FEAT_PERIODIC) {
-+		clockevents_set_mode(dev, CLOCK_EVT_MODE_PERIODIC);
-+	} else {
-+		unsigned long seq;
-+		ktime_t next;
-+
-+		do {
-+			seq = read_seqbegin(&xtime_lock);
-+			next = tick_next_period;
-+		} while (read_seqretry(&xtime_lock, seq));
-+
-+		clockevents_set_mode(dev, CLOCK_EVT_MODE_ONESHOT);
-+
-+		for (;;) {
-+			if (!clockevents_program_event(dev, next))
-+				return;
-+			next = ktime_add(next, tick_period);
-+		}
-+	}
-+}
-+
-+/*
-+ * Setup the tick device
-+ */
-+static void tick_setup_device(struct tick_device *td,
-+			      struct clock_event_device *newdev, int cpu,
-+			      cpumask_t cpumask)
-+{
-+	ktime_t next_event;
-+	void (*handler)(struct clock_event_device *) = NULL;
-+
-+	/*
-+	 * First device setup ?
-+	 */
-+	if (!td->evtdev) {
-+		/*
-+		 * If no cpu took the do_timer update, assign it to
-+		 * this cpu:
-+		 */
-+		if (tick_do_timer_cpu == -1) {
-+			tick_do_timer_cpu = cpu;
-+			tick_next_period = ktime_get();
-+			tick_period = ktime_set(0, NSEC_PER_SEC / HZ);
-+		}
-+
-+		/*
-+		 * Startup in periodic mode first.
-+		 */
-+		td->mode = TICKDEV_MODE_PERIODIC;
-+	} else {
-+		handler = td->evtdev->event_handler;
-+		next_event = td->evtdev->next_event;
-+	}
-+
-+	td->evtdev = newdev;
-+
-+	/*
-+	 * When the device is not per cpu, pin the interrupt to the
-+	 * current cpu:
-+	 */
-+	if (!cpus_equal(newdev->cpumask, cpumask))
-+		irq_set_affinity(newdev->irq, cpumask);
-+
-+	if (td->mode == TICKDEV_MODE_PERIODIC)
-+		tick_setup_periodic(newdev, 0);
-+}
-+
-+/*
-+ * Check, if the new registered device should be used.
-+ */
-+static int tick_check_new_device(struct clock_event_device *newdev)
-+{
-+	struct clock_event_device *curdev;
-+	struct tick_device *td;
-+	int cpu, ret = NOTIFY_OK;
-+	unsigned long flags;
-+	cpumask_t cpumask;
-+
-+	spin_lock_irqsave(&tick_device_lock, flags);
-+
-+	cpu = smp_processor_id();
-+	if (!cpu_isset(cpu, newdev->cpumask))
-+		goto out;
-+
-+	td = &per_cpu(tick_cpu_device, cpu);
-+	curdev = td->evtdev;
-+	cpumask = cpumask_of_cpu(cpu);
-+
-+	/* cpu local device ? */
-+	if (!cpus_equal(newdev->cpumask, cpumask)) {
-+
-+		/*
-+		 * If the cpu affinity of the device interrupt can not
-+		 * be set, ignore it.
-+		 */
-+		if (!irq_can_set_affinity(newdev->irq))
-+			goto out_bc;
-+
-+		/*
-+		 * If we have a cpu local device already, do not replace it
-+		 * by a non cpu local device
-+		 */
-+		if (curdev && cpus_equal(curdev->cpumask, cpumask))
-+			goto out_bc;
-+	}
-+
-+	/*
-+	 * If we have an active device, then check the rating and the oneshot
-+	 * feature.
-+	 */
-+	if (curdev) {
-+		/*
-+		 * Check the rating
-+		 */
-+		if (curdev->rating >= newdev->rating)
-+			goto out;
-+	}
-+
-+	/*
-+	 * Replace the eventually existing device by the new
-+	 * device.
-+	 */
-+	clockevents_exchange_device(curdev, newdev);
-+	tick_setup_device(td, newdev, cpu, cpumask);
-+	ret = NOTIFY_STOP;
-+
-+out:
-+	spin_unlock_irqrestore(&tick_device_lock, flags);
-+	return ret;
-+}
-+
-+/*
-+ * Called with irqs disabled
-+ */
-+static inline void tick_do_resume(int cpu)
-+{
-+	struct tick_device *td = &per_cpu(tick_cpu_device, cpu);
-+
-+	if (td->mode == TICKDEV_MODE_PERIODIC)
-+		tick_setup_periodic(td->evtdev, 0);
-+}
-+
-+/*
-+ * Resume tick devices
-+ */
-+static void tick_resume(void)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&tick_device_lock, flags);
-+	tick_do_resume(smp_processor_id());
-+	spin_unlock_irqrestore(&tick_device_lock, flags);
-+}
-+
-+/*
-+ * Notification about clock event devices
-+ */
-+static int tick_notify(struct notifier_block *nb, unsigned long reason,
-+			       void *dev)
-+{
-+	switch (reason) {
-+
-+	case CLOCK_EVT_NOTIFY_ADD:
-+		return tick_check_new_device(dev);
-+
-+	case CLOCK_EVT_NOTIFY_RESUME:
-+		tick_resume();
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block tick_notifier = {
-+	.notifier_call = tick_notify,
-+};
-+
-+/**
-+ * tick_init - initialize the tick control
-+ *
-+ * Register the notifier with the clockevents framework
-+ */
-+void __init tick_init(void)
-+{
-+	clockevents_register_notifier(&tick_notifier);
-+}
+ #include "io_ports.h"
+ 
+-extern unsigned long get_cmos_time(void);
+ extern void machine_real_restart(unsigned char *, int);
+ 
+ #if defined(CONFIG_APM_DISPLAY_BLANK) && defined(CONFIG_VT)
+@@ -1176,28 +1175,6 @@ out:
+ 	spin_unlock(&user_list_lock);
+ }
+ 
+-static void set_time(void)
+-{
+-	struct timespec ts;
+-	if (got_clock_diff) {	/* Must know time zone in order to set clock */
+-		ts.tv_sec = get_cmos_time() + clock_cmos_diff;
+-		ts.tv_nsec = 0;
+-		do_settimeofday(&ts);
+-	} 
+-}
+-
+-static void get_time_diff(void)
+-{
+-#ifndef CONFIG_APM_RTC_IS_GMT
+-	/*
+-	 * Estimate time zone so that set_time can update the clock
+-	 */
+-	clock_cmos_diff = -get_cmos_time();
+-	clock_cmos_diff += get_seconds();
+-	got_clock_diff = 1;
+-#endif
+-}
+-
+ static void reinit_timer(void)
+ {
+ #ifdef INIT_TIMER_AFTER_SUSPEND
+@@ -1237,19 +1214,6 @@ static int suspend(int vetoable)
+ 	local_irq_disable();
+ 	device_power_down(PMSG_SUSPEND);
+ 
+-	/* serialize with the timer interrupt */
+-	write_seqlock(&xtime_lock);
+-
+-	/* protect against access to timer chip registers */
+-	spin_lock(&i8253_lock);
+-
+-	get_time_diff();
+-	/*
+-	 * Irq spinlock must be dropped around set_system_power_state.
+-	 * We'll undo any timer changes due to interrupts below.
+-	 */
+-	spin_unlock(&i8253_lock);
+-	write_sequnlock(&xtime_lock);
+ 	local_irq_enable();
+ 
+ 	save_processor_state();
+@@ -1258,7 +1222,6 @@ static int suspend(int vetoable)
+ 	restore_processor_state();
+ 
+ 	local_irq_disable();
+-	set_time();
+ 	reinit_timer();
+ 
+ 	if (err == APM_NO_ERROR)
+@@ -1288,11 +1251,6 @@ static void standby(void)
+ 
+ 	local_irq_disable();
+ 	device_power_down(PMSG_SUSPEND);
+-	/* serialize with the timer interrupt */
+-	write_seqlock(&xtime_lock);
+-	/* If needed, notify drivers here */
+-	get_time_diff();
+-	write_sequnlock(&xtime_lock);
+ 	local_irq_enable();
+ 
+ 	err = set_system_power_state(APM_STATE_STANDBY);
+@@ -1386,7 +1344,6 @@ static void check_events(void)
+ 			ignore_bounce = 1;
+ 			if ((event != APM_NORMAL_RESUME)
+ 			    || (ignore_normal_resume == 0)) {
+-				set_time();
+ 				device_resume();
+ 				pm_send_all(PM_RESUME, (void *)0);
+ 				queue_event(event, NULL);
+@@ -1402,7 +1359,6 @@ static void check_events(void)
+ 			break;
+ 
+ 		case APM_UPDATE_TIME:
+-			set_time();
+ 			break;
+ 
+ 		case APM_CRITICAL_SUSPEND:
+diff -puN arch/i386/kernel/time.c~i386-use-gtod-persistent-clock-support arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~i386-use-gtod-persistent-clock-support
++++ a/arch/i386/kernel/time.c
+@@ -214,7 +214,7 @@ irqreturn_t timer_interrupt(int irq, voi
+ }
+ 
+ /* not static: needed by APM */
+-unsigned long get_cmos_time(void)
++unsigned long read_persistent_clock(void)
+ {
+ 	unsigned long retval;
+ 	unsigned long flags;
+@@ -227,7 +227,6 @@ unsigned long get_cmos_time(void)
+ 
+ 	return retval;
+ }
+-EXPORT_SYMBOL(get_cmos_time);
+ 
+ static void sync_cmos_clock(unsigned long dummy);
+ 
+@@ -280,58 +279,19 @@ void notify_arch_cmos_timer(void)
+ 		mod_timer(&sync_cmos_timer, jiffies + 1);
+ }
+ 
+-static long clock_cmos_diff;
+-static unsigned long sleep_start;
+-
+-static int timer_suspend(struct sys_device *dev, pm_message_t state)
+-{
+-	/*
+-	 * Estimate time zone so that set_time can update the clock
+-	 */
+-	unsigned long ctime =  get_cmos_time();
+-
+-	clock_cmos_diff = -ctime;
+-	clock_cmos_diff += get_seconds();
+-	sleep_start = ctime;
+-	return 0;
+-}
+-
+ static int timer_resume(struct sys_device *dev)
+ {
+-	unsigned long flags;
+-	unsigned long sec;
+-	unsigned long ctime = get_cmos_time();
+-	long sleep_length = (ctime - sleep_start) * HZ;
+-	struct timespec ts;
+-
+-	if (sleep_length < 0) {
+-		printk(KERN_WARNING "CMOS clock skew detected in timer resume!\n");
+-		/* The time after the resume must not be earlier than the time
+-		 * before the suspend or some nasty things will happen
+-		 */
+-		sleep_length = 0;
+-		ctime = sleep_start;
+-	}
+ #ifdef CONFIG_HPET_TIMER
+ 	if (is_hpet_enabled())
+ 		hpet_reenable();
+ #endif
+ 	setup_pit_timer();
+-
+-	sec = ctime + clock_cmos_diff;
+-	ts.tv_sec = sec;
+-	ts.tv_nsec = 0;
+-	do_settimeofday(&ts);
+-	write_seqlock_irqsave(&xtime_lock, flags);
+-	jiffies_64 += sleep_length;
+-	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 	touch_softlockup_watchdog();
+ 	return 0;
+ }
+ 
+ static struct sysdev_class timer_sysclass = {
+ 	.resume = timer_resume,
+-	.suspend = timer_suspend,
+ 	set_kset_name("timer"),
+ };
+ 
+@@ -357,12 +317,6 @@ extern void (*late_time_init)(void);
+ /* Duplicate of time_init() below, with hpet_enable part added */
+ static void __init hpet_time_init(void)
+ {
+-	struct timespec ts;
+-	ts.tv_sec = get_cmos_time();
+-	ts.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
+-
+-	do_settimeofday(&ts);
+-
+ 	if ((hpet_enable() >= 0) && hpet_use_timer) {
+ 		printk("Using HPET for base-timer\n");
+ 	}
+@@ -373,7 +327,6 @@ static void __init hpet_time_init(void)
+ 
+ void __init time_init(void)
+ {
+-	struct timespec ts;
+ #ifdef CONFIG_HPET_TIMER
+ 	if (is_hpet_capable()) {
+ 		/*
+@@ -384,10 +337,5 @@ void __init time_init(void)
+ 		return;
+ 	}
+ #endif
+-	ts.tv_sec = get_cmos_time();
+-	ts.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
+-
+-	do_settimeofday(&ts);
+-
+ 	do_time_init();
+ }
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-origin.patch
-git-block.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 hz-free-ntp.patch
@@ -430,6 +298,7 @@ clockevents-i383-drivers.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
 i386-prepare-nmi-watchdog-for-dynticks.patch
+i386-enable-dynticks-in-kconfig.patch
 hrtimers-add-high-resolution-timer-support.patch
 hrtimers-prevent-possible-itimer-dos.patch
 add-debugging-feature-proc-timer_stat.patch
@@ -448,8 +317,4 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-make-good_sigevent-non-static.patch
-aio-completion-signal-notification.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-scheduled-removal-of-sa_xxx-interrupt-flags.patch
+profile-likely-unlikely-macros-x86_64-fix.patch
