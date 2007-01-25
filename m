@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sh-vdso-use-install_special_mappingpatch.patch added to -mm tree
-Date: Wed, 24 Jan 2007 23:38:50 -0800
-Message-ID: <200701250738.l0P7cojL009349@shell0.pdx.osdl.net>
+Subject: + minor-patch-for-compilation-warning-in-x86_64-signal-code.patch added to -mm tree
+Date: Wed, 24 Jan 2007 23:39:55 -0800
+Message-ID: <200701250739.l0P7dt3M009356@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52248 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52271 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965674AbXAYHjA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 02:39:00 -0500
+	id S965676AbXAYHkH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 02:40:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, roland@redhat.com
+Cc: johnpol@2ka.mipt.ru, ak@suse.de
 
 
 The patch titled
-     SH vdso: use install_special_mapping()
+     Minor patch for compilation warning in x86_64 signal code
 has been added to the -mm tree.  Its filename is
-     sh-vdso-use-install_special_mappingpatch.patch
+     minor-patch-for-compilation-warning-in-x86_64-signal-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,124 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SH vdso: use install_special_mapping()
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: Minor patch for compilation warning in x86_64 signal code
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Roland McGrath <roland@redhat.com>
+If DEBUG_SIG is enbaled in source code, ia32_signal.c compiles with warning
+due to wrong format string.  Attached patch fixes that.  It is quite minor
+update, since by default DEBUG_SIG is not enabled and can not be turned on
+without code modification.
+
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sh/kernel/vsyscall/vsyscall.c |   58 ++++-----------------------
- 1 file changed, 9 insertions(+), 49 deletions(-)
+ arch/x86_64/ia32/ia32_signal.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/kernel/vsyscall/vsyscall.c~sh-vdso-use-install_special_mappingpatch arch/sh/kernel/vsyscall/vsyscall.c
---- a/arch/sh/kernel/vsyscall/vsyscall.c~sh-vdso-use-install_special_mappingpatch
-+++ a/arch/sh/kernel/vsyscall/vsyscall.c
-@@ -37,11 +37,12 @@ __setup("vdso=", vdso_setup);
-  * of the ELF DSO images included therein.
-  */
- extern const char vsyscall_trapa_start, vsyscall_trapa_end;
--static void *syscall_page;
-+static struct page *syscall_pages[1];
+diff -puN arch/x86_64/ia32/ia32_signal.c~minor-patch-for-compilation-warning-in-x86_64-signal-code arch/x86_64/ia32/ia32_signal.c
+--- a/arch/x86_64/ia32/ia32_signal.c~minor-patch-for-compilation-warning-in-x86_64-signal-code
++++ a/arch/x86_64/ia32/ia32_signal.c
+@@ -495,7 +495,7 @@ int ia32_setup_frame(int sig, struct k_s
+ 		ptrace_notify(SIGTRAP);
  
- int __init vsyscall_init(void)
- {
--	syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
-+	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
-+	syscall_pages[0] = virt_to_page(syscall_page);
+ #if DEBUG_SIG
+-	printk("SIG deliver (%s:%d): sp=%p pc=%p ra=%p\n",
++	printk("SIG deliver (%s:%d): sp=%p pc=%lx ra=%u\n",
+ 		current->comm, current->pid, frame, regs->rip, frame->pretcode);
+ #endif
  
- 	/*
- 	 * XXX: Map this page to a fixmap entry if we get around
-@@ -55,37 +56,10 @@ int __init vsyscall_init(void)
- 	return 0;
- }
+@@ -601,7 +601,7 @@ int ia32_setup_rt_frame(int sig, struct 
+ 		ptrace_notify(SIGTRAP);
  
--static struct page *syscall_vma_nopage(struct vm_area_struct *vma,
--				       unsigned long address, int *type)
--{
--	unsigned long offset = address - vma->vm_start;
--	struct page *page;
--
--	if (address < vma->vm_start || address > vma->vm_end)
--		return NOPAGE_SIGBUS;
--
--	page = virt_to_page(syscall_page + offset);
--
--	get_page(page);
--
--	return page;
--}
--
--/* Prevent VMA merging */
--static void syscall_vma_close(struct vm_area_struct *vma)
--{
--}
--
--static struct vm_operations_struct syscall_vm_ops = {
--	.nopage	= syscall_vma_nopage,
--	.close	= syscall_vma_close,
--};
--
- /* Setup a VMA at program startup for the vsyscall page */
- int arch_setup_additional_pages(struct linux_binprm *bprm,
- 				int executable_stack)
- {
--	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr;
- 	int ret;
-@@ -97,30 +71,16 @@ int arch_setup_additional_pages(struct l
- 		goto up_fail;
- 	}
+ #if DEBUG_SIG
+-	printk("SIG deliver (%s:%d): sp=%p pc=%p ra=%p\n",
++	printk("SIG deliver (%s:%d): sp=%p pc=%lx ra=%u\n",
+ 		current->comm, current->pid, frame, regs->rip, frame->pretcode);
+ #endif
  
--	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
--	if (!vma) {
--		ret = -ENOMEM;
-+	ret = install_special_mapping(mm, addr, PAGE_SIZE,
-+				      VM_READ | VM_EXEC |
-+				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |
-+				      VM_ALWAYSDUMP,
-+				      syscall_pages);
-+	if (unlikely(ret))
- 		goto up_fail;
--	}
--
--	vma->vm_start = addr;
--	vma->vm_end = addr + PAGE_SIZE;
--	/* MAYWRITE to allow gdb to COW and set breakpoints */
--	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYEXEC|VM_MAYWRITE;
--	vma->vm_flags |= mm->def_flags;
--	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
--	vma->vm_ops = &syscall_vm_ops;
--	vma->vm_mm = mm;
--
--	ret = insert_vm_struct(mm, vma);
--	if (unlikely(ret)) {
--		kmem_cache_free(vm_area_cachep, vma);
--		goto up_fail;
--	}
- 
- 	current->mm->context.vdso = (void *)addr;
- 
--	mm->total_vm++;
- up_fail:
- 	up_write(&mm->mmap_sem);
- 	return ret;
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from johnpol@2ka.mipt.ru are
 
-rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch
-sh-vdso-use-install_special_mappingpatch.patch
-git-avr32.patch
-git-sh.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-simplify-the-stacktrace-code.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-sh.patch
-dynamic-kernel-command-line-sh64.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
+minor-patch-for-compilation-warning-in-x86_64-signal-code.patch
