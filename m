@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + clocksource-replace-is_continuous-by-a-flag-field.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:35:59 -0800
-Message-ID: <200701250635.l0P6ZxKq008289@shell0.pdx.osdl.net>
+Subject: + clocksource-fixup-is_continous-changes-on-arm.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:03 -0800
+Message-ID: <200701250636.l0P6a35B008295@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50241 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50280 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965553AbXAYGgd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:36:33 -0500
+	id S965535AbXAYGgr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:36:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, rmk@arm.linux.org.uk, zippel@linux-m68k.org
 
 
 The patch titled
-     clocksource: replace is_continuous by a flag field
+     clocksource: fixup is_continous changes on ARM
 has been added to the -mm tree.  Its filename is
-     clocksource-replace-is_continuous-by-a-flag-field.patch
+     clocksource-fixup-is_continous-changes-on-arm.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,160 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource: replace is_continuous by a flag field
+Subject: clocksource: fixup is_continous changes on ARM
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Using a flag filed allows to encode more than one information into a variable.
- Preparatory patch for the generic clocksource verification.
+Fixup the is_contionous replacement by a flag field.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/hpet.c          |    2 +-
- arch/i386/kernel/tsc.c           |    7 +++++--
- drivers/clocksource/acpi_pm.c    |    3 ++-
- drivers/clocksource/cyclone.c    |    2 +-
- drivers/clocksource/scx200_hrt.c |    2 +-
- include/linux/clocksource.h      |   10 ++++++++--
- kernel/time/jiffies.c            |    1 -
- kernel/timer.c                   |    2 +-
- 8 files changed, 19 insertions(+), 10 deletions(-)
+ arch/arm/mach-imx/time.c      |    2 +-
+ arch/arm/mach-ixp4xx/common.c |    2 +-
+ arch/arm/mach-netx/time.c     |    2 +-
+ arch/arm/mach-pxa/time.c      |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~clocksource-replace-is_continuous-by-a-flag-field arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/arch/i386/kernel/hpet.c
-@@ -26,7 +26,7 @@ static struct clocksource clocksource_hp
- 	.mask		= HPET_MASK,
- 	.mult		= 0, /* set below */
- 	.shift		= HPET_SHIFT,
--	.is_continuous	= 1,
+diff -puN arch/arm/mach-imx/time.c~clocksource-fixup-is_continous-changes-on-arm arch/arm/mach-imx/time.c
+--- a/arch/arm/mach-imx/time.c~clocksource-fixup-is_continous-changes-on-arm
++++ a/arch/arm/mach-imx/time.c
+@@ -87,7 +87,7 @@ static struct clocksource clocksource_im
+ 	.read		= imx_get_cycles,
+ 	.mask		= 0xFFFFFFFF,
+ 	.shift 		= 20,
+-	.is_continuous 	= 1,
 +	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
  };
  
- static int __init init_hpet_clocksource(void)
-diff -puN arch/i386/kernel/tsc.c~clocksource-replace-is_continuous-by-a-flag-field arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/arch/i386/kernel/tsc.c
-@@ -314,7 +314,8 @@ static struct clocksource clocksource_ts
- 	.mult			= 0, /* to be set */
- 	.shift			= 22,
- 	.update_callback	= tsc_update_callback,
--	.is_continuous		= 1,
-+	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
-+				  CLOCK_SOURCE_MUST_VERIFY,
- };
- 
- static int tsc_update_callback(void)
-@@ -435,8 +436,10 @@ static int __init init_tsc_clocksource(v
- 		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
- 							clocksource_tsc.shift);
- 		/* lower the rating if we already know its unstable: */
--		if (check_tsc_unstable())
-+		if (check_tsc_unstable()) {
- 			clocksource_tsc.rating = 0;
-+			clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
-+		}
- 
- 		init_timer(&verify_tsc_freq_timer);
- 		verify_tsc_freq_timer.function = verify_tsc_freq;
-diff -puN drivers/clocksource/acpi_pm.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -72,7 +72,8 @@ static struct clocksource clocksource_ac
- 	.mask		= (cycle_t)ACPI_PM_MASK,
- 	.mult		= 0, /*to be caluclated*/
- 	.shift		= 22,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
-+
- };
- 
- 
-diff -puN drivers/clocksource/cyclone.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/cyclone.c
---- a/drivers/clocksource/cyclone.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/drivers/clocksource/cyclone.c
-@@ -31,7 +31,7 @@ static struct clocksource clocksource_cy
- 	.mask		= CYCLONE_TIMER_MASK,
- 	.mult		= 10,
- 	.shift		= 0,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
- static int __init init_cyclone_clocksource(void)
-diff -puN drivers/clocksource/scx200_hrt.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/scx200_hrt.c
---- a/drivers/clocksource/scx200_hrt.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/drivers/clocksource/scx200_hrt.c
-@@ -57,7 +57,7 @@ static struct clocksource cs_hrt = {
- 	.rating		= 250,
- 	.read		= read_hrt,
+ static int __init imx_clocksource_init(void)
+diff -puN arch/arm/mach-ixp4xx/common.c~clocksource-fixup-is_continous-changes-on-arm arch/arm/mach-ixp4xx/common.c
+--- a/arch/arm/mach-ixp4xx/common.c~clocksource-fixup-is_continous-changes-on-arm
++++ a/arch/arm/mach-ixp4xx/common.c
+@@ -395,7 +395,7 @@ static struct clocksource clocksource_ix
+ 	.read		= ixp4xx_get_cycles,
  	.mask		= CLOCKSOURCE_MASK(32),
--	.is_continuous	= 1,
+ 	.shift 		= 20,
+-	.is_continuous 	= 1,
 +	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- 	/* mult, shift are set based on mhz27 flag */
  };
  
-diff -puN include/linux/clocksource.h~clocksource-replace-is_continuous-by-a-flag-field include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/include/linux/clocksource.h
-@@ -45,7 +45,7 @@ typedef u64 cycle_t;
-  * @mult:		cycle to nanosecond multiplier
-  * @shift:		cycle to nanosecond divisor (power of two)
-  * @update_callback:	called when safe to alter clocksource values
-- * @is_continuous:	defines if clocksource is free-running.
-+ * @flags:		flags describing special properties
-  * @cycle_interval:	Used internally by timekeeping core, please ignore.
-  * @xtime_interval:	Used internally by timekeeping core, please ignore.
-  */
-@@ -58,7 +58,7 @@ struct clocksource {
- 	u32 mult;
- 	u32 shift;
- 	int (*update_callback)(void);
--	int is_continuous;
-+	unsigned long flags;
- 
- 	/* timekeeping specific data, ignore */
- 	cycle_t cycle_last, cycle_interval;
-@@ -66,6 +66,12 @@ struct clocksource {
- 	s64 error;
+ unsigned long ixp4xx_timer_freq = FREQ;
+diff -puN arch/arm/mach-netx/time.c~clocksource-fixup-is_continous-changes-on-arm arch/arm/mach-netx/time.c
+--- a/arch/arm/mach-netx/time.c~clocksource-fixup-is_continous-changes-on-arm
++++ a/arch/arm/mach-netx/time.c
+@@ -62,7 +62,7 @@ static struct clocksource clocksource_ne
+ 	.read		= netx_get_cycles,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+ 	.shift 		= 20,
+-	.is_continuous 	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
  };
  
-+/*
-+ * Clock source flags bits::
-+ */
-+#define CLOCK_SOURCE_IS_CONTINUOUS	0x01
-+#define CLOCK_SOURCE_MUST_VERIFY	0x02
-+
- /* simplify initialization of mask field */
- #define CLOCKSOURCE_MASK(bits) (cycle_t)(bits<64 ? ((1ULL<<bits)-1) : -1)
- 
-diff -puN kernel/time/jiffies.c~clocksource-replace-is_continuous-by-a-flag-field kernel/time/jiffies.c
---- a/kernel/time/jiffies.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/kernel/time/jiffies.c
-@@ -62,7 +62,6 @@ struct clocksource clocksource_jiffies =
- 	.mask		= 0xffffffff, /*32bits*/
- 	.mult		= NSEC_PER_JIFFY << JIFFIES_SHIFT, /* details above */
- 	.shift		= JIFFIES_SHIFT,
--	.is_continuous	= 0, /* tick based, not free running */
+ /*
+diff -puN arch/arm/mach-pxa/time.c~clocksource-fixup-is_continous-changes-on-arm arch/arm/mach-pxa/time.c
+--- a/arch/arm/mach-pxa/time.c~clocksource-fixup-is_continous-changes-on-arm
++++ a/arch/arm/mach-pxa/time.c
+@@ -112,7 +112,7 @@ static struct clocksource clocksource_px
+ 	.read           = pxa_get_cycles,
+ 	.mask           = CLOCKSOURCE_MASK(32),
+ 	.shift          = 20,
+-	.is_continuous  = 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
  };
  
- static int __init init_jiffies_clocksource(void)
-diff -puN kernel/timer.c~clocksource-replace-is_continuous-by-a-flag-field kernel/timer.c
---- a/kernel/timer.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/kernel/timer.c
-@@ -871,7 +871,7 @@ int timekeeping_is_continuous(void)
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
- 
--		ret = clock->is_continuous;
-+		ret = clock->flags & CLOCK_SOURCE_IS_CONTINUOUS;
- 
- 	} while (read_seqretry(&xtime_lock, seq));
- 
+ static void __init pxa_timer_init(void)
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
