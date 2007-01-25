@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + make-johns-stuff-pretend-to-compile.patch added to -mm tree
-Date: Wed, 24 Jan 2007 23:15:25 -0800
-Message-ID: <200701250715.l0P7FPsl008992@shell0.pdx.osdl.net>
+Subject: + add-truncate_unmap_inode_pages_range.patch added to -mm tree
+Date: Wed, 24 Jan 2007 23:23:41 -0800
+Message-ID: <200701250723.l0P7NfCI009116@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51375 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51569 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965664AbXAYHPr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 02:15:47 -0500
+	id S965669AbXAYHXo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 02:23:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu
+Cc: dgc@sgi.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     make John's stuff pretend to compile.
+     add truncate_unmap_inode_pages_range()
 has been added to the -mm tree.  Its filename is
-     make-johns-stuff-pretend-to-compile.patch
+     add-truncate_unmap_inode_pages_range.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,214 +25,204 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make John's stuff pretend to compile.
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: add truncate_unmap_inode_pages_range()
+From: David Chinner <dgc@sgi.com>
 
-Attempt to recover from my attempt to recover John's stuff from new
-gtod/dyntick implementation.
+With the recent changes to cancel_dirty_pages(), XFS will dump warnings in
+the syslog because it can truncate_inode_pages() on dirty mapped pages.
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+I've determined that this is indeed correct behaviour for XFS as this can
+happen in the case of races on mmap()d files with direct I/O.  In this case
+when we do a direct I/O read, we flush the dirty pages to disk, then
+truncate them out of the page cache.  Unfortunately, between the flush and
+the truncate the mmap could dirty the page again.  At this point we toss a
+dirty page that is mapped.
+
+None of the existing functions for truncating pages or invalidating pages
+work in this situation.  Invalidating a page only works for non-dirty pages
+with non-dirty buffers, and they only work for whole pages and XFS requires
+partial page truncation.
+
+On top of that the page invalidation functions don't actually call into the
+filesystem to invalidate the page and so the filesystem can't actually
+invalidate the page properly (e.g.  do stuff based on private buffer head
+flags).
+
+So that leaves us needing to use truncate semantics an the problem is that
+none of them unmap pages in a non-racy manner - if they unmap pages they do
+it separately tothe truncate of the page, leading to races with mmap
+redirtying the page between the unmap and the truncate ofthe page.
+
+Hence we need a truncate function that unmaps the pages while they are
+locked for truncate in a similar fashion to
+invalidate_inode_pages2_range().  The following patch (unchanged from the
+last time it was sent) does this.  The XFS changes are in a second patch.
+
+The patch has been test on ia64 and x86-64 via XFSQA and a lot of fsx
+mixing mmap and direct I/O operations.
+
+Signed-off-by: Dave Chinner <dgc@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/hpet.c |    2 +-
- arch/x86_64/kernel/time.c |   16 ----------------
- arch/x86_64/kernel/tsc.c  |   36 +++++++++++++-----------------------
- x86_64/kernel/tsc_sync.c  |    0 
- 4 files changed, 14 insertions(+), 40 deletions(-)
+ include/linux/mm.h |    2 +
+ mm/truncate.c      |   60 ++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 56 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/hpet.c~make-johns-stuff-pretend-to-compile arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~make-johns-stuff-pretend-to-compile
-+++ a/arch/x86_64/kernel/hpet.c
-@@ -469,7 +469,7 @@ struct clocksource clocksource_hpet = {
- 	.mask		= (cycle_t)HPET_MASK,
- 	.mult		= 0, /* set below */
- 	.shift		= HPET_SHIFT,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- 	.vread		= vread_hpet,
- };
+diff -puN include/linux/mm.h~add-truncate_unmap_inode_pages_range include/linux/mm.h
+--- a/include/linux/mm.h~add-truncate_unmap_inode_pages_range
++++ a/include/linux/mm.h
+@@ -1059,6 +1059,8 @@ extern unsigned long page_unuse(struct p
+ extern void truncate_inode_pages(struct address_space *, loff_t);
+ extern void truncate_inode_pages_range(struct address_space *,
+ 				       loff_t lstart, loff_t lend);
++extern void truncate_unmap_inode_pages_range(struct address_space *,
++				       loff_t lstart, loff_t lend, int unmap);
  
-diff -puN arch/x86_64/kernel/tsc.c~make-johns-stuff-pretend-to-compile arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~make-johns-stuff-pretend-to-compile
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -46,13 +46,6 @@ static inline int check_tsc_unstable(voi
- {
- 	return tsc_unstable;
- }
--
--void mark_tsc_unstable(void)
--{
--	tsc_unstable = 1;
--}
--EXPORT_SYMBOL_GPL(mark_tsc_unstable);
--
- #ifdef CONFIG_CPU_FREQ
+ /* generic vm_area_ops exported for stackable file systems */
+ extern struct page *filemap_nopage(struct vm_area_struct *, unsigned long, int *);
+diff -puN mm/truncate.c~add-truncate_unmap_inode_pages_range mm/truncate.c
+--- a/mm/truncate.c~add-truncate_unmap_inode_pages_range
++++ a/mm/truncate.c
+@@ -59,7 +59,7 @@ void cancel_dirty_page(struct page *page
  
- /* Frequency scaling support. Adjust the TSC based timer when the cpu frequency
-@@ -187,9 +180,6 @@ __setup("notsc", notsc_setup);
- 
- 
- /* clock source code: */
--
--static int tsc_update_callback(void);
--
- static cycle_t read_tsc(void)
- {
- 	cycle_t ret = (cycle_t)get_cycles_sync();
-@@ -206,26 +196,26 @@ static struct clocksource clocksource_ts
- 	.name			= "tsc",
- 	.rating			= 300,
- 	.read			= read_tsc,
--	.mask			= (cycle_t)-1,
-+	.mask			= CLOCKSOURCE_MASK(64),
- 	.mult			= 0, /* to be set */
- 	.shift			= 22,
--	.update_callback	= tsc_update_callback,
--	.is_continuous		= 1,
-+	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
-+				  CLOCK_SOURCE_MUST_VERIFY,
- 	.vread			= vread_tsc,
- };
- 
--static int tsc_update_callback(void)
-+void mark_tsc_unstable(void)
- {
--	int change = 0;
--
--	/* check to see if we should switch to the safe clocksource: */
--	if (clocksource_tsc.rating != 50 && check_tsc_unstable()) {
--		clocksource_tsc.rating = 50;
--		clocksource_reselect();
--		change = 1;
-+	if (!tsc_unstable) {
-+		tsc_unstable = 1;
-+		/* Change only the rating, when not registered */
-+		if (clocksource_tsc.mult)
-+			clocksource_change_rating(&clocksource_tsc, 0);
-+		else
-+			clocksource_tsc.rating = 0;
+ 		WARN_ON(++warncount < 5);
  	}
--	return change;
+-		
++
+ 	if (TestClearPageDirty(page)) {
+ 		struct address_space *mapping = page->mapping;
+ 		if (mapping && mapping_cap_account_dirty(mapping)) {
+@@ -122,16 +122,34 @@ invalidate_complete_page(struct address_
+ 	return ret;
  }
-+EXPORT_SYMBOL_GPL(mark_tsc_unstable);
  
- static int __init init_tsc_clocksource(void)
++/*
++ * This is a helper for truncate_unmap_inode_page. Unmap the page we
++ * are passed. Page must be locked by the caller.
++ */
++static void
++unmap_single_page(struct address_space *mapping, struct page *page)
++{
++	BUG_ON(!PageLocked(page));
++	while (page_mapped(page)) {
++		unmap_mapping_range(mapping,
++			(loff_t)page->index << PAGE_CACHE_SHIFT,
++			PAGE_CACHE_SIZE, 0);
++	}
++}
++
+ /**
+- * truncate_inode_pages - truncate range of pages specified by start and
++ * truncate_unmap_inode_pages_range - truncate range of pages specified by
++ * start and end byte offsets and optionally unmap them first.
+  * end byte offsets
+  * @mapping: mapping to truncate
+  * @lstart: offset from which to truncate
+  * @lend: offset to which to truncate
++ * @unmap: unmap whole truncated pages if non-zero
+  *
+  * Truncate the page cache, removing the pages that are between
+  * specified offsets (and zeroing out partial page
+- * (if lstart is not page aligned)).
++ * (if lstart is not page aligned)). If specified, unmap the pages
++ * before they are removed.
+  *
+  * Truncate takes two passes - the first pass is nonblocking.  It will not
+  * block on page locks and it will not block on writeback.  The second pass
+@@ -146,8 +164,8 @@ invalidate_complete_page(struct address_
+  * mapping is large, it is probably the case that the final pages are the most
+  * recently touched, and freeing happens in ascending file offset order.
+  */
+-void truncate_inode_pages_range(struct address_space *mapping,
+-				loff_t lstart, loff_t lend)
++void truncate_unmap_inode_pages_range(struct address_space *mapping,
++				loff_t lstart, loff_t lend, int unmap)
  {
-@@ -233,7 +223,7 @@ static int __init init_tsc_clocksource(v
- 		clocksource_tsc.mult = clocksource_khz2mult(cpu_khz,
- 							clocksource_tsc.shift);
- 		if (check_tsc_unstable())
--			clocksource_tsc.rating = 50;
-+			clocksource_tsc.rating = 0;
+ 	const pgoff_t start = (lstart + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+ 	pgoff_t end;
+@@ -162,6 +180,14 @@ void truncate_inode_pages_range(struct a
+ 	BUG_ON((lend & (PAGE_CACHE_SIZE - 1)) != (PAGE_CACHE_SIZE - 1));
+ 	end = (lend >> PAGE_CACHE_SHIFT);
  
- 		return clocksource_register(&clocksource_tsc);
++	/*
++	 * if unmapping, do a range unmap up front to minimise the
++	 * overhead of unmapping the pages
++	 */
++	if (unmap) {
++		unmap_mapping_range(mapping, (loff_t)start << PAGE_CACHE_SHIFT,
++					   (loff_t)end << PAGE_CACHE_SHIFT, 0);
++	}
+ 	pagevec_init(&pvec, 0);
+ 	next = start;
+ 	while (next <= end &&
+@@ -184,6 +210,8 @@ void truncate_inode_pages_range(struct a
+ 				unlock_page(page);
+ 				continue;
+ 			}
++			if (unmap)
++				unmap_single_page(mapping, page);
+ 			truncate_complete_page(mapping, page);
+ 			unlock_page(page);
+ 		}
+@@ -195,6 +223,8 @@ void truncate_inode_pages_range(struct a
+ 		struct page *page = find_lock_page(mapping, start - 1);
+ 		if (page) {
+ 			wait_on_page_writeback(page);
++			if (unmap)
++				unmap_single_page(mapping, page);
+ 			truncate_partial_page(page, partial);
+ 			unlock_page(page);
+ 			page_cache_release(page);
+@@ -224,12 +254,30 @@ void truncate_inode_pages_range(struct a
+ 			if (page->index > next)
+ 				next = page->index;
+ 			next++;
++			if (unmap)
++				unmap_single_page(mapping, page);
+ 			truncate_complete_page(mapping, page);
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
  	}
-diff -puN arch/x86_64/kernel/time.c~make-johns-stuff-pretend-to-compile arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~make-johns-stuff-pretend-to-compile
-+++ a/arch/x86_64/kernel/time.c
-@@ -306,14 +306,6 @@ void __init pit_stop_interrupt(void)
- 	__pit_init(0, 0x30); /* mode 0 */
  }
++EXPORT_SYMBOL(truncate_unmap_inode_pages_range);
++
++/**
++ * truncate_inode_pages_range - truncate range of pages specified by start and
++ * end byte offsets
++ * @mapping: mapping to truncate
++ * @lstart: offset from which to truncate
++ * @lend: offset to which to truncate
++ *
++ * Called under (and serialised by) inode->i_mutex.
++ */
++void truncate_inode_pages_range(struct address_space *mapping,
++				loff_t lstart, loff_t lend)
++{
++	truncate_unmap_inode_pages_range(mapping, lstart, lend, 0);
++}
+ EXPORT_SYMBOL(truncate_inode_pages_range);
  
--static int tsc_unstable = 0;
--
--void mark_tsc_unstable(void)
--{
--	tsc_unstable = 1;
--}
--EXPORT_SYMBOL_GPL(mark_tsc_unstable);
--
- void __init stop_timer_interrupt(void)
+ /**
+@@ -241,7 +289,7 @@ EXPORT_SYMBOL(truncate_inode_pages_range
+  */
+ void truncate_inode_pages(struct address_space *mapping, loff_t lstart)
  {
- 	char *name;
-@@ -441,11 +433,3 @@ static int time_init_device(void)
+-	truncate_inode_pages_range(mapping, lstart, (loff_t)-1);
++	truncate_unmap_inode_pages_range(mapping, lstart, (loff_t)-1, 0);
  }
+ EXPORT_SYMBOL(truncate_inode_pages);
  
- device_initcall(time_init_device);
--
--int __init notsc_setup(char *s)
--{
--	notsc = 1;
--	return 1;
--}
--
--__setup("notsc", notsc_setup);
-diff -puN arch/x86_64/kernel/tsc_sync.c~make-johns-stuff-pretend-to-compile arch/x86_64/kernel/tsc_sync.c
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dgc@sgi.com are
 
-origin.patch
-git-block.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-add-irq-flag-to-disable-balancing-for-an-interrupt.patch
-add-a-functions-to-handle-interrupt-affinity-setting.patch
-hz-free-ntp.patch
-uninline-jiffiesh-functions.patch
-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-fix-timeout-overflow-with-jiffies.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-i386-remove-useless-code-in-tscc.patch
-simplify-the-registration-of-clocksources.patch
-x86-rewrite-smp-tsc-sync-code.patch
-clocksource-replace-is_continuous-by-a-flag-field.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-clocksource-fixup-is_continous-changes-on-arm.patch
-clocksource-fixup-is_continous-changes-on-avr32.patch
-clocksource-fixup-is_continous-changes-on-s390.patch
-clocksource-fixup-is_continous-changes-on-mips.patch
-clocksource-remove-the-update-callback.patch
-clocksource-add-verification-watchdog-helper.patch
-clocksource-add-verification-watchdog-helper-fix.patch
-mark-tsc-on-geodelx-reliable.patch
-uninline-irq_enter.patch
-fix-cascade-lookup-of-next_timer_interrupt.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-fix-missing-include-for-up.patch
-acpi-keep-track-of-timer-broadcasting.patch
-allow-early-access-to-the-power-management-timer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-add-core-functionality.patch
-tick-management-core-functionality.patch
-tick-management-broadcast-functionality.patch
-tick-management-dyntick--highres-functionality.patch
-clockevents-i383-drivers.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-for-dyntick.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-hrtimers-add-high-resolution-timer-support.patch
-hrtimers-prevent-possible-itimer-dos.patch
-add-debugging-feature-proc-timer_stat.patch
-add-debugging-feature-proc-timer_list.patch
-add-sysrq-q-to-print-timer_list-debug-info.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-prep.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-make-johns-stuff-pretend-to-compile.patch
-make-good_sigevent-non-static.patch
-aio-completion-signal-notification.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-scheduled-removal-of-sa_xxx-interrupt-flags.patch
+add-truncate_unmap_inode_pages_range.patch
+xfs-remove-useless-wmb-memory-barrier.patch
+make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
+make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
+sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
+sysctl-c99-convert-xfs-ctl_tables.patch
+sysctl-c99-convert-xfs-ctl_tables-fixes.patch
