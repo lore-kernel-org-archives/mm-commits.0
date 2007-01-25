@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-sparc64.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:09:14 -0800
-Message-ID: <200701250509.l0P59EwA006561@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-sh64.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:09:11 -0800
+Message-ID: <200701250509.l0P59Bqv006552@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47211 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47199 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965320AbXAYFJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:09:17 -0500
+	id S965320AbXAYFJP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:09:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, davem@davemloft.net
+Cc: alon.barlev@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     Dynamic kernel command-line: sparc64
+     Dynamic kernel command-line: sh64
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-sparc64.patch
+     dynamic-kernel-command-line-sh64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: sparc64
+Subject: Dynamic kernel command-line: sh64
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
-Rename saved_command_line into boot_command_line.
+1. Rename saved_command_line into boot_command_line.
+2. Set command_line as __initdata.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc64/kernel/setup.c         |    2 +-
- arch/sparc64/kernel/sparc64_ksyms.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sh64/kernel/setup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc64/kernel/setup.c~dynamic-kernel-command-line-sparc64 arch/sparc64/kernel/setup.c
---- a/arch/sparc64/kernel/setup.c~dynamic-kernel-command-line-sparc64
-+++ a/arch/sparc64/kernel/setup.c
-@@ -315,7 +315,7 @@ void __init setup_arch(char **cmdline_p)
- {
- 	/* Initialize PROM console and command line. */
- 	*cmdline_p = prom_getbootargs();
--	strcpy(saved_command_line, *cmdline_p);
-+	strcpy(boot_command_line, *cmdline_p);
+diff -puN arch/sh64/kernel/setup.c~dynamic-kernel-command-line-sh64 arch/sh64/kernel/setup.c
+--- a/arch/sh64/kernel/setup.c~dynamic-kernel-command-line-sh64
++++ a/arch/sh64/kernel/setup.c
+@@ -83,7 +83,7 @@ extern int sh64_tlb_init(void);
+ #define RAMDISK_PROMPT_FLAG		0x8000
+ #define RAMDISK_LOAD_FLAG		0x4000
  
- 	if (tlb_type == hypervisor)
- 		printk("ARCH: SUN4V\n");
-diff -puN arch/sparc64/kernel/sparc64_ksyms.c~dynamic-kernel-command-line-sparc64 arch/sparc64/kernel/sparc64_ksyms.c
---- a/arch/sparc64/kernel/sparc64_ksyms.c~dynamic-kernel-command-line-sparc64
-+++ a/arch/sparc64/kernel/sparc64_ksyms.c
-@@ -253,7 +253,7 @@ EXPORT_SYMBOL(prom_getproplen);
- EXPORT_SYMBOL(prom_getproperty);
- EXPORT_SYMBOL(prom_node_has_property);
- EXPORT_SYMBOL(prom_setprop);
--EXPORT_SYMBOL(saved_command_line);
-+EXPORT_SYMBOL(boot_command_line);
- EXPORT_SYMBOL(prom_finddevice);
- EXPORT_SYMBOL(prom_feval);
- EXPORT_SYMBOL(prom_getbool);
+-static char command_line[COMMAND_LINE_SIZE] = { 0, };
++static char __initdata command_line[COMMAND_LINE_SIZE] = { 0, };
+ unsigned long long memory_start = CONFIG_MEMORY_START;
+ unsigned long long memory_end = CONFIG_MEMORY_START + (CONFIG_MEMORY_SIZE_IN_MB * 1024 * 1024);
+ 
+@@ -95,8 +95,8 @@ static inline void parse_mem_cmdline (ch
+ 	int len = 0;
+ 
+ 	/* Save unparsed command line copy for /proc/cmdline */
+-	memcpy(saved_command_line, COMMAND_LINE, COMMAND_LINE_SIZE);
+-	saved_command_line[COMMAND_LINE_SIZE-1] = '\0';
++	memcpy(boot_command_line, COMMAND_LINE, COMMAND_LINE_SIZE);
++	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
+ 
+ 	for (;;) {
+ 	  /*
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
