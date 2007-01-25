@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-powerpc.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:09:03 -0800
-Message-ID: <200701250509.l0P593hm006540@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-ppc.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:09:05 -0800
+Message-ID: <200701250509.l0P595nO006543@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47143 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47152 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965308AbXAYFJI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:09:08 -0500
+	id S965301AbXAYFJJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:09:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alon.barlev@gmail.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     Dynamic kernel command-line: powerpc
+     Dynamic kernel command-line: ppc
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-powerpc.patch
+     dynamic-kernel-command-line-ppc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: powerpc
+Subject: Dynamic kernel command-line: ppc
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
 Rename saved_command_line into boot_command_line.
@@ -36,62 +36,69 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/powerpc/kernel/legacy_serial.c     |    2 +-
- arch/powerpc/kernel/prom.c              |    2 +-
- arch/powerpc/kernel/udbg.c              |    2 +-
- arch/powerpc/platforms/powermac/setup.c |    4 ++--
+ arch/ppc/kernel/setup.c         |    2 +-
+ arch/ppc/platforms/lopec.c      |    2 +-
+ arch/ppc/platforms/pplus.c      |    2 +-
+ arch/ppc/platforms/prep_setup.c |    4 ++--
  4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/kernel/legacy_serial.c~dynamic-kernel-command-line-powerpc arch/powerpc/kernel/legacy_serial.c
---- a/arch/powerpc/kernel/legacy_serial.c~dynamic-kernel-command-line-powerpc
-+++ a/arch/powerpc/kernel/legacy_serial.c
-@@ -498,7 +498,7 @@ static int __init check_legacy_serial_co
- 	DBG(" -> check_legacy_serial_console()\n");
+diff -puN arch/ppc/kernel/setup.c~dynamic-kernel-command-line-ppc arch/ppc/kernel/setup.c
+--- a/arch/ppc/kernel/setup.c~dynamic-kernel-command-line-ppc
++++ a/arch/ppc/kernel/setup.c
+@@ -543,7 +543,7 @@ void __init setup_arch(char **cmdline_p)
+ 	init_mm.brk = (unsigned long) klimit;
  
- 	/* The user has requested a console so this is already set up. */
--	if (strstr(saved_command_line, "console=")) {
-+	if (strstr(boot_command_line, "console=")) {
- 		DBG(" console was specified !\n");
- 		return -EBUSY;
- 	}
-diff -puN arch/powerpc/kernel/prom.c~dynamic-kernel-command-line-powerpc arch/powerpc/kernel/prom.c
---- a/arch/powerpc/kernel/prom.c~dynamic-kernel-command-line-powerpc
-+++ a/arch/powerpc/kernel/prom.c
-@@ -991,7 +991,7 @@ void __init early_init_devtree(void *par
- 	of_scan_flat_dt(early_init_dt_scan_memory, NULL);
- 
- 	/* Save command line for /proc/cmdline and then parse parameters */
+ 	/* Save unparsed command line copy for /proc/cmdline */
 -	strlcpy(saved_command_line, cmd_line, COMMAND_LINE_SIZE);
 +	strlcpy(boot_command_line, cmd_line, COMMAND_LINE_SIZE);
+ 	*cmdline_p = cmd_line;
+ 
  	parse_early_param();
- 
- 	/* Reserve LMB regions used by kernel, initrd, dt, etc... */
-diff -puN arch/powerpc/kernel/udbg.c~dynamic-kernel-command-line-powerpc arch/powerpc/kernel/udbg.c
---- a/arch/powerpc/kernel/udbg.c~dynamic-kernel-command-line-powerpc
-+++ a/arch/powerpc/kernel/udbg.c
-@@ -146,7 +146,7 @@ void __init disable_early_printk(void)
- {
- 	if (!early_console_initialized)
- 		return;
--	if (strstr(saved_command_line, "udbg-immortal")) {
-+	if (strstr(boot_command_line, "udbg-immortal")) {
- 		printk(KERN_INFO "early console immortal !\n");
- 		return;
+diff -puN arch/ppc/platforms/lopec.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/lopec.c
+--- a/arch/ppc/platforms/lopec.c~dynamic-kernel-command-line-ppc
++++ a/arch/ppc/platforms/lopec.c
+@@ -344,7 +344,7 @@ lopec_setup_arch(void)
+ 		 if (bootargs != NULL) {
+ 			 strcpy(cmd_line, bootargs);
+ 			 /* again.. */
+-			 strcpy(saved_command_line, cmd_line);
++			 strcpy(boot_command_line, cmd_line);
+ 		}
  	}
-diff -puN arch/powerpc/platforms/powermac/setup.c~dynamic-kernel-command-line-powerpc arch/powerpc/platforms/powermac/setup.c
---- a/arch/powerpc/platforms/powermac/setup.c~dynamic-kernel-command-line-powerpc
-+++ a/arch/powerpc/platforms/powermac/setup.c
-@@ -506,8 +506,8 @@ void note_bootable_part(dev_t dev, int p
- 	if ((goodness <= current_root_goodness) &&
- 	    ROOT_DEV != DEFAULT_ROOT_DEVICE)
- 		return;
--	p = strstr(saved_command_line, "root=");
--	if (p != NULL && (p == saved_command_line || p[-1] == ' '))
-+	p = strstr(boot_command_line, "root=");
-+	if (p != NULL && (p == boot_command_line || p[-1] == ' '))
- 		return;
+ #endif
+diff -puN arch/ppc/platforms/pplus.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/pplus.c
+--- a/arch/ppc/platforms/pplus.c~dynamic-kernel-command-line-ppc
++++ a/arch/ppc/platforms/pplus.c
+@@ -592,7 +592,7 @@ static void __init pplus_setup_arch(void
+ 		if (bootargs != NULL) {
+ 			strcpy(cmd_line, bootargs);
+ 			/* again.. */
+-			strcpy(saved_command_line, cmd_line);
++			strcpy(boot_command_line, cmd_line);
+ 		}
+ 	}
+ #endif
+diff -puN arch/ppc/platforms/prep_setup.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/prep_setup.c
+--- a/arch/ppc/platforms/prep_setup.c~dynamic-kernel-command-line-ppc
++++ a/arch/ppc/platforms/prep_setup.c
+@@ -634,7 +634,7 @@ static void __init prep_init_sound(void)
+ 	/*
+ 	 * Find a way to push these informations to the cs4232 driver
+ 	 * Give it out with printk, when not in cmd_line?
+-	 * Append it to  cmd_line and saved_command_line?
++	 * Append it to  cmd_line and boot_command_line?
+ 	 * Format is cs4232=io,irq,dma,dma2
+ 	 */
+ }
+@@ -897,7 +897,7 @@ prep_setup_arch(void)
+ 		 if (bootargs != NULL) {
+ 			 strcpy(cmd_line, bootargs);
+ 			 /* again.. */
+-			 strcpy(saved_command_line, cmd_line);
++			 strcpy(boot_command_line, cmd_line);
+ 		}
+ 	}
  
- 	if (!found_boot) {
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
