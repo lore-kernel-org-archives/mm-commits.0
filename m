@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + kbuild-improving-option-checking-fix.patch added to -mm tree
-Date: Wed, 24 Jan 2007 23:35:59 -0800
-Message-ID: <200701250735.l0P7ZxrQ009310@shell0.pdx.osdl.net>
+Subject: + sh-vdso-use-install_special_mappingpatch.patch added to -mm tree
+Date: Wed, 24 Jan 2007 23:38:50 -0800
+Message-ID: <200701250738.l0P7cojL009349@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52163 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52248 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965678AbXAYHgG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 02:36:06 -0500
+	id S965674AbXAYHjA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 02:39:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olecom@flower.upol.cz, sam@ravnborg.org, zippel@linux-m68k.org
+Cc: lethal@linux-sh.org, roland@redhat.com
 
 
 The patch titled
-     spell 4 kbuild: improving option checking
+     SH vdso: use install_special_mapping()
 has been added to the -mm tree.  Its filename is
-     kbuild-improving-option-checking-fix.patch
+     sh-vdso-use-install_special_mappingpatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spell 4 kbuild: improving option checking
-From: Oleg Verych <olecom@flower.upol.cz>
+Subject: SH vdso: use install_special_mapping()
+From: Paul Mundt <lethal@linux-sh.org>
 
-Signed-off-by: Oleg Verych <olecom@flower.upol.cz>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- scripts/Kbuild.include |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/sh/kernel/vsyscall/vsyscall.c |   58 ++++-----------------------
+ 1 file changed, 9 insertions(+), 49 deletions(-)
 
-diff -puN scripts/Kbuild.include~kbuild-improving-option-checking-fix scripts/Kbuild.include
---- a/scripts/Kbuild.include~kbuild-improving-option-checking-fix
-+++ a/scripts/Kbuild.include
-@@ -1,7 +1,7 @@
- ####
- # kbuild: Generic definitions
+diff -puN arch/sh/kernel/vsyscall/vsyscall.c~sh-vdso-use-install_special_mappingpatch arch/sh/kernel/vsyscall/vsyscall.c
+--- a/arch/sh/kernel/vsyscall/vsyscall.c~sh-vdso-use-install_special_mappingpatch
++++ a/arch/sh/kernel/vsyscall/vsyscall.c
+@@ -37,11 +37,12 @@ __setup("vdso=", vdso_setup);
+  * of the ELF DSO images included therein.
+  */
+ extern const char vsyscall_trapa_start, vsyscall_trapa_end;
+-static void *syscall_page;
++static struct page *syscall_pages[1];
  
--# Convinient constants
-+# Convenient constants
- comma   := ,
- squote  := '
- empty   :=
-@@ -170,7 +170,7 @@ make-cmd = $(subst \#,\\\#,$(subst $$,$$
- # PHONY targets skipped in both cases.
- any-prereq = $(filter-out $(PHONY),$?) $(filter-out $(PHONY) $(wildcard $^),$^)
+ int __init vsyscall_init(void)
+ {
+-	syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
++	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
++	syscall_pages[0] = virt_to_page(syscall_page);
  
--# Execute command if command has changed or prerequisitei(s) are updated
-+# Execute command if command has changed or prerequisite(s) are updated
- #
- if_changed = $(if $(strip $(any-prereq) $(arg-check)),                       \
- 	@set -e;                                                             \
-@@ -187,7 +187,7 @@ if_changed_dep = $(if $(strip $(any-prer
- 	mv -f $(dot-target).tmp $(dot-target).cmd)
+ 	/*
+ 	 * XXX: Map this page to a fixmap entry if we get around
+@@ -55,37 +56,10 @@ int __init vsyscall_init(void)
+ 	return 0;
+ }
  
- # Usage: $(call if_changed_rule,foo)
--# will check if $(cmd_foo) changed, or any of the prequisites changed,
-+# will check if $(cmd_foo) changed, or any of the prerequisites changed,
- # and if so will execute $(rule_foo)
- if_changed_rule = $(if $(strip $(any-prereq) $(arg-check) ),                 \
- 	@set -e;                                                             \
-@@ -232,3 +232,5 @@ why =                                   
+-static struct page *syscall_vma_nopage(struct vm_area_struct *vma,
+-				       unsigned long address, int *type)
+-{
+-	unsigned long offset = address - vma->vm_start;
+-	struct page *page;
+-
+-	if (address < vma->vm_start || address > vma->vm_end)
+-		return NOPAGE_SIGBUS;
+-
+-	page = virt_to_page(syscall_page + offset);
+-
+-	get_page(page);
+-
+-	return page;
+-}
+-
+-/* Prevent VMA merging */
+-static void syscall_vma_close(struct vm_area_struct *vma)
+-{
+-}
+-
+-static struct vm_operations_struct syscall_vm_ops = {
+-	.nopage	= syscall_vma_nopage,
+-	.close	= syscall_vma_close,
+-};
+-
+ /* Setup a VMA at program startup for the vsyscall page */
+ int arch_setup_additional_pages(struct linux_binprm *bprm,
+ 				int executable_stack)
+ {
+-	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long addr;
+ 	int ret;
+@@ -97,30 +71,16 @@ int arch_setup_additional_pages(struct l
+ 		goto up_fail;
+ 	}
  
- echo-why = $(call escsq, $(strip $(why)))
- endif
-+
-+ LocalWords:  prequisites
+-	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
+-	if (!vma) {
+-		ret = -ENOMEM;
++	ret = install_special_mapping(mm, addr, PAGE_SIZE,
++				      VM_READ | VM_EXEC |
++				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |
++				      VM_ALWAYSDUMP,
++				      syscall_pages);
++	if (unlikely(ret))
+ 		goto up_fail;
+-	}
+-
+-	vma->vm_start = addr;
+-	vma->vm_end = addr + PAGE_SIZE;
+-	/* MAYWRITE to allow gdb to COW and set breakpoints */
+-	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYEXEC|VM_MAYWRITE;
+-	vma->vm_flags |= mm->def_flags;
+-	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
+-	vma->vm_ops = &syscall_vm_ops;
+-	vma->vm_mm = mm;
+-
+-	ret = insert_vm_struct(mm, vma);
+-	if (unlikely(ret)) {
+-		kmem_cache_free(vm_area_cachep, vma);
+-		goto up_fail;
+-	}
+ 
+ 	current->mm->context.vdso = (void *)addr;
+ 
+-	mm->total_vm++;
+ up_fail:
+ 	up_write(&mm->mmap_sem);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from olecom@flower.upol.cz are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-kbuild-improving-option-checking.patch
-kbuild-improving-option-checking-fix.patch
-deprecate-smbfs-in-favour-of-cifs-docs.patch
+rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch
+sh-vdso-use-install_special_mappingpatch.patch
+git-avr32.patch
+git-sh.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+simplify-the-stacktrace-code.patch
+dynamic-kernel-command-line-common.patch
+dynamic-kernel-command-line-sh.patch
+dynamic-kernel-command-line-sh64.patch
+sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
