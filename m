@@ -1,228 +1,229 @@
 From: akpm@osdl.org
-Subject: + add-truncate_unmap_inode_pages_range.patch added to -mm tree
-Date: Wed, 24 Jan 2007 23:23:41 -0800
-Message-ID: <200701250723.l0P7NfCI009116@shell0.pdx.osdl.net>
+Subject: - time-x86_64-convert-x86_64-to-use-generic_time-prep.patch removed from -mm tree
+Date: Wed, 24 Jan 2007 23:28:34 -0800
+Message-ID: <200701250728.l0P7SY2k009172@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51569 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51664 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965669AbXAYHXo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 02:23:44 -0500
+	id S965667AbXAYH27 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 02:28:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dgc@sgi.com, nickpiggin@yahoo.com.au
+To: akpm@osdl.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add truncate_unmap_inode_pages_range()
-has been added to the -mm tree.  Its filename is
-     add-truncate_unmap_inode_pages_range.patch
+     time-x86_64-convert-x86_64-to-use-generic_time-prep
+has been removed from the -mm tree.  Its filename was
+     time-x86_64-convert-x86_64-to-use-generic_time-prep.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: add truncate_unmap_inode_pages_range()
-From: David Chinner <dgc@sgi.com>
+Subject: time-x86_64-convert-x86_64-to-use-generic_time-prep
+From: Andrew Morton <akpm@osdl.org>
 
-With the recent changes to cancel_dirty_pages(), XFS will dump warnings in
-the syslog because it can truncate_inode_pages() on dirty mapped pages.
+Move tglx stuff to make johnstul stuff apply.
 
-I've determined that this is indeed correct behaviour for XFS as this can
-happen in the case of races on mmap()d files with direct I/O.  In this case
-when we do a direct I/O read, we flush the dirty pages to disk, then
-truncate them out of the page cache.  Unfortunately, between the flush and
-the truncate the mmap could dirty the page again.  At this point we toss a
-dirty page that is mapped.
-
-None of the existing functions for truncating pages or invalidating pages
-work in this situation.  Invalidating a page only works for non-dirty pages
-with non-dirty buffers, and they only work for whole pages and XFS requires
-partial page truncation.
-
-On top of that the page invalidation functions don't actually call into the
-filesystem to invalidate the page and so the filesystem can't actually
-invalidate the page properly (e.g.  do stuff based on private buffer head
-flags).
-
-So that leaves us needing to use truncate semantics an the problem is that
-none of them unmap pages in a non-racy manner - if they unmap pages they do
-it separately tothe truncate of the page, leading to races with mmap
-redirtying the page between the unmap and the truncate ofthe page.
-
-Hence we need a truncate function that unmaps the pages while they are
-locked for truncate in a similar fashion to
-invalidate_inode_pages2_range().  The following patch (unchanged from the
-last time it was sent) does this.  The XFS changes are in a second patch.
-
-The patch has been test on ia64 and x86-64 via XFSQA and a lot of fsx
-mixing mmap and direct I/O operations.
-
-Signed-off-by: Dave Chinner <dgc@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/mm.h |    2 +
- mm/truncate.c      |   60 ++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 56 insertions(+), 6 deletions(-)
+ arch/x86_64/kernel/time.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mm.h~add-truncate_unmap_inode_pages_range include/linux/mm.h
---- a/include/linux/mm.h~add-truncate_unmap_inode_pages_range
-+++ a/include/linux/mm.h
-@@ -1059,6 +1059,8 @@ extern unsigned long page_unuse(struct p
- extern void truncate_inode_pages(struct address_space *, loff_t);
- extern void truncate_inode_pages_range(struct address_space *,
- 				       loff_t lstart, loff_t lend);
-+extern void truncate_unmap_inode_pages_range(struct address_space *,
-+				       loff_t lstart, loff_t lend, int unmap);
- 
- /* generic vm_area_ops exported for stackable file systems */
- extern struct page *filemap_nopage(struct vm_area_struct *, unsigned long, int *);
-diff -puN mm/truncate.c~add-truncate_unmap_inode_pages_range mm/truncate.c
---- a/mm/truncate.c~add-truncate_unmap_inode_pages_range
-+++ a/mm/truncate.c
-@@ -59,7 +59,7 @@ void cancel_dirty_page(struct page *page
- 
- 		WARN_ON(++warncount < 5);
- 	}
--		
-+
- 	if (TestClearPageDirty(page)) {
- 		struct address_space *mapping = page->mapping;
- 		if (mapping && mapping_cap_account_dirty(mapping)) {
-@@ -122,16 +122,34 @@ invalidate_complete_page(struct address_
- 	return ret;
+diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-convert-x86_64-to-use-generic_time-prep arch/x86_64/kernel/hpet.c
+diff -puN arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time-prep arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time-prep
++++ a/arch/x86_64/kernel/time.c
+@@ -524,6 +524,14 @@ void __init pit_stop_interrupt(void)
+ 	__pit_init(0, 0x30); /* mode 0 */
  }
  
-+/*
-+ * This is a helper for truncate_unmap_inode_page. Unmap the page we
-+ * are passed. Page must be locked by the caller.
-+ */
-+static void
-+unmap_single_page(struct address_space *mapping, struct page *page)
++static int tsc_unstable = 0;
++
++void mark_tsc_unstable(void)
 +{
-+	BUG_ON(!PageLocked(page));
-+	while (page_mapped(page)) {
-+		unmap_mapping_range(mapping,
-+			(loff_t)page->index << PAGE_CACHE_SHIFT,
-+			PAGE_CACHE_SIZE, 0);
-+	}
++	tsc_unstable = 1;
 +}
++EXPORT_SYMBOL_GPL(mark_tsc_unstable);
 +
- /**
-- * truncate_inode_pages - truncate range of pages specified by start and
-+ * truncate_unmap_inode_pages_range - truncate range of pages specified by
-+ * start and end byte offsets and optionally unmap them first.
-  * end byte offsets
-  * @mapping: mapping to truncate
-  * @lstart: offset from which to truncate
-  * @lend: offset to which to truncate
-+ * @unmap: unmap whole truncated pages if non-zero
-  *
-  * Truncate the page cache, removing the pages that are between
-  * specified offsets (and zeroing out partial page
-- * (if lstart is not page aligned)).
-+ * (if lstart is not page aligned)). If specified, unmap the pages
-+ * before they are removed.
-  *
-  * Truncate takes two passes - the first pass is nonblocking.  It will not
-  * block on page locks and it will not block on writeback.  The second pass
-@@ -146,8 +164,8 @@ invalidate_complete_page(struct address_
-  * mapping is large, it is probably the case that the final pages are the most
-  * recently touched, and freeing happens in ascending file offset order.
-  */
--void truncate_inode_pages_range(struct address_space *mapping,
--				loff_t lstart, loff_t lend)
-+void truncate_unmap_inode_pages_range(struct address_space *mapping,
-+				loff_t lstart, loff_t lend, int unmap)
+ void __init stop_timer_interrupt(void)
  {
- 	const pgoff_t start = (lstart + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
- 	pgoff_t end;
-@@ -162,6 +180,14 @@ void truncate_inode_pages_range(struct a
- 	BUG_ON((lend & (PAGE_CACHE_SIZE - 1)) != (PAGE_CACHE_SIZE - 1));
- 	end = (lend >> PAGE_CACHE_SHIFT);
- 
-+	/*
-+	 * if unmapping, do a range unmap up front to minimise the
-+	 * overhead of unmapping the pages
-+	 */
-+	if (unmap) {
-+		unmap_mapping_range(mapping, (loff_t)start << PAGE_CACHE_SHIFT,
-+					   (loff_t)end << PAGE_CACHE_SHIFT, 0);
-+	}
- 	pagevec_init(&pvec, 0);
- 	next = start;
- 	while (next <= end &&
-@@ -184,6 +210,8 @@ void truncate_inode_pages_range(struct a
- 				unlock_page(page);
- 				continue;
- 			}
-+			if (unmap)
-+				unmap_single_page(mapping, page);
- 			truncate_complete_page(mapping, page);
- 			unlock_page(page);
- 		}
-@@ -195,6 +223,8 @@ void truncate_inode_pages_range(struct a
- 		struct page *page = find_lock_page(mapping, start - 1);
- 		if (page) {
- 			wait_on_page_writeback(page);
-+			if (unmap)
-+				unmap_single_page(mapping, page);
- 			truncate_partial_page(page, partial);
- 			unlock_page(page);
- 			page_cache_release(page);
-@@ -224,12 +254,30 @@ void truncate_inode_pages_range(struct a
- 			if (page->index > next)
- 				next = page->index;
- 			next++;
-+			if (unmap)
-+				unmap_single_page(mapping, page);
- 			truncate_complete_page(mapping, page);
- 			unlock_page(page);
- 		}
- 		pagevec_release(&pvec);
- 	}
+ 	char *name;
+@@ -592,14 +600,6 @@ void __init time_init(void)
+ #endif
  }
-+EXPORT_SYMBOL(truncate_unmap_inode_pages_range);
-+
-+/**
-+ * truncate_inode_pages_range - truncate range of pages specified by start and
-+ * end byte offsets
-+ * @mapping: mapping to truncate
-+ * @lstart: offset from which to truncate
-+ * @lend: offset to which to truncate
-+ *
-+ * Called under (and serialised by) inode->i_mutex.
-+ */
-+void truncate_inode_pages_range(struct address_space *mapping,
-+				loff_t lstart, loff_t lend)
-+{
-+	truncate_unmap_inode_pages_range(mapping, lstart, lend, 0);
-+}
- EXPORT_SYMBOL(truncate_inode_pages_range);
  
- /**
-@@ -241,7 +289,7 @@ EXPORT_SYMBOL(truncate_inode_pages_range
+-static int tsc_unstable = 0;
+-
+-void mark_tsc_unstable(void)
+-{
+-	tsc_unstable = 1;
+-}
+-EXPORT_SYMBOL_GPL(mark_tsc_unstable);
+-
+ /*
+  * Decide what mode gettimeofday should use.
   */
- void truncate_inode_pages(struct address_space *mapping, loff_t lstart)
- {
--	truncate_inode_pages_range(mapping, lstart, (loff_t)-1);
-+	truncate_unmap_inode_pages_range(mapping, lstart, (loff_t)-1, 0);
- }
- EXPORT_SYMBOL(truncate_inode_pages);
- 
 _
 
-Patches currently in -mm which might be from dgc@sgi.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-add-truncate_unmap_inode_pages_range.patch
-xfs-remove-useless-wmb-memory-barrier.patch
-make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
-make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
-sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-xfs-ctl_tables.patch
-sysctl-c99-convert-xfs-ctl_tables-fixes.patch
+origin.patch
+kvm-add-vm-exit-profiling-fix.patch
+blockdev-direct_io-fix-signedness-bug.patch
+submitchecklist-update.patch
+i386-vdso-use-vm_alwaysdump-tidy.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+git-cifs.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
+git-lxdialog-fixup.patch
+git-mmc.patch
+git-mmc-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+git-e1000-fixup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-use-bitrev8.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-fixup.patch
+git-block-atomicity-fix.patch
+nokia-e70-is-an-unusual-device.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+vmi-versus-hrtimers.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+time-x86_64-convert-x86_64-to-use-generic_time-prep.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+introduce-and-use-get_task_mnt_ns-tweaks.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
