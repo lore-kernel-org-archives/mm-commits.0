@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + char-mxser_new-lock-count-and-flags.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:43:08 -0800
-Message-ID: <200701250543.l0P5h8FZ007093@shell0.pdx.osdl.net>
+Subject: + char-mxser_new-fix-sparse-warning.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:43:10 -0800
+Message-ID: <200701250543.l0P5hAVP007096@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48014 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48017 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965352AbXAYFnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:43:11 -0500
+	id S965349AbXAYFnN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:43:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com, osv@javad.com
 
 
 The patch titled
-     Char: mxser_new, lock count and flags
+     Char: mxser_new, fix sparse warning
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-lock-count-and-flags.patch
+     char-mxser_new-fix-sparse-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, lock count and flags
+Subject: Char: mxser_new, fix sparse warning
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Both open count and INITIALIZED flag should be changed under lock.
+Feed NULL instead of 0 where pointer is expected.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: <osv@javad.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/mxser_new.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-lock-count-and-flags drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-lock-count-and-flags
+diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning
 +++ a/drivers/char/mxser_new.c
-@@ -853,9 +853,9 @@ static int mxser_startup(struct mxser_po
- 	 * and set the speed of the serial port
- 	 */
- 	mxser_change_speed(info, NULL);
-+	info->flags |= ASYNC_INITIALIZED;
- 	spin_unlock_irqrestore(&info->slock, flags);
+@@ -1708,7 +1708,7 @@ static int mxser_ioctl(struct tty_struct
  
--	info->flags |= ASYNC_INITIALIZED;
- 	return 0;
- }
+ 		info->speed = speed;
+ 		spin_lock_irqsave(&info->slock, flags);
+-		mxser_change_speed(info, 0);
++		mxser_change_speed(info, NULL);
+ 		spin_unlock_irqrestore(&info->slock, flags);
  
-@@ -925,6 +925,7 @@ static void mxser_shutdown(struct mxser_
- static int mxser_open(struct tty_struct *tty, struct file *filp)
- {
- 	struct mxser_port *info;
-+	unsigned long flags;
- 	int retval, line;
- 
- 	line = tty->index;
-@@ -941,7 +942,9 @@ static int mxser_open(struct tty_struct 
- 	/*
- 	 * Start up serial port
- 	 */
-+	spin_lock_irqsave(&info->slock, flags);
- 	info->count++;
-+	spin_unlock_irqrestore(&info->slock, flags);
- 	retval = mxser_startup(info);
- 	if (retval)
- 		return retval;
+ 		return 0;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
