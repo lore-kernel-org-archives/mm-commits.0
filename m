@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + i386-use-gtod-persistent-clock-support.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:35:51 -0800
-Message-ID: <200701250635.l0P6ZpmF008277@shell0.pdx.osdl.net>
+Subject: + fix-cascade-lookup-of-next_timer_interrupt.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:21 -0800
+Message-ID: <200701250636.l0P6aLZb008328@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50763 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50765 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965640AbXAYGqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:46:00 -0500
+	id S965641AbXAYGqC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:46:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, akpm@osdl.org, bunk@stusta.de, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     i386: use GTOD persistent clock support
+     Fix cascade lookup of next_timer_interrupt
 has been added to the -mm tree.  Its filename is
-     i386-use-gtod-persistent-clock-support.patch
+     fix-cascade-lookup-of-next_timer_interrupt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,237 +25,223 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: use GTOD persistent clock support
-From: John Stultz <johnstul@us.ibm.com>
+Subject: Fix cascade lookup of next_timer_interrupt
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Persistent clock support: do proper timekeeping across suspend/resume, i386
-arch support.
+When searching for the next pending timer in the timer wheel we need to take
+the cascade into account.  The current code has several problems:
 
-[ cleanup from Adrian Bunk <bunk@stusta.de> ]
+ 1. it looks into the previous cascade
+ 2. it ignores a pending cascade
+ 3. it ignores multiple cascades
 
-Build-fixes-from: Andrew Morton <akpm@osdl.org>
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Change the cascade lookup, so it calculates the array index from the point of
+the next cascade and always look at the cascade buckets, when the cascade is
+pending, i.e.  gets executed in the next timer softirq.  When multiple
+cascades are pending, then lookup the next buckets too.
+
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/apm.c  |   44 ------------------------------
- arch/i386/kernel/time.c |   54 --------------------------------------
- 2 files changed, 1 insertion(+), 97 deletions(-)
+ kernel/timer.c |  151 +++++++++++++++++++++++++----------------------
+ 1 file changed, 81 insertions(+), 70 deletions(-)
 
-diff -puN arch/i386/kernel/apm.c~i386-use-gtod-persistent-clock-support arch/i386/kernel/apm.c
---- a/arch/i386/kernel/apm.c~i386-use-gtod-persistent-clock-support
-+++ a/arch/i386/kernel/apm.c
-@@ -236,7 +236,6 @@
- 
- #include "io_ports.h"
- 
--extern unsigned long get_cmos_time(void);
- extern void machine_real_restart(unsigned char *, int);
- 
- #if defined(CONFIG_APM_DISPLAY_BLANK) && defined(CONFIG_VT)
-@@ -1176,28 +1175,6 @@ out:
- 	spin_unlock(&user_list_lock);
- }
- 
--static void set_time(void)
--{
--	struct timespec ts;
--	if (got_clock_diff) {	/* Must know time zone in order to set clock */
--		ts.tv_sec = get_cmos_time() + clock_cmos_diff;
--		ts.tv_nsec = 0;
--		do_settimeofday(&ts);
--	} 
--}
--
--static void get_time_diff(void)
--{
--#ifndef CONFIG_APM_RTC_IS_GMT
--	/*
--	 * Estimate time zone so that set_time can update the clock
--	 */
--	clock_cmos_diff = -get_cmos_time();
--	clock_cmos_diff += get_seconds();
--	got_clock_diff = 1;
--#endif
--}
--
- static void reinit_timer(void)
+diff -puN kernel/timer.c~fix-cascade-lookup-of-next_timer_interrupt kernel/timer.c
+--- a/kernel/timer.c~fix-cascade-lookup-of-next_timer_interrupt
++++ a/kernel/timer.c
+@@ -597,99 +597,110 @@ static inline void __run_timers(tvec_bas
+  * is used on S/390 to stop all activity when a cpus is idle.
+  * This functions needs to be called disabled.
+  */
+-unsigned long next_timer_interrupt(void)
++static unsigned long __next_timer_interrupt(tvec_base_t *base)
  {
- #ifdef INIT_TIMER_AFTER_SUSPEND
-@@ -1237,19 +1214,6 @@ static int suspend(int vetoable)
- 	local_irq_disable();
- 	device_power_down(PMSG_SUSPEND);
- 
--	/* serialize with the timer interrupt */
--	write_seqlock(&xtime_lock);
+-	tvec_base_t *base;
+-	struct list_head *list;
++	unsigned long timer_jiffies = base->timer_jiffies;
++	unsigned long expires = timer_jiffies + (LONG_MAX >> 1);
++	int index, slot, array, found = 0;
+ 	struct timer_list *nte;
+-	unsigned long expires;
+-	unsigned long hr_expires = MAX_JIFFY_OFFSET;
+-	ktime_t hr_delta;
+ 	tvec_t *varray[4];
+-	int i, j;
 -
--	/* protect against access to timer chip registers */
--	spin_lock(&i8253_lock);
--
--	get_time_diff();
--	/*
--	 * Irq spinlock must be dropped around set_system_power_state.
--	 * We'll undo any timer changes due to interrupts below.
--	 */
--	spin_unlock(&i8253_lock);
--	write_sequnlock(&xtime_lock);
- 	local_irq_enable();
- 
- 	save_processor_state();
-@@ -1258,7 +1222,6 @@ static int suspend(int vetoable)
- 	restore_processor_state();
- 
- 	local_irq_disable();
--	set_time();
- 	reinit_timer();
- 
- 	if (err == APM_NO_ERROR)
-@@ -1288,11 +1251,6 @@ static void standby(void)
- 
- 	local_irq_disable();
- 	device_power_down(PMSG_SUSPEND);
--	/* serialize with the timer interrupt */
--	write_seqlock(&xtime_lock);
--	/* If needed, notify drivers here */
--	get_time_diff();
--	write_sequnlock(&xtime_lock);
- 	local_irq_enable();
- 
- 	err = set_system_power_state(APM_STATE_STANDBY);
-@@ -1386,7 +1344,6 @@ static void check_events(void)
- 			ignore_bounce = 1;
- 			if ((event != APM_NORMAL_RESUME)
- 			    || (ignore_normal_resume == 0)) {
--				set_time();
- 				device_resume();
- 				pm_send_all(PM_RESUME, (void *)0);
- 				queue_event(event, NULL);
-@@ -1402,7 +1359,6 @@ static void check_events(void)
- 			break;
- 
- 		case APM_UPDATE_TIME:
--			set_time();
- 			break;
- 
- 		case APM_CRITICAL_SUSPEND:
-diff -puN arch/i386/kernel/time.c~i386-use-gtod-persistent-clock-support arch/i386/kernel/time.c
---- a/arch/i386/kernel/time.c~i386-use-gtod-persistent-clock-support
-+++ a/arch/i386/kernel/time.c
-@@ -214,7 +214,7 @@ irqreturn_t timer_interrupt(int irq, voi
- }
- 
- /* not static: needed by APM */
--unsigned long get_cmos_time(void)
-+unsigned long read_persistent_clock(void)
- {
- 	unsigned long retval;
- 	unsigned long flags;
-@@ -227,7 +227,6 @@ unsigned long get_cmos_time(void)
- 
- 	return retval;
- }
--EXPORT_SYMBOL(get_cmos_time);
- 
- static void sync_cmos_clock(unsigned long dummy);
- 
-@@ -280,58 +279,19 @@ void notify_arch_cmos_timer(void)
- 		mod_timer(&sync_cmos_timer, jiffies + 1);
- }
- 
--static long clock_cmos_diff;
--static unsigned long sleep_start;
--
--static int timer_suspend(struct sys_device *dev, pm_message_t state)
--{
--	/*
--	 * Estimate time zone so that set_time can update the clock
--	 */
--	unsigned long ctime =  get_cmos_time();
--
--	clock_cmos_diff = -ctime;
--	clock_cmos_diff += get_seconds();
--	sleep_start = ctime;
--	return 0;
--}
--
- static int timer_resume(struct sys_device *dev)
- {
--	unsigned long flags;
--	unsigned long sec;
--	unsigned long ctime = get_cmos_time();
--	long sleep_length = (ctime - sleep_start) * HZ;
--	struct timespec ts;
--
--	if (sleep_length < 0) {
--		printk(KERN_WARNING "CMOS clock skew detected in timer resume!\n");
--		/* The time after the resume must not be earlier than the time
--		 * before the suspend or some nasty things will happen
--		 */
--		sleep_length = 0;
--		ctime = sleep_start;
+-	hr_delta = hrtimer_get_next_event();
+-	if (hr_delta.tv64 != KTIME_MAX) {
+-		struct timespec tsdelta;
+-		tsdelta = ktime_to_timespec(hr_delta);
+-		hr_expires = timespec_to_jiffies(&tsdelta);
+-		if (hr_expires < 3)
+-			return hr_expires + jiffies;
 -	}
- #ifdef CONFIG_HPET_TIMER
- 	if (is_hpet_enabled())
- 		hpet_reenable();
- #endif
- 	setup_pit_timer();
+-	hr_expires += jiffies;
 -
--	sec = ctime + clock_cmos_diff;
--	ts.tv_sec = sec;
--	ts.tv_nsec = 0;
--	do_settimeofday(&ts);
--	write_seqlock_irqsave(&xtime_lock, flags);
--	jiffies_64 += sleep_length;
--	write_sequnlock_irqrestore(&xtime_lock, flags);
- 	touch_softlockup_watchdog();
- 	return 0;
- }
+-	base = __get_cpu_var(tvec_bases);
+-	spin_lock(&base->lock);
+-	expires = base->timer_jiffies + (LONG_MAX >> 1);
+-	list = NULL;
  
- static struct sysdev_class timer_sysclass = {
- 	.resume = timer_resume,
--	.suspend = timer_suspend,
- 	set_kset_name("timer"),
- };
+ 	/* Look for timer events in tv1. */
+-	j = base->timer_jiffies & TVR_MASK;
++	index = slot = timer_jiffies & TVR_MASK;
+ 	do {
+-		list_for_each_entry(nte, base->tv1.vec + j, entry) {
++		list_for_each_entry(nte, base->tv1.vec + slot, entry) {
++			found = 1;
+ 			expires = nte->expires;
+-			if (j < (base->timer_jiffies & TVR_MASK))
+-				list = base->tv2.vec + (INDEX(0));
+-			goto found;
++			/* Look at the cascade bucket(s)? */
++			if (!index || slot < index)
++				goto cascade;
++			return expires;
+ 		}
+-		j = (j + 1) & TVR_MASK;
+-	} while (j != (base->timer_jiffies & TVR_MASK));
++		slot = (slot + 1) & TVR_MASK;
++	} while (slot != index);
++
++cascade:
++	/* Calculate the next cascade event */
++	if (index)
++		timer_jiffies += TVR_SIZE - index;
++	timer_jiffies >>= TVR_BITS;
  
-@@ -357,12 +317,6 @@ extern void (*late_time_init)(void);
- /* Duplicate of time_init() below, with hpet_enable part added */
- static void __init hpet_time_init(void)
- {
--	struct timespec ts;
--	ts.tv_sec = get_cmos_time();
--	ts.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
--
--	do_settimeofday(&ts);
--
- 	if ((hpet_enable() >= 0) && hpet_use_timer) {
- 		printk("Using HPET for base-timer\n");
+ 	/* Check tv2-tv5. */
+ 	varray[0] = &base->tv2;
+ 	varray[1] = &base->tv3;
+ 	varray[2] = &base->tv4;
+ 	varray[3] = &base->tv5;
+-	for (i = 0; i < 4; i++) {
+-		j = INDEX(i);
++
++	for (array = 0; array < 4; array++) {
++		tvec_t *varp = varray[array];
++
++		index = slot = timer_jiffies & TVN_MASK;
+ 		do {
+-			if (list_empty(varray[i]->vec + j)) {
+-				j = (j + 1) & TVN_MASK;
+-				continue;
+-			}
+-			list_for_each_entry(nte, varray[i]->vec + j, entry)
++			list_for_each_entry(nte, varp->vec + slot, entry) {
++				found = 1;
+ 				if (time_before(nte->expires, expires))
+ 					expires = nte->expires;
+-			if (j < (INDEX(i)) && i < 3)
+-				list = varray[i + 1]->vec + (INDEX(i + 1));
+-			goto found;
+-		} while (j != (INDEX(i)));
+-	}
+-found:
+-	if (list) {
+-		/*
+-		 * The search wrapped. We need to look at the next list
+-		 * from next tv element that would cascade into tv element
+-		 * where we found the timer element.
+-		 */
+-		list_for_each_entry(nte, list, entry) {
+-			if (time_before(nte->expires, expires))
+-				expires = nte->expires;
+-		}
++			}
++			/*
++			 * Do we still search for the first timer or are
++			 * we looking up the cascade buckets ?
++			 */
++			if (found) {
++				/* Look at the cascade bucket(s)? */
++				if (!index || slot < index)
++					break;
++				return expires;
++			}
++			slot = (slot + 1) & TVN_MASK;
++		} while (slot != index);
++
++		if (index)
++			timer_jiffies += TVN_SIZE - index;
++		timer_jiffies >>= TVN_BITS;
  	}
-@@ -373,7 +327,6 @@ static void __init hpet_time_init(void)
+-	spin_unlock(&base->lock);
++	return expires;
++}
  
- void __init time_init(void)
- {
--	struct timespec ts;
- #ifdef CONFIG_HPET_TIMER
- 	if (is_hpet_capable()) {
- 		/*
-@@ -384,10 +337,5 @@ void __init time_init(void)
- 		return;
- 	}
- #endif
--	ts.tv_sec = get_cmos_time();
--	ts.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
--
--	do_settimeofday(&ts);
--
- 	do_time_init();
+-	/*
+-	 * It can happen that other CPUs service timer IRQs and increment
+-	 * jiffies, but we have not yet got a local timer tick to process
+-	 * the timer wheels.  In that case, the expiry time can be before
+-	 * jiffies, but since the high-resolution timer here is relative to
+-	 * jiffies, the default expression when high-resolution timers are
+-	 * not active,
+-	 *
+-	 *   time_before(MAX_JIFFY_OFFSET + jiffies, expires)
+-	 *
+-	 * would falsely evaluate to true.  If that is the case, just
+-	 * return jiffies so that we can immediately fire the local timer
+-	 */
+-	if (time_before(expires, jiffies))
+-		return jiffies;
++/*
++ * Check, if the next hrtimer event is before the next timer wheel
++ * event:
++ */
++static unsigned long cmp_next_hrtimer_event(unsigned long now,
++					    unsigned long expires)
++{
++	ktime_t hr_delta = hrtimer_get_next_event();
++	struct timespec tsdelta;
+ 
+-	if (time_before(hr_expires, expires))
+-		return hr_expires;
++	if (hr_delta.tv64 == KTIME_MAX)
++		return expires;
+ 
++	if (hr_delta.tv64 <= TICK_NSEC)
++		return now;
++
++	tsdelta = ktime_to_timespec(hr_delta);
++	now += timespec_to_jiffies(&tsdelta);
++	if (time_before(now, expires))
++		return now;
+ 	return expires;
  }
++
++/**
++ * next_timer_interrupt - return the jiffy of the next pending timer
++ */
++unsigned long next_timer_interrupt(void)
++{
++	tvec_base_t *base = __get_cpu_var(tvec_bases);
++	unsigned long expires, now = jiffies;
++
++	spin_lock(&base->lock);
++	expires = __next_timer_interrupt(base);
++	spin_unlock(&base->lock);
++
++	if (time_before_eq(expires, now))
++		return now;
++
++	return cmp_next_hrtimer_event(now, expires);
++}
+ #endif
+ 
+ /******************************************************************/
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
+origin.patch
+git-block.patch
+use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 hz-free-ntp.patch
@@ -298,7 +284,6 @@ clockevents-i383-drivers.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
 i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
 hrtimers-add-high-resolution-timer-support.patch
 hrtimers-prevent-possible-itimer-dos.patch
 add-debugging-feature-proc-timer_stat.patch
@@ -317,4 +302,8 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+make-good_sigevent-non-static.patch
+aio-completion-signal-notification.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
+scheduled-removal-of-sa_xxx-interrupt-flags.patch
