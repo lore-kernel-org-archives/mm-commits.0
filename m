@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + i386-enable-dynticks-in-kconfig.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:37:01 -0800
-Message-ID: <200701250637.l0P6b1gP008406@shell0.pdx.osdl.net>
+Subject: + hrtimers-prevent-possible-itimer-dos.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:37:05 -0800
+Message-ID: <200701250637.l0P6b5So008412@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50446 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50447 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965579AbXAYGjE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:39:04 -0500
+	id S965577AbXAYGjG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:39:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, johnstul@us.ibm.com, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     i386: enable dynticks in kconfig
+     hrtimers: prevent possible itimer DoS
 has been added to the -mm tree.  Its filename is
-     i386-enable-dynticks-in-kconfig.patch
+     hrtimers-prevent-possible-itimer-dos.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,136 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: enable dynticks in kconfig
-From: Ingo Molnar <mingo@elte.hu>
+Subject: hrtimers: prevent possible itimer DoS
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Enable dynamic ticks selection.
+Fix potential setitimer DoS with high-res timers by pushing itimer rearm
+processing to process context.
 
+[Fixes from: Ingo Molnar <mingo@elte.hu>]
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/itimer.c |   14 ++++-------
+ kernel/signal.c |   58 ++++++++++++++++++++++++++++++++--------------
+ 2 files changed, 47 insertions(+), 25 deletions(-)
 
-diff -puN arch/i386/Kconfig~i386-enable-dynticks-in-kconfig arch/i386/Kconfig
---- a/arch/i386/Kconfig~i386-enable-dynticks-in-kconfig
-+++ a/arch/i386/Kconfig
-@@ -86,6 +86,8 @@ source "init/Kconfig"
+diff -puN kernel/itimer.c~hrtimers-prevent-possible-itimer-dos kernel/itimer.c
+--- a/kernel/itimer.c~hrtimers-prevent-possible-itimer-dos
++++ a/kernel/itimer.c
+@@ -135,11 +135,6 @@ enum hrtimer_restart it_real_fn(struct h
  
- menu "Processor type and features"
+ 	send_group_sig_info(SIGALRM, SEND_SIG_PRIV, sig->tsk);
  
-+source "kernel/time/Kconfig"
+-	if (sig->it_real_incr.tv64 != 0) {
+-		hrtimer_forward(timer, hrtimer_cb_get_time(timer),
+-				sig->it_real_incr);
+-		return HRTIMER_RESTART;
+-	}
+ 	return HRTIMER_NORESTART;
+ }
+ 
+@@ -231,11 +226,14 @@ again:
+ 			spin_unlock_irq(&tsk->sighand->siglock);
+ 			goto again;
+ 		}
+-		tsk->signal->it_real_incr =
+-			timeval_to_ktime(value->it_interval);
+ 		expires = timeval_to_ktime(value->it_value);
+-		if (expires.tv64 != 0)
++		if (expires.tv64 != 0) {
++			tsk->signal->it_real_incr =
++				timeval_to_ktime(value->it_interval);
+ 			hrtimer_start(timer, expires, HRTIMER_MODE_REL);
++		} else
++			tsk->signal->it_real_incr.tv64 = 0;
 +
- config SMP
- 	bool "Symmetric multi-processing support"
- 	---help---
+ 		spin_unlock_irq(&tsk->sighand->siglock);
+ 		break;
+ 	case ITIMER_VIRTUAL:
+diff -puN kernel/signal.c~hrtimers-prevent-possible-itimer-dos kernel/signal.c
+--- a/kernel/signal.c~hrtimers-prevent-possible-itimer-dos
++++ a/kernel/signal.c
+@@ -456,26 +456,50 @@ static int __dequeue_signal(struct sigpe
+ int dequeue_signal(struct task_struct *tsk, sigset_t *mask, siginfo_t *info)
+ {
+ 	int signr = __dequeue_signal(&tsk->pending, mask, info);
+-	if (!signr)
++	if (!signr) {
+ 		signr = __dequeue_signal(&tsk->signal->shared_pending,
+ 					 mask, info);
++		/*
++		 * itimer signal ?
++		 *
++		 * itimers are process shared and we restart periodic
++		 * itimers in the signal delivery path to prevent DoS
++		 * attacks in the high resolution timer case. This is
++		 * compliant with the old way of self restarting
++		 * itimers, as the SIGALRM is a legacy signal and only
++		 * queued once. Changing the restart behaviour to
++		 * restart the timer in the signal dequeue path is
++		 * reducing the timer noise on heavy loaded !highres
++		 * systems too.
++		 */
++		if (unlikely(signr == SIGALRM)) {
++			struct hrtimer *tmr = &tsk->signal->real_timer;
++
++			if (!hrtimer_is_queued(tmr) &&
++			    tsk->signal->it_real_incr.tv64 != 0) {
++				hrtimer_forward(tmr, tmr->base->get_time(),
++						tsk->signal->it_real_incr);
++				hrtimer_restart(tmr);
++			}
++		}
++	}
+ 	recalc_sigpending_tsk(tsk);
+- 	if (signr && unlikely(sig_kernel_stop(signr))) {
+- 		/*
+- 		 * Set a marker that we have dequeued a stop signal.  Our
+- 		 * caller might release the siglock and then the pending
+- 		 * stop signal it is about to process is no longer in the
+- 		 * pending bitmasks, but must still be cleared by a SIGCONT
+- 		 * (and overruled by a SIGKILL).  So those cases clear this
+- 		 * shared flag after we've set it.  Note that this flag may
+- 		 * remain set after the signal we return is ignored or
+- 		 * handled.  That doesn't matter because its only purpose
+- 		 * is to alert stop-signal processing code when another
+- 		 * processor has come along and cleared the flag.
+- 		 */
+- 		if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT))
+- 			tsk->signal->flags |= SIGNAL_STOP_DEQUEUED;
+- 	}
++	if (signr && unlikely(sig_kernel_stop(signr))) {
++		/*
++		 * Set a marker that we have dequeued a stop signal.  Our
++		 * caller might release the siglock and then the pending
++		 * stop signal it is about to process is no longer in the
++		 * pending bitmasks, but must still be cleared by a SIGCONT
++		 * (and overruled by a SIGKILL).  So those cases clear this
++		 * shared flag after we've set it.  Note that this flag may
++		 * remain set after the signal we return is ignored or
++		 * handled.  That doesn't matter because its only purpose
++		 * is to alert stop-signal processing code when another
++		 * processor has come along and cleared the flag.
++		 */
++		if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT))
++			tsk->signal->flags |= SIGNAL_STOP_DEQUEUED;
++	}
+ 	if ( signr &&
+ 	     ((info->si_code & __SI_MASK) == __SI_TIMER) &&
+ 	     info->si_sys_private){
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-kvm-add-vm-exit-profiling-fix.patch
-revert-nmi_known_cpu-check-during-boot-option-parsing.patch
-paravirt-mark-the-paravirt_ops-export-internal.patch
-kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
-kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
-kvm-x86-emulator-fix-bit-string-instructions.patch
-kvm-fix-bogus-pagefault-on-writable-pages.patch
-fix-config_compat_vdso.patch
-fix-gate_vmavm_flags.patch
-add-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump-tidy.patch
-x86_64-ia32-vdso-use-vm_alwaysdump.patch
-powerpc-vdso-use-vm_alwaysdump.patch
-x86_64-ia32-vdso-define-arch_vma_name.patch
-acpi-fix-cpufreq-regression.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-fix-for-crash-in-adummy_init.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
+origin.patch
+git-block.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-simplify-the-stacktrace-code.patch
-audit-fix-audit_filter_user_rules-initialization-bug.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 hz-free-ntp.patch
@@ -140,7 +197,6 @@ clockevents-i383-drivers.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
 i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
 hrtimers-add-high-resolution-timer-support.patch
 hrtimers-prevent-possible-itimer-dos.patch
 add-debugging-feature-proc-timer_stat.patch
@@ -159,35 +215,8 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
 make-good_sigevent-non-static.patch
 aio-completion-signal-notification.patch
-sched-avoid-div-in-rebalance_tick.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
 scheduled-removal-of-sa_xxx-interrupt-flags.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
