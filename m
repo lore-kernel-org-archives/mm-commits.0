@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sh-convert-to-use-shared-apm-emulation.patch added to -mm tree
-Date: Wed, 24 Jan 2007 23:42:14 -0800
-Message-ID: <200701250742.l0P7gElB009420@shell0.pdx.osdl.net>
+Subject: + arm-convert-to-use-shared-apm-emulation.patch added to -mm tree
+Date: Wed, 24 Jan 2007 23:42:10 -0800
+Message-ID: <200701250742.l0P7gAgN009414@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52367 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52476 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965655AbXAYHmU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 02:42:20 -0500
+	id S1752121AbXAYHpl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 02:45:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, rmk@arm.linux.org.uk
+Cc: ralf@linux-mips.org, lethal@linux-sh.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     sh: convert to use shared APM emulation.
+     ARM: convert to use shared APM emulation
 has been added to the -mm tree.  Its filename is
-     sh-convert-to-use-shared-apm-emulation.patch
+     arm-convert-to-use-shared-apm-emulation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,754 +25,169 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sh: convert to use shared APM emulation.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: ARM: convert to use shared APM emulation
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Here's the updated SH version (the only change from the old version was that
-SYS_SUPPORTS_APM_EMULATION is added to the arch Kconfig).
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sh/Kconfig                  |    7 
- arch/sh/boards/hp6xx/hp6xx_apm.c |   70 +--
- arch/sh/kernel/Makefile          |    1 
- arch/sh/kernel/apm.c             |  538 -----------------------------
- include/asm-sh/apm.h             |   46 --
- 5 files changed, 29 insertions(+), 633 deletions(-)
+ arch/arm/Kconfig               |   29 +-------------
+ arch/arm/common/sharpsl_pm.c   |    2 
+ arch/arm/kernel/Makefile       |    1 
+ arch/arm/mach-pxa/corgi_pm.c   |    2 
+ arch/arm/mach-pxa/sharpsl_pm.c |    2 
+ arch/arm/mach-pxa/spitz_pm.c   |    2 
+ include/asm-arm/apm.h          |   64 -------------------------------
+ 7 files changed, 8 insertions(+), 94 deletions(-)
 
-diff -puN arch/sh/Kconfig~sh-convert-to-use-shared-apm-emulation arch/sh/Kconfig
---- a/arch/sh/Kconfig~sh-convert-to-use-shared-apm-emulation
-+++ a/arch/sh/Kconfig
-@@ -48,6 +48,9 @@ config GENERIC_IOMAP
- config GENERIC_TIME
- 	def_bool n
+diff -puN arch/arm/Kconfig~arm-convert-to-use-shared-apm-emulation arch/arm/Kconfig
+--- a/arch/arm/Kconfig~arm-convert-to-use-shared-apm-emulation
++++ a/arch/arm/Kconfig
+@@ -9,6 +9,7 @@ config ARM
+ 	bool
+ 	default y
+ 	select RTC_LIB
++	select SYS_SUPPORTS_APM_EMULATION
+ 	help
+ 	  The ARM series is a line of low-power-consumption RISC chip designs
+ 	  licensed by ARM Ltd and targeted at embedded applications and
+@@ -17,6 +18,9 @@ config ARM
+ 	  Europe.  There is an ARM Linux project with a web page at
+ 	  <http://www.arm.linux.org.uk/>.
  
 +config SYS_SUPPORTS_APM_EMULATION
 +	bool
 +
- config ARCH_MAY_HAVE_PC_FDC
+ config GENERIC_TIME
  	bool
+ 	default n
+@@ -860,31 +864,6 @@ menu "Power management options"
  
-@@ -126,6 +129,7 @@ config SH_7751_SYSTEMH
- 
- config SH_HP6XX
- 	bool "HP6XX"
-+	select SYS_SUPPORTS_APM_EMULATION
- 	help
- 	  Select HP6XX if configuring for a HP jornada HP6xx.
- 	  More information (hardware only) at
-@@ -696,9 +700,6 @@ depends on EXPERIMENTAL
- 
- source kernel/power/Kconfig
+ source "kernel/power/Kconfig"
  
 -config APM
--	bool "Advanced Power Management Emulation"
--	depends on PM
+-	tristate "Advanced Power Management Emulation"
+-	---help---
+-	  APM is a BIOS specification for saving power using several different
+-	  techniques. This is mostly useful for battery powered laptops with
+-	  APM compliant BIOSes. If you say Y here, the system time will be
+-	  reset after a RESUME operation, the /proc/apm device will provide
+-	  battery status information, and user-space programs will receive
+-	  notification of APM "events" (e.g. battery status change).
+-
+-	  In order to use APM, you will need supporting software. For location
+-	  and more information, read <file:Documentation/pm.txt> and the
+-	  Battery Powered Linux mini-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>.
+-
+-	  This driver does not spin down disk drives (see the hdparm(8)
+-	  manpage ("man 8 hdparm") for that), and it doesn't turn off
+-	  VESA-compliant "green" monitors.
+-
+-	  Generally, if you don't have a battery in your machine, there isn't
+-	  much point in using this driver and you should say N. If you get
+-	  random kernel OOPSes or reboots that don't seem to be related to
+-	  anything, try disabling/enabling this option (or disabling/enabling
+-	  APM in your BIOS).
+-
  endmenu
  
  source "net/Kconfig"
-diff -puN arch/sh/boards/hp6xx/hp6xx_apm.c~sh-convert-to-use-shared-apm-emulation arch/sh/boards/hp6xx/hp6xx_apm.c
---- a/arch/sh/boards/hp6xx/hp6xx_apm.c~sh-convert-to-use-shared-apm-emulation
-+++ a/arch/sh/boards/hp6xx/hp6xx_apm.c
-@@ -7,12 +7,11 @@
-  * modify it under the terms of the GNU General Public License.
-  */
- #include <linux/module.h>
--#include <linux/apm_bios.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
--#include <asm/io.h>
+diff -puN arch/arm/common/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/common/sharpsl_pm.c
+--- a/arch/arm/common/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation
++++ a/arch/arm/common/sharpsl_pm.c
+@@ -27,7 +27,7 @@
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/irq.h>
 -#include <asm/apm.h>
-+#include <linux/apm-emulation.h>
-+#include <linux/io.h>
- #include <asm/adc.h>
- #include <asm/hp6xx.h>
++#include <asm/apm-emulation.h>
+ #include <asm/arch/pm.h>
+ #include <asm/arch/pxa-regs.h>
+ #include <asm/arch/sharpsl.h>
+diff -puN arch/arm/kernel/Makefile~arm-convert-to-use-shared-apm-emulation arch/arm/kernel/Makefile
+--- a/arch/arm/kernel/Makefile~arm-convert-to-use-shared-apm-emulation
++++ a/arch/arm/kernel/Makefile
+@@ -10,7 +10,6 @@ obj-y		:= compat.o entry-armv.o entry-co
+ 		   process.o ptrace.o semaphore.o setup.o signal.o sys_arm.o \
+ 		   time.o traps.o
  
-@@ -27,60 +26,41 @@
- 
- #define MODNAME "hp6x0_apm"
- 
--static int hp6x0_apm_get_info(char *buf, char **start, off_t fpos, int length)
-+static void hp6x0_apm_get_power_status(struct apm_power_info *info)
- {
-+	int battery, backup, charging, percentage;
- 	u8 pgdr;
--	char *p;
--	int battery_status;
--	int battery_flag;
--	int ac_line_status;
--	int time_units = APM_BATTERY_LIFE_UNKNOWN;
--
--	int battery = adc_single(ADC_CHANNEL_BATTERY);
--	int backup = adc_single(ADC_CHANNEL_BACKUP);
--	int charging = adc_single(ADC_CHANNEL_CHARGE);
--	int percentage;
-+
-+	battery		= adc_single(ADC_CHANNEL_BATTERY);
-+	backup		= adc_single(ADC_CHANNEL_BACKUP);
-+	charging	= adc_single(ADC_CHANNEL_CHARGE);
- 
- 	percentage = 100 * (battery - HP680_BATTERY_MIN) /
- 			   (HP680_BATTERY_MAX - HP680_BATTERY_MIN);
- 
--	ac_line_status = (battery > HP680_BATTERY_AC_ON) ?
-+	info->ac_line_status = (battery > HP680_BATTERY_AC_ON) ?
- 			 APM_AC_ONLINE : APM_AC_OFFLINE;
- 
--	p = buf;
--
- 	pgdr = ctrl_inb(SH7709_PGDR);
- 	if (pgdr & PGDR_MAIN_BATTERY_OUT) {
--		battery_status = APM_BATTERY_STATUS_NOT_PRESENT;
--		battery_flag = 0x80;
--		percentage = -1;
--	} else if (charging < 8 ) {
--		battery_status = APM_BATTERY_STATUS_CHARGING;
--		battery_flag = 0x08;
--		ac_line_status = 0xff;
-+		info->battery_status	= APM_BATTERY_STATUS_NOT_PRESENT;
-+		info->battery_flag	= 0x80;
-+	} else if (charging < 8) {
-+		info->battery_status	= APM_BATTERY_STATUS_CHARGING;
-+		info->battery_flag	= 0x08;
-+		info->ac_line_status = 0xff;
- 	} else if (percentage <= APM_CRITICAL) {
--		battery_status = APM_BATTERY_STATUS_CRITICAL;
--		battery_flag = 0x04;
-+		info->battery_status	= APM_BATTERY_STATUS_CRITICAL;
-+		info->battery_flag	= 0x04;
- 	} else if (percentage <= APM_LOW) {
--		battery_status = APM_BATTERY_STATUS_LOW;
--		battery_flag = 0x02;
-+		info->battery_status	= APM_BATTERY_STATUS_LOW;
-+		info->battery_flag	= 0x02;
- 	} else {
--		battery_status = APM_BATTERY_STATUS_HIGH;
--		battery_flag = 0x01;
-+		info->battery_status	= APM_BATTERY_STATUS_HIGH;
-+		info->battery_flag	= 0x01;
- 	}
- 
--	p += sprintf(p, "1.0 1.2 0x%02x 0x%02x 0x%02x 0x%02x %d%% %d %s\n",
--		     APM_32_BIT_SUPPORT,
--		     ac_line_status,
--		     battery_status,
--		     battery_flag,
--		     percentage,
--		     time_units,
--		     "min");
--	p += sprintf(p, "bat=%d backup=%d charge=%d\n",
--		     battery, backup, charging);
--
--	return p - buf;
-+	info->units = 0;
- }
- 
- static irqreturn_t hp6x0_apm_interrupt(int irq, void *dev)
-@@ -96,14 +76,14 @@ static int __init hp6x0_apm_init(void)
- 	int ret;
- 
- 	ret = request_irq(HP680_BTN_IRQ, hp6x0_apm_interrupt,
--			  IRQF_DISABLED, MODNAME, 0);
-+			  IRQF_DISABLED, MODNAME, NULL);
- 	if (unlikely(ret < 0)) {
- 		printk(KERN_ERR MODNAME ": IRQ %d request failed\n",
- 		       HP680_BTN_IRQ);
- 		return ret;
- 	}
- 
--	apm_get_info = hp6x0_apm_get_info;
-+	apm_get_power_status = hp6x0_apm_get_power_status;
- 
- 	return ret;
- }
-@@ -111,7 +91,7 @@ static int __init hp6x0_apm_init(void)
- static void __exit hp6x0_apm_exit(void)
- {
- 	free_irq(HP680_BTN_IRQ, 0);
--	apm_get_info = 0;
-+	apm_get_info = NULL;
- }
- 
- module_init(hp6x0_apm_init);
-diff -puN arch/sh/kernel/Makefile~sh-convert-to-use-shared-apm-emulation arch/sh/kernel/Makefile
---- a/arch/sh/kernel/Makefile~sh-convert-to-use-shared-apm-emulation
-+++ a/arch/sh/kernel/Makefile
-@@ -20,6 +20,5 @@ obj-$(CONFIG_SH_CPU_FREQ)	+= cpufreq.o
- obj-$(CONFIG_MODULES)		+= module.o
- obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
- obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o
 -obj-$(CONFIG_APM)		+= apm.o
- obj-$(CONFIG_PM)		+= pm.o
- obj-$(CONFIG_STACKTRACE)	+= stacktrace.o
-diff -puN arch/sh/kernel/apm.c~sh-convert-to-use-shared-apm-emulation /dev/null
---- a/arch/sh/kernel/apm.c
-+++ /dev/null
-@@ -1,538 +0,0 @@
--/*
-- * bios-less APM driver for hp680
-- *
-- * Copyright 2005 (c) Andriy Skulysh <askulysh@gmail.com>
-- *
-- * based on ARM APM driver by
-- *  Jamey Hicks <jamey@crl.dec.com>
-- *
-- * adapted from the APM BIOS driver for Linux by
-- *  Stephen Rothwell (sfr@linuxcare.com)
-- *
-- * APM 1.2 Reference:
-- *   Intel Corporation, Microsoft Corporation. Advanced Power Management
-- *   (APM) BIOS Interface Specification, Revision 1.2, February 1996.
-- *
-- * [This document is available from Microsoft at:
-- *    http://www.microsoft.com/hwdev/busbios/amp_12.htm]
-- */
--#include <linux/module.h>
--#include <linux/poll.h>
--#include <linux/timer.h>
--#include <linux/slab.h>
--#include <linux/proc_fs.h>
--#include <linux/miscdevice.h>
--#include <linux/apm_bios.h>
--#include <linux/pm.h>
--#include <linux/pm_legacy.h>
+ obj-$(CONFIG_ISA_DMA_API)	+= dma.o
+ obj-$(CONFIG_ARCH_ACORN)	+= ecard.o 
+ obj-$(CONFIG_FIQ)		+= fiq.o
+diff -puN arch/arm/mach-pxa/corgi_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/mach-pxa/corgi_pm.c
+--- a/arch/arm/mach-pxa/corgi_pm.c~arm-convert-to-use-shared-apm-emulation
++++ a/arch/arm/mach-pxa/corgi_pm.c
+@@ -16,7 +16,7 @@
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
 -#include <asm/apm.h>
--
--#define MODNAME "apm"
--
--/*
-- * The apm_bios device is one of the misc char devices.
-- * This is its minor number.
-- */
--#define APM_MINOR_DEV			134
--
--/*
-- * Maximum number of events stored
-- */
--#define APM_MAX_EVENTS			16
--
--struct apm_queue {
--	unsigned int		event_head;
--	unsigned int		event_tail;
--	apm_event_t		events[APM_MAX_EVENTS];
--};
--
--/*
-- * The per-file APM data
-- */
--struct apm_user {
--	struct list_head	list;
--
--	unsigned int		suser: 1;
--	unsigned int		writer: 1;
--	unsigned int		reader: 1;
--
--	int			suspend_result;
--	unsigned int		suspend_state;
--#define SUSPEND_NONE	0		/* no suspend pending */
--#define SUSPEND_PENDING	1		/* suspend pending read */
--#define SUSPEND_READ	2		/* suspend read, pending ack */
--#define SUSPEND_ACKED	3		/* suspend acked */
--#define SUSPEND_DONE	4		/* suspend completed */
--
--	struct apm_queue	queue;
--};
--
--/*
-- * Local variables
-- */
--static int suspends_pending;
--
--static DECLARE_WAIT_QUEUE_HEAD(apm_waitqueue);
--static DECLARE_WAIT_QUEUE_HEAD(apm_suspend_waitqueue);
--
--/*
-- * This is a list of everyone who has opened /dev/apm_bios
-- */
--static DECLARE_RWSEM(user_list_lock);
--static LIST_HEAD(apm_user_list);
--
--/*
-- * kapmd info.  kapmd provides us a process context to handle
-- * "APM" events within - specifically necessary if we're going
-- * to be suspending the system.
-- */
--static DECLARE_WAIT_QUEUE_HEAD(kapmd_wait);
--static DECLARE_COMPLETION(kapmd_exit);
--static DEFINE_SPINLOCK(kapmd_queue_lock);
--static struct apm_queue kapmd_queue;
--
--int apm_suspended;
--EXPORT_SYMBOL(apm_suspended);
--
--/* Platform-specific apm_read_proc(). */
--int (*apm_get_info)(char *buf, char **start, off_t fpos, int length);
--EXPORT_SYMBOL(apm_get_info);
--
--/*
-- * APM event queue management.
-- */
--static inline int queue_empty(struct apm_queue *q)
--{
--	return q->event_head == q->event_tail;
--}
--
--static inline apm_event_t queue_get_event(struct apm_queue *q)
--{
--	q->event_tail = (q->event_tail + 1) % APM_MAX_EVENTS;
--	return q->events[q->event_tail];
--}
--
--static void queue_add_event(struct apm_queue *q, apm_event_t event)
--{
--	q->event_head = (q->event_head + 1) % APM_MAX_EVENTS;
--	if (q->event_head == q->event_tail) {
--		static int notified;
--
--		if (notified++ == 0)
--			printk(KERN_ERR "apm: an event queue overflowed\n");
--
--		q->event_tail = (q->event_tail + 1) % APM_MAX_EVENTS;
--	}
--	q->events[q->event_head] = event;
--}
--
--static void queue_event_one_user(struct apm_user *as, apm_event_t event)
--{
--	if (as->suser && as->writer) {
--		switch (event) {
--		case APM_SYS_SUSPEND:
--		case APM_USER_SUSPEND:
--			/*
--			 * If this user already has a suspend pending,
--			 * don't queue another one.
--			 */
--			if (as->suspend_state != SUSPEND_NONE)
--				return;
--
--			as->suspend_state = SUSPEND_PENDING;
--			suspends_pending++;
--			break;
--		}
--	}
--	queue_add_event(&as->queue, event);
--}
--
--static void queue_event(apm_event_t event, struct apm_user *sender)
--{
--	struct apm_user *as;
--
--	down_read(&user_list_lock);
--
--	list_for_each_entry(as, &apm_user_list, list)
--		if (as != sender && as->reader)
--			queue_event_one_user(as, event);
--
--	up_read(&user_list_lock);
--	wake_up_interruptible(&apm_waitqueue);
--}
--
--/**
-- * apm_queue_event - queue an APM event for kapmd
-- * @event: APM event
-- *
-- * Queue an APM event for kapmd to process and ultimately take the
-- * appropriate action.  Only a subset of events are handled:
-- *   %APM_LOW_BATTERY
-- *   %APM_POWER_STATUS_CHANGE
-- *   %APM_USER_SUSPEND
-- *   %APM_SYS_SUSPEND
-- *   %APM_CRITICAL_SUSPEND
-- */
--void apm_queue_event(apm_event_t event)
--{
--	spin_lock_irq(&kapmd_queue_lock);
--	queue_add_event(&kapmd_queue, event);
--	spin_unlock_irq(&kapmd_queue_lock);
--
--	wake_up_interruptible(&kapmd_wait);
--}
--EXPORT_SYMBOL(apm_queue_event);
--
--static void apm_suspend(void)
--{
--	struct apm_user *as;
--	int err;
--
--	apm_suspended = 1;
--	err = pm_suspend(PM_SUSPEND_MEM);
--
--	/*
--	 * Anyone on the APM queues will think we're still suspended.
--	 * Send a message so everyone knows we're now awake again.
--	 */
--	queue_event(APM_NORMAL_RESUME, NULL);
--
--	/*
--	 * Finally, wake up anyone who is sleeping on the suspend.
--	 */
--	down_read(&user_list_lock);
--	list_for_each_entry(as, &apm_user_list, list) {
--		as->suspend_result = err;
--		as->suspend_state = SUSPEND_DONE;
--	}
--	up_read(&user_list_lock);
--
--	wake_up(&apm_suspend_waitqueue);
--	apm_suspended = 0;
--}
--
--static ssize_t apm_read(struct file *fp, char __user *buf,
--			size_t count, loff_t *ppos)
--{
--	struct apm_user *as = fp->private_data;
--	apm_event_t event;
--	int i = count, ret = 0;
--
--	if (count < sizeof(apm_event_t))
--		return -EINVAL;
--
--	if (queue_empty(&as->queue) && fp->f_flags & O_NONBLOCK)
--		return -EAGAIN;
--
--	wait_event_interruptible(apm_waitqueue, !queue_empty(&as->queue));
--
--	while ((i >= sizeof(event)) && !queue_empty(&as->queue)) {
--		event = queue_get_event(&as->queue);
--
--		ret = -EFAULT;
--		if (copy_to_user(buf, &event, sizeof(event)))
--			break;
--
--		if (event == APM_SYS_SUSPEND || event == APM_USER_SUSPEND)
--			as->suspend_state = SUSPEND_READ;
--
--		buf += sizeof(event);
--		i -= sizeof(event);
--	}
--
--	if (i < count)
--		ret = count - i;
--
--	return ret;
--}
--
--static unsigned int apm_poll(struct file *fp, poll_table * wait)
--{
--	struct apm_user *as = fp->private_data;
--
--	poll_wait(fp, &apm_waitqueue, wait);
--	return queue_empty(&as->queue) ? 0 : POLLIN | POLLRDNORM;
--}
--
--/*
-- * apm_ioctl - handle APM ioctl
-- *
-- * APM_IOC_SUSPEND
-- *   This IOCTL is overloaded, and performs two functions.  It is used to:
-- *     - initiate a suspend
-- *     - acknowledge a suspend read from /dev/apm_bios.
-- *   Only when everyone who has opened /dev/apm_bios with write permission
-- *   has acknowledge does the actual suspend happen.
-- */
--static int
--apm_ioctl(struct inode * inode, struct file *filp, u_int cmd, u_long arg)
--{
--	struct apm_user *as = filp->private_data;
--	unsigned long flags;
--	int err = -EINVAL;
--
--	if (!as->suser || !as->writer)
--		return -EPERM;
--
--	switch (cmd) {
--	case APM_IOC_SUSPEND:
--		as->suspend_result = -EINTR;
--
--		if (as->suspend_state == SUSPEND_READ) {
--			/*
--			 * If we read a suspend command from /dev/apm_bios,
--			 * then the corresponding APM_IOC_SUSPEND ioctl is
--			 * interpreted as an acknowledge.
--			 */
--			as->suspend_state = SUSPEND_ACKED;
--			suspends_pending--;
--		} else {
--			/*
--			 * Otherwise it is a request to suspend the system.
--			 * Queue an event for all readers, and expect an
--			 * acknowledge from all writers who haven't already
--			 * acknowledged.
--			 */
--			queue_event(APM_USER_SUSPEND, as);
--		}
--
--		/*
--		 * If there are no further acknowledges required, suspend
--		 * the system.
--		 */
--		if (suspends_pending == 0)
--			apm_suspend();
--
--		/*
--		 * Wait for the suspend/resume to complete.  If there are
--		 * pending acknowledges, we wait here for them.
--		 *
--		 * Note that we need to ensure that the PM subsystem does
--		 * not kick us out of the wait when it suspends the threads.
--		 */
--		flags = current->flags;
--		current->flags |= PF_NOFREEZE;
--
--		/*
--		 * Note: do not allow a thread which is acking the suspend
--		 * to escape until the resume is complete.
--		 */
--		if (as->suspend_state == SUSPEND_ACKED)
--			wait_event(apm_suspend_waitqueue,
--					 as->suspend_state == SUSPEND_DONE);
--		else
--			wait_event_interruptible(apm_suspend_waitqueue,
--					 as->suspend_state == SUSPEND_DONE);
--
--		current->flags = flags;
--		err = as->suspend_result;
--		as->suspend_state = SUSPEND_NONE;
--		break;
--	}
--
--	return err;
--}
--
--static int apm_release(struct inode * inode, struct file * filp)
--{
--	struct apm_user *as = filp->private_data;
--	filp->private_data = NULL;
--
--	down_write(&user_list_lock);
--	list_del(&as->list);
--	up_write(&user_list_lock);
--
--	/*
--	 * We are now unhooked from the chain.  As far as new
--	 * events are concerned, we no longer exist.  However, we
--	 * need to balance suspends_pending, which means the
--	 * possibility of sleeping.
--	 */
--	if (as->suspend_state != SUSPEND_NONE) {
--		suspends_pending -= 1;
--		if (suspends_pending == 0)
--			apm_suspend();
--	}
--
--	kfree(as);
--	return 0;
--}
--
--static int apm_open(struct inode * inode, struct file * filp)
--{
--	struct apm_user *as;
--
--	as = kzalloc(sizeof(*as), GFP_KERNEL);
--	if (as) {
--		/*
--		 * XXX - this is a tiny bit broken, when we consider BSD
--		 * process accounting. If the device is opened by root, we
--		 * instantly flag that we used superuser privs. Who knows,
--		 * we might close the device immediately without doing a
--		 * privileged operation -- cevans
--		 */
--		as->suser = capable(CAP_SYS_ADMIN);
--		as->writer = (filp->f_mode & FMODE_WRITE) == FMODE_WRITE;
--		as->reader = (filp->f_mode & FMODE_READ) == FMODE_READ;
--
--		down_write(&user_list_lock);
--		list_add(&as->list, &apm_user_list);
--		up_write(&user_list_lock);
--
--		filp->private_data = as;
--	}
--
--	return as ? 0 : -ENOMEM;
--}
--
--static struct file_operations apm_bios_fops = {
--	.owner		= THIS_MODULE,
--	.read		= apm_read,
--	.poll		= apm_poll,
--	.ioctl		= apm_ioctl,
--	.open		= apm_open,
--	.release	= apm_release,
--};
--
--static struct miscdevice apm_device = {
--	.minor		= APM_MINOR_DEV,
--	.name		= "apm_bios",
--	.fops		= &apm_bios_fops
--};
--
--
--#ifdef CONFIG_PROC_FS
--/*
-- * Arguments, with symbols from linux/apm_bios.h.
-- *
-- *   0) Linux driver version (this will change if format changes)
-- *   1) APM BIOS Version.  Usually 1.0, 1.1 or 1.2.
-- *   2) APM flags from APM Installation Check (0x00):
-- *	bit 0: APM_16_BIT_SUPPORT
-- *	bit 1: APM_32_BIT_SUPPORT
-- *	bit 2: APM_IDLE_SLOWS_CLOCK
-- *	bit 3: APM_BIOS_DISABLED
-- *	bit 4: APM_BIOS_DISENGAGED
-- *   3) AC line status
-- *	0x00: Off-line
-- *	0x01: On-line
-- *	0x02: On backup power (BIOS >= 1.1 only)
-- *	0xff: Unknown
-- *   4) Battery status
-- *	0x00: High
-- *	0x01: Low
-- *	0x02: Critical
-- *	0x03: Charging
-- *	0x04: Selected battery not present (BIOS >= 1.2 only)
-- *	0xff: Unknown
-- *   5) Battery flag
-- *	bit 0: High
-- *	bit 1: Low
-- *	bit 2: Critical
-- *	bit 3: Charging
-- *	bit 7: No system battery
-- *	0xff: Unknown
-- *   6) Remaining battery life (percentage of charge):
-- *	0-100: valid
-- *	-1: Unknown
-- *   7) Remaining battery life (time units):
-- *	Number of remaining minutes or seconds
-- *	-1: Unknown
-- *   8) min = minutes; sec = seconds
-- */
--static int apm_read_proc(char *buf, char **start, off_t fpos, int length)
--{
--	if (likely(apm_get_info))
--		return apm_get_info(buf, start, fpos, length);
--
--	return -EINVAL;
--}
--#endif
--
--static int kapmd(void *arg)
--{
--	daemonize("kapmd");
--	current->flags |= PF_NOFREEZE;
--
--	do {
--		apm_event_t event;
--
--		wait_event_interruptible(kapmd_wait,
--				!queue_empty(&kapmd_queue) || !pm_active);
--
--		if (!pm_active)
--			break;
--
--		spin_lock_irq(&kapmd_queue_lock);
--		event = 0;
--		if (!queue_empty(&kapmd_queue))
--			event = queue_get_event(&kapmd_queue);
--		spin_unlock_irq(&kapmd_queue_lock);
--
--		switch (event) {
--		case 0:
--			break;
--
--		case APM_LOW_BATTERY:
--		case APM_POWER_STATUS_CHANGE:
--			queue_event(event, NULL);
--			break;
--
--		case APM_USER_SUSPEND:
--		case APM_SYS_SUSPEND:
--			queue_event(event, NULL);
--			if (suspends_pending == 0)
--				apm_suspend();
--			break;
--
--		case APM_CRITICAL_SUSPEND:
--			apm_suspend();
--			break;
--		}
--	} while (1);
--
--	complete_and_exit(&kapmd_exit, 0);
--}
--
--static int __init apm_init(void)
--{
--	int ret;
--
--	pm_active = 1;
--
--	ret = kernel_thread(kapmd, NULL, CLONE_KERNEL);
--	if (unlikely(ret < 0)) {
--		pm_active = 0;
--		return ret;
--	}
--
--	create_proc_info_entry("apm", 0, NULL, apm_read_proc);
--
--	ret = misc_register(&apm_device);
--	if (unlikely(ret != 0)) {
--		remove_proc_entry("apm", NULL);
--
--		pm_active = 0;
--		wake_up(&kapmd_wait);
--		wait_for_completion(&kapmd_exit);
--	}
--
--	return ret;
--}
--
--static void __exit apm_exit(void)
--{
--	misc_deregister(&apm_device);
--	remove_proc_entry("apm", NULL);
--
--	pm_active = 0;
--	wake_up(&kapmd_wait);
--	wait_for_completion(&kapmd_exit);
--}
--
--module_init(apm_init);
--module_exit(apm_exit);
--
--MODULE_AUTHOR("Stephen Rothwell, Andriy Skulysh");
--MODULE_DESCRIPTION("Advanced Power Management");
--MODULE_LICENSE("GPL");
-diff -puN include/asm-sh/apm.h~sh-convert-to-use-shared-apm-emulation /dev/null
---- a/include/asm-sh/apm.h
++#include <asm/apm-emulation.h>
+ #include <asm/irq.h>
+ #include <asm/mach-types.h>
+ #include <asm/hardware.h>
+diff -puN arch/arm/mach-pxa/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/mach-pxa/sharpsl_pm.c
+--- a/arch/arm/mach-pxa/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation
++++ a/arch/arm/mach-pxa/sharpsl_pm.c
+@@ -23,7 +23,7 @@
+ 
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+-#include <asm/apm.h>
++#include <asm/apm-emulation.h>
+ #include <asm/arch/pm.h>
+ #include <asm/arch/pxa-regs.h>
+ #include <asm/arch/sharpsl.h>
+diff -puN arch/arm/mach-pxa/spitz_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/mach-pxa/spitz_pm.c
+--- a/arch/arm/mach-pxa/spitz_pm.c~arm-convert-to-use-shared-apm-emulation
++++ a/arch/arm/mach-pxa/spitz_pm.c
+@@ -16,7 +16,7 @@
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+-#include <asm/apm.h>
++#include <asm/apm-emulation.h>
+ #include <asm/irq.h>
+ #include <asm/mach-types.h>
+ #include <asm/hardware.h>
+diff -puN include/asm-arm/apm.h~arm-convert-to-use-shared-apm-emulation /dev/null
+--- a/include/asm-arm/apm.h
 +++ /dev/null
-@@ -1,46 +0,0 @@
--/*
-- * Copyright 2006 (c) Andriy Skulysh <askulysh@gmail.com>
+@@ -1,64 +0,0 @@
+-/* -*- linux-c -*-
 - *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file "COPYING" in the main directory of this archive
-- * for more details.
+- * (C) 2003 zecke@handhelds.org
+- *
+- * GPL version 2
+- *
+- * based on arch/arm/kernel/apm.c
+- * factor out the information needed by architectures to provide
+- * apm status
+- *
 - *
 - */
+-#ifndef ARM_ASM_SA1100_APM_H
+-#define ARM_ASM_SA1100_APM_H
 -
--#ifndef __ASM_SH_APM_H
--#define __ASM_SH_APM_H
+-#include <linux/apm_bios.h>
 -
+-/*
+- * This structure gets filled in by the machine specific 'get_power_status'
+- * implementation.  Any fields which are not set default to a safe value.
+- */
+-struct apm_power_info {
+-	unsigned char	ac_line_status;
 -#define APM_AC_OFFLINE			0
 -#define APM_AC_ONLINE			1
 -#define APM_AC_BACKUP			2
 -#define APM_AC_UNKNOWN			0xff
 -
+-	unsigned char	battery_status;
 -#define APM_BATTERY_STATUS_HIGH		0
 -#define APM_BATTERY_STATUS_LOW		1
 -#define APM_BATTERY_STATUS_CRITICAL	2
@@ -780,10 +195,7 @@ diff -puN include/asm-sh/apm.h~sh-convert-to-use-shared-apm-emulation /dev/null
 -#define APM_BATTERY_STATUS_NOT_PRESENT	4
 -#define APM_BATTERY_STATUS_UNKNOWN	0xff
 -
--#define APM_BATTERY_LIFE_UNKNOWN	0xFFFF
--#define APM_BATTERY_LIFE_MINUTES	0x8000
--#define APM_BATTERY_LIFE_VALUE_MASK	0x7FFF
--
+-	unsigned char	battery_flag;
 -#define APM_BATTERY_FLAG_HIGH		(1 << 0)
 -#define APM_BATTERY_FLAG_LOW		(1 << 1)
 -#define APM_BATTERY_FLAG_CRITICAL	(1 << 2)
@@ -791,35 +203,69 @@ diff -puN include/asm-sh/apm.h~sh-convert-to-use-shared-apm-emulation /dev/null
 -#define APM_BATTERY_FLAG_NOT_PRESENT	(1 << 7)
 -#define APM_BATTERY_FLAG_UNKNOWN	0xff
 -
+-	int		battery_life;
+-	int		time;
+-	int		units;
 -#define APM_UNITS_MINS			0
 -#define APM_UNITS_SECS			1
 -#define APM_UNITS_UNKNOWN		-1
 -
+-};
 -
--extern int (*apm_get_info)(char *buf, char **start, off_t fpos, int length);
--extern int apm_suspended;
+-/*
+- * This allows machines to provide their own "apm get power status" function.
+- */
+-extern void (*apm_get_power_status)(struct apm_power_info *);
 -
+-/*
+- * Queue an event (APM_SYS_SUSPEND or APM_CRITICAL_SUSPEND)
+- */
 -void apm_queue_event(apm_event_t event);
 -
 -#endif
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch
-sh-vdso-use-install_special_mappingpatch.patch
-git-avr32.patch
-git-sh.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-remove-zone_dma-remains-from-sh-sh64.patch
+origin.patch
+git-dvb.patch
+git-mips.patch
+mips-dbg_io-stray-brackets-fix.patch
+mips-turbochannel-update-to-the-driver-model.patch
+mips-turbochannel-update-to-the-driver-model-fix.patch
+mips-turbochannel-support-for-the-decstation.patch
+mips-eisa-registration-with-config_eisa.patch
+mips-declance-driver-model-for-the-pmad-a.patch
+mips-defxx-turbochannel-support.patch
+mips-pmag-ba-fb-convert-to-the-driver-model.patch
+mips-pmagb-b-fb-convert-to-the-driver-model.patch
+mips-dec_esp-driver-model-for-the-pmaz-a.patch
+mips-remove-smp_tune_scheduling.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+xfs-remove-useless-wmb-memory-barrier.patch
+ioc3-ioc4-pci-mem-space-resources.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
 simplify-the-stacktrace-code.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
 add-shared-version-of-apm-emulation.patch
 arm-convert-to-use-shared-apm-emulation.patch
 mips-convert-to-use-shared-apm-emulation.patch
-sh-convert-to-use-shared-apm-emulation.patch
+clocksource-fixup-is_continous-changes-on-mips.patch
 dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-sh.patch
-dynamic-kernel-command-line-sh64.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
+dynamic-kernel-command-line-mips.patch
+dynamic-kernel-command-line-parisc.patch
+cyber2010-framebuffer-on-arm-netwinder-fix.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
+sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
+sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
+sysctl-mips-au1000-remove-sys_sysctl-support.patch
+sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
+sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
+sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
