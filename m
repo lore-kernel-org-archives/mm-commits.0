@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + uml-fix-style-violations.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:03:49 -0800
-Message-ID: <200701250603.l0P63nNN007587@shell0.pdx.osdl.net>
+Subject: + floppy-fix-jiffies-dependency.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:08:34 -0800
+Message-ID: <200701250608.l0P68YH3007656@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48795 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48971 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752118AbXAYGDw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:03:52 -0500
+	id S1752051AbXAYGIx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:08:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it
+Cc: sferriol@imag.fr
 
 
 The patch titled
-     uml: fix style violations
+     floppy: fix jiffies dependency
 has been added to the -mm tree.  Its filename is
-     uml-fix-style-violations.patch
+     floppy-fix-jiffies-dependency.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix style violations
-From: Jeff Dike <jdike@addtoit.com>
+Subject: floppy: fix jiffies dependency
+From: Sylvain Ferriol <sferriol@imag.fr>
 
-Fix a bunch of style violations in mem.c.
+=====
+BUG 1
+=====
 
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+bug_1 symptom:
+--------------
+sometimes after changing disk floppy, the mount command returns:
+$ mount -t ext2 /dev/fd0 /mnt
+mount: Mounting /dev/fd0 on/mnt failed: Invalid argument
+
+and the kernel floppy driver log is:
+kernel: floppy0: disk absent or changed during operation
+
+bug_1 description:
+------------------
+last_checked is the date (in jiffies) of the last disk check
+
+the mount process calls floppy_open which :
+- set last_checked to 0
+- calls check_floppy_change
+
+check_floppy_change checks disk only when last_checked + checkfreq >
+current_time(jiffies)
+it uses time_after jiffies macro: if(time_after(jiffies, (last_checked+checkfreq))
+but by setting last_checked to an absolute value (0) in floppy_open, check disk
+is done depending on the value of current time.
+and if jiffies = 0xffffffff, there is no check and the mount fails
+
+bug_1 solution:
+---------------
+a better way to force disk check in floppy_open is to set last_checked = jiffies
+- checkfreq - 1
+
+
+=====
+BUG 2
+=====
+
+bug_2 symptom:
+--------------
+if we activate debug (modprobe floppy floppy=debug), bug_1 does not appear.
+
+bug_2 decription:
+-----------------
+
+debug activates the following print:
+DPRINT("disk change line=%x\n", fd_inb(FD_DIR) & 0x80);
+
+as fd_inb returns that floppy has changed, the next call:
+if ((fd_inb(FD_DIR) ^ UDP->flags) & 0x80) {
+	returns always false
+	and it never detects if floppy has changed during operation => bug1 not detected
+	
+bug 2 solution:
+---------------
+char dir = 0;           /* digital input register */
+/* MUST be called only once for checking disk change */
+dir = fd_inb(FD_DIR);
+DPRINT("disk change line=%x\n", dir & 0x80);
+if ((dir ^ UDP->flags) & 0x80) {
+		
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/os-Linux/mem.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/block/floppy.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/os-Linux/mem.c~uml-fix-style-violations arch/um/os-Linux/mem.c
---- a/arch/um/os-Linux/mem.c~uml-fix-style-violations
-+++ a/arch/um/os-Linux/mem.c
-@@ -35,7 +35,8 @@ static void __init find_tempdir(void)
- 	int i;
- 	char *dir = NULL;
- 
--	if(tempdir != NULL) return;	/* We've already been called */
-+	if(tempdir != NULL) /* We've already been called */
-+		return;
- 	for(i = 0; dirs[i]; i++){
- 		dir = getenv(dirs[i]);
- 		if((dir != NULL) && (*dir != '\0'))
-@@ -193,7 +194,7 @@ int make_tempfile(const char *template, 
- 	} else {
- 		free(tempname);
+diff -puN drivers/block/floppy.c~floppy-fix-jiffies-dependency drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-fix-jiffies-dependency
++++ a/drivers/block/floppy.c
+@@ -733,6 +733,8 @@ static void reschedule_timeout(int drive
+ static int disk_change(int drive)
+ {
+ 	int fdc = FDC(drive);
++	char dir = 0;		/* digital input register */
++
+ #ifdef FLOPPY_SANITY_CHECK
+ 	if (time_before(jiffies, UDRS->select_date + UDP->select_delay))
+ 		DPRINT("WARNING disk change called early\n");
+@@ -744,17 +746,20 @@ static int disk_change(int drive)
  	}
--	return(fd);
-+	return fd;
- out:
- 	free(tempname);
- 	return -1;
-@@ -238,7 +239,7 @@ int create_tmp_file(unsigned long long l
- 		exit(1);
+ #endif
+ 
++	/* MUST be called only once for checking disk change */
++	dir = fd_inb(FD_DIR);
++
+ #ifdef DCL_DEBUG
+ 	if (UDP->flags & FD_DEBUG) {
+ 		DPRINT("checking disk change line for drive %d\n", drive);
+ 		DPRINT("jiffies=%lu\n", jiffies);
+-		DPRINT("disk change line=%x\n", fd_inb(FD_DIR) & 0x80);
++		DPRINT("disk change line=%x\n", dir & 0x80);
+ 		DPRINT("flags=%lx\n", UDRS->flags);
  	}
+ #endif
+ 	if (UDP->flags & FD_BROKEN_DCL)
+ 		return UTESTF(FD_DISK_CHANGED);
+-	if ((fd_inb(FD_DIR) ^ UDP->flags) & 0x80) {
++	if ((dir ^ UDP->flags) & 0x80) {
+ 		USETF(FD_VERIFY);	/* verify write protection */
+ 		if (UDRS->maxblock) {
+ 			/* mark it changed */
+@@ -3762,7 +3767,9 @@ static int floppy_open(struct inode *ino
  
--	return(fd);
-+	return fd;
- }
- 
- int create_mem_file(unsigned long long len)
-@@ -252,7 +253,7 @@ int create_mem_file(unsigned long long l
- 		errno = -err;
- 		perror("exec_close");
- 	}
--	return(fd);
-+	return fd;
- }
- 
- 
+ 	if (!(filp->f_flags & O_NDELAY)) {
+ 		if (filp->f_mode & 3) {
+-			UDRS->last_checked = 0;
++			/* Force check disk by putting the date of the last check
++			 * far enough in the past */
++			UDRS->last_checked = jiffies - UDP->checkfreq - 1;
+ 			check_disk_change(inode->i_bdev);
+ 			if (UTESTF(FD_DISK_CHANGED))
+ 				goto out;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
-
-fix-uml-on-non-standard-vm-split-hosts.patch
-uml-fix-mknod.patch
-uml-console-locking-fixes.patch
-uml-return-hotplug-errors-to-host.patch
-uml-console-whitespace-and-comment-tidying.patch
-uml-lock-the-irqs_to_free-list.patch
-uml-add-locking-to-network-transport-registration.patch
-uml-network-driver-whitespace-and-style-fixes.patch
-uml-watchdog-driver-locking.patch
-uml-watchdog-driver-formatting.patch
-uml-audio-driver-locking.patch
-uml-audio-driver-formatting.patch
-uml-mconsole-locking.patch
-uml-make-two-variables-static.patch
-uml-port-driver-formatting.patch
-uml-kill-a-compilation-warning.patch
-uml-network-driver-locking-and-code-cleanup.patch
-uml-use-list_head-where-possible.patch
-uml-locking-commentary-in-the-random-driver.patch
-uml-mostly-const-a-structure.patch
-uml-chan_userh-formatting-fices.patch
-uml-console-locking-commentary-and-code-cleanup.patch
-uml-fix-previous-console-locking.patch
-uml-locking-comments-in-iomem-driver.patch
-uml-memc-and-physmemc-formatting-fixes.patch
-uml-initialize-a-list-head.patch
-uml-make-time-data-per-cpu.patch
-uml-delete-unused-file.patch
-uml-remove-unused-variable-and-function.patch
-uml-make-signal-handlers-static.patch
-uml-const-a-variable.patch
-uml-remove-code-controlled-by-non-existent-config-option.patch
-uml-add-per-device-queues-and-locks-to-ubd-driver.patch
-uml-locking-fixes-in-the-ubd-driver.patch
-uml-locking-comments-in-memory-and-tempfile-code.patch
-uml-locking-comments-in-startup-code.patch
-uml-style-fixes-in-startup-code.patch
-uml-libc-dependent-code-should-call-libc-directly.patch
-uml-fix-style-violations.patch
-uml-fix-prototypes.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-um.patch
+Patches currently in -mm which might be from sferriol@imag.fr are
