@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + clocksource-add-verification-watchdog-helper-fix.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:36:15 -0800
-Message-ID: <200701250636.l0P6aFRr008315@shell0.pdx.osdl.net>
+Subject: + i386-remove-useless-code-in-tscc.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:35:53 -0800
+Message-ID: <200701250635.l0P6Zr7h008280@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50491 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50533 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965591AbXAYGkM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:40:12 -0500
+	id S965618AbXAYGlP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:41:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     clocksource: add verification (watchdog) helper, fix
+     i386 Remove useless code in tsc.c
 has been added to the -mm tree.  Its filename is
-     clocksource-add-verification-watchdog-helper-fix.patch
+     i386-remove-useless-code-in-tscc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource: add verification (watchdog) helper, fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: i386 Remove useless code in tsc.c
+From: Thomas Gleixner <tglx@linutronix.de>
 
-If a clocksource is being verified by the watchdog, but the watchdog
-clocksource is registered /after/ the possibly-unstable clocksource has been
-registered, then when we switch that clocksource into high-res capable mode we
-also need to propagate this fact to the rest of the system - so that it
-properly switches into high-res mode.
+The delayed work code in arch/i386/kernel/tsc.c is an unused leftover of the
+GTOD conversion. Remove it.
 
-this solves one particular system not entering high-res mode (but falling back
-to low-res mode) - with this patch it properly enters high-res mode:
-
- Switched to high resolution mode on CPU 0
- Switched to high resolution mode on CPU 1
- Switched to high resolution mode on CPU 2
- Switched to high resolution mode on CPU 3
-
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/clocksource.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ arch/i386/kernel/tsc.c |   40 +--------------------------------------
+ 1 file changed, 2 insertions(+), 38 deletions(-)
 
-diff -puN kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix
-+++ a/kernel/time/clocksource.c
-@@ -28,6 +28,7 @@
- #include <linux/sysdev.h>
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/tick.h>
+diff -puN arch/i386/kernel/tsc.c~i386-remove-useless-code-in-tscc arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~i386-remove-useless-code-in-tscc
++++ a/arch/i386/kernel/tsc.c
+@@ -222,34 +222,6 @@ out_no_tsc:
  
- /* XXX - Would like a better way for initializing curr_clocksource */
- extern struct clocksource clocksource_jiffies;
-@@ -106,8 +107,16 @@ static void clocksource_watchdog(unsigne
- 		/* Initialized ? */
- 		if (!(cs->flags & CLOCK_SOURCE_WATCHDOG)) {
- 			if ((cs->flags & CLOCK_SOURCE_IS_CONTINUOUS) &&
--			    (watchdog->flags & CLOCK_SOURCE_IS_CONTINUOUS))
-+			    (watchdog->flags & CLOCK_SOURCE_IS_CONTINUOUS)) {
- 				cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
-+				/*
-+				 * We just marked the clocksource as
-+				 * highres-capable, notify the rest of the
-+				 * system as well so that we transition
-+				 * into high-res mode:
-+				 */
-+				tick_clock_notify();
-+			}
- 			cs->flags |= CLOCK_SOURCE_WATCHDOG;
- 			cs->wd_last = csnow;
- 		} else {
+ #ifdef CONFIG_CPU_FREQ
+ 
+-static unsigned int cpufreq_delayed_issched = 0;
+-static unsigned int cpufreq_init = 0;
+-static struct work_struct cpufreq_delayed_get_work;
+-
+-static void handle_cpufreq_delayed_get(struct work_struct *work)
+-{
+-	unsigned int cpu;
+-
+-	for_each_online_cpu(cpu)
+-		cpufreq_get(cpu);
+-
+-	cpufreq_delayed_issched = 0;
+-}
+-
+-/*
+- * if we notice cpufreq oddness, schedule a call to cpufreq_get() as it tries
+- * to verify the CPU frequency the timing core thinks the CPU is running
+- * at is still correct.
+- */
+-static inline void cpufreq_delayed_get(void)
+-{
+-	if (cpufreq_init && !cpufreq_delayed_issched) {
+-		cpufreq_delayed_issched = 1;
+-		printk(KERN_DEBUG "Checking if CPU frequency changed.\n");
+-		schedule_work(&cpufreq_delayed_get_work);
+-	}
+-}
+-
+ /*
+  * if the CPU frequency is scaled, TSC-based delays will need a different
+  * loops_per_jiffy value to function properly.
+@@ -313,17 +285,9 @@ static struct notifier_block time_cpufre
+ 
+ static int __init cpufreq_tsc(void)
+ {
+-	int ret;
+-
+-	INIT_WORK(&cpufreq_delayed_get_work, handle_cpufreq_delayed_get);
+-	ret = cpufreq_register_notifier(&time_cpufreq_notifier_block,
+-					CPUFREQ_TRANSITION_NOTIFIER);
+-	if (!ret)
+-		cpufreq_init = 1;
+-
+-	return ret;
++	return cpufreq_register_notifier(&time_cpufreq_notifier_block,
++					 CPUFREQ_TRANSITION_NOTIFIER);
+ }
+-
+ core_initcall(cpufreq_tsc);
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-kvm-add-vm-exit-profiling-fix.patch
-revert-nmi_known_cpu-check-during-boot-option-parsing.patch
-paravirt-mark-the-paravirt_ops-export-internal.patch
-kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
-kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
-kvm-x86-emulator-fix-bit-string-instructions.patch
-kvm-fix-bogus-pagefault-on-writable-pages.patch
-fix-config_compat_vdso.patch
-fix-gate_vmavm_flags.patch
-add-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump-tidy.patch
-x86_64-ia32-vdso-use-vm_alwaysdump.patch
-powerpc-vdso-use-vm_alwaysdump.patch
-x86_64-ia32-vdso-define-arch_vma_name.patch
-acpi-fix-cpufreq-regression.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-fix-for-crash-in-adummy_init.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
+origin.patch
+git-block.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-simplify-the-stacktrace-code.patch
-audit-fix-audit_filter_user_rules-initialization-bug.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 hz-free-ntp.patch
@@ -170,7 +149,6 @@ clockevents-i383-drivers.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
 i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
 hrtimers-add-high-resolution-timer-support.patch
 hrtimers-prevent-possible-itimer-dos.patch
 add-debugging-feature-proc-timer_stat.patch
@@ -189,35 +167,8 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
 make-good_sigevent-non-static.patch
 aio-completion-signal-notification.patch
-sched-avoid-div-in-rebalance_tick.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
 scheduled-removal-of-sa_xxx-interrupt-flags.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
