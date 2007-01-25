@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-ppc.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:09:05 -0800
-Message-ID: <200701250509.l0P595nO006543@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-sh.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:09:09 -0800
+Message-ID: <200701250509.l0P59ATP006549@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47152 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47192 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965301AbXAYFJJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:09:09 -0500
+	id S965312AbXAYFJO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:09:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: alon.barlev@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     Dynamic kernel command-line: ppc
+     Dynamic kernel command-line: sh
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-ppc.patch
+     dynamic-kernel-command-line-sh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,80 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: ppc
+Subject: Dynamic kernel command-line: sh
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
-Rename saved_command_line into boot_command_line.
+1. Rename saved_command_line into boot_command_line.
+2. Set command_line as __initdata.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ppc/kernel/setup.c         |    2 +-
- arch/ppc/platforms/lopec.c      |    2 +-
- arch/ppc/platforms/pplus.c      |    2 +-
- arch/ppc/platforms/prep_setup.c |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/sh/kernel/setup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/ppc/kernel/setup.c~dynamic-kernel-command-line-ppc arch/ppc/kernel/setup.c
---- a/arch/ppc/kernel/setup.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/kernel/setup.c
-@@ -543,7 +543,7 @@ void __init setup_arch(char **cmdline_p)
- 	init_mm.brk = (unsigned long) klimit;
+diff -puN arch/sh/kernel/setup.c~dynamic-kernel-command-line-sh arch/sh/kernel/setup.c
+--- a/arch/sh/kernel/setup.c~dynamic-kernel-command-line-sh
++++ a/arch/sh/kernel/setup.c
+@@ -75,7 +75,7 @@ static struct sh_machine_vector* __init 
+ #define RAMDISK_PROMPT_FLAG		0x8000
+ #define RAMDISK_LOAD_FLAG		0x4000
+ 
+-static char command_line[COMMAND_LINE_SIZE] = { 0, };
++static char __initdata command_line[COMMAND_LINE_SIZE] = { 0, };
+ 
+ static struct resource code_resource = { .name = "Kernel code", };
+ static struct resource data_resource = { .name = "Kernel data", };
+@@ -90,8 +90,8 @@ static inline void parse_cmdline (char *
+ 	int len = 0;
  
  	/* Save unparsed command line copy for /proc/cmdline */
--	strlcpy(saved_command_line, cmd_line, COMMAND_LINE_SIZE);
-+	strlcpy(boot_command_line, cmd_line, COMMAND_LINE_SIZE);
- 	*cmdline_p = cmd_line;
+-	memcpy(saved_command_line, COMMAND_LINE, COMMAND_LINE_SIZE);
+-	saved_command_line[COMMAND_LINE_SIZE-1] = '\0';
++	memcpy(boot_command_line, COMMAND_LINE, COMMAND_LINE_SIZE);
++	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
  
- 	parse_early_param();
-diff -puN arch/ppc/platforms/lopec.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/lopec.c
---- a/arch/ppc/platforms/lopec.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/platforms/lopec.c
-@@ -344,7 +344,7 @@ lopec_setup_arch(void)
- 		 if (bootargs != NULL) {
- 			 strcpy(cmd_line, bootargs);
- 			 /* again.. */
--			 strcpy(saved_command_line, cmd_line);
-+			 strcpy(boot_command_line, cmd_line);
- 		}
- 	}
- #endif
-diff -puN arch/ppc/platforms/pplus.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/pplus.c
---- a/arch/ppc/platforms/pplus.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/platforms/pplus.c
-@@ -592,7 +592,7 @@ static void __init pplus_setup_arch(void
- 		if (bootargs != NULL) {
- 			strcpy(cmd_line, bootargs);
- 			/* again.. */
--			strcpy(saved_command_line, cmd_line);
-+			strcpy(boot_command_line, cmd_line);
- 		}
- 	}
- #endif
-diff -puN arch/ppc/platforms/prep_setup.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/prep_setup.c
---- a/arch/ppc/platforms/prep_setup.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/platforms/prep_setup.c
-@@ -634,7 +634,7 @@ static void __init prep_init_sound(void)
- 	/*
- 	 * Find a way to push these informations to the cs4232 driver
- 	 * Give it out with printk, when not in cmd_line?
--	 * Append it to  cmd_line and saved_command_line?
-+	 * Append it to  cmd_line and boot_command_line?
- 	 * Format is cs4232=io,irq,dma,dma2
- 	 */
- }
-@@ -897,7 +897,7 @@ prep_setup_arch(void)
- 		 if (bootargs != NULL) {
- 			 strcpy(cmd_line, bootargs);
- 			 /* again.. */
--			 strcpy(saved_command_line, cmd_line);
-+			 strcpy(boot_command_line, cmd_line);
- 		}
- 	}
- 
+ 	memory_start = (unsigned long)PAGE_OFFSET+__MEMORY_START;
+ 	memory_end = memory_start + __MEMORY_SIZE;
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
