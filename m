@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + kprobes-replace-magic-numbers-with-enum.patch added to -mm tree
-Date: Thu, 25 Jan 2007 15:17:49 -0800
-Message-ID: <200701252317.l0PNHnk9001418@shell0.pdx.osdl.net>
+Subject: + mtd_ck804xrom-must-depend-on-pci.patch added to -mm tree
+Date: Thu, 25 Jan 2007 15:15:17 -0800
+Message-ID: <200701252315.l0PNFHN5001372@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34974 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34994 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030493AbXAYXSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 18:18:00 -0500
+	id S1030499AbXAYXSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 18:18:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: masami.hiramatsu.pt@hitachi.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com
+Cc: bunk@stusta.de, dwmw2@infradead.org, rjackson@lnxi.com
 
 
 The patch titled
-     kprobe: replace magic numbers with enum
+     MTD_CK804XROM must depend on PCI
 has been added to the -mm tree.  Its filename is
-     kprobes-replace-magic-numbers-with-enum.patch
+     mtd_ck804xrom-must-depend-on-pci.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kprobe: replace magic numbers with enum
-From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Subject: MTD_CK804XROM must depend on PCI
+From: Adrian Bunk <bunk@stusta.de>
 
-Replace the magic numbers with an enum, and gets rid of a warning on the
-specific architectures (ex.  powerpc) on which the compiler considers
-'char' as 'unsigned char'.
+CONFIG_MTD_CK804XROM=y, CONFIG_PCI=n results in the following compile
+error:
 
-Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+  CC      drivers/mtd/maps/ck804xrom.o
+/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c: In function 'ck804xrom_init_one':
+/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c:114: error: implicit declaration of function 'pci_dev_get'
+/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c:114: warning: assignment makes pointer from integer without a cast
+make[4]: *** [drivers/mtd/maps/ck804xrom.o] Error 1
+
+Considering what hardware this driver is driving, a dependency on PCI
+also seems logical.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ryan Jackson <rjackson@lnxi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/kprobes.c |   20 +++++++++++++-------
- 1 files changed, 13 insertions(+), 7 deletions(-)
+ drivers/mtd/maps/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kprobes.c~kprobes-replace-magic-numbers-with-enum kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-replace-magic-numbers-with-enum
-+++ a/kernel/kprobes.c
-@@ -87,6 +87,12 @@ struct kprobe_insn_page {
- 	int ngarbage;
- };
+diff -puN drivers/mtd/maps/Kconfig~mtd_ck804xrom-must-depend-on-pci drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd_ck804xrom-must-depend-on-pci
++++ a/drivers/mtd/maps/Kconfig
+@@ -204,7 +204,7 @@ config MTD_ESB2ROM
  
-+enum kprobe_slot_state {
-+	SLOT_CLEAN = 0,
-+	SLOT_DIRTY = 1,
-+	SLOT_USED = 2,
-+};
-+
- static struct hlist_head kprobe_insn_pages;
- static int kprobe_garbage_slots;
- static int collect_garbage_slots(void);
-@@ -130,8 +136,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 		if (kip->nused < INSNS_PER_PAGE) {
- 			int i;
- 			for (i = 0; i < INSNS_PER_PAGE; i++) {
--				if (!kip->slot_used[i]) {
--					kip->slot_used[i] = 1;
-+				if (kip->slot_used[i] == SLOT_CLEAN) {
-+					kip->slot_used[i] = SLOT_USED;
- 					kip->nused++;
- 					return kip->insns + (i * MAX_INSN_SIZE);
- 				}
-@@ -163,8 +169,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 	}
- 	INIT_HLIST_NODE(&kip->hlist);
- 	hlist_add_head(&kip->hlist, &kprobe_insn_pages);
--	memset(kip->slot_used, 0, INSNS_PER_PAGE);
--	kip->slot_used[0] = 1;
-+	memset(kip->slot_used, SLOT_CLEAN, INSNS_PER_PAGE);
-+	kip->slot_used[0] = SLOT_USED;
- 	kip->nused = 1;
- 	kip->ngarbage = 0;
- 	return kip->insns;
-@@ -173,7 +179,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
- /* Return 1 if all garbages are collected, otherwise 0. */
- static int __kprobes collect_one_slot(struct kprobe_insn_page *kip, int idx)
- {
--	kip->slot_used[idx] = 0;
-+	kip->slot_used[idx] = SLOT_CLEAN;
- 	kip->nused--;
- 	if (kip->nused == 0) {
- 		/*
-@@ -212,7 +218,7 @@ static int __kprobes collect_garbage_slo
- 			continue;
- 		kip->ngarbage = 0;	/* we will collect all garbages */
- 		for (i = 0; i < INSNS_PER_PAGE; i++) {
--			if (kip->slot_used[i] == -1 &&
-+			if (kip->slot_used[i] == SLOT_DIRTY &&
- 			    collect_one_slot(kip, i))
- 				break;
- 		}
-@@ -232,7 +238,7 @@ void __kprobes free_insn_slot(kprobe_opc
- 		    slot < kip->insns + (INSNS_PER_PAGE * MAX_INSN_SIZE)) {
- 			int i = (slot - kip->insns) / MAX_INSN_SIZE;
- 			if (dirty) {
--				kip->slot_used[i] = -1;
-+				kip->slot_used[i] = SLOT_DIRTY;
- 				kip->ngarbage++;
- 			} else {
- 				collect_one_slot(kip, i);
+ config MTD_CK804XROM
+ 	tristate "BIOS flash chip on Nvidia CK804"
+-	depends on X86 && MTD_JEDECPROBE
++	depends on X86 && MTD_JEDECPROBE && PCI
+ 	help
+ 	  Support for treating the BIOS flash chip on nvidia motherboards
+ 	  as an MTD device - with this you can reprogram your BIOS.
 _
 
-Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-kprobes-replace-magic-numbers-with-enum.patch
+origin.patch
+knfsd-replace-some-warning-ins-nfsfhh-with-bug_on-or-warn_on.patch
+git-acpi.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+ia64-add-pci_get_legacy_ide_irq.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+git-mmc.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
+git-netdev-all.patch
+remove-one-remaining-define-bcm_tso-1.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+process-include-linux-if_addrlinkh-with-unifdef.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+usb_rtl8150-must-select-mii.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+more-ftape-removal.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
