@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: + char-mxser_new-do-not-null-driver_data.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:43:06 -0800
-Message-ID: <200701250543.l0P5h6Rg007090@shell0.pdx.osdl.net>
+Subject: + char-mxser_new-lock-count-and-flags.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:43:08 -0800
+Message-ID: <200701250543.l0P5h8FZ007093@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48013 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48014 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965351AbXAYFnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S965352AbXAYFnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 25 Jan 2007 00:43:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com, osv@javad.com
 
 
 The patch titled
-     Char: mxser_new, do not null driver_data
+     Char: mxser_new, lock count and flags
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-do-not-null-driver_data.patch
+     char-mxser_new-lock-count-and-flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, do not null driver_data
+Subject: Char: mxser_new, lock count and flags
 From: Jiri Slaby <jirislaby@gmail.com>
 
-driver_data are initialzed to NULL from tty layer, no need to do it in the
-driver.  In this case it cases oops, since driver_data may be NULL for a short
-while for another closing process.
+Both open count and INITIALIZED flag should be changed under lock.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: <osv@javad.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/char/mxser_new.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-do-not-null-driver_data drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-do-not-null-driver_data
+diff -puN drivers/char/mxser_new.c~char-mxser_new-lock-count-and-flags drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-lock-count-and-flags
 +++ a/drivers/char/mxser_new.c
-@@ -927,9 +927,6 @@ static int mxser_open(struct tty_struct 
+@@ -853,9 +853,9 @@ static int mxser_startup(struct mxser_po
+ 	 * and set the speed of the serial port
+ 	 */
+ 	mxser_change_speed(info, NULL);
++	info->flags |= ASYNC_INITIALIZED;
+ 	spin_unlock_irqrestore(&info->slock, flags);
+ 
+-	info->flags |= ASYNC_INITIALIZED;
+ 	return 0;
+ }
+ 
+@@ -925,6 +925,7 @@ static void mxser_shutdown(struct mxser_
+ static int mxser_open(struct tty_struct *tty, struct file *filp)
+ {
  	struct mxser_port *info;
++	unsigned long flags;
  	int retval, line;
  
--	/* initialize driver_data in case something fails */
--	tty->driver_data = NULL;
--
  	line = tty->index;
- 	if (line == MXSER_PORTS)
- 		return 0;
+@@ -941,7 +942,9 @@ static int mxser_open(struct tty_struct 
+ 	/*
+ 	 * Start up serial port
+ 	 */
++	spin_lock_irqsave(&info->slock, flags);
+ 	info->count++;
++	spin_unlock_irqrestore(&info->slock, flags);
+ 	retval = mxser_startup(info);
+ 	if (retval)
+ 		return retval;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
