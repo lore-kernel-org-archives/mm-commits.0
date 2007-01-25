@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + amba-pl010-add-reference-to-ep93xx-to-kconfig-help-entry.patch added to -mm tree
-Date: Wed, 24 Jan 2007 20:28:59 -0800
-Message-ID: <200701250428.l0P4SxE6005785@shell0.pdx.osdl.net>
+Subject: + uml-fix-mknod.patch added to -mm tree
+Date: Wed, 24 Jan 2007 20:30:52 -0800
+Message-ID: <200701250430.l0P4Uqag005837@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46203 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46316 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933204AbXAYE3Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 23:29:16 -0500
+	id S933209AbXAYEdF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 23:33:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: buytenh@wantstofly.org, rmk@arm.linux.org.uk
+Cc: js@linuxtv.org, blaisorblade@yahoo.it, jdike@addtoit.com, stable@kernel.org
 
 
 The patch titled
-     amba-pl010: add reference to ep93xx to Kconfig help entry
+     uml: fix mknod
 has been added to the -mm tree.  Its filename is
-     amba-pl010-add-reference-to-ep93xx-to-kconfig-help-entry.patch
+     uml-fix-mknod.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: amba-pl010: add reference to ep93xx to Kconfig help entry
-From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: uml: fix mknod
+From: Johannes Stezenbach <js@linuxtv.org>
 
-Signed-off-by: Lennert Buytenhek <buytenh@wantstofly.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Fix UML hostfs mknod(): userspace has differernt dev_t size and encoding
+than kernel, so extract major/minor and reencode using glibc makedev()
+macro.
+
+Signed-off-by: Johannes Stezenbach <js@linuxtv.org>
+Acked-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/serial/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/hostfs/hostfs.h      |    2 +-
+ fs/hostfs/hostfs_kern.c |    2 +-
+ fs/hostfs/hostfs_user.c |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/Kconfig~amba-pl010-add-reference-to-ep93xx-to-kconfig-help-entry drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~amba-pl010-add-reference-to-ep93xx-to-kconfig-help-entry
-+++ a/drivers/serial/Kconfig
-@@ -272,7 +272,8 @@ config SERIAL_AMBA_PL010
- 	select SERIAL_CORE
- 	help
- 	  This selects the ARM(R) AMBA(R) PrimeCell PL010 UART.  If you have
--	  an Integrator/AP or Integrator/PP2 platform, say Y or M here.
-+	  an Integrator/AP or Integrator/PP2 platform, or if you have a
-+	  Cirrus Logic EP93xx CPU, say Y or M here.
+diff -puN fs/hostfs/hostfs.h~uml-fix-mknod fs/hostfs/hostfs.h
+--- a/fs/hostfs/hostfs.h~uml-fix-mknod
++++ a/fs/hostfs/hostfs.h
+@@ -76,7 +76,7 @@ extern int make_symlink(const char *from
+ extern int unlink_file(const char *file);
+ extern int do_mkdir(const char *file, int mode);
+ extern int do_rmdir(const char *file);
+-extern int do_mknod(const char *file, int mode, int dev);
++extern int do_mknod(const char *file, int mode, unsigned int major, unsigned int minor);
+ extern int link_file(const char *from, const char *to);
+ extern int do_readlink(char *file, char *buf, int size);
+ extern int rename_file(char *from, char *to);
+diff -puN fs/hostfs/hostfs_kern.c~uml-fix-mknod fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~uml-fix-mknod
++++ a/fs/hostfs/hostfs_kern.c
+@@ -755,7 +755,7 @@ int hostfs_mknod(struct inode *dir, stru
+ 		goto out_put;
  
- 	  If unsure, say N.
+ 	init_special_inode(inode, mode, dev);
+-	err = do_mknod(name, mode, dev);
++	err = do_mknod(name, mode, MAJOR(dev), MINOR(dev));
+ 	if(err)
+ 		goto out_free;
  
+diff -puN fs/hostfs/hostfs_user.c~uml-fix-mknod fs/hostfs/hostfs_user.c
+--- a/fs/hostfs/hostfs_user.c~uml-fix-mknod
++++ a/fs/hostfs/hostfs_user.c
+@@ -295,11 +295,11 @@ int do_rmdir(const char *file)
+ 	return(0);
+ }
+ 
+-int do_mknod(const char *file, int mode, int dev)
++int do_mknod(const char *file, int mode, unsigned int major, unsigned int minor)
+ {
+ 	int err;
+ 
+-	err = mknod(file, mode, dev);
++	err = mknod(file, mode, makedev(major, minor));
+ 	if(err) return(-errno);
+ 	return(0);
+ }
 _
 
-Patches currently in -mm which might be from buytenh@wantstofly.org are
+Patches currently in -mm which might be from js@linuxtv.org are
 
-amba-pl010-add-reference-to-ep93xx-to-kconfig-help-entry.patch
-git-arm.patch
+uml-fix-mknod.patch
