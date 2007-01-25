@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + simplify-the-registration-of-clocksources.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:35:55 -0800
-Message-ID: <200701250635.l0P6ZtYY008283@shell0.pdx.osdl.net>
+Subject: + clocksource-replace-is_continuous-by-a-flag-field.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:35:59 -0800
+Message-ID: <200701250635.l0P6ZxKq008289@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50213 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50241 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965553AbXAYGgZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:36:25 -0500
+	id S965553AbXAYGgd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:36:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.or
 
 
 The patch titled
-     Simplify the registration of clocksources
+     clocksource: replace is_continuous by a flag field
 has been added to the -mm tree.  Its filename is
-     simplify-the-registration-of-clocksources.patch
+     clocksource-replace-is_continuous-by-a-flag-field.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,14 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Simplify the registration of clocksources
+Subject: clocksource: replace is_continuous by a flag field
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Enqueue clocksources in rating order to make selection of the
-clocksource easier. Also check the match with an user override
-at enqueue time.
-
-Preparatory patch for the generic clocksource verification.
+Using a flag filed allows to encode more than one information into a variable.
+ Preparatory patch for the generic clocksource verification.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
@@ -41,205 +38,146 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/clocksource.c |  118 +++++++++++++++++-------------------
- 1 file changed, 57 insertions(+), 61 deletions(-)
+ arch/i386/kernel/hpet.c          |    2 +-
+ arch/i386/kernel/tsc.c           |    7 +++++--
+ drivers/clocksource/acpi_pm.c    |    3 ++-
+ drivers/clocksource/cyclone.c    |    2 +-
+ drivers/clocksource/scx200_hrt.c |    2 +-
+ include/linux/clocksource.h      |   10 ++++++++--
+ kernel/time/jiffies.c            |    1 -
+ kernel/timer.c                   |    2 +-
+ 8 files changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN kernel/time/clocksource.c~simplify-the-registration-of-clocksources kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~simplify-the-registration-of-clocksources
-+++ a/kernel/time/clocksource.c
-@@ -47,6 +47,7 @@ extern struct clocksource clocksource_ji
-  */
- static struct clocksource *curr_clocksource = &clocksource_jiffies;
- static struct clocksource *next_clocksource;
-+static struct clocksource *clocksource_override;
- static LIST_HEAD(clocksource_list);
- static DEFINE_SPINLOCK(clocksource_lock);
- static char override_name[32];
-@@ -83,60 +84,46 @@ struct clocksource *clocksource_get_next
- }
+diff -puN arch/i386/kernel/hpet.c~clocksource-replace-is_continuous-by-a-flag-field arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~clocksource-replace-is_continuous-by-a-flag-field
++++ a/arch/i386/kernel/hpet.c
+@@ -26,7 +26,7 @@ static struct clocksource clocksource_hp
+ 	.mask		= HPET_MASK,
+ 	.mult		= 0, /* set below */
+ 	.shift		= HPET_SHIFT,
+-	.is_continuous	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
  
- /**
-- * select_clocksource - Finds the best registered clocksource.
-+ * select_clocksource - Selects the best registered clocksource.
-  *
-  * Private function. Must hold clocksource_lock when called.
-  *
-- * Looks through the list of registered clocksources, returning
-- * the one with the highest rating value. If there is a clocksource
-- * name that matches the override string, it returns that clocksource.
-+ * Select the clocksource with the best rating, or the clocksource,
-+ * which is selected by userspace override.
-  */
- static struct clocksource *select_clocksource(void)
- {
--	struct clocksource *best = NULL;
--	struct list_head *tmp;
--
--	list_for_each(tmp, &clocksource_list) {
--		struct clocksource *src;
-+	if (list_empty(&clocksource_list))
-+		return NULL;
+ static int __init init_hpet_clocksource(void)
+diff -puN arch/i386/kernel/tsc.c~clocksource-replace-is_continuous-by-a-flag-field arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~clocksource-replace-is_continuous-by-a-flag-field
++++ a/arch/i386/kernel/tsc.c
+@@ -314,7 +314,8 @@ static struct clocksource clocksource_ts
+ 	.mult			= 0, /* to be set */
+ 	.shift			= 22,
+ 	.update_callback	= tsc_update_callback,
+-	.is_continuous		= 1,
++	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
++				  CLOCK_SOURCE_MUST_VERIFY,
+ };
  
--		src = list_entry(tmp, struct clocksource, list);
--		if (!best)
--			best = src;
--
--		/* check for override: */
--		if (strlen(src->name) == strlen(override_name) &&
--		    !strcmp(src->name, override_name)) {
--			best = src;
--			break;
--		}
--		/* pick the highest rating: */
--		if (src->rating > best->rating)
--		 	best = src;
--	}
-+	if (clocksource_override)
-+		return clocksource_override;
- 
--	return best;
-+	return list_entry(clocksource_list.next, struct clocksource, list);
- }
- 
--/**
-- * is_registered_source - Checks if clocksource is registered
-- * @c:		pointer to a clocksource
-- *
-- * Private helper function. Must hold clocksource_lock when called.
-- *
-- * Returns one if the clocksource is already registered, zero otherwise.
-+/*
-+ * Enqueue the clocksource sorted by rating
-  */
--static int is_registered_source(struct clocksource *c)
-+static int clocksource_enqueue(struct clocksource *c)
- {
--	int len = strlen(c->name);
--	struct list_head *tmp;
-+	struct list_head *tmp, *entry = &clocksource_list;
- 
- 	list_for_each(tmp, &clocksource_list) {
--		struct clocksource *src;
-+		struct clocksource *cs;
- 
--		src = list_entry(tmp, struct clocksource, list);
--		if (strlen(src->name) == len &&	!strcmp(src->name, c->name))
--			return 1;
-+		cs = list_entry(tmp, struct clocksource, list);
-+		if (cs == c)
-+			return -EBUSY;
-+		/* Keep track of the place, where to insert */
-+		if (cs->rating >= c->rating)
-+			entry = tmp;
- 	}
-+	list_add(&c->list, entry);
-+
-+	if (strlen(c->name) == strlen(override_name) &&
-+	    !strcmp(c->name, override_name))
-+		clocksource_override = c;
- 
- 	return 0;
- }
-@@ -149,42 +136,32 @@ static int is_registered_source(struct c
-  */
- int clocksource_register(struct clocksource *c)
- {
--	int ret = 0;
- 	unsigned long flags;
-+	int ret = 0;
- 
- 	spin_lock_irqsave(&clocksource_lock, flags);
--	/* check if clocksource is already registered */
--	if (is_registered_source(c)) {
--		printk("register_clocksource: Cannot register %s. "
--		       "Already registered!", c->name);
--		ret = -EBUSY;
--	} else {
--		/* register it */
-- 		list_add(&c->list, &clocksource_list);
--		/* scan the registered clocksources, and pick the best one */
-+	ret = clocksource_enqueue(c);
-+	if (!ret)
- 		next_clocksource = select_clocksource();
--	}
- 	spin_unlock_irqrestore(&clocksource_lock, flags);
- 	return ret;
- }
- EXPORT_SYMBOL(clocksource_register);
- 
- /**
-- * clocksource_reselect - Rescan list for next clocksource
-+ * clocksource_change_rating - Change the rating of a registered clocksource
-  *
-- * A quick helper function to be used if a clocksource changes its
-- * rating. Forces the clocksource list to be re-scanned for the best
-- * clocksource.
-  */
--void clocksource_reselect(void)
-+void clocksource_change_rating(struct clocksource *cs, int rating)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&clocksource_lock, flags);
-+	list_del(&cs->list);
-+	clocksource_enqueue(cs);
- 	next_clocksource = select_clocksource();
- 	spin_unlock_irqrestore(&clocksource_lock, flags);
- }
--EXPORT_SYMBOL(clocksource_reselect);
- 
- #ifdef CONFIG_SYSFS
- /**
-@@ -220,7 +197,11 @@ sysfs_show_current_clocksources(struct s
- static ssize_t sysfs_override_clocksource(struct sys_device *dev,
- 					  const char *buf, size_t count)
- {
-+	struct clocksource *ovr = NULL;
-+	struct list_head *tmp;
- 	size_t ret = count;
-+	int len;
-+
- 	/* strings from sysfs write are not 0 terminated! */
- 	if (count >= sizeof(override_name))
- 		return -EINVAL;
-@@ -228,17 +209,32 @@ static ssize_t sysfs_override_clocksourc
- 	/* strip of \n: */
- 	if (buf[count-1] == '\n')
- 		count--;
--	if (count < 1)
--		return -EINVAL;
- 
- 	spin_lock_irq(&clocksource_lock);
- 
--	/* copy the name given: */
--	memcpy(override_name, buf, count);
-+	if (count > 0)
-+		memcpy(override_name, buf, count);
- 	override_name[count] = 0;
- 
--	/* try to select it: */
--	next_clocksource = select_clocksource();
-+	len = strlen(override_name);
-+	if (len) {
-+		ovr = clocksource_override;
-+		/* try to select it: */
-+		list_for_each(tmp, &clocksource_list) {
-+			struct clocksource *cs;
-+
-+			cs = list_entry(tmp, struct clocksource, list);
-+			if (strlen(cs->name) == len &&
-+			    !strcmp(cs->name, override_name))
-+				ovr = cs;
+ static int tsc_update_callback(void)
+@@ -435,8 +436,10 @@ static int __init init_tsc_clocksource(v
+ 		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
+ 							clocksource_tsc.shift);
+ 		/* lower the rating if we already know its unstable: */
+-		if (check_tsc_unstable())
++		if (check_tsc_unstable()) {
+ 			clocksource_tsc.rating = 0;
++			clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
 +		}
-+	}
-+
-+	/* Reselect, when the override name has changed */
-+	if (ovr != clocksource_override) {
-+		clocksource_override = ovr;
-+		next_clocksource = select_clocksource();
-+	}
  
- 	spin_unlock_irq(&clocksource_lock);
+ 		init_timer(&verify_tsc_freq_timer);
+ 		verify_tsc_freq_timer.function = verify_tsc_freq;
+diff -puN drivers/clocksource/acpi_pm.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~clocksource-replace-is_continuous-by-a-flag-field
++++ a/drivers/clocksource/acpi_pm.c
+@@ -72,7 +72,8 @@ static struct clocksource clocksource_ac
+ 	.mask		= (cycle_t)ACPI_PM_MASK,
+ 	.mult		= 0, /*to be caluclated*/
+ 	.shift		= 22,
+-	.is_continuous	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++
+ };
+ 
+ 
+diff -puN drivers/clocksource/cyclone.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/cyclone.c
+--- a/drivers/clocksource/cyclone.c~clocksource-replace-is_continuous-by-a-flag-field
++++ a/drivers/clocksource/cyclone.c
+@@ -31,7 +31,7 @@ static struct clocksource clocksource_cy
+ 	.mask		= CYCLONE_TIMER_MASK,
+ 	.mult		= 10,
+ 	.shift		= 0,
+-	.is_continuous	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+ static int __init init_cyclone_clocksource(void)
+diff -puN drivers/clocksource/scx200_hrt.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/scx200_hrt.c
+--- a/drivers/clocksource/scx200_hrt.c~clocksource-replace-is_continuous-by-a-flag-field
++++ a/drivers/clocksource/scx200_hrt.c
+@@ -57,7 +57,7 @@ static struct clocksource cs_hrt = {
+ 	.rating		= 250,
+ 	.read		= read_hrt,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.is_continuous	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ 	/* mult, shift are set based on mhz27 flag */
+ };
+ 
+diff -puN include/linux/clocksource.h~clocksource-replace-is_continuous-by-a-flag-field include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-replace-is_continuous-by-a-flag-field
++++ a/include/linux/clocksource.h
+@@ -45,7 +45,7 @@ typedef u64 cycle_t;
+  * @mult:		cycle to nanosecond multiplier
+  * @shift:		cycle to nanosecond divisor (power of two)
+  * @update_callback:	called when safe to alter clocksource values
+- * @is_continuous:	defines if clocksource is free-running.
++ * @flags:		flags describing special properties
+  * @cycle_interval:	Used internally by timekeeping core, please ignore.
+  * @xtime_interval:	Used internally by timekeeping core, please ignore.
+  */
+@@ -58,7 +58,7 @@ struct clocksource {
+ 	u32 mult;
+ 	u32 shift;
+ 	int (*update_callback)(void);
+-	int is_continuous;
++	unsigned long flags;
+ 
+ 	/* timekeeping specific data, ignore */
+ 	cycle_t cycle_last, cycle_interval;
+@@ -66,6 +66,12 @@ struct clocksource {
+ 	s64 error;
+ };
+ 
++/*
++ * Clock source flags bits::
++ */
++#define CLOCK_SOURCE_IS_CONTINUOUS	0x01
++#define CLOCK_SOURCE_MUST_VERIFY	0x02
++
+ /* simplify initialization of mask field */
+ #define CLOCKSOURCE_MASK(bits) (cycle_t)(bits<64 ? ((1ULL<<bits)-1) : -1)
+ 
+diff -puN kernel/time/jiffies.c~clocksource-replace-is_continuous-by-a-flag-field kernel/time/jiffies.c
+--- a/kernel/time/jiffies.c~clocksource-replace-is_continuous-by-a-flag-field
++++ a/kernel/time/jiffies.c
+@@ -62,7 +62,6 @@ struct clocksource clocksource_jiffies =
+ 	.mask		= 0xffffffff, /*32bits*/
+ 	.mult		= NSEC_PER_JIFFY << JIFFIES_SHIFT, /* details above */
+ 	.shift		= JIFFIES_SHIFT,
+-	.is_continuous	= 0, /* tick based, not free running */
+ };
+ 
+ static int __init init_jiffies_clocksource(void)
+diff -puN kernel/timer.c~clocksource-replace-is_continuous-by-a-flag-field kernel/timer.c
+--- a/kernel/timer.c~clocksource-replace-is_continuous-by-a-flag-field
++++ a/kernel/timer.c
+@@ -871,7 +871,7 @@ int timekeeping_is_continuous(void)
+ 	do {
+ 		seq = read_seqbegin(&xtime_lock);
+ 
+-		ret = clock->is_continuous;
++		ret = clock->flags & CLOCK_SOURCE_IS_CONTINUOUS;
+ 
+ 	} while (read_seqretry(&xtime_lock, seq));
  
 _
 
