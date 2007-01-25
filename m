@@ -1,83 +1,68 @@
 From: akpm@osdl.org
-Subject: + minimize-lockdep_on-off-side-effect.patch added to -mm tree
-Date: Thu, 25 Jan 2007 00:15:06 -0800
-Message-ID: <200701250815.l0P8F6SV009981@shell0.pdx.osdl.net>
+Subject: + add-listio-syscall-support-fix.patch added to -mm tree
+Date: Thu, 25 Jan 2007 00:20:29 -0800
+Message-ID: <200701250820.l0P8KT5v010067@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53517 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53732 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965696AbXAYIP0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 03:15:26 -0500
+	id S965702AbXAYIUl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 03:20:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: compudj@krystal.dyndns.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu
+Cc: bharata@in.ibm.com, laurent.vivier@bull.net, sebastien.dugue@bull.net
 
 
 The patch titled
-     minimize lockdep_on/off side-effect
+     add-listio-syscall-support fix
 has been added to the -mm tree.  Its filename is
-     minimize-lockdep_on-off-side-effect.patch
+     add-listio-syscall-support-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: minimize lockdep_on/off side-effect
-From: Mathieu Desnoyers <compudj@krystal.dyndns.org>
+Subject: add-listio-syscall-support fix
+=46rom: Bharata B Rao <bharata@in.ibm.com>
 
-Minimize lockdep_on/off side-effect on irq tracing in vprintk by using
-raw_local_irq_save/restore _around_ lockdep_off/on().
+=46ixes a ioctx reference leak in compat_sys_lio_submit().
 
-It has the advantage of not losing the IRQ events coming between the lockdep
-disabling and the irq disabling.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Bharata B Rao <bharata@in.ibm.com>
+Cc: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
+Cc: Laurent Vivier <laurent.vivier@bull.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/printk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/compat.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk.c~minimize-lockdep_on-off-side-effect kernel/printk.c
---- a/kernel/printk.c~minimize-lockdep_on-off-side-effect
-+++ a/kernel/printk.c
-@@ -529,8 +529,8 @@ asmlinkage int vprintk(const char *fmt, 
- 		zap_locks();
- 
- 	/* This stops the holder of console_sem just where we want him */
-+	raw_local_irq_save(flags);
- 	lockdep_off();
--	local_irq_save(flags);
- 	spin_lock(&logbuf_lock);
- 	printk_cpu = smp_processor_id();
- 
-@@ -617,8 +617,8 @@ asmlinkage int vprintk(const char *fmt, 
- 			console_locked = 0;
- 			up(&console_sem);
- 		}
--		local_irq_restore(flags);
- 		lockdep_on();
-+		raw_local_irq_restore(flags);
- 	} else {
- 		/*
- 		 * Someone else owns the drivers.  We drop the spinlock, which
-@@ -627,8 +627,8 @@ asmlinkage int vprintk(const char *fmt, 
- 		 */
- 		printk_cpu = UINT_MAX;
- 		spin_unlock(&logbuf_lock);
--		local_irq_restore(flags);
- 		lockdep_on();
-+		raw_local_irq_restore(flags);
+diff -puN fs/compat.c~add-listio-syscall-support-fix fs/compat.c
+--- a/fs/compat.c~add-listio-syscall-support-fix
++++ a/fs/compat.c
+@@ -749,8 +749,10 @@ compat_sys_lio_submit(aio_context_t ctx_
+ 		struct sigevent kevent;
+ 		event =3D compat_alloc_user_space(sizeof(struct sigevent));
+ 		if (get_compat_sigevent(&kevent, sig_user) ||
+-			copy_to_user(event, &kevent, sizeof(struct sigevent)))
+-			return -EFAULT;
++			copy_to_user(event, &kevent, sizeof(struct sigevent))) {
++				ret =3D -EFAULT;
++				goto out_put_ctx;
++		}
  	}
- 
- 	preempt_enable();
+=20
+ 	lio =3D lio_create(event, mode);
 _
 
-Patches currently in -mm which might be from compudj@krystal.dyndns.org are
+Patches currently in -mm which might be from bharata@in.ibm.com are
 
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
+add-listio-syscall-support.patch
+add-listio-syscall-support-fix.patch
