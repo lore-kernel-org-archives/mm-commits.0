@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + mtd_ck804xrom-must-depend-on-pci.patch added to -mm tree
-Date: Thu, 25 Jan 2007 15:15:17 -0800
-Message-ID: <200701252315.l0PNFHN5001372@shell0.pdx.osdl.net>
+Subject: + drivers-media-dvb-frontends-make-4-functions-static.patch added to -mm tree
+Date: Thu, 25 Jan 2007 15:16:13 -0800
+Message-ID: <200701252316.l0PNGD3P001386@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34994 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35032 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030499AbXAYXSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 18:18:46 -0500
+	id S1030244AbXAYXTd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 18:19:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dwmw2@infradead.org, rjackson@lnxi.com
+Cc: bunk@stusta.de, mchehab@infradead.org
 
 
 The patch titled
-     MTD_CK804XROM must depend on PCI
+     drivers/media/dvb/frontends/: make 4 functions static
 has been added to the -mm tree.  Its filename is
-     mtd_ck804xrom-must-depend-on-pci.patch
+     drivers-media-dvb-frontends-make-4-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MTD_CK804XROM must depend on PCI
+Subject: drivers/media/dvb/frontends/: make 4 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-CONFIG_MTD_CK804XROM=y, CONFIG_PCI=n results in the following compile
-error:
-
-  CC      drivers/mtd/maps/ck804xrom.o
-/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c: In function 'ck804xrom_init_one':
-/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c:114: error: implicit declaration of function 'pci_dev_get'
-/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c:114: warning: assignment makes pointer from integer without a cast
-make[4]: *** [drivers/mtd/maps/ck804xrom.o] Error 1
-
-Considering what hardware this driver is driving, a dependency on PCI
-also seems logical.
+This patch makes four needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Ryan Jackson <rjackson@lnxi.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mtd/maps/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/frontends/stv0299.c  |    2 +-
+ drivers/media/dvb/frontends/tda10021.c |    2 +-
+ drivers/media/dvb/frontends/tda1004x.c |    2 +-
+ drivers/media/dvb/frontends/zl10353.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mtd/maps/Kconfig~mtd_ck804xrom-must-depend-on-pci drivers/mtd/maps/Kconfig
---- a/drivers/mtd/maps/Kconfig~mtd_ck804xrom-must-depend-on-pci
-+++ a/drivers/mtd/maps/Kconfig
-@@ -204,7 +204,7 @@ config MTD_ESB2ROM
+diff -puN drivers/media/dvb/frontends/stv0299.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/stv0299.c
+--- a/drivers/media/dvb/frontends/stv0299.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/stv0299.c
+@@ -92,7 +92,7 @@ static int stv0299_writeregI (struct stv
+ 	return (ret != 1) ? -EREMOTEIO : 0;
+ }
  
- config MTD_CK804XROM
- 	tristate "BIOS flash chip on Nvidia CK804"
--	depends on X86 && MTD_JEDECPROBE
-+	depends on X86 && MTD_JEDECPROBE && PCI
- 	help
- 	  Support for treating the BIOS flash chip on nvidia motherboards
- 	  as an MTD device - with this you can reprogram your BIOS.
+-int stv0299_write(struct dvb_frontend* fe, u8 *buf, int len)
++static int stv0299_write(struct dvb_frontend* fe, u8 *buf, int len)
+ {
+ 	struct stv0299_state* state = fe->demodulator_priv;
+ 
+diff -puN drivers/media/dvb/frontends/tda10021.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/tda10021.c
+--- a/drivers/media/dvb/frontends/tda10021.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/tda10021.c
+@@ -201,7 +201,7 @@ static int tda10021_set_symbolrate (stru
+ 	return 0;
+ }
+ 
+-int tda10021_write(struct dvb_frontend* fe, u8 *buf, int len)
++static int tda10021_write(struct dvb_frontend* fe, u8 *buf, int len)
+ {
+ 	struct tda10021_state* state = fe->demodulator_priv;
+ 
+diff -puN drivers/media/dvb/frontends/tda1004x.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/tda1004x.c
+--- a/drivers/media/dvb/frontends/tda1004x.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/tda1004x.c
+@@ -579,7 +579,7 @@ static int tda1004x_decode_fec(int tdafe
+ 	return -1;
+ }
+ 
+-int tda1004x_write(struct dvb_frontend* fe, u8 *buf, int len)
++static int tda1004x_write(struct dvb_frontend* fe, u8 *buf, int len)
+ {
+ 	struct tda1004x_state* state = fe->demodulator_priv;
+ 
+diff -puN drivers/media/dvb/frontends/zl10353.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/zl10353.c
+--- a/drivers/media/dvb/frontends/zl10353.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/zl10353.c
+@@ -54,7 +54,7 @@ static int zl10353_single_write(struct d
+ 	return 0;
+ }
+ 
+-int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
++static int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
+ {
+ 	int err, i;
+ 	for (i = 0; i < ilen - 1; i++)
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -72,6 +100,7 @@ git-alsa.patch
 cpu_freq_table-shouldnt-be-a-def_tristate.patch
 drivers-char-drm-drm_mmc-remove-unused-exports.patch
 git-dvb.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
 git-gfs2-nmw.patch
 ia64-add-pci_get_legacy_ide_irq.patch
 git-ieee1394.patch
