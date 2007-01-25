@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + remove-unused-kernel-config-option-zisofs_fs.patch added to -mm tree
-Date: Wed, 24 Jan 2007 20:52:14 -0800
-Message-ID: <200701250452.l0P4qEcB006197@shell0.pdx.osdl.net>
+Subject: + remove-unused-kernel-config-option-x86_xadd.patch added to -mm tree
+Date: Wed, 24 Jan 2007 20:53:13 -0800
+Message-ID: <200701250453.l0P4rD1N006209@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46752 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933223AbXAYEwQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 23:52:16 -0500
+	id S933221AbXAYExV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 23:53:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: rpjday@mindspring.com, ak@muc.de
 
 
 The patch titled
-     Remove unused kernel config option ZISOFS_FS
+     Remove unused kernel config option X86_XADD
 has been added to the -mm tree.  Its filename is
-     remove-unused-kernel-config-option-zisofs_fs.patch
+     remove-unused-kernel-config-option-x86_xadd.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unused kernel config option ZISOFS_FS
+Subject: Remove unused kernel config option X86_XADD
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Remove the kernel config option ZISOFS_FS, since it appears that the actual
-option is simply ZISOFS.
+Remove the unused kernel config option X86_XADD, which is unused in any
+source or header file.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/Kconfig |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/i386/Kconfig.cpu |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/Kconfig~remove-unused-kernel-config-option-zisofs_fs fs/Kconfig
---- a/fs/Kconfig~remove-unused-kernel-config-option-zisofs_fs
-+++ a/fs/Kconfig
-@@ -675,12 +675,6 @@ config ZISOFS
- 	  necessary to create such a filesystem.  Say Y here if you want to be
- 	  able to read such compressed CD-ROMs.
+diff -puN arch/i386/Kconfig.cpu~remove-unused-kernel-config-option-x86_xadd arch/i386/Kconfig.cpu
+--- a/arch/i386/Kconfig.cpu~remove-unused-kernel-config-option-x86_xadd
++++ a/arch/i386/Kconfig.cpu
+@@ -226,11 +226,6 @@ config X86_CMPXCHG
+ 	depends on !M386
+ 	default y
  
--config ZISOFS_FS
--# for fs/nls/Config.in
--	tristate
--	depends on ZISOFS
--	default ISO9660_FS
+-config X86_XADD
+-	bool
+-	depends on !M386
+-	default y
 -
- config UDF_FS
- 	tristate "UDF file system support"
- 	help
+ config X86_L1_CACHE_SHIFT
+ 	int
+ 	default "7" if MPENTIUM4 || X86_GENERIC
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
@@ -78,3 +78,4 @@ remove-dead-kernel-config-option-aedsp16_mpu401.patch
 remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
 remove-unused-kernel-config-option-zisofs_fs.patch
 oss-replace-kmallocmemset-combos-with-kzalloc.patch
+remove-unused-kernel-config-option-x86_xadd.patch
