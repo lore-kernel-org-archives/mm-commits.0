@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + allow-early-access-to-the-power-management-timer.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:36:41 -0800
-Message-ID: <200701250636.l0P6af4M008358@shell0.pdx.osdl.net>
+Subject: + acpi-fix-missing-include-for-up.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:37 -0800
+Message-ID: <200701250636.l0P6abEr008352@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50421 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50426 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965562AbXAYGhj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:37:39 -0500
+	id S965572AbXAYGhn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:37:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, len.brown@intel.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     Allow early access to the power management timer
+     ACPI: fix missing include for UP
 has been added to the -mm tree.  Its filename is
-     allow-early-access-to-the-power-management-timer.patch
+     acpi-fix-missing-include-for-up.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,159 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Allow early access to the power management timer
+Subject: ACPI: fix missing include for UP
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Allow early access to the power management timer by exposing the verified read
-function and providing a helper function which checks the pmtmr_ioport
-variable and returns either the pm timer readout or 0 in case the pm timer is
-not available.
-
-Create a new header file and replace also the ifdef'ed extern definition in
-arch/i386/kernel/acpi/boot.c
-
-This is a preperatory patch for the rework of the local apic timer
-calibration.
-
-No functional changes.
+apic.h does not get included on UP compiles.  That way the
+APICTIMER_STOPS_ON_C3 is not there and UP boxen have no support for timer
+broadcasting.  This was never noticed, because the lapic timer is only used
+for profiling on UP.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Len Brown <len.brown@intel.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/acpi/boot.c  |    5 ----
- drivers/clocksource/acpi_pm.c |   17 +++++++-------
- include/linux/acpi_pmtmr.h    |   38 ++++++++++++++++++++++++++++++++
- 3 files changed, 48 insertions(+), 12 deletions(-)
+ drivers/acpi/processor_idle.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/i386/kernel/acpi/boot.c~allow-early-access-to-the-power-management-timer arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~allow-early-access-to-the-power-management-timer
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -25,6 +25,7 @@
+diff -puN drivers/acpi/processor_idle.c~acpi-fix-missing-include-for-up drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-fix-missing-include-for-up
++++ a/drivers/acpi/processor_idle.c
+@@ -40,6 +40,16 @@
+ #include <linux/sched.h>	/* need_resched() */
+ #include <linux/latency.h>
  
- #include <linux/init.h>
- #include <linux/acpi.h>
-+#include <linux/acpi_pmtmr.h>
- #include <linux/efi.h>
- #include <linux/cpumask.h>
- #include <linux/module.h>
-@@ -703,10 +704,6 @@ static int __init acpi_parse_hpet(unsign
- #define	acpi_parse_hpet	NULL
- #endif
- 
--#ifdef CONFIG_X86_PM_TIMER
--extern u32 pmtmr_ioport;
--#endif
--
- static int __init acpi_parse_fadt(unsigned long phys, unsigned long size)
- {
- 	struct fadt_descriptor *fadt = NULL;
-diff -puN drivers/clocksource/acpi_pm.c~allow-early-access-to-the-power-management-timer drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~allow-early-access-to-the-power-management-timer
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -16,15 +16,13 @@
-  * This file is licensed under the GPL v2.
-  */
- 
-+#include <linux/acpi_pmtmr.h>
- #include <linux/clocksource.h>
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/pci.h>
++/*
++ * Include the apic definitions for x86 to have the APIC timer related defines
++ * available also for UP (on SMP it gets magically included via linux/smp.h).
++ * asm/acpi.h is not an option, as it would require more include magic. Also
++ * creating an empty asm-ia64/apic.h would just trade pest vs. cholera.
++ */
++#ifdef CONFIG_X86
++#include <asm/apic.h>
++#endif
++
  #include <asm/io.h>
+ #include <asm/uaccess.h>
  
--/* Number of PMTMR ticks expected during calibration run */
--#define PMTMR_TICKS_PER_SEC 3579545
--
- /*
-  * The I/O port the PMTMR resides at.
-  * The location is detected during setup_arch(),
-@@ -32,15 +30,13 @@
-  */
- u32 pmtmr_ioport __read_mostly;
- 
--#define ACPI_PM_MASK CLOCKSOURCE_MASK(24) /* limit it to 24 bits */
--
- static inline u32 read_pmtmr(void)
- {
- 	/* mask the output to 24 bits */
- 	return inl(pmtmr_ioport) & ACPI_PM_MASK;
- }
- 
--static cycle_t acpi_pm_read_verified(void)
-+u32 acpi_pm_read_verified(void)
- {
- 	u32 v1 = 0, v2 = 0, v3 = 0;
- 
-@@ -57,7 +53,12 @@ static cycle_t acpi_pm_read_verified(voi
- 	} while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
- 			  || (v3 > v1 && v3 < v2)));
- 
--	return (cycle_t)v2;
-+	return v2;
-+}
-+
-+static cycle_t acpi_pm_read_slow(void)
-+{
-+	return (cycle_t)acpi_pm_read_verified();
- }
- 
- static cycle_t acpi_pm_read(void)
-@@ -88,7 +89,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
- 
- static inline void acpi_pm_need_workaround(void)
- {
--	clocksource_acpi_pm.read = acpi_pm_read_verified;
-+	clocksource_acpi_pm.read = acpi_pm_read_slow;
- 	clocksource_acpi_pm.rating = 110;
- }
- 
-diff -puN /dev/null include/linux/acpi_pmtmr.h
---- /dev/null
-+++ a/include/linux/acpi_pmtmr.h
-@@ -0,0 +1,38 @@
-+#ifndef _ACPI_PMTMR_H_
-+#define _ACPI_PMTMR_H_
-+
-+#include <linux/clocksource.h>
-+
-+/* Number of PMTMR ticks expected during calibration run */
-+#define PMTMR_TICKS_PER_SEC 3579545
-+
-+/* limit it to 24 bits */
-+#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
-+
-+/* Overrun value */
-+#define ACPI_PM_OVRRUN	(1<<24)
-+
-+#ifdef CONFIG_X86_PM_TIMER
-+
-+extern u32 acpi_pm_read_verified(void);
-+extern u32 pmtmr_ioport;
-+
-+static inline u32 acpi_pm_read_early(void)
-+{
-+	if (!pmtmr_ioport)
-+		return 0;
-+	/* mask the output to 24 bits */
-+	return acpi_pm_read_verified() & ACPI_PM_MASK;
-+}
-+
-+#else
-+
-+static inline u32 acpi_pm_read_early(void)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#endif
-+
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
