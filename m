@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + add-sysrq-q-to-print-timer_list-debug-info.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:37:11 -0800
-Message-ID: <200701250637.l0P6bBL0008426@shell0.pdx.osdl.net>
+Subject: + extend-next_timer_interrupt-to-use-a-reference-jiffie.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:23 -0800
+Message-ID: <200701250636.l0P6aN1t008331@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50785 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50838 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965640AbXAYGqv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:46:51 -0500
+	id S965642AbXAYGsc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:48:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, bunk@stusta.de, cotte@de.ibm.com, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     Add SysRq-Q to print timer_list debug info
+     Extend next_timer_interrupt() to use a reference jiffie
 has been added to the -mm tree.  Its filename is
-     add-sysrq-q-to-print-timer_list-debug-info.patch
+     extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,120 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add SysRq-Q to print timer_list debug info
-From: Ingo Molnar <mingo@elte.hu>
+Subject: Extend next_timer_interrupt() to use a reference jiffie
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Add SysRq-Q to print pending timers and other timer info.
+For CONFIG_NO_HZ we need to calculate the next timer wheel event based on a
+given jiffie value.  Extend the existing code to allow the extra 'now'
+argument.  Provide a compability function for the existing implementations to
+call the function with now == jiffies.  (This also solves the racyness of the
+original code vs.  jiffies changing during the iteration.)
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+No functional changes to existing users of this infrastructure.
+
+[ remove WARN_ON() that triggered on s390, by Carsten Otte <cotte@de.ibm.com> ]
+[ made new helper static, Adrian Bunk <bunk@stusta.de> ]
+
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/sysrq.c    |   14 +++++++++++++-
- include/linux/hrtimer.h |    3 +++
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ include/linux/timer.h |   10 ++++++++++
+ kernel/hrtimer.c      |    2 +-
+ kernel/timer.c        |   14 +++++++++++---
+ 3 files changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/sysrq.c~add-sysrq-q-to-print-timer_list-debug-info drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~add-sysrq-q-to-print-timer_list-debug-info
-+++ a/drivers/char/sysrq.c
-@@ -36,6 +36,7 @@
- #include <linux/workqueue.h>
- #include <linux/kexec.h>
- #include <linux/irq.h>
-+#include <linux/hrtimer.h>
+diff -puN include/linux/timer.h~extend-next_timer_interrupt-to-use-a-reference-jiffie include/linux/timer.h
+--- a/include/linux/timer.h~extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/include/linux/timer.h
+@@ -61,7 +61,17 @@ extern int del_timer(struct timer_list *
+ extern int __mod_timer(struct timer_list *timer, unsigned long expires);
+ extern int mod_timer(struct timer_list *timer, unsigned long expires);
  
- #include <asm/ptrace.h>
- #include <asm/irq_regs.h>
-@@ -159,6 +160,17 @@ static struct sysrq_key_op sysrq_sync_op
- 	.enable_mask	= SYSRQ_ENABLE_SYNC,
- };
++/*
++ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
++ * locks the timer base:
++ */
+ extern unsigned long next_timer_interrupt(void);
++/*
++ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
++ * locks the timer base and does the comparison against the given
++ * jiffie.
++ */
++extern unsigned long get_next_timer_interrupt(unsigned long now);
  
-+static void sysrq_handle_show_timers(int key, struct tty_struct *tty)
-+{
-+	sysrq_timer_list_show();
-+}
-+
-+static struct sysrq_key_op sysrq_show_timers_op = {
-+	.handler	= sysrq_handle_show_timers,
-+	.help_msg	= "show-all-timers(Q)",
-+	.action_msg	= "Show Pending Timers",
-+};
-+
- static void sysrq_handle_mountro(int key, struct tty_struct *tty)
+ /**
+  * add_timer - start a timer
+diff -puN kernel/hrtimer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie kernel/hrtimer.c
+--- a/kernel/hrtimer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/kernel/hrtimer.c
+@@ -533,7 +533,7 @@ ktime_t hrtimer_get_remaining(const stru
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_get_remaining);
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
++#if defined(CONFIG_NO_IDLE_HZ) || defined(CONFIG_NO_HZ)
+ /**
+  * hrtimer_get_next_event - get the time until next expiry event
+  *
+diff -puN kernel/timer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie kernel/timer.c
+--- a/kernel/timer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/kernel/timer.c
+@@ -591,7 +591,7 @@ static inline void __run_timers(tvec_bas
+ 	spin_unlock_irq(&base->lock);
+ }
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
++#if defined(CONFIG_NO_IDLE_HZ) || defined(CONFIG_NO_HZ)
+ /*
+  * Find out when the next timer event is due to happen. This
+  * is used on S/390 to stop all activity when a cpus is idle.
+@@ -687,10 +687,10 @@ static unsigned long cmp_next_hrtimer_ev
+ /**
+  * next_timer_interrupt - return the jiffy of the next pending timer
+  */
+-unsigned long next_timer_interrupt(void)
++unsigned long get_next_timer_interrupt(unsigned long now)
  {
- 	emergency_remount();
-@@ -336,7 +348,7 @@ static struct sysrq_key_op *sysrq_key_ta
- 	/* o: This will often be registered as 'Off' at init time */
- 	NULL,				/* o */
- 	&sysrq_showregs_op,		/* p */
--	NULL,				/* q */
-+	&sysrq_show_timers_op,		/* q */
- 	&sysrq_unraw_op,		/* r */
- 	&sysrq_sync_op,			/* s */
- 	&sysrq_showstate_op,		/* t */
-diff -puN include/linux/hrtimer.h~add-sysrq-q-to-print-timer_list-debug-info include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~add-sysrq-q-to-print-timer_list-debug-info
-+++ a/include/linux/hrtimer.h
-@@ -316,6 +316,9 @@ extern unsigned long ktime_divns(const k
- # define ktime_divns(kt, div)		(unsigned long)((kt).tv64 / (div))
+ 	tvec_base_t *base = __get_cpu_var(tvec_bases);
+-	unsigned long expires, now = jiffies;
++	unsigned long expires;
+ 
+ 	spin_lock(&base->lock);
+ 	expires = __next_timer_interrupt(base);
+@@ -701,6 +701,14 @@ unsigned long next_timer_interrupt(void)
+ 
+ 	return cmp_next_hrtimer_event(now, expires);
+ }
++
++#ifdef CONFIG_NO_IDLE_HZ
++unsigned long next_timer_interrupt(void)
++{
++	return get_next_timer_interrupt(jiffies);
++}
++#endif
++
  #endif
  
-+/* Show pending timers: */
-+extern void sysrq_timer_list_show(void);
-+
- /*
-  * Timer-statistics info:
-  */
+ /******************************************************************/
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-kvm-add-vm-exit-profiling-fix.patch
-revert-nmi_known_cpu-check-during-boot-option-parsing.patch
-paravirt-mark-the-paravirt_ops-export-internal.patch
-kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
-kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
-kvm-x86-emulator-fix-bit-string-instructions.patch
-kvm-fix-bogus-pagefault-on-writable-pages.patch
-fix-config_compat_vdso.patch
-fix-gate_vmavm_flags.patch
-add-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump-tidy.patch
-x86_64-ia32-vdso-use-vm_alwaysdump.patch
-powerpc-vdso-use-vm_alwaysdump.patch
-x86_64-ia32-vdso-define-arch_vma_name.patch
-acpi-fix-cpufreq-regression.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-fix-for-crash-in-adummy_init.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
+origin.patch
+git-block.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-simplify-the-stacktrace-code.patch
-audit-fix-audit_filter_user_rules-initialization-bug.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 hz-free-ntp.patch
@@ -181,7 +174,6 @@ clockevents-i383-drivers.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
 i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
 hrtimers-add-high-resolution-timer-support.patch
 hrtimers-prevent-possible-itimer-dos.patch
 add-debugging-feature-proc-timer_stat.patch
@@ -200,35 +192,8 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
 make-good_sigevent-non-static.patch
 aio-completion-signal-notification.patch
-sched-avoid-div-in-rebalance_tick.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
 scheduled-removal-of-sa_xxx-interrupt-flags.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
