@@ -1,220 +1,179 @@
 From: akpm@osdl.org
-Subject: - dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 22:11:50 -0800
-Message-ID: <200701250611.l0P6BoIV007721@shell0.pdx.osdl.net>
+Subject: - acpi-cleanups-allow-early-access-to-pmtimer.patch removed from -mm tree
+Date: Wed, 24 Jan 2007 22:12:14 -0800
+Message-ID: <200701250612.l0P6CE6J007774@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49341 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49356 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965456AbXAYGPP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:15:15 -0500
+	id S965471AbXAYGPp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:15:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, bunk@stusta.de, cotte@de.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dynticks: extend next_timer_interrupt() to use a reference jiffie
+     ACPI: cleanups, allow early access to pmtimer
 has been removed from the -mm tree.  Its filename was
-     dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+     acpi-cleanups-allow-early-access-to-pmtimer.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: dynticks: extend next_timer_interrupt() to use a reference jiffie
+Subject: ACPI: cleanups, allow early access to pmtimer
 From: Thomas Gleixner <tglx@linutronix.de>
 
-For CONFIG_NO_HZ we need to calculate the next timer wheel event based
-on a given jiffie value.  Extend the existing code to allow the extra
-'now' argument. Provide a compability function for the existing
-implementations to call the function with now == jiffies. (This also
-solves the racyness of the original code vs. jiffies changing during
-the iteration.)
+Allow early access to the power management timer by exposing the
+verified read function and providing a helper function which checks the
+pmtmr_ioport variable and returns either the pm timer readout or 0 in
+case the pm timer is not available.
 
-No functional changes to existing users of this infrastructure.
+Create a new header file and replace also the ifdef'ed extern definition
+in arch/i386/kernel/acpi/boot.c
 
-[ remove WARN_ON() that triggered on s390, by Carsten Otte <cotte@de.ibm.com> ]
-[ made new helper static, Adrian Bunk <bunk@stusta.de> ]
+This is a preperatory patch for the rework of the local apic timer
+calibration.
+
+No functional changes.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/timer.h |   10 ++++
- kernel/timer.c        |   97 +++++++++++++++++++++++++++++-----------
- 2 files changed, 81 insertions(+), 26 deletions(-)
+ arch/i386/kernel/acpi/boot.c  |    5 ----
+ drivers/clocksource/acpi_pm.c |   17 +++++++-------
+ include/linux/acpi_pmtmr.h    |   38 ++++++++++++++++++++++++++++++++
+ 3 files changed, 48 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/timer.h~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie include/linux/timer.h
---- a/include/linux/timer.h~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie
-+++ a/include/linux/timer.h
-@@ -61,7 +61,17 @@ extern int del_timer(struct timer_list *
- extern int __mod_timer(struct timer_list *timer, unsigned long expires);
- extern int mod_timer(struct timer_list *timer, unsigned long expires);
+diff -puN arch/i386/kernel/acpi/boot.c~acpi-cleanups-allow-early-access-to-pmtimer arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~acpi-cleanups-allow-early-access-to-pmtimer
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -25,6 +25,7 @@
  
-+/*
-+ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
-+ * locks the timer base:
-+ */
- extern unsigned long next_timer_interrupt(void);
-+/*
-+ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
-+ * locks the timer base and does the comparison against the given
-+ * jiffie.
-+ */
-+extern unsigned long get_next_timer_interrupt(unsigned long now);
+ #include <linux/init.h>
+ #include <linux/acpi.h>
++#include <linux/acpi_pmtmr.h>
+ #include <linux/efi.h>
+ #include <linux/cpumask.h>
+ #include <linux/module.h>
+@@ -703,10 +704,6 @@ static int __init acpi_parse_hpet(unsign
+ #define	acpi_parse_hpet	NULL
+ #endif
  
- /***
-  * add_timer - start a timer
-diff -puN kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie kernel/timer.c
---- a/kernel/timer.c~dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie
-+++ a/kernel/timer.c
-@@ -597,29 +597,15 @@ static inline void __run_timers(tvec_bas
-  * is used on S/390 to stop all activity when a cpus is idle.
-  * This functions needs to be called disabled.
-  */
--unsigned long next_timer_interrupt(void)
-+static unsigned long __next_timer_interrupt(tvec_base_t *base,
-+					    unsigned long now)
- {
--	tvec_base_t *base;
- 	struct list_head *list;
--	struct timer_list *nte;
-+	struct timer_list *nte, *found = NULL;
- 	unsigned long expires;
--	unsigned long hr_expires = MAX_JIFFY_OFFSET;
--	ktime_t hr_delta;
- 	tvec_t *varray[4];
- 	int i, j;
- 
--	hr_delta = hrtimer_get_next_event();
--	if (hr_delta.tv64 != KTIME_MAX) {
--		struct timespec tsdelta;
--		tsdelta = ktime_to_timespec(hr_delta);
--		hr_expires = timespec_to_jiffies(&tsdelta);
--		if (hr_expires < 3)
--			return hr_expires + jiffies;
--	}
--	hr_expires += jiffies;
+-#ifdef CONFIG_X86_PM_TIMER
+-extern u32 pmtmr_ioport;
+-#endif
 -
--	base = __get_cpu_var(tvec_bases);
--	spin_lock(&base->lock);
- 	expires = base->timer_jiffies + (LONG_MAX >> 1);
- 	list = NULL;
+ static int __init acpi_parse_fadt(unsigned long phys, unsigned long size)
+ {
+ 	struct fadt_descriptor *fadt = NULL;
+diff -puN drivers/clocksource/acpi_pm.c~acpi-cleanups-allow-early-access-to-pmtimer drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~acpi-cleanups-allow-early-access-to-pmtimer
++++ a/drivers/clocksource/acpi_pm.c
+@@ -16,15 +16,13 @@
+  * This file is licensed under the GPL v2.
+  */
  
-@@ -628,6 +614,7 @@ unsigned long next_timer_interrupt(void)
- 	do {
- 		list_for_each_entry(nte, base->tv1.vec + j, entry) {
- 			expires = nte->expires;
-+			found = nte;
- 			if (j < (base->timer_jiffies & TVR_MASK))
- 				list = base->tv2.vec + (INDEX(0));
- 			goto found;
-@@ -647,9 +634,12 @@ unsigned long next_timer_interrupt(void)
- 				j = (j + 1) & TVN_MASK;
- 				continue;
- 			}
--			list_for_each_entry(nte, varray[i]->vec + j, entry)
--				if (time_before(nte->expires, expires))
-+			list_for_each_entry(nte, varray[i]->vec + j, entry) {
-+				if (time_before(nte->expires, expires)) {
- 					expires = nte->expires;
-+					found = nte;
-+				}
-+			}
- 			if (j < (INDEX(i)) && i < 3)
- 				list = varray[i + 1]->vec + (INDEX(i + 1));
- 			goto found;
-@@ -663,10 +653,58 @@ found:
- 		 * where we found the timer element.
- 		 */
- 		list_for_each_entry(nte, list, entry) {
--			if (time_before(nte->expires, expires))
-+			if (time_before(nte->expires, expires)) {
- 				expires = nte->expires;
-+				found = nte;
-+			}
- 		}
- 	}
-+
-+	return expires;
++#include <linux/acpi_pmtmr.h>
+ #include <linux/clocksource.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <asm/io.h>
+ 
+-/* Number of PMTMR ticks expected during calibration run */
+-#define PMTMR_TICKS_PER_SEC 3579545
+-
+ /*
+  * The I/O port the PMTMR resides at.
+  * The location is detected during setup_arch(),
+@@ -32,15 +30,13 @@
+  */
+ u32 pmtmr_ioport __read_mostly;
+ 
+-#define ACPI_PM_MASK CLOCKSOURCE_MASK(24) /* limit it to 24 bits */
+-
+ static inline u32 read_pmtmr(void)
+ {
+ 	/* mask the output to 24 bits */
+ 	return inl(pmtmr_ioport) & ACPI_PM_MASK;
+ }
+ 
+-static cycle_t acpi_pm_read_verified(void)
++u32 acpi_pm_read_verified(void)
+ {
+ 	u32 v1 = 0, v2 = 0, v3 = 0;
+ 
+@@ -57,7 +53,12 @@ static cycle_t acpi_pm_read_verified(voi
+ 	} while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
+ 			  || (v3 > v1 && v3 < v2)));
+ 
+-	return (cycle_t)v2;
++	return v2;
 +}
 +
-+#ifdef CONFIG_NO_HZ
-+
-+unsigned long get_next_timer_interrupt(unsigned long now)
++static cycle_t acpi_pm_read_slow(void)
 +{
-+	tvec_base_t *base = __get_cpu_var(tvec_bases);
-+	unsigned long expires;
++	return (cycle_t)acpi_pm_read_verified();
+ }
+ 
+ static cycle_t acpi_pm_read(void)
+@@ -87,7 +88,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
+ 
+ static inline void acpi_pm_need_workaround(void)
+ {
+-	clocksource_acpi_pm.read = acpi_pm_read_verified;
++	clocksource_acpi_pm.read = acpi_pm_read_slow;
+ 	clocksource_acpi_pm.rating = 110;
+ }
+ 
+diff -puN /dev/null include/linux/acpi_pmtmr.h
+--- /dev/null
++++ a/include/linux/acpi_pmtmr.h
+@@ -0,0 +1,38 @@
++#ifndef _ACPI_PMTMR_H_
++#define _ACPI_PMTMR_H_
 +
-+	spin_lock(&base->lock);
-+	expires = __next_timer_interrupt(base, now);
-+	spin_unlock(&base->lock);
++#include <linux/clocksource.h>
 +
-+	/*
-+	 * 'Timer wheel time' can lag behind 'jiffies time' due to
-+	 * delayed processing, so make sure we return a value that
-+	 * makes sense externally. base->timer_jiffies is unchanged,
-+	 * so it is safe to access it outside the lock.
-+	 */
++/* Number of PMTMR ticks expected during calibration run */
++#define PMTMR_TICKS_PER_SEC 3579545
 +
-+	return expires - (now - base->timer_jiffies);
++/* limit it to 24 bits */
++#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
++
++/* Overrun value */
++#define ACPI_PM_OVRRUN	(1<<24)
++
++#ifdef CONFIG_X86_PM_TIMER
++
++extern u32 acpi_pm_read_verified(void);
++extern u32 pmtmr_ioport;
++
++static inline u32 acpi_pm_read_early(void)
++{
++	if (!pmtmr_ioport)
++		return 0;
++	/* mask the output to 24 bits */
++	return acpi_pm_read_verified() & ACPI_PM_MASK;
 +}
 +
 +#else
 +
-+unsigned long next_timer_interrupt(void)
++static inline u32 acpi_pm_read_early(void)
 +{
-+	tvec_base_t *base = __get_cpu_var(tvec_bases);
-+	unsigned long expires;
-+	unsigned long now = jiffies;
-+	unsigned long hr_expires = MAX_JIFFY_OFFSET;
-+	ktime_t hr_delta = hrtimer_get_next_event();
++	return 0;
++}
 +
-+	if (hr_delta.tv64 != KTIME_MAX) {
-+		struct timespec tsdelta;
-+		tsdelta = ktime_to_timespec(hr_delta);
-+		hr_expires = timespec_to_jiffies(&tsdelta);
-+		if (hr_expires < 3)
-+			return hr_expires + now;
-+	}
-+	hr_expires += now;
-+
-+	spin_lock(&base->lock);
-+	expires = __next_timer_interrupt(base, now);
- 	spin_unlock(&base->lock);
- 
- 	/*
-@@ -682,16 +720,23 @@ found:
- 	 * would falsely evaluate to true.  If that is the case, just
- 	 * return jiffies so that we can immediately fire the local timer
- 	 */
--	if (time_before(expires, jiffies))
--		return jiffies;
-+	if (time_before(expires, now))
-+		expires = now;
-+	else if (time_before(hr_expires, expires))
-+		expires = hr_expires;
- 
--	if (time_before(hr_expires, expires))
--		return hr_expires;
--
--	return expires;
-+	/*
-+	 * 'Timer wheel time' can lag behind 'jiffies time' due to
-+	 * delayed processing, so make sure we return a value that
-+	 * makes sense externally. base->timer_jiffies is unchanged,
-+	 * so it is safe to access it outside the lock.
-+	 */
-+	return expires - (now - base->timer_jiffies);
- }
- #endif
- 
 +#endif
 +
- /******************************************************************/
- 
- /* 
++#endif
++
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
@@ -223,16 +182,6 @@ origin.patch
 git-block.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
 acpi-cleanups-allow-early-access-to-pmtimer.patch
 i386-apic-clean-up-the-apic-code.patch
 clockevents-core.patch
