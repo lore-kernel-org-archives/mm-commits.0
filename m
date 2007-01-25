@@ -1,695 +1,268 @@
 From: akpm@osdl.org
-Subject: - hrtimers-move-and-add-documentation.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 22:12:04 -0800
-Message-ID: <200701250612.l0P6C4g6007755@shell0.pdx.osdl.net>
+Subject: - gtod-persistent-clock-support-i386.patch removed from -mm tree
+Date: Wed, 24 Jan 2007 22:11:46 -0800
+Message-ID: <200701250611.l0P6BkMo007715@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49573 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49607 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965355AbXAYGXb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:23:31 -0500
+	id S965515AbXAYGYh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:24:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, akpm@osdl.org, bunk@stusta.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers: move and add documentation
+     gtod: persistent clock support, i386
 has been removed from the -mm tree.  Its filename was
-     hrtimers-move-and-add-documentation.patch
+     gtod-persistent-clock-support-i386.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: hrtimers: move and add documentation
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: gtod: persistent clock support, i386
+From: John Stultz <johnstul@us.ibm.com>
 
-Move the initial hrtimers.txt document to the new directory
-"Documentation/hrtimers"
+Persistent clock support: do proper timekeeping across suspend/resume, i386
+arch support.
 
-Add design notes for the high resolution timer and dynamic tick
-functionality.
+[ cleanup from Adrian Bunk <bunk@stusta.de> ]
 
+Build-fixes-from: Andrew Morton <akpm@osdl.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/hrtimers.txt          |  178 ------------------
- Documentation/hrtimers/highres.txt  |  249 ++++++++++++++++++++++++++
- Documentation/hrtimers/hrtimers.txt |  178 ++++++++++++++++++
- 3 files changed, 427 insertions(+), 178 deletions(-)
+ arch/i386/kernel/apm.c  |   44 ------------------------------
+ arch/i386/kernel/time.c |   54 --------------------------------------
+ 2 files changed, 1 insertion(+), 97 deletions(-)
 
-diff -puN Documentation/hrtimers.txt~hrtimers-move-and-add-documentation /dev/null
---- a/Documentation/hrtimers.txt
-+++ /dev/null
-@@ -1,178 +0,0 @@
+diff -puN arch/i386/kernel/apm.c~gtod-persistent-clock-support-i386 arch/i386/kernel/apm.c
+--- a/arch/i386/kernel/apm.c~gtod-persistent-clock-support-i386
++++ a/arch/i386/kernel/apm.c
+@@ -235,7 +235,6 @@
+ 
+ #include "io_ports.h"
+ 
+-extern unsigned long get_cmos_time(void);
+ extern void machine_real_restart(unsigned char *, int);
+ 
+ #if defined(CONFIG_APM_DISPLAY_BLANK) && defined(CONFIG_VT)
+@@ -1175,28 +1174,6 @@ out:
+ 	spin_unlock(&user_list_lock);
+ }
+ 
+-static void set_time(void)
+-{
+-	struct timespec ts;
+-	if (got_clock_diff) {	/* Must know time zone in order to set clock */
+-		ts.tv_sec = get_cmos_time() + clock_cmos_diff;
+-		ts.tv_nsec = 0;
+-		do_settimeofday(&ts);
+-	} 
+-}
 -
--hrtimers - subsystem for high-resolution kernel timers
------------------------------------------------------
+-static void get_time_diff(void)
+-{
+-#ifndef CONFIG_APM_RTC_IS_GMT
+-	/*
+-	 * Estimate time zone so that set_time can update the clock
+-	 */
+-	clock_cmos_diff = -get_cmos_time();
+-	clock_cmos_diff += get_seconds();
+-	got_clock_diff = 1;
+-#endif
+-}
 -
--This patch introduces a new subsystem for high-resolution kernel timers.
+ static void reinit_timer(void)
+ {
+ #ifdef INIT_TIMER_AFTER_SUSPEND
+@@ -1236,19 +1213,6 @@ static int suspend(int vetoable)
+ 	local_irq_disable();
+ 	device_power_down(PMSG_SUSPEND);
+ 
+-	/* serialize with the timer interrupt */
+-	write_seqlock(&xtime_lock);
 -
--One might ask the question: we already have a timer subsystem
--(kernel/timers.c), why do we need two timer subsystems? After a lot of
--back and forth trying to integrate high-resolution and high-precision
--features into the existing timer framework, and after testing various
--such high-resolution timer implementations in practice, we came to the
--conclusion that the timer wheel code is fundamentally not suitable for
--such an approach. We initially didn't believe this ('there must be a way
--to solve this'), and spent a considerable effort trying to integrate
--things into the timer wheel, but we failed. In hindsight, there are
--several reasons why such integration is hard/impossible:
+-	/* protect against access to timer chip registers */
+-	spin_lock(&i8253_lock);
 -
--- the forced handling of low-resolution and high-resolution timers in
--  the same way leads to a lot of compromises, macro magic and #ifdef
--  mess. The timers.c code is very "tightly coded" around jiffies and
--  32-bitness assumptions, and has been honed and micro-optimized for a
--  relatively narrow use case (jiffies in a relatively narrow HZ range)
--  for many years - and thus even small extensions to it easily break
--  the wheel concept, leading to even worse compromises. The timer wheel
--  code is very good and tight code, there's zero problems with it in its
--  current usage - but it is simply not suitable to be extended for
--  high-res timers.
+-	get_time_diff();
+-	/*
+-	 * Irq spinlock must be dropped around set_system_power_state.
+-	 * We'll undo any timer changes due to interrupts below.
+-	 */
+-	spin_unlock(&i8253_lock);
+-	write_sequnlock(&xtime_lock);
+ 	local_irq_enable();
+ 
+ 	save_processor_state();
+@@ -1257,7 +1221,6 @@ static int suspend(int vetoable)
+ 	restore_processor_state();
+ 
+ 	local_irq_disable();
+-	set_time();
+ 	reinit_timer();
+ 
+ 	if (err == APM_NO_ERROR)
+@@ -1287,11 +1250,6 @@ static void standby(void)
+ 
+ 	local_irq_disable();
+ 	device_power_down(PMSG_SUSPEND);
+-	/* serialize with the timer interrupt */
+-	write_seqlock(&xtime_lock);
+-	/* If needed, notify drivers here */
+-	get_time_diff();
+-	write_sequnlock(&xtime_lock);
+ 	local_irq_enable();
+ 
+ 	err = set_system_power_state(APM_STATE_STANDBY);
+@@ -1385,7 +1343,6 @@ static void check_events(void)
+ 			ignore_bounce = 1;
+ 			if ((event != APM_NORMAL_RESUME)
+ 			    || (ignore_normal_resume == 0)) {
+-				set_time();
+ 				device_resume();
+ 				pm_send_all(PM_RESUME, (void *)0);
+ 				queue_event(event, NULL);
+@@ -1401,7 +1358,6 @@ static void check_events(void)
+ 			break;
+ 
+ 		case APM_UPDATE_TIME:
+-			set_time();
+ 			break;
+ 
+ 		case APM_CRITICAL_SUSPEND:
+diff -puN arch/i386/kernel/time.c~gtod-persistent-clock-support-i386 arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~gtod-persistent-clock-support-i386
++++ a/arch/i386/kernel/time.c
+@@ -214,7 +214,7 @@ irqreturn_t timer_interrupt(int irq, voi
+ }
+ 
+ /* not static: needed by APM */
+-unsigned long get_cmos_time(void)
++unsigned long read_persistent_clock(void)
+ {
+ 	unsigned long retval;
+ 	unsigned long flags;
+@@ -227,7 +227,6 @@ unsigned long get_cmos_time(void)
+ 
+ 	return retval;
+ }
+-EXPORT_SYMBOL(get_cmos_time);
+ 
+ static void sync_cmos_clock(unsigned long dummy);
+ 
+@@ -280,58 +279,19 @@ void notify_arch_cmos_timer(void)
+ 		mod_timer(&sync_cmos_timer, jiffies + 1);
+ }
+ 
+-static long clock_cmos_diff;
+-static unsigned long sleep_start;
 -
--- the unpredictable [O(N)] overhead of cascading leads to delays which
--  necessitate a more complex handling of high resolution timers, which
--  in turn decreases robustness. Such a design still led to rather large
--  timing inaccuracies. Cascading is a fundamental property of the timer
--  wheel concept, it cannot be 'designed out' without unevitably
--  degrading other portions of the timers.c code in an unacceptable way.
+-static int timer_suspend(struct sys_device *dev, pm_message_t state)
+-{
+-	/*
+-	 * Estimate time zone so that set_time can update the clock
+-	 */
+-	unsigned long ctime =  get_cmos_time();
 -
--- the implementation of the current posix-timer subsystem on top of
--  the timer wheel has already introduced a quite complex handling of
--  the required readjusting of absolute CLOCK_REALTIME timers at
--  settimeofday or NTP time - further underlying our experience by
--  example: that the timer wheel data structure is too rigid for high-res
--  timers.
+-	clock_cmos_diff = -ctime;
+-	clock_cmos_diff += get_seconds();
+-	sleep_start = ctime;
+-	return 0;
+-}
 -
--- the timer wheel code is most optimal for use cases which can be
--  identified as "timeouts". Such timeouts are usually set up to cover
--  error conditions in various I/O paths, such as networking and block
--  I/O. The vast majority of those timers never expire and are rarely
--  recascaded because the expected correct event arrives in time so they
--  can be removed from the timer wheel before any further processing of
--  them becomes necessary. Thus the users of these timeouts can accept
--  the granularity and precision tradeoffs of the timer wheel, and
--  largely expect the timer subsystem to have near-zero overhead.
--  Accurate timing for them is not a core purpose - in fact most of the
--  timeout values used are ad-hoc. For them it is at most a necessary
--  evil to guarantee the processing of actual timeout completions
--  (because most of the timeouts are deleted before completion), which
--  should thus be as cheap and unintrusive as possible.
+ static int timer_resume(struct sys_device *dev)
+ {
+-	unsigned long flags;
+-	unsigned long sec;
+-	unsigned long ctime = get_cmos_time();
+-	long sleep_length = (ctime - sleep_start) * HZ;
+-	struct timespec ts;
 -
--The primary users of precision timers are user-space applications that
--utilize nanosleep, posix-timers and itimer interfaces. Also, in-kernel
--users like drivers and subsystems which require precise timed events
--(e.g. multimedia) can benefit from the availability of a separate
--high-resolution timer subsystem as well.
+-	if (sleep_length < 0) {
+-		printk(KERN_WARNING "CMOS clock skew detected in timer resume!\n");
+-		/* The time after the resume must not be earlier than the time
+-		 * before the suspend or some nasty things will happen
+-		 */
+-		sleep_length = 0;
+-		ctime = sleep_start;
+-	}
+ #ifdef CONFIG_HPET_TIMER
+ 	if (is_hpet_enabled())
+ 		hpet_reenable();
+ #endif
+ 	setup_pit_timer();
 -
--While this subsystem does not offer high-resolution clock sources just
--yet, the hrtimer subsystem can be easily extended with high-resolution
--clock capabilities, and patches for that exist and are maturing quickly.
--The increasing demand for realtime and multimedia applications along
--with other potential users for precise timers gives another reason to
--separate the "timeout" and "precise timer" subsystems.
+-	sec = ctime + clock_cmos_diff;
+-	ts.tv_sec = sec;
+-	ts.tv_nsec = 0;
+-	do_settimeofday(&ts);
+-	write_seqlock_irqsave(&xtime_lock, flags);
+-	jiffies_64 += sleep_length;
+-	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 	touch_softlockup_watchdog();
+ 	return 0;
+ }
+ 
+ static struct sysdev_class timer_sysclass = {
+ 	.resume = timer_resume,
+-	.suspend = timer_suspend,
+ 	set_kset_name("timer"),
+ };
+ 
+@@ -357,12 +317,6 @@ extern void (*late_time_init)(void);
+ /* Duplicate of time_init() below, with hpet_enable part added */
+ static void __init hpet_time_init(void)
+ {
+-	struct timespec ts;
+-	ts.tv_sec = get_cmos_time();
+-	ts.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
 -
--Another potential benefit is that such a separation allows even more
--special-purpose optimization of the existing timer wheel for the low
--resolution and low precision use cases - once the precision-sensitive
--APIs are separated from the timer wheel and are migrated over to
--hrtimers. E.g. we could decrease the frequency of the timeout subsystem
--from 250 Hz to 100 HZ (or even smaller).
+-	do_settimeofday(&ts);
 -
--hrtimer subsystem implementation details
------------------------------------------
+ 	if ((hpet_enable() >= 0) && hpet_use_timer) {
+ 		printk("Using HPET for base-timer\n");
+ 	}
+@@ -373,7 +327,6 @@ static void __init hpet_time_init(void)
+ 
+ void __init time_init(void)
+ {
+-	struct timespec ts;
+ #ifdef CONFIG_HPET_TIMER
+ 	if (is_hpet_capable()) {
+ 		/*
+@@ -384,10 +337,5 @@ void __init time_init(void)
+ 		return;
+ 	}
+ #endif
+-	ts.tv_sec = get_cmos_time();
+-	ts.tv_nsec = (INITIAL_JIFFIES % HZ) * (NSEC_PER_SEC / HZ);
 -
--the basic design considerations were:
+-	do_settimeofday(&ts);
 -
--- simplicity
--
--- data structure not bound to jiffies or any other granularity. All the
--  kernel logic works at 64-bit nanoseconds resolution - no compromises.
--
--- simplification of existing, timing related kernel code
--
--another basic requirement was the immediate enqueueing and ordering of
--timers at activation time. After looking at several possible solutions
--such as radix trees and hashes, we chose the red black tree as the basic
--data structure. Rbtrees are available as a library in the kernel and are
--used in various performance-critical areas of e.g. memory management and
--file systems. The rbtree is solely used for time sorted ordering, while
--a separate list is used to give the expiry code fast access to the
--queued timers, without having to walk the rbtree.
--
--(This separate list is also useful for later when we'll introduce
--high-resolution clocks, where we need separate pending and expired
--queues while keeping the time-order intact.)
--
--Time-ordered enqueueing is not purely for the purposes of
--high-resolution clocks though, it also simplifies the handling of
--absolute timers based on a low-resolution CLOCK_REALTIME. The existing
--implementation needed to keep an extra list of all armed absolute
--CLOCK_REALTIME timers along with complex locking. In case of
--settimeofday and NTP, all the timers (!) had to be dequeued, the
--time-changing code had to fix them up one by one, and all of them had to
--be enqueued again. The time-ordered enqueueing and the storage of the
--expiry time in absolute time units removes all this complex and poorly
--scaling code from the posix-timer implementation - the clock can simply
--be set without having to touch the rbtree. This also makes the handling
--of posix-timers simpler in general.
--
--The locking and per-CPU behavior of hrtimers was mostly taken from the
--existing timer wheel code, as it is mature and well suited. Sharing code
--was not really a win, due to the different data structures. Also, the
--hrtimer functions now have clearer behavior and clearer names - such as
--hrtimer_try_to_cancel() and hrtimer_cancel() [which are roughly
--equivalent to del_timer() and del_timer_sync()] - so there's no direct
--1:1 mapping between them on the algorithmical level, and thus no real
--potential for code sharing either.
--
--Basic data types: every time value, absolute or relative, is in a
--special nanosecond-resolution type: ktime_t. The kernel-internal
--representation of ktime_t values and operations is implemented via
--macros and inline functions, and can be switched between a "hybrid
--union" type and a plain "scalar" 64bit nanoseconds representation (at
--compile time). The hybrid union type optimizes time conversions on 32bit
--CPUs. This build-time-selectable ktime_t storage format was implemented
--to avoid the performance impact of 64-bit multiplications and divisions
--on 32bit CPUs. Such operations are frequently necessary to convert
--between the storage formats provided by kernel and userspace interfaces
--and the internal time format. (See include/linux/ktime.h for further
--details.)
--
--hrtimers - rounding of timer values
-------------------------------------
--
--the hrtimer code will round timer events to lower-resolution clocks
--because it has to. Otherwise it will do no artificial rounding at all.
--
--one question is, what resolution value should be returned to the user by
--the clock_getres() interface. This will return whatever real resolution
--a given clock has - be it low-res, high-res, or artificially-low-res.
--
--hrtimers - testing and verification
------------------------------------
--
--We used the high-resolution clock subsystem ontop of hrtimers to verify
--the hrtimer implementation details in praxis, and we also ran the posix
--timer tests in order to ensure specification compliance. We also ran
--tests on low-resolution clocks.
--
--The hrtimer patch converts the following kernel functionality to use
--hrtimers:
--
-- - nanosleep
-- - itimers
-- - posix-timers
--
--The conversion of nanosleep and posix-timers enabled the unification of
--nanosleep and clock_nanosleep.
--
--The code was successfully compiled for the following platforms:
--
-- i386, x86_64, ARM, PPC, PPC64, IA64
--
--The code was run-tested on the following platforms:
--
-- i386(UP/SMP), x86_64(UP/SMP), ARM, PPC
--
--hrtimers were also integrated into the -rt tree, along with a
--hrtimers-based high-resolution clock implementation, so the hrtimers
--code got a healthy amount of testing and use in practice.
--
--	Thomas Gleixner, Ingo Molnar
-diff -puN /dev/null Documentation/hrtimers/highres.txt
---- /dev/null
-+++ a/Documentation/hrtimers/highres.txt
-@@ -0,0 +1,249 @@
-+High resolution timers and dynamic ticks design notes
-+-----------------------------------------------------
-+
-+Further information can be found in the paper of the OLS 2006 talk "hrtimers
-+and beyond". The paper is part of the OLS 2006 Proceedings Volume 1, which can
-+be found on the OLS website:
-+http://www.linuxsymposium.org/2006/linuxsymposium_procv1.pdf
-+
-+The slides to this talk are available from:
-+http://tglx.de/projects/hrtimers/ols2006-hrtimers.pdf
-+
-+The slides contain five figures (pages 2, 15, 18, 20, 22), which illustrate the
-+changes in the time(r) related Linux subsystems. Figure #1 (p. 2) shows the
-+design of the Linux time(r) system before hrtimers and other building blocks
-+got merged into mainline.
-+
-+Note: the paper and the slides are talking about "clock event source", while we
-+switched to the name "clock event devices" in meantime.
-+
-+The design contains the following basic building blocks:
-+
-+- hrtimer base infrastructure
-+- timeofday and clock source management
-+- clock event management
-+- high resolution timer functionality
-+- dynamic ticks
-+
-+
-+hrtimer base infrastructure
-+---------------------------
-+
-+The hrtimer base infrastructure was merged into the 2.6.16 kernel. Details of
-+the base implementation are covered in Documentation/hrtimers/hrtimer.txt. See
-+also figure #2 (OLS slides p. 15)
-+
-+The main differences to the timer wheel, which holds the armed timer_list type
-+timers are:
-+       - time ordered enqueueing into a rb-tree
-+       - independent of ticks (the processing is based on nanoseconds)
-+
-+
-+timeofday and clock source management
-+-------------------------------------
-+
-+John Stultz's Generic Time Of Day (GTOD) framework moves a large portion of
-+code out of the architecture-specific areas into a generic management
-+framework, as illustrated in figure #3 (OLS slides p. 18). The architecture
-+specific portion is reduced to the low level hardware details of the clock
-+sources, which are registered in the framework and selected on a quality based
-+decision. The low level code provides hardware setup and readout routines and
-+initializes data structures, which are used by the generic time keeping code to
-+convert the clock ticks to nanosecond based time values. All other time keeping
-+related functionality is moved into the generic code. The GTOD base patch got
-+merged into the 2.6.18 kernel.
-+
-+Further information about the Generic Time Of Day framework is available in the
-+OLS 2005 Proceedings Volume 1:
-+http://www.linuxsymposium.org/2005/linuxsymposium_procv1.pdf
-+
-+The paper "We Are Not Getting Any Younger: A New Approach to Time and
-+Timers" was written by J. Stultz, D.V. Hart, & N. Aravamudan.
-+
-+Figure #3 (OLS slides p.18) illustrates the transformation.
-+
-+
-+clock event management
-+----------------------
-+
-+While clock sources provide read access to the monotonically increasing time
-+value, clock event devices are used to schedule the next event
-+interrupt(s). The next event is currently defined to be periodic, with its
-+period defined at compile time. The setup and selection of the event device
-+for various event driven functionalities is hardwired into the architecture
-+dependent code. This results in duplicated code across all architectures and
-+makes it extremely difficult to change the configuration of the system to use
-+event interrupt devices other than those already built into the
-+architecture. Another implication of the current design is that it is necessary
-+to touch all the architecture-specific implementations in order to provide new
-+functionality like high resolution timers or dynamic ticks.
-+
-+The clock events subsystem tries to address this problem by providing a generic
-+solution to manage clock event devices and their usage for the various clock
-+event driven kernel functionalities. The goal of the clock event subsystem is
-+to minimize the clock event related architecture dependent code to the pure
-+hardware related handling and to allow easy addition and utilization of new
-+clock event devices. It also minimizes the duplicated code across the
-+architectures as it provides generic functionality down to the interrupt
-+service handler, which is almost inherently hardware dependent.
-+
-+Clock event devices are registered either by the architecture dependent boot
-+code or at module insertion time. Each clock event device fills a data
-+structure with clock-specific property parameters and callback functions. The
-+clock event management decides, by using the specified property parameters, the
-+set of system functions a clock event device will be used to support. This
-+includes the distinction of per-CPU and per-system global event devices.
-+
-+System-level global event devices are used for the Linux periodic tick. Per-CPU
-+event devices are used to provide local CPU functionality such as process
-+accounting, profiling, and high resolution timers.
-+
-+The management layer assignes one or more of the folliwing functions to a clock
-+event device:
-+      - system global periodic tick (jiffies update)
-+      - cpu local update_process_times
-+      - cpu local profiling
-+      - cpu local next event interrupt (non periodic mode)
-+
-+The clock event device delegates the selection of those timer interrupt related
-+functions completely to the management layer. The clock management layer stores
-+a function pointer in the device description structure, which has to be called
-+from the hardware level handler. This removes a lot of duplicated code from the
-+architecture specific timer interrupt handlers and hands the control over the
-+clock event devices and the assignment of timer interrupt related functionality
-+to the core code.
-+
-+The clock event layer API is rather small. Aside from the clock event device
-+registration interface it provides functions to schedule the next event
-+interrupt, clock event device notification service and support for suspend and
-+resume.
-+
-+The framework adds about 700 lines of code which results in a 2KB increase of
-+the kernel binary size. The conversion of i386 removes about 100 lines of
-+code. The binary size decrease is in the range of 400 byte. We believe that the
-+increase of flexibility and the avoidance of duplicated code across
-+architectures justifies the slight increase of the binary size.
-+
-+The conversion of an architecture has no functional impact, but allows to
-+utilize the high resolution and dynamic tick functionalites without any change
-+to the clock event device and timer interrupt code. After the conversion the
-+enabling of high resolution timers and dynamic ticks is simply provided by
-+adding the kernel/time/Kconfig file to the architecture specific Kconfig and
-+adding the dynamic tick specific calls to the idle routine (a total of 3 lines
-+added to the idle function and the Kconfig file)
-+
-+Figure #4 (OLS slides p.20) illustrates the transformation.
-+
-+
-+high resolution timer functionality
-+-----------------------------------
-+
-+During system boot it is not possible to use the high resolution timer
-+functionality, while making it possible would be difficult and would serve no
-+useful function. The initialization of the clock event device framework, the
-+clock source framework (GTOD) and hrtimers itself has to be done and
-+appropriate clock sources and clock event devices have to be registered before
-+the high resolution functionality can work. Up to the point where hrtimers are
-+initialized, the system works in the usual low resolution periodic mode. The
-+clock source and the clock event device layers provide notification functions
-+which inform hrtimers about availability of new hardware. hrtimers validates
-+the usability of the registered clock sources and clock event devices before
-+switching to high resolution mode. This ensures also that a kernel which is
-+configured for high resolution timers can run on a system which lacks the
-+necessary hardware support.
-+
-+The high resolution timer code does not support SMP machines which have only
-+global clock event devices. The support of such hardware would involve IPI
-+calls when an interrupt happens. The overhead would be much larger than the
-+benefit. This is the reason why we currently disable high resolution and
-+dynamic ticks on i386 SMP systems which stop the local APIC in C3 power
-+state. A workaround is available as an idea, but the problem has not been
-+tackled yet.
-+
-+The time ordered insertion of timers provides all the infrastructure to decide
-+whether the event device has to be reprogrammed when a timer is added. The
-+decision is made per timer base and synchronized across per-cpu timer bases in
-+a support function. The design allows the system to utilize separate per-CPU
-+clock event devices for the per-CPU timer bases, but currently only one
-+reprogrammable clock event device per-CPU is utilized.
-+
-+When the timer interrupt happens, the next event interrupt handler is called
-+from the clock event distribution code and moves expired timers from the
-+red-black tree to a separate double linked list and invokes the softirq
-+handler. An additional mode field in the hrtimer structure allows the system to
-+execute callback functions directly from the next event interrupt handler. This
-+is restricted to code which can safely be executed in the hard interrupt
-+context. This applies, for example, to the common case of a wakeup function as
-+used by nanosleep. The advantage of executing the handler in the interrupt
-+context is the avoidance of up to two context switches - from the interrupted
-+context to the softirq and to the task which is woken up by the expired
-+timer.
-+
-+Once a system has switched to high resolution mode, the periodic tick is
-+switched off. This disables the per system global periodic clock event device -
-+e.g. the PIT on i386 SMP systems.
-+
-+The periodic tick functionality is provided by an per-cpu hrtimer. The callback
-+function is executed in the next event interrupt context and updates jiffies
-+and calls update_process_times and profiling. The implementation of the hrtimer
-+based periodic tick is designed to be extended with dynamic tick functionality.
-+This allows to use a single clock event device to schedule high resolution
-+timer and periodic events (jiffies tick, profiling, process accounting) on UP
-+systems. This has been proved to work with the PIT on i386 and the Incrementer
-+on PPC.
-+
-+The softirq for running the hrtimer queues and executing the callbacks has been
-+separated from the tick bound timer softirq to allow accurate delivery of high
-+resolution timer signals which are used by itimer and POSIX interval
-+timers. The execution of this softirq can still be delayed by other softirqs,
-+but the overall latencies have been significantly improved by this separation.
-+
-+Figure #5 (OLS slides p.22) illustrates the transformation.
-+
-+
-+dynamic ticks
-+-------------
-+
-+Dynamic ticks are the logical consequence of the hrtimer based periodic tick
-+replacement (sched_tick). The functionality of the sched_tick hrtimer is
-+extended by three functions:
-+
-+- hrtimer_stop_sched_tick
-+- hrtimer_restart_sched_tick
-+- hrtimer_update_jiffies
-+
-+hrtimer_stop_sched_tick() is called when a CPU goes into idle state. The code
-+evaluates the next scheduled timer event (from both hrtimers and the timer
-+wheel) and in case that the next event is further away than the next tick it
-+reprograms the sched_tick to this future event, to allow longer idle sleeps
-+without worthless interruption by the periodic tick. The function is also
-+called when an interrupt happens during the idle period, which does not cause a
-+reschedule. The call is necessary as the interrupt handler might have armed a
-+new timer whose expiry time is before the time which was identified as the
-+nearest event in the previous call to hrtimer_stop_sched_tick.
-+
-+hrtimer_restart_sched_tick() is called when the CPU leaves the idle state before
-+it calls schedule(). hrtimer_restart_sched_tick() resumes the periodic tick,
-+which is kept active until the next call to hrtimer_stop_sched_tick().
-+
-+hrtimer_update_jiffies() is called from irq_enter() when an interrupt happens
-+in the idle period to make sure that jiffies are up to date and the interrupt
-+handler has not to deal with an eventually stale jiffy value.
-+
-+The dynamic tick feature provides statistical values which are exported to
-+userspace via /proc/stats and can be made available for enhanced power
-+management control.
-+
-+The implementation leaves room for further development like full tickless
-+systems, where the time slice is controlled by the scheduler, variable
-+frequency profiling, and a complete removal of jiffies in the future.
-+
-+
-+Aside the current initial submission of i386 support, the patchset has been
-+extended to x86_64 and ARM already. Initial (work in progress) support is also
-+available for MIPS and PowerPC.
-+
-+	  Thomas, Ingo
-+
-+
-+
-diff -puN /dev/null Documentation/hrtimers/hrtimers.txt
---- /dev/null
-+++ a/Documentation/hrtimers/hrtimers.txt
-@@ -0,0 +1,178 @@
-+
-+hrtimers - subsystem for high-resolution kernel timers
-+----------------------------------------------------
-+
-+This patch introduces a new subsystem for high-resolution kernel timers.
-+
-+One might ask the question: we already have a timer subsystem
-+(kernel/timers.c), why do we need two timer subsystems? After a lot of
-+back and forth trying to integrate high-resolution and high-precision
-+features into the existing timer framework, and after testing various
-+such high-resolution timer implementations in practice, we came to the
-+conclusion that the timer wheel code is fundamentally not suitable for
-+such an approach. We initially didn't believe this ('there must be a way
-+to solve this'), and spent a considerable effort trying to integrate
-+things into the timer wheel, but we failed. In hindsight, there are
-+several reasons why such integration is hard/impossible:
-+
-+- the forced handling of low-resolution and high-resolution timers in
-+  the same way leads to a lot of compromises, macro magic and #ifdef
-+  mess. The timers.c code is very "tightly coded" around jiffies and
-+  32-bitness assumptions, and has been honed and micro-optimized for a
-+  relatively narrow use case (jiffies in a relatively narrow HZ range)
-+  for many years - and thus even small extensions to it easily break
-+  the wheel concept, leading to even worse compromises. The timer wheel
-+  code is very good and tight code, there's zero problems with it in its
-+  current usage - but it is simply not suitable to be extended for
-+  high-res timers.
-+
-+- the unpredictable [O(N)] overhead of cascading leads to delays which
-+  necessitate a more complex handling of high resolution timers, which
-+  in turn decreases robustness. Such a design still led to rather large
-+  timing inaccuracies. Cascading is a fundamental property of the timer
-+  wheel concept, it cannot be 'designed out' without unevitably
-+  degrading other portions of the timers.c code in an unacceptable way.
-+
-+- the implementation of the current posix-timer subsystem on top of
-+  the timer wheel has already introduced a quite complex handling of
-+  the required readjusting of absolute CLOCK_REALTIME timers at
-+  settimeofday or NTP time - further underlying our experience by
-+  example: that the timer wheel data structure is too rigid for high-res
-+  timers.
-+
-+- the timer wheel code is most optimal for use cases which can be
-+  identified as "timeouts". Such timeouts are usually set up to cover
-+  error conditions in various I/O paths, such as networking and block
-+  I/O. The vast majority of those timers never expire and are rarely
-+  recascaded because the expected correct event arrives in time so they
-+  can be removed from the timer wheel before any further processing of
-+  them becomes necessary. Thus the users of these timeouts can accept
-+  the granularity and precision tradeoffs of the timer wheel, and
-+  largely expect the timer subsystem to have near-zero overhead.
-+  Accurate timing for them is not a core purpose - in fact most of the
-+  timeout values used are ad-hoc. For them it is at most a necessary
-+  evil to guarantee the processing of actual timeout completions
-+  (because most of the timeouts are deleted before completion), which
-+  should thus be as cheap and unintrusive as possible.
-+
-+The primary users of precision timers are user-space applications that
-+utilize nanosleep, posix-timers and itimer interfaces. Also, in-kernel
-+users like drivers and subsystems which require precise timed events
-+(e.g. multimedia) can benefit from the availability of a separate
-+high-resolution timer subsystem as well.
-+
-+While this subsystem does not offer high-resolution clock sources just
-+yet, the hrtimer subsystem can be easily extended with high-resolution
-+clock capabilities, and patches for that exist and are maturing quickly.
-+The increasing demand for realtime and multimedia applications along
-+with other potential users for precise timers gives another reason to
-+separate the "timeout" and "precise timer" subsystems.
-+
-+Another potential benefit is that such a separation allows even more
-+special-purpose optimization of the existing timer wheel for the low
-+resolution and low precision use cases - once the precision-sensitive
-+APIs are separated from the timer wheel and are migrated over to
-+hrtimers. E.g. we could decrease the frequency of the timeout subsystem
-+from 250 Hz to 100 HZ (or even smaller).
-+
-+hrtimer subsystem implementation details
-+----------------------------------------
-+
-+the basic design considerations were:
-+
-+- simplicity
-+
-+- data structure not bound to jiffies or any other granularity. All the
-+  kernel logic works at 64-bit nanoseconds resolution - no compromises.
-+
-+- simplification of existing, timing related kernel code
-+
-+another basic requirement was the immediate enqueueing and ordering of
-+timers at activation time. After looking at several possible solutions
-+such as radix trees and hashes, we chose the red black tree as the basic
-+data structure. Rbtrees are available as a library in the kernel and are
-+used in various performance-critical areas of e.g. memory management and
-+file systems. The rbtree is solely used for time sorted ordering, while
-+a separate list is used to give the expiry code fast access to the
-+queued timers, without having to walk the rbtree.
-+
-+(This separate list is also useful for later when we'll introduce
-+high-resolution clocks, where we need separate pending and expired
-+queues while keeping the time-order intact.)
-+
-+Time-ordered enqueueing is not purely for the purposes of
-+high-resolution clocks though, it also simplifies the handling of
-+absolute timers based on a low-resolution CLOCK_REALTIME. The existing
-+implementation needed to keep an extra list of all armed absolute
-+CLOCK_REALTIME timers along with complex locking. In case of
-+settimeofday and NTP, all the timers (!) had to be dequeued, the
-+time-changing code had to fix them up one by one, and all of them had to
-+be enqueued again. The time-ordered enqueueing and the storage of the
-+expiry time in absolute time units removes all this complex and poorly
-+scaling code from the posix-timer implementation - the clock can simply
-+be set without having to touch the rbtree. This also makes the handling
-+of posix-timers simpler in general.
-+
-+The locking and per-CPU behavior of hrtimers was mostly taken from the
-+existing timer wheel code, as it is mature and well suited. Sharing code
-+was not really a win, due to the different data structures. Also, the
-+hrtimer functions now have clearer behavior and clearer names - such as
-+hrtimer_try_to_cancel() and hrtimer_cancel() [which are roughly
-+equivalent to del_timer() and del_timer_sync()] - so there's no direct
-+1:1 mapping between them on the algorithmical level, and thus no real
-+potential for code sharing either.
-+
-+Basic data types: every time value, absolute or relative, is in a
-+special nanosecond-resolution type: ktime_t. The kernel-internal
-+representation of ktime_t values and operations is implemented via
-+macros and inline functions, and can be switched between a "hybrid
-+union" type and a plain "scalar" 64bit nanoseconds representation (at
-+compile time). The hybrid union type optimizes time conversions on 32bit
-+CPUs. This build-time-selectable ktime_t storage format was implemented
-+to avoid the performance impact of 64-bit multiplications and divisions
-+on 32bit CPUs. Such operations are frequently necessary to convert
-+between the storage formats provided by kernel and userspace interfaces
-+and the internal time format. (See include/linux/ktime.h for further
-+details.)
-+
-+hrtimers - rounding of timer values
-+-----------------------------------
-+
-+the hrtimer code will round timer events to lower-resolution clocks
-+because it has to. Otherwise it will do no artificial rounding at all.
-+
-+one question is, what resolution value should be returned to the user by
-+the clock_getres() interface. This will return whatever real resolution
-+a given clock has - be it low-res, high-res, or artificially-low-res.
-+
-+hrtimers - testing and verification
-+----------------------------------
-+
-+We used the high-resolution clock subsystem ontop of hrtimers to verify
-+the hrtimer implementation details in praxis, and we also ran the posix
-+timer tests in order to ensure specification compliance. We also ran
-+tests on low-resolution clocks.
-+
-+The hrtimer patch converts the following kernel functionality to use
-+hrtimers:
-+
-+ - nanosleep
-+ - itimers
-+ - posix-timers
-+
-+The conversion of nanosleep and posix-timers enabled the unification of
-+nanosleep and clock_nanosleep.
-+
-+The code was successfully compiled for the following platforms:
-+
-+ i386, x86_64, ARM, PPC, PPC64, IA64
-+
-+The code was run-tested on the following platforms:
-+
-+ i386(UP/SMP), x86_64(UP/SMP), ARM, PPC
-+
-+hrtimers were also integrated into the -rt tree, along with a
-+hrtimers-based high-resolution clock implementation, so the hrtimers
-+code got a healthy amount of testing and use in practice.
-+
-+	Thomas Gleixner, Ingo Molnar
+ 	do_time_init();
+ }
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-origin.patch
-git-block.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
+gtod-persistent-clock-support-i386.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
 hrtimers-move-and-add-documentation.patch
 acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
 acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
 clockevents-core.patch
 clockevents-i386-drivers.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
 high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
 dynticks-core.patch
 dynticks-add-nohz-stats-to-proc-stat.patch
 dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
 debugging-feature-add-proc-timer_stat.patch
 generic-vsyscall-gtod-support-for-generic_time.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
@@ -704,8 +277,4 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-make-good_sigevent-non-static.patch
-aio-completion-signal-notification.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-scheduled-removal-of-sa_xxx-interrupt-flags.patch
+profile-likely-unlikely-macros-x86_64-fix.patch
