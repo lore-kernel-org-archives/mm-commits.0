@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + uml-style-fixes-in-startup-code.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:03:45 -0800
-Message-ID: <200701250603.l0P63jCO007581@shell0.pdx.osdl.net>
+Subject: + uml-fix-style-violations.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:03:49 -0800
+Message-ID: <200701250603.l0P63nNN007587@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48784 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48795 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965375AbXAYGDs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:03:48 -0500
+	id S1752118AbXAYGDw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:03:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: style fixes in startup code
+     uml: fix style violations
 has been added to the -mm tree.  Its filename is
-     uml-style-fixes-in-startup-code.patch
+     uml-fix-style-violations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: style fixes in startup code
+Subject: uml: fix style violations
 From: Jeff Dike <jdike@addtoit.com>
 
-Some style fixes in startup.c.
+Fix a bunch of style violations in mem.c.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/os-Linux/start_up.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/um/os-Linux/mem.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/os-Linux/start_up.c~uml-style-fixes-in-startup-code arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-style-fixes-in-startup-code
-+++ a/arch/um/os-Linux/start_up.c
-@@ -95,7 +95,7 @@ static int start_ptraced_child(void **st
- 		      status);
+diff -puN arch/um/os-Linux/mem.c~uml-fix-style-violations arch/um/os-Linux/mem.c
+--- a/arch/um/os-Linux/mem.c~uml-fix-style-violations
++++ a/arch/um/os-Linux/mem.c
+@@ -35,7 +35,8 @@ static void __init find_tempdir(void)
+ 	int i;
+ 	char *dir = NULL;
  
- 	*stack_out = stack;
--	return(pid);
-+	return pid;
- }
- 
- /* When testing for SYSEMU support, if it is one of the broken versions, we
-@@ -182,7 +182,7 @@ __uml_setup("nosysemu", nosysemu_cmd_par
- static void __init check_sysemu(void)
- {
- 	void *stack;
-- 	int pid, n, status, count=0;
-+	int pid, n, status, count=0;
- 
- 	printf("Checking syscall emulation patch for ptrace...");
- 	sysemu_supported = 0;
-@@ -418,7 +418,7 @@ static inline void check_skas3_proc_mm(v
- {
- 	printf("  - /proc/mm...");
- 	if (os_access("/proc/mm", OS_ACC_W_OK) < 0) {
-- 		proc_mm = 0;
-+		proc_mm = 0;
- 		printf("not found\n");
+-	if(tempdir != NULL) return;	/* We've already been called */
++	if(tempdir != NULL) /* We've already been called */
++		return;
+ 	for(i = 0; dirs[i]; i++){
+ 		dir = getenv(dirs[i]);
+ 		if((dir != NULL) && (*dir != '\0'))
+@@ -193,7 +194,7 @@ int make_tempfile(const char *template, 
+ 	} else {
+ 		free(tempname);
  	}
- 	else {
-@@ -445,7 +445,7 @@ int can_do_skas(void)
- #else
- int can_do_skas(void)
- {
--	return(0);
-+	return 0;
+-	return(fd);
++	return fd;
+ out:
+ 	free(tempname);
+ 	return -1;
+@@ -238,7 +239,7 @@ int create_tmp_file(unsigned long long l
+ 		exit(1);
+ 	}
+ 
+-	return(fd);
++	return fd;
  }
- #endif
  
-@@ -493,11 +493,11 @@ int __init parse_iomem(char *str, int *a
- 	iomem_regions = new;
- 	iomem_size += new->size + UM_KERN_PAGE_SIZE;
- 
--	return(0);
-+	return 0;
-  out_close:
- 	os_close_file(fd);
-  out:
--	return(1);
-+	return 1;
+ int create_mem_file(unsigned long long len)
+@@ -252,7 +253,7 @@ int create_mem_file(unsigned long long l
+ 		errno = -err;
+ 		perror("exec_close");
+ 	}
+-	return(fd);
++	return fd;
  }
  
  
