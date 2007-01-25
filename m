@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + remove-unused-kernel-config-option-dlci_count.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:37:00 -0800
-Message-ID: <200701250537.l0P5b0VJ006991@shell0.pdx.osdl.net>
+Subject: + remove-the-unused-kernel-config-option-video_videobuf.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:38:20 -0800
+Message-ID: <200701250538.l0P5cKcw007011@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47932 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47953 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933245AbXAYFhW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:37:22 -0500
+	id S933248AbXAYFi2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:38:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, davem@davemloft.net, jeff@garzik.org
+Cc: rpjday@mindspring.com, mchehab@infradead.org
 
 
 The patch titled
-     Remove unused kernel config option DLCI_COUNT
+     Remove the unused kernel config option VIDEO_VIDEOBUF
 has been added to the -mm tree.  Its filename is
-     remove-unused-kernel-config-option-dlci_count.patch
+     remove-the-unused-kernel-config-option-video_videobuf.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unused kernel config option DLCI_COUNT
+Subject: Remove the unused kernel config option VIDEO_VIDEOBUF
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Remove the unused kernel config option DLCI_COUNT.
-
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Krzysztof Halasa {khc@pm.waw.pl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/wan/Kconfig |   11 -----------
- 1 file changed, 11 deletions(-)
+ drivers/media/common/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/net/wan/Kconfig~remove-unused-kernel-config-option-dlci_count drivers/net/wan/Kconfig
---- a/drivers/net/wan/Kconfig~remove-unused-kernel-config-option-dlci_count
-+++ a/drivers/net/wan/Kconfig
-@@ -344,17 +344,6 @@ config DLCI
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called dlci.
- 
--config DLCI_COUNT
--	int "Max open DLCI"
--	depends on DLCI
--	default "24"
--	help
--	  Maximal number of logical point-to-point frame relay connections
--	  (the identifiers of which are called DCLIs) that the driver can
--	  handle.
+diff -puN drivers/media/common/Kconfig~remove-the-unused-kernel-config-option-video_videobuf drivers/media/common/Kconfig
+--- a/drivers/media/common/Kconfig~remove-the-unused-kernel-config-option-video_videobuf
++++ a/drivers/media/common/Kconfig
+@@ -5,8 +5,4 @@ config VIDEO_SAA7146
+ config VIDEO_SAA7146_VV
+ 	tristate
+ 	select VIDEO_BUF
+-	select VIDEO_VIDEOBUF
+ 	select VIDEO_SAA7146
 -
--	  The default is probably fine.
--
- config DLCI_MAX
- 	int "Max DLCI per device"
- 	depends on DLCI
+-config VIDEO_VIDEOBUF
+-	tristate
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
@@ -69,6 +56,7 @@ origin.patch
 fix-various-kernel-doc-in-header-files.patch
 git-alsa.patch
 ppc-use-syslog-macro-for-the-printk-log-level.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
 remove-unused-kernel-config-option-dlci_count.patch
 remove-useless-find_first_bit-macro-from-cardbusc.patch
 remove-unused-kernel-config-option-x86_xadd.patch
