@@ -1,69 +1,52 @@
 From: akpm@osdl.org
-Subject: - clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 22:12:25 -0800
-Message-ID: <200701250612.l0P6CPwb007787@shell0.pdx.osdl.net>
+Subject: - high-res-timers-core-hrtimers-add-state-tracking-fix.patch removed from -mm tree
+Date: Wed, 24 Jan 2007 22:12:40 -0800
+Message-ID: <200701250612.l0P6CelZ007841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49136 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49170 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965388AbXAYGMh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:12:37 -0500
+	id S965461AbXAYGMv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:12:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     high-res timers: fix APIC event-broadcasting code
+     hrtimers: add state tracking, fix
 has been removed from the -mm tree.  Its filename was
-     clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
+     high-res-timers-core-hrtimers-add-state-tracking-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: high-res timers: fix APIC event-broadcasting code
+Subject: hrtimers: add state tracking, fix
 From: Ingo Molnar <mingo@elte.hu>
 
-Fix a bug in the APCI-C3-turns-off-lapic related event-broadcasting code:
-it accidentally reactivated the global tick, instead of the global event
-emulation layer.
-
-The effect of this bug was a rare bootup hang on one of my test-laptops
-- but it could also result in other types of timer related problems (but
-not hangs in an already running system), such as imprecise high-res
-timeouts.
-
-Debugged via SysRq-Q.
+Fix bug in hrtimer_is_queued(), introduced by a cleanup during
+the recent refactoring.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/apic.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/hrtimer.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/apic.c~clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code
-+++ a/arch/i386/kernel/apic.c
-@@ -431,7 +431,7 @@ void switch_APIC_timer_to_ipi(void *cpum
- 	int cpu = smp_processor_id();
- 
- 	if (cpu_isset(cpu, mask) && levt->event_handler)
--		clockevents_set_global_broadcast(levt, 1);
-+		clockevents_set_broadcast(levt, 1);
+diff -puN kernel/hrtimer.c~high-res-timers-core-hrtimers-add-state-tracking-fix kernel/hrtimer.c
+--- a/kernel/hrtimer.c~high-res-timers-core-hrtimers-add-state-tracking-fix
++++ a/kernel/hrtimer.c
+@@ -156,7 +156,7 @@ static void hrtimer_get_softirq_time(str
+ static inline int hrtimer_is_queued(struct hrtimer *timer)
+ {
+ 	return timer->state &
+-		(HRTIMER_STATE_ENQUEUED || HRTIMER_STATE_PENDING);
++		(HRTIMER_STATE_ENQUEUED | HRTIMER_STATE_PENDING);
  }
- EXPORT_SYMBOL_GPL(switch_APIC_timer_to_ipi);
  
-@@ -442,7 +442,7 @@ void switch_ipi_to_APIC_timer(void *cpum
- 	int cpu = smp_processor_id();
- 
- 	if (cpu_isset(cpu, mask) && levt->event_handler)
--		clockevents_set_global_broadcast(levt, 0);
-+		clockevents_set_broadcast(levt, 0);
- }
- EXPORT_SYMBOL_GPL(switch_ipi_to_APIC_timer);
- 
+ /*
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
@@ -111,12 +94,6 @@ proc-remove-useless-and-buggy-nlink-settings.patch
 simplify-the-stacktrace-code.patch
 audit-fix-audit_filter_user_rules-initialization-bug.patch
 remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
 high-res-timers-core-hrtimers-add-state-tracking-fix.patch
 high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
 high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
