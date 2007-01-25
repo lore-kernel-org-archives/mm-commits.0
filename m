@@ -1,28 +1,24 @@
 From: akpm@osdl.org
-Subject: + i386-add-option-to-show-more-code-in-oops-reports.patch added to -mm tree
-Date: Thu, 25 Jan 2007 14:49:26 -0800
-Message-ID: <200701252249.l0PMnQBt000866@shell0.pdx.osdl.net>
+Subject: - i386-add-option-to-show-more-code-in-oops-reports.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 14:55:41 -0800
+Message-ID: <200701252255.l0PMtfia000976@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33757 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33973 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965567AbXAYWth (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 17:49:37 -0500
+	id S965579AbXAYWzv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 17:55:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: cebbert@redhat.com, ak@suse.de
+To: cebbert@redhat.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      i386: add option to show more code in oops reports
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      i386-add-option-to-show-more-code-in-oops-reports.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: i386: add option to show more code in oops reports
