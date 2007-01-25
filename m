@@ -1,128 +1,148 @@
 From: akpm@osdl.org
-Subject: - nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 20:38:34 -0800
-Message-ID: <200701250438.l0P4cZcs005969@shell0.pdx.osdl.net>
+Subject: + fix-uml-on-non-standard-vm-split-hosts.patch added to -mm tree
+Date: Wed, 24 Jan 2007 20:45:03 -0800
+Message-ID: <200701250445.l0P4j3Xa006078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46469 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46580 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933213AbXAYEj5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 23:39:57 -0500
+	id S1752116AbXAYEq0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 23:46:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paubert@iram.es, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, shindepravin@gmail.com, stable@kernel.org, uml@flonatel.org
 
 
 The patch titled
-     nfsd: Fix mismatch between encode_dent_fn and filldir_t
-has been removed from the -mm tree.  Its filename was
-     nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t.patch
+     Fix UML on non-standard VM split hosts
+has been added to the -mm tree.  Its filename is
+     fix-uml-on-non-standard-vm-split-hosts.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: nfsd: Fix mismatch between encode_dent_fn and filldir_t
-From: Gabriel Paubert <paubert@iram.es>
+Subject: Fix UML on non-standard VM split hosts
+From: Jeff Dike <jdike@addtoit.com>
 
-The 5th parameter of filldir_t function type used by vfs_readdir was
-changed from ino_t to u64 in October.  Unfortunately the patch missed some
-files in fs/nfsd where functions pointers of type encode_dent_fn are passed
-around and finally cast to filldir_t.
+This fixes UML on hosts with non-standard VM splits.  We had changed the
+config variable that controls UML behavior on such hosts, but not
+propogated the change everywhere.  In particular, the values of STUB_CODE
+and STUB_DATA relied on the old variable.
 
-The effect is only visible when an NFS server is run on a 32 bit big-endian
-machine (it would have been visible on all 32 bit architectures if the 6th
-parameter had been used).  The results are interesting: all files have an
-inode of 0 (unique you say?) from getdents(2) and even ls(1) does not find
-any files.
+I also reformatted the HOST_VMSPLIT_3G help to make it more standard.
 
-Signed-off-by: Gabriel Paubert <paubert@iram.es>
-Cc: Neil Brown <neilb@suse.de>
+Spotted by uml@flonatel.org.
+
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Blaisorblade <blaisorblade@yahoo.it>
+Cc: Pravin <shindepravin@gmail.com>
+Cc: <uml@flonatel.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/nfs3xdr.c         |    4 ++--
- fs/nfsd/nfsxdr.c          |    2 +-
- include/linux/nfsd/nfsd.h |    2 +-
- include/linux/nfsd/xdr.h  |    2 +-
- include/linux/nfsd/xdr3.h |    4 ++--
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ arch/um/Kconfig.i386 |   38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN fs/nfsd/nfs3xdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t fs/nfsd/nfs3xdr.c
---- a/fs/nfsd/nfs3xdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/fs/nfsd/nfs3xdr.c
-@@ -991,14 +991,14 @@ encode_entry(struct readdir_cd *ccd, con
+diff -puN arch/um/Kconfig.i386~fix-uml-on-non-standard-vm-split-hosts arch/um/Kconfig.i386
+--- a/arch/um/Kconfig.i386~fix-uml-on-non-standard-vm-split-hosts
++++ a/arch/um/Kconfig.i386
+@@ -19,22 +19,22 @@ config SEMAPHORE_SLEEPERS
+ choice
+ 	prompt "Host memory split"
+ 	default HOST_VMSPLIT_3G
+-	---help---
+-	   This is needed when the host kernel on which you run has a non-default
+-	   (like 2G/2G) memory split, instead of the customary 3G/1G. If you did
+-	   not recompile your own kernel but use the default distro's one, you can
+-	   safely accept the "Default split" option.
+-
+-	   It can be enabled on recent (>=2.6.16-rc2) vanilla kernels via
+-	   CONFIG_VM_SPLIT_*, or on previous kernels with special patches (-ck
+-	   patchset by Con Kolivas, or other ones) - option names match closely the
+-	   host CONFIG_VM_SPLIT_* ones.
+-
+-	   A lower setting (where 1G/3G is lowest and 3G/1G is higher) will
+-	   tolerate even more "normal" host kernels, but an higher setting will be
+-	   stricter.
++	help
++        This is needed when the host kernel on which you run has a non-default
++	(like 2G/2G) memory split, instead of the customary 3G/1G. If you did
++	not recompile your own kernel but use the default distro's one, you can
++	safely accept the "Default split" option.
++
++	It can be enabled on recent (>=2.6.16-rc2) vanilla kernels via
++	CONFIG_VM_SPLIT_*, or on previous kernels with special patches (-ck
++	patchset by Con Kolivas, or other ones) - option names match closely the
++	host CONFIG_VM_SPLIT_* ones.
++
++	A lower setting (where 1G/3G is lowest and 3G/1G is higher) will
++	tolerate even more "normal" host kernels, but an higher setting will be
++	stricter.
  
- int
- nfs3svc_encode_entry(struct readdir_cd *cd, const char *name,
--		     int namlen, loff_t offset, ino_t ino, unsigned int d_type)
-+		     int namlen, loff_t offset, u64 ino, unsigned int d_type)
- {
- 	return encode_entry(cd, name, namlen, offset, ino, d_type, 0);
- }
+-	   So, if you do not know what to do here, say 'Default split'.
++	So, if you do not know what to do here, say 'Default split'.
  
- int
- nfs3svc_encode_entry_plus(struct readdir_cd *cd, const char *name,
--			  int namlen, loff_t offset, ino_t ino, unsigned int d_type)
-+			  int namlen, loff_t offset, u64 ino, unsigned int d_type)
- {
- 	return encode_entry(cd, name, namlen, offset, ino, d_type, 1);
- }
-diff -puN fs/nfsd/nfsxdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t fs/nfsd/nfsxdr.c
---- a/fs/nfsd/nfsxdr.c~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/fs/nfsd/nfsxdr.c
-@@ -463,7 +463,7 @@ nfssvc_encode_statfsres(struct svc_rqst 
+ 	config HOST_VMSPLIT_3G
+ 		bool "Default split (3G/1G user/kernel host split)"
+@@ -67,13 +67,13 @@ config 3_LEVEL_PGTABLES
  
- int
- nfssvc_encode_entry(struct readdir_cd *ccd, const char *name,
--		    int namlen, loff_t offset, ino_t ino, unsigned int d_type)
-+		    int namlen, loff_t offset, u64 ino, unsigned int d_type)
- {
- 	struct nfsd_readdirres *cd = container_of(ccd, struct nfsd_readdirres, common);
- 	__be32	*p = cd->buffer;
-diff -puN include/linux/nfsd/nfsd.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/include/linux/nfsd/nfsd.h
-@@ -53,7 +53,7 @@ struct readdir_cd {
- 	__be32			err;	/* 0, nfserr, or nfserr_eof */
- };
- typedef int		(*encode_dent_fn)(struct readdir_cd *, const char *,
--						int, loff_t, ino_t, unsigned int);
-+						int, loff_t, u64, unsigned int);
- typedef int (*nfsd_dirop_t)(struct inode *, struct dentry *, int, int);
+ config STUB_CODE
+ 	hex
+-	default 0xbfffe000 if !HOST_2G_2G
+-	default 0x7fffe000 if HOST_2G_2G
++	default 0xbfffe000 if !HOST_VMSPLIT_2G
++	default 0x7fffe000 if HOST_VMSPLIT_2G
  
- extern struct svc_program	nfsd_program;
-diff -puN include/linux/nfsd/xdr3.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t include/linux/nfsd/xdr3.h
---- a/include/linux/nfsd/xdr3.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/include/linux/nfsd/xdr3.h
-@@ -332,10 +332,10 @@ int nfs3svc_release_fhandle(struct svc_r
- int nfs3svc_release_fhandle2(struct svc_rqst *, __be32 *,
- 				struct nfsd3_fhandle_pair *);
- int nfs3svc_encode_entry(struct readdir_cd *, const char *name,
--				int namlen, loff_t offset, ino_t ino,
-+				int namlen, loff_t offset, u64 ino,
- 				unsigned int);
- int nfs3svc_encode_entry_plus(struct readdir_cd *, const char *name,
--				int namlen, loff_t offset, ino_t ino,
-+				int namlen, loff_t offset, u64 ino,
- 				unsigned int);
- /* Helper functions for NFSv3 ACL code */
- __be32 *nfs3svc_encode_post_op_attr(struct svc_rqst *rqstp, __be32 *p,
-diff -puN include/linux/nfsd/xdr.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t include/linux/nfsd/xdr.h
---- a/include/linux/nfsd/xdr.h~nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t
-+++ a/include/linux/nfsd/xdr.h
-@@ -166,7 +166,7 @@ int nfssvc_encode_statfsres(struct svc_r
- int nfssvc_encode_readdirres(struct svc_rqst *, __be32 *, struct nfsd_readdirres *);
+ config STUB_DATA
+ 	hex
+-	default 0xbffff000 if !HOST_2G_2G
+-	default 0x7ffff000 if HOST_2G_2G
++	default 0xbffff000 if !HOST_VMSPLIT_2G
++	default 0x7ffff000 if HOST_VMSPLIT_2G
  
- int nfssvc_encode_entry(struct readdir_cd *, const char *name,
--				int namlen, loff_t offset, ino_t ino, unsigned int);
-+				int namlen, loff_t offset, u64 ino, unsigned int);
- 
- int nfssvc_release_fhandle(struct svc_rqst *, __be32 *, struct nfsd_fhandle *);
- 
+ config STUB_START
+ 	hex
 _
 
-Patches currently in -mm which might be from paubert@iram.es are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-knfsd-fix-type-mismatch-with-filldir_t-used-by-nfsd.patch
-nfsd-fix-mismatch-between-encode_dent_fn-and-filldir_t.patch
+fix-uml-on-non-standard-vm-split-hosts.patch
+uml-fix-mknod.patch
+uml-console-locking-fixes.patch
+uml-return-hotplug-errors-to-host.patch
+uml-console-whitespace-and-comment-tidying.patch
+uml-lock-the-irqs_to_free-list.patch
+uml-add-locking-to-network-transport-registration.patch
+uml-network-driver-whitespace-and-style-fixes.patch
+uml-watchdog-driver-locking.patch
+uml-watchdog-driver-formatting.patch
+uml-audio-driver-locking.patch
+uml-audio-driver-formatting.patch
+uml-mconsole-locking.patch
+uml-make-two-variables-static.patch
+uml-port-driver-formatting.patch
+uml-kill-a-compilation-warning.patch
+uml-network-driver-locking-and-code-cleanup.patch
+uml-use-list_head-where-possible.patch
+uml-locking-commentary-in-the-random-driver.patch
+uml-mostly-const-a-structure.patch
+uml-chan_userh-formatting-fices.patch
+uml-console-locking-commentary-and-code-cleanup.patch
+uml-fix-previous-console-locking.patch
+uml-locking-comments-in-iomem-driver.patch
+uml-memc-and-physmemc-formatting-fixes.patch
+uml-initialize-a-list-head.patch
+uml-make-time-data-per-cpu.patch
+uml-delete-unused-file.patch
+uml-remove-unused-variable-and-function.patch
+uml-make-signal-handlers-static.patch
+uml-const-a-variable.patch
+uml-remove-code-controlled-by-non-existent-config-option.patch
+uml-fix-prototypes.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
