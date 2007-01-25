@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-i386.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:08:52 -0800
-Message-ID: <200701250508.l0P58qqB006519@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-h8300.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:08:51 -0800
+Message-ID: <200701250508.l0P58pv7006516@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47111 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47115 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965304AbXAYFJC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:09:02 -0500
+	id S965305AbXAYFJD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:09:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, ak@muc.de
+Cc: alon.barlev@gmail.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Dynamic kernel command-line: i386
+     Dynamic kernel command-line: h8300
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-i386.patch
+     dynamic-kernel-command-line-h8300.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: i386
+Subject: Dynamic kernel command-line: h8300
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
 1. Rename saved_command_line into boot_command_line.
 2. Set command_line as __initdata.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Andi Kleen <ak@muc.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/head.S  |    2 +-
- arch/i386/kernel/setup.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/h8300/kernel/setup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/head.S~dynamic-kernel-command-line-i386 arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~dynamic-kernel-command-line-i386
-+++ a/arch/i386/kernel/head.S
-@@ -104,7 +104,7 @@ ENTRY(startup_32)
- 	movzwl OLD_CL_OFFSET,%esi
- 	addl $(OLD_CL_BASE_ADDR),%esi
- 2:
--	movl $(saved_command_line - __PAGE_OFFSET),%edi
-+	movl $(boot_command_line - __PAGE_OFFSET),%edi
- 	movl $(COMMAND_LINE_SIZE/4),%ecx
- 	rep
- 	movsl
-diff -puN arch/i386/kernel/setup.c~dynamic-kernel-command-line-i386 arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~dynamic-kernel-command-line-i386
-+++ a/arch/i386/kernel/setup.c
-@@ -133,7 +133,7 @@ unsigned long saved_videomode;
- #define RAMDISK_PROMPT_FLAG		0x8000
- #define RAMDISK_LOAD_FLAG		0x4000	
+diff -puN arch/h8300/kernel/setup.c~dynamic-kernel-command-line-h8300 arch/h8300/kernel/setup.c
+--- a/arch/h8300/kernel/setup.c~dynamic-kernel-command-line-h8300
++++ a/arch/h8300/kernel/setup.c
+@@ -54,7 +54,7 @@ unsigned long rom_length;
+ unsigned long memory_start;
+ unsigned long memory_end;
  
--static char command_line[COMMAND_LINE_SIZE];
-+static char __initdata command_line[COMMAND_LINE_SIZE];
+-char command_line[COMMAND_LINE_SIZE];
++char __initdata command_line[COMMAND_LINE_SIZE];
  
- unsigned char __initdata boot_params[PARAM_SIZE];
+ extern int _stext, _etext, _sdata, _edata, _sbss, _ebss, _end;
+ extern int _ramstart, _ramend;
+@@ -154,8 +154,8 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ 	/* Keep a copy of command line */
+ 	*cmdline_p = &command_line[0];
+-	memcpy(saved_command_line, command_line, COMMAND_LINE_SIZE);
+-	saved_command_line[COMMAND_LINE_SIZE-1] = 0;
++	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
++	boot_command_line[COMMAND_LINE_SIZE-1] = 0;
  
-@@ -577,7 +577,7 @@ void __init setup_arch(char **cmdline_p)
- 		print_memory_map("user");
- 	}
- 
--	strlcpy(command_line, saved_command_line, COMMAND_LINE_SIZE);
-+	strlcpy(command_line, boot_command_line, COMMAND_LINE_SIZE);
- 	*cmdline_p = command_line;
- 
- 	max_low_pfn = setup_memory();
+ #ifdef DEBUG
+ 	if (strlen(*cmdline_p)) 
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
