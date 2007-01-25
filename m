@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-sparc.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:09:12 -0800
-Message-ID: <200701250509.l0P59C0n006556@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-common.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:08:30 -0800
+Message-ID: <200701250508.l0P58UiK006488@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47375 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47496 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933231AbXAYFMb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:12:31 -0500
+	id S965286AbXAYFTd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:19:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, davem@davemloft.net, wli@holomorphy.com
+Cc: alon.barlev@gmail.com, ak@muc.de, benh@kernel.crashing.org, blaisorblade@yahoo.it, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, kkojima@rr.iij4u.or.jp, kyle@mcmartin.ca, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rc@rc0.org.uk, rmk@arm.linux.org.uk, rth@twiddle.net, schwidefsky@de.ibm.com, spyro@f2s.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, uclinux-v850@lsi.nec.co.jp, wli@holomorphy.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org
 
 
 The patch titled
-     Dynamic kernel command-line: sparc
+     Dynamic kernel command-line: common
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-sparc.patch
+     dynamic-kernel-command-line-common.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,184 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: sparc
+Subject: Dynamic kernel command-line: common
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
-Rename saved_command_line into boot_command_line.
+Current implementation stores a static command-line buffer allocated to
+COMMAND_LINE_SIZE size.  Most architectures stores two copies of this buffer,
+one for future reference and one for parameter parsing.
+
+Current kernel command-line size for most architecture is much too small for
+module parameters, video settings, initramfs paramters and much more.  The
+problem is that setting COMMAND_LINE_SIZE to a grater value, allocates static
+buffers.
+
+In order to allow a greater command-line size, these buffers should be
+dynamically allocated or marked as init disposable buffers, so unused memory
+can be released.
+
+This patch renames the static saved_command_line variable into
+boot_command_line adding __initdata attribute, so that it can be disposed
+after initialization.  This rename is required so applications that use
+saved_command_line will not be affected by this change.
+
+It reintroduces saved_command_line as dynamically allocated buffer to match
+the data in boot_command_line.
+
+It also mark secondary command-line buffer as __initdata, and copies it to
+dynamically allocated static_command_line buffer components may hold reference
+to it after initialization.
+
+This patch is for linux-2.6.20-rc4-mm1 and is divided to target each
+architecture.  I could not check this in any architecture so please forgive me
+if I got it wrong.
+
+The per-architecture modification is very simple, use boot_command_line in
+place of saved_command_line.  The common code is the change into dynamic
+command-line.
+
+
+This patch:
+
+1. Rename saved_command_line into boot_command_line, mark as init
+   disposable.
+
+2. Add dynamic allocated saved_command_line.
+
+3. Add dynamic allocated static_command_line.
+
+4. During startup copy: boot_command_line into saved_command_line.  arch
+   command_line into static_command_line.
+
+5. Parse static_command_line and not arch command_line, so arch
+   command_line may be freed.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
+Cc: Richard Curnow <rc@rc0.org.uk>
 Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc/kernel/setup.c       |    2 +-
- arch/sparc/kernel/sparc_ksyms.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/init.h |    5 +++--
+ init/main.c          |   29 ++++++++++++++++++++++++-----
+ 2 files changed, 27 insertions(+), 7 deletions(-)
 
-diff -puN arch/sparc/kernel/setup.c~dynamic-kernel-command-line-sparc arch/sparc/kernel/setup.c
---- a/arch/sparc/kernel/setup.c~dynamic-kernel-command-line-sparc
-+++ a/arch/sparc/kernel/setup.c
-@@ -246,7 +246,7 @@ void __init setup_arch(char **cmdline_p)
+diff -puN include/linux/init.h~dynamic-kernel-command-line-common include/linux/init.h
+--- a/include/linux/init.h~dynamic-kernel-command-line-common
++++ a/include/linux/init.h
+@@ -67,7 +67,8 @@ extern initcall_t __con_initcall_start[]
+ extern initcall_t __security_initcall_start[], __security_initcall_end[];
  
- 	/* Initialize PROM console and command line. */
- 	*cmdline_p = prom_getbootargs();
--	strcpy(saved_command_line, *cmdline_p);
-+	strcpy(boot_command_line, *cmdline_p);
+ /* Defined in init/main.c */
+-extern char saved_command_line[];
++extern char __initdata boot_command_line[];
++extern char *saved_command_line;
+ extern unsigned int reset_devices;
  
- 	/* Set sparc_cpu_model */
- 	sparc_cpu_model = sun_unknown;
-diff -puN arch/sparc/kernel/sparc_ksyms.c~dynamic-kernel-command-line-sparc arch/sparc/kernel/sparc_ksyms.c
---- a/arch/sparc/kernel/sparc_ksyms.c~dynamic-kernel-command-line-sparc
-+++ a/arch/sparc/kernel/sparc_ksyms.c
-@@ -229,7 +229,7 @@ EXPORT_SYMBOL(prom_getproplen);
- EXPORT_SYMBOL(prom_getproperty);
- EXPORT_SYMBOL(prom_node_has_property);
- EXPORT_SYMBOL(prom_setprop);
--EXPORT_SYMBOL(saved_command_line);
-+EXPORT_SYMBOL(boot_command_line);
- EXPORT_SYMBOL(prom_apply_obio_ranges);
- EXPORT_SYMBOL(prom_feval);
- EXPORT_SYMBOL(prom_getbool);
+ /* used by init/main.c */
+@@ -164,7 +165,7 @@ struct obs_kernel_param {
+ #define early_param(str, fn)					\
+ 	__setup_param(str, fn, fn, 1)
+ 
+-/* Relies on saved_command_line being set */
++/* Relies on boot_command_line being set */
+ void __init parse_early_param(void);
+ #endif /* __ASSEMBLY__ */
+ 
+diff -puN init/main.c~dynamic-kernel-command-line-common init/main.c
+--- a/init/main.c~dynamic-kernel-command-line-common
++++ a/init/main.c
+@@ -122,8 +122,12 @@ extern void time_init(void);
+ void (*late_time_init)(void);
+ extern void softirq_init(void);
+ 
+-/* Untouched command line (eg. for /proc) saved by arch-specific code. */
+-char saved_command_line[COMMAND_LINE_SIZE];
++/* Untouched command line saved by arch-specific code. */
++char __initdata boot_command_line[COMMAND_LINE_SIZE];
++/* Untouched saved command line (eg. for /proc) */
++char *saved_command_line;
++/* Command line for parameter parsing */
++static char *static_command_line;
+ 
+ static char *execute_command;
+ static char *ramdisk_execute_command;
+@@ -401,6 +405,20 @@ static void __init smp_init(void)
+ #endif
+ 
+ /*
++ * We need to store the untouched command line for future reference.
++ * We also need to store the touched command line since the parameter
++ * parsing is performed in place, and we should allow a component to
++ * store reference of name/value for future reference.
++ */
++static void __init setup_command_line(char *command_line)
++{
++	saved_command_line = alloc_bootmem(strlen (boot_command_line)+1);
++	static_command_line = alloc_bootmem(strlen (command_line)+1);
++	strcpy (saved_command_line, boot_command_line);
++	strcpy (static_command_line, command_line);
++}
++
++/*
+  * We need to finalize in a non-__init function or else race conditions
+  * between the root thread and the init thread may cause start_kernel to
+  * be reaped by free_initmem before the root thread has proceeded to
+@@ -454,7 +472,7 @@ void __init parse_early_param(void)
+ 		return;
+ 
+ 	/* All fall through to do_early_param. */
+-	strlcpy(tmp_cmdline, saved_command_line, COMMAND_LINE_SIZE);
++	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
+ 	parse_args("early options", tmp_cmdline, NULL, 0, do_early_param);
+ 	done = 1;
+ }
+@@ -504,6 +522,7 @@ asmlinkage void __init start_kernel(void
+ 	printk(KERN_NOTICE);
+ 	printk(linux_banner);
+ 	setup_arch(&command_line);
++	setup_command_line(command_line);
+ 	unwind_setup();
+ 	setup_per_cpu_areas();
+ 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
+@@ -521,9 +540,9 @@ asmlinkage void __init start_kernel(void
+ 	preempt_disable();
+ 	build_all_zonelists();
+ 	page_alloc_init();
+-	printk(KERN_NOTICE "Kernel command line: %s\n", saved_command_line);
++	printk(KERN_NOTICE "Kernel command line: %s\n", boot_command_line);
+ 	parse_early_param();
+-	parse_args("Booting kernel", command_line, __start___param,
++	parse_args("Booting kernel", static_command_line, __start___param,
+ 		   __stop___param - __start___param,
+ 		   &unknown_bootoption);
+ 	if (!irqs_disabled()) {
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
