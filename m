@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fix-uml-on-non-standard-vm-split-hosts.patch added to -mm tree
-Date: Wed, 24 Jan 2007 20:45:03 -0800
-Message-ID: <200701250445.l0P4j3Xa006078@shell0.pdx.osdl.net>
+Subject: + remove-dead-kernel-config-option-aedsp16_mpu401.patch added to -mm tree
+Date: Wed, 24 Jan 2007 20:45:50 -0800
+Message-ID: <200701250445.l0P4jowv006091@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46580 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46637 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752116AbXAYEq0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 23:46:26 -0500
+	id S933199AbXAYEtE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 23:49:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, shindepravin@gmail.com, stable@kernel.org, uml@flonatel.org
+Cc: rpjday@mindspring.com, bunk@stusta.de
 
 
 The patch titled
-     Fix UML on non-standard VM split hosts
+     Remove dead kernel config option AEDSP16_MPU401.
 has been added to the -mm tree.  Its filename is
-     fix-uml-on-non-standard-vm-split-hosts.patch
+     remove-dead-kernel-config-option-aedsp16_mpu401.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,124 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix UML on non-standard VM split hosts
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Remove dead kernel config option AEDSP16_MPU401.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-This fixes UML on hosts with non-standard VM splits.  We had changed the
-config variable that controls UML behavior on such hosts, but not
-propogated the change everywhere.  In particular, the values of STUB_CODE
-and STUB_DATA relied on the old variable.
+Remove the dead kernel config option AEDSP16_MPU401.
 
-I also reformatted the HOST_VMSPLIT_3G help to make it more standard.
-
-Spotted by uml@flonatel.org.
-
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: Blaisorblade <blaisorblade@yahoo.it>
-Cc: Pravin <shindepravin@gmail.com>
-Cc: <uml@flonatel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Robert P. J. Day <mindspring.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/Kconfig.i386 |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ sound/oss/Kconfig |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN arch/um/Kconfig.i386~fix-uml-on-non-standard-vm-split-hosts arch/um/Kconfig.i386
---- a/arch/um/Kconfig.i386~fix-uml-on-non-standard-vm-split-hosts
-+++ a/arch/um/Kconfig.i386
-@@ -19,22 +19,22 @@ config SEMAPHORE_SLEEPERS
- choice
- 	prompt "Host memory split"
- 	default HOST_VMSPLIT_3G
--	---help---
--	   This is needed when the host kernel on which you run has a non-default
--	   (like 2G/2G) memory split, instead of the customary 3G/1G. If you did
--	   not recompile your own kernel but use the default distro's one, you can
--	   safely accept the "Default split" option.
+diff -puN sound/oss/Kconfig~remove-dead-kernel-config-option-aedsp16_mpu401 sound/oss/Kconfig
+--- a/sound/oss/Kconfig~remove-dead-kernel-config-option-aedsp16_mpu401
++++ a/sound/oss/Kconfig
+@@ -705,18 +705,6 @@ config AEDSP16_SBPRO
+ 
+ endchoice
+ 
+-config AEDSP16_MPU401
+-	bool "Audio Excel DSP 16 (MPU401 emulation)"
+-	depends on SOUND_AEDSP16 && SOUND_MPU401
+-	help
+-	  Answer Y if you want your audio card to emulate the MPU-401 midi
+-	  interface. You should then also say Y to "MPU-401 support".
 -
--	   It can be enabled on recent (>=2.6.16-rc2) vanilla kernels via
--	   CONFIG_VM_SPLIT_*, or on previous kernels with special patches (-ck
--	   patchset by Con Kolivas, or other ones) - option names match closely the
--	   host CONFIG_VM_SPLIT_* ones.
+-	  Note that the I/O base for MPU-401 support of aedsp16 is the same
+-	  you have selected for "MPU-401 support". If you are using this
+-	  driver as a module you have to specify the MPU I/O base address with
+-	  the parameter 'mpu_base=0xNNN'.
 -
--	   A lower setting (where 1G/3G is lowest and 3G/1G is higher) will
--	   tolerate even more "normal" host kernels, but an higher setting will be
--	   stricter.
-+	help
-+        This is needed when the host kernel on which you run has a non-default
-+	(like 2G/2G) memory split, instead of the customary 3G/1G. If you did
-+	not recompile your own kernel but use the default distro's one, you can
-+	safely accept the "Default split" option.
-+
-+	It can be enabled on recent (>=2.6.16-rc2) vanilla kernels via
-+	CONFIG_VM_SPLIT_*, or on previous kernels with special patches (-ck
-+	patchset by Con Kolivas, or other ones) - option names match closely the
-+	host CONFIG_VM_SPLIT_* ones.
-+
-+	A lower setting (where 1G/3G is lowest and 3G/1G is higher) will
-+	tolerate even more "normal" host kernels, but an higher setting will be
-+	stricter.
- 
--	   So, if you do not know what to do here, say 'Default split'.
-+	So, if you do not know what to do here, say 'Default split'.
- 
- 	config HOST_VMSPLIT_3G
- 		bool "Default split (3G/1G user/kernel host split)"
-@@ -67,13 +67,13 @@ config 3_LEVEL_PGTABLES
- 
- config STUB_CODE
- 	hex
--	default 0xbfffe000 if !HOST_2G_2G
--	default 0x7fffe000 if HOST_2G_2G
-+	default 0xbfffe000 if !HOST_VMSPLIT_2G
-+	default 0x7fffe000 if HOST_VMSPLIT_2G
- 
- config STUB_DATA
- 	hex
--	default 0xbffff000 if !HOST_2G_2G
--	default 0x7ffff000 if HOST_2G_2G
-+	default 0xbffff000 if !HOST_VMSPLIT_2G
-+	default 0x7ffff000 if HOST_VMSPLIT_2G
- 
- config STUB_START
- 	hex
+ config SOUND_VIDC
+ 	tristate "VIDC 16-bit sound"
+ 	depends on ARM && (ARCH_ACORN || ARCH_CLPS7500) && SOUND_OSS
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-fix-uml-on-non-standard-vm-split-hosts.patch
-uml-fix-mknod.patch
-uml-console-locking-fixes.patch
-uml-return-hotplug-errors-to-host.patch
-uml-console-whitespace-and-comment-tidying.patch
-uml-lock-the-irqs_to_free-list.patch
-uml-add-locking-to-network-transport-registration.patch
-uml-network-driver-whitespace-and-style-fixes.patch
-uml-watchdog-driver-locking.patch
-uml-watchdog-driver-formatting.patch
-uml-audio-driver-locking.patch
-uml-audio-driver-formatting.patch
-uml-mconsole-locking.patch
-uml-make-two-variables-static.patch
-uml-port-driver-formatting.patch
-uml-kill-a-compilation-warning.patch
-uml-network-driver-locking-and-code-cleanup.patch
-uml-use-list_head-where-possible.patch
-uml-locking-commentary-in-the-random-driver.patch
-uml-mostly-const-a-structure.patch
-uml-chan_userh-formatting-fices.patch
-uml-console-locking-commentary-and-code-cleanup.patch
-uml-fix-previous-console-locking.patch
-uml-locking-comments-in-iomem-driver.patch
-uml-memc-and-physmemc-formatting-fixes.patch
-uml-initialize-a-list-head.patch
-uml-make-time-data-per-cpu.patch
-uml-delete-unused-file.patch
-uml-remove-unused-variable-and-function.patch
-uml-make-signal-handlers-static.patch
-uml-const-a-variable.patch
-uml-remove-code-controlled-by-non-existent-config-option.patch
-uml-fix-prototypes.patch
+origin.patch
+fix-various-kernel-doc-in-header-files.patch
+git-alsa.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
 rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
