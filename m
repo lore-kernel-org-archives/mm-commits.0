@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + time-x86_64-hpet-fixup-clocksource-changes.patch added to -mm tree
-Date: Wed, 24 Jan 2007 23:30:10 -0800
-Message-ID: <200701250730.l0P7UA23009215@shell0.pdx.osdl.net>
+Subject: + time-x86_64-tsc-fixup-clocksource-changes.patch added to -mm tree
+Date: Wed, 24 Jan 2007 23:30:45 -0800
+Message-ID: <200701250730.l0P7UjSa009225@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51794 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51813 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965670AbXAYHaZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 02:30:25 -0500
+	id S965671AbXAYHbA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 02:31:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: tglx@linutronix.de, mingo@elte.hu
 
 
 The patch titled
-     time-x86_64-hpet-fixup-clocksource-changes
+     time-x86_64-tsc-fixup-clocksource-changes
 has been added to the -mm tree.  Its filename is
-     time-x86_64-hpet-fixup-clocksource-changes.patch
+     time-x86_64-tsc-fixup-clocksource-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time-x86_64-hpet-fixup-clocksource-changes
+Subject: time-x86_64-tsc-fixup-clocksource-changes
 
 
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -33,21 +33,96 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/hpet.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/tsc.c |   43 +++++++++++--------------------------
+ 1 file changed, 13 insertions(+), 30 deletions(-)
 
-diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-hpet-fixup-clocksource-changes arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~time-x86_64-hpet-fixup-clocksource-changes
-+++ a/arch/x86_64/kernel/hpet.c
-@@ -465,7 +465,7 @@ struct clocksource clocksource_hpet = {
- 	.mask		= (cycle_t)HPET_MASK,
- 	.mult		= 0, /* set below */
- 	.shift		= HPET_SHIFT,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+diff -puN arch/x86_64/kernel/tsc.c~time-x86_64-tsc-fixup-clocksource-changes arch/x86_64/kernel/tsc.c
+--- a/arch/x86_64/kernel/tsc.c~time-x86_64-tsc-fixup-clocksource-changes
++++ a/arch/x86_64/kernel/tsc.c
+@@ -46,13 +46,6 @@ static inline int check_tsc_unstable(voi
+ {
+ 	return tsc_unstable;
+ }
+-
+-void mark_tsc_unstable(void)
+-{
+-	tsc_unstable = 1;
+-}
+-EXPORT_SYMBOL_GPL(mark_tsc_unstable);
+-
+ #ifdef CONFIG_CPU_FREQ
+ 
+ /* Frequency scaling support. Adjust the TSC based timer when the cpu frequency
+@@ -143,12 +136,6 @@ core_initcall(cpufreq_tsc);
+ 
+ static int tsc_unstable = 0;
+ 
+-void mark_tsc_unstable(void)
+-{
+-	tsc_unstable = 1;
+-}
+-EXPORT_SYMBOL_GPL(mark_tsc_unstable);
+-
+ /*
+  * Make an educated guess if the TSC is trustworthy and synchronized
+  * over all CPUs.
+@@ -195,9 +182,6 @@ __setup("notsc", notsc_setup);
+ 
+ 
+ /* clock source code: */
+-
+-static int tsc_update_callback(void);
+-
+ static cycle_t read_tsc(void)
+ {
+ 	cycle_t ret = (cycle_t)get_cycles_sync();
+@@ -208,25 +192,24 @@ static struct clocksource clocksource_ts
+ 	.name			= "tsc",
+ 	.rating			= 300,
+ 	.read			= read_tsc,
+-	.mask			= (cycle_t)-1,
+-	.mult			= 0, /* to be set */
++	.mask			= CLOCKSOURCE_MASK(64),
+ 	.shift			= 22,
+-	.update_callback	= tsc_update_callback,
+-	.is_continuous		= 1,
++	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
++				  CLOCK_SOURCE_MUST_VERIFY,
  };
  
- static int __init init_hpet_clocksource(void)
+-static int tsc_update_callback(void)
++void mark_tsc_unstable(void)
+ {
+-	int change = 0;
+-
+-	/* check to see if we should switch to the safe clocksource: */
+-	if (clocksource_tsc.rating != 50 && check_tsc_unstable()) {
+-		clocksource_tsc.rating = 50;
+-		clocksource_reselect();
+-		change = 1;
++	if (!tsc_unstable) {
++		tsc_unstable = 1;
++		/* Change only the rating, when not registered */
++		if (clocksource_tsc.mult)
++			clocksource_change_rating(&clocksource_tsc, 0);
++		else
++			clocksource_tsc.rating = 0;
+ 	}
+-	return change;
+ }
++EXPORT_SYMBOL_GPL(mark_tsc_unstable);
+ 
+ static int __init init_tsc_clocksource(void)
+ {
+@@ -234,7 +217,7 @@ static int __init init_tsc_clocksource(v
+ 		clocksource_tsc.mult = clocksource_khz2mult(cpu_khz,
+ 							clocksource_tsc.shift);
+ 		if (check_tsc_unstable())
+-			clocksource_tsc.rating = 50;
++			clocksource_tsc.rating = 0;
+ 
+ 		return clocksource_register(&clocksource_tsc);
+ 	}
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
@@ -115,6 +190,7 @@ time-x86_64-convert-x86_64-to-use-generic_time.patch
 time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-hpet-fixup-clocksource-changes.patch
+time-x86_64-tsc-fixup-clocksource-changes.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 make-good_sigevent-non-static.patch
