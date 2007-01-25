@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + clocksource-replace-is_continuous-by-a-flag-field-fix.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:36:01 -0800
-Message-ID: <200701250636.l0P6a1eZ008292@shell0.pdx.osdl.net>
+Subject: + clocksource-fixup-is_continous-changes-on-avr32.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:05 -0800
+Message-ID: <200701250636.l0P6a5QM008298@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50483 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50487 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965608AbXAYGjp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:39:45 -0500
+	id S965638AbXAYGj6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:39:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zach@vmware.com, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, hskinnemoen@atmel.com, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     clocksource: fixup is_continous changes in vmitime.c
+     clocksource: fixup is_continous changes on AVR32
 has been added to the -mm tree.  Its filename is
-     clocksource-replace-is_continuous-by-a-flag-field-fix.patch
+     clocksource-fixup-is_continous-changes-on-avr32.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource: fixup is_continous changes in vmitime.c
-From: Ingo Molnar <mingo@elte.hu>
+Subject: clocksource: fixup is_continous changes on AVR32
+From: Thomas Gleixner <tglx@linutronix.de>
 
-convert vmitime.c to the new clocksource flag.
+Fixup the is_contionous replacement by a flag field.
 
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zachary Amsden <zach@vmware.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/vmitime.c |    2 +-
+ arch/avr32/kernel/time.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/vmitime.c~clocksource-replace-is_continuous-by-a-flag-field-fix arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~clocksource-replace-is_continuous-by-a-flag-field-fix
-+++ a/arch/i386/kernel/vmitime.c
-@@ -113,7 +113,7 @@ static struct clocksource clocksource_vm
- 	.mask			= CLOCKSOURCE_MASK(64),
- 	.mult			= 0, /* to be set */
- 	.shift			= 22,
--	.is_continuous		= 1,
-+	.flags			= CLOCK_SOURCE_IS_CONTINUOUS,
+diff -puN arch/avr32/kernel/time.c~clocksource-fixup-is_continous-changes-on-avr32 arch/avr32/kernel/time.c
+--- a/arch/avr32/kernel/time.c~clocksource-fixup-is_continous-changes-on-avr32
++++ a/arch/avr32/kernel/time.c
+@@ -37,7 +37,7 @@ static struct clocksource clocksource_av
+ 	.read		= read_cycle_count,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+ 	.shift		= 16,
+-	.is_continuous	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
  };
  
- 
+ /*
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-kvm-add-vm-exit-profiling-fix.patch
-revert-nmi_known_cpu-check-during-boot-option-parsing.patch
-paravirt-mark-the-paravirt_ops-export-internal.patch
-kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
-kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
-kvm-x86-emulator-fix-bit-string-instructions.patch
-kvm-fix-bogus-pagefault-on-writable-pages.patch
-fix-config_compat_vdso.patch
-fix-gate_vmavm_flags.patch
-add-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump.patch
-i386-vdso-use-vm_alwaysdump-tidy.patch
-x86_64-ia32-vdso-use-vm_alwaysdump.patch
-powerpc-vdso-use-vm_alwaysdump.patch
-x86_64-ia32-vdso-define-arch_vma_name.patch
-acpi-fix-cpufreq-regression.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-fix-for-crash-in-adummy_init.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
+origin.patch
+git-block.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-simplify-the-stacktrace-code.patch
-audit-fix-audit_filter_user_rules-initialization-bug.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 hz-free-ntp.patch
@@ -142,7 +103,6 @@ clockevents-i383-drivers.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
 i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
 hrtimers-add-high-resolution-timer-support.patch
 hrtimers-prevent-possible-itimer-dos.patch
 add-debugging-feature-proc-timer_stat.patch
@@ -161,35 +121,8 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
 make-good_sigevent-non-static.patch
 aio-completion-signal-notification.patch
-sched-avoid-div-in-rebalance_tick.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
 scheduled-removal-of-sa_xxx-interrupt-flags.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
