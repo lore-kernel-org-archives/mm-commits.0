@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch added to -mm tree
-Date: Wed, 24 Jan 2007 20:51:10 -0800
-Message-ID: <200701250451.l0P4pAKg006168@shell0.pdx.osdl.net>
+Subject: + remove-unused-kernel-config-option-zisofs_fs.patch added to -mm tree
+Date: Wed, 24 Jan 2007 20:52:14 -0800
+Message-ID: <200701250452.l0P4qEcB006197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46741 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46752 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933222AbXAYEvq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 23:51:46 -0500
+	id S933223AbXAYEwQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 23:52:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, dhowells@redhat.com, mingo@elte.hu
+Cc: rpjday@mindspring.com
 
 
 The patch titled
-     Remove references to obsolete kernel config option DEBUG_RWSEMS
+     Remove unused kernel config option ZISOFS_FS
 has been added to the -mm tree.  Its filename is
-     remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+     remove-unused-kernel-config-option-zisofs_fs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove references to obsolete kernel config option DEBUG_RWSEMS
+Subject: Remove unused kernel config option ZISOFS_FS
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Remove the few references to the obsolete kernel config option
-DEBUG_RWSEMS.
+Remove the kernel config option ZISOFS_FS, since it appears that the actual
+option is simply ZISOFS.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/Kconfig.debug |    9 ---------
- 1 file changed, 9 deletions(-)
+ fs/Kconfig |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN lib/Kconfig.debug~remove-references-to-obsolete-kernel-config-option-debug_rwsems lib/Kconfig.debug
---- a/lib/Kconfig.debug~remove-references-to-obsolete-kernel-config-option-debug_rwsems
-+++ a/lib/Kconfig.debug
-@@ -181,19 +181,11 @@ config DEBUG_MUTEXES
- 	 This feature allows mutex semantics violations to be detected and
- 	 reported.
+diff -puN fs/Kconfig~remove-unused-kernel-config-option-zisofs_fs fs/Kconfig
+--- a/fs/Kconfig~remove-unused-kernel-config-option-zisofs_fs
++++ a/fs/Kconfig
+@@ -675,12 +675,6 @@ config ZISOFS
+ 	  necessary to create such a filesystem.  Say Y here if you want to be
+ 	  able to read such compressed CD-ROMs.
  
--config DEBUG_RWSEMS
--	bool "RW-sem debugging: basic checks"
--	depends on DEBUG_KERNEL
--	help
--	 This feature allows read-write semaphore semantics violations to
--	 be detected and reported.
+-config ZISOFS_FS
+-# for fs/nls/Config.in
+-	tristate
+-	depends on ZISOFS
+-	default ISO9660_FS
 -
- config DEBUG_LOCK_ALLOC
- 	bool "Lock debugging: detect incorrect freeing of live locks"
- 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
--	select DEBUG_RWSEMS
- 	select LOCKDEP
- 	help
- 	 This feature will check whether any held lock (spinlock, rwlock,
-@@ -209,7 +201,6 @@ config PROVE_LOCKING
- 	select LOCKDEP
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
--	select DEBUG_RWSEMS
- 	select DEBUG_LOCK_ALLOC
- 	default n
+ config UDF_FS
+ 	tristate "UDF file system support"
  	help
 _
 
@@ -93,4 +76,5 @@ remove-final-reference-to-superfluous-smp_commence.patch
 replace-regular-code-with-appropriate-calls-to-container_of.patch
 remove-dead-kernel-config-option-aedsp16_mpu401.patch
 remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
 oss-replace-kmallocmemset-combos-with-kzalloc.patch
