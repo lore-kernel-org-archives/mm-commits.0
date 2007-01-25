@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-arm.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:08:43 -0800
-Message-ID: <200701250508.l0P58ho7006501@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-frv.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:08:49 -0800
+Message-ID: <200701250508.l0P58nIA006513@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47076 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47092 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965296AbXAYFIz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:08:55 -0500
+	id S965295AbXAYFI5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:08:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, rmk@arm.linux.org.uk
+Cc: alon.barlev@gmail.com, dhowells@redhat.com
 
 
 The patch titled
-     Dynamic kernel command-line: arm
+     Dynamic kernel command-line: frv
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-arm.patch
+     dynamic-kernel-command-line-frv.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: arm
+Subject: Dynamic kernel command-line: frv
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
 1. Rename saved_command_line into boot_command_line.
 2. Set command_line as __initdata.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/arm/kernel/setup.c |    6 +++---
+ arch/frv/kernel/setup.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/kernel/setup.c~dynamic-kernel-command-line-arm arch/arm/kernel/setup.c
---- a/arch/arm/kernel/setup.c~dynamic-kernel-command-line-arm
-+++ a/arch/arm/kernel/setup.c
-@@ -106,7 +106,7 @@ unsigned long phys_initrd_size __initdat
- static struct meminfo meminfo __initdata = { 0, };
- static const char *cpu_name;
- static const char *machine_name;
--static char command_line[COMMAND_LINE_SIZE];
-+static char __initdata command_line[COMMAND_LINE_SIZE];
+diff -puN arch/frv/kernel/setup.c~dynamic-kernel-command-line-frv arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~dynamic-kernel-command-line-frv
++++ a/arch/frv/kernel/setup.c
+@@ -110,7 +110,7 @@ unsigned long __initdata num_mappedpages
  
- static char default_command_line[COMMAND_LINE_SIZE] __initdata = CONFIG_CMDLINE;
- static union { char c[4]; unsigned long l; } endian_test __initdata = { { 'l', '?', '?', 'b' } };
-@@ -803,8 +803,8 @@ void __init setup_arch(char **cmdline_p)
- 	init_mm.end_data   = (unsigned long) &_edata;
- 	init_mm.brk	   = (unsigned long) &_end;
+ struct cpuinfo_frv __nongprelbss boot_cpu_data;
  
--	memcpy(saved_command_line, from, COMMAND_LINE_SIZE);
--	saved_command_line[COMMAND_LINE_SIZE-1] = '\0';
-+	memcpy(boot_command_line, from, COMMAND_LINE_SIZE);
-+	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
- 	parse_cmdline(cmdline_p, from);
- 	paging_init(&meminfo, mdesc);
- 	request_standard_resources(&meminfo, mdesc);
+-char command_line[COMMAND_LINE_SIZE];
++char __initdata command_line[COMMAND_LINE_SIZE];
+ char __initdata redboot_command_line[COMMAND_LINE_SIZE];
+ 
+ #ifdef CONFIG_PM
+@@ -762,7 +762,7 @@ void __init setup_arch(char **cmdline_p)
+ 	printk("uClinux FR-V port done by Red Hat Inc <dhowells@redhat.com>\n");
+ #endif
+ 
+-	memcpy(saved_command_line, redboot_command_line, COMMAND_LINE_SIZE);
++	memcpy(boot_command_line, redboot_command_line, COMMAND_LINE_SIZE);
+ 
+ 	determine_cpu();
+ 	determine_clocks(1);
+@@ -803,7 +803,7 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ 
+ 	/* deal with the command line - RedBoot may have passed one to the kernel */
+-	memcpy(command_line, saved_command_line, sizeof(command_line));
++	memcpy(command_line, boot_command_line, sizeof(command_line));
+ 	*cmdline_p = &command_line[0];
+ 	parse_cmdline_early(command_line);
+ 
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
