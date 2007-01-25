@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + add-irq-flag-to-disable-balancing-for-an-interrupt.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:35:37 -0800
-Message-ID: <200701250635.l0P6Zbq6008256@shell0.pdx.osdl.net>
+Subject: + simplify-the-registration-of-clocksources.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:35:55 -0800
+Message-ID: <200701250635.l0P6ZtYY008283@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50205 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50213 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965552AbXAYGgX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:36:23 -0500
+	id S965553AbXAYGgZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:36:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.or
 
 
 The patch titled
-     Add irq flag to disable balancing for an interrupt
+     Simplify the registration of clocksources
 has been added to the -mm tree.  Its filename is
-     add-irq-flag-to-disable-balancing-for-an-interrupt.patch
+     simplify-the-registration-of-clocksources.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,14 +25,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add irq flag to disable balancing for an interrupt
+Subject: Simplify the registration of clocksources
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Add a flag so we can prevent the irq balancing of an interrupt.  Move the
-bits, so we have room for more :)
+Enqueue clocksources in rating order to make selection of the
+clocksource easier. Also check the match with an user override
+at enqueue time.
 
-Necessary for the ability to setup clocksources more flexible (e.g.  use the
-different HPET channels per CPU)
+Preparatory patch for the generic clocksource verification.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
@@ -41,136 +41,206 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/io_apic.c |    4 +--
- include/linux/interrupt.h  |    3 ++
- include/linux/irq.h        |   40 +++++++++++++++++++++--------------
- kernel/irq/manage.c        |    4 +++
- kernel/irq/proc.c          |    2 -
- 5 files changed, 34 insertions(+), 19 deletions(-)
+ kernel/time/clocksource.c |  118 +++++++++++++++++-------------------
+ 1 file changed, 57 insertions(+), 61 deletions(-)
 
-diff -puN arch/i386/kernel/io_apic.c~add-irq-flag-to-disable-balancing-for-an-interrupt arch/i386/kernel/io_apic.c
---- a/arch/i386/kernel/io_apic.c~add-irq-flag-to-disable-balancing-for-an-interrupt
-+++ a/arch/i386/kernel/io_apic.c
-@@ -482,8 +482,8 @@ static void do_irq_balance(void)
- 		package_index = CPU_TO_PACKAGEINDEX(i);
- 		for (j = 0; j < NR_IRQS; j++) {
- 			unsigned long value_now, delta;
--			/* Is this an active IRQ? */
--			if (!irq_desc[j].action)
-+			/* Is this an active IRQ or balancing disabled ? */
-+			if (!irq_desc[j].action || irq_balancing_disabled(j))
- 				continue;
- 			if ( package_index == i )
- 				IRQ_DELTA(package_index,j) = 0;
-diff -puN include/linux/interrupt.h~add-irq-flag-to-disable-balancing-for-an-interrupt include/linux/interrupt.h
---- a/include/linux/interrupt.h~add-irq-flag-to-disable-balancing-for-an-interrupt
-+++ a/include/linux/interrupt.h
-@@ -41,6 +41,8 @@
-  * IRQF_SHARED - allow sharing the irq among several devices
-  * IRQF_PROBE_SHARED - set by callers when they expect sharing mismatches to occur
-  * IRQF_TIMER - Flag to mark this interrupt as timer interrupt
-+ * IRQF_PERCPU - Interrupt is per cpu
-+ * IRQF_NOBALANCING - Flag to exclude this interrupt from irq balancing
+diff -puN kernel/time/clocksource.c~simplify-the-registration-of-clocksources kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~simplify-the-registration-of-clocksources
++++ a/kernel/time/clocksource.c
+@@ -47,6 +47,7 @@ extern struct clocksource clocksource_ji
   */
- #define IRQF_DISABLED		0x00000020
- #define IRQF_SAMPLE_RANDOM	0x00000040
-@@ -48,6 +50,7 @@
- #define IRQF_PROBE_SHARED	0x00000100
- #define IRQF_TIMER		0x00000200
- #define IRQF_PERCPU		0x00000400
-+#define IRQF_NOBALANCING	0x00000800
+ static struct clocksource *curr_clocksource = &clocksource_jiffies;
+ static struct clocksource *next_clocksource;
++static struct clocksource *clocksource_override;
+ static LIST_HEAD(clocksource_list);
+ static DEFINE_SPINLOCK(clocksource_lock);
+ static char override_name[32];
+@@ -83,60 +84,46 @@ struct clocksource *clocksource_get_next
+ }
  
- /*
-  * Migration helpers. Scheduled for removal in 1/2007
-diff -puN include/linux/irq.h~add-irq-flag-to-disable-balancing-for-an-interrupt include/linux/irq.h
---- a/include/linux/irq.h~add-irq-flag-to-disable-balancing-for-an-interrupt
-+++ a/include/linux/irq.h
-@@ -31,7 +31,7 @@ typedef	void fastcall (*irq_flow_handler
- /*
-  * IRQ line status.
+ /**
+- * select_clocksource - Finds the best registered clocksource.
++ * select_clocksource - Selects the best registered clocksource.
   *
-- * Bits 0-16 are reserved for the IRQF_* bits in linux/interrupt.h
-+ * Bits 0-7 are reserved for the IRQF_* bits in linux/interrupt.h
+  * Private function. Must hold clocksource_lock when called.
   *
-  * IRQ types
+- * Looks through the list of registered clocksources, returning
+- * the one with the highest rating value. If there is a clocksource
+- * name that matches the override string, it returns that clocksource.
++ * Select the clocksource with the best rating, or the clocksource,
++ * which is selected by userspace override.
   */
-@@ -45,27 +45,35 @@ typedef	void fastcall (*irq_flow_handler
- #define IRQ_TYPE_PROBE		0x00000010	/* Probing in progress */
+ static struct clocksource *select_clocksource(void)
+ {
+-	struct clocksource *best = NULL;
+-	struct list_head *tmp;
+-
+-	list_for_each(tmp, &clocksource_list) {
+-		struct clocksource *src;
++	if (list_empty(&clocksource_list))
++		return NULL;
  
- /* Internal flags */
--#define IRQ_INPROGRESS		0x00010000	/* IRQ handler active - do not enter! */
--#define IRQ_DISABLED		0x00020000	/* IRQ disabled - do not enter! */
--#define IRQ_PENDING		0x00040000	/* IRQ pending - replay on enable */
--#define IRQ_REPLAY		0x00080000	/* IRQ has been replayed but not acked yet */
--#define IRQ_AUTODETECT		0x00100000	/* IRQ is being autodetected */
--#define IRQ_WAITING		0x00200000	/* IRQ not yet seen - for autodetection */
--#define IRQ_LEVEL		0x00400000	/* IRQ level triggered */
--#define IRQ_MASKED		0x00800000	/* IRQ masked - shouldn't be seen again */
--#define IRQ_PER_CPU		0x01000000	/* IRQ is per CPU */
-+#define IRQ_INPROGRESS		0x00000100	/* IRQ handler active - do not enter! */
-+#define IRQ_DISABLED		0x00000200	/* IRQ disabled - do not enter! */
-+#define IRQ_PENDING		0x00000400	/* IRQ pending - replay on enable */
-+#define IRQ_REPLAY		0x00000800	/* IRQ has been replayed but not acked yet */
-+#define IRQ_AUTODETECT		0x00001000	/* IRQ is being autodetected */
-+#define IRQ_WAITING		0x00002000	/* IRQ not yet seen - for autodetection */
-+#define IRQ_LEVEL		0x00004000	/* IRQ level triggered */
-+#define IRQ_MASKED		0x00008000	/* IRQ masked - shouldn't be seen again */
-+#define IRQ_PER_CPU		0x00010000	/* IRQ is per CPU */
-+#define IRQ_NOPROBE		0x00020000	/* IRQ is not valid for probing */
-+#define IRQ_NOREQUEST		0x00040000	/* IRQ cannot be requested */
-+#define IRQ_NOAUTOEN		0x00080000	/* IRQ will not be enabled on request irq */
-+#define IRQ_DELAYED_DISABLE	0x00100000	/* IRQ disable (masking) happens delayed. */
-+#define IRQ_WAKEUP		0x00200000	/* IRQ triggers system wakeup */
-+#define IRQ_MOVE_PENDING	0x00400000	/* need to re-target IRQ destination */
-+#define IRQ_NO_BALANCING	0x00800000	/* IRQ is excluded from balancing */
+-		src = list_entry(tmp, struct clocksource, list);
+-		if (!best)
+-			best = src;
+-
+-		/* check for override: */
+-		if (strlen(src->name) == strlen(override_name) &&
+-		    !strcmp(src->name, override_name)) {
+-			best = src;
+-			break;
+-		}
+-		/* pick the highest rating: */
+-		if (src->rating > best->rating)
+-		 	best = src;
+-	}
++	if (clocksource_override)
++		return clocksource_override;
+ 
+-	return best;
++	return list_entry(clocksource_list.next, struct clocksource, list);
+ }
+ 
+-/**
+- * is_registered_source - Checks if clocksource is registered
+- * @c:		pointer to a clocksource
+- *
+- * Private helper function. Must hold clocksource_lock when called.
+- *
+- * Returns one if the clocksource is already registered, zero otherwise.
++/*
++ * Enqueue the clocksource sorted by rating
+  */
+-static int is_registered_source(struct clocksource *c)
++static int clocksource_enqueue(struct clocksource *c)
+ {
+-	int len = strlen(c->name);
+-	struct list_head *tmp;
++	struct list_head *tmp, *entry = &clocksource_list;
+ 
+ 	list_for_each(tmp, &clocksource_list) {
+-		struct clocksource *src;
++		struct clocksource *cs;
+ 
+-		src = list_entry(tmp, struct clocksource, list);
+-		if (strlen(src->name) == len &&	!strcmp(src->name, c->name))
+-			return 1;
++		cs = list_entry(tmp, struct clocksource, list);
++		if (cs == c)
++			return -EBUSY;
++		/* Keep track of the place, where to insert */
++		if (cs->rating >= c->rating)
++			entry = tmp;
+ 	}
++	list_add(&c->list, entry);
 +
- #ifdef CONFIG_IRQ_PER_CPU
- # define CHECK_IRQ_PER_CPU(var) ((var) & IRQ_PER_CPU)
-+# define IRQ_NO_BALANCING_MASK	(IRQ_PER_CPU | IRQ_NO_BALANCING)
- #else
- # define CHECK_IRQ_PER_CPU(var) 0
-+# define IRQ_NO_BALANCING_MASK	IRQ_NO_BALANCING
- #endif
++	if (strlen(c->name) == strlen(override_name) &&
++	    !strcmp(c->name, override_name))
++		clocksource_override = c;
  
--#define IRQ_NOPROBE		0x02000000	/* IRQ is not valid for probing */
--#define IRQ_NOREQUEST		0x04000000	/* IRQ cannot be requested */
--#define IRQ_NOAUTOEN		0x08000000	/* IRQ will not be enabled on request irq */
--#define IRQ_DELAYED_DISABLE	0x10000000	/* IRQ disable (masking) happens delayed. */
--#define IRQ_WAKEUP		0x20000000	/* IRQ triggers system wakeup */
--#define IRQ_MOVE_PENDING	0x40000000	/* need to re-target IRQ destination */
-+static inline int irq_balancing_disabled(unsigned int irq)
-+{
-+	return irq_desc[irq].status & IRQ_NO_BALANCING_MASK;
-+}
+ 	return 0;
+ }
+@@ -149,42 +136,32 @@ static int is_registered_source(struct c
+  */
+ int clocksource_register(struct clocksource *c)
+ {
+-	int ret = 0;
+ 	unsigned long flags;
++	int ret = 0;
  
- struct proc_dir_entry;
+ 	spin_lock_irqsave(&clocksource_lock, flags);
+-	/* check if clocksource is already registered */
+-	if (is_registered_source(c)) {
+-		printk("register_clocksource: Cannot register %s. "
+-		       "Already registered!", c->name);
+-		ret = -EBUSY;
+-	} else {
+-		/* register it */
+- 		list_add(&c->list, &clocksource_list);
+-		/* scan the registered clocksources, and pick the best one */
++	ret = clocksource_enqueue(c);
++	if (!ret)
+ 		next_clocksource = select_clocksource();
+-	}
+ 	spin_unlock_irqrestore(&clocksource_lock, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(clocksource_register);
  
-diff -puN kernel/irq/manage.c~add-irq-flag-to-disable-balancing-for-an-interrupt kernel/irq/manage.c
---- a/kernel/irq/manage.c~add-irq-flag-to-disable-balancing-for-an-interrupt
-+++ a/kernel/irq/manage.c
-@@ -281,6 +281,10 @@ int setup_irq(unsigned int irq, struct i
- 	if (new->flags & IRQF_PERCPU)
- 		desc->status |= IRQ_PER_CPU;
- #endif
-+	/* Exclude IRQ from balancing */
-+	if (new->flags & IRQF_NOBALANCING)
-+		desc->status |= IRQ_NO_BALANCING;
+ /**
+- * clocksource_reselect - Rescan list for next clocksource
++ * clocksource_change_rating - Change the rating of a registered clocksource
+  *
+- * A quick helper function to be used if a clocksource changes its
+- * rating. Forces the clocksource list to be re-scanned for the best
+- * clocksource.
+  */
+-void clocksource_reselect(void)
++void clocksource_change_rating(struct clocksource *cs, int rating)
+ {
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&clocksource_lock, flags);
++	list_del(&cs->list);
++	clocksource_enqueue(cs);
+ 	next_clocksource = select_clocksource();
+ 	spin_unlock_irqrestore(&clocksource_lock, flags);
+ }
+-EXPORT_SYMBOL(clocksource_reselect);
+ 
+ #ifdef CONFIG_SYSFS
+ /**
+@@ -220,7 +197,11 @@ sysfs_show_current_clocksources(struct s
+ static ssize_t sysfs_override_clocksource(struct sys_device *dev,
+ 					  const char *buf, size_t count)
+ {
++	struct clocksource *ovr = NULL;
++	struct list_head *tmp;
+ 	size_t ret = count;
++	int len;
 +
- 	if (!shared) {
- 		irq_chip_set_defaults(desc->chip);
+ 	/* strings from sysfs write are not 0 terminated! */
+ 	if (count >= sizeof(override_name))
+ 		return -EINVAL;
+@@ -228,17 +209,32 @@ static ssize_t sysfs_override_clocksourc
+ 	/* strip of \n: */
+ 	if (buf[count-1] == '\n')
+ 		count--;
+-	if (count < 1)
+-		return -EINVAL;
  
-diff -puN kernel/irq/proc.c~add-irq-flag-to-disable-balancing-for-an-interrupt kernel/irq/proc.c
---- a/kernel/irq/proc.c~add-irq-flag-to-disable-balancing-for-an-interrupt
-+++ a/kernel/irq/proc.c
-@@ -55,7 +55,7 @@ static int irq_affinity_write_proc(struc
- 	cpumask_t new_value, tmp;
+ 	spin_lock_irq(&clocksource_lock);
  
- 	if (!irq_desc[irq].chip->set_affinity || no_irq_affinity ||
--				CHECK_IRQ_PER_CPU(irq_desc[irq].status))
-+	    irq_balancing_disabled(irq))
- 		return -EIO;
+-	/* copy the name given: */
+-	memcpy(override_name, buf, count);
++	if (count > 0)
++		memcpy(override_name, buf, count);
+ 	override_name[count] = 0;
  
- 	err = cpumask_parse_user(buffer, count, new_value);
+-	/* try to select it: */
+-	next_clocksource = select_clocksource();
++	len = strlen(override_name);
++	if (len) {
++		ovr = clocksource_override;
++		/* try to select it: */
++		list_for_each(tmp, &clocksource_list) {
++			struct clocksource *cs;
++
++			cs = list_entry(tmp, struct clocksource, list);
++			if (strlen(cs->name) == len &&
++			    !strcmp(cs->name, override_name))
++				ovr = cs;
++		}
++	}
++
++	/* Reselect, when the override name has changed */
++	if (ovr != clocksource_override) {
++		clocksource_override = ovr;
++		next_clocksource = select_clocksource();
++	}
+ 
+ 	spin_unlock_irq(&clocksource_lock);
+ 
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
