@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + char-mxser_new-fix-sparse-warning.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:43:10 -0800
-Message-ID: <200701250543.l0P5hAVP007096@shell0.pdx.osdl.net>
+Subject: + reiser4-fix-readpage_cryptcompress.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:45:04 -0800
+Message-ID: <200701250545.l0P5j4aK007156@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48017 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48067 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965349AbXAYFnN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:43:13 -0500
+	id S965343AbXAYFpJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:45:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, osv@javad.com
+Cc: edward@namesys.com
 
 
 The patch titled
-     Char: mxser_new, fix sparse warning
+     reiser4: fix readpage_cryptcompress
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-fix-sparse-warning.patch
+     reiser4-fix-readpage_cryptcompress.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, fix sparse warning
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: reiser4: fix readpage_cryptcompress
+From: Edward Shishkin <edward@namesys.com>
 
-Feed NULL instead of 0 where pointer is expected.
+. Fixed oops when readpage_ctail() returns error
+  (trying to unlock non-locked page)
+. Print inode and number of corrupted disk cluster.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: <osv@javad.com>
+Signed-off-by: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/mxser_new.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiser4/plugin/file/cryptcompress.c |   19 +++++++++++++------
+ fs/reiser4/plugin/item/ctail.c         |    5 ++++-
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning
-+++ a/drivers/char/mxser_new.c
-@@ -1708,7 +1708,7 @@ static int mxser_ioctl(struct tty_struct
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-fix-readpage_cryptcompress fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-fix-readpage_cryptcompress
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -1161,8 +1161,13 @@ int reiser4_inflate_cluster(reiser4_clus
+ 	if (need_inflate(clust, inode, need_cipher(inode)) &&
+ 	    coplug->checksum != NULL) {
+ 		result = dc_check_checksum(coplug, tc);
+-		if (result)
++		if (unlikely(result)) {
++			warning("edward-1460",
++				"Inode %llu: disk cluster %lu looks corrupted",
++				(unsigned long long)get_inode_oid(inode),
++				clust->index);
+ 			return RETERR(-EIO);
++		}
+ 	}
+ 	if (need_cipher(inode)) {
+ 		cipher_plugin * ciplug;
+@@ -1233,8 +1238,10 @@ int readpage_cryptcompress(struct file *
+ 	assert("edward-89", page->mapping && page->mapping->host);
  
- 		info->speed = speed;
- 		spin_lock_irqsave(&info->slock, flags);
--		mxser_change_speed(info, 0);
-+		mxser_change_speed(info, NULL);
- 		spin_unlock_irqrestore(&info->slock, flags);
+ 	ctx = reiser4_init_context(page->mapping->host->i_sb);
+-	if (IS_ERR(ctx))
++	if (IS_ERR(ctx)) {
++		unlock_page(page);
+ 		return PTR_ERR(ctx);
++	}
+ 	result = check_cryptcompress(page->mapping->host);
+ 	if (result) {
+ 		unlock_page(page);
+@@ -1247,6 +1254,7 @@ int readpage_cryptcompress(struct file *
  
+ 	if (PageUptodate(page)) {
+ 		warning("edward-1338", "page is already uptodate\n");
++		unlock_page(page);
+ 		reiser4_exit_context(ctx);
  		return 0;
+ 	}
+@@ -1260,10 +1268,9 @@ int readpage_cryptcompress(struct file *
+ 		return -EINVAL;
+ 	}
+ 	result = iplug->s.file.readpage(&clust, page);
+-	if (result)
+-		unlock_page(page);
+-	assert("edward-64",
+-	       ergo(result == 0, (PageLocked(page) || PageUptodate(page))));
++
++	assert("edward-1459", !PageLocked(page));
++	assert("edward-64", ergo(result == 0, PageUptodate(page)));
+ 	put_cluster_handle(&clust);
+ 	reiser4_exit_context(ctx);
+ 	return result;
+diff -puN fs/reiser4/plugin/item/ctail.c~reiser4-fix-readpage_cryptcompress fs/reiser4/plugin/item/ctail.c
+--- a/fs/reiser4/plugin/item/ctail.c~reiser4-fix-readpage_cryptcompress
++++ a/fs/reiser4/plugin/item/ctail.c
+@@ -671,12 +671,15 @@ int readpage_ctail(void *vp, struct page
+ 	assert("edward-867", !tfm_cluster_is_uptodate(&clust->tc));
+ 
+ 	hint = kmalloc(sizeof(*hint), reiser4_ctx_gfp_mask_get());
+-	if (hint == NULL)
++	if (hint == NULL) {
++		unlock_page(page);
+ 		return RETERR(-ENOMEM);
++	}
+ 	clust->hint = hint;
+ 	result = load_file_hint(clust->file, hint);
+ 	if (result) {
+ 		kfree(hint);
++		unlock_page(page);
+ 		return result;
+ 	}
+ 	assert("vs-25", hint->ext_coord.lh == &hint->lh);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from edward@namesys.com are
 
-git-input.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-isicom-remove-tty_hangwakeup-bottomhalves.patch
-mxser-remove-ambiguous-redefinition-of-init_work.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-char-isicom-fix-locking-in-isr.patch
-char-isicom-augment-card_reset.patch
-char-isicom-check-card-state-in-isr.patch
-char-isicom-support-higher-rates.patch
-char-isicom-correct-probing-removing.patch
-char-tty_wakeup-cleanup.patch
-char-mxser_new-mark-init-functions.patch
-char-mxser_new-remove-useless-spinlock.patch
-char-serial167-cleanup.patch
-char-n_r3964-cleanup.patch
-char-mxser_new-remove-unused-stuff.patch
-char-mxser-obsolete-old-nonexperimental-new.patch
-char-mxser_new-remove-tty_wakeup-bottomhalf.patch
-char-mxser_new-clean-request_irq-call.patch
-doc-isicom-remove-reserved-ioctl-number.patch
-char-mxser_new-alter-locking-in-isr.patch
-char-mxser_new-header-file-cleanup.patch
-char-mxser_new-less-loops-in-isr.patch
-char-mxser_new-fix-twice-resource-releasing.patch
-char-mxser_new-do-not-put-pdev.patch
-char-mxser_new-upgrade-to-1915.patch
-char-mxser_new-upgrade-to-1915-fix.patch
-char-mxser_new-do-not-null-driver_data.patch
-char-mxser_new-lock-count-and-flags.patch
-char-mxser_new-fix-sparse-warning.patch
-char-moxa-remove-unused-allocated-page.patch
-char-moxa-do-not-initialize-global-static.patch
-char-moxa-timers-cleanup.patch
-char-moxa-remove-hangup-bottomhalf.patch
-char-moxa-remove-unused-functions.patch
-char-moxa-devids-cleanup.patch
-char-moxa-use-pci_device.patch
-char-moxa-eliminate-typedefs.patch
-char-moxa-macros-cleanup.patch
-char-moxa-use-del_timer_sync.patch
-char-moxa-remove-moxa_pci_devinfo.patch
-char-moxa-variables-cleanup.patch
-char-moxa-remove-useless-vairables.patch
-char-moxa-pci_probing-prepare.patch
-char-moxa-pci-probing.patch
-shrink_slab-handle-bad-shrinkers.patch
+reiser4-vs-streamline-generic_file_-interfaces-and-filemap-fix.patch
+reiser4-rename-generic_sounding_globalspatch.patch
+reiser4-use-generic-file-read-fix-readpages-unix-file.patch
+reiser4-format-subversion-numbers-heir-set-and-file-conversion.patch
+reiser4-format-subversion-numbers-heir-set-and-file-conversion-fix-readpages-cryptcompress.patch
+reiser4-cleanups-in-lzo-compression-library.patch
+reiser4-get-rid-of-deprecated-crypto-api.patch
+reiser4-get-rid-of-deprecated-crypto-api-build-fix.patch
+reiser4-fix-missed-unlock-and-exit_context.patch
+reiser4-use-list_head-instead-of-struct-blocknr.patch
+reiser4-use-list_empty-instead-of-list_empty_careful-for.patch
+reiser4-update-comments-fix-write-and-truncate-cryptcompress.patch
+reiser4-temp-fix.patch
+reiser4-fix-write_extent-1.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+reiser4-use-null-for-pointers.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-fix-readpage_cryptcompress.patch
+reiser4-improve-estimation-for-number-of-nodes-occupied.patch
+reiser4-drop-check_cryptcompress.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
