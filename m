@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + hrtimers-namespace-and-enum-cleanup.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:36:25 -0800
-Message-ID: <200701250636.l0P6aP5d008334@shell0.pdx.osdl.net>
+Subject: + hrtimers-clean-up-callback-tracking.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:33 -0800
+Message-ID: <200701250636.l0P6aX7j008346@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50420 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50422 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965568AbXAYGhh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:37:37 -0500
+	id S965569AbXAYGhj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:37:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     hrtimers: namespace and enum cleanup
+     hrtimers: clean up callback tracking
 has been added to the -mm tree.  Its filename is
-     hrtimers-namespace-and-enum-cleanup.patch
+     hrtimers-clean-up-callback-tracking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,286 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hrtimers: namespace and enum cleanup
+Subject: hrtimers: clean up callback tracking
 From: Thomas Gleixner <tglx@linutronix.de>
 
-- hrtimers did not use the hrtimer_restart enum and relied on the implict
-  int representation. Fix the prototypes and the functions using the enums.
-- Use seperate name spaces for the enumerations
-- Convert hrtimer_restart macro to inline function
-- Add comments
+Reintroduce ktimers feature "optimized away" by the ktimers review process:
+remove the curr_timer pointer from the cpu-base and use the hrtimer state.
 
 No functional changes.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/hrtimer.h |   20 ++++++++++++--------
- include/linux/timer.h   |    2 +-
- kernel/fork.c           |    2 +-
- kernel/futex.c          |    2 +-
- kernel/hrtimer.c        |   18 +++++++++---------
- kernel/itimer.c         |    4 ++--
- kernel/posix-timers.c   |   13 +++++++------
- kernel/rtmutex.c        |    2 +-
- 8 files changed, 34 insertions(+), 29 deletions(-)
+ include/linux/hrtimer.h |    1 -
+ kernel/hrtimer.c        |   10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup
+diff -puN include/linux/hrtimer.h~hrtimers-clean-up-callback-tracking include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimers-clean-up-callback-tracking
 +++ a/include/linux/hrtimer.h
-@@ -25,17 +25,18 @@
-  * Mode arguments of xxx_hrtimer functions:
-  */
- enum hrtimer_mode {
--	HRTIMER_ABS,	/* Time value is absolute */
--	HRTIMER_REL,	/* Time value is relative to now */
-+	HRTIMER_MODE_ABS,	/* Time value is absolute */
-+	HRTIMER_MODE_REL,	/* Time value is relative to now */
+@@ -136,7 +136,6 @@ struct hrtimer_cpu_base {
+ 	spinlock_t			lock;
+ 	struct lock_class_key		lock_key;
+ 	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
+-	struct hrtimer			*curr_timer;
  };
  
-+/*
-+ * Return values for the callback function
-+ */
- enum hrtimer_restart {
--	HRTIMER_NORESTART,
--	HRTIMER_RESTART,
-+	HRTIMER_NORESTART,	/* Timer is not restarted */
-+	HRTIMER_RESTART,	/* Timer must be restarted */
- };
- 
--#define HRTIMER_INACTIVE	((void *)1UL)
--
- struct hrtimer_base;
- 
- /**
-@@ -52,7 +53,7 @@ struct hrtimer_base;
- struct hrtimer {
- 	struct rb_node		node;
- 	ktime_t			expires;
--	int			(*function)(struct hrtimer *);
-+	enum hrtimer_restart	(*function)(struct hrtimer *);
- 	struct hrtimer_base	*base;
- };
- 
-@@ -114,7 +115,10 @@ extern int hrtimer_start(struct hrtimer 
- extern int hrtimer_cancel(struct hrtimer *timer);
- extern int hrtimer_try_to_cancel(struct hrtimer *timer);
- 
--#define hrtimer_restart(timer) hrtimer_start((timer), (timer)->expires, HRTIMER_ABS)
-+static inline int hrtimer_restart(struct hrtimer *timer)
-+{
-+	return hrtimer_start(timer, timer->expires, HRTIMER_MODE_ABS);
-+}
- 
- /* Query timers: */
- extern ktime_t hrtimer_get_remaining(const struct hrtimer *timer);
-diff -puN include/linux/timer.h~hrtimers-namespace-and-enum-cleanup include/linux/timer.h
---- a/include/linux/timer.h~hrtimers-namespace-and-enum-cleanup
-+++ a/include/linux/timer.h
-@@ -106,7 +106,7 @@ static inline void add_timer(struct time
- extern void init_timers(void);
- extern void run_local_timers(void);
- struct hrtimer;
--extern int it_real_fn(struct hrtimer *);
-+extern enum hrtimer_restart it_real_fn(struct hrtimer *);
- 
- unsigned long __round_jiffies(unsigned long j, int cpu);
- unsigned long __round_jiffies_relative(unsigned long j, int cpu);
-diff -puN kernel/fork.c~hrtimers-namespace-and-enum-cleanup kernel/fork.c
---- a/kernel/fork.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/fork.c
-@@ -858,7 +858,7 @@ static inline int copy_signal(unsigned l
- 	init_sigpending(&sig->shared_pending);
- 	INIT_LIST_HEAD(&sig->posix_timers);
- 
--	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_REL);
-+	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 	sig->it_real_incr.tv64 = 0;
- 	sig->real_timer.function = it_real_fn;
- 	sig->tsk = tsk;
-diff -puN kernel/futex.c~hrtimers-namespace-and-enum-cleanup kernel/futex.c
---- a/kernel/futex.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/futex.c
-@@ -1134,7 +1134,7 @@ static int futex_lock_pi(u32 __user *uad
- 
- 	if (sec != MAX_SCHEDULE_TIMEOUT) {
- 		to = &timeout;
--		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_ABS);
-+		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
- 		hrtimer_init_sleeper(to, current);
- 		to->timer.expires = ktime_set(sec, nsec);
- 	}
-diff -puN kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup
+ /*
+diff -puN kernel/hrtimer.c~hrtimers-clean-up-callback-tracking kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-clean-up-callback-tracking
 +++ a/kernel/hrtimer.c
-@@ -444,7 +444,7 @@ hrtimer_start(struct hrtimer *timer, kti
- 	/* Switch the timer base, if necessary: */
- 	new_base = switch_hrtimer_base(timer, base);
- 
--	if (mode == HRTIMER_REL) {
-+	if (mode == HRTIMER_MODE_REL) {
- 		tim = ktime_add(tim, new_base->get_time());
- 		/*
- 		 * CONFIG_TIME_LOW_RES is a temporary way for architectures
-@@ -583,7 +583,7 @@ void hrtimer_init(struct hrtimer *timer,
- 
- 	bases = __raw_get_cpu_var(hrtimer_bases);
- 
--	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_ABS)
-+	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_MODE_ABS)
- 		clock_id = CLOCK_MONOTONIC;
- 
- 	timer->base = &bases[clock_id];
-@@ -627,7 +627,7 @@ static inline void run_hrtimer_queue(str
- 
- 	while ((node = base->first)) {
- 		struct hrtimer *timer;
--		int (*fn)(struct hrtimer *);
-+		enum hrtimer_restart (*fn)(struct hrtimer *);
- 		int restart;
- 
- 		timer = rb_entry(node, struct hrtimer, node);
-@@ -669,7 +669,7 @@ void hrtimer_run_queues(void)
- /*
-  * Sleep related functions:
+@@ -172,8 +172,6 @@ static inline int hrtimer_callback_runni
   */
--static int hrtimer_wakeup(struct hrtimer *timer)
-+static enum hrtimer_restart hrtimer_wakeup(struct hrtimer *timer)
+ #ifdef CONFIG_SMP
+ 
+-#define set_curr_timer(b, t)		do { (b)->curr_timer = (t); } while (0)
+-
+ /*
+  * We are using hashed locking: holding per_cpu(hrtimer_bases)[n].lock
+  * means that all timers which are tied to this base via timer->base are
+@@ -227,7 +225,7 @@ switch_hrtimer_base(struct hrtimer *time
+ 		 * completed. There is no conflict as we hold the lock until
+ 		 * the timer is enqueued.
+ 		 */
+-		if (unlikely(base->cpu_base->curr_timer == timer))
++		if (unlikely(timer->state & HRTIMER_STATE_CALLBACK))
+ 			return base;
+ 
+ 		/* See the comment in lock_timer_base() */
+@@ -241,8 +239,6 @@ switch_hrtimer_base(struct hrtimer *time
+ 
+ #else /* CONFIG_SMP */
+ 
+-#define set_curr_timer(b, t)		do { } while (0)
+-
+ static inline struct hrtimer_clock_base *
+ lock_hrtimer_base(const struct hrtimer *timer, unsigned long *flags)
  {
- 	struct hrtimer_sleeper *t =
- 		container_of(timer, struct hrtimer_sleeper, timer);
-@@ -699,7 +699,7 @@ static int __sched do_nanosleep(struct h
- 		schedule();
+@@ -670,7 +666,6 @@ static inline void run_hrtimer_queue(str
+ 			break;
  
- 		hrtimer_cancel(&t->timer);
--		mode = HRTIMER_ABS;
-+		mode = HRTIMER_MODE_ABS;
+ 		fn = timer->function;
+-		set_curr_timer(cpu_base, timer);
+ 		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
+ 		spin_unlock_irq(&cpu_base->lock);
  
- 	} while (t->task && !signal_pending(current));
- 
-@@ -715,10 +715,10 @@ long __sched hrtimer_nanosleep_restart(s
- 
- 	restart->fn = do_no_restart_syscall;
- 
--	hrtimer_init(&t.timer, restart->arg0, HRTIMER_ABS);
-+	hrtimer_init(&t.timer, restart->arg0, HRTIMER_MODE_ABS);
- 	t.timer.expires.tv64 = ((u64)restart->arg3 << 32) | (u64) restart->arg2;
- 
--	if (do_nanosleep(&t, HRTIMER_ABS))
-+	if (do_nanosleep(&t, HRTIMER_MODE_ABS))
- 		return 0;
- 
- 	rmtp = (struct timespec __user *) restart->arg1;
-@@ -751,7 +751,7 @@ long hrtimer_nanosleep(struct timespec *
- 		return 0;
- 
- 	/* Absolute timers do not update the rmtp value and restart: */
--	if (mode == HRTIMER_ABS)
-+	if (mode == HRTIMER_MODE_ABS)
- 		return -ERESTARTNOHAND;
- 
- 	if (rmtp) {
-@@ -784,7 +784,7 @@ sys_nanosleep(struct timespec __user *rq
- 	if (!timespec_valid(&tu))
- 		return -EINVAL;
- 
--	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_REL, CLOCK_MONOTONIC);
-+	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_MODE_REL, CLOCK_MONOTONIC);
+@@ -684,7 +679,6 @@ static inline void run_hrtimer_queue(str
+ 			enqueue_hrtimer(timer, base);
+ 		}
+ 	}
+-	set_curr_timer(cpu_base, NULL);
+ 	spin_unlock_irq(&cpu_base->lock);
  }
  
- /*
-diff -puN kernel/itimer.c~hrtimers-namespace-and-enum-cleanup kernel/itimer.c
---- a/kernel/itimer.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/itimer.c
-@@ -128,7 +128,7 @@ asmlinkage long sys_getitimer(int which,
- /*
-  * The timer is automagically restarted, when interval != 0
-  */
--int it_real_fn(struct hrtimer *timer)
-+enum hrtimer_restart it_real_fn(struct hrtimer *timer)
- {
- 	struct signal_struct *sig =
- 	    container_of(timer, struct signal_struct, real_timer);
-@@ -235,7 +235,7 @@ again:
- 			timeval_to_ktime(value->it_interval);
- 		expires = timeval_to_ktime(value->it_value);
- 		if (expires.tv64 != 0)
--			hrtimer_start(timer, expires, HRTIMER_REL);
-+			hrtimer_start(timer, expires, HRTIMER_MODE_REL);
- 		spin_unlock_irq(&tsk->sighand->siglock);
- 		break;
- 	case ITIMER_VIRTUAL:
-diff -puN kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup kernel/posix-timers.c
---- a/kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/posix-timers.c
-@@ -145,7 +145,7 @@ static int common_timer_set(struct k_iti
- 			    struct itimerspec *, struct itimerspec *);
- static int common_timer_del(struct k_itimer *timer);
+@@ -871,8 +865,6 @@ static void migrate_hrtimers(int cpu)
+ 	spin_lock(&old_base->lock);
  
--static int posix_timer_fn(struct hrtimer *data);
-+static enum hrtimer_restart posix_timer_fn(struct hrtimer *data);
- 
- static struct k_itimer *lock_timer(timer_t timer_id, unsigned long *flags);
- 
-@@ -334,12 +334,12 @@ EXPORT_SYMBOL_GPL(posix_timer_event);
- 
-  * This code is for CLOCK_REALTIME* and CLOCK_MONOTONIC* timers.
-  */
--static int posix_timer_fn(struct hrtimer *timer)
-+static enum hrtimer_restart posix_timer_fn(struct hrtimer *timer)
- {
- 	struct k_itimer *timr;
- 	unsigned long flags;
- 	int si_private = 0;
--	int ret = HRTIMER_NORESTART;
-+	enum hrtimer_restart ret = HRTIMER_NORESTART;
- 
- 	timr = container_of(timer, struct k_itimer, it.real.timer);
- 	spin_lock_irqsave(&timr->it_lock, flags);
-@@ -722,7 +722,7 @@ common_timer_set(struct k_itimer *timr, 
- 	if (!new_setting->it_value.tv_sec && !new_setting->it_value.tv_nsec)
- 		return 0;
- 
--	mode = flags & TIMER_ABSTIME ? HRTIMER_ABS : HRTIMER_REL;
-+	mode = flags & TIMER_ABSTIME ? HRTIMER_MODE_ABS : HRTIMER_MODE_REL;
- 	hrtimer_init(&timr->it.real.timer, timr->it_clock, mode);
- 	timr->it.real.timer.function = posix_timer_fn;
- 
-@@ -734,7 +734,7 @@ common_timer_set(struct k_itimer *timr, 
- 	/* SIGEV_NONE timers are not queued ! See common_timer_get */
- 	if (((timr->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE)) {
- 		/* Setup correct expiry time for relative timers */
--		if (mode == HRTIMER_REL)
-+		if (mode == HRTIMER_MODE_REL)
- 			timer->expires = ktime_add(timer->expires,
- 						   timer->base->get_time());
- 		return 0;
-@@ -950,7 +950,8 @@ static int common_nsleep(const clockid_t
- 			 struct timespec *tsave, struct timespec __user *rmtp)
- {
- 	return hrtimer_nanosleep(tsave, rmtp, flags & TIMER_ABSTIME ?
--				 HRTIMER_ABS : HRTIMER_REL, which_clock);
-+				 HRTIMER_MODE_ABS : HRTIMER_MODE_REL,
-+				 which_clock);
- }
- 
- asmlinkage long
-diff -puN kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup kernel/rtmutex.c
---- a/kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup
-+++ a/kernel/rtmutex.c
-@@ -625,7 +625,7 @@ rt_mutex_slowlock(struct rt_mutex *lock,
- 	/* Setup the timer, when timeout != NULL */
- 	if (unlikely(timeout))
- 		hrtimer_start(&timeout->timer, timeout->timer.expires,
--			      HRTIMER_ABS);
-+			      HRTIMER_MODE_ABS);
- 
- 	for (;;) {
- 		/* Try to acquire the lock: */
+ 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
+-		BUG_ON(old_base->curr_timer);
+-
+ 		migrate_hrtimer_list(&old_base->clock_base[i],
+ 				     &new_base->clock_base[i]);
+ 	}
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
