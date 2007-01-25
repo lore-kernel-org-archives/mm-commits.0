@@ -1,230 +1,180 @@
 From: akpm@osdl.org
-Subject: - debugging-feature-proc-timer_list-warning-fix.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 22:13:04 -0800
-Message-ID: <200701250613.l0P6D4tN007873@shell0.pdx.osdl.net>
+Subject: - debugging-feature-sysrq-q-to-print-timers.patch removed from -mm tree
+Date: Wed, 24 Jan 2007 22:13:06 -0800
+Message-ID: <200701250613.l0P6D6gv007876@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49233 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49222 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965399AbXAYGNY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:13:24 -0500
+	id S965510AbXAYGNO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     debugging-feature-proc-timer_list-warning-fix
+     debugging feature: SysRq-Q to print timers
 has been removed from the -mm tree.  Its filename was
-     debugging-feature-proc-timer_list-warning-fix.patch
+     debugging-feature-sysrq-q-to-print-timers.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: debugging-feature-proc-timer_list-warning-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: debugging feature: SysRq-Q to print timers
+From: Ingo Molnar <mingo@elte.hu>
 
-kernel/time/timer_list.c: In function `print_timer':
-kernel/time/timer_list.c:72: warning: long long int format, s64 arg (arg 3)
-kernel/time/timer_list.c:72: warning: long long int format, long unsigned int arg (arg 4)
-kernel/time/timer_list.c:72: warning: long long int format, s64 arg (arg 2)
-kernel/time/timer_list.c:72: warning: long long int format, long unsigned int arg (arg 3)
-kernel/time/timer_list.c: In function `print_base':
-kernel/time/timer_list.c:118: warning: long long int format, s64 arg (arg 3)
-kernel/time/timer_list.c:118: warning: long long int format, s64 arg (arg 2)
-kernel/time/timer_list.c: In function `timer_list_show':
-kernel/time/timer_list.c:201: warning: long long int format, u64 arg (arg 3)
-kernel/time/timer_list.c:201: warning: long long int format, u64 arg (arg 2)
+Add SysRq-Q to print pending timers and other timer info.
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/timer_list.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/sysrq.c    |   14 +++++++++++++-
+ include/linux/hrtimer.h |    3 +++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN kernel/time/timer_list.c~debugging-feature-proc-timer_list-warning-fix kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~debugging-feature-proc-timer_list-warning-fix
-+++ a/kernel/time/timer_list.c
-@@ -70,8 +70,8 @@ print_timer(struct seq_file *m, struct h
- #endif
- 	SEQ_printf(m, "\n");
- 	SEQ_printf(m, " # expires at %Ld nsecs [in %Ld nsecs]\n",
--		ktime_to_ns(timer->expires),
--		ktime_to_ns(timer->expires) - now);
-+		(unsigned long long)ktime_to_ns(timer->expires),
-+		(unsigned long long)(ktime_to_ns(timer->expires) - now));
- }
+diff -puN drivers/char/sysrq.c~debugging-feature-sysrq-q-to-print-timers drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~debugging-feature-sysrq-q-to-print-timers
++++ a/drivers/char/sysrq.c
+@@ -36,6 +36,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/kexec.h>
+ #include <linux/irq.h>
++#include <linux/hrtimer.h>
  
- static void
-@@ -116,7 +116,7 @@ print_base(struct seq_file *m, struct hr
- 	SEQ_printf(m, "  .index:      %d\n",
- 			base->index);
- 	SEQ_printf(m, "  .resolution: %Ld nsecs\n",
--			ktime_to_ns(base->resolution));
-+			(unsigned long long)ktime_to_ns(base->resolution));
- 	SEQ_printf(m,   "  .get_time:   ");
- 	print_name_offset(m, base->get_time);
- 	SEQ_printf(m,   "\n");
-@@ -198,7 +198,7 @@ static int timer_list_show(struct seq_fi
+ #include <asm/ptrace.h>
+ #include <asm/irq_regs.h>
+@@ -159,6 +160,17 @@ static struct sysrq_key_op sysrq_sync_op
+ 	.enable_mask	= SYSRQ_ENABLE_SYNC,
+ };
  
- 	SEQ_printf(m, "Timer List Version: v0.1\n");
- 	SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n", HRTIMER_MAX_CLOCK_BASES);
--	SEQ_printf(m, "now at %Ld nsecs\n", now);
-+	SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
++static void sysrq_handle_show_timers(int key, struct tty_struct *tty)
++{
++	sysrq_timer_list_show();
++}
++
++static struct sysrq_key_op sysrq_show_timers_op = {
++	.handler	= sysrq_handle_show_timers,
++	.help_msg	= "show-all-timers(Q)",
++	.action_msg	= "Show Pending Timers",
++};
++
+ static void sysrq_handle_mountro(int key, struct tty_struct *tty)
+ {
+ 	emergency_remount();
+@@ -336,7 +348,7 @@ static struct sysrq_key_op *sysrq_key_ta
+ 	/* o: This will often be registered as 'Off' at init time */
+ 	NULL,				/* o */
+ 	&sysrq_showregs_op,		/* p */
+-	NULL,				/* q */
++	&sysrq_show_timers_op,		/* q */
+ 	&sysrq_unraw_op,		/* r */
+ 	&sysrq_sync_op,			/* s */
+ 	&sysrq_showstate_op,		/* t */
+diff -puN include/linux/hrtimer.h~debugging-feature-sysrq-q-to-print-timers include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~debugging-feature-sysrq-q-to-print-timers
++++ a/include/linux/hrtimer.h
+@@ -353,6 +353,9 @@ static inline void show_no_hz_stats(stru
+ /* Bootup initialization: */
+ extern void __init hrtimers_init(void);
  
- 	for_each_online_cpu(cpu)
- 		print_cpu(m, cpu, now);
++/* Show pending timers: */
++extern void sysrq_timer_list_show(void);
++
+ /*
+  * Timer-statistics info:
+  */
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-origin.patch
 kvm-add-vm-exit-profiling-fix.patch
-blockdev-direct_io-fix-signedness-bug.patch
-submitchecklist-update.patch
+revert-nmi_known_cpu-check-during-boot-option-parsing.patch
+paravirt-mark-the-paravirt_ops-export-internal.patch
+kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
+kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
+kvm-x86-emulator-fix-bit-string-instructions.patch
+kvm-fix-bogus-pagefault-on-writable-pages.patch
+fix-config_compat_vdso.patch
+fix-gate_vmavm_flags.patch
+add-vm_alwaysdump.patch
+i386-vdso-use-vm_alwaysdump.patch
 i386-vdso-use-vm_alwaysdump-tidy.patch
+x86_64-ia32-vdso-use-vm_alwaysdump.patch
+powerpc-vdso-use-vm_alwaysdump.patch
+x86_64-ia32-vdso-define-arch_vma_name.patch
+acpi-fix-cpufreq-regression.patch
+add-install_special_mapping.patch
+i386-vdso-use-install_special_mapping.patch
+x86_64-ia32-vdso-use-install_special_mapping.patch
+powerpc-vdso-use-install_special_mapping.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-git-cifs.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-fix-gregkh-driver-driver-core-fix-race-in-sysfs-between-sysfs_remove_file-and-read-write.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mmc-fixup.patch
-git-ubi.patch
-git-netdev-all.patch
-git-e1000-fixup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-use-bitrev8.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-atomicity-fix.patch
-nokia-e70-is-an-unusual-device.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+fix-for-crash-in-adummy_init.patch
+fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-vmi-versus-hrtimers.patch
-debugging-feature-proc-timer_list-warning-fix.patch
+i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+consolidate-default-sched_clock.patch
+use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+simplify-the-stacktrace-code.patch
+audit-fix-audit_filter_user_rules-initialization-bug.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+debugging-feature-sysrq-q-to-print-timers.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
 revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
 time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
 time-x86_64-split-x86_64-kernel-timec-up-fix.patch
 reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
 time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
 schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
 aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+make-good_sigevent-non-static.patch
+aio-completion-signal-notification.patch
+sched-avoid-div-in-rebalance_tick.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
+scheduled-removal-of-sa_xxx-interrupt-flags.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
 kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
