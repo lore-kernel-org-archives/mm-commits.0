@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-common.patch added to -mm tree
-Date: Wed, 24 Jan 2007 21:08:30 -0800
-Message-ID: <200701250508.l0P58UiK006488@shell0.pdx.osdl.net>
+Subject: + md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read.patch added to -mm tree
+Date: Wed, 24 Jan 2007 21:26:51 -0800
+Message-ID: <200701250526.l0P5QpC5006829@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47496 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47580 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965286AbXAYFTd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 00:19:33 -0500
+	id S933225AbXAYF0z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 00:26:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, ak@muc.de, benh@kernel.crashing.org, blaisorblade@yahoo.it, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, kkojima@rr.iij4u.or.jp, kyle@mcmartin.ca, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rc@rc0.org.uk, rmk@arm.linux.org.uk, rth@twiddle.net, schwidefsky@de.ibm.com, spyro@f2s.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, uclinux-v850@lsi.nec.co.jp, wli@holomorphy.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org
+Cc: neilb@suse.de
 
 
 The patch titled
-     Dynamic kernel command-line: common
+     md: remove unnecessary printk when raid5 gets an unaligned read.
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-common.patch
+     md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,211 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: common
-From: Alon Bar-Lev <alon.barlev@gmail.com>
+Subject: md: remove unnecessary printk when raid5 gets an unaligned read.
+From: NeilBrown <neilb@suse.de>
 
-Current implementation stores a static command-line buffer allocated to
-COMMAND_LINE_SIZE size.  Most architectures stores two copies of this buffer,
-one for future reference and one for parameter parsing.
+raid5_mergeable_bvec tries to ensure that raid5 never sees a read request
+that does not fit within just one chunk.  However as we must always accept
+a single-page read, that is not always possible.
 
-Current kernel command-line size for most architecture is much too small for
-module parameters, video settings, initramfs paramters and much more.  The
-problem is that setting COMMAND_LINE_SIZE to a grater value, allocates static
-buffers.
+So when "in_chunk_boundary" fails, it might be unusual, but it is not a
+problem and printing a message every time is a bad idea.
 
-In order to allow a greater command-line size, these buffers should be
-dynamically allocated or marked as init disposable buffers, so unused memory
-can be released.
-
-This patch renames the static saved_command_line variable into
-boot_command_line adding __initdata attribute, so that it can be disposed
-after initialization.  This rename is required so applications that use
-saved_command_line will not be affected by this change.
-
-It reintroduces saved_command_line as dynamically allocated buffer to match
-the data in boot_command_line.
-
-It also mark secondary command-line buffer as __initdata, and copies it to
-dynamically allocated static_command_line buffer components may hold reference
-to it after initialization.
-
-This patch is for linux-2.6.20-rc4-mm1 and is divided to target each
-architecture.  I could not check this in any architecture so please forgive me
-if I got it wrong.
-
-The per-architecture modification is very simple, use boot_command_line in
-place of saved_command_line.  The common code is the change into dynamic
-command-line.
-
-
-This patch:
-
-1. Rename saved_command_line into boot_command_line, mark as init
-   disposable.
-
-2. Add dynamic allocated saved_command_line.
-
-3. Add dynamic allocated static_command_line.
-
-4. During startup copy: boot_command_line into saved_command_line.  arch
-   command_line into static_command_line.
-
-5. Parse static_command_line and not arch command_line, so arch
-   command_line may be freed.
-
-Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: Richard Curnow <rc@rc0.org.uk>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/init.h |    5 +++--
- init/main.c          |   29 ++++++++++++++++++++++++-----
- 2 files changed, 27 insertions(+), 7 deletions(-)
+ drivers/md/raid5.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/init.h~dynamic-kernel-command-line-common include/linux/init.h
---- a/include/linux/init.h~dynamic-kernel-command-line-common
-+++ a/include/linux/init.h
-@@ -67,7 +67,8 @@ extern initcall_t __con_initcall_start[]
- extern initcall_t __security_initcall_start[], __security_initcall_end[];
+diff -puN drivers/md/raid5.c~md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read
++++ a/drivers/md/raid5.c
+@@ -2630,7 +2630,7 @@ static int chunk_aligned_read(request_qu
+ 	mdk_rdev_t *rdev;
  
- /* Defined in init/main.c */
--extern char saved_command_line[];
-+extern char __initdata boot_command_line[];
-+extern char *saved_command_line;
- extern unsigned int reset_devices;
- 
- /* used by init/main.c */
-@@ -164,7 +165,7 @@ struct obs_kernel_param {
- #define early_param(str, fn)					\
- 	__setup_param(str, fn, fn, 1)
- 
--/* Relies on saved_command_line being set */
-+/* Relies on boot_command_line being set */
- void __init parse_early_param(void);
- #endif /* __ASSEMBLY__ */
- 
-diff -puN init/main.c~dynamic-kernel-command-line-common init/main.c
---- a/init/main.c~dynamic-kernel-command-line-common
-+++ a/init/main.c
-@@ -122,8 +122,12 @@ extern void time_init(void);
- void (*late_time_init)(void);
- extern void softirq_init(void);
- 
--/* Untouched command line (eg. for /proc) saved by arch-specific code. */
--char saved_command_line[COMMAND_LINE_SIZE];
-+/* Untouched command line saved by arch-specific code. */
-+char __initdata boot_command_line[COMMAND_LINE_SIZE];
-+/* Untouched saved command line (eg. for /proc) */
-+char *saved_command_line;
-+/* Command line for parameter parsing */
-+static char *static_command_line;
- 
- static char *execute_command;
- static char *ramdisk_execute_command;
-@@ -401,6 +405,20 @@ static void __init smp_init(void)
- #endif
- 
- /*
-+ * We need to store the untouched command line for future reference.
-+ * We also need to store the touched command line since the parameter
-+ * parsing is performed in place, and we should allow a component to
-+ * store reference of name/value for future reference.
-+ */
-+static void __init setup_command_line(char *command_line)
-+{
-+	saved_command_line = alloc_bootmem(strlen (boot_command_line)+1);
-+	static_command_line = alloc_bootmem(strlen (command_line)+1);
-+	strcpy (saved_command_line, boot_command_line);
-+	strcpy (static_command_line, command_line);
-+}
-+
-+/*
-  * We need to finalize in a non-__init function or else race conditions
-  * between the root thread and the init thread may cause start_kernel to
-  * be reaped by free_initmem before the root thread has proceeded to
-@@ -454,7 +472,7 @@ void __init parse_early_param(void)
- 		return;
- 
- 	/* All fall through to do_early_param. */
--	strlcpy(tmp_cmdline, saved_command_line, COMMAND_LINE_SIZE);
-+	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
- 	parse_args("early options", tmp_cmdline, NULL, 0, do_early_param);
- 	done = 1;
- }
-@@ -504,6 +522,7 @@ asmlinkage void __init start_kernel(void
- 	printk(KERN_NOTICE);
- 	printk(linux_banner);
- 	setup_arch(&command_line);
-+	setup_command_line(command_line);
- 	unwind_setup();
- 	setup_per_cpu_areas();
- 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
-@@ -521,9 +540,9 @@ asmlinkage void __init start_kernel(void
- 	preempt_disable();
- 	build_all_zonelists();
- 	page_alloc_init();
--	printk(KERN_NOTICE "Kernel command line: %s\n", saved_command_line);
-+	printk(KERN_NOTICE "Kernel command line: %s\n", boot_command_line);
- 	parse_early_param();
--	parse_args("Booting kernel", command_line, __start___param,
-+	parse_args("Booting kernel", static_command_line, __start___param,
- 		   __stop___param - __start___param,
- 		   &unknown_bootoption);
- 	if (!irqs_disabled()) {
+ 	if (!in_chunk_boundary(mddev, raid_bio)) {
+-		printk("chunk_aligned_read : non aligned\n");
++		PRINTK("chunk_aligned_read : non aligned\n");
+ 		return 0;
+ 	}
+ 	/*
 _
 
-Patches currently in -mm which might be from alon.barlev@gmail.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-alpha.patch
-dynamic-kernel-command-line-arm.patch
-dynamic-kernel-command-line-arm26.patch
-dynamic-kernel-command-line-avr32.patch
-dynamic-kernel-command-line-cris.patch
-dynamic-kernel-command-line-frv.patch
-dynamic-kernel-command-line-h8300.patch
-dynamic-kernel-command-line-i386.patch
-dynamic-kernel-command-line-ia64.patch
-dynamic-kernel-command-line-m32r.patch
-dynamic-kernel-command-line-m68k.patch
-dynamic-kernel-command-line-m68knommu.patch
-dynamic-kernel-command-line-mips.patch
-dynamic-kernel-command-line-parisc.patch
-dynamic-kernel-command-line-powerpc.patch
-dynamic-kernel-command-line-ppc.patch
-dynamic-kernel-command-line-s390.patch
-dynamic-kernel-command-line-sh.patch
-dynamic-kernel-command-line-sh64.patch
-dynamic-kernel-command-line-sparc.patch
-dynamic-kernel-command-line-sparc64.patch
-dynamic-kernel-command-line-um.patch
-dynamic-kernel-command-line-v850.patch
-dynamic-kernel-command-line-x86_64.patch
-dynamic-kernel-command-line-xtensa.patch
+knfsd-update-email-address-and-status-for-nfsd-in-maintainers.patch
+knfsd-fix-setting-of-acl-server-versions.patch
+knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads.patch
+knfsd-replace-some-warning-ins-nfsfhh-with-bug_on-or-warn_on.patch
+knfsd-dont-mess-with-the-mode-when-storing-a-exclusive-create-cookie.patch
+md-update-email-address-and-status-for-md-in-maintainers.patch
+md-make-repair-actually-work-for-raid1.patch
+md-make-sure-the-events-count-in-an-md-array-never-returns-to-zero.patch
+md-avoid-reading-past-the-end-of-a-bitmap-file.patch
+knfsd-fix-type-mismatch-with-filldir_t-used-by-nfsd.patch
+md-fix-potential-memalloc-deadlock-in-md.patch
+md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+igrab-should-check-for-i_clear.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
