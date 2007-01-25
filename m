@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + acpi-fix-missing-include-for-up.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:36:37 -0800
-Message-ID: <200701250636.l0P6abEr008352@shell0.pdx.osdl.net>
+Subject: + add-a-functions-to-handle-interrupt-affinity-setting.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:35:39 -0800
+Message-ID: <200701250635.l0P6ZdGM008259@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50426 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50429 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965572AbXAYGhn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:37:43 -0500
+	id S965573AbXAYGhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:37:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, len.brown@intel.com, mingo@elte.hu, zippel@linux-m68k.org
+Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     ACPI: fix missing include for UP
+     Add a functions to handle interrupt affinity setting
 has been added to the -mm tree.  Its filename is
-     acpi-fix-missing-include-for-up.patch
+     add-a-functions-to-handle-interrupt-affinity-setting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: fix missing include for UP
+Subject: Add a functions to handle interrupt affinity setting
 From: Thomas Gleixner <tglx@linutronix.de>
 
-apic.h does not get included on UP compiles.  That way the
-APICTIMER_STOPS_ON_C3 is not there and UP boxen have no support for timer
-broadcasting.  This was never noticed, because the lapic timer is only used
-for profiling on UP.
+Provide funtions to:
+ - check, whether an interrupt can set the affinity
+ - pin the interrupt to a given cpu
+
+Necessary for the ability to setup clocksources more flexible (e.g.  use the
+different HPET channels per CPU)
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: john stultz <johnstul@us.ibm.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_idle.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/irq.h |   20 +++++++++++++++-----
+ kernel/irq/manage.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ kernel/irq/proc.c   |   22 +---------------------
+ 3 files changed, 56 insertions(+), 26 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-fix-missing-include-for-up drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-fix-missing-include-for-up
-+++ a/drivers/acpi/processor_idle.c
-@@ -40,6 +40,16 @@
- #include <linux/sched.h>	/* need_resched() */
- #include <linux/latency.h>
+diff -puN include/linux/irq.h~add-a-functions-to-handle-interrupt-affinity-setting include/linux/irq.h
+--- a/include/linux/irq.h~add-a-functions-to-handle-interrupt-affinity-setting
++++ a/include/linux/irq.h
+@@ -70,11 +70,6 @@ typedef	void fastcall (*irq_flow_handler
+ # define IRQ_NO_BALANCING_MASK	IRQ_NO_BALANCING
+ #endif
  
-+/*
-+ * Include the apic definitions for x86 to have the APIC timer related defines
-+ * available also for UP (on SMP it gets magically included via linux/smp.h).
-+ * asm/acpi.h is not an option, as it would require more include magic. Also
-+ * creating an empty asm-ia64/apic.h would just trade pest vs. cholera.
-+ */
-+#ifdef CONFIG_X86
-+#include <asm/apic.h>
-+#endif
+-static inline int irq_balancing_disabled(unsigned int irq)
+-{
+-	return irq_desc[irq].status & IRQ_NO_BALANCING_MASK;
+-}
+-
+ struct proc_dir_entry;
+ 
+ /**
+@@ -241,11 +236,21 @@ static inline void set_pending_irq(unsig
+ 
+ #endif /* CONFIG_GENERIC_PENDING_IRQ */
+ 
++extern int irq_set_affinity(unsigned int irq, cpumask_t cpumask);
++extern int irq_can_set_affinity(unsigned int irq);
 +
- #include <asm/io.h>
- #include <asm/uaccess.h>
+ #else /* CONFIG_SMP */
  
+ #define move_native_irq(x)
+ #define move_masked_irq(x)
+ 
++static inline int irq_set_affinity(unsigned int irq, cpumask_t cpumask)
++{
++	return -EINVAL;
++}
++
++static inline int irq_can_set_affinity(unsigned int irq) { return 0; }
++
+ #endif /* CONFIG_SMP */
+ 
+ #ifdef CONFIG_IRQBALANCE
+@@ -267,6 +272,11 @@ static inline int select_smp_affinity(un
+ 
+ extern int no_irq_affinity;
+ 
++static inline int irq_balancing_disabled(unsigned int irq)
++{
++	return irq_desc[irq].status & IRQ_NO_BALANCING_MASK;
++}
++
+ /* Handle irq action chains: */
+ extern int handle_IRQ_event(unsigned int irq, struct irqaction *action);
+ 
+diff -puN kernel/irq/manage.c~add-a-functions-to-handle-interrupt-affinity-setting kernel/irq/manage.c
+--- a/kernel/irq/manage.c~add-a-functions-to-handle-interrupt-affinity-setting
++++ a/kernel/irq/manage.c
+@@ -38,6 +38,46 @@ void synchronize_irq(unsigned int irq)
+ }
+ EXPORT_SYMBOL(synchronize_irq);
+ 
++/**
++ *	irq_can_set_affinity - Check if the affinity of a given irq can be set
++ *	@irq:		Interrupt to check
++ *
++ */
++int irq_can_set_affinity(unsigned int irq)
++{
++	struct irq_desc *desc = irq_desc + irq;
++
++	if (CHECK_IRQ_PER_CPU(desc->status) || !desc->chip ||
++	    !desc->chip->set_affinity)
++		return 0;
++
++	return 1;
++}
++
++/**
++ *	irq_set_affinity - Set the irq affinity of a given irq
++ *	@irq:		Interrupt to set affinity
++ *	@cpumask:	cpumask
++ *
++ */
++int irq_set_affinity(unsigned int irq, cpumask_t cpumask)
++{
++	struct irq_desc *desc = irq_desc + irq;
++
++	if (!desc->chip->set_affinity)
++		return -EINVAL;
++
++	set_balance_irq_affinity(irq, cpumask);
++
++#ifdef CONFIG_GENERIC_PENDING_IRQ
++	set_pending_irq(irq, cpumask);
++#else
++	irq_desc[irq]->affinity = cpumask;
++	irq_desc[irq]->chip->set_affinity(irq, cpumask);
++#endif
++	return 0;
++}
++
+ #endif
+ 
+ /**
+diff -puN kernel/irq/proc.c~add-a-functions-to-handle-interrupt-affinity-setting kernel/irq/proc.c
+--- a/kernel/irq/proc.c~add-a-functions-to-handle-interrupt-affinity-setting
++++ a/kernel/irq/proc.c
+@@ -16,26 +16,6 @@ static struct proc_dir_entry *root_irq_d
+ 
+ #ifdef CONFIG_SMP
+ 
+-#ifdef CONFIG_GENERIC_PENDING_IRQ
+-void proc_set_irq_affinity(unsigned int irq, cpumask_t mask_val)
+-{
+-	set_balance_irq_affinity(irq, mask_val);
+-
+-	/*
+-	 * Save these away for later use. Re-progam when the
+-	 * interrupt is pending
+-	 */
+-	set_pending_irq(irq, mask_val);
+-}
+-#else
+-void proc_set_irq_affinity(unsigned int irq, cpumask_t mask_val)
+-{
+-	set_balance_irq_affinity(irq, mask_val);
+-	irq_desc[irq].affinity = mask_val;
+-	irq_desc[irq].chip->set_affinity(irq, mask_val);
+-}
+-#endif
+-
+ static int irq_affinity_read_proc(char *page, char **start, off_t off,
+ 				  int count, int *eof, void *data)
+ {
+@@ -73,7 +53,7 @@ static int irq_affinity_write_proc(struc
+ 		   code to set default SMP affinity. */
+ 		return select_smp_affinity(irq) ? -EINVAL : full_count;
+ 
+-	proc_set_irq_affinity(irq, new_value);
++	irq_set_affinity(irq, new_value);
+ 
+ 	return full_count;
+ }
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
