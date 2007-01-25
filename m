@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + make-seagate_st0x_detect-static.patch added to -mm tree
-Date: Wed, 24 Jan 2007 20:00:15 -0800
-Message-ID: <200701250400.l0P40FEp005244@shell0.pdx.osdl.net>
+Subject: + cleanup-include-linux-xattrh.patch added to -mm tree
+Date: Wed, 24 Jan 2007 20:03:45 -0800
+Message-ID: <200701250403.l0P43jQI005316@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45128 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45234 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933177AbXAYEDg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Jan 2007 23:03:36 -0500
+	id S933178AbXAYEHG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 24 Jan 2007 23:07:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     make seagate_st0x_detect() static
+     cleanup include/linux/xattr.h
 has been added to the -mm tree.  Its filename is
-     make-seagate_st0x_detect-static.patch
+     cleanup-include-linux-xattrh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make seagate_st0x_detect() static
+Subject: cleanup include/linux/xattr.h
 From: Adrian Bunk <bunk@stusta.de>
 
-seagate_st0x_detect() can become static.
+- reduce the userspace visible part
+- fix the in-kernel compilation
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/seagate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/Kbuild  |    2 +-
+ include/linux/xattr.h |    8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/seagate.c~make-seagate_st0x_detect-static drivers/scsi/seagate.c
---- a/drivers/scsi/seagate.c~make-seagate_st0x_detect-static
-+++ a/drivers/scsi/seagate.c
-@@ -420,7 +420,7 @@ static inline void borken_wait (void)
- #define ULOOP( i ) for (clock = i*8;;)
- #define TIMEOUT (!(clock--))
+diff -puN include/linux/Kbuild~cleanup-include-linux-xattrh include/linux/Kbuild
+--- a/include/linux/Kbuild~cleanup-include-linux-xattrh
++++ a/include/linux/Kbuild
+@@ -158,7 +158,6 @@ header-y += video_encoder.h
+ header-y += videotext.h
+ header-y += vt.h
+ header-y += wireless.h
+-header-y += xattr.h
+ header-y += x25.h
  
--int __init seagate_st0x_detect (struct scsi_host_template * tpnt)
-+static int __init seagate_st0x_detect (struct scsi_host_template * tpnt)
- {
- 	struct Scsi_Host *instance;
- 	int i, j;
+ unifdef-y += acct.h
+@@ -336,6 +335,7 @@ unifdef-y += wait.h
+ unifdef-y += wanrouter.h
+ unifdef-y += watchdog.h
+ unifdef-y += wireless.h
++unifdef-y += xattr.h
+ unifdef-y += xfrm.h
+ 
+ objhdr-y += version.h
+diff -puN include/linux/xattr.h~cleanup-include-linux-xattrh include/linux/xattr.h
+--- a/include/linux/xattr.h~cleanup-include-linux-xattrh
++++ a/include/linux/xattr.h
+@@ -13,6 +13,10 @@
+ #define XATTR_CREATE	0x1	/* set value, fail if attr already exists */
+ #define XATTR_REPLACE	0x2	/* set value, fail if attr does not exist */
+ 
++#ifdef  __KERNEL__
++
++#include <linux/types.h>
++
+ /* Namespaces */
+ #define XATTR_OS2_PREFIX "os2."
+ #define XATTR_OS2_PREFIX_LEN (sizeof (XATTR_OS2_PREFIX) - 1)
+@@ -29,6 +33,8 @@
+ #define XATTR_USER_PREFIX "user."
+ #define XATTR_USER_PREFIX_LEN (sizeof (XATTR_USER_PREFIX) - 1)
+ 
++struct inode;
++struct dentry;
+ 
+ struct xattr_handler {
+ 	char *prefix;
+@@ -50,4 +56,6 @@ ssize_t generic_listxattr(struct dentry 
+ int generic_setxattr(struct dentry *dentry, const char *name, const void *value, size_t size, int flags);
+ int generic_removexattr(struct dentry *dentry, const char *name);
+ 
++#endif  /*  __KERNEL__  */
++
+ #endif	/* _LINUX_XATTR_H */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -117,3 +156,7 @@ slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
 debug-shared-irqs-kconfig-fix.patch
 i386-enable-4k-stacks-by-default.patch
 mutex-subsystem-synchro-test-module.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+process-include-linux-if_addrlinkh-with-unifdef.patch
+remove-one-remaining-define-bcm_tso-1.patch
