@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch added to -mm tree
-Date: Thu, 25 Jan 2007 00:04:31 -0800
-Message-ID: <200701250804.l0P84VIi009775@shell0.pdx.osdl.net>
+Subject: + sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch added to -mm tree
+Date: Thu, 25 Jan 2007 00:05:30 -0800
+Message-ID: <200701250805.l0P85U5t009797@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53067 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53080 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965692AbXAYIEk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 03:04:40 -0500
+	id S965691AbXAYIFc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 03:05:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc fix
+     sysctl-move-sysv-ipc-sysctls-to-their-own-file fix
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
+     sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc fix
+Subject: sysctl-move-sysv-ipc-sysctls-to-their-own-file fix
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Here is my incremental fix to say .mode and not .maxlen twice.  An issue that
-was caught in the review.
+Incremental fix to add uacces.h so ipc_sysctl.c compiles on all
+architectures.  Something that was caught in the review and should not be
+lost.
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/parport/procfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/ipc_sysctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/parport/procfs.c~sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix drivers/parport/procfs.c
---- a/drivers/parport/procfs.c~sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix
-+++ a/drivers/parport/procfs.c
-@@ -322,7 +322,7 @@ static const struct parport_sysctl_table
- 			.procname	= "autoprobe0",
- 			.data		= NULL,
- 			.maxlen		= 0,
--			.maxlen		= 0444,
-+			.mode		= 0444,
- 			.proc_handler	=  &do_autoprobe
- 		},
- 		{
+diff -puN ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix
++++ a/ipc/ipc_sysctl.c
+@@ -13,6 +13,7 @@
+ #include <linux/ipc.h>
+ #include <linux/nsproxy.h>
+ #include <linux/sysctl.h>
++#include <linux/uaccess.h>
+ 
+ #ifdef CONFIG_IPC_NS
+ static void *get_ipc(ctl_table *table)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -157,6 +157,7 @@ sysctl-register-the-ocfs2-sysctl-numbers.patch
 sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
 sysctl-move-utsname-sysctls-to-their-own-file.patch
 sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
 sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
 sysctl-remove-support-for-ctl_any.patch
 sysctl-remove-support-for-directory-strategy-routines.patch
