@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + time-x86_64-tsc-fixup-clocksource-changes.patch added to -mm tree
-Date: Wed, 24 Jan 2007 23:30:45 -0800
-Message-ID: <200701250730.l0P7UjSa009225@shell0.pdx.osdl.net>
+Subject: + fix-bug-in-cancel_dirty_pages-on-xfs.patch added to -mm tree
+Date: Wed, 24 Jan 2007 23:33:18 -0800
+Message-ID: <200701250733.l0P7XIxk009260@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51813 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52020 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965671AbXAYHbA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 02:31:00 -0500
+	id S965672AbXAYHdV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 02:33:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@elte.hu
+Cc: dgc@sgi.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     time-x86_64-tsc-fixup-clocksource-changes
+     Fix BUG in cancel_dirty_pages on XFS
 has been added to the -mm tree.  Its filename is
-     time-x86_64-tsc-fixup-clocksource-changes.patch
+     fix-bug-in-cancel_dirty_pages-on-xfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,176 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time-x86_64-tsc-fixup-clocksource-changes
+Subject: Fix BUG in cancel_dirty_pages on XFS
+From: David Chinner <dgc@sgi.com>
 
+Make XFS use the new truncate_unmap_inode_pages_range() function.
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Dave Chinner <dgc@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/tsc.c |   43 +++++++++++--------------------------
- 1 file changed, 13 insertions(+), 30 deletions(-)
+ fs/xfs/linux-2.6/xfs_fs_subr.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/tsc.c~time-x86_64-tsc-fixup-clocksource-changes arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~time-x86_64-tsc-fixup-clocksource-changes
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -46,13 +46,6 @@ static inline int check_tsc_unstable(voi
- {
- 	return tsc_unstable;
+diff -puN fs/xfs/linux-2.6/xfs_fs_subr.c~fix-bug-in-cancel_dirty_pages-on-xfs fs/xfs/linux-2.6/xfs_fs_subr.c
+--- a/fs/xfs/linux-2.6/xfs_fs_subr.c~fix-bug-in-cancel_dirty_pages-on-xfs
++++ a/fs/xfs/linux-2.6/xfs_fs_subr.c
+@@ -32,7 +32,8 @@ fs_tosspages(
+ 	struct inode	*ip = vn_to_inode(vp);
+ 
+ 	if (VN_CACHED(vp))
+-		truncate_inode_pages(ip->i_mapping, first);
++		truncate_unmap_inode_pages_range(ip->i_mapping,
++						first, last, 1);
  }
--
--void mark_tsc_unstable(void)
--{
--	tsc_unstable = 1;
--}
--EXPORT_SYMBOL_GPL(mark_tsc_unstable);
--
- #ifdef CONFIG_CPU_FREQ
  
- /* Frequency scaling support. Adjust the TSC based timer when the cpu frequency
-@@ -143,12 +136,6 @@ core_initcall(cpufreq_tsc);
- 
- static int tsc_unstable = 0;
- 
--void mark_tsc_unstable(void)
--{
--	tsc_unstable = 1;
--}
--EXPORT_SYMBOL_GPL(mark_tsc_unstable);
--
- /*
-  * Make an educated guess if the TSC is trustworthy and synchronized
-  * over all CPUs.
-@@ -195,9 +182,6 @@ __setup("notsc", notsc_setup);
- 
- 
- /* clock source code: */
--
--static int tsc_update_callback(void);
--
- static cycle_t read_tsc(void)
- {
- 	cycle_t ret = (cycle_t)get_cycles_sync();
-@@ -208,25 +192,24 @@ static struct clocksource clocksource_ts
- 	.name			= "tsc",
- 	.rating			= 300,
- 	.read			= read_tsc,
--	.mask			= (cycle_t)-1,
--	.mult			= 0, /* to be set */
-+	.mask			= CLOCKSOURCE_MASK(64),
- 	.shift			= 22,
--	.update_callback	= tsc_update_callback,
--	.is_continuous		= 1,
-+	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
-+				  CLOCK_SOURCE_MUST_VERIFY,
- };
- 
--static int tsc_update_callback(void)
-+void mark_tsc_unstable(void)
- {
--	int change = 0;
--
--	/* check to see if we should switch to the safe clocksource: */
--	if (clocksource_tsc.rating != 50 && check_tsc_unstable()) {
--		clocksource_tsc.rating = 50;
--		clocksource_reselect();
--		change = 1;
-+	if (!tsc_unstable) {
-+		tsc_unstable = 1;
-+		/* Change only the rating, when not registered */
-+		if (clocksource_tsc.mult)
-+			clocksource_change_rating(&clocksource_tsc, 0);
-+		else
-+			clocksource_tsc.rating = 0;
+ void
+@@ -49,7 +50,8 @@ fs_flushinval_pages(
+ 		if (VN_TRUNC(vp))
+ 			VUNTRUNCATE(vp);
+ 		filemap_write_and_wait(ip->i_mapping);
+-		truncate_inode_pages(ip->i_mapping, first);
++		truncate_unmap_inode_pages_range(ip->i_mapping,
++						first, last, 1);
  	}
--	return change;
  }
-+EXPORT_SYMBOL_GPL(mark_tsc_unstable);
  
- static int __init init_tsc_clocksource(void)
- {
-@@ -234,7 +217,7 @@ static int __init init_tsc_clocksource(v
- 		clocksource_tsc.mult = clocksource_khz2mult(cpu_khz,
- 							clocksource_tsc.shift);
- 		if (check_tsc_unstable())
--			clocksource_tsc.rating = 50;
-+			clocksource_tsc.rating = 0;
- 
- 		return clocksource_register(&clocksource_tsc);
- 	}
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dgc@sgi.com are
 
-origin.patch
-git-block.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-add-irq-flag-to-disable-balancing-for-an-interrupt.patch
-add-a-functions-to-handle-interrupt-affinity-setting.patch
-hz-free-ntp.patch
-uninline-jiffiesh-functions.patch
-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-fix-timeout-overflow-with-jiffies.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-i386-remove-useless-code-in-tscc.patch
-simplify-the-registration-of-clocksources.patch
-x86-rewrite-smp-tsc-sync-code.patch
-clocksource-replace-is_continuous-by-a-flag-field.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-clocksource-fixup-is_continous-changes-on-arm.patch
-clocksource-fixup-is_continous-changes-on-avr32.patch
-clocksource-fixup-is_continous-changes-on-s390.patch
-clocksource-fixup-is_continous-changes-on-mips.patch
-clocksource-remove-the-update-callback.patch
-clocksource-add-verification-watchdog-helper.patch
-clocksource-add-verification-watchdog-helper-fix.patch
-mark-tsc-on-geodelx-reliable.patch
-uninline-irq_enter.patch
-fix-cascade-lookup-of-next_timer_interrupt.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-fix-missing-include-for-up.patch
-acpi-keep-track-of-timer-broadcasting.patch
-allow-early-access-to-the-power-management-timer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-add-core-functionality.patch
-tick-management-core-functionality.patch
-tick-management-broadcast-functionality.patch
-tick-management-dyntick--highres-functionality.patch
-clockevents-i383-drivers.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-for-dyntick.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-hrtimers-add-high-resolution-timer-support.patch
-hrtimers-prevent-possible-itimer-dos.patch
-add-debugging-feature-proc-timer_stat.patch
-add-debugging-feature-proc-timer_list.patch
-add-sysrq-q-to-print-timer_list-debug-info.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-hpet-fixup-clocksource-changes.patch
-time-x86_64-tsc-fixup-clocksource-changes.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-make-good_sigevent-non-static.patch
-aio-completion-signal-notification.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-scheduled-removal-of-sa_xxx-interrupt-flags.patch
+add-truncate_unmap_inode_pages_range.patch
+fix-bug-in-cancel_dirty_pages-on-xfs.patch
+xfs-remove-useless-wmb-memory-barrier.patch
+make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
+make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
+sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
+sysctl-c99-convert-xfs-ctl_tables.patch
+sysctl-c99-convert-xfs-ctl_tables-fixes.patch
