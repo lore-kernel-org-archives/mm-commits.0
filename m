@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + hz-free-ntp.patch added to -mm tree
-Date: Wed, 24 Jan 2007 22:35:41 -0800
-Message-ID: <200701250635.l0P6Zftn008262@shell0.pdx.osdl.net>
+Subject: + clocksource-add-verification-watchdog-helper-fix.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:15 -0800
+Message-ID: <200701250636.l0P6aFRr008315@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50488 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50491 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965628AbXAYGkB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 01:40:01 -0500
+	id S965591AbXAYGkM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:40:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     HZ free ntp
+     clocksource: add verification (watchdog) helper, fix
 has been added to the -mm tree.  Its filename is
-     hz-free-ntp.patch
+     clocksource-add-verification-watchdog-helper-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,171 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HZ free ntp
-From: john stultz <johnstul@us.ibm.com>
+Subject: clocksource: add verification (watchdog) helper, fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Distangle the NTP update from HZ.  This is necessary for dynamic tick enabled
-kernels.
+If a clocksource is being verified by the watchdog, but the watchdog
+clocksource is registered /after/ the possibly-unstable clocksource has been
+registered, then when we switch that clocksource into high-res capable mode we
+also need to propagate this fact to the rest of the system - so that it
+properly switches into high-res mode.
 
+this solves one particular system not entering high-res mode (but falling back
+to low-res mode) - with this patch it properly enters high-res mode:
+
+ Switched to high resolution mode on CPU 0
+ Switched to high resolution mode on CPU 1
+ Switched to high resolution mode on CPU 2
+ Switched to high resolution mode on CPU 3
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/timex.h |    7 +++++++
- kernel/hrtimer.c      |   11 ++++++++---
- kernel/time/ntp.c     |   30 +++++++++++++++++++-----------
- kernel/timer.c        |    4 ++--
- 4 files changed, 36 insertions(+), 16 deletions(-)
+ kernel/time/clocksource.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/timex.h~hz-free-ntp include/linux/timex.h
---- a/include/linux/timex.h~hz-free-ntp
-+++ a/include/linux/timex.h
-@@ -286,6 +286,13 @@ static inline void time_interpolator_upd
+diff -puN kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix
++++ a/kernel/time/clocksource.c
+@@ -28,6 +28,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/tick.h>
  
- #define TICK_LENGTH_SHIFT	32
- 
-+#ifdef CONFIG_NO_HZ
-+#define NTP_INTERVAL_FREQ  (2)
-+#else
-+#define NTP_INTERVAL_FREQ  (HZ)
-+#endif
-+#define NTP_INTERVAL_LENGTH (NSEC_PER_SEC/NTP_INTERVAL_FREQ)
-+
- /* Returns how long ticks are at present, in ns / 2^(SHIFT_SCALE-10). */
- extern u64 current_tick_length(void);
- 
-diff -puN kernel/hrtimer.c~hz-free-ntp kernel/hrtimer.c
---- a/kernel/hrtimer.c~hz-free-ntp
-+++ a/kernel/hrtimer.c
-@@ -128,15 +128,20 @@ EXPORT_SYMBOL_GPL(ktime_get_ts);
- static void hrtimer_get_softirq_time(struct hrtimer_base *base)
- {
- 	ktime_t xtim, tomono;
-+	struct timespec xts;
- 	unsigned long seq;
- 
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
--		xtim = timespec_to_ktime(xtime);
--		tomono = timespec_to_ktime(wall_to_monotonic);
--
-+#ifdef CONFIG_NO_HZ
-+		getnstimeofday(&xts);
-+#else
-+		xts = xtime;
-+#endif
- 	} while (read_seqretry(&xtime_lock, seq));
- 
-+	xtim = timespec_to_ktime(xts);
-+	tomono = timespec_to_ktime(wall_to_monotonic);
- 	base[CLOCK_REALTIME].softirq_time = xtim;
- 	base[CLOCK_MONOTONIC].softirq_time = ktime_add(xtim, tomono);
- }
-diff -puN kernel/time/ntp.c~hz-free-ntp kernel/time/ntp.c
---- a/kernel/time/ntp.c~hz-free-ntp
-+++ a/kernel/time/ntp.c
-@@ -24,7 +24,7 @@ static u64 tick_length, tick_length_base
- 
- #define MAX_TICKADJ		500		/* microsecs */
- #define MAX_TICKADJ_SCALED	(((u64)(MAX_TICKADJ * NSEC_PER_USEC) << \
--				  TICK_LENGTH_SHIFT) / HZ)
-+				  TICK_LENGTH_SHIFT) / NTP_INTERVAL_FREQ)
- 
- /*
-  * phase-lock loop variables
-@@ -46,13 +46,17 @@ long time_adjust;
- 
- static void ntp_update_frequency(void)
- {
--	tick_length_base = (u64)(tick_usec * NSEC_PER_USEC * USER_HZ) << TICK_LENGTH_SHIFT;
--	tick_length_base += (s64)CLOCK_TICK_ADJUST << TICK_LENGTH_SHIFT;
--	tick_length_base += (s64)time_freq << (TICK_LENGTH_SHIFT - SHIFT_NSEC);
-+	u64 second_length = (u64)(tick_usec * NSEC_PER_USEC * USER_HZ)
-+				<< TICK_LENGTH_SHIFT;
-+	second_length += (s64)CLOCK_TICK_ADJUST << TICK_LENGTH_SHIFT;
-+	second_length += (s64)time_freq << (TICK_LENGTH_SHIFT - SHIFT_NSEC);
- 
--	do_div(tick_length_base, HZ);
-+	tick_length_base = second_length;
- 
--	tick_nsec = tick_length_base >> TICK_LENGTH_SHIFT;
-+	do_div(second_length, HZ);
-+	tick_nsec = second_length >> TICK_LENGTH_SHIFT;
-+
-+	do_div(tick_length_base, NTP_INTERVAL_FREQ);
- }
- 
- /**
-@@ -162,7 +166,7 @@ void second_overflow(void)
- 			tick_length -= MAX_TICKADJ_SCALED;
+ /* XXX - Would like a better way for initializing curr_clocksource */
+ extern struct clocksource clocksource_jiffies;
+@@ -106,8 +107,16 @@ static void clocksource_watchdog(unsigne
+ 		/* Initialized ? */
+ 		if (!(cs->flags & CLOCK_SOURCE_WATCHDOG)) {
+ 			if ((cs->flags & CLOCK_SOURCE_IS_CONTINUOUS) &&
+-			    (watchdog->flags & CLOCK_SOURCE_IS_CONTINUOUS))
++			    (watchdog->flags & CLOCK_SOURCE_IS_CONTINUOUS)) {
+ 				cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
++				/*
++				 * We just marked the clocksource as
++				 * highres-capable, notify the rest of the
++				 * system as well so that we transition
++				 * into high-res mode:
++				 */
++				tick_clock_notify();
++			}
+ 			cs->flags |= CLOCK_SOURCE_WATCHDOG;
+ 			cs->wd_last = csnow;
  		} else {
- 			tick_length += (s64)(time_adjust * NSEC_PER_USEC /
--					     HZ) << TICK_LENGTH_SHIFT;
-+					NTP_INTERVAL_FREQ) << TICK_LENGTH_SHIFT;
- 			time_adjust = 0;
- 		}
- 	}
-@@ -239,7 +243,8 @@ int do_adjtimex(struct timex *txc)
- 		    result = -EINVAL;
- 		    goto leave;
- 		}
--		time_freq = ((s64)txc->freq * NSEC_PER_USEC) >> (SHIFT_USEC - SHIFT_NSEC);
-+		time_freq = ((s64)txc->freq * NSEC_PER_USEC)
-+				>> (SHIFT_USEC - SHIFT_NSEC);
- 	    }
- 
- 	    if (txc->modes & ADJ_MAXERROR) {
-@@ -309,7 +314,8 @@ int do_adjtimex(struct timex *txc)
- 		    freq_adj += time_freq;
- 		    freq_adj = min(freq_adj, (s64)MAXFREQ_NSEC);
- 		    time_freq = max(freq_adj, (s64)-MAXFREQ_NSEC);
--		    time_offset = (time_offset / HZ) << SHIFT_UPDATE;
-+		    time_offset = (time_offset / NTP_INTERVAL_FREQ)
-+		    			<< SHIFT_UPDATE;
- 		} /* STA_PLL */
- 	    } /* txc->modes & ADJ_OFFSET */
- 	    if (txc->modes & ADJ_TICK)
-@@ -324,8 +330,10 @@ leave:	if ((time_status & (STA_UNSYNC|ST
- 	if ((txc->modes & ADJ_OFFSET_SINGLESHOT) == ADJ_OFFSET_SINGLESHOT)
- 	    txc->offset	   = save_adjust;
- 	else
--	    txc->offset    = shift_right(time_offset, SHIFT_UPDATE) * HZ / 1000;
--	txc->freq	   = (time_freq / NSEC_PER_USEC) << (SHIFT_USEC - SHIFT_NSEC);
-+	    txc->offset    = shift_right(time_offset, SHIFT_UPDATE)
-+	    			* NTP_INTERVAL_FREQ / 1000;
-+	txc->freq	   = (time_freq / NSEC_PER_USEC)
-+				<< (SHIFT_USEC - SHIFT_NSEC);
- 	txc->maxerror	   = time_maxerror;
- 	txc->esterror	   = time_esterror;
- 	txc->status	   = time_status;
-diff -puN kernel/timer.c~hz-free-ntp kernel/timer.c
---- a/kernel/timer.c~hz-free-ntp
-+++ a/kernel/timer.c
-@@ -890,7 +890,7 @@ void __init timekeeping_init(void)
- 	ntp_clear();
- 
- 	clock = clocksource_get_next();
--	clocksource_calculate_interval(clock, tick_nsec);
-+	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
- 	clock->cycle_last = clocksource_read(clock);
- 
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
-@@ -1092,7 +1092,7 @@ static void update_wall_time(void)
- 	if (change_clocksource()) {
- 		clock->error = 0;
- 		clock->xtime_nsec = 0;
--		clocksource_calculate_interval(clock, tick_nsec);
-+		clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
- 	}
- }
- 
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
+kvm-add-vm-exit-profiling-fix.patch
+revert-nmi_known_cpu-check-during-boot-option-parsing.patch
+paravirt-mark-the-paravirt_ops-export-internal.patch
+kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
+kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
+kvm-x86-emulator-fix-bit-string-instructions.patch
+kvm-fix-bogus-pagefault-on-writable-pages.patch
+fix-config_compat_vdso.patch
+fix-gate_vmavm_flags.patch
+add-vm_alwaysdump.patch
+i386-vdso-use-vm_alwaysdump.patch
+i386-vdso-use-vm_alwaysdump-tidy.patch
+x86_64-ia32-vdso-use-vm_alwaysdump.patch
+powerpc-vdso-use-vm_alwaysdump.patch
+x86_64-ia32-vdso-define-arch_vma_name.patch
+acpi-fix-cpufreq-regression.patch
+add-install_special_mapping.patch
+i386-vdso-use-install_special_mapping.patch
+x86_64-ia32-vdso-use-install_special_mapping.patch
+powerpc-vdso-use-install_special_mapping.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+fix-for-crash-in-adummy_init.patch
+fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+consolidate-default-sched_clock.patch
+use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+simplify-the-stacktrace-code.patch
+audit-fix-audit_filter_user_rules-initialization-bug.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 hz-free-ntp.patch
@@ -251,4 +189,35 @@ time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
 time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+make-good_sigevent-non-static.patch
+aio-completion-signal-notification.patch
+sched-avoid-div-in-rebalance_tick.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
+scheduled-removal-of-sa_xxx-interrupt-flags.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
