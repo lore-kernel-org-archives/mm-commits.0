@@ -1,106 +1,477 @@
 From: akpm@osdl.org
-Subject: - forcedeth-statistics-optimization.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:52:20 -0800
-Message-ID: <200701260752.l0Q7qKQJ010832@shell0.pdx.osdl.net>
+Subject: - net-use-bitrev8.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:52:22 -0800
+Message-ID: <200701260752.l0Q7qMq6010838@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50551 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50570 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030828AbXAZHwX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:52:23 -0500
+	id S1030832AbXAZHwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:52:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, jgarzik@pobox.com, mlindner@syskonnect.de, paulus@samba.org, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: statistics optimization
+     net: use bitrev8
 has been removed from the -mm tree.  Its filename was
-     forcedeth-statistics-optimization.patch
+     net-use-bitrev8.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: forcedeth: statistics optimization
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: net: use bitrev8
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Optimize the data paths that can support hw counters.  It removes the sw
-counted statistics.
+Use bitrev8 for bmac, mace, macmace, macsonic, and skfp drivers.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+[akpm@osdl.org: use the API, not the array]
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Mirko Lindner <mlindner@syskonnect.de>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |   33 ++++++++++++++-------------------
- 1 files changed, 14 insertions(+), 19 deletions(-)
+ drivers/net/Kconfig        |    1 
+ drivers/net/bmac.c         |   20 +-------
+ drivers/net/mace.c         |   16 ------
+ drivers/net/macmace.c      |   18 +------
+ drivers/net/macsonic.c     |    6 --
+ drivers/net/skfp/can.c     |   83 -----------------------------------
+ drivers/net/skfp/drvfbi.c  |   24 ++++------
+ drivers/net/skfp/fplustm.c |    4 -
+ drivers/net/skfp/smt.c     |   10 +---
+ 9 files changed, 27 insertions(+), 155 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-statistics-optimization drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-statistics-optimization
-+++ a/drivers/net/forcedeth.c
-@@ -1351,10 +1351,19 @@ static struct net_device_stats *nv_get_s
- {
- 	struct fe_priv *np = netdev_priv(dev);
+diff -puN drivers/net/Kconfig~net-use-bitrev8 drivers/net/Kconfig
+--- a/drivers/net/Kconfig~net-use-bitrev8
++++ a/drivers/net/Kconfig
+@@ -2533,6 +2533,7 @@ config DEFXX
+ config SKFP
+ 	tristate "SysKonnect FDDI PCI support"
+ 	depends on FDDI && PCI
++	select BITREVERSE
+ 	---help---
+ 	  Say Y here if you have a SysKonnect FDDI PCI adapter.
+ 	  The following adapters are supported by this driver:
+diff -puN drivers/net/bmac.c~net-use-bitrev8 drivers/net/bmac.c
+--- a/drivers/net/bmac.c~net-use-bitrev8
++++ a/drivers/net/bmac.c
+@@ -18,6 +18,7 @@
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
+ #include <linux/crc32.h>
++#include <linux/bitrev.h>
+ #include <asm/prom.h>
+ #include <asm/dbdma.h>
+ #include <asm/io.h>
+@@ -140,7 +141,6 @@ static unsigned char *bmac_emergency_rxb
+ 	+ (N_RX_RING + N_TX_RING + 4) * sizeof(struct dbdma_cmd) \
+ 	+ sizeof(struct sk_buff_head))
  
--	/* It seems that the nic always generates interrupts and doesn't
--	 * accumulate errors internally. Thus the current values in np->stats
--	 * are already up to date.
--	 */
-+	/* If the nic supports hw counters then retrieve latest values */
-+	if (np->driver_data & (DEV_HAS_STATISTICS_V1|DEV_HAS_STATISTICS_V2)) {
-+		nv_get_hw_stats(dev);
-+
-+		/* copy to net_device stats */
-+		np->stats.tx_bytes = np->estats.tx_bytes;
-+		np->stats.tx_fifo_errors = np->estats.tx_fifo_errors;
-+		np->stats.tx_carrier_errors = np->estats.tx_carrier_errors;
-+		np->stats.rx_crc_errors = np->estats.rx_crc_errors;
-+		np->stats.rx_over_errors = np->estats.rx_over_errors;
-+		np->stats.rx_errors = np->estats.rx_errors_total;
-+		np->stats.tx_errors = np->estats.tx_errors_total;
-+	}
- 	return &np->stats;
+-static unsigned char bitrev(unsigned char b);
+ static int bmac_open(struct net_device *dev);
+ static int bmac_close(struct net_device *dev);
+ static int bmac_transmit_packet(struct sk_buff *skb, struct net_device *dev);
+@@ -586,18 +586,6 @@ bmac_construct_rxbuff(struct sk_buff *sk
+ 		     virt_to_bus(addr), 0);
  }
  
-@@ -1944,16 +1953,8 @@ static void nv_tx_done_optimized(struct 
- 		np->get_tx_ctx->dma = 0;
- 
- 		if (flags & NV_TX2_LASTPACKET) {
--			if (flags & NV_TX2_ERROR) {
--				if (flags & NV_TX2_UNDERFLOW)
--					np->stats.tx_fifo_errors++;
--				if (flags & NV_TX2_CARRIERLOST)
--					np->stats.tx_carrier_errors++;
--				np->stats.tx_errors++;
--			} else {
-+			if (!(flags & NV_TX2_ERROR))
- 				np->stats.tx_packets++;
--				np->stats.tx_bytes += np->get_tx_ctx->skb->len;
--			}
- 			dev_kfree_skb_any(np->get_tx_ctx->skb);
- 			np->get_tx_ctx->skb = NULL;
+-/* Bit-reverse one byte of an ethernet hardware address. */
+-static unsigned char
+-bitrev(unsigned char b)
+-{
+-	int d = 0, i;
+-
+-	for (i = 0; i < 8; ++i, b >>= 1)
+-		d = (d << 1) | (b & 1);
+-	return d;
+-}
+-
+-
+ static void
+ bmac_init_tx_ring(struct bmac_data *bp)
+ {
+@@ -1224,8 +1212,8 @@ bmac_get_station_address(struct net_devi
+ 		{
+ 			reset_and_select_srom(dev);
+ 			data = read_srom(dev, i + EnetAddressOffset/2, SROMAddressBits);
+-			ea[2*i]   = bitrev(data & 0x0ff);
+-			ea[2*i+1] = bitrev((data >> 8) & 0x0ff);
++			ea[2*i]   = bitrev8(data & 0x0ff);
++			ea[2*i+1] = bitrev8((data >> 8) & 0x0ff);
  		}
-@@ -2290,7 +2291,6 @@ static int nv_rx_process_optimized(struc
- 				if (flags & NV_RX2_ERROR4) {
- 					len = nv_getlen(dev, skb->data, len);
- 					if (len < 0) {
--						np->stats.rx_errors++;
- 						dev_kfree_skb(skb);
- 						goto next_pkt;
- 					}
-@@ -2303,11 +2303,6 @@ static int nv_rx_process_optimized(struc
- 				}
- 				/* the rest are hard errors */
- 				else {
--					if (flags & NV_RX2_CRCERR)
--						np->stats.rx_crc_errors++;
--					if (flags & NV_RX2_OVERFLOW)
--						np->stats.rx_over_errors++;
--					np->stats.rx_errors++;
- 					dev_kfree_skb(skb);
- 					goto next_pkt;
- 				}
+ }
+ 
+@@ -1315,7 +1303,7 @@ static int __devinit bmac_probe(struct m
+ 
+ 	rev = addr[0] == 0 && addr[1] == 0xA0;
+ 	for (j = 0; j < 6; ++j)
+-		dev->dev_addr[j] = rev? bitrev(addr[j]): addr[j];
++		dev->dev_addr[j] = rev ? bitrev8(addr[j]): addr[j];
+ 
+ 	/* Enable chip without interrupts for now */
+ 	bmac_enable_and_reset_chip(dev);
+diff -puN drivers/net/mace.c~net-use-bitrev8 drivers/net/mace.c
+--- a/drivers/net/mace.c~net-use-bitrev8
++++ a/drivers/net/mace.c
+@@ -15,6 +15,7 @@
+ #include <linux/init.h>
+ #include <linux/crc32.h>
+ #include <linux/spinlock.h>
++#include <linux/bitrev.h>
+ #include <asm/prom.h>
+ #include <asm/dbdma.h>
+ #include <asm/io.h>
+@@ -74,7 +75,6 @@ struct mace_data {
+ #define PRIV_BYTES	(sizeof(struct mace_data) \
+ 	+ (N_RX_RING + NCMDS_TX * N_TX_RING + 3) * sizeof(struct dbdma_cmd))
+ 
+-static int bitrev(int);
+ static int mace_open(struct net_device *dev);
+ static int mace_close(struct net_device *dev);
+ static int mace_xmit_start(struct sk_buff *skb, struct net_device *dev);
+@@ -96,18 +96,6 @@ static void __mace_set_address(struct ne
+  */
+ static unsigned char *dummy_buf;
+ 
+-/* Bit-reverse one byte of an ethernet hardware address. */
+-static inline int
+-bitrev(int b)
+-{
+-    int d = 0, i;
+-
+-    for (i = 0; i < 8; ++i, b >>= 1)
+-	d = (d << 1) | (b & 1);
+-    return d;
+-}
+-
+-
+ static int __devinit mace_probe(struct macio_dev *mdev, const struct of_device_id *match)
+ {
+ 	struct device_node *mace = macio_get_of_node(mdev);
+@@ -173,7 +161,7 @@ static int __devinit mace_probe(struct m
+ 
+ 	rev = addr[0] == 0 && addr[1] == 0xA0;
+ 	for (j = 0; j < 6; ++j) {
+-		dev->dev_addr[j] = rev? bitrev(addr[j]): addr[j];
++		dev->dev_addr[j] = rev ? bitrev8(addr[j]): addr[j];
+ 	}
+ 	mp->chipid = (in_8(&mp->mace->chipid_hi) << 8) |
+ 			in_8(&mp->mace->chipid_lo);
+diff -puN drivers/net/macmace.c~net-use-bitrev8 drivers/net/macmace.c
+--- a/drivers/net/macmace.c~net-use-bitrev8
++++ a/drivers/net/macmace.c
+@@ -22,6 +22,7 @@
+ #include <linux/delay.h>
+ #include <linux/string.h>
+ #include <linux/crc32.h>
++#include <linux/bitrev.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+ #include <asm/irq.h>
+@@ -81,19 +82,6 @@ static irqreturn_t mace_interrupt(int ir
+ static irqreturn_t mace_dma_intr(int irq, void *dev_id);
+ static void mace_tx_timeout(struct net_device *dev);
+ 
+-/* Bit-reverse one byte of an ethernet hardware address. */
+-
+-static int bitrev(int b)
+-{
+-	int d = 0, i;
+-
+-	for (i = 0; i < 8; ++i, b >>= 1) {
+-		d = (d << 1) | (b & 1);
+-	}
+-
+-	return d;
+-}
+-
+ /*
+  * Load a receive DMA channel with a base address and ring length
+  */
+@@ -219,12 +207,12 @@ struct net_device *mace_probe(int unit)
+ 	addr = (void *)MACE_PROM;
+ 
+ 	for (j = 0; j < 6; ++j) {
+-		u8 v=bitrev(addr[j<<4]);
++		u8 v = bitrev8(addr[j<<4]);
+ 		checksum ^= v;
+ 		dev->dev_addr[j] = v;
+ 	}
+ 	for (; j < 8; ++j) {
+-		checksum ^= bitrev(addr[j<<4]);
++		checksum ^= bitrev8(addr[j<<4]);
+ 	}
+ 
+ 	if (checksum != 0xFF) {
+diff -puN drivers/net/macsonic.c~net-use-bitrev8 drivers/net/macsonic.c
+--- a/drivers/net/macsonic.c~net-use-bitrev8
++++ a/drivers/net/macsonic.c
+@@ -121,16 +121,12 @@ enum macsonic_type {
+  * For reversing the PROM address
+  */
+ 
+-static unsigned char nibbletab[] = {0, 8, 4, 12, 2, 10, 6, 14,
+-				    1, 9, 5, 13, 3, 11, 7, 15};
+-
+ static inline void bit_reverse_addr(unsigned char addr[6])
+ {
+ 	int i;
+ 
+ 	for(i = 0; i < 6; i++)
+-		addr[i] = ((nibbletab[addr[i] & 0xf] << 4) |
+-			   nibbletab[(addr[i] >> 4) &0xf]);
++		addr[i] = bitrev8(addr[i]);
+ }
+ 
+ int __init macsonic_init(struct net_device* dev)
+diff -puN drivers/net/skfp/can.c~net-use-bitrev8 /dev/null
+--- a/drivers/net/skfp/can.c
++++ /dev/null
+@@ -1,83 +0,0 @@
+-/******************************************************************************
+- *
+- *	(C)Copyright 1998,1999 SysKonnect,
+- *	a business unit of Schneider & Koch & Co. Datensysteme GmbH.
+- *
+- *	See the file "skfddi.c" for further information.
+- *
+- *	This program is free software; you can redistribute it and/or modify
+- *	it under the terms of the GNU General Public License as published by
+- *	the Free Software Foundation; either version 2 of the License, or
+- *	(at your option) any later version.
+- *
+- *	The information in this file is provided "AS IS" without warranty.
+- *
+- ******************************************************************************/
+-
+-#ifndef	lint
+-static const char xID_sccs[] = "@(#)can.c	1.5 97/04/07 (C) SK " ;
+-#endif
+-
+-/*
+- * canonical bit order
+- */
+-const u_char canonical[256] = {
+-	0x00,0x80,0x40,0xc0,0x20,0xa0,0x60,0xe0,
+-	0x10,0x90,0x50,0xd0,0x30,0xb0,0x70,0xf0,
+-	0x08,0x88,0x48,0xc8,0x28,0xa8,0x68,0xe8,
+-	0x18,0x98,0x58,0xd8,0x38,0xb8,0x78,0xf8,
+-	0x04,0x84,0x44,0xc4,0x24,0xa4,0x64,0xe4,
+-	0x14,0x94,0x54,0xd4,0x34,0xb4,0x74,0xf4,
+-	0x0c,0x8c,0x4c,0xcc,0x2c,0xac,0x6c,0xec,
+-	0x1c,0x9c,0x5c,0xdc,0x3c,0xbc,0x7c,0xfc,
+-	0x02,0x82,0x42,0xc2,0x22,0xa2,0x62,0xe2,
+-	0x12,0x92,0x52,0xd2,0x32,0xb2,0x72,0xf2,
+-	0x0a,0x8a,0x4a,0xca,0x2a,0xaa,0x6a,0xea,
+-	0x1a,0x9a,0x5a,0xda,0x3a,0xba,0x7a,0xfa,
+-	0x06,0x86,0x46,0xc6,0x26,0xa6,0x66,0xe6,
+-	0x16,0x96,0x56,0xd6,0x36,0xb6,0x76,0xf6,
+-	0x0e,0x8e,0x4e,0xce,0x2e,0xae,0x6e,0xee,
+-	0x1e,0x9e,0x5e,0xde,0x3e,0xbe,0x7e,0xfe,
+-	0x01,0x81,0x41,0xc1,0x21,0xa1,0x61,0xe1,
+-	0x11,0x91,0x51,0xd1,0x31,0xb1,0x71,0xf1,
+-	0x09,0x89,0x49,0xc9,0x29,0xa9,0x69,0xe9,
+-	0x19,0x99,0x59,0xd9,0x39,0xb9,0x79,0xf9,
+-	0x05,0x85,0x45,0xc5,0x25,0xa5,0x65,0xe5,
+-	0x15,0x95,0x55,0xd5,0x35,0xb5,0x75,0xf5,
+-	0x0d,0x8d,0x4d,0xcd,0x2d,0xad,0x6d,0xed,
+-	0x1d,0x9d,0x5d,0xdd,0x3d,0xbd,0x7d,0xfd,
+-	0x03,0x83,0x43,0xc3,0x23,0xa3,0x63,0xe3,
+-	0x13,0x93,0x53,0xd3,0x33,0xb3,0x73,0xf3,
+-	0x0b,0x8b,0x4b,0xcb,0x2b,0xab,0x6b,0xeb,
+-	0x1b,0x9b,0x5b,0xdb,0x3b,0xbb,0x7b,0xfb,
+-	0x07,0x87,0x47,0xc7,0x27,0xa7,0x67,0xe7,
+-	0x17,0x97,0x57,0xd7,0x37,0xb7,0x77,0xf7,
+-	0x0f,0x8f,0x4f,0xcf,0x2f,0xaf,0x6f,0xef,
+-	0x1f,0x9f,0x5f,0xdf,0x3f,0xbf,0x7f,0xff
+-} ;
+-
+-#ifdef	MAKE_TABLE
+-int byte_reverse(x)
+-int x ;
+-{
+-	int     y = 0 ;
+-
+-	if (x & 0x01)
+-		y |= 0x80 ;
+-	if (x & 0x02)
+-		y |= 0x40 ;
+-	if (x & 0x04)
+-		y |= 0x20 ;
+-	if (x & 0x08)
+-		y |= 0x10 ;
+-	if (x & 0x10)
+-		y |= 0x08 ;
+-	if (x & 0x20)
+-		y |= 0x04 ;
+-	if (x & 0x40)
+-		y |= 0x02 ;
+-	if (x & 0x80)
+-		y |= 0x01 ;
+-	return(y) ;
+-}
+-#endif
+diff -puN drivers/net/skfp/drvfbi.c~net-use-bitrev8 drivers/net/skfp/drvfbi.c
+--- a/drivers/net/skfp/drvfbi.c~net-use-bitrev8
++++ a/drivers/net/skfp/drvfbi.c
+@@ -23,6 +23,7 @@
+ #include "h/smc.h"
+ #include "h/supern_2.h"
+ #include "h/skfbiinc.h"
++#include <linux/bitrev.h>
+ 
+ #ifndef	lint
+ static const char ID_sccs[] = "@(#)drvfbi.c	1.63 99/02/11 (C) SK " ;
+@@ -445,16 +446,14 @@ void read_address(struct s_smc *smc, u_c
+ 	char PmdType ;
+ 	int	i ;
+ 
+-	extern const u_char canonical[256] ;
+-
+ #if	(defined(ISA) || defined(MCA))
+ 	for (i = 0; i < 4 ;i++) {	/* read mac address from board */
+ 		smc->hw.fddi_phys_addr.a[i] =
+-			canonical[(inpw(PR_A(i+SA_MAC))&0xff)] ;
++			bitrev8(inpw(PR_A(i+SA_MAC)));
+ 	}
+ 	for (i = 4; i < 6; i++) {
+ 		smc->hw.fddi_phys_addr.a[i] =
+-			canonical[(inpw(PR_A(i+SA_MAC+PRA_OFF))&0xff)] ;
++			bitrev8(inpw(PR_A(i+SA_MAC+PRA_OFF)));
+ 	}
+ #endif
+ #ifdef	EISA
+@@ -464,17 +463,17 @@ void read_address(struct s_smc *smc, u_c
+ 	 */
+ 	for (i = 0; i < 4 ;i++) {	/* read mac address from board */
+ 		smc->hw.fddi_phys_addr.a[i] =
+-			canonical[inp(PR_A(i+SA_MAC))] ;
++			bitrev8(inp(PR_A(i+SA_MAC)));
+ 	}
+ 	for (i = 4; i < 6; i++) {
+ 		smc->hw.fddi_phys_addr.a[i] =
+-			canonical[inp(PR_A(i+SA_MAC+PRA_OFF))] ;
++			bitrev8(inp(PR_A(i+SA_MAC+PRA_OFF)));
+ 	}
+ #endif
+ #ifdef	PCI
+ 	for (i = 0; i < 6; i++) {	/* read mac address from board */
+ 		smc->hw.fddi_phys_addr.a[i] =
+-			canonical[inp(ADDR(B2_MAC_0+i))] ;
++			bitrev8(inp(ADDR(B2_MAC_0+i)));
+ 	}
+ #endif
+ #ifndef	PCI
+@@ -493,7 +492,7 @@ void read_address(struct s_smc *smc, u_c
+ 	if (mac_addr) {
+ 		for (i = 0; i < 6 ;i++) {
+ 			smc->hw.fddi_canon_addr.a[i] = mac_addr[i] ;
+-			smc->hw.fddi_home_addr.a[i] = canonical[mac_addr[i]] ;
++			smc->hw.fddi_home_addr.a[i] = bitrev8(mac_addr[i]);
+ 		}
+ 		return ;
+ 	}
+@@ -501,7 +500,7 @@ void read_address(struct s_smc *smc, u_c
+ 
+ 	for (i = 0; i < 6 ;i++) {
+ 		smc->hw.fddi_canon_addr.a[i] =
+-			canonical[smc->hw.fddi_phys_addr.a[i]] ;
++			bitrev8(smc->hw.fddi_phys_addr.a[i]);
+ 	}
+ }
+ 
+@@ -1269,11 +1268,8 @@ void driver_get_bia(struct s_smc *smc, s
+ {
+ 	int i ;
+ 
+-	extern const u_char canonical[256] ;
+-
+-	for (i = 0 ; i < 6 ; i++) {
+-		bia_addr->a[i] = canonical[smc->hw.fddi_phys_addr.a[i]] ;
+-	}
++	for (i = 0 ; i < 6 ; i++)
++		bia_addr->a[i] = bitrev8(smc->hw.fddi_phys_addr.a[i]);
+ }
+ 
+ void smt_start_watchdog(struct s_smc *smc)
+diff -puN drivers/net/skfp/fplustm.c~net-use-bitrev8 drivers/net/skfp/fplustm.c
+--- a/drivers/net/skfp/fplustm.c~net-use-bitrev8
++++ a/drivers/net/skfp/fplustm.c
+@@ -22,7 +22,7 @@
+ #include "h/fddi.h"
+ #include "h/smc.h"
+ #include "h/supern_2.h"
+-#include "can.c"
++#include <linux/bitrev.h>
+ 
+ #ifndef	lint
+ static const char ID_sccs[] = "@(#)fplustm.c	1.32 99/02/23 (C) SK " ;
+@@ -1073,7 +1073,7 @@ static struct s_fpmc* mac_get_mc_table(s
+ 	if (can) {
+ 		p = own->a ;
+ 		for (i = 0 ; i < 6 ; i++, p++)
+-			*p = canonical[*p] ;
++			*p = bitrev8(*p);
+ 	}
+ 	slot = NULL;
+ 	for (i = 0, tb = smc->hw.fp.mc.table ; i < FPMAX_MULTICAST ; i++, tb++){
+diff -puN drivers/net/skfp/smt.c~net-use-bitrev8 drivers/net/skfp/smt.c
+--- a/drivers/net/skfp/smt.c~net-use-bitrev8
++++ a/drivers/net/skfp/smt.c
+@@ -18,6 +18,7 @@
+ #include "h/fddi.h"
+ #include "h/smc.h"
+ #include "h/smt_p.h"
++#include <linux/bitrev.h>
+ 
+ #define KERNEL
+ #include "h/smtstate.h"
+@@ -26,8 +27,6 @@
+ static const char ID_sccs[] = "@(#)smt.c	2.43 98/11/23 (C) SK " ;
+ #endif
+ 
+-extern const u_char canonical[256] ;
+-
+ /*
+  * FC in SMbuf
+  */
+@@ -180,7 +179,7 @@ void smt_agent_init(struct s_smc *smc)
+ 	driver_get_bia(smc,&smc->mib.fddiSMTStationId.sid_node) ;
+ 	for (i = 0 ; i < 6 ; i ++) {
+ 		smc->mib.fddiSMTStationId.sid_node.a[i] =
+-			canonical[smc->mib.fddiSMTStationId.sid_node.a[i]] ;
++			bitrev8(smc->mib.fddiSMTStationId.sid_node.a[i]);
+ 	}
+ 	smc->mib.fddiSMTManufacturerData[0] =
+ 		smc->mib.fddiSMTStationId.sid_node.a[0] ;
+@@ -2049,9 +2048,8 @@ static void hwm_conv_can(struct s_smc *s
+ 
+ 	SK_UNUSED(smc) ;
+ 
+-	for (i = len; i ; i--, data++) {
+-		*data = canonical[*(u_char *)data] ;
+-	}
++	for (i = len; i ; i--, data++)
++		*data = bitrev8(*data);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
+git-powerpc.patch
+ehca-fix-do_mmap-error-check.patch
+ehca-avoid-crash-on-kthread_create-failure.patch
+ehca-fix-memleak-on-module-unloading.patch
+git-input.patch
 git-netdev-all.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-s390.patch
+git-watchdog.patch
+simplify-the-stacktrace-code.patch
