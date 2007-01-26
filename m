@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + extend-notifier_call_chain-to-count-nr_calls-made-fixes-3.patch added to -mm tree
-Date: Fri, 26 Jan 2007 13:56:15 -0800
-Message-ID: <200701262156.l0QLuF00027498@shell0.pdx.osdl.net>
+Subject: + use-zvc-for-free_pages-fix-2.patch added to -mm tree
+Date: Fri, 26 Jan 2007 14:02:47 -0800
+Message-ID: <200701262202.l0QM2lij027769@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56906 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57114 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751666AbXAZV4S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 16:56:18 -0500
+	id S1752189AbXAZWCu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 17:02:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michal.k.k.piotrowski@gmail.com
+Cc: clameter@sgi.com
 
 
 The patch titled
-     
+     ZVC writeback: Fix mm and other issues
 has been added to the -mm tree.  Its filename is
-     extend-notifier_call_chain-to-count-nr_calls-made-fixes-3.patch
+     use-zvc-for-free_pages-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: ZVC writeback: Fix mm and other issues
+From: Christoph Lameter <clameter@sgi.com>
 
-kernel/sys.c:359: error: conflicting types for '__blocking_notifier_call_chain'
-include/linux/notifier.h:140: error: previous declaration of '__blocking_notifier_call_chain' was here
-kernel/sys.c:375: error: conflicting types for '__blocking_notifier_call_chain'
-include/linux/notifier.h:140: error: previous declaration of '__blocking_notifier_call_chain' was here
+This deals with swap prefetch and various things changed in mm.
 
-Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/power/swsusp.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys.c~extend-notifier_call_chain-to-count-nr_calls-made-fixes-3 kernel/sys.c
---- a/kernel/sys.c~extend-notifier_call_chain-to-count-nr_calls-made-fixes-3
-+++ a/kernel/sys.c
-@@ -354,7 +354,7 @@ EXPORT_SYMBOL_GPL(blocking_notifier_chai
-  
- int __blocking_notifier_call_chain(struct blocking_notifier_head *nh,
- 				   unsigned long val, void *v,
--				   int nr_to_call, unsigned int *nr_calls)
-+				   int nr_to_call, int *nr_calls)
- {
- 	int ret = NOTIFY_DONE;
- 
+diff -puN kernel/power/swsusp.c~use-zvc-for-free_pages-fix-2 kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~use-zvc-for-free_pages-fix-2
++++ a/kernel/power/swsusp.c
+@@ -230,9 +230,10 @@ int swsusp_shrink_memory(void)
+ 		for_each_zone (zone)
+ 			if (populated_zone(zone)) {
+ 				if (is_highmem(zone)) {
+-					highmem_size -= zone->free_pages;
++					highmem_size -=
++					zone_page_state(zone, NR_FREE_PAGES);
+ 				} else {
+-					tmp -= zone->free_pages;
++					tmp -= zone_page_state(zone, NR_FREE_PAGES);
+ 					tmp += zone->lowmem_reserve[ZONE_NORMAL];
+ 					tmp += snapshot_additional_pages(zone);
+ 				}
 _
 
-Patches currently in -mm which might be from michal.k.k.piotrowski@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-drivers-scsi-pcmcia-nsp_csh-removal-of-old.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-3.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-reiser4-configh.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
+slab-cache_grow-cleanup.patch
+use-zvc-for-inactive-and-active-counts.patch
+use-zvc-for-free_pages.patch
+use-zvc-for-free_pages-fix.patch
+use-zvc-for-free_pages-fix-2.patch
+reorder-zvcs-according-to-cacheline.patch
+drop-free_pages.patch
+drop-nr_free_pages_pgdat.patch
+drop-__get_zone_counts.patch
+drop-get_zone_counts.patch
+get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied.patch
+get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
