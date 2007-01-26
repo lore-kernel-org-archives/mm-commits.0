@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fix-race-in-efi-variable-delete-code.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:00:34 -0800
-Message-ID: <200701260600.l0Q60YPi008838@shell0.pdx.osdl.net>
+Subject: + scsi-st-fix.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:01:41 -0800
+Message-ID: <200701260601.l0Q61f4Q008862@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47210 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47246 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030767AbXAZGAo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:00:44 -0500
+	id S1030773AbXAZGBs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:01:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Matt_Domsch@dell.com, prarit@redhat.com
+Cc: Kai.Makisara@kolumbus.fi, ce_reisinger@yahoo.com, kai.makisara@kolumbus.fi
 
 
 The patch titled
-     Fix race in efi variable delete code
+     scsi: st fix
 has been added to the -mm tree.  Its filename is
-     fix-race-in-efi-variable-delete-code.patch
+     scsi-st-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,123 +25,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix race in efi variable delete code
-From: Matt Domsch <Matt_Domsch@dell.com>
+Subject: scsi: st fix
+From: Kai Makisara <Kai.Makisara@kolumbus.fi>
 
-Fix race when deleting an EFI variable and issuing another EFI command on
-the same variable.  The removal of the variable from the efivars_list
-should be done in efivar_delete and not delayed until the kobject release.
+On Wed, 24 Jan 2007, Andrew Morton wrote:
 
-Furthermore, remove the item from the list at module unload time, and use
-list_for_each_entry_safe() rather than list_for_each_safe() for
-readability.
+> On Mon, 22 Jan 2007 13:07:20 -0800
+> bugme-daemon@bugzilla.kernel.org wrote:
+>
+> > http://bugzilla.kernel.org/show_bug.cgi?id=7864
+> >
+> >            Summary: A MTIOCTOP/MTWEOF within the early warning will cause
+> >                     the file number to be incorrect
+> >     Kernel Version: 2.6.19.2
+> >             Status: NEW
+> >           Severity: low
+> >              Owner: io_scsi@kernel-bugs.osdl.org
+> >          Submitter: ce_reisinger@yahoo.com
+> >
+> >
+> > Write records to a SCSI tape until a write fails with a ENOSPC (you have reached
+> > early warning.
+> > Now perform a:
+> >    struct mtget before, after;
+> >    ioctl(fd, MTIOCGET, &before);
+> >    struct mtop mtop = { MTWEOF, 1 };
+> >    ioctl(fd, MTIOCTOP, &mtop);
+> >    ioctl(fd, MTIOCGET, &after);
+> >
+> > Check the value of mt_fileno in the before and after structures. Notice the
+> > after is 2 greater then the before.
+> >
+> > The problem appears to be in the block of code starting at line 2817 in st.c.
+> > This block is entered because the drive did return a CHECK CONDITION with NO
+> > SENSE and the SENSE_EOM bit set. At lines 2824/5 the fileno is incremented. But
+> > it has already been increased by the number of filemarks requested by the
+> > MTIOCTOP. I believe that the residue count in the sense data should be
+> > subtracted from fileno, not a increment as is done.
+> >
+>
+> Thanks.  Could you please send us a tested patch to fix these things, as
+> per http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt ?
+>
+The analysis is basically correct and explains the bug. According to the
+SCSI standards, the sense code is NO SENSE or RECOVERED ERROR in case
+writing filemark(s) succeeds. If it fails (partly or completely) the sense
+code is VOLUME OVERFLOW. The patch below is tested to fix the case when
+one filemark is successfully written after the EOM early warning. It
+should also fix the case at real EOM but this has not been tested.
 
-Tested on ia64.
+Carl, thanks for reporting the bug and providing the analysis for the fix.
 
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Signed-off-by: Matt Domsch <Matt_Domsch@dell.com>
+Signed-off-by: Kai Makisara <kai.makisara@kolumbus.fi>
+Cc: <ce_reisinger@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/firmware/efivars.c |   29 ++++++++++++-----------------
- 1 file changed, 12 insertions(+), 17 deletions(-)
+ drivers/scsi/st.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN drivers/firmware/efivars.c~fix-race-in-efi-variable-delete-code drivers/firmware/efivars.c
---- a/drivers/firmware/efivars.c~fix-race-in-efi-variable-delete-code
-+++ a/drivers/firmware/efivars.c
-@@ -122,8 +122,6 @@ struct efivar_entry {
- 	struct kobject kobj;
- };
+diff -puN drivers/scsi/st.c~scsi-st-fix drivers/scsi/st.c
+--- a/drivers/scsi/st.c~scsi-st-fix
++++ a/drivers/scsi/st.c
+@@ -2816,15 +2816,18 @@ static int st_int_ioctl(struct scsi_tape
  
--#define get_efivar_entry(n) list_entry(n, struct efivar_entry, list)
--
- struct efivar_attribute {
- 	struct attribute attr;
- 	ssize_t (*show) (struct efivar_entry *entry, char *buf);
-@@ -386,9 +384,6 @@ static struct sysfs_ops efivar_attr_ops 
- static void efivar_release(struct kobject *kobj)
- {
- 	struct efivar_entry *var = container_of(kobj, struct efivar_entry, kobj);
--	spin_lock(&efivars_lock);
--	list_del(&var->list);
--	spin_unlock(&efivars_lock);
- 	kfree(var);
- }
- 
-@@ -430,9 +425,8 @@ static ssize_t
- efivar_create(struct subsystem *sub, const char *buf, size_t count)
- {
- 	struct efi_variable *new_var = (struct efi_variable *)buf;
--	struct efivar_entry *search_efivar = NULL;
-+	struct efivar_entry *search_efivar, *n;
- 	unsigned long strsize1, strsize2;
--	struct list_head *pos, *n;
- 	efi_status_t status = EFI_NOT_FOUND;
- 	int found = 0;
- 
-@@ -444,8 +438,7 @@ efivar_create(struct subsystem *sub, con
- 	/*
- 	 * Does this variable already exist?
- 	 */
--	list_for_each_safe(pos, n, &efivar_list) {
--		search_efivar = get_efivar_entry(pos);
-+	list_for_each_entry_safe(search_efivar, n, &efivar_list, list) {
- 		strsize1 = utf8_strsize(search_efivar->var.VariableName, 1024);
- 		strsize2 = utf8_strsize(new_var->VariableName, 1024);
- 		if (strsize1 == strsize2 &&
-@@ -490,9 +483,8 @@ static ssize_t
- efivar_delete(struct subsystem *sub, const char *buf, size_t count)
- {
- 	struct efi_variable *del_var = (struct efi_variable *)buf;
--	struct efivar_entry *search_efivar = NULL;
-+	struct efivar_entry *search_efivar, *n;
- 	unsigned long strsize1, strsize2;
--	struct list_head *pos, *n;
- 	efi_status_t status = EFI_NOT_FOUND;
- 	int found = 0;
- 
-@@ -504,8 +496,7 @@ efivar_delete(struct subsystem *sub, con
- 	/*
- 	 * Does this variable already exist?
- 	 */
--	list_for_each_safe(pos, n, &efivar_list) {
--		search_efivar = get_efivar_entry(pos);
-+	list_for_each_entry_safe(search_efivar, n, &efivar_list, list) {
- 		strsize1 = utf8_strsize(search_efivar->var.VariableName, 1024);
- 		strsize2 = utf8_strsize(del_var->VariableName, 1024);
- 		if (strsize1 == strsize2 &&
-@@ -537,9 +528,9 @@ efivar_delete(struct subsystem *sub, con
- 		spin_unlock(&efivars_lock);
- 		return -EIO;
- 	}
-+	list_del(&search_efivar->list);
- 	/* We need to release this lock before unregistering. */
- 	spin_unlock(&efivars_lock);
--
- 	efivar_unregister(search_efivar);
- 
- 	/* It's dead Jim.... */
-@@ -768,10 +759,14 @@ out_free:
- static void __exit
- efivars_exit(void)
- {
--	struct list_head *pos, *n;
-+	struct efivar_entry *entry, *n;
- 
--	list_for_each_safe(pos, n, &efivar_list)
--		efivar_unregister(get_efivar_entry(pos));
-+	list_for_each_entry_safe(entry, n, &efivar_list, list) {
-+		spin_lock(&efivars_lock);
-+		list_del(&entry->list);
-+		spin_unlock(&efivars_lock);
-+		efivar_unregister(entry);
-+	}
- 
- 	subsystem_unregister(&vars_subsys);
- 	firmware_unregister(&efi_subsys);
+ 		if (cmd_in == MTWEOF &&
+ 		    cmdstatp->have_sense &&
+-		    (cmdstatp->flags & SENSE_EOM) &&
+-		    (cmdstatp->sense_hdr.sense_key == NO_SENSE ||
+-		     cmdstatp->sense_hdr.sense_key == RECOVERED_ERROR) &&
+-		    undone == 0) {
+-			ioctl_result = 0;	/* EOF written successfully at EOM */
+-			if (fileno >= 0)
+-				fileno++;
++		    (cmdstatp->flags & SENSE_EOM)) {
++			if (cmdstatp->sense_hdr.sense_key == NO_SENSE ||
++			    cmdstatp->sense_hdr.sense_key == RECOVERED_ERROR) {
++				ioctl_result = 0;	/* EOF(s) written successfully at EOM */
++				STps->eof = ST_NOEOF;
++			} else {  /* Writing EOF(s) failed */
++				if (fileno >= 0)
++					fileno -= undone;
++				if (undone < arg)
++					STps->eof = ST_NOEOF;
++			}
+ 			STps->drv_file = fileno;
+-			STps->eof = ST_NOEOF;
+ 		} else if ((cmd_in == MTFSF) || (cmd_in == MTFSFM)) {
+ 			if (fileno >= 0)
+ 				STps->drv_file = fileno - undone;
 _
 
-Patches currently in -mm which might be from Matt_Domsch@dell.com are
+Patches currently in -mm which might be from Kai.Makisara@kolumbus.fi are
 
-fix-race-in-efi-variable-delete-code.patch
-docbook-add-edd-firmware-interfaces.patch
+scsi-st-fix.patch
