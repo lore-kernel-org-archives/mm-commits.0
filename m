@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + x86_64-fix-fs-gs-registers-for-vt-execution.patch added to -mm tree
-Date: Fri, 26 Jan 2007 12:11:19 -0800
-Message-ID: <200701262011.l0QKBJ94025383@shell0.pdx.osdl.net>
+Subject: + bugfixes-pci-devices-get-assigned-redundant-irqs.patch added to -mm tree
+Date: Fri, 26 Jan 2007 12:13:59 -0800
+Message-ID: <200701262013.l0QKDxVG025428@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53116 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53170 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752133AbXAZULY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 15:11:24 -0500
+	id S1752134AbXAZUOW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 15:14:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zach@vmware.com, ak@suse.de
+Cc: andreas.block@esd-electronics.com, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, torvalds@osdl.org
 
 
 The patch titled
-     x86_64: fix FS/GS registers for VT execution
+     Bugfixes: PCI devices get assigned redundant IRQs
 has been added to the -mm tree.  Its filename is
-     x86_64-fix-fs-gs-registers-for-vt-execution.patch
+     bugfixes-pci-devices-get-assigned-redundant-irqs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fix FS/GS registers for VT execution
-From: Zachary Amsden <zach@vmware.com>
+Subject: Bugfixes: PCI devices get assigned redundant IRQs
+From: "Andreas Block" <andreas.block@esd-electronics.com>
 
-Initialize FS and GS to __KERNEL_DS as well.  The actual value of them is
-not important, but it is important to reload them in protected mode.  At
-this time, they still retain the real mode values from initial boot.  VT
-disallows execution of code under such conditions, which means hardware
-virtualization can not be used to boot the kernel on Intel platforms,
-making the boot time painfully slow.
+I'm currently working on a port to a CPCI board with a MPC5200.  When
+testing the PCI interrupt routing, I discovered the following: Even devices
+which don't use interrupts (-> PCI Spec.: Interrupt Pin Register is zero),
+get an interrupt assigned (this is at least true for most of the
+PPC-targets I looked at).
 
-This requires moving the GS load before the load of GS_BASE, so just move
-all the segments loads there to keep them together in the code.
+The cause is pretty obvious in drivers/pci/setup-irq.c.  I guess at least
+in an ideal world with correctly designed hardware, the code should rather
+look as in the patch below.
 
-Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@suse.de>
+Of course it doesn't hurt anybody to have an unuseable IRQ assigned to a
+PCI-to-PCI-bridge (or something alike), but to me it seems a bit strange. 
+Please correct me, if I'm mislead.
+
+The patch below is tested on the above mentioned CPCI-MPC5200 board and is
+compiler tested with the latest git-repository kernel on x86.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/head.S |   20 ++++++++++++++------
- 1 files changed, 14 insertions(+), 6 deletions(-)
+ drivers/pci/setup-irq.c |   20 +++++++++++---------
+ 1 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86_64/kernel/head.S~x86_64-fix-fs-gs-registers-for-vt-execution arch/x86_64/kernel/head.S
---- a/arch/x86_64/kernel/head.S~x86_64-fix-fs-gs-registers-for-vt-execution
-+++ a/arch/x86_64/kernel/head.S
-@@ -163,6 +163,20 @@ startup_64:
- 	 */
- 	lgdt	cpu_gdt_descr
+diff -puN drivers/pci/setup-irq.c~bugfixes-pci-devices-get-assigned-redundant-irqs drivers/pci/setup-irq.c
+--- a/drivers/pci/setup-irq.c~bugfixes-pci-devices-get-assigned-redundant-irqs
++++ a/drivers/pci/setup-irq.c
+@@ -24,7 +24,7 @@ pdev_fixup_irq(struct pci_dev *dev,
+ 	       int (*map_irq)(struct pci_dev *, u8, u8))
+ {
+ 	u8 pin, slot;
+-	int irq;
++	int irq = 0;
  
-+	/* set up data segments. actually 0 would do too */
-+	movl $__KERNEL_DS,%eax
-+	movl %eax,%ds
-+	movl %eax,%ss
-+	movl %eax,%es
-+
-+	/*
-+	 * We don't really need to load %fs or %gs, but load them anyway
-+	 * to kill any stale realmode selectors.  This allows execution
-+	 * under VT hardware.
-+	 */
-+	movl %eax,%fs
-+	movl %eax,%gs
-+
- 	/* 
- 	 * Setup up a dummy PDA. this is just for some early bootup code
- 	 * that does in_interrupt() 
-@@ -173,12 +187,6 @@ startup_64:
- 	shrq	$32,%rdx
- 	wrmsr	
+ 	/* If this device is not on the primary bus, we need to figure out
+ 	   which interrupt pin it will come in on.   We know which slot it
+@@ -33,16 +33,18 @@ pdev_fixup_irq(struct pci_dev *dev,
+ 	   apply the swizzle function.  */
  
--	/* set up data segments. actually 0 would do too */
--	movl $__KERNEL_DS,%eax
--	movl %eax,%ds	
--	movl %eax,%ss
--	movl %eax,%es
--			
- 	/* esi is pointer to real mode structure with interesting info.
- 	   pass it to C */
- 	movl	%esi, %edi
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+-	/* Cope with 0 and illegal. */
+-	if (pin == 0 || pin > 4)
++	/* Cope with illegal. */
++	if (pin > 4)
+ 		pin = 1;
+ 
+-	/* Follow the chain of bridges, swizzling as we go.  */
+-	slot = (*swizzle)(dev, &pin);
+-
+-	irq = (*map_irq)(dev, slot, pin);
+-	if (irq == -1)
+-		irq = 0;
++	if (pin != 0) {
++		/* Follow the chain of bridges, swizzling as we go.  */
++		slot = (*swizzle)(dev, &pin);
++
++		irq = (*map_irq)(dev, slot, pin);
++		if (irq == -1)
++			irq = 0;
++	}
+ 	dev->irq = irq;
+ 
+ 	pr_debug("PCI: fixup irq: (%s) got %d\n",
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from andreas.block@esd-electronics.com are
 
-x86_64-fix-fs-gs-registers-for-vt-execution.patch
-vmi-versus-hrtimers.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
+bugfixes-pci-devices-get-assigned-redundant-irqs.patch
