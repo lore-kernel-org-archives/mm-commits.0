@@ -1,63 +1,83 @@
 From: akpm@osdl.org
-Subject: - powerpc-use-is_init.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:59 -0800
-Message-ID: <200701260751.l0Q7pxCj010786@shell0.pdx.osdl.net>
+Subject: + use-zvc-for-free_pages-fix.patch added to -mm tree
+Date: Thu, 25 Jan 2007 23:52:07 -0800
+Message-ID: <200701260752.l0Q7q7fP010806@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50515 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50529 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030820AbXAZHwC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:52:02 -0500
+	id S1030825AbXAZHwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:52:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, anton@samba.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     powerpc: use is_init()
-has been removed from the -mm tree.  Its filename was
-     powerpc-use-is_init.patch
+     use-zvc-for-free_pages fix
+has been added to the -mm tree.  Its filename is
+     use-zvc-for-free_pages-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: use is_init()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: use-zvc-for-free_pages fix
+From: Christoph Lameter <clameter@sgi.com>
 
-Use is_init() rather than hard coded pid comparison.
+Hmmm... We need a highmem fix here:
 
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/powerpc/kernel/traps.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/highmem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/traps.c~powerpc-use-is_init arch/powerpc/kernel/traps.c
---- a/arch/powerpc/kernel/traps.c~powerpc-use-is_init
-+++ a/arch/powerpc/kernel/traps.c
-@@ -174,7 +174,7 @@ void _exception(int signr, struct pt_reg
- 	 * generate the same exception over and over again and we get
- 	 * nowhere.  Better to kill it and let the kernel panic.
- 	 */
--	if (current->pid == 1) {
-+	if (is_init(current)) {
- 		__sighandler_t handler;
+diff -puN mm/highmem.c~use-zvc-for-free_pages-fix mm/highmem.c
+--- a/mm/highmem.c~use-zvc-for-free_pages-fix
++++ a/mm/highmem.c
+@@ -47,7 +47,8 @@ unsigned int nr_free_highpages (void)
+ 	unsigned int pages = 0;
  
- 		spin_lock_irq(&current->sighand->siglock);
+ 	for_each_online_pgdat(pgdat)
+-		pages += pgdat->node_zones[ZONE_HIGHMEM].free_pages;
++		pages += zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
++			NR_FREE_PAGES);
+ 
+ 	return pages;
+ }
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-powerpc.patch
-ehca-fix-do_mmap-error-check.patch
-ehca-avoid-crash-on-kthread_create-failure.patch
-ehca-fix-memleak-on-module-unloading.patch
-git-input.patch
-git-netdev-all.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-git-s390.patch
-git-watchdog.patch
-simplify-the-stacktrace-code.patch
+slab-cache_grow-cleanup.patch
+use-zvc-for-inactive-and-active-counts.patch
+use-zvc-for-free_pages.patch
+use-zvc-for-free_pages-fix.patch
+reorder-zvcs-according-to-cacheline.patch
+drop-free_pages.patch
+drop-nr_free_pages_pgdat.patch
+drop-__get_zone_counts.patch
+drop-get_zone_counts.patch
+fix-writeback-calculation.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
