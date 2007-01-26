@@ -1,73 +1,74 @@
 From: akpm@osdl.org
-Subject: - kdump-documentation-update-for-2620-kexec-tools-update.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:47 -0800
-Message-ID: <200701260751.l0Q7plHJ010756@shell0.pdx.osdl.net>
+Subject: - rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:32 -0800
+Message-ID: <200701260751.l0Q7pWsH010734@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50506 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50486 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030816AbXAZHv4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:56 -0500
+	id S1030815AbXAZHvr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: horms@verge.net.au, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: lenehan@twibble.org, alessandro.zummo@towertech.it, david-b@pacbell.net, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kdump documentation update: kexec-tools update
+     rtc-sh: act on rtc_wkalrm.enabled when setting an alarm
 has been removed from the -mm tree.  Its filename was
-     kdump-documentation-update-for-2620-kexec-tools-update.patch
+     rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Kdump documentation update: kexec-tools update
-From: Horms <horms@verge.net.au>
+Subject: rtc-sh: act on rtc_wkalrm.enabled when setting an alarm
+From: Jamie Lenehan <lenehan@twibble.org>
 
-Mohan Kumar suggested making kexec-tools-testing.tar.gz a link to the
-latest version.  I have done this and this patch updates the documentation
-accordingly.
+This fixes the SH rtc driver correctly act on the "enabled" flag when
+setting an alarm.
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Jamie Lenehan <lenehan@twibble.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/kdump/kdump.txt |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-sh.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~kdump-documentation-update-for-2620-kexec-tools-update Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~kdump-documentation-update-for-2620-kexec-tools-update
-+++ a/Documentation/kdump/kdump.txt
-@@ -61,7 +61,12 @@ Install kexec-tools
+diff -puN drivers/rtc/rtc-sh.c~rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm
++++ a/drivers/rtc/rtc-sh.c
+@@ -492,10 +492,10 @@ static int sh_rtc_set_alarm(struct devic
  
- 2) Download the kexec-tools user-space package from the following URL:
+ 	spin_lock_irq(&rtc->lock);
  
--http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools-testing-20061214.tar.gz
-+http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools-testing.tar.gz
-+
-+This is a symlink to the latest version, which at the time of writing is
-+20061214, the only release of kexec-tools-testing so far. As other versions
-+are made released, the older onese will remain available at
-+http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/
+-	/* disable alarm interrupt and clear flag */
++	/* disable alarm interrupt and clear the alarm flag */
+ 	rcr1 = readb(rtc->regbase + RCR1);
+-	rcr1 &= ~RCR1_AF;
+-	writeb(rcr1 & ~RCR1_AIE, rtc->regbase + RCR1);
++	rcr1 &= ~(RCR1_AF|RCR1_AIE);
++	writeb(rcr1, rtc->regbase + RCR1);
  
- Note: Latest kexec-tools-testing git tree is available at
+ 	rtc->rearm_aie = 0;
  
-@@ -71,11 +76,11 @@ http://www.kernel.org/git/?p=linux/kerne
+@@ -510,8 +510,10 @@ static int sh_rtc_set_alarm(struct devic
+ 		mon += 1;
+ 	sh_rtc_write_alarm_value(rtc, mon, RMONAR);
  
- 3) Unpack the tarball with the tar command, as follows:
+-	/* Restore interrupt activation status */
+-	writeb(rcr1, rtc->regbase + RCR1);
++	if (wkalrm->enabled) {
++		rcr1 |= RCR1_AIE;
++		writeb(rcr1, rtc->regbase + RCR1);
++	}
  
--   tar xvpzf kexec-tools-testing-20061214.tar.gz
-+   tar xvpzf kexec-tools-testing.tar.gz
- 
--4) Change to the kexec-tools-1.101 directory, as follows:
-+4) Change to the kexec-tools directory, as follows:
- 
--   cd kexec-tools-testing-20061214
-+   cd kexec-tools-testing-VERSION
- 
- 5) Configure the package, as follows:
+ 	spin_unlock_irq(&rtc->lock);
  
 _
 
-Patches currently in -mm which might be from horms@verge.net.au are
+Patches currently in -mm which might be from lenehan@twibble.org are
+
+git-sh.patch
