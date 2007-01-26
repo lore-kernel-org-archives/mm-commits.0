@@ -1,163 +1,91 @@
 From: akpm@osdl.org
-Subject: - tlclk-bug-fix-misc-fixes.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:37 -0800
-Message-ID: <200701260751.l0Q7pb1u010744@shell0.pdx.osdl.net>
+Subject: - mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:40 -0800
+Message-ID: <200701260751.l0Q7peNu010749@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50473 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50484 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030809AbXAZHvk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:40 -0500
+	id S1030811AbXAZHvp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgross@linux.intel.com, mark.gross@intel.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, ak@suse.de, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tlclk: bug fix + misc fixes
+     mbind: restrict nodes to the currently allowed cpuset
 has been removed from the -mm tree.  Its filename was
-     tlclk-bug-fix-misc-fixes.patch
+     mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tlclk: bug fix + misc fixes
-From: Mark Gross <mgross@linux.intel.com>
+Subject: mbind: restrict nodes to the currently allowed cpuset
+From: Christoph Lameter <clameter@sgi.com>
 
-The following patch fixes a few problems with the tlclk driver.
-* bug in the select_amcb1_transmit_clock
-* racy read sys call
-* racy open sys call
-* use of add_timer where mod_timer would be better
-* change to the timer data parameter use
+Currently one can specify an arbitrary node mask to mbind that includes
+nodes not allowed.  If that is done with an interleave policy then we will
+go around all the nodes.  Those outside of the currently allowed cpuset
+will be redirected to the border nodes.  Interleave will then create
+imbalances at the borders of the cpuset.
 
-Signed-off-by: Mark Gross <mark.gross@intel.com>
+This patch restricts the nodes to the currently allowed cpuset.
+
+The RFC for this patch was discussed at
+http://marc.theaimsgroup.com/?t=116793842100004&r=1&w=2
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/tlclk.c |   43 ++++++++++++++++++++++++++---------------
- 1 file changed, 28 insertions(+), 15 deletions(-)
+ mm/mempolicy.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes drivers/char/tlclk.c
---- a/drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes
-+++ a/drivers/char/tlclk.c
-@@ -186,6 +186,7 @@ static int got_event;		/* if events proc
- static void switchover_timeout(unsigned long data);
- static struct timer_list switchover_timer =
- 	TIMER_INITIALIZER(switchover_timeout , 0, 0);
-+static unsigned long tlclk_timer_data;
- 
- static struct tlclk_alarms *alarm_events;
- 
-@@ -197,10 +198,19 @@ static irqreturn_t tlclk_interrupt(int i
- 
- static DECLARE_WAIT_QUEUE_HEAD(wq);
- 
-+static unsigned long useflags;
-+static DEFINE_MUTEX(tlclk_mutex);
-+
- static int tlclk_open(struct inode *inode, struct file *filp)
- {
- 	int result;
- 
-+	if (test_and_set_bit(0, &useflags))
-+		return -EBUSY;
-+		/* this legacy device is always one per system and it doesn't
-+		 * know how to handle multiple concurrent clients.
-+		 */
-+
- 	/* Make sure there is no interrupt pending while
- 	 * initialising interrupt handler */
- 	inb(TLCLK_REG6);
-@@ -221,6 +231,7 @@ static int tlclk_open(struct inode *inod
- static int tlclk_release(struct inode *inode, struct file *filp)
- {
- 	free_irq(telclk_interrupt, tlclk_interrupt);
-+	clear_bit(0, &useflags);
- 
- 	return 0;
- }
-@@ -230,26 +241,25 @@ static ssize_t tlclk_read(struct file *f
- {
- 	if (count < sizeof(struct tlclk_alarms))
- 		return -EIO;
-+	if (mutex_lock_interruptible(&tlclk_mutex))
-+		return -EINTR;
-+
- 
- 	wait_event_interruptible(wq, got_event);
--	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms)))
-+	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms))) {
-+		mutex_unlock(&tlclk_mutex);
- 		return -EFAULT;
-+	}
- 
- 	memset(alarm_events, 0, sizeof(struct tlclk_alarms));
- 	got_event = 0;
- 
-+	mutex_unlock(&tlclk_mutex);
- 	return  sizeof(struct tlclk_alarms);
+diff -puN mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset mm/mempolicy.c
+--- a/mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset
++++ a/mm/mempolicy.c
+@@ -884,6 +884,10 @@ asmlinkage long sys_mbind(unsigned long 
+ 	err = get_nodes(&nodes, nmask, maxnode);
+ 	if (err)
+ 		return err;
++#ifdef CONFIG_CPUSETS
++	/* Restrict the nodes to the allowed nodes in the cpuset */
++	nodes_and(nodes, nodes, current->mems_allowed);
++#endif
+ 	return do_mbind(start, len, mode, &nodes, flags);
  }
  
--static ssize_t tlclk_write(struct file *filp, const char __user *buf, size_t count,
--	    loff_t *f_pos)
--{
--	return 0;
--}
--
- static const struct file_operations tlclk_fops = {
- 	.read = tlclk_read,
--	.write = tlclk_write,
- 	.open = tlclk_open,
- 	.release = tlclk_release,
- 
-@@ -540,7 +550,7 @@ static ssize_t store_select_amcb1_transm
- 			SET_PORT_BITS(TLCLK_REG3, 0xf8, 0x7);
- 			switch (val) {
- 			case CLK_8_592MHz:
--				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
-+				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
- 				break;
- 			case CLK_11_184MHz:
- 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 0);
-@@ -549,7 +559,7 @@ static ssize_t store_select_amcb1_transm
- 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 3);
- 				break;
- 			case CLK_44_736MHz:
--				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
-+				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
- 				break;
- 			}
- 		} else
-@@ -839,11 +849,13 @@ static void __exit tlclk_cleanup(void)
- 
- static void switchover_timeout(unsigned long data)
- {
--	if ((data & 1)) {
--		if ((inb(TLCLK_REG1) & 0x08) != (data & 0x08))
-+	unsigned long flags = *(unsigned long *) data;
-+
-+	if ((flags & 1)) {
-+		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
- 			alarm_events->switchover_primary++;
- 	} else {
--		if ((inb(TLCLK_REG1) & 0x08) != (data & 0x08))
-+		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
- 			alarm_events->switchover_secondary++;
- 	}
- 
-@@ -901,8 +913,9 @@ static irqreturn_t tlclk_interrupt(int i
- 
- 		/* TIMEOUT in ~10ms */
- 		switchover_timer.expires = jiffies + msecs_to_jiffies(10);
--		switchover_timer.data = inb(TLCLK_REG1);
--		add_timer(&switchover_timer);
-+		tlclk_timer_data = inb(TLCLK_REG1);
-+		switchover_timer.data = (unsigned long) &tlclk_timer_data;
-+		mod_timer(&switchover_timer, switchover_timer.expires);
- 	} else {
- 		got_event = 1;
- 		wake_up(&wq);
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from clameter@sgi.com are
+
+slab-cache_grow-cleanup.patch
+use-zvc-for-inactive-and-active-counts.patch
+use-zvc-for-free_pages.patch
+reorder-zvcs-according-to-cacheline.patch
+drop-free_pages.patch
+drop-nr_free_pages_pgdat.patch
+drop-__get_zone_counts.patch
+drop-get_zone_counts.patch
+fix-writeback-calculation.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
+use-zvc-for-free_pages-fix.patch
