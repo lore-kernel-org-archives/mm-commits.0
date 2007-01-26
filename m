@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + scsi-st-fix.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:01:41 -0800
-Message-ID: <200701260601.l0Q61f4Q008862@shell0.pdx.osdl.net>
+Subject: + fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:02:30 -0800
+Message-ID: <200701260602.l0Q62Umr008888@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47246 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47260 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030773AbXAZGBs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:01:48 -0500
+	id S1030772AbXAZGCg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:02:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Kai.Makisara@kolumbus.fi, ce_reisinger@yahoo.com, kai.makisara@kolumbus.fi
+Cc: rpjday@mindspring.com, avi@qumranet.com
 
 
 The patch titled
-     scsi: st fix
+     Fix "CONFIG_X86_64_" typo in drivers/kvm/svm.c
 has been added to the -mm tree.  Its filename is
-     scsi-st-fix.patch
+     fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: st fix
-From: Kai Makisara <Kai.Makisara@kolumbus.fi>
+Subject: Fix "CONFIG_X86_64_" typo in drivers/kvm/svm.c
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-On Wed, 24 Jan 2007, Andrew Morton wrote:
+Fix what looks like an obvious typo in the file drivers/kvm/svm.c.
 
-> On Mon, 22 Jan 2007 13:07:20 -0800
-> bugme-daemon@bugzilla.kernel.org wrote:
->
-> > http://bugzilla.kernel.org/show_bug.cgi?id=7864
-> >
-> >            Summary: A MTIOCTOP/MTWEOF within the early warning will cause
-> >                     the file number to be incorrect
-> >     Kernel Version: 2.6.19.2
-> >             Status: NEW
-> >           Severity: low
-> >              Owner: io_scsi@kernel-bugs.osdl.org
-> >          Submitter: ce_reisinger@yahoo.com
-> >
-> >
-> > Write records to a SCSI tape until a write fails with a ENOSPC (you have reached
-> > early warning.
-> > Now perform a:
-> >    struct mtget before, after;
-> >    ioctl(fd, MTIOCGET, &before);
-> >    struct mtop mtop = { MTWEOF, 1 };
-> >    ioctl(fd, MTIOCTOP, &mtop);
-> >    ioctl(fd, MTIOCGET, &after);
-> >
-> > Check the value of mt_fileno in the before and after structures. Notice the
-> > after is 2 greater then the before.
-> >
-> > The problem appears to be in the block of code starting at line 2817 in st.c.
-> > This block is entered because the drive did return a CHECK CONDITION with NO
-> > SENSE and the SENSE_EOM bit set. At lines 2824/5 the fileno is incremented. But
-> > it has already been increased by the number of filemarks requested by the
-> > MTIOCTOP. I believe that the residue count in the sense data should be
-> > subtracted from fileno, not a increment as is done.
-> >
->
-> Thanks.  Could you please send us a tested patch to fix these things, as
-> per http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt ?
->
-The analysis is basically correct and explains the bug. According to the
-SCSI standards, the sense code is NO SENSE or RECOVERED ERROR in case
-writing filemark(s) succeeds. If it fails (partly or completely) the sense
-code is VOLUME OVERFLOW. The patch below is tested to fix the case when
-one filemark is successfully written after the EOM early warning. It
-should also fix the case at real EOM but this has not been tested.
-
-Carl, thanks for reporting the bug and providing the analysis for the fix.
-
-Signed-off-by: Kai Makisara <kai.makisara@kolumbus.fi>
-Cc: <ce_reisinger@yahoo.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/st.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ drivers/kvm/svm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/st.c~scsi-st-fix drivers/scsi/st.c
---- a/drivers/scsi/st.c~scsi-st-fix
-+++ a/drivers/scsi/st.c
-@@ -2816,15 +2816,18 @@ static int st_int_ioctl(struct scsi_tape
- 
- 		if (cmd_in == MTWEOF &&
- 		    cmdstatp->have_sense &&
--		    (cmdstatp->flags & SENSE_EOM) &&
--		    (cmdstatp->sense_hdr.sense_key == NO_SENSE ||
--		     cmdstatp->sense_hdr.sense_key == RECOVERED_ERROR) &&
--		    undone == 0) {
--			ioctl_result = 0;	/* EOF written successfully at EOM */
--			if (fileno >= 0)
--				fileno++;
-+		    (cmdstatp->flags & SENSE_EOM)) {
-+			if (cmdstatp->sense_hdr.sense_key == NO_SENSE ||
-+			    cmdstatp->sense_hdr.sense_key == RECOVERED_ERROR) {
-+				ioctl_result = 0;	/* EOF(s) written successfully at EOM */
-+				STps->eof = ST_NOEOF;
-+			} else {  /* Writing EOF(s) failed */
-+				if (fileno >= 0)
-+					fileno -= undone;
-+				if (undone < arg)
-+					STps->eof = ST_NOEOF;
-+			}
- 			STps->drv_file = fileno;
--			STps->eof = ST_NOEOF;
- 		} else if ((cmd_in == MTFSF) || (cmd_in == MTFSFM)) {
- 			if (fileno >= 0)
- 				STps->drv_file = fileno - undone;
+diff -puN drivers/kvm/svm.c~fix-config_x86_64_-typo-in-drivers-kvm-svmc drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~fix-config_x86_64_-typo-in-drivers-kvm-svmc
++++ a/drivers/kvm/svm.c
+@@ -1163,7 +1163,7 @@ static int svm_set_msr(struct kvm_vcpu *
+ 	case MSR_K6_STAR:
+ 		vcpu->svm->vmcb->save.star = data;
+ 		break;
+-#ifdef CONFIG_X86_64_
++#ifdef CONFIG_X86_64
+ 	case MSR_LSTAR:
+ 		vcpu->svm->vmcb->save.lstar = data;
+ 		break;
 _
 
-Patches currently in -mm which might be from Kai.Makisara@kolumbus.fi are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-scsi-st-fix.patch
+origin.patch
+fix-various-kernel-doc-in-header-files.patch
+fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
+git-alsa.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
