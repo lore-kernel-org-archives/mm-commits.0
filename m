@@ -1,71 +1,94 @@
 From: akpm@osdl.org
-Subject: - kvm-fix-bogus-pagefault-on-writable-pages.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:30 -0800
-Message-ID: <200701260751.l0Q7pU4T010730@shell0.pdx.osdl.net>
+Subject: - revert-nmi_known_cpu-check-during-boot-option-parsing.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:13 -0800
+Message-ID: <200701260751.l0Q7pDbl010709@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50457 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50446 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030802AbXAZHvd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:33 -0500
+	id S1030799AbXAZHv0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, ak@suse.de, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: fix bogus pagefault on writable pages
+     Revert nmi_known_cpu() check during boot option parsing
 has been removed from the -mm tree.  Its filename was
-     kvm-fix-bogus-pagefault-on-writable-pages.patch
+     revert-nmi_known_cpu-check-during-boot-option-parsing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: fix bogus pagefault on writable pages
-From: Avi Kivity <avi@qumranet.com>
+Subject: Revert nmi_known_cpu() check during boot option parsing
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-If a page is marked as dirty in the guest pte, set_pte_common() can set the
-writable bit on newly-instantiated shadow pte.  This optimization avoids
-a write fault after the initial read fault.
+The patch
+http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=f2802e7f571c05f9a901b1f5bd144aa730ccc88e
+and another subsequent patch adds nmi_known_cpu() check while parsing boot
+options in x86_64 and i386.  With that, "nmi_watchdog=2" stops working for
+me on Intel Core 2 CPU based system.
 
-However, if a write fault instantiates the pte, fix_write_pf() incorrectly
-reports the fault as a guest page fault, and the guest oopses on what appears
-to be a correctly-mapped page.
+The problem is, setup_nmi_watchdog is called while parsing the boot option
+and identify_cpu is not done yet.  So, the return value of nmi_known_cpu()
+is not valid at this point.
 
-Fix is to detect the condition and only report a guest page fault on a user
-access to a kernel page.
+Revert that check.  Should not have any adverse effect as nmi_known_cpu()
+check is done again later in enable_lapic_nmi_watchdog().
 
-With the fix, a kvm guest can survive a whole night of running the kernel
-hacker's screensaver (make -j9 in a loop).
-
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/paging_tmpl.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/nmi.c   |    8 +-------
+ arch/x86_64/kernel/nmi.c |    2 --
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN drivers/kvm/paging_tmpl.h~kvm-fix-bogus-pagefault-on-writable-pages drivers/kvm/paging_tmpl.h
---- a/drivers/kvm/paging_tmpl.h~kvm-fix-bogus-pagefault-on-writable-pages
-+++ a/drivers/kvm/paging_tmpl.h
-@@ -274,7 +274,7 @@ static int FNAME(fix_write_pf)(struct kv
- 	struct kvm_mmu_page *page;
+diff -puN arch/i386/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing arch/i386/kernel/nmi.c
+--- a/arch/i386/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing
++++ a/arch/i386/kernel/nmi.c
+@@ -310,13 +310,7 @@ static int __init setup_nmi_watchdog(cha
  
- 	if (is_writeble_pte(*shadow_ent))
--		return 0;
-+		return !user || (*shadow_ent & PT_USER_MASK);
+ 	if ((nmi >= NMI_INVALID) || (nmi < NMI_NONE))
+ 		return 0;
+-	/*
+-	 * If any other x86 CPU has a local APIC, then
+-	 * please test the NMI stuff there and send me the
+-	 * missing bits. Right now Intel P6/P4 and AMD K7 only.
+-	 */
+-	if ((nmi == NMI_LOCAL_APIC) && (nmi_known_cpu() == 0))
+-		return 0;  /* no lapic support */
++
+ 	nmi_watchdog = nmi;
+ 	return 1;
+ }
+diff -puN arch/x86_64/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing arch/x86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~revert-nmi_known_cpu-check-during-boot-option-parsing
++++ a/arch/x86_64/kernel/nmi.c
+@@ -302,8 +302,6 @@ int __init setup_nmi_watchdog(char *str)
+ 	if ((nmi >= NMI_INVALID) || (nmi < NMI_NONE))
+ 		return 0;
  
- 	writable_shadow = *shadow_ent & PT_SHADOW_WRITABLE_MASK;
- 	if (user) {
+-	if ((nmi == NMI_LOCAL_APIC) && (nmi_known_cpu() == 0))
+-		return 0;  /* no lapic support */
+ 	nmi_watchdog = nmi;
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-kvm-svm-fix-svm-idt-confusion.patch
-kvm-emulate-ia32_misc_enable-msr.patch
-kvm-mmu-perform-access-checks-in-walk_addr.patch
-kvm-mmu-report-nx-faults-to-the-guest.patch
-kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
-fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-3.patch
+ondemand-governor-restructure-the-work-callback.patch
+ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-rework-threads-hotplug-management.patch
