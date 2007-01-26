@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dlm-gfs2-use-sysfs.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:24:55 -0800
-Message-ID: <200701260624.l0Q6Ot96009322@shell0.pdx.osdl.net>
+Subject: + namespaces-fix-exit-race-by-splitting-exit.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:29:31 -0800
+Message-ID: <200701260629.l0Q6TVKa009375@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47977 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48204 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030789AbXAZGZF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:25:05 -0500
+	id S1030793AbXAZGfX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:35:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, swhiteho@redhat.com
+Cc: serue@us.ibm.com, clg@fr.ibm.com, daniel@hozac.com, ebiederm@xmission.com, herbert@13thfloor.at, oleg@tv-sign.ru
 
 
 The patch titled
-     dlm & gfs2: use sysfs
+     namespaces: fix exit race by splitting exit
 has been added to the -mm tree.  Its filename is
-     dlm-gfs2-use-sysfs.patch
+     namespaces-fix-exit-race-by-splitting-exit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,198 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dlm & gfs2: use sysfs
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: namespaces: fix exit race by splitting exit
+From: Serge E. Hallyn <serue@us.ibm.com>
 
-With CONFIG_DLM=m, CONFIG_PROC_FS=n, and CONFIG_SYSFS=n, kernel build
-fails with:
+Fix exit race by splitting the nsproxy putting into two pieces.  First
+piece reduces the nsproxy refcount.  If we dropped the last reference, then
+it puts the mnt_ns, and returns the nsproxy as a hint to the caller.  Else
+it returns NULL.  The second piece of exiting task namespaces sets
+tsk->nsproxy to NULL, and drops the references to other namespaces and
+frees the nsproxy only if an nsproxy was passed in.
 
-WARNING: "kernel_subsys" [fs/gfs2/locking/dlm/lock_dlm.ko] undefined!
-WARNING: "kernel_subsys" [fs/dlm/dlm.ko] undefined!
-WARNING: "kernel_subsys" [fs/configfs/configfs.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
+A little awkward and should probably be reworked, but hopefully it fixes
+the NFS oops.
 
-Since fs/dlm/lockspace.c and fs/gfs2/locking/dlm/sysfs.c use
-kernel_subsys, they should either DEPEND on it or SELECT it.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/dlm/Kconfig  |    1 +
- fs/gfs2/Kconfig |    1 +
- 2 files changed, 2 insertions(+)
+ include/linux/nsproxy.h |   30 +++++++++++++++++++-----------
+ kernel/exit.c           |    6 ++++--
+ kernel/fork.c           |    4 ++--
+ kernel/nsproxy.c        |   16 +++++++++++++++-
+ 4 files changed, 40 insertions(+), 16 deletions(-)
 
-diff -puN fs/dlm/Kconfig~dlm-gfs2-use-sysfs fs/dlm/Kconfig
---- a/fs/dlm/Kconfig~dlm-gfs2-use-sysfs
-+++ a/fs/dlm/Kconfig
-@@ -5,6 +5,7 @@ config DLM
- 	tristate "Distributed Lock Manager (DLM)"
- 	depends on IPV6 || IPV6=n
- 	select CONFIGFS_FS
-+	select SYSFS
- 	select IP_SCTP if DLM_SCTP
- 	help
- 	A general purpose distributed lock manager for kernel or userspace
-diff -puN fs/gfs2/Kconfig~dlm-gfs2-use-sysfs fs/gfs2/Kconfig
---- a/fs/gfs2/Kconfig~dlm-gfs2-use-sysfs
-+++ a/fs/gfs2/Kconfig
-@@ -38,6 +38,7 @@ config GFS2_FS_LOCKING_DLM
- 	select IP_SCTP if DLM_SCTP
- 	select CONFIGFS_FS
- 	select DLM
-+	select SYSFS
- 	help
- 	Multiple node locking module for GFS2
+diff -puN include/linux/nsproxy.h~namespaces-fix-exit-race-by-splitting-exit include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~namespaces-fix-exit-race-by-splitting-exit
++++ a/include/linux/nsproxy.h
+@@ -35,22 +35,30 @@ struct nsproxy *dup_namespaces(struct ns
+ int copy_namespaces(int flags, struct task_struct *tsk);
+ void get_task_namespaces(struct task_struct *tsk);
+ void free_nsproxy(struct nsproxy *ns);
++struct nsproxy *put_nsproxy(struct nsproxy *ns);
  
+-static inline void put_nsproxy(struct nsproxy *ns)
++static inline void finalize_put_nsproxy(struct nsproxy *ns)
+ {
+-	if (atomic_dec_and_test(&ns->count)) {
++	if (ns)
+ 		free_nsproxy(ns);
+-	}
+ }
+ 
+-static inline void exit_task_namespaces(struct task_struct *p)
++static inline void put_and_finalize_nsproxy(struct nsproxy *ns)
+ {
+-	struct nsproxy *ns = p->nsproxy;
+-	if (ns) {
+-		task_lock(p);
+-		p->nsproxy = NULL;
+-		task_unlock(p);
+-		put_nsproxy(ns);
+-	}
++	finalize_put_nsproxy(put_nsproxy(ns));
++}
++
++static inline struct nsproxy *preexit_task_namespaces(struct task_struct *p)
++{
++	return put_nsproxy(p->nsproxy);
++}
++
++static inline void exit_task_namespaces(struct task_struct *p,
++						struct nsproxy *ns)
++{
++	task_lock(p);
++	p->nsproxy = NULL;
++	task_unlock(p);
++	finalize_put_nsproxy(ns);
+ }
+ #endif
+diff -puN kernel/exit.c~namespaces-fix-exit-race-by-splitting-exit kernel/exit.c
+--- a/kernel/exit.c~namespaces-fix-exit-race-by-splitting-exit
++++ a/kernel/exit.c
+@@ -396,7 +396,7 @@ void daemonize(const char *name, ...)
+ 	current->fs = fs;
+ 	atomic_inc(&fs->count);
+ 
+-	exit_task_namespaces(current);
++	put_and_finalize_nsproxy(current->nsproxy);
+ 	current->nsproxy = init_task.nsproxy;
+ 	get_task_namespaces(current);
+ 
+@@ -853,6 +853,7 @@ static void exit_notify(struct task_stru
+ fastcall NORET_TYPE void do_exit(long code)
+ {
+ 	struct task_struct *tsk = current;
++	struct nsproxy *ns;
+ 	int group_dead;
+ 
+ 	profile_task_exit(tsk);
+@@ -938,8 +939,9 @@ fastcall NORET_TYPE void do_exit(long co
+ 
+ 	tsk->exit_code = code;
+ 	proc_exit_connector(tsk);
++	ns = preexit_task_namespaces(tsk);
+ 	exit_notify(tsk);
+-	exit_task_namespaces(tsk);
++	exit_task_namespaces(tsk, ns);
+ #ifdef CONFIG_NUMA
+ 	mpol_free(tsk->mempolicy);
+ 	tsk->mempolicy = NULL;
+diff -puN kernel/fork.c~namespaces-fix-exit-race-by-splitting-exit kernel/fork.c
+--- a/kernel/fork.c~namespaces-fix-exit-race-by-splitting-exit
++++ a/kernel/fork.c
+@@ -1265,7 +1265,7 @@ static struct task_struct *copy_process(
+ 	return p;
+ 
+ bad_fork_cleanup_namespaces:
+-	exit_task_namespaces(p);
++	put_and_finalize_nsproxy(p->nsproxy);
+ bad_fork_cleanup_keys:
+ 	exit_keys(p);
+ bad_fork_cleanup_mm:
+@@ -1711,7 +1711,7 @@ asmlinkage long sys_unshare(unsigned lon
+ 	}
+ 
+ 	if (new_nsproxy)
+-		put_nsproxy(new_nsproxy);
++		put_and_finalize_nsproxy(new_nsproxy);
+ 
+ bad_unshare_cleanup_ipc:
+ 	if (new_ipc)
+diff -puN kernel/nsproxy.c~namespaces-fix-exit-race-by-splitting-exit kernel/nsproxy.c
+--- a/kernel/nsproxy.c~namespaces-fix-exit-race-by-splitting-exit
++++ a/kernel/nsproxy.c
+@@ -117,7 +117,7 @@ int copy_namespaces(int flags, struct ta
+ 		goto out_pid;
+ 
+ out:
+-	put_nsproxy(old_ns);
++	put_and_finalize_nsproxy(old_ns);
+ 	return err;
+ 
+ out_pid:
+@@ -135,6 +135,20 @@ out_ns:
+ 	goto out;
+ }
+ 
++struct nsproxy *put_nsproxy(struct nsproxy *ns)
++{
++	if (ns) {
++		if (atomic_dec_and_test(&ns->count)) {
++			if (ns->mnt_ns) {
++				put_mnt_ns(ns->mnt_ns);
++				ns->mnt_ns = NULL;
++			}
++			return ns;
++		}
++	}
++	return NULL;
++}
++
+ void free_nsproxy(struct nsproxy *ns)
+ {
+ 	if (ns->mnt_ns)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-origin.patch
-fix-various-kernel-doc-in-header-files.patch
-git-alsa.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-dlm-gfs2-use-sysfs.patch
-parisc-fix-module_param-iommu-permission.patch
-git-scsi-misc.patch
-math-emu-setcc-avoid-gcc-extension.patch
-docbook-html-correction-of-recursive-a-tags-in-html-output.patch
-kernel-doc-allow-a-little-whitespace.patch
-sysrq-showblockedtasks-is-sysrq-w.patch
-sysrq-alphabetize-command-keys-doc.patch
-kernel-doc-allow-more-whitespace.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-docbook-add-edd-firmware-interfaces.patch
-kernel-doc-fix-some-odd-spacing-issues.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+fix-null-nsproxy-dereference-in-proc-mounts.patch
+namespaces-fix-exit-race-by-splitting-exit.patch
+implement-file-posix-capabilities.patch
+file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+file-capabilities-honor-secure_noroot.patch
+introduce-and-use-get_task_mnt_ns.patch
+introduce-and-use-get_task_mnt_ns-tweaks.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fix.patch
+user-namespace-add-the-framework-fixes.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-add-user_namespace-ptr-to-vfsmount-fixes.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user-ns-implement-shared-mounts-fixes.patch
+user_ns-handle-file-sigio.patch
+user_ns-handle-file-sigio-fix.patch
+user_ns-handle-file-sigio-fix-2.patch
+user-ns-implement-user-ns-unshare.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+rename-attach_pid-to-find_attach_pid.patch
+attach_pid-with-struct-pid-parameter.patch
+remove-find_attach_pid.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-sid-of-init.patch
+uts-namespace-remove-config_uts_ns.patch
+ipc-namespace-remove-config_ipc_ns.patch
+integrity-service-api-and-dummy-provider-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
