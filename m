@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + correct-apparent-typo-config_aty_ct-in-aty-video.patch added to -mm tree
-Date: Fri, 26 Jan 2007 13:05:48 -0800
-Message-ID: <200701262105.l0QL5m49026519@shell0.pdx.osdl.net>
+Subject: + local_t-mips-extension-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 13:04:13 -0800
+Message-ID: <200701262104.l0QL4DPH026494@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55208 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55362 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751611AbXAZVGD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 16:06:03 -0500
+	id S1752146AbXAZVHi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 16:07:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, adaplas@gmail.com, jsimmons@infradead.org, syrjala@sci.fi
+Cc: mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
 
 
 The patch titled
-     Correct apparent typo CONFIG_ATY_CT in ATY video
+     local_t-mips-extension fix
 has been added to the -mm tree.  Its filename is
-     correct-apparent-typo-config_aty_ct-in-aty-video.patch
+     local_t-mips-extension-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,289 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Correct apparent typo CONFIG_ATY_CT in ATY video
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: local_t-mips-extension fix
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Replace the apparent typo CONFIG_ATY_CT with CONFIG_FB_ATY_CT.
+Correction of MIPS variables and config options.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
-Cc: Antonino A. Daplas <adaplas@gmail.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/aty/atyfb_base.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-mips/local.h |   85 ++++++++++++++++++-------------------
+ 1 files changed, 43 insertions(+), 42 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~correct-apparent-typo-config_aty_ct-in-aty-video drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~correct-apparent-typo-config_aty_ct-in-aty-video
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -2566,7 +2566,7 @@ static int __devinit aty_init(struct fb_
- 	       info->fix.smem_len == 0x80000 ? 'K' : 'M', ramname, xtal, par->pll_limits.pll_max,
- 	       par->pll_limits.mclk, par->pll_limits.xclk);
+diff -puN include/asm-mips/local.h~local_t-mips-extension-fix include/asm-mips/local.h
+--- a/include/asm-mips/local.h~local_t-mips-extension-fix
++++ a/include/asm-mips/local.h
+@@ -1,8 +1,9 @@
+-#ifndef _ARCH_POWERPC_LOCAL_H
+-#define _ARCH_POWERPC_LOCAL_H
++#ifndef _ARCH_MIPS_LOCAL_H
++#define _ARCH_MIPSRPC_LOCAL_H
  
--#if defined(DEBUG) && defined(CONFIG_ATY_CT)
-+#if defined(DEBUG) && defined(CONFIG_FB_ATY_CT)
- 	if (M64_HAS(INTEGRATED)) {
- 		int i;
- 		printk("debug atyfb: BUS_CNTL DAC_CNTL MEM_CNTL EXT_MEM_CNTL CRTC_GEN_CNTL "
+ #include <linux/percpu.h>
+ #include <asm/atomic.h>
++#include <asm/war.h>
+ 
+ typedef struct
+ {
+@@ -20,7 +21,7 @@ typedef struct
+ #define local_dec(l)	local_long_dec(&(l)->a)
+ 
+ 
+-#ifndef CONFIG_64BITS
++#ifndef CONFIG_64BIT
+ 
+ /*
+  * Same as above, but return the result value
+@@ -40,8 +41,8 @@ static __inline__ int local_add_return(i
+ 		"	beqzl	%0, 1b					\n"
+ 		"	addu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else if (cpu_has_llsc) {
+ 		unsigned long temp;
+@@ -54,16 +55,16 @@ static __inline__ int local_add_return(i
+ 		"	beqz	%0, 1b					\n"
+ 		"	addu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else {
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-		result = &(l->a.counter);
++		result = l->a.counter;
+ 		result += i;
+-		&(l->a.counter) = result;
++		l->a.counter = result;
+ 		local_irq_restore(flags);
+ 	}
+ 
+@@ -85,8 +86,8 @@ static __inline__ int local_sub_return(i
+ 		"	beqzl	%0, 1b					\n"
+ 		"	subu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else if (cpu_has_llsc) {
+ 		unsigned long temp;
+@@ -99,16 +100,16 @@ static __inline__ int local_sub_return(i
+ 		"	beqz	%0, 1b					\n"
+ 		"	subu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else {
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-		result = &(l->a.counter);
++		result = l->a.counter;
+ 		result -= i;
+-		&(l->a.counter) = result;
++		l->a.counter = result;
+ 		local_irq_restore(flags);
+ 	}
+ 
+@@ -142,8 +143,8 @@ static __inline__ int local_sub_if_posit
+ 		"	.set	reorder					\n"
+ 		"1:							\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else if (cpu_has_llsc) {
+ 		unsigned long temp;
+@@ -160,17 +161,17 @@ static __inline__ int local_sub_if_posit
+ 		"	.set	reorder					\n"
+ 		"1:							\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else {
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-		result = &(l->a.counter);
++		result = l->a.counter;
+ 		result -= i;
+ 		if (result >= 0)
+-			&(l->a.counter) = result;
++			l->a.counter = result;
+ 		local_irq_restore(flags);
+ 	}
+ 
+@@ -251,7 +252,7 @@ static __inline__ int local_sub_if_posit
+  */
+ #define local_add_negative(i,l) (local_add_return(i, (l)) < 0)
+ 
+-#else /* CONFIG_64BITS */
++#else /* CONFIG_64BIT */
+ 
+ /*
+  * Same as above, but return the result value
+@@ -271,8 +272,8 @@ static __inline__ long local_add_return(
+ 		"	beqzl	%0, 1b					\n"
+ 		"	addu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else if (cpu_has_llsc) {
+ 		unsigned long temp;
+@@ -285,16 +286,16 @@ static __inline__ long local_add_return(
+ 		"	beqz	%0, 1b					\n"
+ 		"	addu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else {
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-		result = &(l->a.counter);
++		result = l->a.counter;
+ 		result += i;
+-		&(l->a.counter) = result;
++		l->a.counter = result;
+ 		local_irq_restore(flags);
+ 	}
+ 
+@@ -316,8 +317,8 @@ static __inline__ long local_sub_return(
+ 		"	beqzl	%0, 1b					\n"
+ 		"	subu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else if (cpu_has_llsc) {
+ 		unsigned long temp;
+@@ -330,16 +331,16 @@ static __inline__ long local_sub_return(
+ 		"	beqz	%0, 1b					\n"
+ 		"	subu	%0, %1, %3				\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else {
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-		result = &(l->a.counter);
++		result = l->a.counter;
+ 		result -= i;
+-		&(l->a.counter) = result;
++		l->a.counter = result;
+ 		local_irq_restore(flags);
+ 	}
+ 
+@@ -373,8 +374,8 @@ static __inline__ long local_sub_if_posi
+ 		"	.set	reorder					\n"
+ 		"1:							\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else if (cpu_has_llsc) {
+ 		unsigned long temp;
+@@ -391,17 +392,17 @@ static __inline__ long local_sub_if_posi
+ 		"	.set	reorder					\n"
+ 		"1:							\n"
+ 		"	.set	mips0					\n"
+-		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
+-		: "Ir" (i), "m" (&(l->a.counter))
++		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
++		: "Ir" (i), "m" (l->a.counter)
+ 		: "memory");
+ 	} else {
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-		result = &(l->a.counter);
++		result = l->a.counter;
+ 		result -= i;
+ 		if (result >= 0)
+-			&(l->a.counter) = result;
++			l->a.counter = result;
+ 		local_irq_restore(flags);
+ 	}
+ 
+@@ -483,7 +484,7 @@ static __inline__ long local_sub_if_posi
+  */
+ #define local_add_negative(i,l) (local_add_return(i, (l)) < 0)
+ 
+-#endif /* !CONFIG_64BITS */
++#endif /* !CONFIG_64BIT */
+ 
+ 
+ /* Use these for per-cpu local_t variables: on some archs they are
+@@ -521,4 +522,4 @@ static __inline__ long local_sub_if_posi
+ #define __cpu_local_add(i, l)	cpu_local_add((i), (l))
+ #define __cpu_local_sub(i, l)	cpu_local_sub((i), (l))
+ 
+-#endif /* _ARCH_POWERPC_LOCAL_H */
++#endif /* _ARCH_MIPS_LOCAL_H */
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-fix-various-kernel-doc-in-header-files.patch
-fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
-git-alsa.patch
-remove-useless-reference-to-obsolete-kerneld.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-fix-apparent-typo-config_serial_cpm_smc.patch
-remove-the-unused-kernel-config-option-video_videobuf.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-remove-unused-kernel-config-option-dlci_count.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-uml-fix-apparent-config_64_bit-typo.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+relay-add-cpu-hotplug-support.patch
+local_t-documentation.patch
+local_t-documentation-fix.patch
+order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
+minimize-lockdep_on-off-side-effect.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-complete-atomic_long-operations-in-asm-generic-fix.patch
+atomich-complete-atomic_long-operations-in-asm-generic-fix-2.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+local_t-architecture-independent-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-s390-cleanup.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
