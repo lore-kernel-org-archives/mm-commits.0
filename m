@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + drop-free_pages.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:16:42 -0800
-Message-ID: <200701260616.l0Q6GgKi009156@shell0.pdx.osdl.net>
+Subject: + drop-get_zone_counts.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:16:46 -0800
+Message-ID: <200701260616.l0Q6GkFx009165@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47733 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47743 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030777AbXAZGQo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:16:44 -0500
+	id S1030782AbXAZGQs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:16:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     Drop free_pages()
+     Drop get_zone_counts()
 has been added to the -mm tree.  Its filename is
-     drop-free_pages.patch
+     drop-get_zone_counts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Drop free_pages()
+Subject: Drop get_zone_counts()
 From: Christoph Lameter <clameter@sgi.com>
 
-nr_free_pages is now a simple access to a global variable.  Make it a macro
-instead of a function.
-
-The nr_free_pages now requires vmstat.h to be included.  There is one
-occurrence in power management where we need to add the include.  Directly
-refrer to global_page_state() there to clarify why the #include was added.
+Values are available via ZVC sums.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/swap.h |    5 ++++-
- kernel/power/main.c  |    4 +++-
- mm/page_alloc.c      |   10 ----------
- 3 files changed, 7 insertions(+), 12 deletions(-)
+ fs/proc/proc_misc.c |    9 ++-------
+ mm/page_alloc.c     |    9 ++-------
+ mm/vmstat.c         |    8 --------
+ 3 files changed, 4 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/swap.h~drop-free_pages include/linux/swap.h
---- a/include/linux/swap.h~drop-free_pages
-+++ a/include/linux/swap.h
-@@ -170,11 +170,14 @@ extern void swapin_readahead(swp_entry_t
- extern unsigned long totalram_pages;
- extern unsigned long totalreserve_pages;
- extern long nr_swap_pages;
--extern unsigned int nr_free_pages(void);
- extern unsigned int nr_free_pages_pgdat(pg_data_t *pgdat);
- extern unsigned int nr_free_buffer_pages(void);
- extern unsigned int nr_free_pagecache_pages(void);
+diff -puN fs/proc/proc_misc.c~drop-get_zone_counts fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~drop-get_zone_counts
++++ a/fs/proc/proc_misc.c
+@@ -121,16 +121,11 @@ static int meminfo_read_proc(char *page,
+ {
+ 	struct sysinfo i;
+ 	int len;
+-	unsigned long inactive;
+-	unsigned long active;
+-	unsigned long free;
+ 	unsigned long committed;
+ 	unsigned long allowed;
+ 	struct vmalloc_info vmi;
+ 	long cached;
  
-+/* Definition of global_page_state not available yet */
-+#define nr_free_pages() global_page_state(NR_FREE_PAGES)
-+
-+
- /* linux/mm/swap.c */
- extern void FASTCALL(lru_cache_add(struct page *));
- extern void FASTCALL(lru_cache_add_active(struct page *));
-diff -puN kernel/power/main.c~drop-free_pages kernel/power/main.c
---- a/kernel/power/main.c~drop-free_pages
-+++ a/kernel/power/main.c
-@@ -20,6 +20,7 @@
- #include <linux/cpu.h>
- #include <linux/resume-trace.h>
- #include <linux/freezer.h>
-+#include <linux/vmstat.h>
+-	get_zone_counts(&active, &inactive, &free);
+-
+ /*
+  * display in kilobytes.
+  */
+@@ -187,8 +182,8 @@ static int meminfo_read_proc(char *page,
+ 		K(i.bufferram),
+ 		K(cached),
+ 		K(total_swapcache_pages),
+-		K(active),
+-		K(inactive),
++		K(global_page_state(NR_ACTIVE)),
++		K(global_page_state(NR_INACTIVE)),
+ #ifdef CONFIG_HIGHMEM
+ 		K(i.totalhigh),
+ 		K(i.freehigh),
+diff -puN mm/page_alloc.c~drop-get_zone_counts mm/page_alloc.c
+--- a/mm/page_alloc.c~drop-get_zone_counts
++++ a/mm/page_alloc.c
+@@ -1524,9 +1524,6 @@ void si_meminfo_node(struct sysinfo *val
+ void show_free_areas(void)
+ {
+ 	int cpu;
+-	unsigned long active;
+-	unsigned long inactive;
+-	unsigned long free;
+ 	struct zone *zone;
  
- #include "power.h"
- 
-@@ -72,7 +73,8 @@ static int suspend_prepare(suspend_state
- 		goto Thaw;
+ 	for_each_zone(zone) {
+@@ -1550,12 +1547,10 @@ void show_free_areas(void)
+ 		}
  	}
  
--	if ((free_pages = nr_free_pages()) < FREE_PAGE_NUMBER) {
-+	if ((free_pages = global_page_state(NR_FREE_PAGES))
-+			< FREE_PAGE_NUMBER) {
- 		pr_debug("PM: free some memory\n");
- 		shrink_all_memory(FREE_PAGE_NUMBER - free_pages);
- 		if (nr_free_pages() < FREE_PAGE_NUMBER) {
-diff -puN mm/page_alloc.c~drop-free_pages mm/page_alloc.c
---- a/mm/page_alloc.c~drop-free_pages
-+++ a/mm/page_alloc.c
-@@ -1441,16 +1441,6 @@ fastcall void free_pages(unsigned long a
+-	get_zone_counts(&active, &inactive, &free);
+-
+ 	printk("Active:%lu inactive:%lu dirty:%lu writeback:%lu "
+ 		"unstable:%lu free:%lu slab:%lu mapped:%lu pagetables:%lu\n",
+-		active,
+-		inactive,
++		global_page_state(NR_ACTIVE),
++		global_page_state(NR_INACTIVE),
+ 		global_page_state(NR_FILE_DIRTY),
+ 		global_page_state(NR_WRITEBACK),
+ 		global_page_state(NR_UNSTABLE_NFS),
+diff -puN mm/vmstat.c~drop-get_zone_counts mm/vmstat.c
+--- a/mm/vmstat.c~drop-get_zone_counts
++++ a/mm/vmstat.c
+@@ -13,14 +13,6 @@
+ #include <linux/module.h>
+ #include <linux/cpu.h>
  
- EXPORT_SYMBOL(free_pages);
- 
--/*
-- * Total amount of free (allocatable) RAM:
-- */
--unsigned int nr_free_pages(void)
+-void get_zone_counts(unsigned long *active,
+-		unsigned long *inactive, unsigned long *free)
 -{
--	return global_page_state(NR_FREE_PAGES);
+-	*active = global_page_state(NR_ACTIVE);
+-	*inactive = global_page_state(NR_INACTIVE);
+-	*free = global_page_state(NR_FREE_PAGES);
 -}
 -
--EXPORT_SYMBOL(nr_free_pages);
--
- #ifdef CONFIG_NUMA
- unsigned int nr_free_pages_pgdat(pg_data_t *pgdat)
- {
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+ EXPORT_PER_CPU_SYMBOL(vm_event_states);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
