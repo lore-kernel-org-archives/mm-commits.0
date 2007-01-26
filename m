@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch added to -mm tree
-Date: Fri, 26 Jan 2007 14:29:48 -0800
-Message-ID: <200701262229.l0QMTmUQ028371@shell0.pdx.osdl.net>
+Subject: + git-block-borkage.patch added to -mm tree
+Date: Fri, 26 Jan 2007 14:35:52 -0800
+Message-ID: <200701262235.l0QMZqw0028503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57844 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58092 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751727AbXAZW3u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 17:29:50 -0500
+	id S1751689AbXAZWf5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 17:35:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ebiederm@xmission.com
+Cc: akpm@osdl.org, jens.axboe@oracle.com
 
 
 The patch titled
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack
+     git-block-borkage
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
+     git-block-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack
+Subject: git-block-borkage
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- security/selinux/hooks.c |    2 ++
- 1 files changed, 2 insertions(+)
+ block/elevator.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack security/selinux/hooks.c
---- a/security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack
-+++ a/security/selinux/hooks.c
-@@ -1437,8 +1437,10 @@ static int selinux_sysctl(ctl_table *tab
+diff -puN block/elevator.c~git-block-borkage block/elevator.c
+--- a/block/elevator.c~git-block-borkage
++++ a/block/elevator.c
+@@ -604,12 +604,6 @@ void elv_insert(request_queue_t *q, stru
+ 		 */
+ 		rq->cmd_flags |= REQ_SOFTBARRIER;
  
- 	tsec = current->security;
- 
-+#if 0
- 	rc = selinux_proc_get_sid(table->de, (op == 001) ?
- 	                          SECCLASS_DIR : SECCLASS_FILE, &tsid);
-+#endif
- 	if (rc) {
- 		/* Default to the well-defined sysctl SID. */
- 		tsid = SECINITSID_SYSCTL;
+-		/*
+-		 * Most requeues happen because of a busy condition,
+-		 * don't force unplug of the queue for that case.
+-		 */
+-		unplug_it = 0;
+-
+ 		if (q->ordseq == 0) {
+ 			list_add(&rq->queuelist, &q->queue_head);
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -191,6 +193,7 @@ reiser4-vs-git-block-2.patch
 cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
 statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
 slim-main-include-fix.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 device-suspend-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
@@ -205,4 +208,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
+git-block-borkage.patch
