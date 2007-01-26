@@ -1,91 +1,102 @@
 From: akpm@osdl.org
-Subject: - mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:40 -0800
-Message-ID: <200701260751.l0Q7peNu010749@shell0.pdx.osdl.net>
+Subject: - kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:25 -0800
+Message-ID: <200701260751.l0Q7pPoZ010724@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50484 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50485 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030811AbXAZHvp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030813AbXAZHvp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 26 Jan 2007 02:51:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, ak@suse.de, pj@sgi.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mbind: restrict nodes to the currently allowed cpuset
+     KVM: fix race between mmio reads and injected interrupts
 has been removed from the -mm tree.  Its filename was
-     mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
+     kvm-fix-race-between-mmio-reads-and-injected-interrupts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mbind: restrict nodes to the currently allowed cpuset
-From: Christoph Lameter <clameter@sgi.com>
+Subject: KVM: fix race between mmio reads and injected interrupts
+From: Avi Kivity <avi@qumranet.com>
 
-Currently one can specify an arbitrary node mask to mbind that includes
-nodes not allowed.  If that is done with an interleave policy then we will
-go around all the nodes.  Those outside of the currently allowed cpuset
-will be redirected to the border nodes.  Interleave will then create
-imbalances at the borders of the cpuset.
+The kvm mmio read path looks like:
 
-This patch restricts the nodes to the currently allowed cpuset.
+ 1. guest read faults
+ 2. kvm emulates read, calls emulator_read_emulated()
+ 3. fails as a read requires userspace help
+ 4. exit to userspace
+ 5. userspace emulates read, kvm sets vcpu->mmio_read_completed
+ 6. re-enter guest, fault again
+ 7. kvm emulates read, calls emulator_read_emulated()
+ 8. succeeds as vcpu->mmio_read_emulated is set
+ 9. instruction completes and guest is resumed
 
-The RFC for this patch was discussed at
-http://marc.theaimsgroup.com/?t=116793842100004&r=1&w=2
+A problem surfaces if the userspace exit (step 5) also requests an interrupt
+injection.  In that case, the guest does not re-execute the original
+instruction, but the interrupt handler.  The next time an mmio read is
+exectued (likely for a different address), step 3 will find
+vcpu->mmio_read_completed set and return the value read for the original
+instruction.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
+The problem manifested itself in a few annoying ways:
+- little squares appear randomly on console when switching virtual terminals
+- ne2000 fails under nfs read load
+- rtl8139 complains about "pci errors" even though the device model is
+  incapable of issuing them.
+
+Fix by skipping interrupt injection if an mmio read is pending.
+
+A better fix is to avoid re-entry into the guest, and re-emulating immediately
+instead.  However that's a bit more complex.
+
+Signed-off-by: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/mempolicy.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/kvm/svm.c |    3 ++-
+ drivers/kvm/vmx.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset mm/mempolicy.c
---- a/mm/mempolicy.c~mbind-restrict-nodes-to-the-currently-allowed-cpuset
-+++ a/mm/mempolicy.c
-@@ -884,6 +884,10 @@ asmlinkage long sys_mbind(unsigned long 
- 	err = get_nodes(&nodes, nmask, maxnode);
- 	if (err)
- 		return err;
-+#ifdef CONFIG_CPUSETS
-+	/* Restrict the nodes to the allowed nodes in the cpuset */
-+	nodes_and(nodes, nodes, current->mems_allowed);
-+#endif
- 	return do_mbind(start, len, mode, &nodes, flags);
- }
+diff -puN drivers/kvm/svm.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts
++++ a/drivers/kvm/svm.c
+@@ -1407,7 +1407,8 @@ static int svm_vcpu_run(struct kvm_vcpu 
+ 	int r;
  
+ again:
+-	do_interrupt_requests(vcpu, kvm_run);
++	if (!vcpu->mmio_read_completed)
++		do_interrupt_requests(vcpu, kvm_run);
+ 
+ 	clgi();
+ 
+diff -puN drivers/kvm/vmx.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-fix-race-between-mmio-reads-and-injected-interrupts
++++ a/drivers/kvm/vmx.c
+@@ -1717,7 +1717,8 @@ again:
+ 	vmcs_writel(HOST_GS_BASE, segment_base(gs_sel));
+ #endif
+ 
+-	do_interrupt_requests(vcpu, kvm_run);
++	if (!vcpu->mmio_read_completed)
++		do_interrupt_requests(vcpu, kvm_run);
+ 
+ 	if (vcpu->guest_debug.enabled)
+ 		kvm_guest_debug_pre(vcpu);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from avi@qumranet.com are
 
-slab-cache_grow-cleanup.patch
-use-zvc-for-inactive-and-active-counts.patch
-use-zvc-for-free_pages.patch
-reorder-zvcs-according-to-cacheline.patch
-drop-free_pages.patch
-drop-nr_free_pages_pgdat.patch
-drop-__get_zone_counts.patch
-drop-get_zone_counts.patch
-fix-writeback-calculation.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
-optional-zone_dma-for-ia64.patch
-remove-zone_dma-remains-from-parisc.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-set-config_zone_dma-for-arches-with-generic_isa_dma.patch
-zoneid-fix-up-calculations-for-zoneid_pgshift.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-use-zvc-for-free_pages-fix.patch
+kvm-svm-fix-svm-idt-confusion.patch
+kvm-emulate-ia32_misc_enable-msr.patch
+kvm-mmu-perform-access-checks-in-walk_addr.patch
+kvm-mmu-report-nx-faults-to-the-guest.patch
+kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
+fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
+fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
