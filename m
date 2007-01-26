@@ -1,17 +1,17 @@
 From: akpm@osdl.org
 Subject: + fix-apparent-typo-config_serial_cpm_smc.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:22:46 -0800
-Message-ID: <200701260622.l0Q6Mkws009293@shell0.pdx.osdl.net>
+Date: Thu, 25 Jan 2007 22:23:03 -0800
+Message-ID: <200701260623.l0Q6N3go009296@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47905 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47914 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030780AbXAZGWs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:22:48 -0500
+	id S1030787AbXAZGXI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:23:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: rpjday@mindspring.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
@@ -32,6 +32,8 @@ Replace an apparent typo of CONFIG_SERIAL_CPM_SMC with
 CONFIG_SERIAL_CPM_SMC2.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
