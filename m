@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fs_enet-of-related-fixup-for-fec-and-scc-macs.patch added to -mm tree
-Date: Fri, 26 Jan 2007 11:56:49 -0800
-Message-ID: <200701261956.l0QJun8b025040@shell0.pdx.osdl.net>
+Subject: + fix-sys-device-power-state-regression.patch added to -mm tree
+Date: Fri, 26 Jan 2007 12:00:06 -0800
+Message-ID: <200701262000.l0QK06g4025143@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52411 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52730 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161253AbXAZT47 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 14:56:59 -0500
+	id S1751432AbXAZUBa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 15:01:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vbordug@ru.mvista.com
+Cc: mjg59@srcf.ucam.org, david-b@pacbell.net, greg@kroah.com, stable@kernel.org
 
 
 The patch titled
-     FS_ENET: OF-related fixup for FEC and SCC MAC's
+     Fix /sys/device/.../power/state regression
 has been added to the -mm tree.  Its filename is
-     fs_enet-of-related-fixup-for-fec-and-scc-macs.patch
+     fix-sys-device-power-state-regression.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,120 +25,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FS_ENET: OF-related fixup for FEC and SCC MAC's
-From: Vitaly Bordug <vbordug@ru.mvista.com>
+Subject: Fix /sys/device/.../power/state regression
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Updated direct resource pass with ioremap call, make it grant proper IRQ
-mapping, stuff incompatible with the new approach were respectively put
-under #ifndef CONFIG_PPC_MERGE.  It is required so that both ppc and
-powerpc could utilize fs_enet effectively.
+In 2.6.19, support for splitting driver suspend and resume callbacks into
+interrupt and non-interrupt contexts was added.  Unfortunately, this broke
+/sys/device/.../power/state support for all devices.  In the long run, this
+should be obsoleted by power management support in the individual drivers -
+however, in the case of network drivers (for example), currently only three
+drivers implement any sort of useful run-time power management.
 
-Signed-off-by: Vitaly Bordug <vbordug@ru.mvista.com>
+This patch allows the bus driver to check whether a specific driver
+requires the split.  If not, the 2.6.18 functionality is restored.  It also
+alters feature-removals.txt to note that the deprecated functionality
+should not be removed until a replacement actually exists.
+
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/fs_enet/mac-fec.c |   13 +++++++++----
- drivers/net/fs_enet/mac-scc.c |    6 ++++--
- drivers/net/phy/fixed.c       |    2 +-
- 3 files changed, 14 insertions(+), 7 deletions(-)
+ Documentation/feature-removal-schedule.txt |    3 ++-
+ Documentation/power/devices.txt            |    9 ++++++++-
+ drivers/base/platform.c                    |   11 +++++++++++
+ drivers/base/power/sysfs.c                 |    3 ++-
+ drivers/pci/pci-driver.c                   |   12 ++++++++++++
+ include/linux/device.h                     |    1 +
+ 6 files changed, 36 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/fs_enet/mac-fec.c~fs_enet-of-related-fixup-for-fec-and-scc-macs drivers/net/fs_enet/mac-fec.c
---- a/drivers/net/fs_enet/mac-fec.c~fs_enet-of-related-fixup-for-fec-and-scc-macs
-+++ a/drivers/net/fs_enet/mac-fec.c
-@@ -104,9 +104,9 @@ static int do_pd_setup(struct fs_enet_pr
- 	fep->interrupt = platform_get_irq_byname(pdev,"interrupt");
- 	if (fep->interrupt < 0)
- 		return -EINVAL;
--	
+diff -puN Documentation/feature-removal-schedule.txt~fix-sys-device-power-state-regression Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~fix-sys-device-power-state-regression
++++ a/Documentation/feature-removal-schedule.txt
+@@ -9,7 +9,8 @@ be removed from this file.
+ What:	/sys/devices/.../power/state
+ 	dev->power.power_state
+ 	dpm_runtime_{suspend,resume)()
+-When:	July 2007
++	bus->pm_has_noirq_stage()
++When:	Once alternative functionality has been implemented
+ Why:	Broken design for runtime control over driver power states, confusing
+ 	driver-internal runtime power management with:  mechanisms to support
+ 	system-wide sleep state transitions; event codes that distinguish
+diff -puN Documentation/power/devices.txt~fix-sys-device-power-state-regression Documentation/power/devices.txt
+--- a/Documentation/power/devices.txt~fix-sys-device-power-state-regression
++++ a/Documentation/power/devices.txt
+@@ -79,6 +79,7 @@ struct bus_type {
+ 
+ 	int  (*resume_early)(struct device *dev);
+ 	int  (*resume)(struct device *dev);
++	int  (*pm_has_noirq_stage)(struct device *dev);
+ };
+ 
+ Bus drivers implement those methods as appropriate for the hardware and
+@@ -236,6 +237,10 @@ The phases are seen by driver notificati
+ 	may stay partly usable until this late.  This "late" call may also
+ 	help when coping with hardware that behaves badly.
+ 
++	If a bus implements the suspend_late method, it must also provide a
++	pm_has_noirq_stage function in order to determine whether devices
++	may be suspended during runtime.
 +
- 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
--	fep->fec.fecp =(void*)r->start;
-+	fep->fec.fecp = ioremap(r->start, r->end - r->start + 1);
+ The pm_message_t parameter is currently used to refine those semantics
+ (described later).
  
- 	if(fep->fec.fecp == NULL)
- 		return -EINVAL;
-@@ -319,11 +319,14 @@ static void restart(struct net_device *d
- 	 * Clear any outstanding interrupt.
- 	 */
- 	FW(fecp, ievent, 0xffc0);
-+#ifndef CONFIG_PPC_MERGE
- 	FW(fecp, ivec, (fep->interrupt / 2) << 29);
--	
-+#else
-+	FW(fecp, ivec, (virq_to_hw(fep->interrupt) / 2) << 29);
-+#endif
+@@ -348,7 +353,9 @@ The phases are seen by driver notificati
+ 	won't be supported on busses that require IRQs in order to
+ 	interact with devices.
  
- 	/*
--	 * adjust to speed (only for DUET & RMII) 
-+	 * adjust to speed (only for DUET & RMII)
- 	 */
- #ifdef CONFIG_DUET
- 	if (fpi->use_rmii) {
-@@ -418,6 +421,7 @@ static void stop(struct net_device *dev)
+-	This reverses the effects of bus.suspend_late().
++	This reverses the effects of bus.suspend_late(). As with suspend_late,
++	if a bus implements this function it must provide a pm_has_noirq_stage
++	function.
  
- static void pre_request_irq(struct net_device *dev, int irq)
- {
-+#ifndef CONFIG_PPC_MERGE
- 	immap_t *immap = fs_enet_immap;
- 	u32 siel;
- 
-@@ -431,6 +435,7 @@ static void pre_request_irq(struct net_d
- 			siel &= ~(0x80000000 >> (irq & ~1));
- 		out_be32(&immap->im_siu_conf.sc_siel, siel);
- 	}
-+#endif
+    2	bus.resume(dev) is called next.  This may be morphed into a device
+    	driver call with bus-specific parameters; implementations may sleep.
+diff -puN drivers/base/platform.c~fix-sys-device-power-state-regression drivers/base/platform.c
+--- a/drivers/base/platform.c~fix-sys-device-power-state-regression
++++ a/drivers/base/platform.c
+@@ -597,6 +597,16 @@ static int platform_resume(struct device
+ 	return ret;
  }
  
- static void post_free_irq(struct net_device *dev, int irq)
-diff -puN drivers/net/fs_enet/mac-scc.c~fs_enet-of-related-fixup-for-fec-and-scc-macs drivers/net/fs_enet/mac-scc.c
---- a/drivers/net/fs_enet/mac-scc.c~fs_enet-of-related-fixup-for-fec-and-scc-macs
-+++ a/drivers/net/fs_enet/mac-scc.c
-@@ -121,13 +121,13 @@ static int do_pd_setup(struct fs_enet_pr
- 		return -EINVAL;
++static int platform_pm_has_noirq_stage(struct device * dev)
++{
++	int ret = 0;
++	struct platform_driver *drv = to_platform_driver(dev->driver);
++
++	if (dev->driver && (drv->resume_early || drv->suspend_late))
++		ret = 1;
++	return ret;
++}
++
+ struct bus_type platform_bus_type = {
+ 	.name		= "platform",
+ 	.dev_attrs	= platform_dev_attrs,
+@@ -606,6 +616,7 @@ struct bus_type platform_bus_type = {
+ 	.suspend_late	= platform_suspend_late,
+ 	.resume_early	= platform_resume_early,
+ 	.resume		= platform_resume,
++	.pm_has_noirq_stage = platform_pm_has_noirq_stage,
+ };
+ EXPORT_SYMBOL_GPL(platform_bus_type);
  
- 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
--	fep->scc.sccp = (void *)r->start;
-+	fep->scc.sccp = ioremap(r->start, r->end - r->start + 1);
+diff -puN drivers/base/power/sysfs.c~fix-sys-device-power-state-regression drivers/base/power/sysfs.c
+--- a/drivers/base/power/sysfs.c~fix-sys-device-power-state-regression
++++ a/drivers/base/power/sysfs.c
+@@ -46,7 +46,8 @@ static ssize_t state_store(struct device
+ 	int error = -EINVAL;
  
- 	if (fep->scc.sccp == NULL)
- 		return -EINVAL;
+ 	/* disallow incomplete suspend sequences */
+-	if (dev->bus && (dev->bus->suspend_late || dev->bus->resume_early))
++	if (dev->bus && dev->bus->pm_has_noirq_stage
++			&& dev->bus->pm_has_noirq_stage(dev))
+ 		return error;
  
- 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pram");
--	fep->scc.ep = (void *)r->start;
-+	fep->scc.ep = ioremap(r->start, r->end - r->start + 1);
- 
- 	if (fep->scc.ep == NULL)
- 		return -EINVAL;
-@@ -397,6 +397,7 @@ static void stop(struct net_device *dev)
- 
- static void pre_request_irq(struct net_device *dev, int irq)
- {
-+#ifndef CONFIG_PPC_MERGE
- 	immap_t *immap = fs_enet_immap;
- 	u32 siel;
- 
-@@ -410,6 +411,7 @@ static void pre_request_irq(struct net_d
- 			siel &= ~(0x80000000 >> (irq & ~1));
- 		out_be32(&immap->im_siu_conf.sc_siel, siel);
- 	}
-+#endif
+ 	state.event = PM_EVENT_SUSPEND;
+diff -puN drivers/pci/pci-driver.c~fix-sys-device-power-state-regression drivers/pci/pci-driver.c
+--- a/drivers/pci/pci-driver.c~fix-sys-device-power-state-regression
++++ a/drivers/pci/pci-driver.c
+@@ -345,6 +345,17 @@ static int pci_device_resume(struct devi
+ 	return error;
  }
  
- static void post_free_irq(struct net_device *dev, int irq)
-diff -puN drivers/net/phy/fixed.c~fs_enet-of-related-fixup-for-fec-and-scc-macs drivers/net/phy/fixed.c
---- a/drivers/net/phy/fixed.c~fs_enet-of-related-fixup-for-fec-and-scc-macs
-+++ a/drivers/net/phy/fixed.c
-@@ -349,7 +349,7 @@ static int __init fixed_init(void)
- 	fixed_mdio_register_device(0, 100, 1);
- #endif
++static int pci_device_pm_has_noirq_stage(struct device * dev)
++{
++	int error = 0;
++	struct pci_dev * pci_dev = to_pci_dev(dev);
++	struct pci_driver * drv = pci_dev->driver;
++
++	if (drv && (drv->resume_early || drv->suspend_late))
++		error = 1;
++	return error;
++}
++
+ static int pci_device_resume_early(struct device * dev)
+ {
+ 	int error = 0;
+@@ -562,6 +573,7 @@ struct bus_type pci_bus_type = {
+ 	.suspend_late	= pci_device_suspend_late,
+ 	.resume_early	= pci_device_resume_early,
+ 	.resume		= pci_device_resume,
++	.pm_has_noirq_stage = pci_device_pm_has_noirq_stage,
+ 	.shutdown	= pci_device_shutdown,
+ 	.dev_attrs	= pci_dev_attrs,
+ };
+diff -puN include/linux/device.h~fix-sys-device-power-state-regression include/linux/device.h
+--- a/include/linux/device.h~fix-sys-device-power-state-regression
++++ a/include/linux/device.h
+@@ -59,6 +59,7 @@ struct bus_type {
+ 	int (*suspend)(struct device * dev, pm_message_t state);
+ 	int (*suspend_late)(struct device * dev, pm_message_t state);
+ 	int (*resume_early)(struct device * dev);
++	int (*pm_has_noirq_stage)(struct device * dev);
+ 	int (*resume)(struct device * dev);
  
--#ifdef CONFIX_FIXED_MII_10_FDX
-+#ifdef CONFIG_FIXED_MII_10_FDX
- 	fixed_mdio_register_device(0, 10, 1);
- #endif
- 	return 0;
+ 	unsigned int multithread_probe:1;
 _
 
-Patches currently in -mm which might be from vbordug@ru.mvista.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-fs_enet-of-related-fixup-for-fec-and-scc-macs.patch
+fix-sys-device-power-state-regression.patch
+2.6-sony_acpi4.patch
