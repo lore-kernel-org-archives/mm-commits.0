@@ -1,87 +1,148 @@
 From: akpm@osdl.org
-Subject: - forcedeth-tx-max-work.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:52:16 -0800
-Message-ID: <200701260752.l0Q7qG29010821@shell0.pdx.osdl.net>
+Subject: - forcedeth-tx-limiting.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:52:08 -0800
+Message-ID: <200701260752.l0Q7q8JM010809@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50546 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50540 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030829AbXAZHwU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:52:20 -0500
+	id S1030826AbXAZHwQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:52:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: tx max work
+     forcedeth: tx limiting
 has been removed from the -mm tree.  Its filename was
-     forcedeth-tx-max-work.patch
+     forcedeth-tx-limiting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: forcedeth: tx max work
+Subject: forcedeth: tx limiting
 From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-Add a limit to how much tx work can be done in each iteration of tx
-processing.
+Optimize the logic for tx limiting.  It adds a flag to check on the completion
+side instead of recalculating the number of empty slots.  Also, it removes the
+fields that were previous used for limiting since they have no value.
 
 Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/forcedeth.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/net/forcedeth.c |   29 +++++++++++++----------------
+ 1 files changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-tx-max-work drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-tx-max-work
+diff -puN drivers/net/forcedeth.c~forcedeth-tx-limiting drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-tx-limiting
 +++ a/drivers/net/forcedeth.c
-@@ -1859,14 +1859,15 @@ static void nv_tx_done(struct net_device
- 	}
- }
+@@ -518,12 +518,6 @@ union ring_type {
+ #define TX_RING_MIN		64
+ #define RING_MAX_DESC_VER_1	1024
+ #define RING_MAX_DESC_VER_2_3	16384
+-/*
+- * Difference between the get and put pointers for the tx ring.
+- * This is used to throttle the amount of data outstanding in the
+- * tx ring.
+- */
+-#define TX_LIMIT_DIFFERENCE	1
  
--static void nv_tx_done_optimized(struct net_device *dev)
-+static void nv_tx_done_optimized(struct net_device *dev, int limit)
- {
+ /* rx/tx mac addr + type + vlan + align + slack*/
+ #define NV_RX_HEADERS		(64)
+@@ -777,8 +771,7 @@ struct fe_priv {
+ 	union ring_type tx_ring;
+ 	u32 tx_flags;
+ 	int tx_ring_size;
+-	int tx_limit_start;
+-	int tx_limit_stop;
++	int tx_stop;
+ 
+ 	/* vlan fields */
+ 	struct vlan_group *vlangrp;
+@@ -1583,9 +1576,10 @@ static int nv_start_xmit(struct sk_buff 
+ 	}
+ 
+ 	empty_slots = nv_get_empty_tx_slots(np);
+-	if ((empty_slots - np->tx_limit_stop) <= entries) {
++	if (empty_slots <= entries) {
+ 		spin_lock_irq(&np->lock);
+ 		netif_stop_queue(dev);
++		np->tx_stop = 1;
+ 		spin_unlock_irq(&np->lock);
+ 		return NETDEV_TX_BUSY;
+ 	}
+@@ -1704,9 +1698,10 @@ static int nv_start_xmit_optimized(struc
+ 	}
+ 
+ 	empty_slots = nv_get_empty_tx_slots(np);
+-	if ((empty_slots - np->tx_limit_stop) <= entries) {
++	if (empty_slots <= entries) {
+ 		spin_lock_irq(&np->lock);
+ 		netif_stop_queue(dev);
++		np->tx_stop = 1;
+ 		spin_unlock_irq(&np->lock);
+ 		return NETDEV_TX_BUSY;
+ 	}
+@@ -1813,6 +1808,7 @@ static void nv_tx_done(struct net_device
  	struct fe_priv *np = netdev_priv(dev);
  	u32 flags;
- 	struct ring_desc_ex* orig_get_tx = np->get_tx.ex;
+ 	struct sk_buff *skb;
++	struct ring_desc* orig_get_tx = np->get_tx.orig;
  
- 	while ((np->get_tx.ex != np->put_tx.ex) &&
--	       !((flags = le32_to_cpu(np->get_tx.ex->flaglen)) & NV_TX_VALID)) {
-+	       !((flags = le32_to_cpu(np->get_tx.ex->flaglen)) & NV_TX_VALID) &&
-+	       (limit-- > 0)) {
+  	while (np->get_tx.orig != np->put_tx.orig) {
+ 		flags = le32_to_cpu(np->get_tx.orig->flaglen);
+@@ -1858,8 +1854,10 @@ static void nv_tx_done(struct net_device
+ 		if (np->get_tx_ctx++ == np->last_tx_ctx)
+ 			np->get_tx_ctx = np->first_tx_ctx;
+ 	}
+-	if (nv_get_empty_tx_slots(np) > np->tx_limit_start)
++	if ((np->tx_stop == 1) && (np->get_tx.orig != orig_get_tx)) {
++		np->tx_stop = 0;
+ 		netif_wake_queue(dev);
++	}
+ }
  
- 		dprintk(KERN_DEBUG "%s: nv_tx_done_optimized: flags 0x%x.\n",
- 					dev->name, flags);
-@@ -1973,7 +1974,7 @@ static void nv_tx_timeout(struct net_dev
- 	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2)
- 		nv_tx_done(dev);
- 	else
--		nv_tx_done_optimized(dev);
-+		nv_tx_done_optimized(dev, np->tx_ring_size);
+ static void nv_tx_done_optimized(struct net_device *dev)
+@@ -1867,6 +1865,7 @@ static void nv_tx_done_optimized(struct 
+ 	struct fe_priv *np = netdev_priv(dev);
+ 	u32 flags;
+ 	struct sk_buff *skb;
++	struct ring_desc_ex* orig_get_tx = np->get_tx.ex;
  
- 	/* 3) if there are dead entries: clear everything */
- 	if (np->get_tx_ctx != np->put_tx_ctx) {
-@@ -2899,7 +2900,7 @@ static irqreturn_t nv_nic_irq_optimized(
- 			break;
+  	while (np->get_tx.ex == np->put_tx.ex) {
+ 		flags = le32_to_cpu(np->get_tx.ex->flaglen);
+@@ -1895,8 +1894,10 @@ static void nv_tx_done_optimized(struct 
+ 		if (np->get_tx_ctx++ == np->last_tx_ctx)
+ 			np->get_tx_ctx = np->first_tx_ctx;
+ 	}
+-	if (nv_get_empty_tx_slots(np) > np->tx_limit_start)
++	if ((np->tx_stop == 1) && (np->get_tx.ex != orig_get_tx)) {
++		np->tx_stop = 0;
+ 		netif_wake_queue(dev);
++	}
+ }
  
- 		spin_lock(&np->lock);
--		nv_tx_done_optimized(dev);
-+		nv_tx_done_optimized(dev, TX_WORK_PER_LOOP);
- 		spin_unlock(&np->lock);
+ /*
+@@ -4001,8 +4002,6 @@ static int nv_set_ringparam(struct net_d
+ 	/* set new values */
+ 	np->rx_ring_size = ring->rx_pending;
+ 	np->tx_ring_size = ring->tx_pending;
+-	np->tx_limit_stop = TX_LIMIT_DIFFERENCE;
+-	np->tx_limit_start = TX_LIMIT_DIFFERENCE;
+ 	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2) {
+ 		np->rx_ring.orig = (struct ring_desc*)rxtx_ring;
+ 		np->tx_ring.orig = &np->rx_ring.orig[np->rx_ring_size];
+@@ -4967,8 +4966,6 @@ static int __devinit nv_probe(struct pci
  
- #ifdef CONFIG_FORCEDETH_NAPI
-@@ -3006,7 +3007,7 @@ static irqreturn_t nv_nic_irq_tx(int foo
- 			break;
+ 	np->rx_ring_size = RX_RING_DEFAULT;
+ 	np->tx_ring_size = TX_RING_DEFAULT;
+-	np->tx_limit_stop = TX_LIMIT_DIFFERENCE;
+-	np->tx_limit_start = TX_LIMIT_DIFFERENCE;
  
- 		spin_lock_irqsave(&np->lock, flags);
--		nv_tx_done_optimized(dev);
-+		nv_tx_done_optimized(dev, TX_WORK_PER_LOOP);
- 		spin_unlock_irqrestore(&np->lock, flags);
- 
- 		if (unlikely(events & (NVREG_IRQ_TX_ERR))) {
+ 	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2) {
+ 		np->rx_ring.orig = pci_alloc_consistent(pci_dev,
 _
 
 Patches currently in -mm which might be from aabdulla@nvidia.com are
