@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + fix-writeback-calculation.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:16:47 -0800
-Message-ID: <200701260616.l0Q6GlVR009168@shell0.pdx.osdl.net>
+Subject: + drop-free_pages.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:16:42 -0800
+Message-ID: <200701260616.l0Q6GgKi009156@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47746 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47733 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030778AbXAZGQt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:16:49 -0500
+	id S1030777AbXAZGQo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:16:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     Fix writeback calculation
+     Drop free_pages()
 has been added to the -mm tree.  Its filename is
-     fix-writeback-calculation.patch
+     drop-free_pages.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix writeback calculation
+Subject: Drop free_pages()
 From: Christoph Lameter <clameter@sgi.com>
 
-We can use the global ZVC counters to establish the exact size of the LRU and
-the free pages.  This allows a more accurate determination of the dirty ratio.
+nr_free_pages is now a simple access to a global variable.  Make it a macro
+instead of a function.
 
-This patch will fix the broken ratio calculations if large amounts of memory
-are allocated to huge pags or other consumers that do not put the pages on to
-the LRU.
-
-However, we are unable to use the accurate base in the case of HIGHMEM and an
-allocation excluding HIGHMEM pages.  In that case just fall back to the old
-scheme.
+The nr_free_pages now requires vmstat.h to be included.  There is one
+occurrence in power management where we need to add the include.  Directly
+refrer to global_page_state() there to clarify why the #include was added.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page-writeback.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    5 ++++-
+ kernel/power/main.c  |    4 +++-
+ mm/page_alloc.c      |   10 ----------
+ 3 files changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN mm/page-writeback.c~fix-writeback-calculation mm/page-writeback.c
---- a/mm/page-writeback.c~fix-writeback-calculation
-+++ a/mm/page-writeback.c
-@@ -128,7 +128,9 @@ get_dirty_limits(long *pbackground, long
- 	int unmapped_ratio;
- 	long background;
- 	long dirty;
--	unsigned long available_memory = vm_total_pages;
-+	unsigned long available_memory = global_page_state(NR_FREE_PAGES) +
-+			global_page_state(NR_INACTIVE) +
-+			global_page_state(NR_ACTIVE);
- 	struct task_struct *tsk;
+diff -puN include/linux/swap.h~drop-free_pages include/linux/swap.h
+--- a/include/linux/swap.h~drop-free_pages
++++ a/include/linux/swap.h
+@@ -170,11 +170,14 @@ extern void swapin_readahead(swp_entry_t
+ extern unsigned long totalram_pages;
+ extern unsigned long totalreserve_pages;
+ extern long nr_swap_pages;
+-extern unsigned int nr_free_pages(void);
+ extern unsigned int nr_free_pages_pgdat(pg_data_t *pgdat);
+ extern unsigned int nr_free_buffer_pages(void);
+ extern unsigned int nr_free_pagecache_pages(void);
  
- #ifdef CONFIG_HIGHMEM
-@@ -137,7 +139,12 @@ get_dirty_limits(long *pbackground, long
- 	 * we exclude high memory from our count.
- 	 */
- 	if (mapping && !(mapping_gfp_mask(mapping) & __GFP_HIGHMEM))
--		available_memory -= totalhigh_pages;
-+		/*
-+		 * This is not as accurate as the non highmem calculation
-+		 * but it has worked for years. So let it be as it was.
-+		 * People know how to deal with it it seems.
-+		 */
-+		available_memory = vm_total_pages - totalhigh_pages;
- #endif
++/* Definition of global_page_state not available yet */
++#define nr_free_pages() global_page_state(NR_FREE_PAGES)
++
++
+ /* linux/mm/swap.c */
+ extern void FASTCALL(lru_cache_add(struct page *));
+ extern void FASTCALL(lru_cache_add_active(struct page *));
+diff -puN kernel/power/main.c~drop-free_pages kernel/power/main.c
+--- a/kernel/power/main.c~drop-free_pages
++++ a/kernel/power/main.c
+@@ -20,6 +20,7 @@
+ #include <linux/cpu.h>
+ #include <linux/resume-trace.h>
+ #include <linux/freezer.h>
++#include <linux/vmstat.h>
  
+ #include "power.h"
  
+@@ -72,7 +73,8 @@ static int suspend_prepare(suspend_state
+ 		goto Thaw;
+ 	}
+ 
+-	if ((free_pages = nr_free_pages()) < FREE_PAGE_NUMBER) {
++	if ((free_pages = global_page_state(NR_FREE_PAGES))
++			< FREE_PAGE_NUMBER) {
+ 		pr_debug("PM: free some memory\n");
+ 		shrink_all_memory(FREE_PAGE_NUMBER - free_pages);
+ 		if (nr_free_pages() < FREE_PAGE_NUMBER) {
+diff -puN mm/page_alloc.c~drop-free_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~drop-free_pages
++++ a/mm/page_alloc.c
+@@ -1441,16 +1441,6 @@ fastcall void free_pages(unsigned long a
+ 
+ EXPORT_SYMBOL(free_pages);
+ 
+-/*
+- * Total amount of free (allocatable) RAM:
+- */
+-unsigned int nr_free_pages(void)
+-{
+-	return global_page_state(NR_FREE_PAGES);
+-}
+-
+-EXPORT_SYMBOL(nr_free_pages);
+-
+ #ifdef CONFIG_NUMA
+ unsigned int nr_free_pages_pgdat(pg_data_t *pgdat)
+ {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
