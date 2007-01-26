@@ -1,59 +1,51 @@
 From: akpm@osdl.org
-Subject: - kvm-add-vm-exit-profiling-fix.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:08 -0800
-Message-ID: <200701260751.l0Q7p8Mr010706@shell0.pdx.osdl.net>
+Subject: - submitchecklist-update.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:18 -0800
+Message-ID: <200701260751.l0Q7pIwB010715@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50437 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50440 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030798AbXAZHvU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:20 -0500
+	id S1030796AbXAZHvX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@osdl.org, kenneth.w.chen@intel.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "kvm: add vm exit profiling"
+     SubmitChecklist update
 has been removed from the -mm tree.  Its filename was
-     kvm-add-vm-exit-profiling-fix.patch
+     submitchecklist-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix "kvm: add vm exit profiling"
+Subject: SubmitChecklist update
 From: Andrew Morton <akpm@osdl.org>
 
-export profile_hits() on !SMP too.
+Sing the praises of `gcc -W'.  Would have prevented that blockdev direct-IO
+bug.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/profile.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/SubmitChecklist |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/profile.c~kvm-add-vm-exit-profiling-fix kernel/profile.c
---- a/kernel/profile.c~kvm-add-vm-exit-profiling-fix
-+++ a/kernel/profile.c
-@@ -331,7 +331,6 @@ out:
- 	local_irq_restore(flags);
- 	put_cpu();
- }
--EXPORT_SYMBOL_GPL(profile_hits);
+diff -puN Documentation/SubmitChecklist~submitchecklist-update Documentation/SubmitChecklist
+--- a/Documentation/SubmitChecklist~submitchecklist-update
++++ a/Documentation/SubmitChecklist
+@@ -72,3 +72,7 @@ kernel patches.
  
- static int __devinit profile_cpu_callback(struct notifier_block *info,
- 					unsigned long action, void *__cpu)
-@@ -401,6 +400,8 @@ void profile_hits(int type, void *__pc, 
- }
- #endif /* !CONFIG_SMP */
- 
-+EXPORT_SYMBOL_GPL(profile_hits);
+     If the new code is substantial, addition of subsystem-specific fault
+     injection might be appropriate.
 +
- void profile_tick(int type)
- {
- 	struct pt_regs *regs = get_irq_regs();
++22: Newly-added code has been compiled with `gcc -W'.  This will generate
++    lots of noise, but is good for finding bugs like "warning: comparison
++    between signed and unsigned".
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
