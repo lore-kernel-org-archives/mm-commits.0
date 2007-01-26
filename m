@@ -1,50 +1,59 @@
 From: akpm@osdl.org
-Subject: - blockdev-direct_io-fix-signedness-bug.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:16 -0800
-Message-ID: <200701260751.l0Q7pGlY010712@shell0.pdx.osdl.net>
+Subject: - kvm-add-vm-exit-profiling-fix.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:08 -0800
+Message-ID: <200701260751.l0Q7p8Mr010706@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50434 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50437 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030789AbXAZHvS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:18 -0500
+	id S1030798AbXAZHvU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, kenneth.w.chen@intel.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blockdev direct_io: fix signedness bug
+     fix "kvm: add vm exit profiling"
 has been removed from the -mm tree.  Its filename was
-     blockdev-direct_io-fix-signedness-bug.patch
+     kvm-add-vm-exit-profiling-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: blockdev direct_io: fix signedness bug
+Subject: fix "kvm: add vm exit profiling"
 From: Andrew Morton <akpm@osdl.org>
 
-size_t is unsigned.  IO errors aren't getting through.
+export profile_hits() on !SMP too.
 
-Cc: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/profile.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/block_dev.c~blockdev-direct_io-fix-signedness-bug fs/block_dev.c
---- a/fs/block_dev.c~blockdev-direct_io-fix-signedness-bug
-+++ a/fs/block_dev.c
-@@ -146,7 +146,7 @@ static int blk_end_aio(struct bio *bio, 
- 		iocb->ki_nbytes = -EIO;
+diff -puN kernel/profile.c~kvm-add-vm-exit-profiling-fix kernel/profile.c
+--- a/kernel/profile.c~kvm-add-vm-exit-profiling-fix
++++ a/kernel/profile.c
+@@ -331,7 +331,6 @@ out:
+ 	local_irq_restore(flags);
+ 	put_cpu();
+ }
+-EXPORT_SYMBOL_GPL(profile_hits);
  
- 	if (atomic_dec_and_test(bio_count)) {
--		if (iocb->ki_nbytes < 0)
-+		if ((long)iocb->ki_nbytes < 0)
- 			aio_complete(iocb, iocb->ki_nbytes, 0);
- 		else
- 			aio_complete(iocb, iocb->ki_left, 0);
+ static int __devinit profile_cpu_callback(struct notifier_block *info,
+ 					unsigned long action, void *__cpu)
+@@ -401,6 +400,8 @@ void profile_hits(int type, void *__pc, 
+ }
+ #endif /* !CONFIG_SMP */
+ 
++EXPORT_SYMBOL_GPL(profile_hits);
++
+ void profile_tick(int type)
+ {
+ 	struct pt_regs *regs = get_irq_regs();
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
