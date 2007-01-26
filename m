@@ -1,56 +1,61 @@
 From: akpm@osdl.org
-Subject: + git-block-borkage.patch added to -mm tree
-Date: Fri, 26 Jan 2007 14:35:52 -0800
-Message-ID: <200701262235.l0QMZqw0028503@shell0.pdx.osdl.net>
+Subject: - via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets-fix.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 15:03:02 -0800
+Message-ID: <200701262303.l0QN33v1029102@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58092 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59147 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751689AbXAZWf5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 17:35:57 -0500
+	id S1751734AbXAZXDM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 18:03:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, jens.axboe@oracle.com
+To: akpm@osdl.org, airlied@linux.ie, claas@rootdir.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-borkage
-has been added to the -mm tree.  Its filename is
-     git-block-borkage.patch
+     via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets-fix
+has been removed from the -mm tree.  Its filename was
+     via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets.patch
 
 ------------------------------------------------------
-Subject: git-block-borkage
+Subject: via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Put these back.
+
+Cc: Claas Langbehn <claas@rootdir.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/elevator.c |    6 ------
- 1 files changed, 6 deletions(-)
+ drivers/char/agp/via-agp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN block/elevator.c~git-block-borkage block/elevator.c
---- a/block/elevator.c~git-block-borkage
-+++ a/block/elevator.c
-@@ -604,12 +604,6 @@ void elv_insert(request_queue_t *q, stru
- 		 */
- 		rq->cmd_flags |= REQ_SOFTBARRIER;
+diff -puN drivers/char/agp/via-agp.c~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets-fix drivers/char/agp/via-agp.c
+--- a/drivers/char/agp/via-agp.c~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets-fix
++++ a/drivers/char/agp/via-agp.c
+@@ -9,7 +9,7 @@
+ #include <linux/agp_backend.h>
+ #include "agp.h"
  
--		/*
--		 * Most requeues happen because of a busy condition,
--		 * don't force unplug of the queue for that case.
--		 */
--		unplug_it = 0;
--
- 		if (q->ordseq == 0) {
- 			list_add(&rq->queuelist, &q->queue_head);
- 			break;
+-static struct pci_device_id agp_via_pci_table[];
++static const struct pci_device_id agp_via_pci_table[];
+ 
+ #define VIA_GARTCTRL	0x80
+ #define VIA_APSIZE	0x84
+@@ -496,7 +496,7 @@ static int agp_via_resume(struct pci_dev
+ #endif /* CONFIG_PM */
+ 
+ /* must be the same order as name table above */
+-static struct pci_device_id agp_via_pci_table[] = {
++static const struct pci_device_id agp_via_pci_table[] = {
+ #define ID(x) \
+ 	{						\
+ 	.class		= (PCI_CLASS_BRIDGE_HOST << 8),	\
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -67,6 +72,7 @@ video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_a
 git-alsa.patch
 agpgart-allow-drm-populated-agp-memory-types-tidy.patch
 rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets.patch
 via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets-fix.patch
 git-dvb.patch
 git-gfs2-nmw.patch
@@ -94,10 +100,12 @@ make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-block-fixup.patch
+git-block-borkage.patch
 git-block-atomicity-fix.patch
 nokia-e70-is-an-unusual-device.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+git-cryptodev-make-ecryptfs-compile.patch
 touchkit-ps-2-touchscreen-driver.patch
 lumpy-reclaim-v2-page_to_pfn-fix.patch
 lumpy-reclaim-v2-tidy.patch
@@ -208,4 +216,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-block-borkage.patch
+aout-vdso-fix.patch
