@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + local_t-architecture-independent-extension.patch added to -mm tree
-Date: Thu, 25 Jan 2007 21:47:31 -0800
-Message-ID: <200701260547.l0Q5lVuI008635@shell0.pdx.osdl.net>
+Subject: + fix-race-in-efi-variable-delete-code.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:00:34 -0800
+Message-ID: <200701260600.l0Q60YPi008838@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46855 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47210 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030784AbXAZFvI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 00:51:08 -0500
+	id S1030767AbXAZGAo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:00:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ak@suse.de, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, kyle@mcmartin.ca, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, tony.luck@intel.com
+Cc: Matt_Domsch@dell.com, prarit@redhat.com
 
 
 The patch titled
-     local_t: architecture independent extension
+     Fix race in efi variable delete code
 has been added to the -mm tree.  Its filename is
-     local_t-architecture-independent-extension.patch
+     fix-race-in-efi-variable-delete-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,113 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t: architecture independent extension
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Fix race in efi variable delete code
+From: Matt Domsch <Matt_Domsch@dell.com>
 
-These patches extend and standardise local_t operations on each architectures,
-allowing a rich set of atomic operations to be done on per-cpu data with
-minimal performance impact.  On architectures where there seems to be no
-difference between the SMP and UP operation (same memory barriers, same
-LOCKing), local.h simply includes asm-generic/local.h, which removes
-duplicated code from the current kernel tree.
+Fix race when deleting an EFI variable and issuing another EFI command on
+the same variable.  The removal of the variable from the efivars_list
+should be done in efivar_delete and not delayed until the kobject release.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Furthermore, remove the item from the list at module unload time, and use
+list_for_each_entry_safe() rather than list_for_each_safe() for
+readability.
+
+Tested on ia64.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Signed-off-by: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-generic/local.h |   33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ drivers/firmware/efivars.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-generic/local.h~local_t-architecture-independent-extension include/asm-generic/local.h
---- a/include/asm-generic/local.h~local_t-architecture-independent-extension
-+++ a/include/asm-generic/local.h
-@@ -33,6 +33,19 @@ typedef struct
- #define local_add(i,l)	atomic_long_add((i),(&(l)->a))
- #define local_sub(i,l)	atomic_long_sub((i),(&(l)->a))
+diff -puN drivers/firmware/efivars.c~fix-race-in-efi-variable-delete-code drivers/firmware/efivars.c
+--- a/drivers/firmware/efivars.c~fix-race-in-efi-variable-delete-code
++++ a/drivers/firmware/efivars.c
+@@ -122,8 +122,6 @@ struct efivar_entry {
+ 	struct kobject kobj;
+ };
  
-+#define local_sub_and_test(i, l) atomic_long_sub_and_test((i), (&(l)->a))
-+#define local_dec_and_test(l) atomic_long_dec_and_test(&(l)->a)
-+#define local_inc_and_test(l) atomic_long_inc_and_test(&(l)->a)
-+#define local_add_negative(i, l) atomic_long_add_negative((i), (&(l)->a))
-+#define local_add_return(i, l) atomic_long_add_return((i), (&(l)->a))
-+#define local_sub_return(i, l) atomic_long_sub_return((i), (&(l)->a))
-+#define local_inc_return(l) atomic_long_inc_return(&(l)->a)
-+
-+#define local_cmpxchg(l, old, new) atomic_long_cmpxchg((&(l)->a), (old), (new))
-+#define local_xchg(l, new) atomic_long_xchg((&(l)->a), (new))
-+#define local_add_unless(l, a, u) atomic_long_add_unless((&(l)->a), (a), (u))
-+#define local_inc_not_zero(l) atomic_long_inc_not_zero(&(l)->a)
-+
- /* Non-atomic variants, ie. preemption disabled and won't be touched
-  * in interrupt, etc.  Some archs can optimize this case well. */
- #define __local_inc(l)		local_set((l), local_read(l) + 1)
-@@ -44,19 +57,19 @@ typedef struct
-  * much more efficient than these naive implementations.  Note they take
-  * a variable (eg. mystruct.foo), not an address.
-  */
--#define cpu_local_read(v)	local_read(&__get_cpu_var(v))
--#define cpu_local_set(v, i)	local_set(&__get_cpu_var(v), (i))
--#define cpu_local_inc(v)	local_inc(&__get_cpu_var(v))
--#define cpu_local_dec(v)	local_dec(&__get_cpu_var(v))
--#define cpu_local_add(i, v)	local_add((i), &__get_cpu_var(v))
--#define cpu_local_sub(i, v)	local_sub((i), &__get_cpu_var(v))
-+#define cpu_local_read(l)	local_read(&__get_cpu_var(l))
-+#define cpu_local_set(l, i)	local_set(&__get_cpu_var(l), (i))
-+#define cpu_local_inc(l)	local_inc(&__get_cpu_var(l))
-+#define cpu_local_dec(l)	local_dec(&__get_cpu_var(l))
-+#define cpu_local_add(i, l)	local_add((i), &__get_cpu_var(l))
-+#define cpu_local_sub(i, l)	local_sub((i), &__get_cpu_var(l))
+-#define get_efivar_entry(n) list_entry(n, struct efivar_entry, list)
+-
+ struct efivar_attribute {
+ 	struct attribute attr;
+ 	ssize_t (*show) (struct efivar_entry *entry, char *buf);
+@@ -386,9 +384,6 @@ static struct sysfs_ops efivar_attr_ops 
+ static void efivar_release(struct kobject *kobj)
+ {
+ 	struct efivar_entry *var = container_of(kobj, struct efivar_entry, kobj);
+-	spin_lock(&efivars_lock);
+-	list_del(&var->list);
+-	spin_unlock(&efivars_lock);
+ 	kfree(var);
+ }
  
- /* Non-atomic increments, ie. preemption disabled and won't be touched
-  * in interrupt, etc.  Some archs can optimize this case well.
-  */
--#define __cpu_local_inc(v)	__local_inc(&__get_cpu_var(v))
--#define __cpu_local_dec(v)	__local_dec(&__get_cpu_var(v))
--#define __cpu_local_add(i, v)	__local_add((i), &__get_cpu_var(v))
--#define __cpu_local_sub(i, v)	__local_sub((i), &__get_cpu_var(v))
-+#define __cpu_local_inc(l)	__local_inc(&__get_cpu_var(l))
-+#define __cpu_local_dec(l)	__local_dec(&__get_cpu_var(l))
-+#define __cpu_local_add(i, l)	__local_add((i), &__get_cpu_var(l))
-+#define __cpu_local_sub(i, l)	__local_sub((i), &__get_cpu_var(l))
+@@ -430,9 +425,8 @@ static ssize_t
+ efivar_create(struct subsystem *sub, const char *buf, size_t count)
+ {
+ 	struct efi_variable *new_var = (struct efi_variable *)buf;
+-	struct efivar_entry *search_efivar = NULL;
++	struct efivar_entry *search_efivar, *n;
+ 	unsigned long strsize1, strsize2;
+-	struct list_head *pos, *n;
+ 	efi_status_t status = EFI_NOT_FOUND;
+ 	int found = 0;
  
- #endif /* _ASM_GENERIC_LOCAL_H */
+@@ -444,8 +438,7 @@ efivar_create(struct subsystem *sub, con
+ 	/*
+ 	 * Does this variable already exist?
+ 	 */
+-	list_for_each_safe(pos, n, &efivar_list) {
+-		search_efivar = get_efivar_entry(pos);
++	list_for_each_entry_safe(search_efivar, n, &efivar_list, list) {
+ 		strsize1 = utf8_strsize(search_efivar->var.VariableName, 1024);
+ 		strsize2 = utf8_strsize(new_var->VariableName, 1024);
+ 		if (strsize1 == strsize2 &&
+@@ -490,9 +483,8 @@ static ssize_t
+ efivar_delete(struct subsystem *sub, const char *buf, size_t count)
+ {
+ 	struct efi_variable *del_var = (struct efi_variable *)buf;
+-	struct efivar_entry *search_efivar = NULL;
++	struct efivar_entry *search_efivar, *n;
+ 	unsigned long strsize1, strsize2;
+-	struct list_head *pos, *n;
+ 	efi_status_t status = EFI_NOT_FOUND;
+ 	int found = 0;
+ 
+@@ -504,8 +496,7 @@ efivar_delete(struct subsystem *sub, con
+ 	/*
+ 	 * Does this variable already exist?
+ 	 */
+-	list_for_each_safe(pos, n, &efivar_list) {
+-		search_efivar = get_efivar_entry(pos);
++	list_for_each_entry_safe(search_efivar, n, &efivar_list, list) {
+ 		strsize1 = utf8_strsize(search_efivar->var.VariableName, 1024);
+ 		strsize2 = utf8_strsize(del_var->VariableName, 1024);
+ 		if (strsize1 == strsize2 &&
+@@ -537,9 +528,9 @@ efivar_delete(struct subsystem *sub, con
+ 		spin_unlock(&efivars_lock);
+ 		return -EIO;
+ 	}
++	list_del(&search_efivar->list);
+ 	/* We need to release this lock before unregistering. */
+ 	spin_unlock(&efivars_lock);
+-
+ 	efivar_unregister(search_efivar);
+ 
+ 	/* It's dead Jim.... */
+@@ -768,10 +759,14 @@ out_free:
+ static void __exit
+ efivars_exit(void)
+ {
+-	struct list_head *pos, *n;
++	struct efivar_entry *entry, *n;
+ 
+-	list_for_each_safe(pos, n, &efivar_list)
+-		efivar_unregister(get_efivar_entry(pos));
++	list_for_each_entry_safe(entry, n, &efivar_list, list) {
++		spin_lock(&efivars_lock);
++		list_del(&entry->list);
++		spin_unlock(&efivars_lock);
++		efivar_unregister(entry);
++	}
+ 
+ 	subsystem_unregister(&vars_subsys);
+ 	firmware_unregister(&efi_subsys);
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from Matt_Domsch@dell.com are
 
-relay-add-cpu-hotplug-support.patch
-local_t-documentation.patch
-local_t-documentation-fix.patch
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
-atomich-complete-atomic_long-operations-in-asm-generic.patch
-atomich-complete-atomic_long-operations-in-asm-generic-fix.patch
-atomich-i386-type-safety-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-local_t-architecture-independent-extension.patch
-local_t-alpha-extension.patch
-local_t-i386-extension.patch
-local_t-ia64-extension.patch
-local_t-mips-extension.patch
-local_t-parisc-cleanup.patch
-local_t-powerpc-extension.patch
-local_t-s390-cleanup.patch
-local_t-sparc64-cleanup.patch
-local_t-x86_64-extension.patch
+fix-race-in-efi-variable-delete-code.patch
+docbook-add-edd-firmware-interfaces.patch
