@@ -1,81 +1,78 @@
 From: akpm@osdl.org
-Subject: + spi_bitbang-use-overridable-setup_transfer-method.patch added to -mm tree
-Date: Thu, 25 Jan 2007 20:24:08 -0800
-Message-ID: <200701260424.l0Q4O8xD007280@shell0.pdx.osdl.net>
+Subject: - kbuild-improving-option-checking-fix.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 20:25:23 -0800
+Message-ID: <200701260425.l0Q4PN1X007296@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44724 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44741 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030737AbXAZEYV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 23:24:21 -0500
+	id S1030727AbXAZEZi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 23:25:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hans-peter.nilsson@axis.com, dbrownell@users.sourceforge.net, hp@axis.com
+To: olecom@flower.upol.cz, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_bitbang(): use overridable setup_transfer() method
-has been added to the -mm tree.  Its filename is
-     spi_bitbang-use-overridable-setup_transfer-method.patch
+     spell 4 kbuild: improving option checking
+has been removed from the -mm tree.  Its filename was
+     kbuild-improving-option-checking-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into kbuild-improving-option-checking.patch
 
 ------------------------------------------------------
-Subject: spi_bitbang(): use overridable setup_transfer() method
-From: Hans-Peter Nilsson <hans-peter.nilsson@axis.com>
+Subject: spell 4 kbuild: improving option checking
+From: Oleg Verych <olecom@flower.upol.cz>
 
-A small bug-fix for spi_bitbang: it must always call the setup_transfer
-function via the overridable pointer, not assume that its
-spi_bitbang_setup_transfer is sufficient.  Otherwise, if all options in the
-transfers are default (0), the overrided function will never be called.
-
-Granted, the function replacing it must call spi_bitbang_setup_transfer,
-but it might also have other important things to do, even if the second
-argument (the spi_transfer) is NULL.  Tested together with the other
-patches on the spi_crisv32_sser and spi_crisv32_gpio drivers (not yet in
-the kernel, will IIUC be submitted as part of the usual
-arch-maintainer-pushes).
-
-Signed-off-by: Hans-Peter Nilsson <hp@axis.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Oleg Verych <olecom@flower.upol.cz>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/spi_bitbang.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ scripts/Kbuild.include |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/spi_bitbang.c~spi_bitbang-use-overridable-setup_transfer-method drivers/spi/spi_bitbang.c
---- a/drivers/spi/spi_bitbang.c~spi_bitbang-use-overridable-setup_transfer-method
-+++ a/drivers/spi/spi_bitbang.c
-@@ -210,7 +210,7 @@ int spi_bitbang_setup(struct spi_device 
- 	if (!cs->txrx_word)
- 		return -EINVAL;
+diff -puN scripts/Kbuild.include~kbuild-improving-option-checking-fix scripts/Kbuild.include
+--- a/scripts/Kbuild.include~kbuild-improving-option-checking-fix
++++ a/scripts/Kbuild.include
+@@ -1,7 +1,7 @@
+ ####
+ # kbuild: Generic definitions
  
--	retval = spi_bitbang_setup_transfer(spi, NULL);
-+	retval = bitbang->setup_transfer(spi, NULL);
- 	if (retval < 0)
- 		return retval;
+-# Convinient constants
++# Convenient constants
+ comma   := ,
+ squote  := '
+ empty   :=
+@@ -170,7 +170,7 @@ make-cmd = $(subst \#,\\\#,$(subst $$,$$
+ # PHONY targets skipped in both cases.
+ any-prereq = $(filter-out $(PHONY),$?) $(filter-out $(PHONY) $(wildcard $^),$^)
  
-@@ -442,9 +442,10 @@ EXPORT_SYMBOL_GPL(spi_bitbang_transfer);
-  * hardware that basically exposes a shift register) or per-spi_transfer
-  * (which takes better advantage of hardware like fifos or DMA engines).
-  *
-- * Drivers using per-word I/O loops should use (or call) spi_bitbang_setup and
-- * spi_bitbang_cleanup to handle those spi master methods.  Those methods are
-- * the defaults if the bitbang->txrx_bufs routine isn't initialized.
-+ * Drivers using per-word I/O loops should use (or call) spi_bitbang_setup,
-+ * spi_bitbang_cleanup and spi_bitbang_setup_transfer to handle those spi
-+ * master methods.  Those methods are the defaults if the bitbang->txrx_bufs
-+ * routine isn't initialized.
-  *
-  * This routine registers the spi_master, which will process requests in a
-  * dedicated task, keeping IRQs unblocked most of the time.  To stop
+-# Execute command if command has changed or prerequisitei(s) are updated
++# Execute command if command has changed or prerequisite(s) are updated
+ #
+ if_changed = $(if $(strip $(any-prereq) $(arg-check)),                       \
+ 	@set -e;                                                             \
+@@ -187,7 +187,7 @@ if_changed_dep = $(if $(strip $(any-prer
+ 	mv -f $(dot-target).tmp $(dot-target).cmd)
+ 
+ # Usage: $(call if_changed_rule,foo)
+-# will check if $(cmd_foo) changed, or any of the prequisites changed,
++# will check if $(cmd_foo) changed, or any of the prerequisites changed,
+ # and if so will execute $(rule_foo)
+ if_changed_rule = $(if $(strip $(any-prereq) $(arg-check) ),                 \
+ 	@set -e;                                                             \
+@@ -232,3 +232,5 @@ why =                                   
+ 
+ echo-why = $(call escsq, $(strip $(why)))
+ endif
++
++ LocalWords:  prequisites
 _
 
-Patches currently in -mm which might be from hans-peter.nilsson@axis.com are
+Patches currently in -mm which might be from olecom@flower.upol.cz are
 
-spi_bitbang-use-overridable-setup_transfer-method.patch
+kbuild-improving-option-checking.patch
+kbuild-improving-option-checking-fix.patch
+deprecate-smbfs-in-favour-of-cifs-docs.patch
