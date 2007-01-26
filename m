@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch added to -mm tree
-Date: Thu, 25 Jan 2007 23:56:13 -0800
-Message-ID: <200701260756.l0Q7uDwx010882@shell0.pdx.osdl.net>
+Subject: + git-infiniband-fixup-2.patch added to -mm tree
+Date: Fri, 26 Jan 2007 00:14:59 -0800
+Message-ID: <200701260814.l0Q8ExfN011216@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50667 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51119 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030798AbXAZH4Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:56:16 -0500
+	id S1030816AbXAZIPH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 03:15:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clameter@sgi.com
+Cc: akpm@osdl.org, rolandd@cisco.com
 
 
 The patch titled
-     get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix
+     git-infiniband-fixup-2
 has been added to the -mm tree.  Its filename is
-     get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
+     git-infiniband-fixup-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix
+Subject: git-infiniband-fixup-2
 From: Andrew Morton <akpm@osdl.org>
 
-So easy to type, so expensive to find and fix.
+Now it does.
 
-Please, re-review the whole patchset - we just can't afford this sort of
-mistake.
-
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix mm/page-writeback.c
---- a/mm/page-writeback.c~get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix
-+++ a/mm/page-writeback.c
-@@ -139,7 +139,7 @@ static unsigned long determine_available
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2 drivers/infiniband/ulp/ipoib/ipoib_ib.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2
++++ a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -298,6 +298,7 @@ repoll:
+ 		n = ib_poll_cq(priv->cq, t, priv->ibwc);
  
- 			x -= zone_page_state(z, NR_FREE_PAGES)
- 				+ zone_page_state(z, NR_INACTIVE)
--				+ zone_page_state(z, NR_INACTIVE);
-+				+ zone_page_state(z, NR_ACTIVE);
+ 		for (i = 0; i < n; ++i) {
++			struct ib_wc *wc = priv->ibwc + i;
+ 			if (wc->wr_id & IPOIB_CM_OP_SRQ) {
+ 				++done;
+ 				--max;
+@@ -305,9 +306,9 @@ repoll:
+ 			} if (priv->ibwc[i].wr_id & IPOIB_OP_RECV) {
+ 				++done;
+ 				--max;
+-				ipoib_ib_handle_rx_wc(dev, priv->ibwc + i);
++				ipoib_ib_handle_rx_wc(dev, wc);
+ 			} else
+-				ipoib_ib_handle_tx_wc(dev, priv->ibwc + i);
++				ipoib_ib_handle_tx_wc(dev, wc);
  		}
- 	}
  
+ 		if (n != t) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -72,6 +80,8 @@ git-dvb.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
+git-infiniband-fixup.patch
+git-infiniband-fixup-2.patch
 git-input.patch
 git-libata-all.patch
 sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
