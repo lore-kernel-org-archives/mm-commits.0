@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ufs-rellocation-fix-fix.patch added to -mm tree
-Date: Thu, 25 Jan 2007 20:04:44 -0800
-Message-ID: <200701260404.l0Q44if9006963@shell0.pdx.osdl.net>
+Subject: + via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets.patch added to -mm tree
+Date: Thu, 25 Jan 2007 20:11:36 -0800
+Message-ID: <200701260411.l0Q4BaVE007057@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44232 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44454 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030723AbXAZEFE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 23:05:04 -0500
+	id S1030723AbXAZELr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 23:11:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dushistov@mail.ru
+Cc: claas@rootdir.de, airlied@linux.ie, davej@codemonkey.org.uk
 
 
 The patch titled
-     ufs: rellocation fix fix
+     via-agp and drm: adding support for CX700(M2), P4M890 and VT3336 chipsets
 has been added to the -mm tree.  Its filename is
-     ufs-rellocation-fix-fix.patch
+     via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,91 +25,173 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ufs: rellocation fix fix
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: via-agp and drm: adding support for CX700(M2), P4M890 and VT3336 chipsets
+From: Claas Langbehn <claas@rootdir.de>
 
-On Wed, Jan 24, 2007 at 08:21:07PM -0800, Andrew Morton wrote:
-> On Mon, 22 Jan 2007 18:07:51 +0300
-> Evgeniy Dushistov <dushistov@mail.ru> wrote:
->
-> > -	for (i = 0; i < count; i += blk_per_page) {
-> > +	for (i = 0; i < count; i = (i | mask) + 1) {
->
-> This is a funny looking thing.  As far as I can tell, this is a more
-> complicated way of doing the same thing as the old code did.
->
-> Am I missing something?
->
+* Adds support for the VIA CX700(M2), P4M890 and VT3336 chipsets to via-agp.c
+* Adds PCI-IDs and DRM PCI_IDs for the VIA CX700(M2), P4M890 and VT3336 chipsets
+* Removes AGP-support and PCI-IDs of PT880 Ultra
+* Changes Kconfig explanation text for AGP and DRM slightly
 
-No, you right, thanks, work should be done with baseblk+i, not with i.
-(It is imposible to catch on my test enviroment: size of page 4096
-and baseblk always point to begin of data block which size of
->=4096 and power of 2).
+This patch is based on the source code that VIA released here:
+http://www.viaarena.com/Driver/cle266cn400cn-cx700cn800xorg40072-kernel-src_20061226.tgz
 
-Here is patch for patch, it also contains typo fixing in previous
-patch which lead to compilation failure if ufs debug turn on.
-
-
+Signed-off-by: Claas Langbehn <claas@rootdir.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ufs/balloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/char/agp/Kconfig   |    2 -
+ drivers/char/agp/via-agp.c |   39 ++++++++++++++++++++++-------------
+ drivers/char/drm/Kconfig   |    7 +++---
+ include/linux/pci_ids.h    |    4 ++-
+ 4 files changed, 33 insertions(+), 19 deletions(-)
 
-diff -puN fs/ufs/balloc.c~ufs-rellocation-fix-fix fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~ufs-rellocation-fix-fix
-+++ a/fs/ufs/balloc.c
-@@ -227,14 +227,14 @@ failed:
-  * We can come here from ufs_writepage or ufs_prepare_write,
-  * locked_page is argument of these functions, so we already lock it.
-  */
--static void ufs_change_blocknr(struct inode *inode, unsigned int baseblk,
-+static void ufs_change_blocknr(struct inode *inode, unsigned int beg,
- 			       unsigned int count, unsigned int oldb,
- 			       unsigned int newb, struct page *locked_page)
- {
- 	const unsigned mask = (1 << (PAGE_CACHE_SHIFT - inode->i_blkbits)) - 1;
- 	struct address_space * const mapping = inode->i_mapping;
- 	pgoff_t index, cur_index;
--	unsigned i, pos, j;
-+	unsigned end, pos, j;
- 	struct page *page;
- 	struct buffer_head *head, *bh;
+diff -puN drivers/char/agp/Kconfig~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets drivers/char/agp/Kconfig
+--- a/drivers/char/agp/Kconfig~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets
++++ a/drivers/char/agp/Kconfig
+@@ -106,7 +106,7 @@ config AGP_VIA
+ 	depends on AGP && X86
+ 	help
+ 	  This option gives you AGP support for the GLX component of
+-	  X on VIA MVP3/Apollo Pro chipsets.
++	  X on VIA MVP3/Apollo Pro/UniChrome Pro chipsets.
  
-@@ -246,8 +246,8 @@ static void ufs_change_blocknr(struct in
+ config AGP_I460
+ 	tristate "Intel 460GX chipset support"
+diff -puN drivers/char/agp/via-agp.c~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets drivers/char/agp/via-agp.c
+--- a/drivers/char/agp/via-agp.c~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets
++++ a/drivers/char/agp/via-agp.c
+@@ -9,7 +9,7 @@
+ #include <linux/agp_backend.h>
+ #include "agp.h"
  
- 	cur_index = locked_page->index;
+-static const struct pci_device_id agp_via_pci_table[];
++static struct pci_device_id agp_via_pci_table[];
  
--	for (i = 0; i < count; i = (i | mask) + 1) {
--		index = (baseblk+i) >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
-+	for (end = count + beg; beg < end; beg = (beg | mask) + 1) {
-+		index = beg >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
+ #define VIA_GARTCTRL	0x80
+ #define VIA_APSIZE	0x84
+@@ -347,12 +347,6 @@ static struct agp_device_ids via_agp_dev
+ 		.chipset_name	= "PT880",
+ 	},
  
- 		if (likely(cur_index != index)) {
- 			page = ufs_get_locked_page(mapping, index);
-@@ -258,7 +258,7 @@ static void ufs_change_blocknr(struct in
+-	/* PT880 Ultra */
+-	{
+-		.device_id	= PCI_DEVICE_ID_VIA_PT880ULTRA,
+-		.chipset_name	= "PT880 Ultra",
+-	},
+-
+ 	/* PT890 */
+ 	{
+ 		.device_id	= PCI_DEVICE_ID_VIA_8783_0,
+@@ -379,11 +373,26 @@ static struct agp_device_ids via_agp_dev
+ 		.device_id	= PCI_DEVICE_ID_VIA_3296_0,
+ 		.chipset_name	= "P4M800",
+ 	},
+-	/* P4M800CE */
+-	{
+-		.device_id	= PCI_DEVICE_ID_VIA_P4M800CE,
+-		.chipset_name	= "P4M800CE",
+-	},
++     /* P4M800CE */
++     {
++         .device_id  = PCI_DEVICE_ID_VIA_P4M800CE,
++         .chipset_name   = "VT3314",
++     },
++     /* CX700 */
++     {
++         .device_id  = PCI_DEVICE_ID_VIA_CX700_AGP,
++         .chipset_name   = "CX700",
++     },
++     /* VT3336 */
++     {
++         .device_id  = PCI_DEVICE_ID_VIA_VT3336,
++         .chipset_name   = "VT3336",
++     },
++     /* P4M890 */
++     {
++         .device_id  = PCI_DEVICE_ID_VIA_P4M890,
++         .chipset_name   = "P4M890",
++     },
  
- 		head = page_buffers(page);
- 		bh = head;
--		pos = i & mask;
-+		pos = beg & mask;
- 		for (j = 0; j < pos; ++j)
- 			bh = bh->b_this_page;
- 		j = 0;
-@@ -267,7 +267,7 @@ static void ufs_change_blocknr(struct in
- 				pos = bh->b_blocknr - oldb;
- 				if (pos < count) {
- 					UFSD(" change from %llu to %llu\n",
--					     (unsigned long long)pos + odlb,
-+					     (unsigned long long)pos + oldb,
- 					     (unsigned long long)pos + newb);
- 					bh->b_blocknr = newb + pos;
- 					unmap_underlying_metadata(bh->b_bdev,
+ 	{ }, /* dummy final entry, always present */
+ };
+@@ -487,7 +496,7 @@ static int agp_via_resume(struct pci_dev
+ #endif /* CONFIG_PM */
+ 
+ /* must be the same order as name table above */
+-static const struct pci_device_id agp_via_pci_table[] = {
++static struct pci_device_id agp_via_pci_table[] = {
+ #define ID(x) \
+ 	{						\
+ 	.class		= (PCI_CLASS_BRIDGE_HOST << 8),	\
+@@ -519,13 +528,15 @@ static const struct pci_device_id agp_vi
+ 	ID(PCI_DEVICE_ID_VIA_8763_0),
+ 	ID(PCI_DEVICE_ID_VIA_8378_0),
+ 	ID(PCI_DEVICE_ID_VIA_PT880),
+-	ID(PCI_DEVICE_ID_VIA_PT880ULTRA),
+ 	ID(PCI_DEVICE_ID_VIA_8783_0),
+ 	ID(PCI_DEVICE_ID_VIA_PX8X0_0),
+ 	ID(PCI_DEVICE_ID_VIA_3269_0),
+ 	ID(PCI_DEVICE_ID_VIA_83_87XX_1),
+ 	ID(PCI_DEVICE_ID_VIA_3296_0),
+ 	ID(PCI_DEVICE_ID_VIA_P4M800CE),
++	ID(PCI_DEVICE_ID_VIA_CX700_AGP),
++	ID(PCI_DEVICE_ID_VIA_VT3336),
++	ID(PCI_DEVICE_ID_VIA_P4M890),
+ 	{ }
+ };
+ 
+diff -puN drivers/char/drm/drm_pciids.h~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets drivers/char/drm/drm_pciids.h
+diff -puN drivers/char/drm/Kconfig~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets drivers/char/drm/Kconfig
+--- a/drivers/char/drm/Kconfig~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets
++++ a/drivers/char/drm/Kconfig
+@@ -93,11 +93,12 @@ config DRM_SIS
+           support is required for this driver to work.
+ 
+ config DRM_VIA
+-	tristate "Via unichrome video cards"
++	tristate "VIA UniChrome video cards"
+ 	depends on DRM
+ 	help
+-	  Choose this option if you have a Via unichrome or compatible video
+-	  chipset. If M is selected the module will be called via.
++	  Choose this option if you have a VIA UniChrome/UniChrome Pro
++	  or compatible video chipset. If M is selected the module will
++	  be called via.
+ 
+ config DRM_SAVAGE
+ 	tristate "Savage video cards"
+diff -puN include/linux/pci_ids.h~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets
++++ a/include/linux/pci_ids.h
+@@ -1270,13 +1270,14 @@
+ #define PCI_DEVICE_ID_VIA_8380_0	0x0204
+ #define PCI_DEVICE_ID_VIA_3238_0	0x0238
+ #define PCI_DEVICE_ID_VIA_PT880		0x0258
+-#define PCI_DEVICE_ID_VIA_PT880ULTRA	0x0308
+ #define PCI_DEVICE_ID_VIA_PX8X0_0	0x0259
+ #define PCI_DEVICE_ID_VIA_3269_0	0x0269
+ #define PCI_DEVICE_ID_VIA_K8T800PRO_0	0x0282
+ #define PCI_DEVICE_ID_VIA_3296_0	0x0296
+ #define PCI_DEVICE_ID_VIA_8363_0	0x0305
+ #define PCI_DEVICE_ID_VIA_P4M800CE	0x0314
++#define PCI_DEVICE_ID_VIA_CX700_AGP	0x0324
++#define PCI_DEVICE_ID_VIA_P4M890	0x0327
+ #define PCI_DEVICE_ID_VIA_K8M890CE	0x0336
+ #define PCI_DEVICE_ID_VIA_8371_0	0x0391
+ #define PCI_DEVICE_ID_VIA_8501_0	0x0501
+@@ -1325,6 +1326,7 @@
+ #define PCI_DEVICE_ID_VIA_8783_0	0x3208
+ #define PCI_DEVICE_ID_VIA_8237		0x3227
+ #define PCI_DEVICE_ID_VIA_8251		0x3287
++#define PCI_DEVICE_ID_VIA_VT3336	0x0336
+ #define PCI_DEVICE_ID_VIA_8237A		0x3337
+ #define PCI_DEVICE_ID_VIA_8231		0x8231
+ #define PCI_DEVICE_ID_VIA_8231_4	0x8235
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from claas@rootdir.de are
 
-ufs-alloc-metadata-null-page-fix.patch
-ufs-truncate-negative-to-unsigned-fix.patch
-ufs-rellocation-fix.patch
-ufs-rellocation-fix-fix.patch
+via-agp-and-drm-adding-support-for-cx700m2-p4m890-and-vt3336-chipsets.patch
