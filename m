@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + bonding-arp-monitoring-broken-on-x86_64.patch added to -mm tree
-Date: Fri, 26 Jan 2007 13:12:27 -0800
-Message-ID: <200701262112.l0QLCSB9026649@shell0.pdx.osdl.net>
+Subject: + boot-loader-id-for-gujin.patch added to -mm tree
+Date: Fri, 26 Jan 2007 13:12:40 -0800
+Message-ID: <200701262112.l0QLCeFX026655@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55528 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55554 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751568AbXAZVMg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 16:12:36 -0500
+	id S1752153AbXAZVNk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 16:13:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andy@greyhouse.net, davem@davemloft.net, jeff@garzik.org, shemminger@osdl.org
+Cc: hpa@anvin.org, hpa@zytor.com
 
 
 The patch titled
-     bonding: ARP monitoring broken on x86_64
+     Boot loader ID for Gujin
 has been added to the -mm tree.  Its filename is
-     bonding-arp-monitoring-broken-on-x86_64.patch
+     boot-loader-id-for-gujin.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bonding: ARP monitoring broken on x86_64
-From: Andy Gospodarek <andy@greyhouse.net>
+Subject: Boot loader ID for Gujin
+From: "H. Peter Anvin" <hpa@anvin.org>
 
-While working with the latest bonding code I noticed a nasty problem that
-will prevent arp monitoring from always functioning correctly on x86_64
-systems.  Comparing ints to longs and expecting reliable results on x86_64
-is a bad idea.  With this patch, arp monitoring works correctly again.
+Add an official boot loader ID for Gujin.
 
-Signed-off-by: Andy Gospodarek <andy@greyhouse.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Stephen Hemminger <shemminger@osdl.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/bonding/bonding.h |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ Documentation/i386/boot.txt |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/bonding/bonding.h~bonding-arp-monitoring-broken-on-x86_64 drivers/net/bonding/bonding.h
---- a/drivers/net/bonding/bonding.h~bonding-arp-monitoring-broken-on-x86_64
-+++ a/drivers/net/bonding/bonding.h
-@@ -151,8 +151,8 @@ struct slave {
- 	struct slave *next;
- 	struct slave *prev;
- 	int    delay;
--	u32    jiffies;
--	u32    last_arp_rx;
-+	unsigned long jiffies;
-+	unsigned long last_arp_rx;
- 	s8     link;    /* one of BOND_LINK_XXXX */
- 	s8     state;   /* one of BOND_STATE_XXXX */
- 	u32    original_flags;
-@@ -242,7 +242,8 @@ extern inline int slave_do_arp_validate(
- 	return bond->params.arp_validate & (1 << slave->state);
- }
+diff -puN Documentation/i386/boot.txt~boot-loader-id-for-gujin Documentation/i386/boot.txt
+--- a/Documentation/i386/boot.txt~boot-loader-id-for-gujin
++++ a/Documentation/i386/boot.txt
+@@ -2,7 +2,7 @@
+ 		     ----------------------------
  
--extern inline u32 slave_last_rx(struct bonding *bond, struct slave *slave)
-+extern inline unsigned long slave_last_rx(struct bonding *bond,
-+					struct slave *slave)
- {
- 	if (slave_do_arp_validate(bond, slave))
- 		return slave->last_arp_rx;
+ 		    H. Peter Anvin <hpa@zytor.com>
+-			Last update 2006-11-17
++			Last update 2007-01-26
+ 
+ On the i386 platform, the Linux kernel uses a rather complicated boot
+ convention.  This has evolved partially due to historical aspects, as
+@@ -186,6 +186,7 @@ filled out, however:
+ 	7  GRuB
+ 	8  U-BOOT
+ 	9  Xen
++	A  Gujin
+ 
+ 	Please contact <hpa@zytor.com> if you need a bootloader ID
+ 	value assigned.
 _
 
-Patches currently in -mm which might be from andy@greyhouse.net are
+Patches currently in -mm which might be from hpa@anvin.org are
 
-bonding-arp-monitoring-broken-on-x86_64.patch
+boot-loader-id-for-gujin.patch
