@@ -1,206 +1,163 @@
 From: akpm@osdl.org
-Subject: - kvm-x86-emulator-fix-bit-string-instructions.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:28 -0800
-Message-ID: <200701260751.l0Q7pSwt010727@shell0.pdx.osdl.net>
+Subject: - tlclk-bug-fix-misc-fixes.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:37 -0800
+Message-ID: <200701260751.l0Q7pb1u010744@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50476 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50473 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030812AbXAZHvl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:41 -0500
+	id S1030809AbXAZHvk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mgross@linux.intel.com, mark.gross@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: x86 emulator: fix bit string instructions
+     tlclk: bug fix + misc fixes
 has been removed from the -mm tree.  Its filename was
-     kvm-x86-emulator-fix-bit-string-instructions.patch
+     tlclk-bug-fix-misc-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: x86 emulator: fix bit string instructions
-From: Avi Kivity <avi@qumranet.com>
+Subject: tlclk: bug fix + misc fixes
+From: Mark Gross <mgross@linux.intel.com>
 
-The various bit string instructions (bts, btc, etc.) fail to adjust the
-address correctly if the bit address is beyond BITS_PER_LONG.
+The following patch fixes a few problems with the tlclk driver.
+* bug in the select_amcb1_transmit_clock
+* racy read sys call
+* racy open sys call
+* use of add_timer where mod_timer would be better
+* change to the timer data parameter use
 
-This bug creeped in as the emulator originally relied on cr2 to contain the
-memory address; however we now decode it from the mod r/m bits, and must
-adjust the offset to account for large bit indices.
-
-The patch is rather large because it switches src and dst decoding around, so
-that the bit index is available when decoding the memory address.
-
-This fixes workloads like the FC5 installer.
-
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Mark Gross <mark.gross@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/x86_emulate.c |   98 +++++++++++++++++++-----------------
- 1 file changed, 52 insertions(+), 46 deletions(-)
+ drivers/char/tlclk.c |   43 ++++++++++++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 15 deletions(-)
 
-diff -puN drivers/kvm/x86_emulate.c~kvm-x86-emulator-fix-bit-string-instructions drivers/kvm/x86_emulate.c
---- a/drivers/kvm/x86_emulate.c~kvm-x86-emulator-fix-bit-string-instructions
-+++ a/drivers/kvm/x86_emulate.c
-@@ -61,6 +61,7 @@
- #define ModRM       (1<<6)
- /* Destination is only written; never read. */
- #define Mov         (1<<7)
-+#define BitOp       (1<<8)
+diff -puN drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes drivers/char/tlclk.c
+--- a/drivers/char/tlclk.c~tlclk-bug-fix-misc-fixes
++++ a/drivers/char/tlclk.c
+@@ -186,6 +186,7 @@ static int got_event;		/* if events proc
+ static void switchover_timeout(unsigned long data);
+ static struct timer_list switchover_timer =
+ 	TIMER_INITIALIZER(switchover_timeout , 0, 0);
++static unsigned long tlclk_timer_data;
  
- static u8 opcode_table[256] = {
- 	/* 0x00 - 0x07 */
-@@ -148,7 +149,7 @@ static u8 opcode_table[256] = {
- 	0, 0, ByteOp | DstMem | SrcNone | ModRM, DstMem | SrcNone | ModRM
- };
+ static struct tlclk_alarms *alarm_events;
  
--static u8 twobyte_table[256] = {
-+static u16 twobyte_table[256] = {
- 	/* 0x00 - 0x0F */
- 	0, SrcMem | ModRM | DstReg, 0, 0, 0, 0, ImplicitOps, 0,
- 	0, 0, 0, 0, 0, ImplicitOps | ModRM, 0, 0,
-@@ -180,16 +181,16 @@ static u8 twobyte_table[256] = {
- 	/* 0x90 - 0x9F */
- 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 	/* 0xA0 - 0xA7 */
--	0, 0, 0, DstMem | SrcReg | ModRM, 0, 0, 0, 0,
-+	0, 0, 0, DstMem | SrcReg | ModRM | BitOp, 0, 0, 0, 0,
- 	/* 0xA8 - 0xAF */
--	0, 0, 0, DstMem | SrcReg | ModRM, 0, 0, 0, 0,
-+	0, 0, 0, DstMem | SrcReg | ModRM | BitOp, 0, 0, 0, 0,
- 	/* 0xB0 - 0xB7 */
- 	ByteOp | DstMem | SrcReg | ModRM, DstMem | SrcReg | ModRM, 0,
--	    DstMem | SrcReg | ModRM,
-+	    DstMem | SrcReg | ModRM | BitOp,
- 	0, 0, ByteOp | DstReg | SrcMem | ModRM | Mov,
- 	    DstReg | SrcMem16 | ModRM | Mov,
- 	/* 0xB8 - 0xBF */
--	0, 0, DstMem | SrcImmByte | ModRM, DstMem | SrcReg | ModRM,
-+	0, 0, DstMem | SrcImmByte | ModRM, DstMem | SrcReg | ModRM | BitOp,
- 	0, 0, ByteOp | DstReg | SrcMem | ModRM | Mov,
- 	    DstReg | SrcMem16 | ModRM | Mov,
- 	/* 0xC0 - 0xCF */
-@@ -469,7 +470,8 @@ static int read_descriptor(struct x86_em
- int
- x86_emulate_memop(struct x86_emulate_ctxt *ctxt, struct x86_emulate_ops *ops)
- {
--	u8 b, d, sib, twobyte = 0, rex_prefix = 0;
-+	unsigned d;
-+	u8 b, sib, twobyte = 0, rex_prefix = 0;
- 	u8 modrm, modrm_mod = 0, modrm_reg = 0, modrm_rm = 0;
- 	unsigned long *override_base = NULL;
- 	unsigned int op_bytes, ad_bytes, lock_prefix = 0, rep_prefix = 0, i;
-@@ -726,46 +728,6 @@ done_prefixes:
- 		;
- 	}
+@@ -197,10 +198,19 @@ static irqreturn_t tlclk_interrupt(int i
  
--	/* Decode and fetch the destination operand: register or memory. */
--	switch (d & DstMask) {
--	case ImplicitOps:
--		/* Special instructions do their own operand decoding. */
--		goto special_insn;
--	case DstReg:
--		dst.type = OP_REG;
--		if ((d & ByteOp)
--		    && !(twobyte_table && (b == 0xb6 || b == 0xb7))) {
--			dst.ptr = decode_register(modrm_reg, _regs,
--						  (rex_prefix == 0));
--			dst.val = *(u8 *) dst.ptr;
--			dst.bytes = 1;
--		} else {
--			dst.ptr = decode_register(modrm_reg, _regs, 0);
--			switch ((dst.bytes = op_bytes)) {
--			case 2:
--				dst.val = *(u16 *)dst.ptr;
--				break;
--			case 4:
--				dst.val = *(u32 *)dst.ptr;
--				break;
--			case 8:
--				dst.val = *(u64 *)dst.ptr;
--				break;
--			}
--		}
--		break;
--	case DstMem:
--		dst.type = OP_MEM;
--		dst.ptr = (unsigned long *)cr2;
--		dst.bytes = (d & ByteOp) ? 1 : op_bytes;
--		if (!(d & Mov) && /* optimisation - avoid slow emulated read */
--		    ((rc = ops->read_emulated((unsigned long)dst.ptr,
--					      &dst.val, dst.bytes, ctxt)) != 0))
--			goto done;
--		break;
--	}
--	dst.orig_val = dst.val;
--
- 	/*
- 	 * Decode and fetch the source operand: register, memory
- 	 * or immediate.
-@@ -838,6 +800,50 @@ done_prefixes:
- 		break;
- 	}
+ static DECLARE_WAIT_QUEUE_HEAD(wq);
  
-+	/* Decode and fetch the destination operand: register or memory. */
-+	switch (d & DstMask) {
-+	case ImplicitOps:
-+		/* Special instructions do their own operand decoding. */
-+		goto special_insn;
-+	case DstReg:
-+		dst.type = OP_REG;
-+		if ((d & ByteOp)
-+		    && !(twobyte_table && (b == 0xb6 || b == 0xb7))) {
-+			dst.ptr = decode_register(modrm_reg, _regs,
-+						  (rex_prefix == 0));
-+			dst.val = *(u8 *) dst.ptr;
-+			dst.bytes = 1;
-+		} else {
-+			dst.ptr = decode_register(modrm_reg, _regs, 0);
-+			switch ((dst.bytes = op_bytes)) {
-+			case 2:
-+				dst.val = *(u16 *)dst.ptr;
-+				break;
-+			case 4:
-+				dst.val = *(u32 *)dst.ptr;
-+				break;
-+			case 8:
-+				dst.val = *(u64 *)dst.ptr;
-+				break;
-+			}
-+		}
-+		break;
-+	case DstMem:
-+		dst.type = OP_MEM;
-+		dst.ptr = (unsigned long *)cr2;
-+		dst.bytes = (d & ByteOp) ? 1 : op_bytes;
-+		if (d & BitOp) {
-+			dst.ptr += src.val / BITS_PER_LONG;
-+			dst.bytes = sizeof(long);
-+		}
-+		if (!(d & Mov) && /* optimisation - avoid slow emulated read */
-+		    ((rc = ops->read_emulated((unsigned long)dst.ptr,
-+					      &dst.val, dst.bytes, ctxt)) != 0))
-+			goto done;
-+		break;
-+	}
-+	dst.orig_val = dst.val;
++static unsigned long useflags;
++static DEFINE_MUTEX(tlclk_mutex);
 +
- 	if (twobyte)
- 		goto twobyte_insn;
+ static int tlclk_open(struct inode *inode, struct file *filp)
+ {
+ 	int result;
  
++	if (test_and_set_bit(0, &useflags))
++		return -EBUSY;
++		/* this legacy device is always one per system and it doesn't
++		 * know how to handle multiple concurrent clients.
++		 */
++
+ 	/* Make sure there is no interrupt pending while
+ 	 * initialising interrupt handler */
+ 	inb(TLCLK_REG6);
+@@ -221,6 +231,7 @@ static int tlclk_open(struct inode *inod
+ static int tlclk_release(struct inode *inode, struct file *filp)
+ {
+ 	free_irq(telclk_interrupt, tlclk_interrupt);
++	clear_bit(0, &useflags);
+ 
+ 	return 0;
+ }
+@@ -230,26 +241,25 @@ static ssize_t tlclk_read(struct file *f
+ {
+ 	if (count < sizeof(struct tlclk_alarms))
+ 		return -EIO;
++	if (mutex_lock_interruptible(&tlclk_mutex))
++		return -EINTR;
++
+ 
+ 	wait_event_interruptible(wq, got_event);
+-	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms)))
++	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms))) {
++		mutex_unlock(&tlclk_mutex);
+ 		return -EFAULT;
++	}
+ 
+ 	memset(alarm_events, 0, sizeof(struct tlclk_alarms));
+ 	got_event = 0;
+ 
++	mutex_unlock(&tlclk_mutex);
+ 	return  sizeof(struct tlclk_alarms);
+ }
+ 
+-static ssize_t tlclk_write(struct file *filp, const char __user *buf, size_t count,
+-	    loff_t *f_pos)
+-{
+-	return 0;
+-}
+-
+ static const struct file_operations tlclk_fops = {
+ 	.read = tlclk_read,
+-	.write = tlclk_write,
+ 	.open = tlclk_open,
+ 	.release = tlclk_release,
+ 
+@@ -540,7 +550,7 @@ static ssize_t store_select_amcb1_transm
+ 			SET_PORT_BITS(TLCLK_REG3, 0xf8, 0x7);
+ 			switch (val) {
+ 			case CLK_8_592MHz:
+-				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
++				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
+ 				break;
+ 			case CLK_11_184MHz:
+ 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 0);
+@@ -549,7 +559,7 @@ static ssize_t store_select_amcb1_transm
+ 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 3);
+ 				break;
+ 			case CLK_44_736MHz:
+-				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
++				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
+ 				break;
+ 			}
+ 		} else
+@@ -839,11 +849,13 @@ static void __exit tlclk_cleanup(void)
+ 
+ static void switchover_timeout(unsigned long data)
+ {
+-	if ((data & 1)) {
+-		if ((inb(TLCLK_REG1) & 0x08) != (data & 0x08))
++	unsigned long flags = *(unsigned long *) data;
++
++	if ((flags & 1)) {
++		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
+ 			alarm_events->switchover_primary++;
+ 	} else {
+-		if ((inb(TLCLK_REG1) & 0x08) != (data & 0x08))
++		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
+ 			alarm_events->switchover_secondary++;
+ 	}
+ 
+@@ -901,8 +913,9 @@ static irqreturn_t tlclk_interrupt(int i
+ 
+ 		/* TIMEOUT in ~10ms */
+ 		switchover_timer.expires = jiffies + msecs_to_jiffies(10);
+-		switchover_timer.data = inb(TLCLK_REG1);
+-		add_timer(&switchover_timer);
++		tlclk_timer_data = inb(TLCLK_REG1);
++		switchover_timer.data = (unsigned long) &tlclk_timer_data;
++		mod_timer(&switchover_timer, switchover_timer.expires);
+ 	} else {
+ 		got_event = 1;
+ 		wake_up(&wq);
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
-
-kvm-svm-fix-svm-idt-confusion.patch
-kvm-emulate-ia32_misc_enable-msr.patch
-kvm-mmu-perform-access-checks-in-walk_addr.patch
-kvm-mmu-report-nx-faults-to-the-guest.patch
-kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
-fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
+Patches currently in -mm which might be from mgross@linux.intel.com are
