@@ -1,81 +1,90 @@
 From: akpm@osdl.org
-Subject: + atomich-complete-atomic_long-operations-in-asm-generic-fix-2.patch added to -mm tree
-Date: Fri, 26 Jan 2007 13:02:09 -0800
-Message-ID: <200701262102.l0QL29fD026428@shell0.pdx.osdl.net>
+Subject: + remove-useless-reference-to-obsolete-kerneld.patch added to -mm tree
+Date: Fri, 26 Jan 2007 13:02:51 -0800
+Message-ID: <200701262102.l0QL2piH026460@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55033 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55068 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751605AbXAZVCV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 16:02:21 -0500
+	id S1752147AbXAZVDA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 16:03:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, mathieu.desnoyers@polymtl.ca
+Cc: rpjday@mindspring.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     atomich-complete-atomic_long-operations-in-asm-generic fix 2
+     Remove useless reference to obsolete KERNELD
 has been added to the -mm tree.  Its filename is
-     atomich-complete-atomic_long-operations-in-asm-generic-fix-2.patch
+     remove-useless-reference-to-obsolete-kerneld.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atomich-complete-atomic_long-operations-in-asm-generic fix 2
-=46rom: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: Remove useless reference to obsolete KERNELD
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-ARCH=3Dum SUBARCH=3Di386
+Remove the final useless reference to the obsolete KERNELD feature.
 
-In file included from include2/asm/arch/atomic.h:257,
-                 from include2/asm/atomic.h:10,
-                 from /usr/src/linux-2.6-git/include/linux/file.h:9,
-                 from /usr/src/linux-2.6-git/mm/fadvise.c:12:
-/usr/src/linux-2.6-git/include/asm-generic/atomic.h: In function =E2=80=
-=98atomic_long_add_unless=E2=80=99:
-/usr/src/linux-2.6-git/include/asm-generic/atomic.h:260: warning: impli=
-cit declaration of function =E2=80=98cmpxchg=E2=80=99
-/usr/src/linux-2.6-git/include/asm-generic/atomic.h: In function =E2=80=
-=98atomic_long_xchg=E2=80=99:
-/usr/src/linux-2.6-git/include/asm-generic/atomic.h:281: warning: impli=
-cit declaration of function =E2=80=98xchg=E2=80=99
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-um/atomic.h |    1 +
- 1 files changed, 1 insertion(+)
+ sound/core/timer.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN include/asm-um/atomic.h~atomich-complete-atomic_long-operatio=
-ns-in-asm-generic-fix-2 include/asm-um/atomic.h
---- a/include/asm-um/atomic.h~atomich-complete-atomic_long-operations-i=
-n-asm-generic-fix-2
-+++ a/include/asm-um/atomic.h
-@@ -6,6 +6,7 @@
-  */
- #include "linux/kernel.h"
-=20
-+#include "asm/arch/system.h"
- #include "asm/arch/atomic.h"
-=20
- #endif
+diff -puN sound/core/timer.c~remove-useless-reference-to-obsolete-kerneld sound/core/timer.c
+--- a/sound/core/timer.c~remove-useless-reference-to-obsolete-kerneld
++++ a/sound/core/timer.c
+@@ -35,9 +35,6 @@
+ #include <sound/minors.h>
+ #include <sound/initval.h>
+ #include <linux/kmod.h>
+-#ifdef CONFIG_KERNELD
+-#include <linux/kerneld.h>
+-#endif
+ 
+ #if defined(CONFIG_SND_HPET) || defined(CONFIG_SND_HPET_MODULE)
+ #define DEFAULT_TIMER_LIMIT 3
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-nfs-fix-congestion-control-v4.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-lumpy-reclaim-v2.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-atomich-complete-atomic_long-operations-in-asm-generic-fix-2.patch
+fix-various-kernel-doc-in-header-files.patch
+fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
+git-alsa.patch
+remove-useless-reference-to-obsolete-kerneld.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+fix-apparent-typo-config_serial_cpm_smc.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+uml-fix-apparent-config_64_bit-typo.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
