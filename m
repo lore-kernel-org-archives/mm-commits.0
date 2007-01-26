@@ -1,71 +1,61 @@
 From: akpm@osdl.org
-Subject: + spi-freescale-imx-spi-controller-driver-bis.patch added to -mm tree
-Date: Thu, 25 Jan 2007 20:21:56 -0800
-Message-ID: <200701260421.l0Q4LunO007245@shell0.pdx.osdl.net>
+Subject: - spi-freescale-imx-spi-controller-driver.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 20:22:22 -0800
+Message-ID: <200701260422.l0Q4MNnw007261@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44692 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44699 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030647AbXAZEWQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Jan 2007 23:22:16 -0500
+	id S1030650AbXAZEWr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 25 Jan 2007 23:22:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: a.paterniani@swapp-eng.it, dbrownell@users.sourceforge.net
+To: a.paterniani@swapp-eng.it, david-b@pacbell.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPI: Freescale iMX SPI controller driver (BIS+)
-has been added to the -mm tree.  Its filename is
-     spi-freescale-imx-spi-controller-driver-bis.patch
+     SPI: freescale iMX SPI controller driver
+has been removed from the -mm tree.  Its filename was
+     spi-freescale-imx-spi-controller-driver.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: SPI: Freescale iMX SPI controller driver (BIS+)
+Subject: SPI: freescale iMX SPI controller driver
 From: Andrea Paterniani <a.paterniani@swapp-eng.it>
 
 Add the SPI controller driver for Freescale i.MX(S/L/1).
+
 Main features summary:
 
- > Per chip setup via board specific code and/or protocol driver.
- > Per transfer setup.
- > PIO transfers.
- > DMA transfers.
- > Managing of NULL tx / rx buffer for rd only / wr only transfers.
+- Per chip setup via board specific code and/or protocol driver.
 
-This patch replace patch-2.6.20-rc4-spi_imx with the following changes:
- > Few cosmetic changes.
- > Function map_dma_buffers now return 0 for success and -1 for failure.
- > Solved a bug inside spi_imx_probe function (wrong error path).
- > Solved a bug inside setup function (bad undo setup for max_speed_hz).
- > For read-only transfers, always write zero bytes.
+- Per transfer setup.
 
-This is almost the same as the 'BIS' version sent by Andrea, except for
-updating the 'DUMMY' byte so that read-only transfers shift out zeroes.
-That part of the API changed recently, since some half duplex peripheral
-chips require that semantic.
+- PIO transfers.
+
+- DMA transfers.
+
+- Managing of NULL tx / rx buffer for rd only / wr only transfers.
 
 Signed-off-by: Andrea Paterniani <a.paterniani@swapp-eng.it>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  drivers/spi/Kconfig                |    6 
  drivers/spi/Makefile               |    1 
- drivers/spi/spi_imx.c              | 1740 +++++++++++++++++++++++++++
+ drivers/spi/spi_imx.c              | 1762 +++++++++++++++++++++++++++
  include/asm-arm/arch-imx/spi_imx.h |   73 +
- 4 files changed, 1820 insertions(+)
+ 4 files changed, 1842 insertions(+)
 
-diff -puN drivers/spi/Kconfig~spi-freescale-imx-spi-controller-driver-bis drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-freescale-imx-spi-controller-driver-bis
+diff -puN drivers/spi/Kconfig~spi-freescale-imx-spi-controller-driver drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-freescale-imx-spi-controller-driver
 +++ a/drivers/spi/Kconfig
-@@ -94,6 +94,12 @@ config SPI_OMAP_UWIRE
- 	help
- 	  This hooks up to the MicroWire controller on OMAP1 chips.
+@@ -75,6 +75,12 @@ config SPI_BUTTERFLY
+ 	  inexpensive battery powered microcontroller evaluation board.
+ 	  This same cable can be used to flash new firmware.
  
 +config SPI_IMX
 +	tristate "iMX SPI controller driver"
@@ -73,11 +63,11 @@ diff -puN drivers/spi/Kconfig~spi-freescale-imx-spi-controller-driver-bis driver
 +	help
 +	  This is the iMX SPI controller driver.
 +
- config SPI_PXA2XX
- 	tristate "PXA2xx SSP SPI master"
- 	depends on SPI_MASTER && ARCH_PXA && EXPERIMENTAL
-diff -puN drivers/spi/Makefile~spi-freescale-imx-spi-controller-driver-bis drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-freescale-imx-spi-controller-driver-bis
+ config SPI_MPC83xx
+ 	tristate "Freescale MPC83xx SPI controller"
+ 	depends on SPI_MASTER && PPC_83xx && EXPERIMENTAL
+diff -puN drivers/spi/Makefile~spi-freescale-imx-spi-controller-driver drivers/spi/Makefile
+--- a/drivers/spi/Makefile~spi-freescale-imx-spi-controller-driver
 +++ a/drivers/spi/Makefile
 @@ -13,6 +13,7 @@ obj-$(CONFIG_SPI_MASTER)		+= spi.o
  # SPI master controller drivers (bus)
@@ -85,12 +75,12 @@ diff -puN drivers/spi/Makefile~spi-freescale-imx-spi-controller-driver-bis drive
  obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
 +obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
  obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
- obj-$(CONFIG_SPI_OMAP_UWIRE)		+= omap_uwire.o
  obj-$(CONFIG_SPI_MPC83xx)		+= spi_mpc83xx.o
+ obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s3c24xx_gpio.o
 diff -puN /dev/null drivers/spi/spi_imx.c
 --- /dev/null
 +++ a/drivers/spi/spi_imx.c
-@@ -0,0 +1,1740 @@
+@@ -0,0 +1,1762 @@
 +/*
 + * drivers/spi/spi_imx.c
 + *
@@ -144,34 +134,55 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +#define SPI_RESET		(0x1C)
 +
 +/* SPI Control Register Bit Fields & Masks */
-+#define SPI_CONTROL_BITCOUNT_MASK	(0xF)		/* Bit Count Mask */
-+#define SPI_CONTROL_BITCOUNT(n)		(((n) - 1) & SPI_CONTROL_BITCOUNT_MASK)
-+#define SPI_CONTROL_POL			(0x1 << 4)      /* Clock Polarity Mask */
-+#define SPI_CONTROL_POL_ACT_HIGH	(0x0 << 4)      /* Active high pol. (0=idle) */
-+#define SPI_CONTROL_POL_ACT_LOW		(0x1 << 4)      /* Active low pol. (1=idle) */
-+#define SPI_CONTROL_PHA			(0x1 << 5)      /* Clock Phase Mask */
-+#define SPI_CONTROL_PHA_0		(0x0 << 5)      /* Clock Phase 0 */
-+#define SPI_CONTROL_PHA_1		(0x1 << 5)      /* Clock Phase 1 */
-+#define SPI_CONTROL_SSCTL		(0x1 << 6)      /* /SS Waveform Select Mask */
-+#define SPI_CONTROL_SSCTL_0		(0x0 << 6)      /* Master: /SS stays low between SPI burst
-+							   Slave: RXFIFO advanced by BIT_COUNT */
-+#define SPI_CONTROL_SSCTL_1		(0x1 << 6)      /* Master: /SS insert pulse between SPI burst
-+							   Slave: RXFIFO advanced by /SS rising edge */
-+#define SPI_CONTROL_SSPOL		(0x1 << 7)      /* /SS Polarity Select Mask */
-+#define SPI_CONTROL_SSPOL_ACT_LOW	(0x0 << 7)      /* /SS Active low */
-+#define SPI_CONTROL_SSPOL_ACT_HIGH	(0x1 << 7)      /* /SS Active high */
-+#define SPI_CONTROL_XCH			(0x1 << 8)      /* Exchange */
-+#define SPI_CONTROL_SPIEN		(0x1 << 9)      /* SPI Module Enable */
-+#define SPI_CONTROL_MODE		(0x1 << 10)     /* SPI Mode Select Mask */
-+#define SPI_CONTROL_MODE_SLAVE		(0x0 << 10)     /* SPI Mode Slave */
-+#define SPI_CONTROL_MODE_MASTER		(0x1 << 10)     /* SPI Mode Master */
-+#define SPI_CONTROL_DRCTL		(0x3 << 11)     /* /SPI_RDY Control Mask */
-+#define SPI_CONTROL_DRCTL_0		(0x0 << 11)     /* Ignore /SPI_RDY */
-+#define SPI_CONTROL_DRCTL_1		(0x1 << 11)     /* /SPI_RDY falling edge triggers input */
-+#define SPI_CONTROL_DRCTL_2		(0x2 << 11)     /* /SPI_RDY active low level triggers input */
-+#define SPI_CONTROL_DATARATE		(0x7 << 13)     /* Data Rate Mask */
-+#define SPI_PERCLK2_DIV_MIN		(0)		/* PERCLK2:4 */
-+#define SPI_PERCLK2_DIV_MAX		(7)		/* PERCLK2:512 */
++#define SPI_CONTROL_BITCOUNT	(0xF)		/* Bit Count Mask */
++#define SPI_CONTROL_BITCOUNT_1	(0x0)
++#define SPI_CONTROL_BITCOUNT_2	(0x1)
++#define SPI_CONTROL_BITCOUNT_3	(0x2)
++#define SPI_CONTROL_BITCOUNT_4	(0x3)
++#define SPI_CONTROL_BITCOUNT_5	(0x4)
++#define SPI_CONTROL_BITCOUNT_6	(0x5)
++#define SPI_CONTROL_BITCOUNT_7	(0x6)
++#define SPI_CONTROL_BITCOUNT_8	(0x7)
++#define SPI_CONTROL_BITCOUNT_9	(0x8)
++#define SPI_CONTROL_BITCOUNT_10	(0x9)
++#define SPI_CONTROL_BITCOUNT_11	(0xA)
++#define SPI_CONTROL_BITCOUNT_12	(0xB)
++#define SPI_CONTROL_BITCOUNT_13	(0xC)
++#define SPI_CONTROL_BITCOUNT_14	(0xD)
++#define SPI_CONTROL_BITCOUNT_15	(0xE)
++#define SPI_CONTROL_BITCOUNT_16	(0xF)
++#define SPI_CONTROL_POL		(0x1 << 4)      /* Clock Polarity Mask */
++#define SPI_CONTROL_POL_0	(0x0 << 4)      /* Active high pol. (0=idle) */
++#define SPI_CONTROL_POL_1	(0x1 << 4)      /* Active low pol. (1=idle) */
++#define SPI_CONTROL_PHA		(0x1 << 5)      /* Clock Phase Mask */
++#define SPI_CONTROL_PHA_0	(0x0 << 5)      /* Clock Phase 0 */
++#define SPI_CONTROL_PHA_1	(0x1 << 5)      /* Clock Phase 1 */
++#define SPI_CONTROL_SSCTL	(0x1 << 6)      /* /SS Waveform Select Mask */
++#define SPI_CONTROL_SSCTL_0	(0x0 << 6)      /* Master: /SS stays low
++							between SPI burst
++						   Slave: RXFIFO advanced by
++							BIT_COUNT */
++#define SPI_CONTROL_SSCTL_1	(0x1 << 6)      /* Master: /SS insert pulse
++							between SPI burst
++						   Slave: RXFIFO advanced by
++							/SS rising edge */
++#define SPI_CONTROL_SSPOL	(0x1 << 7)      /* /SS Polarity Select Mask */
++#define SPI_CONTROL_SSPOL_0	(0x0 << 7)      /* /SS Active low */
++#define SPI_CONTROL_SSPOL_1	(0x1 << 7)      /* /SS Active high */
++#define SPI_CONTROL_XCH		(0x1 << 8)      /* Exchange */
++#define SPI_CONTROL_SPIEN	(0x1 << 9)      /* SPI Module Enable */
++#define SPI_CONTROL_MODE	(0x1 << 10)     /* SPI Mode Select Mask */
++#define SPI_CONTROL_MODE_SLAVE	(0x0 << 10)     /* SPI Mode Slave */
++#define SPI_CONTROL_MODE_MASTER	(0x1 << 10)     /* SPI Mode Master */
++#define SPI_CONTROL_DRCTL	(0x3 << 11)     /* /SPI_RDY Control Mask */
++#define SPI_CONTROL_DRCTL_0	(0x0 << 11)     /* Ignore /SPI_RDY */
++#define SPI_CONTROL_DRCTL_1	(0x1 << 11)     /* /SPI_RDY falling edge
++							triggers input */
++#define SPI_CONTROL_DRCTL_2	(0x2 << 11)     /* /SPI_RDY active low level
++							triggers input */
++#define SPI_CONTROL_DATARATE	(0x7 << 13)     /* Data Rate Mask */
++#define SPI_PERCLK2_DIV_MIN		(0)	/* PERCLK2:4 */
++#define SPI_PERCLK2_DIV_MAX		(7)	/* PERCLK2:512 */
 +#define SPI_CONTROL_DATARATE_MIN	(SPI_PERCLK2_DIV_MAX << 13)
 +#define SPI_CONTROL_DATARATE_MAX	(SPI_PERCLK2_DIV_MIN << 13)
 +#define SPI_CONTROL_DATARATE_BAD	(SPI_CONTROL_DATARATE_MIN + 1)
@@ -229,8 +240,8 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +/* Default SPI configuration values */
 +#define SPI_DEFAULT_CONTROL		\
 +(					\
-+	SPI_CONTROL_BITCOUNT(16) | 	\
-+	SPI_CONTROL_POL_ACT_HIGH |	\
++	SPI_CONTROL_BITCOUNT_16 | 	\
++	SPI_CONTROL_POL_0 |		\
 +	SPI_CONTROL_PHA_0 |		\
 +	SPI_CONTROL_SPIEN |		\
 +	SPI_CONTROL_SSCTL_0 |		\
@@ -253,9 +264,9 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +#define SPI_DMA_BLR			(SPI_FIFO_DEPTH * SPI_FIFO_BYTE_WIDTH / 2)
 +
 +/* Dummy char output to achieve reads.
-+   Choosing something different from all zeroes may help pattern recogition
-+   for oscilloscope analysis, but may break some drivers. */
-+#define SPI_DUMMY_u8			0
++   Choosing something different from all zeors or all ones may help
++   pattern recognition for oscilloscope analysis. */
++#define SPI_DUMMY_u8			('@')
 +#define SPI_DUMMY_u16			((SPI_DUMMY_u8 << 8) | SPI_DUMMY_u8)
 +#define SPI_DUMMY_u32			((SPI_DUMMY_u16 << 16) | SPI_DUMMY_u16)
 +
@@ -548,8 +559,8 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +	drv_data->tx_dma_needs_unmap = 0;
 +
 +	if (!drv_data->master_info->enable_dma ||
-+		!drv_data->cur_chip->enable_dma)
-+			return -1;
++			!drv_data->cur_chip->enable_dma)
++		return 0;
 +
 +	msg = drv_data->cur_msg;
 +	dev = &msg->spi->dev;
@@ -559,7 +570,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +			   address for write; pump_transfers() will consider the
 +			   transfer as write only if cpu rx virtual address is
 +			   NULL */
-+			return 0;
++			return 1;
 +
 +		if (drv_data->rx_dma) {
 +			/* The caller provided dma and cpu virtual address to
@@ -573,7 +584,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +							drv_data->tx_map_len,
 +							DMA_TO_DEVICE);
 +			if (dma_mapping_error(drv_data->tx_dma))
-+				return -1;
++				return 0;
 +
 +			drv_data->tx_dma_needs_unmap = 1;
 +
@@ -581,12 +592,12 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +			   regs programming (should be redundant) */
 +			drv_data->tx = NULL;
 +
-+			return 0;
++			return 1;
 +		}
 +	}
 +
 +	if (!IS_DMA_ALIGNED(drv_data->rx) || !IS_DMA_ALIGNED(drv_data->tx))
-+		return -1;
++		return 0;
 +
 +	/* NULL rx means write-only transfer and no map needed
 +	   since rx DMA will not be used */
@@ -598,7 +609,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +					drv_data->len,
 +					DMA_FROM_DEVICE);
 +		if (dma_mapping_error(drv_data->rx_dma))
-+			return -1;
++			return 0;
 +		drv_data->rx_dma_needs_unmap = 1;
 +	}
 +
@@ -623,11 +634,11 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +					DMA_FROM_DEVICE);
 +			drv_data->rx_dma_needs_unmap = 0;
 +		}
-+		return -1;
++		return 0;
 +	}
 +	drv_data->tx_dma_needs_unmap = 1;
 +
-+	return 0;
++	return 1;
 +}
 +
 +static void unmap_dma_buffers(struct driver_data *drv_data)
@@ -1027,7 +1038,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +	} else
 +		/* Use per-transfer setup */
 +		drv_data->n_bytes = (tmp <= 8) ? 1 : 2;
-+	u32_EDIT(control, SPI_CONTROL_BITCOUNT_MASK, tmp - 1);
++	u32_EDIT(control, SPI_CONTROL_BITCOUNT, tmp - 1);
 +
 +	/* Speed setup (surely valid because already checked) */
 +	tmp = transfer->speed_hz;
@@ -1047,7 +1058,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +	   byte size. */
 +	if ((drv_data->n_bytes == 2) &&
 +		(drv_data->len > SPI_FIFO_DEPTH*SPI_FIFO_BYTE_WIDTH) &&
-+		(map_dma_buffers(drv_data) == 0)) {
++		map_dma_buffers(drv_data)) {
 +		dev_dbg(&drv_data->pdev->dev,
 +			"pump dma transfer\n"
 +			"    tx      = %p\n"
@@ -1330,7 +1341,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +	}
 +	if (tmp & SPI_CS_HIGH) {
 +		u32_EDIT(chip->control,
-+				SPI_CONTROL_SSPOL, SPI_CONTROL_SSPOL_ACT_HIGH);
++				SPI_CONTROL_SSPOL, SPI_CONTROL_SSPOL_1);
 +	}
 +	switch (tmp & SPI_MODE_3) {
 +	case SPI_MODE_0:
@@ -1340,11 +1351,11 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +		tmp = SPI_CONTROL_PHA_1;
 +		break;
 +	case SPI_MODE_2:
-+		tmp = SPI_CONTROL_POL_ACT_LOW;
++		tmp = SPI_CONTROL_POL_1;
 +		break;
 +	default:
 +		/* SPI_MODE_3 */
-+		tmp = SPI_CONTROL_PHA_1 | SPI_CONTROL_POL_ACT_LOW;
++		tmp = SPI_CONTROL_PHA_1 | SPI_CONTROL_POL_1;
 +		break;
 +	}
 +	u32_EDIT(chip->control, SPI_CONTROL_POL | SPI_CONTROL_PHA, tmp);
@@ -1369,7 +1380,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +		}
 +	}
 +	chip->bits_per_word = tmp;
-+	u32_EDIT(chip->control, SPI_CONTROL_BITCOUNT_MASK, tmp - 1);
++	u32_EDIT(chip->control, SPI_CONTROL_BITCOUNT, tmp - 1);
 +	chip->n_bytes = (tmp <= 8) ? 1 : 2;
 +
 +	/* SPI datarate */
@@ -1386,7 +1397,7 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +			goto err_first_setup;
 +		else
 +			/* Undo setup using chip as backup copy */
-+			spi->max_speed_hz = chip->max_speed_hz;
++			spi->max_speed_hz = spi_data_rate(chip->max_speed_hz);
 +	} else {
 +		u32_EDIT(chip->control, SPI_CONTROL_DATARATE, tmp);
 +		/* Actual rounded max_speed_hz */
@@ -1609,7 +1620,6 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +			dev_err(dev,
 +				"probe - problem (%d) requesting tx channel\n",
 +				status);
-+			imx_dma_free(drv_data->rx_channel);
 +			goto err_no_txdma;
 +		} else
 +			imx_dma_setup_handlers(drv_data->tx_channel,
@@ -1629,10 +1639,8 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +			RSSR(drv_data->tx_channel) = DMA_REQ_SPI2_T;
 +			break;
 +		default:
-+			dev_err(dev, "probe - bad SPI Id\n");
-+			imx_dma_free(drv_data->rx_channel);
-+			imx_dma_free(drv_data->tx_channel);
 +			status = -ENODEV;
++			dev_err(dev, "probe - bad SPI Id\n");
 +			goto err_no_devid;
 +		}
 +		BLR(drv_data->rx_channel) = SPI_DMA_BLR;
@@ -1672,9 +1680,13 @@ diff -puN /dev/null drivers/spi/spi_imx.c
 +err_spi_register:
 +	destroy_queue(drv_data);
 +
-+err_no_rxdma:
-+err_no_txdma:
 +err_no_devid:
++	imx_dma_free(drv_data->tx_channel);
++
++err_no_txdma:
++	imx_dma_free(drv_data->rx_channel);
++
++err_no_rxdma:
 +	free_irq(irq, drv_data);
 +
 +err_no_irqres:
