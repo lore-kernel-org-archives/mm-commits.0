@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + x86_64-2048-byte-command-line.patch added to -mm tree
-Date: Thu, 25 Jan 2007 19:26:52 -0800
-Message-ID: <200701260326.l0Q3Qqc7006335@shell0.pdx.osdl.net>
+Subject: + ia64-2048-byte-command-line.patch added to -mm tree
+Date: Thu, 25 Jan 2007 19:26:54 -0800
+Message-ID: <200701260326.l0Q3QsuE006338@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43363 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43364 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030721AbXAZD05 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030725AbXAZD05 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 25 Jan 2007 22:26:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alon.barlev@gmail.com, ak@suse.de
+Cc: alon.barlev@gmail.com, tony.luck@intel.com
 
 
 The patch titled
-     x86_64: 2048-byte command line
+     ia64: 2048-byte command line
 has been added to the -mm tree.  Its filename is
-     x86_64-2048-byte-command-line.patch
+     ia64-2048-byte-command-line.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: 2048-byte command line
+Subject: ia64: 2048-byte command line
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
 Current implementation allows the kernel to receive up to 255 characters from
@@ -42,21 +42,21 @@ accepted, we can extend the COMMAND_LINE_SIZE without runtime memory
 requirements.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-x86_64/setup.h |    2 +-
+ include/asm-ia64/setup.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86_64/setup.h~x86_64-2048-byte-command-line include/asm-x86_64/setup.h
---- a/include/asm-x86_64/setup.h~x86_64-2048-byte-command-line
-+++ a/include/asm-x86_64/setup.h
+diff -puN include/asm-ia64/setup.h~ia64-2048-byte-command-line include/asm-ia64/setup.h
+--- a/include/asm-ia64/setup.h~ia64-2048-byte-command-line
++++ a/include/asm-ia64/setup.h
 @@ -1,6 +1,6 @@
- #ifndef _x8664_SETUP_H
- #define _x8664_SETUP_H
+ #ifndef __IA64_SETUP_H
+ #define __IA64_SETUP_H
  
--#define COMMAND_LINE_SIZE	256
+-#define COMMAND_LINE_SIZE	512
 +#define COMMAND_LINE_SIZE	2048
  
  #endif
