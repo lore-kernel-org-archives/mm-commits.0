@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-state-based-method-aging-accounting-vs-zvc-changes.patch added to -mm tree
-Date: Fri, 26 Jan 2007 14:04:58 -0800
-Message-ID: <200701262204.l0QM4wjX027794@shell0.pdx.osdl.net>
+Subject: + use-zvc-for-free_pages-fix-3.patch added to -mm tree
+Date: Fri, 26 Jan 2007 14:07:53 -0800
+Message-ID: <200701262207.l0QM7rqe027866@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57151 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57205 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752192AbXAZWFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 17:05:01 -0500
+	id S1030247AbXAZWHz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 17:07:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: clameter@sgi.com
 The patch titled
      ZVC writeback: Fix mm and other issues
 has been added to the -mm tree.  Its filename is
-     readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+     use-zvc-for-free_pages-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -34,28 +34,22 @@ Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~readahead-state-based-method-aging-accounting-vs-zvc-changes mm/page_alloc.c
---- a/mm/page_alloc.c~readahead-state-based-method-aging-accounting-vs-zvc-changes
+diff -puN mm/page_alloc.c~use-zvc-for-free_pages-fix-3 mm/page_alloc.c
+--- a/mm/page_alloc.c~use-zvc-for-free_pages-fix-3
 +++ a/mm/page_alloc.c
-@@ -1507,12 +1507,12 @@ unsigned int nr_free_pagecache_pages(voi
- unsigned long nr_free_inactive_pages_node(int nid)
- {
- 	enum zone_type i;
--	unsigned long sum = 0;
-+	unsigned long sum = node_page_state(nid, NR_FREE_PAGES)
-+				+ node_page_state(nid, NR_INACTIVE);
- 	struct zone *zones = NODE_DATA(nid)->node_zones;
- 
- 	for (i = 0; i < MAX_NR_ZONES; i++)
--		sum += zones[i].nr_inactive +
--			zones[i].free_pages - zones[i].pages_low;
-+		sum -= zones[i].pages_low;
- 
- 	return sum;
- }
+@@ -1522,7 +1522,8 @@ void si_meminfo_node(struct sysinfo *val
+ 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
+ #ifdef CONFIG_HIGHMEM
+ 	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].present_pages;
+-	val->freehigh = pgdat->node_zones[ZONE_HIGHMEM].free_pages;
++	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
++			NR_FREE_PAGES);
+ #else
+ 	val->totalhigh = 0;
+ 	val->freehigh = 0;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -65,6 +59,7 @@ use-zvc-for-inactive-and-active-counts.patch
 use-zvc-for-free_pages.patch
 use-zvc-for-free_pages-fix.patch
 use-zvc-for-free_pages-fix-2.patch
+use-zvc-for-free_pages-fix-3.patch
 reorder-zvcs-according-to-cacheline.patch
 drop-free_pages.patch
 drop-nr_free_pages_pgdat.patch
