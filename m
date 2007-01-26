@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + user_ns-handle-file-sigio-fix-2.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:06:47 -0800
-Message-ID: <200701260606.l0Q66lEq008975@shell0.pdx.osdl.net>
+Subject: + drop-__get_zone_counts.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:16:45 -0800
+Message-ID: <200701260616.l0Q6Gjme009162@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47466 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47740 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751201AbXAZGIT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:08:19 -0500
+	id S1030783AbXAZGQr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:16:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at
+Cc: clameter@sgi.com
 
 
 The patch titled
-     user namespace: remove exceptions for initial namespace
+     Drop __get_zone_counts()
 has been added to the -mm tree.  Its filename is
-     user_ns-handle-file-sigio-fix-2.patch
+     drop-__get_zone_counts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,89 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user namespace: remove exceptions for initial namespace
-From: Serge E. Hallyn <serue@us.ibm.com>
+Subject: Drop __get_zone_counts()
+From: Christoph Lameter <clameter@sgi.com>
 
-Both sigio and file access checks for user namespace equivalence were being
-skipped for processes in the initial namespace.  Remove these exceptions,
-enforcing the same cross-namespace checks for all processes in all user
-namespaces.
+Values are readily available via ZVC per node and global sums.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/fcntl.c            |    3 +--
- include/linux/sched.h |    4 +---
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/base/node.c    |    9 ++-------
+ include/linux/mmzone.h |    2 --
+ mm/readahead.c         |    8 ++------
+ mm/vmstat.c            |    8 --------
+ 4 files changed, 4 insertions(+), 23 deletions(-)
 
-diff -puN fs/fcntl.c~user_ns-handle-file-sigio-fix-2 fs/fcntl.c
---- a/fs/fcntl.c~user_ns-handle-file-sigio-fix-2
-+++ a/fs/fcntl.c
-@@ -460,8 +460,7 @@ static const long band_table[NSIGPOLL] =
- static inline int sigio_perm(struct task_struct *p,
-                              struct fown_struct *fown, int sig)
+diff -puN drivers/base/node.c~drop-__get_zone_counts drivers/base/node.c
+--- a/drivers/base/node.c~drop-__get_zone_counts
++++ a/drivers/base/node.c
+@@ -40,13 +40,8 @@ static ssize_t node_read_meminfo(struct 
+ 	int n;
+ 	int nid = dev->id;
+ 	struct sysinfo i;
+-	unsigned long inactive;
+-	unsigned long active;
+-	unsigned long free;
+ 
+ 	si_meminfo_node(&i, nid);
+-	__get_zone_counts(&active, &inactive, &free, NODE_DATA(nid));
+-
+ 
+ 	n = sprintf(buf, "\n"
+ 		       "Node %d MemTotal:     %8lu kB\n"
+@@ -74,8 +69,8 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(i.totalram),
+ 		       nid, K(i.freeram),
+ 		       nid, K(i.totalram - i.freeram),
+-		       nid, K(active),
+-		       nid, K(inactive),
++		       nid, node_page_state(nid, NR_ACTIVE),
++		       nid, node_page_state(nid, NR_INACTIVE),
+ #ifdef CONFIG_HIGHMEM
+ 		       nid, K(i.totalhigh),
+ 		       nid, K(i.freehigh),
+diff -puN include/linux/mmzone.h~drop-__get_zone_counts include/linux/mmzone.h
+--- a/include/linux/mmzone.h~drop-__get_zone_counts
++++ a/include/linux/mmzone.h
+@@ -444,8 +444,6 @@ typedef struct pglist_data {
+ 
+ #include <linux/memory_hotplug.h>
+ 
+-void __get_zone_counts(unsigned long *active, unsigned long *inactive,
+-			unsigned long *free, struct pglist_data *pgdat);
+ void get_zone_counts(unsigned long *active, unsigned long *inactive,
+ 			unsigned long *free);
+ void build_all_zonelists(void);
+diff -puN mm/readahead.c~drop-__get_zone_counts mm/readahead.c
+--- a/mm/readahead.c~drop-__get_zone_counts
++++ a/mm/readahead.c
+@@ -574,10 +574,6 @@ void handle_ra_miss(struct address_space
+  */
+ unsigned long max_sane_readahead(unsigned long nr)
  {
--	if (fown->user_ns != init_task.nsproxy->user_ns &&
--				fown->user_ns != p->nsproxy->user_ns)
-+	if (fown->user_ns != p->nsproxy->user_ns)
- 		return 0;
- 	return (((fown->euid == 0) ||
- 		 (fown->euid == p->suid) || (fown->euid == p->uid) ||
-diff -puN include/linux/sched.h~user_ns-handle-file-sigio-fix-2 include/linux/sched.h
---- a/include/linux/sched.h~user_ns-handle-file-sigio-fix-2
-+++ a/include/linux/sched.h
-@@ -1609,12 +1609,10 @@ extern int cond_resched_softirq(void);
- static inline int task_mnt_same_uidns(struct task_struct *tsk,
- 					struct vfsmount *mnt)
- {
--	if (tsk->nsproxy == init_task.nsproxy)
-+	if (mnt->mnt_user_ns == tsk->nsproxy->user_ns)
- 		return 1;
-  	if (mnt->mnt_flags & MNT_SHARE_NS)
-  		return 1;
--	if (mnt->mnt_user_ns == tsk->nsproxy->user_ns)
--		return 1;
- 	return 0;
+-	unsigned long active;
+-	unsigned long inactive;
+-	unsigned long free;
+-
+-	__get_zone_counts(&active, &inactive, &free, NODE_DATA(numa_node_id()));
+-	return min(nr, (inactive + free) / 2);
++	return min(nr, (node_page_state(numa_node_id(), NR_INACTIVE)
++		+ node_page_state(numa_node_id(), NR_FREE_PAGES)) / 2);
  }
- #else
+diff -puN mm/vmstat.c~drop-__get_zone_counts mm/vmstat.c
+--- a/mm/vmstat.c~drop-__get_zone_counts
++++ a/mm/vmstat.c
+@@ -13,14 +13,6 @@
+ #include <linux/module.h>
+ #include <linux/cpu.h>
+ 
+-void __get_zone_counts(unsigned long *active, unsigned long *inactive,
+-			unsigned long *free, struct pglist_data *pgdat)
+-{
+-	*active = node_page_state(pgdat->node_id, NR_ACTIVE);
+-	*inactive = node_page_state(pgdat->node_id, NR_INACTIVE);
+-	*free = node_page_state(pgdat->node_id, NR_FREE_PAGES);
+-}
+-
+ void get_zone_counts(unsigned long *active,
+ 		unsigned long *inactive, unsigned long *free)
+ {
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-fix-null-nsproxy-dereference-in-proc-mounts.patch
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-introduce-and-use-get_task_mnt_ns.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-nsproxy-externalizes-exit_task_namespaces.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-the-framework-fix.patch
-user-namespace-add-the-framework-fixes.patch
-user-ns-add-user_namespace-ptr-to-vfsmount.patch
-user-ns-add-user_namespace-ptr-to-vfsmount-fixes.patch
-user-ns-hook-permission.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
-user-ns-implement-shared-mounts.patch
-user-ns-implement-shared-mounts-fixes.patch
-user_ns-handle-file-sigio.patch
-user_ns-handle-file-sigio-fix.patch
-user_ns-handle-file-sigio-fix-2.patch
-user-ns-implement-user-ns-unshare.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-rename-attach_pid-to-find_attach_pid.patch
-attach_pid-with-struct-pid-parameter.patch
-remove-find_attach_pid.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-sid-of-init.patch
-uts-namespace-remove-config_uts_ns.patch
-ipc-namespace-remove-config_ipc_ns.patch
-integrity-service-api-and-dummy-provider-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
+mbind-restrict-nodes-to-the-currently-allowed-cpuset.patch
+slab-cache_grow-cleanup.patch
+use-zvc-for-inactive-and-active-counts.patch
+use-zvc-for-free_pages.patch
+reorder-zvcs-according-to-cacheline.patch
+drop-free_pages.patch
+drop-nr_free_pages_pgdat.patch
+drop-__get_zone_counts.patch
+drop-get_zone_counts.patch
+fix-writeback-calculation.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
