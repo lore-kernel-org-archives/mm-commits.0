@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fix-apparent-typo-config_usb_cdcether.patch added to -mm tree
-Date: Thu, 25 Jan 2007 22:23:57 -0800
-Message-ID: <200701260623.l0Q6Nvan009306@shell0.pdx.osdl.net>
+Subject: + dlm-gfs2-use-sysfs.patch added to -mm tree
+Date: Thu, 25 Jan 2007 22:24:55 -0800
+Message-ID: <200701260624.l0Q6Ot96009322@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47937 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47977 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030786AbXAZGYA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 01:24:00 -0500
+	id S1030789AbXAZGZF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 01:25:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, greg@kroah.com
+Cc: randy.dunlap@oracle.com, swhiteho@redhat.com
 
 
 The patch titled
-     Fix apparent typo CONFIG_USB_CDCETHER
+     dlm & gfs2: use sysfs
 has been added to the -mm tree.  Its filename is
-     fix-apparent-typo-config_usb_cdcether.patch
+     dlm-gfs2-use-sysfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix apparent typo CONFIG_USB_CDCETHER
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: dlm & gfs2: use sysfs
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Replace the apparent typo CONFIG_USB_CDCETHER with CONFIG_USB_NET_CDCETHER.
+With CONFIG_DLM=m, CONFIG_PROC_FS=n, and CONFIG_SYSFS=n, kernel build
+fails with:
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Greg KH <greg@kroah.com>
+WARNING: "kernel_subsys" [fs/gfs2/locking/dlm/lock_dlm.ko] undefined!
+WARNING: "kernel_subsys" [fs/dlm/dlm.ko] undefined!
+WARNING: "kernel_subsys" [fs/configfs/configfs.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+
+Since fs/dlm/lockspace.c and fs/gfs2/locking/dlm/sysfs.c use
+kernel_subsys, they should either DEPEND on it or SELECT it.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/core/otg_whitelist.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dlm/Kconfig  |    1 +
+ fs/gfs2/Kconfig |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/usb/core/otg_whitelist.h~fix-apparent-typo-config_usb_cdcether drivers/usb/core/otg_whitelist.h
---- a/drivers/usb/core/otg_whitelist.h~fix-apparent-typo-config_usb_cdcether
-+++ a/drivers/usb/core/otg_whitelist.h
-@@ -31,7 +31,7 @@ static struct usb_device_id whitelist_ta
- { USB_DEVICE_INFO(7, 1, 3) },
- #endif
+diff -puN fs/dlm/Kconfig~dlm-gfs2-use-sysfs fs/dlm/Kconfig
+--- a/fs/dlm/Kconfig~dlm-gfs2-use-sysfs
++++ a/fs/dlm/Kconfig
+@@ -5,6 +5,7 @@ config DLM
+ 	tristate "Distributed Lock Manager (DLM)"
+ 	depends on IPV6 || IPV6=n
+ 	select CONFIGFS_FS
++	select SYSFS
+ 	select IP_SCTP if DLM_SCTP
+ 	help
+ 	A general purpose distributed lock manager for kernel or userspace
+diff -puN fs/gfs2/Kconfig~dlm-gfs2-use-sysfs fs/gfs2/Kconfig
+--- a/fs/gfs2/Kconfig~dlm-gfs2-use-sysfs
++++ a/fs/gfs2/Kconfig
+@@ -38,6 +38,7 @@ config GFS2_FS_LOCKING_DLM
+ 	select IP_SCTP if DLM_SCTP
+ 	select CONFIGFS_FS
+ 	select DLM
++	select SYSFS
+ 	help
+ 	Multiple node locking module for GFS2
  
--#ifdef	CONFIG_USB_CDCETHER
-+#ifdef	CONFIG_USB_NET_CDCETHER
- /* Linux-USB CDC Ethernet gadget */
- { USB_DEVICE(0x0525, 0xa4a1), },
- /* Linux-USB CDC Ethernet + RNDIS gadget */
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 fix-various-kernel-doc-in-header-files.patch
-fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
 git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-fix-apparent-typo-config_serial_cpm_smc.patch
-remove-the-unused-kernel-config-option-video_videobuf.patch
-remove-unused-kernel-config-option-dlci_count.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-uml-fix-apparent-config_64_bit-typo.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+dlm-gfs2-use-sysfs.patch
+parisc-fix-module_param-iommu-permission.patch
+git-scsi-misc.patch
+math-emu-setcc-avoid-gcc-extension.patch
+docbook-html-correction-of-recursive-a-tags-in-html-output.patch
+kernel-doc-allow-a-little-whitespace.patch
+sysrq-showblockedtasks-is-sysrq-w.patch
+sysrq-alphabetize-command-keys-doc.patch
+kernel-doc-allow-more-whitespace.patch
 discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+docbook-add-edd-firmware-interfaces.patch
+kernel-doc-fix-some-odd-spacing-issues.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
