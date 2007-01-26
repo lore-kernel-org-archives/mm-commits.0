@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + local_t-mips-extension-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 13:04:13 -0800
-Message-ID: <200701262104.l0QL4DPH026494@shell0.pdx.osdl.net>
+Subject: + bonding-arp-monitoring-broken-on-x86_64.patch added to -mm tree
+Date: Fri, 26 Jan 2007 13:09:54 -0800
+Message-ID: <200701262109.l0QL9sx1026592@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55362 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55458 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146AbXAZVHi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 16:07:38 -0500
+	id S1752150AbXAZVKH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 16:10:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
+Cc: andy@greyhouse.net, davem@davemloft.net, jeff@garzik.org, shemminger@osdl.org
 
 
 The patch titled
-     local_t-mips-extension fix
+     bonding: ARP monitoring broken on x86_64
 has been added to the -mm tree.  Its filename is
-     local_t-mips-extension-fix.patch
+     bonding-arp-monitoring-broken-on-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,289 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t-mips-extension fix
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: bonding: ARP monitoring broken on x86_64
+From: Andy Gospodarek <andy@greyhouse.net>
 
-Correction of MIPS variables and config options.
+While working with the latest bonding code I noticed a nasty problem that
+will prevent arp monitoring from always functioning correctly on x86_64
+systems.  Comparing ints to longs and expecting reliable results on x86_64
+is a bad idea.  With this patch, arp monitoring works correctly again.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Andy Gospodarek <andy@greyhouse.net>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-mips/local.h |   85 ++++++++++++++++++-------------------
- 1 files changed, 43 insertions(+), 42 deletions(-)
+ drivers/net/bonding/bonding.h |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-mips/local.h~local_t-mips-extension-fix include/asm-mips/local.h
---- a/include/asm-mips/local.h~local_t-mips-extension-fix
-+++ a/include/asm-mips/local.h
-@@ -1,8 +1,9 @@
--#ifndef _ARCH_POWERPC_LOCAL_H
--#define _ARCH_POWERPC_LOCAL_H
-+#ifndef _ARCH_MIPS_LOCAL_H
-+#define _ARCH_MIPSRPC_LOCAL_H
+diff -puN drivers/net/bonding/bonding.h~bonding-arp-monitoring-broken-on-x86_64 drivers/net/bonding/bonding.h
+--- a/drivers/net/bonding/bonding.h~bonding-arp-monitoring-broken-on-x86_64
++++ a/drivers/net/bonding/bonding.h
+@@ -151,8 +151,8 @@ struct slave {
+ 	struct slave *next;
+ 	struct slave *prev;
+ 	int    delay;
+-	u32    jiffies;
+-	u32    last_arp_rx;
++	unsigned long jiffies;
++	unsigned long last_arp_rx;
+ 	s8     link;    /* one of BOND_LINK_XXXX */
+ 	s8     state;   /* one of BOND_STATE_XXXX */
+ 	u32    original_flags;
+@@ -243,7 +243,8 @@ static inline int slave_do_arp_validate(
+ 	return bond->params.arp_validate & (1 << slave->state);
+ }
  
- #include <linux/percpu.h>
- #include <asm/atomic.h>
-+#include <asm/war.h>
- 
- typedef struct
+-static inline u32 slave_last_rx(struct bonding *bond, struct slave *slave)
++static inline unsigned long slave_last_rx(struct bonding *bond,
++					struct slave *slave)
  {
-@@ -20,7 +21,7 @@ typedef struct
- #define local_dec(l)	local_long_dec(&(l)->a)
- 
- 
--#ifndef CONFIG_64BITS
-+#ifndef CONFIG_64BIT
- 
- /*
-  * Same as above, but return the result value
-@@ -40,8 +41,8 @@ static __inline__ int local_add_return(i
- 		"	beqzl	%0, 1b					\n"
- 		"	addu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else if (cpu_has_llsc) {
- 		unsigned long temp;
-@@ -54,16 +55,16 @@ static __inline__ int local_add_return(i
- 		"	beqz	%0, 1b					\n"
- 		"	addu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else {
- 		unsigned long flags;
- 
- 		local_irq_save(flags);
--		result = &(l->a.counter);
-+		result = l->a.counter;
- 		result += i;
--		&(l->a.counter) = result;
-+		l->a.counter = result;
- 		local_irq_restore(flags);
- 	}
- 
-@@ -85,8 +86,8 @@ static __inline__ int local_sub_return(i
- 		"	beqzl	%0, 1b					\n"
- 		"	subu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else if (cpu_has_llsc) {
- 		unsigned long temp;
-@@ -99,16 +100,16 @@ static __inline__ int local_sub_return(i
- 		"	beqz	%0, 1b					\n"
- 		"	subu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else {
- 		unsigned long flags;
- 
- 		local_irq_save(flags);
--		result = &(l->a.counter);
-+		result = l->a.counter;
- 		result -= i;
--		&(l->a.counter) = result;
-+		l->a.counter = result;
- 		local_irq_restore(flags);
- 	}
- 
-@@ -142,8 +143,8 @@ static __inline__ int local_sub_if_posit
- 		"	.set	reorder					\n"
- 		"1:							\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else if (cpu_has_llsc) {
- 		unsigned long temp;
-@@ -160,17 +161,17 @@ static __inline__ int local_sub_if_posit
- 		"	.set	reorder					\n"
- 		"1:							\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else {
- 		unsigned long flags;
- 
- 		local_irq_save(flags);
--		result = &(l->a.counter);
-+		result = l->a.counter;
- 		result -= i;
- 		if (result >= 0)
--			&(l->a.counter) = result;
-+			l->a.counter = result;
- 		local_irq_restore(flags);
- 	}
- 
-@@ -251,7 +252,7 @@ static __inline__ int local_sub_if_posit
-  */
- #define local_add_negative(i,l) (local_add_return(i, (l)) < 0)
- 
--#else /* CONFIG_64BITS */
-+#else /* CONFIG_64BIT */
- 
- /*
-  * Same as above, but return the result value
-@@ -271,8 +272,8 @@ static __inline__ long local_add_return(
- 		"	beqzl	%0, 1b					\n"
- 		"	addu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else if (cpu_has_llsc) {
- 		unsigned long temp;
-@@ -285,16 +286,16 @@ static __inline__ long local_add_return(
- 		"	beqz	%0, 1b					\n"
- 		"	addu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else {
- 		unsigned long flags;
- 
- 		local_irq_save(flags);
--		result = &(l->a.counter);
-+		result = l->a.counter;
- 		result += i;
--		&(l->a.counter) = result;
-+		l->a.counter = result;
- 		local_irq_restore(flags);
- 	}
- 
-@@ -316,8 +317,8 @@ static __inline__ long local_sub_return(
- 		"	beqzl	%0, 1b					\n"
- 		"	subu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else if (cpu_has_llsc) {
- 		unsigned long temp;
-@@ -330,16 +331,16 @@ static __inline__ long local_sub_return(
- 		"	beqz	%0, 1b					\n"
- 		"	subu	%0, %1, %3				\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else {
- 		unsigned long flags;
- 
- 		local_irq_save(flags);
--		result = &(l->a.counter);
-+		result = l->a.counter;
- 		result -= i;
--		&(l->a.counter) = result;
-+		l->a.counter = result;
- 		local_irq_restore(flags);
- 	}
- 
-@@ -373,8 +374,8 @@ static __inline__ long local_sub_if_posi
- 		"	.set	reorder					\n"
- 		"1:							\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else if (cpu_has_llsc) {
- 		unsigned long temp;
-@@ -391,17 +392,17 @@ static __inline__ long local_sub_if_posi
- 		"	.set	reorder					\n"
- 		"1:							\n"
- 		"	.set	mips0					\n"
--		: "=&r" (result), "=&r" (temp), "=m" (&(l->a.counter))
--		: "Ir" (i), "m" (&(l->a.counter))
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
- 		: "memory");
- 	} else {
- 		unsigned long flags;
- 
- 		local_irq_save(flags);
--		result = &(l->a.counter);
-+		result = l->a.counter;
- 		result -= i;
- 		if (result >= 0)
--			&(l->a.counter) = result;
-+			l->a.counter = result;
- 		local_irq_restore(flags);
- 	}
- 
-@@ -483,7 +484,7 @@ static __inline__ long local_sub_if_posi
-  */
- #define local_add_negative(i,l) (local_add_return(i, (l)) < 0)
- 
--#endif /* !CONFIG_64BITS */
-+#endif /* !CONFIG_64BIT */
- 
- 
- /* Use these for per-cpu local_t variables: on some archs they are
-@@ -521,4 +522,4 @@ static __inline__ long local_sub_if_posi
- #define __cpu_local_add(i, l)	cpu_local_add((i), (l))
- #define __cpu_local_sub(i, l)	cpu_local_sub((i), (l))
- 
--#endif /* _ARCH_POWERPC_LOCAL_H */
-+#endif /* _ARCH_MIPS_LOCAL_H */
+ 	if (slave_do_arp_validate(bond, slave))
+ 		return slave->last_arp_rx;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from andy@greyhouse.net are
 
-relay-add-cpu-hotplug-support.patch
-local_t-documentation.patch
-local_t-documentation-fix.patch
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
-atomich-complete-atomic_long-operations-in-asm-generic.patch
-atomich-complete-atomic_long-operations-in-asm-generic-fix.patch
-atomich-complete-atomic_long-operations-in-asm-generic-fix-2.patch
-atomich-i386-type-safety-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-local_t-architecture-independent-extension.patch
-local_t-alpha-extension.patch
-local_t-i386-extension.patch
-local_t-ia64-extension.patch
-local_t-mips-extension.patch
-local_t-mips-extension-fix.patch
-local_t-parisc-cleanup.patch
-local_t-powerpc-extension.patch
-local_t-s390-cleanup.patch
-local_t-sparc64-cleanup.patch
-local_t-x86_64-extension.patch
+bonding-arp-monitoring-broken-on-x86_64.patch
