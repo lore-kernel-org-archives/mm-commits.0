@@ -1,60 +1,73 @@
 From: akpm@osdl.org
-Subject: - kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:23 -0800
-Message-ID: <200701260751.l0Q7pNVg010721@shell0.pdx.osdl.net>
+Subject: - fix-blk_direct_io-bio-preparation.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:35 -0800
+Message-ID: <200701260751.l0Q7pZt6010741@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50461 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50466 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030809AbXAZHvf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:35 -0500
+	id S1030810AbXAZHvh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: kenneth.w.chen@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: make sure there is a vcpu context loaded when destroying the mmu
+     fix blk_direct_IO bio preparation
 has been removed from the -mm tree.  Its filename was
-     kvm-make-sure-there-is-a-vcpu-context-loaded-when.patch
+     fix-blk_direct_io-bio-preparation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: make sure there is a vcpu context loaded when destroying the mmu
-From: Avi Kivity <avi@qumranet.com>
+Subject: fix blk_direct_IO bio preparation
+From: "Chen, Kenneth W" <kenneth.w.chen@intel.com>
 
-This makes the vmwrite errors on vm shutdown go away.
+For large size DIO that needs multiple bio, one full page worth of data was
+lost at the boundary of bio's maximum sector or segment limits.  After a
+bio is full and got submitted.  The outer while (nbytes) { ...  } loop will
+allocate a new bio and just march on to index into next page.  It just
+forgets about the page that bio_add_page() rejected when previous bio is
+full.  Fix it by put the rejected page back to pvec so we pick it up again
+for the next bio.
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ken Chen <kenneth.w.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/block_dev.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-make-sure-there-is-a-vcpu-context-loaded-when drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-make-sure-there-is-a-vcpu-context-loaded-when
-+++ a/drivers/kvm/kvm_main.c
-@@ -272,7 +272,9 @@ static void kvm_free_physmem(struct kvm 
- 
- static void kvm_free_vcpu(struct kvm_vcpu *vcpu)
- {
-+	vcpu_load(vcpu->kvm, vcpu_slot(vcpu));
- 	kvm_mmu_destroy(vcpu);
-+	vcpu_put(vcpu);
- 	kvm_arch_ops->vcpu_free(vcpu);
+diff -puN fs/block_dev.c~fix-blk_direct_io-bio-preparation fs/block_dev.c
+--- a/fs/block_dev.c~fix-blk_direct_io-bio-preparation
++++ a/fs/block_dev.c
+@@ -190,6 +190,12 @@ static struct page *blk_get_page(unsigne
+ 	return pvec->page[pvec->idx++];
  }
  
++/* return a page back to pvec array */
++static void blk_unget_page(struct page *page, struct pvec *pvec)
++{
++	pvec->page[--pvec->idx] = page;
++}
++
+ static ssize_t
+ blkdev_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
+ 		 loff_t pos, unsigned long nr_segs)
+@@ -278,6 +284,8 @@ same_bio:
+ 				count = min(count, nbytes);
+ 				goto same_bio;
+ 			}
++		} else {
++			blk_unget_page(page, &pvec);
+ 		}
+ 
+ 		/* bio is ready, submit it */
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from kenneth.w.chen@intel.com are
 
-kvm-svm-fix-svm-idt-confusion.patch
-kvm-emulate-ia32_misc_enable-msr.patch
-kvm-mmu-perform-access-checks-in-walk_addr.patch
-kvm-mmu-report-nx-faults-to-the-guest.patch
-kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
-fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
+ia64-alignment-bug-in-ldscript.patch
+aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
