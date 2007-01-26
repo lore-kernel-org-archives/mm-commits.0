@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + git-infiniband-fixup-2.patch added to -mm tree
-Date: Fri, 26 Jan 2007 00:14:59 -0800
-Message-ID: <200701260814.l0Q8ExfN011216@shell0.pdx.osdl.net>
+Subject: + git-infiniband-fixup.patch added to -mm tree
+Date: Fri, 26 Jan 2007 00:21:14 -0800
+Message-ID: <200701260821.l0Q8LE3o011350@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51119 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51349 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030816AbXAZIPH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 03:15:07 -0500
+	id S1030821AbXAZIVU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 03:21:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@osdl.org, rolandd@cisco.com
 
 
 The patch titled
-     git-infiniband-fixup-2
+     git-infiniband-fixup
 has been added to the -mm tree.  Its filename is
-     git-infiniband-fixup-2.patch
+     git-infiniband-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-infiniband-fixup-2
+Subject: git-infiniband-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-Now it does.
+NFI what went wrong here.  Neither version will compile...
 
 Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2 drivers/infiniband/ulp/ipoib/ipoib_ib.c
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup drivers/infiniband/ulp/ipoib/ipoib_ib.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup
 +++ a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -298,6 +298,7 @@ repoll:
- 		n = ib_poll_cq(priv->cq, t, priv->ibwc);
+@@ -282,7 +282,6 @@ static void ipoib_ib_handle_tx_wc(struct
  
- 		for (i = 0; i < n; ++i) {
-+			struct ib_wc *wc = priv->ibwc + i;
- 			if (wc->wr_id & IPOIB_CM_OP_SRQ) {
- 				++done;
- 				--max;
-@@ -305,9 +306,9 @@ repoll:
- 			} if (priv->ibwc[i].wr_id & IPOIB_OP_RECV) {
- 				++done;
- 				--max;
--				ipoib_ib_handle_rx_wc(dev, priv->ibwc + i);
-+				ipoib_ib_handle_rx_wc(dev, wc);
- 			} else
--				ipoib_ib_handle_tx_wc(dev, priv->ibwc + i);
-+				ipoib_ib_handle_tx_wc(dev, wc);
- 		}
+ int ipoib_poll(struct net_device *dev, int *budget)
+ {
+-<<<<<<< .merge_file_Exr08W
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	int max = min(*budget, dev->quota);
+ 	int done;
+@@ -332,14 +331,6 @@ repoll:
+ 	}
  
- 		if (n != t) {
+ 	return 1;
+-=======
+-	if (wc->wr_id & IPOIB_CM_OP_SRQ)
+-		ipoib_cm_handle_rx_wc(dev, wc);
+-	else if (wc->wr_id & IPOIB_OP_RECV)
+-		ipoib_ib_handle_rx_wc(dev, wc);
+-	else
+-		ipoib_ib_handle_tx_wc(dev, wc);
+->>>>>>> .merge_file_QTVZMW
+ }
+ 
+ void ipoib_ib_completion(struct ib_cq *cq, void *dev_ptr)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
