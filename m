@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + local_t-x86_64-extension.patch added to -mm tree
-Date: Thu, 25 Jan 2007 21:47:45 -0800
-Message-ID: <200701260547.l0Q5ljqV008662@shell0.pdx.osdl.net>
+Subject: + acpi-updates-rtc-cmos-device-platform_data.patch added to -mm tree
+Date: Thu, 25 Jan 2007 21:49:10 -0800
+Message-ID: <200701260549.l0Q5nA2L008678@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46769 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46827 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030782AbXAZFry (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 00:47:54 -0500
+	id S1030781AbXAZFtR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 00:49:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ak@suse.de
+Cc: david-b@pacbell.net, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, len.brown@intel.com
 
 
 The patch titled
-     local_t: x86_64 extension
+     ACPI: updates rtc-cmos device platform_data
 has been added to the -mm tree.  Its filename is
-     local_t-x86_64-extension.patch
+     acpi-updates-rtc-cmos-device-platform_data.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,340 +25,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t: x86_64 extension
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: ACPI: updates rtc-cmos device platform_data
+From: David Brownell <david-b@pacbell.net>
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Andi Kleen <ak@suse.de>
+Update ACPI to export its RTC extension information through platform_data
+to the PNPACPI or platform bus device node used on the system being set up.
+
+This will need to be updated later to provide a firmware hook to handle
+system suspend with an alarm pending.
+
+Len notes that "Eventually we may bundle ACPI/PNP/PNPACPI..." but if/when
+that happens, ACPI can simplify this without my help.
+
+And until it does, the separate patch creating a platform_device (on all
+X86_PC systems, even without ACPI) will be needed.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-x86_64/local.h  |  198 ++++++++++++++++++++++++++++------
- include/asm-x86_64/system.h |   36 ++++++
- 2 files changed, 202 insertions(+), 32 deletions(-)
+ drivers/acpi/glue.c |   89 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 89 insertions(+)
 
-diff -puN include/asm-x86_64/local.h~local_t-x86_64-extension include/asm-x86_64/local.h
---- a/include/asm-x86_64/local.h~local_t-x86_64-extension
-+++ a/include/asm-x86_64/local.h
-@@ -2,49 +2,183 @@
- #define _ARCH_X8664_LOCAL_H
- 
- #include <linux/percpu.h>
-+#include <asm/atomic.h>
- 
- typedef struct
- {
--	volatile long counter;
-+	atomic_long_t a;
- } local_t;
- 
--#define LOCAL_INIT(i)	{ (i) }
-+#define LOCAL_INIT(i)	{ ATOMIC_LONG_INIT(i) }
- 
--#define local_read(v)	((v)->counter)
--#define local_set(v,i)	(((v)->counter) = (i))
-+#define local_read(l)	atomic_long_read(&(l)->a)
-+#define local_set(l,i)	atomic_long_set(&(l)->a, (i))
- 
--static inline void local_inc(local_t *v)
-+static inline void local_inc(local_t *l)
- {
- 	__asm__ __volatile__(
- 		"incq %0"
--		:"=m" (v->counter)
--		:"m" (v->counter));
-+		:"=m" (l->a.counter)
-+		:"m" (l->a.counter));
+diff -puN drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data drivers/acpi/glue.c
+--- a/drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data
++++ a/drivers/acpi/glue.c
+@@ -241,3 +241,92 @@ static int __init init_acpi_device_notif
  }
  
--static inline void local_dec(local_t *v)
-+static inline void local_dec(local_t *l)
- {
- 	__asm__ __volatile__(
- 		"decq %0"
--		:"=m" (v->counter)
--		:"m" (v->counter));
-+		:"=m" (l->a.counter)
-+		:"m" (l->a.counter));
- }
- 
--static inline void local_add(long i, local_t *v)
-+static inline void local_add(long i, local_t *l)
- {
- 	__asm__ __volatile__(
- 		"addq %1,%0"
--		:"=m" (v->counter)
--		:"ir" (i), "m" (v->counter));
-+		:"=m" (l->a.counter)
-+		:"ir" (i), "m" (l->a.counter));
- }
- 
--static inline void local_sub(long i, local_t *v)
-+static inline void local_sub(long i, local_t *l)
- {
- 	__asm__ __volatile__(
- 		"subq %1,%0"
--		:"=m" (v->counter)
--		:"ir" (i), "m" (v->counter));
-+		:"=m" (l->a.counter)
-+		:"ir" (i), "m" (l->a.counter));
- }
- 
-+/**
-+ * local_sub_and_test - subtract value from variable and test result
-+ * @i: integer value to subtract
-+ * @l: pointer to type local_t
-+ *
-+ * Atomically subtracts @i from @l and returns
-+ * true if the result is zero, or false for all
-+ * other cases.
+ arch_initcall(init_acpi_device_notify);
++
++
++#if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE)
++
++/* Every ACPI platform has a mc146818 compatible "cmos rtc".  Here we find
++ * its device node and pass extra config data.  This helps its driver use
++ * capabilities that the now-obsolete mc146818 didn't have, and informs it
++ * that this board's RTC is wakeup-capable (per ACPI spec).
 + */
-+static __inline__ int local_sub_and_test(long i, local_t *l)
-+{
-+	unsigned char c;
++#include <linux/mc146818rtc.h>
 +
-+	__asm__ __volatile__(
-+		"subq %2,%0; sete %1"
-+		:"=m" (l->a.counter), "=qm" (c)
-+		:"ir" (i), "m" (l->a.counter) : "memory");
-+	return c;
-+}
++static struct cmos_rtc_board_info rtc_info;
 +
-+/**
-+ * local_dec_and_test - decrement and test
-+ * @l: pointer to type local_t
-+ *
-+ * Atomically decrements @l by 1 and
-+ * returns true if the result is 0, or false for all other
-+ * cases.
++
++#ifdef CONFIG_PNPACPI
++
++/* PNP devices are registered in a subsys_initcall();
++ * ACPI specifies the PNP IDs to use.
 + */
-+static __inline__ int local_dec_and_test(local_t *l)
++#include <linux/pnp.h>
++
++static int __init pnp_match(struct device *dev, void *data)
 +{
-+	unsigned char c;
++	static const char *ids[] = { "PNP0b00", "PNP0b01", "PNP0b02", };
++	struct pnp_dev *pnp = to_pnp_dev(dev);
++	int i;
 +
-+	__asm__ __volatile__(
-+		"decq %0; sete %1"
-+		:"=m" (l->a.counter), "=qm" (c)
-+		:"m" (l->a.counter) : "memory");
-+	return c != 0;
-+}
-+
-+/**
-+ * local_inc_and_test - increment and test
-+ * @l: pointer to type local_t
-+ *
-+ * Atomically increments @l by 1
-+ * and returns true if the result is zero, or false for all
-+ * other cases.
-+ */
-+static __inline__ int local_inc_and_test(local_t *l)
-+{
-+	unsigned char c;
-+
-+	__asm__ __volatile__(
-+		"incq %0; sete %1"
-+		:"=m" (l->a.counter), "=qm" (c)
-+		:"m" (l->a.counter) : "memory");
-+	return c != 0;
-+}
-+
-+/**
-+ * local_add_negative - add and test if negative
-+ * @i: integer value to add
-+ * @l: pointer to type local_t
-+ *
-+ * Atomically adds @i to @l and returns true
-+ * if the result is negative, or false when
-+ * result is greater than or equal to zero.
-+ */
-+static __inline__ int local_add_negative(long i, local_t *l)
-+{
-+	unsigned char c;
-+
-+	__asm__ __volatile__(
-+		"addq %2,%0; sets %1"
-+		:"=m" (l->a.counter), "=qm" (c)
-+		:"ir" (i), "m" (l->a.counter) : "memory");
-+	return c;
-+}
-+
-+/**
-+ * local_add_return - add and return
-+ * @i: integer value to add
-+ * @l: pointer to type local_t
-+ *
-+ * Atomically adds @i to @l and returns @i + @l
-+ */
-+static __inline__ long local_add_return(long i, local_t *l)
-+{
-+	long __i = i;
-+	__asm__ __volatile__(
-+		"xaddq %0, %1;"
-+		:"+r" (i), "+m" (l->a.counter)
-+		: : "memory");
-+	return i + __i;
-+}
-+
-+static __inline__ long local_sub_return(long i, local_t *l)
-+{
-+	return local_add_return(-i,l);
-+}
-+
-+#define local_inc_return(l)  (local_add_return(1,l))
-+#define local_dec_return(l)  (local_sub_return(1,l))
-+
-+#define local_cmpxchg(l, o, n) \
-+	((long)cmpxchg_local(&((l)->a.counter), (o), (n)))
-+/* Always has a lock prefix anyway */
-+#define local_xchg(l, new) (xchg(&((l)->a.counter), new))
-+
-+/**
-+ * atomic_up_add_unless - add unless the number is a given value
-+ * @l: pointer of type local_t
-+ * @a: the amount to add to l...
-+ * @u: ...unless l is equal to u.
-+ *
-+ * Atomically adds @a to @l, so long as it was not @u.
-+ * Returns non-zero if @l was not @u, and zero otherwise.
-+ */
-+#define local_add_unless(l, a, u)				\
-+({								\
-+	long c, old;						\
-+	c = local_read(l);					\
-+	for (;;) {						\
-+		if (unlikely(c == (u)))				\
-+			break;					\
-+		old = local_cmpxchg((l), c, c + (a));	\
-+		if (likely(old == c))				\
-+			break;					\
-+		c = old;					\
-+	}							\
-+	c != (u);						\
-+})
-+#define local_inc_not_zero(l) local_add_unless((l), 1, 0)
-+
- /* On x86-64 these are better than the atomic variants on SMP kernels
-    because they dont use a lock prefix. */
- #define __local_inc(l)		local_inc(l)
-@@ -62,27 +196,27 @@ static inline void local_sub(long i, loc
- 
- /* Need to disable preemption for the cpu local counters otherwise we could
-    still access a variable of a previous CPU in a non atomic way. */
--#define cpu_local_wrap_v(v)	 	\
-+#define cpu_local_wrap_v(l)	 	\
- 	({ local_t res__;		\
- 	   preempt_disable(); 		\
--	   res__ = (v);			\
-+	   res__ = (l);			\
- 	   preempt_enable();		\
- 	   res__; })
--#define cpu_local_wrap(v)		\
-+#define cpu_local_wrap(l)		\
- 	({ preempt_disable();		\
--	   v;				\
-+	   l;				\
- 	   preempt_enable(); })		\
- 
--#define cpu_local_read(v)    cpu_local_wrap_v(local_read(&__get_cpu_var(v)))
--#define cpu_local_set(v, i)  cpu_local_wrap(local_set(&__get_cpu_var(v), (i)))
--#define cpu_local_inc(v)     cpu_local_wrap(local_inc(&__get_cpu_var(v)))
--#define cpu_local_dec(v)     cpu_local_wrap(local_dec(&__get_cpu_var(v)))
--#define cpu_local_add(i, v)  cpu_local_wrap(local_add((i), &__get_cpu_var(v)))
--#define cpu_local_sub(i, v)  cpu_local_wrap(local_sub((i), &__get_cpu_var(v)))
--
--#define __cpu_local_inc(v)	cpu_local_inc(v)
--#define __cpu_local_dec(v)	cpu_local_dec(v)
--#define __cpu_local_add(i, v)	cpu_local_add((i), (v))
--#define __cpu_local_sub(i, v)	cpu_local_sub((i), (v))
-+#define cpu_local_read(l)    cpu_local_wrap_v(local_read(&__get_cpu_var(l)))
-+#define cpu_local_set(l, i)  cpu_local_wrap(local_set(&__get_cpu_var(l), (i)))
-+#define cpu_local_inc(l)     cpu_local_wrap(local_inc(&__get_cpu_var(l)))
-+#define cpu_local_dec(l)     cpu_local_wrap(local_dec(&__get_cpu_var(l)))
-+#define cpu_local_add(i, l)  cpu_local_wrap(local_add((i), &__get_cpu_var(l)))
-+#define cpu_local_sub(i, l)  cpu_local_wrap(local_sub((i), &__get_cpu_var(l)))
-+
-+#define __cpu_local_inc(l)	cpu_local_inc(l)
-+#define __cpu_local_dec(l)	cpu_local_dec(l)
-+#define __cpu_local_add(i, l)	cpu_local_add((i), (l))
-+#define __cpu_local_sub(i, l)	cpu_local_sub((i), (l))
- 
--#endif /* _ARCH_I386_LOCAL_H */
-+#endif /* _ARCH_X8664_LOCAL_H */
-diff -puN include/asm-x86_64/system.h~local_t-x86_64-extension include/asm-x86_64/system.h
---- a/include/asm-x86_64/system.h~local_t-x86_64-extension
-+++ a/include/asm-x86_64/system.h
-@@ -209,9 +209,45 @@ static inline unsigned long __cmpxchg(vo
- 	return old;
- }
- 
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+			unsigned long old, unsigned long new, int size)
-+{
-+	unsigned long prev;
-+	switch (size) {
-+	case 1:
-+		__asm__ __volatile__("cmpxchgb %b1,%2"
-+				     : "=a"(prev)
-+				     : "q"(new), "m"(*__xg(ptr)), "0"(old)
-+				     : "memory");
-+		return prev;
-+	case 2:
-+		__asm__ __volatile__("cmpxchgw %w1,%2"
-+				     : "=a"(prev)
-+				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
-+				     : "memory");
-+		return prev;
-+	case 4:
-+		__asm__ __volatile__("cmpxchgl %k1,%2"
-+				     : "=a"(prev)
-+				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
-+				     : "memory");
-+		return prev;
-+	case 8:
-+		__asm__ __volatile__("cmpxchgq %1,%2"
-+				     : "=a"(prev)
-+				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
-+				     : "memory");
-+		return prev;
++	for (i = 0; i < ARRAY_SIZE(ids); i++) {
++		if (compare_pnp_id(pnp->id, ids[i]) != 0)
++			return 1;
 +	}
-+	return old;
++	return 0;
 +}
 +
- #define cmpxchg(ptr,o,n)\
- 	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
- 					(unsigned long)(n),sizeof(*(ptr))))
-+#define cmpxchg_local(ptr,o,n)\
-+	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
-+					(unsigned long)(n),sizeof(*(ptr))))
- 
- #ifdef CONFIG_SMP
- #define smp_mb()	mb()
++static struct device *__init get_rtc_dev(void)
++{
++	return bus_find_device(&pnp_bus_type, NULL, NULL, pnp_match);
++}
++
++#else
++
++/* We expect non-PNPACPI platforms to register an RTC device, usually
++ * at or near arch_initcall().  That also helps for example PCs that
++ * aren't configured with ACPI (where this code wouldn't run, but the
++ * RTC would still be available).  The device name matches the driver;
++ * that's how the platform bus works.
++ */
++#include <linux/platform_device.h>
++
++static int __init platform_match(struct device *dev, void *data)
++{
++	struct platform_device	*pdev;
++
++	pdev = container_of(dev, struct platform_device, dev);
++	return strcmp(pdev->name, "rtc_cmos") == 0;
++}
++
++static struct device *__init get_rtc_dev(void)
++{
++	return bus_find_device(&platform_bus_type, NULL, NULL, platform_match);
++}
++
++#endif
++
++static int __init acpi_rtc_init(void)
++{
++	struct device *dev = get_rtc_dev();
++
++	if (dev) {
++		rtc_info.rtc_day_alarm = acpi_gbl_FADT->day_alrm;
++		rtc_info.rtc_mon_alarm = acpi_gbl_FADT->mon_alrm;
++		rtc_info.rtc_century = acpi_gbl_FADT->century;
++
++		/* NOTE:  acpi_gbl_FADT->rtcs4 is NOT currently useful */
++
++		dev->platform_data = &rtc_info;
++
++		/* RTC always wakes from S1/S2/S3, and often S4/STD */
++		device_init_wakeup(dev, 1);
++
++		put_device(dev);
++	} else
++		pr_debug("ACPI: RTC unavailable?\n");
++	return 0;
++}
++/* do this between RTC subsys_initcall() and rtc_cmos driver_initcall() */
++fs_initcall(acpi_rtc_init);
++
++#endif
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-relay-add-cpu-hotplug-support.patch
-local_t-documentation.patch
-local_t-documentation-fix.patch
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
-atomich-complete-atomic_long-operations-in-asm-generic.patch
-atomich-complete-atomic_long-operations-in-asm-generic-fix.patch
-atomich-i386-type-safety-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-local_t-architecture-independent-extension.patch
-local_t-alpha-extension.patch
-local_t-i386-extension.patch
-local_t-ia64-extension.patch
-local_t-mips-extension.patch
-local_t-parisc-cleanup.patch
-local_t-powerpc-extension.patch
-local_t-s390-cleanup.patch
-local_t-sparc64-cleanup.patch
-local_t-x86_64-extension.patch
+rtc-sh-act-on-rtc_wkalrmenabled-when-setting-an-alarm.patch
+acpi-updates-rtc-cmos-device-platform_data.patch
+git-dvb.patch
+git-mmc.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+pnp-export-pnp_bus_type.patch
+rtc-framework-driver-for-cmos-rtcs.patch
+spi-kconfig-fix.patch
+spi-controller-driver-for-omap-microwire.patch
+spi-controller-driver-for-omap-microwire-update.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+gpio-core.patch
+omap-gpio-wrappers.patch
+at91-gpio-wrappers.patch
