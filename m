@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + mm-implement-swap-prefetching-vs-zvc-stuff.patch added to -mm tree
-Date: Fri, 26 Jan 2007 14:11:25 -0800
-Message-ID: <200701262211.l0QMBPGb027955@shell0.pdx.osdl.net>
+Subject: + mm-implement-swap-prefetching-vs-zvc-stuff-2.patch added to -mm tree
+Date: Fri, 26 Jan 2007 14:12:36 -0800
+Message-ID: <200701262212.l0QMCarK027997@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57338 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57368 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751633AbXAZWL3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 17:11:29 -0500
+	id S1751657AbXAZWMl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 17:12:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: clameter@sgi.com
 The patch titled
      ZVC writeback: Fix mm and other issues
 has been added to the -mm tree.  Its filename is
-     mm-implement-swap-prefetching-vs-zvc-stuff.patch
+     mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -34,30 +34,21 @@ Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/swap_prefetch.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm_inline.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swap_prefetch.c~mm-implement-swap-prefetching-vs-zvc-stuff mm/swap_prefetch.c
---- a/mm/swap_prefetch.c~mm-implement-swap-prefetching-vs-zvc-stuff
-+++ a/mm/swap_prefetch.c
-@@ -280,7 +280,7 @@ static void examine_free_limits(void)
- 			z->lowmem_reserve[ZONE_HIGHMEM];
- 		ns->highfree[idx] = ns->lowfree[idx] + z->pages_high;
+diff -puN include/linux/mm_inline.h~mm-implement-swap-prefetching-vs-zvc-stuff-2 include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-implement-swap-prefetching-vs-zvc-stuff-2
++++ a/include/linux/mm_inline.h
+@@ -16,7 +16,7 @@ static inline void
+ add_page_to_inactive_list_tail(struct zone *zone, struct page *page)
+ {
+ 	list_add_tail(&page->lru, &zone->inactive_list);
+-	zone->nr_inactive++;
++	__inc_zone_state(zone, NR_INACTIVE);
+ }
  
--		if (z->free_pages > ns->highfree[idx]) {
-+		if (zone_page_state(z, NR_FREE_PAGES) > ns->highfree[idx]) {
- 			/*
- 			 * We've gotten above the high watermark of free pages
- 			 * so we can start prefetching till we get to the low
-@@ -337,7 +337,7 @@ static int prefetch_suitable(void)
- 		ns = &sp_stat.node[node];
- 		idx = zone_idx(z);
- 
--		free = z->free_pages;
-+		free = zone_page_state(z, NR_FREE_PAGES);
- 		if (free < *ns->pointfree[idx]) {
- 			/*
- 			 * Free pages have dropped below the low watermark so
+ static inline void
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -88,6 +79,7 @@ zoneid-fix-up-calculations-for-zoneid_pgshift.patch
 replace-highest_possible_node_id-with-nr_node_ids.patch
 mm-only-sched-add-a-few-scheduler-event-counters.patch
 mm-implement-swap-prefetching-vs-zvc-stuff.patch
+mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
 zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
 reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
 numa-add-zone_to_nid-function-swap_prefetch.patch
