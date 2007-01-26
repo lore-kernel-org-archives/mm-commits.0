@@ -1,164 +1,122 @@
 From: akpm@osdl.org
-Subject: - reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch removed from -mm tree
-Date: Thu, 25 Jan 2007 23:51:43 -0800
-Message-ID: <200701260751.l0Q7ph8C010752@shell0.pdx.osdl.net>
+Subject: - kdump-documentation-update-for-2620-ia64-portion.patch removed from -mm tree
+Date: Thu, 25 Jan 2007 23:51:50 -0800
+Message-ID: <200701260751.l0Q7poLE010762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50497 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50508 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030814AbXAZHvx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:51:53 -0500
+	id S1030818AbXAZHv5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:51:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vs@namesys.com, jeffm@suse.com, mason@suse.com, mm-commits@vger.kernel.org
+To: horms@verge.net.au, nanhai.zou@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     resierfs: avoid tail packing if an inode was ever mmapped
+     Kdump documentation update: ia64 portion
 has been removed from the -mm tree.  Its filename was
-     reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped.patch
+     kdump-documentation-update-for-2620-ia64-portion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: resierfs: avoid tail packing if an inode was ever mmapped
-From: Vladimir Saveliev <vs@namesys.com>
+Subject: Kdump documentation update: ia64 portion
+From: Horms <horms@verge.net.au>
 
-This patch fixes a confusion reiserfs has for a long time.
+this patch fills in the portions for ia64 kexec.
 
-On release file operation reiserfs used to try to pack file data stored in
-last incomplete page of some files into metadata blocks.  After packing the
-page got cleared with clear_page_dirty.  It did not take into account that
-the page may be mmaped into other process's address space.  Recent
-replacement for clear_page_dirty cancel_dirty_page found the confusion with
-sanity check that page has to be not mapped.
-
-The patch fixes the confusion by making reiserfs avoid tail packing if an
-inode was ever mmapped.  reiserfs_mmap and reiserfs_file_release are
-serialized with mutex in reiserfs specific inode.  reiserfs_mmap locks the
-mutex and sets a bit in reiserfs specific inode flags. 
-reiserfs_file_release checks the bit having the mutex locked.  If bit is
-set - tail packing is avoided.  This eliminates a possibility that mmapped
-page gets cancel_page_dirty-ed.
-
-Signed-off-by: Vladimir Saveliev <vs@namesys.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <mason@suse.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Cc: "Zou, Nanhai" <nanhai.zou@intel.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiserfs/file.c            |   20 +++++++++++++++++++-
- fs/reiserfs/inode.c           |    2 ++
- include/linux/reiserfs_fs_i.h |    2 ++
- 3 files changed, 23 insertions(+), 1 deletion(-)
+ Documentation/kdump/kdump.txt |   36 +++++++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 7 deletions(-)
 
-diff -puN fs/reiserfs/file.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
-+++ a/fs/reiserfs/file.c
-@@ -48,6 +48,11 @@ static int reiserfs_file_release(struct 
- 	}
+diff -puN Documentation/kdump/kdump.txt~kdump-documentation-update-for-2620-ia64-portion Documentation/kdump/kdump.txt
+--- a/Documentation/kdump/kdump.txt~kdump-documentation-update-for-2620-ia64-portion
++++ a/Documentation/kdump/kdump.txt
+@@ -17,7 +17,7 @@ You can use common Linux commands, such 
+ memory image to a dump file on the local disk, or across the network to
+ a remote system.
  
- 	mutex_lock(&inode->i_mutex);
-+
-+	mutex_lock(&(REISERFS_I(inode)->i_mmap));
-+	if (REISERFS_I(inode)->i_flags & i_ever_mapped)
-+		REISERFS_I(inode)->i_flags &= ~i_pack_on_close_mask;
-+
- 	reiserfs_write_lock(inode->i_sb);
- 	/* freeing preallocation only involves relogging blocks that
- 	 * are already in the current transaction.  preallocation gets
-@@ -100,11 +105,24 @@ static int reiserfs_file_release(struct 
- 		err = reiserfs_truncate_file(inode, 0);
- 	}
-       out:
-+	mutex_unlock(&(REISERFS_I(inode)->i_mmap));
- 	mutex_unlock(&inode->i_mutex);
- 	reiserfs_write_unlock(inode->i_sb);
- 	return err;
- }
+-Kdump and kexec are currently supported on the x86, x86_64, ppc64 and IA64
++Kdump and kexec are currently supported on the x86, x86_64, ppc64 and ia64
+ architectures.
  
-+static int reiserfs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct inode *inode;
-+
-+	inode = file->f_path.dentry->d_inode;
-+	mutex_lock(&(REISERFS_I(inode)->i_mmap));
-+	REISERFS_I(inode)->i_flags |= i_ever_mapped;
-+	mutex_unlock(&(REISERFS_I(inode)->i_mmap));
-+
-+	return generic_file_mmap(file, vma);
-+}
-+
- static void reiserfs_vfs_truncate_file(struct inode *inode)
- {
- 	reiserfs_truncate_file(inode, 1);
-@@ -1527,7 +1545,7 @@ const struct file_operations reiserfs_fi
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl = reiserfs_compat_ioctl,
- #endif
--	.mmap = generic_file_mmap,
-+	.mmap = reiserfs_file_mmap,
- 	.open = generic_file_open,
- 	.release = reiserfs_file_release,
- 	.fsync = reiserfs_sync_file,
-diff -puN fs/reiserfs/inode.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
-+++ a/fs/reiserfs/inode.c
-@@ -1125,6 +1125,7 @@ static void init_inode(struct inode *ino
- 	REISERFS_I(inode)->i_prealloc_count = 0;
- 	REISERFS_I(inode)->i_trans_id = 0;
- 	REISERFS_I(inode)->i_jl = NULL;
-+	mutex_init(&(REISERFS_I(inode)->i_mmap));
- 	reiserfs_init_acl_access(inode);
- 	reiserfs_init_acl_default(inode);
- 	reiserfs_init_xattr_rwsem(inode);
-@@ -1832,6 +1833,7 @@ int reiserfs_new_inode(struct reiserfs_t
- 	REISERFS_I(inode)->i_attrs =
- 	    REISERFS_I(dir)->i_attrs & REISERFS_INHERIT_MASK;
- 	sd_attrs_to_i_attrs(REISERFS_I(inode)->i_attrs, inode);
-+	mutex_init(&(REISERFS_I(inode)->i_mmap));
- 	reiserfs_init_acl_access(inode);
- 	reiserfs_init_acl_default(inode);
- 	reiserfs_init_xattr_rwsem(inode);
-diff -puN include/linux/reiserfs_fs_i.h~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped include/linux/reiserfs_fs_i.h
---- a/include/linux/reiserfs_fs_i.h~reiserfs-avoid-tail-packing-if-an-inode-was-ever-mmapped
-+++ a/include/linux/reiserfs_fs_i.h
-@@ -25,6 +25,7 @@ typedef enum {
- 	i_link_saved_truncate_mask = 0x0020,
- 	i_has_xattr_dir = 0x0040,
- 	i_data_log = 0x0080,
-+	i_ever_mapped = 0x0100
- } reiserfs_inode_flags;
+ When the system kernel boots, it reserves a small section of memory for
+@@ -229,7 +229,23 @@ Dump-capture kernel config options (Arch
  
- struct reiserfs_inode_info {
-@@ -52,6 +53,7 @@ struct reiserfs_inode_info {
- 	 ** flushed */
- 	unsigned long i_trans_id;
- 	struct reiserfs_journal_list *i_jl;
-+	struct mutex i_mmap;
- #ifdef CONFIG_REISERFS_FS_POSIX_ACL
- 	struct posix_acl *i_acl_access;
- 	struct posix_acl *i_acl_default;
+ Dump-capture kernel config options (Arch Dependent, ia64)
+ ----------------------------------------------------------
+-(To be filled)
++
++- No specific options are required to create a dump-capture kernel
++  for ia64, other than those specified in the arch idependent section
++  above. This means that it is possible to use the system kernel
++  as a dump-capture kernel if desired.
++
++  The crashkernel region can be automatically placed by the system
++  kernel at run time. This is done by specifying the base address as 0,
++  or omitting it all together.
++
++  crashkernel=256M@0
++  or
++  crashkernel=256M
++
++  If the start address is specified, note that the start address of the
++  kernel will be aligned to 64Mb, so if the start address is not then
++  any space below the alignment point will be wasted.
+ 
+ 
+ Boot into System Kernel
+@@ -248,6 +264,10 @@ Boot into System Kernel
+ 
+    On ppc64, use "crashkernel=128M@32M".
+ 
++   On ia64, 256M@256M is a generous value that typically works.
++   The region may be automatically placed on ia64, see the
++   dump-capture kernel config option notes above.
++
+ Load the Dump-capture Kernel
+ ============================
+ 
+@@ -266,7 +286,8 @@ For x86_64:
+ For ppc64:
+ 	- Use vmlinux
+ For ia64:
+-	(To be filled)
++	- Use vmlinux or vmlinuz.gz
++
+ 
+ If you are using a uncompressed vmlinux image then use following command
+ to load dump-capture kernel.
+@@ -282,18 +303,19 @@ to load dump-capture kernel.
+    --initrd=<initrd-for-dump-capture-kernel> \
+    --append="root=<root-dev> <arch-specific-options>"
+ 
++Please note, that --args-linux does not need to be specified for ia64.
++It is planned to make this a no-op on that architecture, but for now
++it should be omitted
++
+ Following are the arch specific command line options to be used while
+ loading dump-capture kernel.
+ 
+-For i386 and x86_64:
++For i386, x86_64 and ia64:
+ 	"init 1 irqpoll maxcpus=1"
+ 
+ For ppc64:
+ 	"init 1 maxcpus=1 noirqdistrib"
+ 
+-For IA64
+-	(To be filled)
+-
+ 
+ Notes on loading the dump-capture kernel:
+ 
 _
 
-Patches currently in -mm which might be from vs@namesys.com are
-
-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-fix-trivial-tyops-which-were-hard-to-hit.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-bug-fixes.patch
-reiser4-fix-gcc-ws-compains.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-vs-streamline-generic_file_-interfaces-and-filemap.patch
-reiser4-rename-generic_sounding_globalspatch.patch
-reiser4-possible-cleanups-2.patch
-reiser4-temp-fix.patch
-fs-reiser4-more-possible-cleanups.patch
-reiser4-use-null-for-pointers.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-fix-freeze-and-corruption.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
+Patches currently in -mm which might be from horms@verge.net.au are
