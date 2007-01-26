@@ -1,23 +1,27 @@
 From: akpm@osdl.org
-Subject: + mm-show-bounce-pages-in-oom-killer-output.patch added to -mm tree
-Date: Fri, 26 Jan 2007 13:42:38 -0800
-Message-ID: <200701262142.l0QLgcun027224@shell0.pdx.osdl.net>
+Subject: + git-netdev-all-fixup.patch added to -mm tree
+Date: Fri, 26 Jan 2007 13:53:02 -0800
+Message-ID: <200701262153.l0QLr21a027431@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56468 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56806 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751643AbXAZVmn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 16:42:43 -0500
+	id S1751665AbXAZVxE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 16:53:04 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0QLr2gP018226
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2007 13:53:03 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clameter@engr.sgi.com, nickpiggin@yahoo.com.au
+Cc: akpm@osdl.org
 
 
 The patch titled
-     mm: show bounce pages in oom killer output
+     git-netdev-all-fixup
 has been added to the -mm tree.  Its filename is
-     mm-show-bounce-pages-in-oom-killer-output.patch
+     git-netdev-all-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +29,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: show bounce pages in oom killer output
+Subject: git-netdev-all-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-Also split that long line up - people liek to send us wordwrapped oom-kill
-traces.
-
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/net/bonding/bonding.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-show-bounce-pages-in-oom-killer-output mm/page_alloc.c
---- a/mm/page_alloc.c~mm-show-bounce-pages-in-oom-killer-output
-+++ a/mm/page_alloc.c
-@@ -1580,8 +1580,8 @@ void show_free_areas(void)
+diff -puN drivers/net/bonding/bonding.h~git-netdev-all-fixup drivers/net/bonding/bonding.h
+--- a/drivers/net/bonding/bonding.h~git-netdev-all-fixup
++++ a/drivers/net/bonding/bonding.h
+@@ -237,12 +237,12 @@ static inline struct bonding *bond_get_b
+ #define BOND_ARP_VALIDATE_ALL		(BOND_ARP_VALIDATE_ACTIVE | \
+ 					 BOND_ARP_VALIDATE_BACKUP)
  
- 	get_zone_counts(&active, &inactive, &free);
+-extern inline int slave_do_arp_validate(struct bonding *bond, struct slave *slave)
++static inline int slave_do_arp_validate(struct bonding *bond, struct slave *slave)
+ {
+ 	return bond->params.arp_validate & (1 << slave->state);
+ }
  
--	printk("Active:%lu inactive:%lu dirty:%lu writeback:%lu "
--		"unstable:%lu free:%u slab:%lu mapped:%lu pagetables:%lu\n",
-+	printk("Active:%lu inactive:%lu dirty:%lu writeback:%lu unstable:%lu\n"
-+		" free:%u slab:%lu mapped:%lu pagetables:%lu bounce:%lu\n",
- 		active,
- 		inactive,
- 		global_page_state(NR_FILE_DIRTY),
-@@ -1591,7 +1591,8 @@ void show_free_areas(void)
- 		global_page_state(NR_SLAB_RECLAIMABLE) +
- 			global_page_state(NR_SLAB_UNRECLAIMABLE),
- 		global_page_state(NR_FILE_MAPPED),
--		global_page_state(NR_PAGETABLE));
-+		global_page_state(NR_PAGETABLE),
-+		global_page_state(NR_BOUNCE));
- 
- 	for_each_zone(zone) {
- 		int i;
+-extern inline unsigned long slave_last_rx(struct bonding *bond,
++static inline unsigned long slave_last_rx(struct bonding *bond,
+ 					struct slave *slave)
+ {
+ 	if (slave_do_arp_validate(bond, slave))
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -94,6 +87,7 @@ git-mmc.patch
 git-mmc-fixup.patch
 git-ubi.patch
 git-netdev-all.patch
+git-netdev-all-fixup.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
