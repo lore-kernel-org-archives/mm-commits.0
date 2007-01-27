@@ -1,61 +1,56 @@
 From: akpm@osdl.org
-Subject: - git-infiniband-fixup-2.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:14:40 -0800
-Message-ID: <200701270114.l0R1Eenn031507@shell0.pdx.osdl.net>
+Subject: - git-cryptodev-make-ecryptfs-compile.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:04:44 -0800
+Message-ID: <200701270104.l0R14iVk031351@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34926 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35056 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752171AbXA0BOq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:14:46 -0500
+	id S1751831AbXA0BUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, herbert@gondor.apana.org.au, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-infiniband-fixup-2
+     git-cryptodev: make ecryptfs compile
 has been removed from the -mm tree.  Its filename was
-     git-infiniband-fixup-2.patch
+     git-cryptodev-make-ecryptfs-compile.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-infiniband-fixup-2
+Subject: git-cryptodev: make ecryptfs compile
 From: Andrew Morton <akpm@osdl.org>
 
-Now it does.
+Another victim of the bewilderingly frequent crypto API changes.
 
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ecryptfs/crypto.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2 drivers/infiniband/ulp/ipoib/ipoib_ib.c
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2
-+++ a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -298,6 +298,7 @@ repoll:
- 		n = ib_poll_cq(priv->cq, t, priv->ibwc);
- 
- 		for (i = 0; i < n; ++i) {
-+			struct ib_wc *wc = priv->ibwc + i;
- 			if (wc->wr_id & IPOIB_CM_OP_SRQ) {
- 				++done;
- 				--max;
-@@ -305,9 +306,9 @@ repoll:
- 			} if (priv->ibwc[i].wr_id & IPOIB_OP_RECV) {
- 				++done;
- 				--max;
--				ipoib_ib_handle_rx_wc(dev, priv->ibwc + i);
-+				ipoib_ib_handle_rx_wc(dev, wc);
- 			} else
--				ipoib_ib_handle_tx_wc(dev, priv->ibwc + i);
-+				ipoib_ib_handle_tx_wc(dev, wc);
- 		}
- 
- 		if (n != t) {
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~a fs/ecryptfs/ecryptfs_kernel.h
+diff -puN fs/ecryptfs/keystore.c~a fs/ecryptfs/keystore.c
+diff -puN fs/ecryptfs/crypto.c~a fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~a
++++ a/fs/ecryptfs/crypto.c
+@@ -828,9 +828,11 @@ int ecryptfs_init_crypt_ctx(struct ecryp
+ 		mutex_unlock(&crypt_stat->cs_tfm_mutex);
+ 		goto out;
+ 	}
++#if 0
+ 	crypto_blkcipher_set_flags(crypt_stat->tfm,
+ 				   (ECRYPTFS_DEFAULT_CHAINING_MODE
+ 				    | CRYPTO_TFM_REQ_WEAK_KEY));
++#endif
+ 	mutex_unlock(&crypt_stat->cs_tfm_mutex);
+ 	rc = 0;
+ out:
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -76,6 +71,7 @@ git-dvb.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
+git-infiniband-fixup.patch
 git-infiniband-fixup-2.patch
 git-input.patch
 git-libata-all.patch
@@ -103,6 +99,7 @@ git-qla3xxx.patch
 nokia-e70-is-an-unusual-device.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+git-cryptodev-make-ecryptfs-compile.patch
 touchkit-ps-2-touchscreen-driver.patch
 lumpy-reclaim-v2-page_to_pfn-fix.patch
 lumpy-reclaim-v2-tidy.patch
