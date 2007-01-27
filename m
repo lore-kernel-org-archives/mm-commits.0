@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 18:36:31 -0800
-Message-ID: <200701270237.l0R2bLKY000503@shell0.pdx.osdl.net>
+Subject: + scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 18:43:43 -0800
+Message-ID: <200701270244.l0R2iXoJ000576@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37346 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37516 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751855AbXA0ChX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 21:37:23 -0500
+	id S1752163AbXA0Coq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 21:44:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ebiederm@xmission.com
+Cc: akpm@osdl.org, jeff@garzik.org
 
 
 The patch titled
-     sysctl-reimplement-the-sysctl-proc-support warning fix
+     scheduled-removal-of-sa_xxx-interrupt-flags ata fix
 has been added to the -mm tree.  Its filename is
-     sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+     scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl-reimplement-the-sysctl-proc-support warning fix
+Subject: scheduled-removal-of-sa_xxx-interrupt-flags ata fix
 From: Andrew Morton <akpm@osdl.org>
 
-fs/proc/proc_sysctl.c: In function 'do_proc_sys_lookup':
-fs/proc/proc_sysctl.c:128: warning: 'table' may be used uninitialized in this function
+SA_SHIRQ is going away.
 
-It this a bugfix too?
-
-
-Eric W. Biederman <ebiederm@xmission.com>
-
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/proc_sysctl.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/ata/sata_inic162x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-warning-fix fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-warning-fix
-+++ a/fs/proc/proc_sysctl.c
-@@ -125,9 +125,10 @@ static struct ctl_table *do_proc_sys_loo
- 						struct ctl_table_header **ptr)
- {
- 	struct ctl_table_header *head;
--	struct ctl_table *table;
-+	struct ctl_table *table = NULL;
+diff -puN drivers/ata/sata_inic162x.c~scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix drivers/ata/sata_inic162x.c
+--- a/drivers/ata/sata_inic162x.c~scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix
++++ a/drivers/ata/sata_inic162x.c
+@@ -724,7 +724,7 @@ static int inic_init_one(struct pci_dev 
+ 	probe_ent->n_ports		= NR_PORTS;
  
--	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
-+	for (head = sysctl_head_next(NULL); head;
-+			head = sysctl_head_next(head)) {
- 		table = proc_sys_lookup_entry(parent, name, head->ctl_table);
- 		if (table)
- 			break;
+ 	probe_ent->irq = pdev->irq;
+-	probe_ent->irq_flags = SA_SHIRQ;
++	probe_ent->irq_flags = IRQF_SHARED;
+ 
+ 	probe_ent->mmio_base = mmio_base;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -216,3 +207,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
