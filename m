@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + git-scsi-misc-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 20:10:03 -0800
-Message-ID: <200701270410.l0R4ArUp001911@shell0.pdx.osdl.net>
+Subject: + atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 20:22:41 -0800
+Message-ID: <200701270423.l0R4NVs6002061@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39164 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39525 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751714AbXA0EK5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 23:10:57 -0500
+	id S1751768AbXA0EXr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 23:23:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, James.Bottomley@steeleye.com
+Cc: akpm@osdl.org, ak@suse.de, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     git-scsi-misc-fix
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-fix.patch
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fix
+Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+include/asm-generic/atomic.h: In function 'atomic_long_add_unless':
+include/asm-generic/atomic.h:129: warning: implicit declaration of function 'cmpxchg'
+include/asm-generic/atomic.h: In function 'atomic_long_xchg':
+include/asm-generic/atomic.h:150: warning: implicit declaration of function 'xchg'
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/NCR_D700.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-x86_64/atomic.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/NCR_D700.c~git-scsi-misc-fix drivers/scsi/NCR_D700.c
---- a/drivers/scsi/NCR_D700.c~git-scsi-misc-fix
-+++ a/drivers/scsi/NCR_D700.c
-@@ -200,7 +200,7 @@ NCR_D700_probe_one(struct NCR_D700_priva
- 	hostdata->base = ioport_map(region, 64);
- 	hostdata->differential = (((1<<siop) & differential) != 0);
- 	hostdata->clock = NCR_D700_CLOCK_MHZ;
--	hostdata->busrt_length = 8;
-+	hostdata->burst_length = 8;
+diff -puN include/asm-x86_64/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix include/asm-x86_64/atomic.h
+--- a/include/asm-x86_64/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix
++++ a/include/asm-x86_64/atomic.h
+@@ -2,6 +2,7 @@
+ #define __ARCH_X86_64_ATOMIC__
  
- 	/* and register the siop */
- 	host = NCR_700_detect(&NCR_D700_driver_template, hostdata, p->dev);
+ #include <asm/alternative.h>
++#include <asm/system.h>
+ 
+ /* atomic_t should be 32 bit signed type */
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -84,6 +89,7 @@ ioat-warning-fix.patch
 nfs-fix-congestion-control-v4-tweaks.patch
 r8169-warning-fixes.patch
 make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+git-scsi-misc-fix.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-block-fixup.patch
@@ -196,6 +202,7 @@ sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 device-suspend-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
@@ -210,4 +217,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-scsi-misc-fix.patch
