@@ -1,67 +1,48 @@
 From: akpm@osdl.org
-Subject: - git-s390-build-hack.patch removed from -mm tree
-Date: Sat, 27 Jan 2007 14:04:51 -0800
-Message-ID: <200701272204.l0RM4p0E017503@shell0.pdx.osdl.net>
+Subject: - git-scsi-misc-fix.patch removed from -mm tree
+Date: Sat, 27 Jan 2007 14:22:46 -0800
+Message-ID: <200701272222.l0RMMkIt017778@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35947 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36703 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751851AbXA0WE6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 17:04:58 -0500
+	id S1751439AbXA0WWu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 17:22:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-s390 build hack
+     git-scsi-misc-fix
 has been removed from the -mm tree.  Its filename was
-     git-s390-build-hack.patch
+     git-scsi-misc-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-s390 build hack
+Subject: git-scsi-misc-fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/s390/crypto/crypt_s390_query.c: In function 'init':
-arch/s390/crypto/crypt_s390_query.c:90: error: variable 'status' has initializer but incomplete type
-arch/s390/crypto/crypt_s390_query.c:91: error: unknown field 'high' specified in initializer
-arch/s390/crypto/crypt_s390_query.c:91: warning: excess elements in struct initializer
-arch/s390/crypto/crypt_s390_query.c:91: warning: (near initialization for 'status')
-arch/s390/crypto/crypt_s390_query.c:92: error: unknown field 'low' specified in initializer
-arch/s390/crypto/crypt_s390_query.c:93: warning: excess elements in struct initializer
-arch/s390/crypto/crypt_s390_query.c:93: warning: (near initialization for 'status')
-arch/s390/crypto/crypt_s390_query.c:90: error: storage size of 'status' isn't known
-arch/s390/crypto/crypt_s390_query.c:90: warning: unused variable 'status'
-
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/s390/crypto/crypt_s390_query.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/scsi/NCR_D700.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/crypto/crypt_s390_query.c~git-s390-build-hack arch/s390/crypto/crypt_s390_query.c
---- a/arch/s390/crypto/crypt_s390_query.c~git-s390-build-hack
-+++ a/arch/s390/crypto/crypt_s390_query.c
-@@ -87,6 +87,7 @@ static void query_available_functions(vo
+diff -puN drivers/scsi/NCR_D700.c~git-scsi-misc-fix drivers/scsi/NCR_D700.c
+--- a/drivers/scsi/NCR_D700.c~git-scsi-misc-fix
++++ a/drivers/scsi/NCR_D700.c
+@@ -200,7 +200,7 @@ NCR_D700_probe_one(struct NCR_D700_priva
+ 	hostdata->base = ioport_map(region, 64);
+ 	hostdata->differential = (((1<<siop) & differential) != 0);
+ 	hostdata->clock = NCR_D700_CLOCK_MHZ;
+-	hostdata->busrt_length = 8;
++	hostdata->burst_length = 8;
  
- static int init(void)
- {
-+#if 0
- 	struct crypt_s390_query_status status = {
- 		.high = 0,
- 		.low = 0
-@@ -120,6 +121,7 @@ static int init(void)
- 
- 	query_available_functions();
- 	return -ECANCELED;
-+#endif
- }
- 
- static void __exit cleanup(void)
+ 	/* and register the siop */
+ 	host = NCR_700_detect(&NCR_D700_driver_template, hostdata, p->dev);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -109,9 +90,7 @@ ioat-warning-fix.patch
 nfs-fix-congestion-control-v4-tweaks.patch
 r8169-warning-fixes.patch
 make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-git-s390-build-hack.patch
 sh-add-kconfig-default.patch
-git-scsi-misc-fix.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-block-fixup.patch
