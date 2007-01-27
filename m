@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + git-mips-kconfig-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 01:04:36 -0800
-Message-ID: <200701270905.l0R95QRU005990@shell0.pdx.osdl.net>
+Subject: + mips-convert-to-use-shared-apm-emulation-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 01:09:58 -0800
+Message-ID: <200701270910.l0R9AmaR006083@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45948 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46098 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752213AbXA0JIp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 04:08:45 -0500
+	id S1752236AbXA0JOI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 04:14:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@osdl.org, ralf@linux-mips.org
 
 
 The patch titled
-     git-mips kconfig fix
+     mips-convert-to-use-shared-apm-emulation-fix
 has been added to the -mm tree.  Its filename is
-     git-mips-kconfig-fix.patch
+     mips-convert-to-use-shared-apm-emulation-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mips kconfig fix
+Subject: mips-convert-to-use-shared-apm-emulation-fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/mips/Kconfig:2081: unexpected end statement
+arch/mips/Kconfig:2059: unexpected end statement
+arch/mips/Kconfig:2061: missing end statement for this entry
 
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/mips/Kconfig |    2 --
- 1 file changed, 2 deletions(-)
+ arch/mips/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/mips/Kconfig~git-mips-kconfig-fix arch/mips/Kconfig
---- a/arch/mips/Kconfig~git-mips-kconfig-fix
+diff -puN arch/mips/Kconfig~mips-convert-to-use-shared-apm-emulation-fix arch/mips/Kconfig
+--- a/arch/mips/Kconfig~mips-convert-to-use-shared-apm-emulation-fix
 +++ a/arch/mips/Kconfig
-@@ -2078,8 +2078,6 @@ config APM
- 	  anything, try disabling/enabling this option (or disabling/enabling
- 	  APM in your BIOS).
+@@ -2056,10 +2056,6 @@ config BINFMT_ELF32
+ endmenu
+ 
  
 -endmenu
 -
- source "net/Kconfig"
+-menu "Power management options"
+-
+ source "kernel/power/Kconfig"
  
- source "drivers/Kconfig"
+ source "net/Kconfig"
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -75,6 +78,7 @@ git-libata-all.patch
 sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
 mm-ide-ide-acpi-support-warning-fix.patch
 git-lxdialog-fixup.patch
+git-mips-kconfig-fix.patch
 git-mmc.patch
 git-mmc-fixup.patch
 git-ubi.patch
@@ -133,6 +137,7 @@ proc_misc-warning-fix.patch
 return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
 vmi-versus-hrtimers.patch
 add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
 i386-use-gtod-persistent-clock-support.patch
@@ -233,4 +238,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-mips-kconfig-fix.patch
