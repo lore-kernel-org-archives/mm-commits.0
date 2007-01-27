@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 14:50:26 -0800
-Message-ID: <200701272251.l0RMpJbW018213@shell0.pdx.osdl.net>
+Subject: + x86-fix-vdso-mapping-for-aout-executables-fixes.patch added to -mm tree
+Date: Sat, 27 Jan 2007 15:00:34 -0800
+Message-ID: <200701272300.l0RN0YCB018334@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37789 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37839 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932108AbXA0W76 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 17:59:58 -0500
+	id S932126AbXA0XAs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 18:00:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org
+Cc: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, parag.warudkar@gmail.com, paulus@samba.org
 
 
 The patch titled
-     ipc-namespace-remove-config_ipc_ns-linkage-fix-fix
+     x86-fix-vdso-mapping-for-aout-executables-fixes
 has been added to the -mm tree.  Its filename is
-     ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
+     x86-fix-vdso-mapping-for-aout-executables-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ipc-namespace-remove-config_ipc_ns-linkage-fix-fix
+Subject: x86-fix-vdso-mapping-for-aout-executables-fixes
 From: Andrew Morton <akpm@osdl.org>
 
-In file included from include/linux/sem.h:4,
-                 from include/linux/syscalls.h:62,
-                 from init/noinitramfs.c:23:
-include/linux/ipc.h: In function 'unshare_ipcs':
-include/linux/ipc.h:112: error: 'CLONE_NEWIPC' undeclared (first use in this function)
-include/linux/ipc.h:112: error: (Each undeclared identifier is reported only once
-include/linux/ipc.h:112: error: for each function it appears in.)
-include/linux/ipc.h:113: error: 'EINVAL' undeclared (first use in this function)
+fs/built-in.o: In function `load_aout_binary':
+fs/binfmt_aout.c:437: undefined reference to `arch_setup_additional_pages'
+fs/built-in.o: In function `load_elf_binary':
+fs/binfmt_elf.c:978: undefined reference to `arch_setup_additional_pages'
 
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Pavel Emelianov <xemul@openvz.org>
+What does CONFIG_COMPAT_VDSO do on i386??
+
+Cc: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: Joerg Ahrens <joerg@hydrops.han.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/ipc.h |    9 ---------
- kernel/fork.c       |   10 ++++++++++
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/interp.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix-fix include/linux/ipc.h
---- a/include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix-fix
-+++ a/include/linux/ipc.h
-@@ -107,13 +107,6 @@ static inline int copy_ipcs(unsigned lon
- {
- 	return 0;
- }
--static inline int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns)
--{
--	if (flags & CLONE_NEWIPC)
--		return -EINVAL;
--
--	return 0;
--}
- #endif
+diff -puN include/linux/interp.h~x86-fix-vdso-mapping-for-aout-executables-fixes include/linux/interp.h
+--- a/include/linux/interp.h~x86-fix-vdso-mapping-for-aout-executables-fixes
++++ a/include/linux/interp.h
+@@ -3,7 +3,9 @@
+ #define _LINUX_INTERP_H
  
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
-@@ -135,5 +128,3 @@ static inline void put_ipc_ns(struct ipc
- #endif /* __KERNEL__ */
- 
- #endif /* _LINUX_IPC_H */
--
--
-diff -puN kernel/fork.c~ipc-namespace-remove-config_ipc_ns-linkage-fix-fix kernel/fork.c
---- a/kernel/fork.c~ipc-namespace-remove-config_ipc_ns-linkage-fix-fix
-+++ a/kernel/fork.c
-@@ -1598,6 +1598,16 @@ static int unshare_semundo(unsigned long
- 	return 0;
- }
- 
-+#ifndef CONFIG_SYSVIPC
-+static inline int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns)
-+{
-+	if (flags & CLONE_NEWIPC)
-+		return -EINVAL;
+ struct linux_binprm;
+-#ifdef CONFIG_ARCH_HAS_SETUP_ADDITIONAL_PAGES
 +
-+	return 0;
-+}
-+#endif
-+
- /*
-  * unshare allows a process to 'unshare' part of the process
-  * context which was originally shared using clone.  copy_*
++#if defined(CONFIG_ARCH_HAS_SETUP_ADDITIONAL_PAGES) && \
++	!defined(CONFIG_COMPAT_VDSO)
+ extern int arch_setup_additional_pages(struct linux_binprm *bprm,
+ 					int executable_stack);
+ #else
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+x86-fix-vdso-mapping-for-aout-executables-fixes.patch
 mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
