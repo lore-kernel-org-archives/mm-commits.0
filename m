@@ -1,25 +1,21 @@
 From: akpm@osdl.org
 Subject: + dvb-video_buf-depends-on-pci.patch added to -mm tree
-Date: Sat, 27 Jan 2007 00:53:15 -0800
-Message-ID: <200701270854.l0R8s54X005841@shell0.pdx.osdl.net>
+Date: Sat, 27 Jan 2007 00:54:33 -0800
+Message-ID: <200701270855.l0R8tN1b005849@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45597 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45609 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752212AbXA0IyH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 03:54:07 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0R8s51m002018
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 27 Jan 2007 00:54:05 -0800
+	id S1752227AbXA0Izi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 03:55:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, geert@linux-m68k.org, mchehab@infradead.org, zippel@linux-m68k.org
 
 
 The patch titled
-     dvb-video_buf-depends-on-pci
+     dvb: VIDEO_BUF depends on PCI
 has been added to the -mm tree.  Its filename is
      dvb-video_buf-depends-on-pci.patch
 
@@ -29,9 +25,24 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb-video_buf-depends-on-pci
+Subject: dvb: VIDEO_BUF depends on PCI
 From: Andrew Morton <akpm@osdl.org>
 
+m68k allmodconfig:
+
+drivers/media/video/video-buf.c: In function 'videobuf_queue_pci':
+drivers/media/video/video-buf.c:396: error: 'pci_map_sg' undeclared (first use in this function)
+drivers/media/video/video-buf.c:396: error: (Each undeclared identifier is reported only once
+drivers/media/video/video-buf.c:396: error: for each function it appears in.)
+drivers/media/video/video-buf.c:399: error: 'pci_dma_sync_sg_for_cpu' undeclared (first use in this function)
+drivers/media/video/video-buf.c:401: error: 'pci_unmap_sg' undeclared (first use in this function)
+drivers/media/video/video-buf.c: In function 'videobuf_pci_dma_map':
+
+m68k doesn't support PCI..
+
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
