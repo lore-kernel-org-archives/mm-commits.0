@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 20:22:41 -0800
-Message-ID: <200701270423.l0R4NVs6002061@shell0.pdx.osdl.net>
+Subject: + hrt-dynticks-hotplug-fix-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 20:31:24 -0800
+Message-ID: <200701270432.l0R4WEa8002181@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39525 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39835 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751768AbXA0EXr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 23:23:47 -0500
+	id S1751885AbXA0EoE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 23:44:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, mathieu.desnoyers@polymtl.ca
+Cc: akpm@osdl.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix
+     hrt-dynticks-hotplug-fix fix
 has been added to the -mm tree.  Its filename is
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
+     hrt-dynticks-hotplug-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix
+Subject: hrt-dynticks-hotplug-fix fix
 From: Andrew Morton <akpm@osdl.org>
 
-include/asm-generic/atomic.h: In function 'atomic_long_add_unless':
-include/asm-generic/atomic.h:129: warning: implicit declaration of function 'cmpxchg'
-include/asm-generic/atomic.h: In function 'atomic_long_xchg':
-include/asm-generic/atomic.h:150: warning: implicit declaration of function 'xchg'
+With CONFIG_GENERIC_CLOCKEVENTS=n:
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Andi Kleen <ak@suse.de>
+kernel/timer.c: In function 'timekeeping_resume':
+kernel/timer.c:998: error: 'CLOCK_EVT_NOTIFY_RESUME' undeclared (first use in this function)
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-x86_64/atomic.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/clockchips.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86_64/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix include/asm-x86_64/atomic.h
---- a/include/asm-x86_64/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix
-+++ a/include/asm-x86_64/atomic.h
-@@ -2,6 +2,7 @@
- #define __ARCH_X86_64_ATOMIC__
+diff -puN include/linux/clockchips.h~hrt-dynticks-hotplug-fix-fix include/linux/clockchips.h
+--- a/include/linux/clockchips.h~hrt-dynticks-hotplug-fix-fix
++++ a/include/linux/clockchips.h
+@@ -135,7 +135,7 @@ extern void clockevents_notify(unsigned 
+ #else
  
- #include <asm/alternative.h>
-+#include <asm/system.h>
+ static inline void clockevents_resume_events(void) { }
+-static inline void clockevents_notify(unsigned long reason, void *arg) { }
++#define clockevents_notify(reason, arg) do { } while (0)
  
- /* atomic_t should be 32 bit signed type */
+ #endif
  
 _
 
@@ -132,6 +135,7 @@ hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 hrtimers-cleanup-locking.patch
 hrtimers-add-state-tracking.patch
 clockevents-i383-drivers.patch
+hrt-dynticks-hotplug-fix-fix.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
 revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
 time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
