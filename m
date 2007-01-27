@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + revert-x86_64-mm-msr-on-cpu.patch added to -mm tree
-Date: Fri, 26 Jan 2007 20:55:29 -0800
-Message-ID: <200701270456.l0R4uJSO002472@shell0.pdx.osdl.net>
+Subject: + ecryptfs-generalize-metadata-read-write-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 21:09:24 -0800
+Message-ID: <200701270510.l0R5AEv2002634@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39992 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40215 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751895AbXA0E4c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 23:56:32 -0500
+	id S1751860AbXA0FLJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 00:11:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, adobriyan@openvz.org, ak@muc.de
+Cc: akpm@osdl.org, mhalcrow@us.ibm.com
 
 
 The patch titled
-     revert x86_64-mm-msr-on-cpu
+     ecryptfs: printk warning fix
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-msr-on-cpu.patch
+     ecryptfs-generalize-metadata-read-write-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,201 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-msr-on-cpu
+Subject: ecryptfs: printk warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-x86_64:
+fs/ecryptfs/crypto.c: In function 'ecryptfs_read_xattr_region':
+fs/ecryptfs/crypto.c:1575: warning: format '%d' expects type 'int', but argument 3 has type 'ssize_t'
 
-WARNING: "wrmsr_on_cpu" [arch/x86_64/kernel/cpufreq/p4-clockmod.ko] undefined!
-WARNING: "rdmsr_on_cpu" [arch/x86_64/kernel/cpufreq/p4-clockmod.ko] undefined!
-
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Andi Kleen <ak@muc.de>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/p4-clockmod.c |   30 ++++++--
- arch/i386/lib/Makefile                     |    2 
- arch/i386/lib/msr-on-cpu.c                 |   70 -------------------
- include/asm-i386/msr.h                     |    3 
- 4 files changed, 24 insertions(+), 81 deletions(-)
+ fs/ecryptfs/crypto.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~revert-x86_64-mm-msr-on-cpu arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
---- a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~revert-x86_64-mm-msr-on-cpu
-+++ a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
-@@ -62,7 +62,7 @@ static int cpufreq_p4_setdc(unsigned int
- 	if (!cpu_online(cpu) || (newstate > DC_DISABLE) || (newstate == DC_RESV))
- 		return -EINVAL;
- 
--	rdmsr_on_cpu(cpu, MSR_IA32_THERM_STATUS, &l, &h);
-+	rdmsr(MSR_IA32_THERM_STATUS, l, h);
- 
- 	if (l & 0x01)
- 		dprintk("CPU#%d currently thermal throttled\n", cpu);
-@@ -70,10 +70,10 @@ static int cpufreq_p4_setdc(unsigned int
- 	if (has_N44_O17_errata[cpu] && (newstate == DC_25PT || newstate == DC_DFLT))
- 		newstate = DC_38PT;
- 
--	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
-+	rdmsr(MSR_IA32_THERM_CONTROL, l, h);
- 	if (newstate == DC_DISABLE) {
- 		dprintk("CPU#%d disabling modulation\n", cpu);
--		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l & ~(1<<4), h);
-+		wrmsr(MSR_IA32_THERM_CONTROL, l & ~(1<<4), h);
- 	} else {
- 		dprintk("CPU#%d setting duty cycle to %d%%\n",
- 			cpu, ((125 * newstate) / 10));
-@@ -84,7 +84,7 @@ static int cpufreq_p4_setdc(unsigned int
- 		 */
- 		l = (l & ~14);
- 		l = l | (1<<4) | ((newstate & 0x7)<<1);
--		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l, h);
-+		wrmsr(MSR_IA32_THERM_CONTROL, l, h);
- 	}
- 
- 	return 0;
-@@ -111,6 +111,7 @@ static int cpufreq_p4_target(struct cpuf
- {
- 	unsigned int    newstate = DC_RESV;
- 	struct cpufreq_freqs freqs;
-+	cpumask_t cpus_allowed;
- 	int i;
- 
- 	if (cpufreq_frequency_table_target(policy, &p4clockmod_table[0], target_freq, relation, &newstate))
-@@ -131,8 +132,17 @@ static int cpufreq_p4_target(struct cpuf
- 	/* run on each logical CPU, see section 13.15.3 of IA32 Intel Architecture Software
- 	 * Developer's Manual, Volume 3
- 	 */
--	for_each_cpu_mask(i, policy->cpus)
-+	cpus_allowed = current->cpus_allowed;
-+
-+	for_each_cpu_mask(i, policy->cpus) {
-+		cpumask_t this_cpu = cpumask_of_cpu(i);
-+
-+		set_cpus_allowed(current, this_cpu);
-+		BUG_ON(smp_processor_id() != i);
-+
- 		cpufreq_p4_setdc(i, p4clockmod_table[newstate].index);
-+	}
-+	set_cpus_allowed(current, cpus_allowed);
- 
- 	/* notifiers */
- 	for_each_cpu_mask(i, policy->cpus) {
-@@ -246,9 +256,17 @@ static int cpufreq_p4_cpu_exit(struct cp
- 
- static unsigned int cpufreq_p4_get(unsigned int cpu)
- {
-+	cpumask_t cpus_allowed;
- 	u32 l, h;
- 
--	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
-+	cpus_allowed = current->cpus_allowed;
-+
-+	set_cpus_allowed(current, cpumask_of_cpu(cpu));
-+	BUG_ON(smp_processor_id() != cpu);
-+
-+	rdmsr(MSR_IA32_THERM_CONTROL, l, h);
-+
-+	set_cpus_allowed(current, cpus_allowed);
- 
- 	if (l & 0x10) {
- 		l = l >> 1;
-diff -puN arch/i386/lib/Makefile~revert-x86_64-mm-msr-on-cpu arch/i386/lib/Makefile
---- a/arch/i386/lib/Makefile~revert-x86_64-mm-msr-on-cpu
-+++ a/arch/i386/lib/Makefile
-@@ -7,5 +7,3 @@ lib-y = checksum.o delay.o usercopy.o ge
- 	bitops.o semaphore.o
- 
- lib-$(CONFIG_X86_USE_3DNOW) += mmx.o
--
--obj-y = msr-on-cpu.o
-diff -puN arch/i386/lib/msr-on-cpu.c~revert-x86_64-mm-msr-on-cpu /dev/null
---- a/arch/i386/lib/msr-on-cpu.c
-+++ /dev/null
-@@ -1,70 +0,0 @@
--#include <linux/module.h>
--#include <linux/preempt.h>
--#include <linux/smp.h>
--#include <asm/msr.h>
--
--#ifdef CONFIG_SMP
--struct msr_info {
--	u32 msr_no;
--	u32 l, h;
--};
--
--static void __rdmsr_on_cpu(void *info)
--{
--	struct msr_info *rv = info;
--
--	rdmsr(rv->msr_no, rv->l, rv->h);
--}
--
--void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
--{
--	preempt_disable();
--	if (smp_processor_id() == cpu)
--		rdmsr(msr_no, *l, *h);
--	else {
--		struct msr_info rv;
--
--		rv.msr_no = msr_no;
--		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
--		*l = rv.l;
--		*h = rv.h;
--	}
--	preempt_enable();
--}
--
--static void __wrmsr_on_cpu(void *info)
--{
--	struct msr_info *rv = info;
--
--	wrmsr(rv->msr_no, rv->l, rv->h);
--}
--
--void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
--{
--	preempt_disable();
--	if (smp_processor_id() == cpu)
--		wrmsr(msr_no, l, h);
--	else {
--		struct msr_info rv;
--
--		rv.msr_no = msr_no;
--		rv.l = l;
--		rv.h = h;
--		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
--	}
--	preempt_enable();
--}
--#else
--void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
--{
--	rdmsr(msr_no, *l, *h);
--}
--
--void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
--{
--	wrmsr(msr_no, l, h);
--}
--#endif
--
--EXPORT_SYMBOL(rdmsr_on_cpu);
--EXPORT_SYMBOL(wrmsr_on_cpu);
-diff -puN include/asm-i386/msr.h~revert-x86_64-mm-msr-on-cpu include/asm-i386/msr.h
---- a/include/asm-i386/msr.h~revert-x86_64-mm-msr-on-cpu
-+++ a/include/asm-i386/msr.h
-@@ -83,9 +83,6 @@ static inline void wrmsrl (unsigned long
- 			  : "c" (counter))
- #endif	/* !CONFIG_PARAVIRT */
- 
--void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
--void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
--
- /* symbolic names for some interesting MSRs */
- /* Intel defined MSRs. */
- #define MSR_IA32_P5_MC_ADDR		0
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fix fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fix
++++ a/fs/ecryptfs/crypto.c
+@@ -1571,7 +1571,7 @@ int ecryptfs_read_xattr_region(char *pag
+ 				 page_virt, ECRYPTFS_DEFAULT_EXTENT_SIZE);
+ 	if (size < 0) {
+ 		printk(KERN_DEBUG "Error attempting to read the [%s] "
+-		       "xattr from the lower file; return value = [%d]\n",
++		       "xattr from the lower file; return value = [%zd]\n",
+ 		       ECRYPTFS_XATTR_NAME, size);
+ 		rc = -EINVAL;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -332,6 +162,7 @@ edac-new-opteron-athlon64-memory-controller-driver.patch
 omap-gpio-wrappers-tidy.patch
 at91-gpio-wrappers-tidy.patch
 ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
 fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
 fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
 aio-is-unlikely.patch
