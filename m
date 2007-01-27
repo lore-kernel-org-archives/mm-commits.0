@@ -1,234 +1,403 @@
 From: akpm@osdl.org
-Subject: - local_t-alpha-extension-fix.patch removed from -mm tree
-Date: Sat, 27 Jan 2007 02:19:05 -0800
-Message-ID: <200701271019.l0RAJtAo007108@shell0.pdx.osdl.net>
+Subject: - local_t-i386-extension.patch removed from -mm tree
+Date: Sat, 27 Jan 2007 02:19:07 -0800
+Message-ID: <200701271019.l0RAJvoF007111@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47682 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47685 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752278AbXA0KUF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 05:20:05 -0500
+	id S1752288AbXA0KUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 05:20:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, ink@jurassic.park.msu.ru, mathieu.desnoyers@polymtl.ca, rth@twiddle.net, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     local_t-alpha-extension-fix
+     local_t: i386 extension
 has been removed from the -mm tree.  Its filename was
-     local_t-alpha-extension-fix.patch
+     local_t-i386-extension.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: local_t-alpha-extension-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: local_t: i386 extension
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-alpha/local.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-i386/local.h  |  205 +++++++++++++++++++++++++++++++-----
+ include/asm-i386/system.h |   59 ++++++++++
+ 2 files changed, 236 insertions(+), 28 deletions(-)
 
-diff -puN include/asm-alpha/local.h~local_t-alpha-extension-fix include/asm-alpha/local.h
---- a/include/asm-alpha/local.h~local_t-alpha-extension-fix
-+++ a/include/asm-alpha/local.h
-@@ -34,7 +34,7 @@ static __inline__ long local_add_return(
- 	return result;
+diff -puN include/asm-i386/local.h~local_t-i386-extension include/asm-i386/local.h
+--- a/include/asm-i386/local.h~local_t-i386-extension
++++ a/include/asm-i386/local.h
+@@ -2,47 +2,198 @@
+ #define _ARCH_I386_LOCAL_H
+ 
+ #include <linux/percpu.h>
++#include <asm/system.h>
++#include <asm/atomic.h>
+ 
+ typedef struct
+ {
+-	volatile long counter;
++	atomic_long_t a;
+ } local_t;
+ 
+-#define LOCAL_INIT(i)	{ (i) }
++#define LOCAL_INIT(i)	{ ATOMIC_LONG_INIT(i) }
+ 
+-#define local_read(v)	((v)->counter)
+-#define local_set(v,i)	(((v)->counter) = (i))
++#define local_read(l)	atomic_long_read(&(l)->a)
++#define local_set(l,i)	atomic_long_set(&(l)->a, (i))
+ 
+-static __inline__ void local_inc(local_t *v)
++static __inline__ void local_inc(local_t *l)
+ {
+ 	__asm__ __volatile__(
+ 		"incl %0"
+-		:"+m" (v->counter));
++		:"+m" (l->a.counter));
  }
  
--static __inline__ long local_sub_return(long i, local_t * v)
-+static __inline__ long local_sub_return(long i, local_t *l)
+-static __inline__ void local_dec(local_t *v)
++static __inline__ void local_dec(local_t *l)
  {
- 	long temp, result;
  	__asm__ __volatile__(
+ 		"decl %0"
+-		:"+m" (v->counter));
++		:"+m" (l->a.counter));
+ }
+ 
+-static __inline__ void local_add(long i, local_t *v)
++static __inline__ void local_add(long i, local_t *l)
+ {
+ 	__asm__ __volatile__(
+ 		"addl %1,%0"
+-		:"+m" (v->counter)
++		:"+m" (l->a.counter)
+ 		:"ir" (i));
+ }
+ 
+-static __inline__ void local_sub(long i, local_t *v)
++static __inline__ void local_sub(long i, local_t *l)
+ {
+ 	__asm__ __volatile__(
+ 		"subl %1,%0"
+-		:"+m" (v->counter)
++		:"+m" (l->a.counter)
+ 		:"ir" (i));
+ }
+ 
++/**
++ * local_sub_and_test - subtract value from variable and test result
++ * @i: integer value to subtract
++ * @l: pointer of type local_t
++ *
++ * Atomically subtracts @i from @l and returns
++ * true if the result is zero, or false for all
++ * other cases.
++ */
++static __inline__ int local_sub_and_test(long i, local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"subl %2,%0; sete %1"
++		:"+m" (l->a.counter), "=qm" (c)
++		:"ir" (i) : "memory");
++	return c;
++}
++
++/**
++ * local_dec_and_test - decrement and test
++ * @l: pointer of type local_t
++ *
++ * Atomically decrements @l by 1 and
++ * returns true if the result is 0, or false for all other
++ * cases.
++ */
++static __inline__ int local_dec_and_test(local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"decl %0; sete %1"
++		:"+m" (l->a.counter), "=qm" (c)
++		: : "memory");
++	return c != 0;
++}
++
++/**
++ * local_inc_and_test - increment and test
++ * @l: pointer of type local_t
++ *
++ * Atomically increments @l by 1
++ * and returns true if the result is zero, or false for all
++ * other cases.
++ */
++static __inline__ int local_inc_and_test(local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"incl %0; sete %1"
++		:"+m" (l->a.counter), "=qm" (c)
++		: : "memory");
++	return c != 0;
++}
++
++/**
++ * local_add_negative - add and test if negative
++ * @l: pointer of type local_t
++ * @i: integer value to add
++ *
++ * Atomically adds @i to @l and returns true
++ * if the result is negative, or false when
++ * result is greater than or equal to zero.
++ */
++static __inline__ int local_add_negative(long i, local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"addl %2,%0; sets %1"
++		:"+m" (l->a.counter), "=qm" (c)
++		:"ir" (i) : "memory");
++	return c;
++}
++
++/**
++ * local_add_return - add and return
++ * @l: pointer of type local_t
++ * @i: integer value to add
++ *
++ * Atomically adds @i to @l and returns @i + @l
++ */
++static __inline__ long local_add_return(long i, local_t *l)
++{
++	long __i;
++#ifdef CONFIG_M386
++	unsigned long flags;
++	if(unlikely(boot_cpu_data.x86==3))
++		goto no_xadd;
++#endif
++	/* Modern 486+ processor */
++	__i = i;
++	__asm__ __volatile__(
++		"xaddl %0, %1;"
++		:"+r" (i), "+m" (l->a.counter)
++		: : "memory");
++	return i + __i;
++
++#ifdef CONFIG_M386
++no_xadd: /* Legacy 386 processor */
++	local_irq_save(flags);
++	__i = local_read(l);
++	local_set(l, i + __i);
++	local_irq_restore(flags);
++	return i + __i;
++#endif
++}
++
++static __inline__ long local_sub_return(long i, local_t *l)
++{
++	return local_add_return(-i,l);
++}
++
++#define local_inc_return(l)  (local_add_return(1,l))
++#define local_dec_return(l)  (local_sub_return(1,l))
++
++#define local_cmpxchg(l, o, n) \
++	((long)cmpxchg_local(&((l)->a.counter), (o), (n)))
++/* Always has a lock prefix anyway */
++#define local_xchg(l, new) (xchg(&((l)->a.counter), new))
++
++/**
++ * local_add_unless - add unless the number is a given value
++ * @l: pointer of type local_t
++ * @a: the amount to add to l...
++ * @u: ...unless l is equal to u.
++ *
++ * Atomically adds @a to @l, so long as it was not @u.
++ * Returns non-zero if @l was not @u, and zero otherwise.
++ */
++#define local_add_unless(l, a, u)				\
++({								\
++	long c, old;						\
++	c = local_read(l);					\
++	for (;;) {						\
++		if (unlikely(c == (u)))				\
++			break;					\
++		old = local_cmpxchg((l), c, c + (a));	\
++		if (likely(old == c))				\
++			break;					\
++		c = old;					\
++	}							\
++	c != (u);						\
++})
++#define local_inc_not_zero(l) local_add_unless((l), 1, 0)
++
+ /* On x86, these are no better than the atomic variants. */
+ #define __local_inc(l)		local_inc(l)
+ #define __local_dec(l)		local_dec(l)
+@@ -56,27 +207,27 @@ static __inline__ void local_sub(long i,
+ 
+ /* Need to disable preemption for the cpu local counters otherwise we could
+    still access a variable of a previous CPU in a non atomic way. */
+-#define cpu_local_wrap_v(v)	 	\
++#define cpu_local_wrap_v(l)	 	\
+ 	({ local_t res__;		\
+ 	   preempt_disable(); 		\
+-	   res__ = (v);			\
++	   res__ = (l);			\
+ 	   preempt_enable();		\
+ 	   res__; })
+-#define cpu_local_wrap(v)		\
++#define cpu_local_wrap(l)		\
+ 	({ preempt_disable();		\
+-	   v;				\
++	   l;				\
+ 	   preempt_enable(); })		\
+ 
+-#define cpu_local_read(v)    cpu_local_wrap_v(local_read(&__get_cpu_var(v)))
+-#define cpu_local_set(v, i)  cpu_local_wrap(local_set(&__get_cpu_var(v), (i)))
+-#define cpu_local_inc(v)     cpu_local_wrap(local_inc(&__get_cpu_var(v)))
+-#define cpu_local_dec(v)     cpu_local_wrap(local_dec(&__get_cpu_var(v)))
+-#define cpu_local_add(i, v)  cpu_local_wrap(local_add((i), &__get_cpu_var(v)))
+-#define cpu_local_sub(i, v)  cpu_local_wrap(local_sub((i), &__get_cpu_var(v)))
+-
+-#define __cpu_local_inc(v)	cpu_local_inc(v)
+-#define __cpu_local_dec(v)	cpu_local_dec(v)
+-#define __cpu_local_add(i, v)	cpu_local_add((i), (v))
+-#define __cpu_local_sub(i, v)	cpu_local_sub((i), (v))
++#define cpu_local_read(l)    cpu_local_wrap_v(local_read(&__get_cpu_var(l)))
++#define cpu_local_set(l, i)  cpu_local_wrap(local_set(&__get_cpu_var(l), (i)))
++#define cpu_local_inc(l)     cpu_local_wrap(local_inc(&__get_cpu_var(l)))
++#define cpu_local_dec(l)     cpu_local_wrap(local_dec(&__get_cpu_var(l)))
++#define cpu_local_add(i, l)  cpu_local_wrap(local_add((i), &__get_cpu_var(l)))
++#define cpu_local_sub(i, l)  cpu_local_wrap(local_sub((i), &__get_cpu_var(l)))
++
++#define __cpu_local_inc(l)	cpu_local_inc(l)
++#define __cpu_local_dec(l)	cpu_local_dec(l)
++#define __cpu_local_add(i, l)	cpu_local_add((i), (l))
++#define __cpu_local_sub(i, l)	cpu_local_sub((i), (l))
+ 
+ #endif /* _ARCH_I386_LOCAL_H */
+diff -puN include/asm-i386/system.h~local_t-i386-extension include/asm-i386/system.h
+--- a/include/asm-i386/system.h~local_t-i386-extension
++++ a/include/asm-i386/system.h
+@@ -274,6 +274,9 @@ static inline unsigned long __xchg(unsig
+ #define sync_cmpxchg(ptr,o,n)\
+ 	((__typeof__(*(ptr)))__sync_cmpxchg((ptr),(unsigned long)(o),\
+ 					(unsigned long)(n),sizeof(*(ptr))))
++#define cmpxchg_local(ptr,o,n)\
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr),(unsigned long)(o),\
++					(unsigned long)(n),sizeof(*(ptr))))
+ #endif
+ 
+ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
+@@ -336,6 +339,33 @@ static inline unsigned long __sync_cmpxc
+ 	return old;
+ }
+ 
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++			unsigned long old, unsigned long new, int size)
++{
++	unsigned long prev;
++	switch (size) {
++	case 1:
++		__asm__ __volatile__("cmpxchgb %b1,%2"
++				     : "=a"(prev)
++				     : "q"(new), "m"(*__xg(ptr)), "0"(old)
++				     : "memory");
++		return prev;
++	case 2:
++		__asm__ __volatile__("cmpxchgw %w1,%2"
++				     : "=a"(prev)
++				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
++				     : "memory");
++		return prev;
++	case 4:
++		__asm__ __volatile__("cmpxchgl %1,%2"
++				     : "=a"(prev)
++				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
++				     : "memory");
++		return prev;
++	}
++	return old;
++}
++
+ #ifndef CONFIG_X86_CMPXCHG
+ /*
+  * Building a kernel capable running on 80386. It may be necessary to
+@@ -372,6 +402,17 @@ static inline unsigned long cmpxchg_386(
+ 					(unsigned long)(n), sizeof(*(ptr))); \
+ 	__ret;								\
+ })
++#define cmpxchg_local(ptr,o,n)						\
++({									\
++	__typeof__(*(ptr)) __ret;					\
++	if (likely(boot_cpu_data.x86 > 3))				\
++		__ret = __cmpxchg_local((ptr), (unsigned long)(o),	\
++					(unsigned long)(n), sizeof(*(ptr))); \
++	else								\
++		__ret = cmpxchg_386((ptr), (unsigned long)(o),		\
++					(unsigned long)(n), sizeof(*(ptr))); \
++	__ret;								\
++})
+ #endif
+ 
+ #ifdef CONFIG_X86_CMPXCHG64
+@@ -390,10 +431,26 @@ static inline unsigned long long __cmpxc
+ 	return prev;
+ }
+ 
++static inline unsigned long long __cmpxchg64_local(volatile void *ptr,
++			unsigned long long old, unsigned long long new)
++{
++	unsigned long long prev;
++	__asm__ __volatile__("cmpxchg8b %3"
++			     : "=A"(prev)
++			     : "b"((unsigned long)new),
++			       "c"((unsigned long)(new >> 32)),
++			       "m"(*__xg(ptr)),
++			       "0"(old)
++			     : "memory");
++	return prev;
++}
++
+ #define cmpxchg64(ptr,o,n)\
+ 	((__typeof__(*(ptr)))__cmpxchg64((ptr),(unsigned long long)(o),\
+ 					(unsigned long long)(n)))
+-
++#define cmpxchg64_local(ptr,o,n)\
++	((__typeof__(*(ptr)))__cmpxchg64_local((ptr),(unsigned long long)(o),\
++					(unsigned long long)(n)))
+ #endif
+     
+ /*
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-origin.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-git-dvb.patch
-dvb-video_buf-depends-on-pci.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-pata_platform-set_mode-fix.patch
-sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
-mm-ide-ide-acpi-support-warning-fix.patch
-git-lxdialog-fixup.patch
-git-mips-kconfig-fix.patch
-git-mips-prom_free_prom_memory-borkage.patch
-git-mmc.patch
-git-mmc-fixup.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-fixup.patch
-git-netdev-all-atl1-build-fix.patch
-git-netdev-all-atl1-pm-fix.patch
-82596-warning-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-sh-add-kconfig-default.patch
-git-scsi-misc-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-borkage.patch
-git-block-atomicity-fix.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-msr-on-cpu.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-m68k-uaccessh-needs-schedh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-hrt-dynticks-hotplug-fix-fix.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
-dynamic-kernel-command-line-ia64-fix.patch
-rcu-preemptible-rcu-fix.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-local_t-alpha-extension-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+relay-add-cpu-hotplug-support.patch
+local_t-documentation.patch
+local_t-documentation-fix.patch
+order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
+minimize-lockdep_on-off-side-effect.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-s390-cleanup.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
