@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + rcu-preemptible-rcu-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 23:19:39 -0800
-Message-ID: <200701270720.l0R7KTxg004364@shell0.pdx.osdl.net>
+Subject: + 82596-warning-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 23:30:02 -0800
+Message-ID: <200701270730.l0R7UquN004499@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43827 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43993 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbXA0HUr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 02:20:47 -0500
+	id S1750804AbXA0HbB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 02:31:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, dipankar@in.ibm.com, paulmck@us.ibm.com
+Cc: akpm@osdl.org, jeff@garzik.org
 
 
 The patch titled
-     rcu-preemptible-rcu fix
+     82596 warning fixes
 has been added to the -mm tree.  Its filename is
-     rcu-preemptible-rcu-fix.patch
+     82596-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,112 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rcu-preemptible-rcu fix
+Subject: 82596 warning fixes
 From: Andrew Morton <akpm@osdl.org>
 
-Not all architectures impement preempt (alpha), so they don't include
-Kconfig.preempt.  net result:
+drivers/net/82596.c: In function 'i596_start_xmit':
+drivers/net/82596.c:1069: warning: cast from pointer to integer of different size
+drivers/net/82596.c: In function 'i82596_probe':
+drivers/net/82596.c:1249: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
 
-arch/alpha/kernel/built-in.o: In function `osf_select':
-: undefined reference to `__rcu_read_lock'
-arch/alpha/kernel/built-in.o: In function `osf_select':
-: undefined reference to `__rcu_read_lock'
-arch/alpha/kernel/built-in.o: In function `osf_select':
-: undefined reference to `__rcu_read_unlock'
-arch/alpha/kernel/built-in.o: In function `osf_select':
-: undefined reference to `__rcu_read_unlock'
-kernel/built-in.o: In function `do_sched_setscheduler':
-: undefined reference to `__rcu_read_lock'
-kernel/built-in.o: In function `do_sched_setscheduler':
-: undefined reference to `__rcu_read_lock'
-kernel/built-in.o: In function `do_sched_setscheduler':
-: undefined reference to `__rcu_read_unlock'
-kernel/built-in.o: In function `do_sched_setscheduler':
-: undefined reference to `__rcu_read_unlock'
-
-etc..
-
-Move it to the general steup menu.
-
-Cc: Paul McKenney <paulmck@us.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- init/Kconfig           |   27 +++++++++++++++++++++++++++
- kernel/Kconfig.preempt |   26 --------------------------
- 2 files changed, 27 insertions(+), 26 deletions(-)
+ drivers/net/82596.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/Kconfig.preempt~rcu-preemptible-rcu-fix kernel/Kconfig.preempt
---- a/kernel/Kconfig.preempt~rcu-preemptible-rcu-fix
-+++ a/kernel/Kconfig.preempt
-@@ -63,29 +63,3 @@ config PREEMPT_BKL
- 	  Say Y here if you are building a kernel for a desktop system.
- 	  Say N if you are unsure.
+diff -puN drivers/net/82596.c~82596-warning-fix drivers/net/82596.c
+--- a/drivers/net/82596.c~82596-warning-fix
++++ a/drivers/net/82596.c
+@@ -1066,8 +1066,8 @@ static int i596_start_xmit(struct sk_buf
+ 	short length = skb->len;
+ 	dev->trans_start = jiffies;
  
--choice
--	prompt "RCU implementation type:"
--	default CLASSIC_RCU
--
--config CLASSIC_RCU
--	bool "Classic RCU"
--	help
--	  This option selects the classic RCU implementation that is
--	  designed for best read-side performance on non-realtime
--	  systems.
--
--	  Say Y if you are unsure.
--
--config PREEMPT_RCU
--	bool "Preemptible RCU"
--	help
--	  This option reduces the latency of the kernel by making certain
--	  RCU sections preemptible. Normally RCU code is non-preemptible, if
--	  this option is selected then read-only RCU sections become
--	  preemptible. This helps latency, but may expose bugs due to
--	  now-naive assumptions about each RCU read-side critical section
--	  remaining on a given CPU through its execution.
--
--	  Say N if you are unsure.
--
--endchoice
-diff -puN init/Kconfig~rcu-preemptible-rcu-fix init/Kconfig
---- a/init/Kconfig~rcu-preemptible-rcu-fix
-+++ a/init/Kconfig
-@@ -483,6 +483,33 @@ config VM_EVENT_COUNTERS
- 	  on EMBEDDED systems.  /proc/vmstat will only show page counts
- 	  if VM event counters are disabled.
+-	DEB(DEB_STARTTX,printk(KERN_DEBUG "%s: i596_start_xmit(%x,%x) called\n", dev->name,
+-				skb->len, (unsigned int)skb->data));
++	DEB(DEB_STARTTX,printk(KERN_DEBUG "%s: i596_start_xmit(%x,%p) called\n",
++				dev->name, skb->len, skb->data));
  
-+choice
-+	prompt "RCU implementation type:"
-+	default CLASSIC_RCU
-+
-+config CLASSIC_RCU
-+	bool "Classic RCU"
-+	help
-+	  This option selects the classic RCU implementation that is
-+	  designed for best read-side performance on non-realtime
-+	  systems.
-+
-+	  Say Y if you are unsure.
-+
-+config PREEMPT_RCU
-+	bool "Preemptible RCU"
-+	help
-+	  This option reduces the latency of the kernel by making certain
-+	  RCU sections preemptible. Normally RCU code is non-preemptible, if
-+	  this option is selected then read-only RCU sections become
-+	  preemptible. This helps latency, but may expose bugs due to
-+	  now-naive assumptions about each RCU read-side critical section
-+	  remaining on a given CPU through its execution.
-+
-+	  Say N if you are unsure.
-+
-+endchoice
-+
- endmenu		# General setup
+ 	if (skb->len < ETH_ZLEN) {
+ 		if (skb_padto(skb, ETH_ZLEN))
+@@ -1246,7 +1246,8 @@ struct net_device * __init i82596_probe(
+ 	dev->priv = (void *)(dev->mem_start);
  
- config RT_MUTEXES
+ 	lp = dev->priv;
+-	DEB(DEB_INIT,printk(KERN_DEBUG "%s: lp at 0x%08lx (%d bytes), lp->scb at 0x%08lx\n",
++	DEB(DEB_INIT,printk(KERN_DEBUG "%s: lp at 0x%08lx (%zd bytes), "
++			"lp->scb at 0x%08lx\n",
+ 			dev->name, (unsigned long)lp,
+ 			sizeof(struct i596_private), (unsigned long)&lp->scb));
+ 	memset((void *) lp, 0, sizeof(struct i596_private));
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -309,3 +242,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+82596-warning-fix.patch
