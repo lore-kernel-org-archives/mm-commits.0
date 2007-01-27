@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + rtc-framework-driver-for-cmos-rtcs-fix-2.patch added to -mm tree
-Date: Sat, 27 Jan 2007 03:00:05 -0800
-Message-ID: <200701271100.l0RB0t05007704@shell0.pdx.osdl.net>
+Subject: + dynamic-kernel-command-line-sparc64-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 03:02:12 -0800
+Message-ID: <200701271103.l0RB32ES007734@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48795 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48832 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbXA0LBM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 06:01:12 -0500
+	id S1751572AbXA0LDP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 06:03:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, alessandro.zummo@towertech.it, dbrownell@users.sourceforge.net, woodys@xandros.com
+Cc: akpm@osdl.org, alon.barlev@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     rtc-framework-driver-for-cmos-rtcs-fix-2
+     dynamic-kernel-command-line-sparc64-fix
 has been added to the -mm tree.  Its filename is
-     rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+     dynamic-kernel-command-line-sparc64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-framework-driver-for-cmos-rtcs-fix-2
+Subject: dynamic-kernel-command-line-sparc64-fix
 From: Andrew Morton <akpm@osdl.org>
 
-sparc64:
-
-WARNING: "rtc_register" [sound/core/snd-rtctimer.ko] undefined!
-WARNING: "rtc_unregister" [sound/core/snd-rtctimer.ko] undefined!
-WARNING: "rtc_control" [sound/core/snd-rtctimer.ko] undefined!
-WARNING: "bus_to_virt_not_defined_use_pci_map" [drivers/scsi/tmscsim.ko] undefined!
 WARNING: "saved_command_line" [drivers/sbus/char/openprom.ko] undefined!
-WARNING: "ds1287_regs" [drivers/rtc/rtc-cmos.ko] undefined!
-WARNING: "rtc_lock" [drivers/rtc/rtc-cmos.ko] undefined!
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Woody Suwalski <woodys@xandros.com>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Alon Bar-Lev <alon.barlev@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/Kconfig |    2 +-
+ drivers/sbus/char/openprom.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2
-+++ a/drivers/rtc/Kconfig
-@@ -102,7 +102,7 @@ comment "RTC drivers"
- config RTC_DRV_CMOS
- 	tristate "PC-style 'CMOS' real time clock"
- 	depends on RTC_CLASS && (X86_PC || ALPHA || ARM26 || ARM \
--		|| M32R || ATARI || POWERPC || SPARC64)
-+		|| M32R || ATARI || POWERPC)
- 	help
- 	  Say "yes" here to get direct support for the real time clock
- 	  found in every PC or ACPI-based system, and some other boards.
+diff -puN drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix drivers/sbus/char/openprom.c
+--- a/drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix
++++ a/drivers/sbus/char/openprom.c
+@@ -283,7 +283,7 @@ static int oprompath2node(void __user *a
+ 
+ static int opromgetbootargs(void __user *argp, struct openpromio *op, int bufsize)
+ {
+-	char *buf = saved_command_line;
++	char *buf = boot_command_line;
+ 	int len = strlen(buf);
+ 
+ 	if (len > bufsize)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -202,6 +193,7 @@ introduce-and-use-get_task_mnt_ns-tweaks.patch
 user-ns-implement-user-ns-unshare-tidy.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 dynamic-kernel-command-line-ia64-fix.patch
+dynamic-kernel-command-line-sparc64-fix.patch
 rcu-preemptible-rcu-fix.patch
 readahead-kconfig-options-fix.patch
 readahead-minmax_ra_pages.patch
