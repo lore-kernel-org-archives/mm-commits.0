@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + local_t-alpha-extension-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 22:47:42 -0800
-Message-ID: <200701270648.l0R6mWA6003885@shell0.pdx.osdl.net>
+Subject: + add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 22:55:39 -0800
+Message-ID: <200701270656.l0R6uTnk003990@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42582 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42975 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbXA0Gsu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 01:48:50 -0500
+	id S1752161AbXA0G5B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 01:57:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ink@jurassic.park.msu.ru, mathieu.desnoyers@polymtl.ca, rth@twiddle.net
+Cc: akpm@osdl.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     local_t-alpha-extension-fix
+     add-a-functions-to-handle-interrupt-affinity-setting alpha fix
 has been added to the -mm tree.  Its filename is
-     local_t-alpha-extension-fix.patch
+     add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t-alpha-extension-fix
+Subject: add-a-functions-to-handle-interrupt-affinity-setting alpha fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+kernel/irq/manage.c: In function 'irq_set_affinity':
+kernel/irq/manage.c:75: error: invalid type argument of '->'
+kernel/irq/manage.c:76: error: invalid type argument of '->'
+
+nfi why.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-alpha/local.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/irq/manage.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-alpha/local.h~local_t-alpha-extension-fix include/asm-alpha/local.h
---- a/include/asm-alpha/local.h~local_t-alpha-extension-fix
-+++ a/include/asm-alpha/local.h
-@@ -34,7 +34,7 @@ static __inline__ long local_add_return(
- 	return result;
+diff -puN kernel/irq/manage.c~add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix kernel/irq/manage.c
+--- a/kernel/irq/manage.c~add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix
++++ a/kernel/irq/manage.c
+@@ -72,8 +72,8 @@ int irq_set_affinity(unsigned int irq, c
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
+ 	set_pending_irq(irq, cpumask);
+ #else
+-	irq_desc[irq]->affinity = cpumask;
+-	irq_desc[irq]->chip->set_affinity(irq, cpumask);
++	desc->affinity = cpumask;
++	desc->chip->set_affinity(irq, cpumask);
+ #endif
+ 	return 0;
  }
- 
--static __inline__ long local_sub_return(long i, local_t * v)
-+static __inline__ long local_sub_return(long i, local_t *l)
- {
- 	long temp, result;
- 	__asm__ __volatile__(
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -128,6 +137,7 @@ return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 spi-controller-driver-for-omap-microwire-update-fix.patch
 vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
 i386-use-gtod-persistent-clock-support.patch
 hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 hrtimers-cleanup-locking.patch
@@ -207,6 +217,7 @@ sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
+local_t-alpha-extension-fix.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 device-suspend-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
@@ -221,4 +232,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-local_t-alpha-extension-fix.patch
