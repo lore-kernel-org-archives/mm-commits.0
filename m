@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch added to -mm tree
-Date: Fri, 26 Jan 2007 23:01:03 -0800
-Message-ID: <200701270701.l0R71rEL004077@shell0.pdx.osdl.net>
+Subject: + git-netdev-all-atl1-build-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 23:07:36 -0800
+Message-ID: <200701270708.l0R78Q0o004191@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43311 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43622 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751425AbXA0HCC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 02:02:02 -0500
+	id S1750804AbXA0HKU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 02:10:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mathieu.desnoyers@polymtl.ca
+Cc: akpm@osdl.org, jeff@garzik.org
 
 
 The patch titled
-     atomich-complete-atomic_long-operations-in-asm-generic fix 3
+     git-netdev-all: atl1 build fix
 has been added to the -mm tree.  Its filename is
-     atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
+     git-netdev-all-atl1-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atomich-complete-atomic_long-operations-in-asm-generic fix 3
+Subject: git-netdev-all: atl1 build fix
 From: Andrew Morton <akpm@osdl.org>
 
-In file included from include/asm/atomic.h:265,
-                 from include/linux/crypto.h:20,
-                 from include/crypto/algapi.h:15,
-                 from crypto/cbc.c:13:
-include/asm-generic/atomic.h: In function 'atomic_long_add_unless':
-include/asm-generic/atomic.h:129: warning: implicit declaration of function 'cmpxchg'
-include/asm-generic/atomic.h: In function 'atomic_long_xchg':
-include/asm-generic/atomic.h:150: warning: implicit declaration of function 'xchg'
+alpha:
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+drivers/net/atl1/atl1_main.c: In function 'atl1_probe':
+drivers/net/atl1/atl1_main.c:2160: error: 'DMA_64BIT_MASK' undeclared (first use in this function)
+drivers/net/atl1/atl1_main.c:2160: error: (Each undeclared identifier is reported only once
+drivers/net/atl1/atl1_main.c:2160: error: for each function it appears in.)
+drivers/net/atl1/atl1_main.c:2162: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-alpha/atomic.h |    1 +
+ drivers/net/atl1/atl1_main.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/asm-alpha/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-fix-3 include/asm-alpha/atomic.h
---- a/include/asm-alpha/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-fix-3
-+++ a/include/asm-alpha/atomic.h
-@@ -2,6 +2,7 @@
- #define _ALPHA_ATOMIC_H
- 
- #include <asm/barrier.h>
-+#include <asm/system.h>
- 
- /*
-  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN drivers/net/atl1/atl1_main.c~git-netdev-all-atl1-build-fix drivers/net/atl1/atl1_main.c
+--- a/drivers/net/atl1/atl1_main.c~git-netdev-all-atl1-build-fix
++++ a/drivers/net/atl1/atl1_main.c
+@@ -66,6 +66,7 @@
+ #include <linux/hardirq.h>
+ #include <linux/interrupt.h>
+ #include <linux/irqflags.h>
++#include <linux/dma-mapping.h>
+ #include <linux/net.h>
+ #include <linux/pm.h>
+ #include <linux/in.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -230,3 +229,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-netdev-all-atl1-build-fix.patch
