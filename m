@@ -1,83 +1,84 @@
 From: akpm@osdl.org
-Subject: - atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch removed from -mm tree
-Date: Sat, 27 Jan 2007 02:18:54 -0800
-Message-ID: <200701271019.l0RAJiX4007093@shell0.pdx.osdl.net>
+Subject: - local_t-parisc-cleanup.patch removed from -mm tree
+Date: Sat, 27 Jan 2007 02:19:15 -0800
+Message-ID: <200701271020.l0RAK5gk007129@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47650 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47699 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752250AbXA0KTw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 05:19:52 -0500
+	id S1752298AbXA0KUO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 05:20:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, davem@davemloft.net, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atomic.h: add atomic64 cmpxchg, xchg and add_unless to sparc64
+     local_t: parisc cleanup
 has been removed from the -mm tree.  Its filename was
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+     local_t-parisc-cleanup.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: atomic.h: add atomic64 cmpxchg, xchg and add_unless to sparc64
+Subject: local_t: parisc cleanup
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
+parisc architecture local_t cleanup : use asm-generic/local.h.
+
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-sparc64/atomic.h |   25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ include/asm-parisc/local.h |   41 -----------------------------------
+ 1 file changed, 1 insertion(+), 40 deletions(-)
 
-diff -puN include/asm-sparc64/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64 include/asm-sparc64/atomic.h
---- a/include/asm-sparc64/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64
-+++ a/include/asm-sparc64/atomic.h
-@@ -70,12 +70,13 @@ extern int atomic64_sub_ret(int, atomic6
- #define atomic_add_negative(i, v) (atomic_add_ret(i, v) < 0)
- #define atomic64_add_negative(i, v) (atomic64_add_ret(i, v) < 0)
- 
--#define atomic_cmpxchg(v, o, n) ((int)cmpxchg(&((v)->counter), (o), (n)))
-+#define atomic_cmpxchg(v, o, n) \
-+	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
- #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
- 
- #define atomic_add_unless(v, a, u)				\
- ({								\
--	int c, old;						\
-+	__typeof__((v)->counter) c, old;			\
- 	c = atomic_read(v);					\
- 	for (;;) {						\
- 		if (unlikely(c == (u)))				\
-@@ -89,6 +90,26 @@ extern int atomic64_sub_ret(int, atomic6
- })
- #define atomic_inc_not_zero(v) atomic_add_unless((v), 1, 0)
- 
-+#define atomic64_cmpxchg(v, o, n) \
-+	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
-+#define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
-+
-+#define atomic64_add_unless(v, a, u)				\
-+({								\
-+	__typeof__((v)->counter) c, old;			\
-+	c = atomic64_read(v);					\
-+	for (;;) {						\
-+		if (unlikely(c == (u)))				\
-+			break;					\
-+		old = atomic64_cmpxchg((v), c, c + (a));	\
-+		if (likely(old == c))				\
-+			break;					\
-+		c = old;					\
-+	}							\
-+	likely(c != (u));					\
-+})
-+#define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
-+
- /* Atomic operations are already serializing */
- #ifdef CONFIG_SMP
- #define smp_mb__before_atomic_dec()	membar_storeload_loadload();
+diff -puN include/asm-parisc/local.h~local_t-parisc-cleanup include/asm-parisc/local.h
+--- a/include/asm-parisc/local.h~local_t-parisc-cleanup
++++ a/include/asm-parisc/local.h
+@@ -1,40 +1 @@
+-#ifndef _ARCH_PARISC_LOCAL_H
+-#define _ARCH_PARISC_LOCAL_H
+-
+-#include <linux/percpu.h>
+-#include <asm/atomic.h>
+-
+-typedef atomic_long_t local_t;
+-
+-#define LOCAL_INIT(i)	ATOMIC_LONG_INIT(i)
+-#define local_read(v)	atomic_long_read(v)
+-#define local_set(v,i)	atomic_long_set(v,i)
+-
+-#define local_inc(v)	atomic_long_inc(v)
+-#define local_dec(v)	atomic_long_dec(v)
+-#define local_add(i, v)	atomic_long_add(i, v)
+-#define local_sub(i, v)	atomic_long_sub(i, v)
+-
+-#define __local_inc(v)		((v)->counter++)
+-#define __local_dec(v)		((v)->counter--)
+-#define __local_add(i,v)	((v)->counter+=(i))
+-#define __local_sub(i,v)	((v)->counter-=(i))
+-
+-/* Use these for per-cpu local_t variables: on some archs they are
+- * much more efficient than these naive implementations.  Note they take
+- * a variable, not an address.
+- */
+-#define cpu_local_read(v)	local_read(&__get_cpu_var(v))
+-#define cpu_local_set(v, i)	local_set(&__get_cpu_var(v), (i))
+-
+-#define cpu_local_inc(v)	local_inc(&__get_cpu_var(v))
+-#define cpu_local_dec(v)	local_dec(&__get_cpu_var(v))
+-#define cpu_local_add(i, v)	local_add((i), &__get_cpu_var(v))
+-#define cpu_local_sub(i, v)	local_sub((i), &__get_cpu_var(v))
+-
+-#define __cpu_local_inc(v)	__local_inc(&__get_cpu_var(v))
+-#define __cpu_local_dec(v)	__local_dec(&__get_cpu_var(v))
+-#define __cpu_local_add(i, v)	__local_add((i), &__get_cpu_var(v))
+-#define __cpu_local_sub(i, v)	__local_sub((i), &__get_cpu_var(v))
+-
+-#endif /* _ARCH_PARISC_LOCAL_H */
++#include <asm-generic/local.h>
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -87,16 +88,6 @@ local_t-documentation.patch
 local_t-documentation-fix.patch
 order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
 minimize-lockdep_on-off-side-effect.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
-local_t-architecture-independent-extension.patch
-local_t-alpha-extension.patch
-local_t-alpha-extension-fix.patch
-local_t-i386-extension.patch
-local_t-ia64-extension.patch
-local_t-mips-extension.patch
-local_t-mips-extension-fix.patch
 local_t-parisc-cleanup.patch
 local_t-powerpc-extension.patch
 local_t-s390-cleanup.patch
