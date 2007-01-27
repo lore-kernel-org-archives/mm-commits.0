@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + use-zvc-for-inactive-and-active-counts-up-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 21:47:25 -0800
-Message-ID: <200701270548.l0R5mFn0003114@shell0.pdx.osdl.net>
+Subject: + ipc-namespace-remove-config_ipc_ns-linkage-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 22:11:19 -0800
+Message-ID: <200701270612.l0R6C9sU003375@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41045 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41662 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750971AbXA0FsS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 00:48:18 -0500
+	id S1751885AbXA0GNt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 01:13:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clameter@sgi.com
+Cc: akpm@osdl.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     use-zvc-for-inactive-and-active-counts-up-fix
+     ipc-namespace-remove-config_ipc_ns linkage fix
 has been added to the -mm tree.  Its filename is
-     use-zvc-for-inactive-and-active-counts-up-fix.patch
+     ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use-zvc-for-inactive-and-active-counts-up-fix
+Subject: ipc-namespace-remove-config_ipc_ns linkage fix
 From: Andrew Morton <akpm@osdl.org>
 
-In file included from mm/swap.c:26:
-include/linux/mm_inline.h: In function 'del_page_from_active_list':
-include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
-In file included from mm/vmscan.c:30:
-include/linux/mm_inline.h: In function 'del_page_from_active_list':
-include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
-In file included from fs/splice.c:24:
-include/linux/mm_inline.h: In function 'del_page_from_active_list':
-include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
+Documentation/SubmitChecklist, item 2.
 
-Cc: Christoph Lameter <clameter@sgi.com>
+kernel/built-in.o: In function `sys_unshare':
+: undefined reference to `unshare_ipcs'
+kernel/built-in.o: In function `sys_unshare':
+: undefined reference to `free_ipc_ns'
+kernel/built-in.o: In function `free_nsproxy':
+: undefined reference to `free_ipc_ns'
+kernel/built-in.o: In function `copy_namespaces':
+: undefined reference to `copy_ipcs'
+kernel/built-in.o: In function `copy_namespaces':
+: undefined reference to `free_ipc_ns'
+make: *** [.tmp_vmlinux1] Error 1
+
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Pavel Emelianov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/vmstat.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/ipc.h |   27 ++++++++++++++++++++++++---
+ 1 file changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix
-+++ a/include/linux/vmstat.h
-@@ -217,6 +217,12 @@ static inline void __inc_zone_page_state
- 	__inc_zone_state(page_zone(page), item);
+diff -puN include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix include/linux/ipc.h
+--- a/include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix
++++ a/include/linux/ipc.h
+@@ -52,6 +52,7 @@ struct ipc_perm
+ #ifdef __KERNEL__
+ 
+ #include <linux/kref.h>
++#include <linux/sched.h>
+ 
+ #define IPCMNI 32768  /* <= MAX_INT limit for ipc arrays (including sysctl changes) */
+ 
+@@ -92,24 +93,44 @@ extern struct ipc_namespace init_ipc_ns;
+ 
+ #ifdef CONFIG_SYSVIPC
+ #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
+-#else
+-#define INIT_IPC_NS(ns)
+-#endif
+ 
+ extern void free_ipc_ns(struct kref *kref);
+ extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
+ extern int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns);
+ 
++#else
++#define INIT_IPC_NS(ns)
++
++static inline void free_ipc_ns(struct kref *kref)
++{
++}
++static inline int copy_ipcs(unsigned long flags, struct task_struct *tsk)
++{
++	return 0;
++}
++static inline int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns)
++{
++	if (flags & CLONE_NEWIPC)
++		return -EINVAL;
++
++	return 0;
++}
++#endif
++
+ static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
+ {
++#ifdef CONFIG_SYSVIPC
+ 	if (ns)
+ 		kref_get(&ns->kref);
++#endif
+ 	return ns;
  }
  
-+static inline void __dec_zone_state(struct zone *zone, enum zone_stat_item item)
-+{
-+	atomic_long_dec(&zone->vm_stat[item]);
-+	atomic_long_dec(&vm_stat[item]);
-+}
-+
- static inline void __dec_zone_page_state(struct page *page,
- 			enum zone_stat_item item)
+ static inline void put_ipc_ns(struct ipc_namespace *ns)
  {
++#ifdef CONFIG_SYSVIPC
+ 	kref_put(&ns->kref, free_ipc_ns);
++#endif
+ }
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -185,6 +236,7 @@ swap_prefetch-vs-zoned-counters.patch
 add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 introduce-and-use-get_task_mnt_ns-tweaks.patch
 user-ns-implement-user-ns-unshare-tidy.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 readahead-kconfig-options-fix.patch
 readahead-minmax_ra_pages.patch
 readahead-sysctl-parameters.patch
