@@ -1,156 +1,193 @@
 From: akpm@osdl.org
-Subject: - md-fix-potential-memalloc-deadlock-in-md.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:32:25 -0800
-Message-ID: <200701270132.l0R1WPST031929@shell0.pdx.osdl.net>
+Subject: - fix-various-kernel-doc-in-header-files.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:32:19 -0800
+Message-ID: <200701270132.l0R1WJED031923@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35564 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35567 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752227AbXA0Bcd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:32:33 -0500
+	id S1752218AbXA0Bch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:32:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix potential memalloc deadlock in md
+     fix various kernel-doc in header files
 has been removed from the -mm tree.  Its filename was
-     md-fix-potential-memalloc-deadlock-in-md.patch
+     fix-various-kernel-doc-in-header-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: fix potential memalloc deadlock in md
-From: NeilBrown <neilb@suse.de>
+Subject: fix various kernel-doc in header files
+From: Robert P. J. Day <rpjday@mindspring.com>
 
-If a GFP_KERNEL allocation is attempted in md while the mddev_lock is held,
-it is possible for a deadlock to eventuate.
+Fix a number of kernel-doc entries for header files in include/linux by
+making sure they begin with the appropriate '/**' notation and use @var
+notation.
 
-This happens if the array was marked 'clean', and the memalloc triggers a
-write-out to the md device.
-
-For the writeout to succeed, the array must be marked 'dirty', and that
-requires getting the mddev_lock.
-
-So, before attempting a GFP_KERNEL allocation while holding the lock, make
-sure the array is marked 'dirty' (unless it is currently read-only).
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/md.c         |   29 +++++++++++++++++++++++++++++
- drivers/md/raid1.c      |    2 ++
- drivers/md/raid5.c      |    3 +++
- include/linux/raid/md.h |    2 +-
- 4 files changed, 35 insertions(+), 1 deletion(-)
+ include/linux/bitops.h  |    6 ++----
+ include/linux/list.h    |   10 +++++-----
+ include/linux/mutex.h   |    2 +-
+ include/linux/rtmutex.h |    4 ++--
+ include/linux/timer.h   |    4 ++--
+ 5 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN drivers/md/md.c~md-fix-potential-memalloc-deadlock-in-md drivers/md/md.c
---- a/drivers/md/md.c~md-fix-potential-memalloc-deadlock-in-md
-+++ a/drivers/md/md.c
-@@ -3564,6 +3564,8 @@ static int get_bitmap_file(mddev_t * mdd
- 	char *ptr, *buf = NULL;
- 	int err = -ENOMEM;
+diff -puN include/linux/bitops.h~fix-various-kernel-doc-in-header-files include/linux/bitops.h
+--- a/include/linux/bitops.h~fix-various-kernel-doc-in-header-files
++++ a/include/linux/bitops.h
+@@ -31,9 +31,8 @@ static inline unsigned long hweight_long
+ 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
+ }
  
-+	md_allow_write(mddev);
-+
- 	file = kmalloc(sizeof(*file), GFP_KERNEL);
- 	if (!file)
- 		goto out;
-@@ -5032,6 +5034,33 @@ void md_write_end(mddev_t *mddev)
+-/*
++/**
+  * rol32 - rotate a 32-bit value left
+- *
+  * @word: value to rotate
+  * @shift: bits to roll
+  */
+@@ -42,9 +41,8 @@ static inline __u32 rol32(__u32 word, un
+ 	return (word << shift) | (word >> (32 - shift));
+ }
+ 
+-/*
++/**
+  * ror32 - rotate a 32-bit value right
+- *
+  * @word: value to rotate
+  * @shift: bits to roll
+  */
+diff -puN include/linux/list.h~fix-various-kernel-doc-in-header-files include/linux/list.h
+--- a/include/linux/list.h~fix-various-kernel-doc-in-header-files
++++ a/include/linux/list.h
+@@ -227,13 +227,13 @@ static inline void list_replace_init(str
+ 	INIT_LIST_HEAD(old);
+ }
+ 
+-/*
++/**
+  * list_replace_rcu - replace old entry by new one
+  * @old : the element to be replaced
+  * @new : the new element to insert
+  *
+- * The old entry will be replaced with the new entry atomically.
+- * Note: 'old' should not be empty.
++ * The @old entry will be replaced with the @new entry atomically.
++ * Note: @old should not be empty.
+  */
+ static inline void list_replace_rcu(struct list_head *old,
+ 				struct list_head *new)
+@@ -680,12 +680,12 @@ static inline void hlist_del_init(struct
  	}
  }
  
-+/* md_allow_write(mddev)
-+ * Calling this ensures that the array is marked 'active' so that writes
-+ * may proceed without blocking.  It is important to call this before
-+ * attempting a GFP_KERNEL allocation while holding the mddev lock.
-+ * Must be called with mddev_lock held.
-+ */
-+void md_allow_write(mddev_t *mddev)
-+{
-+	if (!mddev->pers)
-+		return;
-+	if (mddev->ro)
-+		return;
-+
-+	spin_lock_irq(&mddev->write_lock);
-+	if (mddev->in_sync) {
-+		mddev->in_sync = 0;
-+		set_bit(MD_CHANGE_CLEAN, &mddev->flags);
-+		if (mddev->safemode_delay &&
-+		    mddev->safemode == 0)
-+			mddev->safemode = 1;
-+		spin_unlock_irq(&mddev->write_lock);
-+		md_update_sb(mddev, 0);
-+	} else
-+		spin_unlock_irq(&mddev->write_lock);
-+}
-+EXPORT_SYMBOL_GPL(md_allow_write);
-+
- static DECLARE_WAIT_QUEUE_HEAD(resync_wait);
+-/*
++/**
+  * hlist_replace_rcu - replace old entry by new one
+  * @old : the element to be replaced
+  * @new : the new element to insert
+  *
+- * The old entry will be replaced with the new entry atomically.
++ * The @old entry will be replaced with the @new entry atomically.
+  */
+ static inline void hlist_replace_rcu(struct hlist_node *old,
+ 					struct hlist_node *new)
+diff -puN include/linux/mutex.h~fix-various-kernel-doc-in-header-files include/linux/mutex.h
+--- a/include/linux/mutex.h~fix-various-kernel-doc-in-header-files
++++ a/include/linux/mutex.h
+@@ -105,7 +105,7 @@ do {							\
+ extern void __mutex_init(struct mutex *lock, const char *name,
+ 			 struct lock_class_key *key);
  
- #define SYNC_MARKS	10
-diff -puN drivers/md/raid1.c~md-fix-potential-memalloc-deadlock-in-md drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-fix-potential-memalloc-deadlock-in-md
-+++ a/drivers/md/raid1.c
-@@ -2104,6 +2104,8 @@ static int raid1_reshape(mddev_t *mddev)
- 		return -EINVAL;
- 	}
+-/***
++/**
+  * mutex_is_locked - is the mutex locked
+  * @lock: the mutex to be queried
+  *
+diff -puN include/linux/rtmutex.h~fix-various-kernel-doc-in-header-files include/linux/rtmutex.h
+--- a/include/linux/rtmutex.h~fix-various-kernel-doc-in-header-files
++++ a/include/linux/rtmutex.h
+@@ -16,7 +16,7 @@
+ #include <linux/plist.h>
+ #include <linux/spinlock_types.h>
  
-+	md_allow_write(mddev);
-+
- 	raid_disks = mddev->raid_disks + mddev->delta_disks;
+-/*
++/**
+  * The rt_mutex structure
+  *
+  * @wait_lock:	spinlock to protect the structure
+@@ -71,7 +71,7 @@ struct hrtimer_sleeper;
+ #define DEFINE_RT_MUTEX(mutexname) \
+ 	struct rt_mutex mutexname = __RT_MUTEX_INITIALIZER(mutexname)
  
- 	if (raid_disks < conf->raid_disks) {
-diff -puN drivers/md/raid5.c~md-fix-potential-memalloc-deadlock-in-md drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-potential-memalloc-deadlock-in-md
-+++ a/drivers/md/raid5.c
-@@ -405,6 +405,8 @@ static int resize_stripes(raid5_conf_t *
- 	if (newsize <= conf->pool_size)
- 		return 0; /* never bother to shrink */
+-/***
++/**
+  * rt_mutex_is_locked - is the mutex locked
+  * @lock: the mutex to be queried
+  *
+diff -puN include/linux/timer.h~fix-various-kernel-doc-in-header-files include/linux/timer.h
+--- a/include/linux/timer.h~fix-various-kernel-doc-in-header-files
++++ a/include/linux/timer.h
+@@ -41,7 +41,7 @@ static inline void setup_timer(struct ti
+ 	init_timer(timer);
+ }
  
-+	md_allow_write(conf->mddev);
-+
- 	/* Step 1 */
- 	sc = kmem_cache_create(conf->cache_name[1-conf->active_name],
- 			       sizeof(struct stripe_head)+(newsize-1)*sizeof(struct r5dev),
-@@ -3250,6 +3252,7 @@ raid5_store_stripe_cache_size(mddev_t *m
- 		else
- 			break;
- 	}
-+	md_allow_write(mddev);
- 	while (new > conf->max_nr_stripes) {
- 		if (grow_one_stripe(conf))
- 			conf->max_nr_stripes++;
-diff -puN include/linux/raid/md.h~md-fix-potential-memalloc-deadlock-in-md include/linux/raid/md.h
---- a/include/linux/raid/md.h~md-fix-potential-memalloc-deadlock-in-md
-+++ a/include/linux/raid/md.h
-@@ -94,7 +94,7 @@ extern int sync_page_io(struct block_dev
- 			struct page *page, int rw);
- extern void md_do_sync(mddev_t *mddev);
- extern void md_new_event(mddev_t *mddev);
--
-+extern void md_allow_write(mddev_t *mddev);
+-/***
++/**
+  * timer_pending - is a timer pending?
+  * @timer: the timer in question
+  *
+@@ -63,7 +63,7 @@ extern int mod_timer(struct timer_list *
  
- #endif /* CONFIG_MD */
- #endif 
+ extern unsigned long next_timer_interrupt(void);
+ 
+-/***
++/**
+  * add_timer - start a timer
+  * @timer: the timer to be added
+  *
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-igrab-should-check-for-i_clear.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
+git-alsa.patch
+remove-useless-reference-to-obsolete-kerneld.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+fix-apparent-typo-config_serial_cpm_smc.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+uml-fix-apparent-config_64_bit-typo.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
