@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + mark-struct-file_operations-const-4-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 20:07:37 -0800
-Message-ID: <200701270408.l0R48RQa001879@shell0.pdx.osdl.net>
+Subject: + git-scsi-misc-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 20:10:03 -0800
+Message-ID: <200701270410.l0R4ArUp001911@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39081 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39164 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751860AbXA0EIq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 23:08:46 -0500
+	id S1751714AbXA0EK5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 23:10:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, arjan@linux.intel.com
+Cc: akpm@osdl.org, James.Bottomley@steeleye.com
 
 
 The patch titled
-     mark-struct-file_operations-const-4-fix
+     git-scsi-misc-fix
 has been added to the -mm tree.  Its filename is
-     mark-struct-file_operations-const-4-fix.patch
+     git-scsi-misc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mark-struct-file_operations-const-4-fix
+Subject: git-scsi-misc-fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/media/video/saa7134/saa7134-oss.c:566: error: conflicting type qualifiers for 'saa7134_dsp_fops'
-drivers/media/video/saa7134/saa7134.h:675: error: previous declaration of 'saa7134_dsp_fops' was here
-drivers/media/video/saa7134/saa7134-oss.c:807: error: conflicting type qualifiers for 'saa7134_mixer_fops'
-drivers/media/video/saa7134/saa7134.h:676: error: previous declaration of 'saa7134_mixer_fops' was here
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/video/saa7134/saa7134.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/NCR_D700.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/saa7134/saa7134.h~mark-struct-file_operations-const-4-fix drivers/media/video/saa7134/saa7134.h
---- a/drivers/media/video/saa7134/saa7134.h~mark-struct-file_operations-const-4-fix
-+++ a/drivers/media/video/saa7134/saa7134.h
-@@ -672,8 +672,8 @@ int saa_dsp_writel(struct saa7134_dev *d
- /* ----------------------------------------------------------- */
- /* saa7134-oss.c                                               */
+diff -puN drivers/scsi/NCR_D700.c~git-scsi-misc-fix drivers/scsi/NCR_D700.c
+--- a/drivers/scsi/NCR_D700.c~git-scsi-misc-fix
++++ a/drivers/scsi/NCR_D700.c
+@@ -200,7 +200,7 @@ NCR_D700_probe_one(struct NCR_D700_priva
+ 	hostdata->base = ioport_map(region, 64);
+ 	hostdata->differential = (((1<<siop) & differential) != 0);
+ 	hostdata->clock = NCR_D700_CLOCK_MHZ;
+-	hostdata->busrt_length = 8;
++	hostdata->burst_length = 8;
  
--extern struct file_operations saa7134_dsp_fops;
--extern struct file_operations saa7134_mixer_fops;
-+extern const struct file_operations saa7134_dsp_fops;
-+extern const struct file_operations saa7134_mixer_fops;
- 
- int saa7134_oss_init1(struct saa7134_dev *dev);
- int saa7134_oss_fini(struct saa7134_dev *dev);
+ 	/* and register the siop */
+ 	host = NCR_700_detect(&NCR_D700_driver_template, hostdata, p->dev);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -196,6 +189,7 @@ reiser4-vs-git-block-2.patch
 cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
 statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
 slim-main-include-fix.patch
+mark-struct-file_operations-const-4-fix.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
 sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
@@ -216,4 +210,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-mark-struct-file_operations-const-4-fix.patch
+git-scsi-misc-fix.patch
