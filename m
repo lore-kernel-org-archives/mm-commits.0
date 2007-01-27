@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + mm-ide-ide-acpi-support-warning-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 21:13:18 -0800
-Message-ID: <200701270514.l0R5E8J3002680@shell0.pdx.osdl.net>
+Subject: + use-zvc-for-inactive-and-active-counts-up-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 21:47:25 -0800
+Message-ID: <200701270548.l0R5mFn0003114@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40299 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41045 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751885AbXA0FOU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 00:14:20 -0500
+	id S1750971AbXA0FsS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 00:48:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, bzolnier@gmail.com, hare@suse.de
+Cc: akpm@osdl.org, clameter@sgi.com
 
 
 The patch titled
-     ide-ide-acpi-support warning fix
+     use-zvc-for-inactive-and-active-counts-up-fix
 has been added to the -mm tree.  Its filename is
-     mm-ide-ide-acpi-support-warning-fix.patch
+     use-zvc-for-inactive-and-active-counts-up-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide-ide-acpi-support warning fix
+Subject: use-zvc-for-inactive-and-active-counts-up-fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/ide/ide-acpi.c: In function 'ide_acpi_get_timing':
-drivers/ide/ide-acpi.c:537: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+In file included from mm/swap.c:26:
+include/linux/mm_inline.h: In function 'del_page_from_active_list':
+include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
+In file included from mm/vmscan.c:30:
+include/linux/mm_inline.h: In function 'del_page_from_active_list':
+include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
+In file included from fs/splice.c:24:
+include/linux/mm_inline.h: In function 'del_page_from_active_list':
+include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
 
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/ide-acpi.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/vmstat.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/ide/ide-acpi.c~mm-ide-ide-acpi-support-warning-fix drivers/ide/ide-acpi.c
---- a/drivers/ide/ide-acpi.c~mm-ide-ide-acpi-support-warning-fix
-+++ a/drivers/ide/ide-acpi.c
-@@ -532,9 +532,10 @@ void ide_acpi_get_timing(ide_hwif_t *hwi
- 	    out_obj->buffer.length != sizeof(struct GTM_buffer)) {
- 		kfree(output.pointer);
- 		printk(KERN_ERR
--		       "%s: unexpected _GTM length (0x%x)[should be 0x%x] or addr (0x%p)\n",
--		       __FUNCTION__, out_obj->buffer.length,
--		       sizeof(struct GTM_buffer), out_obj->buffer.pointer);
-+			"%s: unexpected _GTM length (0x%x)[should be 0x%zx] or "
-+			"addr (0x%p)\n",
-+			__FUNCTION__, out_obj->buffer.length,
-+			sizeof(struct GTM_buffer), out_obj->buffer.pointer);
- 		return;
- 	}
+diff -puN include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix
++++ a/include/linux/vmstat.h
+@@ -217,6 +217,12 @@ static inline void __inc_zone_page_state
+ 	__inc_zone_state(page_zone(page), item);
+ }
  
++static inline void __dec_zone_state(struct zone *zone, enum zone_stat_item item)
++{
++	atomic_long_dec(&zone->vm_stat[item]);
++	atomic_long_dec(&vm_stat[item]);
++}
++
+ static inline void __dec_zone_page_state(struct page *page,
+ 			enum zone_stat_item item)
+ {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -110,6 +115,7 @@ lumpy-reclaim-v2-page_to_pfn-fix.patch
 lumpy-reclaim-v2-tidy.patch
 avoid-excessive-sorting-of-early_node_map-tidy.patch
 proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
 get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
 optional-zone_dma-in-the-vm-tidy.patch
 swsusp-change-code-ordering-in-userc-sanity.patch
