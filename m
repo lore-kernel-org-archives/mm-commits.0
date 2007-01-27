@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + arch-i386-kernel-alternativec-dont-include-bugsh.patch added to -mm tree
-Date: Fri, 26 Jan 2007 22:19:56 -0800
-Message-ID: <200701270620.l0R6Kk46003525@shell0.pdx.osdl.net>
+Subject: + local_t-alpha-extension-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 22:47:42 -0800
+Message-ID: <200701270648.l0R6mWA6003885@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41886 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42582 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751916AbXA0GUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 01:20:55 -0500
+	id S1750804AbXA0Gsu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 01:48:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@muc.de
+Cc: akpm@osdl.org, ink@jurassic.park.msu.ru, mathieu.desnoyers@polymtl.ca, rth@twiddle.net
 
 
 The patch titled
-     arch/i386/kernel/alternative.c: don't include bugs.h
+     local_t-alpha-extension-fix
 has been added to the -mm tree.  Its filename is
-     arch-i386-kernel-alternativec-dont-include-bugsh.patch
+     local_t-alpha-extension-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/i386/kernel/alternative.c: don't include bugs.h
+Subject: local_t-alpha-extension-fix
 From: Andrew Morton <akpm@osdl.org>
 
-That stupid non-inlined-static function in bugs.h causes:
-
-include/asm/bugs.h:186: warning: 'check_bugs' defined but not used
-
-But fortunately the include isn't needed.
-
-Cc: Andi Kleen <ak@muc.de>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/alternative.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/asm-alpha/local.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh
-+++ a/arch/i386/kernel/alternative.c
-@@ -4,7 +4,6 @@
- #include <linux/list.h>
- #include <asm/alternative.h>
- #include <asm/sections.h>
--#include <asm/bugs.h>
+diff -puN include/asm-alpha/local.h~local_t-alpha-extension-fix include/asm-alpha/local.h
+--- a/include/asm-alpha/local.h~local_t-alpha-extension-fix
++++ a/include/asm-alpha/local.h
+@@ -34,7 +34,7 @@ static __inline__ long local_add_return(
+ 	return result;
+ }
  
- static int no_replacement    = 0;
- static int smp_alt_once      = 0;
+-static __inline__ long local_sub_return(long i, local_t * v)
++static __inline__ long local_sub_return(long i, local_t *l)
+ {
+ 	long temp, result;
+ 	__asm__ __volatile__(
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -101,6 +98,7 @@ nokia-e70-is-an-unusual-device.patch
 revert-x86_64-mm-msr-on-cpu.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
 touchkit-ps-2-touchscreen-driver.patch
 lumpy-reclaim-v2-page_to_pfn-fix.patch
 lumpy-reclaim-v2-tidy.patch
@@ -223,4 +221,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
+local_t-alpha-extension-fix.patch
