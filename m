@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + rtc-framework-driver-for-cmos-rtcs-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 02:29:33 -0800
-Message-ID: <200701271030.l0RAUN13007285@shell0.pdx.osdl.net>
+Subject: + drop-free_pages-sparc64-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 02:40:40 -0800
+Message-ID: <200701271041.l0RAfUJG007395@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47983 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48264 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751395AbXA0Kag (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 05:30:36 -0500
+	id S1751438AbXA0Klf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 05:41:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, alessandro.zummo@towertech.it, dbrownell@users.sourceforge.net, woodys@xandros.com
+Cc: akpm@osdl.org, clameter@engr.sgi.com
 
 
 The patch titled
-     rtc-framework-driver-for-cmos-rtcs-fix
+     drop-free_pages sparc64 fix
 has been added to the -mm tree.  Its filename is
-     rtc-framework-driver-for-cmos-rtcs-fix.patch
+     drop-free_pages-sparc64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-framework-driver-for-cmos-rtcs-fix
+Subject: drop-free_pages sparc64 fix
 From: Andrew Morton <akpm@osdl.org>
 
-sparc32:
+arch/sparc64/mm/init.c: In function `show_mem':
+arch/sparc64/mm/init.c:419: warning: int format, different type arg (arg 2)
+arch/sparc64/mm/init.c: In function `mem_init':
+arch/sparc64/mm/init.c:1601: warning: unsigned int format, different type arg (arg 2)
 
-In file included from drivers/rtc/rtc-cmos.c:40:
-include/asm-generic/rtc.h: In function 'rtc_is_updating':
-include/asm-generic/rtc.h:40: error: 'rtc_port' undeclared (first use in this function)
-include/asm-generic/rtc.h:40: error: (Each undeclared identifier is reported only once
-include/asm-generic/rtc.h:40: error: for each function it appears in.)
-include/asm-generic/rtc.h: In function 'get_rtc_time':
-include/asm-generic/rtc.h:76: error: 'rtc_port' undeclared (first use in this function)
-
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Woody Suwalski <woodys@xandros.com>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/Kconfig |    4 ++--
+ arch/sparc64/mm/init.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix
-+++ a/drivers/rtc/Kconfig
-@@ -1,4 +1,4 @@
--\#
-+#
- # RTC class/drivers configuration
- #
+diff -puN arch/sparc64/mm/init.c~drop-free_pages-sparc64-fix arch/sparc64/mm/init.c
+--- a/arch/sparc64/mm/init.c~drop-free_pages-sparc64-fix
++++ a/arch/sparc64/mm/init.c
+@@ -416,7 +416,7 @@ void show_mem(void)
+ 	printk("Free swap:       %6ldkB\n",
+ 	       nr_swap_pages << (PAGE_SHIFT-10));
+ 	printk("%ld pages of RAM\n", num_physpages);
+-	printk("%d free pages\n", nr_free_pages());
++	printk("%lu free pages\n", nr_free_pages());
+ }
  
-@@ -102,7 +102,7 @@ comment "RTC drivers"
- config RTC_DRV_CMOS
- 	tristate "PC-style 'CMOS' real time clock"
- 	depends on RTC_CLASS && (X86_PC || ALPHA || ARM26 || ARM \
--		|| M32R || ATARI || POWERPC || SPARC64 || SPARC)
-+		|| M32R || ATARI || POWERPC || SPARC64)
- 	help
- 	  Say "yes" here to get direct support for the real time clock
- 	  found in every PC or ACPI-based system, and some other boards.
+ void mmu_info(struct seq_file *m)
+@@ -1593,7 +1593,7 @@ void __init mem_init(void)
+ 	initpages = (((unsigned long) __init_end) - ((unsigned long) __init_begin));
+ 	initpages = PAGE_ALIGN(initpages) >> PAGE_SHIFT;
+ 
+-	printk("Memory: %uk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
++	printk("Memory: %luk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
+ 	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       codepages << (PAGE_SHIFT-10),
+ 	       datapages << (PAGE_SHIFT-10), 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -252,3 +248,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+drop-free_pages-sparc64-fix.patch
