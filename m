@@ -1,13 +1,13 @@
 From: akpm@osdl.org
 Subject: + sysctl-reimplement-the-sysctl-proc-support-fix-2.patch added to -mm tree
-Date: Fri, 26 Jan 2007 23:49:10 -0800
-Message-ID: <200701270750.l0R7o0Ax004733@shell0.pdx.osdl.net>
+Date: Fri, 26 Jan 2007 23:52:22 -0800
+Message-ID: <200701270753.l0R7rDb0004794@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44341 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44384 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751582AbXA0HuH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 02:50:07 -0500
+	id S1751901AbXA0HxT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 02:53:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -40,29 +40,21 @@ Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/proc_sysctl.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ fs/proc/proc_sysctl.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
 diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-2 fs/proc/proc_sysctl.c
 --- a/fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-2
 +++ a/fs/proc/proc_sysctl.c
-@@ -314,6 +314,7 @@ static int proc_sys_readdir(struct file 
- 	struct ctl_table_header *head = NULL;
- 	struct ctl_table *table;
- 	unsigned long pos;
-+	loff_t f_pos;
- 	int ret;
- 
- 	ret = -ENOTDIR;
-@@ -321,21 +322,20 @@ static int proc_sys_readdir(struct file 
+@@ -321,21 +321,20 @@ static int proc_sys_readdir(struct file 
  		goto out;
  
  	ret = 0;
 -	switch(filp->f_pos) {
 -	case 0:
 -		if (filldir(dirent, ".", 1, filp->f_pos, inode->i_ino, DT_DIR) < 0)
-+	f_pos = filp->f_pos;
-+	if (f_pos == 0) {
++	/* Avoid a switch here: arm builds fail with missing __cmpdi2 */
++	if (filp->f_pos == 0) {
 +		if (filldir(dirent, ".", 1, filp->f_pos,
 +				inode->i_ino, DT_DIR) < 0)
  			goto out;
@@ -71,7 +63,7 @@ diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-2
 -	case 1:
 -		if (filldir(dirent, "..", 2, filp->f_pos, parent_ino(dentry), DT_DIR) < 0)
 +	}
-+	if (f_pos == 0 || f_pos == 1) {
++	if (filp->f_pos == 1) {
 +		if (filldir(dirent, "..", 2, filp->f_pos,
 +				parent_ino(dentry), DT_DIR) < 0)
  			goto out;
