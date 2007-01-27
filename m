@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + mark-struct-file_operations-const-2-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 02:56:17 -0800
-Message-ID: <200701271057.l0RAv7oe007631@shell0.pdx.osdl.net>
+Subject: + rtc-framework-driver-for-cmos-rtcs-fix-2.patch added to -mm tree
+Date: Sat, 27 Jan 2007 03:00:05 -0800
+Message-ID: <200701271100.l0RB0t05007704@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48695 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48795 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222AbXA0K52 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 05:57:28 -0500
+	id S1751564AbXA0LBM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 06:01:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, arjan@linux.intel.com, davem@davemloft.net
+Cc: akpm@osdl.org, alessandro.zummo@towertech.it, dbrownell@users.sourceforge.net, woodys@xandros.com
 
 
 The patch titled
-     mark-struct-file_operations-const-2-fix
+     rtc-framework-driver-for-cmos-rtcs-fix-2
 has been added to the -mm tree.  Its filename is
-     mark-struct-file_operations-const-2-fix.patch
+     rtc-framework-driver-for-cmos-rtcs-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mark-struct-file_operations-const-2-fix
+Subject: rtc-framework-driver-for-cmos-rtcs-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-arch/sparc64/solaris/socksys.c: In function `init_socksys':
-arch/sparc64/solaris/socksys.c:193: error: assignment of read-only variable `socksys_file_ops'
-arch/sparc64/solaris/socksys.c:196: error: assignment of read-only variable `socksys_file_ops'
-arch/sparc64/solaris/socksys.c:197: error: assignment of read-only variable `socksys_file_ops'
+sparc64:
 
-I'm not sure what it's trying to do in there, but it doens't look good.
+WARNING: "rtc_register" [sound/core/snd-rtctimer.ko] undefined!
+WARNING: "rtc_unregister" [sound/core/snd-rtctimer.ko] undefined!
+WARNING: "rtc_control" [sound/core/snd-rtctimer.ko] undefined!
+WARNING: "bus_to_virt_not_defined_use_pci_map" [drivers/scsi/tmscsim.ko] undefined!
+WARNING: "saved_command_line" [drivers/sbus/char/openprom.ko] undefined!
+WARNING: "ds1287_regs" [drivers/rtc/rtc-cmos.ko] undefined!
+WARNING: "rtc_lock" [drivers/rtc/rtc-cmos.ko] undefined!
 
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Woody Suwalski <woodys@xandros.com>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc64/solaris/socksys.c |    2 +-
+ drivers/rtc/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix arch/sparc64/solaris/socksys.c
---- a/arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix
-+++ a/arch/sparc64/solaris/socksys.c
-@@ -55,7 +55,7 @@ extern void mykfree(void *);
- 
- static unsigned int (*sock_poll)(struct file *, poll_table *);
- 
--static const struct file_operations socksys_file_ops = {
-+static struct file_operations socksys_file_ops = {
- 	/* Currently empty */
- };
- 
+diff -puN drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2
++++ a/drivers/rtc/Kconfig
+@@ -102,7 +102,7 @@ comment "RTC drivers"
+ config RTC_DRV_CMOS
+ 	tristate "PC-style 'CMOS' real time clock"
+ 	depends on RTC_CLASS && (X86_PC || ALPHA || ARM26 || ARM \
+-		|| M32R || ATARI || POWERPC || SPARC64)
++		|| M32R || ATARI || POWERPC)
+ 	help
+ 	  Say "yes" here to get direct support for the real time clock
+ 	  found in every PC or ACPI-based system, and some other boards.
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -71,6 +75,7 @@ video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_a
 git-alsa.patch
 agpgart-allow-drm-populated-agp-memory-types-tidy.patch
 rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+powerpc-make-it-compile.patch
 git-dvb.patch
 dvb-video_buf-depends-on-pci.patch
 git-gfs2-nmw.patch
@@ -142,6 +147,7 @@ block_write_full_page-handle-enospc.patch
 sysctl-warning-fix.patch
 proc_misc-warning-fix.patch
 rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
 return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 spi-controller-driver-for-omap-microwire-update-fix.patch
@@ -221,6 +227,7 @@ reiser4-vs-git-block-2.patch
 cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
 statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
 slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
 mark-struct-file_operations-const-4-fix.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
@@ -243,4 +250,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-mark-struct-file_operations-const-2-fix.patch
