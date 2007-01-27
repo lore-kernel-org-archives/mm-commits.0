@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + git-mips-prom_free_prom_memory-borkage.patch added to -mm tree
-Date: Sat, 27 Jan 2007 01:34:48 -0800
-Message-ID: <200701270935.l0R9ZcAt006426@shell0.pdx.osdl.net>
+Subject: + sh-add-kconfig-default.patch added to -mm tree
+Date: Sat, 27 Jan 2007 01:51:15 -0800
+Message-ID: <200701270952.l0R9q5hB006675@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46595 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47016 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752224AbXA0Jiz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 04:38:55 -0500
+	id S1751125AbXA0JwJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 04:52:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ralf@linux-mips.org
+Cc: akpm@osdl.org, lethal@linux-sh.org
 
 
 The patch titled
-     git-mips: prom_free_prom_memory() borkage
+     sh: add Kconfig default
 has been added to the -mm tree.  Its filename is
-     git-mips-prom_free_prom_memory-borkage.patch
+     sh-add-kconfig-default.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mips: prom_free_prom_memory() borkage
+Subject: sh: add Kconfig default
 From: Andrew Morton <akpm@osdl.org>
 
-arch/mips/mm/init.c:495: error: conflicting types for 'prom_free_prom_memory'
-include/asm/bootinfo.h:246: error: previous declaration of 'prom_free_prom_memory' was here
-arch/mips/mm/init.c:495: error: conflicting types for 'prom_free_prom_memory'
-include/asm/bootinfo.h:246: error: previous declaration of 'prom_free_prom_memory' was here
+This option needs a default - otherwise `make allmodconfig' get stuck in an
+infinite loop.
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/mips/mm/init.c |    2 --
- asm/bootinfo.h      |    0 
- 2 files changed, 2 deletions(-)
+ arch/sh/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/mips/mm/init.c~git-mips-prom_free_prom_memory-borkage arch/mips/mm/init.c
---- a/arch/mips/mm/init.c~git-mips-prom_free_prom_memory-borkage
-+++ a/arch/mips/mm/init.c
-@@ -492,8 +492,6 @@ void free_initrd_mem(unsigned long start
- }
- #endif
+diff -puN arch/sh/Kconfig~sh-add-kconfig-default arch/sh/Kconfig
+--- a/arch/sh/Kconfig~sh-add-kconfig-default
++++ a/arch/sh/Kconfig
+@@ -481,6 +481,7 @@ config SH_PCLK_FREQ
  
--extern unsigned long prom_free_prom_memory(void);
--
- void free_initmem(void)
- {
- 	prom_free_prom_memory();
-diff -puN include/asm/bootinfo.h~git-mips-prom_free_prom_memory-borkage include/asm/bootinfo.h
+ config SH_CLK_MD
+ 	int "CPU Mode Pin Setting"
++	default 0
+ 	depends on CPU_SUBTYPE_SH7619 || CPU_SUBTYPE_SH7206
+ 	help
+ 	  MD2 - MD0 pin setting.
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -82,6 +77,7 @@ sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
 mm-ide-ide-acpi-support-warning-fix.patch
 git-lxdialog-fixup.patch
 git-mips-kconfig-fix.patch
+git-mips-prom_free_prom_memory-borkage.patch
 git-mmc.patch
 git-mmc-fixup.patch
 git-ubi.patch
@@ -242,4 +238,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-git-mips-prom_free_prom_memory-borkage.patch
+sh-add-kconfig-default.patch
