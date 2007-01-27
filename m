@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + m68k-uaccessh-needs-schedh.patch added to -mm tree
-Date: Sat, 27 Jan 2007 00:57:14 -0800
-Message-ID: <200701270858.l0R8w4VH005880@shell0.pdx.osdl.net>
+Subject: + git-mips-kconfig-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 01:04:36 -0800
+Message-ID: <200701270905.l0R95QRU005990@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45636 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45948 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750729AbXA0I6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 03:58:09 -0500
+	id S1752213AbXA0JIp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 04:08:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: akpm@osdl.org, ralf@linux-mips.org
 
 
 The patch titled
-     m68k: uaccess.h needs sched.h
+     git-mips kconfig fix
 has been added to the -mm tree.  Its filename is
-     m68k-uaccessh-needs-schedh.patch
+     git-mips-kconfig-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k: uaccess.h needs sched.h
+Subject: git-mips kconfig fix
 From: Andrew Morton <akpm@osdl.org>
 
-In file included from include/linux/crypto.h:26,
-                 from crypto/cipher.c:17:
-include/linux/uaccess.h: In function 'pagefault_disable':
-include/linux/uaccess.h:18: error: dereferencing pointer to incomplete type
-include/linux/uaccess.h: In function 'pagefault_enable':
-include/linux/uaccess.h:33: error: dereferencing pointer to incomplete type
+arch/mips/Kconfig:2081: unexpected end statement
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-m68k/uaccess.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/mips/Kconfig |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/asm-m68k/uaccess.h~m68k-uaccessh-needs-schedh include/asm-m68k/uaccess.h
---- a/include/asm-m68k/uaccess.h~m68k-uaccessh-needs-schedh
-+++ a/include/asm-m68k/uaccess.h
-@@ -7,6 +7,7 @@
- #include <linux/compiler.h>
- #include <linux/errno.h>
- #include <linux/types.h>
-+#include <linux/sched.h>
- #include <asm/segment.h>
+diff -puN arch/mips/Kconfig~git-mips-kconfig-fix arch/mips/Kconfig
+--- a/arch/mips/Kconfig~git-mips-kconfig-fix
++++ a/arch/mips/Kconfig
+@@ -2078,8 +2078,6 @@ config APM
+ 	  anything, try disabling/enabling this option (or disabling/enabling
+ 	  APM in your BIOS).
  
- #define VERIFY_READ	0
+-endmenu
+-
+ source "net/Kconfig"
+ 
+ source "drivers/Kconfig"
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -238,3 +233,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-mips-kconfig-fix.patch
