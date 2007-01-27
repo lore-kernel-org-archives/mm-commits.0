@@ -1,64 +1,61 @@
 From: akpm@osdl.org
-Subject: - git-infiniband-fixup.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:14:33 -0800
-Message-ID: <200701270114.l0R1EXhT031504@shell0.pdx.osdl.net>
+Subject: - git-infiniband-fixup-2.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:14:40 -0800
+Message-ID: <200701270114.l0R1Eenn031507@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34925 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34926 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752170AbXA0BOn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:14:43 -0500
+	id S1752171AbXA0BOq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:14:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-infiniband-fixup
+     git-infiniband-fixup-2
 has been removed from the -mm tree.  Its filename was
-     git-infiniband-fixup.patch
+     git-infiniband-fixup-2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-infiniband-fixup
+Subject: git-infiniband-fixup-2
 From: Andrew Morton <akpm@osdl.org>
 
-NFI what went wrong here.  Neither version will compile...
+Now it does.
 
 Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup drivers/infiniband/ulp/ipoib/ipoib_ib.c
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2 drivers/infiniband/ulp/ipoib/ipoib_ib.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c~git-infiniband-fixup-2
 +++ a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -282,7 +282,6 @@ static void ipoib_ib_handle_tx_wc(struct
+@@ -298,6 +298,7 @@ repoll:
+ 		n = ib_poll_cq(priv->cq, t, priv->ibwc);
  
- int ipoib_poll(struct net_device *dev, int *budget)
- {
--<<<<<<< .merge_file_Exr08W
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int max = min(*budget, dev->quota);
- 	int done;
-@@ -332,14 +331,6 @@ repoll:
- 	}
+ 		for (i = 0; i < n; ++i) {
++			struct ib_wc *wc = priv->ibwc + i;
+ 			if (wc->wr_id & IPOIB_CM_OP_SRQ) {
+ 				++done;
+ 				--max;
+@@ -305,9 +306,9 @@ repoll:
+ 			} if (priv->ibwc[i].wr_id & IPOIB_OP_RECV) {
+ 				++done;
+ 				--max;
+-				ipoib_ib_handle_rx_wc(dev, priv->ibwc + i);
++				ipoib_ib_handle_rx_wc(dev, wc);
+ 			} else
+-				ipoib_ib_handle_tx_wc(dev, priv->ibwc + i);
++				ipoib_ib_handle_tx_wc(dev, wc);
+ 		}
  
- 	return 1;
--=======
--	if (wc->wr_id & IPOIB_CM_OP_SRQ)
--		ipoib_cm_handle_rx_wc(dev, wc);
--	else if (wc->wr_id & IPOIB_OP_RECV)
--		ipoib_ib_handle_rx_wc(dev, wc);
--	else
--		ipoib_ib_handle_tx_wc(dev, wc);
-->>>>>>> .merge_file_QTVZMW
- }
- 
- void ipoib_ib_completion(struct ib_cq *cq, void *dev_ptr)
+ 		if (n != t) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -79,7 +76,6 @@ git-dvb.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
-git-infiniband-fixup.patch
 git-infiniband-fixup-2.patch
 git-input.patch
 git-libata-all.patch
