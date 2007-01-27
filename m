@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + pata_platform-set_mode-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 01:34:10 -0800
-Message-ID: <200701270935.l0R9Z0Gi006413@shell0.pdx.osdl.net>
+Subject: + git-mips-prom_free_prom_memory-borkage.patch added to -mm tree
+Date: Sat, 27 Jan 2007 01:34:48 -0800
+Message-ID: <200701270935.l0R9ZcAt006426@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46531 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46595 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750698AbXA0JfL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 04:35:11 -0500
+	id S1752224AbXA0Jiz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 04:38:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
+Cc: akpm@osdl.org, ralf@linux-mips.org
 
 
 The patch titled
-     pata_platform: set_mode fix
+     git-mips: prom_free_prom_memory() borkage
 has been added to the -mm tree.  Its filename is
-     pata_platform-set_mode-fix.patch
+     git-mips-prom_free_prom_memory-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_platform: set_mode fix
+Subject: git-mips: prom_free_prom_memory() borkage
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/ata/pata_platform.c:85: warning: initialization from incompatible pointer type
+arch/mips/mm/init.c:495: error: conflicting types for 'prom_free_prom_memory'
+include/asm/bootinfo.h:246: error: previous declaration of 'prom_free_prom_memory' was here
+arch/mips/mm/init.c:495: error: conflicting types for 'prom_free_prom_memory'
+include/asm/bootinfo.h:246: error: previous declaration of 'prom_free_prom_memory' was here
 
-guess-and-giggle:
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/pata_platform.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/mips/mm/init.c |    2 --
+ asm/bootinfo.h      |    0 
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/ata/pata_platform.c~pata_platform-set_mode-fix drivers/ata/pata_platform.c
---- a/drivers/ata/pata_platform.c~pata_platform-set_mode-fix
-+++ a/drivers/ata/pata_platform.c
-@@ -30,7 +30,8 @@ static int pio_mask = 1;
-  * Provide our own set_mode() as we don't want to change anything that has
-  * already been configured..
-  */
--static void pata_platform_set_mode(struct ata_port *ap)
-+static int pata_platform_set_mode(struct ata_port *ap,
-+				struct ata_device **r_failed_dev)
- {
- 	int i;
- 
-@@ -44,6 +45,7 @@ static void pata_platform_set_mode(struc
- 			dev->flags |= ATA_DFLAG_PIO;
- 		}
- 	}
-+	return 0;
+diff -puN arch/mips/mm/init.c~git-mips-prom_free_prom_memory-borkage arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~git-mips-prom_free_prom_memory-borkage
++++ a/arch/mips/mm/init.c
+@@ -492,8 +492,6 @@ void free_initrd_mem(unsigned long start
  }
+ #endif
  
- static void pata_platform_host_stop(struct ata_host *host)
+-extern unsigned long prom_free_prom_memory(void);
+-
+ void free_initmem(void)
+ {
+ 	prom_free_prom_memory();
+diff -puN include/asm/bootinfo.h~git-mips-prom_free_prom_memory-borkage include/asm/bootinfo.h
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -85,6 +77,7 @@ ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
 git-input.patch
 git-libata-all.patch
+pata_platform-set_mode-fix.patch
 sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
 mm-ide-ide-acpi-support-warning-fix.patch
 git-lxdialog-fixup.patch
@@ -250,4 +243,3 @@ shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
 git-mips-prom_free_prom_memory-borkage.patch
-pata_platform-set_mode-fix.patch
