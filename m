@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + x86-fix-vdso-mapping-for-aout-executables-fixes.patch added to -mm tree
-Date: Sat, 27 Jan 2007 15:00:34 -0800
-Message-ID: <200701272300.l0RN0YCB018334@shell0.pdx.osdl.net>
+Subject: + sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 15:42:51 -0800
+Message-ID: <200701272343.l0RNhgnP018821@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37839 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38604 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932126AbXA0XAs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 18:00:48 -0500
+	id S932152AbXA0Xnp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 18:43:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, parag.warudkar@gmail.com, paulus@samba.org
+Cc: akpm@osdl.org, ebiederm@xmission.com
 
 
 The patch titled
-     x86-fix-vdso-mapping-for-aout-executables-fixes
+     sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry warning fix
 has been added to the -mm tree.  Its filename is
-     x86-fix-vdso-mapping-for-aout-executables-fixes.patch
+     sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-fix-vdso-mapping-for-aout-executables-fixes
+Subject: sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-fs/built-in.o: In function `load_aout_binary':
-fs/binfmt_aout.c:437: undefined reference to `arch_setup_additional_pages'
-fs/built-in.o: In function `load_elf_binary':
-fs/binfmt_elf.c:978: undefined reference to `arch_setup_additional_pages'
+kernel/sysctl.c:1046: warning: 'binfmt_misc_table' defined but not used
 
-What does CONFIG_COMPAT_VDSO do on i386??
-
-Cc: Parag Warudkar <parag.warudkar@gmail.com>
-Cc: Joerg Ahrens <joerg@hydrops.han.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/interp.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/interp.h~x86-fix-vdso-mapping-for-aout-executables-fixes include/linux/interp.h
---- a/include/linux/interp.h~x86-fix-vdso-mapping-for-aout-executables-fixes
-+++ a/include/linux/interp.h
-@@ -3,7 +3,9 @@
- #define _LINUX_INTERP_H
+diff -puN kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix
++++ a/kernel/sysctl.c
+@@ -150,7 +150,6 @@ static struct ctl_table_header root_tabl
+ static ctl_table kern_table[];
+ static ctl_table vm_table[];
+ static ctl_table fs_table[];
+-static ctl_table binfmt_misc_table[];
+ static ctl_table debug_table[];
+ static ctl_table dev_table[];
+ extern ctl_table random_table[];
+@@ -920,6 +919,12 @@ static ctl_table vm_table[] = {
+ 	{ .ctl_name = 0 }
+ };
  
- struct linux_binprm;
--#ifdef CONFIG_ARCH_HAS_SETUP_ADDITIONAL_PAGES
++#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
++static ctl_table binfmt_misc_table[] = {
++	{ .ctl_name = 0 }
++};
++#endif
 +
-+#if defined(CONFIG_ARCH_HAS_SETUP_ADDITIONAL_PAGES) && \
-+	!defined(CONFIG_COMPAT_VDSO)
- extern int arch_setup_additional_pages(struct linux_binprm *bprm,
- 					int executable_stack);
- #else
+ static ctl_table fs_table[] = {
+ 	{
+ 		.ctl_name	= FS_NRINODE,
+@@ -1054,10 +1059,6 @@ static ctl_table fs_table[] = {
+ 	{ .ctl_name = 0 }
+ };
+ 
+-static ctl_table binfmt_misc_table[] = {
+-	{ .ctl_name = 0 }
+-};
+-
+ static ctl_table debug_table[] = {
+ 	{ .ctl_name = 0 }
+ };
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -235,6 +246,7 @@ mark-struct-file_operations-const-2-fix.patch
 mark-struct-file_operations-const-4-fix.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
 sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
