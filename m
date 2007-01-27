@@ -1,95 +1,128 @@
 From: akpm@osdl.org
-Subject: - kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:31:06 -0800
-Message-ID: <200701270131.l0R1V6qe031813@shell0.pdx.osdl.net>
+Subject: - s3c24xx-fix-passing-spi-chipselect-to-select-routine.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:31:09 -0800
+Message-ID: <200701270131.l0R1V921031816@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35379 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35389 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752167AbXA0BbZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:31:25 -0500
+	id S1752161AbXA0Bba (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:31:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joerg.roedel@amd.com, avi@qumranet.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: SVM: Propagate cpu shutdown events to userspace
+     S3C24XX: fix passing spi chipselect to select routine
 has been removed from the -mm tree.  Its filename was
-     kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
+     s3c24xx-fix-passing-spi-chipselect-to-select-routine.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: SVM: Propagate cpu shutdown events to userspace
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: S3C24XX: fix passing spi chipselect to select routine
+From: Ben Dooks <ben-linux@fluff.org>
 
-This patch implements forwarding of SHUTDOWN intercepts from the guest on to
-userspace on AMD SVM.  A SHUTDOWN event occurs when the guest produces a
-triple fault (e.g.  on reboot).  This also fixes the bug that a guest reboot
-actually causes a host reboot under some circumstances.
+It turns out that the spi chipselect was not being passed to the set_cs
+routine if one was specified in the platform data.
 
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+As part of the fix, change to using a set_cs field in the controller state,
+and put a default gpio routine in if the data passed does not specify it.
+
+Also remove the //#define DEBUG
+
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c   |   15 +++++++++++++++
- include/linux/kvm.h |    1 +
- 2 files changed, 16 insertions(+)
+ drivers/spi/spi_s3c24xx.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace
-+++ a/drivers/kvm/svm.c
-@@ -502,6 +502,7 @@ static void init_vmcb(struct vmcb *vmcb)
- 				(1ULL << INTERCEPT_IOIO_PROT) |
- 				(1ULL << INTERCEPT_MSR_PROT) |
- 				(1ULL << INTERCEPT_TASK_SWITCH) |
-+				(1ULL << INTERCEPT_SHUTDOWN) |
- 				(1ULL << INTERCEPT_VMRUN) |
- 				(1ULL << INTERCEPT_VMMCALL) |
- 				(1ULL << INTERCEPT_VMLOAD) |
-@@ -892,6 +893,19 @@ static int pf_interception(struct kvm_vc
- 	return 0;
+diff -puN drivers/spi/spi_s3c24xx.c~s3c24xx-fix-passing-spi-chipselect-to-select-routine drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~s3c24xx-fix-passing-spi-chipselect-to-select-routine
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -10,9 +10,6 @@
+  *
+ */
+ 
+-
+-//#define DEBUG
+-
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
+ #include <linux/workqueue.h>
+@@ -44,6 +41,9 @@ struct s3c24xx_spi {
+ 	int			 len;
+ 	int			 count;
+ 
++	int			(*set_cs)(struct s3c2410_spi_info *spi,
++					  int cs, int pol);
++
+ 	/* data buffers */
+ 	const unsigned char	*tx;
+ 	unsigned char		*rx;
+@@ -64,6 +64,11 @@ static inline struct s3c24xx_spi *to_hw(
+ 	return spi_master_get_devdata(sdev->master);
  }
  
-+static int shutdown_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
++static void s3c24xx_spi_gpiocs(struct s3c2410_spi_info *spi, int cs, int pol)
 +{
-+	/*
-+	 * VMCB is undefined after a SHUTDOWN intercept
-+	 * so reinitialize it.
-+	 */
-+	memset(vcpu->svm->vmcb, 0, PAGE_SIZE);
-+	init_vmcb(vcpu->svm->vmcb);
-+
-+	kvm_run->exit_reason = KVM_EXIT_SHUTDOWN;
-+	return 0;
++	s3c2410_gpio_setpin(spi->pin_cs, pol);
 +}
 +
- static int io_get_override(struct kvm_vcpu *vcpu,
- 			  struct vmcb_seg **seg,
- 			  int *addr_override)
-@@ -1249,6 +1263,7 @@ static int (*svm_exit_handlers[])(struct
- 	[SVM_EXIT_IOIO] 		  	= io_interception,
- 	[SVM_EXIT_MSR]				= msr_interception,
- 	[SVM_EXIT_TASK_SWITCH]			= task_switch_interception,
-+	[SVM_EXIT_SHUTDOWN]			= shutdown_interception,
- 	[SVM_EXIT_VMRUN]			= invalid_op_interception,
- 	[SVM_EXIT_VMMCALL]			= invalid_op_interception,
- 	[SVM_EXIT_VMLOAD]			= invalid_op_interception,
-diff -puN include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace include/linux/kvm.h
---- a/include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace
-+++ a/include/linux/kvm.h
-@@ -46,6 +46,7 @@ enum kvm_exit_reason {
- 	KVM_EXIT_HLT              = 5,
- 	KVM_EXIT_MMIO             = 6,
- 	KVM_EXIT_IRQ_WINDOW_OPEN  = 7,
-+	KVM_EXIT_SHUTDOWN         = 8,
- };
+ static void s3c24xx_spi_chipsel(struct spi_device *spi, int value)
+ {
+ 	struct s3c24xx_spi *hw = to_hw(spi);
+@@ -72,10 +77,7 @@ static void s3c24xx_spi_chipsel(struct s
  
- /* for KVM_RUN */
+ 	switch (value) {
+ 	case BITBANG_CS_INACTIVE:
+-		if (hw->pdata->set_cs)
+-			hw->pdata->set_cs(hw->pdata, value, cspol);
+-		else
+-			s3c2410_gpio_setpin(hw->pdata->pin_cs, cspol ^ 1);
++		hw->pdata->set_cs(hw->pdata, spi->chip_select, cspol^1);
+ 		break;
+ 
+ 	case BITBANG_CS_ACTIVE:
+@@ -96,14 +98,9 @@ static void s3c24xx_spi_chipsel(struct s
+ 		/* write new configration */
+ 
+ 		writeb(spcon, hw->regs + S3C2410_SPCON);
+-
+-		if (hw->pdata->set_cs)
+-			hw->pdata->set_cs(hw->pdata, value, cspol);
+-		else
+-			s3c2410_gpio_setpin(hw->pdata->pin_cs, cspol);
++		hw->pdata->set_cs(hw->pdata, spi->chip_select, cspol);
+ 
+ 		break;
+-
+ 	}
+ }
+ 
+@@ -330,9 +327,12 @@ static int s3c24xx_spi_probe(struct plat
+ 	/* setup any gpio we can */
+ 
+ 	if (!hw->pdata->set_cs) {
++		hw->set_cs = s3c24xx_spi_gpiocs;
++
+ 		s3c2410_gpio_setpin(hw->pdata->pin_cs, 1);
+ 		s3c2410_gpio_cfgpin(hw->pdata->pin_cs, S3C2410_GPIO_OUTPUT);
+-	}
++	} else
++		hw->set_cs = hw->pdata->set_cs;
+ 
+ 	/* register our spi controller */
+ 
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
+git-watchdog.patch
+spi-add-spi_set_drvdata-and-spi_get_drvdata.patch
+spi-documentation-does-not-need-to-set-drivers-bus_type-field.patch
+spi-remove-return-in-spi_unregister_driver.patch
