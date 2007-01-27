@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + mips-convert-to-use-shared-apm-emulation-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 01:09:58 -0800
-Message-ID: <200701270910.l0R9AmaR006083@shell0.pdx.osdl.net>
+Subject: + atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 01:27:38 -0800
+Message-ID: <200701270928.l0R9SS1b006300@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46487 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752236AbXA0JOI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 04:14:08 -0500
+	id S1750698AbXA0Jb4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 04:31:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ralf@linux-mips.org
+Cc: akpm@osdl.org, mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
 
 
 The patch titled
-     mips-convert-to-use-shared-apm-emulation-fix
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix
 has been added to the -mm tree.  Its filename is
-     mips-convert-to-use-shared-apm-emulation-fix.patch
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips-convert-to-use-shared-apm-emulation-fix
+Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/mips/Kconfig:2059: unexpected end statement
-arch/mips/Kconfig:2061: missing end statement for this entry
+In file included from include/asm/atomic.h:756,
+                 from include/linux/spinlock.h:276,
+                 from include/linux/capability.h:56,
+                 from include/linux/sched.h:47,
+                 from arch/mips/kernel/asm-offsets.c:13:
+include/asm-generic/atomic.h: In function `atomic_long_add_unless':
+include/asm-generic/atomic.h:260: error: syntax error before ')' token
+include/asm-generic/atomic.h:260: error: syntax error before "c"
+include/asm-generic/atomic.h: In function `atomic_long_inc_not_zero':
+include/asm-generic/atomic.h:267: error: syntax error before ')' token
+include/asm-generic/atomic.h:267: error: syntax error before "c"
+include/asm-generic/atomic.h: In function `atomic_long_cmpxchg':
+include/asm-generic/atomic.h:274: error: syntax error before ')' token
+include/asm-generic/atomic.h:274: error: syntax error before ';' token
+In file included from arch/mips/kernel/asm-offsets.c:14:
+include/linux/mm.h: In function `get_page_unless_zero':
+include/linux/mm.h:269: error: syntax error before ')' token
+include/linux/mm.h:269: error: syntax error before "c"
 
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/mips/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ include/asm-mips/atomic.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/mips/Kconfig~mips-convert-to-use-shared-apm-emulation-fix arch/mips/Kconfig
---- a/arch/mips/Kconfig~mips-convert-to-use-shared-apm-emulation-fix
-+++ a/arch/mips/Kconfig
-@@ -2056,10 +2056,6 @@ config BINFMT_ELF32
- endmenu
+diff -puN include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix include/asm-mips/atomic.h
+--- a/include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix
++++ a/include/asm-mips/atomic.h
+@@ -18,6 +18,7 @@
+ #include <asm/barrier.h>
+ #include <asm/cpu-features.h>
+ #include <asm/war.h>
++#include <asm/system.h>
  
+ typedef struct { volatile int counter; } atomic_t;
  
--endmenu
--
--menu "Power management options"
--
- source "kernel/power/Kconfig"
+@@ -292,7 +293,7 @@ static __inline__ int atomic_sub_if_posi
+ }
  
- source "net/Kconfig"
+ #define atomic_cmpxchg(v, o, n) \
+-	(((__typeof__((v)->counter)))cmpxchg(&((v)->counter), (o), (n)))
++	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), (new)))
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -222,6 +245,7 @@ sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
 atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
 local_t-alpha-extension-fix.patch
 nr_blockdev_pages-in_interrupt-warning.patch
