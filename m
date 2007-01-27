@@ -1,73 +1,51 @@
 From: akpm@osdl.org
-Subject: + dccp-warning-fixes.patch added to -mm tree
-Date: Sat, 27 Jan 2007 03:05:22 -0800
-Message-ID: <200701271106.l0RB6CPO007757@shell0.pdx.osdl.net>
+Subject: - dynamic-kernel-command-line-sparc64-fix.patch removed from -mm tree
+Date: Sat, 27 Jan 2007 03:28:36 -0800
+Message-ID: <200701271129.l0RBTRY1008109@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48876 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49364 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751433AbXA0LG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 06:06:56 -0500
+	id S1751564AbXA0L3l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 06:29:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, acme@conectiva.com.br, davem@davemloft.net
+To: akpm@osdl.org, alon.barlev@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dccp-warning-fixes
-has been added to the -mm tree.  Its filename is
-     dccp-warning-fixes.patch
+     dynamic-kernel-command-line-sparc64-fix
+has been removed from the -mm tree.  Its filename was
+     dynamic-kernel-command-line-sparc64-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: dccp-warning-fixes
+Subject: dynamic-kernel-command-line-sparc64-fix
 From: Andrew Morton <akpm@osdl.org>
 
-sparc64:
+WARNING: "saved_command_line" [drivers/sbus/char/openprom.ko] undefined!
 
-net/dccp/ccids/ccid3.c: In function `ccid3_hc_tx_packet_recv':
-net/dccp/ccids/ccid3.c:480: warning: long long unsigned int format, __u64 arg (arg 6)
-net/dccp/ccids/ccid3.c: In function `ccid3_hc_rx_packet_recv':
-net/dccp/ccids/ccid3.c:1007: warning: long int format, different type arg (arg 3)
-net/dccp/ccids/ccid3.c:1007: warning: long int format, different type arg (arg 4)
-
-opaque types must be suitably cast for printing.
-
-Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Cc: Alon Bar-Lev <alon.barlev@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/dccp/ccids/ccid3.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/sbus/char/openprom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/dccp/ccids/ccid3.c~dccp-warning-fixes net/dccp/ccids/ccid3.c
---- a/net/dccp/ccids/ccid3.c~dccp-warning-fixes
-+++ a/net/dccp/ccids/ccid3.c
-@@ -479,7 +479,8 @@ static void ccid3_hc_tx_packet_recv(stru
+diff -puN drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix drivers/sbus/char/openprom.c
+--- a/drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix
++++ a/drivers/sbus/char/openprom.c
+@@ -283,7 +283,7 @@ static int oprompath2node(void __user *a
  
- 			ccid3_pr_debug("%s(%p), s=%u, w_init=%llu, "
- 				       "R_sample=%dus, X=%u\n", dccp_role(sk),
--				       sk, hctx->ccid3hctx_s, w_init,
-+				       sk, hctx->ccid3hctx_s,
-+				       (unsigned long long)w_init,
- 				       (int)r_sample,
- 				       (unsigned)(hctx->ccid3hctx_x >> 6));
+ static int opromgetbootargs(void __user *argp, struct openpromio *op, int bufsize)
+ {
+-	char *buf = saved_command_line;
++	char *buf = boot_command_line;
+ 	int len = strlen(buf);
  
-@@ -1005,7 +1006,7 @@ static void ccid3_hc_rx_packet_recv(stru
- 		DCCP_BUG_ON(r_sample < 0);
- 		if (unlikely(r_sample <= t_elapsed))
- 			DCCP_WARN("r_sample=%ldus, t_elapsed=%ldus\n",
--				  r_sample, t_elapsed);
-+				  (long)r_sample, (long)t_elapsed);
- 		else
- 			r_sample -= t_elapsed;
- 		CCID3_RTT_SANITY_CHECK(r_sample);
+ 	if (len > bufsize)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -109,6 +87,7 @@ git-netdev-all-atl1-pm-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+dccp-warning-fixes.patch
 net-uninline-skb_put.patch
 ioat-warning-fix.patch
 nfs-fix-congestion-control-v4-tweaks.patch
@@ -211,7 +190,6 @@ introduce-and-use-get_task_mnt_ns-tweaks.patch
 user-ns-implement-user-ns-unshare-tidy.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 dynamic-kernel-command-line-ia64-fix.patch
-dynamic-kernel-command-line-sparc64-fix.patch
 rcu-preemptible-rcu-fix.patch
 readahead-kconfig-options-fix.patch
 readahead-minmax_ra_pages.patch
@@ -260,4 +238,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-dccp-warning-fixes.patch
