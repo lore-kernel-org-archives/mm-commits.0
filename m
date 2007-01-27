@@ -1,193 +1,57 @@
 From: akpm@osdl.org
-Subject: - fix-various-kernel-doc-in-header-files.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:32:19 -0800
-Message-ID: <200701270132.l0R1WJED031923@shell0.pdx.osdl.net>
+Subject: - mm-remove-invalidate_inode_pages2_range-debug.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:32:27 -0800
+Message-ID: <200701270132.l0R1WRi8031932@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35567 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35572 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218AbXA0Bch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1752230AbXA0Bch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 26 Jan 2007 20:32:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix various kernel-doc in header files
+     MM: Remove [PATCH] invalidate_inode_pages2_range() debug
 has been removed from the -mm tree.  Its filename was
-     fix-various-kernel-doc-in-header-files.patch
+     mm-remove-invalidate_inode_pages2_range-debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix various kernel-doc in header files
-From: Robert P. J. Day <rpjday@mindspring.com>
+Subject: MM: Remove [PATCH] invalidate_inode_pages2_range() debug
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-Fix a number of kernel-doc entries for header files in include/linux by
-making sure they begin with the appropriate '/**' notation and use @var
-notation.
+NFS can handle the case where invalidate_inode_pages2_range() fails, so the
+premise behind commit 8258d4a574d3a8c01f0ef68aa26b969398a0e140 is now gone.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Remove the WARN_ON_ONCE() which is causing users grief as we can see from
+http://bugzilla.kernel.org/show_bug.cgi?id=7826
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/bitops.h  |    6 ++----
- include/linux/list.h    |   10 +++++-----
- include/linux/mutex.h   |    2 +-
- include/linux/rtmutex.h |    4 ++--
- include/linux/timer.h   |    4 ++--
- 5 files changed, 12 insertions(+), 14 deletions(-)
+ mm/truncate.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/bitops.h~fix-various-kernel-doc-in-header-files include/linux/bitops.h
---- a/include/linux/bitops.h~fix-various-kernel-doc-in-header-files
-+++ a/include/linux/bitops.h
-@@ -31,9 +31,8 @@ static inline unsigned long hweight_long
- 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
- }
- 
--/*
-+/**
-  * rol32 - rotate a 32-bit value left
-- *
-  * @word: value to rotate
-  * @shift: bits to roll
-  */
-@@ -42,9 +41,8 @@ static inline __u32 rol32(__u32 word, un
- 	return (word << shift) | (word >> (32 - shift));
- }
- 
--/*
-+/**
-  * ror32 - rotate a 32-bit value right
-- *
-  * @word: value to rotate
-  * @shift: bits to roll
-  */
-diff -puN include/linux/list.h~fix-various-kernel-doc-in-header-files include/linux/list.h
---- a/include/linux/list.h~fix-various-kernel-doc-in-header-files
-+++ a/include/linux/list.h
-@@ -227,13 +227,13 @@ static inline void list_replace_init(str
- 	INIT_LIST_HEAD(old);
- }
- 
--/*
-+/**
-  * list_replace_rcu - replace old entry by new one
-  * @old : the element to be replaced
-  * @new : the new element to insert
-  *
-- * The old entry will be replaced with the new entry atomically.
-- * Note: 'old' should not be empty.
-+ * The @old entry will be replaced with the @new entry atomically.
-+ * Note: @old should not be empty.
-  */
- static inline void list_replace_rcu(struct list_head *old,
- 				struct list_head *new)
-@@ -680,12 +680,12 @@ static inline void hlist_del_init(struct
+diff -puN mm/truncate.c~mm-remove-invalidate_inode_pages2_range-debug mm/truncate.c
+--- a/mm/truncate.c~mm-remove-invalidate_inode_pages2_range-debug
++++ a/mm/truncate.c
+@@ -422,7 +422,6 @@ int invalidate_inode_pages2_range(struct
+ 		pagevec_release(&pvec);
+ 		cond_resched();
  	}
+-	WARN_ON_ONCE(ret);
+ 	return ret;
  }
- 
--/*
-+/**
-  * hlist_replace_rcu - replace old entry by new one
-  * @old : the element to be replaced
-  * @new : the new element to insert
-  *
-- * The old entry will be replaced with the new entry atomically.
-+ * The @old entry will be replaced with the @new entry atomically.
-  */
- static inline void hlist_replace_rcu(struct hlist_node *old,
- 					struct hlist_node *new)
-diff -puN include/linux/mutex.h~fix-various-kernel-doc-in-header-files include/linux/mutex.h
---- a/include/linux/mutex.h~fix-various-kernel-doc-in-header-files
-+++ a/include/linux/mutex.h
-@@ -105,7 +105,7 @@ do {							\
- extern void __mutex_init(struct mutex *lock, const char *name,
- 			 struct lock_class_key *key);
- 
--/***
-+/**
-  * mutex_is_locked - is the mutex locked
-  * @lock: the mutex to be queried
-  *
-diff -puN include/linux/rtmutex.h~fix-various-kernel-doc-in-header-files include/linux/rtmutex.h
---- a/include/linux/rtmutex.h~fix-various-kernel-doc-in-header-files
-+++ a/include/linux/rtmutex.h
-@@ -16,7 +16,7 @@
- #include <linux/plist.h>
- #include <linux/spinlock_types.h>
- 
--/*
-+/**
-  * The rt_mutex structure
-  *
-  * @wait_lock:	spinlock to protect the structure
-@@ -71,7 +71,7 @@ struct hrtimer_sleeper;
- #define DEFINE_RT_MUTEX(mutexname) \
- 	struct rt_mutex mutexname = __RT_MUTEX_INITIALIZER(mutexname)
- 
--/***
-+/**
-  * rt_mutex_is_locked - is the mutex locked
-  * @lock: the mutex to be queried
-  *
-diff -puN include/linux/timer.h~fix-various-kernel-doc-in-header-files include/linux/timer.h
---- a/include/linux/timer.h~fix-various-kernel-doc-in-header-files
-+++ a/include/linux/timer.h
-@@ -41,7 +41,7 @@ static inline void setup_timer(struct ti
- 	init_timer(timer);
- }
- 
--/***
-+/**
-  * timer_pending - is a timer pending?
-  * @timer: the timer in question
-  *
-@@ -63,7 +63,7 @@ extern int mod_timer(struct timer_list *
- 
- extern unsigned long next_timer_interrupt(void);
- 
--/***
-+/**
-  * add_timer - start a timer
-  * @timer: the timer to be added
-  *
+ EXPORT_SYMBOL_GPL(invalidate_inode_pages2_range);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
 origin.patch
-fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
-git-alsa.patch
-remove-useless-reference-to-obsolete-kerneld.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-fix-apparent-typo-config_serial_cpm_smc.patch
-remove-the-unused-kernel-config-option-video_videobuf.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-remove-unused-kernel-config-option-dlci_count.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-uml-fix-apparent-config_64_bit-typo.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+nfs-kill-the-obsolete-nfs_paranoia.patch
