@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 18:43:43 -0800
-Message-ID: <200701270244.l0R2iXoJ000576@shell0.pdx.osdl.net>
+Subject: + fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 18:49:43 -0800
+Message-ID: <200701270250.l0R2oXbU000683@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37516 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37641 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752163AbXA0Coq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 21:44:46 -0500
+	id S1751875AbXA0Cuk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 21:50:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, jeff@garzik.org
+Cc: akpm@osdl.org, suparna@in.ibm.com
 
 
 The patch titled
-     scheduled-removal-of-sa_xxx-interrupt-flags ata fix
+     fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
 has been added to the -mm tree.  Its filename is
-     scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+     fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scheduled-removal-of-sa_xxx-interrupt-flags ata fix
+Subject: fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
 From: Andrew Morton <akpm@osdl.org>
 
-SA_SHIRQ is going away.
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/sata_inic162x.c |    2 +-
+ fs/gfs2/glock.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_inic162x.c~scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix drivers/ata/sata_inic162x.c
---- a/drivers/ata/sata_inic162x.c~scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix
-+++ a/drivers/ata/sata_inic162x.c
-@@ -724,7 +724,7 @@ static int inic_init_one(struct pci_dev 
- 	probe_ent->n_ports		= NR_PORTS;
+diff -puN fs/gfs2/glock.c~fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
++++ a/fs/gfs2/glock.c
+@@ -456,7 +456,7 @@ static void gfs2_holder_dispose_or_wake(
+ 	wake_up_bit(&gh->gh_iflags, HIF_WAIT);
+ }
  
- 	probe_ent->irq = pdev->irq;
--	probe_ent->irq_flags = SA_SHIRQ;
-+	probe_ent->irq_flags = IRQF_SHARED;
- 
- 	probe_ent->mmio_base = mmio_base;
- 
+-static int holder_wait(void *word)
++static int holder_wait(void *word, wait_queue_t *wait)
+ {
+         schedule();
+         return 0;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -189,6 +187,7 @@ reiser4-vs-git-block-2.patch
 cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
 statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
 slim-main-include-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
@@ -207,4 +206,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
