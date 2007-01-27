@@ -1,70 +1,65 @@
 From: akpm@osdl.org
-Subject: - fix-bug-in-cancel_dirty_pages-on-xfs.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:05:43 -0800
-Message-ID: <200701270105.l0R15hRS031374@shell0.pdx.osdl.net>
+Subject: - git-acpi-early-acpi-lockup.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:07:00 -0800
+Message-ID: <200701270107.l0R1700A031384@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34598 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34781 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752161AbXA0BFq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:05:46 -0500
+	id S1751819AbXA0BIR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:08:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dgc@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: deweerdt@free.fr, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix BUG in cancel_dirty_pages on XFS
+     git-acpi: Early ACPI lockup
 has been removed from the -mm tree.  Its filename was
-     fix-bug-in-cancel_dirty_pages-on-xfs.patch
+     git-acpi-early-acpi-lockup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Fix BUG in cancel_dirty_pages on XFS
-From: David Chinner <dgc@sgi.com>
+Subject: git-acpi: Early ACPI lockup
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Make XFS use the new truncate_unmap_inode_pages_range() function.
+The git-acpi.patch replaces earlier "if(!handler) return -EINVAL" by
+"BUG_ON(!handler)". This locks my machine early at boot with a message
+along the lines of (It's hand copied):
+Int 6: cr2: 00000000 eip: c0570e05 flags: 00010046 cs: 60
+stack: c054ffac c011db2b c04936d0 c054ff68 c054ffc0 c054fff4 c057da2c
 
-Signed-off-by: Dave Chinner <dgc@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Reverting the change as follows, allows booting:
+
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/xfs/linux-2.6/xfs_fs_subr.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/tables.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_fs_subr.c~fix-bug-in-cancel_dirty_pages-on-xfs fs/xfs/linux-2.6/xfs_fs_subr.c
---- a/fs/xfs/linux-2.6/xfs_fs_subr.c~fix-bug-in-cancel_dirty_pages-on-xfs
-+++ a/fs/xfs/linux-2.6/xfs_fs_subr.c
-@@ -32,7 +32,8 @@ fs_tosspages(
- 	struct inode	*ip = vn_to_inode(vp);
+diff -puN drivers/acpi/tables.c~git-acpi-early-acpi-lockup drivers/acpi/tables.c
+--- a/drivers/acpi/tables.c~git-acpi-early-acpi-lockup
++++ a/drivers/acpi/tables.c
+@@ -338,7 +338,9 @@ acpi_table_parse_entries(enum acpi_table
+ 	unsigned int i;
+ 	unsigned int index = 0;
  
- 	if (VN_CACHED(vp))
--		truncate_inode_pages(ip->i_mapping, first);
-+		truncate_unmap_inode_pages_range(ip->i_mapping,
-+						first, last, 1);
- }
+-	BUG_ON(!handler);
++	if (!handler)
++		return -EINVAL;
++	/*BUG_ON(!handler);*/
  
- void
-@@ -49,7 +50,8 @@ fs_flushinval_pages(
- 		if (VN_TRUNC(vp))
- 			VUNTRUNCATE(vp);
- 		filemap_write_and_wait(ip->i_mapping);
--		truncate_inode_pages(ip->i_mapping, first);
-+		truncate_unmap_inode_pages_range(ip->i_mapping,
-+						first, last, 1);
- 	}
- }
- 
+ 	for (i = 0; i < sdt_count; i++) {
+ 		if (sdt_entry[i].id != id)
 _
 
-Patches currently in -mm which might be from dgc@sgi.com are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-fix-bug-in-cancel_dirty_pages-on-xfs.patch
-xfs-remove-useless-wmb-memory-barrier.patch
-make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
-make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
-sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-xfs-ctl_tables.patch
-sysctl-c99-convert-xfs-ctl_tables-fixes.patch
+git-acpi-early-acpi-lockup.patch
+remove-tcp-header-from-tcp_v4_check-take-2.patch
+disable-init-initramfsc-updated-fix.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-user-ns-unshare.patch
+reiser4-sb_sync_inodes-fix.patch
