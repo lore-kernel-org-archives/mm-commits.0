@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + drop-free_pages-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 23:47:57 -0800
-Message-ID: <200701270748.l0R7mlRl004726@shell0.pdx.osdl.net>
+Subject: + sysctl-reimplement-the-sysctl-proc-support-fix-2.patch added to -mm tree
+Date: Fri, 26 Jan 2007 23:49:10 -0800
+Message-ID: <200701270750.l0R7o0Ax004733@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44287 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44341 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751898AbXA0Hsv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 02:48:51 -0500
+	id S1751582AbXA0HuH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 02:50:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clameter@engr.sgi.com
+Cc: akpm@osdl.org, ebiederm@xmission.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     drop-free_pages fix
+     sysctl-reimplement-the-sysctl-proc-support-fix-2
 has been added to the -mm tree.  Its filename is
-     drop-free_pages-fix.patch
+     sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drop-free_pages fix
+Subject: sysctl-reimplement-the-sysctl-proc-support-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-arm uniproc:
+Stupid fix for this, on arm:
 
-In file included from kernel/power/main.c:23:
-include/linux/vmstat.h: In function `__inc_zone_page_state':
-include/linux/vmstat.h:239: warning: implicit declaration of function `page_zone'
-include/linux/vmstat.h:239: warning: passing arg 1 of `__inc_zone_state' makes pointer from integer without a cast
-include/linux/vmstat.h: In function `__dec_zone_page_state':
-include/linux/vmstat.h:251: error: invalid type argument of `->'
+fs/built-in.o(.text+0x45f44): In function `proc_sys_readdir':
+: undefined reference to `__cmpdi2'
+fs/built-in.o(.text+0x45f68): In function `proc_sys_readdir':
+: undefined reference to `__cmpdi2'
 
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/vmstat.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/proc_sysctl.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/vmstat.h~drop-free_pages-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~drop-free_pages-fix
-+++ a/include/linux/vmstat.h
-@@ -3,6 +3,7 @@
+diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-2 fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-2
++++ a/fs/proc/proc_sysctl.c
+@@ -314,6 +314,7 @@ static int proc_sys_readdir(struct file 
+ 	struct ctl_table_header *head = NULL;
+ 	struct ctl_table *table;
+ 	unsigned long pos;
++	loff_t f_pos;
+ 	int ret;
  
- #include <linux/types.h>
- #include <linux/percpu.h>
-+#include <linux/mm.h>
- #include <linux/mmzone.h>
- #include <asm/atomic.h>
+ 	ret = -ENOTDIR;
+@@ -321,21 +322,20 @@ static int proc_sys_readdir(struct file 
+ 		goto out;
  
+ 	ret = 0;
+-	switch(filp->f_pos) {
+-	case 0:
+-		if (filldir(dirent, ".", 1, filp->f_pos, inode->i_ino, DT_DIR) < 0)
++	f_pos = filp->f_pos;
++	if (f_pos == 0) {
++		if (filldir(dirent, ".", 1, filp->f_pos,
++				inode->i_ino, DT_DIR) < 0)
+ 			goto out;
+ 		filp->f_pos++;
+-		/* fall through */
+-	case 1:
+-		if (filldir(dirent, "..", 2, filp->f_pos, parent_ino(dentry), DT_DIR) < 0)
++	}
++	if (f_pos == 0 || f_pos == 1) {
++		if (filldir(dirent, "..", 2, filp->f_pos,
++				parent_ino(dentry), DT_DIR) < 0)
+ 			goto out;
+ 		filp->f_pos++;
+-		/* fall through */
+-	default:
+-		pos = 2;
+-		break;
+ 	}
++	pos = 2;
+ 
+ 	/* - Find each instance of the directory
+ 	 * - Read all entries in each instance
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
