@@ -1,66 +1,57 @@
 From: akpm@osdl.org
-Subject: + drop-free_pages-sparc64-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 02:40:40 -0800
-Message-ID: <200701271041.l0RAfUJG007395@shell0.pdx.osdl.net>
+Subject: + powerpc-make-it-compile.patch added to -mm tree
+Date: Sat, 27 Jan 2007 03:54:38 -0700
+Message-ID: <200701271054.l0RAsd1V007579@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48264 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48569 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751438AbXA0Klf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 05:41:35 -0500
+	id S1751434AbXA0Ky7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 05:54:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clameter@engr.sgi.com
+Cc: akpm@osdl.org, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org
 
 
 The patch titled
-     drop-free_pages sparc64 fix
+     powerpc: make it compile
 has been added to the -mm tree.  Its filename is
-     drop-free_pages-sparc64-fix.patch
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+     powerpc-make-it-compile.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drop-free_pages sparc64 fix
+Subject: powerpc: make it compile
 From: Andrew Morton <akpm@osdl.org>
 
-arch/sparc64/mm/init.c: In function `show_mem':
-arch/sparc64/mm/init.c:419: warning: int format, different type arg (arg 2)
-arch/sparc64/mm/init.c: In function `mem_init':
-arch/sparc64/mm/init.c:1601: warning: unsigned int format, different type arg (arg 2)
+arch/powerpc/kernel/of_platform.c:479: error: unknown field `multithread_probe' specified in initializer
 
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Not sure who to thank for this.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc64/mm/init.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/of_platform.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN arch/sparc64/mm/init.c~drop-free_pages-sparc64-fix arch/sparc64/mm/init.c
---- a/arch/sparc64/mm/init.c~drop-free_pages-sparc64-fix
-+++ a/arch/sparc64/mm/init.c
-@@ -416,7 +416,7 @@ void show_mem(void)
- 	printk("Free swap:       %6ldkB\n",
- 	       nr_swap_pages << (PAGE_SHIFT-10));
- 	printk("%ld pages of RAM\n", num_physpages);
--	printk("%d free pages\n", nr_free_pages());
-+	printk("%lu free pages\n", nr_free_pages());
- }
+diff -puN arch/powerpc/kernel/of_platform.c~powerpc-make-it-compile arch/powerpc/kernel/of_platform.c
+--- a/arch/powerpc/kernel/of_platform.c~powerpc-make-it-compile
++++ a/arch/powerpc/kernel/of_platform.c
+@@ -475,9 +475,6 @@ static struct of_platform_driver of_pci_
+        .name = "of-pci",
+        .match_table = of_pci_phb_ids,
+        .probe = of_pci_phb_probe,
+-       .driver = {
+-	       .multithread_probe = 1,
+-       },
+ };
  
- void mmu_info(struct seq_file *m)
-@@ -1593,7 +1593,7 @@ void __init mem_init(void)
- 	initpages = (((unsigned long) __init_end) - ((unsigned long) __init_begin));
- 	initpages = PAGE_ALIGN(initpages) >> PAGE_SHIFT;
- 
--	printk("Memory: %uk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
-+	printk("Memory: %luk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
- 	       nr_free_pages() << (PAGE_SHIFT-10),
- 	       codepages << (PAGE_SHIFT-10),
- 	       datapages << (PAGE_SHIFT-10), 
+ static __init int of_pci_phb_init(void)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -248,4 +239,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-drop-free_pages-sparc64-fix.patch
+powerpc-make-it-compile.patch
