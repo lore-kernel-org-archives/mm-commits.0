@@ -1,50 +1,56 @@
 From: akpm@osdl.org
-Subject: - atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix.patch removed from -mm tree
-Date: Sat, 27 Jan 2007 02:18:40 -0800
-Message-ID: <200701271019.l0RAJU6c007069@shell0.pdx.osdl.net>
+Subject: - atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch removed from -mm tree
+Date: Sat, 27 Jan 2007 02:18:38 -0800
+Message-ID: <200701271019.l0RAJSDP007066@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47621 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47618 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751434AbXA0KTh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 05:19:37 -0500
+	id S1751333AbXA0KTg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 05:19:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix
+     atomich-complete-atomic_long-operations-in-asm-generic fix 3
 has been removed from the -mm tree.  Its filename was
-     atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix.patch
+     atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix
+Subject: atomich-complete-atomic_long-operations-in-asm-generic fix 3
 From: Andrew Morton <akpm@osdl.org>
 
+In file included from include/asm/atomic.h:265,
+                 from include/linux/crypto.h:20,
+                 from include/crypto/algapi.h:15,
+                 from crypto/cbc.c:13:
+include/asm-generic/atomic.h: In function 'atomic_long_add_unless':
+include/asm-generic/atomic.h:129: warning: implicit declaration of function 'cmpxchg'
 include/asm-generic/atomic.h: In function 'atomic_long_xchg':
-include/asm-generic/atomic.h:281: warning: implicit declaration of function 'xchg'
+include/asm-generic/atomic.h:150: warning: implicit declaration of function 'xchg'
 
 Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-sparc/atomic.h |    1 +
+ include/asm-alpha/atomic.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/asm-sparc/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix include/asm-sparc/atomic.h
---- a/include/asm-sparc/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix
-+++ a/include/asm-sparc/atomic.h
-@@ -10,6 +10,7 @@
- #ifndef __ARCH_SPARC_ATOMIC__
- #define __ARCH_SPARC_ATOMIC__
+diff -puN include/asm-alpha/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-fix-3 include/asm-alpha/atomic.h
+--- a/include/asm-alpha/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-fix-3
++++ a/include/asm-alpha/atomic.h
+@@ -2,6 +2,7 @@
+ #define _ALPHA_ATOMIC_H
  
+ #include <asm/barrier.h>
 +#include <asm/system.h>
  
- typedef struct { volatile int counter; } atomic_t;
- 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -217,6 +223,7 @@ sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
 atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
