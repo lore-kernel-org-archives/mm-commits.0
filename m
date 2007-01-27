@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ecryptfs-generalize-metadata-read-write-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 21:09:24 -0800
-Message-ID: <200701270510.l0R5AEv2002634@shell0.pdx.osdl.net>
+Subject: + mm-ide-ide-acpi-support-warning-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 21:13:18 -0800
+Message-ID: <200701270514.l0R5E8J3002680@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40215 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40299 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751860AbXA0FLJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 00:11:09 -0500
+	id S1751885AbXA0FOU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 00:14:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mhalcrow@us.ibm.com
+Cc: akpm@osdl.org, bzolnier@gmail.com, hare@suse.de
 
 
 The patch titled
-     ecryptfs: printk warning fix
+     ide-ide-acpi-support warning fix
 has been added to the -mm tree.  Its filename is
-     ecryptfs-generalize-metadata-read-write-fix.patch
+     mm-ide-ide-acpi-support-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs: printk warning fix
+Subject: ide-ide-acpi-support warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-fs/ecryptfs/crypto.c: In function 'ecryptfs_read_xattr_region':
-fs/ecryptfs/crypto.c:1575: warning: format '%d' expects type 'int', but argument 3 has type 'ssize_t'
+drivers/ide/ide-acpi.c: In function 'ide_acpi_get_timing':
+drivers/ide/ide-acpi.c:537: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
 
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ecryptfs/crypto.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ide-acpi.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fix fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fix
-+++ a/fs/ecryptfs/crypto.c
-@@ -1571,7 +1571,7 @@ int ecryptfs_read_xattr_region(char *pag
- 				 page_virt, ECRYPTFS_DEFAULT_EXTENT_SIZE);
- 	if (size < 0) {
- 		printk(KERN_DEBUG "Error attempting to read the [%s] "
--		       "xattr from the lower file; return value = [%d]\n",
-+		       "xattr from the lower file; return value = [%zd]\n",
- 		       ECRYPTFS_XATTR_NAME, size);
- 		rc = -EINVAL;
- 		goto out;
+diff -puN drivers/ide/ide-acpi.c~mm-ide-ide-acpi-support-warning-fix drivers/ide/ide-acpi.c
+--- a/drivers/ide/ide-acpi.c~mm-ide-ide-acpi-support-warning-fix
++++ a/drivers/ide/ide-acpi.c
+@@ -532,9 +532,10 @@ void ide_acpi_get_timing(ide_hwif_t *hwi
+ 	    out_obj->buffer.length != sizeof(struct GTM_buffer)) {
+ 		kfree(output.pointer);
+ 		printk(KERN_ERR
+-		       "%s: unexpected _GTM length (0x%x)[should be 0x%x] or addr (0x%p)\n",
+-		       __FUNCTION__, out_obj->buffer.length,
+-		       sizeof(struct GTM_buffer), out_obj->buffer.pointer);
++			"%s: unexpected _GTM length (0x%x)[should be 0x%zx] or "
++			"addr (0x%p)\n",
++			__FUNCTION__, out_obj->buffer.length,
++			sizeof(struct GTM_buffer), out_obj->buffer.pointer);
+ 		return;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -73,6 +79,7 @@ git-ieee1394.patch
 git-input.patch
 git-libata-all.patch
 sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
+mm-ide-ide-acpi-support-warning-fix.patch
 git-lxdialog-fixup.patch
 git-mmc.patch
 git-mmc-fixup.patch
