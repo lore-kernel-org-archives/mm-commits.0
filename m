@@ -1,51 +1,50 @@
 From: akpm@osdl.org
-Subject: - dynamic-kernel-command-line-sparc64-fix.patch removed from -mm tree
-Date: Sat, 27 Jan 2007 03:28:36 -0800
-Message-ID: <200701271129.l0RBTRY1008109@shell0.pdx.osdl.net>
+Subject: + infiniband-borkage.patch added to -mm tree
+Date: Sat, 27 Jan 2007 04:37:44 -0700
+Message-ID: <200701271137.l0RBbicu008264@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49364 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49483 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbXA0L3l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 06:29:41 -0500
+	id S1751672AbXA0LiA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 06:38:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, alon.barlev@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, rolandd@cisco.com
 
 
 The patch titled
-     dynamic-kernel-command-line-sparc64-fix
-has been removed from the -mm tree.  Its filename was
-     dynamic-kernel-command-line-sparc64-fix.patch
+     infiniband-borkage
+has been added to the -mm tree.  Its filename is
+     infiniband-borkage.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: dynamic-kernel-command-line-sparc64-fix
+Subject: infiniband-borkage
 From: Andrew Morton <akpm@osdl.org>
 
-WARNING: "saved_command_line" [drivers/sbus/char/openprom.ko] undefined!
-
-Cc: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/sbus/char/openprom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ehca/ehca_uverbs.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix drivers/sbus/char/openprom.c
---- a/drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix
-+++ a/drivers/sbus/char/openprom.c
-@@ -283,7 +283,7 @@ static int oprompath2node(void __user *a
+diff -puN drivers/infiniband/hw/ehca/ehca_uverbs.c~infiniband-borkage drivers/infiniband/hw/ehca/ehca_uverbs.c
+--- a/drivers/infiniband/hw/ehca/ehca_uverbs.c~infiniband-borkage
++++ a/drivers/infiniband/hw/ehca/ehca_uverbs.c
+@@ -328,7 +328,7 @@ int ehca_mmap_nopage(u64 foffset, u64 le
+ 	if (IS_ERR(*mapped)) {
+ 		ehca_gen_err("couldn't mmap foffset=%lx length=%lx",
+ 			     foffset, length);
+-		return PTR_ERR(*mmaped);
++		return PTR_ERR(*mapped);
+ 	}
  
- static int opromgetbootargs(void __user *argp, struct openpromio *op, int bufsize)
- {
--	char *buf = saved_command_line;
-+	char *buf = boot_command_line;
- 	int len = strlen(buf);
- 
- 	if (len > bufsize)
+ 	*vma = find_vma(current->mm, (u64)*mapped);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -190,6 +189,7 @@ introduce-and-use-get_task_mnt_ns-tweaks.patch
 user-ns-implement-user-ns-unshare-tidy.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 dynamic-kernel-command-line-ia64-fix.patch
+dynamic-kernel-command-line-sparc64-fix.patch
 rcu-preemptible-rcu-fix.patch
 readahead-kconfig-options-fix.patch
 readahead-minmax_ra_pages.patch
@@ -238,3 +238,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+infiniband-borkage.patch
