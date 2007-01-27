@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 18:52:18 -0800
-Message-ID: <200701270253.l0R2r8D8000709@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch added to -mm tree
+Date: Fri, 26 Jan 2007 19:57:21 -0800
+Message-ID: <200701270358.l0R3wBvQ001730@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37679 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38800 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751877AbXA0CxL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 21:53:11 -0500
+	id S1751714AbXA0D6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 22:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ebiederm@xmission.com
+Cc: akpm@osdl.org, greg@kroah.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     sysctl-factor-out-sysctl_head_next-from-do_sysctl warning fix
+     fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code
 has been added to the -mm tree.  Its filename is
-     sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+     fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl-factor-out-sysctl_head_next-from-do_sysctl warning fix
+Subject: fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sysctl.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/isdn/gigaset/bas-gigaset.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix
-+++ a/kernel/sysctl.c
-@@ -1155,7 +1155,6 @@ int do_sysctl(int __user *name, int nlen
- 	       void __user *newval, size_t newlen)
- {
- 	struct ctl_table_header *head;
--	struct list_head *tmp;
- 	int error = -ENOTDIR;
- 
- 	if (nlen <= 0 || nlen >= CTL_MAXNAME)
-@@ -1166,8 +1165,8 @@ int do_sysctl(int __user *name, int nlen
- 			return -EFAULT;
- 	}
- 
--	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
--
-+	for (head = sysctl_head_next(NULL); head;
-+			head = sysctl_head_next(head)) {
- 		error = parse_table(name, nlen, oldval, oldlenp, 
- 					newval, newlen, head->ctl_table);
- 		if (error != -ENOTDIR) {
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code
++++ a/drivers/isdn/gigaset/bas-gigaset.c
+@@ -257,10 +257,10 @@ static inline void dump_urb(enum debugle
+ 			urb->transfer_flags);
+ 		gig_dbg(level,
+ 			"  transfer_buffer=0x%08lx[%d], actual_length=%d, "
+-			"bandwidth=%d, setup_packet=0x%08lx,",
++			"setup_packet=0x%08lx,",
+ 			(unsigned long) urb->transfer_buffer,
+ 			urb->transfer_buffer_length, urb->actual_length,
+-			urb->bandwidth, (unsigned long) urb->setup_packet);
++			(unsigned long) urb->setup_packet);
+ 		gig_dbg(level,
+ 			"  start_frame=%d, number_of_packets=%d, interval=%d, "
+ 			"error_count=%d,",
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -218,3 +213,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
