@@ -1,70 +1,143 @@
 From: akpm@osdl.org
-Subject: - md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:32:33 -0800
-Message-ID: <200701270132.l0R1WX3G031938@shell0.pdx.osdl.net>
+Subject: - fix-race-in-efi-variable-delete-code.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:32:41 -0800
+Message-ID: <200701270132.l0R1Wf9m031947@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35580 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35596 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234AbXA0Bco (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:32:44 -0500
+	id S1752245AbXA0Bc4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:32:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: Matt_Domsch@dell.com, prarit@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: remove unnecessary printk when raid5 gets an unaligned read.
+     Fix race in efi variable delete code
 has been removed from the -mm tree.  Its filename was
-     md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read.patch
+     fix-race-in-efi-variable-delete-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: remove unnecessary printk when raid5 gets an unaligned read.
-From: NeilBrown <neilb@suse.de>
+Subject: Fix race in efi variable delete code
+From: Matt Domsch <Matt_Domsch@dell.com>
 
-raid5_mergeable_bvec tries to ensure that raid5 never sees a read request
-that does not fit within just one chunk.  However as we must always accept
-a single-page read, that is not always possible.
+Fix race when deleting an EFI variable and issuing another EFI command on
+the same variable.  The removal of the variable from the efivars_list
+should be done in efivar_delete and not delayed until the kobject release.
 
-So when "in_chunk_boundary" fails, it might be unusual, but it is not a
-problem and printing a message every time is a bad idea.
+Furthermore, remove the item from the list at module unload time, and use
+list_for_each_entry_safe() rather than list_for_each_safe() for
+readability.
 
-Signed-off-by: Neil Brown <neilb@suse.de>
+Tested on ia64.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Signed-off-by: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/raid5.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firmware/efivars.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-remove-unnecessary-printk-when-raid5-gets-an-unaligned-read
-+++ a/drivers/md/raid5.c
-@@ -2680,7 +2680,7 @@ static int chunk_aligned_read(request_qu
- 	mdk_rdev_t *rdev;
+diff -puN drivers/firmware/efivars.c~fix-race-in-efi-variable-delete-code drivers/firmware/efivars.c
+--- a/drivers/firmware/efivars.c~fix-race-in-efi-variable-delete-code
++++ a/drivers/firmware/efivars.c
+@@ -122,8 +122,6 @@ struct efivar_entry {
+ 	struct kobject kobj;
+ };
  
- 	if (!in_chunk_boundary(mddev, raid_bio)) {
--		printk("chunk_aligned_read : non aligned\n");
-+		PRINTK("chunk_aligned_read : non aligned\n");
- 		return 0;
- 	}
+-#define get_efivar_entry(n) list_entry(n, struct efivar_entry, list)
+-
+ struct efivar_attribute {
+ 	struct attribute attr;
+ 	ssize_t (*show) (struct efivar_entry *entry, char *buf);
+@@ -386,9 +384,6 @@ static struct sysfs_ops efivar_attr_ops 
+ static void efivar_release(struct kobject *kobj)
+ {
+ 	struct efivar_entry *var = container_of(kobj, struct efivar_entry, kobj);
+-	spin_lock(&efivars_lock);
+-	list_del(&var->list);
+-	spin_unlock(&efivars_lock);
+ 	kfree(var);
+ }
+ 
+@@ -430,9 +425,8 @@ static ssize_t
+ efivar_create(struct subsystem *sub, const char *buf, size_t count)
+ {
+ 	struct efi_variable *new_var = (struct efi_variable *)buf;
+-	struct efivar_entry *search_efivar = NULL;
++	struct efivar_entry *search_efivar, *n;
+ 	unsigned long strsize1, strsize2;
+-	struct list_head *pos, *n;
+ 	efi_status_t status = EFI_NOT_FOUND;
+ 	int found = 0;
+ 
+@@ -444,8 +438,7 @@ efivar_create(struct subsystem *sub, con
  	/*
+ 	 * Does this variable already exist?
+ 	 */
+-	list_for_each_safe(pos, n, &efivar_list) {
+-		search_efivar = get_efivar_entry(pos);
++	list_for_each_entry_safe(search_efivar, n, &efivar_list, list) {
+ 		strsize1 = utf8_strsize(search_efivar->var.VariableName, 1024);
+ 		strsize2 = utf8_strsize(new_var->VariableName, 1024);
+ 		if (strsize1 == strsize2 &&
+@@ -490,9 +483,8 @@ static ssize_t
+ efivar_delete(struct subsystem *sub, const char *buf, size_t count)
+ {
+ 	struct efi_variable *del_var = (struct efi_variable *)buf;
+-	struct efivar_entry *search_efivar = NULL;
++	struct efivar_entry *search_efivar, *n;
+ 	unsigned long strsize1, strsize2;
+-	struct list_head *pos, *n;
+ 	efi_status_t status = EFI_NOT_FOUND;
+ 	int found = 0;
+ 
+@@ -504,8 +496,7 @@ efivar_delete(struct subsystem *sub, con
+ 	/*
+ 	 * Does this variable already exist?
+ 	 */
+-	list_for_each_safe(pos, n, &efivar_list) {
+-		search_efivar = get_efivar_entry(pos);
++	list_for_each_entry_safe(search_efivar, n, &efivar_list, list) {
+ 		strsize1 = utf8_strsize(search_efivar->var.VariableName, 1024);
+ 		strsize2 = utf8_strsize(del_var->VariableName, 1024);
+ 		if (strsize1 == strsize2 &&
+@@ -537,9 +528,9 @@ efivar_delete(struct subsystem *sub, con
+ 		spin_unlock(&efivars_lock);
+ 		return -EIO;
+ 	}
++	list_del(&search_efivar->list);
+ 	/* We need to release this lock before unregistering. */
+ 	spin_unlock(&efivars_lock);
+-
+ 	efivar_unregister(search_efivar);
+ 
+ 	/* It's dead Jim.... */
+@@ -768,10 +759,14 @@ out_free:
+ static void __exit
+ efivars_exit(void)
+ {
+-	struct list_head *pos, *n;
++	struct efivar_entry *entry, *n;
+ 
+-	list_for_each_safe(pos, n, &efivar_list)
+-		efivar_unregister(get_efivar_entry(pos));
++	list_for_each_entry_safe(entry, n, &efivar_list, list) {
++		spin_lock(&efivars_lock);
++		list_del(&entry->list);
++		spin_unlock(&efivars_lock);
++		efivar_unregister(entry);
++	}
+ 
+ 	subsystem_unregister(&vars_subsys);
+ 	firmware_unregister(&efi_subsys);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from Matt_Domsch@dell.com are
 
 origin.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-igrab-should-check-for-i_clear.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+docbook-add-edd-firmware-interfaces.patch
