@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch added to -mm tree
-Date: Fri, 26 Jan 2007 19:57:21 -0800
-Message-ID: <200701270358.l0R3wBvQ001730@shell0.pdx.osdl.net>
+Subject: + mark-struct-file_operations-const-4-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 20:07:37 -0800
+Message-ID: <200701270408.l0R48RQa001879@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38800 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39081 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751714AbXA0D6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 22:58:19 -0500
+	id S1751860AbXA0EIq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 23:08:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, greg@kroah.com, stern@rowland.harvard.edu
+Cc: akpm@osdl.org, arjan@linux.intel.com
 
 
 The patch titled
-     fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code
+     mark-struct-file_operations-const-4-fix
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+     mark-struct-file_operations-const-4-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code
+Subject: mark-struct-file_operations-const-4-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+drivers/media/video/saa7134/saa7134-oss.c:566: error: conflicting type qualifiers for 'saa7134_dsp_fops'
+drivers/media/video/saa7134/saa7134.h:675: error: previous declaration of 'saa7134_dsp_fops' was here
+drivers/media/video/saa7134/saa7134-oss.c:807: error: conflicting type qualifiers for 'saa7134_mixer_fops'
+drivers/media/video/saa7134/saa7134.h:676: error: previous declaration of 'saa7134_mixer_fops' was here
+
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/isdn/gigaset/bas-gigaset.c |    4 ++--
+ drivers/media/video/saa7134/saa7134.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/gigaset/bas-gigaset.c~fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code drivers/isdn/gigaset/bas-gigaset.c
---- a/drivers/isdn/gigaset/bas-gigaset.c~fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code
-+++ a/drivers/isdn/gigaset/bas-gigaset.c
-@@ -257,10 +257,10 @@ static inline void dump_urb(enum debugle
- 			urb->transfer_flags);
- 		gig_dbg(level,
- 			"  transfer_buffer=0x%08lx[%d], actual_length=%d, "
--			"bandwidth=%d, setup_packet=0x%08lx,",
-+			"setup_packet=0x%08lx,",
- 			(unsigned long) urb->transfer_buffer,
- 			urb->transfer_buffer_length, urb->actual_length,
--			urb->bandwidth, (unsigned long) urb->setup_packet);
-+			(unsigned long) urb->setup_packet);
- 		gig_dbg(level,
- 			"  start_frame=%d, number_of_packets=%d, interval=%d, "
- 			"error_count=%d,",
+diff -puN drivers/media/video/saa7134/saa7134.h~mark-struct-file_operations-const-4-fix drivers/media/video/saa7134/saa7134.h
+--- a/drivers/media/video/saa7134/saa7134.h~mark-struct-file_operations-const-4-fix
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -672,8 +672,8 @@ int saa_dsp_writel(struct saa7134_dev *d
+ /* ----------------------------------------------------------- */
+ /* saa7134-oss.c                                               */
+ 
+-extern struct file_operations saa7134_dsp_fops;
+-extern struct file_operations saa7134_mixer_fops;
++extern const struct file_operations saa7134_dsp_fops;
++extern const struct file_operations saa7134_mixer_fops;
+ 
+ int saa7134_oss_init1(struct saa7134_dev *dev);
+ int saa7134_oss_fini(struct saa7134_dev *dev);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -94,6 +96,7 @@ scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-block-fixup.patch
 git-block-borkage.patch
 git-block-atomicity-fix.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
 nokia-e70-is-an-unusual-device.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
@@ -213,4 +216,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+mark-struct-file_operations-const-4-fix.patch
