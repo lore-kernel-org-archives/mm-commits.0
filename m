@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ipc-namespace-remove-config_ipc_ns-linkage-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 22:11:19 -0800
-Message-ID: <200701270612.l0R6C9sU003375@shell0.pdx.osdl.net>
+Subject: + arch-i386-kernel-alternativec-dont-include-bugsh.patch added to -mm tree
+Date: Fri, 26 Jan 2007 22:19:56 -0800
+Message-ID: <200701270620.l0R6Kk46003525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41662 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41886 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751885AbXA0GNt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 01:13:49 -0500
+	id S1751916AbXA0GUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 01:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org
+Cc: akpm@osdl.org, ak@muc.de
 
 
 The patch titled
-     ipc-namespace-remove-config_ipc_ns linkage fix
+     arch/i386/kernel/alternative.c: don't include bugs.h
 has been added to the -mm tree.  Its filename is
-     ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
+     arch-i386-kernel-alternativec-dont-include-bugsh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,93 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ipc-namespace-remove-config_ipc_ns linkage fix
+Subject: arch/i386/kernel/alternative.c: don't include bugs.h
 From: Andrew Morton <akpm@osdl.org>
 
-Documentation/SubmitChecklist, item 2.
+That stupid non-inlined-static function in bugs.h causes:
 
-kernel/built-in.o: In function `sys_unshare':
-: undefined reference to `unshare_ipcs'
-kernel/built-in.o: In function `sys_unshare':
-: undefined reference to `free_ipc_ns'
-kernel/built-in.o: In function `free_nsproxy':
-: undefined reference to `free_ipc_ns'
-kernel/built-in.o: In function `copy_namespaces':
-: undefined reference to `copy_ipcs'
-kernel/built-in.o: In function `copy_namespaces':
-: undefined reference to `free_ipc_ns'
-make: *** [.tmp_vmlinux1] Error 1
+include/asm/bugs.h:186: warning: 'check_bugs' defined but not used
 
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Pavel Emelianov <xemul@openvz.org>
+But fortunately the include isn't needed.
+
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/ipc.h |   27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+ arch/i386/kernel/alternative.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix include/linux/ipc.h
---- a/include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix
-+++ a/include/linux/ipc.h
-@@ -52,6 +52,7 @@ struct ipc_perm
- #ifdef __KERNEL__
+diff -puN arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh
++++ a/arch/i386/kernel/alternative.c
+@@ -4,7 +4,6 @@
+ #include <linux/list.h>
+ #include <asm/alternative.h>
+ #include <asm/sections.h>
+-#include <asm/bugs.h>
  
- #include <linux/kref.h>
-+#include <linux/sched.h>
- 
- #define IPCMNI 32768  /* <= MAX_INT limit for ipc arrays (including sysctl changes) */
- 
-@@ -92,24 +93,44 @@ extern struct ipc_namespace init_ipc_ns;
- 
- #ifdef CONFIG_SYSVIPC
- #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
--#else
--#define INIT_IPC_NS(ns)
--#endif
- 
- extern void free_ipc_ns(struct kref *kref);
- extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
- extern int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns);
- 
-+#else
-+#define INIT_IPC_NS(ns)
-+
-+static inline void free_ipc_ns(struct kref *kref)
-+{
-+}
-+static inline int copy_ipcs(unsigned long flags, struct task_struct *tsk)
-+{
-+	return 0;
-+}
-+static inline int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns)
-+{
-+	if (flags & CLONE_NEWIPC)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+#endif
-+
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
- {
-+#ifdef CONFIG_SYSVIPC
- 	if (ns)
- 		kref_get(&ns->kref);
-+#endif
- 	return ns;
- }
- 
- static inline void put_ipc_ns(struct ipc_namespace *ns)
- {
-+#ifdef CONFIG_SYSVIPC
- 	kref_put(&ns->kref, free_ipc_ns);
-+#endif
- }
- 
- #endif /* __KERNEL__ */
+ static int no_replacement    = 0;
+ static int smp_alt_once      = 0;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -283,3 +223,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
