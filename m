@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 01:27:38 -0800
-Message-ID: <200701270928.l0R9SS1b006300@shell0.pdx.osdl.net>
+Subject: + pata_platform-set_mode-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 01:34:10 -0800
+Message-ID: <200701270935.l0R9Z0Gi006413@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46487 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46531 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750698AbXA0Jb4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 04:31:56 -0500
+	id S1750698AbXA0JfL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 04:35:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
+Cc: akpm@osdl.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix
+     pata_platform: set_mode fix
 has been added to the -mm tree.  Its filename is
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix.patch
+     pata_platform-set_mode-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix
+Subject: pata_platform: set_mode fix
 From: Andrew Morton <akpm@osdl.org>
 
-In file included from include/asm/atomic.h:756,
-                 from include/linux/spinlock.h:276,
-                 from include/linux/capability.h:56,
-                 from include/linux/sched.h:47,
-                 from arch/mips/kernel/asm-offsets.c:13:
-include/asm-generic/atomic.h: In function `atomic_long_add_unless':
-include/asm-generic/atomic.h:260: error: syntax error before ')' token
-include/asm-generic/atomic.h:260: error: syntax error before "c"
-include/asm-generic/atomic.h: In function `atomic_long_inc_not_zero':
-include/asm-generic/atomic.h:267: error: syntax error before ')' token
-include/asm-generic/atomic.h:267: error: syntax error before "c"
-include/asm-generic/atomic.h: In function `atomic_long_cmpxchg':
-include/asm-generic/atomic.h:274: error: syntax error before ')' token
-include/asm-generic/atomic.h:274: error: syntax error before ';' token
-In file included from arch/mips/kernel/asm-offsets.c:14:
-include/linux/mm.h: In function `get_page_unless_zero':
-include/linux/mm.h:269: error: syntax error before ')' token
-include/linux/mm.h:269: error: syntax error before "c"
+drivers/ata/pata_platform.c:85: warning: initialization from incompatible pointer type
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+guess-and-giggle:
+
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-mips/atomic.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/pata_platform.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix include/asm-mips/atomic.h
---- a/include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix
-+++ a/include/asm-mips/atomic.h
-@@ -18,6 +18,7 @@
- #include <asm/barrier.h>
- #include <asm/cpu-features.h>
- #include <asm/war.h>
-+#include <asm/system.h>
+diff -puN drivers/ata/pata_platform.c~pata_platform-set_mode-fix drivers/ata/pata_platform.c
+--- a/drivers/ata/pata_platform.c~pata_platform-set_mode-fix
++++ a/drivers/ata/pata_platform.c
+@@ -30,7 +30,8 @@ static int pio_mask = 1;
+  * Provide our own set_mode() as we don't want to change anything that has
+  * already been configured..
+  */
+-static void pata_platform_set_mode(struct ata_port *ap)
++static int pata_platform_set_mode(struct ata_port *ap,
++				struct ata_device **r_failed_dev)
+ {
+ 	int i;
  
- typedef struct { volatile int counter; } atomic_t;
- 
-@@ -292,7 +293,7 @@ static __inline__ int atomic_sub_if_posi
+@@ -44,6 +45,7 @@ static void pata_platform_set_mode(struc
+ 			dev->flags |= ATA_DFLAG_PIO;
+ 		}
+ 	}
++	return 0;
  }
  
- #define atomic_cmpxchg(v, o, n) \
--	(((__typeof__((v)->counter)))cmpxchg(&((v)->counter), (o), (n)))
-+	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
- #define atomic_xchg(v, new) (xchg(&((v)->counter), (new)))
- 
- /**
+ static void pata_platform_host_stop(struct ata_host *host)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -262,3 +249,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-mips-prom_free_prom_memory-borkage.patch
+pata_platform-set_mode-fix.patch
