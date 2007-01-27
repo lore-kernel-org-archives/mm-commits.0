@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + 82596-warning-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 23:30:02 -0800
-Message-ID: <200701270730.l0R7UquN004499@shell0.pdx.osdl.net>
+Subject: + drop-free_pages-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 23:47:57 -0800
+Message-ID: <200701270748.l0R7mlRl004726@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43993 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44287 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbXA0HbB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 02:31:01 -0500
+	id S1751898AbXA0Hsv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 02:48:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, jeff@garzik.org
+Cc: akpm@osdl.org, clameter@engr.sgi.com
 
 
 The patch titled
-     82596 warning fixes
+     drop-free_pages fix
 has been added to the -mm tree.  Its filename is
-     82596-warning-fix.patch
+     drop-free_pages-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 82596 warning fixes
+Subject: drop-free_pages fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/net/82596.c: In function 'i596_start_xmit':
-drivers/net/82596.c:1069: warning: cast from pointer to integer of different size
-drivers/net/82596.c: In function 'i82596_probe':
-drivers/net/82596.c:1249: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
+arm uniproc:
 
-Cc: Jeff Garzik <jeff@garzik.org>
+In file included from kernel/power/main.c:23:
+include/linux/vmstat.h: In function `__inc_zone_page_state':
+include/linux/vmstat.h:239: warning: implicit declaration of function `page_zone'
+include/linux/vmstat.h:239: warning: passing arg 1 of `__inc_zone_state' makes pointer from integer without a cast
+include/linux/vmstat.h: In function `__dec_zone_page_state':
+include/linux/vmstat.h:251: error: invalid type argument of `->'
+
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/82596.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/vmstat.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/82596.c~82596-warning-fix drivers/net/82596.c
---- a/drivers/net/82596.c~82596-warning-fix
-+++ a/drivers/net/82596.c
-@@ -1066,8 +1066,8 @@ static int i596_start_xmit(struct sk_buf
- 	short length = skb->len;
- 	dev->trans_start = jiffies;
+diff -puN include/linux/vmstat.h~drop-free_pages-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~drop-free_pages-fix
++++ a/include/linux/vmstat.h
+@@ -3,6 +3,7 @@
  
--	DEB(DEB_STARTTX,printk(KERN_DEBUG "%s: i596_start_xmit(%x,%x) called\n", dev->name,
--				skb->len, (unsigned int)skb->data));
-+	DEB(DEB_STARTTX,printk(KERN_DEBUG "%s: i596_start_xmit(%x,%p) called\n",
-+				dev->name, skb->len, skb->data));
+ #include <linux/types.h>
+ #include <linux/percpu.h>
++#include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <asm/atomic.h>
  
- 	if (skb->len < ETH_ZLEN) {
- 		if (skb_padto(skb, ETH_ZLEN))
-@@ -1246,7 +1246,8 @@ struct net_device * __init i82596_probe(
- 	dev->priv = (void *)(dev->mem_start);
- 
- 	lp = dev->priv;
--	DEB(DEB_INIT,printk(KERN_DEBUG "%s: lp at 0x%08lx (%d bytes), lp->scb at 0x%08lx\n",
-+	DEB(DEB_INIT,printk(KERN_DEBUG "%s: lp at 0x%08lx (%zd bytes), "
-+			"lp->scb at 0x%08lx\n",
- 			dev->name, (unsigned long)lp,
- 			sizeof(struct i596_private), (unsigned long)&lp->scb));
- 	memset((void *) lp, 0, sizeof(struct i596_private));
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -96,6 +87,7 @@ git-netdev-all.patch
 git-netdev-all-fixup.patch
 git-netdev-all-atl1-build-fix.patch
 git-netdev-all-atl1-pm-fix.patch
+82596-warning-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
@@ -122,6 +114,7 @@ lumpy-reclaim-v2-tidy.patch
 avoid-excessive-sorting-of-early_node_map-tidy.patch
 proc-zoneinfo-fix-vm-stats-display.patch
 use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
 get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
 optional-zone_dma-in-the-vm-tidy.patch
 swsusp-change-code-ordering-in-userc-sanity.patch
@@ -223,6 +216,7 @@ scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
 sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
 atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
@@ -242,4 +236,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-82596-warning-fix.patch
