@@ -1,57 +1,60 @@
 From: akpm@osdl.org
-Subject: + powerpc-make-it-compile.patch added to -mm tree
-Date: Sat, 27 Jan 2007 03:54:38 -0700
-Message-ID: <200701271054.l0RAsd1V007579@shell0.pdx.osdl.net>
+Subject: + mark-struct-file_operations-const-2-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 02:56:17 -0800
+Message-ID: <200701271057.l0RAv7oe007631@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48569 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48695 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751434AbXA0Ky7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 05:54:59 -0500
+	id S1752222AbXA0K52 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 05:57:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org
+Cc: akpm@osdl.org, arjan@linux.intel.com, davem@davemloft.net
 
 
 The patch titled
-     powerpc: make it compile
+     mark-struct-file_operations-const-2-fix
 has been added to the -mm tree.  Its filename is
-     powerpc-make-it-compile.patch
+     mark-struct-file_operations-const-2-fix.patch
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: make it compile
+Subject: mark-struct-file_operations-const-2-fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/powerpc/kernel/of_platform.c:479: error: unknown field `multithread_probe' specified in initializer
+arch/sparc64/solaris/socksys.c: In function `init_socksys':
+arch/sparc64/solaris/socksys.c:193: error: assignment of read-only variable `socksys_file_ops'
+arch/sparc64/solaris/socksys.c:196: error: assignment of read-only variable `socksys_file_ops'
+arch/sparc64/solaris/socksys.c:197: error: assignment of read-only variable `socksys_file_ops'
 
-Not sure who to thank for this.
+I'm not sure what it's trying to do in there, but it doens't look good.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/powerpc/kernel/of_platform.c |    3 ---
- 1 files changed, 3 deletions(-)
+ arch/sparc64/solaris/socksys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/of_platform.c~powerpc-make-it-compile arch/powerpc/kernel/of_platform.c
---- a/arch/powerpc/kernel/of_platform.c~powerpc-make-it-compile
-+++ a/arch/powerpc/kernel/of_platform.c
-@@ -475,9 +475,6 @@ static struct of_platform_driver of_pci_
-        .name = "of-pci",
-        .match_table = of_pci_phb_ids,
-        .probe = of_pci_phb_probe,
--       .driver = {
--	       .multithread_probe = 1,
--       },
+diff -puN arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix arch/sparc64/solaris/socksys.c
+--- a/arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix
++++ a/arch/sparc64/solaris/socksys.c
+@@ -55,7 +55,7 @@ extern void mykfree(void *);
+ 
+ static unsigned int (*sock_poll)(struct file *, poll_table *);
+ 
+-static const struct file_operations socksys_file_ops = {
++static struct file_operations socksys_file_ops = {
+ 	/* Currently empty */
  };
  
- static __init int of_pci_phb_init(void)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -117,6 +120,7 @@ avoid-excessive-sorting-of-early_node_map-tidy.patch
 proc-zoneinfo-fix-vm-stats-display.patch
 use-zvc-for-inactive-and-active-counts-up-fix.patch
 drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
 get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
 optional-zone_dma-in-the-vm-tidy.patch
 swsusp-change-code-ordering-in-userc-sanity.patch
@@ -239,4 +243,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-powerpc-make-it-compile.patch
+mark-struct-file_operations-const-2-fix.patch
