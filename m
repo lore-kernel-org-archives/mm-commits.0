@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + infiniband-borkage.patch added to -mm tree
-Date: Sat, 27 Jan 2007 04:37:44 -0700
-Message-ID: <200701271137.l0RBbicu008264@shell0.pdx.osdl.net>
+Subject: + ehca-fix-do_mmap-error-check-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 04:56:16 -0700
+Message-ID: <200701271156.l0RBuGJb008472@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49483 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49827 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751672AbXA0LiA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 06:38:00 -0500
+	id S1751564AbXA0L43 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 06:56:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, rolandd@cisco.com
+Cc: akpm@osdl.org, akinobu.mita@gmail.com, hnguyen@de.ibm.com, raisch@de.ibm.com, rolandd@cisco.com
 
 
 The patch titled
      infiniband-borkage
 has been added to the -mm tree.  Its filename is
-     infiniband-borkage.patch
+     ehca-fix-do_mmap-error-check-fix.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
@@ -26,6 +26,9 @@ out what to do about this
 Subject: infiniband-borkage
 From: Andrew Morton <akpm@osdl.org>
 
+Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
@@ -33,8 +36,8 @@ Signed-off-by: Andrew Morton <akpm@osdl.org>
  drivers/infiniband/hw/ehca/ehca_uverbs.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_uverbs.c~infiniband-borkage drivers/infiniband/hw/ehca/ehca_uverbs.c
---- a/drivers/infiniband/hw/ehca/ehca_uverbs.c~infiniband-borkage
+diff -puN drivers/infiniband/hw/ehca/ehca_uverbs.c~ehca-fix-do_mmap-error-check-fix drivers/infiniband/hw/ehca/ehca_uverbs.c
+--- a/drivers/infiniband/hw/ehca/ehca_uverbs.c~ehca-fix-do_mmap-error-check-fix
 +++ a/drivers/infiniband/hw/ehca/ehca_uverbs.c
 @@ -328,7 +328,7 @@ int ehca_mmap_nopage(u64 foffset, u64 le
  	if (IS_ERR(*mapped)) {
@@ -67,6 +70,7 @@ dvb-video_buf-depends-on-pci.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
+ehca-fix-do_mmap-error-check-fix.patch
 git-input.patch
 git-libata-all.patch
 pata_platform-set_mode-fix.patch
@@ -189,7 +193,6 @@ introduce-and-use-get_task_mnt_ns-tweaks.patch
 user-ns-implement-user-ns-unshare-tidy.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 dynamic-kernel-command-line-ia64-fix.patch
-dynamic-kernel-command-line-sparc64-fix.patch
 rcu-preemptible-rcu-fix.patch
 readahead-kconfig-options-fix.patch
 readahead-minmax_ra_pages.patch
@@ -238,4 +241,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-infiniband-borkage.patch
