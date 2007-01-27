@@ -1,122 +1,156 @@
 From: akpm@osdl.org
-Subject: - dm-multipath-fix-stall-on-noflush-suspend-resume.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:32:13 -0800
-Message-ID: <200701270132.l0R1WD8Y031912@shell0.pdx.osdl.net>
+Subject: - md-fix-potential-memalloc-deadlock-in-md.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:32:25 -0800
+Message-ID: <200701270132.l0R1WPST031929@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35555 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35564 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752214AbXA0Bc1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:32:27 -0500
+	id S1752227AbXA0Bcd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:32:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: j-nomura@ce.jp.nec.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm-multipath: fix stall on noflush suspend/resume
+     md: fix potential memalloc deadlock in md
 has been removed from the -mm tree.  Its filename was
-     dm-multipath-fix-stall-on-noflush-suspend-resume.patch
+     md-fix-potential-memalloc-deadlock-in-md.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm-multipath: fix stall on noflush suspend/resume
-From: "Jun'ichi Nomura" <j-nomura@ce.jp.nec.com>
+Subject: md: fix potential memalloc deadlock in md
+From: NeilBrown <neilb@suse.de>
 
-Allow noflush suspend/resume of device-mapper device only for the case
-where the device size is unchanged.
+If a GFP_KERNEL allocation is attempted in md while the mddev_lock is held,
+it is possible for a deadlock to eventuate.
 
-Otherwise, dm-multipath devices can stall when resumed if noflush was used
-when suspending them, all paths have failed and queue_if_no_path is set.
+This happens if the array was marked 'clean', and the memalloc triggers a
+write-out to the md device.
 
-Explanation:
- 1. Something is doing fsync() on the block dev,
-    holding inode->i_sem
- 2. The fsync write is blocked by all-paths-down and queue_if_no_path
- 3. Someone requests to suspend the dm device with noflush.
-    Pending writes are left in queue.
- 4. In the middle of dm_resume(), __bind() tries to get
-    inode->i_sem to do __set_size() and waits forever.
+For the writeout to succeed, the array must be marked 'dirty', and that
+requires getting the mddev_lock.
 
-'noflush suspend' is a new device-mapper feature introduced in
-early 2.6.20. So I hope the fix being included before 2.6.20 is
-released.
+So, before attempting a GFP_KERNEL allocation while holding the lock, make
+sure the array is marked 'dirty' (unless it is currently read-only).
 
-Example of reproducer:
- 1. Create a multipath device by dmsetup
- 2. Fail all paths during mkfs
- 3. Do dmsetup suspend --noflush and load new map with healthy paths
- 4. Do dmsetup resume
-
-Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
-Acked-by: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/md/dm.c |   27 +++++++++++++++++++--------
- 1 file changed, 19 insertions(+), 8 deletions(-)
+ drivers/md/md.c         |   29 +++++++++++++++++++++++++++++
+ drivers/md/raid1.c      |    2 ++
+ drivers/md/raid5.c      |    3 +++
+ include/linux/raid/md.h |    2 +-
+ 4 files changed, 35 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/dm.c~dm-multipath-fix-stall-on-noflush-suspend-resume drivers/md/dm.c
---- a/drivers/md/dm.c~dm-multipath-fix-stall-on-noflush-suspend-resume
-+++ a/drivers/md/dm.c
-@@ -1116,7 +1116,8 @@ static int __bind(struct mapped_device *
- 	if (size != get_capacity(md->disk))
- 		memset(&md->geometry, 0, sizeof(md->geometry));
+diff -puN drivers/md/md.c~md-fix-potential-memalloc-deadlock-in-md drivers/md/md.c
+--- a/drivers/md/md.c~md-fix-potential-memalloc-deadlock-in-md
++++ a/drivers/md/md.c
+@@ -3564,6 +3564,8 @@ static int get_bitmap_file(mddev_t * mdd
+ 	char *ptr, *buf = NULL;
+ 	int err = -ENOMEM;
  
--	__set_size(md, size);
-+	if (md->suspended_bdev)
-+		__set_size(md, size);
- 	if (size == 0)
- 		return 0;
- 
-@@ -1264,6 +1265,11 @@ int dm_swap_table(struct mapped_device *
- 	if (!dm_suspended(md))
- 		goto out;
- 
-+	/* without bdev, the device size cannot be changed */
-+	if (!md->suspended_bdev)
-+		if (get_capacity(md->disk) != dm_table_get_size(table))
-+			goto out;
++	md_allow_write(mddev);
 +
- 	__unbind(md);
- 	r = __bind(md, table);
+ 	file = kmalloc(sizeof(*file), GFP_KERNEL);
+ 	if (!file)
+ 		goto out;
+@@ -5032,6 +5034,33 @@ void md_write_end(mddev_t *mddev)
+ 	}
+ }
  
-@@ -1341,11 +1347,14 @@ int dm_suspend(struct mapped_device *md,
- 	/* This does not get reverted if there's an error later. */
- 	dm_table_presuspend_targets(map);
++/* md_allow_write(mddev)
++ * Calling this ensures that the array is marked 'active' so that writes
++ * may proceed without blocking.  It is important to call this before
++ * attempting a GFP_KERNEL allocation while holding the mddev lock.
++ * Must be called with mddev_lock held.
++ */
++void md_allow_write(mddev_t *mddev)
++{
++	if (!mddev->pers)
++		return;
++	if (mddev->ro)
++		return;
++
++	spin_lock_irq(&mddev->write_lock);
++	if (mddev->in_sync) {
++		mddev->in_sync = 0;
++		set_bit(MD_CHANGE_CLEAN, &mddev->flags);
++		if (mddev->safemode_delay &&
++		    mddev->safemode == 0)
++			mddev->safemode = 1;
++		spin_unlock_irq(&mddev->write_lock);
++		md_update_sb(mddev, 0);
++	} else
++		spin_unlock_irq(&mddev->write_lock);
++}
++EXPORT_SYMBOL_GPL(md_allow_write);
++
+ static DECLARE_WAIT_QUEUE_HEAD(resync_wait);
  
--	md->suspended_bdev = bdget_disk(md->disk, 0);
--	if (!md->suspended_bdev) {
--		DMWARN("bdget failed in dm_suspend");
--		r = -ENOMEM;
--		goto flush_and_out;
-+	/* bdget() can stall if the pending I/Os are not flushed */
-+	if (!noflush) {
-+		md->suspended_bdev = bdget_disk(md->disk, 0);
-+		if (!md->suspended_bdev) {
-+			DMWARN("bdget failed in dm_suspend");
-+			r = -ENOMEM;
-+			goto flush_and_out;
-+		}
+ #define SYNC_MARKS	10
+diff -puN drivers/md/raid1.c~md-fix-potential-memalloc-deadlock-in-md drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-fix-potential-memalloc-deadlock-in-md
++++ a/drivers/md/raid1.c
+@@ -2104,6 +2104,8 @@ static int raid1_reshape(mddev_t *mddev)
+ 		return -EINVAL;
  	}
  
- 	/*
-@@ -1473,8 +1482,10 @@ int dm_resume(struct mapped_device *md)
++	md_allow_write(mddev);
++
+ 	raid_disks = mddev->raid_disks + mddev->delta_disks;
  
- 	unlock_fs(md);
+ 	if (raid_disks < conf->raid_disks) {
+diff -puN drivers/md/raid5.c~md-fix-potential-memalloc-deadlock-in-md drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-potential-memalloc-deadlock-in-md
++++ a/drivers/md/raid5.c
+@@ -405,6 +405,8 @@ static int resize_stripes(raid5_conf_t *
+ 	if (newsize <= conf->pool_size)
+ 		return 0; /* never bother to shrink */
  
--	bdput(md->suspended_bdev);
--	md->suspended_bdev = NULL;
-+	if (md->suspended_bdev) {
-+		bdput(md->suspended_bdev);
-+		md->suspended_bdev = NULL;
-+	}
++	md_allow_write(conf->mddev);
++
+ 	/* Step 1 */
+ 	sc = kmem_cache_create(conf->cache_name[1-conf->active_name],
+ 			       sizeof(struct stripe_head)+(newsize-1)*sizeof(struct r5dev),
+@@ -3250,6 +3252,7 @@ raid5_store_stripe_cache_size(mddev_t *m
+ 		else
+ 			break;
+ 	}
++	md_allow_write(mddev);
+ 	while (new > conf->max_nr_stripes) {
+ 		if (grow_one_stripe(conf))
+ 			conf->max_nr_stripes++;
+diff -puN include/linux/raid/md.h~md-fix-potential-memalloc-deadlock-in-md include/linux/raid/md.h
+--- a/include/linux/raid/md.h~md-fix-potential-memalloc-deadlock-in-md
++++ a/include/linux/raid/md.h
+@@ -94,7 +94,7 @@ extern int sync_page_io(struct block_dev
+ 			struct page *page, int rw);
+ extern void md_do_sync(mddev_t *mddev);
+ extern void md_new_event(mddev_t *mddev);
+-
++extern void md_allow_write(mddev_t *mddev);
  
- 	clear_bit(DMF_SUSPENDED, &md->flags);
- 
+ #endif /* CONFIG_MD */
+ #endif 
 _
 
-Patches currently in -mm which might be from j-nomura@ce.jp.nec.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+igrab-should-check-for-i_clear.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
