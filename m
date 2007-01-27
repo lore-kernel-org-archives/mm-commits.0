@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 18:49:43 -0800
-Message-ID: <200701270250.l0R2oXbU000683@shell0.pdx.osdl.net>
+Subject: + sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 18:52:18 -0800
+Message-ID: <200701270253.l0R2r8D8000709@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37641 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37679 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751875AbXA0Cuk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 21:50:40 -0500
+	id S1751877AbXA0CxL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 21:53:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, suparna@in.ibm.com
+Cc: akpm@osdl.org, ebiederm@xmission.com
 
 
 The patch titled
-     fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
+     sysctl-factor-out-sysctl_head_next-from-do_sysctl warning fix
 has been added to the -mm tree.  Its filename is
-     fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+     sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
+Subject: sysctl-factor-out-sysctl_head_next-from-do_sysctl warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/gfs2/glock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/gfs2/glock.c~fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
-+++ a/fs/gfs2/glock.c
-@@ -456,7 +456,7 @@ static void gfs2_holder_dispose_or_wake(
- 	wake_up_bit(&gh->gh_iflags, HIF_WAIT);
- }
- 
--static int holder_wait(void *word)
-+static int holder_wait(void *word, wait_queue_t *wait)
+diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix
++++ a/kernel/sysctl.c
+@@ -1155,7 +1155,6 @@ int do_sysctl(int __user *name, int nlen
+ 	       void __user *newval, size_t newlen)
  {
-         schedule();
-         return 0;
+ 	struct ctl_table_header *head;
+-	struct list_head *tmp;
+ 	int error = -ENOTDIR;
+ 
+ 	if (nlen <= 0 || nlen >= CTL_MAXNAME)
+@@ -1166,8 +1165,8 @@ int do_sysctl(int __user *name, int nlen
+ 			return -EFAULT;
+ 	}
+ 
+-	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
+-
++	for (head = sysctl_head_next(NULL); head;
++			head = sysctl_head_next(head)) {
+ 		error = parse_table(name, nlen, oldval, oldlenp, 
+ 					newval, newlen, head->ctl_table);
+ 		if (error != -ENOTDIR) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -155,6 +165,7 @@ edac-new-opteron-athlon64-memory-controller-driver.patch
 omap-gpio-wrappers-tidy.patch
 at91-gpio-wrappers-tidy.patch
 ecryptfs-public-key-packet-management-slab-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
 fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
 aio-is-unlikely.patch
 sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
@@ -189,6 +200,7 @@ statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patc
 slim-main-include-fix.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
@@ -206,4 +218,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
