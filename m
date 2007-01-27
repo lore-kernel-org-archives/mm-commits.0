@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dvb-video_buf-depends-on-pci.patch added to -mm tree
-Date: Sat, 27 Jan 2007 00:54:33 -0800
-Message-ID: <200701270855.l0R8tN1b005849@shell0.pdx.osdl.net>
+Subject: + m68k-uaccessh-needs-schedh.patch added to -mm tree
+Date: Sat, 27 Jan 2007 00:57:14 -0800
+Message-ID: <200701270858.l0R8w4VH005880@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45609 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45636 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752227AbXA0Izi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 03:55:38 -0500
+	id S1750729AbXA0I6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 03:58:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, geert@linux-m68k.org, mchehab@infradead.org, zippel@linux-m68k.org
+Cc: akpm@osdl.org, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     dvb: VIDEO_BUF depends on PCI
+     m68k: uaccess.h needs sched.h
 has been added to the -mm tree.  Its filename is
-     dvb-video_buf-depends-on-pci.patch
+     m68k-uaccessh-needs-schedh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb: VIDEO_BUF depends on PCI
+Subject: m68k: uaccess.h needs sched.h
 From: Andrew Morton <akpm@osdl.org>
 
-m68k allmodconfig:
-
-drivers/media/video/video-buf.c: In function 'videobuf_queue_pci':
-drivers/media/video/video-buf.c:396: error: 'pci_map_sg' undeclared (first use in this function)
-drivers/media/video/video-buf.c:396: error: (Each undeclared identifier is reported only once
-drivers/media/video/video-buf.c:396: error: for each function it appears in.)
-drivers/media/video/video-buf.c:399: error: 'pci_dma_sync_sg_for_cpu' undeclared (first use in this function)
-drivers/media/video/video-buf.c:401: error: 'pci_unmap_sg' undeclared (first use in this function)
-drivers/media/video/video-buf.c: In function 'videobuf_pci_dma_map':
-
-m68k doesn't support PCI..
+In file included from include/linux/crypto.h:26,
+                 from crypto/cipher.c:17:
+include/linux/uaccess.h: In function 'pagefault_disable':
+include/linux/uaccess.h:18: error: dereferencing pointer to incomplete type
+include/linux/uaccess.h: In function 'pagefault_enable':
+include/linux/uaccess.h:33: error: dereferencing pointer to incomplete type
 
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/Kconfig       |    1 +
- drivers/media/video/Kconfig |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ include/asm-m68k/uaccess.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/Kconfig~dvb-video_buf-depends-on-pci drivers/media/Kconfig
---- a/drivers/media/Kconfig~dvb-video_buf-depends-on-pci
-+++ a/drivers/media/Kconfig
-@@ -70,6 +70,7 @@ config VIDEO_TUNER
- 	depends on I2C
+diff -puN include/asm-m68k/uaccess.h~m68k-uaccessh-needs-schedh include/asm-m68k/uaccess.h
+--- a/include/asm-m68k/uaccess.h~m68k-uaccessh-needs-schedh
++++ a/include/asm-m68k/uaccess.h
+@@ -7,6 +7,7 @@
+ #include <linux/compiler.h>
+ #include <linux/errno.h>
+ #include <linux/types.h>
++#include <linux/sched.h>
+ #include <asm/segment.h>
  
- config VIDEO_BUF
-+	depends on PCI
- 	tristate
- 
- config VIDEO_BUF_DVB
-diff -puN drivers/media/video/Kconfig~dvb-video_buf-depends-on-pci drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~dvb-video_buf-depends-on-pci
-+++ a/drivers/media/video/Kconfig
-@@ -342,7 +342,7 @@ endmenu # encoder / decoder chips
- 
- config VIDEO_VIVI
- 	tristate "Virtual Video Driver"
--	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64
-+	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64 && PCI
- 	select VIDEO_BUF
- 	default n
- 	---help---
+ #define VERIFY_READ	0
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -90,6 +71,7 @@ git-alsa.patch
 agpgart-allow-drm-populated-agp-memory-types-tidy.patch
 rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
 git-dvb.patch
+dvb-video_buf-depends-on-pci.patch
 git-gfs2-nmw.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 git-ieee1394.patch
@@ -136,6 +118,7 @@ drop-free_pages-fix.patch
 get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
 optional-zone_dma-in-the-vm-tidy.patch
 swsusp-change-code-ordering-in-userc-sanity.patch
+m68k-uaccessh-needs-schedh.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 drivers-add-lcd-support-3-Kconfig-fix.patch
 drivers-add-lcd-support-workqueue-fixups.patch
@@ -255,5 +238,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-a.patch
-dvb-video_buf-depends-on-pci.patch
