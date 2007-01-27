@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 18:31:42 -0800
-Message-ID: <200701270232.l0R2WWdc000453@shell0.pdx.osdl.net>
+Subject: + sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch added to -mm tree
+Date: Fri, 26 Jan 2007 18:36:31 -0800
+Message-ID: <200701270237.l0R2bLKY000503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37228 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37346 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751632AbXA0Cce (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 21:32:34 -0500
+	id S1751855AbXA0ChX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 21:37:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@osdl.org, ebiederm@xmission.com
 
 
 The patch titled
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix-2
+     sysctl-reimplement-the-sysctl-proc-support warning fix
 has been added to the -mm tree.  Its filename is
-     sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+     sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix-2
+Subject: sysctl-reimplement-the-sysctl-proc-support warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+fs/proc/proc_sysctl.c: In function 'do_proc_sys_lookup':
+fs/proc/proc_sysctl.c:128: warning: 'table' may be used uninitialized in this function
+
+It this a bugfix too?
+
+
+Eric W. Biederman <ebiederm@xmission.com>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ntfs/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/proc_sysctl.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ntfs/sysctl.c~sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix fs/ntfs/sysctl.c
---- a/fs/ntfs/sysctl.c~sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix
-+++ a/fs/ntfs/sysctl.c
-@@ -36,7 +36,7 @@
- /* Definition of the ntfs sysctl. */
- static ctl_table ntfs_sysctls[] = {
- 	{
--		.ctl_name	= CTL_UNUMBERED,	/* Binary and text IDs. */
-+		.ctl_name	= CTL_UNNUMBERED,	/* Binary and text IDs. */
- 		.procname	= "ntfs-debug",
- 		.data		= &debug_msgs,		/* Data pointer and size. */
- 		.maxlen		= sizeof(debug_msgs),
+diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-warning-fix fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-warning-fix
++++ a/fs/proc/proc_sysctl.c
+@@ -125,9 +125,10 @@ static struct ctl_table *do_proc_sys_loo
+ 						struct ctl_table_header **ptr)
+ {
+ 	struct ctl_table_header *head;
+-	struct ctl_table *table;
++	struct ctl_table *table = NULL;
+ 
+-	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
++	for (head = sysctl_head_next(NULL); head;
++			head = sysctl_head_next(head)) {
+ 		table = proc_sys_lookup_entry(parent, name, head->ctl_table);
+ 		if (table)
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -188,6 +199,7 @@ cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
 statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
 slim-main-include-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
 nr_blockdev_pages-in_interrupt-warning.patch
