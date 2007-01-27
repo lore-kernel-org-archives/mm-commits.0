@@ -1,92 +1,81 @@
 From: akpm@osdl.org
-Subject: - dlm-gfs2-use-sysfs.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:32:48 -0800
-Message-ID: <200701270132.l0R1WmSo031956@shell0.pdx.osdl.net>
+Subject: - netdev-add-a-maintainers-entry-for-via-velocity-and-update-my-address.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:32:38 -0800
+Message-ID: <200701270132.l0R1Wcso031944@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35600 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35599 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752246AbXA0BdF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:33:05 -0500
+	id S1752242AbXA0BdB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:33:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: romieu@fr.zoreil.com, davem@davemloft.net, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dlm & gfs2: use sysfs
+     netdev: add a MAINTAINERS entry for via-velocity and update my add=
+ress
 has been removed from the -mm tree.  Its filename was
-     dlm-gfs2-use-sysfs.patch
+     netdev-add-a-maintainers-entry-for-via-velocity-and-update-my-addr=
+ess.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: dlm & gfs2: use sysfs
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: netdev: add a MAINTAINERS entry for via-velocity and update my=
+ address
+=46rom: Francois Romieu <romieu@fr.zoreil.com>
 
-With CONFIG_DLM=m, CONFIG_PROC_FS=n, and CONFIG_SYSFS=n, kernel build
-fails with:
-
-WARNING: "kernel_subsys" [fs/gfs2/locking/dlm/lock_dlm.ko] undefined!
-WARNING: "kernel_subsys" [fs/dlm/dlm.ko] undefined!
-WARNING: "kernel_subsys" [fs/configfs/configfs.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
-
-Since fs/dlm/lockspace.c and fs/gfs2/locking/dlm/sysfs.c use
-kernel_subsys, they should either DEPEND on it or SELECT it.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/dlm/Kconfig  |    1 +
- fs/gfs2/Kconfig |    1 +
- 2 files changed, 2 insertions(+)
+ MAINTAINERS |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/dlm/Kconfig~dlm-gfs2-use-sysfs fs/dlm/Kconfig
---- a/fs/dlm/Kconfig~dlm-gfs2-use-sysfs
-+++ a/fs/dlm/Kconfig
-@@ -5,6 +5,7 @@ config DLM
- 	tristate "Distributed Lock Manager (DLM)"
- 	depends on IPV6 || IPV6=n
- 	select CONFIGFS_FS
-+	select SYSFS
- 	select IP_SCTP if DLM_SCTP
- 	help
- 	A general purpose distributed lock manager for kernel or userspace
-diff -puN fs/gfs2/Kconfig~dlm-gfs2-use-sysfs fs/gfs2/Kconfig
---- a/fs/gfs2/Kconfig~dlm-gfs2-use-sysfs
-+++ a/fs/gfs2/Kconfig
-@@ -38,6 +38,7 @@ config GFS2_FS_LOCKING_DLM
- 	select IP_SCTP if DLM_SCTP
- 	select CONFIGFS_FS
- 	select DLM
-+	select SYSFS
- 	help
- 	Multiple node locking module for GFS2
- 
+diff -puN MAINTAINERS~netdev-add-a-maintainers-entry-for-via-velocity-a=
+nd-update-my-address MAINTAINERS
+--- a/MAINTAINERS~netdev-add-a-maintainers-entry-for-via-velocity-and-u=
+pdate-my-address
++++ a/MAINTAINERS
+@@ -1137,9 +1137,9 @@ T:	git kernel.org:/pub/scm/linux/kernel/
+ S:	Maintained
+=20
+ DSCC4 DRIVER
+-P:	Fran=E7ois Romieu
+-M:	romieu@cogenit.fr
+-M:	romieu@ensta.fr
++P:	Francois Romieu
++M:	romieu@fr.zoreil.com
++L:	netdev@vger.kernel.org
+ S:	Maintained
+=20
+ DVB SUBSYSTEM AND DRIVERS
+@@ -3574,6 +3574,12 @@ M:	khali@linux-fr.org
+ L:	i2c@lm-sensors.org
+ S:	Maintained
+=20
++VIA VELOCITY NETWORK DRIVER
++P:	Francois Romieu
++M:	romieu@fr.zoreil.com
++L:	netdev@vger.kernel.org
++S:	Maintained
++
+ UCLINUX (AND M68KNOMMU)
+ P:	Greg Ungerer
+ M:	gerg@uclinux.org
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
 origin.patch
-git-alsa.patch
-git-gfs2-nmw.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-parisc-fix-module_param-iommu-permission.patch
-git-scsi-misc.patch
-math-emu-setcc-avoid-gcc-extension.patch
-typeof-__page_to_pfn-with-sparsemem=y.patch
-docbook-html-correction-of-recursive-a-tags-in-html-output.patch
-kernel-doc-allow-a-little-whitespace.patch
-sysrq-showblockedtasks-is-sysrq-w.patch
-sysrq-alphabetize-command-keys-doc.patch
-kernel-doc-allow-more-whitespace.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-docbook-add-edd-firmware-interfaces.patch
-kernel-doc-fix-some-odd-spacing-issues.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+git-netdev-all.patch
+r8169-warning-fixes.patch
+git-qla3xxx.patch
