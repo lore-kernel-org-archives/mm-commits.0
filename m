@@ -1,212 +1,215 @@
 From: akpm@osdl.org
-Subject: - git-cryptodev-make-ecryptfs-compile.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:04:44 -0800
-Message-ID: <200701270104.l0R14iVk031351@shell0.pdx.osdl.net>
+Subject: - kvm-mmu-perform-access-checks-in-walk_addr.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:31:02 -0800
+Message-ID: <200701270131.l0R1V2CZ031807@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35056 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35364 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751831AbXA0BUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:20:55 -0500
+	id S1751855AbXA0BbL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:31:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, herbert@gondor.apana.org.au, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-cryptodev: make ecryptfs compile
+     KVM: MMU: Perform access checks in walk_addr()
 has been removed from the -mm tree.  Its filename was
-     git-cryptodev-make-ecryptfs-compile.patch
+     kvm-mmu-perform-access-checks-in-walk_addr.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-cryptodev: make ecryptfs compile
-From: Andrew Morton <akpm@osdl.org>
+Subject: KVM: MMU: Perform access checks in walk_addr()
+From: Avi Kivity <avi@qumranet.com>
 
-Another victim of the bewilderingly frequent crypto API changes.
+Check pte permission bits in walk_addr(), instead of scattering the checks all
+over the code.  This has the following benefits:
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+1. We no longer set the accessed bit for accessed which fail permission checks.
+2. Setting the accessed bit is simplified.
+3. Under some circumstances, we used to pretend a page fault was fixed when
+   it would actually fail the access checks.  This caused an unnecessary
+   vmexit.
+4. The error code for guest page faults is now correct.
+
+The fix helps netbsd further along booting, and allows kvm to pass the new mmu
+testsuite.
+
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ecryptfs/crypto.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/kvm/mmu.c         |   10 -----
+ drivers/kvm/paging_tmpl.h |   68 ++++++++++++++++++++----------------
+ 2 files changed, 38 insertions(+), 40 deletions(-)
 
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~a fs/ecryptfs/ecryptfs_kernel.h
-diff -puN fs/ecryptfs/keystore.c~a fs/ecryptfs/keystore.c
-diff -puN fs/ecryptfs/crypto.c~a fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~a
-+++ a/fs/ecryptfs/crypto.c
-@@ -828,9 +828,11 @@ int ecryptfs_init_crypt_ctx(struct ecryp
- 		mutex_unlock(&crypt_stat->cs_tfm_mutex);
- 		goto out;
+diff -puN drivers/kvm/mmu.c~kvm-mmu-perform-access-checks-in-walk_addr drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-perform-access-checks-in-walk_addr
++++ a/drivers/kvm/mmu.c
+@@ -992,16 +992,6 @@ static inline int fix_read_pf(u64 *shado
+ 	return 0;
+ }
+ 
+-static int may_access(u64 pte, int write, int user)
+-{
+-
+-	if (user && !(pte & PT_USER_MASK))
+-		return 0;
+-	if (write && !(pte & PT_WRITABLE_MASK))
+-		return 0;
+-	return 1;
+-}
+-
+ static void paging_free(struct kvm_vcpu *vcpu)
+ {
+ 	nonpaging_free(vcpu);
+diff -puN drivers/kvm/paging_tmpl.h~kvm-mmu-perform-access-checks-in-walk_addr drivers/kvm/paging_tmpl.h
+--- a/drivers/kvm/paging_tmpl.h~kvm-mmu-perform-access-checks-in-walk_addr
++++ a/drivers/kvm/paging_tmpl.h
+@@ -63,13 +63,15 @@ struct guest_walker {
+ 	pt_element_t *ptep;
+ 	pt_element_t inherited_ar;
+ 	gfn_t gfn;
++	u32 error_code;
+ };
+ 
+ /*
+  * Fetch a guest pte for a guest virtual address
+  */
+-static void FNAME(walk_addr)(struct guest_walker *walker,
+-			     struct kvm_vcpu *vcpu, gva_t addr)
++static int FNAME(walk_addr)(struct guest_walker *walker,
++			    struct kvm_vcpu *vcpu, gva_t addr,
++			    int write_fault, int user_fault)
+ {
+ 	hpa_t hpa;
+ 	struct kvm_memory_slot *slot;
+@@ -86,7 +88,7 @@ static void FNAME(walk_addr)(struct gues
+ 		walker->ptep = &vcpu->pdptrs[(addr >> 30) & 3];
+ 		root = *walker->ptep;
+ 		if (!(root & PT_PRESENT_MASK))
+-			return;
++			goto not_present;
+ 		--walker->level;
  	}
-+#if 0
- 	crypto_blkcipher_set_flags(crypt_stat->tfm,
- 				   (ECRYPTFS_DEFAULT_CHAINING_MODE
- 				    | CRYPTO_TFM_REQ_WEAK_KEY));
-+#endif
- 	mutex_unlock(&crypt_stat->cs_tfm_mutex);
- 	rc = 0;
- out:
+ #endif
+@@ -111,11 +113,18 @@ static void FNAME(walk_addr)(struct gues
+ 		ASSERT(((unsigned long)walker->table & PAGE_MASK) ==
+ 		       ((unsigned long)ptep & PAGE_MASK));
+ 
+-		if (is_present_pte(*ptep) && !(*ptep &  PT_ACCESSED_MASK))
+-			*ptep |= PT_ACCESSED_MASK;
+-
+ 		if (!is_present_pte(*ptep))
+-			break;
++			goto not_present;
++
++		if (write_fault && !is_writeble_pte(*ptep))
++			if (user_fault || is_write_protection(vcpu))
++				goto access_error;
++
++		if (user_fault && !(*ptep & PT_USER_MASK))
++			goto access_error;
++
++		if (!(*ptep & PT_ACCESSED_MASK))
++			*ptep |= PT_ACCESSED_MASK; 	/* avoid rmw */
+ 
+ 		if (walker->level == PT_PAGE_TABLE_LEVEL) {
+ 			walker->gfn = (*ptep & PT_BASE_ADDR_MASK)
+@@ -146,6 +155,21 @@ static void FNAME(walk_addr)(struct gues
+ 	}
+ 	walker->ptep = ptep;
+ 	pgprintk("%s: pte %llx\n", __FUNCTION__, (u64)*ptep);
++	return 1;
++
++not_present:
++	walker->error_code = 0;
++	goto err;
++
++access_error:
++	walker->error_code = PFERR_PRESENT_MASK;
++
++err:
++	if (write_fault)
++		walker->error_code |= PFERR_WRITE_MASK;
++	if (user_fault)
++		walker->error_code |= PFERR_USER_MASK;
++	return 0;
+ }
+ 
+ static void FNAME(release_walker)(struct guest_walker *walker)
+@@ -347,7 +371,6 @@ static int FNAME(page_fault)(struct kvm_
+ 			       u32 error_code)
+ {
+ 	int write_fault = error_code & PFERR_WRITE_MASK;
+-	int pte_present = error_code & PFERR_PRESENT_MASK;
+ 	int user_fault = error_code & PFERR_USER_MASK;
+ 	struct guest_walker walker;
+ 	u64 *shadow_pte;
+@@ -365,19 +388,19 @@ static int FNAME(page_fault)(struct kvm_
+ 	/*
+ 	 * Look up the shadow pte for the faulting address.
+ 	 */
+-	FNAME(walk_addr)(&walker, vcpu, addr);
+-	shadow_pte = FNAME(fetch)(vcpu, addr, &walker);
++	r = FNAME(walk_addr)(&walker, vcpu, addr, write_fault, user_fault);
+ 
+ 	/*
+ 	 * The page is not mapped by the guest.  Let the guest handle it.
+ 	 */
+-	if (!shadow_pte) {
+-		pgprintk("%s: not mapped\n", __FUNCTION__);
+-		inject_page_fault(vcpu, addr, error_code);
++	if (!r) {
++		pgprintk("%s: guest page fault\n", __FUNCTION__);
++		inject_page_fault(vcpu, addr, walker.error_code);
+ 		FNAME(release_walker)(&walker);
+ 		return 0;
+ 	}
+ 
++	shadow_pte = FNAME(fetch)(vcpu, addr, &walker);
+ 	pgprintk("%s: shadow pte %p %llx\n", __FUNCTION__,
+ 		 shadow_pte, *shadow_pte);
+ 
+@@ -399,22 +422,7 @@ static int FNAME(page_fault)(struct kvm_
+ 	 * mmio: emulate if accessible, otherwise its a guest fault.
+ 	 */
+ 	if (is_io_pte(*shadow_pte)) {
+-		if (may_access(*shadow_pte, write_fault, user_fault))
+-			return 1;
+-		pgprintk("%s: io work, no access\n", __FUNCTION__);
+-		inject_page_fault(vcpu, addr,
+-				  error_code | PFERR_PRESENT_MASK);
+-		kvm_mmu_audit(vcpu, "post page fault (io)");
+-		return 0;
+-	}
+-
+-	/*
+-	 * pte not present, guest page fault.
+-	 */
+-	if (pte_present && !fixed && !write_pt) {
+-		inject_page_fault(vcpu, addr, error_code);
+-		kvm_mmu_audit(vcpu, "post page fault (guest)");
+-		return 0;
++		return 1;
+ 	}
+ 
+ 	++kvm_stat.pf_fixed;
+@@ -429,7 +437,7 @@ static gpa_t FNAME(gva_to_gpa)(struct kv
+ 	pt_element_t guest_pte;
+ 	gpa_t gpa;
+ 
+-	FNAME(walk_addr)(&walker, vcpu, vaddr);
++	FNAME(walk_addr)(&walker, vcpu, vaddr, 0, 0);
+ 	guest_pte = *walker.ptep;
+ 	FNAME(release_walker)(&walker);
+ 
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-infiniband-fixup.patch
-git-infiniband-fixup-2.patch
-git-input.patch
-git-libata-all.patch
-sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
-git-lxdialog-fixup.patch
-git-mmc.patch
-git-mmc-fixup.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-fixup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-borkage.patch
-git-block-atomicity-fix.patch
-git-qla3xxx.patch
-nokia-e70-is-an-unusual-device.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-git-cryptodev-make-ecryptfs-compile.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-vmi-versus-hrtimers.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
+fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
