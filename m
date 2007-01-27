@@ -1,23 +1,27 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-ia64-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 00:25:53 -0800
-Message-ID: <200701270826.l0R8QhPh005362@shell0.pdx.osdl.net>
+Subject: + dvb-video_buf-depends-on-pci.patch added to -mm tree
+Date: Sat, 27 Jan 2007 00:53:15 -0800
+Message-ID: <200701270854.l0R8s54X005841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45065 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45597 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752213AbXA0I0r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 03:26:47 -0500
+	id S1752212AbXA0IyH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 03:54:07 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l0R8s51m002018
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 27 Jan 2007 00:54:05 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, alon.barlev@gmail.com, tony.luck@intel.com
+Cc: akpm@osdl.org
 
 
 The patch titled
-     dynamic-kernel-command-line-ia64 fix
+     dvb-video_buf-depends-on-pci
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-ia64-fix.patch
+     dvb-video_buf-depends-on-pci.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +29,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dynamic-kernel-command-line-ia64 fix
+Subject: dvb-video_buf-depends-on-pci
 From: Andrew Morton <akpm@osdl.org>
 
-Make the completely wrong only very wrong.
-
-Cc: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/ia64/kernel/efi.c |    3 ++-
- arch/ia64/kernel/sal.c |    3 ++-
- ia64/kernel/setup.c    |    0 
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/Kconfig       |    1 +
+ drivers/media/video/Kconfig |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/efi.c~dynamic-kernel-command-line-ia64-fix arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~dynamic-kernel-command-line-ia64-fix
-+++ a/arch/ia64/kernel/efi.c
-@@ -405,6 +405,8 @@ efi_map_pal_code (void)
- 	ia64_srlz_i();
- }
+diff -puN drivers/media/Kconfig~dvb-video_buf-depends-on-pci drivers/media/Kconfig
+--- a/drivers/media/Kconfig~dvb-video_buf-depends-on-pci
++++ a/drivers/media/Kconfig
+@@ -70,6 +70,7 @@ config VIDEO_TUNER
+ 	depends on I2C
  
-+extern char __initdata boot_command_line[];
-+
- void __init
- efi_init (void)
- {
-@@ -413,7 +415,6 @@ efi_init (void)
- 	efi_char16_t *c16;
- 	u64 efi_desc_size;
- 	char *cp, vendor[100] = "unknown";
--	extern char __initdata boot_command_line[];
- 	int i;
+ config VIDEO_BUF
++	depends on PCI
+ 	tristate
  
- 	/* it's too early to be able to use the standard kernel command line support... */
-diff -puN arch/ia64/kernel/sal.c~dynamic-kernel-command-line-ia64-fix arch/ia64/kernel/sal.c
---- a/arch/ia64/kernel/sal.c~dynamic-kernel-command-line-ia64-fix
-+++ a/arch/ia64/kernel/sal.c
-@@ -190,11 +190,12 @@ sal_desc_ap_wakeup (void *p)
- 	}
- }
+ config VIDEO_BUF_DVB
+diff -puN drivers/media/video/Kconfig~dvb-video_buf-depends-on-pci drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~dvb-video_buf-depends-on-pci
++++ a/drivers/media/video/Kconfig
+@@ -342,7 +342,7 @@ endmenu # encoder / decoder chips
  
-+extern char __initdata boot_command_line[];
-+
- static void __init
- chk_nointroute_opt(void)
- {
- 	char *cp;
--	extern char __initdata boot_command_line[];
- 
- 	for (cp = boot_command_line; *cp; ) {
- 		if (memcmp(cp, "nointroute", 10) == 0) {
-diff -puN arch/ia64/kernel/setup.c~dynamic-kernel-command-line-ia64-fix arch/ia64/kernel/setup.c
+ config VIDEO_VIVI
+ 	tristate "Virtual Video Driver"
+-	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64
++	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64 && PCI
+ 	select VIDEO_BUF
+ 	default n
+ 	---help---
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -260,3 +244,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+a.patch
+dvb-video_buf-depends-on-pci.patch
