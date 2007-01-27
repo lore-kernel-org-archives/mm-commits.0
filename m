@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sh-add-kconfig-default.patch added to -mm tree
-Date: Sat, 27 Jan 2007 01:51:15 -0800
-Message-ID: <200701270952.l0R9q5hB006675@shell0.pdx.osdl.net>
+Subject: + atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 02:02:41 -0800
+Message-ID: <200701271003.l0RA3V3s006871@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47016 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47355 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125AbXA0JwJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 04:52:09 -0500
+	id S1750755AbXA0KDp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 05:03:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, lethal@linux-sh.org
+Cc: akpm@osdl.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     sh: add Kconfig default
+     atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix
 has been added to the -mm tree.  Its filename is
-     sh-add-kconfig-default.patch
+     atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sh: add Kconfig default
+Subject: atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix
 From: Andrew Morton <akpm@osdl.org>
 
-This option needs a default - otherwise `make allmodconfig' get stuck in an
-infinite loop.
+include/asm-generic/atomic.h: In function 'atomic_long_xchg':
+include/asm-generic/atomic.h:281: warning: implicit declaration of function 'xchg'
 
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sh/Kconfig |    1 +
+ include/asm-sparc/atomic.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/sh/Kconfig~sh-add-kconfig-default arch/sh/Kconfig
---- a/arch/sh/Kconfig~sh-add-kconfig-default
-+++ a/arch/sh/Kconfig
-@@ -481,6 +481,7 @@ config SH_PCLK_FREQ
+diff -puN include/asm-sparc/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix include/asm-sparc/atomic.h
+--- a/include/asm-sparc/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix
++++ a/include/asm-sparc/atomic.h
+@@ -10,6 +10,7 @@
+ #ifndef __ARCH_SPARC_ATOMIC__
+ #define __ARCH_SPARC_ATOMIC__
  
- config SH_CLK_MD
- 	int "CPU Mode Pin Setting"
-+	default 0
- 	depends on CPU_SUBTYPE_SH7619 || CPU_SUBTYPE_SH7206
- 	help
- 	  MD2 - MD0 pin setting.
++#include <asm/system.h>
+ 
+ typedef struct { volatile int counter; } atomic_t;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -94,6 +94,7 @@ ioat-warning-fix.patch
 nfs-fix-congestion-control-v4-tweaks.patch
 r8169-warning-fixes.patch
 make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+sh-add-kconfig-default.patch
 git-scsi-misc-fix.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
@@ -221,6 +222,7 @@ sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
 atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
+atomich-complete-atomic_long-operations-in-asm-generic-sparc-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
 local_t-alpha-extension-fix.patch
@@ -238,4 +240,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-sh-add-kconfig-default.patch
