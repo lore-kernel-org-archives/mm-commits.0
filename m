@@ -1,106 +1,71 @@
 From: akpm@osdl.org
-Subject: - knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:31:48 -0800
-Message-ID: <200701270131.l0R1Vm13031861@shell0.pdx.osdl.net>
+Subject: - fix-gate_vmavm_flags.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:31:19 -0800
+Message-ID: <200701270131.l0R1VJYk031825@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35491 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35504 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752175AbXA0Bb6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:31:58 -0500
+	id S1752198AbXA0BcE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:32:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: fix an NFSD bug with full sized, non-page-aligned reads
+     Fix gate_vma.vm_flags
 has been removed from the -mm tree.  Its filename was
-     knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads.patch
+     fix-gate_vmavm_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: fix an NFSD bug with full sized, non-page-aligned reads
-From: NeilBrown <neilb@suse.de>
+Subject: Fix gate_vma.vm_flags
+From: Roland McGrath <roland@redhat.com>
 
-NFSd assumes that largest number of pages that will be needed for a
-request+response is 2+N where N pages is the size of the largest permitted
-read/write request.  The '2' are 1 for the non-data part of the request, and 1
-for the non-data part of the reply.
+This patch fixes the initialization of gate_vma.vm_flags and
+gate_vma.vm_page_prot to reflect reality.  This makes the "[vdso]" line in
+/proc/PID/maps correctly show r-xp instead of ---p, when gate_vma is used
+(CONFIG_COMPAT_VDSO on i386).
 
-However, when a read request is not page-aligned, and we choose to use
-->sendfile to send it directly from the page cache, we may need N+1 pages to
-hold the whole reply.  This can overflow and array and cause an Oops.
-
-This patch increases size of the array for holding pages by one and makes sure
-that entry is NULL when it is not in use.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/vfs.c              |    3 ++-
- include/linux/sunrpc/svc.h |    5 ++++-
- net/sunrpc/svcsock.c       |    2 ++
- 3 files changed, 8 insertions(+), 2 deletions(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfsd/vfs.c~knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads
-+++ a/fs/nfsd/vfs.c
-@@ -822,7 +822,8 @@ nfsd_read_actor(read_descriptor_t *desc,
- 		rqstp->rq_res.page_len = size;
- 	} else if (page != pp[-1]) {
- 		get_page(page);
--		put_page(*pp);
-+		if (*pp)
-+			put_page(*pp);
- 		*pp = page;
- 		rqstp->rq_resused++;
- 		rqstp->rq_res.page_len += size;
-diff -puN include/linux/sunrpc/svc.h~knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads include/linux/sunrpc/svc.h
---- a/include/linux/sunrpc/svc.h~knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads
-+++ a/include/linux/sunrpc/svc.h
-@@ -144,8 +144,11 @@ extern u32 svc_max_payload(const struct 
-  *
-  * Each request/reply pair can have at most one "payload", plus two pages,
-  * one for the request, and one for the reply.
-+ * We using ->sendfile to return read data, we might need one extra page
-+ * if the request is not page-aligned.  So add another '1'.
-  */
--#define RPCSVC_MAXPAGES		((RPCSVC_MAXPAYLOAD+PAGE_SIZE-1)/PAGE_SIZE + 2)
-+#define RPCSVC_MAXPAGES		((RPCSVC_MAXPAYLOAD+PAGE_SIZE-1)/PAGE_SIZE \
-+				+ 2 + 1)
- 
- static inline u32 svc_getnl(struct kvec *iov)
- {
-diff -puN net/sunrpc/svcsock.c~knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-fix-an-nfsd-bug-with-full-sized-non-page-aligned-reads
-+++ a/net/sunrpc/svcsock.c
-@@ -1278,6 +1278,8 @@ svc_recv(struct svc_rqst *rqstp, long ti
- 				schedule_timeout_uninterruptible(msecs_to_jiffies(500));
- 			rqstp->rq_pages[i] = p;
- 		}
-+	rqstp->rq_pages[i++] = NULL; /* this might be seen in nfs_read_actor */
-+	BUG_ON(pages >= RPCSVC_MAXPAGES);
- 
- 	/* Make arg->head point to first page and arg->pages point to rest */
- 	arg = &rqstp->rq_arg;
+diff -puN mm/memory.c~fix-gate_vmavm_flags mm/memory.c
+--- a/mm/memory.c~fix-gate_vmavm_flags
++++ a/mm/memory.c
+@@ -2606,8 +2606,8 @@ static int __init gate_vma_init(void)
+ 	gate_vma.vm_mm = NULL;
+ 	gate_vma.vm_start = FIXADDR_USER_START;
+ 	gate_vma.vm_end = FIXADDR_USER_END;
+-	gate_vma.vm_page_prot = PAGE_READONLY;
+-	gate_vma.vm_flags = 0;
++	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
++	gate_vma.vm_page_prot = __P101;
+ 	return 0;
+ }
+ __initcall(gate_vma_init);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-igrab-should-check-for-i_clear.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+add-install_special_mapping.patch
+i386-vdso-use-install_special_mapping.patch
+x86_64-ia32-vdso-use-install_special_mapping.patch
+powerpc-vdso-use-install_special_mapping.patch
+sh-vdso-use-install_special_mappingpatch.patch
+arch-i386-kernel-ptracec-trivial-whitespace-cleanup.patch
+i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
+i386-kwatch-kernel-watchpoints-using-cpu-debug-registers-fix.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
