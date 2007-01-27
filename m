@@ -1,53 +1,71 @@
 From: akpm@osdl.org
-Subject: + ehca-fix-do_mmap-error-check-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 04:56:16 -0700
-Message-ID: <200701271156.l0RBuGJb008472@shell0.pdx.osdl.net>
+Subject: + git-s390-build-hack.patch added to -mm tree
+Date: Sat, 27 Jan 2007 04:04:17 -0800
+Message-ID: <200701271205.l0RC57U9008602@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49827 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49965 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbXA0L43 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 06:56:29 -0500
+	id S1751685AbXA0MFS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 07:05:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, akinobu.mita@gmail.com, hnguyen@de.ibm.com, raisch@de.ibm.com, rolandd@cisco.com
+Cc: akpm@osdl.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     infiniband-borkage
+     git-s390 build hack
 has been added to the -mm tree.  Its filename is
-     ehca-fix-do_mmap-error-check-fix.patch
+     git-s390-build-hack.patch
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: infiniband-borkage
+Subject: git-s390 build hack
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+arch/s390/crypto/crypt_s390_query.c: In function 'init':
+arch/s390/crypto/crypt_s390_query.c:90: error: variable 'status' has initializer but incomplete type
+arch/s390/crypto/crypt_s390_query.c:91: error: unknown field 'high' specified in initializer
+arch/s390/crypto/crypt_s390_query.c:91: warning: excess elements in struct initializer
+arch/s390/crypto/crypt_s390_query.c:91: warning: (near initialization for 'status')
+arch/s390/crypto/crypt_s390_query.c:92: error: unknown field 'low' specified in initializer
+arch/s390/crypto/crypt_s390_query.c:93: warning: excess elements in struct initializer
+arch/s390/crypto/crypt_s390_query.c:93: warning: (near initialization for 'status')
+arch/s390/crypto/crypt_s390_query.c:90: error: storage size of 'status' isn't known
+arch/s390/crypto/crypt_s390_query.c:90: warning: unused variable 'status'
+
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_uverbs.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/s390/crypto/crypt_s390_query.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_uverbs.c~ehca-fix-do_mmap-error-check-fix drivers/infiniband/hw/ehca/ehca_uverbs.c
---- a/drivers/infiniband/hw/ehca/ehca_uverbs.c~ehca-fix-do_mmap-error-check-fix
-+++ a/drivers/infiniband/hw/ehca/ehca_uverbs.c
-@@ -328,7 +328,7 @@ int ehca_mmap_nopage(u64 foffset, u64 le
- 	if (IS_ERR(*mapped)) {
- 		ehca_gen_err("couldn't mmap foffset=%lx length=%lx",
- 			     foffset, length);
--		return PTR_ERR(*mmaped);
-+		return PTR_ERR(*mapped);
- 	}
+diff -puN arch/s390/crypto/crypt_s390_query.c~git-s390-build-hack arch/s390/crypto/crypt_s390_query.c
+--- a/arch/s390/crypto/crypt_s390_query.c~git-s390-build-hack
++++ a/arch/s390/crypto/crypt_s390_query.c
+@@ -87,6 +87,7 @@ static void query_available_functions(vo
  
- 	*vma = find_vma(current->mm, (u64)*mapped);
+ static int init(void)
+ {
++#if 0
+ 	struct crypt_s390_query_status status = {
+ 		.high = 0,
+ 		.low = 0
+@@ -120,6 +121,7 @@ static int init(void)
+ 
+ 	query_available_functions();
+ 	return -ECANCELED;
++#endif
+ }
+ 
+ static void __exit cleanup(void)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -241,3 +259,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+git-s390-build-hack.patch
