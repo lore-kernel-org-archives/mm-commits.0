@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + dynamic-kernel-command-line-sparc64-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 03:02:12 -0800
-Message-ID: <200701271103.l0RB32ES007734@shell0.pdx.osdl.net>
+Subject: + dccp-warning-fixes.patch added to -mm tree
+Date: Sat, 27 Jan 2007 03:05:22 -0800
+Message-ID: <200701271106.l0RB6CPO007757@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48832 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48876 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751572AbXA0LDP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 06:03:15 -0500
+	id S1751433AbXA0LG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 06:06:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, alon.barlev@gmail.com, davem@davemloft.net
+Cc: akpm@osdl.org, acme@conectiva.com.br, davem@davemloft.net
 
 
 The patch titled
-     dynamic-kernel-command-line-sparc64-fix
+     dccp-warning-fixes
 has been added to the -mm tree.  Its filename is
-     dynamic-kernel-command-line-sparc64-fix.patch
+     dccp-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dynamic-kernel-command-line-sparc64-fix
+Subject: dccp-warning-fixes
 From: Andrew Morton <akpm@osdl.org>
 
-WARNING: "saved_command_line" [drivers/sbus/char/openprom.ko] undefined!
+sparc64:
 
-Cc: Alon Bar-Lev <alon.barlev@gmail.com>
+net/dccp/ccids/ccid3.c: In function `ccid3_hc_tx_packet_recv':
+net/dccp/ccids/ccid3.c:480: warning: long long unsigned int format, __u64 arg (arg 6)
+net/dccp/ccids/ccid3.c: In function `ccid3_hc_rx_packet_recv':
+net/dccp/ccids/ccid3.c:1007: warning: long int format, different type arg (arg 3)
+net/dccp/ccids/ccid3.c:1007: warning: long int format, different type arg (arg 4)
+
+opaque types must be suitably cast for printing.
+
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/sbus/char/openprom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/dccp/ccids/ccid3.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix drivers/sbus/char/openprom.c
---- a/drivers/sbus/char/openprom.c~dynamic-kernel-command-line-sparc64-fix
-+++ a/drivers/sbus/char/openprom.c
-@@ -283,7 +283,7 @@ static int oprompath2node(void __user *a
+diff -puN net/dccp/ccids/ccid3.c~dccp-warning-fixes net/dccp/ccids/ccid3.c
+--- a/net/dccp/ccids/ccid3.c~dccp-warning-fixes
++++ a/net/dccp/ccids/ccid3.c
+@@ -479,7 +479,8 @@ static void ccid3_hc_tx_packet_recv(stru
  
- static int opromgetbootargs(void __user *argp, struct openpromio *op, int bufsize)
- {
--	char *buf = saved_command_line;
-+	char *buf = boot_command_line;
- 	int len = strlen(buf);
+ 			ccid3_pr_debug("%s(%p), s=%u, w_init=%llu, "
+ 				       "R_sample=%dus, X=%u\n", dccp_role(sk),
+-				       sk, hctx->ccid3hctx_s, w_init,
++				       sk, hctx->ccid3hctx_s,
++				       (unsigned long long)w_init,
+ 				       (int)r_sample,
+ 				       (unsigned)(hctx->ccid3hctx_x >> 6));
  
- 	if (len > bufsize)
+@@ -1005,7 +1006,7 @@ static void ccid3_hc_rx_packet_recv(stru
+ 		DCCP_BUG_ON(r_sample < 0);
+ 		if (unlikely(r_sample <= t_elapsed))
+ 			DCCP_WARN("r_sample=%ldus, t_elapsed=%ldus\n",
+-				  r_sample, t_elapsed);
++				  (long)r_sample, (long)t_elapsed);
+ 		else
+ 			r_sample -= t_elapsed;
+ 		CCID3_RTT_SANITY_CHECK(r_sample);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -242,3 +260,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+dccp-warning-fixes.patch
