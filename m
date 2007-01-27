@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch added to -mm tree
-Date: Fri, 26 Jan 2007 22:55:39 -0800
-Message-ID: <200701270656.l0R6uTnk003990@shell0.pdx.osdl.net>
+Subject: + atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch added to -mm tree
+Date: Fri, 26 Jan 2007 23:01:03 -0800
+Message-ID: <200701270701.l0R71rEL004077@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42975 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43311 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752161AbXA0G5B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 01:57:01 -0500
+	id S1751425AbXA0HCC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 02:02:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: akpm@osdl.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     add-a-functions-to-handle-interrupt-affinity-setting alpha fix
+     atomich-complete-atomic_long-operations-in-asm-generic fix 3
 has been added to the -mm tree.  Its filename is
-     add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+     atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-a-functions-to-handle-interrupt-affinity-setting alpha fix
+Subject: atomich-complete-atomic_long-operations-in-asm-generic fix 3
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/irq/manage.c: In function 'irq_set_affinity':
-kernel/irq/manage.c:75: error: invalid type argument of '->'
-kernel/irq/manage.c:76: error: invalid type argument of '->'
+In file included from include/asm/atomic.h:265,
+                 from include/linux/crypto.h:20,
+                 from include/crypto/algapi.h:15,
+                 from crypto/cbc.c:13:
+include/asm-generic/atomic.h: In function 'atomic_long_add_unless':
+include/asm-generic/atomic.h:129: warning: implicit declaration of function 'cmpxchg'
+include/asm-generic/atomic.h: In function 'atomic_long_xchg':
+include/asm-generic/atomic.h:150: warning: implicit declaration of function 'xchg'
 
-nfi why.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/irq/manage.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-alpha/atomic.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/irq/manage.c~add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix kernel/irq/manage.c
---- a/kernel/irq/manage.c~add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix
-+++ a/kernel/irq/manage.c
-@@ -72,8 +72,8 @@ int irq_set_affinity(unsigned int irq, c
- #ifdef CONFIG_GENERIC_PENDING_IRQ
- 	set_pending_irq(irq, cpumask);
- #else
--	irq_desc[irq]->affinity = cpumask;
--	irq_desc[irq]->chip->set_affinity(irq, cpumask);
-+	desc->affinity = cpumask;
-+	desc->chip->set_affinity(irq, cpumask);
- #endif
- 	return 0;
- }
+diff -puN include/asm-alpha/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-fix-3 include/asm-alpha/atomic.h
+--- a/include/asm-alpha/atomic.h~atomich-complete-atomic_long-operations-in-asm-generic-fix-3
++++ a/include/asm-alpha/atomic.h
+@@ -2,6 +2,7 @@
+ #define _ALPHA_ATOMIC_H
+ 
+ #include <asm/barrier.h>
++#include <asm/system.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -216,6 +213,7 @@ sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-hack.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+atomich-complete-atomic_long-operations-in-asm-generic-fix-3.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64-fix.patch
 local_t-alpha-extension-fix.patch
 nr_blockdev_pages-in_interrupt-warning.patch
