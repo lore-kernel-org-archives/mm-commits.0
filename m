@@ -1,60 +1,95 @@
 From: akpm@osdl.org
-Subject: - spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch removed from -mm tree
-Date: Fri, 26 Jan 2007 17:31:12 -0800
-Message-ID: <200701270131.l0R1VCTt031819@shell0.pdx.osdl.net>
+Subject: - kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch removed from -mm tree
+Date: Fri, 26 Jan 2007 17:31:06 -0800
+Message-ID: <200701270131.l0R1V6qe031813@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35377 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35379 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751860AbXA0BbT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:31:19 -0500
+	id S1752167AbXA0BbZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 26 Jan 2007 20:31:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: justin@redfish-group.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: joerg.roedel@amd.com, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: fix error setting the spi mode in pxa2xx_spi.c
+     KVM: SVM: Propagate cpu shutdown events to userspace
 has been removed from the -mm tree.  Its filename was
-     spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic.patch
+     kvm-svm-propagate-cpu-shutdown-events-to-userspace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: fix error setting the spi mode in pxa2xx_spi.c
-From: Justin Clacherty <justin@redfish-group.com>
+Subject: KVM: SVM: Propagate cpu shutdown events to userspace
+From: Joerg Roedel <joerg.roedel@amd.com>
 
-Currently the spi mode can be set to the wrong mode if you are switching
-from any mode other than mode 0.  This is because the mode is set using a
-bitwise or on uncleared bits.  The following patch clears the mode bits
-before setting the new mode.  I've also modified it to use the appropriate
-defines from pxa-regs.h for readability.
+This patch implements forwarding of SHUTDOWN intercepts from the guest on to
+userspace on AMD SVM.  A SHUTDOWN event occurs when the guest produces a
+triple fault (e.g.  on reboot).  This also fixes the bug that a guest reboot
+actually causes a host reboot under some circumstances.
 
-Signed-off-by: Justin Clacherty <justin@redfish-group.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/spi/pxa2xx_spi.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/kvm/svm.c   |   15 +++++++++++++++
+ include/linux/kvm.h |    1 +
+ 2 files changed, 16 insertions(+)
 
-diff -puN drivers/spi/pxa2xx_spi.c~spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~spi-fix-error-setting-the-spi-mode-in-pxa2xx_spic
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -1169,8 +1169,9 @@ static int setup(struct spi_device *spi)
- 				spi->bits_per_word - 16 : spi->bits_per_word)
- 			| SSCR0_SSE
- 			| (spi->bits_per_word > 16 ? SSCR0_EDSS : 0);
--	chip->cr1 |= (((spi->mode & SPI_CPHA) != 0) << 4)
--			| (((spi->mode & SPI_CPOL) != 0) << 3);
-+	chip->cr1 &= ~(SSCR1_SPO | SSCR1_SPH);
-+	chip->cr1 |= (((spi->mode & SPI_CPHA) != 0) ? SSCR1_SPH : 0)
-+			| (((spi->mode & SPI_CPOL) != 0) ? SSCR1_SPO : 0);
+diff -puN drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-svm-propagate-cpu-shutdown-events-to-userspace
++++ a/drivers/kvm/svm.c
+@@ -502,6 +502,7 @@ static void init_vmcb(struct vmcb *vmcb)
+ 				(1ULL << INTERCEPT_IOIO_PROT) |
+ 				(1ULL << INTERCEPT_MSR_PROT) |
+ 				(1ULL << INTERCEPT_TASK_SWITCH) |
++				(1ULL << INTERCEPT_SHUTDOWN) |
+ 				(1ULL << INTERCEPT_VMRUN) |
+ 				(1ULL << INTERCEPT_VMMCALL) |
+ 				(1ULL << INTERCEPT_VMLOAD) |
+@@ -892,6 +893,19 @@ static int pf_interception(struct kvm_vc
+ 	return 0;
+ }
  
- 	/* NOTE:  PXA25x_SSP _could_ use external clocking ... */
- 	if (drv_data->ssp_type != PXA25x_SSP)
++static int shutdown_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
++{
++	/*
++	 * VMCB is undefined after a SHUTDOWN intercept
++	 * so reinitialize it.
++	 */
++	memset(vcpu->svm->vmcb, 0, PAGE_SIZE);
++	init_vmcb(vcpu->svm->vmcb);
++
++	kvm_run->exit_reason = KVM_EXIT_SHUTDOWN;
++	return 0;
++}
++
+ static int io_get_override(struct kvm_vcpu *vcpu,
+ 			  struct vmcb_seg **seg,
+ 			  int *addr_override)
+@@ -1249,6 +1263,7 @@ static int (*svm_exit_handlers[])(struct
+ 	[SVM_EXIT_IOIO] 		  	= io_interception,
+ 	[SVM_EXIT_MSR]				= msr_interception,
+ 	[SVM_EXIT_TASK_SWITCH]			= task_switch_interception,
++	[SVM_EXIT_SHUTDOWN]			= shutdown_interception,
+ 	[SVM_EXIT_VMRUN]			= invalid_op_interception,
+ 	[SVM_EXIT_VMMCALL]			= invalid_op_interception,
+ 	[SVM_EXIT_VMLOAD]			= invalid_op_interception,
+diff -puN include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace include/linux/kvm.h
+--- a/include/linux/kvm.h~kvm-svm-propagate-cpu-shutdown-events-to-userspace
++++ a/include/linux/kvm.h
+@@ -46,6 +46,7 @@ enum kvm_exit_reason {
+ 	KVM_EXIT_HLT              = 5,
+ 	KVM_EXIT_MMIO             = 6,
+ 	KVM_EXIT_IRQ_WINDOW_OPEN  = 7,
++	KVM_EXIT_SHUTDOWN         = 8,
+ };
+ 
+ /* for KVM_RUN */
 _
 
-Patches currently in -mm which might be from justin@redfish-group.com are
+Patches currently in -mm which might be from joerg.roedel@amd.com are
 
 origin.patch
