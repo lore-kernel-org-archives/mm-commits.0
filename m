@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + clocksource-add-verification-watchdog-helper-fix-2.patch added to -mm tree
-Date: Sat, 27 Jan 2007 17:02:10 -0800
-Message-ID: <200701280103.l0S131CI019844@shell0.pdx.osdl.net>
+Subject: + tick-management-dyntick--highres-functionality-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 17:05:08 -0800
+Message-ID: <200701280105.l0S15xlX019870@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41287 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41346 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932248AbXA1BDW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 20:03:22 -0500
+	id S932310AbXA1BGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 20:06:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     clocksource-add-verification-watchdog-helper fix 2
+     tick-management-dyntick--highres-functionality fix
 has been added to the -mm tree.  Its filename is
-     clocksource-add-verification-watchdog-helper-fix-2.patch
+     tick-management-dyntick--highres-functionality-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource-add-verification-watchdog-helper fix 2
+Subject: tick-management-dyntick--highres-functionality fix
 From: Andrew Morton <akpm@osdl.org>
 
-Try to make this patch series bisectable.
+Bisectability.
 
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/timer.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/time/clocksource.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2 kernel/timer.c
---- a/kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2
-+++ a/kernel/timer.c
-@@ -854,7 +854,6 @@ static void change_clocksource(void)
- 	clock->xtime_nsec = 0;
- 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
+diff -puN kernel/time/clocksource.c~tick-management-dyntick--highres-functionality-fix kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~tick-management-dyntick--highres-functionality-fix
++++ a/kernel/time/clocksource.c
+@@ -28,6 +28,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/tick.h>
  
--	hrtimer_clock_notify();
- 	printk(KERN_INFO "Time: %s clocksource has been installed.\n",
- 	       clock->name);
- }
+ /* XXX - Would like a better way for initializing curr_clocksource */
+ extern struct clocksource clocksource_jiffies;
+@@ -114,7 +115,7 @@ static void clocksource_watchdog(unsigne
+ 				 * system as well so that we transition
+ 				 * into high-res mode:
+ 				 */
+-//				tick_clock_notify();
++				tick_clock_notify();
+ 			}
+ 			cs->flags |= CLOCK_SOURCE_WATCHDOG;
+ 			cs->wd_last = csnow;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -150,9 +159,11 @@ vmi-versus-hrtimers.patch
 add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
 i386-use-gtod-persistent-clock-support.patch
 clocksource-add-verification-watchdog-helper-fix-2.patch
+clocksource-add-verification-watchdog-helper-fix-3.patch
 hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 hrtimers-cleanup-locking.patch
 hrtimers-add-state-tracking.patch
+tick-management-dyntick--highres-functionality-fix.patch
 clockevents-i383-drivers.patch
 hrt-dynticks-hotplug-fix-fix.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
