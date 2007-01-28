@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + x86-fix-vdso-mapping-for-aout-executables-doh.patch added to -mm tree
-Date: Sat, 27 Jan 2007 16:26:16 -0800
-Message-ID: <200701280027.l0S0R7al019407@shell0.pdx.osdl.net>
+Subject: + clocksource-add-verification-watchdog-helper-fix-2.patch added to -mm tree
+Date: Sat, 27 Jan 2007 17:02:10 -0800
+Message-ID: <200701280103.l0S131CI019844@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40067 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41287 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932153AbXA1A1W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 19:27:22 -0500
+	id S932248AbXA1BDW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 20:03:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, parag.warudkar@gmail.com, paulus@samba.org
+Cc: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86-fix-vdso-mapping-for-aout-executables-doh
+     clocksource-add-verification-watchdog-helper fix 2
 has been added to the -mm tree.  Its filename is
-     x86-fix-vdso-mapping-for-aout-executables-doh.patch
+     clocksource-add-verification-watchdog-helper-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-fix-vdso-mapping-for-aout-executables-doh
+Subject: clocksource-add-verification-watchdog-helper fix 2
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Parag Warudkar <parag.warudkar@gmail.com>
-Cc: Joerg Ahrens <joerg@hydrops.han.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Try to make this patch series bisectable.
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/ia32/syscall32.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/timer.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86_64/ia32/syscall32.c~x86-fix-vdso-mapping-for-aout-executables-doh arch/x86_64/ia32/syscall32.c
---- a/arch/x86_64/ia32/syscall32.c~x86-fix-vdso-mapping-for-aout-executables-doh
-+++ a/arch/x86_64/ia32/syscall32.c
-@@ -11,6 +11,8 @@
- #include <linux/stringify.h>
- #include <linux/security.h>
- #include <linux/interp.h>
-+#include <linux/module.h>
-+
- #include <asm/proto.h>
- #include <asm/tlbflush.h>
- #include <asm/ia32_unistd.h>
-@@ -59,7 +61,7 @@ const char *arch_vma_name(struct vm_area
+diff -puN kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2 kernel/timer.c
+--- a/kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2
++++ a/kernel/timer.c
+@@ -854,7 +854,6 @@ static void change_clocksource(void)
+ 	clock->xtime_nsec = 0;
+ 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
  
- int arch_setup_additional_pages(struct linux_binprm *bprm, int exstack)
- {
--	return syscall32_setup_pages(bprm, int exstack);
-+	return syscall32_setup_pages(bprm, exstack);
+-	hrtimer_clock_notify();
+ 	printk(KERN_INFO "Time: %s clocksource has been installed.\n",
+ 	       clock->name);
  }
- EXPORT_SYMBOL(arch_setup_additional_pages);
- 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -69,6 +57,7 @@ origin.patch
 x86-fix-vdso-mapping-for-aout-executables-fixes.patch
 x86-fix-vdso-mapping-for-aout-executables-fixes-2.patch
 x86-fix-vdso-mapping-for-aout-executables-cleanups.patch
+x86-fix-vdso-mapping-for-aout-executables-doh.patch
 mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
@@ -160,6 +149,7 @@ mips-convert-to-use-shared-apm-emulation-fix.patch
 vmi-versus-hrtimers.patch
 add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
 i386-use-gtod-persistent-clock-support.patch
+clocksource-add-verification-watchdog-helper-fix-2.patch
 hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 hrtimers-cleanup-locking.patch
 hrtimers-add-state-tracking.patch
@@ -257,4 +247,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-x86-fix-vdso-mapping-for-aout-executables-doh.patch
+a.patch
